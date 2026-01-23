@@ -1,5 +1,5 @@
 <template>
-  <VtsTreeItem :expanded="!branch.isCollapsed">
+  <VtsTreeItem :expanded="!branch.isCollapsed" :node-id="branch.data.id">
     <UiTreeItemLabel icon="fa:satellite" route="/" @toggle="branch.toggleCollapse()">
       {{ branch.data.name_label }}
       <template #addons>

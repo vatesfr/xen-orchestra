@@ -1,3 +1,7 @@
+export const vbdId = {
+  id: '5f9a4c0b-3548-6171-4396-699a0e56cc60',
+}
+
 export const vbdIds = [
   '/rest/v0/vbds/5f9a4c0b-3548-6171-4396-699a0e56cc60',
   '/rest/v0/vbds/60c7c9b6-35ba-1791-67b5-6aaf90eea11d',

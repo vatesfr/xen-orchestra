@@ -18,7 +18,7 @@
       <VtsTreeList v-if="!isReady">
         <VtsTreeLoadingItem v-for="i in 5" :key="i" icon="fa:city" />
       </VtsTreeList>
-      <VtsStateHero v-else-if="isSearching" format="card" size="medium" type="busy" class="loader" />
+      <VtsStateHero v-else-if="isSearching" format="card" type="busy" size="medium" class="loader" />
       <VtsStateHero v-else-if="sites.length === 0" format="card" size="medium" type="no-result">
         {{ t('no-result') }}
       </VtsStateHero>
@@ -45,8 +45,9 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLogoText from '@core/components/ui/logo-text/UiLogoText.vue'
 import CoreLayout from '@core/layouts/CoreLayout.vue'
 import { useUiStore } from '@core/stores/ui.store'
-import { computed } from 'vue'
+import { onMounted, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 
 defineSlots<{
   default(): any
@@ -55,9 +56,27 @@ const { t } = useI18n()
 
 const uiStore = useUiStore()
 
-const { sites, isReady, filter, isSearching } = useSiteTree()
+const { sites, isReady, filter, isSearching, scrollToNodeElement } = useSiteTree()
+const route = useRoute<'/pool/[id]' | '/host/[id]' | '/vm/[id]'>()
+
 const { buildXo5Route } = useXoRoutes()
 const xo5Route = computed(() => buildXo5Route('/'))
+
+async function scrollToRouteParamId() {
+  const paramId = route.params.id
+  await scrollToNodeElement(paramId)
+}
+
+onMounted(() => {
+  scrollToRouteParamId()
+})
+
+watch(
+  () => route.params.id,
+  async () => {
+    await scrollToRouteParamId()
+  }
+)
 </script>
 
 <style lang="postcss" scoped>

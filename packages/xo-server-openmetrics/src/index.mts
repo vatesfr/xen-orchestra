@@ -6,7 +6,7 @@
  * RRD data directly from connected XAPI pools.
  */
 
-import type { XoHost, XoNetwork, XoPif, XoPool, XoSr, XoVbd, XoVdi, XoVif, XoVm } from '@vates/types'
+import type { XoApp, XoHost, XoNetwork, XoPif, XoPool, XoSr, XoVbd, XoVdi, XoVif, XoVm } from '@vates/types'
 import { createLogger } from '@xen-orchestra/log'
 import { fork, type ChildProcess } from 'node:child_process'
 import { dirname, join } from 'node:path'
@@ -93,21 +93,6 @@ interface SrDataPayload {
 // Union type for all XO objects we handle
 type XoObject = XoHost | XoPool | XoVm | XoVbd | XoVdi | XoVif | XoPif | XoSr | XoNetwork
 
-// Minimal type for XAPI connection
-interface Xapi {
-  status: string
-  pool?: { uuid: string }
-  sessionId: string
-  _url?: { protocol: string; hostname: string; port?: string }
-}
-
-// Minimal type for xo-server instance
-interface XoServer {
-  getAllXapis(): Record<string, Xapi>
-  checkFeatureAuthorization(code: string): Promise<void>
-  getObjects(filter?: { filter?: Record<string, unknown> }): Record<string, unknown>
-}
-
 // ============================================================================
 // Constants
 // ============================================================================
@@ -155,9 +140,9 @@ class OpenMetricsPlugin {
   #childProcess: ChildProcess | undefined
   #pendingRequests = new Map<string, PendingRequest>()
   #requestIdCounter = 0
-  readonly #xo: XoServer
+  readonly #xo: XoApp
 
-  constructor(xo: XoServer) {
+  constructor(xo: XoApp) {
     this.#xo = xo
     logger.info('Plugin initialized')
   }
@@ -734,7 +719,7 @@ class OpenMetricsPlugin {
 // ============================================================================
 
 interface PluginOptions {
-  xo: XoServer
+  xo: XoApp
 }
 
 function pluginFactory({ xo }: PluginOptions): OpenMetricsPlugin {

@@ -86,12 +86,13 @@ export function useSiteTree() {
     },
   })
 
-  const { nodes } = useTree(definitions, { collapsedIds })
+  const { nodes, scrollToNodeElement } = useTree(definitions, { collapsedIds })
 
   return {
     isReady,
     sites: nodes,
     filter,
     isSearching,
+    scrollToNodeElement,
   }
 }

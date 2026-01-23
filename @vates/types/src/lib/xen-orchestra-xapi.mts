@@ -5,10 +5,13 @@ import {
   XenApiRecord,
   XenApiSr,
   XenApiTask,
+  XenApiVbd,
   XenApiVdi,
   XenApiVm,
   XenApiVmWrapped,
+  XenApiVtpm,
 } from '../xen-api.mjs'
+import type { OPAQUE_REF_NULL, VBD_MODE, VBD_TYPE } from '../common.mjs'
 import type { PassThrough, Readable } from 'node:stream'
 import type {
   XoGpuGroup,
@@ -172,11 +175,26 @@ export interface Xapi {
       gpuGroup?: XoGpuGroup['id']
       copyHostBiosStrings?: boolean
       hvmBootFirmware?: 'uefi' | 'bios'
+      secureBoot?: boolean
     },
     checkLimits?: boolean,
     creatorId?: XoUser['id'],
     opts?: { destroyAllVifs: boolean }
   ): Promise<XenApiVmWrapped>
+  VBD_create(params: {
+    bootable?: boolean
+    empty?: boolean
+    mode?: VBD_MODE
+    other_config?: Record<string, string>
+    qos_algorithm_params?: Record<string, string>
+    qos_algorithm_type?: string
+    type?: VBD_TYPE
+    unpluggable?: boolean
+    userdevice?: string
+    VDI: XenApiVdi['$ref'] | OPAQUE_REF_NULL
+    VM: XenApiVm['$ref']
+  }): Promise<XenApiVbd['$ref']>
+  VBD_destroy(vbdRef: XenApiVbd['$ref']): Promise<void>
   VDI_destroy(vdiRef: XenApiVdi['$ref']): Promise<void>
   VDI_destroyCloudInitConfig(vdiRef: XenApiVdi['$ref'], opts?: { timeLimit?: number }): Promise<void>
   VDI_exportContent(
@@ -207,4 +225,5 @@ export interface Xapi {
     params?: { host?: XenApiHost; query?: Record<string, unknown>; task?: boolean | XenApiTask['$ref'] }
   ): Promise<{ body: Readable }>
   isHyperThreadingEnabled(hostId: XoHost['id']): Promise<boolean | null>
+  VTPM_create(params: { VM: XenApiVm['$ref']; is_unique?: boolean; contents?: string }): Promise<XenApiVtpm['$ref']>
 }
