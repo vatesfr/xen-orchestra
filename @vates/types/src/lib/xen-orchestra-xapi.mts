@@ -212,10 +212,10 @@ export interface Xapi {
   VIF_create(
     options: {
       currently_attached: boolean
-      device: string | undefined
-      ipv4_allowed: string[]
-      ipv6_allowed: string[]
-      locking_mode: VIF_LOCKING_MODE
+      device?: string
+      ipv4_allowed?: string[]
+      ipv6_allowed?: string[]
+      locking_mode?: VIF_LOCKING_MODE
       MTU: number
       network: XenApiNetwork['$ref']
       other_config: Record<string, string>
@@ -223,7 +223,7 @@ export interface Xapi {
       qos_algorithm_type: string
       VM: XenApiVm['$ref']
     },
-    MAC: {
+    extraOptions: {
       MAC: string
     }
   ): Promise<XenApiVif['$ref']>
