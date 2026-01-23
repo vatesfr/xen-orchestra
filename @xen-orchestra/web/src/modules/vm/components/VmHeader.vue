@@ -16,7 +16,6 @@
         <template #trigger="{ open }">
           <UiDropdownButton @click="open($event)">{{ t('action:change-state') }}</UiDropdownButton>
         </template>
-        <VmActions :vm />
         <VmPowerStateActions :vm />
       </MenuList>
       <MenuList placement="bottom-end">
@@ -77,16 +76,19 @@
 </template>
 
 <script lang="ts" setup>
-import VmActions from '@/modules/vm/components/actions/VmActions.vue'
+import VmMoreActions from '@/modules/vm/components/actions/VmMoreActions.vue'
+import VmPowerStateActions from '@/modules/vm/components/actions/VmPowerStateActions.vue'
 import { CHANGING_STATE_OPERATIONS, isVmOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import type { XoVm } from '@vates/types'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
