@@ -1,3 +1,4 @@
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { CHANGING_STATE_OPERATIONS, isVmOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import type { IconName } from '@core/icons'
@@ -5,12 +6,12 @@ import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
 import { useMapper } from '@core/packages/mapper'
 import { parseDateTime } from '@core/utils/time.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import { VM_POWER_STATE, type XoVm } from '@vates/types'
+import { VM_POWER_STATE } from '@vates/types'
 import type { MaybeRefOrGetter } from '@vueuse/shared'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export function useXoVmUtils(rawVm: MaybeRefOrGetter<XoVm>) {
+export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
   const { t, locale } = useI18n()
 
   const vm = toComputed(rawVm)

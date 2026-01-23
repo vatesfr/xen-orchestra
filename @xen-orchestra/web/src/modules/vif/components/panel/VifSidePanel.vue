@@ -141,6 +141,7 @@ import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-x
 import { getPoolNetworkLink } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
+import type { FrontXoVif } from '../../remote-resources/use-xo-vif-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -152,11 +153,10 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import type { XoVif } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vif } = defineProps<{ vif: XoVif }>()
+const { vif } = defineProps<{ vif: FrontXoVif }>()
 
 const emit = defineEmits<{
   close: []

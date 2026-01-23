@@ -17,7 +17,7 @@
 
 <script lang="ts" setup>
 import EasyVirtLogo from '@/modules/third-parties/components/easyvirt/EasyVirtLogo.vue'
-import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { useXoVmCollection, type FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { formatIpToHostName, type IpAddress } from '@/shared/utils/ip.utils.ts'
 import VtsDropdownTitle from '@core/components/dropdown/VtsDropdownTitle.vue'
@@ -25,7 +25,6 @@ import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import type { XoVm } from '@vates/types'
 import { computed } from 'vue'
 
 import { useI18n } from 'vue-i18n'
@@ -66,16 +65,16 @@ const easyVirtSolutions = computed(() => [
   { label: dcNetscopeLabel.value, href: dcNetscopeLink.value },
 ])
 
-function getInstallTime(vm: XoVm, product: Product): string | undefined {
+function getInstallTime(vm: FrontXoVm, product: Product): string | undefined {
   return vm.other[`xo:${product}:installTime`]
 }
 
-function getLatestVmIp(vms: XoVm[], product: Product): string | undefined {
+function getLatestVmIp(vms: FrontXoVm[], product: Product): string | undefined {
   if (vms.length === 0) {
     return
   }
 
-  let latestVm: XoVm | undefined
+  let latestVm: FrontXoVm | undefined
   Object.values(vms).forEach(vm => {
     if (vm.mainIpAddress === undefined || getInstallTime(vm, product) === undefined) {
       return

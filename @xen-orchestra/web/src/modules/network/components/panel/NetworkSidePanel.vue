@@ -97,6 +97,7 @@
 <script setup lang="ts">
 import PifRow from '@/modules/pif/components/PifRow.vue'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import type { FrontXoNetwork } from '../../remote-resources/use-xo-network-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -107,12 +108,11 @@ import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import type { XoNetwork } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { network } = defineProps<{
-  network: XoNetwork
+  network: FrontXoNetwork
 }>()
 
 const emit = defineEmits<{

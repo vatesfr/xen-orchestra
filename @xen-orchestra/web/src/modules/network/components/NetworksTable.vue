@@ -30,6 +30,7 @@
 import { getNetworkStatus } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import type { FrontXoNetwork } from '../remote-resources/use-xo-network-collection.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -39,7 +40,6 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { useNetworkColumns } from '@core/tables/column-sets/network-columns.ts'
-import type { XoNetwork } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -49,7 +49,7 @@ const {
   busy,
   error,
 } = defineProps<{
-  networks: XoNetwork[]
+  networks: FrontXoNetwork[]
   busy?: boolean
   error?: boolean
   internal?: boolean
@@ -90,7 +90,7 @@ const state = useTableState({
         : false,
 })
 
-const getNetworkVlan = (network: XoNetwork) => {
+const getNetworkVlan = (network: FrontXoNetwork) => {
   const networkPIFs = pifs.value.filter(pif => network.PIFs.includes(pif.id))
 
   if (networkPIFs.length > 0) {
@@ -104,7 +104,7 @@ const { pageRecords: paginatedNetworks, paginationBindings } = usePagination('ne
 
 const { HeadCells, BodyCells } = useNetworkColumns({
   exclude: internal ? ['vlan', 'status'] : [],
-  body: (network: XoNetwork) => {
+  body: (network: FrontXoNetwork) => {
     const { buildXo5Route } = useXoRoutes()
 
     const networkPifs = computed(() => getPifsByIds(network.PIFs))

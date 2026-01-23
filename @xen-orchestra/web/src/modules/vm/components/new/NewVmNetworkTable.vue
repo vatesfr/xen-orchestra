@@ -21,6 +21,7 @@
 </template>
 
 <script setup lang="ts">
+import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection'
 import type { Vif, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -28,13 +29,12 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import { useFormSelect } from '@core/packages/form-select'
 import { useNewVmNetworkColumns } from '@core/tables/column-sets/new-vm-network-columns.ts'
-import type { XoNetwork } from '@vates/types'
 import { toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { networks } = defineProps<{
   vmState: VmState
-  networks: XoNetwork[]
+  networks: FrontXoNetwork[]
 }>()
 
 const emit = defineEmits<{

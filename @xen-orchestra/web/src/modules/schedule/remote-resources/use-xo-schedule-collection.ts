@@ -4,11 +4,20 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import type { AnyXoBackupJob, XoSchedule } from '@vates/types'
 import { computed } from 'vue'
 
-const scheduleFields: (keyof XoSchedule)[] = ['id', 'jobId', 'name', 'enabled', 'cron', 'timezone'] as const
+type FrontXoSchedule = Pick<XoSchedule, (typeof scheduleFields)[number]>
+
+const scheduleFields = [
+  'id',
+  'jobId',
+  'name',
+  'enabled',
+  'cron',
+  'timezone',
+] as const satisfies readonly (keyof XoSchedule)[]
 
 export const useXoScheduleCollection = defineRemoteResource({
   url: `${BASE_URL}/schedules?fields=${scheduleFields.join(',')}`,
-  initialData: () => [] as XoSchedule[],
+  initialData: () => [] as FrontXoSchedule[],
   state: (schedules, context) => {
     const state = useXoCollectionState(schedules, {
       context,
@@ -16,7 +25,7 @@ export const useXoScheduleCollection = defineRemoteResource({
     })
 
     const schedulesByJobId = computed(() => {
-      const schedulesByJobIdMap = new Map<AnyXoBackupJob['id'], XoSchedule[]>()
+      const schedulesByJobIdMap = new Map<AnyXoBackupJob['id'], FrontXoSchedule[]>()
 
       schedules.value.forEach(schedule => {
         if (!schedulesByJobIdMap.has(schedule.jobId)) {

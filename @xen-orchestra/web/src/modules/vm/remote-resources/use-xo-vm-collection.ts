@@ -1,4 +1,4 @@
-import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { watchCollectionWrapper } from '@/shared/utils/sse.util.ts'
@@ -8,7 +8,9 @@ import { VM_POWER_STATE, type XoHost, type XoPool, type XoVm } from '@vates/type
 import { useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 
-const vmFields: (keyof XoVm)[] = [
+export type FrontXoVm = Pick<XoVm, (typeof vmFields)[number]>
+
+const vmFields = [
   'id',
   'name_label',
   'name_description',
@@ -54,12 +56,12 @@ const vmFields: (keyof XoVm)[] = [
   '$VBDs',
   'snapshots',
   'boot',
-] as const
+] as const satisfies readonly (keyof XoVm)[]
 
 export const useXoVmCollection = defineRemoteResource({
   url: `${BASE_URL}/vms?fields=${vmFields.join(',')}`,
   watchCollection: watchCollectionWrapper({ resource: 'VM', fields: vmFields }),
-  initialData: () => [] as XoVm[],
+  initialData: () => [] as FrontXoVm[],
   state: (rawVms, context) => {
     const { getHostById } = useXoHostCollection(context)
 
@@ -80,10 +82,10 @@ export const useXoVmCollection = defineRemoteResource({
         acc.get(vm.$pool)!.push(vm)
 
         return acc
-      }, new Map<XoPool['id'], XoVm[]>())
+      }, new Map<XoPool['id'], FrontXoVm[]>())
     })
 
-    function getVmHost(vm: XoVm): XoHost | undefined {
+    function getVmHost(vm: FrontXoVm): FrontXoHost | undefined {
       const vmHostId = extractVmHostId(vm)
 
       if (vmHostId === undefined) {
@@ -107,8 +109,8 @@ export const useXoVmCollection = defineRemoteResource({
   },
 })
 
-function createVmsByHostMap<THostLess extends boolean>(vms: XoVm[], hostLess: THostLess) {
-  const vmsMap = new Map<THostLess extends true ? XoPool['id'] : XoHost['id'], XoVm[]>()
+function createVmsByHostMap<THostLess extends boolean>(vms: FrontXoVm[], hostLess: THostLess) {
+  const vmsMap = new Map<THostLess extends true ? XoPool['id'] : XoHost['id'], FrontXoVm[]>()
 
   vms.forEach(vm => {
     const hasHost = vm.$container !== vm.$pool
@@ -129,6 +131,6 @@ function createVmsByHostMap<THostLess extends boolean>(vms: XoVm[], hostLess: TH
   return vmsMap
 }
 
-function extractVmHostId(vm: XoVm) {
-  return vm.$container === vm.$pool ? undefined : (vm.$container as XoHost['id'])
+function extractVmHostId(vm: FrontXoVm) {
+  return vm.$container === vm.$pool ? undefined : (vm.$container as FrontXoHost['id'])
 }

@@ -3,11 +3,13 @@ import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoBackupRepository } from '@vates/types'
 
-const backupRepositoryFields: (keyof XoBackupRepository)[] = ['id', 'name', 'enabled'] as const
+export type FrontXoBackupRepository = Pick<XoBackupRepository, (typeof backupRepositoryFields)[number]>
+
+const backupRepositoryFields = ['id', 'name', 'enabled'] as const satisfies readonly (keyof XoBackupRepository)[]
 
 export const useXoBackupRepositoryCollection = defineRemoteResource({
   url: `${BASE_URL}/backup-repositories?fields=${backupRepositoryFields.join(',')}`,
-  initialData: () => [] as XoBackupRepository[],
+  initialData: () => [] as FrontXoBackupRepository[],
   state: (backupRepositories, context) =>
     useXoCollectionState(backupRepositories, {
       context,

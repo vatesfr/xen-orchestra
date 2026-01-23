@@ -1,6 +1,9 @@
-import { useXoBackupLogCollection } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
+import {
+  useXoBackupLogCollection,
+  type FrontXoBackupLog,
+} from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
-import type { AnyXoBackupJob, XoBackupLog } from '@vates/types'
+import type { AnyXoBackupJob } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export function useXoBackupJobSchedulesUtils() {
@@ -9,7 +12,7 @@ export function useXoBackupJobSchedulesUtils() {
   const { getLastNBackupLogsByJobId } = useXoBackupLogCollection()
   const { schedulesByJobId } = useXoScheduleCollection()
 
-  const getRunInfo = (backupLog: XoBackupLog, index: number) => ({
+  const getRunInfo = (backupLog: FrontXoBackupLog, index: number) => ({
     status: backupLog.status,
     tooltip: `${t('last-run-number', { n: index + 1 })}: ${d(backupLog.end ?? backupLog.start, 'datetime_short')}, ${t(backupLog.status)}`,
   })

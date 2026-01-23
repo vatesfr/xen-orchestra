@@ -12,12 +12,12 @@
 </template>
 
 <script lang="ts" setup>
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import type { XoPool } from '@vates/types'
 
 defineProps<{
-  pool: XoPool
+  pool: FrontXoPool
   label?: string
 }>()
 </script>

@@ -1,5 +1,5 @@
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import { useXoVdiCollection, type FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { watchCollectionWrapper } from '@/shared/utils/sse.util.ts'
@@ -9,7 +9,9 @@ import type { AnyXoVdi, XoPool, XoSr, XoVdi } from '@vates/types'
 import { reactify, useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 
-const srFields: (keyof XoSr)[] = [
+export type FrontXoSr = Pick<XoSr, (typeof srFields)[number]>
+
+const srFields = [
   'id',
   'name_label',
   'name_description',
@@ -27,12 +29,12 @@ const srFields: (keyof XoSr)[] = [
   'tags',
   'allocationStrategy',
   '$PBDs',
-] as const
+] as const satisfies readonly (keyof XoSr)[]
 
 export const useXoSrCollection = defineRemoteResource({
   url: `${BASE_URL}/srs?fields=${srFields.join(',')}`,
   watchCollection: watchCollectionWrapper({ resource: 'SR', fields: srFields }),
-  initialData: () => [] as XoSr[],
+  initialData: () => [] as FrontXoSr[],
   state: (rawSrs, context) => {
     const srs = useSorted(rawSrs, (sr1, sr2) => sortByNameLabel(sr1, sr2))
 
@@ -57,7 +59,7 @@ export const useXoSrCollection = defineRemoteResource({
     )
 
     const vdiIsosBySrName = computed(() => {
-      const groupedVDIs: Record<string, XoVdi[]> = {}
+      const groupedVDIs: Record<string, FrontXoVdi[]> = {}
 
       isoVdiIds.value.forEach(vdiId => {
         const vdi = getVdiById(vdiId as XoVdi['id'])
@@ -79,7 +81,7 @@ export const useXoSrCollection = defineRemoteResource({
     })
 
     const srsByPool = computed(() => {
-      const srsByPoolMap = new Map<XoPool['id'], XoSr[]>()
+      const srsByPoolMap = new Map<XoPool['id'], FrontXoSr[]>()
 
       srs.value.forEach(sr => {
         const poolId = sr.$pool
@@ -94,9 +96,9 @@ export const useXoSrCollection = defineRemoteResource({
       return srsByPoolMap
     })
 
-    const isDefaultSr = (sr: XoSr) => getPoolById(sr.$pool)?.default_SR === sr.id
+    const isDefaultSr = (sr: FrontXoSr) => getPoolById(sr.$pool)?.default_SR === sr.id
 
-    const isHighAvailabilitySr = reactify((sr: XoSr) => {
+    const isHighAvailabilitySr = reactify((sr: FrontXoSr) => {
       const srPool = getPoolById(sr.$pool)
 
       return srPool?.haSrs?.includes(sr.id) ?? false
