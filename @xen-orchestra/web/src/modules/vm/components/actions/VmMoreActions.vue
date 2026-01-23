@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts" setup>
-import VmDeleteButton from '@/components/vm/actions/VmDeleteButton.vue'
+import VmDeleteButton from '@/modules/vm/components/actions/delete/VmDeleteButton.vue'
 import type { XoVm } from '@vates/types'
 
 defineProps<{
