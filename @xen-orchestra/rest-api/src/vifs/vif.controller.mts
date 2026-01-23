@@ -11,7 +11,6 @@ import {
   Response,
   Route,
   Security,
-  SuccessResponse,
   Tags,
 } from 'tsoa'
 import { inject } from 'inversify'
@@ -33,9 +32,7 @@ import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { provide } from 'inversify-binding-decorators'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import {
-  asynchronousActionResp,
   badRequestResp,
-  createdResp,
   internalServerErrorResp,
   notFoundResp,
   unauthorizedResp,
@@ -48,7 +45,6 @@ import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.m
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { taskIds, partialTasks } from '../open-api/oa-examples/task.oa-example.mjs'
-import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 
 type UnbrandedXoVif = Unbrand<XoVif>
 
@@ -172,51 +168,53 @@ export class VifController extends XapiXoController<XoVif> {
    * @example vmId "613f541c-4bed-fc77-7ca8-2db6b68f079c"
    * @example networkId "6b6ca0f5-6611-0636-4b0a-1fb1c1e96414"
    */
+  @Example({ vifRef: 'fe8783f0-3bff-5342-3cc1-6e923f98eb38' })
   @Post('')
   @Middlewares(json())
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async createVif(
-    @Query() vmId: string,
-    @Query() networkId: string,
     @Body()
     body: {
+      vmId: string
+      networkId: string
       currently_attached: boolean
       device?: string
-      ipv4_allowed: string[]
-      ipv6_allowed: string[]
-      locking_mode: VIF_LOCKING_MODE
+      ipv4_allowed?: string[]
+      ipv6_allowed?: string[]
+      locking_mode?: VIF_LOCKING_MODE
       MTU: number
       other_config: Record<string, string>
       qos_algorithm_params: Record<string, string>
       qos_algorithm_type: string
       MAC: string
     }
-  ): Promise<{ vifRef: Unbrand<XenApiVif>['$ref'] }> {
-    const xapi = this.getXapi(networkId as XoNetwork['id'])
-    const vm = this.restApi.getObject<XoVm>(vmId as XoVm['id'], 'VM')
-    const network = this.restApi.getObject<XoNetwork>(networkId as XoNetwork['id'], 'network')
+  ): Promise<{ vifId: XoVif['id'] }> {
+    const xapi = this.getXapi(body.networkId as XoNetwork['id'])
+    const xapiVm = this.restApi.getXapiObject<XoVm>(body.vmId as XoVm['id'], 'VM')
+    const xapiNetwork = this.restApi.getXapiObject<XoNetwork>(body.networkId as XoNetwork['id'], 'network')
 
     const vifRef = await xapi.VIF_create(
       {
         currently_attached: body.currently_attached,
-        device: body.device ?? undefined,
+        device: body.device,
         ipv4_allowed: body.ipv4_allowed,
         ipv6_allowed: body.ipv6_allowed,
         locking_mode: body.locking_mode,
         MTU: body.MTU,
-        network: network._xapiRef as XenApiNetwork['$ref'],
+        network: xapiNetwork.$ref,
         other_config: body.other_config,
         qos_algorithm_params: body.qos_algorithm_params,
         qos_algorithm_type: body.qos_algorithm_type,
-        VM: vm._xapiRef as XenApiVm['$ref'],
+        VM: xapiVm.$ref,
       },
       {
         MAC: body.MAC,
       }
     )
 
-    return { vifRef }
+    const vif = this.getObject(vifRef as XenApiVif['$ref'])
+    return { vifId: vif.id }
   }
 
   /**

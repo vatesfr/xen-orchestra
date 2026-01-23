@@ -20,7 +20,7 @@
 - [REST API] Added `/vms/{id}/actions/create_vif` and `/vms/{id}/actions/destroy_vif` rest routes (PR [#9393](https://github.com/vatesfr/xen-orchestra/pull/9393))
 - [vhd-cli] Prevent using invalid options (PR [#9386](https://github.com/vatesfr/xen-orchestra/pull/9386))
 - [REST API] Add endpoints to reconfigure management interface for hosts and pools (PR [#9369](https://github.com/vatesfr/xen-orchestra/pull/9369))
-- [REST API] Added POST `/vifs` and DELETE `/vifs` rest routes (PR [#9393](https://github.com/vatesfr/xen-orchestra/pull/9393))
+- [REST API] Added POST `/vifs` and DELETE `/vifs/:id` rest routes (PR [#9393](https://github.com/vatesfr/xen-orchestra/pull/9393))
 
 ### Bug fixes
 
