@@ -60,7 +60,9 @@
                         Available template variables <br />
                         - {name}: the VM's name. - It must not contain "_" <br />
                         - {index}: the VM's index,<br />
-                        it will take 0 in case of single VM Tip: escape any variable with a preceding backslash (\)
+                        it will take 0 in case of single VM
+                        - {alpha}: the VM's alphabetical index,<br />
+                        it will take 'a' in case of single VM Tip: escape any variable with a preceding backslash (\)
                       </span>
                     </div>
                     <div>

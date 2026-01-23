@@ -9,6 +9,8 @@
 
 ### Enhancements
 
+Add {alpha} index (abcd...) for multiple new VM name patterns
+
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 ### Bug fixes
@@ -30,5 +32,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
+- xo-web minor
 <!--packages-end-->
