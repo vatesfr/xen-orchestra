@@ -30,7 +30,7 @@ export type SupportedActions<T extends SupportedResource> =
 
 export class Privilege<T extends SupportedResource> {
   #action: TPrivilege<T>['action']
-  #selector?: TPrivilege<T>['selector']
+  #selector?: (object: object) => boolean
   #resource: TPrivilege<T>['resource']
   #effect: TPrivilege<T>['effect']
 
@@ -48,7 +48,7 @@ export class Privilege<T extends SupportedResource> {
     Privilege.checkActionIsValid(resource, action)
 
     this.#action = action
-    this.#selector = selector
+    this.#selector = selector !== undefined ? createPredicate(selector) : undefined
     this.#resource = resource
     this.#effect = effect
   }
@@ -87,13 +87,12 @@ export class Privilege<T extends SupportedResource> {
     throw new Error(`Unable to verify if ${this.#action} match ${action} `)
   }
 
-  #matchSelector(object: unknown) {
-    const complexMatcher = this.#selector
-    if (complexMatcher === undefined) {
+  #matchSelector(object: object) {
+    if (this.#selector === undefined) {
       return true
     }
 
-    return createPredicate(complexMatcher)(object)
+    return this.#selector(object)
   }
 
   #matchResource(resource: string): resource is SupportedResource {
@@ -103,7 +102,7 @@ export class Privilege<T extends SupportedResource> {
   match<Resource extends SupportedResource = T>(constraint: {
     action: SupportedActions<Resource>
     resource: Resource
-    object: unknown
+    object: object
   }): boolean {
     return (
       this.#matchResource(constraint.resource) &&
@@ -118,9 +117,7 @@ export class Privilege<T extends SupportedResource> {
   static checkActionIsValid<T extends SupportedResource>(resource: T, action: SupportedActions<T>) {
     const supportedActions = SUPPORTED_ACTIONS_BY_RESOURCE[resource]
     if (supportedActions === undefined) {
-      throw new Error(
-        `${resource} resource not supported. See ${Object.keys(SUPPORTED_ACTIONS_BY_RESOURCE).join(', ')}`
-      )
+      throw new Error(`${resource} resource not supported`)
     }
 
     if (action === '*') {
