@@ -38,7 +38,6 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useVdiColumns } from '@core/tables/column-sets/vdi-columns.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
-import type { XoVm } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -81,9 +80,12 @@ const { HeadCells, BodyCells } = useVdiColumns({
   body: (vdi: FrontXoVdi) => {
     const vbds = useGetVbdsByIds(vdi.$VBDs)
 
-    const vm = computed(() => vbds.value.find(vbd => vbd.VDI === vdi.id)?.VM as XoVm | undefined)
+    const vmId = computed(() => vbds.value.find(vbd => vbd.VDI === vdi.id)?.VM)
 
-    const href = computed(() => (vm.value ? buildXo5Route(`/vms/${vm.value.id}/disks?s=1_6_asc-${vdi.id}`) : undefined))
+    const href = computed(() =>
+      vmId.value ? buildXo5Route(`/vms/${vmId.value}/disks?s=1_6_asc-${vdi.id}`) : undefined
+    )
+
     const size = computed(() => formatSizeRaw(vdi.size, 2))
     const format = computed(() => getVdiFormat(vdi.image_format))
 
