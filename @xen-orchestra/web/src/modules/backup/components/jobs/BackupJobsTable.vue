@@ -27,6 +27,7 @@
 <script setup lang="ts">
 import { useXoBackupJobSchedulesUtils } from '@/modules/backup/composables/xo-backup-job-schedules-utils.composable.ts'
 import { useXoBackupUtils } from '@/modules/backup/composables/xo-backup-utils.composable.ts'
+import type { FrontAnyXoBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import { useXoBackupLogCollection } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -38,7 +39,6 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable'
 import { useBackupJobColumns } from '@core/tables/column-sets/backup-job-columns'
 import { renderLoadingCell } from '@core/tables/helpers/render-loading-cell'
-import type { AnyXoBackupJob } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -47,7 +47,7 @@ const {
   busy,
   error,
 } = defineProps<{
-  backupJobs: AnyXoBackupJob[]
+  backupJobs: FrontAnyXoBackupJob[]
   busy?: boolean
   error?: boolean
 }>()
@@ -89,7 +89,7 @@ const state = useTableState({
 const { pageRecords: paginatedBackupJobs, paginationBindings } = usePagination('backups-jobs', filteredBackupJobs)
 
 const { HeadCells, BodyCells } = useBackupJobColumns({
-  body: (job: AnyXoBackupJob) => {
+  body: (job: FrontAnyXoBackupJob) => {
     const modeLabels = computed(() => getModeLabels(job))
     const lastRuns = computed(() => getLastThreeRunsStatuses(job))
     const totalSchedules = computed(() => getTotalSchedules(job))
