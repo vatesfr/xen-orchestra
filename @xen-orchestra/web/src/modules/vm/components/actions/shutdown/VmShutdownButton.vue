@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { useVmShutdownJob } from '@/jobs/vm/vm-shutdown.job.ts'
+import { useVmShutdownJob } from '@/modules/vm/jobs/xo-vm-shutdown.job.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useModal } from '@core/packages/modal/use-modal.ts'
 import type { XoVm } from '@vates/types'

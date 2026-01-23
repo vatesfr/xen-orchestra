@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { useVmResumeJob } from '@/jobs/vm/vm-resume.job.ts'
+import { useVmResumeJob } from '@/modules/vm/jobs/xo-vm-resume.job.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { VM_POWER_STATE, type XoVm } from '@vates/types'
 import { computed } from 'vue'

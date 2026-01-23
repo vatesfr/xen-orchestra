@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { useVmRebootJob } from '@/jobs/vm/vm-reboot.job.ts'
+import { useVmRebootJob } from '@/modules/vm/jobs/xo-vm-reboot.job.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useModal } from '@core/packages/modal/use-modal.ts'
 import type { XoVm } from '@vates/types'

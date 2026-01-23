@@ -4,7 +4,7 @@
     <template #submenu>
       <MenuItem v-for="host in hosts" :key="host.id" @click="startOn(host)">
         <div class="wrapper">
-          <VtsObjectIcon type="host" :state="getHostState(host.power_state)" size="medium" />
+          <VtsObjectIcon type="host" :state="getHostPowerState(host)" size="medium" />
           {{ host.name_label }}
           <div>
             <VtsIcon v-if="isMasterHost(host.id)" name="legacy:primary" size="medium" class="star" />
@@ -16,14 +16,14 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoHostUtils } from '@/composables/xo-host.composable.ts'
-import { useVmStartOnJob } from '@/jobs/vm/vm-start-on.job.ts'
-import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
-import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
+import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { useVmStartOnJob } from '@/modules/vm/jobs/xo-vm-start-on.job.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
-import { VM_POWER_STATE, type XoHost, type XoVm } from '@vates/types'
+import { HOST_POWER_STATE, VM_POWER_STATE, type XoHost, type XoVm } from '@vates/types'
+import { toLower } from 'lodash-es'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -36,7 +36,6 @@ const selectedHost = ref<XoHost | undefined>()
 
 const { hostsByPool, isMasterHost } = useXoHostCollection()
 const { useGetPoolById } = useXoPoolCollection()
-const { getHostState } = useXoHostUtils()
 
 const pool = useGetPoolById(vm.$pool)
 
@@ -59,6 +58,8 @@ function startOn(host: XoHost) {
   selectedHost.value = host
   run()
 }
+
+const getHostPowerState = (host: XoHost) => (host ? toLower(host.power_state) : toLower(HOST_POWER_STATE.UNKNOWN))
 </script>
 
 <style scoped lang="postcss">

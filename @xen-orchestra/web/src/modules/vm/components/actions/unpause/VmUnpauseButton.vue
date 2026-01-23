@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { useVmUnpauseJob } from '@/jobs/vm/vm-unpause.job.ts'
+import { useVmUnpauseJob } from '@/modules/vm/jobs/xo-vm-unpause.job.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { VM_POWER_STATE, type XoVm } from '@vates/types'
 import { computed } from 'vue'

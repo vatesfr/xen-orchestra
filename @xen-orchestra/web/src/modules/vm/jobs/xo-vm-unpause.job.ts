@@ -1,12 +1,12 @@
-import { useXoTaskUtils } from '@/composables/xo-task-utils.composable.ts'
-import { vmsArg } from '@/jobs/args.job.ts'
-import { fetchPost } from '@/utils/fetch.util.ts'
-import { isVmOperatingPending } from '@/utils/xo-records/vm.util.ts'
+import { xoVmsArg } from '@/modules/vm/jobs/xo-vm-args.ts'
+import { isVmOperatingPending } from '@/modules/vm/utils/xo-vm.util.ts'
+import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
+import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { VM_OPERATIONS, VM_POWER_STATE, type XoTask, type XoVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-export const useVmResumeJob = defineJob('vm.resume', [vmsArg], () => {
+export const useVmUnpauseJob = defineJob('vm.resume', [xoVmsArg], () => {
   const { t } = useI18n()
   const { monitorTask } = useXoTaskUtils()
 
@@ -14,14 +14,14 @@ export const useVmResumeJob = defineJob('vm.resume', [vmsArg], () => {
     async run(vms: XoVm[]) {
       const results = await Promise.allSettled(
         vms.map(async vm => {
-          const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`vms/${vm.id}/actions/resume`)
+          const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`vms/${vm.id}/actions/unpause`)
           await monitorTask(taskId)
         })
       )
 
       results.forEach((result, index) => {
         if (result.status === 'rejected') {
-          console.error(`Failed to resume VM ${vms[index].name_label}:`, result.reason)
+          console.error(`Failed to unpause VM ${vms[index].name_label}:`, result.reason)
         }
       })
 
@@ -33,11 +33,11 @@ export const useVmResumeJob = defineJob('vm.resume', [vmsArg], () => {
         throw new JobError(t('job:vm-resume:missing-vm'))
       }
 
-      if (isRunning || vms.some(vm => isVmOperatingPending(vm, VM_OPERATIONS.RESUME))) {
+      if (isRunning || vms.some(vm => isVmOperatingPending(vm, VM_OPERATIONS.UNPAUSE))) {
         throw new JobRunningError(t('job:vm-resume:in-progress'))
       }
 
-      if (vms.some(vm => vm.power_state !== VM_POWER_STATE.SUSPENDED)) {
+      if (vms.some(vm => vm.power_state !== VM_POWER_STATE.PAUSED)) {
         throw new JobError(t('job:vm-resume:bad-power-state'))
       }
     },
