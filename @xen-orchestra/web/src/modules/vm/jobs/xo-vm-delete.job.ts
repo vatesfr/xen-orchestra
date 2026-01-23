@@ -1,11 +1,11 @@
-import { vmsArg } from '@/jobs/args'
-import { fetchDelete } from '@/utils/fetch.util.ts'
-import { isVmOperatingPending } from '@/utils/xo-records/vm.util.ts'
+import { xoVmsArg } from '@/modules/vm/jobs/xo-vm-args.ts'
+import { isVmOperatingPending } from '@/modules/vm/utils/xo-vm.util.ts'
+import { fetchDelete } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { VM_OPERATIONS, type XoVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-export const useVmDeleteJob = defineJob('vm.delete', [vmsArg], () => {
+export const useXoVmDeleteJob = defineJob('vm.delete', [xoVmsArg], () => {
   const { t } = useI18n()
 
   return {
