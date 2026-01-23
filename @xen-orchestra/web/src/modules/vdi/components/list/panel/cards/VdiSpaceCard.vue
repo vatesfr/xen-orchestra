@@ -3,10 +3,10 @@
 </template>
 
 <script setup lang="ts">
+import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection'
 import VtsSpaceCard from '@core/components/space-card/VtsSpaceCard.vue'
-import type { XoVdi } from '@vates/types'
 
 defineProps<{
-  vdi: XoVdi
+  vdi: FrontXoVdi
 }>()
 </script>

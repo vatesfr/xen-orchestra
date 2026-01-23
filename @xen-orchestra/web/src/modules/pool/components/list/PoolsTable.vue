@@ -27,7 +27,10 @@
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { getHostInfo } from '@/modules/host/utils/xo-host.util.ts'
 import { getPoolInfo } from '@/modules/pool/utils/xo-pool.util.ts'
-import { useXoServerCollection } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
+import {
+  useXoServerCollection,
+  type FrontXoServer,
+} from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -36,13 +39,12 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useServerColumns } from '@core/tables/column-sets/server-columns.ts'
-import type { XoServer } from '@vates/types'
 import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { servers: rawServers } = defineProps<{
-  servers: XoServer[]
+  servers: FrontXoServer[]
 }>()
 
 const { t } = useI18n()
@@ -81,7 +83,7 @@ const state = useTableState({
 const { pageRecords: paginatedServers, paginationBindings } = usePagination('pools', filteredServers)
 
 const { HeadCells, BodyCells } = useServerColumns({
-  body: (server: XoServer) => {
+  body: (server: FrontXoServer) => {
     const poolInfo = computed(() => getPoolInfo(server))
     const host = computed(() => getHostById(server.master))
     const hostInfo = computed(() => getHostInfo(host.value))

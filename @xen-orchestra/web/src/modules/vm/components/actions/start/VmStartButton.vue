@@ -6,12 +6,12 @@
 
 <script lang="ts" setup>
 import { useXoVmStartJob } from '@/modules/vm/jobs/xo-vm-start.job.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import type { XoVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{
-  vm: XoVm
+  vm: FrontXoVm
 }>()
 
 const { t } = useI18n()

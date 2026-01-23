@@ -26,6 +26,7 @@
 
 <script setup lang="ts">
 import { useXoBackupLogsUtils } from '@/modules/backup/composables/xo-backup-log-utils.composable.ts'
+import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -34,7 +35,6 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable'
 import { useBackupLogsColumns } from '@core/tables/column-sets/backup-log-columns'
-import type { XoBackupLog } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -43,7 +43,7 @@ const {
   error,
   busy,
 } = defineProps<{
-  backupLogs: XoBackupLog[]
+  backupLogs: FrontXoBackupLog[]
   error?: boolean
   busy?: boolean
 }>()
@@ -82,7 +82,7 @@ const { getBackupLogDuration, getTransferSize } = useXoBackupLogsUtils()
 const { pageRecords: paginatedBackupLogs, paginationBindings } = usePagination('backups-logs', filteredBackupLogs)
 
 const { HeadCells, BodyCells } = useBackupLogsColumns({
-  body: (log: XoBackupLog) => {
+  body: (log: FrontXoBackupLog) => {
     const transferSize = computed(() => getTransferSize(log))
     const duration = computed(() => getBackupLogDuration(log))
 

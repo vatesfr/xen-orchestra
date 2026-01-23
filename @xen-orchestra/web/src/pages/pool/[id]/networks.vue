@@ -28,7 +28,11 @@
 <script setup lang="ts">
 import NetworksTable from '@/modules/network/components/NetworksTable.vue'
 import NetworkSidePanel from '@/modules/network/components/panel/NetworkSidePanel.vue'
-import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import {
+  useXoNetworkCollection,
+  type FrontXoNetwork,
+} from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -36,12 +40,11 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import type { XoNetwork, XoPool } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{
-  pool: XoPool
+  pool: FrontXoPool
 }>()
 
 const { t } = useI18n()
@@ -57,8 +60,8 @@ const internalNetworks = computed(() => networksWithoutPifs.value.filter(network
 
 const networks = computed(() => networksWithPifs.value.filter(network => network.$pool === pool.id))
 
-const selectedNetwork = useRouteQuery<XoNetwork | undefined>('id', {
-  toData: id => getNetworkById(id as XoNetwork['id']),
+const selectedNetwork = useRouteQuery<FrontXoNetwork | undefined>('id', {
+  toData: id => getNetworkById(id as FrontXoNetwork['id']),
   toQuery: network => network?.id ?? '',
 })
 </script>

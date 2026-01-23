@@ -4,7 +4,9 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import type { XoPool, XoServer } from '@vates/types'
 import { computed } from 'vue'
 
-const serverFields: (keyof XoServer)[] = [
+export type FrontXoServer = Pick<XoServer, (typeof serverFields)[number]>
+
+const serverFields = [
   'id',
   'label',
   'poolId',
@@ -18,14 +20,14 @@ const serverFields: (keyof XoServer)[] = [
   'allowUnauthorized',
   'status',
   'error',
-] as const
+] as const satisfies readonly (keyof XoServer)[]
 
 export const useXoServerCollection = defineRemoteResource({
   url: `${BASE_URL}/servers?fields=${serverFields.join(',')}`,
-  initialData: () => [] as XoServer[],
+  initialData: () => [] as FrontXoServer[],
   state: (servers, context) => {
     const serverByPool = computed(() => {
-      const serverByPoolMap = new Map<XoPool['id'], XoServer[]>()
+      const serverByPoolMap = new Map<XoPool['id'], FrontXoServer[]>()
 
       servers.value.forEach(server => {
         const poolId = server.poolId

@@ -4,12 +4,12 @@ import { watchCollectionWrapper } from '@/shared/utils/sse.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoPci } from '@vates/types'
 
-const pciFields: (keyof XoPci)[] = ['id', 'device_name', 'type'] as const
+const pciFields = ['id', 'device_name', 'type'] as const satisfies readonly (keyof XoPci)[]
 
 export const useXoPciCollection = defineRemoteResource({
   url: `${BASE_URL}/pcis?fields=${pciFields.join(',')}`,
   watchCollection: watchCollectionWrapper({ resource: 'PCI', fields: pciFields }),
-  initialData: () => [] as XoPci[],
+  initialData: () => [] as Pick<XoPci, (typeof pciFields)[number]>[],
   state: (pcis, context) =>
     useXoCollectionState(pcis, {
       context,

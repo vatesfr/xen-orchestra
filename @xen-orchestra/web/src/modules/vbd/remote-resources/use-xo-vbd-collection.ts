@@ -4,12 +4,21 @@ import { watchCollectionWrapper } from '@/shared/utils/sse.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoVbd } from '@vates/types'
 
-const vbdFields: (keyof XoVbd)[] = ['id', 'VDI', 'VM', 'is_cd_drive', 'position', 'type', 'attached', 'device'] as const
+const vbdFields = [
+  'id',
+  'VDI',
+  'VM',
+  'is_cd_drive',
+  'position',
+  'type',
+  'attached',
+  'device',
+] as const satisfies readonly (keyof XoVbd)[]
 
 export const useXoVbdCollection = defineRemoteResource({
   url: `${BASE_URL}/vbds?fields=${vbdFields.join(',')}`,
   watchCollection: watchCollectionWrapper({ resource: 'VBD', fields: vbdFields }),
-  initialData: () => [] as XoVbd[],
+  initialData: () => [] as Pick<XoVbd, (typeof vbdFields)[number]>[],
   state: (vbds, context) =>
     useXoCollectionState(vbds, {
       context,

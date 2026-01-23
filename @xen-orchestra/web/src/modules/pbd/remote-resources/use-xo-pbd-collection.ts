@@ -5,12 +5,23 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import type { XoHost, XoPbd, XoSr } from '@vates/types'
 import { computed } from 'vue'
 
-const pbdFields: (keyof XoPbd)[] = ['id', 'type', 'attached', 'host', 'SR', 'device_config', 'otherConfig', '$pool']
+export type FrontXoPbd = Pick<XoPbd, (typeof pbdFields)[number]>
+
+const pbdFields = [
+  'id',
+  'type',
+  'attached',
+  'host',
+  'SR',
+  'device_config',
+  'otherConfig',
+  '$pool',
+] as const satisfies readonly (keyof XoPbd)[]
 
 export const useXoPbdCollection = defineRemoteResource({
   url: `${BASE_URL}/pbds?fields=${pbdFields.join(',')}`,
   watchCollection: watchCollectionWrapper({ resource: 'PBD', fields: pbdFields }),
-  initialData: () => [] as XoPbd[],
+  initialData: () => [] as FrontXoPbd[],
   state: (pbds, context) => {
     const state = useXoCollectionState(pbds, {
       context,
@@ -18,7 +29,7 @@ export const useXoPbdCollection = defineRemoteResource({
     })
 
     const pbdsBySr = computed(() => {
-      const pbdsBySrMap = new Map<XoSr['id'], XoPbd[]>()
+      const pbdsBySrMap = new Map<XoSr['id'], FrontXoPbd[]>()
 
       pbds.value.forEach(pbd => {
         const srId = pbd.SR
@@ -34,7 +45,7 @@ export const useXoPbdCollection = defineRemoteResource({
     })
 
     const pbdsByHost = computed(() => {
-      const pbdsByHostMap = new Map<XoHost['id'], XoPbd[]>()
+      const pbdsByHostMap = new Map<XoHost['id'], FrontXoPbd[]>()
 
       pbds.value.forEach(pbd => {
         const hostId = pbd.host

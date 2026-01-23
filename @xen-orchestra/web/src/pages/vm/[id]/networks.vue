@@ -21,7 +21,7 @@
 <script setup lang="ts">
 import VifSidePanel from '@/modules/vif/components/panel/VifSidePanel.vue'
 import VifsTable from '@/modules/vif/components/VifsTable.vue'
-import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { useXoVifCollection, type FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -29,7 +29,7 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import type { XoVif, XoVm } from '@vates/types'
+import type { XoVm } from '@vates/types'
 import { useArrayFilter } from '@vueuse/shared'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -48,8 +48,8 @@ const { t } = useI18n()
 
 const vifs = useArrayFilter(rawVifs, vif => vif.$VM === vm.id)
 
-const selectedVif = useRouteQuery<XoVif | undefined>('id', {
-  toData: id => getVifById(id as XoVif['id']),
+const selectedVif = useRouteQuery<FrontXoVif | undefined>('id', {
+  toData: id => getVifById(id as FrontXoVif['id']),
   toQuery: vif => vif?.id ?? '',
 })
 </script>

@@ -18,7 +18,7 @@ export type NameConfig = {
 
 export type BaseName = string | [string, string] | NameConfig
 
-export type DefaultState<TRecord extends XoRecord> = {
+export type DefaultState<TRecord extends Partial<XoRecord>> = {
   records: Ref<TRecord[]>
   getById: (id: TRecord['id'] | undefined) => TRecord | undefined
   getByIds: (ids: TRecord['id'][]) => TRecord[]
@@ -32,6 +32,6 @@ export type DefaultState<TRecord extends XoRecord> = {
   lastError: ComputedRef<Error | undefined>
 }
 
-export type CollectionState<TRecord extends XoRecord, TNameConfig extends NameConfig> = {
+export type CollectionState<TRecord extends Partial<XoRecord>, TNameConfig extends NameConfig> = {
   [K in keyof NameConfig as TNameConfig[K]]: DefaultState<TRecord>[K]
 }

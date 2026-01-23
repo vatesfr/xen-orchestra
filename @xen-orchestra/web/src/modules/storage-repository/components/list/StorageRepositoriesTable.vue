@@ -27,7 +27,10 @@
 </template>
 
 <script setup lang="ts">
-import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import {
+  useXoSrCollection,
+  type FrontXoSr,
+} from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -39,7 +42,6 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon, objectIcon } from '@core/icons'
 import { useSrColumns } from '@core/tables/column-sets/sr-columns.ts'
-import type { XoSr } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -48,7 +50,7 @@ const {
   busy,
   error,
 } = defineProps<{
-  srs: XoSr[]
+  srs: FrontXoSr[]
   busy?: boolean
   error?: boolean
 }>()
@@ -87,7 +89,7 @@ const state = useTableState({
 
 const { pageRecords: paginatedSrs, paginationBindings } = usePagination('srs', filteredSrs)
 
-function getPrimaryIcon(sr: XoSr) {
+function getPrimaryIcon(sr: FrontXoSr) {
   if (!isDefaultSr(sr)) {
     return undefined
   }
@@ -99,7 +101,7 @@ function getPrimaryIcon(sr: XoSr) {
 }
 
 const { HeadCells, BodyCells } = useSrColumns({
-  body: (sr: XoSr) => {
+  body: (sr: FrontXoSr) => {
     const { buildXo5Route } = useXoRoutes()
 
     const href = computed(() => buildXo5Route(`/srs/${sr.id}/general`))

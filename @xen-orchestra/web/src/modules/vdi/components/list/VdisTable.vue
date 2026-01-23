@@ -28,6 +28,7 @@
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { getVdiFormat } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import type { FrontXoVdi } from '../../remote-resources/use-xo-vdi-collection'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -37,12 +38,12 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useVdiColumns } from '@core/tables/column-sets/vdi-columns.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
-import type { XoVdi, XoVm } from '@vates/types'
+import type { XoVm } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vdis, busy, error } = defineProps<{
-  vdis: XoVdi[]
+  vdis: FrontXoVdi[]
   error?: boolean
   busy?: boolean
 }>()
@@ -77,7 +78,7 @@ const state = useTableState({
 const { pageRecords: paginatedVdis, paginationBindings } = usePagination('vdis', filteredVdis)
 
 const { HeadCells, BodyCells } = useVdiColumns({
-  body: (vdi: XoVdi) => {
+  body: (vdi: FrontXoVdi) => {
     const vbds = useGetVbdsByIds(vdi.$VBDs)
 
     const vm = computed(() => vbds.value.find(vbd => vbd.VDI === vdi.id)?.VM as XoVm | undefined)

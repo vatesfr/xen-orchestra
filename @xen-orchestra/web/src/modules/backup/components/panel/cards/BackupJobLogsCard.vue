@@ -15,14 +15,14 @@
 
 <script lang="ts" setup>
 import BackupRunItem from '@/modules/backup/components/panel/card-items/BackupRunItem.vue'
+import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import type { XoBackupLog } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { backupLogs } = defineProps<{
-  backupLogs: XoBackupLog[]
+  backupLogs: FrontXoBackupLog[]
 }>()
 
 const { t } = useI18n()
