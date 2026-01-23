@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Vif, VmState } from '@/modules/vm/types/new-vm.type.ts'
+import type { Vif, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'

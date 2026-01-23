@@ -29,7 +29,7 @@
 
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import { getNetworkStatus, getPoolNetworkLink } from '@/modules/network/utils/network.util.ts'
+import { getNetworkStatus, getPoolNetworkLink } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'

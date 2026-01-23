@@ -32,7 +32,7 @@
 
 <script lang="ts" setup>
 import AccountMenu from '@/modules/account/components/menu/AccountMenu.vue'
-import { useSiteTree } from '@/modules/site/composables/site-tree.composable'
+import { useXoSiteTree } from '@/modules/site/composables/xo-site-tree.composable.ts'
 import QuickTaskButton from '@/modules/task/components/QuickTaskButton.vue'
 import ThirdParties from '@/modules/third-parties/components/ThirdParties.vue'
 import SidebarSearch from '@/modules/treeview/components/SidebarSearch.vue'
@@ -56,7 +56,7 @@ const { t } = useI18n()
 
 const uiStore = useUiStore()
 
-const { sites, isReady, filter, isSearching, scrollToNodeElement } = useSiteTree()
+const { sites, isReady, filter, isSearching, scrollToNodeElement } = useXoSiteTree()
 const route = useRoute<'/pool/[id]' | '/host/[id]' | '/vm/[id]'>()
 
 const { buildXo5Route } = useXoRoutes()

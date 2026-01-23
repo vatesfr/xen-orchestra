@@ -69,7 +69,7 @@
 </template>
 
 <script lang="ts" setup>
-import { usePbdUtils } from '@/modules/pbd/composables/pbd-utils.composable.ts'
+import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
@@ -97,7 +97,7 @@ const href = computed(() => buildXo5Route(`/srs/${sr.id}/general`))
 const { getPbdsByIds } = useXoPbdCollection()
 const { isHighAvailabilitySr } = useXoSrCollection()
 
-const { allPbdsConnectionStatus } = usePbdUtils(() => getPbdsByIds(sr.$PBDs))
+const { allPbdsConnectionStatus } = useXoPbdUtils(() => getPbdsByIds(sr.$PBDs))
 
 const isSrSharedI18nValue = computed(() => (sr.shared ? t('shared') : t('local')))
 

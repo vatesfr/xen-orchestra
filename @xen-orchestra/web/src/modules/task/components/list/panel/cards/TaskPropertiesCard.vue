@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useTaskPropertiesUtils } from '@/modules/task/composables/task-properties-utils.composable.ts'
+import { useXoTaskPropertiesUtils } from '@/modules/task/composables/xo-task-properties-utils.composable.ts'
 import VtsRecursiveFields from '@core/components/recursive-fields/VtsRecursiveFields.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
@@ -25,7 +25,7 @@ const { task } = defineProps<{
 
 const { t } = useI18n()
 
-const { properties } = useTaskPropertiesUtils(() => task)
+const { properties } = useXoTaskPropertiesUtils(() => task)
 </script>
 
 <style scoped lang="postcss">

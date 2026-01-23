@@ -37,7 +37,7 @@ import BackupJobSchedulesCard from '@/modules/backup/components/panel/cards/Back
 import { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
-import { getTasksResultsRecursively } from '@/modules/task/utils/task.util'
+import { getTasksResultsRecursively } from '@/modules/task/utils/xo-task.util.ts'
 import { extractIdsFromSimplePattern } from '@/shared/utils/pattern.util.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'

@@ -1,7 +1,7 @@
-import type { BackupJobSettings } from '@/modules/backup/types/backup.ts'
+import type { XoBackupJobSettings } from '@/modules/backup/types/xo-backup.ts'
 import type { XoVmBackupJob } from '@vates/types'
 
-export function getVmBackupJobSettings(job: XoVmBackupJob): BackupJobSettings {
+export function getVmBackupJobSettings(job: XoVmBackupJob): XoBackupJobSettings {
   if (!job.settings['']) {
     return {}
   }

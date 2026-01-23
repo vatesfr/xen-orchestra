@@ -65,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { useBackupJobSettingsUtils } from '@/modules/backup/composables/backup-job-settings/backup-job-settings.composable.ts'
+import { useXoBackupJobSettingsUtils } from '@/modules/backup/composables/backup-job-settings/xo-backup-job-settings.composable.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
@@ -91,5 +91,5 @@ const {
   settings,
   reportWhenValueTranslation,
   snapshotModeTranslation,
-} = useBackupJobSettingsUtils(() => backupJob)
+} = useXoBackupJobSettingsUtils(() => backupJob)
 </script>

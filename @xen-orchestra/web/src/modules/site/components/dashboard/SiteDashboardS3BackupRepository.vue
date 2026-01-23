@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import type { XoDashboard } from '@/modules/site/types/dashboard.type'
+import type { XoDashboard } from '@/modules/site/types/xo-dashboard.type.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'

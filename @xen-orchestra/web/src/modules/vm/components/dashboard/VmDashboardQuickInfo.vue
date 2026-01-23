@@ -87,7 +87,7 @@
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
-import { useVmUtils } from '@/modules/vm/composables/vm-utils.composable.ts'
+import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { XCP_LINKS } from '@/shared/constants.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -116,7 +116,7 @@ const { useGetPoolById } = useXoPoolCollection()
 const { getVmHost } = useXoVmCollection()
 const { isMasterHost } = useXoHostCollection()
 
-const { powerState, installDateFormatted, relativeStartTime, guestToolsDisplay } = useVmUtils(() => vm)
+const { powerState, installDateFormatted, relativeStartTime, guestToolsDisplay } = useXoVmUtils(() => vm)
 
 const { user } = useXoUserResource({}, () => vm.creation?.user)
 

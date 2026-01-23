@@ -23,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import { useBackedUpVmsUtils } from '@/modules/backup/composables/backed-up-vms-utils.composable.ts'
+import { useXoBackedUpVmsUtils } from '@/modules/backup/composables/xo-backed-up-vms-utils.composable.ts'
 import { useXoVmBackupArchiveCollection } from '@/modules/vm/remote-resources/use-xo-vm-backup-archive-collection.ts'
 import { extractIdsFromSimplePattern } from '@/shared/utils/pattern.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -52,7 +52,7 @@ const { backupJob, busy, error } = defineProps<{
 
 const { t } = useI18n()
 
-const { backedUpVms } = useBackedUpVmsUtils(() => backupJob.vms)
+const { backedUpVms } = useXoBackedUpVmsUtils(() => backupJob.vms)
 
 const backupRepositoriesIds = computed(() => extractIdsFromSimplePattern(backupJob.remotes))
 

@@ -67,7 +67,7 @@
 <script lang="ts" setup>
 import BackupJobSmartModePools from '@/modules/backup/components/panel/card-items/BackupJobSmartModePools.vue'
 import BackupJobSmartModeTags from '@/modules/backup/components/panel/card-items/BackupJobSmartModeTags.vue'
-import { useBackedUpVmsUtils } from '@/modules/backup/composables/backed-up-vms-utils.composable.ts'
+import { useXoBackedUpVmsUtils } from '@/modules/backup/composables/xo-backed-up-vms-utils.composable.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -88,7 +88,7 @@ const { backedUpVms: rawBackedUpVms } = defineProps<{
 const { t } = useI18n()
 
 const { backedUpVms, backedUpVmsCount, smartModePools, smartModePowerState, smartModeTags, isSmartModeEnabled } =
-  useBackedUpVmsUtils(() => rawBackedUpVms)
+  useXoBackedUpVmsUtils(() => rawBackedUpVms)
 </script>
 
 <style scoped lang="postcss">

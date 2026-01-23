@@ -24,7 +24,7 @@
 <script setup lang="ts">
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import { getVmIpAddresses } from '@/modules/vm/utils/vm.util.ts'
+import { getVmIpAddresses } from '@/modules/vm/utils/xo-vm.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'

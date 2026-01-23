@@ -4,7 +4,7 @@ import type { XoPbd } from '@vates/types'
 import { useArrayEvery, useArrayFilter, useArraySome } from '@vueuse/shared'
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 
-export function usePbdUtils(rawPbds: MaybeRefOrGetter<XoPbd[]>) {
+export function useXoPbdUtils(rawPbds: MaybeRefOrGetter<XoPbd[]>) {
   const pbds = computed(() => toValue(rawPbds))
 
   const predicate = (pbd: XoPbd) => !pbd.attached

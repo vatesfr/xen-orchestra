@@ -1,4 +1,4 @@
-import type { XoDashboard } from '@/modules/site/types/dashboard.type.ts'
+import type { XoDashboard } from '@/modules/site/types/xo-dashboard.type.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'

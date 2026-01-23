@@ -3,7 +3,7 @@ import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use
 import type { AnyXoBackupJob, XoBackupLog } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-export function useBackupJobSchedulesUtils() {
+export function useXoBackupJobSchedulesUtils() {
   const { t, d } = useI18n()
 
   const { getLastNBackupLogsByJobId } = useXoBackupLogCollection()

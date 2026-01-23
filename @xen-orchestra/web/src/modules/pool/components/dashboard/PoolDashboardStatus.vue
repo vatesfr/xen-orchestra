@@ -27,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import type { XoPoolDashboard } from '@/modules/pool/types/pool-dashboard.type'
+import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,

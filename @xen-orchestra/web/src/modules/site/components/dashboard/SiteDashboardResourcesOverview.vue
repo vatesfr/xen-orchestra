@@ -30,7 +30,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoDashboard } from '@/modules/site/types/dashboard.type'
+import type { XoDashboard } from '@/modules/site/types/xo-dashboard.type.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'

@@ -4,7 +4,7 @@ import type { XoVm } from '@vates/types'
 import type { MaybeRefOrGetter } from '@vueuse/shared'
 import { computed } from 'vue'
 
-export function useVmVbdsUtils(rawVm: MaybeRefOrGetter<XoVm>) {
+export function useXoVmVbdsUtils(rawVm: MaybeRefOrGetter<XoVm>) {
   const vm = toComputed(rawVm)
 
   const { getVbdsByIds } = useXoVbdCollection()

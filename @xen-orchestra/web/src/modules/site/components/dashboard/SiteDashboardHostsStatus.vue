@@ -13,7 +13,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoDashboard } from '@/modules/site/types/dashboard.type'
+import type { XoDashboard } from '@/modules/site/types/xo-dashboard.type.ts'
 import type { DonutChartWithLegendProps } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
 import VtsDonutChartWithLegend from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'

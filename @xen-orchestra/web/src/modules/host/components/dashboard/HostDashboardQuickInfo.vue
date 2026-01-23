@@ -50,7 +50,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useHostUtils } from '@/modules/host/composables/host-utils.composable.ts'
+import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
@@ -74,7 +74,7 @@ const { host } = defineProps<{
 const { t, locale } = useI18n()
 
 const { getMasterHostByPoolId, isMasterHost, areHostsReady } = useXoHostCollection()
-const { getPowerState } = useHostUtils()
+const { getPowerState } = useXoHostUtils()
 
 const powerState = computed(() => getPowerState(host.power_state))
 

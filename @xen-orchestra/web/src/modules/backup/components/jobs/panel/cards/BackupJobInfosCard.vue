@@ -42,7 +42,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useBackupUtils } from '@/modules/backup/composables/backup-utils.composable.ts'
+import { useXoBackupUtils } from '@/modules/backup/composables/xo-backup-utils.composable.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
@@ -60,7 +60,7 @@ const { backupJob } = defineProps<{
 
 const { t } = useI18n()
 
-const { getModeLabels } = useBackupUtils()
+const { getModeLabels } = useXoBackupUtils()
 
 const backupJobModes = computed(() => getModeLabels(backupJob).filter(mode => mode))
 </script>

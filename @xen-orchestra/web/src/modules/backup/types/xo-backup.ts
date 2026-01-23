@@ -2,9 +2,9 @@ import type { XoVmBackupJob, XoProxy } from '@vates/types'
 
 export type ReportWhen = 'always' | 'failure' | 'error' | 'never'
 
-export type BackupReportTemplate = 'compactMjml' | 'mjml'
+export type XoBackupReportTemplate = 'compactMjml' | 'mjml'
 
-export type BackupJobSettings = Partial<{
+export type XoBackupJobSettings = Partial<{
   compression: XoVmBackupJob['compression']
   proxy: XoProxy['id']
   preferNbd: boolean
@@ -14,7 +14,7 @@ export type BackupJobSettings = Partial<{
   maxExportRate: number
   nRetriesVmBackupFailures: number
   hideSuccessfulItems: boolean
-  backupReportTpl: BackupReportTemplate
+  backupReportTpl: XoBackupReportTemplate
   reportWhen: ReportWhen
   timeout: number
   checkpointSnapshot: boolean

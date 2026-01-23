@@ -29,7 +29,7 @@
 <script lang="ts" setup>
 import HostsCpuUsage from '@/modules/pool/components/dashboard/cpu-usage/HostsCpuUsage.vue'
 import VmsCpuUsage from '@/modules/pool/components/dashboard/cpu-usage/VmsCpuUsage.vue'
-import type { XoPoolDashboard } from '@/modules/pool/types/pool-dashboard.type'
+import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardSubtitle from '@core/components/ui/card-subtitle/UiCardSubtitle.vue'

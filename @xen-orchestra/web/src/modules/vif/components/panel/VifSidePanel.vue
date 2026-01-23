@@ -151,7 +151,7 @@
 
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import { getPoolNetworkLink } from '@/modules/network/utils/network.util.ts'
+import { getPoolNetworkLink } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'

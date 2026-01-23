@@ -1,7 +1,7 @@
 import type { Task } from '@core/types/task.type.ts'
 import type { XoTask } from '@vates/types'
 
-export const convertTaskToCore = (task: XoTask, userName?: string): Task => ({
+export const convertXoTaskToCore = (task: XoTask, userName?: string): Task => ({
   id: task.id,
   status: task.status === 'interrupted' ? 'failure' : task.status,
   name: task.properties.name ?? '',
@@ -12,5 +12,5 @@ export const convertTaskToCore = (task: XoTask, userName?: string): Task => ({
   infos: task.infos,
   warnings: task.warnings,
   end: task.end,
-  subtasks: task.tasks?.map(subtask => convertTaskToCore(subtask, userName)),
+  subtasks: task.tasks?.map(subtask => convertXoTaskToCore(subtask, userName)),
 })

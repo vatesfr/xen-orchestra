@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { useBackupLogsUtils } from '@/modules/backup/composables/backup-log-utils.composable.ts'
+import { useXoBackupLogsUtils } from '@/modules/backup/composables/xo-backup-log-utils.composable.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -77,7 +77,7 @@ const state = useTableState({
         : false,
 })
 
-const { getBackupLogDuration, getTransferSize } = useBackupLogsUtils()
+const { getBackupLogDuration, getTransferSize } = useXoBackupLogsUtils()
 
 const { pageRecords: paginatedBackupLogs, paginationBindings } = usePagination('backups-logs', filteredBackupLogs)
 

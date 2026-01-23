@@ -108,7 +108,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useHostUtils } from '@/modules/host/composables/host-utils.composable.ts'
+import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoHostMissingPatchesCollection } from '@/modules/host/remote-resources/use-xo-host-missing-patches-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
@@ -134,7 +134,7 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { getPowerState, getRelativeStartTime } = useHostUtils()
+const { getPowerState, getRelativeStartTime } = useXoHostUtils()
 
 const { useGetPoolById } = useXoPoolCollection()
 

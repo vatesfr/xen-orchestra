@@ -27,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import { getNetworkStatus } from '@/modules/network/utils/network.util.ts'
+import { getNetworkStatus } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'

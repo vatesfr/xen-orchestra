@@ -68,7 +68,7 @@
 </template>
 
 <script lang="ts" setup>
-import { getTaskAccents } from '@/modules/task/utils/task.util'
+import { getTaskAccents } from '@/modules/task/utils/xo-task.util.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'

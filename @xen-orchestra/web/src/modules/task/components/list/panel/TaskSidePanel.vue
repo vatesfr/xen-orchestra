@@ -30,7 +30,7 @@ import TaskObjectsCard from '@/modules/task/components/list/panel/cards/TaskObje
 import TaskPropertiesCard from '@/modules/task/components/list/panel/cards/TaskPropertiesCard.vue'
 import TaskQuickInfosCard from '@/modules/task/components/list/panel/cards/TaskQuickInfosCard.vue'
 import TaskWarningsCard from '@/modules/task/components/list/panel/cards/TaskWarningsCard.vue'
-import { useTaskPropertiesUtils } from '@/modules/task/composables/task-properties-utils.composable.ts'
+import { useXoTaskPropertiesUtils } from '@/modules/task/composables/xo-task-properties-utils.composable.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
@@ -50,7 +50,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const uiStore = useUiStore()
 
-const { properties } = useTaskPropertiesUtils(() => task)
+const { properties } = useXoTaskPropertiesUtils(() => task)
 
 const isError = computed(() => task.result && (task.status === 'failure' || task.status === 'interrupted'))
 </script>

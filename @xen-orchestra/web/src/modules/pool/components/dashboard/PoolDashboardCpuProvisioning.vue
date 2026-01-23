@@ -22,7 +22,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoPoolDashboard } from '@/modules/pool/types/pool-dashboard.type'
+import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
 import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'

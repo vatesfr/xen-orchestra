@@ -8,7 +8,7 @@ import type { MaybeRefOrGetter } from '@vueuse/shared'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export function useVmUtils(rawVm: MaybeRefOrGetter<XoVm>) {
+export function useXoVmUtils(rawVm: MaybeRefOrGetter<XoVm>) {
   const { t, locale } = useI18n()
 
   const vm = toComputed(rawVm)

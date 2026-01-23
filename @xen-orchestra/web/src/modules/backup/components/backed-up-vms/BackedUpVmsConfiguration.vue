@@ -77,7 +77,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useBackedUpVmsUtils } from '@/modules/backup/composables/backed-up-vms-utils.composable.ts'
+import { useXoBackedUpVmsUtils } from '@/modules/backup/composables/xo-backed-up-vms-utils.composable.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -98,7 +98,7 @@ const { backupJob } = defineProps<{
 
 const { t } = useI18n()
 
-const { isSmartModeEnabled, smartModePools, smartModeTags, smartModePowerState } = useBackedUpVmsUtils(
+const { isSmartModeEnabled, smartModePools, smartModeTags, smartModePowerState } = useXoBackedUpVmsUtils(
   () => backupJob.vms
 )
 </script>

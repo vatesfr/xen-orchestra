@@ -1,7 +1,7 @@
-import type { BackupJobSettings } from '@/modules/backup/types/backup.ts'
+import type { XoBackupJobSettings } from '@/modules/backup/types/xo-backup.ts'
 import type { XoMetadataBackupJob } from '@vates/types'
 
-export function getMetadataBackupJobSettings(job: XoMetadataBackupJob): BackupJobSettings {
+export function getMetadataBackupJobSettings(job: XoMetadataBackupJob): XoBackupJobSettings {
   if (!job.settings['']) {
     return {}
   }

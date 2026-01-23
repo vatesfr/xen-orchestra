@@ -3,7 +3,7 @@ import type { XoBackupLog } from '@vates/types'
 import type { Info, Scale } from 'human-format'
 import { useI18n } from 'vue-i18n'
 
-export function useBackupLogsUtils() {
+export function useXoBackupLogsUtils() {
   const { d } = useI18n()
 
   function getBackupLogDate(value: number | undefined) {

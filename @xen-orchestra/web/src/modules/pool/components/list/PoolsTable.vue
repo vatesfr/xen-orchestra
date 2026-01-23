@@ -25,8 +25,8 @@
 
 <script setup lang="ts">
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import { getHostInfo } from '@/modules/host/utils/host.util.ts'
-import { getPoolInfo } from '@/modules/pool/utils/pool.util.ts'
+import { getHostInfo } from '@/modules/host/utils/xo-host.util.ts'
+import { getPoolInfo } from '@/modules/pool/utils/xo-pool.util.ts'
 import { useXoServerCollection } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'

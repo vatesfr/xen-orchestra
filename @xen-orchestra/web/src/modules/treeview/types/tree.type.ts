@@ -1,4 +1,4 @@
-import type { XoSite } from '@/modules/site/types/site.type.ts'
+import type { XoSite } from '@/modules/site/types/xo-site.type.ts'
 import type { Branch } from '@core/packages/tree/branch.ts'
 import type { Leaf } from '@core/packages/tree/leaf.ts'
 import type { XoHost, XoPool, XoVm } from '@vates/types'

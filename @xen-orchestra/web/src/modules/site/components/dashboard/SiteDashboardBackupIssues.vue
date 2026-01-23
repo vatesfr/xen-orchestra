@@ -21,7 +21,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { BackupIssue, XoDashboard } from '@/modules/site/types/dashboard.type'
+import type { BackupIssue, XoDashboard } from '@/modules/site/types/xo-dashboard.type.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'

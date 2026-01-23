@@ -18,7 +18,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoDashboard } from '@/modules/site/types/dashboard.type'
+import type { XoDashboard } from '@/modules/site/types/xo-dashboard.type.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,

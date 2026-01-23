@@ -216,9 +216,9 @@ import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-co
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import NewVmNetworkTable from '@/modules/vm/components/new/NewVmNetworkTable.vue'
 import NewVmSrTable from '@/modules/vm/components/new/NewVmSrTable.vue'
-import { useVmCreateJob } from '@/modules/vm/jobs/vm-create.job.ts'
+import { useXoVmCreateJob } from '@/modules/vm/jobs/xo-vm-create.job.ts'
 import { useXoVmTemplateCollection } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
-import type { Vdi, Vif, VifToSend, VmState } from '@/modules/vm/types/new-vm.type'
+import type { Vdi, Vif, VifToSend, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsResource from '@core/components/resources/VtsResource.vue'
@@ -655,7 +655,7 @@ const vmData = computed(() => {
 const payload = computed(() => ({ ...vmData.value, poolId: vmState.pool?.id }))
 // TODO: multiple VM creation not possible in the UI for now
 // Only pass a single payload
-const { run, isRunning, canRun } = useVmCreateJob([payload])
+const { run, isRunning, canRun } = useXoVmCreateJob([payload])
 
 const createNewVM = async () => {
   try {

@@ -19,7 +19,7 @@ const payloadsArg = defineJobArg<Ref<TCreateServerPayload>>({
   toArray: true,
 })
 
-export const useServerCreateJob = defineJob('server.create', [payloadsArg], () => {
+export const useXoServerCreateJob = defineJob('server.create', [payloadsArg], () => {
   const { t } = useI18n()
 
   return {

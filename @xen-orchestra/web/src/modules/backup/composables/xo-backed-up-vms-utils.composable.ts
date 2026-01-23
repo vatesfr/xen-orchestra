@@ -13,7 +13,7 @@ export type VmsSmartModeEnabled = {
   type: 'VM'
 }
 
-export function useBackedUpVmsUtils(rawBackedUpVmsConfig: MaybeRefOrGetter<XoVmBackupJob['vms']>) {
+export function useXoBackedUpVmsUtils(rawBackedUpVmsConfig: MaybeRefOrGetter<XoVmBackupJob['vms']>) {
   const { getPoolsByIds } = useXoPoolCollection()
   const { getVmsByIds, vms } = useXoVmCollection()
 

@@ -13,7 +13,7 @@ import SiteDashboardBackupRepository from '@/modules/site/components/dashboard/S
 import SiteDashboardS3BackupRepository from '@/modules/site/components/dashboard/SiteDashboardS3BackupRepository.vue'
 import SiteDashboardStorageRepository from '@/modules/site/components/dashboard/SiteDashboardStorageRepository.vue'
 import type { BackupRepositories, StorageRepositories } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
-import type { XoDashboard } from '@/modules/site/types/dashboard.type'
+import type { XoDashboard } from '@/modules/site/types/xo-dashboard.type.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'

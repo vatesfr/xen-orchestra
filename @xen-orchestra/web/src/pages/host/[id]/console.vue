@@ -18,7 +18,7 @@
 </template>
 
 <script lang="ts" setup>
-import { isHostOperationPending } from '@/modules/host/utils/host.util.ts'
+import { isHostOperationPending } from '@/modules/host/utils/xo-host.util.ts'
 import VtsActionsConsole from '@core/components/console/VtsActionsConsole.vue'
 import VtsClipboardConsole from '@core/components/console/VtsClipboardConsole.vue'
 import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'

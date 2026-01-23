@@ -29,7 +29,7 @@
 <script lang="ts" setup>
 import HostsRamUsage from '@/modules/pool/components/dashboard/ram-usage/HostsRamUsage.vue'
 import VmsRamUsage from '@/modules/pool/components/dashboard/ram-usage/VmsRamUsage.vue'
-import type { XoPoolDashboard } from '@/modules/pool/types/pool-dashboard.type'
+import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardSubtitle from '@core/components/ui/card-subtitle/UiCardSubtitle.vue'

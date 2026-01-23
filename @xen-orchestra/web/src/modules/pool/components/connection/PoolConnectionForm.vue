@@ -53,9 +53,9 @@
 </template>
 
 <script setup lang="ts">
-import { useServerConnectJob } from '@/modules/server/jobs/server-connect.job.ts'
-import { useServerCreateJob } from '@/modules/server/jobs/server-create.job.ts'
-import { useServerRemoveJob } from '@/modules/server/jobs/server-remove.job.ts'
+import { useXoServerConnectJob } from '@/modules/server/jobs/xo-server-connect.job.ts'
+import { useXoServerCreateJob } from '@/modules/server/jobs/xo-server-create.job.ts'
+import { useXoServerRemoveJob } from '@/modules/server/jobs/xo-server-remove.job.ts'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
@@ -110,9 +110,9 @@ const payload = computed(() => ({
 
 // TODO: multiple server creation not possible in the UI for now
 // so only handle a single payload
-const { canRun: createCanRun, isRunning: createIsRunning, run: create } = useServerCreateJob([payload])
-const { isRunning: connectIsRunning, run: connect } = useServerConnectJob([serverId])
-const { isRunning: removeIsRunning, run: remove } = useServerRemoveJob([serverId])
+const { canRun: createCanRun, isRunning: createIsRunning, run: create } = useXoServerCreateJob([payload])
+const { isRunning: connectIsRunning, run: connect } = useXoServerConnectJob([serverId])
+const { isRunning: removeIsRunning, run: remove } = useXoServerRemoveJob([serverId])
 
 const isServerJobRunning = logicOr(connectIsRunning, createIsRunning, removeIsRunning)
 

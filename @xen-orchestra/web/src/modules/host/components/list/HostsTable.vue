@@ -23,7 +23,7 @@
 <script setup lang="ts">
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import { getPifsIpAddresses } from '@/modules/pif/utils/pif.util'
+import { getPifsIpAddresses } from '@/modules/pif/utils/xo-pif.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'

@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import { useBackupUtils } from '@/modules/backup/composables/backup-utils.composable.ts'
+import { useXoBackupUtils } from '@/modules/backup/composables/xo-backup-utils.composable.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
@@ -42,7 +42,7 @@ const { backupJob } = defineProps<{
 
 const { t } = useI18n()
 
-const { getModeLabels } = useBackupUtils()
+const { getModeLabels } = useXoBackupUtils()
 
 const modeLabels = computed(() => getModeLabels(backupJob))
 </script>

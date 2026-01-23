@@ -1,7 +1,7 @@
 import type { AnyXoBackupJob, XoMetadataBackupJob, XoMirrorBackupJob, XoVmBackupJob } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-export function useBackupUtils() {
+export function useXoBackupUtils() {
   const { t } = useI18n()
 
   const hasSnapshotRetention = (backupJob: XoVmBackupJob) =>

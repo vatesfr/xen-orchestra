@@ -55,7 +55,7 @@
 
 <script lang="ts" setup>
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
-import { useVmVbdsUtils } from '@/modules/vm/composables/vm-vbd-utils.composable.ts'
+import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
@@ -101,7 +101,7 @@ const vbdsStatus = computed(() => {
   return CONNECTION_STATUS.DISCONNECTED
 })
 
-const { notCdDriveVbds } = useVmVbdsUtils(() => vm)
+const { notCdDriveVbds } = useXoVmVbdsUtils(() => vm)
 
 const vdiDevice = computed(() => notCdDriveVbds.value.find(vbd => vbd.VDI === vdi.id)?.device ?? '')
 </script>

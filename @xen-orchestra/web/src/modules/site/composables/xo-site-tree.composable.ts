@@ -1,6 +1,6 @@
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import type { XoSite } from '@/modules/site/types/site.type.ts'
+import type { XoSite } from '@/modules/site/types/xo-site.type.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { XOA_NAME } from '@/shared/constants.ts'
 import type { TreeNodeId } from '@core/packages/tree/types'
@@ -11,7 +11,7 @@ import { useLocalStorage } from '@vueuse/core'
 import { logicAnd } from '@vueuse/math'
 import { computed, reactive, ref, watch } from 'vue'
 
-export function useSiteTree() {
+export function useXoSiteTree() {
   const { pools, arePoolsReady } = useXoPoolCollection()
   const { hostsByPool, areHostsReady } = useXoHostCollection()
   const { vmsByHost, hostLessVmsByPool, areVmsReady } = useXoVmCollection()

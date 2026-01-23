@@ -23,7 +23,7 @@
 
 <script setup lang="ts">
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import { getPifStatus } from '@/modules/pif/utils/pif.util'
+import { getPifStatus } from '@/modules/pif/utils/xo-pif.util.ts'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'

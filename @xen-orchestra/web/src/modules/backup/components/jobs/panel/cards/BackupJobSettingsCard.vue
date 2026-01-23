@@ -106,7 +106,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useBackupJobSettingsUtils } from '@/modules/backup/composables/backup-job-settings/backup-job-settings.composable.ts'
+import { useXoBackupJobSettingsUtils } from '@/modules/backup/composables/backup-job-settings/xo-backup-job-settings.composable.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -130,7 +130,7 @@ const {
   proxy,
   reportWhenValueTranslation,
   settings,
-} = useBackupJobSettingsUtils(() => backupJob)
+} = useXoBackupJobSettingsUtils(() => backupJob)
 </script>
 
 <style scoped lang="postcss">

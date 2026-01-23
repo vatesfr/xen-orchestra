@@ -15,7 +15,7 @@
 <script setup lang="ts">
 import VdiSidePanel from '@/modules/vdi/components/list/panel/VdiSidePanel.vue'
 import VdisTable from '@/modules/vdi/components/list/VdisTable.vue'
-import { useVmVbdsUtils } from '@/modules/vm/composables/vm-vbd-utils.composable.ts'
+import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
 import { useXoVmVdisCollection } from '@/modules/vm/remote-resources/use-xo-vm-vdis-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -35,7 +35,7 @@ const { t } = useI18n()
 const { vmVdis, getVmVdiById, hasVmVdiFetchError, areVmVdisReady } = useXoVmVdisCollection({}, () => vm.id)
 const uiStore = useUiStore()
 
-const { notCdDriveVbds } = useVmVbdsUtils(() => vm)
+const { notCdDriveVbds } = useXoVmVbdsUtils(() => vm)
 
 const filteredVdisByNotCdVbd = computed(() =>
   vmVdis.value.filter(vdi => notCdDriveVbds.value.some(vbd => vdi.$VBDs.includes(vbd.id)))

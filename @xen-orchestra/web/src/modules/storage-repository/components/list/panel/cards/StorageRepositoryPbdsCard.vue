@@ -37,7 +37,7 @@
 </template>
 
 <script lang="ts" setup>
-import { usePbdUtils } from '@/modules/pbd/composables/pbd-utils.composable.ts'
+import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
 import StorageRepositoryPbdHost from '@/modules/storage-repository/components/list/panel/card-items/StorageRepositoryPbdHost.vue'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
@@ -56,7 +56,7 @@ const { pbds } = defineProps<{
 
 const { t } = useI18n()
 
-const { areSomePbdsDisconnected, allPbdsConnectionStatus, disconnectedPbds } = usePbdUtils(() => pbds)
+const { areSomePbdsDisconnected, allPbdsConnectionStatus, disconnectedPbds } = useXoPbdUtils(() => pbds)
 </script>
 
 <style scoped lang="postcss">

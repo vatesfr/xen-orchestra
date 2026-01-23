@@ -1,5 +1,5 @@
-import { convertTaskToCore } from '@/modules/task/utils/convert-task-to-core.util.ts'
-import { findTaskById } from '@/modules/task/utils/task.util.ts'
+import { convertXoTaskToCore } from '@/modules/task/utils/convert-xo-task-to-core.util.ts'
+import { findTaskById } from '@/modules/task/utils/xo-task.util.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { watchCollectionWrapper } from '@/shared/utils/sse.util.ts'
@@ -30,7 +30,7 @@ export function createTaskCollectionState<TArgs extends any[] = []>(
 ) {
   const lastDayTasks = computed(() => {
     const now = Date.now()
-    return tasks.value.filter(task => now - task.start < ONE_DAY).map(task => convertTaskToCore(task))
+    return tasks.value.filter(task => now - task.start < ONE_DAY).map(task => convertXoTaskToCore(task))
   })
 
   const sortedTasks = useSorted(tasks, (task1, task2) => task2.start - task1.start)

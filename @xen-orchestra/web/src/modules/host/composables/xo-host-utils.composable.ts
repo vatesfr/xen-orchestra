@@ -6,7 +6,7 @@ import { HOST_POWER_STATE } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export function useHostUtils() {
+export function useXoHostUtils() {
   const { t } = useI18n()
 
   const getPowerState = createMapper<HOST_POWER_STATE, { text: string; icon: IconName | undefined }>(

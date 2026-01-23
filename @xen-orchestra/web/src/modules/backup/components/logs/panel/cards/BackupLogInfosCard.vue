@@ -58,7 +58,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useBackupLogsUtils } from '@/modules/backup/composables/backup-log-utils.composable.ts'
+import { useXoBackupLogsUtils } from '@/modules/backup/composables/xo-backup-log-utils.composable.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -76,7 +76,7 @@ const { backupLog } = defineProps<{
 
 const { t } = useI18n()
 
-const { getBackupLogDate, getBackupLogDuration, getTransferSize } = useBackupLogsUtils()
+const { getBackupLogDate, getBackupLogDuration, getTransferSize } = useXoBackupLogsUtils()
 
 const formattedStartDate = computed(() => getBackupLogDate(backupLog.start))
 const formattedEndDate = computed(() => getBackupLogDate(backupLog.end))

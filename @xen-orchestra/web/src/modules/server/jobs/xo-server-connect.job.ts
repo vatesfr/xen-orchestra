@@ -1,10 +1,10 @@
-import { serverIdsArg } from '@/modules/server/jobs/args.job.ts'
+import { xoServerIdsArg } from '@/modules/server/jobs/xo-server-args.job.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import type { XoTask } from '@vates/types'
 
-export const useServerConnectJob = defineJob('server.connect', [serverIdsArg], () => {
+export const useXoServerConnectJob = defineJob('server.connect', [xoServerIdsArg], () => {
   const { monitorTask } = useXoTaskUtils()
   return {
     run(serverIds) {

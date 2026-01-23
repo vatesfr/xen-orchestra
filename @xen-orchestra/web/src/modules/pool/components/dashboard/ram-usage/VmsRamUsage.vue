@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoPoolDashboard } from '@/modules/pool/types/pool-dashboard.type'
+import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
 import VtsProgressBarGroup, {
   type ProgressBarGroupItem,
 } from '@core/components/progress-bar-group/VtsProgressBarGroup.vue'

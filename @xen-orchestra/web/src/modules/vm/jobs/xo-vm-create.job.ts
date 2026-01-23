@@ -50,7 +50,7 @@ const payloadsArg = defineJobArg<Ref<TCreateVmPayload>>({
   toArray: true,
 })
 
-export const useVmCreateJob = defineJob('vm.create', [payloadsArg], () => {
+export const useXoVmCreateJob = defineJob('vm.create', [payloadsArg], () => {
   const { monitorTask } = useXoTaskUtils()
   const { t } = useI18n()
 

@@ -34,7 +34,7 @@ import BackupJobLogsCard from '@/modules/backup/components/panel/cards/BackupJob
 import BackupJobSchedulesCard from '@/modules/backup/components/panel/cards/BackupJobSchedulesCard.vue'
 import BackupJobSourceRepositoryCard from '@/modules/backup/components/panel/cards/BackupJobSourceRepositoryCard.vue'
 import BackupJobTargetsCard from '@/modules/backup/components/panel/cards/BackupJobTargetsCard.vue'
-import { useBackupJobSettingsUtils } from '@/modules/backup/composables/backup-job-settings/backup-job-settings.composable.ts'
+import { useXoBackupJobSettingsUtils } from '@/modules/backup/composables/backup-job-settings/xo-backup-job-settings.composable.ts'
 import { useXoBackupLogCollection } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import { useXoBackupRepositoryCollection } from '@/modules/backup/remote-resources/use-xo-br-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
@@ -90,7 +90,7 @@ const storageRepositoryTargets = computed(() => {
   return getSrsByIds(extractIdsFromSimplePattern(backupJob.srs) as XoSr['id'][])
 })
 
-const { settings: backupJobSettings } = useBackupJobSettingsUtils(() => backupJob)
+const { settings: backupJobSettings } = useXoBackupJobSettingsUtils(() => backupJob)
 
 const hasSettings = computed(() => Object.values(backupJobSettings).some(value => value !== undefined))
 </script>

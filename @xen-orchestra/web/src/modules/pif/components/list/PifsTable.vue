@@ -29,9 +29,9 @@
 
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import { getNetworkStatus, getPoolNetworkLink } from '@/modules/network/utils/network.util.ts'
+import { getNetworkStatus, getPoolNetworkLink } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import { getPifStatus } from '@/modules/pif/utils/pif.util.ts'
+import { getPifStatus } from '@/modules/pif/utils/xo-pif.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'

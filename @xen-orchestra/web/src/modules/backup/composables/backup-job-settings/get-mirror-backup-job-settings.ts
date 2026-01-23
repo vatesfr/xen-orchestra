@@ -1,7 +1,7 @@
-import type { BackupJobSettings } from '@/modules/backup/types/backup.ts'
+import type { XoBackupJobSettings } from '@/modules/backup/types/xo-backup.ts'
 import type { XoMirrorBackupJob } from '@vates/types'
 
-export function getMirrorBackupJobSettings(job: XoMirrorBackupJob): BackupJobSettings {
+export function getMirrorBackupJobSettings(job: XoMirrorBackupJob): XoBackupJobSettings {
   if (!job.settings['']) {
     return {}
   }

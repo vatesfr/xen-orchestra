@@ -25,8 +25,8 @@
 </template>
 
 <script setup lang="ts">
-import { useBackupJobSchedulesUtils } from '@/modules/backup/composables/backup-job-schedules-utils.composable.ts'
-import { useBackupUtils } from '@/modules/backup/composables/backup-utils.composable.ts'
+import { useXoBackupJobSchedulesUtils } from '@/modules/backup/composables/xo-backup-job-schedules-utils.composable.ts'
+import { useXoBackupUtils } from '@/modules/backup/composables/xo-backup-utils.composable.ts'
 import { useXoBackupLogCollection } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -56,9 +56,9 @@ const { t } = useI18n()
 
 const { areSchedulesReady } = useXoScheduleCollection()
 const { areBackupLogsReady } = useXoBackupLogCollection()
-const { getLastThreeRunsStatuses, getTotalSchedules } = useBackupJobSchedulesUtils()
+const { getLastThreeRunsStatuses, getTotalSchedules } = useXoBackupJobSchedulesUtils()
 
-const { getModeLabels } = useBackupUtils()
+const { getModeLabels } = useXoBackupUtils()
 const selectedBackupJobId = useRouteQuery('id')
 
 const searchQuery = ref('')

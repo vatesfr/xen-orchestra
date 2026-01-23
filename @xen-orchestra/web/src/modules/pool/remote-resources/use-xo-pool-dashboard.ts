@@ -1,4 +1,4 @@
-import type { XoPoolDashboard } from '@/modules/pool/types/pool-dashboard.type.ts'
+import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { Ref } from 'vue'

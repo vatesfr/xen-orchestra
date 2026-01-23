@@ -28,7 +28,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { BackupLogResult } from '@/modules/task/utils/task.util'
+import type { BackupLogResult } from '@/modules/task/utils/xo-task.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'

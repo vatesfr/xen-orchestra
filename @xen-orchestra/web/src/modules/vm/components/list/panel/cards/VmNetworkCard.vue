@@ -36,7 +36,7 @@
 </template>
 
 <script lang="ts" setup>
-import { getVmIpAddresses } from '@/modules/vm/utils/vm.util.ts'
+import { getVmIpAddresses } from '@/modules/vm/utils/xo-vm.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
