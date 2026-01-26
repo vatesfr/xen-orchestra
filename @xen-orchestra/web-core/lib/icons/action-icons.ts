@@ -1,5 +1,5 @@
 import { defineIconPack, type IconSingleConfig } from '@core/packages/icon'
-import { faSquare as checkboxEmpty, faCopy, type IconDefinition } from '@fortawesome/free-regular-svg-icons'
+import { faCopy, faSquare as checkboxEmpty, type IconDefinition } from '@fortawesome/free-regular-svg-icons'
 import {
   faAdd,
   faArrowCircleRight,
@@ -29,6 +29,7 @@ import {
   faRefresh,
   faRoute,
   faSearch,
+  faSquare,
   faThumbTack,
   faThumbTackSlash,
   faTrash,
@@ -139,7 +140,7 @@ export const actionIcons = defineIconPack({
     rotate: 90,
   },
   reboot: constructIcon(faArrowRotateRight),
-  'reboot-force': [
+  'force-reboot': [
     constructIcon(faArrowRotateRight),
     {
       icon: faCircle,
@@ -160,7 +161,28 @@ export const actionIcons = defineIconPack({
       size: 6,
     },
   ],
-  'reboot-smart': [
+  'force-shutdown': [
+    constructIcon(faSquare),
+    {
+      icon: faCircle,
+      color: 'var(--color-neutral-background-primary)',
+      translate: [7, 5.5],
+      size: 13,
+    },
+    {
+      icon: faCircle,
+      color: 'var(--color-neutral-txt-primary)',
+      translate: [7, 5.5],
+      size: 10,
+    },
+    {
+      icon: faBolt,
+      color: 'var(--color-neutral-background-primary)',
+      translate: [7, 5.5],
+      size: 6,
+    },
+  ],
+  'smart-reboot': [
     constructIcon(faArrowRotateRight),
     {
       icon: faCircle,
