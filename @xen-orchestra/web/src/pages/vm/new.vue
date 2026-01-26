@@ -151,9 +151,12 @@
                     {{ t('copy-host-bios-strings') }}
                   </UiCheckbox>
                 </div>
-                <div v-else>
+                <div v-else class="checkbox-container">
                   <UiCheckbox v-model="vmState.createVtpm" accent="brand">
                     {{ t('vtpm') }}
+                  </UiCheckbox>
+                  <UiCheckbox v-model="secureBootFormated" accent="brand">
+                    {{ t('secure-boot') }}
                   </UiCheckbox>
                 </div>
               </div>
@@ -378,6 +381,7 @@ const vmState = reactive<VmState>({
   tags: [],
   vCPU: 0,
   selectedVcpu: 0,
+  secureBoot: '',
   ram: 0,
   topology: '',
   copyHostBiosStrings: false,
@@ -742,6 +746,7 @@ const vmData = computed(() => {
     vdisToSend.length > 0 && { vdis: vdisToSend },
     vifsToSend.value.length > 0 && { vifs: vifsToSend.value },
     vmState.affinity_host && { affinity: vmState.affinity_host },
+    vmState.bootFirmware === 'uefi' && { secureBoot: vmState.secureBoot },
     vmState.installMode !== 'no-config' &&
       vmState.installMode !== 'cloud-init-config' &&
       vmState.installMode !== 'ssh-key' && {
@@ -836,7 +841,7 @@ watch(
       return
     }
 
-    const { name_label, isDefaultTemplate, name_description, tags, CPUs, memory } = template
+    const { name_label, isDefaultTemplate, name_description, tags, CPUs, memory, secureBoot } = template
 
     Object.assign(vmState, {
       isDiskTemplateSelected: isDiskTemplate.value ?? false,
@@ -848,6 +853,7 @@ watch(
       vdis: getVmTemplateVdis(template),
       existingVdis: getExistingVdis(template),
       vifs: getExistingVifs(template),
+      secureBoot: String(secureBoot),
       selectedVdi: undefined,
       installMode: 'no-config',
       networkConfig: '',

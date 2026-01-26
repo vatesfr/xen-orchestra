@@ -25,6 +25,7 @@ const vmTemplateFields = [
   'isDefaultTemplate',
   'type',
   'bios_strings',
+  'secureBoot',
 ] as const satisfies readonly (keyof XoVmTemplate)[]
 
 export const useXoVmTemplateCollection = defineRemoteResource({
