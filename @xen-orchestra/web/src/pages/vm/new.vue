@@ -76,9 +76,12 @@
                     {{ t('copy-host-bios-strings') }}
                   </UiCheckbox>
                 </div>
-                <div v-else>
+                <div v-else class="checkbox-container">
                   <UiCheckbox v-model="vmState.createVtpm" accent="brand">
                     {{ t('vtpm') }}
+                  </UiCheckbox>
+                  <UiCheckbox v-model="secureBootFormated" accent="brand">
+                    {{ t('secure-boot') }}
                   </UiCheckbox>
                 </div>
               </div>
@@ -247,6 +250,7 @@ const vmState = reactive<VmState>({
   tags: [],
   vCPU: 0,
   selectedVcpu: 0,
+  secureBoot: '',
   ram: 0,
   topology: '',
   copyHostBiosStrings: false,
@@ -262,6 +266,20 @@ const vmState = reactive<VmState>({
 const bytesToGiB = (bytes: number) => Math.floor(bytes / 1024 ** 3)
 
 const giBToBytes = (giB: number) => giB * 1024 ** 3
+
+// TODO In a future "auto" mode, derive the default secureBoot value from the pool once it is available there.
+const secureBootFormated = computed({
+  get() {
+    if (vmState.bootFirmware !== 'uefi') {
+      return false
+    }
+    return vmState.secureBoot === 'true'
+  },
+
+  set(newValue) {
+    vmState.secureBoot = String(newValue)
+  },
+})
 
 const ramFormatted = computed({
   get() {
@@ -573,6 +591,7 @@ const vmData = computed(() => {
     vdisToSend.length > 0 && { vdis: vdisToSend },
     vifsToSend.value.length > 0 && { vifs: vifsToSend.value },
     vmState.affinity_host && { affinity: vmState.affinity_host },
+    vmState.bootFirmware === 'uefi' && { secureBoot: vmState.secureBoot },
     vmState.installMode !== 'no-config' && {
       install: {
         method: vmState.installMode,
@@ -658,7 +677,7 @@ watch(
       return
     }
 
-    const { name_label, isDefaultTemplate, name_description, tags, CPUs, memory } = template
+    const { name_label, isDefaultTemplate, name_description, tags, CPUs, memory, secureBoot } = template
 
     Object.assign(vmState, {
       isDiskTemplateSelected: isDiskTemplate.value ?? false,
@@ -670,6 +689,7 @@ watch(
       vdis: getVmTemplateVdis(template),
       existingVdis: getExistingVdis(template),
       vifs: getExistingVifs(template),
+      secureBoot: String(secureBoot),
       selectedVdi: undefined,
       installMode: undefined,
       bootFirmware: template.boot.firmware ?? 'bios',
@@ -802,6 +822,12 @@ watch(
         flex-direction: column;
         gap: 2.5rem;
         width: 40%;
+
+        .checkbox-container {
+          display: flex;
+          flex-direction: column;
+          gap: 0.8rem;
+        }
       }
     }
 
