@@ -114,9 +114,12 @@
                     {{ t('copy-host-bios-strings') }}
                   </UiCheckbox>
                 </div>
-                <div v-else>
+                <div v-else class="checkbox-container">
                   <UiCheckbox v-model="vmState.vtpm" accent="brand">
                     {{ t('vtpm') }}
+                  </UiCheckbox>
+                  <UiCheckbox v-if="vmState.bootFirmware === 'uefi'" v-model="secureBootFormated" accent="brand">
+                    {{ t('secure-boot') }}
                   </UiCheckbox>
                 </div>
               </div>
@@ -285,6 +288,7 @@ const vmState = reactive<VmState>({
   tags: [],
   vCPU: 0,
   selectedVcpu: 0,
+  secureBoot: false,
   ram: 0,
   topology: '',
   copyHostBiosStrings: false,
@@ -300,6 +304,20 @@ const vmState = reactive<VmState>({
 const bytesToGiB = (bytes: number) => Math.floor(bytes / 1024 ** 3)
 
 const giBToBytes = (giB: number) => giB * 1024 ** 3
+
+// TODO if vmState.secureBoot == 'auto' get the value of pool. Actualy is not available in pool.
+const secureBootFormated = computed({
+  get() {
+    if (vmState.bootFirmware !== 'uefi') {
+      return false
+    }
+    return vmState.secureBoot
+  },
+
+  set(newValue) {
+    vmState.secureBoot = newValue
+  },
+})
 
 const ramFormatted = computed({
   get() {
@@ -618,6 +636,7 @@ const vmData = computed(() => {
     vdisToSend.length > 0 && { vdis: vdisToSend },
     vifsToSend.value.length > 0 && { vifs: vifsToSend.value },
     vmState.affinity_host && { affinity: vmState.affinity_host },
+    vmState.bootFirmware === 'uefi' && { secureBoot: vmState.secureBoot },
     vmState.installMode !== 'no-config' && {
       install: {
         method: vmState.installMode,
@@ -703,7 +722,7 @@ watch(
       return
     }
 
-    const { name_label, isDefaultTemplate, name_description, tags, CPUs, memory } = template
+    const { name_label, isDefaultTemplate, name_description, tags, CPUs, memory, secureBoot } = template
 
     Object.assign(vmState, {
       isDiskTemplateSelected: isDiskTemplate.value ?? false,
@@ -715,6 +734,7 @@ watch(
       vdis: getVmTemplateVdis(template),
       existingVdis: getExistingVdis(template),
       vifs: getExistingVifs(template),
+      secureBoot,
       selectedVdi: undefined,
       installMode: undefined,
       bootFirmware: template.boot.firmware ?? 'bios',
@@ -799,7 +819,7 @@ const xo5Link = computed(() => {
 
 // BOOT FIRMWARE SELECTOR
 
-const bootFirmwareOptions = ['BIOS', 'UEFI']
+const bootFirmwareOptions = ['bios', 'uefi']
 
 const { id: bootFirmwareSelectId } = useFormSelect(bootFirmwareOptions, {
   model: toRef(vmState, 'bootFirmware'),
@@ -847,6 +867,12 @@ watch(
         flex-direction: column;
         gap: 2.5rem;
         width: 40%;
+
+        .checkbox-container {
+          display: flex;
+          flex-direction: column;
+          gap: 0.8rem;
+        }
       }
     }
 
