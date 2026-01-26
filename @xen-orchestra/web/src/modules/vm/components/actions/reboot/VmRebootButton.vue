@@ -21,7 +21,7 @@ const { run: reboot, canRun, isRunning } = useVmRebootJob(() => [vm])
 
 const openRebootModal = useModal({
   component: import('@core/components/modal/VtsActionModal.vue'),
-  props: { name: vm.name_label, action: 'reboot' },
+  props: { accent: 'info', action: 'reboot', object: 'vm' },
   onConfirm: () => reboot(),
 })
 </script>

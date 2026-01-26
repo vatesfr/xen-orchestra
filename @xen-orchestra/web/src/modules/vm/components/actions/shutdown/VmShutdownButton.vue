@@ -21,7 +21,7 @@ const { run: shutdown, canRun, isRunning } = useVmShutdownJob(() => [vm])
 
 const openShutdownModal = useModal({
   component: import('@core/components/modal/VtsActionModal.vue'),
-  props: { name: vm.name_label, action: 'shutdown' },
+  props: { accent: 'info', action: 'shutdown', object: 'vm' },
   onConfirm: () => shutdown(),
 })
 </script>

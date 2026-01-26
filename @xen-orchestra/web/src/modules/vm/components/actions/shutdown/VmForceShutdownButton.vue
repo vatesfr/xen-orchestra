@@ -21,7 +21,7 @@ const { run: hard_shutdown, canRun, isRunning } = useVmForceShutdownJob(() => [v
 
 const openRebootModal = useModal({
   component: import('@core/components/modal/VtsActionModal.vue'),
-  props: { name: vm.name_label, action: 'shutdown' },
+  props: { accent: 'info', action: 'force-shutdown', object: 'vm' },
   onConfirm: () => hard_shutdown(),
 })
 </script>

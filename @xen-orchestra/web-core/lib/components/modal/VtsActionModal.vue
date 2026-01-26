@@ -1,15 +1,15 @@
 <template>
-  <VtsModal accent="warning" icon="fa:satellite">
+  <VtsModal :accent icon="fa:user-astronaut">
     <template #title>
-      <I18nT :keypath="`action:${action}`" scope="global" tag="div" />
+      <span>{{ title }}</span>
     </template>
     <template #content>
-      <span class="action">{{ t(`confirm-${action}`, { name }) }}</span>
+      <span>{{ message }}</span>
     </template>
     <template #buttons>
       <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
       <VtsModalConfirmButton>
-        {{ t(`action:${action}`) }}
+        {{ actionText }}
       </VtsModalConfirmButton>
     </template>
   </VtsModal>
@@ -19,18 +19,21 @@
 import VtsModal from '@core/components/modal/VtsModal.vue'
 import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
 import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{
-  name: string
-  action: string
+const { action, object } = defineProps<{
+  action: 'reboot' | 'shutdown' | 'force-reboot' | 'force-shutdown'
+  accent: ModalAccent
+  object: 'vm' // add more object if needed
 }>()
 
 const { t } = useI18n()
-</script>
 
-<style lang="postcss" scoped>
-.action {
-  color: var(--color-warning-item-base);
-}
-</style>
+const title = computed(() => t(`modal:confirm-object-${action}`, { object }))
+
+const message = computed(() => t(`modal:${object}-${action}-message`))
+
+const actionText = computed(() => t(`modal:action:${action}`, { object }))
+</script>

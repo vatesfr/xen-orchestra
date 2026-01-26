@@ -110,6 +110,7 @@ import {
   faTriangleExclamation,
   faUpRightAndDownLeftFromCenter,
   faUpRightFromSquare,
+  faUserAstronaut,
   faWarning,
   faXmark,
 } from '@fortawesome/free-solid-svg-icons'
@@ -206,6 +207,7 @@ export const faIcons = defineIconPack({
   reboot: { icon: faArrowRotateRight },
   remove: { icon: faRemove },
   repeat: { icon: faRepeat },
+  'user-astronaut': { icon: faUserAstronaut },
   'rotate-left': { icon: faRotateLeft },
   route: { icon: faRoute },
   satellite: { icon: faSatellite },

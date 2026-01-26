@@ -21,7 +21,7 @@ const { run: hard_reboot, canRun, isRunning } = useVmForceRebootJob(() => [vm])
 
 const openRebootModal = useModal({
   component: import('@core/components/modal/VtsActionModal.vue'),
-  props: { name: vm.name_label, action: 'reboot' },
+  props: { accent: 'info', action: 'force-reboot', object: 'vm' },
   onConfirm: () => hard_reboot(),
 })
 </script>
