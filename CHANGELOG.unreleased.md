@@ -42,8 +42,8 @@
 - @vates/nbd-client patch
 - @vates/types minor
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/web-core minor
 - vhd-cli patch
 - xo-server minor
-- @xen-orchestra/web-core minor
 
 <!--packages-end-->

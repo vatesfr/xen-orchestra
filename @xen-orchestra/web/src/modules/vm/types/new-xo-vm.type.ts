@@ -40,6 +40,7 @@ export interface VmState {
   pool: XoPool | undefined
   ram: number
   selectedVdi: XoVdi['id'] | undefined
+  secureBoot: boolean
   sshKeys: string[]
   ssh_key: string
   tags: string[]

@@ -27,6 +27,7 @@ export interface VmState {
   boot_vm: boolean
   auto_power: boolean
   fast_clone: boolean
+  secureBoot: string
   ssh_key: string
   selectedVdi: XenApiVdi['$ref'] | undefined
   networkConfig: string

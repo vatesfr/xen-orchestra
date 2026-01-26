@@ -124,9 +124,12 @@
                     {{ t('action:copy-host') }}
                   </UiCheckbox>
                 </div>
-                <div v-else-if="vmState.boot_firmware === 'uefi' || templateHasBiosStrings">
+                <div v-else-if="vmState.boot_firmware === 'uefi' || templateHasBiosStrings" class="checkbox-container">
                   <UiCheckbox v-model="vmState.create_vtpm" accent="brand">
                     {{ t('vtpm') }}
+                  </UiCheckbox>
+                  <UiCheckbox v-model="secureBootFormated" accent="brand">
+                    {{ t('secure-boot') }}
                   </UiCheckbox>
                 </div>
               </div>
@@ -294,6 +297,7 @@ const vmState = reactive<VmState>({
   boot_firmware: '',
   new_vm_template: undefined,
   boot_vm: true,
+  secureBoot: '',
   auto_power: false,
   fast_clone: true,
   ssh_key: '',
@@ -323,6 +327,20 @@ const ramFormatted = computed({
   },
   set(newValue) {
     vmState.ram = giBToBytes(newValue)
+  },
+})
+
+// TODO if vmState.secureBoot == 'auto' get the value of pool. actualy is not available in pool.
+const secureBootFormated = computed({
+  get() {
+    if (vmState.boot_firmware !== 'uefi') {
+      return false
+    }
+    return vmState.secureBoot === 'true'
+  },
+
+  set(newValue) {
+    vmState.secureBoot = String(newValue)
   },
 })
 
@@ -562,6 +580,7 @@ const vmCreationParams = computed(() => ({
   name_label: vmState.name,
   template: vmState.new_vm_template?.$ref,
   vdis: vmState.vdis,
+  secureBoot: vmState.boot_firmware === 'uefi' && vmState.secureBoot,
   vifs: vmState.networkInterfaces.map(net => ({
     network: net.interface,
     MAC: net.macAddress,
@@ -870,6 +889,7 @@ watch(
       vdis: getVdis(template),
       tags,
       topology: isNaN(topology) ? null : topology,
+      secureBoot: platform.secureboot,
       affinity_host: affinity,
       existingVdis: getExistingVdis(template),
       networkInterfaces: getExistingInterface(template),
@@ -985,6 +1005,12 @@ watch(
         flex-direction: column;
         gap: 2.5rem;
         width: 40%;
+
+        .checkbox-container {
+          display: flex;
+          flex-direction: column;
+          gap: 0.8rem;
+        }
       }
 
       .chips {
