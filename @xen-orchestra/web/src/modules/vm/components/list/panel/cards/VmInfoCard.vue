@@ -1,7 +1,12 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      <UiLink v-if="vm.name_label !== ''" size="medium" icon="fa:desktop" :to="`/vm/${vm.id}/dashboard`">
+      <UiLink
+        v-if="vm.name_label !== ''"
+        size="medium"
+        :icon="`object:vm:${toLower(vm.power_state)}`"
+        :to="`/vm/${vm.id}/dashboard`"
+      >
         {{ vm.name_label }}
       </UiLink>
     </UiCardTitle>

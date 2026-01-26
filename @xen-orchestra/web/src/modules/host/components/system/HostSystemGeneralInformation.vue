@@ -33,7 +33,12 @@
           <VtsIcon v-tooltip="t('master')" name="status:primary-circle" size="medium" />
           {{ t('this-host') }}
         </template>
-        <UiLink v-else-if="masterHost !== undefined" size="medium" :to="`/host/${masterHost.id}/`" icon="object:host">
+        <UiLink
+          v-else-if="masterHost !== undefined"
+          size="medium"
+          :to="`/host/${masterHost.id}/`"
+          :icon="`object:host:${toLower(masterHost.power_state)}`"
+        >
           {{ masterHost.name_label }}
         </UiLink>
       </template>
@@ -65,6 +70,7 @@ import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { HOST_POWER_STATE, type XoHost } from '@vates/types'
+import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

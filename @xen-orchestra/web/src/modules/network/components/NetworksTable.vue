@@ -118,9 +118,7 @@ const { HeadCells, BodyCells } = useNetworkColumns({
       network: r =>
         r({
           label: network.name_label,
-          icon: internal
-            ? icon('object:network')
-            : objectIcon('network', status.value === 'partially-connected' ? 'warning' : status.value),
+          icon: icon('object:network'),
           href: href.value,
         }),
       description: r => r(network.name_description),

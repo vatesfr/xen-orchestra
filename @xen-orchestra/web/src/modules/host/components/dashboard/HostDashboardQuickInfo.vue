@@ -20,7 +20,12 @@
             <VtsIcon v-tooltip="t('master')" name="status:primary-circle" size="medium" />
             {{ t('this-host') }}
           </template>
-          <UiLink v-else-if="masterHost !== undefined" :to="`/host/${masterHost.id}/`" size="medium" icon="object:host">
+          <UiLink
+            v-else-if="masterHost !== undefined"
+            :to="`/host/${masterHost.id}/`"
+            size="medium"
+            :icon="`object:host:${toLower(masterHost.power_state)}`"
+          >
             {{ masterHost.name_label }}
           </UiLink>
         </template>
