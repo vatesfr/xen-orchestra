@@ -91,7 +91,7 @@
           <template #value>
             <UiLink
               v-if="primaryHost !== undefined"
-              icon="object:host"
+              :icon="`object:host:${toLower(primaryHost.power_state)}`"
               size="small"
               :to="`/host/${primaryHost.id}/dashboard`"
             >
@@ -157,7 +157,7 @@
             v-for="host in hosts"
             :key="host.id"
             :to="`/host/${host.id}/dashboard`"
-            icon="object:host"
+            :icon="`object:host:${toLower(host.power_state)}`"
             size="small"
           >
             {{ host.name_label }}
@@ -199,6 +199,7 @@ import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useMapper } from '@core/packages/mapper'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import type { XoServer } from '@vates/types'
+import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

@@ -23,8 +23,10 @@
               {{ t('power-state') }}
             </template>
             <template #value>
-              <VtsIcon size="small" :name="`legacy:${toLower(smartModePowerState)}`" />
-              {{ smartModePowerState }}
+              <span class="smart-mode-power-state-value">
+                <VtsIcon size="small" :name="`object:vm:${toLower(smartModePowerState)}`" />
+                {{ smartModePowerState }}
+              </span>
             </template>
           </VtsCardRowKeyValue>
           <!-- Pools -->
@@ -101,6 +103,12 @@ const { backedUpVms, backedUpVmsCount, smartModePools, smartModePowerState, smar
     display: flex;
     flex-direction: column;
     gap: 1.6rem;
+
+    .smart-mode-power-state-value {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
   }
 }
 </style>

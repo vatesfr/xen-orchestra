@@ -44,8 +44,7 @@
         <template #key>{{ t('pool') }}</template>
         <template #value>
           <div v-if="pool" class="value">
-            <VtsIcon name="object:pool" size="small" />
-            <UiLink :to="`/pool/${pool.id}/dashboard`" size="small">
+            <UiLink :to="`/pool/${pool.id}/dashboard`" size="small" icon="object:pool">
               {{ pool.name_label }}
             </UiLink>
           </div>
