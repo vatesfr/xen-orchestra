@@ -1,6 +1,6 @@
 <!-- v1 -->
 <template>
-  <label :class="variants" class="ui-radio-button ui-rich-radio-button typo-body-regular">
+  <label :class="variants" class="ui-rich-radio-button typo-body-regular">
     <span class="rich-image">
       <img :src :alt />
     </span>
@@ -35,13 +35,32 @@ defineSlots<{
   default(): any
 }>()
 
-const variants = computed(() => [toVariants({ accent, size })])
+const variants = computed(() => toVariants({ accent, size }))
 const isDisabled = useDisabled(() => disabled)
 </script>
 
 <style lang="postcss" scoped>
-.ui-radio-button {
+.ui-rich-radio-button {
   cursor: pointer;
+  border: 0.1rem solid var(--color-neutral-border);
+  border-radius: 0.4rem;
+  overflow: hidden;
+
+  .rich-image {
+    border-bottom: 0.1rem solid;
+    border-color: inherit;
+    overflow: hidden;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
 
   .radio-container {
     display: inline-flex;
@@ -131,31 +150,6 @@ const isDisabled = useDisabled(() => disabled)
     cursor: not-allowed;
     --accent-color: var(--color-neutral-txt-secondary);
   }
-}
-
-/* RICH RADIO BUTTON */
-
-.ui-rich-radio-button {
-  border: 0.1rem solid var(--color-neutral-border);
-  border-radius: 0.4rem;
-  overflow: hidden;
-
-  .rich-image {
-    border-bottom: 0.1rem solid;
-    border-color: inherit;
-    overflow: hidden;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-  }
-
   .radio-wrapper {
     display: flex;
     align-items: center;
