@@ -7,7 +7,7 @@
       prop('disabled').bool().widget(),
       prop('src').required().str().help('Image URL for rich mode'),
       prop('alt').required().str().help('Alt text for image'),
-      slot().help('Meant to receive a label'),
+      model().type('string').preset(''),
       setting('defaultSlot').widget(text()).preset('Label'),
     ]"
   >
@@ -21,7 +21,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop, setting, slot } from '@/libs/story/story-param'
+import { model, prop, setting } from '@/libs/story/story-param'
 import { text } from '@/libs/story/story-widget'
 import UiRichRadioButton from '@core/components/ui/rich-radio-button/UiRichRadioButton.vue'
 import { ref } from 'vue'

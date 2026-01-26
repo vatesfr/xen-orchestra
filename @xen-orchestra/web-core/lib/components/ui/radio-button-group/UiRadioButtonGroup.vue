@@ -6,7 +6,7 @@
         {{ label }}
       </UiLabel>
     </slot>
-    <div class="group" :class="{ vertical, [`layout-${layout}`]: rich }">
+    <div class="group" :class="{ vertical, [`layout-${layout}`]: true }">
       <slot />
     </div>
     <slot v-if="slots.info || info !== undefined" name="info">
@@ -22,8 +22,7 @@ import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
 import { computed } from 'vue'
 
-const { accent, layout } = defineProps<{
-  rich?: boolean
+const { accent } = defineProps<{
   accent: 'brand' | 'warning' | 'danger'
   label?: string
   info?: string
@@ -60,7 +59,7 @@ const labelAccent = computed(() => (accent === 'brand' ? 'neutral' : accent))
       display: grid;
       grid-template-columns: repeat(2, max-content);
       column-gap: 1.6rem;
-      row-gap: 1.6rem;
+      gap: 1.6rem;
     }
 
     &.layout-flex {
