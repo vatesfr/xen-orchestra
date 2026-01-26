@@ -1,6 +1,6 @@
 <template>
   <li>
-    <UiLink size="small" icon="object:sr" :href>
+    <UiLink size="small" :icon="srStatusIcon" :href>
       {{ sr.name_label }}
     </UiLink>
   </li>
@@ -18,4 +18,6 @@ const { sr } = defineProps<{
 
 const { buildXo5Route } = useXoRoutes()
 const href = computed(() => buildXo5Route(`/srs/${sr.id}/general`))
+
+const { srStatusIcon } = useXoSrUtils(() => sr)
 </script>

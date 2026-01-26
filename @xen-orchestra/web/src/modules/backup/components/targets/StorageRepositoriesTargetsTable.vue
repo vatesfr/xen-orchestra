@@ -95,8 +95,10 @@ const { HeadCells, BodyCells } = useColumns({
     const remainingSpace = computed(() => formatSizeRaw(sr.size - sr.physical_usage, 2))
     const totalCapacity = computed(() => formatSizeRaw(sr.size, 2))
 
+    const { srStatusIcon } = useXoSrUtils(() => sr)
+
     return {
-      storageRepository: r => r({ label: sr.name_label, href: href.value, icon: 'object:sr' }),
+      storageRepository: r => r({ label: sr.name_label, href: href.value, icon: srStatusIcon.value }),
       usedSpace: r => r(usedSpace.value.value, usedSpace.value.prefix),
       remainingSpace: r => r(remainingSpace.value.value, remainingSpace.value.prefix),
       totalCapacity: r => r(totalCapacity.value.value, totalCapacity.value.prefix),
