@@ -117,6 +117,8 @@ disconnectAllPbds.resolve = {
 
 // -------------------------------------------------------------------
 
+// In case of error 'Require "-o" along with xe-mount-iso-sr' for NFS ISO creation, the NFS share is probably incorrectly configured
+
 export async function createIso({
   host,
   nameLabel,
@@ -196,6 +198,7 @@ createIso.resolve = {
 // NFS SR
 
 // This functions creates a NFS SR
+// In case of error 'Require "-o" along with xe-mount-iso-sr', the NFS share is probably incorrectly configured
 
 export async function createNfs({
   host,
@@ -527,7 +530,8 @@ export async function probeNfs({ host, nfsVersion, server }) {
   const nfsExports = []
   forEach(ensureArray(xml['nfs-exports'].Export), nfsExport => {
     nfsExports.push({
-      path: nfsExport.Path.trim(),
+      // NFSv4 doesn't return the full path, and we need to add a slash at the beginning of it, or SR creation with this path will fail
+      path: nfsExport.Path.trim().replace(/^\/?/, '/'),
       acl: nfsExport.Accesslist.trim(),
     })
   })
