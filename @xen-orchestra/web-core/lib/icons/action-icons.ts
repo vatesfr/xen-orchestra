@@ -6,7 +6,6 @@ import {
   faArrowRight,
   faArrowRotateLeft,
   faArrowRotateRight,
-  faArrowsLeftRight,
   faArrowUpRightFromSquare,
   faBan,
   faBars,
@@ -33,6 +32,7 @@ import {
   faThumbTack,
   faThumbTackSlash,
   faTrash,
+  faUpDown,
   faUpRightAndDownLeftFromCenter,
 } from '@fortawesome/free-solid-svg-icons'
 
@@ -48,8 +48,11 @@ export const actionIcons = defineIconPack({
   'pin-panel': constructIcon(faThumbTack),
   'pin-panel-hide': constructIcon(faThumbTackSlash),
   resize: [
-    // The icon used in the design system is not available in Font Awesome, so we have to build it manually but is not the exact same arrow
-    constructIcon(faArrowsLeftRight),
+    {
+      icon: faUpDown,
+      color: 'var(--color-neutral-txt-primary)',
+      rotate: 90,
+    },
     {
       icon: faMinus,
       color: 'var(--color-neutral-txt-primary)',
@@ -161,6 +164,7 @@ export const actionIcons = defineIconPack({
       size: 6,
     },
   ],
+  shutdown: constructIcon(faSquare),
   'force-shutdown': [
     constructIcon(faSquare),
     {
