@@ -19,6 +19,7 @@
   "action:close": "Close",
   "action:connect-another-pool": "Connect another pool",
   "action:connect-pool": "Connect pool",
+  "action:continue": "Continue",
   "action:copy": "Copy",
   "action:copy-all": "Copy all",
   "action:copy-host": "Copy host",
