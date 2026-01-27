@@ -3,7 +3,7 @@
     <UiCard class="container">
       <BackupJobsTable :backup-jobs :busy="!areBackupJobsReady" :error="hasBackupJobFetchError" />
     </UiCard>
-    <BackupJobsSidePanel
+    <BackupJobSidePanel
       v-if="selectedBackupJob"
       :backup-job="selectedBackupJob"
       @close="selectedBackupJob = undefined"
@@ -17,9 +17,9 @@
 </template>
 
 <script setup lang="ts">
-import BackupJobsTable from '@/components/backups/jobs/BackupJobsTable.vue'
-import BackupJobsSidePanel from '@/components/backups/jobs/panel/BackupJobsSidePanel.vue'
-import { useXoBackupJobCollection } from '@/remote-resources/use-xo-backup-job-collection.ts'
+import BackupJobsTable from '@/modules/backup/components/jobs/BackupJobsTable.vue'
+import BackupJobSidePanel from '@/modules/backup/components/jobs/panel/BackupJobSidePanel.vue'
+import { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'

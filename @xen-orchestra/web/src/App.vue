@@ -27,7 +27,7 @@ const { get } = useCookies()
 // TODO: Remove when we considere XO6 in more advanced state
 const isFirstConnection = useLocalStorage('first-connection', true)
 const openModal = useModal({
-  component: import('@/components/modals/FirstConnection.vue'),
+  component: import('@/shared/components/modals/FirstConnection.vue'),
   onConfirm: () => {
     isFirstConnection.value = false
   },
