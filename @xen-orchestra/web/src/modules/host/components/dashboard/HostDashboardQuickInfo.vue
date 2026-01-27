@@ -69,6 +69,7 @@ import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { parseDateTime } from '@core/utils/time.util.ts'
 import { HOST_POWER_STATE, type XoHost } from '@vates/types'
+import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

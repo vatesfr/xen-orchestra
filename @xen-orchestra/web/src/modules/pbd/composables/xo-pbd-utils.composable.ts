@@ -1,5 +1,4 @@
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
-import type { Status } from '@core/components/status/VtsStatus.vue'
 import type { XoPbd } from '@vates/types'
 import { useArrayEvery, useArrayFilter, useArraySome } from '@vueuse/shared'
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
