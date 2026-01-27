@@ -11,7 +11,9 @@
 import { openVhd } from 'vhd-lib'
 import { DISK_TYPES } from 'vhd-lib/_constants.js'
 import { dirname, join } from 'node:path'
-import { RandomAccessDisk } from '@xen-orchestra/disk-transform'
+import { RandomAccessDisk, ReadAhead } from '@xen-orchestra/disk-transform'
+import { getHandler } from '@xen-orchestra/fs'
+import { asyncEach } from '@vates/async-each'
 /**
  * Represents a remote VHD (Virtual Hard Disk) that extends RandomAccessDisk.
  */
@@ -123,6 +125,7 @@ export class RemoteVhd extends RandomAccessDisk {
         index.push(blockIndex)
       }
     }
+    console.log('BLOCK INDEX ',{index})
     return index
   }
 
@@ -169,3 +172,14 @@ export class RemoteVhd extends RandomAccessDisk {
     return this.#isDifferencing
   }
 }
+/*
+
+const handler = getHandler({url:'file:///mnt/hosts/'})
+await handler.sync()
+
+const disk = new RemoteVhd({handler, path: '/fba0e581-8d94-4741-b1a0-02ec8ce5842a.vhd'})
+await disk.init()
+
+const start = Date.now()
+await asyncEach(disk.diskBlocks(),async block=>process.stdout.write('.'))
+console.log(' duration ', (Date.now() - start)/1000 )*/
