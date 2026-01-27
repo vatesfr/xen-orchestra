@@ -181,6 +181,11 @@ export interface Xapi {
     creatorId?: XoUser['id'],
     opts?: { destroyAllVifs: boolean }
   ): Promise<XenApiVmWrapped>
+  moveVdi(
+    vdiId: XenApiVdi['$ref'] | XoVdi['id'],
+    srId: XenApiSr['$ref'] | XoSr['id'],
+    opts?: { _failOnCbtError?: boolean }
+  ): Promise<XenApiVdi>
   VBD_create(params: {
     bootable?: boolean
     empty?: boolean
