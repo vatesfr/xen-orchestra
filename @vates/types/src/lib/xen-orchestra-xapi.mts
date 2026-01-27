@@ -195,6 +195,7 @@ export interface Xapi {
     VM: XenApiVm['$ref']
   }): Promise<XenApiVbd['$ref']>
   VBD_destroy(vbdRef: XenApiVbd['$ref']): Promise<void>
+  VBD_unplug(vbdRef: XenApiVbd['$ref']): Promise<void>
   VDI_destroy(vdiRef: XenApiVdi['$ref']): Promise<void>
   VDI_destroyCloudInitConfig(vdiRef: XenApiVdi['$ref'], opts?: { timeLimit?: number }): Promise<void>
   VDI_exportContent(
