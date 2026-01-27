@@ -12,9 +12,7 @@
           <template #key>
             <div v-if="index === 0">{{ t('ip-addresses') }}</div>
           </template>
-          <template #value>
-            <div>{{ ip }}</div>
-          </template>
+          <template #value>{{ ip }}</template>
           <template #addons>
             <VtsCopyButton :value="ip" />
             <UiButtonIcon

@@ -6,32 +6,25 @@
       </UiLink>
     </UiCardTitle>
     <div class="content">
-      <VtsCardRowKeyValue no-key>
-        <template #value>{{ sr.id }}</template>
-        <template #addons>
-          <VtsCopyButton :value="sr.id" />
-        </template>
-      </VtsCardRowKeyValue>
+      <VtsCodeSnippet :content="sr.id" copy />
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
         <template #value>
           <VtsStatus :status="allPbdsConnectionStatus" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue max-lines>
+      <VtsCardRowKeyValue truncate>
         <template #key>{{ t('description') }}</template>
         <template #value>{{ sr.name_description }}</template>
         <template v-if="sr.name_description" #addons>
           <VtsCopyButton :value="sr.name_description" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
+      <VtsCardRowKeyValue align-top>
         <template #key>{{ t('tags') }}</template>
         <template #value>
           <UiTagsList v-if="sr.tags.length > 0">
-            <UiTag v-for="(tag, index) in sr.tags" :key="index" accent="info" variant="secondary">
-              {{ tag }}
-            </UiTag>
+            <UiTag v-for="tag in sr.tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
           </UiTagsList>
         </template>
         <template v-if="sr.tags.length > 0" #addons>
@@ -73,6 +66,7 @@ import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-co
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
