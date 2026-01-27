@@ -13,7 +13,7 @@
           <VtsStatus :status="allPbdsConnectionStatus" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue truncate>
+      <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('description') }}</template>
         <template #value>{{ sr.name_description }}</template>
         <template v-if="sr.name_description" #addons>

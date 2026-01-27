@@ -5,7 +5,7 @@
     </UiLink>
     <div class="content">
       <VtsCodeSnippet :content="vdi.id" copy />
-      <VtsCardRowKeyValue truncate>
+      <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('description') }}</template>
         <template #value>{{ vdi.name_description }}</template>
         <template v-if="vdi.name_description" #addons>

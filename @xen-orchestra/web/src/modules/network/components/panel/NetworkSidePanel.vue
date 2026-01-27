@@ -21,7 +21,7 @@
           <!-- ID -->
           <VtsCodeSnippet :content="network.id" copy />
           <!-- DESCRIPTION -->
-          <VtsCardRowKeyValue truncate>
+          <VtsCardRowKeyValue truncate align-top>
             <template #key>{{ t('description') }}</template>
             <template #value>
               {{ network.name_description }}

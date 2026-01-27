@@ -39,7 +39,7 @@
             </template>
           </VtsCardRowKeyValue>
           <!-- Description -->
-          <VtsCardRowKeyValue truncate>
+          <VtsCardRowKeyValue truncate align-top>
             <template #key>{{ t('description') }}</template>
             <template #value>{{ server.poolNameDescription }}</template>
             <template v-if="server.poolNameDescription !== undefined" #addons>

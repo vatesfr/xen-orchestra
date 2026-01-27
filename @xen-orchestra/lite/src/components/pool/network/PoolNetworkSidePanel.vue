@@ -45,7 +45,7 @@
           <!-- UUID -->
           <VtsCodeSnippet :content="network.uuid" copy />
           <!-- DESCRIPTION -->
-          <VtsCardRowKeyValue truncate>
+          <VtsCardRowKeyValue truncate align-top>
             <template #key>{{ t('description') }}</template>
             <template #value>
               <span class="value">{{ network.name_description }}</span>
