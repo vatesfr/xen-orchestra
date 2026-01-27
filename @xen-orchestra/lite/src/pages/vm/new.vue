@@ -60,13 +60,24 @@
                 <VtsInputWrapper :label="t('boot-firmware')">
                   <VtsSelect :id="bootFirmwareSelectId" accent="brand" />
                 </VtsInputWrapper>
-                <div v-if="vmState.boot_firmware !== 'uefi' || templateHasBiosStrings">
-                  <UiCheckbox v-model="copyHostBiosStrings" accent="brand">
+                <div
+                  v-if="vmState.boot_firmware !== 'uefi'"
+                  v-tooltip="
+                    vmState.boot_firmware === 'uefi' || templateHasBiosStrings
+                      ? {
+                          placement: 'top-start',
+                          content:
+                            vmState.boot_firmware !== 'uefi' ? t('template-has-bios-strings') : t('boot-firmware-uefi'),
+                        }
+                      : undefined
+                  "
+                >
+                  <UiCheckbox v-model="copyHostBiosStrings" accent="brand" :disabled="templateHasBiosStrings">
                     {{ t('action:copy-host') }}
                   </UiCheckbox>
                 </div>
-                <div v-else-if="vmState.boot_firmware === 'uefi'">
-                  <UiCheckbox v-model="vmState.vtpm" accent="brand">
+                <div v-else-if="vmState.boot_firmware === 'uefi' || templateHasBiosStrings">
+                  <UiCheckbox v-model="vmState.create_vtpm" accent="brand">
                     {{ t('vtpm') }}
                   </UiCheckbox>
                 </div>
@@ -192,6 +203,7 @@ import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useFormSelect } from '@core/packages/form-select'
 
 // Vue imports
@@ -250,7 +262,7 @@ const vmState = reactive<VmState>({
   vdis: [],
   networkInterfaces: [],
   defaultNetwork: undefined,
-  vtpm: false,
+  create_vtpm: false,
 })
 
 // TODO remove when we can use new selector
@@ -502,7 +514,7 @@ const vmCreationParams = computed(() => ({
   autoPoweron: vmState.auto_power,
   bootAfterCreate: vmState.boot_vm,
   copyHostBiosStrings: vmState.boot_firmware !== 'uefi' && !templateHasBiosStrings.value && vmState.copyHostBiosStrings,
-  vtpm: vmState.boot_firmware === 'uefi' && vmState.vtpm,
+  createVtpm: vmState.boot_firmware === 'uefi' && vmState.create_vtpm,
   hvmBootFirmware: vmState.boot_firmware ?? 'bios',
   coresPerSocket: vmState.topology ?? vmState.vCPU,
   tags: vmState.tags,
@@ -527,11 +539,6 @@ const _createVm = defer(async ($defer: Defer) => {
       : await xapi.vm.copy({ [templateRef]: newVmName })
 
     $defer.onFailure(() => xapi.vm.delete(vmRefs))
-
-    // VTPM
-    if (vmState.boot_firmware === 'uefi' && vmState.vtpm) {
-      await xapi.vtpm.create(vmRefs[0])
-    }
 
     // COPY BIOS strings
     const domainType = await xapi.getField<DOMAIN_TYPE>('VM', vmRefs[0], 'domain_type')
@@ -569,6 +576,12 @@ const _createVm = defer(async ($defer: Defer) => {
       xapi.vm.setHvmBootFirmware(vmRefs[0], vmCreationParams.value.hvmBootFirmware),
       xapi.vm.setVCPUsAtStartup(vmRefs, vmCreationParams.value.cpus),
     ])
+
+    // VTPM
+    if (vmState.boot_firmware === 'uefi' && vmState.create_vtpm) {
+      const vtpmRef = await xapi.vtpm.create(vmRefs[0])
+      $defer.onFailure(() => xapi.vtpm.delete(vtpmRef))
+    }
 
     // INSTALL SETTINGS
     const vm = await xapi.getField<XenApiVm>('VM', vmRefs[0], 'record')
@@ -882,7 +895,7 @@ watch(
       return
     }
     vmState.copyHostBiosStrings = false
-    vmState.vtpm = false
+    vmState.create_vtpm = false
   }
 )
 </script>
