@@ -28,13 +28,15 @@
       </VtsQuickInfoRow>
       <VtsQuickInfoRow :label="t('host')">
         <template #value>
-          <UiLink v-if="host" :to="`/host/${host.id}/dashboard`" size="medium" :icon="`object:host:${hostPowerState}`">
-            {{ host.name_label }}
-          </UiLink>
-          <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
-          <span v-else>
+          <template v-if="host">
+            <UiLink :to="`/host/${host.id}/dashboard`" size="medium" :icon="`object:host:${hostPowerState}`">
+              {{ host.name_label }}
+            </UiLink>
+            <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
+          </template>
+          <template v-else>
             {{ t('none') }}
-          </span>
+          </template>
         </template>
       </VtsQuickInfoRow>
     </VtsQuickInfoColumn>
