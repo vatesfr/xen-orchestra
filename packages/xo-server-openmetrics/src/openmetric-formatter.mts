@@ -7,8 +7,10 @@
 
 import { createLogger } from '@xen-orchestra/log'
 
+import type { LabelLookupData, SrDataItem } from './index.mjs'
 import type { ParsedMetric, ParsedRrdData } from './rrd-parser.mjs'
-import type { SrDataItem } from './index.mjs'
+
+export type { SrDataItem }
 
 const logger = createLogger('xo:xo-server-openmetrics:formatter')
 
@@ -46,32 +48,6 @@ export interface FormattedMetric {
   value: number
   /** Timestamp in seconds (Unix epoch) per OpenMetrics specification */
   timestamp: number
-}
-
-// Label lookup types for enriching metrics with human-readable names
-interface VmLabelInfo {
-  name_label: string
-  vbdDeviceToVdiName: Record<string, string>
-  vifIndexToNetworkName: Record<string, string>
-}
-
-interface HostLabelInfo {
-  name_label: string
-  pifDeviceToNetworkName: Record<string, string>
-}
-
-interface SrLabelInfo {
-  name_label: string
-}
-
-/** SR data for capacity metrics - re-exported from index for convenience */
-export type { SrDataItem }
-
-interface LabelLookupData {
-  vms: Record<string, VmLabelInfo>
-  hosts: Record<string, HostLabelInfo>
-  srs: Record<string, SrLabelInfo>
-  srSuffixToUuid: Record<string, string>
 }
 
 interface HostCredentials {
@@ -707,11 +683,23 @@ export function transformMetric(
           labels.vm_name = vmInfo.name_label
         }
 
-        // For VBD metrics, add vdi_name
+        // For VBD metrics, add vdi_name and sr_name
         if (extractedLabels.device !== undefined) {
           const vdiName = vmInfo.vbdDeviceToVdiName[extractedLabels.device]
           if (vdiName !== undefined && vdiName !== '') {
             labels.vdi_name = vdiName
+          }
+
+          // Resolve sr_name via device → VDI UUID → SR UUID → SR name
+          const vdiUuid = vmInfo.vbdDeviceToVdiUuid[extractedLabels.device]
+          if (vdiUuid !== undefined) {
+            const srUuid = labelContext.labels.vdiUuidToSrUuid[vdiUuid]
+            if (srUuid !== undefined) {
+              const srInfo = labelContext.labels.srs[srUuid]
+              if (srInfo !== undefined && srInfo.name_label !== '') {
+                labels.sr_name = srInfo.name_label
+              }
+            }
           }
         }
 
