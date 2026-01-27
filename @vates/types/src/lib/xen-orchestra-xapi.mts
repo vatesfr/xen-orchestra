@@ -193,6 +193,7 @@ export interface Xapi {
       copyHostBiosStrings?: boolean
       hvmBootFirmware?: 'uefi' | 'bios'
       secureBoot?: boolean
+      create_vtpm?: boolean
     },
     checkLimits?: boolean,
     creatorId?: XoUser['id'],
