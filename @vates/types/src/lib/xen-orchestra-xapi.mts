@@ -11,21 +11,20 @@ import {
   XenApiVmWrapped,
   XenApiVtpm,
 } from '../xen-api.mjs'
-import type { OPAQUE_REF_NULL, VBD_MODE, VBD_TYPE } from '../common.mjs'
+import type { OPAQUE_REF_NULL, SUPPORTED_VDI_FORMAT, VBD_MODE, VBD_TYPE } from '../common.mjs'
 import type { PassThrough, Readable } from 'node:stream'
 import type {
   XoGpuGroup,
-  XoVgpuType,
   XoHost,
   XoNetwork,
   XoPif,
   XoSr,
   XoUser,
   XoVdi,
+  XoVgpuType,
   XoVm,
   XoVmTemplate,
 } from '../xo.mjs'
-import type { SUPPORTED_VDI_FORMAT } from '../common.mjs'
 
 export type XcpPatches = {
   changelog?: {
@@ -176,6 +175,7 @@ export interface Xapi {
       copyHostBiosStrings?: boolean
       hvmBootFirmware?: 'uefi' | 'bios'
       secureBoot?: boolean
+      create_vtpm?: boolean
     },
     checkLimits?: boolean,
     creatorId?: XoUser['id'],
