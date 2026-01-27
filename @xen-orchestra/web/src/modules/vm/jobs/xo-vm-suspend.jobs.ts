@@ -1,5 +1,5 @@
 import { xoVmsArg } from '@/modules/vm/jobs/xo-vm-args.ts'
-import { areVmsOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
+import { areVmsOperationPending, notAllVmsHavingPowerState } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
@@ -37,7 +37,7 @@ export const useXoVmSuspendJob = defineJob('vm.suspend', [xoVmsArg], () => {
         throw new JobRunningError(t('job:vm-suspend:in-progress'))
       }
 
-      if (vms.some(vm => vm.power_state !== VM_POWER_STATE.RUNNING)) {
+      if (notAllVmsHavingPowerState(vms, [VM_POWER_STATE.RUNNING])) {
         throw new JobError(t('job:vm-suspend:bad-power-state'))
       }
     },

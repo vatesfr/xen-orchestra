@@ -1,6 +1,6 @@
 import { xoHostArg } from '@/modules/host/jobs/xo-host-args.jobs.ts'
 import { xoVmsArg } from '@/modules/vm/jobs/xo-vm-args.ts'
-import { areVmsOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
+import { areVmsOperationPending, notAllVmsHavingPowerState } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
@@ -44,7 +44,7 @@ export const useXoVmStartOnJob = defineJob('vm.start-on', [xoVmsArg, xoHostArg],
         throw new JobError(t('job:vm-start-on:missing-host'))
       }
 
-      if (vms.some(vm => vm.power_state !== VM_POWER_STATE.HALTED)) {
+      if (notAllVmsHavingPowerState(vms, [VM_POWER_STATE.HALTED])) {
         throw new JobError(t('job:vm-start-on:bad-power-state'))
       }
     },
