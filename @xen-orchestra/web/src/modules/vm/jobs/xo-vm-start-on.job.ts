@@ -1,13 +1,13 @@
 import { xoHostArg } from '@/modules/host/jobs/xo-host-args.jobs.ts'
 import { xoVmsArg } from '@/modules/vm/jobs/xo-vm-args.ts'
-import { isVmOperatingPending } from '@/modules/vm/utils/xo-vm.util.ts'
+import { areVmsOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { VM_OPERATIONS, VM_POWER_STATE, type XoHost, type XoTask, type XoVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-export const useVmStartOnJob = defineJob('vm.start-on', [xoVmsArg, xoHostArg], () => {
+export const useXoVmStartOnJob = defineJob('vm.start-on', [xoVmsArg, xoHostArg], () => {
   const { t } = useI18n()
   const { monitorTask } = useXoTaskUtils()
 
@@ -36,7 +36,7 @@ export const useVmStartOnJob = defineJob('vm.start-on', [xoVmsArg, xoHostArg], (
         throw new JobError(t('job:vm-start-on:missing-vm'))
       }
 
-      if (isRunning || vms.some(vm => isVmOperatingPending(vm, VM_OPERATIONS.START_ON))) {
+      if (isRunning || areVmsOperationPending(vms, VM_OPERATIONS.START_ON)) {
         throw new JobRunningError(t('job:vm-start-on:in-progress'))
       }
 

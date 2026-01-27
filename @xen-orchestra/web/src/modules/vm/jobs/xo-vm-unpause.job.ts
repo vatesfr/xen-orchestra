@@ -1,12 +1,12 @@
 import { xoVmsArg } from '@/modules/vm/jobs/xo-vm-args.ts'
-import { isVmOperatingPending } from '@/modules/vm/utils/xo-vm.util.ts'
+import { areVmsOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { VM_OPERATIONS, VM_POWER_STATE, type XoTask, type XoVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-export const useVmUnpauseJob = defineJob('vm.resume', [xoVmsArg], () => {
+export const useXoVmUnpauseJob = defineJob('vm.resume', [xoVmsArg], () => {
   const { t } = useI18n()
   const { monitorTask } = useXoTaskUtils()
 
@@ -33,7 +33,7 @@ export const useVmUnpauseJob = defineJob('vm.resume', [xoVmsArg], () => {
         throw new JobError(t('job:vm-resume:missing-vm'))
       }
 
-      if (isRunning || vms.some(vm => isVmOperatingPending(vm, VM_OPERATIONS.UNPAUSE))) {
+      if (isRunning || areVmsOperationPending(vms, VM_OPERATIONS.UNPAUSE)) {
         throw new JobRunningError(t('job:vm-resume:in-progress'))
       }
 

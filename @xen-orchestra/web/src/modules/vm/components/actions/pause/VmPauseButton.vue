@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { useVmPauseJob } from '@/modules/vm/jobs/xo-vm-pause.job.ts'
+import { useXoVmPauseJob } from '@/modules/vm/jobs/xo-vm-pause.job.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import type { XoVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
@@ -16,5 +16,5 @@ const { vm } = defineProps<{
 
 const { t } = useI18n()
 
-const { run: pause, canRun, isRunning } = useVmPauseJob(() => [vm])
+const { run: pause, canRun, isRunning } = useXoVmPauseJob(() => [vm])
 </script>

@@ -1,12 +1,12 @@
 import { xoVmsArg } from '@/modules/vm/jobs/xo-vm-args.ts'
-import { isVmOperatingPending } from '@/modules/vm/utils/xo-vm.util.ts'
+import { areVmsOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { VM_OPERATIONS, VM_POWER_STATE, type XoTask, type XoVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-export const useVmForceRebootJob = defineJob('vm.force-reboot', [xoVmsArg], () => {
+export const useXoVmForceRebootJob = defineJob('vm.force-reboot', [xoVmsArg], () => {
   const { t } = useI18n()
   const { monitorTask } = useXoTaskUtils()
 
@@ -33,7 +33,7 @@ export const useVmForceRebootJob = defineJob('vm.force-reboot', [xoVmsArg], () =
         throw new JobError(t('job:vm-force-reboot:missing-vm'))
       }
 
-      if (isRunning || vms.some(vm => isVmOperatingPending(vm, VM_OPERATIONS.HARD_REBOOT))) {
+      if (isRunning || areVmsOperationPending(vms, VM_OPERATIONS.HARD_REBOOT)) {
         throw new JobRunningError(t('job:vm-force-reboot:in-progress'))
       }
 

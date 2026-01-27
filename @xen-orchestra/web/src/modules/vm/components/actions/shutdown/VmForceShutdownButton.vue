@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { useVmForceShutdownJob } from '@/modules/vm/jobs/xo-vm-force-shutdown.job.ts'
+import { useXoVmForceShutdownJob } from '@/modules/vm/jobs/xo-vm-force-shutdown.job.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useModal } from '@core/packages/modal/use-modal.ts'
 import type { XoVm } from '@vates/types'
@@ -17,11 +17,11 @@ const { vm } = defineProps<{
 
 const { t } = useI18n()
 
-const { run: hard_shutdown, canRun, isRunning } = useVmForceShutdownJob(() => [vm])
+const { run: forceShutdown, canRun, isRunning } = useXoVmForceShutdownJob(() => [vm])
 
 const openRebootModal = useModal({
   component: import('@core/components/modal/VtsActionModal.vue'),
   props: { accent: 'info', action: 'force-shutdown', object: 'vm' },
-  onConfirm: () => hard_shutdown(),
+  onConfirm: () => forceShutdown(),
 })
 </script>

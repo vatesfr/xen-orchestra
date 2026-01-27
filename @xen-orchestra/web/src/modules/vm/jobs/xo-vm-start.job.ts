@@ -1,5 +1,5 @@
 import { xoVmsArg } from '@/modules/vm/jobs/xo-vm-args.ts'
-import { isVmOperatingPending } from '@/modules/vm/utils/xo-vm.util.ts'
+import { areVmsOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
@@ -33,7 +33,7 @@ export const useXoVmStartJob = defineJob('vm.start', [xoVmsArg], () => {
         throw new JobError(t('job:vm-start:missing-vm'))
       }
 
-      if (isRunning || vms.some(vm => isVmOperatingPending(vm, VM_OPERATIONS.START))) {
+      if (isRunning || areVmsOperationPending(vms, VM_OPERATIONS.START)) {
         throw new JobRunningError(t('job:vm-start:in-progress'))
       }
 
