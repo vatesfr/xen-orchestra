@@ -6,6 +6,7 @@
       </UiLink>
     </UiCardTitle>
     <div class="content">
+      <VtsCodeSnippet :content="host.id" copy />
       <VtsCardRowKeyValue>
         <template #key>{{ t('state') }}</template>
         <template #value>
@@ -15,27 +16,18 @@
           </span>
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
-        <template #key>{{ t('uuid') }}</template>
-        <template #value>{{ host.id }}</template>
-        <template #addons>
-          <VtsCopyButton :value="host.id" />
-        </template>
-      </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue wrap>
+      <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('description') }}</template>
         <template #value>{{ host.name_description }}</template>
         <template v-if="host.name_description" #addons>
           <VtsCopyButton :value="host.name_description" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
+      <VtsCardRowKeyValue align-top>
         <template #key>{{ t('tags') }}</template>
         <template #value>
           <UiTagsList v-if="host.tags.length > 0">
-            <UiTag v-for="tag in host.tags" :key="tag" accent="info" variant="secondary">
-              {{ tag }}
-            </UiTag>
+            <UiTag v-for="tag in host.tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
           </UiTagsList>
         </template>
         <template v-if="host.tags.length > 0" #addons>
@@ -113,6 +105,7 @@ import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host
 import { useXoHostMissingPatchesCollection } from '@/modules/host/remote-resources/use-xo-host-missing-patches-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'

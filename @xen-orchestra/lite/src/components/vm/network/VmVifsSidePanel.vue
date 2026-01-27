@@ -41,35 +41,13 @@
         <UiCardTitle>{{ t('vif') }}</UiCardTitle>
         <div class="content">
           <!-- UUID -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('uuid') }}
-            </template>
-            <template #value>
-              {{ vif.uuid }}
-            </template>
-            <template #addons>
-              <VtsCopyButton :value="vif.uuid" />
-            </template>
-          </VtsCardRowKeyValue>
+          <VtsCodeSnippet :content="vif.uuid" copy />
           <!-- NETWORK -->
           <VtsCardRowKeyValue>
             <template #key>
               {{ t('network') }}
             </template>
-            <template #value>
-              <div class="network">
-                <!-- TODO Remove the span when the link works and the icon is fixed -->
-                <!--
-                <UiComplexIcon size="medium">
-                  <VtsIcon icon="fa:network-wired" accent="current" />
-                  <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
-                </UiComplexIcon>
-                <a href="">{{ networkNameLabel }}</a>
-                -->
-                <span v-tooltip class="text-ellipsis value">{{ network?.name_label }}</span>
-              </div>
-            </template>
+            <template #value>{{ network?.name_label }}</template>
             <template v-if="network?.name_label" #addons>
               <VtsCopyButton :value="network.name_label" />
             </template>
@@ -129,9 +107,7 @@
               <template #key>
                 <div v-if="index === 0">{{ t('ip-addresses') }}</div>
               </template>
-              <template #value>
-                <span v-tooltip class="text-ellipsis">{{ ip }}</span>
-              </template>
+              <template #value>{{ ip }}</template>
               <template #addons>
                 <VtsCopyButton :value="ip" />
                 <UiButtonIcon
@@ -177,6 +153,7 @@ import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -228,11 +205,6 @@ const status = computed(() => (vif.currently_attached ? 'connected' : 'disconnec
   .content {
     display: flex;
     flex-direction: column;
-    gap: 0.8rem;
-  }
-
-  .network {
-    display: flex;
     gap: 0.8rem;
   }
 

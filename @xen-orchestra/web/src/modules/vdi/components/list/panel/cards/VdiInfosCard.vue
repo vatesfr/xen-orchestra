@@ -4,29 +4,19 @@
       {{ vdi.name_label }}
     </UiLink>
     <div class="content">
-      <VtsCardRowKeyValue>
-        <template #key>{{ t('uuid') }}</template>
-        <template #value>
-          {{ vdi.id }}
-        </template>
-        <template #addons>
-          <VtsCopyButton :value="vdi.id" />
-        </template>
-      </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
+      <VtsCodeSnippet :content="vdi.id" copy />
+      <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('description') }}</template>
         <template #value>{{ vdi.name_description }}</template>
         <template v-if="vdi.name_description" #addons>
           <VtsCopyButton :value="vdi.name_description" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
+      <VtsCardRowKeyValue align-top>
         <template #key>{{ t('tags') }}</template>
         <template #value>
           <UiTagsList v-if="vdi.tags.length > 0">
-            <UiTag v-for="(tag, index) in vdi.tags" :key="index" accent="info" variant="secondary">
-              {{ tag }}
-            </UiTag>
+            <UiTag v-for="tag in vdi.tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
           </UiTagsList>
         </template>
         <template v-if="vdi.tags.length > 0" #addons>
@@ -59,6 +49,7 @@ import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.compo
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'

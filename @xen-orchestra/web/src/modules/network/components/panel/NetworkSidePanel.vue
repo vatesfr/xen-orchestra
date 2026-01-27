@@ -14,27 +14,17 @@
     </template>
     <template #default>
       <UiCard class="card-container">
-        <UiCardTitle v-tooltip="{ placement: 'bottom-end' }" class="typo-body-bold text-ellipsis">
+        <UiCardTitle v-tooltip="{ placement: 'bottom-end' }" class="typo-body-bold">
           {{ network.name_label }}
         </UiCardTitle>
         <div class="content">
           <!-- ID -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('id') }}
-            </template>
-            <template #value>{{ network.id }}</template>
-            <template #addons>
-              <VtsCopyButton :value="network.id" />
-            </template>
-          </VtsCardRowKeyValue>
+          <VtsCodeSnippet :content="network.id" copy />
           <!-- DESCRIPTION -->
-          <VtsCardRowKeyValue>
+          <VtsCardRowKeyValue truncate align-top>
             <template #key>{{ t('description') }}</template>
             <template #value>
-              <span v-tooltip class="value text-ellipsis">
-                {{ network.name_description }}
-              </span>
+              {{ network.name_description }}
             </template>
             <template v-if="network.name_description" #addons>
               <VtsCopyButton :value="network.name_description" />
@@ -108,6 +98,7 @@
 import PifRow from '@/modules/pif/components/PifRow.vue'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'

@@ -18,17 +18,7 @@
         <UiCardTitle>{{ t('vif') }}</UiCardTitle>
         <div class="content">
           <!-- UUID -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('uuid') }}
-            </template>
-            <template #value>
-              {{ vif.id }}
-            </template>
-            <template #addons>
-              <VtsCopyButton :value="vif.id" />
-            </template>
-          </VtsCardRowKeyValue>
+          <VtsCodeSnippet :content="vif.id" copy />
           <!-- NETWORK -->
           <VtsCardRowKeyValue>
             <template #key>
@@ -107,9 +97,7 @@
               <template #key>
                 <div v-if="index === 0">{{ t('ip-addresses') }}</div>
               </template>
-              <template #value>
-                <span class="text-ellipsis">{{ ip }}</span>
-              </template>
+              <template #value>{{ ip }}</template>
               <template #addons>
                 <VtsCopyButton :value="ip" />
                 <UiButtonIcon
@@ -155,6 +143,7 @@ import { getPoolNetworkLink } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'

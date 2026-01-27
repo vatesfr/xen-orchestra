@@ -11,20 +11,12 @@
       </UiLink>
     </UiCardTitle>
     <div class="content">
-      <VtsCardRowKeyValue>
-        <template #key>{{ t('id') }}</template>
-        <template #value>{{ backupJob.id }}</template>
-        <template #addons>
-          <VtsCopyButton :value="backupJob.id" />
-        </template>
-      </VtsCardRowKeyValue>
+      <VtsCodeSnippet :content="backupJob.id" copy />
       <VtsCardRowKeyValue v-for="(mode, index) in backupJobModes" :key="mode">
         <template #key>
           <template v-if="index === 0">{{ t('mode', backupJobModes.length) }}</template>
         </template>
-        <template #value>
-          <span class="text-ellipsis">{{ mode }}</span>
-        </template>
+        <template #value>{{ mode }}</template>
         <template #addons>
           <VtsCopyButton :value="mode" />
           <UiButtonIcon
@@ -44,6 +36,7 @@
 <script lang="ts" setup>
 import { useXoBackupUtils } from '@/modules/backup/composables/xo-backup-utils.composable.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'

@@ -6,6 +6,7 @@
       </UiLink>
     </UiCardTitle>
     <div class="content">
+      <VtsCodeSnippet :content="vm.id" copy />
       <VtsCardRowKeyValue>
         <template #key>{{ t('state') }}</template>
         <template #value>
@@ -15,21 +16,14 @@
           </div>
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
-        <template #key>{{ t('uuid') }}</template>
-        <template #value>{{ vm.id }}</template>
-        <template #addons>
-          <VtsCopyButton :value="vm.id" />
-        </template>
-      </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
+      <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('description') }}</template>
         <template #value>{{ vm.name_description }}</template>
         <template v-if="vm.name_description" #addons>
           <VtsCopyButton :value="vm.name_description" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
+      <VtsCardRowKeyValue align-top>
         <template #key>{{ t('tags') }}</template>
         <template #value>
           <UiTagsList v-if="vm.tags.length > 0">
@@ -59,7 +53,7 @@
         <template #value>
           <div v-if="host" class="value">
             <VtsObjectIcon type="host" :state="hostPowerState" size="small" />
-            <div v-tooltip class="text-ellipsis">
+            <div v-tooltip>
               <UiLink :to="`/host/${host.id}/dashboard`" size="small">
                 {{ host.name_label }}
               </UiLink>
@@ -155,6 +149,7 @@ import { useXoVmTemplateCollection } from '@/modules/vm/remote-resources/use-xo-
 import { XCP_LINKS } from '@/shared/constants.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
