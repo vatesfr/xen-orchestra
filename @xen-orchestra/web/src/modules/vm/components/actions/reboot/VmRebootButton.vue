@@ -27,9 +27,9 @@ const { vm } = defineProps<{
 const { t } = useI18n()
 
 const { run: reboot, canRun, isRunning } = useXoVmRebootJob(() => [vm])
-const { guestToolsDisplay } = useXoVmUtils(() => vm)
+const { hasGuestTools } = useXoVmUtils(() => vm)
 
-const canReboot = computed(() => guestToolsDisplay.value.type !== 'link')
+const canReboot = computed(() => hasGuestTools(vm))
 
 const openRebootModal = useModal({
   component: import('@core/components/modal/VtsActionModal.vue'),

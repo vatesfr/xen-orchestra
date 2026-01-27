@@ -20,7 +20,7 @@ const { vm } = defineProps<{
 const { t } = useI18n()
 
 const { run: suspend, canRun, isRunning } = useXoVmSuspendJob(() => [vm])
-const { guestToolsDisplay } = useXoVmUtils(() => vm)
+const { hasGuestTools } = useXoVmUtils(() => vm)
 
-const canSuspend = computed(() => guestToolsDisplay.value.type !== 'link')
+const canSuspend = computed(() => hasGuestTools(vm))
 </script>

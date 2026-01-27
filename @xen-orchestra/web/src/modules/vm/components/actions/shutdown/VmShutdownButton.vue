@@ -27,9 +27,9 @@ const { vm } = defineProps<{
 const { t } = useI18n()
 
 const { run: shutdown, canRun, isRunning } = useXoVmShutdownJob(() => [vm])
-const { guestToolsDisplay } = useXoVmUtils(() => vm)
+const { hasGuestTools } = useXoVmUtils(() => vm)
 
-const canShutdown = computed(() => guestToolsDisplay.value.type !== 'link')
+const canShutdown = computed(() => hasGuestTools(vm))
 
 const openShutdownModal = useModal({
   component: import('@core/components/modal/VtsActionModal.vue'),

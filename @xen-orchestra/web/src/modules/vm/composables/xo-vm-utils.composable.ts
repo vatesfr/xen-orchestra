@@ -42,12 +42,16 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<XoVm>) {
     )
   })
 
+  const hasGuestTools = (vm: XoVm) => {
+    return vm.managementAgentDetected && vm.pvDriversDetected
+  }
+
   const guestToolsDisplay = computed(() => {
     if (vm.value.power_state !== VM_POWER_STATE.RUNNING) {
       return { type: 'text', value: '-' }
     }
 
-    if (!vm.value.managementAgentDetected || !vm.value.pvDriversDetected) {
+    if (!hasGuestTools(vm.value)) {
       return {
         type: 'link',
         value: t('action:install-guest-tools'),
@@ -55,11 +59,11 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<XoVm>) {
       }
     }
 
-    if (vm.value.pvDriversDetected) {
-      return { type: 'text', value: vm.value.pvDriversVersion || t('installed'), tooltip: t('installed') }
+    return {
+      type: 'text',
+      value: vm.value.pvDriversVersion || t('installed'),
+      tooltip: t('installed'),
     }
-
-    return { type: 'text', value: '-' }
   })
 
   return {
@@ -67,5 +71,6 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<XoVm>) {
     installDateFormatted,
     relativeStartTime,
     guestToolsDisplay,
+    hasGuestTools,
   }
 }
