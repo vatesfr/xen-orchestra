@@ -710,7 +710,6 @@ export class VmController extends XapiXoController<XoVm> {
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
-  @Response(incorrectStateResp.status, incorrectStateResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   migrateVm(
     @Path() id: string,
@@ -721,99 +720,24 @@ export class VmController extends XapiXoController<XoVm> {
           hostId: string
           migrationNetworkId?: string
           srId?: string
-          vdiIdBySrId?: { [key: string]: string }
-          vifIdByNetworkId?: { [key: string]: string }
+          srIdByVdiId?: { [key: string]: string }
+          networkIdByVifId?: { [key: string]: string }
         },
     @Query() sync?: boolean
   ): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
+    const hostId = body.hostId as XoHost['id']
 
     const action = async () => {
-      const { hostId, migrationNetworkId } = body
+      const { migrationNetworkId } = body
+      const xapiVm = this.getXapiObject(vmId)
 
-      const vm = this.getObject(vmId)
-      const targetHost = this.restApi.getObject<XoHost>(hostId as XoHost['id'], 'host')
-      const migrationNetwork =
-        migrationNetworkId !== undefined
-          ? this.restApi.getObject<XoNetwork>(migrationNetworkId as XoNetwork['id'], 'network')
-          : undefined
-
-      const targetSr =
-        'srId' in body && body.srId !== undefined
-          ? this.restApi.getObject<XoSr>(body.srId as XoSr['id'], 'SR')
-          : undefined
-
-      const networkCheck = (network: XoNetwork) => {
-        if (network.$pool !== targetHost.$pool) {
-          throw invalidParameters(`network ${network.id} must be in the same pool than the host: ${targetHost.id}`)
-        }
-
-        let targetPif: XoPif | undefined
-        network.PIFs.forEach(pifId => {
-          const pif = this.restApi.getObject<XoPif>(pifId, 'PIF')
-          if (pif.$host === targetHost.id) {
-            targetPif = pif
-          }
-
-          return
-        })
-
-        if (targetPif === undefined) {
-          throw invalidParameters(`network ${network.id} must be reachable by the host: ${targetHost.id}`)
-        }
-
-        if (!targetPif.attached) {
-          throw incorrectState({
-            actual: targetPif.attached,
-            expected: true,
-            object: targetPif,
-            property: 'attached',
-          })
-        }
-      }
-
-      function srCheck(sr: XoSr) {
-        if (sr.shared && sr.$container !== targetHost.$pool) {
-          throw invalidParameters(`SR: ${sr.id} must be in the same pool than the host: ${targetHost.id}`)
-        }
-
-        if (!sr.shared && sr.$container !== targetHost.id) {
-          throw invalidParameters(`SR: ${sr.id} must be reachable by the host: ${targetHost.id}`)
-        }
-      }
-
-      if (migrationNetwork !== undefined) {
-        networkCheck(migrationNetwork)
-      }
-
-      if (targetSr !== undefined) {
-        srCheck(targetSr)
-      }
-
-      if ('vifIdByNetworkId' in body && body.vifIdByNetworkId !== undefined) {
-        if (vm.$pool === targetHost.$pool) {
-          throw invalidParameters('VIF mapping is not allowed for intra-pool migration')
-        }
-
-        for (const networkId of Object.values(body.vifIdByNetworkId)) {
-          const network = this.restApi.getObject<XoNetwork>(networkId as XoNetwork['id'], 'network')
-          networkCheck(network)
-        }
-      }
-
-      if ('vdiIdBySrId' in body && body.vdiIdBySrId !== undefined) {
-        for (const srId of Object.values(body.vdiIdBySrId)) {
-          const sr = this.restApi.getObject<XoSr>(srId as XoSr['id'], 'SR')
-          srCheck(sr)
-        }
-      }
-
-      await this.getXapi(vm.id).migrateVm(vm.id, this.getXapi(targetHost.id), targetHost.id, {
-        mapVdisSrs: 'vdiIdBySrId' in body ? (body.vdiIdBySrId as Record<XoVdi['id'], XoSr['id']>) : undefined,
+      await xapiVm.$xapi.migrateVm(vmId, this.getXapi(hostId), hostId, {
+        mapVdisSrs: 'srIdByVdiId' in body ? (body.srIdByVdiId as Record<XoVdi['id'], XoSr['id']>) : undefined,
         mapVifsNetworks:
-          'vifIdByNetworkId' in body ? (body.vifIdByNetworkId as Record<XoVif['id'], XoNetwork['id']>) : undefined,
-        migrationNetworkId: migrationNetwork?.id,
-        sr: targetSr?.id,
+          'networkIdByVifId' in body ? (body.networkIdByVifId as Record<XoVif['id'], XoNetwork['id']>) : undefined,
+        migrationNetworkId: migrationNetworkId as XoNetwork['id'] | undefined,
+        sr: 'srId' in body ? (body.srId as XoSr['id']) : undefined,
       })
     }
 
