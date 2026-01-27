@@ -19,6 +19,7 @@
   "action:close": "Fermer",
   "action:connect-another-pool": "Connecter un autre pool",
   "action:connect-pool": "Connecter un pool",
+  "action:continue": "Continuer",
   "action:copy": "Copier",
   "action:copy-all": "Copier tout",
   "action:copy-host": "Copier l'hôte",
