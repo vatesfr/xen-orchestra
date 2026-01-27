@@ -88,7 +88,7 @@ const isReady = logicAnd(isPoolReady, isHostReady, isHostMetricsReady)
 const isRunning = computed(() => isHostRunning(host))
 
 const powerState = computed<{ text: string; icon: IconName }>(() => ({
-  text: t(`host:status:${isRunning.value ? 'running' : 'halted'}`), // TODO fix computation
+  text: isRunning.value ? t(`host:status:running`) : t('host:status:halted'),
   icon: isRunning.value ? 'status:running-circle' : 'status:halted-circle',
 }))
 
