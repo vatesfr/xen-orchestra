@@ -8,10 +8,10 @@
         </UiLink>
       </template>
     </UiCardTitle>
-
+    <VtsStateHero v-if="error" format="card" type="error" size="small">{{ t('error-no-data') }}</VtsStateHero>
     <VtsStateHero v-if="!areBackupRunsReady" size="large" format="card" type="busy" />
 
-    <div v-if="areBackupRunsReady" class="backup-head">
+    <div v-if="areBackupRunsReady && !error" class="backup-head">
       <div class="protection-infos">
         <VtsQuickInfoRow :label="t('protection-status')">
           <template #value>
@@ -22,7 +22,7 @@
           v-if="!isEmpty && !isInNoActiveJob"
           class="protection-helper"
           accent="brand"
-          left-icon="legacy:status:info"
+          left-icon="status:info-circle"
           size="small"
           variant="tertiary"
           @click="openProtectionHelpModal()"
@@ -45,7 +45,7 @@
       </UiAlert>
     </div>
 
-    <VtsTable v-if="areBackupRunsReady && !(isInNoActiveJob && isEmpty)" :state>
+    <VtsTable v-if="areBackupRunsReady && !((isInNoActiveJob && isEmpty) || error)" :state>
       <thead>
         <tr>
           <HeadCells />
@@ -61,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import { useXoBackupJobCollection } from '@/remote-resources/use-xo-backup-job-collection'
+import { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection'
 import type { VmDashboardRun, XoVmDashboard } from '@/types/xo/vm-dashboard.type'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -90,7 +90,7 @@ const { t } = useI18n()
 const { getBackupJobById, areBackupJobsReady } = useXoBackupJobCollection()
 
 const openProtectionHelpModal = useModal(() => ({
-  component: import('@/components/modals/VmProtectedHelper.vue'),
+  component: import('@xen-orchestra/web/src/shared/components/modals/VmProtectedHelper.vue'),
 }))
 
 const lastRuns = computed(() => vmDashboard?.backupsInfo?.lastRuns)
