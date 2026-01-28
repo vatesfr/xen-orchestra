@@ -94,17 +94,22 @@ export class RemoteVhdDisk extends RemoteDisk {
    */
   async init(options) {
     if (this.#vhd === undefined) {
-      if ((await this.isDirectory()) && !isVhdAlias(this.#path)) {
-        throw Object.assign(new Error("Can't init vhd directory without using alias"), { code: 'NOT_SUPPORTED' })
-      }
+      try {
+        if ((await this.isDirectory()) && !isVhdAlias(this.#path)) {
+          throw Object.assign(new Error("Can't init vhd directory without using alias"), { code: 'NOT_SUPPORTED' })
+        }
 
-      const { value, dispose } = await openVhd(this.#handler, await resolveVhdAlias(this.#handler, this.#path), {
-        checkSecondFooter: !options.force,
-      })
-      this.#vhd = value
-      this.#dispose = dispose
-      await this.#vhd.readBlockAllocationTable()
-      this.#isDifferencing = value.footer.diskType === DISK_TYPES.DIFFERENCING
+        const { value, dispose } = await openVhd(this.#handler, await resolveVhdAlias(this.#handler, this.#path), {
+          checkSecondFooter: !options.force,
+        })
+        this.#vhd = value
+        this.#dispose = dispose
+        await this.#vhd.readBlockAllocationTable()
+        this.#isDifferencing = value.footer.diskType === DISK_TYPES.DIFFERENCING
+      } catch (error) {
+        await this.close()
+        throw error
+      }
     }
   }
 
@@ -160,6 +165,17 @@ export class RemoteVhdDisk extends RemoteDisk {
     }
 
     return stringify(this.#vhd.footer.uuid)
+  }
+
+  /**
+   * @returns {string}
+   */
+  getParentUuid() {
+    if (this.#vhd === undefined) {
+      throw new Error(`can't call getParentUid of a RemoteVhdDisk before init`)
+    }
+
+    return stringify(this.#vhd.header.parentUuid)
   }
 
   /**
@@ -243,6 +259,17 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
+   * Manually set the disk allocated blocks.
+   * @param {Array<number>} blockIds
+   * @returns {Promise<void>}
+   */
+  async setAllocatedBlocks(blockIds) {
+    if (this.#vhd instanceof VhdDirectory) {
+      this.#vhd.setAllocatedBlocks(blockIds)
+    }
+  }
+
+  /**
    * Writes Block Allocation Table
    * @param {RemoteDisk} childDisk
    * @returns {Promise<void>}
@@ -251,19 +278,6 @@ export class RemoteVhdDisk extends RemoteDisk {
     if (this.#vhd === undefined) {
       throw new Error(`can't call flushMetadata of a RemoteVhdDisk before init`)
     }
-
-    // Not working
-    /* if (await this.isDirectory()) {
-      const blocks = this.getBlockIndexes().concat(childDisk.getBlockIndexes())
-
-      const blockTable = Buffer.alloc(Math.ceil((blocks.length) / 8), 0) 
-      for(const blockId in blocks){
-        setBitmap(blockTable, blockId)
-      }
-      await this.#vhd.writeBlockAllocationTable(blockTable)
-    } else {
-      await this.#vhd.writeBlockAllocationTable()
-    } */
 
     await this.#vhd.writeBlockAllocationTable()
   }
@@ -322,7 +336,7 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
-   * Rename alias/disk/disks
+   * Rename alias/disk
    * @param {string} newPath
    */
   async rename(newPath) {
@@ -379,7 +393,10 @@ export class RemoteVhdDisk extends RemoteDisk {
     }
   }
 
-  // Test instance of VhdDirectory
+  /**
+   * Check if the disk is a VHD directory.
+   * @returns {Promise<boolean>}
+   */
   async isDirectory() {
     if (this.#vhd !== undefined) {
       return this.#vhd instanceof VhdDirectory

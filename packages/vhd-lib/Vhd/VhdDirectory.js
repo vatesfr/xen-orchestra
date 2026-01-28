@@ -340,4 +340,10 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     })
     this.#compressor = getCompressor(chunkFilters[0])
   }
+
+  setAllocatedBlocks(blockIds) {
+    for (const blockId of blockIds) {
+      setBitmap(this.#blockTable, blockId)
+    }
+  }
 }

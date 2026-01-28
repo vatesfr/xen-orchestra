@@ -52,15 +52,37 @@ export class RemoteVhdDiskChain extends RemoteDisk {
    * @returns {Promise<void>}
    */
   async init(options) {
-    await Promise.all(this.#disks.map(disk => disk.init(options)))
-
-    // Check that all disks are differencing except first one and that all childs have the correct parent uuid.
-    for (const disk of this.#disks.slice(1)) {
-      if (!disk.isDifferencing()) {
-        throw Object.assign(new Error("Can't init vhd directory with non differencing child disks"), {
-          code: 'NOT_SUPPORTED',
-        })
+    try {
+      await Promise.all(this.#disks.map(disk => disk.init(options)))
+      let parentUuid = ''
+      for (const [index, disk] of this.#disks.entries()) {
+        if (index === 0) {
+          parentUuid = disk.getUuid()
+        } else {
+          if (!disk.isDifferencing()) {
+            throw Object.assign(new Error("Can't init vhd directory with non differencing child disks"), {
+              code: 'NOT_SUPPORTED',
+            })
+          }
+          if (disk.getParentUuid() !== parentUuid) {
+            throw Object.assign(new Error("Can't init vhd directory with incorrect parentage"), {
+              code: 'NOT_SUPPORTED',
+            })
+          }
+        }
       }
+
+      // Check that all disks are differencing except first one and that all childs have the correct parent uuid.
+      for (const disk of this.#disks.slice(1)) {
+        if (!disk.isDifferencing()) {
+          throw Object.assign(new Error("Can't init vhd directory with non differencing child disks"), {
+            code: 'NOT_SUPPORTED',
+          })
+        }
+      }
+    } catch (error) {
+      await this.close()
+      throw error
     }
   }
 
@@ -180,7 +202,8 @@ export class RemoteVhdDiskChain extends RemoteDisk {
    * @returns {Promise<DiskBlock>} diskBlock
    */
   async readBlock(index) {
-    for (const disk of this.#disks) {
+    const reversedDisks = this.#disks.slice().reverse()
+    for (const disk of reversedDisks) {
       if (disk.hasBlock(index)) {
         return disk.readBlock(index)
       }
@@ -228,13 +251,12 @@ export class RemoteVhdDiskChain extends RemoteDisk {
   }
 
   /**
-   * Rename the entire chain: only the last disk becomes the merge target
+   * Abstract
+   * Rename alias/disk
    * @param {string} newPath
    */
   async rename(newPath) {
-    if (this.#disks.length === 0) return
-
-    await this.#disks[this.#disks.length - 1].rename(newPath)
+    throw new Error(`Can't rename a disk chain`)
   }
 
   /**
