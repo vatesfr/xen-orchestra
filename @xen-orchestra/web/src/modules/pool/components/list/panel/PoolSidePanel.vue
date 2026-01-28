@@ -96,6 +96,7 @@
               :to="`/host/${primaryHost.id}/dashboard`"
             >
               {{ primaryHost.name_label }}
+              <VtsIcon accent="info" name="status:primary-circle" size="medium" />
             </UiLink>
           </template>
           <template v-if="primaryHost !== undefined" #addons>
