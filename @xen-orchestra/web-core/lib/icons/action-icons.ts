@@ -135,7 +135,7 @@ export const actionIcons = defineIconPack({
   connect: constructIcon(faLink),
   disconnect: constructIcon(faLinkSlash),
   forget: constructIcon(faEraser),
-  delete: constructIcon(faTrash),
+  delete: [{ icon: faTrash, color: 'var(--color-danger-txt-primary)' }],
   'more-actions': constructIcon(faEllipsis),
   'more-actions-vertical': {
     icon: faEllipsis,

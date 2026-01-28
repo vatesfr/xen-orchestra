@@ -1,5 +1,5 @@
 import { xoVmsArg } from '@/modules/vm/jobs/xo-vm-args.ts'
-import { isVmOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
+import { areVmsOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
 import { fetchDelete } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { VM_OPERATIONS, type XoVm } from '@vates/types'
@@ -18,7 +18,7 @@ export const useXoVmDeleteJob = defineJob('vm.delete', [xoVmsArg], () => {
 
       results.forEach((result, index) => {
         if (result.status === 'rejected') {
-          console.error(`Failed to start VM ${vms[index].name_label}:`, result.reason)
+          console.error(`Failed to delete VM ${vms[index].name_label}:`, result.reason)
         }
       })
 
@@ -30,12 +30,12 @@ export const useXoVmDeleteJob = defineJob('vm.delete', [xoVmsArg], () => {
         throw new JobError(t('job:vm-delete:missing-vm'))
       }
 
-      if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATIONS.DESTROY))) {
+      if (isRunning || areVmsOperationPending(vms, VM_OPERATIONS.DESTROY)) {
         throw new JobRunningError(t('job:vm-delete:in-progress'))
       }
 
       if (vms.some(vm => vm.blockedOperations.destroy)) {
-        throw new JobError(t('job:vm-delete:bad-power-state'))
+        throw new JobError(t('job:vm-delete:blocked-operation'))
       }
     },
   }
