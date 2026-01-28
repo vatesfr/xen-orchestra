@@ -1,7 +1,7 @@
 <template>
   <div class="backup-repository">
     <UiCardTitle>
-      {{ t('backup-repository') }}
+      {{ t('backup-repository-explanation') }}
       <template #description>{{ t('for-backup') }}</template>
     </UiCardTitle>
     <!--    TODO change and add loading when we have isReady available -->

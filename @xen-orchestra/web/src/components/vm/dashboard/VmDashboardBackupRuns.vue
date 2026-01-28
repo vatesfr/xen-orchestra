@@ -8,10 +8,10 @@
         </UiLink>
       </template>
     </UiCardTitle>
-
+    <VtsStateHero v-if="error" format="card" type="error" size="small">{{ t('error-no-data') }}</VtsStateHero>
     <VtsStateHero v-if="!areBackupRunsReady" size="large" format="card" type="busy" />
 
-    <div v-if="areBackupRunsReady" class="backup-head">
+    <div v-if="areBackupRunsReady && !error" class="backup-head">
       <div class="protection-infos">
         <VtsQuickInfoRow :label="t('protection-status')">
           <template #value>
@@ -45,7 +45,7 @@
       </UiAlert>
     </div>
 
-    <VtsTable v-if="areBackupRunsReady && !(isInNoActiveJob && isEmpty)" :state>
+    <VtsTable v-if="areBackupRunsReady && !((isInNoActiveJob && isEmpty) || error)" :state>
       <thead>
         <tr>
           <HeadCells />

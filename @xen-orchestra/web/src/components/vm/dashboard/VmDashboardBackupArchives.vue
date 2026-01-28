@@ -1,7 +1,7 @@
 <template>
   <UiCard :has-error="error">
     <UiCardTitle>{{ t('last-n-backup-archives', 3) }}</UiCardTitle>
-    <VtsTable :state>
+    <VtsTable v-if="!error" :state>
       <thead>
         <tr>
           <HeadCells />
@@ -13,6 +13,7 @@
         </VtsRow>
       </tbody>
     </VtsTable>
+    <VtsStateHero v-else format="card" type="error" size="small">{{ t('error-no-data') }}</VtsStateHero>
   </UiCard>
 </template>
 
@@ -20,6 +21,7 @@
 import { useXoBackupRepositoryCollection } from '@/remote-resources/use-xo-br-collection'
 import { useXoRoutes } from '@/remote-resources/use-xo-routes'
 import type { VmDashboardBackupArchive, XoVmDashboard } from '@/types/xo/vm-dashboard.type'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
