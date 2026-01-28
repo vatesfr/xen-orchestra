@@ -95,12 +95,24 @@ function logErrorBeforeRetry(error) {
     })
   } catch (error) {}
 }
-function disconnectBeforeRetry() {
+function vdiDisconnectBeforeRetry() {
   logErrorBeforeRetry.apply(this, arguments)
   const { arguments: args, this: self } = this
   const vdiRef = args[0]
   return self.VDI_disconnectFromControlDomain(vdiRef).catch(error =>
     warn('VDI_disconnectFromControlDomain failed while retrying', {
+      arguments,
+      error,
+    })
+  )
+}
+
+function vmDisconnectBeforeRetry() {
+  logErrorBeforeRetry.apply(this, arguments)
+  const { arguments: args, this: self } = this
+  const vdiRef = args[0]
+  return self.VM_disconnectFromControlDomain(vdiRef).catch(error =>
+    warn('VM_disconnectFromControlDomain failed while retrying', {
       arguments,
       error,
     })
@@ -174,7 +186,12 @@ export class Xapi extends Base {
     this._syncHookTimeout = syncHookTimeout
     this._vdiDestroyRetryWhenInUse = {
       ...vdiDestroyRetryWhenInUse,
-      onRetry: disconnectBeforeRetry,
+      onRetry: vdiDisconnectBeforeRetry,
+      when: { code: 'VDI_IN_USE' },
+    }
+    this._vmDestroyRetryWhenInUse = {
+      ...vdiDestroyRetryWhenInUse,
+      onRetry: vmDisconnectBeforeRetry,
       when: { code: 'VDI_IN_USE' },
     }
     this._vdiDelayBeforeRemovingCloudConfigDrive = parseDuration(vdiDelayBeforeRemovingCloudConfigDrive)

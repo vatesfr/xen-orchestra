@@ -2,6 +2,7 @@ import CancelToken from 'promise-toolbox/CancelToken'
 import groupBy from 'lodash/groupBy.js'
 import hrp from 'http-request-plus'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
+import pRetry from 'promise-toolbox/retry'
 import pickBy from 'lodash/pickBy.js'
 import omit from 'lodash/omit.js'
 import pCatch from 'promise-toolbox/catch'
@@ -778,6 +779,11 @@ class Vm {
     await Promise.all(vdiRefs.map(vdiRef => this.callAsync('VDI.disable_cbt', vdiRef)))
   }
 
+  async disconnectFromControlDomain(vmRef) {
+    const vdiRefs = await this.VM_getDisks(vmRef)
+    await Promise.all(vdiRefs.map(vdiRef => this.VDI_disconnectFromControlDomain(vdiRef)))
+  }
+
   async reboot($defer, vmRef, { force = false, bypassBlockedOperation = force } = {}) {
     if (bypassBlockedOperation) {
       const blockedOperations = await this.getField('VM', vmRef, 'blocked_operations')
@@ -800,6 +806,12 @@ export default Vm
 decorateClass(Vm, {
   checkpoint: defer,
   create: defer,
+  destroy: [
+    pRetry.wrap,
+    function () {
+      return this._vdiDestroyRetryWhenInUse
+    },
+  ],
   export: defer,
   coalesceLeaf: defer,
   snapshot: defer,
