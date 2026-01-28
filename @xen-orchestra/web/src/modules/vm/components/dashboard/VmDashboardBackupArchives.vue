@@ -1,7 +1,7 @@
 <template>
   <UiCard :has-error="error">
     <UiCardTitle>{{ t('last-n-backup-archives', 3) }}</UiCardTitle>
-    <VtsTable :state>
+    <VtsTable v-if="!error" :state>
       <thead>
         <tr>
           <HeadCells />
@@ -13,13 +13,15 @@
         </VtsRow>
       </tbody>
     </VtsTable>
+    <VtsStateHero v-else format="card" type="error" size="small">{{ t('error-no-data') }}</VtsStateHero>
   </UiCard>
 </template>
 
 <script setup lang="ts">
-import { useXoBackupRepositoryCollection } from '@/remote-resources/use-xo-br-collection'
-import { useXoRoutes } from '@/remote-resources/use-xo-routes'
+import { useXoBackupRepositoryCollection } from '@/modules/backup/remote-resources/use-xo-br-collection'
+import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes'
 import type { VmDashboardBackupArchive, XoVmDashboard } from '@/types/xo/vm-dashboard.type'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -37,20 +39,22 @@ const { error, vmDashboard } = defineProps<{
 
 const { t } = useI18n()
 
-const { useGetBackupRepositoryById, areBackupRepositoriesReady } = useXoBackupRepositoryCollection()
+const { useGetBackupRepositoryById, areBackupRepositoriesReady, hasBackupRepositoryFetchError } =
+  useXoBackupRepositoryCollection()
 
 const { buildXo5Route } = useXoRoutes()
 
-const backupArchives = computed(() => vmDashboard?.backupsInfo?.backupArchives)
+const backupArchives = computed(() => vmDashboard?.backupsInfo?.backupArchives ?? [])
 
-const isEmpty = computed(() => backupArchives?.value?.length === 0)
+const isEmpty = computed(() => backupArchives.value.length === 0)
 
 const xo5BackupRepositories = computed(() => buildXo5Route(`/settings/remotes`))
 
-const areBackupArchivesReady = computed(() => !areBackupRepositoriesReady.value || backupArchives.value === undefined)
+const areBackupArchivesReady = computed(() => areBackupRepositoriesReady.value && backupArchives.value !== undefined)
 
 const state = useTableState({
-  busy: () => areBackupArchivesReady.value,
+  busy: () => !areBackupArchivesReady.value,
+  error: () => hasBackupRepositoryFetchError.value || error,
   empty: () =>
     isEmpty.value
       ? {
@@ -72,7 +76,7 @@ const { HeadCells, BodyCells } = useBackupArchiveColumns({
         r({
           label: br?.value?.name ?? archive.backupRepository,
           href: xo5BackupRepositories.value,
-          icon: br.value?.enabled ? 'object:backup-repository:connected' : 'object:backup-repository:disconnected',
+          icon: br.value?.enabled ? 'object:br:connected' : 'object:br:disconnected',
         }),
       sizeOnDisk: r => r(formatSizeRaw(archive.size, 1).value, formatSizeRaw(archive.size, 1).prefix),
     }
