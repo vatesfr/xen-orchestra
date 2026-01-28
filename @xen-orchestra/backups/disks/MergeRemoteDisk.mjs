@@ -144,7 +144,8 @@ export class MergeRemoteDisk {
       if (this.#state?.currentBlock === null) this.#state.currentBlock = 0
       this.#isResuming = true
     } catch (error) {
-      if (error && typeof error === 'object' && 'code' in error && error.code !== 'ENOENT') {
+      // @ts-ignore
+      if (error.code !== 'ENOENT') {
         warn('problem while checking the merge state', { error })
       }
     }
@@ -194,14 +195,20 @@ export class MergeRemoteDisk {
       this.#state.child = { uuid: childDisk.getUuid() ?? 0 }
       this.#state.parent = { uuid: parentDisk.getUuid() ?? 0 }
 
-      // finds first allocated block for the 2 following loops
+      // Finds first allocated block for the 2 following loops
       while (this.#state.currentBlock < getMaxBlockCount && !childDisk.hasBlock(this.#state.currentBlock)) {
         ++this.#state.currentBlock
       }
       await this.#writeState()
     } else {
-      // If we are resuming, we don't transfer the last transfered block again.
-      this.#state.currentBlock++
+      const alreadyMergedBlocks = []
+      for (let blockId = 0; blockId < this.#state.currentBlock; blockId++) {
+        if (childDisk.hasBlock(blockId)) {
+          alreadyMergedBlocks.push(blockId)
+        }
+      }
+
+      parentDisk.setAllocatedBlocks(alreadyMergedBlocks)
     }
 
     await this.#mergeBlocks(parentDisk, childDisk)
@@ -215,9 +222,9 @@ export class MergeRemoteDisk {
    */
   async #mergeBlocks(parentDisk, childDisk) {
     this.#mergeBlockConcurrency =
-      (await parentDisk.canMergeConcurently()) || (await childDisk.canMergeConcurently())
-        ? 1
-        : this.#mergeBlockConcurrency
+      (await parentDisk.canMergeConcurently()) && (await childDisk.canMergeConcurently())
+        ? this.#mergeBlockConcurrency
+        : 1
 
     const toMerge = []
     for (let block = this.#state.currentBlock; block < childDisk.getMaxBlockCount(); block++) {
@@ -229,14 +236,18 @@ export class MergeRemoteDisk {
     const nBlocks = toMerge.length
     this.#onProgress({ total: nBlocks, done: 0 })
 
+    const merging = new Set()
     let counter = 0
     await asyncEach(
       toMerge,
       async blockId => {
+        merging.add(blockId)
+
         const blockSize = await parentDisk.writeBlock(await childDisk.readBlock(blockId))
         this.#state.mergedDataSize += blockSize
 
-        this.#state.currentBlock = blockId
+        this.#state.currentBlock = Math.min(...merging)
+        merging.delete(blockId)
 
         this.#onProgress({ total: nBlocks, done: counter + 1 })
         counter++
@@ -272,7 +283,8 @@ export class MergeRemoteDisk {
     try {
       await parentDisk.rename(mergeTargetPath)
     } catch (error) {
-      if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT' && this.#isResuming) {
+      // @ts-ignore
+      if (error.code === 'ENOENT' && this.#isResuming) {
         // @ts-ignore
         this.#logInfo(`the parent disk was already renamed`, {
           parent: parentDisk.getPath(),
