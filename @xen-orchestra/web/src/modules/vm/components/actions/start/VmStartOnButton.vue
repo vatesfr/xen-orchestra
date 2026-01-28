@@ -1,5 +1,5 @@
 <template>
-  <MenuItem v-if="canRunVmOnHost || isRunning" icon="fa:server" :busy="isRunning">
+  <MenuItem v-if="canRunVmOnHost || isRunning" icon="object:host" :busy="isRunning">
     {{ t('action:start-on-host') }}
     <template #submenu>
       <MenuItem v-for="host in hosts" :key="host.id" @click="startOn(host)">

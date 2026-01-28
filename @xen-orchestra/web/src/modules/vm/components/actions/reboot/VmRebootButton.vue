@@ -2,7 +2,7 @@
   <MenuItem
     v-if="canRun || isRunning"
     :disabled="!canReboot"
-    icon="fa:reboot"
+    icon="action:reboot"
     :busy="isRunning"
     @click="openRebootModal"
   >

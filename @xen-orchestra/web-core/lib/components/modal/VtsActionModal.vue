@@ -1,5 +1,5 @@
 <template>
-  <VtsModal :accent icon="fa:user-astronaut">
+  <VtsModal :accent icon="status:info-picto">
     <template #title>
       <span>{{ modalTexts.title }}</span>
     </template>

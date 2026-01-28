@@ -2,7 +2,7 @@
   <MenuItem
     v-if="canRun || isRunning"
     :disabled="!canShutdown"
-    icon="fa:stop"
+    icon="action:shutdown"
     :busy="isRunning"
     @click="openShutdownModal"
   >

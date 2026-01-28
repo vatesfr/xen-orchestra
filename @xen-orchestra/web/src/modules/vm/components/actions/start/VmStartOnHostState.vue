@@ -2,7 +2,7 @@
   <div class="wrapper">
     <VtsObjectIcon type="host" :state="hostPowerState" size="medium" />
     {{ host.name_label }}
-    <VtsIcon v-if="isMasterHost(host.id)" name="legacy:primary" size="medium" />
+    <VtsIcon v-if="isMasterHost(host.id)" name="status:primary-circle" size="medium" />
   </div>
 </template>
 
