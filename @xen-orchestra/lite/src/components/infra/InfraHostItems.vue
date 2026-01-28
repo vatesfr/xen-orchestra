@@ -2,7 +2,7 @@
   <VtsTreeItemError v-if="hasError">
     {{ t('error-no-data') }}
   </VtsTreeItemError>
-  <VtsTreeLoadingItem v-else-if="!isReady" icon="fa:server">{{ t('loading-hosts') }}</VtsTreeLoadingItem>
+  <VtsTreeLoadingItem v-else-if="!isReady" icon="object:host">{{ t('loading-hosts') }}</VtsTreeLoadingItem>
   <InfraHostItem v-for="host in hosts" :key="host.$ref" :host-opaque-ref="host.$ref" />
 </template>
 

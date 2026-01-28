@@ -28,7 +28,8 @@ import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { HOST_POWER_STATE, type XoPif } from '@vates/types'
+import { type XoPif } from '@vates/types'
+import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -54,7 +55,7 @@ const pifHost = computed(() => {
 
   return {
     label: host.name_label,
-    powerState: host.power_state === HOST_POWER_STATE.RUNNING ? 'running' : 'halted',
+    powerState: toLower(host.power_state),
     redirect() {
       router.push({
         name: '/host/[id]/networks',

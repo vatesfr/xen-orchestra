@@ -1,7 +1,12 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      <UiLink v-if="vm.name_label !== ''" size="medium" icon="fa:desktop" :to="`/vm/${vm.id}/dashboard`">
+      <UiLink
+        v-if="vm.name_label !== ''"
+        size="medium"
+        :icon="`object:vm:${toLower(vm.power_state)}`"
+        :to="`/vm/${vm.id}/dashboard`"
+      >
         {{ vm.name_label }}
       </UiLink>
     </UiCardTitle>
@@ -38,8 +43,7 @@
         <template #key>{{ t('pool') }}</template>
         <template #value>
           <div v-if="pool" class="value">
-            <VtsIcon name="fa:city" size="small" />
-            <UiLink :to="`/pool/${pool.id}/dashboard`" size="small">
+            <UiLink :to="`/pool/${pool.id}/dashboard`" size="small" icon="object:pool">
               {{ pool.name_label }}
             </UiLink>
           </div>
@@ -52,13 +56,10 @@
         <template #key>{{ t('host') }}</template>
         <template #value>
           <div v-if="host" class="value">
-            <VtsObjectIcon type="host" :state="hostPowerState" size="small" />
-            <div v-tooltip>
-              <UiLink :to="`/host/${host.id}/dashboard`" size="small">
-                {{ host.name_label }}
-              </UiLink>
-            </div>
-            <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="legacy:primary" size="small" />
+            <UiLink :to="`/host/${host.id}/dashboard`" size="small" :icon="`object:host:${hostPowerState}`">
+              {{ host.name_label }}
+            </UiLink>
+            <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="status:primary-circle" size="small" />
           </div>
         </template>
         <template v-if="host" #addons>
@@ -79,7 +80,7 @@
             <VtsIcon
               v-if="guestToolsDisplay.value !== '-'"
               v-tooltip="guestToolsDisplay.tooltip"
-              :name="guestToolsDisplay.type === 'link' ? 'legacy:halted' : 'legacy:checked'"
+              :name="guestToolsDisplay.type === 'link' ? 'status:halted-circle' : 'status:success-circle'"
               size="medium"
             />
             <UiLink v-if="guestToolsDisplay.type === 'link'" size="small" :href="XCP_LINKS.GUEST_TOOLS">
@@ -152,7 +153,6 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'

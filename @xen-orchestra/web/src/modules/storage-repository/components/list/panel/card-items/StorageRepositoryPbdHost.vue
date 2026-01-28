@@ -4,7 +4,7 @@
       {{ t('host') }}
     </template>
     <template #value>
-      <UiLink v-if="host !== undefined" size="small" icon="fa:server" :to="`host/${host.id}/dashboard`">
+      <UiLink v-if="host !== undefined" size="small" icon="object:host" :to="`host/${host.id}/dashboard`">
         {{ host.name_label }}
       </UiLink>
     </template>

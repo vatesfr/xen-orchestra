@@ -7,7 +7,7 @@ export function getPoolInfo(server: XoServer): VtsLinkCellProps & { label: strin
     return {
       label: server.poolNameLabel,
       to: server.poolId ? `/pool/${server.poolId}/dashboard` : undefined,
-      icon: icon('fa:city'),
+      icon: icon('object:pool'),
     }
   }
 
@@ -15,7 +15,7 @@ export function getPoolInfo(server: XoServer): VtsLinkCellProps & { label: strin
     return {
       label: server.poolId,
       to: `/pool/${server.poolId}/dashboard`,
-      icon: icon('fa:city'),
+      icon: icon('object:pool'),
     }
   }
 

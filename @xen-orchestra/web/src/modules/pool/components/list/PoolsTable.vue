@@ -25,7 +25,6 @@
 
 <script setup lang="ts">
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import { getHostInfo } from '@/modules/host/utils/xo-host.util.ts'
 import { getPoolInfo } from '@/modules/pool/utils/xo-pool.util.ts'
 import { useXoServerCollection } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -35,9 +34,11 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
+import { icon, objectIcon } from '@core/icons'
 import { useServerColumns } from '@core/tables/column-sets/server-columns.ts'
-import type { XoServer } from '@vates/types'
+import type { XoHost, XoServer } from '@vates/types'
 import { logicNot } from '@vueuse/math'
+import { toLower } from 'lodash-es'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -49,7 +50,7 @@ const { t } = useI18n()
 
 const { areServersReady, hasServerFetchError } = useXoServerCollection()
 
-const { getHostById } = useXoHostCollection()
+const { getHostById, isMasterHost } = useXoHostCollection()
 
 const selectedServerId = useRouteQuery('id')
 
@@ -80,17 +81,36 @@ const state = useTableState({
 
 const { pageRecords: paginatedServers, paginationBindings } = usePagination('pools', filteredServers)
 
+function getMasterIcon(host: XoHost) {
+  if (!isMasterHost(host.id)) {
+    return undefined
+  }
+
+  return {
+    icon: icon('status:primary-circle'),
+    tooltip: t('master'),
+  }
+}
+
 const { HeadCells, BodyCells } = useServerColumns({
   body: (server: XoServer) => {
     const poolInfo = computed(() => getPoolInfo(server))
     const host = computed(() => getHostById(server.master))
-    const hostInfo = computed(() => getHostInfo(host.value))
+
+    const hostIcon = computed(() => (host.value ? objectIcon('host', toLower(host.value.power_state)) : undefined))
+    const rightIcon = computed(() => (host.value ? getMasterIcon(host.value) : undefined))
 
     return {
       pool: r => r(poolInfo.value),
       hostIp: r => r(server.host),
       status: r => r(server.error ? 'unable-to-connect-to-the-pool' : server.status),
-      primaryHost: r => r(hostInfo.value),
+      primaryHost: r =>
+        r({
+          label: host.value?.name_label ?? '',
+          to: `/host/${host.value?.id}/dashboard`,
+          icon: hostIcon.value,
+          rightIcon: rightIcon.value,
+        }),
       selectItem: r => r(() => (selectedServerId.value = server.id)),
     }
   },

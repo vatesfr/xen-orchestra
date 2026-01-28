@@ -47,11 +47,11 @@ const icon = computed<IconName | undefined>(() => {
   switch (type) {
     case 'VM':
     case 'VM-controller':
-      return 'fa:desktop'
+      return 'object:vm'
     case 'host':
-      return 'fa:server'
+      return 'object:host'
     case 'SR':
-      return 'fa:database'
+      return 'object:sr'
     default:
       return undefined
   }

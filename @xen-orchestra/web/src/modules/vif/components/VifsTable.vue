@@ -29,8 +29,7 @@
 
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import { getNetworkStatus, getPoolNetworkLink } from '@/modules/network/utils/xo-network.util.ts'
-import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import { getPoolNetworkLink } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
@@ -41,7 +40,7 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
-import { objectIcon } from '@core/icons'
+import { icon } from '@core/icons'
 import { useVifColumns } from '@core/tables/column-sets/vif-columns.ts'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
 import type { XoVif } from '@vates/types'
@@ -60,7 +59,6 @@ defineSlots<{
 const { getNetworkById, useGetNetworkById } = useXoNetworkCollection()
 const { getVmById } = useXoVmCollection()
 const { areVifsReady, hasVifFetchError } = useXoVifCollection()
-const { getPifsByIds } = useXoPifCollection()
 const { t } = useI18n()
 
 const selectedVifId = useRouteQuery('id')
@@ -102,8 +100,6 @@ const { HeadCells, BodyCells } = useVifColumns({
 
     const network = useGetNetworkById(() => vif.$network)
     const poolNetworkLink = computed(() => getPoolNetworkLink(network.value))
-    const networkPifs = computed(() => getPifsByIds(network.value?.PIFs ?? []))
-    const networkStatus = computed(() => getNetworkStatus(networkPifs.value))
 
     return {
       network: r =>
@@ -111,7 +107,7 @@ const { HeadCells, BodyCells } = useVifColumns({
           ? r({
               label: network.value.name_label,
               to: poolNetworkLink.value,
-              icon: objectIcon('network', networkStatus.value),
+              icon: icon('object:network'),
             })
           : renderBodyCell(),
       device: r => r(t('vif-device', { device: vif.device })),

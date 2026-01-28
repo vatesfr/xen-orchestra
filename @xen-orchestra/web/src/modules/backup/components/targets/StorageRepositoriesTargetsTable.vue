@@ -25,6 +25,7 @@
 </template>
 
 <script setup lang="ts">
+import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -95,8 +96,10 @@ const { HeadCells, BodyCells } = useColumns({
     const remainingSpace = computed(() => formatSizeRaw(sr.size - sr.physical_usage, 2))
     const totalCapacity = computed(() => formatSizeRaw(sr.size, 2))
 
+    const { srStatusIcon } = useXoSrUtils(() => sr)
+
     return {
-      storageRepository: r => r({ label: sr.name_label, href: href.value, icon: 'fa:database' }),
+      storageRepository: r => r({ label: sr.name_label, href: href.value, icon: srStatusIcon.value }),
       usedSpace: r => r(usedSpace.value.value, usedSpace.value.prefix),
       remainingSpace: r => r(remainingSpace.value.value, remainingSpace.value.prefix),
       totalCapacity: r => r(totalCapacity.value.value, totalCapacity.value.prefix),

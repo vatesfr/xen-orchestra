@@ -8,7 +8,7 @@
       <VtsQuickInfoRow :label="t('default-storage-repository')">
         <template #value>
           <template v-if="defaultSr">
-            <VtsIcon name="fa:database" size="medium" />
+            <VtsIcon name="object:sr" size="medium" />
             {{ defaultSr.name_label }}
           </template>
           <template v-else>
@@ -19,7 +19,7 @@
       <VtsQuickInfoRow :label="t('suspend-storage-repository')">
         <template #value>
           <template v-if="suspendSr">
-            <VtsIcon name="fa:database" size="medium" />
+            <VtsIcon name="object:sr" size="medium" />
             {{ suspendSr.name_label }}
           </template>
           <template v-else>
@@ -30,7 +30,7 @@
       <VtsQuickInfoRow :label="t('crash-dump-storage-repository')">
         <template #value>
           <template v-if="crashDumpSr">
-            <VtsIcon name="fa:database" size="medium" />
+            <VtsIcon name="object:sr" size="medium" />
             {{ crashDumpSr.name_label }}
           </template>
           <template v-else>
@@ -42,7 +42,7 @@
         <template #value>
           <ul v-if="haSrs !== undefined && haSrs.length > 0">
             <li v-for="haSr in haSrs" :key="haSr.uuid">
-              <VtsIcon name="fa:database" size="medium" />
+              <VtsIcon name="object:sr" size="medium" />
               {{ haSr.name_label }}
             </li>
           </ul>

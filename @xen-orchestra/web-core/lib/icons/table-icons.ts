@@ -32,25 +32,16 @@ function constructIcon(icon: IconDefinition): IconSingleConfig {
   }
 }
 
-export const dsTableIcons = defineIconPack({
+export const tableIcons = defineIconPack({
   object: constructIcon(faA),
-
   string: constructIcon(faAlignLeft),
-
   int: constructIcon(faHashtag),
-
   select: constructIcon(faSquareCaretDown),
-
   date: constructIcon(faCalendar),
-
   time: constructIcon(faClock),
-
   'arrow-up-a-z': constructIcon(faArrowUpAZ),
-
   'arrow-down-a-z': constructIcon(faArrowDownAZ),
-
   filter: constructIcon(faFilter),
-
   'filter-add': [
     constructIcon(faFilter),
     {
@@ -66,9 +57,7 @@ export const dsTableIcons = defineIconPack({
       size: 10,
     },
   ],
-
   group: constructIcon(faLayerGroup),
-
   'group-add': [
     constructIcon(faLayerGroup),
     {
@@ -84,24 +73,14 @@ export const dsTableIcons = defineIconPack({
       size: 10,
     },
   ],
-
   show: constructIcon(faEye),
-
   hide: constructIcon(faEyeSlash),
-
   'angle-up': constructIcon(faAngleUp),
-
   'angle-left': constructIcon(faAngleLeft),
-
   'angle-down': constructIcon(faAngleDown),
-
   'angle-right': constructIcon(faAngleRight),
-
   'angles-left': constructIcon(faAnglesLeft),
-
   'angles-right': constructIcon(faAnglesRight),
-
   'arrow-up': constructIcon(faArrowUp),
-
   'arrow-down': constructIcon(faArrowDown),
 })

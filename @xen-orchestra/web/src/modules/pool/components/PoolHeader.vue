@@ -1,5 +1,5 @@
 <template>
-  <UiHeadBar icon="fa:city">
+  <UiHeadBar icon="object:pool">
     {{ pool.name_label }}
     <template #actions>
       <UiLink size="medium" :to="{ name: '/vm/new', query: { poolid: pool.id } }" icon="fa:plus">

@@ -13,11 +13,11 @@
     <UiLink v-bind="properties">This is a link</UiLink>
 
     <div v-if="!properties.to && !properties.href" class="info">
-      <VtsIcon name="legacy:status:info" size="medium" />
+      <VtsIcon name="status:info-circle" size="medium" />
       Link is disabled because no `href` or `to` is provided
     </div>
     <div v-else-if="properties.to && properties.href" class="info">
-      <VtsIcon name="legacy:status:warning" size="medium" />
+      <VtsIcon name="status:warning-circle" size="medium" />
       `to` is ignored when `href` is provided
     </div>
   </ComponentStory>

@@ -179,15 +179,15 @@
             <UiTitle>{{ t('summary') }}</UiTitle>
             <VtsResources>
               <!-- TODO change label to manage pluralization when we can have multiple vm -->
-              <VtsResource icon="fa:display" count="1" :label="t('vm')" />
+              <VtsResource icon="object:vm" count="1" :label="t('vm')" />
               <VtsResource icon="fa:microchip" :count="vmState.vCPU" :label="t('vcpus')" />
               <VtsResource icon="fa:memory" :count="`${ramFormatted} GB`" :label="t('ram')" />
               <VtsResource
-                icon="fa:database"
+                icon="object:sr"
                 :count="vmState.existingVdis.length + vmState.vdis.length"
                 :label="t('vdis')"
               />
-              <VtsResource icon="fa:network-wired" :count="vmState.networkInterfaces.length" :label="t('interfaces')" />
+              <VtsResource icon="object:network" :count="vmState.networkInterfaces.length" :label="t('interfaces')" />
             </VtsResources>
           </div>
           <!-- TOASTER -->

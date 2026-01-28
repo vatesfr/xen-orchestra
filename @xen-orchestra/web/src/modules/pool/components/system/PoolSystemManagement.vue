@@ -7,7 +7,7 @@
     <template v-else>
       <VtsQuickInfoRow :label="t('master')">
         <template #value>
-          <UiLink v-if="primaryHost" icon="fa:server" :to="`/host/${pool.master}/`" size="medium">
+          <UiLink v-if="primaryHost" icon="object:host" :to="`/host/${pool.master}/`" size="medium">
             {{ primaryHost.name_label }}
           </UiLink>
           <template v-else>

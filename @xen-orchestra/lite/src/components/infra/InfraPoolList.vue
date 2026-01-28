@@ -4,11 +4,11 @@
       <VtsTreeItemError v-if="hasError">
         {{ t('error-no-data') }}
       </VtsTreeItemError>
-      <VtsTreeLoadingItem v-else-if="!isReady || pool === undefined" icon="fa:city" />
+      <VtsTreeLoadingItem v-else-if="!isReady || pool === undefined" icon="object:pool" />
       <UiTreeItemLabel
         v-else
         :route="{ name: '/pool/[uuid]', params: { uuid: pool.uuid } }"
-        icon="fa:city"
+        icon="object:pool"
         @toggle="toggle()"
       >
         {{ pool.name_label || '(Pool)' }}

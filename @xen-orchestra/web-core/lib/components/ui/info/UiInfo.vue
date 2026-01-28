@@ -28,11 +28,11 @@ defineSlots<{
 const icon = useMapper<InfoAccent, IconName>(
   () => accent,
   {
-    info: 'legacy:status:info',
-    success: 'legacy:status:success',
-    warning: 'legacy:status:warning',
-    danger: 'legacy:status:danger',
-    muted: 'legacy:status:muted',
+    info: 'status:info-circle',
+    success: 'status:success-circle',
+    warning: 'status:warning-circle',
+    danger: 'status:danger-circle',
+    muted: 'status:disabled',
   },
   'muted'
 )

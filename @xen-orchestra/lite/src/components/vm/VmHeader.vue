@@ -1,5 +1,5 @@
 <template>
-  <TitleBar icon="fa:display">
+  <TitleBar icon="object:vm">
     {{ name }}
     <template #actions>
       <MenuList v-if="vm !== undefined" placement="bottom-end">

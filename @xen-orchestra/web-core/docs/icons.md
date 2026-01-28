@@ -9,7 +9,7 @@ Icons are defined in `web-core/lib/icons` directory and can be displayed with th
 ```vue
 <template>
   <div>
-    <VtsIcon name="fa:display" size="medium" />
+    <VtsIcon name="object:vm" size="medium" />
   </div>
 </template>
 ```

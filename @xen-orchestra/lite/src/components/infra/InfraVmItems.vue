@@ -1,7 +1,7 @@
 <template>
   <VtsTreeItemError v-if="hasError">{{ t('error-no-data') }}</VtsTreeItemError>
   <template v-else-if="!isReady">
-    <VtsTreeLoadingItem v-for="i in 3" :key="i" icon="fa:display" />
+    <VtsTreeLoadingItem v-for="i in 3" :key="i" icon="object:vm" />
   </template>
   <InfraVmItem v-for="vm in vms" :key="vm.$ref" :vm-opaque-ref="vm.$ref" />
 </template>

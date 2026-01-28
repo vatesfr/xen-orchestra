@@ -1,6 +1,6 @@
 <template>
   <VtsTreeItem :expanded="!branch.isCollapsed" :node-id="branch.data.id">
-    <UiTreeItemLabel icon="fa:server" :route="`/host/${branch.data.id}`" @toggle="branch.toggleCollapse()">
+    <UiTreeItemLabel icon="object:host" :route="`/host/${branch.data.id}`" @toggle="branch.toggleCollapse()">
       {{ branch.data.name_label }}
       <template #icon>
         <VtsObjectIcon
@@ -11,7 +11,7 @@
         />
       </template>
       <template #addons>
-        <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="legacy:primary" size="medium" />
+        <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
         <UiCounter
           v-tooltip="t('running-vm', runningVmsCount)"
           :value="runningVmsCount"

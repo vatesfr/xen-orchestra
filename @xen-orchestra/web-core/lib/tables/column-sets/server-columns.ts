@@ -12,7 +12,7 @@ export const useServerColumns = defineColumns(() => {
     pool: useLinkColumn({ headerLabel: () => t('pool') }),
     hostIp: useAddressColumn({ headerLabel: () => t('ip-address') }),
     status: useStatusColumn({ headerLabel: () => t('status') }),
-    primaryHost: useLinkColumn({ headerLabel: () => t('master'), headerIcon: 'fa:server' }),
+    primaryHost: useLinkColumn({ headerLabel: () => t('master'), headerIcon: 'object:host' }),
     selectItem: useSelectItemColumn(),
   }
 })

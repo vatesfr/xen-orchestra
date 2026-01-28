@@ -11,8 +11,8 @@ export function useXoHostUtils() {
 
   const getPowerState = createMapper<HOST_POWER_STATE, { text: string; icon: IconName | undefined }>(
     {
-      [HOST_POWER_STATE.RUNNING]: { text: t('host:status:running'), icon: 'legacy:running' },
-      [HOST_POWER_STATE.HALTED]: { text: t('host:status:halted'), icon: 'legacy:halted' },
+      [HOST_POWER_STATE.RUNNING]: { text: t('host:status:running'), icon: 'status:running-circle' },
+      [HOST_POWER_STATE.HALTED]: { text: t('host:status:halted'), icon: 'status:halted-circle' },
       [HOST_POWER_STATE.UNKNOWN]: { text: t('host:status:unknown'), icon: undefined },
     },
     HOST_POWER_STATE.UNKNOWN
