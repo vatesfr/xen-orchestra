@@ -107,12 +107,23 @@ export class RemoteDisk extends RandomAccessDisk {
   }
 
   /**
+   * Abstract
    * Reads a specific block from the VHD.
    * @param {number} index
    * @returns {Promise<DiskBlock>} diskBlock
    */
   async readBlock(index) {
     throw new Error(`readBlock must be implemented`)
+  }
+
+  /**
+   * Abstract
+   * Manually set the disk allocated blocks.
+   * @param {Array<number>} blockIds
+   * @returns {Promise<void>}
+   */
+  async setAllocatedBlocks(blockIds) {
+    throw new Error(`setAllocatedBlocks must be implemented`)
   }
 
   /**
@@ -151,7 +162,7 @@ export class RemoteDisk extends RandomAccessDisk {
 
   /**
    * Abstract
-   * Rename alias/disk/disks
+   * Rename alias/disk
    * @param {string} newPath
    */
   async rename(newPath) {

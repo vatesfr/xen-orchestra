@@ -19,6 +19,7 @@ export interface FileAccessor {
     position: number
   ): Promise<{ bytesRead: number; buffer: Buffer | DataView }>
   readFile(path: string): Promise<string>
+  writeFile(path: string, content: string, opts?: unknown): Promise<void>
   getSize(path: string): Promise<number>
   mktree(path: string): Promise<void>
   rmtree(path: string): Promise<void>
