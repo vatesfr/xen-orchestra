@@ -7,7 +7,7 @@
     @click="openShutdownModal"
   >
     {{ t('action:shutdown') }}
-    <i v-if="!canShutdown">{{ t('vm-tools-missing') }}</i>
+    <i v-if="!canShutdown" class="typo">{{ t('vm-tools-missing') }}</i>
   </MenuItem>
 </template>
 

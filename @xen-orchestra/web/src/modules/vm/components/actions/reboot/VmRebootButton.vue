@@ -7,7 +7,7 @@
     @click="openRebootModal"
   >
     {{ t('action:reboot') }}
-    <span v-if="!canReboot">{{ t('vm-tools-missing') }}</span>
+    <i v-if="!canReboot">{{ t('vm-tools-missing') }}</i>
   </MenuItem>
 </template>
 

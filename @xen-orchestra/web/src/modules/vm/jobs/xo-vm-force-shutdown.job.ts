@@ -1,5 +1,5 @@
 import { xoVmsArg } from '@/modules/vm/jobs/xo-vm-args.ts'
-import { areAllVmsHavingPowerState, areVmsOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
+import { areVmsOperationPending, notAllVmsHavingPowerState } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
@@ -37,7 +37,7 @@ export const useXoVmForceShutdownJob = defineJob('vm.force-shutdown', [xoVmsArg]
         throw new JobRunningError(t('job:vm-force-shutdown:in-progress'))
       }
 
-      if (!areAllVmsHavingPowerState(vms, [VM_POWER_STATE.RUNNING, VM_POWER_STATE.SUSPENDED, VM_POWER_STATE.PAUSED])) {
+      if (notAllVmsHavingPowerState(vms, [VM_POWER_STATE.RUNNING, VM_POWER_STATE.SUSPENDED, VM_POWER_STATE.PAUSED])) {
         throw new JobError(t('job:vm-force-shutdown:bad-power-state'))
       }
     },

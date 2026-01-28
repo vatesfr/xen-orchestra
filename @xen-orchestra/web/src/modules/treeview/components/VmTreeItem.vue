@@ -26,7 +26,7 @@
 <script lang="ts" setup>
 import type { VmLeaf } from '@/modules/treeview/types/tree.type.ts'
 import VmActions from '@/modules/vm/components/actions/VmActions.vue'
-import { isVmOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
+import { CHANGING_STATE_OPERATIONS, isVmOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
 import type { POWER_STATE } from '@core/types/power-state.type.ts'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
@@ -35,26 +35,11 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { VM_OPERATIONS } from '@vates/types'
 import { computed } from 'vue'
 
 const { leaf } = defineProps<{
   leaf: VmLeaf
 }>()
-
-const CHANGING_STATE_OPERATIONS = [
-  VM_OPERATIONS.START,
-  VM_OPERATIONS.START_ON,
-  VM_OPERATIONS.SHUTDOWN,
-  VM_OPERATIONS.CLEAN_SHUTDOWN,
-  VM_OPERATIONS.HARD_SHUTDOWN,
-  VM_OPERATIONS.CLEAN_REBOOT,
-  VM_OPERATIONS.HARD_REBOOT,
-  VM_OPERATIONS.PAUSE,
-  VM_OPERATIONS.RESUME,
-  VM_OPERATIONS.RESUME_ON,
-  VM_OPERATIONS.SUSPEND,
-]
 
 const isChangingState = computed(() => isVmOperationPending(leaf.data, CHANGING_STATE_OPERATIONS))
 </script>

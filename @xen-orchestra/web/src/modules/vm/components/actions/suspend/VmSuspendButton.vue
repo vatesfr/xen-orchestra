@@ -1,7 +1,7 @@
 <template>
   <MenuItem v-if="canRun || isRunning" :disabled="!canSuspend" icon="fa:moon" :busy="isRunning" @click="suspendJob">
     {{ t('action:suspend') }}
-    <span v-if="!canSuspend">{{ t('vm-tools-missing') }}</span>
+    <i v-if="!canSuspend">{{ t('vm-tools-missing') }}</i>
   </MenuItem>
 </template>
 

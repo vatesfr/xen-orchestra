@@ -2,8 +2,11 @@
   <UiHeadBar>
     {{ vm.name_label }}
     <template #icon>
-      <VtsObjectIcon size="medium" :state="toLower(vm.power_state)" type="vm"
-                     :busy="isChangingState" />
+      <VtsObjectIcon
+        size="medium"
+        :state="toLower(vm.power_state)"
+        type="vm"
+        :busy="isChangingState" />
     </template>
     <template #actions>
       <UiLink :href="xo5VmGeneralHref" size="medium">
@@ -63,7 +66,7 @@
 
 <script lang="ts" setup>
 import VmActions from '@/modules/vm/components/actions/VmActions.vue'
-import { isVmOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
+import { CHANGING_STATE_OPERATIONS, isVmOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
@@ -84,20 +87,6 @@ const { t } = useI18n()
 const { buildXo5Route } = useXoRoutes()
 const xo5VmGeneralHref = computed(() => buildXo5Route(`/vms/${vm.id}/general`))
 const xo5VmStatsHref = computed(() => buildXo5Route(`/vms/${vm.id}/stats`))
-
-const CHANGING_STATE_OPERATIONS = [
-  VM_OPERATIONS.START,
-  VM_OPERATIONS.START_ON,
-  VM_OPERATIONS.SHUTDOWN,
-  VM_OPERATIONS.CLEAN_SHUTDOWN,
-  VM_OPERATIONS.HARD_SHUTDOWN,
-  VM_OPERATIONS.CLEAN_REBOOT,
-  VM_OPERATIONS.HARD_REBOOT,
-  VM_OPERATIONS.PAUSE,
-  VM_OPERATIONS.RESUME,
-  VM_OPERATIONS.RESUME_ON,
-  VM_OPERATIONS.SUSPEND,
-]
 
 const isChangingState = computed(() => isVmOperationPending(vm, CHANGING_STATE_OPERATIONS))
 </script>
