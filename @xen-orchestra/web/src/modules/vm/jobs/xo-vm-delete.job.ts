@@ -1,5 +1,5 @@
 import { xoVmsArg } from '@/modules/vm/jobs/xo-vm-args.ts'
-import { isVmOperatingPending } from '@/modules/vm/utils/xo-vm.util.ts'
+import { isVmOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
 import { fetchDelete } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { VM_OPERATIONS, type XoVm } from '@vates/types'
@@ -30,7 +30,7 @@ export const useXoVmDeleteJob = defineJob('vm.delete', [xoVmsArg], () => {
         throw new JobError(t('job:vm-delete:missing-vm'))
       }
 
-      if (isRunning || vms.some(vm => isVmOperatingPending(vm, VM_OPERATIONS.DESTROY))) {
+      if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATIONS.DESTROY))) {
         throw new JobRunningError(t('job:vm-delete:in-progress'))
       }
 

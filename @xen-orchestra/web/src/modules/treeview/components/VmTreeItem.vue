@@ -16,7 +16,7 @@
           <template #trigger="{ open }">
             <UiButtonIcon icon="fa:ellipsis" accent="brand" size="small" @click="open($event)" />
           </template>
-          <VmActions :vm="leaf.data" />
+          <VmPowerStateActions :vm="leaf.data" />
         </MenuList>
       </template>
     </UiTreeItemLabel>
@@ -25,7 +25,7 @@
 
 <script lang="ts" setup>
 import type { VmLeaf } from '@/modules/treeview/types/tree.type.ts'
-import VmActions from '@/modules/vm/components/actions/VmActions.vue'
+import VmPowerStateActions from '@/modules/vm/components/actions/VmPowerStateActions.vue'
 import { CHANGING_STATE_OPERATIONS, isVmOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
 import type { POWER_STATE } from '@core/types/power-state.type.ts'
 import MenuList from '@core/components/menu/MenuList.vue'

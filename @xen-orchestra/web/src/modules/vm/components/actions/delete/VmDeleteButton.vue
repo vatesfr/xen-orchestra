@@ -1,5 +1,5 @@
 <template>
-  <MenuItem icon="fa:trash" :busy="isRunning" @click="openModal">
+  <MenuItem icon="action:delete" :busy="isRunning" @click="openModal">
     {{ t('action:delete') }}
   </MenuItem>
 </template>
