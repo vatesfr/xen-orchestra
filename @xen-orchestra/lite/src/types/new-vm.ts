@@ -42,4 +42,5 @@ export interface VmState {
   vdis: Vdi[]
   networkInterfaces: NetworkInterface[]
   defaultNetwork: NetworkInterface | undefined
+  create_vtpm: boolean
 }

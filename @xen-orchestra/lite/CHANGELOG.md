@@ -4,6 +4,7 @@
 
 - [VM/New] Fix wording in "Memory" section (PR [#9309](https://github.com/vatesfr/xen-orchestra/pull/9309))
 - [TreeView] Scroll to current item in list view (PR [#9332](https://github.com/vatesfr/xen-orchestra/pull/9332))
+- [VM/New] Added VTPM support (PR [#9389](https://github.com/vatesfr/xen-orchestra/pull/9389))
 
 ## **0.17.0** (2025-11-27)
 
