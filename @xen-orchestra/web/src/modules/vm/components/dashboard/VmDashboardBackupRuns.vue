@@ -8,10 +8,10 @@
         </UiLink>
       </template>
     </UiCardTitle>
-
+    <VtsStateHero v-if="error" format="card" type="error" size="small">{{ t('error-no-data') }}</VtsStateHero>
     <VtsStateHero v-if="!areBackupRunsReady" size="large" format="card" type="busy" />
 
-    <div v-if="areBackupRunsReady" class="backup-head">
+    <div v-if="areBackupRunsReady && !error" class="backup-head">
       <div class="protection-infos">
         <VtsQuickInfoRow :label="t('protection-status')">
           <template #value>
@@ -22,7 +22,7 @@
           v-if="!isEmpty && !isInNoActiveJob"
           class="protection-helper"
           accent="brand"
-          left-icon="legacy:status:info"
+          left-icon="status:info-circle"
           size="small"
           variant="tertiary"
           @click="openProtectionHelpModal()"
@@ -31,7 +31,7 @@
         </UiButton>
       </div>
 
-      <UiAlert v-if="isInNoActiveJob" accent="warning">
+      <UiAlert v-if="isEmpty && areBackupRunsReady" accent="warning">
         <span class="typo-body-bold">{{ t('no-job-vm') }}</span>
         <template #description>
           <I18nT keypath="configure-for-protected" scope="global" tag="div">
@@ -45,7 +45,7 @@
       </UiAlert>
     </div>
 
-    <VtsTable v-if="areBackupRunsReady && !(isInNoActiveJob && isEmpty)" :state>
+    <VtsTable v-if="!isEmpty && areBackupRunsReady && !error" :state>
       <thead>
         <tr>
           <HeadCells />
@@ -61,8 +61,8 @@
 </template>
 
 <script setup lang="ts">
-import { useXoBackupJobCollection } from '@/remote-resources/use-xo-backup-job-collection'
-import type { VmDashboardRun, XoVmDashboard } from '@/types/xo/vm-dashboard.type'
+import { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection'
+import type { VmDashboardRun, VmProtectionStatus, XoVmDashboard } from '@/types/xo/vm-dashboard.type'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -74,6 +74,7 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiInfo, { type InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useTableState } from '@core/composables/table-state.composable'
+import { useMapper } from '@core/packages/mapper'
 import { useModal } from '@core/packages/modal/use-modal'
 import { useBackupRunColumns } from '@core/tables/column-sets/vm-backup-run-colums'
 import { computed } from 'vue'
@@ -87,35 +88,35 @@ const { error, vmId, vmDashboard } = defineProps<{
 
 const { t } = useI18n()
 
-const { getBackupJobById, areBackupJobsReady } = useXoBackupJobCollection()
+const { getBackupJobById, areBackupJobsReady, hasBackupJobFetchError } = useXoBackupJobCollection()
 
 const openProtectionHelpModal = useModal(() => ({
-  component: import('@/components/modals/VmProtectedHelper.vue'),
+  component: import('@xen-orchestra/web/src/shared/components/modals/VmProtectedHelper.vue'),
 }))
 
-const lastRuns = computed(() => vmDashboard?.backupsInfo?.lastRuns)
+const lastRuns = computed(() => vmDashboard?.backupsInfo?.lastRuns ?? [])
 
 const areBackupRunsReady = computed(() => areBackupJobsReady.value && lastRuns.value !== undefined)
 
 const isEmpty = computed(() => lastRuns?.value?.length === 0)
 
-const isInNoActiveJob = computed(() => vmDashboard?.backupsInfo?.vmProtection === 'not-in-active-job')
+const isInNoActiveJob = computed(() => vmDashboard?.backupsInfo?.vmProtection === 'not-in-job')
 
-const infoVmProtectionStatus = computed<{
-  accent: InfoAccent
-  text: string
-}>(() => {
-  if (vmDashboard?.backupsInfo?.vmProtection === 'not-in-active-job') {
-    return { accent: 'danger', text: t('backups:vms-protection:no-active-job') }
-  } else if (vmDashboard?.backupsInfo?.vmProtection === 'unprotected') {
-    return { accent: 'warning', text: t('backups:vms-protection:active-unprotected') }
-  } else {
-    return { accent: 'success', text: t('backups:vms-protection:active-protected') }
-  }
-})
+const vmProtection = computed(() => vmDashboard?.backupsInfo?.vmProtection)
+
+const infoVmProtectionStatus = useMapper<VmProtectionStatus, { accent: InfoAccent; text: string }>(
+  () => vmProtection.value,
+  {
+    'not-in-job': { accent: 'danger', text: t('backups:vms-protection:no-active-job') },
+    unprotected: { accent: 'warning', text: t('backups:vms-protection:active-unprotected') },
+    protected: { accent: 'success', text: t('backups:vms-protection:active-protected') },
+  },
+  'protected'
+)
 
 const state = useTableState({
   busy: () => !areBackupRunsReady.value,
+  error: () => hasBackupJobFetchError.value || error,
   empty: () =>
     isEmpty.value
       ? {
