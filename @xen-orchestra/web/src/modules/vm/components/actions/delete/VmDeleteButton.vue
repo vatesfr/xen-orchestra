@@ -1,5 +1,5 @@
 <template>
-  <MenuItem icon="action:delete" :busy="isRunning" @click="openModal">
+  <MenuItem icon="action:delete" :busy="isRunning" class="delete" @click="openModal">
     {{ t('action:delete') }}
   </MenuItem>
 </template>
@@ -23,18 +23,24 @@ const { run: deleteVM, canRun, isRunning } = useXoVmDeleteJob(() => [vm])
 
 const { buildXo5Route } = useXoRoutes()
 
-const xo5VmGeneralHref = computed(() => buildXo5Route(`/vms/${vm.id}/advanced`))
+const xo5VmAdvancedHref = computed(() => buildXo5Route(`/vms/${vm.id}/advanced`))
 
 const openDeleteModal = useModal({
   component: import('@core/components/modal/VtsDeleteModal.vue'),
-  props: { count: 1, type: 'vms' },
+  props: { count: 1, object: 'vm' },
   onConfirm: () => deleteVM(),
 })
 
 const openBlockedModal = useModal({
   component: import('@core/components/modal/VtsBlockedModal.vue'),
-  onConfirm: () => window.open(xo5VmGeneralHref.value),
+  props: { href: xo5VmAdvancedHref },
 })
 
 const openModal = () => (canRun.value ? openDeleteModal() : openBlockedModal())
 </script>
+
+<style lang="postcss" scoped>
+.delete {
+  color: var(--color-danger-item-base);
+}
+</style>

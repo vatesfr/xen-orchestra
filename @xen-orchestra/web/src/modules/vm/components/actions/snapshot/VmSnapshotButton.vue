@@ -1,5 +1,5 @@
 <template>
-  <MenuItem v-if="canRun || isRunning" icon="action:snapshot" :busy="isRunning" @click="snapshotJob">
+  <MenuItem icon="action:snapshot" :busy="isRunning" @click="snapshotJob">
     {{ t('snapshot') }}
   </MenuItem>
 </template>
@@ -18,7 +18,7 @@ const { vm } = defineProps<{
 
 const { t } = useI18n()
 
-const { run: snapshot, canRun, isRunning } = useXoVmSnapshotJob(() => [vm])
+const { run: snapshot, isRunning } = useXoVmSnapshotJob(() => [vm])
 
 const closeMenu = inject(IK_CLOSE_MENU, undefined)
 

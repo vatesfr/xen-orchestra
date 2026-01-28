@@ -38,7 +38,7 @@ const xenApi = useXenApiStore().getXapi()
 
 const openDeleteModal = useModal({
   component: import('@core/components/modal/VtsDeleteModal.vue'),
-  props: { count: computed(() => vmRefs.length), type: 'vms' },
+  props: { count: computed(() => vmRefs.length), object: 'vm' },
   onConfirm: () => xenApi.vm.delete(vmRefs),
 })
 </script>

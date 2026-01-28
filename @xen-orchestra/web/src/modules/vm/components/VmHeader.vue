@@ -99,6 +99,7 @@ const { vm } = defineProps<{ vm: XoVm }>()
 const { t } = useI18n()
 
 const { buildXo5Route } = useXoRoutes()
+
 const xo5VmGeneralHref = computed(() => buildXo5Route(`/vms/${vm.id}/general`))
 const xo5VmStatsHref = computed(() => buildXo5Route(`/vms/${vm.id}/stats`))
 

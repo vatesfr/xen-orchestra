@@ -357,6 +357,7 @@
   "job:vm-create:in-progress": "Create in progress…",
   "job:vm-create:incomplete-install-mode": "Install mode is incomplete",
   "job:vm-delete:bad-power-state": "VM must be halted",
+  "job:vm-delete:blocked-operation": "VM deletion is blocked",
   "job:vm-delete:in-progress": "Delete in progress…",
   "job:vm-delete:missing-vm": "No VMs to delete",
   "job:vm-export:in-progress": "Export in progress…",
