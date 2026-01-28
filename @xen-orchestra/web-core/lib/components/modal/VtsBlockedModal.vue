@@ -1,6 +1,6 @@
 <!-- TODO Need to be change to be able to customize the text etc -->
 <template>
-  <VtsModal accent="danger" icon="fa:meteor">
+  <VtsModal accent="danger" icon="status:danger-picto">
     <template #title>
       <span>{{ t('deletion-blocked') }}</span>
     </template>
@@ -10,8 +10,8 @@
     <template #buttons>
       <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
       <VtsModalConfirmButton>
-        <VtsIcon size="small" name="fa:edit" />
-        {{ t(`action:edit-config`) }}
+        <VtsIcon size="small" name="action:edit" />
+        {{ t('action:edit-config') }}
       </VtsModalConfirmButton>
     </template>
   </VtsModal>
