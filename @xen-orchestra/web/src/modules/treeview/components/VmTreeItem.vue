@@ -10,19 +10,36 @@
           type="vm"
         />
       </template>
+      <template #addons>
+        <UiLoader v-if="isChangingState" />
+        <MenuList placement="bottom-start">
+          <template #trigger="{ open }">
+            <UiButtonIcon icon="fa:ellipsis" accent="brand" size="small" @click="open($event)" />
+          </template>
+          <VmActions :vm="leaf.data" />
+        </MenuList>
+      </template>
     </UiTreeItemLabel>
   </VtsTreeItem>
 </template>
 
 <script lang="ts" setup>
 import type { VmLeaf } from '@/modules/treeview/types/tree.type.ts'
+import VmActions from '@/modules/vm/components/actions/VmActions.vue'
+import { CHANGING_STATE_OPERATIONS, isVmOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
 import type { POWER_STATE } from '@core/types/power-state.type.ts'
+import MenuList from '@core/components/menu/MenuList.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { computed } from 'vue'
 
-defineProps<{
+const { leaf } = defineProps<{
   leaf: VmLeaf
 }>()
+
+const isChangingState = computed(() => isVmOperationPending(leaf.data, CHANGING_STATE_OPERATIONS))
 </script>

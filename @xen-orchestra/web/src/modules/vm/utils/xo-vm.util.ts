@@ -1,10 +1,36 @@
-import type { VM_OPERATIONS, XoVm } from '@vates/types'
+import { VM_OPERATIONS, VM_POWER_STATE, type XoVm } from '@vates/types'
 import { castArray } from 'lodash-es'
 
-export function isVmOperatingPending(vm: XoVm, operations: VM_OPERATIONS[] | VM_OPERATIONS) {
+export const CHANGING_STATE_OPERATIONS = [
+  VM_OPERATIONS.START,
+  VM_OPERATIONS.START_ON,
+  VM_OPERATIONS.SHUTDOWN,
+  VM_OPERATIONS.CLEAN_SHUTDOWN,
+  VM_OPERATIONS.HARD_SHUTDOWN,
+  VM_OPERATIONS.CLEAN_REBOOT,
+  VM_OPERATIONS.HARD_REBOOT,
+  VM_OPERATIONS.PAUSE,
+  VM_OPERATIONS.RESUME,
+  VM_OPERATIONS.RESUME_ON,
+  VM_OPERATIONS.SUSPEND,
+]
+
+export function isVmOperationPending(vm: XoVm, operations: VM_OPERATIONS[] | VM_OPERATIONS) {
   const currentOperations = Object.values(vm.current_operations)
 
   return castArray(operations).some(operation => currentOperations.includes(operation))
+}
+
+export function areVmsOperationPending(vms: XoVm[], operations: VM_OPERATIONS[] | VM_OPERATIONS) {
+  return vms.some(vm => isVmOperationPending(vm, operations))
+}
+
+export function areAllVmsHavingPowerState(vms: XoVm[], powerStates: VM_POWER_STATE[]) {
+  return vms.every(vm => powerStates.includes(vm.power_state))
+}
+
+export function notAllVmsHavingPowerState(vms: XoVm[], powerStates: VM_POWER_STATE[]) {
+  return !areAllVmsHavingPowerState(vms, powerStates)
 }
 
 export function getVmIpAddresses(vm: XoVm) {

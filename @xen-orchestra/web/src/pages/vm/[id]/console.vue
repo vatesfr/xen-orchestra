@@ -18,7 +18,7 @@
 </template>
 
 <script lang="ts" setup>
-import { isVmOperatingPending } from '@/modules/vm/utils/xo-vm.util.ts'
+import { isVmOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
 import VtsActionsConsole from '@core/components/console/VtsActionsConsole.vue'
 import VtsClipboardConsole from '@core/components/console/VtsClipboardConsole.vue'
 import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
@@ -50,7 +50,7 @@ const url = computed(() => new URL(`/api/consoles/${props.vm.id}`, window.locati
 const isVmConsoleRunning = computed(() => props.vm.power_state === 'Running' && props.vm.other.disable_pv_vnc !== '1')
 
 const isConsoleAvailable = computed(() =>
-  props.vm !== undefined ? !isVmOperatingPending(props.vm, STOP_OPERATIONS) : false
+  props.vm !== undefined ? !isVmOperationPending(props.vm, STOP_OPERATIONS) : false
 )
 const consoleElement = useTemplateRef('console-element')
 
