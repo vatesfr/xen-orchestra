@@ -356,6 +356,7 @@
   "pool:status:unknown:tooltip": "سرورها در حال اتصال یا در حالت ناشناخته هستند",
   "pool:status:unreachable": "غیرقابل دسترس",
   "pool:status:unreachable:tooltip": "سرورهای پیکربندی‌شده‌ای که قابل دسترسی نیستند",
+  "pools": "استخرها",
   "pools-status": "وضعیت استخرها",
   "power-on-host-for-console": "هاست خود را برای دسترسی به کنسول آن روشن کنید",
   "power-on-vm-for-console": "ماشین مجازی خود را روشن کنید تا به کنسول آن دسترسی داشته باشید",

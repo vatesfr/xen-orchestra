@@ -15,6 +15,7 @@
 - [REST API] Add `POST /vdis/:id/actions/migrate` endpoint to migrate a VDI to another SR (PR [#9408](https://github.com/vatesfr/xen-orchestra/pull/9408))
 - [V2V] Add endpoint to export one disk from Vmware to VHD or QCOW2 `VDI_IO_ERROR` (PR [#9411](https://github.com/vatesfr/xen-orchestra/pull/9411))
 - [SIDEPANEL] Remove text ellipsis on sides panel (PR [#9328](https://github.com/vatesfr/xen-orchestra/pull/9238))
+- [i18n] Add Finnish, Polish and update Czech, Danish, German, Spanish, Persian, Italian, Japanese, Korean, Norwegian, Dutch, Portuguese (Brasil), Russian, Swedish and Ukrainian translations (PR [#9330](https://github.com/vatesfr/xen-orchestra/pull/9330))
 
 ### Bug fixes
 
@@ -42,6 +43,8 @@
 - @vates/nbd-client patch
 - @vates/types minor
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - vhd-cli patch
 - xo-server minor
 
