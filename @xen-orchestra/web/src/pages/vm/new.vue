@@ -337,7 +337,7 @@ const addStorageEntry = () => {
   }
 
   vmState.vdis.push({
-    name_label: (vmState.name || 'disk') + '_' + generateRandomString(4),
+    name_label: (vmState.new_vm_template?.name_label || 'disk') + '_' + generateRandomString(4),
     name_description: 'Created by XO',
     sr: defaultSr.value,
     size: 0,
@@ -397,7 +397,7 @@ const filteredSrs = computed(() => {
 
 const getVmTemplateVdis = (template: XoVmTemplate) =>
   (template.template_info?.disks ?? []).map((disk, index) => ({
-    name_label: `${vmState?.name || 'disk'}_${index}_${generateRandomString(4)}`,
+    name_label: `${template?.name_label || 'disk'}_${index}_${generateRandomString(4)}`,
     name_description: 'Created by XO',
     size: bytesToGiB(disk.size),
     sr: defaultSr.value,
@@ -419,6 +419,7 @@ const getExistingVdis = (template: XoVmTemplate) => {
     }
 
     acc.push({
+      id: vdi.id,
       name_label: vdi.name_label,
       name_description: vdi.name_description,
       size: bytesToGiB(vdi.size),
@@ -712,7 +713,6 @@ watch(
     const { name_label, isDefaultTemplate, name_description, tags, CPUs, memory } = template
 
     Object.assign(vmState, {
-      isDiskTemplateSelected: isDiskTemplate.value ?? false,
       name: name_label,
       description: isDefaultTemplate ? '' : name_description,
       ram: memory.dynamic[1],
@@ -865,38 +865,9 @@ watch(
       }
     }
 
-    .install-custom-config {
-      display: flex;
-      margin-block-start: 3rem;
-      gap: 4.2rem;
-    }
-
-    .install-ssh-key-container {
-      margin-block-start: 3rem;
-    }
-
-    .install-ssh-key {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      width: 50%;
-    }
-
-    .install-chips {
-      display: flex;
-      gap: 0.5rem;
-      margin-block-end: 1rem;
-    }
-
     .memory-container {
       display: flex;
       gap: 10.8rem;
-    }
-
-    .select {
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
     }
   }
 

@@ -1,6 +1,7 @@
 import type { XoHost, XoNetwork, XoPool, XoSr, XoVdi, XoVif, XoVmTemplate } from '@vates/types'
 
 export interface Vdi {
+  id?: XoVdi['id']
   name_label: string
   name_description: string
   size: number
