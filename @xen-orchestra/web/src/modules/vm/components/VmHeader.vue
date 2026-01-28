@@ -2,11 +2,7 @@
   <UiHeadBar>
     {{ vm.name_label }}
     <template #icon>
-      <VtsObjectIcon
-        size="medium"
-        :state="toLower(vm.power_state)"
-        type="vm"
-        :busy="isChangingState" />
+      <VtsObjectIcon size="medium" :state="toLower(vm.power_state)" type="vm" :busy="isChangingState" />
     </template>
     <template #actions>
       <UiLink :href="xo5VmGeneralHref" size="medium">
@@ -71,7 +67,11 @@
         {{ t('vdis') }}
       </TabItem>
     </RouterLink>
-    <TabItem disabled>{{ t('tasks') }}</TabItem>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vm/[id]/tasks', params: { id: vm.id } }" custom>
+      <TabItem :active="isActive" :href tag="a">
+        {{ t('tasks') }}
+      </TabItem>
+    </RouterLink>
   </TabList>
 </template>
 
