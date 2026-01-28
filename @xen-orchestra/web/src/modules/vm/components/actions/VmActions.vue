@@ -4,9 +4,9 @@
 
 <script lang="ts" setup>
 import VmStartButton from '@/modules/vm/components/actions/start/VmStartButton.vue'
-import type { XoVm } from '@vates/types'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 
 defineProps<{
-  vm: XoVm
+  vm: FrontXoVm
 }>()
 </script>

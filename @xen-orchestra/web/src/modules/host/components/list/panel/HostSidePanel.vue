@@ -28,15 +28,15 @@ import HostHardwareSpecificationsCard from '@/modules/host/components/list/panel
 import HostInfoCard from '@/modules/host/components/list/panel/card/HostInfoCard.vue'
 import HostNetworkCard from '@/modules/host/components/list/panel/card/HostNetworkCard.vue'
 import HostSoftwareCard from '@/modules/host/components/list/panel/card/HostSoftwareCard.vue'
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import type { XoHost } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
-  host: XoHost
+  host: FrontXoHost
 }>()
 
 const emit = defineEmits<{

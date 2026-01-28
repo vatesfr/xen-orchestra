@@ -1,7 +1,7 @@
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { defineJobArg } from '@core/packages/job'
-import type { XoVm } from '@vates/types'
 
 export const xoVmsArg = defineJobArg({
-  identify: (vm: XoVm) => vm.id,
+  identify: (vm: FrontXoVm) => vm.id,
   toArray: true,
 })

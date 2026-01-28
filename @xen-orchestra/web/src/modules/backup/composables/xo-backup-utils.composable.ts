@@ -1,10 +1,15 @@
-import type { AnyXoBackupJob, XoMetadataBackupJob, XoMirrorBackupJob, XoVmBackupJob } from '@vates/types'
+import type {
+  FrontAnyXoBackupJob,
+  FrontXoMetadataBackupJob,
+  FrontXoMirrorBackupJob,
+  FrontXoVmBackupJob,
+} from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import { useI18n } from 'vue-i18n'
 
 export function useXoBackupUtils() {
   const { t } = useI18n()
 
-  const hasSnapshotRetention = (backupJob: XoVmBackupJob) =>
+  const hasSnapshotRetention = (backupJob: FrontXoVmBackupJob) =>
     Object.values(backupJob.settings).some(
       settingsGroup =>
         settingsGroup &&
@@ -13,7 +18,7 @@ export function useXoBackupUtils() {
         settingsGroup.snapshotRetention > 0
     )
 
-  function getVmBackupModes(backupJob: XoVmBackupJob) {
+  function getVmBackupModes(backupJob: FrontXoVmBackupJob) {
     const modes = []
 
     // Rolling Snapshot - check if any settings have snapshotRetention > 0
@@ -46,7 +51,7 @@ export function useXoBackupUtils() {
     return modes
   }
 
-  function getMetadataBackupModes(backupJob: XoMetadataBackupJob) {
+  function getMetadataBackupModes(backupJob: FrontXoMetadataBackupJob) {
     const modes = []
 
     if (hasIds(backupJob.pools?.id)) {
@@ -60,7 +65,7 @@ export function useXoBackupUtils() {
     return modes
   }
 
-  function getMirrorBackupModes(backupJob: XoMirrorBackupJob): string[] {
+  function getMirrorBackupModes(backupJob: FrontXoMirrorBackupJob): string[] {
     const modes = []
 
     if (backupJob.mode === 'full') {
@@ -72,7 +77,7 @@ export function useXoBackupUtils() {
     return modes
   }
 
-  function getModeLabels(backupJob: AnyXoBackupJob): string[] {
+  function getModeLabels(backupJob: FrontAnyXoBackupJob): string[] {
     switch (backupJob.type) {
       case 'mirrorBackup':
         return getMirrorBackupModes(backupJob)

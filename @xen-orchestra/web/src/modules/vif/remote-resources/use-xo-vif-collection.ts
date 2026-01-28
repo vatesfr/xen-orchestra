@@ -4,7 +4,9 @@ import { watchCollectionWrapper } from '@/shared/utils/sse.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoVif } from '@vates/types'
 
-const vifFields: (keyof XoVif)[] = [
+export type FrontXoVif = Pick<XoVif, (typeof vifFields)[number]>
+
+const vifFields = [
   '$VM',
   '$network',
   'attached',
@@ -15,12 +17,12 @@ const vifFields: (keyof XoVif)[] = [
   'MAC',
   'MTU',
   'type',
-] as const
+] as const satisfies readonly (keyof XoVif)[]
 
 export const useXoVifCollection = defineRemoteResource({
   url: `${BASE_URL}/vifs?fields=${vifFields.join(',')}`,
   watchCollection: watchCollectionWrapper({ resource: 'VIF', fields: vifFields }),
-  initialData: () => [] as XoVif[],
+  initialData: () => [] as FrontXoVif[],
   state: (vifs, context) =>
     useXoCollectionState(vifs, {
       context,

@@ -1,3 +1,4 @@
+import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import type { CircleProgressBarAccent } from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'
 import { createMapper } from '@core/packages/mapper'
 import type { XoTask } from '@vates/types'
@@ -49,7 +50,7 @@ export const getTaskAccents = createMapper(
   'pending'
 )
 
-export function findTaskById(tasks: XoTask[], taskId: XoTask['id']): XoTask | undefined {
+export function findTaskById(tasks: FrontXoTask[], taskId: XoTask['id']): FrontXoTask | undefined {
   for (const task of tasks) {
     if (task.id === taskId) {
       return task

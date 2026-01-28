@@ -1,17 +1,16 @@
-import { alarmFields } from '@/modules/alarm/remote-resources/use-xo-alarm-collection.ts'
+import { alarmFields, type FrontXoAlarm } from '@/modules/alarm/remote-resources/use-xo-alarm-collection.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { watchCollectionWrapper } from '@/shared/utils/sse.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { createDateSorter } from '@core/utils/date-sorter.utils.ts'
-import type { XoAlarm } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 import { toValue } from 'vue'
 
 export const useXoHostAlarmsCollection = defineRemoteResource({
   url: (hostId: string) => `${BASE_URL}/hosts/${hostId}/alarms?fields=${alarmFields.join(',')}`,
-  initialData: () => [] as XoAlarm[],
-  watchCollection: watchCollectionWrapper<XoAlarm>({
+  initialData: () => [] as FrontXoAlarm[],
+  watchCollection: watchCollectionWrapper<FrontXoAlarm>({
     collectionId: 'hostAlarm',
     resource: 'alarm',
     fields: alarmFields,

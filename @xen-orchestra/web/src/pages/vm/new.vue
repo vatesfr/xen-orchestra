@@ -212,12 +212,15 @@ import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-co
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
-import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import { useXoVdiCollection, type FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import NewVmNetworkTable from '@/modules/vm/components/new/NewVmNetworkTable.vue'
 import NewVmSrTable from '@/modules/vm/components/new/NewVmSrTable.vue'
 import { useXoVmCreateJob } from '@/modules/vm/jobs/xo-vm-create.job.ts'
-import { useXoVmTemplateCollection } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
+import {
+  useXoVmTemplateCollection,
+  type FrontXoVmTemplate,
+} from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import type { Vdi, Vif, VifToSend, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
@@ -239,7 +242,7 @@ import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useFormSelect } from '@core/packages/form-select'
-import type { XoNetwork, XoPool, XoVdi, XoVmTemplate } from '@vates/types'
+import type { XoPool } from '@vates/types'
 
 import { computed, reactive, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -395,7 +398,7 @@ const filteredSrs = computed(() => {
   return srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_usage > 0 && sr.$pool === vmState.pool?.id)
 })
 
-const getVmTemplateVdis = (template: XoVmTemplate) =>
+const getVmTemplateVdis = (template: FrontXoVmTemplate) =>
   (template.template_info?.disks ?? []).map((disk, index) => ({
     name_label: `${vmState?.name || 'disk'}_${index}_${generateRandomString(4)}`,
     name_description: 'Created by XO',
@@ -403,7 +406,7 @@ const getVmTemplateVdis = (template: XoVmTemplate) =>
     sr: defaultSr.value,
   }))
 
-const getExistingVdis = (template: XoVmTemplate) => {
+const getExistingVdis = (template: FrontXoVmTemplate) => {
   return template.$VBDs.reduce<Vdi[]>((acc, vbdId) => {
     const vbd = getVbdById(vbdId)
 
@@ -411,7 +414,7 @@ const getExistingVdis = (template: XoVmTemplate) => {
       return acc
     }
 
-    const vdi = getVdiById(vbd.VDI as XoVdi['id'])
+    const vdi = getVdiById(vbd.VDI as FrontXoVdi['id'])
 
     if (vdi === undefined) {
       console.error('VDI not found')
@@ -440,7 +443,7 @@ const defaultExistingVdis = computed(() => {
 
 const automaticNetworks = computed(() => networks.value.filter(network => network.other_config.automatic === 'true'))
 
-const getDefaultNetwork = (template?: XoVmTemplate): XoNetwork | undefined => {
+const getDefaultNetwork = (template?: FrontXoVmTemplate) => {
   if (!template || !vmState.pool) {
     return undefined
   }
@@ -455,7 +458,7 @@ const getDefaultNetwork = (template?: XoVmTemplate): XoNetwork | undefined => {
   )
 }
 
-const getExistingVifs = (template: XoVmTemplate): Vif[] => {
+const getExistingVifs = (template: FrontXoVmTemplate): Vif[] => {
   if (template.VIFs.length === 0) {
     return []
   }
@@ -731,7 +734,7 @@ watch(
 // VDI ISOS SELECTOR
 
 const vdis = computed(() => {
-  const vdis = new Map<XoVdi['id'], { vdi: XoVdi; srName: string }>()
+  const vdis = new Map<FrontXoVdi['id'], { vdi: FrontXoVdi; srName: string }>()
 
   for (const [srName, srVdis] of Object.entries(vdiIsosBySrName.value)) {
     srVdis

@@ -1,8 +1,8 @@
+import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import type { Status } from '@core/components/status/VtsStatus.vue'
-import type { XoPif } from '@vates/types'
 
-export function getPifStatus(pif: XoPif): Status {
+export function getPifStatus(pif: FrontXoPif): Status {
   if (!pif.attached) {
     return CONNECTION_STATUS.DISCONNECTED
   }
@@ -14,7 +14,7 @@ export function getPifStatus(pif: XoPif): Status {
   return CONNECTION_STATUS.CONNECTED
 }
 
-export function getPifsIpAddresses(pifs?: XoPif[]): string[] {
+export function getPifsIpAddresses(pifs?: FrontXoPif[]): string[] {
   if (!pifs) {
     return []
   }

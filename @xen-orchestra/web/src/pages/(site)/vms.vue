@@ -15,13 +15,12 @@
 <script setup lang="ts">
 import VmSidePanel from '@/modules/vm/components/list/panel/VmSidePanel.vue'
 import VmsTable from '@/modules/vm/components/list/VmsTable.vue'
-import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { useXoVmCollection, type FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store'
-import type { XoVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -30,8 +29,8 @@ const { vms, getVmById, areVmsReady, hasVmFetchError } = useXoVmCollection()
 
 const uiStore = useUiStore()
 
-const selectedVm = useRouteQuery<XoVm | undefined>('id', {
-  toData: id => getVmById(id as XoVm['id']),
+const selectedVm = useRouteQuery<FrontXoVm | undefined>('id', {
+  toData: id => getVmById(id as FrontXoVm['id']),
   toQuery: vm => vm?.id ?? '',
 })
 </script>

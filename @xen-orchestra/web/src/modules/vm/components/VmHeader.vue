@@ -62,6 +62,7 @@
 
 <script lang="ts" setup>
 import VmActions from '@/modules/vm/components/actions/VmActions.vue'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import type { VmState } from '@core/types/object-icon.type.ts'
 import MenuList from '@core/components/menu/MenuList.vue'
@@ -71,11 +72,10 @@ import TabList from '@core/components/tab/TabList.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import type { XoVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vm } = defineProps<{ vm: XoVm }>()
+const { vm } = defineProps<{ vm: FrontXoVm }>()
 
 const { t } = useI18n()
 

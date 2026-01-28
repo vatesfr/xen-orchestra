@@ -35,6 +35,7 @@
 </template>
 
 <script lang="ts" setup>
+import type { FrontAnyXoBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import { XOA_NAME } from '@/shared/constants.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -43,11 +44,10 @@ import TabList from '@core/components/tab/TabList.vue'
 import UiBreadcrumb from '@core/components/ui/breadcrumb/UiBreadcrumb.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import type { AnyXoBackupJob } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{ backupJob: AnyXoBackupJob }>()
+defineProps<{ backupJob: FrontAnyXoBackupJob }>()
 
 const { t } = useI18n()
 const uiStore = useUiStore()

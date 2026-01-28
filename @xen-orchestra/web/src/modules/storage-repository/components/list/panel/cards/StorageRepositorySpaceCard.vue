@@ -8,12 +8,12 @@
 </template>
 
 <script lang="ts" setup>
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import VtsSpaceCard from '@core/components/space-card/VtsSpaceCard.vue'
-import type { XoSr } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
-  sr: XoSr
+  sr: FrontXoSr
 }>()
 
 const { t } = useI18n()

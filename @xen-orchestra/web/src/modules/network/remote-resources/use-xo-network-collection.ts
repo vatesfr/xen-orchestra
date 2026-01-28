@@ -8,7 +8,9 @@ import type { XoNetwork } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 
-const networkFields: (keyof XoNetwork)[] = [
+export type FrontXoNetwork = Pick<XoNetwork, (typeof networkFields)[number]>
+
+const networkFields = [
   'id',
   'defaultIsLocked',
   'name_label',
@@ -20,12 +22,12 @@ const networkFields: (keyof XoNetwork)[] = [
   'PIFs',
   'other_config',
   'type',
-] as const
+] as const satisfies readonly (keyof XoNetwork)[]
 
 export const useXoNetworkCollection = defineRemoteResource({
   url: `${BASE_URL}/networks?fields=${networkFields.join(',')}`,
   watchCollection: watchCollectionWrapper({ resource: 'network', fields: networkFields }),
-  initialData: () => [] as XoNetwork[],
+  initialData: () => [] as FrontXoNetwork[],
   state: (rawNetworks, context) => {
     const { hostMasterPifsByNetwork } = useXoPifCollection(context)
 

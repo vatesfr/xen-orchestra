@@ -10,12 +10,12 @@
 import BackupJobGeneralInformation from '@/modules/backup/components/configuration/BackupJobGeneralInformation.vue'
 import BackupJobSchedulesTable from '@/modules/backup/components/configuration/BackupJobSchedulesTable.vue'
 import BackupJobSettings from '@/modules/backup/components/configuration/BackupJobSettings.vue'
+import type { FrontXoVmBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
-import type { XoVmBackupJob } from '@vates/types'
 import { computed } from 'vue'
 
 const { backupJob } = defineProps<{
-  backupJob: XoVmBackupJob
+  backupJob: FrontXoVmBackupJob
 }>()
 
 const { schedulesByJobId, areSchedulesReady, hasScheduleFetchError } = useXoScheduleCollection()

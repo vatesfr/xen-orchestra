@@ -12,15 +12,15 @@
 
 <script lang="ts" setup>
 import { useXoTaskPropertiesUtils } from '@/modules/task/composables/xo-task-properties-utils.composable.ts'
+import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import VtsRecursiveFields from '@core/components/recursive-fields/VtsRecursiveFields.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
-import type { XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { task } = defineProps<{
-  task: XoTask
+  task: FrontXoTask
 }>()
 
 const { t } = useI18n()

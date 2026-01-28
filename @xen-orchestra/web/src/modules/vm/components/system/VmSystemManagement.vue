@@ -39,17 +39,18 @@
 
 <script setup lang="ts">
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { VM_OPERATIONS, type XoVm } from '@vates/types'
+import { VM_OPERATIONS } from '@vates/types'
 import { useArraySome } from '@vueuse/shared'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vm } = defineProps<{ vm: XoVm }>()
+const { vm } = defineProps<{ vm: FrontXoVm }>()
 const { t } = useI18n()
 
 const { getHostById } = useXoHostCollection()

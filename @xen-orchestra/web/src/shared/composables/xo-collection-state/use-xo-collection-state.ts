@@ -5,7 +5,7 @@ import type { XoRecord } from '@vates/types'
 import { reactify } from '@vueuse/shared'
 import { type Ref } from 'vue'
 
-export function useXoCollectionState<TRecord extends XoRecord, const TBaseName extends string>(
+export function useXoCollectionState<TRecord extends Partial<XoRecord>, const TBaseName extends string>(
   collection: Ref<TRecord[]>,
   config: {
     context: ResourceContext<any[]>
@@ -28,7 +28,7 @@ export function useXoCollectionState<TRecord extends XoRecord, const TBaseName e
   }
 >
 
-export function useXoCollectionState<TRecord extends XoRecord, const TBaseName extends [string, string]>(
+export function useXoCollectionState<TRecord extends Partial<XoRecord>, const TBaseName extends [string, string]>(
   collection: Ref<TRecord[]>,
   config: {
     context: ResourceContext<any[]>

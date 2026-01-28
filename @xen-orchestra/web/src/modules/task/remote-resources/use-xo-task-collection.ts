@@ -9,9 +9,11 @@ import type { XoTask } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 import { computed, type Ref } from 'vue'
 
+export type FrontXoTask = Pick<XoTask, (typeof taskFields)[number]>
+
 const ONE_DAY = 24 * 60 * 60 * 1000
 
-export const taskFields: (keyof XoTask)[] = [
+export const taskFields = [
   'id',
   'start',
   'end',
@@ -22,10 +24,10 @@ export const taskFields: (keyof XoTask)[] = [
   'progress',
   'tasks',
   'result',
-] as const
+] as const satisfies readonly (keyof XoTask)[]
 
 export function createTaskCollectionState<TArgs extends any[] = []>(
-  tasks: Ref<XoTask[]>,
+  tasks: Ref<FrontXoTask[]>,
   context: ResourceContext<TArgs>
 ) {
   const lastDayTasks = computed(() => {
@@ -53,6 +55,6 @@ export function createTaskCollectionState<TArgs extends any[] = []>(
 export const useXoTaskCollection = defineRemoteResource({
   url: `${BASE_URL}/tasks?fields=${taskFields.join(',')}`,
   watchCollection: watchCollectionWrapper({ resource: 'task', fields: taskFields }),
-  initialData: () => [] as XoTask[],
+  initialData: () => [] as FrontXoTask[],
   state: createTaskCollectionState,
 })
