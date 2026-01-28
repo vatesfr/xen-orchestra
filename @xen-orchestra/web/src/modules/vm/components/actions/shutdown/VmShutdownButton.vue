@@ -16,8 +16,9 @@ import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts
 import { useXoVmShutdownJob } from '@/modules/vm/jobs/xo-vm-shutdown.job.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useModal } from '@core/packages/modal/use-modal.ts'
+import { IK_CLOSE_MENU } from '@core/utils/injection-keys.util.ts'
 import type { XoVm } from '@vates/types'
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{
@@ -34,6 +35,13 @@ const canShutdown = computed(() => hasGuestTools(vm))
 const openShutdownModal = useModal({
   component: import('@core/components/modal/VtsActionModal.vue'),
   props: { accent: 'info', action: 'shutdown', object: 'vm' },
-  onConfirm: () => shutdown(),
+  onConfirm: () => shutdownJob(),
 })
+
+const closeMenu = inject(IK_CLOSE_MENU, undefined)
+
+function shutdownJob() {
+  shutdown()
+  closeMenu?.()
+}
 </script>

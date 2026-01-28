@@ -16,8 +16,9 @@ import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts
 import { useXoVmRebootJob } from '@/modules/vm/jobs/xo-vm-reboot.job.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useModal } from '@core/packages/modal/use-modal.ts'
+import { IK_CLOSE_MENU } from '@core/utils/injection-keys.util.ts'
 import type { XoVm } from '@vates/types'
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{
@@ -34,6 +35,13 @@ const canReboot = computed(() => hasGuestTools(vm))
 const openRebootModal = useModal({
   component: import('@core/components/modal/VtsActionModal.vue'),
   props: { accent: 'info', action: 'reboot', object: 'vm' },
-  onConfirm: () => reboot(),
+  onConfirm: () => rebootJob(),
 })
+
+const closeMenu = inject(IK_CLOSE_MENU, undefined)
+
+function rebootJob() {
+  reboot()
+  closeMenu?.()
+}
 </script>
