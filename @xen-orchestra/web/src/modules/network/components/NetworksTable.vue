@@ -37,7 +37,7 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
-import { icon, objectIcon } from '@core/icons'
+import { icon } from '@core/icons'
 import { useNetworkColumns } from '@core/tables/column-sets/network-columns.ts'
 import type { XoNetwork } from '@vates/types'
 import { computed, ref } from 'vue'
@@ -118,7 +118,7 @@ const { HeadCells, BodyCells } = useNetworkColumns({
       network: r =>
         r({
           label: network.name_label,
-          icon: internal ? icon('fa:network-wired') : objectIcon('network', status.value),
+          icon: icon('object:network'),
           href: href.value,
         }),
       description: r => r(network.name_description),

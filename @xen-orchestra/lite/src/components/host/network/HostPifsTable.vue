@@ -137,7 +137,7 @@ function getManagementIcon(pif: XenApiPif) {
   }
 
   return {
-    icon: icon('legacy:primary'),
+    icon: icon('status:primary-circle'),
     tooltip: t('management'),
   }
 }

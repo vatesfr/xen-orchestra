@@ -25,8 +25,7 @@
               {{ t('network') }}
             </template>
             <template #value>
-              <UiLink v-if="network" size="medium" :to="networkTo">
-                <VtsIcon name="fa:network-wired" size="medium" />
+              <UiLink v-if="network" size="medium" :to="networkTo" icon="object:network">
                 <span v-tooltip class="text-ellipsis">{{ network.name_label }}</span>
               </UiLink>
             </template>
@@ -41,7 +40,7 @@
             </template>
             <template #value>
               {{ pif.device }}
-              <VtsIcon v-if="pif.management" v-tooltip="t('management')" name="legacy:primary" size="medium" />
+              <VtsIcon v-if="pif.management" v-tooltip="t('management')" name="status:primary-circle" size="medium" />
             </template>
             <template #addons>
               <VtsCopyButton :value="pif.device" />

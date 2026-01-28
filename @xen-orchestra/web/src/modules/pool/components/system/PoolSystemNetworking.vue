@@ -9,7 +9,7 @@
         <template #value>
           <UiLink
             v-if="backupNetwork !== undefined"
-            icon="fa:network-wired"
+            icon="object:network"
             :to="`/pool/${pool.id}/networks?id=${backupNetwork.id}`"
             size="medium"
           >

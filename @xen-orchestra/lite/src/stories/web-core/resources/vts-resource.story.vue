@@ -2,7 +2,7 @@
   <ComponentStory
     v-slot="{ properties }"
     :params="[
-      iconProp().preset('fa:display'),
+      iconProp().preset('object:vm'),
       prop('label').required().str().widget().preset('Displays'),
       prop('count').required().type('string | number').widget(text()).preset('175'),
     ]"

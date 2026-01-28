@@ -78,7 +78,7 @@ const { pageRecords: paginatedRepositories, paginationBindings } = usePagination
 )
 
 function getBackupRepositoryIcon(backupRepository: XoBackupRepository): IconName {
-  return backupRepository.enabled ? 'object:backup-repository:connected' : 'object:backup-repository:disconnected'
+  return backupRepository.enabled ? 'object:br:connected' : 'object:br:disconnected'
 }
 
 const useColumns = defineColumns(() => {

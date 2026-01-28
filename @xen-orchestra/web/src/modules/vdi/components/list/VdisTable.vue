@@ -87,7 +87,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
     const format = computed(() => getVdiFormat(vdi.image_format))
 
     return {
-      vdi: r => r({ label: vdi.name_label, href: href.value, icon: 'fa:hard-drive' }),
+      vdi: r => r({ label: vdi.name_label, href: href.value, icon: 'object:vdi' }),
       description: r => r(vdi.name_description),
       usedSpace: r => r(vdi.usage, vdi.size),
       size: r => r(size.value.value, size.value.prefix),

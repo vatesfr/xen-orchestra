@@ -18,7 +18,5 @@ const { br } = defineProps<{
 const { buildXo5Route } = useXoRoutes()
 const href = computed(() => buildXo5Route('/settings/remotes'))
 
-const icon = computed(() =>
-  br.enabled ? 'object:backup-repository:connected' : 'object:backup-repository:disconnected'
-)
+const icon = computed(() => (br.enabled ? 'object:br:connected' : 'object:br:disconnected'))
 </script>

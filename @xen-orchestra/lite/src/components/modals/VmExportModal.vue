@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="info" icon="fa:display" @confirm="emit('confirm', compressionType)">
+  <VtsModal accent="info" icon="object:vm" @confirm="emit('confirm', compressionType)">
     <template #title>
       {{ t('action:export-n-vms', { n: count }) }}
     </template>

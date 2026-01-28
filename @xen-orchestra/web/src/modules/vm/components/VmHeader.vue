@@ -2,7 +2,7 @@
   <UiHeadBar>
     {{ vm.name_label }}
     <template #icon>
-      <VtsObjectIcon size="medium" :state="vm.power_state.toLocaleLowerCase() as VmState" type="vm" />
+      <VtsObjectIcon size="medium" :state="toLower(vm.power_state)" type="vm" />
     </template>
     <template #actions>
       <UiLink :href="xo5VmGeneralHref" size="medium">
@@ -63,7 +63,6 @@
 <script lang="ts" setup>
 import VmActions from '@/modules/vm/components/actions/VmActions.vue'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
-import type { VmState } from '@core/types/object-icon.type.ts'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
@@ -72,6 +71,7 @@ import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButt
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import type { XoVm } from '@vates/types'
+import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

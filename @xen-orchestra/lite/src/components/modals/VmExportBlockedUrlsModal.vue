@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="info" icon="fa:display">
+  <VtsModal accent="info" icon="object:vm">
     <template #title>
       {{ t('action:export-n-vms-manually', { n: labelWithUrl.length }) }}
     </template>

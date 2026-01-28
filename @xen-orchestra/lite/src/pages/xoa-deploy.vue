@@ -7,7 +7,7 @@
     <template v-if="error !== undefined">
       <div>
         <h2>{{ t('xoa-deploy-failed!') }}</h2>
-        <VtsIcon name="legacy:status:danger" size="medium" />
+        <VtsIcon name="status:danger-circle" size="medium" />
       </div>
       <div class="error">
         <strong>{{ t('check-errors:') }}</strong>
@@ -22,7 +22,7 @@
     <template v-else-if="url !== undefined">
       <div>
         <h2>{{ t('xoa-deploy-successful!') }}</h2>
-        <VtsIcon name="legacy:status:success" size="medium" />
+        <VtsIcon name="status:success-circle" size="medium" />
       </div>
       <UiButton
         size="medium"
@@ -43,7 +43,7 @@
         <p>{{ status }}</p>
       </div>
       <p class="warning">
-        <VtsIcon name="legacy:status:warning" size="medium" />
+        <VtsIcon name="status:warning-circle" size="medium" />
         {{ t('keep-page-open') }}
       </p>
       <UiButton size="medium" :disabled="vmRef === undefined" accent="danger" variant="secondary" @click="cancel()">

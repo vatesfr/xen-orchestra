@@ -5,7 +5,7 @@
     </template>
     {{ host.name_label }}
     <template v-if="isMaster" #status>
-      <VtsIcon v-tooltip="t('master')" name="legacy:primary" size="medium" />
+      <VtsIcon v-tooltip="t('master')" name="status:primary-circle" size="medium" />
     </template>
   </UiHeadBar>
 </template>

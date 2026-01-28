@@ -27,7 +27,7 @@
             <template #value>
               <UiLink
                 v-if="server.poolId !== undefined && server.poolNameLabel !== undefined"
-                icon="fa:city"
+                icon="object:pool"
                 size="small"
                 :to="`/pool/${server.poolId}/dashboard`"
               >
@@ -85,11 +85,12 @@
           <template #value>
             <UiLink
               v-if="primaryHost !== undefined"
-              icon="fa:server"
+              :icon="`object:host:${toLower(primaryHost.power_state)}`"
               size="small"
               :to="`/host/${primaryHost.id}/dashboard`"
             >
               {{ primaryHost.name_label }}
+              <VtsIcon accent="info" name="status:primary-circle" size="medium" />
             </UiLink>
           </template>
           <template v-if="primaryHost !== undefined" #addons>
@@ -147,9 +148,15 @@
           {{ t('no-data') }}
         </VtsStateHero>
         <template v-else>
-          <UiLink v-for="host in hosts" :key="host.id" :to="`/host/${host.id}/dashboard`" icon="fa:server" size="small">
+          <UiLink
+            v-for="host in hosts"
+            :key="host.id"
+            :to="`/host/${host.id}/dashboard`"
+            :icon="`object:host:${toLower(host.power_state)}`"
+            size="small"
+          >
             {{ host.name_label }}
-            <VtsIcon v-if="primaryHost?.id === host.id" accent="info" name="legacy:primary" size="medium" />
+            <VtsIcon v-if="primaryHost?.id === host.id" accent="info" name="status:primary-circle" size="medium" />
           </UiLink>
         </template>
       </UiCard>
@@ -188,6 +195,7 @@ import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useMapper } from '@core/packages/mapper'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import type { XoServer } from '@vates/types'
+import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

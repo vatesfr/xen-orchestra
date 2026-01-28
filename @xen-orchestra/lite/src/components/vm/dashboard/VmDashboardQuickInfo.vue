@@ -18,11 +18,10 @@
       <VtsQuickInfoRow :label="t('host')">
         <template #value>
           <span v-if="host" class="host-name">
-            <VtsObjectIcon type="host" :state="hostPowerState" size="medium" />
-            <UiLink :to="`/host/${host.uuid}`" size="medium">
+            <UiLink :to="`/host/${host.uuid}`" size="medium" :icon="`object:host:${hostPowerState}`">
               {{ host.name_label }}
             </UiLink>
-            <VtsIcon v-if="isPoolMaster" v-tooltip="t('master')" name="legacy:primary" size="medium" />
+            <VtsIcon v-if="isPoolMaster" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
           </span>
           <span v-else>
             {{ t('none') }}
@@ -59,7 +58,6 @@ import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.
 import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
 import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
@@ -105,10 +103,10 @@ const hostPowerState = computed(() => {
 const powerState = useMapper(
   () => vm.power_state,
   {
-    [VM_POWER_STATE.RUNNING]: { icon: 'legacy:running', text: t('vm:status:running') },
-    [VM_POWER_STATE.HALTED]: { icon: 'legacy:halted', text: t('vm:status:halted') },
-    [VM_POWER_STATE.PAUSED]: { icon: 'legacy:paused', text: t('vm:status:paused') },
-    [VM_POWER_STATE.SUSPENDED]: { icon: 'legacy:suspended', text: t('vm:status:suspended') },
+    [VM_POWER_STATE.RUNNING]: { icon: 'status:running-circle', text: t('vm:status:running') },
+    [VM_POWER_STATE.HALTED]: { icon: 'status:halted-circle', text: t('vm:status:halted') },
+    [VM_POWER_STATE.PAUSED]: { icon: 'status:paused-circle', text: t('vm:status:paused') },
+    [VM_POWER_STATE.SUSPENDED]: { icon: 'status:suspended-circle', text: t('vm:status:suspended') },
   },
   VM_POWER_STATE.RUNNING
 )

@@ -6,7 +6,7 @@
       {{ t('error-no-data') }}
     </VtsStateHero>
     <template v-else>
-      <VtsDonutChartWithLegend icon="fa:server" :segments />
+      <VtsDonutChartWithLegend icon="object:host" :segments />
       <UiCardNumbers :label="t('total')" :value="status?.total" class="total" size="small" />
     </template>
   </UiCard>

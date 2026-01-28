@@ -3,14 +3,14 @@
 ```vue-template
 <VtsTreeList>
   <VtsTreeItem>
-    <UiTreeItemLabel icon="fa:city" route="#">Pool</UiTreeItemLabel>
+    <UiTreeItemLabel icon="object:pool" route="#">Pool</UiTreeItemLabel>
     <template #sublist>
       <VtsTreeList>
         <VtsTreeItem v-for="i of 3" :key="i">
-          <UiTreeItemLabel icon="fa:server" route="#">
+          <UiTreeItemLabel icon="object:host" route="#">
             Host - {{ i }}
             <template #addons>
-              <VtsIcon v-if="i === 2" name="legacy:primary" size="medium" />
+              <VtsIcon v-if="i === 2" name="status:primary-circle" size="medium" />
               <UiCounter accent="brand" value="3" variant="secondary" size="small" />
             </template>
           </UiTreeItemLabel>

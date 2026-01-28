@@ -21,8 +21,7 @@
         </template>
         <template #value>
           <div v-if="vdiSr" class="storage">
-            <VtsObjectIcon type="sr" state="muted" size="medium" />
-            <UiLink size="small" :href="srHref">
+            <UiLink size="small" :href="srHref" icon="object:sr">
               {{ vdiSr.name_label }}
             </UiLink>
           </div>
@@ -52,7 +51,6 @@ import { getVdiFormat } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'

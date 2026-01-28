@@ -27,6 +27,8 @@
 </template>
 
 <script setup lang="ts">
+import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
+import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -93,10 +95,12 @@ function getPrimaryIcon(sr: XoSr) {
   }
 
   return {
-    icon: icon('legacy:primary'),
+    icon: icon('status:primary-circle'),
     tooltip: t('default-storage-repository'),
   }
 }
+
+const { getPbdsByIds } = useXoPbdCollection()
 
 const { HeadCells, BodyCells } = useSrColumns({
   body: (sr: XoSr) => {
@@ -105,12 +109,14 @@ const { HeadCells, BodyCells } = useSrColumns({
     const href = computed(() => buildXo5Route(`/srs/${sr.id}/general`))
     const rightIcon = computed(() => getPrimaryIcon(sr))
 
+    const { allPbdsConnectionStatus } = useXoPbdUtils(() => getPbdsByIds(sr.$PBDs))
+
     return {
       storageRepository: r =>
         r({
           label: sr.name_label,
           href: href.value,
-          icon: objectIcon('sr', 'muted'),
+          icon: objectIcon('sr', allPbdsConnectionStatus.value),
           rightIcon: rightIcon.value,
         }),
       description: r => r(sr.name_description),
