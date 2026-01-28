@@ -24,6 +24,7 @@ import {
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
+import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { partialTasks, task, taskIds, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import pDefer from 'promise-toolbox/defer'
@@ -32,6 +33,9 @@ import { Transform } from 'node:stream'
 import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
+import { RestApi } from '../rest-api/rest-api.mjs'
+import { TaskService } from './task.service.mjs'
+import type { XoTaskWithResolvedReferences } from './task.type.mjs'
 
 @Route('tasks')
 @Security('*')
@@ -40,6 +44,13 @@ import { safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 @Tags('tasks')
 @provide(TaskController)
 export class TaskController extends XoController<XoTask> {
+  #taskService: TaskService
+
+  constructor(@inject(RestApi) restApi: RestApi, @inject(TaskService) taskService: TaskService) {
+    super(restApi)
+    this.#taskService = taskService
+  }
+
   async getAllCollectionObjects(): Promise<XoTask[]> {
     const result: XoTask[] = []
     for await (const task of this.restApi.tasks.list()) {
@@ -71,13 +82,14 @@ export class TaskController extends XoController<XoTask> {
     @Query() watch?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
+  ): Promise<SendObjects<Partial<Unbrand<XoTaskWithResolvedReferences>>>> {
     if (watch) {
       if (!ndjson) {
         throw new ApiError('watch=true requires ndjson=true', 400)
       }
 
       const userFilter = filter === undefined ? undefined : safeParseComplexMatcher(filter).createPredicate()
+      const taskService = this.#taskService
       const stream = new Transform({
         objectMode: true,
         transform([event, object], encoding, callback) {
@@ -98,7 +110,7 @@ export class TaskController extends XoController<XoTask> {
 
       function update(task: XoTask) {
         if (userFilter === undefined || userFilter(task)) {
-          stream.write(['update', task])
+          stream.write(['update', taskService.enrichTask(task)])
         }
       }
       function remove(task: XoTask) {
@@ -111,7 +123,8 @@ export class TaskController extends XoController<XoTask> {
     }
 
     const tasks = Object.values(await this.getObjects({ filter, limit }))
-    return this.sendObjects(tasks, req)
+    const enrichedTasks = tasks.map(t => this.#taskService.enrichTask(t))
+    return this.sendObjects(enrichedTasks, req)
   }
 
   /**
@@ -120,21 +133,27 @@ export class TaskController extends XoController<XoTask> {
   @Example(task)
   @Get('{id}')
   @Response(notFoundResp.status, notFoundResp.description)
-  async getTask(@Request() req: ExRequest, @Path() id: string, @Query() wait?: boolean): Promise<Unbrand<XoTask>> {
+  async getTask(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() wait?: boolean
+  ): Promise<Unbrand<XoTaskWithResolvedReferences>> {
     const taskId = id as XoTask['id']
     if (wait) {
       const { promise, resolve } = pDefer()
+      const taskService = this.#taskService
       const stopWatch = await this.restApi.tasks.watch(taskId, task => {
         if (task.status !== 'pending') {
           stopWatch()
-          resolve(task)
+          resolve(taskService.enrichTask(task))
         }
       })
       req.on('close', stopWatch)
-      return promise as Promise<XoTask>
+      return promise as Promise<XoTaskWithResolvedReferences>
     }
 
-    return this.getObject(taskId)
+    const task = await this.getObject(taskId)
+    return this.#taskService.enrichTask(task)
   }
 
   @Delete('')
