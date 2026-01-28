@@ -76,7 +76,7 @@
                     {{ t('action:copy-host') }}
                   </UiCheckbox>
                 </div>
-                <div v-else-if="vmState.boot_firmware === 'uefi' || templateHasBiosStrings">
+                <div v-else>
                   <UiCheckbox v-model="vmState.create_vtpm" accent="brand">
                     {{ t('vtpm') }}
                   </UiCheckbox>
