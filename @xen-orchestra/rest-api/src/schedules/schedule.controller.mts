@@ -1,5 +1,6 @@
 import type { XoSchedule } from '@vates/types'
 import { Example, Get, Path, Post, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
+import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 
@@ -18,6 +19,7 @@ import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
+import { RestApi } from '../rest-api/rest-api.mjs'
 
 @Route('schedules')
 @Security('*')
@@ -26,6 +28,10 @@ import type { CreateActionReturnType } from '../abstract-classes/base-controller
 @Tags('schedules')
 @provide(ScheduleController)
 export class ScheduleController extends XoController<XoSchedule> {
+  constructor(@inject(RestApi) restApi: RestApi) {
+    super('schedule', restApi)
+  }
+
   // --- abstract methods
   getAllCollectionObjects(): Promise<XoSchedule[]> {
     return this.restApi.xoApp.getAllSchedules()

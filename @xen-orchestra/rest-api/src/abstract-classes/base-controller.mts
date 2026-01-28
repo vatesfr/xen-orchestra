@@ -4,7 +4,7 @@ import { pipeline } from 'node:stream/promises'
 import { Readable, type Transform } from 'node:stream'
 import { Request } from 'express'
 import type { VatesTask } from '@vates/types/lib/vates/task'
-import type { XapiXoRecord, XoRecord, XoTask } from '@vates/types/xo'
+import type { NonXapiXoRecord, XapiXoRecord, XoRecord, XoTask } from '@vates/types/xo'
 import type { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
 
 import { BASE_URL } from '../index.mjs'
@@ -17,6 +17,10 @@ import { NDJSON_CONTENT_TYPE, safeParseComplexMatcher } from '../helpers/utils.h
 
 const noop = () => {}
 
+export type BaseControllerType<T extends XoRecord> = T extends XapiXoRecord
+  ? T['type']
+  : NonNullable<XoTask['properties']['objectType']>
+
 export type CreateActionReturnType<CbType> = Promise<{ taskId: string } | CbType>
 
 export abstract class BaseController<T extends XoRecord, IsSync extends boolean> extends Controller {
@@ -24,9 +28,11 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
   abstract getObject(id: T['id']): IsSync extends false ? Promise<T> : T
 
   restApi: RestApi
+  readonly type: BaseControllerType<T>
 
-  constructor(restApi: RestApi) {
+  constructor(type: BaseControllerType<T>, restApi: RestApi) {
     super()
+    this.type = type
     this.restApi = restApi
   }
 
@@ -95,6 +101,7 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
   ): CreateActionReturnType<CbType> {
     taskProperties.name = 'REST API: ' + taskProperties.name
     taskProperties.type = 'xo:rest-api:action'
+    taskProperties.objectType = this.type
 
     const task = this.restApi.tasks.create(taskProperties)
     const pResult = task.run(() => cb(task))

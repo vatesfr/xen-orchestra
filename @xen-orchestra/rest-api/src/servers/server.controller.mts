@@ -15,6 +15,7 @@ import {
   Tags,
 } from 'tsoa'
 import { type Request as ExRequest, json } from 'express'
+import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { XoServer, XoTask } from '@vates/types'
 
@@ -36,6 +37,7 @@ import { partialTasks, taskIds, taskLocation } from '../open-api/oa-examples/tas
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
+import { RestApi } from '../rest-api/rest-api.mjs'
 
 @Route('servers')
 @Security('*')
@@ -44,6 +46,10 @@ import type { CreateActionReturnType } from '../abstract-classes/base-controller
 @Tags('servers')
 @provide(ServerController)
 export class ServerController extends XoController<XoServer> {
+  constructor(@inject(RestApi) restApi: RestApi) {
+    super('server', restApi)
+  }
+
   // --- abstract methods
   getAllCollectionObjects(): Promise<XoServer[]> {
     return this.restApi.xoApp.getAllXenServers()

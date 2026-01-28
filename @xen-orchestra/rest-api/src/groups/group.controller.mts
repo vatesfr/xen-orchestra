@@ -53,7 +53,7 @@ export class GroupController extends XoController<XoGroup> {
   #userService: UserService
 
   constructor(@inject(RestApi) restApi: RestApi, @inject(UserService) userService: UserService) {
-    super(restApi)
+    super('group', restApi)
     this.#userService = userService
   }
 

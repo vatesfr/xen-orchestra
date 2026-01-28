@@ -24,6 +24,7 @@ import {
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
+import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { partialTasks, task, taskIds, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import pDefer from 'promise-toolbox/defer'
@@ -32,6 +33,7 @@ import { Transform } from 'node:stream'
 import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
+import { RestApi } from '../rest-api/rest-api.mjs'
 
 @Route('tasks')
 @Security('*')
@@ -40,6 +42,10 @@ import { safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 @Tags('tasks')
 @provide(TaskController)
 export class TaskController extends XoController<XoTask> {
+  constructor(@inject(RestApi) restApi: RestApi) {
+    super('task', restApi)
+  }
+
   async getAllCollectionObjects(): Promise<XoTask[]> {
     const result: XoTask[] = []
     for await (const task of this.restApi.tasks.list()) {
