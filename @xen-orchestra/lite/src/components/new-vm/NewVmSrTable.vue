@@ -6,10 +6,10 @@
       </tr>
     </thead>
     <tbody>
-      <VtsRow v-for="(vdi, index) in vmState.existingVdis" :key="index">
+      <VtsRow v-for="vdi in vmState.existingVdis" :key="vdi.id">
         <BodyCells :item="{ vdi }" />
       </VtsRow>
-      <VtsRow v-for="(vdi, index) in vmState.vdis" :key="index">
+      <VtsRow v-for="(vdi, index) in vmState.vdis" :key="vdi.name_label">
         <BodyCells :item="{ vdi, onRemove: () => emit('remove', index) }" />
       </VtsRow>
       <VtsRow>
