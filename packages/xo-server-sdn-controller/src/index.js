@@ -449,7 +449,7 @@ class SDNController extends EventEmitter {
                 vifId: req.params.id,
               })
 
-              res.sendStatus(200)
+              res.sendStatus(204)
             },
             _delete: async (req, res, next) => {
               await this._deleteRule({
@@ -460,12 +460,12 @@ class SDNController extends EventEmitter {
                 vifId: req.params.id,
               })
 
-              res.sendStatus(200)
+              res.sendStatus(204)
             },
           },
         },
       },
-      '/plugins/sdncontroller'
+      '/plugins/sdn-controller'
     )
 
     forOwn(this._xo.getAllXapis(), xapi => {
