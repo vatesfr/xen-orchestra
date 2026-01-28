@@ -15,19 +15,7 @@ import {
 } from 'tsoa'
 import { inject } from 'inversify'
 import { json, type Request as ExRequest } from 'express'
-import type {
-  VIF_LOCKING_MODE,
-  Xapi,
-  XenApiNetwork,
-  XenApiVif,
-  XenApiVm,
-  XoAlarm,
-  XoMessage,
-  XoNetwork,
-  XoTask,
-  XoVif,
-  XoVm,
-} from '@vates/types'
+import type { Xapi, XenApiVif, XoAlarm, XoMessage, XoNetwork, XoTask, XoVif, XoVm } from '@vates/types'
 
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { provide } from 'inversify-binding-decorators'
@@ -48,6 +36,13 @@ import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-
 import { taskIds, partialTasks } from '../open-api/oa-examples/task.oa-example.mjs'
 
 type UnbrandedXoVif = Unbrand<XoVif>
+
+type CreateVifParams = Parameters<Xapi['VIF_create']>
+type CreateVifBody = Omit<CreateVifParams[0], 'network' | 'VM'> &
+  CreateVifParams[1] & {
+    network: string
+    VM: string
+  }
 
 @Route('vifs')
 @Security('*')
@@ -176,8 +171,7 @@ export class VifController extends XapiXoController<XoVif> {
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async createVif(
     @Body()
-    body: Omit<Parameters<Xapi['VIF_create']>[0], 'network' | 'VM'> &
-      Parameters<Xapi['VIF_create']>[1] & { network: string; VM: string }
+    body: CreateVifBody
   ): Promise<{ vifId: XoVif['id'] }> {
     const xapi = this.getXapi(body.network as XoNetwork['id'])
     const xapiVm = this.restApi.getXapiObject<XoVm>(body.VM as XoVm['id'], 'VM')
