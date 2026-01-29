@@ -13,6 +13,8 @@ import { DATETIME, JOB_ID, SCHEDULE_ID, VM_UUID, resetVmOtherConfig, setVmOtherC
 
 const { warn, info } = createLogger('xo:backups:AbstractXapi')
 
+const TEMP_SNAPSHOT_NAME = 'xo-backup-temp-snapshot-name'
+
 export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
   constructor({
     config,
@@ -156,7 +158,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
         const snapshotRef = await vm[settings.checkpointSnapshot ? '$checkpoint' : '$snapshot']({
           ignoredVdisTag: '[NOBAK]',
-          name_label: this._getSnapshotNameLabel(vm),
+          name_label: TEMP_SNAPSHOT_NAME,
           unplugVusbs: true,
         })
         this.timestamp = Date.now()
@@ -166,6 +168,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           scheduleId: this.scheduleId,
           vmUuid: vm.uuid,
         })
+        await vm.set_name_label(this._getSnapshotNameLabel(vm))
         this._exportedVm = await xapi.getRecord('VM', snapshotRef)
         return this._exportedVm.uuid
       })
@@ -371,6 +374,11 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         }
       })
     })
+
+    // list and remove the snapshot were the jobs failed between
+    // makesnapshot and update_other_config
+    const snapshots = this._vm.$snapshots.filter(({ name_label }) => name_label === TEMP_SNAPSHOT_NAME)
+    await Promise.all(snapshots.map(snapshot => snapshot.$destroy()))
   }
 
   async _removeSnapshotData() {
