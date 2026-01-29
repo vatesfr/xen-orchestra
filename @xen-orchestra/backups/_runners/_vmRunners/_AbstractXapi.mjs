@@ -79,29 +79,45 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       const writers = new Set()
       this._writers = writers
 
-      const [BackupWriter, ReplicationWriter] = this._getWriters()
+      const [BackupWriter, ReplicationWriter, AggregratedBackupWriter] = this._getWriters()
 
       const allSettings = job.settings
-      Object.entries(remoteAdapters).forEach(([remoteId, adapter]) => {
-        const targetSettings = {
-          ...settings,
-          ...allSettings[remoteId],
-        }
-        if (targetSettings.exportRetention !== 0) {
-          writers.add(
-            new BackupWriter({
-              adapter,
-              config,
-              healthCheckSr,
-              job,
-              scheduleId: schedule.id,
-              vmUuid: vm.uuid,
-              remoteId,
-              settings: targetSettings,
-            })
-          )
-        }
-      })
+      job.settings.spreadBackups = true
+      if (job.settings.spreadBackups && AggregratedBackupWriter) {
+        writers.add(
+          new AggregratedBackupWriter({
+            adapters: remoteAdapters,
+            config,
+            healthCheckSr,
+            job,
+            scheduleId: schedule.id,
+            vmUuid: vm.uuid,
+            settings,
+          })
+        )
+      } else {
+        Object.entries(remoteAdapters).forEach(([remoteId, adapter]) => {
+          const targetSettings = {
+            ...settings,
+            ...allSettings[remoteId],
+          }
+          if (targetSettings.exportRetention !== 0) {
+            writers.add(
+              new BackupWriter({
+                adapter,
+                config,
+                healthCheckSr,
+                job,
+                scheduleId: schedule.id,
+                vmUuid: vm.uuid,
+                remoteId,
+                settings: targetSettings,
+              })
+            )
+          }
+        })
+      }
+
       srs.forEach(sr => {
         const targetSettings = {
           ...settings,
