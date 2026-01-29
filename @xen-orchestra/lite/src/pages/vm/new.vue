@@ -61,22 +61,23 @@
                   <VtsSelect :id="bootFirmwareSelectId" accent="brand" />
                 </VtsInputWrapper>
                 <div
+                  v-if="vmState.boot_firmware !== 'uefi'"
                   v-tooltip="
-                    vmState.boot_firmware === 'uefi' || templateHasBiosStrings
+                    templateHasBiosStrings
                       ? {
                           placement: 'top-start',
-                          content:
-                            vmState.boot_firmware !== 'uefi' ? t('template-has-bios-strings') : t('boot-firmware-uefi'),
+                          content: t('template-has-bios-strings'),
                         }
                       : undefined
                   "
                 >
-                  <UiCheckbox
-                    v-model="copyHostBiosStrings"
-                    accent="brand"
-                    :disabled="vmState.boot_firmware === 'uefi' || templateHasBiosStrings"
-                  >
+                  <UiCheckbox v-model="copyHostBiosStrings" accent="brand" :disabled="templateHasBiosStrings">
                     {{ t('action:copy-host') }}
+                  </UiCheckbox>
+                </div>
+                <div v-else>
+                  <UiCheckbox v-model="vmState.create_vtpm" accent="brand">
+                    {{ t('vtpm') }}
                   </UiCheckbox>
                 </div>
               </div>
@@ -260,6 +261,7 @@ const vmState = reactive<VmState>({
   vdis: [],
   networkInterfaces: [],
   defaultNetwork: undefined,
+  create_vtpm: false,
 })
 
 // TODO remove when we can use new selector
@@ -511,6 +513,7 @@ const vmCreationParams = computed(() => ({
   autoPoweron: vmState.auto_power,
   bootAfterCreate: vmState.boot_vm,
   copyHostBiosStrings: vmState.boot_firmware !== 'uefi' && !templateHasBiosStrings.value && vmState.copyHostBiosStrings,
+  createVtpm: vmState.boot_firmware === 'uefi' && vmState.create_vtpm,
   hvmBootFirmware: vmState.boot_firmware ?? 'bios',
   coresPerSocket: vmState.topology ?? vmState.vCPU,
   tags: vmState.tags,
@@ -572,6 +575,12 @@ const _createVm = defer(async ($defer: Defer) => {
       xapi.vm.setHvmBootFirmware(vmRefs[0], vmCreationParams.value.hvmBootFirmware),
       xapi.vm.setVCPUsAtStartup(vmRefs, vmCreationParams.value.cpus),
     ])
+
+    // VTPM
+    if (vmState.boot_firmware === 'uefi' && vmState.create_vtpm) {
+      const vtpmRef = await xapi.vtpm.create(vmRefs[0])
+      $defer.onFailure(() => xapi.vtpm.delete(vtpmRef))
+    }
 
     // INSTALL SETTINGS
     const vm = await xapi.getField<XenApiVm>('VM', vmRefs[0], 'record')
@@ -877,6 +886,17 @@ const { id: affinityHostSelectId } = useFormSelect(hosts, {
     value: '$ref',
   },
 })
+
+watch(
+  () => vmState.boot_firmware,
+  (newValue, oldValue) => {
+    if (oldValue === undefined || newValue === oldValue) {
+      return
+    }
+    vmState.copyHostBiosStrings = false
+    vmState.create_vtpm = false
+  }
+)
 </script>
 
 <style lang="postcss" scoped>

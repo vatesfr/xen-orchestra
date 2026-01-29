@@ -157,7 +157,6 @@
   "bond-devices": "Dispositivos vinculados",
   "bond-status": "Estado del vínculo",
   "boot-firmware": "Firmware de arranque",
-  "boot-firmware-uefi": "El firmware de arranque es UEFI",
   "build-number": "Número de Build",
   "by": "Por",
   "bytes:gi": "GB",

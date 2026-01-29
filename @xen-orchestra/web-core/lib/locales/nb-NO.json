@@ -133,7 +133,6 @@
   "bond-devices": "Sammenknnytnings-enheter",
   "bond-status": "Bindings-status",
   "boot-firmware": "Oppstarts-fastvare",
-  "boot-firmware-uefi": "Oppstarts-fastvaren er UEFI",
   "build-number": "Byggnummer",
   "bytes:gi": "GiB",
   "bytes:ki": "KiB",

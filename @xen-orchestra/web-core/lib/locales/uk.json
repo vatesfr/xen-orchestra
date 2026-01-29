@@ -111,7 +111,6 @@
   "bond-devices": "Пристрої Bond",
   "bond-status": "Статус Bond",
   "boot-firmware": "Завантажувальна прошивка",
-  "boot-firmware-uefi": "Завантажувальна прошивка - UEFI",
   "build-number": "Номер збірки",
   "bytes:gi": "ГБ",
   "bytes:ki": "Кб",

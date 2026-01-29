@@ -157,7 +157,6 @@
   "bond-devices": "Bind apparaten",
   "bond-status": "Binding status",
   "boot-firmware": "Opstart firmware",
-  "boot-firmware-uefi": "De opstartfirmware is UEFI",
   "build-number": "Build versie",
   "by": "Door",
   "bytes:gi": "GiB",

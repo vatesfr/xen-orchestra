@@ -44,6 +44,7 @@ type TCreateVmPayload = {
   gpuGroup?: XoGpuGroup['id']
   copyHostBiosString?: boolean
   hvmBootFirmware?: 'uefi' | 'bios'
+  createVtpm?: boolean
 }
 const payloadsArg = defineJobArg<Ref<TCreateVmPayload>>({
   identify: payload => payload.value.poolId,
