@@ -1,4 +1,6 @@
+import os from 'node:os'
 import { createLogger } from '@xen-orchestra/log'
+import { PassThrough, pipeline } from 'node:stream'
 import type { EventEmitter } from 'node:events'
 import type { Response } from 'express'
 
@@ -56,7 +58,24 @@ export class EventService {
   }
 
   createSseSubscriber(res: Response): SubscriberId {
-    const subscriber = new Subscriber(res, this.#subscriberManager)
+    const headers = new Headers({
+      'Content-Type': 'text/event-stream',
+      Connection: 'keep-alive',
+      'Cache-Control': 'no-cache, no-transform',
+    })
+    res.setHeaders(headers)
+
+    const maxRam = this.#restApi.xoApp.config.get<number>('rest-api.percentOfRamAllocatedPerSseClient')
+    const connection = new PassThrough({
+      highWaterMark: Math.round(os.totalmem() * (maxRam / 100)),
+    })
+    pipeline(connection, res, error => {
+      if (error?.code !== 'ERR_STREAM_PREMATURE_CLOSE') {
+        log.error(error)
+      }
+    })
+
+    const subscriber = new Subscriber(connection, this.#subscriberManager)
     subscriber.broadcast('init', { id: subscriber.id })
 
     this.addListenerFor(subscriber.id, { type: 'ping' })
