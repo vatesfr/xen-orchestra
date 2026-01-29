@@ -80,6 +80,7 @@ type XapiRecordByXapiXoRecord = {
 }
 export type XoApp = {
   config: {
+    get<T = string>(path: string): T
     getOptional(path: string): Record<string, string> | undefined
     getOptionalDuration(path: string): number | undefined
     getGuiRoutes(): Promise<{

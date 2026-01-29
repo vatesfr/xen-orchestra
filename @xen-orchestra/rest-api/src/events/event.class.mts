@@ -1,9 +1,9 @@
 import pick from 'lodash/pick.js'
 import isEqual from 'lodash/isEqual.js'
 import { createLogger } from '@xen-orchestra/log'
-import type { Response } from 'express'
 import { EventEmitter } from 'node:events'
 import { noSuchObject } from 'xo-common/api-errors.js'
+import type { PassThrough } from 'node:stream'
 
 import { Listener } from '../abstract-classes/listener.mjs'
 import type { CollectionEventType, EventType, SubscriberId, XoListenerType } from './event.type.mjs'
@@ -15,7 +15,7 @@ const log = createLogger('xo:rest-api:event-service')
 export class Subscriber {
   #id: SubscriberId
   #manager: SubscriberManager
-  #connection: Response
+  #connection: PassThrough
   #isAlive: boolean
 
   get id() {
@@ -30,22 +30,27 @@ export class Subscriber {
     return this.#connection
   }
 
-  constructor(res: Response, manager: SubscriberManager) {
+  constructor(connection: PassThrough, manager: SubscriberManager) {
     this.#id = crypto.randomUUID() as SubscriberId
 
-    const headers = new Headers({
-      'Content-Type': 'text/event-stream',
-      Connection: 'keep-alive',
-      'Cache-Control': 'no-cache, no-transform',
-    })
-    res.setHeaders(headers)
-    res.on('close', () => this.clear())
+    connection.on('close', () => this.clear())
 
     manager.addSubscriber(this)
 
-    this.#connection = res
+    this.#connection = connection
     this.#manager = manager
     this.#isAlive = true
+  }
+
+  #safeWrite(payload: string) {
+    const ok = this.#connection.write(payload)
+
+    if (!ok) {
+      log.error(
+        `Too much data in queue for the client ${this.id} (${Math.round(this.#connection.writableLength / 1024 / 1024)} MB). The connection is going to be destroyed`
+      )
+      this.clear()
+    }
   }
 
   broadcast(event: EventType | 'init', data: object) {
@@ -54,12 +59,17 @@ export class Subscriber {
       this.clear()
       return
     }
-    this.#connection.write(`event:${event}\n`)
-    this.#connection.write(`data:${JSON.stringify(data)}\n\n`)
+
+    const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`
+
+    this.#safeWrite(payload)
   }
 
   clear() {
     this.#isAlive = false
+    if (!this.#connection.closed || !this.#connection.destroyed) {
+      this.#connection.destroy()
+    }
     this.#manager.removeSubscriber(this.id)
   }
 }
