@@ -19,6 +19,14 @@
 - [REST API] Add `secureBoot` parameter to VM creation endpoint (PR [#9417](https://github.com/vatesfr/xen-orchestra/pull/9417))
 - [Backup] show the backup archive that will be kept for Long Term Retention (PR [#9364](https://github.com/vatesfr/xen-orchestra/pull/9364))
 - [REST API] Add `DELETE /vbds/{id}` endpoint to remove a VBD (PR [#9394](https://github.com/vatesfr/xen-orchestra/pull/9394))
+- [REST API] Add `POST /vbds/:id/actions/connect` and `POST /vbds/:id/actions/disconnect` endpoints to hotplug/unplug VBDs from running VMs (PR [#9399](https://github.com/vatesfr/xen-orchestra/pull/9399))
+- [REST API] Add `POST /vdis/:id/actions/migrate` endpoint to migrate a VDI to another SR (PR [#9408](https://github.com/vatesfr/xen-orchestra/pull/9408))
+- [V2V] Add endpoint to export one disk from Vmware to VHD or QCOW2 `VDI_IO_ERROR` (PR [#9411](https://github.com/vatesfr/xen-orchestra/pull/9411))
+- [SIDEPANEL] Remove text ellipsis on sides panel (PR [#9328](https://github.com/vatesfr/xen-orchestra/pull/9238))
+- [i18n] Add Finnish, Polish and update Czech, Danish, German, Spanish, Persian, Italian, Japanese, Korean, Norwegian, Dutch, Portuguese (Brasil), Russian, Swedish and Ukrainian translations (PR [#9330](https://github.com/vatesfr/xen-orchestra/pull/9330))
+- [Icons] Update icons to use new styles (PR [#8989](https://github.com/vatesfr/xen-orchestra/pull/8989) and PR [#9424](https://github.com/vatesfr/xen-orchestra/pull/9424))
+- [VM] Add all actions to manage VM life cycle (PR [9403](https://github.com/vatesfr/xen-orchestra/pull/9403))
+- [VM/New] Added VTPM support (PR [#9389](https://github.com/vatesfr/xen-orchestra/pull/9389))
 
 ### Bug fixes
 
@@ -34,24 +42,27 @@
 - [REST API] Fix `/vms/:id/actions/start` ignored request body (to start a virtual machine on a specific host) (PR [#9416](https://github.com/vatesfr/xen-orchestra/pull/9416))
 - [Backup] Fix reverted VM making the next backup run fails with `VM must be a snapshot` error (PR [#9397](https://github.com/vatesfr/xen-orchestra/pull/9397))
 - [Sidebar] Removal borders top and right of sidebar in mobile (PR [#9366](https://github.com/vatesfr/xen-orchestra/pull/9366))
+- [V2V] Fix `VDI_IO_ERROR` when importing some unaligned disks into a qcow2 storage (PR [#9411](https://github.com/vatesfr/xen-orchestra/pull/9411))
+- [New/SR] Fix `Require "-o" along with xe-mount-iso-sr` error during NFS ISO SR creation (PR [#9425](https://github.com/vatesfr/xen-orchestra/pull/9425))
 
 ### Released packages
 
 - vhd-lib 4.14.7
-- @vates/types 1.17.0
 - @xen-orchestra/qcow2 1.1.2
-- @xen-orchestra/xapi 8.6.4
 - @xen-orchestra/backups 0.68.0
 - @xen-orchestra/backups-cli 1.1.7
 - @xen-orchestra/immutable-backups 1.0.28
-- @xen-orchestra/web-core 0.40.0
-- @xen-orchestra/proxy 0.29.42
-- @xen-orchestra/rest-api 0.23.0
-- @xen-orchestra/web 0.38.0
-- vhd-cli 1.1.0
-- xo-server 5.195.0
 - xo-server-openmetrics 1.1.0
 - xo-web 5.192.0
+- @vates/nbd-client 3.2.3
+- @vates/types 1.18.0
+- @xen-orchestra/xapi 8.6.5
+- @xen-orchestra/web-core 0.41.0
+- @xen-orchestra/proxy 0.29.43
+- @xen-orchestra/rest-api 0.24.0
+- @xen-orchestra/web 0.39.0
+- vhd-cli 1.1.1
+- xo-server 5.196.0
 
 ## **6.0.3** (2026-01-06)
 
