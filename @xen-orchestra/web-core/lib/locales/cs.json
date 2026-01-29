@@ -157,7 +157,6 @@
   "bond-devices": "Zařízení svazku",
   "bond-status": "Stav svazku",
   "boot-firmware": "Firmware zavádění",
-  "boot-firmware-uefi": "Firmware, kterým zaváděno, je UEFI",
   "build-number": "Číslo sestavení",
   "by": "Od",
   "bytes:gi": "GiB",

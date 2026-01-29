@@ -157,7 +157,6 @@
   "bond-devices": "Bond devices",
   "bond-status": "Bond status",
   "boot-firmware": "Boot firmware",
-  "boot-firmware-uefi": "The boot firmware is UEFI",
   "build-number": "Build number",
   "by": "By",
   "bytes:gi": "GiB",

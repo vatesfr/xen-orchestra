@@ -135,7 +135,6 @@
   "bond-devices": "Bindningsenheter",
   "bond-status": "Bindnings-status",
   "boot-firmware": "Boot-programvara",
-  "boot-firmware-uefi": "Boot-programvaran är UEFI",
   "build-number": "Versionsnummer",
   "bytes:gi": "GiB",
   "bytes:ki": "KiB",

@@ -157,7 +157,6 @@
   "bond-devices": "Devices du bond",
   "bond-status": "Statut du bond",
   "boot-firmware": "Firmware de démarrage",
-  "boot-firmware-uefi": "Le boot firmware est UEFI",
   "build-number": "Numéro de build",
   "by": "Par",
   "bytes:gi": "Gio",
