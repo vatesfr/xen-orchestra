@@ -1,6 +1,6 @@
 import { createTaskCollectionState, taskFields } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
+import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
-import { useWatchCollection } from '@core/composables/watch-collection.composable.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoTask } from '@vates/types'
 import { toValue } from 'vue'
