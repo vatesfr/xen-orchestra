@@ -9,7 +9,10 @@
         <VtsStatus :status="vm.platform.secureboot === 'true'" />
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('virtual-tpm')" :value="vm.VTPMs.length > 0 ? vtpm?.uuid : t('unknown')" />
+    <VtsQuickInfoRow
+      :label="t('virtual-tpm')"
+      :value="vm.VTPMs.length > 0 ? (vtpm?.uuid ?? t('unknown')) : t('none')"
+    />
     <VtsQuickInfoRow :label="t('viridian')">
       <template #value>
         <VtsStatus :status="vm.platform.viridian === 'true'" />

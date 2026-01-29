@@ -71,7 +71,7 @@
                   <UiCheckbox
                     v-model="vmState.copyHostBiosStrings"
                     accent="brand"
-                    :disabled="canCopyBiosStrings && selectedTemplateHasBiosStrings"
+                    :disabled="selectedTemplateHasBiosStrings"
                   >
                     {{ t('copy-host-bios-strings') }}
                   </UiCheckbox>

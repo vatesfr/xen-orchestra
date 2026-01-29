@@ -63,11 +63,10 @@
                 <div
                   v-if="vmState.boot_firmware !== 'uefi'"
                   v-tooltip="
-                    vmState.boot_firmware === 'uefi' || templateHasBiosStrings
+                    templateHasBiosStrings
                       ? {
                           placement: 'top-start',
-                          content:
-                            vmState.boot_firmware !== 'uefi' ? t('template-has-bios-strings') : t('boot-firmware-uefi'),
+                          content: t('template-has-bios-strings'),
                         }
                       : undefined
                   "
