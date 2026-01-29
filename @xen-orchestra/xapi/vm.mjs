@@ -390,6 +390,11 @@ class Vm {
       power_state: suspend_VDI !== undefined ? 'Suspended' : undefined,
       suspend_VDI,
     })
+
+    if (blocked_operations) {
+      const vm = await this.getRecord('VM', ref)
+      await vm.update_blocked_operations(blocked_operations)
+    }
     $defer.onFailure.call(this, 'call', 'VM.destroy', ref)
 
     bios_strings = cleanBiosStrings(bios_strings)
