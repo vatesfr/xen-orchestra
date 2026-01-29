@@ -7,8 +7,8 @@
 </template>
 
 <script lang="ts" setup>
-import { useTheme } from '@/composables/theme.composable.ts'
 import AppLayout from '@/layouts/AppLayout.vue'
+import { useTheme } from '@/shared/composables/theme.composable.ts'
 import VtsModalList from '@core/components/modal/VtsModalList.vue'
 import VtsTooltipList from '@core/components/tooltip-list/VtsTooltipList.vue'
 import { useChartTheme } from '@core/composables/chart-theme.composable.ts'
@@ -28,7 +28,7 @@ const { get } = useCookies()
 // Initialize theme on app load
 useTheme()
 
-// TODO: Remove when we considere XO6 in more advanced state
+// TODO: Remove when we consider XO6 in more advanced state
 const isFirstConnection = useLocalStorage('first-connection', true)
 const openModal = useModal({
   component: import('@/shared/components/modals/FirstConnection.vue'),
@@ -36,6 +36,7 @@ const openModal = useModal({
     isFirstConnection.value = false
   },
 })
+
 whenever(() => isFirstConnection.value, openModal, { immediate: true })
 
 const cookieLang = get('lang')

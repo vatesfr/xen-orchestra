@@ -5,35 +5,35 @@ export type ThemeId = 'default' | 'nord' | 'solarized' | 'dracula' | 'monokai'
 
 export interface ThemeDefinition {
   id: ThemeId
-  labelKey: string
-  descriptionKey: string
+  label: string
+  description: string
 }
 
 export const themes: ThemeDefinition[] = [
   {
     id: 'default',
-    labelKey: 'theme-default',
-    descriptionKey: 'theme-default-description',
+    label: 'theme-default',
+    description: 'theme-default-description',
   },
   {
     id: 'nord',
-    labelKey: 'theme-nord',
-    descriptionKey: 'theme-nord-description',
+    label: 'theme-nord',
+    description: 'theme-nord-description',
   },
   {
     id: 'solarized',
-    labelKey: 'theme-solarized',
-    descriptionKey: 'theme-solarized-description',
+    label: 'theme-solarized',
+    description: 'theme-solarized-description',
   },
   {
     id: 'dracula',
-    labelKey: 'theme-dracula',
-    descriptionKey: 'theme-dracula-description',
+    label: 'theme-dracula',
+    description: 'theme-dracula-description',
   },
   {
     id: 'monokai',
-    labelKey: 'theme-monokai',
-    descriptionKey: 'theme-monokai-description',
+    label: 'theme-monokai',
+    description: 'theme-monokai-description',
   },
 ]
 
@@ -46,20 +46,24 @@ export function useTheme() {
   const currentTheme = computed<ThemeId>({
     get: () => {
       const cookieValue = cookies.get(THEME_COOKIE_KEY) as ThemeId | undefined
-      return cookieValue && themes.some(t => t.id === cookieValue) ? cookieValue : DEFAULT_THEME
+      return themes.find(theme => theme.id === cookieValue)?.id ?? DEFAULT_THEME
     },
     set: (value: ThemeId) => {
       cookies.set(THEME_COOKIE_KEY, value)
     },
   })
 
-  const currentThemeDefinition = computed(() => themes.find(t => t.id === currentTheme.value) ?? themes[0])
+  const currentThemeDefinition = computed(() => themes.find(theme => theme.id === currentTheme.value)!)
 
   const applyTheme = () => {
     const root = document.documentElement
+
     themes.forEach(theme => {
-      root.classList.remove(`theme-${theme.id}`)
+      if (theme.id !== 'default') {
+        root.classList.remove(`theme-${theme.id}`)
+      }
     })
+
     if (currentTheme.value !== DEFAULT_THEME) {
       root.classList.add(`theme-${currentTheme.value}`)
     }

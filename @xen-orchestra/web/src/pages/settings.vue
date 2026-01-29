@@ -32,36 +32,34 @@
         </VtsQuickInfoColumn>
         <VtsQuickInfoColumn>
           <div class="typo-h6">{{ t('xcp-ng') }}</div>
-          <VtsQuickInfoColumn>
-            <VtsQuickInfoRow :label="t('news')">
-              <template #value>
-                <UiLink size="medium" :href="XCP_LINKS.BLOG">
-                  {{ t('news-name', { name: t('xcp-ng') }) }}
-                </UiLink>
-              </template>
-            </VtsQuickInfoRow>
-            <VtsQuickInfoRow :label="t('community')">
-              <template #value>
-                <UiLink size="medium" :href="XCP_LINKS.COMMUNITY">
-                  {{ t('community-name', { name: t('xcp-ng') }) }}
-                </UiLink>
-              </template>
-            </VtsQuickInfoRow>
-            <VtsQuickInfoRow :label="t('documentation')">
-              <template #value>
-                <UiLink size="medium" :href="XCP_LINKS.DOC">
-                  {{ t('documentation-name', { name: t('xcp-ng') }) }}
-                </UiLink>
-              </template>
-            </VtsQuickInfoRow>
-            <VtsQuickInfoRow :label="t('support')">
-              <template #value>
-                <UiLink size="medium" :href="XCP_LINKS.SUPPORT">
-                  {{ t('pro-support', { name: t('xcp-ng') }) }}
-                </UiLink>
-              </template>
-            </VtsQuickInfoRow>
-          </VtsQuickInfoColumn>
+          <VtsQuickInfoRow :label="t('news')">
+            <template #value>
+              <UiLink size="medium" :href="XCP_LINKS.BLOG">
+                {{ t('news-name', { name: t('xcp-ng') }) }}
+              </UiLink>
+            </template>
+          </VtsQuickInfoRow>
+          <VtsQuickInfoRow :label="t('community')">
+            <template #value>
+              <UiLink size="medium" :href="XCP_LINKS.COMMUNITY">
+                {{ t('community-name', { name: t('xcp-ng') }) }}
+              </UiLink>
+            </template>
+          </VtsQuickInfoRow>
+          <VtsQuickInfoRow :label="t('documentation')">
+            <template #value>
+              <UiLink size="medium" :href="XCP_LINKS.DOC">
+                {{ t('documentation-name', { name: t('xcp-ng') }) }}
+              </UiLink>
+            </template>
+          </VtsQuickInfoRow>
+          <VtsQuickInfoRow :label="t('support')">
+            <template #value>
+              <UiLink size="medium" :href="XCP_LINKS.SUPPORT">
+                {{ t('pro-support', { name: t('xcp-ng') }) }}
+              </UiLink>
+            </template>
+          </VtsQuickInfoRow>
         </VtsQuickInfoColumn>
       </VtsColumns>
     </div>
@@ -101,18 +99,18 @@
         <div class="typo-h6">{{ t('theme') }}</div>
         <div class="themes">
           <div
-            v-for="themeOption in themes"
-            :key="themeOption.id"
+            v-for="theme in themes"
+            :key="theme.id"
             class="theme-card"
-            :class="{ selected: currentTheme === themeOption.id }"
-            @click="currentTheme = themeOption.id"
+            :class="{ selected: currentTheme === theme.id }"
+            @click="currentTheme = theme.id"
           >
             <div class="theme-header">
-              <VtsIcon v-if="currentTheme === themeOption.id" name="fa:circle-check" size="medium" />
-              <VtsIcon v-else name="fa:circle" size="medium" />
-              <span class="theme-name">{{ t(themeOption.labelKey) }}</span>
+              <VtsIcon v-if="currentTheme === theme.id" name="fa:circle-check" size="medium" />
+              <div v-else class="circle" />
+              <span class="typo-h6">{{ t(theme.label) }}</span>
             </div>
-            <span class="theme-description">{{ t(themeOption.descriptionKey) }}</span>
+            <span class="theme-description">{{ t(theme.description) }}</span>
           </div>
         </div>
       </VtsColumns>
@@ -142,8 +140,8 @@
 </template>
 
 <script setup lang="ts">
+import { useTheme } from '@/shared/composables/theme.composable.ts'
 import { XCP_LINKS, XO_LINKS } from '@/shared/constants.ts'
-import { useTheme } from '@/composables/theme.composable.ts'
 import VtsColumns from '@core/components/column/VtsColumn.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
@@ -158,7 +156,7 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { locales } from '@core/i18n.ts'
 import { useFormSelect } from '@core/packages/form-select'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { type BasicColorSchema } from '@vueuse/core'
+import type { BasicColorSchema } from '@vueuse/core'
 import { useCookies } from '@vueuse/integrations/useCookies'
 import { watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -214,7 +212,7 @@ const { id: localeSelectId } = useFormSelect(availableLocales, {
     .color-mode {
       display: flex;
       flex-direction: column;
-      gap: 1.6em;
+      gap: 1.6rem;
 
       &.selected {
         color: var(--color-brand-txt-base);
@@ -236,8 +234,8 @@ const { id: localeSelectId } = useFormSelect(availableLocales, {
   }
 
   .themes {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
     gap: 1.6rem;
 
     .theme-card {
@@ -247,7 +245,6 @@ const { id: localeSelectId } = useFormSelect(availableLocales, {
       padding: 1.6rem;
       border: 1px solid var(--color-neutral-border);
       border-radius: 8px;
-      min-width: 20rem;
       background: var(--color-neutral-background-secondary);
 
       &.selected {
@@ -272,8 +269,13 @@ const { id: localeSelectId } = useFormSelect(availableLocales, {
         align-items: center;
         gap: 0.8rem;
 
-        .theme-name {
-          font-weight: 600;
+        .circle {
+          width: 1.6rem;
+          height: 1.6rem;
+          border-radius: 50%;
+          background-color: var(--color-neutral-background-primary);
+          border: 1px solid var(--color-neutral-txt-secondary);
+          flex-shrink: 0;
         }
       }
 
