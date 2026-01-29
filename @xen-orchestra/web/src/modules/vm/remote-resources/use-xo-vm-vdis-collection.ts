@@ -1,8 +1,8 @@
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { vdiFields, type FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
-import { useWatchCollection } from '@core/composables/watch-collection.composable.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { toValue } from 'vue'
 

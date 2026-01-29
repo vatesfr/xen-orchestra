@@ -16,14 +16,16 @@
       />
       <slot name="app-header" />
     </header>
-    <div v-if="isError" class="danger-banner">
+    <VtsBanner v-if="isError" accent="danger">
       <UiInfo accent="danger">
-        <div class="typo-body-regular-small">{{ t('unable-to-connect-to-xo-server') }}</div>
+        {{ t('unable-to-connect-to-xo-server') }}
       </UiInfo>
-      <UiButton variant="primary" accent="brand" size="small" @click="handleRetry">
-        {{ t('retry') }}
-      </UiButton>
-    </div>
+      <template #addons>
+        <UiButton variant="primary" accent="brand" size="small" @click="handleRetry()">
+          {{ t('retry') }}
+        </UiButton>
+      </template>
+    </VtsBanner>
     <div class="container">
       <template v-if="uiStore.hasUi">
         <VtsBackdrop
@@ -51,6 +53,7 @@
 
 <script lang="ts" setup>
 import VtsBackdrop from '@core/components/backdrop/VtsBackdrop.vue'
+import VtsBanner from '@core/components/banner/VtsBanner.vue'
 import VtsLayoutSidebar from '@core/components/layout/VtsLayoutSidebar.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
@@ -80,15 +83,6 @@ function handleRetry() {
   display: flex;
   height: 100dvh;
   flex-direction: column;
-}
-
-.danger-banner {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1.6rem;
-  background-color: var(--color-danger-background-selected);
-  padding: 0.8rem 1.6rem;
 }
 
 .container {

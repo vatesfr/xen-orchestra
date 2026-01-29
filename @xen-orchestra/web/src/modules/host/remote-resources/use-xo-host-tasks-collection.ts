@@ -3,8 +3,8 @@ import {
   taskFields,
   type FrontXoTask,
 } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
+import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
-import { useWatchCollection } from '@core/composables/watch-collection.composable.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { toValue } from 'vue'
 

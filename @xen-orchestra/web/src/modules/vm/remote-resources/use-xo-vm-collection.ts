@@ -1,7 +1,7 @@
 import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
-import { useWatchCollection } from '@core/composables/watch-collection.composable.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { VM_POWER_STATE, type XoHost, type XoPool, type XoVm } from '@vates/types'

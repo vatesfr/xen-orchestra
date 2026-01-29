@@ -1,14 +1,15 @@
+import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import type { THandleDelete, THandlePost, THandleWatching } from '@core/packages/remote-resource/sse.store.ts'
 import type { ResourceContext } from '@core/packages/remote-resource/types.ts'
 import type { XoRecord } from '@vates/types'
 import { useEventSource } from '@vueuse/core'
 import { watch, watchEffect } from 'vue'
 
-const EVENT_ENDPOINTS = '/rest/v0/events'
+const EVENTS_ENDPOINT = `${BASE_URL}/events`
 
 // TODO: move into a composable
 // https://github.com/vatesfr/xen-orchestra/pull/9183#discussion_r2561650429
-export function watchCollectionWrapper<T extends Partial<XoRecord>>({
+export function useWatchCollection<T extends Partial<XoRecord>>({
   resource,
   fields,
   collectionId = resource,
@@ -32,9 +33,16 @@ export function watchCollectionWrapper<T extends Partial<XoRecord>>({
   const _getType: (obj: unknown) => string | undefined = getType ?? ((obj: any) => obj.$subscription)
   const _getIdentifier: (obj: unknown) => string | undefined = getIdentifier ?? ((obj: any) => obj.id)
 
+  const { data, event, open, close } = useEventSource(EVENTS_ENDPOINT, ['init', 'add', 'update', 'remove', 'ping'], {
+    immediate: false,
+    serializer: {
+      read: raw => (raw === undefined ? undefined : JSON.parse(raw)),
+    },
+  })
+
   if (handleDelete === undefined) {
     handleDelete = async (sseId, subscriptionId) => {
-      const resp = await fetch(`${EVENT_ENDPOINTS}/${sseId}/subscriptions/${subscriptionId}`, { method: 'DELETE' })
+      const resp = await fetch(`${EVENTS_ENDPOINT}/${sseId}/subscriptions/${subscriptionId}`, { method: 'DELETE' })
       if (!resp.ok) {
         throw new Error(
           `cannot remove subscription: ${subscriptionId} status: ${resp.status}, text: ${resp.statusText}`
@@ -45,7 +53,7 @@ export function watchCollectionWrapper<T extends Partial<XoRecord>>({
 
   if (handlePost === undefined) {
     handlePost = async sseId => {
-      const resp = await fetch(`${EVENT_ENDPOINTS}/${sseId}/subscriptions`, {
+      const resp = await fetch(`${EVENTS_ENDPOINT}/${sseId}/subscriptions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -65,7 +73,7 @@ export function watchCollectionWrapper<T extends Partial<XoRecord>>({
 
   if (handleWatching === undefined) {
     handleWatching = (updateSseId, getConfigByResource) => {
-      const { data, event, close, error } = useEventSource(EVENT_ENDPOINTS, ['init', 'add', 'update', 'remove'], {
+      const { data, event, close, error } = useEventSource(EVENTS_ENDPOINT, ['init', 'add', 'update', 'remove'], {
         serializer: {
           read: raw => (raw === undefined ? undefined : JSON.parse(raw)),
         },
@@ -86,9 +94,12 @@ export function watchCollectionWrapper<T extends Partial<XoRecord>>({
           throw new Error(`Cannot found the type of the object: ${JSON.stringify(data.value)}`)
         }
 
-        return type
-      }
+    return type
+  }
 
+  if (handleWatching === undefined) {
+    handleWatching = (updateSseId, getConfigByResource, onPing) => {
+      open()
       watchEffect(() => {
         switch (event.value) {
           case 'init':
@@ -108,6 +119,10 @@ export function watchCollectionWrapper<T extends Partial<XoRecord>>({
             Object.values(getConfigByResource(getObjectType(data.value))?.configs ?? {}).forEach(config =>
               config.remove(data.value)
             )
+            break
+
+          case 'ping':
+            onPing(data.value.ping)
             break
         }
       })
@@ -129,5 +144,6 @@ export function watchCollectionWrapper<T extends Partial<XoRecord>>({
     handlePost,
     handleWatching,
     predicate,
+    close,
   }
 }

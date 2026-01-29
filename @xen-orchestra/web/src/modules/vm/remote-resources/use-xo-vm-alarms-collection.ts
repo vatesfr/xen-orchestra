@@ -1,7 +1,7 @@
 import { alarmFields, type FrontXoAlarm } from '@/modules/alarm/remote-resources/use-xo-alarm-collection.ts'
+import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
-import { useWatchCollection } from '@core/composables/watch-collection.composable.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { createDateSorter } from '@core/utils/date-sorter.utils.ts'
 import { useSorted } from '@vueuse/core'
