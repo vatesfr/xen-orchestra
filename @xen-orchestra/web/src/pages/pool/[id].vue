@@ -10,8 +10,8 @@
 </template>
 
 <script lang="ts" setup>
-import PoolHeader from '@/components/pool/PoolHeader.vue'
-import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
+import PoolHeader from '@/modules/pool/components/PoolHeader.vue'
+import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
 import type { XoPool } from '@vates/types'

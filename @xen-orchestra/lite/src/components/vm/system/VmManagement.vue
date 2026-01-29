@@ -10,7 +10,7 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="t('affinity-host')">
       <template v-if="affinityHost?.uuid" #value>
-        <UiLink icon="fa:server" :to="`/host/${affinityHost.uuid}`" size="medium">
+        <UiLink icon="object:host" :to="`/host/${affinityHost.uuid}`" size="medium">
           {{ affinityHost.name_label }}
         </UiLink>
       </template>

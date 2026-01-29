@@ -1,0 +1,142 @@
+<template>
+  <UiCard class="backed-up-vms-table">
+    <UiTitle>{{ t('backed-up-vms') }}</UiTitle>
+    <div class="container">
+      <div class="table-actions">
+        <UiQuerySearchBar @search="value => (searchQuery = value)" />
+      </div>
+
+      <VtsTable :state :pagination-bindings>
+        <thead>
+          <tr>
+            <HeadCells />
+          </tr>
+        </thead>
+        <tbody>
+          <VtsRow v-for="vm of paginatedBackedUpVms" :key="vm.id">
+            <BodyCells :item="vm" />
+          </VtsRow>
+        </tbody>
+      </VtsTable>
+    </div>
+  </UiCard>
+</template>
+
+<script setup lang="ts">
+import { useXoBackedUpVmsUtils } from '@/modules/backup/composables/xo-backed-up-vms-utils.composable.ts'
+import { useXoVmBackupArchiveCollection } from '@/modules/vm/remote-resources/use-xo-vm-backup-archive-collection.ts'
+import { extractIdsFromSimplePattern } from '@/shared/utils/pattern.util.ts'
+import VtsRow from '@core/components/table/VtsRow.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
+import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { usePagination } from '@core/composables/pagination.composable'
+import { useTableState } from '@core/composables/table-state.composable'
+import { objectIcon } from '@core/icons'
+import { defineColumns } from '@core/packages/table/define-columns'
+import { useLinkColumn } from '@core/tables/column-definitions/link-column'
+import { useNumberColumn } from '@core/tables/column-definitions/number-column'
+import { renderLoadingCell } from '@core/tables/helpers/render-loading-cell'
+import { formatSizeRaw } from '@core/utils/size.util'
+import { type XoVm, type XoVmBackupJob, type XoBackupRepository } from '@vates/types'
+import { toLower } from 'lodash-es'
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { backupJob, busy, error } = defineProps<{
+  backupJob: XoVmBackupJob
+  busy?: boolean
+  error?: boolean
+}>()
+
+const { t } = useI18n()
+
+const { backedUpVms } = useXoBackedUpVmsUtils(() => backupJob.vms)
+
+const backupRepositoriesIds = computed(() => extractIdsFromSimplePattern(backupJob.remotes))
+
+const { backupArchives, areBackupArchivesReady } = useXoVmBackupArchiveCollection(
+  {},
+  () => backupRepositoriesIds.value as XoBackupRepository['id'][]
+)
+
+const searchQuery = ref('')
+
+const filteredBackedUpVms = computed(() => {
+  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
+
+  if (!searchTerm) {
+    return backedUpVms.value
+  }
+
+  return backedUpVms.value.filter(backedUpVm =>
+    Object.values(backedUpVm).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
+  )
+})
+
+const state = useTableState({
+  busy: () => busy,
+  error: () => error,
+  empty: () =>
+    backedUpVms.value.length === 0
+      ? t('no-backed-up-vm-detected')
+      : filteredBackedUpVms.value.length === 0
+        ? { type: 'no-result' }
+        : false,
+})
+
+const getDiskSize = (vm: XoVm) =>
+  formatSizeRaw(
+    backupArchives.value
+      .filter(archive => archive.vm.uuid === vm.id)
+      .reduce((total, archive) => total + archive.size, 0),
+    0
+  )
+
+const { pageRecords: paginatedBackedUpVms, paginationBindings } = usePagination('backed-up-vms', filteredBackedUpVms)
+
+const useBackedUpVmColumns = defineColumns(() => {
+  const { t } = useI18n()
+
+  return {
+    vm: useLinkColumn({ headerLabel: () => t('vm') }),
+    diskSize: useNumberColumn({ headerLabel: () => t('disk-size') }),
+  }
+})
+
+const { HeadCells, BodyCells } = useBackedUpVmColumns({
+  body: (vm: XoVm) => {
+    const diskSize = computed(() => getDiskSize(vm))
+
+    return {
+      vm: r =>
+        r({
+          label: vm.name_label,
+          icon: objectIcon('vm', toLower(vm.power_state)),
+          to: `/vm/${vm.id}/dashboard`,
+        }),
+      diskSize: r =>
+        areBackupArchivesReady.value ? r(diskSize.value.value, diskSize.value.prefix) : renderLoadingCell(),
+    }
+  },
+})
+</script>
+
+<style lang="postcss" scoped>
+.backed-up-vms-table,
+.table-actions,
+.container {
+  display: flex;
+  flex-direction: column;
+}
+
+.backed-up-vms-table {
+  gap: 2.4rem;
+
+  .container,
+  .table-actions {
+    gap: 0.8rem;
+  }
+}
+</style>

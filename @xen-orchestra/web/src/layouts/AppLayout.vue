@@ -16,7 +16,7 @@
     </template>
     <template #sidebar-content>
       <VtsTreeList v-if="!isReady">
-        <VtsTreeLoadingItem v-for="i in 5" :key="i" icon="fa:city" />
+        <VtsTreeLoadingItem v-for="i in 5" :key="i" icon="object:pool" />
       </VtsTreeList>
       <VtsStateHero v-else-if="isSearching" format="card" type="busy" size="medium" class="loader" />
       <VtsStateHero v-else-if="sites.length === 0" format="card" size="medium" type="no-result">
@@ -31,13 +31,13 @@
 </template>
 
 <script lang="ts" setup>
-import AccountMenu from '@/components/account-menu/AccountMenu.vue'
-import SidebarSearch from '@/components/SidebarSearch.vue'
-import QuickTaskButton from '@/components/task/QuickTaskButton.vue'
-import ThirdParties from '@/components/third-parties/ThirdParties.vue'
-import SiteTreeList from '@/components/tree/SiteTreeList.vue'
-import { useSiteTree } from '@/composables/site-tree.composable'
-import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
+import AccountMenu from '@/modules/account/components/menu/AccountMenu.vue'
+import { useXoSiteTree } from '@/modules/site/composables/xo-site-tree.composable.ts'
+import QuickTaskButton from '@/modules/task/components/QuickTaskButton.vue'
+import ThirdParties from '@/modules/third-parties/components/ThirdParties.vue'
+import SidebarSearch from '@/modules/treeview/components/SidebarSearch.vue'
+import SiteTreeList from '@/modules/treeview/components/SiteTreeList.vue'
+import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import VtsTreeLoadingItem from '@core/components/tree/VtsTreeLoadingItem.vue'
@@ -56,7 +56,7 @@ const { t } = useI18n()
 
 const uiStore = useUiStore()
 
-const { sites, isReady, filter, isSearching, scrollToNodeElement } = useSiteTree()
+const { sites, isReady, filter, isSearching, scrollToNodeElement } = useXoSiteTree()
 const route = useRoute<'/pool/[id]' | '/host/[id]' | '/vm/[id]'>()
 
 const { buildXo5Route } = useXoRoutes()

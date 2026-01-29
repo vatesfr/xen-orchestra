@@ -25,7 +25,7 @@ const modalStore = useModalStore()
   position: fixed;
   inset: 0;
   background-color: var(--color-opacity-primary);
-  z-index: 1010;
+  z-index: 1011;
 
   .modal-component:not(:last-child) {
     filter: brightness(0.8);

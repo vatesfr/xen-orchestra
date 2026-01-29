@@ -2,7 +2,7 @@
 
 ```vue-template
 <VtsTreeItem>
-  <UiTreeItemLabel icon="fa:server" route="dashboard">Host</UiTreeItemLabel>
+  <UiTreeItemLabel icon="object:host" route="dashboard">Host</UiTreeItemLabel>
   <template #sublist>
     <VtsTreeList>
       <VtsTreeItem>

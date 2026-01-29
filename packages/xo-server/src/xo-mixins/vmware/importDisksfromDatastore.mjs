@@ -8,6 +8,36 @@ import { toQcow2Stream } from '@xen-orchestra/qcow2'
 
 const { warn } = createLogger('xo:importdiskfromdatastore')
 
+export async function importStream({ esxi, dataMap, disk, vmId, format }, consumerCallback) {
+  const { datastore: datastoreName, diskPath } = disk
+
+  let vmdk
+  try {
+    // we read the data from the full chain to ensure we don't have partial blocks ( blocks with 0 when clusters are in parent only)
+    const { nbdInfos } = await esxi.spanwNbdKitProcess(vmId, `[${datastoreName}] ${diskPath}`)
+    vmdk = new NbdDisk(nbdInfos, READ_BLOCK_SIZE, { dataMap })
+
+    await vmdk.init()
+    vmdk = new ReadAhead(vmdk)
+    let stream
+    if (format === VDI_FORMAT_QCOW2) {
+      stream = await toQcow2Stream(vmdk)
+    } else {
+      stream = await toVhdStream(vmdk)
+    }
+    await consumerCallback(stream)
+    return Math.round((vmdk.getNbGeneratedBlock() * vmdk.getBlockSize()) / 1024 / 1024)
+  } catch (err) {
+    Task.warning(err)
+    throw err
+  } finally {
+    await vmdk?.close().catch(err => warn('error while closing source vmdk', err))
+    await esxi
+      .killNbdServer(vmId, `[${datastoreName}] ${diskPath}`)
+      .catch(err => warn('error while stopping nbdkit server', err))
+  }
+}
+
 // default size that give a correct compromise between read speed
 // and reading empty bits
 // as a bonus this is aligned with VHD block size, thus removing
@@ -60,14 +90,7 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
   } else {
     Task.info(`no reference disk found, fall back a full import`)
   }
-  let vmdk
   try {
-    // we read the data from the full chain to ensure we don't have partial blocks ( blocks with 0 when clusters are in parent only)
-    const { nbdInfos } = await esxi.spanwNbdKitProcess(vmId, `[${datastoreName}] ${diskPath}`)
-    vmdk = new NbdDisk(nbdInfos, READ_BLOCK_SIZE, { dataMap })
-
-    await vmdk.init()
-    vmdk = new ReadAhead(vmdk)
     if (!existingVdi) {
       Task.info(`create a new VDI for ${diskPath}`)
       const alignedSize = Math.ceil(capacity / blockSize) * blockSize
@@ -100,15 +123,12 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
       })
       Task.info(`vbd created `, diskPath)
     }
-    let stream
-    if (format === VDI_FORMAT_QCOW2) {
-      stream = await toQcow2Stream(vmdk)
-    } else {
-      stream = await toVhdStream(vmdk)
-    }
-    await existingVdi.$importContent(stream, { format })
+
+    const transfered = await importStream({ esxi, dataMap, disk: activeDisk, vmId, format }, async stream => {
+      await existingVdi.$importContent(stream, { format })
+    })
+
     Task.info(`import of ${diskPath} content done`, { datastoreName, diskPath, sourceVmId: vmId })
-    const transfered = Math.round((vmdk.getNbGeneratedBlock() * vmdk.getBlockSize()) / 1024 / 1024)
     const duration = Math.round((Date.now() - start) / 1000)
     const speed = Math.round(transfered / duration)
     await sr.$xapi.setField(
@@ -122,11 +142,6 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
   } catch (err) {
     Task.warning(err)
     throw err
-  } finally {
-    await vmdk?.close().catch(err => warn('error while closing source vmdk', err))
-    await esxi
-      .killNbdServer(vmId, `[${datastoreName}] ${diskPath}`)
-      .catch(err => warn('error while stopping nbdkit server', err))
   }
 }
 

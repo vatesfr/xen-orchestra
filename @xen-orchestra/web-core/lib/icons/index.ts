@@ -1,13 +1,16 @@
-import { faIcons } from '@core/icons/fa-icons.ts'
-import { legacyIcons } from '@core/icons/legacy-icons.ts'
-import { objectIcons } from '@core/icons/object-icons.ts'
-import { defineIconPack } from '@core/packages/icon/define-icon-pack.ts'
-import type { ICON_SYMBOL } from '@core/packages/icon/types.ts'
+import { defineIconPack, ICON_SYMBOL } from '@core/packages/icon'
+import { actionIcons } from './action-icons.ts'
+import { faIcons } from './fa-icons'
+import { objectIcons } from './object-icons.ts'
+import { statusIcons } from './status-icons.ts'
+import { tableIcons } from './table-icons.ts'
 
 export const icons = defineIconPack({
   fa: faIcons,
-  legacy: legacyIcons,
   object: objectIcons,
+  status: statusIcons,
+  action: actionIcons,
+  table: tableIcons,
 })
 
 export type IconName = Exclude<keyof typeof icons, typeof ICON_SYMBOL>

@@ -1,4 +1,4 @@
-import { DiskLargerBlock, DiskSmallerBlock, Disk, RandomAccessDisk } from '@xen-orchestra/disk-transform'
+import { DiskLargerBlock, DiskSmallerBlock, Disk, RandomAccessDisk, DiskBlock } from '@xen-orchestra/disk-transform'
 import assert from 'node:assert'
 import { Readable } from 'node:stream'
 
@@ -283,12 +283,22 @@ export class QcowStreamGenerator {
       // Yield data clusters
       let nbGeneratedBlock = 0
       let previous = -1
+
+      let truncatedBlock: DiskBlock | null = null
       for await (const { index, data } of disk.diskBlocks()) {
         if (index < previous) {
           throw new Error('Qcow can only be generated from sorted disk')
         }
         previous = index
-        yield* self.#trackAndYield(data)
+        if (truncatedBlock !== null) {
+          throw new Error(
+            `Expecting a ${disk.getBlockSize()} bytes block, got a ${truncatedBlock.data.length}, for index ${truncatedBlock.index}`
+          )
+        }
+        if (data.length < disk.getBlockSize()) {
+          truncatedBlock = { data, index }
+        }
+        yield* self.#trackAndYield(Buffer.concat([data], disk.getBlockSize()))
         nbGeneratedBlock++
       }
 

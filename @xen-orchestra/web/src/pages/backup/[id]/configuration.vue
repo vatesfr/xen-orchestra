@@ -7,10 +7,10 @@
 </template>
 
 <script setup lang="ts">
-import BackupJobGeneralInformation from '@/components/backups/configuration/BackupJobGeneralInformation.vue'
-import BackupJobSchedulesTable from '@/components/backups/configuration/BackupJobSchedulesTable.vue'
-import BackupJobSettings from '@/components/backups/configuration/BackupJobSettings.vue'
-import { useXoScheduleCollection } from '@/remote-resources/use-xo-schedule-collection'
+import BackupJobGeneralInformation from '@/modules/backup/components/configuration/BackupJobGeneralInformation.vue'
+import BackupJobSchedulesTable from '@/modules/backup/components/configuration/BackupJobSchedulesTable.vue'
+import BackupJobSettings from '@/modules/backup/components/configuration/BackupJobSettings.vue'
+import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import type { XoVmBackupJob } from '@vates/types'
 import { computed } from 'vue'
 

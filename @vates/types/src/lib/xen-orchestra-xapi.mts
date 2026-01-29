@@ -9,22 +9,22 @@ import {
   XenApiVdi,
   XenApiVm,
   XenApiVmWrapped,
+  XenApiVtpm,
 } from '../xen-api.mjs'
-import type { OPAQUE_REF_NULL, VBD_MODE, VBD_TYPE } from '../common.mjs'
+import type { OPAQUE_REF_NULL, SUPPORTED_VDI_FORMAT, VBD_MODE, VBD_TYPE } from '../common.mjs'
 import type { PassThrough, Readable } from 'node:stream'
 import type {
   XoGpuGroup,
-  XoVgpuType,
   XoHost,
   XoNetwork,
   XoPif,
   XoSr,
   XoUser,
   XoVdi,
+  XoVgpuType,
   XoVm,
   XoVmTemplate,
 } from '../xo.mjs'
-import type { SUPPORTED_VDI_FORMAT } from '../common.mjs'
 
 export type XcpPatches = {
   changelog?: {
@@ -174,11 +174,17 @@ export interface Xapi {
       gpuGroup?: XoGpuGroup['id']
       copyHostBiosStrings?: boolean
       hvmBootFirmware?: 'uefi' | 'bios'
+      secureBoot?: boolean
     },
     checkLimits?: boolean,
     creatorId?: XoUser['id'],
     opts?: { destroyAllVifs: boolean }
   ): Promise<XenApiVmWrapped>
+  moveVdi(
+    vdiId: XenApiVdi['$ref'] | XoVdi['id'],
+    srId: XenApiSr['$ref'] | XoSr['id'],
+    opts?: { _failOnCbtError?: boolean }
+  ): Promise<XenApiVdi>
   VBD_create(params: {
     bootable?: boolean
     empty?: boolean
@@ -192,6 +198,8 @@ export interface Xapi {
     VDI: XenApiVdi['$ref'] | OPAQUE_REF_NULL
     VM: XenApiVm['$ref']
   }): Promise<XenApiVbd['$ref']>
+  VBD_destroy(vbdRef: XenApiVbd['$ref']): Promise<void>
+  VBD_unplug(vbdRef: XenApiVbd['$ref']): Promise<void>
   VDI_destroy(vdiRef: XenApiVdi['$ref']): Promise<void>
   VDI_destroyCloudInitConfig(vdiRef: XenApiVdi['$ref'], opts?: { timeLimit?: number }): Promise<void>
   VDI_exportContent(
@@ -222,4 +230,5 @@ export interface Xapi {
     params?: { host?: XenApiHost; query?: Record<string, unknown>; task?: boolean | XenApiTask['$ref'] }
   ): Promise<{ body: Readable }>
   isHyperThreadingEnabled(hostId: XoHost['id']): Promise<boolean | null>
+  VTPM_create(params: { VM: XenApiVm['$ref']; is_unique?: boolean; contents?: string }): Promise<XenApiVtpm['$ref']>
 }

@@ -1,5 +1,5 @@
 <template>
-  <ComponentStory v-slot="{ properties }" :params="[iconProp().preset('fa:server').required()]">
+  <ComponentStory v-slot="{ properties }" :params="[iconProp().preset('object:host').required()]">
     <VtsTreeList>
       <VtsTreeLoadingItem v-bind="properties" />
     </VtsTreeList>
