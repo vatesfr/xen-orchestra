@@ -2,7 +2,9 @@
   <div class="ui-accordion-item" :class="classNames">
     <div class="header">
       <span class="header-title" :class="font">
-        {{ title }}
+        <slot name="title">
+          {{ title }}
+        </slot>
       </span>
       <span class="header-icon">
         <UiButtonIcon
@@ -13,7 +15,7 @@
           size="small"
           :disabled
           :target-scale="{ x: 1.5, y: 2 }"
-          @click="emit('toggle')"
+          @click="toggle"
         />
       </span>
     </div>
@@ -28,27 +30,48 @@
 
 <script setup lang="ts">
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { useMapper } from '@core/packages/mapper'
 import { toVariants } from '@core/utils/to-variants.util'
-import { computed } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import UiButtonIcon from '../button-icon/UiButtonIcon.vue'
 
-const { size, disabled } = defineProps<{
-  title: string
+const { size, title, disabled } = defineProps<{
   content: string
   size: 'small' | 'large'
+  title: string
   disabled?: boolean
-  isExpanded?: boolean
-}>()
-
-const emit = defineEmits<{
-  toggle: []
+  value?: string | number
 }>()
 
 defineSlots<{
+  title?(): any
   content?(): any
 }>()
+
+const accordion = inject(
+  'accordion',
+  null as null | {
+    expandedKey: { value: string }
+    toggle: (key: string) => void
+  }
+)
+
+const localExpanded = ref(false)
+
+const isExpanded = computed(() => {
+  if (accordion) {
+    return accordion.expandedKey.value === title
+  }
+  return localExpanded.value
+})
+
+const toggle = () => {
+  if (accordion) {
+    accordion.toggle(title ?? null)
+  }
+}
 
 const font = useMapper(
   () => size,
