@@ -309,7 +309,6 @@
   "host:status:inactive": "Neaktivní",
   "host:status:running": "Spuštěné",
   "host:status:unknown": "@:status:unknown",
-  "host:status:unknown:tooltip": "Metriky hostitele nejsou k dispozici",
   "hosts": "Hostitelé",
   "hosts-status": "Stav hostitele",
   "hyper-threading": "Zpracovávání dvou vláken naráz (SMT)",

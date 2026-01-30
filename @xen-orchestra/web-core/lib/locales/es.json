@@ -309,7 +309,6 @@
   "host:status:inactive": "Inactivo | Inactivos",
   "host:status:running": "@:status:running",
   "host:status:unknown": "@:status:desconocido",
-  "host:status:unknown:tooltip": "Las métricas de los servidores no están disponibles",
   "hosts": "Servidores",
   "hosts-status": "Estado servidores",
   "hyper-threading": "Hyperprocesamiento (SMT)",

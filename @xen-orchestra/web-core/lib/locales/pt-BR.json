@@ -211,7 +211,6 @@
   "other-settings": "Outras configurações",
   "page-not-found": "Esta página não foi encontrada…",
   "pending": "Pendente",
-  "pool:status:unknown:tooltip": "Servidores atualmente em conexão ou em estado desconhecido",
   "pool:status:unreachable:tooltip": "Servidores configurados que não podem ser alcançados",
   "progress": "Progresso",
   "properties": "Propriedades",
