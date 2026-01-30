@@ -274,7 +274,7 @@ const { id: localeSelectId } = useFormSelect(availableLocales, {
           height: 1.6rem;
           border-radius: 50%;
           background-color: var(--color-neutral-background-primary);
-          border: 1px solid var(--color-neutral-txt-secondary);
+          border: 0.1rem solid var(--color-neutral-txt-secondary);
           flex-shrink: 0;
         }
       }
