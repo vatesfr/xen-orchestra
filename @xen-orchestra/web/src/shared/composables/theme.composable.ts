@@ -53,7 +53,7 @@ export function useTheme() {
     },
   })
 
-  const currentThemeDefinition = computed(() => themes.find(theme => theme.id === currentTheme.value)!)
+  const currentThemeDefinition = computed(() => themes.find(theme => theme.id === currentTheme.value) ?? themes[0])
 
   const applyTheme = () => {
     const root = document.documentElement
