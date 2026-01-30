@@ -39,7 +39,7 @@ export class EventService {
     if (type === 'ping') {
       listener = new PingListener()
     } else {
-      const isAlarm = type === 'alarm'
+      const isMessage = type === 'alarm' || type === 'message'
 
       let eventEmitter: EventEmitter
       if (type === 'task') {
@@ -47,10 +47,10 @@ export class EventService {
       } else {
         // alarm is purely XO-related; it doesn't exist at the XAPI level.
         // alarm is a message with parsed values. So, in the case of an alarm listener, it listens for message collection.
-        eventEmitter = this.#restApi.xoApp.objects.allIndexes.type.getEventEmitterByType(isAlarm ? 'message' : type)
+        eventEmitter = this.#restApi.xoApp.objects.allIndexes.type.getEventEmitterByType(isMessage ? 'message' : type)
       }
 
-      listener = new XoListener(type, eventEmitter, isAlarm ? this.#alarmService : undefined)
+      listener = new XoListener(type, eventEmitter, isMessage ? this.#alarmService : undefined)
     }
 
     this.#listeners.set(type, listener)
