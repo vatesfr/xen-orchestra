@@ -491,7 +491,10 @@ class SDNController extends EventEmitter {
       }
 
       this._cleaners.push(await this._manageXapi(xapi))
-      const hosts = filter(xapi.objects.all, { $type: 'host' })
+      const hosts = filter(xapi.objects.all, {
+        $type: 'host',
+        enabled: true,
+      })
       for (const host of hosts) {
         this._getOrCreateOvsdbClient(host)
         await this._getOrCreateOfChannel(host)
@@ -605,13 +608,15 @@ class SDNController extends EventEmitter {
   async _addRule({ allow, direction, ipRange = '', port, protocol, vifId }) {
     const vif = this._xo.getXapiObject(this._xo.getObject(vifId, 'VIF'))
     try {
-      assert(vif.currently_attached, 'VIF needs to be plugged to add rule')
       await this._setPoolControllerIfNeeded(vif.$pool)
 
-      const client = this._getOrCreateOvsdbClient(vif.$VM.$resident_on)
-      const channel = await this._getOrCreateOfChannel(vif.$VM.$resident_on)
-      const ofport = await client.getOfPortForVif(vif)
-      await channel.addRule({ vif, allow, protocol, port, ipRange, direction, ofport })
+      if (vif.$VM.$resident_on !== undefined && vif.$VM.$resident_on.enabled) {
+        const client = this._getOrCreateOvsdbClient(vif.$VM.$resident_on)
+        const channel = await this._getOrCreateOfChannel(vif.$VM.$resident_on)
+        const ofport = await client.getOfPortForVif(vif)
+        await channel.addRule({ vif, allow, protocol, port, ipRange, direction, ofport })
+      }
+
       const vifRules = vif.other_config['xo:sdn-controller:of-rules']
       const newVifRules = vifRules !== undefined ? JSON.parse(vifRules) : []
       const stringRule = JSON.stringify({
@@ -677,10 +682,13 @@ class SDNController extends EventEmitter {
     try {
       await this._setPoolControllerIfNeeded(vif.$pool)
 
-      const client = this._getOrCreateOvsdbClient(vif.$VM.$resident_on)
-      const channel = await this._getOrCreateOfChannel(vif.$VM.$resident_on)
-      const ofport = await client.getOfPortForVif(vif)
-      await channel.deleteRule({ vif, protocol, port, ipRange, direction, ofport })
+      if (vif.$VM.$resident_on !== undefined && vif.$VM.$resident_on.enabled) {
+        const client = this._getOrCreateOvsdbClient(vif.$VM.$resident_on)
+        const channel = await this._getOrCreateOfChannel(vif.$VM.$resident_on)
+        const ofport = await client.getOfPortForVif(vif)
+        await channel.deleteRule({ vif, protocol, port, ipRange, direction, ofport })
+      }
+
       if (!updateOtherConfig) {
         return
       }
@@ -708,7 +716,7 @@ class SDNController extends EventEmitter {
       // Put back rules that could have been wrongfully deleted because delete rule too general
       await this._applyVifOfRules(vif)
     } catch (error) {
-      log.error('Error while adding OF rule', {
+      log.error('Error while deleting OF rule', {
         error,
         vif: vif.uuid,
         host: vif.$VM.$resident_on?.uuid,
@@ -827,7 +835,10 @@ class SDNController extends EventEmitter {
       })
 
       // For each pool's host, create a tunnel to the private network
-      const hosts = filter(pool.$xapi.objects.all, { $type: 'host' })
+      const hosts = filter(pool.$xapi.objects.all, {
+        $type: 'host',
+        enabled: true,
+      })
       await asyncEach(hosts, async host => {
         const hostPif = host.$PIFs.find(_pif => _pif.network === pif.network)
         await createTunnel(host, createdNetwork, hostPif)
@@ -872,7 +883,7 @@ class SDNController extends EventEmitter {
     forOwn(objects, async object => {
       const { $type } = object
 
-      if ($type === 'host') {
+      if ($type === 'host' && object.enabled) {
         log.debug('New host', {
           host: object.name_label,
           pool: object.$pool.name_label,
@@ -1056,6 +1067,10 @@ class SDNController extends EventEmitter {
   _hostMetricsUpdated(hostMetrics) {
     const ovsdbClient = find(this.ovsdbClients, client => client.host.metrics === hostMetrics.$ref)
 
+    if (ovsdbClient === undefined || !ovsdbClient.host.enabled) {
+      return
+    }
+
     if (hostMetrics.live) {
       return this._addHostToPrivateNetworks(ovsdbClient.host)
     }
@@ -1141,7 +1156,10 @@ class SDNController extends EventEmitter {
       })
     }
 
-    const hosts = filter(pool.$xapi.objects.all, { $type: 'host' })
+    const hosts = filter(pool.$xapi.objects.all, {
+      $type: 'host',
+      enabled: true,
+    })
     await Promise.all(
       hosts.map(host => {
         return this._setBridgeControllerForHost(host)

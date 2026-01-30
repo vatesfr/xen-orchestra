@@ -15,6 +15,8 @@
 
 ### Bug fixes
 
+- [xo-server-sdn-controller] traffic rules robustness (PR [#9442](https://github.com/vatesfr/xen-orchestra/pull/9442))
+
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 ### Packages to release
@@ -34,5 +36,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/web minor
+- xo-server-sdn-controller patch
 
 <!--packages-end-->
