@@ -26,13 +26,13 @@ const { buildXo5Route } = useXoRoutes()
 const xo5VmAdvancedHref = computed(() => buildXo5Route(`/vms/${vm.id}/advanced`))
 
 const openDeleteModal = useModal({
-  component: import('@core/components/modal/VtsDeleteModal.vue'),
-  props: { count: 1, object: 'vm' },
+  component: import('@/modules/vm/components/modal/VmDeleteModal.vue'),
+  props: { count: 1 },
   onConfirm: () => deleteVM(),
 })
 
 const openBlockedModal = useModal({
-  component: import('@core/components/modal/VtsBlockedModal.vue'),
+  component: import('@/modules/vm/components/modal/VmDeleteBlockedModal.vue'),
   props: { href: xo5VmAdvancedHref },
 })
 

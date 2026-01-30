@@ -21,7 +21,7 @@
               placement: 'left',
               content: t('more-actions'),
             }"
-            icon="fa:ellipsis"
+            icon="action:more-actions"
             accent="brand"
             size="medium"
             @click="open($event)"
