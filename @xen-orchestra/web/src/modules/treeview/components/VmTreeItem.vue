@@ -14,7 +14,7 @@
         <UiLoader v-if="isChangingState" />
         <MenuList placement="bottom-start">
           <template #trigger="{ open }">
-            <UiButtonIcon icon="fa:ellipsis" accent="brand" size="small" @click="open($event)" />
+            <UiButtonIcon icon="action:more-actions" accent="brand" size="small" @click="open($event)" />
           </template>
           <VmTreeActions :vm="leaf.data" />
         </MenuList>
