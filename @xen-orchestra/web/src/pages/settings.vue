@@ -244,7 +244,7 @@ const { id: localeSelectId } = useFormSelect(availableLocales, {
       gap: 0.8rem;
       padding: 1.6rem;
       border: 1px solid var(--color-neutral-border);
-      border-radius: 8px;
+      border-radius: 0.8rem;
       background: var(--color-neutral-background-secondary);
 
       &.selected {
