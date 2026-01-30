@@ -43,11 +43,11 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
     value: hostsStatus.value?.running ?? 0,
     accent: 'success',
   },
+  // TODO instead of tooltips for disabled , we need to add a modal with a button
   {
     label: t('host:status:disabled', 2),
     value: hostsStatus.value?.disabled ?? 0,
     accent: 'muted',
-    tooltip: t('host:status:disabled'),
   },
   {
     label: t('host:status:halted', 2),
