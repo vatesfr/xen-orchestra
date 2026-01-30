@@ -209,7 +209,6 @@
   "host-internal-networks": "Host interne netværk",
   "host-not-running": "Host kører ikke",
   "host-off": "Host er slukket",
-  "host-unknown": "Host ukendt",
   "host:status:active": "@:status:active",
   "host:status:halted": "@:status:halted",
   "host:status:inactive": "@:status:inactive",

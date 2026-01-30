@@ -309,7 +309,6 @@
   "host:status:inactive": "@:status:inactive",
   "host:status:running": "@:status:running",
   "host:status:unknown": "@:status:unknown",
-  "host:status:unknown:tooltip": "Hosts statistieken zijn niet beschikbaar",
   "hosts": "Hosts",
   "hosts-status": "Hosts status",
   "hyper-threading": "Hyper Threading (SMT)",

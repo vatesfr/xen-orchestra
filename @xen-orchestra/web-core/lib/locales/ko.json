@@ -65,7 +65,6 @@
   "filter:comparison:not-start-with": "~로 시작하지 않는",
   "filter:comparison:starts-with": "~로 시작하는",
   "gpu": "GPU",
-  "host:status:unknown:tooltip": "호스트 메트릭 사용 불가",
   "infos": "정보",
   "interface": "인터페이스",
   "ipv4-address": "IPv4 주소",
