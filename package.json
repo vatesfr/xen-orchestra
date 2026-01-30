@@ -63,7 +63,7 @@
     "build:xo-lite": "turbo run build --filter @xen-orchestra/lite",
     "clean": "scripts/run-script.js --parallel clean",
     "dev": "scripts/run-script.js --parallel --concurrency 0 --verbose dev",
-    "prepare": "husky install",
+    "prepare": "npx husky install",
     "prettify": "prettier --ignore-unknown --write .",
     "test": "npm run test-lint && npm run test-unit",
     "test-integration": "scripts/run-script.js --parallel test-integration",
