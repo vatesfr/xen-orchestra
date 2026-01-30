@@ -15,6 +15,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backup] Fix replication leaving replica after partial incremental replication PR [#9435](https://github.com/vatesfr/xen-orchestra/pull/9435))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -31,4 +33,5 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 <!--packages-end-->
