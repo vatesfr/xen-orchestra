@@ -437,7 +437,6 @@
   "pif-status": "PIF-Status",
   "pifs": "PIFs",
   "pifs-status": "PIFs-Status",
-  "please-confirm": "Bitte bestätigen",
   "pool": "Pool",
   "pool-connection-error-auth-failed": "Ein Fehler beim Verbinden des Pools ist aufgetreten. Der Username oder das Passwort scheint nicht korrekt zu sein.",
   "pool-cpu-usage": "Pool Prozessorauslastung",

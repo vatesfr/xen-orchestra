@@ -13,6 +13,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [VM] Add delete and snapshot buttons to manage VM (PR [9410](https://github.com/vatesfr/xen-orchestra/pull/9410))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -34,5 +36,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 
 <!--packages-end-->

@@ -1,0 +1,46 @@
+<template>
+  <MenuItem icon="action:delete" :busy="isRunning" class="delete" @click="openModal">
+    {{ t('action:delete') }}
+  </MenuItem>
+</template>
+
+<script setup lang="ts">
+import { useXoVmDeleteJob } from '@/modules/vm/jobs/xo-vm-delete.job.ts'
+import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import MenuItem from '@core/components/menu/MenuItem.vue'
+import { useModal } from '@core/packages/modal/use-modal.ts'
+import type { XoVm } from '@vates/types'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { vm } = defineProps<{
+  vm: XoVm
+}>()
+
+const { t } = useI18n()
+
+const { run: deleteVM, canRun, isRunning } = useXoVmDeleteJob(() => [vm])
+
+const { buildXo5Route } = useXoRoutes()
+
+const xo5VmAdvancedHref = computed(() => buildXo5Route(`/vms/${vm.id}/advanced`))
+
+const openDeleteModal = useModal({
+  component: import('@/modules/vm/components/modal/VmDeleteModal.vue'),
+  props: { count: 1 },
+  onConfirm: () => deleteVM(),
+})
+
+const openBlockedModal = useModal({
+  component: import('@/modules/vm/components/modal/VmDeleteBlockedModal.vue'),
+  props: { href: xo5VmAdvancedHref },
+})
+
+const openModal = () => (canRun.value ? openDeleteModal() : openBlockedModal())
+</script>
+
+<style lang="postcss" scoped>
+.delete {
+  color: var(--color-danger-item-base);
+}
+</style>

@@ -14,9 +14,9 @@
         <UiLoader v-if="isChangingState" />
         <MenuList placement="bottom-start">
           <template #trigger="{ open }">
-            <UiButtonIcon icon="fa:ellipsis" accent="brand" size="small" @click="open($event)" />
+            <UiButtonIcon icon="action:more-actions" accent="brand" size="small" @click="open($event)" />
           </template>
-          <VmActions :vm="leaf.data" />
+          <VmTreeActions :vm="leaf.data" />
         </MenuList>
       </template>
     </UiTreeItemLabel>
@@ -25,7 +25,7 @@
 
 <script lang="ts" setup>
 import type { VmLeaf } from '@/modules/treeview/types/tree.type.ts'
-import VmActions from '@/modules/vm/components/actions/VmActions.vue'
+import VmTreeActions from '@/modules/vm/components/actions/VmTreeActions.vue'
 import { CHANGING_STATE_OPERATIONS, isVmOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
 import type { POWER_STATE } from '@core/types/power-state.type.ts'
 import MenuList from '@core/components/menu/MenuList.vue'
