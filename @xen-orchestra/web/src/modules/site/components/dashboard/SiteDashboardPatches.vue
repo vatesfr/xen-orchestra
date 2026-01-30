@@ -84,6 +84,7 @@ const hostsSegments = computed(() => {
     { value: missingPatches.value.nHostsWithMissingPatches, accent: 'warning', label: t('missing-patches') },
   ]
 
+  // TODO instead of tooltips for nHostsEol , we need to add a modal with a button
   if (typeof missingPatches.value.nHostsEol === 'number') {
     segments.push({
       value: missingPatches.value.nHostsEol,

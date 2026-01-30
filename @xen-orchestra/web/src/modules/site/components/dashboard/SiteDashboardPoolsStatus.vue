@@ -49,6 +49,7 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
     value: poolsStatus.value?.disconnected ?? 0,
     accent: 'muted',
   },
+  // TODO instead of tooltips for unreachable , we need to add a modal with a button
   {
     label: t('pool:status:unreachable', 2),
     value: poolsStatus.value?.unreachable ?? 0,
