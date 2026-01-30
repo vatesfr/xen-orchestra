@@ -110,7 +110,7 @@
               <div v-else class="circle" />
               <span class="typo-h6">{{ t(theme.label) }}</span>
             </div>
-            <span class="theme-description">{{ t(theme.description) }}</span>
+            <span class="typo-body-regular-small theme-description">{{ t(theme.description) }}</span>
           </div>
         </div>
       </VtsColumns>
