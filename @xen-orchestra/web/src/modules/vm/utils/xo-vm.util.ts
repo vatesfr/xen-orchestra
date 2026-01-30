@@ -1,7 +1,7 @@
 import { VM_OPERATIONS, VM_POWER_STATE, type XoVm } from '@vates/types'
 import { castArray } from 'lodash-es'
 
-export const CHANGING_STATE_OPERATIONS = [
+export const CHANGING_STATE_OPERATIONS: Partial<VM_OPERATIONS>[] = [
   VM_OPERATIONS.START,
   VM_OPERATIONS.START_ON,
   VM_OPERATIONS.PAUSE,
