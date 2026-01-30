@@ -613,6 +613,11 @@ export class RemoteAdapter {
   // if cache is missing  or broken  => regenerate it and return
 
   async _readCacheListVmBackups(vmUuid) {
+    // immutable remote can't use any caching
+    // since the cache file may be non modifiable
+    if (this._handler.isImmutable()) {
+      return this.#getCacheableDataListVmBackups(`${BACKUP_DIR}/${vmUuid}`)
+    }
     const path = this.#getVmBackupsCache(vmUuid)
 
     const cache = await this._readCache(path)

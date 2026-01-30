@@ -280,6 +280,7 @@ export default class RemoteHandlerAbstract {
 
   /**
    * write a stream to a file using a temporary file
+   * on immutable remote it won't use a temp file since it won't be able to delete /rename it
    *
    * @param {string} path
    * @param {ReadableStream} input
@@ -682,7 +683,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async _outputStream(path, input, { dirMode, validator }) {
-    const tmpPath = `${dirname(path)}/.${Date.now()}.${basename(path)}`
+    const tmpPath = this.isImmutable() ? path : `${dirname(path)}/.${Date.now()}.${basename(path)}`
     const output = await this._createOutputStream(tmpPath, {
       dirMode,
       flags: 'wx',
@@ -692,8 +693,11 @@ export default class RemoteHandlerAbstract {
       if (validator !== undefined) {
         await validator.call(this, tmpPath)
       }
-      await this.__rename(tmpPath, path)
+      if (this.isImmutable()) {
+        await this.__rename(tmpPath, path)
+      }
     } catch (error) {
+      // this may fail on immutable
       await this.__unlink(tmpPath)
       throw error
     }
@@ -786,6 +790,10 @@ export default class RemoteHandlerAbstract {
 
   get encryptionAlgorithm() {
     return this.#encryptor?.algorithm ?? UNENCRYPTED_ALGORITHM
+  }
+
+  get isImmutable() {
+    return this._remote.immutable === true
   }
 }
 
