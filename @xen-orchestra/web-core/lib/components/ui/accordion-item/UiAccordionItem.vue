@@ -1,26 +1,13 @@
 <template>
   <div class="ui-accordion-item" :class="classNames">
-    <div class="header">
+    <div class="header" @click="toggle">
       <span class="header-title" :class="font">
-        <slot name="title">
-          {{ title }}
-        </slot>
+        {{ title }}
       </span>
-      <span class="header-icon">
-        <UiButtonIcon
-          v-tooltip="isExpanded ? t('action:close') : t('action:open')"
-          class="toggle"
-          accent="brand"
-          :icon="isExpanded ? 'fa:angle-up' : 'fa:angle-down'"
-          size="small"
-          :disabled
-          :target-scale="{ x: 1.5, y: 2 }"
-          @click="toggle"
-        />
-      </span>
+      <VtsIcon :name="isExpanded ? 'fa:angle-up' : 'fa:angle-down'" size="small" />
     </div>
-    <VtsDivider v-if="isExpanded || size == 'small'" type="stretch" />
-    <span v-if="isExpanded">
+    <span v-if="isExpanded" class="content">
+      <VtsDivider type="stretch" />
       <slot name="content">
         {{ content }}
       </slot>
@@ -30,19 +17,16 @@
 
 <script setup lang="ts">
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { useMapper } from '@core/packages/mapper'
 import { toVariants } from '@core/utils/to-variants.util'
 import { computed, inject, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 const { size, title, disabled } = defineProps<{
-  content: string
-  size: 'small' | 'large'
   title: string
+  size: 'small' | 'large'
+  content?: string
   disabled?: boolean
-  value?: string | number
 }>()
 
 defineSlots<{
@@ -70,6 +54,8 @@ const isExpanded = computed(() => {
 const toggle = () => {
   if (accordion) {
     accordion.toggle(title ?? null)
+  } else {
+    localExpanded.value = !localExpanded.value
   }
 }
 
@@ -90,7 +76,6 @@ const classNames = computed(() => {
     }),
   ]
 })
-const { t } = useI18n()
 </script>
 
 <style scoped lang="postcss">
@@ -100,32 +85,52 @@ const { t } = useI18n()
 
   .header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     color: var(--color-brand-txt-base);
+    cursor: pointer;
   }
 
-  &:hover .header {
+  .header:hover {
     color: var(--color-brand-txt-hover);
   }
 
-  &:active .header {
+  .header:active {
     color: var(--color-brand-txt-active);
   }
 
-  &.muted .header {
+  .content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &.muted {
     color: var(--color-neutral-txt-secondary);
   }
 
   &.size--small {
-    gap: 0.4rem;
+    .header {
+      padding-bottom: 0.4rem;
+    }
+
+    .content {
+      gap: 0.4rem;
+    }
   }
 
   &.size--large {
     border: 0.1rem solid var(--color-neutral-border);
     border-radius: 0.4rem;
-    gap: 1.2rem;
-    padding: 1.6rem;
+
+    .header {
+      padding: 1.6rem;
+      padding-bottom: 1.2rem;
+    }
+
+    .content {
+      gap: 1.2rem;
+      margin: 0 1.2rem 1.2rem 1.2rem;
+    }
   }
 }
 </style>
