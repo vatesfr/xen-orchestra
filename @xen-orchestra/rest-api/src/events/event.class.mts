@@ -92,23 +92,27 @@ export class XoListener extends Listener {
     let _object: Partial<XapiXoRecord | XoTask> | undefined = object
     let _prevObject: Partial<XapiXoRecord | XoTask> | undefined = previousObj
 
-    if (this.#type === 'alarm') {
-      if (
-        object !== undefined &&
-        'type' in object &&
-        object.type === 'message' &&
-        this.#alarmService?.isAlarm(object)
-      ) {
-        _object = this.#alarmService.parseAlarm(object)
+    if (this.#type === 'alarm' || this.#type === 'message') {
+      const isAlarm = (object: T | undefined): object is Extract<T, { type: 'message' }> =>
+        object !== undefined && 'type' in object && object.type === 'message' && this.#alarmService!.isAlarm(object)
+
+      const objectIsAlarm = isAlarm(object)
+      const prevObjectIsAlarm = isAlarm(previousObj)
+
+      // If we are in an alarm listener and the objects are messages
+      // we clean them to ensure they are not sent via the SSE
+      // Same if we are in a message listener and the objects are alarms
+      if (this.#type === 'alarm') {
+        _object = objectIsAlarm ? this.#alarmService!.parseAlarm(object) : undefined
+        _prevObject = prevObjectIsAlarm ? this.#alarmService!.parseAlarm(previousObj) : undefined
+      } else {
+        _object = objectIsAlarm ? undefined : object
+        _prevObject = prevObjectIsAlarm ? undefined : object
       }
-      if (
-        previousObj !== undefined &&
-        'type' in previousObj &&
-        previousObj.type === 'message' &&
-        this.#alarmService?.isAlarm(previousObj)
-      ) {
-        _prevObject = this.#alarmService.parseAlarm(previousObj)
-      }
+    }
+
+    if (_object === undefined && _prevObject === undefined) {
+      return
     }
 
     if (fields !== '*') {
