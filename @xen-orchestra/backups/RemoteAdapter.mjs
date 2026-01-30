@@ -44,7 +44,7 @@ const IMMUTABILITY_METADATA_FILENAME = '/immutability.json'
 
 const { debug, warn } = createLogger('xo:backups:RemoteAdapter')
 
-const compareTimestamp = (a, b) => a.timestamp - b.timestamp
+export const compareTimestamp = (a, b) => a.timestamp - b.timestamp
 
 const noop = Function.prototype
 
