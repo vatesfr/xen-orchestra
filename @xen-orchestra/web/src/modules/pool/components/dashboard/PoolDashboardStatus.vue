@@ -58,10 +58,10 @@ const hostsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('disabled', 2),
     value: poolDashboard?.hosts?.status?.disabled ?? 0,
-    accent: 'neutral',
+    accent: 'muted',
   },
   {
-    label: t('host:status:active', 2),
+    label: t('host:status:halted', 2),
     value: poolDashboard?.hosts?.status?.halted ?? 0,
     accent: 'danger',
   },
@@ -76,7 +76,7 @@ const vmsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('vm:status:paused', 2),
     value: poolDashboard?.vms?.status?.paused ?? 0,
-    accent: 'info',
+    accent: 'brand',
   },
   {
     label: t('vm:status:suspended', 2),
@@ -84,7 +84,7 @@ const vmsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
     accent: 'neutral',
   },
   {
-    label: t('vm:status:active', 2),
+    label: t('vm:status:halted', 2),
     value: poolDashboard?.vms?.status?.halted ?? 0,
     accent: 'danger',
   },
