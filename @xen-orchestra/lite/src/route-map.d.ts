@@ -477,6 +477,20 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/ui/accordion-item/ui-accordion-item': RouteRecordInfo<
+      '/story/web-core/ui/accordion-item/ui-accordion-item',
+      '/story/web-core/ui/accordion-item/ui-accordion-item',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/ui/accordion-list/ui-accordion-list': RouteRecordInfo<
+      '/story/web-core/ui/accordion-list/ui-accordion-list',
+      '/story/web-core/ui/accordion-list/ui-accordion-list',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/ui/account-menu-button/ui-account-menu-button': RouteRecordInfo<
       '/story/web-core/ui/account-menu-button/ui-account-menu-button',
       '/story/web-core/ui/account-menu-button/ui-account-menu-button',
@@ -1364,6 +1378,18 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/tree/vts-tree-loading-item.story.vue': {
       routes:
         | '/story/web-core/tree/vts-tree-loading-item'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/accordion-item/ui-accordion-item.story.vue': {
+      routes:
+        | '/story/web-core/ui/accordion-item/ui-accordion-item'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/accordion-list/ui-accordion-list.story.vue': {
+      routes:
+        | '/story/web-core/ui/accordion-list/ui-accordion-list'
       views:
         | never
     }
