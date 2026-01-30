@@ -6,7 +6,7 @@
         {{ label }}
       </UiLabel>
     </slot>
-    <div class="group" :class="{ vertical }">
+    <div class="group" :class="{ vertical, [`layout-${layout}`]: true }">
       <slot />
     </div>
     <slot v-if="slots.info || info !== undefined" name="info">
@@ -27,6 +27,7 @@ const { accent } = defineProps<{
   label?: string
   info?: string
   vertical?: boolean
+  layout?: 'grid' | 'flex'
 }>()
 
 const slots = defineSlots<{
@@ -50,6 +51,21 @@ const labelAccent = computed(() => (accent === 'brand' ? 'neutral' : accent))
     &.vertical {
       flex-direction: column;
       gap: 0.8rem;
+    }
+
+    /* LAYOUT */
+
+    &.layout-grid {
+      display: grid;
+      grid-template-columns: repeat(2, max-content);
+      column-gap: 1.6rem;
+      gap: 1.6rem;
+    }
+
+    &.layout-flex {
+      display: flex;
+      flex-direction: row;
+      gap: 1.6rem;
     }
   }
 }
