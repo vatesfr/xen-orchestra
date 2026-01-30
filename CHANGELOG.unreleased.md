@@ -9,6 +9,8 @@
 
 ### Enhancements
 
+- [Settings] Add various themes (PR [#9387](https://github.com/vatesfr/xen-orchestra/pull/9387))
+
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 ### Bug fixes
@@ -30,5 +32,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/web minor
 
 <!--packages-end-->

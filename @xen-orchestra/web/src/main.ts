@@ -6,6 +6,7 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import { handleHotUpdate, routes } from 'vue-router/auto-routes'
 import App from './App.vue'
 import '@xen-orchestra/web-core/assets/css/base.pcss'
+import '@core/assets/css/_themes.pcss'
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 
 async function init() {
