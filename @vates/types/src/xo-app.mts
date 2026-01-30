@@ -132,7 +132,7 @@ export type XoApp = {
   authenticateUser: (
     credentials: { token?: string; username?: string; password?: string },
     userData?: { ip?: string },
-    opts?: { bypassOtp?: boolean }
+    opts?: { bypassOtp?: boolean; bypassTaskCreation?: boolean }
   ) => Promise<{ bypassOtp: boolean; expiration: number; user: XoUser }>
   /* Throw if no authorization */
   checkFeatureAuthorization(featureCode: string): Promise<void>
