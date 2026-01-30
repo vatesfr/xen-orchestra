@@ -280,7 +280,6 @@ const { id: localeSelectId } = useFormSelect(availableLocales, {
       }
 
       .theme-description {
-        font-size: 0.9em;
         color: var(--color-neutral-txt-secondary);
       }
     }
