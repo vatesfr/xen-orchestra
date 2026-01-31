@@ -45,6 +45,7 @@ export function defineRemoteResource<
 
 export function defineRemoteResource<TData, TState extends object, TArgs extends any[] = []>(config: {
   url: string | ((...args: TArgs) => string)
+  initialData: () => TData
   state?: (data: Ref<TData | undefined>, context: ResourceContext<TArgs>) => TState
   onDataReceived?: (data: Ref<TData | undefined>, receivedData: any) => void
   cacheExpirationMs?: number | false
@@ -80,7 +81,7 @@ export function defineRemoteResource<
   TArgs extends any[] = [],
 >(config: {
   url: string | ((...args: TArgs) => string)
-  initialData?: () => TData
+  initialData: () => TData
   state?: (data: Ref<TData>, context: ResourceContext<TArgs>) => TState
   onDataReceived?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
   onDataRemoved?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
@@ -113,7 +114,7 @@ export function defineRemoteResource<
 
   const buildUrl = typeof config.url === 'string' ? () => config.url as string : config.url
 
-  const buildData = config.initialData ?? (() => undefined as TData | undefined)
+  const buildData = config.initialData
 
   const buildState = config.state ?? ((data: Ref<TData>) => ({ data }))
 
@@ -154,23 +155,27 @@ export function defineRemoteResource<
 
   const onDataReceived =
     config.onDataReceived ??
-    ((data: Ref<TData>, receivedData: any, context?: ResourceContext<TArgs>) => {
+    ((data: Ref<TData>, receivedData: TData, context?: ResourceContext<TArgs>) => {
       // allow to ignore some update (like for sub collection. E.g. vms/:id/vdis)
       if (config.watchCollection?.predicate?.(receivedData, context) === false) {
         return
       }
 
-      if (data.value === undefined || (Array.isArray(data.value) && Array.isArray(receivedData))) {
+      // Once we received the initial fetch result, we remplace the data store
+      // and handle buffered items if any
+      if (Array.isArray(data.value) && Array.isArray(receivedData)) {
         data.value = receivedData
 
-        if (config.watchCollection !== undefined && Array.isArray(data.value)) {
+        if (bufferedEvents.length !== 0) {
           handleBuffer(data as Ref<TData[]>)
-          isBufferEventsProcessed = true
         }
+        isBufferEventsProcessed = true
         return
       }
 
       if (Array.isArray(data.value)) {
+        // if we receive some data update BEFORE the initial fetch
+        // add the update into a buffer
         if (!isBufferEventsProcessed) {
           bufferedEvents.push(['update', receivedData])
         } else {
@@ -300,7 +305,7 @@ export function defineRemoteResource<
           handleWatching,
           handlePost,
           resource,
-          onDataReceived: receivedData => onDataReceived(data, receivedData, context),
+          onDataReceived: receivedData => onDataReceived(data, receivedData as TData, context),
           onDataRemoved: receivedData => onDataRemoved(data, receivedData, context),
         })
         await execute()
