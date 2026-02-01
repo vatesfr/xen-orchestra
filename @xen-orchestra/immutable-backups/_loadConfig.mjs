@@ -3,7 +3,7 @@ import { homedir } from 'os'
 import { join } from 'node:path'
 import ms from 'ms'
 
-const APP_NAME = 'xo-immutable-backups'
+const APP_NAME = 'xo-immutable-remote'
 const APP_DIR = new URL('.', import.meta.url).pathname
 
 export default async function loadConfig() {
