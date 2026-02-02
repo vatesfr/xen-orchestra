@@ -22,6 +22,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { parseRrdResponse, type ParsedRrdData } from './rrd-parser.mjs'
 import {
   formatAllPoolsToOpenMetrics,
+  formatHostUptimeMetrics,
   formatSrMetrics,
   formatToOpenMetrics,
   type SrDataItem,
@@ -67,6 +68,7 @@ interface VmLabelInfo {
 interface HostLabelInfo {
   name_label: string
   pifDeviceToNetworkName: Record<string, string>
+  startTime: number | null
 }
 
 interface SrLabelInfo {
@@ -409,6 +411,11 @@ async function collectMetrics(): Promise<string> {
   const srMetricsOutput = srMetrics.length > 0 ? formatToOpenMetrics(srMetrics) : ''
   logger.debug('Formatted SR metrics', { srCount: srMetrics.length })
 
+  // Format host uptime metrics
+  const uptimeMetrics = formatHostUptimeMetrics(credentials)
+  const uptimeMetricsOutput = uptimeMetrics.length > 0 ? formatToOpenMetrics(uptimeMetrics) : ''
+  logger.debug('Formatted host uptime metrics', { hostCount: uptimeMetrics.length })
+
   // Combine pool metrics with RRD metrics and SR metrics
   // Remove the # EOF from rrdMetrics if present (we'll add our own)
   const rrdMetricsWithoutEof = rrdMetrics.replace(/\n# EOF$/, '')
@@ -421,6 +428,10 @@ async function collectMetrics(): Promise<string> {
 
   if (srMetricsOutput !== '') {
     allMetricsSections.push(srMetricsOutput)
+  }
+
+  if (uptimeMetricsOutput !== '') {
+    allMetricsSections.push(uptimeMetricsOutput)
   }
 
   return allMetricsSections.join('\n') + '\n# EOF'
