@@ -15,7 +15,7 @@
 
 ### Bug fixes
 
-- [Backup/immutability] Fix config file loading (PR [#9444](https://github.com/vatesfr/xen-orchestra/pull/9444))
+- [Backup/immutability] Fix typo in sample config file (PR [#9444](https://github.com/vatesfr/xen-orchestra/pull/9444))
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
