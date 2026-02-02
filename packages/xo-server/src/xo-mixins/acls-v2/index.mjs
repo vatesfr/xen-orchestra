@@ -389,6 +389,11 @@ export default class {
       throw objectAlreadyExists({ objectId: userRole.id, objectType: 'userRole' })
     }
 
+    const role = await this.getAclV2Role(roleId)
+    if ('isTemplate' in role) {
+      throw forbiddenOperation('attach ACL V2 role to user', 'role is a template')
+    }
+
     return this.#userRoleDb.add({ userId, roleId })
   }
 
@@ -432,6 +437,11 @@ export default class {
 
     if (groupRole !== undefined) {
       throw objectAlreadyExists({ objectId: groupRole.id, objectType: 'groupRole' })
+    }
+
+    const role = await this.getAclV2Role(roleId)
+    if ('isTemplate' in role) {
+      throw forbiddenOperation('attach ACL V2 role to group', 'role is a template')
     }
 
     return this.#groupRoleDb.add({ groupId, roleId })
