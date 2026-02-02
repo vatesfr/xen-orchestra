@@ -4,7 +4,7 @@
       <span class="header-title" :class="font">
         {{ title }}
       </span>
-      <VtsIcon :name="isExpanded ? 'fa:angle-up' : 'fa:angle-down'" size="small" />
+      <VtsIcon :name="isExpanded ? 'fa:angle-up' : 'fa:angle-down'" size="large" />
     </div>
     <span v-if="isExpanded" class="content">
       <VtsDivider type="stretch" />
@@ -23,14 +23,13 @@ import { toVariants } from '@core/utils/to-variants.util'
 import { computed, inject, ref } from 'vue'
 
 const { size, title, disabled } = defineProps<{
-  title: string
   size: 'small' | 'large'
+  title: string
   content?: string
   disabled?: boolean
 }>()
 
 defineSlots<{
-  title?(): any
   content?(): any
 }>()
 
@@ -52,6 +51,8 @@ const isExpanded = computed(() => {
 })
 
 const toggle = () => {
+  if (disabled === true) return
+
   if (accordion) {
     accordion.toggle(title ?? null)
   } else {
@@ -73,6 +74,7 @@ const classNames = computed(() => {
     toVariants({
       size,
       muted: disabled ?? false,
+      expand: isExpanded.value,
     }),
   ]
 })
@@ -91,24 +93,32 @@ const classNames = computed(() => {
     cursor: pointer;
   }
 
-  .header:hover {
-    color: var(--color-brand-txt-hover);
-  }
-
-  .header:active {
-    color: var(--color-brand-txt-active);
-  }
-
   .content {
     display: flex;
     flex-direction: column;
   }
 
-  &.muted {
+  /* HEADER VARIANT */
+  &.muted .header {
     color: var(--color-neutral-txt-secondary);
   }
 
+  &:not(.muted) {
+    .header:hover {
+      color: var(--color-brand-txt-hover);
+    }
+
+    .header:active {
+      color: var(--color-brand-txt-active);
+    }
+  }
+
+  /* SIZE VARIANT */
   &.size--small {
+    &:not(.expand) {
+      border-bottom: 0.1rem solid var(--color-neutral-border);
+    }
+
     .header {
       padding-bottom: 0.4rem;
     }
