@@ -394,7 +394,7 @@ export default class {
 
   /**
    *
-   * Detache a role from a user
+   * Detach a role from a user
    *
    * @param {XoUser['id']} userId
    * @param {Role['id']} roleId
@@ -439,7 +439,7 @@ export default class {
 
   /**
    *
-   * Detache a role from a group
+   * Detach a role from a group
    *
    * @param {XoGroup['id']} groupId
    * @param {Role['id']} roleId
