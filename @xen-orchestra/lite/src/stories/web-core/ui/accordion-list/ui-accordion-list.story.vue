@@ -14,8 +14,20 @@ import UiAccordionItem from '@core/components/ui/accordion-item/UiAccordionItem.
 import { ref } from 'vue'
 
 const tabs = ref([
-  { title: 'Title 1', content: 'Content 1' },
-  { title: 'Title 2', content: 'Content 2' },
-  { title: 'Title 3', content: 'Content 3' },
+  {
+    title: 'Title 1',
+    content:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi.',
+  },
+  {
+    title: 'Title 2',
+    content:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi.',
+  },
+  {
+    title: 'Title 3',
+    content:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi.',
+  },
 ])
 </script>
