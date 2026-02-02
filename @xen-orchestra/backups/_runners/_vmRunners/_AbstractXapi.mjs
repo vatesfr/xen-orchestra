@@ -3,6 +3,7 @@ import groupBy from 'lodash/groupBy.js'
 import { createLogger } from '@xen-orchestra/log'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import { asyncMap } from '@xen-orchestra/async-map'
+import { asyncEach } from '@vates/async-each'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 
@@ -168,8 +169,8 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           scheduleId: this.scheduleId,
           vmUuid: vm.uuid,
         })
-        await vm.set_name_label(this._getSnapshotNameLabel(vm))
         this._exportedVm = await xapi.getRecord('VM', snapshotRef)
+        await this._exportedVm.set_name_label(this._getSnapshotNameLabel(vm))
         return this._exportedVm.uuid
       })
     } else {
@@ -378,7 +379,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     // list and remove the snapshot were the jobs failed between
     // makesnapshot and update_other_config
     const snapshots = this._vm.$snapshots.filter(({ name_label }) => name_label === TEMP_SNAPSHOT_NAME)
-    await Promise.all(snapshots.map(snapshot => snapshot.$destroy()))
+    await asyncEach(snapshots, snapshot => snapshot.$destroy())
   }
 
   async _removeSnapshotData() {
