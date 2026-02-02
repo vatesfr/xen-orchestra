@@ -13,7 +13,8 @@ import { GroupRoles } from '../../models/acls-v2/group-role.mjs'
 
 /**
  * @typedef {import('@xen-orchestra/acl').Role} Role
- * @typedef {import('@xen-orchestra/acl').Privilege<any>} Privilege
+ * @typedef {import('@xen-orchestra/acl').SupportedResource} SupportedResource
+ * @typedef {import('@xen-orchestra/acl').Privilege<SupportedResource>} Privilege
  * @typedef {import('@vates/types').XoUser} XoUser
  * @typedef {import('@vates/types').XoGroup} XoGroup
  * @typedef {{
@@ -274,7 +275,7 @@ export default class {
       role.name = name
     }
 
-    if (description != null) {
+    if (description !== undefined) {
       if (description === null) {
         delete role.description
       } else {
@@ -371,6 +372,8 @@ export default class {
   // === UserRole
   /**
    *
+   * Attach a role to a user
+   *
    * @param {XoUser['id']} userId
    * @param {Role['id']} roleId
    *
@@ -390,6 +393,8 @@ export default class {
   }
 
   /**
+   *
+   * Detache a role from a user
    *
    * @param {XoUser['id']} userId
    * @param {Role['id']} roleId
@@ -412,6 +417,8 @@ export default class {
   // === GroupRole
   /**
    *
+   * Attach a role to a group
+   *
    * @param {XoGroup['id']} groupId
    * @param {Role['id']} roleId
    *
@@ -431,6 +438,8 @@ export default class {
   }
 
   /**
+   *
+   * Detache a role from a group
    *
    * @param {XoGroup['id']} groupId
    * @param {Role['id']} roleId
@@ -468,14 +477,13 @@ export default class {
     /** @type {XoUser} */
     const user = await this._app.getUser(userId)
 
+    const groupRoles = (await Promise.all(user.groups.map(groupId => this.getAclV2GroupRoles(groupId)))).flat()
+
     /** @type {UserRole[]} */
-    const userRoles = await this.#userRoleDb._get({ userId: user.id })
-    /** @type {GroupRole[]} */
-    const groupRoles = (await Promise.all(user.groups.map(groupId => this.#groupRoleDb._get({ groupId })))).flat()
+    const dbUserRoles = await this.#userRoleDb._get({ userId: user.id })
+    const userRoles = await Promise.all(dbUserRoles.map(dbUserRole => this.getAclV2Role(dbUserRole.roleId)))
 
-    const allSubjectRoles = [...userRoles, ...groupRoles]
-
-    return Promise.all(allSubjectRoles.map(subjectRole => this.getAclV2Role(subjectRole.roleId)))
+    return [...groupRoles, ...userRoles]
   }
 
   /**
@@ -485,5 +493,16 @@ export default class {
   async getAclV2UserPrivileges(userId) {
     const roles = await this.getAclV2UserRoles(userId)
     return (await Promise.all(roles.map(role => this.getAclV2RolePrivileges(role.id)))).flat()
+  }
+
+  /**
+   * @param {XoGroup['id']} groupId
+   * @returns {Promise<Role[]>}
+   */
+  async getAclV2GroupRoles(groupId) {
+    /** @type {GroupRole[]} */
+    const dbGroupRoles = await this.#groupRoleDb._get({ groupId })
+
+    return Promise.all(dbGroupRoles.map(dbGroupRole => this.getAclV2Role(dbGroupRole.roleId)))
   }
 }
