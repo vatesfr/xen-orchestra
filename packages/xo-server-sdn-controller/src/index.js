@@ -605,13 +605,26 @@ class SDNController extends EventEmitter {
   async _addRule({ allow, direction, ipRange = '', port, protocol, vifId }) {
     const vif = this._xo.getXapiObject(this._xo.getObject(vifId, 'VIF'))
     try {
-      assert(vif.currently_attached, 'VIF needs to be plugged to add rule')
       await this._setPoolControllerIfNeeded(vif.$pool)
 
-      const client = this._getOrCreateOvsdbClient(vif.$VM.$resident_on)
-      const channel = await this._getOrCreateOfChannel(vif.$VM.$resident_on)
-      const ofport = await client.getOfPortForVif(vif)
-      await channel.addRule({ vif, allow, protocol, port, ipRange, direction, ofport })
+      try {
+        const client = this._getOrCreateOvsdbClient(vif.$VM.$resident_on)
+        const channel = await this._getOrCreateOfChannel(vif.$VM.$resident_on)
+        if (client !== undefined && channel !== undefined) {
+          const ofport = await client.getOfPortForVif(vif)
+          await channel.addRule({ vif, allow, protocol, port, ipRange, direction, ofport })
+        }
+      } catch (error) {
+        if (error.code === 'HOST_OFFLINE') {
+          log.info('addRule: Ignoring HOST_OFFLINE', {
+            vif: vifId,
+            host: vif.$VM.$resident_on?.uuid,
+          })
+        } else {
+          throw (error)
+        }
+      }
+
       const vifRules = vif.other_config['xo:sdn-controller:of-rules']
       const newVifRules = vifRules !== undefined ? JSON.parse(vifRules) : []
       const stringRule = JSON.stringify({
@@ -643,9 +656,19 @@ class SDNController extends EventEmitter {
     try {
       const network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
       assert(network.$PIFs.length > 0, 'Network needs to be plugged to add a rule')
-      const host = this._xo.getXapiObject(this._xo.getObject(network.$PIFs[0].host, 'host'))
-      const channel = await this._getOrCreateOfChannel(host)
-      await channel.addNetworkRule({ network, allow, protocol, port, ipRange, direction })
+
+      try {
+        const host = this._xo.getXapiObject(this._xo.getObject(network.$PIFs[0].host, 'host'))
+        const channel = await this._getOrCreateOfChannel(host)
+        if (channel !== undefined) {
+          await channel.addNetworkRule({ network, allow, protocol, port, ipRange, direction })
+        }
+      } catch (error) {
+        if (error.code === 'HOST_OFFLINE') {
+          log.info('addNetworkRule: Ignoring HOST_OFFLINE', { network: networkId })
+        }
+      }
+
       const networkRules = network.other_config['xo:sdn-controller:of-rules']
       const newNetworkRules = networkRules !== undefined ? JSON.parse(networkRules) : []
       const stringRule = JSON.stringify({
@@ -677,10 +700,22 @@ class SDNController extends EventEmitter {
     try {
       await this._setPoolControllerIfNeeded(vif.$pool)
 
-      const client = this._getOrCreateOvsdbClient(vif.$VM.$resident_on)
-      const channel = await this._getOrCreateOfChannel(vif.$VM.$resident_on)
-      const ofport = await client.getOfPortForVif(vif)
-      await channel.deleteRule({ vif, protocol, port, ipRange, direction, ofport })
+      try {
+        const client = this._getOrCreateOvsdbClient(vif.$VM.$resident_on)
+        const channel = await this._getOrCreateOfChannel(vif.$VM.$resident_on)
+        if (client !== undefined && channel !== undefined) {
+          const ofport = await client.getOfPortForVif(vif)
+          await channel.deleteRule({ vif, protocol, port, ipRange, direction, ofport })
+        }
+      } catch (error) {
+        if (error.code === 'HOST_OFFLINE') {
+          log.info('deleteRule: Ignoring HOST_OFFLINE', {
+            vif: vifId,
+            host: vif.$VM.$resident_on?.uuid,
+          })
+        }
+      }
+
       if (!updateOtherConfig) {
         return
       }
@@ -708,7 +743,7 @@ class SDNController extends EventEmitter {
       // Put back rules that could have been wrongfully deleted because delete rule too general
       await this._applyVifOfRules(vif)
     } catch (error) {
-      log.error('Error while adding OF rule', {
+      log.error('Error while deleting OF rule', {
         error,
         vif: vif.uuid,
         host: vif.$VM.$resident_on?.uuid,
@@ -725,9 +760,18 @@ class SDNController extends EventEmitter {
       let network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
       assert(network.$PIFs.length > 0, 'Network needs to be plugged to delete a rule')
 
-      const host = this._xo.getXapiObject(this._xo.getObject(network.$PIFs[0].host, 'host'))
-      const channel = await this._getOrCreateOfChannel(host)
-      await channel.deleteNetworkRule({ network, protocol, port, ipRange, direction })
+      try {
+        const host = this._xo.getXapiObject(this._xo.getObject(network.$PIFs[0].host, 'host'))
+        const channel = await this._getOrCreateOfChannel(host)
+        if (channel !== undefined) {
+          await channel.deleteNetworkRule({ network, protocol, port, ipRange, direction })
+        }
+      } catch (error) {
+        if (error.code === 'HOST_OFFLINE') {
+          log.info('deleteNetworkOfRule: Ignoring HOST_OFFLINE', { network: networkId })
+        }
+      }
+
       if (!updateOtherConfig) {
         return
       }
@@ -755,7 +799,7 @@ class SDNController extends EventEmitter {
       // Put back rules that could have been wrongfully deleted because delete rule too general
       await this._applyNetworkOfRules(network)
     } catch (error) {
-      log.error('Error while adding Network OF rule', {
+      log.error('Error while deleting Network OF rule', {
         error,
         networkId,
         protocol,
@@ -892,7 +936,9 @@ class SDNController extends EventEmitter {
         })
 
         const client = this.ovsdbClients[object.host]
-        client.setBridgeControllerForNetwork(object.$network)
+        if (client !== undefined) {
+          client.setBridgeControllerForNetwork(object.$network)
+        }
       }
     })
   }
@@ -1056,6 +1102,10 @@ class SDNController extends EventEmitter {
   _hostMetricsUpdated(hostMetrics) {
     const ovsdbClient = find(this.ovsdbClients, client => client.host.metrics === hostMetrics.$ref)
 
+    if (ovsdbClient === undefined || !ovsdbClient.host.enabled) {
+      return
+    }
+
     if (hostMetrics.live) {
       return this._addHostToPrivateNetworks(ovsdbClient.host)
     }
@@ -1152,7 +1202,9 @@ class SDNController extends EventEmitter {
 
   _setBridgeControllerForHost(host) {
     const client = this.ovsdbClients[host.$ref]
-    return client.setBridgeController()
+    if (client !== undefined) {
+      return client.setBridgeController()
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -1345,6 +1397,10 @@ class SDNController extends EventEmitter {
   // ---------------------------------------------------------------------------
 
   _getOrCreateOvsdbClient(host) {
+    if (host === undefined || !host.enabled) {
+      return undefined
+    }
+
     let client = this.ovsdbClients[host.$ref]
     if (client === undefined) {
       client = new OvsdbClient(host, this._tlsHelper)
@@ -1355,6 +1411,10 @@ class SDNController extends EventEmitter {
   }
 
   async _getOrCreateOfChannel(host) {
+    if (host === undefined || !host.enabled) {
+      return undefined
+    }
+
     let channel = this.ofChannels[host.$ref]
     if (channel === undefined) {
       // this ensure only one channel is create in parallel
