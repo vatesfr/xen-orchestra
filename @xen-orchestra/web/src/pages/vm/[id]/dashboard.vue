@@ -74,8 +74,15 @@ const { t } = useI18n()
     'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
 
   &.mobile {
-    display: flex;
-    flex-direction: column;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'quick-info'
+      'alarms'
+      'cpu-usage-chart'
+      'ram-usage-chart'
+      'network-usage-chart'
+      'vdi-usage-chart'
+      'offline-hero-container';
   }
 
   .quick-info {
