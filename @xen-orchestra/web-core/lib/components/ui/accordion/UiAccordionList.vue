@@ -1,11 +1,12 @@
 <template>
-  <div class="accondion">
+  <div class="accordion">
     <slot />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, provide } from 'vue'
+import { IK_ACCORDION } from '@core/utils/injection-keys.util'
+import { ref, provide, reactive } from 'vue'
 
 const expandedKey = ref<string | null>(null)
 
@@ -13,14 +14,21 @@ const toggle = (key: string) => {
   expandedKey.value = expandedKey.value === key ? null : key
 }
 
-provide('accordion', {
+export type UiAccordionController = {
+  expandedKey: string | null
+  toggle: (key: string) => void
+}
+
+const AccordionController = reactive({
   expandedKey,
   toggle,
-})
+}) satisfies UiAccordionController
+
+provide(IK_ACCORDION, AccordionController)
 </script>
 
 <style scoped lang="postcss">
-.accondion {
+.accordion {
   display: flex;
   flex-direction: column;
   gap: 2.4rem;
