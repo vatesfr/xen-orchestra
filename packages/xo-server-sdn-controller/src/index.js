@@ -435,6 +435,36 @@ class SDNController extends EventEmitter {
       },
     })
 
+    this._xo.registerRestApi(
+      {
+        rules: {
+          ':id': {
+            _post: async (req, res, next) => {
+              return {
+                allow: req.body.allow,
+                direction: req.body.direction,
+                ipRange: req.body.ipRange,
+                port: req.body.port,
+                protocol: req.body.protocol,
+                networkId: req.params.id,
+              };
+              await this._addNetworkRule({
+                allow: req.body.allow,
+                direction: req.body.direction,
+                ipRange: req.body.ipRange,
+                port: req.body.port,
+                protocol: req.body.protocol,
+                networkId: req.params.id,
+              })
+
+              res.sendStatus(204)
+            },
+          }
+        }
+      },
+      '/plugins/sdn-controller'
+    )
+
     forOwn(this._xo.getAllXapis(), xapi => {
       if (xapi.status === 'connected') {
         this._handleConnectedXapi(xapi)
