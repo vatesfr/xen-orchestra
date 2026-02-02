@@ -91,8 +91,14 @@ onUnmounted(() => setRegisteredVm(undefined))
     'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
 
   &.mobile {
-    display: flex;
-    flex-direction: column;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'quick-info'
+      'cpu-usage-chart'
+      'ram-usage-chart'
+      'network-usage-chart'
+      'disk-usage-chart'
+      'offline-hero-container';
   }
 
   .quick-info {
