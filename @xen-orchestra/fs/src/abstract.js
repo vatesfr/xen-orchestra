@@ -693,7 +693,7 @@ export default class RemoteHandlerAbstract {
       if (validator !== undefined) {
         await validator.call(this, tmpPath)
       }
-      if (this.isImmutable()) {
+      if (!this.isImmutable()) {
         await this.__rename(tmpPath, path)
       }
     } catch (error) {
