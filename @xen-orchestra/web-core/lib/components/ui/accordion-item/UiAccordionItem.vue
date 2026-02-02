@@ -19,6 +19,7 @@
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { useMapper } from '@core/packages/mapper'
+import { IK_ACCORDION } from '@core/utils/injection-keys.util'
 import { toVariants } from '@core/utils/to-variants.util'
 import { computed, inject, ref } from 'vue'
 
@@ -33,19 +34,13 @@ defineSlots<{
   content?(): any
 }>()
 
-const accordion = inject(
-  'accordion',
-  null as null | {
-    expandedKey: { value: string }
-    toggle: (key: string) => void
-  }
-)
+const accordion = inject(IK_ACCORDION)
 
 const localExpanded = ref(false)
 
 const isExpanded = computed(() => {
   if (accordion) {
-    return accordion.expandedKey.value === title
+    return accordion.expandedKey === title
   }
   return localExpanded.value
 })
@@ -54,7 +49,7 @@ const toggle = () => {
   if (disabled === true) return
 
   if (accordion) {
-    accordion.toggle(title ?? null)
+    accordion.toggle(title)
   } else {
     localExpanded.value = !localExpanded.value
   }
