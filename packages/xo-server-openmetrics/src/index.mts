@@ -60,6 +60,7 @@ export interface VmLabelInfo {
 export interface HostLabelInfo {
   name_label: string
   pifDeviceToNetworkName: Record<string, string> // { "eth0": "Management" }
+  startTime: number | null // Unix timestamp of host boot (from host.startTime)
 }
 
 export interface SrLabelInfo {
@@ -603,6 +604,7 @@ class OpenMetricsPlugin {
       labels.hosts[host.uuid] = {
         name_label: host.name_label,
         pifDeviceToNetworkName,
+        startTime: host.startTime,
       }
     }
 
