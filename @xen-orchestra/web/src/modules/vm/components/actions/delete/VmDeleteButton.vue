@@ -32,8 +32,8 @@ const openDeleteModal = useModal({
 })
 
 const openBlockedModal = useModal({
-  component: import('@/modules/vm/components/modal/VmDeleteBlockedModal.vue'),
-  props: { href: xo5VmAdvancedHref },
+  component: import('@core/components/modal/VtsBlockedModal.vue'),
+  props: { blockedOperations: 'destroy', href: xo5VmAdvancedHref },
 })
 
 const openModal = () => (canRun.value ? openDeleteModal() : openBlockedModal())

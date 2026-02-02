@@ -2,7 +2,16 @@
   <UiHeadBar>
     {{ vm.name_label }}
     <template #icon>
-      <VtsObjectIcon size="medium" :state="toLower(vm.power_state)" type="vm" :busy="isChangingState" />
+      <VtsObjectIcon
+        v-tooltip="{
+          placement: 'top',
+          content: currentOperation ? currentOperation : '',
+        }"
+        size="medium"
+        :state="toLower(vm.power_state)"
+        type="vm"
+        :busy="isChangingState"
+      />
     </template>
     <template #actions>
       <UiLink :href="xo5VmGeneralHref" size="medium">
@@ -78,7 +87,7 @@
 <script lang="ts" setup>
 import VmMoreActions from '@/modules/vm/components/actions/VmMoreActions.vue'
 import VmPowerStateActions from '@/modules/vm/components/actions/VmPowerStateActions.vue'
-import { CHANGING_STATE_OPERATIONS, isVmOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
+import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
@@ -103,5 +112,5 @@ const { buildXo5Route } = useXoRoutes()
 const xo5VmGeneralHref = computed(() => buildXo5Route(`/vms/${vm.id}/general`))
 const xo5VmStatsHref = computed(() => buildXo5Route(`/vms/${vm.id}/stats`))
 
-const isChangingState = computed(() => isVmOperationPending(vm, CHANGING_STATE_OPERATIONS))
+const { isChangingState, currentOperation } = useXoVmUtils(() => vm)
 </script>

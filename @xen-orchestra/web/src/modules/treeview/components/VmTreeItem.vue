@@ -11,10 +11,25 @@
         />
       </template>
       <template #addons>
-        <UiLoader v-if="isChangingState" />
+        <UiLoader
+          v-if="isChangingState"
+          v-tooltip="{
+            placement: 'top',
+            content: currentOperation,
+          }"
+        />
         <MenuList placement="bottom-start">
           <template #trigger="{ open }">
-            <UiButtonIcon icon="action:more-actions" accent="brand" size="small" @click="open($event)" />
+            <UiButtonIcon
+              v-tooltip="{
+                placement: 'top',
+                content: t('quick-actions'),
+              }"
+              icon="action:more-actions"
+              accent="brand"
+              size="small"
+              @click="open($event)"
+            />
           </template>
           <VmTreeActions :vm="leaf.data" />
         </MenuList>
@@ -26,7 +41,7 @@
 <script lang="ts" setup>
 import type { VmLeaf } from '@/modules/treeview/types/tree.type.ts'
 import VmTreeActions from '@/modules/vm/components/actions/VmTreeActions.vue'
-import { CHANGING_STATE_OPERATIONS, isVmOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
+import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import type { POWER_STATE } from '@core/types/power-state.type.ts'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
@@ -35,11 +50,13 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { leaf } = defineProps<{
   leaf: VmLeaf
 }>()
 
-const isChangingState = computed(() => isVmOperationPending(leaf.data, CHANGING_STATE_OPERATIONS))
+const { t } = useI18n()
+
+const { isChangingState, currentOperation } = useXoVmUtils(() => leaf.data)
 </script>
