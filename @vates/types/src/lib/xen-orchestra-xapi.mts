@@ -26,6 +26,7 @@ import type {
   XoVgpuType,
   XoVm,
   XoVmTemplate,
+  XoVif,
 } from '../xo.mjs'
 
 export type XcpPatches = {
@@ -83,7 +84,7 @@ export interface Xapi {
         }
   ): Promise<XenApiNetworkWrapped>
   deleteNetwork(id: XoNetwork['id']): Promise<void>
-  deleteVif(vifId: string): Promise<void>
+  deleteVif(vifId: XoVif['id']): Promise<void>
   exportVmOva(vmRef: XenApiVm['$ref']): Promise<PassThrough>
   listMissingPatches(host: XoHost['id']): Promise<XcpPatches[] | XsPatches[]>
   pool_emergencyShutdown(): Promise<void>
@@ -216,20 +217,20 @@ export interface Xapi {
   ): Promise<void>
   VIF_create(
     options: {
-      currently_attached: boolean
+      currently_attached?: boolean
       device?: string
       ipv4_allowed?: string[]
       ipv6_allowed?: string[]
       locking_mode?: VIF_LOCKING_MODE
-      MTU: number
+      MTU?: number
       network: XenApiNetwork['$ref']
-      other_config: Record<string, string>
-      qos_algorithm_params: Record<string, string>
-      qos_algorithm_type: string
+      other_config?: Record<string, string>
+      qos_algorithm_params?: Record<string, string>
+      qos_algorithm_type?: string
       VM: XenApiVm['$ref']
     },
-    extraOptions: {
-      MAC: string
+    extraOptions?: {
+      MAC?: string
     }
   ): Promise<XenApiVif['$ref']>
   VM_createCloudInitConfig(

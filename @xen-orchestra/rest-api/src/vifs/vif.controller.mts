@@ -11,6 +11,7 @@ import {
   Response,
   Route,
   Security,
+  SuccessResponse,
   Tags,
 } from 'tsoa'
 import { inject } from 'inversify'
@@ -22,14 +23,16 @@ import { provide } from 'inversify-binding-decorators'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import {
   badRequestResp,
+  createdResp,
   internalServerErrorResp,
+  noContentResp,
   notFoundResp,
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
-import { partialVifs, vif, vifIds } from '../open-api/oa-examples/vif.oa-example.mjs'
+import { partialVifs, vif, vifId, vifIds } from '../open-api/oa-examples/vif.oa-example.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
@@ -40,8 +43,8 @@ type UnbrandedXoVif = Unbrand<XoVif>
 type CreateVifParams = Parameters<Xapi['VIF_create']>
 type CreateVifBody = Omit<CreateVifParams[0], 'network' | 'VM'> &
   CreateVifParams[1] & {
-    network: string
-    VM: string
+    networkId: string
+    vmId: string
   }
 
 @Route('vifs')
@@ -161,43 +164,49 @@ export class VifController extends XapiXoController<XoVif> {
   }
 
   /**
-   * @example vmId "613f541c-4bed-fc77-7ca8-2db6b68f079c"
-   * @example networkId "6b6ca0f5-6611-0636-4b0a-1fb1c1e96414"
+   * @example body {
+   *  "currently_attached": true,
+   *  "device": 0,
+   *  "ipv4_allowed": "['127.168.1.1']",
+   *  "ipv6_allowed": "['2001:db8:3333:4444:5555:6666:7777:8888']",
+   *  "locking_mode": "disabled",
+   *  "MTU": 1500,
+   *  "networkId": "6b6ca0f5-6611-0636-4b0a-1fb1c1e96414",
+   *  "other_config": {},
+   *  "qos_algorithm_type": "ratelimit",
+   *  "qos_algorithm_params": {},
+   *  "vmId": "613f541c-4bed-fc77-7ca8-2db6b68f079c",
+   *  "MAC": "25:28:DA:6B:1B:21"
+   * }
    */
-  @Example({ vifId: 'fe8783f0-3bff-5342-3cc1-6e923f98eb38' })
+  @Example(vifId)
   @Post('')
   @Middlewares(json())
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  @SuccessResponse(createdResp.status, createdResp.description)
   async createVif(
     @Body()
     body: CreateVifBody
-  ): Promise<{ vifId: XoVif['id'] }> {
-    const xapi = this.getXapi(body.network as XoNetwork['id'])
-    const xapiVm = this.restApi.getXapiObject<XoVm>(body.VM as XoVm['id'], 'VM')
-    const xapiNetwork = this.restApi.getXapiObject<XoNetwork>(body.network as XoNetwork['id'], 'network')
+  ): Promise<{ id: XoVif['id'] }> {
+    const xapiVm = this.restApi.getXapiObject<XoVm>(body.vmId as XoVm['id'], 'VM')
+    const xapiNetwork = this.restApi.getXapiObject<XoNetwork>(body.networkId as XoNetwork['id'], 'network')
+    const xapi = xapiVm.$xapi
 
+    const { MAC, vmId, networkId, ...rest } = body
     const vifRef = await xapi.VIF_create(
       {
-        currently_attached: body.currently_attached,
-        device: body.device,
-        ipv4_allowed: body.ipv4_allowed,
-        ipv6_allowed: body.ipv6_allowed,
-        locking_mode: body.locking_mode,
-        MTU: body.MTU,
-        network: xapiNetwork.$ref,
-        other_config: body.other_config,
-        qos_algorithm_params: body.qos_algorithm_params,
-        qos_algorithm_type: body.qos_algorithm_type,
+        ...rest,
         VM: xapiVm.$ref,
+        network: xapiNetwork.$ref,
       },
       {
-        MAC: body.MAC,
+        MAC,
       }
     )
 
     const vif = this.getObject(vifRef as XenApiVif['$ref'])
-    return { vifId: vif.id }
+    return { id: vif.id }
   }
 
   /**
@@ -206,8 +215,9 @@ export class VifController extends XapiXoController<XoVif> {
   @Delete('{id}')
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  @SuccessResponse(noContentResp.status, noContentResp.description)
   async destroyVif(@Path() id: string): Promise<void> {
     const xapi = this.getXapi(id as XoVif['id'])
-    await xapi.deleteVif(id)
+    await xapi.deleteVif(id as XoVif['id'])
   }
 }
