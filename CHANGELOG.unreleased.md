@@ -10,7 +10,7 @@
 ### Enhancements
 
 - [Settings] Add various themes (PR [#9387](https://github.com/vatesfr/xen-orchestra/pull/9387))
-- [Netbox] Support version 4.5.x
+- [Netbox] Support version 4.5.x (PR [#9445](https://github.com/vatesfr/xen-orchestra/pull/9445))
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
