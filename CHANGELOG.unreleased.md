@@ -15,6 +15,8 @@
 
 ### Bug fixes
 
+- [xo-server-sdn-controller] traffic rules robustness (PR [#9442](https://github.com/vatesfr/xen-orchestra/pull/9442))
+
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Backups/s3] Fallback in rmtree for providers which do not support DeleteObjectsCommand (PR [#9450](https://github.com/vatesfr/xen-orchestra/pull/9450))
@@ -39,5 +41,6 @@
 - @xen-orchestra/fs patch
 - @xen-orchestra/web patch
 - xo-server-openmetrics minor
+- xo-server-sdn-controller patch
 
 <!--packages-end-->
