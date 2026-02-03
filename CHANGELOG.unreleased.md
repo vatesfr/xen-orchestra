@@ -15,6 +15,8 @@
 
 ### Bug fixes
 
+- [Backup/immutability] Fix typo in sample config file (PR [#9444](https://github.com/vatesfr/xen-orchestra/pull/9444))
+
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [REST API] Close SSE connections when clients are too slow, to avoid increased memory consumption (PR [#9439](https://github.com/vatesfr/xen-orchestra/pull/9439))
