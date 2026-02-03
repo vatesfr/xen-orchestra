@@ -85,6 +85,7 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<XoVm>) {
       hard_shutdown: t('operation:force-shutdown'),
       destroy: t('operation:destroy'),
       snapshot: t('operation:snapshot'),
+      unknown: '',
     },
     'unknown'
   )

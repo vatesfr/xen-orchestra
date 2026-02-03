@@ -1,5 +1,5 @@
 <template>
-  <MenuItem v-if="canDisplay" icon="action:force-shutdown" :busy="isRunning" @click="openModal">
+  <MenuItem v-if="canDisplay" icon="action:force-shutdown" :busy="isRunning" @click="openModal()">
     {{ t('action:force-shutdown') }}
   </MenuItem>
 </template>
@@ -10,7 +10,7 @@ import { useXoVmForceShutdownJob } from '@/modules/vm/jobs/xo-vm-force-shutdown.
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useModal } from '@core/packages/modal/use-modal.ts'
 import { VM_POWER_STATE, type XoVm } from '@vates/types'
-import { computed } from 'vue'
+import { logicOr } from '@vueuse/math'
 import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{
@@ -23,12 +23,11 @@ const { run: forceShutdown, canRun, isRunning } = useXoVmForceShutdownJob(() => 
 
 const { xo5VmAdvancedHref } = useXoVmUtils(() => vm)
 
-const canDisplay = computed(
-  () =>
-    canRun.value ||
-    vm.power_state === VM_POWER_STATE.RUNNING ||
-    vm.power_state === VM_POWER_STATE.SUSPENDED ||
-    vm.power_state === VM_POWER_STATE.PAUSED
+const canDisplay = logicOr(
+  () => canRun.value,
+  vm.power_state === VM_POWER_STATE.RUNNING,
+  vm.power_state === VM_POWER_STATE.SUSPENDED,
+  vm.power_state === VM_POWER_STATE.PAUSED
 )
 
 const openRebootModal = useModal({
@@ -39,7 +38,7 @@ const openRebootModal = useModal({
 
 const openBlockedModal = useModal({
   component: import('@core/components/modal/VtsBlockedModal.vue'),
-  props: { blockedOperations: 'hard_shutdown', href: xo5VmAdvancedHref },
+  props: { blockedOperation: 'hard_shutdown', href: xo5VmAdvancedHref },
 })
 
 const openModal = () => (canRun.value ? openRebootModal() : openBlockedModal())

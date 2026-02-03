@@ -1,5 +1,5 @@
 <template>
-  <MenuItem v-if="canDisplay" icon="fa:pause" :busy="isRunning" @click="openModal">
+  <MenuItem v-if="canDisplay" icon="fa:pause" :busy="isRunning" @click="openModal()">
     {{ t('pause') }}
   </MenuItem>
 </template>
@@ -36,7 +36,7 @@ function pauseJob() {
 
 const openBlockedModal = useModal({
   component: import('@core/components/modal/VtsBlockedModal.vue'),
-  props: { blockedOperations: 'pause', href: xo5VmAdvancedHref },
+  props: { blockedOperation: 'pause', href: xo5VmAdvancedHref },
 })
 
 const openModal = () => (canRun.value ? pauseJob() : openBlockedModal())

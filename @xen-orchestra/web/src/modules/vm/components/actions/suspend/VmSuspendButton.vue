@@ -1,5 +1,5 @@
 <template>
-  <MenuItem v-if="canDisplay" :disabled="!canSuspend" icon="fa:moon" :busy="isRunning" @click="openModal">
+  <MenuItem v-if="canDisplay" :disabled="!canSuspend" icon="fa:moon" :busy="isRunning" @click="openModal()">
     {{ t('action:suspend') }}
     <i v-if="!canSuspend">{{ t('vm-tools-missing') }}</i>
   </MenuItem>
@@ -39,7 +39,7 @@ function suspendJob() {
 
 const openBlockedModal = useModal({
   component: import('@core/components/modal/VtsBlockedModal.vue'),
-  props: { blockedOperations: 'suspend', href: xo5VmAdvancedHref },
+  props: { blockedOperation: 'suspend', href: xo5VmAdvancedHref },
 })
 
 const openModal = () => (canRun.value ? suspendJob() : openBlockedModal())

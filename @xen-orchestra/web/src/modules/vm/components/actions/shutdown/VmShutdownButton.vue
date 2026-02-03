@@ -38,7 +38,7 @@ const openShutdownModal = useModal({
 
 const openBlockedModal = useModal({
   component: import('@core/components/modal/VtsBlockedModal.vue'),
-  props: { blockedOperations: 'clean_shutdown', href: xo5VmAdvancedHref },
+  props: { blockedOperation: 'clean_shutdown', href: xo5VmAdvancedHref },
 })
 
 const openModal = () => (canRun.value ? openShutdownModal() : openBlockedModal())

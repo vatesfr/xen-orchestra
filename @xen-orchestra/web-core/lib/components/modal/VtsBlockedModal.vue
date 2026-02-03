@@ -34,8 +34,8 @@ type BlockedOperationText = {
   subMessage: string
 }
 
-const { blockedOperations } = defineProps<{
-  blockedOperations: VmBlockedOperations
+const { blockedOperation } = defineProps<{
+  blockedOperation: VmBlockedOperations
   href?: string
 }>()
 
@@ -83,7 +83,7 @@ const textMappings: Record<VmBlockedOperations, BlockedOperationText> = {
   },
 }
 
-const modalTexts = useMapper(() => blockedOperations, textMappings, 'clean_shutdown')
+const modalTexts = useMapper(() => blockedOperation, textMappings, 'clean_shutdown')
 </script>
 
 <style lang="postcss" scoped>
