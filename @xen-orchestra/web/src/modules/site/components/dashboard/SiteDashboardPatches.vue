@@ -1,20 +1,20 @@
 <template>
-  <UiCard :has-error>
+  <UiCard :has-error="isError">
     <UiCardTitle>{{ t('patches') }}</UiCardTitle>
-    <VtsStateHero v-if="!arePatchesReady" format="card" type="busy" size="medium" />
-    <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">
+    <VtsStateHero v-if="isLoading" format="card" type="busy" size="medium" />
+    <VtsStateHero v-else-if="isError" format="card" type="error" size="small">
       {{ t('error-no-data') }}
     </VtsStateHero>
     <template v-else>
-      <VtsDonutChartWithLegend :segments="poolsSegments" :title="poolsTitle" />
+      <VtsDonutChartWithLegend :segments="poolsSegments" :title="poolsTitle" class="chart" />
       <VtsDivider type="stretch" />
-      <VtsDonutChartWithLegend :segments="hostsSegments" :title="hostsTitle" />
+      <VtsDonutChartWithLegend :segments="hostsSegments" :title="hostsTitle" class="chart" />
     </template>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import type { XoDashboard } from '@/modules/site/types/xo-dashboard.type.ts'
+import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
@@ -22,39 +22,51 @@ import VtsDonutChartWithLegend, {
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import { isDefined } from '@vueuse/shared'
 import { computed, type ComputedRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const {
-  missingPatches,
-  nPools = 0,
-  nHosts = 0,
-  nHostsEol = 0,
-} = defineProps<{
-  missingPatches: XoDashboard['missingPatches'] | undefined
-  nPools: XoDashboard['nPools'] | undefined
-  nHosts: XoDashboard['nHosts'] | undefined
-  nHostsEol: XoDashboard['nHostsEol'] | undefined
-  hasError?: boolean
-}>()
+const { dashboard, hasError } = useXoSiteDashboard()
 
 const { t } = useI18n()
 
-const arePatchesReady = computed(() => missingPatches !== undefined)
+const dashboardMissingPatches = computed(() => dashboard.value.missingPatches)
+
+const isLoading = computed(() => dashboardMissingPatches.value === undefined)
+
+const missingPatches = computed(() => {
+  if (!dashboardMissingPatches.value || !('nPools' in dashboardMissingPatches.value)) {
+    return
+  }
+
+  return dashboardMissingPatches.value
+})
+
+const isError = computed(() => {
+  if (hasError.value) {
+    return true
+  }
+  if (isLoading.value || !isDefined(missingPatches.value)) {
+    return false
+  }
+
+  return 'error' in missingPatches.value || !missingPatches.value.hasAuthorization
+})
 
 const poolsTitle: ComputedRef<DonutChartWithLegendProps['title']> = computed(() => ({
   label: t('pools'),
 }))
 
 const poolsSegments: ComputedRef<DonutChartWithLegendProps['segments']> = computed(() => {
-  // @TODO: See with Clémence if `hasAuthorization === false`
-  const nPoolsWithMissingPatches = missingPatches?.hasAuthorization ? missingPatches.nPoolsWithMissingPatches : 0
+  if (isLoading.value || !isDefined(missingPatches.value)) {
+    return []
+  }
 
-  const nUpToDatePools = nPools - nPoolsWithMissingPatches
+  const nUpToDatePools = missingPatches.value.nPools - missingPatches.value.nPoolsWithMissingPatches
 
   return [
     { value: nUpToDatePools, accent: 'success', label: t('up-to-date') },
-    { value: nPoolsWithMissingPatches, accent: 'warning', label: t('missing-patches') },
+    { value: missingPatches.value.nPoolsWithMissingPatches, accent: 'warning', label: t('missing-patches') },
   ]
 })
 
@@ -63,19 +75,33 @@ const hostsTitle: ComputedRef<DonutChartWithLegendProps['title']> = computed(() 
 }))
 
 const hostsSegments = computed(() => {
-  // @TODO: See with Clémence if `hasAuthorization === false`
-  const nHostsWithMissingPatches = missingPatches?.hasAuthorization ? missingPatches.nHostsWithMissingPatches : 0
-  const nUpToDateHosts = nHosts - (nHostsWithMissingPatches + nHostsEol)
+  if (isLoading.value || !isDefined(missingPatches.value)) {
+    return []
+  }
+
+  const nUpToDateHosts = missingPatches.value.nHosts - missingPatches.value.nHostsWithMissingPatches
 
   const segments: DonutChartWithLegendProps['segments'] = [
     { value: nUpToDateHosts, accent: 'success', label: t('up-to-date') },
-    { value: nHostsWithMissingPatches, accent: 'warning', label: t('missing-patches') },
+    { value: missingPatches.value.nHostsWithMissingPatches, accent: 'warning', label: t('missing-patches') },
   ]
 
-  if (nHostsEol !== undefined) {
-    segments.push({ value: nHostsEol, accent: 'danger', label: t('eol'), tooltip: t('end-of-life') })
+  // TODO instead of tooltips for nHostsEol , we need to add a modal with a button
+  if (typeof missingPatches.value.nHostsEol === 'number') {
+    segments.push({
+      value: missingPatches.value.nHostsEol,
+      accent: 'danger',
+      label: t('eol'),
+      tooltip: t('end-of-life'),
+    })
   }
 
   return segments
 })
 </script>
+
+<style lang="postcss" scoped>
+.chart {
+  flex-grow: 1;
+}
+</style>

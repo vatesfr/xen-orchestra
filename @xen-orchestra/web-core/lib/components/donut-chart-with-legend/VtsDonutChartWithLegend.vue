@@ -22,6 +22,6 @@ defineProps<DonutChartWithLegendProps>()
 .vts-donut-chart-with-legend {
   display: flex;
   align-items: center;
-  gap: 3.2rem;
+  gap: 4rem;
 }
 </style>
