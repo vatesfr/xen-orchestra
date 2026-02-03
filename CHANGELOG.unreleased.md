@@ -9,12 +9,21 @@
 
 ### Enhancements
 
+- [Settings] Add various themes (PR [#9387](https://github.com/vatesfr/xen-orchestra/pull/9387))
+
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
+
+- [VM] Add delete and snapshot buttons to manage VM (PR [9410](https://github.com/vatesfr/xen-orchestra/pull/9410))
 
 ### Bug fixes
 
+- [Backup/immutability] Fix typo in sample config file (PR [#9444](https://github.com/vatesfr/xen-orchestra/pull/9444))
+
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [REST API] Close SSE connections when clients are too slow, to avoid increased memory consumption (PR [#9439](https://github.com/vatesfr/xen-orchestra/pull/9439))
+- [REST API] `message` objects are no longer sent via the SSE when subscribing to the`alarm` collection (PR [#9439](https://github.com/vatesfr/xen-orchestra/pull/9439))
+- [REST API] Do no longer create an `XO user authentication` task, when using an authentication token (PR [#9439](https://github.com/vatesfr/xen-orchestra/pull/9439))
 - [Backup] ensure no snapshot are left unattended after a job (PR [#9434](https://github.com/vatesfr/xen-orchestra/pull/9434))
 
 ### Packages to release
@@ -33,6 +42,11 @@
 
 <!--packages-start-->
 
+- @vates/types minor
 - @xen-orchestra/backups patch
+- @xen-orchestra/rest-api patch
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
+- xo-server patch
 
 <!--packages-end-->

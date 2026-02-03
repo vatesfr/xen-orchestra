@@ -1,11 +1,11 @@
 <template>
-  <MenuItem v-if="canRun || isRunning" icon="fa:play" :busy="isRunning" @click="startJob()">
-    {{ t('action:start') }}
+  <MenuItem icon="action:snapshot" :busy="isRunning" @click="snapshotJob()">
+    {{ t('snapshot') }}
   </MenuItem>
 </template>
 
 <script lang="ts" setup>
-import { useXoVmStartJob } from '@/modules/vm/jobs/xo-vm-start.job.ts'
+import { useXoVmSnapshotJob } from '@/modules/vm/jobs/xo-vm-snapshot.job.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { IK_CLOSE_MENU } from '@core/utils/injection-keys.util.ts'
 import type { XoVm } from '@vates/types'
@@ -18,12 +18,12 @@ const { vm } = defineProps<{
 
 const { t } = useI18n()
 
-const { run: start, canRun, isRunning } = useXoVmStartJob(() => [vm])
+const { run: snapshot, isRunning } = useXoVmSnapshotJob(() => [vm])
 
 const closeMenu = inject(IK_CLOSE_MENU, undefined)
 
-function startJob() {
-  start()
+function snapshotJob() {
+  snapshot()
   closeMenu?.()
 }
 </script>

@@ -1,7 +1,7 @@
 import type { THandleDelete, THandlePost, THandleWatching } from '@core/packages/remote-resource/sse.store.ts'
 import type { ResourceContext } from '@core/packages/remote-resource/types.ts'
 import { useEventSource } from '@vueuse/core'
-import { watchEffect } from 'vue'
+import { watch, watchEffect } from 'vue'
 
 const EVENT_ENDPOINTS = '/rest/v0/events'
 
@@ -64,10 +64,19 @@ export function watchCollectionWrapper<T>({
 
   if (handleWatching === undefined) {
     handleWatching = (updateSseId, getConfigByResource) => {
-      const { data, event } = useEventSource(EVENT_ENDPOINTS, ['init', 'add', 'update', 'remove'], {
+      const { data, event, close, error } = useEventSource(EVENT_ENDPOINTS, ['init', 'add', 'update', 'remove'], {
         serializer: {
           read: raw => (raw === undefined ? undefined : JSON.parse(raw)),
         },
+      })
+
+      watch(error, value => {
+        if (value !== null) {
+          // If an error occurs, manually close the SSE on the front side; otherwise,
+          // the browser will automatically retry(and then generate a new identifier for subscriptions).
+          console.error('Close the SSE connection due to an error', value)
+          close()
+        }
       })
 
       function getObjectType(obj: unknown) {

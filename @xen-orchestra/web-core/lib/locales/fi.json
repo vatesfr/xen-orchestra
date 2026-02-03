@@ -197,7 +197,6 @@
   "pause": "Tauko",
   "pending": "Odottaa",
   "physical-interface-status": "Fyysisen rajapinnan tila",
-  "please-confirm": "Varmista",
   "pool:status:unknown:tooltip": "Palvelimet, jotka ovat parhaillaan yhteydessä toisiinsa tai joiden tila on tuntematon",
   "pool:status:unreachable:tooltip": "Määritetyt palvelimet, joihin ei saada yhteyttä",
   "professional-support": "Ammattimainen tuki",

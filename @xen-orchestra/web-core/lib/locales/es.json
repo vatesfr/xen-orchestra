@@ -536,7 +536,6 @@
   "pif-status": "Estado del PIF",
   "pifs": "PIFs",
   "pifs-status": "Estado de los PIFs",
-  "please-confirm": "Confirme, por favor",
   "pool": "Pool",
   "pool-connection-error-auth-failed": "Se produjo un error al intentar conectarse al poo. Es posible que el nombre de usuario o el clave de acceso sea incorrecto.",
   "pool-connection-error-duplicate": "Parece que el conjunto de servidores ya está conectado.",

@@ -1,9 +1,9 @@
 import pick from 'lodash/pick.js'
 import isEqual from 'lodash/isEqual.js'
 import { createLogger } from '@xen-orchestra/log'
-import type { Response } from 'express'
 import { EventEmitter } from 'node:events'
 import { noSuchObject } from 'xo-common/api-errors.js'
+import type { PassThrough } from 'node:stream'
 
 import { Listener } from '../abstract-classes/listener.mjs'
 import type { CollectionEventType, EventType, SubscriberId, XoListenerType } from './event.type.mjs'
@@ -15,7 +15,7 @@ const log = createLogger('xo:rest-api:event-service')
 export class Subscriber {
   #id: SubscriberId
   #manager: SubscriberManager
-  #connection: Response
+  #connection: PassThrough
   #isAlive: boolean
 
   get id() {
@@ -30,22 +30,27 @@ export class Subscriber {
     return this.#connection
   }
 
-  constructor(res: Response, manager: SubscriberManager) {
+  constructor(connection: PassThrough, manager: SubscriberManager) {
     this.#id = crypto.randomUUID() as SubscriberId
 
-    const headers = new Headers({
-      'Content-Type': 'text/event-stream',
-      Connection: 'keep-alive',
-      'Cache-Control': 'no-cache, no-transform',
-    })
-    res.setHeaders(headers)
-    res.on('close', () => this.clear())
+    connection.on('close', () => this.clear())
 
     manager.addSubscriber(this)
 
-    this.#connection = res
+    this.#connection = connection
     this.#manager = manager
     this.#isAlive = true
+  }
+
+  #safeWrite(payload: string) {
+    const ok = this.#connection.write(payload)
+
+    if (!ok) {
+      log.error(
+        `Too much data in queue for the client ${this.id} (${Math.round(this.#connection.writableLength / 1024 / 1024)} MB). The connection is going to be destroyed`
+      )
+      this.clear()
+    }
   }
 
   broadcast(event: EventType | 'init', data: object) {
@@ -54,12 +59,17 @@ export class Subscriber {
       this.clear()
       return
     }
-    this.#connection.write(`event:${event}\n`)
-    this.#connection.write(`data:${JSON.stringify(data)}\n\n`)
+
+    const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`
+
+    this.#safeWrite(payload)
   }
 
   clear() {
     this.#isAlive = false
+    if (!this.#connection.closed || !this.#connection.destroyed) {
+      this.#connection.destroy()
+    }
     this.#manager.removeSubscriber(this.id)
   }
 }
@@ -82,23 +92,27 @@ export class XoListener extends Listener {
     let _object: Partial<XapiXoRecord | XoTask> | undefined = object
     let _prevObject: Partial<XapiXoRecord | XoTask> | undefined = previousObj
 
-    if (this.#type === 'alarm') {
-      if (
-        object !== undefined &&
-        'type' in object &&
-        object.type === 'message' &&
-        this.#alarmService?.isAlarm(object)
-      ) {
-        _object = this.#alarmService.parseAlarm(object)
+    if (this.#type === 'alarm' || this.#type === 'message') {
+      const isAlarm = (object: T | undefined): object is Extract<T, { type: 'message' }> =>
+        object !== undefined && 'type' in object && object.type === 'message' && this.#alarmService!.isAlarm(object)
+
+      const objectIsAlarm = isAlarm(object)
+      const prevObjectIsAlarm = isAlarm(previousObj)
+
+      // If we are in an alarm listener and the objects are messages
+      // we clean them to ensure they are not sent via the SSE
+      // Same if we are in a message listener and the objects are alarms
+      if (this.#type === 'alarm') {
+        _object = objectIsAlarm ? this.#alarmService!.parseAlarm(object) : undefined
+        _prevObject = prevObjectIsAlarm ? this.#alarmService!.parseAlarm(previousObj) : undefined
+      } else {
+        _object = objectIsAlarm ? undefined : object
+        _prevObject = prevObjectIsAlarm ? undefined : object
       }
-      if (
-        previousObj !== undefined &&
-        'type' in previousObj &&
-        previousObj.type === 'message' &&
-        this.#alarmService?.isAlarm(previousObj)
-      ) {
-        _prevObject = this.#alarmService.parseAlarm(previousObj)
-      }
+    }
+
+    if (_object === undefined && _prevObject === undefined) {
+      return
     }
 
     if (fields !== '*') {
