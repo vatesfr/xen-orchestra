@@ -78,13 +78,11 @@ const attrs = useAttrs()
       border-color 0.125s ease-in-out;
     border: 0.2rem solid transparent;
     border-radius: 0.2rem;
+    flex-shrink: 0;
 
     .icon {
-      height: 1.6rem;
-      width: 1.6rem;
       font-size: 0.75rem;
       display: flex;
-      align-items: center;
       justify-content: center;
       color: var(--color-info-txt-item);
       transition: opacity 0.125s ease-in-out;

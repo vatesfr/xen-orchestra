@@ -41,6 +41,7 @@ const isDisabled = useDisabled(() => disabled)
   .radio-container {
     display: inline-flex;
     align-items: center;
+    flex-shrink: 0;
     justify-content: center;
     border: 0.2rem solid var(--accent-color);
     background-color: transparent;
@@ -79,10 +80,7 @@ const isDisabled = useDisabled(() => disabled)
     /* ICON */
 
     .radio-icon {
-      height: 1.6rem;
-      width: 1.6rem;
       display: flex;
-      align-items: center;
       justify-content: center;
       font-size: 0.8rem;
       transition: font-size 0.125s ease-in-out;
