@@ -5,10 +5,18 @@ const getReplicatedVmDatetime = vm => {
   return datetime
 }
 
-const compareReplicatedVmDatetime = (a, b) => (getReplicatedVmDatetime(a) < getReplicatedVmDatetime(b) ? -1 : 1)
+export const compareReplicatedVmDatetime = (a, b) => (getReplicatedVmDatetime(a) < getReplicatedVmDatetime(b) ? -1 : 1)
 
+/**
+ *
+ * @param {Xapi} xapi
+ * @param {string} scheduleOrJobId
+ * @param {string} srUuid
+ * @param {string} vmUuid
+ * @returns {Array<XoVm>}
+ */
 export function listReplicatedVms(xapi, scheduleOrJobId, srUuid, vmUuid) {
-  const { all } = xapi.objects
+  const all = xapi.objects.indexes.type.VM
   const vms = {}
   for (const key in all) {
     const object = all[key]
