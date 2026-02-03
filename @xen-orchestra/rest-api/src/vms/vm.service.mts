@@ -1,5 +1,6 @@
 import { createLogger } from '@xen-orchestra/log'
 import { type Defer, defer } from 'golike-defer'
+import { incorrectState } from 'xo-common/api-errors.js'
 import { Task } from '@vates/task'
 import {
   AnyXoVm,
@@ -101,6 +102,51 @@ export class VmService {
     return xoVm.id
   }
   create = defer(this.#create)
+
+  async #clone(
+    $defer: Defer,
+    vmId: XoVm['id'],
+    { name_label, fast = true }: { name_label: string; fast?: boolean }
+  ): Promise<XoVm['id']> {
+    const xoApp = this.#restApi.xoApp
+    const xapi = xoApp.getXapi(vmId)
+    const clonedVm = await xapi.cloneVm(vmId, { name_label, fast })
+    $defer.onFailure(() => xapi.VM_destroy(clonedVm.$ref))
+
+    return clonedVm.uuid as XoVm['id']
+  }
+  clone = defer(this.#clone)
+
+  async #copy(
+    $defer: Defer,
+    vmId: XoVm['id'],
+    srId: XoSr['id'],
+    { name_label }: { name_label?: string }
+  ): Promise<XoVm['id']> {
+    const xoApp = this.#restApi.xoApp
+    const xapi = xoApp.getXapi(vmId)
+    const copiedVm = await xapi.copyVm(vmId, {
+      name_label,
+      srOrSrId: srId,
+    })
+    $defer.onFailure(() => xapi.VM_destroy(copiedVm.$ref))
+
+    return copiedVm.uuid as XoVm['id']
+  }
+  copy = defer(this.#copy)
+
+  isVmHalted(vmId: XoVm['id']): void {
+    const vm = this.#restApi.getObject<XoVm>(vmId, 'VM')
+
+    if (vm.power_state !== VM_POWER_STATE.HALTED) {
+      throw incorrectState({
+        actual: vm.power_state,
+        expected: VM_POWER_STATE.HALTED,
+        object: vmId,
+        property: 'power_state',
+      })
+    }
+  }
 
   getVmsStatus(opts?: { filter?: string | ((obj: XoVm) => boolean) }) {
     const vms = this.#restApi.getObjectsByType<XoVm>('VM', opts)
