@@ -114,13 +114,13 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
       oldEntries.length = maxMergedDeltasPerRun
     }
 
-    if (settings.deleteFirst) {
+    if (settings.deleteFirst && !settings.skipDeleteOldEntries) {
       await this._deleteOldEntries()
     }
   }
 
   async cleanup() {
-    if (!this._settings.deleteFirst) {
+    if (!this._settings.deleteFirst && !this._settings.skipDeleteOldEntries) {
       await this._deleteOldEntries()
     }
   }

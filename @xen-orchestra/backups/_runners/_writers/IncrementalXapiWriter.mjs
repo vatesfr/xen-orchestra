@@ -74,7 +74,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
 
     this._oldEntries = getOldEntries(settings.copyRetention - 1, listReplicatedVms(xapi, scheduleId, srUuid, vmUuid))
 
-    if (settings.deleteFirst) {
+    if (settings.deleteFirst && settings.skipDeleteOldEntries) {
       // we want to keep the baseVM when copying a delta
       // even if we want to keep only one after
       let mostRecentEntry
@@ -87,7 +87,9 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
   }
 
   async cleanup() {
-    await this._deleteOldEntries()
+    if (!this._settings.skipDeleteOldEntries) {
+      await this._deleteOldEntries()
+    }
   }
 
   async _deleteOldEntries() {
