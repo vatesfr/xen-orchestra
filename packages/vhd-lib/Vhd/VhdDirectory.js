@@ -178,7 +178,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     return `blocks/${blockPrefix}/${blockSuffix}`
   }
 
-  _getFullBlockPath(blockId) {
+  getFullBlockPath(blockId) {
     return this.#getChunkPath(this.#getBlockPath(blockId))
   }
 

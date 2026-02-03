@@ -804,15 +804,16 @@ describe('tests MergeVhdChain', { concurrency: 1 }, () => {
 
     const expectedIndexes = parent.getBlockIndexes().concat(child.getBlockIndexes())
 
-    const originalWriteBlock = parent.writeBlock.bind(parent)
+    const originalMergeBlockFrom = parent.mergeBlockFrom.bind(parent)
 
     // Make writeBlock fail on the second block
-    parent.writeBlock = async diskBlock => {
-      if (blocksWritten === 5) {
+    parent.mergeBlockFrom = async (disk, index, isResumingMerge) => {
+      if (blocksWritten === 4) {
         throw new Error('simulated interruption')
       }
       blocksWritten++
-      return originalWriteBlock(diskBlock)
+
+      return originalMergeBlockFrom(disk, index, isResumingMerge)
     }
 
     // First merge attempt should throw
@@ -864,8 +865,22 @@ describe('tests MergeVhdChain', { concurrency: 1 }, () => {
       'merge state file should be removed after successful resume'
     )
 
-    // Verify all blocks present in parent
+    // Verify all blocks present in parent BAT
     const parentIndexes = parent2.getBlockIndexes()
     assert.deepEqual(parentIndexes, expectedIndexes, 'all child blocks should be merged into parent')
+
+    // Verify all blocks actually present in parent
+    for (const index of expectedIndexes) {
+      const parentBlockPath = parent2.getBlockPath(index)
+
+      let size
+      try {
+        size = await handler.getSize(parentBlockPath)
+      } catch {
+        assert.fail(`block ${index} is missing from parent directory`)
+      }
+
+      assert.ok(size >= parent2.getBlockSize(), `block ${index} complete`)
+    }
   })
 })

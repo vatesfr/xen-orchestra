@@ -243,10 +243,10 @@ export class MergeRemoteDisk {
       async blockId => {
         merging.add(blockId)
 
-        const blockSize = await parentDisk.writeBlock(await childDisk.readBlock(blockId))
+        const blockSize = await parentDisk.mergeBlockFrom(childDisk, blockId, this.#isResuming)
         this.#state.mergedDataSize += blockSize
 
-        this.#state.currentBlock = Math.min(...merging)
+        this.#state.currentBlock = Math.min(...merging) - 1
         merging.delete(blockId)
 
         this.#onProgress({ total: nBlocks, done: counter + 1 })
@@ -276,7 +276,6 @@ export class MergeRemoteDisk {
 
     // delete intermediate children if needed
     if (this.#removeUnused) {
-      await childDisk.unlinkIntermediates()
       await childDisk.unlink()
     }
 
