@@ -40,10 +40,6 @@ export default class S3Handler extends RemoteHandlerAbstract {
   #s3
   #immutable = false
 
-  get isImmutable() {
-    return super.isImmutable() || this.#immutable
-  }
-
   constructor(remote, _opts) {
     super(remote, _opts)
     const {
@@ -144,6 +140,9 @@ export default class S3Handler extends RemoteHandlerAbstract {
     }
   }
 
+  isImmutable() {
+    return super.isImmutable() || this.#immutable
+  }
   _conditionRetry(error) {
     return ![401, 403, 404, 405].includes(error?.$metadata?.httpStatusCode) && super._conditionRetry(error)
   }

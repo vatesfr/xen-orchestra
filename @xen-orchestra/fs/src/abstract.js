@@ -792,7 +792,7 @@ export default class RemoteHandlerAbstract {
     return this.#encryptor?.algorithm ?? UNENCRYPTED_ALGORITHM
   }
 
-  get isImmutable() {
+  isImmutable() {
     return this._remote.immutable === true
   }
 }
