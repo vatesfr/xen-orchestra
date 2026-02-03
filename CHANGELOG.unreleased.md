@@ -13,6 +13,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [VM] Add delete and snapshot buttons to manage VM (PR [9410](https://github.com/vatesfr/xen-orchestra/pull/9410))
+
 ### Bug fixes
 
 - [Backup/immutability] Fix typo in sample config file (PR [#9444](https://github.com/vatesfr/xen-orchestra/pull/9444))
@@ -42,6 +44,7 @@
 - @vates/types minor
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - xo-server patch
 
 <!--packages-end-->

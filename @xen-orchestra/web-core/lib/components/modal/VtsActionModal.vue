@@ -21,10 +21,9 @@ import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vu
 import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
 import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
 import { useMapper } from '@core/packages/mapper/use-mapper.ts'
+import type { ObjectType, VmActions } from '@core/types/object.type.ts'
 import { useI18n } from 'vue-i18n'
 
-type ObjectType = 'vm'
-type XoVmActions = 'reboot' | 'shutdown' | 'force-reboot' | 'force-shutdown'
 type ActionTexts = {
   title: string
   message: string
@@ -32,14 +31,14 @@ type ActionTexts = {
 }
 
 const { action, object } = defineProps<{
-  action: XoVmActions
+  action: VmActions
   accent: ModalAccent
   object: ObjectType
 }>()
 
 const { t } = useI18n()
 
-const textMappingsByObject: Record<ObjectType, Record<XoVmActions, ActionTexts>> = {
+const textMappingsByObject: Record<ObjectType, Record<VmActions, ActionTexts>> = {
   vm: {
     'force-reboot': {
       title: t('modal:confirm-vm-force-reboot'),
