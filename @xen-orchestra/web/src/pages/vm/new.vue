@@ -1,9 +1,9 @@
 <template>
   <div class="new">
-    <UiHeadBar icon="fa:plus">
+    <UiHeadBar icon="fa:plus" class="head-bar">
       {{ t('new-vm:add') }}
       <template #actions>
-        <VtsSelect :id="poolSelectId" accent="brand" />
+        <VtsSelect :id="poolSelectId" accent="brand" class="head-select" />
       </template>
     </UiHeadBar>
     <UiAlert v-if="vmState.pool" accent="info" class="card-container">
@@ -20,12 +20,12 @@
         <UiCard v-if="vmState.pool">
           <!-- TEMPLATE SECTION -->
           <UiTitle>{{ t('template') }}</UiTitle>
-          <div class="template-container">
+          <div class="template-container" :class="{ mobile: uiStore.isMobile }">
             <VtsInputWrapper :label="t('action:pick-template')">
               <VtsSelect :id="templateSelectId" accent="brand" />
             </VtsInputWrapper>
           </div>
-          <div v-if="vmState.new_vm_template" class="form-container">
+          <div v-if="vmState.new_vm_template" class="form-container" :class="{ mobile: uiStore.isMobile }">
             <!-- INSTALL SETTINGS SECTION -->
             <UiTitle>{{ t('install-settings') }}</UiTitle>
             <div class="install-settings-container">
@@ -125,7 +125,7 @@
             />
             <!-- SETTINGS SECTION -->
             <UiTitle>{{ t('settings') }}</UiTitle>
-            <UiCheckboxGroup accent="brand">
+            <UiCheckboxGroup accent="brand" :vertical="uiStore.isMobile">
               <UiCheckbox v-model="vmState.boot_vm" accent="brand">{{ t('action:boot-vm') }}</UiCheckbox>
               <UiCheckbox v-model="vmState.autoPoweron" accent="brand">{{ t('auto-power') }}</UiCheckbox>
               <UiCheckbox v-if="isDiskTemplate" v-model="vmState.clone" accent="brand">
@@ -206,6 +206,7 @@ import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useFormSelect } from '@core/packages/form-select'
+import { useUiStore } from '@core/stores/ui.store'
 import type { XoNetwork, XoPool, XoVdi, XoVmTemplate } from '@vates/types'
 
 import { computed, reactive, ref, toRef, watch } from 'vue'
@@ -230,6 +231,7 @@ const { getVdiById } = useXoVdiCollection()
 const { getVifById } = useXoVifCollection()
 const { hostsByPool } = useXoHostCollection()
 const { vmsTemplatesByPool } = useXoVmTemplateCollection()
+const uiStore = useUiStore()
 
 const vmState = reactive<VmState>({
   name: '',
@@ -778,6 +780,12 @@ watch(
 
 <style scoped lang="postcss">
 .new {
+  .head-bar {
+    .head-select {
+      max-width: 100%;
+    }
+  }
+
   .card-container {
     margin: 1rem;
   }
@@ -787,12 +795,31 @@ watch(
     flex-direction: column;
     gap: 0.4rem;
     width: 50%;
+    &.mobile {
+      width: 100%;
+    }
   }
 
   .form-container {
     display: flex;
     flex-direction: column;
     gap: 2.4rem;
+
+    &.mobile .system-container,
+    &.mobile .memory-container {
+      flex-direction: column;
+      gap: 2.3rem;
+    }
+
+    &.mobile .install-settings-container .radio-container {
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    &.mobile .system-container .column,
+    &.mobile .install-settings-container {
+      width: 100%;
+    }
 
     .system-container {
       display: flex;

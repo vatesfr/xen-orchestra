@@ -13,7 +13,7 @@
               <VtsSelect :id="templateSelectId" accent="brand" />
             </VtsInputWrapper>
           </div>
-          <div v-if="vmState.new_vm_template" class="form-container">
+          <div v-if="vmState.new_vm_template" class="form-container" :class="{ mobile: uiStore.isMobile }">
             <!-- INSTALL SETTINGS SECTION -->
             <UiTitle>{{ t('install-settings') }}</UiTitle>
             <div>
@@ -121,7 +121,7 @@
             <NewVmSrTable :srs :vm-state @add="addStorageEntry()" @remove="index => deleteItem(vmState.vdis, index)" />
             <!-- SETTINGS SECTION -->
             <UiTitle>{{ t('settings') }}</UiTitle>
-            <UiCheckboxGroup accent="brand">
+            <UiCheckboxGroup accent="brand" :vertical="uiStore.isMobile">
               <UiCheckbox v-model="vmState.boot_vm" accent="brand">{{ t('action:boot-vm') }}</UiCheckbox>
               <UiCheckbox v-model="vmState.auto_power" accent="brand">{{ t('auto-power') }}</UiCheckbox>
               <UiCheckbox v-if="isDiskTemplate" v-model="vmState.fast_clone" accent="brand">
@@ -204,6 +204,7 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useFormSelect } from '@core/packages/form-select'
+import { useUiStore } from '@core/stores/ui.store'
 
 // Vue imports
 import { type DOMAIN_TYPE, OPAQUE_REF, VBD_TYPE } from '@vates/types'
@@ -223,6 +224,7 @@ const { getByOpaqueRef: getVbdByOpaqueRef } = useVbdStore().subscribe()
 const { getByOpaqueRef: getVdiByOpaqueRef } = useVdiStore().subscribe()
 const { getByOpaqueRef: getVifByOpaqueRef } = useVifStore().subscribe()
 const { getByOpaqueRef: getPifByOpaqueRef } = usePifStore().subscribe()
+const uiStore = useUiStore()
 
 // i18n setup
 const { t } = useI18n()
@@ -914,6 +916,21 @@ watch(
       display: flex;
       flex-direction: column;
       gap: 1rem;
+    }
+
+    &.mobile .system-container,
+    &.mobile .memory-container {
+      flex-direction: column;
+      gap: 2.3rem;
+    }
+
+    &.mobile .install-settings-container .radio-container {
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    &.mobile .system-container .column {
+      width: 100%;
     }
 
     .system-container {

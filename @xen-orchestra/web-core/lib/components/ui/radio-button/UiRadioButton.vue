@@ -80,8 +80,6 @@ const isDisabled = useDisabled(() => disabled)
     /* ICON */
 
     .radio-icon {
-      display: flex;
-      justify-content: center;
       font-size: 0.8rem;
       transition: font-size 0.125s ease-in-out;
       color: var(--radio-icon-color);

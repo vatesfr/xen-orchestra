@@ -82,8 +82,6 @@ const attrs = useAttrs()
 
     .icon {
       font-size: 0.75rem;
-      display: flex;
-      justify-content: center;
       color: var(--color-info-txt-item);
       transition: opacity 0.125s ease-in-out;
     }
