@@ -73,7 +73,6 @@ export class FullBackupLineage implements IBackupLineage {
     }
   }
 
-  // Phase 3: Clean
   async clean() {
     this.check()
     const deleted = new Set<string>()
