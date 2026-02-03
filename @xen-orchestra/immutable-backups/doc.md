@@ -44,7 +44,7 @@ List of protected files :
 
 ```js
 const PATHS = [
-  // xo-pool-config-backups/scheduleId/date/metadata.json
+  // xo-config-backups/scheduleId/date/metadata.json
   'xo-config-backups/*/*/data',
   'xo-config-backups/*/*/data.json',
   'xo-config-backups/*/*/metadata.json',
