@@ -20,6 +20,7 @@
 - [REST API] Close SSE connections when clients are too slow, to avoid increased memory consumption (PR [#9439](https://github.com/vatesfr/xen-orchestra/pull/9439))
 - [REST API] `message` objects are no longer sent via the SSE when subscribing to the`alarm` collection (PR [#9439](https://github.com/vatesfr/xen-orchestra/pull/9439))
 - [REST API] Do no longer create an `XO user authentication` task, when using an authentication token (PR [#9439](https://github.com/vatesfr/xen-orchestra/pull/9439))
+- [HUB Recipe] A bug in the in Pyrgos recipe requires to remove the DHCP option of the recipe form.
 
 ### Packages to release
 
@@ -41,5 +42,6 @@
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/web minor
 - xo-server patch
+- xo-web minor
 
 <!--packages-end-->
