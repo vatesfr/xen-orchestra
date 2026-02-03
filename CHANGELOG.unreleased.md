@@ -50,5 +50,6 @@
 - @xen-orchestra/web-core minor
 - vhd-cli patch
 - xo-server minor
+- xo-web patch
 
 <!--packages-end-->
