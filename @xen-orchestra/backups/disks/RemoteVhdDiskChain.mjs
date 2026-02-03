@@ -71,15 +71,6 @@ export class RemoteVhdDiskChain extends RemoteDisk {
           }
         }
       }
-
-      // Check that all disks are differencing except first one and that all childs have the correct parent uuid.
-      for (const disk of this.#disks.slice(1)) {
-        if (!disk.isDifferencing()) {
-          throw Object.assign(new Error("Can't init vhd directory with non differencing child disks"), {
-            code: 'NOT_SUPPORTED',
-          })
-        }
-      }
     } catch (error) {
       await this.close()
       throw error
@@ -209,6 +200,17 @@ export class RemoteVhdDiskChain extends RemoteDisk {
       }
     }
     throw new Error(`Block ${index} not found in chain `)
+  }
+
+  /**
+   * Reads a specific block from the child disk to copy/move it to this disk.
+   * @param {RemoteDisk} childDisk
+   * @param {number} index
+   * @param {boolean} isResumingMerge
+   * @returns {Promise<number>} blockSize
+   */
+  async mergeBlockFrom(childDisk, index, isResumingMerge) {
+    throw new Error(`Can't merge block into a disk chain`)
   }
 
   /**

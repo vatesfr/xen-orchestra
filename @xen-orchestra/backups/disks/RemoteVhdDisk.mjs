@@ -182,7 +182,7 @@ export class RemoteVhdDisk extends RemoteDisk {
    * @returns {Promise<boolean>} canMergeConcurently
    */
   async canMergeConcurently() {
-    return !(await this.isDirectory())
+    return await this.isDirectory()
   }
 
   /**
@@ -255,6 +255,64 @@ export class RemoteVhdDisk extends RemoteDisk {
     return {
       index,
       data,
+    }
+  }
+
+  /**
+   * Reads a specific block from the child disk to copy/move it to this disk.
+   * @param {RemoteDisk} childDisk
+   * @param {number} index
+   * @param {boolean} isResumingMerge
+   * @returns {Promise<number>} blockSize
+   */
+  async mergeBlockFrom(childDisk, index, isResumingMerge) {
+    if ((await this.isDirectory()) && childDisk instanceof RemoteVhdDisk && (await childDisk.isDirectory())) {
+      try {
+        await this.#handler.rename(childDisk.getBlockPath(index), this.getBlockPath(index))
+
+        this.setAllocatedBlocks([index])
+      } catch (error) {
+        // @ts-ignore
+        if (error.code === 'ENOENT' && isResumingMerge === true) {
+          // when resuming, the blocks moved since the last merge state write are
+          // not in the child anymore but it should be ok
+
+          // it will throw an error if block is missing in parent
+          // won't detect if the block was already in parent and is broken/missing in child
+
+          // since we can't know the initial size, this will create a discrepancy
+          // on the size
+          const { data } = await this.readBlock(index)
+          if (data.length !== this.getBlockSize()) {
+            throw error
+          } else {
+            this.setAllocatedBlocks([index])
+          }
+        } else {
+          throw error
+        }
+      }
+
+      return this.getBlockSize()
+    } else {
+      return this.writeBlock(await childDisk.readBlock(index))
+    }
+  }
+
+  /**
+   * Gets a specific block path from the VHD directory.
+   * @param {number} index
+   * @returns {string} blockPath
+   */
+  getBlockPath(index) {
+    if (this.#vhd === undefined) {
+      throw new Error(`can't call readBlock of a RemoteVhdDisk before init`)
+    }
+
+    if (this.#vhd instanceof VhdDirectory) {
+      return this.#vhd.getFullBlockPath(index)
+    } else {
+      throw new Error(`can't call getBlockPath of non directory VHD`)
     }
   }
 
