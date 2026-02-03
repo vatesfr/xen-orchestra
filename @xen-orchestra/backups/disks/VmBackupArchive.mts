@@ -7,35 +7,31 @@ class VmBackupArchive {
   handler: FileHandler
   vmUuid: string
   backupJobUuid: string
-  files: string[] = []
-  vdis: Map<string, unknown> = new Map()
-  vdiChains: Map<string, unknown> = new Map()
-  fullBackupLineage: IBackupLineage
-  deltaBackupLineage: IBackupLineage
+  lineages = new Array<IBackupLineage>()
 
   constructor(handler: FileHandler, vmUuid: string, backupJobUuid: string) {
     this.handler = handler
     this.vmUuid = vmUuid
     this.backupJobUuid = backupJobUuid
-    this.fullBackupLineage = new FullBackupLineage(this.handler, this.vmUuid)
+    this.lineages.push(new FullBackupLineage(this.handler, this.vmUuid))
   }
 
   async init(): Promise<void> {
-    for (const lineage of [this.fullBackupLineage, this.deltaBackupLineage]) {
+    for (const lineage of this.lineages) {
       await lineage.init()
     }
     await this.check()
   }
 
   async check() {
-    for (const lineage of [this.fullBackupLineage, this.deltaBackupLineage]) {
+    for (const lineage of this.lineages) {
       await lineage.check()
     }
   }
 
   async clean(): Promise<void> {
     await this.check()
-    for (const lineage of [this.fullBackupLineage, this.deltaBackupLineage]) {
+    for (const lineage of this.lineages) {
       await lineage.clean()
     }
   }
