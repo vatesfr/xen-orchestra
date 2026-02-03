@@ -3,6 +3,7 @@ import groupBy from 'lodash/groupBy.js'
 import { createLogger } from '@xen-orchestra/log'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import { asyncMap } from '@xen-orchestra/async-map'
+import { asyncEach } from '@vates/async-each'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 
@@ -12,6 +13,8 @@ import { Abstract } from './_Abstract.mjs'
 import { DATETIME, JOB_ID, SCHEDULE_ID, VM_UUID, resetVmOtherConfig, setVmOtherConfig } from '../../_otherConfig.mjs'
 
 const { warn, info } = createLogger('xo:backups:AbstractXapi')
+
+const TEMP_SNAPSHOT_NAME = 'xo-backup-temp-snapshot-name'
 
 export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
   constructor({
@@ -156,7 +159,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
         const snapshotRef = await vm[settings.checkpointSnapshot ? '$checkpoint' : '$snapshot']({
           ignoredVdisTag: '[NOBAK]',
-          name_label: this._getSnapshotNameLabel(vm),
+          name_label: TEMP_SNAPSHOT_NAME,
           unplugVusbs: true,
         })
         this.timestamp = Date.now()
@@ -167,6 +170,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           vmUuid: vm.uuid,
         })
         this._exportedVm = await xapi.getRecord('VM', snapshotRef)
+        await this._exportedVm.set_name_label(this._getSnapshotNameLabel(vm))
         return this._exportedVm.uuid
       })
     } else {
@@ -371,6 +375,11 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         }
       })
     })
+
+    // list and remove the snapshot were the jobs failed between
+    // makesnapshot and update_other_config
+    const snapshots = this._vm.$snapshots.filter(_ => !!_).filter(({ name_label }) => name_label === TEMP_SNAPSHOT_NAME)
+    await asyncEach(snapshots, snapshot => snapshot.$destroy())
   }
 
   async _removeSnapshotData() {
