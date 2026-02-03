@@ -15,12 +15,19 @@ import {
   markExportSuccessfull,
 } from '../../_otherConfig.mjs'
 import { ThrottledDisk, SynchronizedDisk } from '@xen-orchestra/disk-transform'
+import { AggregatedIncrementalRemoteWriter } from '../_writers/AggregatedIncrementalRemoteWriter.mjs'
+import { AggregatedIncrementalXapiWriter } from '../_writers/AggregatedIncrementalXapiWriter.mjs'
 
 const { debug } = createLogger('xo:backups:IncrementalXapiVmBackup')
 
 export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends AbstractXapi {
   _getWriters() {
-    return [IncrementalRemoteWriter, IncrementalXapiWriter]
+    return [
+      IncrementalRemoteWriter,
+      IncrementalXapiWriter,
+      AggregatedIncrementalRemoteWriter,
+      AggregatedIncrementalXapiWriter,
+    ]
   }
 
   async _mustDoSnapshot() {

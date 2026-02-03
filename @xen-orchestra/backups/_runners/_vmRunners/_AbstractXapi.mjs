@@ -82,48 +82,85 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       const writers = new Set()
       this._writers = writers
 
-      const [BackupWriter, ReplicationWriter] = this._getWriters()
+      const [BackupWriter, ReplicationWriter, AggregratedBackupWriter, AggregratedReplicationWriter] =
+        this._getWriters()
 
       const allSettings = job.settings
-      Object.entries(remoteAdapters).forEach(([remoteId, adapter]) => {
-        const targetSettings = {
-          ...settings,
-          ...allSettings[remoteId],
-        }
-        if (targetSettings.exportRetention !== 0) {
-          writers.add(
-            new BackupWriter({
-              adapter,
-              config,
-              healthCheckSr,
-              job,
-              scheduleId: schedule.id,
-              vmUuid: vm.uuid,
-              remoteId,
-              settings: targetSettings,
-            })
-          )
-        }
-      })
-      srs.forEach(sr => {
-        const targetSettings = {
-          ...settings,
-          ...allSettings[sr.uuid],
-        }
-        if (targetSettings.copyRetention !== 0) {
-          writers.add(
-            new ReplicationWriter({
-              config,
-              healthCheckSr,
-              job,
-              scheduleId: schedule.id,
-              vmUuid: vm.uuid,
-              sr,
-              settings: targetSettings,
-            })
-          )
-        }
-      })
+      // TESTING CODE WHILE WAITING FOR FRONT NO NOT MERGE
+      settings.spreadBackups = true
+      settings.spreadReplications = true
+      // END
+
+      if (settings.spreadBackups && AggregratedBackupWriter && settings.exportRetention > 0) {
+        writers.add(
+          new AggregratedBackupWriter({
+            adapters: remoteAdapters,
+            BackupWriter,
+            config,
+            healthCheckSr,
+            job,
+            scheduleId: schedule.id,
+            vmUuid: vm.uuid,
+            settings,
+          })
+        )
+      } else {
+        Object.entries(remoteAdapters).forEach(([remoteId, adapter]) => {
+          const targetSettings = {
+            ...settings,
+            ...allSettings[remoteId],
+          }
+          if (targetSettings.exportRetention !== 0) {
+            writers.add(
+              new BackupWriter({
+                adapter,
+                config,
+                healthCheckSr,
+                job,
+                scheduleId: schedule.id,
+                vmUuid: vm.uuid,
+                remoteId,
+                settings: targetSettings,
+              })
+            )
+          }
+        })
+      }
+
+      if (settings.spreadReplications && AggregratedReplicationWriter && settings.copyRetention > 0) {
+        writers.add(
+          new AggregratedReplicationWriter({
+            config,
+            healthCheckSr,
+            job,
+            ReplicationWriter,
+            scheduleId: schedule.id,
+            vmUuid: vm.uuid,
+            srs,
+            settings,
+          })
+        )
+      } else {
+        srs.forEach(sr => {
+          const targetSettings = {
+            ...settings,
+            ...allSettings[sr.uuid],
+          }
+          if (targetSettings.copyRetention !== 0) {
+            writers.add(
+              new ReplicationWriter({
+                config,
+                healthCheckSr,
+                job,
+                scheduleId: schedule.id,
+                vmUuid: vm.uuid,
+                sr,
+                settings: targetSettings,
+              })
+            )
+          }
+        })
+      }
     }
   }
 

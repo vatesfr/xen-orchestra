@@ -5,12 +5,14 @@ import { FullRemoteWriter } from '../_writers/FullRemoteWriter.mjs'
 import { FullXapiWriter } from '../_writers/FullXapiWriter.mjs'
 import { watchStreamSize } from '../../_watchStreamSize.mjs'
 import { AbstractXapi } from './_AbstractXapi.mjs'
+import { AggregatedFullRemoteWriter } from '../_writers/AggregatedFullRemoteWriter.mjs'
+import { AggregatedFullXapiWriter } from '../_writers/AggregatedFullXapiWriter.mjs'
 
 const { debug } = createLogger('xo:backups:FullXapiVmBackup')
 
 export const FullXapi = class FullXapiVmBackupRunner extends AbstractXapi {
   _getWriters() {
-    return [FullRemoteWriter, FullXapiWriter]
+    return [FullRemoteWriter, FullXapiWriter, AggregatedFullRemoteWriter, AggregatedFullXapiWriter]
   }
 
   async _mustDoSnapshot() {

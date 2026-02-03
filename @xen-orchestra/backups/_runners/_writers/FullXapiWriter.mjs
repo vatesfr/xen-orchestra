@@ -46,8 +46,8 @@ export class FullXapiWriter extends MixinXapiWriter(AbstractFullWriter) {
     const oldVms = getOldEntries(settings.copyRetention - 1, listReplicatedVms(xapi, scheduleId, srUuid, vm.uuid))
 
     const deleteOldBackups = () => asyncMapSettled(oldVms, vm => xapi.VM_destroy(vm.$ref))
-    const { deleteFirst, _warmMigration } = settings
-    if (deleteFirst) {
+    const { deleteFirst, skipDeleteOldEntries, _warmMigration } = settings
+    if (!skipDeleteOldEntries && deleteFirst) {
       await deleteOldBackups()
     }
 
@@ -85,7 +85,7 @@ export class FullXapiWriter extends MixinXapiWriter(AbstractFullWriter) {
       }),
     ])
 
-    if (!deleteFirst) {
+    if (!skipDeleteOldEntries && !deleteFirst) {
       await deleteOldBackups()
     }
   }
