@@ -118,7 +118,6 @@
   "backups:vms-protection:protected": "In mindestens 1 Job und geschützt",
   "backups:vms-protection:tooltip": "Eine VM ist geschützt, wenn sie sich in einem Job mit aktivierter Planung befindet und die letzte Ausführung erfolgreich war",
   "backups:vms-protection:unprotected": "In mindestens 1 Job aber ohne Schutz",
-  "best-effort": "Best Effort",
   "bios-default": "BIOS (Standard)",
   "bios-info": "BIOS Info",
   "bond": "Bond",

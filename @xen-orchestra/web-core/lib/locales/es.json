@@ -147,7 +147,6 @@
   "backups:vms-protection:protected": "Listada en al menos una tarea y protegida",
   "backups:vms-protection:tooltip": "Una máquina virtual está protegida si está en una tarea de copia de seguridad, con un horario activado, y la última ejecución tuvo éxito",
   "backups:vms-protection:unprotected": "En al menos una tarea pero no está protegida",
-  "best-effort": "Mejor esfuerzo",
   "bios-default": "bios (por defecto)",
   "bios-info": "información de la BIOS",
   "bond": "Vínculo",

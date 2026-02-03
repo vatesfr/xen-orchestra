@@ -101,7 +101,6 @@
   "backups:vms-protection:protected": "Принаймні на 1 роботі і захищений",
   "backups:vms-protection:tooltip": "ВМ захищена, якщо резервне копіювання за розкладом, і попередній запуск пройшов успішно",
   "backups:vms-protection:unprotected": "Принаймні на 1 роботі, але без захисту",
-  "best-effort": "найкращі зусилля",
   "bios-default": "bios (за замовчуванням)",
   "bios-info": "Інформація про BIOS",
   "bond": "Bond",

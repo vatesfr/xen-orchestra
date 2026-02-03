@@ -84,18 +84,22 @@ const icon = useMapper<AlertAccent, IconName>(
   }
 
   &.accent--info {
+    background-color: var(--color-neutral-background-primary);
     border-color: var(--color-info-item-base);
   }
 
   &.accent--success {
+    background-color: var(--color-neutral-background-primary);
     border-color: var(--color-success-item-base);
   }
 
   &.accent--warning {
+    background-color: var(--color-neutral-background-primary);
     border-color: var(--color-warning-item-base);
   }
 
   &.accent--danger {
+    background-color: var(--color-neutral-background-primary);
     border-color: var(--color-danger-item-base);
   }
 }

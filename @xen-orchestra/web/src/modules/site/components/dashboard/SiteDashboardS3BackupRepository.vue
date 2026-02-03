@@ -37,19 +37,24 @@ const { dashboard, hasError } = useXoSiteDashboard()
 
 const { t } = useI18n()
 
-const isLoading = computed(() => dashboard.value.backupRepositories === undefined)
+const dashboardBackupRepositories = computed(() => dashboard.value.backupRepositories)
 
-const isError = computed(() => hasError.value || (!isLoading.value && 'error' in dashboard.value.backupRepositories!))
+const isLoading = computed(() => dashboardBackupRepositories.value === undefined)
+
+const isError = computed(
+  () =>
+    hasError.value || (dashboardBackupRepositories.value !== undefined && 'error' in dashboardBackupRepositories.value)
+)
 
 const isEmpty = computed(
   () =>
-    !isLoading.value &&
-    ('isEmpty' in dashboard.value.backupRepositories! || !('s3' in dashboard.value.backupRepositories!))
+    dashboardBackupRepositories.value !== undefined &&
+    ('isEmpty' in dashboardBackupRepositories.value || !('s3' in dashboardBackupRepositories.value))
 )
 
 const usedSize = computed(() =>
-  !isLoading.value && 's3' in dashboard.value.backupRepositories!
-    ? formatSizeRaw(dashboard.value.backupRepositories.s3?.size.backups, 1)
+  dashboardBackupRepositories.value !== undefined && 's3' in dashboardBackupRepositories.value
+    ? formatSizeRaw(dashboardBackupRepositories.value.s3?.size.backups, 1)
     : undefined
 )
 </script>

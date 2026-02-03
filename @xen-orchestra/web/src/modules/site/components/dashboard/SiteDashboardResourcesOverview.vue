@@ -37,23 +37,27 @@ const { dashboard, hasError } = useXoSiteDashboard()
 
 const { t } = useI18n()
 
-const isLoading = computed(() => dashboard.value.resourcesOverview === undefined)
+const dashboardResourcesOverview = computed(() => dashboard.value.resourcesOverview)
 
-const isEmpty = computed(() => !isLoading.value && 'isEmpty' in dashboard.value.resourcesOverview!)
+const isLoading = computed(() => dashboardResourcesOverview.value === undefined)
 
-const ressources = computed(() => {
-  if (isLoading.value || !('memorySize' in dashboard.value.resourcesOverview!)) {
+const isEmpty = computed(
+  () => dashboardResourcesOverview.value !== undefined && 'isEmpty' in dashboardResourcesOverview.value
+)
+
+const resources = computed(() => {
+  if (!dashboardResourcesOverview.value || !('memorySize' in dashboardResourcesOverview.value)) {
     return
   }
 
-  return dashboard.value.resourcesOverview
+  return dashboardResourcesOverview.value
 })
 
-const nCpus = computed(() => ressources.value?.nCpus)
+const nCpus = computed(() => resources.value?.nCpus)
 
-const memorySize = computed(() => formatSizeRaw(ressources.value?.memorySize, 1))
+const memorySize = computed(() => formatSizeRaw(resources.value?.memorySize, 1))
 
-const srSize = computed(() => formatSizeRaw(ressources.value?.srSize, 1))
+const srSize = computed(() => formatSizeRaw(resources.value?.srSize, 1))
 </script>
 
 <style lang="postcss" scoped>

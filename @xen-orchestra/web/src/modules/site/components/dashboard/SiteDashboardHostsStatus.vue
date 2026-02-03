@@ -3,7 +3,7 @@
     <UiCardTitle>
       {{ t('hosts-status') }}
       <template #info>
-        <UiLink size="small" :to="{ name: '/(site)/hosts' }"> {{ t('action:see-all') }}</UiLink>
+        <UiLink size="small" :to="{ name: '/(site)/hosts' }">{{ t('action:see-all') }}</UiLink>
       </template>
     </UiCardTitle>
     <VtsStateHero v-if="!areHostsStatusReady" format="card" type="busy" size="medium" />
@@ -11,7 +11,7 @@
       {{ t('error-no-data') }}
     </VtsStateHero>
     <template v-else>
-      <VtsDonutChartWithLegend icon="object:host" :segments />
+      <VtsDonutChartWithLegend icon="object:host" :segments class="chart" />
       <UiCardNumbers :label="t('total')" :value="hostsStatus?.total" size="small" />
     </template>
   </UiCard>
@@ -56,3 +56,9 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   },
 ])
 </script>
+
+<style lang="postcss" scoped>
+.chart {
+  flex-grow: 1;
+}
+</style>

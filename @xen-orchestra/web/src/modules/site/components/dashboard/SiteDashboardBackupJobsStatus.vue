@@ -3,12 +3,12 @@
     <UiCardTitle>
       {{ t('backups:jobs:status') }}
       <template v-if="!isEmpty" #info>
-        <UiLink size="small" :to="{ name: '/(site)/backups' }"> {{ t('action:see-all') }}</UiLink>
+        <UiLink size="small" :to="{ name: '/(site)/backups' }">{{ t('action:see-all') }}</UiLink>
       </template>
       <template v-if="!isEmpty" #description>{{ t('backups:jobs:last-seven-days') }}</template>
     </UiCardTitle>
     <VtsStateHero v-if="isLoading" format="card" type="busy" size="medium" />
-    <VtsStateHero v-else-if="isError" format="card" type="error" size="medium">
+    <VtsStateHero v-else-if="isError" format="card" type="error" size="extra-small" horizontal>
       {{ t('error-no-data') }}
     </VtsStateHero>
     <UiAlert v-else-if="isEmpty" accent="warning">
@@ -24,7 +24,7 @@
       </template>
     </UiAlert>
     <template v-else>
-      <VtsDonutChartWithLegend icon="object:backup-job" :segments="jobsSegments" />
+      <VtsDonutChartWithLegend icon="object:backup-job" :segments="jobsSegments" class="chart" />
       <UiCardNumbers :label="t('total')" :value="backupJobs?.total" size="small" />
     </template>
   </UiCard>
@@ -48,18 +48,22 @@ const { dashboard, hasError } = useXoSiteDashboard()
 
 const { t } = useI18n()
 
-const isLoading = computed(() => dashboard.value.backups === undefined)
+const dashboardBackups = computed(() => dashboard.value.backups)
 
-const isError = computed(() => hasError.value || (!isLoading.value && 'error' in dashboard.value.backups!))
+const isLoading = computed(() => dashboardBackups.value === undefined)
 
-const isEmpty = computed(() => !isLoading.value && 'isEmpty' in dashboard.value.backups!)
+const isError = computed(
+  () => hasError.value || (dashboardBackups.value !== undefined && 'error' in dashboardBackups.value)
+)
+
+const isEmpty = computed(() => dashboardBackups.value !== undefined && 'isEmpty' in dashboardBackups.value)
 
 const backupJobs = computed(() => {
-  if (isLoading.value || !('jobs' in dashboard.value.backups!)) {
+  if (!dashboardBackups.value || !('jobs' in dashboardBackups.value)) {
     return
   }
 
-  return dashboard.value.backups.jobs
+  return dashboardBackups.value?.jobs
 })
 
 const jobsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
@@ -85,3 +89,9 @@ const jobsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   },
 ])
 </script>
+
+<style lang="postcss" scoped>
+.chart {
+  flex-grow: 1;
+}
+</style>

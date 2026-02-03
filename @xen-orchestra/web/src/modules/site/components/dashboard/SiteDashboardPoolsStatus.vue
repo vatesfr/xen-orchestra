@@ -3,7 +3,7 @@
     <UiCardTitle>
       {{ t('pools-status') }}
       <template #info>
-        <UiLink size="small" :to="{ name: '/(site)/pools' }"> {{ t('action:see-all') }}</UiLink>
+        <UiLink size="small" :to="{ name: '/(site)/pools' }">{{ t('action:see-all') }}</UiLink>
       </template>
     </UiCardTitle>
     <VtsStateHero v-if="!arePoolsStatusReady" format="card" type="busy" size="medium" />
@@ -11,7 +11,7 @@
       {{ t('error-no-data') }}
     </VtsStateHero>
     <template v-else>
-      <VtsDonutChartWithLegend icon="object:pool" :segments />
+      <VtsDonutChartWithLegend icon="object:pool" :segments class="chart" />
       <UiCardNumbers :label="t('total')" :value="poolsStatus?.total" size="small" />
     </template>
   </UiCard>
@@ -58,3 +58,9 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   },
 ])
 </script>
+
+<style lang="postcss" scoped>
+.chart {
+  flex-grow: 1;
+}
+</style>

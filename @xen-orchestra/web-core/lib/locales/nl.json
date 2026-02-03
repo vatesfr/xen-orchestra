@@ -147,7 +147,6 @@
   "backups:vms-protection:protected": "In minstens één opdracht & beschermd",
   "backups:vms-protection:tooltip": "Een VM is beschermd als deze zich in een back-uptaak bevindt, met een ingeschakeld schema en als de laatste uitvoering is geslaagd",
   "backups:vms-protection:unprotected": "In ten minste één opdracht maar onbeschermd",
-  "best-effort": "Beste poging",
   "bios-default": "bios (standaard)",
   "bios-info": "BIOS-info",
   "bond": "Bind",

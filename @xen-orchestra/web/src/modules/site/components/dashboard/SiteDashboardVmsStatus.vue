@@ -3,7 +3,7 @@
     <UiCardTitle>
       {{ t('vms-status') }}
       <template #info>
-        <UiLink size="small" :to="{ name: '/(site)/vms' }"> {{ t('action:see-all') }}</UiLink>
+        <UiLink size="small" :to="{ name: '/(site)/vms' }">{{ t('action:see-all') }}</UiLink>
       </template>
     </UiCardTitle>
     <VtsStateHero v-if="!areVmsStatusReady" format="card" type="busy" size="medium" />
@@ -14,7 +14,7 @@
       {{ t('no-vm-detected') }}
     </VtsStateHero>
     <template v-else>
-      <VtsDonutChartWithLegend icon="fa:desktop" :segments />
+      <VtsDonutChartWithLegend icon="fa:desktop" :segments class="chart" />
       <UiCardNumbers :label="t('total')" :value="vmsStatus?.total" size="small" />
     </template>
   </UiCard>
@@ -50,7 +50,7 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('vm:status:paused', 2),
     value: vmsStatus.value?.paused ?? 0,
-    accent: 'brand',
+    accent: 'info',
   },
   {
     label: t('vm:status:suspended', 2),
@@ -64,3 +64,9 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   },
 ])
 </script>
+
+<style lang="postcss" scoped>
+.chart {
+  flex-grow: 1;
+}
+</style>

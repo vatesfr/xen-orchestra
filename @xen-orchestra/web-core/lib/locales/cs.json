@@ -147,7 +147,6 @@
   "backups:vms-protection:protected": "V alespoň jedné úloze a chráněn",
   "backups:vms-protection:tooltip": "Virt. stroj je chráněn, pokud se nachází v zálohovací úloze, která má zapnuté pravidelné spouštění a její poslední vykonání bylo úspěšné",
   "backups:vms-protection:unprotected": "V alespoň jedné úloze, ale nechráněn",
-  "best-effort": "Nejlepší snaha",
   "bios-default": "bios (výchozí)",
   "bios-info": "Informace o BIOS",
   "bond": "Svazek",

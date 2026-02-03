@@ -125,7 +125,6 @@
   "backups:vms-protection:protected": "I minst ett jobb och skyddad",
   "backups:vms-protection:tooltip": "En VM är skyddad om den är med i ett säkerhetskopieringsjobb, med ett aktivt schema och den senaste körningen lyckades",
   "backups:vms-protection:unprotected": "Med i minst 1 jobb men oskyddad",
-  "best-effort": "bästa möjliga insats",
   "bios-default": "bios (standardinställt)",
   "bios-info": "BIOS-info",
   "bond": "Bindning",

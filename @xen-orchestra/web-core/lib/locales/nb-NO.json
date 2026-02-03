@@ -126,7 +126,6 @@
   "backup-repository": "Sikkerhetskopi-lager (lokal, NFS, SMB)",
   "backup-targets": "Sikkerhetskopi-mål",
   "backups": "Sikkerhets-kopier",
-  "best-effort": "Beste forsøk",
   "bios-default": "BIOS (standard)",
   "bios-info": "BIOS-informasjon",
   "bond": "Binding",

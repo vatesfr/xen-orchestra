@@ -5,14 +5,13 @@
       <template #description>{{ t('in-last-three-runs') }}</template>
     </UiCardTitle>
     <VtsStateHero v-if="isLoading" format="card" type="busy" size="medium" />
-    <VtsStateHero v-else-if="isError" format="card" type="error" size="medium">
+    <VtsStateHero v-else-if="isError" format="card" type="error" size="extra-small" horizontal>
       {{ t('error-no-data') }}
     </VtsStateHero>
     <template v-else>
-      <VtsDonutChartWithLegend icon="object:backup-job" :segments="vmsProtectionSegments" />
+      <VtsDonutChartWithLegend icon="object:backup-job" :segments="vmsProtectionSegments" class="chart" />
       <div>
         <UiButton
-          class="protection-helper"
           accent="brand"
           left-icon="status:info-circle"
           size="small"
@@ -50,16 +49,20 @@ const openVmProtectedModal = useModal(() => ({
   component: import('@/shared/components/modals/VmProtected.vue'),
 }))
 
-const isLoading = computed(() => dashboard.value.backups === undefined)
+const dashboardBackups = computed(() => dashboard.value.backups)
 
-const isError = computed(() => hasError.value || (!isLoading.value && 'error' in dashboard.value.backups!))
+const isLoading = computed(() => dashboardBackups.value === undefined)
+
+const isError = computed(
+  () => hasError.value || (dashboardBackups.value !== undefined && 'error' in dashboardBackups.value)
+)
 
 const vmsProtection = computed(() => {
-  if (isLoading.value || !('vmsProtection' in dashboard.value.backups!)) {
+  if (!dashboardBackups.value || !('vmsProtection' in dashboardBackups.value)) {
     return
   }
 
-  return dashboard.value.backups.vmsProtection
+  return dashboardBackups.value?.vmsProtection
 })
 
 const vmsProtectionSegments = computed<DonutChartWithLegendProps['segments']>(() => [
@@ -80,3 +83,9 @@ const vmsProtectionSegments = computed<DonutChartWithLegendProps['segments']>(()
   },
 ])
 </script>
+
+<style lang="postcss" scoped>
+.chart {
+  flex-grow: 1;
+}
+</style>

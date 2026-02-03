@@ -2,13 +2,13 @@
   <UiCard :has-error="isError">
     <UiCardTitle>{{ t('patches') }}</UiCardTitle>
     <VtsStateHero v-if="isLoading" format="card" type="busy" size="medium" />
-    <VtsStateHero v-else-if="isError" format="card" type="error" size="medium">
+    <VtsStateHero v-else-if="isError" format="card" type="error" size="small">
       {{ t('error-no-data') }}
     </VtsStateHero>
     <template v-else>
-      <VtsDonutChartWithLegend :segments="poolsSegments" :title="poolsTitle" />
+      <VtsDonutChartWithLegend :segments="poolsSegments" :title="poolsTitle" class="chart" />
       <VtsDivider type="stretch" />
-      <VtsDonutChartWithLegend :segments="hostsSegments" :title="hostsTitle" />
+      <VtsDonutChartWithLegend :segments="hostsSegments" :title="hostsTitle" class="chart" />
     </template>
   </UiCard>
 </template>
@@ -30,14 +30,16 @@ const { dashboard, hasError } = useXoSiteDashboard()
 
 const { t } = useI18n()
 
-const isLoading = computed(() => dashboard.value.missingPatches === undefined)
+const dashboardMissingPatches = computed(() => dashboard.value.missingPatches)
+
+const isLoading = computed(() => dashboardMissingPatches.value === undefined)
 
 const missingPatches = computed(() => {
-  if (isLoading.value || !('nPools' in dashboard.value.missingPatches!)) {
+  if (!dashboardMissingPatches.value || !('nPools' in dashboardMissingPatches.value)) {
     return
   }
 
-  return dashboard.value.missingPatches
+  return dashboardMissingPatches.value
 })
 
 const isError = computed(() => {
@@ -97,3 +99,9 @@ const hostsSegments = computed(() => {
   return segments
 })
 </script>
+
+<style lang="postcss" scoped>
+.chart {
+  flex-grow: 1;
+}
+</style>

@@ -13,7 +13,7 @@
         {{ t('error-no-data') }}
       </VtsStateHero>
       <template v-else>
-        <VtsStackedBarWithLegend :max-value="maxValue" :segments />
+        <VtsStackedBarWithLegend :max-value :segments />
         <div class="numbers">
           <UiCardNumbers
             :value="backupRepositories?.used?.value"
@@ -57,12 +57,16 @@ const { t } = useI18n()
 
 const isLoading = computed(() => backupRepositoriesFormatted.value === undefined)
 
-const isError = computed(() => hasError.value || (!isLoading.value && 'error' in backupRepositoriesFormatted.value!))
+const isError = computed(
+  () => hasError.value || (backupRepositoriesFormatted.value && 'error' in backupRepositoriesFormatted.value)
+)
 
-const isEmpty = computed(() => !isLoading.value && 'isEmpty' in backupRepositoriesFormatted.value!)
+const isEmpty = computed(
+  () => backupRepositoriesFormatted.value !== undefined && 'isEmpty' in backupRepositoriesFormatted.value
+)
 
 const backupRepositories = computed(() => {
-  if (isLoading.value || !('other' in backupRepositoriesFormatted.value!)) {
+  if (!backupRepositoriesFormatted.value || !('other' in backupRepositoriesFormatted.value)) {
     return
   }
 

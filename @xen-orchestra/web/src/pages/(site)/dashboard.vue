@@ -1,21 +1,17 @@
 <template>
   <div class="site-dashboard" :class="{ mobile: uiStore.isMobile }">
-    <div class="row first-row">
-      <SiteDashboardPoolsStatus class="pools-status" />
-      <SiteDashboardHostsStatus class="hosts-status" />
-      <SiteDashboardVmsStatus class="vms-status" />
-      <SiteDashboardResourcesOverview class="resources-overview" />
-    </div>
-    <div class="row second-row">
-      <DashboardAlarms class="alarms" />
-      <SiteDashboardPatches class="patches" />
-      <SiteDashboardBackupJobsStatus class="backup-jobs-status" />
-      <SiteDashboardBackupIssues class="backup-issues" />
-      <SiteDashboardVmsProtection class="vms-protection" />
-      <SiteDashboardBackupRepository class="backup-repository" />
-      <SiteDashboardStorageRepository class="storage-repository" />
-      <SiteDashboardS3BackupRepository class="s3-backup-repository" />
-    </div>
+    <SiteDashboardPoolsStatus class="pools-status" />
+    <SiteDashboardHostsStatus class="hosts-status" />
+    <SiteDashboardVmsStatus class="vms-status" />
+    <SiteDashboardResourcesOverview class="resources-overview" />
+    <DashboardAlarms class="alarms" />
+    <SiteDashboardPatches class="patches" />
+    <SiteDashboardBackupJobsStatus class="backup-jobs-status" />
+    <SiteDashboardBackupIssues class="backup-issues" />
+    <SiteDashboardVmsProtection class="vms-protection" />
+    <SiteDashboardBackupRepository class="backup-repository" />
+    <SiteDashboardStorageRepository class="storage-repository" />
+    <SiteDashboardS3BackupRepository class="s3-backup-repository" />
   </div>
 </template>
 
@@ -40,29 +36,14 @@ const uiStore = useUiStore()
 <style lang="postcss" scoped>
 .site-dashboard {
   margin: 0.8rem;
-
-  /* === DESKTOP === */
-  .row {
-    display: grid;
-    gap: 0.8rem;
-  }
-
-  .row + .row {
-    margin-top: 0.8rem;
-  }
-
-  .first-row {
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-areas: 'pools-status hosts-status vms-status resources-overview';
-  }
-
-  .second-row {
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-areas:
-      'alarms alarms patches'
-      'backup-jobs-status backup-issues vms-protection'
-      'backup-repository storage-repository s3-backup-repository';
-  }
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-areas:
+    'pools-status pools-status pools-status hosts-status hosts-status hosts-status vms-status vms-status vms-status resources-overview resources-overview resources-overview'
+    'alarms alarms alarms alarms alarms alarms alarms alarms patches patches patches patches'
+    'backup-jobs-status backup-jobs-status backup-jobs-status backup-jobs-status backup-issues backup-issues backup-issues backup-issues vms-protection vms-protection vms-protection vms-protection'
+    'backup-repository backup-repository backup-repository backup-repository storage-repository storage-repository storage-repository storage-repository s3-backup-repository s3-backup-repository s3-backup-repository s3-backup-repository';
 
   .pools-status {
     grid-area: pools-status;
@@ -113,18 +94,10 @@ const uiStore = useUiStore()
     grid-area: s3-backup-repository;
   }
 
-  /* === MOBILE === */
   &.mobile {
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
-  }
-
-  &.mobile .row {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-    margin-top: 0;
   }
 }
 </style>

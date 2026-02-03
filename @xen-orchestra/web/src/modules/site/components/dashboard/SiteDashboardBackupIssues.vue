@@ -11,7 +11,7 @@
       />
       <template v-if="hasBackupIssues" #info>
         <!-- TODO Need to be Filter on “Last 3 backups”: “Skipped runs, no errors”, “Errors detected “ -->
-        <UiLink size="small" :to="{ name: '/(site)/backups' }"> {{ t('action:see-all') }}</UiLink>
+        <UiLink size="small" :to="{ name: '/(site)/backups' }">{{ t('action:see-all') }}</UiLink>
       </template>
       <template #description>{{ t('in-last-three-runs') }}</template>
     </UiCardTitle>
@@ -33,7 +33,6 @@
 <script lang="ts" setup>
 import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
 import type { BackupIssue } from '@/modules/site/types/xo-dashboard.type.ts'
-import { useXoBackupJobIssuesUtils } from '@/shared/composables/xo-backup-job-issues.composable.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -41,6 +40,7 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useTableState } from '@core/composables/table-state.composable'
+import { createMapper } from '@core/packages/mapper'
 import { useBackupIssueColumns } from '@core/tables/column-sets/backup-issue-columns'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -49,20 +49,22 @@ const { dashboard, hasError } = useXoSiteDashboard()
 
 const { t } = useI18n()
 
-const { getLastRunsInfo } = useXoBackupJobIssuesUtils()
+const dashboardBackups = computed(() => dashboard.value.backups)
 
-const isLoading = computed(() => dashboard.value.backups === undefined)
+const isLoading = computed(() => dashboardBackups.value === undefined)
 
-const isError = computed(() => hasError.value || (!isLoading.value && 'error' in dashboard.value.backups!))
+const isError = computed(
+  () => hasError.value || (dashboardBackups.value !== undefined && 'error' in dashboardBackups.value)
+)
 
-const isEmpty = computed(() => !isLoading.value && 'isEmpty' in dashboard.value.backups!)
+const isEmpty = computed(() => dashboardBackups.value !== undefined && 'isEmpty' in dashboardBackups.value)
 
 const backupIssues = computed(() => {
-  if (isLoading.value || !('issues' in dashboard.value.backups!)) {
+  if (!dashboardBackups.value || !('issues' in dashboardBackups.value)) {
     return
   }
 
-  return dashboard.value.backups.issues
+  return dashboardBackups.value?.issues
 })
 
 const nBackupIssues = computed(() => backupIssues.value?.length ?? 0)
@@ -76,9 +78,32 @@ const state = useTableState({
     isEmpty.value
       ? { type: 'no-data', message: t('no-data-to-calculate'), size: 'extra-small' }
       : !hasBackupIssues.value
-        ? { type: 'all-good', message: t('backups:jobs:issues-ran-without-hitch'), size: 'extra-small' }
+        ? {
+            type: 'all-good',
+            message: t('backups:jobs:issues-ran-without-hitch'),
+            size: 'extra-small',
+            horizontal: true,
+          }
         : false,
 })
+
+const getStatusLabel = createMapper<BackupIssue['logs'][number] | 'unknown', string>(
+  {
+    success: t('success'),
+    failure: t('failure'),
+    interrupted: t('interrupted'),
+    skipped: t('skipped'),
+    unknown: '',
+  },
+  'unknown'
+)
+
+function getLastRunsInfo(backupIssue: BackupIssue) {
+  return backupIssue.logs.map((status, index) => ({
+    status,
+    tooltip: `${t('last-run-number', { n: index + 1 })}: ${getStatusLabel(status)}`,
+  }))
+}
 
 const { HeadCells, BodyCells } = useBackupIssueColumns({
   body: (issue: BackupIssue) => {

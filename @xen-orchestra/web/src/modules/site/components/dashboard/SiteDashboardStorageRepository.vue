@@ -10,7 +10,7 @@
         {{ t('no-data-to-calculate') }}
       </VtsStateHero>
       <template v-else>
-        <VtsStackedBarWithLegend :max-value="maxValue" :segments />
+        <VtsStackedBarWithLegend :max-value :segments />
         <div class="numbers">
           <UiCardNumbers
             :value="storageRepositories?.used?.value"
@@ -54,12 +54,18 @@ const { t } = useI18n()
 
 const isLoading = computed(() => storageRepositoriesFormatted.value === undefined)
 
-const isError = computed(() => hasError.value || (!isLoading.value && 'error' in storageRepositoriesFormatted.value!))
+const isError = computed(
+  () =>
+    hasError.value ||
+    (storageRepositoriesFormatted.value !== undefined && 'error' in storageRepositoriesFormatted.value)
+)
 
-const isEmpty = computed(() => !isLoading.value && 'isEmpty' in storageRepositoriesFormatted.value!)
+const isEmpty = computed(
+  () => storageRepositoriesFormatted.value !== undefined && 'isEmpty' in storageRepositoriesFormatted.value
+)
 
 const storageRepositories = computed(() => {
-  if (isLoading.value || !('other' in storageRepositoriesFormatted.value!)) {
+  if (!storageRepositoriesFormatted.value || !('other' in storageRepositoriesFormatted.value)) {
     return
   }
 

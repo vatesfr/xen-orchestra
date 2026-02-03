@@ -76,7 +76,7 @@ const vmsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('vm:status:paused', 2),
     value: poolDashboard?.vms?.status?.paused ?? 0,
-    accent: 'brand',
+    accent: 'info',
   },
   {
     label: t('vm:status:suspended', 2),

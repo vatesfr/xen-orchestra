@@ -14,7 +14,7 @@ import { vTooltip } from '@core/directives/tooltip.directive'
 import { toVariants } from '@core/utils/to-variants.util'
 import { computed } from 'vue'
 
-export type LegendItemAccent = 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'danger' | 'muted'
+export type LegendItemAccent = 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'muted'
 
 export type LegendItemProps = {
   accent: LegendItemAccent
@@ -62,12 +62,6 @@ const classNames = computed(() => toVariants({ accent }))
   &.accent--neutral {
     .circle-icon {
       color: var(--color-neutral-txt-secondary);
-    }
-  }
-
-  &.accent--brand {
-    .circle-icon {
-      color: var(--color-brand-item-base);
     }
   }
 
