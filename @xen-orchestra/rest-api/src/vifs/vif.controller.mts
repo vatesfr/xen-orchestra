@@ -16,7 +16,7 @@ import {
 } from 'tsoa'
 import { inject } from 'inversify'
 import { json, type Request as ExRequest } from 'express'
-import type { Xapi, XenApiVif, XoAlarm, XoMessage, XoNetwork, XoTask, XoVif, XoVm } from '@vates/types'
+import type { Branded, Xapi, XenApiVif, XoAlarm, XoMessage, XoNetwork, XoTask, XoVif, XoVm } from '@vates/types'
 
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { provide } from 'inversify-binding-decorators'
@@ -25,12 +25,13 @@ import {
   badRequestResp,
   createdResp,
   internalServerErrorResp,
-  noContentResp,
+  invalidParameters as invalidParametersResp,
   notFoundResp,
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
+import { invalidParameters } from 'xo-common/api-errors.js'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { partialVifs, vif, vifId, vifIds } from '../open-api/oa-examples/vif.oa-example.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
@@ -165,40 +166,36 @@ export class VifController extends XapiXoController<XoVif> {
 
   /**
    * @example body {
-   *  "currently_attached": true,
-   *  "device": 0,
-   *  "ipv4_allowed": "['127.168.1.1']",
-   *  "ipv6_allowed": "['2001:db8:3333:4444:5555:6666:7777:8888']",
-   *  "locking_mode": "disabled",
-   *  "MTU": 1500,
    *  "networkId": "6b6ca0f5-6611-0636-4b0a-1fb1c1e96414",
-   *  "other_config": {},
-   *  "qos_algorithm_type": "ratelimit",
-   *  "qos_algorithm_params": {},
-   *  "vmId": "613f541c-4bed-fc77-7ca8-2db6b68f079c",
-   *  "MAC": "25:28:DA:6B:1B:21"
+   *  "vmId": "613f541c-4bed-fc77-7ca8-2db6b68f079c"
    * }
    */
   @Example(vifId)
   @Post('')
   @Middlewares(json())
+  @SuccessResponse(createdResp.status, createdResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
   async createVif(
     @Body()
     body: CreateVifBody
   ): Promise<{ id: XoVif['id'] }> {
-    const xapiVm = this.restApi.getXapiObject<XoVm>(body.vmId as XoVm['id'], 'VM')
-    const xapiNetwork = this.restApi.getXapiObject<XoNetwork>(body.networkId as XoNetwork['id'], 'network')
-    const xapi = xapiVm.$xapi
-
     const { MAC, vmId, networkId, ...rest } = body
+
+    const vm = this.restApi.getObject<XoVm>(vmId as XoVm['id'], 'VM')
+    const network = this.restApi.getObject<XoNetwork>(networkId as XoNetwork['id'], 'network')
+
+    if (vm.$pool !== network.$pool) {
+      throw invalidParameters(`the VM ${vmId} and network ${networkId} do not belong to the same pool`)
+    }
+
+    const xapi = this.getXapi(vmId as XoVm['id'])
     const vifRef = await xapi.VIF_create(
       {
         ...rest,
-        VM: xapiVm.$ref,
-        network: xapiNetwork.$ref,
+        VM: vm._xapiRef as Branded<'VM'>,
+        network: network._xapiRef as Branded<'network'>,
       },
       {
         MAC,
@@ -213,9 +210,9 @@ export class VifController extends XapiXoController<XoVif> {
    * @example id "6b6ca0f5-6611-0636-4b0a-1fb1c1e96414"
    */
   @Delete('{id}')
+  @SuccessResponse(createdResp.status, createdResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  @SuccessResponse(noContentResp.status, noContentResp.description)
   async destroyVif(@Path() id: string): Promise<void> {
     const xapi = this.getXapi(id as XoVif['id'])
     await xapi.deleteVif(id as XoVif['id'])
