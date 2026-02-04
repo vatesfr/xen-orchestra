@@ -51,7 +51,7 @@
   "action:migrate": "Migrar",
   "action:migrate-n-vms": "Migrar 1 VM | Migrar {n} VMs",
   "action:open": "Abrir",
-  "action:open-app": "@:action:abrir {name}",
+  "action:open-app": "@:action:open {name}",
   "action:open-console-in-new-tab": "Abrir la cónsola en una nueva pestaña",
   "action:pick-template": "Escoger plantilla",
   "action:reboot": "Reiniciar",

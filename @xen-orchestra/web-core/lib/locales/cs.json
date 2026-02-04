@@ -436,7 +436,7 @@
   "missing-translations?": "Chybějící překlady nebo by mohly být příhodnější?",
   "modal:action:vm-force-reboot": "@:action:force-reboot VM",
   "modal:action:vm-force-shutdown": "@:action:force-shutdown VM",
-  "modal:action:vm-reboot": "@:action:restartovat virt. stroj",
+  "modal:action:vm-reboot": "@:action:reboot virt. stroj",
   "modal:action:vm-shutdown": "@:action:shutdown VM",
   "modal:confirm-vm-force-reboot": "Potvrďte vynucený restart virt. stroje",
   "modal:confirm-vm-force-shutdown": "Potvrďte vynucení vypnutí virt. stroje",
