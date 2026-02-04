@@ -28,6 +28,7 @@
 - [Backup] ensure no snapshot are left unattended after a job (PR [#9434](https://github.com/vatesfr/xen-orchestra/pull/9434))
 - [Backup] Fix replication leaving replica after partial incremental replication (PR [#9435](https://github.com/vatesfr/xen-orchestra/pull/9435))
 - [REST API] Fix href path for backup-archives (PR [#9460](https://github.com/vatesfr/xen-orchestra/pull/9460))
+- [REST API/Pool/Dashboard] Only consider running VMs for the `cpuProvisioning.assigned` value [Forum#11604](https://xcp-ng.org/forum/topic/11604/xo-6-dedicated-thread-for-all-your-feedback/84) (PR [#9456](https://github.com/vatesfr/xen-orchestra/pull/9456))
 - [CopyButton] Fix copy to clipboard not working in non-HTTPS environments (PR [#9426](https://github.com/vatesfr/xen-orchestra/pull/9426))
 
 ### Packages to release
