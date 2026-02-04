@@ -1,7 +1,12 @@
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
-import type { THandleDelete, THandlePost, THandleWatching } from '@core/packages/remote-resource/sse.store.ts'
 import type { ResourceContext } from '@core/packages/remote-resource/types.ts'
 import type { XoRecord } from '@vates/types'
+import {
+  type THandleDelete,
+  type THandlePost,
+  type THandleWatching,
+  useSseStore,
+} from '@core/packages/remote-resource/sse.store.ts'
 import { useEventSource } from '@vueuse/core'
 import { watch, watchEffect } from 'vue'
 
@@ -33,12 +38,16 @@ export function useWatchCollection<T extends Partial<XoRecord>>({
   const _getType: (obj: unknown) => string | undefined = getType ?? ((obj: any) => obj.$subscription)
   const _getIdentifier: (obj: unknown) => string | undefined = getIdentifier ?? ((obj: any) => obj.id)
 
-  const { data, event, open, close } = useEventSource(EVENTS_ENDPOINT, ['init', 'add', 'update', 'remove', 'ping'], {
-    immediate: false,
-    serializer: {
-      read: raw => (raw === undefined ? undefined : JSON.parse(raw)),
-    },
-  })
+  const { data, event, open, close, error } = useEventSource(
+    EVENTS_ENDPOINT,
+    ['init', 'add', 'update', 'remove', 'ping'],
+    {
+      immediate: false,
+      serializer: {
+        read: raw => (raw === undefined ? undefined : JSON.parse(raw)),
+      },
+    }
+  )
 
   if (handleDelete === undefined) {
     handleDelete = async (sseId, subscriptionId) => {
@@ -71,34 +80,29 @@ export function useWatchCollection<T extends Partial<XoRecord>>({
     }
   }
 
-  if (handleWatching === undefined) {
-    handleWatching = (updateSseId, getConfigByResource) => {
-      const { data, event, close, error } = useEventSource(EVENTS_ENDPOINT, ['init', 'add', 'update', 'remove'], {
-        serializer: {
-          read: raw => (raw === undefined ? undefined : JSON.parse(raw)),
-        },
-      })
-
-      watch(error, value => {
-        if (value !== null) {
-          // If an error occurs, manually close the SSE on the front side; otherwise,
-          // the browser will automatically retry(and then generate a new identifier for subscriptions).
-          console.error('Close the SSE connection due to an error', value)
-          close()
-        }
-      })
-
-      function getObjectType(obj: unknown) {
-        const type = _getType(obj)
-        if (type === undefined) {
-          throw new Error(`Cannot found the type of the object: ${JSON.stringify(data.value)}`)
-        }
+  function getObjectType(obj: unknown) {
+    const type = _getType(obj)
+    if (type === undefined) {
+      throw new Error(`Cannot found the type of the object: ${JSON.stringify(data.value)}`)
+    }
 
     return type
   }
 
   if (handleWatching === undefined) {
     handleWatching = (updateSseId, getConfigByResource, onPing) => {
+      const sseStore = useSseStore()
+
+      watch(error, value => {
+        if (value !== null) {
+          // If an error occurs, manually close the SSE on the front side; otherwise,
+          // the browser will automatically retry(and then generate a new identifier for subscriptions).
+          console.error('Close the SSE connection due to an error', value)
+          sseStore.setErrorSse(value)
+
+          close()
+        }
+      })
       open()
       watchEffect(() => {
         switch (event.value) {

@@ -16,7 +16,7 @@
       />
       <slot name="app-header" />
     </header>
-    <VtsBanner v-if="isError" accent="danger">
+    <VtsBanner v-if="showBanner" accent="danger">
       <UiInfo accent="danger">
         {{ t('unable-to-connect-to-xo-server') }}
       </UiInfo>
@@ -63,6 +63,7 @@ import { useSseStore } from '@core/packages/remote-resource/sse.store.ts'
 import { useSidebarStore } from '@core/stores/sidebar.store'
 import { useUiStore } from '@core/stores/ui.store'
 import { storeToRefs } from 'pinia'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -71,7 +72,10 @@ const uiStore = useUiStore()
 const sidebarStore = useSidebarStore()
 
 const sseStore = useSseStore()
-const { isError } = storeToRefs(sseStore)
+
+const { isError, hasErrorSse } = storeToRefs(sseStore)
+
+const showBanner = computed(() => isError.value || hasErrorSse.value)
 
 function handleRetry() {
   sseStore.retry()

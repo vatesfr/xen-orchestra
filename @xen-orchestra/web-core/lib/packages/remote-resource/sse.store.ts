@@ -24,7 +24,10 @@ export type THandleWatching = (
 ) => void
 
 export const useSseStore = defineStore('sse', () => {
-  const sse = ref<{ id?: string; isWatching: boolean; lastPing?: number }>({ isWatching: false })
+  const sse = ref<{ id?: string; isWatching: boolean; lastPing?: number; errorSse?: unknown | null }>({
+    isWatching: false,
+    errorSse: null,
+  })
   const configsByResource: Map<
     string,
     {
@@ -51,6 +54,11 @@ export const useSseStore = defineStore('sse', () => {
   })
 
   const lastPing = computed(() => sse.value.lastPing)
+  const hasErrorSse = computed(() => sse.value.errorSse !== null)
+
+  function setErrorSse(error: unknown | null) {
+    sse.value.errorSse = error
+  }
 
   function updateSseId(id: string) {
     sse.value.id = id
@@ -158,5 +166,5 @@ export const useSseStore = defineStore('sse', () => {
     window.location.reload()
   }
 
-  return { watch, unwatch, retry, isError, lastPing }
+  return { watch, unwatch, retry, isError, lastPing, hasErrorSse, setErrorSse }
 })
