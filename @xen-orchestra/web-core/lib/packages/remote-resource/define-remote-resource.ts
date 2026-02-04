@@ -1,8 +1,8 @@
 import {
-  useSseStore,
   type THandleDelete,
   type THandlePost,
   type THandleWatching,
+  useSseStore,
 } from '@core/packages/remote-resource/sse.store'
 import type { ResourceContext, UseRemoteResource } from '@core/packages/remote-resource/types.ts'
 import type { VoidFunction } from '@core/types/utility.type.ts'
@@ -63,7 +63,7 @@ export function defineRemoteResource<
   onDataReceived?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
   onDataRemoved?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
   stream?: boolean
-  watchCollection: {
+  initWatchCollection?: () => {
     collectionId: string
     resource: string // reactivity only on XAPI XO record for now
     getIdentifier: (obj: unknown) => string
@@ -87,7 +87,7 @@ export function defineRemoteResource<
   cacheExpirationMs?: number | false
   pollingIntervalMs?: number | false
   stream?: boolean
-  watchCollection?: {
+  initWatchCollection?: () => {
     collectionId: string
     resource: string // reactivity only on XAPI XO record for now
     getIdentifier: (obj: unknown) => string
@@ -121,8 +121,10 @@ export function defineRemoteResource<
 
   const pollingInterval = config.pollingIntervalMs ?? DEFAULT_POLLING_INTERVAL_MS
 
+  const watchCollection = config.initWatchCollection?.()
+
   const removeData = (data: TData[], dataToRemove: any) => {
-    const getIdentifier = config.watchCollection?.getIdentifier ?? JSON.stringify
+    const getIdentifier = watchCollection?.getIdentifier ?? JSON.stringify
 
     remove(data, item => {
       if (typeof item === 'object') {
@@ -156,14 +158,14 @@ export function defineRemoteResource<
     config.onDataReceived ??
     ((data: Ref<TData>, receivedData: any, context?: ResourceContext<TArgs>) => {
       // allow to ignore some update (like for sub collection. E.g. vms/:id/vdis)
-      if (config.watchCollection?.predicate?.(receivedData, context) === false) {
+      if (watchCollection?.predicate?.(receivedData, context) === false) {
         return
       }
 
       if (data.value === undefined || (Array.isArray(data.value) && Array.isArray(receivedData))) {
         data.value = receivedData
 
-        if (config.watchCollection !== undefined && Array.isArray(data.value)) {
+        if (watchCollection !== undefined && Array.isArray(data.value)) {
           handleBuffer(data as Ref<TData[]>)
           isBufferEventsProcessed = true
         }
@@ -187,7 +189,7 @@ export function defineRemoteResource<
     config.onDataRemoved ??
     ((data: Ref<TData>, receivedData: any, context?: ResourceContext<TArgs>) => {
       // allow to ignore some update (like for sub collection. E.g. vms/:id/vdis)
-      if (config.watchCollection?.predicate?.(receivedData, context) === false) {
+      if (watchCollection?.predicate?.(receivedData, context) === false) {
         return
       }
 
@@ -289,8 +291,8 @@ export function defineRemoteResource<
     let pause: VoidFunction = noop
     let resume: VoidFunction = execute
 
-    if (config.watchCollection !== undefined) {
-      const { collectionId, resource, handleDelete, handlePost, handleWatching } = config.watchCollection
+    if (watchCollection !== undefined) {
+      const { collectionId, resource, handleDelete, handlePost, handleWatching } = watchCollection
       const { watch, unwatch } = useSseStore()
 
       pause = () => unwatch({ collectionId, resource, handleDelete })
