@@ -201,6 +201,7 @@
   "control-domain-memory": "Mémoire du domaine de contrôle",
   "copied": "Copié",
   "copy-host-bios-strings": "Copier les BIOS strings de l'hôte à la VM (uniquement pour les VM BIOS).",
+  "copy-unavailable-http": "Copie indisponible dans un contexte HTTP",
   "core-socket": "Cœur (socket)",
   "cores-with-sockets": "Cœurs (sockets)",
   "cpu": "CPU",

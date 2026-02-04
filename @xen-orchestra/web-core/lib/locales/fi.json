@@ -255,7 +255,11 @@
   "template": "Malli",
   "theme-auto": "Automaattinen",
   "theme-dark": "Tumma",
+  "theme-dracula": "Dracula",
   "theme-light": "Vaalea",
+  "theme-monokai": "Monokai",
+  "theme-nord": "Nord",
+  "theme-solarized": "Solarized",
   "third-parties": "Kolmannen osapuolen sovellukset",
   "timeout": "Aikakatkaisu",
   "timezone": "Aikavyöhyke",
@@ -286,6 +290,7 @@
   "xen-orchestra": "Xen Orchestra",
   "xo": "XO",
   "xo-5": "XO-5",
+  "xo-lite": "XO lite",
   "xoa": "XOA",
   "xoa-deploy-failed!": "Anteeksi, käyttöönotto epäonnistui!"
 }
