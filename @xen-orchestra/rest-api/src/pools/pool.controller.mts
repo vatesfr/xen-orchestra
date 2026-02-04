@@ -320,7 +320,7 @@ export class PoolController extends XapiXoController<XoPool> {
       // rebrand all branded type
       const vmId = await this.#vmService.create({
         affinityHost: affinity as XoHost['id'] | undefined,
-        installRepository: install?.repository as XoVdi['id'] | undefined,
+        installRepository: install?.repository as XoVdi['id'] | '' | undefined,
         pool: poolId,
         template: template as XoVmTemplate['id'],
         vdis: vdis as CreateVmParams['vdis'],

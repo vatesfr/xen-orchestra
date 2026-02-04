@@ -57,7 +57,7 @@ export type CreateVmBody = Omit<
   install?:
     | {
         method: 'cdrom'
-        /** VDI ID for cdrom method */
+        /** VDI ID */
         repository: string
       }
     | {

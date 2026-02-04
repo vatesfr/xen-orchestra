@@ -27,7 +27,7 @@
 - [REST API] Do no longer create an `XO user authentication` task, when using an authentication token (PR [#9439](https://github.com/vatesfr/xen-orchestra/pull/9439))
 - [Backup] ensure no snapshot are left unattended after a job (PR [#9434](https://github.com/vatesfr/xen-orchestra/pull/9434))
 - [Backup] Fix replication leaving replica after partial incremental replication (PR [#9435](https://github.com/vatesfr/xen-orchestra/pull/9435))
-- [REST API] Fix ISO not mounted when create a VM from `/pools/:id/actions/create_vm` (PR [#9461](https://github.com/vatesfr/xen-orchestra/pull/9461))
+- [REST API] Fix ISO not mounted when creating a VM from `/pools/:id/actions/create_vm` (PR [#9461](https://github.com/vatesfr/xen-orchestra/pull/9461))
 
 ### Packages to release
 
