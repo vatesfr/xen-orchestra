@@ -90,6 +90,16 @@ interface SrDataPayload {
   srs: SrDataItem[]
 }
 
+export type HostStatusItem = Pick<XoHost, 'uuid' | 'name_label'> & {
+  pool_id: string
+  pool_name: string
+  status: 'running' | 'maintenance' | 'halted' | 'unknown'
+}
+
+interface HostStatusPayload {
+  hosts: HostStatusItem[]
+}
+
 // Union type for all XO objects we handle
 type XoObject = XoHost | XoPool | XoVm | XoVbd | XoVdi | XoVif | XoPif | XoSr | XoNetwork
 
@@ -310,6 +320,16 @@ class OpenMetricsPlugin {
         break
       }
 
+      case 'GET_HOST_STATUS': {
+        const hostStatus = this.#getHostStatusData()
+        this.#sendToChildNoWait({
+          type: 'HOST_STATUS',
+          requestId: message.requestId,
+          payload: hostStatus,
+        })
+        break
+      }
+
       default:
         logger.warn('Unknown message type from child', { type: message.type })
     }
@@ -434,6 +454,40 @@ class OpenMetricsPlugin {
 
     logger.debug('Returning SR data', { srCount: srs.length })
     return { srs }
+  }
+
+  /**
+   * Get host status data for all hosts.
+   * Returns status (running/maintenance/halted/unknown) for every host, including non-running ones.
+   */
+  #getHostStatusData(): HostStatusPayload {
+    const hosts: HostStatusItem[] = []
+
+    const powerStateToStatus: Record<string, HostStatusItem['status']> = {
+      running: 'running',
+      halted: 'halted',
+    }
+
+    const allPools = this.#xo.getObjects({ filter: { type: 'pool' } }) as Record<string, XoPool>
+    const poolLabelMap = new Map<string, string>()
+    for (const pool of Object.values(allPools)) {
+      poolLabelMap.set(pool.uuid, pool.name_label)
+    }
+
+    const allHosts = this.#xo.getObjects({ filter: { type: 'host' } }) as Record<string, XoHost>
+
+    for (const host of Object.values(allHosts)) {
+      hosts.push({
+        uuid: host.uuid,
+        name_label: host.name_label,
+        pool_id: host.$poolId,
+        pool_name: poolLabelMap.get(host.$poolId) ?? '',
+        status: !host.enabled ? 'maintenance' : (powerStateToStatus[host.power_state?.toLowerCase()] ?? 'unknown'),
+      })
+    }
+
+    logger.debug('Returning host status data', { hostCount: hosts.length })
+    return { hosts }
   }
 
   /**
