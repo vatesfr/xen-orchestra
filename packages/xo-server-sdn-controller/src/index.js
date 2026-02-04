@@ -450,18 +450,10 @@ class SDNController extends EventEmitter {
         rules: {
           ':id': {
             _post: async (req, res, next) => {
-              return {
-                allow: req.body.allow,
-                direction: req.body.direction,
-                ipRange: req.body.ipRange,
-                port: req.body.port,
-                protocol: req.body.protocol,
-                networkId: req.params.id,
-              };
               await this._addNetworkRule({
                 allow: req.body.allow,
                 direction: req.body.direction,
-                ipRange: req.body.ipRange,
+                ipRange: req.body.ip_range,
                 port: req.body.port,
                 protocol: req.body.protocol,
                 networkId: req.params.id,
@@ -469,10 +461,21 @@ class SDNController extends EventEmitter {
 
               res.sendStatus(204)
             },
-          }
-        }
+            _delete: async (req, res, next) => {
+              await this._deleteNetworkOfRule({
+                direction: req.body.direction,
+                ipRange: req.body.ip_range,
+                port: req.body.port,
+                protocol: req.body.protocol,
+                networkId: req.params.id,
+              })
+
+              res.sendStatus(204)
+            },
+          },
+        },
       },
-      '/plugins/sdn-controller'
+      '/plugins/sdn-controller/network'
     )
 
     forOwn(this._xo.getAllXapis(), xapi => {
