@@ -201,6 +201,7 @@
   "control-domain-memory": "Operační paměť řídící (virt) domény",
   "copied": "Zkopírováno",
   "copy-host-bios-strings": "Zkopírovat BIOS řetězce z hostitele do virt. stroje (pouze pro virt. stroje, používající BIOS).",
+  "copy-unavailable-http": "Kopie není v kontextu HTTP podporována",
   "core-socket": "Jádro (patice)",
   "cores-with-sockets": "Jader (patic)",
   "cpu": "Procesor",
