@@ -19,6 +19,7 @@
 ### Bug fixes
 
 - [Backup/immutability] Fix typo in sample config file (PR [#9444](https://github.com/vatesfr/xen-orchestra/pull/9444))
+- [xo-server-sdn-controller] traffic rules robustness (PR [#9442](https://github.com/vatesfr/xen-orchestra/pull/9442))
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
@@ -50,5 +51,6 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server patch
+- xo-server-sdn-controller patch
 
 <!--packages-end-->

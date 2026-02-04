@@ -116,7 +116,14 @@ export class OpenFlowChannel extends EventEmitter {
     const { dlType, nwProto } = dlAndNwProtocolFromString(protocol)
     const mac = vif.MAC
 
-    await this._coalesceConnect()
+    try {
+      await this._coalesceConnect()
+    } catch (error) {
+      log.error("addRule: _coalesceConnect", {
+        error
+      })
+      return
+    }
     if (direction.includes('from')) {
       this._addFlow(
         {
@@ -190,7 +197,15 @@ export class OpenFlowChannel extends EventEmitter {
     const { dlType, nwProto } = dlAndNwProtocolFromString(protocol)
     const mac = vif.MAC
 
-    await this._coalesceConnect()
+    try {
+      await this._coalesceConnect()
+    } catch (error) {
+      log.error("addRule: _coalesceConnect", {
+        error
+      })
+      return
+    }
+
     if (direction.includes('from')) {
       this._removeFlows({
         type: ofProtocol.matchType.standard,
