@@ -1,5 +1,12 @@
 <template>
-  <UiButtonIcon v-tooltip="copied && t('copied')" :icon size="small" accent="brand" @click="copy()" />
+  <UiButtonIcon
+    v-tooltip="!isSupported ? t('copy-unavailable-http') : copied && t('copied')"
+    :disabled="!isSupported"
+    :icon
+    size="small"
+    accent="brand"
+    @click="copy()"
+  />
 </template>
 
 <script setup lang="ts">
@@ -15,9 +22,7 @@ const { value } = defineProps<{
 
 const { t } = useI18n()
 
-const { copy, copied } = useClipboard({ source: () => value, legacy: true })
+const { copy, copied, isSupported } = useClipboard({ source: () => value, legacy: true })
 
 const icon = computed(() => (copied.value ? 'fa:check-circle' : 'fa:copy'))
-
-// TODO : Add warning if copy fails
 </script>
