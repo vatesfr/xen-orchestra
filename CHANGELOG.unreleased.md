@@ -19,6 +19,7 @@
 ### Bug fixes
 
 - [Backup/immutability] Fix typo in sample config file (PR [#9444](https://github.com/vatesfr/xen-orchestra/pull/9444))
+- [Host] Fix host dashboard cpu provisioning calculation (PR [#9459](https://github.com/vatesfr/xen-orchestra/pull/9459))
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
