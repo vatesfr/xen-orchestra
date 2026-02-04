@@ -27,7 +27,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { cpuProgressThresholds } from '@core/utils/progress.util.ts'
-import type { XoHost } from '@vates/types'
+import { VM_POWER_STATE, type XoHost } from '@vates/types'
 import { logicAnd } from '@vueuse/math'
 import { useArrayReduce } from '@vueuse/shared'
 import { computed } from 'vue'
@@ -49,7 +49,9 @@ const hostVms = computed(() => vmsByHost.value.get(host.id) ?? [])
 
 const cpusCount = computed(() => host.cpus.cores ?? 0)
 
-const vCpusCount = useArrayReduce(hostVms, (total, vm) => total + vm.CPUs.number, 0)
+const runningVms = computed(() => hostVms.value.filter(vm => vm.power_state === VM_POWER_STATE.RUNNING))
+
+const vCpusCount = useArrayReduce(runningVms, (total, vm) => total + vm.CPUs.number, 0)
 </script>
 
 <style lang="postcss" scoped>
