@@ -20,11 +20,11 @@
         @click="emit('toggle')"
       />
       <div v-else class="h-line" />
-      <a v-tooltip="{ selector: '.text' }" :href class="link typo-body-bold-small" @click="navigate">
+      <a :href class="link typo-body-bold-small" @click="navigate">
         <slot name="icon">
           <VtsIcon :name="icon" size="medium" class="icon" />
         </slot>
-        <div class="text text-ellipsis">
+        <div v-tooltip class="text text-ellipsis">
           <slot />
         </div>
       </a>
