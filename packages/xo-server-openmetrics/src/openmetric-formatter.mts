@@ -7,10 +7,10 @@
 
 import { createLogger } from '@xen-orchestra/log'
 
-import type { LabelLookupData, SrDataItem } from './index.mjs'
+import type { HostStatusItem, LabelLookupData, SrDataItem } from './index.mjs'
 import type { ParsedMetric, ParsedRrdData } from './rrd-parser.mjs'
 
-export type { SrDataItem }
+export type { HostStatusItem, SrDataItem }
 
 const logger = createLogger('xo:xo-server-openmetrics:formatter')
 
@@ -525,7 +525,7 @@ function computeVmCpuUsageFallback(metrics: FormattedMetric[]): FormattedMetric[
       const averageUsage = sum / coreValues.size
 
       // Get a sample metric to copy labels from (without core label)
-      const sampleEntry = coreValues.values().next().value
+      const [sampleEntry] = coreValues.values()
       if (sampleEntry === undefined) {
         continue
       }
@@ -894,6 +894,44 @@ export function formatSrMetrics(srDataList: SrDataItem[]): FormattedMetric[] {
       type: 'gauge',
       labels: { ...baseLabels },
       value: sr.physical_usage,
+      timestamp,
+    })
+  }
+
+  return metrics
+}
+
+/**
+ * Format host status metrics.
+ *
+ * Creates one FormattedMetric per host with power_state and enabled labels.
+ *
+ * @param hostStatusList - Array of host status data
+ * @returns Array of FormattedMetric entries for host status
+ */
+export function formatHostStatusMetrics(hostStatusList: HostStatusItem[]): FormattedMetric[] {
+  const metrics: FormattedMetric[] = []
+  const timestamp = Math.floor(Date.now() / 1000)
+
+  for (const host of hostStatusList) {
+    const labels: Record<string, string> = {
+      pool_id: host.pool_id,
+      uuid: host.uuid,
+      host_name: host.name_label,
+      power_state: host.power_state,
+      enabled: String(host.enabled),
+    }
+
+    if (host.pool_name !== '') {
+      labels.pool_name = host.pool_name
+    }
+
+    metrics.push({
+      name: `${METRIC_PREFIX}_host_status`,
+      help: 'Host status (1 = current state)',
+      type: 'gauge',
+      labels,
+      value: 1,
       timestamp,
     })
   }
