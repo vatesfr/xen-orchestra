@@ -6,7 +6,7 @@
       prop('label').str().widget().preset('Label'),
       prop('info').str().widget().preset('message'),
       prop('vertical').bool().widget(),
-      prop('layout').enum('grid', 'flex').preset('flex').widget(),
+      prop('gap').required().enum('narrow', 'wide').preset('wide').widget(),
       slot().help('Meant to receive a list of radio button components'),
       slot('label').help('Meant to receive a label UiLabel component or another component'),
       slot('info').help('Meant to receive a message info or UiInfo component or another component'),
