@@ -98,7 +98,7 @@ onUnmounted(() => setRegisteredHost(undefined))
     'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
 
   &.mobile {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
       'quick-info'
       'vms-status'

@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- [Dashboard] Fix reactivity of dashboard (PR [#9378](https://github.com/vatesfr/xen-orchestra/pull/9378))
+
 ## **0.18.0** (2026-01-29)
 
 - [VM/New] Fix wording in "Memory" section (PR [#9309](https://github.com/vatesfr/xen-orchestra/pull/9309))

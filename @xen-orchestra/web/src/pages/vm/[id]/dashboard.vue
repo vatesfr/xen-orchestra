@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard" :class="{ mobile: isMobile }">
+  <div class="dashboard" :class="{ mobile: uiStore.isMobile }">
     <VmDashboardQuickInfo class="quick-info" :vm />
     <div v-if="!isVmRunning" class="offline-hero-container">
       <VtsStateHero format="page" type="offline" size="large" horizontal>
@@ -56,7 +56,7 @@ const { vmAlarms, areVmAlarmsReady, hasVmAlarmFetchError } = useXoVmAlarmsCollec
 
 const isVmRunning = computed(() => vm.power_state === VM_POWER_STATE.RUNNING)
 
-const { isMobile } = useUiStore()
+const uiStore = useUiStore()
 
 const { t } = useI18n()
 </script>
@@ -74,7 +74,7 @@ const { t } = useI18n()
     'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
 
   &.mobile {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
       'quick-info'
       'alarms'
