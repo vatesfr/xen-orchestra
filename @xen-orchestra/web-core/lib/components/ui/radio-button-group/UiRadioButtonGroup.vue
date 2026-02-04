@@ -6,7 +6,7 @@
         {{ label }}
       </UiLabel>
     </slot>
-    <div class="group" :class="{ vertical, [`layout-${layout}`]: true }">
+    <div class="group" :class="[className, { vertical }]">
       <slot />
     </div>
     <slot v-if="slots.info || info !== undefined" name="info">
@@ -20,14 +20,15 @@
 <script setup lang="ts">
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
+import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 
-const { accent } = defineProps<{
+const { accent, gap } = defineProps<{
   accent: 'brand' | 'warning' | 'danger'
+  gap: 'narrow' | 'wide'
   label?: string
   info?: string
   vertical?: boolean
-  layout?: 'grid' | 'flex'
 }>()
 
 const slots = defineSlots<{
@@ -36,6 +37,7 @@ const slots = defineSlots<{
   info?(): any
 }>()
 const labelAccent = computed(() => (accent === 'brand' ? 'neutral' : accent))
+const className = computed(() => toVariants({ gap }))
 </script>
 
 <style scoped lang="postcss">
@@ -46,26 +48,21 @@ const labelAccent = computed(() => (accent === 'brand' ? 'neutral' : accent))
 
   .group {
     display: flex;
-    gap: 6.4rem;
 
     &.vertical {
       flex-direction: column;
       gap: 0.8rem;
     }
 
-    /* LAYOUT */
+    /* GAP */
 
-    &.layout-grid {
-      display: grid;
-      grid-template-columns: repeat(2, max-content);
-      column-gap: 1.6rem;
-      gap: 1.6rem;
+    &.gap--narrow {
+      flex-wrap: wrap;
+      gap: 0.4rem;
     }
 
-    &.layout-flex {
-      display: flex;
-      flex-direction: row;
-      gap: 1.6rem;
+    &.gap--wide {
+      gap: 6.4rem;
     }
   }
 }
