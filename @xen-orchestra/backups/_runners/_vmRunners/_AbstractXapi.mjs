@@ -169,8 +169,10 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           scheduleId: this.scheduleId,
           vmUuid: vm.uuid,
         })
+        const snapshot = await xapi.getRecord('VM', snapshotRef)
+        await snapshot.set_name_label(this._getSnapshotNameLabel(vm))
+        // reload data to ensure it is up to date with the new name label
         this._exportedVm = await xapi.getRecord('VM', snapshotRef)
-        await this._exportedVm.set_name_label(this._getSnapshotNameLabel(vm))
         return this._exportedVm.uuid
       })
     } else {
