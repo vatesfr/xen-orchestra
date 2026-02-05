@@ -31,4 +31,6 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/fs patch
+
 <!--packages-end-->
