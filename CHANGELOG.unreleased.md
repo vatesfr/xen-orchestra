@@ -31,4 +31,5 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/vmware-explorer minor
 <!--packages-end-->
