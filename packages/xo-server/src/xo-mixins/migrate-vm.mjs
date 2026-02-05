@@ -108,5 +108,6 @@ export default class MigrateVm {
         // @todo should we delete the snapshot if we keep the source vm ?
       }
     }
+    return targetVm.uuid
   }
 }
