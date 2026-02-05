@@ -42,6 +42,7 @@ import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { taskIds, partialTasks, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
+import { SrService } from './sr.service.mjs'
 
 @Route('srs')
 @Security('*')
@@ -51,9 +52,15 @@ import type { CreateActionReturnType } from '../abstract-classes/base-controller
 @provide(SrController)
 export class SrController extends XapiXoController<XoSr> {
   #alarmService: AlarmService
-  constructor(@inject(RestApi) restApi: RestApi, @inject(AlarmService) alarmService: AlarmService) {
+  #srService: SrService
+  constructor(
+    @inject(RestApi) restApi: RestApi,
+    @inject(AlarmService) alarmService: AlarmService,
+    @inject(SrService) srService: SrService
+  ) {
     super('SR', restApi)
     this.#alarmService = alarmService
+    this.#srService = srService
   }
 
   /**
@@ -299,5 +306,15 @@ export class SrController extends XapiXoController<XoSr> {
         objectId: srId,
       },
     })
+  }
+
+  /**
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   */
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Delete('{id}')
+  async deleteSr(@Path() id: string): Promise<void> {
+    await this.#srService.delete(id as XoSr['id'])
   }
 }
