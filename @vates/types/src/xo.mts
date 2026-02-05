@@ -637,6 +637,21 @@ export type XoTask = {
     method?: string
     name?: string
     objectId?: string
+    objectType?:
+      | XapiXoRecord['type']
+      | 'backup'
+      | 'backup-archive'
+      | 'backup-job'
+      | 'backup-log'
+      | 'backup-repository'
+      | 'group'
+      | 'proxy'
+      | 'restore'
+      | 'restore-log'
+      | 'schedule'
+      | 'server'
+      | 'task'
+      | 'user'
     params?: Record<string, unknown>
     progress?: number
     type?: string

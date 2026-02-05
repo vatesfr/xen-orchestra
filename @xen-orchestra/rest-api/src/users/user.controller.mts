@@ -66,7 +66,7 @@ export class UserController extends XoController<XoUser> {
   #userService: UserService
 
   constructor(@inject(RestApi) restApi: RestApi, @inject(UserService) userService: UserService) {
-    super(restApi)
+    super('user', restApi)
     this.#userService = userService
   }
 

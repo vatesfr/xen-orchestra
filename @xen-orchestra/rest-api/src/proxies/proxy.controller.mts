@@ -1,4 +1,5 @@
 import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 import type { XoProxy } from '@vates/types'
@@ -7,6 +8,7 @@ import { badRequestResp, notFoundResp, unauthorizedResp, type Unbrand } from '..
 import { partialProxies, proxy, proxyIds } from '../open-api/oa-examples/proxy.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
+import { RestApi } from '../rest-api/rest-api.mjs'
 
 @Route('proxies')
 @Security('*')
@@ -15,6 +17,10 @@ import { XoController } from '../abstract-classes/xo-controller.mjs'
 @Tags('proxies')
 @provide(ProxyController)
 export class ProxyController extends XoController<XoProxy> {
+  constructor(@inject(RestApi) restApi: RestApi) {
+    super('proxy', restApi)
+  }
+
   getAllCollectionObjects(): Promise<XoProxy[]> {
     return this.restApi.xoApp.getAllProxies()
   }

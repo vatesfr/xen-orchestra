@@ -22,7 +22,7 @@ export class BackupLogController extends XoController<XoBackupLog> {
   #backupLogService: BackupLogService
 
   constructor(@inject(RestApi) restApi: RestApi, @inject(BackupLogService) backupLogService: BackupLogService) {
-    super(restApi)
+    super('backup-log', restApi)
     this.#backupLogService = backupLogService
   }
 
