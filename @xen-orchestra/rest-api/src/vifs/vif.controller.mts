@@ -16,7 +16,19 @@ import {
 } from 'tsoa'
 import { inject } from 'inversify'
 import { json, type Request as ExRequest } from 'express'
-import type { Branded, Xapi, XenApiVif, XoAlarm, XoMessage, XoNetwork, XoTask, XoVif, XoVm } from '@vates/types'
+import type {
+  Branded,
+  Xapi,
+  XenApiNetwork,
+  XenApiVif,
+  XenApiVm,
+  XoAlarm,
+  XoMessage,
+  XoNetwork,
+  XoTask,
+  XoVif,
+  XoVm,
+} from '@vates/types'
 
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { provide } from 'inversify-binding-decorators'
@@ -26,6 +38,7 @@ import {
   createdResp,
   internalServerErrorResp,
   invalidParameters as invalidParametersResp,
+  noContentResp,
   notFoundResp,
   unauthorizedResp,
   type Unbrand,
@@ -194,15 +207,15 @@ export class VifController extends XapiXoController<XoVif> {
     const vifRef = await xapi.VIF_create(
       {
         ...rest,
-        VM: vm._xapiRef as Branded<'VM'>,
-        network: network._xapiRef as Branded<'network'>,
+        VM: vm._xapiRef as XenApiVm['$ref'],
+        network: network._xapiRef as XenApiNetwork['$ref'],
       },
       {
         MAC,
       }
     )
 
-    const vif = this.getObject(vifRef as XenApiVif['$ref'])
+    const vif = this.getObject(vifRef)
     return { id: vif.id }
   }
 
@@ -210,7 +223,7 @@ export class VifController extends XapiXoController<XoVif> {
    * @example id "6b6ca0f5-6611-0636-4b0a-1fb1c1e96414"
    */
   @Delete('{id}')
-  @SuccessResponse(createdResp.status, createdResp.description)
+  @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async destroyVif(@Path() id: string): Promise<void> {
