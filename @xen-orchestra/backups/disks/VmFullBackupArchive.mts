@@ -1,0 +1,32 @@
+import { PartialBackupMetadata } from './DiskLineage.types.mts'
+import RemoteHandlerAbstract from '../../fs/src/abstract'
+import { FullBackup } from './FullBackup.mts'
+import { basename } from '@xen-orchestra/fs/path'
+import { AbstractVmBackupArchive } from './VmBackupArchive.mts'
+
+export class VmFullBackupArchive extends AbstractVmBackupArchive {
+  diskPath: string
+  backup: FullBackup
+
+  constructor(
+    handler: RemoteHandlerAbstract,
+    rootPath: string,
+    metadataPath: string,
+    metadata: PartialBackupMetadata,
+    diskPath: string
+  ) {
+    super(handler, rootPath, metadataPath, metadata)
+    this.diskPath = diskPath
+    this.backup = new FullBackup(this.handler, this.diskPath)
+  }
+
+  async init() {
+    const backup = new FullBackup(this.handler, this.diskPath)
+    await backup.init()
+  }
+
+  async getValidFiles({ prefix = false }) {
+    const allFiles = await this.handler.list(this.rootPath, { prependDir: prefix })
+    return prefix ? [basename(this.metadataPath), basename(this.diskPath)] : [this.metadataPath, this.diskPath]
+  }
+}
