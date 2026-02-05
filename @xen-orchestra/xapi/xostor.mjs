@@ -2,8 +2,10 @@ import { asyncMapSettled } from '@xen-orchestra/async-map'
 import { decorateClass } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 import { forbiddenOperation } from 'xo-common/api-errors.js'
+import { Task } from '@vates/task'
 
 const DEFAULT_INTERFACE_NAME = 'default'
+const VG_NAME = 'linstor_group'
 
 function linstorManagerCall(xapi, hostRef, fnName, args) {
   return xapi.call('host.call_plugin', hostRef, 'linstor-manager', fnName, args)
@@ -119,6 +121,25 @@ export default class Xostor {
         name: interfaceName,
       })
     })
+  }
+
+  async destroy(ref) {
+    const pbdRefs = await this.getField('SR', ref, 'PBDs')
+    const hostRefs = await Promise.all(pbdRefs.map(pbdRef => this.getField('PBD', pbdRef, 'host')))
+
+    await Task.run({ properties: { name: 'deletion of the storage' } }, async () => {
+      await asyncMapSettled(pbdRefs, pbdRef => this.callAsync('PBD.unplug', pbdRef))
+      await this.call('SR.destroy', ref)
+    })
+
+    await Task.run({ properties: { name: `destroy volume group on ${hostRefs.length} hosts` } }, () =>
+      asyncMapSettled(hostRefs, hostRef =>
+        this.call('host.call_plugin', hostRef, 'lvm.py', 'destroy_volume_group', {
+          vg_name: VG_NAME,
+          force: String(true),
+        })
+      )
+    )
   }
 }
 
