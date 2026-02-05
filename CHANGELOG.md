@@ -30,10 +30,11 @@
 - @xen-orchestra/backups 0.68.1
 - @xen-orchestra/immutable-backups 1.0.29
 - @xen-orchestra/web-core 0.42.0
-- @xen-orchestra/proxy 0.29.44
 - @xen-orchestra/rest-api 0.24.1
 - @xen-orchestra/web 0.40.0
-- xo-server 5.196.1
+- @xen-orchestra/fs 4.6.6
+- @xen-orchestra/proxy 0.29.45
+- xo-server 5.196.2
 
 ## **6.1.0** (2026-01-29)
 
