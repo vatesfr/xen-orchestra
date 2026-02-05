@@ -1,3 +1,4 @@
+import { VM_POWER_STATE } from '@vates/types'
 import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
 import { v4 as generateUuid } from 'uuid'
 
@@ -48,18 +49,21 @@ export default class MigrateVm {
     await app.checkFeatureAuthorization('WARM_MIGRATION')
     const jobId = generateUuid()
     const sourceVm = app.getXapiObject(sourceVmId)
-    let backup = this.#createWarmBackup(sourceVmId, srId, jobId)
-    await backup.run()
     const xapi = sourceVm.$xapi
     const ref = sourceVm.$ref
+    const isRunning = sourceVm.power_state !== VM_POWER_STATE.HALTED
+    const backup = this.#createWarmBackup(sourceVmId, srId, jobId)
 
-    // stop the source VM before
-    try {
-      await xapi.callAsync('VM.clean_shutdown', ref)
-    } catch (error) {
-      await xapi.callAsync('VM.hard_shutdown', ref)
+    if (isRunning) {
+      await backup.run()
+      try {
+        await xapi.callAsync('VM.clean_shutdown', ref)
+      } catch (error) {
+        await xapi.callAsync('VM.hard_shutdown', ref)
+      }
     }
-    // make it so it can't be restarted by error
+
+    // make it so it can't be (re)started by error
     const message =
       'This VM has been migrated somewhere else and might not be up to date, check twice before starting it.'
     await sourceVm.update_blocked_operations({
@@ -69,8 +73,8 @@ export default class MigrateVm {
 
     // run the transfer again to transfer the changed parts
     // since the source is stopped, there won't be any new change after
-    backup = this.#createWarmBackup(sourceVmId, srId, jobId)
     await backup.run()
+
     // find the destination Vm
     const targets = Object.keys(
       app.getObjects({
@@ -94,7 +98,7 @@ export default class MigrateVm {
     const targetVm = app.getXapiObject(targets[0])
 
     // new vm is ready to start
-    // delta replication writer has set this as blocked=
+    // incremental xapi  writer has set this as blocked
     await targetVm.update_blocked_operations({ start: null, start_on: null })
 
     if (startDestVm) {
