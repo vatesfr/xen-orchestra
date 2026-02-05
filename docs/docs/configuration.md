@@ -50,6 +50,21 @@ Place your `config.toml` (or any `config.*.toml` override) in one of the followi
 - **User-specific configuration**:  
   `~/.config/xo-server/config.toml`
 
+The order of the loading and overriding values in multiple config files is the following :
+
+| Stage | Location | Typical Path                   | Priority            |
+| ----- | -------- | ------------------------------ | ------------------- |
+| 1     | vendor   | `<appDir>/config.*`            | lowest              |
+| 2     | global   | `/etc/<appName>/config.*`      | overrides vendor    |
+| 3     | user     | `~/.config/<appName>/config.*` | overrides global    |
+| 4     | local    | `./…/.<appName>.*`             | overrides all above |
+
+There is no guarantee on the order of the config file loading in the same location.
+
+:::tip
+The update feature of XOA can reset any `local` config, use `/etc/xo-server/config.*` as the preferred config place for XOA.
+:::
+
 ### Apply the changes
 
 After updating the configuration, restart the XO server process:
