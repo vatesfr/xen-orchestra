@@ -2,7 +2,7 @@
 
 ## **next**
 
-- [Host] Fix host dashboard cpu provisioning calculation (PR [#9459](https://github.com/vatesfr/xen-orchestra/pull/9459))
+- [Host] Fix host dashboard CPU provisioning calculation [Forum#101359](https://xcp-ng.org/forum/topic/11604/xo-6-dedicated-thread-for-all-your-feedback/84) (PR [#9459](https://github.com/vatesfr/xen-orchestra/pull/9459))
 
 ## **0.18.0** (2026-01-29)
 

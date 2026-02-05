@@ -19,7 +19,6 @@
 </template>
 
 <script lang="ts" setup>
-import { ACTIVE_STATES } from '@/libs/utils'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store.ts'
@@ -56,13 +55,7 @@ const runningVms = computed(() => hostVms.value.filter(vm => vm.power_state === 
 
 const vCpusCount = useArrayReduce(
   runningVms,
-  (total, vm) => {
-    if (ACTIVE_STATES.has(vm.power_state)) {
-      return total + (getVmMetricsByOpaqueRef(vm.metrics)?.VCPUs_number ?? vm.VCPUs_at_startup)
-    }
-
-    return total + vm.VCPUs_at_startup
-  },
+  (total, vm) => total + (getVmMetricsByOpaqueRef(vm.metrics)?.VCPUs_number ?? vm.VCPUs_at_startup),
   0
 )
 </script>
