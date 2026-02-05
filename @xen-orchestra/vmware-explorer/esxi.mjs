@@ -412,9 +412,7 @@ export default class Esxi extends EventEmitter {
     }
   }
 
-  async powerOff(vmId) {
-    const res = await this.#exec('PowerOffVM_Task', { _this: vmId })
-    const taskId = res.returnval.$value
+  async #waitForTaskEnd(taskId) {
     let state = 'running'
     let info
     for (let i = 0; i < 60; i++) {
@@ -426,12 +424,37 @@ export default class Esxi extends EventEmitter {
       }
       await new Promise(resolve => setTimeout(resolve, 1000))
     }
-    strictEqual(state, 'success', info.error ?? `fail to power off vm ${vmId}, state:${state}`)
-    return info
+    if (state === 'success') {
+      return info
+    }
+    throw new Error(info.error ?? 'task execution failed ')
+  }
+
+  async powerOff(vmId) {
+    const res = await this.#exec('PowerOffVM_Task', { _this: vmId })
+    const taskId = res.returnval.$value
+    try {
+      return await this.#waitForTaskEnd(taskId)
+    } catch (error) {
+      warn('Fail to power off VM ', { vmId, error })
+      throw error
+    }
   }
   powerOn(vmId) {
     return this.#exec('PowerOnVM_Task', { _this: vmId })
   }
+
+  async snapshot(vmId, name, description) {
+    const res = await this.#exec('CreateSnapshotEx_Task', { _this: vmId, name, description, memory: false })
+    const taskId = res.returnval.$value
+    try {
+      return await this.#waitForTaskEnd(taskId)
+    } catch (error) {
+      warn('Fail to take a snapshot ', { vmId, error })
+      throw error
+    }
+  }
+
   async fetchProperty(type, id, propertyName) {
     // the fetch method does not seems to be exposed by the wsdl
     // inspired by the pyvmomi implementation ( StubAdapterAccessorImpl.py / InvokeAccessor)

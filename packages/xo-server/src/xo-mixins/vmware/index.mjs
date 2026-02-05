@@ -193,10 +193,24 @@ export default class MigrateVm {
     const template = app.getXapiObject(templateId)
     const xapi = sr.$xapi
 
-    const metadata = await Task.run({ properties: { name: `get metadata of ${vmId}` } }, async () => {
+    let metadata = await Task.run({ properties: { name: `get metadata of ${vmId}` } }, async () => {
       return esxi.getTransferableVmMetadata(vmId)
     })
 
+    if (!metadata.snapshots || !metadata.snapshots.current) {
+      if (metadata.powerState !== 'poweredOff') {
+        await Task.run({ properties: { name: `taking a snapshot of ${vmId}` } }, () => {
+          return esxi.snapshot(vmId, 'migration to XCP-ng', 'created automatically during migration')
+        })
+
+        metadata = await Task.run(
+          { properties: { name: `updating metadata of ${vmId} after taking a snapshot` } },
+          async () => {
+            return esxi.getTransferableVmMetadata(vmId)
+          }
+        )
+      }
+    }
     const vm = await this.#createVmAndNetworks($defer, { metadata, networkId, template, xapi })
     await xapi.barrier()
     await this.#importDisks($defer, { esxi, metadata, stopSource, vm, sr, vmId })
