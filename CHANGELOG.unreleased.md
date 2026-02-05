@@ -18,8 +18,6 @@
 
 ### Bug fixes
 
-- [Backup/immutability] Fix typo in sample config file (PR [#9444](https://github.com/vatesfr/xen-orchestra/pull/9444))
-
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [REST API] Close SSE connections when clients are too slow, to avoid increased memory consumption (PR [#9439](https://github.com/vatesfr/xen-orchestra/pull/9439))
@@ -30,6 +28,8 @@
 - [REST API] Fix href path for backup-archives (PR [#9460](https://github.com/vatesfr/xen-orchestra/pull/9460))
 - [REST API/Pool/Dashboard] Only consider running VMs for the `cpuProvisioning.assigned` value [Forum#11604](https://xcp-ng.org/forum/topic/11604/xo-6-dedicated-thread-for-all-your-feedback/84) (PR [#9456](https://github.com/vatesfr/xen-orchestra/pull/9456))
 - [CopyButton] Fix copy to clipboard not working in non-HTTPS environments (PR [#9426](https://github.com/vatesfr/xen-orchestra/pull/9426))
+- [Backup/immutability] Fix typo in sample config file (PR [#9444](https://github.com/vatesfr/xen-orchestra/pull/9444))
+- [Host] Fix host dashboard CPU provisioning calculation [Forum#101359](https://xcp-ng.org/forum/topic/11604/xo-6-dedicated-thread-for-all-your-feedback/84) (PR [#9459](https://github.com/vatesfr/xen-orchestra/pull/9459))
 
 ### Packages to release
 
