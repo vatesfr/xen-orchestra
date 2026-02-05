@@ -1,6 +1,7 @@
 import { RemoteDisk } from './RemoteDisk.mjs'
 import assert from 'node:assert'
 import type { FileHandler, FileDescriptor } from '@xen-orchestra/disk-transform'
+import RemoteHandlerAbstract from '../../fs/src/abstract'
 
 const COMPRESSED_MAGIC_NUMBERS: Buffer[] = [
   // https://tools.ietf.org/html/rfc1952.html#page-5
@@ -12,7 +13,7 @@ const COMPRESSED_MAGIC_NUMBERS: Buffer[] = [
 
 const MAGIC_NUMBER_MAX_LENGTH: number = Math.max(...COMPRESSED_MAGIC_NUMBERS.map(buf => buf.length))
 
-const isCompressedFile = async (handler: FileHandler, fd: FileDescriptor): Promise<boolean> => {
+const isCompressedFile = async (handler: RemoteHandlerAbstract, fd: FileDescriptor): Promise<boolean> => {
   const header = Buffer.allocUnsafe(MAGIC_NUMBER_MAX_LENGTH)
   assert.strictEqual((await handler.read(fd, header, 0)).bytesRead, header.length)
 
@@ -24,7 +25,7 @@ const isCompressedFile = async (handler: FileHandler, fd: FileDescriptor): Promi
   return false
 }
 
-const isValidTar = async (handler: FileHandler, size: number, fd: FileDescriptor): Promise<boolean> => {
+const isValidTar = async (handler: RemoteHandlerAbstract, size: number, fd: FileDescriptor): Promise<boolean> => {
   if (size <= 1024 || size % 512 !== 0) {
     return false
   }
@@ -34,7 +35,7 @@ const isValidTar = async (handler: FileHandler, size: number, fd: FileDescriptor
   return buf.every(byte => byte === 0)
 }
 
-export async function isValidXva(handler: FileHandler, filePath: string): Promise<boolean> {
+export async function isValidXva(handler: RemoteHandlerAbstract, filePath: string): Promise<boolean> {
   // size is longer when encrypted + reading part of an encrypted file is not implemented
   if (handler.isEncrypted) {
     return true
@@ -64,28 +65,25 @@ export async function isValidXva(handler: FileHandler, filePath: string): Promis
 const noop = (): void => {}
 
 export class FullBackup extends RemoteDisk {
-  handler: FileHandler
-  xvaPath: string
+  handler: RemoteHandlerAbstract
+  diskPath: string
   checksumPath?: string
-  metadataFile?: string
+  metadataPath?: string
   isValid?: boolean
 
-  // Constructor
-  constructor(handler: FileHandler, xvaPath: string) {
+  constructor(handler: RemoteHandlerAbstract, diskPath: string) {
     super()
     this.handler = handler
-    this.xvaPath = xvaPath
+    this.diskPath = diskPath
     this.isValid = undefined
   }
 
-  async init() {
-    this.check()
-  }
+  async init() {}
 
   async check() {
     try {
       if (this.isValid == undefined) {
-        this.isValid = await isValidXva(this.handler, this.xvaPath)
+        this.isValid = await isValidXva(this.handler, this.diskPath)
       }
     } catch (error) {
       this.isValid = false
@@ -95,15 +93,18 @@ export class FullBackup extends RemoteDisk {
 
   async clean() {
     try {
-      await this.handler.unlink(this.xvaPath)
-    } catch (error) {}
+      this.metadataPath = undefined
+      await this.handler.unlink(this.diskPath)
+    } catch (error) {
+      console.warn(`Issue removing ${this.diskPath}`)
+    }
   }
 
   linkMetadata(path: string) {
-    this.metadataFile = path
+    this.metadataPath = path
   }
 
   isLinked() {
-    return this.metadataFile !== null
+    return this.metadataPath !== null
   }
 }

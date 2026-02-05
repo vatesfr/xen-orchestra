@@ -1,40 +1,32 @@
-import { getSyncedHandler } from '@xen-orchestra/fs'
-import type { FileHandler } from '@xen-orchestra/disk-transform'
-import { FullBackupLineage } from './FullDiskLineage.mjs'
-import { IBackupLineage } from './DiskLineage.types.mts'
+import { PartialBackupMetadata } from './DiskLineage.types.mts'
+import RemoteHandlerAbstract from '../../fs/src/abstract'
 
-class VmBackupArchive {
-  handler: FileHandler
-  vmUuid: string
-  backupJobUuid: string
-  lineages = new Array<IBackupLineage>()
+export abstract class AbstractVmBackupArchive {
+  handler: RemoteHandlerAbstract
+  metadataPath: string
+  metadata: PartialBackupMetadata
+  rootPath: string
 
-  constructor(handler: FileHandler, vmUuid: string, backupJobUuid: string) {
+  constructor(handler: RemoteHandlerAbstract, rootPath: string, metadataPath: string, metadata: PartialBackupMetadata) {
     this.handler = handler
-    this.vmUuid = vmUuid
-    this.backupJobUuid = backupJobUuid
-    this.lineages.push(new FullBackupLineage(this.handler, this.vmUuid))
+    this.metadataPath = metadataPath
+    this.metadata = metadata
+    this.rootPath = rootPath
   }
 
-  async init(): Promise<void> {
-    for (const lineage of this.lineages) {
-      await lineage.init()
-    }
-    await this.check()
+  async init() {
+    throw new Error('Not implemented')
   }
 
   async check() {
-    for (const lineage of this.lineages) {
-      await lineage.check()
-    }
+    throw new Error('Not implemented')
   }
 
-  async clean(): Promise<void> {
-    await this.check()
-    for (const lineage of this.lineages) {
-      await lineage.clean()
-    }
+  async clear() {
+    throw new Error('Not implemented')
+  }
+
+  getValidFiles({ prefix = false }) {
+    throw new Error('Not implemented')
   }
 }
-
-export { VmBackupArchive }
