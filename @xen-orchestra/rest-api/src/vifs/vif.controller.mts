@@ -193,7 +193,7 @@ export class VifController extends XapiXoController<XoVif> {
   async createVif(
     @Body()
     body: CreateVifBody
-  ): Promise<{ id: XoVif['id'] }> {
+  ): Promise<{ id: Unbrand<XoVif>['id'] }> {
     const { MAC, vmId, networkId, ...rest } = body
 
     const vm = this.restApi.getObject<XoVm>(vmId as XoVm['id'], 'VM')
@@ -215,8 +215,8 @@ export class VifController extends XapiXoController<XoVif> {
       }
     )
 
-    const vif = this.getObject(vifRef)
-    return { id: vif.id }
+    const xapiVif = await xapi.barrier<XenApiVif>(vifRef)
+    return { id: xapiVif.uuid }
   }
 
   /**
