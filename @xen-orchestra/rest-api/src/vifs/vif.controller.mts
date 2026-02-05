@@ -17,7 +17,6 @@ import {
 import { inject } from 'inversify'
 import { json, type Request as ExRequest } from 'express'
 import type {
-  Branded,
   Xapi,
   XenApiNetwork,
   XenApiVif,
