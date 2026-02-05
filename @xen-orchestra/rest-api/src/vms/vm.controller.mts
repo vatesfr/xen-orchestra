@@ -13,8 +13,9 @@ import {
   Body,
   Put,
   Delete,
+  Middlewares,
 } from 'tsoa'
-import { Request as ExRequest } from 'express'
+import { Request as ExRequest, json } from 'express'
 import { inject } from 'inversify'
 import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
 import { provide } from 'inversify-binding-decorators'

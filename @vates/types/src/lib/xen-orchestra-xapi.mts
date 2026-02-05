@@ -254,23 +254,4 @@ export interface Xapi {
   ): Promise<{ body: Readable }>
   isHyperThreadingEnabled(hostId: XoHost['id']): Promise<boolean | null>
   VTPM_create(params: { VM: XenApiVm['$ref']; is_unique?: boolean; contents?: string }): Promise<XenApiVtpm['$ref']>
-  VIF_create(
-    options: {
-      currently_attached: boolean
-      device?: string
-      ipv4_allowed?: string[]
-      ipv6_allowed?: string[]
-      locking_mode?: VIF_LOCKING_MODE
-      MTU: number
-      network: XenApiNetwork['$ref']
-      other_config: Record<string, string>
-      qos_algorithm_params: Record<string, string>
-      qos_algorithm_type: string
-      VM: XenApiVm['$ref']
-    },
-    extraOptions: {
-      MAC: string
-    }
-  ): Promise<XenApiVif['$ref']>
-  deleteVif(vifId: string): Promise<void>
 }
