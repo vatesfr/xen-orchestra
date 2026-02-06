@@ -26,8 +26,10 @@ import {
   unauthorizedResp,
   Unbrand,
 } from '../open-api/common/response.common.mjs'
+import { BASE_URL } from '../index.mjs'
 import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
+import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 
 @Route('acl-roles')
@@ -78,6 +80,7 @@ export class AclRoleController extends XoController<XoAclRole> {
    * @example id "426622cc-b2db-4545-a2f0-6ec47b3a6450"
    * @example body {"name": "Copied role"}
    */
+  @Example(taskLocation)
   @Post('{id}/actions/copy')
   @Middlewares(json())
   @SuccessResponse(createdResp.status, createdResp.description)
@@ -92,6 +95,10 @@ export class AclRoleController extends XoController<XoAclRole> {
 
     const action = async () => {
       const id = await this.restApi.xoApp.copyAclV2Role(roleId, body)
+
+      if (sync) {
+        this.setHeader('Location', `${BASE_URL}/acl-roles/${id}`)
+      }
       return { id }
     }
 
