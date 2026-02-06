@@ -19,6 +19,7 @@ import type {
   VM_POWER_STATE,
 } from './common.mjs'
 import type * as CMType from './lib/complex-matcher.mjs'
+import { XoAclRole } from './lib/xen-orchestra-acl.mjs'
 import type { XenApiHost, XenApiPool } from './xen-api.mjs'
 
 type BaseXapiXo = {
@@ -844,6 +845,7 @@ export type NonXapiXoRecord =
   | XoServer
   | XoTask
   | XoUser
+  | XoAclRole
 
 export type XoRecord = XapiXoRecord | NonXapiXoRecord
 
