@@ -16,7 +16,8 @@ const {
   PLATFORMS,
 } = require('./_constants')
 
-exports.createFooter = function createFooter(size, timestamp, geometry, dataOffset, diskType = DISK_TYPES.FIXED) {
+exports.createFooter = function createFooter(size, timestamp, geometry, dataOffset, diskType = DISK_TYPES.FIXED, uid) {
+  console.log('createFooter', uid)
   const footer = fuFooter.pack({
     cookie: FOOTER_COOKIE,
     features: 2,
@@ -29,7 +30,7 @@ exports.createFooter = function createFooter(size, timestamp, geometry, dataOffs
     currentSize: size,
     diskGeometry: geometry,
     diskType,
-    uuid: generateUuid(null, Buffer.allocUnsafe(16)),
+    uuid: uid ?? generateUuid(null, Buffer.allocUnsafe(16))
   })
   checksumStruct(footer, fuFooter)
   return footer
@@ -38,7 +39,9 @@ exports.createFooter = function createFooter(size, timestamp, geometry, dataOffs
 exports.createHeader = function createHeader(
   maxTableEntries,
   tableOffset = HEADER_SIZE + FOOTER_SIZE,
-  blockSize = VHD_BLOCK_SIZE_BYTES
+  blockSize = VHD_BLOCK_SIZE_BYTES, 
+  parentUid, 
+  parentUnicodeName
 ) {
   const header = fuHeader.pack({
     cookie: HEADER_COOKIE,
@@ -46,6 +49,8 @@ exports.createHeader = function createHeader(
     headerVersion: HEADER_VERSION,
     maxTableEntries,
     blockSize,
+    parentUnicodeName,
+    parentUid,
   })
   checksumStruct(header, fuHeader)
   return header
