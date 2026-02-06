@@ -9,7 +9,9 @@
 
 ### Enhancements
 
-> Users must be able to say: “Nice enhancement, I'm eager to test it”
+> Users must be able to say: "Nice enhancement, I'm eager to test it"
+
+- [OpenMetrics] Add `is_control_domain` label to VM metrics to differentiate dom0 VMs from regular VMs
 
 ### Bug fixes
 
@@ -30,5 +32,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- xo-server-openmetrics minor
 
 <!--packages-end-->
