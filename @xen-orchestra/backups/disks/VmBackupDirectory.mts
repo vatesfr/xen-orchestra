@@ -63,7 +63,7 @@ class VmBackupDirectory {
     let backupArchive: VmBackupArchive
     try {
       if (metadata.mode == 'full') {
-        backupArchive = new VmFullBackupArchive(this.#handler, this.rootPath, metadataPath, metadata)
+        backupArchive = new VmFullBackupArchive(this.#handler, this.rootPath, metadataPath, metadata, metadata.xva!)
       } else {
         backupArchive = new VmIncrementalBackupArchive(this.#handler)
       }
