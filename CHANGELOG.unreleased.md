@@ -11,7 +11,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [REST API] Added POST `/pbds/{id}/connect` and `/pbds/{id}/connect` rest routes (PR []())
+- [REST API] Added POST `/pbds/{id}/connect` and `/pbds/{id}/connect` rest routes (PR [#9477](https://github.com/vatesfr/xen-orchestra/pull/9477))
 
 ### Bug fixes
 

@@ -60,7 +60,7 @@ export class PbdController extends XapiXoController<XoPbd> {
   @Post('{id}/connect')
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  async connectHost(@Path() id: string): Promise<void> {
+  async connectPbd(@Path() id: string): Promise<void> {
     const PBD = this.getXapiObject(id as XoPbd['id'])
 
     if (!PBD.currently_attached) {
@@ -76,7 +76,7 @@ export class PbdController extends XapiXoController<XoPbd> {
   @Post('{id}/disconnect')
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  async disconnectHost(@Path() id: string): Promise<void> {
+  async disconnectPbd(@Path() id: string): Promise<void> {
     const PBD = this.getXapiObject(id as XoPbd['id'])
 
     if (PBD.currently_attached) {
