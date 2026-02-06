@@ -9,7 +9,8 @@
 
 ### Enhancements
 
-Add {alpha} index (abcd...) for multiple new VM name patterns
+- **XO 5:**
+  - [VM/New] Add {alpha} index (abcd...) for multiple new VM name patterns (PR [#9365](https://github.com/vatesfr/xen-orchestra/pull/9365)
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
