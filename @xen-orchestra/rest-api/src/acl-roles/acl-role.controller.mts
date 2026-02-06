@@ -73,8 +73,7 @@ export class AclRoleController extends XoController<XoAclRole> {
   }
 
   /**
-   * Copy a role with all his privileges.
-   * Ability to change the name and the description of the copied role
+   * Copy a role with all its privileges. Possibility to modify the name and description of the copied role.
    *
    * @example id "426622cc-b2db-4545-a2f0-6ec47b3a6450"
    * @example body {"name": "Copied role"}
