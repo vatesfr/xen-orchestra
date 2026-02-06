@@ -15,6 +15,9 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [xo-server] Force delete a running VM now bypass `hard_shutdown` blocked operations (PR [#9473](https://github.com/vatesfr/xen-orchestra/pull/9473))
+- [Backup] Ensure VM created by healthcheck are removed by backup process (PR [#9473](https://github.com/vatesfr/xen-orchestra/pull/9473))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -30,5 +33,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/xapi patch
 
 <!--packages-end-->
