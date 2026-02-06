@@ -130,7 +130,7 @@ export const MixinRemoteWriter = (BaseClass = Object) =>
               xapi,
             }).run()
           } finally {
-            await xapi.VM_destroy(restoredVm.$ref)
+            await xapi.VM_destroy(restoredVm.$ref, { bypassBlockedOperation: true })
           }
         }
       )
