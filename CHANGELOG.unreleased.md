@@ -32,5 +32,6 @@ Add {alpha} index (abcd...) for multiple new VM name patterns
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+- @xen-orchestra/web patch
 - xo-web minor
 <!--packages-end-->
