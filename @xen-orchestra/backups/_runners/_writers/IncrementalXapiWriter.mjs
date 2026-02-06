@@ -100,7 +100,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
   }
 
   async _deleteOldEntries() {
-    return asyncMapSettled(this._oldEntries, vm => vm.$destroy())
+    return asyncMapSettled(this._oldEntries, vm => vm.$destroy({ bypassBlockedOperation: true }))
   }
 
   #decorateVmMetadata(backup, timestamp) {
@@ -175,7 +175,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     const job = this._job
     const scheduleId = this._scheduleId
     const { uuid: srUuid, $xapi: xapi } = sr
-    
+
     let targetVmRef
     await Task.run({ name: 'transfer' }, async () => {
       targetVmRef = await importIncrementalVm(this.#decorateVmMetadata(deltaExport, timestamp), sr)
