@@ -427,7 +427,8 @@ export default class Esxi extends EventEmitter {
     if (state === 'success') {
       return info
     }
-    throw new Error(info.error ?? 'task execution failed ')
+    warn('task not ended successfull ', { taskId, state, info })
+    throw new Error('task execution failed')
   }
 
   async powerOff(vmId) {
@@ -436,7 +437,7 @@ export default class Esxi extends EventEmitter {
     try {
       return await this.#waitForTaskEnd(taskId)
     } catch (error) {
-      warn('Fail to power off VM ', { vmId, error })
+      warn('Fail to power off VM', { vmId, error })
       throw error
     }
   }
@@ -450,7 +451,7 @@ export default class Esxi extends EventEmitter {
     try {
       return await this.#waitForTaskEnd(taskId)
     } catch (error) {
-      warn('Fail to take a snapshot ', { vmId, error })
+      warn('Fail to take a snapshot', { vmId, error })
       throw error
     }
   }
