@@ -57,10 +57,10 @@ export class PbdController extends XapiXoController<XoPbd> {
   /**
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
-  @Post('{id}/connect')
+  @Post('{id}/plug')
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  async connectPbd(@Path() id: string): Promise<void> {
+  async plugPbd(@Path() id: string): Promise<void> {
     const PBD = this.getXapiObject(id as XoPbd['id'])
 
     if (!PBD.currently_attached) {
@@ -73,10 +73,10 @@ export class PbdController extends XapiXoController<XoPbd> {
   /**
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
-  @Post('{id}/disconnect')
+  @Post('{id}/unplug')
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  async disconnectPbd(@Path() id: string): Promise<void> {
+  async unplugPbd(@Path() id: string): Promise<void> {
     const PBD = this.getXapiObject(id as XoPbd['id'])
 
     if (PBD.currently_attached) {
