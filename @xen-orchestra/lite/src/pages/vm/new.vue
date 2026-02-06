@@ -1,5 +1,5 @@
 <template>
-  <div class="new-vm-view">
+  <div class="new-vm-view" :class="{ mobile: uiStore.isMobile }">
     <UiHeadBar icon="fa:plus">
       {{ t('new-vm:add') }}
     </UiHeadBar>
@@ -13,30 +13,30 @@
               <VtsSelect :id="templateSelectId" accent="brand" />
             </VtsInputWrapper>
           </div>
-          <div v-if="vmState.new_vm_template" class="form-container" :class="{ mobile: uiStore.isMobile }">
+          <div v-if="vmState.new_vm_template" class="form-container">
             <!-- INSTALL SETTINGS SECTION -->
             <UiTitle>{{ t('install-settings') }}</UiTitle>
             <div>
               <div v-if="isDiskTemplate" class="install-settings-container">
-                <div class="radio-container">
+                <UiRadioButtonGroup accent="brand" :vertical="uiStore.isMobile">
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="noConfigDrive">
                     {{ t('no-config') }}
                   </UiRadioButton>
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="ISO">
                     {{ t('iso-dvd') }}
                   </UiRadioButton>
-                </div>
+                </UiRadioButtonGroup>
                 <VtsSelect v-if="vmState.installMode === 'ISO'" :id="vdiIsoSelectId" accent="brand" />
               </div>
               <div v-else class="install-settings-container">
-                <div class="radio-container">
+                <UiRadioButtonGroup accent="brand" :vertical="uiStore.isMobile">
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="ISO">
                     {{ t('iso-dvd') }}
                   </UiRadioButton>
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="PXE">
                     {{ t('pxe') }}
                   </UiRadioButton>
-                </div>
+                </UiRadioButtonGroup>
                 <VtsSelect v-if="vmState.installMode === 'ISO'" :id="vdiIsoSelectId" accent="brand" />
               </div>
             </div>
@@ -92,7 +92,7 @@
             </div>
             <!-- RESOURCE MANAGEMENT SECTION -->
             <UiTitle>{{ t('resource-management') }}</UiTitle>
-            <div class="memory-container">
+            <div class="resource-management-container">
               <VtsInputWrapper :label="t('vcpus')">
                 <UiInput v-model.number="vmState.vCPU" type="number" accent="brand" />
               </VtsInputWrapper>
@@ -199,6 +199,7 @@ import UiChip from '@core/components/ui/chip/UiChip.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
+import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioButtonGroup.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
@@ -903,8 +904,25 @@ watch(
 
 <style lang="postcss" scoped>
 .new-vm-view {
+  &.mobile {
+    .form-container .system-container .column {
+      width: 100%;
+    }
+
+    .form-container .system-container,
+    .resource-management-container,
+    .install-settings-container {
+      flex-direction: column;
+    }
+
+    .form-container .system-container,
+    .form-container .resource-management-container {
+      gap: 2.4rem;
+    }
+  }
+
   .card-container {
-    margin: 1rem;
+    margin: 0.8rem;
   }
 
   .form-container {
@@ -915,39 +933,24 @@ watch(
     .template-container {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
-    }
-
-    &.mobile .system-container,
-    &.mobile .memory-container {
-      flex-direction: column;
-      gap: 2.3rem;
-    }
-
-    &.mobile .install-settings-container .radio-container {
-      flex-direction: column;
-      gap: 0.8rem;
-    }
-
-    &.mobile .system-container .column {
-      width: 100%;
+      gap: 0.4rem;
     }
 
     .system-container {
       display: flex;
-      gap: 10.8rem;
+      gap: 8rem;
 
       .column {
         display: flex;
         flex-direction: column;
-        gap: 2.5rem;
+        gap: 2.4rem;
         width: 40%;
       }
 
       .chips {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.5rem;
+        gap: 0.4rem;
         margin-block-end: 1rem;
       }
     }
@@ -956,16 +959,11 @@ watch(
       display: flex;
       flex-direction: column;
       gap: 2.4rem;
-
-      .radio-container {
-        display: flex;
-        gap: 15rem;
-      }
     }
 
-    .memory-container {
+    .resource-management-container {
       display: flex;
-      gap: 10.8rem;
+      gap: 8rem;
     }
 
     thead tr th:last-child {
@@ -977,7 +975,7 @@ watch(
     margin-top: auto;
     display: flex;
     justify-content: center;
-    gap: 1.6rem;
+    gap: 2.4rem;
   }
 }
 </style>

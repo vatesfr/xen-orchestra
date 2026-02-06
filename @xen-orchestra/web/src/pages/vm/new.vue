@@ -1,5 +1,5 @@
 <template>
-  <div class="new">
+  <div class="new" :class="{ mobile: uiStore.isMobile }">
     <UiHeadBar icon="fa:plus" class="head-bar">
       {{ t('new-vm:add') }}
       <template #actions>
@@ -20,16 +20,16 @@
         <UiCard v-if="vmState.pool">
           <!-- TEMPLATE SECTION -->
           <UiTitle>{{ t('template') }}</UiTitle>
-          <div class="template-container" :class="{ mobile: uiStore.isMobile }">
+          <div class="template-container">
             <VtsInputWrapper :label="t('action:pick-template')">
               <VtsSelect :id="templateSelectId" accent="brand" />
             </VtsInputWrapper>
           </div>
-          <div v-if="vmState.new_vm_template" class="form-container" :class="{ mobile: uiStore.isMobile }">
+          <div v-if="vmState.new_vm_template" class="form-container">
             <!-- INSTALL SETTINGS SECTION -->
             <UiTitle>{{ t('install-settings') }}</UiTitle>
             <div class="install-settings-container">
-              <div class="radio-container">
+              <UiRadioButtonGroup accent="brand" :vertical="uiStore.isMobile">
                 <template v-if="isDiskTemplate">
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="no-config">
                     {{ t('no-config') }}
@@ -46,7 +46,7 @@
                     {{ t('pxe') }}
                   </UiRadioButton>
                 </template>
-              </div>
+              </UiRadioButtonGroup>
               <VtsSelect v-if="vmState.installMode === 'cdrom'" :id="vdiSelectId" accent="brand" />
             </div>
             <!-- SYSTEM SECTION -->
@@ -93,7 +93,7 @@
             </div>
             <!-- RESOURCE MANAGEMENT SECTION -->
             <UiTitle>{{ t('resource-management') }}</UiTitle>
-            <div class="memory-container">
+            <div class="resource-management-container">
               <VtsInputWrapper :label="t('vcpus')">
                 <UiInput v-model.number="vmState.vCPU" type="number" accent="brand" />
               </VtsInputWrapper>
@@ -200,6 +200,7 @@ import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
+import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioButtonGroup.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
@@ -780,14 +781,31 @@ watch(
 
 <style scoped lang="postcss">
 .new {
-  .head-bar {
-    .head-select {
-      max-width: 100%;
+  &.mobile {
+    .template-container,
+    .form-container .system-container .column,
+    .form-container.install-settings-container {
+      width: 100%;
+    }
+
+    .form-container .system-container,
+    .resource-management-container,
+    .install-settings-container {
+      flex-direction: column;
+    }
+
+    .form-container .system-container,
+    .form-container .resource-management-container {
+      gap: 2.4rem;
     }
   }
 
+  .head-select {
+    max-width: 100%;
+  }
+
   .card-container {
-    margin: 1rem;
+    margin: 0.8rem;
   }
 
   .template-container {
@@ -795,9 +813,6 @@ watch(
     flex-direction: column;
     gap: 0.4rem;
     width: 50%;
-    &.mobile {
-      width: 100%;
-    }
   }
 
   .form-container {
@@ -805,30 +820,14 @@ watch(
     flex-direction: column;
     gap: 2.4rem;
 
-    &.mobile .system-container,
-    &.mobile .memory-container {
-      flex-direction: column;
-      gap: 2.3rem;
-    }
-
-    &.mobile .install-settings-container .radio-container {
-      flex-direction: column;
-      gap: 0.8rem;
-    }
-
-    &.mobile .system-container .column,
-    &.mobile .install-settings-container {
-      width: 100%;
-    }
-
     .system-container {
       display: flex;
-      gap: 10.8rem;
+      gap: 8rem;
 
       .column {
         display: flex;
         flex-direction: column;
-        gap: 2.5rem;
+        gap: 2.4rem;
         width: 40%;
       }
     }
@@ -838,16 +837,11 @@ watch(
       flex-direction: column;
       gap: 2.4rem;
       width: 50%;
-
-      .radio-container {
-        display: flex;
-        gap: 15rem;
-      }
     }
 
-    .memory-container {
+    .resource-management-container {
       display: flex;
-      gap: 10.8rem;
+      gap: 8rem;
     }
   }
 
@@ -855,7 +849,7 @@ watch(
     margin-top: auto;
     display: flex;
     justify-content: center;
-    gap: 1.6rem;
+    gap: 2.4rem;
   }
 }
 </style>

@@ -61,7 +61,6 @@ const slots = defineSlots<{
     display: flex;
     align-items: center;
     gap: 1.6rem;
-    min-width: 0;
   }
 
   .actions {
