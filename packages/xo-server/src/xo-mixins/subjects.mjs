@@ -90,6 +90,10 @@ export default class {
   async deleteUser(id) {
     const user = await this.getUser(id)
 
+    // getAclV2UserRoles returns both user roles and group roles
+    // we filter to keep only user roles
+    const aclV2Roles = (await this._app.getAclV2UserRoles(id)).filter(role => role.userId !== undefined)
+
     await this._users.remove(id)
 
     // Remove tokens of user.
@@ -108,6 +112,8 @@ export default class {
         this._app.removeAcl(id, acl.object, acl.action)::ignoreErrors()
       })
     })
+    // Detache ACL V2 roles for this user.
+    await Promise.all(aclV2Roles.map(({ roleId }) => this._app.deleteAclV2UserRole(id, roleId)))
 
     // Remove the user from all its groups.
     forEach(user.groups, groupId => {
@@ -374,6 +380,7 @@ export default class {
   async deleteGroup(id) {
     const group = await this.getGroup(id)
 
+    const aclV2Roles = await this._app.getAclV2GroupRoles(id)
     await this._groups.remove(id)
 
     // Remove ACLs for this group.
@@ -382,6 +389,8 @@ export default class {
         this._app.removeAcl(id, acl.object, acl.action)::ignoreErrors()
       })
     })
+    // Detache ACL V2 roles for this group.
+    await Promise.all(aclV2Roles.map(({ roleId }) => this._app.deleteAclV2GroupRole(id, roleId)))
 
     // Remove the group from all its users.
     forEach(group.users, userId => {

@@ -5,6 +5,8 @@ import type { XoUser } from '@vates/types/xo'
 
 import { Privilege as CPrivilege, SupportedActions, SupportedResource } from './class/privilege.mjs'
 
+export type { SupportedActions, SupportedResource } from './class/privilege.mjs'
+
 type AnyPrivilege = {
   [Resource in SupportedResource]: Privilege<Resource>
 }[SupportedResource]
