@@ -530,6 +530,7 @@ describe('transformMetric with labelContext', () => {
       vms: {
         'vm-uuid-789': {
           name_label: 'Web Server',
+          is_control_domain: false,
           vbdDeviceToVdiName: { xvda: 'System Disk', xvdb: 'Data Disk' },
           vbdDeviceToVdiUuid: { xvda: 'vdi-uuid-system', xvdb: 'vdi-uuid-data' },
           vifIndexToNetworkName: { '0': 'Pool-wide network', '1': 'Storage network' },
@@ -734,6 +735,54 @@ describe('transformMetric with labelContext', () => {
     assert.equal(result.labels.host_name, undefined)
   })
 
+  it('should add is_control_domain="false" label for regular VMs', () => {
+    const metric: ParsedMetric = {
+      legend: {
+        cf: 'AVERAGE',
+        objectType: 'vm',
+        uuid: 'vm-uuid-789',
+        metricName: 'cpu_usage',
+        rawLegend: 'AVERAGE:vm:vm-uuid-789:cpu_usage',
+      },
+      value: 0.5,
+      timestamp: 1700000000,
+    }
+
+    const result = transformMetric(metric, 'pool-456', createLabelContext())
+
+    assert.ok(result)
+    assert.equal(result.labels.is_control_domain, 'false')
+  })
+
+  it('should add is_control_domain="true" label for dom0 VMs', () => {
+    const context = createLabelContext()
+    context.labels.vms['dom0-uuid'] = {
+      name_label: 'Control domain on host: Host 1',
+      is_control_domain: true,
+      vbdDeviceToVdiName: {},
+      vbdDeviceToVdiUuid: {},
+      vifIndexToNetworkName: {},
+    }
+
+    const metric: ParsedMetric = {
+      legend: {
+        cf: 'AVERAGE',
+        objectType: 'vm',
+        uuid: 'dom0-uuid',
+        metricName: 'cpu_usage',
+        rawLegend: 'AVERAGE:vm:dom0-uuid:cpu_usage',
+      },
+      value: 0.3,
+      timestamp: 1700000000,
+    }
+
+    const result = transformMetric(metric, 'pool-456', context)
+
+    assert.ok(result)
+    assert.equal(result.labels.is_control_domain, 'true')
+    assert.equal(result.labels.vm_name, 'Control domain on host: Host 1')
+  })
+
   it('should handle missing VM in label context gracefully', () => {
     const metric: ParsedMetric = {
       legend: {
@@ -751,6 +800,7 @@ describe('transformMetric with labelContext', () => {
 
     assert.ok(result)
     assert.equal(result.labels.vm_name, undefined)
+    assert.equal(result.labels.is_control_domain, undefined)
   })
 
   it('should handle missing VDI mapping gracefully', () => {
@@ -791,6 +841,7 @@ describe('formatAllPoolsToOpenMetrics with labelContext', () => {
       vms: {
         'vm-1': {
           name_label: 'Web Server',
+          is_control_domain: false,
           vbdDeviceToVdiName: { xvda: 'System Disk' },
           vbdDeviceToVdiUuid: { xvda: 'vdi-1' },
           vifIndexToNetworkName: { '0': 'Management' },
@@ -1056,6 +1107,7 @@ describe('CPU usage fallback', () => {
         vms: {
           'vm-1': {
             name_label: 'XCP-ng 8.2 VM',
+            is_control_domain: false,
             vbdDeviceToVdiName: {},
             vbdDeviceToVdiUuid: {},
             vifIndexToNetworkName: {},
