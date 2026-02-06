@@ -38,6 +38,7 @@ import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { taskIds, partialTasks } from '../open-api/oa-examples/task.oa-example.mjs'
+import { SrService } from './sr.service.mjs'
 
 @Route('srs')
 @Security('*')
@@ -47,9 +48,15 @@ import { taskIds, partialTasks } from '../open-api/oa-examples/task.oa-example.m
 @provide(SrController)
 export class SrController extends XapiXoController<XoSr> {
   #alarmService: AlarmService
-  constructor(@inject(RestApi) restApi: RestApi, @inject(AlarmService) alarmService: AlarmService) {
+  #srService: SrService
+  constructor(
+    @inject(RestApi) restApi: RestApi,
+    @inject(AlarmService) alarmService: AlarmService,
+    @inject(SrService) srService: SrService
+  ) {
     super('SR', restApi)
     this.#alarmService = alarmService
+    this.#srService = srService
   }
 
   /**
@@ -214,5 +221,15 @@ export class SrController extends XapiXoController<XoSr> {
   async deleteSrTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const sr = this.getXapiObject(id as XoSr['id'])
     await sr.$call('remove_tags', tag)
+  }
+
+  /**
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   */
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Delete('{id}')
+  async deleteSr(@Path() id: string): Promise<void> {
+    await this.#srService.delete(id as XoSr['id'])
   }
 }
