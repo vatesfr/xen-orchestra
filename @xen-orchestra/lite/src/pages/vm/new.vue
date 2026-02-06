@@ -27,6 +27,47 @@
                   </UiRadioButton>
                 </div>
                 <VtsSelect v-if="vmState.installMode === 'ISO'" :id="vdiIsoSelectId" accent="brand" />
+                <!-- TODO need to be add later after confirmation -->
+                <!--
+                 <div v-if="vmState.installMode === 'SSH'" class="install-ssh-key-container">
+                    <div class="install-chips">
+                      <UiChip v-for="(key, index) in vmState.sshKeys" :key="index" accent="info" @remove="removeSshKey(index)">
+                        {{ key }}
+                      </UiChip>
+                    </div>
+                    <div class="install-ssh-key">
+                      <UiInput v-model="vmState.ssh_key" placeholder="Paste public key" accent="brand" />
+                      <UiButton accent="brand" size="medium" variant="primary" @click="addSshKey()">
+                        {{ t('add') }}
+                      </UiButton>
+                    </div>
+                  </div>
+                  <div v-if="vmState.installMode === 'custom_config'" class="install-custom-config">
+                    <div>
+                      <UiTextarea v-model="vmState.cloudConfig" placeholder="Write configurations" accent="brand" href="''">
+                        {{ t('user-config') }}
+                      </UiTextarea>
+                      <span class="typo p3-regular-italic">
+                        Available template variables <br />
+                        - {name}: the VM's name. - It must not contain "_" <br />
+                        - {index}: the VM's index,<br />
+                        it will take 0 in case of single VM
+                        - {alpha}: the VM's alphabetical index,<br />
+                        it will take 'a' in case of single VM Tip: escape any variable with a preceding backslash (\)
+                      </span>
+                    </div>
+                    <div>
+                      <UiTextarea v-model="vmState.networkConfig" placeholder="Write configurations" accent="brand" href="''">
+                        {{ t('network-config') }}
+                      </UiTextarea>
+                      <span class="typo p3-regular-italic">
+                        Network configuration is only compatible with the NoCloud datasource. <br />
+
+                        See Network config documentation.
+                      </span>
+                    </div>
+                  </div>
+                  -->
               </div>
               <div v-else class="install-settings-container">
                 <div class="radio-container">

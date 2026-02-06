@@ -9,6 +9,9 @@
 
 ### Enhancements
 
+- **XO 5:**
+  - [VM/New] Add {alpha} index (abcd...) for multiple new VM name patterns (PR [#9365](https://github.com/vatesfr/xen-orchestra/pull/9365)
+
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 ### Bug fixes
@@ -30,5 +33,6 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
+- @xen-orchestra/web patch
+- xo-web minor
 <!--packages-end-->
