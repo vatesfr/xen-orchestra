@@ -59,6 +59,7 @@ interface HostCredentials {
 // Label lookup types for enriching metrics with human-readable names
 interface VmLabelInfo {
   name_label: string
+  is_control_domain: boolean
   vbdDeviceToVdiName: Record<string, string>
   vbdDeviceToVdiUuid: Record<string, string>
   vifIndexToNetworkName: Record<string, string>

@@ -9,7 +9,9 @@
 
 ### Enhancements
 
-> Users must be able to say: “Nice enhancement, I'm eager to test it”
+> Users must be able to say: "Nice enhancement, I'm eager to test it"
+
+- [OpenMetrics] Add `is_control_domain` label to VM metrics to differentiate dom0 VMs from regular VMs (PR [#9474](https://github.com/vatesfr/xen-orchestra/pull/9474))
 
 ### Bug fixes
 
@@ -34,4 +36,5 @@
 <!--packages-start-->
 
 - @xen-orchestra/fs patch
+- xo-server-openmetrics minor
 <!--packages-end-->
