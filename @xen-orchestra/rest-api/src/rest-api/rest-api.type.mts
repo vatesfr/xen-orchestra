@@ -42,9 +42,9 @@ import type {
   XoConfigBackupArchive,
   XoPoolBackupArchive,
 } from '@vates/types/xo'
+import type { XoAclRole } from '@vates/types/lib/xen-orchestra/acl'
 
 import type { InsertableXoServer } from '../servers/server.type.mjs'
-import { XoAclRole } from '@vates/types/lib/xen-orchestra/acl'
 
 type XapiRecordByXapiXoRecord = {
   gpuGroup: XenApiGpuGroupWrapped
