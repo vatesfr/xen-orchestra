@@ -8,7 +8,7 @@
         v-if="backupRun.id"
         size="small"
         icon="object:backup-run"
-        :to="`/backup/${backupRun.jobId}/runs?id=${backupRun.id}`"
+        :to="{ name: '/backup/[id]/runs', params: { id: backupRun.jobId }, query: { id: backupRun.id } }"
       >
         {{ backupRun.id }}
       </UiLink>

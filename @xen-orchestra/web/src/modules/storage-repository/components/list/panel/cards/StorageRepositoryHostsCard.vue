@@ -6,7 +6,7 @@
     </UiCardTitle>
     <UiCollapsibleList v-if="hosts.length > 0" tag="ul" :total-items="hosts.length">
       <li v-for="host in hosts" :key="host.id" v-tooltip class="text-ellipsis">
-        <UiLink size="small" :icon="`object:host:${toLower(host.power_state)}`" :to="`/host/${host.id}/dashboard`">
+        <UiLink size="small" :icon="`object:host:${toLower(host.power_state)}`" :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }">
           {{ host.name_label }}
         </UiLink>
       </li>
