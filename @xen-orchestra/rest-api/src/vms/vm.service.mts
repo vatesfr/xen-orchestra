@@ -4,6 +4,7 @@ import { Task } from '@vates/task'
 import {
   AnyXoVm,
   VM_POWER_STATE,
+  XapiXoRecord,
   XoAlarm,
   XoBackupLog,
   XoHost,
@@ -55,7 +56,7 @@ export class VmService {
         template: XoVmTemplate['uuid']
       }
   ): Promise<XoVm['id']> {
-    const { pool, template, cloud_config, boot, destroy_cloud_config_vdi, network_config, ...rest } = params
+    const { pool, template, cloud_config, boot, destroy_cloud_config_vdi, network_config, createVtpm, ...rest } = params
     const xoApp = this.#restApi.xoApp
     const xapi = xoApp.getXapi(pool)
     const currentUser = this.#restApi.getCurrentUser()
@@ -63,6 +64,11 @@ export class VmService {
     const xapiVm = await xapi.createVm(template, rest, undefined, currentUser.id)
     $defer.onFailure(() => xapi.VM_destroy(xapiVm.$ref))
     const xoVm = this.#restApi.getObject<XoVm>(xapiVm.uuid as XoVm['id'], 'VM')
+
+    if (createVtpm) {
+      const vtpmRef = await xapi.VTPM_create({ VM: xapiVm.$ref })
+      $defer.onFailure(() => xapi.call('VTPM.destroy', vtpmRef))
+    }
 
     let cloudConfigVdi: XenApiVdiWrapped | undefined
     if (cloud_config !== undefined) {
@@ -131,6 +137,8 @@ export class VmService {
     }
 
     return {
+      active: nRunning + nPaused,
+      inactive: nHalted + nSuspended,
       running: nRunning,
       halted: nHalted,
       paused: nPaused,
@@ -143,17 +151,20 @@ export class VmService {
   getVmVdis(id: XoVm['id'], vmType: 'VM'): XoVdi[]
   getVmVdis(id: XoVmTemplate['id'], vmType: 'VM-template'): XoVdi[]
   getVmVdis(id: XoVmSnapshot['id'], vmType: 'VM-snapshot'): XoVdiSnapshot[]
-  getVmVdis(id: XoVmController['id'], vmType: 'VM-controller'): (XoVdi | XoVdiSnapshot)[]
-  getVmVdis<T extends AnyXoVm>(id: T['id'], vmType: T['type']): (XoVdi | XoVdiSnapshot)[] {
+  getVmVdis(id: XoVmController['id'], vmType: 'VM-controller'): XoVdi[]
+  getVmVdis<T extends AnyXoVm, VdiType extends XapiXoRecord = T['type'] extends 'VM-snapshot' ? XoVdiSnapshot : XoVdi>(
+    id: T['id'],
+    vmType: T['type']
+  ): VdiType[] {
     const getObject = this.#restApi.getObject.bind(this.#restApi)
-    const vdis: (XoVdi | XoVdiSnapshot)[] = []
+    const vdis: VdiType[] = []
 
     const vm = getObject<T>(id, vmType)
 
     for (const vbdId of vm.$VBDs) {
       const vbd = getObject<XoVbd>(vbdId, 'VBD')
       if (vbd.VDI !== undefined) {
-        const vdi = getObject<XoVdi | XoVdiSnapshot>(vbd.VDI, ['VDI-snapshot', 'VDI'])
+        const vdi = getObject<VdiType>(vbd.VDI, [vmType === 'VM-snapshot' ? 'VDI-snapshot' : 'VDI'])
         vdis.push(vdi)
       }
     }
@@ -270,7 +281,7 @@ export class VmService {
     }
 
     if (lastReplica === undefined) {
-      return
+      return {}
     }
 
     const vdis = this.getVmVdis(id, 'VM')
@@ -339,7 +350,7 @@ export class VmService {
         }
       }) as { backupJobId: XoVmBackupJob['id']; timestamp: number; status: string }[]
 
-    let vmProtection: VmDashboard['backupsInfo']['vmProtection'] = 'not-in-job'
+    let vmProtection: VmDashboard['backupsInfo']['vmProtection'] = 'not-in-active-job'
     if (!vmContainsNoBakTag(vm)) {
       const backupLogsByJob = groupBy(backupLogs, 'jobId')
 
@@ -380,7 +391,7 @@ export class VmService {
 
     return Object.values(backupArchivesByVmByBr)
       .filter(backupArchiveByVm => backupArchiveByVm !== undefined)
-      .flatMap(backupArchiveByVm => backupArchiveByVm[vm.id])
+      .flatMap(backupArchiveByVm => backupArchiveByVm[vm.id] ?? [])
       .sort((a, b) => b.timestamp - a.timestamp)
       .splice(0, 3)
       .map(ba => ({ id: ba.id, timestamp: ba.timestamp, backupRepository: ba.backupRepository, size: ba.size }))

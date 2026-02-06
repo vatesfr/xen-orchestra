@@ -1,7 +1,7 @@
 # Example
 
 ```vue-template
-<UiTreeItemLabel icon="fa:city" route="#">
+<UiTreeItemLabel icon="object:pool" route="#">
   Pool
   <template #addons>...</template>
 </UiTreeItemLabel>

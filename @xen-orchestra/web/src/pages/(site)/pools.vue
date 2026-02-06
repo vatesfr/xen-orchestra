@@ -3,7 +3,7 @@
     <UiCard class="container">
       <PoolsTable :servers />
     </UiCard>
-    <PoolsSidePanel v-if="selectedServer" :server="selectedServer" @close="selectedServer = undefined" />
+    <PoolSidePanel v-if="selectedServer" :server="selectedServer" @close="selectedServer = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
       <VtsStateHero format="panel" type="no-selection" size="medium">
         {{ t('select-to-see-details') }}
@@ -13,9 +13,9 @@
 </template>
 
 <script setup lang="ts">
-import PoolsSidePanel from '@/components/site/pools/PoolsSidePanel.vue'
-import PoolsTable from '@/components/site/pools/PoolsTable.vue'
-import { useXoServerCollection } from '@/remote-resources/use-xo-server-collection.ts'
+import PoolSidePanel from '@/modules/pool/components/list/panel/PoolSidePanel.vue'
+import PoolsTable from '@/modules/pool/components/list/PoolsTable.vue'
+import { useXoServerCollection } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'

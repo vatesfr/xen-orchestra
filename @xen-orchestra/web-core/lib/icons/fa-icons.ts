@@ -109,6 +109,7 @@ import {
   faTriangleExclamation,
   faUpRightAndDownLeftFromCenter,
   faUpRightFromSquare,
+  faUserAstronaut,
   faWarning,
   faXmark,
 } from '@fortawesome/free-solid-svg-icons'
@@ -223,6 +224,7 @@ export const faIcons = defineIconPack({
   'triangle-exclamation': { icon: faTriangleExclamation },
   'up-right-and-down-left-from-center': { icon: faUpRightAndDownLeftFromCenter },
   'up-right-from-square': { icon: faUpRightFromSquare },
+  'user-astronaut': { icon: faUserAstronaut },
   warning: { icon: faWarning },
   xmark: { icon: faXmark },
 })

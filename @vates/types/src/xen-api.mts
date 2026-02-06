@@ -1008,6 +1008,7 @@ export interface XenApiMessage {
   timestamp: string
   uuid: string
 }
+export type XenApiMessageWrapped = WrapperXenApi<XenApiMessage, 'message'>
 
 export interface XenApiSecret {
   $ref: Branded<'secret'>

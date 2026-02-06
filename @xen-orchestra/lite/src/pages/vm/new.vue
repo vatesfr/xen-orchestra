@@ -25,15 +25,6 @@
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="ISO">
                     {{ t('iso-dvd') }}
                   </UiRadioButton>
-                  <!-- TODO need to be add later after confirmation -->
-                  <!--
-                    <UiRadioButton v-model="vmState.installMode" accent="brand" value="ssh-key">
-                      {{ t('ssh-key') }}
-                    </UiRadioButton>
-                    <UiRadioButton v-model="vmState.installMode" accent="brand" value="custom_config">
-                      {{ t('custom-config') }}
-                    </UiRadioButton>
-                  -->
                 </div>
                 <VtsSelect v-if="vmState.installMode === 'ISO'" :id="vdiIsoSelectId" accent="brand" />
                 <!-- TODO need to be add later after confirmation -->
@@ -111,22 +102,23 @@
                   <VtsSelect :id="bootFirmwareSelectId" accent="brand" />
                 </VtsInputWrapper>
                 <div
+                  v-if="vmState.boot_firmware !== 'uefi'"
                   v-tooltip="
-                    vmState.boot_firmware === 'uefi' || templateHasBiosStrings
+                    templateHasBiosStrings
                       ? {
                           placement: 'top-start',
-                          content:
-                            vmState.boot_firmware !== 'uefi' ? t('template-has-bios-strings') : t('boot-firmware-uefi'),
+                          content: t('template-has-bios-strings'),
                         }
                       : undefined
                   "
                 >
-                  <UiCheckbox
-                    v-model="copyHostBiosStrings"
-                    accent="brand"
-                    :disabled="vmState.boot_firmware === 'uefi' || templateHasBiosStrings"
-                  >
+                  <UiCheckbox v-model="copyHostBiosStrings" accent="brand" :disabled="templateHasBiosStrings">
                     {{ t('action:copy-host') }}
+                  </UiCheckbox>
+                </div>
+                <div v-else>
+                  <UiCheckbox v-model="vmState.create_vtpm" accent="brand">
+                    {{ t('vtpm') }}
                   </UiCheckbox>
                 </div>
               </div>
@@ -181,15 +173,15 @@
             <UiTitle>{{ t('summary') }}</UiTitle>
             <VtsResources>
               <!-- TODO change label to manage pluralization when we can have multiple vm -->
-              <VtsResource icon="fa:display" count="1" :label="t('vm')" />
+              <VtsResource icon="object:vm" count="1" :label="t('vm')" />
               <VtsResource icon="fa:microchip" :count="vmState.vCPU" :label="t('vcpus')" />
               <VtsResource icon="fa:memory" :count="`${ramFormatted} GB`" :label="t('ram')" />
               <VtsResource
-                icon="fa:database"
+                icon="object:sr"
                 :count="vmState.existingVdis.length + vmState.vdis.length"
                 :label="t('vdis')"
               />
-              <VtsResource icon="fa:network-wired" :count="vmState.networkInterfaces.length" :label="t('interfaces')" />
+              <VtsResource icon="object:network" :count="vmState.networkInterfaces.length" :label="t('interfaces')" />
             </VtsResources>
           </div>
           <!-- TOASTER -->
@@ -310,6 +302,7 @@ const vmState = reactive<VmState>({
   vdis: [],
   networkInterfaces: [],
   defaultNetwork: undefined,
+  create_vtpm: false,
 })
 
 // TODO remove when we can use new selector
@@ -334,25 +327,13 @@ const addStorageEntry = () => {
   if (!vmState.new_vm_template) return
 
   vmState.vdis.push({
-    name_label: (vmState.name || 'disk') + '_' + generateRandomString(4),
+    name_label: (vmState.new_vm_template?.name_label || 'disk') + '_' + generateRandomString(4),
     name_description: 'Created by XO',
     SR: pool.value!.default_SR,
     type: 'system',
     size: 0,
   })
 }
-
-// TODO re add when it work
-// const addSshKey = () => {
-//   if (vmState.ssh_key.trim()) {
-//     vmState.sshKeys.push(vmState.ssh_key.trim())
-//     vmState.ssh_key = ''
-//   }
-// }
-//
-// const removeSshKey = (index: number) => {
-//   vmState.sshKeys.splice(index, 1)
-// }
 
 const addTag = () => {
   const tag = vmState.tag.trim()
@@ -518,7 +499,7 @@ const getVdis = (template: XenApiVm) => {
   }
 
   vdis.push({
-    name_label: (vmState.name || 'disk') + '_' + generateRandomString(4),
+    name_label: (template?.name_label || 'disk') + '_' + generateRandomString(4),
     name_description: 'Created by XO',
     size: bytesToGiB(Number(size)),
     SR: defaultSr.value,
@@ -542,6 +523,7 @@ const getExistingVdis = (template: XenApiVm) => {
     }
 
     acc.push({
+      id: vdi.$ref,
       name_label: vdi.name_label,
       name_description: vdi.name_description,
       size: bytesToGiB(vdi.virtual_size),
@@ -572,6 +554,7 @@ const vmCreationParams = computed(() => ({
   autoPoweron: vmState.auto_power,
   bootAfterCreate: vmState.boot_vm,
   copyHostBiosStrings: vmState.boot_firmware !== 'uefi' && !templateHasBiosStrings.value && vmState.copyHostBiosStrings,
+  createVtpm: vmState.boot_firmware === 'uefi' && vmState.create_vtpm,
   hvmBootFirmware: vmState.boot_firmware ?? 'bios',
   coresPerSocket: vmState.topology ?? vmState.vCPU,
   tags: vmState.tags,
@@ -633,6 +616,12 @@ const _createVm = defer(async ($defer: Defer) => {
       xapi.vm.setHvmBootFirmware(vmRefs[0], vmCreationParams.value.hvmBootFirmware),
       xapi.vm.setVCPUsAtStartup(vmRefs, vmCreationParams.value.cpus),
     ])
+
+    // VTPM
+    if (vmState.boot_firmware === 'uefi' && vmState.create_vtpm) {
+      const vtpmRef = await xapi.vtpm.create(vmRefs[0])
+      $defer.onFailure(() => xapi.vtpm.delete(vtpmRef))
+    }
 
     // INSTALL SETTINGS
     const vm = await xapi.getField<XenApiVm>('VM', vmRefs[0], 'record')
@@ -938,6 +927,17 @@ const { id: affinityHostSelectId } = useFormSelect(hosts, {
     value: '$ref',
   },
 })
+
+watch(
+  () => vmState.boot_firmware,
+  (newValue, oldValue) => {
+    if (oldValue === undefined || newValue === oldValue) {
+      return
+    }
+    vmState.copyHostBiosStrings = false
+    vmState.create_vtpm = false
+  }
+)
 </script>
 
 <style lang="postcss" scoped>
@@ -985,29 +985,6 @@ const { id: affinityHostSelectId } = useFormSelect(hosts, {
         display: flex;
         gap: 15rem;
       }
-    }
-
-    .install-custom-config {
-      display: flex;
-      margin-block-start: 3rem;
-      gap: 4.2rem;
-    }
-
-    .install-ssh-key-container {
-      margin-block-start: 3rem;
-    }
-
-    .install-ssh-key {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      width: 50%;
-    }
-
-    .install-chips {
-      display: flex;
-      gap: 0.5rem;
-      margin-block-end: 1rem;
     }
 
     .memory-container {

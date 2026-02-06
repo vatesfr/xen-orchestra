@@ -7,7 +7,10 @@
 
 import { createLogger } from '@xen-orchestra/log'
 
+import type { LabelLookupData, SrDataItem } from './index.mjs'
 import type { ParsedMetric, ParsedRrdData } from './rrd-parser.mjs'
+
+export type { SrDataItem }
 
 const logger = createLogger('xo:xo-server-openmetrics:formatter')
 
@@ -45,29 +48,6 @@ export interface FormattedMetric {
   value: number
   /** Timestamp in seconds (Unix epoch) per OpenMetrics specification */
   timestamp: number
-}
-
-// Label lookup types for enriching metrics with human-readable names
-interface VmLabelInfo {
-  name_label: string
-  vbdDeviceToVdiName: Record<string, string>
-  vifIndexToNetworkName: Record<string, string>
-}
-
-interface HostLabelInfo {
-  name_label: string
-  pifDeviceToNetworkName: Record<string, string>
-}
-
-interface SrLabelInfo {
-  name_label: string
-}
-
-interface LabelLookupData {
-  vms: Record<string, VmLabelInfo>
-  hosts: Record<string, HostLabelInfo>
-  srs: Record<string, SrLabelInfo>
-  srSuffixToUuid: Record<string, string>
 }
 
 interface HostCredentials {
@@ -404,6 +384,33 @@ export const VM_METRICS: MetricDefinition[] = [
   },
 ]
 
+/**
+ * SR capacity metric definitions.
+ *
+ * These metrics are derived from XO SR objects, not RRD data.
+ * They provide storage capacity information for monitoring.
+ */
+export const SR_METRICS: MetricDefinition[] = [
+  {
+    test: 'virtual_size',
+    openMetricName: 'sr_virtual_size_bytes',
+    type: 'gauge',
+    help: 'SR virtual allocated size in bytes',
+  },
+  {
+    test: 'physical_size',
+    openMetricName: 'sr_physical_size_bytes',
+    type: 'gauge',
+    help: 'SR physical size in bytes',
+  },
+  {
+    test: 'physical_usage',
+    openMetricName: 'sr_physical_usage_bytes',
+    type: 'gauge',
+    help: 'SR physical space used in bytes',
+  },
+]
+
 // ============================================================================
 // Metric Matching Functions
 // ============================================================================
@@ -446,6 +453,111 @@ export function findMetricDefinition(
   }
 
   return null
+}
+
+// ============================================================================
+// CPU Usage Fallback
+// ============================================================================
+
+/**
+ * Compute vm_cpu_usage from per-core metrics when cpu_usage is not available.
+ *
+ * Some VMs (particularly on XCP-ng 8.2) don't report a single cpu_usage metric,
+ * but they do report individual per-core CPU metrics (cpu0, cpu1, cpu2, etc.).
+ * This function creates synthetic vm_cpu_usage metrics by averaging the per-core values.
+ *
+ * @param metrics - Array of formatted metrics
+ * @returns Array of synthetic vm_cpu_usage metrics for VMs missing the native metric
+ */
+function computeVmCpuUsageFallback(metrics: FormattedMetric[]): FormattedMetric[] {
+  // Track VMs that have vm_cpu_usage
+  const vmsWithCpuUsage = new Set<string>()
+
+  // Track per-core metrics by VM UUID: { uuid -> { timestamp -> { core -> value } } }
+  const vmCoreMetrics = new Map<string, Map<number, Map<string, { value: number; metric: FormattedMetric }>>>()
+
+  for (const metric of metrics) {
+    const vmUuid = metric.labels.uuid
+    if (metric.labels.type !== 'vm' || vmUuid === undefined) {
+      continue
+    }
+
+    if (metric.name === 'xcp_vm_cpu_usage') {
+      vmsWithCpuUsage.add(vmUuid)
+    } else if (metric.name === 'xcp_vm_cpu_core_usage' && metric.labels.core !== undefined) {
+      // Store per-core metrics grouped by VM and timestamp
+      let vmTimestamps = vmCoreMetrics.get(vmUuid)
+      if (vmTimestamps === undefined) {
+        vmTimestamps = new Map()
+        vmCoreMetrics.set(vmUuid, vmTimestamps)
+      }
+
+      let coreValues = vmTimestamps.get(metric.timestamp)
+      if (coreValues === undefined) {
+        coreValues = new Map()
+        vmTimestamps.set(metric.timestamp, coreValues)
+      }
+
+      coreValues.set(metric.labels.core, { value: metric.value, metric })
+    }
+  }
+
+  // Generate synthetic vm_cpu_usage for VMs that don't have the native metric
+  const syntheticMetrics: FormattedMetric[] = []
+
+  for (const [vmUuid, timestamps] of vmCoreMetrics) {
+    // Skip VMs that already have cpu_usage
+    if (vmsWithCpuUsage.has(vmUuid)) {
+      continue
+    }
+
+    // For each timestamp, compute average of all cores
+    for (const [timestamp, coreValues] of timestamps) {
+      if (coreValues.size === 0) {
+        continue
+      }
+
+      // Calculate average CPU usage across all cores
+      let sum = 0
+      for (const { value } of coreValues.values()) {
+        sum += value
+      }
+      const averageUsage = sum / coreValues.size
+
+      // Get a sample metric to copy labels from (without core label)
+      const sampleEntry = coreValues.values().next().value
+      if (sampleEntry === undefined) {
+        continue
+      }
+      const sampleMetric = sampleEntry.metric
+
+      // Create synthetic metric with same labels (excluding core)
+      const labels: Record<string, string> = {}
+      for (const [key, value] of Object.entries(sampleMetric.labels)) {
+        if (key !== 'core') {
+          labels[key] = value
+        }
+      }
+
+      syntheticMetrics.push({
+        name: 'xcp_vm_cpu_usage',
+        help: 'VM CPU usage ratio (computed from per-core average)',
+        type: 'gauge',
+        labels,
+        value: averageUsage,
+        timestamp,
+      })
+    }
+  }
+
+  if (syntheticMetrics.length > 0) {
+    logger.debug('Generated synthetic vm_cpu_usage metrics', {
+      count: syntheticMetrics.length,
+      vms: [...new Set(syntheticMetrics.map(m => m.labels.uuid))],
+    })
+  }
+
+  return syntheticMetrics
 }
 
 // ============================================================================
@@ -571,11 +683,23 @@ export function transformMetric(
           labels.vm_name = vmInfo.name_label
         }
 
-        // For VBD metrics, add vdi_name
+        // For VBD metrics, add vdi_name and sr_name
         if (extractedLabels.device !== undefined) {
           const vdiName = vmInfo.vbdDeviceToVdiName[extractedLabels.device]
           if (vdiName !== undefined && vdiName !== '') {
             labels.vdi_name = vdiName
+          }
+
+          // Resolve sr_name via device → VDI UUID → SR UUID → SR name
+          const vdiUuid = vmInfo.vbdDeviceToVdiUuid[extractedLabels.device]
+          if (vdiUuid !== undefined) {
+            const srUuid = labelContext.labels.vdiUuidToSrUuid[vdiUuid]
+            if (srUuid !== undefined) {
+              const srInfo = labelContext.labels.srs[srUuid]
+              if (srInfo !== undefined && srInfo.name_label !== '') {
+                labels.sr_name = srInfo.name_label
+              }
+            }
           }
         }
 
@@ -685,6 +809,11 @@ export function formatAllPoolsToOpenMetrics(rrdDataList: ParsedRrdData[], labelC
     logger.debug('Unmatched RRD metrics', { metrics: Array.from(unmatchedMetrics).sort() })
   }
 
+  // Compute fallback vm_cpu_usage for VMs that don't have the native metric
+  // This handles XCP-ng 8.2 and other versions that only report per-core metrics
+  const syntheticCpuMetrics = computeVmCpuUsageFallback(allMetrics)
+  allMetrics.push(...syntheticCpuMetrics)
+
   // Sort metrics by name for consistent output
   allMetrics.sort((a, b) => {
     if (a.name !== b.name) {
@@ -699,4 +828,74 @@ export function formatAllPoolsToOpenMetrics(rrdDataList: ParsedRrdData[], labelC
   // Add EOF marker as per OpenMetrics specification
   // Return empty string if no metrics (caller handles EOF)
   return output !== '' ? `${output}\n# EOF` : ''
+}
+
+/**
+ * Format SR capacity metrics to OpenMetrics format.
+ *
+ * Creates FormattedMetric entries for each SR's capacity metrics:
+ * - virtual_size (usage/virtual_allocation)
+ * - physical_size (size)
+ * - physical_usage
+ *
+ * For local (non-shared) SRs, host_id and host_name labels are included.
+ *
+ * @param srDataList - Array of SR data with capacity information
+ * @returns Array of FormattedMetric entries for SR capacity
+ */
+export function formatSrMetrics(srDataList: SrDataItem[]): FormattedMetric[] {
+  const metrics: FormattedMetric[] = []
+  const timestamp = Math.floor(Date.now() / 1000)
+
+  for (const sr of srDataList) {
+    const baseLabels: Record<string, string> = {
+      pool_id: sr.pool_id,
+      sr_uuid: sr.uuid,
+      sr_name: sr.name_label,
+    }
+
+    if (sr.pool_name !== '') {
+      baseLabels.pool_name = sr.pool_name
+    }
+
+    // For local SRs, add host information
+    if (sr.host_id !== undefined) {
+      baseLabels.host_id = sr.host_id
+    }
+    if (sr.host_name !== undefined) {
+      baseLabels.host_name = sr.host_name
+    }
+
+    // Virtual size (virtual_allocation)
+    metrics.push({
+      name: `${METRIC_PREFIX}_sr_virtual_size_bytes`,
+      help: 'SR virtual allocated size in bytes',
+      type: 'gauge',
+      labels: { ...baseLabels },
+      value: sr.usage,
+      timestamp,
+    })
+
+    // Physical size
+    metrics.push({
+      name: `${METRIC_PREFIX}_sr_physical_size_bytes`,
+      help: 'SR physical size in bytes',
+      type: 'gauge',
+      labels: { ...baseLabels },
+      value: sr.size,
+      timestamp,
+    })
+
+    // Physical usage
+    metrics.push({
+      name: `${METRIC_PREFIX}_sr_physical_usage_bytes`,
+      help: 'SR physical space used in bytes',
+      type: 'gauge',
+      labels: { ...baseLabels },
+      value: sr.physical_usage,
+      timestamp,
+    })
+  }
+
+  return metrics
 }

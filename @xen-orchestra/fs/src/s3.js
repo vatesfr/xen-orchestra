@@ -38,6 +38,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
   #bucket
   #dir
   #s3
+  #immutable = false
 
   constructor(remote, _opts) {
     super(remote, _opts)
@@ -139,6 +140,9 @@ export default class S3Handler extends RemoteHandlerAbstract {
     }
   }
 
+  isImmutable() {
+    return super.isImmutable() || this.#immutable
+  }
   _conditionRetry(error) {
     return ![401, 403, 404, 405].includes(error?.$metadata?.httpStatusCode) && super._conditionRetry(error)
   }
@@ -416,6 +420,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
         // will automatically add the contentMD5 header to any upload to S3
         debug(`Object Lock is enable, enable content md5 header`)
         this.#s3.middlewareStack.use(getApplyMd5BodyChecksumPlugin(this.#s3.config))
+        this.#immutable = true
       }
     } catch (error) {
       // maybe the account doesn't have enough privilege to query the object lock configuration

@@ -5,14 +5,13 @@ import {
   AnyXoVdi,
   AnyXoVm,
   BACKUP_TYPE,
-  VM_POWER_STATE,
   XoVmBackupJob,
   XoHost,
   XoPool,
-  XoSchedule,
   XoSr,
   XoVbd,
   XoVm,
+  XoBackupLog,
 } from '@vates/types'
 import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
@@ -22,19 +21,21 @@ import { parse } from 'xo-remote-parser'
 import { Writable } from 'node:stream'
 
 import { type AsyncCacheEntry, getFromAsyncCache } from '../helpers/cache.helper.mjs'
-import { DashboardBackupRepositoriesSizeInfo, DashboardBackupsInfo, XoaDashboard } from './xoa.type.mjs'
+import { DashboardBackupRepositoriesSizeInfo, DashboardBackupsInfo, SrSizeInfo, XoaDashboard } from './xoa.type.mjs'
 import { isReplicaVm, isSrWritableOrIso, promiseWriteInStream, vmContainsNoBakTag } from '../helpers/utils.helper.mjs'
-import type { MaybePromise } from '../helpers/helper.type.mjs'
+import type { IsEmptyData, IsMaybeExpired, MaybePromise } from '../helpers/helper.type.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { HostService } from '../hosts/host.service.mjs'
 import type { HasNoAuthorization } from '../rest-api/rest-api.type.mjs'
 import { BackupLogService } from '../backup-logs/backup-log.service.mjs'
+import { VmService } from '../vms/vm.service.mjs'
+import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
 
 const log = createLogger('xo:rest-api:xoa-service')
 
 type DashboardAsyncCache = {
-  backupRepositories: MaybePromise<DashboardBackupRepositoriesSizeInfo | undefined>
-  backups: MaybePromise<DashboardBackupsInfo>
+  backupRepositories: MaybePromise<DashboardBackupRepositoriesSizeInfo | IsEmptyData>
+  backups: MaybePromise<DashboardBackupsInfo | IsEmptyData>
 }
 
 export class XoaService {
@@ -46,6 +47,8 @@ export class XoaService {
   >()
   #dashboardCacheOpts: { timeout?: number; expiresIn?: number }
   #backupLogService: BackupLogService
+  #vmService: VmService
+  #backupJobService: BackupJobService
 
   constructor(restApi: RestApi) {
     this.#restApi = restApi
@@ -55,10 +58,12 @@ export class XoaService {
       expiresIn: this.#restApi.xoApp.config.getOptionalDuration('rest-api.dashboardCacheExpiresIn'),
     }
     this.#backupLogService = this.#restApi.ioc.get(BackupLogService)
+    this.#vmService = this.#restApi.ioc.get(VmService)
+    this.#backupJobService = this.#restApi.ioc.get(BackupJobService)
   }
 
   async #getBackupRepositoriesSizeInfo(): Promise<
-    (DashboardBackupRepositoriesSizeInfo & { isExpired?: true }) | undefined
+    IsMaybeExpired<DashboardBackupRepositoriesSizeInfo> | IsMaybeExpired<IsEmptyData> | undefined
   > {
     const brResult = await getFromAsyncCache<DashboardAsyncCache['backupRepositories']>(
       this.#dashboardAsyncCache as Map<
@@ -78,7 +83,7 @@ export class XoaService {
 
         const backupRepositories = await xoApp.getAllRemotes()
         if (backupRepositories.length === 0) {
-          return undefined
+          return { isEmpty: true }
         }
 
         const backupRepositoriesInfo = await xoApp.getAllRemotesInfo()
@@ -131,6 +136,11 @@ export class XoaService {
           }
         }
 
+        // if only disabled BR
+        if (otherBrSize === undefined && s3Brsize === undefined) {
+          return { isEmpty: true }
+        }
+
         const result: DashboardBackupRepositoriesSizeInfo = {}
         if (s3Brsize !== undefined) {
           result.s3 = s3Brsize
@@ -168,6 +178,10 @@ export class XoaService {
       })
     )
 
+    if (pools.length === 0 && hosts.length === 0 && srs.length === 0) {
+      return { isEmpty: true }
+    }
+
     const maxLenght = Math.max(hosts.length, srs.length)
 
     const resourcesOverview = { nCpus: 0, memorySize: 0, srSize: 0 }
@@ -197,6 +211,8 @@ export class XoaService {
     let nConnectedServers = 0
     let nUnreachableServers = 0
     let nUnknownServers = 0
+    let nDisconnectedServers = 0
+
     servers.forEach(server => {
       // it may happen that some servers are marked as "connected", but no pool matches "server.pool"
       // so they are counted as `nUnknownServers`
@@ -215,6 +231,7 @@ export class XoaService {
       }
 
       if (server.status === 'disconnected') {
+        nDisconnectedServers++
         return
       }
 
@@ -223,16 +240,18 @@ export class XoaService {
 
     return {
       connected: nConnectedServers,
+      disconnected: nDisconnectedServers,
       unreachable: nUnreachableServers,
       unknown: nUnknownServers,
+      total: servers.length,
     }
   }
 
-  async #getNumberOfEolHosts(): Promise<XoaDashboard['nHostsEol']> {
+  async #getNumberOfEolHosts(): Promise<number | IsEmptyData> {
     const getHVSupportedVersions = this.#restApi.xoApp.getHVSupportedVersions
 
     if (getHVSupportedVersions === undefined) {
-      return
+      return { isEmpty: true }
     }
 
     const hvSupportedVersions = await getHVSupportedVersions()
@@ -255,13 +274,17 @@ export class XoaService {
    */
   async #getMissingPatchesInfo(): Promise<XoaDashboard['missingPatches']> {
     const missingPatchesInfo = await this.#hostService.getMissingPatchesInfo()
+    const eolHosts = await this.#getNumberOfEolHosts()
 
     const { hasAuthorization, nHostsFailed, nHostsWithMissingPatches, nPoolsWithMissingPatches } = missingPatchesInfo
 
     return {
       hasAuthorization,
+      nHosts: this.#getNumberOfHosts(),
       nHostsFailed,
       nHostsWithMissingPatches,
+      nHostsEol: eolHosts,
+      nPools: this.#getNumberOfPools(),
       nPoolsWithMissingPatches,
     }
   }
@@ -305,18 +328,22 @@ export class XoaService {
     return replicaUsage + parentUsage
   }
 
-  #getStorageRepositoriesSizeInfo() {
+  #getStorageRepositoriesSizeInfo(): SrSizeInfo | IsEmptyData {
     const writableSrs = this.#restApi.getObjectsByType<XoSr>('SR', {
       filter: isSrWritableOrIso,
     })
+
+    const srs = Object.values(writableSrs)
+
+    if (srs.length === 0) {
+      return { isEmpty: true }
+    }
 
     let replicated = 0
     let total = 0
     let used = 0
 
-    for (const srId in writableSrs) {
-      const sr = writableSrs[srId as XoSr['id']]
-
+    for (const sr of srs) {
       const cache = new Set<AnyXoVdi['id']>()
       const { VDIs } = sr
 
@@ -330,7 +357,7 @@ export class XoaService {
     }
   }
 
-  async #getbackupsInfo(): Promise<(DashboardBackupsInfo & { isExpired?: true }) | undefined> {
+  async #getBackupsInfo(): Promise<IsMaybeExpired<DashboardBackupsInfo> | IsMaybeExpired<IsEmptyData> | undefined> {
     const vmIdsProtected = new Set<XoVm['id']>()
     const vmIdsUnprotected = new Set<XoVm['id']>()
     const nonReplicaVms = Object.values(this.#restApi.getObjectsByType<XoVm>('VM', { filter: vm => !isReplicaVm(vm) }))
@@ -373,26 +400,6 @@ export class XoaService {
         vmIdsUnprotected.add(vmId)
       }
     }
-    async function _jobHasAtLeastOneScheduleEnabled(job: XoVmBackupJob) {
-      for (const maybeScheduleId in job.settings) {
-        if (maybeScheduleId === '') {
-          continue
-        }
-
-        try {
-          const schedule = await xoApp.getSchedule(maybeScheduleId as XoSchedule['id'])
-          if (schedule.enabled) {
-            return true
-          }
-        } catch (error) {
-          if (!noSuchObject.is(error, { id: maybeScheduleId, type: 'schedule' })) {
-            console.error(error)
-          }
-          continue
-        }
-      }
-      return false
-    }
 
     const backupsResult = await getFromAsyncCache<DashboardAsyncCache['backups']>(
       this.#dashboardAsyncCache as Map<'backups', AsyncCacheEntry<DashboardAsyncCache['backups']>>,
@@ -401,66 +408,131 @@ export class XoaService {
         const [logs, jobs] = await Promise.all([
           xoApp.getBackupNgLogsSorted({
             filter: log => this.#backupLogService.isBackupLog(log),
-          }),
+          }) as Promise<XoBackupLog[]>,
           Promise.all([
             xoApp.getAllJobs('backup'),
             xoApp.getAllJobs('mirrorBackup'),
             xoApp.getAllJobs('metadataBackup'),
           ]).then(jobs => jobs.flat(1)) as Promise<XoVmBackupJob[]>,
         ])
+
+        if (jobs.length === 0) {
+          return { isEmpty: true }
+        }
+
         const logsByJob = groupBy(logs, 'jobId')
 
         let disabledJobs = 0
         let failedJobs = 0
         let skippedJobs = 0
         let successfulJobs = 0
+        let noRecentRun = 0
         const backupJobIssues: DashboardBackupsInfo['issues'] = []
 
+        const now = new Date()
+        const sevenDaysAgo = new Date(now)
+        sevenDaysAgo.setDate(now.getDate() - 7)
+        sevenDaysAgo.setHours(0, 0, 0, 0)
+
         for (const job of jobs) {
-          if (!(await _jobHasAtLeastOneScheduleEnabled(job))) {
+          if (!(await this.#backupJobService.backupJobHasAtLeastOneScheduleEnabled(job.id))) {
             _processVmsProtection(job, false)
             disabledJobs++
             continue
           }
 
-          // Get only the last 3 runs
-          const jobLogs = logsByJob[job.id]?.slice(-3).reverse()
-          if (jobLogs === undefined || jobLogs.length === 0) {
+          type NonPendingXoBackupLog = XoBackupLog & {
+            status: 'success' | 'failure' | 'skipped' | 'interrupted'
+          }
+          const last3BackupLogs: NonPendingXoBackupLog[] = []
+          const backupLogsOfTheWeek: NonPendingXoBackupLog[] = []
+          logsByJob[job.id]?.reverse().forEach(log => {
+            if (log.status === 'pending') {
+              return
+            }
+            const nonPendingLog = log as NonPendingXoBackupLog
+
+            if (last3BackupLogs.length < 3) {
+              last3BackupLogs.push(nonPendingLog)
+            }
+
+            if (log.start > sevenDaysAgo.getTime()) {
+              backupLogsOfTheWeek.push(nonPendingLog)
+            }
+          })
+
+          if (backupLogsOfTheWeek.length === 0) {
+            noRecentRun++
+          } else {
+            let hasSoftFailure = false
+            let hasHardFailure = false
+
+            for (const log of backupLogsOfTheWeek) {
+              if (log.status === 'interrupted' || log.status === 'failure') {
+                hasHardFailure = true
+                break
+              }
+
+              if (log.status === 'skipped') {
+                hasSoftFailure = true
+              }
+            }
+
+            if (hasHardFailure) {
+              failedJobs++
+            } else if (hasSoftFailure) {
+              skippedJobs++
+            } else {
+              successfulJobs++
+            }
+          }
+
+          if (last3BackupLogs.length === 0) {
             _processVmsProtection(job, false)
             continue
           }
 
           if (job.type === BACKUP_TYPE.backup) {
-            const lastJobLog = jobLogs[0]
-            const { tasks, status } = lastJobLog
+            // VM should only be considered protected if these last logs have been successful
+            const backupLogStatusesByVm: Record<XoVm['id'], boolean[]> = {}
+            function updateVmBackupLogStatuses(id: XoVm['id'], isSuccess: boolean) {
+              if (backupLogStatusesByVm[id] === undefined) {
+                backupLogStatusesByVm[id] = []
+              }
+              backupLogStatusesByVm[id].push(isSuccess)
+            }
 
-            if (tasks === undefined) {
-              _processVmsProtection(job, status === 'success')
-            } else {
-              // @TODO: remove as when logs are correctly typed
-              ;(tasks as unknown as { data: { id: XoVm['id'] }; status: string }[]).forEach(task => {
-                _updateVmProtection(task.data.id, task.status === 'success')
-              })
+            last3BackupLogs.forEach(jobLob => {
+              const { tasks, status } = jobLob
+              if (tasks === undefined) {
+                const vmIds = _extractVmIdsFromBackupJob(job)
+                vmIds.forEach(vmId => updateVmBackupLogStatuses(vmId, status === 'success'))
+              } else {
+                tasks.forEach(task => {
+                  if (task.data === undefined) {
+                    return
+                  }
+                  updateVmBackupLogStatuses(task.data.id as XoVm['id'], task.status === 'success')
+                })
+              }
+            })
+
+            for (const [vmId, statuses] of Object.entries(backupLogStatusesByVm)) {
+              _updateVmProtection(
+                vmId as XoVm['id'],
+                statuses.every(status => status)
+              )
             }
           }
 
-          const failedLog = jobLogs.find(log => log.status !== 'success')
+          const failedLog = last3BackupLogs.find(log => log.status !== 'success')
           if (failedLog !== undefined) {
-            const { status } = failedLog
-            if (status === 'failure' || status === 'interrupted') {
-              failedJobs++
-            } else if (status === 'skipped') {
-              skippedJobs++
-            }
             backupJobIssues.push({
-              // @TODO: remove as when logs are correctly typed
-              logs: jobLogs.map(log => log.status) as DashboardBackupsInfo['issues'][number]['logs'],
+              logs: last3BackupLogs.map(log => log.status),
               name: job.name,
               type: job.type,
               uuid: job.id,
             })
-          } else {
-            successfulJobs++
           }
         }
 
@@ -472,6 +544,7 @@ export class XoaService {
           jobs: {
             disabled: disabledJobs,
             failed: failedJobs,
+            noRecentRun,
             skipped: skippedJobs,
             successful: successfulJobs,
             total: jobs.length,
@@ -493,9 +566,10 @@ export class XoaService {
   }
 
   #getHostsStatus(): XoaDashboard['hostsStatus'] {
-    const { running, halted, total, unknown } = this.#hostService.getHostsStatus()
+    const { disabled, running, halted, total, unknown } = this.#hostService.getHostsStatus()
 
     return {
+      disabled,
       running,
       halted,
       unknown,
@@ -504,35 +578,7 @@ export class XoaService {
   }
 
   #getVmsStatus(): XoaDashboard['vmsStatus'] {
-    const vms = this.#restApi.getObjectsByType<XoVm>('VM')
-    let nActive = 0
-    let nInactive = 0
-    let nUnknown = 0
-    let total = 0
-    for (const id in vms) {
-      total++
-      const vm = vms[id as XoVm['id']]
-      switch (vm.power_state) {
-        case VM_POWER_STATE.RUNNING:
-        case VM_POWER_STATE.PAUSED:
-          nActive++
-          break
-        case VM_POWER_STATE.HALTED:
-        case VM_POWER_STATE.SUSPENDED:
-          nInactive++
-          break
-        default:
-          nUnknown++
-          break
-      }
-    }
-
-    return {
-      active: nActive,
-      inactive: nInactive,
-      unknown: nUnknown,
-      total,
-    }
+    return this.#vmService.getVmsStatus()
   }
 
   async getDashboard({ stream }: { stream?: Writable } = {}): Promise<XoaDashboard> {
@@ -546,7 +592,6 @@ export class XoaService {
       poolsStatus,
       missingPatches,
       backupRepositories,
-      nHostsEol,
       backups,
     ] = await Promise.all([
       promiseWriteInStream({ maybePromise: this.#getNumberOfPools(), path: 'nPools', stream }),
@@ -571,6 +616,7 @@ export class XoaService {
         }),
         path: 'missingPatches',
         stream,
+        handleError: true,
       }),
       promiseWriteInStream({
         maybePromise: this.#getBackupRepositoriesSizeInfo(),
@@ -579,13 +625,7 @@ export class XoaService {
         handleError: true,
       }),
       promiseWriteInStream({
-        maybePromise: this.#getNumberOfEolHosts(),
-        path: 'nHostsEol',
-        stream,
-        handleError: true,
-      }),
-      promiseWriteInStream({
-        maybePromise: this.#getbackupsInfo(),
+        maybePromise: this.#getBackupsInfo(),
         path: 'backups',
         stream,
         handleError: true,
@@ -598,7 +638,6 @@ export class XoaService {
       backupRepositories,
       resourcesOverview,
       poolsStatus,
-      nHostsEol,
       missingPatches,
       storageRepositories,
       backups,

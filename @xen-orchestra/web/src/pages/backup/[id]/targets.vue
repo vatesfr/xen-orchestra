@@ -10,11 +10,11 @@
 </template>
 
 <script setup lang="ts">
-import BackupRepositoriesTargetsTable from '@/components/backups/targets/BackupRepositoriesTargetsTable.vue'
-import StorageRepositoriesTargetsTable from '@/components/backups/targets/StorageRepositoriesTargetsTable.vue'
-import { useXoBackupRepositoryCollection } from '@/remote-resources/use-xo-br-collection'
-import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection'
-import { extractIdsFromSimplePattern } from '@/utils/pattern.util'
+import BackupRepositoriesTargetsTable from '@/modules/backup/components/targets/BackupRepositoriesTargetsTable.vue'
+import StorageRepositoriesTargetsTable from '@/modules/backup/components/targets/StorageRepositoriesTargetsTable.vue'
+import { useXoBackupRepositoryCollection } from '@/modules/backup/remote-resources/use-xo-br-collection.ts'
+import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { extractIdsFromSimplePattern } from '@/shared/utils/pattern.util'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import type { AnyXoBackupJob, XoBackupRepository, XoSr } from '@vates/types'
 import { computed } from 'vue'

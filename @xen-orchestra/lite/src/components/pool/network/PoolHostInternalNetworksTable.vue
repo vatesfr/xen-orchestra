@@ -2,7 +2,7 @@
   <div class="pool-host-internal-networks-table">
     <UiTitle>
       {{ t('host-internal-networks') }}
-      <template #actions>
+      <template #action>
         <UiButton
           v-tooltip="t('coming-soon!')"
           disabled

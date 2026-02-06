@@ -2,7 +2,7 @@
   <div class="host-pif-table">
     <UiTitle>
       {{ t('pifs') }}
-      <template #actions>
+      <template #action>
         <UiButton
           v-tooltip="t('coming-soon!')"
           disabled
@@ -137,7 +137,7 @@ function getManagementIcon(pif: XenApiPif) {
   }
 
   return {
-    icon: icon('legacy:primary'),
+    icon: icon('status:primary-circle'),
     tooltip: t('management'),
   }
 }

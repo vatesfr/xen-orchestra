@@ -1,9 +1,13 @@
 <template>
-  <VtsTreeItem v-if="host !== undefined" :expanded="isExpanded" class="infra-host-item">
-    <UiTreeItemLabel :route="{ name: '/host/[uuid]', params: { uuid: host.uuid } }" icon="fa:server" @toggle="toggle()">
+  <VtsTreeItem v-if="host !== undefined" :expanded="isExpanded" class="infra-host-item" :node-id="`host:${host.uuid}`">
+    <UiTreeItemLabel
+      :route="{ name: '/host/[uuid]', params: { uuid: host.uuid } }"
+      icon="object:host"
+      @toggle="toggle()"
+    >
       {{ host.name_label || '(Host)' }}
       <template #addons>
-        <VtsIcon v-if="isPoolMaster" v-tooltip="t('master')" name="legacy:primary" size="medium" />
+        <VtsIcon v-if="isPoolMaster" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
         <UiCounter
           v-if="isReady"
           v-tooltip="t('running-vm', { count: vmCount })"

@@ -2,7 +2,7 @@
   <div class="vm-vifs-table">
     <UiTitle>
       {{ t('vifs') }}
-      <template #actions>
+      <template #action>
         <UiButton
           v-tooltip="t('coming-soon!')"
           disabled

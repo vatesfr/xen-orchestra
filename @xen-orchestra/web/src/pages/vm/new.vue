@@ -46,15 +46,6 @@
                     {{ t('pxe') }}
                   </UiRadioButton>
                 </template>
-                <!-- TODO need to be add later after confirmation -->
-                <!--
-                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="ssh-key">
-                    {{ t('ssh-key') }}
-                  </UiRadioButton>
-                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="custom_config">
-                    {{ t('custom-config') }}
-                  </UiRadioButton>
-                -->
               </div>
               <VtsSelect v-if="vmState.installMode === 'cdrom'" :id="vdiSelectId" accent="brand" />
               <!-- TODO need to be add later after confirmation -->
@@ -111,9 +102,24 @@
                 <VtsInputWrapper :label="t('boot-firmware')">
                   <VtsSelect :id="bootFirmwareSelectId" accent="brand" />
                 </VtsInputWrapper>
-                <div v-tooltip="{ placement: 'top-start', content: copyHostBiosStringsTooltipContent }">
-                  <UiCheckbox v-model="vmState.copyHostBiosStrings" accent="brand" :disabled="!canCopyBiosStrings">
+                <div
+                  v-if="canCopyBiosStrings"
+                  v-tooltip="{
+                    placement: 'top-start',
+                    content: selectedTemplateHasBiosStrings ? copyHostBiosStringsTooltipContent : undefined,
+                  }"
+                >
+                  <UiCheckbox
+                    v-model="vmState.copyHostBiosStrings"
+                    accent="brand"
+                    :disabled="selectedTemplateHasBiosStrings"
+                  >
                     {{ t('copy-host-bios-strings') }}
+                  </UiCheckbox>
+                </div>
+                <div v-else>
+                  <UiCheckbox v-model="vmState.createVtpm" accent="brand">
+                    {{ t('vtpm') }}
                   </UiCheckbox>
                 </div>
               </div>
@@ -171,20 +177,20 @@
             <UiTitle>{{ t('summary') }}</UiTitle>
             <VtsResources>
               <!-- TODO change label to manage pluralization when we can have multiple vm -->
-              <VtsResource icon="fa:display" count="1" :label="t('vm')" />
+              <VtsResource icon="object:vm" count="1" :label="t('vm')" />
               <VtsResource icon="fa:microchip" :count="vmState.vCPU" :label="t('vcpus')" />
               <VtsResource icon="fa:memory" :count="`${ramFormatted} GB`" :label="t('ram')" />
               <VtsResource
-                icon="fa:database"
+                icon="object:sr"
                 :count="vmState.existingVdis.length + vmState.vdis.length"
                 :label="t('vdis')"
               />
-              <VtsResource icon="fa:network-wired" :count="vmState.vifs.length" :label="t('interfaces')" />
+              <VtsResource icon="object:network" :count="vmState.vifs.length" :label="t('interfaces')" />
             </VtsResources>
           </div>
           <!-- TOASTER -->
           <!-- TODO Change to a real toaster (or alert ?) when available -->
-          <UiToaster v-if="isOpen" accent="danger" @close="isOpen = false">{{ errorMessage }}</UiToaster>
+          <UiToaster v-if="isToasterOpen" accent="danger" @close="isToasterOpen = false">{{ errorMessage }}</UiToaster>
           <!-- ACTIONS -->
           <div class="footer">
             <UiButton variant="secondary" accent="brand" size="medium" @click="redirectToPool(vmState.pool.id)">
@@ -194,8 +200,8 @@
               variant="primary"
               accent="brand"
               size="medium"
-              :busy="isBusy"
-              :disabled="isCreateVmDisabled"
+              :busy="isRunning"
+              :disabled="!canRun"
               type="submit"
             >
               {{ t('action:create') }}
@@ -208,20 +214,20 @@
 </template>
 
 <script lang="ts" setup>
-import NewVmNetworkTable from '@/components/new-vm/NewVmNetworkTable.vue'
-import NewVmSrTable from '@/components/new-vm/NewVmSrTable.vue'
-import { createVM } from '@/jobs/vm-create.job.ts'
-import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
-import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
-import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
-import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
-import { useXoRoutes } from '@/remote-resources/use-xo-routes'
-import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
-import { useXoVbdCollection } from '@/remote-resources/use-xo-vbd-collection.ts'
-import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
-import { useXoVifCollection } from '@/remote-resources/use-xo-vif-collection.ts'
-import { useXoVmTemplateCollection } from '@/remote-resources/use-xo-vm-template-collection.ts'
-import type { Vdi, Vif, VifToSend, VmState } from '@/types/xo/new-vm.type'
+import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import NewVmNetworkTable from '@/modules/vm/components/new/NewVmNetworkTable.vue'
+import NewVmSrTable from '@/modules/vm/components/new/NewVmSrTable.vue'
+import { useXoVmCreateJob } from '@/modules/vm/jobs/xo-vm-create.job.ts'
+import { useXoVmTemplateCollection } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
+import type { Vdi, Vif, VifToSend, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
+import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsResource from '@core/components/resources/VtsResource.vue'
 import VtsResources from '@core/components/resources/VtsResources.vue'
@@ -254,9 +260,7 @@ const poolId = useRouteQuery('poolid')
 
 // Toaster
 const errorMessage = ref('')
-const isOpen = ref(false)
-
-const isBusy = ref(false)
+const isToasterOpen = ref(false)
 
 const { networks, getNetworkById } = useXoNetworkCollection()
 const { getPifsByNetworkId } = useXoPifCollection()
@@ -294,6 +298,7 @@ const vmState = reactive<VmState>({
   vifs: [],
   existingVdis: [],
   pool: undefined,
+  createVtpm: false,
 })
 
 const bytesToGiB = (bytes: number) => Math.floor(bytes / 1024 ** 3)
@@ -341,7 +346,7 @@ const addStorageEntry = () => {
   }
 
   vmState.vdis.push({
-    name_label: (vmState.name || 'disk') + '_' + generateRandomString(4),
+    name_label: (vmState.new_vm_template?.name_label || 'disk') + '_' + generateRandomString(4),
     name_description: 'Created by XO',
     sr: defaultSr.value,
     size: 0,
@@ -351,18 +356,6 @@ const addStorageEntry = () => {
 const deleteItem = <T,>(array: T[], index: number) => {
   array.splice(index, 1)
 }
-
-// Todo: implement when the API will support
-// const addSshKey = () => {
-//   if (vmState.ssh_key.trim()) {
-//     vmState.sshKeys.push(vmState.ssh_key.trim())
-//     vmState.ssh_key = ''
-//   }
-// }
-//
-// const removeSshKey = (index: number) => {
-//   vmState.sshKeys.splice(index, 1)
-// }
 
 const isDiskTemplate = computed(() => {
   return (
@@ -383,17 +376,9 @@ const selectedTemplateHasBiosStrings = computed(
 
 const canCopyBiosStrings = computed(() => vmState.bootFirmware === 'bios')
 
-const copyHostBiosStringsTooltipContent = computed(() => {
-  if (vmState.bootFirmware === 'uefi') {
-    return t('boot-firmware-uefi')
-  }
-
-  if (selectedTemplateHasBiosStrings.value) {
-    return t('template-has-bios-strings')
-  }
-
-  return undefined
-})
+const copyHostBiosStringsTooltipContent = computed(() =>
+  selectedTemplateHasBiosStrings.value ? t('template-has-bios-strings') : undefined
+)
 
 const filteredSrs = computed(() => {
   return srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_usage > 0 && sr.$pool === vmState.pool?.id)
@@ -401,7 +386,7 @@ const filteredSrs = computed(() => {
 
 const getVmTemplateVdis = (template: XoVmTemplate) =>
   (template.template_info?.disks ?? []).map((disk, index) => ({
-    name_label: `${vmState?.name || 'disk'}_${index}_${generateRandomString(4)}`,
+    name_label: `${template?.name_label || 'disk'}_${index}_${generateRandomString(4)}`,
     name_description: 'Created by XO',
     size: bytesToGiB(disk.size),
     sr: defaultSr.value,
@@ -423,6 +408,7 @@ const getExistingVdis = (template: XoVmTemplate) => {
     }
 
     acc.push({
+      id: vdi.id,
       name_label: vdi.name_label,
       name_description: vdi.name_description,
       size: bytesToGiB(vdi.size),
@@ -517,31 +503,6 @@ const addVif = () => {
 //   const existingVDIs = getVmTemplateVdis(vmState.new_vm_template)
 //   return existingVDIs.every(vdi => vdi.sr.length > 0)
 // })
-
-const hasInvalidSrVdi = computed(() => vmState.vdis.some(vdi => vdi.sr === undefined))
-
-const hasInstallSettings = computed(() => {
-  switch (vmState.installMode) {
-    case 'no-config':
-      return true
-    case 'network':
-      return true
-    case 'cdrom':
-      return !!vmState.selectedVdi
-    default:
-      return false
-  }
-})
-
-const isCreateVmDisabled = computed(() => {
-  return (
-    isBusy.value ||
-    !vmState.new_vm_template ||
-    !vmState.name.length ||
-    !hasInstallSettings.value ||
-    hasInvalidSrVdi.value
-  )
-})
 
 // TODO: when refactoring the component, remove the param and sync with the pool id in the route
 const redirectToPool = (poolId: XoPool['id']) => {
@@ -677,26 +638,34 @@ const vmData = computed(() => {
     template: vmState.new_vm_template?.uuid,
     hvmBootFirmware: vmState.bootFirmware,
     copyHostBiosStrings: vmState.copyHostBiosStrings,
+    createVtpm: vmState.createVtpm,
     ...optionalFields,
   }
 })
 
+const payload = computed(() => ({ ...vmData.value, poolId: vmState.pool?.id }))
+// TODO: multiple VM creation not possible in the UI for now
+// Only pass a single payload
+const { run, isRunning, canRun } = useXoVmCreateJob([payload])
+
 const createNewVM = async () => {
   try {
-    isBusy.value = true
-
-    if (vmData.value.template === undefined || vmState.pool === undefined) {
-      throw new Error('Template UUID and Pool ID are required')
+    // TODO: multiple VM creation not possible in the UI for now
+    // so only handle single VM creation
+    const [promiseResult] = await run()
+    if (promiseResult.status === 'rejected') {
+      throw promiseResult.reason
+    }
+    router.push({ name: '/vm/[id]/dashboard', params: { id: promiseResult.value } })
+  } catch (error) {
+    if (error instanceof Error) {
+      errorMessage.value = error.message
+    } else {
+      console.error(error)
+      errorMessage.value = `Error creating VM: ${JSON.stringify(error)}`
     }
 
-    const vmId = await createVM(vmData.value, vmState.pool.id)
-    router.push({ name: '/vm/[id]/dashboard', params: { id: vmId } })
-  } catch (error) {
-    isOpen.value = true
-
-    errorMessage.value = 'Error creating VM: ' + error
-  } finally {
-    isBusy.value = false
+    isToasterOpen.value = true
   }
 }
 
@@ -834,12 +803,15 @@ const { id: bootFirmwareSelectId } = useFormSelect(bootFirmwareOptions, {
 })
 
 watch(
-  () => vmState.new_vm_template,
+  () => [vmState.new_vm_template, vmState.bootFirmware],
   () => {
-    if (vmState.bootFirmware !== 'bios') {
+    if (vmState.bootFirmware === 'bios') {
+      vmState.createVtpm = false
+      if (selectedTemplateHasBiosStrings.value) {
+        vmState.copyHostBiosStrings = true
+      }
+    } else {
       vmState.copyHostBiosStrings = false
-    } else if (selectedTemplateHasBiosStrings.value) {
-      vmState.copyHostBiosStrings = true
     }
   }
 )
@@ -887,38 +859,9 @@ watch(
       }
     }
 
-    .install-custom-config {
-      display: flex;
-      margin-block-start: 3rem;
-      gap: 4.2rem;
-    }
-
-    .install-ssh-key-container {
-      margin-block-start: 3rem;
-    }
-
-    .install-ssh-key {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      width: 50%;
-    }
-
-    .install-chips {
-      display: flex;
-      gap: 0.5rem;
-      margin-block-end: 1rem;
-    }
-
     .memory-container {
       display: flex;
       gap: 10.8rem;
-    }
-
-    .select {
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
     }
   }
 

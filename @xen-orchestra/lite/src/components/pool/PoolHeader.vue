@@ -1,5 +1,5 @@
 <template>
-  <UiHeadBar icon="fa:city">
+  <UiHeadBar icon="object:pool">
     {{ name }}
     <template #actions>
       <RouterLink :to="{ name: '/vm/new' }">

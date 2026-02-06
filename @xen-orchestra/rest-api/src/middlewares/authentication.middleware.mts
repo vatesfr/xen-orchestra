@@ -1,10 +1,10 @@
 import { createLogger } from '@xen-orchestra/log'
 import { NextFunction, Request, Response } from 'express'
 import { unauthorized } from 'xo-common/api-errors.js'
+import type { XoApp } from '@vates/types/xo-app'
 
 import { iocContainer } from '../ioc/ioc.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import type { XoApp } from '../rest-api/rest-api.type.mjs'
 import type { AuthenticatedRequest } from '../helpers/helper.type.mjs'
 import { ApiError } from '../helpers/error.helper.mjs'
 
@@ -69,7 +69,7 @@ export function setupApiContext(xoApp: XoApp) {
     }
 
     try {
-      const { user } = await xoApp.authenticateUser(credentials, { ip })
+      const { user } = await xoApp.authenticateUser(credentials, { ip }, { bypassTaskCreation: hasToken })
       return xoApp.runWithApiContext(user, next)
     } catch (error) {
       return next(error)

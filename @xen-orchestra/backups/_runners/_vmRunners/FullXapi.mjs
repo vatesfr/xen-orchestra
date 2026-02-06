@@ -64,9 +64,16 @@ export const FullXapi = class FullXapiVmBackupRunner extends AbstractXapi {
       const vdi = await this._xapi.getRecord('VDI', vdiRef)
 
       // the size a of fully allocated vdi will be virtual_size exactly, it's a gross over evaluation
-      // of the real stream size in general, since a disk is never completely full
+      // of the real stream size in general, since a disk is rarely completely full
       // vdi.physical_size seems to underevaluate a lot the real disk usage of a VDI, as of 2023-10-30
-      maxStreamLength += vdi.virtual_size
+
+      // xva files are tar archive with data cut in 1MB blocks
+      // each block is signed with a hash (in xxhash format)
+      // each of these blocks + hash add one tar header entry in the file
+      const XVA_BLOCK_SIZE = 1024 * 1024
+      const nbBlocks = Math.ceil(vdi.virtual_size / XVA_BLOCK_SIZE)
+      const headersSize = nbBlocks * (512 /* file header */ + 512 /* xxhash header */ + 512) /* xhxhash size */
+      maxStreamLength += XVA_BLOCK_SIZE * nbBlocks + headersSize
     }
 
     const sizeContainer = watchStreamSize(stream)

@@ -1,14 +1,31 @@
-import { Delete, Example, Get, Path, Put, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
+import {
+  Body,
+  Delete,
+  Example,
+  Get,
+  Middlewares,
+  Path,
+  Post,
+  Put,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+} from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Readable } from 'node:stream'
-import type { Request as ExRequest, Response as ExResponse } from 'express'
-import type { SUPPORTED_VDI_FORMAT, XoAlarm, XoMessage, XoTask, XoVdi } from '@vates/types'
+import { json, type Request as ExRequest, type Response as ExResponse } from 'express'
+import type { SUPPORTED_VDI_FORMAT, XoAlarm, XoMessage, XoSr, XoTask, XoVdi } from '@vates/types'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import {
+  asynchronousActionResp,
   badRequestResp,
   internalServerErrorResp,
   noContentResp,
@@ -18,11 +35,12 @@ import {
 } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
+import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
-import { partialVdis, vdi, vdiIds } from '../open-api/oa-examples/vdi.oa-example.mjs'
+import { partialVdis, vdi, vdiId, vdiIds } from '../open-api/oa-examples/vdi.oa-example.mjs'
 import { VdiService } from './vdi.service.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
-import { taskIds, partialTasks } from '../open-api/oa-examples/task.oa-example.mjs'
+import { taskIds, partialTasks, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 @Route('vdis')
 @Security('*')
 @Response(badRequestResp.status, badRequestResp.description)
@@ -200,6 +218,44 @@ export class VdiController extends XapiXoController<XoVdi> {
   ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
     const tasks = await this.getTasksForObject(id as XoVdi['id'], { filter, limit })
     return this.sendObjects(Object.values(tasks), req, 'tasks')
+  }
+
+  /**
+   * Migrate a VDI to another SR.
+   *
+   * Note: After migration, the VDI will have a new ID. The new ID is returned in the response.
+   *
+   * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
+   * @example body { "srId": "4cb0d74e-a7c1-0b7d-46e3-09382c012abb" }
+   */
+  @Example(taskLocation)
+  @Example(vdiId)
+  @Post('{id}/actions/migrate')
+  @Middlewares(json())
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(200, 'Ok')
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async migrateVdi(
+    @Path() id: string,
+    @Body() body: { srId: string },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<{ id: Unbrand<XoVdi>['id'] }> {
+    const vdiId = id as XoVdi['id']
+
+    return this.createAction(
+      async () => {
+        const newVdi = await this.getXapi(vdiId).moveVdi(vdiId, body.srId as XoSr['id'])
+        return { id: newVdi.uuid as Unbrand<XoVdi>['id'] }
+      },
+      {
+        sync,
+        taskProperties: {
+          name: 'migrate VDI',
+          objectId: vdiId,
+        },
+      }
+    )
   }
 
   /**

@@ -2,27 +2,27 @@
   <VtsStateHero v-if="!isReady" format="card" type="busy" size="medium" />
   <VtsColumns v-else>
     <VtsColumn>
-      <PoolGeneralInfo :pool />
-      <PoolNetworking :pool />
-      <PoolStorageConfiguration :pool />
+      <PoolSystemGeneralInfo :pool />
+      <PoolSystemNetworking :pool />
+      <PoolSystemStorageConfiguration :pool />
     </VtsColumn>
     <VtsColumn>
-      <PoolManagement :pool />
-      <PoolConnections :pool />
+      <PoolSystemManagement :pool />
+      <PoolSystemConnections :pool />
     </VtsColumn>
   </VtsColumns>
 </template>
 
 <script setup lang="ts">
-import PoolConnections from '@/components/pool/system/PoolConnections.vue'
-import PoolGeneralInfo from '@/components/pool/system/PoolGeneralInfo.vue'
-import PoolManagement from '@/components/pool/system/PoolManagement.vue'
-import PoolNetworking from '@/components/pool/system/PoolNetworking.vue'
-import PoolStorageConfiguration from '@/components/pool/system/PoolStorageConfiguration.vue'
-import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
-import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
-import { useXoServerCollection } from '@/remote-resources/use-xo-server-collection.ts'
-import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
+import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import PoolSystemConnections from '@/modules/pool/components/system/PoolSystemConnections.vue'
+import PoolSystemGeneralInfo from '@/modules/pool/components/system/PoolSystemGeneralInfo.vue'
+import PoolSystemManagement from '@/modules/pool/components/system/PoolSystemManagement.vue'
+import PoolSystemNetworking from '@/modules/pool/components/system/PoolSystemNetworking.vue'
+import PoolSystemStorageConfiguration from '@/modules/pool/components/system/PoolSystemStorageConfiguration.vue'
+import { useXoServerCollection } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
+import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'

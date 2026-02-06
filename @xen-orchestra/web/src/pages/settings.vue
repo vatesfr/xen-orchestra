@@ -32,36 +32,34 @@
         </VtsQuickInfoColumn>
         <VtsQuickInfoColumn>
           <div class="typo-h6">{{ t('xcp-ng') }}</div>
-          <VtsQuickInfoColumn>
-            <VtsQuickInfoRow :label="t('news')">
-              <template #value>
-                <UiLink size="medium" :href="XCP_LINKS.BLOG">
-                  {{ t('news-name', { name: t('xcp-ng') }) }}
-                </UiLink>
-              </template>
-            </VtsQuickInfoRow>
-            <VtsQuickInfoRow :label="t('community')">
-              <template #value>
-                <UiLink size="medium" :href="XCP_LINKS.COMMUNITY">
-                  {{ t('community-name', { name: t('xcp-ng') }) }}
-                </UiLink>
-              </template>
-            </VtsQuickInfoRow>
-            <VtsQuickInfoRow :label="t('documentation')">
-              <template #value>
-                <UiLink size="medium" :href="XCP_LINKS.DOC">
-                  {{ t('documentation-name', { name: t('xcp-ng') }) }}
-                </UiLink>
-              </template>
-            </VtsQuickInfoRow>
-            <VtsQuickInfoRow :label="t('support')">
-              <template #value>
-                <UiLink size="medium" :href="XCP_LINKS.SUPPORT">
-                  {{ t('pro-support', { name: t('xcp-ng') }) }}
-                </UiLink>
-              </template>
-            </VtsQuickInfoRow>
-          </VtsQuickInfoColumn>
+          <VtsQuickInfoRow :label="t('news')">
+            <template #value>
+              <UiLink size="medium" :href="XCP_LINKS.BLOG">
+                {{ t('news-name', { name: t('xcp-ng') }) }}
+              </UiLink>
+            </template>
+          </VtsQuickInfoRow>
+          <VtsQuickInfoRow :label="t('community')">
+            <template #value>
+              <UiLink size="medium" :href="XCP_LINKS.COMMUNITY">
+                {{ t('community-name', { name: t('xcp-ng') }) }}
+              </UiLink>
+            </template>
+          </VtsQuickInfoRow>
+          <VtsQuickInfoRow :label="t('documentation')">
+            <template #value>
+              <UiLink size="medium" :href="XCP_LINKS.DOC">
+                {{ t('documentation-name', { name: t('xcp-ng') }) }}
+              </UiLink>
+            </template>
+          </VtsQuickInfoRow>
+          <VtsQuickInfoRow :label="t('support')">
+            <template #value>
+              <UiLink size="medium" :href="XCP_LINKS.SUPPORT">
+                {{ t('pro-support', { name: t('xcp-ng') }) }}
+              </UiLink>
+            </template>
+          </VtsQuickInfoRow>
         </VtsQuickInfoColumn>
       </VtsColumns>
     </div>
@@ -97,6 +95,25 @@
           </div>
         </div>
       </VtsColumns>
+      <VtsColumns>
+        <div class="typo-h6">{{ t('theme') }}</div>
+        <div class="themes">
+          <div
+            v-for="theme in themes"
+            :key="theme.id"
+            class="theme-card"
+            :class="{ selected: currentTheme === theme.id }"
+            @click="currentTheme = theme.id"
+          >
+            <div class="theme-header">
+              <VtsIcon v-if="currentTheme === theme.id" name="fa:circle-check" size="medium" />
+              <div v-else class="circle" />
+              <span class="typo-h6">{{ t(theme.label) }}</span>
+            </div>
+            <span class="typo-body-regular-small theme-description">{{ t(theme.description) }}</span>
+          </div>
+        </div>
+      </VtsColumns>
     </div>
     <!-- LANGUAGE -->
     <div class="container">
@@ -123,7 +140,8 @@
 </template>
 
 <script setup lang="ts">
-import { XCP_LINKS, XO_LINKS } from '@/constants.ts'
+import { useTheme } from '@/shared/composables/theme.composable.ts'
+import { XCP_LINKS, XO_LINKS } from '@/shared/constants.ts'
 import VtsColumns from '@core/components/column/VtsColumn.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
@@ -138,7 +156,7 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { locales } from '@core/i18n.ts'
 import { useFormSelect } from '@core/packages/form-select'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { type BasicColorSchema } from '@vueuse/core'
+import type { BasicColorSchema } from '@vueuse/core'
 import { useCookies } from '@vueuse/integrations/useCookies'
 import { watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -152,6 +170,8 @@ watch(locale, newLocale => cookies.set('lang', newLocale))
 const colorModeOptions = ['light', 'dark', 'auto'] as BasicColorSchema[]
 
 const uiStore = useUiStore()
+
+const { currentTheme, themes } = useTheme()
 
 const { id: localeSelectId } = useFormSelect(availableLocales, {
   model: locale,
@@ -192,7 +212,7 @@ const { id: localeSelectId } = useFormSelect(availableLocales, {
     .color-mode {
       display: flex;
       flex-direction: column;
-      gap: 1.6em;
+      gap: 1.6rem;
 
       &.selected {
         color: var(--color-brand-txt-base);
@@ -209,6 +229,58 @@ const { id: localeSelectId } = useFormSelect(availableLocales, {
       img {
         box-shadow: var(--shadow-100);
         border-radius: 8px;
+      }
+    }
+  }
+
+  .themes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+    gap: 1.6rem;
+
+    .theme-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      padding: 1.6rem;
+      border: 0.1rem solid var(--color-neutral-border);
+      border-radius: 0.8rem;
+      background: var(--color-neutral-background-secondary);
+
+      &.selected {
+        border-color: var(--color-brand-txt-base);
+        background: var(--color-brand-background-selected);
+
+        .theme-header {
+          color: var(--color-brand-txt-base);
+        }
+      }
+
+      &:not(.selected) {
+        cursor: pointer;
+
+        &:hover {
+          border-color: var(--color-brand-txt-base);
+        }
+      }
+
+      .theme-header {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+
+        .circle {
+          width: 1.6rem;
+          height: 1.6rem;
+          border-radius: 50%;
+          background-color: var(--color-neutral-background-primary);
+          border: 0.1rem solid var(--color-neutral-txt-secondary);
+          flex-shrink: 0;
+        }
+      }
+
+      .theme-description {
+        color: var(--color-neutral-txt-secondary);
       }
     }
   }

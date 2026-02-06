@@ -1,18 +1,17 @@
 <template>
-  <ConnectPoolHeader />
+  <PoolConnectionHeader />
   <UiCard class="pool-connect-card" :class="{ 'full-height': success || hasError }">
-    <ConnectionSuccess v-if="success && serverId" :ip :server-id @connect-another-pool="reset()" />
-    <ConnectionError v-else-if="hasError && error" :ip :error @go-back="reset()" />
-    <ConnectionForm v-else @success="handleSuccess" @error="handleError" />
+    <PoolConnectionSuccess v-if="success && serverId" :ip :server-id @connect-another-pool="reset()" />
+    <PoolConnectionError v-else-if="hasError && error" :ip :error @go-back="reset()" />
+    <PoolConnectionForm v-else @success="handleSuccess" @error="handleError" />
   </UiCard>
 </template>
 
 <script setup lang="ts">
-import ConnectionError from '@/components/pool/connect/ConnectionError.vue'
-import ConnectionForm from '@/components/pool/connect/ConnectionForm.vue'
-import ConnectionSuccess from '@/components/pool/connect/ConnectionSuccess.vue'
-import ConnectPoolHeader from '@/components/pool/connect/ConnectPoolHeader.vue'
-import { ApiError } from '@/error/api.error.ts'
+import PoolConnectionError from '@/modules/pool/components/connection/PoolConnectionError.vue'
+import PoolConnectionForm from '@/modules/pool/components/connection/PoolConnectionForm.vue'
+import PoolConnectionHeader from '@/modules/pool/components/connection/PoolConnectionHeader.vue'
+import PoolConnectionSuccess from '@/modules/pool/components/connection/PoolConnectionSuccess.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import type { XoServer } from '@vates/types'
 import { ref } from 'vue'
@@ -20,7 +19,7 @@ import { ref } from 'vue'
 const success = ref(false)
 const hasError = ref(false)
 const serverId = ref<XoServer['id']>()
-const error = ref<ApiError>()
+const error = ref<Error>()
 const ip = ref<string>()
 
 function handleSuccess(_serverId: XoServer['id'], _ip?: string) {
@@ -29,7 +28,7 @@ function handleSuccess(_serverId: XoServer['id'], _ip?: string) {
   ip.value = _ip
 }
 
-function handleError(_error: ApiError, _ip?: string) {
+function handleError(_error: Error, _ip?: string) {
   hasError.value = true
   error.value = _error
   ip.value = _ip

@@ -1,28 +1,33 @@
 import {
   WrappedXenApiRecord,
   XenApiHost,
+  XenApiNetwork,
   XenApiNetworkWrapped,
   XenApiRecord,
   XenApiSr,
   XenApiTask,
+  XenApiVbd,
   XenApiVdi,
+  XenApiVif,
   XenApiVm,
   XenApiVmWrapped,
+  XenApiVtpm,
 } from '../xen-api.mjs'
+import type { OPAQUE_REF_NULL, SUPPORTED_VDI_FORMAT, VBD_MODE, VBD_TYPE, VIF_LOCKING_MODE } from '../common.mjs'
 import type { PassThrough, Readable } from 'node:stream'
 import type {
   XoGpuGroup,
-  XoVgpuType,
   XoHost,
   XoNetwork,
   XoPif,
   XoSr,
   XoUser,
   XoVdi,
+  XoVgpuType,
   XoVm,
   XoVmTemplate,
+  XoVif,
 } from '../xo.mjs'
-import type { SUPPORTED_VDI_FORMAT } from '../common.mjs'
 
 export type XcpPatches = {
   changelog?: {
@@ -57,6 +62,7 @@ export interface Xapi {
   call: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
   callAsync: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
 
+  barrier<T extends XenApiRecord>(ref: T['$ref']): Promise<Extract<WrappedXenApiRecord, { $ref: T['$ref'] }>>
   getField<T extends XenApiRecord, K extends keyof T>(
     type: Extract<WrappedXenApiRecord, T>['$type'],
     ref: T['$ref'],
@@ -79,6 +85,7 @@ export interface Xapi {
         }
   ): Promise<XenApiNetworkWrapped>
   deleteNetwork(id: XoNetwork['id']): Promise<void>
+  deleteVif(vifId: XoVif['id']): Promise<void>
   exportVmOva(vmRef: XenApiVm['$ref']): Promise<PassThrough>
   listMissingPatches(host: XoHost['id']): Promise<XcpPatches[] | XsPatches[]>
   pool_emergencyShutdown(): Promise<void>
@@ -172,11 +179,32 @@ export interface Xapi {
       gpuGroup?: XoGpuGroup['id']
       copyHostBiosStrings?: boolean
       hvmBootFirmware?: 'uefi' | 'bios'
+      secureBoot?: boolean
     },
     checkLimits?: boolean,
     creatorId?: XoUser['id'],
     opts?: { destroyAllVifs: boolean }
   ): Promise<XenApiVmWrapped>
+  moveVdi(
+    vdiId: XenApiVdi['$ref'] | XoVdi['id'],
+    srId: XenApiSr['$ref'] | XoSr['id'],
+    opts?: { _failOnCbtError?: boolean }
+  ): Promise<XenApiVdi>
+  VBD_create(params: {
+    bootable?: boolean
+    empty?: boolean
+    mode?: VBD_MODE
+    other_config?: Record<string, string>
+    qos_algorithm_params?: Record<string, string>
+    qos_algorithm_type?: string
+    type?: VBD_TYPE
+    unpluggable?: boolean
+    userdevice?: string
+    VDI: XenApiVdi['$ref'] | OPAQUE_REF_NULL
+    VM: XenApiVm['$ref']
+  }): Promise<XenApiVbd['$ref']>
+  VBD_destroy(vbdRef: XenApiVbd['$ref']): Promise<void>
+  VBD_unplug(vbdRef: XenApiVbd['$ref']): Promise<void>
   VDI_destroy(vdiRef: XenApiVdi['$ref']): Promise<void>
   VDI_destroyCloudInitConfig(vdiRef: XenApiVdi['$ref'], opts?: { timeLimit?: number }): Promise<void>
   VDI_exportContent(
@@ -188,6 +216,24 @@ export interface Xapi {
     stream: Readable,
     opts: { cancelToken?: unknown; format: SUPPORTED_VDI_FORMAT }
   ): Promise<void>
+  VIF_create(
+    options: {
+      currently_attached?: boolean
+      device?: string
+      ipv4_allowed?: string[]
+      ipv6_allowed?: string[]
+      locking_mode?: VIF_LOCKING_MODE
+      MTU?: number
+      network: XenApiNetwork['$ref']
+      other_config?: Record<string, string>
+      qos_algorithm_params?: Record<string, string>
+      qos_algorithm_type?: string
+      VM: XenApiVm['$ref']
+    },
+    extraOptions?: {
+      MAC?: string
+    }
+  ): Promise<XenApiVif['$ref']>
   VM_createCloudInitConfig(
     vmRef: XenApiVm['$ref'],
     cloudConfig: string,
@@ -207,4 +253,5 @@ export interface Xapi {
     params?: { host?: XenApiHost; query?: Record<string, unknown>; task?: boolean | XenApiTask['$ref'] }
   ): Promise<{ body: Readable }>
   isHyperThreadingEnabled(hostId: XoHost['id']): Promise<boolean | null>
+  VTPM_create(params: { VM: XenApiVm['$ref']; is_unique?: boolean; contents?: string }): Promise<XenApiVtpm['$ref']>
 }
