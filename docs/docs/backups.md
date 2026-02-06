@@ -119,6 +119,8 @@ During a backup job, you can avoid saving all disks of the VM. To do that is tri
 
 The disks marked with `[NOBAK]` will be now ignored in all following backups.
 
+You can exclude disks from snapshots since XO 5.96 using `[NOSNAP]`. `[NOSNAP]` includes `[NOBAK]`.
+
 ## Schedule
 
 ### Introduction
