@@ -14,12 +14,15 @@ import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
 import type { MaybePromise, SendObjects, WithHref } from '../helpers/helper.type.mjs'
 import type { Response as ExResponse } from 'express'
 import { NDJSON_CONTENT_TYPE, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
+import { SupportedActionsByResource, SupportedResource } from '@xen-orchestra/acl'
 
 const noop = () => {}
 
 export type CreateActionReturnType<CbType> = Promise<{ taskId: string } | CbType>
 
-export abstract class BaseController<T extends XoRecord, IsSync extends boolean> extends Controller {
+export type RestXoRecord = XoRecord<SupportedActionsByResource, SupportedResource>
+
+export abstract class BaseController<T extends RestXoRecord, IsSync extends boolean> extends Controller {
   abstract getObjects(): IsSync extends false ? Promise<Record<T['id'], T>> : Record<T['id'], T>
   abstract getObject(id: T['id']): IsSync extends false ? Promise<T> : T
 
@@ -30,7 +33,7 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
     this.restApi = restApi
   }
 
-  sendObjects<Objects extends XoRecord = T>(
+  sendObjects<Objects extends RestXoRecord = T>(
     objects: Objects[],
     req: Request,
     path?: string | ((obj: Objects) => string)

@@ -5,8 +5,11 @@ import { BaseController } from './base-controller.mjs'
 
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
+import { SupportedActionsByResource, SupportedResource } from '@xen-orchestra/acl'
 
-export abstract class XoController<T extends NonXapiXoRecord> extends BaseController<T, false> {
+export abstract class XoController<
+  T extends NonXapiXoRecord<SupportedActionsByResource, SupportedResource>,
+> extends BaseController<T, false> {
   abstract getAllCollectionObjects(opts: Record<string, unknown>): Promise<T[]>
   abstract getCollectionObject(id: T['id']): Promise<T>
 

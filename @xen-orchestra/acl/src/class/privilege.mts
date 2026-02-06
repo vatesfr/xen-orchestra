@@ -23,9 +23,10 @@ type GetKeysRecursively<T, Prefix extends string = ''> = {
       : never
 }[keyof T]
 
-export type SupportedResource = keyof typeof SUPPORTED_ACTIONS_BY_RESOURCE
+export type SupportedActionsByResource = typeof SUPPORTED_ACTIONS_BY_RESOURCE
+export type SupportedResource = keyof SupportedActionsByResource
 export type SupportedActions<T extends SupportedResource> =
-  | (GetKeysRecursively<(typeof SUPPORTED_ACTIONS_BY_RESOURCE)[T]> & string)
+  | (GetKeysRecursively<SupportedActionsByResource[T]> & string)
   | '*'
 
 export class Privilege<T extends SupportedResource> {
