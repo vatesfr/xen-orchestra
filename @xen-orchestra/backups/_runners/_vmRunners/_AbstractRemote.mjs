@@ -45,26 +45,44 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
     const writers = new Set()
     this._writers = writers
 
-    const RemoteWriter = this._getRemoteWriter()
-    extractIdsFromSimplePattern(job.remotes).forEach(remoteId => {
-      const adapter = remoteAdapters[remoteId]
-      const targetSettings = {
-        ...settings,
-        ...allSettings[remoteId],
-      }
+    const [BackupWriter, AggregratedBackupWriter] = this._getRemoteWriters()
+    // TESTING CODE WHILE WAITING FOR FRONT NO NOT MERGE
+    settings.spreadBackups = true
+    // END
+    if (settings.spreadBackups && AggregratedBackupWriter) {
       writers.add(
-        new RemoteWriter({
-          adapter,
+        new AggregratedBackupWriter({
+          adapters: remoteAdapters,
+          BackupWriter,
           config,
           healthCheckSr,
           job,
           scheduleId: schedule.id,
           vmUuid,
-          remoteId,
-          settings: targetSettings,
+          settings,
         })
       )
-    })
+    } else {
+      extractIdsFromSimplePattern(job.remotes).forEach(remoteId => {
+        const adapter = remoteAdapters[remoteId]
+        const targetSettings = {
+          ...settings,
+          ...allSettings[remoteId],
+        }
+        writers.add(
+          new BackupWriter({
+            adapter,
+            config,
+            healthCheckSr,
+            job,
+            scheduleId: schedule.id,
+            vmUuid,
+            remoteId,
+            settings: targetSettings,
+          })
+        )
+      })
+    }
     const { filter } = job
     if (filter === undefined) {
       this._filterPredicate = () => true
