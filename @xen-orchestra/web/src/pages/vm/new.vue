@@ -48,7 +48,7 @@
               <VtsSelect v-if="vmState.installMode === 'cdrom'" :id="vdiSelectId" accent="brand" />
               <div v-if="vmState.installMode === 'custom_config'" class="install-custom-config">
                 <div>
-                  <UiTextarea v-model="vmState.cloudConfig" accent="brand">
+                  <UiTextarea v-model="vmState.cloudConfig" accent="brand" :placeholder="DEFAULT_CLOUD_CONFIG">
                     {{ t('user-config') }}
                     <template #info>
                       {{ t('new-vm:user-config-variables') }}
@@ -61,14 +61,14 @@
                   </UiTextarea>
                 </div>
                 <div>
-                  <UiTextarea v-model="vmState.networkConfig" accent="brand">
+                  <UiTextarea v-model="vmState.networkConfig" accent="brand" :placeholder="DEFAULT_NETWORK_CONFIG">
                     {{ t('network-config') }}
                     <template #info>
-                      <I18nT keypath="new-vm:network-config">
+                      <I18nT keypath="new-vm:network-config" scope="global">
                         <template #noCloudLink>
                           <UiLink
                             href="https://cloudinit.readthedocs.io/en/latest/reference/datasources/nocloud.html"
-                            size="medium"
+                            size="small"
                           >
                             {{ t('new-vm:network-config-nocloud-datasource') }}
                           </UiLink>
@@ -79,7 +79,7 @@
                         <template #documentationLink>
                           <UiLink
                             href="https://cloudinit.readthedocs.io/en/latest/reference/network-config-format-v1.html#networking-config-version-1"
-                            size="medium"
+                            size="small"
                           >
                             {{ t('new-vm:network-config-documentation') }}
                           </UiLink>
@@ -238,6 +238,34 @@ import type { XoNetwork, XoPool, XoVdi, XoVmTemplate } from '@vates/types'
 import { computed, reactive, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+
+const resolveConfigTemplate = (pattern: string, name: string, index: number): string => {
+  const rules: Record<string, string> = {
+    '{name}': name,
+    '{index}': String(index),
+  }
+  const matches = Object.keys(rules)
+    .map(k => k.replace(/[{}]/g, '\\$&'))
+    .join('|')
+  const re = new RegExp(`\\\\(?:\\\\|${matches})|${matches}`, 'g')
+  return pattern.replace(re, match => {
+    if (match[0] === '\\') {
+      return match.slice(1)
+    }
+    return rules[match] ?? match
+  })
+}
+
+const DEFAULT_CLOUD_CONFIG =
+  '#cloud-config\n#hostname: {name}{index}\n#ssh_authorized_keys:\n#  - ssh-rsa <myKey>\n#packages:\n#  - htop\n'
+
+const DEFAULT_NETWORK_CONFIG = `#network:
+#  version: 1
+#  config:
+#  - type: physical
+#    name: eth0
+#    subnets:
+#      - type: dhcp`
 
 // i18n setup
 const { t } = useI18n()
@@ -627,8 +655,12 @@ const vmData = computed(() => {
         },
       },
     vmState.installMode === 'custom_config' && {
-      ...(vmState.cloudConfig !== '' && { cloud_config: vmState.cloudConfig }),
-      ...(vmState.networkConfig !== '' && { network_config: vmState.networkConfig }),
+      ...(vmState.cloudConfig !== '' && {
+        cloud_config: resolveConfigTemplate(vmState.cloudConfig, vmState.name, 0),
+      }),
+      ...(vmState.networkConfig !== '' && {
+        network_config: resolveConfigTemplate(vmState.networkConfig, vmState.name, 0),
+      }),
     }
   )
 
@@ -653,9 +685,6 @@ const { run, isRunning, canRun } = useVmCreateJob([payload])
 
 const createNewVM = async () => {
   try {
-    // console.log(payload.value)
-    // return;
-
     const [promiseResult] = await run()
     if (promiseResult.status === 'rejected') {
       throw promiseResult.reason
@@ -851,9 +880,6 @@ watch(
     }
 
     .install-custom-config {
-      & > div {
-      }
-
       .user-config-variables-list {
         margin: 0.8rem 0;
         list-style-type: disc;
