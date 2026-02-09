@@ -46,9 +46,6 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
     this._writers = writers
 
     const [BackupWriter, AggregratedBackupWriter] = this._getRemoteWriters()
-    // TESTING CODE WHILE WAITING FOR FRONT NO NOT MERGE
-    settings.spreadBackups = true
-    // END
     if (settings.spreadBackups && AggregratedBackupWriter) {
       writers.add(
         new AggregratedBackupWriter({
