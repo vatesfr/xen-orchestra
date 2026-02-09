@@ -2,11 +2,13 @@ import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 import { Route, Security, Request, Response, Get, Query, Path, Tags, Example, Post, SuccessResponse } from 'tsoa'
+import { incorrectState } from 'xo-common/api-errors.js'
 import type { XoPbd } from '@vates/types'
 
 import {
   asynchronousActionResp,
   badRequestResp,
+  incorrectStateResp,
   internalServerErrorResp,
   invalidParameters as invalidParametersResp,
   noContentResp,
@@ -64,7 +66,7 @@ export class PbdController extends XapiXoController<XoPbd> {
   @Post('{id}/actions/plug')
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  @Response(badRequestResp.status, badRequestResp.description)
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async plugPbd(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
@@ -75,7 +77,12 @@ export class PbdController extends XapiXoController<XoPbd> {
       if (!pbd.currently_attached) {
         await pbd.$xapi.callAsync('PBD.plug', pbd.$ref)
       } else {
-        throw new Error('PBD is already attached')
+        throw new incorrectState({
+          actual: pbd.currently_attached,
+          expected: false,
+          object: pbd,
+          property: 'currently_attached',
+        })
       }
     }
 
@@ -95,7 +102,7 @@ export class PbdController extends XapiXoController<XoPbd> {
   @Post('{id}/actions/unplug')
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  @Response(badRequestResp.status, badRequestResp.description)
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async unplugPbd(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
@@ -106,7 +113,12 @@ export class PbdController extends XapiXoController<XoPbd> {
       if (pbd.currently_attached) {
         await pbd.$xapi.callAsync('PBD.unplug', pbd.$ref)
       } else {
-        throw new Error('PBD is already unattached')
+        throw new incorrectState({
+          actual: pbd.currently_attached,
+          expected: true,
+          object: pbd,
+          property: 'currently_attached',
+        })
       }
     }
 
