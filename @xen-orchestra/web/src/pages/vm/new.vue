@@ -78,11 +78,11 @@
                   >
                     {{ t('network-config') }}
                     <template #info>
-                      <I18nT keypath="new-vm:network-config">
+                      <I18nT keypath="new-vm:network-config" scope="global">
                         <template #noCloudLink>
                           <UiLink
                             href="https://cloudinit.readthedocs.io/en/latest/reference/datasources/nocloud.html"
-                            size="medium"
+                            size="small"
                           >
                             {{ t('new-vm:network-config-nocloud-datasource') }}
                           </UiLink>
@@ -93,7 +93,7 @@
                         <template #documentationLink>
                           <UiLink
                             href="https://cloudinit.readthedocs.io/en/latest/reference/network-config-format-v1.html#networking-config-version-1"
-                            size="medium"
+                            size="small"
                           >
                             {{ t('new-vm:network-config-documentation') }}
                           </UiLink>
