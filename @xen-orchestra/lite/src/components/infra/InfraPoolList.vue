@@ -13,7 +13,19 @@
       >
         {{ pool.name_label || '(Pool)' }}
         <template #addons>
-          <PoolMenu :master-host="pool.master" />
+          <MenuList placement="bottom-start">
+            <template #trigger="{ open, isOpen }">
+              <UiButton
+                accent="brand"
+                left-icon="action:more-actions"
+                variant="tertiary"
+                size="small"
+                :selected="isOpen"
+                @click="open($event)"
+              />
+            </template>
+            <PoolTreeActions :pool />
+          </MenuList>
         </template>
       </UiTreeItemLabel>
       <template #sublist>
@@ -29,12 +41,14 @@
 <script lang="ts" setup>
 import InfraHostItems from '@/components/infra/InfraHostItems.vue'
 import InfraVmItems from '@/components/infra/InfraVmItems.vue'
-import PoolMenu from '@/components/pool/PoolMenu.vue'
+import PoolTreeActions from '@/modules/pool/components/actions/PoolTreeActions.vue'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
+import MenuList from '@core/components/menu/MenuList.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import VtsTreeItemError from '@core/components/tree/VtsTreeItemError.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import VtsTreeLoadingItem from '@core/components/tree/VtsTreeLoadingItem.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 import { useToggle } from '@vueuse/shared'
 import { useI18n } from 'vue-i18n'
