@@ -260,7 +260,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   // and if the full block is modified in child (which is the case with xcp)
   // and if the compression type is same on both sides
   async mergeBlock(child, blockId, isResumingMerge = false) {
-    const childBlockPath = child._getFullBlockPath?.(blockId)
+    const childBlockPath = child.getFullBlockPath?.(blockId)
     let initialSize = 0
     if (
       childBlockPath === undefined ||
@@ -273,10 +273,10 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     try {
       const blockExists = this.containsBlock(blockId)
       if (blockExists) {
-        initialSize = await this._handler.getSizeOnDisk(this._getFullBlockPath(blockId))
+        initialSize = await this._handler.getSizeOnDisk(this.getFullBlockPath(blockId))
       }
 
-      await this._handler.rename(childBlockPath, this._getFullBlockPath(blockId))
+      await this._handler.rename(childBlockPath, this.getFullBlockPath(blockId))
 
       if (!blockExists) {
         setBitmap(this.#blockTable, blockId)
@@ -299,7 +299,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       }
     }
     setBitmap(this.#blockTable, blockId)
-    return (await this._handler.getSizeOnDisk(this._getFullBlockPath(blockId))) - initialSize
+    return (await this._handler.getSizeOnDisk(this.getFullBlockPath(blockId))) - initialSize
   }
 
   async writeEntireBlock(block) {
