@@ -16,7 +16,19 @@
           size="small"
           variant="secondary"
         />
-        <HostMenu :host-ip="host.address" />
+        <MenuList placement="bottom-start">
+          <template #trigger="{ open, isOpen }">
+            <UiButton
+              accent="brand"
+              left-icon="action:more-actions"
+              variant="tertiary"
+              size="small"
+              :selected="isOpen"
+              @click="open($event)"
+            />
+          </template>
+          <HostTreeActions :host />
+        </MenuList>
       </template>
     </UiTreeItemLabel>
     <template #sublist>
@@ -28,15 +40,17 @@
 </template>
 
 <script lang="ts" setup>
-import HostMenu from '@/components/host/HostMenu.vue'
 import InfraVmItems from '@/components/infra/InfraVmItems.vue'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
+import HostTreeActions from '@/modules/host/components/actions/HostTreeActions.vue'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import MenuList from '@core/components/menu/MenuList.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'

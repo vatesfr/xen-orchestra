@@ -10,7 +10,19 @@
           variant="secondary"
           size="small"
         />
-        <PoolMenu :pool-id="branch.data.id" />
+        <MenuList placement="bottom-start">
+          <template #trigger="{ open, isOpen }">
+            <UiButton
+              accent="brand"
+              left-icon="action:more-actions"
+              variant="tertiary"
+              size="small"
+              :selected="isOpen"
+              @click="open($event)"
+            />
+          </template>
+          <PoolTreeActions :pool="branch.data" />
+        </MenuList>
       </template>
     </UiTreeItemLabel>
     <template v-if="branch.hasChildren" #sublist>
@@ -23,13 +35,15 @@
 </template>
 
 <script lang="ts" setup>
-import PoolMenu from '@/modules/pool/components/PoolMenu.vue'
+import PoolTreeActions from '@/modules/pool/components/actions/PoolTreeActions.vue'
 import HostTreeList from '@/modules/treeview/components/HostTreeList.vue'
 import VmTreeList from '@/modules/treeview/components/VmTreeList.vue'
 import type { HostBranch, PoolBranch, VmLeaf } from '@/modules/treeview/types/tree.type.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import MenuList from '@core/components/menu/MenuList.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
