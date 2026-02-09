@@ -83,10 +83,6 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         this._getWriters()
 
       const allSettings = job.settings
-      // TESTING CODE WHILE WAITING FOR FRONT NO NOT MERGE
-      settings.spreadBackups = true
-      settings.spreadReplications = true
-      // END
 
       if (settings.spreadBackups && AggregratedBackupWriter && settings.exportRetention > 0) {
         writers.add(
