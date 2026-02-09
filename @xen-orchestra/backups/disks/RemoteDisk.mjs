@@ -180,4 +180,15 @@ export class RemoteDisk extends RandomAccessDisk {
   async unlink() {
     throw new Error(`unlink must be implemented`)
   }
+
+  /**
+   * @returns  {Promise<RemoteDisk>}
+   */
+  async openParent() {
+    const parent = await super.openParent()
+    if (!(parent instanceof RemoteDisk)) {
+      throw new Error('parent of a RemoteDisk must be also a RemoteDisk')
+    }
+    return parent
+  }
 }

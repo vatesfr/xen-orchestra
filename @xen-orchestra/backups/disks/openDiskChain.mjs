@@ -2,6 +2,7 @@
 /**
  *
  * @typedef {import('../../disk-transform/src/FileAccessor.mjs').FileAccessor} FileAccessor
+ * @typedef {import('./RemoteDisk.mjs').RemoteDisk} RemoteDisk
  */
 import { DiskChain } from '@xen-orchestra/disk-transform'
 import { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
@@ -15,6 +16,9 @@ import { defer } from 'golike-defer'
  */
 async function _openDiskChain($defer, { handler, path, until }) {
   let disk
+  /**
+   * @type {Array<RemoteDisk>}
+   */
   const disks = []
   $defer.onFailure(() => Promise.all(disks.map(disk => disk.close())))
   disk = new RemoteVhdDisk({ handler, path })
