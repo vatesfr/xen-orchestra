@@ -1,5 +1,19 @@
 # ChangeLog
 
+## **next**
+
+### Bug fixes
+
+- [xo-server] Force delete a running VM now bypass `hard_shutdown` blocked operations (PR [#9473](https://github.com/vatesfr/xen-orchestra/pull/9473))
+- [Backup] Ensure VM created by healthcheck are removed by backup process (PR [#9473](https://github.com/vatesfr/xen-orchestra/pull/9473))
+
+### Released packages
+
+- @xen-orchestra/xapi 8.6.6
+- @xen-orchestra/backups 0.68.2
+- @xen-orchestra/proxy 0.29.46
+- xo-server 5.196.3
+
 ## **6.1.1** (2026-02-05)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
