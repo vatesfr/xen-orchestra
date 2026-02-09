@@ -209,7 +209,7 @@ export class RemoteVhdDiskChain extends RemoteDisk {
    * @param {boolean} isResumingMerge
    * @returns {Promise<number>} blockSize
    */
-  async mergeBlockFrom(childDisk, index, isResumingMerge) {
+  async mergeBlock(childDisk, index, isResumingMerge) {
     throw new Error(`Can't merge block into a disk chain`)
   }
 
@@ -241,15 +241,6 @@ export class RemoteVhdDiskChain extends RemoteDisk {
    */
   isDifferencing() {
     return this.#disks[0].isDifferencing()
-  }
-
-  /**
-   * Delete intermediate disks only
-   */
-  async unlinkIntermediates() {
-    for (const disk of this.#disks.slice(0, -1)) {
-      await disk.unlink()
-    }
   }
 
   /**

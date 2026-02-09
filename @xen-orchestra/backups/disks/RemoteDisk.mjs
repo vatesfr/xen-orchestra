@@ -124,7 +124,7 @@ export class RemoteDisk extends RandomAccessDisk {
    * @param {boolean} isResumingMerge
    * @returns {Promise<number>} blockSize
    */
-  async mergeBlockFrom(childDisk, index, isResumingMerge) {
+  async mergeBlock(childDisk, index, isResumingMerge) {
     throw new Error(`mergeBlock must be implemented`)
   }
 
@@ -162,14 +162,6 @@ export class RemoteDisk extends RandomAccessDisk {
    */
   isDifferencing() {
     throw new Error(`isDifferencing must be implemented`)
-  }
-
-  /**
-   * Abstract
-   * Delete intermediate disks only
-   */
-  async unlinkIntermediates() {
-    throw new Error(`unlinkIntermediates must be implemented`)
   }
 
   /**

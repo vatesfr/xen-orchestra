@@ -804,16 +804,16 @@ describe('tests MergeVhdChain', { concurrency: 1 }, () => {
 
     const expectedIndexes = parent.getBlockIndexes().concat(child.getBlockIndexes())
 
-    const originalMergeBlockFrom = parent.mergeBlockFrom.bind(parent)
+    const originalMergeBlock = parent.mergeBlock.bind(parent)
 
     // Make writeBlock fail on the second block
-    parent.mergeBlockFrom = async (disk, index, isResumingMerge) => {
+    parent.mergeBlock = async (disk, index, isResumingMerge) => {
       if (blocksWritten === 4) {
         throw new Error('simulated interruption')
       }
       blocksWritten++
 
-      return originalMergeBlockFrom(disk, index, isResumingMerge)
+      return originalMergeBlock(disk, index, isResumingMerge)
     }
 
     // First merge attempt should throw

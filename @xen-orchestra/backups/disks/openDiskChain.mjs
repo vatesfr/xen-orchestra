@@ -23,7 +23,7 @@ async function _openDiskChain($defer, { handler, path, until }) {
   disks.push(disk)
   while (disk.isDifferencing()) {
     disk = await disk.openParent()
-    if (disk.path === until) {
+    if (disk.getPath() === until) {
       break
     }
     disks.unshift(disk)

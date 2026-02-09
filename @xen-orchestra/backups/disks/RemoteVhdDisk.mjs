@@ -244,7 +244,7 @@ export class RemoteVhdDisk extends RemoteDisk {
    * @param {boolean} isResumingMerge
    * @returns {Promise<number>} blockSize
    */
-  async mergeBlockFrom(childDisk, index, isResumingMerge) {
+  async mergeBlock(childDisk, index, isResumingMerge) {
     if ((await this.isDirectory()) && childDisk instanceof RemoteVhdDisk && (await childDisk.isDirectory())) {
       try {
         await this.#handler.rename(childDisk.getBlockPath(index), this.getBlockPath(index))
@@ -363,13 +363,6 @@ export class RemoteVhdDisk extends RemoteDisk {
       throw new Error(`can't call isDifferencing of a RemoteVhdDisk before init`)
     }
     return this.#isDifferencing
-  }
-
-  /**
-   * Delete intermediate disks only
-   */
-  async unlinkIntermediates() {
-    // Nothing
   }
 
   /**
