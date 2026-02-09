@@ -5,16 +5,20 @@ import { Route, Security, Request, Response, Get, Query, Path, Tags, Example, Po
 import type { XoPbd } from '@vates/types'
 
 import {
+  asynchronousActionResp,
   badRequestResp,
+  internalServerErrorResp,
+  invalidParameters as invalidParametersResp,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
-  Unbrand,
+  type Unbrand,
 } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { partialPbds, pbd, pbdIds } from '../open-api/oa-examples/pbd.oa-example.mjs'
+import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 
 @Route('pbds')
 @Security('*')
@@ -57,32 +61,62 @@ export class PbdController extends XapiXoController<XoPbd> {
   /**
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
-  @Post('{id}/plug')
-  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Post('{id}/actions/plug')
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  async plugPbd(@Path() id: string): Promise<void> {
-    const PBD = this.getXapiObject(id as XoPbd['id'])
+  @Response(badRequestResp.status, badRequestResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async plugPbd(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const pbdId = id as XoPbd['id']
+    const action = async () => {
+      const pbd = this.getXapiObject(pbdId)
 
-    if (!PBD.currently_attached) {
-      await PBD.$xapi.callAsync('PBD.plug', PBD.$ref)
-    } else {
-      throw new Error('PBD is already attached')
+      if (!pbd.currently_attached) {
+        await pbd.$xapi.callAsync('PBD.plug', pbd.$ref)
+      } else {
+        throw new Error('PBD is already attached')
+      }
     }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'plug pbd',
+        objectId: pbdId,
+      },
+    })
   }
 
   /**
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
-  @Post('{id}/unplug')
-  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Post('{id}/actions/unplug')
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  async unplugPbd(@Path() id: string): Promise<void> {
-    const PBD = this.getXapiObject(id as XoPbd['id'])
+  @Response(badRequestResp.status, badRequestResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async unplugPbd(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const pbdId = id as XoPbd['id']
+    const action = async () => {
+      const pbd = this.getXapiObject(pbdId)
 
-    if (PBD.currently_attached) {
-      await PBD.$xapi.callAsync('PBD.unplug', PBD.$ref)
-    } else {
-      throw new Error('PBD is already unattached')
+      if (pbd.currently_attached) {
+        await pbd.$xapi.callAsync('PBD.unplug', pbd.$ref)
+      } else {
+        throw new Error('PBD is already unattached')
+      }
     }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'unplug pbd',
+        objectId: pbdId,
+      },
+    })
   }
 }
