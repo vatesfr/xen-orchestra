@@ -23,9 +23,10 @@ import { IK_ACCORDION } from '@core/utils/injection-keys.util'
 import { toVariants } from '@core/utils/to-variants.util'
 import { computed, inject, ref } from 'vue'
 
-const { size, title, disabled } = defineProps<{
+const { size, title, disabled, identifier } = defineProps<{
   size: 'small' | 'large'
   title: string
+  identifier: string | number
   content?: string
   disabled?: boolean
 }>()
@@ -40,7 +41,7 @@ const localExpanded = ref(false)
 
 const isExpanded = computed(() => {
   if (accordion) {
-    return accordion.expandedKey === title
+    return accordion.expandedKey === String(identifier)
   }
   return localExpanded.value
 })
@@ -49,7 +50,7 @@ const toggle = () => {
   if (disabled === true) return
 
   if (accordion) {
-    accordion.toggle(title)
+    accordion.toggle(String(identifier))
   } else {
     localExpanded.value = !localExpanded.value
   }
@@ -82,7 +83,6 @@ const classNames = computed(() => {
 
   .header {
     display: flex;
-    align-items: center;
     justify-content: space-between;
     color: var(--color-brand-txt-base);
     cursor: pointer;
