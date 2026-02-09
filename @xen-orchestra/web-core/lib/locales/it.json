@@ -96,6 +96,7 @@
   "backup:xo-config": "Configurazioni XO",
   "backups": "Salvataggi",
   "backups:jobs:disabled": "Disattivato",
+  "backups:jobs:last-seven-days": "Negli ultimi 7 giorni",
   "backups:jobs:running-good": "Procede correttamente",
   "backups:vms-protection": "Protezione delle VM",
   "backups:vms-protection:no-job": "In nessun lavoro",
