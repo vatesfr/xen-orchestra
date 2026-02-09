@@ -1,5 +1,5 @@
 <template>
-  <div class="new" :class="{ mobile: uiStore.isMobile }">
+  <div class="new" :class="{ mobile: uiStore.isSmall }">
     <UiHeadBar icon="fa:plus">
       {{ t('new-vm:add') }}
       <template #actions>
@@ -29,11 +29,7 @@
             <!-- INSTALL SETTINGS SECTION -->
             <UiTitle>{{ t('install-settings') }}</UiTitle>
             <div class="install-settings-container">
-              <UiRadioButtonGroup
-                accent="brand"
-                :vertical="uiStore.isMobile"
-                :gap="uiStore.isMobile ? 'narrow' : 'wide'"
-              >
+              <UiRadioButtonGroup accent="brand" :vertical="uiStore.isSmall" :gap="uiStore.isSmall ? 'narrow' : 'wide'">
                 <template v-if="isDiskTemplate">
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="no-config">
                     {{ t('no-config') }}
@@ -129,7 +125,7 @@
             />
             <!-- SETTINGS SECTION -->
             <UiTitle>{{ t('settings') }}</UiTitle>
-            <UiCheckboxGroup accent="brand" :vertical="uiStore.isMobile">
+            <UiCheckboxGroup accent="brand" :vertical="uiStore.isSmall">
               <UiCheckbox v-model="vmState.boot_vm" accent="brand">{{ t('action:boot-vm') }}</UiCheckbox>
               <UiCheckbox v-model="vmState.autoPoweron" accent="brand">{{ t('auto-power') }}</UiCheckbox>
               <UiCheckbox v-if="isDiskTemplate" v-model="vmState.clone" accent="brand">
@@ -183,14 +179,14 @@ import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-co
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
-import { useXoVdiCollection, type FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import { type FrontXoVdi, useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import NewVmNetworkTable from '@/modules/vm/components/new/NewVmNetworkTable.vue'
 import NewVmSrTable from '@/modules/vm/components/new/NewVmSrTable.vue'
 import { useXoVmCreateJob } from '@/modules/vm/jobs/xo-vm-create.job.ts'
 import {
-  useXoVmTemplateCollection,
   type FrontXoVmTemplate,
+  useXoVmTemplateCollection,
 } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import type { Vdi, Vif, VifToSend, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes'
