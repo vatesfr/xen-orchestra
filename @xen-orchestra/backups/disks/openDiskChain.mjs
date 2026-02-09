@@ -9,6 +9,7 @@ import { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
 
 import { defer } from 'golike-defer'
 /**
+ * @param {any} $defer
  * @param {Object} params
  * @param {FileAccessor} params.handler
  * @param {string} params.path

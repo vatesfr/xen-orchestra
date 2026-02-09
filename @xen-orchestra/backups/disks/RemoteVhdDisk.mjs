@@ -66,12 +66,12 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
-   * Initializes the VHD
-   * @param {Object} options
-   * @param {boolean} options.force
+   * @param {Object} [options]
+   * @param {boolean} [options.force=false]
    * @returns {Promise<void>}
    */
-  async init(options) {
+
+  async init(options = {}) {
     if (this.#vhd === undefined) {
       try {
         if ((await this.isDirectory()) && !isVhdAlias(this.#path)) {
