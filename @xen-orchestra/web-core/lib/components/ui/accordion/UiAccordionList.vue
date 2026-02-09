@@ -19,12 +19,13 @@ export type UiAccordionController = {
   toggle: (key: string) => void
 }
 
-const AccordionController = reactive({
-  expandedKey,
-  toggle,
-}) satisfies UiAccordionController
-
-provide(IK_ACCORDION, AccordionController)
+provide(
+  IK_ACCORDION,
+  reactive({
+    expandedKey,
+    toggle,
+  })
+)
 </script>
 
 <style scoped lang="postcss">
