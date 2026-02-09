@@ -3,32 +3,11 @@
 /**
  * @typedef {import('vhd-lib/Vhd/VhdDirectory.js').VhdDirectory} VhdDirectory
  * @typedef {import('vhd-lib/Vhd/VhdFile.js').VhdFile} VhdFile
+ * @typedef {import('vhd-lib/_createFooterHeader').VhdFooter} VhdFooter
  * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
  * @typedef {import('@xen-orchestra/disk-transform').FileAccessor} FileAccessor
  *
- * @typedef {(Object)} DiskGeometry
- * @property {(number)} cylinders
- * @property {(number)} heads
- * @property {(number)} sectorsPerTrackCylinder
- *
- * @typedef {(Object)} VhdFooter
- * @property {(string)} cookie
- * @property {(number)} features
- * @property {(number)} fileFormatVersion
- * @property {(number)} dataOffset
- * @property {(number)} timestamp
- * @property {(string)} creatorApplication
- * @property {(number)} creatorVersion
- * @property {(number)} creatorHostOs
- * @property {(number)} originalSize
- * @property {(number)} currentSize
- * @property {(DiskGeometry)} diskGeometry
- * @property {(number)} diskType
- * @property {(number)} checksum
- * @property {(Buffer)} uuid
- * @property {(string)} saved
- * @property {(string)} hidden
- * @property {(string)} reserved
+
  */
 
 import { openVhd, VhdAbstract, VhdDirectory } from 'vhd-lib'
