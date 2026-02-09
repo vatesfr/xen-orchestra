@@ -1,7 +1,14 @@
 <template>
   <ComponentStory v-slot="{ properties }" :params="[slot().help('a list of ui-accordion-item')]">
     <UiAccordionList v-bind="properties">
-      <UiAccordionItem v-for="(tab, i) in tabs" :key="i" :title="tab.title" :content="tab.content" size="large" />
+      <UiAccordionItem
+        v-for="(tab, i) in tabs"
+        :key="i"
+        :title="tab.title"
+        :content="tab.content"
+        size="large"
+        :identifier="i"
+      />
     </UiAccordionList>
   </ComponentStory>
 </template>
