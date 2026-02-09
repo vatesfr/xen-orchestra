@@ -15,7 +15,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- Fix build issue [#9455](https://github.com/vatesfr/xen-orchestra/issues/9455)
+- Fix build issue [#9455](https://github.com/vatesfr/xen-orchestra/issues/9455) (PR [#9482](https://github.com/vatesfr/xen-orchestra/pull/9482))
 
 ### Packages to release
 
