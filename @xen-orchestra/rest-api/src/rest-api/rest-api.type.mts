@@ -1,3 +1,4 @@
+import type { AnyPrivilege } from '@xen-orchestra/acl'
 import type { EventEmitter } from 'node:events'
 import type { VatesTask } from '@vates/types/lib/vates/task'
 import type { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
@@ -150,6 +151,9 @@ export type XoApp = {
   /* disconnect a server (XCP-ng/XenServer) */
   createGroup(params: { name: string; provider?: string; providerGroup?: string }): Promise<XoGroup>
   disconnectXenServer(id: XoServer['id']): Promise<void>
+  getAclV2Privilege(id: AnyPrivilege['id']): Promise<AnyPrivilege>
+  getAclV2Privileges(): Promise<AnyPrivilege[]>
+  getAclV2RolePrivileges(roleId: XoAclRole['id']): Promise<AnyPrivilege[]>
   getAclV2Roles(): Promise<XoAclRole[]>
   getAclV2Role(id: XoAclRole['id']): Promise<XoAclRole>
   getAllGroups(): Promise<XoGroup[]>

@@ -1,14 +1,20 @@
-import type * as CMType from '@vates/types/lib/complex-matcher'
 import assert from 'node:assert'
-import type { Branded } from '@vates/types/common'
-import type { XoAclRole as Role } from '@vates/types/lib/xen-orchestra/acl'
 import type { XoUser } from '@vates/types/xo'
 
-import { Privilege as CPrivilege, SupportedActions, SupportedResource } from './class/privilege.mjs'
+import { SUPPORTED_ACTIONS_BY_RESOURCE } from './actions/index.mjs'
+import {
+  Privilege as CPrivilege,
+  TPrivilege as Privilege,
+  SupportedActions,
+  SupportedActionsByResource,
+  SupportedResource,
+} from './class/privilege.mjs'
 
-export type { SupportedActions, SupportedResource } from './class/privilege.mjs'
+// Export all types constructed using SUPPORTED_ACTIONS_BY_RESOURCE
+export type { Privilege, SupportedActions, SupportedActionsByResource, SupportedResource }
+export { SUPPORTED_ACTIONS_BY_RESOURCE }
 
-type AnyPrivilege = {
+export type AnyPrivilege = {
   [Resource in SupportedResource]: Privilege<Resource>
 }[SupportedResource]
 
@@ -20,18 +26,6 @@ type AnyPrivilegeOnParam = {
     objects: object | object[]
   }
 }[SupportedResource]
-
-export type Privilege<T extends SupportedResource> = {
-  id: Branded<'acl-v2-privilege'>
-  action: SupportedActions<T>
-  /**
-   * If undefined, target ALL objects of the resource
-   */
-  selector?: CMType.Id<string> | Record<string, unknown>
-  effect: 'allow' | 'deny'
-  resource: T
-  roleId: Role['id']
-}
 
 export function hasPrivilegeOn<T extends SupportedResource>({
   user,
