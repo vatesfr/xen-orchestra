@@ -18,6 +18,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Backups/s3] Fallback in rmtree for providers which do not support DeleteObjectsCommand (PR [#9450](https://github.com/vatesfr/xen-orchestra/pull/9450))
+- Fix build issue [#9455](https://github.com/vatesfr/xen-orchestra/issues/9455) (PR [#9482](https://github.com/vatesfr/xen-orchestra/pull/9482))
 
 ### Packages to release
 
@@ -36,5 +37,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/fs patch
+- @xen-orchestra/web patch
 - xo-server-openmetrics minor
+
 <!--packages-end-->
