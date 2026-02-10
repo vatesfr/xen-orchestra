@@ -1,5 +1,5 @@
 <template>
-  <VtsModal class="vts-query-builder-modal" accent="info">
+  <VtsModal class="vts-query-builder-modal" accent="info" dismissible>
     <template v-if="uiStore.isSmall" #title>{{ t('query-builder') }}</template>
     <template #content>
       <VtsQueryBuilderGroup v-model="rootGroup" root />
