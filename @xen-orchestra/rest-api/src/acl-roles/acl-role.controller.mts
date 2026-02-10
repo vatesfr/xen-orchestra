@@ -65,7 +65,7 @@ export class AclRoleController extends XoController<XoAclRole> {
   }
 
   /**
-   * @example id "426622cc-b2db-4545-a2f0-6ec47b3a6450"
+   * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    */
   @Example(aclRole)
   @Get('{id}')
@@ -77,7 +77,7 @@ export class AclRoleController extends XoController<XoAclRole> {
   /**
    * Copy a role with all its privileges. Possibility to modify the name and description of the copied role.
    *
-   * @example id "426622cc-b2db-4545-a2f0-6ec47b3a6450"
+   * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    * @example body {"name": "Copied role"}
    */
   @Example(taskLocation)
