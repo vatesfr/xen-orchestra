@@ -12,15 +12,15 @@ import { UserRoles } from '../../models/acls-v2/user-role.mjs'
 import { GroupRoles } from '../../models/acls-v2/group-role.mjs'
 
 /**
- * @typedef {import('@xen-orchestra/acl').Role} Role
  * @typedef {import('@xen-orchestra/acl').SupportedResource} SupportedResource
  * @typedef {import('@xen-orchestra/acl').Privilege<SupportedResource>} Privilege
+ * @typedef {import('@vates/types').XoAclRole } XoAclRole
  * @typedef {import('@vates/types').XoUser} XoUser
  * @typedef {import('@vates/types').XoGroup} XoGroup
  * @typedef {{
  *  roleTemplateId: number,
- *  name: Role['name'],
- *  description: Role['description'],
+ *  name: XoAclRole['name'],
+ *  description: XoAclRole['description'],
  *  privileges: {
  *    action: Privilege['action'],
  *    resource: Privilege['resource'],
@@ -31,13 +31,13 @@ import { GroupRoles } from '../../models/acls-v2/group-role.mjs'
  *
  * @typedef {{
  *  id: string,
- *  roleId: Role['id'],
+ *  roleId: XoAclRole['id'],
  *  userId: XoUser['id']
  * }} UserRole
  *
  * @typedef {{
  * id: string,
- * roleId: Role['id'],
+ * roleId: XoAclRole['id'],
  * groupId: XoGroup['id']
  * }} GroupRole
  */
@@ -118,7 +118,7 @@ export default class {
       app.addConfigManager(
         'roles',
         () => roleDb.get(),
-        (/** @type {Role[]} */ roles) => roleDb.update(roles)
+        (/** @type {XoAclRole[]} */ roles) => roleDb.update(roles)
       )
 
       app.addConfigManager(
@@ -210,10 +210,10 @@ export default class {
   // === Role
   /**
    * @param {object} role
-   * @param {Role['name']} role.name
-   * @param {Role['description']} role.description
+   * @param {XoAclRole['name']} role.name
+   * @param {XoAclRole['description']} role.description
    * @param {number} role.roleTemplateId
-   * @returns  {Promise<Role>}
+   * @returns  {Promise<XoAclRole>}
    */
   #createAclV2TemplateRole(role) {
     return this.#roleDb.add({ ...role, isTemplate: true })
@@ -221,16 +221,16 @@ export default class {
 
   /**
    * @param {object} role
-   * @param {Role['name']} role.name
-   * @param {Role['description']} [role.description]
-   * @returns {Promise<Role>}
+   * @param {XoAclRole['name']} role.name
+   * @param {XoAclRole['description']} [role.description]
+   * @returns {Promise<XoAclRole>}
    */
   createAclV2Role(role) {
     return this.#roleDb.add(role)
   }
 
   /**
-   * @param {Role['id']} id
+   * @param {XoAclRole['id']} id
    * @param {object} [opts]
    * @param {boolean} [opts.force]
    * @returns {Promise<boolean>}
@@ -257,14 +257,14 @@ export default class {
   }
 
   /**
-   * @param {Role['id']} id
+   * @param {XoAclRole['id']} id
    * @param {object} role
-   * @param {Role['name']} [role.name]
-   * @param {Role['description'] | null} [role.description]
+   * @param {XoAclRole['name']} [role.name]
+   * @param {XoAclRole['description'] | null} [role.description]
    * @param {object} [opts]
    * @param {boolean} [opts.force]
    *
-   * @returns {Promise<Role>}
+   * @returns {Promise<XoAclRole>}
    */
   async updateAclV2Role(id, { name, description }, { force = false } = {}) {
     const role = await this.getAclV2Role(id)
@@ -287,8 +287,8 @@ export default class {
   }
 
   /**
-   * @param {Role['id']} id
-   * @returns {Promise<Role>}
+   * @param {XoAclRole['id']} id
+   * @returns {Promise<XoAclRole>}
    */
   async getAclV2Role(id) {
     const role = await this.#roleDb.first(id)
@@ -300,7 +300,7 @@ export default class {
   }
 
   /**
-   * @returns {Promise<Role[]>}
+   * @returns {Promise<XoAclRole[]>}
    */
   getAclV2Roles() {
     // @ts-ignore typed as Promise<void>...
@@ -375,7 +375,7 @@ export default class {
    * Attach a role to a user
    *
    * @param {XoUser['id']} userId
-   * @param {Role['id']} roleId
+   * @param {XoAclRole['id']} roleId
    *
    * @returns {Promise<UserRole>}
    */
@@ -402,7 +402,7 @@ export default class {
    * Detach a role from a user
    *
    * @param {XoUser['id']} userId
-   * @param {Role['id']} roleId
+   * @param {XoAclRole['id']} roleId
    *
    * @returns {Promise<boolean>}
    */
@@ -425,7 +425,7 @@ export default class {
    * Attach a role to a group
    *
    * @param {XoGroup['id']} groupId
-   * @param {Role['id']} roleId
+   * @param {XoAclRole['id']} roleId
    *
    * @returns {Promise<UserRole>}
    */
@@ -452,7 +452,7 @@ export default class {
    * Detach a role from a group
    *
    * @param {XoGroup['id']} groupId
-   * @param {Role['id']} roleId
+   * @param {XoAclRole['id']} roleId
    *
    * @returns {Promise<boolean>}
    */
@@ -471,7 +471,7 @@ export default class {
   // === GroupRole
 
   /**
-   * @param {Role['id']} roleId
+   * @param {XoAclRole['id']} roleId
    * @returns {Promise<Privilege[]>}
    */
   async getAclV2RolePrivileges(roleId) {
@@ -481,7 +481,7 @@ export default class {
 
   /**
    * @param {XoUser['id']} userId
-   * @returns {Promise<Role[]>}
+   * @returns {Promise<XoAclRole[]>}
    */
   async getAclV2UserRoles(userId) {
     /** @type {XoUser} */
@@ -507,12 +507,32 @@ export default class {
 
   /**
    * @param {XoGroup['id']} groupId
-   * @returns {Promise<Role[]>}
+   * @returns {Promise<XoAclRole[]>}
    */
   async getAclV2GroupRoles(groupId) {
     /** @type {GroupRole[]} */
     const dbGroupRoles = await this.#groupRoleDb._get({ groupId })
 
     return Promise.all(dbGroupRoles.map(dbGroupRole => this.getAclV2Role(dbGroupRole.roleId)))
+  }
+
+  /**
+   * @param {XoAclRole['id']} roleId
+   * @param {object} [params]
+   * @param {XoAclRole['name']} [params.name]
+   * @param {XoAclRole['description']} [params.description]
+   * @returns {Promise<XoAclRole['id']>}
+   */
+  async copyAclV2Role(roleId, params = {}) {
+    const role = await this.getAclV2Role(roleId)
+    const privileges = await this.getAclV2RolePrivileges(roleId)
+
+    const replicaRole = await this.createAclV2Role({
+      name: params.name ?? role.name,
+      description: params.description ?? role.description,
+    })
+    await Promise.all(privileges.map(privilege => this.createAclV2Privilege({ ...privilege, roleId: replicaRole.id })))
+
+    return replicaRole.id
   }
 }

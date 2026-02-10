@@ -44,6 +44,7 @@ import {
   XenApiVifWrapped,
   XenApiVmWrapped,
   XenApiVtpmWrapped,
+  XoAclRole,
 } from './index.mjs'
 
 export type XapiConnection = Xapi & {
@@ -138,6 +139,10 @@ export type XoApp = {
   checkFeatureAuthorization(featureCode: string): Promise<void>
   /* connect a server (XCP-ng/XenServer) */
   connectXenServer(id: XoServer['id']): Promise<void>
+  copyAclV2Role(
+    id: XoAclRole['id'],
+    params?: { name?: XoAclRole['name']; description?: XoAclRole['description'] }
+  ): Promise<XoAclRole['id']>
   createAuthenticationToken(opts: {
     client?: {
       id?: string
@@ -153,6 +158,8 @@ export type XoApp = {
   createGroup(params: { name: string; provider?: string; providerGroup?: string }): Promise<XoGroup>
   /* disconnect a server (XCP-ng/XenServer) */
   disconnectXenServer(id: XoServer['id']): Promise<void>
+  getAclV2Roles(): Promise<XoAclRole[]>
+  getAclV2Role(id: XoAclRole['id']): Promise<XoAclRole>
   getAllGroups(): Promise<XoGroup[]>
   getAllProxies(): Promise<XoProxy[]>
   getAllJobs<T extends AnyXoBackupJob['type']>(type: T): Promise<Extract<AnyXoBackupJob, { type: T }>[]>
