@@ -11,6 +11,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [REST API] Added POST `/srs/{id}/actions/reclaim_space` rest route (PR [#9486](https://github.com/vatesfr/xen-orchestra/pull/9486))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
