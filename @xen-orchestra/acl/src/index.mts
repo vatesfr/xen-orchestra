@@ -1,6 +1,7 @@
 import type * as CMType from '@vates/types/lib/complex-matcher'
 import assert from 'node:assert'
 import type { Branded } from '@vates/types/common'
+import type { XoAclRole as Role } from '@vates/types/lib/xen-orchestra/acl'
 import type { XoUser } from '@vates/types/xo'
 
 import { Privilege as CPrivilege, SupportedActions, SupportedResource } from './class/privilege.mjs'
@@ -19,20 +20,6 @@ type AnyPrivilegeOnParam = {
     objects: object | object[]
   }
 }[SupportedResource]
-
-export type Role =
-  | {
-      id: Branded<'acl-v2-role'>
-      name: string
-      description?: string
-    }
-  | {
-      id: Branded<'acl-v2-role'>
-      name: string
-      description?: string
-      isTemplate: true
-      roleTemplateId: number
-    }
 
 export type Privilege<T extends SupportedResource> = {
   id: Branded<'acl-v2-privilege'>
