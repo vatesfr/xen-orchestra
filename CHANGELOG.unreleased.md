@@ -11,7 +11,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [REST API] Added POST `/pbds/{id}/plug` and `/pbds/{id}/unplug` rest routes (PR [#9477](https://github.com/vatesfr/xen-orchestra/pull/9477))
+- [REST API] Added POST `/pbds/{id}/actions/plug` and `/pbds/{id}/actions/unplug` rest routes (PR [#9477](https://github.com/vatesfr/xen-orchestra/pull/9477))
 
 ### Bug fixes
 
