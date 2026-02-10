@@ -4,7 +4,6 @@
     :params="[
       prop('accent').required().enum('info', 'success', 'warning', 'danger').preset('info').widget(),
       prop('disabled').bool().widget(),
-      event('edit'),
       event('remove'),
       slot(),
       setting('slot').preset('State: in progress').widget(),

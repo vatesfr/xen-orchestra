@@ -1,18 +1,10 @@
 <!-- v5 -->
 <template>
-  <span :class="classNames" class="ui-chip typo-body-regular-small" @click="emit('edit')">
-    <span class="content text-ellipsis">
+  <span :class="classNames" class="ui-chip typo-body-regular-small" @click="!disabled && emit('remove')">
+    <span class="text-ellipsis">
       <slot />
     </span>
-    <VtsIcon
-      v-if="!disabled"
-      class="icon"
-      name="action:close-cancel-clear"
-      :target-scale="{ x: 1.5, y: 2 }"
-      size="small"
-      :color="iconColor"
-      @click.stop="emit('remove')"
-    />
+    <VtsIcon v-if="!disabled" name="action:close-cancel-clear" size="small" :color="iconColor" />
   </span>
 </template>
 
@@ -30,7 +22,6 @@ const { accent, disabled } = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  edit: []
   remove: []
 }>()
 
@@ -71,18 +62,11 @@ const iconColor = useMapper(
   vertical-align: middle;
   white-space: nowrap;
   min-width: 0;
+  cursor: pointer;
 
   &.muted {
     background-color: var(--color-info-item-disabled);
     pointer-events: none;
-  }
-
-  .content {
-    line-height: 1.6rem;
-  }
-
-  .icon {
-    cursor: pointer;
   }
 
   /* COLOR VARIANTS */

@@ -4,7 +4,7 @@
     :viewBox="icon.viewBox"
     class="display-icon-single"
     v-bind="icon.bindings"
-    :style="{ color }"
+    :style="color != undefined ? { color } : undefined"
   >
     <path
       v-for="(path, index) of icon.paths"
