@@ -1,6 +1,6 @@
 <template>
-  <DisplayIconStack v-if="isIconStack(icon)" :stack="icon" :stroke />
-  <DisplayIconSingle v-else :icon :stroke />
+  <DisplayIconStack v-if="isIconStack(icon)" :stack="icon" :stroke :color />
+  <DisplayIconSingle v-else :icon :color :stroke />
 </template>
 
 <script lang="ts" setup>
@@ -11,6 +11,7 @@ import { type Icon } from './types.ts'
 
 defineProps<{
   icon: Icon
+  color?: string
   stroke?: string
 }>()
 </script>
