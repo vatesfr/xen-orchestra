@@ -9,16 +9,18 @@
 
 ### Enhancements
 
-> Users must be able to say: “Nice enhancement, I'm eager to test it”
+> Users must be able to say: "Nice enhancement, I'm eager to test it"
+
+- [OpenMetrics] Add `is_control_domain` label to VM metrics to differentiate dom0 VMs from regular VMs (PR [#9474](https://github.com/vatesfr/xen-orchestra/pull/9474))
+- [REST API] Add `objectType` to tasks for resolved object references (PR [#9429](https://github.com/vatesfr/xen-orchestra/pull/9429))
+- [Warm Migration] the api call now return the new VM uuid (PR [#94653](https://github.com/vatesfr/xen-orchestra/pull/9465))
+- [Warm Migration] stopped VM can be warm migrated (PR [#94653](https://github.com/vatesfr/xen-orchestra/pull/9465))
 
 - [Plugins/load balancer] Add configurable VM migration cooldown to prevent oscillation (default 30min) (PR [#9388](https://github.com/vatesfr/xen-orchestra/pull/9388))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
-- [Backups/s3] Fallback in rmtree for providers which do not support DeleteObjectsCommand (PR [#9450](https://github.com/vatesfr/xen-orchestra/pull/9450))
-- Fix build issue [#9455](https://github.com/vatesfr/xen-orchestra/issues/9455) (PR [#9482](https://github.com/vatesfr/xen-orchestra/pull/9482))
 
 ### Packages to release
 
@@ -37,7 +39,10 @@
 <!--packages-start-->
 
 - @xen-orchestra/fs patch
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
+- xo-server minor
 - xo-server-load-balancer minor
+- xo-server-openmetrics minor
 
 <!--packages-end-->

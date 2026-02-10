@@ -6,7 +6,19 @@
  * RRD data directly from connected XAPI pools.
  */
 
-import type { XoApp, XoHost, XoNetwork, XoPif, XoPool, XoSr, XoVbd, XoVdi, XoVif, XoVm } from '@vates/types'
+import type {
+  XoApp,
+  XoHost,
+  XoNetwork,
+  XoPif,
+  XoPool,
+  XoSr,
+  XoVbd,
+  XoVdi,
+  XoVif,
+  XoVm,
+  XoVmController,
+} from '@vates/types'
 import { createLogger } from '@xen-orchestra/log'
 import { fork, type ChildProcess } from 'node:child_process'
 import { dirname, join } from 'node:path'
@@ -52,6 +64,7 @@ interface HostCredentials {
 // Label lookup types for enriching metrics with human-readable names
 export interface VmLabelInfo {
   name_label: string
+  is_control_domain: boolean
   vbdDeviceToVdiName: Record<string, string> // { "xvda": "System Disk" }
   vbdDeviceToVdiUuid: Record<string, XoVdi['uuid']> // { "xvda": "vdi-uuid-123" }
   vifIndexToNetworkName: Record<string, string> // { "0": "Pool-wide network" }
@@ -67,7 +80,7 @@ export interface SrLabelInfo {
 }
 
 export interface LabelLookupData {
-  vms: Record<XoVm['uuid'], VmLabelInfo>
+  vms: Record<XoVm['uuid'] | XoVmController['uuid'], VmLabelInfo>
   hosts: Record<XoHost['uuid'], HostLabelInfo>
   srs: Record<XoSr['uuid'], SrLabelInfo>
   srSuffixToUuid: Record<string, XoSr['uuid']> // maps UUID suffix to full SR UUID
@@ -91,7 +104,7 @@ interface SrDataPayload {
 }
 
 // Union type for all XO objects we handle
-type XoObject = XoHost | XoPool | XoVm | XoVbd | XoVdi | XoVif | XoPif | XoSr | XoNetwork
+type XoObject = XoHost | XoPool | XoVm | XoVmController | XoVbd | XoVdi | XoVif | XoPif | XoSr | XoNetwork
 
 // ============================================================================
 // Constants
@@ -452,7 +465,7 @@ class OpenMetricsPlugin {
     // Get all objects and categorize them by type in a single pass
     const allObjects = this.#xo.getObjects() as Record<XoObject['id'], XoObject>
 
-    const vms: XoVm[] = []
+    const vms: (XoVm | XoVmController)[] = []
     const hosts: XoHost[] = []
     const srs: XoSr[] = []
     const vbds: XoVbd[] = []
@@ -464,6 +477,7 @@ class OpenMetricsPlugin {
     for (const obj of Object.values(allObjects)) {
       switch (obj.type) {
         case 'VM':
+        case 'VM-controller':
           vms.push(obj)
           break
         case 'host':
@@ -530,7 +544,7 @@ class OpenMetricsPlugin {
     }
 
     // Build VIF map (VM id -> vif index -> network name)
-    const vifMap = new Map<XoVif['$VM'], Map<string, string>>()
+    const vifMap = new Map<XoVm['id'] | XoVmController['id'], Map<string, string>>()
     for (const vif of vifs) {
       // VIF device is the index (0, 1, 2...)
       if (vif.$VM === undefined) continue
@@ -584,6 +598,7 @@ class OpenMetricsPlugin {
 
       labels.vms[vm.uuid] = {
         name_label: vm.name_label,
+        is_control_domain: vm.type === 'VM-controller',
         vbdDeviceToVdiName,
         vbdDeviceToVdiUuid,
         vifIndexToNetworkName,
