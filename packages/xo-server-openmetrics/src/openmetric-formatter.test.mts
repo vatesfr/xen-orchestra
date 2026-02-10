@@ -12,9 +12,12 @@ import {
   transformMetric,
   formatToOpenMetrics,
   formatAllPoolsToOpenMetrics,
+  formatHostStatusMetrics,
   type FormattedMetric,
   type LabelContext,
 } from './openmetric-formatter.mjs'
+
+import type { HostStatusItem } from './index.mjs'
 
 import type { ParsedMetric, ParsedRrdData } from './rrd-parser.mjs'
 
@@ -1156,5 +1159,192 @@ describe('CPU usage fallback', () => {
     const cpuUsageLine = lines.find(l => l.includes('xcp_vm_cpu_usage{'))
     assert.ok(cpuUsageLine)
     assert.ok(!cpuUsageLine.includes('core='))
+  })
+})
+
+// ============================================================================
+// formatHostStatusMetrics Tests
+// ============================================================================
+
+describe('formatHostStatusMetrics', () => {
+  it('should return empty array for empty input', () => {
+    const result = formatHostStatusMetrics([])
+    assert.deepEqual(result, [])
+  })
+
+  it('should create one metric per host with value 1', () => {
+    const hosts: HostStatusItem[] = [
+      {
+        uuid: 'host-1',
+        name_label: 'Host 1',
+        power_state: 'Running',
+        enabled: true,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+      {
+        uuid: 'host-2',
+        name_label: 'Host 2',
+        power_state: 'Halted',
+        enabled: true,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+    ]
+
+    const result = formatHostStatusMetrics(hosts)
+
+    assert.equal(result.length, 2)
+    assert.equal(result[0]!.value, 1)
+    assert.equal(result[1]!.value, 1)
+  })
+
+  it('should set correct metric name and type', () => {
+    const hosts: HostStatusItem[] = [
+      {
+        uuid: 'host-1',
+        name_label: 'Host 1',
+        power_state: 'Running',
+        enabled: true,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+    ]
+
+    const result = formatHostStatusMetrics(hosts)
+
+    assert.equal(result[0]!.name, 'xcp_host_status')
+    assert.equal(result[0]!.type, 'gauge')
+  })
+
+  it('should include all expected labels', () => {
+    const hosts: HostStatusItem[] = [
+      {
+        uuid: 'host-1',
+        name_label: 'Host 1',
+        power_state: 'Running',
+        enabled: true,
+        pool_id: 'pool-1',
+        pool_name: 'Production',
+      },
+    ]
+
+    const result = formatHostStatusMetrics(hosts)
+    const labels = result[0]!.labels
+
+    assert.equal(labels.pool_id, 'pool-1')
+    assert.equal(labels.pool_name, 'Production')
+    assert.equal(labels.uuid, 'host-1')
+    assert.equal(labels.host_name, 'Host 1')
+    assert.equal(labels.power_state, 'Running')
+    assert.equal(labels.enabled, 'true')
+  })
+
+  it('should omit pool_name when empty', () => {
+    const hosts: HostStatusItem[] = [
+      { uuid: 'host-1', name_label: 'Host 1', power_state: 'Unknown', enabled: true, pool_id: 'pool-1', pool_name: '' },
+    ]
+
+    const result = formatHostStatusMetrics(hosts)
+
+    assert.equal(result[0]!.labels.pool_name, undefined)
+  })
+
+  it('should handle all power_state values and enabled flag', () => {
+    const hosts: HostStatusItem[] = [
+      {
+        uuid: 'host-0',
+        name_label: 'Host 0',
+        power_state: 'Running',
+        enabled: true,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+      {
+        uuid: 'host-1',
+        name_label: 'Host 1',
+        power_state: 'Running',
+        enabled: false,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+      {
+        uuid: 'host-2',
+        name_label: 'Host 2',
+        power_state: 'Halted',
+        enabled: true,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+      {
+        uuid: 'host-3',
+        name_label: 'Host 3',
+        power_state: 'Unknown',
+        enabled: true,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+    ]
+
+    const result = formatHostStatusMetrics(hosts)
+
+    assert.equal(result.length, 4)
+    assert.equal(result[0]!.labels.power_state, 'Running')
+    assert.equal(result[0]!.labels.enabled, 'true')
+    assert.equal(result[1]!.labels.power_state, 'Running')
+    assert.equal(result[1]!.labels.enabled, 'false')
+    assert.equal(result[2]!.labels.power_state, 'Halted')
+    assert.equal(result[3]!.labels.power_state, 'Unknown')
+  })
+
+  it('should produce valid OpenMetrics output', () => {
+    const hosts: HostStatusItem[] = [
+      {
+        uuid: 'host-1',
+        name_label: 'Host 1',
+        power_state: 'Running',
+        enabled: true,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+      {
+        uuid: 'host-2',
+        name_label: 'Host 2',
+        power_state: 'Halted',
+        enabled: false,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+    ]
+
+    const metrics = formatHostStatusMetrics(hosts)
+    const output = formatToOpenMetrics(metrics)
+
+    assert.ok(output.includes('# HELP xcp_host_status Host status (1 = current state)'))
+    assert.ok(output.includes('# TYPE xcp_host_status gauge'))
+    assert.ok(output.includes('power_state="Running"'))
+    assert.ok(output.includes('enabled="false"'))
+
+    // HELP and TYPE should appear only once
+    const helpCount = (output.match(/# HELP xcp_host_status/g) || []).length
+    assert.equal(helpCount, 1)
+  })
+
+  it('should escape special characters in host names', () => {
+    const hosts: HostStatusItem[] = [
+      {
+        uuid: 'host-1',
+        name_label: 'Host "with quotes"',
+        power_state: 'Running',
+        enabled: true,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+    ]
+
+    const metrics = formatHostStatusMetrics(hosts)
+    const output = formatToOpenMetrics(metrics)
+
+    assert.ok(output.includes('host_name="Host \\"with quotes\\""'))
   })
 })
