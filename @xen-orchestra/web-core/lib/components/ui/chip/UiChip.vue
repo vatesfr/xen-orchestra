@@ -1,26 +1,31 @@
-<!-- v4 -->
+<!-- v5 -->
 <template>
   <span :class="classNames" class="ui-chip typo-body-regular-small" @click="emit('edit')">
-    <ChipIcon :disabled :icon />
     <span class="content text-ellipsis">
       <slot />
     </span>
-    <ChipRemoveIcon v-if="!disabled" :accent @click.stop="emit('remove')" />
+    <VtsIcon
+      v-if="!disabled"
+      class="icon"
+      name="action:close-cancel-clear"
+      :target-scale="{ x: 1.5, y: 2 }"
+      size="small"
+      :color="iconColor"
+      @click.stop="emit('remove')"
+    />
   </span>
 </template>
 
 <script lang="ts" setup>
-import ChipIcon from '@core/components/ui/chip/ChipIcon.vue'
-import ChipRemoveIcon from '@core/components/ui/chip/ChipRemoveIcon.vue'
-import type { IconName } from '@core/icons'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import { useMapper } from '@core/packages/mapper'
 import { toVariants } from '@core/utils/to-variants.util'
 import { computed } from 'vue'
 
 export type ChipAccent = 'info' | 'success' | 'warning' | 'danger'
 
-const props = defineProps<{
+const { accent, disabled } = defineProps<{
   accent: ChipAccent
-  icon?: IconName
   disabled?: boolean
 }>()
 
@@ -36,11 +41,22 @@ defineSlots<{
 const classNames = computed(() => {
   return [
     toVariants({
-      accent: props.accent,
-      muted: props.disabled,
+      accent,
+      muted: disabled,
     }),
   ]
 })
+
+const iconColor = useMapper(
+  () => accent,
+  {
+    info: 'var(--color-brand-txt-base)',
+    success: 'var(--color-success-txt-base)',
+    warning: 'var(--color-warning-txt-base)',
+    danger: 'var(--color-danger-txt-base)',
+  },
+  'info'
+)
 </script>
 
 <style lang="postcss" scoped>
@@ -51,19 +67,22 @@ const classNames = computed(() => {
   padding: 0.4rem 0.8rem;
   border-radius: 10rem;
   color: var(--color-neutral-txt-primary);
-  cursor: pointer;
   min-height: 2.4rem;
   vertical-align: middle;
   white-space: nowrap;
   min-width: 0;
 
   &.muted {
-    color: var(--color-neutral-txt-secondary);
+    background-color: var(--color-info-item-disabled);
     pointer-events: none;
   }
 
   .content {
     line-height: 1.6rem;
+  }
+
+  .icon {
+    cursor: pointer;
   }
 
   /* COLOR VARIANTS */

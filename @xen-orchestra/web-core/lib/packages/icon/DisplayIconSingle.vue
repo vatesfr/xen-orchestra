@@ -1,5 +1,11 @@
 <template>
-  <svg v-if="icon.paths.length > 0" :viewBox="icon.viewBox" class="display-icon-single" v-bind="icon.bindings">
+  <svg
+    v-if="icon.paths.length > 0"
+    :viewBox="icon.viewBox"
+    class="display-icon-single"
+    v-bind="icon.bindings"
+    :style="{ color }"
+  >
     <path
       v-for="(path, index) of icon.paths"
       :key="index"
@@ -16,6 +22,7 @@ import type { IconSingle } from './types.ts'
 
 defineProps<{
   icon: IconSingle
+  color?: string
   stroke?: string
 }>()
 </script>
