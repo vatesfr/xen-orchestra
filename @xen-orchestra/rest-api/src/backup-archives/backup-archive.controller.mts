@@ -1,4 +1,5 @@
 import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { inject } from 'inversify'
 import { noSuchObject } from 'xo-common/api-errors.js'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
@@ -6,6 +7,7 @@ import type { XoBackupRepository, XoVm, XoVmBackupArchive } from '@vates/types'
 
 import { badRequestResp, notFoundResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
+import { RestApi } from '../rest-api/rest-api.mjs'
 import {
   backupArchive,
   backupArchiveIds,
@@ -23,6 +25,10 @@ const BACKUP_ARCHIVE_ID_REGEX = /^([0-9a-fA-F-]{36})\/+xo-vm-backups\/+([0-9a-fA
 @Tags('backup-archives')
 @provide(BackupArchiveController)
 export class BackupArchiveController extends XoController<XoVmBackupArchive> {
+  constructor(@inject(RestApi) restApi: RestApi) {
+    super('backup-archive', restApi)
+  }
+
   async getAllCollectionObjects({
     backupRepositories = [],
   }: { backupRepositories?: (XoBackupRepository['id'] | '*')[] } = {}): Promise<XoVmBackupArchive[]> {
