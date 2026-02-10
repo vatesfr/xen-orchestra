@@ -141,7 +141,6 @@ const { HeadCells, BodyCells } = useVmColumns({
 
 <style scoped lang="postcss">
 .vms-table,
-.table-actions,
 .container {
   display: flex;
   flex-direction: column;

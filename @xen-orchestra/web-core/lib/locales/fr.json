@@ -649,7 +649,7 @@
   "query-builder:operator:not-match-regex": "Ne correspond pas à la regex",
   "query-builder:operator:not-start-with": "Ne commence pas par",
   "query-builder:operator:starts-with": "Commence par",
-  "query-builder:placeholder": "Écrivez votre requête…",
+  "query-builder:placeholder": "Construisez votre requête…",
   "query-search-bar:label": "@:query-builder:label",
   "query-search-bar:placeholder": "@:query-builder:placeholder",
   "query-search-bar:use-query-builder": "@:query-builder",
