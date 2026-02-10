@@ -75,7 +75,6 @@ const schema = useQueryBuilderSchema<FrontXoNetwork>({
   name_label: useStringSchema(t('name')),
   name_description: useStringSchema(t('description')),
   MTU: useNumberSchema(t('mtu')),
-  tags: useStringSchema(t('tags')),
   defaultIsLocked: useBooleanSchema(t('default-locking-mode'), {
     true: t('locked'),
     false: t('unlocked'),

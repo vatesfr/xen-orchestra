@@ -8,7 +8,7 @@
     :disabled
     @click="openModal()"
   />
-  <UiButton v-else v-tooltip="tooltip" :disabled accent="brand" variant="secondary" size="medium" @click="openModal()">
+  <UiButton v-else v-tooltip="tooltip" :disabled accent="brand" variant="tertiary" size="medium" @click="openModal()">
     {{ t('action:use-query-builder') }}
   </UiButton>
 </template>
@@ -41,7 +41,6 @@ const { t } = useI18n()
 const openModal = useModal(() => ({
   component: import('@core/components/query-builder/VtsQueryBuilderModal.vue'),
   props: {
-    title: t('query-builder'),
     modelValue: rootGroup,
     'onUpdate:modelValue': (newRootGroup: QueryBuilderGroup) => {
       rootGroup.value = newRootGroup

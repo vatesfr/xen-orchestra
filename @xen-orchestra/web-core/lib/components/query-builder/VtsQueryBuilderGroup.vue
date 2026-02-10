@@ -150,8 +150,8 @@ const { id: groupOperatorSelectId } = useFormSelect(['and', 'or'], {
 
   .group-filters-button {
     position: absolute;
-    bottom: -1.4rem;
-    right: 0.5rem;
+    inset-block-end: -1.4rem;
+    inset-inline-end: 0.5rem;
   }
 }
 </style>

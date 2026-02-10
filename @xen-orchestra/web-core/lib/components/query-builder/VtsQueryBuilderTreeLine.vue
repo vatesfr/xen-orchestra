@@ -17,13 +17,13 @@ defineProps<{
   &::before,
   &::after {
     content: '';
-    border-left: 0.3rem solid #00000060;
-    padding-left: 2rem;
+    border-inline-start: 0.3rem solid #00000060;
+    padding-inline-start: 2rem;
   }
 
   &::before {
     height: 3rem;
-    border-bottom: 0.3rem solid #00000060;
+    border-block-end: 0.3rem solid #00000060;
   }
 
   &::after {
@@ -35,7 +35,7 @@ defineProps<{
       height: 2rem;
     }
     &::after {
-      border-left: none;
+      border-inline-start: none;
     }
   }
 }

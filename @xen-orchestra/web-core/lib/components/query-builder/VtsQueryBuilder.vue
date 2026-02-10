@@ -25,7 +25,7 @@
       />
     </template>
     <template v-else>
-      <UiButton size="medium" accent="brand" variant="primary" type="submit" class="action-button">
+      <UiButton size="medium" accent="brand" variant="secondary" type="submit">
         {{ t('action:search') }}
       </UiButton>
 
