@@ -7,7 +7,7 @@ import {
   aclPrivilegeIds,
   partialAclPrivileges,
 } from '../open-api/oa-examples/acl-privilege.oa-example.mjs'
-import { badRequestResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import { badRequestResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import type { RestAnyPrivilege } from './acl-privilege.type.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
@@ -49,6 +49,7 @@ export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
    */
   @Example(aclPrivilege)
   @Get('{id}')
+  @Response(notFoundResp.status, notFoundResp.description)
   getAclV2Privilege(@Path() id: string): Promise<Unbrand<RestAnyPrivilege>> {
     return this.getObject(id as RestAnyPrivilege['id'])
   }

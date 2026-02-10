@@ -86,6 +86,7 @@ export class AclRoleController extends XoController<XoAclRole> {
   @Example(aclPrivilegeIds)
   @Example(partialAclPrivileges)
   @Get('{id}/privileges')
+  @Response(notFoundResp.status, notFoundResp.description)
   async getAclV2RolePrivileges(
     @Request() req: ExRequest,
     @Path() id: string,
