@@ -4,8 +4,8 @@ XCP-ng and Citrix Hypervisor (Xenserver) hosts use a database to store metadata 
 
 In Xen Orchestra, Metadata backup is divided into two different options:
 
-- Pool metadata backup
-- XO configuration backup
+- **Pool metadata backup:** backup metadata of your physical XCP-ng host
+- **XO configuration backup:** backup metadata of your Xen Orchestra instance
 
 ## Performing a backup
 
