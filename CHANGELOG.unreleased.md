@@ -12,6 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [OpenMetrics] Add `is_control_domain` label to VM metrics to differentiate dom0 VMs from regular VMs (PR [#9474](https://github.com/vatesfr/xen-orchestra/pull/9474))
+- [V2V] Remember connection settings in the browser [#9490](https://github.com/vatesfr/xen-orchestra/issues/9490)
 
 ### Bug fixes
 
@@ -39,5 +40,6 @@
 - @xen-orchestra/fs patch
 - @xen-orchestra/web patch
 - xo-server-openmetrics minor
+- xo-web minor
 
 <!--packages-end-->

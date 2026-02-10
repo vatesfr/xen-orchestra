@@ -57,19 +57,20 @@ function EsxiCheckResults({ esxiCheck }) {
 class EsxiImport extends Component {
   state = {
     concurrency: N_IMPORT_VMS_IN_PARALLEL,
-    hostIp: '',
+    hostIp: window.localStorage.getItem('esxi_host') ?? '',
     installingEsxiLib: false,
     importing: false,
     isConnected: false,
-    password: '',
+    password: window.localStorage.getItem('esxi_password') ?? '',
     skipSslVerify: true,
     stopSource: true,
     stopOnError: true,
     template: undefined,
-    user: '',
+    user: window.localStorage.getItem('esxi_user') ?? '',
     vddkFile: undefined,
     esxiCheck: undefined,
     esxiCheckError: undefined,
+    rememberConnection: !!window.localStorage.getItem('esxi_host'),
   }
 
   componentWillMount() {
@@ -150,8 +151,17 @@ class EsxiImport extends Component {
   }
 
   _connect = async () => {
-    const { hostIp, skipSslVerify, password, user } = this.state
+    const { hostIp, skipSslVerify, password, rememberConnection, user } = this.state
     const vms = await esxiListVms(hostIp, user, password, !skipSslVerify)
+    if (rememberConnection) {
+      window.localStorage.setItem('esxi_host', hostIp)
+      window.localStorage.setItem('esxi_password', password)
+      window.localStorage.setItem('esxi_user', user)
+    } else {
+      window.localStorage.removeItem('esxi_host')
+      window.localStorage.removeItem('esxi_password')
+      window.localStorage.removeItem('esxi_user')
+    }
     this.setState({ isConnected: true, vmsById: keyBy(vms, 'id') })
   }
 
@@ -198,6 +208,7 @@ class EsxiImport extends Component {
       network = this._getDefaultNetwork(),
       password,
       pool,
+      rememberConnection,
       skipSslVerify,
       sr,
       stopSource,
@@ -326,6 +337,12 @@ class EsxiImport extends Component {
             <LabelCol>{_('esxiImportSslCertificate')}</LabelCol>
             <InputCol>
               <Toggle onChange={this.toggleState('skipSslVerify')} value={skipSslVerify} />
+            </InputCol>
+          </Row>
+          <Row>
+            <LabelCol>{_('esxiImportRememberLogin')}</LabelCol>
+            <InputCol>
+              <Toggle onChange={this.toggleState('rememberConnection')} value={rememberConnection} />
             </InputCol>
           </Row>
           <div className='form-group pull-right'>

@@ -41,6 +41,7 @@ const messages = {
   esxiCheckingPrerequisiteError: 'Must be corrected before importing VM',
   esxiCheckedPrerequisiteVersion: 'expected version {expectedVersion} , {version} installed',
   esxiImportSslCertificate: 'Skip SSL check',
+  esxiImportRememberLogin: 'Remember connection in this browser',
   esxiImportThin: 'Thin mode',
   esxiImportThinDescription:
     'Disk created in thin mode (less space used). Data is read twice, no visible task or progress at first',
