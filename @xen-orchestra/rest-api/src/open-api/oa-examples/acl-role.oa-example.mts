@@ -1,27 +1,24 @@
 export const aclRoleIds = [
-  '/rest/v0/acl-roles/426622cc-b2db-4545-a2f0-6ec47b3a6450',
   '/rest/v0/acl-roles/9cac02e2-f612-4b71-851e-d28b9c0cda88',
+  '/rest/v0/acl-roles/784bd959-08de-4b26-b575-92ded5aef872',
 ]
 
 export const partialAclRoles = [
-  {
-    id: '426622cc-b2db-4545-a2f0-6ec47b3a6450',
-    name: 'VMs creator',
-    isTemplate: true,
-    href: '/rest/v0/acl-roles/426622cc-b2db-4545-a2f0-6ec47b3a6450',
-  },
   {
     id: '9cac02e2-f612-4b71-851e-d28b9c0cda88',
     name: 'VMs read only',
     isTemplate: true,
     href: '/rest/v0/acl-roles/9cac02e2-f612-4b71-851e-d28b9c0cda88',
   },
+  {
+    id: '784bd959-08de-4b26-b575-92ded5aef872',
+    name: 'mra-test-read-only',
+    href: '/rest/v0/acl-roles/784bd959-08de-4b26-b575-92ded5aef872',
+  },
 ]
 
 export const aclRole = {
-  name: 'VMs creator',
-  description: 'Allow to create VMs',
-  roleTemplateId: 3,
-  isTemplate: true,
-  id: '426622cc-b2db-4545-a2f0-6ec47b3a6450',
+  name: 'mra-test-read-only',
+  description: 'Access the whole infra in read-only mode',
+  id: '784bd959-08de-4b26-b575-92ded5aef872',
 }

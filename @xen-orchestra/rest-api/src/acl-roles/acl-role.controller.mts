@@ -48,7 +48,7 @@ export class AclRoleController extends XoController<XoAclRole> {
 
   /**
    * @example fields "id,name,isTemplate"
-   * @example filter "isTemplate?"
+   * @example filter "name:read only"
    * @example limit 42
    */
   @Example(aclRoleIds)
