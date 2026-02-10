@@ -129,7 +129,7 @@ const logger = createLogger('xo:xo-server-openmetrics')
 const DEFAULT_PORT = 9004
 
 /** Default bind address for the OpenMetrics HTTP server */
-const DEFAULT_BIND_ADDRESS = '127.0.0.1'
+const DEFAULT_BIND_ADDRESS = 'localhost'
 
 /** Default timeout for IPC operations in milliseconds */
 const IPC_TIMEOUT_MS = 10_000
