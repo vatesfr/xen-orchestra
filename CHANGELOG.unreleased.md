@@ -9,23 +9,17 @@
 
 ### Enhancements
 
-> Users must be able to say: “Nice enhancement, I'm eager to test it”
+> Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [OpenMetrics] Add `is_control_domain` label to VM metrics to differentiate dom0 VMs from regular VMs (PR [#9474](https://github.com/vatesfr/xen-orchestra/pull/9474))
 - [REST API] Add `objectType` to tasks for resolved object references (PR [#9429](https://github.com/vatesfr/xen-orchestra/pull/9429))
-- [REST API] Add `POST /vbds/:id/actions/connect` and `POST /vbds/:id/actions/disconnect` endpoints to hotplug/unplug VBDs from running VMs (PR [#9399](https://github.com/vatesfr/xen-orchestra/pull/9399))
-- [REST API] Add `POST /vdis/:id/actions/migrate` endpoint to migrate a VDI to another SR (PR [#9408](https://github.com/vatesfr/xen-orchestra/pull/9408))
-- [V2V] Add endpoint to export one disk from Vmware to VHD or QCOW2 `VDI_IO_ERROR` (PR [#9411](https://github.com/vatesfr/xen-orchestra/pull/9411))
-- [SIDEPANEL] Remove text ellipsis on sides panel (PR [#9328](https://github.com/vatesfr/xen-orchestra/pull/9238))
-- [i18n] Add Finnish, Polish and update Czech, Danish, German, Spanish, Persian, Italian, Japanese, Korean, Norwegian, Dutch, Portuguese (Brasil), Russian, Swedish and Ukrainian translations (PR [#9330](https://github.com/vatesfr/xen-orchestra/pull/9330))
-- [Icons] Update icons to use new styles (PR [#8989](https://github.com/vatesfr/xen-orchestra/pull/8989) and PR [#9424](https://github.com/vatesfr/xen-orchestra/pull/9424))
-- [VM] Add all actions to manage VM life cycle (PR [9403](https://github.com/vatesfr/xen-orchestra/pull/9403))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [V2V] Fix `VDI_IO_ERROR` when importing some unaligned disks into a qcow2 storage (PR [#9411](https://github.com/vatesfr/xen-orchestra/pull/9411))
-- [New/SR] Fix `Require "-o" along with xe-mount-iso-sr` error during NFS ISO SR creation (PR [#9425](https://github.com/vatesfr/xen-orchestra/pull/9425))
+- [Backups/s3] Fallback in rmtree for providers which do not support DeleteObjectsCommand (PR [#9450](https://github.com/vatesfr/xen-orchestra/pull/9450))
+- Fix build issue [#9455](https://github.com/vatesfr/xen-orchestra/issues/9455) (PR [#9482](https://github.com/vatesfr/xen-orchestra/pull/9482))
 
 ### Packages to release
 
@@ -43,12 +37,9 @@
 
 <!--packages-start-->
 
-- @vates/nbd-client patch
-- @vates/types minor
+- @xen-orchestra/fs patch
 - @xen-orchestra/rest-api minor
-- @xen-orchestra/web minor
-- @xen-orchestra/web-core minor
-- vhd-cli patch
-- xo-server minor
+- @xen-orchestra/web patch
+- xo-server-openmetrics minor
 
 <!--packages-end-->

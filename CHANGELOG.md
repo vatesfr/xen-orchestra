@@ -1,6 +1,80 @@
 # ChangeLog
 
-## **next**
+## **6.1.2** (2026-02-10)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [xo-server] Force delete a running VM now bypass `hard_shutdown` blocked operations (PR [#9473](https://github.com/vatesfr/xen-orchestra/pull/9473))
+- [Backup] Ensure VM created by healthcheck are removed by backup process (PR [#9473](https://github.com/vatesfr/xen-orchestra/pull/9473))
+
+### Released packages
+
+- @xen-orchestra/xapi 8.6.6
+- @xen-orchestra/backups 0.68.2
+- @xen-orchestra/proxy 0.29.46
+- xo-server 5.196.3
+
+## **6.1.1** (2026-02-05)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Enhancements
+
+- [Settings] Add various themes (PR [#9387](https://github.com/vatesfr/xen-orchestra/pull/9387))
+- [VM] Add delete and snapshot buttons to manage VM (PR [9410](https://github.com/vatesfr/xen-orchestra/pull/9410))
+- [Site] Update dashboard with new info from endpoint (PR [#8964](https://github.com/vatesfr/xen-orchestra/pull/8964))
+- [i18n] Update Czech, Danish, German, Spanish, Persian, Finnish, Italian, Japanese, Korean, Norwegian, Polish, Dutch, Portuguese (Brasil), Russian, Swedish and Ukrainian translations (PR [#9440](https://github.com/vatesfr/xen-orchestra/pull/9440))
+- [REST API] Added POST `/vifs` and DELETE `/vifs/:id` rest routes (PR [#9393](https://github.com/vatesfr/xen-orchestra/pull/9393))
+
+### Bug fixes
+
+- [REST API] Close SSE connections when clients are too slow, to avoid increased memory consumption (PR [#9439](https://github.com/vatesfr/xen-orchestra/pull/9439))
+- [REST API] `message` objects are no longer sent via the SSE when subscribing to the`alarm` collection (PR [#9439](https://github.com/vatesfr/xen-orchestra/pull/9439))
+- [REST API] Do no longer create an `XO user authentication` task, when using an authentication token (PR [#9439](https://github.com/vatesfr/xen-orchestra/pull/9439))
+- [Backup] ensure no snapshot are left unattended after a job (PR [#9434](https://github.com/vatesfr/xen-orchestra/pull/9434))
+- [Backup] Fix replication leaving replica after partial incremental replication (PR [#9435](https://github.com/vatesfr/xen-orchestra/pull/9435))
+- [REST API] Fix ISO not mounted when creating a VM from `/pools/:id/actions/create_vm` (PR [#9461](https://github.com/vatesfr/xen-orchestra/pull/9461))
+- [REST API] Fix href path for backup-archives (PR [#9460](https://github.com/vatesfr/xen-orchestra/pull/9460))
+- [REST API/Pool/Dashboard] Only consider running VMs for the `cpuProvisioning.assigned` value [Forum#11604](https://xcp-ng.org/forum/topic/11604/xo-6-dedicated-thread-for-all-your-feedback/84) (PR [#9456](https://github.com/vatesfr/xen-orchestra/pull/9456))
+- [CopyButton] Fix copy to clipboard not working in non-HTTPS environments (PR [#9426](https://github.com/vatesfr/xen-orchestra/pull/9426))
+- [Backup/immutability] Fix typo in sample config file (PR [#9444](https://github.com/vatesfr/xen-orchestra/pull/9444))
+- [Host] Fix host dashboard CPU provisioning calculation [Forum#101359](https://xcp-ng.org/forum/topic/11604/xo-6-dedicated-thread-for-all-your-feedback/84) (PR [#9459](https://github.com/vatesfr/xen-orchestra/pull/9459))
+
+### Released packages
+
+- @vates/types 1.19.0
+- @xen-orchestra/backups 0.68.1
+- @xen-orchestra/immutable-backups 1.0.29
+- @xen-orchestra/web-core 0.42.0
+- @xen-orchestra/rest-api 0.24.1
+- @xen-orchestra/web 0.40.0
+- @xen-orchestra/fs 4.6.6
+- @xen-orchestra/proxy 0.29.45
+- xo-server 5.196.2
+
+## **6.1.0** (2026-01-29)
+
+### Highlights
+
+- [i18n] Add Finnish, Polish and update Czech, Danish, German, Spanish, Persian, Italian, Japanese, Korean, Norwegian, Dutch, Portuguese (Brasil), Russian, Swedish and Ukrainian translations (PR [#9330](https://github.com/vatesfr/xen-orchestra/pull/9330))
+- [VM] Add all actions to manage VM life cycle (PR [#9403](https://github.com/vatesfr/xen-orchestra/pull/9403))
+- [Backup] show the backup archive that will be kept for Long Term Retention (PR [#9364](https://github.com/vatesfr/xen-orchestra/pull/9364))
+- [OpenMetrics] Expose SR capacity metrics: `xcp_sr_virtual_size_bytes`, `xcp_sr_physical_size_bytes`, `xcp_sr_physical_usage_bytes` (PR [#9360](https://github.com/vatesfr/xen-orchestra/pull/9360))
+- [Backup] Fix `read xxx bytes, maximum size allowed is yyy` for full backup on S3 (PR [#9396](https://github.com/vatesfr/xen-orchestra/pull/9396))
+- [Backup] Fix disk export stuck at 99% (PR [#9407](https://github.com/vatesfr/xen-orchestra/pull/9407))
+- [VM/New] Added VTPM support (PR [#9389](https://github.com/vatesfr/xen-orchestra/pull/9389))
+- [REST API] Add endpoints to reconfigure management interface for hosts and pools (PR [#9369](https://github.com/vatesfr/xen-orchestra/pull/9369))
+- [REST API] Add `POST /vbds` endpoint to create a VBD (attach a VDI to a VM) (PR [#9391](https://github.com/vatesfr/xen-orchestra/pull/9391))
+- [REST API] Add `createVtpm` parameter to VM creation endpoint (PR [#9412](https://github.com/vatesfr/xen-orchestra/pull/9412))
+- [REST API] Add `secureBoot` parameter to VM creation endpoint (PR [#9417](https://github.com/vatesfr/xen-orchestra/pull/9417))
+- [REST API] Add `DELETE /vbds/{id}` endpoint to remove a VBD (PR [#9394](https://github.com/vatesfr/xen-orchestra/pull/9394))
+- [REST API] Add `POST /vbds/:id/actions/connect` and `POST /vbds/:id/actions/disconnect` endpoints to hotplug/unplug VBDs from running VMs (PR [#9399](https://github.com/vatesfr/xen-orchestra/pull/9399))
+- [REST API] Add `POST /vdis/:id/actions/migrate` endpoint to migrate a VDI to another SR (PR [#9408](https://github.com/vatesfr/xen-orchestra/pull/9408))
+- [TreeView] Scroll to current item in list view (PR [#9268](https://github.com/vatesfr/xen-orchestra/pull/9268))
+- [SIDEPANEL] Remove text ellipsis on sides panel (PR [#9328](https://github.com/vatesfr/xen-orchestra/pull/9238))
+- [Icons] Update icons to use new styles (PR [#8989](https://github.com/vatesfr/xen-orchestra/pull/8989) and PR [#9424](https://github.com/vatesfr/xen-orchestra/pull/9424))
 
 ### Security
 
@@ -8,17 +82,10 @@
 
 ### Enhancements
 
-- [OpenMetrics] Expose SR capacity metrics: `xcp_sr_virtual_size_bytes`, `xcp_sr_physical_size_bytes`, `xcp_sr_physical_usage_bytes` (PR [#9360](https://github.com/vatesfr/xen-orchestra/pull/9360))
 - [REST API] Update `/dashboard` endpoint to also return disconnected servers, disabled hosts, the status of all VMs, and compute `jobs` from the last seven days (PR [#9207](https://github.com/vatesfr/xen-orchestra/pull/9207))
 - [vhd-cli] Prevent using invalid options (PR [#9386](https://github.com/vatesfr/xen-orchestra/pull/9386))
-- [REST API] Add endpoints to reconfigure management interface for hosts and pools (PR [#9369](https://github.com/vatesfr/xen-orchestra/pull/9369))
 - [VM] Add "Change state" button on VM view (PR [#9317](https://github.com/vatesfr/xen-orchestra/pull/9317))
-- [REST API] Add `POST /vbds` endpoint to create a VBD (attach a VDI to a VM) (PR [#9391](https://github.com/vatesfr/xen-orchestra/pull/9391))
-- [TreeView] Scroll to current item in list view (PR [#9268](https://github.com/vatesfr/xen-orchestra/pull/9268))
-- [REST API] Add `createVtpm` parameter to VM creation endpoint (PR [#9412](https://github.com/vatesfr/xen-orchestra/pull/9412))
-- [REST API] Add `secureBoot` parameter to VM creation endpoint (PR [#9417](https://github.com/vatesfr/xen-orchestra/pull/9417))
-- [Backup] show the backup archive that will be kept for Long Term Retention (PR [#9364](https://github.com/vatesfr/xen-orchestra/pull/9364))
-- [REST API] Add `DELETE /vbds/{id}` endpoint to remove a VBD (PR [#9394](https://github.com/vatesfr/xen-orchestra/pull/9394))
+- [V2V] Add endpoint to export one disk from Vmware to VHD or QCOW2 `VDI_IO_ERROR` (PR [#9411](https://github.com/vatesfr/xen-orchestra/pull/9411))
 
 ### Bug fixes
 
@@ -28,34 +95,35 @@
 - [REST API] Don't return VDI-snapshot for `/vms/:id/vdis` endpoints (PR [#9381](https://github.com/vatesfr/xen-orchestra/pull/9381))
 - [Plugins/Backup-reports] Prevent succesful backups from occasionally being reported as interrupted [Forum#11721](https://xcp-ng.org/forum/topic/11721) (PR [#9400](https://github.com/vatesfr/xen-orchestra/pull/9400))
 - [REST API] `/dashboard` return now `{isEmpty: true}` instead of undefined in case there is no data to compute (PR [#9395](https://github.com/vatesfr/xen-orchestra/pull/9395))
-- [Backup] Fix `read xxx bytes, maximum size allowed is yyy` for full backup on S3 (PR [#9396](https://github.com/vatesfr/xen-orchestra/pull/9396))
 - [OpenMetrics] Add missing `sr_name` label to VM disk metrics (PR [#9353](https://github.com/vatesfr/xen-orchestra/pull/9353))
-- [Backup] Fix disk export stuck at 99% (PR [#9407](https://github.com/vatesfr/xen-orchestra/pull/9407))
 - [REST API] Fix `/vms/:id/actions/start` ignored request body (to start a virtual machine on a specific host) (PR [#9416](https://github.com/vatesfr/xen-orchestra/pull/9416))
 - [Backup] Fix reverted VM making the next backup run fails with `VM must be a snapshot` error (PR [#9397](https://github.com/vatesfr/xen-orchestra/pull/9397))
 - [Sidebar] Removal borders top and right of sidebar in mobile (PR [#9366](https://github.com/vatesfr/xen-orchestra/pull/9366))
+- [V2V] Fix `VDI_IO_ERROR` when importing some unaligned disks into a qcow2 storage (PR [#9411](https://github.com/vatesfr/xen-orchestra/pull/9411))
+- [New/SR] Fix `Require "-o" along with xe-mount-iso-sr` error during NFS ISO SR creation (PR [#9425](https://github.com/vatesfr/xen-orchestra/pull/9425))
 
 ### Released packages
 
 - vhd-lib 4.14.7
-- @vates/types 1.17.0
 - @xen-orchestra/qcow2 1.1.2
-- @xen-orchestra/xapi 8.6.4
 - @xen-orchestra/backups 0.68.0
 - @xen-orchestra/backups-cli 1.1.7
 - @xen-orchestra/immutable-backups 1.0.28
-- @xen-orchestra/web-core 0.40.0
-- @xen-orchestra/proxy 0.29.42
-- @xen-orchestra/rest-api 0.23.0
-- @xen-orchestra/web 0.38.0
-- vhd-cli 1.1.0
-- xo-server 5.195.0
 - xo-server-openmetrics 1.1.0
 - xo-web 5.192.0
+- @vates/nbd-client 3.2.3
+- @vates/types 1.18.0
+- @xen-orchestra/xapi 8.6.5
+- @xen-orchestra/web-core 0.41.0
+- @xen-orchestra/proxy 0.29.43
+- @xen-orchestra/rest-api 0.24.0
+- @xen-orchestra/web 0.39.0
+- vhd-cli 1.1.1
+- xo-server 5.196.0
 
 ## **6.0.3** (2026-01-06)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Security
 
@@ -315,8 +383,6 @@
 - xo-server-perf-alert 1.0.2
 
 ## **5.112.1** (2025-11-03)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 

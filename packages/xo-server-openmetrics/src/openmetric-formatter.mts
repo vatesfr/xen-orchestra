@@ -682,6 +682,7 @@ export function transformMetric(
         if (vmInfo.name_label !== '') {
           labels.vm_name = vmInfo.name_label
         }
+        labels.is_control_domain = vmInfo.is_control_domain ? 'true' : 'false'
 
         // For VBD metrics, add vdi_name and sr_name
         if (extractedLabels.device !== undefined) {

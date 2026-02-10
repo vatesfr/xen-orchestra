@@ -61,9 +61,24 @@
                 <VtsInputWrapper :label="t('boot-firmware')">
                   <VtsSelect :id="bootFirmwareSelectId" accent="brand" />
                 </VtsInputWrapper>
-                <div v-tooltip="{ placement: 'top-start', content: copyHostBiosStringsTooltipContent }">
-                  <UiCheckbox v-model="vmState.copyHostBiosStrings" accent="brand" :disabled="!canCopyBiosStrings">
+                <div
+                  v-if="canCopyBiosStrings"
+                  v-tooltip="{
+                    placement: 'top-start',
+                    content: selectedTemplateHasBiosStrings ? copyHostBiosStringsTooltipContent : undefined,
+                  }"
+                >
+                  <UiCheckbox
+                    v-model="vmState.copyHostBiosStrings"
+                    accent="brand"
+                    :disabled="selectedTemplateHasBiosStrings"
+                  >
                     {{ t('copy-host-bios-strings') }}
+                  </UiCheckbox>
+                </div>
+                <div v-else>
+                  <UiCheckbox v-model="vmState.createVtpm" accent="brand">
+                    {{ t('vtpm') }}
                   </UiCheckbox>
                 </div>
               </div>
@@ -242,6 +257,7 @@ const vmState = reactive<VmState>({
   vifs: [],
   existingVdis: [],
   pool: undefined,
+  createVtpm: false,
 })
 
 const bytesToGiB = (bytes: number) => Math.floor(bytes / 1024 ** 3)
@@ -319,17 +335,9 @@ const selectedTemplateHasBiosStrings = computed(
 
 const canCopyBiosStrings = computed(() => vmState.bootFirmware === 'bios')
 
-const copyHostBiosStringsTooltipContent = computed(() => {
-  if (vmState.bootFirmware === 'uefi') {
-    return t('boot-firmware-uefi')
-  }
-
-  if (selectedTemplateHasBiosStrings.value) {
-    return t('template-has-bios-strings')
-  }
-
-  return undefined
-})
+const copyHostBiosStringsTooltipContent = computed(() =>
+  selectedTemplateHasBiosStrings.value ? t('template-has-bios-strings') : undefined
+)
 
 const filteredSrs = computed(() => {
   return srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_usage > 0 && sr.$pool === vmState.pool?.id)
@@ -589,6 +597,7 @@ const vmData = computed(() => {
     template: vmState.new_vm_template?.uuid,
     hvmBootFirmware: vmState.bootFirmware,
     copyHostBiosStrings: vmState.copyHostBiosStrings,
+    createVtpm: vmState.createVtpm,
     ...optionalFields,
   }
 })
@@ -753,12 +762,15 @@ const { id: bootFirmwareSelectId } = useFormSelect(bootFirmwareOptions, {
 })
 
 watch(
-  () => vmState.new_vm_template,
+  () => [vmState.new_vm_template, vmState.bootFirmware],
   () => {
-    if (vmState.bootFirmware !== 'bios') {
+    if (vmState.bootFirmware === 'bios') {
+      vmState.createVtpm = false
+      if (selectedTemplateHasBiosStrings.value) {
+        vmState.copyHostBiosStrings = true
+      }
+    } else {
       vmState.copyHostBiosStrings = false
-    } else if (selectedTemplateHasBiosStrings.value) {
-      vmState.copyHostBiosStrings = true
     }
   }
 )

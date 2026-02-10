@@ -1,31 +1,33 @@
 import {
   WrappedXenApiRecord,
   XenApiHost,
+  XenApiNetwork,
   XenApiNetworkWrapped,
   XenApiRecord,
   XenApiSr,
   XenApiTask,
   XenApiVbd,
   XenApiVdi,
+  XenApiVif,
   XenApiVm,
   XenApiVmWrapped,
   XenApiVtpm,
 } from '../xen-api.mjs'
-import type { OPAQUE_REF_NULL, VBD_MODE, VBD_TYPE } from '../common.mjs'
+import type { OPAQUE_REF_NULL, SUPPORTED_VDI_FORMAT, VBD_MODE, VBD_TYPE, VIF_LOCKING_MODE } from '../common.mjs'
 import type { PassThrough, Readable } from 'node:stream'
 import type {
   XoGpuGroup,
-  XoVgpuType,
   XoHost,
   XoNetwork,
   XoPif,
   XoSr,
   XoUser,
   XoVdi,
+  XoVgpuType,
   XoVm,
   XoVmTemplate,
+  XoVif,
 } from '../xo.mjs'
-import type { SUPPORTED_VDI_FORMAT } from '../common.mjs'
 
 export type XcpPatches = {
   changelog?: {
@@ -60,6 +62,7 @@ export interface Xapi {
   call: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
   callAsync: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
 
+  barrier<T extends XenApiRecord>(ref: T['$ref']): Promise<Extract<WrappedXenApiRecord, { $ref: T['$ref'] }>>
   getField<T extends XenApiRecord, K extends keyof T>(
     type: Extract<WrappedXenApiRecord, T>['$type'],
     ref: T['$ref'],
@@ -82,6 +85,7 @@ export interface Xapi {
         }
   ): Promise<XenApiNetworkWrapped>
   deleteNetwork(id: XoNetwork['id']): Promise<void>
+  deleteVif(vifId: XoVif['id']): Promise<void>
   exportVmOva(vmRef: XenApiVm['$ref']): Promise<PassThrough>
   listMissingPatches(host: XoHost['id']): Promise<XcpPatches[] | XsPatches[]>
   pool_emergencyShutdown(): Promise<void>
@@ -212,6 +216,24 @@ export interface Xapi {
     stream: Readable,
     opts: { cancelToken?: unknown; format: SUPPORTED_VDI_FORMAT }
   ): Promise<void>
+  VIF_create(
+    options: {
+      currently_attached?: boolean
+      device?: string
+      ipv4_allowed?: string[]
+      ipv6_allowed?: string[]
+      locking_mode?: VIF_LOCKING_MODE
+      MTU?: number
+      network: XenApiNetwork['$ref']
+      other_config?: Record<string, string>
+      qos_algorithm_params?: Record<string, string>
+      qos_algorithm_type?: string
+      VM: XenApiVm['$ref']
+    },
+    extraOptions?: {
+      MAC?: string
+    }
+  ): Promise<XenApiVif['$ref']>
   VM_createCloudInitConfig(
     vmRef: XenApiVm['$ref'],
     cloudConfig: string,

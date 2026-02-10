@@ -25,6 +25,7 @@ import copyStreamToBuffer from './_copyStreamToBuffer.js'
 import guessAwsRegion from './_guessAwsRegion.js'
 import RemoteHandlerAbstract from './abstract'
 import { basename, join, split } from './path'
+import { asyncEach } from '@vates/async-each'
 
 // endpoints https://docs.aws.amazon.com/general/latest/gr/s3.html
 
@@ -38,6 +39,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
   #bucket
   #dir
   #s3
+  #immutable = false
 
   constructor(remote, _opts) {
     super(remote, _opts)
@@ -139,6 +141,9 @@ export default class S3Handler extends RemoteHandlerAbstract {
     }
   }
 
+  isImmutable() {
+    return super.isImmutable() || this.#immutable
+  }
   _conditionRetry(error) {
     return ![401, 403, 404, 405].includes(error?.$metadata?.httpStatusCode) && super._conditionRetry(error)
   }
@@ -388,14 +393,34 @@ export default class S3Handler extends RemoteHandlerAbstract {
       )
 
       NextContinuationToken = result.IsTruncated ? result.NextContinuationToken : undefined
-      await this.#s3.send(
-        new DeleteObjectsCommand({
-          Bucket: this.#bucket,
-          Delete: {
-            Objects: result.Contents ?? [],
+      try {
+        await this.#s3.send(
+          new DeleteObjectsCommand({
+            Bucket: this.#bucket,
+            Delete: {
+              Objects: result.Contents ?? [],
+            },
+          })
+        )
+      } catch (error) {
+        warn('Unsupported DeleteObjects, fallback to DeleteObject.', { error, $response: error.$response ?? '' })
+        await asyncEach(
+          result.Contents ?? [],
+          async ({ Key }) => {
+            // _unlink will add the prefix, but Key contains everything
+            // also we don't need to check if we delete a directory, since the list only return files
+            await this.#s3.send(
+              new DeleteObjectCommand({
+                Bucket: this.#bucket,
+                Key,
+              })
+            )
           },
-        })
-      )
+          {
+            concurrency: 16,
+          }
+        )
+      }
     } while (NextContinuationToken !== undefined)
   }
 
@@ -416,6 +441,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
         // will automatically add the contentMD5 header to any upload to S3
         debug(`Object Lock is enable, enable content md5 header`)
         this.#s3.middlewareStack.use(getApplyMd5BodyChecksumPlugin(this.#s3.config))
+        this.#immutable = true
       }
     } catch (error) {
       // maybe the account doesn't have enough privilege to query the object lock configuration

@@ -1,4 +1,3 @@
-import path from 'node:path'
 import pick from 'lodash/pick.js'
 import { Request } from 'express'
 import type { XoRecord } from '@vates/types'
@@ -6,18 +5,23 @@ import type { XoRecord } from '@vates/types'
 import { BASE_URL } from '../index.mjs'
 import type { WithHref } from './helper.type.mjs'
 
-const { join } = path.posix
-
 export function makeObjectMapper<T extends XoRecord>(req: Request, path?: string | ((obj: T) => string)) {
   const makeUrl = (obj: T) => {
     let _path: string
     if (path === undefined) {
       _path = req.path
     } else {
-      _path = `${BASE_URL}/${typeof path === 'string' ? path : path(obj)}`
+      let tmpPath = typeof path === 'string' ? path : path(obj)
+      if (tmpPath.startsWith('/')) {
+        tmpPath = tmpPath.slice(1)
+      }
+      if (tmpPath.endsWith('/')) {
+        tmpPath = tmpPath.slice(0, -1)
+      }
+      _path = `${BASE_URL}/${tmpPath}`
     }
 
-    return join(_path, typeof obj.id === 'number' ? String(obj.id) : obj.id)
+    return `${_path}/${String(obj.id)}`
   }
   let objectMapper: (object: T) => string | WithHref<Partial<T>> | WithHref<T>
 
