@@ -89,17 +89,26 @@ export interface Xapi {
   cloneVm(
     vmId: XoVm['id'],
     opts?: {
-      name_label?: string
+      nameLabel?: string
       fast?: boolean
     }
   ): Promise<XenApiVmWrapped>
   copyVm(
     vmId: XoVm['id'],
     opts?: {
-      name_label?: string
-      srOrSrId?: XoSr['id']
+      nameLabel?: string
+      srId?: XoSr['id']
     }
   ): Promise<XenApiVmWrapped>
+  remoteCopyVm(
+    vmId: XoVm['id'],
+    targetXapi: Xapi,
+    targetSrId: XoSr['id'],
+    opts?: {
+      compress?: boolean
+      nameLabel?: string
+    }
+  ): Promise<{ vm: XenApiVmWrapped }>
   SR_importVdi(
     ref: XenApiSr['$ref'],
     stream: Readable,

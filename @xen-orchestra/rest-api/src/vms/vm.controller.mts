@@ -513,10 +513,8 @@ export class VmController extends XapiXoController<XoVm> {
   }
 
   /**
-   * The VM must be halted
-   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
-   * @example body { "name_label": "cloned_vm", "full_copy": false }
+   * @example body { "name_label": "cloned_vm", "full_copy": false, "srId": "c4284e12-37c9-7967-b9e8-83ef229c3e03" }
    */
   @Example(taskLocation)
   @Post('{id}/actions/clone')
@@ -524,20 +522,19 @@ export class VmController extends XapiXoController<XoVm> {
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(createdResp.status, createdResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  @Response(incorrectStateResp.status, incorrectStateResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async cloneVm(
     @Path() id: string,
-    @Body() body: { name_label: string; full_copy?: boolean },
+    @Body() body: { name_label?: string; full_copy?: boolean; srId?: string },
     @Query() sync?: boolean
   ): CreateActionReturnType<{ id: XenApiVm['uuid'] }> {
     const vmId = id as XoVm['id']
-    this.#vmService.isVmHalted(vmId)
 
     const action = async () => {
       const clonedVmId = await this.#vmService.clone(vmId, {
         name_label: body.name_label,
-        fast: !body.full_copy,
+        full_copy: body.full_copy,
+        srId: body.srId as XoSr['id'] | undefined,
       })
 
       if (sync) {
@@ -552,50 +549,6 @@ export class VmController extends XapiXoController<XoVm> {
       statusCode: createdResp.status,
       taskProperties: {
         name: 'clone VM',
-        objectId: vmId,
-      },
-    })
-  }
-
-  /**
-   * The VM must be halted
-   *
-   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
-   * @example body { "sr_id": "c4284e12-37c9-7967-b9e8-83ef229c3e03", "name_label": "copied_vm" }
-   */
-  @Example(taskLocation)
-  @Post('{id}/actions/copy')
-  @Middlewares(json())
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
-  @Response(createdResp.status, createdResp.description)
-  @Response(notFoundResp.status, notFoundResp.description)
-  @Response(incorrectStateResp.status, incorrectStateResp.description)
-  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  async copyVm(
-    @Path() id: string,
-    @Body() body: { sr_id: string; name_label?: string },
-    @Query() sync?: boolean
-  ): CreateActionReturnType<{ id: XenApiVm['uuid'] }> {
-    const vmId = id as XoVm['id']
-    this.#vmService.isVmHalted(vmId)
-
-    const action = async () => {
-      const copiedVmId = await this.#vmService.copy(vmId, body.sr_id as XoSr['id'], {
-        name_label: body.name_label,
-      })
-
-      if (sync) {
-        this.setHeader('Location', `${BASE_URL}/vms/${copiedVmId}`)
-      }
-
-      return { id: copiedVmId }
-    }
-
-    return this.createAction<{ id: XenApiVm['uuid'] }>(action, {
-      sync,
-      statusCode: createdResp.status,
-      taskProperties: {
-        name: 'copy VM',
         objectId: vmId,
       },
     })

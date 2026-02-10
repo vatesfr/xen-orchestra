@@ -24,7 +24,7 @@
 - [REST API] Close SSE connections when clients are too slow, to avoid increased memory consumption (PR [#9439](https://github.com/vatesfr/xen-orchestra/pull/9439))
 - [REST API] `message` objects are no longer sent via the SSE when subscribing to the`alarm` collection (PR [#9439](https://github.com/vatesfr/xen-orchestra/pull/9439))
 - [REST API] Do no longer create an `XO user authentication` task, when using an authentication token (PR [#9439](https://github.com/vatesfr/xen-orchestra/pull/9439))
-- [REST API] Handle VM duplication (PR [#9453](https://github.com/vatesfr/xen-orchestra/pull/9453))
+- [REST API] Expose `/rest/v0/vms/:id/actions/copy` and `/rest/v0/vms/:id/actions/clone` (PR [#9453](https://github.com/vatesfr/xen-orchestra/pull/9453))
 
 ### Packages to release
 
