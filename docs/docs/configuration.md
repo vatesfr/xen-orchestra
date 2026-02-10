@@ -50,7 +50,7 @@ Place your `config.toml` (or any `config.*.toml` override) in one of the followi
 - **User-specific configuration**:  
   `~/.config/xo-server/config.toml`
 
-The order of the loading and overriding values in multiple config files is the following :
+The order of the loading and overriding values in multiple config files is the following:
 
 | Stage | Location | Typical Path                   | Priority            |
 | ----- | -------- | ------------------------------ | ------------------- |
@@ -62,7 +62,7 @@ The order of the loading and overriding values in multiple config files is the f
 There is no guarantee on the order of the config file loading in the same location.
 
 :::tip
-The update feature of XOA can reset any `local` config, use `/etc/xo-server/config.*` as the preferred config place for XOA.
+The update feature of XOA can reset any `local` config. Use `/etc/xo-server/config.*` as the preferred config place for XOA.
 :::
 
 ### Apply the changes
