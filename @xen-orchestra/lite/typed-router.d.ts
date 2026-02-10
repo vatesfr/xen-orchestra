@@ -95,6 +95,7 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/ui/counter/ui-counter': RouteRecordInfo<'/story/web-core/ui/counter/ui-counter', '/story/web-core/ui/counter/ui-counter', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/data-ruler/ui-data-ruler': RouteRecordInfo<'/story/web-core/ui/data-ruler/ui-data-ruler', '/story/web-core/ui/data-ruler/ui-data-ruler', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/donut-chart/ui-donut-chart': RouteRecordInfo<'/story/web-core/ui/donut-chart/ui-donut-chart', '/story/web-core/ui/donut-chart/ui-donut-chart', Record<never, never>, Record<never, never>>,
+    '/story/web-core/ui/drawer/ui-drawer': RouteRecordInfo<'/story/web-core/ui/drawer/ui-drawer', '/story/web-core/ui/drawer/ui-drawer', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/dropdown/ui-dropdown': RouteRecordInfo<'/story/web-core/ui/dropdown/ui-dropdown', '/story/web-core/ui/dropdown/ui-dropdown', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/dropdown/ui-dropdown-list': RouteRecordInfo<'/story/web-core/ui/dropdown/ui-dropdown-list', '/story/web-core/ui/dropdown/ui-dropdown-list', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/dropdown-button/ui-dropdown-button': RouteRecordInfo<'/story/web-core/ui/dropdown-button/ui-dropdown-button', '/story/web-core/ui/dropdown-button/ui-dropdown-button', Record<never, never>, Record<never, never>>,
