@@ -904,23 +904,6 @@ watch(
 
 <style lang="postcss" scoped>
 .new-vm-view {
-  &.mobile {
-    .form-container .system-container .column {
-      width: 100%;
-    }
-
-    .form-container .system-container,
-    .resource-management-container,
-    .install-settings-container {
-      flex-direction: column;
-    }
-
-    .form-container .system-container,
-    .form-container .resource-management-container {
-      gap: 2.4rem;
-    }
-  }
-
   .card-container {
     margin: 0.8rem;
   }
@@ -976,6 +959,22 @@ watch(
     display: flex;
     justify-content: center;
     gap: 2.4rem;
+  }
+
+  &.mobile {
+    .system-container .column {
+      width: 100%;
+    }
+
+    .system-container,
+    .resource-management-container {
+      flex-direction: column;
+    }
+
+    .system-container,
+    .resource-management-container {
+      gap: 2.4rem;
+    }
   }
 }
 </style>

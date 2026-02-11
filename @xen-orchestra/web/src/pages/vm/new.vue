@@ -781,25 +781,6 @@ watch(
 
 <style scoped lang="postcss">
 .new {
-  &.mobile {
-    .template-container,
-    .form-container .system-container .column,
-    .form-container.install-settings-container {
-      width: 100%;
-    }
-
-    .form-container .system-container,
-    .resource-management-container,
-    .install-settings-container {
-      flex-direction: column;
-    }
-
-    .form-container .system-container,
-    .form-container .resource-management-container {
-      gap: 2.4rem;
-    }
-  }
-
   .head-select {
     max-width: 100%;
   }
@@ -850,6 +831,29 @@ watch(
     display: flex;
     justify-content: center;
     gap: 2.4rem;
+  }
+
+  &.mobile {
+    .template-container,
+    .system-container .column,
+    .install-settings-container {
+      width: 100%;
+    }
+
+    .system-container,
+    .resource-management-container,
+    .install-settings-container {
+      flex-direction: column;
+    }
+
+    .system-container,
+    .resource-management-container {
+      gap: 2.4rem;
+    }
+
+    .install-settings-container {
+      gap: 0.8rem;
+    }
   }
 }
 </style>
