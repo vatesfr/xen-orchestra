@@ -1,9 +1,9 @@
 <template>
   <MenuList placement="bottom-start">
     <template #trigger="{ open, isOpen }">
-      <UiButton
+      <UiButtonIcon
         accent="brand"
-        left-icon="fa:ellipsis"
+        icon="action:more-actions"
         variant="tertiary"
         size="small"
         :selected="isOpen"
@@ -11,12 +11,12 @@
       />
     </template>
     <MenuItem
-      icon="fa:download"
+      icon="action:download"
       :busy="!areServersReady"
       :disabled="(areServersReady && server === undefined) || hasServerFetchError"
-      @click="download"
+      @click="download()"
     >
-      {{ t('download-bugtools-archive') }}
+      {{ t('action:download-bugtools-archive') }}
     </MenuItem>
   </MenuList>
 </template>
@@ -25,12 +25,12 @@
 import { useXoServerCollection } from '@/modules/server/remote-resources/use-xo-server-collection'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
-import type { Branded } from '@vates/types'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import type { XoPool } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { poolId } = defineProps<{ poolId: Branded<'pool'> }>()
+const { poolId } = defineProps<{ poolId: XoPool['id'] }>()
 
 const { t } = useI18n()
 

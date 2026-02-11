@@ -10,7 +10,7 @@
         @click="open($event)"
       />
     </template>
-    <MenuItem icon="fa:download" @click="download">{{ t('download-bugtools-archive') }}</MenuItem>
+    <MenuItem icon="action:download" @click="download()">{{ t('action:download-bugtools-archive') }}</MenuItem>
   </MenuList>
 </template>
 
@@ -18,9 +18,10 @@
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import type { XoHost } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-const { hostIp } = defineProps<{ hostIp: string }>()
+const { hostIp } = defineProps<{ hostIp: XoHost['address'] }>()
 
 const { t } = useI18n()
 
