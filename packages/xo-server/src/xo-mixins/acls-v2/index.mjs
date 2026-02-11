@@ -424,7 +424,7 @@ export default class {
     /**
      * @type {UserRole}
      */
-    const userRole = await this.#userRoleDb._get({ userId, roleId })
+    const userRole = (await this.#userRoleDb._get({ userId, roleId }))[0]
 
     if (userRole !== undefined) {
       throw objectAlreadyExists({ objectId: userRole.id, objectType: 'userRole' })
@@ -451,7 +451,7 @@ export default class {
     /**
      * @type {UserRole}
      */
-    const userRole = await this.#userRoleDb._get({ userId, roleId })
+    const userRole = (await this.#userRoleDb._get({ userId, roleId }))[0]
 
     if (userRole === undefined) {
       throw noSuchObject(`userId:${userId} and roleId:${roleId}`, 'userRole')
@@ -468,13 +468,13 @@ export default class {
    * @param {XoGroup['id']} groupId
    * @param {XoAclRole['id']} roleId
    *
-   * @returns {Promise<UserRole>}
+   * @returns {Promise<GroupRole>}
    */
   async addAclV2GroupRole(groupId, roleId) {
     /**
      * @type {GroupRole}
      */
-    const groupRole = await this.#groupRoleDb._get({ groupId, roleId })
+    const groupRole = (await this.#groupRoleDb._get({ groupId, roleId }))[0]
 
     if (groupRole !== undefined) {
       throw objectAlreadyExists({ objectId: groupRole.id, objectType: 'groupRole' })
@@ -499,9 +499,9 @@ export default class {
    */
   async deleteAclV2GroupRole(groupId, roleId) {
     /**
-     * @type {UserRole}
+     * @type {GroupRole}
      */
-    const groupRole = await this.#groupRoleDb._get({ groupId, roleId })
+    const groupRole = (await this.#groupRoleDb._get({ groupId, roleId }))[0]
 
     if (groupRole === undefined) {
       throw noSuchObject(`groupId:${groupId} and roleId:${roleId}`, 'groupRole')
