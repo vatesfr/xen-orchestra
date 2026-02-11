@@ -40,6 +40,7 @@
 
 <!--packages-start-->
 
+- @vates/types minor
 - @xen-orchestra/fs patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
