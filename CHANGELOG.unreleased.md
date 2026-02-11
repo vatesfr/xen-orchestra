@@ -9,10 +9,16 @@
 
 ### Enhancements
 
-- [Settings] Add various themes (PR [#9387](https://github.com/vatesfr/xen-orchestra/pull/9387))
-- [Netbox] Support version 4.5.x (PR [#9445](https://github.com/vatesfr/xen-orchestra/pull/9445))
+> Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-> Users must be able to say: “Nice enhancement, I'm eager to test it”
+- [OpenMetrics] Add `is_control_domain` label to VM metrics to differentiate dom0 VMs from regular VMs (PR [#9474](https://github.com/vatesfr/xen-orchestra/pull/9474))
+- [OpenMetrics] Add `xcp_host_status` metric exposing host status (running/maintenance/halted/unknown) for all hosts, including non-running ones (PR [#9457](https://github.com/vatesfr/xen-orchestra/pull/9457))
+- [REST API] Add `objectType` to tasks for resolved object references (PR [#9429](https://github.com/vatesfr/xen-orchestra/pull/9429))
+- [Warm Migration] the api call now return the new VM uuid (PR [#94653](https://github.com/vatesfr/xen-orchestra/pull/9465))
+- [Warm Migration] stopped VM can be warm migrated (PR [#94653](https://github.com/vatesfr/xen-orchestra/pull/9465))
+- [Plugins/load balancer] Add configurable VM migration cooldown to prevent oscillation (default 30min) (PR [#9388](https://github.com/vatesfr/xen-orchestra/pull/9388))
+- [REST API] Expose `POST /rest/v0/vms/:id/actions/migrate` to migrate a VM (PR [#9414](https://github.com/vatesfr/xen-orchestra/pull/9414))
+- [Netbox] Support version 4.5.x (PR [#9445](https://github.com/vatesfr/xen-orchestra/pull/9445))
 
 ### Bug fixes
 
@@ -34,7 +40,13 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/web minor
+- @vates/types minor
+- @xen-orchestra/fs patch
+- @xen-orchestra/rest-api minor
+- @xen-orchestra/web patch
+- xo-server minor
+- xo-server-load-balancer minor
 - xo-server-netbox minor
+- xo-server-openmetrics minor
 
 <!--packages-end-->

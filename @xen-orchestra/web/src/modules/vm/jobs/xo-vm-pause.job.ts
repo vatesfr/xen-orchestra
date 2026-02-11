@@ -40,6 +40,10 @@ export const useXoVmPauseJob = defineJob('vm.pause', [xoVmsArg], () => {
       if (notAllVmsHavingPowerState(vms, [VM_POWER_STATE.RUNNING])) {
         throw new JobError(t('job:vm-pause:bad-power-state'))
       }
+
+      if (vms.some(vm => vm.blockedOperations.pause)) {
+        throw new JobError(t('job:vm-pause:blocked-operation'))
+      }
     },
   }
 })

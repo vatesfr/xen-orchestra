@@ -1,8 +1,60 @@
 # ChangeLog
 
-## **6.1.0** (2026-01-29)
+## **6.1.2** (2026-02-10)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [xo-server] Force delete a running VM now bypass `hard_shutdown` blocked operations (PR [#9473](https://github.com/vatesfr/xen-orchestra/pull/9473))
+- [Backup] Ensure VM created by healthcheck are removed by backup process (PR [#9473](https://github.com/vatesfr/xen-orchestra/pull/9473))
+
+### Released packages
+
+- @xen-orchestra/xapi 8.6.6
+- @xen-orchestra/backups 0.68.2
+- @xen-orchestra/proxy 0.29.46
+- xo-server 5.196.3
+
+## **6.1.1** (2026-02-05)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Enhancements
+
+- [Settings] Add various themes (PR [#9387](https://github.com/vatesfr/xen-orchestra/pull/9387))
+- [VM] Add delete and snapshot buttons to manage VM (PR [9410](https://github.com/vatesfr/xen-orchestra/pull/9410))
+- [Site] Update dashboard with new info from endpoint (PR [#8964](https://github.com/vatesfr/xen-orchestra/pull/8964))
+- [i18n] Update Czech, Danish, German, Spanish, Persian, Finnish, Italian, Japanese, Korean, Norwegian, Polish, Dutch, Portuguese (Brasil), Russian, Swedish and Ukrainian translations (PR [#9440](https://github.com/vatesfr/xen-orchestra/pull/9440))
+- [REST API] Added POST `/vifs` and DELETE `/vifs/:id` rest routes (PR [#9393](https://github.com/vatesfr/xen-orchestra/pull/9393))
+
+### Bug fixes
+
+- [REST API] Close SSE connections when clients are too slow, to avoid increased memory consumption (PR [#9439](https://github.com/vatesfr/xen-orchestra/pull/9439))
+- [REST API] `message` objects are no longer sent via the SSE when subscribing to the`alarm` collection (PR [#9439](https://github.com/vatesfr/xen-orchestra/pull/9439))
+- [REST API] Do no longer create an `XO user authentication` task, when using an authentication token (PR [#9439](https://github.com/vatesfr/xen-orchestra/pull/9439))
+- [Backup] ensure no snapshot are left unattended after a job (PR [#9434](https://github.com/vatesfr/xen-orchestra/pull/9434))
+- [Backup] Fix replication leaving replica after partial incremental replication (PR [#9435](https://github.com/vatesfr/xen-orchestra/pull/9435))
+- [REST API] Fix ISO not mounted when creating a VM from `/pools/:id/actions/create_vm` (PR [#9461](https://github.com/vatesfr/xen-orchestra/pull/9461))
+- [REST API] Fix href path for backup-archives (PR [#9460](https://github.com/vatesfr/xen-orchestra/pull/9460))
+- [REST API/Pool/Dashboard] Only consider running VMs for the `cpuProvisioning.assigned` value [Forum#11604](https://xcp-ng.org/forum/topic/11604/xo-6-dedicated-thread-for-all-your-feedback/84) (PR [#9456](https://github.com/vatesfr/xen-orchestra/pull/9456))
+- [CopyButton] Fix copy to clipboard not working in non-HTTPS environments (PR [#9426](https://github.com/vatesfr/xen-orchestra/pull/9426))
+- [Backup/immutability] Fix typo in sample config file (PR [#9444](https://github.com/vatesfr/xen-orchestra/pull/9444))
+- [Host] Fix host dashboard CPU provisioning calculation [Forum#101359](https://xcp-ng.org/forum/topic/11604/xo-6-dedicated-thread-for-all-your-feedback/84) (PR [#9459](https://github.com/vatesfr/xen-orchestra/pull/9459))
+
+### Released packages
+
+- @vates/types 1.19.0
+- @xen-orchestra/backups 0.68.1
+- @xen-orchestra/immutable-backups 1.0.29
+- @xen-orchestra/web-core 0.42.0
+- @xen-orchestra/rest-api 0.24.1
+- @xen-orchestra/web 0.40.0
+- @xen-orchestra/fs 4.6.6
+- @xen-orchestra/proxy 0.29.45
+- xo-server 5.196.2
+
+## **6.1.0** (2026-01-29)
 
 ### Highlights
 

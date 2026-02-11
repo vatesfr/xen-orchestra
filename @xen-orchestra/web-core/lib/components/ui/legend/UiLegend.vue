@@ -61,7 +61,7 @@ const classNames = computed(() => toVariants({ accent }))
 
   &.accent--neutral {
     .circle-icon {
-      color: var(--color-neutral-txt-primary);
+      color: var(--color-neutral-txt-secondary);
     }
   }
 

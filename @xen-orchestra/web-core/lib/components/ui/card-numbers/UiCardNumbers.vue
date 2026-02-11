@@ -59,7 +59,7 @@ const percentValue = computed(() => {
     flex-direction: row;
 
     .label {
-      color: var(--color-neutral-txt-primary);
+      color: var(--color-neutral-txt-secondary);
     }
 
     .values {

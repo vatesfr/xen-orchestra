@@ -1,7 +1,6 @@
-import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
+import { asyncMapSettled } from '@xen-orchestra/async-map'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 
-import { formatFilenameDate } from '../../_filenameDate.mjs'
 import { getOldEntries } from '../../_getOldEntries.mjs'
 import { importIncrementalVm } from '../../_incrementalVm.mjs'
 import { Task } from '../../Task.mjs'
@@ -9,8 +8,18 @@ import { Task } from '../../Task.mjs'
 import { AbstractIncrementalWriter } from './_AbstractIncrementalWriter.mjs'
 import { MixinXapiWriter } from './_MixinXapiWriter.mjs'
 import { listReplicatedVms } from './_listReplicatedVms.mjs'
-import { COPY_OF, setVmOtherConfig, BASE_DELTA_VDI } from '../../_otherConfig.mjs'
+import {
+  COPY_OF,
+  setVmOtherConfig,
+  BASE_DELTA_VDI,
+  JOB_ID,
+  SCHEDULE_ID,
+  REPLICATED_TO_SR_UUID,
+  DATETIME,
+  VM_UUID,
+} from '../../_otherConfig.mjs'
 import assert from 'node:assert'
+import { formatFilenameDate } from '../../_filenameDate.mjs'
 
 export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWriter) {
   async checkBaseVdis(baseUuidToSrcVdi) {
@@ -91,15 +100,31 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
   }
 
   async _deleteOldEntries() {
-    return asyncMapSettled(this._oldEntries, vm => vm.$destroy())
+    return asyncMapSettled(this._oldEntries, vm => vm.$destroy({ bypassBlockedOperation: true }))
   }
 
-  #decorateVmMetadata(backup) {
+  #decorateVmMetadata(backup, timestamp) {
     const { _warmMigration } = this._settings
     const sr = this._sr
     const vm = backup.vm
+    const job = this._job
+    const scheduleId = this._scheduleId
 
+    vm.name_label = `${vm.name_label} - ${job.name} - (${formatFilenameDate(timestamp)})`
+    // update other_config data as soon as possible to ensure the next job
+    // will be able to detect any partial transfer and lean them
     vm.other_config[COPY_OF] = vm.uuid
+    vm.other_config[JOB_ID] = job.id
+    vm.other_config[SCHEDULE_ID] = scheduleId
+    vm.other_config[REPLICATED_TO_SR_UUID] = sr.uuid
+    // set the timestamp in the past to ensure any incomplete VM will be deleted on next run
+    vm.other_config[DATETIME] = formatFilenameDate(0)
+
+    vm.blocked_operations = {
+      start: 'Start operation for this vm is blocked, clone it if you want to use it.',
+      start_on: 'Start operation for this vm is blocked, clone it if you want to use it.',
+    }
+
     if (!_warmMigration) {
       vm.tags.push('Continuous Replication')
     }
@@ -118,6 +143,11 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
 
     Object.values(backup.vdis).forEach(vdi => {
       vdi.other_config[COPY_OF] = vdi.uuid
+      vdi.other_config[JOB_ID] = job.id
+      vdi.other_config[SCHEDULE_ID] = scheduleId
+      vdi.other_config[REPLICATED_TO_SR_UUID] = sr.uuid
+      vdi.other_config[VM_UUID] = vm.uuid
+
       if (sourceVdiUuids.length > 0) {
         const baseReplicatedTo = replicatedVdis.filter(
           replicatedVdi => replicatedVdi.other_config[COPY_OF] === vdi.other_config[BASE_DELTA_VDI]
@@ -144,12 +174,11 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     const sr = this._sr
     const job = this._job
     const scheduleId = this._scheduleId
-
     const { uuid: srUuid, $xapi: xapi } = sr
 
     let targetVmRef
     await Task.run({ name: 'transfer' }, async () => {
-      targetVmRef = await importIncrementalVm(this.#decorateVmMetadata(deltaExport), sr)
+      targetVmRef = await importIncrementalVm(this.#decorateVmMetadata(deltaExport, timestamp), sr)
       // size is mandatory to ensure the task have the right data
       return {
         size: Object.values(deltaExport.disks).reduce(
@@ -166,15 +195,8 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       !_warmMigration &&
         targetVm.ha_restart_priority !== '' &&
         Promise.all([targetVm.set_ha_restart_priority(''), targetVm.add_tags('HA disabled')]),
-      targetVm.set_name_label(`${vm.name_label} - ${job.name} - (${formatFilenameDate(timestamp)})`),
-      asyncMap(['start', 'start_on'], op =>
-        targetVm.update_blocked_operations(
-          op,
-          'Start operation for this vm is blocked, clone it if you want to use it.'
-        )
-      ),
       setVmOtherConfig(xapi, targetVmRef, {
-        timestamp,
+        timestamp, // updated at the end to mark the transfer as complete
         jobId: job.id,
         scheduleId,
         vmUuid: vm.uuid,
