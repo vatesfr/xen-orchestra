@@ -1,4 +1,4 @@
-<!-- v5 -->
+<!-- v7 -->
 <template>
   <span :class="classNames" class="ui-chip typo-body-regular-small" @click="!disabled && emit('remove')">
     <span class="text-ellipsis">
@@ -58,13 +58,14 @@ const iconColor = useMapper(
   padding: 0.4rem 0.8rem;
   border-radius: 10rem;
   color: var(--color-neutral-txt-primary);
+  cursor: pointer;
   min-height: 2.4rem;
   vertical-align: middle;
   white-space: nowrap;
   min-width: 0;
-  cursor: pointer;
 
   &.muted {
+    color: var(--color-neutral-txt-secondary);
     background-color: var(--color-info-item-disabled);
     pointer-events: none;
   }
