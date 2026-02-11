@@ -26,6 +26,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [OpenMetrics] Fix ECONNREFUSED on IPv6-only systems by binding to `localhost` instead of `127.0.0.1` (PR [#9489](https://github.com/vatesfr/xen-orchestra/pull/9489))
+- [REST API] Exclude removable and ISO storage from top 5 SRs usage (PR [#9495](https://github.com/vatesfr/xen-orchestra/pull/9495))
 
 ### Packages to release
 
