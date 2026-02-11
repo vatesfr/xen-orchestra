@@ -36,22 +36,18 @@ export function useXoBackupLogsUtils() {
     ].join(':')
   }
 
-  const findTransferTask = (tasks: any[]): number | undefined => {
-    for (const task of tasks) {
+  const findTransferTaskSize = (tasks: any[]): number => {
+    return tasks.reduce((totalSize, task) => {
       if (task.message === 'transfer' && task.result?.size !== undefined) {
-        return task.result.size
+        totalSize += task.result.size
       }
 
       if (Array.isArray(task.tasks)) {
-        const size = findTransferTask(task.tasks)
-
-        if (size !== undefined) {
-          return size
-        }
+        totalSize += findTransferTaskSize(task.tasks)
       }
-    }
 
-    return undefined
+      return totalSize
+    }, 0)
   }
 
   function getTransferSize(backupLog: XoBackupLog): Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>> | undefined {
@@ -61,13 +57,13 @@ export function useXoBackupLogsUtils() {
       return undefined
     }
 
-    return formatSizeRaw(findTransferTask(backupLog.tasks), 2)
+    return formatSizeRaw(findTransferTaskSize(backupLog.tasks), 2)
   }
 
   return {
     getBackupLogDate,
     getBackupLogDuration,
     getTransferSize,
-    findTransferTask,
+    findTransferTaskSize,
   }
 }
