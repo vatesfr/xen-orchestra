@@ -11,6 +11,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [REST API] Added PUT and DELETE `acl-roles/{id}/group/{goupId}` and `acl-roles/{id}/user/{goupId}` rest routes (PR [#9494](https://github.com/vatesfr/xen-orchestra/pull/9494))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -31,4 +33,5 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/rest-api minor
 <!--packages-end-->

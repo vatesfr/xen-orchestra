@@ -42,7 +42,7 @@ import type {
   XoConfigBackupArchive,
   XoPoolBackupArchive,
 } from '@vates/types/xo'
-import type { XoAclRole } from '@vates/types/lib/xen-orchestra/acl'
+import type { XoAclRole, XoGroupRole, XoUserRole } from '@vates/types/lib/xen-orchestra/acl'
 
 import type { InsertableXoServer } from '../servers/server.type.mjs'
 
@@ -121,6 +121,8 @@ export type XoApp = {
   }
 
   // methods ------------
+  addAclV2GroupRole(groupId: XoGroup['id'], roleId: XoAclRole['id']): Promise<XoGroupRole>
+  addAclV2UserRole(userId: XoUser['id'], roleId: XoAclRole['id']): Promise<XoUserRole>
   addUserToGroup: (userId: XoUser['id'], groupId: XoGroup['id']) => Promise<void>
   authenticateUser: (
     credentials: { token?: string; username?: string; password?: string },
@@ -145,6 +147,8 @@ export type XoApp = {
     userId: XoUser['id']
   }): Promise<XoAuthenticationToken>
   createUser(params: { name?: string; password?: string; [key: string]: unknown }): Promise<XoUser>
+  deleteAclV2GroupRole(groupId: XoGroup['id'], roleId: XoAclRole['id']): Promise<Boolean>
+  deleteAclV2UserRole(userId: XoUser['id'], roleId: XoAclRole['id']): Promise<Boolean>
   deleteGroup(id: XoGroup['id']): Promise<void>
   deleteUser(id: XoUser['id']): Promise<void>
   /* disconnect a server (XCP-ng/XenServer) */
