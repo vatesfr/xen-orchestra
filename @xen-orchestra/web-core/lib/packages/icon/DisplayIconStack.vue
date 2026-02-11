@@ -7,7 +7,7 @@
       :color
       :stroke="stroke ?? stack.config.borderColor"
     />
-    <DisplayIconAny v-for="(icon, index) of stack.icons" :key="index" :icon />
+    <DisplayIconAny v-for="(icon, index) of stack.icons" :key="index" :icon :color />
   </span>
 </template>
 
