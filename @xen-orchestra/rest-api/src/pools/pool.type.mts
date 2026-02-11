@@ -25,6 +25,7 @@ export type CreateVmAfterCreateParams = {
   network_config?: string
   boot?: boolean
   destroy_cloud_config_vdi?: boolean
+  createVtpm?: boolean
 }
 export type CreateVmBody = Omit<
   CreateVmParams,
@@ -53,11 +54,16 @@ export type CreateVmBody = Omit<
         userdervice: string
       }
   )[]
-  install?: {
-    method: 'cdrom' | 'network'
-    /** VDI ID for cdrom method. Empty string for network method */
-    repository: string | ''
-  }
+  install?:
+    | {
+        method: 'cdrom'
+        /** VDI ID */
+        repository: string
+      }
+    | {
+        method: 'network'
+        repository: ''
+      }
 } & CreateVmAfterCreateParams
 
 export type PoolDashboard = {

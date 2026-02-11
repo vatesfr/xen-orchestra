@@ -144,22 +144,26 @@ export default class {
     }
   }
 
-  async authenticateUser(credentials, userData, { bypassOtp = false } = {}) {
+  async authenticateUser(credentials, userData, { bypassOtp = false, bypassTaskCreation = false } = {}) {
     const { tasks } = this._app
-    const task = await tasks.create(
-      {
-        type: 'xo:authentication:authenticateUser',
-        name: 'XO user authentication',
-        credentials: Obfuscate.replace(credentials, '* obfuscated *'),
-        userData,
-      },
-      {
-        // only keep trace of failed attempts
-        clearLogOnSuccess: true,
-      }
-    )
 
-    return task.run(async () => {
+    let task
+    if (!bypassTaskCreation) {
+      task = await tasks.create(
+        {
+          type: 'xo:authentication:authenticateUser',
+          name: 'XO user authentication',
+          credentials: Obfuscate.replace(credentials, '* obfuscated *'),
+          userData,
+        },
+        {
+          // only keep trace of failed attempts
+          clearLogOnSuccess: true,
+        }
+      )
+    }
+
+    const auth = async () => {
       // don't even attempt to authenticate with empty password
       const { password } = credentials
       if (password === '') {
@@ -199,7 +203,9 @@ export default class {
 
       failures[username] = now
       throw invalidCredentials()
-    })
+    }
+
+    return task !== undefined ? task.run(auth) : auth()
   }
 
   // -----------------------------------------------------------------

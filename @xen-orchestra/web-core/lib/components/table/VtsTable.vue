@@ -1,6 +1,6 @@
 <template>
   <div class="vts-table" :class="className">
-    <VtsStateHero v-if="state" format="table" :type="state.type" :size="state.size ?? 'medium'">
+    <VtsStateHero v-if="state" format="table" :type="state.type" :size="state.size ?? 'medium'" :horizontal>
       {{ state.message }}
     </VtsStateHero>
     <div v-else class="table-container">
@@ -36,6 +36,7 @@ const { state, sticky } = defineProps<{
   state?: TableState
   sticky?: TableStickySide
   paginationBindings?: PaginationBindings
+  horizontal?: boolean
 }>()
 
 const wrapper = useTemplateRef('wrapper')

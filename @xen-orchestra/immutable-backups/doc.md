@@ -44,14 +44,14 @@ List of protected files :
 
 ```js
 const PATHS = [
-  // xo configuration backupq
+  // xo-config-backups/scheduleId/date/metadata.json
   'xo-config-backups/*/*/data',
   'xo-config-backups/*/*/data.json',
   'xo-config-backups/*/*/metadata.json',
-  // pool backupq
-  'xo-pool-metadata-backups/*/metadata.json',
-  'xo-pool-metadata-backups/*/data',
-  // vm backups , xo-vm-backups/<vmuuid>/
+  // xo-pool-metadata-backups/backupId/scheduleId/date/metadata.json
+  'xo-pool-metadata-backups/*/*/*/metadata.json',
+  'xo-pool-metadata-backups/*/*/*/data',
+  // xo-vm-backups/<vmuuid>/
   'xo-vm-backups/*/*.json',
   'xo-vm-backups/*/*.xva',
   'xo-vm-backups/*/*.xva.checksum',

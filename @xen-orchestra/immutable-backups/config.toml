@@ -1,7 +1,7 @@
 
 # how often does the lift immutability script will run to check if 
 # some files need to be made mutable 
-liftEvery =  1h
+liftEvery =  "1h"
 
 # you can add as many remote as you want, if you change the id ( here : remote1)
 #[remotes.remote1]

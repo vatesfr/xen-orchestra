@@ -13,10 +13,10 @@ const props = defineProps<{
 }>()
 
 const icons: Record<VM_POWER_STATE, IconName> = {
-  [VM_POWER_STATE.RUNNING]: 'legacy:running',
-  [VM_POWER_STATE.PAUSED]: 'legacy:paused',
-  [VM_POWER_STATE.SUSPENDED]: 'legacy:suspended',
-  [VM_POWER_STATE.HALTED]: 'legacy:halted',
+  [VM_POWER_STATE.RUNNING]: 'status:running-circle',
+  [VM_POWER_STATE.PAUSED]: 'status:paused-circle',
+  [VM_POWER_STATE.SUSPENDED]: 'status:suspended-circle',
+  [VM_POWER_STATE.HALTED]: 'status:halted-circle',
 }
 
 const icon = computed(() => icons[props.state])

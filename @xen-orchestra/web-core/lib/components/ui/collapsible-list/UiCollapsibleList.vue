@@ -42,7 +42,7 @@ const hasMoreItems = computed(() => remainingItems.value > 0)
 const isExpanded = ref(false)
 
 const style = computed(
-  () => `.ui-collapsible-list:not(.expanded) > .container *:nth-child(n+${visibleItems + 1}) { display: none }`
+  () => `.ui-collapsible-list:not(.expanded) > .container > *:nth-child(n+${visibleItems + 1}) { display: none }`
 )
 
 useStyleTag(style)

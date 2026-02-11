@@ -2,7 +2,7 @@
   <ComponentStory
     v-slot="{ properties }"
     :params="[
-      iconProp().preset('fa:display'),
+      iconProp().preset('object:vm'),
       prop('route')
         .required()
         .type('RouteLocationRaw')

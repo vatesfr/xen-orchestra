@@ -1,4 +1,4 @@
-<!-- v3 -->
+<!-- v4 -->
 <template>
   <div :class="toVariants({ accent })" class="ui-alert">
     <div class="content">
@@ -49,10 +49,10 @@ const slots = defineSlots<{
 const icon = useMapper<AlertAccent, IconName>(
   () => accent,
   {
-    info: 'legacy:status:info',
-    success: 'legacy:status:success',
-    warning: 'legacy:status:warning',
-    danger: 'legacy:status:danger',
+    info: 'status:info-circle',
+    success: 'status:success-circle',
+    warning: 'status:warning-circle',
+    danger: 'status:danger-circle',
   },
   'info'
 )
@@ -84,22 +84,22 @@ const icon = useMapper<AlertAccent, IconName>(
   }
 
   &.accent--info {
-    background-color: var(--color-info-background-selected);
+    background-color: var(--color-neutral-background-primary);
     border-color: var(--color-info-item-base);
   }
 
   &.accent--success {
-    background-color: var(--color-success-background-selected);
+    background-color: var(--color-neutral-background-primary);
     border-color: var(--color-success-item-base);
   }
 
   &.accent--warning {
-    background-color: var(--color-warning-background-selected);
+    background-color: var(--color-neutral-background-primary);
     border-color: var(--color-warning-item-base);
   }
 
   &.accent--danger {
-    background-color: var(--color-danger-background-selected);
+    background-color: var(--color-neutral-background-primary);
     border-color: var(--color-danger-item-base);
   }
 }

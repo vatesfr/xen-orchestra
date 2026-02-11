@@ -46,56 +46,8 @@
                     {{ t('pxe') }}
                   </UiRadioButton>
                 </template>
-                <!-- TODO need to be add later after confirmation -->
-                <!--
-                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="ssh-key">
-                    {{ t('ssh-key') }}
-                  </UiRadioButton>
-                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="custom_config">
-                    {{ t('custom-config') }}
-                  </UiRadioButton>
-                -->
               </div>
               <VtsSelect v-if="vmState.installMode === 'cdrom'" :id="vdiSelectId" accent="brand" />
-              <!-- TODO need to be add later after confirmation -->
-              <!--
-               <div v-if="vmState.installMode === 'SSH'" class="install-ssh-key-container">
-                  <div class="install-chips">
-                    <UiChip v-for="(key, index) in vmState.sshKeys" :key="index" accent="info" @remove="removeSshKey(index)">
-                      {{ key }}
-                    </UiChip>
-                  </div>
-                  <div class="install-ssh-key">
-                    <UiInput v-model="vmState.ssh_key" placeholder="Paste public key" accent="brand" />
-                    <UiButton accent="brand" size="medium" variant="primary" @click="addSshKey()">
-                      {{ t('add') }}
-                    </UiButton>
-                  </div>
-                </div>
-                <div v-if="vmState.installMode === 'custom_config'" class="install-custom-config">
-                  <div>
-                    <UiTextarea v-model="vmState.cloudConfig" placeholder="Write configurations" accent="brand" href="''">
-                      {{ t('user-config') }}
-                    </UiTextarea>
-                    <span class="typo p3-regular-italic">
-                      Available template variables <br />
-                      - {name}: the VM's name. - It must not contain "_" <br />
-                      - {index}: the VM's index,<br />
-                      it will take 0 in case of single VM Tip: escape any variable with a preceding backslash (\)
-                    </span>
-                  </div>
-                  <div>
-                    <UiTextarea v-model="vmState.networkConfig" placeholder="Write configurations" accent="brand" href="''">
-                      {{ t('network-config') }}
-                    </UiTextarea>
-                    <span class="typo p3-regular-italic">
-                      Network configuration is only compatible with the NoCloud datasource. <br />
-
-                      See Network config documentation.
-                    </span>
-                  </div>
-                </div>
-                -->
             </div>
             <!-- SYSTEM SECTION -->
             <UiTitle>{{ t('system') }}</UiTitle>
@@ -109,9 +61,24 @@
                 <VtsInputWrapper :label="t('boot-firmware')">
                   <VtsSelect :id="bootFirmwareSelectId" accent="brand" />
                 </VtsInputWrapper>
-                <div v-tooltip="{ placement: 'top-start', content: copyHostBiosStringsTooltipContent }">
-                  <UiCheckbox v-model="vmState.copyHostBiosStrings" accent="brand" :disabled="!canCopyBiosStrings">
+                <div
+                  v-if="canCopyBiosStrings"
+                  v-tooltip="{
+                    placement: 'top-start',
+                    content: selectedTemplateHasBiosStrings ? copyHostBiosStringsTooltipContent : undefined,
+                  }"
+                >
+                  <UiCheckbox
+                    v-model="vmState.copyHostBiosStrings"
+                    accent="brand"
+                    :disabled="selectedTemplateHasBiosStrings"
+                  >
                     {{ t('copy-host-bios-strings') }}
+                  </UiCheckbox>
+                </div>
+                <div v-else>
+                  <UiCheckbox v-model="vmState.createVtpm" accent="brand">
+                    {{ t('vtpm') }}
                   </UiCheckbox>
                 </div>
               </div>
@@ -169,15 +136,15 @@
             <UiTitle>{{ t('summary') }}</UiTitle>
             <VtsResources>
               <!-- TODO change label to manage pluralization when we can have multiple vm -->
-              <VtsResource icon="fa:display" count="1" :label="t('vm')" />
+              <VtsResource icon="object:vm" count="1" :label="t('vm')" />
               <VtsResource icon="fa:microchip" :count="vmState.vCPU" :label="t('vcpus')" />
               <VtsResource icon="fa:memory" :count="`${ramFormatted} GB`" :label="t('ram')" />
               <VtsResource
-                icon="fa:database"
+                icon="object:sr"
                 :count="vmState.existingVdis.length + vmState.vdis.length"
                 :label="t('vdis')"
               />
-              <VtsResource icon="fa:network-wired" :count="vmState.vifs.length" :label="t('interfaces')" />
+              <VtsResource icon="object:network" :count="vmState.vifs.length" :label="t('interfaces')" />
             </VtsResources>
           </div>
           <!-- TOASTER -->
@@ -206,20 +173,20 @@
 </template>
 
 <script lang="ts" setup>
-import NewVmNetworkTable from '@/components/new-vm/NewVmNetworkTable.vue'
-import NewVmSrTable from '@/components/new-vm/NewVmSrTable.vue'
-import { useVmCreateJob } from '@/jobs/vm/vm-create.job'
-import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
-import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
-import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
-import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
-import { useXoRoutes } from '@/remote-resources/use-xo-routes'
-import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
-import { useXoVbdCollection } from '@/remote-resources/use-xo-vbd-collection.ts'
-import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
-import { useXoVifCollection } from '@/remote-resources/use-xo-vif-collection.ts'
-import { useXoVmTemplateCollection } from '@/remote-resources/use-xo-vm-template-collection.ts'
-import type { Vdi, Vif, VifToSend, VmState } from '@/types/xo/new-vm.type'
+import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import NewVmNetworkTable from '@/modules/vm/components/new/NewVmNetworkTable.vue'
+import NewVmSrTable from '@/modules/vm/components/new/NewVmSrTable.vue'
+import { useXoVmCreateJob } from '@/modules/vm/jobs/xo-vm-create.job.ts'
+import { useXoVmTemplateCollection } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
+import type { Vdi, Vif, VifToSend, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
+import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsResource from '@core/components/resources/VtsResource.vue'
 import VtsResources from '@core/components/resources/VtsResources.vue'
@@ -290,6 +257,7 @@ const vmState = reactive<VmState>({
   vifs: [],
   existingVdis: [],
   pool: undefined,
+  createVtpm: false,
 })
 
 const bytesToGiB = (bytes: number) => Math.floor(bytes / 1024 ** 3)
@@ -337,7 +305,7 @@ const addStorageEntry = () => {
   }
 
   vmState.vdis.push({
-    name_label: (vmState.name || 'disk') + '_' + generateRandomString(4),
+    name_label: (vmState.new_vm_template?.name_label || 'disk') + '_' + generateRandomString(4),
     name_description: 'Created by XO',
     sr: defaultSr.value,
     size: 0,
@@ -347,18 +315,6 @@ const addStorageEntry = () => {
 const deleteItem = <T,>(array: T[], index: number) => {
   array.splice(index, 1)
 }
-
-// Todo: implement when the API will support
-// const addSshKey = () => {
-//   if (vmState.ssh_key.trim()) {
-//     vmState.sshKeys.push(vmState.ssh_key.trim())
-//     vmState.ssh_key = ''
-//   }
-// }
-//
-// const removeSshKey = (index: number) => {
-//   vmState.sshKeys.splice(index, 1)
-// }
 
 const isDiskTemplate = computed(() => {
   return (
@@ -379,17 +335,9 @@ const selectedTemplateHasBiosStrings = computed(
 
 const canCopyBiosStrings = computed(() => vmState.bootFirmware === 'bios')
 
-const copyHostBiosStringsTooltipContent = computed(() => {
-  if (vmState.bootFirmware === 'uefi') {
-    return t('boot-firmware-uefi')
-  }
-
-  if (selectedTemplateHasBiosStrings.value) {
-    return t('template-has-bios-strings')
-  }
-
-  return undefined
-})
+const copyHostBiosStringsTooltipContent = computed(() =>
+  selectedTemplateHasBiosStrings.value ? t('template-has-bios-strings') : undefined
+)
 
 const filteredSrs = computed(() => {
   return srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_usage > 0 && sr.$pool === vmState.pool?.id)
@@ -397,7 +345,7 @@ const filteredSrs = computed(() => {
 
 const getVmTemplateVdis = (template: XoVmTemplate) =>
   (template.template_info?.disks ?? []).map((disk, index) => ({
-    name_label: `${vmState?.name || 'disk'}_${index}_${generateRandomString(4)}`,
+    name_label: `${template?.name_label || 'disk'}_${index}_${generateRandomString(4)}`,
     name_description: 'Created by XO',
     size: bytesToGiB(disk.size),
     sr: defaultSr.value,
@@ -419,6 +367,7 @@ const getExistingVdis = (template: XoVmTemplate) => {
     }
 
     acc.push({
+      id: vdi.id,
       name_label: vdi.name_label,
       name_description: vdi.name_description,
       size: bytesToGiB(vdi.size),
@@ -648,6 +597,7 @@ const vmData = computed(() => {
     template: vmState.new_vm_template?.uuid,
     hvmBootFirmware: vmState.bootFirmware,
     copyHostBiosStrings: vmState.copyHostBiosStrings,
+    createVtpm: vmState.createVtpm,
     ...optionalFields,
   }
 })
@@ -655,7 +605,7 @@ const vmData = computed(() => {
 const payload = computed(() => ({ ...vmData.value, poolId: vmState.pool?.id }))
 // TODO: multiple VM creation not possible in the UI for now
 // Only pass a single payload
-const { run, isRunning, canRun } = useVmCreateJob([payload])
+const { run, isRunning, canRun } = useXoVmCreateJob([payload])
 
 const createNewVM = async () => {
   try {
@@ -812,12 +762,15 @@ const { id: bootFirmwareSelectId } = useFormSelect(bootFirmwareOptions, {
 })
 
 watch(
-  () => vmState.new_vm_template,
+  () => [vmState.new_vm_template, vmState.bootFirmware],
   () => {
-    if (vmState.bootFirmware !== 'bios') {
+    if (vmState.bootFirmware === 'bios') {
+      vmState.createVtpm = false
+      if (selectedTemplateHasBiosStrings.value) {
+        vmState.copyHostBiosStrings = true
+      }
+    } else {
       vmState.copyHostBiosStrings = false
-    } else if (selectedTemplateHasBiosStrings.value) {
-      vmState.copyHostBiosStrings = true
     }
   }
 )
@@ -865,38 +818,9 @@ watch(
       }
     }
 
-    .install-custom-config {
-      display: flex;
-      margin-block-start: 3rem;
-      gap: 4.2rem;
-    }
-
-    .install-ssh-key-container {
-      margin-block-start: 3rem;
-    }
-
-    .install-ssh-key {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      width: 50%;
-    }
-
-    .install-chips {
-      display: flex;
-      gap: 0.5rem;
-      margin-block-end: 1rem;
-    }
-
     .memory-container {
       display: flex;
       gap: 10.8rem;
-    }
-
-    .select {
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
     }
   }
 

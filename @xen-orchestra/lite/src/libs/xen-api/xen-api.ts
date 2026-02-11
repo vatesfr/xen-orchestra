@@ -3,6 +3,7 @@ import { createVbdOperations } from '@/libs/xen-api/operations/vbd-operations'
 import { createVdiOperations } from '@/libs/xen-api/operations/vdi-operations'
 import { createVifOperations } from '@/libs/xen-api/operations/vif-operations'
 import { createVmOperations } from '@/libs/xen-api/operations/vm-operations'
+import { createVtpmOperations } from '@/libs/xen-api/operations/vtpm-operations'
 import type {
   ObjectType,
   ObjectTypeToRecord,
@@ -270,5 +271,9 @@ export default class XenApi {
 
   get vbd() {
     return createVbdOperations(this)
+  }
+
+  get vtpm() {
+    return createVtpmOperations(this)
   }
 }

@@ -7,8 +7,10 @@
 
 import { createLogger } from '@xen-orchestra/log'
 
+import type { HostStatusItem, LabelLookupData, SrDataItem } from './index.mjs'
 import type { ParsedMetric, ParsedRrdData } from './rrd-parser.mjs'
-import type { SrDataItem } from './index.mjs'
+
+export type { HostStatusItem, SrDataItem }
 
 const logger = createLogger('xo:xo-server-openmetrics:formatter')
 
@@ -46,32 +48,6 @@ export interface FormattedMetric {
   value: number
   /** Timestamp in seconds (Unix epoch) per OpenMetrics specification */
   timestamp: number
-}
-
-// Label lookup types for enriching metrics with human-readable names
-interface VmLabelInfo {
-  name_label: string
-  vbdDeviceToVdiName: Record<string, string>
-  vifIndexToNetworkName: Record<string, string>
-}
-
-interface HostLabelInfo {
-  name_label: string
-  pifDeviceToNetworkName: Record<string, string>
-}
-
-interface SrLabelInfo {
-  name_label: string
-}
-
-/** SR data for capacity metrics - re-exported from index for convenience */
-export type { SrDataItem }
-
-interface LabelLookupData {
-  vms: Record<string, VmLabelInfo>
-  hosts: Record<string, HostLabelInfo>
-  srs: Record<string, SrLabelInfo>
-  srSuffixToUuid: Record<string, string>
 }
 
 interface HostCredentials {
@@ -549,7 +525,7 @@ function computeVmCpuUsageFallback(metrics: FormattedMetric[]): FormattedMetric[
       const averageUsage = sum / coreValues.size
 
       // Get a sample metric to copy labels from (without core label)
-      const sampleEntry = coreValues.values().next().value
+      const [sampleEntry] = coreValues.values()
       if (sampleEntry === undefined) {
         continue
       }
@@ -706,12 +682,25 @@ export function transformMetric(
         if (vmInfo.name_label !== '') {
           labels.vm_name = vmInfo.name_label
         }
+        labels.is_control_domain = vmInfo.is_control_domain ? 'true' : 'false'
 
-        // For VBD metrics, add vdi_name
+        // For VBD metrics, add vdi_name and sr_name
         if (extractedLabels.device !== undefined) {
           const vdiName = vmInfo.vbdDeviceToVdiName[extractedLabels.device]
           if (vdiName !== undefined && vdiName !== '') {
             labels.vdi_name = vdiName
+          }
+
+          // Resolve sr_name via device → VDI UUID → SR UUID → SR name
+          const vdiUuid = vmInfo.vbdDeviceToVdiUuid[extractedLabels.device]
+          if (vdiUuid !== undefined) {
+            const srUuid = labelContext.labels.vdiUuidToSrUuid[vdiUuid]
+            if (srUuid !== undefined) {
+              const srInfo = labelContext.labels.srs[srUuid]
+              if (srInfo !== undefined && srInfo.name_label !== '') {
+                labels.sr_name = srInfo.name_label
+              }
+            }
           }
         }
 
@@ -905,6 +894,44 @@ export function formatSrMetrics(srDataList: SrDataItem[]): FormattedMetric[] {
       type: 'gauge',
       labels: { ...baseLabels },
       value: sr.physical_usage,
+      timestamp,
+    })
+  }
+
+  return metrics
+}
+
+/**
+ * Format host status metrics.
+ *
+ * Creates one FormattedMetric per host with power_state and enabled labels.
+ *
+ * @param hostStatusList - Array of host status data
+ * @returns Array of FormattedMetric entries for host status
+ */
+export function formatHostStatusMetrics(hostStatusList: HostStatusItem[]): FormattedMetric[] {
+  const metrics: FormattedMetric[] = []
+  const timestamp = Math.floor(Date.now() / 1000)
+
+  for (const host of hostStatusList) {
+    const labels: Record<string, string> = {
+      pool_id: host.pool_id,
+      uuid: host.uuid,
+      host_name: host.name_label,
+      power_state: host.power_state,
+      enabled: String(host.enabled),
+    }
+
+    if (host.pool_name !== '') {
+      labels.pool_name = host.pool_name
+    }
+
+    metrics.push({
+      name: `${METRIC_PREFIX}_host_status`,
+      help: 'Host status (1 = current state)',
+      type: 'gauge',
+      labels,
+      value: 1,
       timestamp,
     })
   }

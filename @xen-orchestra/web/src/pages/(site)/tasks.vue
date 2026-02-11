@@ -13,11 +13,11 @@
 </template>
 
 <script setup lang="ts">
-import TaskSidePanel from '@/components/tasks/panel/TaskSidePanel.vue'
-import TasksList from '@/components/tasks/TasksList.vue'
-import { useXoTaskCollection } from '@/remote-resources/use-xo-task-collection.ts'
-import { useXoUserCollection } from '@/remote-resources/use-xo-user-collection.ts'
-import { convertTaskToCore } from '@/utils/convert-task-to-core.util.ts'
+import TaskSidePanel from '@/modules/task/components/list/panel/TaskSidePanel.vue'
+import TasksList from '@/modules/task/components/list/TasksList.vue'
+import { useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
+import { convertXoTaskToCore } from '@/modules/task/utils/convert-xo-task-to-core.util.ts'
+import { useXoUserCollection } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
@@ -44,13 +44,13 @@ const convertedTasks = computed(() =>
     const userId = task.properties.userId
 
     if (!userId) {
-      return convertTaskToCore(task)
+      return convertXoTaskToCore(task)
     }
 
     const user = getUserById(userId as XoUser['id'])
 
     // TODO , just put username when it is available in endpoint
-    return convertTaskToCore(task, user?.name ? user.name : user?.email)
+    return convertXoTaskToCore(task, user?.name ? user.name : user?.email)
   })
 )
 </script>

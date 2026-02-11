@@ -2,14 +2,14 @@
   <MenuItem :busy="areVmsBusyToStart" :disabled="!areVmsHalted" icon="fa:play" @click="xenApi.vm.start(vmRefs)">
     {{ t('action:start') }}
   </MenuItem>
-  <MenuItem :busy="areVmsBusyToStartOnHost" :disabled="!areVmsHalted" icon="fa:server">
+  <MenuItem :busy="areVmsBusyToStartOnHost" :disabled="!areVmsHalted" icon="object:host">
     {{ t('action:start-on-host') }}
     <template #submenu>
-      <MenuItem v-for="host in hosts" :key="host.$ref" icon="fa:server" @click="xenApi.vm.startOn(vmRefs, host.$ref)">
+      <MenuItem v-for="host in hosts" :key="host.$ref" icon="object:host" @click="xenApi.vm.startOn(vmRefs, host.$ref)">
         <div class="wrapper">
           {{ host.name_label }}
           <div>
-            <VtsIcon v-if="host.$ref === pool?.master" name="legacy:primary" size="medium" class="star" />
+            <VtsIcon v-if="host.$ref === pool?.master" name="status:primary-circle" size="medium" class="star" />
             <PowerStateIcon :state="getHostState(host)" />
           </div>
         </div>

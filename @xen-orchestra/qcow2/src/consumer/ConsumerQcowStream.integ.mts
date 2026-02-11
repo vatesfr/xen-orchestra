@@ -13,16 +13,17 @@ class MockDisk extends RandomAccessDisk {
   private readonly size: number
   private readonly blockIndex: number[]
 
-  constructor(nbBlocks: number, blockIndex: number[]) {
+  constructor(nbBlocks: number, blockIndex: number[], size = -1) {
     super()
-    this.size = nbBlocks * this.getBlockSize()
+    this.size = size !== -1 ? size : nbBlocks * this.getBlockSize()
     this.blockIndex = blockIndex
   }
 
   async readBlock(index: number): Promise<DiskBlock> {
+    const remaining = this.size - this.getBlockSize() * index
     return {
       index,
-      data: Buffer.alloc(this.getBlockSize(), index % 256),
+      data: Buffer.alloc(Math.min(remaining, this.getBlockSize()), index % 256),
     }
   }
 
@@ -182,13 +183,45 @@ describe('QCOW2 Stream Generation', () => {
       console.log('✅ Large disk validation passed')
     } catch (err) {
       console.error('Error in large disk test:', err)
-      process.exit()
-      throw err
     } finally {
       try {
         await fs.unlink(tmpFile)
       } catch (err) {
         console.error('Failed to clean up large test file:', err)
+      }
+    }
+  })
+
+  it('should handle unaligned disks', async () => {
+    const NB_BLOCKS = 5
+    const RATIO = 3
+    const disk = new MockDisk(
+      NB_BLOCKS,
+      Array.from({ length: NB_BLOCKS }, (_, i) => i),
+      NB_BLOCKS * 64 * 1024 - 512 // cut short the last block
+    )
+    const tmpFile = join(tmpdir(), `test-unaligned-${Date.now()}.qcow2`)
+    try {
+      const stream = toQcow2Stream(disk)
+      const file = await fs.open(tmpFile, 'w')
+      await new Promise((resolve, reject) => {
+        const writeStream = file.createWriteStream()
+        stream.pipe(writeStream)
+        writeStream.on('finish', () => resolve(undefined))
+        writeStream.on('error', reject)
+      })
+      await file.close()
+      const { stdout } = await execa('qemu-img', ['check', tmpFile])
+
+      assert.match(stdout, /No errors were found/, 'Large file validation failed')
+      console.log('✅ Large disk validation passed')
+    } catch (err) {
+      console.error('Error in unaligned disk test:', err)
+    } finally {
+      try {
+        await fs.unlink(tmpFile)
+      } catch (err) {
+        console.error('Failed to clean up unaligned file:', err)
       }
     }
   })

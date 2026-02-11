@@ -46,6 +46,13 @@ import {
   XenApiVtpmWrapped,
 } from './index.mjs'
 
+export type XapiConnection = Xapi & {
+  status: string
+  pool?: { uuid: string }
+  sessionId: string
+  _url?: { protocol: string; hostname: string; port?: string }
+}
+
 type XapiRecordByXapiXoRecord = {
   gpuGroup: XenApiGpuGroupWrapped
   host: XenApiHostWrapped
@@ -73,6 +80,7 @@ type XapiRecordByXapiXoRecord = {
 }
 export type XoApp = {
   config: {
+    get<T = string>(path: string): T
     getOptional(path: string): Record<string, string> | undefined
     getOptionalDuration(path: string): number | undefined
     getGuiRoutes(): Promise<{
@@ -124,7 +132,7 @@ export type XoApp = {
   authenticateUser: (
     credentials: { token?: string; username?: string; password?: string },
     userData?: { ip?: string },
-    opts?: { bypassOtp?: boolean }
+    opts?: { bypassOtp?: boolean; bypassTaskCreation?: boolean }
   ) => Promise<{ bypassOtp: boolean; expiration: number; user: XoUser }>
   /* Throw if no authorization */
   checkFeatureAuthorization(featureCode: string): Promise<void>
@@ -244,4 +252,6 @@ export type XoApp = {
       name?: string
     }
   ): void
+  getAllXapis(): Record<string, XapiConnection>
+  getObjects(opts?: { filter?: Record<string, unknown>; limit?: number }): Record<string, XapiXoRecord>
 }

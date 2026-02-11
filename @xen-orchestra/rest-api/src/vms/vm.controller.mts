@@ -246,6 +246,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/start')
+  @Middlewares(json())
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)

@@ -20,6 +20,7 @@ module.exports = async function raw(args) {
   await Disposable.use(async function* () {
     const handler = yield getSyncedHandler({ url: args[0] })
     const vhd = yield openVhd(handler, args[1])
+    await vhd.readBlockAllocationTable()
     await writeStream(vhd.rawContent(), resolve(args[2]))
   })
 }

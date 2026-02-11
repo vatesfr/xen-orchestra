@@ -73,6 +73,14 @@ export const locales: Locales = {
     code: 'ja',
     name: '日本語',
   },
+  fi: {
+    code: 'fi',
+    name: 'Suomi',
+  },
+  pl: {
+    code: 'pl',
+    name: 'Polski',
+  },
 }
 
 export default createI18n({

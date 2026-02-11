@@ -10,7 +10,7 @@
           <UiLink
             v-if="backupNetwork !== undefined"
             :to="`/pool/${pool.uuid}/network?id=${backupNetwork.uuid}`"
-            icon="fa:network-wired"
+            icon="object:network"
             size="medium"
           >
             {{ backupNetwork.name_label }}

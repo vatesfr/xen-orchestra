@@ -4,7 +4,7 @@
     :params="[
       prop('route').type('RouteLocationRaw').preset('#'),
       prop('disabled').bool().widget(),
-      iconProp().preset('fa:city'),
+      iconProp().preset('object:pool'),
       slot().help('Meant to receive the object\'s label'),
       slot('icon').help('Meant to receive a UiIcon or ObjectIcon component'),
       setting('label').preset('Pool name').widget(),

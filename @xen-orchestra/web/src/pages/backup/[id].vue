@@ -10,8 +10,8 @@
 </template>
 
 <script lang="ts" setup>
-import BackupHeader from '@/components/backups/BackupHeader.vue'
-import { useXoBackupJobCollection } from '@/remote-resources/use-xo-backup-job-collection'
+import BackupHeader from '@/modules/backup/components/BackupHeader.vue'
+import { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
 import { useUiStore } from '@core/stores/ui.store'

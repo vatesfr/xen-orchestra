@@ -10,7 +10,7 @@ export const useNewVmSrColumns = defineColumns(() => {
   return {
     sr: useSelectColumn({
       headerLabel: () => t('storage-repositories'),
-      headerIcon: 'fa:database',
+      headerIcon: 'object:sr',
     }),
 
     diskName: useInputColumn({

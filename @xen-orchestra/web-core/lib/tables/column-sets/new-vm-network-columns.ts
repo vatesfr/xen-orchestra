@@ -10,7 +10,7 @@ export const useNewVmNetworkColumns = defineColumns(() => {
   return {
     interface: useSelectColumn({
       headerLabel: () => t('interfaces'),
-      headerIcon: 'fa:network-wired',
+      headerIcon: 'object:network',
     }),
 
     mac: useInputColumn({

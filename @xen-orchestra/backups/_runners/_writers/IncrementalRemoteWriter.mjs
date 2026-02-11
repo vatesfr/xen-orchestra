@@ -244,6 +244,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
 
       return { size }
     })
+    metadataContent.tags = await this.getLongTermRetentionTags(metadataContent)
     metadataContent.size = size // @todo return exactly the size written by this writer
     this._metadataFileName = await adapter.writeVmBackupMetadata(vm.uuid, metadataContent)
 

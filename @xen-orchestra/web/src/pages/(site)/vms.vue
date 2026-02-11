@@ -3,7 +3,7 @@
     <UiCard class="container">
       <VmsTable :vms :busy="!areVmsReady" :error="hasVmFetchError" />
     </UiCard>
-    <VmsSidePanel v-if="selectedVm" :vm="selectedVm" @close="selectedVm = undefined" />
+    <VmSidePanel v-if="selectedVm" :vm="selectedVm" @close="selectedVm = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
       <VtsStateHero format="panel" type="no-selection" size="medium">
         {{ t('select-to-see-details') }}
@@ -13,9 +13,9 @@
 </template>
 
 <script setup lang="ts">
-import VmsSidePanel from '@/components/vms/panel/VmsSidePanel.vue'
-import VmsTable from '@/components/vms/VmsTable.vue'
-import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
+import VmSidePanel from '@/modules/vm/components/list/panel/VmSidePanel.vue'
+import VmsTable from '@/modules/vm/components/list/VmsTable.vue'
+import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'

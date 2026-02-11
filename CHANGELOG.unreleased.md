@@ -9,29 +9,20 @@
 
 ### Enhancements
 
-> Users must be able to say: “Nice enhancement, I'm eager to test it”
+> Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [OpenMetrics] Expose SR capacity metrics: `xcp_sr_virtual_size_bytes`, `xcp_sr_physical_size_bytes`, `xcp_sr_physical_usage_bytes` (PR [#9360](https://github.com/vatesfr/xen-orchestra/pull/9360))
-- [REST API] Update `/dashboard` endpoint to also return disconnected servers, disabled hosts, the status of all VMs, and compute `jobs` from the last seven days (PR [#9207](https://github.com/vatesfr/xen-orchestra/pull/9207))
-- [vhd-cli] Prevent using invalid options (PR [#9386](https://github.com/vatesfr/xen-orchestra/pull/9386))
-- [REST API] Add endpoints to reconfigure management interface for hosts and pools (PR [#9369](https://github.com/vatesfr/xen-orchestra/pull/9369))
+- [OpenMetrics] Add `is_control_domain` label to VM metrics to differentiate dom0 VMs from regular VMs (PR [#9474](https://github.com/vatesfr/xen-orchestra/pull/9474))
+- [OpenMetrics] Add `xcp_host_status` metric exposing host status (running/maintenance/halted/unknown) for all hosts, including non-running ones (PR [#9457](https://github.com/vatesfr/xen-orchestra/pull/9457))
+- [REST API] Add `objectType` to tasks for resolved object references (PR [#9429](https://github.com/vatesfr/xen-orchestra/pull/9429))
+- [Warm Migration] the api call now return the new VM uuid (PR [#94653](https://github.com/vatesfr/xen-orchestra/pull/9465))
+- [Warm Migration] stopped VM can be warm migrated (PR [#94653](https://github.com/vatesfr/xen-orchestra/pull/9465))
+- [Plugins/load balancer] Add configurable VM migration cooldown to prevent oscillation (default 30min) (PR [#9388](https://github.com/vatesfr/xen-orchestra/pull/9388))
 - [REST API] Expose `POST /rest/v0/vms/:id/actions/migrate` to migrate a VM (PR [#9414](https://github.com/vatesfr/xen-orchestra/pull/9414))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [REST API] Fix `/vms/:id/dashboard` _cannot read properties of undefined (reading 'id')_ (PR [#9380](https://github.com/vatesfr/xen-orchestra/pull/9380))
-- [REST API] `vms/:id/dashboard` return now an empty object for the `replication` key instead of undefined (in case of no replication) (PR [#9380](https://github.com/vatesfr/xen-orchestra/pull/9380))
-- [REST API] `vms/:id/dashboard` rename `not-in-job` into `not-in-active-job` for the `vmProtection` key to avoid confusion (PR [#9380](https://github.com/vatesfr/xen-orchestra/pull/9380))
-- [REST API] Don't return VDI-snapshot for `/vms/:id/vdis` endpoints (PR [#9381](https://github.com/vatesfr/xen-orchestra/pull/9381))
-- [Plugins/Backup-reports] Prevent succesful backups from occasionally being reported as interrupted [Forum#11721](https://xcp-ng.org/forum/topic/11721) (PR [#9400](https://github.com/vatesfr/xen-orchestra/pull/9400))
-- [REST API] `/dashboard` return now `{isEmpty: true}` instead of undefined in case there is no data to compute (PR [#9395](https://github.com/vatesfr/xen-orchestra/pull/9395))
-- [Backup] Fix `read xxx bytes, maximum size allowed is yyy` for full backup on S3 (PR [#9396](https://github.com/vatesfr/xen-orchestra/pull/9396))
-- [VM migration] Fix migration with storage motion was always performed when using a migration network (PR [#9414](https://github.com/vatesfr/xen-orchestra/pull/9414))
-
-- **XO 6:**
-  - [Sidebar] Removal borders top and right of sidebar in mobile (PR [#9366](https://github.com/vatesfr/xen-orchestra/pull/9366))
 
 ### Packages to release
 
@@ -49,13 +40,11 @@
 
 <!--packages-start-->
 
-- @vates/types minor
-- @xen-orchestra/backups patch
+- @xen-orchestra/fs patch
 - @xen-orchestra/rest-api minor
-- @xen-orchestra/web minor
-- @xen-orchestra/web-core minor
-- vhd-cli minor
+- @xen-orchestra/web patch
 - xo-server minor
+- xo-server-load-balancer minor
 - xo-server-openmetrics minor
 
 <!--packages-end-->

@@ -1,16 +1,22 @@
 <template>
   <div class="networks" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <PoolNetworksTable :busy="!areNetworksReady" :error="hasNetworkFetchError" :networks :pool />
-      <PoolNetworksTable
-        :busy="!areNetworksReady"
-        :error="hasNetworkFetchError"
-        :networks="internalNetworks"
-        :pool
-        internal
-      />
+      <NetworksTable :busy="!areNetworksReady" :error="hasNetworkFetchError" :networks>
+        <template #title-actions>
+          <UiLink :href="xo5NewNetworkHref" icon="fa:plus" size="medium">
+            {{ t('action:add-network-in-xo-5') }}
+          </UiLink>
+        </template>
+      </NetworksTable>
+      <NetworksTable :busy="!areNetworksReady" :error="hasNetworkFetchError" :networks="internalNetworks" internal>
+        <template #title-actions>
+          <UiLink :href="xo5NewNetworkHref" icon="fa:plus" size="medium">
+            {{ t('action:add-host-internal-network-in-xo-5') }}
+          </UiLink>
+        </template>
+      </NetworksTable>
     </UiCard>
-    <PoolNetworkSidePanel v-if="selectedNetwork" :network="selectedNetwork" @close="selectedNetwork = undefined" />
+    <NetworkSidePanel v-if="selectedNetwork" :network="selectedNetwork" @close="selectedNetwork = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
       <VtsStateHero format="panel" type="no-selection" size="medium">
         {{ t('select-to-see-details') }}
@@ -20,11 +26,13 @@
 </template>
 
 <script setup lang="ts">
-import PoolNetworkSidePanel from '@/components/pool/network/PoolNetworkSidePanel.vue'
-import PoolNetworksTable from '@/components/pool/network/PoolNetworksTable.vue'
-import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
+import NetworksTable from '@/modules/network/components/NetworksTable.vue'
+import NetworkSidePanel from '@/modules/network/components/panel/NetworkSidePanel.vue'
+import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store.ts'
@@ -37,6 +45,9 @@ const { pool } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+const { buildXo5Route } = useXoRoutes()
+const xo5NewNetworkHref = computed(() => buildXo5Route(`/new/network?pool=${pool.id}`))
 
 const { areNetworksReady, hasNetworkFetchError, networksWithoutPifs, networksWithPifs, getNetworkById } =
   useXoNetworkCollection()

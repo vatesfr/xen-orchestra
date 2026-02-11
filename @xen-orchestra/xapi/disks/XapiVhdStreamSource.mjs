@@ -186,11 +186,17 @@ export class XapiVhdStreamSource extends Disk {
   buildDiskBlockGenerator() {
     assert.strictEqual(this.#initDone, true, 'init must be done to call buildDiskGenerator')
     const blockIndexes = this.#blocks
+    const virtualSize = this.getVirtualSize()
+    const blockSize = this.getBlockSize()
     const self = this
     async function* generator() {
       for (const { offset, index } of blockIndexes) {
         await self.#skip(offset - self.#streamOffset) // this will skip the bitmap
-        const data = await self.#read(DEFAULT_BLOCK_SIZE)
+
+        // some tools generate vhd with incomplete last block , no need to read  the last one completely
+        // this is similar how XapiStreamNbd use nbd, and can provide a truncated last block
+        const remaining = virtualSize - index * blockSize
+        const data = await self.#read(Math.min(DEFAULT_BLOCK_SIZE, remaining))
         yield {
           index,
           data,

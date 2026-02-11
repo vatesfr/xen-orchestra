@@ -22,8 +22,10 @@ import { createLogger } from '@xen-orchestra/log'
 import { parseRrdResponse, type ParsedRrdData } from './rrd-parser.mjs'
 import {
   formatAllPoolsToOpenMetrics,
+  formatHostStatusMetrics,
   formatSrMetrics,
   formatToOpenMetrics,
+  type HostStatusItem,
   type SrDataItem,
 } from './openmetric-formatter.mjs'
 
@@ -59,7 +61,9 @@ interface HostCredentials {
 // Label lookup types for enriching metrics with human-readable names
 interface VmLabelInfo {
   name_label: string
+  is_control_domain: boolean
   vbdDeviceToVdiName: Record<string, string>
+  vbdDeviceToVdiUuid: Record<string, string>
   vifIndexToNetworkName: Record<string, string>
 }
 
@@ -77,6 +81,7 @@ interface LabelLookupData {
   hosts: Record<string, HostLabelInfo>
   srs: Record<string, SrLabelInfo>
   srSuffixToUuid: Record<string, string>
+  vdiUuidToSrUuid: Record<string, string>
 }
 
 interface XapiCredentialsPayload {
@@ -86,6 +91,10 @@ interface XapiCredentialsPayload {
 
 interface SrDataPayload {
   srs: SrDataItem[]
+}
+
+interface HostStatusPayload {
+  hosts: HostStatusItem[]
 }
 
 interface PendingRequest<T> {
@@ -149,6 +158,10 @@ function handleParentMessage(rawMessage: unknown): void {
       handleSrDataResponse(message)
       break
 
+    case 'HOST_STATUS':
+      handleHostStatusResponse(message)
+      break
+
     default:
       logger.warn('Unknown message type from parent', { type: message.type })
   }
@@ -194,6 +207,20 @@ function handleCredentialsResponse(message: IpcMessage): void {
 }
 
 function handleSrDataResponse(message: IpcMessage): void {
+  const requestId = message.requestId
+  if (requestId === undefined) {
+    return
+  }
+
+  const pending = pendingRequests.get(requestId)
+  if (pending !== undefined) {
+    clearTimeout(pending.timer)
+    pendingRequests.delete(requestId)
+    pending.resolve(message.payload)
+  }
+}
+
+function handleHostStatusResponse(message: IpcMessage): void {
   const requestId = message.requestId
   if (requestId === undefined) {
     return
@@ -269,6 +296,25 @@ async function requestSrData(): Promise<SrDataPayload> {
     })
 
     sendToParent({ type: 'GET_SR_DATA', requestId })
+  })
+}
+
+async function requestHostStatusData(): Promise<HostStatusPayload> {
+  const requestId = `host-status-${++requestIdCounter}`
+
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pendingRequests.delete(requestId)
+      reject(new Error('Timeout waiting for host status data from parent'))
+    }, IPC_REQUEST_TIMEOUT_MS)
+
+    pendingRequests.set(requestId, {
+      resolve: value => resolve(value as HostStatusPayload),
+      reject,
+      timer,
+    })
+
+    sendToParent({ type: 'GET_HOST_STATUS', requestId })
   })
 }
 
@@ -350,10 +396,17 @@ async function fetchRrdFromHost(host: HostCredentials): Promise<ParsedRrdData | 
  * @returns OpenMetrics-formatted string
  */
 async function collectMetrics(): Promise<string> {
-  const credentials = await requestXapiCredentials()
-  const srData = await requestSrData()
+  const [credentials, srData, hostStatusData] = await Promise.all([
+    requestXapiCredentials(),
+    requestSrData(),
+    requestHostStatusData(),
+  ])
 
-  logger.debug('Collecting metrics', { hostCount: credentials.hosts.length, srCount: srData.srs.length })
+  logger.debug('Collecting metrics', {
+    hostCount: credentials.hosts.length,
+    srCount: srData.srs.length,
+    hostStatusCount: hostStatusData.hosts.length,
+  })
 
   if (credentials.hosts.length === 0) {
     return '# No connected hosts\n# EOF'
@@ -407,7 +460,12 @@ async function collectMetrics(): Promise<string> {
   const srMetricsOutput = srMetrics.length > 0 ? formatToOpenMetrics(srMetrics) : ''
   logger.debug('Formatted SR metrics', { srCount: srMetrics.length })
 
-  // Combine pool metrics with RRD metrics and SR metrics
+  // Format host status metrics
+  const hostStatusMetrics = formatHostStatusMetrics(hostStatusData.hosts)
+  const hostStatusOutput = hostStatusMetrics.length > 0 ? formatToOpenMetrics(hostStatusMetrics) : ''
+  logger.debug('Formatted host status metrics', { hostCount: hostStatusMetrics.length })
+
+  // Combine pool metrics with RRD metrics, SR metrics, and host status metrics
   // Remove the # EOF from rrdMetrics if present (we'll add our own)
   const rrdMetricsWithoutEof = rrdMetrics.replace(/\n# EOF$/, '')
 
@@ -419,6 +477,10 @@ async function collectMetrics(): Promise<string> {
 
   if (srMetricsOutput !== '') {
     allMetricsSections.push(srMetricsOutput)
+  }
+
+  if (hostStatusOutput !== '') {
+    allMetricsSections.push(hostStatusOutput)
   }
 
   return allMetricsSections.join('\n') + '\n# EOF'

@@ -1,7 +1,7 @@
 <!-- v1.0 -->
 <template>
   <slot :is-open="isOpen" :open="open" name="trigger" />
-  <Teleport :disabled="!shouldTeleport" to="body">
+  <Teleport :disabled="!hasTrigger" to="body">
     <ul
       v-if="!hasTrigger || isOpen"
       ref="menu"
@@ -50,9 +50,7 @@ let clearClickOutsideEvent: (() => void) | undefined
 
 const hasTrigger = useSlots().trigger !== undefined
 
-const shouldTeleport = hasTrigger && !inject(IK_MENU_TELEPORTED, false)
-
-if (shouldTeleport) {
+if (hasTrigger) {
   provide(IK_MENU_TELEPORTED, true)
 }
 
