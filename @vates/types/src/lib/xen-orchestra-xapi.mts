@@ -121,6 +121,7 @@ export interface Xapi {
       xenstore_data?: Record<string, string>
     }
   ): Promise<XenApiVdi['$ref']>
+  SR_reclaimSpace(ref: XenApiSr['$ref']): Promise<void>
   startVm(
     id: XoVm['id'],
     opts?: {

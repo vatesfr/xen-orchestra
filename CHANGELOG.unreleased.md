@@ -21,6 +21,8 @@
 - [Netbox] Support version 4.5.x (PR [#9445](https://github.com/vatesfr/xen-orchestra/pull/9445))
 - [OpenMetrics] Add host uptime metric (`xcp_host_uptime_seconds`) (PR [#9449](https://github.com/vatesfr/xen-orchestra/pull/9449))
 
+- [REST API] Added POST `/srs/{id}/actions/reclaim_space` rest route (PR [#9486](https://github.com/vatesfr/xen-orchestra/pull/9486))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
