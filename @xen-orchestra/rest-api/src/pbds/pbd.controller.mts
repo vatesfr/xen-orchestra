@@ -7,7 +7,6 @@ import type { XoPbd } from '@vates/types'
 import {
   asynchronousActionResp,
   badRequestResp,
-  incorrectStateResp,
   internalServerErrorResp,
   invalidParameters as invalidParametersResp,
   noContentResp,
@@ -92,7 +91,6 @@ export class PbdController extends XapiXoController<XoPbd> {
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  @Response(incorrectStateResp.status, incorrectStateResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async unplugPbd(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
