@@ -13,6 +13,7 @@ import { OvsdbClient } from './protocol/ovsdb-client'
 import { PrivateNetwork } from './private-network/private-network'
 import { TlsHelper } from './utils/tls-helper'
 import { instantiateController } from './openflow-controller'
+import { randomBytes } from 'crypto'
 
 // =============================================================================
 
@@ -657,11 +658,54 @@ class SDNController extends EventEmitter {
       const network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
       assert(network.$PIFs.length > 0, 'Network needs to be plugged to add a rule')
 
+      const networkRules = JSON.parse(
+        network.other_config['xo:sdn-controller:of-rules'] || "[]"
+      ).map(JSON.parse)
+
+      // filter matching rule (don't compare allow and cookie)
+      const matchRules = networkRules.filter(rule => {
+        return (
+          rule.direction === direction && rule.ipRange === ipRange && rule.port === port && rule.protocol === protocol
+        )
+      })
+
+      // compute a cookie
+      let cookie
+      if (matchRules.length !== 0) {
+        // use the one in rule if matching rule is present
+        cookie = matchRules.map(rule => { return rule.cookie })[0]
+
+      } else {
+        // generate a new cookie not in use (OpenVSwitch cookie range: 0x1 to 0xFFFF_FFFF_FFFF_FFFF)
+        do {
+          cookie = "0x" + randomBytes(8).toString("hex")
+        } while (
+          cookie === '0x0000000000000000' &&
+          networkRules.filter(rule => { return rule.cookie === cookie }).length > 0
+        )
+      }
+
+      // update the rule if already here (don't compare allow and cookie) to behave like OpenVSwitch
+      const newNetworkRules = networkRules.filter(rule => {
+        return (
+          rule.protocol !== protocol || rule.port !== port || rule.ipRange !== ipRange || rule.direction !== direction
+        )
+      })
+      const newRule = {
+        allow,
+        protocol,
+        port,
+        ipRange,
+        direction,
+        cookie,
+      }
+      newNetworkRules.push(newRule)
+
       try {
         const host = this._xo.getXapiObject(this._xo.getObject(network.$PIFs[0].host, 'host'))
         const channel = await this._getOrCreateOfChannel(host)
         if (channel !== undefined) {
-          await channel.addNetworkRule({ network, allow, protocol, port, ipRange, direction })
+          await channel.addNetworkRule({ network, allow, protocol, port, ipRange, direction, cookie })
         }
       } catch (error) {
         if (error.code === 'HOST_OFFLINE') {
@@ -669,19 +713,11 @@ class SDNController extends EventEmitter {
         }
       }
 
-      const networkRules = network.other_config['xo:sdn-controller:of-rules']
-      const newNetworkRules = networkRules !== undefined ? JSON.parse(networkRules) : []
-      const stringRule = JSON.stringify({
-        allow,
-        protocol,
-        port,
-        ipRange,
-        direction,
-      })
-      if (!newNetworkRules.includes(stringRule)) {
-        newNetworkRules.push(stringRule)
-        await network.update_other_config('xo:sdn-controller:of-rules', JSON.stringify(newNetworkRules))
-      }
+      // update XAPI once done
+      await network.update_other_config(
+        'xo:sdn-controller:of-rules',
+        JSON.stringify(newNetworkRules.map(JSON.stringify))
+      )
     } catch (error) {
       log.error('Error while adding Network OF rule', {
         error,
@@ -760,11 +796,31 @@ class SDNController extends EventEmitter {
       let network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
       assert(network.$PIFs.length > 0, 'Network needs to be plugged to delete a rule')
 
+      const networkRules = JSON.parse(
+        network.other_config['xo:sdn-controller:of-rules'] || "[]"
+      ).map(JSON.parse)
+
+      // filter matching rule (don't compare allow and cookie)
+      const matchRules = networkRules.filter(rule => {
+        return (
+          rule.direction === direction && rule.ipRange === ipRange && rule.port === port && rule.protocol === protocol
+        )
+      })
+
+      // ignore processing if rule not present here
+      if (matchRules.length === 0) {
+        log.info("_deleteNetworkOfRule: rule not present, ignoring", {})
+        return
+      }
+
+      // extract the (first) matching cookie
+      const cookie = matchRules.map(rule => { return rule.cookie })[0]
+
       try {
         const host = this._xo.getXapiObject(this._xo.getObject(network.$PIFs[0].host, 'host'))
         const channel = await this._getOrCreateOfChannel(host)
         if (channel !== undefined) {
-          await channel.deleteNetworkRule({ network, protocol, port, ipRange, direction })
+          await channel.deleteNetworkRule({ network, protocol, port, ipRange, direction, cookie })
         }
       } catch (error) {
         if (error.code === 'HOST_OFFLINE') {
@@ -776,24 +832,15 @@ class SDNController extends EventEmitter {
         return
       }
 
-      const networkRules = network.other_config['xo:sdn-controller:of-rules']
-      if (networkRules === undefined) {
-        // Nothing to do
-        return
-      }
-
-      const newNetworkRules = JSON.parse(networkRules).filter(networkRule => {
-        const rule = JSON.parse(networkRule)
+      const newNetworkRules = networkRules.filter(rule => {
         return (
-          rule.protocol !== protocol || rule.port !== port || rule.ipRange !== ipRange || rule.direction !== direction
+          rule.protocol !== protocol || rule.port !== port || rule.ipRange !== ipRange || rule.direction !== direction || rule.cookie !== cookie
         )
       })
-
       await network.update_other_config(
         'xo:sdn-controller:of-rules',
-        Object.keys(newNetworkRules).length === 0 ? null : JSON.stringify(newNetworkRules)
+        Object.keys(newNetworkRules).length === 0 ? null : JSON.stringify(newNetworkRules.map(JSON.stringify))
       )
-
       network = await network.$xapi.barrier(network.$ref)
 
       // Put back rules that could have been wrongfully deleted because delete rule too general
