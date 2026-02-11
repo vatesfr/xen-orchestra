@@ -18,6 +18,7 @@
 - [Warm Migration] stopped VM can be warm migrated (PR [#94653](https://github.com/vatesfr/xen-orchestra/pull/9465))
 - [Plugins/load balancer] Add configurable VM migration cooldown to prevent oscillation (default 30min) (PR [#9388](https://github.com/vatesfr/xen-orchestra/pull/9388))
 - [REST API] Expose `POST /rest/v0/vms/:id/actions/migrate` to migrate a VM (PR [#9414](https://github.com/vatesfr/xen-orchestra/pull/9414))
+- [Netbox] Support version 4.5.x (PR [#9445](https://github.com/vatesfr/xen-orchestra/pull/9445))
 
 ### Bug fixes
 
@@ -45,6 +46,7 @@
 - @xen-orchestra/web patch
 - xo-server minor
 - xo-server-load-balancer minor
+- xo-server-netbox minor
 - xo-server-openmetrics minor
 
 <!--packages-end-->
