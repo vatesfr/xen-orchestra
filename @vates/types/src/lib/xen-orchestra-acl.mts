@@ -1,4 +1,5 @@
 import { Branded } from '../common.mjs'
+import { XoGroup, XoUser } from '../xo.mjs'
 
 export type XoAclRole =
   | {
@@ -13,3 +14,15 @@ export type XoAclRole =
       isTemplate: true
       roleTemplateId: number
     }
+
+export type XoUserRole = {
+  id: string
+  roleId: XoAclRole['id']
+  userId: XoUser['id']
+}
+
+export type XoGroupRole = {
+  id: string
+  roleId: XoAclRole['id']
+  groupId: XoGroup['id']
+}
