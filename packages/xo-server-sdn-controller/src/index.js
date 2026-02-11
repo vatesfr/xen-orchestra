@@ -1439,8 +1439,20 @@ class SDNController extends EventEmitter {
     }
   }
 
+  async _cleanNetworkOfRules(network) {
+    const networkRules = network.other_config['xo:sdn-controller:of-rules']
+    const parsedRules = networkRules !== undefined ? JSON.parse(networkRules) : []
+    for (const stringRule of parsedRules) {
+      const rule = JSON.parse(stringRule)
+      await this._deleteNetworkOfRule({ ...rule, networkId: network.$id }, false)
+    }
+  }
+
   async _cleanOfVmRules(vm) {
     for (const vif of vm.$VIFs) {
+      // refresh NetworkOfRules by cleaning/applying
+      await this._cleanNetworkOfRules(vif.$network)
+      await this._applyNetworkOfRules(vif.$network)
       await this._cleanVifOfRules(vif)
     }
   }
@@ -1448,6 +1460,7 @@ class SDNController extends EventEmitter {
   async _applyOfRules(vm) {
     for (const vif of vm.$VIFs) {
       await this._applyVifOfRules(vif)
+      await this._applyNetworkOfRules(vif.$network)
     }
   }
 
