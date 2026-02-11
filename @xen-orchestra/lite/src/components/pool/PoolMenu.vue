@@ -3,7 +3,7 @@
     <template #trigger="{ open, isOpen }">
       <UiButton
         accent="brand"
-        left-icon="fa:ellipsis"
+        left-icon="action:more-actions"
         variant="tertiary"
         size="small"
         :selected="isOpen"
@@ -11,18 +11,18 @@
       />
     </template>
     <MenuItem
-      icon="fa:download"
+      icon="action:download"
       :busy="isFetching"
       :disabled="(isReady && poolMaster === undefined) || hasError"
-      @click="download"
+      @click="download()"
     >
-      {{ t('download-bugtools-archive') }}
+      {{ t('action:download-bugtools-archive') }}
     </MenuItem>
   </MenuList>
 </template>
 
 <script lang="ts" setup>
-import type { RecordRef } from '@/libs/xen-api/xen-api.types'
+import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
@@ -30,7 +30,7 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { masterHost } = defineProps<{ masterHost: RecordRef<'host'> }>()
+const { masterHost } = defineProps<{ masterHost: XenApiHost['$ref'] }>()
 
 const { t } = useI18n()
 
