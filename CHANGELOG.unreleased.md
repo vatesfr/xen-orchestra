@@ -11,7 +11,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [V2V] Automatically take a snapshot if a running VM doesn't have any (PR [#9466](https://github.com/vatesfr/xen-orchestra/pull/9466))
+- [V2V] Automatically take a snapshot if a running VM doesn't have any (PR [#9471](https://github.com/vatesfr/xen-orchestra/pull/9471))
 
 ### Bug fixes
 

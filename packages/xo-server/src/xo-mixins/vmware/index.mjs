@@ -200,14 +200,12 @@ export default class MigrateVm {
     if (!metadata.snapshots || !metadata.snapshots.current) {
       if (metadata.powerState !== 'poweredOff') {
         await Task.run({ properties: { name: `taking a snapshot of ${vmId}` } }, () => {
-          return esxi.snapshot(vmId, 'migration to XCP-ng', 'created automatically during migration')
+          return esxi.snapshot(vmId, '[V2V] migration to XCP-ng', 'created automatically during migration')
         })
 
         metadata = await Task.run(
           { properties: { name: `updating metadata of ${vmId} after taking a snapshot` } },
-          async () => {
-            return esxi.getTransferableVmMetadata(vmId)
-          }
+          () => esxi.getTransferableVmMetadata(vmId)
         )
       }
     }
