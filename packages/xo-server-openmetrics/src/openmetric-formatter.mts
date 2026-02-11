@@ -938,3 +938,50 @@ export function formatHostStatusMetrics(hostStatusList: HostStatusItem[]): Forma
 
   return metrics
 }
+
+/**
+ * Format host uptime metrics to OpenMetrics format.
+ *
+ * Creates a FormattedMetric entry for each host's uptime, calculated as
+ * the difference between current time and host.startTime (boot time).
+ *
+ * @param labelContext - Label context containing host credentials and label lookup data
+ * @returns Array of FormattedMetric entries for host uptime
+ */
+export function formatHostUptimeMetrics(labelContext: LabelContext): FormattedMetric[] {
+  const metrics: FormattedMetric[] = []
+  const now = Math.floor(Date.now() / 1000)
+
+  for (const host of labelContext.hosts) {
+    const hostInfo = labelContext.labels.hosts[host.hostId]
+    if (hostInfo === undefined || hostInfo.startTime === null) {
+      continue
+    }
+
+    const uptimeSeconds = now - hostInfo.startTime
+
+    const labels: Record<string, string> = {
+      pool_id: host.poolId,
+      uuid: host.hostId,
+    }
+
+    if (host.poolLabel !== '') {
+      labels.pool_name = host.poolLabel
+    }
+
+    if (hostInfo.name_label !== '') {
+      labels.host_name = hostInfo.name_label
+    }
+
+    metrics.push({
+      name: `${METRIC_PREFIX}_host_uptime_seconds`,
+      help: 'Host uptime in seconds since boot',
+      type: 'gauge',
+      labels,
+      value: uptimeSeconds,
+      timestamp: now,
+    })
+  }
+
+  return metrics
+}
