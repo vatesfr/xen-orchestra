@@ -33,4 +33,5 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/rest-api minor
 <!--packages-end-->

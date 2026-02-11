@@ -225,10 +225,11 @@ export class SrController extends XapiXoController<XoSr> {
    */
   @Post('{id}/actions/reclaim_space')
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  async plugPbd(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+  async reclaimSpaceSr(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const srId = id as XoSr['id']
     const action = async () => {
       const sr = this.getXapiObject(srId)
@@ -239,7 +240,7 @@ export class SrController extends XapiXoController<XoSr> {
       sync,
       statusCode: noContentResp.status,
       taskProperties: {
-        name: 'sr reclaim space',
+        name: 'SR reclaim space',
         objectId: srId,
       },
     })
