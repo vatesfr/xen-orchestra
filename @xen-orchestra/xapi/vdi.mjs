@@ -113,12 +113,11 @@ class Vdi {
      */
     if (virtual_size > VHD_MAX_SIZE) {
       const poolMaster = await this.getRecord('host', this.pool.master)
-      const PBDs = await this.call(
-        'PBD.get_all_records_where',
-        `field "host"="${poolMaster.$ref}" and field "SR"="${SR}"`
+      const PBD = Object.values(this.objects.indexes.type.PBD).find(
+        pbd => pbd.host === poolMaster.$ref && pbd.SR === SR
       )
-      const preferredImageFormats = Object.values(PBDs)[0]?.device_config['preferred-image-formats']
-      if (!preferredImageFormats || preferredImageFormats?.includes('qcow2')) {
+      const preferredImageFormats = PBD?.device_config['preferred-image-formats']
+      if (!preferredImageFormats || preferredImageFormats.includes('qcow2')) {
         sm_config = { ...sm_config, 'image-format': 'qcow2' }
       }
     }
