@@ -21,6 +21,8 @@
 - [Netbox] Support version 4.5.x (PR [#9445](https://github.com/vatesfr/xen-orchestra/pull/9445))
 - [OpenMetrics] Add host uptime metric (`xcp_host_uptime_seconds`) (PR [#9449](https://github.com/vatesfr/xen-orchestra/pull/9449))
 
+- [Core/Uichip] Update UiChip component to V6 (PR [#9491](https://github.com/vatesfr/pull/9491))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
