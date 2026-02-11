@@ -344,6 +344,7 @@ class EsxiImport extends Component {
             <InputCol>
               <Toggle onChange={this.toggleState('rememberConnection')} value={rememberConnection} />
             </InputCol>
+            <p className='text-warning'>{_('esxiImportRememberWarning')}</p>
           </Row>
           <div className='form-group pull-right'>
             <ActionButton btnStyle='primary' className='mr-1' handler={this._connect} icon='connect' type='submit'>
