@@ -7,7 +7,7 @@ import { defer } from 'golike-defer'
 import { readChunk } from '@vates/read-chunk'
 import { strict as assert } from 'node:assert'
 
-import { SUPPORTED_VDI_FORMAT, VDI_FORMAT_RAW } from './index.mjs'
+import { SUPPORTED_VDI_FORMAT, VDI_FORMAT_RAW, VHD_MAX_SIZE } from './index.mjs'
 
 const { warn, info } = createLogger('xo:xapi:vdi')
 
@@ -106,6 +106,23 @@ class Vdi {
       sm_config,
     } = {}
   ) {
+    /*
+     * If the virtual_size is over 2TB - 8MB and device_config.preferred-image-formats is not defined or includes qcow2
+     * THEN xo should create a qcow2 file
+     * ELSE it should create a vhd which will fail
+     */
+    if (virtual_size > VHD_MAX_SIZE) {
+      const poolMaster = await this.getRecord('host', this.pool.master)
+      const PBDs = await this.call(
+        'PBD.get_all_records_where',
+        `field "host"="${poolMaster.$ref}" and field "SR"="${SR}"`
+      )
+      const preferredImageFormats = Object.values(PBDs)[0]?.device_config['preferred-image-formats']
+      if (!preferredImageFormats || preferredImageFormats?.includes('qcow2')) {
+        sm_config = { ...sm_config, 'image-format': 'qcow2' }
+      }
+    }
+
     return this.call('VDI.create', {
       name_description,
       name_label,
