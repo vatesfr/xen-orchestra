@@ -69,7 +69,7 @@ export function setupApiContext(xoApp: XoApp) {
     }
 
     try {
-      const { user } = await xoApp.authenticateUser(credentials, { ip })
+      const { user } = await xoApp.authenticateUser(credentials, { ip }, { bypassTaskCreation: hasToken })
       return xoApp.runWithApiContext(user, next)
     } catch (error) {
       return next(error)

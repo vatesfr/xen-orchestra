@@ -646,7 +646,7 @@ export default class BackupNg {
             xapi,
           }).run()
         } finally {
-          await xapi.VM_destroy(restoredVm.$ref)
+          await xapi.VM_destroy(restoredVm.$ref, { bypassBlockedOperation: true })
         }
       })
   }

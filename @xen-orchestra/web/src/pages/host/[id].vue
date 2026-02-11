@@ -17,7 +17,7 @@ import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
 import { useUiStore } from '@core/stores/ui.store'
 import type { XoHost } from '@vates/types'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router/auto'
+import { useRoute } from 'vue-router'
 
 useDefaultTab('/host/[id]', 'dashboard')
 

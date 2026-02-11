@@ -248,6 +248,10 @@ xoaUpgradeTimeout = '5 min'
 [rest-api]
 dashboardCacheTimeout = '1 min'
 dashboardCacheExpiresIn = '1 min'
+# Allow to set a a limit of memory per SSE client
+# before destroying the client. Based on the XOA RAM 
+# in percent (0.5 = 0.5%)
+percentOfRamAllocatedPerSseClient = 0.5
 
 
 [jsonrpc-api]

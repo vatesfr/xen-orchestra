@@ -2,6 +2,7 @@ import CancelToken from 'promise-toolbox/CancelToken'
 import groupBy from 'lodash/groupBy.js'
 import hrp from 'http-request-plus'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
+import pRetry from 'promise-toolbox/retry'
 import pickBy from 'lodash/pickBy.js'
 import omit from 'lodash/omit.js'
 import pCatch from 'promise-toolbox/catch'
@@ -389,6 +390,11 @@ class Vm {
       power_state: suspend_VDI !== undefined ? 'Suspended' : undefined,
       suspend_VDI,
     })
+
+    if (blocked_operations) {
+      const vm = await this.getRecord('VM', ref)
+      await vm.update_blocked_operations(blocked_operations)
+    }
     $defer.onFailure.call(this, 'call', 'VM.destroy', ref)
 
     bios_strings = cleanBiosStrings(bios_strings)
@@ -460,12 +466,6 @@ class Vm {
       })
     }
 
-    // It is necessary for suspended VMs to be shut down
-    // to be able to delete their VDIs.
-    if (vm.power_state !== 'Halted') {
-      await this.callAsync('VM.hard_shutdown', vmRef)
-    }
-
     await Promise.all([
       forceDeleteDefaultTemplate &&
         // Only available on XS >= 7.2
@@ -473,7 +473,15 @@ class Vm {
       forceDeleteDefaultTemplate && vm.update_other_config('default_template', null),
       vm.set_is_a_template(false),
       bypassBlockedOperation && vm.update_blocked_operations('destroy', null),
+      // needed for running VM
+      bypassBlockedOperation && vm.power_state !== 'Halted' && vm.update_blocked_operations('hard_shutdown', null),
     ])
+
+    // It is necessary for suspended VMs to be shut down
+    // to be able to delete their VDIs.
+    if (vm.power_state !== 'Halted') {
+      await this.callAsync('VM.hard_shutdown', vmRef)
+    }
 
     // must be done before destroying the VM
     const disks = await this.VM_getDisks(vmRef, vm.VBDs)
@@ -778,6 +786,11 @@ class Vm {
     await Promise.all(vdiRefs.map(vdiRef => this.callAsync('VDI.disable_cbt', vdiRef)))
   }
 
+  async disconnectFromControlDomain(vmRef) {
+    const vdiRefs = await this.VM_getDisks(vmRef)
+    await Promise.all(vdiRefs.map(vdiRef => this.VDI_disconnectFromControlDomain(vdiRef)))
+  }
+
   async reboot($defer, vmRef, { force = false, bypassBlockedOperation = force } = {}) {
     if (bypassBlockedOperation) {
       const blockedOperations = await this.getField('VM', vmRef, 'blocked_operations')
@@ -800,6 +813,12 @@ export default Vm
 decorateClass(Vm, {
   checkpoint: defer,
   create: defer,
+  destroy: [
+    pRetry.wrap,
+    function () {
+      return this._vdiDestroyRetryWhenInUse
+    },
+  ],
   export: defer,
   coalesceLeaf: defer,
   snapshot: defer,

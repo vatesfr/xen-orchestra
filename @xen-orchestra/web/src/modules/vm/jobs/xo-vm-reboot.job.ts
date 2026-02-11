@@ -40,6 +40,10 @@ export const useXoVmRebootJob = defineJob('vm.reboot', [xoVmsArg], () => {
       if (notAllVmsHavingPowerState(vms, [VM_POWER_STATE.RUNNING, VM_POWER_STATE.PAUSED])) {
         throw new JobError(t('job:vm-reboot:bad-power-state'))
       }
+
+      if (vms.some(vm => vm.blockedOperations.clean_reboot)) {
+        throw new JobError(t('job:vm-reboot:blocked-operation'))
+      }
     },
   }
 })
