@@ -48,5 +48,6 @@
 - xo-server-load-balancer minor
 - xo-server-netbox minor
 - xo-server-openmetrics minor
+- xo-web patch
 
 <!--packages-end-->
