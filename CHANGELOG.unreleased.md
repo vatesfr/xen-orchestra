@@ -36,6 +36,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/fs patch
-- @xen-orchestra/rest-api patch
+- @xen-orchestra/rest-api minor
 
 <!--packages-end-->
