@@ -23,6 +23,8 @@
 - **XO 5:**
   - [V2V] Remember connection settings in the browser (PR [#9490](https://github.com/vatesfr/xen-orchestra/pull/9490))
 
+- [V2V] Automatically take a snapshot if a running VM doesn't have any (PR [#9471](https://github.com/vatesfr/xen-orchestra/pull/9471))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -49,6 +51,7 @@
 - @vates/types minor
 - @xen-orchestra/fs patch
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web patch
 - xo-server minor
 - xo-server-load-balancer minor
