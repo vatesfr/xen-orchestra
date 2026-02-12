@@ -19,7 +19,7 @@ import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Readable } from 'node:stream'
 import { json, type Request as ExRequest, type Response as ExResponse } from 'express'
-import type { SUPPORTED_VDI_FORMAT, XoAlarm, XoMessage, XoSr, XoTask, XoVdi } from '@vates/types'
+import type { SUPPORTED_VDI_FORMAT, Xapi, XoAlarm, XoMessage, XoSr, XoTask, XoVdi } from '@vates/types'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
@@ -27,12 +27,14 @@ import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.m
 import {
   asynchronousActionResp,
   badRequestResp,
+  createdResp,
   internalServerErrorResp,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
+import { BASE_URL } from '../index.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
@@ -41,6 +43,7 @@ import { partialVdis, vdi, vdiId, vdiIds } from '../open-api/oa-examples/vdi.oa-
 import { VdiService } from './vdi.service.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { taskIds, partialTasks, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
+
 @Route('vdis')
 @Security('*')
 @Response(badRequestResp.status, badRequestResp.description)
@@ -160,6 +163,31 @@ export class VdiController extends XapiXoController<XoVdi> {
     })
 
     return this.sendObjects(Object.values(alarms), req, 'alarms')
+  }
+
+  /**
+   * @example body { "SR": "c4284e12-37c9-7967-b9e8-83ef229c3e03", "virtual_size": 10737418240, "name_label": "test SR" }
+   */
+  @Example(vdiId)
+  @Post('')
+  @Middlewares(json())
+  @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async createVdi(@Body() body: Unbrand<Parameters<Xapi['VDI_create']>[0]>): Promise<{ id: string }> {
+    const xapiSr = this.restApi.getXapiObject<XoSr>(body.SR as XoSr['id'], 'SR')
+    const xapi = xapiSr.$xapi
+
+    const vdiRef = await xapi.VDI_create({
+      ...body,
+      SR: xapiSr.$ref,
+    })
+
+    const vdiUuid = await xapi.call<string>('VDI.get_uuid', vdiRef)
+
+    this.setHeader('Location', `${BASE_URL}/vdis/${vdiUuid}`)
+
+    return { id: vdiUuid }
   }
 
   /**
