@@ -19,7 +19,7 @@ import type {
   VM_POWER_STATE,
 } from './common.mjs'
 import type * as CMType from './lib/complex-matcher.mjs'
-import { XoAclRole } from './lib/xen-orchestra-acl.mjs'
+import { XoAclPrivilege, XoAclRole, XoAclSupportedActionsByResource } from './lib/xen-orchestra-acl.mjs'
 import type { XenApiHost, XenApiPool } from './xen-api.mjs'
 
 type BaseXapiXo = {
@@ -831,7 +831,10 @@ export type XapiXoRecord =
   | XoVtpm
   | XoSm
 
-export type NonXapiXoRecord =
+export type NonXapiXoRecord<
+  TActionsByResource extends XoAclSupportedActionsByResource = never,
+  TResource extends string = never,
+> =
   | AnyXoBackupArchive
   | AnyXoJob
   | AnyXoLog
@@ -846,8 +849,12 @@ export type NonXapiXoRecord =
   | XoTask
   | XoUser
   | XoAclRole
+  | XoAclPrivilege<TActionsByResource, TResource>
 
-export type XoRecord = XapiXoRecord | NonXapiXoRecord
+export type XoRecord<
+  TActionsByResource extends XoAclSupportedActionsByResource = never,
+  TResource extends string = never,
+> = XapiXoRecord | NonXapiXoRecord<TActionsByResource, TResource>
 
 export type AnyXoVm = XoVm | XoVmSnapshot | XoVmTemplate | XoVmController
 
