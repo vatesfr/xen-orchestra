@@ -54,6 +54,7 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
 - xo-server minor
+- xo-server-backup-reports minor
 - xo-server-openmetrics minor
 
 <!--packages-end-->

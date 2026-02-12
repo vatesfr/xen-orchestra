@@ -12,10 +12,10 @@
     <mj-column width="100%">
       <mj-text font-size="16px" font-weight="300" line-height="24px">
         {{#if uuid}}
-          <h3>{{name}}</h3>
+          <h3>{{properties.name}}</h3>
           <ul>
-            <li><span style="font-weight: bold">UUID</span>: {{uuid}}</li>
-            <li><span style="font-weight: bold">Type</span>: {{taskLog.data.type}}</li>
+            <li><span style="font-weight: bold">UUID</span>: {{properties.uuid}}</li>
+            <li><span style="font-weight: bold">Type</span>: {{taskLog.properties.type}}</li>
             {{>reportTemporalDataMjml end=taskLog.end start=taskLog.start formatDate=../formatDate}}
             {{>reportWarningsMjml task=taskLog}}
             <li><span style="font-weight: bold">Error</span>: {{taskLog.result.message}}</li>
