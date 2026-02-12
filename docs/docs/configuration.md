@@ -63,7 +63,7 @@ There is no guarantee on the order of the config file loading in the same locati
 
 - `~` is the home directory of the user running xo-server (`/root` for xoa)
 - `appDir` is the application installation directory (`/usr/local/lib/node_modules/xo-server` for xo-server on XOA, `/usr/local/lib/node_modules/@xen-orchestra/proxy` for a proxy)
-- appName is `xo-proxy` for prox, `xo-server` for xo-server
+- appName is `xo-proxy` for proxy, `xo-server` for xo-server
 - local configuration is not used in xo-server nor proxy
 
 a basic cli can be used to explore the configuration by installing the package `app-conf`, more information in [the official documentation](https://github.com/JsCommunity/app-conf?tab=readme-ov-file#cli)
