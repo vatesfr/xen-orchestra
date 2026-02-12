@@ -118,6 +118,7 @@ class Vdi {
       )
       const preferredImageFormats = PBD?.device_config['preferred-image-formats']
       if (!preferredImageFormats || preferredImageFormats.includes('qcow2')) {
+        info('VDI virtual_size exceeds VHD max size, switching to qcow2', { virtual_size, SR })
         sm_config = { ...sm_config, 'image-format': 'qcow2' }
       }
     }

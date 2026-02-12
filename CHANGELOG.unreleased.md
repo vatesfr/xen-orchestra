@@ -11,7 +11,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Storage] Add possibility to create VDI in qcow2 format if size > 2TB - 8MB (PR [#9493](https://github.com/vatesfr/xen-orchestra/pull/9493))
+- [Storage] Add possibility to create VDI in qcow2 format if size > 2TB - 8KB (PR [#9493](https://github.com/vatesfr/xen-orchestra/pull/9493))
 
 ### Bug fixes
 
