@@ -276,7 +276,7 @@ Synchronize your pools, VMs, network interfaces and IP addresses with your [Netb
 
 - `>= 2.10`
 - `3.x`
-- `< 4.5`
+- `< 4.6`
 
 :::tip
 For safety, XO will not synchronize your pools if it detects a Netbox version that is not supported. If you wish to change that behavior, edit you `xo-server` configuration like so:
@@ -456,28 +456,41 @@ All metrics are prefixed with `xcp_` and include enriched labels for easy filter
 
 #### VM Metrics
 
-| Metric                                 | Type    | Description                       |
-| -------------------------------------- | ------- | --------------------------------- |
-| `xcp_vm_memory_bytes`                  | gauge   | Memory usage in bytes             |
-| `xcp_vm_memory_internal_free_bytes`    | gauge   | Internal free memory              |
-| `xcp_vm_memory_target_bytes`           | gauge   | Memory target                     |
-| `xcp_vm_cpu_usage`                     | gauge   | CPU usage ratio                   |
-| `xcp_vm_cpu_core_usage`                | gauge   | Per-vCPU usage                    |
-| `xcp_vm_runstate_fullrun`              | gauge   | Runstate: full run ratio          |
-| `xcp_vm_runstate_blocked`              | gauge   | Runstate: blocked ratio           |
-| `xcp_vm_network_receive_bytes_total`   | counter | Network bytes received per VIF    |
-| `xcp_vm_network_transmit_bytes_total`  | counter | Network bytes transmitted per VIF |
-| `xcp_vm_network_receive_errors_total`  | counter | Network receive errors            |
-| `xcp_vm_network_transmit_errors_total` | counter | Network transmit errors           |
-| `xcp_vm_disk_read_bytes_total`         | counter | Disk read bytes per device        |
-| `xcp_vm_disk_write_bytes_total`        | counter | Disk write bytes per device       |
-| `xcp_vm_disk_iops_read`                | gauge   | Disk read IOPS                    |
-| `xcp_vm_disk_iops_write`               | gauge   | Disk write IOPS                   |
-| `xcp_vm_disk_read_latency_seconds`     | gauge   | Disk read latency                 |
-| `xcp_vm_disk_write_latency_seconds`    | gauge   | Disk write latency                |
-| `xcp_vm_disk_iowait`                   | gauge   | Disk IO wait ratio                |
-| `xcp_vm_disk_inflight`                 | gauge   | In-flight disk operations         |
-| `xcp_vm_disk_queue_size`               | gauge   | Disk queue size                   |
+| Metric                                 | Type    | Description                        |
+| -------------------------------------- | ------- | ---------------------------------- |
+| `xcp_vm_memory_bytes`                  | gauge   | Memory usage in bytes              |
+| `xcp_vm_memory_internal_free_bytes`    | gauge   | Internal free memory               |
+| `xcp_vm_memory_target_bytes`           | gauge   | Memory target                      |
+| `xcp_vm_cpu_usage`                     | gauge   | CPU usage ratio                    |
+| `xcp_vm_cpu_core_usage`                | gauge   | Per-vCPU usage                     |
+| `xcp_vm_runstate_fullrun`              | gauge   | Runstate: full run ratio           |
+| `xcp_vm_runstate_full_contention`      | gauge   | Runstate: full contention ratio    |
+| `xcp_vm_runstate_partial_run`          | gauge   | Runstate: partial run ratio        |
+| `xcp_vm_runstate_partial_contention`   | gauge   | Runstate: partial contention ratio |
+| `xcp_vm_runstate_concurrency_hazard`   | gauge   | Runstate: concurrency hazard ratio |
+| `xcp_vm_runstate_blocked`              | gauge   | Runstate: blocked ratio            |
+| `xcp_vm_network_receive_bytes_total`   | counter | Network bytes received per VIF     |
+| `xcp_vm_network_transmit_bytes_total`  | counter | Network bytes transmitted per VIF  |
+| `xcp_vm_network_receive_errors_total`  | counter | Network receive errors             |
+| `xcp_vm_network_transmit_errors_total` | counter | Network transmit errors            |
+| `xcp_vm_disk_read_bytes_total`         | counter | Disk read bytes per device         |
+| `xcp_vm_disk_write_bytes_total`        | counter | Disk write bytes per device        |
+| `xcp_vm_disk_iops_read`                | gauge   | Disk read IOPS                     |
+| `xcp_vm_disk_iops_write`               | gauge   | Disk write IOPS                    |
+| `xcp_vm_disk_iops_total`               | gauge   | Disk total IOPS                    |
+| `xcp_vm_disk_read_latency_seconds`     | gauge   | Disk read latency                  |
+| `xcp_vm_disk_write_latency_seconds`    | gauge   | Disk write latency                 |
+| `xcp_vm_disk_iowait`                   | gauge   | Disk IO wait ratio                 |
+| `xcp_vm_disk_inflight`                 | gauge   | In-flight disk operations          |
+| `xcp_vm_disk_queue_size`               | gauge   | Disk queue size                    |
+
+#### SR Capacity Metrics
+
+| Metric                        | Type  | Description                        |
+| ----------------------------- | ----- | ---------------------------------- |
+| `xcp_sr_virtual_size_bytes`   | gauge | SR virtual allocated size in bytes |
+| `xcp_sr_physical_size_bytes`  | gauge | SR physical size in bytes          |
+| `xcp_sr_physical_usage_bytes` | gauge | SR physical space used in bytes    |
 
 #### Connection Metrics
 
@@ -497,6 +510,7 @@ All metrics include these labels for filtering:
 | `type`         | Object type (`host` or `vm`)               |
 | `host_name`    | Host name (for host metrics)               |
 | `vm_name`      | VM name (for VM metrics)                   |
+| `sr_uuid`      | Storage Repository UUID (for SR metrics)   |
 | `sr_name`      | Storage Repository name (for disk metrics) |
 | `vdi_name`     | Virtual Disk name (for VM disk metrics)    |
 | `network_name` | Network name (for network metrics)         |
@@ -525,6 +539,15 @@ xcp_vm_disk_read_latency_seconds > 0.01
 
 # Total IOPS per Storage Repository
 sum by (sr_name) (xcp_host_disk_iops_read + xcp_host_disk_iops_write)
+
+# SR usage percentage
+(xcp_sr_physical_usage_bytes / xcp_sr_physical_size_bytes) * 100
+
+# SR free space in GB
+(xcp_sr_physical_size_bytes - xcp_sr_physical_usage_bytes) / 1024 / 1024 / 1024
+
+# Over-provisioning ratio (virtual vs physical)
+xcp_sr_virtual_size_bytes / xcp_sr_physical_size_bytes
 ```
 
 ### Grafana Integration
@@ -553,6 +576,12 @@ label_values(xcp_host_cpu_average{pool_name="$pool"}, host_name)
 label_values(xcp_vm_cpu_usage{pool_name="$pool"}, vm_name)
 ```
 
+**SR variable:**
+
+```promql
+label_values(xcp_sr_physical_size_bytes{pool_name="$pool"}, sr_name)
+```
+
 #### Example Panels
 
 **Host CPU Overview:**
@@ -565,6 +594,21 @@ xcp_host_cpu_average{pool_name="$pool"} * 100
 
 ```promql
 xcp_vm_memory_bytes{vm_name="$vm"} / 1024 / 1024 / 1024
+```
+
+**SR Usage Percentage:**
+
+```promql
+(xcp_sr_physical_usage_bytes{sr_name="$sr"} / xcp_sr_physical_size_bytes{sr_name="$sr"}) * 100
+```
+
+**SR Capacity Overview (stacked bar):**
+
+```promql
+# Used space
+xcp_sr_physical_usage_bytes{pool_name="$pool"}
+# Free space
+xcp_sr_physical_size_bytes{pool_name="$pool"} - xcp_sr_physical_usage_bytes{pool_name="$pool"}
 ```
 
 ### Alerting with Alertmanager
@@ -619,6 +663,24 @@ groups:
         annotations:
           summary: 'Pool {{ $labels.pool_name }} disconnected'
           description: 'XO lost connection to pool {{ $labels.pool_name }}.'
+
+      - alert: SRHighUsage
+        expr: (xcp_sr_physical_usage_bytes / xcp_sr_physical_size_bytes) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'High storage usage on {{ $labels.sr_name }}'
+          description: 'Storage Repository {{ $labels.sr_name }} is above 85% capacity.'
+
+      - alert: SRCriticalUsage
+        expr: (xcp_sr_physical_usage_bytes / xcp_sr_physical_size_bytes) > 0.95
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Critical storage usage on {{ $labels.sr_name }}'
+          description: 'Storage Repository {{ $labels.sr_name }} is above 95% capacity. Immediate action required.'
 ```
 
 ### Security Recommendations

@@ -40,6 +40,10 @@ export const useXoVmForceShutdownJob = defineJob('vm.force-shutdown', [xoVmsArg]
       if (notAllVmsHavingPowerState(vms, [VM_POWER_STATE.RUNNING, VM_POWER_STATE.SUSPENDED, VM_POWER_STATE.PAUSED])) {
         throw new JobError(t('job:vm-force-shutdown:bad-power-state'))
       }
+
+      if (vms.some(vm => vm.blockedOperations.hard_shutdown)) {
+        throw new JobError(t('job:vm-shutdown:blocked-operation'))
+      }
     },
   }
 })

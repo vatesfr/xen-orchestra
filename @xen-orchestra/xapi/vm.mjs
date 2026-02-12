@@ -390,6 +390,11 @@ class Vm {
       power_state: suspend_VDI !== undefined ? 'Suspended' : undefined,
       suspend_VDI,
     })
+
+    if (blocked_operations) {
+      const vm = await this.getRecord('VM', ref)
+      await vm.update_blocked_operations(blocked_operations)
+    }
     $defer.onFailure.call(this, 'call', 'VM.destroy', ref)
 
     bios_strings = cleanBiosStrings(bios_strings)
@@ -461,12 +466,6 @@ class Vm {
       })
     }
 
-    // It is necessary for suspended VMs to be shut down
-    // to be able to delete their VDIs.
-    if (vm.power_state !== 'Halted') {
-      await this.callAsync('VM.hard_shutdown', vmRef)
-    }
-
     await Promise.all([
       forceDeleteDefaultTemplate &&
         // Only available on XS >= 7.2
@@ -474,7 +473,15 @@ class Vm {
       forceDeleteDefaultTemplate && vm.update_other_config('default_template', null),
       vm.set_is_a_template(false),
       bypassBlockedOperation && vm.update_blocked_operations('destroy', null),
+      // needed for running VM
+      bypassBlockedOperation && vm.power_state !== 'Halted' && vm.update_blocked_operations('hard_shutdown', null),
     ])
+
+    // It is necessary for suspended VMs to be shut down
+    // to be able to delete their VDIs.
+    if (vm.power_state !== 'Halted') {
+      await this.callAsync('VM.hard_shutdown', vmRef)
+    }
 
     // must be done before destroying the VM
     const disks = await this.VM_getDisks(vmRef, vm.VBDs)

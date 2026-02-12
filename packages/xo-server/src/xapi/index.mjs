@@ -1,5 +1,10 @@
 /* eslint eslint-comments/disable-enable-pair: [error, {allowWholeFile: true}] */
 /* eslint-disable camelcase */
+
+/**
+ * @import {XenApiNetworkWrapped, XenApiHostWrapped, XenApiSrWrapped } from "@vates/types"
+ */
+
 import fatfs from '@vates/fatfs'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import filter from 'lodash/filter.js'
@@ -30,6 +35,7 @@ import { forbiddenOperation, operationFailed } from 'xo-common/api-errors.js'
 import { parseDateTime, Xapi as XapiBase, XapiDiskSource } from '@xen-orchestra/xapi'
 import { Ref } from 'xen-api'
 import { synchronized } from 'decorator-synchronized'
+import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 
 import fatfsBuffer, { addMbr, init as fatfsBufferInit } from '../fatfs-buffer.mjs'
 import { camelToSnakeCase, forEach, map, pDelay, promisifyAll } from '../utils.mjs'
@@ -512,7 +518,14 @@ export default class Xapi extends XapiBase {
       bypassAssert = false,
     }
   ) {
-    const srRef = sr !== undefined ? hostXapi.getObject(sr).$ref : undefined
+    Task.info('migration with storage motion')
+
+    const targetSr = sr !== undefined ? hostXapi.getObject(sr) : undefined
+    if (targetSr !== undefined) {
+      this.#vmMigrationSrPreCheck(targetSr, host)
+    }
+
+    const srRef = targetSr?.$ref
     const getDefaultSrRef = once(() => {
       const defaultSr = host.$pool.$default_SR
       if (defaultSr === undefined) {
@@ -571,14 +584,23 @@ export default class Xapi extends XapiBase {
         if (vdi.is_a_snapshot && vdi.$snapshot_of !== undefined) {
           continue
         }
-        vdis[vdi.$ref] = getMigrationSrRef(vdi)
+
+        const migrationSrRef = getMigrationSrRef(vdi)
+        this.#vmMigrationSrPreCheck(hostXapi.getObject(migrationSrRef), host)
+
+        vdis[vdi.$ref] = migrationSrRef
       }
     }
 
     // VIFs/Networks mapping
     const vifsMap = {}
+    if (vm.$pool === host.$pool && mapVifsNetworks !== undefined && !isEmpty(mapVifsNetworks)) {
+      // VIF mapping not allowed in intra-pool migration
+      Task.info('VIF mapping is ignored because this is an intra-pool migration')
+    }
+
     if (vm.$pool !== host.$pool) {
-      const defaultNetworkRef = find(host.$PIFs, pif => pif.management).$network.$ref
+      const defaultNetwork = find(host.$PIFs, pif => pif.management).$network
       // Add snapshots' VIFs which VM has no VIFs on these devices
       const vmVifs = vm.$VIFs
       const vifDevices = new Set(vmVifs.map(_ => _.device))
@@ -586,10 +608,10 @@ export default class Xapi extends XapiBase {
         .filter(vif => !vifDevices.has(vif.device))
         .concat(vmVifs)
       for (const vif of vifs) {
-        vifsMap[vif.$ref] =
-          mapVifsNetworks && mapVifsNetworks[vif.$id]
-            ? hostXapi.getObject(mapVifsNetworks[vif.$id]).$ref
-            : defaultNetworkRef
+        const migrationNetwork =
+          mapVifsNetworks && mapVifsNetworks[vif.$id] ? hostXapi.getObject(mapVifsNetworks[vif.$id]) : defaultNetwork
+        this.#vmMigrationNetworkPreCheck(migrationNetwork, host)
+        vifsMap[vif.$ref] = migrationNetwork.$ref
       }
     }
 
@@ -845,6 +867,68 @@ export default class Xapi extends XapiBase {
     throw new Error(`unsupported type: '${type}'`)
   }
 
+  /**
+   * @param {XenApiNetworkWrapped} network
+   * @param {XenApiHostWrapped} host
+   */
+  #vmMigrationNetworkPreCheck(network, host) {
+    const targetXapi = host.$xapi
+
+    let targetPif
+    network.PIFs.forEach(pifRef => {
+      const pif = targetXapi.getObject(pifRef)
+      if (pif.host === host.$ref) {
+        targetPif = pif
+      }
+    })
+
+    if (targetPif === undefined) {
+      Task.warning('host have no PIF in the network', {
+        host: host.uuid,
+        network: network.uuid,
+      })
+      return
+    }
+
+    if (!targetPif.attached) {
+      Task.warning('PIF is not attached', {
+        pif: targetPif.uuid,
+      })
+    }
+  }
+
+  /**
+   * @param {XenApiSrWrapped} sr
+   * @param {XenApiHostWrapped} host
+   */
+  #vmMigrationSrPreCheck(sr, host) {
+    const targetXapi = host.$xapi
+
+    let targetPbd
+    if (!sr.shared) {
+      sr.PBDs.forEach(pbdRef => {
+        const pbd = targetXapi.getObject(pbdRef)
+        if (pbd.host === host.$ref) {
+          targetPbd = pbd
+        }
+      })
+    }
+
+    if (targetPbd === undefined) {
+      Task.warning('host have no PBD in the SR', {
+        host: host.uuid,
+        sr: sr.uuid,
+      })
+      return
+    }
+
+    if (!targetPbd.currently_attached) {
+      Task.warning('PBD is not attached', {
+        pbd: targetPbd.uuid,
+      })
+    }
+  }
+
   async migrateVm(
     vmId,
     hostXapi,
@@ -853,18 +937,26 @@ export default class Xapi extends XapiBase {
   ) {
     const vm = this.getObject(vmId)
     const host = hostXapi.getObject(hostId)
+    const targetPool = hostXapi.getObject(host.$pool)
 
     const accrossPools = vm.$pool !== host.$pool
-    const useStorageMotion =
-      accrossPools ||
-      sr !== undefined ||
-      migrationNetworkId !== undefined ||
-      !isEmpty(mapVifsNetworks) ||
-      !isEmpty(mapVdisSrs)
+    const useStorageMotion = accrossPools || sr !== undefined || !isEmpty(mapVifsNetworks) || !isEmpty(mapVdisSrs)
+
+    const defaultMigrationNetworkId = targetPool.other_config['xo:migrationNetwork']
+    const migrationNetwork =
+      migrationNetworkId !== undefined
+        ? hostXapi.getObject(migrationNetworkId)
+        : defaultMigrationNetworkId !== undefined
+          ? hostXapi.getObject(defaultMigrationNetworkId)
+          : undefined
+
+    if (migrationNetwork !== undefined) {
+      this.#vmMigrationNetworkPreCheck(migrationNetwork, host)
+    }
 
     if (useStorageMotion) {
       await this._migrateVmWithStorageMotion(vm, hostXapi, host, {
-        migrationNetwork: migrationNetworkId && hostXapi.getObject(migrationNetworkId),
+        migrationNetwork,
         sr,
         mapVdisSrs,
         mapVifsNetworks,
@@ -875,6 +967,7 @@ export default class Xapi extends XapiBase {
       try {
         await this.callAsync('VM.pool_migrate', vm.$ref, host.$ref, {
           force: force ? 'true' : 'false',
+          network: migrationNetwork?.$ref,
         })
       } catch (error) {
         if (error.code !== 'VM_REQUIRES_SR') {
@@ -882,7 +975,7 @@ export default class Xapi extends XapiBase {
         }
 
         // Retry using motion storage.
-        await this._migrateVmWithStorageMotion(vm, hostXapi, host, { force })
+        await this._migrateVmWithStorageMotion(vm, hostXapi, host, { force, migrationNetwork })
       }
     }
   }

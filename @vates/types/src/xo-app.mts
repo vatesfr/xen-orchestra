@@ -80,6 +80,7 @@ type XapiRecordByXapiXoRecord = {
 }
 export type XoApp = {
   config: {
+    get<T = string>(path: string): T
     getOptional(path: string): Record<string, string> | undefined
     getOptionalDuration(path: string): number | undefined
     getGuiRoutes(): Promise<{
@@ -131,7 +132,7 @@ export type XoApp = {
   authenticateUser: (
     credentials: { token?: string; username?: string; password?: string },
     userData?: { ip?: string },
-    opts?: { bypassOtp?: boolean }
+    opts?: { bypassOtp?: boolean; bypassTaskCreation?: boolean }
   ) => Promise<{ bypassOtp: boolean; expiration: number; user: XoUser }>
   /* Throw if no authorization */
   checkFeatureAuthorization(featureCode: string): Promise<void>

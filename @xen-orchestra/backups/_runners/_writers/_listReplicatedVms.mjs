@@ -28,9 +28,7 @@ export function listReplicatedVms(xapi, scheduleOrJobId, srUuid, vmUuid) {
       'start' in object.blocked_operations &&
       (oc[JOB_ID] === scheduleOrJobId || oc[SCHEDULE_ID] === scheduleOrJobId) &&
       oc[REPLICATED_TO_SR_UUID] === srUuid &&
-      (oc[VM_UUID] === vmUuid ||
-        // 2018-03-28, JFT: to catch VMs replicated before this fix
-        oc[VM_UUID] === undefined)
+      oc[VM_UUID] === vmUuid
     ) {
       vms[object.$id] = object
     }

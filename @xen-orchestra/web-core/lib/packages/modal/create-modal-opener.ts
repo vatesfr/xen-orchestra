@@ -55,6 +55,9 @@ export function createModalOpener() {
           try {
             isBusy.value = true
 
+            // TODO carefully about the order of close, if any issue, put it after resolve
+            close()
+
             const result = config.onConfirm ? await config.onConfirm(...args) : (undefined as TConfirmPayload)
 
             if (result === ABORT_MODAL || result instanceof ModalCancelResponse) {
@@ -66,8 +69,6 @@ export function createModalOpener() {
             } else {
               resolve(new ModalConfirmResponse(result))
             }
-
-            close()
           } finally {
             isBusy.value = false
           }
