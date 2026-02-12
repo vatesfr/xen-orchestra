@@ -1,4 +1,5 @@
 import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
 import type { XoBackupRepository } from '@vates/types'
@@ -11,6 +12,7 @@ import {
 } from '../open-api/oa-examples/backup-repository.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
+import { RestApi } from '../rest-api/rest-api.mjs'
 
 @Route('backup-repositories')
 @Security('*')
@@ -19,6 +21,10 @@ import { XoController } from '../abstract-classes/xo-controller.mjs'
 @Tags('backup-repositories')
 @provide(BackupRepositoryController)
 export class BackupRepositoryController extends XoController<XoBackupRepository> {
+  constructor(@inject(RestApi) restApi: RestApi) {
+    super('backup-repository', restApi)
+  }
+
   // --- abstract methods
   getAllCollectionObjects(): Promise<XoBackupRepository[]> {
     return this.restApi.xoApp.getAllRemotes()

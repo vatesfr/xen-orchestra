@@ -12,9 +12,13 @@ import {
   transformMetric,
   formatToOpenMetrics,
   formatAllPoolsToOpenMetrics,
+  formatHostStatusMetrics,
+  formatHostUptimeMetrics,
   type FormattedMetric,
   type LabelContext,
 } from './openmetric-formatter.mjs'
+
+import type { HostStatusItem } from './index.mjs'
 
 import type { ParsedMetric, ParsedRrdData } from './rrd-parser.mjs'
 
@@ -540,6 +544,7 @@ describe('transformMetric with labelContext', () => {
         'host-uuid-123': {
           name_label: 'Host 1',
           pifDeviceToNetworkName: { eth0: 'Pool-wide network', eth1: 'Storage network' },
+          startTime: null,
         },
       },
       srs: {
@@ -851,6 +856,7 @@ describe('formatAllPoolsToOpenMetrics with labelContext', () => {
         'host-1': {
           name_label: 'Host 1',
           pifDeviceToNetworkName: { eth0: 'Management' },
+          startTime: null,
         },
       },
       srs: {},
@@ -1156,5 +1162,404 @@ describe('CPU usage fallback', () => {
     const cpuUsageLine = lines.find(l => l.includes('xcp_vm_cpu_usage{'))
     assert.ok(cpuUsageLine)
     assert.ok(!cpuUsageLine.includes('core='))
+  })
+})
+
+// ============================================================================
+// formatHostStatusMetrics Tests
+// ============================================================================
+
+describe('formatHostStatusMetrics', () => {
+  it('should return empty array for empty input', () => {
+    const result = formatHostStatusMetrics([])
+    assert.deepEqual(result, [])
+  })
+
+  it('should create one metric per host with value 1', () => {
+    const hosts: HostStatusItem[] = [
+      {
+        uuid: 'host-1',
+        name_label: 'Host 1',
+        power_state: 'Running',
+        enabled: true,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+      {
+        uuid: 'host-2',
+        name_label: 'Host 2',
+        power_state: 'Halted',
+        enabled: true,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+    ]
+
+    const result = formatHostStatusMetrics(hosts)
+
+    assert.equal(result.length, 2)
+    assert.equal(result[0]!.value, 1)
+    assert.equal(result[1]!.value, 1)
+  })
+
+  it('should set correct metric name and type', () => {
+    const hosts: HostStatusItem[] = [
+      {
+        uuid: 'host-1',
+        name_label: 'Host 1',
+        power_state: 'Running',
+        enabled: true,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+    ]
+
+    const result = formatHostStatusMetrics(hosts)
+
+    assert.equal(result[0]!.name, 'xcp_host_status')
+    assert.equal(result[0]!.type, 'gauge')
+  })
+
+  it('should include all expected labels', () => {
+    const hosts: HostStatusItem[] = [
+      {
+        uuid: 'host-1',
+        name_label: 'Host 1',
+        power_state: 'Running',
+        enabled: true,
+        pool_id: 'pool-1',
+        pool_name: 'Production',
+      },
+    ]
+
+    const result = formatHostStatusMetrics(hosts)
+    const labels = result[0]!.labels
+
+    assert.equal(labels.pool_id, 'pool-1')
+    assert.equal(labels.pool_name, 'Production')
+    assert.equal(labels.uuid, 'host-1')
+    assert.equal(labels.host_name, 'Host 1')
+    assert.equal(labels.power_state, 'Running')
+    assert.equal(labels.enabled, 'true')
+  })
+
+  it('should omit pool_name when empty', () => {
+    const hosts: HostStatusItem[] = [
+      { uuid: 'host-1', name_label: 'Host 1', power_state: 'Unknown', enabled: true, pool_id: 'pool-1', pool_name: '' },
+    ]
+
+    const result = formatHostStatusMetrics(hosts)
+
+    assert.equal(result[0]!.labels.pool_name, undefined)
+  })
+
+  it('should handle all power_state values and enabled flag', () => {
+    const hosts: HostStatusItem[] = [
+      {
+        uuid: 'host-0',
+        name_label: 'Host 0',
+        power_state: 'Running',
+        enabled: true,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+      {
+        uuid: 'host-1',
+        name_label: 'Host 1',
+        power_state: 'Running',
+        enabled: false,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+      {
+        uuid: 'host-2',
+        name_label: 'Host 2',
+        power_state: 'Halted',
+        enabled: true,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+      {
+        uuid: 'host-3',
+        name_label: 'Host 3',
+        power_state: 'Unknown',
+        enabled: true,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+    ]
+
+    const result = formatHostStatusMetrics(hosts)
+
+    assert.equal(result.length, 4)
+    assert.equal(result[0]!.labels.power_state, 'Running')
+    assert.equal(result[0]!.labels.enabled, 'true')
+    assert.equal(result[1]!.labels.power_state, 'Running')
+    assert.equal(result[1]!.labels.enabled, 'false')
+    assert.equal(result[2]!.labels.power_state, 'Halted')
+    assert.equal(result[3]!.labels.power_state, 'Unknown')
+  })
+
+  it('should produce valid OpenMetrics output', () => {
+    const hosts: HostStatusItem[] = [
+      {
+        uuid: 'host-1',
+        name_label: 'Host 1',
+        power_state: 'Running',
+        enabled: true,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+      {
+        uuid: 'host-2',
+        name_label: 'Host 2',
+        power_state: 'Halted',
+        enabled: false,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+    ]
+
+    const metrics = formatHostStatusMetrics(hosts)
+    const output = formatToOpenMetrics(metrics)
+
+    assert.ok(output.includes('# HELP xcp_host_status Host status (1 = current state)'))
+    assert.ok(output.includes('# TYPE xcp_host_status gauge'))
+    assert.ok(output.includes('power_state="Running"'))
+    assert.ok(output.includes('enabled="false"'))
+
+    // HELP and TYPE should appear only once
+    const helpCount = (output.match(/# HELP xcp_host_status/g) || []).length
+    assert.equal(helpCount, 1)
+  })
+
+  it('should escape special characters in host names', () => {
+    const hosts: HostStatusItem[] = [
+      {
+        uuid: 'host-1',
+        name_label: 'Host "with quotes"',
+        power_state: 'Running',
+        enabled: true,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+    ]
+
+    const metrics = formatHostStatusMetrics(hosts)
+    const output = formatToOpenMetrics(metrics)
+
+    assert.ok(output.includes('host_name="Host \\"with quotes\\""'))
+  })
+})
+
+// ============================================================================
+// Host Uptime Metrics Tests
+// ============================================================================
+
+describe('formatHostUptimeMetrics', () => {
+  const createLabelContextWithUptime = (startTime: number | null): LabelContext => ({
+    hosts: [
+      {
+        hostId: 'host-uuid-123',
+        hostAddress: '192.168.1.1',
+        hostLabel: 'Host 1',
+        poolId: 'pool-456',
+        poolLabel: 'Production Pool',
+        sessionId: 'session-123',
+        protocol: 'https:',
+      },
+    ],
+    labels: {
+      vms: {},
+      hosts: {
+        'host-uuid-123': {
+          name_label: 'Host 1',
+          pifDeviceToNetworkName: {},
+          startTime,
+        },
+      },
+      srs: {},
+      srSuffixToUuid: {},
+      vdiUuidToSrUuid: {},
+    },
+  })
+
+  it('should generate uptime metric for host with valid startTime', () => {
+    const now = Math.floor(Date.now() / 1000)
+    const bootTime = now - 3600 // 1 hour ago
+    const labelContext = createLabelContextWithUptime(bootTime)
+
+    const metrics = formatHostUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 1)
+    const metric = metrics[0]!
+    assert.equal(metric.name, 'xcp_host_uptime_seconds')
+    assert.equal(metric.type, 'gauge')
+    assert.equal(metric.help, 'Host uptime in seconds since boot')
+    assert.equal(metric.labels.pool_id, 'pool-456')
+    assert.equal(metric.labels.pool_name, 'Production Pool')
+    assert.equal(metric.labels.uuid, 'host-uuid-123')
+    assert.equal(metric.labels.host_name, 'Host 1')
+    // Value should be approximately 3600 (1 hour)
+    assert.ok(metric.value >= 3599 && metric.value <= 3601)
+  })
+
+  it('should skip host with null startTime', () => {
+    const labelContext = createLabelContextWithUptime(null)
+
+    const metrics = formatHostUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 0)
+  })
+
+  it('should skip host not found in labels', () => {
+    const labelContext: LabelContext = {
+      hosts: [
+        {
+          hostId: 'unknown-host',
+          hostAddress: '192.168.1.1',
+          hostLabel: 'Unknown Host',
+          poolId: 'pool-456',
+          poolLabel: 'Production',
+          sessionId: 'session-123',
+          protocol: 'https:',
+        },
+      ],
+      labels: {
+        vms: {},
+        hosts: {},
+        srs: {},
+        srSuffixToUuid: {},
+        vdiUuidToSrUuid: {},
+      },
+    }
+
+    const metrics = formatHostUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 0)
+  })
+
+  it('should generate metrics for multiple hosts', () => {
+    const now = Math.floor(Date.now() / 1000)
+    const labelContext: LabelContext = {
+      hosts: [
+        {
+          hostId: 'host-1',
+          hostAddress: '192.168.1.1',
+          hostLabel: 'Host 1',
+          poolId: 'pool-1',
+          poolLabel: 'Pool A',
+          sessionId: 'session-1',
+          protocol: 'https:',
+        },
+        {
+          hostId: 'host-2',
+          hostAddress: '192.168.1.2',
+          hostLabel: 'Host 2',
+          poolId: 'pool-1',
+          poolLabel: 'Pool A',
+          sessionId: 'session-1',
+          protocol: 'https:',
+        },
+      ],
+      labels: {
+        vms: {},
+        hosts: {
+          'host-1': {
+            name_label: 'Host 1',
+            pifDeviceToNetworkName: {},
+            startTime: now - 7200, // 2 hours
+          },
+          'host-2': {
+            name_label: 'Host 2',
+            pifDeviceToNetworkName: {},
+            startTime: now - 1800, // 30 minutes
+          },
+        },
+        srs: {},
+        srSuffixToUuid: {},
+        vdiUuidToSrUuid: {},
+      },
+    }
+
+    const metrics = formatHostUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 2)
+    const host1Metric = metrics.find(m => m.labels.uuid === 'host-1')
+    const host2Metric = metrics.find(m => m.labels.uuid === 'host-2')
+    assert.ok(host1Metric)
+    assert.ok(host2Metric)
+    assert.ok(host1Metric.value >= 7199 && host1Metric.value <= 7201)
+    assert.ok(host2Metric.value >= 1799 && host2Metric.value <= 1801)
+  })
+
+  it('should omit pool_name label when empty', () => {
+    const now = Math.floor(Date.now() / 1000)
+    const labelContext: LabelContext = {
+      hosts: [
+        {
+          hostId: 'host-1',
+          hostAddress: '192.168.1.1',
+          hostLabel: 'Host 1',
+          poolId: 'pool-1',
+          poolLabel: '', // Empty pool label
+          sessionId: 'session-1',
+          protocol: 'https:',
+        },
+      ],
+      labels: {
+        vms: {},
+        hosts: {
+          'host-1': {
+            name_label: 'Host 1',
+            pifDeviceToNetworkName: {},
+            startTime: now - 3600,
+          },
+        },
+        srs: {},
+        srSuffixToUuid: {},
+        vdiUuidToSrUuid: {},
+      },
+    }
+
+    const metrics = formatHostUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 1)
+    assert.equal(metrics[0]!.labels.pool_name, undefined)
+  })
+
+  it('should omit host_name label when empty', () => {
+    const now = Math.floor(Date.now() / 1000)
+    const labelContext: LabelContext = {
+      hosts: [
+        {
+          hostId: 'host-1',
+          hostAddress: '192.168.1.1',
+          hostLabel: 'Host 1',
+          poolId: 'pool-1',
+          poolLabel: 'Pool A',
+          sessionId: 'session-1',
+          protocol: 'https:',
+        },
+      ],
+      labels: {
+        vms: {},
+        hosts: {
+          'host-1': {
+            name_label: '', // Empty host name
+            pifDeviceToNetworkName: {},
+            startTime: now - 3600,
+          },
+        },
+        srs: {},
+        srSuffixToUuid: {},
+        vdiUuidToSrUuid: {},
+      },
+    }
+
+    const metrics = formatHostUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 1)
+    assert.equal(metrics[0]!.labels.host_name, undefined)
   })
 })

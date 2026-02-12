@@ -197,6 +197,11 @@ export default class PerformancePlan extends Plan {
         continue
       }
 
+      if (this._isVmInCooldown(vm)) {
+        debug(`VM (${vm.id}) of Host (${exceededHost.id}) is in cooldown, skipping.`)
+        continue
+      }
+
       // TODO: Improve this piece of code. We could compute variance to check if the VM
       // is migratable. But the code must be rewritten:
       // - All VMs, hosts and stats must be fetched at one place.
@@ -269,17 +274,9 @@ export default class PerformancePlan extends Plan {
       debug(
         `Migrate VM (${vm.id} "${vm.name_label}") to Host (${destination.id} "${destination.name_label}") from Host (${fmtSrcHost}).`
       )
-      optimizationCount++
 
-      promises.push(
-        this._concurrentMigrationLimiter.call(
-          xapiSrc,
-          'migrateVm',
-          vm._xapiId,
-          this.xo.getXapi(destination),
-          destination._xapiId
-        )
-      )
+      promises.push(this._migrateVm(vm, xapiSrc, this.xo.getXapi(destination), destination._xapiId))
+      optimizationCount++
     }
 
     await Promise.all(promises)

@@ -78,7 +78,7 @@
           </div>
           <div class="row">
             <VtsInputWrapper>
-              <UiRadioButtonGroup accent="brand">
+              <UiRadioButtonGroup accent="brand" gap="wide">
                 <UiRadioButton v-model="ipStrategy" accent="brand" value="static">
                   {{ t('static-ip') }}
                 </UiRadioButton>
