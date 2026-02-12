@@ -3,6 +3,7 @@ import { createGzip } from 'node:zlib'
 import { pipeline } from 'node:stream/promises'
 import { Readable, type Transform } from 'node:stream'
 import { Request } from 'express'
+import type { SupportedActionsByResource, SupportedResource } from '@xen-orchestra/acl'
 import type { VatesTask } from '@vates/types/lib/vates/task'
 import type { XapiXoRecord, XoRecord, XoTask } from '@vates/types/xo'
 import type { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
@@ -15,6 +16,7 @@ import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
 import type { MaybePromise, SendObjects, WithHref } from '../helpers/helper.type.mjs'
 import type { Response as ExResponse } from 'express'
 import { invalidParameters } from 'xo-common/api-errors.js'
+import type { RestAnyPrivilege } from '../acl-privileges/acl-privilege.type.mjs'
 import { NDJSON_CONTENT_TYPE, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 
 const noop = () => {}
@@ -24,8 +26,9 @@ export type BaseControllerType<T extends XoRecord> = T extends XapiXoRecord
   : NonNullable<XoTask['properties']['objectType']>
 
 export type CreateActionReturnType<CbType> = Promise<{ taskId: string } | CbType>
+export type RestXoRecord = XoRecord<SupportedActionsByResource, SupportedResource> | RestAnyPrivilege
 
-export abstract class BaseController<T extends XoRecord, IsSync extends boolean> extends Controller {
+export abstract class BaseController<T extends RestXoRecord, IsSync extends boolean> extends Controller {
   abstract getObjects(): IsSync extends false ? Promise<Record<T['id'], T>> : Record<T['id'], T>
   abstract getObject(id: T['id']): IsSync extends false ? Promise<T> : T
 
@@ -38,7 +41,7 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
     this.restApi = restApi
   }
 
-  sendObjects<Objects extends XoRecord = T>(
+  sendObjects<Objects extends RestXoRecord = T>(
     objects: Objects[],
     req: Request,
     path?: string | ((obj: Objects) => string)

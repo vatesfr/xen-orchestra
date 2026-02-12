@@ -17,6 +17,7 @@ import { provide } from 'inversify-binding-decorators'
 import { type Request as ExRequest, json } from 'express'
 import type { XoAclRole } from '@vates/types'
 
+import { aclPrivilegeIds, partialAclPrivileges } from '../open-api/oa-examples/acl-privilege.oa-example.mjs'
 import { aclRole, aclRoleIds, partialAclRoles } from '../open-api/oa-examples/acl-role.oa-example.mjs'
 import {
   asynchronousActionResp,
@@ -28,6 +29,8 @@ import {
 } from '../open-api/common/response.common.mjs'
 import { BASE_URL } from '../index.mjs'
 import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
+import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
+import type { RestAnyPrivilege } from '../acl-privileges/acl-privilege.type.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
@@ -72,6 +75,28 @@ export class AclRoleController extends XoController<XoAclRole> {
   @Response(notFoundResp.status, notFoundResp.description)
   getAclV2Role(@Path() id: string): Promise<Unbrand<XoAclRole>> {
     return this.getObject(id as XoAclRole['id'])
+  }
+
+  /**
+   * @example id "426622cc-b2db-4545-a2f0-6ec47b3a6450"
+   * @example fields "id,action,resource"
+   * @example filter "action:create"
+   * @example limit 42
+   */
+  @Example(aclPrivilegeIds)
+  @Example(partialAclPrivileges)
+  @Get('{id}/privileges')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getAclV2RolePrivileges(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): Promise<SendObjects<Partial<Unbrand<RestAnyPrivilege>>>> {
+    const privileges = (await this.restApi.xoApp.getAclV2RolePrivileges(id as XoAclRole['id'])) as RestAnyPrivilege[]
+    return this.sendObjects(limitAndFilterArray(privileges, { filter, limit }), req, 'acl-privileges')
   }
 
   /**

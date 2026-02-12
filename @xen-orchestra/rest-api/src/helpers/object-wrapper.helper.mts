@@ -1,11 +1,11 @@
 import pick from 'lodash/pick.js'
 import { Request } from 'express'
-import type { XoRecord } from '@vates/types'
 
 import { BASE_URL } from '../index.mjs'
+import type { RestXoRecord } from '../abstract-classes/base-controller.mjs'
 import type { WithHref } from './helper.type.mjs'
 
-export function makeObjectMapper<T extends XoRecord>(req: Request, path?: string | ((obj: T) => string)) {
+export function makeObjectMapper<T extends RestXoRecord>(req: Request, path?: string | ((obj: T) => string)) {
   const makeUrl = (obj: T) => {
     let _path: string
     if (path === undefined) {

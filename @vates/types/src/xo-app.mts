@@ -1,3 +1,4 @@
+import type { AnyPrivilege } from '@xen-orchestra/acl'
 import { EventEmitter } from 'node:stream'
 import type {
   AnyXoBackupJob,
@@ -158,8 +159,11 @@ export type XoApp = {
   createGroup(params: { name: string; provider?: string; providerGroup?: string }): Promise<XoGroup>
   /* disconnect a server (XCP-ng/XenServer) */
   disconnectXenServer(id: XoServer['id']): Promise<void>
-  getAclV2Roles(): Promise<XoAclRole[]>
+  getAclV2Privilege(id: AnyPrivilege['id']): Promise<AnyPrivilege>
+  getAclV2Privileges(): Promise<AnyPrivilege[]>
+  getAclV2RolePrivileges(roleId: XoAclRole['id']): Promise<AnyPrivilege[]>
   getAclV2Role(id: XoAclRole['id']): Promise<XoAclRole>
+  getAclV2Roles(): Promise<XoAclRole[]>
   getAllGroups(): Promise<XoGroup[]>
   getAllProxies(): Promise<XoProxy[]>
   getAllJobs<T extends AnyXoBackupJob['type']>(type: T): Promise<Extract<AnyXoBackupJob, { type: T }>[]>

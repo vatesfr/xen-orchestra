@@ -1,32 +1,12 @@
 import { createPredicate } from 'value-matcher'
-import type { Privilege as TPrivilege } from '../index.mjs'
+import type { XoAclPrivilege, XoAclSupportedActions, XoAclSupportedResource } from '@vates/types/lib/xen-orchestra/acl'
+
 import { SUPPORTED_ACTIONS_BY_RESOURCE } from '../actions/index.mjs'
 
-/**
- * E.g
- * vms {
- *   shutdown: {
- *    clean: true,
- *    hard: true,
- *  }
- * }
- *
- * `shutdown | shutdown:clean | shutdown:hard`
- */
-type GetKeysRecursively<T, Prefix extends string = ''> = {
-  [K in keyof T]: T[K] extends object
-    ? K extends string
-      ? `${Prefix}${K}` | GetKeysRecursively<T[K], `${Prefix}${K}:`>
-      : never
-    : K extends string
-      ? `${Prefix}${K}`
-      : never
-}[keyof T]
-
-export type SupportedResource = keyof typeof SUPPORTED_ACTIONS_BY_RESOURCE
-export type SupportedActions<T extends SupportedResource> =
-  | (GetKeysRecursively<(typeof SUPPORTED_ACTIONS_BY_RESOURCE)[T]> & string)
-  | '*'
+export type SupportedActionsByResource = typeof SUPPORTED_ACTIONS_BY_RESOURCE
+export type SupportedResource = XoAclSupportedResource<SupportedActionsByResource>
+export type SupportedActions<T extends SupportedResource> = XoAclSupportedActions<SupportedActionsByResource, T>
+export type TPrivilege<T extends SupportedResource> = XoAclPrivilege<SupportedActionsByResource, T>
 
 export class Privilege<T extends SupportedResource> {
   #action: TPrivilege<T>['action']
