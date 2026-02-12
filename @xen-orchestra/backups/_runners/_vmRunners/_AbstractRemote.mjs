@@ -46,7 +46,7 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
     this._writers = writers
 
     const [BackupWriter, AggregratedBackupWriter] = this._getRemoteWriters()
-    if (settings.spreadBackups && AggregratedBackupWriter) {
+    if (settings.spreadBackups) {
       writers.add(
         new AggregratedBackupWriter({
           adapters: remoteAdapters,
