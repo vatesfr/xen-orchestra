@@ -54,13 +54,13 @@ export class AbstractAggregatedXapiWriter {
     const candidate = srCandidates[Math.floor(Math.random() * srCandidates.length)]
 
     debug(
-      `computeSRCandidate found ${srCandidates.length} sr with ${maxSpace} free size, and choose ${candidate.name_label}  for vm${this.#props.vmUuid}`
+      `computeSRCandidate found ${srCandidates.length} sr with ${maxSpace} free size, and chose ${candidate.name_label} for vm${this.#props.vmUuid}`
     )
     return candidate
   }
 
   setOldReplicaList() {
-    debug(`etOldReplicaList  for vm ${this.#props.vmUuid}`)
+    debug(`setOldReplicaList for vm ${this.#props.vmUuid}`)
     const scheduleId = this.#props.scheduleId
     const vmUuid = this.#props.vmUuid
     const settings = this.#props.settings

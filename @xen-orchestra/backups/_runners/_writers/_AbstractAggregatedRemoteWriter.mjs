@@ -1,9 +1,11 @@
+import { asyncEach } from '@vates/async-each'
 import { getOldEntries } from '../../_getOldEntries.mjs'
 import { compareTimestamp } from '../../RemoteAdapter.mjs'
 import { createLogger } from '@xen-orchestra/log'
 
 const { debug } = createLogger('xo:backups:AbstractAggregatedRemoteWriter')
 
+export const DEFAULT_AGGREGATED_REMOTE_DELETE_CONCURRENCY = 2
 export class AbstractAggregatedRemoteWriter {
   #BackupWriter
   #adapters
@@ -46,7 +48,7 @@ export class AbstractAggregatedRemoteWriter {
    *   if all the adapter infos expose an available info use the one with the more free space
    *   if none of the adapter exposes this info : choose at random
    *   if mixed : throw an error
-   * @returns
+   * @returns {RemoteAdapter}
    */
   async computeAdapterCandidate() {
     const adapters = Object.values(this.#adapters)
@@ -137,16 +139,19 @@ export class AbstractAggregatedRemoteWriter {
   async deleteOldBackups() {
     const byAdapters = new Map()
     this.#oldBackups.forEach(({ adapter, ...backup }) => {
-      if (!byAdapters.has(adapter)) {
-        byAdapters.set(adapter, [])
-      }
-      const current = byAdapters.get(adapter)
+      const current = byAdapters.has(adapter) ? byAdapters.get(adapter) : []
       current.push(backup)
       byAdapters.set(adapter, current)
     })
-    for (const [adapter, backups] of byAdapters.entries()) {
-      debug(`delete ${backups.length} old backup(s) to delete from ${adapter._handler._remote.id}`)
-      await this.deleteOldBackupsOnAdapter(adapter, backups)
-    }
+    await asyncEach(
+      byAdapters.entries(),
+      async ([adapter, backups]) => {
+        debug(`delete ${backups.length} old backup(s) to delete from ${adapter._handler._remote.id}`)
+        await this.deleteOldBackupsOnAdapter(adapter, backups)
+      },
+      {
+        concurrency: this.#props.deleteConcurrency ?? DEFAULT_AGGREGATED_REMOTE_DELETE_CONCURRENCY,
+      }
+    )
   }
 }
