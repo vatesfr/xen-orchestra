@@ -1,5 +1,29 @@
 'use strict'
-
+/**
+ * @typedef {(Object)} DiskGeometry
+ * @property {(number)} cylinders
+ * @property {(number)} heads
+ * @property {(number)} sectorsPerTrackCylinder
+ *
+ * @typedef {(Object)} VhdFooter
+ * @property {(string)} cookie
+ * @property {(number)} features
+ * @property {(number)} fileFormatVersion
+ * @property {(number)} dataOffset
+ * @property {(number)} timestamp
+ * @property {(string)} creatorApplication
+ * @property {(number)} creatorVersion
+ * @property {(number)} creatorHostOs
+ * @property {(number)} originalSize
+ * @property {(number)} currentSize
+ * @property {(DiskGeometry)} diskGeometry
+ * @property {(number)} diskType
+ * @property {(number)} checksum
+ * @property {(Buffer)} uuid
+ * @property {(string)} saved
+ * @property {(string)} hidden
+ * @property {(string)} reserved
+ */
 const { v4: generateUuid } = require('uuid')
 
 const { checksumStruct, fuFooter, fuHeader } = require('./_structs')

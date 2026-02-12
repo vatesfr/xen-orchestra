@@ -31,7 +31,7 @@ import { listPartitions, LVM_PARTITION_TYPE_MBR, LVM_PARTITION_TYPE_GPT } from '
 import { lvs, pvs } from './_lvm.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
 
-import { RemoteVhd } from './disks/RemoteVhd.mjs'
+import { RemoteVhdDisk } from './disks/RemoteVhdDisk.mjs'
 import { openDiskChain } from './disks/openDiskChain.mjs'
 import { toVhdStream, writeToVhdDirectory } from 'vhd-lib/disk-consumer/index.mjs'
 import { ReadAhead } from '@xen-orchestra/disk-transform'
@@ -744,7 +744,7 @@ export class RemoteAdapter {
     if (useChain) {
       disk = await openDiskChain({ handler, path })
     } else {
-      disk = new RemoteVhd({ handler, path })
+      disk = new RemoteVhdDisk({ handler, path })
       await disk.init()
     }
     disk = new ReadAhead(disk)
