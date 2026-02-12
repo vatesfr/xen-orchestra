@@ -26,7 +26,7 @@ export abstract class AbstractVmBackupArchive {
     throw new Error('Not implemented')
   }
 
-  getValidFiles({ prefix = false }) {
+  getValidFiles({ prefix = false }): Array<string> {
     throw new Error('Not implemented')
   }
 }
