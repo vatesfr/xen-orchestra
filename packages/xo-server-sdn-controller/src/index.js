@@ -437,35 +437,45 @@ class SDNController extends EventEmitter {
 
     this._xo.registerRestApi(
       {
-        rules: {
-          ':id': {
+        vifs: {
+          ':id/rules': {
             _post: async (req, res, next) => {
-              await this._addRule({
+              const rule = {
                 allow: req.body.allow,
                 direction: req.body.direction,
                 ipRange: req.body.ipRange,
-                port: req.body.port,
                 protocol: req.body.protocol,
                 vifId: req.params.id,
-              })
+              }
+
+              if (req.body.port != null) {
+                rule.port = req.body.port
+              }
+
+              await this._addRule(rule)
 
               res.sendStatus(204)
             },
             _delete: async (req, res, next) => {
-              await this._deleteRule({
+              const rule = {
                 direction: req.body.direction,
                 ipRange: req.body.ipRange,
-                port: req.body.port,
                 protocol: req.body.protocol,
                 vifId: req.params.id,
-              })
+              }
+
+              if (req.body.port != null) {
+                rule.port = req.body.port
+              }
+
+              await this._deleteRule(rule)
 
               res.sendStatus(204)
             },
           },
         },
       },
-      '/plugins/sdn-controller/vif'
+      '/plugins/sdn-controller'
     )
 
     forOwn(this._xo.getAllXapis(), xapi => {
