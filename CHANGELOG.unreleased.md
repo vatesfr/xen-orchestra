@@ -12,6 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [VM/New] Added secureBoot support (PR [#9423](https://github.com/vatesfr/xen-orchestra/pull/9423))
+- [REST API] Expose `/rest/v0/vms/:id/actions/clone` (PR [#9453](https://github.com/vatesfr/xen-orchestra/pull/9453))
 
 ### Bug fixes
 
