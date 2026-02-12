@@ -7,7 +7,7 @@ import { defer } from 'golike-defer'
 import { readChunk } from '@vates/read-chunk'
 import { strict as assert } from 'node:assert'
 
-import { SUPPORTED_VDI_FORMAT, VDI_FORMAT_RAW, VHD_MAX_SIZE } from './index.mjs'
+import { SUPPORTED_VDI_FORMAT, VDI_FORMAT_RAW, VDI_FORMAT_QCOW2, VHD_MAX_SIZE } from './index.mjs'
 
 const { warn, info } = createLogger('xo:xapi:vdi')
 
@@ -112,14 +112,12 @@ class Vdi {
      * ELSE it should create a vhd which will fail
      */
     if (virtual_size > VHD_MAX_SIZE) {
-      const poolMaster = await this.getRecord('host', this.pool.master)
-      const PBD = Object.values(this.objects.indexes.type.PBD).find(
-        pbd => pbd.host === poolMaster.$ref && pbd.SR === SR
-      )
+      const sr = this.getObject(SR)
+      const PBD = sr.$PBDs[0]
       const preferredImageFormats = PBD?.device_config['preferred-image-formats']
-      if (!preferredImageFormats || preferredImageFormats.includes('qcow2')) {
+      if (!preferredImageFormats || preferredImageFormats.includes(VDI_FORMAT_QCOW2)) {
         info('VDI virtual_size exceeds VHD max size, switching to qcow2', { virtual_size, SR })
-        sm_config = { ...sm_config, 'image-format': 'qcow2' }
+        sm_config = { ...sm_config, 'image-format': VDI_FORMAT_QCOW2 }
       }
     }
 
