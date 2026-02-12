@@ -154,8 +154,8 @@ export type XoApp = {
   getAclV2Privilege(id: AnyPrivilege['id']): Promise<AnyPrivilege>
   getAclV2Privileges(): Promise<AnyPrivilege[]>
   getAclV2RolePrivileges(roleId: XoAclRole['id']): Promise<AnyPrivilege[]>
-  getAclV2Roles(): Promise<XoAclRole[]>
   getAclV2Role(id: XoAclRole['id']): Promise<XoAclRole>
+  getAclV2Roles(): Promise<XoAclRole[]>
   getAllGroups(): Promise<XoGroup[]>
   getAllProxies(): Promise<XoProxy[]>
   getAllJobs<T extends AnyXoBackupJob['type']>(type: T): Promise<Extract<AnyXoBackupJob, { type: T }>[]>

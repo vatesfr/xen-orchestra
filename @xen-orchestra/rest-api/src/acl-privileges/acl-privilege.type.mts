@@ -17,7 +17,6 @@ export type RestAnyPrivilege =
   | (BasePrivilege & { resource: 'backup-archive'; action: ActionsByResource['backup-archive'] })
   | (BasePrivilege & { resource: 'backup-job'; action: ActionsByResource['backup-job'] })
   | (BasePrivilege & { resource: 'backup-log'; action: ActionsByResource['backup-log'] })
-  | (BasePrivilege & { resource: 'backup-log'; action: ActionsByResource['backup-log'] })
   | (BasePrivilege & { resource: 'backup-repository'; action: ActionsByResource['backup-repository'] })
   | (BasePrivilege & { resource: 'group'; action: ActionsByResource['group'] })
   | (BasePrivilege & { resource: 'host'; action: ActionsByResource['host'] })
@@ -46,7 +45,7 @@ export type RestAnyPrivilege =
   | (BasePrivilege & { resource: 'vm-template'; action: ActionsByResource['vm-template'] })
 
 // As explained just above, we need to redefine all privileges.
-// This type is used to create the `RestAnyPrivilge` union type
+// This type is used to create the `RestAnyPrivilege` union type
 // And also to ensure type from `@xen-orchestra/acl` and type from here are the same
 // type sync validation is done after this type
 type ActionsByResource = {
