@@ -25,7 +25,7 @@ export class VmFullBackupArchive extends AbstractVmBackupArchive {
     await backup.init()
   }
 
-  async getValidFiles({ prefix = false }) {
+  getValidFiles({ prefix = false }): Array<string> {
     return prefix ? [this.metadataPath, this.diskPath] : [basename(this.metadataPath), basename(this.diskPath)]
   }
 }
