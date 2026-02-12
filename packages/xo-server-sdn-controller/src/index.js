@@ -526,7 +526,7 @@ class SDNController extends EventEmitter {
           },
         },
       },
-      '/plugins/sdn-controller/vif'
+      '/plugins/sdn-controller'
     )
 
     forOwn(this._xo.getAllXapis(), xapi => {
