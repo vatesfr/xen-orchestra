@@ -24,6 +24,9 @@ export class AbstractAggregatedRemoteWriter {
   }
   constructor({ adapters, BackupWriter, ...props }) {
     debug('instantiate AggregatedFullRemoteWriter')
+    if (Object.keys(adapters).length < 1) {
+      throw new Error('AggregatedRemoteWriter need at least one backup repository to work ')
+    }
     this.#props = props
     this.#adapters = adapters
     this.#BackupWriter = BackupWriter
