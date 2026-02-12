@@ -1,8 +1,8 @@
 import { RemoteHandlerAbstract } from '@xen-orchestra/fs'
-import { resolve } from 'node:path'
+import { basename } from 'node:path'
 import { IBackupLineage, PartialBackupMetadata } from './DiskLineage.types.mts'
 import { VmFullBackupArchive } from './VmFullBackupArchive.mts'
-import { VmBackupArchive, VmIncrementalBackupArchive } from './VmBackupArchive.mts'
+import { AbstractVmBackupArchive } from './VmBackupArchive.mts'
 
 const FILES_TO_KEEP = ['cache.json.gz']
 
@@ -11,7 +11,7 @@ class VmBackupDirectory {
   rootPath: string
   files: Array<string>
   orphans: Set<string>
-  backupArchives: Map<string, VmBackupArchive>
+  backupArchives: Map<string, AbstractVmBackupArchive>
 
   constructor(handler: typeof RemoteHandlerAbstract, vmBackupPath: string) {
     this.#handler = handler
@@ -35,18 +35,18 @@ class VmBackupDirectory {
     }
   }
 
-  async getValidFiles({ prefix = false }) {
-    return this.files.filter(file => {
-      file.endsWith('cache.json.gz')
-    })
+  getValidFiles({ prefix = false }) {
+    const files = this.files.filter(file => file.endsWith('cache.json.gz'))
+    return prefix ? files : files.map(file => basename(file))
   }
 
   async check() {
     const allUsedFiles = Array.from(this.backupArchives.values()).flatMap(archive =>
       archive.getValidFiles({ prefix: true })
     )
+    allUsedFiles.push(...this.getValidFiles({ prefix: true }))
     const orphans = []
-    for (const file of this.files.filter(file => !allUsedFiles.includes(file) && !file.endsWith('cache.json.gz'))) {
+    for (const file of this.files.filter(file => !allUsedFiles.includes(file))) {
       orphans.push(file)
     }
     return { orphans, linked: allUsedFiles }
@@ -55,12 +55,12 @@ class VmBackupDirectory {
   async clean() {
     const { orphans } = await this.check()
     for (const orphan of orphans) {
-      this.#handler.unlink(orphan)
+      await this.#handler.unlink(orphan)
     }
   }
 
   async createBackupArchive(metadataPath: string, metadata: PartialBackupMetadata) {
-    let backupArchive: VmBackupArchive
+    let backupArchive: AbstractVmBackupArchive
     try {
       if (metadata.mode == 'full') {
         backupArchive = new VmFullBackupArchive(this.#handler, this.rootPath, metadataPath, metadata, metadata.xva!)
@@ -68,7 +68,8 @@ class VmBackupDirectory {
         backupArchive = new VmIncrementalBackupArchive(this.#handler)
       }
     } catch (error) {
-      throw new Error(`Error trying to create backupArchive from ${metadataPath}`, { metadata })
+      console.warn(`Error trying to create backupArchive from ${metadataPath}`, { metadata })
+      throw new Error(`Error trying to create backupArchive from ${metadataPath}`)
     }
     await backupArchive.init()
     return backupArchive
