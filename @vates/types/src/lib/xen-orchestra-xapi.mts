@@ -87,6 +87,19 @@ export interface Xapi {
   deleteNetwork(id: XoNetwork['id']): Promise<void>
   deleteVif(vifId: XoVif['id']): Promise<void>
   exportVmOva(vmRef: XenApiVm['$ref']): Promise<PassThrough>
+  migrateVm(
+    vmId: XoVm['id'],
+    hostXapi: Xapi,
+    hostId: XoHost['id'],
+    opts?: {
+      force?: boolean
+      mapVdisSrs?: Record<XoVdi['id'], XoSr['id']>
+      mapVifsNetworks?: Record<XoVif['id'], XoNetwork['id']>
+      migrationNetworkId?: XoNetwork['id']
+      sr?: XoSr['id']
+      bypassAssert?: boolean
+    }
+  ): Promise<void>
   listMissingPatches(host: XoHost['id']): Promise<XcpPatches[] | XsPatches[]>
   pool_emergencyShutdown(): Promise<void>
   resumeVm(id: XoVm['id']): Promise<void>

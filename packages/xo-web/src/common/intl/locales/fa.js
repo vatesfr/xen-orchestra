@@ -2115,8 +2115,7 @@ export default {
   patchRelease: 'انتشار',
 
   // Original text: 'Update plugin is not installed on this host. Please run `yum install xcp-ng-updater` first.'
-  updatePluginNotInstalled:
-    'افزونه آپدیت روی این میزبان نصب نیست. لطفا ابتدا دستور yum install xcp-ng-updater را اجرا کنید.',
+  updatePluginNotInstalled: 'هنگام دریافت وصله‌ها خطایی رخ داد. لطفاً مطمئن شوید افزونهٔ به‌روزرسانی نصب شده است.',
 
   // Original text: 'Show changelog'
   showChangelog: 'نمایش تغییرات',
