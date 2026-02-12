@@ -87,75 +87,78 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
       const allSettings = job.settings
 
-      if (settings.spreadBackups && AggregratedBackupWriter && settings.exportRetention > 0) {
-        writers.add(
-          new AggregratedBackupWriter({
-            adapters: remoteAdapters,
-            BackupWriter,
-            config,
-            healthCheckSr,
-            job,
-            scheduleId: schedule.id,
-            vmUuid: vm.uuid,
-            settings,
+      if (settings.exportRetention > 0) {
+        if (settings.spreadBackups) {
+          writers.add(
+            new AggregratedBackupWriter({
+              adapters: remoteAdapters,
+              BackupWriter,
+              config,
+              healthCheckSr,
+              job,
+              scheduleId: schedule.id,
+              vmUuid: vm.uuid,
+              settings,
+            })
+          )
+        } else {
+          Object.entries(remoteAdapters).forEach(([remoteId, adapter]) => {
+            const targetSettings = {
+              ...settings,
+              ...allSettings[remoteId],
+            }
+            if (targetSettings.exportRetention !== 0) {
+              writers.add(
+                new BackupWriter({
+                  adapter,
+                  config,
+                  healthCheckSr,
+                  job,
+                  scheduleId: schedule.id,
+                  vmUuid: vm.uuid,
+                  remoteId,
+                  settings: targetSettings,
+                })
+              )
+            }
           })
-        )
-      } else {
-        Object.entries(remoteAdapters).forEach(([remoteId, adapter]) => {
-          const targetSettings = {
-            ...settings,
-            ...allSettings[remoteId],
-          }
-          if (targetSettings.exportRetention !== 0) {
-            writers.add(
-              new BackupWriter({
-                adapter,
-                config,
-                healthCheckSr,
-                job,
-                scheduleId: schedule.id,
-                vmUuid: vm.uuid,
-                remoteId,
-                settings: targetSettings,
-              })
-            )
-          }
-        })
+        }
       }
-
-      if (settings.spreadReplications && AggregratedReplicationWriter && settings.copyRetention > 0) {
-        writers.add(
-          new AggregratedReplicationWriter({
-            config,
-            healthCheckSr,
-            job,
-            ReplicationWriter,
-            scheduleId: schedule.id,
-            vmUuid: vm.uuid,
-            srs,
-            settings,
+      if (settings.copyRetention) {
+        if (settings.spreadReplications) {
+          writers.add(
+            new AggregratedReplicationWriter({
+              config,
+              healthCheckSr,
+              job,
+              ReplicationWriter,
+              scheduleId: schedule.id,
+              vmUuid: vm.uuid,
+              srs,
+              settings,
+            })
+          )
+        } else {
+          srs.forEach(sr => {
+            const targetSettings = {
+              ...settings,
+              ...allSettings[sr.uuid],
+            }
+            if (targetSettings.copyRetention !== 0) {
+              writers.add(
+                new ReplicationWriter({
+                  config,
+                  healthCheckSr,
+                  job,
+                  scheduleId: schedule.id,
+                  vmUuid: vm.uuid,
+                  sr,
+                  settings: targetSettings,
+                })
+              )
+            }
           })
-        )
-      } else {
-        srs.forEach(sr => {
-          const targetSettings = {
-            ...settings,
-            ...allSettings[sr.uuid],
-          }
-          if (targetSettings.copyRetention !== 0) {
-            writers.add(
-              new ReplicationWriter({
-                config,
-                healthCheckSr,
-                job,
-                scheduleId: schedule.id,
-                vmUuid: vm.uuid,
-                sr,
-                settings: targetSettings,
-              })
-            )
-          }
-        })
+        }
       }
     }
   }
