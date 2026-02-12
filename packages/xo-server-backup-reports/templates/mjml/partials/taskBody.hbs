@@ -1,10 +1,10 @@
-{{#ifCond task.data.type '===' 'remote'}}
-<li><span style="font-weight:bold">ID</span>: {{task.data.id}}</li>
+{{#ifCond task.properties.type '===' 'remote'}}
+<li><span style="font-weight:bold">ID</span>: {{task.properties.id}}</li>
 {{/ifCond}}
-{{#ifCond task.data.type '===' 'pool'}}
-{{#if task.data.pool.uuid}}
-<li><span style="font-weight:bold">UUID</span>: {{task.data.pool.uuid}}</li>
+{{#ifCond task.properties.type '===' 'pool'}}
+{{#if task.properties.data.pool.uuid}}
+<li><span style="font-weight:bold">UUID</span>: {{task.properties.data.pool.uuid}}</li>
 {{else}}
-<li><span style="font-weight:bold">ID</span>: {{task.data.id}}</li>
+<li><span style="font-weight:bold">ID</span>: {{task.properties.id}}</li>
 {{/if}}
 {{/ifCond}}

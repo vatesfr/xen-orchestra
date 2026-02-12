@@ -3,12 +3,12 @@
 ## {{{tasksByStatus.failure.count}}} {{#ifCond tasksByStatus.failure.count '>' 1~}} Failures {{~^~}} Failure {{~/ifCond}}
 
 {{#each tasksByStatus.failure.tasks}}
-{{#if uuid}}
+{{#if properties.uuid}}
 
-### {{{name}}}
+### {{{properties.name}}}
 
-- **UUID**: {{{uuid}}}
-- **Type**: {{{taskLog.data.type}}}
+- **UUID**: {{{properties.uuid}}}
+- **Type**: {{{taskLog.properties.type}}}
 {{>reportTemporalDataMd end=taskLog.end start=taskLog.start formatDate=../formatDate}}
 {{>reportWarningsMd task=taskLog}}
 - **Error**: {{{taskLog.result.message}}}

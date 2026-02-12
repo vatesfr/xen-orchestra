@@ -20,7 +20,7 @@
           <mj-text font-size="16px" font-weight="300" line-height="24px">
             <h1>Global status : {{log.status}} {{getIcon log.status}}</h1>
             <ul>
-              <li><span style="font-weight: bold">Job ID</span>: {{log.jobId}}</li>
+              <li><span style="font-weight: bold">Job ID</span>: {{log.properties.jobId}}</li>
               <li><span style="font-weight: bold">Job name</span>: {{jobName}}</li>
               <li><span style="font-weight: bold">Run ID</span>: {{log.id}}</li>
               {{>reportTemporalDataMjml end=log.end start=log.start}} {{#if log.tasks.length}}
@@ -47,7 +47,7 @@
           <mj-section padding-bottom="0px">
             <mj-column width="100%">
               <mj-text font-size="16px" font-weight="300" line-height="24px">
-                <h3>{{>taskTitle task=. jobName=../../log.jobName}}</h3>
+                <h3>{{>taskTitle task=. jobName=../../log.properties.jobName}}</h3>
                 <ul>
                   {{>taskBody task=.}} {{>reportTemporalDataMjml formatDate=../../formatDate}} {{>reportErrorMjml task=.}}
                   {{>reportWarningsMjml task=this}}
