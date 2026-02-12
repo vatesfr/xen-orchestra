@@ -21,6 +21,9 @@ export class AbstractAggregatedXapiWriter {
 
   constructor({ srs, ReplicationWriter, ...props }) {
     debug('instantiate AbstractAggregatedXapiWriter')
+    if (srs.length < 1) {
+      throw new Error('AggregatedXapiWriter need at least one storage repository to work ')
+    }
     this.#props = props
     this.#ReplicationWriter = ReplicationWriter
     this.#storageRepositories = srs
