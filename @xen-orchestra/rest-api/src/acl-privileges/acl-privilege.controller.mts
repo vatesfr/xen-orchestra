@@ -1,4 +1,4 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Delete, Example, Get, Patch, Path, Post, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 
@@ -45,6 +45,40 @@ export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
   }
 
   /**
+   * @example action "read"
+   * @example resource "alarm"
+   * @example roleId "784bd959-08de-4b26-b575-92ded5aef872"
+   * @example effect "allow"
+   * @example selector "selector"
+   */
+  @Example(aclPrivilege)
+  @Post('')
+  async createAclV2Privilege(
+    @Query() action: string,
+    @Query() resource: string,
+    @Query() roleId: string,
+    @Query() effect?: string,
+    @Query() selector?: string,
+    @Query() force?: boolean
+  ): Promise<Unbrand<RestAnyPrivilege>> {
+    let options = {}
+    if (force !== undefined) {
+      options = { force }
+    }
+
+    return this.restApi.xoApp.createAclV2Privilege(
+      {
+        action: action as RestAnyPrivilege['action'],
+        selector: selector as RestAnyPrivilege['selector'],
+        effect: effect as RestAnyPrivilege['effect'],
+        resource: resource as RestAnyPrivilege['resource'],
+        roleId: roleId as RestAnyPrivilege['roleId'],
+      },
+      options
+    )
+  }
+
+  /**
    * @example id "c5d89d1a-df1e-4b72-98a0-c40adfdf49c1"
    */
   @Example(aclPrivilege)
@@ -52,5 +86,52 @@ export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
   @Response(notFoundResp.status, notFoundResp.description)
   getAclV2Privilege(@Path() id: string): Promise<Unbrand<RestAnyPrivilege>> {
     return this.getObject(id as RestAnyPrivilege['id'])
+  }
+
+  /**
+   * @example id "784bd959-08de-4b26-b575-92ded5aef872"
+   */
+  @Delete(':id')
+  async deleteAclV2Privilege(@Path() id: string, @Query() force?: boolean): Promise<void> {
+    let options = {}
+    if (force !== undefined) {
+      options = { force }
+    }
+
+    await this.restApi.xoApp.deleteAclV2Privilege(id as RestAnyPrivilege['id'], options)
+  }
+
+  /**
+   * @example id "784bd959-08de-4b26-b575-92ded5aef872"
+   * @example action "read"
+   * @example resource "alarm"
+   * @example effect "allow"
+   * @example selector "selector"
+   */
+  @Example(aclPrivilege)
+  @Patch(':id')
+  async updateAclV2Privilege(
+    @Path() id: string,
+    @Query() action?: string,
+    @Query() resource?: string,
+    @Query() effect?: string,
+    @Query() selector?: string,
+    @Query() force?: boolean
+  ): Promise<Unbrand<RestAnyPrivilege>> {
+    let options = {}
+    if (force !== undefined) {
+      options = { force }
+    }
+
+    return this.restApi.xoApp.updateAclV2Privilege(
+      id as RestAnyPrivilege['id'],
+      {
+        action: action as RestAnyPrivilege['action'],
+        selector: selector as RestAnyPrivilege['selector'],
+        effect: effect as RestAnyPrivilege['effect'],
+        resource: resource as RestAnyPrivilege['resource'],
+      },
+      options
+    )
   }
 }
