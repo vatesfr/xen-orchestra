@@ -118,7 +118,7 @@ const { HeadCells, BodyCells } = usePifColumns({
 
     const network = useGetNetworkById(() => pif.$network)
 
-    const poolNetworkLink = computed(() =>
+    const poolNetworkRoute = computed(() =>
       network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
     )
 
@@ -127,7 +127,7 @@ const { HeadCells, BodyCells } = usePifColumns({
         network.value
           ? r({
               label: network.value.name_label,
-              to: poolNetworkLink.value,
+              to: poolNetworkRoute.value,
               icon: 'object:network',
             })
           : renderBodyCell(),

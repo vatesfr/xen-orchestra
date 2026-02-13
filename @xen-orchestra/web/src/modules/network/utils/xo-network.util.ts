@@ -5,7 +5,7 @@ import type { RouteLocationAsRelative } from 'vue-router'
 export function getPoolNetworkRoute(
   poolId: XoPool['id'],
   highlightNetworkId?: XoNetwork['id']
-): RouteLocationAsRelative | undefined {
+): RouteLocationAsRelative {
   return {
     name: '/pool/[id]/networks',
     params: { id: poolId },
