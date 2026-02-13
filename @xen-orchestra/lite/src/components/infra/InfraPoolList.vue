@@ -21,6 +21,7 @@
                 variant="tertiary"
                 size="small"
                 :selected="isOpen"
+                color="var(--color-brand-txt-base)"
                 @click="open($event)"
               />
             </template>

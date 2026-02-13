@@ -5,8 +5,9 @@
       :key="index"
       :icon
       :stroke="stroke ?? stack.config.borderColor"
+      :color
     />
-    <DisplayIconAny v-for="(icon, index) of stack.icons" :key="index" :icon />
+    <DisplayIconAny v-for="(icon, index) of stack.icons" :key="index" :icon :color />
   </span>
 </template>
 
@@ -17,6 +18,7 @@ import type { IconStack } from './types.ts'
 defineProps<{
   stack: IconStack
   stroke?: string
+  color?: string
 }>()
 </script>
 
