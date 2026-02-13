@@ -1,5 +1,5 @@
 import { createLogger } from '@xen-orchestra/log'
-import { NextFunction, Request, Response } from 'express'
+import type { NextFunction, Request, Response } from 'express'
 import { unauthorized } from 'xo-common/api-errors.js'
 
 import { iocContainer } from '../ioc/ioc.mjs'
@@ -12,8 +12,11 @@ const log = createLogger('xo:rest-api:authentication')
 
 export type SecurityName = '*' | 'token' | 'basic' | 'none'
 
-// TODO: correctly handle ACL/Resource set users
-// for now only support "xoa-admin"
+export function acl(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  // TODO
+  next()
+}
+
 // TSOA spec require this function to be async
 export async function expressAuthentication(req: AuthenticatedRequest, securityName: SecurityName) {
   if (securityName === 'none') {
@@ -29,8 +32,13 @@ export async function expressAuthentication(req: AuthenticatedRequest, securityN
   }
 
   if (user.permission !== 'admin') {
-    log.error(`The REST API can only be used by 'xoa-admin' users for now. Your permission: ${user.permission}`)
-    throw unauthorized()
+    // If user is not admin, ensure an ACL middleware is set on the endpoint. Otherwise throw unauthorized
+    const currentPosition = req.route.stack.findIndex(layer => layer.name === expressAuthentication.name)
+    const hasAclMiddleware = req.route.stack.slice(currentPosition + 1).some(layer => layer.name === acl.name)
+    if (!hasAclMiddleware) {
+      log.error(`This endpoint can only be used by 'xoa-admin' users for now. Your permission: ${user.permission}`)
+      throw unauthorized()
+    }
   }
 
   return user
