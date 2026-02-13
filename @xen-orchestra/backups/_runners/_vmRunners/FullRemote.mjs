@@ -2,10 +2,11 @@ import { AbstractRemote } from './_AbstractRemote.mjs'
 import { FullRemoteWriter } from '../_writers/FullRemoteWriter.mjs'
 import { forkStreamUnpipe } from '../_forkStreamUnpipe.mjs'
 import { watchStreamSize } from '../../_watchStreamSize.mjs'
+import { AggregatedFullRemoteWriter } from '../_writers/AggregatedFullRemoteWriter.mjs'
 
 export const FullRemote = class FullRemoteVmBackupRunner extends AbstractRemote {
-  _getRemoteWriter() {
-    return FullRemoteWriter
+  _getRemoteWriters() {
+    return [FullRemoteWriter, AggregatedFullRemoteWriter]
   }
 
   _filterTransferList(transferList) {

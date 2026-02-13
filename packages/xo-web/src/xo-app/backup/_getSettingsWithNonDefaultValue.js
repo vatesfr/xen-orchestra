@@ -16,6 +16,8 @@ const DEFAULTS = {
   preferNbd: false,
   reportWhen: 'failure',
   timeout: 0,
+  distributeBackups: false,
+  distributeReplications: false,
 }
 
 const MODES = {

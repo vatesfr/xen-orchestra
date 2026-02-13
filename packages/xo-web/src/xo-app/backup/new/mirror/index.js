@@ -239,6 +239,11 @@ const NewMirrorBackup = decorate([
       }),
       setMergeBackupsSynchronously: ({ setAdvancedSettings }, mergeBackupsSynchronously) =>
         setAdvancedSettings({ mergeBackupsSynchronously }),
+      setdistributeBackups({ setAdvancedSettings }, distributeBackups) {
+        setAdvancedSettings({
+          distributeBackups,
+        })
+      },
     },
     computed: {
       vmBackupOptions: async state => {
@@ -280,6 +285,8 @@ const NewMirrorBackup = decorate([
       inputHideSuccessfulItemsId: generateId,
       inputMirrorAllId: generateId,
       inputMergeBackupsSynchronously: generateId,
+      inputdistributeBackup: generateId,
+      inputdistributeReplication: generateId,
       isBackupInvalid: state =>
         state.isMissingName ||
         state.isMissingBackupMode ||
@@ -321,6 +328,7 @@ const NewMirrorBackup = decorate([
       hideSuccessfulItems,
       nRetriesVmBackupFailures = 0,
       mergeBackupsSynchronously,
+      distributeBackups,
     } = state.advancedSettings
     return (
       <form id={state.formId}>
@@ -575,6 +583,20 @@ const NewMirrorBackup = decorate([
                         </Li>
                       ))}
                     </Ul>
+                    <label htmlFor={state.inputdistributeBackups}>
+                      <strong>{_('distributeBackups')}</strong>{' '}
+                      <Tooltip content={_('distributeBackupsInformation')}>
+                        <Icon icon='info' />
+                      </Tooltip>
+                    </label>
+                    <Toggle
+                      className='pull-right'
+                      id={state.inputdistributeBackups}
+                      name='setdistributeBackups'
+                      value={distributeBackups}
+                      disabled={state.targetRemoteIds.length < 2}
+                      onChange={effects.setdistributeBackups}
+                    />
                   </FormGroup>
                 </CardBlock>
               </Card>
