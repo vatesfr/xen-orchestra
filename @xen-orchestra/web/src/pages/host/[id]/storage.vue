@@ -1,10 +1,10 @@
 <template>
-  <div class="storage" :class="{ mobile: uiStore.isMobile }">
+  <div class="storage" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
       <StorageRepositoriesTable :srs :busy="!isReady" :error="hasSrFetchError" />
     </UiCard>
     <StorageRepositorySidePanel v-if="selectedSr" :sr="selectedSr" @close="selectedSr = undefined" />
-    <UiPanel v-else-if="!uiStore.isMobile">
+    <UiPanel v-else-if="!uiStore.isSmall">
       <VtsStateHero format="panel" type="no-selection" size="medium">
         {{ t('select-to-see-details') }}
       </VtsStateHero>

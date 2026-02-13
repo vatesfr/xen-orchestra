@@ -37,7 +37,7 @@ export const useSidebarStore = defineStore('layout', () => {
     document.removeEventListener('mouseup', handleMouseUp)
   }
 
-  const cssWidth = computed(() => (uiStore.isMobile ? '100%' : `${width.value}px`))
+  const cssWidth = computed(() => (uiStore.isSmall ? '100%' : `${width.value}px`))
 
   const cssOffset = computed(() => (isExpanded.value ? 0 : `-${cssWidth.value}`))
 
@@ -52,14 +52,14 @@ export const useSidebarStore = defineStore('layout', () => {
 
   watch(
     () => ({
-      isMobile: uiStore.isMobile,
-      isDesktopLarge: uiStore.isDesktopLarge,
+      isSmall: uiStore.isSmall,
+      isLarge: uiStore.isLarge,
     }),
-    ({ isMobile, isDesktopLarge }) => {
-      if (isMobile) {
+    ({ isSmall, isLarge }) => {
+      if (isSmall) {
         desktopState = isExpanded.value
       } else {
-        isExpanded.value = isDesktopLarge ? true : desktopState
+        isExpanded.value = isLarge ? true : desktopState
       }
     },
     { immediate: true }

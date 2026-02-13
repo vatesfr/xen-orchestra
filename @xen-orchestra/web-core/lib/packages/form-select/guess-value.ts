@@ -5,14 +5,15 @@ import type { GetOptionValue } from './types.ts'
 export function guessValue<TSource, TValue, TCustomProperties extends CollectionItemProperties>(
   source: TSource,
   customProperties: TCustomProperties,
-  getter: GetOptionValue<TSource, TCustomProperties>
+  getter: GetOptionValue<TSource, TCustomProperties>,
+  index: number
 ): TValue {
   if (getter === undefined) {
     return source as unknown as TValue
   }
 
   if (typeof getter === 'function') {
-    return getter(source, customProperties) as TValue
+    return getter(source, customProperties, index) as TValue
   }
 
   if (hasObjectProperty(source, getter)) {
