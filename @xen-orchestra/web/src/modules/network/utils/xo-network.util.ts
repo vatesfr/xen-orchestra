@@ -1,13 +1,13 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import type { RouteLocationAsRelative } from 'vue-router'
 
 export function getPoolNetworkRoute(
   poolId: FrontXoPool['id'],
   highlightNetworkId?: FrontXoNetwork['id']
-): RouteLocationAsRelative | undefined {
+): RouteLocationAsRelative {
   return {
     name: '/pool/[id]/networks',
     params: { id: poolId },
