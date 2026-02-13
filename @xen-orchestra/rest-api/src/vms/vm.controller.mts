@@ -13,6 +13,7 @@ import {
   Body,
   Put,
   Delete,
+  Middlewares,
 } from 'tsoa'
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
@@ -33,6 +34,7 @@ import type {
 } from '@vates/types'
 import { PassThrough, Readable } from 'node:stream'
 
+import { acl } from '../middlewares/authentication.middleware.mjs'
 import {
   asynchronousActionResp,
   badRequestResp,
@@ -128,11 +130,14 @@ export class VmController extends XapiXoController<XoVm> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vm, action: read
    *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(vm)
   @Get('{id}')
+  @Middlewares(acl({ resource: 'vm', action: 'read' }))
   @Response(notFoundResp.status, notFoundResp.description)
   getVm(@Path() id: string): Unbrand<XoVm> {
     return this.getObject(id as XoVm['id'])
@@ -235,11 +240,15 @@ export class VmController extends XapiXoController<XoVm> {
   /**
    * The VM must be halted
    *
+   * Required privilege:
+   * - resource: vm, action: start
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example body { "hostId": "b61a5c92-700e-4966-a13b-00633f03eea8" }
    */
   @Example(taskLocation)
   @Post('{id}/actions/start')
+  @Middlewares(acl({ resource: 'vm', action: 'start' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
