@@ -88,7 +88,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       const allSettings = job.settings
 
       if (settings.exportRetention > 0) {
-        if (settings.spreadBackups) {
+        if (settings.distributeBackups) {
           writers.add(
             new AggregratedBackupWriter({
               adapters: remoteAdapters,
@@ -125,7 +125,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         }
       }
       if (settings.copyRetention) {
-        if (settings.spreadReplications) {
+        if (settings.distributeReplications) {
           writers.add(
             new AggregratedReplicationWriter({
               config,

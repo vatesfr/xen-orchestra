@@ -48,11 +48,11 @@ const SCHEMA_SETTINGS = {
           type: 'string',
           optional: true,
         },
-        spreadBackups: {
+        distributeBackups: {
           type: 'boolean',
           optional: true,
         },
-        spreadReplications: {
+        distributeReplications: {
           type: 'boolean',
           optional: true,
         },

@@ -152,8 +152,8 @@ const normalizeSettings = ({ copyMode, exportMode, offlineBackupActive, settings
           exportRetention: exportMode ? setting.exportRetention : undefined,
           snapshotRetention: snapshotMode && !offlineBackupActive ? setting.snapshotRetention : undefined,
           preferNbd: undefined,
-          spreadBackups: undefined,
-          spreadReplications: undefined,
+          distributeBackups: undefined,
+          distributeReplications: undefined,
         }
       : setting
   )
@@ -203,8 +203,8 @@ const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection, suggestedExc
     showErrors: false,
     smartMode: false,
     snapshotMode: false,
-    spreadBackups: false,
-    spreadReplications: false,
+    distributeBackups: false,
+    distributeReplications: false,
     srs: [],
     tags: { notValues: suggestedExcludedTags },
     vms: preSelectedVmIds,
@@ -363,8 +363,8 @@ const New = decorate([
           exportMode: state.exportMode,
           copyMode: state.copyMode,
           snapshotMode: state.snapshotMode,
-          spreadBackups: state.spreadBackups,
-          spreadReplications: state.spreadReplications,
+          distributeBackups: state.distributeBackups,
+          distributeReplications: state.distributeReplications,
         }).toObject()
 
         if (normalizedSettings[''] === undefined) {
@@ -713,14 +713,14 @@ const New = decorate([
           mergeBackupsSynchronously,
         })
       },
-      setSpreadBackups({ setGlobalSettings }, spreadBackups) {
+      setDistributeBackups({ setGlobalSettings }, distributeBackups) {
         setGlobalSettings({
-          spreadBackups,
+          distributeBackups,
         })
       },
-      setSpreadReplications({ setGlobalSettings }, spreadReplications) {
+      setDistributeReplications({ setGlobalSettings }, distributeReplications) {
         setGlobalSettings({
-          spreadReplications,
+          distributeReplications,
         })
       },
     },
@@ -741,8 +741,8 @@ const New = decorate([
       inputNbdConcurrency: generateId,
       inputNRetriesVmBackupFailures: generateId,
       inputPreferNbd: generateId,
-      inputSpreadBackup: generateId,
-      inputSpreadReplication: generateId,
+      inputDistributeBackups: generateId,
+      inputDistributeReplications: generateId,
       inputTimeoutId: generateId,
 
       offlineBackupActive: ({ propSettings, settings = propSettings }) =>
@@ -864,8 +864,8 @@ const New = decorate([
       preferNbd,
       reportRecipients,
       reportWhen = 'failure',
-      spreadBackups = false,
-      spreadReplications = false,
+      distributeBackups = false,
+      distributeReplications = false,
       timeout,
     } = settings.get('') || {}
 
@@ -1004,19 +1004,19 @@ const New = decorate([
                             </Li>
                           ))}
                         </Ul>
-                        <label htmlFor={state.inputSpreadBackups}>
-                          <strong>{_('spreadBackups')}</strong>{' '}
-                          <Tooltip content={_('spreadBackupsInformation')}>
+                        <label htmlFor={state.inputDistributeBackups}>
+                          <strong>{_('distributeBackups')}</strong>{' '}
+                          <Tooltip content={_('distributeBackupsInformation')}>
                             <Icon icon='info' />
                           </Tooltip>
                         </label>
                         <Toggle
                           className='pull-right'
-                          id={state.inputSpreadBackups}
-                          name='setSpreadBackups'
-                          value={spreadBackups}
+                          id={state.inputDistributeBackups}
+                          name='distributeBackups'
+                          value={distributeBackups}
                           disabled={Object.keys(state.remotes).length < 2}
-                          onChange={effects.setSpreadBackups}
+                          onChange={effects.setDistributeBackups}
                         />
                       </FormGroup>
                     )}
@@ -1065,18 +1065,18 @@ const New = decorate([
                         ))}
                       </Ul>
                       <label htmlFor={state.srs}>
-                        <strong>{_('spreadReplications')}</strong>{' '}
-                        <Tooltip content={_('spreadReplicationsInformation')}>
+                        <strong>{_('distributeReplications')}</strong>{' '}
+                        <Tooltip content={_('distributeReplicationsInformation')}>
                           <Icon icon='info' />
                         </Tooltip>
                       </label>
                       <Toggle
                         className='pull-right'
-                        id={state.inputSpreadReplication}
-                        name='spreadReplications'
-                        value={spreadReplications}
+                        id={state.inputDistributeReplications}
+                        name='distributeReplications'
+                        value={distributeReplications}
                         disabled={Object.keys(state.remotes).length < 2}
-                        onChange={effects.setSpreadReplications}
+                        onChange={effects.setDistributeReplications}
                       />
                     </FormGroup>
                   </CardBlock>
