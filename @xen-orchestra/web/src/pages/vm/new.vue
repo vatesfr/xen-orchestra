@@ -1,9 +1,9 @@
 <template>
-  <div class="new">
+  <div class="new" :class="{ mobile: uiStore.isMobile }">
     <UiHeadBar icon="fa:plus">
       {{ t('new-vm:add') }}
       <template #actions>
-        <VtsSelect :id="poolSelectId" accent="brand" />
+        <VtsSelect :id="poolSelectId" accent="brand" class="head-select" />
       </template>
     </UiHeadBar>
     <UiAlert v-if="vmState.pool" accent="info" class="card-container">
@@ -29,7 +29,7 @@
             <!-- INSTALL SETTINGS SECTION -->
             <UiTitle>{{ t('install-settings') }}</UiTitle>
             <div class="install-settings-container">
-              <div class="radio-container">
+              <UiRadioButtonGroup accent="brand" :vertical="uiStore.isMobile">
                 <template v-if="isDiskTemplate">
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="no-config">
                     {{ t('no-config') }}
@@ -46,7 +46,7 @@
                     {{ t('pxe') }}
                   </UiRadioButton>
                 </template>
-              </div>
+              </UiRadioButtonGroup>
               <VtsSelect v-if="vmState.installMode === 'cdrom'" :id="vdiSelectId" accent="brand" />
             </div>
             <!-- SYSTEM SECTION -->
@@ -93,7 +93,7 @@
             </div>
             <!-- RESOURCE MANAGEMENT SECTION -->
             <UiTitle>{{ t('resource-management') }}</UiTitle>
-            <div class="memory-container">
+            <div class="resource-management-container">
               <VtsInputWrapper :label="t('vcpus')">
                 <UiInput v-model.number="vmState.vCPU" type="number" accent="brand" />
               </VtsInputWrapper>
@@ -125,7 +125,7 @@
             />
             <!-- SETTINGS SECTION -->
             <UiTitle>{{ t('settings') }}</UiTitle>
-            <UiCheckboxGroup accent="brand">
+            <UiCheckboxGroup accent="brand" :vertical="uiStore.isMobile">
               <UiCheckbox v-model="vmState.boot_vm" accent="brand">{{ t('action:boot-vm') }}</UiCheckbox>
               <UiCheckbox v-model="vmState.autoPoweron" accent="brand">{{ t('auto-power') }}</UiCheckbox>
               <UiCheckbox v-if="isDiskTemplate" v-model="vmState.clone" accent="brand">
@@ -200,12 +200,14 @@ import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
+import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioButtonGroup.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useFormSelect } from '@core/packages/form-select'
+import { useUiStore } from '@core/stores/ui.store'
 import type { XoNetwork, XoPool, XoVdi, XoVmTemplate } from '@vates/types'
 
 import { computed, reactive, ref, toRef, watch } from 'vue'
@@ -230,6 +232,7 @@ const { getVdiById } = useXoVdiCollection()
 const { getVifById } = useXoVifCollection()
 const { hostsByPool } = useXoHostCollection()
 const { vmsTemplatesByPool } = useXoVmTemplateCollection()
+const uiStore = useUiStore()
 
 const vmState = reactive<VmState>({
   name: '',
@@ -778,8 +781,12 @@ watch(
 
 <style scoped lang="postcss">
 .new {
+  .head-select {
+    max-width: 100%;
+  }
+
   .card-container {
-    margin: 1rem;
+    margin: 0.8rem;
   }
 
   .template-container {
@@ -796,12 +803,12 @@ watch(
 
     .system-container {
       display: flex;
-      gap: 10.8rem;
+      gap: 8rem;
 
       .column {
         display: flex;
         flex-direction: column;
-        gap: 2.5rem;
+        gap: 2.4rem;
         width: 40%;
       }
     }
@@ -811,16 +818,11 @@ watch(
       flex-direction: column;
       gap: 2.4rem;
       width: 50%;
-
-      .radio-container {
-        display: flex;
-        gap: 15rem;
-      }
     }
 
-    .memory-container {
+    .resource-management-container {
       display: flex;
-      gap: 10.8rem;
+      gap: 8rem;
     }
   }
 
@@ -828,7 +830,30 @@ watch(
     margin-top: auto;
     display: flex;
     justify-content: center;
-    gap: 1.6rem;
+    gap: 2.4rem;
+  }
+
+  &.mobile {
+    .template-container,
+    .system-container .column,
+    .install-settings-container {
+      width: 100%;
+    }
+
+    .system-container,
+    .resource-management-container,
+    .install-settings-container {
+      flex-direction: column;
+    }
+
+    .system-container,
+    .resource-management-container {
+      gap: 2.4rem;
+    }
+
+    .install-settings-container {
+      gap: 0.8rem;
+    }
   }
 }
 </style>
