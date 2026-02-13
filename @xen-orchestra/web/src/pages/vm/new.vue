@@ -1,6 +1,6 @@
 <template>
   <div class="new" :class="{ mobile: uiStore.isMobile }">
-    <UiHeadBar icon="fa:plus" class="head-bar">
+    <UiHeadBar icon="fa:plus">
       {{ t('new-vm:add') }}
       <template #actions>
         <VtsSelect :id="poolSelectId" accent="brand" class="head-select" />

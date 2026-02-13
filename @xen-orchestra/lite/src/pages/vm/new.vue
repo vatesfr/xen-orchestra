@@ -969,10 +969,6 @@ watch(
     .system-container,
     .resource-management-container {
       flex-direction: column;
-    }
-
-    .system-container,
-    .resource-management-container {
       gap: 2.4rem;
     }
   }
