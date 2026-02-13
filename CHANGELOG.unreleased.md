@@ -25,6 +25,8 @@
 
 - [V2V] Automatically take a snapshot if a running VM doesn't have any (PR [#9471](https://github.com/vatesfr/xen-orchestra/pull/9471))
 
+- [Core/Uichip] Update UiChip component to V6 (PR [#9491](https://github.com/vatesfr/pull/9491))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
