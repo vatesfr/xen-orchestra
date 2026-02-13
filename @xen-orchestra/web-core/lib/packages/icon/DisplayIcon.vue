@@ -1,6 +1,6 @@
 <template>
   <span class="display-icon-root">
-    <DisplayIconAny :icon />
+    <DisplayIconAny :icon :color />
   </span>
 </template>
 
@@ -10,6 +10,7 @@ import { type Icon } from './types.ts'
 
 defineProps<{
   icon: Icon
+  color?: string
 }>()
 </script>
 

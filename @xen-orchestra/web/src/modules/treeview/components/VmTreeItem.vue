@@ -28,6 +28,7 @@
               icon="action:more-actions"
               accent="brand"
               size="small"
+              color="var(--color-brand-txt-base)"
               @click="open($event)"
             />
           </template>
