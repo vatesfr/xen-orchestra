@@ -239,9 +239,9 @@ const NewMirrorBackup = decorate([
       }),
       setMergeBackupsSynchronously: ({ setAdvancedSettings }, mergeBackupsSynchronously) =>
         setAdvancedSettings({ mergeBackupsSynchronously }),
-      setSpreadBackups({ setAdvancedSettings }, spreadBackups) {
+      setdistributeBackups({ setAdvancedSettings }, distributeBackups) {
         setAdvancedSettings({
-          spreadBackups,
+          distributeBackups,
         })
       },
     },
@@ -285,8 +285,8 @@ const NewMirrorBackup = decorate([
       inputHideSuccessfulItemsId: generateId,
       inputMirrorAllId: generateId,
       inputMergeBackupsSynchronously: generateId,
-      inputSpreadBackup: generateId,
-      inputSpreadReplication: generateId,
+      inputdistributeBackup: generateId,
+      inputdistributeReplication: generateId,
       isBackupInvalid: state =>
         state.isMissingName ||
         state.isMissingBackupMode ||
@@ -328,7 +328,7 @@ const NewMirrorBackup = decorate([
       hideSuccessfulItems,
       nRetriesVmBackupFailures = 0,
       mergeBackupsSynchronously,
-      spreadBackups,
+      distributeBackups,
     } = state.advancedSettings
     return (
       <form id={state.formId}>
@@ -583,19 +583,19 @@ const NewMirrorBackup = decorate([
                         </Li>
                       ))}
                     </Ul>
-                    <label htmlFor={state.inputSpreadBackups}>
-                      <strong>{_('spreadBackups')}</strong>{' '}
-                      <Tooltip content={_('spreadBackupsInformation')}>
+                    <label htmlFor={state.inputdistributeBackups}>
+                      <strong>{_('distributeBackups')}</strong>{' '}
+                      <Tooltip content={_('distributeBackupsInformation')}>
                         <Icon icon='info' />
                       </Tooltip>
                     </label>
                     <Toggle
                       className='pull-right'
-                      id={state.inputSpreadBackups}
-                      name='setSpreadBackups'
-                      value={spreadBackups}
+                      id={state.inputdistributeBackups}
+                      name='setdistributeBackups'
+                      value={distributeBackups}
                       disabled={state.targetRemoteIds.length < 2}
-                      onChange={effects.setSpreadBackups}
+                      onChange={effects.setdistributeBackups}
                     />
                   </FormGroup>
                 </CardBlock>
