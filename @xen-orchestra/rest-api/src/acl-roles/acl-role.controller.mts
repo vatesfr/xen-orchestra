@@ -1,8 +1,10 @@
 import {
   Body,
+  Delete,
   Example,
   Get,
   Middlewares,
+  Patch,
   Path,
   Post,
   Query,
@@ -74,6 +76,16 @@ export class AclRoleController extends XoController<XoAclRole> {
   }
 
   /**
+   * @example name "staff"
+   * @example description "Vates staff"
+   */
+  @Example(aclRole)
+  @Post('')
+  async createAclV2Role(@Query() name: string, @Query() description: string): Promise<Unbrand<XoAclRole>> {
+    return this.restApi.xoApp.createAclV2Role({ name, description })
+  }
+
+  /**
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    */
   @Example(aclRole)
@@ -81,6 +93,40 @@ export class AclRoleController extends XoController<XoAclRole> {
   @Response(notFoundResp.status, notFoundResp.description)
   getAclV2Role(@Path() id: string): Promise<Unbrand<XoAclRole>> {
     return this.getObject(id as XoAclRole['id'])
+  }
+
+  /**
+   * @example id "784bd959-08de-4b26-b575-92ded5aef872"
+   */
+  @Delete(':id')
+  async deleteAclV2Role(@Path() id: string, @Query() force?: boolean): Promise<void> {
+    let options = {}
+    if (force !== undefined) {
+      options = { force }
+    }
+
+    await this.restApi.xoApp.deleteAclV2Role(id as XoAclRole['id'], options)
+  }
+
+  /**
+   * @example id "784bd959-08de-4b26-b575-92ded5aef872"
+   * @example name "staff"
+   * @example description "Vates staff"
+   */
+  @Example(aclRole)
+  @Patch(':id')
+  async updateAclV2Role(
+    @Path() id: string,
+    @Query() name?: string,
+    @Query() description?: string,
+    @Query() force?: boolean
+  ): Promise<Unbrand<XoAclRole>> {
+    let options = {}
+    if (force !== undefined) {
+      options = { force }
+    }
+
+    return this.restApi.xoApp.updateAclV2Role(id as XoAclRole['id'], { name, description }, options)
   }
 
   /**

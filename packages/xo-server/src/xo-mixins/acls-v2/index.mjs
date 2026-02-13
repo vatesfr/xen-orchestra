@@ -312,7 +312,7 @@ export default class {
    * @param {object} privilege
    * @param {Privilege['action']} privilege.action
    * @param {Privilege['selector']} [privilege.selector]
-   * @param {Privilege['effect']} privilege.effect
+   * @param {Privilege['effect']} [privilege.effect]
    * @param {Privilege['resource']} privilege.resource
    * @param {Privilege['roleId']} privilege.roleId
    * @param {object} [opts]
@@ -345,6 +345,49 @@ export default class {
     }
 
     return this.#privilegeDb.remove(privilege.id)
+  }
+
+  /**
+   * @param {Privilege['id']} id
+   * @param {object} privilege
+   * @param {Privilege['action']} [privilege.action]
+   * @param {Privilege['selector'] | null} [privilege.selector]
+   * @param {Privilege['effect']} [privilege.effect]
+   * @param {Privilege['resource']} [privilege.resource]
+   * @param {object} [opts]
+   * @param {boolean} [opts.force]
+   *
+   * @returns {Promise<Privilege>}
+   */
+  async updateAclV2Privilege(id, { action, selector, effect, resource }, { force = false } = {}) {
+    const privilege = await this.getAclV2Privilege(id)
+    const role = await this.getAclV2Role(privilege.roleId)
+
+    if (!force && 'isTemplate' in role) {
+      throw forbiddenOperation('update ACL V2 privilege', 'role is a template')
+    }
+
+    if (action !== undefined) {
+      privilege.action = action
+    }
+
+    if (selector !== undefined) {
+      if (selector === null) {
+        delete privilege.selector
+      } else {
+        privilege.selector = selector
+      }
+    }
+
+    if (effect !== undefined) {
+      privilege.effect = effect
+    }
+
+    if (resource !== undefined) {
+      privilege.resource = resource
+    }
+
+    return this.#privilegeDb.update(privilege)
   }
 
   /**
