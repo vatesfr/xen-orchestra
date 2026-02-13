@@ -13,8 +13,9 @@ import {
   Body,
   Put,
   Delete,
+  Middlewares,
 } from 'tsoa'
-import { Request as ExRequest } from 'express'
+import { Request as ExRequest, json } from 'express'
 import { inject } from 'inversify'
 import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
 import { provide } from 'inversify-binding-decorators'
@@ -128,14 +129,19 @@ export class VmController extends XapiXoController<XoVm> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vm, action: read
    *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(vm)
   @Get('{id}')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  getVm(@Path() id: string): Unbrand<XoVm> {
-    return this.getObject(id as XoVm['id'])
+  async getVm(@Path() id: string): Promise<Unbrand<XoVm>> {
+    const vm = this.getObject(id as XoVm['id'])
+    await this.checkAcls({ resource: 'vm', action: 'read', objects: vm })
+    return vm
   }
 
   /**
@@ -235,12 +241,18 @@ export class VmController extends XapiXoController<XoVm> {
   /**
    * The VM must be halted
    *
+   * Required privileges:
+   * - resource: vm, action: start
+   * - resource: host, action: allow-vm (if an hostId is specified)
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example body { "hostId": "b61a5c92-700e-4966-a13b-00633f03eea8" }
    */
   @Example(taskLocation)
   @Post('{id}/actions/start')
+  @Middlewares(json())
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -250,7 +262,16 @@ export class VmController extends XapiXoController<XoVm> {
     @Query() sync?: boolean
   ): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
+    const hostId = body?.hostId as XoHost['id'] | undefined
     const action = async () => {
+      await this.checkAcls([
+        { resource: 'vm', action: 'start', objects: this.getObject(vmId) },
+        {
+          resource: 'host',
+          action: 'allow-vm',
+          objects: hostId !== undefined ? this.restApi.getObject(hostId, 'host') : undefined,
+        },
+      ])
       await this.getXapi(vmId).startVm(vmId, { startOnly: true, hostId: body?.hostId as XoHost['id'] })
     }
 
@@ -267,6 +288,10 @@ export class VmController extends XapiXoController<XoVm> {
 
   /**
    * Requires guest tools to be installed
+   *
+   * Required privilege:
+   * - resource: vm, action: shutdown:clean
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
@@ -278,6 +303,7 @@ export class VmController extends XapiXoController<XoVm> {
   async cleanShutdownVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
+      await this.checkAcls({ resource: 'vm', action: 'shutdown:clean', objects: this.getObject(vmId) })
       await this.getXapiObject(vmId).$callAsync('clean_shutdown')
     }
 
@@ -293,6 +319,10 @@ export class VmController extends XapiXoController<XoVm> {
 
   /**
    * Requires guest tools to be installed
+   *
+   * Required privilege:
+   * - resource: vm, action: reboot:clean
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
@@ -300,6 +330,7 @@ export class VmController extends XapiXoController<XoVm> {
   async cleanRebootVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
+      await this.checkAcls({ resource: 'vm', action: 'reboot:clean', objects: this.getObject(vmId) })
       await this.getXapiObject(vmId).$callAsync('clean_reboot')
     }
 

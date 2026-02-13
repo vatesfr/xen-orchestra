@@ -83,15 +83,9 @@ suite('ACL V2 behavior', async () => {
   const xoaVm = { id: 'xoa' }
   const template = { id: 'template-id', $pool: '1' }
   const templateDeny = { id: 'template-deny-id', $pool: '2' }
-  const vdis = [
-    { id: 'vdi-1', $SR: '2' },
-    { id: 'vdi-2', $SR: '2' },
-  ]
-  const vdisMultipleSrs = [
-    { id: 'vdi-1', $SR: '1' },
-    { id: 'vdi-2', $SR: '2' },
-  ]
-  const vifs = [{ id: 'vif-1', $network: '1' }]
+  const vdis = [{ $SR: '2' }, { $SR: '2' }]
+  const vdisMultipleSrs = [{ $SR: '1' }, { $SR: '2' }]
+  const vifs = [{ $network: '1' }]
   const iso = { id: 'iso-vdi-id', $SR: '3' }
   const hostAffinity = { id: 'affinity-host-id', $pool: '1' }
 
@@ -292,6 +286,26 @@ suite('ACL V2 behavior', async () => {
       )
 
       assert.strictEqual(missingPrivileges.length, 2)
+    })
+
+    test('Should return objectId if only one object in the missing privilege', () => {
+      const missingPrivileges = getMissingPrivileges(
+        [{ user, action: 'read', resource: 'pool', objects: poolWithoutPrivilege }],
+        allPrivileges
+      )
+
+      assert.strictEqual(missingPrivileges.length, 1)
+      assert.strictEqual(missingPrivileges[0]!.objectId !== undefined, true)
+    })
+
+    test('Should return objectIds if multiple objects in the missing privilege', () => {
+      const missingPrivileges = getMissingPrivileges(
+        [{ user, action: 'read', resource: 'pool', objects: [poolWithoutPrivilege, poolWithoutPrivilege] }],
+        allPrivileges
+      )
+
+      assert.strictEqual(missingPrivileges.length, 1)
+      assert.strictEqual(missingPrivileges[0]!.objectIds !== undefined, true)
     })
   })
 
