@@ -1,7 +1,11 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      <UiLink :to="`/host/${host.id}/dashboard`" size="medium" :icon="`object:host:${toLower(host.power_state)}`">
+      <UiLink
+        :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
+        size="medium"
+        :icon="`object:host:${toLower(host.power_state)}`"
+      >
         {{ host.name_label }}
       </UiLink>
     </UiCardTitle>
@@ -44,7 +48,7 @@
         <template #key>{{ t('pool') }}</template>
         <template #value>
           <div v-if="pool" class="value">
-            <UiLink :to="`/pool/${pool.id}/dashboard`" size="small" icon="object:pool">
+            <UiLink :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }" size="small" icon="object:pool">
               {{ pool.name_label }}
             </UiLink>
           </div>
@@ -62,7 +66,7 @@
           </div>
           <div v-else-if="masterHost !== undefined" class="value">
             <UiLink
-              :to="`/host/${masterHost.id}/dashboard`"
+              :to="{ name: '/host/[id]/dashboard', params: { id: masterHost.id } }"
               size="small"
               :icon="`object:host:${toLower(masterHost.power_state)}`"
             >

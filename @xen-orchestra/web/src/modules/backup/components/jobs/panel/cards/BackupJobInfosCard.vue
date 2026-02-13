@@ -5,7 +5,7 @@
         v-if="backupJob.name !== undefined"
         size="small"
         icon="object:backup-job"
-        :to="`/backup/${backupJob.id}/runs`"
+        :to="{ name: '/backup/[id]/runs', params: { id: backupJob.id } }"
       >
         {{ backupJob.name }}
       </UiLink>

@@ -1,8 +1,16 @@
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
-import type { XoNetwork, XoPif } from '@vates/types'
+import type { XoNetwork, XoPif, XoPool } from '@vates/types'
+import type { RouteLocationAsRelative } from 'vue-router'
 
-export function getPoolNetworkLink(network: XoNetwork | undefined) {
-  return network !== undefined ? `/pool/${network.$pool}/networks?id=${network.id}` : undefined
+export function getPoolNetworkRoute(
+  poolId: XoPool['id'],
+  highlightNetworkId?: XoNetwork['id']
+): RouteLocationAsRelative {
+  return {
+    name: '/pool/[id]/networks',
+    params: { id: poolId },
+    query: { id: highlightNetworkId },
+  }
 }
 
 export function getNetworkStatus(pifs: XoPif[]) {
