@@ -26,6 +26,7 @@
 - [V2V] Automatically take a snapshot if a running VM doesn't have any (PR [#9471](https://github.com/vatesfr/xen-orchestra/pull/9471))
 
 - [Storage] Add possibility to create VDI in qcow2 format if size > 2TB - 8KB (PR [#9493](https://github.com/vatesfr/xen-orchestra/pull/9493))
+- [Backups] Improve VHD dist handling an rework disk merge (delta backups) (PR [#9300](https://github.com/vatesfr/xen-orchestra/pull/9300))
 
 ### Bug fixes
 
@@ -52,6 +53,7 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/backups minor
 - @xen-orchestra/fs patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer minor
