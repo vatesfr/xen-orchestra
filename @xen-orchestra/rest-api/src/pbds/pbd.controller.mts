@@ -19,6 +19,7 @@ import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { partialPbds, pbd, pbdIds } from '../open-api/oa-examples/pbd.oa-example.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
+import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 
 @Route('pbds')
 @Security('*')
@@ -61,6 +62,7 @@ export class PbdController extends XapiXoController<XoPbd> {
   /**
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
+  @Example(taskLocation)
   @Post('{id}/actions/plug')
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
@@ -87,6 +89,7 @@ export class PbdController extends XapiXoController<XoPbd> {
   /**
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
+  @Example(taskLocation)
   @Post('{id}/actions/unplug')
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
