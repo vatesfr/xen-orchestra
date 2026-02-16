@@ -59,8 +59,8 @@ export class FullRemoteWriter extends MixinRemoteWriter(AbstractFullWriter) {
       xva: './' + dataBasename,
     }
 
-    const { deleteFirst } = settings
-    if (deleteFirst) {
+    const { skipDeleteOldEntries, deleteFirst } = settings
+    if (!skipDeleteOldEntries && deleteFirst) {
       await deleteOldBackups()
     }
 
@@ -76,7 +76,7 @@ export class FullRemoteWriter extends MixinRemoteWriter(AbstractFullWriter) {
     metadata.tags = await this.getLongTermRetentionTags(metadata)
     this._metadataFileName = await adapter.writeVmBackupMetadata(vm.uuid, metadata)
 
-    if (!deleteFirst) {
+    if (!skipDeleteOldEntries && !deleteFirst) {
       await deleteOldBackups()
     }
 
