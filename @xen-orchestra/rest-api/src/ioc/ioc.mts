@@ -10,6 +10,7 @@ import { HostService } from '../hosts/host.service.mjs'
 import { PoolService } from '../pools/pool.service.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { VdiService } from '../vdis/vdi.service.mjs'
+import { SrService } from '../srs/sr.service.mjs'
 import { UserService } from '../users/user.service.mjs'
 import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
 import { BackupLogService } from '../backup-logs/backup-log.service.mjs'
@@ -75,6 +76,14 @@ export function setupContainer(xoApp: XoApp) {
     .toDynamicValue(ctx => {
       const restApi = ctx.container.get(RestApi)
       return new VdiService(restApi)
+    })
+    .inSingletonScope()
+
+  iocContainer
+    .bind(SrService)
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new SrService(restApi)
     })
     .inSingletonScope()
 
