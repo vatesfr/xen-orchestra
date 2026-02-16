@@ -102,32 +102,6 @@ export class VmService {
   }
   create = defer(this.#create)
 
-  async clone(
-    vmId: XoVm['id'],
-    { name_label, full_copy, srId }: { name_label?: string; full_copy?: boolean; srId?: XoSr['id'] }
-  ): Promise<XoVm['id']> {
-    const xoApp = this.#restApi.xoApp
-    const xapi = xoApp.getXapi(vmId)
-
-    if (srId === undefined) {
-      const fast = full_copy !== undefined ? !full_copy : undefined
-      const clonedVm = await xapi.cloneVm(vmId, { nameLabel: name_label, fast })
-      return clonedVm.uuid as XoVm['id']
-    }
-
-    const vm = this.#restApi.getObject<XoVm>(vmId, 'VM')
-    const sr = this.#restApi.getObject<XoSr>(srId, 'SR')
-
-    if (vm.$pool === sr.$pool) {
-      const clonedVm = await xapi.copyVm(vmId, { nameLabel: name_label, srId })
-      return clonedVm.uuid as XoVm['id']
-    }
-
-    const targetXapi = xoApp.getXapi(srId)
-    const { vm: clonedVm } = await xapi.remoteCopyVm(vmId, targetXapi, srId, { nameLabel: name_label })
-    return clonedVm.uuid as XoVm['id']
-  }
-
   getVmsStatus(opts?: { filter?: string | ((obj: XoVm) => boolean) }) {
     const vms = this.#restApi.getObjectsByType<XoVm>('VM', opts)
 
