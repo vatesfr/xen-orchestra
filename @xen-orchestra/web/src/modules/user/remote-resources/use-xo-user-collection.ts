@@ -3,6 +3,8 @@ import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoUser } from '@vates/types'
 
+export type FrontXoUser = Pick<XoUser, (typeof userFields)[number]>
+
 const userFields = ['id', 'name', 'permission', 'email', 'groups'] as const satisfies readonly (keyof XoUser)[]
 
 export const useXoUserCollection = defineRemoteResource({
