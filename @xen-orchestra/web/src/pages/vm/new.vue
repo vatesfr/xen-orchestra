@@ -29,7 +29,11 @@
             <!-- INSTALL SETTINGS SECTION -->
             <UiTitle>{{ t('install-settings') }}</UiTitle>
             <div class="install-settings-container">
-              <UiRadioButtonGroup accent="brand" :vertical="uiStore.isMobile">
+              <UiRadioButtonGroup
+                accent="brand"
+                :vertical="uiStore.isMobile"
+                :gap="uiStore.isMobile ? 'narrow' : 'wide'"
+              >
                 <template v-if="isDiskTemplate">
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="no-config">
                     {{ t('no-config') }}
