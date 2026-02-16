@@ -80,7 +80,7 @@ const computedSegments = computed(() => {
     fill: transparent;
 
     &.accent--neutral {
-      stroke: var(--color-neutral-txt-primary);
+      stroke: var(--color-neutral-txt-secondary);
     }
 
     &.accent--info {

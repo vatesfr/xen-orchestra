@@ -291,10 +291,16 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
       await xapi.VTPM_create({ VM: vmRef, contents })
     })
   )
-
+  const vm = await xapi.getRecord('VM', vmRef)
   await Promise.all([
-    incrementalVm.vm.ha_always_run && xapi.setField('VM', vmRef, 'ha_always_run', true),
-    xapi.setField('VM', vmRef, 'name_label', incrementalVm.vm.name_label),
+    vmRecord.ha_always_run && xapi.setField('VM', vmRef, 'ha_always_run', true),
+    xapi.setField('VM', vmRef, 'name_label', vmRecord.name_label),
+    // correctly unlock the VM and reapply the target blocked operations
+    vm.update_blocked_operations({
+      start: null,
+      start_on: null,
+      ...vmRecord.blocked_operations,
+    }),
   ])
 
   return vmRef

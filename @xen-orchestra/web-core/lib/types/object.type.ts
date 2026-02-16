@@ -1,0 +1,10 @@
+export type ObjectType = 'vm'
+export type VmActions = 'reboot' | 'shutdown' | 'force-reboot' | 'force-shutdown'
+export type VmBlockedOperations =
+  | 'clean_shutdown'
+  | 'hard_shutdown'
+  | 'pause'
+  | 'clean_reboot'
+  | 'hard_reboot'
+  | 'suspend'
+  | 'destroy'

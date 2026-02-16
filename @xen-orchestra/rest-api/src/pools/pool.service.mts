@@ -14,7 +14,7 @@ import type { RestApi } from '../rest-api/rest-api.mjs'
 import { HostService } from '../hosts/host.service.mjs'
 import { VmService } from '../vms/vm.service.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
-import { getTopPerProperty, isSrWritableOrIso, promiseWriteInStream } from '../helpers/utils.helper.mjs'
+import { getTopPerProperty, isSrWritable, promiseWriteInStream } from '../helpers/utils.helper.mjs'
 import { type AsyncCacheEntry, getFromAsyncCache } from '../helpers/cache.helper.mjs'
 import type { PoolDashboard } from './pool.type.mjs'
 import { MissingPatchesInfo } from '../hosts/host.type.mjs'
@@ -94,7 +94,7 @@ export class PoolService {
   #getTopFiveSrsUsage(poolId: XoPool['id']): PoolDashboard['srs']['topFiveUsage'] {
     const srs = Object.values(
       this.#restApi.getObjectsByType<XoSr>('SR', {
-        filter: sr => sr.$pool === poolId && isSrWritableOrIso(sr),
+        filter: sr => sr.$pool === poolId && isSrWritable(sr) && sr.SR_type !== 'udev',
       })
     )
 
@@ -245,7 +245,7 @@ export class PoolService {
     const pool = this.#restApi.getObject<XoPool>(poolId, 'pool')
 
     const vms = this.#restApi.getObjectsByType<XoVm>('VM', {
-      filter: vm => vm.$pool === poolId,
+      filter: vm => vm.$pool === poolId && vm.power_state === VM_POWER_STATE.RUNNING,
     })
 
     let assignedVcpu = 0

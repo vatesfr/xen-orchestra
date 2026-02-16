@@ -4,7 +4,7 @@
     <VtsStateHero v-if="!isReady" format="card" type="busy" size="medium" />
     <template v-else>
       <VtsDonutChartWithLegend :segments />
-      <UiCardNumbers class="total" :label="t('total')" :value="total" size="small" />
+      <UiCardNumbers :label="t('total')" :value="total" size="small" />
     </template>
   </UiCard>
 </template>
@@ -64,17 +64,9 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
     accent: 'neutral',
   },
   {
-    label: t('vm:status:active', 2),
+    label: t('vm:status:halted', 2),
     value: vmsStatuses.value.halted,
     accent: 'danger',
   },
 ])
 </script>
-
-<style lang="postcss" scoped>
-.host-dashboard-vms-status {
-  .total {
-    margin-inline-start: auto;
-  }
-}
-</style>
