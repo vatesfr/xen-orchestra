@@ -1,4 +1,4 @@
-import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection'
+import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
 
