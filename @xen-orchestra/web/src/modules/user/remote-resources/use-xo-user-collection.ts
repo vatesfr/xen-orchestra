@@ -10,7 +10,7 @@ const userFields = ['id', 'name', 'permission', 'email', 'groups'] as const sati
 export const useXoUserCollection = defineRemoteResource({
   url: `${BASE_URL}/users?fields=${userFields.join(',')}`,
 
-  initialData: () => [] as Pick<XoUser, (typeof userFields)[number]>[],
+  initialData: () => [] as FrontXoUser[],
   state: (users, context) => {
     return useXoCollectionState(users, {
       context,
