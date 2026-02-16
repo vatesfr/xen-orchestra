@@ -293,6 +293,26 @@ suite('ACL V2 behavior', async () => {
 
       assert.strictEqual(missingPrivileges.length, 2)
     })
+
+    test('Should return objectId if only one object in the missing privilege', () => {
+      const missingPrivileges = getMissingPrivileges(
+        [{ user, action: 'read', resource: 'pool', objects: poolWithoutPrivilege }],
+        allPrivileges
+      )
+
+      assert.strictEqual(missingPrivileges.length, 1)
+      assert.strictEqual(missingPrivileges[0]!.objectId !== undefined, true)
+    })
+
+    test('Should return objectIds if multiple objects in the missing privilege', () => {
+      const missingPrivileges = getMissingPrivileges(
+        [{ user, action: 'read', resource: 'pool', objects: [poolWithoutPrivilege, poolWithoutPrivilege] }],
+        allPrivileges
+      )
+
+      assert.strictEqual(missingPrivileges.length, 1)
+      assert.strictEqual(missingPrivileges[0]!.objectIds !== undefined, true)
+    })
   })
 
   suite('hasPrivileges behavior', () => {
