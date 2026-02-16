@@ -30,9 +30,11 @@ export class BaseVhd {
   }
 
   /**
+   * @param {string|undefined} parentUid 
+   * @param {string|undefined} parentUnicodeName 
    * @returns {Buffer}
    */
-  computeVhdHeader() {
+  computeVhdHeader(parentUid='', parentUnicodeName='') {
     const source = this.source
     const size = source.getVirtualSize()
     const nbTotalBlocks = Math.ceil(size / DEFAULT_BLOCK_SIZE)
@@ -41,19 +43,21 @@ export class BaseVhd {
   }
 
   /**
+   * @param {Buffer|undefined} uid 
    * @returns {Buffer}
    */
-  computeVhdFooter() {
+  computeVhdFooter(uid=Buffer.alloc(0)) {
+    console.log('computeVhdFooter',{uid})
     const source = this.source
     const size = source.getVirtualSize()
     const geometry = computeGeometryForSize(size)
     const diskType = source.isDifferencing() ? DISK_TYPES.DIFFERENCING : DISK_TYPES.DYNAMIC
-    const footer = createFooter(size, Math.floor(Date.now() / 1000), geometry, FOOTER_SIZE, diskType)
+    const footer = createFooter(size, Math.floor(Date.now() / 1000), geometry, FOOTER_SIZE, diskType, uid)
     return footer
   }
 
   /**
-   * @returns {{ fileSize: number, bat: Buffer }}
+   * @returns {{ fileSize: number, bat: Buffer, nbBlocks:number }}
    */
   computeVhdBatAndFileSize() {
     const source = this.source
@@ -68,13 +72,14 @@ export class BaseVhd {
     const blockSizeInSectors = FULL_BLOCK_SIZE / SECTOR_SIZE
     let fileSize = offsetSector * SECTOR_SIZE + FOOTER_SIZE /* the footer at the end */
     // compute BAT , blocks starts after parent locator entries
-
+    let nbBlocks = 0
     for (const index of source.getBlockIndexes()) {
       bat.writeUInt32BE(offsetSector, index * 4)
       offsetSector += blockSizeInSectors
       fileSize += FULL_BLOCK_SIZE
+      nbBlocks ++
     }
-    return { bat, fileSize }
+    return { bat, fileSize, nbBlocks }
   }
 
   /**
