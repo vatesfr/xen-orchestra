@@ -6,7 +6,9 @@ import { isVhdAlias, resolveVhdAlias } from 'vhd-lib/aliases.js'
 import { basename, dirname, resolve } from 'node:path'
 import { isMetadataFile, isVhdFile, isVhdSumFile, isXvaFile, isXvaSumFile } from './_backupType.mjs'
 import { limitConcurrency } from 'limit-concurrency-decorator'
-import { mergeVhdChain } from 'vhd-lib/merge.js'
+import { RemoteVhdDisk } from './disks/RemoteVhdDisk.mjs'
+import { RemoteVhdDiskChain } from './disks/RemoteVhdDiskChain.mjs'
+import { MergeRemoteDisk } from './disks/MergeRemoteDisk.mjs'
 
 import { Task } from './Task.mjs'
 import { Disposable } from 'promise-toolbox'
@@ -51,7 +53,15 @@ async function _mergeVhdChain(handler, chain, { logInfo, remove, mergeBlockConcu
     }
   }, 10e3)
   try {
-    return await mergeVhdChain(handler, chain, {
+    const parentDisk = new RemoteVhdDisk({ handler, path: chain.shift() })
+
+    const childDisks = []
+    for (const path of chain) {
+      childDisks.push(new RemoteVhdDisk({ handler, path }))
+    }
+    const childDiskChain = new RemoteVhdDiskChain({ disks: childDisks })
+
+    const mergeRemoteDisk = new MergeRemoteDisk(handler, {
       logInfo,
       mergeBlockConcurrency,
       onProgress({ done: d, total: t }) {
@@ -60,6 +70,14 @@ async function _mergeVhdChain(handler, chain, { logInfo, remove, mergeBlockConcu
       },
       removeUnused: remove,
     })
+
+    const isResumingMerge = await mergeRemoteDisk.isResuming(parentDisk)
+    await parentDisk.init({ force: isResumingMerge })
+    await childDiskChain.init({ force: isResumingMerge })
+
+    const result = await mergeRemoteDisk.merge(parentDisk, childDiskChain)
+
+    return result
   } finally {
     clearInterval(handle)
   }
@@ -521,14 +539,14 @@ export async function cleanVm(
   const metadataWithMergedVhd = {}
   const doMerge = async () => {
     await asyncMap(toMerge, async chain => {
-      const { finalVhdSize } = await limitedMergeVhdChain(handler, chain, {
+      const { finalDiskSize } = await limitedMergeVhdChain(handler, chain, {
         logInfo,
         logWarn,
         remove,
         mergeBlockConcurrency,
       })
       const metadataPath = vhdsToJSons[chain[chain.length - 1]] // all the chain should have the same metadata file
-      metadataWithMergedVhd[metadataPath] = (metadataWithMergedVhd[metadataPath] ?? 0) + finalVhdSize
+      metadataWithMergedVhd[metadataPath] = (metadataWithMergedVhd[metadataPath] ?? 0) + finalDiskSize
     })
   }
 
