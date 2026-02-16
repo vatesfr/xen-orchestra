@@ -14,6 +14,8 @@
 - [xo-web] support qcow2 format in disk > import (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
 - [xo-server] support qcow2 format in `disk.importContent` and `disk.import` jsonRPC api (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
 
+- [REST API] Expose `DELETE /rest/v0/srs/:id` (PR [#9464](https://github.com/vatesfr/xen-orchestra/pull/9464))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -36,8 +38,10 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/rest-api patch
+- @vates/types minor
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi minor
 - xo-server minor
 - xo-web minor
 
