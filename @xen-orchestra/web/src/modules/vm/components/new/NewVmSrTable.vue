@@ -24,6 +24,7 @@
 </template>
 
 <script setup lang="ts">
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { Vdi, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -32,13 +33,12 @@ import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import { useFormSelect } from '@core/packages/form-select'
 import { useNewVmSrColumns } from '@core/tables/column-sets/new-vm-sr-columns.ts'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
-import type { XoSr } from '@vates/types'
 import { toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vmState, srs } = defineProps<{
   vmState: VmState
-  srs: XoSr[]
+  srs: FrontXoSr[]
 }>()
 
 const emit = defineEmits<{

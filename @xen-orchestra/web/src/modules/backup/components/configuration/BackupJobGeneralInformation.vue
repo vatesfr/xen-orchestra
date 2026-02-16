@@ -25,6 +25,7 @@
 
 <script setup lang="ts">
 import { useXoBackupUtils } from '@/modules/backup/composables/xo-backup-utils.composable.ts'
+import type { FrontXoVmBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
@@ -32,12 +33,11 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import type { XoVmBackupJob } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { backupJob } = defineProps<{
-  backupJob: XoVmBackupJob
+  backupJob: FrontXoVmBackupJob
 }>()
 
 const { t } = useI18n()

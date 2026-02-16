@@ -57,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
@@ -69,13 +69,13 @@ import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { HOST_POWER_STATE, type XoHost } from '@vates/types'
+import { HOST_POWER_STATE } from '@vates/types'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
-  host: XoHost
+  host: FrontXoHost
 }>()
 
 const { t } = useI18n()

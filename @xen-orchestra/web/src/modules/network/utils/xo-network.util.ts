@@ -1,11 +1,12 @@
+import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
-import type { XoNetwork, XoPif } from '@vates/types'
 
-export function getPoolNetworkLink(network: XoNetwork | undefined) {
+export function getPoolNetworkLink(network: FrontXoNetwork | undefined) {
   return network !== undefined ? `/pool/${network.$pool}/networks?id=${network.id}` : undefined
 }
 
-export function getNetworkStatus(pifs: XoPif[]) {
+export function getNetworkStatus(pifs: FrontXoPif[]) {
   if (pifs.length === 0) {
     return CONNECTION_STATUS.DISCONNECTED
   }

@@ -1,10 +1,13 @@
+import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import type { CircleProgressBarAccent } from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'
 import { createMapper } from '@core/packages/mapper'
-import type { XoTask } from '@vates/types'
 
 export type BackupLogResult = { message: string; stack: unknown }
 
-export function getTasksResultsRecursively(task: XoTask, rawType: 'failure' | 'warning' | 'info'): BackupLogResult[] {
+export function getTasksResultsRecursively(
+  task: FrontXoTask,
+  rawType: 'failure' | 'warning' | 'info'
+): BackupLogResult[] {
   const data: BackupLogResult[] = []
 
   const type = rawType === 'failure' ? 'failure' : (`${rawType}s` as 'warnings' | 'infos')
@@ -49,7 +52,7 @@ export const getTaskAccents = createMapper(
   'pending'
 )
 
-export function findTaskById(tasks: XoTask[], taskId: XoTask['id']): XoTask | undefined {
+export function findTaskById(tasks: FrontXoTask[], taskId: FrontXoTask['id']): FrontXoTask | undefined {
   for (const task of tasks) {
     if (task.id === taskId) {
       return task

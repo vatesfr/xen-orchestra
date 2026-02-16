@@ -1,8 +1,8 @@
+import type { FrontXoServer } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import type { VtsLinkCellProps } from '@core/components/table/cells/VtsLinkCell.vue'
 import { icon } from '@core/icons/index.ts'
-import type { XoServer } from '@vates/types'
 
-export function getPoolInfo(server: XoServer): VtsLinkCellProps & { label: string } {
+export function getPoolInfo(server: FrontXoServer): VtsLinkCellProps & { label: string } {
   if (server.poolNameLabel) {
     return {
       label: server.poolNameLabel,

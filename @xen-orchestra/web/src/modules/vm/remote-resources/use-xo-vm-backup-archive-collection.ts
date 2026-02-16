@@ -3,7 +3,9 @@ import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoBackupRepository, XoVmBackupArchive } from '@vates/types'
 
-const vmBackupArchiveFields: (keyof XoVmBackupArchive)[] = ['id', 'size', 'vm', 'type'] as const
+export type FrontXoVmBackupArchive = Pick<XoVmBackupArchive, (typeof vmBackupArchiveFields)[number]>
+
+const vmBackupArchiveFields = ['id', 'size', 'vm', 'type'] as const satisfies readonly (keyof XoVmBackupArchive)[]
 
 export const useXoVmBackupArchiveCollection = defineRemoteResource({
   url: (backupRepositoriesIds: XoBackupRepository['id'][]) => {
@@ -13,7 +15,7 @@ export const useXoVmBackupArchiveCollection = defineRemoteResource({
 
     return `${BASE_URL}/backup-archives?fields=${vmBackupArchiveFields.join(',')}&${queryParamBackupRepositoriesIds}`
   },
-  initialData: () => [] as XoVmBackupArchive[],
+  initialData: () => [] as Pick<XoVmBackupArchive, (typeof vmBackupArchiveFields)[number]>[],
   state: (rawBackupArchives, context) =>
     useXoCollectionState(rawBackupArchives, {
       context,

@@ -100,7 +100,7 @@
 
 <script lang="ts" setup>
 import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
-import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoHostMissingPatchesCollection } from '@/modules/host/remote-resources/use-xo-host-missing-patches-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
@@ -115,13 +115,12 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import type { XoHost } from '@vates/types'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
-  host: XoHost
+  host: FrontXoHost
 }>()
 
 const { t } = useI18n()

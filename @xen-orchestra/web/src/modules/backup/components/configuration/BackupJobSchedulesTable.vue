@@ -25,6 +25,7 @@
 <script setup lang="ts">
 import { useXoBackupJobSchedulesUtils } from '@/modules/backup/composables/xo-backup-job-schedules-utils.composable.ts'
 import { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
+import type { FrontXoSchedule } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -34,7 +35,6 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useTableState } from '@core/composables/table-state.composable'
 import { useBackupJobScheduleColumns } from '@core/tables/column-sets/backup-job-schedule-columns'
-import type { XoSchedule } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -43,7 +43,7 @@ const {
   busy,
   error,
 } = defineProps<{
-  backupJobSchedules: XoSchedule[]
+  backupJobSchedules: FrontXoSchedule[]
   busy?: boolean
   error?: boolean
 }>()
@@ -82,7 +82,7 @@ const state = useTableState({
 const { pageRecords: paginatedSchedules, paginationBindings } = usePagination('backup-job-schedules', filteredSchedules)
 
 const { HeadCells, BodyCells } = useBackupJobScheduleColumns({
-  body: (schedule: XoSchedule) => {
+  body: (schedule: FrontXoSchedule) => {
     const job = computed(() => getBackupJobById(schedule.jobId))
     const href = computed(() => buildXo5Route(`/backup/${schedule.jobId}/edit`))
     const lastRuns = computed(() => getLastThreeRunsStatuses(job.value))

@@ -1,15 +1,16 @@
 import { xoVmsArg } from '@/modules/vm/jobs/xo-vm-args.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { areVmsOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
 import { fetchDelete } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
-import { VM_OPERATIONS, type XoVm } from '@vates/types'
+import { VM_OPERATIONS } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export const useXoVmDeleteJob = defineJob('vm.delete', [xoVmsArg], () => {
   const { t } = useI18n()
 
   return {
-    async run(vms: XoVm[]) {
+    async run(vms: FrontXoVm[]) {
       const results = await Promise.allSettled(
         vms.map(async vm => {
           return await fetchDelete(`vms/${vm.id}`)
@@ -25,7 +26,7 @@ export const useXoVmDeleteJob = defineJob('vm.delete', [xoVmsArg], () => {
       return results
     },
 
-    validate: (isRunning, vms: XoVm[]) => {
+    validate: (isRunning, vms: FrontXoVm[]) => {
       if (!vms || vms.length === 0) {
         throw new JobError(t('job:vm-delete:missing-vm'))
       }

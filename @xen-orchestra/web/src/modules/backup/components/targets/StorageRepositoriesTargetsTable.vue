@@ -26,6 +26,7 @@
 
 <script setup lang="ts">
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -37,12 +38,11 @@ import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useLinkColumn } from '@core/tables/column-definitions/link-column.ts'
 import { useNumberColumn } from '@core/tables/column-definitions/number-column.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
-import type { XoSr } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { storageRepositories, busy, error } = defineProps<{
-  storageRepositories: XoSr[]
+  storageRepositories: FrontXoSr[]
   busy?: boolean
   error?: boolean
 }>()
@@ -88,7 +88,7 @@ const useColumns = defineColumns(() => {
 })
 
 const { HeadCells, BodyCells } = useColumns({
-  body: (sr: XoSr) => {
+  body: (sr: FrontXoSr) => {
     const { buildXo5Route } = useXoRoutes()
 
     const href = computed(() => buildXo5Route(`/srs/${sr.id}/general`))

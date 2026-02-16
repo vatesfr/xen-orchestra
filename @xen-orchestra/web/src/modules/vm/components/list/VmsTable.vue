@@ -24,6 +24,7 @@
 <script setup lang="ts">
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { getVmIpAddresses } from '@/modules/vm/utils/xo-vm.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -36,7 +37,7 @@ import { objectIcon } from '@core/icons'
 import { useVmColumns } from '@core/tables/column-sets/vm-columns.ts'
 import { renderLoadingCell } from '@core/tables/helpers/render-loading-cell.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
-import type { XoVdi, XoVm } from '@vates/types'
+import type { XoVdi } from '@vates/types'
 import { logicAnd } from '@vueuse/math'
 import { toLower } from 'lodash-es'
 import { computed, ref } from 'vue'
@@ -47,7 +48,7 @@ const {
   busy,
   error,
 } = defineProps<{
-  vms: XoVm[]
+  vms: FrontXoVm[]
   busy?: boolean
   error?: boolean
 }>()
@@ -80,7 +81,7 @@ const state = useTableState({
 
 const isDiskSpaceReady = logicAnd(areVbdsReady, areVdisReady)
 
-const getDiskSpace = (vm: XoVm) => {
+const getDiskSpace = (vm: FrontXoVm) => {
   const vdis = getVbdsByIds(vm.$VBDs).map(vbd => vbd?.VDI)
 
   const totalSize = vdis.map(vdiId => getVdiById(vdiId as XoVdi['id'])?.size || 0).reduce((sum, size) => sum + size, 0)
@@ -93,7 +94,7 @@ const getDiskSpace = (vm: XoVm) => {
 const { pageRecords: paginatedVms, paginationBindings } = usePagination('vms', filteredVms)
 
 const { HeadCells, BodyCells } = useVmColumns({
-  body: (vm: XoVm) => {
+  body: (vm: FrontXoVm) => {
     const ram = computed(() => formatSizeRaw(vm.memory.size, 1))
     const diskSpace = computed(() => getDiskSpace(vm))
     const ipAddresses = computed(() => getVmIpAddresses(vm))

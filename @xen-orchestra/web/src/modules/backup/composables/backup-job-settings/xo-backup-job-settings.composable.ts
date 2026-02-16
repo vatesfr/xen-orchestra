@@ -1,20 +1,20 @@
 import { getMetadataBackupJobSettings } from '@/modules/backup/composables/backup-job-settings/get-metadata-backup-job-settings'
 import { getMirrorBackupJobSettings } from '@/modules/backup/composables/backup-job-settings/get-mirror-backup-job-settings'
 import { getVmBackupJobSettings } from '@/modules/backup/composables/backup-job-settings/get-vm-backup-job-settings'
+import type { FrontAnyXoBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import type { ReportWhen } from '@/modules/backup/types/xo-backup.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useMapper } from '@core/packages/mapper'
 import { formatSpeedRaw } from '@core/utils/speed.util.ts'
 import { formatTimeout } from '@core/utils/time.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import type { AnyXoBackupJob } from '@vates/types'
 import { reactiveComputed } from '@vueuse/shared'
 import type { Info } from 'human-format'
 import type humanFormat from 'human-format'
 import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export function useXoBackupJobSettingsUtils(rawBackupJob: MaybeRefOrGetter<AnyXoBackupJob>) {
+export function useXoBackupJobSettingsUtils(rawBackupJob: MaybeRefOrGetter<FrontAnyXoBackupJob>) {
   const { locale, t } = useI18n()
   const { useGetProxyById } = useXoProxyCollection()
 
@@ -29,7 +29,7 @@ export function useXoBackupJobSettingsUtils(rawBackupJob: MaybeRefOrGetter<AnyXo
       case 'mirrorBackup':
         return getMirrorBackupJobSettings(backupJob.value)
       default:
-        throw new Error(`Unsupported backup job type: ${(backupJob.value as AnyXoBackupJob).type}`)
+        throw new Error(`Unsupported backup job type: ${(backupJob.value as FrontAnyXoBackupJob).type}`)
     }
   })
 

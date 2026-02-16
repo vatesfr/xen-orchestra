@@ -19,9 +19,10 @@
 </template>
 
 <script setup lang="ts">
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import PifSidePanel from '@/modules/pif/components/list/panel/PifSidePanel.vue'
 import PifsTable from '@/modules/pif/components/list/PifsTable.vue'
-import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import { useXoPifCollection, type FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -29,12 +30,11 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store'
-import type { XoHost, XoPif } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
-  host: XoHost
+  host: FrontXoHost
 }>()
 
 const { buildXo5Route } = useXoRoutes()
@@ -47,7 +47,7 @@ const { t } = useI18n()
 
 const pifs = computed(() => pifsByHost.value.get(host.id) ?? [])
 
-const selectedPif = useRouteQuery<XoPif | undefined>('id', {
+const selectedPif = useRouteQuery<FrontXoPif | undefined>('id', {
   toData: id => pifs.value.find(pif => pif.id === id),
   toQuery: pif => pif?.id ?? '',
 })

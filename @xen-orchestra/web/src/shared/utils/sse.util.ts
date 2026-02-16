@@ -1,5 +1,6 @@
 import type { THandleDelete, THandlePost, THandleWatching } from '@core/packages/remote-resource/sse.store.ts'
 import type { ResourceContext } from '@core/packages/remote-resource/types.ts'
+import type { XoRecord } from '@vates/types'
 import { useEventSource } from '@vueuse/core'
 import { watch, watchEffect } from 'vue'
 
@@ -7,7 +8,7 @@ const EVENT_ENDPOINTS = '/rest/v0/events'
 
 // TODO: move into a composable
 // https://github.com/vatesfr/xen-orchestra/pull/9183#discussion_r2561650429
-export function watchCollectionWrapper<T>({
+export function watchCollectionWrapper<T extends Partial<XoRecord>>({
   resource,
   fields,
   collectionId = resource,
@@ -19,7 +20,7 @@ export function watchCollectionWrapper<T>({
   predicate,
 }: {
   resource: string
-  fields?: string[]
+  fields?: readonly string[]
   collectionId?: string
   getIdentifier?: (obj: unknown) => string
   getType?: (obj: unknown) => string

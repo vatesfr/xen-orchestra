@@ -18,6 +18,7 @@
 </template>
 
 <script lang="ts" setup>
+import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -26,11 +27,10 @@ import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibl
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import type { XoVdi } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
-  vdis: XoVdi[]
+  vdis: FrontXoVdi[]
 }>()
 
 const { t } = useI18n()

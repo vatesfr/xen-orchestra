@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import StorageRepositoryCustomFieldsCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositoryCustomFieldsCard.vue'
 import StorageRepositoryHostsCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositoryHostsCard.vue'
@@ -33,19 +33,20 @@ import StorageRepositoryInfosCard from '@/modules/storage-repository/components/
 import StorageRepositoryPbdsCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositoryPbdsCard.vue'
 import StorageRepositorySpaceCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositorySpaceCard.vue'
 import StorageRepositoryVdisCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositoryVdisCard.vue'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import type { XoHost, XoSr, XoVdi } from '@vates/types'
+import type { XoVdi } from '@vates/types'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { sr } = defineProps<{
-  sr: XoSr
+  sr: FrontXoSr
 }>()
 
 const emit = defineEmits<{
@@ -66,7 +67,7 @@ const vdis = useGetVdisByIds(() => sr.VDIs as XoVdi['id'][])
 const pbds = computed(() => pbdsBySr.value.get(sr.id) ?? [])
 
 const hosts = computed(() =>
-  pbds.value.reduce<XoHost[]>((acc, pbd) => {
+  pbds.value.reduce<FrontXoHost[]>((acc, pbd) => {
     const host = getHostById(pbd.host)
 
     if (host !== undefined) {

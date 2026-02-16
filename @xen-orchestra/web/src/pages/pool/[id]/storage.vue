@@ -13,20 +13,23 @@
 </template>
 
 <script setup lang="ts">
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import StorageRepositorySidePanel from '@/modules/storage-repository/components/list/panel/StorageRepositorySidePanel.vue'
 import StorageRepositoriesTable from '@/modules/storage-repository/components/list/StorageRepositoriesTable.vue'
-import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import {
+  useXoSrCollection,
+  type FrontXoSr,
+} from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import type { XoPool, XoSr } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{
-  pool: XoPool
+  pool: FrontXoPool
 }>()
 
 const { t } = useI18n()
@@ -36,8 +39,8 @@ const uiStore = useUiStore()
 
 const srs = computed(() => srsByPool.value.get(pool.id) ?? [])
 
-const selectedSr = useRouteQuery<XoSr | undefined>('id', {
-  toData: id => getSrById(id as XoSr['id']),
+const selectedSr = useRouteQuery<FrontXoSr | undefined>('id', {
+  toData: id => getSrById(id as FrontXoSr['id']),
   toQuery: sr => sr?.id ?? '',
 })
 </script>

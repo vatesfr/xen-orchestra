@@ -10,7 +10,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
@@ -20,13 +20,13 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { useItemCounter } from '@core/composables/item-counter.composable.ts'
-import { VM_POWER_STATE, type XoHost } from '@vates/types'
+import { VM_POWER_STATE } from '@vates/types'
 import { logicAnd, useSum } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
-  host: XoHost
+  host: FrontXoHost
 }>()
 
 const { areHostsReady } = useXoHostCollection()

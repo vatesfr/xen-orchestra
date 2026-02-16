@@ -8,17 +8,17 @@
 </template>
 
 <script setup lang="ts">
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoVmControllerCollection } from '@/modules/vm/remote-resources/use-xo-vm-controller-collection.ts'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { formatSize } from '@core/utils/size.util.ts'
-import type { XoHost } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
-  host: XoHost
+  host: FrontXoHost
 }>()
 
 const { t } = useI18n()

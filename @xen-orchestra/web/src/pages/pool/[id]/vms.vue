@@ -13,20 +13,20 @@
 </template>
 
 <script lang="ts" setup>
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VmSidePanel from '@/modules/vm/components/list/panel/VmSidePanel.vue'
 import VmsTable from '@/modules/vm/components/list/VmsTable.vue'
-import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { useXoVmCollection, type FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import type { XoPool, XoVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{
-  pool: XoPool
+  pool: FrontXoPool
 }>()
 
 const uiStore = useUiStore()
@@ -37,7 +37,7 @@ const { areVmsReady, vmsByPool, hasVmFetchError } = useXoVmCollection()
 
 const vms = computed(() => vmsByPool.value.get(pool.id) ?? [])
 
-const selectedVm = useRouteQuery<XoVm | undefined>('id', {
+const selectedVm = useRouteQuery<FrontXoVm | undefined>('id', {
   toData: id => vms.value.find(vm => vm.id === id),
   toQuery: vm => vm?.id ?? '',
 })

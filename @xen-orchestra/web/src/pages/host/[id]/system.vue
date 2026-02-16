@@ -21,11 +21,11 @@ import HostSystemHardwareSpecifications from '@/modules/host/components/system/H
 import HostSystemNetworking from '@/modules/host/components/system/HostSystemNetworking.vue'
 import HostSystemResourceManagement from '@/modules/host/components/system/HostSystemResourceManagement.vue'
 import HostSystemSoftwareTooling from '@/modules/host/components/system/HostSystemSoftwareTooling.vue'
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
-import type { XoHost } from '@vates/types'
 
 const { host } = defineProps<{
-  host: XoHost
+  host: FrontXoHost
 }>()
 </script>
