@@ -13,6 +13,7 @@ import { OvsdbClient } from './protocol/ovsdb-client'
 import { PrivateNetwork } from './private-network/private-network'
 import { TlsHelper } from './utils/tls-helper'
 import { instantiateController } from './openflow-controller'
+import { invalidParameters } from 'xo-common/api-errors.js'
 
 // =============================================================================
 
@@ -440,6 +441,28 @@ class SDNController extends EventEmitter {
         vifs: {
           ':id/rules': {
             _post: async (req, res, next) => {
+              const validationErrors = []
+
+              if (!req.body.allow || (req.body.allow !== 'true' && req.body.allow !== 'false')) {
+                validationErrors.push('allow is required and must be a boolean')
+              }
+
+              if (!req.body.direction || typeof req.body.direction !== 'string') {
+                validationErrors.push('direction is required and must be a string')
+              }
+
+              if (!req.body.ipRange || typeof req.body.ipRange !== 'string') {
+                validationErrors.push('ipRange is required and must be a string')
+              }
+
+              if (!req.body.protocol || typeof req.body.protocol !== 'string') {
+                validationErrors.push('protocol is required and must be a string')
+              }
+
+              if (validationErrors.length > 0) {
+                throw invalidParameters(validationErrors)
+              }
+
               const rule = {
                 allow: req.body.allow,
                 direction: req.body.direction,
@@ -457,6 +480,24 @@ class SDNController extends EventEmitter {
               res.sendStatus(204)
             },
             _delete: async (req, res, next) => {
+              const validationErrors = []
+
+              if (!req.body.direction || typeof req.body.direction !== 'string') {
+                validationErrors.push('direction is required and must be a string')
+              }
+
+              if (!req.body.ipRange || typeof req.body.ipRange !== 'string') {
+                validationErrors.push('ipRange is required and must be a string')
+              }
+
+              if (!req.body.protocol || typeof req.body.protocol !== 'string') {
+                validationErrors.push('protocol is required and must be a string')
+              }
+
+              if (validationErrors.length > 0) {
+                throw invalidParameters(validationErrors)
+              }
+
               const rule = {
                 direction: req.body.direction,
                 ipRange: req.body.ipRange,
