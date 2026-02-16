@@ -19,8 +19,7 @@ export type THandleWatching = (
           }
         >
       }
-    | undefined,
-  onPing: (ping: number) => void
+    | undefined
 ) => void
 
 export const useSseStore = defineStore('sse', () => {
@@ -54,7 +53,7 @@ export const useSseStore = defineStore('sse', () => {
   })
 
   const lastPing = computed(() => sse.value.lastPing)
-  const hasErrorSse = computed(() => sse.value.errorSse !== null)
+  const hasErrorSse = computed(() => isError.value || sse.value.errorSse !== null)
 
   function setErrorSse(error: unknown | null) {
     sse.value.errorSse = error
@@ -62,6 +61,10 @@ export const useSseStore = defineStore('sse', () => {
 
   function updateSseId(id: string) {
     sse.value.id = id
+  }
+
+  function setPing(timestamp: number) {
+    sse.value.lastPing = timestamp
   }
 
   function getConfigsByResource(resource: string) {
@@ -84,13 +87,9 @@ export const useSseStore = defineStore('sse', () => {
         { deep: true }
       )
 
-      function onPing(timestamp: number) {
-        sse.value.lastPing = timestamp
-      }
-
       if (!sse.value.isWatching) {
         sse.value.isWatching = true
-        handleWatching(updateSseId, getConfigsByResource, onPing)
+        handleWatching(updateSseId, getConfigsByResource)
       }
     })
   }
@@ -166,5 +165,5 @@ export const useSseStore = defineStore('sse', () => {
     window.location.reload()
   }
 
-  return { watch, unwatch, retry, isError, lastPing, hasErrorSse, setErrorSse }
+  return { watch, unwatch, retry, isError, lastPing, hasErrorSse, setErrorSse, setPing }
 })

@@ -73,9 +73,9 @@ const sidebarStore = useSidebarStore()
 
 const sseStore = useSseStore()
 
-const { isError, hasErrorSse } = storeToRefs(sseStore)
+const { hasErrorSse } = storeToRefs(sseStore)
 
-const showBanner = computed(() => isError.value || hasErrorSse.value)
+const showBanner = computed(() => hasErrorSse.value)
 
 function handleRetry() {
   sseStore.retry()

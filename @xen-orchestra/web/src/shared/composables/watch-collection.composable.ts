@@ -90,7 +90,7 @@ export function useWatchCollection<T extends Partial<XoRecord>>({
   }
 
   if (handleWatching === undefined) {
-    handleWatching = (updateSseId, getConfigByResource, onPing) => {
+    handleWatching = (updateSseId, getConfigByResource) => {
       const sseStore = useSseStore()
 
       watch(error, value => {
@@ -124,9 +124,8 @@ export function useWatchCollection<T extends Partial<XoRecord>>({
               config.remove(data.value)
             )
             break
-
           case 'ping':
-            onPing(data.value.ping)
+            sseStore.setPing(data.value.ping)
             break
         }
       })
