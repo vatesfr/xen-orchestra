@@ -3,6 +3,8 @@ import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoBackupRepository, XoVmBackupArchive } from '@vates/types'
 
+export type FrontXoVmBackupArchive = Pick<XoVmBackupArchive, (typeof vmBackupArchiveFields)[number]>
+
 const vmBackupArchiveFields = ['id', 'size', 'vm', 'type'] as const satisfies readonly (keyof XoVmBackupArchive)[]
 
 export const useXoVmBackupArchiveCollection = defineRemoteResource({

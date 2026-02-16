@@ -4,6 +4,8 @@ import { watchCollectionWrapper } from '@/shared/utils/sse.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoVmController } from '@vates/types'
 
+export type FrontXoVmController = Pick<XoVmController, (typeof vmControllerFields)[number]>
+
 const vmControllerFields = [
   'id',
   'name_label',
