@@ -31,6 +31,10 @@ import type {
   XoVm,
   XoVmSnapshot,
   XoMessage,
+  XoSr,
+  XoNetwork,
+  XoVif,
+  XoPif,
 } from '@vates/types'
 import { PassThrough, Readable } from 'node:stream'
 
@@ -41,6 +45,7 @@ import {
   forbiddenOperationResp,
   incorrectStateResp,
   internalServerErrorResp,
+  invalidParameters as invalidParametersResp,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
@@ -689,5 +694,58 @@ export class VmController extends XapiXoController<XoVm> {
     } finally {
       stream?.end()
     }
+  }
+
+  /**
+   * VIF mapping is not allowed for intra-pool migration
+   *
+   * Networks and SRs must belong to the same pool as the destination host
+   *
+   * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
+   * @example body { "hostId": "b61a5c92-700e-4966-a13b-00633f03eea8" }
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/migrate')
+  @Middlewares(json())
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  migrateVm(
+    @Path() id: string,
+    @Body()
+    body:
+      | { hostId: string; migrationNetworkId?: string }
+      | {
+          hostId: string
+          migrationNetworkId?: string
+          srId?: string
+          srIdByVdiId?: { [key: string]: string }
+          networkIdByVifId?: { [key: string]: string }
+        },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const vmId = id as XoVm['id']
+    const hostId = body.hostId as XoHost['id']
+
+    const action = async () => {
+      const { migrationNetworkId } = body
+      const xapiVm = this.getXapiObject(vmId)
+
+      await xapiVm.$xapi.migrateVm(vmId, this.getXapi(hostId), hostId, {
+        mapVdisSrs: 'srIdByVdiId' in body ? (body.srIdByVdiId as Record<XoVdi['id'], XoSr['id']>) : undefined,
+        mapVifsNetworks:
+          'networkIdByVifId' in body ? (body.networkIdByVifId as Record<XoVif['id'], XoNetwork['id']>) : undefined,
+        migrationNetworkId: migrationNetworkId as XoNetwork['id'] | undefined,
+        sr: 'srId' in body ? (body.srId as XoSr['id']) : undefined,
+      })
+    }
+
+    return this.createAction(action, {
+      sync,
+      statusCode: 204,
+      taskProperties: { name: 'Migrate VM', objectId: vmId, params: body },
+    })
   }
 }

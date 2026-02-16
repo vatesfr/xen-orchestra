@@ -78,6 +78,7 @@ provide(IK_INPUT_WRAPPER_CONTROLLER, wrapperController)
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+  min-width: 0;
 
   .label {
     min-height: 2.4rem;

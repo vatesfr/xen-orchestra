@@ -276,7 +276,7 @@ Synchronize your pools, VMs, network interfaces and IP addresses with your [Netb
 
 - `>= 2.10`
 - `3.x`
-- `< 4.5`
+- `< 4.6`
 
 :::tip
 For safety, XO will not synchronize your pools if it detects a Netbox version that is not supported. If you wish to change that behavior, edit you `xo-server` configuration like so:
@@ -437,22 +437,24 @@ All metrics are prefixed with `xcp_` and include enriched labels for easy filter
 
 #### Host Metrics
 
-| Metric                                  | Type    | Description                             |
-| --------------------------------------- | ------- | --------------------------------------- |
-| `xcp_host_load_average`                 | gauge   | Host load average                       |
-| `xcp_host_memory_free_bytes`            | gauge   | Free memory in bytes                    |
-| `xcp_host_memory_total_bytes`           | gauge   | Total memory in bytes                   |
-| `xcp_host_cpu_average`                  | gauge   | Average CPU usage (0-1)                 |
-| `xcp_host_cpu_core_usage`               | gauge   | Per-core CPU usage                      |
-| `xcp_host_network_receive_bytes_total`  | counter | Network bytes received per interface    |
-| `xcp_host_network_transmit_bytes_total` | counter | Network bytes transmitted per interface |
-| `xcp_host_disk_iops_read`               | gauge   | Disk read IOPS per SR                   |
-| `xcp_host_disk_iops_write`              | gauge   | Disk write IOPS per SR                  |
-| `xcp_host_disk_throughput_read_bytes`   | gauge   | Disk read throughput (bytes/s)          |
-| `xcp_host_disk_throughput_write_bytes`  | gauge   | Disk write throughput (bytes/s)         |
-| `xcp_host_disk_read_latency_seconds`    | gauge   | Disk read latency                       |
-| `xcp_host_disk_write_latency_seconds`   | gauge   | Disk write latency                      |
-| `xcp_host_disk_iowait`                  | gauge   | Disk IO wait ratio                      |
+| Metric                                  | Type    | Description                                                            |
+| --------------------------------------- | ------- | ---------------------------------------------------------------------- |
+| `xcp_host_load_average`                 | gauge   | Host load average                                                      |
+| `xcp_host_memory_free_bytes`            | gauge   | Free memory in bytes                                                   |
+| `xcp_host_memory_total_bytes`           | gauge   | Total memory in bytes                                                  |
+| `xcp_host_cpu_average`                  | gauge   | Average CPU usage (0-1)                                                |
+| `xcp_host_cpu_core_usage`               | gauge   | Per-core CPU usage                                                     |
+| `xcp_host_network_receive_bytes_total`  | counter | Network bytes received per interface                                   |
+| `xcp_host_network_transmit_bytes_total` | counter | Network bytes transmitted per interface                                |
+| `xcp_host_disk_iops_read`               | gauge   | Disk read IOPS per SR                                                  |
+| `xcp_host_disk_iops_write`              | gauge   | Disk write IOPS per SR                                                 |
+| `xcp_host_disk_throughput_read_bytes`   | gauge   | Disk read throughput (bytes/s)                                         |
+| `xcp_host_disk_throughput_write_bytes`  | gauge   | Disk write throughput (bytes/s)                                        |
+| `xcp_host_disk_read_latency_seconds`    | gauge   | Disk read latency                                                      |
+| `xcp_host_disk_write_latency_seconds`   | gauge   | Disk write latency                                                     |
+| `xcp_host_disk_iowait`                  | gauge   | Disk IO wait ratio                                                     |
+| `xcp_host_uptime_seconds`               | gauge   | Host uptime in seconds since boot                                      |
+| `xcp_host_status`                       | gauge   | Host status (1 = current state, `power_state` and `enabled` in labels) |
 
 #### VM Metrics
 
@@ -494,29 +496,35 @@ All metrics are prefixed with `xcp_` and include enriched labels for easy filter
 
 #### Connection Metrics
 
-| Metric               | Type  | Description                                          |
-| -------------------- | ----- | ---------------------------------------------------- |
-| `xcp_pool_connected` | gauge | Pool connection status (1=connected, 0=disconnected) |
+| Metric               | Type  | Description                                                         |
+| -------------------- | ----- | ------------------------------------------------------------------- |
+| `xcp_pool_connected` | gauge | Pool connection status (1 when connected, absent when disconnected) |
 
 #### Labels
 
 All metrics include these labels for filtering:
 
-| Label          | Description                                |
-| -------------- | ------------------------------------------ |
-| `pool_id`      | Pool UUID                                  |
-| `pool_name`    | Pool name                                  |
-| `uuid`         | Object UUID (host or VM)                   |
-| `type`         | Object type (`host` or `vm`)               |
-| `host_name`    | Host name (for host metrics)               |
-| `vm_name`      | VM name (for VM metrics)                   |
-| `sr_uuid`      | Storage Repository UUID (for SR metrics)   |
-| `sr_name`      | Storage Repository name (for disk metrics) |
-| `vdi_name`     | Virtual Disk name (for VM disk metrics)    |
-| `network_name` | Network name (for network metrics)         |
-| `interface`    | Network interface name                     |
-| `device`       | Disk device (xvda, xvdb, etc.)             |
-| `core`         | CPU core number                            |
+| Label               | Description                                                              |
+| ------------------- | ------------------------------------------------------------------------ |
+| `pool_id`           | Pool UUID                                                                |
+| `pool_name`         | Pool name                                                                |
+| `uuid`              | Object UUID (host or VM)                                                 |
+| `type`              | Object type (`host` or `vm`)                                             |
+| `host_name`         | Host name (for host metrics)                                             |
+| `vm_name`           | VM name (for VM metrics)                                                 |
+| `sr_uuid`           | Storage Repository UUID (for SR metrics)                                 |
+| `sr_name`           | Storage Repository name (for disk metrics)                               |
+| `vdi_name`          | Virtual Disk name (for VM disk metrics)                                  |
+| `network_name`      | Network name (for network metrics)                                       |
+| `interface`         | Network interface name                                                   |
+| `device`            | Disk device (xvda, xvdb, etc.)                                           |
+| `core`              | CPU core number                                                          |
+| `vif`               | VIF index (for VM network metrics)                                       |
+| `sr`                | SR UUID suffix (for host disk metrics)                                   |
+| `host_id`           | Host UUID (for local SR capacity metrics)                                |
+| `is_control_domain` | Whether the VM is a control domain / dom0 (`true`/`false`)               |
+| `power_state`       | Host power state: `Running`, `Halted`, `Unknown` (for `xcp_host_status`) |
+| `enabled`           | Whether the host is enabled: `true`/`false` (for `xcp_host_status`)      |
 
 ### PromQL Query Examples
 
@@ -548,6 +556,21 @@ sum by (sr_name) (xcp_host_disk_iops_read + xcp_host_disk_iops_write)
 
 # Over-provisioning ratio (virtual vs physical)
 xcp_sr_virtual_size_bytes / xcp_sr_physical_size_bytes
+
+# Host uptime in days
+xcp_host_uptime_seconds / 86400
+
+# Non-running hosts
+xcp_host_status{power_state!="Running"}
+
+# Hosts in maintenance mode
+xcp_host_status{power_state="Running", enabled="false"}
+
+# VM CPU usage excluding dom0
+xcp_vm_cpu_usage{is_control_domain="false"} * 100
+
+# Top 5 user VMs by CPU (excluding dom0)
+topk(5, xcp_vm_cpu_usage{is_control_domain="false"}) * 100
 ```
 
 ### Grafana Integration
@@ -656,13 +679,12 @@ groups:
           description: 'VM {{ $labels.vm_name }} has sustained high CPU usage.'
 
       - alert: PoolDisconnected
-        expr: xcp_pool_connected == 0
-        for: 1m
+        expr: absent_over_time(xcp_pool_connected[5m])
         labels:
           severity: critical
         annotations:
-          summary: 'Pool {{ $labels.pool_name }} disconnected'
-          description: 'XO lost connection to pool {{ $labels.pool_name }}.'
+          summary: 'Pool metrics unavailable'
+          description: 'No pool connection metrics received for 5 minutes. Check XO connectivity.'
 
       - alert: SRHighUsage
         expr: (xcp_sr_physical_usage_bytes / xcp_sr_physical_size_bytes) > 0.85
@@ -681,6 +703,24 @@ groups:
         annotations:
           summary: 'Critical storage usage on {{ $labels.sr_name }}'
           description: 'Storage Repository {{ $labels.sr_name }} is above 95% capacity. Immediate action required.'
+
+      - alert: HostNotRunning
+        expr: xcp_host_status{power_state!="Running"} == 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Host {{ $labels.host_name }} is {{ $labels.power_state }}'
+          description: 'Host {{ $labels.host_name }} in pool {{ $labels.pool_name }} has power state {{ $labels.power_state }}.'
+
+      - alert: HostRecentlyRebooted
+        expr: xcp_host_uptime_seconds < 600
+        for: 1m
+        labels:
+          severity: info
+        annotations:
+          summary: 'Host {{ $labels.host_name }} recently rebooted'
+          description: 'Host {{ $labels.host_name }} has been up for less than 10 minutes.'
 ```
 
 ### Security Recommendations

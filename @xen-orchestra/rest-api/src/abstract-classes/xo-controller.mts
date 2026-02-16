@@ -1,7 +1,6 @@
-import { inject } from 'inversify'
 import type { NonXapiXoRecord } from '@vates/types/xo'
 
-import { BaseController } from './base-controller.mjs'
+import { BaseController, type BaseControllerType } from './base-controller.mjs'
 
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
@@ -10,8 +9,8 @@ export abstract class XoController<T extends NonXapiXoRecord> extends BaseContro
   abstract getAllCollectionObjects(opts: Record<string, unknown>): Promise<T[]>
   abstract getCollectionObject(id: T['id']): Promise<T>
 
-  constructor(@inject(RestApi) restApi: RestApi) {
-    super(restApi)
+  constructor(type: BaseControllerType<T>, restApi: RestApi) {
+    super(type, restApi)
   }
 
   async getObjects(

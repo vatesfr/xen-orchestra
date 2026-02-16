@@ -65,7 +65,7 @@ export class BackupJobController extends XoController<AnyXoBackupJob> {
   #backupJobService: BackupJobService
 
   constructor(@inject(RestApi) restApi: RestApi, @inject(BackupJobService) backupJobService: BackupJobService) {
-    super(restApi)
+    super('backup-job', restApi)
     this.#backupJobService = backupJobService
   }
 
@@ -136,7 +136,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
     @inject(BackupLogService) backupLogService: BackupLogService,
     @inject(BackupJobService) backupJobService: BackupJobService
   ) {
-    super(restApi)
+    super('backup', restApi)
     this.#backupLogService = backupLogService
     this.#backupJobService = backupJobService
   }
