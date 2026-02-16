@@ -14,14 +14,13 @@ export class SrService {
     const xapi = xapiSr.$xapi
 
     if (sr.SR_type === 'linstor') {
-      const poolHosts = Object.values(
-        this.#restApi.getObjectsByType<XoHost>('host', {
-          filter: host => host.$pool === sr.$container || host.$pool === sr.$pool,
-        })
-      )
-
       await xapi.xostor_destroy(xapiSr.$ref)
 
+      const poolHosts = Object.values(
+        this.#restApi.getObjectsByType<XoHost>('host', {
+          filter: host => host.$pool === sr.$pool,
+        })
+      )
       await Promise.all(
         poolHosts.map(host =>
           this.#restApi.xoApp.unbindLicense({
@@ -31,8 +30,7 @@ export class SrService {
         )
       )
     } else {
-      await Promise.all(xapiSr.PBDs.map(pbdRef => xapi.callAsync('PBD.unplug', pbdRef)))
-      await xapi.call('SR.destroy', xapiSr.$ref)
+      await xapi.destroySr(xapiSr.$ref)
     }
   }
 }
