@@ -97,7 +97,7 @@ export interface Xapi {
     vmId: XoVm['id'],
     opts?: {
       nameLabel?: string
-      srId?: XoSr['id']
+      srOrSrId?: XoSr['id']
     }
   ): Promise<XenApiVmWrapped>
   remoteCopyVm(
