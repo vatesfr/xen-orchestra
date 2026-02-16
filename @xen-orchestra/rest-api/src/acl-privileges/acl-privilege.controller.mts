@@ -1,4 +1,18 @@
-import { Delete, Example, Get, Patch, Path, Post, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import {
+  Delete,
+  Example,
+  Get,
+  Patch,
+  Path,
+  Post,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+} from 'tsoa'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 
@@ -7,7 +21,14 @@ import {
   aclPrivilegeIds,
   partialAclPrivileges,
 } from '../open-api/oa-examples/acl-privilege.oa-example.mjs'
-import { badRequestResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  badRequestResp,
+  createdResp,
+  noContentResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import type { RestAnyPrivilege } from './acl-privilege.type.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
@@ -53,6 +74,8 @@ export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
    */
   @Example(aclPrivilege)
   @Post('')
+  @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
   async createAclV2Privilege(
     @Query() action: string,
     @Query() resource: string,
@@ -92,6 +115,8 @@ export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    */
   @Delete(':id')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
   async deleteAclV2Privilege(@Path() id: string, @Query() force?: boolean): Promise<void> {
     let options = {}
     if (force !== undefined) {
@@ -110,6 +135,8 @@ export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
    */
   @Example(aclPrivilege)
   @Patch(':id')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
   async updateAclV2Privilege(
     @Path() id: string,
     @Query() action?: string,
@@ -117,13 +144,13 @@ export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
     @Query() effect?: string,
     @Query() selector?: string,
     @Query() force?: boolean
-  ): Promise<Unbrand<RestAnyPrivilege>> {
+  ): Promise<void> {
     let options = {}
     if (force !== undefined) {
       options = { force }
     }
 
-    return this.restApi.xoApp.updateAclV2Privilege(
+    await this.restApi.xoApp.updateAclV2Privilege(
       id as RestAnyPrivilege['id'],
       {
         action: action as RestAnyPrivilege['action'],
