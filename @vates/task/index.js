@@ -157,7 +157,7 @@ class Task {
     assert.equal(this.#status, PENDING)
     assert.equal(this.#running, false)
 
-    if (status === FAILURE && result instanceof Error) {
+    if (result instanceof Error && result.toJSON === undefined) {
       result = serializeError(result)
     }
 
