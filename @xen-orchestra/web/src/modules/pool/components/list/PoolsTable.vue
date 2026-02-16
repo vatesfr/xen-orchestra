@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { getPoolInfo } from '@/modules/pool/utils/xo-pool.util.ts'
 import {
   useXoServerCollection,
@@ -39,7 +39,6 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon, objectIcon } from '@core/icons'
 import { useServerColumns } from '@core/tables/column-sets/server-columns.ts'
-import type { XoHost } from '@vates/types'
 import { logicNot } from '@vueuse/math'
 import { toLower } from 'lodash-es'
 import { computed, ref } from 'vue'
@@ -84,7 +83,7 @@ const state = useTableState({
 
 const { pageRecords: paginatedServers, paginationBindings } = usePagination('pools', filteredServers)
 
-function getMasterIcon(host: XoHost) {
+function getMasterIcon(host: FrontXoHost) {
   if (!isMasterHost(host.id)) {
     return undefined
   }

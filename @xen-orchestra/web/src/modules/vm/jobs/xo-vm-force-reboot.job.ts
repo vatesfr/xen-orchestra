@@ -1,9 +1,10 @@
 import { xoVmsArg } from '@/modules/vm/jobs/xo-vm-args.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { areVmsOperationPending, notAllVmsHavingPowerState } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
-import { VM_OPERATIONS, VM_POWER_STATE, type XoTask, type XoVm } from '@vates/types'
+import { VM_OPERATIONS, VM_POWER_STATE, type XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export const useXoVmForceRebootJob = defineJob('vm.force-reboot', [xoVmsArg], () => {
@@ -11,7 +12,7 @@ export const useXoVmForceRebootJob = defineJob('vm.force-reboot', [xoVmsArg], ()
   const { monitorTask } = useXoTaskUtils()
 
   return {
-    async run(vms: XoVm[]) {
+    async run(vms: FrontXoVm[]) {
       const results = await Promise.allSettled(
         vms.map(async vm => {
           const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`vms/${vm.id}/actions/hard_reboot`)
@@ -28,7 +29,7 @@ export const useXoVmForceRebootJob = defineJob('vm.force-reboot', [xoVmsArg], ()
       return results
     },
 
-    validate: (isRunning, vms: XoVm[]) => {
+    validate: (isRunning, vms: FrontXoVm[]) => {
       if (!vms || vms.length === 0) {
         throw new JobError(t('job:vm-force-reboot:missing-vm'))
       }

@@ -45,7 +45,7 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     )
   })
 
-  const hasGuestTools = (vm: XoVm) => {
+  const hasGuestTools = (vm: FrontXoVm) => {
     return vm.managementAgentDetected && vm.pvDriversDetected
   }
 
