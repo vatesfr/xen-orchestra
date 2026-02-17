@@ -38,6 +38,8 @@
 - [REST API] Exclude removable and ISO storage from top 5 SRs usage (PR [#9495](https://github.com/vatesfr/xen-orchestra/pull/9495))
 - [xo-server-sdn-controller] traffic rules robustness (PR [#9442](https://github.com/vatesfr/xen-orchestra/pull/9442))
 
+- [VM/Advanced] Fix vGPU support where multiple GPU groups have the same vGPU type [#5750](https://github.com/vatesfr/xen-orchestra/issues/5750)
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
