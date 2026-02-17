@@ -191,16 +191,7 @@ export class MergeRemoteDisk {
   async #step_mergeBlocks(parentDisk, childDisk) {
     const getMaxBlockCount = childDisk.getMaxBlockCount()
 
-    if (!this.#isResuming) {
-      this.#state.child = { uuid: childDisk.getUuid() ?? 0 }
-      this.#state.parent = { uuid: parentDisk.getUuid() ?? 0 }
-
-      // Finds first allocated block for the 2 following loops
-      while (this.#state.currentBlock < getMaxBlockCount && !childDisk.hasBlock(this.#state.currentBlock)) {
-        ++this.#state.currentBlock
-      }
-      await this.#writeState()
-    } else {
+    if (this.#isResuming) {
       const alreadyMergedBlocks = []
       for (let blockId = 0; blockId < this.#state.currentBlock; blockId++) {
         if (childDisk.hasBlock(blockId)) {
@@ -209,6 +200,15 @@ export class MergeRemoteDisk {
       }
 
       parentDisk.setAllocatedBlocks(alreadyMergedBlocks)
+    } else {
+      this.#state.child = { uuid: childDisk.getUuid() ?? 0 }
+      this.#state.parent = { uuid: parentDisk.getUuid() ?? 0 }
+
+      // Finds first allocated block for the 2 following loops
+      while (this.#state.currentBlock < getMaxBlockCount && !childDisk.hasBlock(this.#state.currentBlock)) {
+        ++this.#state.currentBlock
+      }
+      await this.#writeState()
     }
 
     await this.#mergeBlocks(parentDisk, childDisk)
@@ -243,10 +243,10 @@ export class MergeRemoteDisk {
       async blockId => {
         merging.add(blockId)
 
-        const blockSize = await parentDisk.writeBlock(await childDisk.readBlock(blockId))
+        const blockSize = await parentDisk.mergeBlock(childDisk, blockId, this.#isResuming)
         this.#state.mergedDataSize += blockSize
 
-        this.#state.currentBlock = Math.min(...merging)
+        this.#state.currentBlock = Math.min(...merging) - 1
         merging.delete(blockId)
 
         this.#onProgress({ total: nBlocks, done: counter + 1 })
@@ -276,7 +276,6 @@ export class MergeRemoteDisk {
 
     // delete intermediate children if needed
     if (this.#removeUnused) {
-      await childDisk.unlinkIntermediates()
       await childDisk.unlink()
     }
 
