@@ -80,14 +80,14 @@
                     {{ t('copy-host-bios-strings') }}
                   </UiCheckbox>
                 </div>
-                <div v-else class="checkbox-container">
+                <UiCheckboxGroup v-else accent="brand" vertical>
                   <UiCheckbox v-model="vmState.createVtpm" accent="brand">
                     {{ t('vtpm') }}
                   </UiCheckbox>
-                  <UiCheckbox v-model="secureBootFormated" accent="brand">
+                  <UiCheckbox v-model="vmState.secureBoot" accent="brand">
                     {{ t('secure-boot') }}
                   </UiCheckbox>
-                </div>
+                </UiCheckboxGroup>
               </div>
               <div class="column">
                 <UiTextarea v-model="vmState.description" accent="brand">
@@ -260,7 +260,7 @@ const vmState = reactive<VmState>({
   tags: [],
   vCPU: 0,
   selectedVcpu: 0,
-  secureBoot: '',
+  secureBoot: false,
   ram: 0,
   topology: '',
   copyHostBiosStrings: false,
@@ -276,20 +276,6 @@ const vmState = reactive<VmState>({
 const bytesToGiB = (bytes: number) => Math.floor(bytes / 1024 ** 3)
 
 const giBToBytes = (giB: number) => giB * 1024 ** 3
-
-// TODO In a future "auto" mode, derive the default secureBoot value from the pool once it is available there.
-const secureBootFormated = computed({
-  get() {
-    if (vmState.bootFirmware !== 'uefi') {
-      return false
-    }
-    return vmState.secureBoot === 'true'
-  },
-
-  set(newValue) {
-    vmState.secureBoot = String(newValue)
-  },
-})
 
 const ramFormatted = computed({
   get() {
@@ -601,7 +587,6 @@ const vmData = computed(() => {
     vdisToSend.length > 0 && { vdis: vdisToSend },
     vifsToSend.value.length > 0 && { vifs: vifsToSend.value },
     vmState.affinity_host && { affinity: vmState.affinity_host },
-    vmState.bootFirmware === 'uefi' && { secureBoot: vmState.secureBoot },
     vmState.installMode !== 'no-config' && {
       install: {
         method: vmState.installMode,
@@ -626,6 +611,7 @@ const vmData = computed(() => {
     hvmBootFirmware: vmState.bootFirmware,
     copyHostBiosStrings: vmState.copyHostBiosStrings,
     createVtpm: vmState.createVtpm,
+    secureBoot: vmState.secureBoot,
     ...optionalFields,
   }
 })
@@ -699,7 +685,7 @@ watch(
       vdis: getVmTemplateVdis(template),
       existingVdis: getExistingVdis(template),
       vifs: getExistingVifs(template),
-      secureBoot: String(secureBoot),
+      secureBoot,
       selectedVdi: undefined,
       installMode: undefined,
       bootFirmware: template.boot.firmware ?? 'bios',
@@ -795,6 +781,7 @@ watch(
   () => {
     if (vmState.bootFirmware === 'bios') {
       vmState.createVtpm = false
+      vmState.secureBoot = false
       if (selectedTemplateHasBiosStrings.value) {
         vmState.copyHostBiosStrings = true
       }
@@ -836,12 +823,6 @@ watch(
         flex-direction: column;
         gap: 2.4rem;
         width: 40%;
-
-        .checkbox-container {
-          display: flex;
-          flex-direction: column;
-          gap: 0.8rem;
-        }
       }
     }
 
