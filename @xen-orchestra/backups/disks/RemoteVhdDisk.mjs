@@ -16,6 +16,8 @@ import { DISK_TYPES } from 'vhd-lib/_constants.js'
 import { isVhdAlias, resolveVhdAlias } from 'vhd-lib/aliases.js'
 // import { set as setBitmap } from 'vhd-lib/_bitmap.js'
 import { stringify } from 'uuid'
+import { dirname, join } from 'node:path'
+import { Task } from '../Task.mjs'
 
 export class RemoteVhdDisk extends RemoteDisk {
   /**
@@ -74,6 +76,9 @@ export class RemoteVhdDisk extends RemoteDisk {
   async init(options = {}) {
     if (this.#vhd === undefined) {
       try {
+        Task.info(
+          `RemoteVhdDisk init (${this.#path}); isDirectory: ${await this.isDirectory()}, isVhdAlias: ${isVhdAlias(this.#path)}, resolveVhdAlias: ${await resolveVhdAlias(this.#handler, this.#path)}`
+        )
         if ((await this.isDirectory()) && !isVhdAlias(this.#path)) {
           throw Object.assign(new Error("Can't init vhd directory without using alias"), { code: 'NOT_SUPPORTED' })
         }
@@ -202,6 +207,26 @@ export class RemoteVhdDisk extends RemoteDisk {
       }
     }
     return indexes
+  }
+
+  /**
+   * Returns the parent non inizialized instance
+   * @returns {RemoteDisk}
+   */
+  instantiateParent() {
+    if (this.#vhd === undefined) {
+      throw new Error(`can't call instantiateParent of a RemoteVhdDisk before init`)
+    }
+
+    const parentPath = this.#vhd.header.parentUnicodeName
+    const fullParentPath = join(dirname(this.#path), parentPath)
+
+    if (!parentPath) {
+      throw new Error(`disk ${this.#path} doesn't have parents`)
+    }
+
+    const parent = new RemoteVhdDisk({ handler: this.#handler, path: fullParentPath })
+    return parent
   }
 
   /**

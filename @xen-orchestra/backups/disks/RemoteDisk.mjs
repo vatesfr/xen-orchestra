@@ -89,11 +89,21 @@ export class RemoteDisk extends RandomAccessDisk {
   }
 
   /**
+   * Abstract
    * Gets the indexes of all blocks in the VHD.
    * @returns {Array<number>}
    */
   getBlockIndexes() {
     throw new Error(`getBlockIndexes must be implemented`)
+  }
+
+  /**
+   * Abstract
+   * Returns the parent non inizialized instance
+   * @returns {RemoteDisk}
+   */
+  instantiateParent() {
+    throw new Error(`instantiateParent must be implemented`)
   }
 
   /**

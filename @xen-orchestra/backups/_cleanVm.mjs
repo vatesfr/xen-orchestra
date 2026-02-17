@@ -53,6 +53,7 @@ async function _mergeVhdChain(handler, chain, { logInfo, remove, mergeBlockConcu
     }
   }, 10e3)
   try {
+    Task.info(`cleanVM mergeVhdChain: ${chain}`)
     const parentDisk = new RemoteVhdDisk({ handler, path: chain.shift() })
 
     const childDisks = []

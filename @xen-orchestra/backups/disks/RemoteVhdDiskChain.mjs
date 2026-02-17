@@ -179,6 +179,14 @@ export class RemoteVhdDiskChain extends RemoteDisk {
   }
 
   /**
+   * Returns the parent non inizialized instance
+   * @returns {RemoteDisk}
+   */
+  instantiateParent() {
+    return this.#disks[0].instantiateParent()
+  }
+
+  /**
    * Writes a full block into this VHD.
    * @param {DiskBlock} diskBlock
    * @return {Promise<number>} blockSize
