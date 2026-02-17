@@ -53,7 +53,7 @@ export class RemoteVhdDisk extends RemoteDisk {
   /**
    * @type {() => any}
    */
-  #dispose = () => {}
+  #dispose = () => { }
 
   /**
    * @param {Object} params
@@ -72,21 +72,23 @@ export class RemoteVhdDisk extends RemoteDisk {
    * @param {boolean} [options.force=false]
    * @returns {Promise<void>}
    */
-
   async init(options = {}) {
     if (this.#vhd === undefined) {
       try {
-        Task.info(
-          `RemoteVhdDisk init (${this.#path}); isDirectory: ${await this.isDirectory()}, isVhdAlias: ${isVhdAlias(this.#path)}, resolveVhdAlias: ${await resolveVhdAlias(this.#handler, this.#path)}`
-        )
-        if ((await this.isDirectory()) && !isVhdAlias(this.#path)) {
-          throw Object.assign(new Error("Can't init vhd directory without using alias"), { code: 'NOT_SUPPORTED' })
-        }
-
         const { value, dispose } = await openVhd(this.#handler, await resolveVhdAlias(this.#handler, this.#path), {
           checkSecondFooter: !options.force,
         })
         this.#vhd = value
+
+        Task.info(
+          `RemoteVhdDisk init (${this.#path}); isDirectory: ${await this.isDirectory()}, isVhdAlias: ${isVhdAlias(this.#path)}, resolveVhdAlias: ${await resolveVhdAlias(this.#handler, this.#path)}`
+        )
+
+        if ((await this.isDirectory()) && !isVhdAlias(this.#path)) {
+          this.#vhd = undefined
+          throw Object.assign(new Error("Can't init vhd directory without using alias"), { code: 'NOT_SUPPORTED' })
+        }
+
         this.#dispose = dispose
         await this.#vhd.readBlockAllocationTable()
         this.#isDifferencing = value.footer.diskType === DISK_TYPES.DIFFERENCING
@@ -409,7 +411,7 @@ export class RemoteVhdDisk extends RemoteDisk {
         await this.#handler.unlink(newPath)
       } catch (err) {
         if (err && typeof err === 'object' && 'code' in err && err.code === 'EISDIR') {
-          await this.#handler.rmtree(newPath).catch(() => {})
+          await this.#handler.rmtree(newPath).catch(() => { })
         }
       }
 
@@ -434,7 +436,7 @@ export class RemoteVhdDisk extends RemoteDisk {
         await this.#handler.unlink(await resolveVhdAlias(this.#handler, this.#path))
       } catch (err) {
         if (err && typeof err === 'object' && 'code' in err && err.code === 'EISDIR') {
-          await this.#handler.rmtree(await resolveVhdAlias(this.#handler, this.#path)).catch(() => {})
+          await this.#handler.rmtree(await resolveVhdAlias(this.#handler, this.#path)).catch(() => { })
         }
       }
     }
@@ -443,7 +445,7 @@ export class RemoteVhdDisk extends RemoteDisk {
       await this.#handler.unlink(this.#path)
     } catch (err) {
       if (err && typeof err === 'object' && 'code' in err && err.code === 'EISDIR') {
-        await this.#handler.rmtree(this.#path).catch(() => {})
+        await this.#handler.rmtree(this.#path).catch(() => { })
       }
     }
   }
@@ -453,15 +455,10 @@ export class RemoteVhdDisk extends RemoteDisk {
    * @returns {Promise<boolean>}
    */
   async isDirectory() {
-    if (this.#vhd !== undefined) {
-      return this.#vhd instanceof VhdDirectory
-    } else {
-      try {
-        await this.#handler.readFile(await resolveVhdAlias(this.#handler, this.#path))
-        return false
-      } catch (err) {
-        return true
-      }
+    if (this.#vhd === undefined) {
+      throw new Error(`can't call isDirectory of a RemoteVhdDisk before init`)
     }
+
+    return this.#vhd instanceof VhdDirectory
   }
 }
