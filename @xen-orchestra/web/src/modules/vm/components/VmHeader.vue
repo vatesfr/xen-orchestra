@@ -41,17 +41,17 @@
     </template>
   </UiHeadBar>
   <TabList>
-    <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/dashboard`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('dashboard') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/console`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vm/[id]/console', params: { id: vm.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('console') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/backups`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vm/[id]/backups', params: { id: vm.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('backups') }}
       </TabItem>
@@ -61,17 +61,17 @@
         {{ t('stats') }}
       </UiLink>
     </TabItem>
-    <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/system`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vm/[id]/system', params: { id: vm.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('system') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/networks`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vm/[id]/networks', params: { id: vm.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('network') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/vdis`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vm/[id]/vdis', params: { id: vm.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('vdis') }}
       </TabItem>

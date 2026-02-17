@@ -29,7 +29,7 @@
 
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import { getPoolNetworkLink } from '@/modules/network/utils/xo-network.util.ts'
+import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoPifCollection, type FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { getPifStatus } from '@/modules/pif/utils/xo-pif.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -117,14 +117,17 @@ const { HeadCells, BodyCells } = usePifColumns({
     const rightIcon = computed(() => getManagementIcon(pif))
 
     const network = useGetNetworkById(() => pif.$network)
-    const poolNetworkLink = computed(() => getPoolNetworkLink(network.value))
+
+    const poolNetworkRoute = computed(() =>
+      network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
+    )
 
     return {
       network: r =>
         network.value
           ? r({
               label: network.value.name_label,
-              to: poolNetworkLink.value,
+              to: poolNetworkRoute.value,
               icon: 'object:network',
             })
           : renderBodyCell(),

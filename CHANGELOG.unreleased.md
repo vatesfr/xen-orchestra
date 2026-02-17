@@ -58,7 +58,8 @@
 - @xen-orchestra/fs patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer minor
-- @xen-orchestra/web patch
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - xo-server minor
 - xo-server-load-balancer minor
 - xo-server-netbox minor

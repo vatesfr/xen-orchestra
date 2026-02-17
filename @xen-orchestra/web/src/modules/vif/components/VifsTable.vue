@@ -29,7 +29,7 @@
 
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import { getPoolNetworkLink } from '@/modules/network/utils/xo-network.util.ts'
+import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoVifCollection, type FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
@@ -98,14 +98,17 @@ const { HeadCells, BodyCells } = useVifColumns({
     const ipAddresses = computed(() => getIpAddresses(vif))
 
     const network = useGetNetworkById(() => vif.$network)
-    const poolNetworkLink = computed(() => getPoolNetworkLink(network.value))
+
+    const poolNetworkRoute = computed(() =>
+      network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
+    )
 
     return {
       network: r =>
         network.value
           ? r({
               label: network.value.name_label,
-              to: poolNetworkLink.value,
+              to: poolNetworkRoute.value,
               icon: icon('object:network'),
             })
           : renderBodyCell(),
