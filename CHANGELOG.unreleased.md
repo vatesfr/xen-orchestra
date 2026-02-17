@@ -20,6 +20,7 @@
 - [REST API] Expose `POST /rest/v0/vms/:id/actions/migrate` to migrate a VM (PR [#9414](https://github.com/vatesfr/xen-orchestra/pull/9414))
 - [Netbox] Support version 4.5.x (PR [#9445](https://github.com/vatesfr/xen-orchestra/pull/9445))
 - [OpenMetrics] Add host uptime metric (`xcp_host_uptime_seconds`) (PR [#9449](https://github.com/vatesfr/xen-orchestra/pull/9449))
+- [REST API] Expose `/rest/v0/srs/:id/forget` (PR [#9505](https://github.com/vatesfr/xen-orchestra/pull/9505))
 - **XO 5:**
   - [V2V] Remember connection settings in the browser (PR [#9490](https://github.com/vatesfr/xen-orchestra/pull/9490))
 
@@ -32,7 +33,7 @@
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-> 
+>
 - [HUB Recipe] A bug in the Pyrgos recipe requires to remove the DHCP option of the recipe form (PR [#9454](https://github.com/vatesfr/xen-orchestra/pull/9454))
 - [OpenMetrics] Fix ECONNREFUSED on IPv6-only systems by binding to `localhost` instead of `127.0.0.1` (PR [#9489](https://github.com/vatesfr/xen-orchestra/pull/9489))
 - [REST API] Exclude removable and ISO storage from top 5 SRs usage (PR [#9495](https://github.com/vatesfr/xen-orchestra/pull/9495))
