@@ -44,7 +44,7 @@ export type PropertyDefinition = {
 export type PropertyPath<T> = T extends string | number | boolean | Date | any[]
   ? never
   : {
-      [K in keyof T & string]: `${K}` | `${K}.${PropertyPath<T[K]>}`
+      [K in keyof T & string]: `${K}` | `${K}:${PropertyPath<T[K]>}`
     }[keyof T & string]
 
 export type QueryBuilderSchemaInput<TSource> = {
