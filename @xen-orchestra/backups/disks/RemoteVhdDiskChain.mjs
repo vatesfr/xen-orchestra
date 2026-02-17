@@ -56,9 +56,7 @@ export class RemoteVhdDiskChain extends RemoteDisk {
       await Promise.all(this.#disks.map(disk => disk.init(options)))
       let parentUuid = ''
       for (const [index, disk] of this.#disks.entries()) {
-        if (index === 0) {
-          parentUuid = disk.getUuid()
-        } else {
+        if (index !== 0) {
           if (!disk.isDifferencing()) {
             throw Object.assign(new Error("Can't init vhd directory with non differencing child disks"), {
               code: 'NOT_SUPPORTED',
@@ -70,6 +68,8 @@ export class RemoteVhdDiskChain extends RemoteDisk {
             })
           }
         }
+
+        parentUuid = disk.getUuid()
       }
     } catch (error) {
       await this.close()

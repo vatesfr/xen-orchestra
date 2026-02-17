@@ -17,7 +17,6 @@ import { isVhdAlias, resolveVhdAlias } from 'vhd-lib/aliases.js'
 // import { set as setBitmap } from 'vhd-lib/_bitmap.js'
 import { stringify } from 'uuid'
 import { dirname, join } from 'node:path'
-import { Task } from '../Task.mjs'
 
 export class RemoteVhdDisk extends RemoteDisk {
   /**
@@ -53,7 +52,7 @@ export class RemoteVhdDisk extends RemoteDisk {
   /**
    * @type {() => any}
    */
-  #dispose = () => { }
+  #dispose = () => {}
 
   /**
    * @param {Object} params
@@ -79,10 +78,6 @@ export class RemoteVhdDisk extends RemoteDisk {
           checkSecondFooter: !options.force,
         })
         this.#vhd = value
-
-        Task.info(
-          `RemoteVhdDisk init (${this.#path}); isDirectory: ${await this.isDirectory()}, isVhdAlias: ${isVhdAlias(this.#path)}, resolveVhdAlias: ${await resolveVhdAlias(this.#handler, this.#path)}`
-        )
 
         if ((await this.isDirectory()) && !isVhdAlias(this.#path)) {
           this.#vhd = undefined
@@ -411,7 +406,7 @@ export class RemoteVhdDisk extends RemoteDisk {
         await this.#handler.unlink(newPath)
       } catch (err) {
         if (err && typeof err === 'object' && 'code' in err && err.code === 'EISDIR') {
-          await this.#handler.rmtree(newPath).catch(() => { })
+          await this.#handler.rmtree(newPath).catch(() => {})
         }
       }
 
@@ -436,7 +431,7 @@ export class RemoteVhdDisk extends RemoteDisk {
         await this.#handler.unlink(await resolveVhdAlias(this.#handler, this.#path))
       } catch (err) {
         if (err && typeof err === 'object' && 'code' in err && err.code === 'EISDIR') {
-          await this.#handler.rmtree(await resolveVhdAlias(this.#handler, this.#path)).catch(() => { })
+          await this.#handler.rmtree(await resolveVhdAlias(this.#handler, this.#path)).catch(() => {})
         }
       }
     }
@@ -445,7 +440,7 @@ export class RemoteVhdDisk extends RemoteDisk {
       await this.#handler.unlink(this.#path)
     } catch (err) {
       if (err && typeof err === 'object' && 'code' in err && err.code === 'EISDIR') {
-        await this.#handler.rmtree(this.#path).catch(() => { })
+        await this.#handler.rmtree(this.#path).catch(() => {})
       }
     }
   }
