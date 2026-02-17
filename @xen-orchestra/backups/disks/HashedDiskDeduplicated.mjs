@@ -43,17 +43,31 @@
  class BlockStoreFileSystem extends BlockStore{
 
   constructor(handler, basePath){}
-    /**
-     * compute the block hash 
+  #handler
+    hash(diskBlock){}
+
+    #computePathInStore(hash){
+
+    }
+
+    /** 
      * write the file in a temporary folder
      * rename to the path computed from the hash/0
      * treat EEXIST as success
      * 
      * @param {string} hash 
      * @param {Buffer} content 
-     * @returns {Promise<string>} the block hash 
+     * @returns {Promise<size>} the size written on disk, 0 if if block already here
      */
-    writeBlock( hash, content){
+    async writeBlock( hash, content){
+      try{
+        return await this.#handler.outputFile(this.#computePathInStore(hash), content)
+      }catch(err){
+        if(err.code === 'EEXIST'){
+          return 0
+        }
+        throw err
+      }
     
     }
 
@@ -65,7 +79,8 @@
      * @returns {Promise<Buffer} content 
      */
     readBlock( hash){
-
+      const path = this.#computePathInStore(hash)
+      return this.#handler.readFile(path)
     }
 
     /**
@@ -125,8 +140,20 @@ export class HashedDiskDeduplicated extends HashedDisk{
    * @param {DiskBlock} diskBlock 
    */
   async writeBlock(diskBlock) { 
-
+    let size
+    const path = this.computeBlockPath(diskBlock)
+    const hash = this.#blockStore.hash(diskBlock)
+    try{
+      // optimistically try if block exists
+      size = await this.#blockStore.addBlockReference(hash, path)
+      return size 
+    }catch(error){
+      // not really an issue , it was just that the block did not already exists
+    }
     
+    size = await this.#blockStore.writeBlock(hash, diskBlock.data)
+    size += await this.#blockStore.addBlockReference(hash, path)
+    return size 
   }
 
   /** 
