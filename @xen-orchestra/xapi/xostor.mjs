@@ -124,21 +124,26 @@ export default class Xostor {
   }
 
   async destroy(ref) {
-    const pbdRefs = await this.getField('SR', ref, 'PBDs')
-    const hostRefs = await Promise.all(pbdRefs.map(pbdRef => this.getField('PBD', pbdRef, 'host')))
+    const srUuid = await this.getField('SR', ref, 'uuid')
+    const srNameLabel = await this.getField('SR', ref, 'name_label')
 
-    await Task.run({ properties: { name: 'deletion of the storage' } }, async () => {
-      await asyncMapSettled(pbdRefs, pbdRef => this.callAsync('PBD.unplug', pbdRef))
-      await this.call('SR.destroy', ref)
-    })
+    return Task.run(
+      { properties: { name: `deletion of XOSTOR: ${srNameLabel}`, objectId: srUuid, type: 'xo:xostor:destroy' } },
+      async () => {
+        const hostRefs = await Promise.all(
+          (await this.getField('SR', ref, 'PBDs')).map(pbdRef => this.getField('PBD', pbdRef, 'host'))
+        )
 
-    await Task.run({ properties: { name: `destroy volume group on ${hostRefs.length} hosts` } }, () =>
-      asyncMapSettled(hostRefs, hostRef =>
-        this.call('host.call_plugin', hostRef, 'lvm.py', 'destroy_volume_group', {
-          vg_name: VG_NAME,
-          force: String(true),
-        })
-      )
+        await Task.run({ properties: { name: 'deletion of the storage', objectId: srUuid } }, () => this.destroySr(ref))
+        await Task.run({ properties: { name: `destroy volume group on ${hostRefs.length} hosts` } }, () =>
+          asyncMapSettled(hostRefs, hostRef =>
+            this.call('host.call_plugin', hostRef, 'lvm.py', 'destroy_volume_group', {
+              vg_name: VG_NAME,
+              force: String(true),
+            })
+          )
+        )
+      }
     )
   }
 }
