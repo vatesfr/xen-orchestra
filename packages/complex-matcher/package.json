@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "complex-matcher",
-  "version": "1.1.0",
+  "version": "1.0.0",
   "types": "index.d.ts",
   "license": "ISC",
   "description": "Advanced search syntax used in XO",

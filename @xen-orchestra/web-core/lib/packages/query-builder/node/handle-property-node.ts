@@ -20,6 +20,15 @@ import {
   TruthyProperty as TruthyPropertyNode,
 } from 'complex-matcher'
 
+function accumulatePropertyPath(node: PropertyNode): string {
+  // Recursively accumulate nested property names separated by ':'
+  if (node.child instanceof PropertyNode) {
+    return `${node.name}:${accumulatePropertyPath(node.child)}`
+  }
+
+  return node.name
+}
+
 export function handlePropertyNode({
   node,
   negate,
@@ -29,38 +38,47 @@ export function handlePropertyNode({
   negate: boolean
   schema: QueryBuilderSchema
 }) {
-  if (node.child instanceof AndNode || node.child instanceof OrNode) {
-    return handlePropertyGroupNode({ property: node.name, node: node.child, negate, schema })
+  // Accumulate the full property path (e.g., "CPUs:number" from nested Property nodes)
+  const propertyPath = accumulatePropertyPath(node)
+
+  // Find the innermost non-property child
+  let currentNode = node as any
+  while (currentNode instanceof PropertyNode) {
+    currentNode = currentNode.child
   }
 
-  if (node.child instanceof StringNode || node.child instanceof NumberOrStringNode) {
-    return handleStringOrNumberNode({ property: node.name, node: node.child, negate, schema })
+  if (currentNode instanceof AndNode || currentNode instanceof OrNode) {
+    return handlePropertyGroupNode({ property: propertyPath, node: currentNode, negate, schema })
   }
 
-  if (node.child instanceof RegExpNode) {
-    return handleRegExpNode({ property: node.name, node: node.child, negate, schema })
+  if (currentNode instanceof StringNode || currentNode instanceof NumberOrStringNode) {
+    return handleStringOrNumberNode({ property: propertyPath, node: currentNode, negate, schema })
   }
 
-  if (node.child instanceof ComparisonNode) {
-    return handleComparisonNode({ property: node.name, node: node.child, negate, schema })
+  if (currentNode instanceof RegExpNode) {
+    return handleRegExpNode({ property: propertyPath, node: currentNode, negate, schema })
   }
 
-  if (node.child instanceof GlobPatternNode) {
-    return handleGlobPatternNode({ property: node.name, node: node.child, negate, schema })
+  if (currentNode instanceof ComparisonNode) {
+    return handleComparisonNode({ property: propertyPath, node: currentNode, negate, schema })
   }
 
-  if (node.child instanceof NotNode) {
-    return handleNode({ node: new PropertyNode(node.name, node.child.child), negate: !negate, schema })
+  if (currentNode instanceof GlobPatternNode) {
+    return handleGlobPatternNode({ property: propertyPath, node: currentNode, negate, schema })
   }
 
-  if (node.child instanceof TruthyPropertyNode) {
+  if (currentNode instanceof NotNode) {
+    return handleNode({ node: new PropertyNode(propertyPath, currentNode.child), negate: !negate, schema })
+  }
+
+  if (currentNode instanceof TruthyPropertyNode) {
     return createQueryBuilderFilter({
-      property: node.name,
+      property: propertyPath,
       operator: negate ? 'isEmpty' : 'isNotEmpty',
       value: '',
       schema,
     })
   }
 
-  throw new QueryBuilderError('unhandled property child', node.child)
+  throw new QueryBuilderError('unhandled property child', currentNode)
 }

@@ -77,8 +77,8 @@ const schema = useQueryBuilderSchema<FrontXoVm>({
     [VM_POWER_STATE.PAUSED]: t('status:paused'),
   }),
   addresses: useStringSchema(t('ip-addresses')),
-  'CPUs.number': useNumberSchema(t('vcpus')),
-  'memory.size': useNumberSchema(t('ram'), {
+  'CPUs:number': useNumberSchema(t('vcpus')),
+  'memory:size': useNumberSchema(t('ram'), {
     [ONE_GB]: t('n-gb', { n: 1 }),
     [2 * ONE_GB]: t('n-gb', { n: 2 }),
     [4 * ONE_GB]: t('n-gb', { n: 4 }),
