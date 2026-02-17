@@ -151,14 +151,14 @@
                     {{ t('copy-host-bios-strings') }}
                   </UiCheckbox>
                 </div>
-                <div v-else class="checkbox-container">
+                <UiCheckboxGroup v-else accent="brand" vertical>
                   <UiCheckbox v-model="vmState.createVtpm" accent="brand">
                     {{ t('vtpm') }}
                   </UiCheckbox>
-                  <UiCheckbox v-model="secureBootFormated" accent="brand">
+                  <UiCheckbox v-model="vmState.secureBoot" accent="brand">
                     {{ t('secure-boot') }}
                   </UiCheckbox>
-                </div>
+                </UiCheckboxGroup>
               </div>
               <div class="column">
                 <UiTextarea v-model="vmState.description" accent="brand">
@@ -381,7 +381,7 @@ const vmState = reactive<VmState>({
   tags: [],
   vCPU: 0,
   selectedVcpu: 0,
-  secureBoot: '',
+  secureBoot: false,
   ram: 0,
   topology: '',
   copyHostBiosStrings: false,
@@ -780,6 +780,7 @@ const vmData = computed(() => {
     hvmBootFirmware: vmState.bootFirmware,
     copyHostBiosStrings: vmState.copyHostBiosStrings,
     createVtpm: vmState.createVtpm,
+    secureBoot: vmState.secureBoot,
     ...optionalFields,
   }
 })
@@ -853,7 +854,7 @@ watch(
       vdis: getVmTemplateVdis(template),
       existingVdis: getExistingVdis(template),
       vifs: getExistingVifs(template),
-      secureBoot: String(secureBoot),
+      secureBoot,
       selectedVdi: undefined,
       installMode: 'no-config',
       networkConfig: '',
@@ -951,6 +952,7 @@ watch(
   () => {
     if (vmState.bootFirmware === 'bios') {
       vmState.createVtpm = false
+      vmState.secureBoot = false
       if (selectedTemplateHasBiosStrings.value) {
         vmState.copyHostBiosStrings = true
       }

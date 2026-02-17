@@ -3,13 +3,13 @@
 ## **0.19.0** (2026-02-26)
 
 - [Host] Fix host dashboard CPU provisioning calculation [Forum#101359](https://xcp-ng.org/forum/topic/11604/xo-6-dedicated-thread-for-all-your-feedback/84) (PR [#9459](https://github.com/vatesfr/xen-orchestra/pull/9459))
+- [VM/New] Added secureBoot support (PR [#9423](https://github.com/vatesfr/xen-orchestra/pull/9423))
 
 ## **0.18.0** (2026-01-29)
 
 - [VM/New] Fix wording in "Memory" section (PR [#9309](https://github.com/vatesfr/xen-orchestra/pull/9309))
 - [TreeView] Scroll to current item in list view (PR [#9332](https://github.com/vatesfr/xen-orchestra/pull/9332))
 - [VM/New] Added VTPM support (PR [#9389](https://github.com/vatesfr/xen-orchestra/pull/9389))
-- [VM/New] Added secureBoot support (PR [#9423](https://github.com/vatesfr/xen-orchestra/pull/9423))
 
 ## **0.17.0** (2025-11-27)
 
