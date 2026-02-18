@@ -27,7 +27,7 @@
 - [Backup] Implement Distributed storage for Backups, Mirror Backups and Replications(PR [#9433](https://github.com/vatesfr/xen-orchestra/pull/9433))
 - **XO 5:**
   - [V2V] Remember connection settings in the browser (PR [#9490](https://github.com/vatesfr/xen-orchestra/pull/9490))
-  - [Licenses] Display bundle name next to license name
+  - [Licenses] Display bundle name next to license name (PR [#9512](https://github.com/vatesfr/xen-orchestra/pull/9512))
 
 ### Bug fixes
 
