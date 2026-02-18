@@ -14,7 +14,7 @@ const formatId = timestamp => timestamp.toString(36).padStart(9, '0')
 
 const noop = Function.prototype
 
-const DEFAULT_BACKUP_LOG_KEEP_DURATION = 31 * 24 * 60 * 60 * 1000 /* TO REMOVE */ * 5
+const DEFAULT_BACKUP_LOG_KEEP_DURATION = 31 * 24 * 60 * 60 * 1000
 
 // Create a serializable object from an error.
 const serializeError = error => ({
