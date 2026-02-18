@@ -4,7 +4,7 @@
     <VtsIcon name="fa:circle" size="medium" class="circle-icon" />
     <span class="label typo-body-regular-small"><slot /></span>
     <VtsIcon v-if="tooltip" v-tooltip="tooltip" name="fa:info-circle" size="medium" class="tooltip-icon" />
-    <span v-if="valueLabel" class="value-and-unit typo-caption-small">{{ valueLabel }}</span>
+    <span v-if="valueLabel" class="value-and-unit typo-caption-int-small">{{ valueLabel }}</span>
   </li>
 </template>
 
@@ -14,7 +14,7 @@ import { vTooltip } from '@core/directives/tooltip.directive'
 import { toVariants } from '@core/utils/to-variants.util'
 import { computed } from 'vue'
 
-export type LegendItemAccent = 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'muted'
+export type LegendItemAccent = 'info' | 'secondary' | 'success' | 'warning' | 'danger' | 'disabled'
 
 export type LegendItemProps = {
   accent: LegendItemAccent
