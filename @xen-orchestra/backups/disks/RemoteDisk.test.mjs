@@ -380,7 +380,7 @@ describe('tests MergeVhdChain', { concurrency: 1 }, () => {
     })
     await generateVhd(`${basePath}/child_3.vhd`, {
       header: {
-        parentUnicodeName: 'child_1.vhd',
+        parentUnicodeName: 'child_2.vhd',
         parentUuid: chainChild2.footer.uuid,
       },
       blocks: [4],
