@@ -222,7 +222,10 @@ export default class Licenses extends Component {
             buyer: license.buyer,
             expires: license.expires,
             id: license.id,
-            product: 'XOA ' + getXoaPlan(productId2Plan[license.productId]).name,
+            product:
+              'XOA ' +
+              getXoaPlan(productId2Plan[license.productId]).name +
+              (license.bundleInfo !== undefined ? ` (${license.bundleInfo.name})` : ''),
             productId: license.productId,
             type: 'xoa',
             xoaId: license.boundObjectId,
