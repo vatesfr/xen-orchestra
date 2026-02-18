@@ -5,6 +5,7 @@ import { handleNode } from '@core/packages/query-builder/node/handle-node'
 import { handlePropertyGroupNode } from '@core/packages/query-builder/node/handle-property-group-node'
 import { handleRegExpNode } from '@core/packages/query-builder/node/handle-regexp-node'
 import { handleStringOrNumberNode } from '@core/packages/query-builder/node/handle-string-or-number-node'
+import { handleTruthyPropertyNode } from '@core/packages/query-builder/node/handle-truthy-property-node'
 import { QueryBuilderError } from '@core/packages/query-builder/query-builder-error.ts'
 import type { QueryBuilderSchema } from '@core/packages/query-builder/types.ts'
 import {
@@ -41,6 +42,20 @@ export function handlePropertyNode({
   // Accumulate the full property path (e.g., "CPUs:number" from nested Property nodes)
   const propertyPath = accumulatePropertyPath(node)
 
+  // Check if the property path exists in the schema. If not, treat the entire expression
+  // as an "any property" filter to support queries on undefined properties
+  const propertyIsInSchema = schema[propertyPath] !== undefined
+  if (!propertyIsInSchema) {
+    // Reconstruct the full original query expression and treat it as an "any property" filter
+    const fullExpression = node.toString()
+    return createQueryBuilderFilter({
+      property: '',
+      operator: negate ? 'doesNotContain' : 'contains',
+      value: fullExpression,
+      schema,
+    })
+  }
+
   // Find the innermost non-property child
   let currentNode = node as any
   while (currentNode instanceof PropertyNode) {
@@ -72,12 +87,7 @@ export function handlePropertyNode({
   }
 
   if (currentNode instanceof TruthyPropertyNode) {
-    return createQueryBuilderFilter({
-      property: propertyPath,
-      operator: negate ? 'isEmpty' : 'isNotEmpty',
-      value: '',
-      schema,
-    })
+    return handleTruthyPropertyNode({ node: currentNode, negate, schema, propertyPrefix: propertyPath })
   }
 
   throw new QueryBuilderError('unhandled property child', currentNode)

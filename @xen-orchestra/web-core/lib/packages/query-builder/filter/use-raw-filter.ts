@@ -1,3 +1,5 @@
+import { isFilterExpression } from '@core/packages/query-builder/filter/is-filter-expression.ts'
+import { normalizeBooleanExpression } from '@core/packages/query-builder/filter/normalize-boolean-expression.ts'
 import { parseContainsValue } from '@core/packages/query-builder/filter/parsers/parse-contains-value.ts'
 import { parseEndsWithValue } from '@core/packages/query-builder/filter/parsers/parse-ends-with-value.ts'
 import { parseGlobValue } from '@core/packages/query-builder/filter/parsers/parse-glob-value.ts'
@@ -17,8 +19,19 @@ export function useRawFilter(property: Ref<string>, operator: Ref<PropertyOperat
 
     switch (operator.value) {
       case 'contains':
-      case 'doesNotContain':
-        return renderFilter(property.value, parseContainsValue(value.value), operator.value === 'doesNotContain')
+      case 'doesNotContain': {
+        const isAnyPropertyFilter = property.value === ''
+        const isNegated = operator.value === 'doesNotContain'
+
+        // For "any property" filter with a filter expression, normalize boolean literals
+        if (isAnyPropertyFilter && isFilterExpression(value.value)) {
+          const normalizedExpression = normalizeBooleanExpression(value.value)
+
+          return isNegated ? `!(${normalizedExpression})` : normalizedExpression
+        }
+
+        return renderFilter(property.value, parseContainsValue(value.value), isNegated)
+      }
       case 'is':
       case 'isNot':
         return renderFilter(property.value, parseIsValue(value.value), operator.value === 'isNot')
