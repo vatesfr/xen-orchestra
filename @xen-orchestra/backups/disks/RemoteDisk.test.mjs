@@ -202,17 +202,25 @@ describe('tests RemoteVhdDiskChain', { concurrency: 1 }, () => {
   test('RemoteVhdDiskChain should read block', async () => {
     // Create parent and child VHDs
     const chainParent = await generateVhd(`${basePath}/parent.vhd`, { blocks: [0] })
-    await generateVhd(`${basePath}/child.vhd`, {
+    const chainChild = await generateVhd(`${basePath}/child.vhd`, {
       header: {
         parentUnicodeName: 'parent.vhd',
         parentUuid: chainParent.footer.uuid,
       },
       blocks: [1],
     })
+    await generateVhd(`${basePath}/child_2.vhd`, {
+      header: {
+        parentUnicodeName: 'child.vhd',
+        parentUuid: chainChild.footer.uuid,
+      },
+      blocks: [1],
+    })
 
     const parent = new RemoteVhdDisk({ handler, path: `${basePath}/parent.vhd` })
     const child = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd` })
-    const diskChain = new RemoteVhdDiskChain({ disks: [parent, child] })
+    const child_2 = new RemoteVhdDisk({ handler, path: `${basePath}/child_2.vhd` })
+    const diskChain = new RemoteVhdDiskChain({ disks: [parent, child, child_2] })
 
     await diskChain.init({ force: false })
 
@@ -362,18 +370,18 @@ describe('tests MergeVhdChain', { concurrency: 1 }, () => {
 
     // Create ancestor and children VHDs
     await generateVhd(`${basePath}/ancestor.vhd`, { blocks: [0, 1] })
-    const chainParent = await generateVhd(`${basePath}/child_1.vhd`, { blocks: [2] })
-    await generateVhd(`${basePath}/child_2.vhd`, {
+    const chainChild1 = await generateVhd(`${basePath}/child_1.vhd`, { blocks: [2] })
+    const chainChild2 = await generateVhd(`${basePath}/child_2.vhd`, {
       header: {
         parentUnicodeName: 'child_1.vhd',
-        parentUuid: chainParent.footer.uuid,
+        parentUuid: chainChild1.footer.uuid,
       },
       blocks: [3],
     })
     await generateVhd(`${basePath}/child_3.vhd`, {
       header: {
         parentUnicodeName: 'child_1.vhd',
-        parentUuid: chainParent.footer.uuid,
+        parentUuid: chainChild2.footer.uuid,
       },
       blocks: [4],
     })

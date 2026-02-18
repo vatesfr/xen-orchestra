@@ -14,8 +14,8 @@ import { openVhd, VhdAbstract, VhdDirectory } from 'vhd-lib'
 import { RemoteDisk } from './RemoteDisk.mjs'
 import { DISK_TYPES } from 'vhd-lib/_constants.js'
 import { isVhdAlias, resolveVhdAlias } from 'vhd-lib/aliases.js'
-// import { set as setBitmap } from 'vhd-lib/_bitmap.js'
 import { stringify } from 'uuid'
+import { dirname, join } from 'node:path'
 
 export class RemoteVhdDisk extends RemoteDisk {
   /**
@@ -70,18 +70,19 @@ export class RemoteVhdDisk extends RemoteDisk {
    * @param {boolean} [options.force=false]
    * @returns {Promise<void>}
    */
-
   async init(options = {}) {
     if (this.#vhd === undefined) {
       try {
-        if ((await this.isDirectory()) && !isVhdAlias(this.#path)) {
-          throw Object.assign(new Error("Can't init vhd directory without using alias"), { code: 'NOT_SUPPORTED' })
-        }
-
         const { value, dispose } = await openVhd(this.#handler, await resolveVhdAlias(this.#handler, this.#path), {
           checkSecondFooter: !options.force,
         })
         this.#vhd = value
+
+        if ((await this.isDirectory()) && !isVhdAlias(this.#path)) {
+          this.#vhd = undefined
+          throw Object.assign(new Error("Can't init vhd directory without using alias"), { code: 'NOT_SUPPORTED' })
+        }
+
         this.#dispose = dispose
         await this.#vhd.readBlockAllocationTable()
         this.#isDifferencing = value.footer.diskType === DISK_TYPES.DIFFERENCING
@@ -202,6 +203,26 @@ export class RemoteVhdDisk extends RemoteDisk {
       }
     }
     return indexes
+  }
+
+  /**
+   * Returns the parent non inizialized instance
+   * @returns {RemoteDisk}
+   */
+  instantiateParent() {
+    if (this.#vhd === undefined) {
+      throw new Error(`can't call instantiateParent of a RemoteVhdDisk before init`)
+    }
+
+    const parentPath = this.#vhd.header.parentUnicodeName
+    const fullParentPath = join(dirname(this.#path), parentPath)
+
+    if (!parentPath) {
+      throw new Error(`disk ${this.#path} doesn't have parents`)
+    }
+
+    const parent = new RemoteVhdDisk({ handler: this.#handler, path: fullParentPath })
+    return parent
   }
 
   /**
@@ -428,15 +449,10 @@ export class RemoteVhdDisk extends RemoteDisk {
    * @returns {Promise<boolean>}
    */
   async isDirectory() {
-    if (this.#vhd !== undefined) {
-      return this.#vhd instanceof VhdDirectory
-    } else {
-      try {
-        await this.#handler.readFile(await resolveVhdAlias(this.#handler, this.#path))
-        return false
-      } catch (err) {
-        return true
-      }
+    if (this.#vhd === undefined) {
+      throw new Error(`can't call isDirectory of a RemoteVhdDisk before init`)
     }
+
+    return this.#vhd instanceof VhdDirectory
   }
 }
