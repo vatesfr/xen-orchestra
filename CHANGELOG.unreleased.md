@@ -38,6 +38,8 @@
 - [REST API] Exclude removable and ISO storage from top 5 SRs usage (PR [#9495](https://github.com/vatesfr/xen-orchestra/pull/9495))
 - [xo-server-sdn-controller] traffic rules robustness (PR [#9442](https://github.com/vatesfr/xen-orchestra/pull/9442))
 
+- [Xo6/BackupLog] Fix backupLog transfer size calculation (PR [#9496](https://github.com/vatesfr/xen-orchestra/pull/9496))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
