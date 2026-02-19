@@ -28,7 +28,7 @@
 
 - **XO 5:**
   - [V2V] Remember connection settings in the browser (PR [#9490](https://github.com/vatesfr/xen-orchestra/pull/9490))
-  - [Patches] Warn about updating XOSTOR before installing patches
+  - [Patches] Warn about updating XOSTOR before installing patches (PR [#9517](https://github.com/vatesfr/xen-orchestra/pull/9517))
 
 ### Bug fixes
 
