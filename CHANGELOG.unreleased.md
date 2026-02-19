@@ -39,6 +39,7 @@
 - [xo-server-sdn-controller] traffic rules robustness (PR [#9442](https://github.com/vatesfr/xen-orchestra/pull/9442))
 - [Backup] Fix error during backup and health check (PR [#9508](https://github.com/vatesfr/xen-orchestra/pull/9508))
 - [VM/Import] Fix unnecessary `Xapi#putResource /import missing length` (PR [#9516](https://github.com/vatesfr/xen-orchestra/pull/9516))
+- [VM/Import] Improved handling of VM import from a URL (PR [#9516](https://github.com/vatesfr/xen-orchestra/pull/9516))
 
 ### Packages to release
 
