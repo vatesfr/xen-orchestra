@@ -42,7 +42,8 @@
     "proper-lockfile": "^4.1.2",
     "readable-stream": "^4.1.0",
     "through2": "^4.0.2",
-    "xo-remote-parser": "^0.10.0"
+    "xo-remote-parser": "^0.10.0",
+    "typescript": "~5.6.3"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
@@ -72,8 +73,8 @@
   },
   "exports": {
     ".": {
-      "default": "./dist/index.js",
-      "types": "./dist/fs.d.mts"
+      "types": "./dist/fs.d.mts",
+      "default": "./dist/index.js"
     },
     "./path": "./dist/path.js"
   }
