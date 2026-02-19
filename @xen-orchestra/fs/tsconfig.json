@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+    "declaration": true,
+    "strict": true,
+    "module": "ESNext",
+    "target": "ES2022",
+    "skipLibCheck": true,
+    "types": ["node"] // Only use types from Node.js and packages that are explicitly imported
+  },
+  "include": ["src/types/*"],
+  "exclude": ["node_modules", "dist"]
+}
