@@ -25,12 +25,12 @@ export const aclRole = {
 
 export const aclUserRole = {
   id: '784bd959-08de-4b26-b575-92ded5aef872',
-  ruleId: 'ba407dca-c290-4731-99f0-636977a8d01d',
+  roleId: 'ba407dca-c290-4731-99f0-636977a8d01d',
   userId: 'd2414d6a-3ffd-4fc0-879b-344f29202d60',
 }
 
 export const aclGroupRole = {
   id: '784bd959-08de-4b26-b575-92ded5aef872',
-  ruleId: 'ba407dca-c290-4731-99f0-636977a8d01d',
+  roleId: 'ba407dca-c290-4731-99f0-636977a8d01d',
   groupId: 'd2414d6a-3ffd-4fc0-879b-344f29202d60',
 }
