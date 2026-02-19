@@ -147,8 +147,8 @@ export type XoApp = {
     userId: XoUser['id']
   }): Promise<XoAuthenticationToken>
   createUser(params: { name?: string; password?: string; [key: string]: unknown }): Promise<XoUser>
-  deleteAclV2GroupRole(groupId: XoGroup['id'], roleId: XoAclRole['id']): Promise<Boolean>
-  deleteAclV2UserRole(userId: XoUser['id'], roleId: XoAclRole['id']): Promise<Boolean>
+  deleteAclV2GroupRole(groupId: XoGroup['id'], roleId: XoAclRole['id']): Promise<boolean>
+  deleteAclV2UserRole(userId: XoUser['id'], roleId: XoAclRole['id']): Promise<boolean>
   deleteGroup(id: XoGroup['id']): Promise<void>
   deleteUser(id: XoUser['id']): Promise<void>
   /* disconnect a server (XCP-ng/XenServer) */

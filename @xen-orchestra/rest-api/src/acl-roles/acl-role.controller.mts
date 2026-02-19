@@ -130,11 +130,11 @@ export class AclRoleController extends XoController<XoAclRole> {
    * @example groupId "ee4965bf-d8af-4ca2-aa0e-5f29d0c5f9e2"
    */
   @Example(aclGroupRole)
-  @Put('{id}/group/{goupId}')
+  @Put('{id}/group/{groupId}')
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(resourceAlreadyExists.status, resourceAlreadyExists.description)
-  async attachAclV2Group(@Path() id: string, @Query() groupId: string): Promise<XoGroupRole> {
+  async attachAclV2Group(@Path() id: string, @Path() groupId: string): Promise<XoGroupRole> {
     const roleId = id as XoAclRole['id']
 
     // addAclV2GroupRole does not check if the group exists so we get the group here to make sure it exists.
@@ -152,7 +152,7 @@ export class AclRoleController extends XoController<XoAclRole> {
   @Delete('{id}/group/{groupId}')
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  async detachAclV2Group(@Path() id: string, @Query() groupId: string): Promise<void> {
+  async detachAclV2Group(@Path() id: string, @Path() groupId: string): Promise<void> {
     const roleId = id as XoAclRole['id']
 
     // deleteAclV2GroupRole does not check if the group exists so we get the group here to make sure it exists.
@@ -172,7 +172,7 @@ export class AclRoleController extends XoController<XoAclRole> {
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(resourceAlreadyExists.status, resourceAlreadyExists.description)
-  async attachAclV2Role(@Path() id: string, @Query() userId: string): Promise<XoUserRole> {
+  async attachAclV2User(@Path() id: string, @Path() userId: string): Promise<XoUserRole> {
     const roleId = id as XoAclRole['id']
 
     // addAclV2UserRole does not check if the user exists so we get the user here to make sure it exists.
@@ -190,7 +190,7 @@ export class AclRoleController extends XoController<XoAclRole> {
   @Delete('{id}/user/{userId}')
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  async detachAclV2Role(@Path() id: string, @Query() userId: string): Promise<void> {
+  async detachAclV2User(@Path() id: string, @Path() userId: string): Promise<void> {
     const roleId = id as XoAclRole['id']
 
     // deleteAclV2UserRole does not check if the user exists so we get the user here to make sure it exists.
