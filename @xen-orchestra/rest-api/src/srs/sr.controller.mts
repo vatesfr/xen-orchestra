@@ -40,7 +40,7 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
-import { taskIds, partialTasks } from '../open-api/oa-examples/task.oa-example.mjs'
+import { taskIds, partialTasks, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 
 @Route('srs')
@@ -223,6 +223,7 @@ export class SrController extends XapiXoController<XoSr> {
   /**
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
+  @Example(taskLocation)
   @Post('{id}/actions/reclaim_space')
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
@@ -246,6 +247,10 @@ export class SrController extends XapiXoController<XoSr> {
     })
   }
 
+  /**
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   */
+  @Example(taskLocation)
   @Post('{id}/actions/scan')
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
