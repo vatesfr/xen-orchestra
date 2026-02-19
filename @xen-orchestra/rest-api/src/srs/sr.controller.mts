@@ -235,12 +235,35 @@ export class SrController extends XapiXoController<XoSr> {
       const sr = this.getXapiObject(srId)
       await sr.$xapi.SR_reclaimSpace(sr.$ref)
     }
-
+    
     return this.createAction<void>(action, {
       sync,
       statusCode: noContentResp.status,
       taskProperties: {
         name: 'SR reclaim space',
+        objectId: srId,
+      },
+    })
+  }
+
+  @Post('{id}/actions/scan')
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async scanSr(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const srId = id as XoSr['id']
+    const action = async () => {
+      const sr = this.getXapiObject(srId)
+      await sr.$xapi.callAsync('SR.scan', sr.$ref)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'SR scan',
         objectId: srId,
       },
     })
