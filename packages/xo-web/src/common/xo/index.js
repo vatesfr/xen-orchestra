@@ -2682,7 +2682,7 @@ export const setManagementPif = async (host, pif) => {
     body: _('setAsManagementPifConfirm'),
   })
 
-  return _call('host.managementReconfigure', { host: resolveId(host), pif: resolveId(pif) })
+  return _call('host.managementReconfigure', { id: resolveId(host), pif: resolveId(pif) })
 }
 
 export const setManagementPifs = async (pool, network) => {
