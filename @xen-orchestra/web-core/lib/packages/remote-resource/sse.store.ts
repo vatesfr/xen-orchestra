@@ -52,7 +52,6 @@ export const useSseStore = defineStore('sse', () => {
     return now.value.getTime() - sse.value.lastPing > 32_000
   })
 
-  const lastPing = computed(() => sse.value.lastPing)
   const hasErrorSse = computed(() => isError.value || sse.value.errorSse !== null)
 
   function setErrorSse(error: unknown | null) {
@@ -165,5 +164,5 @@ export const useSseStore = defineStore('sse', () => {
     window.location.reload()
   }
 
-  return { watch, unwatch, retry, isError, lastPing, hasErrorSse, setErrorSse, setPing }
+  return { watch, unwatch, retry, hasErrorSse, setErrorSse, setPing }
 })

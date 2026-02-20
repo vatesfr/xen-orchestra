@@ -63,7 +63,7 @@ export function defineRemoteResource<
   onDataReceived?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
   onDataRemoved?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
   stream?: boolean
-  initWatchCollection?: () => {
+  initWatchCollection: () => {
     collectionId: string
     resource: string // reactivity only on XAPI XO record for now
     getIdentifier: (obj: unknown) => string

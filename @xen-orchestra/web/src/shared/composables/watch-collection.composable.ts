@@ -1,12 +1,12 @@
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import type { ResourceContext } from '@core/packages/remote-resource/types.ts'
-import type { XoRecord } from '@vates/types'
 import {
   type THandleDelete,
   type THandlePost,
   type THandleWatching,
   useSseStore,
 } from '@core/packages/remote-resource/sse.store.ts'
+import type { XoRecord } from '@vates/types'
 import { useEventSource } from '@vueuse/core'
 import { watch, watchEffect } from 'vue'
 
@@ -147,6 +147,5 @@ export function useWatchCollection<T extends Partial<XoRecord>>({
     handlePost,
     handleWatching,
     predicate,
-    close,
   }
 }
