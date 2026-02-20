@@ -42,6 +42,9 @@ class TestHandler extends AbstractHandler {
   async _rmdir() {
     Promise(() => {})
   }
+  async _tree() {
+    Promise(() => {})
+  }
 }
 
 const noop = Function.prototype
@@ -113,6 +116,16 @@ describe('rmdir()', () => {
     const testHandler = new TestHandler()
 
     const promise = testHandler.rmdir('dir')
+    clock.tick(TIMEOUT)
+    await assert.rejects(promise, new TimeoutError())
+  })
+})
+
+describe('tree()', () => {
+  it(`throws in case of timeout`, async () => {
+    const testHandler = new TestHandler()
+
+    const promise = testHandler.tree('dir')
     clock.tick(TIMEOUT)
     await assert.rejects(promise, new TimeoutError())
   })
@@ -224,5 +237,80 @@ describe('encryption', () => {
     await assert.rejects(
       Disposable.use(getSyncedHandler({ url: `file://${dir}?encryptionKey="73c1838d7d8a6088ca2317fb5f29cd91"` }), noop)
     )
+  })
+})
+
+describe('list and tree', () => {
+  let dir
+  beforeEach(async () => {
+    dir = await pFromCallback(cb => tmp.dir(cb))
+  })
+  after(async () => {
+    await rimraf(dir)
+  })
+
+  it('list should return directory entries', async () => {
+    // Create test structure
+    await fs.mkdir(`${dir}/subdir1`)
+    await fs.mkdir(`${dir}/subdir2`)
+    await fs.writeFile(`${dir}/file1.txt`, 'content1')
+    await fs.writeFile(`${dir}/file2.txt`, 'content2')
+    await fs.writeFile(`${dir}/subdir1/nested.txt`, 'nested content')
+
+    await Disposable.use(getSyncedHandler({ url: `file://${dir}` }), async handler => {
+      const entries = await handler.list('/')
+      
+      assert.equal(entries.length, 4)
+      assert(entries.includes('subdir1'))
+      assert(entries.includes('subdir2'))
+      assert(entries.includes('file1.txt'))
+      assert(entries.includes('file2.txt'))
+    })
+  })
+
+  it('tree should return all paths recursively', async () => {
+    // Create test structure
+    await fs.mkdir(`${dir}/subdir1`)
+    await fs.mkdir(`${dir}/subdir1/nested`)
+    await fs.writeFile(`${dir}/file1.txt`, 'content1')
+    await fs.writeFile(`${dir}/subdir1/file2.txt`, 'content2')
+    await fs.writeFile(`${dir}/subdir1/nested/file3.txt`, 'content3')
+
+    await Disposable.use(getSyncedHandler({ url: `file://${dir}` }), async handler => {
+      const entries = await handler.tree('/')
+      
+      assert(entries.includes('/file1.txt'))
+      assert(entries.includes('/subdir1'))
+      assert(entries.includes('/subdir1/file2.txt'))
+      assert(entries.includes('/subdir1/nested'))
+      assert(entries.includes('/subdir1/nested/file3.txt'))
+    })
+  })
+
+  it('list should return same result with and without tree cache', async () => {
+    // Create test structure
+    await fs.mkdir(`${dir}/subdir1`)
+    await fs.mkdir(`${dir}/subdir2`)
+    await fs.writeFile(`${dir}/file1.txt`, 'content1')
+    await fs.writeFile(`${dir}/file2.txt`, 'content2')
+    await fs.writeFile(`${dir}/subdir1/nested.txt`, 'nested content')
+
+    // Test without tree cache
+    await Disposable.use(getSyncedHandler({ url: `file://${dir}` }), async handler => {
+      const entriesWithoutCache = await handler.list('/')
+
+      // Test with tree cache
+      await Disposable.use(getSyncedHandler({ url: `file://${dir}?useTreeCache` }), async handlerWithCache => {
+        const entriesWithCache = await handlerWithCache.list('/')
+
+        assert.deepEqual(entriesWithCache.sort(), entriesWithoutCache.sort())
+
+        // Test subdirectory listing
+        const subEntriesWithoutCache = (await handler.list('/subdir1')).sort()
+        const subEntriesWithCache = (await handlerWithCache.list('/subdir1')).sort()
+
+        assert.deepEqual(subEntriesWithCache, subEntriesWithoutCache)
+      })
+    })
   })
 })

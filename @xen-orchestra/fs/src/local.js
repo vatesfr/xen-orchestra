@@ -5,6 +5,7 @@ import lockfile from 'proper-lockfile'
 import { createLogger } from '@xen-orchestra/log'
 import { execFile } from 'node:child_process'
 import { fromEvent, retry } from 'promise-toolbox'
+import { normalize as normalizePath } from './path'
 
 import RemoteHandlerAbstract from './abstract'
 
@@ -137,6 +138,49 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   async _list(dir) {
     return this.#addSyncStackTrace(fs.readdir, this.getFilePath(dir))
   }
+
+  async _tree(dir) {
+    const dirPath = this.getFilePath(dir)
+    
+    const stdout = await fromCallback(
+        execFile,
+        'tree',
+        ['-JifF', dirPath]
+      )
+    const result = JSON.parse(stdout)
+    const entries = []
+    const basePath = this.getFilePath('/')
+    
+    // Recursive function to traverse the tree structure
+    const traverse = (items) => {
+      for (const item of items) {
+        if (!item.name) continue
+        
+        // Remove the base path prefix to get relative path
+        let relativePath = normalizePath(item.name)
+        if (relativePath.startsWith(dirPath)) {
+          relativePath = relativePath.slice(dirPath.length)
+        } else if (relativePath.startsWith(basePath)) {
+          relativePath = relativePath.slice(basePath.length)
+        }
+        if (!relativePath.startsWith('/')) {
+          relativePath = '/' + relativePath
+        }
+        entries.push(relativePath)
+
+        if (item.contents && Array.isArray(item.contents)) {
+          traverse(item.contents)
+        }
+      }
+    }
+
+    if (result && Array.isArray(result)) {
+      traverse(result[0].contents ?? [])
+    }
+    
+    return entries
+  }
+
 
   async _lock(path) {
     const acquire = lockfile.lock.bind(undefined, this.getFilePath(path), {
