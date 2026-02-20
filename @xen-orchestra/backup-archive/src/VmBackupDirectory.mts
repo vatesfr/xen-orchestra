@@ -1,4 +1,3 @@
-
 import RemoteHandlerAbstract from '@xen-orchestra/fs'
 import { basename, normalize } from '@xen-orchestra/fs/path'
 import { VmFullBackupArchive } from './VmFullBackupArchive.mjs'
@@ -22,8 +21,7 @@ export class VmBackupDirectory implements IVmBackupInterface {
   }
 
   async init() {
-    this.files = (await this.handler.list(this.rootPath, { prependDir: true })).map(file=>normalize(file))
-    console.log(this.files)
+    this.files = (await this.handler.list(this.rootPath, { prependDir: true })).map(file => normalize(file))
     for (const fullPath of this.files.filter(path => path.endsWith('.json'))) {
       const metadata = JSON.parse(await this.handler.readFile(fullPath)) satisfies PartialBackupMetadata
       try {
@@ -64,7 +62,7 @@ export class VmBackupDirectory implements IVmBackupInterface {
     let backupArchive: IVmBackupInterface
     try {
       if (metadata.mode == 'full') {
-        backupArchive = new VmFullBackupArchive(this.handler, this.rootPath, metadataPath, metadata, normalize(metadata.xva!))
+        backupArchive = new VmFullBackupArchive(this.handler, this.rootPath, metadataPath, metadata, metadata.xva!)
       } else {
         //@ts-ignore
         backupArchive = new VmIncrementalBackupArchive(this.handler)

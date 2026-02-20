@@ -1,9 +1,8 @@
-import { basename, normalize } from 'node:path'
+import { basename, normalize } from '@xen-orchestra/fs/path'
 import assert from 'node:assert'
 import { FileDescriptor } from '@xen-orchestra/fs'
 import { IVmBackupInterface, PartialBackupMetadata } from './VmBackup.types.mjs'
 import RemoteHandlerAbstract from '@xen-orchestra/fs'
-
 
 const COMPRESSED_MAGIC_NUMBERS: Buffer[] = [
   // https://tools.ietf.org/html/rfc1952.html#page-5
@@ -101,16 +100,16 @@ export class VmFullBackupArchive implements IVmBackupInterface {
       console.log(error)
       this.isValid = false
     }
-    if(this.isValid) {
+    if (this.isValid) {
       console.warn('XVA might be broken', { path: this.xvaPath })
     }
     return { xvaValid: this.isValid }
   }
 
-  async clean({ remove=false }) {
+  async clean({ remove = false }) {
     let filesToRemove: Array<string> = []
-    if(remove) {
-      for(const file of filesToRemove) {
+    if (remove) {
+      for (const file of filesToRemove) {
         try {
           await this.handler.unlink(file)
         } catch (error) {
@@ -123,7 +122,7 @@ export class VmFullBackupArchive implements IVmBackupInterface {
 
   getValidFiles({ prefix = false }): Array<string> {
     const validFiles = [this.metadataPath, this.xvaPath, `${this.xvaPath}.checksum`]
-    if(this.isLinked()) {
+    if (this.isLinked()) {
       return prefix ? validFiles : validFiles.map(file => basename(file))
     } else {
       return []
