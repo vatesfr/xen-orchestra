@@ -11,43 +11,37 @@
     </div>
     <div class="resource-bars">
       <div class="bar-row">
-        <span class="bar-label">CPU</span>
-        <div class="bar-track">
-          <div class="bar-fill cpu" :style="{ width: cpuPercent + '%' }" />
-        </div>
-        <span class="bar-value">{{ cpuPercent }}%</span>
-      </div>
-      <div class="bar-row">
         <span class="bar-label">RAM</span>
         <div class="bar-track">
-          <div class="bar-fill ram" :style="{ width: ramPercent + '%' }" />
+          <div class="bar-fill" :style="{ width: ramPercent + '%' }" />
         </div>
         <span class="bar-value">{{ ramPercent }}%</span>
       </div>
     </div>
-    <Handle type="source" :position="Position.Bottom" />
+    <NodeExpandButton
+      v-if="data.isExpandable"
+      :expanded="data.isExpanded"
+      @toggle="toggleExpand?.(`host-${data.host.id}`)"
+    />
+    <Handle v-else type="source" :position="Position.Bottom" />
   </div>
 </template>
 
 <script lang="ts" setup>
+import NodeExpandButton from '@/modules/topology/components/NodeExpandButton.vue'
+import { TOPOLOGY_TOGGLE_EXPAND } from '@/modules/topology/composables/use-topology-interaction.ts'
 import type { HostNodeData } from '@/modules/topology/types/topology.types.ts'
 import { HOST_POWER_STATE } from '@vates/types'
 import { Handle, Position } from '@vue-flow/core'
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 
 const props = defineProps<{ data: HostNodeData }>()
+
+const toggleExpand = inject(TOPOLOGY_TOGGLE_EXPAND, undefined)
 
 const ramPercent = computed(() => {
   if (props.data.memorySize === 0) return 0
   return Math.round((props.data.memoryUsage / props.data.memorySize) * 100)
-})
-
-const cpuPercent = computed(() => {
-  const cpus = props.data.host.CPUs
-  if (!cpus || typeof cpus !== 'object') return 0
-  const values = Object.values(cpus).filter((v): v is number => typeof v === 'number')
-  if (values.length === 0) return 0
-  return Math.round((values.reduce((sum, v) => sum + v, 0) / values.length) * 100)
 })
 
 const statusClass = computed(() =>
@@ -61,7 +55,9 @@ const statusClass = computed(() =>
   border: 0.1rem solid var(--color-neutral-border);
   border-radius: 0.8rem;
   padding: 1rem 1.4rem;
+  padding-bottom: 2rem;
   min-width: 22rem;
+  position: relative;
 
   &.status-running {
     border-left: 0.3rem solid var(--color-success-item-base);
@@ -112,9 +108,6 @@ const statusClass = computed(() =>
 
   .resource-bars {
     margin-top: 0.8rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
 
     .bar-row {
       display: flex;
@@ -138,15 +131,8 @@ const statusClass = computed(() =>
       .bar-fill {
         height: 100%;
         border-radius: 0.3rem;
+        background: var(--color-warning-item-base);
         transition: width 0.3s ease;
-
-        &.cpu {
-          background: var(--color-info-item-base);
-        }
-
-        &.ram {
-          background: var(--color-warning-item-base);
-        }
       }
 
       .bar-value {

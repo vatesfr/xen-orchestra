@@ -2,7 +2,21 @@ import dagre from '@dagrejs/dagre'
 import type { Ref } from 'vue'
 import { computed } from 'vue'
 
-import { NODE_DIMENSIONS, type TopologyEdge, type TopologyNode } from '../types/topology.types.ts'
+import {
+  NODE_DIMENSIONS,
+  VM_GROUP_EXPANDED_ROW_HEIGHT,
+  type TopologyEdge,
+  type TopologyNode,
+} from '../types/topology.types.ts'
+
+function getNodeDimensions(node: TopologyNode) {
+  const data = node.data!
+  if (data.type === 'vm-group' && data.isExpanded) {
+    const base = NODE_DIMENSIONS['vm-group']
+    return { width: base.width, height: base.height + data.vms.length * VM_GROUP_EXPANDED_ROW_HEIGHT }
+  }
+  return NODE_DIMENSIONS[data.type] ?? { width: 200, height: 100 }
+}
 
 export function useTopologyLayout(nodes: Ref<TopologyNode[]>, edges: Ref<TopologyEdge[]>) {
   return computed(() => {
@@ -17,7 +31,7 @@ export function useTopologyLayout(nodes: Ref<TopologyNode[]>, edges: Ref<Topolog
     })
 
     for (const node of nodes.value) {
-      const dims = NODE_DIMENSIONS[node.data.type] ?? { width: 200, height: 100 }
+      const dims = getNodeDimensions(node)
       g.setNode(node.id, { width: dims.width, height: dims.height })
     }
 
@@ -29,7 +43,7 @@ export function useTopologyLayout(nodes: Ref<TopologyNode[]>, edges: Ref<Topolog
 
     const layoutedNodes: TopologyNode[] = nodes.value.map(node => {
       const graphNode = g.node(node.id)
-      const dims = NODE_DIMENSIONS[node.data.type] ?? { width: 200, height: 100 }
+      const dims = getNodeDimensions(node)
       return {
         ...node,
         position: {

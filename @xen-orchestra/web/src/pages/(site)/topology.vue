@@ -8,9 +8,17 @@
 <script lang="ts" setup>
 import TopologyCanvas from '@/modules/topology/components/TopologyCanvas.vue'
 import { useTopologyGraph } from '@/modules/topology/composables/use-topology-graph.ts'
+import {
+  TOPOLOGY_TOGGLE_EXPAND,
+  TOPOLOGY_EXPANDED_NODES,
+} from '@/modules/topology/composables/use-topology-interaction.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import { provide } from 'vue'
 
-const { nodes, edges, isReady } = useTopologyGraph()
+const { nodes, edges, isReady, toggleExpand, expandedNodes } = useTopologyGraph()
+
+provide(TOPOLOGY_TOGGLE_EXPAND, toggleExpand)
+provide(TOPOLOGY_EXPANDED_NODES, expandedNodes)
 </script>
 
 <style lang="postcss" scoped>

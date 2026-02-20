@@ -9,6 +9,8 @@ export type SiteNodeData = {
   poolCount: number
   hostCount: number
   vmCount: number
+  isExpanded: boolean
+  isExpandable: boolean
 }
 
 export type PoolNodeData = {
@@ -17,6 +19,8 @@ export type PoolNodeData = {
   hostCount: number
   vmCount: number
   runningVmCount: number
+  isExpanded: boolean
+  isExpandable: boolean
 }
 
 export type HostNodeData = {
@@ -26,6 +30,8 @@ export type HostNodeData = {
   runningVmCount: number
   memorySize: number
   memoryUsage: number
+  isExpanded: boolean
+  isExpandable: boolean
 }
 
 export type VmGroupNodeData = {
@@ -33,6 +39,8 @@ export type VmGroupNodeData = {
   vms: FrontXoVm[]
   runningCount: number
   stoppedCount: number
+  isExpanded: boolean
+  isExpandable: boolean
 }
 
 export type TopologyNodeData = SiteNodeData | PoolNodeData | HostNodeData | VmGroupNodeData
@@ -41,8 +49,10 @@ export type TopologyNode = Node<TopologyNodeData>
 export type TopologyEdge = Edge
 
 export const NODE_DIMENSIONS = {
-  site: { width: 280, height: 100 },
-  pool: { width: 260, height: 110 },
-  host: { width: 240, height: 140 },
-  'vm-group': { width: 180, height: 80 },
+  site: { width: 280, height: 120 },
+  pool: { width: 260, height: 130 },
+  host: { width: 240, height: 130 },
+  'vm-group': { width: 200, height: 100 },
 } as const
+
+export const VM_GROUP_EXPANDED_ROW_HEIGHT = 24

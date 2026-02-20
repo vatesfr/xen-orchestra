@@ -22,7 +22,7 @@
         <HostNode :data="nodeProps.data" />
       </template>
       <template #node-vm-group="nodeProps">
-        <VmGroupNode :data="nodeProps.data" />
+        <VmGroupNode :id="nodeProps.id" :data="nodeProps.data" />
       </template>
       <template #edge-topology="edgeProps">
         <TopologyEdge v-bind="edgeProps" />
@@ -40,19 +40,19 @@ import TopologyEdge from '@/modules/topology/components/TopologyEdge.vue'
 import VmGroupNode from '@/modules/topology/components/VmGroupNode.vue'
 import type { TopologyEdge as TopologyEdgeType, TopologyNode } from '@/modules/topology/types/topology.types.ts'
 import { Controls } from '@vue-flow/controls'
-import { VueFlow } from '@vue-flow/core'
-import { markRaw } from 'vue'
+import { useVueFlow, VueFlow } from '@vue-flow/core'
+import { markRaw, nextTick, watch } from 'vue'
 
 import '@vue-flow/core/dist/style.css'
 import '@vue-flow/core/dist/theme-default.css'
 import '@vue-flow/controls/dist/style.css'
 
-defineProps<{
+const props = defineProps<{
   nodes: TopologyNode[]
   edges: TopologyEdgeType[]
 }>()
 
-const nodeTypes = {
+const nodeTypes: Record<string, any> = {
   site: markRaw(SiteNode),
   pool: markRaw(PoolNode),
   host: markRaw(HostNode),
@@ -62,6 +62,19 @@ const nodeTypes = {
 const edgeTypes = {
   topology: markRaw(TopologyEdge),
 }
+
+const { fitView } = useVueFlow()
+
+watch(
+  () => props.nodes,
+  () => {
+    nextTick(() => {
+      setTimeout(() => {
+        fitView({ duration: 600 })
+      }, 50)
+    })
+  }
+)
 </script>
 
 <style lang="postcss" scoped>
@@ -71,6 +84,10 @@ const edgeTypes = {
 
   :deep(.vue-flow) {
     background: var(--color-neutral-background-secondary);
+  }
+
+  :deep(.vue-flow__node) {
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   :deep(.vue-flow__controls) {

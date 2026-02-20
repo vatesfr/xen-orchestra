@@ -14,17 +14,27 @@
     <div class="node-running">
       <span class="running-badge">{{ data.runningVmCount }} running</span>
     </div>
-    <Handle type="source" :position="Position.Bottom" />
+    <NodeExpandButton
+      v-if="data.isExpandable"
+      :expanded="data.isExpanded"
+      @toggle="toggleExpand?.(`pool-${data.pool.id}`)"
+    />
+    <Handle v-else type="source" :position="Position.Bottom" />
   </div>
 </template>
 
 <script lang="ts" setup>
+import NodeExpandButton from '@/modules/topology/components/NodeExpandButton.vue'
+import { TOPOLOGY_TOGGLE_EXPAND } from '@/modules/topology/composables/use-topology-interaction.ts'
 import type { PoolNodeData } from '@/modules/topology/types/topology.types.ts'
 import { faCity } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { Handle, Position } from '@vue-flow/core'
+import { inject } from 'vue'
 
 defineProps<{ data: PoolNodeData }>()
+
+const toggleExpand = inject(TOPOLOGY_TOGGLE_EXPAND, undefined)
 </script>
 
 <style lang="postcss" scoped>
@@ -33,7 +43,9 @@ defineProps<{ data: PoolNodeData }>()
   border: 0.2rem solid var(--color-brand-item-base);
   border-radius: 0.8rem;
   padding: 1.2rem 1.6rem;
+  padding-bottom: 2rem;
   min-width: 24rem;
+  position: relative;
 
   .node-header {
     display: flex;

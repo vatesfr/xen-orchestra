@@ -10,17 +10,29 @@
       <span class="stat">{{ data.hostCount }} {{ data.hostCount === 1 ? 'host' : 'hosts' }}</span>
       <span class="stat">{{ data.vmCount }} VMs</span>
     </div>
-    <Handle type="source" :position="Position.Bottom" />
+    <NodeExpandButton
+      v-if="data.isExpandable"
+      :expanded="data.isExpanded"
+      @toggle="toggleExpand?.(SITE_NODE_ID)"
+    />
+    <Handle v-else type="source" :position="Position.Bottom" />
   </div>
 </template>
 
 <script lang="ts" setup>
+import NodeExpandButton from '@/modules/topology/components/NodeExpandButton.vue'
+import { TOPOLOGY_TOGGLE_EXPAND } from '@/modules/topology/composables/use-topology-interaction.ts'
 import type { SiteNodeData } from '@/modules/topology/types/topology.types.ts'
 import { faSatellite } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { Handle, Position } from '@vue-flow/core'
+import { inject } from 'vue'
 
 defineProps<{ data: SiteNodeData }>()
+
+const SITE_NODE_ID = 'site-root'
+
+const toggleExpand = inject(TOPOLOGY_TOGGLE_EXPAND, undefined)
 </script>
 
 <style lang="postcss" scoped>
@@ -29,8 +41,10 @@ defineProps<{ data: SiteNodeData }>()
   color: var(--color-brand-txt-item);
   border-radius: 0.8rem;
   padding: 1.2rem 1.6rem;
+  padding-bottom: 2rem;
   min-width: 26rem;
   box-shadow: 0 0.4rem 1.2rem color-mix(in srgb, var(--color-brand-item-base) 30%, transparent);
+  position: relative;
 
   .node-header {
     display: flex;
