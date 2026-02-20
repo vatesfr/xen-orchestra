@@ -2691,7 +2691,7 @@ export const setManagementPifs = async (pool, network) => {
     body: _('setAsManagementPifsConfirm'),
   })
 
-  return _call('pool.managementReconfigure', { pool: resolveId(pool), network: resolveId(network) })
+  return _call('pool.managementReconfigure', { id: resolveId(pool), network: resolveId(network) })
 }
 
 // SR ----------------------------------------------------------------
