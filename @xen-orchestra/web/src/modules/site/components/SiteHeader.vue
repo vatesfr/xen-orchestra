@@ -32,6 +32,10 @@
     <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/(site)/vms' }" custom>
       <TabItem :active="isExactActive" :href tag="a">{{ t('vms') }}</TabItem>
     </RouterLink>
+    <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/(site)/topology' }" custom>
+      <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -- prototype: i18n key to be added later -->
+      <TabItem :active="isExactActive" :href tag="a">Topology</TabItem>
+    </RouterLink>
   </TabList>
 </template>
 

@@ -24,6 +24,7 @@ declare module 'vue-router/auto-routes' {
     '/(site)/hosts': RouteRecordInfo<'/(site)/hosts', '/hosts', Record<never, never>, Record<never, never>>,
     '/(site)/pools': RouteRecordInfo<'/(site)/pools', '/pools', Record<never, never>, Record<never, never>>,
     '/(site)/tasks': RouteRecordInfo<'/(site)/tasks', '/tasks', Record<never, never>, Record<never, never>>,
+    '/(site)/topology': RouteRecordInfo<'/(site)/topology', '/topology', Record<never, never>, Record<never, never>>,
     '/(site)/vms': RouteRecordInfo<'/(site)/vms', '/vms', Record<never, never>, Record<never, never>>,
     '/[...path]': RouteRecordInfo<'/[...path]', '/:path(.*)', { path: ParamValue<true> }, { path: ParamValue<false> }>,
     '/backup/[id]': RouteRecordInfo<'/backup/[id]', '/backup/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
