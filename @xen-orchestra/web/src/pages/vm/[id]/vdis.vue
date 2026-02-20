@@ -1,10 +1,10 @@
 <template>
-  <div class="vdis" :class="{ mobile: uiStore.isMobile }">
+  <div class="vdis" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
       <VdisTable :vdis="filteredVdisByNotCdVbd" :busy="!areVmVdisReady" :error="hasVmVdiFetchError" />
     </UiCard>
     <VdiSidePanel v-if="selectedVdi" :vdi="selectedVdi" :vm @close="selectedVdi = undefined" />
-    <UiPanel v-else-if="!uiStore.isMobile">
+    <UiPanel v-else-if="!uiStore.isSmall">
       <VtsStateHero format="panel" type="no-selection" size="medium">
         {{ t('select-to-see-details') }}
       </VtsStateHero>

@@ -22,3 +22,5 @@ export const CONNECTION_STATUS = {
   PHYSICALLY_DISCONNECTED: 'physically-disconnected',
   DISCONNECTED_FROM_PHYSICAL_DEVICE: 'disconnected-from-physical-device',
 } as const
+
+export const ONE_GB = 1024 ** 3

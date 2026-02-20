@@ -20,13 +20,13 @@ const props = withDefaults(
   { tag: 'span' }
 )
 
-const { isMobile } = storeToRefs(useUiStore())
+const { isSmall } = storeToRefs(useUiStore())
 
 const isDisabled = useDisabled(() => props.disabled)
 
 const classNames = computed(() => {
   return [
-    isMobile.value ? 'typo-caption-small' : 'typo-caption',
+    isSmall.value ? 'typo-caption-small' : 'typo-caption',
     {
       disabled: isDisabled.value,
       active: props.active,

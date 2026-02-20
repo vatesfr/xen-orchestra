@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard" :class="{ mobile: isMobile }">
+  <div class="dashboard" :class="{ mobile: isSmall }">
     <VmDashboardQuickInfo class="quick-info" :vm />
     <div v-if="!isVmRunning" class="offline-hero-container">
       <VtsStateHero format="page" type="offline" size="large" horizontal>
@@ -57,7 +57,7 @@ const { vmAlarms, areVmAlarmsReady, hasVmAlarmFetchError } = useXoVmAlarmsCollec
 
 const isVmRunning = computed(() => vm.power_state === VM_POWER_STATE.RUNNING)
 
-const { isMobile } = useUiStore()
+const { isSmall } = useUiStore()
 
 const { t } = useI18n()
 </script>
