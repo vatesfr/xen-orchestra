@@ -22,8 +22,11 @@
 </template>
 
 <script setup lang="ts">
-import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import { getPoolInfo } from '@/modules/pool/utils/xo-pool.util.ts'
+import {
+  usePoolEnhancedData,
+  type PoolDisplayData,
+  type PoolFilterableData,
+} from '@/modules/pool/composables/use-pool-enhanced-data.composable.ts'
 import {
   useXoServerCollection,
   type FrontXoServer,
@@ -35,13 +38,11 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
-import { icon, objectIcon } from '@core/icons'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useServerColumns } from '@core/tables/column-sets/server-columns.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { logicNot } from '@vueuse/math'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -53,21 +54,26 @@ const { t } = useI18n()
 
 const { areServersReady, hasServerFetchError } = useXoServerCollection()
 
-const { getHostById, isMasterHost } = useXoHostCollection()
-
 const selectedServerId = useRouteQuery('id')
 
-const { items: filteredServers, filter } = useQueryBuilderFilter<FrontXoServer>('servers', () => rawServers)
+const { filterableServers, getDisplayData } = usePoolEnhancedData(() => rawServers)
 
-const schema = useQueryBuilderSchema<FrontXoServer>({
+const { items: filteredServers, filter } = useQueryBuilderFilter<PoolFilterableData>(
+  'servers',
+  () => filterableServers.value
+)
+
+const schema = useQueryBuilderSchema<PoolFilterableData>({
   '': useStringSchema(t('any-property')),
-  poolNameLabel: useStringSchema(t('name')),
-  host: useStringSchema(t('ip-address')),
-  status: useStringSchema(t('status'), {
+  poolName: useStringSchema(t('name')),
+  masterHostIp: useStringSchema(t('ip-address')),
+  poolStatus: useStringSchema(t('status'), {
     connected: t('connected'),
     connecting: t('connecting'),
     disconnected: t('disconnected'),
+    'unable-to-connect-to-the-pool': t('unable-to-connect-to-the-pool'),
   }),
+  primaryHostName: useStringSchema(t('master')),
 })
 
 const state = useTableState({
@@ -81,37 +87,38 @@ const state = useTableState({
         : false,
 })
 
-const { pageRecords: paginatedServers, paginationBindings } = usePagination('pools', filteredServers)
+const displayServers = computed(() => filteredServers.value.map(server => getDisplayData(server)))
 
-function getMasterIcon(host: FrontXoHost) {
-  if (!isMasterHost(host.id)) {
-    return undefined
-  }
-
-  return {
-    icon: icon('status:primary-circle'),
-    tooltip: t('master'),
-  }
-}
+const { pageRecords: paginatedServers, paginationBindings } = usePagination('servers', displayServers)
 
 const { HeadCells, BodyCells } = useServerColumns({
-  body: (server: FrontXoServer) => {
-    const poolInfo = computed(() => getPoolInfo(server))
-    const host = computed(() => getHostById(server.master))
-
-    const hostIcon = computed(() => (host.value ? objectIcon('host', toLower(host.value.power_state)) : undefined))
-    const rightIcon = computed(() => (host.value ? getMasterIcon(host.value) : undefined))
+  body: (server: PoolDisplayData) => {
+    const poolInfo = computed(() => ({
+      label: server.poolName,
+      to: server.poolId
+        ? {
+            name: '/pool/[id]/dashboard',
+            params: { id: server.poolId },
+          }
+        : undefined,
+      icon: server.poolIcon,
+    }))
 
     return {
       pool: r => r(poolInfo.value),
-      hostIp: r => r(server.host),
-      status: r => r(server.error ? 'unable-to-connect-to-the-pool' : server.status),
+      hostIp: r => r(server.masterHostIp),
+      status: r => r(server.poolStatus),
       primaryHost: r =>
         r({
-          label: host.value?.name_label ?? '',
-          to: `/host/${host.value?.id}/dashboard`,
-          icon: hostIcon.value,
-          rightIcon: rightIcon.value,
+          label: server.primaryHostName,
+          to: server.master ? `/host/${server.master}/dashboard` : undefined,
+          icon: server.primaryHostIcon,
+          rightIcon: server.primaryHostRightIcon
+            ? {
+                icon: server.primaryHostRightIcon,
+                tooltip: t('master'),
+              }
+            : undefined,
         }),
       selectItem: r => r(() => (selectedServerId.value = server.id)),
     }
