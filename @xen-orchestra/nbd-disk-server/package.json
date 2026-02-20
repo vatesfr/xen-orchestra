@@ -1,0 +1,32 @@
+{
+  "name": "@xen-orchestra/nbd-disk-server",
+  "version": "1.0.0",
+  "description": "Read-only NBD server with TLS and structured replies",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "private": true,
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/nbd-disk-server",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/nbd-disk-server",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "AGPL-3.0-or-later"
+}
