@@ -255,4 +255,4 @@ percentOfRamAllocatedPerSseClient = 0.5
 
 
 [jsonrpc-api]
-xvaImportFromUrlTimeout = '6s'
+xvaImportFromUrlTimeout = '5 min'

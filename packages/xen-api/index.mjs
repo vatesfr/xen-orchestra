@@ -510,7 +510,14 @@ export class Xapi extends EventEmitter {
       }
     }
 
-    const headers = {}
+    const headers = {
+      'content-type': body.headers['content-type'],
+    }
+
+    if (body.headers['content-length'] !== undefined && body.length === undefined) {
+      body.length = body.headers['content-length']
+    }
+    headers['content-length'] = body.length
 
     // XAPI does not support chunk encoding so there is no proper way to send
     // data without knowing its length

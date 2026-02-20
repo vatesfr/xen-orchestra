@@ -40,6 +40,8 @@
 - [REST API] Exclude removable and ISO storage from top 5 SRs usage (PR [#9495](https://github.com/vatesfr/xen-orchestra/pull/9495))
 - [xo-server-sdn-controller] traffic rules robustness (PR [#9442](https://github.com/vatesfr/xen-orchestra/pull/9442))
 - [Backup] Fix error during backup and health check (PR [#9508](https://github.com/vatesfr/xen-orchestra/pull/9508))
+- [VM/Import] Fix unnecessary `Xapi#putResource /import missing length` (PR [#9516](https://github.com/vatesfr/xen-orchestra/pull/9516))
+- [VM/Import] Improved handling of VM import from a URL (PR [#9516](https://github.com/vatesfr/xen-orchestra/pull/9516))
 
 ### Packages to release
 
@@ -64,6 +66,7 @@
 - @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- xen-api patch
 - xo-server minor
 - xo-server-load-balancer minor
 - xo-server-netbox minor

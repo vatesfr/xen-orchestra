@@ -1359,9 +1359,17 @@ async function import_({ data, sr, type = 'xva', url }) {
       throw invalidParameters('URL import is only compatible with XVA')
     }
 
-    const timeout = this.config.getOptionalDuration('jsonrpc-api.xvaImportFromUrlTimeout') ?? 6e3
-    const ref = await xapi.VM_import(await hrp(url, { timeout }), sr._xapiRef)
-    return xapi.call('VM.get_uuid', ref)
+    try {
+      const result = await xapi.callAsync('VM.import', url, sr._xapiRef, false, false)
+      return xapi.call('VM.get_uuid', result[0])
+    } catch (error) {
+      if (error.params[0]?.includes('ECONNREFUSED')) {
+        Task.info('URL import failed, fallback on import using stream')
+        const timeout = this.config.getOptionalDuration('jsonrpc-api.xvaImportFromUrlTimeout') ?? 1e3 * 60 * 5
+        const ref = await xapi.VM_import(await hrp(url, { timeout }), sr._xapiRef)
+        return xapi.call('VM.get_uuid', ref)
+      }
+    }
   }
 
   return {
