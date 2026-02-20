@@ -337,3 +337,25 @@ You'll find them in these directories:
 ## VueUse SHOULD be used when necessary
 
 If you don't find what you need in our helpers, [VueUse](https://vueuse.org) provides a lot of utilities for common use cases (e.g., accessing browser APIs, using local storage, etc.).
+
+## Internal links SHOULD use named routes
+
+When using internal links, e.g. with `<RouterLink>` or `<UiLink :to="<internal-link>">`, prefer using named routes instead of hardcoding the path. This improves maintainability and readability, especially when route paths change.
+
+See [named routes documentation](https://router.vuejs.org/guide/essentials/named-routes.html#Named-Routes) for more information.
+
+❌ Bad
+
+```vue
+<UiLink :to="`/vm/${vm.id}/dashboard`">
+  {{ t('dashboard') }}
+</UiLink>
+```
+
+✅ Good
+
+```vue
+<UiLink :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
+  {{ t('dashboard') }}
+</UiLink>
+```

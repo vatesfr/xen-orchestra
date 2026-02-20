@@ -7,7 +7,9 @@ import type { XoPool, XoVmTemplate } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 
-const vmTemplateFields: (keyof XoVmTemplate)[] = [
+export type FrontXoVmTemplate = Pick<XoVmTemplate, (typeof vmTemplateFields)[number]>
+
+const vmTemplateFields = [
   'id',
   'uuid',
   'name_label',
@@ -23,17 +25,17 @@ const vmTemplateFields: (keyof XoVmTemplate)[] = [
   'isDefaultTemplate',
   'type',
   'bios_strings',
-] as const
+] as const satisfies readonly (keyof XoVmTemplate)[]
 
 export const useXoVmTemplateCollection = defineRemoteResource({
   url: `${BASE_URL}/vm-templates?fields=${vmTemplateFields.join(',')}`,
   watchCollection: watchCollectionWrapper({ resource: 'VM-template', fields: vmTemplateFields }),
-  initialData: () => [] as XoVmTemplate[],
+  initialData: () => [] as FrontXoVmTemplate[],
   state: (rawTemplates, context) => {
     const templates = useSorted(rawTemplates, sortByNameLabel)
 
     const vmsTemplatesByPool = computed(() => {
-      const vmTemplatesByPoolMap = new Map<XoPool['id'], XoVmTemplate[]>()
+      const vmTemplatesByPoolMap = new Map<XoPool['id'], FrontXoVmTemplate[]>()
 
       templates.value.forEach(template => {
         const poolId = template.$pool

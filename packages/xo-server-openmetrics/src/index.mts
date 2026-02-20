@@ -73,6 +73,7 @@ export interface VmLabelInfo {
 export interface HostLabelInfo {
   name_label: string
   pifDeviceToNetworkName: Record<string, string> // { "eth0": "Management" }
+  startTime: number | null // Unix timestamp of host boot (from host.startTime)
 }
 
 export interface SrLabelInfo {
@@ -128,7 +129,7 @@ const logger = createLogger('xo:xo-server-openmetrics')
 const DEFAULT_PORT = 9004
 
 /** Default bind address for the OpenMetrics HTTP server */
-const DEFAULT_BIND_ADDRESS = '127.0.0.1'
+const DEFAULT_BIND_ADDRESS = 'localhost'
 
 /** Default timeout for IPC operations in milliseconds */
 const IPC_TIMEOUT_MS = 10_000
@@ -667,6 +668,7 @@ class OpenMetricsPlugin {
       labels.hosts[host.uuid] = {
         name_label: host.name_label,
         pifDeviceToNetworkName,
+        startTime: host.startTime,
       }
     }
 

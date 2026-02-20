@@ -68,6 +68,7 @@
 </template>
 
 <script lang="ts" setup>
+import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { getTaskAccents } from '@/modules/task/utils/xo-task.util.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
@@ -79,12 +80,11 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
-import type { XoTask } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { task } = defineProps<{
-  task: XoTask
+  task: FrontXoTask
 }>()
 
 const { t, d } = useI18n()

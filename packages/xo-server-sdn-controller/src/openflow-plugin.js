@@ -16,7 +16,7 @@ export class OpenFlowPlugin {
     return asyncEach(network.$PIFs, async PIF => {
       const host = PIF.$host
       return host.$xapi.call('host.call_plugin', host.$ref, PLUGIN_NAME, method, { ...parameters, bridge })
-    })
+    }, { stopOnError: false })
   }
 
   async addRule({ vif, allow, protocol, ipRange, direction, port }) {

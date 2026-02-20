@@ -31,16 +31,16 @@ import TaskPropertiesCard from '@/modules/task/components/list/panel/cards/TaskP
 import TaskQuickInfosCard from '@/modules/task/components/list/panel/cards/TaskQuickInfosCard.vue'
 import TaskWarningsCard from '@/modules/task/components/list/panel/cards/TaskWarningsCard.vue'
 import { useXoTaskPropertiesUtils } from '@/modules/task/composables/xo-task-properties-utils.composable.ts'
+import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import type { XoTask } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { task } = defineProps<{
-  task: XoTask
+  task: FrontXoTask
 }>()
 
 const emit = defineEmits<{

@@ -29,8 +29,8 @@
 
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import { getPoolNetworkLink } from '@/modules/network/utils/xo-network.util.ts'
-import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
+import { useXoVifCollection, type FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -43,13 +43,12 @@ import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { useVifColumns } from '@core/tables/column-sets/vif-columns.ts'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
-import type { XoVif } from '@vates/types'
 import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vifs: rawVifs } = defineProps<{
-  vifs: XoVif[]
+  vifs: FrontXoVif[]
 }>()
 
 defineSlots<{
@@ -63,7 +62,7 @@ const { t } = useI18n()
 
 const selectedVifId = useRouteQuery('id')
 
-const getNetworkName = (vif: XoVif) => getNetworkById(vif.$network)?.name_label ?? ''
+const getNetworkName = (vif: FrontXoVif) => getNetworkById(vif.$network)?.name_label ?? ''
 
 const searchQuery = ref('')
 
@@ -86,7 +85,7 @@ const state = useTableState({
     rawVifs.length === 0 ? t('no-vif-detected') : filteredVifs.value.length === 0 ? { type: 'no-result' } : false,
 })
 
-const getIpAddresses = (vif: XoVif) => {
+const getIpAddresses = (vif: FrontXoVif) => {
   const addresses = getVmById(vif.$VM)?.addresses
 
   return addresses ? [...new Set(Object.values(addresses).sort())] : []
@@ -95,18 +94,21 @@ const getIpAddresses = (vif: XoVif) => {
 const { pageRecords: paginatedVifs, paginationBindings } = usePagination('vifs', filteredVifs)
 
 const { HeadCells, BodyCells } = useVifColumns({
-  body: (vif: XoVif) => {
+  body: (vif: FrontXoVif) => {
     const ipAddresses = computed(() => getIpAddresses(vif))
 
     const network = useGetNetworkById(() => vif.$network)
-    const poolNetworkLink = computed(() => getPoolNetworkLink(network.value))
+
+    const poolNetworkRoute = computed(() =>
+      network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
+    )
 
     return {
       network: r =>
         network.value
           ? r({
               label: network.value.name_label,
-              to: poolNetworkLink.value,
+              to: poolNetworkRoute.value,
               icon: icon('object:network'),
             })
           : renderBodyCell(),

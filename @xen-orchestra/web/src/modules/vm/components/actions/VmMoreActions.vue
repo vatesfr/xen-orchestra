@@ -6,9 +6,9 @@
 <script lang="ts" setup>
 import VmDeleteButton from '@/modules/vm/components/actions/delete/VmDeleteButton.vue'
 import VmSnapshotButton from '@/modules/vm/components/actions/snapshot/VmSnapshotButton.vue'
-import type { XoVm } from '@vates/types'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 
 defineProps<{
-  vm: XoVm
+  vm: FrontXoVm
 }>()
 </script>

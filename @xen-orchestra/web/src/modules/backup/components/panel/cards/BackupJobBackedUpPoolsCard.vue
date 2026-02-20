@@ -7,7 +7,7 @@
     <div>
       <UiCollapsibleList tag="ul" :total-items="backedUpPools.length">
         <li v-for="pool in backedUpPools" :key="pool.id">
-          <UiLink size="small" icon="object:pool" :to="`/pool/${pool.id}`">
+          <UiLink size="small" icon="object:pool" :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }">
             {{ pool.name_label }}
           </UiLink>
         </li>
@@ -17,16 +17,16 @@
 </template>
 
 <script lang="ts" setup>
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import type { XoPool } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { backedUpPools } = defineProps<{
-  backedUpPools: XoPool[]
+  backedUpPools: FrontXoPool[]
 }>()
 
 const { t } = useI18n()

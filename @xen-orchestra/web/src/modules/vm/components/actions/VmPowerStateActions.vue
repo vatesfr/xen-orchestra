@@ -22,9 +22,9 @@ import VmStartButton from '@/modules/vm/components/actions/start/VmStartButton.v
 import VmStartOnButton from '@/modules/vm/components/actions/start/VmStartOnButton.vue'
 import VmSuspendButton from '@/modules/vm/components/actions/suspend/VmSuspendButton.vue'
 import VmUnpauseButton from '@/modules/vm/components/actions/unpause/VmUnpauseButton.vue'
-import type { XoVm } from '@vates/types'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 
 defineProps<{
-  vm: XoVm
+  vm: FrontXoVm
 }>()
 </script>

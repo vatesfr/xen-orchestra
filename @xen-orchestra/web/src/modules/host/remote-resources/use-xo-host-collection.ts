@@ -8,7 +8,9 @@ import type { XoHost, XoPool } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 
-const hostFields: (keyof XoHost)[] = [
+export type FrontXoHost = Pick<XoHost, (typeof hostFields)[number]>
+
+const hostFields = [
   'id',
   'name_label',
   'name_description',
@@ -35,11 +37,11 @@ const hostFields: (keyof XoHost)[] = [
   'agentStartTime',
   'PGPUs',
   'type',
-] as const
+] as const satisfies readonly (keyof XoHost)[]
 
 export const useXoHostCollection = defineRemoteResource({
   url: `${BASE_URL}/hosts?fields=${hostFields.join(',')}`,
-  initialData: () => [] as XoHost[],
+  initialData: () => [] as FrontXoHost[],
   watchCollection: watchCollectionWrapper({ resource: 'host', fields: hostFields }),
   state: (rawHosts, context) => {
     const hosts = useSorted(rawHosts, sortByNameLabel)
@@ -52,7 +54,7 @@ export const useXoHostCollection = defineRemoteResource({
     const { pools, getPoolById } = useXoPoolCollection(context)
 
     const hostsByPool = computed(() => {
-      const hostsByPoolMap = new Map<XoPool['id'], XoHost[]>()
+      const hostsByPoolMap = new Map<XoPool['id'], FrontXoHost[]>()
 
       hosts.value.forEach(host => {
         const poolId = host.$pool

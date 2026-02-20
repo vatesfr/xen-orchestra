@@ -6,7 +6,9 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import type { XoHost, XoNetwork, XoPif } from '@vates/types'
 import { computed } from 'vue'
 
-const pifFields: (keyof XoPif)[] = [
+export type FrontXoPif = Pick<XoPif, (typeof pifFields)[number]>
+
+const pifFields = [
   '$host',
   '$network',
   'attached',
@@ -27,11 +29,11 @@ const pifFields: (keyof XoPif)[] = [
   'isBondMaster',
   'bondSlaves',
   'type',
-] as const
+] as const satisfies readonly (keyof XoPif)[]
 
 export const useXoPifCollection = defineRemoteResource({
   url: `${BASE_URL}/pifs?fields=${pifFields.join(',')}`,
-  initialData: () => [] as XoPif[],
+  initialData: () => [] as FrontXoPif[],
   watchCollection: watchCollectionWrapper({ resource: 'PIF', fields: pifFields }),
   state: (pifs, context) => {
     const state = useXoCollectionState(pifs, {
@@ -42,7 +44,7 @@ export const useXoPifCollection = defineRemoteResource({
     const { isMasterHost } = useXoHostCollection(context)
 
     const hostMasterPifsByNetwork = computed(() => {
-      const hostMasterPifsByNetworkMap = new Map<XoNetwork['id'], XoPif[]>()
+      const hostMasterPifsByNetworkMap = new Map<XoNetwork['id'], FrontXoPif[]>()
 
       pifs.value
         .filter(pif => isMasterHost(pif.$host))
@@ -62,7 +64,7 @@ export const useXoPifCollection = defineRemoteResource({
     }
 
     const pifsByHost = computed(() => {
-      const pifsByHostMap = new Map<XoHost['id'], XoPif[]>()
+      const pifsByHostMap = new Map<XoHost['id'], FrontXoPif[]>()
 
       pifs.value.forEach(pif => {
         const hostId = pif.$host
@@ -76,7 +78,7 @@ export const useXoPifCollection = defineRemoteResource({
       return pifsByHostMap
     })
 
-    function getBondsDevices(pif: XoPif) {
+    function getBondsDevices(pif: FrontXoPif) {
       if (!pif.isBondMaster || !pif.bondSlaves) {
         return []
       }

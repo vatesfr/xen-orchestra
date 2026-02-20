@@ -1,7 +1,7 @@
+import type { FrontXoMetadataBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import type { XoBackupJobSettings } from '@/modules/backup/types/xo-backup.ts'
-import type { XoMetadataBackupJob } from '@vates/types'
 
-export function getMetadataBackupJobSettings(job: XoMetadataBackupJob): XoBackupJobSettings {
+export function getMetadataBackupJobSettings(job: FrontXoMetadataBackupJob): XoBackupJobSettings {
   if (!job.settings['']) {
     return {}
   }

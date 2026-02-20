@@ -82,48 +82,84 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       const writers = new Set()
       this._writers = writers
 
-      const [BackupWriter, ReplicationWriter] = this._getWriters()
+      const [BackupWriter, ReplicationWriter, AggregratedBackupWriter, AggregratedReplicationWriter] =
+        this._getWriters()
 
       const allSettings = job.settings
-      Object.entries(remoteAdapters).forEach(([remoteId, adapter]) => {
-        const targetSettings = {
-          ...settings,
-          ...allSettings[remoteId],
-        }
-        if (targetSettings.exportRetention !== 0) {
+
+      if (settings.exportRetention > 0) {
+        if (settings.distributeBackups) {
           writers.add(
-            new BackupWriter({
-              adapter,
+            new AggregratedBackupWriter({
+              adapters: remoteAdapters,
+              BackupWriter,
               config,
               healthCheckSr,
               job,
               scheduleId: schedule.id,
               vmUuid: vm.uuid,
-              remoteId,
-              settings: targetSettings,
+              settings,
             })
           )
+        } else {
+          Object.entries(remoteAdapters).forEach(([remoteId, adapter]) => {
+            const targetSettings = {
+              ...settings,
+              ...allSettings[remoteId],
+            }
+            if (targetSettings.exportRetention !== 0) {
+              writers.add(
+                new BackupWriter({
+                  adapter,
+                  config,
+                  healthCheckSr,
+                  job,
+                  scheduleId: schedule.id,
+                  vmUuid: vm.uuid,
+                  remoteId,
+                  settings: targetSettings,
+                })
+              )
+            }
+          })
         }
-      })
-      srs.forEach(sr => {
-        const targetSettings = {
-          ...settings,
-          ...allSettings[sr.uuid],
-        }
-        if (targetSettings.copyRetention !== 0) {
+      }
+      if (settings.copyRetention) {
+        if (settings.distributeReplications) {
           writers.add(
-            new ReplicationWriter({
+            new AggregratedReplicationWriter({
               config,
               healthCheckSr,
               job,
+              ReplicationWriter,
               scheduleId: schedule.id,
               vmUuid: vm.uuid,
-              sr,
-              settings: targetSettings,
+              srs,
+              settings,
             })
           )
+        } else {
+          srs.forEach(sr => {
+            const targetSettings = {
+              ...settings,
+              ...allSettings[sr.uuid],
+            }
+            if (targetSettings.copyRetention !== 0) {
+              writers.add(
+                new ReplicationWriter({
+                  config,
+                  healthCheckSr,
+                  job,
+                  scheduleId: schedule.id,
+                  vmUuid: vm.uuid,
+                  sr,
+                  settings: targetSettings,
+                })
+              )
+            }
+          })
         }
-      })
+      }
     }
   }
 

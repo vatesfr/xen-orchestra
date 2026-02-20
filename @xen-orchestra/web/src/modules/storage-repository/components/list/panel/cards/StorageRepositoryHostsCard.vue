@@ -6,7 +6,7 @@
     </UiCardTitle>
     <UiCollapsibleList v-if="hosts.length > 0" tag="ul" :total-items="hosts.length">
       <li v-for="host in hosts" :key="host.id" v-tooltip class="text-ellipsis">
-        <UiLink size="small" :icon="`object:host:${toLower(host.power_state)}`" :to="`/host/${host.id}/dashboard`">
+        <UiLink size="small" :icon="`object:host:${toLower(host.power_state)}`" :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }">
           {{ host.name_label }}
         </UiLink>
       </li>
@@ -18,6 +18,7 @@
 </template>
 
 <script lang="ts" setup>
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
@@ -25,12 +26,11 @@ import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibl
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import type { XoHost } from '@vates/types'
 import { toLower } from 'lodash-es'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
-  hosts: XoHost[]
+  hosts: FrontXoHost[]
 }>()
 
 const { t } = useI18n()

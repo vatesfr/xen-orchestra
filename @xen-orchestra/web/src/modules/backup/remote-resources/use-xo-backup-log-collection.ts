@@ -5,11 +5,20 @@ import type { XoBackupLog } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 
-const backupLogFields: (keyof XoBackupLog)[] = ['id', 'jobId', 'status', 'start', 'end', 'tasks'] as const
+export type FrontXoBackupLog = Pick<XoBackupLog, (typeof backupLogFields)[number]>
+
+const backupLogFields = [
+  'id',
+  'jobId',
+  'status',
+  'start',
+  'end',
+  'tasks',
+] as const satisfies readonly (keyof XoBackupLog)[]
 
 export const useXoBackupLogCollection = defineRemoteResource({
   url: `${BASE_URL}/backup-logs?fields=${backupLogFields.join(',')}`,
-  initialData: () => [] as XoBackupLog[],
+  initialData: () => [] as FrontXoBackupLog[],
   state: (rawBackupLogs, context) => {
     const backupLogs = useSorted(rawBackupLogs, (log1, log2) => log2.start - log1.start)
 
@@ -19,7 +28,7 @@ export const useXoBackupLogCollection = defineRemoteResource({
     })
 
     const backupLogsByJobId = computed(() => {
-      const backupLogsByJobIdMap = new Map<XoBackupLog['jobId'], XoBackupLog[]>()
+      const backupLogsByJobIdMap = new Map<XoBackupLog['jobId'], FrontXoBackupLog[]>()
 
       backupLogs.value.forEach(backupLog => {
         if (!backupLogsByJobIdMap.has(backupLog.jobId)) {
@@ -31,7 +40,7 @@ export const useXoBackupLogCollection = defineRemoteResource({
       return backupLogsByJobIdMap
     })
 
-    const getLastNBackupLogsByJobId = (jobId: XoBackupLog['jobId'], limit: number = 3): XoBackupLog[] => {
+    const getLastNBackupLogsByJobId = (jobId: XoBackupLog['jobId'], limit: number = 3): FrontXoBackupLog[] => {
       const logs = backupLogsByJobId.value.get(jobId)
 
       return logs ? logs.slice(0, limit) : []

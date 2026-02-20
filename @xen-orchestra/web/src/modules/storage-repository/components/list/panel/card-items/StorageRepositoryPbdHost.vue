@@ -4,7 +4,12 @@
       {{ t('host') }}
     </template>
     <template #value>
-      <UiLink v-if="host !== undefined" size="small" icon="object:host" :to="`host/${host.id}/dashboard`">
+      <UiLink
+        v-if="host !== undefined"
+        size="small"
+        icon="object:host"
+        :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
+      >
         {{ host.name_label }}
       </UiLink>
     </template>
@@ -13,13 +18,13 @@
 
 <script setup lang="ts">
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import type { FrontXoPbd } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import type { XoPbd } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { pbd } = defineProps<{
-  pbd: XoPbd
+  pbd: FrontXoPbd
 }>()
 
 const { t } = useI18n()

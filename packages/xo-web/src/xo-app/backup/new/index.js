@@ -152,6 +152,8 @@ const normalizeSettings = ({ copyMode, exportMode, offlineBackupActive, settings
           exportRetention: exportMode ? setting.exportRetention : undefined,
           snapshotRetention: snapshotMode && !offlineBackupActive ? setting.snapshotRetention : undefined,
           preferNbd: undefined,
+          distributeBackups: undefined,
+          distributeReplications: undefined,
         }
       : setting
   )
@@ -201,6 +203,8 @@ const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection, suggestedExc
     showErrors: false,
     smartMode: false,
     snapshotMode: false,
+    distributeBackups: false,
+    distributeReplications: false,
     srs: [],
     tags: { notValues: suggestedExcludedTags },
     vms: preSelectedVmIds,
@@ -287,7 +291,6 @@ const New = decorate([
         }
 
         settings[''].timezone = DEFAULT_TIMEZONE
-
         await createBackupNgJob({
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
@@ -360,6 +363,8 @@ const New = decorate([
           exportMode: state.exportMode,
           copyMode: state.copyMode,
           snapshotMode: state.snapshotMode,
+          distributeBackups: state.distributeBackups,
+          distributeReplications: state.distributeReplications,
         }).toObject()
 
         if (normalizedSettings[''] === undefined) {
@@ -375,7 +380,6 @@ const New = decorate([
         }
 
         normalizedSettings[''].timezone = DEFAULT_TIMEZONE
-
         await editBackupNgJob({
           id: props.job.id,
           name: state.name,
@@ -709,25 +713,37 @@ const New = decorate([
           mergeBackupsSynchronously,
         })
       },
+      setDistributeBackups({ setGlobalSettings }, distributeBackups) {
+        setGlobalSettings({
+          distributeBackups,
+        })
+      },
+      setDistributeReplications({ setGlobalSettings }, distributeReplications) {
+        setGlobalSettings({
+          distributeReplications,
+        })
+      },
     },
     computed: {
       compressionId: generateId,
       formId: generateId,
-      inputConcurrencyId: generateId,
+      inputBackupReportTplId: generateId,
       inputCbtDestroySnapshotData: generateId,
+      inputConcurrencyId: generateId,
       inputFullIntervalId: generateId,
+      inputHideSuccessfulItemsId: generateId,
+      inputLongTermRetentionDaily: generateId,
+      inputLongTermRetentionMonthly: generateId,
+      inputLongTermRetentionWeekly: generateId,
+      inputLongTermRetentionYearly: generateId,
       inputMaxExportRate: generateId,
-      inputPreferNbd: generateId,
+      inputMergeBackupsSynchronously: generateId,
       inputNbdConcurrency: generateId,
       inputNRetriesVmBackupFailures: generateId,
-      inputBackupReportTplId: generateId,
-      inputHideSuccessfulItemsId: generateId,
-      inputMergeBackupsSynchronously: generateId,
+      inputPreferNbd: generateId,
+      inputDistributeBackups: generateId,
+      inputDistributeReplications: generateId,
       inputTimeoutId: generateId,
-      inputLongTermRetentionDaily: generateId,
-      inputLongTermRetentionWeekly: generateId,
-      inputLongTermRetentionMonthly: generateId,
-      inputLongTermRetentionYearly: generateId,
 
       offlineBackupActive: ({ propSettings, settings = propSettings }) =>
         Boolean(settings.getIn(['', 'offlineBackup'])),
@@ -832,12 +848,15 @@ const New = decorate([
     const { propSettings, settings = propSettings } = state
     const compression = defined(state.compression, job.compression, '')
     const {
+      backupReportTpl = 'mjml',
       cbtDestroySnapshotData,
       checkpointSnapshot,
       concurrency,
       fullInterval,
+      hideSuccessfulItems,
       longTermRetention = {},
       maxExportRate,
+      mergeBackupsSynchronously,
       nbdConcurrency = 1,
       nRetriesVmBackupFailures = 0,
       offlineBackup,
@@ -845,9 +864,8 @@ const New = decorate([
       preferNbd,
       reportRecipients,
       reportWhen = 'failure',
-      backupReportTpl = 'mjml',
-      hideSuccessfulItems,
-      mergeBackupsSynchronously,
+      distributeBackups = false,
+      distributeReplications = false,
       timeout,
     } = settings.get('') || {}
 
@@ -986,6 +1004,20 @@ const New = decorate([
                             </Li>
                           ))}
                         </Ul>
+                        <label htmlFor={state.inputDistributeBackups}>
+                          <strong>{_('distributeBackups')}</strong>{' '}
+                          <Tooltip content={_('distributeBackupsInformation')}>
+                            <Icon icon='info' />
+                          </Tooltip>
+                        </label>
+                        <Toggle
+                          className='pull-right'
+                          id={state.inputDistributeBackups}
+                          name='distributeBackups'
+                          value={distributeBackups}
+                          disabled={Object.keys(state.remotes).length < 2}
+                          onChange={effects.setDistributeBackups}
+                        />
                       </FormGroup>
                     )}
                   </CardBlock>
@@ -1032,6 +1064,20 @@ const New = decorate([
                           </Li>
                         ))}
                       </Ul>
+                      <label htmlFor={state.srs}>
+                        <strong>{_('distributeReplications')}</strong>{' '}
+                        <Tooltip content={_('distributeReplicationsInformation')}>
+                          <Icon icon='info' />
+                        </Tooltip>
+                      </label>
+                      <Toggle
+                        className='pull-right'
+                        id={state.inputDistributeReplications}
+                        name='distributeReplications'
+                        value={distributeReplications}
+                        disabled={Object.keys(state.remotes).length < 2}
+                        onChange={effects.setDistributeReplications}
+                      />
                     </FormGroup>
                   </CardBlock>
                 </Card>

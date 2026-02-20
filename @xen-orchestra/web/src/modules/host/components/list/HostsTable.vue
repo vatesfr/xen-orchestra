@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { getPifsIpAddresses } from '@/modules/pif/utils/xo-pif.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -33,7 +33,6 @@ import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTableState } from '@core/composables/table-state.composable'
 import { icon, objectIcon } from '@core/icons'
 import { useHostColumns } from '@core/tables/column-sets/host-columns'
-import type { XoHost } from '@vates/types'
 import { logicAnd, logicNot, logicOr } from '@vueuse/math'
 import { toLower } from 'lodash-es'
 import { computed, ref } from 'vue'
@@ -44,7 +43,7 @@ const {
   hosts: rawHosts,
   error,
 } = defineProps<{
-  hosts: XoHost[]
+  hosts: FrontXoHost[]
   busy?: boolean
   error?: boolean
 }>()
@@ -84,7 +83,7 @@ const state = useTableState({
 
 const { pageRecords: paginatedHosts, paginationBindings } = usePagination('hosts', filteredHosts)
 
-function getMasterIcon(host: XoHost) {
+function getMasterIcon(host: FrontXoHost) {
   if (!isMasterHost(host.id)) {
     return undefined
   }
@@ -96,7 +95,7 @@ function getMasterIcon(host: XoHost) {
 }
 
 const { HeadCells, BodyCells } = useHostColumns({
-  body: (host: XoHost) => {
+  body: (host: FrontXoHost) => {
     const ipAddresses = computed(() => getPifsIpAddresses(pifsByHost.value.get(host.id)))
     const hostIcon = computed(() => objectIcon('host', toLower(host.power_state)))
     const rightIcon = computed(() => getMasterIcon(host))

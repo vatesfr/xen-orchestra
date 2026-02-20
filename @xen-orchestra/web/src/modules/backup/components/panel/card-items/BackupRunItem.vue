@@ -8,7 +8,7 @@
         v-if="backupRun.id"
         size="small"
         icon="object:backup-run"
-        :to="`/backup/${backupRun.jobId}/runs?id=${backupRun.id}`"
+        :to="{ name: '/backup/[id]/runs', params: { id: backupRun.jobId }, query: { id: backupRun.id } }"
       >
         {{ backupRun.id }}
       </UiLink>
@@ -56,6 +56,7 @@
 </template>
 
 <script lang="ts" setup>
+import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
@@ -63,12 +64,11 @@ import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
-import type { XoBackupLog } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { backupRun } = defineProps<{
-  backupRun: XoBackupLog
+  backupRun: FrontXoBackupLog
 }>()
 
 const { t, d } = useI18n()

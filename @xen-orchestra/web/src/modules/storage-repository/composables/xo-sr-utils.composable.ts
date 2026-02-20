@@ -1,11 +1,11 @@
 import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { IconName } from '@core/icons'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import type { XoSr } from '@vates/types'
 import { computed, type MaybeRefOrGetter } from 'vue'
 
-export function useXoSrUtils(rawSr: MaybeRefOrGetter<XoSr>) {
+export function useXoSrUtils(rawSr: MaybeRefOrGetter<FrontXoSr>) {
   const sr = toComputed(rawSr)
 
   const { getPbdsByIds } = useXoPbdCollection()

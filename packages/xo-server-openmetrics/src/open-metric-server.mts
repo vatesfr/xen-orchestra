@@ -23,6 +23,7 @@ import { parseRrdResponse, type ParsedRrdData } from './rrd-parser.mjs'
 import {
   formatAllPoolsToOpenMetrics,
   formatHostStatusMetrics,
+  formatHostUptimeMetrics,
   formatSrMetrics,
   formatToOpenMetrics,
   type HostStatusItem,
@@ -70,6 +71,7 @@ interface VmLabelInfo {
 interface HostLabelInfo {
   name_label: string
   pifDeviceToNetworkName: Record<string, string>
+  startTime: number | null
 }
 
 interface SrLabelInfo {
@@ -465,7 +467,12 @@ async function collectMetrics(): Promise<string> {
   const hostStatusOutput = hostStatusMetrics.length > 0 ? formatToOpenMetrics(hostStatusMetrics) : ''
   logger.debug('Formatted host status metrics', { hostCount: hostStatusMetrics.length })
 
-  // Combine pool metrics with RRD metrics, SR metrics, and host status metrics
+  // Format host uptime metrics
+  const uptimeMetrics = formatHostUptimeMetrics(credentials)
+  const uptimeMetricsOutput = uptimeMetrics.length > 0 ? formatToOpenMetrics(uptimeMetrics) : ''
+  logger.debug('Formatted host uptime metrics', { hostCount: uptimeMetrics.length })
+
+  // Combine pool metrics with RRD metrics, SR metrics, host status metrics, and uptime metrics
   // Remove the # EOF from rrdMetrics if present (we'll add our own)
   const rrdMetricsWithoutEof = rrdMetrics.replace(/\n# EOF$/, '')
 
@@ -481,6 +488,10 @@ async function collectMetrics(): Promise<string> {
 
   if (hostStatusOutput !== '') {
     allMetricsSections.push(hostStatusOutput)
+  }
+
+  if (uptimeMetricsOutput !== '') {
+    allMetricsSections.push(uptimeMetricsOutput)
   }
 
   return allMetricsSections.join('\n') + '\n# EOF'

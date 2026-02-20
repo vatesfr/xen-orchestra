@@ -1,5 +1,5 @@
+import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
-import type { XoBackupLog } from '@vates/types'
 import type { Info, Scale } from 'human-format'
 import { useI18n } from 'vue-i18n'
 
@@ -14,7 +14,7 @@ export function useXoBackupLogsUtils() {
     return d(value, { dateStyle: 'short', timeStyle: 'medium' })
   }
 
-  function getBackupLogDuration(backupLog: XoBackupLog) {
+  function getBackupLogDuration(backupLog: FrontXoBackupLog) {
     if (backupLog.end === undefined || backupLog.start === undefined) {
       return undefined
     }
@@ -54,7 +54,7 @@ export function useXoBackupLogsUtils() {
     return undefined
   }
 
-  function getTransferSize(backupLog: XoBackupLog): Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>> | undefined {
+  function getTransferSize(backupLog: FrontXoBackupLog): Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>> | undefined {
     // Recursively search for a task with message === 'transfer'
 
     if (!Array.isArray(backupLog.tasks)) {

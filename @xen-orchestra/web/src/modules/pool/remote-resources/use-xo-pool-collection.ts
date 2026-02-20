@@ -6,7 +6,9 @@ import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import type { XoPool } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 
-const poolFields: (keyof XoPool)[] = [
+export type FrontXoPool = Pick<XoPool, (typeof poolFields)[number]>
+
+const poolFields = [
   'id',
   'name_label',
   'master',
@@ -20,12 +22,13 @@ const poolFields: (keyof XoPool)[] = [
   'crashDumpSr',
   'haSrs',
   'type',
-] as const
+  'name_description',
+] as const satisfies readonly (keyof XoPool)[]
 
 export const useXoPoolCollection = defineRemoteResource({
   url: `${BASE_URL}/pools?fields=${poolFields.join(',')}`,
   watchCollection: watchCollectionWrapper({ resource: 'pool', fields: poolFields }),
-  initialData: () => [] as XoPool[],
+  initialData: () => [] as FrontXoPool[],
   state: (rawPools, context) => {
     const pools = useSorted(rawPools, sortByNameLabel)
 

@@ -29,7 +29,7 @@
                 v-if="server.poolId !== undefined && server.poolNameLabel !== undefined"
                 icon="object:pool"
                 size="small"
-                :to="`/pool/${server.poolId}/dashboard`"
+                :to="{ name: '/pool/[id]/dashboard', params: { id: server.poolId } }"
               >
                 {{ server.poolNameLabel }}
               </UiLink>
@@ -87,7 +87,7 @@
               v-if="primaryHost !== undefined"
               :icon="`object:host:${toLower(primaryHost.power_state)}`"
               size="small"
-              :to="`/host/${primaryHost.id}/dashboard`"
+              :to="{ name: '/host/[id]/dashboard', params: { id: primaryHost.id } }"
             >
               {{ primaryHost.name_label }}
               <VtsIcon accent="info" name="status:primary-circle" size="medium" />
@@ -151,7 +151,7 @@
           <UiLink
             v-for="host in hosts"
             :key="host.id"
-            :to="`/host/${host.id}/dashboard`"
+            :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
             :icon="`object:host:${toLower(host.power_state)}`"
             size="small"
           >
@@ -174,6 +174,7 @@
 <script setup lang="ts">
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import type { FrontXoServer } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -194,13 +195,12 @@ import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useMapper } from '@core/packages/mapper'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import type { XoServer } from '@vates/types'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { server } = defineProps<{
-  server: XoServer
+  server: FrontXoServer
 }>()
 
 const emit = defineEmits<{

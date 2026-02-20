@@ -8,11 +8,13 @@
 <script setup lang="ts">
 import BackedUpVmsConfiguration from '@/modules/backup/components/backed-up-vms/BackedUpVmsConfiguration.vue'
 import BackedUpVmsTable from '@/modules/backup/components/backed-up-vms/BackedUpVmsTable.vue'
-import { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
-import type { XoVmBackupJob } from '@vates/types'
+import {
+  useXoBackupJobCollection,
+  type FrontXoVmBackupJob,
+} from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 
 const { backupJob } = defineProps<{
-  backupJob: XoVmBackupJob
+  backupJob: FrontXoVmBackupJob
 }>()
 
 const { areBackupJobsReady, hasBackupJobFetchError } = useXoBackupJobCollection()

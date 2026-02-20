@@ -9,12 +9,12 @@
     </template>
   </UiHeadBar>
   <TabList>
-    <RouterLink v-slot="{ isActive, href }" :to="`/host/${host.id}/dashboard`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('dashboard') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="`/host/${host.id}/console`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/host/[id]/console', params: { id: host.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('console') }}
       </TabItem>
@@ -24,17 +24,17 @@
         {{ t('stats') }}
       </UiLink>
     </TabItem>
-    <RouterLink v-slot="{ isActive, href }" :to="`/host/${host.id}/system`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/host/[id]/system', params: { id: host.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('system') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="`/host/${host.id}/networks`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/host/[id]/networks', params: { id: host.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('network') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="`/host/${host.id}/storage`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/host/[id]/storage', params: { id: host.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('storage') }}
       </TabItem>
@@ -44,7 +44,7 @@
         {{ t('tasks') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="`/host/${host.id}/vms`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/host/[id]/vms', params: { id: host.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('vms') }}
       </TabItem>
@@ -53,7 +53,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
@@ -62,13 +62,12 @@ import TabList from '@core/components/tab/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import type { XoHost } from '@vates/types'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
-  host: XoHost
+  host: FrontXoHost
 }>()
 
 const { t } = useI18n()

@@ -1,7 +1,7 @@
+import type { FrontXoVmBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import type { XoBackupJobSettings } from '@/modules/backup/types/xo-backup.ts'
-import type { XoVmBackupJob } from '@vates/types'
 
-export function getVmBackupJobSettings(job: XoVmBackupJob): XoBackupJobSettings {
+export function getVmBackupJobSettings(job: FrontXoVmBackupJob): XoBackupJobSettings {
   if (!job.settings['']) {
     return {}
   }
