@@ -7,7 +7,7 @@ import * as uuid from 'uuid'
 import { getHandler } from '@xen-orchestra/fs'
 import { pFromCallback } from 'promise-toolbox'
 import { rimraf } from 'rimraf'
-import { VmBackupDirectory } from './VmBackupDirectory.mts'
+import { VmBackupDirectory } from '../dist/VmBackupDirectory.mjs'
 
 const { beforeEach, afterEach, describe } = test
 
@@ -39,7 +39,6 @@ async function createFullBackupMetadata(name, xvaName) {
     timestamp: Date.now(),
   }
   await handler.writeFile(`${rootPath}/${name}`, JSON.stringify(metadata))
-  // Create the corresponding XVA file
   await handler.writeFile(`${rootPath}/${xvaName}`, 'fake-xva-content')
   return metadata
 }
@@ -104,6 +103,7 @@ describe('VmBackupDirectory with full backups', { concurrency: 1 }, () => {
     await vmBackupDir.clean()
 
     const remainingFiles = await handler.list(rootPath)
+    assert.equal(remainingFiles.length, 3)
     assert.ok(remainingFiles.includes('cache.json.gz'))
   })
 })

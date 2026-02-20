@@ -11,13 +11,13 @@ export interface RemoteInfo {
 }
 
 /** A file descriptor as returned by openFile() */
-export interface FileDescriptor {
+export interface FileArg {
   fd: unknown // implementation-defined (e.g. number on local fs)
   path: string
 }
 
 /** A file argument: either a path string or an open FileDescriptor */
-export type FileArg = string | FileDescriptor
+export type FileDescriptor = number | string | FileArg
 
 export interface RemoteHandlerOptions {
   highWaterMark?: number
@@ -130,9 +130,9 @@ export default abstract class RemoteHandlerAbstract {
     options?: ReadStreamOptions
   ): Promise<Readable & { length?: number; maxStreamLength?: number }>
 
-  abstract readFile(file: string, options?: ReadFileOptions): Promise<Buffer>
+  abstract readFile(file: string, options?: ReadFileOptions): Promise<string>
 
-  abstract read(file: FileArg, buffer: Buffer, position?: number): Promise<ReadResult>
+  abstract read(file: FileDescriptor, buffer: Buffer, position?: number): Promise<ReadResult>
 
   abstract outputStream(path: string, input: Readable, options?: OutputStreamOptions): Promise<void>
   abstract outputFile(file: string, data: string | Buffer, options?: OutputFileOptions): Promise<void>
@@ -156,7 +156,7 @@ export default abstract class RemoteHandlerAbstract {
 
   abstract getInfo(): Promise<RemoteInfoResult>
 
-  abstract getSize(file: FileArg): Promise<number>
+  abstract getSize(file: FileDescriptor): Promise<number>
   abstract getSizeOnDisk(file: FileArg): Promise<number>
   abstract lock(path: string): Promise<LockDisposer>
   abstract test(): Promise<TestResult>
