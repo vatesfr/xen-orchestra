@@ -1,20 +1,20 @@
-import { RemoteHandlerAbstract } from '@xen-orchestra/fs'
-import { basename } from 'node:path'
-import { IBackupLineage, PartialBackupMetadata } from './DiskLineage.types.mts'
-import { VmFullBackupArchive } from './VmFullBackupArchive.mts'
-import { AbstractVmBackupArchive } from './VmBackupArchive.mts'
+
+import RemoteHandlerAbstract from '@xen-orchestra/fs'
+import { basename, normalize } from '@xen-orchestra/fs/path'
+import { VmFullBackupArchive } from './VmFullBackupArchive.mjs'
+import { IVmBackupInterface, PartialBackupMetadata } from './VmBackup.types.mjs'
 
 const FILES_TO_KEEP = ['cache.json.gz']
 
-class VmBackupDirectory {
-  #handler: typeof RemoteHandlerAbstract
+export class VmBackupDirectory implements IVmBackupInterface {
+  handler: RemoteHandlerAbstract
   rootPath: string
   files: Array<string>
   orphans: Set<string>
-  backupArchives: Map<string, AbstractVmBackupArchive>
+  backupArchives: Map<string, IVmBackupInterface>
 
-  constructor(handler: typeof RemoteHandlerAbstract, vmBackupPath: string) {
-    this.#handler = handler
+  constructor(handler: RemoteHandlerAbstract, vmBackupPath: string) {
+    this.handler = handler
     this.rootPath = vmBackupPath
     this.files = []
     this.orphans = new Set()
@@ -22,12 +22,12 @@ class VmBackupDirectory {
   }
 
   async init() {
-    this.files = await this.#handler.list(this.rootPath, { prependDir: true })
+    this.files = (await this.handler.list(this.rootPath, { prependDir: true })).map(file=>normalize(file))
+    console.log(this.files)
     for (const fullPath of this.files.filter(path => path.endsWith('.json'))) {
-      const metadata = JSON.parse(await this.#handler.readFile(fullPath)) satisfies PartialBackupMetadata
+      const metadata = JSON.parse(await this.handler.readFile(fullPath)) satisfies PartialBackupMetadata
       try {
         const backupArchive = await this.createBackupArchive(fullPath, metadata)
-        await backupArchive.init()
         this.backupArchives.set(fullPath, backupArchive)
       } catch (error) {
         console.warn(`Issue loading ${metadata.xva ?? metadata.vhds}`, { json: fullPath, backup: metadata })
@@ -36,7 +36,7 @@ class VmBackupDirectory {
   }
 
   getValidFiles({ prefix = false }) {
-    const files = this.files.filter(file => file.endsWith('cache.json.gz'))
+    const files = this.files.filter(file => FILES_TO_KEEP.some(pattern => file.endsWith(pattern)))
     return prefix ? files : files.map(file => basename(file))
   }
 
@@ -55,17 +55,19 @@ class VmBackupDirectory {
   async clean() {
     const { orphans } = await this.check()
     for (const orphan of orphans) {
-      await this.#handler.unlink(orphan)
+      await this.handler.unlink(orphan)
     }
+    return orphans
   }
 
   async createBackupArchive(metadataPath: string, metadata: PartialBackupMetadata) {
-    let backupArchive: AbstractVmBackupArchive
+    let backupArchive: IVmBackupInterface
     try {
       if (metadata.mode == 'full') {
-        backupArchive = new VmFullBackupArchive(this.#handler, this.rootPath, metadataPath, metadata, metadata.xva!)
+        backupArchive = new VmFullBackupArchive(this.handler, this.rootPath, metadataPath, metadata, normalize(metadata.xva!))
       } else {
-        backupArchive = new VmIncrementalBackupArchive(this.#handler)
+        //@ts-ignore
+        backupArchive = new VmIncrementalBackupArchive(this.handler)
       }
     } catch (error) {
       console.warn(`Error trying to create backupArchive from ${metadataPath}`, { metadata })
