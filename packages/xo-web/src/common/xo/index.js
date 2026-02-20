@@ -2676,6 +2676,24 @@ export const editPif = (pif, { vlan }) => _call('pif.editPif', { pif: resolveId(
 
 export const scanHostPifs = hostId => _call('host.scanPifs', { host: hostId })
 
+export const setManagementPif = async (host, pif) => {
+  await confirm({
+    title: _('setAsManagementPif'),
+    body: _('setAsManagementPifConfirm'),
+  })
+
+  return _call('host.managementReconfigure', { id: resolveId(host), pif: resolveId(pif) })
+}
+
+export const setManagementPifs = async (pool, network) => {
+  await confirm({
+    title: _('setAsManagementPifs'),
+    body: _('setAsManagementPifsConfirm'),
+  })
+
+  return _call('pool.managementReconfigure', { id: resolveId(pool), network: resolveId(network) })
+}
+
 // SR ----------------------------------------------------------------
 
 export const deleteSr = sr =>

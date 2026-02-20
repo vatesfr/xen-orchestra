@@ -28,6 +28,7 @@ import {
   getIpv4ConfigModes,
   getIpv6ConfigModes,
   reconfigurePifIp,
+  setManagementPif,
   scanHostPifs,
 } from 'xo'
 
@@ -326,6 +327,12 @@ const PIF_INDIVIDUAL_ACTIONS = [
     handler: pif => copy(pif.uuid),
     icon: 'clipboard',
     label: pif => _('copyUuid', { uuid: pif.uuid }),
+  },
+  {
+    handler: pif => setManagementPif(pif.$host, pif.id),
+    disabled: pif => pif.management || !pif.attached,
+    icon: 'pif-management',
+    label: _('setAsManagementPif'),
   },
   {
     handler: deletePif,
