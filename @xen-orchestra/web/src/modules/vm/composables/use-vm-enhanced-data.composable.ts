@@ -4,7 +4,9 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { getVmIpAddresses } from '@/modules/vm/utils/xo-vm.util.ts'
 import { objectIcon } from '@core/icons'
 import { formatSizeRaw, type SizeInfo } from '@core/utils/size.util.ts'
+import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { XoVdi } from '@vates/types'
+import type { MaybeRefOrGetter } from '@vueuse/core'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 
@@ -22,7 +24,8 @@ export interface VmDisplayData extends VmFilterableData {
   vmIcon: ReturnType<typeof objectIcon>
 }
 
-export function useVmEnhancedData(rawVms: FrontXoVm[]) {
+export function useVmEnhancedData(rawVms: MaybeRefOrGetter<FrontXoVm[]>) {
+  const vms = toComputed(rawVms)
   const { getVbdsByIds } = useXoVbdCollection()
   const { getVdiById } = useXoVdiCollection()
 
@@ -40,7 +43,7 @@ export function useVmEnhancedData(rawVms: FrontXoVm[]) {
    * Filterable data: raw values for Query Builder schema
    */
   const filterableVms = computed(() =>
-    rawVms.map(
+    vms.value.map(
       vm =>
         ({
           ...vm,
