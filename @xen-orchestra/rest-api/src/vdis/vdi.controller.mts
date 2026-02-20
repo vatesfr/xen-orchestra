@@ -45,7 +45,7 @@ import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-
 import { taskIds, partialTasks, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 
 type CreateVdiParams = Parameters<Xapi['VDI_create']>
-type CreateVdiBody = Omit<CreateVdiParams[0], 'SR'> & { srId?: string } & CreateVdiParams[1]
+type CreateVdiBody = Omit<CreateVdiParams[0], 'SR'> & { srId: string } & CreateVdiParams[1]
 
 @Route('vdis')
 @Security('*')
@@ -169,7 +169,9 @@ export class VdiController extends XapiXoController<XoVdi> {
   }
 
   /**
-   * @example body { "srId": "c4284e12-37c9-7967-b9e8-83ef229c3e03", "virtual_size": 10737418240, "name_label": "test SR" }
+   * Create an empty VDI on the given SR.
+   *
+   * @example body { "srId": "c4284e12-37c9-7967-b9e8-83ef229c3e03", "virtual_size": 10737418240, "name_label": "test VDI" }
    */
   @Example(vdiId)
   @Post('')
@@ -178,16 +180,17 @@ export class VdiController extends XapiXoController<XoVdi> {
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async createVdi(@Body() body: CreateVdiBody): Promise<{ id: string }> {
-    const xapiSr = this.restApi.getXapiObject<XoSr>(body.srId as XoSr['id'], 'SR')
+    const { srId, sm_config, ...rest } = body
+    const xapiSr = this.restApi.getXapiObject<XoSr>(srId as XoSr['id'], 'SR')
     const xapi = xapiSr.$xapi
 
     const vdiRef = await xapi.VDI_create(
       {
-        ...body,
+        ...rest,
         SR: xapiSr.$ref,
       },
       {
-        sm_config: body.sm_config,
+        sm_config,
       }
     )
 

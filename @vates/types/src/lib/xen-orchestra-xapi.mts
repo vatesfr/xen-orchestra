@@ -232,13 +232,13 @@ export interface Xapi {
       other_config?: XoVdi['other_config']
       read_only?: boolean
       sharable?: boolean
-      SR: XenApiSr['$ref']
+      SR?: XenApiSr['$ref']
       tags?: XoVdi['tags']
       type?: VDI_TYPE
       virtual_size: XoVdi['size']
       xenstore_data?: Record<string, string>
     },
-    extraOptions: {
+    extraOptions?: {
       sm_config?: Record<string, string>
     }
   ): Promise<XenApiVdi['$ref']>
