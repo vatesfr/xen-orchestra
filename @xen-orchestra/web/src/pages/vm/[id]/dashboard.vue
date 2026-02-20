@@ -15,10 +15,10 @@
     </div>
     <template v-else>
       <DashboardAlarms
-        class="alarms"
+        :class="alarmHero ? 'alarms-hero' : 'alarms'"
         :alarms="vmAlarms"
         :is-ready="areVmAlarmsReady"
-        :has-ready="hasVmAlarmFetchError"
+        :has-error="hasVmAlarmFetchError"
       />
       <template v-if="data">
         <VmDashboardCpuUsageChart class="cpu-usage-chart" :data :error :loading="isFetching" />
@@ -57,6 +57,8 @@ const { vmAlarms, areVmAlarmsReady, hasVmAlarmFetchError } = useXoVmAlarmsCollec
 
 const isVmRunning = computed(() => vm.power_state === VM_POWER_STATE.RUNNING)
 
+const alarmHero = computed(() => areVmAlarmsReady.value || hasVmAlarmFetchError.value || vmAlarms.value.length === 0)
+
 const { isMobile } = useUiStore()
 
 const { t } = useI18n()
@@ -91,8 +93,12 @@ const { t } = useI18n()
   }
 
   .alarms {
-    grid-area: alarms;
     height: 46.2rem;
+  }
+
+  .alarms,
+  .alarms-hero {
+    grid-area: alarms;
   }
 
   .offline-hero-container {
