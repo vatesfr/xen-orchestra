@@ -57,7 +57,7 @@ const { t } = useI18n()
 
 const selectedVmId = useRouteQuery('id')
 
-const { filterableVms, getDisplayData } = useVmEnhancedData(rawVms)
+const { filterableVms, getDisplayData } = useVmEnhancedData(() => rawVms)
 
 const { items: filteredVms, filter } = useQueryBuilderFilter('vms', () => filterableVms.value)
 
