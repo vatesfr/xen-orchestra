@@ -54,4 +54,5 @@ export interface VmState {
   existingVdis: Vdi[]
   name: string
   createVtpm?: boolean
+  secureBoot: boolean
 }
