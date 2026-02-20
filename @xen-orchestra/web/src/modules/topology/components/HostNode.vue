@@ -11,6 +11,13 @@
     </div>
     <div class="resource-bars">
       <div class="bar-row">
+        <span class="bar-label">CPU</span>
+        <div class="bar-track">
+          <div class="bar-fill cpu-fill" :style="{ width: (data.cpuPercent ?? 0) + '%' }" />
+        </div>
+        <span class="bar-value">{{ data.cpuPercent != null ? data.cpuPercent + '%' : '...' }}</span>
+      </div>
+      <div class="bar-row">
         <span class="bar-label">RAM</span>
         <div class="bar-track">
           <div class="bar-fill" :style="{ width: ramPercent + '%' }" />
@@ -108,6 +115,9 @@ const statusClass = computed(() =>
 
   .resource-bars {
     margin-top: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
 
     .bar-row {
       display: flex;
@@ -133,6 +143,10 @@ const statusClass = computed(() =>
         border-radius: 0.3rem;
         background: var(--color-warning-item-base);
         transition: width 0.3s ease;
+
+        &.cpu-fill {
+          background: var(--color-brand-item-base);
+        }
       }
 
       .bar-value {

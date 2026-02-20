@@ -10,10 +10,12 @@ import type {
 } from '@/modules/topology/types/topology.types.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { XOA_NAME } from '@/shared/constants.ts'
+import type { XoHost } from '@vates/types'
 import { VM_POWER_STATE } from '@vates/types'
 import { logicAnd } from '@vueuse/math'
 import { computed, ref, watch } from 'vue'
 
+import { useTopologyHostStats } from './use-topology-host-stats.ts'
 import { useTopologyLayout } from './use-topology-layout.ts'
 
 const SITE_NODE_ID = 'site-root'
@@ -50,6 +52,28 @@ export function useTopologyGraph() {
     }
     expandedNodes.value = next
   }
+
+  // Track which hosts are currently visible (parent pool expanded) to only fetch their stats
+  const visibleHostIds = computed(() => {
+    const ids = new Set<XoHost['id']>()
+    const expanded = expandedNodes.value
+
+    if (!expanded.has(SITE_NODE_ID)) {
+      return ids
+    }
+
+    for (const pool of pools.value) {
+      if (expanded.has(`pool-${pool.id}`)) {
+        for (const host of hostsByPool.value.get(pool.id) ?? []) {
+          ids.add(host.id)
+        }
+      }
+    }
+
+    return ids
+  })
+
+  const { cpuByHost } = useTopologyHostStats(visibleHostIds)
 
   const rawNodes = computed<TopologyNode[]>(() => {
     const nodes: TopologyNode[] = []
@@ -117,6 +141,7 @@ export function useTopologyGraph() {
             runningVmCount: runningCount,
             memorySize: host.memory.size,
             memoryUsage: host.memory.usage,
+            cpuPercent: cpuByHost.value.get(host.id),
             isExpanded: expanded.has(hostId),
             isExpandable: hostVms.length > 0,
           } satisfies HostNodeData,
