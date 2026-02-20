@@ -76,6 +76,11 @@
         {{ t('vdis') }}
       </TabItem>
     </RouterLink>
+    <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/snapshots`" custom>
+      <TabItem :active="isActive" :href tag="a">
+        {{ t('snapshots') }}
+      </TabItem>
+    </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vm/[id]/tasks', params: { id: vm.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('tasks') }}
