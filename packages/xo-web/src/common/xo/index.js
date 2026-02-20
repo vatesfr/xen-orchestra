@@ -1379,7 +1379,18 @@ export const isPubKeyTooShort = host => {
 // for XCP-ng now
 export const installAllPatchesOnHost = ({ host }) =>
   confirm({
-    body: _('installAllPatchesOnHostContent'),
+    body: (
+      <div>
+        <p>{_('installAllPatchesOnHostContent')}</p>
+        <p className='text-warning'>
+          {_('installAllPatchesXostorWarning')}
+          <br />
+          <a target='_blank' rel='noreferrer' href='https://docs.xcp-ng.org/management/updates/#xostor-support'>
+            https://docs.xcp-ng.org/management/updates/#xostor-support
+          </a>
+        </p>
+      </div>
+    ),
     title: _('installAllPatchesTitle'),
   }).then(() =>
     _call('pool.installPatches', { hosts: [resolveId(host)] })::tap(() =>
