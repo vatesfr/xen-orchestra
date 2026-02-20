@@ -76,6 +76,9 @@
       "types": "./dist/fs.d.mts",
       "default": "./dist/index.js"
     },
-    "./path": "./dist/path.js"
+    "./path": {
+      "types": "./dist/path.d.mts",
+      "default": "./dist/path.js"
+    }
   }
 }

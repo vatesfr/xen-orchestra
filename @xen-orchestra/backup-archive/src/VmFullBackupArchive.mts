@@ -1,7 +1,9 @@
-import { RemoteDisk } from './RemoteDisk.mjs'
+import { basename, normalize } from 'node:path'
 import assert from 'node:assert'
-import type { FileHandler, FileDescriptor } from '@xen-orchestra/disk-transform'
-import RemoteHandlerAbstract from '../../fs/src/abstract'
+import { FileDescriptor } from '@xen-orchestra/fs'
+import { IVmBackupInterface, PartialBackupMetadata } from './VmBackup.types.mjs'
+import RemoteHandlerAbstract from '@xen-orchestra/fs'
+
 
 const COMPRESSED_MAGIC_NUMBERS: Buffer[] = [
   // https://tools.ietf.org/html/rfc1952.html#page-5
@@ -64,39 +66,67 @@ export async function isValidXva(handler: RemoteHandlerAbstract, filePath: strin
 
 const noop = (): void => {}
 
-export class FullBackup extends RemoteDisk {
+export class VmFullBackupArchive implements IVmBackupInterface {
   handler: RemoteHandlerAbstract
-  diskPath: string
-  checksumPath?: string
-  metadataPath?: string
+  rootPath: string
+  xvaPath: string
   isValid?: boolean
+  metadataPath: string
+  metadata: PartialBackupMetadata
 
-  constructor(handler: RemoteHandlerAbstract, diskPath: string) {
-    super()
+  constructor(
+    handler: RemoteHandlerAbstract,
+    rootPath: string,
+    metadataPath: string,
+    metadata: PartialBackupMetadata,
+    xvaPath: string
+  ) {
     this.handler = handler
-    this.diskPath = diskPath
-    this.isValid = undefined
+    this.rootPath = normalize(rootPath)
+    this.metadataPath = normalize(metadataPath)
+    this.metadata = metadata
+    this.xvaPath = normalize(xvaPath)
   }
 
-  async init() {}
+  async init() {
+    await this.check()
+  }
 
-  async check() {
+  async check(): Promise<object> {
     try {
-      if (this.isValid == undefined) {
-        this.isValid = await isValidXva(this.handler, this.diskPath)
+      if (this.isValid === undefined) {
+        this.isValid = await isValidXva(this.handler, this.xvaPath)
       }
     } catch (error) {
+      console.log(error)
       this.isValid = false
     }
-    return this.isValid
+    if(this.isValid) {
+      console.warn('XVA might be broken', { path: this.xvaPath })
+    }
+    return { xvaValid: this.isValid }
   }
 
-  async clean() {
-    try {
-      this.metadataPath = undefined
-      await this.handler.unlink(this.diskPath)
-    } catch (error) {
-      console.warn(`Issue removing ${this.diskPath}`)
+  async clean({ remove=false }) {
+    let filesToRemove: Array<string> = []
+    if(remove) {
+      for(const file of filesToRemove) {
+        try {
+          await this.handler.unlink(file)
+        } catch (error) {
+          console.warn(`Issue removing ${file}`)
+        }
+      }
+    }
+    return filesToRemove
+  }
+
+  getValidFiles({ prefix = false }): Array<string> {
+    const validFiles = [this.metadataPath, this.xvaPath, `${this.xvaPath}.checksum`]
+    if(this.isLinked()) {
+      return prefix ? validFiles : validFiles.map(file => basename(file))
+    } else {
+      return []
     }
   }
 
