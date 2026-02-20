@@ -1,6 +1,6 @@
+import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
-import { watchCollectionWrapper } from '@/shared/utils/sse.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoVif } from '@vates/types'
 
@@ -21,7 +21,7 @@ const vifFields = [
 
 export const useXoVifCollection = defineRemoteResource({
   url: `${BASE_URL}/vifs?fields=${vifFields.join(',')}`,
-  watchCollection: watchCollectionWrapper({ resource: 'VIF', fields: vifFields }),
+  initWatchCollection: () => useWatchCollection({ resource: 'VIF', fields: vifFields }),
   initialData: () => [] as FrontXoVif[],
   state: (vifs, context) =>
     useXoCollectionState(vifs, {

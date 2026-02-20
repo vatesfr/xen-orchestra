@@ -16,6 +16,16 @@
       />
       <slot name="app-header" />
     </header>
+    <VtsBanner v-if="showBanner" accent="danger">
+      <UiInfo accent="danger">
+        {{ t('unable-to-connect-to-xo-server') }}
+      </UiInfo>
+      <template #addons>
+        <UiButton variant="primary" accent="brand" size="small" @click="handleRetry()">
+          {{ t('retry') }}
+        </UiButton>
+      </template>
+    </VtsBanner>
     <div class="container">
       <template v-if="uiStore.hasUi">
         <VtsBackdrop
@@ -43,17 +53,33 @@
 
 <script lang="ts" setup>
 import VtsBackdrop from '@core/components/backdrop/VtsBackdrop.vue'
+import VtsBanner from '@core/components/banner/VtsBanner.vue'
 import VtsLayoutSidebar from '@core/components/layout/VtsLayoutSidebar.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import { useSseStore } from '@core/packages/remote-resource/sse.store.ts'
 import { useSidebarStore } from '@core/stores/sidebar.store'
 import { useUiStore } from '@core/stores/ui.store'
+import { storeToRefs } from 'pinia'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
 const uiStore = useUiStore()
 const sidebarStore = useSidebarStore()
+
+const sseStore = useSseStore()
+
+const { hasErrorSse } = storeToRefs(sseStore)
+
+const showBanner = computed(() => hasErrorSse.value)
+
+function handleRetry() {
+  sseStore.retry()
+}
 </script>
 
 <style lang="postcss" scoped>
