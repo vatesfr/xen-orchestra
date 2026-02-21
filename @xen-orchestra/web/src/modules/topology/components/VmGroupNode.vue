@@ -46,6 +46,8 @@ const toggleExpand = inject(TOPOLOGY_TOGGLE_EXPAND, undefined)
   padding: 0.8rem 1.2rem;
   padding-bottom: 2rem;
   min-width: 18rem;
+  max-width: 26rem;
+  overflow: visible;
   position: relative;
   box-shadow: var(--shadow-200);
   transition:
@@ -127,6 +129,7 @@ const toggleExpand = inject(TOPOLOGY_TOGGLE_EXPAND, undefined)
     align-items: center;
     gap: 0.6rem;
     padding: 0.3rem 0;
+    min-width: 0;
 
     .vm-dot {
       width: 0.6rem;

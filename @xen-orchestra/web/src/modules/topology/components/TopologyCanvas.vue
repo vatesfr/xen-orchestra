@@ -11,6 +11,7 @@
       fit-view-on-init
       :nodes-draggable="false"
       :nodes-connectable="false"
+      @viewport-change="onViewportChange"
     >
       <template #node-site="nodeProps">
         <SiteNode :data="nodeProps.data" />
@@ -45,12 +46,13 @@ import PoolNode from '@/modules/topology/components/PoolNode.vue'
 import SiteNode from '@/modules/topology/components/SiteNode.vue'
 import TopologyEdge from '@/modules/topology/components/TopologyEdge.vue'
 import VmGroupNode from '@/modules/topology/components/VmGroupNode.vue'
+import { TOPOLOGY_ZOOM } from '@/modules/topology/composables/use-topology-interaction.ts'
 import type { TopologyEdge as TopologyEdgeType, TopologyNode } from '@/modules/topology/types/topology.types.ts'
 import { Controls } from '@vue-flow/controls'
 import type { GraphNode } from '@vue-flow/core'
 import { useVueFlow, VueFlow } from '@vue-flow/core'
 import { MiniMap } from '@vue-flow/minimap'
-import { markRaw, nextTick, watch } from 'vue'
+import { markRaw, nextTick, provide, ref, watch } from 'vue'
 
 import '@vue-flow/core/dist/style.css'
 import '@vue-flow/core/dist/theme-default.css'
@@ -90,6 +92,14 @@ const minimapNodeColor = (node: GraphNode) => {
 
 const { fitView } = useVueFlow()
 
+const currentZoom = ref(0.85)
+
+provide(TOPOLOGY_ZOOM, currentZoom)
+
+function onViewportChange(viewport: { zoom: number }) {
+  currentZoom.value = viewport.zoom
+}
+
 watch(
   () => props.nodes,
   () => {
@@ -112,6 +122,7 @@ watch(
   }
 
   :deep(.vue-flow__node) {
+    overflow: visible;
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 

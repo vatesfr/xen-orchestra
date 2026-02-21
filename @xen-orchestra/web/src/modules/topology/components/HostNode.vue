@@ -1,6 +1,6 @@
 <!-- eslint-disable @intlify/vue-i18n/no-raw-text -- prototype: i18n keys to be added later -->
 <template>
-  <div class="topology-node host-node" :class="statusClass">
+  <div class="topology-node host-node" :class="[statusClass, haloClass]">
     <Handle type="target" :position="Position.Top" />
     <div class="node-header">
       <span class="icon-circle">
@@ -13,9 +13,7 @@
       <span v-if="data.runningVmCount > 0" class="running-pill">{{ data.runningVmCount }} running</span>
     </div>
     <div class="resource-bars">
-      <div :class="{ 'cpu-critical': (data.cpuPercent ?? 0) >= 80 }">
-        <VtsProgressBar :current="data.cpuPercent ?? 0" :total="100" label="CPU" legend-type="percent" noruler />
-      </div>
+      <VtsProgressBar :current="data.cpuPercent ?? 0" :total="100" label="CPU" legend-type="percent" noruler />
       <VtsProgressBar :current="data.memoryUsage" :total="data.memorySize" label="RAM" legend-type="percent" noruler />
     </div>
     <NodeExpandButton
@@ -45,6 +43,17 @@ const toggleExpand = inject(TOPOLOGY_TOGGLE_EXPAND, undefined)
 const statusClass = computed(() =>
   props.data.host.power_state === HOST_POWER_STATE.RUNNING ? 'status-running' : 'status-halted'
 )
+
+const haloClass = computed(() => {
+  const cpu = props.data.cpuPercent
+  const mem = props.data.memorySize > 0 ? (props.data.memoryUsage / props.data.memorySize) * 100 : undefined
+
+  const worst = Math.max(cpu ?? 0, mem ?? 0)
+  if (cpu == null && mem == null) return undefined
+  if (worst >= 90) return 'halo-danger'
+  if (worst >= 80) return 'halo-warning'
+  return 'halo-ok'
+})
 </script>
 
 <style lang="postcss" scoped>
@@ -58,7 +67,7 @@ const statusClass = computed(() =>
   position: relative;
   box-shadow: var(--shadow-200);
   transition:
-    box-shadow 0.2s ease,
+    box-shadow 0.3s ease,
     transform 0.2s ease;
 
   &:hover {
@@ -74,8 +83,55 @@ const statusClass = computed(() =>
     }
   }
 
+  &.halo-ok {
+    &,
+    :root.dark & {
+      box-shadow: 0 0 0.6rem color-mix(in srgb, var(--color-success-item-base) 30%, transparent);
+
+      &:hover {
+        box-shadow: 0 0 1rem color-mix(in srgb, var(--color-success-item-base) 45%, transparent);
+      }
+    }
+  }
+
+  &.halo-warning {
+    &,
+    :root.dark & {
+      box-shadow: 0 0 0.8rem rgba(245, 130, 32, 0.4);
+
+      &:hover {
+        box-shadow: 0 0 1.2rem rgba(245, 130, 32, 0.55);
+      }
+    }
+  }
+
+  &.halo-danger {
+    animation: halo-pulse 2s ease-in-out infinite;
+
+    &,
+    :root.dark & {
+      box-shadow: 0 0 1rem color-mix(in srgb, var(--color-danger-item-base) 50%, transparent);
+
+      &:hover {
+        box-shadow: 0 0 1.4rem color-mix(in srgb, var(--color-danger-item-base) 65%, transparent);
+      }
+    }
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0.3rem;
+    height: 100%;
+    border-radius: 0.8rem 0 0 0.8rem;
+  }
+
   &.status-running {
-    border-left: 0.3rem solid var(--color-success-item-base);
+    &::before {
+      background: var(--color-success-item-base);
+    }
 
     .icon-circle {
       background: var(--color-success-background-selected);
@@ -88,7 +144,9 @@ const statusClass = computed(() =>
   }
 
   &.status-halted {
-    border-left: 0.3rem solid var(--color-danger-item-base);
+    &::before {
+      background: var(--color-danger-item-base);
+    }
 
     .icon-circle {
       background: var(--color-danger-background-selected);
@@ -126,6 +184,10 @@ const statusClass = computed(() =>
       color: var(--color-neutral-txt-primary);
       text-decoration: none;
       flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
 
       &:hover {
         color: var(--color-brand-item-hover);
@@ -168,22 +230,17 @@ const statusClass = computed(() =>
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
-
-    .cpu-critical {
-      position: relative;
-      animation: cpu-pulse 2s ease-in-out infinite;
-    }
   }
 }
 
-@keyframes cpu-pulse {
+@keyframes halo-pulse {
   0%,
   100% {
-    opacity: 1;
+    box-shadow: 0 0 1rem color-mix(in srgb, var(--color-danger-item-base) 50%, transparent);
   }
 
   50% {
-    opacity: 0.7;
+    box-shadow: 0 0 1.6rem color-mix(in srgb, var(--color-danger-item-base) 70%, transparent);
   }
 }
 </style>

@@ -96,6 +96,10 @@ const toggleExpand = inject(TOPOLOGY_TOGGLE_EXPAND, undefined)
       font-size: 1.3rem;
       color: var(--color-neutral-txt-primary);
       text-decoration: none;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
 
       &:hover {
         color: var(--color-brand-item-hover);

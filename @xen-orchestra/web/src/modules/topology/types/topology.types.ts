@@ -53,7 +53,7 @@ export const NODE_DIMENSIONS = {
   site: { width: 280, height: 120 },
   pool: { width: 260, height: 130 },
   host: { width: 240, height: 165 },
-  'vm-group': { width: 200, height: 100 },
+  'vm-group': { width: 260, height: 100 },
 } as const
 
 export const VM_GROUP_EXPANDED_ROW_HEIGHT = 24
