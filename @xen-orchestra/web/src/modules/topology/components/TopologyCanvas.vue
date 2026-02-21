@@ -28,6 +28,13 @@
         <TopologyEdge v-bind="edgeProps" />
       </template>
       <Controls :show-interactive="false" />
+      <MiniMap
+        pannable
+        zoomable
+        :node-color="minimapNodeColor"
+        :node-border-radius="4"
+        mask-color="rgba(0, 0, 0, 0.15)"
+      />
     </VueFlow>
   </div>
 </template>
@@ -40,12 +47,15 @@ import TopologyEdge from '@/modules/topology/components/TopologyEdge.vue'
 import VmGroupNode from '@/modules/topology/components/VmGroupNode.vue'
 import type { TopologyEdge as TopologyEdgeType, TopologyNode } from '@/modules/topology/types/topology.types.ts'
 import { Controls } from '@vue-flow/controls'
+import type { GraphNode } from '@vue-flow/core'
 import { useVueFlow, VueFlow } from '@vue-flow/core'
+import { MiniMap } from '@vue-flow/minimap'
 import { markRaw, nextTick, watch } from 'vue'
 
 import '@vue-flow/core/dist/style.css'
 import '@vue-flow/core/dist/theme-default.css'
 import '@vue-flow/controls/dist/style.css'
+import '@vue-flow/minimap/dist/style.css'
 
 const props = defineProps<{
   nodes: TopologyNode[]
@@ -61,6 +71,21 @@ const nodeTypes: Record<string, any> = {
 
 const edgeTypes = {
   topology: markRaw(TopologyEdge),
+}
+
+const minimapNodeColor = (node: GraphNode) => {
+  switch (node.type) {
+    case 'site':
+      return '#8f84ff'
+    case 'pool':
+      return 'rgba(143, 132, 255, 0.4)'
+    case 'host':
+      return 'rgba(143, 132, 255, 0.25)'
+    case 'vm-group':
+      return 'rgba(143, 132, 255, 0.15)'
+    default:
+      return 'rgba(143, 132, 255, 0.2)'
+  }
 }
 
 const { fitView } = useVueFlow()
@@ -90,6 +115,17 @@ watch(
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
+  :deep(.vue-flow__minimap) {
+    background: var(--color-neutral-background-primary);
+    border: 0.1rem solid var(--color-neutral-border);
+    border-radius: 0.6rem;
+    overflow: hidden;
+
+    :root.dark & .vue-flow__minimap-mask {
+      fill: rgba(255, 255, 255, 0.08);
+    }
+  }
+
   :deep(.vue-flow__controls) {
     background: var(--color-neutral-background-primary);
     border: 0.1rem solid var(--color-neutral-border);
@@ -108,6 +144,12 @@ watch(
         fill: currentColor;
       }
     }
+  }
+}
+
+@keyframes edge-flow {
+  to {
+    stroke-dashoffset: -18;
   }
 }
 </style>

@@ -2,7 +2,9 @@
 <template>
   <div class="topology-node site-node">
     <div class="node-header">
-      <FontAwesomeIcon :icon="faSatellite" class="node-icon" />
+      <span class="icon-circle">
+        <FontAwesomeIcon :icon="faSatellite" class="node-icon" />
+      </span>
       <span class="node-title">{{ data.label }}</span>
     </div>
     <div class="node-stats">
@@ -10,11 +12,7 @@
       <span class="stat">{{ data.hostCount }} {{ data.hostCount === 1 ? 'host' : 'hosts' }}</span>
       <span class="stat">{{ data.vmCount }} VMs</span>
     </div>
-    <NodeExpandButton
-      v-if="data.isExpandable"
-      :expanded="data.isExpanded"
-      @toggle="toggleExpand?.(SITE_NODE_ID)"
-    />
+    <NodeExpandButton v-if="data.isExpandable" :expanded="data.isExpanded" @toggle="toggleExpand?.(SITE_NODE_ID)" />
     <Handle v-else type="source" :position="Position.Bottom" />
   </div>
 </template>
@@ -37,14 +35,42 @@ const toggleExpand = inject(TOPOLOGY_TOGGLE_EXPAND, undefined)
 
 <style lang="postcss" scoped>
 .site-node {
-  background: var(--color-brand-item-base);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-brand-item-base) 85%, transparent),
+    color-mix(in srgb, var(--color-brand-item-hover) 75%, transparent)
+  );
+  backdrop-filter: blur(1.2rem);
   color: var(--color-brand-txt-item);
+  border: 0.1rem solid color-mix(in srgb, var(--color-brand-item-base) 40%, transparent);
   border-radius: 0.8rem;
   padding: 1.2rem 1.6rem;
   padding-bottom: 2rem;
   min-width: 26rem;
-  box-shadow: 0 0.4rem 1.2rem color-mix(in srgb, var(--color-brand-item-base) 30%, transparent);
+  box-shadow: var(--shadow-200);
   position: relative;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+
+  &:hover {
+    box-shadow: var(--shadow-300);
+    transform: translateY(-0.2rem);
+  }
+
+  :root.dark & {
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--color-brand-item-base) 60%, transparent),
+      color-mix(in srgb, var(--color-brand-item-base) 40%, transparent)
+    );
+    border-color: color-mix(in srgb, var(--color-brand-item-base) 30%, transparent);
+    box-shadow: 0 0.2rem 0.8rem rgba(255, 255, 255, 0.06);
+
+    &:hover {
+      box-shadow: 0 0.4rem 1.4rem rgba(255, 255, 255, 0.1);
+    }
+  }
 
   .node-header {
     display: flex;
@@ -52,6 +78,21 @@ const toggleExpand = inject(TOPOLOGY_TOGGLE_EXPAND, undefined)
     gap: 0.8rem;
     font-weight: 600;
     font-size: 1.4rem;
+
+    .icon-circle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.8rem;
+      height: 2.8rem;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      flex-shrink: 0;
+
+      .node-icon {
+        font-size: 1.2rem;
+      }
+    }
   }
 
   .node-stats {

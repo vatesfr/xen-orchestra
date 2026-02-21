@@ -52,7 +52,7 @@ export type TopologyEdge = Edge
 export const NODE_DIMENSIONS = {
   site: { width: 280, height: 120 },
   pool: { width: 260, height: 130 },
-  host: { width: 240, height: 145 },
+  host: { width: 240, height: 165 },
   'vm-group': { width: 200, height: 100 },
 } as const
 

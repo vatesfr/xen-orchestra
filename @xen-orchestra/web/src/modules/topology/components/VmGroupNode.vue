@@ -3,7 +3,9 @@
   <div class="topology-node vm-group-node">
     <Handle type="target" :position="Position.Top" />
     <div class="vm-header">
-      <FontAwesomeIcon :icon="faDesktop" class="vm-icon" />
+      <span class="icon-circle">
+        <FontAwesomeIcon :icon="faDesktop" class="vm-icon" />
+      </span>
       <div class="vm-summary">
         <span v-if="data.runningCount > 0" class="count running">{{ data.runningCount }} running</span>
         <span v-if="data.stoppedCount > 0" class="count stopped">{{ data.stoppedCount }} stopped</span>
@@ -18,11 +20,7 @@
         </RouterLink>
       </div>
     </div>
-    <NodeExpandButton
-      v-if="data.isExpandable"
-      :expanded="data.isExpanded"
-      @toggle="toggleExpand?.(id)"
-    />
+    <NodeExpandButton v-if="data.isExpandable" :expanded="data.isExpanded" @toggle="toggleExpand?.(id)" />
   </div>
 </template>
 
@@ -49,6 +47,23 @@ const toggleExpand = inject(TOPOLOGY_TOGGLE_EXPAND, undefined)
   padding-bottom: 2rem;
   min-width: 18rem;
   position: relative;
+  box-shadow: var(--shadow-200);
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+
+  &:hover {
+    box-shadow: var(--shadow-300);
+    transform: translateY(-0.2rem);
+  }
+
+  :root.dark & {
+    box-shadow: 0 0.2rem 0.8rem rgba(255, 255, 255, 0.06);
+
+    &:hover {
+      box-shadow: 0 0.4rem 1.4rem rgba(255, 255, 255, 0.1);
+    }
+  }
 
   .vm-header {
     display: flex;
@@ -56,10 +71,24 @@ const toggleExpand = inject(TOPOLOGY_TOGGLE_EXPAND, undefined)
     gap: 0.6rem;
   }
 
-  .vm-icon {
-    color: var(--color-neutral-txt-secondary);
-    font-size: 1.2rem;
+  .icon-circle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 50%;
+    background: var(--color-neutral-background-disabled);
     flex-shrink: 0;
+
+    :root.dark & {
+      background: color-mix(in srgb, var(--color-neutral-txt-secondary) 15%, transparent);
+    }
+
+    .vm-icon {
+      color: var(--color-neutral-txt-secondary);
+      font-size: 1rem;
+    }
   }
 
   .vm-summary {

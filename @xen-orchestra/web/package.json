@@ -29,6 +29,7 @@
     "@vates/types": "^1.19.0",
     "@vue-flow/controls": "^1.1.0",
     "@vue-flow/core": "^1.41.0",
+    "@vue-flow/minimap": "^1.5.4",
     "@vitejs/plugin-vue": "^5.2.1",
     "@vue/tsconfig": "^0.7.0",
     "@vueuse/core": "^13.0.0",

@@ -3,7 +3,9 @@
   <div class="topology-node pool-node">
     <Handle type="target" :position="Position.Top" />
     <div class="node-header">
-      <FontAwesomeIcon :icon="faCity" class="node-icon" />
+      <span class="icon-circle">
+        <FontAwesomeIcon :icon="faCity" class="node-icon" />
+      </span>
       <RouterLink :to="{ name: '/pool/[id]', params: { id: data.pool.id } }" class="node-title">
         {{ data.pool.name_label }}
       </RouterLink>
@@ -12,7 +14,7 @@
       {{ data.hostCount }} {{ data.hostCount === 1 ? 'node' : 'nodes' }}, {{ data.vmCount }} VMs
     </div>
     <div class="node-running">
-      <span class="running-badge">{{ data.runningVmCount }} running</span>
+      <span class="running-pill">{{ data.runningVmCount }} running</span>
     </div>
     <NodeExpandButton
       v-if="data.isExpandable"
@@ -39,21 +41,54 @@ const toggleExpand = inject(TOPOLOGY_TOGGLE_EXPAND, undefined)
 
 <style lang="postcss" scoped>
 .pool-node {
-  background: var(--color-neutral-background-primary);
+  background: var(--color-brand-background-selected);
   border: 0.2rem solid var(--color-brand-item-base);
   border-radius: 0.8rem;
   padding: 1.2rem 1.6rem;
   padding-bottom: 2rem;
   min-width: 24rem;
   position: relative;
+  box-shadow: var(--shadow-200);
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+
+  &:hover {
+    box-shadow: var(--shadow-300);
+    transform: translateY(-0.2rem);
+  }
+
+  :root.dark & {
+    box-shadow: 0 0.2rem 0.8rem rgba(255, 255, 255, 0.06);
+
+    &:hover {
+      box-shadow: 0 0.4rem 1.4rem rgba(255, 255, 255, 0.1);
+    }
+  }
 
   .node-header {
     display: flex;
     align-items: center;
     gap: 0.8rem;
 
-    .node-icon {
-      color: var(--color-brand-item-base);
+    .icon-circle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.8rem;
+      height: 2.8rem;
+      border-radius: 50%;
+      background: var(--color-brand-background-selected);
+      flex-shrink: 0;
+
+      :root.dark & {
+        background: color-mix(in srgb, var(--color-brand-item-base) 20%, transparent);
+      }
+
+      .node-icon {
+        font-size: 1.2rem;
+        color: var(--color-brand-item-base);
+      }
     }
 
     .node-title {
@@ -77,10 +112,18 @@ const toggleExpand = inject(TOPOLOGY_TOGGLE_EXPAND, undefined)
   .node-running {
     margin-top: 0.4rem;
 
-    .running-badge {
+    .running-pill {
+      display: inline-block;
       font-size: 1.1rem;
-      color: var(--color-success-item-base);
       font-weight: 500;
+      color: var(--color-success-item-base);
+      background: var(--color-success-background-selected);
+      padding: 0.1rem 0.8rem;
+      border-radius: 10rem;
+
+      :root.dark & {
+        background: color-mix(in srgb, var(--color-success-item-base) 20%, transparent);
+      }
     }
   }
 }
