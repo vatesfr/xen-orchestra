@@ -25,6 +25,15 @@
       <template #node-vm-group="nodeProps">
         <VmGroupNode :id="nodeProps.id" :data="nodeProps.data" />
       </template>
+      <template #node-network="nodeProps">
+        <NetworkNode :data="nodeProps.data" />
+      </template>
+      <template #node-sr="nodeProps">
+        <SrNode :data="nodeProps.data" />
+      </template>
+      <template #node-empty-group="nodeProps">
+        <EmptyGroupNode :id="nodeProps.id" :data="nodeProps.data" />
+      </template>
       <template #edge-topology="edgeProps">
         <TopologyEdge v-bind="edgeProps" />
       </template>
@@ -41,9 +50,12 @@
 </template>
 
 <script lang="ts" setup>
+import EmptyGroupNode from '@/modules/topology/components/EmptyGroupNode.vue'
 import HostNode from '@/modules/topology/components/HostNode.vue'
+import NetworkNode from '@/modules/topology/components/NetworkNode.vue'
 import PoolNode from '@/modules/topology/components/PoolNode.vue'
 import SiteNode from '@/modules/topology/components/SiteNode.vue'
+import SrNode from '@/modules/topology/components/SrNode.vue'
 import TopologyEdge from '@/modules/topology/components/TopologyEdge.vue'
 import VmGroupNode from '@/modules/topology/components/VmGroupNode.vue'
 import { TOPOLOGY_ZOOM } from '@/modules/topology/composables/use-topology-interaction.ts'
@@ -59,7 +71,7 @@ import '@vue-flow/core/dist/theme-default.css'
 import '@vue-flow/controls/dist/style.css'
 import '@vue-flow/minimap/dist/style.css'
 
-const props = defineProps<{
+const { nodes, edges } = defineProps<{
   nodes: TopologyNode[]
   edges: TopologyEdgeType[]
 }>()
@@ -69,6 +81,9 @@ const nodeTypes: Record<string, any> = {
   pool: markRaw(PoolNode),
   host: markRaw(HostNode),
   'vm-group': markRaw(VmGroupNode),
+  network: markRaw(NetworkNode),
+  sr: markRaw(SrNode),
+  'empty-group': markRaw(EmptyGroupNode),
 }
 
 const edgeTypes = {
@@ -85,6 +100,12 @@ const minimapNodeColor = (node: GraphNode) => {
       return 'rgba(143, 132, 255, 0.25)'
     case 'vm-group':
       return 'rgba(143, 132, 255, 0.15)'
+    case 'network':
+      return '#3b82f6'
+    case 'sr':
+      return '#f59e0b'
+    case 'empty-group':
+      return 'rgba(100, 100, 100, 0.2)'
     default:
       return 'rgba(143, 132, 255, 0.2)'
   }
@@ -101,7 +122,7 @@ function onViewportChange(viewport: { zoom: number }) {
 }
 
 watch(
-  () => props.nodes,
+  () => nodes.length,
   () => {
     nextTick(() => {
       setTimeout(() => {
@@ -112,7 +133,7 @@ watch(
 )
 </script>
 
-<style lang="postcss" scoped>
+<style scoped lang="postcss">
 .topology-canvas {
   width: 100%;
   height: 100%;

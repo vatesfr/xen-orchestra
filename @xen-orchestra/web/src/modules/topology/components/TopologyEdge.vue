@@ -6,17 +6,17 @@
 import { BaseEdge, getSmoothStepPath, type EdgeProps } from '@vue-flow/core'
 import { computed } from 'vue'
 
-const props = defineProps<EdgeProps>()
+const { sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition } = defineProps<EdgeProps>()
 
 const edgePath = computed(
   () =>
     getSmoothStepPath({
-      sourceX: props.sourceX,
-      sourceY: props.sourceY,
-      targetX: props.targetX,
-      targetY: props.targetY,
-      sourcePosition: props.sourcePosition,
-      targetPosition: props.targetPosition,
+      sourceX,
+      sourceY,
+      targetX,
+      targetY,
+      sourcePosition,
+      targetPosition,
       borderRadius: 8,
     })[0]
 )

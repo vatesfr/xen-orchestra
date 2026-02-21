@@ -1,6 +1,6 @@
 <!-- eslint-disable @intlify/vue-i18n/no-raw-text -- prototype: i18n keys to be added later -->
 <template>
-  <div class="topology-node site-node">
+  <div class="topology-node site-node" :class="isLR ? 'dir-lr' : 'dir-tb'">
     <div class="node-header">
       <span class="icon-circle">
         <FontAwesomeIcon :icon="faSatellite" class="node-icon" />
@@ -13,13 +13,13 @@
       <span class="stat">{{ data.vmCount }} VMs</span>
     </div>
     <NodeExpandButton v-if="data.isExpandable" :expanded="data.isExpanded" @toggle="toggleExpand?.(SITE_NODE_ID)" />
-    <Handle v-else type="source" :position="Position.Bottom" />
+    <Handle v-else type="source" :position="isLR ? Position.Right : Position.Bottom" />
   </div>
 </template>
 
 <script lang="ts" setup>
 import NodeExpandButton from '@/modules/topology/components/NodeExpandButton.vue'
-import { TOPOLOGY_TOGGLE_EXPAND } from '@/modules/topology/composables/use-topology-interaction.ts'
+import { TOPOLOGY_DIRECTION, TOPOLOGY_TOGGLE_EXPAND } from '@/modules/topology/composables/use-topology-interaction.ts'
 import type { SiteNodeData } from '@/modules/topology/types/topology.types.ts'
 import { faSatellite } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
@@ -31,9 +31,10 @@ defineProps<{ data: SiteNodeData }>()
 const SITE_NODE_ID = 'site-root'
 
 const toggleExpand = inject(TOPOLOGY_TOGGLE_EXPAND, undefined)
+const isLR = inject(TOPOLOGY_DIRECTION, 'TB') === 'LR'
 </script>
 
-<style lang="postcss" scoped>
+<style scoped lang="postcss">
 .site-node {
   background: linear-gradient(
     135deg,
@@ -45,8 +46,15 @@ const toggleExpand = inject(TOPOLOGY_TOGGLE_EXPAND, undefined)
   border: 0.1rem solid color-mix(in srgb, var(--color-brand-item-base) 40%, transparent);
   border-radius: 0.8rem;
   padding: 1.2rem 1.6rem;
-  padding-bottom: 2rem;
   min-width: 26rem;
+
+  &.dir-tb {
+    padding-bottom: 2rem;
+  }
+
+  &.dir-lr {
+    padding-right: 2.5rem;
+  }
   box-shadow: var(--shadow-200);
   position: relative;
   transition:

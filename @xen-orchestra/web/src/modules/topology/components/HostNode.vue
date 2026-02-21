@@ -36,17 +36,17 @@ import { HOST_POWER_STATE } from '@vates/types'
 import { Handle, Position } from '@vue-flow/core'
 import { computed, inject } from 'vue'
 
-const props = defineProps<{ data: HostNodeData }>()
+const { data } = defineProps<{ data: HostNodeData }>()
 
 const toggleExpand = inject(TOPOLOGY_TOGGLE_EXPAND, undefined)
 
 const statusClass = computed(() =>
-  props.data.host.power_state === HOST_POWER_STATE.RUNNING ? 'status-running' : 'status-halted'
+  data.host.power_state === HOST_POWER_STATE.RUNNING ? 'status-running' : 'status-halted'
 )
 
 const haloClass = computed(() => {
-  const cpu = props.data.cpuPercent
-  const mem = props.data.memorySize > 0 ? (props.data.memoryUsage / props.data.memorySize) * 100 : undefined
+  const cpu = data.cpuPercent
+  const mem = data.memorySize > 0 ? (data.memoryUsage / data.memorySize) * 100 : undefined
 
   const worst = Math.max(cpu ?? 0, mem ?? 0)
   if (cpu == null && mem == null) return undefined
@@ -56,7 +56,7 @@ const haloClass = computed(() => {
 })
 </script>
 
-<style lang="postcss" scoped>
+<style scoped lang="postcss">
 .host-node {
   background: var(--color-neutral-background-primary);
   border: 0.1rem solid var(--color-neutral-border);

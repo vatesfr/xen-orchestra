@@ -1,7 +1,7 @@
 <!-- eslint-disable @intlify/vue-i18n/no-raw-text -- prototype: i18n keys to be added later -->
 <template>
-  <div class="topology-node vm-group-node">
-    <Handle type="target" :position="Position.Top" />
+  <div class="topology-node vm-group-node" :class="isLR ? 'dir-lr' : 'dir-tb'">
+    <Handle type="target" :position="isLR ? Position.Left : Position.Top" />
     <div class="vm-header">
       <span class="icon-circle">
         <FontAwesomeIcon :icon="faDesktop" class="vm-icon" />
@@ -26,7 +26,7 @@
 
 <script lang="ts" setup>
 import NodeExpandButton from '@/modules/topology/components/NodeExpandButton.vue'
-import { TOPOLOGY_TOGGLE_EXPAND } from '@/modules/topology/composables/use-topology-interaction.ts'
+import { TOPOLOGY_DIRECTION, TOPOLOGY_TOGGLE_EXPAND } from '@/modules/topology/composables/use-topology-interaction.ts'
 import type { VmGroupNodeData } from '@/modules/topology/types/topology.types.ts'
 import { faDesktop } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
@@ -36,16 +36,24 @@ import { inject } from 'vue'
 defineProps<{ data: VmGroupNodeData; id: string }>()
 
 const toggleExpand = inject(TOPOLOGY_TOGGLE_EXPAND, undefined)
+const isLR = inject(TOPOLOGY_DIRECTION, 'TB') === 'LR'
 </script>
 
-<style lang="postcss" scoped>
+<style scoped lang="postcss">
 .vm-group-node {
   background: var(--color-neutral-background-secondary);
   border: 0.1rem dashed var(--color-neutral-border);
   border-radius: 0.6rem;
   padding: 0.8rem 1.2rem;
-  padding-bottom: 2rem;
   min-width: 18rem;
+
+  &.dir-tb {
+    padding-bottom: 2rem;
+  }
+
+  &.dir-lr {
+    padding-right: 2.5rem;
+  }
   max-width: 26rem;
   overflow: visible;
   position: relative;

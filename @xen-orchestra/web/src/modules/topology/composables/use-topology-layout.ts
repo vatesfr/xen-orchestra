@@ -1,8 +1,10 @@
+import type { TopologyDirection } from '@/modules/topology/composables/use-topology-interaction.ts'
 import dagre from '@dagrejs/dagre'
 import type { Ref } from 'vue'
 import { computed } from 'vue'
 
 import {
+  EMPTY_GROUP_EXPANDED_ROW_HEIGHT,
   NODE_DIMENSIONS,
   VM_GROUP_EXPANDED_ROW_HEIGHT,
   type TopologyEdge,
@@ -15,17 +17,25 @@ function getNodeDimensions(node: TopologyNode) {
     const base = NODE_DIMENSIONS['vm-group']
     return { width: base.width, height: base.height + data.vms.length * VM_GROUP_EXPANDED_ROW_HEIGHT }
   }
+  if (data.type === 'empty-group' && data.isExpanded) {
+    const base = NODE_DIMENSIONS['empty-group']
+    return { width: base.width, height: base.height + data.items.length * EMPTY_GROUP_EXPANDED_ROW_HEIGHT }
+  }
   return NODE_DIMENSIONS[data.type] ?? { width: 200, height: 100 }
 }
 
-export function useTopologyLayout(nodes: Ref<TopologyNode[]>, edges: Ref<TopologyEdge[]>) {
+export function useTopologyLayout(
+  nodes: Ref<TopologyNode[]>,
+  edges: Ref<TopologyEdge[]>,
+  direction: TopologyDirection = 'TB'
+) {
   return computed(() => {
     const g = new dagre.graphlib.Graph()
     g.setDefaultEdgeLabel(() => ({}))
     g.setGraph({
-      rankdir: 'TB',
-      nodesep: 60,
-      ranksep: 80,
+      rankdir: direction,
+      nodesep: direction === 'LR' ? 40 : 60,
+      ranksep: direction === 'LR' ? 100 : 80,
       marginx: 40,
       marginy: 40,
     })

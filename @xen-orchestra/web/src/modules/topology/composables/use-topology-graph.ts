@@ -251,7 +251,9 @@ export function useTopologyGraph() {
     return edges
   })
 
-  const layouted = useTopologyLayout(rawNodes, rawEdges)
+  const direction = 'TB' as const
+
+  const layouted = useTopologyLayout(rawNodes, rawEdges, direction)
 
   return {
     nodes: computed(() => layouted.value.nodes),
@@ -259,5 +261,6 @@ export function useTopologyGraph() {
     isReady,
     expandedNodes,
     toggleExpand,
+    direction,
   }
 }
