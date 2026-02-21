@@ -148,6 +148,7 @@
   "backups:jobs:no-recent-run": "Geen recente run",
   "backups:jobs:running-good": "Loopt goed",
   "backups:jobs:skipped-runs": "Overgeslagen runs, geen fouten",
+  "backups:jobs:status": "Status van back-uptaken",
   "backups:vms-protection": "VMs bescherming",
   "backups:vms-protection:no-job": "In geen enkele opdracht",
   "backups:vms-protection:protected": "In minstens één opdracht & beschermd",
