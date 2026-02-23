@@ -34,7 +34,7 @@ export class VmBackupDirectory implements IVmBackupInterface {
     for (const fullPath of this.files.filter(path => path.endsWith('.json'))) {
       const metadata = JSON.parse(await this.handler.readFile(fullPath)) satisfies PartialBackupMetadata
       try {
-        const backupArchive = await this.createBackupArchive(fullPath, metadata)
+        const backupArchive = await this.instantiateBackupArchive(fullPath, metadata)
         this.backupArchives.set(fullPath, backupArchive)
       } catch (error) {
         this.opts.logWarn(`Issue loading ${metadata.xva ?? metadata.vhds}`, { json: fullPath, backup: metadata })
@@ -67,7 +67,7 @@ export class VmBackupDirectory implements IVmBackupInterface {
     return orphans
   }
 
-  async createBackupArchive(metadataPath: string, metadata: PartialBackupMetadata) {
+  async instantiateBackupArchive(metadataPath: string, metadata: PartialBackupMetadata) {
     let backupArchive: IVmBackupInterface
     try {
       if (metadata.mode === 'full') {
