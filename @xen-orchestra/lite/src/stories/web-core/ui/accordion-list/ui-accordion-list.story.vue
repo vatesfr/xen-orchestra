@@ -2,12 +2,12 @@
   <ComponentStory v-slot="{ properties }" :params="[slot().help('a list of ui-accordion-item')]">
     <UiAccordionList v-bind="properties">
       <UiAccordionItem
-        v-for="(tab, i) in tabs"
-        :key="i"
+        v-for="(tab, index) in tabs"
+        :key="index"
         :title="tab.title"
         :content="tab.content"
         size="large"
-        :identifier="i"
+        :identifier="index"
       />
     </UiAccordionList>
   </ComponentStory>
