@@ -10,7 +10,15 @@ import { defer } from 'golike-defer'
 import { getOldEntries } from '../../_getOldEntries.mjs'
 import { Task } from '../../Task.mjs'
 import { Abstract } from './_Abstract.mjs'
-import { DATETIME, JOB_ID, SCHEDULE_ID, VM_UUID, resetVmOtherConfig, setVmOtherConfig } from '../../_otherConfig.mjs'
+import {
+  DATETIME,
+  JOB_ID,
+  SCHEDULE_ID,
+  VM_UUID,
+  resetVmOtherConfig,
+  setVmOtherConfig,
+  setVmSnapshotContentKeys,
+} from '../../_otherConfig.mjs'
 
 const { warn, info } = createLogger('xo:backups:AbstractXapi')
 
@@ -205,6 +213,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           scheduleId: this.scheduleId,
           vmUuid: vm.uuid,
         })
+        await setVmSnapshotContentKeys(xapi, snapshotRef)
         const snapshot = await xapi.getRecord('VM', snapshotRef)
         await snapshot.set_name_label(this._getSnapshotNameLabel(vm))
         // reload data to ensure it is up to date with the new name label
