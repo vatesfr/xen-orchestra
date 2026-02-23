@@ -124,7 +124,7 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   $defer,
   incrementalVm,
   sr,
-  { cancelToken = CancelToken.none, newMacAddresses = false, targetUuid = undefined } = {}
+  { cancelToken = CancelToken.none, newMacAddresses = false, targetRef = undefined } = {}
 ) {
   const { version } = incrementalVm
   if (compareVersions(version, '1.0.0') < 0) {
@@ -136,8 +136,8 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
 
   const vdiRecords = incrementalVm.vdis
 
-  // When targetUuid is provided, update the existing VM instead of creating a new one.
-  const targetVm = targetUuid !== undefined ? xapi.getObjectByUuid(targetUuid, undefined) : undefined
+  // When targetRef is provided, update the existing VM instead of creating a new one.
+  const targetVm = targetRef !== undefined ? xapi.getObjectByRef(targetRef, undefined) : undefined
   const isUpdate = targetVm !== undefined && !targetVm.is_a_snapshot && !targetVm.is_a_template
 
   // 0. Create suspend_VDI (only when creating a new VM).

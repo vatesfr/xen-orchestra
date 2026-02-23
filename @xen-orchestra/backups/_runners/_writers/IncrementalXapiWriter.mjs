@@ -32,21 +32,30 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
 
     // @todo use an index if possible
     // @todo : this seems similar to decorateVmMetadata
-    const replicatedVdis = sr.$VDIs
-      .filter(vdi => {
-        // REPLICATED_TO_SR_UUID is not used here since we are already filtering from sr.$VDIs
-        return (
-          vdi?.managed &&
-          !vdi?.is_a_snapshot /* only look for real vdi */ &&
-          baseUuidToSrcVdi.has(vdi?.other_config[COPY_OF])
-        )
-      })
-      .map(({ other_config }) => other_config?.[COPY_OF])
-      .filter(_ => !!_)
+    const replicatedVdis = sr.$VDIs.filter(vdi => {
+      // REPLICATED_TO_SR_UUID is not used here since we are already filtering from sr.$VDIs
+      // Also search snapshot VDIs to support the single-VM replication flow where
+      // base VDIs live on snapshots of the replicated VM.
+      return vdi?.managed && baseUuidToSrcVdi.has(vdi?.other_config[COPY_OF])
+    })
+
+    const replicatedCopyOfUuids = replicatedVdis.map(({ other_config }) => other_config?.[COPY_OF]).filter(_ => !!_)
 
     for (const uuid of baseUuidToSrcVdi.keys()) {
-      if (!replicatedVdis.includes(uuid)) {
+      if (!replicatedCopyOfUuids.includes(uuid)) {
         baseUuidToSrcVdi.delete(uuid)
+      }
+    }
+
+    // Track the target VM (the replicated VM to update on the next transfer).
+    // For snapshot VDIs, traverse snapshot VM → snapshot_of to reach the replicated VM.
+    if (replicatedVdis.length > 0) {
+      for (const vdi of replicatedVdis) {
+        const vm = vdi.is_a_snapshot ? vdi.$VBDs?.[0]?.$VM?.$snapshot_of : vdi.$VBDs?.[0]?.$VM
+        if (vm !== undefined) {
+          this._targetVmRef = vm.$ref
+          break
+        }
       }
     }
   }
@@ -180,7 +189,9 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
 
     let targetVmRef
     await Task.run({ name: 'transfer' }, async () => {
-      targetVmRef = await importIncrementalVm(this.#decorateVmMetadata(deltaExport, timestamp), sr)
+      targetVmRef = await importIncrementalVm(this.#decorateVmMetadata(deltaExport, timestamp), sr, {
+        targetRef: this._targetVmRef,
+      })
       // size is mandatory to ensure the task have the right data
       return {
         size: Object.values(deltaExport.disks).reduce(
