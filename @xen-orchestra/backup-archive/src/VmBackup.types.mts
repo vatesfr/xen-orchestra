@@ -16,6 +16,14 @@ export interface PartialBackupMetadata {
   timestamp: number
 }
 
+export interface BackupCleanOptions {
+  fix: boolean
+  merge: boolean
+  remove: boolean
+  logInfo: (message: any, opts?: object) => void
+  logWarn: (message: any, opts?: object) => void
+}
+
 export interface IBackupLineage {
   init(): Promise<void>
   check(): Promise<void>

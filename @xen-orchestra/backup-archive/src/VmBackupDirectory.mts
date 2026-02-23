@@ -59,7 +59,13 @@ export class VmBackupDirectory implements IVmBackupInterface {
     let backupArchive: IVmBackupInterface
     try {
       if (metadata.mode == 'full') {
-        backupArchive = new VmFullBackupArchive(this.handler, this.rootPath, metadataPath, metadata, metadata.xva!)
+        backupArchive = new VmFullBackupArchive(this.handler, this.rootPath, metadataPath, metadata, metadata.xva!, {
+          fix: true,
+          merge: true,
+          remove: true,
+          logWarn: console.warn,
+          logInfo: console.log,
+        })
       } else {
         //@ts-ignore
         backupArchive = new VmIncrementalBackupArchive(this.handler)
