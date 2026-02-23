@@ -32,6 +32,8 @@
 - [REST API] Expose `POST /vdis` to create a VDI (PR [#9492](https://github.com/vatesfr/xen-orchestra/pull/9492))
 - [Header] Add a banner when the connection to the xo server fails (PR [#9375](https://github.com/vatesfr/xen-orchestra/pull/9375))
 
+- [Core/Uichip] Update UiChip component to V6 (PR [#9491](https://github.com/vatesfr/pull/9491))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
