@@ -1,12 +1,12 @@
 <template>
   <MenuList
     :disabled="selectedRefs.length === 0"
-    :horizontal="!uiStore.isMobile"
-    :no-border="!uiStore.isMobile"
+    :horizontal="!uiStore.isSmall"
+    :no-border="!uiStore.isSmall"
     class="vms-actions-bar"
     placement="bottom-end"
   >
-    <template v-if="uiStore.isMobile" #trigger="{ isOpen, open }">
+    <template v-if="uiStore.isSmall" #trigger="{ isOpen, open }">
       <UiButtonIcon accent="brand" size="small" :selected="isOpen" icon="fa:ellipsis" @click="open" />
     </template>
     <MenuItem icon="fa:power-off">

@@ -1,10 +1,10 @@
 <template>
-  <div class="vms" :class="{ mobile: uiStore.isMobile }">
+  <div class="vms" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
       <VmsTable :vms :busy="!areVmsReady" :error="hasVmFetchError" />
     </UiCard>
     <VmSidePanel v-if="selectedVm" :vm="selectedVm" @close="selectedVm = undefined" />
-    <UiPanel v-else-if="!uiStore.isMobile">
+    <UiPanel v-else-if="!uiStore.isSmall">
       <VtsStateHero format="panel" type="no-selection" size="medium">
         {{ t('select-to-see-details') }}
       </VtsStateHero>

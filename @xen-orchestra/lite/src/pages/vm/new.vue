@@ -1,5 +1,5 @@
 <template>
-  <div class="new-vm-view" :class="{ mobile: uiStore.isMobile }">
+  <div class="new-vm-view" :class="{ mobile: uiStore.isSmall }">
     <UiHeadBar icon="fa:plus">
       {{ t('new-vm:add') }}
     </UiHeadBar>
@@ -20,8 +20,8 @@
               <div v-if="isDiskTemplate" class="install-settings-container">
                 <UiRadioButtonGroup
                   accent="brand"
-                  :vertical="uiStore.isMobile"
-                  :gap="uiStore.isMobile ? 'narrow' : 'wide'"
+                  :vertical="uiStore.isSmall"
+                  :gap="uiStore.isSmall ? 'narrow' : 'wide'"
                 >
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="noConfigDrive">
                     {{ t('no-config') }}
@@ -35,8 +35,8 @@
               <div v-else class="install-settings-container">
                 <UiRadioButtonGroup
                   accent="brand"
-                  :vertical="uiStore.isMobile"
-                  :gap="uiStore.isMobile ? 'narrow' : 'wide'"
+                  :vertical="uiStore.isSmall"
+                  :gap="uiStore.isSmall ? 'narrow' : 'wide'"
                 >
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="ISO">
                     {{ t('iso-dvd') }}
@@ -129,7 +129,7 @@
             <NewVmSrTable :srs :vm-state @add="addStorageEntry()" @remove="index => deleteItem(vmState.vdis, index)" />
             <!-- SETTINGS SECTION -->
             <UiTitle>{{ t('settings') }}</UiTitle>
-            <UiCheckboxGroup accent="brand" :vertical="uiStore.isMobile">
+            <UiCheckboxGroup accent="brand" :vertical="uiStore.isSmall">
               <UiCheckbox v-model="vmState.boot_vm" accent="brand">{{ t('action:boot-vm') }}</UiCheckbox>
               <UiCheckbox v-model="vmState.auto_power" accent="brand">{{ t('auto-power') }}</UiCheckbox>
               <UiCheckbox v-if="isDiskTemplate" v-model="vmState.fast_clone" accent="brand">

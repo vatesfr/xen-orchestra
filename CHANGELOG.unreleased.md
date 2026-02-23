@@ -14,6 +14,8 @@
 - **XO 5:**
   - [Network] Ability to switch management PIF (PRs [#9369](https://github.com/vatesfr/xen-orchestra/pull/9369) [#9510](https://github.com/vatesfr/xen-orchestra/pull/9510))
 
+[Search Engine] Implement first version of the Query Builder on Pools, Hosts, VMs, networks and Storage tables (PR [#9488](https://github.com/vatesfr/xen-orchestra/pull/9488))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -34,6 +36,9 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
+- complex-matcher minor
 - xo-web minor
 
 <!--packages-end-->

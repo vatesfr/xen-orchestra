@@ -1,5 +1,8 @@
 /* This file is meant to provide PostCSS utilities that will be globally available */
 /* https://github.com/csstools/postcss-plugins/tree/main/plugins/postcss-global-data */
 
-@custom-media --mobile (max-width: 1023px);
-@custom-media --desktop (min-width: 1024px);
+@custom-media --small (max-width: 1023px);
+@custom-media --small-or-medium (max-width: 1439px);
+@custom-media --medium (min-width: 1024px) and (max-width: 1439px);
+@custom-media --medium-or-large (min-width: 1024px);
+@custom-media --large (min-width: 1440px);
