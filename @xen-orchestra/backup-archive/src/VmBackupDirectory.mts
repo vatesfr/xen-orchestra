@@ -8,16 +8,13 @@ const FILES_TO_KEEP = ['cache.json.gz']
 export class VmBackupDirectory implements IVmBackupInterface {
   handler: RemoteHandlerAbstract
   rootPath: string
-  files: Array<string>
-  orphans: Set<string>
-  backupArchives: Map<string, IVmBackupInterface>
+  files: Array<string> = new Array()
+  orphans: Set<string> = new Set()
+  backupArchives: Map<string, IVmBackupInterface> = new Map()
 
   constructor(handler: RemoteHandlerAbstract, vmBackupPath: string) {
     this.handler = handler
     this.rootPath = vmBackupPath
-    this.files = []
-    this.orphans = new Set()
-    this.backupArchives = new Map()
   }
 
   async init() {
