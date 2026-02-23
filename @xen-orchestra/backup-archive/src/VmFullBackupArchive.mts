@@ -1,7 +1,7 @@
 import { basename, normalize } from '@xen-orchestra/fs/path'
 import assert from 'node:assert'
 import { FileDescriptor } from '@xen-orchestra/fs'
-import { IVmBackupInterface, PartialBackupMetadata } from './VmBackup.types.mjs'
+import { BackupCleanOptions, IVmBackupInterface, PartialBackupMetadata } from './VmBackup.types.mjs'
 import RemoteHandlerAbstract from '@xen-orchestra/fs'
 
 const COMPRESSED_MAGIC_NUMBERS: Buffer[] = [
@@ -72,19 +72,22 @@ export class VmFullBackupArchive implements IVmBackupInterface {
   isValid?: boolean
   metadataPath: string
   metadata: PartialBackupMetadata
+  opts: BackupCleanOptions
 
   constructor(
     handler: RemoteHandlerAbstract,
     rootPath: string,
     metadataPath: string,
     metadata: PartialBackupMetadata,
-    xvaPath: string
+    xvaPath: string,
+    opts: BackupCleanOptions
   ) {
     this.handler = handler
     this.rootPath = normalize(rootPath)
     this.metadataPath = normalize(metadataPath)
     this.metadata = metadata
     this.xvaPath = normalize(xvaPath)
+    this.opts = opts
   }
 
   async init() {
@@ -97,13 +100,13 @@ export class VmFullBackupArchive implements IVmBackupInterface {
         this.isValid = await isValidXva(this.handler, this.xvaPath)
       }
     } catch (error) {
-      console.log(error)
+      this.opts.logWarn(error)
       this.isValid = false
     }
     // TODO: check isValid
     // isValid is always false in test because XVA test is too small
     if (this.isValid) {
-      console.warn('XVA might be broken', { path: this.xvaPath })
+      this.opts.logWarn('XVA might be broken', { path: this.xvaPath })
     }
     return { xvaValid: this.isValid }
   }
@@ -114,14 +117,14 @@ export class VmFullBackupArchive implements IVmBackupInterface {
    * @param opts { remove: boolean }
    * @returns
    */
-  async clean({ remove = false }) {
+  async clean({ remove = this.opts.remove ?? false }) {
     let filesToRemove: Array<string> = []
     if (remove) {
       for (const file of filesToRemove) {
         try {
           await this.handler.unlink(file)
         } catch (error) {
-          console.warn(`Issue removing ${file}`)
+          this.opts.logWarn(`Issue removing ${file}`)
         }
       }
     }
