@@ -13,7 +13,14 @@ import {
   XenApiVmWrapped,
   XenApiVtpm,
 } from '../xen-api.mjs'
-import type { OPAQUE_REF_NULL, SUPPORTED_VDI_FORMAT, VBD_MODE, VBD_TYPE, VIF_LOCKING_MODE } from '../common.mjs'
+import type {
+  OPAQUE_REF_NULL,
+  SUPPORTED_VDI_FORMAT,
+  VBD_MODE,
+  VBD_TYPE,
+  VDI_TYPE,
+  VIF_LOCKING_MODE,
+} from '../common.mjs'
 import type { PassThrough, Readable } from 'node:stream'
 import type {
   XoGpuGroup,
@@ -121,6 +128,7 @@ export interface Xapi {
       xenstore_data?: Record<string, string>
     }
   ): Promise<XenApiVdi['$ref']>
+  SR_reclaimSpace(ref: XenApiSr['$ref']): Promise<void>
   startVm(
     id: XoVm['id'],
     opts?: {
@@ -218,6 +226,23 @@ export interface Xapi {
   }): Promise<XenApiVbd['$ref']>
   VBD_destroy(vbdRef: XenApiVbd['$ref']): Promise<void>
   VBD_unplug(vbdRef: XenApiVbd['$ref']): Promise<void>
+  VDI_create(
+    options: {
+      name_description?: XoVdi['name_description']
+      name_label?: XoVdi['name_label']
+      other_config?: XoVdi['other_config']
+      read_only?: boolean
+      sharable?: boolean
+      SR?: XenApiSr['$ref']
+      tags?: XoVdi['tags']
+      type?: VDI_TYPE
+      virtual_size: XoVdi['size']
+      xenstore_data?: Record<string, string>
+    },
+    extraOptions?: {
+      sm_config?: Record<string, string>
+    }
+  ): Promise<XenApiVdi['$ref']>
   VDI_destroy(vdiRef: XenApiVdi['$ref']): Promise<void>
   VDI_destroyCloudInitConfig(vdiRef: XenApiVdi['$ref'], opts?: { timeLimit?: number }): Promise<void>
   VDI_exportContent(
