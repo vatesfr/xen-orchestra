@@ -89,7 +89,7 @@
                         </template>
                       </I18nT>
                       <br />
-                      <I18nT keypath="new-vm:network-config-more">
+                      <I18nT keypath="new-vm:network-config-more" scope="global">
                         <template #documentationLink>
                           <UiLink
                             href="https://cloudinit.readthedocs.io/en/latest/reference/network-config-format-v1.html#networking-config-version-1"
