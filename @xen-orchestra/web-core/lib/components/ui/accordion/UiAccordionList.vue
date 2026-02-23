@@ -1,3 +1,4 @@
+<!-- v7 -->
 <template>
   <div class="accordion">
     <slot />
@@ -5,7 +6,7 @@
 </template>
 
 <script setup lang="ts">
-import { IK_ACCORDION } from '@core/utils/injection-keys.util'
+import { IK_ACCORDION } from '@core/utils/injection-keys.util.ts'
 import { ref, provide, reactive } from 'vue'
 
 const expandedKey = ref<string | null>(null)
@@ -15,7 +16,7 @@ const toggle = (key: string) => {
 }
 
 export type UiAccordionController = {
-  expandedKey: string | null
+  readonly expandedKey: string | null
   toggle: (key: string) => void
 }
 
