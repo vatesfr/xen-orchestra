@@ -52,7 +52,7 @@ export function useFormSelect<
     }>
     option?: {
       id?: GetItemId<TSource>
-      value?: TGetValue | ((source: TSource, properties: TCustomProperties) => $TValue)
+      value?: TGetValue | ((source: TSource, properties: TCustomProperties, index: number) => $TValue)
       properties?: (source: TSource) => TCustomProperties
       label?: GetOptionLabel<TSource, TCustomProperties>
       selectedLabel?: (source: TSource, properties: TCustomProperties) => string
@@ -91,7 +91,7 @@ export function useFormSelect<
     }>
     option?: {
       id?: GetItemId<TSource>
-      value?: TGetValue | ((source: TSource, properties: TCustomProperties) => $TValue)
+      value?: TGetValue | ((source: TSource, properties: TCustomProperties, index: number) => $TValue)
       properties?: (source: TSource) => TCustomProperties
       label?: GetOptionLabel<TSource, TCustomProperties>
       selectedLabel?: (source: TSource, properties: TCustomProperties) => string
@@ -130,7 +130,7 @@ export function useFormSelect<
     }>
     option: {
       id?: GetItemId<TSource>
-      value?: TGetValue | ((source: TSource, properties: TCustomProperties) => $TValue)
+      value?: TGetValue | ((source: TSource, properties: TCustomProperties, index: number) => $TValue)
       properties?: (source: TSource) => TCustomProperties
       label: GetOptionLabel<TSource, TCustomProperties>
       selectedLabel?: (source: TSource, properties: TCustomProperties) => string
@@ -169,7 +169,7 @@ export function useFormSelect<
     }>
     option: {
       id: GetItemId<TSource>
-      value?: TGetValue | ((source: TSource, properties: TCustomProperties) => $TValue)
+      value?: TGetValue | ((source: TSource, properties: TCustomProperties, index: number) => $TValue)
       properties?: (source: TSource) => TCustomProperties
       label?: GetOptionLabel<TSource, TCustomProperties>
       selectedLabel?: (source: TSource, properties: TCustomProperties) => string
@@ -208,7 +208,7 @@ export function useFormSelect<
     }>
     option: {
       id: GetItemId<TSource>
-      value?: TGetValue | ((source: TSource, properties: TCustomProperties) => $TValue)
+      value?: TGetValue | ((source: TSource, properties: TCustomProperties, index: number) => $TValue)
       properties?: (source: TSource) => TCustomProperties
       label: GetOptionLabel<TSource, TCustomProperties>
       selectedLabel?: (source: TSource, properties: TCustomProperties) => string
@@ -289,7 +289,7 @@ export function useFormSelect<
       active: { multiple: false },
       selected: { multiple: isMultiple },
     },
-    properties: (source): FormOptionCollectionItemProperties<TCustomProperties, $TValue> => {
+    properties: (source, index): FormOptionCollectionItemProperties<TCustomProperties, $TValue> => {
       if (source === EMPTY_OPTION) {
         const emptyOption = toValue(config?.emptyOption)
 
@@ -305,7 +305,7 @@ export function useFormSelect<
 
       const customProperties = config?.option?.properties?.(source) ?? ({} as TCustomProperties)
       const label = computed(() => guessLabel(source, customProperties, config?.option?.label))
-      const value = computed(() => guessValue(source, customProperties, config?.option?.value) as $TValue)
+      const value = computed(() => guessValue(source, customProperties, config?.option?.value, index) as $TValue)
       const disabled = computed(() => isDisabled.value || config?.option?.disabled?.(source, customProperties) === true)
       const searchableTerm = computed(() => config?.option?.searchableTerm?.(source, customProperties))
       const selectedLabel = computed(() => config?.option?.selectedLabel?.(source, customProperties))
@@ -335,7 +335,7 @@ export function useFormSelect<
 
   const { items: options } = useSubset(option => option.properties.matching)
 
-  const { items: selectedOptions, toggleAll: toggleSelectAll } = useFlag('selected')
+  const { items: selectedOptions } = useFlag('selected')
 
   const selectedOption = computed(() => selectedOptions.value[0])
 
@@ -357,18 +357,18 @@ export function useFormSelect<
     watch(
       model,
       modelValue => {
-        toggleSelectAll(false)
-
         if (isMultiple.value) {
           allOptions.value.forEach(option => {
             if ((modelValue as $TValue[]).includes(toRaw(option.properties.value) as $TValue)) {
               option.toggleFlag('selected', true)
+            } else {
+              option.toggleFlag('selected', false)
             }
           })
         } else {
-          allOptions.value
-            .find(option => toRaw(option.properties.value) === toRaw(modelValue))
-            ?.toggleFlag('selected', true)
+          allOptions.value.forEach(option => {
+            option.toggleFlag('selected', toRaw(option.properties.value) === toRaw(modelValue))
+          })
         }
       },
       { immediate: true }
@@ -379,11 +379,11 @@ export function useFormSelect<
       newValues => {
         if (isMultiple.value) {
           model.value = newValues as TMultiple extends true ? $TValue[] : $TValue
-        } else {
+        } else if (newValues.length > 0) {
           model.value = newValues[0] as TMultiple extends true ? $TValue[] : $TValue
         }
       },
-      { deep: 1 }
+      { deep: 1, flush: 'post' }
     )
   }
 

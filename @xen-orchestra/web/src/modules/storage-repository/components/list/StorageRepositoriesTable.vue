@@ -6,10 +6,8 @@
         <UiLink size="medium" :href>{{ t('configure-in-xo-5') }}</UiLink>
       </template>
     </UiTitle>
+    <VtsQueryBuilder v-model="filter" :schema />
     <div class="container">
-      <div class="table-actions">
-        <UiQuerySearchBar @search="value => (searchQuery = value)" />
-      </div>
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
@@ -34,17 +32,21 @@ import {
   type FrontXoSr,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon, objectIcon } from '@core/icons'
+import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
+import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useSrColumns } from '@core/tables/column-sets/sr-columns.ts'
-import { computed, ref } from 'vue'
+import { useBooleanSchema } from '@core/utils/query-builder/use-boolean-schema.ts'
+import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const {
@@ -66,16 +68,17 @@ const selectedSrId = useRouteQuery('id')
 
 const { isDefaultSr } = useXoSrCollection()
 
-const searchQuery = ref('')
+const { filter, items: filteredSrs } = useQueryBuilderFilter('sr', () => rawSrs)
 
-const filteredSrs = computed(() => {
-  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
-
-  if (!searchTerm) {
-    return rawSrs
-  }
-
-  return rawSrs.filter(sr => Object.values(sr).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
+const schema = useQueryBuilderSchema<FrontXoSr>({
+  '': useStringSchema(t('any-property')),
+  name_label: useStringSchema(t('name')),
+  name_description: useStringSchema(t('description')),
+  SR_type: useStringSchema(t('storage-format')),
+  shared: useBooleanSchema(t('access-mode'), {
+    true: t('shared'),
+    false: t('local'),
+  }),
 })
 
 const state = useTableState({

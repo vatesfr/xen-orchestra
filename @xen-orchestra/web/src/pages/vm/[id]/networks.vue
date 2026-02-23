@@ -1,5 +1,5 @@
 <template>
-  <div class="networks" :class="{ mobile: uiStore.isMobile }">
+  <div class="networks" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
       <VifsTable :vifs>
         <template #title-actions>
@@ -10,7 +10,7 @@
       </VifsTable>
     </UiCard>
     <VifSidePanel v-if="selectedVif" :vif="selectedVif" @close="selectedVif = undefined" />
-    <UiPanel v-else-if="!uiStore.isMobile">
+    <UiPanel v-else-if="!uiStore.isSmall">
       <VtsStateHero format="panel" type="no-selection" size="medium">
         {{ t('select-to-see-details') }}
       </VtsStateHero>

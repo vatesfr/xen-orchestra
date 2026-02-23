@@ -40,11 +40,11 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       commonjsOptions: {
-        include: [/value-matcher/, /node_modules/],
+        include: [/value-matcher/, /complex-matcher/, /node_modules/],
       },
     },
     optimizeDeps: {
-      include: ['value-matcher'],
+      include: ['value-matcher', 'complex-matcher'],
     },
   }
 })

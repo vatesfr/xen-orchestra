@@ -24,8 +24,11 @@ import { BASE_URL } from '../index.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import {
+  asynchronousActionResp,
   badRequestResp,
   createdResp,
+  internalServerErrorResp,
+  invalidParameters as invalidParametersResp,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
@@ -38,6 +41,7 @@ import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { taskIds, partialTasks } from '../open-api/oa-examples/task.oa-example.mjs'
+import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 
 @Route('srs')
 @Security('*')
@@ -214,5 +218,31 @@ export class SrController extends XapiXoController<XoSr> {
   async deleteSrTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const sr = this.getXapiObject(id as XoSr['id'])
     await sr.$call('remove_tags', tag)
+  }
+
+  /**
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   */
+  @Post('{id}/actions/reclaim_space')
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async reclaimSpaceSr(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const srId = id as XoSr['id']
+    const action = async () => {
+      const sr = this.getXapiObject(srId)
+      await sr.$xapi.SR_reclaimSpace(sr.$ref)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'SR reclaim space',
+        objectId: srId,
+      },
+    })
   }
 }

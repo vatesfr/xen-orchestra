@@ -4,7 +4,7 @@
       <div class="typo-h1 title">
         {{ ip !== undefined ? t('unable-to-connect-to', { ip }) : t('unable-to-connect-to-the-pool') }}
       </div>
-      <div class="content" :class="{ mobile: uiStore.isMobile, desktop: !uiStore.isDesktopLarge }">
+      <div class="content" :class="{ mobile: uiStore.isSmall, desktop: !uiStore.isLarge }">
         <UiAlert accent="danger">
           {{ errorDetails.text }}
         </UiAlert>

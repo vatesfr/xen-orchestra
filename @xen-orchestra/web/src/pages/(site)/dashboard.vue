@@ -1,5 +1,5 @@
 <template>
-  <div class="site-dashboard" :class="{ mobile: uiStore.isMobile }">
+  <div class="site-dashboard" :class="{ mobile: uiStore.isSmall }">
     <SiteDashboardPoolsStatus class="pools-status" />
     <SiteDashboardHostsStatus class="hosts-status" />
     <SiteDashboardVmsStatus class="vms-status" />

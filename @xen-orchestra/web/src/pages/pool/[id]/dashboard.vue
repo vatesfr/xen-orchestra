@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard" :class="{ mobile: uiStore.isMobile }">
+  <div class="dashboard" :class="{ mobile: uiStore.isSmall }">
     <div class="row first-row">
       <PoolDashboardStatus class="status" :pool-dashboard :has-error />
       <DashboardAlarms class="alarms" :alarms :is-ready :has-error="hasAlarmFetchError" />

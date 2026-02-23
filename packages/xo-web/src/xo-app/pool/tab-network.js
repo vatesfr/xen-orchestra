@@ -16,7 +16,7 @@ import { TabButtonLink } from 'tab-button'
 import { Text, Number } from 'editable'
 import { Select, Toggle } from 'form'
 import { createGetObjectsOfType, createSelector } from 'selectors'
-import { deleteNetwork, editNetwork, editPif } from 'xo'
+import { deleteNetwork, editNetwork, editPif, setManagementPifs } from 'xo'
 
 // =============================================================================
 
@@ -200,6 +200,11 @@ class NetworkActions extends Component {
           handler={() => copy(network.uuid)}
           icon='clipboard'
           tooltip={_('copyUuid', { uuid: network.uuid })}
+        />
+        <ActionRowButton
+          handler={() => setManagementPifs(network.$pool, network)}
+          icon='pif-management'
+          tooltip={_('setAsManagementPifs')}
         />
         <ActionRowButton
           disabled={disableNetworkDelete}

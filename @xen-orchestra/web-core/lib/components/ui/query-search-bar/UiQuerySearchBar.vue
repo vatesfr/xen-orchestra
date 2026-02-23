@@ -1,7 +1,7 @@
 <!-- v3 -->
 <template>
   <form class="ui-query-search-bar" @submit.prevent="emit('search', value)">
-    <label v-if="uiStore.isDesktopLarge" :for="id" class="typo-body-regular-small label">
+    <label v-if="uiStore.isLarge" :for="id" class="typo-body-regular-small label">
       {{ t('query-search-bar:label') }}
     </label>
     <UiInput
@@ -9,11 +9,11 @@
       v-model="value"
       type="text"
       accent="brand"
-      :aria-label="uiStore.isMobile ? t('query-search-bar:label') : undefined"
-      :icon="!uiStore.isMobile ? 'fa:magnifying-glass' : undefined"
+      :aria-label="uiStore.isSmall ? t('query-search-bar:label') : undefined"
+      :icon="!uiStore.isSmall ? 'fa:magnifying-glass' : undefined"
       :placeholder="t('query-search-bar:placeholder')"
     />
-    <template v-if="!uiStore.isMobile">
+    <template v-if="!uiStore.isSmall">
       <UiButton size="medium" accent="brand" variant="primary" type="submit" class="action-button">
         {{ t('action:search') }}
       </UiButton>
