@@ -70,7 +70,7 @@ export class VmBackupDirectory implements IVmBackupInterface {
   async createBackupArchive(metadataPath: string, metadata: PartialBackupMetadata) {
     let backupArchive: IVmBackupInterface
     try {
-      if (metadata.mode == 'full') {
+      if (metadata.mode === 'full') {
         backupArchive = new VmFullBackupArchive(this.handler, this.rootPath, metadataPath, metadata, metadata.xva!, {
           fix: true,
           merge: true,
@@ -78,9 +78,11 @@ export class VmBackupDirectory implements IVmBackupInterface {
           logWarn: this.opts.logWarn,
           logInfo: this.opts.logInfo,
         })
-      } else {
+      } else if (metadata.mode === 'delta') {
         //@ts-ignore
         backupArchive = new VmIncrementalBackupArchive(this.handler)
+      } else {
+        throw new Error(`Mode ${metadata.mode} not supported`)
       }
     } catch (error) {
       this.opts.logWarn(`Error trying to create backupArchive from ${metadataPath}`, { metadata })
