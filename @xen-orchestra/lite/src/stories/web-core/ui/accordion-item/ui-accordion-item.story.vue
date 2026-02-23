@@ -4,7 +4,7 @@
     :params="[
       prop('size').type(`'small' | 'large'`).enum('small', 'large').required().preset('large').widget(),
       prop('title').str().required().widget().preset('title'),
-      prop('identifier').type(`'string' | 'number'`).required().widget().preset('anRandomId'),
+      prop('identifier').type(`'string' | 'number'`).required().widget().preset('aRandomId'),
       prop('content').str().widget().preset('content'),
       prop('disabled').bool().widget(),
       slot('content'),
