@@ -100,12 +100,20 @@ export class VmFullBackupArchive implements IVmBackupInterface {
       console.log(error)
       this.isValid = false
     }
+    // TODO: check isValid
+    // isValid is always false in test because XVA test is too small
     if (this.isValid) {
       console.warn('XVA might be broken', { path: this.xvaPath })
     }
     return { xvaValid: this.isValid }
   }
 
+  /**
+   * Does nothing for now because VmBackupDirectory already handles deletion for orphan xvas
+   * Should remove files if XVA is invalid or does not exist, but right now it never throws to avoid side effects
+   * @param opts { remove: boolean }
+   * @returns
+   */
   async clean({ remove = false }) {
     let filesToRemove: Array<string> = []
     if (remove) {
@@ -122,18 +130,6 @@ export class VmFullBackupArchive implements IVmBackupInterface {
 
   getValidFiles({ prefix = false }): Array<string> {
     const validFiles = [this.metadataPath, this.xvaPath, `${this.xvaPath}.checksum`]
-    if (this.isLinked()) {
-      return prefix ? validFiles : validFiles.map(file => basename(file))
-    } else {
-      return []
-    }
-  }
-
-  linkMetadata(path: string) {
-    this.metadataPath = path
-  }
-
-  isLinked() {
-    return this.metadataPath !== null
+    return prefix ? validFiles : validFiles.map(file => basename(file))
   }
 }
