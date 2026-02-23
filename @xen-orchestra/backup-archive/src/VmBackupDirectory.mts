@@ -16,12 +16,12 @@ export class VmBackupDirectory implements IVmBackupInterface {
   constructor(
     handler: RemoteHandlerAbstract,
     vmBackupPath: string,
-    opts = {
+    opts: BackupCleanOptions = {
       fix: true,
       merge: false,
       remove: false,
-      logInfo: console.info.bind(console),
-      logWarn: console.warn.bind(console),
+      logInfo: console.info,
+      logWarn: console.warn,
     }
   ) {
     this.handler = handler
