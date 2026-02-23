@@ -51,25 +51,23 @@
                 </template>
               </UiRadioButtonGroup>
               <VtsSelect v-if="vmState.installMode === 'cdrom'" :id="vdiSelectId" accent="brand" />
-              <div v-if="vmState.installMode === 'ssh-key'" class="install-ssh-key-container">
-                <div class="install-ssh-key">
-                  <div class="ssh-key-area">
-                    <UiTextarea v-model="vmState.ssh_key" required :accent="isSshKeyEmpty ? 'danger' : 'brand'">
-                      {{ t('public-key') }}
-                      <template v-if="isSshKeyEmpty" #info>
-                        {{ t('public-key-mandatory') }}
-                      </template>
-                    </UiTextarea>
-                  </div>
-                  <UiButton accent="brand" size="medium" variant="secondary" @click="addSshKey()">
-                    {{ t('action:add') }}
-                  </UiButton>
-                  <div class="ssh-chips">
-                    <div v-for="(key, index) in vmState.sshKeys" :key="index" class="ssh-chip-wrapper">
-                      <UiChip accent="info" @remove="removeSshKey(index)">
-                        {{ key }}
-                      </UiChip>
-                    </div>
+              <div v-if="vmState.installMode === 'ssh-key'" class="install-ssh-key">
+                <div class="ssh-key-area">
+                  <UiTextarea v-model="vmState.ssh_key" required :accent="isSshKeyError ? 'danger' : 'brand'">
+                    {{ t('public-key') }}
+                    <template v-if="isSshKeyError" #info>
+                      {{ sshKeyErrorMessage }}
+                    </template>
+                  </UiTextarea>
+                </div>
+                <UiButton accent="brand" size="medium" variant="secondary" @click="addSshKey()">
+                  {{ t('action:add') }}
+                </UiButton>
+                <div class="ssh-chips">
+                  <div v-for="(key, index) in vmState.sshKeys" :key="index" class="ssh-chip-wrapper">
+                    <UiChip accent="info" @remove="removeSshKey(index)">
+                      {{ key }}
+                    </UiChip>
                   </div>
                 </div>
               </div>
@@ -236,6 +234,7 @@ import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useFormSelect } from '@core/packages/form-select'
+import { useMapper } from '@core/packages/mapper'
 import { useUiStore } from '@core/stores/ui.store'
 import type { XoPool } from '@vates/types'
 
@@ -251,7 +250,21 @@ const poolId = useRouteQuery('poolid')
 // Toaster
 const errorMessage = ref('')
 const isToasterOpen = ref(false)
-const isSshKeyEmpty = ref(false)
+
+type SshKeyErrorType = 'empty' | 'duplicate'
+
+const sshKeyErrorType = ref<SshKeyErrorType | undefined>(undefined)
+
+const isSshKeyError = computed(() => sshKeyErrorType.value !== undefined)
+
+const sshKeyErrorMessage = useMapper<SshKeyErrorType, string>(
+  () => sshKeyErrorType.value,
+  {
+    empty: t('public-key-mandatory'),
+    duplicate: t('public-key-already-exists'),
+  },
+  'empty'
+)
 
 const { networks, getNetworkById } = useXoNetworkCollection()
 const { getPifsByNetworkId } = useXoPifCollection()
@@ -367,12 +380,18 @@ const deleteItem = <T,>(array: T[], index: number) => {
 
 const addSshKey = () => {
   if (!vmState.ssh_key.trim()) {
-    isSshKeyEmpty.value = true
+    sshKeyErrorType.value = 'empty'
     return
   }
+
+  if (vmState.sshKeys.includes(vmState.ssh_key.trim())) {
+    sshKeyErrorType.value = 'duplicate'
+    return
+  }
+
   vmState.sshKeys.push(vmState.ssh_key.trim())
   vmState.ssh_key = ''
-  isSshKeyEmpty.value = false
+  sshKeyErrorType.value = undefined
 }
 
 const removeSshKey = (index: number) => {
@@ -846,12 +865,12 @@ watch(
 watch(
   () => vmState.ssh_key,
   newValue => {
-    if (newValue.trim() && isSshKeyEmpty.value) {
-      isSshKeyEmpty.value = false
+    if (newValue.trim() && isSshKeyError.value) {
+      sshKeyErrorType.value = undefined
     }
   }
 )
-watch(() => [vmState.installMode, vmState.name, vmState.sshKeys], buildCloudConfig)
+watch(() => vmState.sshKeys, buildCloudConfig, { deep: true })
 </script>
 
 <style scoped lang="postcss">
@@ -893,14 +912,10 @@ watch(() => [vmState.installMode, vmState.name, vmState.sshKeys], buildCloudConf
       flex-direction: column;
       gap: 2.4rem;
 
-    .resource-management-container {
-      display: flex;
-      gap: 8rem;
-    }
-  }
-
-    .install-ssh-key-container {
-      margin-block-start: 3rem;
+      .resource-management-container {
+        display: flex;
+        gap: 8rem;
+      }
     }
 
     .install-ssh-key {
@@ -917,7 +932,7 @@ watch(() => [vmState.installMode, vmState.name, vmState.sshKeys], buildCloudConf
     .ssh-chips {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.5rem;
+      gap: 0.4rem;
       margin-block-end: 1rem;
       width: 100%;
 
@@ -928,33 +943,34 @@ watch(() => [vmState.installMode, vmState.name, vmState.sshKeys], buildCloudConf
       }
     }
 
-  .footer {
-    margin-top: auto;
-    display: flex;
-    justify-content: center;
-    gap: 2.4rem;
-  }
-
-  &.mobile {
-    .template-container,
-    .system-container .column,
-    .install-settings-container {
-      width: 100%;
-    }
-
-    .system-container,
-    .resource-management-container,
-    .install-settings-container {
-      flex-direction: column;
-    }
-
-    .system-container,
-    .resource-management-container {
+    .footer {
+      margin-top: auto;
+      display: flex;
+      justify-content: center;
       gap: 2.4rem;
     }
 
-    .install-settings-container {
-      gap: 0.8rem;
+    &.mobile {
+      .template-container,
+      .system-container .column,
+      .install-settings-container {
+        width: 100%;
+      }
+
+      .system-container,
+      .resource-management-container,
+      .install-settings-container {
+        flex-direction: column;
+      }
+
+      .system-container,
+      .resource-management-container {
+        gap: 2.4rem;
+      }
+
+      .install-settings-container {
+        gap: 0.8rem;
+      }
     }
   }
 }

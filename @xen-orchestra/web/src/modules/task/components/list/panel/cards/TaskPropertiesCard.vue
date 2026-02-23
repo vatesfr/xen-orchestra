@@ -6,7 +6,13 @@
     <div class="content">
       <VtsRecursiveFields :fields="propertiesOtherWithoutCloudConfig" />
     </div>
-    <UiLogEntryViewer :content="cloudConfig" :label="t('cloud-config')" size="small" accent="info" />
+    <UiLogEntryViewer
+      v-if="cloudConfig !== undefined"
+      :content="cloudConfig"
+      :label="t('cloud-config')"
+      size="small"
+      accent="info"
+    />
     <UiLogEntryViewer :content="properties.other" :label="t('other-properties')" size="small" accent="info" />
   </UiCard>
 </template>
@@ -18,6 +24,8 @@ import VtsRecursiveFields from '@core/components/recursive-fields/VtsRecursiveFi
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
+// eslint-disable-next-line n/no-extraneous-import
+import { omit } from 'lodash'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -34,22 +42,9 @@ const cloudConfig = computed(() => {
   return args?.cloud_config
 })
 
-const propertiesOtherWithoutCloudConfig = computed(() => {
-  const other = properties.value.other
-  const args = other?.args as { cloud_config?: string } | undefined
-
-  if (!args?.cloud_config) {
-    return other
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { cloud_config, ...argsCopy } = args
-
-  return {
-    ...other,
-    args: argsCopy,
-  }
-})
+const propertiesOtherWithoutCloudConfig = computed(() =>
+  properties.value.other?.args ? omit(properties.value.other.args, 'cloud_config') : undefined
+)
 </script>
 
 <style scoped lang="postcss">
