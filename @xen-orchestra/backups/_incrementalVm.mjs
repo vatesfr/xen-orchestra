@@ -8,7 +8,7 @@ import { defer } from 'golike-defer'
 import { cancelableMap } from './_cancelableMap.mjs'
 import { Task } from './Task.mjs'
 import pick from 'lodash/pick.js'
-import { BASE_DELTA_VDI, COPY_OF, VM_UUID } from './_otherConfig.mjs'
+import { BASE_DELTA_VDI, CONTENT_KEY, COPY_OF, VM_UUID } from './_otherConfig.mjs'
 
 import { VHD_MAX_SIZE, XapiDiskSource } from '@xen-orchestra/xapi'
 import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
@@ -254,6 +254,9 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
         $defer.onFailure(() => newVdi.$destroy())
       }
       await newVdi.update_other_config(COPY_OF, vdi.uuid)
+      if (vdi.other_config[CONTENT_KEY] !== undefined) {
+        await newVdi.update_other_config(CONTENT_KEY, vdi.other_config[CONTENT_KEY])
+      }
       if (vdi.virtual_size > newVdi.virtual_size) {
         await newVdi.$callAsync('resize', vdi.virtual_size)
       }
