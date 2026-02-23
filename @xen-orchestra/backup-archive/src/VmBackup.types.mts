@@ -38,6 +38,7 @@ export interface IVmBackupInterface {
   // metadataPath: string
   // metadata: PartialBackupMetadata
   rootPath: string
+  opts: BackupCleanOptions
 
   init(): Promise<void>
   check(): Promise<object>
