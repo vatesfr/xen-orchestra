@@ -33,6 +33,7 @@ import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-q
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useHostColumns } from '@core/tables/column-sets/host-columns'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
+import { HOST_POWER_STATE } from '@vates/types'
 import { logicAnd, logicNot, logicOr } from '@vueuse/math'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
@@ -67,6 +68,11 @@ const schema = useQueryBuilderSchema<FrontXoHost>({
   name_label: useStringSchema(t('name')),
   name_description: useStringSchema(t('description')),
   address: useStringSchema(t('ip-address')),
+  power_state: useStringSchema(t('power-state'), {
+    [HOST_POWER_STATE.RUNNING]: t('status:running'),
+    [HOST_POWER_STATE.HALTED]: t('status:halted'),
+    [HOST_POWER_STATE.UNKNOWN]: t('status:unknown'),
+  }),
   tags: useStringSchema(t('tags')),
 })
 
