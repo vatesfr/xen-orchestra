@@ -90,7 +90,16 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     // delete previous interrupted copies
     ignoreErrors.call(asyncMapSettled(listReplicatedVms(xapi, scheduleId, undefined, vmUuid), vm => vm.$destroy))
 
-    this._oldEntries = getOldEntries(settings.copyRetention - 1, listReplicatedVms(xapi, scheduleId, srUuid, vmUuid))
+    const allEntries = listReplicatedVms(xapi, scheduleId, srUuid, vmUuid)
+
+    // In the snapshot-based flow a non-snapshot VM (the live target) coexists with its
+    // snapshots (one per transfer). That VM must not be subject to retention — only its
+    // snapshots are. Build the set of VM refs that already have snapshots in the list so
+    // we can exclude them, while keeping old-style non-snapshot VMs (no snapshots).
+    const vmRefsWithSnapshots = new Set(allEntries.filter(e => e.is_a_snapshot).map(e => e.snapshot_of))
+    const retentionEntries = allEntries.filter(e => e.is_a_snapshot || !vmRefsWithSnapshots.has(e.$ref))
+
+    this._oldEntries = getOldEntries(settings.copyRetention - 1, retentionEntries)
 
     if (settings.deleteFirst && settings.skipDeleteOldEntries) {
       // we want to keep the baseVM when copying a delta
@@ -121,7 +130,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     const job = this._job
     const scheduleId = this._scheduleId
 
-    vm.name_label = `${vm.name_label} - ${job.name} - (${formatFilenameDate(timestamp)})`
+    vm.name_label = `${vm.name_label} - ${job.name}`
     // update other_config data as soon as possible to ensure the next job
     // will be able to detect any partial transfer and lean them
     vm.other_config[COPY_OF] = vm.uuid
@@ -192,6 +201,14 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       targetVmRef = await importIncrementalVm(this.#decorateVmMetadata(deltaExport, timestamp), sr, {
         targetRef: this._targetVmRef,
       })
+
+      // take a snapshot to ensure these data are not modified until next snapshot
+      await Task.run({ name: 'target snapshot' }, () =>
+        xapi.VM_snapshot(targetVmRef, {
+          name_label: `${vm.name_label} - ${job.name} - (${formatFilenameDate(timestamp)})`,
+        })
+      )
+
       // size is mandatory to ensure the task have the right data
       return {
         size: Object.values(deltaExport.disks).reduce(

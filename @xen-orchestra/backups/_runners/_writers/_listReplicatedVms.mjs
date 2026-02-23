@@ -23,12 +23,13 @@ export function listReplicatedVms(xapi, scheduleOrJobId, srUuid, vmUuid) {
     const oc = object.other_config
     if (
       object.$type === 'VM' &&
-      !object.is_a_snapshot &&
       !object.is_a_template &&
-      'start' in object.blocked_operations &&
       (oc[JOB_ID] === scheduleOrJobId || oc[SCHEDULE_ID] === scheduleOrJobId) &&
       oc[REPLICATED_TO_SR_UUID] === srUuid &&
-      oc[VM_UUID] === vmUuid
+      oc[VM_UUID] === vmUuid &&
+      // Old-style replication: one VM per transfer (non-snapshot, start blocked)
+      // New-style replication: snapshots of the target VM represent each transfer
+      (!object.is_a_snapshot ? 'start' in object.blocked_operations : true)
     ) {
       vms[object.$id] = object
     }
