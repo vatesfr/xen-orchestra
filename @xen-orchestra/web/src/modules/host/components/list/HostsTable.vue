@@ -121,8 +121,7 @@ const { HeadCells, BodyCells } = useHostColumns({
 
 <style scoped lang="postcss">
 .container,
-.hosts-table,
-.table-actions {
+.hosts-table {
   display: flex;
   flex-direction: column;
 }
@@ -130,8 +129,7 @@ const { HeadCells, BodyCells } = useHostColumns({
 .hosts-table {
   gap: 2.4rem;
 
-  .container,
-  .table-actions {
+  .container {
     gap: 0.8rem;
   }
 }

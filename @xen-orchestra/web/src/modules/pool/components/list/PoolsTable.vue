@@ -128,7 +128,6 @@ const { HeadCells, BodyCells } = useServerColumns({
 
 <style scoped lang="postcss">
 .pools-table,
-.table-actions,
 .container {
   display: flex;
   flex-direction: column;
@@ -138,7 +137,6 @@ const { HeadCells, BodyCells } = useServerColumns({
   gap: 2.4rem;
 }
 
-.table-actions,
 .container {
   gap: 0.8rem;
 }
