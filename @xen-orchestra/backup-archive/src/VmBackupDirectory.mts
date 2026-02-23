@@ -1,7 +1,7 @@
 import RemoteHandlerAbstract from '@xen-orchestra/fs'
 import { basename, normalize } from '@xen-orchestra/fs/path'
 import { VmFullBackupArchive } from './VmFullBackupArchive.mjs'
-import { IVmBackupInterface, PartialBackupMetadata } from './VmBackup.types.mjs'
+import { BackupCleanOptions, IVmBackupInterface, PartialBackupMetadata } from './VmBackup.types.mjs'
 
 const FILES_TO_KEEP = ['cache.json.gz']
 
@@ -11,10 +11,22 @@ export class VmBackupDirectory implements IVmBackupInterface {
   files: Array<string> = new Array()
   orphans: Set<string> = new Set()
   backupArchives: Map<string, IVmBackupInterface> = new Map()
+  opts: BackupCleanOptions
 
-  constructor(handler: RemoteHandlerAbstract, vmBackupPath: string) {
+  constructor(
+    handler: RemoteHandlerAbstract,
+    vmBackupPath: string,
+    opts = {
+      fix: true,
+      merge: false,
+      remove: false,
+      logInfo: console.info.bind(console),
+      logWarn: console.warn.bind(console),
+    }
+  ) {
     this.handler = handler
     this.rootPath = vmBackupPath
+    this.opts = opts
   }
 
   async init() {
@@ -25,7 +37,7 @@ export class VmBackupDirectory implements IVmBackupInterface {
         const backupArchive = await this.createBackupArchive(fullPath, metadata)
         this.backupArchives.set(fullPath, backupArchive)
       } catch (error) {
-        console.warn(`Issue loading ${metadata.xva ?? metadata.vhds}`, { json: fullPath, backup: metadata })
+        this.opts.logWarn(`Issue loading ${metadata.xva ?? metadata.vhds}`, { json: fullPath, backup: metadata })
       }
     }
   }
@@ -63,15 +75,15 @@ export class VmBackupDirectory implements IVmBackupInterface {
           fix: true,
           merge: true,
           remove: true,
-          logWarn: console.warn,
-          logInfo: console.log,
+          logWarn: this.opts.logWarn,
+          logInfo: this.opts.logInfo,
         })
       } else {
         //@ts-ignore
         backupArchive = new VmIncrementalBackupArchive(this.handler)
       }
     } catch (error) {
-      console.warn(`Error trying to create backupArchive from ${metadataPath}`, { metadata })
+      this.opts.logWarn(`Error trying to create backupArchive from ${metadataPath}`, { metadata })
       throw new Error(`Error trying to create backupArchive from ${metadataPath}`)
     }
     await backupArchive.init()
