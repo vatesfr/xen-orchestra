@@ -124,7 +124,7 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   $defer,
   incrementalVm,
   sr,
-  { cancelToken = CancelToken.none, newMacAddresses = false } = {}
+  { cancelToken = CancelToken.none, newMacAddresses = false, targetUuid = undefined } = {}
 ) {
   const { version } = incrementalVm
   if (compareVersions(version, '1.0.0') < 0) {
@@ -136,41 +136,92 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
 
   const vdiRecords = incrementalVm.vdis
 
-  // 0. Create suspend_VDI
+  // When targetUuid is provided, update the existing VM instead of creating a new one.
+  const targetVm = targetUuid !== undefined ? xapi.getObjectByUuid(targetUuid, undefined) : undefined
+  const isUpdate = targetVm !== undefined && !targetVm.is_a_snapshot && !targetVm.is_a_template
+
+  // 0. Create suspend_VDI (only when creating a new VM).
   let suspendVdi
-  if (vmRecord.suspend_VDI !== undefined && vmRecord.suspend_VDI !== 'OpaqueRef:NULL') {
-    const vdi = vdiRecords[vmRecord.suspend_VDI]
-    if (vdi === undefined) {
-      Task.warning('Suspend VDI not available for this suspended VM', {
-        vm: pick(vmRecord, 'uuid', 'name_label', 'suspend_VDI'),
-      })
-    } else {
-      suspendVdi = await xapi.getRecord('VDI', await xapi.VDI_create(vdi))
-      $defer.onFailure(() => suspendVdi.$destroy())
+  if (!isUpdate) {
+    if (vmRecord.suspend_VDI !== undefined && vmRecord.suspend_VDI !== 'OpaqueRef:NULL') {
+      const vdi = vdiRecords[vmRecord.suspend_VDI]
+      if (vdi === undefined) {
+        Task.warning('Suspend VDI not available for this suspended VM', {
+          vm: pick(vmRecord, 'uuid', 'name_label', 'suspend_VDI'),
+        })
+      } else {
+        suspendVdi = await xapi.getRecord('VDI', await xapi.VDI_create(vdi))
+        $defer.onFailure(() => suspendVdi.$destroy())
+      }
     }
   }
 
-  // 1. Create the VM.
-  const vmRef = await xapi.VM_create(
-    {
-      ...vmRecord,
-      affinity: undefined,
-      blocked_operations: {
-        ...vmRecord.blocked_operations,
+  // 1. Create the VM or update the existing one.
+  let vmRef
+  if (isUpdate) {
+    vmRef = targetVm.$ref
+    await Promise.all([
+      xapi.setField('VM', vmRef, 'actions_after_crash', vmRecord.actions_after_crash),
+      xapi.setField('VM', vmRef, 'actions_after_reboot', vmRecord.actions_after_reboot),
+      xapi.setField('VM', vmRef, 'actions_after_shutdown', vmRecord.actions_after_shutdown),
+      vmRecord.domain_type !== undefined && xapi.setField('VM', vmRef, 'domain_type', vmRecord.domain_type),
+      xapi.setField('VM', vmRef, 'ha_restart_priority', vmRecord.ha_restart_priority),
+      xapi.setField('VM', vmRef, 'has_vendor_device', vmRecord.has_vendor_device),
+      xapi.setField('VM', vmRef, 'HVM_boot_params', vmRecord.HVM_boot_params),
+      xapi.setField('VM', vmRef, 'HVM_boot_policy', vmRecord.HVM_boot_policy),
+      vmRecord.HVM_shadow_multiplier !== undefined &&
+        xapi.setField('VM', vmRef, 'HVM_shadow_multiplier', vmRecord.HVM_shadow_multiplier),
+      xapi.setField('VM', vmRef, 'memory_dynamic_max', vmRecord.memory_dynamic_max),
+      xapi.setField('VM', vmRef, 'memory_dynamic_min', vmRecord.memory_dynamic_min),
+      xapi.setField('VM', vmRef, 'memory_static_max', vmRecord.memory_static_max),
+      xapi.setField('VM', vmRef, 'memory_static_min', vmRecord.memory_static_min),
+      xapi.setField('VM', vmRef, 'name_description', vmRecord.name_description),
+      xapi.setField('VM', vmRef, 'order', vmRecord.order),
+      xapi.setField('VM', vmRef, 'other_config', vmRecord.other_config),
+      xapi.setField('VM', vmRef, 'platform', vmRecord.platform),
+      xapi.setField('VM', vmRef, 'PV_args', vmRecord.PV_args),
+      xapi.setField('VM', vmRef, 'PV_bootloader', vmRecord.PV_bootloader),
+      xapi.setField('VM', vmRef, 'PV_bootloader_args', vmRecord.PV_bootloader_args),
+      xapi.setField('VM', vmRef, 'PV_kernel', vmRecord.PV_kernel),
+      xapi.setField('VM', vmRef, 'PV_legacy_args', vmRecord.PV_legacy_args),
+      xapi.setField('VM', vmRef, 'PV_ramdisk', vmRecord.PV_ramdisk),
+      xapi.setField('VM', vmRef, 'recommendations', vmRecord.recommendations),
+      xapi.setField('VM', vmRef, 'shutdown_delay', vmRecord.shutdown_delay),
+      xapi.setField('VM', vmRef, 'start_delay', vmRecord.start_delay),
+      vmRecord.suspend_SR !== undefined && xapi.setField('VM', vmRef, 'suspend_SR', vmRecord.suspend_SR),
+      xapi.setField('VM', vmRef, 'tags', vmRecord.tags),
+      xapi.setField('VM', vmRef, 'user_version', vmRecord.user_version),
+      xapi.setField('VM', vmRef, 'VCPUs_at_startup', vmRecord.VCPUs_at_startup),
+      xapi.setField('VM', vmRef, 'VCPUs_max', vmRecord.VCPUs_max),
+      xapi.setField('VM', vmRef, 'VCPUs_params', vmRecord.VCPUs_params),
+      vmRecord.xenstore_data !== undefined && xapi.setField('VM', vmRef, 'xenstore_data', vmRecord.xenstore_data),
+      targetVm.update_blocked_operations({
         start: 'Importing…',
         start_on: 'Importing…',
+      }),
+    ])
+  } else {
+    vmRef = await xapi.VM_create(
+      {
+        ...vmRecord,
+        affinity: undefined,
+        blocked_operations: {
+          ...vmRecord.blocked_operations,
+          start: 'Importing…',
+          start_on: 'Importing…',
+        },
+        ha_always_run: false,
+        is_a_template: false,
+        name_label: '[Importing…] ' + vmRecord.name_label,
       },
-      ha_always_run: false,
-      is_a_template: false,
-      name_label: '[Importing…] ' + vmRecord.name_label,
-    },
-    {
-      bios_strings: vmRecord.bios_strings,
-      generateMacSeed: newMacAddresses,
-      suspend_VDI: suspendVdi?.$ref,
-    }
-  )
-  $defer.onFailure.call(xapi, 'VM_destroy', vmRef)
+      {
+        bios_strings: vmRecord.bios_strings,
+        generateMacSeed: newMacAddresses,
+        suspend_VDI: suspendVdi?.$ref,
+      }
+    )
+    $defer.onFailure.call(xapi, 'VM_destroy', vmRef)
+  }
 
   // 2. Delete all VBDs which may have been created by the import.
   await asyncMap(await xapi.getField('VM', vmRef, 'VBDs'), ref => ignoreErrors.call(xapi.call('VBD.destroy', ref)))
