@@ -226,11 +226,13 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   // 2. Delete all VBDs which may have been created by the import.
   // In update mode, also collect the VDI refs so orphaned VDIs can be destroyed after new ones are created.
   const existingVbdRefs = await xapi.getField('VM', vmRef, 'VBDs')
-  const oldVdiRefs = isUpdate
-    ? (await asyncMap(existingVbdRefs, ref => xapi.getField('VBD', ref, 'VDI'))).filter(
-        ref => ref !== undefined && ref !== 'OpaqueRef:NULL'
-      )
-    : []
+  const oldVdiRefs = new Set(
+    isUpdate
+      ? (await asyncMap(existingVbdRefs, ref => xapi.getField('VBD', ref, 'VDI'))).filter(
+          ref => ref !== undefined && ref !== 'OpaqueRef:NULL'
+        )
+      : []
+  )
   await asyncMap(existingVbdRefs, ref => ignoreErrors.call(xapi.call('VBD.destroy', ref)))
 
   // 3. Create VDIs & VBDs.
@@ -242,9 +244,14 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
     let newVdi
 
     if (vdi.baseVdi?.$ref !== undefined) {
-      newVdi = await xapi.getRecord('VDI', await xapi.VDI_clone(vdi.baseVdi.$ref))
-      $defer.onFailure(() => newVdi.$destroy())
-
+      if (isUpdate) {
+        // In update mode, reuse the existing target VDI directly — no clone needed.
+        newVdi = vdi.baseVdi
+        oldVdiRefs.delete(newVdi.$ref)
+      } else {
+        newVdi = await xapi.getRecord('VDI', await xapi.VDI_clone(vdi.baseVdi.$ref))
+        $defer.onFailure(() => newVdi.$destroy())
+      }
       await newVdi.update_other_config(COPY_OF, vdi.uuid)
       if (vdi.virtual_size > newVdi.virtual_size) {
         await newVdi.$callAsync('resize', vdi.virtual_size)
@@ -274,7 +281,7 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   // 3.5. Destroy old VDIs that are no longer attached to the VM.
   // Uses ignoreErrors because some storage backends refuse to destroy a VDI that still has snapshot children;
   // those VDIs will become truly orphaned once the old snapshot VMs are cleaned up by _deleteOldEntries.
-  await asyncMap(oldVdiRefs, ref => ignoreErrors.call(xapi.call('VDI.destroy', ref)))
+  await asyncMap([...oldVdiRefs], ref => ignoreErrors.call(xapi.call('VDI.destroy', ref)))
 
   // 4. For updates, destroy existing VIFs before recreating them.
   if (isUpdate) {
