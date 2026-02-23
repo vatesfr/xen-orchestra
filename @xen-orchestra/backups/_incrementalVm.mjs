@@ -160,6 +160,7 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   let vmRef
   if (isUpdate) {
     vmRef = targetRef
+    await xapi.setFields('VM', vmRef, vmRecord)
     await Promise.all([
       xapi.setField('VM', vmRef, 'actions_after_crash', vmRecord.actions_after_crash),
       xapi.setField('VM', vmRef, 'actions_after_reboot', vmRecord.actions_after_reboot),

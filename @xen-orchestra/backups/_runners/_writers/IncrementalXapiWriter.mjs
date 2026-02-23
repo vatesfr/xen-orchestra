@@ -7,7 +7,7 @@ import { Task } from '../../Task.mjs'
 
 import { AbstractIncrementalWriter } from './_AbstractIncrementalWriter.mjs'
 import { MixinXapiWriter } from './_MixinXapiWriter.mjs'
-import { listReplicatedVms } from './_listReplicatedVms.mjs'
+import { compareReplicatedVmDatetime, listReplicatedVms } from './_listReplicatedVms.mjs'
 import {
   COPY_OF,
   setVmOtherConfig,
@@ -98,7 +98,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     // we can exclude them, while keeping old-style non-snapshot VMs (no snapshots).
     const vmRefsWithSnapshots = new Set(allEntries.filter(e => e.is_a_snapshot).map(e => e.snapshot_of))
     const retentionEntries = allEntries.filter(e => e.is_a_snapshot || !vmRefsWithSnapshots.has(e.$ref))
-
+    retentionEntries.sort(compareReplicatedVmDatetime)
     this._oldEntries = getOldEntries(settings.copyRetention - 1, retentionEntries)
 
     if (settings.deleteFirst && settings.skipDeleteOldEntries) {
@@ -201,6 +201,14 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       targetVmRef = await importIncrementalVm(this.#decorateVmMetadata(deltaExport, timestamp), sr, {
         targetRef: this._targetVmRef,
       })
+      // this also ensure the data are up to date on the snapshot
+      await setVmOtherConfig(xapi, targetVmRef, {
+        timestamp, // updated at the end to mark the transfer as complete
+        jobId: job.id,
+        scheduleId,
+        vmUuid: vm.uuid,
+        srUuid,
+      })
 
       // take a snapshot to ensure these data are not modified until next snapshot
       await Task.run({ name: 'target snapshot' }, () =>
@@ -208,7 +216,6 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
           name_label: `${vm.name_label} - ${job.name} - (${formatFilenameDate(timestamp)})`,
         })
       )
-
       // size is mandatory to ensure the task have the right data
       return {
         size: Object.values(deltaExport.disks).reduce(
@@ -225,13 +232,6 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       !_warmMigration &&
         targetVm.ha_restart_priority !== '' &&
         Promise.all([targetVm.set_ha_restart_priority(''), targetVm.add_tags('HA disabled')]),
-      setVmOtherConfig(xapi, targetVmRef, {
-        timestamp, // updated at the end to mark the transfer as complete
-        jobId: job.id,
-        scheduleId,
-        vmUuid: vm.uuid,
-        srUuid,
-      }),
     ])
   }
 }
