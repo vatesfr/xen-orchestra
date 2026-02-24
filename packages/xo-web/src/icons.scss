@@ -755,6 +755,13 @@
     }
   }
 
+  &-pif {
+    &-management {
+      @extend .fa;
+      @extend .fa-star;
+    }
+  }
+
   // Host and VM actions
   &-host,
   &-vm {

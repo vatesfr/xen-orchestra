@@ -2,7 +2,7 @@
   <VtsStateHero v-if="host === undefined" format="page" type="not-found" size="large">
     {{ t('object-not-found', { id }) }}
   </VtsStateHero>
-  <div v-else class="host-dashboard-view" :class="{ mobile: uiStore.isMobile }">
+  <div v-else class="host-dashboard-view" :class="{ mobile: uiStore.isSmall }">
     <HostDashboardQuickInfo class="quick-info" :host />
     <div v-if="data.stats === undefined" class="offline-hero-container">
       <VtsStateHero format="page" type="offline" size="large" horizontal>

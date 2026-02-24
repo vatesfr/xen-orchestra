@@ -1,5 +1,5 @@
 <template>
-  <div class="vts-quick-info-row" :class="{ mobile: uiStore.isMobile }">
+  <div class="vts-quick-info-row" :class="{ mobile: uiStore.isSmall }">
     <span v-tooltip class="typo-body-regular label text-ellipsis">
       <slot name="label">
         {{ label }}

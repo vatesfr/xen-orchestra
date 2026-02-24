@@ -12,7 +12,7 @@
       readonly
     />
 
-    <Teleport v-if="isOpen" to="body">
+    <template v-if="isOpen">
       <VtsBackdrop />
 
       <UiDropdownList ref="dropdownRef" :style="floatingStyles" class="dropdown-list">
@@ -36,7 +36,7 @@
           </slot>
         </template>
       </UiDropdownList>
-    </Teleport>
+    </template>
   </div>
 </template>
 
@@ -95,6 +95,10 @@ const className = computed(() => toVariants({ accent }))
 const { width } = useElementSize(useCurrentElement())
 
 const minWidth = computed(() => `${width.value}px`)
+
+defineExpose({
+  focus: () => triggerRef.value?.focus(),
+})
 </script>
 
 <style lang="postcss" scoped>

@@ -1258,6 +1258,8 @@ const messages = {
   installAllPatchesRedirect: 'Go to pool',
   installAllPatchesOnHostContent:
     'The pool master must always be updated FIRST. Updating will automatically restart the toolstack. Running VMs will not be affected. Are you sure you want to continue and install all patches on this host?',
+  installAllPatchesXostorWarning:
+    'If you are using XOSTOR storage it is absolutely crucial that you update the XOSTOR services before patching your pool. Please refer to this documentation to update your XOSTOR services:',
   patchRelease: 'Release',
   updatePluginNotInstalled:
     'An error occurred while fetching the patches. Please make sure the updater plugin is installed.',
@@ -2435,6 +2437,11 @@ const messages = {
   pifDisconnected: 'Disconnected',
   pifPhysicallyConnected: 'Physically connected',
   pifPhysicallyDisconnected: 'Physically disconnected',
+  setAsManagementPif: 'Set as management PIF',
+  setAsManagementPifConfirm: 'Are you sure you want to make this PIF the management interface?',
+  setAsManagementPifs: 'Set as management network',
+  setAsManagementPifsConfirm:
+    'Are you sure you want to make this network the management network? This will make all the PIFs attached to it management PIFs.',
 
   // ----- User -----
   authToken: 'Token',

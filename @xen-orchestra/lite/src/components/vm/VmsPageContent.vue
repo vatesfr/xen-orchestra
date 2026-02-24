@@ -2,11 +2,11 @@
   <UiCard class="vms-page-content">
     <UiCardTitle subtitle>
       {{ t('vms') }}
-      <template v-if="uiStore.isMobile" #right>
+      <template v-if="uiStore.isSmall" #right>
         <VmsActionsBar :selected-refs="selectedVmsRefs" />
       </template>
     </UiCardTitle>
-    <VmsActionsBar v-if="!uiStore.isMobile" :selected-refs="selectedVmsRefs" />
+    <VmsActionsBar v-if="!uiStore.isSmall" :selected-refs="selectedVmsRefs" />
     <div>
       <div class="filter-and-sort">
         <CollectionFilter

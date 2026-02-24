@@ -1,5 +1,5 @@
 <template>
-  <div class="vts-columns" :class="{ mobile: uiStore.isMobile }">
+  <div class="vts-columns" :class="{ mobile: uiStore.isSmall }">
     <component :is="nodes[index - 1] ?? VtsColumn" v-for="index of columns" :key="index" />
   </div>
 </template>

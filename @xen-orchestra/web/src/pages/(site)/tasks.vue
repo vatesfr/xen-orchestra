@@ -1,10 +1,10 @@
 <template>
-  <div class="tasks" :class="{ mobile: uiStore.isMobile }">
+  <div class="tasks" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
       <TasksList :tasks="convertedTasks" :has-error="hasTaskFetchError" :busy="!areTasksReady" />
     </UiCard>
     <TaskSidePanel v-if="selectedTask" :task="selectedTask" @close="selectedTask = undefined" />
-    <UiPanel v-else-if="!uiStore.isMobile">
+    <UiPanel v-else-if="!uiStore.isSmall">
       <VtsStateHero format="panel" type="no-selection" size="medium">
         {{ t('select-to-see-details') }}
       </VtsStateHero>
