@@ -1,0 +1,56 @@
+{
+  "private": false,
+  "name": "@xen-orchestra/mcp",
+  "version": "0.0.0",
+  "description": "MCP server for Xen Orchestra — allows AI assistants to query and manage XO infrastructure",
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "bin": {
+    "xo-mcp": "./dist/index.mjs"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist/",
+    "lint": "eslint src/",
+    "postversion": "npm publish --access public",
+    "prebuild": "npm run clean",
+    "prepublishOnly": "npm run build",
+    "start": "node dist/index.mjs",
+    "test": "tsc && node --test dist/*.test.mjs"
+  },
+  "keywords": [
+    "xen-orchestra",
+    "xcp-ng",
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "virtualization"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.19.0",
+    "@types/node": "^22.3.0",
+    "@vates/types": "^1.19.0",
+    "rimraf": "^6.0.0",
+    "typescript": "~5.6.3",
+    "typescript-eslint": "^8.23.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/mcp",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/mcp",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "AGPL-3.0-or-later"
+}
