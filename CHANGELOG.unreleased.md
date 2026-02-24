@@ -11,7 +11,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [REST API] Added PUT and DELETE `acl-roles/{id}/group/{groupId}` and `acl-roles/{id}/user/{userId}` rest routes (PR [#9494](https://github.com/vatesfr/xen-orchestra/pull/9494))
+- [REST API] Added PUT and DELETE `acl-roles/{id}/groups/{groupId}` and `acl-roles/{id}/users/{userId}` rest routes (PR [#9494](https://github.com/vatesfr/xen-orchestra/pull/9494))
 
 ### Bug fixes
 
@@ -33,5 +33,6 @@
 
 <!--packages-start-->
 
+- @vates/types minor
 - @xen-orchestra/rest-api minor
 <!--packages-end-->

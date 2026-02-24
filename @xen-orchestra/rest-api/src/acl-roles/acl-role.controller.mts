@@ -30,6 +30,7 @@ import {
   asynchronousActionResp,
   badRequestResp,
   createdResp,
+  forbiddenOperationResp,
   noContentResp,
   notFoundResp,
   resourceAlreadyExists,
@@ -124,32 +125,32 @@ export class AclRoleController extends XoController<XoAclRole> {
   }
 
   /**
-   * Attach a role to a group.
+   * Attach an ACL V2 role to a group.
    *
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    * @example groupId "ee4965bf-d8af-4ca2-aa0e-5f29d0c5f9e2"
    */
-  @Example(aclGroupRole)
-  @Put('{id}/group/{groupId}')
+  @Put('{id}/groups/{groupId}')
   @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(resourceAlreadyExists.status, resourceAlreadyExists.description)
-  async attachAclV2Group(@Path() id: string, @Path() groupId: string): Promise<XoGroupRole> {
+  async attachAclV2Group(@Path() id: string, @Path() groupId: string): Promise<void> {
     const roleId = id as XoAclRole['id']
 
     // addAclV2GroupRole does not check if the group exists so we get the group here to make sure it exists.
     const group = await this.restApi.xoApp.getGroup(groupId as XoGroup['id'])
 
-    return this.restApi.xoApp.addAclV2GroupRole(group.id, roleId)
+    await this.restApi.xoApp.addAclV2GroupRole(group.id, roleId)
   }
 
   /**
-   * Detach a role from a group.
+   * Detach an ALC V2 role from a group.
    *
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    * @example groupId "ee4965bf-d8af-4ca2-aa0e-5f29d0c5f9e2"
    */
-  @Delete('{id}/group/{groupId}')
+  @Delete('{id}/groups/{groupId}')
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async detachAclV2Group(@Path() id: string, @Path() groupId: string): Promise<void> {
@@ -162,32 +163,32 @@ export class AclRoleController extends XoController<XoAclRole> {
   }
 
   /**
-   * Attach a role to a user.
+   * Attach an ALC V2 role to a user.
    *
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    * @example userId "ee4965bf-d8af-4ca2-aa0e-5f29d0c5f9e2"
    */
-  @Example(aclUserRole)
-  @Put('{id}/user/{userId}')
+  @Put('{id}/users/{userId}')
   @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(resourceAlreadyExists.status, resourceAlreadyExists.description)
-  async attachAclV2User(@Path() id: string, @Path() userId: string): Promise<XoUserRole> {
+  async attachAclV2User(@Path() id: string, @Path() userId: string): Promise<void> {
     const roleId = id as XoAclRole['id']
 
     // addAclV2UserRole does not check if the user exists so we get the user here to make sure it exists.
     const user = await this.restApi.xoApp.getUser(userId as XoUser['id'])
 
-    return this.restApi.xoApp.addAclV2UserRole(user.id, roleId)
+    await this.restApi.xoApp.addAclV2UserRole(user.id, roleId)
   }
 
   /**
-   * Detach a role from a user.
+   * Detach an ALC V2 role from a user.
    *
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    * @example userId "ee4965bf-d8af-4ca2-aa0e-5f29d0c5f9e2"
    */
-  @Delete('{id}/user/{userId}')
+  @Delete('{id}/users/{userId}')
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async detachAclV2User(@Path() id: string, @Path() userId: string): Promise<void> {

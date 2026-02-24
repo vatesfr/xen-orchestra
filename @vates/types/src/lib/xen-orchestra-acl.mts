@@ -1,5 +1,5 @@
 import { Branded } from '../common.mjs'
-import { XoGroup, XoUser } from '../xo.mjs'
+import type { XoGroup, XoUser } from '../xo.mjs'
 
 export type XoAclRole =
   | {

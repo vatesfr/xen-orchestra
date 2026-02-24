@@ -381,9 +381,12 @@ export default class {
    */
   async addAclV2UserRole(userId, roleId) {
     /**
-     * @type {UserRole}
+     * @type {UserRole[]}
      */
-    const userRole = (await this.#userRoleDb._get({ userId, roleId }))[0]
+    const userRoles = await this.#userRoleDb._get({ userId, roleId })
+    if (userRoles.length > 1) throw new Error('An error has occured while fetching the user role')
+
+    const userRole = userRoles[0]
 
     if (userRole !== undefined) {
       throw objectAlreadyExists({ objectId: userRole.id, objectType: 'userRole' })
@@ -408,9 +411,12 @@ export default class {
    */
   async deleteAclV2UserRole(userId, roleId) {
     /**
-     * @type {UserRole}
+     * @type {UserRole[]}
      */
-    const userRole = (await this.#userRoleDb._get({ userId, roleId }))[0]
+    const userRoles = await this.#userRoleDb._get({ userId, roleId })
+    if (userRoles.length > 1) throw new Error('An error has occured while fetching the user role')
+
+    const userRole = userRoles[0]
 
     if (userRole === undefined) {
       throw noSuchObject(`userId:${userId} and roleId:${roleId}`, 'userRole')
@@ -431,9 +437,12 @@ export default class {
    */
   async addAclV2GroupRole(groupId, roleId) {
     /**
-     * @type {GroupRole}
+     * @type {GroupRole[]}
      */
-    const groupRole = (await this.#groupRoleDb._get({ groupId, roleId }))[0]
+    const groupRoles = await this.#groupRoleDb._get({ groupId, roleId })
+    if (groupRoles.length > 1) throw new Error('An error has occured while fetching the group role')
+
+    const groupRole = groupRoles[0]
 
     if (groupRole !== undefined) {
       throw objectAlreadyExists({ objectId: groupRole.id, objectType: 'groupRole' })
@@ -458,9 +467,12 @@ export default class {
    */
   async deleteAclV2GroupRole(groupId, roleId) {
     /**
-     * @type {GroupRole}
+     * @type {GroupRole[]}
      */
-    const groupRole = (await this.#groupRoleDb._get({ groupId, roleId }))[0]
+    const groupRoles = await this.#groupRoleDb._get({ groupId, roleId })
+    if (groupRoles.length > 1) throw new Error('An error has occured while fetching the group role')
+
+    const groupRole = groupRoles[0]
 
     if (groupRole === undefined) {
       throw noSuchObject(`groupId:${groupId} and roleId:${roleId}`, 'groupRole')
