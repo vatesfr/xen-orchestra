@@ -70,6 +70,7 @@ export default {
         'load_balancing',
         'sdn_controller',
         'restapi',
+        'mcp',
       ],
     },
     {
