@@ -2,6 +2,9 @@
 # Navigate to the SDN Controller data directory
 cd /var/lib/xo-server/data/sdn-controller/
 
+# dumping Openssl version for debugging purposes
+openssl version
+
 # Backup existing certificates
 today=$(date +%Y%m%d)
 mkdir -p $today-backup

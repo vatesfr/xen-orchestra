@@ -28,22 +28,24 @@ for ip in "$@"; do
   echo -e "${YELLOW}Checking pool master: $ip${NC}"
 
   ssh_command='
+    set +e
     has_tunnels=false
     has_openflow=false
     has_sdn_controller=false
-    
+    openssl_version=$(openssl version | cut -d" " -f 2)
+
     # Check if SDN controller is configured
     sdn_controller_output=$(xe sdn-controller-list 2>/dev/null || echo "")
     if [ -n "$sdn_controller_output" ]; then
         has_sdn_controller=true
     fi
-    
+
     # Check for tunnels
     tunnel_count=$(xe pif-list | grep "device ( RO): tunnel" | sort -u | wc -l || true)
     if [ "$tunnel_count" -gt 0 ]; then
         has_tunnels=true
     fi
-    
+
     # Check for OpenFlow rules
     openflow_count=0
     for vif in $(xe vif-list | grep "^uuid" | cut -d":" -f 2 | tr -d " "); do
@@ -51,23 +53,23 @@ for ip in "$@"; do
             openflow_count=$((openflow_count + 1))
         fi
     done
-    
+
     if [ "$openflow_count" -gt 0 ]; then
         has_openflow=true
     fi
-    
+
     # Output results in parseable format
-    echo "$has_sdn_controller|$has_tunnels|$has_openflow|$tunnel_count|$openflow_count"
+    echo "$openssl_version|$has_sdn_controller|$has_tunnels|$has_openflow|$tunnel_count|$openflow_count"
     '
 
   if result=$(ssh -o ConnectTimeout=10 -o BatchMode=no root@"$ip" "$ssh_command" 2>/dev/null); then
-    IFS='|' read -r has_tunnels has_openflow tunnel_count openflow_count <<<"$result"
+    IFS='|' read -r openssl_version has_tunnels has_openflow tunnel_count openflow_count <<<"$result"
 
-    results["$ip"]="$has_tunnels|$has_openflow|$tunnel_count|$openflow_count"
+    results["$ip"]="$openssl_version|$has_tunnels|$has_openflow|$tunnel_count|$openflow_count"
     echo -e "  ${GREEN}✓${NC} Connection successful"
   else
     echo -e "  ${RED}✗${NC} Failed to connect or execute commands"
-    results["$ip"]="error|error|0|0"
+    results["$ip"]="error|error|error|0|0"
   fi
   echo ""
 done
@@ -77,8 +79,8 @@ echo "================================================"
 echo "SUMMARY"
 echo "================================================"
 echo ""
-printf "%-20s %-20s %-20s %-20s\n" "Pool Master" "SDN Controller" "Tunnel VIFs" "OpenFlow Rules"
-printf "%-20s %-20s %-20s %-20s\n" "-------------------" "-------------------" "-------------------" "-------------------"
+printf "%-20s %-20s %-20s %-20s %-20s\n" "Pool Master" "OpenSSL version" "SDN Controller" "Tunnel VIFs" "OpenFlow Rules"
+printf "%-20s %-20s %-20s %-20s %-20s\n" "-------------------" "-------------------" "-------------------" "-------------------" "-------------------"
 
 needs_update=false
 
@@ -87,10 +89,10 @@ for ip in "$@"; do
     continue
   fi
 
-  IFS='|' read -r has_sdn_controller has_tunnels has_openflow tunnel_count openflow_count <<<"${results[$ip]}"
+  IFS='|' read -r openssl_version has_sdn_controller has_tunnels has_openflow tunnel_count openflow_count <<<"${results[$ip]}"
 
   if [ "$has_sdn_controller" = "error" ]; then
-    printf "%-20s ${RED}%-20s${NC} ${RED}%-20s${NC} ${RED}%-20s${NC}\n" "$ip" "ERROR" "ERROR" "ERROR"
+    printf "%-20s ${RED}%-20s %-20s %-20s %-20s${NC}\n" "$ip" "ERROR" "ERROR" "ERROR" "ERROR"
     continue
   fi
 
@@ -118,7 +120,7 @@ for ip in "$@"; do
     openflow_status="${GREEN}NO${NC}"
   fi
 
-  printf "%-20s %-31s %-31s %-30s\n" "$ip" "$(echo -e "$sdn_status")" "$(echo -e "$tunnel_status")" "$(echo -e "$openflow_status")"
+  printf "%-20s %-20s %-31s %-31s %-30s\n" "$ip" "$openssl_version" "$(echo -e "$sdn_status")" "$(echo -e "$tunnel_status")" "$(echo -e "$openflow_status")"
 done
 
 echo ""
