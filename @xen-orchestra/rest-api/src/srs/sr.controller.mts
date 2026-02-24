@@ -236,7 +236,7 @@ export class SrController extends XapiXoController<XoSr> {
       const sr = this.getXapiObject(srId)
       await sr.$xapi.SR_reclaimSpace(sr.$ref)
     }
-    
+
     return this.createAction<void>(action, {
       sync,
       statusCode: noContentResp.status,
