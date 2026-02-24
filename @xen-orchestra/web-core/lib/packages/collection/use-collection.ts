@@ -27,7 +27,7 @@ export function useCollection<
   config?: {
     itemId?: TGetId | ((source: TSource) => CollectionItemId)
     flags?: CollectionConfigFlags<TFlag>
-    properties?: (source: TSource) => TProperties
+    properties?: (source: TSource, index: number) => TProperties
   }
 ): Collection<TSource, TFlag, TProperties, $TId>
 
@@ -44,7 +44,7 @@ export function useCollection<
   config?: {
     itemId?: TGetId | ((source: TSource) => CollectionItemId)
     flags?: CollectionConfigFlags<TFlag>
-    properties?: (source: TSource) => TProperties
+    properties?: (source: TSource, index: number) => TProperties
   }
 ): Collection<TSource, TFlag, TProperties, $TId>
 
@@ -61,7 +61,7 @@ export function useCollection<
   config: {
     itemId: TGetId | ((source: TSource) => CollectionItemId)
     flags?: CollectionConfigFlags<TFlag>
-    properties?: (source: TSource) => TProperties
+    properties?: (source: TSource, index: number) => TProperties
   }
 ): Collection<TSource, TFlag, TProperties, $TId>
 
@@ -78,7 +78,7 @@ export function useCollection<
   config?: {
     itemId?: TGetId
     flags?: CollectionConfigFlags<TFlag>
-    properties?: (source: TSource) => TProperties
+    properties?: (source: TSource, index: number) => TProperties
   }
 ): Collection<TSource, TFlag, TProperties, $TId> {
   const flagRegistry = useFlagRegistry<TFlag, $TId>(config?.flags)
@@ -86,9 +86,9 @@ export function useCollection<
   const sources = toComputed(_sources)
 
   const items = computed(() =>
-    sources.value.map(source => {
+    sources.value.map((source, index) => {
       const id = guessItemId(source, config?.itemId) as $TId
-      const properties = config?.properties?.(source) ?? ({} as TProperties)
+      const properties = config?.properties?.(source, index) ?? ({} as TProperties)
 
       return createItem<TSource, TFlag, TProperties, $TId>(id, source, properties, flagRegistry)
     })

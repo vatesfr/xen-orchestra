@@ -2,11 +2,11 @@
   <VtsStateHero class="connection-success" type="all-good" format="card" size="medium">
     <div class="container">
       <div v-if="server" class="typo-h1 title">{{ t('connected-to-ip', { ip: server.host }) }}</div>
-      <div class="content" :class="{ mobile: uiStore.isMobile, desktop: !uiStore.isDesktopLarge }">
+      <div class="content" :class="{ mobile: uiStore.isSmall, desktop: !uiStore.isLarge }">
         <UiAlert accent="success">
           {{ t('pool-connection-success') }}
         </UiAlert>
-        <div class="action-buttons" :class="{ mobile: uiStore.isMobile }">
+        <div class="action-buttons" :class="{ mobile: uiStore.isSmall }">
           <UiLink
             v-if="server && server.poolId"
             :to="{ name: '/pool/[id]/dashboard', params: { id: server.poolId } }"

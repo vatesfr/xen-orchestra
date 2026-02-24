@@ -1,6 +1,6 @@
+import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
-import { watchCollectionWrapper } from '@/shared/utils/sse.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import type { XoPool, XoVmTemplate } from '@vates/types'
@@ -29,7 +29,7 @@ const vmTemplateFields = [
 
 export const useXoVmTemplateCollection = defineRemoteResource({
   url: `${BASE_URL}/vm-templates?fields=${vmTemplateFields.join(',')}`,
-  watchCollection: watchCollectionWrapper({ resource: 'VM-template', fields: vmTemplateFields }),
+  initWatchCollection: () => useWatchCollection({ resource: 'VM-template', fields: vmTemplateFields }),
   initialData: () => [] as FrontXoVmTemplate[],
   state: (rawTemplates, context) => {
     const templates = useSorted(rawTemplates, sortByNameLabel)

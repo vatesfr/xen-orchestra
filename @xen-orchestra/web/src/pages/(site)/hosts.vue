@@ -1,10 +1,10 @@
 <template>
-  <div class="hosts" :class="{ mobile: uiStore.isMobile }">
+  <div class="hosts" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
       <HostsTable :hosts :busy="!areHostsReady" :error="hasHostFetchError" />
     </UiCard>
     <HostSidePanel v-if="selectedHost" :host="selectedHost" @close="selectedHost = undefined" />
-    <UiPanel v-else-if="!uiStore.isMobile">
+    <UiPanel v-else-if="!uiStore.isSmall">
       <VtsStateHero format="panel" type="no-selection" size="medium">
         {{ t('select-to-see-details') }}
       </VtsStateHero>

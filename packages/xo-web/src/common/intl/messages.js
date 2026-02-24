@@ -2437,6 +2437,11 @@ const messages = {
   pifDisconnected: 'Disconnected',
   pifPhysicallyConnected: 'Physically connected',
   pifPhysicallyDisconnected: 'Physically disconnected',
+  setAsManagementPif: 'Set as management PIF',
+  setAsManagementPifConfirm: 'Are you sure you want to make this PIF the management interface?',
+  setAsManagementPifs: 'Set as management network',
+  setAsManagementPifsConfirm:
+    'Are you sure you want to make this network the management network? This will make all the PIFs attached to it management PIFs.',
 
   // ----- User -----
   authToken: 'Token',

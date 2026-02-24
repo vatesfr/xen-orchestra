@@ -118,7 +118,7 @@ export type UseFormSelectReturn<
 export type GetOptionValue<TSource, TCustomProperties extends CollectionItemProperties> =
   | undefined
   | keyof TSource
-  | ((source: TSource, properties: TCustomProperties) => unknown)
+  | ((source: TSource, properties: TCustomProperties, index: number) => unknown)
 
 export type GetOptionLabel<TSource, TCustomProperties extends CollectionItemProperties> =
   | undefined

@@ -1,5 +1,5 @@
 <template>
-  <div :class="uiStore.isMobile ? 'mobile' : undefined" class="vts-layout-console">
+  <div :class="uiStore.isSmall ? 'mobile' : undefined" class="vts-layout-console">
     <slot />
     <UiCard class="card">
       <slot name="actions" />
