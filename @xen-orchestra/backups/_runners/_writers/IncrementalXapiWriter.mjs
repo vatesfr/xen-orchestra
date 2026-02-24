@@ -51,8 +51,16 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     // For snapshot VDIs, traverse snapshot VM → snapshot_of to reach the replicated VM.
     if (replicatedVdis.length > 0) {
       for (const vdi of replicatedVdis) {
-        const vm = vdi.is_a_snapshot ? vdi.$VBDs?.[0]?.$VM?.$snapshot_of : vdi.$VBDs?.[0]?.$VM
-        if (vm !== undefined) {
+        const vbd = vdi.$VBDs?.find(vbd => !vbd.$VM.is_control_domain)
+        if (!vbd || !vbd.$VM) {
+          continue
+        }
+        let vm = vbd.$VM
+        if (vm.is_a_snapshot) {
+          vm = vm.$snapshot_of
+        }
+
+        if (vm.blocked_operations.start !== undefined) {
           this._targetVmRef = vm.$ref
           break
         }
