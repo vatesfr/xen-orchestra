@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [VM/New] Added secureBoot support on vm creation (PR [#9423](https://github.com/vatesfr/xen-orchestra/pull/9423))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
