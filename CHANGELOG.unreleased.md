@@ -22,6 +22,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backups] remove the `cleanVm: incorrect backup size in metadata` error (PR [#9527](https://github.com/vatesfr/xen-orchestra/pull/9527))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -38,6 +40,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
