@@ -1,6 +1,6 @@
 import * as CMType from './complex-matcher.mjs'
 import { Branded } from '../common.mjs'
-import { XoGroup, XoUser } from '../xo.mjs'
+import type { XoGroup, XoUser } from '../xo.mjs'
 
 export type XoAclRole =
   | {
