@@ -6,7 +6,7 @@
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import HostDownloadButton from '@/modules/host/components/actions/download/HostDownloadButton.vue'
 
-const { host } = defineProps<{
+defineProps<{
   host: XenApiHost
 }>()
 </script>

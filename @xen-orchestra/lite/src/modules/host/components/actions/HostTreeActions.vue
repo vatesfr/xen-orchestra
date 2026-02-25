@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
+import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import HostMoreActions from '@/modules/host/components/actions/HostMoreActions.vue'
 
 defineProps<{

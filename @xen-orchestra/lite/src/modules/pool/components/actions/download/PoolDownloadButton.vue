@@ -10,14 +10,14 @@
 </template>
 
 <script lang="ts" setup>
-import type { RecordRef } from '@/libs/xen-api/xen-api.types.ts'
+import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { downloadFile } from '@core/utils/download-file.utils'
+import { downloadFile } from '@core/utils/download-file.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { masterHost } = defineProps<{ masterHost: RecordRef<'host'> }>()
+const { masterHost } = defineProps<{ masterHost: XenApiHost['$ref'] }>()
 
 const { t } = useI18n()
 
