@@ -4,10 +4,11 @@
 
 <script lang="ts" setup>
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { downloadFile } from '@core/utils/download-file.utils'
+import { downloadFile } from '@core/utils/download-file.utils.ts'
+import type { XenApiHost } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-const { hostIp } = defineProps<{ hostIp: string }>()
+const { hostIp } = defineProps<{ hostIp: XenApiHost['address'] }>()
 
 const { t } = useI18n()
 

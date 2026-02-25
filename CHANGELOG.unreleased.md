@@ -13,6 +13,7 @@
 
 - [QA Test] Add end-to-end QA test suite `@xen-orchestra/qa-test` for VM, backup and export testing (PR [#9626](https://github.com/vatesfr/xen-orchestra/pull/9626))
 - [i18n] Add Portuguese and Slovak and update Chinese (Simplified Han script), Czech, Dutch, German, Italian, Norwegian, Persian, Portuguese (Brasil), Russian, Spanish, Swedish and Ukrainian translations (PR [#9554](https://github.com/vatesfr/xen-orchestra/pull/9554))
+- [Treeview/Pool/Host] Add button for download bugtools (PR [#9419](https://github.com/vatesfr/xen-orchestra/pull/9419))
 
 ### Bug fixes
 
@@ -36,6 +37,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server patch
 
