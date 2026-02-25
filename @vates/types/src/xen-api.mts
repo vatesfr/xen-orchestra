@@ -82,6 +82,7 @@ type TagCallMethods = {
 type WrapperXenApi<T, Type extends string, Fn = { (): void }> = T & {
   $call: Fn
   $callAsync: Fn
+  $pool: XenApiPool
   $type: Type
   $snapshot(params: {
     cancelToken?: unknown
