@@ -41,8 +41,8 @@
                 <UiRadioButton v-if="isDiskTemplate" v-model="vmState.installMode" accent="brand" value="ssh-key">
                   {{ t('ssh-key') }}
                 </UiRadioButton>
-                <UiRadioButton v-model="vmState.installMode" accent="brand" value="custom_config">
-                  {{ t('custom-config') }}
+                <UiRadioButton v-model="vmState.installMode" accent="brand" value="cloud-init-config">
+                  {{ t('cloud-init-config') }}
                 </UiRadioButton>
                 <UiRadioButton v-model="vmState.installMode" accent="brand" value="cdrom">
                   {{ t('iso-dvd') }}
@@ -52,7 +52,7 @@
                 </UiRadioButton>
               </UiRadioButtonGroup>
               <VtsSelect v-if="vmState.installMode === 'cdrom'" :id="vdiSelectId" accent="brand" />
-              <div v-if="vmState.installMode === 'custom_config'" class="install-custom-config">
+              <div v-if="vmState.installMode === 'cloud-init-config'" class="install-custom-config">
                 <div>
                   <UiTextarea
                     v-model="vmState.cloudConfig"
@@ -311,8 +311,13 @@ const resolveConfigTemplate = (pattern: string, name: string, index: number): st
   })
 }
 
-const DEFAULT_CLOUD_CONFIG_PLACEHOLDER =
-  '#cloud-config\n#hostname: {name}{index}\n#ssh_authorized_keys:\n#  - ssh-rsa <myKey>\n#packages:\n#  - htop\n'
+const DEFAULT_CLOUD_CONFIG_PLACEHOLDER = `#cloud-config
+#hostname: {name}{index}
+#ssh_authorized_keys:
+#  - ssh-rsa <myKey>
+#packages:
+#  - htop
+`
 
 const DEFAULT_NETWORK_CONFIG_PLACEHOLDER = `#network:
 #  version: 1
@@ -738,16 +743,19 @@ const vmData = computed(() => {
     vdisToSend.length > 0 && { vdis: vdisToSend },
     vifsToSend.value.length > 0 && { vifs: vifsToSend.value },
     vmState.affinity_host && { affinity: vmState.affinity_host },
-    vmState.installMode !== 'no-config' && vmState.installMode !== 'custom_config' && vmState.installMode !== 'ssh-key' && {
-      install: {
-        method: vmState.installMode,
-        repository: vmState.installMode === 'network' ? '' : vmState.selectedVdi,
+    vmState.installMode !== 'no-config' &&
+      vmState.installMode !== 'cloud-init-config' &&
+      vmState.installMode !== 'ssh-key' && {
+        install: {
+          method: vmState.installMode,
+          repository: vmState.installMode === 'network' ? '' : vmState.selectedVdi,
+        },
       },
-    },
-    vmState.installMode === 'ssh-key' && vmState.cloudConfig && {
-      cloud_config: vmState.cloudConfig,
-    },
-    vmState.installMode === 'custom_config' && {
+    vmState.installMode === 'ssh-key' &&
+      vmState.cloudConfig && {
+        cloud_config: vmState.cloudConfig,
+      },
+    vmState.installMode === 'cloud-init-config' && {
       ...(vmState.cloudConfig !== '' && {
         cloud_config: resolveConfigTemplate(vmState.cloudConfig, vmState.name, 0),
       }),
@@ -1009,11 +1017,6 @@ watch(() => vmState.sshKeys, buildCloudConfig, { deep: true })
       gap: 8rem;
     }
 
-    .radio-container {
-      display: flex;
-      gap: 15rem;
-    }
-
     .install-custom-config {
       display: flex;
       gap: 4.2rem;
@@ -1021,11 +1024,6 @@ watch(() => vmState.sshKeys, buildCloudConfig, { deep: true })
 
     .install-custom-config > div {
       width: 50%;
-    }
-
-    .memory-container {
-      display: flex;
-      gap: 10.8rem;
     }
   }
 

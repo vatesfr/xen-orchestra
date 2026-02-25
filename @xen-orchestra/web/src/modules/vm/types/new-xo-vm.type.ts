@@ -25,7 +25,7 @@ export interface VifToSend {
   destroy?: boolean
 }
 
-export type InstallMode = 'no-config' | 'ssh-key' | 'custom_config' | 'cdrom' | 'network' | undefined
+export type InstallMode = 'no-config' | 'ssh-key' | 'cloud-init-config' | 'cdrom' | 'network' | undefined
 
 export interface VmState {
   affinity_host?: XoHost['id']

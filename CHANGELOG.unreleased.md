@@ -33,7 +33,7 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/lite minor
 - @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 
 <!--packages-end-->
