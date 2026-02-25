@@ -13,6 +13,7 @@
 
 - [Search Engine] Implement first version of the Query Builder on Pools, Hosts, VMs, networks and Storage tables (PR [#9488](https://github.com/vatesfr/xen-orchestra/pull/9488))
 - [REST API] Added POST `/srs/{id}/actions/scan` rest routes (PR [#9514](https://github.com/vatesfr/xen-orchestra/pull/9514))
+- [REST API] Add endpoints to enable/disable host maintenance mode (PR [#9532](https://github.com/vatesfr/xen-orchestra/pull/9532))
 - [MCP] Initial release of `@xen-orchestra/mcp`: MCP server enabling AI assistants to query XO infrastructure (pools, hosts, VMs, dashboard, documentation) (PR [#9519](https://github.com/vatesfr/xen-orchestra/pull/9519))
 - **XO 5:**
   - [Network] Ability to switch management PIF (PRs [#9369](https://github.com/vatesfr/xen-orchestra/pull/9369) [#9510](https://github.com/vatesfr/xen-orchestra/pull/9510))
@@ -44,6 +45,7 @@
 
 <!--packages-start-->
 
+- @vates/types minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/mcp major
 - @xen-orchestra/rest-api minor
