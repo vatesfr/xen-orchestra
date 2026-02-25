@@ -54,7 +54,7 @@
     "chartist-plugin-tooltip": "0.0.11",
     "classnames": "^2.2.3",
     "compare-versions": "^6.1.1",
-    "complex-matcher": "^1.0.0",
+    "complex-matcher": "^1.1.0",
     "copy-to-clipboard": "^3.0.8",
     "d3": "^5.0.0",
     "debounce-input-decorator": "^1.0.0",
