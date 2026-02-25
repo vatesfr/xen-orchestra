@@ -24,8 +24,7 @@ import VtsRecursiveFields from '@core/components/recursive-fields/VtsRecursiveFi
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
-// eslint-disable-next-line n/no-extraneous-import
-import { omit } from 'lodash'
+import { omit } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

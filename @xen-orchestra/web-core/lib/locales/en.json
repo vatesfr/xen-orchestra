@@ -631,7 +631,7 @@
   "proxy-url": "Proxy URL",
   "public-key": "Public key",
   "public-key-already-exists": "Public key already exists",
-  "public-key-mandatory": "Public key is mandatory.",
+  "public-key-mandatory": "Public key is mandatory",
   "pxe": "PXE",
   "query-builder": "Query Builder",
   "query-builder:label": "Search Engine",

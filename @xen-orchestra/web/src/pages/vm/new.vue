@@ -310,7 +310,7 @@ const bytesToGiB = (bytes: number) => Math.floor(bytes / 1024 ** 3)
 
 const giBToBytes = (giB: number) => giB * 1024 ** 3
 
-const formatHostname = (hostname: string) => hostname.replace(/^\s+|\s+$/g, '').replace(/\s+/g, '-')
+const formatHostname = (hostname: string) => hostname.trim().replace(/\s+/g, '-')
 
 const buildCloudConfig = () => {
   if (vmState.installMode !== 'ssh-key' || vmState.sshKeys.length === 0) {
@@ -379,17 +379,19 @@ const deleteItem = <T,>(array: T[], index: number) => {
 }
 
 const addSshKey = () => {
-  if (!vmState.ssh_key.trim()) {
+  const sshKey = vmState.ssh_key.trim()
+
+  if (!sshKey) {
     sshKeyErrorType.value = 'empty'
     return
   }
 
-  if (vmState.sshKeys.includes(vmState.ssh_key.trim())) {
+  if (vmState.sshKeys.includes(sshKey)) {
     sshKeyErrorType.value = 'duplicate'
     return
   }
 
-  vmState.sshKeys.push(vmState.ssh_key.trim())
+  vmState.sshKeys.push(sshKey)
   vmState.ssh_key = ''
   sshKeyErrorType.value = undefined
 }
@@ -911,66 +913,66 @@ watch(() => vmState.sshKeys, buildCloudConfig, { deep: true })
       display: flex;
       flex-direction: column;
       gap: 2.4rem;
-
-      .resource-management-container {
-        display: flex;
-        gap: 8rem;
-      }
     }
 
-    .install-ssh-key {
+    .resource-management-container {
       display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 1.6rem;
-
-      .ssh-key-area {
-        width: 100%;
-      }
+      gap: 8rem;
     }
+  }
 
-    .ssh-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-      margin-block-end: 1rem;
+  .install-ssh-key {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.6rem;
+
+    .ssh-key-area {
       width: 100%;
+    }
+  }
 
-      .ssh-chip-wrapper {
-        min-width: 0;
-        max-width: 40rem;
-        display: flex;
-      }
+  .ssh-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-block-end: 1rem;
+    width: 100%;
+
+    .ssh-chip-wrapper {
+      min-width: 0;
+      max-width: 40rem;
+      display: flex;
+    }
+  }
+
+  .footer {
+    margin-top: auto;
+    display: flex;
+    justify-content: center;
+    gap: 2.4rem;
+  }
+
+  &.mobile {
+    .template-container,
+    .system-container .column,
+    .install-settings-container {
+      width: 100%;
     }
 
-    .footer {
-      margin-top: auto;
-      display: flex;
-      justify-content: center;
+    .system-container,
+    .resource-management-container,
+    .install-settings-container {
+      flex-direction: column;
+    }
+
+    .system-container,
+    .resource-management-container {
       gap: 2.4rem;
     }
 
-    &.mobile {
-      .template-container,
-      .system-container .column,
-      .install-settings-container {
-        width: 100%;
-      }
-
-      .system-container,
-      .resource-management-container,
-      .install-settings-container {
-        flex-direction: column;
-      }
-
-      .system-container,
-      .resource-management-container {
-        gap: 2.4rem;
-      }
-
-      .install-settings-container {
-        gap: 0.8rem;
-      }
+    .install-settings-container {
+      gap: 0.8rem;
     }
   }
 }
