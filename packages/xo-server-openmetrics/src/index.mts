@@ -100,6 +100,22 @@ export type SrDataItem = Pick<XoSr, 'uuid' | 'name_label' | 'size' | 'physical_u
   host_name?: string
 }
 
+export interface XoMetricsData {
+  poolCount: number
+  hostCount: number
+  vmCount: number
+  srCountByContentType: Record<string, number>
+  userCount: number
+  groupCount: number
+  socketCount: number
+  hostCountByVersion: Array<{ productBrand: string; version: string; count: number }>
+  hostCountByLicense: Array<{ skuType: string; count: number }>
+  backupJobStats: Array<{
+    type: string
+    jobCount: number
+  }>
+}
+
 interface SrDataPayload {
   srs: SrDataItem[]
 }
@@ -343,6 +359,38 @@ class OpenMetricsPlugin {
         break
       }
 
+      case 'GET_XO_METRICS': {
+        this.#getXoMetrics()
+          .then((xoMetrics: XoMetricsData) => {
+            this.#sendToChildNoWait({
+              type: 'XO_METRICS',
+              requestId: message.requestId,
+              payload: xoMetrics,
+            })
+          })
+          .catch((err: unknown) => {
+            logger.error('Failed to collect XO metrics', { error: err })
+            const emptyMetrics: XoMetricsData = {
+              poolCount: 0,
+              hostCount: 0,
+              vmCount: 0,
+              srCountByContentType: {},
+              userCount: 0,
+              groupCount: 0,
+              socketCount: 0,
+              hostCountByVersion: [],
+              hostCountByLicense: [],
+              backupJobStats: [],
+            }
+            this.#sendToChildNoWait({
+              type: 'XO_METRICS',
+              requestId: message.requestId,
+              payload: emptyMetrics,
+            })
+          })
+        break
+      }
+
       default:
         logger.warn('Unknown message type from child', { type: message.type })
     }
@@ -497,6 +545,106 @@ class OpenMetricsPlugin {
 
     logger.debug('Returning host status data', { hostCount: hosts.length })
     return { hosts }
+  }
+
+  /**
+   * Collect XO management plane metrics.
+   * Gathers counts and stats from XO objects and XO APIs.
+   */
+  async #getXoMetrics(): Promise<XoMetricsData> {
+    const allObjects = this.#xo.getObjects() as Record<string, XoObject>
+
+    let poolCount = 0
+    let hostCount = 0
+    let vmCount = 0
+    let socketCount = 0
+    const srCountByContentType: Record<string, number> = {}
+    const hostVersionMap = new Map<string, number>()
+    const hostLicenseMap = new Map<string, number>()
+
+    for (const obj of Object.values(allObjects)) {
+      switch (obj.type) {
+        case 'pool':
+          poolCount++
+          break
+        case 'host': {
+          const host = obj as XoHost
+          hostCount++
+          socketCount += (host.cpus as { sockets?: number } | undefined)?.sockets ?? 0
+
+          const versionKey = `${host.productBrand ?? ''}::${host.version ?? ''}`
+          hostVersionMap.set(versionKey, (hostVersionMap.get(versionKey) ?? 0) + 1)
+
+          const skuType = (host.license_params as Record<string, string> | undefined)?.sku_type ?? '?'
+          hostLicenseMap.set(skuType, (hostLicenseMap.get(skuType) ?? 0) + 1)
+          break
+        }
+        case 'VM':
+          vmCount++
+          break
+        case 'SR': {
+          const contentType = (obj as unknown as Record<string, string>).content_type ?? 'unknown'
+          srCountByContentType[contentType] = (srCountByContentType[contentType] ?? 0) + 1
+          break
+        }
+      }
+    }
+
+    const hostCountByVersion = [...hostVersionMap.entries()].map(([key, count]) => {
+      const [productBrand = '', version = ''] = key.split('::')
+      return { productBrand, version, count }
+    })
+
+    const hostCountByLicense = [...hostLicenseMap.entries()].map(([skuType, count]) => ({ skuType, count }))
+
+    let userCount = 0
+    try {
+      const users = await this.#xo.getAllUsers()
+      userCount = users.length
+    } catch (err) {
+      logger.warn('Failed to get users for XO metrics', { error: err })
+    }
+
+    let groupCount = 0
+    try {
+      const groups = await this.#xo.getAllGroups()
+      groupCount = groups.length
+    } catch (err) {
+      logger.warn('Failed to get groups for XO metrics', { error: err })
+    }
+
+    const backupJobStats: XoMetricsData['backupJobStats'] = []
+    try {
+      const jobs = await this.#xo.getAllJobs()
+
+      const jobCountByKey = new Map<string, number>()
+      for (const job of jobs) {
+        const key = (job as Record<string, unknown>).key as string | undefined
+        if (key === undefined || key === 'genericTask') continue
+        jobCountByKey.set(key, (jobCountByKey.get(key) ?? 0) + 1)
+      }
+
+      for (const [type, jobCount] of jobCountByKey) {
+        backupJobStats.push({ type, jobCount })
+      }
+    } catch (err) {
+      logger.warn('Failed to get backup job stats for XO metrics', { error: err })
+    }
+
+    logger.debug('XO metrics collected', { poolCount, hostCount, vmCount, userCount, groupCount })
+
+    return {
+      poolCount,
+      hostCount,
+      vmCount,
+      srCountByContentType,
+      userCount,
+      groupCount,
+      socketCount,
+      hostCountByVersion,
+      hostCountByLicense,
+      backupJobStats,
+    }
   }
 
   /**

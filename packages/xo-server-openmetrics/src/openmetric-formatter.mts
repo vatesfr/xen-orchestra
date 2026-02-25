@@ -7,10 +7,10 @@
 
 import { createLogger } from '@xen-orchestra/log'
 
-import type { HostStatusItem, LabelLookupData, SrDataItem } from './index.mjs'
+import type { HostStatusItem, LabelLookupData, SrDataItem, XoMetricsData } from './index.mjs'
 import type { ParsedMetric, ParsedRrdData } from './rrd-parser.mjs'
 
-export type { HostStatusItem, SrDataItem }
+export type { HostStatusItem, SrDataItem, XoMetricsData }
 
 const logger = createLogger('xo:xo-server-openmetrics:formatter')
 
@@ -564,8 +564,11 @@ function computeVmCpuUsageFallback(metrics: FormattedMetric[]): FormattedMetric[
 // Formatting Functions
 // ============================================================================
 
-/** OpenMetrics prefix for all metrics */
+/** OpenMetrics prefix for XCP/XAPI-level metrics */
 const METRIC_PREFIX = 'xcp'
+
+/** OpenMetrics prefix for XO management plane metrics */
+const XO_METRIC_PREFIX = 'xo'
 
 /**
  * Escape special characters in label values.
@@ -948,6 +951,88 @@ export function formatHostStatusMetrics(hostStatusList: HostStatusItem[]): Forma
  * @param labelContext - Label context containing host credentials and label lookup data
  * @returns Array of FormattedMetric entries for host uptime
  */
+/**
+ * Format XO management plane metrics to OpenMetrics format.
+ *
+ * Produces counters/gauges for pools, hosts, VMs, SRs, users, groups,
+ * sockets, host versions, host licenses, and backup job counts.
+ *
+ * @param data - XO metrics data collected from the parent process
+ * @returns Array of FormattedMetric entries
+ */
+export function formatXoMetrics(data: XoMetricsData): FormattedMetric[] {
+  const metrics: FormattedMetric[] = []
+  const timestamp = Math.floor(Date.now() / 1000)
+
+  // Simple totals
+  const simpleTotals: Array<{ name: string; help: string; value: number }> = [
+    { name: `${XO_METRIC_PREFIX}_pool_total`, help: 'Total number of pools', value: data.poolCount },
+    { name: `${XO_METRIC_PREFIX}_host_total`, help: 'Total number of hosts', value: data.hostCount },
+    { name: `${XO_METRIC_PREFIX}_vm_total`, help: 'Total number of virtual machines', value: data.vmCount },
+    { name: `${XO_METRIC_PREFIX}_user_total`, help: 'Total number of users', value: data.userCount },
+    { name: `${XO_METRIC_PREFIX}_group_total`, help: 'Total number of groups', value: data.groupCount },
+    {
+      name: `${XO_METRIC_PREFIX}_socket_total`,
+      help: 'Total number of CPU sockets across all hosts',
+      value: data.socketCount,
+    },
+  ]
+
+  for (const { name, help, value } of simpleTotals) {
+    metrics.push({ name, help, type: 'gauge', labels: {}, value, timestamp })
+  }
+
+  // SR count by content type
+  for (const [contentType, count] of Object.entries(data.srCountByContentType)) {
+    metrics.push({
+      name: `${XO_METRIC_PREFIX}_sr_total`,
+      help: 'Total number of storage repositories by content type',
+      type: 'gauge',
+      labels: { content_type: contentType },
+      value: count,
+      timestamp,
+    })
+  }
+
+  // Host count by product brand and version
+  for (const { productBrand, version, count } of data.hostCountByVersion) {
+    metrics.push({
+      name: `${XO_METRIC_PREFIX}_host_version_total`,
+      help: 'Total number of hosts by product brand and version',
+      type: 'gauge',
+      labels: { product_brand: productBrand, version },
+      value: count,
+      timestamp,
+    })
+  }
+
+  // Host count by license SKU type
+  for (const { skuType, count } of data.hostCountByLicense) {
+    metrics.push({
+      name: `${XO_METRIC_PREFIX}_host_license_total`,
+      help: 'Total number of hosts by license SKU type',
+      type: 'gauge',
+      labels: { sku_type: skuType },
+      value: count,
+      timestamp,
+    })
+  }
+
+  // Backup job count by type
+  for (const { type, jobCount } of data.backupJobStats) {
+    metrics.push({
+      name: `${XO_METRIC_PREFIX}_backup_job_total`,
+      help: 'Total number of backup jobs by type',
+      type: 'gauge',
+      labels: { type },
+      value: jobCount,
+      timestamp,
+    })
+  }
+
+  return metrics
+}
+
 export function formatHostUptimeMetrics(labelContext: LabelContext): FormattedMetric[] {
   const metrics: FormattedMetric[] = []
   const now = Math.floor(Date.now() / 1000)
