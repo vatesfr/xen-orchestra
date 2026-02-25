@@ -101,6 +101,7 @@ export type SrDataItem = Pick<XoSr, 'uuid' | 'name_label' | 'size' | 'physical_u
 }
 
 export interface XoMetricsData {
+  pendingTask: number
   poolCount: number
   hostCount: number
   vmCount: number
@@ -553,11 +554,16 @@ class OpenMetricsPlugin {
    */
   async #getXoMetrics(): Promise<XoMetricsData> {
     const allObjects = this.#xo.getObjects() as Record<string, XoObject>
+    console.log('RUNNING')
 
     let poolCount = 0
     let hostCount = 0
     let vmCount = 0
     let socketCount = 0
+    let pendingTask = 0
+    for await (const _ of this.#xo.tasks.list({ filter: _ => _.status === 'pending' })) {
+      pendingTask++
+    }
     const srCountByContentType: Record<string, number> = {}
     const hostVersionMap = new Map<string, number>()
     const hostLicenseMap = new Map<string, number>()
@@ -634,6 +640,7 @@ class OpenMetricsPlugin {
     logger.debug('XO metrics collected', { poolCount, hostCount, vmCount, userCount, groupCount })
 
     return {
+      pendingTask,
       poolCount,
       hostCount,
       vmCount,
