@@ -81,6 +81,10 @@ export const locales: Locales = {
     code: 'pl',
     name: 'Polski',
   },
+  'zh-Hans': {
+    code: 'zh-Hans',
+    name: '中文（简体）',
+  },
 }
 
 export default createI18n({

@@ -251,6 +251,7 @@ module.exports = {
               'ja',
               'fi',
               'pl',
+              'zh-Hans',
             ],
           },
         ],
