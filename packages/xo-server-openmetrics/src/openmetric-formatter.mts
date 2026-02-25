@@ -966,6 +966,7 @@ export function formatXoMetrics(data: XoMetricsData): FormattedMetric[] {
 
   // Simple totals
   const simpleTotals: Array<{ name: string; help: string; value: number }> = [
+    { name: `${XO_METRIC_PREFIX}_task_pending`, help: 'Total number of tasks pending', value: data.pendingTask },
     { name: `${XO_METRIC_PREFIX}_pool_total`, help: 'Total number of pools', value: data.poolCount },
     { name: `${XO_METRIC_PREFIX}_host_total`, help: 'Total number of hosts', value: data.hostCount },
     { name: `${XO_METRIC_PREFIX}_vm_total`, help: 'Total number of virtual machines', value: data.vmCount },
@@ -1014,6 +1015,55 @@ export function formatXoMetrics(data: XoMetricsData): FormattedMetric[] {
       type: 'gauge',
       labels: { sku_type: skuType },
       value: count,
+      timestamp,
+    })
+  }
+
+  // Node.js process metrics
+  const { nodeProcess: np } = data
+  const nodeMemMetrics: Array<{ type: string; value: number }> = [
+    { type: 'rss', value: np.memoryRssBytes },
+    { type: 'heap_used', value: np.memoryHeapUsedBytes },
+    { type: 'heap_total', value: np.memoryHeapTotalBytes },
+  ]
+  for (const { type, value } of nodeMemMetrics) {
+    metrics.push({
+      name: `${XO_METRIC_PREFIX}_nodejs_process_memory_bytes`,
+      help: 'Memory usage of the XO main process in bytes',
+      type: 'gauge',
+      labels: { type },
+      value,
+      timestamp,
+    })
+  }
+
+  const nodeCpuMetrics: Array<{ mode: string; value: number }> = [
+    { mode: 'user', value: np.cpuUserSeconds },
+    { mode: 'system', value: np.cpuSystemSeconds },
+  ]
+  for (const { mode, value } of nodeCpuMetrics) {
+    metrics.push({
+      name: `${XO_METRIC_PREFIX}_nodejs_process_cpu_seconds`,
+      help: 'CPU time consumed by the XO main process since last collection in seconds',
+      type: 'gauge',
+      labels: { mode },
+      value,
+      timestamp,
+    })
+  }
+
+  const eluMetrics: Array<{ quantile: string; value: number }> = [
+    { quantile: 'mean', value: np.eluMean },
+    { quantile: 'p99', value: np.eluP99 },
+    { quantile: 'max', value: np.eluMax },
+  ]
+  for (const { quantile, value } of eluMetrics) {
+    metrics.push({
+      name: `${XO_METRIC_PREFIX}_nodejs_event_loop_utilization`,
+      help: 'Event loop utilization ratio of the XO main process since last collection',
+      type: 'gauge',
+      labels: { quantile },
+      value,
       timestamp,
     })
   }

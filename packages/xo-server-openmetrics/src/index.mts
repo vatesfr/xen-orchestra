@@ -24,6 +24,7 @@ import { fork, type ChildProcess } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { getRandomValues } from 'node:crypto'
+import { performance } from 'node:perf_hooks'
 
 // ============================================================================
 // Types
@@ -115,6 +116,16 @@ export interface XoMetricsData {
     type: string
     jobCount: number
   }>
+  nodeProcess: {
+    eluMean: number
+    eluP99: number
+    eluMax: number
+    memoryRssBytes: number
+    memoryHeapUsedBytes: number
+    memoryHeapTotalBytes: number
+    cpuUserSeconds: number
+    cpuSystemSeconds: number
+  }
 }
 
 interface SrDataPayload {
@@ -182,9 +193,35 @@ class OpenMetricsPlugin {
   #requestIdCounter = 0
   readonly #xo: XoApp
 
+  // ELU sampling state
+  #eluSamples: number[] = []
+  #lastEluSnapshot = performance.eventLoopUtilization()
+  #lastCpuUsage = process.cpuUsage()
+  #eluSamplerInterval: ReturnType<typeof setInterval> | undefined
+
   constructor(xo: XoApp) {
     this.#xo = xo
     logger.info('Plugin initialized')
+  }
+
+  #startEluSampler(): void {
+    this.#lastEluSnapshot = performance.eventLoopUtilization()
+    this.#lastCpuUsage = process.cpuUsage()
+    this.#eluSamples = []
+    this.#eluSamplerInterval = setInterval(() => {
+      const curr = performance.eventLoopUtilization()
+      const delta = performance.eventLoopUtilization(curr, this.#lastEluSnapshot)
+      this.#lastEluSnapshot = curr
+      this.#eluSamples.push(delta.utilization)
+    }, 1000)
+    this.#eluSamplerInterval.unref()
+  }
+
+  #stopEluSampler(): void {
+    if (this.#eluSamplerInterval !== undefined) {
+      clearInterval(this.#eluSamplerInterval)
+      this.#eluSamplerInterval = undefined
+    }
   }
 
   /**
@@ -218,6 +255,7 @@ class OpenMetricsPlugin {
       bindAddress: serverConfig.bindAddress,
     })
 
+    this.#startEluSampler()
     await this.#startChildProcess(serverConfig)
   }
 
@@ -226,6 +264,8 @@ class OpenMetricsPlugin {
    * Gracefully shuts down the child process.
    */
   async unload(): Promise<void> {
+    this.#stopEluSampler()
+
     if (this.#childProcess === undefined) {
       return
     }
@@ -372,6 +412,7 @@ class OpenMetricsPlugin {
           .catch((err: unknown) => {
             logger.error('Failed to collect XO metrics', { error: err })
             const emptyMetrics: XoMetricsData = {
+              pendingTask: 0,
               poolCount: 0,
               hostCount: 0,
               vmCount: 0,
@@ -382,6 +423,16 @@ class OpenMetricsPlugin {
               hostCountByVersion: [],
               hostCountByLicense: [],
               backupJobStats: [],
+              nodeProcess: {
+                eluMean: 0,
+                eluP99: 0,
+                eluMax: 0,
+                memoryRssBytes: 0,
+                memoryHeapUsedBytes: 0,
+                memoryHeapTotalBytes: 0,
+                cpuUserSeconds: 0,
+                cpuSystemSeconds: 0,
+              },
             }
             this.#sendToChildNoWait({
               type: 'XO_METRICS',
@@ -637,6 +688,23 @@ class OpenMetricsPlugin {
       logger.warn('Failed to get backup job stats for XO metrics', { error: err })
     }
 
+    // Node.js process metrics
+    const samples = this.#eluSamples
+    this.#eluSamples = []
+    let eluMean = 0,
+      eluP99 = 0,
+      eluMax = 0
+    if (samples.length > 0) {
+      const sorted = [...samples].sort((a, b) => a - b)
+      eluMean = samples.reduce((sum, v) => sum + v, 0) / samples.length
+      eluMax = sorted[sorted.length - 1]!
+      eluP99 = sorted[Math.max(0, Math.ceil(0.99 * sorted.length) - 1)]!
+    }
+
+    const cpuDelta = process.cpuUsage(this.#lastCpuUsage)
+    this.#lastCpuUsage = process.cpuUsage()
+    const mem = process.memoryUsage()
+
     logger.debug('XO metrics collected', { poolCount, hostCount, vmCount, userCount, groupCount })
 
     return {
@@ -651,6 +719,16 @@ class OpenMetricsPlugin {
       hostCountByVersion,
       hostCountByLicense,
       backupJobStats,
+      nodeProcess: {
+        eluMean,
+        eluP99,
+        eluMax,
+        memoryRssBytes: mem.rss,
+        memoryHeapUsedBytes: mem.heapUsed,
+        memoryHeapTotalBytes: mem.heapTotal,
+        cpuUserSeconds: cpuDelta.user / 1_000_000,
+        cpuSystemSeconds: cpuDelta.system / 1_000_000,
+      },
     }
   }
 
