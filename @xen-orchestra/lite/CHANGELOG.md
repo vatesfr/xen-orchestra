@@ -3,6 +3,7 @@
 ## **next**
 
 - [Host] Fix host dashboard CPU provisioning calculation [Forum#101359](https://xcp-ng.org/forum/topic/11604/xo-6-dedicated-thread-for-all-your-feedback/84) (PR [#9459](https://github.com/vatesfr/xen-orchestra/pull/9459))
+- [Bugtools] Add button for download bugtools (PR [#9419](https://github.com/vatesfr/xen-orchestra/pull/9419))
 
 ## **0.18.0** (2026-01-29)
 

@@ -4,9 +4,9 @@
 
 <script setup lang="ts">
 import PoolMoreActions from '@/modules/pool/components/actions/PoolMoreActions.vue'
-import type { XoPool } from '@vates/types'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 
 defineProps<{
-  pool: XoPool
+  pool: FrontXoPool
 }>()
 </script>
