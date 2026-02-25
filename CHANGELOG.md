@@ -18,6 +18,7 @@
 - [Backups] Improve VHD dist handling an rework disk merge (delta backups) (PR [#9300](https://github.com/vatesfr/xen-orchestra/pull/9300))
 - [Backups] Implement Distributed storage for Backups, Mirror Backups and Replications(PR [#9433](https://github.com/vatesfr/xen-orchestra/pull/9433))
 - [MCP] Initial release of `@xen-orchestra/mcp`: MCP server enabling AI assistants to query XO infrastructure (pools, hosts, VMs, dashboard, documentation) (PR [#9519](https://github.com/vatesfr/xen-orchestra/pull/9519))
+- [Host] Add persistent option to `host.disable` to persist across host reboots (PR [#9503](https://github.com/vatesfr/xen-orchestra/pull/9503))
 
 - **REST API:**
   - [REST API] Added POST `/pbds/{id}/actions/plug` and `/pbds/{id}/actions/unplug` rest routes (PR [#9477](https://github.com/vatesfr/xen-orchestra/pull/9477))
@@ -53,7 +54,6 @@
 ### Released packages
 
 - @xen-orchestra/fs 4.6.7
-- @vates/types 1.20.0
 - @xen-orchestra/backups-cli 1.1.8
 - @xen-orchestra/immutable-backups 1.0.30
 - @xen-orchestra/vmware-explorer 0.11.0
@@ -66,10 +66,11 @@
 - @xen-orchestra/web-core 0.44.0
 - @xen-orchestra/mcp 1.0.0
 - @xen-orchestra/proxy 0.29.48
-- @xen-orchestra/rest-api 0.26.0
-- @xen-orchestra/web 0.42.0
-- xo-server 5.197.1
 - xo-web 5.194.0
+- @vates/types 1.21.0
+- @xen-orchestra/rest-api 0.27.0
+- @xen-orchestra/web 0.42.1
+- xo-server 5.197.2
 
 ## **6.1.2** (2026-02-10)
 
