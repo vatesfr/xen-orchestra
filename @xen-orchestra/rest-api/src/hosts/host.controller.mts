@@ -349,4 +349,86 @@ export class HostController extends XapiXoController<XoHost> {
       },
     })
   }
+
+  /**
+   * Put a host into maintenance mode. This will disable the host and evacuate all running VMs to other hosts in the pool.
+   *
+   * Use `vmsToForceMigrate` to unblock VMs whose migration is currently blocked (e.g. by `pool_migrate` or `migrate_send` blocked operations).
+   *
+   * Use `force` to ignore evacuation errors (the removed blocked operations on VMs will not be restored on failure).
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   * @example body { "force": false, "vmsToForceMigrate": ["f07ab729-c0e8-721c-45ec-f11276377030"] }
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/enable_maintenance_mode')
+  @Middlewares(json())
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  enableMaintenanceMode(
+    @Path() id: string,
+    @Body() body?: { force?: boolean; vmsToForceMigrate?: string[] },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const hostId = id as XoHost['id']
+    const action = async () => {
+      const xapiHost = this.getXapiObject(hostId)
+      const xapi = xapiHost.$xapi
+
+      // Note: if evacuation fails, the removed blocked operations on VMs are NOT restored.
+      if (body?.vmsToForceMigrate !== undefined) {
+        await Promise.all(
+          body.vmsToForceMigrate.map(async vmUuid => {
+            const record = await xapi.getRecordByUuid('VM', vmUuid)
+            await Promise.all(
+              ['pool_migrate', 'migrate_send'].map(operation =>
+                xapi.call('VM.remove_from_blocked_operations', record.$ref, operation)
+              )
+            )
+          })
+        )
+      }
+
+      await xapi.clearHost(xapiHost, body?.force)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'enable host maintenance mode',
+        objectId: hostId,
+        args: body,
+      },
+    })
+  }
+
+  /**
+   * Take a host out of maintenance mode by re-enabling it.
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/disable_maintenance_mode')
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  disableMaintenanceMode(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const hostId = id as XoHost['id']
+    const action = async () => {
+      await this.getXapiObject(hostId).$xapi.enableHost(hostId)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'disable host maintenance mode',
+        objectId: hostId,
+      },
+    })
+  }
 }

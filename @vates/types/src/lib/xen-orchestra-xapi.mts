@@ -290,6 +290,9 @@ export interface Xapi {
     pathname: string,
     params?: { host?: XenApiHost; query?: Record<string, unknown>; task?: boolean | XenApiTask['$ref'] }
   ): Promise<{ body: Readable }>
+  clearHost(host: WrappedXenApiRecord, force?: boolean): Promise<void>
+  enableHost(hostId: XoHost['id']): Promise<void>
+  getRecordByUuid(type: string, uuid: string): Promise<WrappedXenApiRecord>
   isHyperThreadingEnabled(hostId: XoHost['id']): Promise<boolean | null>
   VTPM_create(params: { VM: XenApiVm['$ref']; is_unique?: boolean; contents?: string }): Promise<XenApiVtpm['$ref']>
 }
