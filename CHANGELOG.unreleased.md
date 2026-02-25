@@ -20,6 +20,8 @@
   - [Patches] Warn about updating XOSTOR before installing patches (PR [#9517](https://github.com/vatesfr/xen-orchestra/pull/9517))
 - [i18n] Add Chinese (Simplified Han script) and update Czech, German, Italian, Korean and Dutch translations (PR [#9462](https://github.com/vatesfr/xen-orchestra/pull/9462))
 
+[VM/New] Added SSH key field (PR [#9413](https://github.com/vatesfr/xen-orchestra/pull/9413))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”

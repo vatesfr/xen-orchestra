@@ -33,7 +33,7 @@ type TCreateVmPayload = {
   )[]
   vifs?: unknown[]
   install?: {
-    method: 'cdrom' | 'network'
+    method: 'cdrom' | 'network' | 'ssh-key'
     repository: XoVdi['id'] | ''
   }
   cloud_config?: string
