@@ -14,8 +14,8 @@
       </VtsStateHero>
     </div>
     <template v-else>
-      <VmDashboardBackupRuns class="backup-runs" :vm-id="vm.id" :vm-dashboard :error="dashboardError" />
-      <VmDashboardBackupArchives class="backup-archives" :vm-dashboard :error="dashboardError" />
+      <VmDashboardBackupRuns class="backup-runs" :vm-id="vm.id" :vm-dashboard :has-error />
+      <VmDashboardBackupArchives class="backup-archives" :vm-dashboard :has-error />
       <DashboardAlarms
         class="alarms"
         :alarms="vmAlarms"
@@ -23,10 +23,10 @@
         :has-ready="hasVmAlarmFetchError"
       />
       <template v-if="data">
-        <VmDashboardCpuUsageChart class="cpu-usage-chart" :data :error="statsError" :loading="isFetching" />
-        <VmDashboardRamUsageChart class="ram-usage-chart" :data :error="statsError" :loading="isFetching" />
-        <VmDashboardNetworkUsageChart class="network-usage-chart" :data :error="statsError" :loading="isFetching" />
-        <VmDashboardVdiUsageChart class="vdi-usage-chart" :data :error="statsError" :loading="isFetching" />
+        <VmDashboardCpuUsageChart class="cpu-usage-chart" :data :error :loading="isFetching" />
+        <VmDashboardRamUsageChart class="ram-usage-chart" :data :error :loading="isFetching" />
+        <VmDashboardNetworkUsageChart class="network-usage-chart" :data :error :loading="isFetching" />
+        <VmDashboardVdiUsageChart class="vdi-usage-chart" :data :error :loading="isFetching" />
       </template>
     </template>
   </div>
@@ -56,9 +56,9 @@ const { vm } = defineProps<{
   vm: FrontXoVm
 }>()
 
-const { data, isFetching, error: statsError } = useFetchStats('vm', () => vm.id, GRANULARITY.Hours)
+const { data, isFetching, error } = useFetchStats('vm', () => vm.id, GRANULARITY.Hours)
 
-const { vmDashboard, hasError: dashboardError } = useXoVmDashboard({}, () => vm.id)
+const { vmDashboard, hasError } = useXoVmDashboard({}, () => vm.id)
 
 const { vmAlarms, areVmAlarmsReady, hasVmAlarmFetchError } = useXoVmAlarmsCollection({}, () => vm.id)
 
