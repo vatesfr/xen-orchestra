@@ -13,16 +13,18 @@
       {{ title }}
       <VtsIcon :name="isExpanded ? 'fa:angle-up' : 'fa:angle-down'" :size="iconSize" />
     </button>
-    <Transition name="fade">
-      <VtsDivider v-if="isExpanded || size === 'small'" type="stretch" />
-    </Transition>
-    <Transition name="slide">
-      <div v-if="isExpanded" :id="`panel-${identifier}`" role="region" :aria-labelledby="`header-${identifier}`">
+    <div class="divider-wrapper" :class="{ visible: isExpanded || size === 'small' }">
+      <div class="divider-inner">
+        <VtsDivider type="stretch" />
+      </div>
+    </div>
+    <div class="panel-wrapper" :class="{ expanded: isExpanded }">
+      <div :id="`panel-${identifier}`" role="region" :aria-labelledby="`header-${identifier}`" class="panel-inner">
         <slot name="content">
           {{ content }}
         </slot>
       </div>
-    </Transition>
+    </div>
   </div>
 </template>
 
@@ -141,52 +143,58 @@ const iconSize = computed<IconSize>(() => (size === 'small' ? 'medium' : 'large'
   /* SIZE VARIANT */
   &.size--small {
     padding: 0;
-    gap: 0.4rem;
+
+    .header {
+      margin-bottom: 0.4rem;
+    }
   }
 
   &.size--large {
     border: 0.1rem solid var(--color-neutral-border);
     border-radius: 0.4rem;
     padding: 1.6rem;
-    gap: 1.2rem;
+
+    .header:has(+ .divider-wrapper.visible) {
+      margin-bottom: 1.2rem;
+    }
   }
-}
 
-/* Animations */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
+  /* ANIMATION DIVIDER */
+  .divider-wrapper {
+    display: grid;
+    grid-template-rows: 0fr;
+    overflow: hidden;
+    transition: grid-template-rows 0.3s ease;
 
-.slide-enter-active,
-.slide-leave-active {
-  transition:
-    max-height 0.3s ease,
-    opacity 0.3s ease;
-  overflow: hidden;
-}
+    .divider-inner {
+      min-height: 0;
+      overflow: hidden;
+    }
 
-.slide-enter-from {
-  max-height: 0;
-  opacity: 0;
-}
+    &.visible {
+      grid-template-rows: 1fr;
 
-.slide-enter-to {
-  max-height: 100vh;
-  opacity: 1;
-}
+      + .panel-wrapper {
+        margin-top: 1.2rem;
+      }
+    }
+  }
 
-.slide-leave-from {
-  max-height: 100vh;
-  opacity: 1;
-}
+  /* ANIMATION PANEL */
+  .panel-wrapper {
+    display: grid;
+    grid-template-rows: 0fr;
+    overflow: hidden;
+    transition: grid-template-rows 0.3s ease;
 
-.slide-leave-to {
-  max-height: 0;
-  opacity: 0;
+    .panel-inner {
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    &.expanded {
+      grid-template-rows: 1fr;
+    }
+  }
 }
 </style>
