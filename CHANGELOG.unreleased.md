@@ -11,8 +11,6 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [Host] Add persistent option to `host.disable` to persist across host reboots (PR [#9503](https://github.com/vatesfr/xen-orchestra/pull/9503))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
