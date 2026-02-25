@@ -25,6 +25,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { getRandomValues } from 'node:crypto'
 import { performance } from 'node:perf_hooks'
+import v8 from 'node:v8'
 
 // ============================================================================
 // Types
@@ -123,6 +124,11 @@ export interface XoMetricsData {
     memoryRssBytes: number
     memoryHeapUsedBytes: number
     memoryHeapTotalBytes: number
+    memoryExternalBytes: number
+    memoryArrayBuffersBytes: number
+    heapSizeLimitBytes: number
+    heapAvailableBytes: number
+    detachedContexts: number
     cpuUserSeconds: number
     cpuSystemSeconds: number
   }
@@ -430,6 +436,11 @@ class OpenMetricsPlugin {
                 memoryRssBytes: 0,
                 memoryHeapUsedBytes: 0,
                 memoryHeapTotalBytes: 0,
+                memoryExternalBytes: 0,
+                memoryArrayBuffersBytes: 0,
+                heapSizeLimitBytes: 0,
+                heapAvailableBytes: 0,
+                detachedContexts: 0,
                 cpuUserSeconds: 0,
                 cpuSystemSeconds: 0,
               },
@@ -704,6 +715,7 @@ class OpenMetricsPlugin {
     const cpuDelta = process.cpuUsage(this.#lastCpuUsage)
     this.#lastCpuUsage = process.cpuUsage()
     const mem = process.memoryUsage()
+    const heapStats = v8.getHeapStatistics()
 
     logger.debug('XO metrics collected', { poolCount, hostCount, vmCount, userCount, groupCount })
 
@@ -726,6 +738,11 @@ class OpenMetricsPlugin {
         memoryRssBytes: mem.rss,
         memoryHeapUsedBytes: mem.heapUsed,
         memoryHeapTotalBytes: mem.heapTotal,
+        memoryExternalBytes: mem.external,
+        memoryArrayBuffersBytes: mem.arrayBuffers,
+        heapSizeLimitBytes: heapStats.heap_size_limit,
+        heapAvailableBytes: heapStats.total_available_size,
+        detachedContexts: heapStats.number_of_detached_contexts,
         cpuUserSeconds: cpuDelta.user / 1_000_000,
         cpuSystemSeconds: cpuDelta.system / 1_000_000,
       },

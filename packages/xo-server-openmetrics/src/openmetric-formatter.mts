@@ -1025,6 +1025,8 @@ export function formatXoMetrics(data: XoMetricsData): FormattedMetric[] {
     { type: 'rss', value: np.memoryRssBytes },
     { type: 'heap_used', value: np.memoryHeapUsedBytes },
     { type: 'heap_total', value: np.memoryHeapTotalBytes },
+    { type: 'external', value: np.memoryExternalBytes },
+    { type: 'array_buffers', value: np.memoryArrayBuffersBytes },
   ]
   for (const { type, value } of nodeMemMetrics) {
     metrics.push({
@@ -1036,6 +1038,33 @@ export function formatXoMetrics(data: XoMetricsData): FormattedMetric[] {
       timestamp,
     })
   }
+
+  metrics.push(
+    {
+      name: `${XO_METRIC_PREFIX}_nodejs_heap_size_limit_bytes`,
+      help: 'V8 heap size limit in bytes — OOM occurs when heap_used approaches this value',
+      type: 'gauge',
+      labels: {},
+      value: np.heapSizeLimitBytes,
+      timestamp,
+    },
+    {
+      name: `${XO_METRIC_PREFIX}_nodejs_heap_available_bytes`,
+      help: 'Remaining V8 heap space before hitting the size limit',
+      type: 'gauge',
+      labels: {},
+      value: np.heapAvailableBytes,
+      timestamp,
+    },
+    {
+      name: `${XO_METRIC_PREFIX}_nodejs_detached_contexts`,
+      help: "Number of detached V8 contexts not yet GC'd — non-zero and growing indicates a memory leak",
+      type: 'gauge',
+      labels: {},
+      value: np.detachedContexts,
+      timestamp,
+    }
+  )
 
   const nodeCpuMetrics: Array<{ mode: string; value: number }> = [
     { mode: 'user', value: np.cpuUserSeconds },
