@@ -10,14 +10,14 @@
 </template>
 
 <script lang="ts" setup>
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoServerCollection } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { downloadFile } from '@core/utils/download-file.utils'
-import type { Branded } from '@vates/types'
+import { downloadFile } from '@core/utils/download-file.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { poolId } = defineProps<{ poolId: Branded<'pool'> }>()
+const { poolId } = defineProps<{ poolId: FrontXoPool['id'] }>()
 
 const { t } = useI18n()
 

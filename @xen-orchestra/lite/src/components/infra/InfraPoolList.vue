@@ -41,7 +41,7 @@
 <script lang="ts" setup>
 import InfraHostItems from '@/components/infra/InfraHostItems.vue'
 import InfraVmItems from '@/components/infra/InfraVmItems.vue'
-import PoolTreeActions from '@/modules/pool/components/actions/poolTreeActions.vue'
+import PoolTreeActions from '@/modules/pool/components/actions/PoolTreeActions.vue'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'

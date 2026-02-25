@@ -4,9 +4,9 @@
 
 <script setup lang="ts">
 import HostDownloadButton from '@/modules/host/components/actions/download/HostDownloadButton.vue'
-import type { XoHost } from '@vates/types'
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 
-const { host } = defineProps<{
-  host: XoHost
+defineProps<{
+  host: FrontXoHost
 }>()
 </script>
