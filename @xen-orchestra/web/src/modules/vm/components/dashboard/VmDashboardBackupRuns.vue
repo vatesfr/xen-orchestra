@@ -1,17 +1,15 @@
 <template>
-  <UiCard :has-error="error">
+  <UiCard :has-error="isError">
     <UiCardTitle>
       {{ t('last-n-backup-runs', 3) }}
-      <template #info>
+      <template v-if="!isEmpty" #info>
         <UiLink size="small" :to="{ name: '/vm/[id]/backups', params: { id: vmId } }">
           {{ t('backup-jobs:see-all') }}
         </UiLink>
       </template>
     </UiCardTitle>
-    <VtsStateHero v-if="error" format="card" type="error" size="small">{{ t('error-no-data') }}</VtsStateHero>
-    <VtsStateHero v-if="!areBackupRunsReady" size="large" format="card" type="busy" />
 
-    <div v-if="areBackupRunsReady && !error" class="backup-head">
+    <div v-if="areBackupRunsReady && !isError" class="backup-head">
       <div class="protection-infos">
         <VtsQuickInfoRow :label="t('protection-status')">
           <template #value>
@@ -19,7 +17,6 @@
           </template>
         </VtsQuickInfoRow>
         <UiButton
-          v-if="!isEmpty && !isInNoActiveJob"
           class="protection-helper"
           accent="brand"
           left-icon="status:info-circle"
@@ -30,23 +27,23 @@
           {{ t('what-does-protected-means?') }}
         </UiButton>
       </div>
-
-      <UiAlert v-if="isEmpty && areBackupRunsReady" accent="warning">
-        <span class="typo-body-bold">{{ t('no-job-vm') }}</span>
-        <template #description>
-          <I18nT keypath="configure-for-protected" scope="global" tag="div">
-            <template #backup-job>
-              <UiLink size="small" :to="{ name: '/(site)/backups' }">
-                {{ t('backup-job') }}
-              </UiLink>
-            </template>
-          </I18nT>
-        </template>
-      </UiAlert>
     </div>
 
-    <VtsTable v-if="!isEmpty && areBackupRunsReady && !error" :state>
-      <thead>
+    <UiAlert v-if="isNotInActiveJob" accent="warning">
+      <span class="typo-body-bold">{{ t('no-job-vm') }}</span>
+      <template #description>
+        <I18nT keypath="configure-for-protected" scope="global" tag="div">
+          <template #backup-job>
+            <UiLink size="small" :to="{ name: '/(site)/backups' }">
+              {{ t('backup-job') }}
+            </UiLink>
+          </template>
+        </I18nT>
+      </template>
+    </UiAlert>
+
+    <VtsTable :state horizontal>
+      <thead v-if="!isEmpty">
         <tr>
           <HeadCells />
         </tr>
@@ -62,9 +59,8 @@
 
 <script setup lang="ts">
 import { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection'
-import type { VmDashboardRun, VmProtectionStatus, XoVmDashboard } from '@/types/xo/vm-dashboard.type'
+import type { VmDashboardRun, VmProtectionStatus, XoVmDashboard } from '@/modules/vm/types/vm-dashboard.type'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
@@ -80,10 +76,10 @@ import { useBackupRunColumns } from '@core/tables/column-sets/vm-backup-run-colu
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { error, vmId, vmDashboard } = defineProps<{
+const { hasError, vmId, vmDashboard } = defineProps<{
   vmDashboard: XoVmDashboard | undefined
   vmId: string
-  error: boolean
+  hasError: boolean
 }>()
 
 const { t } = useI18n()
@@ -100,14 +96,16 @@ const areBackupRunsReady = computed(() => areBackupJobsReady.value && lastRuns.v
 
 const isEmpty = computed(() => lastRuns?.value?.length === 0)
 
-const isInNoActiveJob = computed(() => vmDashboard?.backupsInfo?.vmProtection === 'not-in-job')
+const isError = computed(() => hasBackupJobFetchError.value || hasError)
+
+const isNotInActiveJob = computed(() => vmDashboard?.backupsInfo?.vmProtection === 'not-in-active-job')
 
 const vmProtection = computed(() => vmDashboard?.backupsInfo?.vmProtection)
 
 const infoVmProtectionStatus = useMapper<VmProtectionStatus, { accent: InfoAccent; text: string }>(
   () => vmProtection.value,
   {
-    'not-in-job': { accent: 'danger', text: t('backups:vms-protection:no-active-job') },
+    'not-in-active-job': { accent: 'danger', text: t('backups:vms-protection:no-active-job') },
     unprotected: { accent: 'warning', text: t('backups:vms-protection:active-unprotected') },
     protected: { accent: 'success', text: t('backups:vms-protection:active-protected') },
   },
@@ -116,14 +114,13 @@ const infoVmProtectionStatus = useMapper<VmProtectionStatus, { accent: InfoAccen
 
 const state = useTableState({
   busy: () => !areBackupRunsReady.value,
-  error: () => hasBackupJobFetchError.value || error,
+  error: () => (isError.value ? { type: 'error', message: t('error-no-data'), size: 'extra-small' } : false),
   empty: () =>
-    isEmpty.value
+    isEmpty.value && !isNotInActiveJob.value
       ? {
           type: 'no-result',
           message: t('is-part-of-one-active-job'),
           size: 'small',
-          format: 'compact',
         }
       : false,
 })
@@ -153,11 +150,8 @@ const { HeadCells, BodyCells } = useBackupRunColumns({
   .protection-infos {
     display: flex;
     flex-direction: column;
-    gap: 0.8rem;
-  }
-
-  .protection-helper {
-    width: fit-content;
+    align-items: flex-start;
+    gap: 0.4rem;
   }
 }
 </style>

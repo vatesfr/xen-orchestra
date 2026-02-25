@@ -362,7 +362,7 @@
   "ipv4-addresses": "IPv4 addresses",
   "ipv6-address": "IPv6 address",
   "ipv6-addresses": "IPv6 addresses",
-  "is-part-of-one-active-job": "This VM is currently part of at least one active job.",
+  "is-part-of-one-active-job": "This VM is currently part of at least one active job. The last job it participated in will appear here once it has been executed.",
   "is-primary-host": "{name} is primary host",
   "iscsi-iqn": "iSCSI IQN",
   "iso-dvd": "ISO/DVD",

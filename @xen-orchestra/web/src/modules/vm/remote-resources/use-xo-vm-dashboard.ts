@@ -1,4 +1,4 @@
-import type { XoVmDashboard } from '@/types/xo/vm-dashboard.type'
+import type { XoVmDashboard } from '@/modules/vm/types/vm-dashboard.type'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { Ref } from 'vue'
 

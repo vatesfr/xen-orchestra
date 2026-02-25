@@ -1,7 +1,7 @@
 import type { Status } from '@core/components/status/VtsStatus.vue'
 import type { XoVmBackupArchive, XoVm, XoUser, XoHost, XoSr, XoVmBackupJob } from '@vates/types'
 
-export type VmProtectionStatus = 'protected' | 'unprotected' | 'not-in-job'
+export type VmProtectionStatus = 'protected' | 'unprotected' | 'not-in-active-job'
 
 export type VmDashboardRun = { backupJobId: XoVmBackupJob['id']; timestamp: number; status: Status }
 
