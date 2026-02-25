@@ -14,11 +14,11 @@ This part explains the terminology of backup types and features.
 - [**File restore**](./backups#restore-a-file): A feature that allows you to restore individual files from a VM backup without restoring the full VM.
 - [**Full backup**](./full_backups): Copies the entire VM to backup repositories each time, regardless of previous backups.
 - [**Full replication**](./full_replication): Creates a replica of a VM on other storage repositories (on the same pool or on another) by copying it completly on each run.
-- [**Incremental backup**](./incremental_backups): Transfer and stores only the changes since the last backup to a backup repositories , reducing storage and network needs. The first transfer transfers the VM completly.
-- [**Incremental replication**](./incremental_replication): Transfer and stores only the changes since the last backup to a stroage repositories (on the same pool or on another), reducing network needs. The first transfer transfers the VM completly.
+- [**Incremental backup**](./incremental_backups): Transfer and stores only the changes since the last backup to backup repositories , reducing storage and network needs. The first transfer transfers the VM completely.
+- [**Incremental replication**](./incremental_replication): Transfer and stores only the changes since the last backup to storage repositories (on the same pool or on another), reducing network needs. The first transfer transfers the VM completely.
 - [**Long-term retention**](./backups#long-term-backup-retention-with-gfs-strategy): Keeps backups over extended periods (weeks, months, or years) for compliance or archival purposes.
 - [**Mirror backup**](./mirror_backup): Mirror a backup repository to another. Retention and encryption of source and destination can be different.
-- [**Distributed backup and replication**](./distributed_backups): Distribute the backupd and replication across multiple targets
+- [**Distributed backup and replication**](./distributed_backups): Distribute the backups and replications across multiple targets.
 - [**Remote**](./backups#remotes): A storage location for backups. For instance:
   - Local storage (not recommended)
   - NFS
@@ -217,7 +217,7 @@ Below are the main backup and replication types available in Xen Orchestra.
 
 - **Compression** is configured at the backup job level, and applies only to full backups. For full backups, prefer [Zstandard (Zstd)](https://en.wikipedia.org/wiki/Zstd) if your host supports it.
 - **Encryption** is configured at the backup repository level, not per individual backup job. To use encryption with incremental backups, the **use VHD blocks** setting must be enabled.
-  :::
+:::
 
 ---
 
