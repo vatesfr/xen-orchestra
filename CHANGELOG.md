@@ -4,11 +4,31 @@
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
-### Enhancements
+### Highlights
 
 - [OpenMetrics] Add `is_control_domain` label to VM metrics to differentiate dom0 VMs from regular VMs (PR [#9474](https://github.com/vatesfr/xen-orchestra/pull/9474))
 - [OpenMetrics] Add `xcp_host_status` metric exposing host status (running/maintenance/halted/unknown) for all hosts, including non-running ones (PR [#9457](https://github.com/vatesfr/xen-orchestra/pull/9457))
 - [OpenMetrics] Add host uptime metric (`xcp_host_uptime_seconds`) (PR [#9449](https://github.com/vatesfr/xen-orchestra/pull/9449))
+- [MCP] Initial release of `@xen-orchestra/mcp`: MCP server enabling AI assistants to query XO infrastructure (pools, hosts, VMs, dashboard, documentation) (PR [#9519](https://github.com/vatesfr/xen-orchestra/pull/9519))
+- [Backup] Implement Distributed storage for Backups, Mirror Backups and Replications(PR [#9433](https://github.com/vatesfr/xen-orchestra/pull/9433))
+
+- **REST API:**
+  - [REST API] Added POST `/pbds/{id}/actions/plug` and `/pbds/{id}/actions/unplug` rest routes (PR [#9477](https://github.com/vatesfr/xen-orchestra/pull/9477))
+  - [REST API] Expose `POST /vdis` to create a VDI (PR [#9492](https://github.com/vatesfr/xen-orchestra/pull/9492))
+
+- **XO 5:**
+  - [Network] Ability to switch management PIF (PRs [#9369](https://github.com/vatesfr/xen-orchestra/pull/9369) [#9510](https://github.com/vatesfr/xen-orchestra/pull/9510))
+  - [Licenses] Display bundle name next to license name (PR [#9512](https://github.com/vatesfr/xen-orchestra/pull/9512))
+
+- **XO 6:**
+  - [i18n] Add Chinese (Simplified Han script) and update Czech, German, Italian, Korean and Dutch translations (PR [#9462](https://github.com/vatesfr/xen-orchestra/pull/9462))
+  - [VM/New] Add the ability to pass a cloud-init config (PR [#9427](https://github.com/vatesfr/xen-orchestra/pull/9427))
+  - [VM/New] Added SSH key field (PR [#9413](https://github.com/vatesfr/xen-orchestra/pull/9413))
+  - [Search Engine] Implement first version of the Query Builder on Pools, Hosts, VMs, networks and Storage tables (PR [#9488](https://github.com/vatesfr/xen-orchestra/pull/9488))
+  - [Header] Add a banner when the connection to the xo server fails (PR [#9375](https://github.com/vatesfr/xen-orchestra/pull/9375))
+
+### Enhancements
+
 - [Warm Migration] the api call now return the new VM uuid (PR [#94653](https://github.com/vatesfr/xen-orchestra/pull/9465))
 - [Warm Migration] stopped VM can be warm migrated (PR [#94653](https://github.com/vatesfr/xen-orchestra/pull/9465))
 - [Plugins/load balancer] Add configurable VM migration cooldown to prevent oscillation (default 30min) (PR [#9388](https://github.com/vatesfr/xen-orchestra/pull/9388))
@@ -17,29 +37,17 @@
 - [Storage] Add possibility to create VDI in qcow2 format if size > 2TB - 8KB (PR [#9493](https://github.com/vatesfr/xen-orchestra/pull/9493))
 - [Backups] Improve VHD dist handling an rework disk merge (delta backups) (PR [#9300](https://github.com/vatesfr/xen-orchestra/pull/9300))
 - [Backups] Implement Distributed storage for Backups, Mirror Backups and Replications(PR [#9433](https://github.com/vatesfr/xen-orchestra/pull/9433))
-- [MCP] Initial release of `@xen-orchestra/mcp`: MCP server enabling AI assistants to query XO infrastructure (pools, hosts, VMs, dashboard, documentation) (PR [#9519](https://github.com/vatesfr/xen-orchestra/pull/9519))
 - [Host] Add persistent option to `host.disable` to persist across host reboots (PR [#9503](https://github.com/vatesfr/xen-orchestra/pull/9503))
 
 - **REST API:**
-  - [REST API] Added POST `/pbds/{id}/actions/plug` and `/pbds/{id}/actions/unplug` rest routes (PR [#9477](https://github.com/vatesfr/xen-orchestra/pull/9477))
   - [REST API] Added POST `/srs/{id}/actions/reclaim_space` rest route (PR [#9486](https://github.com/vatesfr/xen-orchestra/pull/9486))
-  - [REST API] Expose `POST /vdis` to create a VDI (PR [#9492](https://github.com/vatesfr/xen-orchestra/pull/9492))
   - [REST API] Expose `POST /rest/v0/vms/:id/actions/migrate` to migrate a VM (PR [#9414](https://github.com/vatesfr/xen-orchestra/pull/9414))
   - [REST API] Add `objectType` to tasks for resolved object references (PR [#9429](https://github.com/vatesfr/xen-orchestra/pull/9429))
   - [REST API] Added POST `/srs/{id}/actions/scan` rest routes (PR [#9514](https://github.com/vatesfr/xen-orchestra/pull/9514))
 
 - **XO 5:**
   - [V2V] Remember connection settings in the browser (PR [#9490](https://github.com/vatesfr/xen-orchestra/pull/9490))
-  - [Network] Ability to switch management PIF (PRs [#9369](https://github.com/vatesfr/xen-orchestra/pull/9369) [#9510](https://github.com/vatesfr/xen-orchestra/pull/9510))
-  - [Licenses] Display bundle name next to license name (PR [#9512](https://github.com/vatesfr/xen-orchestra/pull/9512))
   - [Patches] Warn about updating XOSTOR before installing patches (PR [#9517](https://github.com/vatesfr/xen-orchestra/pull/9517))
-
-- **XO 6:**
-  - [Search Engine] Implement first version of the Query Builder on Pools, Hosts, VMs, networks and Storage tables (PR [#9488](https://github.com/vatesfr/xen-orchestra/pull/9488))
-  - [Header] Add a banner when the connection to the xo server fails (PR [#9375](https://github.com/vatesfr/xen-orchestra/pull/9375))
-  - [VM/New] Added SSH key field (PR [#9413](https://github.com/vatesfr/xen-orchestra/pull/9413))
-  - [VM/New] Add the ability to pass a cloud-init config (PR [#9427](https://github.com/vatesfr/xen-orchestra/pull/9427))
-  - [i18n] Add Chinese (Simplified Han script) and update Czech, German, Italian, Korean and Dutch translations (PR [#9462](https://github.com/vatesfr/xen-orchestra/pull/9462))
 
 ### Bug fixes
 
