@@ -47,7 +47,6 @@
 - [xo-server-sdn-controller] traffic rules robustness (PR [#9442](https://github.com/vatesfr/xen-orchestra/pull/9442))
 - [Backups] Fix error during backup and health check (PR [#9508](https://github.com/vatesfr/xen-orchestra/pull/9508))
 - [Backups] remove the `cleanVm: incorrect backup size in metadata` error (PR [#9527](https://github.com/vatesfr/xen-orchestra/pull/9527))
-- [MCP] Fix `npx @xen-orchestra/mcp` failing with “Permission denied” (PR [#9536](https://github.com/vatesfr/xen-orchestra/pull/9536))
 
 ### Released packages
 
