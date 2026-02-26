@@ -3,7 +3,13 @@ import { createGzip } from 'node:zlib'
 import { pipeline } from 'node:stream/promises'
 import { Readable, type Transform } from 'node:stream'
 import { Request } from 'express'
-import type { SupportedActionsByResource, SupportedResource } from '@xen-orchestra/acl'
+import {
+  type AnyPrivilegeOnParam,
+  getMissingPrivileges,
+  type SupportedActions,
+  type SupportedActionsByResource,
+  type SupportedResource,
+} from '@xen-orchestra/acl'
 import type { VatesTask } from '@vates/types/lib/vates/task'
 import type { XapiXoRecord, XoRecord, XoTask } from '@vates/types/xo'
 import type { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
@@ -16,9 +22,17 @@ import type { MaybePromise, SendObjects, WithHref } from '../helpers/helper.type
 import type { Response as ExResponse } from 'express'
 import type { RestAnyPrivilege } from '../acl-privileges/acl-privilege.type.mjs'
 import { NDJSON_CONTENT_TYPE, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
+import { ApiError } from '../helpers/error.helper.mjs'
 
 const noop = () => {}
 
+type AclEntry = {
+  [Resource in SupportedResource]: {
+    resource: Resource
+    action: SupportedActions<Resource>
+    objects?: (object | RestXoRecord) | (object | RestXoRecord)[]
+  }
+}[SupportedResource]
 export type CreateActionReturnType<CbType> = Promise<{ taskId: string } | CbType>
 export type RestXoRecord = XoRecord<SupportedActionsByResource, SupportedResource> | RestAnyPrivilege
 
@@ -146,5 +160,37 @@ export abstract class BaseController<T extends RestXoRecord, IsSync extends bool
     }
 
     return res
+  }
+
+  /**
+   * objects should **not** be a XAPI objects.
+   */
+  async checkAcls(acls: AclEntry[] | AclEntry) {
+    acls = Array.isArray(acls) ? acls : [acls]
+    const user = this.restApi.getCurrentUser()
+    const userPrivileges = await this.restApi.xoApp.getAclV2UserPrivileges(user.id)
+    const missingPrivilegeParams: AnyPrivilegeOnParam[] = []
+
+    for (const acl of acls) {
+      if (acl.objects === undefined || (Array.isArray(acl.objects) && acl.objects.length === 0)) {
+        continue
+      }
+
+      missingPrivilegeParams.push({
+        action: acl.action,
+        resource: acl.resource,
+        objects: acl.objects,
+        user,
+      } as AnyPrivilegeOnParam)
+    }
+
+    const missingPrivileges = getMissingPrivileges(missingPrivilegeParams, userPrivileges)
+    if (missingPrivileges.length > 0) {
+      throw new ApiError('no enough privileges', 403, {
+        data: {
+          missingPrivileges,
+        },
+      })
+    }
   }
 }
