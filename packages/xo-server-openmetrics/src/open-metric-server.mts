@@ -101,10 +101,6 @@ interface HostStatusPayload {
   hosts: HostStatusItem[]
 }
 
-interface XoMetricsPayload {
-  data: XoMetricsData
-}
-
 interface PendingRequest<T> {
   resolve: (value: T) => void
   reject: (error: Error) => void

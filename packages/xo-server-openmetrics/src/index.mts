@@ -616,14 +616,13 @@ class OpenMetricsPlugin {
    */
   async #getXoMetrics(): Promise<XoMetricsData> {
     const allObjects = this.#xo.getObjects() as Record<string, XoObject>
-    console.log('RUNNING')
 
     let poolCount = 0
     let hostCount = 0
     let vmCount = 0
     let socketCount = 0
     let pendingTask = 0
-    for await (const _ of this.#xo.tasks.list({ filter: _ => _.status === 'pending' })) {
+    for await (const _taskLog of this.#xo.tasks.list({ filter: _ => _.status === 'pending' })) {
       pendingTask++
     }
     const srCountByContentType: Record<string, number> = {}
@@ -702,9 +701,9 @@ class OpenMetricsPlugin {
     // Node.js process metrics
     const samples = this.#eluSamples
     this.#eluSamples = []
-    let eluMean = 0,
-      eluP99 = 0,
-      eluMax = 0
+    let eluMean = 0
+    let eluP99 = 0
+    let eluMax = 0
     if (samples.length > 0) {
       const sorted = [...samples].sort((a, b) => a - b)
       eluMean = samples.reduce((sum, v) => sum + v, 0) / samples.length
