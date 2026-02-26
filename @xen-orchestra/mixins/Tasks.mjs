@@ -10,8 +10,6 @@ export { Task }
 
 const { warn } = createLogger('xo:mixins:Tasks')
 
-const formatId = timestamp => timestamp.toString(36).padStart(9, '0')
-
 const noop = Function.prototype
 
 // Create a serializable object from an error.
@@ -190,20 +188,9 @@ export default class Tasks extends EventEmitter {
 
     const task = new Task({ properties: { ...props, name, objectId, userId, type }, onProgress: this.#onProgress })
 
-    // Use a compact, sortable, string representation of the creation date
-    //
-    // Due to the padding, dates are sortable up to 5188-04-22T11:04:28.415Z
-    let now = Date.now()
-    let id
-    while (tasks.has((id = formatId(now)))) {
-      // if the current id is already taken, use the next millisecond
-      ++now
-    }
-    task.id = id
-
-    tasks.set(id, task)
+    tasks.set(task.id, task)
     if (clearLogOnSuccess) {
-      this.#logsToClearOnSuccess.add(id)
+      this.#logsToClearOnSuccess.add(task.id)
     }
 
     return task
