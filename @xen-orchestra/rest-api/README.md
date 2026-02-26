@@ -62,6 +62,77 @@ class Foo extends Controller {
 
 In order not to pollute important decorators, all example structures should be in a separate file. `src/open-api/examples/<resource>.example.mts`
 
+### ACLs
+
+To define an ACL for an endpoint, simply call the `this.checkAcls` method and pass the required ACL(s).
+
+#### Guidelines
+
+- **JSDoc Documentation**: Always document the required privileges in the JSDoc annotation so users know which permissions are needed. Use the format: `Required privilege: - ...`
+- **Error Handling**: If you define an ACL for an endpoint, you **must** add a `@Response(403)` decorator.
+- **Action Tracking**: If your endpoint is an action, call `checkAcls` **inside** the action logic. This ensures that if the check throws an error, the trace is correctly preserved in the logs of the associated action.
+
+---
+
+#### Usage & Scoping
+
+The `objects` property passed to `checkAcls` depends on the context of your request:
+
+| Case                  | `objects` value    | Description                              |
+| :-------------------- | :----------------- | :--------------------------------------- |
+| **Existing Resource** | `vm`, `host`, etc. | The existing XO object(s)                |
+| **Creation**          | `body`, etc.       | The object you are attempting to create. |
+
+##### Example: Action on an existing resource
+
+```ts
+ /**
+  * Start a VM
+  *
+  * Required privilege:
+  * - resource: vm, action: start
+  */
+ @Post('{id}/actions/start')
+ @Response(403)
+ getVm(@Path() id: string) {
+    const action = async () => {
+      const vm = await this.getObject(id)
+      await this.checkAcls({ resource: 'vm', action: 'start', objects: vm })
+      // ...
+    }
+ }
+```
+
+##### Example: Resource creation
+
+When creating a resource (which doesn't exist yet), pass the object being created as the target:
+
+```ts
+/**
+  * Create a new VDI
+  *
+  * Required privilege:
+  * - resource: vdi, action: create
+  */
+ @Post('/')
+ @Response(403)
+ createVdi(@Body() body: VdiConfig) {
+   const {srId, ...rest}
+   const bodyParam = {$SR: srId, ...rest}
+   // Pass the body (the object to be created) to check permissions
+   await this.checkAcls({ resource: 'vdi', action: 'create', objects: bodyParam })
+   await VDI_create(bodyParam)
+   // ...
+ }
+```
+
+If you need to use a privilege that doesn't exist yet (e.g., `resource: 'vm', action: 'foo'`), you must register it in two places:
+
+- ACL Definition: In `@xen-orchestra/acl/src/actions/vm.mts`, add: `foo: true`.
+- Type Definition: In `@xen-orchestra/rest-api/src/acl-privileges/acl-privilege.type.mts`, add `foo` to the `vm` resource.
+
+Don't worry about forgetting a step: if a resource or action is missing in either location, the build will fail with an explicit error message explaining what is missing.
+
 ## Contributions
 
 Contributions are _very_ welcomed, either on the documentation or on
