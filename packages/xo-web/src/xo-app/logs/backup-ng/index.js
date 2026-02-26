@@ -124,6 +124,10 @@ const COLUMNS = [
   {
     name: _('labelSize'),
     itemRenderer: ({ tasks: vmTasks, jobId }, { jobs }) => {
+      const isXoTask = vmTasks?.length > 0 && !!vmTasks[0].properties
+      if (isXoTask) {
+        vmTasks = vmTasks[0].tasks
+      }
       if (!['backup', 'mirrorBackup'].includes(get(() => jobs[jobId].type)) || isEmpty(vmTasks)) {
         return null
       }
@@ -133,7 +137,10 @@ const COLUMNS = [
       vmTasks.forEach(({ tasks: targetSnapshotTasks = [] }) => {
         let vmTransferSize
         let vmMergeSize
-        targetSnapshotTasks.forEach(({ message, tasks: operationTasks }) => {
+        targetSnapshotTasks.forEach(({ message, properties, tasks: operationTasks }) => {
+          if (isXoTask) {
+            message = properties.name
+          }
           if (message !== 'export' || isEmpty(operationTasks)) {
             return
           }
@@ -141,10 +148,11 @@ const COLUMNS = [
             if (operationTask.status !== 'success') {
               return
             }
-            if (operationTask.message === 'transfer' && vmTransferSize === undefined) {
+            const operationName = isXoTask ? operationTask.properties.name : operationTask.message
+            if (operationName === 'transfer' && vmTransferSize === undefined) {
               vmTransferSize = operationTask.result?.size
             }
-            if (operationTask.message === 'merge' && vmMergeSize === undefined) {
+            if (operationName === 'merge' && vmMergeSize === undefined) {
               vmMergeSize = operationTask.result?.size
             }
 
@@ -185,7 +193,10 @@ export default decorate([
             ? {
                 ...log,
                 // "vmNames" can contains undefined entries
-                vmNames: map(log.tasks, ({ data }) => get(() => vms[data.id].name_label)),
+                // data is the previous properties field for former backup tasks
+                vmNames: map(log.tasks, ({ data, properties }) =>
+                  get(() => vms[properties ? properties.id : data.id].name_label)
+                ),
               }
             : log
         ),
