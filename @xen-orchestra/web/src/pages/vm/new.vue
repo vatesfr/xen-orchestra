@@ -29,28 +29,80 @@
             <!-- INSTALL SETTINGS SECTION -->
             <UiTitle>{{ t('install-settings') }}</UiTitle>
             <div class="install-settings-container">
-              <UiRadioButtonGroup accent="brand" :vertical="uiStore.isSmall" :gap="uiStore.isSmall ? 'narrow' : 'wide'">
-                <template v-if="isDiskTemplate">
-                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="no-config">
-                    {{ t('no-config') }}
-                  </UiRadioButton>
-                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="ssh-key">
-                    {{ t('ssh-key') }}
-                  </UiRadioButton>
-                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="cdrom">
-                    {{ t('iso-dvd') }}
-                  </UiRadioButton>
-                </template>
-                <template v-else>
-                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="cdrom">
-                    {{ t('iso-dvd') }}
-                  </UiRadioButton>
-                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="network">
-                    {{ t('pxe') }}
-                  </UiRadioButton>
-                </template>
+              <UiRadioButtonGroup
+                :label="t('new-vm:install-source')"
+                accent="brand"
+                :vertical="uiStore.isSmall"
+                :gap="uiStore.isSmall ? 'narrow' : 'wide'"
+              >
+                <UiRadioButton v-model="vmState.installMode" accent="brand" value="no-config">
+                  {{ t('no-config') }}
+                </UiRadioButton>
+                <UiRadioButton v-if="isDiskTemplate" v-model="vmState.installMode" accent="brand" value="ssh-key">
+                  {{ t('ssh-key') }}
+                </UiRadioButton>
+                <UiRadioButton v-model="vmState.installMode" accent="brand" value="cloud-init-config">
+                  {{ t('cloud-init-config') }}
+                </UiRadioButton>
+                <UiRadioButton v-model="vmState.installMode" accent="brand" value="cdrom">
+                  {{ t('iso-dvd') }}
+                </UiRadioButton>
+                <UiRadioButton v-if="isDiskTemplate" v-model="vmState.installMode" accent="brand" value="network">
+                  {{ t('pxe') }}
+                </UiRadioButton>
               </UiRadioButtonGroup>
               <VtsSelect v-if="vmState.installMode === 'cdrom'" :id="vdiSelectId" accent="brand" />
+              <div v-if="vmState.installMode === 'cloud-init-config'" class="install-custom-config">
+                <div>
+                  <UiTextarea
+                    v-model="vmState.cloudConfig"
+                    accent="brand"
+                    :placeholder="DEFAULT_CLOUD_CONFIG_PLACEHOLDER"
+                  >
+                    {{ t('user-config') }}
+                    <template #info>
+                      {{ t('new-vm:user-config-variables') }}
+                      <ul class="user-config-variables-list">
+                        <li>{{ t('new-vm:user-config-variables-name') }}</li>
+                        <li>{{ t('new-vm:user-config-variables-index') }}</li>
+                      </ul>
+                      {{ t('new-vm:user-config-variables-escape') }}
+                    </template>
+                  </UiTextarea>
+                </div>
+                <div>
+                  <UiTextarea
+                    v-model="vmState.networkConfig"
+                    accent="brand"
+                    :placeholder="DEFAULT_NETWORK_CONFIG_PLACEHOLDER"
+                  >
+                    {{ t('network-config') }}
+                    <template #info>
+                      <I18nT keypath="new-vm:network-config" scope="global">
+                        <template #noCloudLink>
+                          <UiLink
+                            href="https://cloudinit.readthedocs.io/en/latest/reference/datasources/nocloud.html"
+                            size="small"
+                          >
+                            {{ t('new-vm:network-config-nocloud-datasource') }}
+                          </UiLink>
+                        </template>
+                      </I18nT>
+                      <br />
+                      <I18nT keypath="new-vm:network-config-more" scope="global">
+                        <template #documentationLink>
+                          <UiLink
+                            href="https://cloudinit.readthedocs.io/en/latest/reference/network-config-format-v1.html#networking-config-version-1"
+                            size="small"
+                          >
+                            {{ t('new-vm:network-config-documentation') }}
+                          </UiLink>
+                        </template>
+                      </I18nT>
+                    </template>
+                  </UiTextarea>
+                </div>
+              </div>
               <div v-if="vmState.installMode === 'ssh-key'" class="install-ssh-key">
                 <div class="ssh-key-area">
                   <UiTextarea v-model="vmState.ssh_key" required :accent="isSshKeyError ? 'danger' : 'brand'">
@@ -242,6 +294,39 @@ import { computed, reactive, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
+const resolveConfigTemplate = (pattern: string, name: string, index: number): string => {
+  const rules: Record<string, string> = {
+    '{name}': name,
+    '{index}': String(index),
+  }
+  const matches = Object.keys(rules)
+    .map(k => k.replace(/[{}]/g, '\\$&'))
+    .join('|')
+  const re = new RegExp(`\\\\(?:\\\\|${matches})|${matches}`, 'g')
+  return pattern.replace(re, match => {
+    if (match[0] === '\\') {
+      return match.slice(1)
+    }
+    return rules[match] ?? match
+  })
+}
+
+const DEFAULT_CLOUD_CONFIG_PLACEHOLDER = `#cloud-config
+#hostname: {name}{index}
+#ssh_authorized_keys:
+#  - ssh-rsa <myKey>
+#packages:
+#  - htop
+`
+
+const DEFAULT_NETWORK_CONFIG_PLACEHOLDER = `#network:
+#  version: 1
+#  config:
+#  - type: physical
+#    name: eth0
+#    subnets:
+#      - type: dhcp`
+
 // i18n setup
 const { t } = useI18n()
 const router = useRouter()
@@ -280,7 +365,7 @@ const uiStore = useUiStore()
 const vmState = reactive<VmState>({
   name: '',
   description: '',
-  installMode: undefined,
+  installMode: 'no-config',
   affinity_host: undefined,
   bootFirmware: '',
   new_vm_template: undefined,
@@ -659,6 +744,7 @@ const vmData = computed(() => {
     vifsToSend.value.length > 0 && { vifs: vifsToSend.value },
     vmState.affinity_host && { affinity: vmState.affinity_host },
     vmState.installMode !== 'no-config' &&
+      vmState.installMode !== 'cloud-init-config' &&
       vmState.installMode !== 'ssh-key' && {
         install: {
           method: vmState.installMode,
@@ -668,12 +754,15 @@ const vmData = computed(() => {
     vmState.installMode === 'ssh-key' &&
       vmState.cloudConfig && {
         cloud_config: vmState.cloudConfig,
-      }
-    // TODO: uncomment when radio will be implemented
-    // ...(vmState.installMode === 'custom_config' && {
-    //   ...(vmState.cloudConfig && { cloud_config: vmState.cloudConfig }),
-    //   ...(vmState.networkConfig && { network_config: vmState.networkConfig }),
-    // }),
+      },
+    vmState.installMode === 'cloud-init-config' && {
+      ...(vmState.cloudConfig !== '' && {
+        cloud_config: resolveConfigTemplate(vmState.cloudConfig, vmState.name, 0),
+      }),
+      ...(vmState.networkConfig !== '' && {
+        network_config: resolveConfigTemplate(vmState.networkConfig, vmState.name, 0),
+      }),
+    }
   )
 
   return {
@@ -761,7 +850,9 @@ watch(
       existingVdis: getExistingVdis(template),
       vifs: getExistingVifs(template),
       selectedVdi: undefined,
-      installMode: undefined,
+      installMode: 'no-config',
+      networkConfig: '',
+      cloudConfig: '',
       bootFirmware: template.boot.firmware ?? 'bios',
     } satisfies Partial<VmState>)
   }
@@ -909,6 +1000,12 @@ watch(() => vmState.sshKeys, buildCloudConfig, { deep: true })
       }
     }
 
+    .user-config-variables-list {
+      margin: 0.8rem 0;
+      list-style-type: disc;
+      list-style-position: inside;
+    }
+
     .install-settings-container {
       display: flex;
       flex-direction: column;
@@ -918,6 +1015,15 @@ watch(() => vmState.sshKeys, buildCloudConfig, { deep: true })
     .resource-management-container {
       display: flex;
       gap: 8rem;
+    }
+
+    .install-custom-config {
+      display: flex;
+      gap: 4.2rem;
+    }
+
+    .install-custom-config > div {
+      width: 50%;
     }
   }
 
