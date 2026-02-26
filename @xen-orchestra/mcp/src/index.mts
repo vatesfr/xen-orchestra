@@ -427,7 +427,7 @@ Present this information in a friendly, conversational way.`,
 // =============================================================================
 // Start server
 // =============================================================================
-async function main() {
+export async function main() {
   const env = validateEnv()
 
   let xoClient: XoClient | null = null

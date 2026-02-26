@@ -6,7 +6,7 @@
   "type": "module",
   "main": "./dist/index.mjs",
   "bin": {
-    "xo-mcp": "./dist/index.mjs"
+    "xo-mcp": "./bin/xo-mcp.mjs"
   },
   "scripts": {
     "build": "tsc",

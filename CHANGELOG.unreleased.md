@@ -17,6 +17,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [MCP] Fix `npx @xen-orchestra/mcp` failing with “Permission denied” (PR [#9536](https://github.com/vatesfr/xen-orchestra/pull/9536))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -33,6 +35,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/mcp patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 
