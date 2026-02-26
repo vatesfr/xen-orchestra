@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **6.2.0** (2026-02-26)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Enhancements
 
@@ -71,7 +73,7 @@
 
 ## **6.1.2** (2026-02-10)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
@@ -191,8 +193,6 @@
 - xo-server 5.196.0
 
 ## **6.0.3** (2026-01-06)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Security
 
