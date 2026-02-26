@@ -61,13 +61,13 @@
 - xo-server-sdn-controller 1.2.1
 - @xen-orchestra/backups 0.69.1
 - complex-matcher 1.1.0
-- @xen-orchestra/web-core 0.46.0
-- @xen-orchestra/mcp 1.0.2
+- @xen-orchestra/web-core 0.45.0
+- @xen-orchestra/mcp 1.0.1
 - @xen-orchestra/proxy 0.29.48
 - xo-web 5.194.0
 - @vates/types 1.21.0
 - @xen-orchestra/rest-api 0.27.0
-- @xen-orchestra/web 0.44.0
+- @xen-orchestra/web 0.43.0
 - xo-server 5.197.2
 
 ## **6.1.2** (2026-02-10)
