@@ -4,8 +4,6 @@
 
 ### Enhancements
 
-> Users must be able to say: "Nice enhancement, I'm eager to test it"
-
 - [OpenMetrics] Add `is_control_domain` label to VM metrics to differentiate dom0 VMs from regular VMs (PR [#9474](https://github.com/vatesfr/xen-orchestra/pull/9474))
 - [OpenMetrics] Add `xcp_host_status` metric exposing host status (running/maintenance/halted/unknown) for all hosts, including non-running ones (PR [#9457](https://github.com/vatesfr/xen-orchestra/pull/9457))
 - [OpenMetrics] Add host uptime metric (`xcp_host_uptime_seconds`) (PR [#9449](https://github.com/vatesfr/xen-orchestra/pull/9449))
@@ -38,11 +36,10 @@
   - [Search Engine] Implement first version of the Query Builder on Pools, Hosts, VMs, networks and Storage tables (PR [#9488](https://github.com/vatesfr/xen-orchestra/pull/9488))
   - [Header] Add a banner when the connection to the xo server fails (PR [#9375](https://github.com/vatesfr/xen-orchestra/pull/9375))
   - [VM/New] Added SSH key field (PR [#9413](https://github.com/vatesfr/xen-orchestra/pull/9413))
+  - [VM/New] Add the ability to pass a cloud-init config (PR [#9427](https://github.com/vatesfr/xen-orchestra/pull/9427))
   - [i18n] Add Chinese (Simplified Han script) and update Czech, German, Italian, Korean and Dutch translations (PR [#9462](https://github.com/vatesfr/xen-orchestra/pull/9462))
 
 ### Bug fixes
-
-> Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [HUB Recipe] A bug in the Pyrgos recipe requires to remove the DHCP option of the recipe form (PR [#9454](https://github.com/vatesfr/xen-orchestra/pull/9454))
 - [OpenMetrics] Fix ECONNREFUSED on IPv6-only systems by binding to `localhost` instead of `127.0.0.1` (PR [#9489](https://github.com/vatesfr/xen-orchestra/pull/9489))
@@ -63,14 +60,14 @@
 - xo-server-sdn-controller 1.2.1
 - @xen-orchestra/backups 0.69.1
 - complex-matcher 1.1.0
-- @xen-orchestra/web-core 0.44.0
-- @xen-orchestra/mcp 1.0.0
 - @xen-orchestra/proxy 0.29.48
 - xo-web 5.194.0
 - @vates/types 1.21.0
 - @xen-orchestra/rest-api 0.27.0
-- @xen-orchestra/web 0.42.1
 - xo-server 5.197.2
+- @xen-orchestra/web-core 0.45.0
+- @xen-orchestra/mcp 1.0.1
+- @xen-orchestra/web 0.43.0
 
 ## **6.1.2** (2026-02-10)
 
