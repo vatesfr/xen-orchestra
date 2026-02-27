@@ -10,7 +10,7 @@ export function useXoSrUtils(rawSr: MaybeRefOrGetter<FrontXoSr>) {
 
   const { getPbdsByIds } = useXoPbdCollection()
 
-  const { allPbdsConnectionStatus } = useXoPbdUtils(() => getPbdsByIds(sr.value.$PBDs))
+  const { allPbdsConnectionStatus } = useXoPbdUtils(() => getPbdsByIds(sr.value?.$PBDs))
 
   const srStatusIcon = computed<IconName>(() => {
     if (allPbdsConnectionStatus.value === 'connected') {

@@ -16,11 +16,12 @@
     <template v-else>
       <VmDashboardBackupRuns class="backup-runs" :vm-id="vm.id" :vm-dashboard :has-error />
       <VmDashboardBackupArchives class="backup-archives" :vm-dashboard :has-error />
+      <VmDashboardBackupReplication class="backup-replication" :vm-dashboard :has-error />
       <DashboardAlarms
         class="alarms"
         :alarms="vmAlarms"
         :is-ready="areVmAlarmsReady"
-        :has-ready="hasVmAlarmFetchError"
+        :has-error="hasVmAlarmFetchError"
       />
       <template v-if="data">
         <VmDashboardCpuUsageChart class="cpu-usage-chart" :data :error :loading="isFetching" />
@@ -35,6 +36,7 @@
 <script lang="ts" setup>
 import DashboardAlarms from '@/modules/alarm/components/DashboardAlarms.vue'
 import VmDashboardBackupArchives from '@/modules/vm/components/dashboard/VmDashboardBackupArchives.vue'
+import VmDashboardBackupReplication from '@/modules/vm/components/dashboard/VmDashboardBackupReplication.vue'
 import VmDashboardBackupRuns from '@/modules/vm/components/dashboard/VmDashboardBackupRuns.vue'
 import VmDashboardCpuUsageChart from '@/modules/vm/components/dashboard/VmDashboardCpuUsageChart.vue'
 import VmDashboardNetworkUsageChart from '@/modules/vm/components/dashboard/VmDashboardNetworkUsageChart.vue'
@@ -78,7 +80,7 @@ const { t } = useI18n()
   grid-template-areas:
     'quick-info quick-info quick-info quick-info quick-info quick-info quick-info quick-info'
     'backup-runs backup-runs backup-runs backup-runs backup-archives backup-archives backup-archives backup-archives'
-    'alarms alarms alarms alarms alarms alarms alarms alarms'
+    'backup-replication backup-replication backup-replication alarms alarms alarms alarms alarms'
     'cpu-usage-chart cpu-usage-chart ram-usage-chart ram-usage-chart network-usage-chart network-usage-chart vdi-usage-chart vdi-usage-chart'
     'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
 
@@ -88,6 +90,7 @@ const { t } = useI18n()
       'quick-info'
       'backup-runs'
       'backup-archives'
+      'backup-replication'
       'alarms'
       'cpu-usage-chart'
       'ram-usage-chart'
@@ -111,6 +114,10 @@ const { t } = useI18n()
 
   .backup-archives {
     grid-area: backup-archives;
+  }
+
+  .backup-replication {
+    grid-area: backup-replication;
   }
 
   .offline-hero-container {
