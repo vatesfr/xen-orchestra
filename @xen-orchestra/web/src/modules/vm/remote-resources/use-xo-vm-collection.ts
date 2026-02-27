@@ -56,6 +56,7 @@ const vmFields = [
   '$VBDs',
   'snapshots',
   'boot',
+  'parent',
 ] as const satisfies readonly (keyof XoVm)[]
 
 export const useXoVmCollection = defineRemoteResource({
