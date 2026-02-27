@@ -13,7 +13,8 @@ import { synchronized } from 'decorator-synchronized'
 import { withTimeout } from './utils'
 import { basename, dirname, normalize as normalizePath } from './path'
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
-import { DEFAULT_ENCRYPTION_ALGORITHM, UNENCRYPTED_ALGORITHM, _getEncryptor } from './_encryptor'
+import {  UNENCRYPTED_ALGORITHM, _getEncryptor } from './_encryptor'
+import { FsEncryptor } from './encryptors/FsEncryptor'
 
 const { info, warn } = createLogger('xo:fs:abstract')
 
@@ -25,9 +26,6 @@ const computeRate = (hrtime, size) => {
 
 const DEFAULT_TIMEOUT = 12e5 // 20 min
 const DEFAULT_MAX_PARALLEL_OPERATIONS = 10
-
-const ENCRYPTION_DESC_FILENAME = 'encryption.json'
-const ENCRYPTION_METADATA_FILENAME = 'metadata.json'
 
 const WITH_LIMIT = [
   'closeFile',
@@ -373,7 +371,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async outputFile(file, data, { dirMode, flags = 'wx' } = {}) {
-    const encryptedData = this.#encryptor.encryptData(data)
+    const encryptedData = await this.#encryptor.encryptBuffer(data)
     await this._outputFile(normalizePath(file), encryptedData, { dirMode, flags })
   }
 
@@ -384,7 +382,7 @@ export default class RemoteHandlerAbstract {
 
   async __readFile(file, { flags = 'r' } = {}) {
     const data = await this._readFile(normalizePath(file), { flags })
-    return this.#encryptor.decryptData(data)
+    return this.#encryptor.decryptBuffer(data)
   }
 
   async #rename(oldPath, newPath, { checksum }, createTree = true) {
@@ -435,75 +433,15 @@ export default class RemoteHandlerAbstract {
   async sync() {
     await this._sync()
     try {
-      await this.#checkMetadata()
+      const encryptor = new FsEncryptor(this)
+      await encryptor.init()
+      this.#rawEncryptor = encryptor
+      console.log('UDPATE', encryptor)
+      await encryptor.updateEncryptionMetadata()
     } catch (error) {
       await this._forget()
       throw error
-    }
-  }
-
-  async #canWriteMetadata() {
-    const list = await this.__list('/', {
-      filter: e => !e.startsWith('.') && e !== ENCRYPTION_DESC_FILENAME && e !== ENCRYPTION_METADATA_FILENAME,
-    })
-    return list.length === 0
-  }
-
-  async #createMetadata() {
-    const encryptionAlgorithm = this._remote.encryptionKey === undefined ? 'none' : DEFAULT_ENCRYPTION_ALGORITHM
-    this.#rawEncryptor = _getEncryptor(encryptionAlgorithm, this._remote.encryptionKey)
-
-    await Promise.all([
-      this._writeFile(normalizePath(ENCRYPTION_DESC_FILENAME), JSON.stringify({ algorithm: encryptionAlgorithm }), {
-        flags: 'w',
-      }), // not encrypted
-      this.__writeFile(ENCRYPTION_METADATA_FILENAME, `{"random":"${randomUUID()}"}`, { flags: 'w' }), // encrypted
-    ])
-  }
-
-  async #checkMetadata() {
-    let encryptionAlgorithm = 'none'
-    let data
-    try {
-      // this file is not encrypted
-      data = await this._readFile(normalizePath(ENCRYPTION_DESC_FILENAME))
-      const json = JSON.parse(data)
-      encryptionAlgorithm = json.algorithm
-    } catch (error) {
-      if (error.code !== 'ENOENT') {
-        throw error
-      }
-      encryptionAlgorithm = this._remote.encryptionKey === undefined ? 'none' : DEFAULT_ENCRYPTION_ALGORITHM
-    }
-
-    try {
-      this.#rawEncryptor = _getEncryptor(encryptionAlgorithm, this._remote.encryptionKey)
-      // this file is encrypted
-      const data = await this.__readFile(ENCRYPTION_METADATA_FILENAME)
-      JSON.parse(data)
-    } catch (error) {
-      // can be enoent, bad algorithm, or broken json ( bad key or algorithm)
-      if (encryptionAlgorithm !== 'none') {
-        if (await this.#canWriteMetadata()) {
-          // any other error , but on empty remote => update with remote settings
-
-          info('will update metadata of this remote')
-          return this.#createMetadata()
-        } else {
-          // to add a new encrypted fs remote, the remote directory must be empty; otherwise, metadata.json is not created
-          if (error.code === 'ENOENT' && error.path.includes('metadata.json')) {
-            throw new Error('Remote directory must be empty.')
-          }
-
-          warn(
-            `The encryptionKey settings of this remote does not match the key used to create it. You won't be able to read any data from this remote`,
-            { error }
-          )
-          // will probably send a ERR_OSSL_EVP_BAD_DECRYPT if key is incorrect
-          throw error
-        }
-      }
-    }
+    } 
   }
 
   async test() {
@@ -562,7 +500,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async __writeFile(file, data, { flags = 'wx' } = {}) {
-    const encryptedData = this.#encryptor.encryptData(data)
+    const encryptedData = this.#encryptor.encryptBuffer(data)
     await this._writeFile(normalizePath(file), encryptedData, { flags })
   }
 
@@ -785,7 +723,7 @@ export default class RemoteHandlerAbstract {
   }
 
   get isEncrypted() {
-    return this.#encryptor.id !== 'NULL_ENCRYPTOR'
+    return this.#encryptor.algorithm !== 'NULL_ENCRYPTOR'
   }
 
   get encryptionAlgorithm() {
