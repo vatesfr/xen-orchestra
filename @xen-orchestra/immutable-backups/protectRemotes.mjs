@@ -175,9 +175,9 @@ export async function watchRemote(remoteId, { root, immutabilityDuration, rebuil
     .on('add', async path => {
       debug(`File ${path} has been added ${path.split('/').length}`)
       if (ready) {
-        await handleNewFile(root, indexPath, pendingVhds, path)
+        await handleNewFile(root, indexPath, pendingVhds, path).catch(warn)
       } else {
-        await handleExistingFile(root, indexPath, path)
+        await handleExistingFile(root, indexPath, path).catch(warn)
       }
     })
     .on('error', error => warn(`Watcher error: ${error}`))
