@@ -746,7 +746,6 @@ const vmData = computed(() => {
     vdisToSend.length > 0 && { vdis: vdisToSend },
     vifsToSend.value.length > 0 && { vifs: vifsToSend.value },
     vmState.affinity_host && { affinity: vmState.affinity_host },
-    vmState.bootFirmware === 'uefi' && { secureBoot: vmState.secureBoot },
     vmState.installMode !== 'no-config' &&
       vmState.installMode !== 'cloud-init-config' &&
       vmState.installMode !== 'ssh-key' && {
