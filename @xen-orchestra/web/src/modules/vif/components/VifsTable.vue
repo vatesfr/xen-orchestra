@@ -30,7 +30,7 @@
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
-import { useXoVifCollection, type FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -43,6 +43,7 @@ import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { useVifColumns } from '@core/tables/column-sets/vif-columns.ts'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
+import { getIpAddressesByDevice } from '@core/utils/ip-address.utils.ts'
 import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -88,7 +89,11 @@ const state = useTableState({
 const getIpAddresses = (vif: FrontXoVif) => {
   const addresses = getVmById(vif.$VM)?.addresses
 
-  return addresses ? [...new Set(Object.values(addresses).sort())] : []
+  if (!addresses) {
+    return []
+  }
+
+  return [...new Set(getIpAddressesByDevice(addresses)[vif.device])]
 }
 
 const { pageRecords: paginatedVifs, paginationBindings } = usePagination('vifs', filteredVifs)

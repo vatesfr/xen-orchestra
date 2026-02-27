@@ -163,6 +163,7 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import { getIpAddressesByDevice } from '@core/utils/ip-address.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -184,13 +185,17 @@ const uiStore = useUiStore()
 const ipAddresses = computed(() => {
   const vm = getVmByOpaqueRef(vif.VM)
 
-  if (!vm) return []
+  if (!vm) {
+    return []
+  }
 
-  const guestMetrics = getGuestMetricsByOpaqueRef(vm.guest_metrics)
+  const networks = getGuestMetricsByOpaqueRef(vm.guest_metrics)?.networks
 
-  if (!guestMetrics?.networks) return []
+  if (!networks) {
+    return []
+  }
 
-  return [...new Set(Object.values(guestMetrics.networks).sort())]
+  return [...new Set(getIpAddressesByDevice(networks)[vif.device])]
 })
 
 const network = computed(() => getNetworkByOpaqueRef(vif.network))
