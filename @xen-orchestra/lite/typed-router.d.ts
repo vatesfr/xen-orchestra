@@ -75,6 +75,8 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/tree/vts-tree-item-error': RouteRecordInfo<'/story/web-core/tree/vts-tree-item-error', '/story/web-core/tree/vts-tree-item-error', Record<never, never>, Record<never, never>>,
     '/story/web-core/tree/vts-tree-list': RouteRecordInfo<'/story/web-core/tree/vts-tree-list', '/story/web-core/tree/vts-tree-list', Record<never, never>, Record<never, never>>,
     '/story/web-core/tree/vts-tree-loading-item': RouteRecordInfo<'/story/web-core/tree/vts-tree-loading-item', '/story/web-core/tree/vts-tree-loading-item', Record<never, never>, Record<never, never>>,
+    '/story/web-core/ui/accordion-item/ui-accordion-item': RouteRecordInfo<'/story/web-core/ui/accordion-item/ui-accordion-item', '/story/web-core/ui/accordion-item/ui-accordion-item', Record<never, never>, Record<never, never>>,
+    '/story/web-core/ui/accordion-list/ui-accordion-list': RouteRecordInfo<'/story/web-core/ui/accordion-list/ui-accordion-list', '/story/web-core/ui/accordion-list/ui-accordion-list', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/account-menu-button/ui-account-menu-button': RouteRecordInfo<'/story/web-core/ui/account-menu-button/ui-account-menu-button', '/story/web-core/ui/account-menu-button/ui-account-menu-button', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/actions-title/ui-actions-title': RouteRecordInfo<'/story/web-core/ui/actions-title/ui-actions-title', '/story/web-core/ui/actions-title/ui-actions-title', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/alarm-item/ui-alarm-item': RouteRecordInfo<'/story/web-core/ui/alarm-item/ui-alarm-item', '/story/web-core/ui/alarm-item/ui-alarm-item', Record<never, never>, Record<never, never>>,
