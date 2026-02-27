@@ -23,7 +23,7 @@ import { CustomFields } from 'custom-fields'
 import { injectState, provideState } from 'reaclette'
 import { Number, Select as EditableSelect, Size, Text, XoSelect } from 'editable'
 import { Select, Toggle } from 'form'
-import { SelectResourceSet, SelectRole, SelectSubject, SelectUser, SelectVgpuType } from 'select-objects'
+import { SelectResourceSet, SelectRole, SelectSubject, SelectUser, SelectGpuGroup, SelectVgpuType } from 'select-objects'
 import { addSubscriptions, connectStore, formatSize, getVirtualizationModeLabel, osFamily } from 'utils'
 import { every, filter, find, isEmpty, keyBy, map, times, some, uniq } from 'lodash'
 import {
@@ -324,18 +324,19 @@ class NewVgpu extends Component {
 
   _getPredicate = createSelector(
     () => this.props.vm && this.props.vm.$pool,
-    poolId => vgpuType => poolId === vgpuType.$pool
+    poolId => obj => poolId === obj.$pool
   )
 
   render() {
     return (
       <Container>
-        <Row>
-          <Col size={6}>{_('vmSelectVgpuType')}</Col>
-          <Col size={6}>
-            <SelectVgpuType onChange={this.linkState('vgpuType')} predicate={this._getPredicate()} />
-          </Col>
-        </Row>
+        <Row><Col>{_('vmSelectVgpuType')}</Col></Row>
+        <Row className='mt-1'><Col>
+          <SelectGpuGroup required onChange={this.linkState('gpuGroup')} predicate={this._getPredicate()} />
+        </Col></Row>
+        <Row className='mt-1'><Col>
+          <SelectVgpuType required onChange={this.linkState('vgpuType')} predicate={this._getPredicate()} />
+        </Col></Row>
       </Container>
     )
   }
@@ -347,7 +348,7 @@ class Vgpus extends Component {
       icon: 'gpu',
       title: _('vmAddVgpu'),
       body: <NewVgpu vm={this.props.vm} />,
-    }).then(({ vgpuType }) => createVgpu(this.props.vm, { vgpuType, gpuGroup: vgpuType.gpuGroup }))
+    }).then(({ gpuGroup, vgpuType }) => createVgpu(this.props.vm, { gpuGroup, vgpuType }))
 
   render() {
     const { vgpus, vm } = this.props

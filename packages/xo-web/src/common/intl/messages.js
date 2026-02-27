@@ -454,6 +454,7 @@ const messages = {
   selectTimezone: 'Select timezone…',
   selectIp: 'Select IP(s)…',
   selectIpPool: 'Select IP pool(s)…',
+  selectGpuGroup: 'Select GPU group…',
   selectVgpuType: 'Select VGPU type(s)…',
   fillOptionalInformations: 'Fill information (optional)',
   selectTableReset: 'Reset',
