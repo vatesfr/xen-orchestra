@@ -44,13 +44,13 @@ async function handleExistingFile(root, indexPath, path) {
     if (isInVhdDirectory(path)) {
       // this will trigger 3 times per vhd blocks
       const dir = join(root, dirname(path))
-      if (Directory.isImmutable(dir)) {
+      if (await Directory.isImmutable(dir)) {
         await indexFile(dir, indexPath)
       }
     } else {
       // other files are immutable a file basis
       const fullPath = join(root, path)
-      if (File.isImmutable(fullPath)) {
+      if (await File.isImmutable(fullPath)) {
         await indexFile(fullPath, indexPath)
       }
     }
@@ -117,7 +117,8 @@ export async function watchRemote(remoteId, { root, immutabilityDuration, rebuil
     })
   )
   // no index path in makeImmutable(): the immutability won't be lifted
-  File.makeImmutable(settingPath)
+  // let it fall and stop the process on error
+  await File.makeImmutable(settingPath)
 
   // we wait for footer/header AND BAT to be written before locking a vhd directory
   // this map allow us to track the vhd with partial metadata

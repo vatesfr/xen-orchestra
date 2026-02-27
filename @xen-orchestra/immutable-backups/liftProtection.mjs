@@ -28,8 +28,8 @@ const { liftEvery, remotes } = await loadConfig()
 if (liftEvery > 0) {
   info('setup watcher for immutability lifting')
   setInterval(async () => {
-    liftImmutability(remotes)
+    await liftImmutability(remotes).catch(warn)
   }, liftEvery)
 } else {
-  liftImmutability(remotes)
+  await liftImmutability(remotes)
 }
