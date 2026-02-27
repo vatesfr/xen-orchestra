@@ -17,7 +17,6 @@
           </template>
         </VtsQuickInfoRow>
         <UiButton
-          class="protection-helper"
           accent="brand"
           left-icon="status:info-circle"
           size="small"
@@ -90,7 +89,7 @@ const openProtectionHelpModal = useModal(() => ({
   component: import('@xen-orchestra/web/src/shared/components/modals/VmProtectedHelper.vue'),
 }))
 
-const lastRuns = computed(() => vmDashboard?.backupsInfo?.lastRuns ?? [])
+const lastRuns = computed(() => vmDashboard?.backupsInfo?.lastRuns)
 
 const areBackupRunsReady = computed(() => areBackupJobsReady.value && lastRuns.value !== undefined)
 
