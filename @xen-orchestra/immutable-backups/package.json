@@ -19,7 +19,7 @@
   "license": "AGPL-3.0-or-later",
   "version": "1.0.30",
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=14.8.0"
   },
   "dependencies": {
     "@vates/async-each": "^1.0.1",
