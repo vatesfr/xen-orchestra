@@ -28,7 +28,7 @@ export const useDateColumn = defineColumn((config?: HeaderConfig & DateConfig) =
           dateStyle: config?.dateStyle,
           timeStyle: config?.timeStyle,
         })
-      })
+      }, 'end')
     },
   }
 })

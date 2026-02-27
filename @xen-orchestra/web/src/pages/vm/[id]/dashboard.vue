@@ -14,6 +14,8 @@
       </VtsStateHero>
     </div>
     <template v-else>
+      <VmDashboardBackupRuns class="backup-runs" :vm-id="vm.id" :vm-dashboard :has-error />
+      <VmDashboardBackupArchives class="backup-archives" :vm-dashboard :has-error />
       <DashboardAlarms
         class="alarms"
         :alarms="vmAlarms"
@@ -32,6 +34,8 @@
 
 <script lang="ts" setup>
 import DashboardAlarms from '@/modules/alarm/components/DashboardAlarms.vue'
+import VmDashboardBackupArchives from '@/modules/vm/components/dashboard/VmDashboardBackupArchives.vue'
+import VmDashboardBackupRuns from '@/modules/vm/components/dashboard/VmDashboardBackupRuns.vue'
 import VmDashboardCpuUsageChart from '@/modules/vm/components/dashboard/VmDashboardCpuUsageChart.vue'
 import VmDashboardNetworkUsageChart from '@/modules/vm/components/dashboard/VmDashboardNetworkUsageChart.vue'
 import VmDashboardQuickInfo from '@/modules/vm/components/dashboard/VmDashboardQuickInfo.vue'
@@ -39,6 +43,7 @@ import VmDashboardRamUsageChart from '@/modules/vm/components/dashboard/VmDashbo
 import VmDashboardVdiUsageChart from '@/modules/vm/components/dashboard/VmDashboardVdiUsageChart.vue'
 import { useXoVmAlarmsCollection } from '@/modules/vm/remote-resources/use-xo-vm-alarms-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { useXoVmDashboard } from '@/modules/vm/remote-resources/use-xo-vm-dashboard'
 import { useFetchStats } from '@/shared/composables/fetch-stats.composable.ts'
 import { GRANULARITY } from '@/shared/utils/rest-api-stats.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -52,6 +57,8 @@ const { vm } = defineProps<{
 }>()
 
 const { data, isFetching, error } = useFetchStats('vm', () => vm.id, GRANULARITY.Hours)
+
+const { vmDashboard, hasError } = useXoVmDashboard({}, () => vm.id)
 
 const { vmAlarms, areVmAlarmsReady, hasVmAlarmFetchError } = useXoVmAlarmsCollection({}, () => vm.id)
 
@@ -70,6 +77,7 @@ const { t } = useI18n()
   grid-template-columns: repeat(8, 1fr);
   grid-template-areas:
     'quick-info quick-info quick-info quick-info quick-info quick-info quick-info quick-info'
+    'backup-runs backup-runs backup-runs backup-runs backup-archives backup-archives backup-archives backup-archives'
     'alarms alarms alarms alarms alarms alarms alarms alarms'
     'cpu-usage-chart cpu-usage-chart ram-usage-chart ram-usage-chart network-usage-chart network-usage-chart vdi-usage-chart vdi-usage-chart'
     'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
@@ -78,6 +86,8 @@ const { t } = useI18n()
     grid-template-columns: 1fr;
     grid-template-areas:
       'quick-info'
+      'backup-runs'
+      'backup-archives'
       'alarms'
       'cpu-usage-chart'
       'ram-usage-chart'
@@ -93,6 +103,14 @@ const { t } = useI18n()
   .alarms {
     grid-area: alarms;
     height: 46.2rem;
+  }
+
+  .backup-runs {
+    grid-area: backup-runs;
+  }
+
+  .backup-archives {
+    grid-area: backup-archives;
   }
 
   .offline-hero-container {
