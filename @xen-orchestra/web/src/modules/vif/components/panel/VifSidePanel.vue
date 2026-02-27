@@ -153,6 +153,7 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import { getIpAddressesByDevice } from '@core/utils/ip-address.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -171,7 +172,11 @@ const uiStore = useUiStore()
 const ipAddresses = computed(() => {
   const addresses = getVmById(vif.$VM)?.addresses
 
-  return addresses ? [...new Set(Object.values(addresses).sort())] : []
+  if (!addresses) {
+    return []
+  }
+
+  return [...new Set(getIpAddressesByDevice(addresses)[vif.device])]
 })
 
 const network = useGetNetworkById(() => vif.$network)
