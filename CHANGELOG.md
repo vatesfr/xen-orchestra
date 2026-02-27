@@ -1,6 +1,8 @@
 # ChangeLog
 
-## next
+## **6.2.1 ** (2026-02-27)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Bug fixes
 
