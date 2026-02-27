@@ -8,7 +8,7 @@ import { defer } from 'golike-defer'
 import { cancelableMap } from './_cancelableMap.mjs'
 import { Task } from './Task.mjs'
 import pick from 'lodash/pick.js'
-import { BASE_DELTA_VDI, COPY_OF, VM_UUID } from './_otherConfig.mjs'
+import { BASE_DELTA_VDI, CONTENT_KEY, COPY_OF, VM_UUID } from './_otherConfig.mjs'
 
 import { VHD_MAX_SIZE, XapiDiskSource } from '@xen-orchestra/xapi'
 import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
@@ -124,7 +124,7 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   $defer,
   incrementalVm,
   sr,
-  { cancelToken = CancelToken.none, newMacAddresses = false } = {}
+  { cancelToken = CancelToken.none, newMacAddresses = false, targetRef = undefined } = {}
 ) {
   const { version } = incrementalVm
   if (compareVersions(version, '1.0.0') < 0) {
@@ -136,44 +136,105 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
 
   const vdiRecords = incrementalVm.vdis
 
-  // 0. Create suspend_VDI
+  // When targetRef is provided, update the existing VM instead of creating a new one.
+  const targetVm = targetRef !== undefined ? xapi.getObjectByRef(targetRef, undefined) : undefined
+  const isUpdate = targetVm !== undefined && !targetVm.is_a_snapshot && !targetVm.is_a_template
+
+  // 0. Create suspend_VDI (only when creating a new VM).
   let suspendVdi
-  if (vmRecord.suspend_VDI !== undefined && vmRecord.suspend_VDI !== 'OpaqueRef:NULL') {
-    const vdi = vdiRecords[vmRecord.suspend_VDI]
-    if (vdi === undefined) {
-      Task.warning('Suspend VDI not available for this suspended VM', {
-        vm: pick(vmRecord, 'uuid', 'name_label', 'suspend_VDI'),
-      })
-    } else {
-      suspendVdi = await xapi.getRecord('VDI', await xapi.VDI_create(vdi))
-      $defer.onFailure(() => suspendVdi.$destroy())
+  if (!isUpdate) {
+    if (vmRecord.suspend_VDI !== undefined && vmRecord.suspend_VDI !== 'OpaqueRef:NULL') {
+      const vdi = vdiRecords[vmRecord.suspend_VDI]
+      if (vdi === undefined) {
+        Task.warning('Suspend VDI not available for this suspended VM', {
+          vm: pick(vmRecord, 'uuid', 'name_label', 'suspend_VDI'),
+        })
+      } else {
+        suspendVdi = await xapi.getRecord('VDI', await xapi.VDI_create(vdi))
+        $defer.onFailure(() => suspendVdi.$destroy())
+      }
     }
   }
 
-  // 1. Create the VM.
-  const vmRef = await xapi.VM_create(
-    {
-      ...vmRecord,
-      affinity: undefined,
-      blocked_operations: {
-        ...vmRecord.blocked_operations,
+  // 1. Create the VM or update the existing one.
+  let vmRef
+  if (isUpdate) {
+    vmRef = targetRef
+    await Promise.all([
+      xapi.setFields('VM', vmRef, {
+        actions_after_crash: vmRecord.actions_after_crash,
+        actions_after_reboot: vmRecord.actions_after_reboot,
+        actions_after_shutdown: vmRecord.actions_after_shutdown,
+        domain_type: vmRecord.domain_type,
+        ha_restart_priority: vmRecord.ha_restart_priority,
+        has_vendor_device: vmRecord.has_vendor_device,
+        HVM_boot_params: vmRecord.HVM_boot_params,
+        HVM_boot_policy: vmRecord.HVM_boot_policy,
+        HVM_shadow_multiplier: vmRecord.HVM_shadow_multiplier,
+        memory_dynamic_max: vmRecord.memory_dynamic_max,
+        memory_dynamic_min: vmRecord.memory_dynamic_min,
+        memory_static_max: vmRecord.memory_static_max,
+        memory_static_min: vmRecord.memory_static_min,
+        name_description: vmRecord.name_description,
+        order: vmRecord.order,
+        other_config: vmRecord.other_config,
+        platform: vmRecord.platform,
+        PV_args: vmRecord.PV_args,
+        PV_bootloader: vmRecord.PV_bootloader,
+        PV_bootloader_args: vmRecord.PV_bootloader_args,
+        PV_kernel: vmRecord.PV_kernel,
+        PV_legacy_args: vmRecord.PV_legacy_args,
+        PV_ramdisk: vmRecord.PV_ramdisk,
+        recommendations: vmRecord.recommendations,
+        shutdown_delay: vmRecord.shutdown_delay,
+        start_delay: vmRecord.start_delay,
+        suspend_SR: vmRecord.suspend_SR,
+        tags: vmRecord.tags,
+        user_version: vmRecord.user_version,
+        VCPUs_at_startup: vmRecord.VCPUs_at_startup,
+        VCPUs_max: vmRecord.VCPUs_max,
+        VCPUs_params: vmRecord.VCPUs_params,
+        xenstore_data: vmRecord.xenstore_data,
+      }),
+      targetVm.update_blocked_operations({
         start: 'Importing…',
         start_on: 'Importing…',
+      }),
+    ])
+  } else {
+    vmRef = await xapi.VM_create(
+      {
+        ...vmRecord,
+        affinity: undefined,
+        blocked_operations: {
+          ...vmRecord.blocked_operations,
+          start: 'Importing…',
+          start_on: 'Importing…',
+        },
+        ha_always_run: false,
+        is_a_template: false,
+        name_label: '[Importing…] ' + vmRecord.name_label,
       },
-      ha_always_run: false,
-      is_a_template: false,
-      name_label: '[Importing…] ' + vmRecord.name_label,
-    },
-    {
-      bios_strings: vmRecord.bios_strings,
-      generateMacSeed: newMacAddresses,
-      suspend_VDI: suspendVdi?.$ref,
-    }
-  )
-  $defer.onFailure.call(xapi, 'VM_destroy', vmRef)
+      {
+        bios_strings: vmRecord.bios_strings,
+        generateMacSeed: newMacAddresses,
+        suspend_VDI: suspendVdi?.$ref,
+      }
+    )
+    $defer.onFailure.call(xapi, 'VM_destroy', vmRef)
+  }
 
   // 2. Delete all VBDs which may have been created by the import.
-  await asyncMap(await xapi.getField('VM', vmRef, 'VBDs'), ref => ignoreErrors.call(xapi.call('VBD.destroy', ref)))
+  // In update mode, also collect the VDI refs so orphaned VDIs can be destroyed after new ones are created.
+  const existingVbdRefs = await xapi.getField('VM', vmRef, 'VBDs')
+  const oldVdiRefs = new Set(
+    isUpdate
+      ? (await asyncMap(existingVbdRefs, ref => xapi.getField('VBD', ref, 'VDI'))).filter(
+          ref => ref !== undefined && ref !== 'OpaqueRef:NULL'
+        )
+      : []
+  )
+  await asyncMap(existingVbdRefs, ref => ignoreErrors.call(xapi.call('VBD.destroy', ref)))
 
   // 3. Create VDIs & VBDs.
   const vbdRecords = incrementalVm.vbds
@@ -184,10 +245,18 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
     let newVdi
 
     if (vdi.baseVdi?.$ref !== undefined) {
-      newVdi = await xapi.getRecord('VDI', await xapi.VDI_clone(vdi.baseVdi.$ref))
-      $defer.onFailure(() => newVdi.$destroy())
-
+      if (isUpdate) {
+        // In update mode, reuse the existing target VDI directly — no clone needed.
+        newVdi = vdi.baseVdi
+        oldVdiRefs.delete(newVdi.$ref)
+      } else {
+        newVdi = await xapi.getRecord('VDI', await xapi.VDI_clone(vdi.baseVdi.$ref))
+        $defer.onFailure(() => newVdi.$destroy())
+      }
       await newVdi.update_other_config(COPY_OF, vdi.uuid)
+      if (vdi.other_config[CONTENT_KEY] !== undefined) {
+        await newVdi.update_other_config(CONTENT_KEY, vdi.other_config[CONTENT_KEY])
+      }
       if (vdi.virtual_size > newVdi.virtual_size) {
         await newVdi.$callAsync('resize', vdi.virtual_size)
       }
@@ -212,6 +281,16 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
 
     newVdis[vdiRef] = newVdi
   })
+
+  // 3.5. Destroy old VDIs that are no longer attached to the VM.
+  // Uses ignoreErrors because some storage backends refuse to destroy a VDI that still has snapshot children;
+  // those VDIs will become truly orphaned once the old snapshot VMs are cleaned up by _deleteOldEntries.
+  await asyncMap([...oldVdiRefs], ref => ignoreErrors.call(xapi.call('VDI.destroy', ref)))
+
+  // 4. For updates, destroy existing VIFs before recreating them.
+  if (isUpdate) {
+    await asyncMap(await xapi.getField('VM', vmRef, 'VIFs'), ref => ignoreErrors.call(xapi.call('VIF.destroy', ref)))
+  }
 
   const networksByNameLabelByVlan = {}
   let defaultNetwork

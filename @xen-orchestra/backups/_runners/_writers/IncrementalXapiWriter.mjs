@@ -7,7 +7,7 @@ import { Task } from '../../Task.mjs'
 
 import { AbstractIncrementalWriter } from './_AbstractIncrementalWriter.mjs'
 import { MixinXapiWriter } from './_MixinXapiWriter.mjs'
-import { listReplicatedVms } from './_listReplicatedVms.mjs'
+import { compareReplicatedVmDatetime, listReplicatedVms } from './_listReplicatedVms.mjs'
 import {
   COPY_OF,
   setVmOtherConfig,
@@ -32,21 +32,38 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
 
     // @todo use an index if possible
     // @todo : this seems similar to decorateVmMetadata
-    const replicatedVdis = sr.$VDIs
-      .filter(vdi => {
-        // REPLICATED_TO_SR_UUID is not used here since we are already filtering from sr.$VDIs
-        return (
-          vdi?.managed &&
-          !vdi?.is_a_snapshot /* only look for real vdi */ &&
-          baseUuidToSrcVdi.has(vdi?.other_config[COPY_OF])
-        )
-      })
-      .map(({ other_config }) => other_config?.[COPY_OF])
-      .filter(_ => !!_)
+    const replicatedVdis = sr.$VDIs.filter(vdi => {
+      // REPLICATED_TO_SR_UUID is not used here since we are already filtering from sr.$VDIs
+      // Also search snapshot VDIs to support the single-VM replication flow where
+      // base VDIs live on snapshots of the replicated VM.
+      return vdi?.managed && baseUuidToSrcVdi.has(vdi?.other_config[COPY_OF])
+    })
+
+    const replicatedCopyOfUuids = replicatedVdis.map(({ other_config }) => other_config?.[COPY_OF]).filter(_ => !!_)
 
     for (const uuid of baseUuidToSrcVdi.keys()) {
-      if (!replicatedVdis.includes(uuid)) {
+      if (!replicatedCopyOfUuids.includes(uuid)) {
         baseUuidToSrcVdi.delete(uuid)
+      }
+    }
+
+    // Track the target VM (the replicated VM to update on the next transfer).
+    // For snapshot VDIs, traverse snapshot VM → snapshot_of to reach the replicated VM.
+    if (replicatedVdis.length > 0) {
+      for (const vdi of replicatedVdis) {
+        const vbd = vdi.$VBDs?.find(vbd => !vbd.$VM.is_control_domain)
+        if (!vbd || !vbd.$VM) {
+          continue
+        }
+        let vm = vbd.$VM
+        if (vm.is_a_snapshot) {
+          vm = vm.$snapshot_of
+        }
+
+        if (vm.blocked_operations.start !== undefined) {
+          this._targetVmRef = vm.$ref
+          break
+        }
       }
     }
   }
@@ -81,7 +98,16 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     // delete previous interrupted copies
     ignoreErrors.call(asyncMapSettled(listReplicatedVms(xapi, scheduleId, undefined, vmUuid), vm => vm.$destroy))
 
-    this._oldEntries = getOldEntries(settings.copyRetention - 1, listReplicatedVms(xapi, scheduleId, srUuid, vmUuid))
+    const allEntries = listReplicatedVms(xapi, scheduleId, srUuid, vmUuid)
+
+    // In the snapshot-based flow a non-snapshot VM (the live target) coexists with its
+    // snapshots (one per transfer). That VM must not be subject to retention — only its
+    // snapshots are. Build the set of VM refs that already have snapshots in the list so
+    // we can exclude them, while keeping old-style non-snapshot VMs (no snapshots).
+    const vmRefsWithSnapshots = new Set(allEntries.filter(e => e.is_a_snapshot).map(e => e.snapshot_of))
+    const retentionEntries = allEntries.filter(e => e.is_a_snapshot || !vmRefsWithSnapshots.has(e.$ref))
+    retentionEntries.sort(compareReplicatedVmDatetime)
+    this._oldEntries = getOldEntries(settings.copyRetention - 1, retentionEntries)
 
     if (settings.deleteFirst && settings.skipDeleteOldEntries) {
       // we want to keep the baseVM when copying a delta
@@ -112,7 +138,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     const job = this._job
     const scheduleId = this._scheduleId
 
-    vm.name_label = `${vm.name_label} - ${job.name} - (${formatFilenameDate(timestamp)})`
+    vm.name_label = `${vm.name_label} - ${job.name}`
     // update other_config data as soon as possible to ensure the next job
     // will be able to detect any partial transfer and lean them
     vm.other_config[COPY_OF] = vm.uuid
@@ -180,7 +206,24 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
 
     let targetVmRef
     await Task.run({ name: 'transfer' }, async () => {
-      targetVmRef = await importIncrementalVm(this.#decorateVmMetadata(deltaExport, timestamp), sr)
+      targetVmRef = await importIncrementalVm(this.#decorateVmMetadata(deltaExport, timestamp), sr, {
+        targetRef: this._targetVmRef,
+      })
+      // this also ensure the data are up to date on the snapshot
+      await setVmOtherConfig(xapi, targetVmRef, {
+        timestamp, // updated at the end to mark the transfer as complete
+        jobId: job.id,
+        scheduleId,
+        vmUuid: vm.uuid,
+        srUuid,
+      })
+
+      // take a snapshot to ensure these data are not modified until next snapshot
+      await Task.run({ name: 'target snapshot' }, () =>
+        xapi.VM_snapshot(targetVmRef, {
+          name_label: `${vm.name_label} - ${job.name} - (${formatFilenameDate(timestamp)})`,
+        })
+      )
       // size is mandatory to ensure the task have the right data
       return {
         size: Object.values(deltaExport.disks).reduce(
@@ -197,13 +240,6 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       !_warmMigration &&
         targetVm.ha_restart_priority !== '' &&
         Promise.all([targetVm.set_ha_restart_priority(''), targetVm.add_tags('HA disabled')]),
-      setVmOtherConfig(xapi, targetVmRef, {
-        timestamp, // updated at the end to mark the transfer as complete
-        jobId: job.id,
-        scheduleId,
-        vmUuid: vm.uuid,
-        srUuid,
-      }),
     ])
   }
 }
