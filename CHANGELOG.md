@@ -1,5 +1,17 @@
 # ChangeLog
 
+## next
+
+### Bug fixes
+
+- [backups] Fix race condition on merge (PR [#9542](https://github.com/vatesfr/xen-orchestra/pull/9542))
+
+### Released packages
+
+- @xen-orchestra/backups 0.69.2
+- @xen-orchestra/proxy 0.29.49
+- xo-server 5.197.3
+
 ## **6.2.0** (2026-02-26)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
