@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **6.2.1** (2026-02-27)
+## next
 
 ### Bug fixes
 
