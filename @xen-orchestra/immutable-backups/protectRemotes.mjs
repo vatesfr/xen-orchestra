@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @ts-check
 
 import fs from 'node:fs/promises'
 import * as File from './file.mjs'
@@ -11,8 +12,33 @@ import { indexFile } from './fileIndex.mjs'
 import cleanXoCache from './_cleanXoCache.mjs'
 import loadConfig from './_loadConfig.mjs'
 import isInVhdDirectory from './_isInVhdDirectory.mjs'
-const { debug, info, warn } = createLogger('xen-orchestra:immutable-backups:remote')
 
+/** @typedef {import('./_loadConfig.mjs').RemoteConfig} RemoteConfig */
+
+/**
+ * @xen-orchestra/log has no .d.ts — methods are added dynamically at runtime.
+ * @typedef {{ debug: (msg: string, data?: object) => void, info: (msg: string, data?: object) => void, warn: (msg: string, data?: object) => void }} XoLogger
+ */
+
+/**
+ * Tracks the number of key metadata files (header, footer, bat) received for
+ * an in-progress VHD directory.
+ * @typedef {Object} PendingVhdEntry
+ * @property {number} existing     - Count of key files received so far (1 or 2)
+ * @property {number} lastModified - Timestamp of the last received file (`Date.now()`)
+ */
+
+const { debug, info, warn } = /** @type {XoLogger} */ (
+  /** @type {unknown} */ (createLogger('xen-orchestra:immutable-backups:remote'))
+)
+
+/**
+ * Verify that the remote filesystem and the index directory support immutability
+ * by creating, modifying, locking, and unlocking a temporary test file.
+ * @param {string} remotePath - Absolute path to the backup repository root
+ * @param {string} indexPath  - Absolute path to the immutability index directory
+ * @returns {Promise<void>}
+ */
 async function test(remotePath, indexPath) {
   await fs.readdir(remotePath)
 
@@ -38,6 +64,16 @@ async function test(remotePath, indexPath) {
   await fs.writeFile(testPath, `test immut change 3 ${new Date()}`)
   await fs.unlink(testPath)
 }
+
+/**
+ * Called for each file seen during the initial scan (before the watcher is
+ * `ready`).  If the file is already immutable it is added to the index so it
+ * can be lifted later.
+ * @param {string} root      - Absolute path to the backup repository root
+ * @param {string} indexPath - Absolute path to the immutability index directory
+ * @param {string} path      - Relative path of the file inside `root`
+ * @returns {Promise<void>}
+ */
 async function handleExistingFile(root, indexPath, path) {
   try {
     // a vhd block directory is completely immutable
@@ -55,13 +91,22 @@ async function handleExistingFile(root, indexPath, path) {
       }
     }
   } catch (error) {
-    if (error.code !== 'EEXIST') {
+    if (/** @type {NodeJS.ErrnoException} */ (error).code !== 'EEXIST') {
       // there can be a symbolic link in the tree
       warn('handleExistingFile', { error })
     }
   }
 }
 
+/**
+ * Called for each newly created file after the watcher is `ready`.  Makes the
+ * file (or its parent VHD directory once complete) immutable.
+ * @param {string}                    root        - Absolute path to the backup repository root
+ * @param {string}                    indexPath   - Absolute path to the immutability index directory
+ * @param {Map<string, PendingVhdEntry>} pendingVhds - Tracks VHD directories waiting for all key files
+ * @param {string}                    path        - Relative path of the new file inside `root`
+ * @returns {Promise<void>}
+ */
 async function handleNewFile(root, indexPath, pendingVhds, path) {
   // with awaitWriteFinish we have complete files here
   // we can make them immutable
@@ -92,6 +137,15 @@ async function handleNewFile(root, indexPath, pendingVhds, path) {
     await cleanXoCache(fullFilePath)
   }
 }
+
+/**
+ * Start watching a backup remote for new files and make them immutable as they
+ * are written.  Also re-indexes already-immutable files when
+ * `rebuildIndexOnStart` is `true`.
+ * @param {string}       remoteId - Opaque identifier for the remote (used for logging)
+ * @param {RemoteConfig} options
+ * @returns {Promise<void>}
+ */
 export async function watchRemote(remoteId, { root, immutabilityDuration, rebuildIndexOnStart = false, indexPath }) {
   // create index directory
   await fs.mkdir(indexPath, { recursive: true })
@@ -122,6 +176,7 @@ export async function watchRemote(remoteId, { root, immutabilityDuration, rebuil
 
   // we wait for footer/header AND BAT to be written before locking a vhd directory
   // this map allow us to track the vhd with partial metadata
+  /** @type {Map<string, PendingVhdEntry>} */
   const pendingVhds = new Map()
   // cleanup pending vhd map periodically
   setInterval(
@@ -158,7 +213,8 @@ export async function watchRemote(remoteId, { root, immutabilityDuration, rebuil
   ]
 
   let ready = false
-  const watcher = chokidar.watch(PATHS, {
+  /** @type {import('chokidar').WatchOptions & { recursive: boolean }} */
+  const watchOptions = {
     ignored: [
       /(^|[/\\])\../, // ignore dotfiles
       /\.lock$/,
@@ -168,7 +224,8 @@ export async function watchRemote(remoteId, { root, immutabilityDuration, rebuil
     ignoreInitial: !rebuildIndexOnStart,
     depth: 7,
     awaitWriteFinish: true,
-  })
+  }
+  const watcher = chokidar.watch(PATHS, watchOptions)
 
   // Add event listeners.
   watcher
