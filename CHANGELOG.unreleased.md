@@ -15,7 +15,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [backups] Fix race condition on merge (PR [#9543](https://github.com/vatesfr/xen-orchestra/pull/9543))
+- [backups] Fix race condition on merge (PR [#9542](https://github.com/vatesfr/xen-orchestra/pull/9542))
 
 ### Packages to release
 
