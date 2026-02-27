@@ -1200,6 +1200,10 @@
     @extend .fa;
     @extend .icon-redhat;
   }
+  &-scientific {
+    @extend .fa;
+    @extend .icon-scientific;
+  }
   &-solaris {
     @extend .fa;
     @extend .icon-solaris;
