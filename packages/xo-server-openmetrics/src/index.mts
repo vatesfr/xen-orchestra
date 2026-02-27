@@ -24,6 +24,8 @@ import { fork, type ChildProcess } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { getRandomValues } from 'node:crypto'
+import { performance } from 'node:perf_hooks'
+import v8 from 'node:v8'
 
 // ============================================================================
 // Types
@@ -100,6 +102,38 @@ export type SrDataItem = Pick<XoSr, 'uuid' | 'name_label' | 'size' | 'physical_u
   host_name?: string
 }
 
+export interface XoMetricsData {
+  pendingTask: number
+  poolCount: number
+  hostCount: number
+  vmCount: number
+  srCountByContentType: Record<string, number>
+  userCount: number
+  groupCount: number
+  socketCount: number
+  hostCountByVersion: Array<{ productBrand: string; version: string; count: number }>
+  hostCountByLicense: Array<{ skuType: string; count: number }>
+  backupJobStats: Array<{
+    type: string
+    jobCount: number
+  }>
+  nodeProcess: {
+    eluMean: number
+    eluP99: number
+    eluMax: number
+    memoryRssBytes: number
+    memoryHeapUsedBytes: number
+    memoryHeapTotalBytes: number
+    memoryExternalBytes: number
+    memoryArrayBuffersBytes: number
+    heapSizeLimitBytes: number
+    heapAvailableBytes: number
+    detachedContexts: number
+    cpuUserSeconds: number
+    cpuSystemSeconds: number
+  }
+}
+
 interface SrDataPayload {
   srs: SrDataItem[]
 }
@@ -165,9 +199,35 @@ class OpenMetricsPlugin {
   #requestIdCounter = 0
   readonly #xo: XoApp
 
+  // ELU sampling state
+  #eluSamples: number[] = []
+  #lastEluSnapshot = performance.eventLoopUtilization()
+  #lastCpuUsage = process.cpuUsage()
+  #eluSamplerInterval: ReturnType<typeof setInterval> | undefined
+
   constructor(xo: XoApp) {
     this.#xo = xo
     logger.info('Plugin initialized')
+  }
+
+  #startEluSampler(): void {
+    this.#lastEluSnapshot = performance.eventLoopUtilization()
+    this.#lastCpuUsage = process.cpuUsage()
+    this.#eluSamples = []
+    this.#eluSamplerInterval = setInterval(() => {
+      const curr = performance.eventLoopUtilization()
+      const delta = performance.eventLoopUtilization(curr, this.#lastEluSnapshot)
+      this.#lastEluSnapshot = curr
+      this.#eluSamples.push(delta.utilization)
+    }, 1000)
+    this.#eluSamplerInterval.unref()
+  }
+
+  #stopEluSampler(): void {
+    if (this.#eluSamplerInterval !== undefined) {
+      clearInterval(this.#eluSamplerInterval)
+      this.#eluSamplerInterval = undefined
+    }
   }
 
   /**
@@ -201,6 +261,7 @@ class OpenMetricsPlugin {
       bindAddress: serverConfig.bindAddress,
     })
 
+    this.#startEluSampler()
     await this.#startChildProcess(serverConfig)
   }
 
@@ -209,6 +270,8 @@ class OpenMetricsPlugin {
    * Gracefully shuts down the child process.
    */
   async unload(): Promise<void> {
+    this.#stopEluSampler()
+
     if (this.#childProcess === undefined) {
       return
     }
@@ -340,6 +403,54 @@ class OpenMetricsPlugin {
           requestId: message.requestId,
           payload: hostStatus,
         })
+        break
+      }
+
+      case 'GET_XO_METRICS': {
+        this.#getXoMetrics()
+          .then((xoMetrics: XoMetricsData) => {
+            this.#sendToChildNoWait({
+              type: 'XO_METRICS',
+              requestId: message.requestId,
+              payload: xoMetrics,
+            })
+          })
+          .catch((err: unknown) => {
+            logger.error('Failed to collect XO metrics', { error: err })
+            const emptyMetrics: XoMetricsData = {
+              pendingTask: 0,
+              poolCount: 0,
+              hostCount: 0,
+              vmCount: 0,
+              srCountByContentType: {},
+              userCount: 0,
+              groupCount: 0,
+              socketCount: 0,
+              hostCountByVersion: [],
+              hostCountByLicense: [],
+              backupJobStats: [],
+              nodeProcess: {
+                eluMean: 0,
+                eluP99: 0,
+                eluMax: 0,
+                memoryRssBytes: 0,
+                memoryHeapUsedBytes: 0,
+                memoryHeapTotalBytes: 0,
+                memoryExternalBytes: 0,
+                memoryArrayBuffersBytes: 0,
+                heapSizeLimitBytes: 0,
+                heapAvailableBytes: 0,
+                detachedContexts: 0,
+                cpuUserSeconds: 0,
+                cpuSystemSeconds: 0,
+              },
+            }
+            this.#sendToChildNoWait({
+              type: 'XO_METRICS',
+              requestId: message.requestId,
+              payload: emptyMetrics,
+            })
+          })
         break
       }
 
@@ -497,6 +608,144 @@ class OpenMetricsPlugin {
 
     logger.debug('Returning host status data', { hostCount: hosts.length })
     return { hosts }
+  }
+
+  /**
+   * Collect XO management plane metrics.
+   * Gathers counts and stats from XO objects and XO APIs.
+   */
+  async #getXoMetrics(): Promise<XoMetricsData> {
+    const allObjects = this.#xo.getObjects() as Record<string, XoObject>
+
+    let poolCount = 0
+    let hostCount = 0
+    let vmCount = 0
+    let socketCount = 0
+    let pendingTask = 0
+    for await (const _taskLog of this.#xo.tasks.list({ filter: _ => _.status === 'pending' })) {
+      pendingTask++
+    }
+    const srCountByContentType: Record<string, number> = {}
+    const hostVersionMap = new Map<string, number>()
+    const hostLicenseMap = new Map<string, number>()
+
+    for (const obj of Object.values(allObjects)) {
+      switch (obj.type) {
+        case 'pool':
+          poolCount++
+          break
+        case 'host': {
+          const host = obj as XoHost
+          hostCount++
+          socketCount += (host.cpus as { sockets?: number } | undefined)?.sockets ?? 0
+
+          const versionKey = `${host.productBrand ?? ''}::${host.version ?? ''}`
+          hostVersionMap.set(versionKey, (hostVersionMap.get(versionKey) ?? 0) + 1)
+
+          const skuType = (host.license_params as Record<string, string> | undefined)?.sku_type ?? '?'
+          hostLicenseMap.set(skuType, (hostLicenseMap.get(skuType) ?? 0) + 1)
+          break
+        }
+        case 'VM':
+          vmCount++
+          break
+        case 'SR': {
+          const contentType = (obj as unknown as Record<string, string>).content_type ?? 'unknown'
+          srCountByContentType[contentType] = (srCountByContentType[contentType] ?? 0) + 1
+          break
+        }
+      }
+    }
+
+    const hostCountByVersion = [...hostVersionMap.entries()].map(([key, count]) => {
+      const [productBrand = '', version = ''] = key.split('::')
+      return { productBrand, version, count }
+    })
+
+    const hostCountByLicense = [...hostLicenseMap.entries()].map(([skuType, count]) => ({ skuType, count }))
+
+    let userCount = 0
+    try {
+      const users = await this.#xo.getAllUsers()
+      userCount = users.length
+    } catch (err) {
+      logger.warn('Failed to get users for XO metrics', { error: err })
+    }
+
+    let groupCount = 0
+    try {
+      const groups = await this.#xo.getAllGroups()
+      groupCount = groups.length
+    } catch (err) {
+      logger.warn('Failed to get groups for XO metrics', { error: err })
+    }
+
+    const backupJobStats: XoMetricsData['backupJobStats'] = []
+    try {
+      const jobs = await this.#xo.getAllJobs()
+
+      const jobCountByKey = new Map<string, number>()
+      for (const job of jobs) {
+        const key = (job as Record<string, unknown>).key as string | undefined
+        if (key === undefined || key === 'genericTask') continue
+        jobCountByKey.set(key, (jobCountByKey.get(key) ?? 0) + 1)
+      }
+
+      for (const [type, jobCount] of jobCountByKey) {
+        backupJobStats.push({ type, jobCount })
+      }
+    } catch (err) {
+      logger.warn('Failed to get backup job stats for XO metrics', { error: err })
+    }
+
+    // Node.js process metrics
+    const samples = this.#eluSamples
+    this.#eluSamples = []
+    let eluMean = 0
+    let eluP99 = 0
+    let eluMax = 0
+    if (samples.length > 0) {
+      const sorted = [...samples].sort((a, b) => a - b)
+      eluMean = samples.reduce((sum, v) => sum + v, 0) / samples.length
+      eluMax = sorted[sorted.length - 1]!
+      eluP99 = sorted[Math.max(0, Math.ceil(0.99 * sorted.length) - 1)]!
+    }
+
+    const cpuDelta = process.cpuUsage(this.#lastCpuUsage)
+    this.#lastCpuUsage = process.cpuUsage()
+    const mem = process.memoryUsage()
+    const heapStats = v8.getHeapStatistics()
+
+    logger.debug('XO metrics collected', { poolCount, hostCount, vmCount, userCount, groupCount })
+
+    return {
+      pendingTask,
+      poolCount,
+      hostCount,
+      vmCount,
+      srCountByContentType,
+      userCount,
+      groupCount,
+      socketCount,
+      hostCountByVersion,
+      hostCountByLicense,
+      backupJobStats,
+      nodeProcess: {
+        eluMean,
+        eluP99,
+        eluMax,
+        memoryRssBytes: mem.rss,
+        memoryHeapUsedBytes: mem.heapUsed,
+        memoryHeapTotalBytes: mem.heapTotal,
+        memoryExternalBytes: mem.external,
+        memoryArrayBuffersBytes: mem.arrayBuffers,
+        heapSizeLimitBytes: heapStats.heap_size_limit,
+        heapAvailableBytes: heapStats.total_available_size,
+        detachedContexts: heapStats.number_of_detached_contexts,
+        cpuUserSeconds: cpuDelta.user / 1_000_000,
+        cpuSystemSeconds: cpuDelta.system / 1_000_000,
+      },
+    }
   }
 
   /**

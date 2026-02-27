@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [openmetrics] add XO process metrics (PR [#9535](https://github.com/vatesfr/xen-orchestra/pull/9535))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -31,4 +33,5 @@
 
 <!--packages-start-->
 
+- xo-server-openmetrics minor
 <!--packages-end-->
