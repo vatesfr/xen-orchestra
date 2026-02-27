@@ -12,7 +12,6 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [V2V] Make import cancellable (PR [#9552](https://github.com/vatesfr/xen-orchestra/pull/9552))
-
 - [MCP] Support token authentication via `XO_TOKEN` environment variable as an alternative to username/password (PR [#9577](https://github.com/vatesfr/xen-orchestra/pull/9577))
 - [MCP] Add `list_srs` and `get_sr_details` tools to query storage repositories (PR [#9599](https://github.com/vatesfr/xen-orchestra/pull/9599))
 - [MCP] Add `list_vdis` tool to list virtual disks (PR [#9559](https://github.com/vatesfr/xen-orchestra/pull/9559))
@@ -28,6 +27,7 @@
 - [MCP] Refactor into modular file structure for better extensibility (PR [#9621](https://github.com/vatesfr/xen-orchestra/pull/9621))
 - [REST API] Expose `POST /rest/v0/pools/:id/actions/create_bonded_network` and `POST /rest/v0/pools/:id/actions/create_internal_network` (PR [#9611](https://github.com/vatesfr/xen-orchestra/pull/9611))
 - [REST API] Added `nbd` param in network creation endpoints (PR [#9611](https://github.com/vatesfr/xen-orchestra/pull/9611))
+- [VM] Add backup replication card on dashboard (PR [#9545](https://github.com/vatesfr/xen-orchestra/pull/9545))
 
 ### Bug fixes
 
@@ -70,7 +70,8 @@
 - @xen-orchestra/qcow2 minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer minor
-- @xen-orchestra/web patch
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - vhd-lib minor
 - xo-server minor
 - xo-server-openmetrics minor
