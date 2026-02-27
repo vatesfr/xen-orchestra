@@ -151,11 +151,14 @@
                     {{ t('copy-host-bios-strings') }}
                   </UiCheckbox>
                 </div>
-                <div v-else>
+                <UiCheckboxGroup v-else accent="brand" vertical>
                   <UiCheckbox v-model="vmState.createVtpm" accent="brand">
                     {{ t('vtpm') }}
                   </UiCheckbox>
-                </div>
+                  <UiCheckbox v-model="vmState.secureBoot" accent="brand">
+                    {{ t('secure-boot') }}
+                  </UiCheckbox>
+                </UiCheckboxGroup>
               </div>
               <div class="column">
                 <UiTextarea v-model="vmState.description" accent="brand">
@@ -284,7 +287,6 @@ import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
-import { vTooltip } from '@core/directives/tooltip.directive'
 import { useFormSelect } from '@core/packages/form-select'
 import { useMapper } from '@core/packages/mapper'
 import { useUiStore } from '@core/stores/ui.store'
@@ -379,6 +381,7 @@ const vmState = reactive<VmState>({
   tags: [],
   vCPU: 0,
   selectedVcpu: 0,
+  secureBoot: false,
   ram: 0,
   topology: '',
   copyHostBiosStrings: false,
@@ -776,6 +779,7 @@ const vmData = computed(() => {
     hvmBootFirmware: vmState.bootFirmware,
     copyHostBiosStrings: vmState.copyHostBiosStrings,
     createVtpm: vmState.createVtpm,
+    secureBoot: vmState.secureBoot,
     ...optionalFields,
   }
 })
@@ -837,7 +841,7 @@ watch(
       return
     }
 
-    const { name_label, isDefaultTemplate, name_description, tags, CPUs, memory } = template
+    const { name_label, isDefaultTemplate, name_description, tags, CPUs, memory, secureBoot } = template
 
     Object.assign(vmState, {
       isDiskTemplateSelected: isDiskTemplate.value ?? false,
@@ -849,6 +853,7 @@ watch(
       vdis: getVmTemplateVdis(template),
       existingVdis: getExistingVdis(template),
       vifs: getExistingVifs(template),
+      secureBoot,
       selectedVdi: undefined,
       installMode: 'no-config',
       networkConfig: '',
@@ -946,6 +951,7 @@ watch(
   () => {
     if (vmState.bootFirmware === 'bios') {
       vmState.createVtpm = false
+      vmState.secureBoot = false
       if (selectedTemplateHasBiosStrings.value) {
         vmState.copyHostBiosStrings = true
       }

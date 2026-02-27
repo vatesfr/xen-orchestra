@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- [VM/New] Added secureBoot support (PR [#9423](https://github.com/vatesfr/xen-orchestra/pull/9423))
+
 ## **0.19.0** (2026-02-26)
 
 - [Host] Fix host dashboard CPU provisioning calculation [Forum#101359](https://xcp-ng.org/forum/topic/11604/xo-6-dedicated-thread-for-all-your-feedback/84) (PR [#9459](https://github.com/vatesfr/xen-orchestra/pull/9459))

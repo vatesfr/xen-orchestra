@@ -43,4 +43,5 @@ export interface VmState {
   networkInterfaces: NetworkInterface[]
   defaultNetwork: NetworkInterface | undefined
   create_vtpm: boolean
+  secureBoot: string
 }

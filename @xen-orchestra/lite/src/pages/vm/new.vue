@@ -83,11 +83,14 @@
                     {{ t('action:copy-host') }}
                   </UiCheckbox>
                 </div>
-                <div v-else>
+                <UiCheckboxGroup v-else accent="brand" vertical>
                   <UiCheckbox v-model="vmState.create_vtpm" accent="brand">
                     {{ t('vtpm') }}
                   </UiCheckbox>
-                </div>
+                  <UiCheckbox v-model="secureBootFormated" accent="brand">
+                    {{ t('secure-boot') }}
+                  </UiCheckbox>
+                </UiCheckboxGroup>
               </div>
               <div class="column">
                 <UiTextarea v-model="vmState.description" accent="brand">
@@ -256,6 +259,7 @@ const vmState = reactive<VmState>({
   boot_firmware: '',
   new_vm_template: undefined,
   boot_vm: true,
+  secureBoot: 'false',
   auto_power: false,
   fast_clone: true,
   ssh_key: '',
@@ -285,6 +289,20 @@ const ramFormatted = computed({
   },
   set(newValue) {
     vmState.ram = giBToBytes(newValue)
+  },
+})
+
+// TODO if vmState.secureBoot == 'auto' get the value of pool. actually is not available in pool.
+const secureBootFormated = computed({
+  get() {
+    if (vmState.boot_firmware !== 'uefi') {
+      return false
+    }
+    return vmState.secureBoot === 'true'
+  },
+
+  set(newValue) {
+    vmState.secureBoot = newValue ? 'true' : 'false'
   },
 })
 
@@ -513,6 +531,7 @@ const vmCreationParams = computed(() => ({
   name_label: vmState.name,
   template: vmState.new_vm_template?.$ref,
   vdis: vmState.vdis,
+  secureBoot: vmState.boot_firmware === 'uefi' ? vmState.secureBoot : 'false',
   vifs: vmState.networkInterfaces.map(net => ({
     network: net.interface,
     MAC: net.macAddress,
@@ -560,6 +579,10 @@ const _createVm = defer(async ($defer: Defer) => {
       vmCreationParams.value.copyHostBiosStrings
     ) {
       await xapi.call('VM.copy_bios_strings', [vmRefs, vmState.new_vm_template!.affinity ?? hostMasterRef])
+    }
+
+    if (vmCreationParams.value.hvmBootFirmware === 'uefi') {
+      await xapi.vm.setSecureBoot(vmRefs[0], vmCreationParams.value.secureBoot === 'true')
     }
 
     // Removes disks from the provision XML, we will create them by ourselves.
@@ -821,6 +844,7 @@ watch(
       vdis: getVdis(template),
       tags,
       topology: isNaN(topology) ? null : topology,
+      secureBoot: platform.secureboot,
       affinity_host: affinity,
       existingVdis: getExistingVdis(template),
       networkInterfaces: getExistingInterface(template),
