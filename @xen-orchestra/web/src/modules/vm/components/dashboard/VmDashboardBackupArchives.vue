@@ -2,7 +2,7 @@
   <UiCard :has-error="isError">
     <UiCardTitle>{{ t('last-n-backup-archives', 3) }}</UiCardTitle>
     <VtsTable :state horizontal>
-      <thead v-if="!isEmpty">
+      <thead>
         <tr>
           <HeadCells />
         </tr>
@@ -31,8 +31,8 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { hasError, vmDashboard } = defineProps<{
-  hasError: boolean
   vmDashboard: XoVmDashboard | undefined
+  hasError: boolean
 }>()
 
 const { t } = useI18n()
@@ -42,9 +42,9 @@ const { useGetBackupRepositoryById, areBackupRepositoriesReady, hasBackupReposit
 
 const { buildXo5Route } = useXoRoutes()
 
-const backupArchives = computed(() => vmDashboard?.backupsInfo?.backupArchives ?? [])
+const backupArchives = computed(() => vmDashboard?.backupsInfo?.backupArchives)
 
-const isEmpty = computed(() => backupArchives.value.length === 0)
+const isEmpty = computed(() => backupArchives?.value?.length === 0)
 
 const isError = computed(() => hasBackupRepositoryFetchError.value || hasError)
 
