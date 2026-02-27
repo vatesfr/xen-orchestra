@@ -12,6 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [VM] Add backup runs and backup archives cards on dashboard (PR [#9303](https://github.com/vatesfr/xen-orchestra/pull/9303))
+- [VM] Add backup replication card on dashboard (PR [#9545](https://github.com/vatesfr/xen-orchestra/pull/9545))
 
 ### Bug fixes
 
@@ -32,5 +33,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/web minor
 
 <!--packages-end-->
