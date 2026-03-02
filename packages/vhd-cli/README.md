@@ -14,6 +14,10 @@ Installation of the [npm package](https://npmjs.org/package/vhd-cli):
 npm install --global vhd-cli
 ```
 
+## Usage
+
+> **Deprecated:** This package is no longer maintained. Use [`@xen-orchestra/disk-cli`](https://npmjs.org/package/@xen-orchestra/disk-cli) instead.
+
 ## Contributions
 
 Contributions are _very_ welcomed, either on the documentation or on
