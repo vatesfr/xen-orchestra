@@ -518,12 +518,12 @@ export class VmController extends XapiXoController<XoVm> {
 
   /**
    *
-   * - For fast clone on the same SR, omit `srOrSrId` and set `fast` to `true`.
-   * - For full copy on the same SR, omit `srOrSrId` and set `fast` to `false`.
-   * - To copy the VM to a different SR (always a full copy), provide `srOrSrId`. Supports cross-pool copy.
+   * - For fast clone on the same SR, omit `srId` and set `fast` to `true`.
+   * - For full copy on the same SR, omit `srId` and set `fast` to `false`.
+   * - To copy the VM to a different SR (always a full copy), provide `srId`. Supports cross-pool copy.
    *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
-   * @example body { "name_label": "cloned_vm", "full_copy": false, "srOrSrId": "c4284e12-37c9-7967-b9e8-83ef229c3e03" }
+   * @example body { "name_label": "cloned_vm", "fast": true }
    */
   @Example(taskLocation)
   @Post('{id}/actions/clone')
@@ -534,7 +534,7 @@ export class VmController extends XapiXoController<XoVm> {
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async cloneVm(
     @Path() id: string,
-    @Body() body?: { name_label?: string; fast?: boolean } | { name_label?: string; srOrSrId?: string },
+    @Body() body?: { name_label?: string; fast?: boolean } | { name_label?: string; srId?: string },
     @Query() sync?: boolean
   ): CreateActionReturnType<{ id: XenApiVm['uuid'] }> {
     const vmId = id as XoVm['id']
@@ -543,16 +543,16 @@ export class VmController extends XapiXoController<XoVm> {
       const xapi = this.getXapi(vmId)
       let clonedVmUuid: string
 
-      if (body !== undefined && 'srOrSrId' in body && body.srOrSrId !== undefined) {
-        const srOrSrId = body.srOrSrId as XoSr['id']
+      if (body !== undefined && 'srId' in body && body.srId !== undefined) {
+        const srId = body.srId as XoSr['id']
         const vm = this.getObject(vmId)
-        const sr = this.restApi.getObject<XoSr>(srOrSrId, 'SR')
+        const sr = this.restApi.getObject<XoSr>(srId, 'SR')
 
         if (vm.$pool === sr.$pool) {
-          clonedVmUuid = (await xapi.copyVm(vmId, { nameLabel: body.name_label, srOrSrId })).uuid
+          clonedVmUuid = (await xapi.copyVm(vmId, { nameLabel: body.name_label, srOrSrId: srId })).uuid
         } else {
-          const targetXapi = this.restApi.xoApp.getXapi(srOrSrId)
-          clonedVmUuid = (await xapi.remoteCopyVm(vmId, targetXapi, srOrSrId, { nameLabel: body.name_label })).vm.uuid
+          const targetXapi = this.restApi.xoApp.getXapi(srId)
+          clonedVmUuid = (await xapi.remoteCopyVm(vmId, targetXapi, srId, { nameLabel: body.name_label })).vm.uuid
         }
       } else {
         const fast = body !== undefined && 'fast' in body ? body.fast : undefined
