@@ -19,6 +19,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Dashboard] Fix reactivity of dashboard (PR [#9378](https://github.com/vatesfr/xen-orchestra/pull/9378))
+- [OpenMetrics] Fix latency metrics (`xcp_host_disk_read_latency_seconds`, `xcp_host_disk_write_latency_seconds`, `xcp_vm_disk_read_latency_seconds`, `xcp_vm_disk_write_latency_seconds`) reporting milliseconds instead of seconds (PR [#9550](https://github.com/vatesfr/xen-orchestra/pull/9550))
 
 ### Packages to release
 
@@ -38,5 +39,6 @@
 
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- xo-server-openmetrics patch
 
 <!--packages-end-->

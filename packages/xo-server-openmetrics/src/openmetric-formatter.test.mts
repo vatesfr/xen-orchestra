@@ -71,12 +71,12 @@ describe('HOST_METRICS', () => {
     assert.equal(throughput.transformValue!(1), Math.pow(2, 20))
   })
 
-  it('should include latency metrics with ms to seconds transformation', () => {
+  it('should include latency metrics with µs to seconds transformation', () => {
     const latency = HOST_METRICS.find(m => m.openMetricName === 'host_disk_read_latency_seconds')
     assert.ok(latency)
     assert.ok(latency.transformValue)
-    // 1000 ms = 1 second
-    assert.equal(latency.transformValue!(1000), 1)
+    // 1000000 µs = 1 second
+    assert.equal(latency.transformValue!(1000000), 1)
   })
 })
 
