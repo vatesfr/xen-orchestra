@@ -19,13 +19,7 @@ import { provide } from 'inversify-binding-decorators'
 import { type Request as ExRequest, json } from 'express'
 import type { XoAclRole, XoGroup, XoGroupRole, XoUser, XoUserRole } from '@vates/types'
 
-import {
-  aclGroupRole,
-  aclRole,
-  aclRoleIds,
-  aclUserRole,
-  partialAclRoles,
-} from '../open-api/oa-examples/acl-role.oa-example.mjs'
+import { aclRole, aclRoleIds, partialAclRoles } from '../open-api/oa-examples/acl-role.oa-example.mjs'
 import {
   asynchronousActionResp,
   badRequestResp,
@@ -131,7 +125,7 @@ export class AclRoleController extends XoController<XoAclRole> {
    * @example groupId "ee4965bf-d8af-4ca2-aa0e-5f29d0c5f9e2"
    */
   @Put('{id}/groups/{groupId}')
-  @SuccessResponse(createdResp.status, createdResp.description)
+  @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(resourceAlreadyExists.status, resourceAlreadyExists.description)
@@ -145,7 +139,7 @@ export class AclRoleController extends XoController<XoAclRole> {
   }
 
   /**
-   * Detach an ALC V2 role from a group.
+   * Detach an ACL V2 role from a group.
    *
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    * @example groupId "ee4965bf-d8af-4ca2-aa0e-5f29d0c5f9e2"
@@ -163,13 +157,13 @@ export class AclRoleController extends XoController<XoAclRole> {
   }
 
   /**
-   * Attach an ALC V2 role to a user.
+   * Attach an ACL V2 role to a user.
    *
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    * @example userId "ee4965bf-d8af-4ca2-aa0e-5f29d0c5f9e2"
    */
   @Put('{id}/users/{userId}')
-  @SuccessResponse(createdResp.status, createdResp.description)
+  @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(resourceAlreadyExists.status, resourceAlreadyExists.description)
@@ -183,7 +177,7 @@ export class AclRoleController extends XoController<XoAclRole> {
   }
 
   /**
-   * Detach an ALC V2 role from a user.
+   * Detach an ACL V2 role from a user.
    *
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    * @example userId "ee4965bf-d8af-4ca2-aa0e-5f29d0c5f9e2"

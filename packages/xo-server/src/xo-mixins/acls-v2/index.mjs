@@ -384,7 +384,7 @@ export default class {
      * @type {UserRole[]}
      */
     const userRoles = await this.#userRoleDb._get({ userId, roleId })
-    if (userRoles.length > 1) throw new Error('An error has occured while fetching the user role')
+    if (userRoles.length > 1) throw new Error(`More than 1 userRoles were found for ${userId} and ${roleId}`)
 
     const userRole = userRoles[0]
 
@@ -414,7 +414,7 @@ export default class {
      * @type {UserRole[]}
      */
     const userRoles = await this.#userRoleDb._get({ userId, roleId })
-    if (userRoles.length > 1) throw new Error('An error has occured while fetching the user role')
+    if (userRoles.length > 1) throw new Error(`More than 1 userRoles were found for ${userId} and ${roleId}`)
 
     const userRole = userRoles[0]
 
@@ -440,7 +440,7 @@ export default class {
      * @type {GroupRole[]}
      */
     const groupRoles = await this.#groupRoleDb._get({ groupId, roleId })
-    if (groupRoles.length > 1) throw new Error('An error has occured while fetching the group role')
+    if (groupRoles.length > 1) throw new Error(`More than 1 groupRoles were found for ${groupId} and ${roleId}`)
 
     const groupRole = groupRoles[0]
 
@@ -470,7 +470,7 @@ export default class {
      * @type {GroupRole[]}
      */
     const groupRoles = await this.#groupRoleDb._get({ groupId, roleId })
-    if (groupRoles.length > 1) throw new Error('An error has occured while fetching the group role')
+    if (groupRoles.length > 1) throw new Error(`More than 1 groupRoles were found for ${groupId} and ${roleId}`)
 
     const groupRole = groupRoles[0]
 
