@@ -94,7 +94,7 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
     existingVdi = diskIsAlreadyImported(existingVdis, existingDisk)
     Task.info(`found a previous import`, { vdiRef: existingVdi.$ref })
 
-    dataMap = await esxi.getDataMap(vmId, datastoreName, diskPath)
+    dataMap = await esxi.getDataMap(vmId, datastoreName, diskPath, Task.abortSignal)
   } else {
     Task.info(`no reference disk found, fall back a full import`)
   }
