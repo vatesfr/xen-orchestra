@@ -64,26 +64,17 @@ In order not to pollute important decorators, all example structures should be i
 
 ### ACLs
 
-To define an ACL for an endpoint, simply call the `this.checkAcls` method and pass the required ACL(s).
+To define an ACL for an endpoint, simply add the `acl` middleware and pass the required ACL(s).
+
+If an endpoint does not have a middleware ACL, it will be accessible **ONLY** to administrators.
 
 #### Guidelines
 
 - **JSDoc Documentation**: Always document the required privileges in the JSDoc annotation so users know which permissions are needed. Use the format: `Required privilege: - ...`
 - **Error Handling**: If you define an ACL for an endpoint, you **must** add a `@Response(403)` decorator.
-- **Action Tracking**: If your endpoint is an action, call `checkAcls` **inside** the action logic. This ensures that if the check throws an error, the trace is correctly preserved in the logs of the associated action.
+- **Non XAPI objects**: When dealing with non XAPI XO Record, you must define the `getObject` function.
 
----
-
-#### Usage & Scoping
-
-The `objects` property passed to `checkAcls` depends on the context of your request:
-
-| Case                  | `objects` value    | Description                              |
-| :-------------------- | :----------------- | :--------------------------------------- |
-| **Existing Resource** | `vm`, `host`, etc. | The existing XO object(s)                |
-| **Creation**          | `body`, etc.       | The object you are attempting to create. |
-
-##### Example: Action on an existing resource
+##### Example: ACL on an existing resource
 
 ```ts
  /**
@@ -93,11 +84,11 @@ The `objects` property passed to `checkAcls` depends on the context of your requ
   * - resource: vm, action: start
   */
  @Post('{id}/actions/start')
+ @Middlewares(acl({resource: 'vm', action: 'start', objectId: 'params.id'}))
  @Response(403)
  getVm(@Path() id: string) {
     const action = async () => {
       const vm = await this.getObject(id)
-      await this.checkAcls({ resource: 'vm', action: 'start', objects: vm })
       // ...
     }
  }
@@ -115,12 +106,14 @@ When creating a resource (which doesn't exist yet), pass the object being create
   * - resource: vdi, action: create
   */
  @Post('/')
+ @Middlewares(acl({resource: 'vdi', action: 'create', object: ({req}) => {
+  const {srId,...rest} = req.body
+  return {$SR: srId, ...rest}
+ }}))
  @Response(403)
  createVdi(@Body() body: VdiConfig) {
    const {srId, ...rest}
    const bodyParam = {$SR: srId, ...rest}
-   // Pass the body (the object to be created) to check permissions
-   await this.checkAcls({ resource: 'vdi', action: 'create', objects: bodyParam })
    await VDI_create(bodyParam)
    // ...
  }
