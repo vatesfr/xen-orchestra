@@ -93,23 +93,9 @@ onUnmounted(() => setRegisteredHost(undefined))
   grid-template-columns: repeat(8, 1fr);
   grid-template-areas:
     'quick-info quick-info quick-info quick-info quick-info quick-info quick-info quick-info'
-    'vms-status vms-status cpu-provisioning cpu-provisioning cpu-provisioning ram-usage ram-usage ram-usage'
-    'cpu-usage-chart cpu-usage-chart memory-usage-chart memory-usage-chart network-usage-chart network-usage-chart load-average-chart load-average-chart'
+    'vms-status vms-status cpu-provisioning cpu-provisioning cpu-provisioning ram-provisioning ram-provisioning ram-provisioning'
+    'cpu-usage-chart cpu-usage-chart ram-usage-chart ram-usage-chart network-usage-chart network-usage-chart load-average-chart load-average-chart'
     'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
-
-  &.mobile {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      'quick-info'
-      'vms-status'
-      'cpu-provisioning'
-      'ram-usage'
-      'cpu-usage-chart'
-      'memory-usage-chart'
-      'network-usage-chart'
-      'load-average-chart'
-      'offline-hero-container';
-  }
 
   .quick-info {
     grid-area: quick-info;
@@ -128,7 +114,7 @@ onUnmounted(() => setRegisteredHost(undefined))
   }
 
   .ram-provisioning {
-    grid-area: ram-usage;
+    grid-area: ram-provisioning;
   }
 
   .cpu-usage-chart {
@@ -136,7 +122,7 @@ onUnmounted(() => setRegisteredHost(undefined))
   }
 
   .ram-usage-chart {
-    grid-area: memory-usage-chart;
+    grid-area: ram-usage-chart;
   }
 
   .network-usage-chart {
@@ -156,6 +142,12 @@ onUnmounted(() => setRegisteredHost(undefined))
     flex-direction: column;
     gap: 1.4rem;
     color: var(--color-neutral-txt-secondary);
+  }
+
+  &.mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
   }
 }
 </style>
