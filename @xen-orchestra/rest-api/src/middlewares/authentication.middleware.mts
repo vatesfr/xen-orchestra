@@ -1,4 +1,6 @@
+import { createLogger } from '@xen-orchestra/log'
 import type { NextFunction, Request, Response } from 'express'
+import { unauthorized } from 'xo-common/api-errors.js'
 
 import { ApiError } from '../helpers/error.helper.mjs'
 import type { AuthenticatedRequest } from '../helpers/helper.type.mjs'
@@ -6,6 +8,9 @@ import type { AuthenticatedRequest } from '../helpers/helper.type.mjs'
 import { iocContainer } from '../ioc/ioc.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { XoApp } from '../rest-api/rest-api.type.mjs'
+import { ACL_MIDDLEWARE_NAME } from './acl.middleware.mjs'
+
+const log = createLogger('xo:rest-api:authentication')
 
 export type SecurityName = '*' | 'token' | 'basic' | 'none'
 
@@ -21,6 +26,16 @@ export async function expressAuthentication(req: AuthenticatedRequest, securityN
 
   if (securityName !== '*' && authType !== securityName) {
     throw new ApiError(`invalid authentification. please use ${securityName} authentication`, 401)
+  }
+
+  if (user.permission === 'admin') {
+    return user
+  }
+
+  const aclMiddleware = req.route.stack.find(layer => layer.name === ACL_MIDDLEWARE_NAME)
+  if (aclMiddleware === undefined) {
+    log.error(`${req.route.path} can only be used by an administrator`)
+    throw unauthorized()
   }
 
   return user

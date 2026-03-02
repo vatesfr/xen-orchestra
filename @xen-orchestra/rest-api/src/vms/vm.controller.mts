@@ -61,6 +61,7 @@ import { partialVmBackupJobs, vmBackupJobIds } from '../open-api/oa-examples/bac
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import type { UnbrandedVmDashboard } from './vm.type.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
+import { acl } from '../middlewares/acl.middleware.mjs'
 
 const IGNORED_VDIS_TAG = '[NOSNAP]'
 
@@ -136,11 +137,11 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(vm)
   @Get('{id}')
+  @Middlewares(acl({ resource: 'vm', action: 'read', objectId: 'params.id' }))
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async getVm(@Path() id: string): Promise<Unbrand<XoVm>> {
     const vm = this.getObject(id as XoVm['id'])
-    await this.checkAcls({ resource: 'vm', action: 'read', objects: vm })
     return vm
   }
 
@@ -250,7 +251,13 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/start')
-  @Middlewares(json())
+  @Middlewares([
+    json(),
+    acl([
+      { resource: 'vm', action: 'start', objectId: 'params.id' },
+      { resource: 'host', action: 'allow-vm', objectId: 'body.hostId' },
+    ]),
+  ])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(noContentResp.status, noContentResp.description)
@@ -262,16 +269,7 @@ export class VmController extends XapiXoController<XoVm> {
     @Query() sync?: boolean
   ): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
-    const hostId = body?.hostId as XoHost['id'] | undefined
     const action = async () => {
-      await this.checkAcls([
-        { resource: 'vm', action: 'start', objects: this.getObject(vmId) },
-        {
-          resource: 'host',
-          action: 'allow-vm',
-          objects: hostId !== undefined ? this.restApi.getObject(hostId, 'host') : undefined,
-        },
-      ])
       await this.getXapi(vmId).startVm(vmId, { startOnly: true, hostId: body?.hostId as XoHost['id'] })
     }
 
@@ -296,6 +294,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/clean_shutdown')
+  @Middlewares(acl({ resource: 'vm', action: 'shutdown:clean', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -303,7 +302,6 @@ export class VmController extends XapiXoController<XoVm> {
   async cleanShutdownVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
-      await this.checkAcls({ resource: 'vm', action: 'shutdown:clean', objects: this.getObject(vmId) })
       await this.getXapiObject(vmId).$callAsync('clean_shutdown')
     }
 
@@ -327,10 +325,10 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/clean_reboot')
+  @Middlewares(acl({ resource: 'vm', action: 'reboot:clean', objectId: 'params.id' }))
   async cleanRebootVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
-      await this.checkAcls({ resource: 'vm', action: 'reboot:clean', objects: this.getObject(vmId) })
       await this.getXapiObject(vmId).$callAsync('clean_reboot')
     }
 

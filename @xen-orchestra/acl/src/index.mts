@@ -94,8 +94,20 @@ export function getMissingPrivileges(params: AnyPrivilegeOnParam[], userPrivileg
         })
     )
     .map(({ action, objects, resource }) => {
-      const objectIds = Array.isArray(objects) ? objects.map(obj => ('id' in obj ? obj.id : undefined)) : undefined
-      const objectId = !Array.isArray(objects) && 'id' in objects ? objects.id : undefined
+      let objectIds: unknown[] | undefined
+      let objectId: unknown | undefined
+
+      if (Array.isArray(objects)) {
+        if (objects.length > 1) {
+          objectIds = objects.map(obj => ('id' in obj ? obj.id : undefined))
+        } else {
+          objects = objects[0]
+        }
+      }
+      if (!Array.isArray(objects)) {
+        objectId = 'id' in objects ? objects.id : undefined
+      }
+
       return {
         // in case there is no ID on objects, display objects (can help to debug)
         objects: objectId === undefined && objectIds === undefined ? objects : undefined,
