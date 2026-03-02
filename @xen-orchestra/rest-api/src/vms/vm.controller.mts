@@ -34,6 +34,7 @@ import type {
 } from '@vates/types'
 import { PassThrough, Readable } from 'node:stream'
 
+import { acl } from '../middlewares/acl.middleware.mjs'
 import {
   asynchronousActionResp,
   badRequestResp,
@@ -61,7 +62,6 @@ import { partialVmBackupJobs, vmBackupJobIds } from '../open-api/oa-examples/bac
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import type { UnbrandedVmDashboard } from './vm.type.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
-import { acl } from '../middlewares/acl.middleware.mjs'
 
 const IGNORED_VDIS_TAG = '[NOSNAP]'
 
@@ -140,9 +140,8 @@ export class VmController extends XapiXoController<XoVm> {
   @Middlewares(acl({ resource: 'vm', action: 'read', objectId: 'params.id' }))
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  async getVm(@Path() id: string): Promise<Unbrand<XoVm>> {
-    const vm = this.getObject(id as XoVm['id'])
-    return vm
+  getVm(@Path() id: string): Unbrand<XoVm> {
+    return this.getObject(id as XoVm['id'])
   }
 
   /**
@@ -297,6 +296,7 @@ export class VmController extends XapiXoController<XoVm> {
   @Middlewares(acl({ resource: 'vm', action: 'shutdown:clean', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async cleanShutdownVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
@@ -326,6 +326,10 @@ export class VmController extends XapiXoController<XoVm> {
   @Example(taskLocation)
   @Post('{id}/actions/clean_reboot')
   @Middlewares(acl({ resource: 'vm', action: 'reboot:clean', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
   async cleanRebootVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
@@ -506,6 +510,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/snapshot')
+  @Middlewares(json())
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(createdResp.status, 'Snapshot created')
   @Response(notFoundResp.status, notFoundResp.description)

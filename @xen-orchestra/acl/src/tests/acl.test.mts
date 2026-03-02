@@ -295,7 +295,7 @@ suite('ACL V2 behavior', async () => {
       )
 
       assert.strictEqual(missingPrivileges.length, 1)
-      assert.strictEqual(missingPrivileges[0]!.objectId !== undefined, true)
+      assert.notStrictEqual(missingPrivileges[0]!.objectId, undefined)
     })
 
     test('Should return objectIds if multiple objects in the missing privilege', () => {
@@ -305,7 +305,7 @@ suite('ACL V2 behavior', async () => {
       )
 
       assert.strictEqual(missingPrivileges.length, 1)
-      assert.strictEqual(missingPrivileges[0]!.objectIds !== undefined, true)
+      assert.notStrictEqual(missingPrivileges[0]!.objectIds, undefined)
     })
   })
 

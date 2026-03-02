@@ -109,8 +109,6 @@ export function getMissingPrivileges(params: AnyPrivilegeOnParam[], userPrivileg
       }
 
       return {
-        // in case there is no ID on objects, display objects (can help to debug)
-        objects: objectId === undefined && objectIds === undefined ? objects : undefined,
         objectId,
         objectIds,
         action,

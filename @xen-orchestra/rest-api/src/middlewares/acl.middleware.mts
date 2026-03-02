@@ -169,6 +169,11 @@ export function acl(acls: AclEntry | AclEntry[]) {
         }
       }
 
+      // We cast here to restore the discriminated union correlation between `resource` and`action`.
+      // When rebuilding an object from individual properties of a discriminated union, TypeScript transform it into an union type
+      //   { resource: SupportedResource, action: SupportedAction<SupportedResource> }
+      // This loses the original correlation (e.g. it would allow invalid pairs like { resource: 'vgpu', action: 'snapshot' }).
+      // The `as` cast re-asserts the discriminated union member type.
       missingPrivilegeParams.push({ action: acl.action, resource: acl.resource, objects, user } as AnyPrivilegeOnParam)
     }
 
@@ -180,7 +185,7 @@ export function acl(acls: AclEntry | AclEntry[]) {
     const missingPrivileges = getMissingPrivileges(missingPrivilegeParams, userPrivileges)
     if (missingPrivileges.length > 0) {
       return next(
-        new ApiError('no enough privileges', 403, {
+        new ApiError('not enough privileges', 403, {
           data: {
             missingPrivileges,
           },
