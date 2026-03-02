@@ -20,7 +20,7 @@
       <VmDashboardCpuUsageChart class="cpu-usage-chart" :data :error="!!lastError" :loading="isFetching" />
       <VmDashboardRamUsageChart class="ram-usage-chart" :data :error="!!lastError" :loading="isFetching" />
       <VmDashboardNetworkUsageChart class="network-usage-chart" :data :error="!!lastError" :loading="isFetching" />
-      <VmDashboardVdiUsageChart class="disk-usage-chart" :data :error="!!lastError" :loading="isFetching" />
+      <VmDashboardVdiUsageChart class="vdi-usage-chart" :data :error="!!lastError" :loading="isFetching" />
     </template>
   </div>
 </template>
@@ -87,7 +87,7 @@ onUnmounted(() => setRegisteredVm(undefined))
   grid-template-columns: repeat(8, 1fr);
   grid-template-areas:
     'quick-info quick-info quick-info quick-info quick-info quick-info quick-info quick-info'
-    'cpu-usage-chart cpu-usage-chart ram-usage-chart ram-usage-chart network-usage-chart network-usage-chart disk-usage-chart disk-usage-chart'
+    'cpu-usage-chart cpu-usage-chart ram-usage-chart ram-usage-chart network-usage-chart network-usage-chart vdi-usage-chart vdi-usage-chart'
     'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
 
   .quick-info {
@@ -110,8 +110,8 @@ onUnmounted(() => setRegisteredVm(undefined))
     grid-area: network-usage-chart;
   }
 
-  .disk-usage-chart {
-    grid-area: disk-usage-chart;
+  .vdi-usage-chart {
+    grid-area: vdi-usage-chart;
   }
 
   .title {
