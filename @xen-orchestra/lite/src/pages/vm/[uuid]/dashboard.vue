@@ -90,17 +90,6 @@ onUnmounted(() => setRegisteredVm(undefined))
     'cpu-usage-chart cpu-usage-chart ram-usage-chart ram-usage-chart network-usage-chart network-usage-chart disk-usage-chart disk-usage-chart'
     'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
 
-  &.mobile {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      'quick-info'
-      'cpu-usage-chart'
-      'ram-usage-chart'
-      'network-usage-chart'
-      'disk-usage-chart'
-      'offline-hero-container';
-  }
-
   .quick-info {
     grid-area: quick-info;
   }
@@ -134,6 +123,12 @@ onUnmounted(() => setRegisteredVm(undefined))
     flex-direction: column;
     gap: 1.4rem;
     color: var(--color-neutral-txt-secondary);
+  }
+
+  &.mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
   }
 }
 </style>

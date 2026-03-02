@@ -83,22 +83,6 @@ const uiStore = useUiStore()
     'cpu-usage-chart cpu-usage-chart ram-usage-chart ram-usage-chart network-usage-chart network-usage-chart load-average-chart load-average-chart'
     'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
 
-  &.mobile {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      'quick-info'
-      'alarms'
-      'patches'
-      'vms-status'
-      'cpu-provisioning'
-      'ram-provisioning'
-      'cpu-usage-chart'
-      'ram-usage-chart'
-      'network-usage-chart'
-      'load-average-chart'
-      'offline-hero-container';
-  }
-
   .quick-info {
     grid-area: quick-info;
   }
@@ -153,6 +137,12 @@ const uiStore = useUiStore()
     flex-direction: column;
     gap: 1.4rem;
     color: var(--color-neutral-txt-secondary);
+  }
+
+  &.mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
   }
 }
 </style>

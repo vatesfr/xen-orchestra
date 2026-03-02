@@ -67,24 +67,12 @@ const { t } = useI18n()
   display: grid;
   margin: 0.8rem;
   gap: 0.8rem;
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: repeat(12, 1fr);
   grid-template-areas:
-    'quick-info quick-info quick-info quick-info quick-info quick-info quick-info quick-info'
-    'alarms alarms alarms alarms alarms alarms alarms alarms'
-    'cpu-usage-chart cpu-usage-chart ram-usage-chart ram-usage-chart network-usage-chart network-usage-chart vdi-usage-chart vdi-usage-chart'
-    'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
-
-  &.mobile {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      'quick-info'
-      'alarms'
-      'cpu-usage-chart'
-      'ram-usage-chart'
-      'network-usage-chart'
-      'vdi-usage-chart'
-      'offline-hero-container';
-  }
+    'quick-info quick-info quick-info quick-info quick-info quick-info quick-info quick-info quick-info quick-info quick-info quick-info'
+    'alarms alarms alarms alarms alarms alarms alarms alarms alarms alarms alarms alarms'
+    'cpu-usage-chart cpu-usage-chart cpu-usage-chart ram-usage-chart ram-usage-chart ram-usage-chart network-usage-chart network-usage-chart network-usage-chart vdi-usage-chart vdi-usage-chart vdi-usage-chart'
+    'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
 
   .quick-info {
     grid-area: quick-info;
@@ -124,6 +112,12 @@ const { t } = useI18n()
     flex-direction: column;
     gap: 1.4rem;
     color: var(--color-neutral-txt-secondary);
+  }
+
+  &.mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
   }
 }
 </style>
