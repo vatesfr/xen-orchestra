@@ -109,8 +109,10 @@ In the VM network tab a new column has been added: _Network rules_.
 ### XAPI Plugin
 
 :::warning
-Two caveats:
+A few caveats:
 
+- This is still in BETA and should not be used in production yet.
+- This will only work on XCP-ng, not on XenServer hosts.
 - At this time, there is no UI in Xen Orchestra for network-wide rules. The rules can be created through `xo-cli`.
 - This is not enabled by default, and requires a configuration change for `xo-server`. See [the configuration page](configuration#sdn-controller-mode) to know more.
   :::
@@ -171,7 +173,7 @@ This is only of interest to you if you meet the following requirements:
 
 - One of your pools is using our **Global Private Network** (VxLAN or GRE tunnels) or the **VIF Traffic Rules**.
 - The SDN Controller plugin is enabled in **Xen Orchestra → Settings → Plugins**.
-- You’re not providing your own certificates. 
+- You’re not providing your own certificates.
 - You’re using the `override-cert` option (shown when clicking the `+` button of the SDN Controller plugin).
 
 :::info
@@ -180,9 +182,10 @@ Standard networks and VLAN are not related to the SDN Controller and are **not i
 
 #### How to check if your pools use these features?
 
-To check if you’re using **Global Private Networks**, you can use one of the methods below. 
+To check if you’re using **Global Private Networks**, you can use one of the methods below.
 
 ##### Method 1: Use a script
+
 We provide a script to run from a host that has access to your pool. To run the script, you will need the following:
 
 - A machine to run it that has access to your pools. Your XOA may be a good place.
@@ -198,9 +201,10 @@ $ bash -xe check-sdn-features.sh <pool-master-ip1> [pool-master-ip2] [pool-maste
 ```
 
 The script will connect to those masters and check:
+
 - if an SDN Controller is connected
 - if there are tunnels
-- if there are traffic rules configured 
+- if there are traffic rules configured
 
 It will then print a summary letting you know if there are using features that require a manual intervention.
 
@@ -237,6 +241,7 @@ xoa@xoa:~$ today=$(date +%Y%m%d)
 xoa@xoa:~$ sudo mkdir /var/lib/xo-server/data/sdn-controller/$today-backup
 xoa@xoa:~$ sudo mv /var/lib/xo-server/data/sdn-controller/*.pem /var/lib/xo-server/data/sdn-controller/$today-backup
 ```
+
 :::
 
 Finally, update your XOA, and things will take care of themselves.
@@ -257,10 +262,10 @@ xoa@xoa:~$ sudo systemctl restart xo-server
 
 #### Running from sources
 
-If you have auto-updates from master, you likely already are in a case similar to people using the `latest` channel and already have the updated certificate generation. 
+If you have auto-updates from master, you likely already are in a case similar to people using the `latest` channel and already have the updated certificate generation.
 
 1. You need to find where your xo-server's data folder lives.
-2. Move or remove your certificates 
-3. Restart xo-server. 
+2. Move or remove your certificates.
+3. Restart xo-server.
 
-If for any reason you’re pinning xen-orchestra to a specific release, you can use the `regenerate-certs.sh` as an insipration, but be sure to adjust it to your installation (xo-server’s data folder, permission…). Then, you can restart `xo-server` with your distribution service manager.
+If for any reason you’re pinning xen-orchestra to a specific release, you can use the `regenerate-certs.sh` as an insipration. However, be sure to adjust it to your installation (xo-server’s data folder, permission…). Then, you can restart `xo-server` with your distribution service manager.
