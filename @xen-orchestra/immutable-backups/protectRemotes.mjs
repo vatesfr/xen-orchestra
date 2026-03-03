@@ -2,6 +2,7 @@
 // @ts-check
 
 import fs from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
 import * as File from './file.mjs'
 import * as Directory from './directory.mjs'
 import assert from 'node:assert'
@@ -28,11 +29,9 @@ import { asyncEach } from '@vates/async-each'
  * @property {number} existing     - Count of key files received so far (1 or 2)
  * @property {number} lastModified - Timestamp of the last received file (`Date.now()`)
  */
-
 const { debug, info, warn } = /** @type {XoLogger} */ (
   /** @type {unknown} */ (createLogger('xen-orchestra:immutable-backups:remote'))
 )
-
 /**
  * Verify that the remote filesystem and the index directory support immutability
  * by creating, modifying, locking, and unlocking a temporary test file.
@@ -76,6 +75,7 @@ async function test(remotePath, indexPath) {
  * @returns {Promise<void>}
  */
 async function handleExistingFile(root, indexPath, path) {
+  debug('handleExistingFile', { root, indexPath, path })
   try {
     // a vhd block directory is completely immutable
     if (isInVhdDirectory(path)) {
@@ -109,6 +109,7 @@ async function handleExistingFile(root, indexPath, path) {
  * @returns {Promise<void>}
  */
 async function handleNewFile(root, indexPath, pendingVhds, path) {
+  debug('handleNewFile', { root, indexPath, pendingVhdsSize: pendingVhds.size, path })
   // with awaitWriteFinish we have complete files here
   // we can make them immutable
 
@@ -145,9 +146,10 @@ async function handleNewFile(root, indexPath, pendingVhds, path) {
  * `rebuildIndexOnStart` is `true`.
  * @param {string}       remoteId - Opaque identifier for the remote (used for logging)
  * @param {RemoteConfig} options
- * @returns {Promise<void>}
+ * @returns {Promise<{ close: () => Promise<void> }>}
  */
 export async function watchRemote(remoteId, { root, immutabilityDuration, rebuildIndexOnStart = false, indexPath }) {
+  debug('got config ', { remoteId, root, immutabilityDuration, rebuildIndexOnStart, indexPath })
   // create index directory
   await fs.mkdir(indexPath, { recursive: true })
 
@@ -156,12 +158,16 @@ export async function watchRemote(remoteId, { root, immutabilityDuration, rebuil
 
   // add duration and watch status in the metadata.json of the remote
   const settingPath = join(root, 'immutability.json')
+  // Only lift immutability when the file already exists from a previous run.
+  // Calling chattr on a non-existent file produces a confusing error message.
   try {
-    // this file won't be made mutable by liftimmutability
+    await fs.access(settingPath)
+    // this file won't be tracked in the index
     await File.liftImmutability(settingPath)
   } catch (error) {
-    // file may not exists, and it's not really a problem
-    info('lifting immutability on current settings', { error })
+    if (/** @type {NodeJS.ErrnoException} */ (error).code !== 'ENOENT') {
+      info('error lifting immutability on current settings', { error })
+    }
   }
   await fs.writeFile(
     settingPath,
@@ -180,7 +186,7 @@ export async function watchRemote(remoteId, { root, immutabilityDuration, rebuil
   /** @type {Map<string, PendingVhdEntry>} */
   const pendingVhds = new Map()
   // cleanup pending vhd map periodically
-  setInterval(
+  const cleanupInterval = setInterval(
     () => {
       pendingVhds.forEach(({ lastModified, existing }, path) => {
         if (Date.now() - lastModified > 60 * 60 * 1000) {
@@ -191,6 +197,7 @@ export async function watchRemote(remoteId, { root, immutabilityDuration, rebuil
     },
     60 * 60 * 1000
   )
+  cleanupInterval.unref()
 
   // watch the remote for any new VM metadata json file
   const PATHS = [
@@ -262,10 +269,15 @@ export async function watchRemote(remoteId, { root, immutabilityDuration, rebuil
       }
       info('Ready for changes')
     })
+
+  return {
+    close: () => watcher.close(),
+  }
 }
 
-const { remotes } = await loadConfig()
-
-for (const [remoteId, remote] of Object.entries(remotes)) {
-  watchRemote(remoteId, remote).catch(err => warn('error during watchRemote', { err, remoteId, remote }))
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  const { remotes } = await loadConfig()
+  for (const [remoteId, remote] of Object.entries(remotes)) {
+    watchRemote(remoteId, remote).catch(err => warn('error during watchRemote', { err, remoteId, remote }))
+  }
 }
