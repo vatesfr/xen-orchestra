@@ -211,6 +211,7 @@ class OpenMetricsPlugin {
   }
 
   #startEluSampler(): void {
+    const MAX_SAMPLE = 60
     this.#lastEluSnapshot = performance.eventLoopUtilization()
     this.#lastCpuUsage = process.cpuUsage()
     this.#eluSamples = []
@@ -219,6 +220,10 @@ class OpenMetricsPlugin {
       const delta = performance.eventLoopUtilization(curr, this.#lastEluSnapshot)
       this.#lastEluSnapshot = curr
       this.#eluSamples.push(delta.utilization)
+      // ensure the sample size is bound
+      while (this.#eluSamples.length > MAX_SAMPLE) {
+        this.#eluSamples.shift()
+      }
     }, 1000)
     this.#eluSamplerInterval.unref()
   }
