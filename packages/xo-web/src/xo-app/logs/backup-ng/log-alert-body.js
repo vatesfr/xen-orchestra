@@ -500,7 +500,7 @@ export default decorate([
           return log
         }
 
-        // checking it this is a XO task log or a former backup task log
+        // checking if this is a XO task log or a former backup task log
         log.isXoTask = !!log.tasks[0].properties
 
         const newLog = cloneDeep(log)
