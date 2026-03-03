@@ -320,6 +320,42 @@ export default class S3Handler extends RemoteHandlerAbstract {
     return [...uniq]
   }
 
+  async _tree(dir) {
+    const entries = new Set()
+    let NextContinuationToken
+    const Prefix = this.#makePrefix(dir)
+    
+    do {
+      const result = await this.#s3.send(
+        new ListObjectsV2Command({
+          Bucket: this.#bucket,
+          Prefix,
+          ContinuationToken: NextContinuationToken,
+        })
+      )
+      
+      NextContinuationToken = result.IsTruncated 
+        ? result.NextContinuationToken 
+        : undefined
+      
+      for (const entry of result.Contents ?? []) {
+        let relativePath = entry.Key.slice(this.#dir.length)
+        if (!relativePath.startsWith('/')) {
+          relativePath = '/' + relativePath
+        }
+        entries.add(relativePath)
+        const parts = split(relativePath)
+        let currentPath = ''
+        for (let i = 0; i < parts.length - 1; i++) {
+          currentPath = join(currentPath, parts[i])
+          entries.add(currentPath)
+        }
+      }
+    } while (NextContinuationToken !== undefined)
+    
+    return entries
+  }
+
   async _mkdir(path) {
     if (await this.#isFile(path)) {
       const error = new Error(`ENOTDIR: file already exists, mkdir '${path}'`)
@@ -459,5 +495,9 @@ export default class S3Handler extends RemoteHandlerAbstract {
 
   useVhdDirectory() {
     return true
+  }
+
+  useTreeCache() {
+    return true  // Enable by default for S3
   }
 }
