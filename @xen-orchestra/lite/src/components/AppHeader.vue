@@ -2,7 +2,6 @@
   <header class="app-header">
     <div class="left">
       <UiButtonIcon
-        v-if="!uiStore.isLarge"
         ref="navigationTrigger"
         :class="{ 'menu-to-right': !uiStore.isSmall }"
         accent="brand"
