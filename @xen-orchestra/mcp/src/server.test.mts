@@ -17,6 +17,10 @@ function createMockClient(overrides: Record<string, unknown> = {}): XoClient {
       { id: 'vm1', name_label: 'VM 1', power_state: 'Running' },
       { id: 'vm2', name_label: 'VM 2', power_state: 'Halted' },
     ],
+    listVdis: async () => [
+      { id: 'vdi1', name_label: 'VDI 1', size: 10737418240 },
+      { id: 'vdi2', name_label: 'VDI 2', size: 21474836480 },
+    ],
     getVm: async () => ({ id: 'vm1', name_label: 'VM 1', power_state: 'Running' }),
     getPool: async () => ({ id: 'pool1', name_label: 'Pool 1' }),
     getPoolDashboard: async () => ({ hostsByStatus: { running: 1 } }),
@@ -40,7 +44,7 @@ async function setupTestServer(mockClient?: XoClient) {
 
 describe('createServer', () => {
   describe('tool listing', () => {
-    it('registers all 8 tools', async () => {
+    it('registers all 9 tools', async () => {
       const { mcpClient } = await setupTestServer()
       const { tools } = await mcpClient.listTools()
       const toolNames = tools.map(t => t.name).sort()
@@ -52,6 +56,7 @@ describe('createServer', () => {
         'get_vm_details',
         'list_hosts',
         'list_pools',
+        'list_vdis',
         'list_vms',
         'search_documentation',
       ])
@@ -138,6 +143,47 @@ describe('createServer', () => {
       assert.strictEqual(receivedArgs.filter, 'power_state:Running')
       assert.strictEqual(receivedArgs.fields, 'id')
       assert.strictEqual(receivedArgs.limit, 5)
+    })
+  })
+
+  describe('list_vdis tool', () => {
+    it('returns VDIs as JSON', async () => {
+      const { mcpClient } = await setupTestServer()
+      const result = await mcpClient.callTool({ name: 'list_vdis', arguments: {} })
+      const text = (result.content as Array<{ type: string; text: string }>)[0].text
+      const parsed = JSON.parse(text)
+      assert.strictEqual(parsed.length, 2)
+      assert.strictEqual(parsed[0].id, 'vdi1')
+    })
+
+    it('passes filter, fields, and limit', async () => {
+      let receivedArgs: { filter?: string; fields?: string; limit?: number } = {}
+      const mockClient = createMockClient({
+        listVdis: async (options?: { filter?: string; fields?: string; limit?: number }) => {
+          receivedArgs = { filter: options?.filter, fields: options?.fields, limit: options?.limit }
+          return []
+        },
+      })
+      const { mcpClient } = await setupTestServer(mockClient)
+      await mcpClient.callTool({
+        name: 'list_vdis',
+        arguments: { filter: 'VDI_type:User', fields: 'id,size', limit: 10 },
+      })
+      assert.strictEqual(receivedArgs.filter, 'VDI_type:User')
+      assert.strictEqual(receivedArgs.fields, 'id,size')
+      assert.strictEqual(receivedArgs.limit, 10)
+    })
+
+    it('returns error on failure', async () => {
+      const mockClient = createMockClient({
+        listVdis: async () => {
+          throw new Error('Connection refused')
+        },
+      })
+      const { mcpClient } = await setupTestServer(mockClient)
+      const result = await mcpClient.callTool({ name: 'list_vdis', arguments: {} })
+      const text = (result.content as Array<{ type: string; text: string }>)[0].text
+      assert.ok(text.includes('Failed to list VDIs'))
     })
   })
 
