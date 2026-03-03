@@ -236,6 +236,9 @@ export async function watchRemote(remoteId, { root, immutabilityDuration, rebuil
       debug(`File ${path} has been added ${path.split('/').length}`)
       if (ready) {
         await handleNewFile(root, indexPath, pendingVhds, path).catch(warn)
+        // Once processed the file is immutable and won't change — stop watching
+        // it to free the FSWatcher handle and prevStats closure.
+        watcher.unwatch(path)
       } else {
         // Collect during the initial scan; processed in bulk once 'ready' fires
         // so we never spawn thousands of concurrent execa processes.
@@ -247,10 +250,14 @@ export async function watchRemote(remoteId, { root, immutabilityDuration, rebuil
       ready = true
       if (initialPaths.length > 0) {
         info(`Processing ${initialPaths.length} existing files`)
-        await asyncEach(initialPaths, path => handleExistingFile(root, indexPath, path).catch(warn), {
-          concurrency: 16,
-          stopOnError: false,
-        })
+        await asyncEach(
+          initialPaths,
+          async path => {
+            await handleExistingFile(root, indexPath, path).catch(warn)
+            watcher.unwatch(path)
+          },
+          { concurrency: 16, stopOnError: false }
+        )
         initialPaths.length = 0
       }
       info('Ready for changes')
