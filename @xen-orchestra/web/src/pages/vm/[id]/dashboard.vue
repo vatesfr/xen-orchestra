@@ -82,20 +82,6 @@ const { t } = useI18n()
     'cpu-usage-chart cpu-usage-chart ram-usage-chart ram-usage-chart network-usage-chart network-usage-chart vdi-usage-chart vdi-usage-chart'
     'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
 
-  &.mobile {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      'quick-info'
-      'backup-runs'
-      'backup-archives'
-      'alarms'
-      'cpu-usage-chart'
-      'ram-usage-chart'
-      'network-usage-chart'
-      'vdi-usage-chart'
-      'offline-hero-container';
-  }
-
   .quick-info {
     grid-area: quick-info;
   }
