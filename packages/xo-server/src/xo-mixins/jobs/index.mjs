@@ -284,7 +284,7 @@ export default class Jobs {
 
       // Links the job run to its backup log
       const jobUpdateFct = async backupTaskId => {
-        await logger.notice(`Adding backupTaskId to run job ${runJobId}`, {
+        await logger.notice(`Adding backupTaskId to job run ${runJobId}`, {
           backupTaskId,
           event: 'job.backupTaskStart',
           runJobId,
