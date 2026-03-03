@@ -13,6 +13,8 @@
 
 - [VM/New] Added secureBoot support (PR [#9423](https://github.com/vatesfr/xen-orchestra/pull/9423))
 - [i18n] Update Czech and Danish translations (PR [#9531](https://github.com/vatesfr/xen-orchestra/pull/9531))
+- [Bugtools] Add button for download bugtools (PR [#9419](https://github.com/vatesfr/xen-orchestra/pull/9419))
+- [Treeview/Bugtools] Add button for download bugtools (PR [#9419](https://github.com/vatesfr/xen-orchestra/pull/9419))
 
 ### Bug fixes
 
