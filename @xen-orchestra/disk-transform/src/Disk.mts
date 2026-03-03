@@ -48,17 +48,10 @@ export abstract class Disk {
   abstract buildDiskBlockGenerator(): Promise<AsyncGenerator<DiskBlock>> | AsyncGenerator<DiskBlock>
   async *diskBlocks(uid?: string): AsyncGenerator<DiskBlock> {
     try {
-      // compute next block while the destination is consuming the current block
       const blockGenerator = await this.buildDiskBlockGenerator()
-      let next = blockGenerator.next()
-      while (true) {
-        const res = await next
-        next = blockGenerator.next()
-        if (res.done) {
-          break
-        }
+      for await (const block of blockGenerator) {
         this.#generatedDiskBlocks++
-        yield res.value
+        yield block
       }
     } finally {
       await this.close()
