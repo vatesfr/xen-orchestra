@@ -12,6 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [VM/New] Added secureBoot support (PR [#9423](https://github.com/vatesfr/xen-orchestra/pull/9423))
+- [i18n] Update Czech and Danish translations (PR [#9531](https://github.com/vatesfr/xen-orchestra/pull/9531))
 
 ### Bug fixes
 
@@ -36,5 +37,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 
 <!--packages-end-->
