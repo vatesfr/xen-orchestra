@@ -943,15 +943,6 @@ export function formatHostStatusMetrics(hostStatusList: HostStatusItem[]): Forma
 }
 
 /**
- * Format host uptime metrics to OpenMetrics format.
- *
- * Creates a FormattedMetric entry for each host's uptime, calculated as
- * the difference between current time and host.startTime (boot time).
- *
- * @param labelContext - Label context containing host credentials and label lookup data
- * @returns Array of FormattedMetric entries for host uptime
- */
-/**
  * Format XO management plane metrics to OpenMetrics format.
  *
  * Produces counters/gauges for pools, hosts, VMs, SRs, users, groups,
@@ -1112,6 +1103,15 @@ export function formatXoMetrics(data: XoMetricsData): FormattedMetric[] {
   return metrics
 }
 
+/**
+ * Format host uptime metrics to OpenMetrics format.
+ *
+ * Creates a FormattedMetric entry for each host's uptime, calculated as
+ * the difference between current time and host.startTime (boot time).
+ *
+ * @param labelContext - Label context containing host credentials and label lookup data
+ * @returns Array of FormattedMetric entries for host uptime
+ */
 export function formatHostUptimeMetrics(labelContext: LabelContext): FormattedMetric[] {
   const metrics: FormattedMetric[] = []
   const now = Math.floor(Date.now() / 1000)
