@@ -360,6 +360,7 @@ export default class BackupNg {
       }
       app.registerJobExecutor('backup', executor)
       app.registerJobExecutor('mirrorBackup', executor)
+      return () => this._store.close()
     })
   }
 

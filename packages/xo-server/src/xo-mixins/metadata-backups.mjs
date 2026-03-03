@@ -35,6 +35,7 @@ export default class metadataBackup {
       this._store = await app.getStore('tasks')
 
       app.registerJobExecutor(METADATA_BACKUP_JOB_TYPE, this._executor.bind(this))
+      return () => this._store.close()
     })
   }
 
