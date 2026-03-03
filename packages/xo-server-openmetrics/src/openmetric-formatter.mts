@@ -957,7 +957,7 @@ export function formatXoMetrics(data: XoMetricsData): FormattedMetric[] {
 
   // Simple totals
   const simpleTotals: Array<{ name: string; help: string; value: number }> = [
-    { name: `${XO_METRIC_PREFIX}_task_pending`, help: 'Total number of tasks pending', value: data.pendingTask },
+    { name: `${XO_METRIC_PREFIX}_task_pending`, help: 'Total number of tasks pending', value: data.pendingTaskCount },
     { name: `${XO_METRIC_PREFIX}_pool_total`, help: 'Total number of pools', value: data.poolCount },
     { name: `${XO_METRIC_PREFIX}_host_total`, help: 'Total number of hosts', value: data.hostCount },
     { name: `${XO_METRIC_PREFIX}_vm_total`, help: 'Total number of virtual machines', value: data.vmCount },
@@ -1072,17 +1072,17 @@ export function formatXoMetrics(data: XoMetricsData): FormattedMetric[] {
     })
   }
 
-  const eluMetrics: Array<{ quantile: string; value: number }> = [
-    { quantile: 'mean', value: np.eluMean },
-    { quantile: 'p99', value: np.eluP99 },
-    { quantile: 'max', value: np.eluMax },
+  const eluMetrics: Array<{ metric: string; value: number }> = [
+    { metric: 'mean', value: np.eluMean },
+    { metric: 'p99', value: np.eluP99 },
+    { metric: 'max', value: np.eluMax },
   ]
-  for (const { quantile, value } of eluMetrics) {
+  for (const { metric, value } of eluMetrics) {
     metrics.push({
       name: `${XO_METRIC_PREFIX}_nodejs_event_loop_utilization`,
       help: 'Event loop utilization ratio of the XO main process since last collection',
       type: 'gauge',
-      labels: { quantile },
+      labels: { metric },
       value,
       timestamp,
     })

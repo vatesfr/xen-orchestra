@@ -103,7 +103,7 @@ export type SrDataItem = Pick<XoSr, 'uuid' | 'name_label' | 'size' | 'physical_u
 }
 
 export interface XoMetricsData {
-  pendingTask: number
+  pendingTaskCount: number
   poolCount: number
   hostCount: number
   vmCount: number
@@ -423,7 +423,7 @@ class OpenMetricsPlugin {
           .catch((err: unknown) => {
             logger.error('Failed to collect XO metrics', { error: err })
             const emptyMetrics: XoMetricsData = {
-              pendingTask: 0,
+              pendingTaskCount: 0,
               poolCount: 0,
               hostCount: 0,
               vmCount: 0,
@@ -724,7 +724,7 @@ class OpenMetricsPlugin {
     logger.debug('XO metrics collected', { poolCount, hostCount, vmCount, userCount, groupCount })
 
     return {
-      pendingTask,
+      pendingTaskCount: pendingTask,
       poolCount,
       hostCount,
       vmCount,
