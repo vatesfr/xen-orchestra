@@ -64,4 +64,24 @@ describe('Timeout class', () => {
 
     await assert.rejects(timeout.throw(new Error('Test error')), 'Expected error was not thrown')
   })
+
+  it('should close the source generator after a timeout', async () => {
+    let sourceClosed = false
+    const slowSource = (async function* () {
+      try {
+        // resolves after 100ms so the in-flight next() eventually settles
+        await new Promise(resolve => setTimeout(resolve, 100))
+        yield 1
+      } finally {
+        sourceClosed = true
+      }
+    })()
+
+    const timeout = new Timeout(slowSource, 10) // fires before source yields
+    await assert.rejects(() => timeout.next(), /Timeout reached/)
+
+    // wait for the in-flight next() to settle so source.return() can be called
+    await new Promise(resolve => setTimeout(resolve, 200))
+    assert.strictEqual(sourceClosed, true)
+  })
 })
