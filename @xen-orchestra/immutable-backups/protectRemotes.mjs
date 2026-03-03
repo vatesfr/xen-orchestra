@@ -12,6 +12,7 @@ import { indexFile } from './fileIndex.mjs'
 import cleanXoCache from './_cleanXoCache.mjs'
 import loadConfig from './_loadConfig.mjs'
 import isInVhdDirectory from './_isInVhdDirectory.mjs'
+import { asyncEach } from '@vates/async-each'
 
 /** @typedef {import('./_loadConfig.mjs').RemoteConfig} RemoteConfig */
 
@@ -213,6 +214,8 @@ export async function watchRemote(remoteId, { root, immutabilityDuration, rebuil
   ]
 
   let ready = false
+  /** @type {string[]} */
+  const initialPaths = []
   /** @type {import('chokidar').WatchOptions & { recursive: boolean }} */
   const watchOptions = {
     ignored: [
@@ -234,12 +237,22 @@ export async function watchRemote(remoteId, { root, immutabilityDuration, rebuil
       if (ready) {
         await handleNewFile(root, indexPath, pendingVhds, path).catch(warn)
       } else {
-        await handleExistingFile(root, indexPath, path).catch(warn)
+        // Collect during the initial scan; processed in bulk once 'ready' fires
+        // so we never spawn thousands of concurrent execa processes.
+        initialPaths.push(path)
       }
     })
     .on('error', error => warn(`Watcher error: ${error}`))
-    .on('ready', () => {
+    .on('ready', async () => {
       ready = true
+      if (initialPaths.length > 0) {
+        info(`Processing ${initialPaths.length} existing files`)
+        await asyncEach(initialPaths, path => handleExistingFile(root, indexPath, path).catch(warn), {
+          concurrency: 16,
+          stopOnError: false,
+        })
+        initialPaths.length = 0
+      }
       info('Ready for changes')
     })
 }
