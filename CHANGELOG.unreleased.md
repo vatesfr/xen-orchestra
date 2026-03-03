@@ -54,22 +54,11 @@
 
 <!--packages-start-->
 
-- @vates/async-each patch
-- @vates/generator-toolbox patch
-- @vates/nbd-client minor
-- @vates/types minor
-- @xen-orchestra/backups minor
-- @xen-orchestra/disk-cli major
-- @xen-orchestra/disk-transform patch
-- @xen-orchestra/fs minor
-- @xen-orchestra/immutable-backups major
-- @xen-orchestra/mcp minor
-- @xen-orchestra/qcow2 minor
+- @xen-orchestra/fs patch
 - @xen-orchestra/rest-api minor
-- @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web patch
-- vhd-lib minor
 - xo-server minor
+- xo-server-load-balancer minor
 - xo-server-openmetrics minor
 
 <!--packages-end-->
