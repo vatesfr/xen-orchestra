@@ -1,86 +1,9 @@
-import setupRestApi from '@xen-orchestra/rest-api'
+import setupRestApi, { sendObjects } from '@xen-orchestra/rest-api'
 import { invalidCredentials, unauthorized } from 'xo-common/api-errors.js'
-import { pipeline } from 'node:stream/promises'
 import { json, Router } from 'express'
 import path from 'node:path'
-import pick from 'lodash/pick.js'
 
 const { join } = path.posix
-
-async function* mapIterable(iterable, mapper) {
-  for await (const item of iterable) {
-    yield mapper(item)
-  }
-}
-
-async function* makeJsonStream(iterable) {
-  yield '['
-  let first = true
-  for await (const object of iterable) {
-    if (first) {
-      first = false
-      yield '\n'
-    } else {
-      yield ',\n'
-    }
-    yield JSON.stringify(object, null, 2)
-  }
-  yield '\n]\n'
-}
-
-async function* makeNdJsonStream(iterable) {
-  for await (const object of iterable) {
-    yield JSON.stringify(object)
-    yield '\n'
-  }
-}
-
-function makeObjectMapper(req, path = req.path) {
-  const { query } = req
-
-  const { baseUrl } = req
-  const makeUrl =
-    typeof path === 'function'
-      ? object => join(baseUrl, path(object), typeof object.id === 'number' ? String(object.id) : object.id)
-      : ({ id }) => join(baseUrl, path, typeof id === 'number' ? String(id) : id)
-
-  let objectMapper
-  let { fields } = query
-  if (fields === undefined) {
-    objectMapper = makeUrl
-  } else if (fields === '*') {
-    objectMapper = object => ({
-      ...object,
-      href: makeUrl(object),
-    })
-  } else {
-    fields = fields.split(',')
-    objectMapper = object => {
-      const url = makeUrl(object)
-      object = pick(object, fields)
-      object.href = url
-      return object
-    }
-  }
-
-  return function (entry) {
-    return objectMapper(typeof entry === 'string' ? { id: entry } : entry)
-  }
-}
-
-async function sendObjects(iterable, req, res, mapper) {
-  const json = !Object.hasOwn(req.query, 'ndjson')
-
-  if (mapper !== null) {
-    if (typeof mapper !== 'function') {
-      mapper = makeObjectMapper(req, ...Array.prototype.slice.call(arguments, 3))
-    }
-    iterable = mapIterable(iterable, mapper)
-  }
-
-  res.setHeader('content-type', json ? 'application/json' : 'application/x-ndjson')
-  return pipeline((json ? makeJsonStream : makeNdJsonStream)(iterable), res)
-}
 
 const subRouter = (app, path) => {
   const router = Router({ strict: false })
@@ -91,32 +14,30 @@ const subRouter = (app, path) => {
 export default class RestApi {
   #app
   #api
+  #pluginRouteManager
 
   constructor(app, { express }) {
     // don't set up the API if express is not present
     //
     // that can happen when the app is instantiated in another context like xo-server-recover-account
-    if (express === undefined) {
-      return
-    }
+    if (!express) return
 
     const api = subRouter(express, '/rest/v0')
     this.#api = api
     this.#app = app
-
-    setupRestApi(express, app)
+    this.#pluginRouteManager = setupRestApi(express, app)
   }
 
   async #authenticateUser(req) {
-    const app = this.#app
     const { cookies, ip } = req
-
     const token = cookies.authenticationToken ?? cookies.token
-    if (token === undefined) {
+
+    if (!token) {
       throw invalidCredentials()
     }
 
-    const { user } = await app.authenticateUser({ token }, { ip })
+    const { user } = await this.#app.authenticateUser({ token }, { ip })
+
     if (user.permission !== 'admin') {
       throw unauthorized()
     }
@@ -124,6 +45,26 @@ export default class RestApi {
     return user
   }
 
+  registerRestRoutes(routes, base = '/') {
+    if (!Array.isArray(routes)) {
+      routes = [routes]
+    }
+
+    this.#pluginRouteManager.registerDynamicRoutes(
+      routes,
+      {
+        authenticate: this.#authenticateUser.bind(this),
+        runWithContext: (user, fn) => this.#app.runWithApiContext(user, fn),
+      },
+      base
+    )
+
+    return () => {
+      this.#pluginRouteManager.unregisterDynamicRoutes(routes, base)
+    }
+  }
+
+  // OLD METHOD, DEPRECIATED
   registerRestApi(spec, base = '/') {
     const authUser = this.#authenticateUser.bind(this)
     const app = this.#app
@@ -158,6 +99,7 @@ export default class RestApi {
     }
   }
 
+  // OLD METHOD, DEPRECIATED
   unregisterRestApi(spec, base = '/') {
     for (const path of Object.keys(spec)) {
       if (path[0] === '_') {
