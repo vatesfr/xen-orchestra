@@ -11,6 +11,7 @@ import { iocContainer } from '../ioc/ioc.mjs'
 import type { NonXapiXoRecord, XapiXoRecord, XoRecord } from '@vates/types'
 import { ValidateError } from 'tsoa'
 import { ApiError } from '../helpers/error.helper.mjs'
+import type { XoApp } from '../rest-api/rest-api.type.mjs'
 
 export const ACL_MIDDLEWARE_NAME = '_aclMiddleware'
 
@@ -181,7 +182,13 @@ export function acl(acls: AclEntry | AclEntry[]) {
       return next(new ValidateError(invalidFields, 'invalid parameters'))
     }
 
-    const userPrivileges = await restApi.xoApp.getAclV2UserPrivileges(user.id)
+    let userPrivileges: Awaited<ReturnType<XoApp['getAclV2UserPrivileges']>>
+    try {
+      userPrivileges = await restApi.xoApp.getAclV2UserPrivileges(user.id)
+    } catch (error) {
+      return next(error)
+    }
+
     const missingPrivileges = getMissingPrivileges(missingPrivilegeParams, userPrivileges)
     if (missingPrivileges.length > 0) {
       return next(

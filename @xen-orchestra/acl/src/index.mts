@@ -99,9 +99,14 @@ export function getMissingPrivileges(params: AnyPrivilegeOnParam[], userPrivileg
 
       if (Array.isArray(objects)) {
         if (objects.length > 1) {
-          objectIds = objects.map(obj => ('id' in obj ? obj.id : undefined))
+          objectIds = []
+          objects.forEach(obj => {
+            if ('id' in obj) {
+              objectIds!.push(obj.id)
+            }
+          })
         } else {
-          objects = objects[0]
+          objects = objects?.[0] ?? {}
         }
       }
       if (!Array.isArray(objects)) {
