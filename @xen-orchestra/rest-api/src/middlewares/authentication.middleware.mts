@@ -15,7 +15,7 @@ const log = createLogger('xo:rest-api:authentication')
 export type SecurityName = '*' | 'token' | 'basic' | 'none'
 
 // TSOA spec require this function to be async
-export async function expressAuthentication(req: AuthenticatedRequest, securityName: SecurityName) {
+export async function expressAuthentication(req: AuthenticatedRequest, securityName: SecurityName, scopes: string[]) {
   if (securityName === 'none') {
     return undefined
   }
@@ -29,6 +29,13 @@ export async function expressAuthentication(req: AuthenticatedRequest, securityN
   }
 
   if (user.permission === 'admin') {
+    return user
+  }
+
+  // This means the route requires authentication, but it doesn't need to be associated with a specific ACL.
+  // The route's content will depend on the users' ACLs.
+  // (For example: GET /vms -> empty array if no VMs ACL; GET /events -> only changes related to the users' ACLs will be sent)
+  if (scopes.includes('acl')) {
     return user
   }
 
