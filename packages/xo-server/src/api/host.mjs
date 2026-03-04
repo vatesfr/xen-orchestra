@@ -377,14 +377,15 @@ enable.resolve = {
 
 // -------------------------------------------------------------------
 
-export function disable({ host }) {
-  return this.getXapi(host).disableHost(host._xapiId)
+export function disable({ host, transient }) {
+  return this.getXapi(host).disableHost(host._xapiId, { transient })
 }
 
-disable.description = 'disable to create VM on the hsot'
+disable.description = 'disable to create VM on the host'
 
 disable.params = {
   id: { type: 'string' },
+  transient: { type: 'boolean', optional: true },
 }
 
 disable.resolve = {

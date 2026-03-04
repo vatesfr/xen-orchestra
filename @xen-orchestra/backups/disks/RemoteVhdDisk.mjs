@@ -353,6 +353,7 @@ export class RemoteVhdDisk extends RemoteDisk {
 
   /**
    * @param {RemoteVhdDisk} childDisk
+   * @returns {Promise<void>}
    */
   async mergeMetadata(childDisk) {
     const childDiskMetadata = childDisk.getMetadata()

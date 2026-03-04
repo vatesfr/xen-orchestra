@@ -178,6 +178,14 @@ export function createVmOperations(xenApi: XenApi) {
     setNameLabel: (vmRefs: VmRefs, nameLabel: string) =>
       Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.set_name_label', [vmRef, nameLabel]))),
 
+    setSecureBoot: async (vmRef: XenApiVm['$ref'], secureBoot: boolean | null) => {
+      await xenApi.call('VM.remove_from_platform', [vmRef, 'secureboot'])
+
+      if (secureBoot !== null) {
+        await xenApi.call('VM.add_to_platform', [vmRef, 'secureboot', String(secureBoot)])
+      }
+    },
+
     setTags: (vmRefs: VmRefs, tags: string[]) =>
       Promise.all([Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.set_tags', [vmRef, tags])))]),
 

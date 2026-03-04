@@ -213,7 +213,7 @@ export class MergeRemoteDisk {
 
     await this.#mergeBlocks(parentDisk, childDisk)
     await parentDisk.flushMetadata(childDisk)
-    parentDisk.mergeMetadata(childDisk)
+    await parentDisk.mergeMetadata(childDisk)
   }
 
   /**

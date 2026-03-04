@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard" :class="{ mobile: isSmall }">
+  <div class="dashboard" :class="{ mobile: uiStore.isSmall }">
     <VmDashboardQuickInfo class="quick-info" :vm />
     <div v-if="!isVmRunning" class="offline-hero-container">
       <VtsStateHero format="page" type="offline" size="large" horizontal>
@@ -57,7 +57,7 @@ const { vmAlarms, areVmAlarmsReady, hasVmAlarmFetchError } = useXoVmAlarmsCollec
 
 const isVmRunning = computed(() => vm.power_state === VM_POWER_STATE.RUNNING)
 
-const { isSmall } = useUiStore()
+const uiStore = useUiStore()
 
 const { t } = useI18n()
 </script>
@@ -73,18 +73,6 @@ const { t } = useI18n()
     'alarms alarms alarms alarms alarms alarms alarms alarms'
     'cpu-usage-chart cpu-usage-chart ram-usage-chart ram-usage-chart network-usage-chart network-usage-chart vdi-usage-chart vdi-usage-chart'
     'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
-
-  &.mobile {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      'quick-info'
-      'alarms'
-      'cpu-usage-chart'
-      'ram-usage-chart'
-      'network-usage-chart'
-      'vdi-usage-chart'
-      'offline-hero-container';
-  }
 
   .quick-info {
     grid-area: quick-info;
@@ -124,6 +112,12 @@ const { t } = useI18n()
     flex-direction: column;
     gap: 1.4rem;
     color: var(--color-neutral-txt-secondary);
+  }
+
+  &.mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
   }
 }
 </style>

@@ -153,7 +153,7 @@ export const HOST_METRICS: MetricDefinition[] = [
     openMetricName: 'host_disk_throughput_read_bytes',
     type: 'gauge',
     help: 'Host disk read throughput in bytes per second',
-    transformValue: v => v * Math.pow(2, 20), // MB to bytes
+    transformValue: v => v * Math.pow(2, 20), // MiB to bytes
     extractLabels: matches => ({ sr: matches[1]! }),
   },
   {
@@ -161,7 +161,7 @@ export const HOST_METRICS: MetricDefinition[] = [
     openMetricName: 'host_disk_throughput_write_bytes',
     type: 'gauge',
     help: 'Host disk write throughput in bytes per second',
-    transformValue: v => v * Math.pow(2, 20), // MB to bytes
+    transformValue: v => v * Math.pow(2, 20), // MiB to bytes
     extractLabels: matches => ({ sr: matches[1]! }),
   },
 
@@ -171,7 +171,7 @@ export const HOST_METRICS: MetricDefinition[] = [
     openMetricName: 'host_disk_read_latency_seconds',
     type: 'gauge',
     help: 'Host disk read latency in seconds',
-    transformValue: v => v / 1000, // ms to seconds
+    transformValue: v => v / 1e6, // µs to seconds
     extractLabels: matches => ({ sr: matches[1]! }),
   },
   {
@@ -179,7 +179,7 @@ export const HOST_METRICS: MetricDefinition[] = [
     openMetricName: 'host_disk_write_latency_seconds',
     type: 'gauge',
     help: 'Host disk write latency in seconds',
-    transformValue: v => v / 1000, // ms to seconds
+    transformValue: v => v / 1e6, // µs to seconds
     extractLabels: matches => ({ sr: matches[1]! }),
   },
 
@@ -348,7 +348,7 @@ export const VM_METRICS: MetricDefinition[] = [
     openMetricName: 'vm_disk_read_latency_seconds',
     type: 'gauge',
     help: 'VM disk read latency in seconds',
-    transformValue: v => v / 1000, // ms to seconds
+    transformValue: v => v / 1e6, // µs to seconds
     extractLabels: matches => ({ device: `xvd${matches[1]!}` }),
   },
   {
@@ -356,7 +356,7 @@ export const VM_METRICS: MetricDefinition[] = [
     openMetricName: 'vm_disk_write_latency_seconds',
     type: 'gauge',
     help: 'VM disk write latency in seconds',
-    transformValue: v => v / 1000, // ms to seconds
+    transformValue: v => v / 1e6, // µs to seconds
     extractLabels: matches => ({ device: `xvd${matches[1]!}` }),
   },
 

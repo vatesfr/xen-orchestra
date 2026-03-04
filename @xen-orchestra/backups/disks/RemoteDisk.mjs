@@ -160,6 +160,7 @@ export class RemoteDisk extends RandomAccessDisk {
   /**
    * Abstract
    * @param {RemoteDisk} childDisk
+   * @returns {Promise<void>}
    */
   mergeMetadata(childDisk) {
     throw new Error(`mergeMetadata must be implemented`)
