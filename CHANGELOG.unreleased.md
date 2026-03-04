@@ -13,6 +13,7 @@
 
 - [VM/New] Added secureBoot support (PR [#9423](https://github.com/vatesfr/xen-orchestra/pull/9423))
 - [i18n] Update Czech and Danish translations (PR [#9531](https://github.com/vatesfr/xen-orchestra/pull/9531))
+- [openmetrics] add XO process metrics (PR [#9535](https://github.com/vatesfr/xen-orchestra/pull/9535))
 
 ### Bug fixes
 
@@ -39,6 +40,6 @@
 
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
-- xo-server-openmetrics patch
+- xo-server-openmetrics minor
 
 <!--packages-end-->
