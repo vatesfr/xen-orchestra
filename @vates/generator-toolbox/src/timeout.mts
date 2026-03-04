@@ -26,8 +26,9 @@ export class Timeout<T> implements AsyncGenerator {
 
     if (result === TIMEOUT) {
       // stop the source once the in-flight next settles to avoid data loss on the next call
+      // we don't want to await for the end of timeouted code
       sourceNext.then(
-        () => this.#source.return(undefined),
+        () => this.#source.return(undefined).catch(() => {}),
         () => {} // source already errored, nothing to clean up
       )
       throw new Error('Timeout reached')

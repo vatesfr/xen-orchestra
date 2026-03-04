@@ -20,6 +20,7 @@
 
 - [Dashboard] Fix reactivity of dashboard (PR [#9378](https://github.com/vatesfr/xen-orchestra/pull/9378))
 - [OpenMetrics] Fix latency metrics (`xcp_host_disk_read_latency_seconds`, `xcp_host_disk_write_latency_seconds`, `xcp_vm_disk_read_latency_seconds`, `xcp_vm_disk_write_latency_seconds`) reporting milliseconds instead of seconds (PR [#9550](https://github.com/vatesfr/xen-orchestra/pull/9550))
+- [Backup] Reduce backup memory consumption (PR [#9557](https://github.com/vatesfr/xen-orchestra/pull/9557))
 
 ### Packages to release
 
@@ -37,6 +38,8 @@
 
 <!--packages-start-->
 
+- @vates/generator-toolbox patch
+- @xen-orchestra/disk-transform patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server-openmetrics patch
