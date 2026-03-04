@@ -1,7 +1,7 @@
 <template>
   <UiCard class="card-container">
     <div class="identity">
-      <UiLink icon="object:vm" size="medium" disabled>{{ snapshot.name_label }}</UiLink>
+      <UiLink icon="object:vm" size="medium" :href="xo5VmSnapshotHref">{{ snapshot.name_label }}</UiLink>
       <VtsCodeSnippet :content="snapshot.id" copy />
     </div>
     <div class="content">
@@ -33,7 +33,7 @@
           {{ t('trigger') }}
         </template>
         <template #value>
-          <UiLink v-if="snapshot.other?.['xo:backup:schedule']" size="small" :icon="trigger.icon">
+          <UiLink v-if="snapshot.other?.['xo:backup:schedule']" size="small" :icon="trigger.icon" :href="trigger.href">
             {{ trigger.label }}
           </UiLink>
           <span v-else>
@@ -65,6 +65,7 @@ import {
   useXoScheduleCollection,
 } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import type { FrontXoVmSnapshot } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'
+import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -77,8 +78,16 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { snapshot } = defineProps<{ snapshot: FrontXoVmSnapshot }>()
+
 const { t, d } = useI18n()
+
 const { getScheduleById } = useXoScheduleCollection()
+
+const { buildXo5Route } = useXoRoutes()
+
+const xo5VmSnapshotHref = computed(() =>
+  buildXo5Route(`/vms/${snapshot.$snapshot_of}/snapshots?s=1_0_asc-${snapshot.id}`)
+)
 
 const formattedDate = computed(() =>
   d(snapshot.snapshot_time * 1000, { dateStyle: 'short', timeStyle: 'medium' }).replace(/\//g, '-')
@@ -101,8 +110,11 @@ const trigger = computed(() => {
 
   const schedule = getScheduleById(scheduleId)
 
+  const href = buildXo5Route(`/backup/${schedule?.jobId}/edit`)
+
   return {
     label: schedule?.name || scheduleId,
+    href,
     icon: icon('object:backup-schedule'),
   }
 })

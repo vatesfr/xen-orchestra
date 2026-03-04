@@ -1,9 +1,9 @@
 <template>
   <div class="snapshots" :class="{ mobile: uiStore.isSmall }">
     <div>
-      <div class="cards">
-        <VmSnapshotLastSnapshot v-if="lastSnapshot" :snapshot="lastSnapshot" />
-        <VmSnapshotLastRevert v-if="lastRevertSnapshot" :snapshot="lastRevertSnapshot" />
+      <div class="row first-row">
+        <VmSnapshotLastSnapshot v-if="lastSnapshot" class="last-snapshot" :snapshot="lastSnapshot" />
+        <VmSnapshotLastRevert v-if="lastRevertSnapshot" class="last-revert" :snapshot="lastRevertSnapshot" />
       </div>
       <UiCard class="container">
         <SnapshotsTable :snapshots :vm />
@@ -63,11 +63,11 @@ const lastSnapshot = computed(() => {
   })
 })
 
-// Get last revert snapshot
+// Get last revert snapsh
 const lastRevertSnapshot = computed(() => {
   if (snapshots.value.length === 0 || !vm.parent) return undefined
 
-  return snapshots.value.find(snapshot => snapshot.id === (vm.parent as any))
+  return snapshots.value.find(snapshot => snapshot.id === vm.parent)
 })
 </script>
 
@@ -84,17 +84,42 @@ const lastRevertSnapshot = computed(() => {
     gap: 4rem;
   }
 
-  .cards {
-    margin: 0.8rem;
-    gap: 0.8rem;
+  /* === DESKTOP === */
+
+  .row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    margin: 0.8rem;
   }
 
+  .row + .row {
+    margin-top: 0.8rem;
+  }
+
+  .first-row {
+    grid-template-columns: minmax(20rem, 1fr) minmax(20rem, 1fr);
+    grid-template-areas: 'last-snapshot last-revert';
+  }
+
+  .last-snapshot {
+    grid-area: last-snapshot;
+  }
+
+  .last-revert {
+    grid-area: last-revert;
+  }
+
+  /* === MOBILE === */
   &.mobile {
-    .cards {
-      grid-template-columns: 1fr;
-    }
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  &.mobile .row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
   }
 }
 </style>

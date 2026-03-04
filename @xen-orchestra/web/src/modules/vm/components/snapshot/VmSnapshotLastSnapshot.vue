@@ -2,14 +2,14 @@
   <UiCard>
     <UiCardTitle>{{ t('last-snapshot') }}</UiCardTitle>
     <div class="vm-snapshot-last-snapshot">
-      <VtsQuickInfoRow :label="t('snapshot')">
+      <VtsQuickInfoRow :label="t('snapshot')" class="snapshot-row">
         <template #value>
           <UiLink icon="object:vm-snapshot" size="medium" :href="xo5VmSnapshotHref">
             {{ snapshot.name_label }}
           </UiLink>
         </template>
       </VtsQuickInfoRow>
-      <VtsCopyButton :value="snapshot.name_label" />
+      <VtsCopyButton v-if="snapshot.name_label" :value="snapshot.name_label" class="copy-button" />
     </div>
     <VtsQuickInfoRow :label="t('snapshot-created-on')" :value="formattedDate" />
   </UiCard>
@@ -34,7 +34,9 @@ const { t, d } = useI18n()
 
 const { buildXo5Route } = useXoRoutes()
 
-const xo5VmSnapshotHref = computed(() => buildXo5Route(`/vms/${snapshot.id}/general`))
+const xo5VmSnapshotHref = computed(() =>
+  buildXo5Route(`/vms/${snapshot.$snapshot_of}/snapshots?s=1_0_asc-${snapshot.id}`)
+)
 
 const formattedDate = computed(() =>
   d(snapshot.snapshot_time * 1000, { dateStyle: 'short', timeStyle: 'medium' }).replace(/\//g, '-')
@@ -43,7 +45,16 @@ const formattedDate = computed(() =>
 
 <style lang="postcss" scoped>
 .vm-snapshot-last-snapshot {
-  display: flex;
-  justify-content: space-between;
+  position: relative;
+}
+
+.snapshot-row {
+  padding-right: 2.5rem;
+}
+
+.copy-button {
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 </style>
