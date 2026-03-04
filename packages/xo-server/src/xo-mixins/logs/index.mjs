@@ -13,6 +13,13 @@ export default class Logs {
 
     app.hooks.on('clean', () => this._gc())
 
+    setInterval(
+      () => {
+        this._gc().catch(error => console.error('error while interval log cleaning', error))
+      },
+      6 * 60 * 60 * 1000
+    )
+
     app.config.watch('logs', ({ filter, level, transport: transportsObject }) => {
       const transports = []
       for (const id of Object.keys(transportsObject)) {
