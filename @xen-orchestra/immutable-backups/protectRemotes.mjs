@@ -14,6 +14,8 @@ import cleanXoCache from './_cleanXoCache.mjs'
 import loadConfig from './_loadConfig.mjs'
 import isInVhdDirectory from './_isInVhdDirectory.mjs'
 import { asyncEach } from '@vates/async-each'
+import readdirp from 'readdirp'
+import picomatch from 'picomatch'
 
 /** @typedef {import('./_loadConfig.mjs').RemoteConfig} RemoteConfig */
 
@@ -66,9 +68,9 @@ async function test(remotePath, indexPath) {
 }
 
 /**
- * Called for each file seen during the initial scan (before the watcher is
- * `ready`).  If the file is already immutable it is added to the index so it
- * can be lifted later.
+ * Called for each file seen during the initial scan (rebuildIndexOnStart).
+ * If the file is already immutable it is added to the index so it can be
+ * lifted later.
  * @param {string} root      - Absolute path to the backup repository root
  * @param {string} indexPath - Absolute path to the immutability index directory
  * @param {string} path      - Relative path of the file inside `root`
@@ -240,9 +242,6 @@ export async function watchRemote(remoteId, { root, immutabilityDuration, rebuil
     'xo-vm-backups/*/vdis/*/*/data/*.vhd/footer',
   ]
 
-  let ready = false
-  /** @type {string[]} */
-  const initialPaths = []
   /** @type {import('chokidar').WatchOptions & { recursive: boolean }} */
   const watchOptions = {
     ignored: [
@@ -251,48 +250,44 @@ export async function watchRemote(remoteId, { root, immutabilityDuration, rebuil
     ],
     cwd: root,
     recursive: false, // vhd directory can generate a lot of folder, don't let chokidar choke on this
-    ignoreInitial: !rebuildIndexOnStart,
+    ignoreInitial: true, // existing files are handled by the readdirp scan below
     depth: 7,
     awaitWriteFinish: true,
   }
   const watcher = chokidar.watch(PATHS, watchOptions)
 
-  // Add event listeners.
   watcher
     .on('add', async path => {
-      debug(`File ${path} has been added ${path.split('/').length}`)
-      if (ready) {
-        await handleNewFile(root, indexPath, pendingVhds, path).catch(warn)
-        // Once processed the file is immutable and won't change — stop watching
-        // it to free the FSWatcher handle and prevStats closure.
-        watcher.unwatch(path)
-      } else {
-        // Collect during the initial scan; processed in bulk once 'ready' fires
-        // so we never spawn thousands of concurrent execa processes.
-        initialPaths.push(path)
-      }
+      debug(`File ${path} has been added`)
+      await handleNewFile(root, indexPath, pendingVhds, path).catch(warn)
+      // Once processed the file is immutable and won't change — stop watching
+      // it to free the FSWatcher handle and prevStats closure.
+      watcher.unwatch(path)
     })
     .on('error', error => warn(`Watcher error: ${error}`))
-    .on('ready', async () => {
-      if (ready) {
-        debug('spurious ready event ignored (chokidar fires once per glob pattern group)')
-        return
+    .on('ready', () => info('Ready for changes'))
+
+  if (rebuildIndexOnStart) {
+    // Use readdirp + picomatch for the initial scan instead of relying on
+    // chokidar's ignoreInitial:false, which fires 'ready' once per glob pattern
+    // group and makes it impossible to know deterministically when all initial
+    // add events have been processed.
+    const isWatchedPath = picomatch(PATHS)
+    ;(async () => {
+      const paths = []
+      for await (const entry of readdirp(root, { depth: 8 })) {
+        if (isWatchedPath(entry.path)) {
+          paths.push(entry.path)
+        }
       }
-      ready = true
-      if (initialPaths.length > 0) {
-        info(`Processing ${initialPaths.length} existing files`)
-        await asyncEach(
-          initialPaths,
-          async path => {
-            await handleExistingFile(root, indexPath, path).catch(warn)
-            watcher.unwatch(path)
-          },
-          { concurrency: 16, stopOnError: false }
-        )
-        initialPaths.length = 0
-      }
-      info('Ready for changes')
-    })
+      info(`rebuildIndexOnStart: found ${paths.length} existing files`)
+      await asyncEach(paths, path => handleExistingFile(root, indexPath, path).catch(warn), {
+        concurrency: 16,
+        stopOnError: false,
+      })
+      info('rebuildIndexOnStart: done')
+    })().catch(error => warn('error during rebuildIndexOnStart scan', { error }))
+  }
 
   return {
     close: () => watcher.close(),
