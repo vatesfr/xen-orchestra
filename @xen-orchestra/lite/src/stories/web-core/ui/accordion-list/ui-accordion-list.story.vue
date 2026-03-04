@@ -1,5 +1,11 @@
 <template>
-  <ComponentStory v-slot="{ properties }" :params="[slot().help('a list of ui-accordion-item')]">
+  <ComponentStory
+    v-slot="{ properties }"
+    :params="[
+      slot().help('a list of ui-accordion-item'),
+      prop('unique').bool().default(false).widget().help('defined if only one of the items can be opened at a time.'),
+    ]"
+  >
     <UiAccordionList v-bind="properties">
       <UiAccordionItem
         v-for="(tab, index) in tabs"
@@ -15,7 +21,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { slot } from '@/libs/story/story-param'
+import { prop, slot } from '@/libs/story/story-param'
 import UiAccordionList from '@core/components/ui/accordion/UiAccordionList.vue'
 import UiAccordionItem from '@core/components/ui/accordion-item/UiAccordionItem.vue'
 import { ref } from 'vue'

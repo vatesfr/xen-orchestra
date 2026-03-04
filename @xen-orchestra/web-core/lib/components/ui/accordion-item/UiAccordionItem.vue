@@ -53,8 +53,8 @@ const accordion = inject(IK_ACCORDION)
 const localExpanded = ref(false)
 
 const isExpanded = computed(() => {
-  if (accordion) {
-    return accordion.expandedKey === String(identifier)
+  if (accordion && accordion.value) {
+    return accordion.value.expandedKey === String(identifier)
   }
   return localExpanded.value
 })
@@ -64,8 +64,8 @@ const toggle = () => {
     return
   }
 
-  if (accordion) {
-    accordion.toggle(String(identifier))
+  if (accordion && accordion.value) {
+    accordion.value.toggle(String(identifier))
   } else {
     localExpanded.value = !localExpanded.value
   }
