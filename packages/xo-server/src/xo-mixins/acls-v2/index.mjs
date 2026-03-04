@@ -354,16 +354,14 @@ export default class {
    * @param {Privilege['selector'] | null} [privilege.selector]
    * @param {Privilege['effect']} [privilege.effect]
    * @param {Privilege['resource']} [privilege.resource]
-   * @param {object} [opts]
-   * @param {boolean} [opts.force]
    *
    * @returns {Promise<Privilege>}
    */
-  async updateAclV2Privilege(id, { action, selector, effect, resource }, { force = false } = {}) {
+  async updateAclV2Privilege(id, { action, selector, effect, resource }) {
     const privilege = await this.getAclV2Privilege(id)
     const role = await this.getAclV2Role(privilege.roleId)
 
-    if (!force && 'isTemplate' in role) {
+    if ('isTemplate' in role) {
       throw forbiddenOperation('update ACL V2 privilege', 'role is a template')
     }
 

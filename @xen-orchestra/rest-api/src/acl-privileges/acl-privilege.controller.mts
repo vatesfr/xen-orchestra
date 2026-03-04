@@ -1,4 +1,5 @@
 import {
+  Body,
   Delete,
   Example,
   Get,
@@ -24,6 +25,7 @@ import {
 import {
   badRequestResp,
   createdResp,
+  forbiddenOperationResp,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
@@ -72,39 +74,25 @@ export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
   }
 
   /**
-   * @example action "read"
-   * @example resource "alarm"
-   * @example roleId "784bd959-08de-4b26-b575-92ded5aef872"
-   * @example effect "allow"
-   * @example selector "selector"
+   * @example privilege {
+   *  "action": "read",
+   *  "resource": "alarm",
+   *  "roleId": "784bd959-08de-4b26-b575-92ded5aef872",
+   *  "effect": "allow",
+   *  "selector": {"id": "784bd959-08de-4b26-b575-92ded5aef872"}
+   * }
    */
   @Example(aclPrivilege)
   @Post('')
   @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async createAclV2Privilege(
-    @Query() action: string,
-    @Query() resource: string,
-    @Query() roleId: string,
-    @Query() effect?: string,
-    @Query() selector?: string,
-    @Query() force?: boolean
-  ): Promise<Unbrand<RestAnyPrivilege>> {
-    let options = {}
-    if (force !== undefined) {
-      options = { force }
-    }
+    @Body() privilege: Omit<RestAnyPrivilege, 'id'>
+  ): Promise<Unbrand<RestAnyPrivilege['id']>> {
+    const newPrivilege = await this.restApi.xoApp.createAclV2Privilege(privilege)
 
-    return this.restApi.xoApp.createAclV2Privilege(
-      {
-        action: action as RestAnyPrivilege['action'],
-        selector: selector as RestAnyPrivilege['selector'],
-        effect: effect as RestAnyPrivilege['effect'],
-        resource: resource as RestAnyPrivilege['resource'],
-        roleId: roleId as RestAnyPrivilege['roleId'],
-      },
-      options
-    )
+    return newPrivilege.id
   }
 
   /**
@@ -120,51 +108,32 @@ export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
   /**
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    */
-  @Delete(':id')
+  @Delete('{id}')
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  async deleteAclV2Privilege(@Path() id: string, @Query() force?: boolean): Promise<void> {
-    let options = {}
-    if (force !== undefined) {
-      options = { force }
-    }
-
-    await this.restApi.xoApp.deleteAclV2Privilege(id as RestAnyPrivilege['id'], options)
+  async deleteAclV2Privilege(@Path() id: string): Promise<void> {
+    await this.restApi.xoApp.deleteAclV2Privilege(id as RestAnyPrivilege['id'])
   }
 
   /**
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
-   * @example action "read"
-   * @example resource "alarm"
-   * @example effect "allow"
-   * @example selector "selector"
+   * @example privilege {
+   *  "action": "read",
+   *  "resource": "alarm",
+   *  "effect": "allow",
+   *  "selector": {"id": "784bd959-08de-4b26-b575-92ded5aef872"}
+   * }
    */
   @Example(aclPrivilege)
-  @Patch(':id')
+  @Patch('{id}')
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async updateAclV2Privilege(
     @Path() id: string,
-    @Query() action?: string,
-    @Query() resource?: string,
-    @Query() effect?: string,
-    @Query() selector?: string,
-    @Query() force?: boolean
+    @Body() privilege: Omit<RestAnyPrivilege, 'id' | 'roleId'>
   ): Promise<void> {
-    let options = {}
-    if (force !== undefined) {
-      options = { force }
-    }
-
-    await this.restApi.xoApp.updateAclV2Privilege(
-      id as RestAnyPrivilege['id'],
-      {
-        action: action as RestAnyPrivilege['action'],
-        selector: selector as RestAnyPrivilege['selector'],
-        effect: effect as RestAnyPrivilege['effect'],
-        resource: resource as RestAnyPrivilege['resource'],
-      },
-      options
-    )
+    await this.restApi.xoApp.updateAclV2Privilege(id as RestAnyPrivilege['id'], privilege)
   }
 }
