@@ -3,6 +3,7 @@ import {
   Delete,
   Example,
   Get,
+  Middlewares,
   Patch,
   Path,
   Post,
@@ -15,7 +16,7 @@ import {
   Tags,
 } from 'tsoa'
 import { provide } from 'inversify-binding-decorators'
-import type { Request as ExRequest } from 'express'
+import { json, type Request as ExRequest } from 'express'
 
 import {
   aclPrivilege,
@@ -84,6 +85,7 @@ export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
    */
   @Example(aclPrivilege)
   @Post('')
+  @Middlewares(json())
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -127,6 +129,7 @@ export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
    */
   @Example(aclPrivilege)
   @Patch('{id}')
+  @Middlewares(json())
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)

@@ -78,16 +78,17 @@ export class AclRoleController extends XoController<XoAclRole> {
   }
 
   /**
-   * @example role {
+   * @example body {
    *  "name": "VMs creator",
    *  "description": "Allow to create VMs"
    * }
    */
-  @Example(aclRole)
+  @Example(aclRoleIds)
   @Post('')
+  @Middlewares(json())
   @SuccessResponse(createdResp.status, createdResp.description)
-  async createAclV2Role(@Body() role: { name: string; description?: string }): Promise<Unbrand<XoAclRole['id']>> {
-    const newRole = await this.restApi.xoApp.createAclV2Role(role)
+  async createAclV2Role(@Body() body: { name: string; description?: string }): Promise<Unbrand<XoAclRole['id']>> {
+    const newRole = await this.restApi.xoApp.createAclV2Role(body)
     return newRole.id
   }
 
@@ -114,21 +115,22 @@ export class AclRoleController extends XoController<XoAclRole> {
 
   /**
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
-   * @example role {
+   * @example body {
    *  "name": "VMs creator",
    *  "description": "Allow to create VMs"
    * }
    */
   @Example(aclRole)
   @Patch('{id}')
+  @Middlewares(json())
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async updateAclV2Role(
     @Path() id: string,
-    @Body() role: { name?: string; description?: string | null }
+    @Body() body: { name?: string; description?: string | null }
   ): Promise<void> {
-    await this.restApi.xoApp.updateAclV2Role(id as XoAclRole['id'], role)
+    await this.restApi.xoApp.updateAclV2Role(id as XoAclRole['id'], body)
   }
 
   /**
