@@ -17,9 +17,14 @@ export interface PartialBackupMetadata {
 }
 
 export interface BackupCleanOptions {
-  fix: boolean
-  merge: boolean
-  remove: boolean
+  fix?: boolean
+  merge?: boolean
+  remove?: boolean
+  logInfo?: (message: any, opts?: object) => void
+  logWarn?: (message: any, opts?: object) => void
+}
+
+export type ResolvedBackupCleanOptions = BackupCleanOptions & {
   logInfo: (message: any, opts?: object) => void
   logWarn: (message: any, opts?: object) => void
 }
@@ -33,7 +38,7 @@ export interface IBackupLineage {
   getLinkedBackups(): Map<string, RemoteDisk>
 }
 
-export interface IVmBackupInterface {
+export interface VmBackupInterface {
   handler: RemoteHandlerAbstract
   // metadataPath: string
   // metadata: PartialBackupMetadata
@@ -43,5 +48,5 @@ export interface IVmBackupInterface {
   init(): Promise<void>
   check(): Promise<object>
   clean(opts?: object): Promise<Array<string>>
-  getValidFiles(opts: object): Array<string>
+  getAssociatedFiles(opts: object): Array<string>
 }
