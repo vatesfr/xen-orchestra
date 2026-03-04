@@ -1,9 +1,9 @@
 import { Disk, DiskChain } from '@xen-orchestra/disk-transform'
-import { BackupCleanOptions, IVmBackupInterface, PartialBackupMetadata } from './VmBackup.types.mjs'
+import { BackupCleanOptions, VmBackupInterface, PartialBackupMetadata } from './VmBackup.types.mjs'
 import RemoteHandlerAbstract from '@xen-orchestra/fs'
 import { normalize } from '@xen-orchestra/fs/path'
 
-export class VmIncrementalBackupArchive implements IVmBackupInterface {
+export class VmIncrementalBackupArchive implements VmBackupInterface {
   handler: RemoteHandlerAbstract
   metadataPath: string
   metadata: PartialBackupMetadata
@@ -39,7 +39,7 @@ export class VmIncrementalBackupArchive implements IVmBackupInterface {
     return []
   }
 
-  getValidFiles({ prefix = false }): Array<string> {
+  getAssociatedFiles({ prefix = false }): Array<string> {
     // all vhds used + folders + alias + json
     return []
   }

@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "dist",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": ["node"] // Only use types from Node.js and packages that are explicitly imported
+  },
+  "include": ["index.js"],
+  "exclude": ["dist", "node_modules"]
+}

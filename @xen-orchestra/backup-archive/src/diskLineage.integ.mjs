@@ -8,12 +8,24 @@ import { getHandler } from '@xen-orchestra/fs'
 import { pFromCallback } from 'promise-toolbox'
 import { rimraf } from 'rimraf'
 import { VmBackupDirectory } from '../dist/VmBackupDirectory.mjs'
-
+import tar from 'tar-stream'
 const { beforeEach, afterEach, describe } = test
 
 let tempDir, handler, vmBackupDir
 const vmUuid = 'test-vm-uuid'
 const rootPath = `xo-vm-backups/${vmUuid}`
+
+async function createMinimalXva() {
+  const pack = tar.pack()
+  pack.entry({ name: 'ova.xml' }, '<value><struct/></value>')
+  pack.finalize()
+
+  const chunks = []
+  for await (const chunk of pack) {
+    chunks.push(chunk)
+  }
+  return Buffer.concat(chunks)
+}
 
 beforeEach(async () => {
   tempDir = await pFromCallback(cb => tmp.dir(cb))
@@ -39,7 +51,7 @@ async function createFullBackupMetadata(name, xvaName) {
     timestamp: Date.now(),
   }
   await handler.writeFile(`${rootPath}/${name}`, JSON.stringify(metadata))
-  await handler.writeFile(`${rootPath}/${xvaName}`, 'fake-xva-content')
+  await handler.writeFile(`${rootPath}/${xvaName}`, await createMinimalXva())
   return metadata
 }
 
@@ -53,13 +65,13 @@ describe('VmBackupDirectory with full backups', { concurrency: 1 }, () => {
     assert.equal(vmBackupDir.backupArchives.size, 2)
   })
 
-  test('getValidFiles() returns cache files', async () => {
+  test('getAssociatedFiles() returns cache files', async () => {
     // Create a cache file
     await handler.writeFile(`${rootPath}/cache.json.gz`, 'cache-content')
     await vmBackupDir.init()
 
-    const filesWithPrefix = vmBackupDir.getValidFiles({ prefix: true })
-    const filesWithoutPrefix = vmBackupDir.getValidFiles({ prefix: false })
+    const filesWithPrefix = vmBackupDir.getAssociatedFiles({ prefix: true })
+    const filesWithoutPrefix = vmBackupDir.getAssociatedFiles({ prefix: false })
 
     assert.equal(filesWithPrefix.length, 1)
     assert.ok(filesWithPrefix[0].endsWith('cache.json.gz'))

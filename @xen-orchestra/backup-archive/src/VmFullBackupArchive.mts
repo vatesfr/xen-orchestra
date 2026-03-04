@@ -1,7 +1,7 @@
 import { basename, normalize } from '@xen-orchestra/fs/path'
 import assert from 'node:assert'
 import { FileDescriptor } from '@xen-orchestra/fs'
-import { BackupCleanOptions, IVmBackupInterface, PartialBackupMetadata } from './VmBackup.types.mjs'
+import { VmBackupInterface, PartialBackupMetadata, ResolvedBackupCleanOptions } from './VmBackup.types.mjs'
 import RemoteHandlerAbstract from '@xen-orchestra/fs'
 
 const COMPRESSED_MAGIC_NUMBERS: Buffer[] = [
@@ -65,14 +65,14 @@ export async function isValidXva(handler: RemoteHandlerAbstract, filePath: strin
 
 const noop = (): void => {}
 
-export class VmFullBackupArchive implements IVmBackupInterface {
+export class VmFullBackupArchive implements VmBackupInterface {
   handler: RemoteHandlerAbstract
   rootPath: string
   xvaPath: string
   isValid?: boolean
   metadataPath: string
   metadata: PartialBackupMetadata
-  opts: BackupCleanOptions
+  opts: ResolvedBackupCleanOptions
 
   constructor(
     handler: RemoteHandlerAbstract,
@@ -80,7 +80,7 @@ export class VmFullBackupArchive implements IVmBackupInterface {
     metadataPath: string,
     metadata: PartialBackupMetadata,
     xvaPath: string,
-    opts: BackupCleanOptions
+    opts: ResolvedBackupCleanOptions
   ) {
     this.handler = handler
     this.rootPath = normalize(rootPath)
@@ -90,9 +90,7 @@ export class VmFullBackupArchive implements IVmBackupInterface {
     this.opts = opts
   }
 
-  async init() {
-    await this.check()
-  }
+  async init() {}
 
   async check(): Promise<object> {
     try {
@@ -105,7 +103,7 @@ export class VmFullBackupArchive implements IVmBackupInterface {
     }
     // TODO: check isValid
     // isValid is always false in test because XVA test is too small
-    if (this.isValid) {
+    if (!this.isValid) {
       this.opts.logWarn('XVA might be broken', { path: this.xvaPath })
     }
     return { xvaValid: this.isValid }
@@ -118,7 +116,11 @@ export class VmFullBackupArchive implements IVmBackupInterface {
    * @returns
    */
   async clean({ remove = this.opts.remove ?? false }) {
+    await this.check()
     let filesToRemove: Array<string> = []
+    if (!this.isValid) {
+      filesToRemove = [this.metadataPath, this.xvaPath, `${this.xvaPath}.checksum`]
+    }
     if (remove) {
       for (const file of filesToRemove) {
         try {
@@ -131,8 +133,11 @@ export class VmFullBackupArchive implements IVmBackupInterface {
     return filesToRemove
   }
 
-  getValidFiles({ prefix = false }): Array<string> {
-    const validFiles = [this.metadataPath, this.xvaPath, `${this.xvaPath}.checksum`]
+  getAssociatedFiles({ prefix = false }): Array<string> {
+    let validFiles = [this.metadataPath, this.xvaPath, `${this.xvaPath}.checksum`]
+    if (!this.isValid) {
+      validFiles = []
+    }
     return prefix ? validFiles : validFiles.map(file => basename(file))
   }
 }
