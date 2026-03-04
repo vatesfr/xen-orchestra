@@ -5167,11 +5167,6 @@
   resolved "https://registry.yarnpkg.com/@unrs/resolver-binding-win32-x64-msvc/-/resolver-binding-win32-x64-msvc-1.11.1.tgz#538b1e103bf8d9864e7b85cc96fa8d6fb6c40777"
   integrity sha512-lrW200hZdbfRtztbygyaq/6jP6AKE8qQN2KvPcJ+x7wiD038YtnYtZ82IMNJ69GJibV7bwL3y9FgK+5w/pYt6g==
 
-"@vates/types@^1.21.0":
-  version "1.21.0"
-  resolved "https://registry.yarnpkg.com/@vates/types/-/types-1.21.0.tgz#83610426c57471dfdbb6ee760721cfaa91a2c810"
-  integrity sha512-gcHKvS5p2qIR2Etgy9j70iKI9ih+/Djk122R+jr7aXm1bxSRZfMV2Geo+D1ukmNzCWIu4fST5LxTcV9fhhV07Q==
-
 "@vitejs/plugin-vue@^5.2.1":
   version "5.2.4"
   resolved "https://registry.yarnpkg.com/@vitejs/plugin-vue/-/plugin-vue-5.2.4.tgz#9e8a512eb174bfc2a333ba959bbf9de428d89ad8"
@@ -5407,34 +5402,48 @@
   resolved "https://registry.yarnpkg.com/@vueuse/shared/-/shared-13.9.0.tgz#7168b4ed647e625b05eb4e7e80fe8aabd00e3923"
   integrity sha512-e89uuTLMh0U5cZ9iDpEI2senqPGfbPRTHM/0AaQkcxnpqjkZqDYP8rpfm7edOz8s+pOCOROEy1PIveSW8+fL5g==
 
-"@xen-orchestra/fs@^4.6.7":
-  version "4.6.7"
-  resolved "https://registry.yarnpkg.com/@xen-orchestra/fs/-/fs-4.6.7.tgz#33f9ba84000f160db06f3e52403cb848a1d56e14"
-  integrity sha512-jrvo1MKA1cTCwp9We4ZI9ysE8zM5Ity1WCXd5qIhJK2tyQZ54qZ65PKUS4Ga3EXKVJBvoTk4jLq2r2t2mbdPiA==
+"@xen-orchestra/backups@^0.68.2":
+  version "0.68.2"
+  resolved "https://registry.yarnpkg.com/@xen-orchestra/backups/-/backups-0.68.2.tgz#a8c8abc8238df0fff0db1b07e0995a4a863cb3db"
+  integrity sha512-5l7aLQmz1UsvKuuKUgz8SE90fnp+ubMU1u3qf97rVVWyC3wpim8fOv8L42qVRIgBQhiu8S3qhb8YVTLyS/zZGA==
   dependencies:
-    "@aws-sdk/abort-controller" "^3.272.0"
-    "@aws-sdk/client-s3" "^3.54.0"
-    "@aws-sdk/lib-storage" "^3.54.0"
-    "@aws-sdk/middleware-apply-body-checksum" "^3.58.0"
-    "@aws-sdk/node-http-handler" "^3.54.0"
-    "@azure/storage-blob" "^12.26.0"
+    "@iarna/toml" "^2.2.5"
+    "@kldzj/stream-throttle" "^1.1.1"
     "@vates/async-each" "^1.0.1"
-    "@vates/coalesce-calls" "^0.1.0"
+    "@vates/cached-dns.lookup" "^1.0.0"
+    "@vates/compose" "^2.1.0"
     "@vates/decorate-with" "^2.1.0"
-    "@vates/read-chunk" "^1.2.1"
+    "@vates/disposable" "^0.1.6"
+    "@vates/fuse-vhd" "^2.1.2"
+    "@vates/generator-toolbox" "^1.1.0"
+    "@vates/nbd-client" "^3.2.3"
+    "@vates/parse-duration" "^0.1.1"
+    "@xen-orchestra/async-map" "^0.1.2"
+    "@xen-orchestra/disk-transform" "^1.2.1"
+    "@xen-orchestra/fs" "^4.6.6"
     "@xen-orchestra/log" "^0.7.1"
-    bind-property-descriptor "^2.0.0"
+    "@xen-orchestra/qcow2" "^1.1.2"
+    "@xen-orchestra/template" "^0.1.0"
+    app-conf "^3.0.0"
+    compare-versions "^6.0.0"
+    d3-time-format "^4.1.0"
     decorator-synchronized "^0.6.0"
-    execa "^5.0.0"
-    fs-extra "^11.1.0"
-    get-stream "^6.0.0"
+    golike-defer "^0.5.1"
+    human-format "^1.2.0"
     limit-concurrency-decorator "^0.6.0"
-    lodash "^4.17.4"
+    lodash "^4.17.20"
+    moment-timezone "^0.5.46"
+    ms "^2.1.3"
+    node-zone "^0.4.0"
+    parse-pairs "^2.0.0"
     promise-toolbox "^0.21.0"
     proper-lockfile "^4.1.2"
-    readable-stream "^4.1.0"
-    through2 "^4.0.2"
-    xo-remote-parser "^0.10.0"
+    tar "^7.5.3"
+    uuid "^9.0.0"
+    value-matcher "^0.2.0"
+    vhd-lib "^4.14.7"
+    xen-api "^4.7.6"
+    yazl "^2.5.1"
 
 "@xen-orchestra/log@^0.6.0":
   version "0.6.0"
@@ -6586,7 +6595,7 @@ balanced-match@^4.0.2:
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-4.0.3.tgz#6337a2f23e0604a30481423432f99eac603599f9"
   integrity sha512-1pHv8LX9CpKut1Zp4EXey7Z8OfH11ONNH6Dhi2WDUt31VVZFXZzKwXcysBgqSumFCmR+0dqjMK5v5JiFHzi0+g==
 
-bare-events@^2.7.0:
+bare-events@^2.5.4, bare-events@^2.7.0:
   version "2.8.2"
   resolved "https://registry.yarnpkg.com/bare-events/-/bare-events-2.8.2.tgz#7b3e10bd8e1fc80daf38bb516921678f566ab89f"
   integrity sha512-riJjyv1/mHLIPX4RwiK+oW9/4c3TEUeORHKefKAKnZ5kyslbN+HXowtbaVEqt4IMUB7OXlfixcs6gsFeo/jhiQ==
