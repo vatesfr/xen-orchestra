@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 import * as File from './file.mjs'
 import * as Directory from './directory.mjs'
 import assert from 'node:assert'
-import { dirname, join, sep } from 'node:path'
+import { dirname, join } from 'node:path'
 import { createLogger } from '@xen-orchestra/log'
 import chokidar from 'chokidar'
 import { indexFile } from './fileIndex.mjs'
@@ -114,24 +114,44 @@ async function handleNewFile(root, indexPath, pendingVhds, path) {
   // we can make them immutable
 
   if (isInVhdDirectory(path)) {
-    // watching a vhd block
-    // wait for header/footer and BAT before making this immutable recursively
-    const splitted = path.split(sep)
-    const vmUuid = splitted[1]
-    const vdiUuid = splitted[4]
-    const uniqPath = `${vmUuid}/${vdiUuid}`
-    const { existing } = pendingVhds.get(uniqPath) ?? {}
-    if (existing === undefined) {
-      pendingVhds.set(uniqPath, { existing: 1, lastModified: Date.now() })
-    } else {
-      // already two of the key files,and we got the last one
-      if (existing === 2) {
-        await Directory.makeImmutable(join(root, dirname(path)), indexPath)
-        pendingVhds.delete(uniqPath)
-      } else {
-        // wait for the other
-        pendingVhds.set(uniqPath, { existing: existing + 1, lastModified: Date.now() })
+    // watching a vhd block (bat, header or footer)
+    // We need all three key files before locking the directory.
+    // Rather than relying purely on an in-memory counter (which resets on
+    // daemon restart), we also check for already-present key files using
+    // fs.access.  This handles the case where the daemon restarts mid-backup:
+    // e.g. bat and header were written before restart, only footer triggers
+    // handleNewFile → we probe the other two and find all 3 present → lock.
+    const vhdDirRelPath = dirname(path)
+    const vhdDirAbsPath = join(root, vhdDirRelPath)
+    debug('vhd key file received', { path, vhdDirRelPath })
+
+    const exists = (/** @type {string} */ f) =>
+      fs.access(join(vhdDirAbsPath, f)).then(
+        () => true,
+        () => false
+      )
+    const [hasBat, hasHeader, hasFooter] = await Promise.all([exists('bat'), exists('header'), exists('footer')])
+    const presentCount = [hasBat, hasHeader, hasFooter].filter(Boolean).length
+    debug('vhd dir key file count', { vhdDirRelPath, hasBat, hasHeader, hasFooter })
+
+    if (presentCount === 3) {
+      // Guard against concurrent locking: bat, header, and footer may all fire
+      // add events within the awaitWriteFinish window and each find all 3 files
+      // present.  Mark as "locking" (existing=3) synchronously before the first
+      // await so the other two handlers see it and skip.
+      if (pendingVhds.get(vhdDirRelPath)?.existing === 3) {
+        debug('vhd directory locking already in progress, skipping duplicate event', { vhdDirRelPath })
+        return
       }
+      pendingVhds.set(vhdDirRelPath, { existing: 3, lastModified: Date.now() })
+      // all three key files are on disk — lock the directory
+      info('locking vhd directory', { vhdDirAbsPath })
+      await Directory.makeImmutable(vhdDirAbsPath, indexPath)
+      pendingVhds.delete(vhdDirRelPath)
+      info('vhd directory locked', { vhdDirAbsPath })
+    } else {
+      // still waiting for the remaining key file(s)
+      pendingVhds.set(vhdDirRelPath, { existing: presentCount, lastModified: Date.now() })
     }
   } else {
     const fullFilePath = join(root, path)
@@ -254,6 +274,10 @@ export async function watchRemote(remoteId, { root, immutabilityDuration, rebuil
     })
     .on('error', error => warn(`Watcher error: ${error}`))
     .on('ready', async () => {
+      if (ready) {
+        debug('spurious ready event ignored (chokidar fires once per glob pattern group)')
+        return
+      }
       ready = true
       if (initialPaths.length > 0) {
         info(`Processing ${initialPaths.length} existing files`)
