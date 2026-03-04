@@ -29,10 +29,18 @@
     "node": ">=8.10"
   },
   "scripts": {
+    "build": "tsc",
     "postversion": "npm publish --access public",
     "test": "node --test"
   },
   "devDependencies": {
-    "sinon": "^18.0.0"
+    "sinon": "^18.0.0",
+    "typescript": "^5.9.3"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./index.js"
+    }
   }
 }
