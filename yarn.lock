@@ -4748,6 +4748,13 @@
     "@types/express" "*"
     "@types/serve-static" "*"
 
+"@types/tar-stream@^3.1.4":
+  version "3.1.4"
+  resolved "https://registry.yarnpkg.com/@types/tar-stream/-/tar-stream-3.1.4.tgz#7eca21004291f8d4803437fe20cc01b0744782a8"
+  integrity sha512-921gW0+g29mCJX0fRvqeHzBlE/XclDaAG0Ousy1LCghsOhvaKacDeRGEVzQP9IPfKn8Vysy7FEXAIxycpc/CMg==
+  dependencies:
+    "@types/node" "*"
+
 "@types/through2@^2.0.31":
   version "2.0.41"
   resolved "https://registry.yarnpkg.com/@types/through2/-/through2-2.0.41.tgz#3e5e1720d71ffdfa03c22f2aad6593d12a47034f"
@@ -5160,6 +5167,11 @@
   resolved "https://registry.yarnpkg.com/@unrs/resolver-binding-win32-x64-msvc/-/resolver-binding-win32-x64-msvc-1.11.1.tgz#538b1e103bf8d9864e7b85cc96fa8d6fb6c40777"
   integrity sha512-lrW200hZdbfRtztbygyaq/6jP6AKE8qQN2KvPcJ+x7wiD038YtnYtZ82IMNJ69GJibV7bwL3y9FgK+5w/pYt6g==
 
+"@vates/types@^1.21.0":
+  version "1.21.0"
+  resolved "https://registry.yarnpkg.com/@vates/types/-/types-1.21.0.tgz#83610426c57471dfdbb6ee760721cfaa91a2c810"
+  integrity sha512-gcHKvS5p2qIR2Etgy9j70iKI9ih+/Djk122R+jr7aXm1bxSRZfMV2Geo+D1ukmNzCWIu4fST5LxTcV9fhhV07Q==
+
 "@vitejs/plugin-vue@^5.2.1":
   version "5.2.4"
   resolved "https://registry.yarnpkg.com/@vitejs/plugin-vue/-/plugin-vue-5.2.4.tgz#9e8a512eb174bfc2a333ba959bbf9de428d89ad8"
@@ -5394,6 +5406,35 @@
   version "13.9.0"
   resolved "https://registry.yarnpkg.com/@vueuse/shared/-/shared-13.9.0.tgz#7168b4ed647e625b05eb4e7e80fe8aabd00e3923"
   integrity sha512-e89uuTLMh0U5cZ9iDpEI2senqPGfbPRTHM/0AaQkcxnpqjkZqDYP8rpfm7edOz8s+pOCOROEy1PIveSW8+fL5g==
+
+"@xen-orchestra/fs@^4.6.7":
+  version "4.6.7"
+  resolved "https://registry.yarnpkg.com/@xen-orchestra/fs/-/fs-4.6.7.tgz#33f9ba84000f160db06f3e52403cb848a1d56e14"
+  integrity sha512-jrvo1MKA1cTCwp9We4ZI9ysE8zM5Ity1WCXd5qIhJK2tyQZ54qZ65PKUS4Ga3EXKVJBvoTk4jLq2r2t2mbdPiA==
+  dependencies:
+    "@aws-sdk/abort-controller" "^3.272.0"
+    "@aws-sdk/client-s3" "^3.54.0"
+    "@aws-sdk/lib-storage" "^3.54.0"
+    "@aws-sdk/middleware-apply-body-checksum" "^3.58.0"
+    "@aws-sdk/node-http-handler" "^3.54.0"
+    "@azure/storage-blob" "^12.26.0"
+    "@vates/async-each" "^1.0.1"
+    "@vates/coalesce-calls" "^0.1.0"
+    "@vates/decorate-with" "^2.1.0"
+    "@vates/read-chunk" "^1.2.1"
+    "@xen-orchestra/log" "^0.7.1"
+    bind-property-descriptor "^2.0.0"
+    decorator-synchronized "^0.6.0"
+    execa "^5.0.0"
+    fs-extra "^11.1.0"
+    get-stream "^6.0.0"
+    limit-concurrency-decorator "^0.6.0"
+    lodash "^4.17.4"
+    promise-toolbox "^0.21.0"
+    proper-lockfile "^4.1.2"
+    readable-stream "^4.1.0"
+    through2 "^4.0.2"
+    xo-remote-parser "^0.10.0"
 
 "@xen-orchestra/log@^0.6.0":
   version "0.6.0"
@@ -6550,15 +6591,53 @@ bare-events@^2.7.0:
   resolved "https://registry.yarnpkg.com/bare-events/-/bare-events-2.8.2.tgz#7b3e10bd8e1fc80daf38bb516921678f566ab89f"
   integrity sha512-riJjyv1/mHLIPX4RwiK+oW9/4c3TEUeORHKefKAKnZ5kyslbN+HXowtbaVEqt4IMUB7OXlfixcs6gsFeo/jhiQ==
 
+bare-fs@^4.5.5:
+  version "4.5.5"
+  resolved "https://registry.yarnpkg.com/bare-fs/-/bare-fs-4.5.5.tgz#589a8f87a32af0266aa474413c8d7d11d50e4a65"
+  integrity sha512-XvwYM6VZqKoqDll8BmSww5luA5eflDzY0uEFfBJtFKe4PAAtxBjU3YIxzIBzhyaEQBy1VXEQBto4cpN5RZJw+w==
+  dependencies:
+    bare-events "^2.5.4"
+    bare-path "^3.0.0"
+    bare-stream "^2.6.4"
+    bare-url "^2.2.2"
+    fast-fifo "^1.3.2"
+
 bare-hrtime@^2.0.10, bare-hrtime@^2.0.9:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/bare-hrtime/-/bare-hrtime-2.1.1.tgz#dcda2b03e71e34838ea28a8a1de51d850ffa981a"
   integrity sha512-VMb3tHo05gsnbu3OXTmkDiwTjMlOsbQmKoysKqKEyR09m77TuDrYFbj3Q5GGk10dAKsUHrnXmwCaeJqzVpB5ZA==
 
+bare-os@^3.0.1:
+  version "3.7.0"
+  resolved "https://registry.yarnpkg.com/bare-os/-/bare-os-3.7.0.tgz#23c60064e53400db1550ef4b2987fdc42ee399b2"
+  integrity sha512-64Rcwj8qlnTZU8Ps6JJEdSmxBEUGgI7g8l+lMtsJLl4IsfTcHMTfJ188u2iGV6P6YPRZrtv72B2kjn+hp+Yv3g==
+
 bare-os@^3.1.0:
   version "3.6.2"
   resolved "https://registry.yarnpkg.com/bare-os/-/bare-os-3.6.2.tgz#b3c4f5ad5e322c0fd0f3c29fc97d19009e2796e5"
   integrity sha512-T+V1+1srU2qYNBmJCXZkUY5vQ0B4FSlL3QDROnKQYOqeiQR8UbjNHlPa+TIbM4cuidiN9GaTaOZgSEgsvPbh5A==
+
+bare-path@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/bare-path/-/bare-path-3.0.0.tgz#b59d18130ba52a6af9276db3e96a2e3d3ea52178"
+  integrity sha512-tyfW2cQcB5NN8Saijrhqn0Zh7AnFNsnczRcuWODH0eYAXBsJ5gVxAUuNr7tsHSC6IZ77cA0SitzT+s47kot8Mw==
+  dependencies:
+    bare-os "^3.0.1"
+
+bare-stream@^2.6.4:
+  version "2.8.0"
+  resolved "https://registry.yarnpkg.com/bare-stream/-/bare-stream-2.8.0.tgz#3ac6141a65d097fd2bf6e472c848c5d800d47df9"
+  integrity sha512-reUN0M2sHRqCdG4lUK3Fw8w98eeUIZHL5c3H7Mbhk2yVBL+oofgaIp0ieLfD5QXwPCypBpmEEKU2WZKzbAk8GA==
+  dependencies:
+    streamx "^2.21.0"
+    teex "^1.0.1"
+
+bare-url@^2.2.2:
+  version "2.3.2"
+  resolved "https://registry.yarnpkg.com/bare-url/-/bare-url-2.3.2.tgz#4aef382efa662b2180a6fe4ca07a71b39bdf7ca3"
+  integrity sha512-ZMq4gd9ngV5aTMa5p9+UfY0b3skwhHELaDkhEHetMdX0LRkW9kzaym4oo/Eh+Ghm0CCDuMTsRIGM/ytUc1ZYmw==
+  dependencies:
+    bare-path "^3.0.0"
 
 base-64@^1.0.0:
   version "1.0.0"
@@ -18549,7 +18628,7 @@ stream-splicer@^2.0.0:
     inherits "^2.0.1"
     readable-stream "^2.0.2"
 
-streamx@^2.15.0:
+streamx@^2.12.5, streamx@^2.15.0, streamx@^2.21.0:
   version "2.23.0"
   resolved "https://registry.yarnpkg.com/streamx/-/streamx-2.23.0.tgz#7d0f3d00d4a6c5de5728aecd6422b4008d66fd0b"
   integrity sha512-kn+e44esVfn2Fa/O0CPFcex27fjIL6MkVae0Mm6q+E6f0hWv578YCERbv+4m02cjxvDsPKLnmxral/rR6lBMAg==
@@ -19011,6 +19090,16 @@ tar-stream@^3.1.6:
     fast-fifo "^1.2.0"
     streamx "^2.15.0"
 
+tar-stream@^3.1.8:
+  version "3.1.8"
+  resolved "https://registry.yarnpkg.com/tar-stream/-/tar-stream-3.1.8.tgz#a26f5b26c34dfd4936a4f8a9e694a8f5102af13d"
+  integrity sha512-U6QpVRyCGHva435KoNWy9PRoi2IFYCgtEhq9nmrPPpbRacPs9IH4aJ3gbrFC8dPcXvdSZ4XXfXT5Fshbp2MtlQ==
+  dependencies:
+    b4a "^1.6.4"
+    bare-fs "^4.5.5"
+    fast-fifo "^1.2.0"
+    streamx "^2.15.0"
+
 tar@^6.1.11, tar@^6.2.1:
   version "6.2.1"
   resolved "https://registry.yarnpkg.com/tar/-/tar-6.2.1.tgz#717549c541bc3c2af15751bea94b1dd068d4b03a"
@@ -19041,6 +19130,13 @@ tcompare@6.4.6:
   dependencies:
     diff "^5.2.0"
     react-element-to-jsx-string "^15.0.0"
+
+teex@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/teex/-/teex-1.0.1.tgz#b8fa7245ef8e8effa8078281946c85ab780a0b12"
+  integrity sha512-eYE6iEI62Ni1H8oIa7KlDU6uQBtqr4Eajni3wX7rpfXD8ysFx8z0+dri+KWEPWpBsxXfxu58x/0jvTVT1ekOSg==
+  dependencies:
+    streamx "^2.12.5"
 
 terser@^5.9.0:
   version "5.46.0"
@@ -19552,7 +19648,7 @@ typescript-eslint@^8.23.0:
     "@typescript-eslint/typescript-estree" "8.54.0"
     "@typescript-eslint/utils" "8.54.0"
 
-typescript@5, typescript@^5.0.0, typescript@^5.0.3, typescript@^5.7.2:
+typescript@5, typescript@^5.0.0, typescript@^5.0.3, typescript@^5.7.2, typescript@^5.9.3:
   version "5.9.3"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.9.3.tgz#5b4f59e15310ab17a216f5d6cf53ee476ede670f"
   integrity sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==
