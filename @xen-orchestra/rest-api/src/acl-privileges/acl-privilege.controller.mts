@@ -41,7 +41,7 @@ export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<RestAnyPrivilege>>>> {
-    return this.sendObjects(Object.values(await this.getObjects({ filter, limit })), req)
+    return this.sendObjects(await this.getObjects({ filter, limit }), req)
   }
 
   /**

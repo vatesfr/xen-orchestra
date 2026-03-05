@@ -31,7 +31,7 @@ export class AlarmController extends XapiXoController<XoAlarm> {
   /**
    * Override parent getObjects in order to only get `ALARM` messages
    */
-  getObjects(opts?: { filter?: string; limit?: number }): Record<XoAlarm['id'], XoAlarm> {
+  getObjects(opts?: { filter?: string; limit?: number }): XoAlarm[] {
     return this.#alarmService.getAlarms(opts)
   }
 
@@ -63,7 +63,7 @@ export class AlarmController extends XapiXoController<XoAlarm> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<UnbrandedXoAlarm>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(this.getObjects({ filter, limit }), req)
   }
 
   /**

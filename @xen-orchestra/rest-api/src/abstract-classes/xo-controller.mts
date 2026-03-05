@@ -18,20 +18,10 @@ export abstract class XoController<
     super(restApi)
   }
 
-  async getObjects(
-    opts: { filter?: string; limit?: number; [key: string]: unknown } = {}
-  ): Promise<Record<T['id'], T>> {
-    let objects = await this.getAllCollectionObjects(opts)
+  async getObjects(opts: { filter?: string; limit?: number; [key: string]: unknown } = {}): Promise<T[]> {
+    const objects = await this.getAllCollectionObjects(opts)
 
-    objects = limitAndFilterArray(objects, opts)
-
-    const objectById = {} as Record<T['id'], T>
-
-    objects.forEach(obj => {
-      objectById[obj.id] = obj
-    })
-
-    return objectById
+    return limitAndFilterArray(objects, opts)
   }
 
   async getObject(id: T['id']): Promise<T> {

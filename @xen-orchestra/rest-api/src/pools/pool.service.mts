@@ -71,7 +71,7 @@ export class PoolService {
 
   #getAlarms(poolId: XoPool['id']): PoolDashboard['alarms'] {
     const alarms = this.#alarmService.getAlarms({ filter: alarm => alarm.$pool === poolId })
-    return Object.keys(alarms)
+    return alarms.map(alarm => alarm.id)
   }
 
   /**
@@ -92,11 +92,9 @@ export class PoolService {
   }
 
   #getTopFiveSrsUsage(poolId: XoPool['id']): PoolDashboard['srs']['topFiveUsage'] {
-    const srs = Object.values(
-      this.#restApi.getObjectsByType<XoSr>('SR', {
-        filter: sr => sr.$pool === poolId && isSrWritableOrIso(sr),
-      })
-    )
+    const srs = this.#restApi.getObjectsByType<XoSr>('SR', {
+      filter: sr => sr.$pool === poolId && isSrWritableOrIso(sr),
+    })
 
     const topFive = getTopPerProperty(
       srs.map(({ name_label, id, physical_usage, size }) => ({
@@ -113,11 +111,9 @@ export class PoolService {
   }
 
   #getTopFiveHostsRamUsage(poolId: XoPool['id']): PoolDashboard['hosts']['topFiveUsage']['ram'] {
-    const hosts = Object.values(
-      this.#restApi.getObjectsByType<XoHost>('host', {
-        filter: host => host.$pool === poolId && host.power_state === HOST_POWER_STATE.RUNNING,
-      })
-    )
+    const hosts = this.#restApi.getObjectsByType<XoHost>('host', {
+      filter: host => host.$pool === poolId && host.power_state === HOST_POWER_STATE.RUNNING,
+    })
 
     const topFive = getTopPerProperty(
       hosts.map(({ name_label, id, memory: { size, usage } }) => ({

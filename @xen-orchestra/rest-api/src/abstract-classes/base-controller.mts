@@ -23,7 +23,7 @@ export type CreateActionReturnType<CbType> = Promise<{ taskId: string } | CbType
 export type RestXoRecord = XoRecord<SupportedActionsByResource, SupportedResource> | RestAnyPrivilege
 
 export abstract class BaseController<T extends RestXoRecord, IsSync extends boolean> extends Controller {
-  abstract getObjects(): IsSync extends false ? Promise<Record<T['id'], T>> : Record<T['id'], T>
+  abstract getObjects(): IsSync extends false ? Promise<T[]> : T[]
   abstract getObject(id: T['id']): IsSync extends false ? Promise<T> : T
 
   restApi: RestApi
@@ -56,8 +56,8 @@ export abstract class BaseController<T extends RestXoRecord, IsSync extends bool
   async getTasksForObject(
     id: T['id'],
     { filter, limit = Infinity }: { filter?: string; limit?: number } = {}
-  ): Promise<Record<XoTask['id'], XoTask>> {
-    const tasks: Record<XoTask['id'], XoTask> = {}
+  ): Promise<XoTask[]> {
+    const tasks: XoTask[] = []
     const object = await Promise.resolve(this.getObject(id))
 
     const objectFilter = (task: XoTask) =>
@@ -73,7 +73,7 @@ export abstract class BaseController<T extends RestXoRecord, IsSync extends bool
         break
       }
       if (userFilter(task)) {
-        tasks[task.id] = task
+        tasks.push(task)
         limit--
       }
     }

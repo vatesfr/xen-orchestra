@@ -64,7 +64,7 @@ export class AclRoleController extends XoController<XoAclRole> {
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoAclRole>>>> {
-    return this.sendObjects(Object.values(await this.getObjects({ filter, limit })), req)
+    return this.sendObjects(await this.getObjects({ filter, limit }), req)
   }
 
   /**

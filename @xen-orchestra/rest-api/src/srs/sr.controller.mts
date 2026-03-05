@@ -67,7 +67,7 @@ export class SrController extends XapiXoController<XoSr> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoSr>>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(this.getObjects({ filter, limit }), req)
   }
 
   /**
@@ -104,7 +104,7 @@ export class SrController extends XapiXoController<XoSr> {
       limit,
     })
 
-    return this.sendObjects(Object.values(alarms), req, 'alarms')
+    return this.sendObjects(alarms, req, 'alarms')
   }
 
   /**
@@ -166,7 +166,7 @@ export class SrController extends XapiXoController<XoSr> {
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
     const messages = this.getMessagesForObject(id as XoSr['id'], { filter, limit })
 
-    return this.sendObjects(Object.values(messages), req, 'messages')
+    return this.sendObjects(messages, req, 'messages')
   }
 
   /**
@@ -189,7 +189,7 @@ export class SrController extends XapiXoController<XoSr> {
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
     const tasks = await this.getTasksForObject(id as XoSr['id'], { filter, limit })
-    return this.sendObjects(Object.values(tasks), req, 'tasks')
+    return this.sendObjects(tasks, req, 'tasks')
   }
 
   /**

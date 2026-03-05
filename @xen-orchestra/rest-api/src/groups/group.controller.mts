@@ -80,7 +80,7 @@ export class GroupController extends XoController<XoGroup> {
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoGroup>>>> {
-    return this.sendObjects(Object.values(await this.getObjects({ filter, limit })), req)
+    return this.sendObjects(await this.getObjects({ filter, limit }), req)
   }
 
   /**
@@ -221,6 +221,6 @@ export class GroupController extends XoController<XoGroup> {
   ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
     const tasks = await this.getTasksForObject(id as XoGroup['id'], { filter, limit })
 
-    return this.sendObjects(Object.values(tasks), req, 'tasks')
+    return this.sendObjects(tasks, req, 'tasks')
   }
 }

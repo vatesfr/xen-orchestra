@@ -63,7 +63,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoVmController>>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(this.getObjects({ filter, limit }), req)
   }
 
   /**
@@ -100,7 +100,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
       limit,
     })
 
-    return this.sendObjects(Object.values(alarms), req, 'alarms')
+    return this.sendObjects(alarms, req, 'alarms')
   }
 
   /**
@@ -146,7 +146,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
     const messages = this.getMessagesForObject(id as XoVmController['id'], { filter, limit })
 
-    return this.sendObjects(Object.values(messages), req, 'messages')
+    return this.sendObjects(messages, req, 'messages')
   }
 
   /**
@@ -170,7 +170,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
   ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
     const tasks = await this.getTasksForObject(id as XoVmController['id'], { filter, limit })
 
-    return this.sendObjects(Object.values(tasks), req, 'tasks')
+    return this.sendObjects(tasks, req, 'tasks')
   }
 
   /**

@@ -13,7 +13,7 @@ export abstract class XapiXoController<T extends XapiXoRecord> extends BaseContr
     this.#type = type
   }
 
-  getObjects(opts?: { filter?: string | ((obj: T) => boolean); limit?: number }): Record<T['id'], T> {
+  getObjects(opts?: { filter?: string | ((obj: T) => boolean); limit?: number }): T[] {
     return this.restApi.getObjectsByType<T>(this.#type, opts)
   }
 
@@ -25,10 +25,7 @@ export abstract class XapiXoController<T extends XapiXoRecord> extends BaseContr
     return this.restApi.getXapiObject<T>(maybeId, this.#type)
   }
 
-  getMessagesForObject(
-    id: T['id'],
-    { filter, limit }: { filter?: string; limit?: number } = {}
-  ): Record<XoMessage['id'], XoMessage> {
+  getMessagesForObject(id: T['id'], { filter, limit }: { filter?: string; limit?: number } = {}): XoMessage[] {
     const object = this.getObject(id)
     const messages = this.restApi.getObjectsByType<XoMessage>('message', {
       filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} $object:${object.uuid} !${RAW_ALARM_FILTER}`,

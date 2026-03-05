@@ -85,7 +85,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoVmBackupArchive>>>> {
     const backupArchives = await this.getObjects({ backupRepositories, filter, limit })
-    return this.sendObjects(Object.values(backupArchives), req)
+    return this.sendObjects(backupArchives, req)
   }
 
   /**

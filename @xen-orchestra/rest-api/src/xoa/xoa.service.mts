@@ -151,22 +151,20 @@ export class XoaService {
 
   #getNumberOfPools() {
     const pools = this.#restApi.getObjectsByType<XoPool>('pool')
-    return Object.keys(pools).length
+    return pools.length
   }
 
   #getNumberOfHosts() {
     const hosts = this.#restApi.getObjectsByType<XoHost>('host')
-    return Object.keys(hosts).length
+    return hosts.length
   }
 
   #getResourcesOverview(): XoaDashboard['resourcesOverview'] {
-    const pools = Object.values(this.#restApi.getObjectsByType<XoPool>('pool'))
-    const hosts = Object.values(this.#restApi.getObjectsByType<XoHost>('host'))
-    const srs = Object.values(
-      this.#restApi.getObjectsByType<XoSr>('SR', {
-        filter: isSrWritableOrIso,
-      })
-    )
+    const pools = this.#restApi.getObjectsByType<XoPool>('pool')
+    const hosts = this.#restApi.getObjectsByType<XoHost>('host')
+    const srs = this.#restApi.getObjectsByType<XoSr>('SR', {
+      filter: isSrWritableOrIso,
+    })
 
     const maxLenght = Math.max(hosts.length, srs.length)
 
@@ -333,7 +331,7 @@ export class XoaService {
   async #getbackupsInfo(): Promise<(DashboardBackupsInfo & { isExpired?: true }) | undefined> {
     const vmIdsProtected = new Set<XoVm['id']>()
     const vmIdsUnprotected = new Set<XoVm['id']>()
-    const nonReplicaVms = Object.values(this.#restApi.getObjectsByType<XoVm>('VM', { filter: vm => !isReplicaVm(vm) }))
+    const nonReplicaVms = this.#restApi.getObjectsByType<XoVm>('VM', { filter: vm => !isReplicaVm(vm) })
     const restApi = this.#restApi
     const xoApp = restApi.xoApp
     function _extractVmIdsFromBackupJob(job: XoVmBackupJob) {

@@ -187,10 +187,7 @@ export class VmService {
     return stream
   }
 
-  getVmAlarms(
-    id: XoVm['id'],
-    { filter, limit }: { filter?: string; limit?: number } = {}
-  ): Record<XoAlarm['id'], XoAlarm> {
+  getVmAlarms(id: XoVm['id'], { filter, limit }: { filter?: string; limit?: number } = {}): XoAlarm[] {
     const vm = this.#restApi.getObject<XoVm>(id, 'VM')
 
     const alarms = this.#alarmService.getAlarms({
@@ -389,7 +386,7 @@ export class VmService {
   async getVmDashboard(id: XoVm['id'], { stream }: { stream?: Writable } = {}): Promise<VmDashboard> {
     const [quickInfo, alarms, lastReplication, { lastRuns, vmProtection }, lastBackupArchives] = await Promise.all([
       promiseWriteInStream({ maybePromise: this.#getDashboardQuickInfo(id), path: 'quickInfo', stream }),
-      promiseWriteInStream({ maybePromise: Object.keys(this.getVmAlarms(id)), path: 'alarms', stream }),
+      promiseWriteInStream({ maybePromise: this.getVmAlarms(id).map(alarm => alarm.id), path: 'alarms', stream }),
       promiseWriteInStream({ maybePromise: this.#getLastReplication(id), path: 'backupsInfo.replication', stream }),
       promiseWriteInStream({ maybePromise: this.#getBackupsInfo(id), path: 'backupsInfo', stream }),
       promiseWriteInStream({

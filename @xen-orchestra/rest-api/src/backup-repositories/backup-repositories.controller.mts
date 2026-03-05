@@ -42,7 +42,7 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoBackupRepository>>>> {
-    return this.sendObjects(Object.values(await this.getObjects({ filter, limit })), req)
+    return this.sendObjects(await this.getObjects({ filter, limit }), req)
   }
 
   /**

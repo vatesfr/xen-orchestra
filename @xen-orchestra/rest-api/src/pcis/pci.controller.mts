@@ -36,7 +36,7 @@ export class PciController extends XapiXoController<XoPci> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoPci>>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(this.getObjects({ filter, limit }), req)
   }
 
   /**

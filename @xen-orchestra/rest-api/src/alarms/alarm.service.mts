@@ -62,14 +62,14 @@ export class AlarmService {
     if (filter !== undefined) {
       userFilter = typeof filter === 'string' ? safeParseComplexMatcher(filter).createPredicate() : filter
     }
-    const alarms: Record<XoAlarm['id'], XoAlarm> = {}
+    const alarms: XoAlarm[] = []
     for (const id in rawAlarms) {
       if (limit === 0) {
         break
       }
       const alarm = this.parseAlarm(rawAlarms[id])
       if (userFilter(alarm)) {
-        alarms[id] = alarm
+        alarms.push(alarm)
         limit--
       }
     }

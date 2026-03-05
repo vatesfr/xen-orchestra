@@ -44,7 +44,7 @@ export class VbdController extends XapiXoController<XoVbd> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoVbd>>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(this.getObjects({ filter, limit }), req)
   }
 
   /**
@@ -82,7 +82,7 @@ export class VbdController extends XapiXoController<XoVbd> {
       limit,
     })
 
-    return this.sendObjects(Object.values(alarms), req, 'alarms')
+    return this.sendObjects(alarms, req, 'alarms')
   }
 
   /**
@@ -106,7 +106,7 @@ export class VbdController extends XapiXoController<XoVbd> {
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
     const messages = this.getMessagesForObject(id as XoVbd['id'], { filter, limit })
 
-    return this.sendObjects(Object.values(messages), req, 'messages')
+    return this.sendObjects(messages, req, 'messages')
   }
 
   /**
@@ -129,6 +129,6 @@ export class VbdController extends XapiXoController<XoVbd> {
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
     const tasks = await this.getTasksForObject(id as XoVbd['id'], { filter, limit })
-    return this.sendObjects(Object.values(tasks), req, 'tasks')
+    return this.sendObjects(tasks, req, 'tasks')
   }
 }

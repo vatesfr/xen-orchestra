@@ -58,7 +58,7 @@ export class RestoreLogController extends XoController<XoRestoreLog> {
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoRestoreLog>>>> {
     const restoreLogs = await this.getObjects({ filter, limit })
-    return this.sendObjects(Object.values(restoreLogs), req)
+    return this.sendObjects(restoreLogs, req)
   }
 
   /**
@@ -122,7 +122,7 @@ export class DeprecatedRestoreController extends XoController<XoRestoreLog> {
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoRestoreLog>>>> {
     const restoreLogs = await this.getObjects({ filter, limit })
-    return this.sendObjects(Object.values(restoreLogs), req, 'restore-logs')
+    return this.sendObjects(restoreLogs, req, 'restore-logs')
   }
 
   /**

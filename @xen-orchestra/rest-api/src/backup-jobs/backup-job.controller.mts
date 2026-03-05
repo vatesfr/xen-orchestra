@@ -101,7 +101,7 @@ export class BackupJobController extends XoController<AnyXoBackupJob> {
     @Query() limit?: number
   ): Promise<SendObjects<Partial<UnbrandAnyXoBackupJob>>> {
     const backupJobs = await this.getObjects({ filter, limit })
-    return this.sendObjects(Object.values(backupJobs), req, 'backup-jobs')
+    return this.sendObjects(backupJobs, req, 'backup-jobs')
   }
 
   /**

@@ -60,7 +60,7 @@ export class HostService {
   }: { filter?: string | ((obj: XoHost) => boolean) } = {}): Promise<MissingPatchesInfo> {
     await this.#restApi.xoApp.checkFeatureAuthorization('LIST_MISSING_PATCHES')
 
-    const hosts = Object.values(this.#restApi.getObjectsByType<XoHost>('host', { filter }))
+    const hosts = this.#restApi.getObjectsByType<XoHost>('host', { filter })
     const missingPatches = new Map<string, XcpPatches | XsPatches>()
     const poolsWithMissingPatches = new Set()
     let nHostsWithMissingPatches = 0

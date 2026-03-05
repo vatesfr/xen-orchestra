@@ -57,7 +57,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoVdiSnapshot>>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(this.getObjects({ filter, limit }), req)
   }
 
   /**
@@ -119,7 +119,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
       limit,
     })
 
-    return this.sendObjects(Object.values(alarms), req, 'alarms')
+    return this.sendObjects(alarms, req, 'alarms')
   }
 
   /**
@@ -154,7 +154,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
     const messages = this.getMessagesForObject(id as XoVdiSnapshot['id'], { filter, limit })
 
-    return this.sendObjects(Object.values(messages), req, 'messages')
+    return this.sendObjects(messages, req, 'messages')
   }
 
   /**
@@ -177,7 +177,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
     const tasks = await this.getTasksForObject(id as XoVdiSnapshot['id'], { filter, limit })
-    return this.sendObjects(Object.values(tasks), req, 'tasks')
+    return this.sendObjects(tasks, req, 'tasks')
   }
 
   /**

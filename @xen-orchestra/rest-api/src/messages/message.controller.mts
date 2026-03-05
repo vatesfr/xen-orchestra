@@ -29,10 +29,7 @@ export class MessageController extends XapiXoController<XoMessage> {
   /**
    * Override parent getObjects in order to exclude `ALARM` messages
    */
-  getObjects({ filter, limit = Infinity }: { filter?: string; limit?: number } = {}): Record<
-    XoMessage['id'],
-    XoMessage
-  > {
+  getObjects({ filter, limit = Infinity }: { filter?: string; limit?: number } = {}): XoMessage[] {
     let userfilter: (obj: XoMessage) => boolean = () => true
     if (filter !== undefined) {
       userfilter = safeParseComplexMatcher(filter).createPredicate()
@@ -70,7 +67,7 @@ export class MessageController extends XapiXoController<XoMessage> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<UnbrandedXoMessage>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(this.getObjects({ filter, limit }), req)
   }
 
   /**

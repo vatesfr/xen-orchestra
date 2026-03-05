@@ -67,7 +67,7 @@ export class ServerController extends XoController<XoServer> {
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoServer>>>> {
-    return this.sendObjects(Object.values(await this.getObjects({ filter, limit })), req)
+    return this.sendObjects(await this.getObjects({ filter, limit }), req)
   }
 
   /**
@@ -175,6 +175,6 @@ export class ServerController extends XoController<XoServer> {
   ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
     const tasks = await this.getTasksForObject(id as XoServer['id'], { filter, limit })
 
-    return this.sendObjects(Object.values(tasks), req, 'tasks')
+    return this.sendObjects(tasks, req, 'tasks')
   }
 }

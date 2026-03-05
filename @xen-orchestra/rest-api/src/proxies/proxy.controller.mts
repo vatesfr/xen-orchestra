@@ -37,7 +37,7 @@ export class ProxyController extends XoController<XoProxy> {
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoProxy>>>> {
-    const proxies = Object.values(await this.getObjects({ filter, limit }))
+    const proxies = await this.getObjects({ filter, limit })
     return this.sendObjects(proxies, req)
   }
 

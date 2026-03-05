@@ -110,7 +110,7 @@ export class TaskController extends XoController<XoTask> {
       return stream
     }
 
-    const tasks = Object.values(await this.getObjects({ filter, limit }))
+    const tasks = await this.getObjects({ filter, limit })
     return this.sendObjects(tasks, req)
   }
 

@@ -94,7 +94,7 @@ export class UserController extends XoController<XoUser> {
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoUser>>>> {
-    const users = Object.values(await this.getObjects({ filter, limit }))
+    const users = await this.getObjects({ filter, limit })
     return this.sendObjects(users, req)
   }
 
@@ -249,7 +249,7 @@ export class UserController extends XoController<XoUser> {
   ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
     const tasks = await this.getTasksForObject(id as XoUser['id'], { filter, limit })
 
-    return this.sendObjects(Object.values(tasks), req, 'tasks')
+    return this.sendObjects(tasks, req, 'tasks')
   }
 
   // ----------- DEPRECATED TO BE REMOVED IN ONE YEAR  (10-13-2026)--------------------

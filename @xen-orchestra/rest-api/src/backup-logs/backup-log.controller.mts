@@ -56,7 +56,7 @@ export class BackupLogController extends XoController<XoBackupLog> {
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoBackupLog>>>> {
     const backupLogs = await this.getObjects({ filter, limit })
-    return this.sendObjects(Object.values(backupLogs), req)
+    return this.sendObjects(backupLogs, req)
   }
 
   /**
