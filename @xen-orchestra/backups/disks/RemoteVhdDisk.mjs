@@ -166,17 +166,6 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
-   * @returns {number} getMaxBlockCount
-   */
-  getMaxBlockCount() {
-    if (this.#vhd === undefined) {
-      throw new Error(`can't call getMaxBlockCount of a RemoteVhdDisk before init`)
-    }
-
-    return this.#vhd.header.maxTableEntries
-  }
-
-  /**
    * Checks if the VHD contains a specific block.
    * @param {number} index
    * @returns {boolean}
@@ -325,6 +314,19 @@ export class RemoteVhdDisk extends RemoteDisk {
     if (this.#vhd instanceof VhdDirectory) {
       this.#vhd.setAllocatedBlocks(blockIds)
     }
+  }
+
+  /**
+   * Ensure that the disk can handle at least the new block count.
+   * @param {number} blockCount
+   * @returns {Promise<void>}
+   */
+  async resize(blockCount) {
+    if (this.#vhd === undefined) {
+      throw new Error(`can't call resize of a RemoteVhdDisk before init`)
+    }
+
+    await this.#vhd.ensureBatSize(blockCount)
   }
 
   /**

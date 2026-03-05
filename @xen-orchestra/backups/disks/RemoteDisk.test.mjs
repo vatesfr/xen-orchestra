@@ -891,4 +891,33 @@ describe('tests MergeVhdChain', { concurrency: 1 }, () => {
       assert.ok(size >= parent2.getBlockSize(), `block ${index} complete`)
     }
   })
+
+  test('mergeRemoteDisk merge a bigger child into a parent', async () => {
+    const parentVhdPath = `${basePath}/parent.vhd`
+    await generateVhd(parentVhdPath, { blocks: [0, 1] })
+    const parent = new RemoteVhdDisk({ handler, path: parentVhdPath })
+    await parent.init({ force: false })
+
+    const childVhdPath = `${basePath}/child.vhd`
+    await generateVhd(childVhdPath, {
+      blocks: [0, 1, parent.getMaxBlockCount()],
+      header: {
+        maxTableEntries: parent.getMaxBlockCount() + 1,
+      },
+      footer: {
+        originalSize: (parent.getMaxBlockCount() + 1) * parent.getBlockSize(),
+        currentSize: (parent.getMaxBlockCount() + 1) * parent.getBlockSize(),
+      },
+    })
+    const child = new RemoteVhdDisk({ handler, path: childVhdPath })
+    await child.init({ force: false })
+
+    const expectedIndexes = [...new Set([...parent.getBlockIndexes(), ...child.getBlockIndexes()])]
+
+    const mergeRemoteDisk = new MergeRemoteDisk(handler, { removeUnused: true })
+    await mergeRemoteDisk.merge(parent, child)
+
+    const parentIndexes = parent.getBlockIndexes()
+    assert.deepEqual(parentIndexes, expectedIndexes, 'all child blocks should be merged into parent')
+  })
 })
