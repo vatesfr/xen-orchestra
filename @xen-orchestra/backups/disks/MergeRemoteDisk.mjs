@@ -22,6 +22,7 @@ const { warn } = createLogger('remote-disk:merge')
  * @property {number} mergedDataSize
  * @property {'mergeBlocks' | 'cleanup'} step
  * @property {number} diskSize
+ * @typedef {(message: string, data?: Record<string, unknown>) => void} Logger
  */
 
 export class MergeRemoteDisk {
@@ -201,8 +202,8 @@ export class MergeRemoteDisk {
 
       parentDisk.setAllocatedBlocks(alreadyMergedBlocks)
     } else {
-      this.#state.child = { uuid: childDisk.getUuid() ?? 0 }
-      this.#state.parent = { uuid: parentDisk.getUuid() ?? 0 }
+      this.#state.child = { uuid: childDisk.getUuid() ?? undefined }
+      this.#state.parent = { uuid: parentDisk.getUuid() ?? undefined }
 
       // Finds first allocated block for the 2 following loops
       while (this.#state.currentBlock < getMaxBlockCount && !childDisk.hasBlock(this.#state.currentBlock)) {
