@@ -107,10 +107,11 @@ async function handleExistingFile(root, indexPath, path) {
  * @param {string}                    root        - Absolute path to the backup repository root
  * @param {string}                    indexPath   - Absolute path to the immutability index directory
  * @param {Map<string, PendingVhdEntry>} pendingVhds - Tracks VHD directories waiting for all key files
+ * @param {import('chokidar').FSWatcher} watcher   - The chokidar watcher instance (used to release VHD dir watches)
  * @param {string}                    path        - Relative path of the new file inside `root`
  * @returns {Promise<void>}
  */
-async function handleNewFile(root, indexPath, pendingVhds, path) {
+async function handleNewFile(root, indexPath, pendingVhds, watcher, path) {
   debug('handleNewFile', { root, indexPath, pendingVhdsSize: pendingVhds.size, path })
   // with awaitWriteFinish we have complete files here
   // we can make them immutable
@@ -259,7 +260,7 @@ export async function watchRemote(remoteId, { root, immutabilityDuration, rebuil
   watcher
     .on('add', async path => {
       debug(`File ${path} has been added`)
-      await handleNewFile(root, indexPath, pendingVhds, path).catch(warn)
+      await handleNewFile(root, indexPath, pendingVhds, watcher, path).catch(warn)
       // Once processed the file is immutable and won't change — stop watching
       // it to free the FSWatcher handle and prevStats closure.
       watcher.unwatch(path)
