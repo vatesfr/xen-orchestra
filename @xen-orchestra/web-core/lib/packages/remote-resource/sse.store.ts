@@ -54,6 +54,8 @@ export const useSseStore = defineStore('sse', () => {
 
   const hasErrorSse = computed(() => isError.value || sse.value.errorSse !== null)
 
+  const isConnected = computed(() => sse.value.id !== undefined)
+
   function setErrorSse(error: unknown | null) {
     sse.value.errorSse = error
   }
@@ -164,5 +166,5 @@ export const useSseStore = defineStore('sse', () => {
     window.location.reload()
   }
 
-  return { watch, unwatch, retry, hasErrorSse, setErrorSse, setPing }
+  return { watch, unwatch, retry, hasErrorSse, setErrorSse, setPing, isConnected }
 })
