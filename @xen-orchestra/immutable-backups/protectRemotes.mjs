@@ -201,6 +201,16 @@ export async function watchRemote(remoteId, { root, immutabilityDuration, rebuil
   // create index directory
   await fs.mkdir(indexPath, { recursive: true })
 
+  // Ensure top-level backup directories exist before starting chokidar.
+  // chokidar resolves glob patterns by watching each level of the hierarchy;
+  // if xo-vm-backups/ does not exist at startup, chokidar cannot detect new
+  // VM UUID directories created inside it later.
+  await Promise.all([
+    fs.mkdir(join(root, 'xo-vm-backups'), { recursive: true }),
+    fs.mkdir(join(root, 'xo-config-backups'), { recursive: true }),
+    fs.mkdir(join(root, 'xo-pool-metadata-backups'), { recursive: true }),
+  ])
+
   // test if fs and index directories are well configured
   await test(root, indexPath)
 
