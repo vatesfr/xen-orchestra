@@ -51,6 +51,22 @@ const taskTimeComparator = ({ start: s1, end: e1 }, { start: s2, end: e2 }) => {
   return 1
 }
 
+function adaptTask(task) {
+  const { name, ...data } = task.properties
+  task.message = name
+  task.data = data
+  delete task.properties
+  task.tasks?.forEach(adaptTask)
+}
+
+function taskFormatAdapter(log) {
+  const isXoTask = log.tasks?.length > 0 && !!log.tasks[0].properties
+  if (isXoTask) {
+    adaptTask(log.tasks[0])
+    log.tasks = log.tasks[0].tasks
+  }
+}
+
 // type Task = {
 //   data: any,
 //   end?: number,
@@ -190,6 +206,10 @@ export default {
       }
       for (const [logId, log] of Object.entries(restoreMetadataLogs)) {
         await handleLog(log, logId)
+      }
+
+      for (const log of Object.values(consolidated)) {
+        taskFormatAdapter(log)
       }
 
       if (runId !== undefined) {
