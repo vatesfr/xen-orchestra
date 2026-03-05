@@ -453,6 +453,7 @@ All metrics are prefixed with `xcp_` and include enriched labels for easy filter
 | `xcp_host_disk_read_latency_seconds`    | gauge   | Disk read latency                                                      |
 | `xcp_host_disk_write_latency_seconds`   | gauge   | Disk write latency                                                     |
 | `xcp_host_disk_iowait`                  | gauge   | Disk IO wait ratio                                                     |
+| `xcp_host_power_consumption_watts`      | gauge   | Power consumption in watts (DCMI)                                      |
 | `xcp_host_uptime_seconds`               | gauge   | Host uptime in seconds since boot                                      |
 | `xcp_host_status`                       | gauge   | Host status (1 = current state, `power_state` and `enabled` in labels) |
 
@@ -482,6 +483,10 @@ All metrics are prefixed with `xcp_` and include enriched labels for easy filter
 | `xcp_vm_disk_iops_total`               | gauge   | Disk total IOPS                    |
 | `xcp_vm_disk_read_latency_seconds`     | gauge   | Disk read latency                  |
 | `xcp_vm_disk_write_latency_seconds`    | gauge   | Disk write latency                 |
+| `xcp_vm_disk_throughput_read_bytes`    | gauge   | Disk read throughput (bytes/s)     |
+| `xcp_vm_disk_throughput_write_bytes`   | gauge   | Disk write throughput (bytes/s)    |
+| `xcp_vm_disk_throughput_total_bytes`   | gauge   | Disk total throughput (bytes/s)    |
+| `xcp_vm_disk_latency_seconds`          | gauge   | Disk average IO latency            |
 | `xcp_vm_disk_iowait`                   | gauge   | Disk IO wait ratio                 |
 | `xcp_vm_disk_inflight`                 | gauge   | In-flight disk operations          |
 | `xcp_vm_disk_queue_size`               | gauge   | Disk queue size                    |
