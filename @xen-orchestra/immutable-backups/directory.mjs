@@ -2,7 +2,10 @@
 
 import execa from 'execa'
 import { unindexFile, indexFile } from './fileIndex.mjs'
-
+import { createLogger } from '@xen-orchestra/log'
+const { warn } = /** @type {import('./protectRemotes.mjs').XoLogger} */ (
+  /** @type {unknown} */ (createLogger('xen-orchestra:immutable-backups:directory'))
+)
 /**
  * Recursively set the immutable (`+i`) attribute on a directory and all its
  * contents.  When `immutabilityCachePath` is provided the directory is also
@@ -28,7 +31,7 @@ export async function makeImmutable(dirPath, immutabilityCachePath) {
  */
 export async function liftImmutability(dirPath, immutabilityCachePath) {
   if (immutabilityCachePath) {
-    await unindexFile(dirPath, immutabilityCachePath)
+    await unindexFile(dirPath, immutabilityCachePath).catch(err => warn('liftImmutability', err))
   }
   await execa('chattr', ['-i', '-R', dirPath])
 }
