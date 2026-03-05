@@ -189,7 +189,8 @@ export class MergeRemoteDisk {
    * @param {RemoteDisk} childDisk
    */
   async #step_mergeBlocks(parentDisk, childDisk) {
-    await parentDisk.resize(childDisk.getMaxBlockCount())
+    const getMaxBlockCount = childDisk.getMaxBlockCount()
+    await parentDisk.resize(getMaxBlockCount)
 
     if (this.#isResuming) {
       const alreadyMergedBlocks = []
@@ -205,7 +206,6 @@ export class MergeRemoteDisk {
       this.#state.parent = { uuid: parentDisk.getUuid() ?? 0 }
 
       // Finds first allocated block for the 2 following loops
-      const getMaxBlockCount = childDisk.getMaxBlockCount()
       while (this.#state.currentBlock < getMaxBlockCount && !childDisk.hasBlock(this.#state.currentBlock)) {
         ++this.#state.currentBlock
       }
