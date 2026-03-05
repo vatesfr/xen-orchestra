@@ -48,8 +48,8 @@ export function useTableState(config: {
 
   return computed(() => {
     return (
-      handleStateInput('busy', config.busy) ??
       handleStateInput('error', config.error) ??
+      handleStateInput('busy', config.busy) ??
       handleStateInput('no-data', config.empty)
     )
   })
