@@ -13,6 +13,7 @@
     "node": ">=14.18"
   },
   "scripts": {
+    "build": "tsc",
     "postversion": "npm publish --access public",
     "test": "node --test",
     "test-integration": "node --test *.integ.mjs"
@@ -61,7 +62,8 @@
     "fs-extra": "^11.1.0",
     "rimraf": "^6.0.1",
     "sinon": "^18.0.0",
-    "tmp": "^0.2.1"
+    "tmp": "^0.2.1",
+    "typescript": "^5.9.3"
   },
   "peerDependencies": {
     "@xen-orchestra/xapi": "^8.7.1"
