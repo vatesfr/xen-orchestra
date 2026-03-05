@@ -74,9 +74,10 @@ async function test(remotePath, indexPath) {
  * @param {string} root      - Absolute path to the backup repository root
  * @param {string} indexPath - Absolute path to the immutability index directory
  * @param {string} path      - Relative path of the file inside `root`
+ * @param {import('chokidar').FSWatcher} watcher - Watcher instance; immutable VHD dirs are unwatched to free memory
  * @returns {Promise<void>}
  */
-async function handleExistingFile(root, indexPath, path) {
+async function handleExistingFile(root, indexPath, path, watcher) {
   debug('handleExistingFile', { root, indexPath, path })
   try {
     // a vhd block directory is completely immutable
@@ -85,12 +86,22 @@ async function handleExistingFile(root, indexPath, path) {
       const dir = join(root, dirname(path))
       if (await Directory.isImmutable(dir)) {
         await indexFile(dir, indexPath)
+        // The directory is already immutable — no new files will ever be written
+        // to it. Release chokidar's FSWatcher to free memory: at startup chokidar
+        watcher.unwatch(dir)
+        // Also unwatch the individual key file (bat/header/footer) that triggered
+        // this call, and the other two sibling files, so chokidar releases all
+        // file-level tracking entries for this VHD directory.
+        watcher.unwatch(join(dir, 'bat'))
+        watcher.unwatch(join(dir, 'header'))
+        watcher.unwatch(join(dir, 'footer'))
       }
     } else {
       // other files are immutable a file basis
       const fullPath = join(root, path)
       if (await File.isImmutable(fullPath)) {
         await indexFile(fullPath, indexPath)
+        watcher.unwatch(fullPath)
       }
     }
   } catch (error) {
@@ -155,6 +166,12 @@ async function handleNewFile(root, indexPath, pendingVhds, watcher, path) {
         // creates a new VHD UUID dir; without this unwatch, chokidar accumulates
         // one FSWatcher per VHD dir indefinitely, causing a memory leak.
         watcher.unwatch(vhdDirAbsPath)
+        // Also explicitly unwatch all three key files so chokidar releases their
+        // file-level tracking entries. The triggering file is unwatched by the
+        // caller, but the other two siblings would otherwise remain tracked.
+        watcher.unwatch(join(vhdDirAbsPath, 'bat'))
+        watcher.unwatch(join(vhdDirAbsPath, 'header'))
+        watcher.unwatch(join(vhdDirAbsPath, 'footer'))
       } finally {
         // Always clean up so a failed lock doesn't permanently block retries.
         pendingVhds.delete(vhdDirRelPath)
@@ -281,19 +298,13 @@ export async function watchRemote(remoteId, { root, immutabilityDuration, rebuil
     // chokidar's ignoreInitial:false, which fires 'ready' once per glob pattern
     // group and makes it impossible to know deterministically when all initial
     // add events have been processed.
-    const isWatchedPath = picomatch(PATHS)
+    const isWatchedPath = /** @type {(path: string) => boolean} */ (picomatch(PATHS))
     ;(async () => {
-      const paths = []
-      for await (const entry of readdirp(root, { depth: 8 })) {
-        if (isWatchedPath(entry.path)) {
-          paths.push(entry.path)
-        }
-      }
-      info(`rebuildIndexOnStart: found ${paths.length} existing files`)
-      await asyncEach(paths, path => handleExistingFile(root, indexPath, path).catch(warn), {
-        concurrency: 16,
-        stopOnError: false,
-      })
+      await asyncEach(
+        readdirp(root, { depth: 7, fileFilter: entry => isWatchedPath(entry.path) }),
+        entry => handleExistingFile(root, indexPath, entry.path, watcher).catch(warn),
+        { concurrency: 16 }
+      )
       info('rebuildIndexOnStart: done')
     })().catch(error => warn('error during rebuildIndexOnStart scan', { error }))
   }
