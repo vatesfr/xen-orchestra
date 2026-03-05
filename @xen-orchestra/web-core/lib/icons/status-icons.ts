@@ -1,7 +1,7 @@
 import { defineIconPack, type IconSingleConfig } from '@core/packages/icon'
 import {
-  faSquare as checkboxEmpty,
   faCircle as circleEmpty,
+  faSquare as checkboxEmpty,
   type IconDefinition,
 } from '@fortawesome/free-regular-svg-icons'
 import {
@@ -51,11 +51,11 @@ export const statusIcons = defineIconPack({
   'paused-circle': [
     {
       icon: faCircle,
-      color: 'var(--color-brand-item-base)',
+      color: 'var(--color-info-item-base)',
     },
     {
       icon: faPause,
-      color: 'var(--color-brand-txt-item)',
+      color: 'var(--color-info-txt-item)',
       size: 8,
     },
   ],
