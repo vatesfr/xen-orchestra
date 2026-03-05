@@ -2,6 +2,10 @@
 
 import execa from 'execa'
 import { unindexFile, indexFile } from './fileIndex.mjs'
+import { createLogger } from '@xen-orchestra/log'
+const { warn } = /** @type {import('./protectRemotes.mjs').XoLogger} */ (
+  /** @type {unknown} */ (createLogger('xen-orchestra:immutable-backups:file'))
+)
 
 // this work only on linux like systems
 // this could work on windows : https://4sysops.com/archives/set-and-remove-the-read-only-file-attribute-with-powershell/
@@ -31,7 +35,7 @@ export async function makeImmutable(path, immutabilityCachePath) {
  */
 export async function liftImmutability(filePath, immutabilityCachePath) {
   if (immutabilityCachePath) {
-    await unindexFile(filePath, immutabilityCachePath)
+    await unindexFile(filePath, immutabilityCachePath).catch(err => warn('liftImmutability', err))
   }
   await execa('chattr', ['-i', filePath])
 }
