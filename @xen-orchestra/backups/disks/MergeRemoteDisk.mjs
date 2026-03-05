@@ -205,8 +205,8 @@ export class MergeRemoteDisk {
 
       parentDisk.setAllocatedBlocks(alreadyMergedBlocks)
     } else {
-      this.#state.child = { uuid: childDisk.getUuid() ?? 0 }
-      this.#state.parent = { uuid: parentDisk.getUuid() ?? 0 }
+      this.#state.child = { uuid: childDisk.getUuid() ?? undefined }
+      this.#state.parent = { uuid: parentDisk.getUuid() ?? undefined }
 
       // Finds first allocated block for the 2 following loops
       while (this.#state.currentBlock < getMaxBlockCount && !childDisk.hasBlock(this.#state.currentBlock)) {
