@@ -96,7 +96,7 @@ export class UserController extends XoController<XoUser> {
     @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoUser>>>> {
+  ): SendObjects<Partial<Unbrand<XoUser>>> {
     const users = Object.values(await this.getObjects({ filter }))
     return this.sendObjects(users, req, {
       limit,

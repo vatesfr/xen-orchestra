@@ -32,6 +32,7 @@ import { Transform } from 'node:stream'
 import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
+import { hasPrivilegeOn } from '@xen-orchestra/acl'
 
 @Route('tasks')
 @Security('*')
@@ -98,13 +99,28 @@ export class TaskController extends XoController<XoTask> {
         req.destroy()
       })
 
-      function update(task: XoTask) {
-        if (userFilter === undefined || userFilter(task)) {
+      const userId = this.restApi.getCurrentUser().id
+      const update = async (task: XoTask) => {
+        const user = await this.restApi.xoApp.getUser(userId)
+        const userPrivileges = await this.restApi.xoApp.getAclV2UserPrivileges(user.id)
+
+        if (
+          hasPrivilegeOn({ user, userPrivileges, action: 'read', resource: 'task', objects: task }) &&
+          (userFilter === undefined || userFilter(task))
+        ) {
           stream.write(['update', task])
         }
       }
-      function remove(task: XoTask) {
-        stream.write(['remove', { id: task.id }])
+      const remove = async (task: XoTask) => {
+        const user = await this.restApi.xoApp.getUser(userId)
+        const userPrivileges = await this.restApi.xoApp.getAclV2UserPrivileges(user.id)
+
+        if (
+          hasPrivilegeOn({ user, userPrivileges, action: 'read', resource: 'task', objects: task }) &&
+          (userFilter === undefined || userFilter(task))
+        ) {
+          stream.write(['remove', { id: task.id }])
+        }
       }
 
       this.restApi.tasks.on('update', update).on('remove', remove)

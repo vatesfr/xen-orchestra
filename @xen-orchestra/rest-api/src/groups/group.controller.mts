@@ -82,7 +82,7 @@ export class GroupController extends XoController<XoGroup> {
     @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoGroup>>>> {
+  ): SendObjects<Partial<Unbrand<XoGroup>>> {
     return this.sendObjects(Object.values(await this.getObjects({ filter })), req, {
       limit,
       privilege: { action: 'read', resource: 'group' },
