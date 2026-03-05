@@ -30,6 +30,7 @@
 - [VM] Add backup replication card on dashboard (PR [#9545](https://github.com/vatesfr/xen-orchestra/pull/9545))
 - [VM/Snapshot] Add VM snapshot tab page (PR [#9521] (https://github.com/vatesfr/xen-orchestra/pull/9521))
 - [SR] New "Preferred image format" field on SR creation forms (NFS, SMB, HBA, iSCSI, LVM, EXT) to control the disk format used by the SR (PR [#9596](https://github.com/vatesfr/xen-orchestra/pull/9596))
+- [Treeview/Layout] Add Loader and "please wait" page on the first connection xo-server (PR [#9568](https://github.com/vatesfr/xen-orchestra/pull/9568))
 
 ### Bug fixes
 
@@ -72,7 +73,7 @@
 - @xen-orchestra/qcow2 minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer minor
-- @xen-orchestra/web patch
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - vhd-lib minor
 - xo-server minor
