@@ -49,6 +49,9 @@ export class AlarmController extends XapiXoController<XoAlarm> {
   }
 
   /**
+   * Returns all alarms that match the following privilege:
+   * resource: alarm, action: read
+   *
    * @example fields "body,id,object"
    * @example filter "body:name:physical_utilisation"
    * @example limit 42
@@ -63,7 +66,10 @@ export class AlarmController extends XapiXoController<XoAlarm> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<UnbrandedXoAlarm>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'alarm' },
+    })
   }
 
   /**

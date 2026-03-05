@@ -64,7 +64,7 @@ export class AclRoleController extends XoController<XoAclRole> {
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoAclRole>>>> {
-    return this.sendObjects(Object.values(await this.getObjects({ filter, limit })), req)
+    return this.sendObjects(Object.values(await this.getObjects({ filter })), req, { limit })
   }
 
   /**
@@ -94,9 +94,9 @@ export class AclRoleController extends XoController<XoAclRole> {
     @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<RestAnyPrivilege>>>> {
+  ): SendObjects<Partial<Unbrand<RestAnyPrivilege>>> {
     const privileges = (await this.restApi.xoApp.getAclV2RolePrivileges(id as XoAclRole['id'])) as RestAnyPrivilege[]
-    return this.sendObjects(limitAndFilterArray(privileges, { filter, limit }), req, 'acl-privileges')
+    return this.sendObjects(limitAndFilterArray(privileges, { filter }), req, { path: 'acl-privileges', limit })
   }
 
   /**

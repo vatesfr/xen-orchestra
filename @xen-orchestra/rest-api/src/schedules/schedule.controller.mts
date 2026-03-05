@@ -35,6 +35,9 @@ export class ScheduleController extends XoController<XoSchedule> {
   }
 
   /**
+   * Returns all schedules that match the following privilege:
+   * resource: schedule, action: read
+   *
    * @example fields "enabled,jobId,cron,id"
    * @example filter "enabled?"
    * @example limit 42
@@ -48,8 +51,11 @@ export class ScheduleController extends XoController<XoSchedule> {
     @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoSchedule>>>> {
-    return this.sendObjects(Object.values(await this.getObjects({ filter, limit })), req)
+  ): SendObjects<Partial<Unbrand<XoSchedule>>> {
+    return this.sendObjects(Object.values(await this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'schedule' },
+    })
   }
 
   /**

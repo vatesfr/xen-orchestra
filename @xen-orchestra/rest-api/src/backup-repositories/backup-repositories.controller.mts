@@ -28,6 +28,9 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   }
 
   /**
+   * Returns all backup repositories that match the following privilege:
+   * resource: backup-repository, action: read
+   *
    * @example fields "id,name,enabled"
    * @example filter "enabled?"
    * @example limit 42
@@ -41,8 +44,11 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
     @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoBackupRepository>>>> {
-    return this.sendObjects(Object.values(await this.getObjects({ filter, limit })), req)
+  ): SendObjects<Partial<Unbrand<XoBackupRepository>>> {
+    return this.sendObjects(Object.values(await this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'backup-repository' },
+    })
   }
 
   /**

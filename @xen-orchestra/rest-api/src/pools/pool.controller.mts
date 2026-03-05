@@ -103,6 +103,8 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   /**
+   * Returns all pools that match the following privilege:
+   * resource: pool, action: read
    *
    * @example fields "auto_poweron,name_label,id"
    * @example filter "auto_poweron?"
@@ -118,7 +120,10 @@ export class PoolController extends XapiXoController<XoPool> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoPool>>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'pool' },
+    })
   }
 
   /**
@@ -376,6 +381,9 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   /**
+   * Returns all alarms that match the following privilege:
+   * resource: alarm, action: read
+   *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
    * @example fields "id,time"
    * @example filter "time:>1747053793"
@@ -396,10 +404,13 @@ export class PoolController extends XapiXoController<XoPool> {
     const pool = this.getObject(id as XoPool['id'])
     const alarms = this.#alarmService.getAlarms({
       filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${pool.uuid}`,
-      limit,
     })
 
-    return this.sendObjects(Object.values(alarms), req, 'alarms')
+    return this.sendObjects(Object.values(alarms), req, {
+      path: 'alarms',
+      limit,
+      privilege: { action: 'read', resource: 'alarm' },
+    })
   }
 
   /**
@@ -417,6 +428,9 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   /**
+   * Returns all messages that match the following privilege:
+   * resource: message, action: read
+   *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
    * @example fields "name,id,$object"
    * @example filter "name:IP_CONFIGURED_PIF_CAN_UNPLUG"
@@ -435,9 +449,13 @@ export class PoolController extends XapiXoController<XoPool> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
-    const messages = this.getMessagesForObject(id as XoPool['id'], { filter, limit })
+    const messages = this.getMessagesForObject(id as XoPool['id'], { filter })
 
-    return this.sendObjects(Object.values(messages), req, 'messages')
+    return this.sendObjects(Object.values(messages), req, {
+      path: 'messages',
+      limit,
+      privilege: { action: 'read', resource: 'message' },
+    })
   }
 
   /**
@@ -465,6 +483,9 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   /**
+   * Returns all tasks that match the following privilege:
+   * resource: task, action: read
+   *
    * @example fields "id,status,properties"
    * @example filter "status:failure"
    * @example limit 42
@@ -481,9 +502,13 @@ export class PoolController extends XapiXoController<XoPool> {
     @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
-    const tasks = await this.getTasksForObject(id as XoPool['id'], { filter, limit })
+  ): SendObjects<Partial<Unbrand<XoTask>>> {
+    const tasks = await this.getTasksForObject(id as XoPool['id'], { filter })
 
-    return this.sendObjects(Object.values(tasks), req, 'tasks')
+    return this.sendObjects(Object.values(tasks), req, {
+      path: 'tasks',
+      limit,
+      privilege: { action: 'read', resource: 'task' },
+    })
   }
 }

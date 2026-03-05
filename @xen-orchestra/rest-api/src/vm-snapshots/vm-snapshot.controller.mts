@@ -51,6 +51,8 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   }
 
   /**
+   * Returns all VM snapshots that match the following privilege:
+   * resource: vm-snapshot, action: read
    *
    * @example fields "uuid,snapshot_time,$snapshot_of"
    * @example filter "snapshot_time:>1725020038"
@@ -66,7 +68,10 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoVmSnapshot>>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'vm-snapshot' },
+    })
   }
 
   /**
@@ -120,6 +125,9 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   }
 
   /**
+   * Returns all alarms that match the following privilege:
+   * resource: alarm, action: read
+   *
    * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
    * @example fields "id,time"
    * @example filter "time:>1747053793"
@@ -140,13 +148,19 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
     const vmSnapshot = this.getObject(id as XoVmSnapshot['id'])
     const alarms = this.#alarmService.getAlarms({
       filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${vmSnapshot.uuid}`,
-      limit,
     })
 
-    return this.sendObjects(Object.values(alarms), req, 'alarms')
+    return this.sendObjects(Object.values(alarms), req, {
+      path: 'alarms',
+      limit,
+      privilege: { action: 'read', resource: 'alarm' },
+    })
   }
 
   /**
+   * Returns all VDIs that match the following privilege:
+   * resource: vdi, action: read
+   *
    * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
    * @example fields "VDI_type,id,name_label"
    * @example filter "VDI_type:user"
@@ -165,10 +179,17 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoVdiSnapshot>>> {
     const vdis = this.#vmService.getVmVdis(id as XoVmSnapshot['id'], 'VM-snapshot')
-    return this.sendObjects(limitAndFilterArray(vdis, { filter, limit }), req, obj => obj.type.toLowerCase() + 's')
+    return this.sendObjects(limitAndFilterArray(vdis, { filter }), req, {
+      path: obj => obj.type.toLowerCase() + 's',
+      limit,
+      privilege: { action: 'read', resource: 'vdi' },
+    })
   }
 
   /**
+   * Returns all messages that match the following privilege:
+   * resource: message, action: read
+   *
    * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
    * @example fields "name,id,$object"
    * @example filter "name:VM_STARTED"
@@ -187,12 +208,19 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
-    const messages = this.getMessagesForObject(id as XoVmSnapshot['id'], { filter, limit })
+    const messages = this.getMessagesForObject(id as XoVmSnapshot['id'], { filter })
 
-    return this.sendObjects(Object.values(messages), req, 'messages')
+    return this.sendObjects(Object.values(messages), req, {
+      path: 'messages',
+      limit,
+      privilege: { action: 'read', resource: 'message' },
+    })
   }
 
   /**
+   * Returns all tasks that match the following privilege:
+   * resource: task, action: read
+   *
    * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
    * @example fields "id,status,properties"
    * @example filter "status:failure"
@@ -210,10 +238,14 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
     @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
-    const tasks = await this.getTasksForObject(id as XoVmSnapshot['id'], { filter, limit })
+  ): SendObjects<Partial<Unbrand<XoTask>>> {
+    const tasks = await this.getTasksForObject(id as XoVmSnapshot['id'], { filter })
 
-    return this.sendObjects(Object.values(tasks), req, 'tasks')
+    return this.sendObjects(Object.values(tasks), req, {
+      path: 'tasks',
+      limit,
+      privilege: { action: 'read', resource: 'task' },
+    })
   }
 
   /**

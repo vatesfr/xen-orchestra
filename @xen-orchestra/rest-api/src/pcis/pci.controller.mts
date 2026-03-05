@@ -22,6 +22,9 @@ export class PciController extends XapiXoController<XoPci> {
   }
 
   /**
+   * Returns all PCIs that match the following privilege:
+   * resource: pci, action: read
+   *
    * @example fields "class_name,device_name,id"
    * @example filter "class_name:Non-Volatile memory controller"
    * @example limit 42
@@ -36,7 +39,10 @@ export class PciController extends XapiXoController<XoPci> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoPci>>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'pci' },
+    })
   }
 
   /**

@@ -53,6 +53,8 @@ export class TaskController extends XoController<XoTask> {
   }
 
   /**
+   * Returns all tasks that match the following privilege:
+   * resource: task, action: read
    *
    * If watch is true, ndjson must also be true
    *
@@ -71,7 +73,7 @@ export class TaskController extends XoController<XoTask> {
     @Query() watch?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
+  ): SendObjects<Partial<Unbrand<XoTask>>> {
     if (watch) {
       if (!ndjson) {
         throw new ApiError('watch=true requires ndjson=true', 400)
@@ -110,8 +112,11 @@ export class TaskController extends XoController<XoTask> {
       return stream
     }
 
-    const tasks = Object.values(await this.getObjects({ filter, limit }))
-    return this.sendObjects(tasks, req)
+    const tasks = Object.values(await this.getObjects({ filter }))
+    return this.sendObjects(tasks, req, {
+      limit,
+      privilege: { action: 'read', resource: 'task' },
+    })
   }
 
   /**

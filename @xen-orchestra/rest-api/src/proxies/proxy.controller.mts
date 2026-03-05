@@ -23,6 +23,9 @@ export class ProxyController extends XoController<XoProxy> {
   }
 
   /**
+   * Returns all proxies that match the following privilege:
+   * resource: proxy, action: read
+   *
    * @example fields "vmUuid,id,name"
    * @example filter "vmUuid?"
    * @example limit 42
@@ -36,9 +39,12 @@ export class ProxyController extends XoController<XoProxy> {
     @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoProxy>>>> {
-    const proxies = Object.values(await this.getObjects({ filter, limit }))
-    return this.sendObjects(proxies, req)
+  ): SendObjects<Partial<Unbrand<XoProxy>>> {
+    const proxies = Object.values(await this.getObjects({ filter }))
+    return this.sendObjects(proxies, req, {
+      limit,
+      privilege: { action: 'read', resource: 'proxy' },
+    })
   }
 
   /**

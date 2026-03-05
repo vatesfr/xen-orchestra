@@ -56,6 +56,9 @@ export class MessageController extends XapiXoController<XoMessage> {
   }
 
   /**
+   * Returns all messages that match the following privilege:
+   * resource: message, action: read
+   *
    * @example fields "name,body,id,$object"
    * @example filter "name:VM_STARTED"
    * @example limit 42
@@ -70,7 +73,10 @@ export class MessageController extends XapiXoController<XoMessage> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<UnbrandedXoMessage>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'message' },
+    })
   }
 
   /**

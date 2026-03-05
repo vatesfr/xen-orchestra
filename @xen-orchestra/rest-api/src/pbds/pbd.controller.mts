@@ -22,6 +22,9 @@ export class PbdController extends XapiXoController<XoPbd> {
   }
 
   /**
+   * Returns all PBDs that match the following privilege:
+   * resource: pbd, action: read
+   *
    * @example fields "attached,id,device_config"
    * @example filter "attached?"
    * @example limit 42
@@ -36,7 +39,10 @@ export class PbdController extends XapiXoController<XoPbd> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoPbd>>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'pbd' },
+    })
   }
 
   /**
