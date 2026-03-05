@@ -149,8 +149,16 @@ async function handleNewFile(root, indexPath, pendingVhds, watcher, path) {
       pendingVhds.set(vhdDirRelPath, { existing: 3, lastModified: Date.now() })
       // all three key files are on disk — lock the directory
       info('locking vhd directory', { vhdDirAbsPath })
-      await Directory.makeImmutable(vhdDirAbsPath, indexPath)
-      pendingVhds.delete(vhdDirRelPath)
+      try {
+        await Directory.makeImmutable(vhdDirAbsPath, indexPath)
+        // Release chokidar's FSWatcher for this VHD directory. Each backup run
+        // creates a new VHD UUID dir; without this unwatch, chokidar accumulates
+        // one FSWatcher per VHD dir indefinitely, causing a memory leak.
+        watcher.unwatch(vhdDirAbsPath)
+      } finally {
+        // Always clean up so a failed lock doesn't permanently block retries.
+        pendingVhds.delete(vhdDirRelPath)
+      }
       info('vhd directory locked', { vhdDirAbsPath })
     } else {
       // still waiting for the remaining key file(s)
