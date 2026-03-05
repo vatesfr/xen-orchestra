@@ -75,6 +75,7 @@
     ".": {
       "types": "./dist/backups/disks/RemoteDisk.d.mts",
       "default": "./dist/index.mjs"
-    }
+    },
+    "./extractIdsFromSimplePattern.mjs": "./extractIdsFromSimplePattern.mjs"
   }
 }
