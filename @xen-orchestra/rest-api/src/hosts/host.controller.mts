@@ -277,7 +277,7 @@ export class HostController extends XapiXoController<XoHost> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoTask>>> {
-    const tasks = await this.getTasksForObject(id as XoHost['id'], { filter, limit })
+    const tasks = await this.getTasksForObject(id as XoHost['id'], { filter })
 
     return this.sendObjects(Object.values(tasks), req, {
       path: 'tasks',

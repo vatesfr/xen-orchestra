@@ -59,7 +59,10 @@ export abstract class BaseController<T extends RestXoRecord, IsSync extends bool
         break
       }
 
-      if (opts?.privilege !== undefined && !hasPrivilegeOn({ user, userPrivileges, objects, ...opts.privilege })) {
+      if (
+        opts?.privilege !== undefined &&
+        !hasPrivilegeOn({ user, userPrivileges, objects: object, ...opts.privilege })
+      ) {
         continue
       }
 
@@ -82,8 +85,8 @@ export abstract class BaseController<T extends RestXoRecord, IsSync extends bool
   async getTasksForObject(
     id: T['id'],
     { filter, limit = Infinity }: { filter?: string; limit?: number } = {}
-  ): Promise<XoTask[]> {
-    const tasks: XoTask[] = []
+  ): Promise<Record<XoTask['id'], XoTask>> {
+    const tasks: Record<XoTask['id'], XoTask> = {}
     const object = await Promise.resolve(this.getObject(id))
 
     const objectFilter = (task: XoTask) =>
@@ -99,7 +102,7 @@ export abstract class BaseController<T extends RestXoRecord, IsSync extends bool
         break
       }
       if (userFilter(task)) {
-        tasks.push(task)
+        tasks[task.id] = task
         limit--
       }
     }

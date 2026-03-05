@@ -50,6 +50,9 @@ export class AclRoleController extends XoController<XoAclRole> {
   }
 
   /**
+   * Returns all ACL roles that match the following privilege:
+   * resource: acl-role, action: read
+   *
    * @example fields "id,name,isTemplate"
    * @example filter "name:read only"
    * @example limit 42
@@ -64,7 +67,10 @@ export class AclRoleController extends XoController<XoAclRole> {
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoAclRole>>>> {
-    return this.sendObjects(Object.values(await this.getObjects({ filter })), req, { limit })
+    return this.sendObjects(Object.values(await this.getObjects({ filter })), req, {
+      limit,
+      privilege: { resource: 'acl-role', action: 'read' },
+    })
   }
 
   /**
@@ -78,6 +84,9 @@ export class AclRoleController extends XoController<XoAclRole> {
   }
 
   /**
+   * Returns all ACL privileges that match the following privilege:
+   * resource: acl-privilege, action: read
+   *
    * @example id "426622cc-b2db-4545-a2f0-6ec47b3a6450"
    * @example fields "id,action,resource"
    * @example filter "action:create"
@@ -96,7 +105,11 @@ export class AclRoleController extends XoController<XoAclRole> {
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<RestAnyPrivilege>>> {
     const privileges = (await this.restApi.xoApp.getAclV2RolePrivileges(id as XoAclRole['id'])) as RestAnyPrivilege[]
-    return this.sendObjects(limitAndFilterArray(privileges, { filter }), req, { path: 'acl-privileges', limit })
+    return this.sendObjects(limitAndFilterArray(privileges, { filter }), req, {
+      path: 'acl-privileges',
+      limit,
+      privilege: { resource: 'acl-privilege', action: 'read' },
+    })
   }
 
   /**
