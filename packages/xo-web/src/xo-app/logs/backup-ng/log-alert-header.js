@@ -35,23 +35,19 @@ export default decorate([
         (_, params) =>
         async (_, { log: { jobId: id, scheduleId: schedule, tasks, infos } }) => {
           let vms
-          const isXoTask = tasks?.length > 0 && !!tasks[0].properties
-          if (isXoTask) {
-            tasks = tasks[0].tasks
-          }
           if (tasks !== undefined) {
             const scheduledVms = get(() => infos.find(({ message }) => message === 'vms').data.vms)
 
             if (scheduledVms !== undefined) {
               vms = new Set(scheduledVms)
-              tasks.forEach(({ status, data, properties }) => {
-                status === 'success' && vms.delete(isXoTask ? properties.id : data.id)
+              tasks.forEach(({ status, data: { id } }) => {
+                status === 'success' && vms.delete(id)
               })
               vms = Array.from(vms)
             } else {
               vms = []
-              tasks.forEach(({ status, data, properties }) => {
-                status !== 'success' && vms.push(isXoTask ? properties.id : data.id)
+              tasks.forEach(({ status, data: { id } }) => {
+                status !== 'success' && vms.push(id)
               })
             }
           }

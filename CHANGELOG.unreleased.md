@@ -53,6 +53,5 @@
 - xo-server minor
 - xo-server-backup-reports minor
 - xo-server-openmetrics minor
-- xo-web minor
 
 <!--packages-end-->

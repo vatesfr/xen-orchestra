@@ -175,19 +175,13 @@ TaskInfos.propTypes = {
   infos: PropTypes.arrayOf(PropTypes.shape(TaskInfo.propTypes)),
 }
 
-const VmTask = ({ children, className, isXoTask, restartVmJob, task }) => (
+const VmTask = ({ children, className, restartVmJob, task }) => (
   <li className={className}>
-    <Vm
-      id={isXoTask ? task.properties.id : task.data.id}
-      name={isXoTask ? task.properties.name_label : task.data.name_label}
-      link
-      newTab
-    />{' '}
-    <TaskStateInfos status={task.status} />{' '}
+    <Vm id={task.data.id} name={task.data.name_label} link newTab /> <TaskStateInfos status={task.status} />{' '}
     {restartVmJob !== undefined && hasTaskFailed(task) && (
       <ButtonGroup>
         <ActionButton
-          data-vm={isXoTask ? task.properties.id : task.data.id}
+          data-vm={task.data.id}
           handler={restartVmJob}
           icon='run'
           size='small'
@@ -196,7 +190,7 @@ const VmTask = ({ children, className, isXoTask, restartVmJob, task }) => (
         <ActionButton
           btnStyle='warning'
           data-force
-          data-vm={isXoTask ? task.properties.id : task.data.id}
+          data-vm={task.data.id}
           handler={restartVmJob}
           icon='force-restart'
           size='small'
@@ -229,9 +223,9 @@ const VmTask = ({ children, className, isXoTask, restartVmJob, task }) => (
   </li>
 )
 
-const PoolTask = ({ children, className, isXoTask, task }) => (
+const PoolTask = ({ children, className, task }) => (
   <li className={className}>
-    <Pool id={isXoTask ? task.properties.id : task.data.id} link newTab /> <TaskStateInfos status={task.status} />
+    <Pool id={task.data.id} link newTab /> <TaskStateInfos status={task.status} />
     <TaskWarnings warnings={task.warnings} />
     <TaskInfos infos={task.infos} />
     {children}
@@ -289,9 +283,9 @@ const HealthCheckTask = ({ children, className, task }) => (
     <TaskError task={task} />
   </li>
 )
-const HealthCheckVmStartTask = ({ children, className, isXoTask, task }) => (
+const HealthCheckVmStartTask = ({ children, className, task }) => (
   <li className={className}>
-    <Icon icon='run' /> {isXoTask ? task.properties.name : task.message} <TaskStateInfos status={task.status} />
+    <Icon icon='run' /> {task.message} <TaskStateInfos status={task.status} />
     <TaskInfos infos={task.infos} />
     <TaskStart task={task} />
     <TaskEnd task={task} />
@@ -299,9 +293,9 @@ const HealthCheckVmStartTask = ({ children, className, isXoTask, task }) => (
   </li>
 )
 
-const RemoteTask = ({ children, className, isXoTask, task }) => (
+const RemoteTask = ({ children, className, task }) => (
   <li className={className}>
-    <Remote id={isXoTask ? task.properties.id : task.data.id} link newTab /> <TaskStateInfos status={task.status} />
+    <Remote id={task.data.id} link newTab /> <TaskStateInfos status={task.status} />
     <TaskWarnings warnings={task.warnings} />
     {children}
     <TaskStart task={task} />
@@ -311,15 +305,9 @@ const RemoteTask = ({ children, className, isXoTask, task }) => (
   </li>
 )
 
-const SrTask = ({ children, className, isXoTask, task }) => (
+const SrTask = ({ children, className, task }) => (
   <li className={className}>
-    <Sr
-      id={isXoTask ? task.properties.id : task.data.id}
-      name={isXoTask ? task.properties.name_label : task.data.name_label}
-      link
-      newTab
-    />{' '}
-    <TaskStateInfos status={task.status} />
+    <Sr id={task.data.id} name={task.data.name_label} link newTab /> <TaskStateInfos status={task.status} />
     <TaskWarnings warnings={task.warnings} />
     <TaskInfos infos={task.infos} />
     {children}
@@ -330,19 +318,16 @@ const SrTask = ({ children, className, isXoTask, task }) => (
   </li>
 )
 
-const TransferMergeTask = ({ className, isXoTask, task }) => {
+const TransferMergeTask = ({ className, task }) => {
   const size = defined(() => task.result.size, 0)
   if (task.status === 'success' && size === 0 && task.warnings?.length === 0) {
     return null
   }
 
-  const name = isXoTask ? task.properties.name : task.message
-  const parentName = isXoTask ? task.parent?.properties?.name : task.parent?.message
-
   return (
     <li className={className}>
-      {name === 'transfer' ? (
-        parentName === 'health check' ? (
+      {task.message === 'transfer' ? (
+        task.parent?.message === 'health check' ? (
           <Icon icon='download' />
         ) : (
           <Icon icon='upload' />
@@ -350,7 +335,7 @@ const TransferMergeTask = ({ className, isXoTask, task }) => {
       ) : (
         <Icon icon='task' />
       )}{' '}
-      {isXoTask ? task.properties.name : task.message}
+      {task.message}
       <TaskStateInfos status={task.status} />
       <TaskWarnings warnings={task.warnings} />
       <TaskInfos infos={task.infos} />
@@ -418,19 +403,19 @@ const COMPONENT_BY_MESSAGE = {
   'copying-vm': CopyingVmTask,
 }
 
-const TaskLi = ({ isXoTask, task, ...props }) => {
+const TaskLi = ({ task, ...props }) => {
   let Component
   if (
     (Component = defined(
-      () => COMPONENT_BY_TYPE[isXoTask ? task.properties.type.toLowerCase() : task.data.type.toLowerCase()],
+      () => COMPONENT_BY_TYPE[task.data.type.toLowerCase()],
 
       // work-around to not let defined handle the component as a safety function
-      () => COMPONENT_BY_MESSAGE[isXoTask ? task.properties.name : task.message]
+      () => COMPONENT_BY_MESSAGE[task.message]
     )) === undefined
   ) {
     return null
   }
-  return <Component task={task} isXoTask={isXoTask} {...props} />
+  return <Component task={task} {...props} />
 }
 
 const SEARCH_BAR_FILTERS = { name: 'name:' }
@@ -496,63 +481,35 @@ export default decorate([
           return {}
         }
 
-        if (log.tasks === undefined || log.tasks.length === 0) {
+        if (log.tasks === undefined) {
           return log
         }
 
-        // checking if this is a XO task log or a former backup task log
-        log.isXoTask = !!log.tasks[0].properties
-
         const newLog = cloneDeep(log)
-        if (log.isXoTask) {
-          newLog.tasks[0].tasks &&
-            newLog.tasks[0].tasks.forEach(task => {
-              const type = get(() => task.properties.type)
-              if (type !== 'VM' && type !== 'xo' && type !== 'pool') {
-                return
-              }
+        newLog.tasks.forEach(task => {
+          const type = get(() => task.data.type)
+          if (type !== 'VM' && type !== 'xo' && type !== 'pool') {
+            return
+          }
 
-              task.name =
-                type === 'VM'
-                  ? get(() => vms[task.properties.id].name_label)
-                  : type === 'pool'
-                    ? get(() => pools[task.properties.id].name_label)
-                    : 'xo'
+          task.name =
+            type === 'VM'
+              ? get(() => vms[task.data.id].name_label)
+              : type === 'pool'
+                ? get(() => pools[task.data.id].name_label)
+                : 'xo'
 
-              if (task.tasks !== undefined) {
-                const subTaskWithIsFull = task.tasks.find(({ properties = {} }) => properties.isFull !== undefined)
-                task.isFull = get(() => subTaskWithIsFull.properties.isFull)
-              }
-            })
-        } else {
-          newLog.tasks.forEach(task => {
-            const type = get(() => task.data.type)
-            if (type !== 'VM' && type !== 'xo' && type !== 'pool') {
-              return
-            }
+          if (task.tasks !== undefined) {
+            const subTaskWithIsFull = task.tasks.find(({ data = {} }) => data.isFull !== undefined)
+            task.isFull = get(() => subTaskWithIsFull.data.isFull)
+          }
+        })
 
-            task.name =
-              type === 'VM'
-                ? get(() => vms[task.data.id].name_label)
-                : type === 'pool'
-                  ? get(() => pools[task.data.id].name_label)
-                  : 'xo'
-
-            if (task.tasks !== undefined) {
-              const subTaskWithIsFull = task.tasks.find(({ data = {} }) => data.isFull !== undefined)
-              task.isFull = get(() => subTaskWithIsFull.data.isFull)
-            }
-          })
-        }
         return newLog
       },
       preFilteredTasksLogs: ({ log, filter }) => {
         try {
-          if (log.isXoTask) {
-            return log.tasks[0].tasks.filter(CM.parse(filter).createPredicate())
-          } else {
-            return log.tasks.filter(CM.parse(filter).createPredicate())
-          }
+          return log.tasks.filter(CM.parse(filter).createPredicate())
         } catch (_) {
           return []
         }
@@ -623,9 +580,7 @@ export default decorate([
   }),
   injectState,
   ({ state, effects }) => {
-    const { scheduleId, isXoTask, tasks = [] } = state.log
-    const infos = isXoTask ? state.log.tasks[0].infos : state.log.infos
-    const warnings = isXoTask ? state.log.tasks[0].warnings : state.log.warnings
+    const { scheduleId, warnings, infos, tasks = [] } = state.log
     return tasks.length === 0 ? (
       <div>
         <TaskWarnings warnings={warnings} />
@@ -660,18 +615,17 @@ export default decorate([
                 className='list-group-item'
                 key={taskLog.id}
                 restartVmJob={scheduleId && effects.restartVmJob}
-                isXoTask={isXoTask}
                 task={taskLog}
               >
                 <ul>
                   {map(taskLog.tasks, subTaskLog => (
-                    <TaskLi key={subTaskLog.id} task={subTaskLog} isXoTask={isXoTask}>
+                    <TaskLi key={subTaskLog.id} task={subTaskLog}>
                       <ul>
                         {map(subTaskLog.tasks, subSubTaskLog => (
-                          <TaskLi task={subSubTaskLog} key={subSubTaskLog.id} isXoTask={isXoTask}>
+                          <TaskLi task={subSubTaskLog} key={subSubTaskLog.id}>
                             <ul>
                               {map(subSubTaskLog.tasks, subSubSubTaskLog => (
-                                <TaskLi task={subSubSubTaskLog} key={subSubSubTaskLog.id} isXoTask={isXoTask} />
+                                <TaskLi task={subSubSubTaskLog} key={subSubSubTaskLog.id} />
                               ))}
                             </ul>
                           </TaskLi>
