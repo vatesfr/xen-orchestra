@@ -23,6 +23,9 @@
 - [Dashboard] Fix reactivity of dashboard (PR [#9378](https://github.com/vatesfr/xen-orchestra/pull/9378))
 - [OpenMetrics] Fix latency metrics (`xcp_host_disk_read_latency_seconds`, `xcp_host_disk_write_latency_seconds`, `xcp_vm_disk_read_latency_seconds`, `xcp_vm_disk_write_latency_seconds`) reporting milliseconds instead of seconds (PR [#9550](https://github.com/vatesfr/xen-orchestra/pull/9550))
 
+- **XO 5**:
+  - [Self Service] Fix RAM usage not being properly updated in some cases. Please use "Recompute all limits" in the Self Service dashboard to fix any incorrect quota values introduced by this bug.
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -41,6 +44,7 @@
 
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- xo-server patch
 - xo-server-openmetrics minor
 
 <!--packages-end-->
