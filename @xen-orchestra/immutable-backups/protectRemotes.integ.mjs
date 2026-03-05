@@ -243,6 +243,36 @@ describe('protectRemotes/watchRemote', async () => {
     }
   })
 
+  it('detects a new VM directory created after the watcher starts', async () => {
+    // Start with NO pre-existing VM directories.
+    // The watcher must dynamically pick up xo-vm-backups/<UUID>/ created
+    // after it is already running — this is the core of the cascading design.
+    const { root, close } = await makeRemote([])
+    try {
+      const newVmUuid = 'eeeeeeee-0000-0000-0000-000000000099'
+      const vmDir = path.join(root, 'xo-vm-backups', newVmUuid)
+
+      // Create the VM directory and write backup files AFTER the watcher is running.
+      await fs.mkdir(vmDir, { recursive: true })
+
+      // xva must be written before json (json is the terminal signal).
+      const xvaFile = path.join(vmDir, `${BACKUP_DATE}.xva`)
+      const jsonFile = path.join(vmDir, `${BACKUP_DATE}.json`)
+      await fs.writeFile(xvaFile, 'fake xva data')
+      await fs.writeFile(jsonFile, '{}')
+
+      await waitFor(() => File.isImmutable(jsonFile))
+      await waitFor(() => File.isImmutable(xvaFile))
+
+      assert.strictEqual(await File.isImmutable(jsonFile), true, '.json in new VM dir should be immutable')
+      assert.strictEqual(await File.isImmutable(xvaFile), true, '.xva in new VM dir should be immutable')
+      await assert.rejects(fs.writeFile(jsonFile, 'tampered'), { code: 'EPERM' })
+    } finally {
+      await close()
+      await cleanupRoot(root)
+    }
+  })
+
   it('re-indexes already-immutable files on startup when rebuildIndexOnStart is true', async () => {
     const root = await fs.mkdtemp(path.join(tmpdir(), 'immut-test-'))
     const indexPath = path.join(root, '.index')
