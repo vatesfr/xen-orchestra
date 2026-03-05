@@ -476,6 +476,7 @@
   "multi-creation": "Mehrfach-Erstellung",
   "multi-pathing": "Multi-Pathing",
   "n-cpus": "1 CPU | {n} CPUs",
+  "n-gb": "{n} GB",
   "n-gb-left": "{n} GB frei",
   "n-gb-required": "{n} GB benötigt",
   "n-hosts": "1 Host | {n} Hosts",
