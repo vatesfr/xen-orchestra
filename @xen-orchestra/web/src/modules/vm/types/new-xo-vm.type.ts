@@ -1,4 +1,6 @@
-import type { XoHost, XoNetwork, XoPool, XoSr, XoVdi, XoVif, XoVmTemplate } from '@vates/types'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
+import type { XoHost, XoNetwork, XoSr, XoVdi, XoVif } from '@vates/types'
 
 export interface Vdi {
   id?: XoVdi['id']
@@ -23,7 +25,7 @@ export interface VifToSend {
   destroy?: boolean
 }
 
-export type InstallMode = 'no-config' | 'ssh-key' | 'custom_config' | 'cdrom' | 'network' | undefined
+export type InstallMode = 'no-config' | 'ssh-key' | 'cloud-init-config' | 'cdrom' | 'network' | undefined
 
 export interface VmState {
   affinity_host?: XoHost['id']
@@ -32,13 +34,13 @@ export interface VmState {
   bootFirmware: string
   boot_vm: boolean
   clone: boolean
-  cloudConfig?: string
+  cloudConfig: string
   copyHostBiosStrings: boolean
   isDiskTemplateSelected: boolean
-  networkConfig?: string
+  networkConfig: string
   vifs: Vif[]
-  new_vm_template: XoVmTemplate | undefined
-  pool: XoPool | undefined
+  new_vm_template: FrontXoVmTemplate | undefined
+  pool: FrontXoPool | undefined
   ram: number
   selectedVdi: XoVdi['id'] | undefined
   sshKeys: string[]
@@ -52,4 +54,5 @@ export interface VmState {
   existingVdis: Vdi[]
   name: string
   createVtpm?: boolean
+  secureBoot: boolean
 }

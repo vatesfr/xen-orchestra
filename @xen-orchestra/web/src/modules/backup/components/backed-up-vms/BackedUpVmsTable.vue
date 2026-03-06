@@ -24,7 +24,9 @@
 
 <script setup lang="ts">
 import { useXoBackedUpVmsUtils } from '@/modules/backup/composables/xo-backed-up-vms-utils.composable.ts'
+import type { FrontXoVmBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import { useXoVmBackupArchiveCollection } from '@/modules/vm/remote-resources/use-xo-vm-backup-archive-collection.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { extractIdsFromSimplePattern } from '@/shared/utils/pattern.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -39,13 +41,13 @@ import { useLinkColumn } from '@core/tables/column-definitions/link-column'
 import { useNumberColumn } from '@core/tables/column-definitions/number-column'
 import { renderLoadingCell } from '@core/tables/helpers/render-loading-cell'
 import { formatSizeRaw } from '@core/utils/size.util'
-import { type XoVm, type XoVmBackupJob, type XoBackupRepository } from '@vates/types'
+import { type XoBackupRepository } from '@vates/types'
 import { toLower } from 'lodash-es'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { backupJob, busy, error } = defineProps<{
-  backupJob: XoVmBackupJob
+  backupJob: FrontXoVmBackupJob
   busy?: boolean
   error?: boolean
 }>()
@@ -86,7 +88,7 @@ const state = useTableState({
         : false,
 })
 
-const getDiskSize = (vm: XoVm) =>
+const getDiskSize = (vm: FrontXoVm) =>
   formatSizeRaw(
     backupArchives.value
       .filter(archive => archive.vm.uuid === vm.id)
@@ -106,7 +108,7 @@ const useBackedUpVmColumns = defineColumns(() => {
 })
 
 const { HeadCells, BodyCells } = useBackedUpVmColumns({
-  body: (vm: XoVm) => {
+  body: (vm: FrontXoVm) => {
     const diskSize = computed(() => getDiskSize(vm))
 
     return {

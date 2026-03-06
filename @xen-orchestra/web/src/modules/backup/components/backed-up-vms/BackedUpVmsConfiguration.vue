@@ -35,7 +35,7 @@
               :key="pool.id"
               size="small"
               icon="object:pool"
-              :to="`/pool/${pool.id}/dashboard`"
+              :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }"
             >
               {{ pool.name_label }}
             </UiLink>
@@ -59,7 +59,7 @@
               :key="pool.id"
               size="small"
               icon="object:pool"
-              :to="`/pool/${pool.id}/dashboard`"
+              :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }"
             >
               {{ pool.name_label }}
             </UiLink>
@@ -78,6 +78,7 @@
 
 <script lang="ts" setup>
 import { useXoBackedUpVmsUtils } from '@/modules/backup/composables/xo-backed-up-vms-utils.composable.ts'
+import type { FrontXoVmBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -88,12 +89,11 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import type { XoVmBackupJob } from '@vates/types'
 import { toLower } from 'lodash-es'
 import { useI18n } from 'vue-i18n'
 
 const { backupJob } = defineProps<{
-  backupJob: XoVmBackupJob
+  backupJob: FrontXoVmBackupJob
 }>()
 
 const { t } = useI18n()

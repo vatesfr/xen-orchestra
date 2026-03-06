@@ -10,21 +10,23 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VmStartOnHostState from '@/modules/vm/components/actions/start/VmStartOnHostState.vue'
 import { useXoVmStartOnJob } from '@/modules/vm/jobs/xo-vm-start-on.job.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { VM_POWER_STATE, type XoHost, type XoVm } from '@vates/types'
+
+import { VM_POWER_STATE } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{
-  vm: XoVm
+  vm: FrontXoVm
 }>()
 
 const { t } = useI18n()
-const selectedHost = ref<XoHost | undefined>()
+const selectedHost = ref<FrontXoHost | undefined>()
 
 const { hostsByPool } = useXoHostCollection()
 const { useGetPoolById } = useXoPoolCollection()
@@ -46,7 +48,7 @@ const canRunVmOnHost = computed(() => {
   return vm.power_state === VM_POWER_STATE.HALTED
 })
 
-function startOn(host: XoHost) {
+function startOn(host: FrontXoHost) {
   selectedHost.value = host
   run()
 }

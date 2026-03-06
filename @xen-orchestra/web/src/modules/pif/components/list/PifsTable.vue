@@ -29,8 +29,8 @@
 
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import { getPoolNetworkLink } from '@/modules/network/utils/xo-network.util.ts'
-import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
+import { useXoPifCollection, type FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { getPifStatus } from '@/modules/pif/utils/xo-pif.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -42,13 +42,13 @@ import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { usePifColumns } from '@core/tables/column-sets/pif-columns.ts'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
-import type { IP_CONFIGURATION_MODE, XoPif } from '@vates/types'
+import type { IP_CONFIGURATION_MODE } from '@vates/types'
 import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { pifs: rawPifs } = defineProps<{
-  pifs: XoPif[]
+  pifs: FrontXoPif[]
 }>()
 
 defineSlots<{
@@ -82,7 +82,7 @@ const state = useTableState({
 
 const getVlanData = (vlan: number) => (vlan !== -1 ? vlan : t('none'))
 
-const getIpAddresses = (pif: XoPif) => [pif.ip, ...pif.ipv6].filter(ip => ip)
+const getIpAddresses = (pif: FrontXoPif) => [pif.ip, ...pif.ipv6].filter(ip => ip)
 
 const getIpConfigurationMode = (ipMode: IP_CONFIGURATION_MODE) => {
   switch (ipMode) {
@@ -97,7 +97,7 @@ const getIpConfigurationMode = (ipMode: IP_CONFIGURATION_MODE) => {
 
 const { pageRecords: paginatedPifs, paginationBindings } = usePagination('pifs', filteredPifs)
 
-function getManagementIcon(pif: XoPif) {
+function getManagementIcon(pif: FrontXoPif) {
   if (!pif.management) {
     return undefined
   }
@@ -109,7 +109,7 @@ function getManagementIcon(pif: XoPif) {
 }
 
 const { HeadCells, BodyCells } = usePifColumns({
-  body: (pif: XoPif) => {
+  body: (pif: FrontXoPif) => {
     const status = computed(() => getPifStatus(pif))
     const vlan = computed(() => getVlanData(pif.vlan))
     const ip = computed(() => getIpAddresses(pif))
@@ -117,14 +117,17 @@ const { HeadCells, BodyCells } = usePifColumns({
     const rightIcon = computed(() => getManagementIcon(pif))
 
     const network = useGetNetworkById(() => pif.$network)
-    const poolNetworkLink = computed(() => getPoolNetworkLink(network.value))
+
+    const poolNetworkRoute = computed(() =>
+      network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
+    )
 
     return {
       network: r =>
         network.value
           ? r({
               label: network.value.name_label,
-              to: poolNetworkLink.value,
+              to: poolNetworkRoute.value,
               icon: 'object:network',
             })
           : renderBodyCell(),

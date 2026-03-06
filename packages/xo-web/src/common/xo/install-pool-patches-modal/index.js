@@ -113,6 +113,15 @@ export default class InstallPoolPatchesModalBody extends Component {
             </Col>
           </SingleLineRow>
         )}
+        <SingleLineRow className='mt-1 text-warning'>
+          <Col>
+            {_('installAllPatchesXostorWarning')}
+            <br />
+            <a target='_blank' rel='noreferrer' href='https://docs.xcp-ng.org/management/updates/#xostor-support'>
+              https://docs.xcp-ng.org/management/updates/#xostor-support
+            </a>
+          </Col>
+        </SingleLineRow>
       </Container>
     )
   }

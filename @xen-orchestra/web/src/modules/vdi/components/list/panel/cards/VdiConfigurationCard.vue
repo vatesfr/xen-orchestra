@@ -47,6 +47,7 @@
 
 <script setup lang="ts">
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { getVdiFormat } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
@@ -55,12 +56,11 @@ import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import type { XoVdi } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vdi } = defineProps<{
-  vdi: XoVdi
+  vdi: FrontXoVdi
 }>()
 
 const { t } = useI18n()

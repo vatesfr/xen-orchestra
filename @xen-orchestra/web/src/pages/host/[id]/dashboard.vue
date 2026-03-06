@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard" :class="{ mobile: isMobile }">
+  <div class="dashboard" :class="{ mobile: uiStore.isSmall }">
     <HostDashboardQuickInfo class="quick-info" :host />
     <div v-if="!isHostRunning" class="offline-hero-container">
       <VtsStateHero format="page" type="offline" size="large" horizontal>
@@ -46,16 +46,17 @@ import HostDashboardRamProvisioning from '@/modules/host/components/dashboard/Ho
 import HostDashboardRamUsageChart from '@/modules/host/components/dashboard/HostDashboardRamUsageChart.vue'
 import HostDashboardVmsStatus from '@/modules/host/components/dashboard/HostDashboardVmsStatus.vue'
 import { useXoHostAlarmsCollection } from '@/modules/host/remote-resources/use-xo-host-alarms-collection.ts'
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useFetchStats } from '@/shared/composables/fetch-stats.composable.ts'
 import { GRANULARITY } from '@/shared/utils/rest-api-stats.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { HOST_POWER_STATE, type XoHost } from '@vates/types'
+import { HOST_POWER_STATE } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
-  host: XoHost
+  host: FrontXoHost
 }>()
 
 const { t } = useI18n()
@@ -66,7 +67,7 @@ const { hostAlarms, areHostAlarmsReady, hasHostAlarmFetchError } = useXoHostAlar
 
 const isHostRunning = computed(() => host.power_state === HOST_POWER_STATE.RUNNING)
 
-const { isMobile } = useUiStore()
+const uiStore = useUiStore()
 </script>
 
 <style lang="postcss" scoped>
@@ -81,22 +82,6 @@ const { isMobile } = useUiStore()
     'vms-status vms-status cpu-provisioning cpu-provisioning cpu-provisioning ram-provisioning ram-provisioning ram-provisioning'
     'cpu-usage-chart cpu-usage-chart ram-usage-chart ram-usage-chart network-usage-chart network-usage-chart load-average-chart load-average-chart'
     'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
-
-  &.mobile {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      'quick-info'
-      'alarms'
-      'patches'
-      'vms-status'
-      'cpu-provisioning'
-      'ram-provisioning'
-      'cpu-usage-chart'
-      'ram-usage-chart'
-      'network-usage-chart'
-      'load-average-chart'
-      'offline-hero-container';
-  }
 
   .quick-info {
     grid-area: quick-info;
@@ -152,6 +137,12 @@ const { isMobile } = useUiStore()
     flex-direction: column;
     gap: 1.4rem;
     color: var(--color-neutral-txt-secondary);
+  }
+
+  &.mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
   }
 }
 </style>

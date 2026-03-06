@@ -20,17 +20,18 @@
 
 <script lang="ts" setup>
 import BackupJobTargetsSection from '@/modules/backup/components/panel/card-items/BackupJobTargetsSection.vue'
+import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-br-collection.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
-import type { XoSr, XoBackupRepository } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { storageRepositoryTargets, backupRepositoryTargets } = defineProps<{
-  storageRepositoryTargets: XoSr[]
-  backupRepositoryTargets: XoBackupRepository[]
+  storageRepositoryTargets: FrontXoSr[]
+  backupRepositoryTargets: FrontXoBackupRepository[]
 }>()
 
 const { t } = useI18n()

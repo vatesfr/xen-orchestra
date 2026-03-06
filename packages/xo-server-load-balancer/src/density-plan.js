@@ -1,4 +1,4 @@
-import { clone, filter, map as mapToArray } from 'lodash'
+import { clone, filter } from 'lodash'
 
 import Plan from './plan'
 import { debug as debugP } from './utils'
@@ -206,23 +206,14 @@ export default class DensityPlan extends Plan {
   // Migrate the VMs of one host.
   // Try to shutdown the VMs host.
   async _migrate(srcHost, moves) {
-    const xapiSrc = this.xo.getXapi(srcHost.id)
-
     const fmtSrcHost = `${srcHost.id} "${srcHost.name_label}"`
+    const xapiSrc = this.xo.getXapi(srcHost.id)
     await Promise.all(
-      mapToArray(moves, move => {
-        const { vm, destination } = move
-        const xapiDest = this.xo.getXapi(destination)
+      moves.map(({ vm, destination }) => {
         debug(
           `Migrate VM (${vm.id} "${vm.name_label}") to Host (${destination.id} "${destination.name_label}") from Host (${fmtSrcHost}).`
         )
-        return this._concurrentMigrationLimiter.call(
-          xapiDest,
-          'migrateVm',
-          vm._xapiId,
-          this.xo.getXapi(destination),
-          destination._xapiId
-        )
+        return this._migrateVm(vm, xapiSrc, this.xo.getXapi(destination), destination._xapiId)
       })
     )
 

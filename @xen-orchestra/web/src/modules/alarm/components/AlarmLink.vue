@@ -7,13 +7,19 @@
 </template>
 
 <script setup lang="ts" generic="TRecord extends XapiXoRecord">
-import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { useXoVmControllerCollection } from '@/modules/vm/remote-resources/use-xo-vm-controller-collection.ts'
+import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import {
+  useXoSrCollection,
+  type FrontXoSr,
+} from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { useXoVmCollection, type FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import {
+  useXoVmControllerCollection,
+  type FrontXoVmController,
+} from '@/modules/vm/remote-resources/use-xo-vm-controller-collection.ts'
 import type { IconName } from '@core/icons'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import type { XapiXoRecord, XoHost, XoSr, XoVm, XoVmController } from '@vates/types'
+import type { XapiXoRecord } from '@vates/types'
 import { computed } from 'vue'
 
 const { type, uuid } = defineProps<{
@@ -29,13 +35,13 @@ const { getSrById } = useXoSrCollection()
 const record = computed(() => {
   switch (type) {
     case 'VM':
-      return getVmById(uuid as XoVm['id'])
+      return getVmById(uuid as FrontXoVm['id'])
     case 'host':
-      return getHostById(uuid as XoHost['id'])
+      return getHostById(uuid as FrontXoHost['id'])
     case 'VM-controller':
-      return getVmControllerById(uuid as XoVmController['id'])
+      return getVmControllerById(uuid as FrontXoVmController['id'])
     case 'SR':
-      return getSrById(uuid as XoSr['id'])
+      return getSrById(uuid as FrontXoSr['id'])
     default:
       return undefined
   }
@@ -63,7 +69,7 @@ const route = computed(() => {
   }
 
   if (type === 'VM-controller') {
-    return `/host/${(record.value as XoVmController).$container}`
+    return `/host/${(record.value as FrontXoVmController).$container}`
   }
 
   return `/${type}/${uuid}`

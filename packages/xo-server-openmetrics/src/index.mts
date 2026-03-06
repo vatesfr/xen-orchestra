@@ -6,12 +6,26 @@
  * RRD data directly from connected XAPI pools.
  */
 
-import type { XoApp, XoHost, XoNetwork, XoPif, XoPool, XoSr, XoVbd, XoVdi, XoVif, XoVm } from '@vates/types'
+import type {
+  XoApp,
+  XoHost,
+  XoNetwork,
+  XoPif,
+  XoPool,
+  XoSr,
+  XoVbd,
+  XoVdi,
+  XoVif,
+  XoVm,
+  XoVmController,
+} from '@vates/types'
 import { createLogger } from '@xen-orchestra/log'
 import { fork, type ChildProcess } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { getRandomValues } from 'node:crypto'
+import { performance } from 'node:perf_hooks'
+import v8 from 'node:v8'
 
 // ============================================================================
 // Types
@@ -52,6 +66,7 @@ interface HostCredentials {
 // Label lookup types for enriching metrics with human-readable names
 export interface VmLabelInfo {
   name_label: string
+  is_control_domain: boolean
   vbdDeviceToVdiName: Record<string, string> // { "xvda": "System Disk" }
   vbdDeviceToVdiUuid: Record<string, XoVdi['uuid']> // { "xvda": "vdi-uuid-123" }
   vifIndexToNetworkName: Record<string, string> // { "0": "Pool-wide network" }
@@ -60,6 +75,7 @@ export interface VmLabelInfo {
 export interface HostLabelInfo {
   name_label: string
   pifDeviceToNetworkName: Record<string, string> // { "eth0": "Management" }
+  startTime: number | null // Unix timestamp of host boot (from host.startTime)
 }
 
 export interface SrLabelInfo {
@@ -67,7 +83,7 @@ export interface SrLabelInfo {
 }
 
 export interface LabelLookupData {
-  vms: Record<XoVm['uuid'], VmLabelInfo>
+  vms: Record<XoVm['uuid'] | XoVmController['uuid'], VmLabelInfo>
   hosts: Record<XoHost['uuid'], HostLabelInfo>
   srs: Record<XoSr['uuid'], SrLabelInfo>
   srSuffixToUuid: Record<string, XoSr['uuid']> // maps UUID suffix to full SR UUID
@@ -86,12 +102,53 @@ export type SrDataItem = Pick<XoSr, 'uuid' | 'name_label' | 'size' | 'physical_u
   host_name?: string
 }
 
+export interface XoMetricsData {
+  pendingTaskCount: number
+  poolCount: number
+  hostCount: number
+  vmCount: number
+  srCountByContentType: Record<string, number>
+  userCount: number
+  groupCount: number
+  socketCount: number
+  hostCountByVersion: Array<{ productBrand: string; version: string; count: number }>
+  hostCountByLicense: Array<{ skuType: string; count: number }>
+  backupJobStats: Array<{
+    type: string
+    jobCount: number
+  }>
+  nodeProcess: {
+    eluMean: number
+    eluP99: number
+    eluMax: number
+    memoryRssBytes: number
+    memoryHeapUsedBytes: number
+    memoryHeapTotalBytes: number
+    memoryExternalBytes: number
+    memoryArrayBuffersBytes: number
+    heapSizeLimitBytes: number
+    heapAvailableBytes: number
+    detachedContexts: number
+    cpuUserSeconds: number
+    cpuSystemSeconds: number
+  }
+}
+
 interface SrDataPayload {
   srs: SrDataItem[]
 }
 
+export type HostStatusItem = Pick<XoHost, 'uuid' | 'name_label' | 'power_state' | 'enabled'> & {
+  pool_id: string
+  pool_name: string
+}
+
+interface HostStatusPayload {
+  hosts: HostStatusItem[]
+}
+
 // Union type for all XO objects we handle
-type XoObject = XoHost | XoPool | XoVm | XoVbd | XoVdi | XoVif | XoPif | XoSr | XoNetwork
+type XoObject = XoHost | XoPool | XoVm | XoVmController | XoVbd | XoVdi | XoVif | XoPif | XoSr | XoNetwork
 
 // ============================================================================
 // Constants
@@ -106,7 +163,7 @@ const logger = createLogger('xo:xo-server-openmetrics')
 const DEFAULT_PORT = 9004
 
 /** Default bind address for the OpenMetrics HTTP server */
-const DEFAULT_BIND_ADDRESS = '127.0.0.1'
+const DEFAULT_BIND_ADDRESS = 'localhost'
 
 /** Default timeout for IPC operations in milliseconds */
 const IPC_TIMEOUT_MS = 10_000
@@ -142,9 +199,40 @@ class OpenMetricsPlugin {
   #requestIdCounter = 0
   readonly #xo: XoApp
 
+  // ELU sampling state
+  #eluSamples: number[] = []
+  #lastEluSnapshot = performance.eventLoopUtilization()
+  #lastCpuUsage = process.cpuUsage()
+  #eluSamplerInterval: ReturnType<typeof setInterval> | undefined
+
   constructor(xo: XoApp) {
     this.#xo = xo
     logger.info('Plugin initialized')
+  }
+
+  #startEluSampler(): void {
+    const MAX_SAMPLE = 60
+    this.#lastEluSnapshot = performance.eventLoopUtilization()
+    this.#lastCpuUsage = process.cpuUsage()
+    this.#eluSamples = []
+    this.#eluSamplerInterval = setInterval(() => {
+      const curr = performance.eventLoopUtilization()
+      const delta = performance.eventLoopUtilization(curr, this.#lastEluSnapshot)
+      this.#lastEluSnapshot = curr
+      this.#eluSamples.push(delta.utilization)
+      // ensure the sample size is bound
+      while (this.#eluSamples.length > MAX_SAMPLE) {
+        this.#eluSamples.shift()
+      }
+    }, 1000)
+    this.#eluSamplerInterval.unref()
+  }
+
+  #stopEluSampler(): void {
+    if (this.#eluSamplerInterval !== undefined) {
+      clearInterval(this.#eluSamplerInterval)
+      this.#eluSamplerInterval = undefined
+    }
   }
 
   /**
@@ -178,6 +266,7 @@ class OpenMetricsPlugin {
       bindAddress: serverConfig.bindAddress,
     })
 
+    this.#startEluSampler()
     await this.#startChildProcess(serverConfig)
   }
 
@@ -186,6 +275,8 @@ class OpenMetricsPlugin {
    * Gracefully shuts down the child process.
    */
   async unload(): Promise<void> {
+    this.#stopEluSampler()
+
     if (this.#childProcess === undefined) {
       return
     }
@@ -307,6 +398,64 @@ class OpenMetricsPlugin {
           requestId: message.requestId,
           payload: srData,
         })
+        break
+      }
+
+      case 'GET_HOST_STATUS': {
+        const hostStatus = this.#getHostStatusData()
+        this.#sendToChildNoWait({
+          type: 'HOST_STATUS',
+          requestId: message.requestId,
+          payload: hostStatus,
+        })
+        break
+      }
+
+      case 'GET_XO_METRICS': {
+        this.#getXoMetrics()
+          .then((xoMetrics: XoMetricsData) => {
+            this.#sendToChildNoWait({
+              type: 'XO_METRICS',
+              requestId: message.requestId,
+              payload: xoMetrics,
+            })
+          })
+          .catch((err: unknown) => {
+            logger.error('Failed to collect XO metrics', { error: err })
+            const emptyMetrics: XoMetricsData = {
+              pendingTaskCount: 0,
+              poolCount: 0,
+              hostCount: 0,
+              vmCount: 0,
+              srCountByContentType: {},
+              userCount: 0,
+              groupCount: 0,
+              socketCount: 0,
+              hostCountByVersion: [],
+              hostCountByLicense: [],
+              backupJobStats: [],
+              nodeProcess: {
+                eluMean: 0,
+                eluP99: 0,
+                eluMax: 0,
+                memoryRssBytes: 0,
+                memoryHeapUsedBytes: 0,
+                memoryHeapTotalBytes: 0,
+                memoryExternalBytes: 0,
+                memoryArrayBuffersBytes: 0,
+                heapSizeLimitBytes: 0,
+                heapAvailableBytes: 0,
+                detachedContexts: 0,
+                cpuUserSeconds: 0,
+                cpuSystemSeconds: 0,
+              },
+            }
+            this.#sendToChildNoWait({
+              type: 'XO_METRICS',
+              requestId: message.requestId,
+              payload: emptyMetrics,
+            })
+          })
         break
       }
 
@@ -437,6 +586,174 @@ class OpenMetricsPlugin {
   }
 
   /**
+   * Get host status data for all hosts.
+   * Returns power_state and enabled for every host, including non-running ones.
+   */
+  #getHostStatusData(): HostStatusPayload {
+    const hosts: HostStatusItem[] = []
+
+    const allPools = this.#xo.getObjects({ filter: { type: 'pool' } }) as Record<string, XoPool>
+    const poolLabelMap = new Map<string, string>()
+    for (const pool of Object.values(allPools)) {
+      poolLabelMap.set(pool.uuid, pool.name_label)
+    }
+
+    const allHosts = this.#xo.getObjects({ filter: { type: 'host' } }) as Record<string, XoHost>
+
+    for (const host of Object.values(allHosts)) {
+      hosts.push({
+        uuid: host.uuid,
+        name_label: host.name_label,
+        power_state: host.power_state,
+        enabled: host.enabled,
+        pool_id: host.$poolId,
+        pool_name: poolLabelMap.get(host.$poolId) ?? '',
+      })
+    }
+
+    logger.debug('Returning host status data', { hostCount: hosts.length })
+    return { hosts }
+  }
+
+  /**
+   * Collect XO management plane metrics.
+   * Gathers counts and stats from XO objects and XO APIs.
+   */
+  async #getXoMetrics(): Promise<XoMetricsData> {
+    const allObjects = this.#xo.getObjects() as Record<string, XoObject>
+
+    let poolCount = 0
+    let hostCount = 0
+    let vmCount = 0
+    let socketCount = 0
+    let pendingTask = 0
+    for await (const _taskLog of this.#xo.tasks.list({ filter: _ => _.status === 'pending' })) {
+      pendingTask++
+    }
+    const srCountByContentType: Record<string, number> = {}
+    const hostVersionMap = new Map<string, number>()
+    const hostLicenseMap = new Map<string, number>()
+
+    for (const obj of Object.values(allObjects)) {
+      switch (obj.type) {
+        case 'pool':
+          poolCount++
+          break
+        case 'host': {
+          const host = obj as XoHost
+          hostCount++
+          socketCount += (host.cpus as { sockets?: number } | undefined)?.sockets ?? 0
+
+          const versionKey = `${host.productBrand ?? ''}::${host.version ?? ''}`
+          hostVersionMap.set(versionKey, (hostVersionMap.get(versionKey) ?? 0) + 1)
+
+          const skuType = (host.license_params as Record<string, string> | undefined)?.sku_type ?? '?'
+          hostLicenseMap.set(skuType, (hostLicenseMap.get(skuType) ?? 0) + 1)
+          break
+        }
+        case 'VM':
+          vmCount++
+          break
+        case 'SR': {
+          const contentType = (obj as unknown as Record<string, string>).content_type ?? 'unknown'
+          srCountByContentType[contentType] = (srCountByContentType[contentType] ?? 0) + 1
+          break
+        }
+      }
+    }
+
+    const hostCountByVersion = [...hostVersionMap.entries()].map(([key, count]) => {
+      const [productBrand = '', version = ''] = key.split('::')
+      return { productBrand, version, count }
+    })
+
+    const hostCountByLicense = [...hostLicenseMap.entries()].map(([skuType, count]) => ({ skuType, count }))
+
+    let userCount = 0
+    try {
+      const users = await this.#xo.getAllUsers()
+      userCount = users.length
+    } catch (err) {
+      logger.warn('Failed to get users for XO metrics', { error: err })
+    }
+
+    let groupCount = 0
+    try {
+      const groups = await this.#xo.getAllGroups()
+      groupCount = groups.length
+    } catch (err) {
+      logger.warn('Failed to get groups for XO metrics', { error: err })
+    }
+
+    const backupJobStats: XoMetricsData['backupJobStats'] = []
+    try {
+      const jobs = await this.#xo.getAllJobs()
+
+      const jobCountByKey = new Map<string, number>()
+      for (const job of jobs) {
+        const key = (job as Record<string, unknown>).key as string | undefined
+        if (key === undefined || key === 'genericTask') continue
+        jobCountByKey.set(key, (jobCountByKey.get(key) ?? 0) + 1)
+      }
+
+      for (const [type, jobCount] of jobCountByKey) {
+        backupJobStats.push({ type, jobCount })
+      }
+    } catch (err) {
+      logger.warn('Failed to get backup job stats for XO metrics', { error: err })
+    }
+
+    // Node.js process metrics
+    const samples = this.#eluSamples
+    this.#eluSamples = []
+    let eluMean = 0
+    let eluP99 = 0
+    let eluMax = 0
+    if (samples.length > 0) {
+      const sorted = [...samples].sort((a, b) => a - b)
+      eluMean = samples.reduce((sum, v) => sum + v, 0) / samples.length
+      eluMax = sorted[sorted.length - 1]!
+      eluP99 = sorted[Math.max(0, Math.ceil(0.99 * sorted.length) - 1)]!
+    }
+
+    const cpuDelta = process.cpuUsage(this.#lastCpuUsage)
+    this.#lastCpuUsage = process.cpuUsage()
+    const mem = process.memoryUsage()
+    const heapStats = v8.getHeapStatistics()
+
+    logger.debug('XO metrics collected', { poolCount, hostCount, vmCount, userCount, groupCount })
+
+    return {
+      pendingTaskCount: pendingTask,
+      poolCount,
+      hostCount,
+      vmCount,
+      srCountByContentType,
+      userCount,
+      groupCount,
+      socketCount,
+      hostCountByVersion,
+      hostCountByLicense,
+      backupJobStats,
+      nodeProcess: {
+        eluMean,
+        eluP99,
+        eluMax,
+        memoryRssBytes: mem.rss,
+        memoryHeapUsedBytes: mem.heapUsed,
+        memoryHeapTotalBytes: mem.heapTotal,
+        memoryExternalBytes: mem.external,
+        memoryArrayBuffersBytes: mem.arrayBuffers,
+        heapSizeLimitBytes: heapStats.heap_size_limit,
+        heapAvailableBytes: heapStats.total_available_size,
+        detachedContexts: heapStats.number_of_detached_contexts,
+        cpuUserSeconds: cpuDelta.user / 1_000_000,
+        cpuSystemSeconds: cpuDelta.system / 1_000_000,
+      },
+    }
+  }
+
+  /**
    * Get label lookup data for enriching metrics with human-readable names.
    * Gathers VM, Host, SR, VDI, VIF, PIF, and Network labels.
    */
@@ -452,7 +769,7 @@ class OpenMetricsPlugin {
     // Get all objects and categorize them by type in a single pass
     const allObjects = this.#xo.getObjects() as Record<XoObject['id'], XoObject>
 
-    const vms: XoVm[] = []
+    const vms: (XoVm | XoVmController)[] = []
     const hosts: XoHost[] = []
     const srs: XoSr[] = []
     const vbds: XoVbd[] = []
@@ -464,6 +781,7 @@ class OpenMetricsPlugin {
     for (const obj of Object.values(allObjects)) {
       switch (obj.type) {
         case 'VM':
+        case 'VM-controller':
           vms.push(obj)
           break
         case 'host':
@@ -530,7 +848,7 @@ class OpenMetricsPlugin {
     }
 
     // Build VIF map (VM id -> vif index -> network name)
-    const vifMap = new Map<XoVif['$VM'], Map<string, string>>()
+    const vifMap = new Map<XoVm['id'] | XoVmController['id'], Map<string, string>>()
     for (const vif of vifs) {
       // VIF device is the index (0, 1, 2...)
       if (vif.$VM === undefined) continue
@@ -584,6 +902,7 @@ class OpenMetricsPlugin {
 
       labels.vms[vm.uuid] = {
         name_label: vm.name_label,
+        is_control_domain: vm.type === 'VM-controller',
         vbdDeviceToVdiName,
         vbdDeviceToVdiUuid,
         vifIndexToNetworkName,
@@ -603,6 +922,7 @@ class OpenMetricsPlugin {
       labels.hosts[host.uuid] = {
         name_label: host.name_label,
         pifDeviceToNetworkName,
+        startTime: host.startTime,
       }
     }
 

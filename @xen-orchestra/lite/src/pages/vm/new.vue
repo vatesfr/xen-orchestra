@@ -1,5 +1,5 @@
 <template>
-  <div class="new-vm-view">
+  <div class="new-vm-view" :class="{ mobile: uiStore.isSmall }">
     <UiHeadBar icon="fa:plus">
       {{ t('new-vm:add') }}
     </UiHeadBar>
@@ -18,25 +18,33 @@
             <UiTitle>{{ t('install-settings') }}</UiTitle>
             <div>
               <div v-if="isDiskTemplate" class="install-settings-container">
-                <div class="radio-container">
+                <UiRadioButtonGroup
+                  accent="brand"
+                  :vertical="uiStore.isSmall"
+                  :gap="uiStore.isSmall ? 'narrow' : 'wide'"
+                >
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="noConfigDrive">
                     {{ t('no-config') }}
                   </UiRadioButton>
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="ISO">
                     {{ t('iso-dvd') }}
                   </UiRadioButton>
-                </div>
+                </UiRadioButtonGroup>
                 <VtsSelect v-if="vmState.installMode === 'ISO'" :id="vdiIsoSelectId" accent="brand" />
               </div>
               <div v-else class="install-settings-container">
-                <div class="radio-container">
+                <UiRadioButtonGroup
+                  accent="brand"
+                  :vertical="uiStore.isSmall"
+                  :gap="uiStore.isSmall ? 'narrow' : 'wide'"
+                >
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="ISO">
                     {{ t('iso-dvd') }}
                   </UiRadioButton>
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="PXE">
                     {{ t('pxe') }}
                   </UiRadioButton>
-                </div>
+                </UiRadioButtonGroup>
                 <VtsSelect v-if="vmState.installMode === 'ISO'" :id="vdiIsoSelectId" accent="brand" />
               </div>
             </div>
@@ -75,11 +83,14 @@
                     {{ t('action:copy-host') }}
                   </UiCheckbox>
                 </div>
-                <div v-else>
+                <UiCheckboxGroup v-else accent="brand" vertical>
                   <UiCheckbox v-model="vmState.create_vtpm" accent="brand">
                     {{ t('vtpm') }}
                   </UiCheckbox>
-                </div>
+                  <UiCheckbox v-model="secureBootFormated" accent="brand">
+                    {{ t('secure-boot') }}
+                  </UiCheckbox>
+                </UiCheckboxGroup>
               </div>
               <div class="column">
                 <UiTextarea v-model="vmState.description" accent="brand">
@@ -92,7 +103,7 @@
             </div>
             <!-- RESOURCE MANAGEMENT SECTION -->
             <UiTitle>{{ t('resource-management') }}</UiTitle>
-            <div class="memory-container">
+            <div class="resource-management-container">
               <VtsInputWrapper :label="t('vcpus')">
                 <UiInput v-model.number="vmState.vCPU" type="number" accent="brand" />
               </VtsInputWrapper>
@@ -121,7 +132,7 @@
             <NewVmSrTable :srs :vm-state @add="addStorageEntry()" @remove="index => deleteItem(vmState.vdis, index)" />
             <!-- SETTINGS SECTION -->
             <UiTitle>{{ t('settings') }}</UiTitle>
-            <UiCheckboxGroup accent="brand">
+            <UiCheckboxGroup accent="brand" :vertical="uiStore.isSmall">
               <UiCheckbox v-model="vmState.boot_vm" accent="brand">{{ t('action:boot-vm') }}</UiCheckbox>
               <UiCheckbox v-model="vmState.auto_power" accent="brand">{{ t('auto-power') }}</UiCheckbox>
               <UiCheckbox v-if="isDiskTemplate" v-model="vmState.fast_clone" accent="brand">
@@ -199,11 +210,13 @@ import UiChip from '@core/components/ui/chip/UiChip.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
+import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioButtonGroup.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useFormSelect } from '@core/packages/form-select'
+import { useUiStore } from '@core/stores/ui.store'
 
 // Vue imports
 import { type DOMAIN_TYPE, OPAQUE_REF, VBD_TYPE } from '@vates/types'
@@ -223,6 +236,7 @@ const { getByOpaqueRef: getVbdByOpaqueRef } = useVbdStore().subscribe()
 const { getByOpaqueRef: getVdiByOpaqueRef } = useVdiStore().subscribe()
 const { getByOpaqueRef: getVifByOpaqueRef } = useVifStore().subscribe()
 const { getByOpaqueRef: getPifByOpaqueRef } = usePifStore().subscribe()
+const uiStore = useUiStore()
 
 // i18n setup
 const { t } = useI18n()
@@ -245,6 +259,7 @@ const vmState = reactive<VmState>({
   boot_firmware: '',
   new_vm_template: undefined,
   boot_vm: true,
+  secureBoot: 'false',
   auto_power: false,
   fast_clone: true,
   ssh_key: '',
@@ -274,6 +289,20 @@ const ramFormatted = computed({
   },
   set(newValue) {
     vmState.ram = giBToBytes(newValue)
+  },
+})
+
+// TODO if vmState.secureBoot == 'auto' get the value of pool. actually is not available in pool.
+const secureBootFormated = computed({
+  get() {
+    if (vmState.boot_firmware !== 'uefi') {
+      return false
+    }
+    return vmState.secureBoot === 'true'
+  },
+
+  set(newValue) {
+    vmState.secureBoot = newValue ? 'true' : 'false'
   },
 })
 
@@ -502,6 +531,7 @@ const vmCreationParams = computed(() => ({
   name_label: vmState.name,
   template: vmState.new_vm_template?.$ref,
   vdis: vmState.vdis,
+  secureBoot: vmState.boot_firmware === 'uefi' ? vmState.secureBoot : 'false',
   vifs: vmState.networkInterfaces.map(net => ({
     network: net.interface,
     MAC: net.macAddress,
@@ -549,6 +579,10 @@ const _createVm = defer(async ($defer: Defer) => {
       vmCreationParams.value.copyHostBiosStrings
     ) {
       await xapi.call('VM.copy_bios_strings', [vmRefs, vmState.new_vm_template!.affinity ?? hostMasterRef])
+    }
+
+    if (vmCreationParams.value.hvmBootFirmware === 'uefi') {
+      await xapi.vm.setSecureBoot(vmRefs[0], vmCreationParams.value.secureBoot === 'true')
     }
 
     // Removes disks from the provision XML, we will create them by ourselves.
@@ -810,6 +844,7 @@ watch(
       vdis: getVdis(template),
       tags,
       topology: isNaN(topology) ? null : topology,
+      secureBoot: platform.secureboot,
       affinity_host: affinity,
       existingVdis: getExistingVdis(template),
       networkInterfaces: getExistingInterface(template),
@@ -902,7 +937,7 @@ watch(
 <style lang="postcss" scoped>
 .new-vm-view {
   .card-container {
-    margin: 1rem;
+    margin: 0.8rem;
   }
 
   .form-container {
@@ -913,24 +948,24 @@ watch(
     .template-container {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 0.4rem;
     }
 
     .system-container {
       display: flex;
-      gap: 10.8rem;
+      gap: 8rem;
 
       .column {
         display: flex;
         flex-direction: column;
-        gap: 2.5rem;
+        gap: 2.4rem;
         width: 40%;
       }
 
       .chips {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.5rem;
+        gap: 0.4rem;
         margin-block-end: 1rem;
       }
     }
@@ -939,20 +974,11 @@ watch(
       display: flex;
       flex-direction: column;
       gap: 2.4rem;
-
-      .radio-container {
-        display: flex;
-        gap: 15rem;
-      }
     }
 
-    .memory-container {
+    .resource-management-container {
       display: flex;
-      gap: 10.8rem;
-
-      .topology {
-        width: 32rem;
-      }
+      gap: 8rem;
     }
 
     thead tr th:last-child {
@@ -964,7 +990,19 @@ watch(
     margin-top: auto;
     display: flex;
     justify-content: center;
-    gap: 1.6rem;
+    gap: 2.4rem;
+  }
+
+  &.mobile {
+    .system-container .column {
+      width: 100%;
+    }
+
+    .system-container,
+    .resource-management-container {
+      flex-direction: column;
+      gap: 2.4rem;
+    }
   }
 }
 </style>

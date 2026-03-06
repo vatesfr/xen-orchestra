@@ -6,7 +6,7 @@ This page covers the immutability feature: what it is, why it’s important, and
 
 ## What Is Immutability?
 
-In backup systems, immutability means that once a backup is created, it cannot be altered or deleted for a set period. This safeguards your backups against ransomware attacks, accidental deletion, or data corruption. 
+In backup systems, immutability means that once a backup is created, it cannot be altered or deleted for a set period. This safeguards your backups against ransomware attacks, accidental deletion, or data corruption.
 
 Here’s how it works: You designate a storage repository that Xen Orchestra can write to, but cannot modify during the specified immutability period. Even if an attacker compromises XO, your backups remain untouched. The goal is to ensure that your backup data cannot be deleted, encrypted, or tampered with, unless someone with direct physical or root access to the storage intervenes.
 
@@ -21,6 +21,7 @@ Immutability offers two distinct approaches in data protection, to meet differen
 Immutability guarantees that your backups stay secure and verifiable over time. It acts as a critical defense against ransomware, human mistakes, or intentional tampering. Additionally, it helps organizations comply with legal requirements by ensuring that data remains unaltered for mandatory retention periods. In essence, immutability turns your backup storage into a write-once, read-many (WORM) archive, protecting your data when it matters most.
 
 ## Immutability Approaches
+
 There are two primary models for achieving immutability:
 
 ### Object Storage
@@ -46,7 +47,7 @@ npm install -g @xen-orchestra/immutable-backups
 
 ### 2. Configure the Immutability Settings
 
-Create a configuration file at `/etc/xo-immutable-remote/config.toml`, with the following structure:
+Create a configuration file at `/etc/xo-immutable-backups/config.toml`, with the following structure:
 
 ```toml
 [remotes.remote1]
@@ -62,15 +63,19 @@ immutabilityDuration = "7d"
 #### Optional Parameters
 
 For additional validation, you can enable:
+
 ```toml
 rebuildIndexOnStart = true
 ```
+
 This option scans and validates existing files when the service starts. It can be resource-intensive.
 
 ### 3. Start the Service
+
 Launch the `xo-immutable-remote` service and check its logs (use `systemd`, for example) to confirm it is running correctly. For persistent operation, configure it as a system service.
 
 ## How It Works
+
 Once active, any backups written by Xen Orchestra to this repository will be protected for the specified duration. Even if Xen Orchestra is compromised, the immutability configuration remains secure, as it is managed entirely on the backup host.
 
 ## Working With Immutable Backups
@@ -80,19 +85,23 @@ When setting up backup jobs in Xen Orchestra, select your configured immutable r
 ## Best Practices
 
 ### Define a Clear Immutability Policy
+
 Align the **lock duration** with your data retention strategy, compliance requirements, and disaster recovery goals. Make sure the policy reflects both legal obligations and operational needs.
 
 ### Secure Your Encryption Keys
-Store encryption keys **separately** from your backup data. 
+
+Store encryption keys **separately** from your backup data.
 
 :::warning
 Losing encryption keys will render backups **permanently unrecoverable**.
 :::
 
 ### Maintain Independence from Xen Orchestra
+
 The immutability enforcement mechanism **must** operate independently of Xen Orchestra. This ensures that even if an attacker compromises XO, they **cannot** delete or alter existing backups.
 
 ### Monitor Storage and Test Recovery
+
 - Track storage capacity closely, as immutability prevents immediate deletion of older backups.
 - Plan for additional space to accommodate protected backups over time.
 - Test recovery procedures regularly, to make sure immutability does not disrupt your ability to restore data when needed.

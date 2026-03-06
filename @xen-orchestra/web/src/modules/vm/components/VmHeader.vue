@@ -41,17 +41,17 @@
     </template>
   </UiHeadBar>
   <TabList>
-    <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/dashboard`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('dashboard') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/console`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vm/[id]/console', params: { id: vm.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('console') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/backups`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vm/[id]/backups', params: { id: vm.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('backups') }}
       </TabItem>
@@ -61,17 +61,17 @@
         {{ t('stats') }}
       </UiLink>
     </TabItem>
-    <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/system`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vm/[id]/system', params: { id: vm.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('system') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/networks`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vm/[id]/networks', params: { id: vm.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('network') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/vdis`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vm/[id]/vdis', params: { id: vm.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('vdis') }}
       </TabItem>
@@ -88,6 +88,7 @@
 import VmMoreActions from '@/modules/vm/components/actions/VmMoreActions.vue'
 import VmPowerStateActions from '@/modules/vm/components/actions/VmPowerStateActions.vue'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
@@ -98,12 +99,11 @@ import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButt
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import type { XoVm } from '@vates/types'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vm } = defineProps<{ vm: XoVm }>()
+const { vm } = defineProps<{ vm: FrontXoVm }>()
 
 const { t } = useI18n()
 

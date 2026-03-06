@@ -1,5 +1,5 @@
 <template>
-  <div class="backups" :class="{ mobile: uiStore.isMobile }">
+  <div class="backups" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
       <BackupJobsTable :backup-jobs :busy="!areBackupJobsReady" :error="hasBackupJobFetchError" />
     </UiCard>
@@ -8,7 +8,7 @@
       :backup-job="selectedBackupJob"
       @close="selectedBackupJob = undefined"
     />
-    <UiPanel v-else-if="!uiStore.isMobile">
+    <UiPanel v-else-if="!uiStore.isSmall">
       <VtsStateHero format="panel" type="no-selection" size="medium">
         {{ t('select-to-see-details') }}
       </VtsStateHero>
@@ -19,13 +19,15 @@
 <script setup lang="ts">
 import BackupJobsTable from '@/modules/backup/components/jobs/BackupJobsTable.vue'
 import BackupJobSidePanel from '@/modules/backup/components/jobs/panel/BackupJobSidePanel.vue'
-import { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
+import {
+  useXoBackupJobCollection,
+  type FrontAnyXoBackupJob,
+} from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useUiStore } from '@core/stores/ui.store'
-import type { AnyXoBackupJob } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const uiStore = useUiStore()
@@ -34,8 +36,8 @@ const { backupJobs, getBackupJobById, areBackupJobsReady, hasBackupJobFetchError
 
 const { t } = useI18n()
 
-const selectedBackupJob = useRouteQuery<AnyXoBackupJob | undefined>('id', {
-  toData: id => getBackupJobById(id as AnyXoBackupJob['id']),
+const selectedBackupJob = useRouteQuery<FrontAnyXoBackupJob | undefined>('id', {
+  toData: id => getBackupJobById(id as FrontAnyXoBackupJob['id']),
   toQuery: backupJob => backupJob?.id ?? '',
 })
 </script>

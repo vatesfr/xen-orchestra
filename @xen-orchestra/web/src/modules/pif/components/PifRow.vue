@@ -23,19 +23,19 @@
 
 <script setup lang="ts">
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { getPifStatus } from '@/modules/pif/utils/xo-pif.util.ts'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { type XoPif } from '@vates/types'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 const { pif } = defineProps<{
-  pif: XoPif
+  pif: FrontXoPif
 }>()
 
 const { t } = useI18n()

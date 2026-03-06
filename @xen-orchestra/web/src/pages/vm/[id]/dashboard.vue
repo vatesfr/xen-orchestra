@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard" :class="{ mobile: isMobile }">
+  <div class="dashboard" :class="{ mobile: uiStore.isSmall }">
     <VmDashboardQuickInfo class="quick-info" :vm />
     <div v-if="!isVmRunning" class="offline-hero-container">
       <VtsStateHero format="page" type="offline" size="large" horizontal>
@@ -14,6 +14,8 @@
       </VtsStateHero>
     </div>
     <template v-else>
+      <VmDashboardBackupRuns class="backup-runs" :vm-id="vm.id" :vm-dashboard :has-error />
+      <VmDashboardBackupArchives class="backup-archives" :vm-dashboard :has-error />
       <DashboardAlarms
         class="alarms"
         :alarms="vmAlarms"
@@ -32,31 +34,37 @@
 
 <script lang="ts" setup>
 import DashboardAlarms from '@/modules/alarm/components/DashboardAlarms.vue'
+import VmDashboardBackupArchives from '@/modules/vm/components/dashboard/VmDashboardBackupArchives.vue'
+import VmDashboardBackupRuns from '@/modules/vm/components/dashboard/VmDashboardBackupRuns.vue'
 import VmDashboardCpuUsageChart from '@/modules/vm/components/dashboard/VmDashboardCpuUsageChart.vue'
 import VmDashboardNetworkUsageChart from '@/modules/vm/components/dashboard/VmDashboardNetworkUsageChart.vue'
 import VmDashboardQuickInfo from '@/modules/vm/components/dashboard/VmDashboardQuickInfo.vue'
 import VmDashboardRamUsageChart from '@/modules/vm/components/dashboard/VmDashboardRamUsageChart.vue'
 import VmDashboardVdiUsageChart from '@/modules/vm/components/dashboard/VmDashboardVdiUsageChart.vue'
 import { useXoVmAlarmsCollection } from '@/modules/vm/remote-resources/use-xo-vm-alarms-collection.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { useXoVmDashboard } from '@/modules/vm/remote-resources/use-xo-vm-dashboard'
 import { useFetchStats } from '@/shared/composables/fetch-stats.composable.ts'
 import { GRANULARITY } from '@/shared/utils/rest-api-stats.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { VM_POWER_STATE, type XoVm } from '@vates/types'
+import { VM_POWER_STATE } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{
-  vm: XoVm
+  vm: FrontXoVm
 }>()
 
 const { data, isFetching, error } = useFetchStats('vm', () => vm.id, GRANULARITY.Hours)
+
+const { vmDashboard, hasError } = useXoVmDashboard({}, () => vm.id)
 
 const { vmAlarms, areVmAlarmsReady, hasVmAlarmFetchError } = useXoVmAlarmsCollection({}, () => vm.id)
 
 const isVmRunning = computed(() => vm.power_state === VM_POWER_STATE.RUNNING)
 
-const { isMobile } = useUiStore()
+const uiStore = useUiStore()
 
 const { t } = useI18n()
 </script>
@@ -69,21 +77,10 @@ const { t } = useI18n()
   grid-template-columns: repeat(8, 1fr);
   grid-template-areas:
     'quick-info quick-info quick-info quick-info quick-info quick-info quick-info quick-info'
+    'backup-runs backup-runs backup-runs backup-runs backup-archives backup-archives backup-archives backup-archives'
     'alarms alarms alarms alarms alarms alarms alarms alarms'
     'cpu-usage-chart cpu-usage-chart ram-usage-chart ram-usage-chart network-usage-chart network-usage-chart vdi-usage-chart vdi-usage-chart'
     'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
-
-  &.mobile {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      'quick-info'
-      'alarms'
-      'cpu-usage-chart'
-      'ram-usage-chart'
-      'network-usage-chart'
-      'vdi-usage-chart'
-      'offline-hero-container';
-  }
 
   .quick-info {
     grid-area: quick-info;
@@ -92,6 +89,14 @@ const { t } = useI18n()
   .alarms {
     grid-area: alarms;
     height: 46.2rem;
+  }
+
+  .backup-runs {
+    grid-area: backup-runs;
+  }
+
+  .backup-archives {
+    grid-area: backup-archives;
   }
 
   .offline-hero-container {
@@ -123,6 +128,12 @@ const { t } = useI18n()
     flex-direction: column;
     gap: 1.4rem;
     color: var(--color-neutral-txt-secondary);
+  }
+
+  &.mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
   }
 }
 </style>

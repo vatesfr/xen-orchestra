@@ -38,6 +38,7 @@
 
 <script lang="ts" setup>
 import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
+import type { FrontXoPbd } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import StorageRepositoryPbdHost from '@/modules/storage-repository/components/list/panel/card-items/StorageRepositoryPbdHost.vue'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
@@ -47,11 +48,9 @@ import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
-import type { XoPbd } from '@vates/types'
 import { useI18n } from 'vue-i18n'
-
 const { pbds } = defineProps<{
-  pbds: XoPbd[]
+  pbds: FrontXoPbd[]
 }>()
 
 const { t } = useI18n()

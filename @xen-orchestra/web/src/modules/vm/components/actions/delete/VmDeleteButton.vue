@@ -7,14 +7,14 @@
 <script setup lang="ts">
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import { useXoVmDeleteJob } from '@/modules/vm/jobs/xo-vm-delete.job.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useModal } from '@core/packages/modal/use-modal.ts'
-import type { XoVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 const { vm } = defineProps<{
-  vm: XoVm
+  vm: FrontXoVm
 }>()
 
 const { t } = useI18n()

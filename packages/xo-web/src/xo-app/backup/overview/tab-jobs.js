@@ -331,6 +331,8 @@ class JobsTable extends React.Component {
             preferNbd,
             proxyId,
             reportWhen,
+            distributeBackups,
+            distributeReplications,
             timeout,
           } = getSettingsWithNonDefaultValue(job.mode, {
             compression: job.compression,
@@ -385,6 +387,8 @@ class JobsTable extends React.Component {
               {nRetriesVmBackupFailures > 0 && (
                 <Li>{_.keyValue(_('nRetriesVmBackupFailures'), nRetriesVmBackupFailures)}</Li>
               )}
+              {distributeBackups && <Li>{_('distributeBackups')}</Li>}
+              {distributeReplications && <Li>{_('distributeReplications')}</Li>}
             </Ul>
           )
         },

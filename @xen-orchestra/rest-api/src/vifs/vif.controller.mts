@@ -1,21 +1,64 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import {
+  Body,
+  Delete,
+  Example,
+  Get,
+  Middlewares,
+  Path,
+  Post,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+} from 'tsoa'
 import { inject } from 'inversify'
-import type { Request as ExRequest } from 'express'
-import type { XoAlarm, XoMessage, XoTask, XoVif } from '@vates/types'
+import { json, type Request as ExRequest } from 'express'
+import type {
+  Xapi,
+  XenApiNetwork,
+  XenApiVif,
+  XenApiVm,
+  XoAlarm,
+  XoMessage,
+  XoNetwork,
+  XoTask,
+  XoVif,
+  XoVm,
+} from '@vates/types'
 
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { provide } from 'inversify-binding-decorators'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { badRequestResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  badRequestResp,
+  createdResp,
+  internalServerErrorResp,
+  invalidParameters as invalidParametersResp,
+  noContentResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
+import { invalidParameters } from 'xo-common/api-errors.js'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
-import { partialVifs, vif, vifIds } from '../open-api/oa-examples/vif.oa-example.mjs'
+import { partialVifs, vif, vifId, vifIds } from '../open-api/oa-examples/vif.oa-example.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { taskIds, partialTasks } from '../open-api/oa-examples/task.oa-example.mjs'
 
 type UnbrandedXoVif = Unbrand<XoVif>
+
+type CreateVifParams = Parameters<Xapi['VIF_create']>
+type CreateVifBody = Omit<CreateVifParams[0], 'network' | 'VM'> &
+  CreateVifParams[1] & {
+    networkId: string
+    vmId: string
+  }
 
 @Route('vifs')
 @Security('*')
@@ -131,5 +174,59 @@ export class VifController extends XapiXoController<XoVif> {
     const tasks = await this.getTasksForObject(id as XoVif['id'], { filter, limit })
 
     return this.sendObjects(Object.values(tasks), req, 'tasks')
+  }
+
+  /**
+   * @example body {
+   *  "networkId": "6b6ca0f5-6611-0636-4b0a-1fb1c1e96414",
+   *  "vmId": "613f541c-4bed-fc77-7ca8-2db6b68f079c"
+   * }
+   */
+  @Example(vifId)
+  @Post('')
+  @Middlewares(json())
+  @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  async createVif(
+    @Body()
+    body: CreateVifBody
+  ): Promise<{ id: Unbrand<XoVif>['id'] }> {
+    const { MAC, vmId, networkId, ...rest } = body
+
+    const vm = this.restApi.getObject<XoVm>(vmId as XoVm['id'], 'VM')
+    const network = this.restApi.getObject<XoNetwork>(networkId as XoNetwork['id'], 'network')
+
+    if (vm.$pool !== network.$pool) {
+      throw invalidParameters(`the VM ${vmId} and network ${networkId} do not belong to the same pool`)
+    }
+
+    const xapi = this.getXapi(vmId as XoVm['id'])
+    const vifRef = await xapi.VIF_create(
+      {
+        ...rest,
+        VM: vm._xapiRef as XenApiVm['$ref'],
+        network: network._xapiRef as XenApiNetwork['$ref'],
+      },
+      {
+        MAC,
+      }
+    )
+
+    const xapiVif = await xapi.barrier<XenApiVif>(vifRef)
+    return { id: xapiVif.uuid }
+  }
+
+  /**
+   * @example id "6b6ca0f5-6611-0636-4b0a-1fb1c1e96414"
+   */
+  @Delete('{id}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async destroyVif(@Path() id: string): Promise<void> {
+    const xapi = this.getXapi(id as XoVif['id'])
+    await xapi.deleteVif(id as XoVif['id'])
   }
 }

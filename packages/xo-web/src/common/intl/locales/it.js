@@ -2481,8 +2481,7 @@ export default {
   patchRelease: 'pubblicazione',
 
   // Original text: 'An error occurred while fetching the patches. Please make sure the updater plugin is installed by running `yum install xcp-ng-updater` on the host.'
-  updatePluginNotInstalled:
-    "Assicurati che il plugin di aggiornamento sia installato eseguendo `yum install xcp-ng-updater` sull'host.",
+  updatePluginNotInstalled: 'Assicurati che il plugin di aggiornamento sia installato.',
 
   // Original text: 'Show changelog'
   showChangelog: 'Mostra il log delle modifiche',

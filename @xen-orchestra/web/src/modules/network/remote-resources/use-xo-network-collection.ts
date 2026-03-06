@@ -1,14 +1,16 @@
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
-import { watchCollectionWrapper } from '@/shared/utils/sse.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import type { XoNetwork } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 
-const networkFields: (keyof XoNetwork)[] = [
+export type FrontXoNetwork = Pick<XoNetwork, (typeof networkFields)[number]>
+
+const networkFields = [
   'id',
   'defaultIsLocked',
   'name_label',
@@ -20,12 +22,12 @@ const networkFields: (keyof XoNetwork)[] = [
   'PIFs',
   'other_config',
   'type',
-] as const
+] as const satisfies readonly (keyof XoNetwork)[]
 
 export const useXoNetworkCollection = defineRemoteResource({
   url: `${BASE_URL}/networks?fields=${networkFields.join(',')}`,
-  watchCollection: watchCollectionWrapper({ resource: 'network', fields: networkFields }),
-  initialData: () => [] as XoNetwork[],
+  initWatchCollection: () => useWatchCollection({ resource: 'network', fields: networkFields }),
+  initialData: () => [] as FrontXoNetwork[],
   state: (rawNetworks, context) => {
     const { hostMasterPifsByNetwork } = useXoPifCollection(context)
 

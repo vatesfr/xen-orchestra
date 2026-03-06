@@ -1,12 +1,12 @@
+import type { FrontXoPbd } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
-import type { XoPbd } from '@vates/types'
 import { useArrayEvery, useArrayFilter, useArraySome } from '@vueuse/shared'
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 
-export function useXoPbdUtils(rawPbds: MaybeRefOrGetter<XoPbd[]>) {
+export function useXoPbdUtils(rawPbds: MaybeRefOrGetter<FrontXoPbd[]>) {
   const pbds = computed(() => toValue(rawPbds))
 
-  const predicate = (pbd: XoPbd) => !pbd.attached
+  const predicate = (pbd: FrontXoPbd) => !pbd.attached
 
   const disconnectedPbds = useArrayFilter(pbds, predicate)
 

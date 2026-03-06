@@ -137,11 +137,13 @@ export async function watchRemote(remoteId, { root, immutabilityDuration, rebuil
 
   // watch the remote for any new VM metadata json file
   const PATHS = [
+    // xo-config-backups/scheduleId/date/metadata.json
     'xo-config-backups/*/*/data',
     'xo-config-backups/*/*/data.json',
     'xo-config-backups/*/*/metadata.json',
-    'xo-pool-metadata-backups/*/metadata.json',
-    'xo-pool-metadata-backups/*/data',
+    // xo-pool-metadata-backups/backupId/scheduleId/date/metadata.json
+    'xo-pool-metadata-backups/*/*/*/metadata.json',
+    'xo-pool-metadata-backups/*/*/*/data',
     // xo-vm-backups/<vmuuid>/
     'xo-vm-backups/*/*.json',
     'xo-vm-backups/*/*.xva',

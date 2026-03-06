@@ -6,10 +6,8 @@
         <UiLink size="medium" :href>{{ t('configure-in-xo-5') }}</UiLink>
       </template>
     </UiTitle>
+    <VtsQueryBuilder v-model="filter" :schema />
     <div class="container">
-      <div class="table-actions">
-        <UiQuerySearchBar @search="value => (searchQuery = value)" />
-      </div>
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
@@ -29,20 +27,26 @@
 <script setup lang="ts">
 import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
-import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import {
+  useXoSrCollection,
+  type FrontXoSr,
+} from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon, objectIcon } from '@core/icons'
+import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
+import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useSrColumns } from '@core/tables/column-sets/sr-columns.ts'
-import type { XoSr } from '@vates/types'
-import { computed, ref } from 'vue'
+import { useBooleanSchema } from '@core/utils/query-builder/use-boolean-schema.ts'
+import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const {
@@ -50,7 +54,7 @@ const {
   busy,
   error,
 } = defineProps<{
-  srs: XoSr[]
+  srs: FrontXoSr[]
   busy?: boolean
   error?: boolean
 }>()
@@ -64,16 +68,17 @@ const selectedSrId = useRouteQuery('id')
 
 const { isDefaultSr } = useXoSrCollection()
 
-const searchQuery = ref('')
+const { filter, items: filteredSrs } = useQueryBuilderFilter('sr', () => rawSrs)
 
-const filteredSrs = computed(() => {
-  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
-
-  if (!searchTerm) {
-    return rawSrs
-  }
-
-  return rawSrs.filter(sr => Object.values(sr).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
+const schema = useQueryBuilderSchema<FrontXoSr>({
+  '': useStringSchema(t('any-property')),
+  name_label: useStringSchema(t('name')),
+  name_description: useStringSchema(t('description')),
+  SR_type: useStringSchema(t('storage-format')),
+  shared: useBooleanSchema(t('access-mode'), {
+    true: t('shared'),
+    false: t('local'),
+  }),
 })
 
 const state = useTableState({
@@ -89,7 +94,7 @@ const state = useTableState({
 
 const { pageRecords: paginatedSrs, paginationBindings } = usePagination('srs', filteredSrs)
 
-function getPrimaryIcon(sr: XoSr) {
+function getPrimaryIcon(sr: FrontXoSr) {
   if (!isDefaultSr(sr)) {
     return undefined
   }
@@ -103,7 +108,7 @@ function getPrimaryIcon(sr: XoSr) {
 const { getPbdsByIds } = useXoPbdCollection()
 
 const { HeadCells, BodyCells } = useSrColumns({
-  body: (sr: XoSr) => {
+  body: (sr: FrontXoSr) => {
     const { buildXo5Route } = useXoRoutes()
 
     const href = computed(() => buildXo5Route(`/srs/${sr.id}/general`))

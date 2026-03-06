@@ -16,7 +16,7 @@ export const useInputColumn = defineColumn((config?: HeaderConfig & InputConfig)
       config?.headerIcon ?? (config?.type === 'number' ? 'fa:hashtag' : 'fa:align-left'),
       config?.headerLabel
     ),
-  renderBody: (model: Ref<string | number>, inputProps?: { disabled?: boolean }) =>
+  renderBody: (model: Ref<string | number | undefined>, inputProps?: { disabled?: boolean }) =>
     renderBodyCell(() =>
       h(UiInput, {
         accent: 'brand',
@@ -24,7 +24,7 @@ export const useInputColumn = defineColumn((config?: HeaderConfig & InputConfig)
         type: toValue(config?.type),
         ...inputProps,
         modelValue: toValue(model),
-        'onUpdate:modelValue': (value: string | number) => {
+        'onUpdate:modelValue': (value: string | number | undefined) => {
           model.value = value
         },
       })

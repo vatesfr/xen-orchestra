@@ -1,10 +1,10 @@
 <template>
-  <div class="vdis" :class="{ mobile: uiStore.isMobile }">
+  <div class="vdis" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
       <VdisTable :vdis="filteredVdisByNotCdVbd" :busy="!areVmVdisReady" :error="hasVmVdiFetchError" />
     </UiCard>
     <VdiSidePanel v-if="selectedVdi" :vdi="selectedVdi" :vm @close="selectedVdi = undefined" />
-    <UiPanel v-else-if="!uiStore.isMobile">
+    <UiPanel v-else-if="!uiStore.isSmall">
       <VtsStateHero format="panel" type="no-selection" size="medium">
         {{ t('select-to-see-details') }}
       </VtsStateHero>
@@ -15,19 +15,20 @@
 <script setup lang="ts">
 import VdiSidePanel from '@/modules/vdi/components/list/panel/VdiSidePanel.vue'
 import VdisTable from '@/modules/vdi/components/list/VdisTable.vue'
+import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoVmVdisCollection } from '@/modules/vm/remote-resources/use-xo-vm-vdis-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import type { XoVdi, XoVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{
-  vm: XoVm
+  vm: FrontXoVm
 }>()
 
 const { t } = useI18n()
@@ -41,8 +42,8 @@ const filteredVdisByNotCdVbd = computed(() =>
   vmVdis.value.filter(vdi => notCdDriveVbds.value.some(vbd => vdi.$VBDs.includes(vbd.id)))
 )
 
-const selectedVdi = useRouteQuery<XoVdi | undefined>('id', {
-  toData: id => getVmVdiById(id as XoVdi['id']),
+const selectedVdi = useRouteQuery<FrontXoVdi | undefined>('id', {
+  toData: id => getVmVdiById(id as FrontXoVdi['id']),
   toQuery: vdi => vdi?.id ?? '',
 })
 </script>

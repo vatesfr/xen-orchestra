@@ -18,7 +18,7 @@
       <VtsQuickInfoRow :label="t('uuid')" :value="vm.id" />
       <VtsQuickInfoRow :label="t('pool')">
         <template #value>
-          <UiLink v-if="pool" :to="`/pool/${pool.id}/dashboard`" size="medium" icon="object:pool">
+          <UiLink v-if="pool" :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }" size="medium" icon="object:pool">
             {{ pool.name_label }}
           </UiLink>
           <span v-else>
@@ -29,7 +29,7 @@
       <VtsQuickInfoRow :label="t('host')">
         <template #value>
           <template v-if="host">
-            <UiLink :to="`/host/${host.id}/dashboard`" size="medium" :icon="`object:host:${hostPowerState}`">
+            <UiLink :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }" size="medium" :icon="`object:host:${hostPowerState}`">
               {{ host.name_label }}
             </UiLink>
             <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
@@ -84,7 +84,7 @@ import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
-import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { useXoVmCollection, type FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { XCP_LINKS } from '@/shared/constants.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
@@ -95,13 +95,13 @@ import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { formatSize } from '@core/utils/size.util.ts'
-import { HOST_POWER_STATE, type XoVm } from '@vates/types'
+import { HOST_POWER_STATE } from '@vates/types'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{
-  vm: XoVm
+  vm: FrontXoVm
 }>()
 
 const { t } = useI18n()

@@ -178,7 +178,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     return `blocks/${blockPrefix}/${blockSuffix}`
   }
 
-  _getFullBlockPath(blockId) {
+  getFullBlockPath(blockId) {
     return this.#getChunkPath(this.#getBlockPath(blockId))
   }
 
@@ -245,18 +245,22 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     await this.#writeChunkFilters()
   }
 
-  writeBlockAllocationTable() {
-    assert.notStrictEqual(this.#blockTable, undefined, 'Block allocation table has not been read')
-    assert.notStrictEqual(this.#blockTable.length, 0, 'Block allocation table is empty')
+  writeBlockAllocationTable(blockTable) {
+    if (!blockTable || blockTable.length === 0) {
+      blockTable = this.#blockTable
+    }
 
-    return this._writeChunk('bat', this.#blockTable)
+    assert.notStrictEqual(blockTable, undefined, 'Block allocation table has not been read')
+    assert.notStrictEqual(blockTable.length, 0, 'Block allocation table is empty')
+
+    return this._writeChunk('bat', blockTable)
   }
 
   // only works if data are in the same handler
   // and if the full block is modified in child (which is the case with xcp)
   // and if the compression type is same on both sides
   async mergeBlock(child, blockId, isResumingMerge = false) {
-    const childBlockPath = child._getFullBlockPath?.(blockId)
+    const childBlockPath = child.getFullBlockPath?.(blockId)
     let initialSize = 0
     if (
       childBlockPath === undefined ||
@@ -269,10 +273,10 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     try {
       const blockExists = this.containsBlock(blockId)
       if (blockExists) {
-        initialSize = await this._handler.getSizeOnDisk(this._getFullBlockPath(blockId))
+        initialSize = await this._handler.getSizeOnDisk(this.getFullBlockPath(blockId))
       }
 
-      await this._handler.rename(childBlockPath, this._getFullBlockPath(blockId))
+      await this._handler.rename(childBlockPath, this.getFullBlockPath(blockId))
 
       if (!blockExists) {
         setBitmap(this.#blockTable, blockId)
@@ -295,7 +299,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       }
     }
     setBitmap(this.#blockTable, blockId)
-    return (await this._handler.getSizeOnDisk(this._getFullBlockPath(blockId))) - initialSize
+    return (await this._handler.getSizeOnDisk(this.getFullBlockPath(blockId))) - initialSize
   }
 
   async writeEntireBlock(block) {
@@ -335,5 +339,11 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       throw error
     })
     this.#compressor = getCompressor(chunkFilters[0])
+  }
+
+  setAllocatedBlocks(blockIds) {
+    for (const blockId of blockIds) {
+      setBitmap(this.#blockTable, blockId)
+    }
   }
 }

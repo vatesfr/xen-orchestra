@@ -50,6 +50,28 @@ Place your `config.toml` (or any `config.*.toml` override) in one of the followi
 - **User-specific configuration**:  
   `~/.config/xo-server/config.toml`
 
+The order of the loading and overriding values in multiple config files is the following:
+
+| Stage | Location | Typical Path                   | Priority            |
+| ----- | -------- | ------------------------------ | ------------------- |
+| 1     | vendor   | `<appDir>/config.*`            | lowest              |
+| 2     | global   | `/etc/<appName>/config.*`      | overrides vendor    |
+| 3     | user     | `~/.config/<appName>/config.*` | overrides global    |
+| 4     | local    | `./…/.<appName>.*`             | overrides all above |
+
+There is no guarantee on the order of the config file loading in the same location.
+
+- `~` is the home directory of the user running xo-server (`/root` for xoa)
+- `appDir` is the application installation directory (`/usr/local/lib/node_modules/xo-server` for xo-server on XOA, `/usr/local/lib/node_modules/@xen-orchestra/proxy` for a proxy)
+- appName is `xo-proxy` for proxy, `xo-server` for xo-server
+- local configuration is not used in xo-server nor proxy
+
+a basic cli can be used to explore the configuration by installing the package `app-conf`, more information in [the official documentation](https://github.com/JsCommunity/app-conf?tab=readme-ov-file#cli)
+
+:::tip
+The update feature of XOA can reset any `local` config. Use `/etc/xo-server/config.*` as the preferred config place for XOA.
+:::
+
 ### Apply the changes
 
 After updating the configuration, restart the XO server process:

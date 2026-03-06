@@ -1,7 +1,7 @@
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { defineJobArg } from '@core/packages/job'
-import type { XoHost } from '@vates/types'
 
 export const xoHostArg = defineJobArg({
-  identify: (host: XoHost | undefined) => host?.id,
+  identify: (host: FrontXoHost | undefined) => host?.id,
   toArray: false,
 })

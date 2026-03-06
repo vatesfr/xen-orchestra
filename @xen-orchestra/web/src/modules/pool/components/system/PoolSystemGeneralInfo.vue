@@ -17,15 +17,15 @@
 </template>
 
 <script setup lang="ts">
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import type { XoPool } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{ pool: XoPool }>()
+defineProps<{ pool: FrontXoPool }>()
 
 const { t } = useI18n()
 </script>

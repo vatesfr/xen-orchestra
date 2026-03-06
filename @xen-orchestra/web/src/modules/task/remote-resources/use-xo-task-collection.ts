@@ -1,17 +1,19 @@
 import { convertXoTaskToCore } from '@/modules/task/utils/convert-xo-task-to-core.util.ts'
 import { findTaskById } from '@/modules/task/utils/xo-task.util.ts'
+import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
-import { watchCollectionWrapper } from '@/shared/utils/sse.util.ts'
 import type { ResourceContext } from '@core/packages/remote-resource/types.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoTask } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 import { computed, type Ref } from 'vue'
 
+export type FrontXoTask = Pick<XoTask, (typeof taskFields)[number]>
+
 const ONE_DAY = 24 * 60 * 60 * 1000
 
-export const taskFields: (keyof XoTask)[] = [
+export const taskFields = [
   'id',
   'start',
   'end',
@@ -22,10 +24,10 @@ export const taskFields: (keyof XoTask)[] = [
   'progress',
   'tasks',
   'result',
-] as const
+] as const satisfies readonly (keyof XoTask)[]
 
 export function createTaskCollectionState<TArgs extends any[] = []>(
-  tasks: Ref<XoTask[]>,
+  tasks: Ref<FrontXoTask[]>,
   context: ResourceContext<TArgs>
 ) {
   const lastDayTasks = computed(() => {
@@ -52,7 +54,7 @@ export function createTaskCollectionState<TArgs extends any[] = []>(
 
 export const useXoTaskCollection = defineRemoteResource({
   url: `${BASE_URL}/tasks?fields=${taskFields.join(',')}`,
-  watchCollection: watchCollectionWrapper({ resource: 'task', fields: taskFields }),
-  initialData: () => [] as XoTask[],
+  initWatchCollection: () => useWatchCollection({ resource: 'task', fields: taskFields }),
+  initialData: () => [] as FrontXoTask[],
   state: createTaskCollectionState,
 })

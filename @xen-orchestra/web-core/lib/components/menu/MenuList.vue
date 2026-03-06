@@ -90,7 +90,7 @@ const open = (event: MouseEvent) => {
   color: var(--color-neutral-txt-primary);
   border-radius: 0.4rem;
   background-color: var(--color-neutral-background-primary);
-  z-index: 1010;
+  z-index: 1011;
   overflow: auto;
 
   &.horizontal {

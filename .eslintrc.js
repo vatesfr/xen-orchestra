@@ -251,6 +251,7 @@ module.exports = {
               'ja',
               'fi',
               'pl',
+              'zh-Hans',
             ],
           },
         ],
@@ -285,6 +286,17 @@ module.exports = {
       rules: {
         'eslint-comments/disable-enable-pair': 'off',
         'eslint-comments/no-unlimited-disable': 'off',
+      },
+    },
+    {
+      files: ['*.d.ts'],
+      parser: '@typescript-eslint/parser',
+      parserOptions: {
+        sourceType: 'module',
+      },
+      rules: {
+        'n/no-unsupported-features/es-syntax': 'off',
+        'no-unused-vars': 'off',
       },
     },
   ],

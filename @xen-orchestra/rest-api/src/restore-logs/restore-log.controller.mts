@@ -25,7 +25,7 @@ export class RestoreLogController extends XoController<XoRestoreLog> {
   #backupLogService: BackupLogService
 
   constructor(@inject(RestApi) restApi: RestApi, @inject(BackupLogService) backupLogService: BackupLogService) {
-    super(restApi)
+    super('restore-log', restApi)
     this.#backupLogService = backupLogService
   }
 
@@ -88,7 +88,7 @@ export class DeprecatedRestoreController extends XoController<XoRestoreLog> {
   #backupLogService: BackupLogService
 
   constructor(@inject(RestApi) restApi: RestApi, @inject(BackupLogService) backupLogService: BackupLogService) {
-    super(restApi)
+    super('restore', restApi)
     this.#backupLogService = backupLogService
   }
 

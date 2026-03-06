@@ -41,6 +41,9 @@ const messages = {
   esxiCheckingPrerequisiteError: 'Must be corrected before importing VM',
   esxiCheckedPrerequisiteVersion: 'expected version {expectedVersion} , {version} installed',
   esxiImportSslCertificate: 'Skip SSL check',
+  esxiImportRememberLogin: 'Remember connection in this browser',
+  esxiImportRememberWarning:
+    'please note that storing these credentials in your browser will increase the security risks. Ensure that this is in conformity with your security guidelines.',
   esxiImportThin: 'Thin mode',
   esxiImportThinDescription:
     'Disk created in thin mode (less space used). Data is read twice, no visible task or progress at first',
@@ -644,6 +647,12 @@ const messages = {
   editJobNotFound: "The job you're trying to edit wasn't found",
   preferNbd: 'Use NBD to transfer disk if available',
   preferNbdInformation: 'A network accessible by XO or the proxy must have NBD enabled.',
+  distributeBackups: 'Distribute backups accross backup repositories',
+  distributeBackupsInformation:
+    'This will write exactly one backup archive of each VM instead of writing one per backup repository',
+  distributeReplications: 'Distribute replications accross the storage repositories',
+  distributeReplicationsInformation:
+    'This will write exactly one replication of each VM backup instead of writing one per storage repository',
   nbdConcurrency: 'Number of NBD connection per disk',
   cbtDestroySnapshotData: 'Purge snapshot data when using CBT.',
   cbtDestroySnapshotDataInformation:
@@ -1249,9 +1258,11 @@ const messages = {
   installAllPatchesRedirect: 'Go to pool',
   installAllPatchesOnHostContent:
     'The pool master must always be updated FIRST. Updating will automatically restart the toolstack. Running VMs will not be affected. Are you sure you want to continue and install all patches on this host?',
+  installAllPatchesXostorWarning:
+    'If you are using XOSTOR storage it is absolutely crucial that you update the XOSTOR services before patching your pool. Please refer to this documentation to update your XOSTOR services:',
   patchRelease: 'Release',
   updatePluginNotInstalled:
-    'An error occurred while fetching the patches. Please make sure the updater plugin is installed by running `yum install xcp-ng-updater` on the host.',
+    'An error occurred while fetching the patches. Please make sure the updater plugin is installed.',
   showChangelog: 'Show changelog',
   changelog: 'Changelog',
   changelogPatch: 'Patch',
@@ -2426,6 +2437,11 @@ const messages = {
   pifDisconnected: 'Disconnected',
   pifPhysicallyConnected: 'Physically connected',
   pifPhysicallyDisconnected: 'Physically disconnected',
+  setAsManagementPif: 'Set as management PIF',
+  setAsManagementPifConfirm: 'Are you sure you want to make this PIF the management interface?',
+  setAsManagementPifs: 'Set as management network',
+  setAsManagementPifsConfirm:
+    'Are you sure you want to make this network the management network? This will make all the PIFs attached to it management PIFs.',
 
   // ----- User -----
   authToken: 'Token',

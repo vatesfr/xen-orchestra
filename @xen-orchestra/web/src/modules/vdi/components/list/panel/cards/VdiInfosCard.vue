@@ -45,7 +45,9 @@
 
 <script lang="ts" setup>
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
@@ -56,13 +58,12 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
-import type { XoVdi, XoVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vdi, vm } = defineProps<{
-  vdi: XoVdi
-  vm: XoVm
+  vdi: FrontXoVdi
+  vm: FrontXoVm
 }>()
 
 const { t } = useI18n()

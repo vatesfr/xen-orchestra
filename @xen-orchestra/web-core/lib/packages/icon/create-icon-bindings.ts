@@ -16,12 +16,15 @@ export function createIconBindings(transforms: IconTransforms): IconBindings {
 
   const shouldScale = scaleX !== 1 || scaleY !== 1
 
+  const spinDuration = typeof transforms.spin === 'number' ? transforms.spin : transforms.spin === true ? 2 : 0
+
   return {
     style: {
       color: transforms.color,
       translate: shouldTranslate ? `${(translateX / 16) * 100}% ${(translateY / 16) * 100}%` : undefined,
       rotate: transforms.rotate ? `${transforms.rotate}deg` : undefined,
       scale: shouldScale ? `${scaleX} ${scaleY}` : undefined,
+      '--spin-duration': spinDuration ? `${spinDuration}s` : undefined,
     },
   }
 }

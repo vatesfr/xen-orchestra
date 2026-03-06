@@ -60,6 +60,7 @@
 </template>
 
 <script lang="ts" setup>
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -67,12 +68,11 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import type { XoHost } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
-  host: XoHost
+  host: FrontXoHost
 }>()
 
 const { t } = useI18n()

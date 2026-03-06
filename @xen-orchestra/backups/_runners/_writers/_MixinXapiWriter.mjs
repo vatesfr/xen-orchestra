@@ -72,7 +72,7 @@ export const MixinXapiWriter = (BaseClass = Object) =>
               xapi,
             }).run()
           } finally {
-            healthCheckVmRef && (await xapi.VM_destroy(healthCheckVmRef))
+            healthCheckVmRef && (await xapi.VM_destroy(healthCheckVmRef, { bypassBlockedOperation: true }))
           }
         }
       )

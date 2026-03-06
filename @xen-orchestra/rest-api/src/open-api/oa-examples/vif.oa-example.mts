@@ -3,6 +3,8 @@ export const vifIds = [
   '/rest/v0/vifs/9cc245bf-8dac-8550-e1ae-54bc679b68d9',
 ]
 
+export const vifId = { id: 'f028c5d4-578a-332c-394e-087aaca32dd3' }
+
 export const partialVifs = [
   {
     attached: true,

@@ -235,7 +235,7 @@ test('it merges delta of non destroyed chain', async () => {
 
   const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
   // size should be the size of children + grand children after the merge
-  assert.equal(metadata.size, 104960)
+  assert.equal(metadata.size, 104448)
 
   // merging is already tested in vhd-lib, don't retest it here (and theses vhd are as empty as my stomach at 12h12)
   // only check deletion
@@ -402,13 +402,12 @@ describe('tests multiple combination ', { concurrency: 1 }, () => {
 
         const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
         // size should be the size of children + grand children + clean after the merge
-        assert.deepEqual(metadata.size, vhdMode === 'file' ? 6502400 : 6501888)
+        assert.deepEqual(metadata.size, 4404224)
 
         // broken vhd, non referenced, abandoned should be deleted ( alias and data)
         // ancestor and child should be merged
         // grand child and clean vhd should not have changed
         const survivors = await handler.list(basePath)
-        // console.log(survivors)
         if (useAlias) {
           const dataSurvivors = await handler.list(basePath + '/data')
           // the goal of the alias : do not move a full folder

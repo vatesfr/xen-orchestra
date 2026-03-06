@@ -25,6 +25,7 @@
 </template>
 
 <script setup lang="ts">
+import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-br-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import type { IconName } from '@core/icons'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -35,12 +36,11 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useLinkColumn } from '@core/tables/column-definitions/link-column.ts'
-import type { XoBackupRepository } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { backupRepositories, busy, error } = defineProps<{
-  backupRepositories: XoBackupRepository[]
+  backupRepositories: FrontXoBackupRepository[]
   busy?: boolean
   error?: boolean
 }>()
@@ -77,7 +77,7 @@ const { pageRecords: paginatedRepositories, paginationBindings } = usePagination
   filteredRepositories
 )
 
-function getBackupRepositoryIcon(backupRepository: XoBackupRepository): IconName {
+function getBackupRepositoryIcon(backupRepository: FrontXoBackupRepository): IconName {
   return backupRepository.enabled ? 'object:br:connected' : 'object:br:disconnected'
 }
 
@@ -90,7 +90,7 @@ const useColumns = defineColumns(() => {
 })
 
 const { HeadCells, BodyCells } = useColumns({
-  body: (br: XoBackupRepository) => {
+  body: (br: FrontXoBackupRepository) => {
     const { buildXo5Route } = useXoRoutes()
 
     const href = computed(() => buildXo5Route('/settings/remotes'))

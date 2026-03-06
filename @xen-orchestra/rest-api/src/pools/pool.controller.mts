@@ -44,13 +44,18 @@ import type {
   XenApiSr,
   XenApiVm,
   XoAlarm,
+  XoGpuGroup,
+  XoHost,
   XoMessage,
   XoNetwork,
   XoPif,
   XoPool,
   XoSr,
   XoTask,
+  XoVdi,
+  XoVgpuType,
   XoVm,
+  XoVmTemplate,
   XsPatches,
 } from '@vates/types'
 import { AlarmService } from '../alarms/alarm.service.mjs'
@@ -65,13 +70,7 @@ import {
   poolMissingPatches,
   poolStats,
 } from '../open-api/oa-examples/pool.oa-example.mjs'
-import type {
-  CreateNetworkBody,
-  CreateVmAfterCreateParams,
-  CreateVmBody,
-  CreateVmParams,
-  PoolDashboard,
-} from './pool.type.mjs'
+import type { CreateNetworkBody, CreateVmBody, CreateVmParams, PoolDashboard } from './pool.type.mjs'
 import { partialTasks, taskIds, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { createNetwork } from '../open-api/oa-examples/schedule.oa-example.mjs'
 import { BASE_URL } from '../index.mjs'
@@ -316,9 +315,19 @@ export class PoolController extends XapiXoController<XoPool> {
   ): CreateActionReturnType<{ id: Unbrand<XoVm>['id'] }> {
     const poolId = id as XoPool['id']
     const action = async () => {
-      const { affinity, template, ...rest } = body
-      const params = { affinityHost: affinity, ...rest } as CreateVmParams & CreateVmAfterCreateParams
-      const vmId = await this.#vmService.create({ pool: poolId, template, ...params })
+      const { affinity, template, install, vgpuType, gpuGroup, vdis, ...rest } = body
+
+      // rebrand all branded type
+      const vmId = await this.#vmService.create({
+        affinityHost: affinity as XoHost['id'] | undefined,
+        installRepository: install?.repository as XoVdi['id'] | '' | undefined,
+        pool: poolId,
+        template: template as XoVmTemplate['id'],
+        vdis: vdis as CreateVmParams['vdis'],
+        vgpuType: vgpuType as XoVgpuType['id'] | undefined,
+        gpuGroup: gpuGroup as XoGpuGroup['id'] | undefined,
+        ...rest,
+      })
 
       return { id: vmId }
     }

@@ -1,13 +1,13 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isMobile }">
+  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
     <template #header>
-      <div :class="{ 'action-buttons-container': uiStore.isMobile }">
+      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
         <UiButtonIcon
           v-tooltip="t('action:close')"
           size="small"
           variant="tertiary"
           accent="brand"
-          :icon="uiStore.isMobile ? 'fa:angle-left' : 'fa:close'"
+          :icon="uiStore.isSmall ? 'fa:angle-left' : 'fa:close'"
           @click="emit('close')"
         />
       </div>
@@ -35,6 +35,7 @@ import BackupJobSchedulesCard from '@/modules/backup/components/panel/cards/Back
 import BackupJobSourceRepositoryCard from '@/modules/backup/components/panel/cards/BackupJobSourceRepositoryCard.vue'
 import BackupJobTargetsCard from '@/modules/backup/components/panel/cards/BackupJobTargetsCard.vue'
 import { useXoBackupJobSettingsUtils } from '@/modules/backup/composables/backup-job-settings/xo-backup-job-settings.composable.ts'
+import type { FrontAnyXoBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import { useXoBackupLogCollection } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import { useXoBackupRepositoryCollection } from '@/modules/backup/remote-resources/use-xo-br-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
@@ -45,12 +46,12 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import type { XoSr, XoPool, XoBackupRepository, AnyXoBackupJob } from '@vates/types'
+import type { XoSr, XoPool, XoBackupRepository } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { backupJob } = defineProps<{
-  backupJob: AnyXoBackupJob
+  backupJob: FrontAnyXoBackupJob
 }>()
 
 const emit = defineEmits<{

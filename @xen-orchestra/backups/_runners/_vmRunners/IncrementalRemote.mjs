@@ -11,11 +11,12 @@ import { Disposable } from 'promise-toolbox'
 import { openVhd } from 'vhd-lib'
 import { getVmBackupDir } from '../../_getVmBackupDir.mjs'
 import { SynchronizedDisk, ThrottledDisk } from '@xen-orchestra/disk-transform'
+import { AggregatedIncrementalRemoteWriter } from '../_writers/AggregatedIncrementalRemoteWriter.mjs'
 
 const { warn } = createLogger('xo:backups:Incrementalremote')
 class IncrementalRemoteVmBackupRunner extends AbstractRemote {
-  _getRemoteWriter() {
-    return IncrementalRemoteWriter
+  _getRemoteWriters() {
+    return [IncrementalRemoteWriter, AggregatedIncrementalRemoteWriter]
   }
 
   // we'll transfer the full list if at least one backup should be transferred

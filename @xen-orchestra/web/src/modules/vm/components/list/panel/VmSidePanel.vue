@@ -1,13 +1,13 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isMobile }">
+  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
     <template #header>
-      <div :class="{ 'action-buttons-container': uiStore.isMobile }">
+      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
         <UiButtonIcon
           v-tooltip="t('action:close')"
           size="small"
           variant="tertiary"
           accent="brand"
-          :icon="uiStore.isMobile ? 'fa:angle-left' : 'fa:close'"
+          :icon="uiStore.isSmall ? 'fa:angle-left' : 'fa:close'"
           @click="emit('close')"
         />
       </div>
@@ -24,15 +24,15 @@
 import VmInfoCard from '@/modules/vm/components/list/panel/cards/VmInfoCard.vue'
 import VmNetworkCard from '@/modules/vm/components/list/panel/cards/VmNetworkCard.vue'
 import VmResourcesCard from '@/modules/vm/components/list/panel/cards/VmResourcesCard.vue'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import type { XoVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
-  vm: XoVm
+  vm: FrontXoVm
 }>()
 
 const emit = defineEmits<{

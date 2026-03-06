@@ -1,5 +1,14 @@
 # ChangeLog
 
+## **next**
+
+- [VM/New] Added secureBoot support (PR [#9423](https://github.com/vatesfr/xen-orchestra/pull/9423))
+- [Dashboard] Fix reactivity of dashboard (PR [#9378](https://github.com/vatesfr/xen-orchestra/pull/9378))
+
+## **0.19.0** (2026-02-26)
+
+- [Host] Fix host dashboard CPU provisioning calculation [Forum#101359](https://xcp-ng.org/forum/topic/11604/xo-6-dedicated-thread-for-all-your-feedback/84) (PR [#9459](https://github.com/vatesfr/xen-orchestra/pull/9459))
+
 ## **0.18.0** (2026-01-29)
 
 - [VM/New] Fix wording in "Memory" section (PR [#9309](https://github.com/vatesfr/xen-orchestra/pull/9309))
@@ -16,7 +25,7 @@
 
 ## **0.15.0** (2025-09-30)
 
-- [settigns] fix key-value alignement and refactor page (PR [#8981](https://github.com/vatesfr/xen-orchestra/pull/8981))
+- [Settings] fix key-value alignment and refactor page (PR [#8981](https://github.com/vatesfr/xen-orchestra/pull/8981))
 - [Settings] Add icon for external links on settings page (PR [#8980](https://github.com/vatesfr/xen-orchestra/pull/8980))
 - [VM/dashboard] Update QuickInfo card in dashboard to show more information (PR [#8952](https://github.com/vatesfr/xen-orchestra/pull/8952))
 - [StateHero] Update VtsStateHero component and modify usages in every component (PR [#8910](https://github.com/vatesfr/pull/8910))

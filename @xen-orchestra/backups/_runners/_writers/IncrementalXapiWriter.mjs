@@ -83,7 +83,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
 
     this._oldEntries = getOldEntries(settings.copyRetention - 1, listReplicatedVms(xapi, scheduleId, srUuid, vmUuid))
 
-    if (settings.deleteFirst) {
+    if (settings.deleteFirst && settings.skipDeleteOldEntries) {
       // we want to keep the baseVM when copying a delta
       // even if we want to keep only one after
       let mostRecentEntry
@@ -96,11 +96,13 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
   }
 
   async cleanup() {
-    await this._deleteOldEntries()
+    if (!this._settings.skipDeleteOldEntries) {
+      await this._deleteOldEntries()
+    }
   }
 
   async _deleteOldEntries() {
-    return asyncMapSettled(this._oldEntries, vm => vm.$destroy())
+    return asyncMapSettled(this._oldEntries, vm => vm.$destroy({ bypassBlockedOperation: true }))
   }
 
   #decorateVmMetadata(backup, timestamp) {
@@ -175,7 +177,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     const job = this._job
     const scheduleId = this._scheduleId
     const { uuid: srUuid, $xapi: xapi } = sr
-    
+
     let targetVmRef
     await Task.run({ name: 'transfer' }, async () => {
       targetVmRef = await importIncrementalVm(this.#decorateVmMetadata(deltaExport, timestamp), sr)

@@ -9,24 +9,20 @@
 
 ### Enhancements
 
-> Users must be able to say: “Nice enhancement, I'm eager to test it”
+> Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [Settings] Add various themes (PR [#9387](https://github.com/vatesfr/xen-orchestra/pull/9387))
-- [VM] Add delete and snapshot buttons to manage VM (PR [9410](https://github.com/vatesfr/xen-orchestra/pull/9410))
-- [Site] Update dashboard with new info from endpoint (PR [#8964](https://github.com/vatesfr/xen-orchestra/pull/8964))
+- [VM/New] Added secureBoot support (PR [#9423](https://github.com/vatesfr/xen-orchestra/pull/9423))
+- [i18n] Update Czech and Danish translations (PR [#9531](https://github.com/vatesfr/xen-orchestra/pull/9531))
+- [openmetrics] add XO process metrics (PR [#9535](https://github.com/vatesfr/xen-orchestra/pull/9535))
+- [VM] Add backup runs and backup archives cards on dashboard (PR [#9303](https://github.com/vatesfr/xen-orchestra/pull/9303))
 - [REST API] Expose `DELETE /rest/v0/srs/:id` (PR [#9464](https://github.com/vatesfr/xen-orchestra/pull/9464))
 
 ### Bug fixes
 
-- [Backup/immutability] Fix typo in sample config file (PR [#9444](https://github.com/vatesfr/xen-orchestra/pull/9444))
-
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [REST API] Close SSE connections when clients are too slow, to avoid increased memory consumption (PR [#9439](https://github.com/vatesfr/xen-orchestra/pull/9439))
-- [REST API] `message` objects are no longer sent via the SSE when subscribing to the`alarm` collection (PR [#9439](https://github.com/vatesfr/xen-orchestra/pull/9439))
-- [REST API] Do no longer create an `XO user authentication` task, when using an authentication token (PR [#9439](https://github.com/vatesfr/xen-orchestra/pull/9439))
-- [Backup] ensure no snapshot are left unattended after a job (PR [#9434](https://github.com/vatesfr/xen-orchestra/pull/9434))
-- [Backup] Fix replication leaving replica after partial incremental replication (PR [#9435](https://github.com/vatesfr/xen-orchestra/pull/9435))
+- [Dashboard] Fix reactivity of dashboard (PR [#9378](https://github.com/vatesfr/xen-orchestra/pull/9378))
+- [OpenMetrics] Fix latency metrics (`xcp_host_disk_read_latency_seconds`, `xcp_host_disk_write_latency_seconds`, `xcp_vm_disk_read_latency_seconds`, `xcp_vm_disk_write_latency_seconds`) reporting milliseconds instead of seconds (PR [#9550](https://github.com/vatesfr/xen-orchestra/pull/9550))
 
 ### Packages to release
 
@@ -45,10 +41,9 @@
 <!--packages-start-->
 
 - @vates/types minor
-- @xen-orchestra/backups patch
-- @xen-orchestra/rest-api patch
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
-- xo-server patch
+- xo-server-openmetrics minor
 
 <!--packages-end-->

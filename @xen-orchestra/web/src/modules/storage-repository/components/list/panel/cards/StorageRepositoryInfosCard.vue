@@ -63,7 +63,10 @@
 <script lang="ts" setup>
 import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
-import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import {
+  useXoSrCollection,
+  type FrontXoSr,
+} from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
@@ -74,12 +77,11 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
-import type { XoSr } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { sr } = defineProps<{
-  sr: XoSr
+  sr: FrontXoSr
 }>()
 
 const { t } = useI18n()

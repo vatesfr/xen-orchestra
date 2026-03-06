@@ -1,7 +1,7 @@
+import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import type { Task } from '@core/types/task.type.ts'
-import type { XoTask } from '@vates/types'
 
-export const convertXoTaskToCore = (task: XoTask, userName?: string): Task => ({
+export const convertXoTaskToCore = (task: FrontXoTask, userName?: string): Task => ({
   id: task.id,
   status: task.status === 'interrupted' ? 'failure' : task.status,
   name: task.properties.name ?? '',

@@ -13,15 +13,16 @@
 <script setup lang="ts">
 import BackupJobTargetBrItem from '@/modules/backup/components/panel/card-items/BackupJobTargetsBrItem.vue'
 import BackupJobTargetSrItem from '@/modules/backup/components/panel/card-items/BackupJobTargetsSrItem.vue'
+import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-br-collection.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
-import type { XoBackupRepository, XoSr } from '@vates/types'
 
 const { targets } = defineProps<{
-  targets: XoSr[] | XoBackupRepository[]
+  targets: FrontXoSr[] | FrontXoBackupRepository[]
   label: string
 }>()
 
-function isSr(target: XoSr | XoBackupRepository): target is XoSr {
+function isSr(target: FrontXoSr | FrontXoBackupRepository): target is FrontXoSr {
   return 'type' in target && target.type === 'SR'
 }
 </script>

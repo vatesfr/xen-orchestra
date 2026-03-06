@@ -7,13 +7,13 @@
 </template>
 
 <script setup lang="ts">
+import type { FrontXoBackupRepository } from '@/modules/backup/remote-resources/use-xo-br-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import type { XoBackupRepository } from '@vates/types'
 import { computed } from 'vue'
 
 const { br } = defineProps<{
-  br: XoBackupRepository
+  br: FrontXoBackupRepository
 }>()
 const { buildXo5Route } = useXoRoutes()
 const href = computed(() => buildXo5Route('/settings/remotes'))

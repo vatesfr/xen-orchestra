@@ -7,15 +7,14 @@
 </template>
 
 <script setup lang="ts">
-import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
-import { type XoHost } from '@vates/types'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 
 const { host } = defineProps<{
-  host: XoHost
+  host: FrontXoHost
 }>()
 const { isMasterHost } = useXoHostCollection()
 

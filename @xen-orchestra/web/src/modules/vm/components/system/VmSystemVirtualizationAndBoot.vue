@@ -30,14 +30,14 @@
 </template>
 
 <script setup lang="ts">
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import type { XoVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{ vm: XoVm }>()
+defineProps<{ vm: FrontXoVm }>()
 
 const { t } = useI18n()
 </script>

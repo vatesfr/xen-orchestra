@@ -1,14 +1,16 @@
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
-import { watchCollectionWrapper } from '@/shared/utils/sse.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import type { XoHost, XoPool } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 
-const hostFields: (keyof XoHost)[] = [
+export type FrontXoHost = Pick<XoHost, (typeof hostFields)[number]>
+
+const hostFields = [
   'id',
   'name_label',
   'name_description',
@@ -35,12 +37,12 @@ const hostFields: (keyof XoHost)[] = [
   'agentStartTime',
   'PGPUs',
   'type',
-] as const
+] as const satisfies readonly (keyof XoHost)[]
 
 export const useXoHostCollection = defineRemoteResource({
   url: `${BASE_URL}/hosts?fields=${hostFields.join(',')}`,
-  initialData: () => [] as XoHost[],
-  watchCollection: watchCollectionWrapper({ resource: 'host', fields: hostFields }),
+  initialData: () => [] as FrontXoHost[],
+  initWatchCollection: () => useWatchCollection({ resource: 'host', fields: hostFields }),
   state: (rawHosts, context) => {
     const hosts = useSorted(rawHosts, sortByNameLabel)
 
@@ -52,7 +54,7 @@ export const useXoHostCollection = defineRemoteResource({
     const { pools, getPoolById } = useXoPoolCollection(context)
 
     const hostsByPool = computed(() => {
-      const hostsByPoolMap = new Map<XoPool['id'], XoHost[]>()
+      const hostsByPoolMap = new Map<XoPool['id'], FrontXoHost[]>()
 
       hosts.value.forEach(host => {
         const poolId = host.$pool

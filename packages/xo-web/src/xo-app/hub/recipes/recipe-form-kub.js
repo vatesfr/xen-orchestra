@@ -123,14 +123,6 @@ export default decorate([
           searches: input.length === 0 ? undefined : input.split(',').map(search => search.trim()),
         })
       },
-      toggleStaticIpAddress(__, ev) {
-        const { name } = ev.target
-        const { onChange, value: prevValue } = this.props
-        onChange({
-          ...prevValue,
-          [name]: ev.target.checked,
-        })
-      },
       setAllowUnauthorized(_, value) {
         const { onChange, value: prevValue } = this.props
         onChange({
@@ -179,7 +171,7 @@ export default decorate([
     <Container>
       <FormGrid.Row>
         <label>{_('vmImportToPool')}</label>
-        <SelectPool className='mb-1' onChange={effects.onChangePool} required value={value.pool} />
+        <SelectPool onChange={effects.onChangePool} required value={value.pool} />
       </FormGrid.Row>
       <FormGrid.Row>
         <label>{_('vmImportToSr')}</label>
@@ -188,7 +180,6 @@ export default decorate([
       <FormGrid.Row>
         <label>{_('network')}</label>
         <SelectNetwork
-          className='mb-1'
           onChange={effects.onChangeNetwork}
           required
           value={value.network}
@@ -196,9 +187,13 @@ export default decorate([
         />
       </FormGrid.Row>
       <FormGrid.Row>
+        <div className='mt-2'>
+          <strong>Cluster configuration</strong>
+        </div>
+      </FormGrid.Row>
+      <FormGrid.Row>
         <label>{_('recipeSelectK8sVersion')}</label>
         <Select
-          className='mb-1'
           name='k8sVersion'
           onChange={effects.onChangeK8sVersion}
           options={state.versionList}
@@ -276,7 +271,6 @@ export default decorate([
       <FormGrid.Row>
         <label>
           <input
-            className='mt-1'
             name='useCustomClusterCIDR'
             onChange={effects.toggleUseCustomClusterCIDR}
             type='checkbox'
@@ -312,113 +306,104 @@ export default decorate([
       ]}
 
       <FormGrid.Row>
-        <label>
-          <input
-            className='mt-1'
-            name='staticIpAddress'
-            onChange={effects.toggleStaticIpAddress}
-            type='checkbox'
-            value={value.staticIpAddress}
-          />
-          &nbsp;
-          {_('recipeStaticIpAddresses')}
-        </label>
+        <div className='mt-2'>
+          <strong>{_('recipeStaticIpAddresses')}</strong>
+        </div>
       </FormGrid.Row>
-      {value.nbNodes > 0 &&
-        value.staticIpAddress && [
-          value.faultTolerance > 0
-            ? [
-                Array.from({ length: value.controlPlanePoolSize }).map((v, i) => (
-                  <FormGrid.Row key={i}>
-                    <label>{_('recipeHaControPlaneIpAddress', { i: i + 1 })}</label>
-                    <input
-                      className='form-control'
-                      name={`controlPlaneIpAddress.${i}`}
-                      onChange={effects.onChangeCpIp}
-                      placeholder={formatMessage(messages.recipeHaControPlaneIpAddress, { i: i + 1 })}
-                      required
-                      type='text'
-                      value={value[`controlPlaneIpAddress.${i}`]}
-                    />
-                  </FormGrid.Row>
-                )),
-                <FormGrid.Row key='vipAddrRow'>
-                  <label>{_('recipeVip')}</label>
+      {value.nbNodes > 0 && [
+        value.faultTolerance > 0
+          ? [
+              Array.from({ length: value.controlPlanePoolSize }).map((v, i) => (
+                <FormGrid.Row key={i}>
+                  <label>{_('recipeHaControPlaneIpAddress', { i: i + 1 })}</label>
                   <input
                     className='form-control'
-                    name='vipAddress'
-                    onChange={effects.onChangeValue}
-                    placeholder={formatMessage(messages.recipeVip)}
+                    name={`controlPlaneIpAddress.${i}`}
+                    onChange={effects.onChangeCpIp}
+                    placeholder={formatMessage(messages.recipeHaControPlaneIpAddress, { i: i + 1 })}
                     required
                     type='text'
-                    value={value.vipAddress}
+                    value={value[`controlPlaneIpAddress.${i}`]}
                   />
-                </FormGrid.Row>,
-              ]
-            : [
-                <FormGrid.Row key='controlPlaneIpAddrRow'>
-                  <label>{_('recipeControlPlaneIpAddress')}</label>
-                  <input
-                    className='form-control'
-                    name='controlPlaneIpAddress'
-                    onChange={effects.onChangeValue}
-                    placeholder={formatMessage(messages.recipeControlPlaneIpAddress)}
-                    required
-                    type='text'
-                    value={value.controlPlaneIpAddress}
-                  />
-                </FormGrid.Row>,
-              ],
-          <FormGrid.Row key='gatewayRow'>
-            <label>{_('recipeGatewayIpAddress')}</label>
+                </FormGrid.Row>
+              )),
+              <FormGrid.Row key='vipAddrRow'>
+                <label>{_('recipeVip')}</label>
+                <input
+                  className='form-control'
+                  name='vipAddress'
+                  onChange={effects.onChangeValue}
+                  placeholder={formatMessage(messages.recipeVip)}
+                  required
+                  type='text'
+                  value={value.vipAddress}
+                />
+              </FormGrid.Row>,
+            ]
+          : [
+              <FormGrid.Row key='controlPlaneIpAddrRow'>
+                <label>{_('recipeControlPlaneIpAddress')}</label>
+                <input
+                  className='form-control'
+                  name='controlPlaneIpAddress'
+                  onChange={effects.onChangeValue}
+                  placeholder={formatMessage(messages.recipeControlPlaneIpAddress)}
+                  required
+                  type='text'
+                  value={value.controlPlaneIpAddress}
+                />
+              </FormGrid.Row>,
+            ],
+        <FormGrid.Row key='gatewayRow'>
+          <label>{_('recipeGatewayIpAddress')}</label>
+          <input
+            className='form-control'
+            name='gatewayIpAddress'
+            onChange={effects.onChangeValue}
+            placeholder={formatMessage(messages.recipeGatewayIpAddress)}
+            required
+            type='text'
+            value={value.gatewayIpAddress}
+          />
+        </FormGrid.Row>,
+        <FormGrid.Row key='nameserverRow'>
+          <label>{_('recipeNameserverAddresses')}</label>
+          <input
+            className='form-control'
+            name='nameservers'
+            onChange={effects.onChangeNameserver}
+            placeholder={formatMessage(messages.recipeNameserverAddressesExample)}
+            required
+            type='text'
+            value={value.nameservers}
+          />
+        </FormGrid.Row>,
+        <FormGrid.Row key='searchRow'>
+          <label>{_('recipeSearches')}</label>
+          <input
+            className='form-control'
+            name='search'
+            onChange={effects.onChangeSearch}
+            placeholder={formatMessage(messages.recipeSearchesExample)}
+            type='text'
+            value={value.search}
+          />
+        </FormGrid.Row>,
+        [...Array(+value.nbNodes)].map((v, i) => (
+          <FormGrid.Row key={v}>
+            <label>{_('recipeWorkerIpAddress', { i: i + 1 })}</label>
             <input
               className='form-control'
-              name='gatewayIpAddress'
-              onChange={effects.onChangeValue}
-              placeholder={formatMessage(messages.recipeGatewayIpAddress)}
+              name={`workerNodeIpAddress.${i}`}
+              onChange={effects.onChangeWorkerIp}
+              placeholder={formatMessage(messages.recipeWorkerIpAddress, { i: i + 1 })}
               required
               type='text'
-              value={value.gatewayIpAddress}
+              value={value[`workerNodeIpAddress.${i}`]}
             />
-          </FormGrid.Row>,
-          <FormGrid.Row key='nameserverRow'>
-            <label>{_('recipeNameserverAddresses')}</label>
-            <input
-              className='form-control'
-              name='nameservers'
-              onChange={effects.onChangeNameserver}
-              placeholder={formatMessage(messages.recipeNameserverAddressesExample)}
-              required
-              type='text'
-              value={value.nameservers}
-            />
-          </FormGrid.Row>,
-          <FormGrid.Row key='searchRow'>
-            <label>{_('recipeSearches')}</label>
-            <input
-              className='form-control'
-              name='search'
-              onChange={effects.onChangeSearch}
-              placeholder={formatMessage(messages.recipeSearchesExample)}
-              type='text'
-              value={value.search}
-            />
-          </FormGrid.Row>,
-          [...Array(+value.nbNodes)].map((v, i) => (
-            <FormGrid.Row key={v}>
-              <label>{_('recipeWorkerIpAddress', { i: i + 1 })}</label>
-              <input
-                className='form-control'
-                name={`workerNodeIpAddress.${i}`}
-                onChange={effects.onChangeWorkerIp}
-                placeholder={formatMessage(messages.recipeWorkerIpAddress, { i: i + 1 })}
-                required
-                type='text'
-                value={value[`workerNodeIpAddress.${i}`]}
-              />
-            </FormGrid.Row>
-          )),
-        ]}
+          </FormGrid.Row>
+        )),
+      ]}
       <FormGrid.Row>
         <label>{_('recipeSshKeyLabel')}</label>
         <input

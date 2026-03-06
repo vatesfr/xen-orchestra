@@ -1,11 +1,21 @@
+import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
-import type { XoNetwork, XoPif } from '@vates/types'
+import type { RouteLocationAsRelative } from 'vue-router'
 
-export function getPoolNetworkLink(network: XoNetwork | undefined) {
-  return network !== undefined ? `/pool/${network.$pool}/networks?id=${network.id}` : undefined
+export function getPoolNetworkRoute(
+  poolId: FrontXoPool['id'],
+  highlightNetworkId?: FrontXoNetwork['id']
+): RouteLocationAsRelative {
+  return {
+    name: '/pool/[id]/networks',
+    params: { id: poolId },
+    query: { id: highlightNetworkId },
+  }
 }
 
-export function getNetworkStatus(pifs: XoPif[]) {
+export function getNetworkStatus(pifs: FrontXoPif[]) {
   if (pifs.length === 0) {
     return CONNECTION_STATUS.DISCONNECTED
   }

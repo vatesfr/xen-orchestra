@@ -5,7 +5,7 @@
         v-if="vm.name_label !== ''"
         size="medium"
         :icon="`object:vm:${toLower(vm.power_state)}`"
-        :to="`/vm/${vm.id}/dashboard`"
+        :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }"
       >
         {{ vm.name_label }}
       </UiLink>
@@ -43,7 +43,7 @@
         <template #key>{{ t('pool') }}</template>
         <template #value>
           <div v-if="pool" class="value">
-            <UiLink :to="`/pool/${pool.id}/dashboard`" size="small" icon="object:pool">
+            <UiLink :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }" size="small" icon="object:pool">
               {{ pool.name_label }}
             </UiLink>
           </div>
@@ -56,7 +56,7 @@
         <template #key>{{ t('host') }}</template>
         <template #value>
           <div v-if="host" class="value">
-            <UiLink :to="`/host/${host.id}/dashboard`" size="small" :icon="`object:host:${hostPowerState}`">
+            <UiLink :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }" size="small" :icon="`object:host:${hostPowerState}`">
               {{ host.name_label }}
             </UiLink>
             <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="status:primary-circle" size="small" />
@@ -145,7 +145,7 @@ import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
-import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { useXoVmCollection, type FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoVmTemplateCollection } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import { XCP_LINKS } from '@/shared/constants.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
@@ -160,13 +160,13 @@ import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { HOST_POWER_STATE, type XoVm } from '@vates/types'
+import { HOST_POWER_STATE } from '@vates/types'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{
-  vm: XoVm
+  vm: FrontXoVm
 }>()
 
 const { t } = useI18n()
