@@ -22,6 +22,7 @@
 
 - [Dashboard] Fix reactivity of dashboard (PR [#9378](https://github.com/vatesfr/xen-orchestra/pull/9378))
 - [OpenMetrics] Fix latency metrics (`xcp_host_disk_read_latency_seconds`, `xcp_host_disk_write_latency_seconds`, `xcp_vm_disk_read_latency_seconds`, `xcp_vm_disk_write_latency_seconds`) reporting milliseconds instead of seconds (PR [#9550](https://github.com/vatesfr/xen-orchestra/pull/9550))
+- [Backups] Fix out of range error on merge (PR [#9567](https://github.com/vatesfr/xen-orchestra/pull/9567))
 
 ### Packages to release
 
@@ -39,6 +40,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server-openmetrics minor
