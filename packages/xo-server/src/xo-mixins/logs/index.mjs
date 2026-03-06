@@ -1,5 +1,5 @@
 import { configure } from '@xen-orchestra/log/configure'
-import { createCaptureTransport } from '@xen-orchestra/log/capture'
+import { createLogger, createCaptureTransport } from '@xen-orchestra/log/capture'
 import { dedupe } from '@xen-orchestra/log/dedupe'
 import { defer, fromEvent } from 'promise-toolbox'
 
@@ -7,6 +7,7 @@ import LevelDbLogger from './loggers/leveldb.mjs'
 
 const { DEBUG } = process.env
 
+const { warn } = createLogger('xo:mixins:logs')
 export default class Logs {
   constructor(app) {
     this._app = app
@@ -15,10 +16,10 @@ export default class Logs {
 
     setInterval(
       () => {
-        this._gc().catch(error => console.error('error while interval log cleaning', error))
+        this._gc().catch(error => warn('error while interval log cleaning', error))
       },
       6 * 60 * 60 * 1000
-    )
+    ).unref()
 
     app.config.watch('logs', ({ filter, level, transport: transportsObject }) => {
       const transports = []
