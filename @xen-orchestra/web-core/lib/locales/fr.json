@@ -790,6 +790,7 @@
   "status:suspended": "Suspendu | Suspendu | Suspendus",
   "status:unknown": "Inconnu",
   "status:unreachable": "Injoignable | Injoignable | Injoignables",
+  "step-n-of": "Étape {current} / {total}",
   "storage": "Stockage",
   "storage-configuration": "Configuration du stockage",
   "storage-format": "Format de stockage",
