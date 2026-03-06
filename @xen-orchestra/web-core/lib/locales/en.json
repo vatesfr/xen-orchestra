@@ -764,6 +764,7 @@
   "status:suspended": "Suspended",
   "status:unknown": "Unknown",
   "status:unreachable": "Unreachable",
+  "step-n-of": "Step {current} / {total}",
   "storage": "Storage",
   "storage-configuration": "Storage configuration",
   "storage-format": "Storage format",
