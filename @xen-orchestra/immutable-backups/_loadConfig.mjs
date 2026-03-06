@@ -1,11 +1,35 @@
+// @ts-check
+
 import { load } from 'app-conf'
 import { homedir } from 'os'
 import { join } from 'node:path'
 import ms from 'ms'
 
+/**
+ * Configuration for a single watched remote.
+ * All duration fields are stored as milliseconds after config loading.
+ * @typedef {Object} RemoteConfig
+ * @property {string} root - Absolute path to the root of the backup repository
+ * @property {string} indexPath - Absolute path to the immutability index directory
+ * @property {number} immutabilityDuration - Minimum duration in milliseconds that files must stay immutable
+ * @property {boolean} [rebuildIndexOnStart] - Whether to re-index already-immutable files on startup
+ */
+
+/**
+ * Fully resolved application configuration.
+ * @typedef {Object} AppConfig
+ * @property {number} [liftEvery] - Interval in milliseconds between immutability-lifting runs (0 = run once)
+ * @property {Record<string, RemoteConfig>} remotes - Map of remote ID to its resolved configuration
+ */
+
 const APP_NAME = 'xo-immutable-backups'
 const APP_DIR = new URL('.', import.meta.url).pathname
 
+/**
+ * Load and validate the application configuration, resolving all duration
+ * strings (e.g. `"30d"`) to milliseconds and deriving `indexPath` when absent.
+ * @returns {Promise<AppConfig>}
+ */
 export default async function loadConfig() {
   const config = await load(APP_NAME, {
     appDir: APP_DIR,

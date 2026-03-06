@@ -39,6 +39,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/immutable-backups patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server-openmetrics minor
