@@ -20,6 +20,7 @@
 - If a hostname was defined in a configuration file, `/v5` were not accessible [#9500](https://github.com/vatesfr/xen-orchestra/issues/9500)
 - **XO 5**:
   - [Self Service] Fix RAM usage not being properly updated in some cases. Please use "Recompute all limits" in the Self Service dashboard to fix any incorrect quota values introduced by this bug. (PR [#9566](https://github.com/vatesfr/xen-orchestra/pull/9566))
+- If a hostname was defined in a configuration file, `/v5` were not accessible [#9500](https://github.com/vatesfr/xen-orchestra/issues/9500) (PR [#9572](https://github.com/vatesfr/xen-orchestra/pull/9572))
 
 ### Packages to release
 
