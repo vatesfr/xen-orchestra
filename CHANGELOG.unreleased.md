@@ -55,6 +55,7 @@
 - @vates/nbd-client minor
 - @vates/types minor
 - @xen-orchestra/backups minor
+- @xen-orchestra/disk-cli major
 - @xen-orchestra/disk-transform patch
 - @xen-orchestra/fs minor
 - @xen-orchestra/mcp minor
