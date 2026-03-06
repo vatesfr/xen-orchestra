@@ -13,8 +13,9 @@ import {
   Body,
   Put,
   Delete,
+  Middlewares,
 } from 'tsoa'
-import { Request as ExRequest } from 'express'
+import { Request as ExRequest, json } from 'express'
 import { inject } from 'inversify'
 import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
 import { provide } from 'inversify-binding-decorators'
@@ -33,6 +34,7 @@ import type {
 } from '@vates/types'
 import { PassThrough, Readable } from 'node:stream'
 
+import { acl } from '../middlewares/acl.middleware.mjs'
 import {
   asynchronousActionResp,
   badRequestResp,
@@ -128,11 +130,15 @@ export class VmController extends XapiXoController<XoVm> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vm, action: read
    *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(vm)
   @Get('{id}')
+  @Middlewares(acl({ resource: 'vm', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getVm(@Path() id: string): Unbrand<XoVm> {
     return this.getObject(id as XoVm['id'])
@@ -235,12 +241,24 @@ export class VmController extends XapiXoController<XoVm> {
   /**
    * The VM must be halted
    *
+   * Required privileges:
+   * - resource: vm, action: start
+   * - resource: host, action: allow-vm (if an hostId is specified)
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example body { "hostId": "b61a5c92-700e-4966-a13b-00633f03eea8" }
    */
   @Example(taskLocation)
   @Post('{id}/actions/start')
+  @Middlewares([
+    json(),
+    acl([
+      { resource: 'vm', action: 'start', objectId: 'params.id' },
+      { resource: 'host', action: 'allow-vm', objectId: 'body.hostId' },
+    ]),
+  ])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -267,12 +285,18 @@ export class VmController extends XapiXoController<XoVm> {
 
   /**
    * Requires guest tools to be installed
+   *
+   * Required privilege:
+   * - resource: vm, action: shutdown:clean
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
   @Post('{id}/actions/clean_shutdown')
+  @Middlewares(acl({ resource: 'vm', action: 'shutdown:clean', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async cleanShutdownVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
@@ -293,10 +317,19 @@ export class VmController extends XapiXoController<XoVm> {
 
   /**
    * Requires guest tools to be installed
+   *
+   * Required privilege:
+   * - resource: vm, action: reboot:clean
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
   @Post('{id}/actions/clean_reboot')
+  @Middlewares(acl({ resource: 'vm', action: 'reboot:clean', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
   async cleanRebootVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
@@ -477,6 +510,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/snapshot')
+  @Middlewares(json())
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(createdResp.status, 'Snapshot created')
   @Response(notFoundResp.status, notFoundResp.description)
