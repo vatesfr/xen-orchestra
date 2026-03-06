@@ -123,7 +123,7 @@ export default class Xostor {
     })
   }
 
-  async destroy(ref) {
+  async delete(ref) {
     const srUuid = await this.getField('SR', ref, 'uuid')
     const srNameLabel = await this.getField('SR', ref, 'name_label')
 

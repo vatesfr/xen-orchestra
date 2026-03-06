@@ -41,6 +41,7 @@ import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { taskIds, partialTasks, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
+import { SrService } from './sr.service.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 
 @Route('srs')
@@ -51,9 +52,15 @@ import type { CreateActionReturnType } from '../abstract-classes/base-controller
 @provide(SrController)
 export class SrController extends XapiXoController<XoSr> {
   #alarmService: AlarmService
-  constructor(@inject(RestApi) restApi: RestApi, @inject(AlarmService) alarmService: AlarmService) {
+  #srService: SrService
+  constructor(
+    @inject(RestApi) restApi: RestApi,
+    @inject(AlarmService) alarmService: AlarmService,
+    @inject(SrService) srService: SrService
+  ) {
     super('SR', restApi)
     this.#alarmService = alarmService
+    this.#srService = srService
   }
 
   /**
