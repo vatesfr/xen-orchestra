@@ -1,11 +1,18 @@
 <!-- v7 -->
 <template>
-  <span :class="classNames" class="ui-chip typo-body-regular-small" @click="!disabled && emit('remove')">
+  <button
+    id="removeChip"
+    :class="classNames"
+    class="ui-chip typo-body-regular-small"
+    type="button"
+    :aria-disabled="disabled"
+    @click="!disabled && emit('remove')"
+  >
     <span class="text-ellipsis">
       <slot />
     </span>
     <VtsIcon v-if="!disabled" name="action:close-cancel-clear" size="small" :color="iconColor" />
-  </span>
+  </button>
 </template>
 
 <script lang="ts" setup>
@@ -63,6 +70,25 @@ const iconColor = useMapper(
   vertical-align: middle;
   white-space: nowrap;
   min-width: 0;
+  border: none;
+
+  &:focus-visible {
+    outline: none;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -0.4rem;
+    box-sizing: content-box;
+    border: 0.2rem solid transparent;
+    border-radius: 0.2rem;
+    pointer-events: none;
+  }
+
+  &:focus-visible::after {
+    border-color: var(--color-brand-txt-base);
+  }
 
   &.muted {
     color: var(--color-neutral-txt-secondary);
