@@ -90,7 +90,7 @@ const { t } = useI18n()
 
   .alarms {
     grid-area: alarms;
-    height: 46.2rem;
+    max-height: 46.2rem;
   }
 
   .backup-runs {

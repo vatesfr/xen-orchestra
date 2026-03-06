@@ -1,5 +1,5 @@
 <template>
-  <VtsTable :state sticky="right">
+  <VtsTable :state sticky="right" horizontal>
     <thead>
       <tr>
         <HeadCells />
