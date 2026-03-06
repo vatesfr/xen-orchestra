@@ -41,6 +41,7 @@ import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { taskIds, partialTasks, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
+import { SrService } from './sr.service.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { SrService } from './sr.service.mjs'
 
