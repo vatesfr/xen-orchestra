@@ -22,6 +22,7 @@
       <VtsQuickInfoRow :label="t('date')" :value="formattedDate" />
       <VtsQuickInfoRow :label="t('storage-repository')">
         <template #value>
+          <!-- TODO Need to implement a link of the storage repository when the dedicated page to backup repository will be implemented -->
           <UiLink :icon="srStatusIcon" size="medium">
             {{ storageRepository?.name_label }}
           </UiLink>
@@ -74,9 +75,7 @@ const storageRepository = computed<FrontXoSr | undefined>(() =>
 )
 
 const formattedDate = computed(() =>
-  replication.value
-    ? d(replication.value.timestamp, { dateStyle: 'short', timeStyle: 'medium' }).replace(/\//g, '-')
-    : undefined
+  replication.value ? d(replication.value.timestamp, { dateStyle: 'short', timeStyle: 'medium' }) : undefined
 )
 
 const { srStatusIcon } = useXoSrUtils(() => storageRepository.value as FrontXoSr)
