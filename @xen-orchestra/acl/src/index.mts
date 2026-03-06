@@ -18,7 +18,7 @@ export type AnyPrivilege = {
   [Resource in SupportedResource]: Privilege<Resource>
 }[SupportedResource]
 
-type AnyPrivilegeOnParam = {
+export type AnyPrivilegeOnParam = {
   [Resource in SupportedResource]: {
     user: XoUser
     resource: Resource
@@ -82,16 +82,44 @@ export function hasPrivilegeOn<T extends SupportedResource>({
 }
 
 export function getMissingPrivileges(params: AnyPrivilegeOnParam[], userPrivileges: AnyPrivilege[]) {
-  return params.filter(
-    param =>
-      !hasPrivilegeOn({
-        user: param.user,
-        resource: param.resource,
-        action: param.action as SupportedActions<typeof param.resource>,
-        objects: param.objects,
-        userPrivileges,
-      })
-  )
+  return params
+    .filter(
+      param =>
+        !hasPrivilegeOn({
+          user: param.user,
+          resource: param.resource,
+          action: param.action as SupportedActions<typeof param.resource>,
+          objects: param.objects,
+          userPrivileges,
+        })
+    )
+    .map(({ action, objects, resource }) => {
+      let objectIds: unknown[] | undefined
+      let objectId: unknown | undefined
+
+      if (Array.isArray(objects)) {
+        if (objects.length > 1) {
+          objectIds = []
+          objects.forEach(obj => {
+            if ('id' in obj) {
+              objectIds!.push(obj.id)
+            }
+          })
+        } else {
+          objects = objects?.[0] ?? {}
+        }
+      }
+      if (!Array.isArray(objects)) {
+        objectId = 'id' in objects ? objects.id : undefined
+      }
+
+      return {
+        objectId,
+        objectIds,
+        action,
+        resource,
+      }
+    })
 }
 
 export function hasPrivileges(params: AnyPrivilegeOnParam[], userPrivileges: AnyPrivilege[]) {

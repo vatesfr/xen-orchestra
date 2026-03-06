@@ -18,10 +18,10 @@ import { NetworkService } from '../networks/network.service.mjs'
 
 const iocContainer = new Container()
 
-decorate(injectable(), Controller)
-iocContainer.load(buildProviderModule())
-
 export function setupContainer(xoApp: XoApp) {
+  decorate(injectable(), Controller)
+  iocContainer.load(buildProviderModule())
+
   if (iocContainer.isBound(RestApi)) {
     iocContainer.unbind(RestApi)
   }

@@ -55,6 +55,7 @@ type ActionsByResource = {
   'backup-log': 'read'
   'backup-repository': 'read'
   group: 'read'
+  gpuGroup: 'read'
   host: 'read' | 'allow-vm'
   message: 'read'
   network: 'read'
@@ -74,6 +75,9 @@ type ActionsByResource = {
   vbd: 'read'
   'vdi-snapshot': 'read'
   vdi: 'read' | 'create' | 'boot'
+  'vdi-unmanaged': 'read'
+  vgpu: 'read'
+  vgpuType: 'read'
   vif: 'read' | 'create'
   'vm-controller': 'read'
   'vm-snapshot': 'read'
@@ -91,6 +95,7 @@ type ActionsByResource = {
     | 'suspend'
     | 'resume'
     | 'unpause'
+  vtpm: 'read'
 }
 
 // ------ RESOURCES CHECK
