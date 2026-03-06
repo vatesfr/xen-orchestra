@@ -532,6 +532,7 @@ export class VmController extends XapiXoController<XoVm> {
   @Response(createdResp.status, createdResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
   async cloneVm(
     @Path() id: string,
     @Body() body?: { name_label?: string; fast?: boolean } | { name_label?: string; srId?: string },
@@ -572,6 +573,7 @@ export class VmController extends XapiXoController<XoVm> {
       taskProperties: {
         name: 'clone VM',
         objectId: vmId,
+        params: body,
       },
     })
   }
