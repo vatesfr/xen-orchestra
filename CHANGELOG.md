@@ -1,5 +1,25 @@
 # ChangeLog
 
+## next
+
+### Enhancements
+
+- [VM/New] Added secureBoot support (PR [#9423](https://github.com/vatesfr/xen-orchestra/pull/9423))
+- [i18n] Update Czech and Danish translations (PR [#9531](https://github.com/vatesfr/xen-orchestra/pull/9531))
+- [openmetrics] add XO process metrics (PR [#9535](https://github.com/vatesfr/xen-orchestra/pull/9535))
+- [VM] Add backup runs and backup archives cards on dashboard (PR [#9303](https://github.com/vatesfr/xen-orchestra/pull/9303))
+
+### Bug fixes
+
+- [Dashboard] Fix reactivity of dashboard (PR [#9378](https://github.com/vatesfr/xen-orchestra/pull/9378))
+- [OpenMetrics] Fix latency metrics (`xcp_host_disk_read_latency_seconds`, `xcp_host_disk_write_latency_seconds`, `xcp_vm_disk_read_latency_seconds`, `xcp_vm_disk_write_latency_seconds`) reporting milliseconds instead of seconds (PR [#9550](https://github.com/vatesfr/xen-orchestra/pull/9550))
+
+### Released packages
+
+- @xen-orchestra/web-core 0.46.0
+- @xen-orchestra/web 0.44.0
+- xo-server-openmetrics 1.3.0
+
 ## **6.2.1 ** (2026-02-27)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
