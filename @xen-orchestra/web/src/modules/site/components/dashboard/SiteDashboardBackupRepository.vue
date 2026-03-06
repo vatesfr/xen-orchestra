@@ -2,7 +2,7 @@
   <UiCard :has-error="isError">
     <div class="site-dashboard-backup-repository">
       <UiCardTitle>
-        {{ t('backup-repository') }}
+        {{ t('backup-repository-type') }}
         <template #description>{{ t('for-backup') }}</template>
       </UiCardTitle>
       <VtsStateHero v-if="isLoading" format="card" type="busy" size="medium" />

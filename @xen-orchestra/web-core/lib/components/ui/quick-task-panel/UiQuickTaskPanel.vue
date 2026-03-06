@@ -1,6 +1,6 @@
 <!-- WIP -->
 <template>
-  <div :class="{ mobile: isSmall }" class="ui-quick-task-panel">
+  <div :class="{ mobile: uiStore.isSmall }" class="ui-quick-task-panel">
     <VtsQuickTaskTabBar
       v-model="currentTab"
       :failure-count="failureTasks.length"
@@ -24,7 +24,7 @@ const props = defineProps<{
   loading?: boolean
 }>()
 
-const { isSmall } = useUiStore()
+const uiStore = useUiStore()
 
 const currentTab = ref<TaskTab>('pending')
 
