@@ -326,6 +326,7 @@ export class RemoteVhdDisk extends RemoteDisk {
       throw new Error(`can't call resize of a RemoteVhdDisk before init`)
     }
 
+    // Checks that the BAT is at least as big as the provided block count, if not, increases it and shift the blocks position
     await this.#vhd.ensureBatSize(blockCount)
   }
 
