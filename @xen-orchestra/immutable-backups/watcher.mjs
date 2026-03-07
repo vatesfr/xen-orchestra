@@ -72,72 +72,15 @@ async function tryLockDirectory(path, indexPath) {
 }
 
 /**
- * Lock all backup files for a single VDI directory that belong to `datetime`.
- *
- * Handles both storage modes:
- *   - **VHD directory**: `<datetime>.alias.vhd` + `data/<datetime>.vhd/`
- *   - **Plain VHD**:     `<datetime>.vhd`
- *
- * The VHD directory under `data/` is expected to be named `<datetime>.vhd`
- * (same datetime as the alias and the metadata json), not the legacy UUID name.
- *
- * @param {string} vdiDir    - Absolute path to `vdis/<jobId>/<vdiId>/`
- * @param {string} datetime  - e.g. `"20231215T142030"`
- * @param {string} indexPath
- * @returns {Promise<void>}
- */
-async function lockVdiFiles(vdiDir, datetime, indexPath) {
-  await Promise.all([
-    // VHD directory mode — alias pointer file
-    tryLockFile(join(vdiDir, `${datetime}.alias.vhd`), indexPath),
-    // VHD directory mode — the actual data directory (bat + header + footer + blocks)
-    tryLockDirectory(join(vdiDir, 'data', `${datetime}.vhd`), indexPath),
-    // Plain VHD file mode
-    tryLockFile(join(vdiDir, `${datetime}.vhd`), indexPath),
-  ])
-}
-
-/**
- * Scan every `vdis/<jobId>/<vdiId>/` directory under `vmDir` and lock all
- * files belonging to `datetime`.
- *
- * @param {string} vmDir
- * @param {string} datetime
- * @param {string} indexPath
- * @returns {Promise<void>}
- */
-async function lockAllVdis(vmDir, datetime, indexPath) {
-  const vdisDir = join(vmDir, 'vdis')
-
-  let jobIds
-  try {
-    jobIds = await fsp.readdir(vdisDir)
-  } catch (err) {
-    if (/** @type {NodeJS.ErrnoException} */ (err).code === 'ENOENT') {
-      return // no vdis directory — full backup with .xva only, nothing to do
-    }
-    throw err
-  }
-
-  await Promise.all(
-    jobIds.map(async jobId => {
-      let vdiIds
-      try {
-        vdiIds = await fsp.readdir(join(vdisDir, jobId))
-      } catch {
-        return
-      }
-      await Promise.all(
-        vdiIds.map(vdiId => lockVdiFiles(join(vdisDir, jobId, vdiId), datetime, indexPath))
-      )
-    })
-  )
-}
-
-/**
  * Lock every file belonging to the backup run identified by `datetime` inside
  * `vmDir`.  Called once the metadata `.json` has been detected, which
  * guarantees that all other files for that run have already been written.
+ *
+ * All flat files (json, xva, checksum, plain/alias VHDs) are indexed and locked
+ * with a **single `chattr +i`** invocation, reducing subprocess-spawn pressure
+ * from N to 1 when many backups complete simultaneously.
+ * VHD directories (`data/<datetime>.vhd/`) still require `chattr +i -R` and
+ * are handled separately (uncommon in practice).
  *
  * Files locked:
  *   - `<datetime>.json`
@@ -152,12 +95,49 @@ async function lockAllVdis(vmDir, datetime, indexPath) {
  */
 async function lockBackup(vmDir, datetime, indexPath) {
   debug(`[watcher] lockBackup: vmDir="${vmDir}" datetime="${datetime}"`)
+
+  // Collect all flat file candidates for this backup.
+  const flatCandidates = [
+    join(vmDir, `${datetime}.json`),
+    join(vmDir, `${datetime}.xva`),
+    join(vmDir, `${datetime}.xva.checksum`),
+  ]
+  // VHD directories need chattr -R and cannot be batched with flat files.
+  const vhdDirCandidates = /** @type {string[]} */ ([])
+
+  const vdisDir = join(vmDir, 'vdis')
+  let jobIds = /** @type {string[]} */ ([])
+  try {
+    jobIds = await fsp.readdir(vdisDir)
+  } catch (err) {
+    if (/** @type {NodeJS.ErrnoException} */ (err).code !== 'ENOENT') throw err
+  }
+
+  await Promise.all(
+    jobIds.map(async jobId => {
+      let vdiIds
+      try {
+        vdiIds = await fsp.readdir(join(vdisDir, jobId))
+      } catch {
+        return
+      }
+      for (const vdiId of vdiIds) {
+        const vdiDir = join(vdisDir, jobId, vdiId)
+        // Plain VHD and alias pointer are flat files — batch with the rest.
+        flatCandidates.push(join(vdiDir, `${datetime}.vhd`))
+        flatCandidates.push(join(vdiDir, `${datetime}.alias.vhd`))
+        // VHD directory needs recursive locking — handled separately.
+        vhdDirCandidates.push(join(vdiDir, 'data', `${datetime}.vhd`))
+      }
+    })
+  )
+
+  // Lock all flat files with one chattr call + lock VHD dirs in parallel.
   await Promise.all([
-    tryLockFile(join(vmDir, `${datetime}.json`), indexPath),
-    tryLockFile(join(vmDir, `${datetime}.xva`), indexPath),
-    tryLockFile(join(vmDir, `${datetime}.xva.checksum`), indexPath),
-    lockAllVdis(vmDir, datetime, indexPath),
+    File.makeImmutableBatch(flatCandidates, indexPath),
+    ...vhdDirCandidates.map(dir => tryLockDirectory(dir, indexPath)),
   ])
+
   debug(`[watcher] lockBackup: done vmDir="${vmDir}" datetime="${datetime}"`)
 }
 

@@ -18,9 +18,12 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { tmpdir } from 'node:os'
+import { createHash } from 'node:crypto'
 import { rimraf } from 'rimraf'
 import execa from 'execa'
 
+import { asyncEach } from '@vates/async-each'
+import { indexFile } from './fileIndex.mjs'
 import { watchRemote } from './protectRemotes.mjs'
 import { liftRemoteImmutability } from './liftProtection.mjs'
 
@@ -52,6 +55,18 @@ const LOCK_TIMEOUT_MS = 120_000
 // Each VM backup: 1 .json + DISKS_PER_VM plain .vhd files → all indexed.
 const FILES_PER_VM = 1 + DISKS_PER_VM
 const EXPECTED_PER_PHASE = VM_COUNT * FILES_PER_VM
+
+/**
+ * Indices into `vms[]` whose Phase B json→indexed latency is tracked
+ * individually to show per-backup timing under full concurrent load.
+ */
+const PROBE_VM_INDICES = [
+  0,
+  Math.floor(VM_COUNT / 4),
+  Math.floor(VM_COUNT / 2),
+  Math.floor(VM_COUNT * 3 / 4),
+  VM_COUNT - 1,
+]
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -136,6 +151,135 @@ async function waitForIndexCount(indexPath, target, label) {
 }
 
 // ---------------------------------------------------------------------------
+// Index membership check — no subprocess, fast polling
+// ---------------------------------------------------------------------------
+
+/** @param {string} content */
+function sha256hex(content) {
+  return createHash('sha256').update(content).digest('hex')
+}
+
+/**
+ * Returns true when `filePath` has an entry in the immutability index.
+ * Replicates the key derivation in fileIndex.mjs: birthtimeMs + sha256(path).
+ * Does NOT spawn any subprocess.
+ * @param {string} filePath
+ * @param {string} indexPath
+ */
+async function isIndexed(filePath, indexPath) {
+  let stat
+  try {
+    stat = await fs.stat(filePath)
+  } catch {
+    return false
+  }
+  const day = new Date(stat.birthtimeMs).toISOString().split('T')[0]
+  const hashFile = path.join(indexPath, day, sha256hex(filePath))
+  try {
+    await fs.access(hashFile)
+    return true
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Spin-polls `isIndexed` every 10 ms until the file is indexed or `timeoutMs`
+ * elapses.  Returns the wall-clock timestamp (ms) when indexed, or null on timeout.
+ * @param {string} filePath
+ * @param {string} indexPath
+ * @param {number} [timeoutMs]
+ * @returns {Promise<number | null>}
+ */
+async function waitUntilIndexed(filePath, indexPath, timeoutMs = 60_000) {
+  const deadline = Date.now() + timeoutMs
+  while (Date.now() < deadline) {
+    if (await isIndexed(filePath, indexPath)) return Date.now()
+    await new Promise(r => setTimeout(r, 10))
+  }
+  return null
+}
+
+// ---------------------------------------------------------------------------
+// Raw cost benchmark
+// ---------------------------------------------------------------------------
+
+/** @param {number[]} arr */
+function average(arr) {
+  return arr.reduce((a, b) => a + b, 0) / arr.length
+}
+
+/**
+ * Measures the cost of the individual operations that `lockBackup` performs,
+ * with no watcher running and no concurrent load, so results reflect pure
+ * operation overhead with no queue contention.
+ *
+ * Reports:
+ *   1. indexFile — stat + sha256 + write one index entry
+ *   2. chattr +i — single subprocess spawn
+ *   3. 5 concurrent chattr +i — one realistic backup (1 json + 4 vhds in parallel)
+ *
+ * @param {string} scratchDir  - An existing directory for temporary test files
+ * @param {string} indexPath   - Production index path (a sibling dir is used)
+ */
+async function measureRawCosts(scratchDir, indexPath) {
+  console.log('=== Baseline: raw lockBackup operation costs (no watcher, no load) ===')
+
+  // Use a sibling index dir so baseline entries never pollute the main index.
+  const measureIndex = path.join(path.dirname(indexPath), '.index-measure')
+
+  const files = await Promise.all(
+    Array.from({ length: 5 }, (_, i) => {
+      const p = path.join(scratchDir, `_measure_${i}.json`)
+      return fs.writeFile(p, '{}').then(() => p)
+    })
+  )
+
+  // 1. indexFile: stat + sha256 + write index entry (first-time, no EEXIST)
+  const tIdx = []
+  for (const f of files) {
+    const t = process.hrtime.bigint()
+    await indexFile(f, measureIndex)
+    tIdx.push(Number(process.hrtime.bigint() - t) / 1e6)
+  }
+  console.log(
+    `  indexFile (stat+sha256+write):   avg ${average(tIdx).toFixed(1)} ms` +
+      `  [${tIdx.map(t => t.toFixed(1)).join(', ')} ms]`
+  )
+
+  // 2. chattr +i — single subprocess spawn, 5 sequential runs
+  const tChattr1 = []
+  for (const f of files) {
+    const t = process.hrtime.bigint()
+    await execa('chattr', ['+i', f])
+    tChattr1.push(Number(process.hrtime.bigint() - t) / 1e6)
+    await execa('chattr', ['-i', f])
+  }
+  console.log(
+    `  chattr +i single spawn:          avg ${average(tChattr1).toFixed(1)} ms` +
+      `  [${tChattr1.map(t => t.toFixed(1)).join(', ')} ms]`
+  )
+
+  // 3. 5 concurrent chattr +i — realistic per-backup case (1 json + 4 vhds)
+  const tChattr5 = []
+  for (let run = 0; run < 5; run++) {
+    const t = process.hrtime.bigint()
+    await Promise.all(files.map(f => execa('chattr', ['+i', f])))
+    tChattr5.push(Number(process.hrtime.bigint() - t) / 1e6)
+    await Promise.all(files.map(f => execa('chattr', ['-i', f])))
+  }
+  console.log(
+    `  5x concurrent chattr +i:         avg ${average(tChattr5).toFixed(1)} ms` +
+      `  [${tChattr5.map(t => t.toFixed(1)).join(', ')} ms]`
+  )
+
+  // Cleanup scratch files and temp index.
+  await Promise.all(files.map(f => fs.unlink(f)))
+  await rimraf(measureIndex)
+  console.log('')
+}
+
+// ---------------------------------------------------------------------------
 // Memory tracking
 // ---------------------------------------------------------------------------
 
@@ -180,16 +324,26 @@ async function main() {
   console.log('Creating directory structure...')
   const tDirs = Date.now()
 
-  const leafDirs = vms.flatMap(vm =>
-    vm.vdiUuids.map(vdiUuid =>
-      path.join(root, 'xo-vm-backups', vm.uuid, 'vdis', JOB_UUID, vdiUuid)
-    )
+  await asyncEach(
+    vms,
+    async vm => {
+      await Promise.all(
+        vm.vdiUuids.map(vdiUuid =>
+          fs.mkdir(path.join(root, 'xo-vm-backups', vm.uuid, 'vdis', JOB_UUID, vdiUuid), {
+            recursive: true,
+          })
+        )
+      )
+    },
+    { concurrency: 200 }
   )
-  for (let i = 0; i < leafDirs.length; i += 200) {
-    await Promise.all(leafDirs.slice(i, i + 200).map(d => fs.mkdir(d, { recursive: true })))
-  }
   console.log(`Done in ${Date.now() - tDirs} ms (${VM_COUNT * DISKS_PER_VM} leaf dirs)`)
   console.log('')
+
+  // -------------------------------------------------------------------------
+  // 1.5. Baseline: measure raw operation costs (no watcher, no contention)
+  // -------------------------------------------------------------------------
+  await measureRawCosts(path.join(root, 'xo-vm-backups', vms[0].uuid), indexPath)
 
   // -------------------------------------------------------------------------
   // 2. Write backup files for OLD_DATE and make them immutable without indexing
@@ -198,31 +352,29 @@ async function main() {
   const tWrite1 = Date.now()
 
   const allOldFiles = /** @type {string[]} */ ([])
-  const writeQueue1 = vms.slice()
-  await Promise.all(
-    Array.from({ length: WRITE_CONCURRENCY }, async () => {
-      while (writeQueue1.length > 0) {
-        const vm = writeQueue1.shift()
-        if (vm === undefined) break
-        const vmDir = path.join(root, 'xo-vm-backups', vm.uuid)
-        const vhdFiles = await Promise.all(
-          vm.vdiUuids.map(async vdiUuid => {
-            const p = path.join(vmDir, 'vdis', JOB_UUID, vdiUuid, `${OLD_DATE}.vhd`)
-            await fs.writeFile(p, 'fake vhd data')
-            return p
-          })
-        )
-        const jsonFile = path.join(vmDir, `${OLD_DATE}.json`)
-        await fs.writeFile(jsonFile, '{}')
-        allOldFiles.push(jsonFile, ...vhdFiles)
-      }
-    })
+  await asyncEach(
+    vms,
+    async vm => {
+      const vmDir = path.join(root, 'xo-vm-backups', vm.uuid)
+      const vhdFiles = await Promise.all(
+        vm.vdiUuids.map(async vdiUuid => {
+          const p = path.join(vmDir, 'vdis', JOB_UUID, vdiUuid, `${OLD_DATE}.vhd`)
+          await fs.writeFile(p, 'fake vhd data')
+          return p
+        })
+      )
+      const jsonFile = path.join(vmDir, `${OLD_DATE}.json`)
+      await fs.writeFile(jsonFile, '{}')
+      allOldFiles.push(jsonFile, ...vhdFiles)
+    },
+    { concurrency: WRITE_CONCURRENCY }
   )
   console.log(`Files written in ${Date.now() - tWrite1} ms`)
 
   console.log(`Making ${allOldFiles.length} files immutable (no index)...`)
   const tChattr = Date.now()
   await bulkMakeImmutable(allOldFiles)
+  allOldFiles.length = 0 // release path strings; main memory is from the watcher
   console.log(`chattr done in ${Date.now() - tChattr} ms`)
   console.log('')
 
@@ -260,46 +412,145 @@ async function main() {
   console.log('')
 
   // -------------------------------------------------------------------------
-  // Phase B — write new backups and measure live watcher locking speed
+  // Phase A.5 — single-backup probe: watcher running, zero concurrent load.
+  // Measures the full json-written → indexed latency for 5 sequential backups
+  // on a dedicated probe VM (not in the main 5000).
+  // Together with the baseline above this isolates: event delivery latency and
+  // readdir overhead = (A.5 latency) − (5× concurrent chattr baseline).
+  // -------------------------------------------------------------------------
+  console.log('=== Phase A.5: single-backup probe latency (watcher running, no load) ===')
+
+  // Use UUIDs that cannot collide with the main vms[] (all-f prefix).
+  const PROBE_VM_UUID = 'ffffffff-ffff-ffff-ffff-000000000001'
+  const probeVm = {
+    uuid: PROBE_VM_UUID,
+    vdiUuids: Array.from({ length: DISKS_PER_VM }, (_, j) =>
+      `ffffffff-ffff-ffff-ffff-${String(j + 2).padStart(12, '0')}`
+    ),
+  }
+  const probeVmDir = path.join(root, 'xo-vm-backups', PROBE_VM_UUID)
+
+  // Create the probe VM's VDI directories.  The watcher dynamically picks up
+  // the new xo-vm-backups/<UUID>/ directory via watchSubdirectories.
+  for (const vdiUuid of probeVm.vdiUuids) {
+    await fs.mkdir(path.join(probeVmDir, 'vdis', JOB_UUID, vdiUuid), { recursive: true })
+  }
+  // Give the watcher time to detect and start watching the new VM dir.
+  await new Promise(resolve => setTimeout(resolve, 500))
+
+  const probeSingleTimes = /** @type {number[]} */ ([])
+  for (let run = 0; run < 5; run++) {
+    // Each run uses a distinct datetime (20240117T120000Z … 20240121T120000Z).
+    const pDatetime = `2024011${run + 7}T120000Z`
+
+    // VHD files must be written before the terminal .json signal.
+    await Promise.all(
+      probeVm.vdiUuids.map(vdiUuid =>
+        fs.writeFile(
+          path.join(probeVmDir, 'vdis', JOB_UUID, vdiUuid, `${pDatetime}.vhd`),
+          'fake vhd data'
+        )
+      )
+    )
+
+    const jsonPath = path.join(probeVmDir, `${pDatetime}.json`)
+    const tJsonWritten = Date.now()
+    await fs.writeFile(jsonPath, '{}')
+    const tIndexed = await waitUntilIndexed(jsonPath, indexPath)
+
+    if (tIndexed !== null) {
+      const latency = tIndexed - tJsonWritten
+      probeSingleTimes.push(latency)
+      console.log(`  run ${run + 1}: json→indexed ${latency} ms`)
+    } else {
+      console.log(`  run ${run + 1}: TIMEOUT`)
+    }
+  }
+
+  if (probeSingleTimes.length > 0) {
+    const sorted = [...probeSingleTimes].sort((a, b) => a - b)
+    const avg = average(probeSingleTimes)
+    const med = sorted[Math.floor(sorted.length / 2)]
+    const max = sorted[sorted.length - 1]
+    console.log(`  avg ${avg.toFixed(0)} ms  median ${med} ms  max ${max} ms`)
+    console.log(
+      `  (subtract 5× concurrent chattr baseline above to isolate fs.watch event latency + readdir)`
+    )
+  }
+  console.log('')
+
+  // -------------------------------------------------------------------------
+  // Phase B — write new backups and measure live watcher locking speed.
+  // 5 probe VMs are tracked individually: their poller starts as soon as their
+  // .json is written, so we capture the true per-backup json→indexed latency
+  // even when 5000 backups are competing simultaneously.
   // -------------------------------------------------------------------------
   console.log(`=== Phase B: live watcher — writing ${VM_COUNT} new backups (${NEW_DATE}) ===`)
+
+  // Each probe VM gets a notifier that the write loop calls when the .json
+  // is flushed.  The notifier kicks off a background poller.
+  /** @type {Map<string, (tWritten: number) => void>} */
+  const probeWriteNotifiers = new Map()
+  const probeBTasks = PROBE_VM_INDICES.map(vmIdx => {
+    const vm = vms[vmIdx]
+    const jsonPath = path.join(root, 'xo-vm-backups', vm.uuid, `${NEW_DATE}.json`)
+    return /** @type {Promise<{ vmIdx: number, tWritten: number, tIndexed: number | null }>} */ (
+      new Promise(resolve => {
+        probeWriteNotifiers.set(vm.uuid, tWritten => {
+          waitUntilIndexed(jsonPath, indexPath).then(tIndexed => resolve({ vmIdx, tWritten, tIndexed }))
+        })
+      })
+    )
+  })
+
   const tWrite2 = Date.now()
   let written2 = 0
 
-  const writeQueue2 = vms.slice()
-  await Promise.all(
-    Array.from({ length: WRITE_CONCURRENCY }, async () => {
-      while (writeQueue2.length > 0) {
-        const vm = writeQueue2.shift()
-        if (vm === undefined) break
-        const vmDir = path.join(root, 'xo-vm-backups', vm.uuid)
-        await Promise.all(
-          vm.vdiUuids.map(vdiUuid =>
-            fs.writeFile(
-              path.join(vmDir, 'vdis', JOB_UUID, vdiUuid, `${NEW_DATE}.vhd`),
-              'fake vhd data'
-            )
+  await asyncEach(
+    vms,
+    async vm => {
+      const vmDir = path.join(root, 'xo-vm-backups', vm.uuid)
+      await Promise.all(
+        vm.vdiUuids.map(vdiUuid =>
+          fs.writeFile(
+            path.join(vmDir, 'vdis', JOB_UUID, vdiUuid, `${NEW_DATE}.vhd`),
+            'fake vhd data'
           )
         )
-        // .json written last — triggers lockBackup atomically
-        await fs.writeFile(path.join(vmDir, `${NEW_DATE}.json`), '{}')
+      )
+      // .json written last — triggers lockBackup atomically
+      await fs.writeFile(path.join(vmDir, `${NEW_DATE}.json`), '{}')
 
-        written2++
-        if (written2 % 1000 === 0) {
-          sampleMemory()
-          console.log(
-            `  ${written2}/${VM_COUNT} backups written` +
-              ` | ${Date.now() - tWrite2} ms elapsed` +
-              ` | peak RSS ${mb(peakRss)}`
-          )
-        }
+      written2++
+      // Notify probe poller (no-op for non-probe VMs).
+      probeWriteNotifiers.get(vm.uuid)?.(Date.now())
+
+      if (written2 % 1000 === 0) {
+        sampleMemory()
+        console.log(
+          `  ${written2}/${VM_COUNT} backups written` +
+            ` | ${Date.now() - tWrite2} ms elapsed` +
+            ` | peak RSS ${mb(peakRss)}`
+        )
       }
-    })
+    },
+    { concurrency: WRITE_CONCURRENCY }
   )
   const tWrite2Done = Date.now() - tWrite2
   console.log(`All ${VM_COUNT} backups written in ${tWrite2Done} ms`)
 
-  const phaseB = await waitForIndexCount(indexPath, EXPECTED_PER_PHASE * 2, 'live-lock')
+  // Collect probe latencies — each resolves as soon as the watcher indexes
+  // that VM's .json.  Run concurrently with waitForIndexCount below.
+  console.log('\n  Probe VM json→indexed latency (under full 5000-VM load):')
+  const [probeBResults, phaseB] = await Promise.all([
+    Promise.all(probeBTasks),
+    waitForIndexCount(indexPath, EXPECTED_PER_PHASE * 2, 'live-lock'),
+  ])
+  for (const { vmIdx, tWritten, tIndexed } of probeBResults) {
+    const latency = tIndexed === null ? 'TIMEOUT' : `${tIndexed - tWritten} ms`
+    console.log(`    VM[${String(vmIdx).padStart(4)}]: json→indexed ${latency}`)
+  }
+
   console.log(`Phase B ${phaseB.reached ? 'DONE' : 'TIMEOUT'} in ${phaseB.elapsed} ms`)
   console.log('')
 
@@ -315,10 +566,6 @@ async function main() {
   let liftCount = 0
   let lastLiftLog = Date.now()
 
-  // Wrap liftRemoteImmutability to log progress periodically.
-  // liftRemoteImmutability is sequential (for-await), so we interleave
-  // logging by sampling after each entry via a thin proxy on the indexPath.
-  // Simpler: just run it and log before/after with a mid-run memory sample.
   const liftSampler = setInterval(() => {
     sampleMemory()
     const now = Date.now()
@@ -343,16 +590,31 @@ async function main() {
   clearInterval(memSampler)
   sampleMemory()
 
+  const avgProbeSingle =
+    probeSingleTimes.length > 0
+      ? `${average(probeSingleTimes).toFixed(0)} ms`
+      : 'N/A'
+  const avgProbeBLatencies = probeBResults
+    .map(r => (r.tIndexed === null ? null : r.tIndexed - r.tWritten))
+    .filter(/** @param {number | null} v */ v => v !== null)
+  const avgProbeB =
+    avgProbeBLatencies.length > 0
+      ? `${average(/** @type {number[]} */ (avgProbeBLatencies)).toFixed(0)} ms`
+      : 'N/A'
+
   console.log('=== Results ===')
-  console.log(`watchRemote startup:         ${tWatcherReady} ms`)
-  console.log(`Phase A — rebuild index:     ${phaseA.elapsed} ms  ${phaseA.reached ? 'OK' : 'TIMEOUT'}`)
-  console.log(`Phase B — write backups:     ${tWrite2Done} ms`)
-  console.log(`Phase B — lock all:          ${phaseB.elapsed} ms  ${phaseB.reached ? 'OK' : 'TIMEOUT'}`)
-  console.log(`Phase C — lift all:          ${tLiftDone} ms  (${liftCount} entries remaining)`)
-  console.log(`Memory before watch:         ${mb(rssBeforeWatch)}`)
-  console.log(`Memory after watch:          ${mb(rssAfterWatch)}`)
-  console.log(`Peak RSS:                    ${mb(peakRss)}`)
-  console.log(`Current RSS:                 ${mb(process.memoryUsage().rss)}`)
+  console.log(`watchRemote startup:              ${tWatcherReady} ms`)
+  console.log(`Phase A  — rebuild index:         ${phaseA.elapsed} ms  ${phaseA.reached ? 'OK' : 'TIMEOUT'}`)
+  console.log(`Phase A.5 — single probe avg:     ${avgProbeSingle}  (no contention)`)
+  console.log(`Phase B  — write backups:         ${tWrite2Done} ms`)
+  console.log(`Phase B  — lock all:              ${phaseB.elapsed} ms  ${phaseB.reached ? 'OK' : 'TIMEOUT'}`)
+  console.log(`Phase B  — avg lock/backup:       ${(phaseB.elapsed / VM_COUNT).toFixed(0)} ms  (total / VM_COUNT)`)
+  console.log(`Phase B  — probe avg (5 samples): ${avgProbeB}  (under full load)`)
+  console.log(`Phase C  — lift all:              ${tLiftDone} ms  (${liftCount} entries remaining)`)
+  console.log(`Memory before watch:              ${mb(rssBeforeWatch)}`)
+  console.log(`Memory after watch:               ${mb(rssAfterWatch)}`)
+  console.log(`Peak RSS:                         ${mb(peakRss)}`)
+  console.log(`Current RSS:                      ${mb(process.memoryUsage().rss)}`)
 
   await cleanupRoot(root)
 }

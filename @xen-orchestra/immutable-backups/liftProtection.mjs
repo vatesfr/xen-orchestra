@@ -7,7 +7,6 @@ import { createLogger } from '@xen-orchestra/log'
 import { listOlderTargets } from './fileIndex.mjs'
 import cleanXoCache from './_cleanXoCache.mjs'
 import loadConfig from './_loadConfig.mjs'
-import { asyncEach } from '@vates/async-each'
 
 /**
  * @xen-orchestra/log has no .d.ts — methods are added dynamically at runtime.
@@ -25,11 +24,30 @@ const { info, warn } = /** @type {XoLogger} */ (
  * @param {number} immutabilityDuration  - Retention duration in milliseconds
  * @returns {Promise<void>}
  */
-export async function liftRemoteImmutability(immutabilityCachePath, immutabilityDuration) {
-  await asyncEach(listOlderTargets(immutabilityCachePath, immutabilityDuration),async ({ target }) =>{
-    await Directory.liftImmutability(target, immutabilityCachePath)
-    await cleanXoCache(target)
-  }) 
+/**
+ * @template T
+ * @param {AsyncIterable<T>} iterable
+ * @param {number} size
+ * @returns {AsyncGenerator<T[]>}
+ */
+async function* batchOf(iterable, size) {
+  let batch = /** @type {T[]} */ ([])
+  for await (const item of iterable) {
+    batch.push(item)
+    if (batch.length >= size) {
+      yield batch
+      batch = []
+    }
+  }
+  if (batch.length > 0) yield batch
+}
+
+export async function liftRemoteImmutability(/** @type {string} */ immutabilityCachePath, /** @type {number} */ immutabilityDuration) {
+  for await (const batch of batchOf(listOlderTargets(immutabilityCachePath, immutabilityDuration), 10)) {
+    const targets = batch.map(({ target }) => target)
+    await Directory.liftImmutabilityBatch(targets, immutabilityCachePath)
+    await Promise.all(targets.map(cleanXoCache))
+  }
 }
 
 /**

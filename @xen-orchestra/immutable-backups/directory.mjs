@@ -37,6 +37,23 @@ export async function liftImmutability(dirPath, immutabilityCachePath) {
 }
 
 /**
+ * Lift immutability from multiple paths with a single `chattr -i -R` invocation.
+ * Works for both flat files and directories — `chattr -i -R` on a plain file
+ * behaves identically to `chattr -i` (no children to recurse into).
+ * @param {string[]} paths                   - Absolute paths to files or directories
+ * @param {string}   [immutabilityCachePath] - Root of the immutability index directory
+ * @returns {Promise<void>}
+ */
+export async function liftImmutabilityBatch(paths, immutabilityCachePath) {
+  if (immutabilityCachePath) {
+    await Promise.all(
+      paths.map(p => unindexFile(p, immutabilityCachePath).catch(err => warn('liftImmutabilityBatch', err)))
+    )
+  }
+  await execa('chattr', ['-i', '-R', ...paths])
+}
+
+/**
  * Returns whether the immutable (`i`) attribute is set on `path`.
  * @param {string} path
  * @returns {Promise<boolean>}
