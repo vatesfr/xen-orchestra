@@ -41,6 +41,38 @@ export async function liftImmutability(filePath, immutabilityCachePath) {
 }
 
 /**
+ * Index and lock multiple flat files with a single `chattr +i` invocation.
+ * Files that do not exist or are already indexed are silently skipped.
+ * This reduces process-spawn overhead from N spawns to 1 when locking a
+ * batch of files that all belong to the same backup.
+ * @param {string[]} paths                   - Candidate file paths to lock
+ * @param {string}   [immutabilityCachePath] - Root of the immutability index directory
+ * @returns {Promise<void>}
+ */
+export async function makeImmutableBatch(paths, immutabilityCachePath) {
+  const toChattr = (
+    await Promise.all(
+      paths.map(async p => {
+        try {
+          if (immutabilityCachePath) {
+            await indexFile(p, immutabilityCachePath)
+          }
+          return p
+        } catch (err) {
+          const code = /** @type {NodeJS.ErrnoException} */ (err).code
+          if (code === 'ENOENT' || code === 'EEXIST') return null
+          throw err
+        }
+      })
+    )
+  ).filter(/** @param {string | null} p */ p => p !== null)
+
+  if (toChattr.length > 0) {
+    await execa('chattr', ['+i', ...toChattr])
+  }
+}
+
+/**
  * Returns whether the immutable (`i`) attribute is set on `path`.
  * @param {string} path
  * @returns {Promise<boolean>}
