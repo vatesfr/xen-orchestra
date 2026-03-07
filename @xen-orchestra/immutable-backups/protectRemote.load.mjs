@@ -1,8 +1,16 @@
 #!/usr/bin/env node
 // @ts-check
 //
-// Load test: 5000 VMs × 4 flat VHDs — measures watcher startup, locking
-// throughput, and peak RSS memory.
+// Load test: 5000 VMs × 4 flat VHDs.
+//
+// Phase A — rebuildIndexOnStart:
+//   Write backups for all VMs, make them immutable without indexing (simulates
+//   a previous run where the index was lost), start watchRemote with
+//   rebuildIndexOnStart=true, and measure how long the full index rebuild takes.
+//
+// Phase B — live watcher:
+//   While the watcher is still running, write a second round of backups
+//   (different datetime) and measure how long the watcher takes to lock them.
 //
 // Must be run as root (chattr requires elevated privileges).
 // Usage:  node @xen-orchestra/immutable-backups/protectRemote.load.mjs
@@ -14,6 +22,7 @@ import { rimraf } from 'rimraf'
 import execa from 'execa'
 
 import { watchRemote } from './protectRemotes.mjs'
+import { liftRemoteImmutability } from './liftProtection.mjs'
 
 // ---------------------------------------------------------------------------
 // Config
@@ -22,17 +31,27 @@ import { watchRemote } from './protectRemotes.mjs'
 const VM_COUNT = 5000
 const DISKS_PER_VM = 4
 const JOB_UUID = 'bbbbbbbb-0000-0000-0000-000000000001'
-const BACKUP_DATE = '20240115T120000Z'
+
+/** Datetime used for the pre-existing immutable backups (Phase A). */
+const OLD_DATE = '20240115T120000Z'
+
+/** Datetime used for the new live backups (Phase B). */
+const NEW_DATE = '20240116T120000Z'
+
 const ONE_DAY_MS = 24 * 60 * 60 * 1000
 
-/** Max concurrent backup writes. */
+/** Max concurrent backup file writes. */
 const WRITE_CONCURRENCY = 100
 
-/** Max time to wait for all files to be locked (ms). */
+/** Files per chattr call when bulk-locking pre-existing files. */
+const CHATTR_BATCH = 500
+
+/** Max time to wait for all files to be indexed (ms). */
 const LOCK_TIMEOUT_MS = 120_000
 
 // Each VM backup: 1 .json + DISKS_PER_VM plain .vhd files → all indexed.
-const EXPECTED_INDEX_ENTRIES = VM_COUNT * (1 + DISKS_PER_VM)
+const FILES_PER_VM = 1 + DISKS_PER_VM
+const EXPECTED_PER_PHASE = VM_COUNT * FILES_PER_VM
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -49,6 +68,16 @@ async function cleanupRoot(root) {
     await execa('chattr', ['-i', '-R', root])
   } catch {}
   await rimraf(root)
+}
+
+/**
+ * Make all `files` immutable using batched chattr calls (no index entry created).
+ * @param {string[]} files
+ */
+async function bulkMakeImmutable(files) {
+  for (let i = 0; i < files.length; i += CHATTR_BATCH) {
+    await execa('chattr', ['+i', ...files.slice(i, i + CHATTR_BATCH)])
+  }
 }
 
 /**
@@ -71,6 +100,39 @@ async function countIndexEntries(indexPath) {
     count += entries.length
   }
   return count
+}
+
+/**
+ * Poll `countIndexEntries` until it reaches `target` or `LOCK_TIMEOUT_MS` elapses.
+ * Logs progress on every change.
+ * @param {string} indexPath
+ * @param {number} target
+ * @param {string} label
+ * @returns {Promise<{ elapsed: number, reached: boolean }>}
+ */
+async function waitForIndexCount(indexPath, target, label) {
+  const tStart = Date.now()
+  let lastCount = await countIndexEntries(indexPath)
+  console.log(`  [${label}] starting at ${lastCount}/${target}`)
+
+  const deadline = Date.now() + LOCK_TIMEOUT_MS
+  while (Date.now() < deadline) {
+    sampleMemory()
+    const count = await countIndexEntries(indexPath)
+    if (count !== lastCount) {
+      console.log(
+        `  [${label}] index entries: ${count}/${target}` +
+          ` | ${Date.now() - tStart} ms elapsed` +
+          ` | peak RSS ${mb(peakRss)}`
+      )
+      lastCount = count
+    }
+    if (count >= target) {
+      return { elapsed: Date.now() - tStart, reached: true }
+    }
+    await new Promise(resolve => setTimeout(resolve, 500))
+  }
+  return { elapsed: Date.now() - tStart, reached: false }
 }
 
 // ---------------------------------------------------------------------------
@@ -98,15 +160,13 @@ async function main() {
   const root = await fs.mkdtemp(path.join(tmpdir(), 'immut-load-'))
   const indexPath = path.join(root, '.index')
 
-  console.log(`Root:               ${root}`)
-  console.log(`VMs:                ${VM_COUNT}`)
-  console.log(`Disks per VM:       ${DISKS_PER_VM}`)
-  console.log(`Expected index entries: ${EXPECTED_INDEX_ENTRIES}`)
+  console.log(`Root:                   ${root}`)
+  console.log(`VMs:                    ${VM_COUNT}`)
+  console.log(`Disks per VM:           ${DISKS_PER_VM}`)
+  console.log(`Files per VM:           ${FILES_PER_VM}`)
+  console.log(`Expected index/phase:   ${EXPECTED_PER_PHASE}`)
   console.log('')
 
-  // -------------------------------------------------------------------------
-  // 1. Generate UUIDs
-  // -------------------------------------------------------------------------
   const vms = Array.from({ length: VM_COUNT }, (_, i) => ({
     uuid: makeUuid(i),
     vdiUuids: Array.from({ length: DISKS_PER_VM }, (_, j) =>
@@ -115,145 +175,185 @@ async function main() {
   }))
 
   // -------------------------------------------------------------------------
-  // 2. Pre-create directory structure
+  // 1. Create directory structure
   // -------------------------------------------------------------------------
   console.log('Creating directory structure...')
   const tDirs = Date.now()
 
-  // Limit mkdir concurrency to avoid EMFILE
-  const dirQueue = vms.flatMap(vm =>
+  const leafDirs = vms.flatMap(vm =>
     vm.vdiUuids.map(vdiUuid =>
       path.join(root, 'xo-vm-backups', vm.uuid, 'vdis', JOB_UUID, vdiUuid)
     )
   )
-  const MKDIR_CONCURRENCY = 200
-  for (let i = 0; i < dirQueue.length; i += MKDIR_CONCURRENCY) {
-    await Promise.all(dirQueue.slice(i, i + MKDIR_CONCURRENCY).map(d => fs.mkdir(d, { recursive: true })))
+  for (let i = 0; i < leafDirs.length; i += 200) {
+    await Promise.all(leafDirs.slice(i, i + 200).map(d => fs.mkdir(d, { recursive: true })))
   }
-
-  console.log(`Directory structure created in ${Date.now() - tDirs} ms`)
-  console.log(`  (${VM_COUNT * DISKS_PER_VM} leaf directories)`)
+  console.log(`Done in ${Date.now() - tDirs} ms (${VM_COUNT * DISKS_PER_VM} leaf dirs)`)
   console.log('')
 
   // -------------------------------------------------------------------------
-  // 3. Start memory sampling + watchRemote
+  // 2. Write backup files for OLD_DATE and make them immutable without indexing
+  // -------------------------------------------------------------------------
+  console.log(`Writing ${VM_COUNT * FILES_PER_VM} files for OLD_DATE (${OLD_DATE})...`)
+  const tWrite1 = Date.now()
+
+  const allOldFiles = /** @type {string[]} */ ([])
+  const writeQueue1 = vms.slice()
+  await Promise.all(
+    Array.from({ length: WRITE_CONCURRENCY }, async () => {
+      while (writeQueue1.length > 0) {
+        const vm = writeQueue1.shift()
+        if (vm === undefined) break
+        const vmDir = path.join(root, 'xo-vm-backups', vm.uuid)
+        const vhdFiles = await Promise.all(
+          vm.vdiUuids.map(async vdiUuid => {
+            const p = path.join(vmDir, 'vdis', JOB_UUID, vdiUuid, `${OLD_DATE}.vhd`)
+            await fs.writeFile(p, 'fake vhd data')
+            return p
+          })
+        )
+        const jsonFile = path.join(vmDir, `${OLD_DATE}.json`)
+        await fs.writeFile(jsonFile, '{}')
+        allOldFiles.push(jsonFile, ...vhdFiles)
+      }
+    })
+  )
+  console.log(`Files written in ${Date.now() - tWrite1} ms`)
+
+  console.log(`Making ${allOldFiles.length} files immutable (no index)...`)
+  const tChattr = Date.now()
+  await bulkMakeImmutable(allOldFiles)
+  console.log(`chattr done in ${Date.now() - tChattr} ms`)
+  console.log('')
+
+  // -------------------------------------------------------------------------
+  // 3. Start memory sampling + watchRemote with rebuildIndexOnStart
   // -------------------------------------------------------------------------
   const memSampler = setInterval(sampleMemory, 50)
-
   sampleMemory()
   const rssBeforeWatch = process.memoryUsage().rss
   console.log(`Memory before watchRemote: ${mb(rssBeforeWatch)}`)
 
-  console.log('Starting watchRemote...')
-  const tStart = Date.now()
+  console.log('Starting watchRemote (rebuildIndexOnStart=true)...')
+  const tWatchStart = Date.now()
   const { close } = await watchRemote('load-test', {
     root,
     indexPath,
     immutabilityDuration: ONE_DAY_MS,
+    rebuildIndexOnStart: true,
   })
-  const tWatcherReady = Date.now() - tStart
+  const tWatcherReady = Date.now() - tWatchStart
 
-  // Give fs.watch handles time to settle before measuring baseline memory.
   await new Promise(resolve => setTimeout(resolve, 500))
   sampleMemory()
-
   const rssAfterWatch = process.memoryUsage().rss
   console.log(`watchRemote ready in ${tWatcherReady} ms`)
-  console.log(`Memory after watchRemote: ${mb(rssAfterWatch)} (delta: ${mb(rssAfterWatch - rssBeforeWatch)})`)
+  console.log(`Memory after watchRemote:  ${mb(rssAfterWatch)} (delta: ${mb(rssAfterWatch - rssBeforeWatch)})`)
   console.log('')
 
   // -------------------------------------------------------------------------
-  // 4. Write backups
+  // Phase A — wait for rebuildIndex to index all pre-existing immutable files
   // -------------------------------------------------------------------------
-  console.log(`Writing ${VM_COUNT} backups (concurrency=${WRITE_CONCURRENCY})...`)
-  const tWrite = Date.now()
-  let written = 0
+  console.log(`=== Phase A: rebuildIndexOnStart (${EXPECTED_PER_PHASE} entries) ===`)
+  const phaseA = await waitForIndexCount(indexPath, EXPECTED_PER_PHASE, 'rebuild')
+  console.log(`Phase A ${phaseA.reached ? 'DONE' : 'TIMEOUT'} in ${phaseA.elapsed} ms`)
+  console.log('')
 
-  // Simple pool: slice the VM list and process chunks in parallel.
-  const writeQueue = vms.slice()
+  // -------------------------------------------------------------------------
+  // Phase B — write new backups and measure live watcher locking speed
+  // -------------------------------------------------------------------------
+  console.log(`=== Phase B: live watcher — writing ${VM_COUNT} new backups (${NEW_DATE}) ===`)
+  const tWrite2 = Date.now()
+  let written2 = 0
+
+  const writeQueue2 = vms.slice()
   await Promise.all(
     Array.from({ length: WRITE_CONCURRENCY }, async () => {
-      while (writeQueue.length > 0) {
-        const vm = writeQueue.shift()
+      while (writeQueue2.length > 0) {
+        const vm = writeQueue2.shift()
         if (vm === undefined) break
-
         const vmDir = path.join(root, 'xo-vm-backups', vm.uuid)
-
-        // Write flat VHD files for each VDI.
         await Promise.all(
           vm.vdiUuids.map(vdiUuid =>
             fs.writeFile(
-              path.join(vmDir, 'vdis', JOB_UUID, vdiUuid, `${BACKUP_DATE}.vhd`),
+              path.join(vmDir, 'vdis', JOB_UUID, vdiUuid, `${NEW_DATE}.vhd`),
               'fake vhd data'
             )
           )
         )
-        // .json written last — triggers lockBackup atomically.
-        await fs.writeFile(path.join(vmDir, `${BACKUP_DATE}.json`), '{}')
+        // .json written last — triggers lockBackup atomically
+        await fs.writeFile(path.join(vmDir, `${NEW_DATE}.json`), '{}')
 
-        written++
-        if (written % 1000 === 0) {
+        written2++
+        if (written2 % 1000 === 0) {
           sampleMemory()
           console.log(
-            `  ${written}/${VM_COUNT} backups written` +
-              ` | ${Date.now() - tWrite} ms elapsed` +
+            `  ${written2}/${VM_COUNT} backups written` +
+              ` | ${Date.now() - tWrite2} ms elapsed` +
               ` | peak RSS ${mb(peakRss)}`
           )
         }
       }
     })
   )
+  const tWrite2Done = Date.now() - tWrite2
+  console.log(`All ${VM_COUNT} backups written in ${tWrite2Done} ms`)
 
-  const tWriteDone = Date.now() - tWrite
-  console.log(`All ${VM_COUNT} backups written in ${tWriteDone} ms`)
+  const phaseB = await waitForIndexCount(indexPath, EXPECTED_PER_PHASE * 2, 'live-lock')
+  console.log(`Phase B ${phaseB.reached ? 'DONE' : 'TIMEOUT'} in ${phaseB.elapsed} ms`)
   console.log('')
 
   // -------------------------------------------------------------------------
-  // 5. Wait for all files to be indexed (locked)
+  // Phase C — lift all immutability via liftRemoteImmutability
+  // Use a negative duration so that today's index entries are treated as
+  // "older than the limit" and therefore yielded by listOlderTargets.
   // -------------------------------------------------------------------------
-  console.log(`Waiting for ${EXPECTED_INDEX_ENTRIES} index entries (timeout ${LOCK_TIMEOUT_MS / 1000} s)...`)
-  const tLock = Date.now()
-  let lastCount = 0
+  await close()
 
-  const deadline = Date.now() + LOCK_TIMEOUT_MS
-  while (Date.now() < deadline) {
+  console.log(`=== Phase C: lift all ${EXPECTED_PER_PHASE * 2} protected files ===`)
+  const tLift = Date.now()
+  let liftCount = 0
+  let lastLiftLog = Date.now()
+
+  // Wrap liftRemoteImmutability to log progress periodically.
+  // liftRemoteImmutability is sequential (for-await), so we interleave
+  // logging by sampling after each entry via a thin proxy on the indexPath.
+  // Simpler: just run it and log before/after with a mid-run memory sample.
+  const liftSampler = setInterval(() => {
     sampleMemory()
-    const count = await countIndexEntries(indexPath)
-    if (count !== lastCount) {
-      console.log(
-        `  index entries: ${count}/${EXPECTED_INDEX_ENTRIES}` +
-          ` | ${Date.now() - tLock} ms elapsed` +
-          ` | peak RSS ${mb(peakRss)}`
-      )
-      lastCount = count
+    const now = Date.now()
+    if (now - lastLiftLog >= 5000) {
+      console.log(`  lifting in progress... ${Date.now() - tLift} ms elapsed | peak RSS ${mb(peakRss)}`)
+      lastLiftLog = now
     }
-    if (count >= EXPECTED_INDEX_ENTRIES) break
-    await new Promise(resolve => setTimeout(resolve, 500))
-  }
+  }, 1000)
 
-  const tLockDone = Date.now() - tLock
-  const finalCount = await countIndexEntries(indexPath)
-  const allLocked = finalCount >= EXPECTED_INDEX_ENTRIES
+  await liftRemoteImmutability(indexPath, -ONE_DAY_MS)
+
+  clearInterval(liftSampler)
+  sampleMemory()
+  const tLiftDone = Date.now() - tLift
+  liftCount = await countIndexEntries(indexPath)
+  console.log(`Phase C DONE in ${tLiftDone} ms — remaining index entries: ${liftCount}`)
+  console.log('')
 
   // -------------------------------------------------------------------------
-  // 6. Results
+  // Results
   // -------------------------------------------------------------------------
   clearInterval(memSampler)
   sampleMemory()
 
-  console.log('')
   console.log('=== Results ===')
-  console.log(`Status:              ${allLocked ? 'OK — all locked' : `TIMEOUT — only ${finalCount}/${EXPECTED_INDEX_ENTRIES} indexed`}`)
-  console.log(`watchRemote startup: ${tWatcherReady} ms`)
-  console.log(`Write phase:         ${tWriteDone} ms`)
-  console.log(`Lock phase:          ${tLockDone} ms`)
-  console.log(`Total (watch→done):  ${Date.now() - tStart} ms`)
-  console.log(`Memory before watch: ${mb(rssBeforeWatch)}`)
-  console.log(`Memory after watch:  ${mb(rssAfterWatch)}`)
-  console.log(`Peak RSS:            ${mb(peakRss)}`)
-  console.log(`Current RSS:         ${mb(process.memoryUsage().rss)}`)
+  console.log(`watchRemote startup:         ${tWatcherReady} ms`)
+  console.log(`Phase A — rebuild index:     ${phaseA.elapsed} ms  ${phaseA.reached ? 'OK' : 'TIMEOUT'}`)
+  console.log(`Phase B — write backups:     ${tWrite2Done} ms`)
+  console.log(`Phase B — lock all:          ${phaseB.elapsed} ms  ${phaseB.reached ? 'OK' : 'TIMEOUT'}`)
+  console.log(`Phase C — lift all:          ${tLiftDone} ms  (${liftCount} entries remaining)`)
+  console.log(`Memory before watch:         ${mb(rssBeforeWatch)}`)
+  console.log(`Memory after watch:          ${mb(rssAfterWatch)}`)
+  console.log(`Peak RSS:                    ${mb(peakRss)}`)
+  console.log(`Current RSS:                 ${mb(process.memoryUsage().rss)}`)
 
-  await close()
   await cleanupRoot(root)
 }
 
