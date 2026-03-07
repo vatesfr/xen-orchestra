@@ -6,16 +6,12 @@ import { fileURLToPath } from 'node:url'
 import * as File from './file.mjs'
 import * as Directory from './directory.mjs'
 import assert from 'node:assert'
-import { dirname, join } from 'node:path'
+import { join } from 'node:path'
 import { createLogger } from '@xen-orchestra/log'
-import chokidar from 'chokidar'
-import { indexFile } from './fileIndex.mjs'
-import cleanXoCache from './_cleanXoCache.mjs'
-import loadConfig from './_loadConfig.mjs'
-import isInVhdDirectory from './_isInVhdDirectory.mjs'
 import { asyncEach } from '@vates/async-each'
-import readdirp from 'readdirp'
-import picomatch from 'picomatch'
+import { indexFile } from './fileIndex.mjs'
+import loadConfig from './_loadConfig.mjs'
+import { watchRemote as startRemoteWatcher } from './watcher.mjs'
 
 /** @typedef {import('./_loadConfig.mjs').RemoteConfig} RemoteConfig */
 
@@ -24,16 +20,10 @@ import picomatch from 'picomatch'
  * @typedef {{ debug: (msg: string, data?: object) => void, info: (msg: string, data?: object) => void, warn: (msg: string, data?: object) => void }} XoLogger
  */
 
-/**
- * Tracks the number of key metadata files (header, footer, bat) received for
- * an in-progress VHD directory.
- * @typedef {Object} PendingVhdEntry
- * @property {number} existing     - Count of key files received so far (1 or 2)
- * @property {number} lastModified - Timestamp of the last received file (`Date.now()`)
- */
 const { debug, info, warn } = /** @type {XoLogger} */ (
   /** @type {unknown} */ (createLogger('xen-orchestra:immutable-backups:remote'))
 )
+
 /**
  * Verify that the remote filesystem and the index directory support immutability
  * by creating, modifying, locking, and unlocking a temporary test file.
@@ -68,124 +58,123 @@ async function test(remotePath, indexPath) {
 }
 
 /**
- * Called for each file seen during the initial scan (rebuildIndexOnStart).
- * If the file is already immutable it is added to the index so it can be
- * lifted later.
- * @param {string} root      - Absolute path to the backup repository root
- * @param {string} indexPath - Absolute path to the immutability index directory
- * @param {string} path      - Relative path of the file inside `root`
- * @param {import('chokidar').FSWatcher} watcher - Watcher instance; immutable VHD dirs are unwatched to free memory
- * @returns {Promise<void>}
+ * List the immediate subdirectories of `dir`.
+ * Returns an empty array if `dir` does not exist.
+ * @param {string} dir
+ * @returns {Promise<string[]>}
  */
-async function handleExistingFile(root, indexPath, path, watcher) {
-  debug('handleExistingFile', { root, indexPath, path })
+async function listDirs(dir) {
   try {
-    // a vhd block directory is completely immutable
-    if (isInVhdDirectory(path)) {
-      // this will trigger 3 times per vhd blocks
-      const dir = join(root, dirname(path))
-      if (await Directory.isImmutable(dir)) {
-        await indexFile(dir, indexPath)
-        // The directory is already immutable — no new files will ever be written
-        // to it. Release chokidar's FSWatcher to free memory: at startup chokidar
-        watcher.unwatch(dir)
-        // Also unwatch the individual key file (bat/header/footer) that triggered
-        // this call, and the other two sibling files, so chokidar releases all
-        // file-level tracking entries for this VHD directory.
-        watcher.unwatch(join(dir, 'bat'))
-        watcher.unwatch(join(dir, 'header'))
-        watcher.unwatch(join(dir, 'footer'))
-      }
-    } else {
-      // other files are immutable a file basis
-      const fullPath = join(root, path)
-      if (await File.isImmutable(fullPath)) {
-        await indexFile(fullPath, indexPath)
-        watcher.unwatch(fullPath)
-      }
+    const entries = await fs.readdir(dir, { withFileTypes: true })
+    return entries.filter(e => e.isDirectory()).map(e => join(dir, e.name))
+  } catch (err) {
+    if (/** @type {NodeJS.ErrnoException} */ (err).code === 'ENOENT') {
+      return []
     }
-  } catch (error) {
-    if (/** @type {NodeJS.ErrnoException} */ (error).code !== 'EEXIST') {
-      // there can be a symbolic link in the tree
-      warn('handleExistingFile', { error })
+    throw err
+  }
+}
+
+/**
+ * If `path` is already immutable, add it to the index.
+ * Errors other than ENOENT / EEXIST are logged as warnings.
+ * @param {string} path
+ * @param {string} indexPath
+ */
+async function tryIndexExistingFile(path, indexPath) {
+  try {
+    if (await File.isImmutable(path)) {
+      await indexFile(path, indexPath)
+    }
+  } catch (err) {
+    const code = /** @type {NodeJS.ErrnoException} */ (err).code
+    if (code !== 'ENOENT' && code !== 'EEXIST') {
+      warn('tryIndexExistingFile', { err, path })
     }
   }
 }
 
 /**
- * Called for each newly created file after the watcher is `ready`.  Makes the
- * file (or its parent VHD directory once complete) immutable.
- * @param {string}                    root        - Absolute path to the backup repository root
- * @param {string}                    indexPath   - Absolute path to the immutability index directory
- * @param {Map<string, PendingVhdEntry>} pendingVhds - Tracks VHD directories waiting for all key files
- * @param {import('chokidar').FSWatcher} watcher   - The chokidar watcher instance (used to release VHD dir watches)
- * @param {string}                    path        - Relative path of the new file inside `root`
- * @returns {Promise<void>}
+ * If `path` (a directory) is already immutable, add it to the index.
+ * @param {string} path
+ * @param {string} indexPath
  */
-async function handleNewFile(root, indexPath, pendingVhds, watcher, path) {
-  debug('handleNewFile', { root, indexPath, pendingVhdsSize: pendingVhds.size, path })
-  // with awaitWriteFinish we have complete files here
-  // we can make them immutable
-
-  if (isInVhdDirectory(path)) {
-    // watching a vhd block (bat, header or footer)
-    // We need all three key files before locking the directory.
-    // Rather than relying purely on an in-memory counter (which resets on
-    // daemon restart), we also check for already-present key files using
-    // fs.access.  This handles the case where the daemon restarts mid-backup:
-    // e.g. bat and header were written before restart, only footer triggers
-    // handleNewFile → we probe the other two and find all 3 present → lock.
-    const vhdDirRelPath = dirname(path)
-    const vhdDirAbsPath = join(root, vhdDirRelPath)
-    debug('vhd key file received', { path, vhdDirRelPath })
-
-    const exists = (/** @type {string} */ f) =>
-      fs.access(join(vhdDirAbsPath, f)).then(
-        () => true,
-        () => false
-      )
-    const [hasBat, hasHeader, hasFooter] = await Promise.all([exists('bat'), exists('header'), exists('footer')])
-    const presentCount = [hasBat, hasHeader, hasFooter].filter(Boolean).length
-    debug('vhd dir key file count', { vhdDirRelPath, hasBat, hasHeader, hasFooter })
-
-    if (presentCount === 3) {
-      // Guard against concurrent locking: bat, header, and footer may all fire
-      // add events within the awaitWriteFinish window and each find all 3 files
-      // present.  Mark as "locking" (existing=3) synchronously before the first
-      // await so the other two handlers see it and skip.
-      if (pendingVhds.get(vhdDirRelPath)?.existing === 3) {
-        debug('vhd directory locking already in progress, skipping duplicate event', { vhdDirRelPath })
-        return
-      }
-      pendingVhds.set(vhdDirRelPath, { existing: 3, lastModified: Date.now() })
-      // all three key files are on disk — lock the directory
-      info('locking vhd directory', { vhdDirAbsPath })
-      try {
-        await Directory.makeImmutable(vhdDirAbsPath, indexPath)
-        // Release chokidar's FSWatcher for this VHD directory. Each backup run
-        // creates a new VHD UUID dir; without this unwatch, chokidar accumulates
-        // one FSWatcher per VHD dir indefinitely, causing a memory leak.
-        watcher.unwatch(vhdDirAbsPath)
-        // Also explicitly unwatch all three key files so chokidar releases their
-        // file-level tracking entries. The triggering file is unwatched by the
-        // caller, but the other two siblings would otherwise remain tracked.
-        watcher.unwatch(join(vhdDirAbsPath, 'bat'))
-        watcher.unwatch(join(vhdDirAbsPath, 'header'))
-        watcher.unwatch(join(vhdDirAbsPath, 'footer'))
-      } finally {
-        // Always clean up so a failed lock doesn't permanently block retries.
-        pendingVhds.delete(vhdDirRelPath)
-      }
-      info('vhd directory locked', { vhdDirAbsPath })
-    } else {
-      // still waiting for the remaining key file(s)
-      pendingVhds.set(vhdDirRelPath, { existing: presentCount, lastModified: Date.now() })
+async function tryIndexExistingDirectory(path, indexPath) {
+  try {
+    if (await Directory.isImmutable(path)) {
+      await indexFile(path, indexPath)
     }
-  } else {
-    const fullFilePath = join(root, path)
-    await File.makeImmutable(fullFilePath, indexPath)
-    await cleanXoCache(fullFilePath)
+  } catch (err) {
+    const code = /** @type {NodeJS.ErrnoException} */ (err).code
+    if (code !== 'ENOENT' && code !== 'EEXIST') {
+      warn('tryIndexExistingDirectory', { err, path })
+    }
   }
+}
+
+/** Matches `<YYYYMMDD>T<HHmmss>` at the start of a filename. */
+const DATETIME_RE = /^\d{8}T\d{6}Z?/
+
+/**
+ * Walk the backup tree under `root` and add any already-immutable files to the
+ * index.  Called at startup when `rebuildIndexOnStart` is true so that files
+ * locked in a previous run can still be lifted later.
+ *
+ * @param {string} root
+ * @param {string} indexPath
+ */
+async function rebuildIndex(root, indexPath) {
+  // xo-vm-backups/<vmUUID>/
+  await asyncEach(await listDirs(join(root, 'xo-vm-backups')), async vmDir => {
+    // VM-level files: <datetime>.json, <datetime>.xva, <datetime>.xva.checksum
+    const vmEntries = await fs.readdir(vmDir, { withFileTypes: true }).catch(() => [])
+    for (const entry of vmEntries) {
+      const matches = entry.isFile() && DATETIME_RE.test(entry.name)
+      debug(`[rebuildIndex] vmDir entry "${entry.name}": isFile=${entry.isFile()} DATETIME_RE.test=${DATETIME_RE.test(entry.name)} → ${matches ? 'indexing' : 'skipped'}`)
+      if (matches) {
+        await tryIndexExistingFile(join(vmDir, entry.name), indexPath)
+      }
+    }
+
+    // xo-vm-backups/<vmUUID>/vdis/<jobId>/<vdiId>/
+    for (const jobDir of await listDirs(join(vmDir, 'vdis'))) {
+      for (const vdiDir of await listDirs(jobDir)) {
+        // <datetime>.vhd (plain VHD) and <datetime>.alias.vhd
+        const vdiEntries = await fs.readdir(vdiDir, { withFileTypes: true }).catch(() => [])
+        for (const entry of vdiEntries) {
+          if (entry.isFile() && entry.name.endsWith('.vhd')) {
+            await tryIndexExistingFile(join(vdiDir, entry.name), indexPath)
+          }
+        }
+        // data/<datetime>.vhd/ — VHD directory
+        for (const vhdDir of await listDirs(join(vdiDir, 'data'))) {
+          if (vhdDir.endsWith('.vhd')) {
+            await tryIndexExistingDirectory(vhdDir, indexPath)
+          }
+        }
+      }
+    }
+  })
+
+  // xo-config-backups/<scheduleId>/<YYYYMMDD>T<HHmmss>/
+  await asyncEach(await listDirs(join(root, 'xo-config-backups')), async scheduleDir => {
+    for (const dateDir of await listDirs(scheduleDir)) {
+      await tryIndexExistingFile(join(dateDir, 'metadata.json'), indexPath)
+      await tryIndexExistingFile(join(dateDir, 'data.json'), indexPath)
+    }
+  })
+
+  // xo-pool-metadata-backups/<scheduleId>/<poolUUID>/<YYYYMMDD>T<HHmmss>/
+  await asyncEach(await listDirs(join(root, 'xo-pool-metadata-backups')), async scheduleDir => {
+    for (const poolDir of await listDirs(scheduleDir)) {
+      for (const dateDir of await listDirs(poolDir)) {
+        await tryIndexExistingFile(join(dateDir, 'metadata.json'), indexPath)
+        await tryIndexExistingFile(join(dateDir, 'data'), indexPath)
+      }
+    }
+  })
+
+  info('rebuildIndexOnStart: done')
 }
 
 /**
@@ -194,22 +183,12 @@ async function handleNewFile(root, indexPath, pendingVhds, watcher, path) {
  * `rebuildIndexOnStart` is `true`.
  * @param {string}       remoteId - Opaque identifier for the remote (used for logging)
  * @param {RemoteConfig} options
- * @returns {Promise<{ close: () => Promise<void> }>}
+ * @returns {Promise<{ close: () => void }>}
  */
 export async function watchRemote(remoteId, { root, immutabilityDuration, rebuildIndexOnStart = false, indexPath }) {
   debug('got config ', { remoteId, root, immutabilityDuration, rebuildIndexOnStart, indexPath })
-  // create index directory
-  await fs.mkdir(indexPath, { recursive: true })
 
-  // Ensure top-level backup directories exist before starting chokidar.
-  // chokidar resolves glob patterns by watching each level of the hierarchy;
-  // if xo-vm-backups/ does not exist at startup, chokidar cannot detect new
-  // VM UUID directories created inside it later.
-  await Promise.all([
-    fs.mkdir(join(root, 'xo-vm-backups'), { recursive: true }),
-    fs.mkdir(join(root, 'xo-config-backups'), { recursive: true }),
-    fs.mkdir(join(root, 'xo-pool-metadata-backups'), { recursive: true }),
-  ])
+  await fs.mkdir(indexPath, { recursive: true })
 
   // test if fs and index directories are well configured
   await test(root, indexPath)
@@ -239,89 +218,13 @@ export async function watchRemote(remoteId, { root, immutabilityDuration, rebuil
   // let it fall and stop the process on error
   await File.makeImmutable(settingPath)
 
-  // we wait for footer/header AND BAT to be written before locking a vhd directory
-  // this map allow us to track the vhd with partial metadata
-  /** @type {Map<string, PendingVhdEntry>} */
-  const pendingVhds = new Map()
-  // cleanup pending vhd map periodically
-  const cleanupInterval = setInterval(
-    () => {
-      pendingVhds.forEach(({ lastModified, existing }, path) => {
-        if (Date.now() - lastModified > 60 * 60 * 1000) {
-          pendingVhds.delete(path)
-          warn(`vhd at ${path} is incomplete since ${lastModified}`, { existing, lastModified, path })
-        }
-      })
-    },
-    60 * 60 * 1000
-  )
-  cleanupInterval.unref()
-
-  // watch the remote for any new VM metadata json file
-  const PATHS = [
-    // xo-config-backups/scheduleId/date/metadata.json
-    'xo-config-backups/*/*/data',
-    'xo-config-backups/*/*/data.json',
-    'xo-config-backups/*/*/metadata.json',
-    // xo-pool-metadata-backups/backupId/scheduleId/date/metadata.json
-    'xo-pool-metadata-backups/*/*/*/metadata.json',
-    'xo-pool-metadata-backups/*/*/*/data',
-    // xo-vm-backups/<vmuuid>/
-    'xo-vm-backups/*/*.json',
-    'xo-vm-backups/*/*.xva',
-    'xo-vm-backups/*/*.xva.checksum',
-    // xo-vm-backups/<vmuuid>/vdis/<jobid>/<vdiUuid>
-    'xo-vm-backups/*/vdis/*/*/*.vhd', // can be an alias or a vhd file
-    // for vhd directory :
-    'xo-vm-backups/*/vdis/*/*/data/*.vhd/bat',
-    'xo-vm-backups/*/vdis/*/*/data/*.vhd/header',
-    'xo-vm-backups/*/vdis/*/*/data/*.vhd/footer',
-  ]
-
-  /** @type {import('chokidar').WatchOptions & { recursive: boolean }} */
-  const watchOptions = {
-    ignored: [
-      /(^|[/\\])\../, // ignore dotfiles
-      /\.lock$/,
-    ],
-    cwd: root,
-    recursive: false, // vhd directory can generate a lot of folder, don't let chokidar choke on this
-    ignoreInitial: true, // existing files are handled by the readdirp scan below
-    depth: 7,
-    awaitWriteFinish: true,
-  }
-  const watcher = chokidar.watch(PATHS, watchOptions)
-
-  watcher
-    .on('add', async path => {
-      debug(`File ${path} has been added`)
-      await handleNewFile(root, indexPath, pendingVhds, watcher, path).catch(warn)
-      // Once processed the file is immutable and won't change — stop watching
-      // it to free the FSWatcher handle and prevStats closure.
-      watcher.unwatch(path)
-    })
-    .on('error', error => warn(`Watcher error: ${error}`))
-    .on('ready', () => info('Ready for changes'))
+  const close = await startRemoteWatcher(root, indexPath, err => warn('watcher error', { err }))
 
   if (rebuildIndexOnStart) {
-    // Use readdirp + picomatch for the initial scan instead of relying on
-    // chokidar's ignoreInitial:false, which fires 'ready' once per glob pattern
-    // group and makes it impossible to know deterministically when all initial
-    // add events have been processed.
-    const isWatchedPath = /** @type {(path: string) => boolean} */ (picomatch(PATHS))
-    ;(async () => {
-      await asyncEach(
-        readdirp(root, { depth: 7, fileFilter: entry => isWatchedPath(entry.path) }),
-        entry => handleExistingFile(root, indexPath, entry.path, watcher).catch(warn),
-        { concurrency: 16 }
-      )
-      info('rebuildIndexOnStart: done')
-    })().catch(error => warn('error during rebuildIndexOnStart scan', { error }))
+    rebuildIndex(root, indexPath).catch(err => warn('error during rebuildIndexOnStart scan', { err }))
   }
 
-  return {
-    close: () => watcher.close(),
-  }
+  return { close }
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
