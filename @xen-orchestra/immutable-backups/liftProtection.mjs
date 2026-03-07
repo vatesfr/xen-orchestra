@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 // @ts-check
 
+import { fileURLToPath } from 'node:url'
 import * as Directory from './directory.mjs'
 import { createLogger } from '@xen-orchestra/log'
 import { listOlderTargets } from './fileIndex.mjs'
 import cleanXoCache from './_cleanXoCache.mjs'
 import loadConfig from './_loadConfig.mjs'
+import { asyncEach } from '@vates/async-each'
 
 /**
  * @xen-orchestra/log has no .d.ts — methods are added dynamically at runtime.
@@ -23,11 +25,11 @@ const { info, warn } = /** @type {XoLogger} */ (
  * @param {number} immutabilityDuration  - Retention duration in milliseconds
  * @returns {Promise<void>}
  */
-async function liftRemoteImmutability(immutabilityCachePath, immutabilityDuration) {
-  for await (const { target } of listOlderTargets(immutabilityCachePath, immutabilityDuration)) {
+export async function liftRemoteImmutability(immutabilityCachePath, immutabilityDuration) {
+  await asyncEach(listOlderTargets(immutabilityCachePath, immutabilityDuration),async ({ target }) =>{
     await Directory.liftImmutability(target, immutabilityCachePath)
     await cleanXoCache(target)
-  }
+  }) 
 }
 
 /**
@@ -43,13 +45,15 @@ async function liftImmutability(remotes) {
   }
 }
 
-const { liftEvery, remotes } = await loadConfig()
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  const { liftEvery, remotes } = await loadConfig()
 
-if (liftEvery !== undefined && liftEvery > 0) {
-  info('setup watcher for immutability lifting')
-  setInterval(async () => {
-    await liftImmutability(remotes).catch(warn)
-  }, liftEvery)
-} else {
-  await liftImmutability(remotes)
+  if (liftEvery !== undefined && liftEvery > 0) {
+    info('setup watcher for immutability lifting')
+    setInterval(async () => {
+      await liftImmutability(remotes).catch(warn)
+    }, liftEvery)
+  } else {
+    await liftImmutability(remotes)
+  }
 }

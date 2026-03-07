@@ -24,7 +24,7 @@ const VM_UUID = 'aaaaaaaa-0000-0000-0000-000000000001'
 const JOB_UUID = 'bbbbbbbb-0000-0000-0000-000000000001'
 const VDI_UUID = 'cccccccc-0000-0000-0000-000000000001'
 const SCHEDULE_UUID = 'dddddddd-0000-0000-0000-000000000001'
-const BACKUP_DATE = '2024-01-15T12-00-00'
+const BACKUP_DATE = '20240115T120000Z'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -102,10 +102,11 @@ describe('protectRemotes/watchRemote', async () => {
       // This file does NOT match any watched glob — it must stay mutable.
       const ignoredFile = path.join(vmDir, 'not-a-backup.txt')
 
-      await fs.writeFile(jsonFile, '{}')
+      // xva and checksum must exist before json — json is the terminal signal
       await fs.writeFile(xvaFile, 'fake xva data')
       await fs.writeFile(checksumFile, 'abc123')
       await fs.writeFile(ignoredFile, 'should stay mutable')
+      await fs.writeFile(jsonFile, '{}')
 
       // awaitWriteFinish defaults to stabilityThreshold=2000ms; allow up to 8s.
       await waitFor(() => File.isImmutable(jsonFile))
@@ -129,10 +130,12 @@ describe('protectRemotes/watchRemote', async () => {
   })
 
   it('makes a VHD directory immutable once all three key files (bat/header/footer) are written', async () => {
-    const dataRelDir = path.join('xo-vm-backups', VM_UUID, 'vdis', JOB_UUID, VDI_UUID, 'data')
+    const vmRelDir = path.join('xo-vm-backups', VM_UUID)
+    const dataRelDir = path.join(vmRelDir, 'vdis', JOB_UUID, VDI_UUID, 'data')
     const { root, close } = await makeRemote([dataRelDir])
     try {
       // xo-vm-backups/<vmUuid>/vdis/<jobId>/<vdiUuid>/data/<date>.vhd/
+      const vmDir = path.join(root, vmRelDir)
       const vhdDir = path.join(root, dataRelDir, `${BACKUP_DATE}.vhd`)
       await fs.mkdir(vhdDir, { recursive: true })
 
@@ -146,6 +149,9 @@ describe('protectRemotes/watchRemote', async () => {
       await fs.writeFile(bat, 'bat data')
       await fs.writeFile(header, 'header data')
       await fs.writeFile(footer, 'footer data')
+
+      // json written last — triggers lockBackup which locks the VHD directory
+      await fs.writeFile(path.join(vmDir, `${BACKUP_DATE}.json`), '{}')
 
       // The whole directory (and its contents) must become immutable.
       await waitFor(() => Directory.isImmutable(vhdDir))
@@ -165,16 +171,19 @@ describe('protectRemotes/watchRemote', async () => {
   })
 
   it('makes a flat VHD file (one per VDI, no alias format) immutable', async () => {
-    const vdiRelDir = path.join('xo-vm-backups', VM_UUID, 'vdis', JOB_UUID, VDI_UUID)
+    const vmRelDir = path.join('xo-vm-backups', VM_UUID)
+    const vdiRelDir = path.join(vmRelDir, 'vdis', JOB_UUID, VDI_UUID)
     const { root, close } = await makeRemote([vdiRelDir])
     try {
       // Pattern: xo-vm-backups/<vmUuid>/vdis/<jobId>/<vdiUuid>/<date>.vhd
-      // This is a single file per disk (flat VHD), distinct from
-      // the VHD-directory format.  isInVhdDirectory() returns false for it
-      // (dirname ends with <vdiUuid>, not ".vhd"), so handleNewFile locks it
-      // directly as a flat file rather than waiting for bat/header/footer.
+      // Plain VHD file (no VHD-directory format). Locked when the VM-level
+      // .json is written, which is the terminal signal for the whole backup.
+      const vmDir = path.join(root, vmRelDir)
       const vhdFile = path.join(root, vdiRelDir, `${BACKUP_DATE}.vhd`)
       await fs.writeFile(vhdFile, 'fake vhd data')
+
+      // json written last — triggers lockBackup which locks the flat VHD
+      await fs.writeFile(path.join(vmDir, `${BACKUP_DATE}.json`), '{}')
 
       await waitFor(() => File.isImmutable(vhdFile))
 

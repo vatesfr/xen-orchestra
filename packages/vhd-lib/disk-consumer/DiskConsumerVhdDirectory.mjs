@@ -6,12 +6,12 @@
  */
 
 import { BaseVhd, FULL_BLOCK_BITMAP } from './BaseVhd.mjs'
-import { dirname } from 'node:path'
-import { v4 as uuidv4 } from 'uuid'
+import { basename, dirname } from 'node:path'
 import { asyncEach } from '@vates/async-each'
 import { VhdDirectory, VhdAbstract } from 'vhd-lib'
 import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'
 import { DEFAULT_BLOCK_SIZE } from '../_constants.js'
+import  assert  from 'node:assert'
 
 /**
  * @typedef {Object} VhdRemoteTarget
@@ -45,7 +45,10 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
    */
   async write(signal) {
     const { handler, path, compression, flags, validator, concurrency } = this.#target
-    const dataPath = `${dirname(path)}/data/${uuidv4()}.vhd`
+    const SUFFIX = '.alias.vhd'
+    assert.ok(path.endsWith(SUFFIX), `filename must be an alias , got ${path}`)
+    const base = basename(path).substring(0, -SUFFIX.length)
+    const dataPath = `${dirname(path)}/data/${base}.vhd`
     const uid = 'to stream ' + Math.random()
     let generator
     try {
