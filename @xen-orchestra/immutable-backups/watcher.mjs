@@ -9,7 +9,9 @@ import { createLogger } from '@xen-orchestra/log'
 
 /** @typedef {import('./protectRemotes.mjs').XoLogger} XoLogger */
 
-const { debug } = /** @type {XoLogger} */ (/** @type {unknown} */ (createLogger('xen-orchestra:immutable-backups:watcher')))
+const { debug } = /** @type {XoLogger} */ (
+  /** @type {unknown} */ (createLogger('xen-orchestra:immutable-backups:watcher'))
+)
 
 /**
  * @typedef {Object} WatchOptions
@@ -18,8 +20,7 @@ const { debug } = /** @type {XoLogger} */ (/** @type {unknown} */ (createLogger(
  */
 
 /**
- * Matches the datetime prefix shared by all files belonging to a single backup
- * run: `<YYYYMMDD>T<HHmmss>`.
+ * Matches the datetime prefix shared by all files belonging to a single backup run.
  *
  * Examples:
  *   "20231215T142030.json"        → "20231215T142030"
@@ -39,7 +40,6 @@ function extractDatetime(filename) {
 /**
  * Make a file immutable, silently ignoring ENOENT (many files are optional
  * depending on the backup mode: xva, checksum, alias…).
- *
  * @param {string} path
  * @param {string} indexPath
  * @returns {Promise<void>}
@@ -55,8 +55,7 @@ async function tryLockFile(path, indexPath) {
 }
 
 /**
- * Make a VHD directory immutable (chattr +i -R), silently ignoring ENOENT.
- *
+ * Make a VHD directory immutable (`chattr +i -R`), silently ignoring ENOENT.
  * @param {string} path
  * @param {string} indexPath
  * @returns {Promise<void>}
@@ -72,21 +71,12 @@ async function tryLockDirectory(path, indexPath) {
 }
 
 /**
- * Lock every file belonging to the backup run identified by `datetime` inside
- * `vmDir`.  Called once the metadata `.json` has been detected, which
- * guarantees that all other files for that run have already been written.
+ * Lock every file belonging to the backup run identified by `datetime` inside `vmDir`.
+ * Called once the metadata `.json` is confirmed valid, which guarantees all other
+ * files for that run are already fully written.
  *
- * All flat files (json, xva, checksum, plain/alias VHDs) are indexed and locked
- * with a **single `chattr +i`** invocation, reducing subprocess-spawn pressure
- * from N to 1 when many backups complete simultaneously.
- * VHD directories (`data/<datetime>.vhd/`) still require `chattr +i -R` and
- * are handled separately (uncommon in practice).
- *
- * Files locked:
- *   - `<datetime>.json`
- *   - `<datetime>.xva`              (full backup only, may be absent)
- *   - `<datetime>.xva.checksum`     (pre-2025 or non-encrypted, may be absent)
- *   - all VDI files under `vdis/`   (alias, VHD dir, or plain VHD)
+ * Flat files (json, xva, checksum, plain/alias VHDs) are batched into a single
+ * `chattr +i` call. VHD directories need `chattr +i -R` and are handled separately.
  *
  * @param {string} vmDir
  * @param {string} datetime
@@ -96,13 +86,11 @@ async function tryLockDirectory(path, indexPath) {
 async function lockBackup(vmDir, datetime, indexPath) {
   debug(`[watcher] lockBackup: vmDir="${vmDir}" datetime="${datetime}"`)
 
-  // Collect all flat file candidates for this backup.
   const flatCandidates = [
     join(vmDir, `${datetime}.json`),
     join(vmDir, `${datetime}.xva`),
     join(vmDir, `${datetime}.xva.checksum`),
   ]
-  // VHD directories need chattr -R and cannot be batched with flat files.
   const vhdDirCandidates = /** @type {string[]} */ ([])
 
   const vdisDir = join(vmDir, 'vdis')
@@ -123,16 +111,13 @@ async function lockBackup(vmDir, datetime, indexPath) {
       }
       for (const vdiId of vdiIds) {
         const vdiDir = join(vdisDir, jobId, vdiId)
-        // Plain VHD and alias pointer are flat files — batch with the rest.
         flatCandidates.push(join(vdiDir, `${datetime}.vhd`))
         flatCandidates.push(join(vdiDir, `${datetime}.alias.vhd`))
-        // VHD directory needs recursive locking — handled separately.
         vhdDirCandidates.push(join(vdiDir, 'data', `${datetime}.vhd`))
       }
     })
   )
 
-  // Lock all flat files with one chattr call + lock VHD dirs in parallel.
   await Promise.all([
     File.makeImmutableBatch(flatCandidates, indexPath),
     ...vhdDirCandidates.map(dir => tryLockDirectory(dir, indexPath)),
@@ -142,23 +127,15 @@ async function lockBackup(vmDir, datetime, indexPath) {
 }
 
 /**
- * Watch a single VM backup directory (`xo-vm-backups/<VM UUID>/`) for
- * newly completed backups, and make all their files immutable atomically.
+ * Watch a single VM backup directory (`xo-vm-backups/<VM UUID>/`) for newly
+ * completed backups and lock all their files.
  *
- * **Trigger**: a metadata file `<YYYYMMDD>T<HHmmss>.json` appearing as a
- * direct child of `vmDir`, fully written (verified by parsing it as JSON).
- * The `.json` is always written last, so its validity guarantees that every
- * other file for that backup run is already fully written to disk.
+ * Trigger: a `<YYYYMMDD>T<HHmmss>.json` file appearing as a direct child that
+ * parses as valid JSON. The `.json` is always written last, so its validity
+ * guarantees that every other file for that run is fully written.
  *
- * **Completeness check**: on every fs event for a `.json` file, the file is
- * read and parsed. A partial write produces a truncated or empty file that
- * fails JSON.parse — so we simply wait for the next event. No polling needed.
- *
- * **Atomicity**: either the `.json` is valid (whole backup is locked) or it
- * is not (partial upload — nothing is locked, files can be cleaned up freely).
- *
- * A single `fs.watch()` handle on `vmDir` is sufficient because the trigger
- * files are direct children; no recursive watching is needed here.
+ * A partial write produces a truncated file that fails JSON.parse — we simply
+ * wait for the next fs event rather than polling.
  *
  * @param {string}   vmDir      - Absolute path to the VM UUID directory
  * @param {string}   indexPath  - Absolute path to the immutability index directory
@@ -169,14 +146,10 @@ async function lockBackup(vmDir, datetime, indexPath) {
 export function watchVmDirectory(vmDir, indexPath, onError, { lockTimeout = 10 * 60 * 1000 } = {}) {
   const watcher = fs.watch(vmDir)
 
-  // Tracks datetimes that are already locked or currently being locked,
-  // preventing duplicate work when multiple fs events fire for the same file.
-  // Each entry is evicted after `lockTimeout` ms so the set stays bounded.
+  // Deduplicates lock attempts when multiple fs events fire for the same datetime.
+  // Entries are evicted after `lockTimeout` ms to keep the set bounded.
   /** @type {Set<string>} */
   const lockedDatetimes = new Set()
-
-  // Tracks the eviction timers so they can be cancelled eagerly on close,
-  // rather than keeping the lockedDatetimes closure alive for lockTimeout ms.
   /** @type {Set<ReturnType<typeof setTimeout>>} */
   const evictionTimers = new Set()
 
@@ -196,10 +169,10 @@ export function watchVmDirectory(vmDir, indexPath, onError, { lockTimeout = 10 *
       debug(`[watcher] watchVmDirectory: extractDatetime("${name}") → ${datetime}`)
       if (datetime === undefined) {
         debug(`[watcher] watchVmDirectory: ignoring "${name}" — does not match DATETIME_RE ${DATETIME_RE}`)
-        return // e.g. cache.json.gz — not a backup metadata file
+        return // e.g. cache.json.gz
       }
       if (lockedDatetimes.has(datetime)) {
-        return // already locked or locking in progress
+        return
       }
 
       const jsonPath = join(vmDir, name)
@@ -208,7 +181,7 @@ export function watchVmDirectory(vmDir, indexPath, onError, { lockTimeout = 10 *
         .then(content => {
           JSON.parse(content) // throws SyntaxError if file is incomplete
           if (lockedDatetimes.has(datetime)) {
-            return // another event raced us to it
+            return
           }
           lockedDatetimes.add(datetime)
           const timer = setTimeout(() => {
@@ -223,9 +196,10 @@ export function watchVmDirectory(vmDir, indexPath, onError, { lockTimeout = 10 *
         .catch(err => {
           const code = /** @type {NodeJS.ErrnoException} */ (err).code
           if (code === 'ENOENT' || err instanceof SyntaxError) {
-            // File not yet fully written or transiently absent — the next fs
-            // event will trigger another attempt.
-            debug(`[watcher] watchVmDirectory: json not yet complete (${code ?? 'SyntaxError'}) — will retry on next event`)
+            // Not yet fully written — the next fs event will trigger another attempt.
+            debug(
+              `[watcher] watchVmDirectory: json not yet complete (${code ?? 'SyntaxError'}) — will retry on next event`
+            )
             return
           }
           onError(err)
@@ -246,8 +220,7 @@ export function watchVmDirectory(vmDir, indexPath, onError, { lockTimeout = 10 *
 
 /**
  * Lock every file and subdirectory that is a direct child of `dir`.
- * Used to lock all files in a config/pool-metadata backup date directory
- * once `metadata.json` has been confirmed valid.
+ * Used for config/pool-metadata backups once `metadata.json` is confirmed valid.
  *
  * @param {string} dir
  * @param {string} indexPath
@@ -261,7 +234,7 @@ async function lockAllFilesInDir(dir, indexPath) {
       if (entry.isDirectory()) {
         return tryLockDirectory(fullPath, indexPath)
       } else {
-        return  tryLockFile(fullPath, indexPath)
+        return tryLockFile(fullPath, indexPath)
       }
     })
   )
@@ -269,12 +242,11 @@ async function lockAllFilesInDir(dir, indexPath) {
 
 /**
  * Watch a backup date directory (`<YYYYMMDD>T<HHmmss>/`) for its terminal
- * `metadata.json` file.  When `metadata.json` appears and parses as valid
- * JSON, every file in the directory is made immutable.
+ * `metadata.json`. When it appears and parses as valid JSON, all files in the
+ * directory are made immutable.
  *
- * Applies to both config backups (`data.json` + `metadata.json`) and pool
- * metadata backups (`data` + `metadata.json`): in both cases `metadata.json`
- * is written last, so its validity signals a complete backup.
+ * Applies to both config backups and pool metadata backups: `metadata.json`
+ * is always written last.
  *
  * @param {string}   dateDir   - Absolute path to the `<YYYYMMDD>T<HHmmss>/` directory
  * @param {string}   indexPath
@@ -324,13 +296,9 @@ function watchBackupDateDirectory(dateDir, indexPath, onError) {
 
 /**
  * Watch `dir` for subdirectories, invoke `makeChildWatcher` for each one,
- * and close the resulting child watcher when the subdirectory is removed.
+ * and close the child watcher when the subdirectory is removed.
  *
- * `makeChildWatcher` may return a close function directly (sync) or a Promise
- * that resolves to one (async).  Both forms are handled transparently.
- *
- * This is the building block for multi-level backup hierarchies:
- * composing calls produces watchers for arbitrarily deep trees.
+ * `makeChildWatcher` may return a close function or a Promise that resolves to one.
  *
  * @param {string} dir
  * @param {(subdir: string) => (() => void) | Promise<() => void>} makeChildWatcher
@@ -374,17 +342,9 @@ async function watchSubdirectoriesWithChildren(dir, makeChildWatcher, onError) {
 }
 
 /**
- * Watch `dir` for immediate subdirectory additions and deletions.
- *
- * - Creates `dir` if it does not exist.
- * - Installs the watcher *before* the initial scan so no directory created
- *   during the scan is missed.
- * - Calls `onAdd(subdir)` for every existing subdirectory at startup and for
- *   every new one that appears afterwards.
- * - Calls `onRemove(subdir)` when a subdirectory disappears.
- *
- * Only immediate children are observed; deeper nesting is the caller's
- * responsibility.
+ * Watch `dir` for immediate subdirectory additions and deletions. Creates `dir`
+ * if it does not exist. Calls `onAdd` for each existing and new subdirectory,
+ * and `onRemove` when one disappears.
  *
  * @param {string}   dir
  * @param {{ onAdd: (subdir: string) => void, onRemove: (subdir: string) => void }} callbacks
@@ -442,15 +402,12 @@ async function watchSubdirectories(dir, { onAdd, onRemove }, onError) {
 }
 
 /**
- * Watch a backup remote root and make all completed backup files immutable.
+ * Watch a backup remote root and lock all completed backup files.
  *
- * Handles all three backup types:
- * - **VM backups** (`xo-vm-backups/<vmUUID>/`) — one watcher per VM UUID dir,
- *   triggered by `<YYYYMMDD>T<HHmmss>.json`
- * - **Config backups** (`xo-config-backups/<scheduleId>/<YYYYMMDD>T<HHmmss>/`) —
- *   triggered by `metadata.json`
- * - **Pool metadata backups** (`xo-pool-metadata-backups/<scheduleId>/<poolUUID>/<YYYYMMDD>T<HHmmss>/`) —
- *   triggered by `metadata.json`
+ * Handles three backup types:
+ * - **VM backups** (`xo-vm-backups/<vmUUID>/`) — triggered by `<YYYYMMDD>T<HHmmss>.json`
+ * - **Config backups** (`xo-config-backups/<scheduleId>/<YYYYMMDD>T<HHmmss>/`) — triggered by `metadata.json`
+ * - **Pool metadata** (`xo-pool-metadata-backups/<scheduleId>/<poolUUID>/<YYYYMMDD>T<HHmmss>/`) — triggered by `metadata.json`
  *
  * @param {string}   root      - Absolute path to the backup remote root
  * @param {string}   indexPath - Absolute path to the immutability index directory
