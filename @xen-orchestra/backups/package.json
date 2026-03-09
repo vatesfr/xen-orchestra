@@ -72,6 +72,10 @@
     "url": "https://vates.fr"
   },
   "exports": {
+    "./disks": {
+      "types": "./dist/backups/disks/index.d.mts",
+      "default": "./disks/index.mjs"
+    },
     "./*": {
       "types": "./dist/*.d.mts",
       "default": "./*"
