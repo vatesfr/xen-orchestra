@@ -16,7 +16,11 @@
         <template #actions>
           <VtsActionsConsole :send-ctrl-alt-del="sendCtrlAltDel" />
           <VtsDivider type="stretch" />
-          <VtsClipboardConsole />
+          <VtsClipboardConsole
+            :clipboard-text="clipboardText"
+            :send-clipboard="sendClipboard"
+            :has-guest-tools="guestToolsDetected"
+          />
         </template>
       </VtsLayoutConsole>
     </template>
@@ -30,6 +34,7 @@ import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useConsoleStore } from '@/stores/xen-api/console.store'
+import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import VtsActionsConsole from '@core/components/console/VtsActionsConsole.vue'
@@ -62,6 +67,7 @@ const uiStore = useUiStore()
 const xenApiStore = useXenApiStore()
 
 const { isReady: isVmReady, getByUuid: getVmByUuid, hasError: hasVmError } = useVmStore().subscribe()
+const { getByOpaqueRef: getGuestMetricsByOpaqueRef } = useVmGuestMetricsStore().subscribe()
 
 const {
   isReady: isConsoleReady,
@@ -101,9 +107,27 @@ const isConsoleAvailable = computed(() =>
   vm.value !== undefined ? !isVmOperationPending(vm.value, STOP_OPERATIONS) : false
 )
 
-const consoleElement = useTemplateRef('console-element')
+const consoleElement = useTemplateRef<InstanceType<typeof VtsRemoteConsole>>('console-element')
+
+const guestMetrics = computed(() =>
+  vm.value !== undefined ? getGuestMetricsByOpaqueRef(vm.value.guest_metrics) : undefined
+)
+const guestToolsDetected = computed(() => {
+  const metrics = guestMetrics.value
+  if (!metrics) {
+    return false
+  }
+  const { major, minor } = metrics.PV_drivers_version
+  const hasPvVersion = major !== undefined && minor !== undefined
+  const pvDriversDetected = metrics.PV_drivers_detected ?? hasPvVersion
+  const managementAgentDetected = hasPvVersion || metrics.other['feature-static-ip-setting'] === '1'
+  return managementAgentDetected && pvDriversDetected
+})
 
 const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
+const clipboardText = computed<string>(() => consoleElement.value?.clipboardText ?? '')
+const sendClipboard = (text: string) =>
+  guestToolsDetected.value ? consoleElement.value?.sendClipboard(text) : consoleElement.value?.sendTextAsKeys(text)
 </script>
 
 <style lang="postcss" scoped>
