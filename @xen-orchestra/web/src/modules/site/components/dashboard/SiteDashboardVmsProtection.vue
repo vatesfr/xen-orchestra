@@ -45,9 +45,16 @@ const { vms } = useXoVmCollection()
 
 const { t } = useI18n()
 
-const openVmProtectedModal = useModal(() => ({
-  component: import('@/shared/components/modals/VmProtected.vue'),
-}))
+const openVmProtectedModal = useModal({
+  component: import('@core/components/modal/VtsModal.vue'),
+  props: {
+    accent: 'info',
+    icon: 'status:info-picto',
+    dismissible: true,
+    title: t('what-does-protected-means?'),
+    content: t('what-does-protected-means-content'),
+  },
+})
 
 const dashboardBackups = computed(() => dashboard.value.backups)
 
