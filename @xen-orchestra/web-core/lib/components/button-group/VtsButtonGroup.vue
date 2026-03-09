@@ -30,7 +30,7 @@ const slots = defineSlots<{
     align-items: center;
     gap: 1.6rem;
 
-    @media (--mobile) {
+    @media (--small) {
       flex-direction: column-reverse;
     }
   }

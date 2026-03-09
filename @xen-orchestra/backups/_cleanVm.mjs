@@ -1,7 +1,6 @@
 import * as UUID from 'uuid'
-import sum from 'lodash/sum.js'
 import { asyncMap } from '@xen-orchestra/async-map'
-import { Constants, openVhd, VhdAbstract, VhdFile } from 'vhd-lib'
+import { Constants, openVhd, VhdAbstract } from 'vhd-lib'
 import { isVhdAlias, resolveVhdAlias } from 'vhd-lib/aliases.js'
 import { basename, dirname, resolve } from 'node:path'
 import { isMetadataFile, isVhdFile, isVhdSumFile, isXvaFile, isXvaSumFile } from './_backupType.mjs'
@@ -15,27 +14,6 @@ import { Disposable } from 'promise-toolbox'
 import handlerPath from '@xen-orchestra/fs/path'
 
 const { DISK_TYPES } = Constants
-
-// checking the size of a vhd directory is costly
-// 1 Http Query per 1000 blocks
-// we only check size of all the vhd are VhdFiles
-function shouldComputeVhdsSize(handler, vhds) {
-  if (handler.isEncrypted) {
-    return false
-  }
-  return vhds.every(vhd => vhd instanceof VhdFile)
-}
-
-const computeVhdsSize = (handler, vhdPaths) =>
-  Disposable.use(
-    vhdPaths.map(vhdPath => openVhd(handler, vhdPath)),
-    async vhds => {
-      if (shouldComputeVhdsSize(handler, vhds)) {
-        const sizes = await asyncMap(vhds, vhd => vhd.getSize())
-        return sum(sizes)
-      }
-    }
-  )
 
 // chain is [ ancestor, child_1, ..., child_n ]
 async function _mergeVhdChain(handler, chain, { logInfo, remove, mergeBlockConcurrency }) {
@@ -580,7 +558,7 @@ export async function cleanVm(
     let fileSystemSize
     const mergedSize = metadataWithMergedVhd[metadataPath]
 
-    const { mode, size, vhds, xva } = metadata
+    const { mode, size, xva } = metadata
 
     try {
       if (mode === 'full') {
@@ -596,21 +574,7 @@ export async function cleanVm(
             })
           }
         } catch (error) {
-          // can fail with encrypted remote
-        }
-      } else if (mode === 'delta') {
-        // don't warn if the size has changed after a merge
-        if (mergedSize === undefined) {
-          const linkedVhds = Object.keys(vhds).map(key => resolve('/', vmDir, vhds[key]))
-          fileSystemSize = await computeVhdsSize(handler, linkedVhds)
-          // the size is not computed in some cases (e.g. VhdDirectory)
-          if (fileSystemSize !== undefined && fileSystemSize !== size) {
-            logWarn('cleanVm: incorrect backup size in metadata', {
-              path: metadataPath,
-              actual: size ?? 'none',
-              expected: fileSystemSize,
-            })
-          }
+          // will fail with encrypted remote
         }
       }
     } catch (error) {

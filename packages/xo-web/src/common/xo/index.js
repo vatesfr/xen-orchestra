@@ -484,7 +484,7 @@ export const subscribeHostMissingPatches = (host, cb) => {
   const hostId = resolveId(host)
 
   if (missingPatchesByHost[hostId] == null) {
-    missingPatchesByHost[hostId] = createSubscription(() => getHostMissingPatches(host))
+    missingPatchesByHost[hostId] = createSubscription(() => getHostMissingPatches(host), { polling: 60 * 60 * 1000 })
   }
 
   return missingPatchesByHost[hostId](cb)
@@ -504,14 +504,17 @@ subscribeHostMissingPatches.forceRefresh = host => {
 const proxiesApplianceUpdaterState = {}
 export const subscribeProxyApplianceUpdaterState = (proxyId, cb) => {
   if (proxiesApplianceUpdaterState[proxyId] === undefined) {
-    proxiesApplianceUpdaterState[proxyId] = createSubscription(async () => {
-      try {
-        return await getProxyApplianceUpdaterState(proxyId)
-      } catch (error) {
-        console.error(error)
-        return { state: 'error' }
-      }
-    })
+    proxiesApplianceUpdaterState[proxyId] = createSubscription(
+      async () => {
+        try {
+          return await getProxyApplianceUpdaterState(proxyId)
+        } catch (error) {
+          console.error(error)
+          return { state: 'error' }
+        }
+      },
+      { polling: 60 * 60 * 1000 }
+    )
   }
   return proxiesApplianceUpdaterState[proxyId](cb)
 }
@@ -538,7 +541,7 @@ export const createSrUnhealthyVdiChainsLengthSubscription = sr => {
   sr = resolveId(sr)
   let subscription = unhealthyVdiChainsLengthSubscriptionsBySr[sr]
   if (subscription === undefined) {
-    subscription = createSubscription(() => _call('sr.getVdiChainsInfo', { sr }))
+    subscription = createSubscription(() => _call('sr.getVdiChainsInfo', { sr }), { polling: 60 * 60 * 1000 })
     unhealthyVdiChainsLengthSubscriptionsBySr[sr] = subscription
   }
   return subscription
@@ -1379,7 +1382,18 @@ export const isPubKeyTooShort = host => {
 // for XCP-ng now
 export const installAllPatchesOnHost = ({ host }) =>
   confirm({
-    body: _('installAllPatchesOnHostContent'),
+    body: (
+      <div>
+        <p>{_('installAllPatchesOnHostContent')}</p>
+        <p className='text-warning'>
+          {_('installAllPatchesXostorWarning')}
+          <br />
+          <a target='_blank' rel='noreferrer' href='https://docs.xcp-ng.org/management/updates/#xostor-support'>
+            https://docs.xcp-ng.org/management/updates/#xostor-support
+          </a>
+        </p>
+      </div>
+    ),
     title: _('installAllPatchesTitle'),
   }).then(() =>
     _call('pool.installPatches', { hosts: [resolveId(host)] })::tap(() =>
@@ -2675,6 +2689,24 @@ export const getIpv6ConfigModes = () => _call('pif.getIpv6ConfigurationModes')
 export const editPif = (pif, { vlan }) => _call('pif.editPif', { pif: resolveId(pif), vlan })
 
 export const scanHostPifs = hostId => _call('host.scanPifs', { host: hostId })
+
+export const setManagementPif = async (host, pif) => {
+  await confirm({
+    title: _('setAsManagementPif'),
+    body: _('setAsManagementPifConfirm'),
+  })
+
+  return _call('host.managementReconfigure', { id: resolveId(host), pif: resolveId(pif) })
+}
+
+export const setManagementPifs = async (pool, network) => {
+  await confirm({
+    title: _('setAsManagementPifs'),
+    body: _('setAsManagementPifsConfirm'),
+  })
+
+  return _call('pool.managementReconfigure', { id: resolveId(pool), network: resolveId(network) })
+}
 
 // SR ----------------------------------------------------------------
 

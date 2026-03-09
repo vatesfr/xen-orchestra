@@ -49,6 +49,7 @@ declare module 'vue-router/auto-routes' {
     '/story/story-example': RouteRecordInfo<'/story/story-example', '/story/story-example', Record<never, never>, Record<never, never>>,
     '/story/ui-badge': RouteRecordInfo<'/story/ui-badge', '/story/ui-badge', Record<never, never>, Record<never, never>>,
     '/story/ui-filter': RouteRecordInfo<'/story/ui-filter', '/story/ui-filter', Record<never, never>, Record<never, never>>,
+    '/story/web-core/banner/vts-banner': RouteRecordInfo<'/story/web-core/banner/vts-banner', '/story/web-core/banner/vts-banner', Record<never, never>, Record<never, never>>,
     '/story/web-core/button-group/vts-button-group': RouteRecordInfo<'/story/web-core/button-group/vts-button-group', '/story/web-core/button-group/vts-button-group', Record<never, never>, Record<never, never>>,
     '/story/web-core/card/vts-card-row-key-value': RouteRecordInfo<'/story/web-core/card/vts-card-row-key-value', '/story/web-core/card/vts-card-row-key-value', Record<never, never>, Record<never, never>>,
     '/story/web-core/cell-object/vts-cell-object': RouteRecordInfo<'/story/web-core/cell-object/vts-cell-object', '/story/web-core/cell-object/vts-cell-object', Record<never, never>, Record<never, never>>,

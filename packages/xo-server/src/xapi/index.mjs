@@ -252,8 +252,10 @@ export default class Xapi extends XapiBase {
     }
   }
 
-  async disableHost(hostId) {
-    await this.call('host.disable', this.getObject(hostId).$ref)
+  // The XAPI second parameter is `transient`, only supported since 25.31.0.
+  async disableHost(hostId, { transient = true } = {}) {
+    const ref = this.getObject(hostId).$ref
+    await this.call('host.disable', ref, ...(transient ? [] : [false]))
   }
 
   async forgetHost(hostId) {

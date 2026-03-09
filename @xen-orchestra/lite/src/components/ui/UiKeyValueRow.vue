@@ -28,7 +28,7 @@ const slots = defineSlots<{
   text-align: left;
   color: var(--color-neutral-txt-secondary);
 
-  @media (--desktop) {
+  @media (--medium) {
     min-width: 20rem;
   }
 }

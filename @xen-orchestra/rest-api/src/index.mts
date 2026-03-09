@@ -8,6 +8,7 @@ import tsoaToXoErrorHandler from './middlewares/tsoa-to-xo-error.middleware.mjs'
 import { RegisterRoutes } from './open-api/routes/routes.js'
 import { setupContainer } from './ioc/ioc.mjs'
 import { setupApiContext } from './middlewares/authentication.middleware.mjs'
+import { logMiddleware } from './middlewares/log.middleware.mjs'
 
 // Avoid using "import from" to import a json file as this requires assert/with and will break compatibility with recent node versions
 // https://github.com/nodejs/node/issues/51622
@@ -45,6 +46,7 @@ export default function setupRestApi(express: Express, xoApp: XoApp) {
   setupContainer(xoApp)
 
   express.use(BASE_URL, setupApiContext(xoApp))
+  express.use(BASE_URL, logMiddleware)
 
   RegisterRoutes(express)
 

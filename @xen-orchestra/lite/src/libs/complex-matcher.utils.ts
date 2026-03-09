@@ -1,6 +1,6 @@
 import { escapeRegExp } from '@/libs/utils'
 import type { FilterComparisonType } from '@/types/filter'
-import type { ComparisonOperator, ComplexMatcherNode } from 'complex-matcher'
+import type { ComparisonOperator, Node } from 'complex-matcher'
 import * as CM from 'complex-matcher'
 
 function buildStringNode(property: string, value: string, negate = false) {
@@ -69,7 +69,7 @@ export function buildComplexMatcherNode(
   comparisonType: FilterComparisonType,
   property: string,
   value: string
-): ComplexMatcherNode | undefined {
+): Node | undefined {
   switch (comparisonType) {
     case 'stringContains':
     case 'stringDoesNotContains':

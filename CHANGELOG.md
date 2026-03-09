@@ -1,8 +1,128 @@
 # ChangeLog
 
-## **6.1.2** (2026-02-10)
+## next
+
+### Enhancements
+
+- [VM/New] Added secureBoot support (PR [#9423](https://github.com/vatesfr/xen-orchestra/pull/9423))
+- [i18n] Update Czech and Danish translations (PR [#9531](https://github.com/vatesfr/xen-orchestra/pull/9531))
+- [openmetrics] add XO process metrics (PR [#9535](https://github.com/vatesfr/xen-orchestra/pull/9535))
+- [VM] Add backup runs and backup archives cards on dashboard (PR [#9303](https://github.com/vatesfr/xen-orchestra/pull/9303))
+- [Backups] Fix out of range error on merge (PR [#9567](https://github.com/vatesfr/xen-orchestra/pull/9567))
+
+### Bug fixes
+
+- [Dashboard] Fix reactivity of dashboard (PR [#9378](https://github.com/vatesfr/xen-orchestra/pull/9378))
+- [OpenMetrics] Fix latency metrics (`xcp_host_disk_read_latency_seconds`, `xcp_host_disk_write_latency_seconds`, `xcp_vm_disk_read_latency_seconds`, `xcp_vm_disk_write_latency_seconds`) reporting milliseconds instead of seconds (PR [#9550](https://github.com/vatesfr/xen-orchestra/pull/9550))
+- [Backup] snapshots of VM with a CDROM mounted are not removed (PR [#9570](https://github.com/vatesfr/xen-orchestra/pull/9570))
+- [OpenMetrics] Fix plugin failing to auto-start after xo-server restart due to XOA WebSocket connection race condition (PR [#9402](https://github.com/vatesfr/xen-orchestra/pull/9402))
+
+- **XO 5**:
+  - [Self Service] Fix RAM usage not being properly updated in some cases. Please use "Recompute all limits" in the Self Service dashboard to fix any incorrect quota values introduced by this bug. (PR [#9566](https://github.com/vatesfr/xen-orchestra/pull/9566))
+  - If a hostname was defined in a configuration file, `/v5` were not accessible [#9500](https://github.com/vatesfr/xen-orchestra/issues/9500) (PR [#9572](https://github.com/vatesfr/xen-orchestra/pull/9572))
+
+### Released packages
+
+- @xen-orchestra/web-core 0.46.0
+- @xen-orchestra/web 0.44.0
+- xo-server-openmetrics 1.3.0
+- @xen-orchestra/backups 0.69.4
+- @xen-orchestra/proxy 0.29.51
+- xo-server 5.197.5
+
+## **6.2.1 ** (2026-02-27)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [backups] Fix race condition on merge (PR [#9542](https://github.com/vatesfr/xen-orchestra/pull/9542))
+
+### Released packages
+
+- @xen-orchestra/backups 0.69.2
+- @xen-orchestra/proxy 0.29.49
+- xo-server 5.197.3
+
+## **6.2.0** (2026-02-26)
+
+### Highlights
+
+- [OpenMetrics] Add `is_control_domain` label to VM metrics to differentiate dom0 VMs from regular VMs (PR [#9474](https://github.com/vatesfr/xen-orchestra/pull/9474))
+- [OpenMetrics] Add `xcp_host_status` metric exposing host status (running/maintenance/halted/unknown) for all hosts, including non-running ones (PR [#9457](https://github.com/vatesfr/xen-orchestra/pull/9457))
+- [OpenMetrics] Add host uptime metric (`xcp_host_uptime_seconds`) (PR [#9449](https://github.com/vatesfr/xen-orchestra/pull/9449))
+- [Plugins/load balancer] Add configurable VM migration cooldown to prevent oscillation (default 30min) (PR [#9388](https://github.com/vatesfr/xen-orchestra/pull/9388))
+- [MCP] Initial release of `@xen-orchestra/mcp`: MCP server enabling AI assistants to query XO infrastructure (pools, hosts, VMs, dashboard, documentation) (PR [#9519](https://github.com/vatesfr/xen-orchestra/pull/9519))
+- [Backup] Implement Distributed storage for Backups, Mirror Backups and Replications(PR [#9433](https://github.com/vatesfr/xen-orchestra/pull/9433))
+- [V2V] Automatically take a snapshot if a running VM doesn't have any (PR [#9471](https://github.com/vatesfr/xen-orchestra/pull/9471))
+
+- **REST API:**
+  - [REST API] Added POST `/pbds/{id}/actions/plug` and `/pbds/{id}/actions/unplug` rest routes (PR [#9477](https://github.com/vatesfr/xen-orchestra/pull/9477))
+  - [REST API] Expose `POST /vdis` to create a VDI (PR [#9492](https://github.com/vatesfr/xen-orchestra/pull/9492))
+  - [REST API] Expose `POST /rest/v0/vms/:id/actions/migrate` to migrate a VM (PR [#9414](https://github.com/vatesfr/xen-orchestra/pull/9414))
+
+- **XO 5:**
+  - [Network] Ability to switch management PIF (PRs [#9369](https://github.com/vatesfr/xen-orchestra/pull/9369) [#9510](https://github.com/vatesfr/xen-orchestra/pull/9510))
+  - [Licenses] Display bundle name next to license name (PR [#9512](https://github.com/vatesfr/xen-orchestra/pull/9512))
+  - [V2V] Remember connection settings in the browser (PR [#9490](https://github.com/vatesfr/xen-orchestra/pull/9490))
+
+- **XO 6:**
+  - [i18n] Add Chinese (Simplified Han script) and update Czech, German, Italian, Korean and Dutch translations (PR [#9462](https://github.com/vatesfr/xen-orchestra/pull/9462))
+  - [VM/New] Add the ability to pass a cloud-init config (PR [#9427](https://github.com/vatesfr/xen-orchestra/pull/9427))
+  - [VM/New] Added SSH key field (PR [#9413](https://github.com/vatesfr/xen-orchestra/pull/9413))
+  - [Search Engine] Implement first version of the Query Builder on Pools, Hosts, VMs, networks and Storage tables (PR [#9488](https://github.com/vatesfr/xen-orchestra/pull/9488))
+  - [Header] Add a banner when the connection to the xo server fails (PR [#9375](https://github.com/vatesfr/xen-orchestra/pull/9375))
+
+### Enhancements
+
+- [Warm Migration] the api call now return the new VM uuid (PR [#94653](https://github.com/vatesfr/xen-orchestra/pull/9465))
+- [Warm Migration] stopped VM can be warm migrated (PR [#94653](https://github.com/vatesfr/xen-orchestra/pull/9465))
+- [Netbox] Support version 4.5.x (PR [#9445](https://github.com/vatesfr/xen-orchestra/pull/9445))
+- [Storage] Add possibility to create VDI in qcow2 format if size > 2TB - 8KB (PR [#9493](https://github.com/vatesfr/xen-orchestra/pull/9493))
+- [Backups] Improve VHD dist handling an rework disk merge (delta backups) (PR [#9300](https://github.com/vatesfr/xen-orchestra/pull/9300))
+- [Host] Add persistent option to `host.disable` to persist across host reboots (PR [#9503](https://github.com/vatesfr/xen-orchestra/pull/9503))
+
+- **REST API:**
+  - [REST API] Added POST `/srs/{id}/actions/reclaim_space` rest route (PR [#9486](https://github.com/vatesfr/xen-orchestra/pull/9486))
+  - [REST API] Add `objectType` to tasks for resolved object references (PR [#9429](https://github.com/vatesfr/xen-orchestra/pull/9429))
+  - [REST API] Added POST `/srs/{id}/actions/scan` rest routes (PR [#9514](https://github.com/vatesfr/xen-orchestra/pull/9514))
+
+- **XO 5:**
+  - [Patches] Warn about updating XOSTOR before installing patches (PR [#9517](https://github.com/vatesfr/xen-orchestra/pull/9517))
+
+### Bug fixes
+
+- [HUB Recipe] A bug in the Pyrgos recipe requires to remove the DHCP option of the recipe form (PR [#9454](https://github.com/vatesfr/xen-orchestra/pull/9454))
+- [OpenMetrics] Fix ECONNREFUSED on IPv6-only systems by binding to `localhost` instead of `127.0.0.1` (PR [#9489](https://github.com/vatesfr/xen-orchestra/pull/9489))
+- [REST API] Exclude removable and ISO storage from top 5 SRs usage (PR [#9495](https://github.com/vatesfr/xen-orchestra/pull/9495))
+- [xo-server-sdn-controller] traffic rules robustness (PR [#9442](https://github.com/vatesfr/xen-orchestra/pull/9442))
+- [Backups] Fix error during backup and health check (PR [#9508](https://github.com/vatesfr/xen-orchestra/pull/9508))
+- [Backups] remove the `cleanVm: incorrect backup size in metadata` error (PR [#9527](https://github.com/vatesfr/xen-orchestra/pull/9527))
+
+### Released packages
+
+- @xen-orchestra/fs 4.6.7
+- @xen-orchestra/backups-cli 1.1.8
+- @xen-orchestra/immutable-backups 1.0.30
+- @xen-orchestra/vmware-explorer 0.11.0
+- xo-server-load-balancer 0.12.0
+- xo-server-netbox 1.11.0
+- xo-server-openmetrics 1.2.0
+- xo-server-sdn-controller 1.2.1
+- @xen-orchestra/backups 0.69.1
+- complex-matcher 1.1.0
+- @xen-orchestra/proxy 0.29.48
+- xo-web 5.194.0
+- @vates/types 1.21.0
+- @xen-orchestra/rest-api 0.27.0
+- xo-server 5.197.2
+- @xen-orchestra/web-core 0.45.0
+- @xen-orchestra/mcp 1.0.1
+- @xen-orchestra/web 0.43.0
+
+## **6.1.2** (2026-02-10)
+
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
@@ -122,8 +242,6 @@
 - xo-server 5.196.0
 
 ## **6.0.3** (2026-01-06)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Security
 

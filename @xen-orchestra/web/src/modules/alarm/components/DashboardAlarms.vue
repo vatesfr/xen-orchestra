@@ -21,7 +21,7 @@
           :key="alarm.index"
           :label="alarm.data.body.name"
           :percent="Number(alarm.data.body.value)"
-          :size="uiStore.isDesktopLarge ? 'large' : 'small'"
+          :size="uiStore.isLarge ? 'large' : 'small'"
           :date="alarm.data.time"
         >
           <template #link>
@@ -63,7 +63,7 @@ const {
   wrapperProps,
 } = useVirtualList(
   computed(() => rawAlarms),
-  { itemHeight: () => (uiStore.isDesktopLarge ? 42 : 71) }
+  { itemHeight: () => (uiStore.isLarge ? 42 : 71) }
 )
 </script>
 

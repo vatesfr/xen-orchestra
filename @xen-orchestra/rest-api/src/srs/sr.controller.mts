@@ -220,6 +220,61 @@ export class SrController extends XapiXoController<XoSr> {
     await sr.$call('remove_tags', tag)
   }
 
+
+  /**
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/reclaim_space')
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async reclaimSpaceSr(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const srId = id as XoSr['id']
+    const action = async () => {
+      const sr = this.getXapiObject(srId)
+      await sr.$xapi.SR_reclaimSpace(sr.$ref)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'SR reclaim space',
+        objectId: srId,
+      },
+    })
+  }
+
+  /**
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/scan')
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async scanSr(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const srId = id as XoSr['id']
+    const action = async () => {
+      const sr = this.getXapiObject(srId)
+      await sr.$xapi.callAsync('SR.scan', sr.$ref)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'SR scan',
+        objectId: srId,
+      },
+    })
+  }
+
   /**
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */

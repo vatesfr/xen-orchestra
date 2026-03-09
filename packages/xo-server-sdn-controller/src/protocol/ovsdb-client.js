@@ -189,7 +189,13 @@ export class OvsdbClient {
   }
 
   async resetForNetwork(network, privateNetworkUuid) {
-    const socket = await this._connect()
+    let socket
+    try {
+      socket = await this._connect()
+    } catch (error) {
+      log.error('Error while connecting', { error })
+      return
+    }
     const bridge = await this._getBridgeForNetwork(network, socket)
     if (bridge.uuid === undefined) {
       socket.destroy()
@@ -245,7 +251,14 @@ export class OvsdbClient {
   }
 
   async setBridgeController() {
-    const socket = await this._connect()
+    let socket
+    try {
+      socket = await this._connect()
+    } catch (error) {
+      log.error('Error while connecting', { error })
+      return
+    }
+
     // Add controller to openvswitch table if needed
     const params = ['Open_vSwitch']
 
@@ -305,7 +318,14 @@ export class OvsdbClient {
   }
 
   async setBridgeControllerForNetwork(network) {
-    const socket = await this._connect()
+    let socket
+    try {
+      socket = await this._connect()
+    } catch (error) {
+      log.error('Error while connecting', { error })
+      return
+    }
+
     if (this._controllerUuid === undefined) {
       const where = [['target', '==', TARGET]]
       const selectResult = await this._select('Controller', ['_uuid'], where, socket)
@@ -360,7 +380,14 @@ export class OvsdbClient {
 
   async getOfPortForVif(vif) {
     const where = [['external_ids', 'includes', toMap({ 'xs-vif-uuid': vif.uuid })]]
-    const socket = await this._connect()
+    let socket
+    try {
+      socket = await this._connect()
+    } catch (error) {
+      log.error('Error while connecting', { error })
+      return
+    }
+
     const selectResult = await this._select(
       'Interface',
       ['name', 'ofport'],

@@ -1,5 +1,5 @@
 <template>
-  <div class="sidebar-search" :class="{ 'border-top': !uiStore.isMobile }">
+  <div class="sidebar-search" :class="{ 'border-top': !uiStore.isSmall }">
     <UiInput
       v-model="search"
       :aria-label="t('action:search-treeview')"

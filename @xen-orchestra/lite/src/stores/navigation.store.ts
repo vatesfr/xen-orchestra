@@ -1,7 +1,7 @@
 import { useUiStore } from '@core/stores/ui.store'
-import { useEventListener } from '@vueuse/core'
+import { useEventListener, whenever } from '@vueuse/core'
 import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 
 export const useNavigationStore = defineStore('navigation', () => {
   const uiStore = useUiStore()
@@ -12,11 +12,9 @@ export const useNavigationStore = defineStore('navigation', () => {
 
   useEventListener(trigger, 'click', toggle)
 
-  watch(
-    () => uiStore.isMobile,
-    isMobile => {
-      isOpen.value = !isMobile
-    }
+  whenever(
+    () => !uiStore.isSmall,
+    () => (isOpen.value = false)
   )
 
   return {

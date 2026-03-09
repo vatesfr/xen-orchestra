@@ -56,9 +56,7 @@ export class RemoteVhdDiskChain extends RemoteDisk {
       await Promise.all(this.#disks.map(disk => disk.init(options)))
       let parentUuid = ''
       for (const [index, disk] of this.#disks.entries()) {
-        if (index === 0) {
-          parentUuid = disk.getUuid()
-        } else {
+        if (index !== 0) {
           if (!disk.isDifferencing()) {
             throw Object.assign(new Error("Can't init vhd directory with non differencing child disks"), {
               code: 'NOT_SUPPORTED',
@@ -70,6 +68,8 @@ export class RemoteVhdDiskChain extends RemoteDisk {
             })
           }
         }
+
+        parentUuid = disk.getUuid()
       }
     } catch (error) {
       await this.close()
@@ -179,6 +179,14 @@ export class RemoteVhdDiskChain extends RemoteDisk {
   }
 
   /**
+   * Returns the parent non inizialized instance
+   * @returns {RemoteDisk}
+   */
+  instantiateParent() {
+    return this.#disks[0].instantiateParent()
+  }
+
+  /**
    * Writes a full block into this VHD.
    * @param {DiskBlock} diskBlock
    * @return {Promise<number>} blockSize
@@ -230,6 +238,7 @@ export class RemoteVhdDiskChain extends RemoteDisk {
 
   /**
    * @param {RemoteVhdDisk} childDisk
+   * @returns {Promise<void>}
    */
   mergeMetadata(childDisk) {
     throw new Error(`Can't merge metadata on a disk chain`)
