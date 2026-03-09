@@ -33,7 +33,7 @@
 
 <!--packages-start-->
 
-- @vates/types
+- @vates/types minor
 - @xen-orchestra/backups patch
 
 <!--packages-end-->
