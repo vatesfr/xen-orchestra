@@ -39,13 +39,16 @@ npx @xen-orchestra/mcp
 
 ### Configure authentication
 
-The MCP server connects to Xen Orchestra via the REST API using three environment variables:
+The MCP server connects to Xen Orchestra via the REST API. Two authentication modes are supported: **token** (recommended) or **username/password**.
 
-| Variable      | Required | Description                                               |
-| ------------- | -------- | --------------------------------------------------------- |
-| `XO_URL`      | Yes      | Xen Orchestra server URL (e.g., `https://xo.example.com`) |
-| `XO_USERNAME` | Yes      | XO user with admin privileges                             |
-| `XO_PASSWORD` | Yes      | XO password                                               |
+| Variable      | Required                | Description                                               |
+| ------------- | ----------------------- | --------------------------------------------------------- |
+| `XO_URL`      | Yes                     | Xen Orchestra server URL (e.g., `https://xo.example.com`) |
+| `XO_TOKEN`    | If no username/password | Authentication token                                      |
+| `XO_USERNAME` | If no token             | XO user with admin privileges                             |
+| `XO_PASSWORD` | If no token             | XO password                                               |
+
+To generate a token, go to the XO user page (`/user`) or run `xo-cli create-token`. If both `XO_TOKEN` and `XO_USERNAME`/`XO_PASSWORD` are set, token authentication takes priority.
 
 :::tip
 Only admin users can currently use the REST API. See [REST API authentication](restapi.md#authentication) for details.
@@ -56,6 +59,25 @@ Only admin users can currently use the REST API. See [REST API authentication](r
 #### Claude Desktop
 
 Add the following to your Claude Desktop configuration file (`~/.config/claude-desktop/config.json` on Linux, `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+
+Using a token (recommended):
+
+```json
+{
+  "mcpServers": {
+    "xo": {
+      "command": "npx",
+      "args": ["@xen-orchestra/mcp"],
+      "env": {
+        "XO_URL": "https://your-xo-server",
+        "XO_TOKEN": "your-token"
+      }
+    }
+  }
+}
+```
+
+Using username/password:
 
 ```json
 {
@@ -76,6 +98,13 @@ Add the following to your Claude Desktop configuration file (`~/.config/claude-d
 #### Claude Code
 
 ```bash
+# Using a token (recommended)
+claude mcp add xo \
+  -e XO_URL=https://your-xo-server \
+  -e XO_TOKEN=your-token \
+  -- npx @xen-orchestra/mcp
+
+# Using username/password
 claude mcp add xo \
   -e XO_URL=https://your-xo-server \
   -e XO_USERNAME=admin@example.com \
@@ -88,6 +117,12 @@ claude mcp add xo \
 Run the MCP server with environment variables set:
 
 ```bash
+# Using a token (recommended)
+XO_URL=https://your-xo-server \
+XO_TOKEN=your-token \
+npx @xen-orchestra/mcp
+
+# Using username/password
 XO_URL=https://your-xo-server \
 XO_USERNAME=admin@example.com \
 XO_PASSWORD=your-password \
@@ -225,7 +260,7 @@ Verify that `XO_URL` is correct and includes the protocol (`https://` or `http:/
 :::
 
 :::note Authentication failed (401)
-Check `XO_USERNAME` and `XO_PASSWORD`. Only admin users can currently access the REST API. Verify your credentials work by logging into the XO web interface.
+If using token authentication, check that `XO_TOKEN` is valid — the token may have expired or been revoked. If using username/password, check `XO_USERNAME` and `XO_PASSWORD`. Only admin users can currently access the REST API.
 :::
 
 :::note Timeout errors
@@ -233,5 +268,5 @@ The MCP server has a 30-second timeout for API requests. If you experience timeo
 :::
 
 :::note Missing required environment variables
-All three environment variables (`XO_URL`, `XO_USERNAME`, `XO_PASSWORD`) must be set. When using Claude Desktop, make sure they are in the `env` section of the MCP server configuration.
+`XO_URL` is always required. You must also set either `XO_TOKEN` or both `XO_USERNAME` and `XO_PASSWORD`. When using Claude Desktop, make sure they are in the `env` section of the MCP server configuration.
 :::
