@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// @ts-check
 
 import fs from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
@@ -10,28 +9,21 @@ import { join } from 'node:path'
 import { createLogger } from '@xen-orchestra/log'
 import { asyncEach } from '@vates/async-each'
 import { indexFile } from './fileIndex.mjs'
-import loadConfig from './_loadConfig.mjs'
+import loadConfig, { type RemoteConfig } from './_loadConfig.mjs'
 import { watchRemote as startRemoteWatcher } from './watcher.mjs'
 
-/** @typedef {import('./_loadConfig.mjs').RemoteConfig} RemoteConfig */
+// @xen-orchestra/log has no .d.ts — methods are added dynamically at runtime.
+type XoLogger = {
+  debug: (msg: string, data?: object) => void
+  info: (msg: string, data?: object) => void
+  warn: (msg: string, data?: object) => void
+}
 
-/**
- * @xen-orchestra/log has no .d.ts — methods are added dynamically at runtime.
- * @typedef {{ debug: (msg: string, data?: object) => void, info: (msg: string, data?: object) => void, warn: (msg: string, data?: object) => void }} XoLogger
- */
+const { debug, info, warn } = createLogger('xen-orchestra:immutable-backups:remote') as unknown as XoLogger
 
-const { debug, info, warn } = /** @type {XoLogger} */ (
-  /** @type {unknown} */ (createLogger('xen-orchestra:immutable-backups:remote'))
-)
-
-/**
- * Verify that the remote filesystem and the index directory support immutability
- * by creating, modifying, locking, and unlocking a temporary test file.
- * @param {string} remotePath - Absolute path to the backup repository root
- * @param {string} indexPath  - Absolute path to the immutability index directory
- * @returns {Promise<void>}
- */
-async function test(remotePath, indexPath) {
+// Verify that the remote filesystem and the index directory support immutability
+// by creating, modifying, locking, and unlocking a temporary test file.
+async function test(remotePath: string, indexPath: string): Promise<void> {
   await fs.readdir(remotePath)
 
   const testPath = join(remotePath, '.test-immut')
@@ -57,55 +49,43 @@ async function test(remotePath, indexPath) {
   await fs.unlink(testPath)
 }
 
-/**
- * List the immediate subdirectories of `dir`.
- * Returns an empty array if `dir` does not exist.
- * @param {string} dir
- * @returns {Promise<string[]>}
- */
-async function listDirs(dir) {
+// List the immediate subdirectories of `dir`.
+// Returns an empty array if `dir` does not exist.
+async function listDirs(dir: string): Promise<string[]> {
   try {
     const entries = await fs.readdir(dir, { withFileTypes: true })
     return entries.filter(e => e.isDirectory()).map(e => join(dir, e.name))
   } catch (err) {
-    if (/** @type {NodeJS.ErrnoException} */ (err).code === 'ENOENT') {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
       return []
     }
     throw err
   }
 }
 
-/**
- * If `path` is already immutable, add it to the index.
- * Errors other than ENOENT / EEXIST are logged as warnings.
- * @param {string} path
- * @param {string} indexPath
- */
-async function tryIndexExistingFile(path, indexPath) {
+// If `path` is already immutable, add it to the index.
+// Errors other than ENOENT / EEXIST are logged as warnings.
+async function tryIndexExistingFile(path: string, indexPath: string): Promise<void> {
   try {
     if (await File.isImmutable(path)) {
       await indexFile(path, indexPath)
     }
   } catch (err) {
-    const code = /** @type {NodeJS.ErrnoException} */ (err).code
+    const code = (err as NodeJS.ErrnoException).code
     if (code !== 'ENOENT' && code !== 'EEXIST') {
       warn('tryIndexExistingFile', { err, path })
     }
   }
 }
 
-/**
- * If `path` (a directory) is already immutable, add it to the index.
- * @param {string} path
- * @param {string} indexPath
- */
-async function tryIndexExistingDirectory(path, indexPath) {
+// If `path` (a directory) is already immutable, add it to the index.
+async function tryIndexExistingDirectory(path: string, indexPath: string): Promise<void> {
   try {
     if (await Directory.isImmutable(path)) {
       await indexFile(path, indexPath)
     }
   } catch (err) {
-    const code = /** @type {NodeJS.ErrnoException} */ (err).code
+    const code = (err as NodeJS.ErrnoException).code
     if (code !== 'ENOENT' && code !== 'EEXIST') {
       warn('tryIndexExistingDirectory', { err, path })
     }
@@ -115,22 +95,19 @@ async function tryIndexExistingDirectory(path, indexPath) {
 /** Matches `<YYYYMMDD>T<HHmmss>` at the start of a filename. */
 const DATETIME_RE = /^\d{8}T\d{6}Z?/
 
-/**
- * Walk the backup tree under `root` and add any already-immutable files to the
- * index.  Called at startup when `rebuildIndexOnStart` is true so that files
- * locked in a previous run can still be lifted later.
- *
- * @param {string} root
- * @param {string} indexPath
- */
-async function rebuildIndex(root, indexPath) {
+// Walk the backup tree under `root` and add any already-immutable files to the
+// index.  Called at startup when `rebuildIndexOnStart` is true so that files
+// locked in a previous run can still be lifted later.
+async function rebuildIndex(root: string, indexPath: string): Promise<void> {
   // xo-vm-backups/<vmUUID>/
   await asyncEach(await listDirs(join(root, 'xo-vm-backups')), async vmDir => {
     // VM-level files: <datetime>.json, <datetime>.xva, <datetime>.xva.checksum
     const vmEntries = await fs.readdir(vmDir, { withFileTypes: true }).catch(() => [])
     for (const entry of vmEntries) {
       const matches = entry.isFile() && DATETIME_RE.test(entry.name)
-      debug(`[rebuildIndex] vmDir entry "${entry.name}": isFile=${entry.isFile()} DATETIME_RE.test=${DATETIME_RE.test(entry.name)} → ${matches ? 'indexing' : 'skipped'}`)
+      debug(
+        `[rebuildIndex] vmDir entry "${entry.name}": isFile=${entry.isFile()} DATETIME_RE.test=${DATETIME_RE.test(entry.name)} → ${matches ? 'indexing' : 'skipped'}`
+      )
       if (matches) {
         await tryIndexExistingFile(join(vmDir, entry.name), indexPath)
       }
@@ -177,15 +154,13 @@ async function rebuildIndex(root, indexPath) {
   info('rebuildIndexOnStart: done')
 }
 
-/**
- * Start watching a backup remote for new files and make them immutable as they
- * are written.  Also re-indexes already-immutable files when
- * `rebuildIndexOnStart` is `true`.
- * @param {string}       remoteId - Opaque identifier for the remote (used for logging)
- * @param {RemoteConfig} options
- * @returns {Promise<{ close: () => void }>}
- */
-export async function watchRemote(remoteId, { root, immutabilityDuration, rebuildIndexOnStart = false, indexPath }) {
+// Start watching a backup remote for new files and make them immutable as they
+// are written.  Also re-indexes already-immutable files when
+// `rebuildIndexOnStart` is `true`.
+export async function watchRemote(
+  remoteId: string,
+  { root, immutabilityDuration, rebuildIndexOnStart = false, indexPath }: RemoteConfig
+): Promise<{ close: () => void }> {
   debug('got config ', { remoteId, root, immutabilityDuration, rebuildIndexOnStart, indexPath })
 
   await fs.mkdir(indexPath, { recursive: true })
@@ -202,7 +177,7 @@ export async function watchRemote(remoteId, { root, immutabilityDuration, rebuil
     // this file won't be tracked in the index
     await File.liftImmutability(settingPath)
   } catch (error) {
-    if (/** @type {NodeJS.ErrnoException} */ (error).code !== 'ENOENT') {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
       info('error lifting immutability on current settings', { error })
     }
   }

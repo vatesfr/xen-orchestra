@@ -2,8 +2,8 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import { tmpdir } from 'node:os'
 import * as Directory from './directory.mjs'
+import { tmpdir } from 'node:os'
 import { rimraf } from 'rimraf'
 
 describe('immutable-backups/file', async () => {

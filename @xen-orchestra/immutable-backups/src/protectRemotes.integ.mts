@@ -1,5 +1,3 @@
-// @ts-check
-
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs/promises'
@@ -30,13 +28,9 @@ const BACKUP_DATE = '20240115T120000Z'
 // Helpers
 // ---------------------------------------------------------------------------
 
-/**
- * Poll `fn` every 200 ms until it returns a truthy value or `timeout` ms
- * have elapsed.  Throws if the deadline is reached.
- * @param {() => Promise<boolean>} fn
- * @param {number} [timeout]
- */
-async function waitFor(fn, timeout = 8000) {
+// Poll `fn` every 200 ms until it returns a truthy value or `timeout` ms
+// have elapsed.  Throws if the deadline is reached.
+async function waitFor(fn: () => Promise<boolean>, timeout = 8000): Promise<void> {
   const deadline = Date.now() + timeout
   while (Date.now() < deadline) {
     try {
@@ -47,12 +41,9 @@ async function waitFor(fn, timeout = 8000) {
   throw new Error('Timed out waiting for condition')
 }
 
-/**
- * Recursively lift all immutable flags inside `root`, then delete the tree.
- * Must be run as root since chattr requires elevated privileges.
- * @param {string} root
- */
-async function cleanupRoot(root) {
+// Recursively lift all immutable flags inside `root`, then delete the tree.
+// Must be run as root since chattr requires elevated privileges.
+async function cleanupRoot(root: string): Promise<void> {
   try {
     // -i removes the immutable flag; -R recurses into every file and directory.
     await execa('chattr', ['-i', '-R', root])
@@ -60,26 +51,21 @@ async function cleanupRoot(root) {
   await rimraf(root)
 }
 
-/**
- * Start a watcher on a fresh temp directory and return both the root path and
- * the index path so the caller can create files and assert on them.
- *
- * `preDirs` is a list of relative paths that will be created inside `root`
- * **before** starting the watcher.  Chokidar must see these directories at
- * startup so it can detect new files written into them later.
- *
- * @param {string[]} [preDirs]
- * @returns {Promise<{ root: string, indexPath: string, close: () => Promise<void> }>}
- */
-async function makeRemote(preDirs = []) {
+// Start a watcher on a fresh temp directory and return both the root path and
+// the index path so the caller can create files and assert on them.
+//
+// `preDirs` is a list of relative paths that will be created inside `root`
+// **before** starting the watcher.  The watcher must see these directories at
+// startup so it can detect new files written into them later.
+async function makeRemote(preDirs: string[] = []): Promise<{ root: string; indexPath: string; close: () => void }> {
   const root = await fs.mkdtemp(path.join(tmpdir(), 'immut-test-'))
   const indexPath = path.join(root, '.index')
-  // Pre-create directories so chokidar has them in its watch list at startup.
+  // Pre-create directories so the watcher has them in its watch list at startup.
   for (const relDir of preDirs) {
     await fs.mkdir(path.join(root, relDir), { recursive: true })
   }
   const { close } = await watchRemote('test', { root, indexPath, immutabilityDuration: ONE_DAY_MS })
-  // Give chokidar a moment to complete its initial scan and become ready before
+  // Give the watcher a moment to complete its initial scan and become ready before
   // the caller starts writing files.
   await new Promise(resolve => setTimeout(resolve, 500))
   return { root, indexPath, close }
@@ -108,7 +94,6 @@ describe('protectRemotes/watchRemote', async () => {
       await fs.writeFile(ignoredFile, 'should stay mutable')
       await fs.writeFile(jsonFile, '{}')
 
-      // awaitWriteFinish defaults to stabilityThreshold=2000ms; allow up to 8s.
       await waitFor(() => File.isImmutable(jsonFile))
       await waitFor(() => File.isImmutable(xvaFile))
       await waitFor(() => File.isImmutable(checksumFile))
@@ -124,7 +109,7 @@ describe('protectRemotes/watchRemote', async () => {
       // Files outside the watched patterns must remain mutable.
       assert.strictEqual(await File.isImmutable(ignoredFile), false, 'non-backup file must stay mutable')
     } finally {
-      await close()
+      close()
       await cleanupRoot(root)
     }
   })
@@ -165,7 +150,7 @@ describe('protectRemotes/watchRemote', async () => {
       await assert.rejects(fs.writeFile(bat, 'tampered'), { code: 'EPERM' })
       await assert.rejects(fs.mkdir(path.join(vhdDir, 'new-subdir')), { code: 'EPERM' })
     } finally {
-      await close()
+      close()
       await cleanupRoot(root)
     }
   })
@@ -191,7 +176,7 @@ describe('protectRemotes/watchRemote', async () => {
       await assert.rejects(fs.writeFile(vhdFile, 'tampered'), { code: 'EPERM' })
       await assert.rejects(fs.unlink(vhdFile), { code: 'EPERM' })
     } finally {
-      await close()
+      close()
       await cleanupRoot(root)
     }
   })
@@ -218,7 +203,7 @@ describe('protectRemotes/watchRemote', async () => {
       assert.strictEqual(await File.isImmutable(bat), false, 'bat must stay mutable')
       assert.strictEqual(await File.isImmutable(header), false, 'header must stay mutable')
     } finally {
-      await close()
+      close()
       await cleanupRoot(root)
     }
   })
@@ -247,7 +232,7 @@ describe('protectRemotes/watchRemote', async () => {
       assert.strictEqual(await File.isImmutable(dataJsonFile), true, 'data.json should be immutable')
       assert.strictEqual(await File.isImmutable(metadataFile), true, 'metadata.json should be immutable')
     } finally {
-      await close()
+      close()
       await cleanupRoot(root)
     }
   })
@@ -277,7 +262,7 @@ describe('protectRemotes/watchRemote', async () => {
       assert.strictEqual(await File.isImmutable(xvaFile), true, '.xva in new VM dir should be immutable')
       await assert.rejects(fs.writeFile(jsonFile, 'tampered'), { code: 'EPERM' })
     } finally {
-      await close()
+      close()
       await cleanupRoot(root)
     }
   })
@@ -285,7 +270,7 @@ describe('protectRemotes/watchRemote', async () => {
   it('re-indexes already-immutable files on startup when rebuildIndexOnStart is true', async () => {
     const root = await fs.mkdtemp(path.join(tmpdir(), 'immut-test-'))
     const indexPath = path.join(root, '.index')
-    let close
+    let close: (() => void) | undefined
     try {
       // Pre-create a backup file and manually lock it (simulates an existing
       // backup that was locked in a previous run).
@@ -316,7 +301,7 @@ describe('protectRemotes/watchRemote', async () => {
       await waitFor(isIndexed, 10000)
       assert.ok(await isIndexed(), 'pre-existing immutable file should appear in the index')
     } finally {
-      await close?.()
+      close?.()
       await cleanupRoot(root)
     }
   })
