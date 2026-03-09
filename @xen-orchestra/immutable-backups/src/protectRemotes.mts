@@ -2,7 +2,7 @@
 
 import { createLogger } from '@xen-orchestra/log'
 import loadConfig from './_loadConfig.mjs'
-import { watchRemote } from './remoteProtection.mjs'
+import { watchRemote } from './remote.mjs'
 import { liftImmutability } from './liftProtection.mjs'
 
 const { info, warn } = createLogger('xen-orchestra:immutable-backups:remote')

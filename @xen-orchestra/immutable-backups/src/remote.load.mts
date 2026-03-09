@@ -22,8 +22,8 @@ import { rimraf } from 'rimraf'
 import execa from 'execa'
 
 import { asyncEach } from '@vates/async-each'
-import { indexFile } from './fileIndex.mjs'
-import { watchRemote } from './remoteProtection.mjs'
+import { indexFile } from './_fileIndex.mjs'
+import { watchRemote } from './remote.mjs'
 import { liftRemoteImmutability } from './liftProtection.mjs'
 
 // ---------------------------------------------------------------------------

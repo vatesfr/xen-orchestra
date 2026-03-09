@@ -1,5 +1,5 @@
 import execa from 'execa'
-import { unindexFile, indexFile } from './fileIndex.mjs'
+import { unindexFile, indexFile } from './_fileIndex.mjs'
 import { createLogger } from '@xen-orchestra/log'
 
 const { warn } = createLogger('xen-orchestra:immutable-backups:directory')

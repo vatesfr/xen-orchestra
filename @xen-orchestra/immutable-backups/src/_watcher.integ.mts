@@ -7,7 +7,7 @@ import { rimraf } from 'rimraf'
 import execa from 'execa'
 
 import * as File from './file.mjs'
-import { waitForWriteDone, watchVmDirectory } from './watcher.mjs'
+import { waitForWriteDone, watchVmDirectory } from './_watcher.mjs'
 
 // ---------------------------------------------------------------------------
 // Helpers
