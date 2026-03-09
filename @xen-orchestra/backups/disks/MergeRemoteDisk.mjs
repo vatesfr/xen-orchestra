@@ -86,11 +86,11 @@ export class MergeRemoteDisk {
   /**
    * @param {FileAccessor} handler
    * @param {Object} params
-   * @param {Function} params.onProgress
-   * @param {Logger | Function} params.logInfo
-   * @param {boolean} params.removeUnused
-   * @param {number} params.mergeBlockConcurrency
-   * @param {number} params.writeStateDelay
+   * @param {Function} [params.onProgress]
+   * @param {Logger | Function} [params.logInfo]
+   * @param {boolean} [params.removeUnused]
+   * @param {number} [params.mergeBlockConcurrency]
+   * @param {number} [params.writeStateDelay]
    */
   constructor(
     handler,
