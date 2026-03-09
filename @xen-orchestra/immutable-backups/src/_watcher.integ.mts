@@ -167,7 +167,7 @@ describe('watchVmDirectory', () => {
       assert.strictEqual(errors.length, 0)
     } finally {
       close()
-      await rimraf(dir)
+      await cleanupRoot(dir)
     }
   })
 
@@ -240,7 +240,7 @@ describe('watchVmDirectory', () => {
       assert.ok(errors.length > 0, 'onError must have been called')
     } finally {
       close()
-      await rimraf(dir)
+      await cleanupRoot(dir)
     }
   })
 })

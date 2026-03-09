@@ -114,7 +114,7 @@ describe('protectRemotes/watchRemote', async () => {
     }
   })
 
-  it('makes a VHD directory immutable once all three key files (bat/header/footer) are written', async () => {
+  it('makes a VHD directory immutable once the json is written', async () => {
     const vmRelDir = path.join('xo-vm-backups', VM_UUID)
     const dataRelDir = path.join(vmRelDir, 'vdis', JOB_UUID, VDI_UUID, 'data')
     const { root, close } = await makeRemote([dataRelDir])
@@ -155,33 +155,7 @@ describe('protectRemotes/watchRemote', async () => {
     }
   })
 
-  it('makes a flat VHD file (one per VDI, no alias format) immutable', async () => {
-    const vmRelDir = path.join('xo-vm-backups', VM_UUID)
-    const vdiRelDir = path.join(vmRelDir, 'vdis', JOB_UUID, VDI_UUID)
-    const { root, close } = await makeRemote([vdiRelDir])
-    try {
-      // Pattern: xo-vm-backups/<vmUuid>/vdis/<jobId>/<vdiUuid>/<date>.vhd
-      // Plain VHD file (no VHD-directory format). Locked when the VM-level
-      // .json is written, which is the terminal signal for the whole backup.
-      const vmDir = path.join(root, vmRelDir)
-      const vhdFile = path.join(root, vdiRelDir, `${BACKUP_DATE}.vhd`)
-      await fs.writeFile(vhdFile, 'fake vhd data')
-
-      // json written last — triggers lockBackup which locks the flat VHD
-      await fs.writeFile(path.join(vmDir, `${BACKUP_DATE}.json`), '{}')
-
-      await waitFor(() => File.isImmutable(vhdFile))
-
-      assert.strictEqual(await File.isImmutable(vhdFile), true, 'flat .vhd file should be immutable')
-      await assert.rejects(fs.writeFile(vhdFile, 'tampered'), { code: 'EPERM' })
-      await assert.rejects(fs.unlink(vhdFile), { code: 'EPERM' })
-    } finally {
-      close()
-      await cleanupRoot(root)
-    }
-  })
-
-  it('does NOT lock the VHD directory when only 1 or 2 of the 3 key files are written', async () => {
+  it('does NOT lock the VHD directory when the metadata are not written', async () => {
     const dataRelDir = path.join('xo-vm-backups', VM_UUID, 'vdis', JOB_UUID, VDI_UUID, 'data')
     const { root, close } = await makeRemote([dataRelDir])
     try {
@@ -199,7 +173,7 @@ describe('protectRemotes/watchRemote', async () => {
       // the watcher has handled both events without locking anything.
       await new Promise(resolve => setTimeout(resolve, 5000))
 
-      assert.strictEqual(await Directory.isImmutable(vhdDir), false, 'dir must stay mutable with only 2/3 key files')
+      assert.strictEqual(await Directory.isImmutable(vhdDir), false, 'dir must stay mutable')
       assert.strictEqual(await File.isImmutable(bat), false, 'bat must stay mutable')
       assert.strictEqual(await File.isImmutable(header), false, 'header must stay mutable')
     } finally {

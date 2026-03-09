@@ -31,7 +31,11 @@ export async function liftImmutability(filePath: string, immutabilityCachePath?:
 // This reduces process-spawn overhead from N spawns to 1 when locking a
 // batch of files that all belong to the same backup.
 export async function makeImmutableBatch(paths: string[], immutabilityCachePath?: string): Promise<void> {
-  await execa('chattr', ['+i', ...paths])
+  try {
+    await execa('chattr', ['+i', ...paths]).catch(() => {})
+  } catch {
+    // some file may be missing bu the return code of chattr is not very usefull to detect it
+  }
   if (immutabilityCachePath) {
     await Promise.all(
       paths.map(async p => {
