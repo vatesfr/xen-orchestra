@@ -36,7 +36,6 @@ export function useXoBackupLogsUtils() {
     ].join(':')
   }
 
-  // TODO: Define the type for task when it becomes available
   const findTransferTaskSize = (tasks: FrontXoBackupLog['tasks']): number | undefined => {
     return tasks?.reduce((totalSize: number | undefined, task) => {
       if (Array.isArray(task.tasks)) {
