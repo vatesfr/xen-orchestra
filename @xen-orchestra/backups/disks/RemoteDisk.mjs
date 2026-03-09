@@ -72,11 +72,10 @@ export class RemoteDisk extends RandomAccessDisk {
   }
 
   /**
-   * Abstract
    * @returns {number} getMaxBlockCount
    */
   getMaxBlockCount() {
-    throw new Error(`getMaxBlockCount must be implemented`)
+    return Math.ceil(this.getVirtualSize() / this.getBlockSize())
   }
 
   /**
@@ -146,6 +145,15 @@ export class RemoteDisk extends RandomAccessDisk {
    */
   async setAllocatedBlocks(blockIds) {
     throw new Error(`setAllocatedBlocks must be implemented`)
+  }
+
+  /**
+   * Abstract
+   * @param {number} blockCount
+   * @returns {Promise<void>}
+   */
+  async resize(blockCount) {
+    throw new Error(`resize must be implemented`)
   }
 
   /**
