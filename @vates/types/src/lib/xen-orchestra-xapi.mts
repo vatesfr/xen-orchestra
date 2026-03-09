@@ -104,6 +104,7 @@ export interface Xapi {
   pool_emergencyShutdown(): Promise<void>
   resumeVm(id: XoVm['id']): Promise<void>
   unpauseVm(id: XoVm['id']): Promise<void>
+  forgetSr(id: XoSr['id']): Promise<void>
   SR_importVdi(
     ref: XenApiSr['$ref'],
     stream: Readable,
@@ -267,5 +268,4 @@ export interface Xapi {
   ): Promise<{ body: Readable }>
   isHyperThreadingEnabled(hostId: XoHost['id']): Promise<boolean | null>
   VTPM_create(params: { VM: XenApiVm['$ref']; is_unique?: boolean; contents?: string }): Promise<XenApiVtpm['$ref']>
-  forgetSr(id: XoSr['id'] | XenApiSr['$ref']): Promise<void>
 }

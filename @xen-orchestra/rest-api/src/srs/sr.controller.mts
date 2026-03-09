@@ -24,8 +24,11 @@ import { BASE_URL } from '../index.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import {
+  asynchronousActionResp,
   badRequestResp,
   createdResp,
+  internalServerErrorResp,
+  invalidParameters as invalidParametersResp,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
@@ -36,9 +39,9 @@ import { vdiId } from '../open-api/oa-examples/vdi.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
+import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
-import { taskIds, partialTasks } from '../open-api/oa-examples/task.oa-example.mjs'
-import { SrService } from './sr.service.mjs'
+import { taskIds, partialTasks, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 
 @Route('srs')
 @Security('*')
@@ -48,15 +51,9 @@ import { SrService } from './sr.service.mjs'
 @provide(SrController)
 export class SrController extends XapiXoController<XoSr> {
   #alarmService: AlarmService
-  #srService: SrService
-  constructor(
-    @inject(RestApi) restApi: RestApi,
-    @inject(AlarmService) alarmService: AlarmService,
-    @inject(SrService) srService: SrService
-  ) {
+  constructor(@inject(RestApi) restApi: RestApi, @inject(AlarmService) alarmService: AlarmService) {
     super('SR', restApi)
     this.#alarmService = alarmService
-    this.#srService = srService
   }
 
   /**
@@ -226,10 +223,27 @@ export class SrController extends XapiXoController<XoSr> {
   /**
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
+  @Example(taskLocation)
   @Post('{id}/actions/forget')
-  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  async forgetSr(@Path() id: string): Promise<void> {
-    await this.#srService.forget(id as XoSr['id'])
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async forgetSr(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const srId = id as XoSr['id']
+    const action = async () => {
+      const xapiSr = this.getXapiObject(srId)
+      await xapiSr.$xapi.forgetSr(srId)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'forget sr',
+        objectId: srId,
+      },
+    })
   }
 }
