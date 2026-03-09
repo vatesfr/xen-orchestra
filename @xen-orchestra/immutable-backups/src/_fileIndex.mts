@@ -73,47 +73,43 @@ export async function* listOlderTargets(
   const limitDate = new Date(Date.now() - immutabilityDuration)
 
   const limitDay = formatDate(limitDate)
-  let dir = await fs.opendir(immutabilityCachePath)
-  let subdir
-  try {
-    for await (const dirent of dir) {
-      if (dirent.isFile()) {
-        continue
-      }
-      // ensure we have a valid date
-      if (isNaN(new Date(dirent.name).getTime())) {
-        continue
-      }
-      // recent enough to be kept
-      if (dirent.name >= limitDay) {
-        continue
-      }
-      const subDirPath = join(immutabilityCachePath, dirent.name)
-      subdir = await fs.opendir(subDirPath)
-      try {
-        let nb = 0
-        for await (const hashFileEntry of subdir) {
-          const entryFullPath = join(subDirPath, hashFileEntry.name)
-          const { size } = await fs.stat(entryFullPath)
-          if (size > MAX_INDEX_FILE_SIZE) {
-            throw new Error(`Index file at ${entryFullPath} is too big, ${size} bytes `)
-          }
-          const targetPath = await fs.readFile(entryFullPath, { encoding: 'utf8' })
-          yield {
-            index: entryFullPath,
-            target: targetPath,
-          }
-          nb++
-        }
-        // cleanup older folder
-        if (nb === 0) {
-          await fs.rmdir(subDirPath)
-        }
-      } finally {
-        await subdir.close().catch(error => warn('error while closing subdir', error))
-      }
+  // auto closed on success at the end of the for loop, or on error at the end
+  const dir = await fs.opendir(immutabilityCachePath)
+  for await (const dirent of dir) {
+    if (dirent.isFile()) {
+      continue
     }
-  } finally {
-    await dir.close().catch(error => warn('error while closing dir', error))
+    // ensure we have a valid date
+    if (isNaN(new Date(dirent.name).getTime())) {
+      continue
+    }
+    // recent enough to be kept
+    if (dirent.name >= limitDay) {
+      continue
+    }
+    const subDirPath = join(immutabilityCachePath, dirent.name)
+    const subdir = await fs.opendir(subDirPath)
+    try {
+      let nb = 0
+      for await (const hashFileEntry of subdir) {
+        const entryFullPath = join(subDirPath, hashFileEntry.name)
+        const { size } = await fs.stat(entryFullPath)
+        if (size > MAX_INDEX_FILE_SIZE) {
+          throw new Error(`Index file at ${entryFullPath} is too big, ${size} bytes `)
+        }
+        const targetPath = await fs.readFile(entryFullPath, { encoding: 'utf8' })
+        yield {
+          index: entryFullPath,
+          target: targetPath,
+        }
+        nb++
+      }
+      // cleanup older folder
+      if (nb === 0) {
+        await fs.rmdir(subDirPath)
+      }
+    } finally {
+      await subdir.close().catch(error => warn('error while closing subdir', error))
+    }
   }
 }

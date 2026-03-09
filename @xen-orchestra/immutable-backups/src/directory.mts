@@ -8,7 +8,9 @@ const { warn } = createLogger('xen-orchestra:immutable-backups:directory')
 // contents.  When `immutabilityCachePath` is provided the directory is also
 // recorded in the index so it can be located later for lifting.
 export async function makeImmutable(dirPath: string, immutabilityCachePath?: string): Promise<void> {
-  await execa('chattr', ['+i', '-R', dirPath])
+  await execa('chattr', ['+i', '-R', dirPath]).catch(() => {
+    // the chattr error is not so useful, let the indexFile fails later
+  })
   if (immutabilityCachePath) {
     await indexFile(dirPath, immutabilityCachePath)
   }
