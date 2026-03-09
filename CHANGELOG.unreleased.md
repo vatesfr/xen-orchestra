@@ -17,6 +17,9 @@
 
 - [Backup] snapshots of VM with a CDROM mounted are not removed (PR [#9570](https://github.com/vatesfr/xen-orchestra/pull/9570))
 
+- **XO 5**:
+  - [Self Service] Fix RAM usage not being properly updated in some cases. Please use "Recompute all limits" in the Self Service dashboard to fix any incorrect quota values introduced by this bug. (PR [#9566](https://github.com/vatesfr/xen-orchestra/pull/9566))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -34,4 +37,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
+- xo-server patch
+
 <!--packages-end-->
