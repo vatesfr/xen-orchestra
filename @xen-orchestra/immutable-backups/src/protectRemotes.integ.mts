@@ -9,7 +9,7 @@ import execa from 'execa'
 import * as File from './file.mjs'
 import * as Directory from './directory.mjs'
 import { listOlderTargets } from './fileIndex.mjs'
-import { watchRemote } from './protectRemotes.mjs'
+import { watchRemote } from './remoteProtection.mjs'
 
 // ---------------------------------------------------------------------------
 // Constants

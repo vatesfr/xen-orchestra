@@ -11,8 +11,3 @@ declare module '@vates/async-each' {
   ): Promise<void>
   export { asyncEach }
 }
-
-declare module '@xen-orchestra/log' {
-  function createLogger(name: string): unknown
-  export { createLogger }
-}

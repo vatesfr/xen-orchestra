@@ -1,6 +1,9 @@
 import { join, dirname } from 'node:path'
 import { createHash } from 'node:crypto'
+import { createLogger } from '@xen-orchestra/log'
 import fs from 'node:fs/promises'
+
+const { warn } = createLogger('xen-orchestra:immutable-backups:fileIndex')
 
 export interface IndexEntry {
   /** Absolute path to the index file inside the immutability index directory */
@@ -39,7 +42,7 @@ export async function indexFile(path: string, immutabilityIndexPath: string): Pr
     // missing dir: make it
     if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
       await fs.mkdir(dirname(indexFilePath), { recursive: true })
-      await fs.writeFile(indexFilePath, path)
+      await fs.writeFile(indexFilePath, path, { flag: 'wx' })
     } else {
       throw err
     }
@@ -70,38 +73,47 @@ export async function* listOlderTargets(
   const limitDate = new Date(Date.now() - immutabilityDuration)
 
   const limitDay = formatDate(limitDate)
-  const dir = await fs.opendir(immutabilityCachePath)
-  for await (const dirent of dir) {
-    if (dirent.isFile()) {
-      continue
-    }
-    // ensure we have a valid date
-    if (isNaN(new Date(dirent.name).getTime())) {
-      continue
-    }
-    // recent enough to be kept
-    if (dirent.name >= limitDay) {
-      continue
-    }
-    const subDirPath = join(immutabilityCachePath, dirent.name)
-    const subdir = await fs.opendir(subDirPath)
-    let nb = 0
-    for await (const hashFileEntry of subdir) {
-      const entryFullPath = join(subDirPath, hashFileEntry.name)
-      const { size } = await fs.stat(entryFullPath)
-      if (size > MAX_INDEX_FILE_SIZE) {
-        throw new Error(`Index file at ${entryFullPath} is too big, ${size} bytes `)
+  let dir = await fs.opendir(immutabilityCachePath)
+  let subdir
+  try {
+    for await (const dirent of dir) {
+      if (dirent.isFile()) {
+        continue
       }
-      const targetPath = await fs.readFile(entryFullPath, { encoding: 'utf8' })
-      yield {
-        index: entryFullPath,
-        target: targetPath,
+      // ensure we have a valid date
+      if (isNaN(new Date(dirent.name).getTime())) {
+        continue
       }
-      nb++
+      // recent enough to be kept
+      if (dirent.name >= limitDay) {
+        continue
+      }
+      const subDirPath = join(immutabilityCachePath, dirent.name)
+      subdir = await fs.opendir(subDirPath)
+      try {
+        let nb = 0
+        for await (const hashFileEntry of subdir) {
+          const entryFullPath = join(subDirPath, hashFileEntry.name)
+          const { size } = await fs.stat(entryFullPath)
+          if (size > MAX_INDEX_FILE_SIZE) {
+            throw new Error(`Index file at ${entryFullPath} is too big, ${size} bytes `)
+          }
+          const targetPath = await fs.readFile(entryFullPath, { encoding: 'utf8' })
+          yield {
+            index: entryFullPath,
+            target: targetPath,
+          }
+          nb++
+        }
+        // cleanup older folder
+        if (nb === 0) {
+          await fs.rmdir(subDirPath)
+        }
+      } finally {
+        await subdir.close().catch(error => warn('error while closing subdir', error))
+      }
     }
-    // cleanup older folder
-    if (nb === 0) {
-      await fs.rmdir(subDirPath)
-    }
+  } finally {
+    await dir.close().catch(error => warn('error while closing dir', error))
   }
 }

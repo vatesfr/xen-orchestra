@@ -23,7 +23,7 @@ import execa from 'execa'
 
 import { asyncEach } from '@vates/async-each'
 import { indexFile } from './fileIndex.mjs'
-import { watchRemote } from './protectRemotes.mjs'
+import { watchRemote } from './remoteProtection.mjs'
 import { liftRemoteImmutability } from './liftProtection.mjs'
 
 // ---------------------------------------------------------------------------

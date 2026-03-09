@@ -26,14 +26,12 @@ export interface AppConfig {
 const APP_NAME = 'xo-immutable-backups'
 const APP_DIR = new URL('.', import.meta.url).pathname
 
-// Load and validate the application configuration, resolving all duration
-// strings (e.g. `"30d"`) to milliseconds and deriving `indexPath` when absent.
-export default async function loadConfig(): Promise<AppConfig> {
-  const config = await load(APP_NAME, {
-    appDir: APP_DIR,
-    ignoreUnknownFormats: true,
-  })
-  if (config.remotes === undefined || config.remotes?.length < 1) {
+// Validate and transform a raw config object (as returned by app-conf) into a
+// typed AppConfig.  Duration strings are resolved to milliseconds and
+// indexPath is derived from XDG_DATA_HOME when absent.
+// Exported so it can be unit-tested without touching the filesystem.
+export function parseConfig(config: Record<string, any>): AppConfig {
+  if (config.remotes === undefined || Object.keys(config.remotes).length < 1) {
     throw new Error(
       'No remotes are configured in the config file, please add at least one [remotes.<remoteid>]  with a root property pointing to the absolute path of the remote to watch'
     )
@@ -58,11 +56,23 @@ export default async function loadConfig(): Promise<AppConfig> {
       )
     }
     if (!indexPath) {
-      const basePath = indexPath ?? process.env.XDG_DATA_HOME ?? join(homedir(), '.local', 'share')
-      const immutabilityIndexPath = join(basePath, APP_NAME, remoteId)
-      config.remotes[remoteId].indexPath = immutabilityIndexPath
+      const basePath = process.env.XDG_DATA_HOME ?? join(homedir(), '.local', 'share')
+      config.remotes[remoteId].indexPath = join(basePath, APP_NAME, remoteId)
     }
     config.remotes[remoteId].immutabilityDuration = ms(immutabilityDuration)
   }
   return config as AppConfig
+}
+
+// Load the raw configuration from disk via app-conf.
+export async function loadRawConfig(): Promise<Record<string, any>> {
+  return load(APP_NAME, {
+    appDir: APP_DIR,
+    ignoreUnknownFormats: true,
+  })
+}
+
+// Convenience default export: load from disk and parse in one call.
+export default async function loadConfig(): Promise<AppConfig> {
+  return parseConfig(await loadRawConfig())
 }

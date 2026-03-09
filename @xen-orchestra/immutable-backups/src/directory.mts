@@ -2,41 +2,38 @@ import execa from 'execa'
 import { unindexFile, indexFile } from './fileIndex.mjs'
 import { createLogger } from '@xen-orchestra/log'
 
-// @xen-orchestra/log has no .d.ts — methods are added dynamically at runtime.
-type XoLogger = { warn: (msg: string, data?: object) => void }
-
-const { warn } = createLogger('xen-orchestra:immutable-backups:directory') as unknown as XoLogger
+const { warn } = createLogger('xen-orchestra:immutable-backups:directory')
 
 // Recursively set the immutable (`+i`) attribute on a directory and all its
 // contents.  When `immutabilityCachePath` is provided the directory is also
 // recorded in the index so it can be located later for lifting.
 export async function makeImmutable(dirPath: string, immutabilityCachePath?: string): Promise<void> {
+  await execa('chattr', ['+i', '-R', dirPath])
   if (immutabilityCachePath) {
     await indexFile(dirPath, immutabilityCachePath)
   }
-  await execa('chattr', ['+i', '-R', dirPath])
 }
 
 // Recursively remove the immutable (`-i`) attribute from a directory and all
 // its contents.  When `immutabilityCachePath` is provided the directory is
 // also removed from the index.
 export async function liftImmutability(dirPath: string, immutabilityCachePath?: string): Promise<void> {
+  await execa('chattr', ['-i', '-R', dirPath])
   if (immutabilityCachePath) {
     await unindexFile(dirPath, immutabilityCachePath).catch(err => warn('liftImmutability', err))
   }
-  await execa('chattr', ['-i', '-R', dirPath])
 }
 
 // Lift immutability from multiple paths with a single `chattr -i -R` invocation.
 // Works for both flat files and directories — `chattr -i -R` on a plain file
 // behaves identically to `chattr -i` (no children to recurse into).
 export async function liftImmutabilityBatch(paths: string[], immutabilityCachePath?: string): Promise<void> {
+  await execa('chattr', ['-i', '-R', ...paths])
   if (immutabilityCachePath) {
     await Promise.all(
       paths.map(p => unindexFile(p, immutabilityCachePath).catch(err => warn('liftImmutabilityBatch', err)))
     )
   }
-  await execa('chattr', ['-i', '-R', ...paths])
 }
 
 // Returns whether the immutable (`i`) attribute is set on `path`.
