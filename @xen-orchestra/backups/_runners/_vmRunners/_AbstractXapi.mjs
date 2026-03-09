@@ -310,6 +310,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       // if not => remove it from the list to ensure we won't half destroy VM later
       vm.$VBDs
         .filter(({ $VDI }) => !!$VDI) // filter missing keys
+        .filter(({ $VDI }) => $VDI.$snapshot_of !== undefined) // skip non-snapshot VDIs (e.g., ISOs/CD-ROMs)
         .filter(({ $VDI }) => $VDI && vdiCandidates[$VDI.uuid] === undefined)
         .forEach(({ $VDI: outOfSnapshotsVdi, ...other }) => {
           warn(

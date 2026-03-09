@@ -1,6 +1,10 @@
-import get from 'lodash/get.js'
-import { featureUnauthorized } from 'xo-common/api-errors.js'
 import assert from 'assert'
+import get from 'lodash/get.js'
+import { createLogger } from '@xen-orchestra/log'
+import { featureUnauthorized } from 'xo-common/api-errors.js'
+import { retry } from 'promise-toolbox'
+
+const log = createLogger('xo:authorization')
 
 const FREE = 1
 const STARTER = 2
@@ -53,9 +57,17 @@ export default class Authorization {
   }
 
   async #getCurrentPlan() {
-    const plan = await this.#app.getXoaPlan()
-
-    assert.notEqual(PLANS[plan], undefined, `plan  ${plan} is not defined in the PLANS object`)
+    const plan = await retry(() => this.#app.getXoaPlan(), {
+      when: error => error.message?.includes('invalid status connecting'),
+      onRetry(error) {
+        log.warn('XOA connection not ready, retrying', {
+          attempt: this.attemptNumber,
+          delay: this.delay,
+          error,
+        })
+      },
+    })
+    assert.notEqual(PLANS[plan], undefined, `plan ${plan} is not defined in the PLANS object`)
     return PLANS[plan]
   }
 
