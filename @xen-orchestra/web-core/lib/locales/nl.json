@@ -587,7 +587,6 @@
   "pool:status:connected": "@:status:connected",
   "pool:status:disconnected": "@:status:disconnected",
   "pool:status:unreachable": "Onbereikbaar",
-  "pool:status:unreachable:tooltip": "Geconfigureerde servers die niet bereikbaar zijn",
   "pools": "Pools",
   "pools-status": "Pools status",
   "popup-first-connection-default-interface": "Vanaf nu is deze nieuwe versie je standaardinterface. Als je voorlopig liever XO 5 als standaard wilt behouden, kunt je {documentationLink} om dit te doen.",

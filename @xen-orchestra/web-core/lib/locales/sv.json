@@ -445,7 +445,6 @@
   "pool-ram-usage": "Användning av RAM-pool",
   "pool:status:connected": "@:status:connected",
   "pool:status:unreachable": "Onåbar",
-  "pool:status:unreachable:tooltip": "Konfigurerade servrar som inte kan nås",
   "pools": "Pooler",
   "pools-status": "Pool-status",
   "power-on-host-for-console": "Starta din host för att ansluta till konsolen",

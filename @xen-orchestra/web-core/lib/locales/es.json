@@ -546,7 +546,6 @@
   "pool-ram-usage": "Uso RAM del conjunto de servidores",
   "pool:status:connected": "@:status:connected",
   "pool:status:unreachable": "Inaccesible",
-  "pool:status:unreachable:tooltip": "Servidores conocidos que no se pueden acceder",
   "pools": "Conjuntos de servidores",
   "pools-status": "Estatus conjuntos",
   "power-on-host-for-console": "Poner en marcha el servidor para acceder a su cónsola",

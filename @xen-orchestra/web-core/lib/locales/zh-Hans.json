@@ -587,7 +587,6 @@
   "pool:status:connected": "@:status:connected",
   "pool:status:disconnected": "已断开",
   "pool:status:unreachable": "不可达",
-  "pool:status:unreachable:tooltip": "已配置但无法访问的服务器",
   "pools": "资源池",
   "pools-status": "资源池状态",
   "popup-first-connection-default-interface": "从现在起，新版本将设为默认界面，若想暂时保留XO 5为默认，可在{documentationLink}设置。",

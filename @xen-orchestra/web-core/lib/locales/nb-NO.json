@@ -445,7 +445,6 @@
   "pool-ram-usage": "RAM-bruk i pool",
   "pool:status:connected": "@:status:connected",
   "pool:status:unreachable": "@:status:unreachable",
-  "pool:status:unreachable:tooltip": "Konfigurerte servere som ikke kan nås",
   "pools": "Pool-er",
   "pools-status": "Pool-status",
   "popup-first-connection-default-interface": "Fra nå av vil denne nye versjonen være standardgrensesnitt. Hvis du foreløpig foretrekker å beholde XO 5 som standard, kan du se i {documentationLink}.",
