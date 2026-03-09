@@ -17,9 +17,9 @@
 
 - [Backup] snapshots of VM with a CDROM mounted are not removed (PR [#9570](https://github.com/vatesfr/xen-orchestra/pull/9570))
 - [OpenMetrics] Fix plugin failing to auto-start after xo-server restart due to XOA WebSocket connection race condition (PR [#9402](https://github.com/vatesfr/xen-orchestra/pull/9402))
-
 - **XO 5**:
   - [Self Service] Fix RAM usage not being properly updated in some cases. Please use "Recompute all limits" in the Self Service dashboard to fix any incorrect quota values introduced by this bug. (PR [#9566](https://github.com/vatesfr/xen-orchestra/pull/9566))
+- If a hostname was defined in a configuration file, `/v5` were not accessible [#9500](https://github.com/vatesfr/xen-orchestra/issues/9500) (PR [#9572](https://github.com/vatesfr/xen-orchestra/pull/9572))
 
 ### Packages to release
 
@@ -39,5 +39,6 @@
 
 - @xen-orchestra/backups patch
 - xo-server patch
+- xo-server-openmetrics patch
 
 <!--packages-end-->
