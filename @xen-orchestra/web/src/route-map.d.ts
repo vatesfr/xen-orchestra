@@ -129,6 +129,41 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/dev/': RouteRecordInfo<
+      '/dev/',
+      '/dev',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/dev/colors': RouteRecordInfo<
+      '/dev/colors',
+      '/dev/colors',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/dev/icons/': RouteRecordInfo<
+      '/dev/icons/',
+      '/dev/icons',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/dev/icons/[name]': RouteRecordInfo<
+      '/dev/icons/[name]',
+      '/dev/icons/:name',
+      { name: ParamValue<true> },
+      { name: ParamValue<false> },
+      | never
+    >,
+    '/dev/token': RouteRecordInfo<
+      '/dev/token',
+      '/dev/token',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/host/[id]': RouteRecordInfo<
       '/host/[id]',
       '/host/:id',
@@ -514,6 +549,36 @@ declare module 'vue-router/auto-routes' {
     'src/pages/backup/[id]/targets.vue': {
       routes:
         | '/backup/[id]/targets'
+      views:
+        | never
+    }
+    'src/pages/dev/index.vue': {
+      routes:
+        | '/dev/'
+      views:
+        | never
+    }
+    'src/pages/dev/colors.vue': {
+      routes:
+        | '/dev/colors'
+      views:
+        | never
+    }
+    'src/pages/dev/icons/index.vue': {
+      routes:
+        | '/dev/icons/'
+      views:
+        | never
+    }
+    'src/pages/dev/icons/[name].vue': {
+      routes:
+        | '/dev/icons/[name]'
+      views:
+        | never
+    }
+    'src/pages/dev/token.vue': {
+      routes:
+        | '/dev/token'
       views:
         | never
     }

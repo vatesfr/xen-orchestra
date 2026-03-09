@@ -699,7 +699,6 @@
   "pool:status:connected": "@:status:connected",
   "pool:status:disconnected": "Frånkopplad",
   "pool:status:unreachable": "@:status:unreachable",
-  "pool:status:unreachable:tooltip": "Konfigurerade servrar som inte kan nås",
   "pools": "Pooler",
   "pools-status": "Pool-status",
   "popup-first-connection-default-interface": "Från och med nu, är den nya versionen ditt standardgränssnitt. Om du föredrar att behålla XO 5 som standard i nuläget, så kan du {documentationLink} för att göra det.",
