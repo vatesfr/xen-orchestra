@@ -39,6 +39,5 @@
 
 - @xen-orchestra/backups patch
 - xo-server patch
-- xo-server-openmetrics patch
 
 <!--packages-end-->
