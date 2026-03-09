@@ -12,7 +12,7 @@
     <template #actions>
       <VtsActionsConsole :send-ctrl-alt-del="sendCtrlAltDel" />
       <VtsDivider type="stretch" />
-      <VtsClipboardConsole />
+      <VtsClipboardConsole :clipboard-text="clipboardText" :send-clipboard="sendClipboard" />
     </template>
   </VtsLayoutConsole>
 </template>
@@ -47,9 +47,11 @@ const isHostConsoleRunning = computed(() => props.host.power_state === 'Running'
 const isHostConsoleAvailable = computed(() =>
   props.host.controlDomain !== undefined ? !isHostOperationPending(props.host!, STOP_OPERATIONS) : false
 )
-const consoleElement = useTemplateRef('console-element')
+const consoleElement = useTemplateRef<InstanceType<typeof VtsRemoteConsole>>('console-element')
 
 const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
+const sendClipboard = (text: string) => consoleElement.value?.sendClipboard(text)
+const clipboardText = computed<string>(() => consoleElement.value?.clipboardText ?? '')
 </script>
 
 <style scoped lang="postcss">
