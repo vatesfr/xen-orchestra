@@ -57,7 +57,7 @@
 - @xen-orchestra/backups minor
 - @xen-orchestra/disk-transform patch
 - @xen-orchestra/fs minor
-- @xen-orchestra/immutable-backups patch
+- @xen-orchestra/immutable-backups major
 - @xen-orchestra/mcp minor
 - @xen-orchestra/qcow2 minor
 - @xen-orchestra/rest-api minor
