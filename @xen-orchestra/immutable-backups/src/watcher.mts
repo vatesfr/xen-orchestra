@@ -29,6 +29,34 @@ function extractDatetime(filename: string): string | undefined {
   return DATETIME_RE.exec(filename)?.[1]
 }
 
+// Poll `path` with `fs.stat` until the file size stops changing, indicating the
+// write is complete regardless of file format (plain or encrypted).
+// The first stat is issued immediately; resolution requires a stable non-zero
+// size across two consecutive polls spaced 100 ms apart.
+// Rejects with an error if `timeout` ms elapse before stability is reached.
+export async function waitForWriteDone(path: string, timeout: number): Promise<void> {
+  const deadline = Date.now() + timeout
+  let prevSize = -1
+
+  while (Date.now() < deadline) {
+    try {
+      const { size } = await fsp.stat(path)
+      if (size > 0 && size === prevSize) {
+        return // non-empty and size stable — write done
+      }
+      prevSize = size
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
+        throw err
+      }
+      // file not yet visible — keep waiting
+    }
+    await new Promise<void>(resolve => setTimeout(resolve, 100))
+  }
+
+  throw new Error(`Timeout waiting for write to complete on ${path}`)
+}
+
 // Make a file immutable, silently ignoring ENOENT (many files are optional
 // depending on the backup mode: xva, checksum, alias…).
 async function tryLockFile(path: string, indexPath: string): Promise<void> {
@@ -53,7 +81,7 @@ async function tryLockDirectory(path: string, indexPath: string): Promise<void> 
 }
 
 // Lock every file belonging to the backup run identified by `datetime` inside `vmDir`.
-// Called once the metadata `.json` is confirmed valid, which guarantees all other
+// Called once the terminal `.json` file is fully written, which guarantees all other
 // files for that run are already fully written.
 //
 // Flat files (json, xva, checksum, plain/alias VHDs) are batched into a single
@@ -78,7 +106,7 @@ async function lockBackup(vmDir: string, datetime: string, indexPath: string): P
 
   await Promise.all(
     jobIds.map(async jobId => {
-      let vdiIds
+      let vdiIds: string[]
       try {
         vdiIds = await fsp.readdir(join(vdisDir, jobId))
       } catch {
@@ -104,12 +132,9 @@ async function lockBackup(vmDir: string, datetime: string, indexPath: string): P
 // Watch a single VM backup directory (`xo-vm-backups/<VM UUID>/`) for newly
 // completed backups and lock all their files.
 //
-// Trigger: a `<YYYYMMDD>T<HHmmss>.json` file appearing as a direct child that
-// parses as valid JSON. The `.json` is always written last, so its validity
-// guarantees that every other file for that run is fully written.
-//
-// A partial write produces a truncated file that fails JSON.parse — we simply
-// wait for the next fs event rather than polling.
+// Trigger: a `<YYYYMMDD>T<HHmmss>.json` file appearing as a direct child whose
+// size is stable (write complete). The `.json` is always written last, so its
+// stability guarantees that every other file for that run is fully written.
 //
 // Returns a close function that stops the watcher.
 export function watchVmDirectory(
@@ -123,7 +148,6 @@ export function watchVmDirectory(
   // Deduplicates lock attempts when multiple fs events fire for the same datetime.
   // Entries are evicted after `lockTimeout` ms to keep the set bounded.
   const lockedDatetimes = new Set<string>()
-  const evictionTimers = new Set<ReturnType<typeof setTimeout>>()
 
   watcher.on('change', (_eventType: string, filename: string | Buffer | null) => {
     if (filename == null) {
@@ -140,35 +164,27 @@ export function watchVmDirectory(
       debug(`[watcher] watchVmDirectory: ignoring "${name}" — does not match DATETIME_RE ${DATETIME_RE}`)
       return // e.g. cache.json.gz
     }
+    // ensure we handle event once per file
+    // clear up the remaingin data after a reasonnable tie
     if (lockedDatetimes.has(datetime)) {
       return
     }
+    lockedDatetimes.add(datetime)
+    setTimeout(() => {
+      lockedDatetimes.delete(datetime)
+    }, lockTimeout).unref()
 
     const jsonPath = join(vmDir, name)
-    fsp
-      .readFile(jsonPath, 'utf8')
-      .then(content => {
-        JSON.parse(content) // throws SyntaxError if file is incomplete
-        if (lockedDatetimes.has(datetime)) {
-          return
-        }
-        lockedDatetimes.add(datetime)
-        const timer = setTimeout(() => {
-          lockedDatetimes.delete(datetime)
-          evictionTimers.delete(timer)
-        }, lockTimeout)
-        timer.unref()
-        evictionTimers.add(timer)
+    waitForWriteDone(jsonPath, lockTimeout)
+      .then(() => {
         debug(`[watcher] watchVmDirectory: locking backup datetime="${datetime}" in vmDir="${vmDir}"`)
         return lockBackup(vmDir, datetime, indexPath)
       })
       .catch(err => {
         const code = (err as NodeJS.ErrnoException).code
-        if (code === 'ENOENT' || err instanceof SyntaxError) {
-          // Not yet fully written — the next fs event will trigger another attempt.
-          debug(
-            `[watcher] watchVmDirectory: json not yet complete (${code ?? 'SyntaxError'}) — will retry on next event`
-          )
+        if (code === 'ENOENT') {
+          // file disappeared before write completed — next fs event will retry
+          debug(`[watcher] watchVmDirectory: file gone (ENOENT) — will retry on next event`)
           return
         }
         onError(err)
@@ -180,14 +196,11 @@ export function watchVmDirectory(
   return () => {
     watcher.close()
     watcher.removeAllListeners()
-    for (const timer of evictionTimers) clearTimeout(timer)
-    evictionTimers.clear()
-    lockedDatetimes.clear()
   }
 }
 
 // Lock every file and subdirectory that is a direct child of `dir`.
-// Used for config/pool-metadata backups once `metadata.json` is confirmed valid.
+// Used for config/pool-metadata backups once `metadata.json` is confirmed written.
 async function lockAllFilesInDir(dir: string, indexPath: string): Promise<void> {
   const entries = await fsp.readdir(dir, { withFileTypes: true })
   await Promise.all(
@@ -203,14 +216,19 @@ async function lockAllFilesInDir(dir: string, indexPath: string): Promise<void> 
 }
 
 // Watch a backup date directory (`<YYYYMMDD>T<HHmmss>/`) for its terminal
-// `metadata.json`. When it appears and parses as valid JSON, all files in the
-// directory are made immutable.
+// `metadata.json`. When its write is complete, all files in the directory are
+// made immutable.
 //
 // Applies to both config backups and pool metadata backups: `metadata.json`
 // is always written last.
 //
 // Returns a close function.
-function watchBackupDateDirectory(dateDir: string, indexPath: string, onError: (err: unknown) => void): () => void {
+function watchBackupDateDirectory(
+  dateDir: string,
+  indexPath: string,
+  onError: (err: unknown) => void,
+  { lockTimeout = 10 * 60 * 1000 }: WatchOptions = {}
+): () => void {
   const watcher = fs.watch(dateDir)
   let locked = false
 
@@ -221,10 +239,9 @@ function watchBackupDateDirectory(dateDir: string, indexPath: string, onError: (
     if (locked) {
       return
     }
-    fsp
-      .readFile(join(dateDir, 'metadata.json'), 'utf8')
-      .then(content => {
-        JSON.parse(content) // throws SyntaxError if file is incomplete
+    const metadataPath = join(dateDir, 'metadata.json')
+    waitForWriteDone(metadataPath, lockTimeout)
+      .then(() => {
         if (locked) {
           return
         }
@@ -233,8 +250,8 @@ function watchBackupDateDirectory(dateDir: string, indexPath: string, onError: (
       })
       .catch(err => {
         const code = (err as NodeJS.ErrnoException).code
-        if (code === 'ENOENT' || err instanceof SyntaxError) {
-          return // not yet complete — wait for next event
+        if (code === 'ENOENT') {
+          return // file gone — wait for next event
         }
         onError(err)
       })
@@ -370,7 +387,7 @@ export async function watchRemote(
       scheduleDir =>
         watchSubdirectoriesWithChildren(
           scheduleDir,
-          dateDir => watchBackupDateDirectory(dateDir, indexPath, onError),
+          dateDir => watchBackupDateDirectory(dateDir, indexPath, onError, options),
           onError
         ),
       onError
@@ -385,7 +402,7 @@ export async function watchRemote(
           poolDir =>
             watchSubdirectoriesWithChildren(
               poolDir,
-              dateDir => watchBackupDateDirectory(dateDir, indexPath, onError),
+              dateDir => watchBackupDateDirectory(dateDir, indexPath, onError, options),
               onError
             ),
           onError
