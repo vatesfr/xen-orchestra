@@ -2,7 +2,7 @@
 
 import * as Directory from './directory.mjs'
 import { createLogger } from '@xen-orchestra/log'
-import { listOlderTargets } from './fileIndex.mjs'
+import { listOlderTargets } from './_fileIndex.mjs'
 import cleanXoCache from './_cleanXoCache.mjs'
 import { RemoteConfig } from './_loadConfig.mjs'
 

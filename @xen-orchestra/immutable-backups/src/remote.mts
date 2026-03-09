@@ -5,9 +5,9 @@ import assert from 'node:assert'
 import { join } from 'node:path'
 import { createLogger } from '@xen-orchestra/log'
 import { asyncEach } from '@vates/async-each'
-import { indexFile } from './fileIndex.mjs'
+import { indexFile } from './_fileIndex.mjs'
 import { type RemoteConfig } from './_loadConfig.mjs'
-import { watchRemote as startRemoteWatcher } from './watcher.mjs'
+import { watchRemote as startRemoteWatcher } from './_watcher.mjs'
 
 const { debug, info, warn } = createLogger('xen-orchestra:immutable-backups:remote')
 
