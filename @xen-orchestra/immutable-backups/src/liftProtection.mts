@@ -1,16 +1,12 @@
 #!/usr/bin/env node
 
-import { fileURLToPath } from 'node:url'
 import * as Directory from './directory.mjs'
 import { createLogger } from '@xen-orchestra/log'
 import { listOlderTargets } from './fileIndex.mjs'
 import cleanXoCache from './_cleanXoCache.mjs'
-import loadConfig, { type AppConfig } from './_loadConfig.mjs'
+import { RemoteConfig } from './_loadConfig.mjs'
 
-// @xen-orchestra/log has no .d.ts — methods are added dynamically at runtime.
-type XoLogger = { info: (msg: string, data?: object) => void; warn: (msg: string, data?: object) => void }
-
-const { info, warn } = createLogger('xen-orchestra:immutable-backups:liftProtection') as unknown as XoLogger
+const { warn } = createLogger('xen-orchestra:immutable-backups:liftProtection')
 
 async function* batchOf<T>(iterable: AsyncIterable<T>, size: number): AsyncGenerator<T[]> {
   let batch: T[] = []
@@ -38,23 +34,10 @@ export async function liftRemoteImmutability(
 }
 
 // Lift immutability on all expired entries across every configured remote.
-async function liftImmutability(remotes: AppConfig['remotes']): Promise<void> {
+export async function liftImmutability(remotes: Record<string, RemoteConfig>): Promise<void> {
   for (const [remoteId, { indexPath, immutabilityDuration }] of Object.entries(remotes)) {
-    liftRemoteImmutability(indexPath, immutabilityDuration).catch(err =>
+    await liftRemoteImmutability(indexPath, immutabilityDuration).catch(err =>
       warn('error during watchRemote', { err, remoteId, indexPath, immutabilityDuration })
     )
-  }
-}
-
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const { liftEvery, remotes } = await loadConfig()
-
-  if (liftEvery !== undefined && liftEvery > 0) {
-    info('setup watcher for immutability lifting')
-    setInterval(async () => {
-      await liftImmutability(remotes).catch(warn)
-    }, liftEvery)
-  } else {
-    await liftImmutability(remotes)
   }
 }

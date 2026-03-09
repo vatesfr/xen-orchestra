@@ -5,10 +5,7 @@ import * as File from './file.mjs'
 import * as Directory from './directory.mjs'
 import { createLogger } from '@xen-orchestra/log'
 
-// @xen-orchestra/log has no .d.ts — methods are added dynamically at runtime.
-type XoLogger = { debug: (msg: string, data?: object) => void }
-
-const { debug } = createLogger('xen-orchestra:immutable-backups:watcher') as unknown as XoLogger
+const { debug } = createLogger('xen-orchestra:immutable-backups:watcher')
 
 export interface WatchOptions {
   /** Milliseconds after which a datetime is evicted from the deduplication set inside watchVmDirectory. */
@@ -110,6 +107,7 @@ async function lockBackup(vmDir: string, datetime: string, indexPath: string): P
       try {
         vdiIds = await fsp.readdir(join(vdisDir, jobId))
       } catch {
+        // full backups won't have any vdi and it's ok
         return
       }
       for (const vdiId of vdiIds) {
