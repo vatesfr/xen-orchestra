@@ -26,7 +26,7 @@
               content: t('more-actions'),
             }"
             :selected="isOpen"
-            icon="fa:ellipsis-vertical"
+            icon="action:more-actions-vertical"
             accent="brand"
             class="more-actions-button"
             size="medium"
