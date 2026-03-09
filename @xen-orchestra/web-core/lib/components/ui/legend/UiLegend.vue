@@ -1,7 +1,7 @@
 <!-- v3 -->
 <template>
   <li :class="classNames" class="ui-legend">
-    <VtsIcon name="fa:circle" size="medium" class="circle-icon" />
+    <VtsIcon name="fa:circle" size="extra-small" class="circle-icon" />
     <span class="label typo-body-regular-small"><slot /></span>
     <VtsIcon v-if="tooltip" v-tooltip="tooltip" name="fa:info-circle" size="medium" class="tooltip-icon" />
     <span v-if="valueLabel" class="value-and-unit typo-caption-int-small">{{ valueLabel }}</span>
@@ -14,7 +14,7 @@ import { vTooltip } from '@core/directives/tooltip.directive'
 import { toVariants } from '@core/utils/to-variants.util'
 import { computed } from 'vue'
 
-export type LegendItemAccent = 'info' | 'secondary' | 'success' | 'warning' | 'danger' | 'disabled'
+export type LegendItemAccent = 'info' | 'secondary' | 'success' | 'warning' | 'danger' | 'muted'
 
 export type LegendItemProps = {
   accent: LegendItemAccent
@@ -37,11 +37,12 @@ const classNames = computed(() => toVariants({ accent }))
 <style lang="postcss" scoped>
 .ui-legend {
   display: flex;
-  align-items: center;
   gap: 0.8rem;
 
   .circle-icon {
-    font-size: 0.8rem;
+    height: 2.4rem;
+    display: flex;
+    align-items: center;
   }
 
   .tooltip-icon {
