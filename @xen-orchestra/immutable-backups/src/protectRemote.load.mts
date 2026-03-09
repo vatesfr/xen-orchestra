@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// @ts-check
 //
 // Load test: 5000 VMs × 4 flat VHDs.
 //
@@ -64,7 +63,7 @@ const PROBE_VM_INDICES = [
   0,
   Math.floor(VM_COUNT / 4),
   Math.floor(VM_COUNT / 2),
-  Math.floor(VM_COUNT * 3 / 4),
+  Math.floor((VM_COUNT * 3) / 4),
   VM_COUNT - 1,
 ]
 
@@ -72,41 +71,33 @@ const PROBE_VM_INDICES = [
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** @param {number} i */
-function makeUuid(i) {
+function makeUuid(i: number): string {
   return `${String(i).padStart(8, '0')}-0000-0000-0000-000000000000`
 }
 
-/** @param {string} root */
-async function cleanupRoot(root) {
+async function cleanupRoot(root: string): Promise<void> {
   try {
     await execa('chattr', ['-i', '-R', root])
   } catch {}
   await rimraf(root)
 }
 
-/**
- * Make all `files` immutable using batched chattr calls (no index entry created).
- * @param {string[]} files
- */
-async function bulkMakeImmutable(files) {
+// Make all `files` immutable using batched chattr calls (no index entry created).
+async function bulkMakeImmutable(files: string[]): Promise<void> {
   for (let i = 0; i < files.length; i += CHATTR_BATCH) {
     await execa('chattr', ['+i', ...files.slice(i, i + CHATTR_BATCH)])
   }
 }
 
-/**
- * Count all files inside the two-level index hierarchy:
- *   <indexPath>/<YYYY-MM-DD>/<sha256>
- * @param {string} indexPath
- */
-async function countIndexEntries(indexPath) {
+// Count all files inside the two-level index hierarchy:
+//   <indexPath>/<YYYY-MM-DD>/<sha256>
+async function countIndexEntries(indexPath: string): Promise<number> {
   let count = 0
   let days
   try {
     days = await fs.readdir(indexPath, { withFileTypes: true })
   } catch (err) {
-    if (/** @type {NodeJS.ErrnoException} */ (err).code === 'ENOENT') return 0
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') return 0
     throw err
   }
   for (const day of days) {
@@ -117,15 +108,13 @@ async function countIndexEntries(indexPath) {
   return count
 }
 
-/**
- * Poll `countIndexEntries` until it reaches `target` or `LOCK_TIMEOUT_MS` elapses.
- * Logs progress on every change.
- * @param {string} indexPath
- * @param {number} target
- * @param {string} label
- * @returns {Promise<{ elapsed: number, reached: boolean }>}
- */
-async function waitForIndexCount(indexPath, target, label) {
+// Poll `countIndexEntries` until it reaches `target` or `LOCK_TIMEOUT_MS` elapses.
+// Logs progress on every change.
+async function waitForIndexCount(
+  indexPath: string,
+  target: number,
+  label: string
+): Promise<{ elapsed: number; reached: boolean }> {
   const tStart = Date.now()
   let lastCount = await countIndexEntries(indexPath)
   console.log(`  [${label}] starting at ${lastCount}/${target}`)
@@ -154,19 +143,14 @@ async function waitForIndexCount(indexPath, target, label) {
 // Index membership check — no subprocess, fast polling
 // ---------------------------------------------------------------------------
 
-/** @param {string} content */
-function sha256hex(content) {
+function sha256hex(content: string): string {
   return createHash('sha256').update(content).digest('hex')
 }
 
-/**
- * Returns true when `filePath` has an entry in the immutability index.
- * Replicates the key derivation in fileIndex.mjs: birthtimeMs + sha256(path).
- * Does NOT spawn any subprocess.
- * @param {string} filePath
- * @param {string} indexPath
- */
-async function isIndexed(filePath, indexPath) {
+// Returns true when `filePath` has an entry in the immutability index.
+// Replicates the key derivation in fileIndex.mts: birthtimeMs + sha256(path).
+// Does NOT spawn any subprocess.
+async function isIndexed(filePath: string, indexPath: string): Promise<boolean> {
   let stat
   try {
     stat = await fs.stat(filePath)
@@ -183,15 +167,9 @@ async function isIndexed(filePath, indexPath) {
   }
 }
 
-/**
- * Spin-polls `isIndexed` every 10 ms until the file is indexed or `timeoutMs`
- * elapses.  Returns the wall-clock timestamp (ms) when indexed, or null on timeout.
- * @param {string} filePath
- * @param {string} indexPath
- * @param {number} [timeoutMs]
- * @returns {Promise<number | null>}
- */
-async function waitUntilIndexed(filePath, indexPath, timeoutMs = 60_000) {
+// Spin-polls `isIndexed` every 10 ms until the file is indexed or `timeoutMs`
+// elapses.  Returns the wall-clock timestamp (ms) when indexed, or null on timeout.
+async function waitUntilIndexed(filePath: string, indexPath: string, timeoutMs = 60_000): Promise<number | null> {
   const deadline = Date.now() + timeoutMs
   while (Date.now() < deadline) {
     if (await isIndexed(filePath, indexPath)) return Date.now()
@@ -204,25 +182,19 @@ async function waitUntilIndexed(filePath, indexPath, timeoutMs = 60_000) {
 // Raw cost benchmark
 // ---------------------------------------------------------------------------
 
-/** @param {number[]} arr */
-function average(arr) {
+function average(arr: number[]): number {
   return arr.reduce((a, b) => a + b, 0) / arr.length
 }
 
-/**
- * Measures the cost of the individual operations that `lockBackup` performs,
- * with no watcher running and no concurrent load, so results reflect pure
- * operation overhead with no queue contention.
- *
- * Reports:
- *   1. indexFile — stat + sha256 + write one index entry
- *   2. chattr +i — single subprocess spawn
- *   3. 5 concurrent chattr +i — one realistic backup (1 json + 4 vhds in parallel)
- *
- * @param {string} scratchDir  - An existing directory for temporary test files
- * @param {string} indexPath   - Production index path (a sibling dir is used)
- */
-async function measureRawCosts(scratchDir, indexPath) {
+// Measures the cost of the individual operations that `lockBackup` performs,
+// with no watcher running and no concurrent load, so results reflect pure
+// operation overhead with no queue contention.
+//
+// Reports:
+//   1. indexFile — stat + sha256 + write one index entry
+//   2. chattr +i — single subprocess spawn
+//   3. 5 concurrent chattr +i — one realistic backup (1 json + 4 vhds in parallel)
+async function measureRawCosts(scratchDir: string, indexPath: string): Promise<void> {
   console.log('=== Baseline: raw lockBackup operation costs (no watcher, no load) ===')
 
   // Use a sibling index dir so baseline entries never pollute the main index.
@@ -236,7 +208,7 @@ async function measureRawCosts(scratchDir, indexPath) {
   )
 
   // 1. indexFile: stat + sha256 + write index entry (first-time, no EEXIST)
-  const tIdx = []
+  const tIdx: number[] = []
   for (const f of files) {
     const t = process.hrtime.bigint()
     await indexFile(f, measureIndex)
@@ -248,7 +220,7 @@ async function measureRawCosts(scratchDir, indexPath) {
   )
 
   // 2. chattr +i — single subprocess spawn, 5 sequential runs
-  const tChattr1 = []
+  const tChattr1: number[] = []
   for (const f of files) {
     const t = process.hrtime.bigint()
     await execa('chattr', ['+i', f])
@@ -261,7 +233,7 @@ async function measureRawCosts(scratchDir, indexPath) {
   )
 
   // 3. 5 concurrent chattr +i — realistic per-backup case (1 json + 4 vhds)
-  const tChattr5 = []
+  const tChattr5: number[] = []
   for (let run = 0; run < 5; run++) {
     const t = process.hrtime.bigint()
     await Promise.all(files.map(f => execa('chattr', ['+i', f])))
@@ -285,14 +257,13 @@ async function measureRawCosts(scratchDir, indexPath) {
 
 let peakRss = 0
 
-function sampleMemory() {
+function sampleMemory(): number {
   const { rss } = process.memoryUsage()
   if (rss > peakRss) peakRss = rss
   return rss
 }
 
-/** @param {number} bytes */
-function mb(bytes) {
+function mb(bytes: number): string {
   return (bytes / 1024 / 1024).toFixed(1) + ' MB'
 }
 
@@ -300,7 +271,7 @@ function mb(bytes) {
 // Main
 // ---------------------------------------------------------------------------
 
-async function main() {
+async function main(): Promise<void> {
   const root = await fs.mkdtemp(path.join(tmpdir(), 'immut-load-'))
   const indexPath = path.join(root, '.index')
 
@@ -313,9 +284,7 @@ async function main() {
 
   const vms = Array.from({ length: VM_COUNT }, (_, i) => ({
     uuid: makeUuid(i),
-    vdiUuids: Array.from({ length: DISKS_PER_VM }, (_, j) =>
-      makeUuid(VM_COUNT + i * DISKS_PER_VM + j)
-    ),
+    vdiUuids: Array.from({ length: DISKS_PER_VM }, (_, j) => makeUuid(VM_COUNT + i * DISKS_PER_VM + j)),
   }))
 
   // -------------------------------------------------------------------------
@@ -351,7 +320,7 @@ async function main() {
   console.log(`Writing ${VM_COUNT * FILES_PER_VM} files for OLD_DATE (${OLD_DATE})...`)
   const tWrite1 = Date.now()
 
-  const allOldFiles = /** @type {string[]} */ ([])
+  const allOldFiles: string[] = []
   await asyncEach(
     vms,
     async vm => {
@@ -424,8 +393,9 @@ async function main() {
   const PROBE_VM_UUID = 'ffffffff-ffff-ffff-ffff-000000000001'
   const probeVm = {
     uuid: PROBE_VM_UUID,
-    vdiUuids: Array.from({ length: DISKS_PER_VM }, (_, j) =>
-      `ffffffff-ffff-ffff-ffff-${String(j + 2).padStart(12, '0')}`
+    vdiUuids: Array.from(
+      { length: DISKS_PER_VM },
+      (_, j) => `ffffffff-ffff-ffff-ffff-${String(j + 2).padStart(12, '0')}`
     ),
   }
   const probeVmDir = path.join(root, 'xo-vm-backups', PROBE_VM_UUID)
@@ -438,7 +408,7 @@ async function main() {
   // Give the watcher time to detect and start watching the new VM dir.
   await new Promise(resolve => setTimeout(resolve, 500))
 
-  const probeSingleTimes = /** @type {number[]} */ ([])
+  const probeSingleTimes: number[] = []
   for (let run = 0; run < 5; run++) {
     // Each run uses a distinct datetime (20240117T120000Z … 20240121T120000Z).
     const pDatetime = `2024011${run + 7}T120000Z`
@@ -446,10 +416,7 @@ async function main() {
     // VHD files must be written before the terminal .json signal.
     await Promise.all(
       probeVm.vdiUuids.map(vdiUuid =>
-        fs.writeFile(
-          path.join(probeVmDir, 'vdis', JOB_UUID, vdiUuid, `${pDatetime}.vhd`),
-          'fake vhd data'
-        )
+        fs.writeFile(path.join(probeVmDir, 'vdis', JOB_UUID, vdiUuid, `${pDatetime}.vhd`), 'fake vhd data')
       )
     )
 
@@ -473,9 +440,7 @@ async function main() {
     const med = sorted[Math.floor(sorted.length / 2)]
     const max = sorted[sorted.length - 1]
     console.log(`  avg ${avg.toFixed(0)} ms  median ${med} ms  max ${max} ms`)
-    console.log(
-      `  (subtract 5× concurrent chattr baseline above to isolate fs.watch event latency + readdir)`
-    )
+    console.log(`  (subtract 5× concurrent chattr baseline above to isolate fs.watch event latency + readdir)`)
   }
   console.log('')
 
@@ -489,18 +454,15 @@ async function main() {
 
   // Each probe VM gets a notifier that the write loop calls when the .json
   // is flushed.  The notifier kicks off a background poller.
-  /** @type {Map<string, (tWritten: number) => void>} */
-  const probeWriteNotifiers = new Map()
+  const probeWriteNotifiers = new Map<string, (tWritten: number) => void>()
   const probeBTasks = PROBE_VM_INDICES.map(vmIdx => {
     const vm = vms[vmIdx]
     const jsonPath = path.join(root, 'xo-vm-backups', vm.uuid, `${NEW_DATE}.json`)
-    return /** @type {Promise<{ vmIdx: number, tWritten: number, tIndexed: number | null }>} */ (
-      new Promise(resolve => {
-        probeWriteNotifiers.set(vm.uuid, tWritten => {
-          waitUntilIndexed(jsonPath, indexPath).then(tIndexed => resolve({ vmIdx, tWritten, tIndexed }))
-        })
+    return new Promise<{ vmIdx: number; tWritten: number; tIndexed: number | null }>(resolve => {
+      probeWriteNotifiers.set(vm.uuid, tWritten => {
+        waitUntilIndexed(jsonPath, indexPath).then(tIndexed => resolve({ vmIdx, tWritten, tIndexed }))
       })
-    )
+    })
   })
 
   const tWrite2 = Date.now()
@@ -512,10 +474,7 @@ async function main() {
       const vmDir = path.join(root, 'xo-vm-backups', vm.uuid)
       await Promise.all(
         vm.vdiUuids.map(vdiUuid =>
-          fs.writeFile(
-            path.join(vmDir, 'vdis', JOB_UUID, vdiUuid, `${NEW_DATE}.vhd`),
-            'fake vhd data'
-          )
+          fs.writeFile(path.join(vmDir, 'vdis', JOB_UUID, vdiUuid, `${NEW_DATE}.vhd`), 'fake vhd data')
         )
       )
       // .json written last — triggers lockBackup atomically
@@ -590,17 +549,11 @@ async function main() {
   clearInterval(memSampler)
   sampleMemory()
 
-  const avgProbeSingle =
-    probeSingleTimes.length > 0
-      ? `${average(probeSingleTimes).toFixed(0)} ms`
-      : 'N/A'
+  const avgProbeSingle = probeSingleTimes.length > 0 ? `${average(probeSingleTimes).toFixed(0)} ms` : 'N/A'
   const avgProbeBLatencies = probeBResults
     .map(r => (r.tIndexed === null ? null : r.tIndexed - r.tWritten))
-    .filter(/** @param {number | null} v */ v => v !== null)
-  const avgProbeB =
-    avgProbeBLatencies.length > 0
-      ? `${average(/** @type {number[]} */ (avgProbeBLatencies)).toFixed(0)} ms`
-      : 'N/A'
+    .filter((v): v is number => v !== null)
+  const avgProbeB = avgProbeBLatencies.length > 0 ? `${average(avgProbeBLatencies).toFixed(0)} ms` : 'N/A'
 
   console.log('=== Results ===')
   console.log(`watchRemote startup:              ${tWatcherReady} ms`)
