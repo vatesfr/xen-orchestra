@@ -15,7 +15,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rimraf dist/",
-    "test": "tsc && node --experimental-test-module-mocks --test 'dist/test/**/*.test.mjs'",
+    "test": "tsc && node --experimental-test-module-mocks --test '**/*.test.mjs'",
     "postversion": "npm publish --access public"
   },
   "dependencies": {
