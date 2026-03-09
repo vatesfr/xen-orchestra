@@ -37,22 +37,19 @@ export function useXoBackupLogsUtils() {
   }
 
   // TODO: Define the type for task when it becomes available
-  const findTransferTaskSize = (tasks: unknown[]): number | undefined => {
-    return tasks.reduce((totalSize: number | undefined, task: any) => {
-      // TODO: Remove this check after defining the task type
-      if (!task || typeof task.message !== 'string' || task.result == null || typeof task.result !== 'object') {
-        return totalSize
-      }
-
-      if (task.message === 'transfer' && typeof task.result.size === 'number') {
-        totalSize = (totalSize ?? 0) + task.result.size
-      }
-
+  const findTransferTaskSize = (tasks: FrontXoBackupLog['tasks']): number | undefined => {
+    return tasks?.reduce((totalSize: number | undefined, task) => {
       if (Array.isArray(task.tasks)) {
         const nestedSize = findTransferTaskSize(task.tasks)
         if (nestedSize !== undefined) {
           totalSize = (totalSize ?? 0) + nestedSize
         }
+      } else {
+        if (!('message' in task) || task.message !== 'transfer' || typeof task.result.size !== 'number') {
+          return totalSize
+        }
+
+        totalSize = (totalSize ?? 0) + task.result.size
       }
 
       return totalSize
