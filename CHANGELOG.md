@@ -2,6 +2,8 @@
 
 ## next
 
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
 ### Enhancements
 
 - [VM/New] Added secureBoot support (PR [#9423](https://github.com/vatesfr/xen-orchestra/pull/9423))
@@ -31,8 +33,6 @@
 - xo-server 5.197.5
 
 ## **6.2.1 ** (2026-02-27)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Bug fixes
 
