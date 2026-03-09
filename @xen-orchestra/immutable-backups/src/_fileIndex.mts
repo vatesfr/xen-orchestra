@@ -89,27 +89,23 @@ export async function* listOlderTargets(
     }
     const subDirPath = join(immutabilityCachePath, dirent.name)
     const subdir = await fs.opendir(subDirPath)
-    try {
-      let nb = 0
-      for await (const hashFileEntry of subdir) {
-        const entryFullPath = join(subDirPath, hashFileEntry.name)
-        const { size } = await fs.stat(entryFullPath)
-        if (size > MAX_INDEX_FILE_SIZE) {
-          throw new Error(`Index file at ${entryFullPath} is too big, ${size} bytes `)
-        }
-        const targetPath = await fs.readFile(entryFullPath, { encoding: 'utf8' })
-        yield {
-          index: entryFullPath,
-          target: targetPath,
-        }
-        nb++
+    let nb = 0
+    for await (const hashFileEntry of subdir) {
+      const entryFullPath = join(subDirPath, hashFileEntry.name)
+      const { size } = await fs.stat(entryFullPath)
+      if (size > MAX_INDEX_FILE_SIZE) {
+        throw new Error(`Index file at ${entryFullPath} is too big, ${size} bytes `)
       }
-      // cleanup older folder
-      if (nb === 0) {
-        await fs.rmdir(subDirPath)
+      const targetPath = await fs.readFile(entryFullPath, { encoding: 'utf8' })
+      yield {
+        index: entryFullPath,
+        target: targetPath,
       }
-    } finally {
-      await subdir.close().catch(error => warn('error while closing subdir', error))
+      nb++
+    }
+    // cleanup older folder
+    if (nb === 0) {
+      await fs.rmdir(subDirPath)
     }
   }
 }
