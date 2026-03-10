@@ -26,6 +26,7 @@
     "node": ">=20.17"
   },
   "dependencies": {
+    "@vates/types": "^1.21.0",
     "@xen-orchestra/disk-transform": "^1.2.1",
     "fuse-native": "^2.2.6"
   },

@@ -5,6 +5,7 @@ import { pipeline } from 'readable-stream'
 import createNdJsonStream from '../_createNdJsonStream.mjs'
 import { REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey.mjs'
 import { safeDateFormat } from '../utils.mjs'
+import { VirtualStorageRepository } from '@xen-orchestra/fuse-backup-repository/dist/index.mjs'
 
 const SCHEMA_SETTINGS = {
   type: 'object',
@@ -459,6 +460,27 @@ unmountPartition.params = {
     type: 'string',
   },
   remote: {
+    type: 'string',
+  },
+}
+
+export async function startVirtualSR({ pool, shareSourceIp }) {
+  pool = this.getXapiObject(pool, 'pool')
+  const xapi = pool.$xapi
+  const vsr = new VirtualStorageRepository(xapi, shareSourceIp)
+  await vsr.init()
+}
+
+startVirtualSR.permission = 'admin'
+
+startVirtualSR.resolve = {
+  pool: ['pool', 'pool', 'administrate'],
+}
+startVirtualSR.params = {
+  pool: {
+    type: 'string',
+  },
+  shareSourceIp: {
     type: 'string',
   },
 }
