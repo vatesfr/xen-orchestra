@@ -130,12 +130,11 @@ async function waitFor(fn: () => Promise<boolean>, timeout = 8000): Promise<void
 describe('watchVmDirectory', () => {
   it('ignores non-.json files', async () => {
     const dir = await mkTmp()
-    const indexPath = path.join(dir, '.index')
     const vmDir = path.join(dir, 'vm')
     await fs.mkdir(vmDir, { recursive: true })
 
     const errors: unknown[] = []
-    const close = watchVmDirectory(vmDir, indexPath, err => errors.push(err))
+    const close = watchVmDirectory(vmDir, err => errors.push(err))
     try {
       // Write a file that doesn't match *.json
       const xvaFile = path.join(vmDir, `${BACKUP_DATE}.xva`)
@@ -153,12 +152,11 @@ describe('watchVmDirectory', () => {
 
   it('ignores json files that do not match datetime prefix (e.g. cache.json.gz)', async () => {
     const dir = await mkTmp()
-    const indexPath = path.join(dir, '.index')
     const vmDir = path.join(dir, 'vm')
     await fs.mkdir(vmDir, { recursive: true })
 
     const errors: unknown[] = []
-    const close = watchVmDirectory(vmDir, indexPath, err => errors.push(err))
+    const close = watchVmDirectory(vmDir, err => errors.push(err))
     try {
       const cacheFile = path.join(vmDir, 'cache.json')
       await fs.writeFile(cacheFile, '{}')
@@ -173,14 +171,13 @@ describe('watchVmDirectory', () => {
 
   it('deduplicates multiple fs events for the same datetime', async () => {
     const dir = await mkTmp()
-    const indexPath = path.join(dir, '.index')
     const vmDir = path.join(dir, 'vm')
     await fs.mkdir(vmDir, { recursive: true })
 
     let lockBackupCallCount = 0
     const errors: unknown[] = []
 
-    const close = watchVmDirectory(vmDir, indexPath, err => errors.push(err))
+    const close = watchVmDirectory(vmDir, err => errors.push(err))
     try {
       const jsonFile = path.join(vmDir, `${BACKUP_DATE}.json`)
       // Write the json file twice to trigger two fs events
@@ -199,13 +196,12 @@ describe('watchVmDirectory', () => {
 
   it('locks a flat VHD file when .json is written', async () => {
     const dir = await mkTmp()
-    const indexPath = path.join(dir, '.index')
     const vmDir = path.join(dir, 'vm')
     const vdiDir = path.join(vmDir, 'vdis', JOB_UUID, VDI_UUID)
     await fs.mkdir(vdiDir, { recursive: true })
 
     const errors: unknown[] = []
-    const close = watchVmDirectory(vmDir, indexPath, err => errors.push(err))
+    const close = watchVmDirectory(vmDir, err => errors.push(err))
     try {
       const vhdFile = path.join(vdiDir, `${BACKUP_DATE}.vhd`)
       const jsonFile = path.join(vmDir, `${BACKUP_DATE}.json`)
@@ -215,29 +211,6 @@ describe('watchVmDirectory', () => {
       await waitFor(() => File.isImmutable(vhdFile))
       assert.strictEqual(await File.isImmutable(vhdFile), true, 'flat .vhd must be immutable')
       assert.strictEqual(errors.length, 0)
-    } finally {
-      close()
-      await cleanupRoot(dir)
-    }
-  })
-
-  it('calls onError when lockBackup fails for a non-ENOENT reason', async () => {
-    // Use a regular FILE as indexPath. indexFile() will try to mkdir inside it
-    // and fail with ENOTDIR — this works even when running as root (unlike chmod tricks).
-    const dir = await mkTmp()
-    const indexPath = path.join(dir, 'index-not-a-dir')
-    await fs.writeFile(indexPath, 'not a directory')
-    const vmDir = path.join(dir, 'vm')
-    await fs.mkdir(vmDir, { recursive: true })
-
-    const errors: unknown[] = []
-    const close = watchVmDirectory(vmDir, indexPath, err => errors.push(err))
-    try {
-      const jsonFile = path.join(vmDir, `${BACKUP_DATE}.json`)
-      await fs.writeFile(jsonFile, '{}')
-
-      await waitFor(async () => errors.length > 0, 5000)
-      assert.ok(errors.length > 0, 'onError must have been called')
     } finally {
       close()
       await cleanupRoot(dir)
