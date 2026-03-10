@@ -520,7 +520,7 @@ export class VmController extends XapiXoController<XoVm> {
    *
    * - For fast clone on the same SR, omit `srId` and set `fast` to `true`.
    * - For full copy on the same SR, omit `srId` and set `fast` to `false`.
-   * - To copy the VM to a different SR (always a full copy), provide `srId`. Supports cross-pool copy.
+   * - To copy the VM to a different SR (always a full copy), provide `srId`. Supports cross-pool copy. Use `compress: true` to enable gzip compression of the export stream during cross-pool copy.
    *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example body { "name_label": "cloned_vm", "fast": true }
@@ -535,7 +535,7 @@ export class VmController extends XapiXoController<XoVm> {
   @Response(invalidParametersResp.status, invalidParametersResp.description)
   async cloneVm(
     @Path() id: string,
-    @Body() body?: { name_label?: string; fast?: boolean } | { name_label?: string; srId?: string },
+    @Body() body?: { name_label?: string; fast?: boolean } | { name_label?: string; srId?: string; compress?: boolean },
     @Query() sync?: boolean
   ): CreateActionReturnType<{ id: XenApiVm['uuid'] }> {
     const vmId = id as XoVm['id']
@@ -553,7 +553,9 @@ export class VmController extends XapiXoController<XoVm> {
           clonedVmUuid = (await xapi.copyVm(vmId, { nameLabel: body.name_label, srOrSrId: srId })).uuid
         } else {
           const targetXapi = this.restApi.xoApp.getXapi(srId)
-          clonedVmUuid = (await xapi.remoteCopyVm(vmId, targetXapi, srId, { nameLabel: body.name_label })).vm.uuid
+          clonedVmUuid = (
+            await xapi.remoteCopyVm(vmId, targetXapi, srId, { compress: body.compress, nameLabel: body.name_label })
+          ).vm.uuid
         }
       } else {
         const fast = body !== undefined && 'fast' in body ? body.fast : undefined
