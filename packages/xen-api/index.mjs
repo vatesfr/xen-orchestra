@@ -97,12 +97,15 @@ export class Xapi extends EventEmitter {
     super()
 
     const { transport = 'auto' } = opts
-    const createTransport = transports[transport]
-    if (createTransport === undefined) {
-      throw new Error('invalid transport: ' + transport)
+    if (typeof transport !== 'function') {
+      this._createTransport = transport
+    } else {
+      const createTransport = transports[transport]
+      if (createTransport === undefined) {
+        throw new Error('invalid transport: ' + transport)
+      }
+      this._createTransport = createTransport
     }
-    this._createTransport = createTransport
-
     this._addSyncStackTrace =
       (opts.syncStackTraces ?? process.env.NODE_ENV === 'development') ? addSyncStackTrace : identity
     this._callTimeout = makeCallSetting(opts.callTimeout, 60 * 60 * 1e3) // 1 hour but will be reduced in the future
