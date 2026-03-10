@@ -1,0 +1,36 @@
+{
+  "name": "@xen-orchestra/fuse-backup-repository",
+  "version": "0.1.0",
+  "description": "FUSE mount emulating a file-based XCP-ng SR from backup disks",
+  "main": "dist/index.mjs",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "postversion": "npm publish --access public",
+    "clean": "rimraf dist/"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "ISC",
+  "private": false,
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/fuse-backup-repository",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/fuse-backup-repository",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "engines": {
+    "node": ">=20.17"
+  },
+  "dependencies": {
+    "fuse-native": "^2.2.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22.3.0",
+    "rimraf": "^6.0.1",
+    "typescript": "~5.6"
+  }
+}
