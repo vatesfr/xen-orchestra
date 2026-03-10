@@ -26,6 +26,7 @@
     "node": ">=20.17"
   },
   "dependencies": {
+    "@xen-orchestra/disk-transform": "^1.2.1",
     "fuse-native": "^2.2.6"
   },
   "devDependencies": {

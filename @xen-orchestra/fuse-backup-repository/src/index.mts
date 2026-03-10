@@ -1,1 +1,1 @@
-export { DiskRaw, LiveBackupRepository } from './LiveBackupRepository.mjs'
+export { RawConsumer, LiveBackupRepository } from './LiveBackupRepository.mjs'
