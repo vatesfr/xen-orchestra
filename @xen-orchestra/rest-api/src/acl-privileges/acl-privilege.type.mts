@@ -74,7 +74,7 @@ type ActionsByResource = {
   user: 'read'
   vbd: 'read'
   'vdi-snapshot': 'read'
-  vdi: 'read' | 'create' | 'boot'
+  vdi: 'boot' | 'create' | 'delete' | 'export-content' | 'import-content' | 'read' | 'update' | 'update:tags'
   'vdi-unmanaged': 'read'
   vgpu: 'read'
   vgpuType: 'read'
