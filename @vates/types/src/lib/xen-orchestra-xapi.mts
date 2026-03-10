@@ -130,7 +130,7 @@ export interface Xapi {
     targetXapi: Xapi,
     targetSrId: XoSr['id'],
     opts?: {
-      compress?: boolean
+      compress?: 'zstd' | 'gzip'
       nameLabel?: string
     }
   ): Promise<{ vm: XenApiVmWrapped }>
