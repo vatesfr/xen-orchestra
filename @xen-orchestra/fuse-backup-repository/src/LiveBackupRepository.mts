@@ -2,14 +2,9 @@ import Fuse from 'fuse-native'
 import * as nodefs from 'node:fs'
 import * as nodepath from 'node:path'
 import { promisify } from 'node:util'
+import type { RawConsumer } from '@xen-orchestra/disk-transform'
 
-export interface DiskRaw {
-  uuid: string
-  init(): Promise<void>
-  close(): Promise<void>
-  read(start: number, length: number): Promise<Buffer>
-  size(): number
-}
+export type { RawConsumer }
 
 // Stat helper matching fuse-native expectations
 // dir mode  = 0o40755 = 16877
@@ -37,7 +32,7 @@ const fsReaddir = promisify(nodefs.readdir)
 export class LiveBackupRepository {
   readonly #mountPoint: string
   readonly #cachePath: string
-  readonly #disks = new Map<string, DiskRaw>()
+  readonly #disks = new Map<string, RawConsumer>()
   #fuse: Fuse | undefined
 
   constructor(mountPoint: string, cachePath: string) {
@@ -49,7 +44,7 @@ export class LiveBackupRepository {
    * Register a disk to be exposed as a read-only file in the mounted SR.
    * The filename will be "<disk.uuid>.vhd".
    */
-  addDisk(disk: DiskRaw): void {
+  addDisk(disk: RawConsumer): void {
     this.#disks.set(disk.uuid + '.vhd', disk)
   }
 
