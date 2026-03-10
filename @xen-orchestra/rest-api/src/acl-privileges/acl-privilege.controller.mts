@@ -83,7 +83,6 @@ export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
    *  "selector": {"id": "784bd959-08de-4b26-b575-92ded5aef872"}
    * }
    */
-  @Example(aclPrivilege)
   @Post('')
   @Middlewares(json())
   @SuccessResponse(createdResp.status, createdResp.description)
@@ -91,10 +90,10 @@ export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
   @Response(notFoundResp.status, notFoundResp.description)
   async createAclV2Privilege(
     @Body() privilege: Omit<RestAnyPrivilege, 'id'>
-  ): Promise<Unbrand<RestAnyPrivilege['id']>> {
+  ): Promise<{ id: Unbrand<RestAnyPrivilege['id']> }> {
     const newPrivilege = await this.restApi.xoApp.createAclV2Privilege(privilege)
 
-    return newPrivilege.id
+    return { id: newPrivilege.id }
   }
 
   /**
@@ -127,7 +126,6 @@ export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
    *  "selector": {"id": "784bd959-08de-4b26-b575-92ded5aef872"}
    * }
    */
-  @Example(aclPrivilege)
   @Patch('{id}')
   @Middlewares(json())
   @SuccessResponse(noContentResp.status, noContentResp.description)

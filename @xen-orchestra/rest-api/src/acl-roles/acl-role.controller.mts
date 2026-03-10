@@ -26,6 +26,7 @@ import {
   badRequestResp,
   createdResp,
   forbiddenOperationResp,
+  invalidParameters,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
@@ -87,9 +88,12 @@ export class AclRoleController extends XoController<XoAclRole> {
   @Post('')
   @Middlewares(json())
   @SuccessResponse(createdResp.status, createdResp.description)
-  async createAclV2Role(@Body() body: { name: string; description?: string }): Promise<Unbrand<XoAclRole['id']>> {
+  @Response(invalidParameters.status, invalidParameters.description)
+  async createAclV2Role(
+    @Body() body: { name: string; description?: string }
+  ): Promise<{ id: Unbrand<XoAclRole['id']> }> {
     const newRole = await this.restApi.xoApp.createAclV2Role(body)
-    return newRole.id
+    return { id: newRole.id }
   }
 
   /**
@@ -126,6 +130,7 @@ export class AclRoleController extends XoController<XoAclRole> {
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParameters.status, invalidParameters.description)
   async updateAclV2Role(
     @Path() id: string,
     @Body() body: { name?: string; description?: string | null }

@@ -267,9 +267,6 @@ export type XoApp = {
       selector?: Privilege['selector'] | null
       effect?: Privilege['effect']
       resource?: Resource
-    },
-    options?: {
-      force?: boolean
     }
   ): Promise<Privilege>
   updateAclV2Role(
