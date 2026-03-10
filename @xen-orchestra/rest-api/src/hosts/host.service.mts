@@ -78,7 +78,7 @@ export class HostService {
           patches.forEach(patch => missingPatches.set(patch.id ?? patch.name, patch))
         }
       } catch (err) {
-        log.error('listMissingPatches failed', err)
+        log.error('listMissingPatches failed', err as Error)
         nHostsFailed++
       }
     })

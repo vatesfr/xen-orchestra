@@ -82,7 +82,7 @@ export async function promiseWriteInStream<T>({
         throw err
       }
 
-      log.error(`promiseWriteInStream for ${path} failed`, err)
+      log.error(`promiseWriteInStream for ${path} failed`, err as Error)
       data = { error: true }
     }
   } else {
