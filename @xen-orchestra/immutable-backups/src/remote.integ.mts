@@ -8,7 +8,6 @@ import execa from 'execa'
 
 import * as File from './file.mjs'
 import * as Directory from './directory.mjs'
-import { listOlderTargets } from './_fileIndex.mjs'
 import { watchRemote } from './remote.mjs'
 
 // ---------------------------------------------------------------------------
@@ -57,18 +56,17 @@ async function cleanupRoot(root: string): Promise<void> {
 // `preDirs` is a list of relative paths that will be created inside `root`
 // **before** starting the watcher.  The watcher must see these directories at
 // startup so it can detect new files written into them later.
-async function makeRemote(preDirs: string[] = []): Promise<{ root: string; indexPath: string; close: () => void }> {
+async function makeRemote(preDirs: string[] = []): Promise<{ root: string; close: () => void }> {
   const root = await fs.mkdtemp(path.join(tmpdir(), 'immut-test-'))
-  const indexPath = path.join(root, '.index')
   // Pre-create directories so the watcher has them in its watch list at startup.
   for (const relDir of preDirs) {
     await fs.mkdir(path.join(root, relDir), { recursive: true })
   }
-  const { close } = await watchRemote('test', { root, indexPath, immutabilityDuration: ONE_DAY_MS })
+  const { close } = await watchRemote('test', { root, immutabilityDuration: ONE_DAY_MS })
   // Give the watcher a moment to complete its initial scan and become ready before
   // the caller starts writing files.
   await new Promise(resolve => setTimeout(resolve, 500))
-  return { root, indexPath, close }
+  return { root, close }
 }
 
 // ---------------------------------------------------------------------------
@@ -237,45 +235,6 @@ describe('protectRemotes/watchRemote', async () => {
       await assert.rejects(fs.writeFile(jsonFile, 'tampered'), { code: 'EPERM' })
     } finally {
       close()
-      await cleanupRoot(root)
-    }
-  })
-
-  it('re-indexes already-immutable files on startup when rebuildIndexOnStart is true', async () => {
-    const root = await fs.mkdtemp(path.join(tmpdir(), 'immut-test-'))
-    const indexPath = path.join(root, '.index')
-    let close: (() => void) | undefined
-    try {
-      // Pre-create a backup file and manually lock it (simulates an existing
-      // backup that was locked in a previous run).
-      const vmDir = path.join(root, 'xo-vm-backups', VM_UUID)
-      await fs.mkdir(vmDir, { recursive: true })
-      const jsonFile = path.join(vmDir, `${BACKUP_DATE}.json`)
-      await fs.writeFile(jsonFile, '{}')
-      await File.makeImmutable(jsonFile) // lock without indexing
-      assert.strictEqual(await File.isImmutable(jsonFile), true)
-
-      // Start the watcher with rebuildIndexOnStart so it scans existing files.
-      ;({ close } = await watchRemote('test', {
-        root,
-        indexPath,
-        immutabilityDuration: ONE_DAY_MS,
-        rebuildIndexOnStart: true,
-      }))
-
-      // listOlderTargets with a negative duration sets limitDate to the future,
-      // so today's index entries satisfy "older than the limit" and are yielded.
-      const isIndexed = async () => {
-        for await (const { target } of listOlderTargets(indexPath, -ONE_DAY_MS)) {
-          if (target === jsonFile) return true
-        }
-        return false
-      }
-
-      await waitFor(isIndexed, 10000)
-      assert.ok(await isIndexed(), 'pre-existing immutable file should appear in the index')
-    } finally {
-      close?.()
       await cleanupRoot(root)
     }
   })

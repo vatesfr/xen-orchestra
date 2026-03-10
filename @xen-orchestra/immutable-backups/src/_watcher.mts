@@ -1,7 +1,6 @@
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
 import { join } from 'node:path'
-import * as File from './file.mjs'
 import * as Directory from './directory.mjs'
 import { createLogger } from '@xen-orchestra/log'
 
@@ -54,44 +53,22 @@ export async function waitForWriteDone(path: string, timeout: number): Promise<v
   throw new Error(`Timeout waiting for write to complete on ${path}`)
 }
 
-// Make a file immutable, silently ignoring ENOENT (many files are optional
-// depending on the backup mode: xva, checksum, alias…).
-async function tryLockFile(path: string, indexPath: string): Promise<void> {
-  try {
-    await File.makeImmutable(path, indexPath)
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
-      throw err
-    }
-  }
-}
-
-// Make a VHD directory immutable (`chattr +i -R`), silently ignoring ENOENT.
-async function tryLockDirectory(path: string, indexPath: string): Promise<void> {
-  try {
-    await Directory.makeImmutable(path, indexPath)
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
-      throw err
-    }
-  }
-}
-
 // Lock every file belonging to the backup run identified by `datetime` inside `vmDir`.
 // Called once the terminal `.json` file is fully written, which guarantees all other
 // files for that run are already fully written.
 //
-// Flat files (json, xva, checksum, plain/alias VHDs) are batched into a single
-// `chattr +i` call. VHD directories need `chattr +i -R` and are handled separately.
-async function lockBackup(vmDir: string, datetime: string, indexPath: string): Promise<void> {
+// All candidates — flat files (json, xva, checksum, plain/alias VHDs) and VHD
+// directories — are passed to a single `chattr +i -R` invocation.  For regular
+// files `-R` is a no-op; missing optional paths are silently ignored by
+// Directory.makeImmutableBatch.
+async function lockBackup(vmDir: string, datetime: string): Promise<void> {
   debug(`[watcher] lockBackup: vmDir="${vmDir}" datetime="${datetime}"`)
 
-  const flatCandidates: string[] = [
+  const candidates: string[] = [
     join(vmDir, `${datetime}.json`),
     join(vmDir, `${datetime}.xva`),
     join(vmDir, `${datetime}.xva.checksum`),
   ]
-  const vhdDirCandidates: string[] = []
 
   const vdisDir = join(vmDir, 'vdis')
   let jobIds: string[] = []
@@ -112,17 +89,14 @@ async function lockBackup(vmDir: string, datetime: string, indexPath: string): P
       }
       for (const vdiId of vdiIds) {
         const vdiDir = join(vdisDir, jobId, vdiId)
-        flatCandidates.push(join(vdiDir, `${datetime}.vhd`))
-        flatCandidates.push(join(vdiDir, `${datetime}.alias.vhd`))
-        vhdDirCandidates.push(join(vdiDir, 'data', `${datetime}.vhd`))
+        candidates.push(join(vdiDir, `${datetime}.vhd`))
+        candidates.push(join(vdiDir, `${datetime}.alias.vhd`))
+        candidates.push(join(vdiDir, 'data', `${datetime}.vhd`))
       }
     })
   )
 
-  await Promise.all([
-    File.makeImmutableBatch(flatCandidates, indexPath),
-    ...vhdDirCandidates.map(dir => tryLockDirectory(dir, indexPath)),
-  ])
+  await Directory.makeImmutableBatch(candidates)
 
   debug(`[watcher] lockBackup: done vmDir="${vmDir}" datetime="${datetime}"`)
 }
@@ -137,7 +111,6 @@ async function lockBackup(vmDir: string, datetime: string, indexPath: string): P
 // Returns a close function that stops the watcher.
 export function watchVmDirectory(
   vmDir: string,
-  indexPath: string,
   onError: (err: unknown) => void,
   { lockTimeout = 10 * 60 * 1000 }: WatchOptions = {}
 ): () => void {
@@ -176,7 +149,7 @@ export function watchVmDirectory(
     waitForWriteDone(jsonPath, lockTimeout)
       .then(() => {
         debug(`[watcher] watchVmDirectory: locking backup datetime="${datetime}" in vmDir="${vmDir}"`)
-        return lockBackup(vmDir, datetime, indexPath)
+        return lockBackup(vmDir, datetime)
       })
       .catch(err => {
         const code = (err as NodeJS.ErrnoException).code
@@ -197,22 +170,6 @@ export function watchVmDirectory(
   }
 }
 
-// Lock every file and subdirectory that is a direct child of `dir`.
-// Used for config/pool-metadata backups once `metadata.json` is confirmed written.
-async function lockAllFilesInDir(dir: string, indexPath: string): Promise<void> {
-  const entries = await fsp.readdir(dir, { withFileTypes: true })
-  await Promise.all(
-    entries.map(entry => {
-      const fullPath = join(dir, entry.name)
-      if (entry.isDirectory()) {
-        return tryLockDirectory(fullPath, indexPath)
-      } else {
-        return tryLockFile(fullPath, indexPath)
-      }
-    })
-  )
-}
-
 // Watch a backup date directory (`<YYYYMMDD>T<HHmmss>/`) for its terminal
 // `metadata.json`. When its write is complete, all files in the directory are
 // made immutable.
@@ -223,7 +180,6 @@ async function lockAllFilesInDir(dir: string, indexPath: string): Promise<void> 
 // Returns a close function.
 function watchBackupDateDirectory(
   dateDir: string,
-  indexPath: string,
   onError: (err: unknown) => void,
   { lockTimeout = 10 * 60 * 1000 }: WatchOptions = {}
 ): () => void {
@@ -244,7 +200,7 @@ function watchBackupDateDirectory(
           return
         }
         locked = true
-        return lockAllFilesInDir(dateDir, indexPath)
+        return Directory.makeImmutable(dateDir)
       })
       .catch(err => {
         const code = (err as NodeJS.ErrnoException).code
@@ -367,7 +323,6 @@ async function watchSubdirectories(
 // Returns a close function.
 export async function watchRemote(
   root: string,
-  indexPath: string,
   onError: (err: unknown) => void,
   options: WatchOptions = {}
 ): Promise<() => void> {
@@ -375,7 +330,7 @@ export async function watchRemote(
     // xo-vm-backups/<vmUUID>/
     watchSubdirectoriesWithChildren(
       join(root, 'xo-vm-backups'),
-      vmDir => watchVmDirectory(vmDir, indexPath, onError, options),
+      vmDir => watchVmDirectory(vmDir, onError, options),
       onError
     ),
 
@@ -385,7 +340,7 @@ export async function watchRemote(
       scheduleDir =>
         watchSubdirectoriesWithChildren(
           scheduleDir,
-          dateDir => watchBackupDateDirectory(dateDir, indexPath, onError, options),
+          dateDir => watchBackupDateDirectory(dateDir, onError, options),
           onError
         ),
       onError
@@ -400,7 +355,7 @@ export async function watchRemote(
           poolDir =>
             watchSubdirectoriesWithChildren(
               poolDir,
-              dateDir => watchBackupDateDirectory(dateDir, indexPath, onError, options),
+              dateDir => watchBackupDateDirectory(dateDir, onError, options),
               onError
             ),
           onError

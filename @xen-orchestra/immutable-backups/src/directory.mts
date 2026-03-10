@@ -1,41 +1,46 @@
 import execa from 'execa'
-import { unindexFile, indexFile } from './_fileIndex.mjs'
-import { createLogger } from '@xen-orchestra/log'
 
-const { warn } = createLogger('xen-orchestra:immutable-backups:directory')
+// Recursively set the immutable (`+i`) attribute on a directory and all its contents.
+export async function makeImmutable(dirPath: string): Promise<void> {
+  await execa('chattr', ['+i', '-R', dirPath])
+}
 
-// Recursively set the immutable (`+i`) attribute on a directory and all its
-// contents.  When `immutabilityCachePath` is provided the directory is also
-// recorded in the index so it can be located later for lifting.
-export async function makeImmutable(dirPath: string, immutabilityCachePath?: string): Promise<void> {
-  await execa('chattr', ['+i', '-R', dirPath]).catch(() => {
-    // the chattr error is not so useful, let the indexFile fails later
-  })
-  if (immutabilityCachePath) {
-    await indexFile(dirPath, immutabilityCachePath)
+// chattr processes all paths even when some are missing (it does not abort on the first
+// error), so every existing path is correctly lifted.  Per-path "No such file or
+// directory while trying to stat" messages are silently ignored; any other error
+// (e.g. permission denied) causes the error to be re-thrown.
+async function execChattrWithMissingFiles(args: string[]) {
+  try {
+    await execa('chattr', args)
+  } catch (err) {
+    const stderr = (err as { stderr?: string })?.stderr ?? ''
+    const hasUnexpected = stderr
+      .split('\n')
+      .some(line => line.trim() !== '' && !line.includes('No such file or directory while trying to stat'))
+    if (hasUnexpected) {
+      throw err
+    }
   }
 }
 
-// Recursively remove the immutable (`-i`) attribute from a directory and all
-// its contents.  When `immutabilityCachePath` is provided the directory is
-// also removed from the index.
-export async function liftImmutability(dirPath: string, immutabilityCachePath?: string): Promise<void> {
+// Lock multiple paths (files and/or directories) with a single `chattr +i -R` invocation.
+// For regular files `-R` is a no-op (chattr ignores it). Missing paths are silently
+// ignored: chattr processes all remaining paths before exiting non-zero.
+export async function makeImmutableBatch(paths: string[]): Promise<void> {
+  if (paths.length === 0) return
+  await execChattrWithMissingFiles(['+i', '-R', ...paths])
+}
+
+// Recursively remove the immutable (`-i`) attribute from a directory and all its contents.
+export async function liftImmutability(dirPath: string): Promise<void> {
   await execa('chattr', ['-i', '-R', dirPath])
-  if (immutabilityCachePath) {
-    await unindexFile(dirPath, immutabilityCachePath).catch(err => warn('liftImmutability', err))
-  }
 }
 
 // Lift immutability from multiple paths with a single `chattr -i -R` invocation.
-// Works for both flat files and directories — `chattr -i -R` on a plain file
-// behaves identically to `chattr -i` (no children to recurse into).
-export async function liftImmutabilityBatch(paths: string[], immutabilityCachePath?: string): Promise<void> {
-  await execa('chattr', ['-i', '-R', ...paths])
-  if (immutabilityCachePath) {
-    await Promise.all(
-      paths.map(p => unindexFile(p, immutabilityCachePath).catch(err => warn('liftImmutabilityBatch', err)))
-    )
-  }
+// Works for both flat files and directories.
+export async function liftImmutabilityBatch(paths: string[]): Promise<void> {
+  if (paths.length === 0) return
+  await execChattrWithMissingFiles(['-i', '-R', ...paths])
 }
 
 // Returns whether the immutable (`i`) attribute is set on `path`.

@@ -1,6 +1,4 @@
 import { load } from 'app-conf'
-import { homedir } from 'os'
-import { join } from 'node:path'
 import ms from 'ms'
 
 // Configuration for a single watched remote.
@@ -8,12 +6,8 @@ import ms from 'ms'
 export interface RemoteConfig {
   /** Absolute path to the root of the backup repository */
   root: string
-  /** Absolute path to the immutability index directory */
-  indexPath: string
   /** Minimum duration in milliseconds that files must stay immutable */
   immutabilityDuration: number
-  /** Whether to re-index already-immutable files on startup */
-  rebuildIndexOnStart?: boolean
 }
 
 export interface AppConfig {
@@ -27,8 +21,7 @@ const APP_NAME = 'xo-immutable-backups'
 const APP_DIR = new URL('.', import.meta.url).pathname
 
 // Validate and transform a raw config object (as returned by app-conf) into a
-// typed AppConfig.  Duration strings are resolved to milliseconds and
-// indexPath is derived from XDG_DATA_HOME when absent.
+// typed AppConfig.  Duration strings are resolved to milliseconds.
 // Exported so it can be unit-tested without touching the filesystem.
 export function parseConfig(config: Record<string, any>): AppConfig {
   if (config.remotes === undefined || Object.keys(config.remotes).length < 1) {
@@ -39,7 +32,7 @@ export function parseConfig(config: Record<string, any>): AppConfig {
   if (config.liftEvery) {
     config.liftEvery = ms(config.liftEvery)
   }
-  for (const [remoteId, { indexPath, immutabilityDuration, root }] of Object.entries<any>(config.remotes)) {
+  for (const [remoteId, { immutabilityDuration, root }] of Object.entries<any>(config.remotes)) {
     if (!root) {
       throw new Error(
         `Remote ${remoteId} don't have a root property,containing the absolute path to the root of a backup repository `
@@ -54,10 +47,6 @@ export function parseConfig(config: Record<string, any>): AppConfig {
       throw new Error(
         `Remote ${remoteId} immutability duration is smaller than the minimum allowed (1d), current : ${immutabilityDuration}`
       )
-    }
-    if (!indexPath) {
-      const basePath = process.env.XDG_DATA_HOME ?? join(homedir(), '.local', 'share')
-      config.remotes[remoteId].indexPath = join(basePath, APP_NAME, remoteId)
     }
     config.remotes[remoteId].immutabilityDuration = ms(immutabilityDuration)
   }
