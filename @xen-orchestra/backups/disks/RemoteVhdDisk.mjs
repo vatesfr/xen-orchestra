@@ -1,8 +1,8 @@
 // @ts-check
 
 /**
- * @typedef {import('vhd-lib/Vhd/VhdDirectory.js').VhdDirectory} VhdDirectory
- * @typedef {import('vhd-lib/Vhd/VhdFile.js').VhdFile} VhdFile
+ * @typedef {import('vhd-lib/Vhd/VhdDirectory').VhdDirectory} VhdDirectory
+ * @typedef {import('vhd-lib/Vhd/VhdFile').VhdFile} VhdFile
  * @typedef {import('vhd-lib/_createFooterHeader').VhdFooter} VhdFooter
  * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
  * @typedef {import('@xen-orchestra/disk-transform').FileAccessor} FileAccessor
@@ -12,8 +12,8 @@
 
 import { openVhd, VhdAbstract, VhdDirectory } from 'vhd-lib'
 import { RemoteDisk } from './RemoteDisk.mjs'
-import { DISK_TYPES } from 'vhd-lib/_constants.js'
-import { isVhdAlias, resolveVhdAlias } from 'vhd-lib/aliases.js'
+import { DISK_TYPES } from 'vhd-lib/_constants'
+import { isVhdAlias, resolveVhdAlias } from 'vhd-lib/aliases'
 import { stringify } from 'uuid'
 import { dirname, join } from 'node:path'
 

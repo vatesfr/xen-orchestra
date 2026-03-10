@@ -46,25 +46,21 @@
     "test-integration": "node --test ./*.integ.js tests/*.integ.js Vhd/*.integ.js"
   },
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./index.js"
-    },
-    "./*": {
-      "types": "./dist/*.d.ts",
-      "default": "./*.js"
-    },
-    "./*.js": {
-      "types": "./dist/*.d.ts",
-      "default": "./*.js"
-    },
-    "./Vhd/*": {
-      "types": "./dist/Vhd/*.d.ts",
-      "default": "./Vhd/*.js"
-    },
-    "./Vhd/*.js": {
-      "types": "./dist/Vhd/*.d.ts",
-      "default": "./Vhd/*.js"
+    ".": "./index.js",
+    "./Vhd/*": "./Vhd/*.js",
+    "./Vhd/*.js": "./Vhd/*.js",
+    "./disk-consumer/*.mjs": "./disk-consumer/*.mjs",
+    "./*": "./*.js",
+    "./*.js": "./*.js"
+  },
+  "typesVersions": {
+    "*": {
+      "Vhd/*": [
+        "dist/Vhd/*.d.ts"
+      ],
+      "*": [
+        "dist/*.d.ts"
+      ]
     }
   },
   "author": {
