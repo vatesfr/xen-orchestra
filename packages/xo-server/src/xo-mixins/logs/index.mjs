@@ -1,5 +1,6 @@
 import { configure } from '@xen-orchestra/log/configure'
-import { createLogger, createCaptureTransport } from '@xen-orchestra/log/capture'
+import { createCaptureTransport } from '@xen-orchestra/log/capture'
+import { createLogger } from '@xen-orchestra/log'
 import { dedupe } from '@xen-orchestra/log/dedupe'
 import { defer, fromEvent } from 'promise-toolbox'
 
