@@ -39,6 +39,13 @@
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
+        <template #key>{{ t('supported-image-formats') }}</template>
+        <template #value>{{ supportedImageFormats }}</template>
+        <template v-if="supportedImageFormats !== t('unknown')" #addons>
+          <VtsCopyButton :value="supportedImageFormats" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
         <template #key>{{ t('access-mode') }}</template>
         <template #value>{{ isSrSharedI18nValue }}</template>
         <template #addons>
@@ -63,6 +70,7 @@
 <script lang="ts" setup>
 import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import { useXoSmCollection } from '@/modules/sm/remote-resources/use-xo-sm-collection'
 import {
   useXoSrCollection,
   type FrontXoSr,
@@ -93,6 +101,13 @@ const { getPbdsByIds } = useXoPbdCollection()
 const { isHighAvailabilitySr } = useXoSrCollection()
 
 const { allPbdsConnectionStatus } = useXoPbdUtils(() => getPbdsByIds(sr.$PBDs))
+
+const { smBySrType } = useXoSmCollection()
+
+const supportedImageFormats = computed(() => {
+  const formats = smBySrType.value.get(sr.SR_type)?.supported_image_formats ?? []
+  return formats.length > 0 ? formats.map(f => f.toUpperCase()).join(', ') : t('unknown')
+})
 
 const isSrSharedI18nValue = computed(() => (sr.shared ? t('shared') : t('local')))
 

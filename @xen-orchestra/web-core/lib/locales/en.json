@@ -781,6 +781,7 @@
   "storage": "Storage",
   "storage-configuration": "Storage configuration",
   "storage-format": "Storage format",
+  "supported-image-formats": "Supported image formats",
   "storage-repositories": "Storage repositories",
   "storage-repository": "Storage repository",
   "storage-usage": "Storage usage",
