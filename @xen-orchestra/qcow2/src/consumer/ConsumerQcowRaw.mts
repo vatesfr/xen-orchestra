@@ -27,6 +27,10 @@ export class ConsumerQcowRaw extends QcowLayout {
   // Sorted ascending by fileOffset, one entry per allocated block
   #sortedBlocks: BlockEntry[] = []
 
+  get uuid() {
+    return '0c89fe68-699a-491b-8b68-1dbe558ca14e'
+  }
+
   constructor(disk: RandomAccessDisk) {
     super(disk)
   }
@@ -121,7 +125,9 @@ export class ConsumerQcowRaw extends QcowLayout {
       data.copy(result, offsetInResult, offsetInBlock, offsetInBlock + copyLength)
     }
   }
-
+  size(): number {
+    return this.#totalSize
+  }
   async close(): Promise<void> {
     await this.disk.close()
   }
