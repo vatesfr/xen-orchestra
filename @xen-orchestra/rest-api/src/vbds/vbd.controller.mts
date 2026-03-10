@@ -70,9 +70,6 @@ export class VbdController extends XapiXoController<XoVbd> {
   }
 
   /**
-   * Required privilege:
-   * - resource: vbd, action: read
-   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example fields "id,time"
    * @example filter "time:>1747053793"
@@ -80,7 +77,6 @@ export class VbdController extends XapiXoController<XoVbd> {
    */
   @Example(genericAlarmsExample)
   @Get('{id}/alarms')
-  @Middlewares(acl({ resource: 'vbd', action: 'read', objectId: 'params.id' }))
   @Tags('alarms')
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -102,9 +98,6 @@ export class VbdController extends XapiXoController<XoVbd> {
   }
 
   /**
-   * Required privilege:
-   * - resource: vbd, action: read
-   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example fields "name,id,$object"
    * @example filter "name:VM_STARTED"
@@ -113,7 +106,6 @@ export class VbdController extends XapiXoController<XoVbd> {
   @Example(messageIds)
   @Example(partialMessages)
   @Get('{id}/messages')
-  @Middlewares(acl({ resource: 'vbd', action: 'read', objectId: 'params.id' }))
   @Tags('messages')
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -131,9 +123,6 @@ export class VbdController extends XapiXoController<XoVbd> {
   }
 
   /**
-   * Required privilege:
-   * - resource: vbd, action: read
-   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example fields "id,status,properties"
    * @example filter "status:failure"
@@ -142,7 +131,6 @@ export class VbdController extends XapiXoController<XoVbd> {
   @Example(taskIds)
   @Example(partialTasks)
   @Get('{id}/tasks')
-  @Middlewares(acl({ resource: 'vbd', action: 'read', objectId: 'params.id' }))
   @Tags('tasks')
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
