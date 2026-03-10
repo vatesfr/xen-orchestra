@@ -33,7 +33,7 @@ import {
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
 import type { RestAnyPrivilege } from './acl-privilege.type.mjs'
-import type { SendObjects } from '../helpers/helper.type.mjs'
+import type { SafeOmit, SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 
 @Route('acl-privileges')
@@ -89,9 +89,9 @@ export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async createAclV2Privilege(
-    @Body() privilege: Omit<RestAnyPrivilege, 'id'>
+    @Body() privilege: Unbrand<SafeOmit<RestAnyPrivilege, 'id'>>
   ): Promise<{ id: Unbrand<RestAnyPrivilege['id']> }> {
-    const newPrivilege = await this.restApi.xoApp.createAclV2Privilege(privilege)
+    const newPrivilege = await this.restApi.xoApp.createAclV2Privilege(privilege as RestAnyPrivilege)
 
     return { id: newPrivilege.id }
   }
@@ -133,7 +133,7 @@ export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
   @Response(notFoundResp.status, notFoundResp.description)
   async updateAclV2Privilege(
     @Path() id: string,
-    @Body() privilege: Omit<RestAnyPrivilege, 'id' | 'roleId'>
+    @Body() privilege: Unbrand<SafeOmit<RestAnyPrivilege, 'id' | 'roleId'>>
   ): Promise<void> {
     await this.restApi.xoApp.updateAclV2Privilege(id as RestAnyPrivilege['id'], privilege)
   }
