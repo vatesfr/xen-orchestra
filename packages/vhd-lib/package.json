@@ -50,13 +50,21 @@
       "types": "./dist/index.d.ts",
       "default": "./index.js"
     },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./*.js"
+    },
+    "./*.js": {
+      "types": "./dist/*.d.ts",
+      "default": "./*.js"
+    },
     "./Vhd/*": {
       "types": "./dist/Vhd/*.d.ts",
       "default": "./Vhd/*.js"
     },
-    "./*": {
-      "types": "./dist/*.d.ts",
-      "default": "./*.js"
+    "./Vhd/*.js": {
+      "types": "./dist/Vhd/*.d.ts",
+      "default": "./Vhd/*.js"
     }
   },
   "author": {
