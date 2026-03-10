@@ -45,7 +45,7 @@ export class LiveBackupRepository {
    * The filename will be "<disk.uuid>.vhd".
    */
   addDisk(disk: RawConsumer): void {
-    this.#disks.set(disk.uuid + '.vhd', disk)
+    this.#disks.set(disk.uuid + '.qcow2', disk)
   }
 
   /**

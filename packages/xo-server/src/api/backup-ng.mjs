@@ -6,6 +6,9 @@ import createNdJsonStream from '../_createNdJsonStream.mjs'
 import { REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey.mjs'
 import { safeDateFormat } from '../utils.mjs'
 import { VirtualStorageRepository } from '@xen-orchestra/fuse-backup-repository/dist/index.mjs'
+import { openDiskChain } from '@xen-orchestra/backups/disks/openDiskChain.mjs'
+import { getHandler } from '@xen-orchestra/fs'
+import { ConsumerQcowRaw } from '@xen-orchestra/qcow2'
 
 const SCHEMA_SETTINGS = {
   type: 'object',
@@ -469,6 +472,16 @@ export async function startVirtualSR({ pool, shareSourceIp }) {
   const xapi = pool.$xapi
   const vsr = new VirtualStorageRepository(xapi, shareSourceIp)
   await vsr.init()
+  const handler = getHandler({ url: 'file:///mnt/ssd/vhdfile' })
+  await handler.sync()
+  const disk = await openDiskChain({
+    handler,
+    path: 'xo-vm-backups/c9f59906-8c53-ff71-c900-45a4a432c830/vdis/d8ddef60-d9a4-4cec-9546-522e9c75e356/0c89fe68-699a-491b-8b68-1dbe558ca14e/20260213T160730Z.vhd',
+  })
+
+  const qcow2 = new ConsumerQcowRaw(disk)
+  await qcow2.init()
+  vsr.addDisk(qcow2)
 }
 
 startVirtualSR.permission = 'admin'

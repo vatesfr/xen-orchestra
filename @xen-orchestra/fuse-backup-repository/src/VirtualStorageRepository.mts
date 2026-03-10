@@ -78,7 +78,6 @@ export class VirtualStorageRepository {
     const base = tmpdir()
     this.#mountDir = await mkdtemp(join(base, 'xo-vsr-mount-'))
     this.#cacheDir = await mkdtemp(join(base, 'xo-vsr-cache-'))
-
     await this.#exportNfs(this.#mountDir)
     const srUuid = await this.#createSr(this.#mountDir)
     await this.#mountFuse(join(this.#mountDir, srUuid), this.#cacheDir)
