@@ -78,7 +78,6 @@ export class VbdController extends XapiXoController<XoVbd> {
   @Example(genericAlarmsExample)
   @Get('{id}/alarms')
   @Tags('alarms')
-  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getVbdAlarms(
     @Request() req: ExRequest,
@@ -107,7 +106,6 @@ export class VbdController extends XapiXoController<XoVbd> {
   @Example(partialMessages)
   @Get('{id}/messages')
   @Tags('messages')
-  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getVbdMessages(
     @Request() req: ExRequest,
@@ -132,7 +130,6 @@ export class VbdController extends XapiXoController<XoVbd> {
   @Example(partialTasks)
   @Get('{id}/tasks')
   @Tags('tasks')
-  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async getVbdTasks(
     @Request() req: ExRequest,
