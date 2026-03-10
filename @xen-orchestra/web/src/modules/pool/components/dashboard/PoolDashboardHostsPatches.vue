@@ -9,7 +9,7 @@
       </UiCardTitle>
     </div>
     <VtsStateHero v-if="!areMissingPatchesReady" format="card" type="busy" size="medium" />
-    <VtsStateHero v-else-if="noMissingPatches" format="card" type="all-done" size="extra-small">
+    <VtsStateHero v-else-if="noMissingPatches" format="card" type="all-done" size="small">
       {{ t('patches-up-to-date') }}
     </VtsStateHero>
     <div v-else class="table-wrapper">
