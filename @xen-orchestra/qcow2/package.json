@@ -8,7 +8,7 @@
     "dev": "tsc --watch",
     "postversion": "npm publish --access public",
     "clean": "rimraf dist/",
-    "test-integration": "tsc && node --test dist/consumer/ConsumerQcowStream.integ.mjs"
+    "test-integration": "tsc && node --test 'dist/consumer/*.integ.mjs'"
   },
   "author": {
     "name": "Vates SAS",
