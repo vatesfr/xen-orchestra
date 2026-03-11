@@ -12,12 +12,17 @@
     <template #actions>
       <VtsActionsConsole :send-ctrl-alt-del="sendCtrlAltDel" />
       <VtsDivider type="stretch" />
-      <VtsClipboardConsole />
+      <VtsClipboardConsole
+        :clipboard-text="clipboardText"
+        :send-clipboard="sendClipboard"
+        :has-guest-tools="guestToolsDetected"
+      />
     </template>
   </VtsLayoutConsole>
 </template>
 
 <script lang="ts" setup>
+import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { isVmOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
 import VtsActionsConsole from '@core/components/console/VtsActionsConsole.vue'
@@ -35,6 +40,7 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
+const { hasGuestTools } = useXoVmUtils(() => props.vm)
 
 const STOP_OPERATIONS = [
   VM_OPERATIONS.SHUTDOWN,
@@ -53,9 +59,13 @@ const isVmConsoleRunning = computed(() => props.vm.power_state === 'Running' && 
 const isConsoleAvailable = computed(() =>
   props.vm !== undefined ? !isVmOperationPending(props.vm, STOP_OPERATIONS) : false
 )
-const consoleElement = useTemplateRef('console-element')
+const consoleElement = useTemplateRef<InstanceType<typeof VtsRemoteConsole>>('console-element')
+const guestToolsDetected = computed(() => hasGuestTools(props.vm))
 
 const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
+const clipboardText = computed<string>(() => consoleElement.value?.clipboardText ?? '')
+const sendClipboard = (text: string) =>
+  hasGuestTools(props.vm) ? consoleElement.value?.sendClipboard(text) : consoleElement.value?.sendTextAsKeys(text)
 </script>
 
 <style scoped lang="postcss">
