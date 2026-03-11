@@ -135,16 +135,6 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     const deltaChainLength = Math.max(
       ...lastExportedVdis.map(({ other_config }) => Number(other_config[DELTA_CHAIN_LENGTH] ?? 0))
     )
-    const fullInterval = this._settings.fullInterval
-    if (fullInterval !== 0 && fullInterval <= deltaChainLength + 1) {
-      debug('not using base VM because fullInterval reached', {
-        fullInterval,
-        deltaChainLength,
-        eq: fullInterval < deltaChainLength + 1,
-        dc1: deltaChainLength + 1,
-      })
-      return
-    }
 
     const srcVdis = keyBy(await xapi.getRecords('VDI', await this._vm.$getDisks()), '$ref')
 
@@ -173,6 +163,20 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
       debug('no base VM found')
       return
     }
+
+    // we do tafter checkbasevdis because we want the writer to know the target VM
+    // especially on replication when we alwayr update the same VM
+    const fullInterval = this._settings.fullInterval
+    if (fullInterval !== 0 && fullInterval <= deltaChainLength + 1) {
+      debug('not using base VM because fullInterval reached', {
+        fullInterval,
+        deltaChainLength,
+        eq: fullInterval < deltaChainLength + 1,
+        dc1: deltaChainLength + 1,
+      })
+      return
+    }
+
     baseUuidToSrcVdiUuid.forEach((srcVdiUuid, baseUuid) => {
       if (presentBaseVdis.has(baseUuid)) {
         debug('found base VDI', {
