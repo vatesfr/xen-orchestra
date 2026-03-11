@@ -33,7 +33,6 @@ export async function* rawGenerator(disk: RandomAccessDisk): AsyncGenerator<Buff
 // depending on whether the leaf disk is differencing.
 async function openDiskOrChain(handler: RemoteHandler, diskPath: string) {
   const { value: leafDisk, dispose: disposeLeaf } = await openDisk(handler, diskPath)
-  await leafDisk.init()
 
   if (leafDisk.isDifferencing()) {
     await disposeLeaf()
@@ -47,6 +46,7 @@ async function openDiskOrChain(handler: RemoteHandler, diskPath: string) {
 export async function transformCommand(handlerUrl: string, diskPath: string, extraArgs: string[]): Promise<void> {
   const format = extraArgs[0] as OutputFormat
   if (!format || !OUTPUT_FORMATS.includes(format)) {
+    // this is a cli tool let's not use @xen-orchestra/log here 
     console.error(`Error: output format must be one of: ${OUTPUT_FORMATS.join(', ')}`)
     process.exit(1)
   }
