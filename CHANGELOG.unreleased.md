@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [Replication] Reuse the same VM as an incremental replication target (PR [#9524](https://github.com/vatesfr/xen-orchestra/pull/9524))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -34,6 +36,7 @@
 <!--packages-start-->
 
 - @vates/generator-toolbox patch
+- @xen-orchestra/backups minor
 - @xen-orchestra/disk-transform patch
 - xo-server minor
 
