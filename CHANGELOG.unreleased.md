@@ -42,6 +42,7 @@
 
 - @vates/types minor
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/xapi minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server-openmetrics minor
