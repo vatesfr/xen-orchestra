@@ -4,7 +4,8 @@
     accent="success"
     :value="4"
     unit="GB"
-    tooltip="This is a tooltip"
+    tooltip
+    @open-modal="openModal()"
   >
     Some label
   </UiLegend>

@@ -331,7 +331,6 @@
   "pool-ram-usage": "استفاده از Pool RAM",
   "pool:status:connected": "@:status:connected",
   "pool:status:unreachable": "غیرقابل دسترس",
-  "pool:status:unreachable:tooltip": "سرورهای پیکربندی‌شده‌ای که قابل دسترسی نیستند",
   "pools": "استخرها",
   "pools-status": "وضعیت استخرها",
   "power-on-host-for-console": "هاست خود را برای دسترسی به کنسول آن روشن کنید",

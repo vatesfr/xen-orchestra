@@ -363,7 +363,6 @@
   "pool-cpu-usage": "Pool CPU forbrug",
   "pool:status:connected": "@:status:connected",
   "pool:status:unreachable": "Utilgængelig",
-  "pool:status:unreachable:tooltip": "Konfigurerede servere, der ikke kan nås",
   "power-on-host-for-console": "Tænd for din host for at få adgang til dens konsol",
   "pro-support": "{name} pro support",
   "professional-support": "Professional support",

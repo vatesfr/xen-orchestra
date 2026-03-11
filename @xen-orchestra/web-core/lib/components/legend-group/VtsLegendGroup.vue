@@ -8,9 +8,10 @@
         v-for="item in items"
         :key="item.label"
         :accent="item.accent"
-        :tooltip="item.tooltip"
+        :modal-info="item.modalInfo"
         :unit="item.unit"
         :value="item.value"
+        @open-modal="emit('openModal', item.label)"
       >
         {{ item.label }}
       </UiLegend>
@@ -29,6 +30,10 @@ export type LegendGroupProps = {
 }
 
 defineProps<LegendGroupProps>()
+
+const emit = defineEmits<{
+  openModal: [label: string]
+}>()
 </script>
 
 <style lang="postcss" scoped>

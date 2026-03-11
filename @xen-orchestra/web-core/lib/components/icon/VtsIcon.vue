@@ -10,7 +10,7 @@ import { DisplayIcon } from '@core/packages/icon'
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 
-export type IconSize = 'small' | 'medium' | 'large' | 'current'
+export type IconSize = 'extra-small' | 'small' | 'medium' | 'large' | 'current'
 
 const { size, name } = defineProps<{
   size: IconSize
@@ -41,6 +41,10 @@ const icon = computed(() => {
 
 <style lang="postcss" scoped>
 .vts-icon {
+  &.size--extra-small {
+    font-size: 0.8rem;
+  }
+
   &.size--small {
     font-size: 1.2rem;
   }

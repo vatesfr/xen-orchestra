@@ -6,9 +6,10 @@
         v-for="segment in segments"
         :key="segment.label"
         :accent="segment.accent"
-        :tooltip="segment.tooltip"
+        :modal-info="segment.modalInfo"
         :unit="segment.unit"
         :value="segment.value"
+        @open-modal="emit('openModal')"
       >
         {{ segment.label }}
       </UiLegend>
@@ -30,6 +31,10 @@ export type StackedBarWithLegendProps = {
 }
 
 defineProps<StackedBarWithLegendProps>()
+
+const emit = defineEmits<{
+  openModal: []
+}>()
 
 const uiStore = useUiStore()
 </script>

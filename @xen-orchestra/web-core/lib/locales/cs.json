@@ -603,7 +603,6 @@
   "pool:status:connected": "Připojeno",
   "pool:status:disconnected": "@:status:disconnected",
   "pool:status:unreachable": "Nedostupné",
-  "pool:status:unreachable:tooltip": "Nastavené servery, které se nedaří zkontaktovat",
   "pools": "Fondy",
   "pools-status": "Stav fondu",
   "popup-first-connection-default-interface": "Odteď bude tato nová verze výchozím rozhraním. Pokud raději chcete ponechat XO 5 prozatím jako výchozí, je možné {documentationLink} a učinit tak.",

@@ -323,7 +323,6 @@
   "password-invalid": "Password non valida",
   "pause": "Pausa",
   "physical-interface-status": "Stato dell'interfaccia fisica",
-  "pool:status:unreachable:tooltip": "Server configurati che non possono essere raggiunti",
   "progress": "Progresso",
   "properties": "Proprietà",
   "property": "",

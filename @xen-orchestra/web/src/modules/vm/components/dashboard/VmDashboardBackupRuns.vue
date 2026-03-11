@@ -85,9 +85,16 @@ const { t } = useI18n()
 
 const { getBackupJobById, areBackupJobsReady, hasBackupJobFetchError } = useXoBackupJobCollection()
 
-const openProtectionHelpModal = useModal(() => ({
-  component: import('@xen-orchestra/web/src/shared/components/modals/VmProtectedHelper.vue'),
-}))
+const openProtectionHelpModal = useModal({
+  component: import('@core/components/modal/VtsModal.vue'),
+  props: {
+    accent: 'info',
+    icon: 'status:info-picto',
+    dismissible: true,
+    title: t('what-does-protected-means?'),
+    content: t('what-does-protected-means-content'),
+  },
+})
 
 const lastRuns = computed(() => vmDashboard?.backupsInfo?.lastRuns)
 
