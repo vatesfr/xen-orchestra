@@ -5,7 +5,11 @@
     </template>
 
     <template #content>
-      <slot name="content" class="content">{{ content }}</slot>
+      <slot name="content">
+        <div class="content">
+          {{ content }}
+        </div>
+      </slot>
     </template>
 
     <template v-if="slots.buttons" #buttons>
