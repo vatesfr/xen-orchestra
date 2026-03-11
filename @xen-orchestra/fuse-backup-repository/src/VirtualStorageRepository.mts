@@ -1,5 +1,6 @@
 import { execFile } from 'node:child_process'
 import { mkdtemp, readdir, rename, rm } from 'node:fs/promises'
+import { randomInt } from 'node:crypto'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { promisify } from 'node:util'
@@ -22,6 +23,17 @@ type XapiWithObjects = Xapi & {
     }
   }
   getRecord(type: string, ref: string): Promise<Record<string, unknown>>
+  SR_create(params: {
+    content_type?: string
+    device_config: Record<string, string>
+    host: string
+    name_description?: string
+    name_label: string
+    physical_size?: number
+    shared: boolean
+    sm_config?: Record<string, string>
+    type: string
+  }): Promise<string>
 }
 
 /**
@@ -44,6 +56,7 @@ export class VirtualStorageRepository {
   #mountDir: string | undefined
   #cacheDir: string | undefined
   #srRef: string | undefined
+  #srUuid: string | undefined
   #liveRepo: LiveBackupRepository | undefined
   #exportedSpecs: string[] = []
 
@@ -67,8 +80,8 @@ export class VirtualStorageRepository {
    * May be called before or after init().
    */
   addDisk(disk: RawConsumer): void {
-    if (this.#liveRepo !== undefined) {
-      this.#liveRepo.addDisk(disk)
+    if (this.#liveRepo !== undefined && this.#srUuid !== undefined) {
+      this.#liveRepo.addDisk(disk, this.#srUuid)
     } else {
       this.#pendingDisks.push(disk)
     }
@@ -78,15 +91,22 @@ export class VirtualStorageRepository {
     const base = tmpdir()
     this.#mountDir = await mkdtemp(join(base, 'xo-vsr-mount-'))
     this.#cacheDir = await mkdtemp(join(base, 'xo-vsr-cache-'))
+    console.log('mounted in', this.#mountDir)
+    await this.#mountFuse(this.#mountDir, this.#cacheDir)
     await this.#exportNfs(this.#mountDir)
-    const srUuid = await this.#createSr(this.#mountDir)
-    await this.#mountFuse(join(this.#mountDir, srUuid), this.#cacheDir)
+    this.#srUuid = await this.#createSr(this.#mountDir)
+    for (const disk of this.#pendingDisks) {
+      this.#liveRepo!.addDisk(disk, this.#srUuid)
+    }
+    this.#pendingDisks.length = 0
   }
 
   // Export mountDir to each host IP via NFS.
   // -i: bypass /etc/exports, manage the export in kernel memory only.
+  // fsid= is required for FUSE filesystems which lack a stable kernel device number.
   async #exportNfs(mountDir: string): Promise<void> {
-    const exportOpts = 'rw,no_root_squash,sync'
+    const fsid = randomInt(1, 2 ** 31)
+    const exportOpts = `rw,no_root_squash,sync,fsid=${fsid}`
     for (const ip of this.#ips) {
       const spec = `${ip}:${mountDir}`
       await execFileAsync('exportfs', ['-i', '-o', exportOpts, spec])
@@ -98,20 +118,18 @@ export class VirtualStorageRepository {
   // Returns the SR UUID assigned by XCP-ng.
   async #createSr(serverPath: string): Promise<string> {
     const pool = Object.values(this.#xapi.objects.indexes.type['pool'])[0]
-    const masterHost = await this.#xapi.getRecord('host', pool['master'] as string)
-
-    this.#srRef = await this.#xapi.call<string>(
-      'SR.create',
-      masterHost['$ref'],
-      { server: this.#serverIp, serverpath: serverPath },
-      0,
-      'Backup Repository',
-      '',
-      'nfs',
-      '',
-      true,
-      {}
-    )
+    const deviceConfig = {
+      server: this.#serverIp,
+      serverpath: serverPath,
+    }
+    this.#srRef = await this.#xapi.SR_create({
+      device_config: deviceConfig,
+      host: pool.master as string,
+      name_description: `connected to ${pool.name_label}`,
+      name_label: 'Backup repository',
+      shared: true,
+      type: 'nfs', // SR LVM over iSCSI
+    })
 
     const sr = await this.#xapi.call<{ uuid: string }>('SR.get_record', this.#srRef)
     return sr.uuid
@@ -125,10 +143,6 @@ export class VirtualStorageRepository {
     }
 
     this.#liveRepo = new LiveBackupRepository(srDir, cacheDir)
-    for (const disk of this.#pendingDisks) {
-      this.#liveRepo.addDisk(disk)
-    }
-    this.#pendingDisks.length = 0
     await this.#liveRepo.init()
   }
 
