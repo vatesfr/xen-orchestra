@@ -10,7 +10,8 @@
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
-- [V2V] Make import cancellable  (PR [#9552](https://github.com/vatesfr/xen-orchestra/pull/9552))
+
+- [V2V] Make import cancellable (PR [#9552](https://github.com/vatesfr/xen-orchestra/pull/9552))
 
 ### Bug fixes
 
@@ -37,7 +38,9 @@
 - @vates/generator-toolbox patch
 - @vates/nbd-client minor
 - @xen-orchestra/disk-transform patch
+- @xen-orchestra/qcow2 minor
 - @xen-orchestra/vmware-explorer minor
+- vhd-lib minor
 - xo-server minor
 
 <!--packages-end-->
