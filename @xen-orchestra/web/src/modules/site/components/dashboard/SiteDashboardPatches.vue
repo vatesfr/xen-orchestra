@@ -105,7 +105,7 @@ const hostsSegments = computed(() => {
 
   if (typeof missingPatches.value.nHostsEol === 'number') {
     segments.push({
-      value: 4,
+      value: missingPatches.value.nHostsEol,
       accent: 'danger',
       label: t('eol'),
       modalInfo: true,
