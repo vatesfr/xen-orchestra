@@ -771,6 +771,7 @@ const vmData = computed(() => {
   return {
     autoPoweron: vmState.autoPoweron,
     boot: vmState.boot_vm,
+    cpus: vmState.vCPU,
     clone: vmState.clone,
     memory: vmState.ram,
     name_description: vmState.description,

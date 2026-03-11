@@ -40,6 +40,9 @@ export default class S3Handler extends RemoteHandlerAbstract {
   #dir
   #s3
   #immutable = false
+  #maxPartSize
+  #maxPartNumber
+  #minPartSize
 
   constructor(remote, _opts) {
     super(remote, _opts)
@@ -51,7 +54,14 @@ export default class S3Handler extends RemoteHandlerAbstract {
       password,
       protocol,
       region = guessAwsRegion(host),
+      maxPartSize = MAX_PART_SIZE,
+      maxPartNumber = MAX_PART_NUMBER,
+      minPartSize = MIN_PART_SIZE,
     } = parse(remote.url)
+
+    this.#maxPartSize = maxPartSize
+    this.#maxPartNumber = maxPartNumber
+    this.#minPartSize = minPartSize
 
     this.#s3 = new S3Client({
       apiVersion: '2006-03-01',
@@ -122,12 +132,12 @@ export default class S3Handler extends RemoteHandlerAbstract {
           new UploadPartCopyCommand({
             ...multipartParams,
             CopySource,
-            CopySourceRange: `bytes=${start}-${Math.min(start + MAX_PART_SIZE, size) - 1}`,
+            CopySourceRange: `bytes=${start}-${Math.min(start + this.#maxPartSize, size) - 1}`,
             PartNumber: partNumber,
           })
         )
         parts.push({ ETag: upload.CopyPartResult.ETag, PartNumber: partNumber })
-        start += MAX_PART_SIZE
+        start += this.#maxPartSize
       }
       await this.#s3.send(
         new CompleteMultipartUploadCommand({
@@ -203,14 +213,17 @@ export default class S3Handler extends RemoteHandlerAbstract {
     let partSize
     if (maxStreamLength === undefined) {
       warn(`Writing ${path} to a S3 remote without a max size set will cut it to 50GB`, { path })
-      partSize = MIN_PART_SIZE // min size for S3
+      partSize = this.#minPartSize // min size for S3
     } else {
-      partSize = Math.min(Math.max(Math.ceil(maxStreamLength / MAX_PART_NUMBER), MIN_PART_SIZE), MAX_PART_SIZE)
+      partSize = Math.min(
+        Math.max(Math.ceil(maxStreamLength / this.#maxPartNumber), this.#minPartSize),
+        this.#maxPartSize
+      )
     }
 
     // ensure we don't try to upload a stream to big for this partSize
     let readCounter = 0
-    const MAX_SIZE = MAX_PART_NUMBER * partSize
+    const MAX_SIZE = this.#maxPartNumber * partSize
     const streamCutter = new Transform({
       transform(chunk, encoding, callback) {
         readCounter += chunk.length

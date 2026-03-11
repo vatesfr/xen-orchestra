@@ -28,6 +28,11 @@ export const EXPORTED_SUCCESSFULLY = 'xo:backup:exported'
 // the VM ( not the snapshot) uuid
 export const VM_UUID = 'xo:backup:vm'
 
+// in `other_config` of source snapshot VDIs and replicated target VDIs
+// contains the UUID of the source snapshot VDI whose content this VDI represents
+// allows direction-agnostic discovery of common base VDIs (e.g. for failback/reverse replication)
+export const CONTENT_KEY = 'xo:backup:contentKey'
+
 async function listVdiRefs(xapi, vmRef) {
   return xapi.VM_getDisks(vmRef)
 }
@@ -130,4 +135,25 @@ export async function markExportSuccessfull(xapi, vmRef) {
   return applyToVmAndVdis(xapi, vmRef, (type, ref) =>
     xapi.setFieldEntry(type, ref, 'other_config', EXPORTED_SUCCESSFULLY, 'true')
   )
+}
+
+/**
+ * Set CONTENT_KEY on each VDI of a VM snapshot to its own UUID.
+ *
+ * This marks each snapshot VDI with a unique content identifier that can be
+ * propagated to replicated copies for direction-agnostic base VDI discovery
+ * (e.g. for failback / reverse replication).
+ *
+ * @param {Xapi} xapi
+ * @param {String} snapshotRef
+ * @returns {Promise}
+ */
+export async function setVmSnapshotContentKeys(xapi, snapshotRef) {
+  return applyToVmAndVdis(xapi, snapshotRef, async (type, ref) => {
+    if (type !== 'VDI') {
+      return
+    }
+    const uuid = await xapi.getField(type, ref, 'uuid')
+    return xapi.setFieldEntry(type, ref, 'other_config', CONTENT_KEY, uuid)
+  })
 }
