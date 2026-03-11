@@ -370,7 +370,7 @@ export default class NbdClient {
    * - `length` — The size of the segment in bytes.
    * - `type` — A numeric code indicating the segment type ( 0 means data).
    */
-  /* async */ getMap() {
+  /* async */ getMap(signal) {
     return new Promise((resolve, reject) => {
       const process = spawn('nbdinfo', [
         '--json',
@@ -381,8 +381,17 @@ export default class NbdClient {
       let errText = ''
       process.stdout.on('data', data => (text += data))
       process.stderr.on('data', data => (errText += data))
-      process.on('error', reject)
+      const onAbort = () => {
+        process.kill()
+        reject(signal.reason)
+      }
+      signal?.addEventListener('abort', onAbort, { once: true })
+      process.on('error', err => {
+        signal?.removeEventListener('abort', onAbort)
+        reject(err)
+      })
       process.on('close', code => {
+        signal?.removeEventListener('abort', onAbort)
         if (code !== 0) {
           return reject(new Error(`Error during getMap (code: ${code}): ${errText}`))
         }
