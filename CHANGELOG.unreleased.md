@@ -42,6 +42,8 @@
 - @xen-orchestra/disk-transform patch
 - @xen-orchestra/fs minor
 - @xen-orchestra/mcp minor
+- @xen-orchestra/web patch
+- @xen-orchestra/web-core patch
 - xo-server minor
 
 <!--packages-end-->
