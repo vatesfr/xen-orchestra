@@ -12,6 +12,7 @@
   "dependencies": {
     "@floating-ui/vue": "^1.1.6",
     "@fontsource/poppins": "^5.2.5",
+    "@fontsource/roboto-mono": "^5.2.8",
     "@fortawesome/fontawesome-common-types": "^6.7.2",
     "@fortawesome/free-regular-svg-icons": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
