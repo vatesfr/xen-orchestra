@@ -9,6 +9,7 @@ declare module 'fuse-native' {
     write?(path: string, fd: number, buf: Buffer, len: number, pos: number, cb: (bytesWritten: number) => void): void
     truncate?(path: string, size: number, cb: (code: number) => void): void
     ftruncate?(path: string, fd: number, size: number, cb: (code: number) => void): void
+    mkdir?(path: string, mode: number, cb: (code: number) => void): void
     unlink?(path: string, cb: (code: number) => void): void
   }
 
