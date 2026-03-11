@@ -158,6 +158,7 @@ export interface Xapi {
     metadataVm: {
       affinityHost?: XoHost['id']
       autoPoweron?: boolean
+      cpus?: number
       memory?: number
       name_description?: string
       name_label: string
