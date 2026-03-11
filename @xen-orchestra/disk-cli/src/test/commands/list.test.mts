@@ -108,18 +108,12 @@ describe('list command', () => {
     assert.strictEqual(diskDispose.mock.callCount(), 2, 'every opened disk must be disposed')
   })
 
-  test('broken disk produces an error row instead of aborting', async () => {
+  test('broken disk produces an error row instead of aborting, dispose still ok', async () => {
     currentListImpl = async () => ['/dir/good.vhd', '/dir/broken.vhd']
     brokenPaths.add('/dir/broken.vhd')
     const output = await captureLog(() => listCommand('file:///test', '/dir', []))
     assert.ok(output.includes('error'), 'error row should appear in output')
     assert.ok(output.includes('broken.vhd'), 'broken filename should appear in output')
-  })
-
-  test('good disk is still disposed when another disk in the same list is broken', async () => {
-    currentListImpl = async () => ['/dir/good.vhd', '/dir/broken.vhd']
-    brokenPaths.add('/dir/broken.vhd')
-    await captureLog(() => listCommand('file:///test', '/dir', []))
     assert.strictEqual(diskDispose.mock.callCount(), 1, 'good disk must still be disposed')
   })
 
