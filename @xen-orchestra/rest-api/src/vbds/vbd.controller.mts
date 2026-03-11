@@ -21,6 +21,7 @@ import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 import type { Xapi, XoAlarm, XoMessage, XoTask, XoVbd, XoVdi, XoVm } from '@vates/types'
 
+import { acl } from '../middlewares/acl.middleware.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
@@ -31,6 +32,7 @@ import {
   internalServerErrorResp,
   invalidParameters,
   noContentResp,
+  forbiddenOperationResp,
   notFoundResp,
   unauthorizedResp,
   type Unbrand,
@@ -83,11 +85,15 @@ export class VbdController extends XapiXoController<XoVbd> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vbd, action: read
    *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(vbd)
   @Get('{id}')
+  @Middlewares(acl({ resource: 'vbd', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getVbd(@Path() id: string): Unbrand<XoVbd> {
     return this.getObject(id as XoVbd['id'])
