@@ -21,6 +21,7 @@ import type { Readable } from 'node:stream'
 import { json, type Request as ExRequest, type Response as ExResponse } from 'express'
 import type { SUPPORTED_VDI_FORMAT, Xapi, XoAlarm, XoMessage, XoSr, XoTask, XoVdi } from '@vates/types'
 
+import { acl } from '../middlewares/acl.middleware.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
@@ -28,6 +29,7 @@ import {
   asynchronousActionResp,
   badRequestResp,
   createdResp,
+  forbiddenOperationResp,
   internalServerErrorResp,
   noContentResp,
   notFoundResp,
@@ -98,10 +100,15 @@ export class VdiController extends XapiXoController<XoVdi> {
    *
    * Export VDI content
    *
+   * Required privilege:
+   * - resource: vdi, action: export-content
+   *
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
    */
   @Get('{id}.{format}')
+  @Middlewares(acl({ resource: 'vdi', action: 'export-content', objectId: 'params.id' }))
   @SuccessResponse(200, 'Download started', 'application/octet-stream')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(422, 'Invalid format')
   async exportVdiContent(
@@ -120,10 +127,15 @@ export class VdiController extends XapiXoController<XoVdi> {
    *
    * Import VDI content
    *
+   * Required privilege:
+   * - resource: vdi, action: import-content
+   *
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
    */
   @Put('{id}.{format}')
+  @Middlewares(acl({ resource: 'vdi', action: 'import-content', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(422, 'Invalid format')
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -142,10 +154,15 @@ export class VdiController extends XapiXoController<XoVdi> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vdi, action: read
+   *
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
    */
   @Example(vdi)
   @Get('{id}')
+  @Middlewares(acl({ resource: 'vdi', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getVdi(@Path() id: string): Unbrand<XoVdi> {
     return this.getObject(id as XoVdi['id'])
@@ -186,7 +203,7 @@ export class VdiController extends XapiXoController<XoVdi> {
   }
 
   /**
-   * Create an empty VDI on the given SR.
+   * Create an empty VDI.
    *
    * @example body { "srId": "c4284e12-37c9-7967-b9e8-83ef229c3e03", "virtual_size": 10737418240, "name_label": "test VDI" }
    */
@@ -219,10 +236,15 @@ export class VdiController extends XapiXoController<XoVdi> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vdi, action: delete
+   *
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
    */
   @Delete('{id}')
+  @Middlewares(acl({ resource: 'vdi', action: 'delete', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteVdi(@Path() id: string): Promise<void> {
     const xapiVdi = this.getXapiObject(id as XoVdi['id'])
@@ -331,11 +353,16 @@ export class VdiController extends XapiXoController<XoVdi> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vdi, action: update:tags
+   *
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
    * @example tag "from-rest-api"
    */
   @Put('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'vdi', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async putVdiTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vdi = this.getXapiObject(id as XoVdi['id'])
@@ -343,11 +370,16 @@ export class VdiController extends XapiXoController<XoVdi> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vdi, action: update:tags
+   *
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
    * @example tag "from-rest-api"
    */
   @Delete('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'vdi', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteVdiTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vdi = this.getXapiObject(id as XoVdi['id'])
