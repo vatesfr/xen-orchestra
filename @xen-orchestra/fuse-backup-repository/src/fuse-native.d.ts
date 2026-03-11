@@ -11,6 +11,7 @@ declare module 'fuse-native' {
     ftruncate?(path: string, fd: number, size: number, cb: (code: number) => void): void
     mkdir?(path: string, mode: number, cb: (code: number) => void): void
     unlink?(path: string, cb: (code: number) => void): void
+    statfs?(path: string, cb: (code: number, stat?: object) => void): void
   }
 
   interface FuseOptions {
