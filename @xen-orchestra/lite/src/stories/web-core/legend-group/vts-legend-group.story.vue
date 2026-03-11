@@ -33,7 +33,7 @@ const items: LegendGroupProps['items'] = [
   },
   {
     label: 'Second segment',
-    accent: 'info',
+    accent: 'secondary',
     value: 58,
     unit: '%',
     modalInfo: true,
