@@ -59,6 +59,9 @@ export class ServerController extends XoController<XoServer> {
   }
 
   /**
+   * Returns all servers that match the following privilege:
+   * resource: server, action: read
+   *
    * @example fields "status,id"
    * @example filter "status:/^connected$/"
    * @example limit 42
@@ -74,7 +77,10 @@ export class ServerController extends XoController<XoServer> {
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoServer>>>> {
-    return this.sendObjects(Object.values(await this.getObjects({ filter, limit })), req)
+    return this.sendObjects(Object.values(await this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'server' },
+    })
   }
 
   /**
@@ -162,6 +168,9 @@ export class ServerController extends XoController<XoServer> {
   }
 
   /**
+   * Returns all tasks that match the following privilege:
+   * resource: task, action: read
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example fields "id,status,properties"
    * @example filter "status:failure"
@@ -180,9 +189,13 @@ export class ServerController extends XoController<XoServer> {
     @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
-    const tasks = await this.getTasksForObject(id as XoServer['id'], { filter, limit })
+  ): SendObjects<Partial<Unbrand<XoTask>>> {
+    const tasks = await this.getTasksForObject(id as XoServer['id'], { filter })
 
-    return this.sendObjects(Object.values(tasks), req, 'tasks')
+    return this.sendObjects(Object.values(tasks), req, {
+      path: 'tasks',
+      limit,
+      privilege: { action: 'read', resource: 'task' },
+    })
   }
 }
