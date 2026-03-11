@@ -80,6 +80,9 @@ export class UserController extends XoController<XoUser> {
   }
 
   /**
+   * Returns all users that match the following privilege:
+   * resource: user, action: read
+   *
    * @example fields "permission,name,id"
    * @example filter "permission:none"
    * @example limit 42
@@ -93,9 +96,12 @@ export class UserController extends XoController<XoUser> {
     @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoUser>>>> {
-    const users = Object.values(await this.getObjects({ filter, limit }))
-    return this.sendObjects(users, req)
+  ): SendObjects<Partial<Unbrand<XoUser>>> {
+    const users = Object.values(await this.getObjects({ filter }))
+    return this.sendObjects(users, req, {
+      limit,
+      privilege: { action: 'read', resource: 'user' },
+    })
   }
 
   /**
@@ -177,6 +183,9 @@ export class UserController extends XoController<XoUser> {
   }
 
   /**
+   * Returns all groups that match the following privilege:
+   * resource: group, action: read
+   *
    * @example id "722d17b9-699b-49d2-8193-be1ac573d3de"
    * @example fields "name,id,users"
    * @example filter "users:length:>0"
@@ -194,11 +203,15 @@ export class UserController extends XoController<XoUser> {
     @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoGroup>>>> {
+  ): SendObjects<Partial<Unbrand<XoGroup>>> {
     const user = await this.getObject(id as XoUser['id'])
     const groups = await Promise.all(user.groups.map(group => this.restApi.xoApp.getGroup(group)))
 
-    return this.sendObjects(limitAndFilterArray(groups, { filter, limit }), req, 'groups')
+    return this.sendObjects(limitAndFilterArray(groups, { filter }), req, {
+      path: 'groups',
+      limit,
+      privilege: { action: 'read', resource: 'group' },
+    })
   }
 
   /**
@@ -229,6 +242,9 @@ export class UserController extends XoController<XoUser> {
   }
 
   /**
+   * Returns all tasks that match the following privilege:
+   * resource: task, action: read
+   *
    * @example id "722d17b9-699b-49d2-8193-be1ac573d3de"
    * @example fields "id,status,properties"
    * @example filter "status:failure"
@@ -246,10 +262,14 @@ export class UserController extends XoController<XoUser> {
     @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
-    const tasks = await this.getTasksForObject(id as XoUser['id'], { filter, limit })
+  ): SendObjects<Partial<Unbrand<XoTask>>> {
+    const tasks = await this.getTasksForObject(id as XoUser['id'], { filter })
 
-    return this.sendObjects(Object.values(tasks), req, 'tasks')
+    return this.sendObjects(Object.values(tasks), req, {
+      path: 'tasks',
+      limit,
+      privilege: { action: 'read', resource: 'task' },
+    })
   }
 
   // ----------- DEPRECATED TO BE REMOVED IN ONE YEAR  (10-13-2026)--------------------

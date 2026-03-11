@@ -41,6 +41,9 @@ export class BackupLogController extends XoController<XoBackupLog> {
   }
 
   /**
+   * Returns all backup logs that match the following privilege:
+   * resource: backup-log, action: read
+   *
    * @example fields "jobName,status,data"
    * @example filter "status:success"
    * @example limit 42
@@ -54,9 +57,12 @@ export class BackupLogController extends XoController<XoBackupLog> {
     @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoBackupLog>>>> {
-    const backupLogs = await this.getObjects({ filter, limit })
-    return this.sendObjects(Object.values(backupLogs), req)
+  ): SendObjects<Partial<Unbrand<XoBackupLog>>> {
+    const backupLogs = await this.getObjects({ filter })
+    return this.sendObjects(Object.values(backupLogs), req, {
+      limit,
+      privilege: { action: 'read', resource: 'backup-log' },
+    })
   }
 
   /**

@@ -31,6 +31,9 @@ export class VifController extends XapiXoController<XoVif> {
   }
 
   /**
+   * Returns all VIFs that match the following privilege:
+   * resource: vif, action: read
+   *
    * @example fields "attached,id,device"
    * @example filter "attached?"
    * @example limit 42
@@ -45,7 +48,10 @@ export class VifController extends XapiXoController<XoVif> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<UnbrandedXoVif>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'vif' },
+    })
   }
 
   /**
@@ -59,6 +65,9 @@ export class VifController extends XapiXoController<XoVif> {
   }
 
   /**
+   * Returns all alarms that match the following privilege:
+   * resource: alarm, action: read
+   *
    * @example id "f028c5d4-578a-332c-394e-087aaca32dd3"
    * @example fields "id,time"
    * @example filter "time:>1747053793"
@@ -79,13 +88,19 @@ export class VifController extends XapiXoController<XoVif> {
     const vif = this.getObject(id as XoVif['id'])
     const alarms = this.#alarmService.getAlarms({
       filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${vif.uuid}`,
-      limit,
     })
 
-    return this.sendObjects(Object.values(alarms), req, 'alarms')
+    return this.sendObjects(Object.values(alarms), req, {
+      path: 'alarms',
+      limit,
+      privilege: { action: 'read', resource: 'alarm' },
+    })
   }
 
   /**
+   * Returns all messages that match the following privilege:
+   * resource: message, action: read
+   *
    * @example id "f028c5d4-578a-332c-394e-087aaca32dd3"
    * @example fields "name,id,$object"
    * @example filter "name:VM_STARTED"
@@ -104,12 +119,19 @@ export class VifController extends XapiXoController<XoVif> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
-    const messages = this.getMessagesForObject(id as XoVif['id'], { filter, limit })
+    const messages = this.getMessagesForObject(id as XoVif['id'], { filter })
 
-    return this.sendObjects(Object.values(messages), req, 'messages')
+    return this.sendObjects(Object.values(messages), req, {
+      path: 'messages',
+      limit,
+      privilege: { action: 'read', resource: 'message' },
+    })
   }
 
   /**
+   * Returns all tasks that match the following privilege:
+   * resource: task, action: read
+   *
    * @example id "f028c5d4-578a-332c-394e-087aaca32dd3"
    * @example fields "id,status,properties"
    * @example filter "status:failure"
@@ -127,9 +149,13 @@ export class VifController extends XapiXoController<XoVif> {
     @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
-    const tasks = await this.getTasksForObject(id as XoVif['id'], { filter, limit })
+  ): SendObjects<Partial<Unbrand<XoTask>>> {
+    const tasks = await this.getTasksForObject(id as XoVif['id'], { filter })
 
-    return this.sendObjects(Object.values(tasks), req, 'tasks')
+    return this.sendObjects(Object.values(tasks), req, {
+      path: 'tasks',
+      limit,
+      privilege: { action: 'read', resource: 'task' },
+    })
   }
 }

@@ -66,6 +66,9 @@ export class GroupController extends XoController<XoGroup> {
   }
 
   /**
+   * Returns all groups that match the following privilege:
+   * resource: group, action: read
+   *
    * @example fields "name,id,users"
    * @example filter "users:length:>0"
    * @example limit 42
@@ -79,8 +82,11 @@ export class GroupController extends XoController<XoGroup> {
     @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoGroup>>>> {
-    return this.sendObjects(Object.values(await this.getObjects({ filter, limit })), req)
+  ): SendObjects<Partial<Unbrand<XoGroup>>> {
+    return this.sendObjects(Object.values(await this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'group' },
+    })
   }
 
   /**
@@ -177,6 +183,9 @@ export class GroupController extends XoController<XoGroup> {
   }
 
   /**
+   * Returns all users that match the following privilege:
+   * resource: user, action: read
+   *
    * @example id "6c81b5e1-afc1-43ea-8f8d-939ceb5f3f90"
    * @example fields "permission,name,id"
    * @example filter "permission:none"
@@ -194,13 +203,20 @@ export class GroupController extends XoController<XoGroup> {
     @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoUser>>>> {
+  ): SendObjects<Partial<Unbrand<XoUser>>> {
     const group = await this.getObject(id as XoGroup['id'])
     const users = await Promise.all(group.users.map(id => this.#userService.getUser(id)))
-    return this.sendObjects(limitAndFilterArray(users, { filter, limit }), req, 'users')
+    return this.sendObjects(limitAndFilterArray(users, { filter }), req, {
+      path: 'users',
+      limit,
+      privilege: { action: 'read', resource: 'user' },
+    })
   }
 
   /**
+   * Returns all tasks that match the following privilege:
+   * resource: task, action: read
+   *
    * @example id "6c81b5e1-afc1-43ea-8f8d-939ceb5f3f90"
    * @example fields "id,status,properties"
    * @example filter "status:failure"
@@ -218,9 +234,13 @@ export class GroupController extends XoController<XoGroup> {
     @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
-    const tasks = await this.getTasksForObject(id as XoGroup['id'], { filter, limit })
+  ): SendObjects<Partial<Unbrand<XoTask>>> {
+    const tasks = await this.getTasksForObject(id as XoGroup['id'], { filter })
 
-    return this.sendObjects(Object.values(tasks), req, 'tasks')
+    return this.sendObjects(Object.values(tasks), req, {
+      path: 'tasks',
+      limit,
+      privilege: { action: 'read', resource: 'task' },
+    })
   }
 }

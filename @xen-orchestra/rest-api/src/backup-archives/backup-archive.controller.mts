@@ -64,6 +64,8 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   }
 
   /**
+   * Returns all backup archives that match the following privilege:
+   * resource: backup-archive, action: read
    *
    * You can use the alias "*" in "backup-repository" to select all backup repositories.
    *
@@ -83,9 +85,12 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
     @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoVmBackupArchive>>>> {
-    const backupArchives = await this.getObjects({ backupRepositories, filter, limit })
-    return this.sendObjects(Object.values(backupArchives), req)
+  ): SendObjects<Partial<Unbrand<XoVmBackupArchive>>> {
+    const backupArchives = await this.getObjects({ backupRepositories, filter })
+    return this.sendObjects(Object.values(backupArchives), req, {
+      limit,
+      privilege: { action: 'read', resource: 'backup-archive' },
+    })
   }
 
   /**

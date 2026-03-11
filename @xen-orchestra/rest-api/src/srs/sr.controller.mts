@@ -53,6 +53,9 @@ export class SrController extends XapiXoController<XoSr> {
   }
 
   /**
+   * Returns all SRs that match the following privilege:
+   * resource: sr, action: read
+   *
    * @example fields "uuid,name_label,allocationStrategy"
    * @example filter "allocationStrategy:thin"
    * @example limit 42
@@ -67,7 +70,10 @@ export class SrController extends XapiXoController<XoSr> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoSr>>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'sr' },
+    })
   }
 
   /**
@@ -81,6 +87,9 @@ export class SrController extends XapiXoController<XoSr> {
   }
 
   /**
+   * Returns all alarms that match the following privilege:
+   * resource: alarm, action: read
+   *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    * @example fields "id,time"
    * @example filter "time:>1747053793"
@@ -101,10 +110,13 @@ export class SrController extends XapiXoController<XoSr> {
     const sr = this.getObject(id as XoSr['id'])
     const alarms = this.#alarmService.getAlarms({
       filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${sr.uuid}`,
-      limit,
     })
 
-    return this.sendObjects(Object.values(alarms), req, 'alarms')
+    return this.sendObjects(Object.values(alarms), req, {
+      path: 'alarms',
+      limit,
+      privilege: { action: 'read', resource: 'alarm' },
+    })
   }
 
   /**
@@ -146,6 +158,9 @@ export class SrController extends XapiXoController<XoSr> {
   }
 
   /**
+   * Returns all messages that match the following privilege:
+   * resource: message, action: read
+   *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    * @example fields "name,id,$object"
    * @example filter "name:VM_STARTED"
@@ -164,12 +179,19 @@ export class SrController extends XapiXoController<XoSr> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
-    const messages = this.getMessagesForObject(id as XoSr['id'], { filter, limit })
+    const messages = this.getMessagesForObject(id as XoSr['id'], { filter })
 
-    return this.sendObjects(Object.values(messages), req, 'messages')
+    return this.sendObjects(Object.values(messages), req, {
+      path: 'messages',
+      limit,
+      privilege: { action: 'read', resource: 'message' },
+    })
   }
 
   /**
+   * Returns all tasks that match the following privilege:
+   * resource: task, action: read
+   *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    * @example fields "id,status,properties"
    * @example filter "status:failure"
@@ -187,9 +209,13 @@ export class SrController extends XapiXoController<XoSr> {
     @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
-    const tasks = await this.getTasksForObject(id as XoSr['id'], { filter, limit })
-    return this.sendObjects(Object.values(tasks), req, 'tasks')
+  ): SendObjects<Partial<Unbrand<XoTask>>> {
+    const tasks = await this.getTasksForObject(id as XoSr['id'], { filter })
+    return this.sendObjects(Object.values(tasks), req, {
+      path: 'tasks',
+      limit,
+      privilege: { action: 'read', resource: 'task' },
+    })
   }
 
   /**

@@ -22,6 +22,9 @@ export class PgpuController extends XapiXoController<XoPgpu> {
   }
 
   /**
+   * Returns all PGPUs that match the following privilege:
+   * resource: pgpu, action: read
+   *
    * @example fields "id,dom0Access,gpuGroup"
    * @example filter "dom0Access:enabled"
    * @example limit 42
@@ -36,7 +39,10 @@ export class PgpuController extends XapiXoController<XoPgpu> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoPgpu>>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'pgpu' },
+    })
   }
 
   /**

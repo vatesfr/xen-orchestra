@@ -1,3 +1,5 @@
+import { default as aclPrivilege } from './acl-privilege.mjs'
+import { default as aclRole } from './acl-role.mjs'
 import { default as alarm } from './alarm.mjs'
 import { default as backupArchive } from './backup-archive.mjs'
 import { default as backupJob } from './backup-job.mjs'
@@ -38,6 +40,8 @@ import { default as vtpm } from './vtpm.mjs'
  * value without sub action like 'shutdown' mean: 'shutdown:*' (so shutdown mean you can shutdown:clean and shutdown:hard)
  */
 export const SUPPORTED_ACTIONS_BY_RESOURCE = {
+  'acl-privilege': aclPrivilege,
+  'acl-role': aclRole,
   alarm,
   'backup-archive': backupArchive,
   'backup-job': backupJob,

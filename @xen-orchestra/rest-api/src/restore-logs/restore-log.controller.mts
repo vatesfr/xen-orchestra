@@ -43,6 +43,9 @@ export class RestoreLogController extends XoController<XoRestoreLog> {
   }
 
   /**
+   * Returns all restore logs that match the following privilege:
+   * resource: restore-log, action: read
+   *
    * @example fields "jobName,status,data"
    * @example filter "status:success"
    * @example limit 42
@@ -57,8 +60,11 @@ export class RestoreLogController extends XoController<XoRestoreLog> {
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoRestoreLog>>>> {
-    const restoreLogs = await this.getObjects({ filter, limit })
-    return this.sendObjects(Object.values(restoreLogs), req)
+    const restoreLogs = await this.getObjects({ filter })
+    return this.sendObjects(Object.values(restoreLogs), req, {
+      limit,
+      privilege: { action: 'read', resource: 'restore-log' },
+    })
   }
 
   /**
@@ -106,6 +112,9 @@ export class DeprecatedRestoreController extends XoController<XoRestoreLog> {
   }
 
   /**
+   * Returns all restore logs that match the following privilege:
+   * resource: restore-log, action: read
+   *
    * @example fields "jobName,status,data"
    * @example filter "status:success"
    * @example limit 42
@@ -120,9 +129,13 @@ export class DeprecatedRestoreController extends XoController<XoRestoreLog> {
     @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoRestoreLog>>>> {
-    const restoreLogs = await this.getObjects({ filter, limit })
-    return this.sendObjects(Object.values(restoreLogs), req, 'restore-logs')
+  ): SendObjects<Partial<Unbrand<XoRestoreLog>>> {
+    const restoreLogs = await this.getObjects({ filter })
+    return this.sendObjects(Object.values(restoreLogs), req, {
+      path: 'restore-logs',
+      limit,
+      privilege: { action: 'read', resource: 'restore-log' },
+    })
   }
 
   /**

@@ -3,7 +3,12 @@ import { createGzip } from 'node:zlib'
 import { pipeline } from 'node:stream/promises'
 import { Readable, type Transform } from 'node:stream'
 import { Request } from 'express'
-import type { SupportedActionsByResource, SupportedResource } from '@xen-orchestra/acl'
+import {
+  hasPrivilegeOn,
+  type SupportedActions,
+  type SupportedActionsByResource,
+  type SupportedResource,
+} from '@xen-orchestra/acl'
 import type { VatesTask } from '@vates/types/lib/vates/task'
 import type { XapiXoRecord, XoRecord, XoTask } from '@vates/types/xo'
 import type { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
@@ -33,13 +38,37 @@ export abstract class BaseController<T extends RestXoRecord, IsSync extends bool
     this.restApi = restApi
   }
 
-  sendObjects<Objects extends RestXoRecord = T>(
+  async sendObjects<Resource extends SupportedResource, Objects extends RestXoRecord = T>(
     objects: Objects[],
     req: Request,
-    path?: string | ((obj: Objects) => string)
+    opts?: {
+      path?: string | ((obj: Objects) => string)
+      privilege?: { action: SupportedActions<Resource>; resource: Resource }
+      limit?: number
+    }
   ): SendObjects<Objects> {
-    const mapper = makeObjectMapper(req, path)
-    const mappedObjects = objects.map(mapper) as string[] | WithHref<Objects>[]
+    const mapper = makeObjectMapper(req, opts?.path)
+    const mappedObjects: (string | WithHref<Partial<Objects>>)[] = []
+
+    const user = this.restApi.getCurrentUser()
+    const userPrivileges = opts?.privilege !== undefined ? await this.restApi.xoApp.getAclV2UserPrivileges(user.id) : []
+
+    let limit = opts?.limit ?? Infinity
+    for (const object of objects) {
+      if (limit === 0) {
+        break
+      }
+
+      if (
+        opts?.privilege !== undefined &&
+        !hasPrivilegeOn({ user, userPrivileges, objects: object, ...opts.privilege })
+      ) {
+        continue
+      }
+
+      mappedObjects.push(mapper(object))
+      limit--
+    }
 
     if (req.query.ndjson === 'true') {
       const res = req.res as ExResponse
@@ -49,7 +78,7 @@ export abstract class BaseController<T extends RestXoRecord, IsSync extends bool
 
       return stream
     } else {
-      return mappedObjects
+      return mappedObjects as Awaited<SendObjects<Objects>>
     }
   }
 

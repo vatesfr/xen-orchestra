@@ -13,6 +13,8 @@ type BasePrivilege = {
 // even if `@xen-orchestra/acl`already expose `AnyPrivilege`, we sadly need to re-export the type.
 // `AnyPrivilege` is too complex to be used for the openAPI spec generation
 export type RestAnyPrivilege =
+  | (BasePrivilege & { resource: 'acl-privilege'; action: ActionsByResource['acl-privilege'] })
+  | (BasePrivilege & { resource: 'acl-role'; action: ActionsByResource['acl-role'] })
   | (BasePrivilege & { resource: 'alarm'; action: ActionsByResource['alarm'] })
   | (BasePrivilege & { resource: 'backup-archive'; action: ActionsByResource['backup-archive'] })
   | (BasePrivilege & { resource: 'backup-job'; action: ActionsByResource['backup-job'] })
@@ -49,6 +51,8 @@ export type RestAnyPrivilege =
 // And also to ensure type from `@xen-orchestra/acl` and type from here are the same
 // type sync validation is done after this type
 type ActionsByResource = {
+  'acl-privilege': 'read'
+  'acl-role': 'read'
   alarm: 'read'
   'backup-archive': 'read'
   'backup-job': 'read'

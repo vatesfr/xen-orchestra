@@ -35,6 +35,9 @@ export class NetworkController extends XapiXoController<XoNetwork> {
   }
 
   /**
+   * Returns all networks that match the following privilege:
+   * resource: network, action: read
+   *
    * @example fields "nbd,name_label,id"
    * @example filter "nbd?"
    * @example limit 42
@@ -49,7 +52,10 @@ export class NetworkController extends XapiXoController<XoNetwork> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoNetwork>>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'network' },
+    })
   }
 
   /**
@@ -74,6 +80,9 @@ export class NetworkController extends XapiXoController<XoNetwork> {
   }
 
   /**
+   * Returns all alarms that match the following privilege:
+   * resource: alarm, action: read
+   *
    * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
    * @example fields "id,time"
    * @example filter "time:>1747053793"
@@ -94,13 +103,19 @@ export class NetworkController extends XapiXoController<XoNetwork> {
     const network = this.getObject(id as XoNetwork['id'])
     const alarms = this.#alarmService.getAlarms({
       filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${network.uuid}`,
-      limit,
     })
 
-    return this.sendObjects(Object.values(alarms), req, 'alarms')
+    return this.sendObjects(Object.values(alarms), req, {
+      path: 'alarms',
+      limit,
+      privilege: { action: 'read', resource: 'alarm' },
+    })
   }
 
   /**
+   * Returns all messages that match the following privilege:
+   * resource: message, action: read
+   *
    * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
    * @example fields "name,id,$object"
    * @example filter "name:VM_STARTED"
@@ -119,12 +134,19 @@ export class NetworkController extends XapiXoController<XoNetwork> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
-    const messages = this.getMessagesForObject(id as XoNetwork['id'], { filter, limit })
+    const messages = this.getMessagesForObject(id as XoNetwork['id'], { filter })
 
-    return this.sendObjects(Object.values(messages), req, 'messages')
+    return this.sendObjects(Object.values(messages), req, {
+      path: 'messages',
+      limit,
+      privilege: { action: 'read', resource: 'message' },
+    })
   }
 
   /**
+   * Returns all tasks that match the following privilege:
+   * resource: task, action: read
+   *
    * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
    * @example fields "id,status,properties"
    * @example filter "status:failure"
@@ -142,10 +164,14 @@ export class NetworkController extends XapiXoController<XoNetwork> {
     @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
-    const tasks = await this.getTasksForObject(id as XoNetwork['id'], { filter, limit })
+  ): SendObjects<Partial<Unbrand<XoTask>>> {
+    const tasks = await this.getTasksForObject(id as XoNetwork['id'], { filter })
 
-    return this.sendObjects(Object.values(tasks), req, 'tasks')
+    return this.sendObjects(Object.values(tasks), req, {
+      path: 'tasks',
+      limit,
+      privilege: { action: 'read', resource: 'task' },
+    })
   }
 
   /**

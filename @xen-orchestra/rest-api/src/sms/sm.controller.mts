@@ -22,6 +22,9 @@ export class SmController extends XapiXoController<XoSm> {
   }
 
   /**
+   * Returns all SMs that match the following privilege:
+   * resource: sm, action: read
+   *
    * @example fields "uuid,name_label,SM_type"
    * @example filter "SM_type:ext"
    * @example limit 42
@@ -36,7 +39,10 @@ export class SmController extends XapiXoController<XoSm> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoSm>>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'sm' },
+    })
   }
 
   /**
