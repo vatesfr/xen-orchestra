@@ -1,4 +1,4 @@
-<!-- v3 -->
+<!-- v7 -->
 <template>
   <li :class="classNames" class="ui-legend">
     <VtsIcon name="fa:circle" size="extra-small" class="circle-icon" />
@@ -78,15 +78,15 @@ const classNames = computed(() => toVariants({ accent }))
 
   /* COLORS VARIANTS */
 
-  &.accent--neutral {
-    .circle-icon {
-      color: var(--color-neutral-txt-secondary);
-    }
-  }
-
   &.accent--info {
     .circle-icon {
       color: var(--color-info-item-base);
+    }
+  }
+
+  &.accent--secondary {
+    .circle-icon {
+      color: var(--color-neutral-txt-secondary);
     }
   }
 

@@ -15,6 +15,7 @@
     "@csstools/postcss-global-data": "^3.0.0",
     "@floating-ui/vue": "^1.1.6",
     "@fontsource/poppins": "^5.2.5",
+    "@fontsource/roboto-mono": "^5.2.8",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-regular-svg-icons": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
