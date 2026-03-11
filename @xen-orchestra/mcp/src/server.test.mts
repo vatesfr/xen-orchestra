@@ -43,7 +43,7 @@ describe('createServer', () => {
     it('registers all 8 tools', async () => {
       const { mcpClient } = await setupTestServer()
       const { tools } = await mcpClient.listTools()
-      const toolNames = tools.map((t) => t.name).sort()
+      const toolNames = tools.map(t => t.name).sort()
 
       assert.deepStrictEqual(toolNames, [
         'check_connection',
@@ -276,6 +276,7 @@ describe('validateEnv', () => {
 
     const config = validateEnv()
     assert.strictEqual(config.url, 'http://xo.local:9000')
+    assert.ok('username' in config)
     assert.strictEqual(config.username, 'admin')
     assert.strictEqual(config.password, 'pass')
   })
@@ -304,17 +305,30 @@ describe('validateEnv', () => {
     assert.throws(() => validateEnv(), { message: /XO_PASSWORD/ })
   })
 
-  it('lists all missing vars in error message', () => {
+  it('throws XO_URL error first when all vars are missing', () => {
     delete process.env.XO_URL
+    delete process.env.XO_TOKEN
     delete process.env.XO_USERNAME
     delete process.env.XO_PASSWORD
 
-    assert.throws(() => validateEnv(), (error: Error) => {
-      assert.ok(error.message.includes('XO_URL'))
-      assert.ok(error.message.includes('XO_USERNAME'))
-      assert.ok(error.message.includes('XO_PASSWORD'))
-      return true
-    })
+    assert.throws(() => validateEnv(), { message: /XO_URL/ })
+  })
+
+  it('lists missing credential vars when only XO_URL is set', () => {
+    process.env.XO_URL = 'http://xo.local:9000'
+    delete process.env.XO_TOKEN
+    delete process.env.XO_USERNAME
+    delete process.env.XO_PASSWORD
+
+    assert.throws(
+      () => validateEnv(),
+      (error: Error) => {
+        assert.ok(error.message.includes('XO_USERNAME'))
+        assert.ok(error.message.includes('XO_PASSWORD'))
+        assert.ok(error.message.includes('XO_TOKEN'))
+        return true
+      }
+    )
   })
 
   it('includes help text in error message', () => {
@@ -322,11 +336,60 @@ describe('validateEnv', () => {
     process.env.XO_USERNAME = 'admin'
     process.env.XO_PASSWORD = 'pass'
 
-    assert.throws(() => validateEnv(), (error: Error) => {
-      assert.ok(error.message.includes('Please set'))
-      assert.ok(error.message.includes('XO_URL'))
-      return true
-    })
+    assert.throws(
+      () => validateEnv(),
+      (error: Error) => {
+        assert.ok(error.message.includes('XO_URL'))
+        return true
+      }
+    )
+  })
+
+  it('returns token config when XO_TOKEN is set', () => {
+    process.env.XO_URL = 'http://xo.local:9000'
+    process.env.XO_TOKEN = 'my-token'
+    delete process.env.XO_USERNAME
+    delete process.env.XO_PASSWORD
+
+    const config = validateEnv()
+    assert.strictEqual(config.url, 'http://xo.local:9000')
+    assert.strictEqual('token' in config && config.token, 'my-token')
+    assert.strictEqual('username' in config, false)
+  })
+
+  it('prioritizes XO_TOKEN over XO_USERNAME/XO_PASSWORD', () => {
+    process.env.XO_URL = 'http://xo.local:9000'
+    process.env.XO_TOKEN = 'my-token'
+    process.env.XO_USERNAME = 'admin'
+    process.env.XO_PASSWORD = 'pass'
+
+    const config = validateEnv()
+    assert.strictEqual('token' in config && config.token, 'my-token')
+    assert.strictEqual('username' in config, false)
+  })
+
+  it('throws when neither XO_TOKEN nor XO_USERNAME/XO_PASSWORD are set', () => {
+    process.env.XO_URL = 'http://xo.local:9000'
+    delete process.env.XO_TOKEN
+    delete process.env.XO_USERNAME
+    delete process.env.XO_PASSWORD
+
+    assert.throws(
+      () => validateEnv(),
+      (error: Error) => {
+        assert.ok(error.message.includes('XO_USERNAME'))
+        assert.ok(error.message.includes('XO_PASSWORD'))
+        assert.ok(error.message.includes('XO_TOKEN'))
+        return true
+      }
+    )
+  })
+
+  it('throws when XO_URL is missing even with XO_TOKEN', () => {
+    delete process.env.XO_URL
+    process.env.XO_TOKEN = 'my-token'
+
+    assert.throws(() => validateEnv(), { message: /XO_URL/ })
   })
 })
 
@@ -343,10 +406,10 @@ describe('fetchDocumentation', () => {
 
   it('strips HTML and returns clean text', async () => {
     globalThis.fetch = async () => {
-      return new Response(
-        '<html><body><h1>Title</h1><p>Content here.</p><script>evil()</script></body></html>',
-        { status: 200, headers: { 'content-type': 'text/html' } }
-      )
+      return new Response('<html><body><h1>Title</h1><p>Content here.</p><script>evil()</script></body></html>', {
+        status: 200,
+        headers: { 'content-type': 'text/html' },
+      })
     }
 
     const text = await fetchDocumentation('/test')
