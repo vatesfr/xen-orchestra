@@ -11,8 +11,9 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [S3] add configuration for max/minPartSize and maxPartNumber in the API (PR [#9561](https://github.com/vatesfr/xen-orchestra/pull/9561))
+
 ### Bug fixes
-- [S3] add configuration for max/minPartSize and maxPartNumber in the API (PR [#9535](https://github.com/vatesfr/xen-orchestra/pull/9535))
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
