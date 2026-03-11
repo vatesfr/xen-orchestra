@@ -13,6 +13,7 @@ export async function importStream({ esxi, dataMap, disk, vmId, format }, consum
   const { datastore: datastoreName, diskPath } = disk
 
   let vmdk
+  let stream
   try {
     // we read the data from the full chain to ensure we don't have partial blocks ( blocks with 0 when clusters are in parent only)
     const { nbdInfos } = await esxi.spanwNbdKitProcess(vmId, `[${datastoreName}] ${diskPath}`)
@@ -20,22 +21,19 @@ export async function importStream({ esxi, dataMap, disk, vmId, format }, consum
     vmdk = new NbdDisk(nbdInfos, READ_BLOCK_SIZE, { dataMap })
 
     await vmdk.init()
+    signal?.throwIfAborted()
     vmdk = new ReadAhead(vmdk)
-    let stream
+
     if (format === VDI_FORMAT_QCOW2) {
-      stream = await toQcow2Stream(vmdk)
+      stream = await toQcow2Stream(vmdk, { signal })
     } else {
-      stream = await toVhdStream(vmdk)
+      stream = await toVhdStream(vmdk, { signal })
     }
-    const onAbort = () => stream.destroy(signal.reason)
-    signal?.addEventListener('abort', onAbort, { once: true })
-    try {
-      await consumerCallback(stream)
-    } finally {
-      signal?.removeEventListener('abort', onAbort)
-    }
+    Task.info(`got source stream for ${diskPath}`)
+    await consumerCallback(stream)
     return Math.round((vmdk.getNbGeneratedBlock() * vmdk.getBlockSize()) / 1024 / 1024)
   } catch (err) {
+    stream?.destroy(err)
     Task.warning(err)
     throw err
   } finally {

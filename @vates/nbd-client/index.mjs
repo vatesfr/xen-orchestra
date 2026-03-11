@@ -353,6 +353,7 @@ export default class NbdClient {
   async readBlock(index, size = NBD_DEFAULT_BLOCK_SIZE) {
     return pRetry(() => this.#readBlock(index, size), {
       tries: this.#readBlockRetries,
+      when: error => error.code !== 'ERR_ABORTED',
       onRetry: async err => {
         warn('will retry reading block ', index, err)
         await this.reconnect()

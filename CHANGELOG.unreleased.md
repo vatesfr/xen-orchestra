@@ -10,7 +10,8 @@
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
-- [V2V] Make import cancellable  (PR [#9552](https://github.com/vatesfr/xen-orchestra/pull/9552))
+
+- [V2V] Make import cancellable (PR [#9552](https://github.com/vatesfr/xen-orchestra/pull/9552))
 
 - [MCP] Support token authentication via `XO_TOKEN` environment variable as an alternative to username/password (PR [#9577](https://github.com/vatesfr/xen-orchestra/pull/9577))
 - [MCP] Add `list_vdis` tool to list virtual disks (PR [#9559](https://github.com/vatesfr/xen-orchestra/pull/9559))
@@ -52,9 +53,11 @@
 - @xen-orchestra/disk-transform patch
 - @xen-orchestra/fs minor
 - @xen-orchestra/mcp minor
+- @xen-orchestra/qcow2 minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web patch
+- vhd-lib minor
 - xo-server minor
 - xo-server-openmetrics minor
 
