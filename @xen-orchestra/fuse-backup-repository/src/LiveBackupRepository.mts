@@ -356,6 +356,29 @@ export class LiveBackupRepository {
           })
         },
 
+        rename(src, dest, cb) {
+          dbg('rename', src, '->', dest)
+          const srcRel = src.slice(1)
+          const destRel = dest.slice(1)
+          const disk = disks.get(srcRel)
+          if (disk !== undefined) {
+            disks.delete(srcRel)
+            disks.set(destRel, disk)
+            dbg('rename', src, '-> ok (disk key updated)')
+            return cb(0)
+          }
+          nodefs.promises.rename(cacheFilePath(srcRel), cacheFilePath(destRel)).then(
+            () => {
+              dbg('rename', src, '-> ok')
+              cb(0)
+            },
+            err => {
+              dbg('rename', src, '-> EIO', err)
+              cb(Fuse.EIO)
+            }
+          )
+        },
+
         unlink(path, cb) {
           dbg('unlink', path)
           if (disks.has(path.slice(1))) {

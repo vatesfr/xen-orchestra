@@ -12,6 +12,7 @@ declare module 'fuse-native' {
     mkdir?(path: string, mode: number, cb: (code: number) => void): void
     unlink?(path: string, cb: (code: number) => void): void
     statfs?(path: string, cb: (code: number, stat?: object) => void): void
+    rename?(src: string, dest: string, cb: (code: number) => void): void
   }
 
   interface FuseOptions {

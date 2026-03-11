@@ -20,6 +20,8 @@ import { BlockEntry, CLUSTER_SIZE, QcowLayout } from './QcowLayout.mjs'
  */
 // TODO: implement Disposable pattern once AsyncDisposable reaches Node.js LTS
 // (see guidelines.md § Resource Management)
+const BLOCK_CACHE_SIZE = 10
+
 export class ConsumerQcowRaw extends QcowLayout {
   #metadata: Buffer | null = null
   #metadataSize = 0
@@ -27,8 +29,14 @@ export class ConsumerQcowRaw extends QcowLayout {
   // Sorted ascending by fileOffset, one entry per allocated block
   #sortedBlocks: BlockEntry[] = []
 
+  // LRU cache: blockIndex → data Buffer
+  // Insertion order = LRU order (oldest first)
+  readonly #blockCache = new Map<number, Buffer>()
+  // In-flight reads: blockIndex → promise resolving to data Buffer
+  readonly #pendingReads = new Map<number, Promise<Buffer>>()
+
   get uuid() {
-    return '0c89fe68-699a-491b-8b68-1dbe558ca14e'
+    return '0c89fe68-699a-491b-8b68-1dbe558ca14f'
   }
 
   constructor(disk: RandomAccessDisk) {
@@ -119,12 +127,44 @@ export class ConsumerQcowRaw extends QcowLayout {
       const offsetInResult = overlapStart - start
       const copyLength = overlapEnd - overlapStart
 
-      // DiskLargerBlock extends RandomAccessDisk; DiskSmallerBlock implements
-      // readBlock() for RandomAccessDisk sources — both are safe to cast.
-      const { data } = await (this.disk as unknown as RandomAccessDisk).readBlock(blockIndex)
+      const data = await this.#cachedReadBlock(blockIndex)
       data.copy(result, offsetInResult, offsetInBlock, offsetInBlock + copyLength)
     }
   }
+  async #cachedReadBlock(blockIndex: number): Promise<Buffer> {
+    const cached = this.#blockCache.get(blockIndex)
+    if (cached !== undefined) {
+      // Refresh LRU order
+      this.#blockCache.delete(blockIndex)
+      this.#blockCache.set(blockIndex, cached)
+      return cached
+    }
+
+    const inflight = this.#pendingReads.get(blockIndex)
+    if (inflight !== undefined) {
+      return inflight
+    }
+
+    const promise = (this.disk as unknown as RandomAccessDisk)
+      .readBlock(blockIndex)
+      .then(({ data }) => {
+        this.#pendingReads.delete(blockIndex)
+        if (this.#blockCache.size >= BLOCK_CACHE_SIZE) {
+          // Evict oldest entry (first key in insertion order)
+          this.#blockCache.delete(this.#blockCache.keys().next().value!)
+        }
+        this.#blockCache.set(blockIndex, data)
+        return data
+      })
+      .catch(err => {
+        this.#pendingReads.delete(blockIndex)
+        throw err
+      })
+
+    this.#pendingReads.set(blockIndex, promise)
+    return promise
+  }
+
   size(): number {
     return this.#totalSize
   }
