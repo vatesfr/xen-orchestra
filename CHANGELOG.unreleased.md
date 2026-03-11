@@ -17,7 +17,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Backup] snapshots of VM with a CDROM mounted are not removed (PR [#9570](https://github.com/vatesfr/xen-orchestra/pull/9570))
+- [Backup] Reduce backup memory consumption (PR [#9557](https://github.com/vatesfr/xen-orchestra/pull/9557))
 
 ### Packages to release
 
@@ -35,6 +35,9 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/backups patch
+- @vates/generator-toolbox patch
+- @xen-orchestra/disk-transform patch
 - @xen-orchestra/mcp minor
+- xo-server minor
+
 <!--packages-end-->

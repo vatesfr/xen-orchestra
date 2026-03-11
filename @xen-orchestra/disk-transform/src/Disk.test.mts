@@ -28,7 +28,7 @@ test('Disk class', async t => {
       disk.blocks[key] = true
     }
     const foundKeys = []
-    const generator =  disk.diskBlocks()
+    const generator = disk.diskBlocks()
     for await (const block of generator) {
       foundKeys.push(block.index)
       assert.strictEqual(block.data.length, blockSize)
@@ -38,5 +38,25 @@ test('Disk class', async t => {
     keys.sort()
     foundKeys.sort()
     assert.deepStrictEqual(keys, foundKeys)
+  })
+
+  await t.test('diskBlocks calls progressHandler.done when consumer exits early', async () => {
+    let doneCalled = false
+    disk.progressHandler = {
+      setProgress: async () => {},
+      done: async () => {
+        doneCalled = true
+      },
+    }
+    disk.blocks[4] = true
+    disk.blocks[5] = true
+    disk.blocks[6] = true
+
+    // break after the first block — the inner generator's finally must still run
+    for await (const _ of disk.diskBlocks()) {
+      break
+    }
+
+    assert.strictEqual(doneCalled, true)
   })
 })
