@@ -3,6 +3,7 @@ import * as nodefs from 'node:fs'
 import * as nodepath from 'node:path'
 import { promisify } from 'node:util'
 import type { RawConsumer } from '@xen-orchestra/disk-transform'
+import { CowFile } from './CowFile.mjs'
 
 export type { RawConsumer }
 
@@ -25,7 +26,6 @@ const fsRead = promisify(nodefs.read)
 const fsWrite = promisify(nodefs.write)
 const fsStat = promisify(nodefs.stat)
 const fsTruncate = promisify(nodefs.truncate)
-const fsFtruncate = promisify(nodefs.ftruncate)
 const fsUnlink = promisify(nodefs.unlink)
 const fsReaddir = promisify(nodefs.readdir)
 
@@ -33,7 +33,7 @@ export class LiveBackupRepository {
   readonly #mountPoint: string
   readonly #cachePath: string
   // key: "directory/filename.qcow2"
-  readonly #disks = new Map<string, RawConsumer>()
+  readonly #disks = new Map<string, CowFile>()
   #fuse: Fuse | undefined
 
   constructor(mountPoint: string, cachePath: string) {
@@ -42,10 +42,12 @@ export class LiveBackupRepository {
   }
 
   /**
-   * Register a disk to be exposed as a read-only file at <directory>/<disk.uuid>.qcow2.
+   * Register a disk to be exposed as a copy-on-write file at <directory>/<disk.uuid>.qcow2.
    */
   addDisk(disk: RawConsumer, directory: string): void {
-    this.#disks.set(`${directory}/${disk.uuid}.qcow2`, disk)
+    const rel = `${directory}/${disk.uuid}.qcow2`
+    const overlayPath = nodepath.join(this.#cachePath, rel + '.cow')
+    this.#disks.set(rel, new CowFile(disk, overlayPath))
   }
 
   /**
@@ -73,8 +75,8 @@ export class LiveBackupRepository {
       }
       return dirs
     }
-
-    const dbg = (...args: unknown[]) => console.log('[FUSE]', ...args)
+    const DEBUG = false
+    const dbg = (...args: unknown[]) => DEBUG && console.log('[FUSE]', ...args)
 
     const fuse = new Fuse(
       this.#mountPoint,
@@ -84,7 +86,6 @@ export class LiveBackupRepository {
           const names: string[] = []
 
           if (path === '/') {
-            // top-level: directories derived from disk keys + cache entries
             for (const dir of diskDirs()) names.push(dir)
           } else {
             const dir = path.slice(1)
@@ -98,7 +99,8 @@ export class LiveBackupRepository {
           try {
             const cacheEntries = (await fsReaddir(cacheDirPath)) as string[]
             for (const entry of cacheEntries) {
-              if (!names.includes(entry)) names.push(entry)
+              // hide .cow overlay files from the share
+              if (!entry.endsWith('.cow') && !names.includes(entry)) names.push(entry)
             }
           } catch {
             // cache dir may not exist yet — ignore
@@ -113,13 +115,18 @@ export class LiveBackupRepository {
           if (path === '/') return cb(0, makeStat('dir', 4096))
           const rel = path.slice(1)
 
+          // hide .cow overlay files
+          if (rel.endsWith('.cow')) {
+            dbg('getattr', path, '-> ENOENT (.cow hidden)')
+            return cb(Fuse.ENOENT)
+          }
+
           const disk = disks.get(rel)
           if (disk !== undefined) {
             dbg('getattr', path, '-> disk file', disk.size())
             return cb(0, makeStat('file', disk.size()))
           }
 
-          // Is it a known directory (has disks under it)?
           if ([...disks.keys()].some(k => k.startsWith(rel + '/'))) {
             dbg('getattr', path, '-> disk dir')
             return cb(0, makeStat('dir', 4096))
@@ -163,6 +170,7 @@ export class LiveBackupRepository {
           dbg('open', path, 'flags=0o' + flags.toString(8))
           const rel = path.slice(1)
           if (disks.has(rel)) {
+            // Disk files are always openable; COW overlay is created lazily on first write
             const fd = nextFuseFd++
             openFds.set(fd, null)
             dbg('open', path, '-> disk fd', fd)
@@ -223,11 +231,8 @@ export class LiveBackupRepository {
           dbg('read', path, 'fd=', fd, 'len=', len, 'pos=', pos)
           const disk = disks.get(path.slice(1))
           if (disk !== undefined) {
-            disk.read(pos, len).then(
-              data => {
-                data.copy(buf, 0, 0, data.length)
-                cb(data.length)
-              },
+            disk.read(buf, len, pos).then(
+              bytesRead => cb(bytesRead),
               err => {
                 dbg('read', path, '-> EIO', err)
                 cb(Fuse.EIO)
@@ -252,9 +257,19 @@ export class LiveBackupRepository {
 
         write(path, fd, buf, len, pos, cb) {
           dbg('write', path, 'fd=', fd, 'len=', len, 'pos=', pos)
-          if (disks.has(path.slice(1))) {
-            dbg('write', path, '-> EPERM (disk)')
-            return cb(Fuse.EPERM)
+          const disk = disks.get(path.slice(1))
+          if (disk !== undefined) {
+            disk.write(buf, len, pos).then(
+              bytesWritten => {
+                dbg('write', path, '-> cow ok', bytesWritten, 'at', pos)
+                cb(bytesWritten)
+              },
+              err => {
+                dbg('write', path, '-> EIO (cow)', err)
+                cb(Fuse.EIO)
+              }
+            )
+            return
           }
           const realFd = openFds.get(fd)
           if (realFd != null) {
@@ -273,13 +288,20 @@ export class LiveBackupRepository {
 
         ftruncate(path, fd, size, cb) {
           dbg('ftruncate', path, 'fd=', fd, 'size=', size)
-          if (disks.has(path.slice(1))) {
-            dbg('ftruncate', path, '-> EPERM (disk)')
-            return cb(Fuse.EPERM)
+          const disk = disks.get(path.slice(1))
+          if (disk !== undefined) {
+            disk.truncate(size).then(
+              () => cb(0),
+              err => {
+                dbg('ftruncate', path, '-> EIO (cow)', err)
+                cb(Fuse.EIO)
+              }
+            )
+            return
           }
           const realFd = openFds.get(fd)
           if (realFd != null) {
-            fsFtruncate(realFd, size).then(
+            promisify(nodefs.ftruncate)(realFd, size).then(
               () => cb(0),
               err => {
                 dbg('ftruncate', path, '-> EIO', err)
@@ -294,9 +316,16 @@ export class LiveBackupRepository {
 
         truncate(path, size, cb) {
           dbg('truncate', path, 'size=', size)
-          if (disks.has(path.slice(1))) {
-            dbg('truncate', path, '-> EPERM (disk)')
-            return cb(Fuse.EPERM)
+          const disk = disks.get(path.slice(1))
+          if (disk !== undefined) {
+            disk.truncate(size).then(
+              () => cb(0),
+              err => {
+                dbg('truncate', path, '-> EIO (cow)', err)
+                cb(Fuse.EIO)
+              }
+            )
+            return
           }
           fsTruncate(cacheFilePath(path.slice(1)), size).then(
             () => cb(0),
@@ -305,6 +334,26 @@ export class LiveBackupRepository {
               cb(Fuse.EIO)
             }
           )
+        },
+
+        statfs(path, cb) {
+          dbg('statfs', path)
+          const bsize = 4096
+          const totalBytes = 1024 * 1024 * 1024 * 1024 // 1 TiB
+          const blocks = Math.floor(totalBytes / bsize)
+          cb(0, {
+            bsize,
+            frsize: bsize,
+            blocks,
+            bfree: blocks,
+            bavail: blocks,
+            files: 1000000,
+            ffree: 1000000,
+            favail: 1000000,
+            fsid: 0,
+            flag: 0,
+            namemax: 255,
+          })
         },
 
         unlink(path, cb) {

@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process'
-import { mkdtemp, readdir, rename, rm } from 'node:fs/promises'
+import { mkdtemp, rm } from 'node:fs/promises'
 import { randomInt } from 'node:crypto'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -45,7 +45,7 @@ type XapiWithObjects = Xapi & {
  * Lifecycle:
  *   1. Construct with the xapi client and the local server IP visible to pool hosts.
  *   2. Call addDisk() for each disk to expose.
- *   3. Call init() — exports NFS, registers SR via XAPI, then mounts FUSE.
+ *   3. Call init() — mounts FUSE, exports NFS, registers SR via XAPI.
  *   4. Call close() to tear everything down in reverse order.
  */
 export class VirtualStorageRepository {
@@ -76,7 +76,7 @@ export class VirtualStorageRepository {
   }
 
   /**
-   * Register a disk to be exposed as a read-only VHD file in the SR.
+   * Register a disk to be exposed as a copy-on-write file in the SR.
    * May be called before or after init().
    */
   addDisk(disk: RawConsumer): void {
@@ -91,12 +91,15 @@ export class VirtualStorageRepository {
     const base = tmpdir()
     this.#mountDir = await mkdtemp(join(base, 'xo-vsr-mount-'))
     this.#cacheDir = await mkdtemp(join(base, 'xo-vsr-cache-'))
-    console.log('mounted in', this.#mountDir)
-    await this.#mountFuse(this.#mountDir, this.#cacheDir)
+    console.log('[VSR] FUSE mount dir:', this.#mountDir)
+
+    this.#liveRepo = new LiveBackupRepository(this.#mountDir, this.#cacheDir)
+    await this.#liveRepo.init()
+
     await this.#exportNfs(this.#mountDir)
     this.#srUuid = await this.#createSr(this.#mountDir)
     for (const disk of this.#pendingDisks) {
-      this.#liveRepo!.addDisk(disk, this.#srUuid)
+      this.#liveRepo.addDisk(disk, this.#srUuid)
     }
     this.#pendingDisks.length = 0
   }
@@ -128,22 +131,12 @@ export class VirtualStorageRepository {
       name_description: `connected to ${pool.name_label}`,
       name_label: 'Backup repository',
       shared: true,
-      type: 'nfs', // SR LVM over iSCSI
+      type: 'nfs',
+      physical_size: 1024 * 1024 * 1024 * 1024,
     })
 
     const sr = await this.#xapi.call<{ uuid: string }>('SR.get_record', this.#srRef)
     return sr.uuid
-  }
-
-  // Move XCP-ng bootstrap files out of srDir into cacheDir (FUSE requires an empty mountpoint),
-  // then mount the FUSE filesystem at srDir backed by cacheDir.
-  async #mountFuse(srDir: string, cacheDir: string): Promise<void> {
-    for (const entry of await readdir(srDir)) {
-      await rename(join(srDir, entry), join(cacheDir, entry))
-    }
-
-    this.#liveRepo = new LiveBackupRepository(srDir, cacheDir)
-    await this.#liveRepo.init()
   }
 
   async close(): Promise<void> {
