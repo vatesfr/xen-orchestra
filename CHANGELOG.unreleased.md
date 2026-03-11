@@ -20,6 +20,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Backup] Reduce backup memory consumption (PR [#9557](https://github.com/vatesfr/xen-orchestra/pull/9557))
+- [VM/New] VCPU was ignored [Forum#11954](https://xcp-ng.org/forum/topic/11954/unable-to-define-count-of-cpus-during-vm-create) (PR [#9591](https://github.com/vatesfr/xen-orchestra/pull/9591))
 
 ### Packages to release
 
@@ -38,10 +39,12 @@
 <!--packages-start-->
 
 - @vates/generator-toolbox patch
+- @vates/types patch
 - @xen-orchestra/backups minor
 - @xen-orchestra/disk-transform patch
 - @xen-orchestra/fs minor
 - @xen-orchestra/mcp minor
+- @xen-orchestra/web patch
 - xo-server minor
 
 <!--packages-end-->
