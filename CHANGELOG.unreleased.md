@@ -11,6 +11,7 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [MCP] Add `list_networks` and `get_network_details` tools to query network resources (PR [#9595](https://github.com/vatesfr/xen-orchestra/pull/9595))
 - [MCP] Support token authentication via `XO_TOKEN` environment variable as an alternative to username/password (PR [#9577](https://github.com/vatesfr/xen-orchestra/pull/9577))
 - [Replication] Reuse the same VM as an incremental replication target (PR [#9524](https://github.com/vatesfr/xen-orchestra/pull/9524))
 - [S3] add configuration for max/minPartSize and maxPartNumber in the API (PR [#9561](https://github.com/vatesfr/xen-orchestra/pull/9561))

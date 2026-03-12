@@ -22,6 +22,8 @@ function createMockClient(overrides: Record<string, unknown> = {}): XoClient {
     getPoolDashboard: async () => ({ hostsByStatus: { running: 1 } }),
     getHost: async () => ({ id: 'host1', name_label: 'Host 1' }),
     getVmStats: async () => ({ endTimestamp: 0, interval: 0, stats: {} }),
+    listNetworks: async () => [{ id: 'network1', name_label: 'Network 1' }],
+    getNetwork: async () => ({ id: 'network1', name_label: 'Network 1', bridge: 'xenbr0' }),
     ...overrides,
   } as unknown as XoClient
 }
@@ -40,7 +42,7 @@ async function setupTestServer(mockClient?: XoClient) {
 
 describe('createServer', () => {
   describe('tool listing', () => {
-    it('registers all 8 tools', async () => {
+    it('registers all 10 tools', async () => {
       const { mcpClient } = await setupTestServer()
       const { tools } = await mcpClient.listTools()
       const toolNames = tools.map(t => t.name).sort()
@@ -48,9 +50,11 @@ describe('createServer', () => {
       assert.deepStrictEqual(toolNames, [
         'check_connection',
         'get_infrastructure_summary',
+        'get_network_details',
         'get_pool_dashboard',
         'get_vm_details',
         'list_hosts',
+        'list_networks',
         'list_pools',
         'list_vms',
         'search_documentation',
@@ -206,6 +210,74 @@ describe('createServer', () => {
       const text = (result.content as Array<{ type: string; text: string }>)[0].text
       const parsed = JSON.parse(text)
       assert.strictEqual(parsed[0].id, 'host1')
+    })
+  })
+
+  describe('list_networks tool', () => {
+    it('returns networks as JSON', async () => {
+      const { mcpClient } = await setupTestServer()
+      const result = await mcpClient.callTool({ name: 'list_networks', arguments: {} })
+      const text = (result.content as Array<{ type: string; text: string }>)[0].text
+      const parsed = JSON.parse(text)
+      assert.strictEqual(parsed[0].id, 'network1')
+    })
+
+    it('passes filter, fields, and limit', async () => {
+      let receivedArgs: { filter?: string; fields?: string; limit?: number } = {}
+      const mockClient = createMockClient({
+        listNetworks: async (options?: { filter?: string; fields?: string; limit?: number }) => {
+          receivedArgs = { filter: options?.filter, fields: options?.fields, limit: options?.limit }
+          return []
+        },
+      })
+      const { mcpClient } = await setupTestServer(mockClient)
+      await mcpClient.callTool({
+        name: 'list_networks',
+        arguments: { filter: 'bridge:xenbr0', fields: 'id,name_label', limit: 5 },
+      })
+      assert.strictEqual(receivedArgs.filter, 'bridge:xenbr0')
+      assert.strictEqual(receivedArgs.fields, 'id,name_label')
+      assert.strictEqual(receivedArgs.limit, 5)
+    })
+
+    it('returns error on failure', async () => {
+      const mockClient = createMockClient({
+        listNetworks: async () => {
+          throw new Error('Connection refused')
+        },
+      })
+      const { mcpClient } = await setupTestServer(mockClient)
+      const result = await mcpClient.callTool({ name: 'list_networks', arguments: {} })
+      const text = (result.content as Array<{ type: string; text: string }>)[0].text
+      assert.ok(text.includes('Failed to list networks'))
+    })
+  })
+
+  describe('get_network_details tool', () => {
+    it('returns network details', async () => {
+      const { mcpClient } = await setupTestServer()
+      const result = await mcpClient.callTool({
+        name: 'get_network_details',
+        arguments: { network_id: 'network1' },
+      })
+      const text = (result.content as Array<{ type: string; text: string }>)[0].text
+      const parsed = JSON.parse(text)
+      assert.strictEqual(parsed.id, 'network1')
+    })
+
+    it('returns error when network not found', async () => {
+      const mockClient = createMockClient({
+        getNetwork: async () => {
+          throw new Error('XO API error (404 Not Found): Not found')
+        },
+      })
+      const { mcpClient } = await setupTestServer(mockClient)
+      const result = await mcpClient.callTool({
+        name: 'get_network_details',
+        arguments: { network_id: 'nonexistent' },
+      })
+      const text = (result.content as Array<{ type: string; text: string }>)[0].text
+      assert.ok(text.includes('Failed to get network details'))
     })
   })
 
