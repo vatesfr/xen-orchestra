@@ -20,6 +20,7 @@
             :clipboard-text="clipboardText"
             :send-clipboard="sendClipboard"
             :has-guest-tools="guestToolsDetected"
+            :guest-tools-url="XCP_LINKS.GUEST_TOOLS"
           />
         </template>
       </VtsLayoutConsole>
@@ -43,6 +44,7 @@ import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
 import VtsRemoteConsole from '@core/components/console/VtsRemoteConsole.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import { XCP_LINKS } from '@core/constants.ts'
 import { useUiStore } from '@core/stores/ui.store'
 import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
