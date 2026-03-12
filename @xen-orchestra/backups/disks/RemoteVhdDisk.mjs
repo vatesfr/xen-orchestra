@@ -1,8 +1,8 @@
 // @ts-check
 
 /**
- * @typedef {import('vhd-lib/Vhd/VhdDirectory').VhdDirectory} VhdDirectory
- * @typedef {import('vhd-lib/Vhd/VhdFile').VhdFile} VhdFile
+ * @typedef {import('vhd-lib/Vhd/VhdDirectory.js').VhdDirectory} VhdDirectory
+ * @typedef {import('vhd-lib/Vhd/VhdFile.js').VhdFile} VhdFile
  * @typedef {import('vhd-lib/_createFooterHeader').VhdFooter} VhdFooter
  * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
  * @typedef {import('@xen-orchestra/disk-transform').FileAccessor} FileAccessor
