@@ -24,23 +24,16 @@
     "url": "https://vates.fr"
   },
   "license": "ISC",
+  "types": "index.d.ts",
   "version": "1.0.1",
   "engines": {
     "node": ">=8.10"
   },
   "scripts": {
-    "build": "tsc",
     "postversion": "npm publish --access public",
     "test": "node --test"
   },
   "devDependencies": {
-    "sinon": "^18.0.0",
-    "typescript": "^5.9.3"
-  },
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./index.js"
-    }
+    "sinon": "^18.0.0"
   }
 }

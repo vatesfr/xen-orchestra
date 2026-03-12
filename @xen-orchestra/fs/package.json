@@ -54,11 +54,10 @@
     "dotenv": "^16.0.0",
     "rimraf": "^6.0.1",
     "sinon": "^18.0.0",
-    "tmp": "^0.2.1",
-    "typescript": "~5.6.3"
+    "tmp": "^0.2.1"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/ && tsc",
+    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "clean": "rimraf dist/",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "prebuild": "yarn run clean",
@@ -72,13 +71,7 @@
     "url": "https://vates.fr"
   },
   "exports": {
-    ".": {
-      "types": "./dist/fs.d.mts",
-      "default": "./dist/index.js"
-    },
-    "./path": {
-      "types": "./dist/path.d.mts",
-      "default": "./dist/path.js"
-    }
+    ".": "./dist/index.js",
+    "./path": "./dist/path.js"
   }
 }
