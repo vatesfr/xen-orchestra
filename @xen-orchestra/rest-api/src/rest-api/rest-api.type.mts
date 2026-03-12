@@ -263,7 +263,10 @@ export type XoApp = {
       preferences?: Record<string, string>
     }
   ): Promise<void>
-  updateAclV2Privilege<Resource extends SupportedResource, Privilege extends RestAnyPrivilege>(
+  updateAclV2Privilege<
+    Resource extends SupportedResource,
+    Privilege extends RestAnyPrivilege = Extract<RestAnyPrivilege, { resource: Resource }>,
+  >(
     privilegeId: Privilege['id'],
     privilege: {
       action?: Privilege['action']
