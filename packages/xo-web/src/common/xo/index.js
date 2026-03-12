@@ -3337,17 +3337,18 @@ export const createSrNfs = (
   serverPath,
   nfsVersion = undefined,
   nfsOptions,
-  srUuid
+  srUuid,
+  preferredImageFormat
 ) => {
-  const params = { host, nameLabel, nameDescription, server, serverPath }
+  const params = { host, nameLabel, nameDescription, server, serverPath, preferredImageFormat }
   nfsVersion && (params.nfsVersion = nfsVersion)
   nfsOptions && (params.nfsOptions = nfsOptions)
   srUuid && (params.srUuid = srUuid)
   return _call('sr.createNfs', params)
 }
 
-export const createSrSmb = (host, nameLabel, nameDescription, server, user, password, srUuid) => {
-  const params = { host, nameLabel, nameDescription, server, user, password }
+export const createSrSmb = (host, nameLabel, nameDescription, server, user, password, srUuid, preferredImageFormat) => {
+  const params = { host, nameLabel, nameDescription, server, user, password, preferredImageFormat }
   if (srUuid !== undefined) {
     params.srUuid = srUuid
   }
@@ -3364,9 +3365,10 @@ export const createSrIscsi = (
   port = undefined,
   chapUser = undefined,
   chapPassword = undefined,
-  srUuid
+  srUuid,
+  preferredImageFormat
 ) => {
-  const params = { host, nameLabel, nameDescription, target, targetIqn, scsiId }
+  const params = { host, nameLabel, nameDescription, target, targetIqn, scsiId, preferredImageFormat }
   port && (params.port = port)
   chapUser && (params.chapUser = chapUser)
   chapPassword && (params.chapPassword = chapPassword)
@@ -3374,8 +3376,8 @@ export const createSrIscsi = (
   return _call('sr.createIscsi', params)
 }
 
-export const createSrHba = (host, nameLabel, nameDescription, scsiId, srUuid) => {
-  const params = { host, nameLabel, nameDescription, scsiId }
+export const createSrHba = (host, nameLabel, nameDescription, scsiId, srUuid, preferredImageFormat) => {
+  const params = { host, nameLabel, nameDescription, scsiId, preferredImageFormat }
   srUuid && (params.srUuid = srUuid)
   return _call('sr.createHba', params)
 }
@@ -3401,11 +3403,11 @@ export const createSrIso = (
   return _call('sr.createIso', params)
 }
 
-export const createSrLvm = (host, nameLabel, nameDescription, device) =>
-  _call('sr.createLvm', { host, nameLabel, nameDescription, device })
+export const createSrLvm = (host, nameLabel, nameDescription, device, preferredImageFormat) =>
+  _call('sr.createLvm', { host, nameLabel, nameDescription, device, preferredImageFormat })
 
-export const createSrExt = (host, nameLabel, nameDescription, device) =>
-  _call('sr.createExt', { host, nameLabel, nameDescription, device })
+export const createSrExt = (host, nameLabel, nameDescription, device, preferredImageFormat) =>
+  _call('sr.createExt', { host, nameLabel, nameDescription, device, preferredImageFormat })
 
 export const createSrZfs = (host, nameLabel, nameDescription, location) =>
   _call('sr.createZfs', {
