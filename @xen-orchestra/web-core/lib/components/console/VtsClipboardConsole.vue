@@ -2,9 +2,12 @@
   <div class="vts-clipboard-console">
     <UiCardTitle>{{ t('console-clipboard') }}</UiCardTitle>
     <UiTextarea accent="brand" :model-value="modelValue" @update:model-value="modelValue = $event" />
-    <UiInfo v-if="!hasGuestTools" accent="warning">
-      {{ t('no-xen-tools-detected') }}
-    </UiInfo>
+    <div v-if="!hasGuestTools" class="no-guest-tools">
+      <VtsIcon name="status:halted-circle" size="medium" />
+      <UiLink size="small" :href="guestToolsUrl">
+        {{ t('no-xen-tools-detected') }}
+      </UiLink>
+    </div>
     <div class="buttons-container">
       <UiButton accent="brand" variant="primary" size="medium" @click="onSend">
         {{ t('action:send') }}
@@ -24,9 +27,10 @@
 </template>
 
 <script setup lang="ts">
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiInfo from '@core/components/ui/info/UiInfo.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useClipboard } from '@vueuse/core'
@@ -37,6 +41,7 @@ const props = defineProps<{
   clipboardText: string
   sendClipboard: (text: string) => void
   hasGuestTools?: boolean | undefined
+  guestToolsUrl?: string
 }>()
 
 const { t } = useI18n()
@@ -65,6 +70,12 @@ const onReceive = () => {
   flex-direction: column;
   gap: 0.8rem;
   width: 100%;
+
+  .no-guest-tools {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
 
   .buttons-container {
     display: flex;
