@@ -15,6 +15,7 @@
 - [Replication] Reuse the same VM as an incremental replication target (PR [#9524](https://github.com/vatesfr/xen-orchestra/pull/9524))
 - [S3] add configuration for max/minPartSize and maxPartNumber in the API (PR [#9561](https://github.com/vatesfr/xen-orchestra/pull/9561))
 - [REST API] Expose `/rest/v0/vms/:id/actions/clone` (PR [#9453](https://github.com/vatesfr/xen-orchestra/pull/9453))
+- [Backup] New `xo-disk-cli` command-line tool to inspect and export disks from backup repositories (`info`, `list`, `transform` commands) (PR [#9551](https://github.com/vatesfr/xen-orchestra/pull/9551))
 
 ### Bug fixes
 
@@ -39,14 +40,17 @@
 
 <!--packages-start-->
 
+- @vates/async-each patch
 - @vates/generator-toolbox patch
 - @vates/types minor
 - @xen-orchestra/backups minor
+- @xen-orchestra/disk-cli major
 - @xen-orchestra/disk-transform patch
 - @xen-orchestra/fs minor
 - @xen-orchestra/mcp minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
+- vhd-cli patch
 - xo-server minor
 
 <!--packages-end-->
