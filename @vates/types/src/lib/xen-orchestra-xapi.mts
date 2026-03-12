@@ -134,6 +134,7 @@ export interface Xapi {
       nameLabel?: string
     }
   ): Promise<{ vm: XenApiVmWrapped }>
+  forgetSr(id: XoSr['id']): Promise<void>
   SR_importVdi(
     ref: XenApiSr['$ref'],
     stream: Readable,
