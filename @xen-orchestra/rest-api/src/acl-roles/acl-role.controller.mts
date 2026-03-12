@@ -84,7 +84,7 @@ export class AclRoleController extends XoController<XoAclRole> {
    *  "description": "Allow to create VMs"
    * }
    */
-  @Example(aclRoleIds)
+  @Example({ id: '784bd959-08de-4b26-b575-92ded5aef872' })
   @Post('')
   @Middlewares(json())
   @SuccessResponse(createdResp.status, createdResp.description)
@@ -124,7 +124,6 @@ export class AclRoleController extends XoController<XoAclRole> {
    *  "description": "Allow to create VMs"
    * }
    */
-  @Example(aclRole)
   @Patch('{id}')
   @Middlewares(json())
   @SuccessResponse(noContentResp.status, noContentResp.description)

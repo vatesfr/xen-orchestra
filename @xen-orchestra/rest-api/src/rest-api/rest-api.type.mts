@@ -133,7 +133,10 @@ export type XoApp = {
   checkFeatureAuthorization(featureCode: string): Promise<void>
   /* connect a server (XCP-ng/XenServer) */
   connectXenServer(id: XoServer['id']): Promise<void>
-  createAclV2Privilege<Resource extends SupportedResource, Privilege extends RestAnyPrivilege>(
+  createAclV2Privilege<
+    Resource extends SupportedResource,
+    Privilege extends RestAnyPrivilege = Extract<RestAnyPrivilege, { resource: Resource }>,
+  >(
     privilege: {
       action: Privilege['action']
       selector?: Privilege['selector']
