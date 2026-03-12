@@ -808,6 +808,9 @@ const messages = {
   newSrLocalPathPlaceHolder: '/path/to/directory',
   newSrNfsDefaultVersion: 'Default NFS version',
   newSrNfsOptions: 'Comma delimited NFS options',
+  newSrPreferredImageFormat: 'Preferred image format',
+  newSrPreferredImageFormatTooltip:
+    'Accepted values: vhd, qcow2 or both (e.g. "vhd, qcow2"). Leave empty to use the default.',
   newSrNfs: 'NFS version',
   noSharedZfsAvailable: 'No shared ZFS available',
   reattachNewSrTooltip: 'Reattach SR',
