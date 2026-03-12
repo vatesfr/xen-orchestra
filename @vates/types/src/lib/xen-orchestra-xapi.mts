@@ -316,4 +316,6 @@ export interface Xapi {
   ): Promise<{ body: Readable }>
   isHyperThreadingEnabled(hostId: XoHost['id']): Promise<boolean | null>
   VTPM_create(params: { VM: XenApiVm['$ref']; is_unique?: boolean; contents?: string }): Promise<XenApiVtpm['$ref']>
+  destroySr(id: XoSr['id']): Promise<void>
+  xostor_delete(ref: XenApiSr['$ref']): Promise<void>
 }

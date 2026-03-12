@@ -14,6 +14,8 @@ import { UserService } from '../users/user.service.mjs'
 import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
 import { BackupLogService } from '../backup-logs/backup-log.service.mjs'
 import { EventService } from '../events/event.service.mjs'
+import { SrService } from '../srs/sr.service.mjs'
+import { LicenseService } from '../licenses/license.service.mjs'
 
 const iocContainer = new Container()
 
@@ -106,6 +108,22 @@ export function setupContainer(xoApp: XoApp) {
     .toDynamicValue(ctx => {
       const restApi = ctx.container.get(RestApi)
       return new EventService(restApi)
+    })
+    .inSingletonScope()
+
+  iocContainer
+    .bind(SrService)
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new SrService(restApi)
+    })
+    .inSingletonScope()
+
+  iocContainer
+    .bind(LicenseService)
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new LicenseService(restApi)
     })
     .inSingletonScope()
 }

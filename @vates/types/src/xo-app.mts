@@ -254,4 +254,18 @@ export type XoApp = {
   ): void
   getAllXapis(): Record<string, XapiConnection>
   getObjects(opts?: { filter?: Record<string, unknown>; limit?: number }): Record<string, XapiXoRecord>
+  getLicenses(params: { productType: string }): Promise<
+    Array<{
+      id: string
+      boundObjectId?: string
+      expires?: number
+      tags?: string[]
+    }>
+  >
+  unbindLicense(params: {
+    productId: string
+    boundObjectId: string
+    licenseId: string
+    data?: Record<string, string>
+  }): Promise<unknown>
 }
