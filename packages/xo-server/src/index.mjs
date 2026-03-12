@@ -628,6 +628,10 @@ const setUpProxies = (express, opts, xo) => {
       targetUrl.protocol = targetUrl.protocol === 'ws:' ? 'wss:' : 'https:'
     }
 
+    if (userHttpConfig.hostname !== undefined && targetUrl.hostname === 'localhost') {
+      targetUrl.hostname = userHttpConfig.hostname
+    }
+
     return targetUrl
   }
 

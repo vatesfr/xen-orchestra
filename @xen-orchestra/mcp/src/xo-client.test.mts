@@ -45,6 +45,19 @@ describe('XoClient', () => {
       }
       await client.listPools()
     })
+
+    it('creates correct cookie header for token auth', async () => {
+      const token = 'test-token-abc123'
+      const client = new XoClient({ url: 'http://xo.local:9000', token })
+
+      globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+        const headers = init?.headers as Record<string, string>
+        assert.strictEqual(headers?.cookie, `authenticationToken=${token}`)
+        assert.strictEqual(headers?.Authorization, undefined)
+        return mockResponse([])
+      }
+      await client.listPools()
+    })
   })
 
   describe('request', () => {
@@ -97,14 +110,25 @@ describe('XoClient', () => {
       }
     })
 
-    it('throws descriptive error on 401', async () => {
+    it('throws descriptive error on 401 with basic auth', async () => {
       const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'wrong' })
 
       globalThis.fetch = async () => {
         return new Response('Unauthorized', { status: 401, statusText: 'Unauthorized' })
       }
       await assert.rejects(() => client.listPools(), {
-        message: /Authentication failed/,
+        message: /check XO_USERNAME and XO_PASSWORD/,
+      })
+    })
+
+    it('throws descriptive error on 401 with token auth', async () => {
+      const client = new XoClient({ url: 'http://xo.local:9000', token: 'expired-token' })
+
+      globalThis.fetch = async () => {
+        return new Response('Unauthorized', { status: 401, statusText: 'Unauthorized' })
+      }
+      await assert.rejects(() => client.listPools(), {
+        message: /check XO_TOKEN/,
       })
     })
 

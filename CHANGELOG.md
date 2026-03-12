@@ -1,8 +1,38 @@
 # ChangeLog
 
-## **6.2.1 ** (2026-02-27)
+## **6.2.2 ** (2026-03-09)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Enhancements
+
+- [VM/New] Added secureBoot support (PR [#9423](https://github.com/vatesfr/xen-orchestra/pull/9423))
+- [i18n] Update Czech and Danish translations (PR [#9531](https://github.com/vatesfr/xen-orchestra/pull/9531))
+- [openmetrics] add XO process metrics (PR [#9535](https://github.com/vatesfr/xen-orchestra/pull/9535))
+- [VM] Add backup runs and backup archives cards on dashboard (PR [#9303](https://github.com/vatesfr/xen-orchestra/pull/9303))
+- [Backups] Fix out of range error on merge (PR [#9567](https://github.com/vatesfr/xen-orchestra/pull/9567))
+
+### Bug fixes
+
+- [Dashboard] Fix reactivity of dashboard (PR [#9378](https://github.com/vatesfr/xen-orchestra/pull/9378))
+- [OpenMetrics] Fix latency metrics (`xcp_host_disk_read_latency_seconds`, `xcp_host_disk_write_latency_seconds`, `xcp_vm_disk_read_latency_seconds`, `xcp_vm_disk_write_latency_seconds`) reporting milliseconds instead of seconds (PR [#9550](https://github.com/vatesfr/xen-orchestra/pull/9550))
+- [Backup] snapshots of VM with a CDROM mounted are not removed (PR [#9570](https://github.com/vatesfr/xen-orchestra/pull/9570))
+- [OpenMetrics] Fix plugin failing to auto-start after xo-server restart due to XOA WebSocket connection race condition (PR [#9402](https://github.com/vatesfr/xen-orchestra/pull/9402))
+
+- **XO 5**:
+  - [Self Service] Fix RAM usage not being properly updated in some cases. Please use "Recompute all limits" in the Self Service dashboard to fix any incorrect quota values introduced by this bug. (PR [#9566](https://github.com/vatesfr/xen-orchestra/pull/9566))
+  - If a hostname was defined in a configuration file, `/v5` were not accessible [#9500](https://github.com/vatesfr/xen-orchestra/issues/9500) (PR [#9572](https://github.com/vatesfr/xen-orchestra/pull/9572))
+
+### Released packages
+
+- @xen-orchestra/web-core 0.46.0
+- @xen-orchestra/web 0.44.0
+- xo-server-openmetrics 1.3.0
+- @xen-orchestra/backups 0.69.4
+- @xen-orchestra/proxy 0.29.51
+- xo-server 5.197.5
+
+## **6.2.1 ** (2026-02-27)
 
 ### Bug fixes
 
