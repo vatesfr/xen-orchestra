@@ -209,6 +209,7 @@ export async function createNfs({
   nfsVersion,
   nfsOptions,
   srUuid,
+  preferredImageFormat,
 }) {
   const xapi = this.getXapi(host)
 
@@ -225,6 +226,10 @@ export async function createNfs({
   //  if NFS options given
   if (nfsOptions) {
     deviceConfig.options = nfsOptions
+  }
+
+  if (preferredImageFormat) {
+    deviceConfig['preferred-image-formats'] = preferredImageFormat
   }
 
   // Reattach
@@ -260,19 +265,33 @@ createNfs.params = {
   nfsVersion: { type: 'string', optional: true },
   nfsOptions: { type: 'string', optional: true },
   srUuid: { type: 'string', optional: true },
+  preferredImageFormat: { type: 'string', optional: true },
 }
 
 createNfs.resolve = {
   host: ['host', 'host', 'administrate'],
 }
 
-export async function createSmb({ host, nameLabel, nameDescription, server, user, password, srUuid }) {
+export async function createSmb({
+  host,
+  nameLabel,
+  nameDescription,
+  server,
+  user,
+  password,
+  srUuid,
+  preferredImageFormat,
+}) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
     server,
     username: user,
     password,
+  }
+
+  if (preferredImageFormat) {
+    deviceConfig['preferred-image-formats'] = preferredImageFormat
   }
 
   if (srUuid !== undefined) {
@@ -305,6 +324,7 @@ createSmb.params = {
   srUuid: { type: 'string', optional: true },
   user: { type: 'string', optional: true },
   password: { type: 'string', optional: true },
+  preferredImageFormat: { type: 'string', optional: true },
 }
 
 createSmb.resolve = {
@@ -315,11 +335,14 @@ createSmb.resolve = {
 
 // This functions creates an HBA SR
 
-export async function createHba({ host, nameLabel, nameDescription, scsiId, srUuid }) {
+export async function createHba({ host, nameLabel, nameDescription, scsiId, srUuid, preferredImageFormat }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
     SCSIid: scsiId,
+  }
+  if (preferredImageFormat) {
+    deviceConfig['preferred-image-formats'] = preferredImageFormat
   }
 
   // Reattach
@@ -352,6 +375,7 @@ createHba.params = {
   nameDescription: { type: 'string', minLength: 0 },
   scsiId: { type: 'string' },
   srUuid: { type: 'string', optional: true },
+  preferredImageFormat: { type: 'string', optional: true },
 }
 
 createHba.resolve = {
@@ -363,11 +387,14 @@ createHba.resolve = {
 
 // This functions creates a local LVM SR
 
-export async function createLvm({ host, nameLabel, nameDescription, device }) {
+export async function createLvm({ host, nameLabel, nameDescription, device, preferredImageFormat }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
     device,
+  }
+  if (preferredImageFormat) {
+    deviceConfig['preferred-image-formats'] = preferredImageFormat
   }
 
   const srRef = await xapi.SR_create({
@@ -388,6 +415,7 @@ createLvm.params = {
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string', minLength: 0 },
   device: { type: 'string' },
+  preferredImageFormat: { type: 'string', optional: true },
 }
 
 createLvm.resolve = {
@@ -399,13 +427,16 @@ createLvm.resolve = {
 
 // This functions creates a local ext SR
 
-export async function createExt({ host, nameLabel, nameDescription, device }) {
+export async function createExt({ host, nameLabel, nameDescription, device, preferredImageFormat }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
     device,
   }
 
+  if (preferredImageFormat) {
+    deviceConfig['preferred-image-formats'] = preferredImageFormat
+  }
   const srRef = await xapi.SR_create({
     device_config: deviceConfig,
     host: host._xapiRef,
@@ -424,6 +455,7 @@ createExt.params = {
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string', minLength: 0 },
   device: { type: 'string' },
+  preferredImageFormat: { type: 'string', optional: true },
 }
 
 createExt.resolve = {
@@ -611,6 +643,7 @@ export async function createIscsi({
   chapUser,
   chapPassword,
   srUuid,
+  preferredImageFormat,
 }) {
   const xapi = this.getXapi(host)
 
@@ -618,6 +651,9 @@ export async function createIscsi({
     target,
     targetIQN: targetIqn,
     SCSIid: scsiId,
+  }
+  if (preferredImageFormat) {
+    deviceConfig['preferred-image-formats'] = preferredImageFormat
   }
 
   // if we give user and password
@@ -666,6 +702,7 @@ createIscsi.params = {
   chapUser: { type: 'string', optional: true },
   chapPassword: { type: 'string', optional: true },
   srUuid: { type: 'string', optional: true },
+  preferredImageFormat: { type: 'string', optional: true },
 }
 
 createIscsi.resolve = {
