@@ -15,6 +15,7 @@
 - [Replication] Reuse the same VM as an incremental replication target (PR [#9524](https://github.com/vatesfr/xen-orchestra/pull/9524))
 - [S3] add configuration for max/minPartSize and maxPartNumber in the API (PR [#9561](https://github.com/vatesfr/xen-orchestra/pull/9561))
 - [REST API] Expose `/rest/v0/vms/:id/actions/clone` (PR [#9453](https://github.com/vatesfr/xen-orchestra/pull/9453))
+- [SR] New "Preferred image format" field on SR creation forms (NFS, SMB, HBA, iSCSI, LVM, EXT) to control the disk format used by the SR
 
 ### Bug fixes
 
@@ -49,5 +50,6 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
 - xo-server minor
+- xo-web minor
 
 <!--packages-end-->
