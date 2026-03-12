@@ -12,8 +12,8 @@
 
 import { openVhd, VhdAbstract, VhdDirectory } from 'vhd-lib'
 import { RemoteDisk } from './RemoteDisk.mjs'
-import { DISK_TYPES } from 'vhd-lib/_constants'
-import { isVhdAlias, resolveVhdAlias } from 'vhd-lib/aliases'
+import { DISK_TYPES } from 'vhd-lib/_constants.js'
+import { isVhdAlias, resolveVhdAlias } from 'vhd-lib/aliases.js'
 import { stringify } from 'uuid'
 import { dirname, join } from 'node:path'
 
