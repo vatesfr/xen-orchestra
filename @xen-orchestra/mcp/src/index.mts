@@ -31,35 +31,44 @@ const DOC_TOPICS = [
   'releases',
 ] as const
 
-export interface EnvConfig {
-  url: string
-  username: string
-  password: string
-}
+export type EnvConfig = { url: string; username: string; password: string } | { url: string; token: string }
 
 export function validateEnv(): EnvConfig {
   const url = process.env.XO_URL
+  const token = process.env.XO_TOKEN
   const username = process.env.XO_USERNAME
   const password = process.env.XO_PASSWORD
 
+  if (!url) {
+    throw new Error(
+      'Missing required environment variable: XO_URL\n\n' +
+        'Please set:\n' +
+        '  XO_URL - Xen Orchestra server URL (e.g., http://xo.local:9000)'
+    )
+  }
+
+  // Token auth takes priority
+  if (token) {
+    return { url, token }
+  }
+
+  // Fall back to Basic Auth
   const missing: string[] = []
-  if (!url) missing.push('XO_URL')
   if (!username) missing.push('XO_USERNAME')
   if (!password) missing.push('XO_PASSWORD')
 
   if (missing.length > 0) {
     throw new Error(
       `Missing required environment variables: ${missing.join(', ')}\n\n` +
-        'Please set:\n' +
-        '  XO_URL      - Xen Orchestra server URL (e.g., http://xo.local:9000)\n' +
+        'Please set either:\n' +
+        '  XO_TOKEN    - Authentication token (from XO user page or xo-cli create-token)\n\n' +
+        'Or both:\n' +
         '  XO_USERNAME - Admin username\n' +
-        '  XO_PASSWORD - Password\n\n' +
-        'Note: XO currently requires username/password authentication.\n' +
-        'Token authentication is also supported via xo-cli create-token.'
+        '  XO_PASSWORD - Password'
     )
   }
 
-  return { url: url!, username: username!, password: password! }
+  return { url, username: username!, password: password! }
 }
 
 export async function fetchDocumentation(path: string): Promise<string> {
@@ -433,7 +442,7 @@ export async function main() {
   let xoClient: XoClient | null = null
   function getClient(): XoClient {
     if (!xoClient) {
-      xoClient = new XoClient({ url: env.url, username: env.username, password: env.password })
+      xoClient = new XoClient(env)
     }
     return xoClient
   }

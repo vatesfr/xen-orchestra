@@ -1,4 +1,7 @@
 import assert from 'node:assert'
+
+const TIMEOUT = Symbol('timeout')
+
 export class Timeout<T> implements AsyncGenerator {
   #source: AsyncGenerator<T>
   #timeout: number
@@ -8,21 +11,30 @@ export class Timeout<T> implements AsyncGenerator {
     this.#timeout = timeout
   }
   async next(): Promise<IteratorResult<T>> {
-    let timeout: ReturnType<typeof setTimeout>
-    const promiseTimeout = new Promise((_, reject) => {
-      timeout = setTimeout(() => {
-        reject(new Error('Timeout reached '))
-      }, this.#timeout)
-    })
-    const promiseNext = new Promise((resolve, reject) => {
-      this.#source.next().then(res => {
-        // ensure timetout won't fire later
-        clearTimeout(timeout)
-        resolve(res)
-      }, reject)
-    })
-    // promiseTimeout will never resolve
-    return Promise.race([promiseNext, promiseTimeout]) as Promise<IteratorResult<T>>
+    let timeoutHandle: ReturnType<typeof setTimeout>
+
+    const sourceNext = this.#source.next()
+    const result = await Promise.race([
+      sourceNext.then(res => {
+        clearTimeout(timeoutHandle)
+        return res
+      }),
+      new Promise<typeof TIMEOUT>(resolve => {
+        timeoutHandle = setTimeout(() => resolve(TIMEOUT), this.#timeout)
+      }),
+    ])
+
+    if (result === TIMEOUT) {
+      // stop the source once the in-flight next settles to avoid data loss on the next call
+      // we don't want to await for the end of timeouted code
+      sourceNext.then(
+        () => this.#source.return(undefined).catch(() => {}),
+        () => {} // source already errored, nothing to clean up
+      )
+      throw new Error('Timeout reached')
+    }
+
+    return result
   }
   return(): Promise<IteratorResult<T>> {
     return this.#source.return(undefined)
