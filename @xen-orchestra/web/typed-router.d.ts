@@ -58,6 +58,7 @@ declare module 'vue-router/auto-routes' {
     '/vm/[id]/backups': RouteRecordInfo<'/vm/[id]/backups', '/vm/:id/backups', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/vm/[id]/console': RouteRecordInfo<'/vm/[id]/console', '/vm/:id/console', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/vm/[id]/dashboard': RouteRecordInfo<'/vm/[id]/dashboard', '/vm/:id/dashboard', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    '/vm/[id]/duplicate': RouteRecordInfo<'/vm/[id]/duplicate', '/vm/:id/duplicate', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/vm/[id]/networks': RouteRecordInfo<'/vm/[id]/networks', '/vm/:id/networks', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/vm/[id]/system': RouteRecordInfo<'/vm/[id]/system', '/vm/:id/system', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/vm/[id]/tasks': RouteRecordInfo<'/vm/[id]/tasks', '/vm/:id/tasks', { id: ParamValue<true> }, { id: ParamValue<false> }>,
