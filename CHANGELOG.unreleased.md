@@ -48,6 +48,7 @@
 - [Backups] Fix regression on cleanVM speed (PR [#9692](https://github.com/vatesfr/xen-orchestra/pull/9692))
 - [REST API] Fix memory leak on SSE (PR [#9707](https://github.com/vatesfr/xen-orchestra/pull/9707))
 - [xo-server] Fix memory leak with secure session (PR [#9725](https://github.com/vatesfr/xen-orchestra/pull/9725))
+- [xo-server-sdn-controller] Better traffic-rules synchronization related to VM lifecycle (PR [#9518](https://github.com/vatesfr/xen-orchestra/pull/9518))
 - **XO 5**:
   - [VM/Copy]: Fix compression not used when copying a VM to another pool (PR [#9699](https://github.com/vatesfr/xen-orchestra/pull/9699))
 
