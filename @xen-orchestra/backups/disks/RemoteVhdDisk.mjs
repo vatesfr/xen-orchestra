@@ -166,17 +166,6 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
-   * @returns {number} getMaxBlockCount
-   */
-  getMaxBlockCount() {
-    if (this.#vhd === undefined) {
-      throw new Error(`can't call getMaxBlockCount of a RemoteVhdDisk before init`)
-    }
-
-    return this.#vhd.header.maxTableEntries
-  }
-
-  /**
    * Checks if the VHD contains a specific block.
    * @param {number} index
    * @returns {boolean}
@@ -328,6 +317,20 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
+   * Ensure that the disk can handle at least the new block count.
+   * @param {number} blockCount
+   * @returns {Promise<void>}
+   */
+  async resize(blockCount) {
+    if (this.#vhd === undefined) {
+      throw new Error(`can't call resize of a RemoteVhdDisk before init`)
+    }
+
+    // Checks that the BAT is at least as big as the provided block count, if not, increases it and shift the blocks position
+    await this.#vhd.ensureBatSize(blockCount)
+  }
+
+  /**
    * Writes Block Allocation Table
    * @param {RemoteDisk} childDisk
    * @returns {Promise<void>}
@@ -353,6 +356,7 @@ export class RemoteVhdDisk extends RemoteDisk {
 
   /**
    * @param {RemoteVhdDisk} childDisk
+   * @returns {Promise<void>}
    */
   async mergeMetadata(childDisk) {
     const childDiskMetadata = childDisk.getMetadata()

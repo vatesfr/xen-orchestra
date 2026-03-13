@@ -238,6 +238,7 @@ export class RemoteVhdDiskChain extends RemoteDisk {
 
   /**
    * @param {RemoteVhdDisk} childDisk
+   * @returns {Promise<void>}
    */
   mergeMetadata(childDisk) {
     throw new Error(`Can't merge metadata on a disk chain`)

@@ -31,10 +31,10 @@ import type {
   XoVm,
   XoVmSnapshot,
   XoMessage,
-  XoSr,
   XoNetwork,
   XoVif,
   XoPif,
+  XoSr,
 } from '@vates/types'
 import { PassThrough, Readable } from 'node:stream'
 
@@ -512,6 +512,71 @@ export class VmController extends XapiXoController<XoVm> {
       taskProperties: {
         name: 'snapshot VM',
         objectId: vmId,
+      },
+    })
+  }
+
+  /**
+   *
+   * - For fast clone on the same SR, omit `srId` and set `fast` to `true`.
+   * - For full copy on the same SR, omit `srId` and set `fast` to `false`.
+   * - To copy the VM to a different SR (always a full copy), provide `srId`. Supports cross-pool copy. Optionally use `compress: "gzip"` or `compress: "zstd"` to compress the export stream during cross-pool copy.
+   *
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   * @example body { "name_label": "cloned_vm", "fast": true }
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/clone')
+  @Middlewares(json())
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(createdResp.status, createdResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  async cloneVm(
+    @Path() id: string,
+    @Body()
+    body?: { name_label?: string; fast?: boolean } | { name_label?: string; srId?: string; compress?: 'gzip' | 'zstd' },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<{ id: XenApiVm['uuid'] }> {
+    const vmId = id as XoVm['id']
+
+    const action = async () => {
+      const xapi = this.getXapi(vmId)
+      let clonedVmUuid: string
+
+      if (body !== undefined && 'srId' in body && body.srId !== undefined) {
+        const srId = body.srId as XoSr['id']
+        const vm = this.getObject(vmId)
+        const sr = this.restApi.getObject<XoSr>(srId, 'SR')
+
+        if (vm.$pool === sr.$pool) {
+          clonedVmUuid = (await xapi.copyVm(vmId, { nameLabel: body.name_label, srOrSrId: srId })).uuid
+        } else {
+          const targetXapi = this.restApi.xoApp.getXapi(srId)
+          clonedVmUuid = (
+            await xapi.remoteCopyVm(vmId, targetXapi, srId, { compress: body.compress, nameLabel: body.name_label })
+          ).vm.uuid
+        }
+      } else {
+        const fast = body !== undefined && 'fast' in body ? body.fast : undefined
+        clonedVmUuid = (await xapi.cloneVm(vmId, { nameLabel: body?.name_label, fast })).uuid
+      }
+
+      if (sync) {
+        this.setHeader('Location', `${BASE_URL}/vms/${clonedVmUuid}`)
+      }
+
+      return { id: clonedVmUuid }
+    }
+
+    return this.createAction<{ id: XenApiVm['uuid'] }>(action, {
+      sync,
+      statusCode: createdResp.status,
+      taskProperties: {
+        name: 'clone VM',
+        objectId: vmId,
+        params: body,
       },
     })
   }

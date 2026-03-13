@@ -190,6 +190,7 @@ export class MergeRemoteDisk {
    */
   async #step_mergeBlocks(parentDisk, childDisk) {
     const getMaxBlockCount = childDisk.getMaxBlockCount()
+    await parentDisk.resize(getMaxBlockCount)
 
     if (this.#isResuming) {
       const alreadyMergedBlocks = []
@@ -213,7 +214,7 @@ export class MergeRemoteDisk {
 
     await this.#mergeBlocks(parentDisk, childDisk)
     await parentDisk.flushMetadata(childDisk)
-    parentDisk.mergeMetadata(childDisk)
+    await parentDisk.mergeMetadata(childDisk)
   }
 
   /**

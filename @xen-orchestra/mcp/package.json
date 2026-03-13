@@ -1,12 +1,12 @@
 {
   "private": false,
   "name": "@xen-orchestra/mcp",
-  "version": "0.0.0",
+  "version": "1.0.1",
   "description": "MCP server for Xen Orchestra — allows AI assistants to query and manage XO infrastructure",
   "type": "module",
   "main": "./dist/index.mjs",
   "bin": {
-    "xo-mcp": "./dist/index.mjs"
+    "xo-mcp": "./bin/xo-mcp.mjs"
   },
   "scripts": {
     "build": "tsc",
@@ -33,7 +33,7 @@
   "devDependencies": {
     "@eslint/js": "^9.19.0",
     "@types/node": "^22.3.0",
-    "@vates/types": "^1.19.0",
+    "@vates/types": "^1.21.0",
     "rimraf": "^6.0.0",
     "typescript": "~5.6.3",
     "typescript-eslint": "^8.23.0"
@@ -52,5 +52,6 @@
     "name": "Vates SAS",
     "url": "https://vates.fr"
   },
-  "license": "AGPL-3.0-or-later"
+  "license": "AGPL-3.0-or-later",
+  "preferGlobal": true
 }

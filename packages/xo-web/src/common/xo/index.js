@@ -484,7 +484,7 @@ export const subscribeHostMissingPatches = (host, cb) => {
   const hostId = resolveId(host)
 
   if (missingPatchesByHost[hostId] == null) {
-    missingPatchesByHost[hostId] = createSubscription(() => getHostMissingPatches(host))
+    missingPatchesByHost[hostId] = createSubscription(() => getHostMissingPatches(host), { polling: 60 * 60 * 1000 })
   }
 
   return missingPatchesByHost[hostId](cb)
@@ -504,14 +504,17 @@ subscribeHostMissingPatches.forceRefresh = host => {
 const proxiesApplianceUpdaterState = {}
 export const subscribeProxyApplianceUpdaterState = (proxyId, cb) => {
   if (proxiesApplianceUpdaterState[proxyId] === undefined) {
-    proxiesApplianceUpdaterState[proxyId] = createSubscription(async () => {
-      try {
-        return await getProxyApplianceUpdaterState(proxyId)
-      } catch (error) {
-        console.error(error)
-        return { state: 'error' }
-      }
-    })
+    proxiesApplianceUpdaterState[proxyId] = createSubscription(
+      async () => {
+        try {
+          return await getProxyApplianceUpdaterState(proxyId)
+        } catch (error) {
+          console.error(error)
+          return { state: 'error' }
+        }
+      },
+      { polling: 60 * 60 * 1000 }
+    )
   }
   return proxiesApplianceUpdaterState[proxyId](cb)
 }
@@ -538,7 +541,7 @@ export const createSrUnhealthyVdiChainsLengthSubscription = sr => {
   sr = resolveId(sr)
   let subscription = unhealthyVdiChainsLengthSubscriptionsBySr[sr]
   if (subscription === undefined) {
-    subscription = createSubscription(() => _call('sr.getVdiChainsInfo', { sr }))
+    subscription = createSubscription(() => _call('sr.getVdiChainsInfo', { sr }), { polling: 60 * 60 * 1000 })
     unhealthyVdiChainsLengthSubscriptionsBySr[sr] = subscription
   }
   return subscription

@@ -1,19 +1,45 @@
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
+
 # @xen-orchestra/mcp
 
-[MCP](https://modelcontextprotocol.io/) (Model Context Protocol) server for [Xen Orchestra](https://xen-orchestra.com/). Enables AI assistants to query your XO infrastructure.
+[![Package Version](https://badgen.net/npm/v/@xen-orchestra/mcp)](https://npmjs.org/package/@xen-orchestra/mcp) ![License](https://badgen.net/npm/license/@xen-orchestra/mcp) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@xen-orchestra/mcp)](https://bundlephobia.com/result?p=@xen-orchestra/mcp) [![Node compatibility](https://badgen.net/npm/node/@xen-orchestra/mcp)](https://npmjs.org/package/@xen-orchestra/mcp)
 
-## Features
+> MCP server for Xen Orchestra — allows AI assistants to query and manage XO infrastructure
 
-- **Infrastructure queries** — List and inspect pools, hosts, and VMs
-- **Dashboard** — Aggregated pool statistics (host status, top consumers, alarms)
-- **Documentation** — Search XO docs directly from the assistant
-- **Read-only** — Safe by design, no destructive operations
+## Install
 
-## Quick Start
+Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/mcp):
 
-### Claude Desktop
+```sh
+npm install --global @xen-orchestra/mcp
+```
 
-Add to your Claude Desktop config (`~/.config/claude-desktop/config.json`):
+## Usage
+
+[MCP](https://modelcontextprotocol.io/) (Model Context Protocol) is an open standard that lets AI assistants interact with external tools. This package provides an MCP server that connects AI assistants like Claude to your [Xen Orchestra](https://xen-orchestra.com/) infrastructure, allowing natural language queries about your pools, hosts, and VMs.
+
+### Quick Start
+
+**Claude Desktop** — Add to your config (`~/.config/claude-desktop/config.json`):
+
+Using a token (recommended):
+
+```json
+{
+  "mcpServers": {
+    "xo": {
+      "command": "npx",
+      "args": ["@xen-orchestra/mcp"],
+      "env": {
+        "XO_URL": "https://your-xo-server",
+        "XO_TOKEN": "your-token"
+      }
+    }
+  }
+}
+```
+
+Using username/password:
 
 ```json
 {
@@ -31,98 +57,68 @@ Add to your Claude Desktop config (`~/.config/claude-desktop/config.json`):
 }
 ```
 
-### Claude Code
+**Claude Code:**
 
 ```bash
-claude mcp add xo -- env XO_URL=https://your-xo-server XO_USERNAME=admin@example.com XO_PASSWORD=secret npx @xen-orchestra/mcp
+# Using a token (recommended)
+claude mcp add xo \
+  -e XO_URL=https://your-xo-server \
+  -e XO_TOKEN=your-token \
+  -- npx @xen-orchestra/mcp
+
+# Using username/password
+claude mcp add xo \
+  -e XO_URL=https://your-xo-server \
+  -e XO_USERNAME=admin@example.com \
+  -e XO_PASSWORD=your-password \
+  -- npx @xen-orchestra/mcp
 ```
 
-### Any MCP Client
+### Prerequisites
 
-```bash
-XO_URL=https://your-xo-server XO_USERNAME=admin XO_PASSWORD=secret npx @xen-orchestra/mcp
-```
+- **Node.js** >= 20
+- **Xen Orchestra** instance with [REST API](https://docs.xen-orchestra.com/restapi) enabled
+- An **AI assistant** that supports MCP (Claude Desktop, Claude Code, etc.)
 
-## Environment Variables
+### Configuration
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `XO_URL` | Yes | Xen Orchestra server URL |
-| `XO_USERNAME` | Yes | XO username |
-| `XO_PASSWORD` | Yes | XO password |
+Two authentication modes are supported: **token** (recommended) or **username/password**.
 
-## Available Tools
+| Variable      | Required                | Description                                               |
+| ------------- | ----------------------- | --------------------------------------------------------- |
+| `XO_URL`      | Yes                     | Xen Orchestra server URL (e.g., `https://xo.example.com`) |
+| `XO_TOKEN`    | If no username/password | Authentication token                                      |
+| `XO_USERNAME` | If no token             | XO user with admin privileges                             |
+| `XO_PASSWORD` | If no token             | XO password                                               |
 
-### `check_connection`
+To generate a token, go to the XO user page (`/user`) or run `xo-cli create-token`. If both `XO_TOKEN` and `XO_USERNAME`/`XO_PASSWORD` are set, token authentication takes priority.
 
-Test the connection to the XO server.
+### Available Tools
 
-### `list_pools`
+| Tool                         | Description                                                                           |
+| ---------------------------- | ------------------------------------------------------------------------------------- |
+| `check_connection`           | Test the connection to the Xen Orchestra server                                       |
+| `list_pools`                 | List all pools in Xen Orchestra with their basic information                          |
+| `get_pool_dashboard`         | Get aggregated dashboard for a pool including hosts status, top consumers, and alarms |
+| `list_hosts`                 | List all hosts (hypervisors) in Xen Orchestra                                         |
+| `list_vms`                   | List virtual machines in Xen Orchestra with optional filtering                        |
+| `get_vm_details`             | Get detailed information about a specific virtual machine                             |
+| `get_infrastructure_summary` | Get a high-level summary of the entire XO infrastructure (pools, hosts, VMs counts)   |
+| `search_documentation`       | Search and retrieve Xen Orchestra documentation                                       |
 
-List all pools with optional field selection.
+Full documentation with tool parameters, examples, and troubleshooting: [docs.xen-orchestra.com/mcp](https://docs.xen-orchestra.com/mcp)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `fields` | string? | Comma-separated fields to return |
+## Contributions
 
-### `get_pool_dashboard`
+Contributions are _very_ welcomed, either on the documentation or on
+the code.
 
-Get aggregated dashboard for a pool (host status, top consumers, alarms).
+You may:
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `pool_id` | string | The pool ID |
-
-### `list_hosts`
-
-List all hosts (hypervisors) with optional filtering.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `filter` | string? | Filter expression (e.g., `productBrand:XCP-ng`) |
-| `fields` | string? | Comma-separated fields to return |
-
-### `list_vms`
-
-List virtual machines with optional filtering and pagination.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `filter` | string? | Filter expression (e.g., `power_state:Running`) |
-| `fields` | string? | Comma-separated fields to return |
-| `limit` | number? | Maximum number of results |
-
-### `get_vm_details`
-
-Get full details about a specific VM.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `vm_id` | string | The VM ID or UUID |
-
-### `get_infrastructure_summary`
-
-Get a high-level summary of the entire infrastructure (pool count, host count, VM counts by state).
-
-### `search_documentation`
-
-Retrieve XO documentation by topic.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `topic` | enum | One of: `installation`, `configuration`, `backups`, `restapi`, `manage`, `users`, `architecture`, `troubleshooting`, `releases` |
-
-## Development
-
-```bash
-npm install
-npm run build
-npm test
-
-# Run locally
-XO_URL=https://your-xo XO_USERNAME=admin XO_PASSWORD=secret npm start
-```
+- report any [issue](https://github.com/vatesfr/xen-orchestra/issues)
+  you've encountered;
+- fork and create a pull request.
 
 ## License
 
-AGPL-3.0-or-later
+[AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)

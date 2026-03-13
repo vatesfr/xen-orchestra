@@ -24,12 +24,14 @@ export class ReadAhead extends RandomDiskPassthrough {
       const PRELOAD_SIZE = Math.max(Math.min(Math.floor((blockIndexes.length * maxPercent) / 100), maxNumber), 1)
 
       let counter = 0
-      try{
+      try {
         for (const index of blockIndexes) {
           counter++
-          await self.progressHandler?.setProgress(counter/ blockIndexes.length)
+          await self.progressHandler?.setProgress(counter / blockIndexes.length)
           if (preloaded.length < PRELOAD_SIZE) {
-            preloaded.push(self.source.readBlock(index))
+            const p = self.source.readBlock(index)
+            p.catch(() => {}) // suppress unhandled rejection; error still surfaces when awaited via shift()
+            preloaded.push(p)
           }
           if (preloaded.length === PRELOAD_SIZE) {
             const next = (await preloaded.shift())!
@@ -40,10 +42,11 @@ export class ReadAhead extends RandomDiskPassthrough {
           const next = (await preloaded.shift())!
           yield next
         }
-      }finally{
+      } finally {
+        await Promise.allSettled(preloaded) // wait for in-flight I/O & release resources
+        preloaded.length = 0
         await self.progressHandler?.done()
       }
-      
     }
     return generator()
   }
