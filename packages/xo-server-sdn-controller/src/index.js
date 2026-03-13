@@ -1284,6 +1284,9 @@ class SDNController extends EventEmitter {
         error,
         pool: xapi.pool.name_label,
       })
+      if (error.code === 'CERTIFICATE_DOES_NOT_EXIST') {
+        needInstall = true
+      }
     }
     if (!needInstall) {
       return
