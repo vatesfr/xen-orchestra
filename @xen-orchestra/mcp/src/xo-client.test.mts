@@ -285,6 +285,44 @@ describe('XoClient', () => {
     })
   })
 
+  describe('listVdis', () => {
+    it('returns VDIs with default fields', async () => {
+      const vdis = [{ id: 'vdi1', name_label: 'VDI 1', size: 10737418240 }]
+      const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'pass' })
+
+      globalThis.fetch = async (input: RequestInfo | URL) => {
+        const url = typeof input === 'string' ? input : input.toString()
+        assert.ok(url.includes('fields=id%2Cname_label%2Cname_description%2C%24SR%2Csize%2Cusage%2CVDI_type'))
+        return mockResponse(vdis)
+      }
+      const result = await client.listVdis()
+      assert.deepStrictEqual(result, vdis)
+    })
+
+    it('passes filter, fields, and limit via object', async () => {
+      const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'pass' })
+
+      globalThis.fetch = async (input: RequestInfo | URL) => {
+        const url = typeof input === 'string' ? input : input.toString()
+        assert.ok(url.includes('filter=VDI_type'))
+        assert.ok(url.includes('limit=10'))
+        return mockResponse([])
+      }
+      await client.listVdis({ filter: 'VDI_type:User', fields: 'id,size', limit: 10 })
+    })
+
+    it('passes limit=0 correctly', async () => {
+      const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'pass' })
+
+      globalThis.fetch = async (input: RequestInfo | URL) => {
+        const url = typeof input === 'string' ? input : input.toString()
+        assert.ok(url.includes('limit=0'), 'limit=0 should be included in URL')
+        return mockResponse([])
+      }
+      await client.listVdis({ limit: 0 })
+    })
+  })
+
   describe('getVm', () => {
     it('returns VM details', async () => {
       const vm = { id: 'vm1', name_label: 'VM 1', power_state: 'Running' }

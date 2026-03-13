@@ -184,6 +184,7 @@ List all hosts (hypervisors) in Xen Orchestra with optional filtering.
 | --------- | ------ | -------- | ---------------------------------------------------------------------------------- |
 | `filter`  | string | No       | Filter expression (e.g., `productBrand:XCP-ng`)                                    |
 | `fields`  | string | No       | Comma-separated fields (default: `id,name_label,productBrand,version,power_state`) |
+| `limit`   | number | No       | Maximum number of results                                                          |
 
 **Example question:** "Show me all XCP-ng hosts"
 
@@ -200,6 +201,20 @@ List virtual machines in Xen Orchestra with optional filtering.
 | `limit`   | number | No       | Maximum number of results                                                 |
 
 **Example question:** "How many VMs are currently running?"
+
+---
+
+### `list_vdis`
+
+List virtual disks (VDIs) in Xen Orchestra with optional filtering.
+
+| Parameter | Type   | Required | Description                                                                                |
+| --------- | ------ | -------- | ------------------------------------------------------------------------------------------ |
+| `filter`  | string | No       | Filter expression (e.g., `VDI_type:User`, `name_label:backup*`)                            |
+| `fields`  | string | No       | Comma-separated fields (default: `id,name_label,name_description,$SR,size,usage,VDI_type`) |
+| `limit`   | number | No       | Maximum number of results                                                                  |
+
+**Example question:** "List all user VDIs larger than 100GB"
 
 ---
 

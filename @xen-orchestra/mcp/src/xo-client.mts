@@ -5,10 +5,16 @@
  * Authentication is done via Basic Auth or token cookie.
  */
 
-import type { XoPool, XoHost, XoVm } from '@vates/types/xo'
+import type { XoPool, XoHost, XoVm, XoVdi } from '@vates/types/xo'
 import type { XapiVmStats, XapiStatsGranularity } from '@vates/types/common'
 
-export type { XoPool, XoHost, XoVm, XapiVmStats, XapiStatsGranularity }
+export type { XoPool, XoHost, XoVm, XoVdi, XapiVmStats, XapiStatsGranularity }
+
+export interface ListOptions {
+  filter?: string
+  fields?: string
+  limit?: number
+}
 
 const REQUEST_TIMEOUT_MS = 30_000
 
@@ -96,6 +102,18 @@ export class XoClient {
     }
   }
 
+  private buildListParams(defaultFields: string, options?: ListOptions): URLSearchParams {
+    const params = new URLSearchParams()
+    params.set('fields', options?.fields ?? defaultFields)
+    if (options?.filter) {
+      params.set('filter', options.filter)
+    }
+    if (options?.limit !== undefined) {
+      params.set('limit', String(options.limit))
+    }
+    return params
+  }
+
   async listPools(fields?: string): Promise<Partial<XoPool>[]> {
     const params = new URLSearchParams()
     params.set('fields', fields ?? 'id,name_label,name_description,auto_poweron,HA_enabled')
@@ -111,13 +129,8 @@ export class XoClient {
     return this.request<XoPoolDashboard>(`/pools/${encodeURIComponent(poolId)}/dashboard?ndjson=false`)
   }
 
-  async listHosts(options?: { filter?: string; fields?: string }): Promise<Partial<XoHost>[]> {
-    const params = new URLSearchParams()
-    params.set('fields', options?.fields ?? 'id,name_label,productBrand,version,power_state')
-    if (options?.filter) {
-      params.set('filter', options.filter)
-    }
-
+  async listHosts(options?: ListOptions): Promise<Partial<XoHost>[]> {
+    const params = this.buildListParams('id,name_label,productBrand,version,power_state', options)
     return this.request<Partial<XoHost>[]>(`/hosts?${params}`)
   }
 
@@ -125,17 +138,14 @@ export class XoClient {
     return this.request<XoHost>(`/hosts/${encodeURIComponent(hostId)}`)
   }
 
-  async listVms(options?: { filter?: string; fields?: string; limit?: number }): Promise<Partial<XoVm>[]> {
-    const params = new URLSearchParams()
-    params.set('fields', options?.fields ?? 'id,name_label,power_state,CPUs,memory')
-    if (options?.filter) {
-      params.set('filter', options.filter)
-    }
-    if (options?.limit !== undefined) {
-      params.set('limit', String(options.limit))
-    }
-
+  async listVms(options?: ListOptions): Promise<Partial<XoVm>[]> {
+    const params = this.buildListParams('id,name_label,power_state,CPUs,memory', options)
     return this.request<Partial<XoVm>[]>(`/vms?${params}`)
+  }
+
+  async listVdis(options?: ListOptions): Promise<Partial<XoVdi>[]> {
+    const params = this.buildListParams('id,name_label,name_description,$SR,size,usage,VDI_type', options)
+    return this.request<Partial<XoVdi>[]>(`/vdis?${params}`)
   }
 
   async getVm(vmId: string): Promise<XoVm> {
