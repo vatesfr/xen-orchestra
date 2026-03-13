@@ -3254,6 +3254,33 @@
   resolved "https://registry.npmjs.org/@redis/time-series/-/time-series-1.1.0.tgz"
   integrity sha512-c1Q99M5ljsIuc4YdaCwfUEXsofakb9c8+Zse2qxTadu8TalLXuAESzLvFAvNVbkmSlvlzIQOLpBCmWI9wTOt+g==
 
+"@regle/core@1.20.3", "@regle/core@^1.20.2":
+  version "1.20.3"
+  resolved "https://registry.yarnpkg.com/@regle/core/-/core-1.20.3.tgz#cf610ab9f3353e8c76508668218d08466a6fb8e6"
+  integrity sha512-L9Im/PIyUJoJjwxCmBQkyqV4Qe9B93SHsapCSQLOEgRi7yOiMggmOC4cvIocPSF+TXQpBlE+M9axXpGZetQx8Q==
+  dependencies:
+    "@standard-schema/spec" "1.1.0"
+    "@vue/devtools-api" "7.7.9"
+    type-fest "5.4.4"
+
+"@regle/rules@1.20.3", "@regle/rules@^1.20.2":
+  version "1.20.3"
+  resolved "https://registry.yarnpkg.com/@regle/rules/-/rules-1.20.3.tgz#79d1e1354ae8ee500134c6f73893ce19bcb034ef"
+  integrity sha512-4NtXasw2XUYjxR7OqlQY7+xCzcYS42i7ag0AwYFWDviDYkh0y6RqhUU1MAc2n3kkYh8lf8jkQp7hqenqHYIrbA==
+  dependencies:
+    "@regle/core" "1.20.3"
+    type-fest "5.4.4"
+
+"@regle/schemas@^1.20.2":
+  version "1.20.3"
+  resolved "https://registry.yarnpkg.com/@regle/schemas/-/schemas-1.20.3.tgz#d74c21d549e719c31f1d282fc82d7f8c9cbdbfe2"
+  integrity sha512-7kzzEDqFgMhOEmoqlaWx9DPcfq9FgkMEKzwrpSEdFLEEVIAmivVd65JVUfel9KAVmrm2Lxw3D5cz9rBLjXfepA==
+  dependencies:
+    "@regle/core" "1.20.3"
+    "@regle/rules" "1.20.3"
+    "@standard-schema/spec" "1.1.0"
+    type-fest "5.4.4"
+
 "@rollup/pluginutils@^5.1.0":
   version "5.3.0"
   resolved "https://registry.npmjs.org/@rollup/pluginutils/-/pluginutils-5.3.0.tgz"
@@ -4063,6 +4090,11 @@
   integrity sha512-4aUIteuyxtBUhVdiQqcDhKFitwfd9hqoSDYY2KRXiWtgoWJ9Bmise+KfEPDiVHWeJepvF8xJO9/9+WDIciMFFw==
   dependencies:
     tslib "^2.6.2"
+
+"@standard-schema/spec@1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@standard-schema/spec/-/spec-1.1.0.tgz#a79b55dbaf8604812f52d140b2c9ab41bc150bb8"
+  integrity sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==
 
 "@tapjs/after-each@1.1.22":
   version "1.1.22"
@@ -5253,12 +5285,17 @@
   resolved "https://registry.npmjs.org/@vue/devtools-api/-/devtools-api-6.6.4.tgz"
   integrity sha512-sGhTPMuXqZ1rVOk32RylztWkfXTRhuS7vgAKv0zjqk8gbsHkJ7xfFf+jbySxt7tWObEJwyKaHMikV/WGDiQm8g==
 
-"@vue/devtools-api@^7.7.7":
+"@vue/devtools-api@7.7.9", "@vue/devtools-api@^7.7.7":
   version "7.7.9"
   resolved "https://registry.npmjs.org/@vue/devtools-api/-/devtools-api-7.7.9.tgz"
   integrity sha512-kIE8wvwlcZ6TJTbNeU2HQNtaxLx3a84aotTITUuL/4bzfPxzajGBOoqjMhwZJ8L9qFYDU/lAYMEEm11dnZOD6g==
   dependencies:
     "@vue/devtools-kit" "^7.7.9"
+
+"@vue/devtools-api@^6.5.0", "@vue/devtools-api@^6.6.4":
+  version "6.6.4"
+  resolved "https://registry.yarnpkg.com/@vue/devtools-api/-/devtools-api-6.6.4.tgz#cbe97fe0162b365edc1dba80e173f90492535343"
+  integrity sha512-sGhTPMuXqZ1rVOk32RylztWkfXTRhuS7vgAKv0zjqk8gbsHkJ7xfFf+jbySxt7tWObEJwyKaHMikV/WGDiQm8g==
 
 "@vue/devtools-kit@^7.7.9":
   version "7.7.9"
@@ -18968,6 +19005,11 @@ syslog-client@^1.1.1:
   resolved "https://registry.npmjs.org/syslog-client/-/syslog-client-1.1.1.tgz"
   integrity sha512-c3qKw8JzCuHt0mwrzKQr8eqOc3RB28HgOpFuwGMO3GLscVpfR+0ECevWLZq/yIJTbx3WTb3QXBFVpTFtKAPDrw==
 
+tagged-tag@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/tagged-tag/-/tagged-tag-1.0.0.tgz#a0b5917c2864cba54841495abfa3f6b13edcf4d6"
+  integrity sha512-yEFYrVhod+hdNyx7g5Bnkkb0G6si8HJurOoOEgC8B/O0uXLHlaey/65KRv6cuWBNhBgHKAROVpc7QyYqE5gFng==
+
 tap-parser@15.3.2:
   version "15.3.2"
   resolved "https://registry.npmjs.org/tap-parser/-/tap-parser-15.3.2.tgz"
@@ -19451,6 +19493,13 @@ type-detect@^4.1.0:
   version "4.1.0"
   resolved "https://registry.npmjs.org/type-detect/-/type-detect-4.1.0.tgz"
   integrity sha512-Acylog8/luQ8L7il+geoSxhEkazvkslg7PSNKOX59mbB9cOveP5aq9h74Y7YU8yDpJwetzQQrfIwtf4Wp4LKcw==
+
+type-fest@5.4.4:
+  version "5.4.4"
+  resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-5.4.4.tgz#577f165b5ecb44cfc686559cc54ca77f62aa374d"
+  integrity sha512-JnTrzGu+zPV3aXIUhnyWJj4z/wigMsdYajGLIYakqyOW1nPllzXEJee0QQbHj+CTIQtXGlAjuK0UY+2xTyjVAw==
+  dependencies:
+    tagged-tag "^1.0.0"
 
 type-fest@^0.12.0:
   version "0.12.0"
