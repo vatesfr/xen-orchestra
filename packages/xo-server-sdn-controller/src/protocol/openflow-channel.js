@@ -200,7 +200,7 @@ export class OpenFlowChannel extends EventEmitter {
     try {
       await this._coalesceConnect()
     } catch (error) {
-      log.error("addRule: _coalesceConnect", {
+      log.error("deleteRule: _coalesceConnect", {
         error
       })
       return
