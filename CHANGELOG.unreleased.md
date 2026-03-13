@@ -19,7 +19,7 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [xo-server] Fix VM-template still visible after deletion (PR [#9760](https://github.com/vatesfr/xen-orchestra/pull/9760))
-
+- [xo-server-sdn-controller] Better traffic-rules synchronization related to VM lifecycle (PR [#9518](https://github.com/vatesfr/xen-orchestra/pull/9518))
 
 ### Packages to release
 
@@ -39,5 +39,6 @@
 
 - @xen-orchestra/web minor
 - xo-server patch
+- xo-server-sdn-controller minor
 
 <!--packages-end-->
