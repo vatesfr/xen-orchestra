@@ -720,6 +720,11 @@ class SDNController extends EventEmitter {
       } catch (error) {
         if (error.code === 'HOST_OFFLINE') {
           log.info('addNetworkRule: Ignoring HOST_OFFLINE', { network: networkId })
+        } else {
+          // continue on error: it could be normal to fail
+          // (if no port where to apply the rule for example)
+          // but log the error
+          log.warn('addNetworkRule: rule not added', error)
         }
       }
 
@@ -759,6 +764,8 @@ class SDNController extends EventEmitter {
             vif: vifId,
             host: vif.$VM.$resident_on?.uuid,
           })
+        } else {
+          throw (error)
         }
       }
 
@@ -835,6 +842,8 @@ class SDNController extends EventEmitter {
       } catch (error) {
         if (error.code === 'HOST_OFFLINE') {
           log.info('deleteNetworkOfRule: Ignoring HOST_OFFLINE', { network: networkId })
+        } else {
+          throw (error)
         }
       }
 
@@ -1284,6 +1293,9 @@ class SDNController extends EventEmitter {
         error,
         pool: xapi.pool.name_label,
       })
+      if (error.code === 'CERTIFICATE_DOES_NOT_EXIST') {
+        needInstall = true
+      }
     }
     if (!needInstall) {
       return
