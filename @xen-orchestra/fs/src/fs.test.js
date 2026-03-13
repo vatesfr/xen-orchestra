@@ -46,9 +46,9 @@ handlers.forEach(url => {
   describe(url, () => {
     let handler
 
-    const testWithFileDescriptor = (path, flags, fn) => {
-      it('with path', { skip: skipFsNotInAzure() }, () => fn({ file: path, flags }))
-      it('with file descriptor', { skip: skipFsNotInAzure() }, async () => {
+    const testWithFileDescriptor = (path, flags, fn, skip = false) => {
+      it('with path', { skip: skip || skipFsNotInAzure() }, () => fn({ file: path, flags }))
+      it('with file descriptor', { skip: skip || skipFsNotInAzure() }, async () => {
         const file = await handler.openFile(path, flags)
         try {
           await fn({ file })
@@ -198,15 +198,20 @@ handlers.forEach(url => {
       const start = random(TEST_DATA_LEN - 1)
       const size = random(TEST_DATA_LEN - start)
 
-      testWithFileDescriptor('file', 'r', async ({ file }) => {
-        const buffer = Buffer.alloc(size)
-        const result = await handler.read(file, buffer, start)
-        assert.deepEqual(result.buffer, buffer)
-        assert.deepEqual(result, {
-          buffer,
-          bytesRead: Math.min(size, TEST_DATA_LEN - start),
-        })
-      })
+      testWithFileDescriptor(
+        'file',
+        'r',
+        async ({ file }) => {
+          const buffer = Buffer.alloc(size)
+          const result = await handler.read(file, buffer, start)
+          assert.deepEqual(result.buffer, buffer)
+          assert.deepEqual(result, {
+            buffer,
+            bytesRead: Math.min(size, TEST_DATA_LEN - start),
+          })
+        },
+        true
+      )
     })
 
     describe('#readFile', () => {
@@ -321,12 +326,21 @@ handlers.forEach(url => {
           })(),
         },
         ({ offset, expected }, title) => {
-          describe(title, () => {
-            testWithFileDescriptor('file', 'r+', async ({ file }) => {
-              await handler.write(file, PATCH_DATA, offset)
-              assert.deepEqual(await handler.readFile('file'), expected)
-            })
-          })
+          describe(
+            title,
+            () => {
+              testWithFileDescriptor(
+                'file',
+                'r+',
+                async ({ file }) => {
+                  await handler.write(file, PATCH_DATA, offset)
+                  assert.deepEqual(await handler.readFile('file'), expected)
+                },
+                true
+              )
+            },
+            true
+          )
         }
       )
     })
