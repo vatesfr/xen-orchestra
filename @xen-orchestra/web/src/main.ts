@@ -1,4 +1,6 @@
+import { regleOptions } from '@/plugins/regle.options.ts'
 import i18n from '@core/i18n'
+import { RegleVuePlugin } from '@regle/core'
 import { useFetch } from '@vueuse/core'
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
@@ -40,6 +42,7 @@ async function init() {
   app.use(i18n)
   app.use(createPinia())
   app.use(router)
+  app.use(RegleVuePlugin, regleOptions)
 
   app.mount('#app')
 }
