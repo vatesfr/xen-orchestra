@@ -69,7 +69,7 @@ export const useXoVmCreateJob = defineJob('vm.create', [payloadsArg], () => {
 
     validate(isRunning, payloads) {
       if (isRunning) {
-        throw new JobRunningError(t('job:vm-create:in-progress'))
+        throw new JobRunningError(t('job:create:in-progress'))
       }
 
       if (payloads.length === 0) {
