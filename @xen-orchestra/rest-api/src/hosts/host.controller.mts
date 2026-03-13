@@ -15,6 +15,8 @@ import {
   SuccessResponse,
   Tags,
 } from 'tsoa'
+import { asyncEach } from '@vates/async-each'
+import { type Defer, defer } from 'golike-defer'
 import { json } from 'express'
 import type { Request as ExRequest, Response as ExResponse } from 'express'
 import { inject } from 'inversify'
@@ -30,6 +32,7 @@ import type {
   XoMessage,
   XoPif,
   XoTask,
+  XoVm,
   XsPatches,
 } from '@vates/types'
 
@@ -345,7 +348,97 @@ export class HostController extends XapiXoController<XoHost> {
       taskProperties: {
         name: 'reconfigure host management interface',
         objectId: hostId,
-        args: body,
+        params: body,
+      },
+    })
+  }
+
+  /**
+   * Disable a host.
+   *
+   * Set `evacuate` to `true` to also evacuate all running VMs to other hosts in the pool.
+   *
+   * Use `vmIdsToForceMigrate` to unblock VMs whose migration is currently blocked (e.g. by `pool_migrate` or `migrate_send` blocked operations).
+   *
+   * Use `force` to ignore evacuation errors.
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   * @example body { "evacuate": true, "vmIdsToForceMigrate": ["f07ab729-c0e8-721c-45ec-f11276377030"] }
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/disable')
+  @Middlewares(json())
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  disable(
+    @Path() id: string,
+    // mark `evacuate` as optional to workaround a TSOA issue. See https://github.com/lukeautry/tsoa/pull/1840
+    @Body() body?: { evacuate?: false } | { evacuate: true; force?: boolean; vmIdsToForceMigrate?: string[] },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const hostId = id as XoHost['id']
+    const action = defer(async ($defer: Defer) => {
+      const xapiHost = this.getXapiObject(hostId)
+      const xapi = xapiHost.$xapi
+
+      if (body?.evacuate !== true) {
+        await xapi.call('host.disable', xapiHost.$ref)
+        return
+      }
+
+      if (body.vmIdsToForceMigrate !== undefined) {
+        await asyncEach(body.vmIdsToForceMigrate, async vmId => {
+          const xoVm = this.restApi.getObject<XoVm>(vmId as XoVm['id'], 'VM')
+          for (const operation of ['pool_migrate', 'migrate_send'] as const) {
+            const reason = xoVm.blockedOperations[operation]
+            if (reason !== undefined) {
+              await xapi.call('VM.remove_from_blocked_operations', xoVm._xapiRef, operation)
+              $defer(() => xapi.call('VM.add_to_blocked_operations', xoVm._xapiRef, operation, reason))
+            }
+          }
+        })
+      }
+
+      await xapi.clearHost(xapiHost, body.force)
+    })
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: body?.evacuate === true ? 'disable and evacuate host' : 'disable host',
+        objectId: hostId,
+        params: body,
+      },
+    })
+  }
+
+  /**
+   * Enable a host, taking it out of disabled state.
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/enable')
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  enable(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const hostId = id as XoHost['id']
+    const action = async () => {
+      await this.getXapiObject(hostId).$xapi.enableHost(hostId)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'enable host',
+        objectId: hostId,
       },
     })
   }
