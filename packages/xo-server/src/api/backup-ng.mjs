@@ -5,6 +5,10 @@ import { pipeline } from 'readable-stream'
 import createNdJsonStream from '../_createNdJsonStream.mjs'
 import { REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey.mjs'
 import { safeDateFormat } from '../utils.mjs'
+import { VirtualStorageRepository } from '../../../../@xen-orchestra/fuse-backup-repository/dist/index.mjs'
+import { openDiskChain } from '@xen-orchestra/backups/disks/openDiskChain.mjs'
+import { getHandler } from '@xen-orchestra/fs'
+import { ConsumerQcowRaw } from '@xen-orchestra/qcow2'
 
 const SCHEMA_SETTINGS = {
   type: 'object',
@@ -459,6 +463,37 @@ unmountPartition.params = {
     type: 'string',
   },
   remote: {
+    type: 'string',
+  },
+}
+
+export async function startVirtualSR({ pool, shareSourceIp }) {
+  pool = this.getXapiObject(pool, 'pool')
+  const xapi = pool.$xapi
+  const vsr = new VirtualStorageRepository(xapi, shareSourceIp)
+  await vsr.init()
+  const handler = getHandler({ url: 'file:///mnt/ssd/vhdblock' })
+  await handler.sync()
+  const disk = await openDiskChain({
+    handler,
+    path: 'xo-vm-backups/cbb46b48-12aa-59dc-4039-8a587fdc67d5/vdis/d8ddef60-d9a4-4cec-9546-522e9c75e356/1f6f836e-da66-4bcd-a561-f4081d8ddcd5/20260305T222417Z.alias.vhd',
+  })
+
+  const qcow2 = new ConsumerQcowRaw(disk)
+  await qcow2.init()
+  vsr.addDisk(qcow2)
+}
+
+startVirtualSR.permission = 'admin'
+
+startVirtualSR.resolve = {
+  pool: ['pool', 'pool', 'administrate'],
+}
+startVirtualSR.params = {
+  pool: {
+    type: 'string',
+  },
+  shareSourceIp: {
     type: 'string',
   },
 }
