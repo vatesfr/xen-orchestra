@@ -139,35 +139,6 @@ export class AclRoleController extends XoController<XoAclRole> {
   }
 
   /**
-   * Returns all ACL privileges that match the following privilege:
-   * resource: acl-privilege, action: read
-   *
-   * @example id "426622cc-b2db-4545-a2f0-6ec47b3a6450"
-   * @example fields "id,action,resource"
-   * @example filter "action:create"
-   * @example limit 42
-   */
-  @Example(aclPrivilegeIds)
-  @Example(partialAclPrivileges)
-  @Get('{id}/privileges')
-  @Response(notFoundResp.status, notFoundResp.description)
-  async getAclV2RolePrivileges(
-    @Request() req: ExRequest,
-    @Path() id: string,
-    @Query() fields?: string,
-    @Query() ndjson?: boolean,
-    @Query() filter?: string,
-    @Query() limit?: number
-  ): SendObjects<Partial<Unbrand<RestAnyPrivilege>>> {
-    const privileges = (await this.restApi.xoApp.getAclV2RolePrivileges(id as XoAclRole['id'])) as RestAnyPrivilege[]
-    return this.sendObjects(limitAndFilterArray(privileges, { filter }), req, {
-      path: 'acl-privileges',
-      limit,
-      privilege: { resource: 'acl-privilege', action: 'read' },
-    })
-  }
-
-  /**
    * Copy a role with all its privileges. Possibility to modify the name and description of the copied role.
    *
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
@@ -203,6 +174,35 @@ export class AclRoleController extends XoController<XoAclRole> {
         name: 'copy role',
         objectId: roleId,
       },
+    })
+  }
+
+  /**
+   * Returns all ACL privileges that match the following privilege:
+   * resource: acl-privilege, action: read
+   *
+   * @example id "426622cc-b2db-4545-a2f0-6ec47b3a6450"
+   * @example fields "id,action,resource"
+   * @example filter "action:create"
+   * @example limit 42
+   */
+  @Example(aclPrivilegeIds)
+  @Example(partialAclPrivileges)
+  @Get('{id}/privileges')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getAclV2RolePrivileges(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<RestAnyPrivilege>>> {
+    const privileges = (await this.restApi.xoApp.getAclV2RolePrivileges(id as XoAclRole['id'])) as RestAnyPrivilege[]
+    return this.sendObjects(limitAndFilterArray(privileges, { filter }), req, {
+      path: 'acl-privileges',
+      limit,
+      privilege: { resource: 'acl-privilege', action: 'read' },
     })
   }
 }
