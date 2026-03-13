@@ -5,10 +5,10 @@
  * Authentication is done via Basic Auth or token cookie.
  */
 
-import type { XoPool, XoHost, XoVm } from '@vates/types/xo'
+import type { XoPool, XoHost, XoVm, XoNetwork } from '@vates/types/xo'
 import type { XapiVmStats, XapiStatsGranularity } from '@vates/types/common'
 
-export type { XoPool, XoHost, XoVm, XapiVmStats, XapiStatsGranularity }
+export type { XoPool, XoHost, XoVm, XoNetwork, XapiVmStats, XapiStatsGranularity }
 
 const REQUEST_TIMEOUT_MS = 30_000
 
@@ -140,6 +140,23 @@ export class XoClient {
 
   async getVm(vmId: string): Promise<XoVm> {
     return this.request<XoVm>(`/vms/${encodeURIComponent(vmId)}`)
+  }
+
+  async listNetworks(options?: { filter?: string; fields?: string; limit?: number }): Promise<Partial<XoNetwork>[]> {
+    const params = new URLSearchParams()
+    params.set('fields', options?.fields ?? 'id,name_label,name_description,bridge,MTU,nbd')
+    if (options?.filter) {
+      params.set('filter', options.filter)
+    }
+    if (options?.limit !== undefined) {
+      params.set('limit', String(options.limit))
+    }
+
+    return this.request<Partial<XoNetwork>[]>(`/networks?${params}`)
+  }
+
+  async getNetwork(networkId: string): Promise<XoNetwork> {
+    return this.request<XoNetwork>(`/networks/${encodeURIComponent(networkId)}`)
   }
 
   async getVmStats(vmId: string, granularity: XapiStatsGranularity = 'hours'): Promise<XapiVmStats> {

@@ -309,6 +309,64 @@ export function createServer(getClient: () => XoClient): McpServer {
   )
 
   // =============================================================================
+  // TOOL: list_networks
+  // =============================================================================
+  server.registerTool(
+    'list_networks',
+    {
+      title: 'List Networks',
+      description: 'List all networks in Xen Orchestra with optional filtering',
+      inputSchema: {
+        filter: z.string().optional().describe('Filter expression (e.g., bridge:xenbr0)'),
+        fields: z.string().optional().describe('Comma-separated fields to return'),
+        limit: z.number().optional().describe('Maximum number of networks to return'),
+      },
+    },
+    async ({ filter, fields, limit }) => {
+      try {
+        const client = getClient()
+        const networks = await client.listNetworks({ filter, fields, limit })
+        return {
+          content: [{ type: 'text', text: JSON.stringify(networks, null, 2) }],
+        }
+      } catch (error) {
+        return {
+          content: [{ type: 'text', text: `Failed to list networks: ${formatToolError(error)}` }],
+          isError: true,
+        }
+      }
+    }
+  )
+
+  // =============================================================================
+  // TOOL: get_network_details
+  // =============================================================================
+  server.registerTool(
+    'get_network_details',
+    {
+      title: 'Get Network Details',
+      description: 'Get detailed information about a specific network',
+      inputSchema: {
+        network_id: z.string().describe('The network ID'),
+      },
+    },
+    async ({ network_id }) => {
+      try {
+        const client = getClient()
+        const network = await client.getNetwork(network_id)
+        return {
+          content: [{ type: 'text', text: JSON.stringify(network, null, 2) }],
+        }
+      } catch (error) {
+        return {
+          content: [{ type: 'text', text: `Failed to get network details: ${formatToolError(error)}` }],
+          isError: true,
+        }
+      }
+    }
+  )
+
+  // =============================================================================
   // TOOL: search_documentation
   // =============================================================================
   server.registerTool(
