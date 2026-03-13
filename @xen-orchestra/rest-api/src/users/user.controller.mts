@@ -81,7 +81,7 @@ export class UserController extends XoController<XoUser> {
 
   /**
    * Returns all users that match the following privilege:
-   * resource: user, action: read
+   * - resource: user, action: read
    *
    * @example fields "permission,name,id"
    * @example filter "permission:none"
@@ -184,7 +184,7 @@ export class UserController extends XoController<XoUser> {
 
   /**
    * Returns all groups that match the following privilege:
-   * resource: group, action: read
+   * - resource: group, action: read
    *
    * @example id "722d17b9-699b-49d2-8193-be1ac573d3de"
    * @example fields "name,id,users"
@@ -243,7 +243,7 @@ export class UserController extends XoController<XoUser> {
 
   /**
    * Returns all tasks that match the following privilege:
-   * resource: task, action: read
+   * - resource: task, action: read
    *
    * @example id "722d17b9-699b-49d2-8193-be1ac573d3de"
    * @example fields "id,status,properties"

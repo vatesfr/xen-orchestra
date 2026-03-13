@@ -49,7 +49,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
 
   /**
    * Returns all VM controllers that match the following privilege:
-   * resource: vm-controller, action: read
+   * - resource: vm-controller, action: read
    *
    * @example fields "type,uuid"
    * @example filter "power_state:Running"
@@ -83,7 +83,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
 
   /**
    * Returns all alarms that match the following privilege:
-   * resource: alarm, action: read
+   * - resource: alarm, action: read
    *
    * @example id "9b4775bd-9493-490a-9afa-f786a44caa4f"
    * @example fields "id,time"
@@ -116,7 +116,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
 
   /**
    * Returns all VDIs that match the following privilege:
-   * resource: vdi, action: read
+   * - resource: vdi, action: read
    *
    * @example id "9b4775bd-9493-490a-9afa-f786a44caa4f"
    * @example fields "VDI_type,id,name_label"
@@ -145,7 +145,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
 
   /**
    * Returns all messages that match the following privilege:
-   * resource: message, action: read
+   * - resource: message, action: read
    *
    * @example id "9b4775bd-9493-490a-9afa-f786a44caa4f"
    * @example fields "name,id,$object"
@@ -176,7 +176,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
 
   /**
    * Returns all tasks that match the following privilege:
-   * resource: task, action: read
+   * - resource: task, action: read
    *
    * @example id "9b4775bd-9493-490a-9afa-f786a44caa4f"
    * @example fields "id,status,properties"

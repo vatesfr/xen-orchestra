@@ -55,7 +55,7 @@ export class TaskController extends XoController<XoTask> {
 
   /**
    * Returns all tasks that match the following privilege:
-   * resource: task, action: read
+   * - resource: task, action: read
    *
    * If watch is true, ndjson must also be true
    *

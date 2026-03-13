@@ -32,7 +32,7 @@ export class PifController extends XapiXoController<XoPif> {
 
   /**
    * Returns all PIFs that match the following privilege:
-   * resource: pif, action: read
+   * - resource: pif, action: read
    *
    * @example fields "attached,device,deviceName,id"
    * @example filter "attached?"
@@ -66,7 +66,7 @@ export class PifController extends XapiXoController<XoPif> {
 
   /**
    * Returns all alarms that match the following privilege:
-   * resource: alarm, action: read
+   * - resource: alarm, action: read
    *
    * @example id "d9e42451-3794-089f-de81-4ee0e6137bee"
    * @example fields "id,time"
@@ -99,7 +99,7 @@ export class PifController extends XapiXoController<XoPif> {
 
   /**
    * Returns all messages that match the following privilege:
-   * resource: message, action: read
+   * - resource: message, action: read
    *
    * @example id "d9e42451-3794-089f-de81-4ee0e6137bee"
    * @example fields "name,id,$object"
@@ -130,7 +130,7 @@ export class PifController extends XapiXoController<XoPif> {
 
   /**
    * Returns all tasks that match the following privilege:
-   * resource: task, action: read
+   * - resource: task, action: read
    *
    * @example id "d9e42451-3794-089f-de81-4ee0e6137bee"
    * @example fields "id,status,properties"

@@ -32,7 +32,7 @@ export class VifController extends XapiXoController<XoVif> {
 
   /**
    * Returns all VIFs that match the following privilege:
-   * resource: vif, action: read
+   * - resource: vif, action: read
    *
    * @example fields "attached,id,device"
    * @example filter "attached?"
@@ -66,7 +66,7 @@ export class VifController extends XapiXoController<XoVif> {
 
   /**
    * Returns all alarms that match the following privilege:
-   * resource: alarm, action: read
+   * - resource: alarm, action: read
    *
    * @example id "f028c5d4-578a-332c-394e-087aaca32dd3"
    * @example fields "id,time"
@@ -99,7 +99,7 @@ export class VifController extends XapiXoController<XoVif> {
 
   /**
    * Returns all messages that match the following privilege:
-   * resource: message, action: read
+   * - resource: message, action: read
    *
    * @example id "f028c5d4-578a-332c-394e-087aaca32dd3"
    * @example fields "name,id,$object"
@@ -130,7 +130,7 @@ export class VifController extends XapiXoController<XoVif> {
 
   /**
    * Returns all tasks that match the following privilege:
-   * resource: task, action: read
+   * - resource: task, action: read
    *
    * @example id "f028c5d4-578a-332c-394e-087aaca32dd3"
    * @example fields "id,status,properties"
