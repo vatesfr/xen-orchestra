@@ -17,6 +17,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [xo-server-sdn-controller] Better traffic-rules synchronization related to VM lifecycle (PR [#9518](https://github.com/vatesfr/xen-orchestra/pull/9518))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -36,5 +38,6 @@
 - @xen-orchestra/immutable-backups patch
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core patch
+- xo-server-sdn-controller patch
 
 <!--packages-end-->
