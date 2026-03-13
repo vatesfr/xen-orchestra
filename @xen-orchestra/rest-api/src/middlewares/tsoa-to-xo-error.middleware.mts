@@ -11,8 +11,8 @@ export default function tsoaToXoErrorHandler(error: unknown, _req: Request, _res
   return next(error)
 }
 
-function simplifyUnionValidationErrors(fields: Record<string, any>) {
-  const result: Record<string, any> = {}
+function simplifyUnionValidationErrors(fields: FieldErrors): FieldErrors {
+  const result: FieldErrors = {}
 
   for (const [key, field] of Object.entries(fields)) {
     if (isUnionMismatchError(field)) {
@@ -29,12 +29,6 @@ function simplifyUnionValidationErrors(fields: Record<string, any>) {
   return result
 }
 
-function isUnionMismatchError(field: FieldErrors[string]) {
-  if (typeof field !== 'object' || field === null || !('message' in field)) {
-    return false
-  }
-
-  return (
-    typeof field.message === 'string' && field.message.startsWith('Could not match the union against any of the items')
-  )
+function isUnionMismatchError(field: FieldErrors[string]): boolean {
+  return field.message.startsWith('Could not match the union against any of the items')
 }

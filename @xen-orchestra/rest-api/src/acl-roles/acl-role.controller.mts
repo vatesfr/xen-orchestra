@@ -39,6 +39,7 @@ import type { RestAnyPrivilege } from '../acl-privileges/acl-privilege.type.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
+import { entityId } from '../open-api/oa-examples/common.oa-example.mjs'
 
 @Route('acl-roles')
 @Security('*')
@@ -84,14 +85,14 @@ export class AclRoleController extends XoController<XoAclRole> {
    *  "description": "Allow to create VMs"
    * }
    */
-  @Example({ id: '784bd959-08de-4b26-b575-92ded5aef872' })
+  @Example(entityId)
   @Post('')
   @Middlewares(json())
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(invalidParameters.status, invalidParameters.description)
   async createAclV2Role(
     @Body() body: { name: string; description?: string }
-  ): Promise<{ id: Unbrand<XoAclRole['id']> }> {
+  ): Promise<{ id: Unbrand<XoAclRole>['id'] }> {
     const newRole = await this.restApi.xoApp.createAclV2Role(body)
     return { id: newRole.id }
   }

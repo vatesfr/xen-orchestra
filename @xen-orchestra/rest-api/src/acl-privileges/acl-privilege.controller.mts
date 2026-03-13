@@ -27,6 +27,7 @@ import {
   badRequestResp,
   createdResp,
   forbiddenOperationResp,
+  invalidParameters,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
@@ -35,6 +36,7 @@ import {
 import type { RestAnyPrivilege } from './acl-privilege.type.mjs'
 import type { SafeOmit, SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
+import { entityId } from '../open-api/oa-examples/common.oa-example.mjs'
 
 @Route('acl-privileges')
 @Security('*')
@@ -83,15 +85,16 @@ export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
    *  "selector": {"id": "784bd959-08de-4b26-b575-92ded5aef872"}
    * }
    */
-  @Example({ id: 'c5d89d1a-df1e-4b72-98a0-c40adfdf49c1' })
+  @Example(entityId)
   @Post('')
   @Middlewares(json())
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParameters.status, invalidParameters.description)
   async createAclV2Privilege(
     @Body() privilege: Unbrand<SafeOmit<RestAnyPrivilege, 'id'>>
-  ): Promise<{ id: Unbrand<RestAnyPrivilege['id']> }> {
+  ): Promise<{ id: Unbrand<RestAnyPrivilege>['id'] }> {
     const newPrivilege = await this.restApi.xoApp.createAclV2Privilege(privilege as SafeOmit<RestAnyPrivilege, 'id'>)
 
     return { id: newPrivilege.id }
@@ -132,6 +135,7 @@ export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParameters.status, invalidParameters.description)
   async updateAclV2Privilege(
     @Path() id: string,
     @Body() privilege: Unbrand<SafeOmit<RestAnyPrivilege, 'id' | 'roleId'>>
