@@ -29,7 +29,7 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
 
   /**
    * Returns all backup repositories that match the following privilege:
-   * resource: backup-repository, action: read
+   * - resource: backup-repository, action: read
    *
    * @example fields "id,name,enabled"
    * @example filter "enabled?"

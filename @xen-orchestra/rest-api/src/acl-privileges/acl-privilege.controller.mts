@@ -54,7 +54,7 @@ export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
 
   /**
    * Returns all ACL privileges that match the following privilege:
-   * resource: acl-privilege, action: read
+   * - resource: acl-privilege, action: read
    *
    * @example fields "id,action,resource"
    * @example filter "action:create"

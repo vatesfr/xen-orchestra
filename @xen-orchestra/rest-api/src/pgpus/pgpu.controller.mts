@@ -23,7 +23,7 @@ export class PgpuController extends XapiXoController<XoPgpu> {
 
   /**
    * Returns all PGPUs that match the following privilege:
-   * resource: pgpu, action: read
+   * - resource: pgpu, action: read
    *
    * @example fields "id,dom0Access,gpuGroup"
    * @example filter "dom0Access:enabled"

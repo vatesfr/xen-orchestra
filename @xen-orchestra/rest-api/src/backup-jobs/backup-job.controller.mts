@@ -86,7 +86,7 @@ export class BackupJobController extends XoController<AnyXoBackupJob> {
 
   /**
    * Returns all backup jobs that match the following privilege:
-   * resource: backup-job, action: read
+   * - resource: backup-job, action: read
    *
    * @example fields "name,mode,type,id"
    * @example filter "type:backup"
@@ -177,7 +177,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
 
   /**
    * Returns all VM backup jobs that match the following privilege:
-   * resource: backup-job, action: read
+   * - resource: backup-job, action: read
    *
    * @example fields "name,mode,id"
    * @example filter "mode:delta"
@@ -226,7 +226,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
 
   /**
    * Returns all metadata backup jobs that match the following privilege:
-   * resource: backup-job, action: read
+   * - resource: backup-job, action: read
    *
    * @example fields "name,xoMetadata,id"
    * @example filter "xoMetadata?"
@@ -266,7 +266,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
 
   /**
    * Returns all mirror backup jobs that match the following privilege:
-   * resource: backup-job, action: read
+   * - resource: backup-job, action: read
    *
    * @example fields "name,mode,id"
    * @example filter "mode:delta"
@@ -306,7 +306,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
 
   /**
    * Returns all backup logs that match the following privilege:
-   * resource: backup-log, action: read
+   * - resource: backup-log, action: read
    *
    * @example fields "jobName,status,data"
    * @example filter "status:success"

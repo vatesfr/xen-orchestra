@@ -54,7 +54,7 @@ export class ServerController extends XoController<XoServer> {
 
   /**
    * Returns all servers that match the following privilege:
-   * resource: server, action: read
+   * - resource: server, action: read
    *
    * @example fields "status,id"
    * @example filter "status:/^connected$/"
@@ -162,7 +162,7 @@ export class ServerController extends XoController<XoServer> {
 
   /**
    * Returns all tasks that match the following privilege:
-   * resource: task, action: read
+   * - resource: task, action: read
    *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example fields "id,status,properties"
