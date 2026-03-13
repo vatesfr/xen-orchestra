@@ -60,7 +60,7 @@ class Foo extends Controller {
 
 ### Examples
 
-In order not to pollute important decorators, all example structures should be in a separate file. `src/open-api/examples/<resource>.example.mts`
+In order not to pollute important decorators, all example structures should be in a separate file. `src/open-api/oa-examples/<resource>.oa-example.mts`
 
 ### ACLs
 

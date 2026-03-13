@@ -39,3 +39,5 @@ export type ReplaceKey<Type, OldKey extends keyof Type, NewKey extends string, N
   OldKey
 > &
   Record<NewKey, NewKeyType>
+
+export type SafeOmit<T, K extends keyof T> = T extends T ? Omit<T, K> : never

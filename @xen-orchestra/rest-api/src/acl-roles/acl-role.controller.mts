@@ -1,8 +1,10 @@
 import {
   Body,
+  Delete,
   Example,
   Get,
   Middlewares,
+  Patch,
   Path,
   Post,
   Query,
@@ -23,6 +25,9 @@ import {
   asynchronousActionResp,
   badRequestResp,
   createdResp,
+  forbiddenOperationResp,
+  invalidParameters,
+  noContentResp,
   notFoundResp,
   unauthorizedResp,
   Unbrand,
@@ -34,6 +39,7 @@ import type { RestAnyPrivilege } from '../acl-privileges/acl-privilege.type.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
+import { entityId } from '../open-api/oa-examples/common.oa-example.mjs'
 
 @Route('acl-roles')
 @Security('*')
@@ -74,6 +80,24 @@ export class AclRoleController extends XoController<XoAclRole> {
   }
 
   /**
+   * @example body {
+   *  "name": "VMs creator",
+   *  "description": "Allow to create VMs"
+   * }
+   */
+  @Example(entityId)
+  @Post('')
+  @Middlewares(json())
+  @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(invalidParameters.status, invalidParameters.description)
+  async createAclV2Role(
+    @Body() body: { name: string; description?: string }
+  ): Promise<{ id: Unbrand<XoAclRole>['id'] }> {
+    const newRole = await this.restApi.xoApp.createAclV2Role(body)
+    return { id: newRole.id }
+  }
+
+  /**
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    */
   @Example(aclRole)
@@ -84,32 +108,34 @@ export class AclRoleController extends XoController<XoAclRole> {
   }
 
   /**
-   * Returns all ACL privileges that match the following privilege:
-   * resource: acl-privilege, action: read
-   *
-   * @example id "426622cc-b2db-4545-a2f0-6ec47b3a6450"
-   * @example fields "id,action,resource"
-   * @example filter "action:create"
-   * @example limit 42
+   * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    */
-  @Example(aclPrivilegeIds)
-  @Example(partialAclPrivileges)
-  @Get('{id}/privileges')
+  @Delete('{id}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  async getAclV2RolePrivileges(
-    @Request() req: ExRequest,
+  async deleteAclV2Role(@Path() id: string): Promise<void> {
+    await this.restApi.xoApp.deleteAclV2Role(id as XoAclRole['id'])
+  }
+
+  /**
+   * @example id "784bd959-08de-4b26-b575-92ded5aef872"
+   * @example body {
+   *  "name": "VMs creator",
+   *  "description": "Allow to create VMs"
+   * }
+   */
+  @Patch('{id}')
+  @Middlewares(json())
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParameters.status, invalidParameters.description)
+  async updateAclV2Role(
     @Path() id: string,
-    @Query() fields?: string,
-    @Query() ndjson?: boolean,
-    @Query() filter?: string,
-    @Query() limit?: number
-  ): SendObjects<Partial<Unbrand<RestAnyPrivilege>>> {
-    const privileges = (await this.restApi.xoApp.getAclV2RolePrivileges(id as XoAclRole['id'])) as RestAnyPrivilege[]
-    return this.sendObjects(limitAndFilterArray(privileges, { filter }), req, {
-      path: 'acl-privileges',
-      limit,
-      privilege: { resource: 'acl-privilege', action: 'read' },
-    })
+    @Body() body: { name?: string; description?: string | null }
+  ): Promise<void> {
+    await this.restApi.xoApp.updateAclV2Role(id as XoAclRole['id'], body)
   }
 
   /**
@@ -148,6 +174,35 @@ export class AclRoleController extends XoController<XoAclRole> {
         name: 'copy role',
         objectId: roleId,
       },
+    })
+  }
+
+  /**
+   * Returns all ACL privileges that match the following privilege:
+   * resource: acl-privilege, action: read
+   *
+   * @example id "426622cc-b2db-4545-a2f0-6ec47b3a6450"
+   * @example fields "id,action,resource"
+   * @example filter "action:create"
+   * @example limit 42
+   */
+  @Example(aclPrivilegeIds)
+  @Example(partialAclPrivileges)
+  @Get('{id}/privileges')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getAclV2RolePrivileges(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<RestAnyPrivilege>>> {
+    const privileges = (await this.restApi.xoApp.getAclV2RolePrivileges(id as XoAclRole['id'])) as RestAnyPrivilege[]
+    return this.sendObjects(limitAndFilterArray(privileges, { filter }), req, {
+      path: 'acl-privileges',
+      limit,
+      privilege: { resource: 'acl-privilege', action: 'read' },
     })
   }
 }
