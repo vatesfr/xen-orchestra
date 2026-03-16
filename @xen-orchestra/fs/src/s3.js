@@ -422,6 +422,8 @@ export default class S3Handler extends RemoteHandlerAbstract {
           await asyncEach(
             result.Contents ?? [],
             async ({ Key }) => {
+              // _unlink will add the prefix, but Key contains everything
+              // also we don't need to check if we delete a directory, since the list only return files
               await this.#s3.send(
                 new DeleteObjectCommand({
                   Bucket: this.#bucket,
@@ -438,6 +440,8 @@ export default class S3Handler extends RemoteHandlerAbstract {
         await asyncEach(
           result.Contents ?? [],
           async ({ Key }) => {
+            // _unlink will add the prefix, but Key contains everything
+            // also we don't need to check if we delete a directory, since the list only return files
             await this.#s3.send(
               new DeleteObjectCommand({
                 Bucket: this.#bucket,

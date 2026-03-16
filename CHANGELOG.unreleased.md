@@ -24,6 +24,7 @@
 - [Backup] Reduce backup memory consumption (PR [#9557](https://github.com/vatesfr/xen-orchestra/pull/9557))
 - [VM/New] VCPU was ignored [Forum#11954](https://xcp-ng.org/forum/topic/11954/unable-to-define-count-of-cpus-during-vm-create) (PR [#9591](https://github.com/vatesfr/xen-orchestra/pull/9591))
 - [Backups/Runs] Fix transfer size calculation (PR [#9496](https://github.com/vatesfr/xen-orchestra/pull/9496))
+- [S3] Check provider compatibility before using batch deletion (PR [#9598](https://github.com/vatesfr/xen-orchestra/pull/9598))
 
 ### Packages to release
 
