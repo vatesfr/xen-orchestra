@@ -68,5 +68,9 @@
   "author": {
     "name": "Vates SAS",
     "url": "https://vates.fr"
+  },
+  "exports": {
+    "./disks": "./disks/index.mjs",
+    "./*": "./*"
   }
 }
