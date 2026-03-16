@@ -192,6 +192,59 @@ describe('QCOW2 Stream Generation', () => {
     }
   })
 
+  it('should abort stream when signal is aborted before start', async () => {
+    const disk = new MockDisk(
+      128,
+      Array.from({ length: 128 }, (_, i) => i)
+    )
+    const controller = new AbortController()
+    controller.abort()
+
+    const stream = toQcow2Stream(disk, { signal: controller.signal })
+    await assert.rejects(
+      async () => {
+        for await (const _chunk of stream) {
+          // should not reach here
+        }
+      },
+      (err: unknown) => {
+        assert(err instanceof Error)
+        assert.strictEqual((err as NodeJS.ErrnoException).name, 'AbortError')
+        return true
+      }
+    )
+  })
+
+  it('should abort stream mid-way when signal is aborted', async () => {
+    const NB_BLOCKS = 1024
+    const disk = new MockDisk(
+      NB_BLOCKS,
+      Array.from({ length: NB_BLOCKS }, (_, i) => i)
+    )
+    const controller = new AbortController()
+
+    const stream = toQcow2Stream(disk, { signal: controller.signal })
+    let chunksReceived = 0
+
+    await assert.rejects(
+      async () => {
+        for await (const _chunk of stream) {
+          chunksReceived++
+          if (chunksReceived === 1) {
+            controller.abort()
+          }
+        }
+      },
+      (err: unknown) => {
+        assert(err instanceof Error)
+        assert.strictEqual((err as NodeJS.ErrnoException).name, 'AbortError')
+        return true
+      }
+    )
+
+    assert(chunksReceived >= 1, 'should have received at least one chunk before abort')
+  })
+
   it('should handle unaligned disks', async () => {
     const NB_BLOCKS = 5
     const RATIO = 3
