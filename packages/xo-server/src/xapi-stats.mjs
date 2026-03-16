@@ -273,6 +273,28 @@ const STATS = {
         transformValue: value => value / 1000,
       },
     },
+    ioThroughput: {
+      r: {
+        test: /^vbd_xvd(.)_io_throughput_read$/,
+        getPath: matches => ['ioThroughput', 'r', matches[1]],
+        transformValue: value => value * 2 ** 20,
+      },
+      w: {
+        test: /^vbd_xvd(.)_io_throughput_write$/,
+        getPath: matches => ['ioThroughput', 'w', matches[1]],
+        transformValue: value => value * 2 ** 20,
+      },
+      total: {
+        test: /^vbd_xvd(.)_io_throughput_total$/,
+        getPath: matches => ['ioThroughput', 'total', matches[1]],
+        transformValue: value => value * 2 ** 20,
+      },
+    },
+    vbdAvgLatency: {
+      test: /^vbd_xvd(.)_latency$/,
+      getPath: matches => ['vbdAvgLatency', matches[1]],
+      transformValue: value => value / 1e3,
+    },
     vbdIowait: {
       test: /^vbd_xvd(.)_iowait$/,
       getPath: matches => ['vbdIowait', matches[1]],

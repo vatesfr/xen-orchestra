@@ -123,6 +123,69 @@ describe('VM_METRICS', () => {
     assert.ok(runstate)
     assert.equal(runstate.type, 'gauge')
   })
+
+  it('should include VBD throughput metrics with transformation', () => {
+    const throughputRead = VM_METRICS.find(m => m.openMetricName === 'vm_disk_throughput_read_bytes')
+    assert.ok(throughputRead)
+    assert.equal(throughputRead.type, 'gauge')
+    assert.ok(throughputRead.transformValue)
+    // 1.5 MiB/s * 2^20 = 1572864 bytes/s
+    assert.equal(throughputRead.transformValue!(1.5), 1.5 * 2 ** 20)
+
+    const regex = throughputRead.test as RegExp
+    const match = regex.exec('vbd_xvda_io_throughput_read')
+    assert.ok(match)
+    assert.deepEqual(throughputRead.extractLabels!(match), { device: 'xvda' })
+  })
+
+  it('should include VBD throughput write and total metrics', () => {
+    const throughputWrite = VM_METRICS.find(m => m.openMetricName === 'vm_disk_throughput_write_bytes')
+    assert.ok(throughputWrite)
+    assert.equal(throughputWrite.type, 'gauge')
+    assert.ok(throughputWrite.transformValue)
+
+    const throughputTotal = VM_METRICS.find(m => m.openMetricName === 'vm_disk_throughput_total_bytes')
+    assert.ok(throughputTotal)
+    assert.equal(throughputTotal.type, 'gauge')
+    assert.ok(throughputTotal.transformValue)
+  })
+
+  it('should include VBD average latency metric with transformation', () => {
+    const latency = VM_METRICS.find(m => m.openMetricName === 'vm_disk_latency_seconds')
+    assert.ok(latency)
+    assert.equal(latency.type, 'gauge')
+    assert.ok(latency.transformValue)
+    // 500 µs / 1e6 = 0.0005 seconds
+    assert.equal(latency.transformValue!(500), 0.0005)
+
+    const regex = latency.test as RegExp
+    const match = regex.exec('vbd_xvda_latency')
+    assert.ok(match)
+    assert.deepEqual(latency.extractLabels!(match), { device: 'xvda' })
+  })
+
+  it('should not match vbd_xvda_latency with read_latency or write_latency regex', () => {
+    const readLatency = VM_METRICS.find(m => m.openMetricName === 'vm_disk_read_latency_seconds')
+    assert.ok(readLatency)
+    const readRegex = readLatency.test as RegExp
+    assert.equal(readRegex.exec('vbd_xvda_latency'), null)
+
+    const writeLatency = VM_METRICS.find(m => m.openMetricName === 'vm_disk_write_latency_seconds')
+    assert.ok(writeLatency)
+    const writeRegex = writeLatency.test as RegExp
+    assert.equal(writeRegex.exec('vbd_xvda_latency'), null)
+  })
+})
+
+describe('HOST_METRICS DCMI', () => {
+  it('should include DCMI power reading metric', () => {
+    const dcmi = HOST_METRICS.find(m => m.openMetricName === 'host_power_consumption_watts')
+    assert.ok(dcmi)
+    assert.equal(dcmi.type, 'gauge')
+    assert.equal(dcmi.test, 'DCMI-power-reading')
+    assert.equal(dcmi.transformValue, undefined)
+    assert.equal(dcmi.extractLabels, undefined)
+  })
 })
 
 // ============================================================================
@@ -164,6 +227,27 @@ describe('findMetricDefinition', () => {
     assert.equal(result.definition.openMetricName, 'vm_disk_write_bytes_total')
     assert.ok(result.matches)
     assert.equal(result.matches[1], 'b')
+  })
+
+  it('should find VM VBD throughput metric', () => {
+    const result = findMetricDefinition('vbd_xvdb_io_throughput_read', 'vm')
+    assert.ok(result)
+    assert.equal(result.definition.openMetricName, 'vm_disk_throughput_read_bytes')
+    assert.ok(result.matches)
+    assert.equal(result.matches[1], 'b')
+  })
+
+  it('should find VM VBD average latency metric', () => {
+    const result = findMetricDefinition('vbd_xvda_latency', 'vm')
+    assert.ok(result)
+    assert.equal(result.definition.openMetricName, 'vm_disk_latency_seconds')
+  })
+
+  it('should find host DCMI power reading metric', () => {
+    const result = findMetricDefinition('DCMI-power-reading', 'host')
+    assert.ok(result)
+    assert.equal(result.definition.openMetricName, 'host_power_consumption_watts')
+    assert.equal(result.matches, null)
   })
 
   it('should return null for unknown metric', () => {

@@ -191,6 +191,14 @@ export const HOST_METRICS: MetricDefinition[] = [
     help: 'Host disk IO wait ratio',
     extractLabels: matches => ({ sr: matches[1]! }),
   },
+
+  // DCMI power reading
+  {
+    test: 'DCMI-power-reading',
+    openMetricName: 'host_power_consumption_watts',
+    type: 'gauge',
+    help: 'Host power consumption in watts (DCMI)',
+  },
 ]
 
 /**
@@ -356,6 +364,42 @@ export const VM_METRICS: MetricDefinition[] = [
     openMetricName: 'vm_disk_write_latency_seconds',
     type: 'gauge',
     help: 'VM disk write latency in seconds',
+    transformValue: v => v / 1e6, // µs to seconds
+    extractLabels: matches => ({ device: `xvd${matches[1]!}` }),
+  },
+
+  // Disk throughput (VBD)
+  {
+    test: /^vbd_xvd(.)_io_throughput_read$/,
+    openMetricName: 'vm_disk_throughput_read_bytes',
+    type: 'gauge',
+    help: 'VM disk read throughput in bytes per second',
+    transformValue: v => v * 2 ** 20, // MiB/s to bytes/s
+    extractLabels: matches => ({ device: `xvd${matches[1]!}` }),
+  },
+  {
+    test: /^vbd_xvd(.)_io_throughput_write$/,
+    openMetricName: 'vm_disk_throughput_write_bytes',
+    type: 'gauge',
+    help: 'VM disk write throughput in bytes per second',
+    transformValue: v => v * 2 ** 20, // MiB/s to bytes/s
+    extractLabels: matches => ({ device: `xvd${matches[1]!}` }),
+  },
+  {
+    test: /^vbd_xvd(.)_io_throughput_total$/,
+    openMetricName: 'vm_disk_throughput_total_bytes',
+    type: 'gauge',
+    help: 'VM disk total throughput in bytes per second',
+    transformValue: v => v * 2 ** 20, // MiB/s to bytes/s
+    extractLabels: matches => ({ device: `xvd${matches[1]!}` }),
+  },
+
+  // Disk average latency (VBD)
+  {
+    test: /^vbd_xvd(.)_latency$/,
+    openMetricName: 'vm_disk_latency_seconds',
+    type: 'gauge',
+    help: 'VM disk average IO latency in seconds',
     transformValue: v => v / 1e6, // µs to seconds
     extractLabels: matches => ({ device: `xvd${matches[1]!}` }),
   },
