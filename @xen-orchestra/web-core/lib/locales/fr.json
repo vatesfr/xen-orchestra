@@ -404,6 +404,8 @@
   "job:vm-migrate:missing-vm": "Aucune VM à migrer",
   "job:vm-pause:bad-power-state": "La VM doit être allumée",
   "job:vm-pause:blocked-operation": "La mise en pause de la VM est bloquée",
+  "job:vif-delete:blocked-operation": "La suppression du VIF est bloqué",
+  "job:vif-delete:missing-vif": "Aucun VIF à supprimer",
   "job:vm-pause:in-progress": "Mise en pause en cours…",
   "job:vm-pause:missing-vm": "Aucune VM à mettre en pause",
   "job:vm-reboot:bad-power-state": "La VM doit être allumée",

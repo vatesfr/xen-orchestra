@@ -386,6 +386,8 @@
   "job:vm-delete:blocked-operation": "VM deletion is blocked",
   "job:vm-delete:in-progress": "Delete in progress…",
   "job:vm-delete:missing-vm": "No VMs to delete",
+  "job:vif-delete:blocked-operation": "VIF deletion is blocked",
+  "job:vif-delete:missing-vif": "No VIFs to delete",
   "job:vm-export:in-progress": "Export in progress…",
   "job:vm-export:missing-compression": "Compression must be provided",
   "job:vm-export:missing-vm": "No VMs to export",
