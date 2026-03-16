@@ -3,8 +3,18 @@
     <UiTitle>
       {{ t('general-information') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="t('name')" :value="vm.name_label" />
-    <VtsQuickInfoRow :label="t('id')" :value="vm.id" />
+    <VtsQuickInfoRow :label="t('name')">
+      <template #value>
+        {{ vm.name_label }}
+        <VtsCopyButton v-if="vm.name_label" :value="vm.name_label" />
+      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="t('id')">
+      <template #value>
+        {{ vm.id }}
+        <VtsCopyButton :value="vm.id" />
+      </template>
+    </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="t('description')" :value="vm.name_description" />
     <VtsQuickInfoRow :label="t('tags')">
       <template v-if="vm.tags.length > 0" #value>
@@ -21,6 +31,7 @@
 
 <script setup lang="ts">
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'

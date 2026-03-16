@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [XO6] Add copy to clipboard button for various informations (PR [#9600](https://github.com/vatesfr/xen-orchestra/pull/9600))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"

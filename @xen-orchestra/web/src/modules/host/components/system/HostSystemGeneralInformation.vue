@@ -3,8 +3,18 @@
     <UiTitle>
       {{ t('general-information') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="t('name')" :value="host.name_label" />
-    <VtsQuickInfoRow :label="t('uuid')" :value="host.id" />
+    <VtsQuickInfoRow :label="t('name')">
+      <template #value>
+        {{ host.name_label }}
+        <VtsCopyButton v-if="host.name_label" :value="host.name_label" />
+      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="t('uuid')">
+      <template #value>
+        {{ host.id }}
+        <VtsCopyButton :value="host.id" />
+      </template>
+    </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="t('description')" :value="host.name_description" />
     <VtsQuickInfoRow :label="t('tags')">
       <template v-if="host.tags.length > 0" #value>
@@ -59,6 +69,7 @@
 <script setup lang="ts">
 import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
