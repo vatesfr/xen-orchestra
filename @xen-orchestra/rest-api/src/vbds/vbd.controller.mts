@@ -61,7 +61,7 @@ export class VbdController extends XapiXoController<XoVbd> {
 
   /**
    * Returns all VBDs that match the following privilege:
-   * resource: vbd, action: read
+   * - resource: vbd, action: read
    *
    * @example fields "device,bootable,uuid"
    * @example filter "!bootable?"
@@ -155,7 +155,7 @@ export class VbdController extends XapiXoController<XoVbd> {
 
   /**
    * Returns all alarms that match the following privilege:
-   * resource: alarm, action: read
+   * - resource: alarm, action: read
    *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example fields "id,time"
@@ -189,7 +189,7 @@ export class VbdController extends XapiXoController<XoVbd> {
 
   /**
    * Returns all messages that match the following privilege:
-   * resource: message, action: read
+   * - resource: message, action: read
    *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example fields "name,id,$object"
@@ -221,7 +221,7 @@ export class VbdController extends XapiXoController<XoVbd> {
 
   /**
    * Returns all tasks that match the following privilege:
-   * resource: task, action: read
+   * - resource: task, action: read
    *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example fields "id,status,properties"

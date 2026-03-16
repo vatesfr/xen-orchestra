@@ -50,7 +50,7 @@ export class AlarmController extends XapiXoController<XoAlarm> {
 
   /**
    * Returns all alarms that match the following privilege:
-   * resource: alarm, action: read
+   * - resource: alarm, action: read
    *
    * @example fields "body,id,object"
    * @example filter "body:name:physical_utilisation"

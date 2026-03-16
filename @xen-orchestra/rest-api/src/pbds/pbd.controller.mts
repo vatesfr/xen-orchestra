@@ -34,7 +34,7 @@ export class PbdController extends XapiXoController<XoPbd> {
 
   /**
    * Returns all PBDs that match the following privilege:
-   * resource: pbd, action: read
+   * - resource: pbd, action: read
    *
    * @example fields "attached,id,device_config"
    * @example filter "attached?"

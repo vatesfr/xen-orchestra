@@ -30,7 +30,7 @@ export class ProxyController extends XoController<XoProxy> {
 
   /**
    * Returns all proxies that match the following privilege:
-   * resource: proxy, action: read
+   * - resource: proxy, action: read
    *
    * @example fields "vmUuid,id,name"
    * @example filter "vmUuid?"

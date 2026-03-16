@@ -23,7 +23,7 @@ export class PciController extends XapiXoController<XoPci> {
 
   /**
    * Returns all PCIs that match the following privilege:
-   * resource: pci, action: read
+   * - resource: pci, action: read
    *
    * @example fields "class_name,device_name,id"
    * @example filter "class_name:Non-Volatile memory controller"

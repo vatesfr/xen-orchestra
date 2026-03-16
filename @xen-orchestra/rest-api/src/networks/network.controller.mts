@@ -36,7 +36,7 @@ export class NetworkController extends XapiXoController<XoNetwork> {
 
   /**
    * Returns all networks that match the following privilege:
-   * resource: network, action: read
+   * - resource: network, action: read
    *
    * @example fields "nbd,name_label,id"
    * @example filter "nbd?"
@@ -82,7 +82,7 @@ export class NetworkController extends XapiXoController<XoNetwork> {
 
   /**
    * Returns all alarms that match the following privilege:
-   * resource: alarm, action: read
+   * - resource: alarm, action: read
    *
    * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
    * @example fields "id,time"
@@ -116,7 +116,7 @@ export class NetworkController extends XapiXoController<XoNetwork> {
 
   /**
    * Returns all messages that match the following privilege:
-   * resource: message, action: read
+   * - resource: message, action: read
    *
    * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
    * @example fields "name,id,$object"
@@ -148,7 +148,7 @@ export class NetworkController extends XapiXoController<XoNetwork> {
 
   /**
    * Returns all tasks that match the following privilege:
-   * resource: task, action: read
+   * - resource: task, action: read
    *
    * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
    * @example fields "id,status,properties"

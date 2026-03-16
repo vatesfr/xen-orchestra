@@ -73,7 +73,7 @@ export class VdiController extends XapiXoController<XoVdi> {
 
   /**
    * Returns all VDIs that match the following privilege:
-   * resource: vdi, action: read
+   * - resource: vdi, action: read
    *
    * @example fields "*"
    * @example filter "snapshots:length:>2"
@@ -170,7 +170,7 @@ export class VdiController extends XapiXoController<XoVdi> {
 
   /**
    * Returns all alarms that match the following privilege:
-   * resource: alarm, action: read
+   * - resource: alarm, action: read
    *
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
    * @example fields "id,time"
@@ -253,7 +253,7 @@ export class VdiController extends XapiXoController<XoVdi> {
 
   /**
    * Returns all messages that match the following privilege:
-   * resource: message, action: read
+   * - resource: message, action: read
    *
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
    * @example fields "name,id,$object"
@@ -285,7 +285,7 @@ export class VdiController extends XapiXoController<XoVdi> {
 
   /**
    * Returns all tasks that match the following privilege:
-   * resource: task, action: read
+   * - resource: task, action: read
    *
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
    * @example fields "id,status,properties"

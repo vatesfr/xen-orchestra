@@ -57,7 +57,7 @@ export class AclRoleController extends XoController<XoAclRole> {
 
   /**
    * Returns all ACL roles that match the following privilege:
-   * resource: acl-role, action: read
+   * - resource: acl-role, action: read
    *
    * @example fields "id,name,isTemplate"
    * @example filter "name:read only"
@@ -179,7 +179,7 @@ export class AclRoleController extends XoController<XoAclRole> {
 
   /**
    * Returns all ACL privileges that match the following privilege:
-   * resource: acl-privilege, action: read
+   * - resource: acl-privilege, action: read
    *
    * @example id "426622cc-b2db-4545-a2f0-6ec47b3a6450"
    * @example fields "id,action,resource"

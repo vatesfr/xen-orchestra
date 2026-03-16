@@ -57,7 +57,7 @@ export class MessageController extends XapiXoController<XoMessage> {
 
   /**
    * Returns all messages that match the following privilege:
-   * resource: message, action: read
+   * - resource: message, action: read
    *
    * @example fields "name,body,id,$object"
    * @example filter "name:VM_STARTED"

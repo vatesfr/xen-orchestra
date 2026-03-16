@@ -116,7 +116,7 @@ export class PoolController extends XapiXoController<XoPool> {
 
   /**
    * Returns all pools that match the following privilege:
-   * resource: pool, action: read
+   * - resource: pool, action: read
    *
    * @example fields "auto_poweron,name_label,id"
    * @example filter "auto_poweron?"
@@ -487,7 +487,7 @@ export class PoolController extends XapiXoController<XoPool> {
 
   /**
    * Returns all alarms that match the following privilege:
-   * resource: alarm, action: read
+   * - resource: alarm, action: read
    *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
    * @example fields "id,time"
@@ -535,7 +535,7 @@ export class PoolController extends XapiXoController<XoPool> {
 
   /**
    * Returns all messages that match the following privilege:
-   * resource: message, action: read
+   * - resource: message, action: read
    *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
    * @example fields "name,id,$object"
@@ -591,7 +591,7 @@ export class PoolController extends XapiXoController<XoPool> {
 
   /**
    * Returns all tasks that match the following privilege:
-   * resource: task, action: read
+   * - resource: task, action: read
    *
    * @example fields "id,status,properties"
    * @example filter "status:failure"

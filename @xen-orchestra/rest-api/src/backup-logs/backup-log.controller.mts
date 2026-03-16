@@ -42,7 +42,7 @@ export class BackupLogController extends XoController<XoBackupLog> {
 
   /**
    * Returns all backup logs that match the following privilege:
-   * resource: backup-log, action: read
+   * - resource: backup-log, action: read
    *
    * @example fields "jobName,status,data"
    * @example filter "status:success"
