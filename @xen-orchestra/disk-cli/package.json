@@ -9,7 +9,7 @@
   },
   "preferGlobal": true,
   "engines": {
-    "node": ">=20.18"
+    "node": ">=22.3"
   },
   "scripts": {
     "build": "tsc",
