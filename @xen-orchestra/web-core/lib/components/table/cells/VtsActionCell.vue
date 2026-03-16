@@ -1,0 +1,40 @@
+<template>
+  <UiTableCell align="center">
+    <div class="action-cell">
+      <UiButtonIcon
+        :icon="buttonIcon"
+        :accent="buttonAccent ?? 'brand'"
+        :size="buttonSize ?? 'small'"
+        :target-scale="1.5"
+        @click="$emit('click')"
+      />
+      <VtsActionsMenu :actions />
+    </div>
+  </UiTableCell>
+</template>
+
+<script setup lang="ts">
+import VtsActionsMenu, { type ActionItem } from '@core/components/menu/VtsActionsMenu.vue'
+import type { ButtonIconAccent, ButtonIconSize } from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
+import type { IconName } from '@core/icons'
+
+defineProps<{
+  buttonIcon: IconName
+  buttonAccent?: ButtonIconAccent
+  buttonSize?: ButtonIconSize
+  actions: ActionItem[]
+}>()
+
+defineEmits<{
+  click: []
+}>()
+</script>
+
+<style scoped lang="postcss">
+.action-cell {
+  display: flex;
+  gap: 0.8rem;
+}
+</style>
