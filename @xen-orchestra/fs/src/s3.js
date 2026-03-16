@@ -391,6 +391,25 @@ export default class S3Handler extends RemoteHandlerAbstract {
     // nothing to do, directories do not exist, they are part of the files' path
   }
 
+  async #legacyBatchDeleteCommand(result) {
+    await asyncEach(
+      result.Contents ?? [],
+      async ({ Key }) => {
+        // _unlink will add the prefix, but Key contains everything
+        // also we don't need to check if we delete a directory, since the list only return files
+        await this.#s3.send(
+          new DeleteObjectCommand({
+            Bucket: this.#bucket,
+            Key,
+          })
+        )
+      },
+      {
+        concurrency: 16,
+      }
+    )
+  }
+
   // reimplement _rmtree to handle efficiently path with more than 1000 entries in trees
   // @todo : use parallel processing for unlink
   async _rmtree(path) {
@@ -419,40 +438,10 @@ export default class S3Handler extends RemoteHandlerAbstract {
         } catch (error) {
           warn('Unsupported DeleteObjects, fallback to DeleteObject.', { error, $response: error.$response ?? '' })
           supportsDeleteObjects = false
-          await asyncEach(
-            result.Contents ?? [],
-            async ({ Key }) => {
-              // _unlink will add the prefix, but Key contains everything
-              // also we don't need to check if we delete a directory, since the list only return files
-              await this.#s3.send(
-                new DeleteObjectCommand({
-                  Bucket: this.#bucket,
-                  Key,
-                })
-              )
-            },
-            {
-              concurrency: 16,
-            }
-          )
+          await this.#legacyBatchDeleteCommand(result)
         }
       } else {
-        await asyncEach(
-          result.Contents ?? [],
-          async ({ Key }) => {
-            // _unlink will add the prefix, but Key contains everything
-            // also we don't need to check if we delete a directory, since the list only return files
-            await this.#s3.send(
-              new DeleteObjectCommand({
-                Bucket: this.#bucket,
-                Key,
-              })
-            )
-          },
-          {
-            concurrency: 16,
-          }
-        )
+        await this.#legacyBatchDeleteCommand(result)
       }
     } while (NextContinuationToken !== undefined)
   }
