@@ -435,6 +435,9 @@ export default class S3Handler extends RemoteHandlerAbstract {
               },
             })
           )
+          // we catch any error because some providers don't return "NotImplemented" errors when they don't
+          // support DeleteObjectsCommand. As we catch any error, we don't store supportsDeleteObjects param
+          // because it can be due to network issues
         } catch (error) {
           warn('Unsupported DeleteObjects, fallback to DeleteObject.', { error, $response: error.$response ?? '' })
           supportsDeleteObjects = false
