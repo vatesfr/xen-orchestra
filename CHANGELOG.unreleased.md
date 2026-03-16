@@ -15,6 +15,7 @@
 - [Replication] Reuse the same VM as an incremental replication target (PR [#9524](https://github.com/vatesfr/xen-orchestra/pull/9524))
 - [S3] add configuration for max/minPartSize and maxPartNumber in the API (PR [#9561](https://github.com/vatesfr/xen-orchestra/pull/9561))
 - [REST API] Expose `/rest/v0/vms/:id/actions/clone` (PR [#9453](https://github.com/vatesfr/xen-orchestra/pull/9453))
+- [XO6] Add copy to clipboard button for various informations (PR [#9600](https://github.com/vatesfr/xen-orchestra/pull/9600))
 
 ### Bug fixes
 

@@ -9,7 +9,12 @@
           </span>
         </template>
       </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="t('ip-address')" :value="host.address" />
+      <VtsQuickInfoRow :label="t('ip-address')">
+        <template #value>
+          {{ host.address }}
+          <VtsCopyButton v-if="host.address" :value="host.address" />
+        </template>
+      </VtsQuickInfoRow>
       <VtsQuickInfoRow
         :label="t('started')"
         :value="host.power_state === HOST_POWER_STATE.RUNNING ? relativeStartTime : undefined"
@@ -32,7 +37,12 @@
       </VtsQuickInfoRow>
     </VtsQuickInfoColumn>
     <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="t('uuid')" :value="host.id" />
+      <VtsQuickInfoRow :label="t('uuid')">
+        <template #value>
+          {{ host.id }}
+          <VtsCopyButton :value="host.id" />
+        </template>
+      </VtsQuickInfoRow>
       <VtsQuickInfoRow :label="t('description')" :value="host.name_description" />
       <VtsQuickInfoRow :label="t('version')" :value="host.version" />
       <VtsQuickInfoRow
@@ -57,6 +67,7 @@
 <script lang="ts" setup>
 import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
 import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
 import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'

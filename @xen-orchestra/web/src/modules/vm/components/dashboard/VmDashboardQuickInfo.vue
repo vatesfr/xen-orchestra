@@ -9,16 +9,31 @@
           </span>
         </template>
       </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="t('ip-address')" :value="vm.mainIpAddress" />
+      <VtsQuickInfoRow :label="t('ip-address')">
+        <template #value>
+          {{ vm.mainIpAddress }}
+          <VtsCopyButton v-if="vm.mainIpAddress" :value="vm.mainIpAddress" />
+        </template>
+      </VtsQuickInfoRow>
       <VtsQuickInfoRow :label="t('created-on')" :value="installDateFormatted" />
       <VtsQuickInfoRow :label="t('created-by')" :value="userLabel ?? t('unknown')" />
       <VtsQuickInfoRow :label="t('started')" :value="relativeStartTime" />
     </VtsQuickInfoColumn>
     <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="t('uuid')" :value="vm.id" />
+      <VtsQuickInfoRow :label="t('uuid')">
+        <template #value>
+          {{ vm.id }}
+          <VtsCopyButton :value="vm.id" />
+        </template>
+      </VtsQuickInfoRow>
       <VtsQuickInfoRow :label="t('pool')">
         <template #value>
-          <UiLink v-if="pool" :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }" size="medium" icon="object:pool">
+          <UiLink
+            v-if="pool"
+            :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }"
+            size="medium"
+            icon="object:pool"
+          >
             {{ pool.name_label }}
           </UiLink>
           <span v-else>
@@ -29,7 +44,11 @@
       <VtsQuickInfoRow :label="t('host')">
         <template #value>
           <template v-if="host">
-            <UiLink :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }" size="medium" :icon="`object:host:${hostPowerState}`">
+            <UiLink
+              :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
+              size="medium"
+              :icon="`object:host:${hostPowerState}`"
+            >
               {{ host.name_label }}
             </UiLink>
             <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
@@ -86,6 +105,7 @@ import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.t
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import { useXoVmCollection, type FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { XCP_LINKS } from '@/shared/constants.ts'
+import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
 import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
