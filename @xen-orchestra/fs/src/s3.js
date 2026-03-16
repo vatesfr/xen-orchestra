@@ -395,6 +395,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
   // @todo : use parallel processing for unlink
   async _rmtree(path) {
     let NextContinuationToken
+    let supportsDeleteObjects = true
     const Prefix = this.#makePrefix(path)
     do {
       const result = await this.#s3.send(
@@ -404,24 +405,39 @@ export default class S3Handler extends RemoteHandlerAbstract {
           ContinuationToken: NextContinuationToken,
         })
       )
-
       NextContinuationToken = result.IsTruncated ? result.NextContinuationToken : undefined
-      try {
-        await this.#s3.send(
-          new DeleteObjectsCommand({
-            Bucket: this.#bucket,
-            Delete: {
-              Objects: result.Contents ?? [],
+      if (supportsDeleteObjects) {
+        try {
+          await this.#s3.send(
+            new DeleteObjectsCommand({
+              Bucket: this.#bucket,
+              Delete: {
+                Objects: result.Contents ?? [],
+              },
+            })
+          )
+        } catch (error) {
+          warn('Unsupported DeleteObjects, fallback to DeleteObject.', { error, $response: error.$response ?? '' })
+          supportsDeleteObjects = false
+          await asyncEach(
+            result.Contents ?? [],
+            async ({ Key }) => {
+              await this.#s3.send(
+                new DeleteObjectCommand({
+                  Bucket: this.#bucket,
+                  Key,
+                })
+              )
             },
-          })
-        )
-      } catch (error) {
-        warn('Unsupported DeleteObjects, fallback to DeleteObject.', { error, $response: error.$response ?? '' })
+            {
+              concurrency: 16,
+            }
+          )
+        }
+      } else {
         await asyncEach(
           result.Contents ?? [],
           async ({ Key }) => {
-            // _unlink will add the prefix, but Key contains everything
-            // also we don't need to check if we delete a directory, since the list only return files
             await this.#s3.send(
               new DeleteObjectCommand({
                 Bucket: this.#bucket,
