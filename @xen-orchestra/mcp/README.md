@@ -22,6 +22,25 @@ npm install --global @xen-orchestra/mcp
 
 **Claude Desktop** — Add to your config (`~/.config/claude-desktop/config.json`):
 
+Using a token (recommended):
+
+```json
+{
+  "mcpServers": {
+    "xo": {
+      "command": "npx",
+      "args": ["@xen-orchestra/mcp"],
+      "env": {
+        "XO_URL": "https://your-xo-server",
+        "XO_TOKEN": "your-token"
+      }
+    }
+  }
+}
+```
+
+Using username/password:
+
 ```json
 {
   "mcpServers": {
@@ -41,6 +60,13 @@ npm install --global @xen-orchestra/mcp
 **Claude Code:**
 
 ```bash
+# Using a token (recommended)
+claude mcp add xo \
+  -e XO_URL=https://your-xo-server \
+  -e XO_TOKEN=your-token \
+  -- npx @xen-orchestra/mcp
+
+# Using username/password
 claude mcp add xo \
   -e XO_URL=https://your-xo-server \
   -e XO_USERNAME=admin@example.com \
@@ -56,11 +82,16 @@ claude mcp add xo \
 
 ### Configuration
 
-| Variable      | Required | Description                                               |
-| ------------- | -------- | --------------------------------------------------------- |
-| `XO_URL`      | Yes      | Xen Orchestra server URL (e.g., `https://xo.example.com`) |
-| `XO_USERNAME` | Yes      | XO user with admin privileges                             |
-| `XO_PASSWORD` | Yes      | XO password                                               |
+Two authentication modes are supported: **token** (recommended) or **username/password**.
+
+| Variable      | Required                | Description                                               |
+| ------------- | ----------------------- | --------------------------------------------------------- |
+| `XO_URL`      | Yes                     | Xen Orchestra server URL (e.g., `https://xo.example.com`) |
+| `XO_TOKEN`    | If no username/password | Authentication token                                      |
+| `XO_USERNAME` | If no token             | XO user with admin privileges                             |
+| `XO_PASSWORD` | If no token             | XO password                                               |
+
+To generate a token, go to the XO user page (`/user`) or run `xo-cli create-token`. If both `XO_TOKEN` and `XO_USERNAME`/`XO_PASSWORD` are set, token authentication takes priority.
 
 ### Available Tools
 

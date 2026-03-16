@@ -273,4 +273,31 @@ export class SrController extends XapiXoController<XoSr> {
       },
     })
   }
+
+  /**
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/forget')
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async forgetSr(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const srId = id as XoSr['id']
+    const action = async () => {
+      const xapiSr = this.getXapiObject(srId)
+      await xapiSr.$xapi.forgetSr(srId)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'forget sr',
+        objectId: srId,
+      },
+    })
+  }
 }

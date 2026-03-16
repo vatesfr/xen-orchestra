@@ -1,6 +1,7 @@
 import {
   WrappedXenApiRecord,
   XenApiHost,
+  XenApiHostWrapped,
   XenApiNetwork,
   XenApiNetworkWrapped,
   XenApiRecord,
@@ -111,6 +112,30 @@ export interface Xapi {
   pool_emergencyShutdown(): Promise<void>
   resumeVm(id: XoVm['id']): Promise<void>
   unpauseVm(id: XoVm['id']): Promise<void>
+  cloneVm(
+    vmId: XoVm['id'],
+    opts?: {
+      nameLabel?: string
+      fast?: boolean
+    }
+  ): Promise<XenApiVmWrapped>
+  copyVm(
+    vmId: XoVm['id'],
+    opts?: {
+      nameLabel?: string
+      srOrSrId?: XoSr['id'] | XoSr
+    }
+  ): Promise<XenApiVmWrapped>
+  remoteCopyVm(
+    vmId: XoVm['id'],
+    targetXapi: Xapi,
+    targetSrId: XoSr['id'],
+    opts?: {
+      compress?: 'zstd' | 'gzip' | boolean
+      nameLabel?: string
+    }
+  ): Promise<{ vm: XenApiVmWrapped }>
+  forgetSr(id: XoSr['id']): Promise<void>
   SR_importVdi(
     ref: XenApiSr['$ref'],
     stream: Readable,
@@ -158,6 +183,7 @@ export interface Xapi {
     metadataVm: {
       affinityHost?: XoHost['id']
       autoPoweron?: boolean
+      cpus?: number
       memory?: number
       name_description?: string
       name_label: string
@@ -290,6 +316,16 @@ export interface Xapi {
     pathname: string,
     params?: { host?: XenApiHost; query?: Record<string, unknown>; task?: boolean | XenApiTask['$ref'] }
   ): Promise<{ body: Readable }>
+  clearHost(host: Pick<XenApiHostWrapped, '$ref' | '$pool'>, force?: boolean): Promise<void>
+  disableHost(hostId: XoHost['id']): Promise<void>
+  enableHost(hostId: XoHost['id']): Promise<void>
+  getRecordByUuid<
+    Type extends WrappedXenApiRecord['$type'],
+    XenApiRecord extends WrappedXenApiRecord = Extract<WrappedXenApiRecord, { $type: Type }>,
+  >(
+    type: Type,
+    uuid: XenApiRecord['uuid']
+  ): Promise<XenApiRecord>
   isHyperThreadingEnabled(hostId: XoHost['id']): Promise<boolean | null>
   VTPM_create(params: { VM: XenApiVm['$ref']; is_unique?: boolean; contents?: string }): Promise<XenApiVtpm['$ref']>
 }

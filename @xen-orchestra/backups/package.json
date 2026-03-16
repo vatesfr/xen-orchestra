@@ -8,7 +8,7 @@
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
-  "version": "0.69.2",
+  "version": "0.69.4",
   "engines": {
     "node": ">=14.18"
   },
@@ -68,5 +68,9 @@
   "author": {
     "name": "Vates SAS",
     "url": "https://vates.fr"
+  },
+  "exports": {
+    "./disks": "./disks/index.mjs",
+    "./*": "./*"
   }
 }

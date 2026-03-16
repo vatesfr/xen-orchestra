@@ -36,22 +36,23 @@ export function useXoBackupLogsUtils() {
     ].join(':')
   }
 
-  const findTransferTask = (tasks: any[]): number | undefined => {
-    for (const task of tasks) {
-      if (task.message === 'transfer' && task.result?.size !== undefined) {
-        return task.result.size
-      }
-
+  const findTransferTaskSize = (tasks: FrontXoBackupLog['tasks']): number | undefined => {
+    return tasks?.reduce((totalSize: number | undefined, task) => {
       if (Array.isArray(task.tasks)) {
-        const size = findTransferTask(task.tasks)
-
-        if (size !== undefined) {
-          return size
+        const nestedSize = findTransferTaskSize(task.tasks)
+        if (nestedSize !== undefined) {
+          totalSize = (totalSize ?? 0) + nestedSize
         }
-      }
-    }
+      } else {
+        if (!('message' in task) || task.message !== 'transfer' || typeof task.result.size !== 'number') {
+          return totalSize
+        }
 
-    return undefined
+        totalSize = (totalSize ?? 0) + task.result.size
+      }
+
+      return totalSize
+    }, undefined)
   }
 
   function getTransferSize(backupLog: FrontXoBackupLog): Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>> | undefined {
@@ -61,13 +62,13 @@ export function useXoBackupLogsUtils() {
       return undefined
     }
 
-    return formatSizeRaw(findTransferTask(backupLog.tasks), 2)
+    return formatSizeRaw(findTransferTaskSize(backupLog.tasks), 2)
   }
 
   return {
     getBackupLogDate,
     getBackupLogDuration,
     getTransferSize,
-    findTransferTask,
+    findTransferTaskSize,
   }
 }

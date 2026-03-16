@@ -417,6 +417,7 @@ const methods = {
 
     _memory: {
       addToLimits: true,
+      limitName: 'memory',
       get: vm => +vm.memory_dynamic_max,
       preprocess: parseSize,
       set(memory, vm) {

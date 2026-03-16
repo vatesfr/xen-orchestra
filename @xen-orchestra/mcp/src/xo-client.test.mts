@@ -45,6 +45,19 @@ describe('XoClient', () => {
       }
       await client.listPools()
     })
+
+    it('creates correct cookie header for token auth', async () => {
+      const token = 'test-token-abc123'
+      const client = new XoClient({ url: 'http://xo.local:9000', token })
+
+      globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+        const headers = init?.headers as Record<string, string>
+        assert.strictEqual(headers?.cookie, `authenticationToken=${token}`)
+        assert.strictEqual(headers?.Authorization, undefined)
+        return mockResponse([])
+      }
+      await client.listPools()
+    })
   })
 
   describe('request', () => {
@@ -97,14 +110,25 @@ describe('XoClient', () => {
       }
     })
 
-    it('throws descriptive error on 401', async () => {
+    it('throws descriptive error on 401 with basic auth', async () => {
       const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'wrong' })
 
       globalThis.fetch = async () => {
         return new Response('Unauthorized', { status: 401, statusText: 'Unauthorized' })
       }
       await assert.rejects(() => client.listPools(), {
-        message: /Authentication failed/,
+        message: /check XO_USERNAME and XO_PASSWORD/,
+      })
+    })
+
+    it('throws descriptive error on 401 with token auth', async () => {
+      const client = new XoClient({ url: 'http://xo.local:9000', token: 'expired-token' })
+
+      globalThis.fetch = async () => {
+        return new Response('Unauthorized', { status: 401, statusText: 'Unauthorized' })
+      }
+      await assert.rejects(() => client.listPools(), {
+        message: /check XO_TOKEN/,
       })
     })
 
@@ -258,6 +282,44 @@ describe('XoClient', () => {
         return mockResponse([])
       }
       await client.listVms({ limit: 0 })
+    })
+  })
+
+  describe('listVdis', () => {
+    it('returns VDIs with default fields', async () => {
+      const vdis = [{ id: 'vdi1', name_label: 'VDI 1', size: 10737418240 }]
+      const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'pass' })
+
+      globalThis.fetch = async (input: RequestInfo | URL) => {
+        const url = typeof input === 'string' ? input : input.toString()
+        assert.ok(url.includes('fields=id%2Cname_label%2Cname_description%2C%24SR%2Csize%2Cusage%2CVDI_type'))
+        return mockResponse(vdis)
+      }
+      const result = await client.listVdis()
+      assert.deepStrictEqual(result, vdis)
+    })
+
+    it('passes filter, fields, and limit via object', async () => {
+      const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'pass' })
+
+      globalThis.fetch = async (input: RequestInfo | URL) => {
+        const url = typeof input === 'string' ? input : input.toString()
+        assert.ok(url.includes('filter=VDI_type'))
+        assert.ok(url.includes('limit=10'))
+        return mockResponse([])
+      }
+      await client.listVdis({ filter: 'VDI_type:User', fields: 'id,size', limit: 10 })
+    })
+
+    it('passes limit=0 correctly', async () => {
+      const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'pass' })
+
+      globalThis.fetch = async (input: RequestInfo | URL) => {
+        const url = typeof input === 'string' ? input : input.toString()
+        assert.ok(url.includes('limit=0'), 'limit=0 should be included in URL')
+        return mockResponse([])
+      }
+      await client.listVdis({ limit: 0 })
     })
   })
 

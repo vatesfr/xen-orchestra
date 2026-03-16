@@ -2,8 +2,7 @@ import assert from 'node:assert'
 import { suite, test } from 'node:test'
 import { Synchronized } from './synchronized.mjs'
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function* makeRangeGenerator(end = Infinity, progress = { yielded: 0 }, onYielded = (val: unknown) => {}) {
+async function* makeRangeGenerator(end = Infinity, progress = { yielded: 0 }, onYielded = (_val: unknown) => {}) {
   for (let i = 0; i < end; i++) {
     await new Promise(resolve => setTimeout(resolve, 10))
     yield i
@@ -17,7 +16,7 @@ async function consume(
   iterable: AsyncGenerator,
   delay = 2500,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onConsumed = (val: unknown, iterable: AsyncGenerator) => Promise.resolve(false)
+  onConsumed = (_val: unknown, _iterable: AsyncGenerator) => Promise.resolve(false)
 ) {
   for await (const val of iterable) {
     await new Promise(resolve => setTimeout(resolve, delay))
@@ -28,6 +27,30 @@ async function consume(
 }
 
 suite('success', () => {
+  test('for-await-of break stops the source generator', async () => {
+    let sourceClosed = false
+    const source = (async function* () {
+      try {
+        for (let i = 0; i < 10; i++) {
+          await new Promise(resolve => setTimeout(resolve, 10))
+          yield i
+        }
+      } finally {
+        sourceClosed = true
+      }
+    })()
+
+    const forker = new Synchronized(source)
+    const fork = forker.fork('first')
+
+    // for-await-of must call fork.return() on break, which propagates to the source
+    for await (const val of fork) {
+      if (val === 2) break
+    }
+
+    assert.strictEqual(sourceClosed, true)
+  })
+
   test('if works with multiple consumer', async () => {
     const progress = { yielded: 0 }
     const generator = makeRangeGenerator(3, progress)
