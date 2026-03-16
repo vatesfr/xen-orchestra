@@ -54,15 +54,10 @@ mock.module('@xen-orchestra/fs', {
   },
 })
 
-mock.module('@xen-orchestra/backups/disks/openDisk.mjs', {
+mock.module('@xen-orchestra/backups/disks', {
   namedExports: {
     // openDisk reads `currentLeafDisk` at call-time via closure.
-    openDisk: () => Promise.resolve({ value: currentLeafDisk, dispose: leafDispose }),
-  },
-})
-
-mock.module('@xen-orchestra/backups/disks/openDiskChain.mjs', {
-  namedExports: {
+    openDisposableDisk: () => Promise.resolve({ value: currentLeafDisk, dispose: leafDispose }),
     openDiskChain: openDiskChainSpy,
   },
 })

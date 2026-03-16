@@ -45,7 +45,7 @@ declare module '@xen-orchestra/backups/disks/openDiskChain.mjs' {
   }): Promise<RandomAccessDisk>
 }
 
-declare module '@xen-orchestra/backups/disks/openDisk.mjs' {
+declare module '@xen-orchestra/backups/disks' {
   import type { RemoteHandler } from '@xen-orchestra/fs'
   import type { RandomAccessDisk } from '@xen-orchestra/disk-transform'
 
@@ -64,5 +64,11 @@ declare module '@xen-orchestra/backups/disks/openDisk.mjs' {
 
   export function isDisk(handler: RemoteHandler, path: string): boolean
 
-  export function openDisk(handler: RemoteHandler, path: string, options?: { flags?: string }): Promise<DiskDisposable>
+  export function openDisposableDisk(params: { handler: RemoteHandler; path: string }): Promise<DiskDisposable>
+
+  export function openDiskChain(params: {
+    handler: RemoteHandler
+    path: string
+    until?: string
+  }): Promise<RandomAccessDisk>
 }

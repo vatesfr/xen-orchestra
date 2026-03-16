@@ -1,8 +1,8 @@
 import Disposable from 'promise-toolbox/Disposable'
 import { getSyncedHandler } from '@xen-orchestra/fs'
-import { isDisk, openDisk } from '@xen-orchestra/backups/disks/openDisk.mjs'
+import { isDisk, openDisposableDisk } from '@xen-orchestra/backups/disks'
 import { formatBytes, renderTable } from '../utils.mjs'
-import {asyncEach} from '@vates/async-each'
+import { asyncEach } from '@vates/async-each'
 const HEADERS = ['File', 'UID', 'Size on disk', 'Virtual size', 'Differencing', 'Parent UID']
 
 export type OkDiskInfo = {
@@ -82,26 +82,30 @@ export async function listCommand(handlerUrl: string, dirPath: string, _extraArg
     }
 
     const disks: DiskInfo[] = []
-    await asyncEach(diskPaths, async (diskPath:string) => {
-      const filename = diskPath.slice(diskPath.lastIndexOf('/') + 1)
-      try {
-        const disk = await Disposable.use(openDisk(handler, diskPath), async disk => {
-          const differencing = disk.isDifferencing()
-          return {
-            ok: true as const,
-            filename,
-            uid: disk.getUuid(),
-            sizeOnDisk: formatBytes(disk.getSizeOnDisk()),
-            virtualSize: formatBytes(disk.getVirtualSize()),
-            differencing,
-            parentUid: differencing ? disk.getParentUuid() : null,
-          }
-        })
-        disks.push(disk)
-      } catch (err) {
-        disks.push({ ok: false as const, filename, error: err instanceof Error ? err.message : String(err) })
-      }
-    }, { concurrency: 4 })
+    await asyncEach(
+      diskPaths,
+      async (diskPath: string) => {
+        const filename = diskPath.slice(diskPath.lastIndexOf('/') + 1)
+        try {
+          const disk = await Disposable.use(openDisposableDisk({ handler, path: diskPath }), async disk => {
+            const differencing = disk.isDifferencing()
+            return {
+              ok: true as const,
+              filename,
+              uid: disk.getUuid(),
+              sizeOnDisk: formatBytes(disk.getSizeOnDisk()),
+              virtualSize: formatBytes(disk.getVirtualSize()),
+              differencing,
+              parentUid: differencing ? disk.getParentUuid() : null,
+            }
+          })
+          disks.push(disk)
+        } catch (err) {
+          disks.push({ ok: false as const, filename, error: err instanceof Error ? err.message : String(err) })
+        }
+      },
+      { concurrency: 4 }
+    )
 
     const sorted = sortDisks(disks)
     const rows = sorted.map((disk, i) => toTableRow(disk, sorted[i - 1]))

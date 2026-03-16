@@ -11,6 +11,7 @@
  */
 import { describe, test, mock, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
+import { openDisposableDisk } from '@xen-orchestra/backups/disks'
 
 // ---------------------------------------------------------------------------
 // Spies — created once and reused; reset in beforeEach.
@@ -41,9 +42,9 @@ mock.module('@xen-orchestra/fs', {
   },
 })
 
-mock.module('@xen-orchestra/backups/disks/openDisk.mjs', {
+mock.module('@xen-orchestra/backups/disks', {
   namedExports: {
-    openDisk: () => Promise.resolve({ value: currentDisk, dispose: diskDispose }),
+    openDisposableDisk: () => Promise.resolve({ value: currentDisk, dispose: diskDispose }),
   },
 })
 

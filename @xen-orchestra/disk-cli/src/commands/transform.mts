@@ -3,8 +3,7 @@ import { Readable } from 'node:stream'
 import type { RandomAccessDisk } from '@xen-orchestra/disk-transform'
 import Disposable from 'promise-toolbox/Disposable'
 import { getSyncedHandler, type RemoteHandler } from '@xen-orchestra/fs'
-import { openDisk } from '@xen-orchestra/backups/disks/openDisk.mjs'
-import { openDiskChain } from '@xen-orchestra/backups/disks/openDiskChain.mjs'
+import { openDisposableDisk, openDiskChain } from '@xen-orchestra/backups/disks'
 import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
 import { toQcow2Stream } from '@xen-orchestra/qcow2'
 
@@ -32,7 +31,7 @@ export async function* rawGenerator(disk: RandomAccessDisk): AsyncGenerator<Buff
 // Returns a disposable for either a single disk or the full chain,
 // depending on whether the leaf disk is differencing.
 async function openDiskOrChain(handler: RemoteHandler, diskPath: string) {
-  const { value: leafDisk, dispose: disposeLeaf } = await openDisk(handler, diskPath)
+  const { value: leafDisk, dispose: disposeLeaf } = await openDisposableDisk({ handler, path: diskPath })
 
   if (leafDisk.isDifferencing()) {
     await disposeLeaf()
@@ -46,7 +45,7 @@ async function openDiskOrChain(handler: RemoteHandler, diskPath: string) {
 export async function transformCommand(handlerUrl: string, diskPath: string, extraArgs: string[]): Promise<void> {
   const format = extraArgs[0] as OutputFormat
   if (!format || !OUTPUT_FORMATS.includes(format)) {
-    // this is a cli tool let's not use @xen-orchestra/log here 
+    // this is a cli tool let's not use @xen-orchestra/log here
     console.error(`Error: output format must be one of: ${OUTPUT_FORMATS.join(', ')}`)
     process.exit(1)
   }

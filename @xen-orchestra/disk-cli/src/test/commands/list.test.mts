@@ -49,10 +49,10 @@ mock.module('@xen-orchestra/fs', {
   },
 })
 
-mock.module('@xen-orchestra/backups/disks/openDisk.mjs', {
+mock.module('@xen-orchestra/backups/disks', {
   namedExports: {
     isDisk: (_h: unknown, p: string) => p.endsWith('.vhd'),
-    openDisk: (_h: unknown, path: string) => {
+    openDisposableDisk: ({ path }: { path: string }) => {
       if (brokenPaths.has(path)) throw new Error('disk header corrupted')
       return Promise.resolve({ value: { ...baseDisk }, dispose: diskDispose })
     },
