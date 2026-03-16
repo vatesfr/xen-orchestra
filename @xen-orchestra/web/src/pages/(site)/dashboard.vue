@@ -4,7 +4,12 @@
     <SiteDashboardHostsStatus class="hosts-status" />
     <SiteDashboardVmsStatus class="vms-status" />
     <SiteDashboardResourcesOverview class="resources-overview" />
-    <DashboardAlarms class="alarms" :alarms :is-ready :has-error="hasAlarmFetchError" />
+    <DashboardAlarms
+      :class="alarmHero ? 'alarms-hero' : 'alarms'"
+      :alarms="alarms"
+      :is-ready
+      :has-error="hasAlarmFetchError"
+    />
     <SiteDashboardPatches class="patches" />
     <SiteDashboardBackupJobsStatus class="backup-jobs-status" />
     <SiteDashboardBackupIssues class="backup-issues" />
@@ -35,6 +40,7 @@ import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-colle
 import { useXoVmControllerCollection } from '@/modules/vm/remote-resources/use-xo-vm-controller-collection.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { logicAnd } from '@vueuse/math'
+import { computed } from 'vue'
 
 const uiStore = useUiStore()
 
@@ -45,6 +51,8 @@ const { areVmControllersReady } = useXoVmControllerCollection()
 const { areSrsReady } = useXoSrCollection()
 
 const isReady = logicAnd(areAlarmsReady, areHostsReady, areVmsReady, areVmControllersReady, areSrsReady)
+
+const alarmHero = computed(() => !areAlarmsReady.value || hasAlarmFetchError.value || alarms.value.length === 0)
 </script>
 
 <style lang="postcss" scoped>
@@ -72,8 +80,12 @@ const isReady = logicAnd(areAlarmsReady, areHostsReady, areVmsReady, areVmContro
   }
 
   .alarms {
+    height: 40.6rem;
+  }
+
+  .alarms,
+  .alarms-hero {
     grid-area: alarms;
-    max-height: 40.6rem;
   }
 
   .patches {
