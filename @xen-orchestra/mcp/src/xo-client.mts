@@ -5,10 +5,10 @@
  * Authentication is done via Basic Auth or token cookie.
  */
 
-import type { XoPool, XoHost, XoVm, XoVdi, XoNetwork } from '@vates/types/xo'
+import type { XoPool, XoHost, XoVm, XoVdi, XoNetwork, XoSr } from '@vates/types/xo'
 import type { XapiVmStats, XapiStatsGranularity } from '@vates/types/common'
 
-export type { XoPool, XoHost, XoVm, XoVdi, XoNetwork, XapiVmStats, XapiStatsGranularity }
+export type { XoPool, XoHost, XoVm, XoVdi, XoNetwork, XoSr, XapiVmStats, XapiStatsGranularity }
 
 export interface ListOptions {
   filter?: string
@@ -159,6 +159,18 @@ export class XoClient {
 
   async getNetwork(networkId: string): Promise<XoNetwork> {
     return this.request<XoNetwork>(`/networks/${encodeURIComponent(networkId)}`)
+  }
+
+  async listSrs(options?: ListOptions): Promise<Partial<XoSr>[]> {
+    const params = this.buildListParams(
+      'id,name_label,SR_type,allocationStrategy,size,usage,physical_usage,shared',
+      options
+    )
+    return this.request<Partial<XoSr>[]>(`/srs?${params}`)
+  }
+
+  async getSr(srId: string): Promise<XoSr> {
+    return this.request<XoSr>(`/srs/${encodeURIComponent(srId)}`)
   }
 
   async getVmStats(vmId: string, granularity: XapiStatsGranularity = 'hours'): Promise<XapiVmStats> {

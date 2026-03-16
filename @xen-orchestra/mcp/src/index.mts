@@ -311,6 +311,64 @@ export function createServer(getClient: () => XoClient): McpServer {
   )
 
   // =============================================================================
+  // TOOL: list_srs
+  // =============================================================================
+  server.registerTool(
+    'list_srs',
+    {
+      title: 'List Storage Repositories',
+      description: 'List storage repositories (SRs) in Xen Orchestra with optional filtering',
+      inputSchema: {
+        filter: z.string().optional().describe('Filter expression (e.g., SR_type:lvm, shared:true)'),
+        fields: z.string().optional().describe('Comma-separated fields to return'),
+        limit: z.number().optional().describe('Maximum number of SRs to return'),
+      },
+    },
+    async ({ filter, fields, limit }) => {
+      try {
+        const client = getClient()
+        const srs = await client.listSrs({ filter, fields, limit })
+        return {
+          content: [{ type: 'text', text: JSON.stringify(srs, null, 2) }],
+        }
+      } catch (error) {
+        return {
+          content: [{ type: 'text', text: `Failed to list SRs: ${formatToolError(error)}` }],
+          isError: true,
+        }
+      }
+    }
+  )
+
+  // =============================================================================
+  // TOOL: get_sr_details
+  // =============================================================================
+  server.registerTool(
+    'get_sr_details',
+    {
+      title: 'Get SR Details',
+      description: 'Get detailed information about a specific storage repository',
+      inputSchema: {
+        sr_id: z.string().describe('The SR ID or UUID'),
+      },
+    },
+    async ({ sr_id }) => {
+      try {
+        const client = getClient()
+        const sr = await client.getSr(sr_id)
+        return {
+          content: [{ type: 'text', text: JSON.stringify(sr, null, 2) }],
+        }
+      } catch (error) {
+        return {
+          content: [{ type: 'text', text: `Failed to get SR details: ${formatToolError(error)}` }],
+          isError: true,
+        }
+      }
+    }
+  )
+
+  // =============================================================================
   // TOOL: get_vm_details
   // =============================================================================
   server.registerTool(
