@@ -266,7 +266,11 @@ async function main(): Promise<void> {
   console.log(`Memory before watchRemote: ${mb(rssBeforeWatch)}`)
 
   const tWatchStart = Date.now()
-  const { close } = await watchRemote('load-test', { root, immutabilityDuration: ONE_DAY_MS })
+  const { close } = await watchRemote('load-test', {
+    root,
+    immutabilityDuration: ONE_DAY_MS,
+    delayBetweenSizeCheck: 100,
+  })
   const tWatcherReady = Date.now() - tWatchStart
 
   await new Promise(resolve => setTimeout(resolve, 500))

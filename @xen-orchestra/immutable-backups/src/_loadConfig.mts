@@ -8,6 +8,8 @@ export interface RemoteConfig {
   root: string
   /** Minimum duration in milliseconds that files must stay immutable */
   immutabilityDuration: number
+  /** Milliseconds to wait between consecutive size checks when polling for write completion (default: 100) */
+  delayBetweenSizeCheck: number
 }
 
 export interface AppConfig {
@@ -49,6 +51,9 @@ export function parseConfig(config: Record<string, any>): AppConfig {
       )
     }
     config.remotes[remoteId].immutabilityDuration = ms(immutabilityDuration)
+    const { delayBetweenSizeCheck } = config.remotes[remoteId]
+    config.remotes[remoteId].delayBetweenSizeCheck =
+      delayBetweenSizeCheck !== undefined ? ms(delayBetweenSizeCheck) : 100
   }
   return config as AppConfig
 }

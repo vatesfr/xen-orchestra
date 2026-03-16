@@ -41,7 +41,7 @@ async function test(remotePath: string): Promise<void> {
 // Start watching a backup remote for new files and make them immutable as they are written.
 export async function watchRemote(
   remoteId: string,
-  { root, immutabilityDuration }: RemoteConfig
+  { root, immutabilityDuration, delayBetweenSizeCheck }: RemoteConfig
 ): Promise<{ close: () => void }> {
   debug('got config ', { remoteId, root, immutabilityDuration })
 
@@ -69,7 +69,7 @@ export async function watchRemote(
   )
   await File.makeImmutable(settingPath)
 
-  const close = await startRemoteWatcher(root, err => warn('watcher error', { err }))
+  const close = await startRemoteWatcher(root, err => warn('watcher error', { err }), { delayBetweenSizeCheck })
 
   return { close }
 }

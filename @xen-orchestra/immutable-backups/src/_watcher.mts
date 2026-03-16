@@ -9,6 +9,8 @@ const { debug } = createLogger('xen-orchestra:immutable-backups:watcher')
 export interface WatchOptions {
   /** Milliseconds after which a datetime is evicted from the deduplication set inside watchVmDirectory. */
   lockTimeout?: number
+  /** Milliseconds to wait between consecutive size checks when polling for write completion. */
+  delayBetweenSizeCheck: number
 }
 
 /**
@@ -30,7 +32,7 @@ function extractDatetime(filename: string): string | undefined {
 // The first stat is issued immediately; resolution requires a stable non-zero
 // size across two consecutive polls spaced 100 ms apart.
 // Rejects with an error if `timeout` ms elapse before stability is reached.
-export async function waitForWriteDone(path: string, timeout: number): Promise<void> {
+export async function waitForWriteDone(path: string, timeout: number, delayBetweenSizeCheck: number): Promise<void> {
   const deadline = Date.now() + timeout
   let prevSize = -1
 
@@ -47,7 +49,7 @@ export async function waitForWriteDone(path: string, timeout: number): Promise<v
       }
       // file not yet visible — keep waiting
     }
-    await new Promise<void>(resolve => setTimeout(resolve, 100))
+    await new Promise<void>(resolve => setTimeout(resolve, delayBetweenSizeCheck))
   }
 
   throw new Error(`Timeout waiting for write to complete on ${path}`)
@@ -112,7 +114,7 @@ async function lockBackup(vmDir: string, datetime: string): Promise<void> {
 export function watchVmDirectory(
   vmDir: string,
   onError: (err: unknown) => void,
-  { lockTimeout = 10 * 60 * 1000 }: WatchOptions = {}
+  { lockTimeout = 10 * 60 * 1000, delayBetweenSizeCheck }: WatchOptions
 ): () => void {
   const watcher = fs.watch(vmDir)
 
@@ -146,7 +148,7 @@ export function watchVmDirectory(
     }, lockTimeout).unref()
 
     const jsonPath = join(vmDir, name)
-    waitForWriteDone(jsonPath, lockTimeout)
+    waitForWriteDone(jsonPath, lockTimeout, delayBetweenSizeCheck)
       .then(() => {
         debug(`[watcher] watchVmDirectory: locking backup datetime="${datetime}" in vmDir="${vmDir}"`)
         return lockBackup(vmDir, datetime)
@@ -181,7 +183,7 @@ export function watchVmDirectory(
 function watchBackupDateDirectory(
   dateDir: string,
   onError: (err: unknown) => void,
-  { lockTimeout = 10 * 60 * 1000 }: WatchOptions = {}
+  { lockTimeout = 10 * 60 * 1000, delayBetweenSizeCheck }: WatchOptions
 ): () => void {
   const watcher = fs.watch(dateDir)
   let locked = false
@@ -194,7 +196,7 @@ function watchBackupDateDirectory(
       return
     }
     const metadataPath = join(dateDir, 'metadata.json')
-    waitForWriteDone(metadataPath, lockTimeout)
+    waitForWriteDone(metadataPath, lockTimeout, delayBetweenSizeCheck)
       .then(() => {
         if (locked) {
           return
@@ -324,7 +326,7 @@ async function watchSubdirectories(
 export async function watchRemote(
   root: string,
   onError: (err: unknown) => void,
-  options: WatchOptions = {}
+  options: WatchOptions
 ): Promise<() => void> {
   const [closeVmWatcher, closeConfigWatcher, closePoolWatcher] = await Promise.all([
     // xo-vm-backups/<vmUUID>/

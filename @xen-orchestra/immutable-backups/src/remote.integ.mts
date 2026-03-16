@@ -62,7 +62,7 @@ async function makeRemote(preDirs: string[] = []): Promise<{ root: string; close
   for (const relDir of preDirs) {
     await fs.mkdir(path.join(root, relDir), { recursive: true })
   }
-  const { close } = await watchRemote('test', { root, immutabilityDuration: ONE_DAY_MS })
+  const { close } = await watchRemote('test', { root, immutabilityDuration: ONE_DAY_MS, delayBetweenSizeCheck: 100 })
   // Give the watcher a moment to complete its initial scan and become ready before
   // the caller starts writing files.
   await new Promise(resolve => setTimeout(resolve, 500))
