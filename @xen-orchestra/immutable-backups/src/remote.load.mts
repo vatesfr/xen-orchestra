@@ -10,7 +10,7 @@
 //   Lift immutability on all locked files and measure the duration.
 //
 // Must be run as root (chattr requires elevated privileges).
-// Usage:  node @xen-orchestra/immutable-backups/protectRemote.load.mjs
+// Usage:  node @xen-orchestra/immutable-backups/remote.load.mjs
 
 import fs from 'node:fs/promises'
 import path from 'node:path'
@@ -336,7 +336,7 @@ async function main(): Promise<void> {
     const med = sorted[Math.floor(sorted.length / 2)]
     const max = sorted[sorted.length - 1]
     console.log(`  avg ${avg.toFixed(0)} ms  median ${med} ms  max ${max} ms`)
-    console.log(`  (subtract 5× concurrent chattr baseline above to isolate fs.watch event latency + readdir)`)
+    console.log(`  (subtract 5x concurrent chattr baseline above to isolate fs.watch event latency + readdir)`)
   }
   console.log('')
 
