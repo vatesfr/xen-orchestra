@@ -920,11 +920,11 @@ watch(
 watch(
   pools,
   newPools => {
-    const targetPool = newPools.find(pool => pool.id === poolId.value)
-
-    if (targetPool?.id !== vmState.pool?.id) {
-      vmState.pool = targetPool
+    if (!poolId.value || vmState.pool !== undefined) {
+      return
     }
+
+    vmState.pool = newPools.find(pool => pool.id === poolId.value)
   },
   { immediate: true }
 )
