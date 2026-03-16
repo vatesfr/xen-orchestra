@@ -63,7 +63,7 @@ export class HostController extends XapiXoController<XoHost> {
 
   /**
    * Returns all hosts that match the following privilege:
-   * resource: host, action: read
+   * - resource: host, action: read
    *
    * @example fields "id,name_label,productBrand"
    * @example filter "productBrand:XCP-ng"
@@ -161,7 +161,7 @@ export class HostController extends XapiXoController<XoHost> {
 
   /**
    * Returns all alarms that match the following privilege:
-   * resource: alarm, action: read
+   * - resource: alarm, action: read
    *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    * @example fields "id,time"
@@ -226,7 +226,7 @@ export class HostController extends XapiXoController<XoHost> {
 
   /**
    * Returns all messages that match the following privilege:
-   * resource: message, action: read
+   * - resource: message, action: read
    *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    * @example fields "name,id,$object"
@@ -257,7 +257,7 @@ export class HostController extends XapiXoController<XoHost> {
 
   /**
    * Returns all tasks that match the following privilege:
-   * resource: task, action: read
+   * - resource: task, action: read
    *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    * @example fields "id,status,properties"

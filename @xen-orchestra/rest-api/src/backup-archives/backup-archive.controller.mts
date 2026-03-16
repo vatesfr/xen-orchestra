@@ -65,7 +65,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
 
   /**
    * Returns all backup archives that match the following privilege:
-   * resource: backup-archive, action: read
+   * - resource: backup-archive, action: read
    *
    * You can use the alias "*" in "backup-repository" to select all backup repositories.
    *

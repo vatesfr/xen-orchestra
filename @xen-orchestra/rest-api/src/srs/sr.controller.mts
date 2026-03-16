@@ -54,7 +54,7 @@ export class SrController extends XapiXoController<XoSr> {
 
   /**
    * Returns all SRs that match the following privilege:
-   * resource: sr, action: read
+   * - resource: sr, action: read
    *
    * @example fields "uuid,name_label,allocationStrategy"
    * @example filter "allocationStrategy:thin"
@@ -88,7 +88,7 @@ export class SrController extends XapiXoController<XoSr> {
 
   /**
    * Returns all alarms that match the following privilege:
-   * resource: alarm, action: read
+   * - resource: alarm, action: read
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    * @example fields "id,time"
@@ -159,7 +159,7 @@ export class SrController extends XapiXoController<XoSr> {
 
   /**
    * Returns all messages that match the following privilege:
-   * resource: message, action: read
+   * - resource: message, action: read
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    * @example fields "name,id,$object"
@@ -190,7 +190,7 @@ export class SrController extends XapiXoController<XoSr> {
 
   /**
    * Returns all tasks that match the following privilege:
-   * resource: task, action: read
+   * - resource: task, action: read
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    * @example fields "id,status,properties"

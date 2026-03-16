@@ -36,7 +36,7 @@ export class ScheduleController extends XoController<XoSchedule> {
 
   /**
    * Returns all schedules that match the following privilege:
-   * resource: schedule, action: read
+   * - resource: schedule, action: read
    *
    * @example fields "enabled,jobId,cron,id"
    * @example filter "enabled?"

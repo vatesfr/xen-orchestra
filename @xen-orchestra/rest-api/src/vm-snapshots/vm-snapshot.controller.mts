@@ -52,7 +52,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
 
   /**
    * Returns all VM snapshots that match the following privilege:
-   * resource: vm-snapshot, action: read
+   * - resource: vm-snapshot, action: read
    *
    * @example fields "uuid,snapshot_time,$snapshot_of"
    * @example filter "snapshot_time:>1725020038"
@@ -126,7 +126,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
 
   /**
    * Returns all alarms that match the following privilege:
-   * resource: alarm, action: read
+   * - resource: alarm, action: read
    *
    * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
    * @example fields "id,time"
@@ -159,7 +159,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
 
   /**
    * Returns all VDIs that match the following privilege:
-   * resource: vdi, action: read
+   * - resource: vdi, action: read
    *
    * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
    * @example fields "VDI_type,id,name_label"
@@ -188,7 +188,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
 
   /**
    * Returns all messages that match the following privilege:
-   * resource: message, action: read
+   * - resource: message, action: read
    *
    * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
    * @example fields "name,id,$object"
@@ -219,7 +219,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
 
   /**
    * Returns all tasks that match the following privilege:
-   * resource: task, action: read
+   * - resource: task, action: read
    *
    * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
    * @example fields "id,status,properties"

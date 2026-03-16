@@ -23,7 +23,7 @@ export class SmController extends XapiXoController<XoSm> {
 
   /**
    * Returns all SMs that match the following privilege:
-   * resource: sm, action: read
+   * - resource: sm, action: read
    *
    * @example fields "uuid,name_label,SM_type"
    * @example filter "SM_type:ext"

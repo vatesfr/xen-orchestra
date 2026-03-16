@@ -44,7 +44,7 @@ export class RestoreLogController extends XoController<XoRestoreLog> {
 
   /**
    * Returns all restore logs that match the following privilege:
-   * resource: restore-log, action: read
+   * - resource: restore-log, action: read
    *
    * @example fields "jobName,status,data"
    * @example filter "status:success"
@@ -113,7 +113,7 @@ export class DeprecatedRestoreController extends XoController<XoRestoreLog> {
 
   /**
    * Returns all restore logs that match the following privilege:
-   * resource: restore-log, action: read
+   * - resource: restore-log, action: read
    *
    * @example fields "jobName,status,data"
    * @example filter "status:success"

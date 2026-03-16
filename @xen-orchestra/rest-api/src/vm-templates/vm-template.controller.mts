@@ -53,7 +53,7 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
 
   /**
    * Returns all VM templates that match the following privilege:
-   * resource: vm-template, action: read
+   * - resource: vm-template, action: read
    *
    * @example fields "id,isDefaultTemplate,name_label"
    * @example filter "isDefaultTemplate?"
@@ -127,7 +127,7 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
 
   /**
    * Returns all alarms that match the following privilege:
-   * resource: alarm, action: read
+   * - resource: alarm, action: read
    *
    * @example id "b7569d99-30f8-178a-7d94-801de3e29b5b-f873abe0-b138-4995-8f6f-498b423d234d"
    * @example fields "id,time"
@@ -160,7 +160,7 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
 
   /**
    * Returns all VDIs that match the following privilege:
-   * resource: vdi, action: read
+   * - resource: vdi, action: read
    *
    * @example id "6d50ba76-0f11-1ff1-4f6a-b502afc31b8e"
    * @example fields "VDI_type,id,name_label"
@@ -189,7 +189,7 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
 
   /**
    * Returns all messages that match the following privilege:
-   * resource: message, action: read
+   * - resource: message, action: read
    *
    * @example id "6d50ba76-0f11-1ff1-4f6a-b502afc31b8e"
    * @example fields "name,id,$object"
@@ -220,7 +220,7 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
 
   /**
    * Returns all tasks that match the following privilege:
-   * resource: task, action: read
+   * - resource: task, action: read
    *
    * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
    * @example fields "id,status,properties"
