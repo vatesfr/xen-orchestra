@@ -7,7 +7,13 @@ import { acl } from '../middlewares/acl.middleware.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { provide } from 'inversify-binding-decorators'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { badRequestResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  badRequestResp,
+  forbiddenOperationResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { partialVifs, vif, vifIds } from '../open-api/oa-examples/vif.oa-example.mjs'
@@ -65,6 +71,7 @@ export class VifController extends XapiXoController<XoVif> {
   @Get('{id}')
   @Middlewares(acl({ resource: 'vif', action: 'read', objectId: 'params.id' }))
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   getVif(@Path() id: string): UnbrandedXoVif {
     return this.getObject(id as XoVif['id'])
   }
