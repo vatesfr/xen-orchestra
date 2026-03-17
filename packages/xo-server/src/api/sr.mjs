@@ -266,7 +266,7 @@ createNfs.params = {
   nfsVersion: { type: 'string', optional: true },
   nfsOptions: { type: 'string', optional: true },
   srUuid: { type: 'string', optional: true },
-  preferredImageFormat: { type: 'string', optional: true },
+  preferredImageFormat: { enum: ['vhd', 'qcow2', 'vhd, qcow2', 'qcow2, vhd'], optional: true },
 }
 
 createNfs.resolve = {
@@ -326,7 +326,7 @@ createSmb.params = {
   srUuid: { type: 'string', optional: true },
   user: { type: 'string', optional: true },
   password: { type: 'string', optional: true },
-  preferredImageFormat: { type: 'string', optional: true },
+  preferredImageFormat: { enum: ['vhd', 'qcow2', 'vhd, qcow2', 'qcow2, vhd'], optional: true },
 }
 
 createSmb.resolve = {
@@ -378,7 +378,7 @@ createHba.params = {
   nameDescription: { type: 'string', minLength: 0 },
   scsiId: { type: 'string' },
   srUuid: { type: 'string', optional: true },
-  preferredImageFormat: { type: 'string', optional: true },
+  preferredImageFormat: { enum: ['vhd', 'qcow2', 'vhd, qcow2', 'qcow2, vhd'], optional: true },
 }
 
 createHba.resolve = {
@@ -418,7 +418,7 @@ createLvm.params = {
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string', minLength: 0 },
   device: { type: 'string' },
-  preferredImageFormat: { type: 'string', optional: true },
+  preferredImageFormat: { enum: ['vhd', 'qcow2', 'vhd, qcow2', 'qcow2, vhd'], optional: true },
 }
 
 createLvm.resolve = {
@@ -440,6 +440,7 @@ export async function createExt({ host, nameLabel, nameDescription, device, pref
   if (preferredImageFormat) {
     deviceConfig['preferred-image-formats'] = preferredImageFormat
   }
+
   const srRef = await xapi.SR_create({
     device_config: deviceConfig,
     host: host._xapiRef,
@@ -458,7 +459,7 @@ createExt.params = {
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string', minLength: 0 },
   device: { type: 'string' },
-  preferredImageFormat: { type: 'string', optional: true },
+  preferredImageFormat: { enum: ['vhd', 'qcow2', 'vhd, qcow2', 'qcow2, vhd'], optional: true },
 }
 
 createExt.resolve = {
@@ -531,6 +532,7 @@ createZfs.params = {
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string', minLength: 0 },
   location: { type: 'string' },
+  preferredImageFormat: { enum: ['vhd', 'qcow2', 'vhd, qcow2', 'qcow2, vhd'], optional: true },
 }
 
 createZfs.resolve = {
@@ -706,7 +708,7 @@ createIscsi.params = {
   chapUser: { type: 'string', optional: true },
   chapPassword: { type: 'string', optional: true },
   srUuid: { type: 'string', optional: true },
-  preferredImageFormat: { type: 'string', optional: true },
+  preferredImageFormat: { enum: ['vhd', 'qcow2', 'vhd, qcow2', 'qcow2, vhd'], optional: true },
 }
 
 createIscsi.resolve = {
