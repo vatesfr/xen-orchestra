@@ -37,30 +37,11 @@
     "execa": "^5.0.0",
     "get-stream": "^6.0.0",
     "rimraf": "^6.0.1",
-    "tmp": "^0.2.1",
-    "typescript": "~5.6"
+    "tmp": "^0.2.1"
   },
   "scripts": {
-    "build": "tsc",
     "postversion": "npm publish",
     "test-integration": "node --test ./*.integ.js tests/*.integ.js Vhd/*.integ.js"
-  },
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./index.js"
-    },
-    "./*.js": {
-      "types": "./dist/*.d.ts",
-      "default": "./*.js"
-    },
-    "./Vhd/*.js": {
-      "types": "./dist/Vhd/*.d.ts",
-      "default": "./Vhd/*.js"
-    },
-    "./*": {
-      "default": "./*"
-    }
   },
   "author": {
     "name": "Vates SAS",
