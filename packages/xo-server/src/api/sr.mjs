@@ -509,14 +509,15 @@ probeZfs.resolve = {
   host: ['host', 'host', 'administrate'],
 }
 
-export async function createZfs({ host, nameLabel, nameDescription, location }) {
+export async function createZfs({ host, nameLabel, nameDescription, location, preferredImageFormat }) {
   const xapi = this.getXapi(host)
   // only XCP-ng >=8.2 support the ZFS SR
   const types = await xapi.call('SR.get_supported_types')
+
   return await xapi.getField(
     'SR',
     await xapi.SR_create({
-      device_config: { location },
+      device_config: { location, 'preferred-image-formats': preferredImageFormat },
       host: host._xapiRef,
       name_description: nameDescription,
       name_label: nameLabel,

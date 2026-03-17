@@ -3340,15 +3340,17 @@ export const createSrNfs = (
   srUuid,
   preferredImageFormat
 ) => {
-  const params = { host, nameLabel, nameDescription, server, serverPath, preferredImageFormat }
+  const params = { host, nameLabel, nameDescription, server, serverPath }
   nfsVersion && (params.nfsVersion = nfsVersion)
   nfsOptions && (params.nfsOptions = nfsOptions)
   srUuid && (params.srUuid = srUuid)
+  preferredImageFormat && (params.preferredImageFormat = preferredImageFormat)
   return _call('sr.createNfs', params)
 }
 
 export const createSrSmb = (host, nameLabel, nameDescription, server, user, password, srUuid, preferredImageFormat) => {
-  const params = { host, nameLabel, nameDescription, server, user, password, preferredImageFormat }
+  const params = { host, nameLabel, nameDescription, server, user, password }
+  preferredImageFormat && (params.preferredImageFormat = preferredImageFormat)
   if (srUuid !== undefined) {
     params.srUuid = srUuid
   }
@@ -3368,17 +3370,19 @@ export const createSrIscsi = (
   srUuid,
   preferredImageFormat
 ) => {
-  const params = { host, nameLabel, nameDescription, target, targetIqn, scsiId, preferredImageFormat }
+  const params = { host, nameLabel, nameDescription, target, targetIqn, scsiId }
   port && (params.port = port)
   chapUser && (params.chapUser = chapUser)
   chapPassword && (params.chapPassword = chapPassword)
   srUuid && (params.srUuid = srUuid)
+  preferredImageFormat && (params.preferredImageFormat = preferredImageFormat)
   return _call('sr.createIscsi', params)
 }
 
 export const createSrHba = (host, nameLabel, nameDescription, scsiId, srUuid, preferredImageFormat) => {
-  const params = { host, nameLabel, nameDescription, scsiId, preferredImageFormat }
+  const params = { host, nameLabel, nameDescription, scsiId }
   srUuid && (params.srUuid = srUuid)
+  preferredImageFormat && (params.preferredImageFormat = preferredImageFormat)
   return _call('sr.createHba', params)
 }
 
@@ -3409,12 +3413,13 @@ export const createSrLvm = (host, nameLabel, nameDescription, device, preferredI
 export const createSrExt = (host, nameLabel, nameDescription, device, preferredImageFormat) =>
   _call('sr.createExt', { host, nameLabel, nameDescription, device, preferredImageFormat })
 
-export const createSrZfs = (host, nameLabel, nameDescription, location) =>
+export const createSrZfs = (host, nameLabel, nameDescription, location, preferredImageFormat) =>
   _call('sr.createZfs', {
     host: resolveId(host),
     nameDescription,
     nameLabel,
     location,
+    preferredImageFormat,
   })
 
 // Job logs ----------------------------------------------------------

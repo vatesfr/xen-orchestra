@@ -349,7 +349,7 @@ export default class New extends Component {
       },
       lvm: () => createSrLvm(host.id, name.value, description.value, device.value, normalizedPreferredImageFormat),
       ext: () => createSrExt(host.id, name.value, description.value, device.value, normalizedPreferredImageFormat),
-      zfs: () => createSrZfs(host.id, name.value, description.value, zfsLocation.value),
+      zfs: () => createSrZfs(host.id, name.value, description.value, zfsLocation.value, normalizedPreferredImageFormat),
       local: () => createSrIso(host.id, name.value, description.value, localPath.value, 'local'),
       nfsiso: () =>
         createSrIso(
@@ -903,7 +903,7 @@ export default class New extends Component {
                       </select>
                     </fieldset>
                   )}
-                  {includes(['nfs', 'smb', 'hba', 'iscsi', 'lvm', 'ext'], type) && (
+                  {includes(['nfs', 'smb', 'hba', 'iscsi', 'lvm', 'ext', 'zfs'], type) && (
                     <fieldset>
                       <label>
                         {_('newSrPreferredImageFormat')}{' '}
