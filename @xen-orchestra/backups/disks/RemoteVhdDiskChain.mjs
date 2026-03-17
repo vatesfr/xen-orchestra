@@ -282,10 +282,11 @@ export class RemoteVhdDiskChain extends RemoteDisk {
 
   /**
    * Deletes all the disks
+   * @param {Object} options
    */
-  async unlink() {
+  async unlink({ force = false } = {}) {
     for (const disk of this.#disks) {
-      await disk.unlink()
+      await disk.unlink({ force })
     }
   }
 
