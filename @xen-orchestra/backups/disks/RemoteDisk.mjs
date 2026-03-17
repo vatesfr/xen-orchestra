@@ -57,6 +57,14 @@ export class RemoteDisk extends RandomAccessDisk {
 
   /**
    * Abstract
+   * @returns {Promise<string>}
+   */
+  async getResolvedPath() {
+    throw new Error(`getResolvedPath must be implemented`)
+  }
+
+  /**
+   * Abstract
    * @returns {string}
    */
   getUuid() {
