@@ -11,9 +11,10 @@ import { DEFAULT_BLOCK_SIZE } from '../_constants.js'
  */
 export class DiskConsumerVhdStream extends BaseVhd {
   /**
+   * @param {AbortSignal} [signal]
    * @returns {VhdStream}
    */
-  async toStream() {
+  async toStream(signal) {
     const footer = this.computeVhdFooter()
     const header = this.computeVhdHeader()
     const { bat, fileSize } = this.computeVhdBatAndFileSize() // the bat contains the calculated position of the futures blocks
@@ -21,11 +22,13 @@ export class DiskConsumerVhdStream extends BaseVhd {
     const blockGenerator = this.source.diskBlocks(uid)
     const EXPECTED_FULL_BUFFER_SIZE = DEFAULT_BLOCK_SIZE + FULL_BLOCK_BITMAP.length
     async function* generator() {
+      signal?.throwIfAborted()
       yield footer
       yield header
       yield bat
       let truncatedBlock = null
       for await (const { data, index } of blockGenerator) {
+        signal?.throwIfAborted()
         // only the last block can be truncated
         // but the stream expect a full block
         if (truncatedBlock !== null) {

@@ -108,7 +108,7 @@ export default class Esxi extends EventEmitter {
     })
   }
 
-  async #fetch(url, headers = {}) {
+  async #fetch(url, headers = {}, signal) {
     if (this.#cookies) {
       headers.cookie = this.#cookies
     } else {
@@ -119,6 +119,7 @@ export default class Esxi extends EventEmitter {
       method: 'GET',
       headers,
       highWaterMark: 10 * 1024 * 1024,
+      signal,
     })
     if (res.status < 200 || res.status >= 300) {
       const error = new Error(res.status + ' ' + res.statusText + ' ' + url)
@@ -131,7 +132,7 @@ export default class Esxi extends EventEmitter {
     return res
   }
 
-  async #download(dataStore, path, range) {
+  async #download(dataStore, path, range, signal) {
     strictEqual(this.#ready, true)
     const url = new URL('https://localhost')
     url.host = this.#host
@@ -143,17 +144,18 @@ export default class Esxi extends EventEmitter {
       headers['content-type'] = 'multipart/byteranges'
       headers.Range = 'bytes=' + range
     }
-    return this.#fetch(url, headers)
+    return this.#fetch(url, headers, signal)
   }
 
-  async download(dataStore, path, range) {
+  async download(dataStore, path, range, signal) {
     let tries = 5
     let lastError
     while (tries > 0) {
       try {
-        const res = await this.#download(dataStore, path, range)
+        const res = await this.#download(dataStore, path, range, signal)
         return res
       } catch (error) {
+        signal?.throwIfAborted()
         warn('got error , will retry in 2 seconds', { error })
         lastError = error
       }
@@ -616,7 +618,7 @@ export default class Esxi extends EventEmitter {
     }
   }
 
-  async #getDataMapFromVddk(vmId, datastoreName, diskPath) {
+  async #getDataMapFromVddk(vmId, datastoreName, diskPath, signal) {
     let nbdClient
     try {
       const start = Date.now()
@@ -626,6 +628,7 @@ export default class Esxi extends EventEmitter {
       })
 
       info(`nbd server for data map spawned`)
+      signal?.throwIfAborted()
 
       nbdClient = new NbdClient(nbdInfoSpawn.nbdInfos)
 
@@ -633,7 +636,7 @@ export default class Esxi extends EventEmitter {
 
       info(`nbd client for data map connected`)
 
-      const dataMap = await nbdClient.getMap()
+      const dataMap = await nbdClient.getMap(signal)
 
       info(
         `got the data map of the single disk in ${Math.round((Date.now() - start) / 1000)} seconds ,${dataMap.length} blocks`
@@ -648,8 +651,8 @@ export default class Esxi extends EventEmitter {
     }
   }
 
-  async #getDataMapFromCowd(datastoreName, diskPath) {
-    const descriptorResponse = await this.download(datastoreName, diskPath, '0-512')
+  async #getDataMapFromCowd(datastoreName, diskPath, signal) {
+    const descriptorResponse = await this.download(datastoreName, diskPath, '0-512', signal)
     const descriptorBlob = await new Response(descriptorResponse.body).blob()
     const descriptorBytes = new Uint8Array(await descriptorBlob.arrayBuffer()).slice(0, 512)
 
@@ -658,7 +661,7 @@ export default class Esxi extends EventEmitter {
     const diskPathArray = diskPath.split('/')
     const extentPath = diskPathArray.slice(0, -1).join('/') + '/' + parsedDescriptor.fileName
 
-    const extentHeaderResponse = await this.download(datastoreName, extentPath, `0-2048`)
+    const extentHeaderResponse = await this.download(datastoreName, extentPath, `0-2048`, signal)
     const extentHeaderBlob = await new Response(extentHeaderResponse.body).blob()
     const extentHeaderBuffer = Buffer.from(await extentHeaderBlob.arrayBuffer())
 
@@ -666,7 +669,12 @@ export default class Esxi extends EventEmitter {
 
     const extentNumGdEntries = extentHeaderBuffer.readUInt32LE(24)
 
-    const extentGDResponse = await this.download(datastoreName, extentPath, `2048-${2048 + extentNumGdEntries * 4}`)
+    const extentGDResponse = await this.download(
+      datastoreName,
+      extentPath,
+      `2048-${2048 + extentNumGdEntries * 4}`,
+      signal
+    )
     const extentGDBlob = await new Response(extentGDResponse.body).blob()
     const extentGDBuffer = Buffer.from(await extentGDBlob.arrayBuffer())
 
@@ -689,13 +697,14 @@ export default class Esxi extends EventEmitter {
     return dataMap
   }
 
-  async getDataMap(vmId, datastoreName, diskPath) {
+  async getDataMap(vmId, datastoreName, diskPath, signal) {
     try {
       // We await the result of getDataMapFromVddk so we can catch errors and fallback to the direct metadata reading.
-      return await this.#getDataMapFromVddk(vmId, datastoreName, diskPath)
+      return await this.#getDataMapFromVddk(vmId, datastoreName, diskPath, signal)
     } catch (error) {
+      signal?.throwIfAborted()
       warn('error while getting datamap from vddk, fall back to a direct metadata reading', error)
-      return this.#getDataMapFromCowd(datastoreName, diskPath)
+      return this.#getDataMapFromCowd(datastoreName, diskPath, signal)
     }
   }
 }

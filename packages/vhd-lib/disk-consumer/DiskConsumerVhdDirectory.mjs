@@ -40,14 +40,16 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
   }
 
   /**
+   * @param {AbortSignal} [signal]
    * @returns {Promise<void>}
    */
-  async write() {
+  async write(signal) {
     const { handler, path, compression, flags, validator, concurrency } = this.#target
     const dataPath = `${dirname(path)}/data/${uuidv4()}.vhd`
     const uid = 'to stream ' + Math.random()
     let generator
     try {
+      signal?.throwIfAborted()
       generator = this.source.diskBlocks(uid)
       await handler.mktree(dataPath)
       const vhd = new VhdDirectory(handler, dataPath, { flags, compression })
@@ -61,6 +63,7 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
       await asyncEach(
         generator,
         async ({ index, data }) => {
+          signal?.throwIfAborted()
           if (truncatedBlock !== null) {
             throw new Error(
               `Expecting a ${DEFAULT_BLOCK_SIZE} bytes block, got a ${truncatedBlock.data.length}, for index ${truncatedBlock.index}`

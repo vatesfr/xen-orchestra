@@ -236,9 +236,10 @@ export class QcowStreamGenerator {
 
   /**
    * Creates a Readable stream from the generator
+   * @param signal Optional AbortSignal to cancel the stream
    * @returns Readable stream with optional length property
    */
-  stream(): WithLength<Readable> {
+  stream(signal?: AbortSignal): WithLength<Readable> {
     const disk = this.#disk
     const nbAllocatedBlocks = disk.getBlockIndexes().length
     const nbTotalBlock = Math.ceil(disk.getVirtualSize() / disk.getBlockSize())
@@ -269,6 +270,7 @@ export class QcowStreamGenerator {
     const self = this
     async function* generator(): AsyncGenerator<Buffer, void, unknown> {
       // Yield all parts in order
+      signal?.throwIfAborted()
       yield* self.#trackAndYield(header)
       assert.strictEqual(self.#offset, CLUSTER_SIZE, 'header aligned')
       yield* self.#yieldRefCounts(expectedStreamLength / CLUSTER_SIZE)
@@ -286,6 +288,7 @@ export class QcowStreamGenerator {
 
       let truncatedBlock: DiskBlock | null = null
       for await (const { index, data } of disk.diskBlocks()) {
+        signal?.throwIfAborted()
         if (index < previous) {
           throw new Error('Qcow can only be generated from sorted disk')
         }
@@ -322,9 +325,11 @@ export class QcowStreamGenerator {
 /**
  * Creates a QCOW2 stream from a RandomAccessDisk
  * @param disk The disk to convert
+ * @param options Optional options
+ * @param options.signal Optional AbortSignal to cancel the stream
  * @returns Readable stream of QCOW2 data
  */
-export function toQcow2Stream(disk: Disk): Readable {
+export function toQcow2Stream(disk: Disk, { signal }: { signal?: AbortSignal } = {}): Readable {
   const generator = new QcowStreamGenerator(disk)
-  return generator.stream()
+  return generator.stream(signal)
 }

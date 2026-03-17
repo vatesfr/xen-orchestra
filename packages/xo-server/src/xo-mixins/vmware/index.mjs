@@ -209,9 +209,12 @@ export default class MigrateVm {
         )
       }
     }
+    Task.abortSignal?.throwIfAborted()
     const vm = await this.#createVmAndNetworks($defer, { metadata, networkId, template, xapi })
+    Task.abortSignal?.throwIfAborted()
     await xapi.barrier()
     await this.#importDisks($defer, { esxi, metadata, stopSource, vm, sr, vmId })
+    Task.abortSignal?.throwIfAborted()
     await Task.run({ properties: { name: 'Finishing transfer' } }, async () => {
       // remove the importing in label
       await vm.set_name_label(metadata.name_label)
