@@ -137,6 +137,14 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
+   * Resolves the alias to get the actual data file path.
+   * @returns {Promise<string>}
+   */
+  async getResolvedPath() {
+    return resolveVhdAlias(this.#handler, this.#path)
+  }
+
+  /**
    * @returns {string}
    */
   getUuid() {
