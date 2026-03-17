@@ -1,15 +1,16 @@
 {
   "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./",
     "allowJs": true,
     "declaration": true,
     "emitDeclarationOnly": true,
     "target": "ES2022",
     "skipLibCheck": true,
-    "outDir": "dist",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "types": ["node"] // Only use types from Node.js and packages that are explicitly imported
   },
-  "include": ["./disks/*"],
+  "include": ["./disks/**/*"],
   "exclude": ["./dist", "./node_modules"]
 }

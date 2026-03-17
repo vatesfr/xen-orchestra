@@ -2,9 +2,10 @@ import { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
 
 export { RemoteDisk } from './RemoteDisk.mjs'
 export { openDiskChain } from './openDiskChain.mjs'
+export { MergeRemoteDisk } from './MergeRemoteDisk.mjs'
 
 /**
- * @typedef {import('../../disk-transform/src/FileAccessor.mjs').FileAccessor} FileAccessor
+ * @typedef {import('@xen-orchestra/disk-transform').FileAccessor} FileAccessor
  * @typedef {import('./RemoteDisk.mjs').RemoteDisk} RemoteDisk
  */
 
@@ -12,10 +13,11 @@ export { openDiskChain } from './openDiskChain.mjs'
  * @param {Object} params
  * @param {FileAccessor} params.handler
  * @param {string} params.path
+ * @param {boolean} [params.force]
  * @returns {Promise<RemoteDisk>}
  */
-export async function openDisk({ handler, path }) {
+export async function openDisk({ handler, path, force = false }) {
   const disk = new RemoteVhdDisk({ handler, path })
-  await disk.init()
+  await disk.init({ force })
   return disk
 }
