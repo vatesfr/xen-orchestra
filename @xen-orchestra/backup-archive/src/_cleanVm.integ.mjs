@@ -6,6 +6,7 @@ import fs from 'fs-extra'
 import * as uuid from 'uuid'
 import { getHandler } from '@xen-orchestra/fs'
 import { pFromCallback } from 'promise-toolbox'
+// eslint-disable-next-line n/no-missing-import
 import { VmBackupDirectory } from '../dist/VmBackupDirectory.mjs'
 import { VHDFOOTER, VHDHEADER } from './tests.fixtures.mjs'
 import { VhdFile, Constants, VhdDirectory, VhdAbstract } from 'vhd-lib'
