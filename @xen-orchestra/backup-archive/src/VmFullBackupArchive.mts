@@ -1,7 +1,12 @@
 import { basename, normalize } from '@xen-orchestra/fs/path'
 import assert from 'node:assert'
 import { FileDescriptor } from '@xen-orchestra/fs'
-import { VmBackupInterface, PartialBackupMetadata, ResolvedBackupCleanOptions } from './VmBackup.types.mjs'
+import {
+  ArchiveCleanOptions,
+  VmBackupInterface,
+  PartialBackupMetadata,
+  ResolvedBackupCleanOptions,
+} from './VmBackup.types.mjs'
 import RemoteHandlerAbstract from '@xen-orchestra/fs'
 
 const COMPRESSED_MAGIC_NUMBERS: Buffer[] = [
@@ -115,7 +120,7 @@ export class VmFullBackupArchive implements VmBackupInterface {
    * @param opts { remove: boolean }
    * @returns
    */
-  async clean({ remove = this.opts.remove ?? false }) {
+  async clean({ remove = this.opts.remove ?? false }: ArchiveCleanOptions = {}) {
     await this.check()
     let filesToRemove: Array<string> = []
     if (!this.isValid) {

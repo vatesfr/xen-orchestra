@@ -1,17 +1,26 @@
-import { Disk, DiskChain } from '@xen-orchestra/disk-transform'
-import { BackupCleanOptions, VmBackupInterface, PartialBackupMetadata } from './VmBackup.types.mjs'
+import {
+  ArchiveCleanOptions,
+  ResolvedBackupCleanOptions,
+  VmBackupInterface,
+  PartialBackupMetadata,
+} from './VmBackup.types.mjs'
 import RemoteHandlerAbstract from '@xen-orchestra/fs'
-import { normalize } from '@xen-orchestra/fs/path'
+import { basename, normalize } from '@xen-orchestra/fs/path'
 
 export class VmIncrementalBackupArchive implements VmBackupInterface {
   handler: RemoteHandlerAbstract
   metadataPath: string
   metadata: PartialBackupMetadata
-  disks: Map<string, Disk> = new Map()
-  diskLineages: Map<string, DiskChain> = new Map() // path, disk
-  #diskPaths: Array<string>
+  readonly diskPaths: Array<string>
   rootPath: string
-  opts: BackupCleanOptions
+  opts: ResolvedBackupCleanOptions
+
+  // undefined = check() not yet called
+  #isComplete: boolean | undefined = undefined
+
+  get isComplete(): boolean | undefined {
+    return this.#isComplete
+  }
 
   constructor(
     handler: RemoteHandlerAbstract,
@@ -19,28 +28,83 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
     metadataPath: string,
     metadata: PartialBackupMetadata,
     diskPaths: Array<string>,
-    opts: BackupCleanOptions
+    opts: ResolvedBackupCleanOptions
   ) {
     this.handler = handler
     this.rootPath = normalize(rootPath)
     this.metadataPath = normalize(metadataPath)
     this.metadata = metadata
-    this.#diskPaths = diskPaths.map(path => normalize(path))
+    this.diskPaths = diskPaths.map(path => normalize(path))
     this.opts = opts
   }
 
-  async init(): Promise<void> {}
+  async init(): Promise<void> {
+    // Validation is deferred to check()
+  }
 
   async check(): Promise<object> {
-    return {}
+    const missingDisks: string[] = []
+
+    if (this.diskPaths.length === 0) {
+      this.opts.logWarn('incremental backup has no disk paths', { metadataPath: this.metadataPath })
+      this.#isComplete = false
+      return { complete: false, missingDisks }
+    }
+
+    for (const diskPath of this.diskPaths) {
+      try {
+        await this.handler.getSize(diskPath)
+      } catch {
+        missingDisks.push(diskPath)
+        this.opts.logWarn('disk file missing', { path: diskPath })
+      }
+    }
+
+    this.#isComplete = missingDisks.length === 0
+    if (!this.#isComplete) {
+      this.opts.logWarn('incremental backup is incomplete', { metadataPath: this.metadataPath, missingDisks })
+    }
+
+    return { complete: this.#isComplete, missingDisks }
   }
 
-  async clean({ remove = false }): Promise<Array<string>> {
-    return []
+  /**
+   * Removes the metadata file if the backup is incomplete (missing disks).
+   * Actual disk merge/deletion is handled by RemoteDiskLineage.
+   */
+  async clean({ remove = this.opts.remove ?? false }: ArchiveCleanOptions = {}): Promise<Array<string>> {
+    if (this.#isComplete === undefined) {
+      await this.check()
+    }
+
+    const filesToRemove: string[] = []
+    if (!this.#isComplete) {
+      filesToRemove.push(this.metadataPath)
+    }
+
+    if (remove) {
+      for (const file of filesToRemove) {
+        try {
+          await this.handler.unlink(file)
+        } catch (error) {
+          this.opts.logWarn(`Issue removing ${file}`, { error })
+        }
+      }
+    }
+
+    return filesToRemove
   }
 
+  /**
+   * Returns the metadata file path if the backup is complete, empty otherwise.
+   * Disk paths are not included — they live under vdis/ and are managed by RemoteDiskLineage.
+   * Must be called after check().
+   */
   getAssociatedFiles({ prefix = false }): Array<string> {
-    // all vhds used + folders + alias + json
-    return []
+    if (this.#isComplete !== true) {
+      return []
+    }
+    const files = [this.metadataPath]
+    return prefix ? files : files.map(file => basename(file))
   }
 }
