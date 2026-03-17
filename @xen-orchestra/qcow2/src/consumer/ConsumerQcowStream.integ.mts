@@ -204,7 +204,7 @@ describe('QCOW2 Stream Generation', () => {
     await assert.rejects(
       async () => {
         for await (const _chunk of stream) {
-          // should not reach here
+          assert.fail(`should not have any chunk on a aborted stream , got ${_chunk?.length} bytes`)
         }
       },
       (err: unknown) => {

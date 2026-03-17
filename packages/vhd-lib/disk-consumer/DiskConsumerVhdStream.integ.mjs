@@ -126,9 +126,8 @@ describe('DiskConsumerVhdStream', () => {
     const stream = await toVhdStream(disk, { signal: controller.signal })
     await assert.rejects(
       async () => {
-        // eslint-disable-next-line no-unused-vars
         for await (const _chunk of stream) {
-          // should not reach here
+          assert.fail(`should not have any chunk on a aborted stream , got ${_chunk?.length} bytes`)
         }
       },
       err => {
