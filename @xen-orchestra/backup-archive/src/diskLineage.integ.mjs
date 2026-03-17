@@ -99,7 +99,7 @@ describe('VmBackupDirectory with full backups', { concurrency: 1 }, () => {
     await handler.writeFile(`${rootPath}/orphan.xva`, 'orphan-content')
 
     await vmBackupDir.init()
-    await vmBackupDir.clean()
+    await vmBackupDir.clean({ remove: true })
 
     const remainingFiles = await handler.list(rootPath)
     assert.ok(remainingFiles.includes('backup1.json'))
