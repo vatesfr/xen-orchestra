@@ -40,6 +40,6 @@
     "build": "tsc",
     "clean": "rimraf dist/",
     "postversion": "npm publish --access public",
-    "test-integration": "tsc && tap dist/*.integ.mjs"
+    "test-integration": "tsc && node --test dist/*.integ.mjs"
   }
 }
