@@ -205,8 +205,9 @@ export class RemoteDisk extends RandomAccessDisk {
   /**
    * Abstract
    * Deletes alias/disk/disks
+   * @param {Object} options
    */
-  async unlink() {
+  async unlink({ force = false } = {}) {
     throw new Error(`unlink must be implemented`)
   }
 

@@ -1,7 +1,6 @@
 import RemoteHandlerAbstract from '@xen-orchestra/fs'
 import { basename, normalize } from '@xen-orchestra/fs/path'
-import { MergeRemoteDisk, openDisk } from '@xen-orchestra/backups/disks'
-import { VhdAbstract } from 'vhd-lib'
+import { MergeRemoteDisk, openDisk, instantiateDisk } from '@xen-orchestra/backups/disks'
 import { isDiskFile, ResolvedBackupCleanOptions } from './VmBackup.types.mjs'
 
 type MergeLimiter = (fn: (...args: any[]) => any) => (...args: any[]) => any
@@ -202,7 +201,7 @@ export class RemoteDiskLineage {
         if (this.#opts.remove) {
           this.#opts.logInfo('deleting unused disk', { path })
           try {
-            await VhdAbstract.unlink(this.#handler, path)
+            await instantiateDisk({ handler: this.#handler as any, path }).unlink({ force: true })
           } catch (error) {
             this.#opts.logWarn('failed to delete unused disk', { path, error })
           }
@@ -237,7 +236,7 @@ export class RemoteDiskLineage {
         this.#opts.logWarn('no alias references data file', { path: dataFile })
         if (this.#opts.remove) {
           try {
-            await VhdAbstract.unlink(this.#handler, dataFile)
+            await instantiateDisk({ handler: this.#handler as any, path: dataFile }).unlink({ force: true })
           } catch (error) {
             this.#opts.logWarn('failed to delete unreferenced data file', { path: dataFile, error })
           }
