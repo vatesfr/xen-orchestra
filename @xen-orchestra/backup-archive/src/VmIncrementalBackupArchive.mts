@@ -96,6 +96,21 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
   }
 
   /**
+   * Updates metadata.size after a merge and writes the updated metadata file to disk.
+   * Also resets isVhdDifferencing so all VDIs are marked as full (non-differencing).
+   */
+  async updateMetadata(mergedSize: number): Promise<void> {
+    this.metadata.size = mergedSize
+    if (this.metadata.vdis !== undefined) {
+      this.metadata.isVhdDifferencing = {}
+      for (const id of Object.keys(this.metadata.vdis)) {
+        this.metadata.isVhdDifferencing[id] = false
+      }
+    }
+    await this.handler.writeFile(this.metadataPath, JSON.stringify(this.metadata), { flags: 'w' })
+  }
+
+  /**
    * Returns the metadata file path if the backup is complete, empty otherwise.
    * Disk paths are not included — they live under vdis/ and are managed by RemoteDiskLineage.
    * Must be called after check().
