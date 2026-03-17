@@ -31,7 +31,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "postversion": "npm publish --access public",
-    "test": "tsc && node --test **/*.integ.mjs",
+    "test-integration": "tsc && node --test **/*.integ.mjs",
     "clean": "rimraf dist/"
   },
   "private": true,
