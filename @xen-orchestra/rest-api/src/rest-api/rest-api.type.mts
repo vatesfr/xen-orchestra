@@ -1,4 +1,5 @@
-import type { AnyPrivilege, SupportedResource } from '@xen-orchestra/acl'
+import type { SupportedResource } from '@xen-orchestra/acl'
+import type { AnyPrivilege } from '@xen-orchestra/acl'
 import type { EventEmitter } from 'node:events'
 import type { VatesTask } from '@vates/types/lib/vates/task'
 import type { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
@@ -46,7 +47,6 @@ import type {
 import type { XoAclRole } from '@vates/types/lib/xen-orchestra/acl'
 
 import type { InsertableXoServer } from '../servers/server.type.mjs'
-import type { RestAnyPrivilege } from '../acl-privileges/acl-privilege.type.mjs'
 
 type XapiRecordByXapiXoRecord = {
   gpuGroup: XenApiGpuGroupWrapped
@@ -135,7 +135,7 @@ export type XoApp = {
   connectXenServer(id: XoServer['id']): Promise<void>
   createAclV2Privilege<
     Resource extends SupportedResource,
-    Privilege extends RestAnyPrivilege = Extract<RestAnyPrivilege, { resource: Resource }>,
+    Privilege extends AnyPrivilege = Extract<AnyPrivilege, { resource: Resource }>,
   >(
     privilege: {
       action: Privilege['action']
@@ -163,7 +163,7 @@ export type XoApp = {
     userId: XoUser['id']
   }): Promise<XoAuthenticationToken>
   createUser(params: { name?: string; password?: string; [key: string]: unknown }): Promise<XoUser>
-  deleteAclV2Privilege(privilegeId: RestAnyPrivilege['id'], options?: { force?: boolean }): Promise<boolean>
+  deleteAclV2Privilege(privilegeId: AnyPrivilege['id'], options?: { force?: boolean }): Promise<boolean>
   deleteAclV2Role(roleId: XoAclRole['id'], options?: { force?: boolean }): Promise<boolean>
   deleteGroup(id: XoGroup['id']): Promise<void>
   deleteUser(id: XoUser['id']): Promise<void>
@@ -265,7 +265,7 @@ export type XoApp = {
   ): Promise<void>
   updateAclV2Privilege<
     Resource extends SupportedResource,
-    Privilege extends RestAnyPrivilege = Extract<RestAnyPrivilege, { resource: Resource }>,
+    Privilege extends AnyPrivilege = Extract<AnyPrivilege, { resource: Resource }>,
   >(
     privilegeId: Privilege['id'],
     privilege: {

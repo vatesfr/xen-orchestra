@@ -119,12 +119,9 @@ When creating a resource (which doesn't exist yet), pass the object being create
  }
 ```
 
-If you need to use a privilege that doesn't exist yet (e.g., `resource: 'vm', action: 'foo'`), you must register it in two places:
+If you need to use a privilege that doesn't exist yet (e.g., `resource: 'vm', action: 'foo'`), you must register it in:
 
 - ACL Definition: In `@xen-orchestra/acl/src/actions/vm.mts`, add: `foo: true`.
-- Type Definition: In `@xen-orchestra/rest-api/src/acl-privileges/acl-privilege.type.mts`, add `foo` to the `vm` resource.
-
-Don't worry about forgetting a step: if a resource or action is missing in either location, the build will fail with an explicit error message explaining what is missing.
 
 ## Contributions
 

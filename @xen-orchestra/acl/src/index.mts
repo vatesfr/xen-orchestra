@@ -14,9 +14,9 @@ import {
 export type { Privilege, SupportedActions, SupportedActionsByResource, SupportedResource }
 export { SUPPORTED_ACTIONS_BY_RESOURCE }
 
-export type AnyPrivilege = {
-  [Resource in SupportedResource]: Privilege<Resource>
-}[SupportedResource]
+export type * from './generated/privilege-types.mjs'
+
+import { AnyPrivilege } from './generated/privilege-types.mjs'
 
 export type AnyPrivilegeOnParam = {
   [Resource in SupportedResource]: {
@@ -134,4 +134,34 @@ export function filterObjectsWithPrivilege<Resource extends SupportedResource, O
   userPrivileges: AnyPrivilege[]
 }) {
   return param.objects.filter(obj => hasPrivilegeOn({ ...param, objects: obj }))
+}
+
+// Utils
+
+/**
+ * Mirror GetKeysRecursively from @vates/types
+ */
+export function getActionStrings<Resource extends SupportedResource, Actions = SupportedActions<Resource>>(
+  resource: Resource
+): Actions[] {
+  type NestedActions = { [key: string]: boolean | NestedActions }
+
+  function collectActions(obj: NestedActions, prefix?: Actions): Actions[] {
+    const actions: Actions[] = ['*' as Actions]
+
+    for (const [key, value] of Object.entries(obj)) {
+      const action = (prefix !== undefined ? `${prefix}:${key}` : key) as Actions
+      actions.push(action)
+
+      if (typeof value === 'boolean') {
+        continue
+      }
+
+      actions.push(...collectActions(value, action))
+    }
+
+    return actions
+  }
+
+  return collectActions(SUPPORTED_ACTIONS_BY_RESOURCE[resource])
 }
