@@ -21,3 +21,13 @@ export async function openDisk({ handler, path, force = false }) {
   await disk.init({ force })
   return disk
 }
+
+/**
+ * @param {Object} params
+ * @param {FileAccessor} params.handler
+ * @param {string} params.path
+ * @returns {RemoteDisk}
+ */
+export function instantiateDisk({ handler, path }) {
+  return new RemoteVhdDisk({ handler, path })
+}
