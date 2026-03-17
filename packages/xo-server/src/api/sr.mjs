@@ -234,6 +234,7 @@ export async function createNfs({
 
   // Reattach
   if (srUuid !== undefined) {
+    delete deviceConfig['preferred-image-formats']
     return xapi.reattachSr({
       uuid: srUuid,
       nameLabel,
@@ -295,6 +296,7 @@ export async function createSmb({
   }
 
   if (srUuid !== undefined) {
+    delete deviceConfig['preferred-image-formats']
     return xapi.reattachSr({
       uuid: srUuid,
       nameLabel,
@@ -347,6 +349,7 @@ export async function createHba({ host, nameLabel, nameDescription, scsiId, srUu
 
   // Reattach
   if (srUuid !== undefined) {
+    delete deviceConfig['preferred-image-formats']
     return xapi.reattachSr({
       uuid: srUuid,
       nameLabel,
@@ -669,6 +672,7 @@ export async function createIscsi({
 
   // Reattach
   if (srUuid !== undefined) {
+    delete deviceConfig['preferred-image-formats']
     return xapi.reattachSr({
       uuid: srUuid,
       nameLabel,
