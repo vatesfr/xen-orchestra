@@ -35,7 +35,7 @@ describe('waitForWriteDone', () => {
       const file = path.join(dir, 'stable.bin')
       await fs.writeFile(file, 'hello')
       // Two polls must see the same size — give it 1 s timeout, should resolve fast
-      await waitForWriteDone(file, 1000)
+      await waitForWriteDone(file, 1000, 100)
     } finally {
       await rimraf(dir)
     }
@@ -49,7 +49,7 @@ describe('waitForWriteDone', () => {
       setTimeout(async () => {
         await fs.writeFile(file, 'data')
       }, 150)
-      await waitForWriteDone(file, 2000)
+      await waitForWriteDone(file, 2000, 100)
     } finally {
       await rimraf(dir)
     }
@@ -61,7 +61,7 @@ describe('waitForWriteDone', () => {
       const file = path.join(dir, 'empty.bin')
       await fs.writeFile(file, '')
       // The function should time out because size is 0 — use a short timeout
-      await assert.rejects(waitForWriteDone(file, 400), /Timeout/)
+      await assert.rejects(waitForWriteDone(file, 400, 100), /Timeout/)
     } finally {
       await rimraf(dir)
     }
@@ -81,7 +81,7 @@ describe('waitForWriteDone', () => {
         }
       })()
 
-      await assert.rejects(waitForWriteDone(file, 500), /Timeout/)
+      await assert.rejects(waitForWriteDone(file, 500, 100), /Timeout/)
       stop = true
       await writer
     } finally {
@@ -99,7 +99,7 @@ describe('waitForWriteDone', () => {
         await fs.appendFile(file, 'chunk2')
       }, 50)
       // No more writes after that; the size stabilises
-      await waitForWriteDone(file, 2000)
+      await waitForWriteDone(file, 2000, 100)
     } finally {
       await rimraf(dir)
     }
@@ -134,7 +134,7 @@ describe('watchVmDirectory', () => {
     await fs.mkdir(vmDir, { recursive: true })
 
     const errors: unknown[] = []
-    const close = watchVmDirectory(vmDir, err => errors.push(err))
+    const close = watchVmDirectory(vmDir, err => errors.push(err), { delayBetweenSizeCheck: 100 })
     try {
       // Write a file that doesn't match *.json
       const xvaFile = path.join(vmDir, `${BACKUP_DATE}.xva`)
@@ -156,7 +156,7 @@ describe('watchVmDirectory', () => {
     await fs.mkdir(vmDir, { recursive: true })
 
     const errors: unknown[] = []
-    const close = watchVmDirectory(vmDir, err => errors.push(err))
+    const close = watchVmDirectory(vmDir, err => errors.push(err), { delayBetweenSizeCheck: 100 })
     try {
       const cacheFile = path.join(vmDir, 'cache.json')
       await fs.writeFile(cacheFile, '{}')
@@ -177,7 +177,7 @@ describe('watchVmDirectory', () => {
     let lockBackupCallCount = 0
     const errors: unknown[] = []
 
-    const close = watchVmDirectory(vmDir, err => errors.push(err))
+    const close = watchVmDirectory(vmDir, err => errors.push(err), { delayBetweenSizeCheck: 100 })
     try {
       const jsonFile = path.join(vmDir, `${BACKUP_DATE}.json`)
       // Write the json file twice to trigger two fs events
@@ -201,7 +201,7 @@ describe('watchVmDirectory', () => {
     await fs.mkdir(vdiDir, { recursive: true })
 
     const errors: unknown[] = []
-    const close = watchVmDirectory(vmDir, err => errors.push(err))
+    const close = watchVmDirectory(vmDir, err => errors.push(err), { delayBetweenSizeCheck: 100 })
     try {
       const vhdFile = path.join(vdiDir, `${BACKUP_DATE}.vhd`)
       const jsonFile = path.join(vmDir, `${BACKUP_DATE}.json`)
