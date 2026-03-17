@@ -7,6 +7,7 @@ import * as uuid from 'uuid'
 import { getHandler } from '@xen-orchestra/fs'
 import { pFromCallback } from 'promise-toolbox'
 import { rimraf } from 'rimraf'
+// eslint-disable-next-line n/no-missing-import
 import { VmBackupDirectory } from '../dist/VmBackupDirectory.mjs'
 import tar from 'tar-stream'
 const { beforeEach, afterEach, describe } = test
