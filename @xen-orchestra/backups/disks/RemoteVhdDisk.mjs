@@ -429,29 +429,57 @@ export class RemoteVhdDisk extends RemoteDisk {
 
   /**
    * Deletes disk
+   * @param {Object} options
    */
-  async unlink() {
+  async unlink({ force = false } = {}) {
     if (this.#vhd === undefined) {
-      throw new Error(`can't call unlink of a RemoteVhdDisk before init`)
-    }
+      if (force) {
+        let resolved = this.#path
+        try {
+          resolved = await resolveVhdAlias(this.#handler, this.#path)
+        } catch (err) {
+          // broken vhd directory must be unlinkable
+          if (err.code !== 'EISDIR') {
+            throw err
+          }
+          // warn('Deleting directly a VhdDirectory', { this.#path, err })
+        }
+        try {
+          await this.#handler.unlink(resolved)
+        } catch (err) {
+          if (err.code === 'EISDIR') {
+            await this.#handler.rmtree(resolved)
+          } else {
+            throw err
+          }
+        }
 
-    await this.close()
+        // also delete the alias file
+        if (this.#path !== resolved) {
+          await this.#handler.unlink(this.#path)
+        }
+      } else {
+        throw new Error(`can't call unlink of a RemoteVhdDisk before init`)
+      }
+    } else {
+      await this.close()
 
-    if (isVhdAlias(this.#path)) {
-      try {
-        await this.#handler.unlink(await resolveVhdAlias(this.#handler, this.#path))
-      } catch (err) {
-        if (err && typeof err === 'object' && 'code' in err && err.code === 'EISDIR') {
-          await this.#handler.rmtree(await resolveVhdAlias(this.#handler, this.#path)).catch(() => {})
+      if (isVhdAlias(this.#path)) {
+        try {
+          await this.#handler.unlink(await resolveVhdAlias(this.#handler, this.#path))
+        } catch (err) {
+          if (err && typeof err === 'object' && 'code' in err && err.code === 'EISDIR') {
+            await this.#handler.rmtree(await resolveVhdAlias(this.#handler, this.#path)).catch(() => {})
+          }
         }
       }
-    }
 
-    try {
-      await this.#handler.unlink(this.#path)
-    } catch (err) {
-      if (err && typeof err === 'object' && 'code' in err && err.code === 'EISDIR') {
-        await this.#handler.rmtree(this.#path).catch(() => {})
+      try {
+        await this.#handler.unlink(this.#path)
+      } catch (err) {
+        if (err && typeof err === 'object' && 'code' in err && err.code === 'EISDIR') {
+          await this.#handler.rmtree(this.#path).catch(() => {})
+        }
       }
     }
   }
