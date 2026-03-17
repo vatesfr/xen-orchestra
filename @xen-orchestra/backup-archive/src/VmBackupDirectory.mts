@@ -5,15 +5,16 @@ import { VmFullBackupArchive } from './VmFullBackupArchive.mjs'
 import { VmIncrementalBackupArchive } from './VmIncrementalBackupArchive.mjs'
 import { RemoteDiskLineage } from './RemoteDiskLineage.mjs'
 import {
+  ArchiveCleanOptions,
   BackupCleanOptions,
   VmBackupInterface,
   PartialBackupMetadata,
   ResolvedBackupCleanOptions,
-  MergeLimiter,
 } from './VmBackup.types.mjs'
 import { asyncEach } from '@vates/async-each'
+import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter.mjs'
 
-const FILES_TO_KEEP = ['cache.json.gz']
+const FILES_TO_KEEP = ['cache.json.gz', 'vdis']
 
 export class VmBackupDirectory implements VmBackupInterface {
   handler: RemoteHandlerAbstract
@@ -28,6 +29,7 @@ export class VmBackupDirectory implements VmBackupInterface {
   #activeDiskPaths: Set<string> = new Set()
   // Cached result of the last check() call; invalidated by init()
   #checkResult: { orphans: string[]; linked: string[] } | undefined = undefined
+  #remoteAdapter: RemoteAdapter
 
   constructor(
     handler: RemoteHandlerAbstract,
@@ -50,6 +52,7 @@ export class VmBackupDirectory implements VmBackupInterface {
       logInfo: opts.logInfo ?? console.info,
       logWarn: opts.logWarn ?? console.warn,
     }
+    this.#remoteAdapter = new RemoteAdapter(handler)
   }
 
   async init() {
@@ -88,7 +91,8 @@ export class VmBackupDirectory implements VmBackupInterface {
           this.diskLineages.set(vdiDir, lineage)
         }
       }
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.code === 'NOT_SUPPORTED') throw error
       this.opts.logWarn('failed to scan VDI directories', { error })
     }
   }
@@ -122,7 +126,7 @@ export class VmBackupDirectory implements VmBackupInterface {
       archive.getAssociatedFiles({ prefix: true })
     )
     allUsedFiles.push(...this.getAssociatedFiles({ prefix: true }))
-    const orphans = []
+    const orphans = Array<string>()
     // TODO handle folders and empty folders
     for (const file of this.files.filter(file => !allUsedFiles.includes(file))) {
       orphans.push(file)
@@ -131,7 +135,7 @@ export class VmBackupDirectory implements VmBackupInterface {
     return this.#checkResult
   }
 
-  async clean({ mergeLimiter }: { mergeLimiter?: MergeLimiter } = {}) {
+  async clean({ remove = this.opts.remove ?? false, mergeLimiter }: ArchiveCleanOptions = {}) {
     // Use cached check result if available, otherwise run check now
     const { orphans } = this.#checkResult ?? (await this.check())
 
@@ -139,18 +143,56 @@ export class VmBackupDirectory implements VmBackupInterface {
     await asyncEach(
       Array.from(this.backupArchives.values()),
       async (archive: VmBackupInterface) => {
-        await archive.clean()
+        await archive.clean({ remove })
       },
       { concurrency: 2 }
     )
 
-    // Merge/delete orphan disks in VDI directories
-    await Promise.all(Array.from(this.diskLineages.values()).map(lineage => lineage.clean(mergeLimiter)))
+    // Merge/delete orphan disks in VDI directories; collect merged sizes per disk path
+    const lineageResults = await Promise.all(
+      Array.from(this.diskLineages.values()).map(lineage => lineage.clean(mergeLimiter))
+    )
+    const allMergedSizes = new Map<string, number>()
+    for (const { mergedSizes } of lineageResults) {
+      for (const [diskPath, size] of mergedSizes) {
+        allMergedSizes.set(diskPath, (allMergedSizes.get(diskPath) ?? 0) + size)
+      }
+    }
+
+    // Update metadata size for archives that had disks merged, then regenerate cache
+    let metadataUpdated = false
+    for (const archive of this.backupArchives.values()) {
+      if (archive instanceof VmIncrementalBackupArchive) {
+        let mergedSize = 0
+        for (const diskPath of archive.diskPaths) {
+          mergedSize += allMergedSizes.get(diskPath) ?? 0
+        }
+        if (mergedSize > 0) {
+          await archive.updateMetadata(mergedSize)
+          metadataUpdated = true
+        }
+      }
+    }
+    if (metadataUpdated) {
+      await this.#regenerateCache()
+    }
 
     // Delete root-level orphan files (stray xva, checksum, json, etc.)
-    await asyncEach(orphans, async (orphan: string) => await this.handler.unlink(orphan), { concurrency: 2 })
+    if (remove) {
+      await asyncEach(orphans, async (orphan: string) => await this.handler.unlink(orphan), { concurrency: 2 })
+    }
 
     return orphans
+  }
+
+  async #regenerateCache(): Promise<void> {
+    const cachePath = `${this.rootPath}/cache.json.gz`
+    const cache: Record<string, object> = {}
+    for (const [path, archive] of this.backupArchives.entries()) {
+      const a = archive as VmFullBackupArchive | VmIncrementalBackupArchive
+      cache[path] = { _filename: path, id: path, ...a.metadata }
+    }
+    await this.#remoteAdapter._writeCache(cachePath, cache)
   }
 
   async instantiateBackupArchive(metadataPath: string, metadata: PartialBackupMetadata) {
@@ -186,5 +228,21 @@ export class VmBackupDirectory implements VmBackupInterface {
     }
     await backupArchive.init()
     return backupArchive
+  }
+
+  /**
+   * Creates a fresh instance with the given handler/path/opts, then runs init/check/clean.
+   * The `lock` option is accepted but ignored (locking is the caller's responsibility).
+   */
+  static async cleanVm(
+    handler: RemoteHandlerAbstract,
+    vmBackupPath: string,
+    opts: BackupCleanOptions & { lock?: boolean } = {}
+  ) {
+    const { lock: _lock, ...cleanOpts } = opts
+    const dir = new VmBackupDirectory(handler, vmBackupPath, cleanOpts)
+    await dir.init()
+    await dir.check()
+    await dir.clean({ remove: cleanOpts.remove })
   }
 }
