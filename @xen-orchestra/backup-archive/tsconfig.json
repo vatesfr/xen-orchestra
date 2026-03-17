@@ -6,6 +6,7 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "target": "ES2022",
+    "rootDir": "./src",
     "skipLibCheck": true,
     "types": ["node"] // Only use types from Node.js and packages that are explicitly imported
   },
