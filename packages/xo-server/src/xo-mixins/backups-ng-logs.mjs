@@ -54,7 +54,9 @@ const taskTimeComparator = ({ start: s1, end: e1 }, { start: s2, end: e2 }) => {
 function adaptTask(task) {
   const { name, ...data } = task.properties
   task.message = name
-  task.data = data
+  if (Object.keys(data).length > 0) {
+    task.data = data
+  }
   delete task.properties
   task.tasks?.forEach(adaptTask)
 }
@@ -63,6 +65,12 @@ function taskFormatAdapter(log) {
   const isXoTask = log.tasks?.length > 0 && !!log.tasks[0].properties
   if (isXoTask) {
     adaptTask(log.tasks[0])
+    if (log.tasks[0].infos !== undefined && log.tasks[0].infos.length > 0) {
+      log.infos = [...(log.infos ?? []), ...log.tasks[0].infos]
+    }
+    if (log.tasks[0].warnings !== undefined && log.tasks[0].warnings.length !== 0) {
+      log.warnings = [...(log.warnings ?? []), ...log.tasks[0].warnings]
+    }
     log.tasks = log.tasks[0].tasks
   }
 }
