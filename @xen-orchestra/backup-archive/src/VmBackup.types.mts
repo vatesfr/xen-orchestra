@@ -20,7 +20,7 @@ export function isVhdAlias(filename: string) {
   return filename.endsWith('.alias.vhd')
 }
 export function isDiskFile(filename: string) {
-  return isVhdFile(filename) && !isVhdAlias(filename)
+  return isVhdFile(filename)
 }
 export type AnomalyReport = {
   multipleChildren: Array<string>
@@ -32,6 +32,9 @@ export interface PartialBackupMetadata {
   mode: 'full' | 'delta'
   xva?: string
   vhds?: Record<string, string>
+  vdis?: Record<string, unknown>
+  isVhdDifferencing?: Record<string, boolean>
+  size?: number
   jobId: string
   scheduleId: string
   timestamp: number
