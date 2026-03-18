@@ -13,7 +13,6 @@ import { OvsdbClient } from './protocol/ovsdb-client'
 import { PrivateNetwork } from './private-network/private-network'
 import { TlsHelper } from './utils/tls-helper'
 import { instantiateController } from './openflow-controller'
-import { invalidParameters, notFoundResp } from '@xen-orchestra/rest-api/'
 
 // =============================================================================
 
@@ -311,8 +310,6 @@ class SDNController extends EventEmitter {
 
     this._handledTasks = []
     this._managed = []
-
-    this._unregisterRestRoutes = {}
   }
 
   // ---------------------------------------------------------------------------
@@ -448,59 +445,6 @@ class SDNController extends EventEmitter {
       },
     })
 
-    this._unregisterRestRoutes = this._xo.registerRestRoutes(
-      [
-        {
-          method: 'POST',
-          path: '/test/{id}',
-          params: {
-            id: {
-              type: 'string',
-              example: 'test parm',
-            },
-          },
-          query: {
-            query: {
-              type: 'string',
-              example: 'test query',
-            },
-          },
-          body: {
-            allow: {
-              type: 'boolean',
-            },
-            direction: {
-              type: 'enum',
-              enum: ['ingress', 'egress'],
-            },
-            vifId: {
-              type: 'string',
-              example: 'qjndcsncjjcsq',
-            },
-          },
-          responses: [
-            {
-              status: 200,
-              schema: {
-                id: {
-                  type: 'string',
-                  example: 'response id',
-                },
-              },
-            },
-            invalidParameters,
-            notFoundResp,
-          ],
-          handler: async ({ params, query, body, res }) => {
-            // console.log('ici', params, query, body)
-
-            res.send({ id: 'test id' })
-          },
-        },
-      ],
-      '/sdn-controller'
-    )
-
     forOwn(this._xo.getAllXapis(), xapi => {
       if (xapi.status === 'connected') {
         this._handleConnectedXapi(xapi)
@@ -534,8 +478,6 @@ class SDNController extends EventEmitter {
     this._managed = []
 
     this._unsetApiMethods()
-
-    this._unregisterRestRoutes()
   }
 
   // ---------------------------------------------------------------------------

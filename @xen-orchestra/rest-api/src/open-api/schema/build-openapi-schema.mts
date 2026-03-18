@@ -1,5 +1,6 @@
-import { FieldDefinition } from '../../router/types.mjs'
+import { FieldDefinition } from '../../plugins/types.mjs'
 
+// Build OpenApi schema from our FieldDefinition
 export function buildOpenApiSchema(def: Record<string, FieldDefinition>): Record<string, unknown> {
   const schema: any = {
     type: 'object',
