@@ -19,6 +19,7 @@ type BaseCreateNetworkBody = {
    * @default 1500
    */
   mtu?: number
+  nbd?: boolean
 }
 
 export type CreateNetworkBody = BaseCreateNetworkBody & {

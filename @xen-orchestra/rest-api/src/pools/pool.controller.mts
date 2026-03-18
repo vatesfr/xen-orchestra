@@ -86,6 +86,7 @@ import { PoolService } from './pool.service.mjs'
 import { escapeUnsafeComplexMatcher, NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
+import { NetworkService } from '../networks/network.service.mjs'
 
 @Route('pools')
 @Security('*')
@@ -97,17 +98,20 @@ export class PoolController extends XapiXoController<XoPool> {
   #vmService: VmService
   #poolService: PoolService
   #alarmService: AlarmService
+  #networkService: NetworkService
 
   constructor(
     @inject(RestApi) restApi: RestApi,
     @inject(VmService) vmService: VmService,
     @inject(PoolService) poolService: PoolService,
-    @inject(AlarmService) alarmService: AlarmService
+    @inject(AlarmService) alarmService: AlarmService,
+    @inject(NetworkService) networkService: NetworkService
   ) {
     super('pool', restApi)
     this.#vmService = vmService
     this.#poolService = poolService
     this.#alarmService = alarmService
+    this.#networkService = networkService
   }
 
   /**
@@ -166,11 +170,9 @@ export class PoolController extends XapiXoController<XoPool> {
     const poolId = id as XoPool['id']
     const action = async () => {
       const { pif, ...rest } = body
-      const xapiPool = this.getXapiObject(poolId)
-      const xapiNetwork = await xapiPool.$xapi.createNetwork({ pifId: pif as XoPif['id'], ...rest })
-      const network = this.restApi.getObject<XoNetwork>(xapiNetwork.uuid as XoNetwork['id'], 'network')
+      const networkId = await this.#networkService.create(poolId, { pifId: pif as XoPif['id'], ...rest })
 
-      return { id: network.id }
+      return { id: networkId }
     }
 
     return this.createAction<{ id: XoNetwork['id'] }>(action, {
@@ -211,10 +213,9 @@ export class PoolController extends XapiXoController<XoPool> {
     const poolId = id as XoPool['id']
     const action = async () => {
       const { pifIds, ...rest } = body
-      const xapiPool = this.getXapiObject(poolId)
-      const xapiNetwork = await xapiPool.$xapi.createBondedNetwork({ pifIds: pifIds as XoPif['id'][], ...rest })
+      const networkId = await this.#networkService.create(poolId, { pifIds: pifIds as XoPif['id'][], ...rest })
 
-      return { id: xapiNetwork.uuid }
+      return { id: networkId }
     }
 
     return this.createAction<{ id: XoNetwork['uuid'] }>(action, {
@@ -252,10 +253,9 @@ export class PoolController extends XapiXoController<XoPool> {
   ): CreateActionReturnType<{ id: Unbrand<XoNetwork>['id'] }> {
     const poolId = id as XoPool['id']
     const action = async () => {
-      const xapiPool = this.getXapiObject(poolId)
-      const xapiNetwork = await xapiPool.$xapi.createNetwork(body)
+      const networkId = await this.#networkService.create(poolId, body)
 
-      return { id: xapiNetwork.uuid }
+      return { id: networkId }
     }
 
     return this.createAction<{ id: XoNetwork['uuid'] }>(action, {

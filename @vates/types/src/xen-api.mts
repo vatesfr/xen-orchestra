@@ -623,7 +623,9 @@ export interface XenApiHostCpu {
   vendor: string
 }
 
-type XenApiNetworkCallMethods = TagCallMethods & {}
+type XenApiNetworkCallMethods = TagCallMethods & {
+  (method: 'add_purpose', purpose: NETWORK_PURPOSE): Promise<void>
+}
 
 export interface XenApiNetwork {
   $ref: Branded<'network'>
