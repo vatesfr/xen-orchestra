@@ -1,6 +1,16 @@
 import type { Xapi, XcpPatches, XoAlarm, XoHost, XoSr, XoVm, XoVmTemplate, XsPatches } from '@vates/types'
 import { Unbrand } from '../open-api/common/response.common.mjs'
 
+export interface LoadBalanceBody {
+  plan: {
+    mode: 'performance' | 'density' | 'simple'
+    thresholds?: {
+      memoryFree?: number
+    }
+  }
+  dryRun?: boolean
+}
+
 export interface CreateNetworkBody {
   name: string
   description?: string

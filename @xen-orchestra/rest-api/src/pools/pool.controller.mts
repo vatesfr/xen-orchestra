@@ -70,7 +70,7 @@ import {
   poolMissingPatches,
   poolStats,
 } from '../open-api/oa-examples/pool.oa-example.mjs'
-import type { CreateNetworkBody, CreateVmBody, CreateVmParams, PoolDashboard } from './pool.type.mjs'
+import type { CreateNetworkBody, CreateVmBody, CreateVmParams, LoadBalanceBody, PoolDashboard } from './pool.type.mjs'
 import { partialTasks, taskIds, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { createNetwork } from '../open-api/oa-examples/schedule.oa-example.mjs'
 import { BASE_URL } from '../index.mjs'
@@ -537,6 +537,72 @@ export class PoolController extends XapiXoController<XoPool> {
       statusCode: noContentResp.status,
       taskProperties: {
         name: 'reconfigure pool management interface',
+        objectId: poolId,
+        args: body,
+      },
+    })
+  }
+
+  /**
+   * Compute and optionally execute a tag-based load balancing plan for the pool.
+   *
+   * Resolves anti-affinity and affinity constraints based on VM tags (`xo:load:balancer:*`),
+   * and optionally balances memory usage across hosts.
+   *
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
+   * @example body {
+   *   "plan": { "mode": "simple" },
+   *   "dryRun": true
+   * }
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/load_balance')
+  @Middlewares(json())
+  @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  loadBalance(
+    @Path() id: string,
+    @Body() body: LoadBalanceBody,
+    @Query() sync?: boolean
+  ): CreateActionReturnType<Record<string, string>> {
+    const poolId = id as XoPool['id']
+    const action = async () => {
+      const { computeLoadBalancePlan, executeMigrations } = await import('xo-server-tag-balancer')
+
+      const xoApp = this.restApi.xoApp
+      const allObjects = xoApp.getObjects()
+
+      const hosts = Object.values(allObjects).filter(
+        (obj): obj is XoHost => obj.type === 'host' && obj.$pool === poolId
+      )
+      const vms = Object.values(allObjects).filter((obj): obj is XoVm => obj.type === 'VM' && obj.$pool === poolId)
+
+      const migrations = computeLoadBalancePlan(hosts, vms, body.plan)
+
+      // dryRun defaults to true: only execute migrations when explicitly set to false
+      const shouldExecute = body.dryRun === false
+      if (!shouldExecute) {
+        return migrations as Record<string, string>
+      }
+
+      const xapiPool = this.getXapiObject(poolId)
+      const xapi = xapiPool.$xapi
+
+      return executeMigrations(migrations, xapi, {
+        resolveRef: (id: string) => {
+          const obj = xoApp.getObject(id as XoVm['id'])
+          return (obj as { _xapiRef: string })._xapiRef
+        },
+      }) as Promise<Record<string, string>>
+    }
+
+    return this.createAction<Record<string, string>>(action, {
+      sync,
+      statusCode: createdResp.status,
+      taskProperties: {
+        name: 'load balance pool',
         objectId: poolId,
         args: body,
       },
