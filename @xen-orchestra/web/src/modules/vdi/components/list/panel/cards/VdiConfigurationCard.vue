@@ -4,17 +4,7 @@
       {{ t('configuration') }}
     </UiCardTitle>
     <div class="content">
-      <VtsCardRowKeyValue>
-        <template #key>
-          {{ t('format') }}
-        </template>
-        <template #value>
-          {{ format }}
-        </template>
-        <template #addons>
-          <VtsCopyButton :value="format" />
-        </template>
-      </VtsCardRowKeyValue>
+      <VdiFormatCard :format="vdi.image_format" />
       <VtsCardRowKeyValue>
         <template #key>
           {{ t('storage') }}
@@ -47,8 +37,8 @@
 
 <script setup lang="ts">
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import VdiFormatCard from '@/modules/vdi/components/list/panel/cards/VdiFormatCard.vue'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import { getVdiFormat } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -68,8 +58,6 @@ const { t } = useI18n()
 const { buildXo5Route } = useXoRoutes()
 
 const { useGetSrById } = useXoSrCollection()
-
-const format = computed(() => getVdiFormat(vdi.image_format))
 
 const vdiSr = useGetSrById(() => vdi.$SR)
 

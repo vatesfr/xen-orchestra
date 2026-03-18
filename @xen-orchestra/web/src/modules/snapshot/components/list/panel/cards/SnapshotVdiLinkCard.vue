@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import type { FrontXoVmSnapshot } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'
 import type { FrontXoVmSnapshotVdi } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-vdi-collection.ts'
-import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import { useVbdsStatus, type VbdAttachmentStatus } from '@/modules/vbd/composables/use-vbds-status.composable.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import type { IconName } from '@core/icons'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -17,30 +17,15 @@ const { snapshot, vdi } = defineProps<{ snapshot: FrontXoVmSnapshot; vdi: FrontX
 const { buildXo5Route } = useXoRoutes()
 const xo5VmSnapshotVdiHref = computed(() => buildXo5Route(`/vms/${snapshot.id}/disks`))
 
-const { getVbdsByIds } = useXoVbdCollection()
+const vbdsStatus = useVbdsStatus(() => vdi.$VBDs)
 
-type SnapshotVdiStatus = 'attached' | 'detached' | 'disabled'
-
-const vdiStatus = computed<SnapshotVdiStatus>(() => {
-  const allSnapshotVdiVbds = getVbdsByIds(vdi.$VBDs)
-
-  if (allSnapshotVdiVbds.length === 0) return 'detached'
-
-  const areVdiVbdsAttached = allSnapshotVdiVbds.map(vbd => vbd.attached)
-
-  if (areVdiVbdsAttached.every(Boolean)) return 'attached'
-  if (areVdiVbdsAttached.some(Boolean)) return 'disabled'
-
-  return 'detached'
-})
-
-const vbdsSnapshotStatus = useMapper<SnapshotVdiStatus, IconName>(
-  () => vdiStatus.value,
+const vbdsSnapshotStatus = useMapper<VbdAttachmentStatus, IconName>(
+  () => vbdsStatus.value,
   {
-    attached: 'object:vdi:attached',
-    detached: 'object:vdi:detached',
-    disabled: 'object:vdi:disabled',
+    allAttached: 'object:vdi:attached',
+    someAttached: 'object:vdi:disabled',
+    noneAttached: 'object:vdi:detached',
   },
-  'detached'
+  'someAttached'
 )
 </script>

@@ -1,17 +1,21 @@
 <template>
   <UiCard>
-    <UiCardTitle>{{ t('last-revert') }}</UiCardTitle>
-    <div class="vm-snapshot-last-revert">
+    <UiCardTitle>{{ title }}</UiCardTitle>
+    <div class="vm-snapshot-card">
       <VtsQuickInfoRow :label="t('snapshot')" class="snapshot-row">
         <template #value>
-          <UiLink icon="object:vm-snapshot" size="medium" :href="xo5VmSnapshotHref">
+          <UiLink v-if="snapshot?.name_label" icon="object:vm-snapshot" size="medium" :href="xo5VmSnapshotHref">
             {{ snapshot.name_label }}
           </UiLink>
         </template>
       </VtsQuickInfoRow>
-      <VtsCopyButton v-if="snapshot.name_label" :value="snapshot.name_label" class="copy-button" />
+      <VtsCopyButton v-if="snapshot?.name_label" :value="snapshot.name_label" class="copy-button" />
     </div>
-    <VtsQuickInfoRow :label="t('snapshot-created-on')" :value="formattedDate" />
+    <VtsQuickInfoRow :label="t('snapshot-created-on')">
+      <template #value>
+        <span v-if="formattedDate">{{ formattedDate }}</span>
+      </template>
+    </VtsQuickInfoRow>
   </UiCard>
 </template>
 
@@ -27,7 +31,8 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { snapshot } = defineProps<{
-  snapshot: FrontXoVmSnapshot
+  snapshot: FrontXoVmSnapshot | undefined
+  title: string
 }>()
 
 const { t, d } = useI18n()
@@ -35,15 +40,16 @@ const { t, d } = useI18n()
 const { buildXo5Route } = useXoRoutes()
 
 const xo5VmSnapshotHref = computed(() =>
-  buildXo5Route(`/vms/${snapshot.$snapshot_of}/snapshots?s=1_0_asc-${snapshot.id}`)
+  buildXo5Route(`/vms/${snapshot?.$snapshot_of}/snapshots?s=1_0_asc-${snapshot?.id}`)
 )
+
 const formattedDate = computed(() =>
-  d(snapshot.snapshot_time * 1000, { dateStyle: 'short', timeStyle: 'medium' }).replace(/\//g, '-')
+  snapshot ? d(snapshot.snapshot_time * 1000, { dateStyle: 'short', timeStyle: 'medium' }) : undefined
 )
 </script>
 
 <style lang="postcss" scoped>
-.vm-snapshot-last-revert {
+.vm-snapshot-card {
   position: relative;
 }
 

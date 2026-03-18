@@ -6,7 +6,7 @@
     </UiCardTitle>
     <div class="content">
       <div v-for="(vmSnapshotVdi, index) in vmSnapshotVdis" :key="vmSnapshotVdi.id" class="content">
-        <SnapshotVdiCardItem :vdi="vmSnapshotVdi" :snapshot />
+        <SnapshotVdiLinkCard :vdi="vmSnapshotVdi" :snapshot />
         <!-- DESCRIPTION -->
         <VtsCardRowKeyValue truncate>
           <template #key>
@@ -18,25 +18,9 @@
           </template>
         </VtsCardRowKeyValue>
         <!-- USED SPACE -->
-        <VtsCardRowKeyValue>
-          <template #key>
-            {{ t('used-space-on-sr') }}
-          </template>
-          <template #value>{{ formatSize(vmSnapshotVdi.usage, 2) }}</template>
-          <template v-if="vmSnapshotVdi.usage" #addons>
-            <VtsCopyButton :value="formatSize(vmSnapshotVdi.usage, 2)" />
-          </template>
-        </VtsCardRowKeyValue>
+        <SnapshotVdiUsageCard :usage="vmSnapshotVdi.usage" />
         <!-- FORMAT -->
-        <VtsCardRowKeyValue>
-          <template #key>
-            {{ t('format') }}
-          </template>
-          <template #value>{{ getVdiFormat(vmSnapshotVdi.image_format) }}</template>
-          <template v-if="vmSnapshotVdi.image_format" #addons>
-            <VtsCopyButton :value="getVdiFormat(vmSnapshotVdi.image_format)" />
-          </template>
-        </VtsCardRowKeyValue>
+        <VdiFormatCard :format="vmSnapshotVdi.image_format" />
         <VtsDivider v-if="index < vmSnapshotVdis.length - 1" class="divider" type="stretch" />
       </div>
     </div>
@@ -44,17 +28,17 @@
 </template>
 
 <script setup lang="ts">
-import SnapshotVdiCardItem from '@/modules/snapshot/components/list/panel/card-items/SnapshotVdiCardItem.vue'
+import SnapshotVdiLinkCard from '@/modules/snapshot/components/list/panel/cards/SnapshotVdiLinkCard.vue'
+import SnapshotVdiUsageCard from '@/modules/snapshot/components/list/panel/cards/SnapshotVdiUsageCard.vue'
 import type { FrontXoVmSnapshot } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'
 import { useXoVmSnapshotVdiCollection } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-vdi-collection.ts'
-import { getVdiFormat } from '@/modules/vdi/utils/xo-vdi.util.ts'
+import VdiFormatCard from '@/modules/vdi/components/list/panel/cards/VdiFormatCard.vue'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
-import { formatSize } from '@core/utils/size.util.ts'
 import { useI18n } from 'vue-i18n'
 
 const { snapshot } = defineProps<{ snapshot: FrontXoVmSnapshot }>()
