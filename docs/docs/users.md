@@ -22,7 +22,7 @@ Also, you don't have to create an external user by yourself: it will be created 
 
 This is the default method. Creating a user is very simple:
 
-1. Go into the Settings view, select "Users"
+1. Go to the **Settings** view and select **Users.**
 2. You can create a _user_ or an _admin_, with their password (or generate one)
 
 ![](./assets/usercreation.png)
@@ -391,7 +391,7 @@ The self-service feature allows users to create new VMs. This is different from 
 
 ### Set of resources
 
-To create a new set of resources to delegate, go to the "Self Service" section in the main menu:
+To create a new set of resources to delegate, go to the **Self service** section in the main menu:
 
 ![](./assets/selfservice_menu.png)
 
@@ -489,9 +489,9 @@ Stored records are secured by:
 
 The recording of the users' actions is disabled by default. To enable it:
 
-1. go into `settings/plugins`
-2. expand the `audit` configuration
-3. toggle active and save the configuration
+1. Go to **Settings → Plugins**.
+2. Expand the `audit` configuration.
+3. Toggle active and save the configuration.
 
 ![](./assets/audit_log_configuration.png)
 
