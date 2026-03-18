@@ -1,16 +1,5 @@
-import {
-  filter,
-  groupBy,
-  includes,
-  intersection,
-  isEmpty,
-  keyBy,
-  map as mapToArray,
-  maxBy,
-  minBy,
-  size,
-  sortBy,
-} from 'lodash'
+import lodash from 'lodash'
+const { filter, groupBy, includes, intersection, isEmpty, keyBy, map: mapToArray, maxBy, minBy, size, sortBy } = lodash
 import { inspect } from 'util'
 import type { XapiHostStatsRaw, XapiVmStatsRaw, XapiStatsGranularity, XoApp, XoHost, XoPool, XoVm } from '@vates/types'
 import type { Xapi } from '@vates/types'
@@ -274,7 +263,11 @@ export default class Plan {
     this._antiAffinityTags = antiAffinityTags
     // balanceVcpus variable name was kept for compatibility with past configuration schema
     this._performanceSubmode =
-      balanceVcpus === false ? 'conservative' : balanceVcpus === true ? 'vCpuPrepositioning' : (balanceVcpus ?? 'conservative')
+      balanceVcpus === false
+        ? 'conservative'
+        : balanceVcpus === true
+          ? 'vCpuPrepositioning'
+          : (balanceVcpus ?? 'conservative')
     this._globalOptions = globalOptions
     this._concurrentMigrationLimiter = concurrentMigrationLimiter
     this._dryRunResult = dryRunResult
@@ -1130,7 +1123,8 @@ export default class Plan {
       debugAffinity(`VMs to migrate: ${sourceVms.map(vm => vm.name_label)}`)
 
       for (const vm of sourceVms) {
-        const destHostAverages = () => hostsAverages[destinationHost!.id] ?? { memoryFree: 0, cpu: 0, nCpus: 0, memory: 0 }
+        const destHostAverages = () =>
+          hostsAverages[destinationHost!.id] ?? { memoryFree: 0, cpu: 0, nCpus: 0, memory: 0 }
 
         let loopCountdown = sortedHosts.length
         while (
@@ -1330,7 +1324,9 @@ export default class Plan {
       return Promise.resolve()
     }
     const { migrationHistory } = this._globalOptions
-    return (this._concurrentMigrationLimiter.call(_xapiSrc, 'migrateVm', vm.id, xapiDest, destHostId) as Promise<void>).then(() => {
+    return (
+      this._concurrentMigrationLimiter.call(_xapiSrc, 'migrateVm', vm.id, xapiDest, destHostId) as Promise<void>
+    ).then(() => {
       migrationHistory.set(vm.id, Date.now())
     })
   }

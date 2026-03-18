@@ -1,5 +1,6 @@
 import { createSchedule } from '@xen-orchestra/cron'
-import { intersection, uniq } from 'lodash'
+import lodash from 'lodash'
+const { intersection, uniq } = lodash
 import { limitConcurrency } from 'limit-concurrency-decorator'
 import type { XoApp, XoVm } from '@vates/types'
 
@@ -10,7 +11,12 @@ type XoAppWithRestApi = XoApp & { registerRestApi(spec: RestApiSpec, base?: stri
 import DensityPlan from './density-plan.mjs'
 import PerformancePlan from './performance-plan.mjs'
 import SimplePlan from './simple-plan.mjs'
-import { DEFAULT_CRITICAL_THRESHOLD_CPU, DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE, type GlobalOptions, type PlanOptions } from './plan.mjs'
+import {
+  DEFAULT_CRITICAL_THRESHOLD_CPU,
+  DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE,
+  type GlobalOptions,
+  type PlanOptions,
+} from './plan.mjs'
 import { EXECUTION_DELAY, debug } from './utils.mjs'
 
 // ===================================================================

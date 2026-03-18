@@ -1,4 +1,5 @@
-import { clone, filter } from 'lodash'
+import lodash from 'lodash'
+const { clone, filter } = lodash
 import type { XoHost, XoVm, Xapi } from '@vates/types'
 
 import Plan, { type HostAveragesMap } from './plan.mjs'
@@ -204,9 +205,7 @@ export default class DensityPlan extends Plan {
     } = this
 
     // Sort the destinations by available memory. (- -> +)
-    destinations.sort(
-      (a, b) => (hostsAverages[a.id]?.memoryFree ?? 0) - (hostsAverages[b.id]?.memoryFree ?? 0)
-    )
+    destinations.sort((a, b) => (hostsAverages[a.id]?.memoryFree ?? 0) - (hostsAverages[b.id]?.memoryFree ?? 0))
 
     for (const destination of destinations) {
       const destinationAverages = hostsAverages[destination.id]

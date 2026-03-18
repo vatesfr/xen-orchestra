@@ -1,4 +1,5 @@
-import { filter, intersection } from 'lodash'
+import lodash from 'lodash'
+const { filter, intersection } = lodash
 import type { XoHost, XoVm, Xapi } from '@vates/types'
 
 import Plan, { type HostAveragesMap, type Thresholds } from './plan.mjs'
@@ -21,7 +22,7 @@ const SIGNIFICANCE_THRESHOLD = 25 // don't optimize hosts under 25% CPU
 
 export default class PerformancePlan extends Plan {
   _checkResourcesThresholds(objects: XoHost[], averages: HostAveragesMap): XoHost[] {
-    return filter(objects, object => {
+    return filter(objects, (object: XoHost) => {
       const objectAverages = averages[object.id]
       if (objectAverages === undefined) {
         return false
@@ -70,7 +71,13 @@ export default class PerformancePlan extends Plan {
     if (results) {
       const { averages, toOptimize } = results
       if (toOptimize) {
-        toOptimize.sort((a, b) => -this._sortHosts(averages[a.id] ?? { cpu: 0, memoryFree: 0, nCpus: 0, memory: 0 }, averages[b.id] ?? { cpu: 0, memoryFree: 0, nCpus: 0, memory: 0 }))
+        toOptimize.sort(
+          (a, b) =>
+            -this._sortHosts(
+              averages[a.id] ?? { cpu: 0, memoryFree: 0, nCpus: 0, memory: 0 },
+              averages[b.id] ?? { cpu: 0, memoryFree: 0, nCpus: 0, memory: 0 }
+            )
+        )
         for (const exceededHost of toOptimize) {
           const { id } = exceededHost
 
@@ -105,14 +112,25 @@ export default class PerformancePlan extends Plan {
               continue
             }
             const thresholds: Thresholds = {
-              cpu: { high: poolAverage * AGGRESSIVENESS_RATE, low: poolAverage * AGGRESSIVENESS_RATE_LOW, critical: this._thresholds.cpu.critical },
+              cpu: {
+                high: poolAverage * AGGRESSIVENESS_RATE,
+                low: poolAverage * AGGRESSIVENESS_RATE_LOW,
+                critical: this._thresholds.cpu.critical,
+              },
               memoryFree: this._thresholds.memoryFree,
             }
             debug(`Balancing below threshold on pool ${poolId} ; `)
             debug(
               `Pool average CPU : ${poolAverage} ; High threshold: ${thresholds.cpu.high} ; Low threshold: ${thresholds.cpu.low}`
             )
-            toOptimize.sort((a, b) => -this._sortHosts(averages[a.id] ?? { cpu: 0, memoryFree: 0, nCpus: 0, memory: 0 }, averages[b.id] ?? { cpu: 0, memoryFree: 0, nCpus: 0, memory: 0 }, thresholds))
+            toOptimize.sort(
+              (a, b) =>
+                -this._sortHosts(
+                  averages[a.id] ?? { cpu: 0, memoryFree: 0, nCpus: 0, memory: 0 },
+                  averages[b.id] ?? { cpu: 0, memoryFree: 0, nCpus: 0, memory: 0 },
+                  thresholds
+                )
+            )
             for (const exceededHost of toOptimize) {
               const availableHosts = filter(poolHosts, host => host.id !== exceededHost.id)
               debug(`Try to optimize Host (${exceededHost.id}).`)
