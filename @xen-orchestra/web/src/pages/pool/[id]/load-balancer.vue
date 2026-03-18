@@ -1,21 +1,26 @@
 <template>
   <div class="load-balancer">
-    <UiTitle>{{ t('load-balancer:current-distribution') }}</UiTitle>
+    <div class="section">
+      <UiTitle>{{ t('load-balancer:current-distribution') }}</UiTitle>
+      <LoadBalancerDistributionTable :hosts="poolHosts" :vms="poolVms" />
+    </div>
 
-    <LoadBalancerDistributionTable :hosts="poolHosts" :vms="poolVms" />
-
-    <UiButton
-      accent="brand"
-      variant="primary"
-      size="medium"
-      :busy="dryRunJob.isRunning.value"
-      :disabled="!dryRunJob.canRun.value"
-      @click="runDryRun()"
-    >
-      {{ t('load-balancer:dry-run') }}
-    </UiButton>
-
-    <LoadBalancerMigrationPreview :migrations="migrations" :is-loading="dryRunJob.isRunning.value" />
+    <UiCard class="dry-run-section">
+      <UiCardTitle>{{ t('load-balancer:migration-preview') }}</UiCardTitle>
+      <div class="dry-run-action">
+        <UiButton
+          accent="brand"
+          variant="primary"
+          size="medium"
+          :busy="dryRunJob.isRunning.value"
+          :disabled="!dryRunJob.canRun.value"
+          @click="runDryRun()"
+        >
+          {{ t('load-balancer:dry-run') }}
+        </UiButton>
+      </div>
+      <LoadBalancerMigrationPreview :migrations="migrations" :is-loading="dryRunJob.isRunning.value" />
+    </UiCard>
   </div>
 </template>
 
@@ -28,6 +33,8 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import type { MigrationEntry } from '@/modules/pool/types/load-balancer.type.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -60,7 +67,19 @@ async function runDryRun() {
 .load-balancer {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 2.4rem;
   margin: 0.8rem;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.dry-run-section {
+  .dry-run-action {
+    display: flex;
+  }
 }
 </style>

@@ -1,35 +1,30 @@
 <template>
-  <UiCard>
-    <UiCardTitle>{{ t('load-balancer:migration-preview') }}</UiCardTitle>
-    <VtsStateHero v-if="isLoading" format="card" type="busy" size="medium" />
-    <VtsStateHero v-else-if="migrations.length === 0" format="card" type="no-data" size="medium">
-      {{ t('load-balancer:no-migrations-needed') }}
-    </VtsStateHero>
-    <div v-else class="load-balancer-migration-preview">
-      <div v-for="[groupKey, entries] of groupedMigrations" :key="groupKey" class="migration-group">
-        <div class="group-header typo-body-bold-small">
-          <UiTag :accent="reasonAccent(entries)" variant="secondary">
-            {{ entries[0].reason }}
-          </UiTag>
-          <span>{{ entries[0].group }}</span>
-          <span class="count">{{ t('load-balancer:migration-count', { count: entries.length }) }}</span>
-        </div>
-        <div v-for="migration of entries" :key="migration.vmId" class="migration-row">
-          <span class="vm typo-body-regular-small">{{ migration.vmName }}</span>
-          <span class="hosts typo-body-regular-small">
-            {{ t('load-balancer:migration-to', { from: migration.currentHostName, to: migration.targetHostName }) }}
-          </span>
-        </div>
+  <VtsStateHero v-if="isLoading" format="card" type="busy" size="medium" />
+  <VtsStateHero v-else-if="migrations.length === 0" format="card" type="no-data" size="medium">
+    {{ t('load-balancer:no-migrations-needed') }}
+  </VtsStateHero>
+  <div v-else class="load-balancer-migration-preview">
+    <div v-for="[groupKey, entries] of groupedMigrations" :key="groupKey" class="migration-group">
+      <div class="group-header typo-body-bold-small">
+        <UiTag :accent="reasonAccent(entries)" variant="secondary">
+          {{ entries[0].reason }}
+        </UiTag>
+        <span>{{ entries[0].group }}</span>
+        <span class="count">{{ t('load-balancer:migration-count', { count: entries.length }) }}</span>
+      </div>
+      <div v-for="migration of entries" :key="migration.vmId" class="migration-row">
+        <span class="vm typo-body-regular-small">{{ migration.vmName }}</span>
+        <span class="hosts typo-body-regular-small">
+          {{ t('load-balancer:migration-to', { from: migration.currentHostName, to: migration.targetHostName }) }}
+        </span>
       </div>
     </div>
-  </UiCard>
+  </div>
 </template>
 
 <script lang="ts" setup>
 import type { MigrationEntry } from '@/modules/pool/types/load-balancer.type.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

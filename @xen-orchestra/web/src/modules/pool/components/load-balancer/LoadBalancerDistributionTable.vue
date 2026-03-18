@@ -5,7 +5,7 @@
     <VtsStateHero v-if="hosts.length === 0" format="card" type="no-data" size="medium">
       {{ t('no-data') }}
     </VtsStateHero>
-    <template v-else>
+    <div v-else class="hosts-grid">
       <UiCard v-for="host in hosts" :key="host.id">
         <UiCardTitle>{{ host.name_label }}</UiCardTitle>
         <VtsTable :state="hostStates.get(host.id)">
@@ -19,7 +19,7 @@
           </tbody>
         </VtsTable>
       </UiCard>
-    </template>
+    </div>
   </div>
 </template>
 
@@ -150,6 +150,12 @@ const { HeadCells, BodyCells } = useLoadBalancerColumns({
 
 <style lang="postcss" scoped>
 .load-balancer-distribution-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.hosts-grid {
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
