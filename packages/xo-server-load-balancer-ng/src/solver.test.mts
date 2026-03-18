@@ -222,6 +222,73 @@ describe('solve', () => {
     })
   })
 
+  describe('memory retry — filtered hosts', () => {
+    it('retries with the full host removed and picks the next-best destination', () => {
+      // Anti-affinity: vm-1 and vm-2 both on h1.
+      // Attempt 1: best dest = h2 (fewest VMs). h2 has only 50 free < 100 → rejected.
+      // Attempt 2: availableHosts = [h1, h3]. Best dest = h3. h3 has 2000 free >= 100 ✓.
+      // Result: vm-1 → h3.
+      const c = new AntiAffinityConstraint('db', [v('vm-1'), v('vm-2')])
+      const result = solve(
+        [c],
+        mkPlacement([
+          ['vm-1', 'h1'],
+          ['vm-2', 'h1'],
+        ]),
+        [hostMem('h1', 4096, 0), hostMem('h2', 4096, 4046), hostMem('h3', 4096, 0)], // h2: 50 free, h3: 4096 free
+        [vmMem('vm-1', 100), vmMem('vm-2', 100)]
+      )
+      assert.equal(result.size, 1)
+      assert.equal(result.get(v('vm-1')), h('h3'))
+    })
+
+    it('accepts partial moves and retries only with remaining capacity', () => {
+      // Two VMs need to spread across h2 and h3.
+      // h2: 100 free (fits vm-1=100 but not vm-2=100 after vm-1 fills it).
+      // h3: 200 free (fits vm-2=100).
+      // Attempt 1: vm-1 → h2 (min count=0) ✓ accepted. h2 free → 0.
+      //            vm-2 → h2 rejected (h2 now full). tooFullHosts={h2}.
+      // Attempt 2: availableHosts=[h1,h3]. vm-2 → h3 ✓.
+      const c = new AntiAffinityConstraint('db', [v('vm-1'), v('vm-2'), v('vm-3')])
+      const result = solve(
+        [c],
+        mkPlacement([
+          ['vm-1', 'h1'],
+          ['vm-2', 'h1'],
+          ['vm-3', 'h1'],
+        ]),
+        [
+          hostMem('h1', 4096, 0),
+          hostMem('h2', 4096, 3996), // h2: 100 free — fits exactly one vm
+          hostMem('h3', 4096, 3896), // h3: 200 free — fits two vms
+        ],
+        [vmMem('vm-1', 100), vmMem('vm-2', 100), vmMem('vm-3', 100)]
+      )
+      // vm-1 and vm-2 both move out; vm-3 stays on h1 (h1 stays source until balanced)
+      assert.equal(result.get(v('vm-1')), h('h2'))
+      assert.equal(result.get(v('vm-2')), h('h3'))
+    })
+
+    it('gives up when all alternative hosts are also too full', () => {
+      // h2 and h3 both lack memory for vm-1 — no valid destination exists.
+      const c = new AntiAffinityConstraint('db', [v('vm-1'), v('vm-2')])
+      const result = solve(
+        [c],
+        mkPlacement([
+          ['vm-1', 'h1'],
+          ['vm-2', 'h1'],
+        ]),
+        [
+          hostMem('h1', 4096, 0),
+          hostMem('h2', 4096, 4090), // 6 free
+          hostMem('h3', 4096, 4090), // 6 free
+        ],
+        [vmMem('vm-1', 100), vmMem('vm-2', 100)]
+      )
+      assert.equal(result.size, 0)
+    })
+  })
+
   describe('integration — anti-affinity + affinity', () => {
     it('anti-affinity runs before affinity and affinity respects the resulting placement', () => {
       // Pool: h1, h2

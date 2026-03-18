@@ -215,14 +215,13 @@ export function computeSimplePlan(hosts: ReadonlyArray<XoHost>, vms: ReadonlyArr
     return new Map()
   }
 
-  // Build placement from $container (host id for running VMs).
-  const placement: Placement = new Map(
-    vms.filter(vm => !ignoredVmIds.includes(vm.id)).map(vm => [vm.id, vm.$container as XoHost['id']])
-  )
+  const ignoredSet = new Set(ignoredVmIds)
+  const activeVms = vms.filter(vm => !ignoredSet.has(vm.id))
 
-  // Pass only non-ignored VMs for memory checks.
-  // Ignored VMs' memory is already reflected in host.memory.usage.
-  const activeVms = vms.filter(vm => !ignoredVmIds.includes(vm.id))
+  // Build placement from $container (host id for running VMs).
+  // Ignored VMs' memory is already reflected in host.memory.usage so they
+  // are excluded from both the placement and the memory simulation.
+  const placement: Placement = new Map(activeVms.map(vm => [vm.id, vm.$container as XoHost['id']]))
 
   return solve(constraints, placement, hosts, activeVms)
 }
