@@ -3,6 +3,10 @@ import { intersection, uniq } from 'lodash'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 import type { XoApp, XoVm } from '@vates/types'
 
+type RestApiRequest = { params: Record<string, string>; body: unknown; query: Record<string, string | undefined> }
+type RestApiSpec = { [key: string]: RestApiSpec | ((req: RestApiRequest) => unknown) }
+type XoAppWithRestApi = XoApp & { registerRestApi(spec: RestApiSpec, base?: string): () => void }
+
 import DensityPlan from './density-plan.mjs'
 import PerformancePlan from './performance-plan.mjs'
 import SimplePlan from './simple-plan.mjs'
@@ -183,15 +187,16 @@ interface PluginConfig {
 type ConcurrentMigrationLimiter = (this: object, methodName: string, ...args: unknown[]) => Promise<unknown>
 
 class LoadBalancerPlugin {
-  xo: XoApp
+  xo: XoAppWithRestApi
   _migrationHistory: Map<string, number>
   _plans: (DensityPlan | PerformancePlan | SimplePlan)[]
   _poolIds: string[]
   _globalOptions!: GlobalOptions
   _concurrentMigrationLimiter!: ConcurrentMigrationLimiter
   _job: { start(): void; stop(): void }
+  _unregisterRestApi?: () => void
 
-  constructor(xo: XoApp) {
+  constructor(xo: XoAppWithRestApi) {
     this.xo = xo
     this._migrationHistory = new Map() // vmId -> timestamp of last migration
     this._plans = []
@@ -225,10 +230,29 @@ class LoadBalancerPlugin {
 
   load(): void {
     this._job.start()
+    this._unregisterRestApi = this.xo.registerRestApi(
+      {
+        pools: {
+          ':poolId': {
+            'load-balancer': {
+              _post: (req: RestApiRequest) => {
+                const poolId = req.params['poolId']
+                if (poolId === undefined) throw new Error('missing poolId')
+                const body = req.body as { plan: Omit<PlanConfig, 'pools' | 'name'>; dryRun?: boolean }
+                const planConfig: PlanConfig = { name: 'rest-api', pools: [poolId], ...body.plan }
+                return this.loadBalancer(planConfig, { dryRun: body.dryRun ?? true })
+              },
+            },
+          },
+        },
+      },
+      '/plugins/load-balancer'
+    )
   }
 
   unload(): void {
     this._job.stop()
+    this._unregisterRestApi?.()
   }
 
   _addPlan(mode: number, { name, pools, ...options }: PlanConfig): void {
@@ -256,8 +280,32 @@ class LoadBalancerPlugin {
 
     return Promise.all(this._plans.map(plan => plan.execute()))
   }
+
+  async loadBalancer(planConfig: PlanConfig, { dryRun = true } = {}): Promise<Record<XoVm['id'], string>> {
+    const dryRunResult = new Map<string, string>()
+    const mode = MODES[planConfig.mode] ?? PERFORMANCE_MODE
+    const globalOptions: GlobalOptions = {
+      ignoredVmTags: this._globalOptions?.ignoredVmTags ?? new Set(),
+      migrationCooldown: 0,
+      migrationHistory: new Map(),
+    }
+    const limiter: ConcurrentMigrationLimiter = this._concurrentMigrationLimiter ?? limitConcurrency(1)()
+    const opts: PlanOptions = { ...planConfig, dryRunResult: dryRun ? dryRunResult : undefined }
+
+    let plan: DensityPlan | PerformancePlan | SimplePlan
+    if (mode === PERFORMANCE_MODE) {
+      plan = new PerformancePlan(this.xo, planConfig.name, planConfig.pools, opts, globalOptions, limiter)
+    } else if (mode === DENSITY_MODE) {
+      plan = new DensityPlan(this.xo, planConfig.name, planConfig.pools, opts, globalOptions, limiter)
+    } else {
+      plan = new SimplePlan(this.xo, planConfig.name, planConfig.pools, opts, globalOptions, limiter)
+    }
+
+    await plan.execute()
+    return Object.fromEntries(dryRunResult) as Record<XoVm['id'], string>
+  }
 }
 
 // ===================================================================
 
-export default ({ xo }: { xo: XoApp }) => new LoadBalancerPlugin(xo)
+export default ({ xo }: { xo: XoApp }) => new LoadBalancerPlugin(xo as XoAppWithRestApi)
