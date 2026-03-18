@@ -1,6 +1,6 @@
 import RemoteHandlerAbstract from '@xen-orchestra/fs'
 import { basename, normalize } from '@xen-orchestra/fs/path'
-import { MergeRemoteDisk, openDisk, instantiateDisk } from '@xen-orchestra/backups/disks'
+import { MergeRemoteDisk, openDisk, openDiskChainFromPaths, instantiateDisk } from '@xen-orchestra/backups/disks'
 import { isDiskFile, ResolvedBackupCleanOptions } from './VmBackup.types.mjs'
 
 type MergeLimiter = (fn: (...args: any[]) => any) => (...args: any[]) => any
@@ -132,7 +132,7 @@ export class RemoteDiskLineage {
     mergeLimiter: MergeLimiter = fn => fn
   ): Promise<{ deleted: Set<string>; mergedSizes: Map<string, number> }> {
     const toDelete = new Set<string>()
-    const toMerge: string[][] = []
+    const toMerge: { chain: string[]; isResuming: boolean }[] = []
     const visited = new Set<string>()
 
     // Walk from an orphan toward its descendants.
@@ -166,7 +166,7 @@ export class RemoteDiskLineage {
       if (!visited.has(orphan)) {
         const chain = getUsedChildChainOrDelete(orphan)
         if (chain !== undefined && chain.length > 1) {
-          toMerge.push(chain)
+          toMerge.push({ chain, isResuming: this.#interruptedMerges.has(chain[0]) })
         }
       }
     }
@@ -184,7 +184,7 @@ export class RemoteDiskLineage {
       if (!visited.has(parentPath)) {
         const childPath = this.#childOf.get(parentPath)
         if (childPath !== undefined) {
-          toMerge.push([parentPath, childPath])
+          toMerge.push({ chain: [parentPath, childPath], isResuming: true })
         }
       }
     }
@@ -208,8 +208,11 @@ export class RemoteDiskLineage {
         }
       }),
       ...(this.#opts.merge
-        ? toMerge.map(async chain => {
-            const { finalDiskSize, mergeTargetPath } = await mergeLimiter(this.#mergeChain.bind(this))(chain)
+        ? toMerge.map(async ({ chain, isResuming }) => {
+            const { finalDiskSize, mergeTargetPath } = await mergeLimiter(this.#mergeChain.bind(this))(
+              chain,
+              isResuming
+            )
             mergedSizes.set(mergeTargetPath, (mergedSizes.get(mergeTargetPath) ?? 0) + finalDiskSize)
           })
         : []),
@@ -250,8 +253,8 @@ export class RemoteDiskLineage {
    * Returns the final size of the merge target and its path.
    * Throws NOT_SUPPORTED if the parent is a VHD directory (alias required for directory merges).
    */
-  async #mergeChain(chain: string[]): Promise<{ finalDiskSize: number; mergeTargetPath: string }> {
-    const [parentPath, childPath] = chain
+  async #mergeChain(chain: string[], isResuming: boolean): Promise<{ finalDiskSize: number; mergeTargetPath: string }> {
+    const parentPath = chain[0]
     // The last disk in the chain is the active one that everything gets merged into
     const mergeTargetPath = chain[chain.length - 1]
 
@@ -273,11 +276,13 @@ export class RemoteDiskLineage {
       removeUnused: true,
     })
 
-    // isResuming only reads a state file keyed by the parent path — no disk needs to be open yet
-    const force = await merger.isResuming({ getPath: () => parentPath } as any)
-
-    const parentDisk = await openDisk({ handler: this.#handler as any, path: parentPath, force })
-    const childDisk = await openDisk({ handler: this.#handler as any, path: childPath, force })
+    // isResuming is known from #interruptedMerges — no extra file read needed
+    const parentDisk = await openDisk({ handler: this.#handler as any, path: parentPath, force: isResuming })
+    const childDisk = await openDiskChainFromPaths({
+      handler: this.#handler as any,
+      paths: chain.slice(1),
+      force: isResuming,
+    })
 
     const { finalDiskSize } = await merger.merge(parentDisk, childDisk)
     return { finalDiskSize, mergeTargetPath }
