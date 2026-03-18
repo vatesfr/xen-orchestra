@@ -4,9 +4,21 @@
       {{ host.name_label }}
       <UiCounter :value="parsedVms.length" accent="neutral" size="small" variant="primary" />
     </UiCardTitle>
-    <VtsStateHero v-if="parsedVms.length === 0" format="card" horizontal size="extra-small" type="no-data" />
+    <VtsStateHero
+      v-if="parsedVms.length === 0 && !incomingVms?.length"
+      format="card"
+      horizontal
+      size="extra-small"
+      type="no-data"
+    />
     <ul v-else class="vm-list">
       <li v-for="vm in parsedVms" :key="vm.id" class="vm-item" :class="{ 'will-migrate': vm.willMigrate }">
+        <span class="vm-name typo-body-regular-small">{{ vm.name_label }}</span>
+        <UiTagsList v-if="vm.tags.length > 0">
+          <VtsTag v-for="tag in vm.tags" :key="tag" :tag="tag" />
+        </UiTagsList>
+      </li>
+      <li v-for="vm in incomingVms" :key="vm.id" class="vm-item will-arrive">
         <span class="vm-name typo-body-regular-small">{{ vm.name_label }}</span>
         <UiTagsList v-if="vm.tags.length > 0">
           <VtsTag v-for="tag in vm.tags" :key="tag" :tag="tag" />
@@ -28,9 +40,10 @@ import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import type { XoHost, XoVm } from '@vates/types'
 import { computed } from 'vue'
 
-const { host, vms, simulationResult } = defineProps<{
+const { host, vms, incomingVms, simulationResult } = defineProps<{
   host: FrontXoHost
   vms: FrontXoVm[]
+  incomingVms?: FrontXoVm[]
   simulationResult?: Record<XoVm['id'], XoHost['id']>
 }>()
 
@@ -53,7 +66,6 @@ const parsedVms = computed(() =>
   .vm-list {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
     list-style: none;
     padding: 0;
     margin: 0;
@@ -61,18 +73,33 @@ const parsedVms = computed(() =>
 
   .vm-item {
     display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--color-neutral-border);
+
+    &:first-child {
+      padding-top: 0;
+    }
+
+    &:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
 
     &.will-migrate {
       opacity: 0.5;
       text-decoration: line-through;
     }
+
+    &.will-arrive {
+      color: var(--color-success-txt-base);
+    }
   }
 
   .vm-name {
-    flex-shrink: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
 }
 </style>

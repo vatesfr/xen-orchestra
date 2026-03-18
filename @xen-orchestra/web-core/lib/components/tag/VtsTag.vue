@@ -23,17 +23,25 @@ const parsed = computed(() => parseScopedTag(tag))
   display: inline-flex;
   border-radius: 0.4rem;
   overflow: hidden;
+  max-width: 100%;
 
   .tag-key {
     padding: 0.2rem 0.6rem;
     background-color: var(--color-neutral-background-disabled);
     color: var(--color-neutral-txt-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 60%;
   }
 
   .tag-value {
     padding: 0.2rem 0.6rem;
     background-color: var(--color-info-item-base);
     color: var(--color-info-txt-item);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 </style>

@@ -42,6 +42,7 @@
         :key="host.id"
         :host
         :vms="vmsByHostForPool.get(host.id) ?? []"
+        :incoming-vms="incomingVmsByHost.get(host.id)"
         :simulation-result="simulationResult"
       />
     </div>
@@ -58,6 +59,8 @@ import {
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VtsBanner from '@core/components/banner/VtsBanner.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import type { XoVm } from '@vates/types'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{
@@ -74,6 +77,7 @@ const { t } = useI18n()
 
 const {
   hosts,
+  vms,
   vmsByHostForPool,
   selectedPlan,
   simulationResult,
@@ -84,6 +88,34 @@ const {
   simulate,
   apply,
 } = useLoadBalancer(pool.id)
+
+const incomingVmsByHost = computed(() => {
+  const result = new Map<string, typeof vms.value>()
+
+  if (simulationResult.value === undefined) {
+    return result
+  }
+
+  const vmsById = new Map(vms.value.map(vm => [vm.id, vm]))
+
+  for (const [vmId, targetHostId] of Object.entries(simulationResult.value)) {
+    const vm = vmsById.get(vmId as XoVm['id'])
+
+    if (vm === undefined) {
+      continue
+    }
+
+    const list = result.get(targetHostId)
+
+    if (list !== undefined) {
+      list.push(vm)
+    } else {
+      result.set(targetHostId, [vm])
+    }
+  }
+
+  return result
+})
 </script>
 
 <style lang="postcss" scoped>

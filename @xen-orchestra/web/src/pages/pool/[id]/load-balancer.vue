@@ -1,5 +1,5 @@
 <template>
-  <LoadBalancerDashboard :pool />
+  <LoadBalancerDashboard :key="pool.id" :pool />
 </template>
 
 <script lang="ts" setup>
