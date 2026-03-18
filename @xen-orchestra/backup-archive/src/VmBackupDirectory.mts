@@ -127,7 +127,6 @@ export class VmBackupDirectory implements VmBackupInterface {
     )
     allUsedFiles.push(...this.getAssociatedFiles({ prefix: true }))
     const orphans = Array<string>()
-    // TODO handle folders and empty folders
     for (const file of this.files.filter(file => !allUsedFiles.includes(file))) {
       orphans.push(file)
     }
@@ -177,9 +176,23 @@ export class VmBackupDirectory implements VmBackupInterface {
       await this.#regenerateCache()
     }
 
-    // Delete root-level orphan files (stray xva, checksum, json, etc.)
+    // Delete root-level orphan files (stray xva, checksum, json, etc.), skip folders
     if (remove) {
-      await asyncEach(orphans, async (orphan: string) => await this.handler.unlink(orphan), { concurrency: 2 })
+      await asyncEach(
+        orphans,
+        async (orphan: string) => {
+          try {
+            await this.handler.unlink(orphan)
+          } catch (error: any) {
+            if (error?.code === 'EISDIR') {
+              this.opts.logWarn('orphan is a directory, skipping deletion', { path: orphan })
+            } else {
+              throw error
+            }
+          }
+        },
+        { concurrency: 2 }
+      )
     }
 
     return orphans
