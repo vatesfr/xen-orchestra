@@ -106,8 +106,6 @@ export class VmFullBackupArchive implements VmBackupInterface {
       this.opts.logWarn(error)
       this.isValid = false
     }
-    // TODO: check isValid
-    // isValid is always false in test because XVA test is too small
     if (!this.isValid) {
       this.opts.logWarn('XVA might be broken', { path: this.xvaPath })
     }
