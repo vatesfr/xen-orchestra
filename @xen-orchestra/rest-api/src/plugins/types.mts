@@ -1,4 +1,5 @@
-import { Request, Response } from 'express'
+import { SecurityName } from '../middlewares/authentication.middleware.mjs'
+import { MaybePromise } from '../helpers/helper.type.mjs'
 
 export type FieldDefinition =
   | {
@@ -24,8 +25,8 @@ export type FieldDefinition =
     }
 
 export interface RouteDefinition {
-  method: string
-  path: string
+  method: 'get' | 'post' | 'put' | 'delete' | 'patch'
+  endpoint: string
   params?: Record<string, FieldDefinition>
   query?: Record<string, FieldDefinition>
   body?: Record<string, FieldDefinition>
@@ -34,18 +35,6 @@ export interface RouteDefinition {
     description: string
     schema?: Record<string, FieldDefinition>
   }>
-  handler: (ctx: { params: any; query: any; body: any; req: Request; res: Response }) => any | AsyncIterable<any>
-}
-
-export type PluginRouter = {
-  registerDynamicRoutes: (
-    routes: RouteDefinition[],
-    options: {
-      authenticate: (req: Request) => Promise<any>
-      runWithContext: (user: any, fn: () => any) => Promise<any>
-    },
-    base?: string
-  ) => void
-
-  unregisterDynamicRoutes: (routes: RouteDefinition[], base?: string) => void
+  callback: ({ req, res, next, restApi }) => MaybePromise<unknown>
+  security?: SecurityName
 }

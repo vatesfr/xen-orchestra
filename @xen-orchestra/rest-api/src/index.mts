@@ -9,9 +9,8 @@ import { RegisterRoutes } from './open-api/routes/routes.js'
 import { setupContainer } from './ioc/ioc.mjs'
 import { setupApiContext } from './middlewares/authentication.middleware.mjs'
 import { logMiddleware } from './middlewares/log.middleware.mjs'
-import { createPluginRouter, sendObjects } from './router/plugin-router.mjs'
-import { PluginRouter } from './router/types.mjs'
 import type { OpenAPIV3 } from 'openapi-types'
+import { createMountPluginRoute, sendObjects } from './plugins/mount-plugin.mjs'
 
 export * from './open-api/common/response.common.mjs'
 export { sendObjects }
@@ -48,15 +47,17 @@ const SWAGGER_UI_OPTIONS = {
   },
 }
 
-export default function setupRestApi(express: Express, xoApp: XoApp): PluginRouter {
+export default function setupRestApi(express: Express, xoApp: XoApp) {
   setupContainer(xoApp)
+
+  // Create dynamic router so it can be used by plugin to register rest routes
+  const { mountPluginRoute, pluginRouter } = createMountPluginRoute(swaggerOpenApiSpec)
 
   express.use(BASE_URL, setupApiContext(xoApp))
   express.use(BASE_URL, logMiddleware)
+  express.use(BASE_URL, pluginRouter)
 
   RegisterRoutes(express)
-
-  const pluginRouter = createPluginRouter(express, BASE_URL, swaggerOpenApiSpec)
 
   express.get(`${BASE_URL}/docs/swagger.json`, (_req, res) => {
     res.setHeader('Content-Type', 'application/json')
@@ -74,5 +75,5 @@ export default function setupRestApi(express: Express, xoApp: XoApp): PluginRout
   express.use(BASE_URL, tsoaToXoErrorHandler)
   express.use(BASE_URL, genericErrorHandler)
 
-  return pluginRouter
+  return { mountPluginRoute }
 }

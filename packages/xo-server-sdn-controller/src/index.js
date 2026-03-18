@@ -312,8 +312,6 @@ class SDNController extends EventEmitter {
 
     this._handledTasks = []
     this._managed = []
-
-    this._unregisterRestRoutes = {}
   }
 
   // ---------------------------------------------------------------------------
@@ -699,8 +697,6 @@ class SDNController extends EventEmitter {
     this._managed = []
 
     this._unsetApiMethods()
-
-    this._unregisterRestRoutes()
   }
 
   // ---------------------------------------------------------------------------
