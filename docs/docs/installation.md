@@ -37,7 +37,7 @@ We don't generate virtual appliances every month (unlike XO code itself). It's v
 
 ### Trial
 
-In your current Free XOA, register it in the "Updates" view in the main menu:
+In your current Free XOA, register it in the **Updates** view from the main menu:
 
 ![](./assets/xo5updatemenu.png)
 
