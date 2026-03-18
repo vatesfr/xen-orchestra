@@ -14,7 +14,7 @@ const subRouter = (app, path) => {
 export default class RestApi {
   #app
   #api
-  #pluginRouteManager
+  #mountPluginRoute
 
   constructor(app, { express }) {
     // don't set up the API if express is not present
@@ -25,46 +25,25 @@ export default class RestApi {
     const api = subRouter(express, '/rest/v0')
     this.#api = api
     this.#app = app
-    this.#pluginRouteManager = setupRestApi(express, app)
-  }
-
-  async #authenticateUser(req) {
-    const { cookies, ip } = req
-    const token = cookies.authenticationToken ?? cookies.token
-
-    if (!token) {
-      throw invalidCredentials()
-    }
-
-    const { user } = await this.#app.authenticateUser({ token }, { ip })
-
-    if (user.permission !== 'admin') {
-      throw unauthorized()
-    }
-
-    return user
+    const { mountPluginRoute } = setupRestApi(express, app)
+    this.#mountPluginRoute = mountPluginRoute
   }
 
   registerRestRoutes(routes, base = '/') {
-    if (!Array.isArray(routes)) {
-      routes = [routes]
-    }
-
-    this.#pluginRouteManager.registerDynamicRoutes(
-      routes,
-      {
-        authenticate: this.#authenticateUser.bind(this),
-        runWithContext: (user, fn) => this.#app.runWithApiContext(user, fn),
-      },
-      base
-    )
+    const unregisterFuncs = []
+    routes.forEach(route => {
+      route.endpoint = join(base, route.endpoint)
+      unregisterFuncs.push(this.#mountPluginRoute(route))
+    })
 
     return () => {
-      this.#pluginRouteManager.unregisterDynamicRoutes(routes, base)
+      for (const unregisterFunc of unregisterFuncs) {
+        unregisterFunc()
+      }
     }
   }
 
-  // OLD METHOD, DEPRECIATED
+  // OLD METHOD, DEPRECIATED. USE registerRestRoutes
   registerRestApi(spec, base = '/') {
     const authUser = this.#authenticateUser.bind(this)
     const app = this.#app
@@ -99,7 +78,7 @@ export default class RestApi {
     }
   }
 
-  // OLD METHOD, DEPRECIATED
+  // OLD METHOD, DEPRECIATED. USE registerRestRoutes
   unregisterRestApi(spec, base = '/') {
     for (const path of Object.keys(spec)) {
       if (path[0] === '_') {
@@ -127,5 +106,22 @@ export default class RestApi {
         this.unregisterRestApi(spec[path], join(base, path))
       }
     }
+  }
+
+  async #authenticateUser(req) {
+    const { cookies, ip } = req
+    const token = cookies.authenticationToken ?? cookies.token
+
+    if (!token) {
+      throw invalidCredentials()
+    }
+
+    const { user } = await this.#app.authenticateUser({ token }, { ip })
+
+    if (user.permission !== 'admin') {
+      throw unauthorized()
+    }
+
+    return user
   }
 }
