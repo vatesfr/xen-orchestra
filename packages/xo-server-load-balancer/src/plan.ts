@@ -1,19 +1,17 @@
-import {
-  filter,
-  groupBy,
-  includes,
-  intersection,
-  isEmpty,
-  keyBy,
-  map as mapToArray,
-  maxBy,
-  minBy,
-  size,
-  sortBy,
-} from 'lodash'
+import lodash from 'lodash'
+const { filter, groupBy, includes, intersection, isEmpty, keyBy, map: mapToArray, maxBy, minBy, sortBy } = lodash
 import { inspect } from 'util'
 
-import { EXECUTION_DELAY, debug, warn } from './utils'
+import {
+  EXECUTION_DELAY,
+  debug,
+  warn,
+  computeAverageCpu,
+  computeResourcesAverage,
+  computeResourcesAverageWithWeight,
+  setRealCpuAverageOfVms,
+  type ResourceAverages,
+} from './utils.js'
 
 const MINUTES_OF_HISTORICAL_DATA = 30
 
@@ -33,113 +31,115 @@ const LOW_THRESHOLD_MEMORY_FREE_FACTOR = 1.5
 const THRESHOLD_VCPU_RATIO = 0.9
 
 // Constants relative to vCPU-prepositioning
-
-// How close to ideal vCPU/CPU ratio do we want hosts to be (must be >= 1)
 const VCPU_NUMBER_TOLERANCE = 1
-// Max percentage of pool's CPU usage allowed to execute vCPU prepositioning
 const THRESHOLD_POOL_CPU = 40
 
-const numberOrDefault = (value, def) => (value >= 0 ? value : def)
+const numberOrDefault = (value: number | undefined | null, def: number): number =>
+  value != null && value >= 0 ? value : def
 
-export const debugAffinity = str => debug(`affinity: ${str}`)
-export const debugAntiAffinity = str => debug(`anti-affinity: ${str}`)
-export const debugVcpuBalancing = str => debug(`vCPU balancing: ${str}`)
-
-// ===================================================================
-// Averages.
-// ===================================================================
-
-function computeAverage(values, nPoints) {
-  if (values === undefined) {
-    return
-  }
-
-  let sum = 0
-  let tot = 0
-
-  const { length } = values
-  const start = nPoints !== undefined ? length - nPoints : 0
-
-  for (let i = start; i < length; i++) {
-    const value = values[i]
-
-    sum += value || 0
-
-    if (value) {
-      tot += 1
-    }
-  }
-
-  return sum / tot
-}
-
-function computeResourcesAverage(objects, objectsStats, nPoints) {
-  const averages = {}
-
-  for (const object of objects) {
-    const { id } = object
-    const { stats } = objectsStats[id]
-
-    averages[id] = {
-      cpu: computeAverage(mapToArray(stats.cpus, cpu => computeAverage(cpu, nPoints))),
-      nCpus: size(stats.cpus),
-      memoryFree: computeAverage(stats.memoryFree, nPoints),
-      memory: computeAverage(stats.memory, nPoints),
-    }
-  }
-
-  return averages
-}
-
-function computeResourcesAverageWithWeight(averages1, averages2, ratio) {
-  const averages = {}
-
-  for (const id in averages1) {
-    const objectAverages = (averages[id] = {})
-
-    for (const averageName in averages1[id]) {
-      const average1 = averages1[id][averageName]
-      if (average1 === undefined) {
-        continue
-      }
-
-      objectAverages[averageName] = average1 * ratio + averages2[id][averageName] * (1 - ratio)
-    }
-  }
-
-  return averages
-}
-
-function computeAverageCpu(hostsStats) {
-  const hostsStatsArray = Object.values(hostsStats)
-  const totalNbCpus = hostsStatsArray.reduce((sum, host) => sum + host.nCpus, 0)
-  const weightedSum = hostsStatsArray.reduce((sum, host) => sum + host.cpu * host.nCpus, 0)
-  return weightedSum / totalNbCpus
-}
-
-function setRealCpuAverageOfVms(vms, vmsAverages, nCpus) {
-  for (const vm of vms) {
-    const averages = vmsAverages[vm.id]
-    averages.cpu *= averages.nCpus / nCpus
-  }
-}
+export const debugAffinity = (str: string) => debug(`affinity: ${str}`)
+export const debugAntiAffinity = (str: string) => debug(`anti-affinity: ${str}`)
+export const debugVcpuBalancing = (str: string) => debug(`vCPU balancing: ${str}`)
 
 // ===================================================================
 
-function vcpuPerCpuRatio(host) {
-  return host.vcpuCount / host.cpuCount
+export interface Host {
+  id: string
+  type: 'host'
+  $poolId: string
+  power_state: string
+  powerOnMode: string
+  name_label: string
+  CPUs: { cpu_count: number | string }
+  cpus: { cores: number }
+  _xapiId: string
+}
+
+export interface Vm {
+  id: string
+  type: string
+  $poolId: string
+  $container: string
+  power_state: string
+  name_label: string
+  tags: string[]
+  xenTools: boolean
+  CPUs: { number: number }
+  _xapiId: string
+}
+
+export interface Pool {
+  id: string
+  type: string
+  master: string
+  name_label: string
+}
+
+export interface Xapi {
+  migrateVm(vmXapiId: string, destXapi: Xapi, destHostXapiId: string): Promise<void>
+  assertCanMigrateVm(vmXapiId: string, destHostXapiId: string): Promise<void>
+  shutdownHost(hostId: string): Promise<void>
+  powerOnHost(hostId: string): Promise<void>
+}
+
+export interface Xo {
+  getObjects(): Record<string, Host | Vm | Pool | Record<string, unknown>>
+  getObject(id: string): Host | Vm | Pool | undefined
+  getXapi(idOrObject: string | { id: string }): Xapi
+  getXapiHostStats(
+    host: Host,
+    granularity: string
+  ): Promise<{ stats: { cpus: number[][]; memoryFree: number[]; memory: number[] } }>
+  getXapiVmStats(
+    vm: Vm,
+    granularity: string
+  ): Promise<{ stats: { cpus: number[][]; memoryFree: number[]; memory: number[] } }>
+}
+
+export interface GlobalOptions {
+  ignoredVmTags: Set<string>
+  migrationCooldown: number
+  migrationHistory: Map<string, number>
+}
+
+export interface ConcurrencyLimiter {
+  call(obj: Xapi, method: string, ...args: unknown[]): Promise<unknown>
+}
+
+export interface PlanOptions {
+  excludedHosts?: string[]
+  thresholds?: { cpu?: number; memoryFree?: number }
+  balanceVcpus?: false | 'preventive' | true
+  affinityTags?: string[]
+  antiAffinityTags?: string[]
+}
+
+export interface Thresholds {
+  cpu: { critical: number; high: number; low: number }
+  memoryFree: { critical: number; high: number; low: number }
 }
 
 // ===================================================================
 
 export default class Plan {
+  xo: Xo | undefined
+  _name: string
+  _poolIds: string[]
+  _excludedHosts: string[] | undefined
+  _thresholds: Thresholds
+  _affinityTags: string[]
+  _antiAffinityTags: string[]
+  _performanceSubmode: string
+  _globalOptions: GlobalOptions
+  _concurrentMigrationLimiter: ConcurrencyLimiter
+
   constructor(
-    xo,
-    name,
-    poolIds,
-    { excludedHosts, thresholds, balanceVcpus, affinityTags = [], antiAffinityTags = [] },
-    globalOptions,
-    concurrentMigrationLimiter
+    xo: Xo | undefined,
+    name: string,
+    poolIds: string[],
+    { excludedHosts, thresholds, balanceVcpus, affinityTags = [], antiAffinityTags = [] }: PlanOptions,
+    globalOptions: GlobalOptions,
+    concurrentMigrationLimiter: ConcurrencyLimiter
   ) {
     this.xo = xo
     this._name = name
@@ -147,22 +147,25 @@ export default class Plan {
     this._excludedHosts = excludedHosts
     this._thresholds = {
       cpu: {
-        critical: numberOrDefault(thresholds && thresholds.cpu, DEFAULT_CRITICAL_THRESHOLD_CPU),
+        critical: numberOrDefault(thresholds?.cpu, DEFAULT_CRITICAL_THRESHOLD_CPU),
+        high: 0,
+        low: 0,
       },
       memoryFree: {
         critical:
-          numberOrDefault(thresholds && thresholds.memoryFree, DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE) * 1024 * 1024,
+          numberOrDefault(thresholds?.memoryFree, DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE) * 1024 * 1024,
+        high: 0,
+        low: 0,
       },
     }
     this._affinityTags = affinityTags
     this._antiAffinityTags = antiAffinityTags
-    // balanceVcpus variable name was kept for compatibility with past configuration schema
     this._performanceSubmode =
-      balanceVcpus === false ? 'conservative' : balanceVcpus === true ? 'vCpuPrepositioning' : balanceVcpus
+      balanceVcpus === false ? 'conservative' : balanceVcpus === true ? 'vCpuPrepositioning' : (balanceVcpus ?? 'conservative')
     this._globalOptions = globalOptions
     this._concurrentMigrationLimiter = concurrentMigrationLimiter
 
-    for (const key in this._thresholds) {
+    for (const key of Object.keys(this._thresholds) as Array<keyof Thresholds>) {
       const attr = this._thresholds[key]
       const { critical } = attr
 
@@ -176,7 +179,7 @@ export default class Plan {
     }
   }
 
-  execute() {
+  execute(): Promise<void> {
     throw new Error('Not implemented')
   }
 
@@ -184,19 +187,33 @@ export default class Plan {
   // Get hosts to optimize.
   // ===================================================================
 
-  async _getHostStatsAverages({ hosts, toOptimizeOnly = false, checkAverages = false }) {
+  async _getHostStatsAverages({
+    hosts,
+    toOptimizeOnly = false,
+    checkAverages = false,
+  }: {
+    hosts: Host[]
+    toOptimizeOnly?: boolean
+    checkAverages?: boolean
+  }): Promise<
+    | {
+        toOptimize: Host[] | undefined
+        averages: Record<string, ResourceAverages>
+        poolAverage?: number
+      }
+    | undefined
+  > {
     const hostsStats = await this._getHostsStats(hosts, 'minutes')
 
     const avgNow = computeResourcesAverage(hosts, hostsStats, EXECUTION_DELAY)
-    let toOptimize
+    let toOptimize: Host[] | undefined
     if (toOptimizeOnly) {
-      // Check if a resource utilization exceeds threshold.
       toOptimize = checkAverages
         ? this._checkResourcesAverages(hosts, avgNow, computeAverageCpu(avgNow))
         : this._checkResourcesThresholds(hosts, avgNow)
       if (toOptimize.length === 0) {
         debug('No hosts to optimize.')
-        return
+        return undefined
       }
     }
 
@@ -204,13 +221,12 @@ export default class Plan {
     const avgWithRatio = computeResourcesAverageWithWeight(avgNow, avgBefore, 0.75)
 
     if (toOptimizeOnly) {
-      // Check in the last 30 min interval with ratio.
       toOptimize = checkAverages
-        ? this._checkResourcesAverages(toOptimize, avgWithRatio, computeAverageCpu(avgWithRatio))
-        : this._checkResourcesThresholds(toOptimize, avgWithRatio)
+        ? this._checkResourcesAverages(toOptimize!, avgWithRatio, computeAverageCpu(avgWithRatio))
+        : this._checkResourcesThresholds(toOptimize!, avgWithRatio)
       if (toOptimize.length === 0) {
         debug('No hosts to optimize.')
-        return
+        return undefined
       }
     }
 
@@ -221,20 +237,25 @@ export default class Plan {
     }
   }
 
-  _checkResourcesThresholds() {
+  _checkResourcesThresholds(_objects: Host[], _averages: Record<string, ResourceAverages>): Host[] {
     throw new Error('Not implemented')
+  }
+
+  _checkResourcesAverages(objects: Host[], averages: Record<string, ResourceAverages>, poolAverage: number): Host[] {
+    // Default implementation; overridden in PerformancePlan
+    return []
   }
 
   // ===================================================================
   // Get objects.
   // ===================================================================
 
-  _getPlanPools() {
-    const pools = {}
+  _getPlanPools(): Record<string, Pool> {
+    const pools: Record<string, Pool> = {}
 
     try {
       for (const poolId of this._poolIds) {
-        pools[poolId] = this.xo.getObject(poolId)
+        pools[poolId] = this.xo!.getObject(poolId) as Pool
       }
     } catch (_) {
       return {}
@@ -243,38 +264,40 @@ export default class Plan {
     return pools
   }
 
-  // Compute hosts for each pool. They can change over time.
-  _getHosts({ powerState = 'Running' } = {}) {
+  _getHosts({ powerState = 'Running' } = {}): Host[] {
     return filter(
-      this.xo.getObjects(),
-      object =>
-        object.type === 'host' &&
-        includes(this._poolIds, object.$poolId) &&
-        object.power_state === powerState &&
-        !includes(this._excludedHosts, object.id)
-    )
+      this.xo!.getObjects(),
+      (object): object is Host =>
+        (object as Host).type === 'host' &&
+        includes(this._poolIds, (object as Host).$poolId) &&
+        (object as Host).power_state === powerState &&
+        !includes(this._excludedHosts, (object as Host).id)
+    ) as Host[]
   }
 
-  _getAllRunningVms() {
+  _getAllRunningVms(): Vm[] {
     return filter(
-      this.xo.getObjects(),
-      object =>
-        object.type === 'VM' &&
-        object.power_state === 'Running' &&
-        !object.tags.some(tag => this._globalOptions.ignoredVmTags.has(tag))
-    )
+      this.xo!.getObjects(),
+      (object): object is Vm =>
+        (object as Vm).type === 'VM' &&
+        (object as Vm).power_state === 'Running' &&
+        !(object as Vm).tags.some(tag => this._globalOptions.ignoredVmTags.has(tag))
+    ) as Vm[]
   }
 
   // ===================================================================
   // Get stats.
   // ===================================================================
 
-  async _getHostsStats(hosts, granularity) {
-    const hostsStats = {}
+  async _getHostsStats(
+    hosts: Host[],
+    granularity: string
+  ): Promise<Record<string, { nPoints: number; stats: { cpus: number[][]; memoryFree: number[]; memory: number[] }; averages: object }>> {
+    const hostsStats: Record<string, { nPoints: number; stats: { cpus: number[][]; memoryFree: number[]; memory: number[] }; averages: object }> = {}
 
     await Promise.all(
       hosts.map(host =>
-        this.xo.getXapiHostStats(host, granularity).then(hostStats => {
+        this.xo!.getXapiHostStats(host, granularity).then(hostStats => {
           hostsStats[host.id] = {
             nPoints: hostStats.stats.cpus[0].length,
             stats: hostStats.stats,
@@ -287,12 +310,15 @@ export default class Plan {
     return hostsStats
   }
 
-  async _getVmsStats(vms, granularity) {
-    const vmsStats = {}
+  async _getVmsStats(
+    vms: Vm[],
+    granularity: string
+  ): Promise<Record<string, { nPoints: number; stats: { cpus: number[][]; memoryFree: number[]; memory: number[] }; averages: object }>> {
+    const vmsStats: Record<string, { nPoints: number; stats: { cpus: number[][]; memoryFree: number[]; memory: number[] }; averages: object }> = {}
 
     await Promise.all(
       vms.map(vm =>
-        this.xo.getXapiVmStats(vm, granularity).then(vmStats => {
+        this.xo!.getXapiVmStats(vm, granularity).then(vmStats => {
           vmsStats[vm.id] = {
             nPoints: vmStats.stats.cpus[0].length,
             stats: vmStats.stats,
@@ -305,7 +331,7 @@ export default class Plan {
     return vmsStats
   }
 
-  async _getVmsAverages(vms, hosts) {
+  async _getVmsAverages(vms: Vm[], hosts: Record<string, Host>): Promise<Record<string, ResourceAverages>> {
     const vmsStats = await this._getVmsStats(vms, 'minutes')
     const vmsAverages = computeResourcesAverageWithWeight(
       computeResourcesAverage(vms, vmsStats, EXECUTION_DELAY),
@@ -313,9 +339,8 @@ export default class Plan {
       0.75
     )
 
-    // Compute real CPU usage. Virtuals cpus to reals cpus.
     for (const [hostId, hostVms] of Object.entries(groupBy(vms, '$container'))) {
-      setRealCpuAverageOfVms(hostVms, vmsAverages, hosts[hostId].CPUs.cpu_count)
+      setRealCpuAverageOfVms(hostVms, vmsAverages, Number(hosts[hostId].CPUs.cpu_count))
     }
 
     return vmsAverages
@@ -325,10 +350,9 @@ export default class Plan {
   // vCPU pre-positioning helpers
   // ===================================================================
 
-  async _processVcpuPrepositioning(hosts) {
-    const promises = []
+  async _processVcpuPrepositioning(hosts: Host[]): Promise<PromiseSettledResult<boolean>[]> {
+    const promises: Promise<boolean>[] = []
 
-    // removing hosts which have incorrect cpu count value to avoid mass migration on rrd malfunction
     const sanitizedHostList = hosts.filter(host => host.cpus.cores > 0)
     if (sanitizedHostList.length < hosts.length) {
       const unhealthyHosts = hosts.filter(host => host.cpus.cores === undefined || host.cpus.cores === 0)
@@ -338,8 +362,7 @@ export default class Plan {
         )
       }
       if (sanitizedHostList.length < 2) {
-        // need at least 2 hosts
-        return
+        return []
       }
     }
     const idToHost = keyBy(sanitizedHostList, 'id')
@@ -352,26 +375,24 @@ export default class Plan {
     debugVcpuBalancing(`vCPU count per host: ${inspect(hostList, { depth: null })}`)
     debugVcpuBalancing(`Average vCPUs per CPU: ${idealVcpuPerCpuRatio}`)
 
-    // execute prepositioning only if vCPU/CPU ratios are different enough, to prevent executing too often
-    // TODO: maybe we should apply a more complex function than just a ratio, to have more coherent values on both small and big architectures
-    const ratio = vcpuPerCpuRatio(minBy(hostList, vcpuPerCpuRatio)) / vcpuPerCpuRatio(maxBy(hostList, vcpuPerCpuRatio))
+    const ratio =
+      vcpuPerCpuRatio(minBy(hostList, vcpuPerCpuRatio)!) / vcpuPerCpuRatio(maxBy(hostList, vcpuPerCpuRatio)!)
     if (ratio > THRESHOLD_VCPU_RATIO) {
       debugVcpuBalancing(`vCPU ratios not different enough: ${ratio}`)
-      return
+      return []
     }
 
-    // execute prepositioning only if the pool is not loaded too much
-    const { averages: hostsAverages } = await this._getHostStatsAverages({ hosts })
+    const hostStatsResult = await this._getHostStatsAverages({ hosts })
+    if (!hostStatsResult) return []
+    const { averages: hostsAverages } = hostStatsResult
     const poolAverageCpu = computeAverageCpu(hostsAverages)
     if (poolAverageCpu > THRESHOLD_POOL_CPU) {
       debugVcpuBalancing(`Pool too much loaded for vCPU prepositioning: ${poolAverageCpu}% CPU used`)
-      return
+      return []
     }
     const vmsAverages = await this._getVmsAverages(allVms, idToHost)
 
-    // 1. Find source host from which to migrate.
     const sources = sortBy(
-      // filter to only get hosts for which removing vCPUs is meaningful
       filter(
         hostList,
         host =>
@@ -379,47 +400,38 @@ export default class Plan {
           host.vcpuCount > host.cpuCount
       ),
       [
-        host => -vcpuPerCpuRatio(host),
-        // Find hosts with the most memory used
-        // TODO: if memory is nearly the same between two hosts, ignore this criteria and decide based on CPU usage (do the same in other sortBy, see epsiEqual)
-        host => hostsAverages[host.id].memoryFree,
+        (host: VcpuHost) => -vcpuPerCpuRatio(host),
+        (host: VcpuHost) => hostsAverages[host.id].memoryFree,
       ]
     )
     debugVcpuBalancing(`Sources: ${inspect(sources, { depth: null })}`)
 
     for (const sourceHost of sources) {
-      // calculating how many vCPUs source should give
       let deltaSource = sourceHost.vcpuCount - sourceHost.cpuCount * idealVcpuPerCpuRatio
-      // go to the next host if this one is close enough to ideal vCPU/CPU ratio
       if (deltaSource < VCPU_NUMBER_TOLERANCE) {
         continue
       }
 
-      // 2. Find destination host.
       const destinations = sortBy(
-        // not subtracting VCPU_NUMBER_TOLERANCE to host.vcpuCount, to avoid situations where an overloaded host can't find a destination
         filter(hostList, host => host.id !== sourceHost.id && host.vcpuCount / host.cpuCount < idealVcpuPerCpuRatio),
         [
-          // trying to avoid migrations between pools
-          host => host.poolId === sourceHost.poolId,
+          (host: VcpuHost) => host.poolId === sourceHost.poolId,
           vcpuPerCpuRatio,
-          host => -hostsAverages[host.id].memoryFree,
+          (host: VcpuHost) => -hostsAverages[host.id].memoryFree,
         ]
       )
       debugVcpuBalancing(`Destinations: ${inspect(destinations, { depth: null })}`)
 
       if (!destinations.length) {
-        continue // Cannot find a valid destination.
+        continue
       }
 
-      // Build VM list to migrate.
       let sourceVms = Object.values(sourceHost.vms)
 
       // eslint-disable-next-line no-labels
       destinationLoop: for (const destinationHost of destinations) {
         debugVcpuBalancing(`Host candidate: ${sourceHost.id} -> ${destinationHost.id}`)
 
-        // calculating how many vCPUs destination should accept
         let deltaDestination = destinationHost.vcpuCount - destinationHost.cpuCount * idealVcpuPerCpuRatio
 
         if (
@@ -430,11 +442,6 @@ export default class Plan {
           continue
         }
 
-        // deltaSource = max amount of vCPUs source should give, deltaDestination = max amount of vCPUs destination should accept, delta = max amount of vCPUs to migrate to satisfy both
-        // avoiding to migrate too much vCPUs for source or destination: deltaSource is positive, deltaDestination is negative, we check which one has greater absolute value
-        // using ceil instead of floor prevents edge cases where a host would become a bit overloaded, but can lead to some host being a bit underloaded
-        // ex: if we have a host with 19 vCPU and 9 host with 10 vCPU, each with the same number of CPU, then ideal vCPU per host is 10.9, rounding to 10 would make host with 19 vCPU have no destination to send VMs to
-        // reversely, we could have a host with 5 vCPU and 9 host with 10 vCPU, and then the 5 vCPU host would have no source to receive VMs from
         let delta = Math.ceil(Math.min(deltaSource, -deltaDestination))
         const vms = sortBy(
           filter(
@@ -444,11 +451,10 @@ export default class Plan {
               hostsAverages[destinationHost.id].memoryFree >= vmsAverages[vm.id].memory &&
               vm.CPUs.number <= delta
           ),
-          [vm => -vm.CPUs.number]
+          [(vm: Vm) => -vm.CPUs.number]
         )
 
         for (const vm of vms) {
-          // migrate only if destination is vCPU-underloaded and if this does not cause performance issues
           if (
             vm.CPUs.number <= delta &&
             hostsAverages[destinationHost.id].cpu + vmsAverages[vm.id].cpu < this._thresholds.cpu.low &&
@@ -459,8 +465,6 @@ export default class Plan {
             debugVcpuBalancing(
               `Migrate VM (${vm.id} "${vm.name_label}") with ${vm.CPUs.number} vCPU to Host (${destinationHost.id} "${destination.name_label}") from Host (${sourceHost.id} "${source.name_label}").`
             )
-            // 3. Update tags and averages.
-            // This update can change the source host for the next migration.
             sourceHost.vcpuCount -= vm.CPUs.number
             destinationHost.vcpuCount += vm.CPUs.number
 
@@ -470,15 +474,14 @@ export default class Plan {
             destinationAverages.cpu += vmAverages.cpu
             destinationAverages.memoryFree -= vmAverages.memory
 
-            // Updating VM array to avoiding migrating the same VM twice
             delete sourceHost.vms[vm.id]
             sourceVms = Object.values(sourceHost.vms)
 
-            // 4. Migrate.
-            promises.push(this._migrateVm(vm, this.xo.getXapi(source), this.xo.getXapi(destination), destination._xapiId))
+            promises.push(
+              this._migrateVm(vm, this.xo!.getXapi(source), this.xo!.getXapi(destination), destination._xapiId)
+            )
             debugVcpuBalancing(`vCPU count per host: ${inspect(hostList, { depth: null })}`)
 
-            // 5. Check if source host is still overloaded and if destination host is still underloaded
             deltaSource = sourceHost.vcpuCount - sourceHost.cpuCount * idealVcpuPerCpuRatio
             if (deltaSource < VCPU_NUMBER_TOLERANCE) {
               // eslint-disable-next-line no-labels
@@ -496,18 +499,17 @@ export default class Plan {
     return Promise.allSettled(promises)
   }
 
-  _getVCPUHosts(hosts, vms) {
-    const idToHost = {}
+  _getVCPUHosts(hosts: Host[], vms: Vm[]): VcpuHost[] {
+    const idToHost: Record<string, VcpuHost> = {}
     for (const host of hosts) {
       const taggedHost = (idToHost[host.id] = {
         id: host.id,
         poolId: host.$poolId,
-        cpuCount: parseInt(host.CPUs.cpu_count),
+        cpuCount: parseInt(String(host.CPUs.cpu_count)),
         vcpuCount: 0,
-        vms: {},
+        vms: {} as Record<string, Vm>,
       })
 
-      // Hide properties when util.inspect is used.
       Object.defineProperties(taggedHost, {
         poolId: { enumerable: false },
         vms: { enumerable: false },
@@ -538,7 +540,7 @@ export default class Plan {
   // Anti-affinity helpers
   // ===================================================================
 
-  async _processAntiAffinity() {
+  async _processAntiAffinity(): Promise<void> {
     if (!this._antiAffinityTags.length) {
       return
     }
@@ -552,10 +554,9 @@ export default class Plan {
     const allVms = filter(this._getAllRunningVms(), vm => vm.$container in idToHost)
     const taggedHosts = this._getTaggedHosts({ hosts: allHosts, tagList: this._antiAffinityTags, vms: allVms })
 
-    // 1. Check if we must migrate VMs...
-    const tagsDiff = {}
+    const tagsDiff: Record<string, number> = {}
     for (const watchedTag of this._antiAffinityTags) {
-      const getCount = fn => fn(taggedHosts.hosts, host => host.tags[watchedTag]).tags[watchedTag]
+      const getCount = (fn: typeof maxBy) => fn(taggedHosts.hosts, host => host.tags[watchedTag])!.tags[watchedTag]
       const diff = getCount(maxBy) - getCount(minBy)
       if (diff > 1) {
         tagsDiff[watchedTag] = diff - 1
@@ -565,70 +566,76 @@ export default class Plan {
       return
     }
 
-    // 2. Migrate!
     debugAntiAffinity('Try to apply anti-affinity policy.')
     debugAntiAffinity(`VM tag count per host: ${inspect(taggedHosts, { depth: null })}.`)
     debugAntiAffinity(`Tags diff: ${inspect(tagsDiff, { depth: null })}.`)
 
     const vmsAverages = await this._getVmsAverages(allVms, idToHost)
-    const { averages: hostsAverages } = await this._getHostStatsAverages({ hosts: allHosts })
+    const hostStatsResult = await this._getHostStatsAverages({ hosts: allHosts })
+    const hostsAverages = hostStatsResult?.averages ?? {}
 
     debugAntiAffinity(`Hosts averages: ${inspect(hostsAverages, { depth: null })}.`)
 
-    const promises = []
+    const promises: Promise<boolean>[] = []
     for (const tag in tagsDiff) {
       promises.push(...this._processAntiAffinityTag({ tag, vmsAverages, hostsAverages, taggedHosts, idToHost }))
     }
 
-    // 3. Done!
     debugAntiAffinity(`VM tag count per host after migration: ${inspect(taggedHosts, { depth: null })}.`)
-    return Promise.all(promises)
+    await Promise.all(promises)
   }
 
-  _processAntiAffinityTag({ tag, vmsAverages, hostsAverages, taggedHosts, idToHost }) {
-    const promises = []
+  _processAntiAffinityTag({
+    tag,
+    vmsAverages,
+    hostsAverages,
+    taggedHosts,
+    idToHost,
+  }: {
+    tag: string
+    vmsAverages: Record<string, ResourceAverages>
+    hostsAverages: Record<string, ResourceAverages>
+    taggedHosts: TaggedHosts
+    idToHost: Record<string, Host>
+  }): Promise<boolean>[] {
+    const promises: Promise<boolean>[] = []
 
     while (true) {
-      // safety to prevent infinite loop if destination has no VM able to migrate
       let emptyLoop = true
-      // 1. Find source host from which to migrate.
       const sources = sortBy(
         filter(taggedHosts.hosts, host => host.tags[tag] > 1),
         [
-          host => host.tags[tag],
-          // Find host with the most memory used. Don't forget the "-". ;)
-          host => -hostsAverages[host.id].memoryFree,
+          (host: TaggedHost) => host.tags[tag],
+          (host: TaggedHost) => -hostsAverages[host.id].memoryFree,
         ]
       )
 
       for (let sourceIndex = sources.length; sourceIndex >= 0; --sourceIndex) {
         if (sourceIndex === 0) {
-          return promises // Nothing to migrate or we can't.
+          return promises
         }
 
         const sourceHost = sources[sourceIndex - 1]
 
-        // 2. Find destination host.
         const destinations = sortBy(
-          filter(taggedHosts.hosts, host => host.id !== sourceHost.id && host.tags[tag] + 1 < sourceHost.tags[tag]),
+          filter(
+            taggedHosts.hosts,
+            host => host.id !== sourceHost.id && host.tags[tag] + 1 < sourceHost.tags[tag]
+          ),
           [
-            host => host.tags[tag],
-            // Ideally it would be interesting to migrate in the same pool.
-            host => host.poolId !== sourceHost.poolId,
-            // Find host with the least memory used. Don't forget the "-". ;)
-            host => -hostsAverages[host.id].memoryFree,
+            (host: TaggedHost) => host.tags[tag],
+            (host: TaggedHost) => host.poolId !== sourceHost.poolId,
+            (host: TaggedHost) => -hostsAverages[host.id].memoryFree,
           ]
         )
         if (!destinations.length) {
-          return promises // Cannot find a valid destination.
+          return promises
         }
 
-        // Build VM list to migrate.
-        // We try to migrate VMs with the targeted tag.
         const sourceVms = filter(sourceHost.vms, vm => vm.tags.includes(tag))
 
-        let destinationHost
-        let vm
+        let destinationHost: TaggedHost | undefined
+        let vm: Vm | undefined
         for (const destination of destinations) {
           destinationHost = destination
           debugAntiAffinity(`Host candidate: ${sourceHost.id} -> ${destinationHost.id}.`)
@@ -637,7 +644,7 @@ export default class Plan {
             sourceVms,
             vm =>
               !this._isVmInCooldown(vm) &&
-              hostsAverages[destinationHost.id].memoryFree >= vmsAverages[vm.id].memory &&
+              hostsAverages[destinationHost!.id].memoryFree >= vmsAverages[vm.id].memory &&
               vm.tags.every(tag => !this._affinityTags.includes(tag))
           )
 
@@ -658,25 +665,23 @@ export default class Plan {
         }
 
         if (!vm) {
-          continue // If we can't find a VM to migrate, we must try with another source!
+          continue
         }
 
         const source = idToHost[sourceHost.id]
-        const destination = idToHost[destinationHost.id]
+        const destination = idToHost[destinationHost!.id]
         debugAntiAffinity(
-          `Migrate VM (${vm.id} "${vm.name_label}") to Host (${destinationHost.id} "${destination.name_label}") from Host (${sourceHost.id} "${source.name_label}").`
+          `Migrate VM (${vm.id} "${vm.name_label}") to Host (${destinationHost!.id} "${destination.name_label}") from Host (${sourceHost.id} "${source.name_label}").`
         )
 
-        // 3. Update tags and averages.
-        // This update can change the source host for the next migration.
-        for (const tag of vm.tags) {
-          if (this._antiAffinityTags.includes(tag)) {
-            sourceHost.tags[tag]--
-            destinationHost.tags[tag]++
+        for (const vmTag of vm.tags) {
+          if (this._antiAffinityTags.includes(vmTag)) {
+            sourceHost.tags[vmTag]--
+            destinationHost!.tags[vmTag]++
           }
         }
 
-        const destinationAverages = hostsAverages[destinationHost.id]
+        const destinationAverages = hostsAverages[destinationHost!.id]
         const vmAverages = vmsAverages[vm.id]
 
         destinationAverages.cpu += vmAverages.cpu
@@ -684,28 +689,41 @@ export default class Plan {
 
         delete sourceHost.vms[vm.id]
 
-        // 4. Migrate.
-        promises.push(this._migrateVm(vm, this.xo.getXapi(source), this.xo.getXapi(destination), destination._xapiId))
+        promises.push(
+          this._migrateVm(vm, this.xo!.getXapi(source), this.xo!.getXapi(destination), destination._xapiId)
+        )
         emptyLoop = false
 
-        break // Continue with the same tag, the source can be different.
+        break
       }
 
       if (emptyLoop) {
         break
       }
     }
+
+    return promises
   }
 
-  _getTaggedHosts({ hosts, tagList, vms, includeUntaggedVms = false }) {
-    const tagCount = {}
+  _getTaggedHosts({
+    hosts,
+    tagList,
+    vms,
+    includeUntaggedVms = false,
+  }: {
+    hosts: Host[]
+    tagList: string[]
+    vms: Vm[]
+    includeUntaggedVms?: boolean
+  }): TaggedHosts {
+    const tagCount: Record<string, number> = {}
     for (const tag of tagList) {
       tagCount[tag] = 0
     }
 
-    const taggedHosts = {}
+    const taggedHosts: Record<string, TaggedHost> = {}
     for (const host of hosts) {
-      const tags = {}
+      const tags: Record<string, number> = {}
       for (const tag of tagList) {
         tags[tag] = 0
       }
@@ -714,10 +732,9 @@ export default class Plan {
         id: host.id,
         poolId: host.$poolId,
         tags,
-        vms: {},
+        vms: {} as Record<string, Vm>,
       })
 
-      // Hide properties when util.inspect is used.
       Object.defineProperties(taggedHost, {
         poolId: { enumerable: false },
         vms: { enumerable: false },
@@ -747,8 +764,7 @@ export default class Plan {
     return { tagCount, hosts: Object.values(taggedHosts) }
   }
 
-  _computeAntiAffinityVariance(taggedHosts) {
-    // See: https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+  _computeAntiAffinityVariance(taggedHosts: TaggedHosts): number {
     let variance = 0
 
     const { hosts } = taggedHosts
@@ -772,9 +788,23 @@ export default class Plan {
     return variance
   }
 
-  _getAntiAffinityVmToMigrate({ vms, vmsAverages, hostsAverages, taggedHosts, sourceHost, destinationHost }) {
+  _getAntiAffinityVmToMigrate({
+    vms,
+    vmsAverages,
+    hostsAverages,
+    taggedHosts,
+    sourceHost,
+    destinationHost,
+  }: {
+    vms: Vm[]
+    vmsAverages: Record<string, ResourceAverages>
+    hostsAverages: Record<string, ResourceAverages>
+    taggedHosts: TaggedHosts
+    sourceHost: TaggedHost
+    destinationHost: TaggedHost
+  }): Vm | undefined {
     let bestVariance = this._computeAntiAffinityVariance(taggedHosts)
-    let bestVm
+    let bestVm: Vm | undefined
 
     for (const vm of vms) {
       const vmTags = filter(vm.tags, tag => this._antiAffinityTags.includes(tag))
@@ -808,7 +838,7 @@ export default class Plan {
   // Affinity helpers
   // ===================================================================
 
-  async _processAffinity() {
+  async _processAffinity(): Promise<void> {
     if (!this._affinityTags.length) {
       return
     }
@@ -827,11 +857,10 @@ export default class Plan {
       includeUntaggedVms: true,
     })
 
-    // 1. Check if we must migrate VMs...
-    const spreadTags = []
+    const spreadTags: string[] = []
     for (const watchedTag of this._affinityTags) {
       const taggedHostCount = taggedHosts.hosts.reduce(
-        (accumulator, host) => accumulator + (host.tags[watchedTag] > 0),
+        (accumulator, host) => accumulator + (host.tags[watchedTag] > 0 ? 1 : 0),
         0
       )
       if (taggedHostCount > 1) {
@@ -842,7 +871,6 @@ export default class Plan {
       return
     }
 
-    // 2. Check for tag coalitions: when a VM has multiple affinity tags, these tags should be considered as the same tag
     const coalitions = this._computeCoalitions(allVms, this._affinityTags)
     const coalitionExample = Object.values(coalitions).find(coalition => coalition.length > 1)
     if (coalitionExample !== undefined) {
@@ -850,18 +878,18 @@ export default class Plan {
       debugAffinity(`Tag coalitions: ${inspect(coalitions, { depth: null })}`)
     }
 
-    // 3. Migrate!
     debugAffinity('Try to apply affinity policy.')
     debugAffinity(`VM tag count per host: ${inspect(taggedHosts, { depth: null })}.`)
     debugAffinity(`Spread tags: ${inspect(spreadTags, { depth: null })}.`)
 
     const vmsAverages = await this._getVmsAverages(allVms, idToHost)
-    const { averages: hostsAverages } = await this._getHostStatsAverages({ hosts: allHosts })
+    const hostStatsResult = await this._getHostStatsAverages({ hosts: allHosts })
+    const hostsAverages = hostStatsResult?.averages ?? {}
 
     debugAffinity(`Hosts averages: ${inspect(hostsAverages, { depth: null })}.`)
 
-    const promises = []
-    const alreadyProcessed = new Set() // processed with another tag of its coalition
+    const promises: Promise<boolean>[] = []
+    const alreadyProcessed = new Set<string>()
     for (const tag of spreadTags) {
       if (!alreadyProcessed.has(tag)) {
         promises.push(
@@ -880,40 +908,45 @@ export default class Plan {
       }
     }
 
-    // 4. Done!
     debugAffinity(`VM tag count per host after migration: ${inspect(taggedHosts, { depth: null })}`)
-    // not returning Promise.all so we still wait for all migrations to end even if one fails
-    return Promise.allSettled(promises)
+    await Promise.allSettled(promises)
   }
 
-  async _processAffinityTag({ tag, vmsAverages, hostsAverages, taggedHosts, idToHost, coalition }) {
+  async _processAffinityTag({
+    tag,
+    vmsAverages,
+    hostsAverages,
+    taggedHosts,
+    idToHost,
+    coalition,
+  }: {
+    tag: string
+    vmsAverages: Record<string, ResourceAverages>
+    hostsAverages: Record<string, ResourceAverages>
+    taggedHosts: TaggedHosts
+    idToHost: Record<string, Host>
+    coalition: string[]
+  }): Promise<Promise<boolean>[]> {
     debugAffinity(`Processing tag ${tag} (coalition: ${coalition})`)
-    const promises = []
+    const promises: Promise<boolean>[] = []
 
-    // Find destination host that will get all the tagged VMs
-
-    // computing the sum of number of VMs per coalition to avoid doing it multiple times while sorting
-    // in case of coalitions, the sum is incorrect as VMs are counted twice, but it gives an approximation without parsing all the VMs again
-    const taggedVmCountPerHost = {}
+    const taggedVmCountPerHost: Record<string, number> = {}
     for (const host of taggedHosts.hosts) {
       taggedVmCountPerHost[host.id] = coalition.reduce((sum, coalitionTag) => sum + host.tags[coalitionTag], 0)
     }
 
     const sortedHosts = sortBy(
       taggedHosts.hosts.filter(host => coalition.some(coalitionTag => host.tags[coalitionTag] > 0)),
-      [host => taggedVmCountPerHost[host.id], host => -hostsAverages[host.id].memoryFree]
+      [(host: TaggedHost) => taggedVmCountPerHost[host.id], (host: TaggedHost) => -hostsAverages[host.id].memoryFree]
     )
 
-    // hosts are sorted from having the less tagged VMs to the most, so we pick destinationHost from the end of the list
     let destinationHost = sortedHosts.pop()
+    if (!destinationHost) return promises
 
-    // Migrate tagged VMs from every other host
     for (const sourceHost of sortedHosts) {
       debugAffinity(
         `Host candidate: ${sourceHost.id}(${idToHost[sourceHost.id].name_label}) -> ${destinationHost.id}(${idToHost[destinationHost.id].name_label}).`
       )
-      // Build VM list to migrate.
-      // We try to migrate VMs with the targeted tag.
       const sourceVms = filter(
         sourceHost.vms,
         vm => vm.xenTools && !this._isVmInCooldown(vm) && intersection(vm.tags, coalition).length > 0
@@ -922,17 +955,15 @@ export default class Plan {
       debugAffinity(`VMs to migrate: ${sourceVms.map(vm => vm.name_label)}`)
 
       for (const vm of sourceVms) {
-        // if host can't receive all tagged VMs
-        let loopCountdown = sortedHosts.length // a theoretically unnecessary safety against infinite while
+        let loopCountdown = sortedHosts.length
         while (
-          hostsAverages[destinationHost.id].memoryFree - vmsAverages[vm.id].memory <
+          hostsAverages[destinationHost!.id].memoryFree - vmsAverages[vm.id].memory <
           this._thresholds.memoryFree.critical
         ) {
           loopCountdown--
           debugAffinity(`Host ${sourceHost.id} is overcrowded`)
-          // A) migrate other VMs to try to free some memory on destination host
           const { promises: otherMigrationPromises, success } = await this._migrateOtherVms({
-            crowdedHost: destinationHost,
+            crowdedHost: destinationHost!,
             hostsAverages,
             vmsAverages,
             idToHost,
@@ -941,7 +972,6 @@ export default class Plan {
           })
           promises.push(...otherMigrationPromises)
 
-          // B) if we can't do A), change the destination to the next host to create another host with several VMs with that tag
           if (!success) {
             debugAffinity(
               `Host ${sourceHost.id} does not have enough memory to get all "${tag}" tagged VMs (or its coalition)`
@@ -960,10 +990,10 @@ export default class Plan {
 
         promises.push(
           this._migrateVmAndUpdateInfos({
-            destination: idToHost[destinationHost.id],
+            destination: idToHost[destinationHost!.id],
             source: idToHost[sourceHost.id],
             sourceHost,
-            destinationHost,
+            destinationHost: destinationHost!,
             vm,
             hostsAverages,
             vmAverages: vmsAverages[vm.id],
@@ -974,8 +1004,22 @@ export default class Plan {
     return promises
   }
 
-  async _migrateOtherVms({ crowdedHost, hostsAverages, vmsAverages, idToHost, taggedHosts, memoryNeeded }) {
-    const promises = []
+  async _migrateOtherVms({
+    crowdedHost,
+    hostsAverages,
+    vmsAverages,
+    idToHost,
+    taggedHosts,
+    memoryNeeded,
+  }: {
+    crowdedHost: TaggedHost
+    hostsAverages: Record<string, ResourceAverages>
+    vmsAverages: Record<string, ResourceAverages>
+    idToHost: Record<string, Host>
+    taggedHosts: TaggedHosts
+    memoryNeeded: number
+  }): Promise<{ promises: Promise<boolean>[]; success: boolean }> {
+    const promises: Promise<boolean>[] = []
 
     const candidateVms = sortBy(
       filter(
@@ -986,19 +1030,17 @@ export default class Plan {
           intersection(vm.tags, this._affinityTags).length === 0 &&
           intersection(vm.tags, this._antiAffinityTags).length === 0
       ),
-      [vm => -vmsAverages[vm.id].memory] // try to migrate bigger VMs first to minimize the number of migrations
+      [(vm: Vm) => -vmsAverages[vm.id].memory]
     )
     debugAffinity(`Candidate VMs to be moved away: ${candidateVms.map(vm => vm.name_label)}`)
 
     for (const vm of candidateVms) {
-      // try to migrate vm
-
       const vmAverages = vmsAverages[vm.id]
 
-      const destinationHost = sortBy(
-        taggedHosts.hosts,
-        [host => -hostsAverages[host.id].memoryFree, host => hostsAverages[host.id].cpu] // try to migrate to hosts with the most free space first
-      ).find(host => {
+      const destinationHost = sortBy(taggedHosts.hosts, [
+        (host: TaggedHost) => -hostsAverages[host.id].memoryFree,
+        (host: TaggedHost) => hostsAverages[host.id].cpu,
+      ]).find(host => {
         if (host.id === crowdedHost.id) {
           return false
         }
@@ -1010,12 +1052,10 @@ export default class Plan {
       })
 
       if (destinationHost === undefined) {
-        // no host can accept this VM, let's try another one
         debug(`Cannot migrate VM (${vm.id}) to any host. VM requires ${vmAverages.memory}MB, CPU: ${vmAverages.cpu}%`)
         continue
       }
 
-      // destination found, now migrate and update tags & averages
       promises.push(
         this._migrateVmAndUpdateInfos({
           destination: idToHost[destinationHost.id],
@@ -1025,7 +1065,6 @@ export default class Plan {
           vm,
           hostsAverages,
           vmAverages,
-          promises,
         })
       )
 
@@ -1034,14 +1073,27 @@ export default class Plan {
       }
     }
 
-    // not enough VMs were migrated
     return { promises, success: false }
   }
 
-  _migrateVmAndUpdateInfos({ destination, source, sourceHost, destinationHost, vm, hostsAverages, vmAverages }) {
-    // TODO: add more checks with XAPI method assert_can_migrate
+  _migrateVmAndUpdateInfos({
+    destination,
+    source,
+    sourceHost,
+    destinationHost,
+    vm,
+    hostsAverages,
+    vmAverages,
+  }: {
+    destination: Host
+    source: Host
+    sourceHost: TaggedHost
+    destinationHost: TaggedHost
+    vm: Vm
+    hostsAverages: Record<string, ResourceAverages>
+    vmAverages: ResourceAverages
+  }): Promise<boolean> {
 
-    // Update tags and averages
     debugAffinity(
       `Migrate VM (${vm.id} "${vm.name_label}") to Host (${destination.id} "${destination.name_label}") from Host (${source.id} "${source.name_label}").`
     )
@@ -1062,15 +1114,12 @@ export default class Plan {
     sourceAverages.memoryFree += vmAverages.memory
     destinationAverages.memoryFree -= vmAverages.memory
 
-    // Updating VM array to avoiding migrating the same VM twice
     delete sourceHost.vms[vm.id]
 
-    // Migrate.
-    return this._migrateVm(vm, this.xo.getXapi(source), this.xo.getXapi(destination), destination._xapiId)
+    return this._migrateVm(vm, this.xo!.getXapi(source), this.xo!.getXapi(destination), destination._xapiId)
   }
 
-  // Check if VM was recently migrated and is in cooldown period
-  _isVmInCooldown(vm) {
+  _isVmInCooldown(vm: Vm): boolean {
     const { migrationCooldown, migrationHistory } = this._globalOptions
     if (migrationCooldown > 0) {
       const lastMigration = migrationHistory.get(vm.id)
@@ -1081,24 +1130,27 @@ export default class Plan {
     return false
   }
 
-  _migrateVm(vm, xapiSrc, xapiDest, destHostId) {
+  async _migrateVm(vm: Vm, xapiSrc: Xapi, xapiDest: Xapi, destHostId: string): Promise<boolean> {
     const { migrationHistory } = this._globalOptions
-    return this._concurrentMigrationLimiter
-      .call(xapiSrc, 'migrateVm', vm._xapiId, xapiDest, destHostId)
-      .then(() => {
-        migrationHistory.set(vm.id, Date.now())
-      })
+    try {
+      await xapiSrc.assertCanMigrateVm(vm._xapiId, destHostId)
+      await this._concurrentMigrationLimiter.call(xapiSrc, 'migrateVm', vm._xapiId, xapiDest, destHostId)
+      migrationHistory.set(vm.id, Date.now())
+      return true
+    } catch (error) {
+      warn(`Migration of VM ${vm.id} failed: ${error}`)
+      return false
+    }
   }
 
-  _computeCoalitions(vms, affinityTags) {
-    const coalitions = {}
+  _computeCoalitions(vms: Array<{ tags: string[] }>, affinityTags: string[]): Record<string, string[]> {
+    const coalitions: Record<string, Set<string>> = {}
     for (const tag of affinityTags) {
       coalitions[tag] = new Set([tag])
     }
     for (const vm of vms) {
       const vmAffinityTags = intersection(vm.tags, affinityTags)
       if (vmAffinityTags.length > 1) {
-        // if VM has tag 'test' and 'prod', add both to 'test' coalition, and to 'prod' coalition
         for (const tag1 of vmAffinityTags) {
           for (const tag2 of vmAffinityTags) {
             coalitions[tag1].add(tag2)
@@ -1106,14 +1158,6 @@ export default class Plan {
         }
       }
     }
-
-    /* There might be some indirect links between tags
-      For instance, if VM 1 has tags [A,B] and VM 2 has tags [B,C]
-      tags A and B should be in the same coalition, but it's not detected yet.
-      Currently we would have coalitions = {A: [A,B], B: [A,B,C], C: [B,C]}
-
-      Following lines add the indirect links
-    */
 
     for (const coalitionSet of Object.values(coalitions)) {
       coalitionSet.forEach(coalitionTag => {
@@ -1123,11 +1167,39 @@ export default class Plan {
       })
     }
 
-    // Convert Sets to arrays
+    const result: Record<string, string[]> = {}
     Object.keys(coalitions).forEach(tag => {
-      coalitions[tag] = Array.from(coalitions[tag])
+      result[tag] = Array.from(coalitions[tag])
     })
 
-    return coalitions
+    return result
   }
+}
+
+// ===================================================================
+// Internal helper types
+// ===================================================================
+
+interface VcpuHost {
+  id: string
+  poolId: string
+  cpuCount: number
+  vcpuCount: number
+  vms: Record<string, Vm>
+}
+
+interface TaggedHost {
+  id: string
+  poolId: string
+  tags: Record<string, number>
+  vms: Record<string, Vm>
+}
+
+interface TaggedHosts {
+  tagCount: Record<string, number>
+  hosts: TaggedHost[]
+}
+
+function vcpuPerCpuRatio(host: VcpuHost): number {
+  return host.vcpuCount / host.cpuCount
 }

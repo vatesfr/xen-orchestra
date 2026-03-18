@@ -1,59 +1,62 @@
-import { filter, intersection } from 'lodash'
+import lodash from 'lodash'
+const { filter, intersection } = lodash
 
-import Plan from './plan'
-import { debug as debugP } from './utils'
+import Plan, { type Host, type Vm, type Xo, type GlobalOptions, type ConcurrencyLimiter, type PlanOptions, type Xapi, type Thresholds } from './plan.js'
+import { debug as debugP, type ResourceAverages } from './utils.js'
 
-export const debug = str => debugP(`performance: ${str}`)
+export const debug = (str: string) => debugP(`performance: ${str}`)
 
-function epsiEqual(a, b, epsi = 0.001) {
+function epsiEqual(a: number, b: number, epsi = 0.001): boolean {
   const absA = Math.abs(a)
   const absB = Math.abs(b)
   return Math.abs(a - b) <= Math.min(absA, absB) * epsi || (absA <= epsi && absB <= epsi)
 }
 
 // Constants for below-thresholds optimization
-const AGGRESSIVENESS_RATE = 1.5 // high-threshold ratio
-const AGGRESSIVENESS_RATE_LOW = 1.25 // low-threshold ratio
-const SIGNIFICANCE_THRESHOLD = 25 // don't optimize hosts under 25% CPU
+const AGGRESSIVENESS_RATE = 1.5
+const AGGRESSIVENESS_RATE_LOW = 1.25
+const SIGNIFICANCE_THRESHOLD = 25
 
 // ===================================================================
 
 export default class PerformancePlan extends Plan {
-  _checkResourcesThresholds(objects, averages) {
+  _checkResourcesThresholds(objects: Host[], averages: Record<string, ResourceAverages>): Host[] {
     return filter(objects, object => {
       const objectAverages = averages[object.id]
 
       return (
-        objectAverages.cpu >= this._thresholds.cpu.high || objectAverages.memoryFree <= this._thresholds.memoryFree.high
+        objectAverages.cpu >= this._thresholds.cpu.high ||
+        objectAverages.memoryFree <= this._thresholds.memoryFree.high
       )
     })
   }
 
-  _checkResourcesAverages(objects, averages, poolAverage) {
+  _checkResourcesAverages(
+    objects: Host[],
+    averages: Record<string, ResourceAverages>,
+    poolAverage: number
+  ): Host[] {
     return filter(objects, object => {
       const objectAverages = averages[object.id]
       return objectAverages.cpu / poolAverage >= AGGRESSIVENESS_RATE && objectAverages.cpu >= SIGNIFICANCE_THRESHOLD
     })
   }
 
-  async execute() {
-    // Try to power on a hosts set.
+  async execute(): Promise<void> {
     try {
       await Promise.all(
         filter(this._getHosts({ powerState: 'Halted' }), host => host.powerOnMode !== '').map(host => {
           const { id } = host
-          return this.xo.getXapi(id).powerOnHost(id)
+          return (this.xo!.getXapi(id) as Xapi & { powerOnHost: (id: string) => Promise<void> }).powerOnHost(id)
         })
       )
     } catch (error) {
       console.error(error)
     }
 
-    // Step 1 : affinity and anti-affinity
     await this._processAffinity()
     await this._processAntiAffinity()
 
-    // Step 2 : optimize host that exceed CPU threshold
     const hosts = this._getHosts()
     const results = await this._getHostStatsAverages({
       hosts,
@@ -62,15 +65,14 @@ export default class PerformancePlan extends Plan {
 
     if (results) {
       const { averages, toOptimize } = results
-      toOptimize.sort((a, b) => -this._sortHosts(a, b))
-      for (const exceededHost of toOptimize) {
+      toOptimize!.sort((a, b) => -this._sortHosts(averages[a.id], averages[b.id]))
+      for (const exceededHost of toOptimize!) {
         const { id } = exceededHost
 
         debug(`Try to optimize Host (${exceededHost.id}).`)
         const availableHosts = filter(hosts, host => host.id !== id)
         debug(`Available destinations: ${availableHosts.map(host => host.id)}.`)
 
-        // Search bests combinations for the worst host.
         await this._optimize({
           exceededHost,
           hosts: availableHosts,
@@ -78,36 +80,33 @@ export default class PerformancePlan extends Plan {
         })
       }
     } else {
-      // Step 3 : optimize hosts whose load differs too much from the rest of the pool (if option is enabled)
       if (this._performanceSubmode === 'preventive') {
         for (const poolId of this._poolIds) {
           const poolHosts = filter(hosts, host => host.$poolId === poolId)
           if (poolHosts.length <= 1) {
             continue
           }
-          // get a list of hosts to optimize
-          const results = await this._getHostStatsAverages({
+          const poolResults = await this._getHostStatsAverages({
             hosts: poolHosts,
             toOptimizeOnly: true,
             checkAverages: true,
           })
-          if (results) {
-            const { averages, toOptimize, poolAverage } = results
+          if (poolResults) {
+            const { averages, toOptimize, poolAverage } = poolResults
             const thresholds = {
-              cpu: { high: poolAverage * AGGRESSIVENESS_RATE, low: poolAverage * AGGRESSIVENESS_RATE_LOW },
+              cpu: { high: poolAverage! * AGGRESSIVENESS_RATE, low: poolAverage! * AGGRESSIVENESS_RATE_LOW, critical: this._thresholds.cpu.critical },
               memoryFree: this._thresholds.memoryFree,
             }
             debug(`Balancing below threshold on pool ${poolId} ; `)
             debug(
               `Pool average CPU : ${poolAverage} ; High threshold: ${thresholds.cpu.high} ; Low threshold: ${thresholds.cpu.low}`
             )
-            toOptimize.sort((a, b) => -this._sortHosts(a, b, thresholds))
-            for (const exceededHost of toOptimize) {
+            toOptimize!.sort((a, b) => -this._sortHosts(averages[a.id], averages[b.id], thresholds))
+            for (const exceededHost of toOptimize!) {
               const availableHosts = filter(poolHosts, host => host.id !== exceededHost.id)
               debug(`Try to optimize Host (${exceededHost.id}).`)
               debug(`Available destinations: ${availableHosts.map(host => host.id)}.`)
 
-              // Search bests combinations for the worst host.
               await this._optimize({
                 exceededHost,
                 hosts: availableHosts,
@@ -118,7 +117,7 @@ export default class PerformancePlan extends Plan {
           }
         }
       }
-      // Step 4 : vCPU prepositioning (if option is enable. Incompatible with step 3 option)
+
       if (this._performanceSubmode === 'vCpuPrepositioning') {
         for (const poolId of this._poolIds) {
           const poolHosts = filter(hosts, host => host.$poolId === poolId)
@@ -130,18 +129,24 @@ export default class PerformancePlan extends Plan {
     }
   }
 
-  _getThresholdState(averages, thresholds = this._thresholds) {
+  _getThresholdState(
+    averages: ResourceAverages,
+    thresholds = this._thresholds
+  ): { cpu: boolean; mem: boolean } {
     return {
       cpu: averages.cpu >= thresholds.cpu.high,
       mem: averages.memoryFree <= thresholds.memoryFree.high,
     }
   }
 
-  _sortHosts(aAverages, bAverages, thresholds = this._thresholds) {
+  _sortHosts(
+    aAverages: ResourceAverages,
+    bAverages: ResourceAverages,
+    thresholds = this._thresholds
+  ): number {
     const aState = this._getThresholdState(aAverages, thresholds)
     const bState = this._getThresholdState(bAverages, thresholds)
 
-    // A. Same state.
     if (aState.mem === bState.mem && aState.cpu === bState.cpu) {
       if (epsiEqual(aAverages.cpu, bAverages.cpu)) {
         return bAverages.memoryFree - aAverages.memoryFree
@@ -149,30 +154,35 @@ export default class PerformancePlan extends Plan {
       return aAverages.cpu - bAverages.cpu
     }
 
-    // B. No limit reached on A OR both limits reached on B.
     if ((!aState.mem && !aState.cpu) || (bState.mem && bState.cpu)) {
       return -1
     }
 
-    // C. No limit reached on B OR both limits reached on A.
     if ((!bState.mem && !bState.cpu) || (aState.mem && aState.cpu)) {
       return 1
     }
 
-    // D. If only one limit is reached on A AND B, we prefer to migrate on the host with the lowest CPU usage.
     return !aState.cpu ? -1 : 1
   }
 
-  async _optimize({ exceededHost, hosts, hostsAverages, thresholds = this._thresholds }) {
+  async _optimize({
+    exceededHost,
+    hosts,
+    hostsAverages,
+    thresholds = this._thresholds,
+  }: {
+    exceededHost: Host
+    hosts: Host[]
+    hostsAverages: Record<string, ResourceAverages>
+    thresholds?: Thresholds
+  }): Promise<void> {
     const vms = filter(this._getAllRunningVms(), vm => vm.$container === exceededHost.id)
     const vmsAverages = await this._getVmsAverages(vms, { [exceededHost.id]: exceededHost })
 
-    // Sort vms by cpu usage. (higher to lower) + use memory otherwise.
     vms.sort((a, b) => {
       const aAverages = vmsAverages[a.id]
       const bAverages = vmsAverages[b.id]
 
-      // We use a tolerance to migrate VM with the most memory used.
       if (epsiEqual(aAverages.cpu, bAverages.cpu, 3)) {
         return bAverages.memory - aAverages.memory
       }
@@ -180,14 +190,12 @@ export default class PerformancePlan extends Plan {
     })
 
     const exceededAverages = hostsAverages[exceededHost.id]
-    const promises = []
 
-    const xapiSrc = this.xo.getXapi(exceededHost)
+    const xapiSrc = this.xo!.getXapi(exceededHost)
     let optimizationCount = 0
 
     const fmtSrcHost = `${exceededHost.id} "${exceededHost.name_label}"`
     for (const vm of vms) {
-      // Stop migration if we are below low threshold.
       if (exceededAverages.cpu <= thresholds.cpu.low && exceededAverages.memoryFree >= thresholds.memoryFree.low) {
         break
       }
@@ -202,11 +210,6 @@ export default class PerformancePlan extends Plan {
         continue
       }
 
-      // TODO: Improve this piece of code. We could compute variance to check if the VM
-      // is migratable. But the code must be rewritten:
-      // - All VMs, hosts and stats must be fetched at one place.
-      // - It's necessary to maintain a dictionary of tags for each host.
-      // - ...
       const blockingAffinityTags = intersection(vm.tags, this._affinityTags)
       if (blockingAffinityTags.length > 0) {
         debug(
@@ -224,7 +227,6 @@ export default class PerformancePlan extends Plan {
 
       hosts.sort((a, b) => {
         if (a.$poolId !== b.$poolId) {
-          // Use host in the same pool first. In other pool if necessary.
           if (a.$poolId === vm.$poolId) {
             return -1
           }
@@ -241,17 +243,12 @@ export default class PerformancePlan extends Plan {
       const destinationAverages = hostsAverages[destination.id]
       const vmAverages = vmsAverages[vm.id]
 
-      // Unable to move the vm.
-      // Because the performance mode is focused on the CPU usage, we can't migrate if the low threshold
-      // is reached on the destination.
-      // It's not the same idea regarding the memory usage, we can migrate if the low threshold is reached,
-      // but we avoid the migration in the critical (high) threshold case.
       const state = this._getThresholdState(exceededAverages, thresholds)
       if (
         destinationAverages.cpu + vmAverages.cpu >= thresholds.cpu.low ||
         destinationAverages.memoryFree - vmAverages.memory <= thresholds.memoryFree.high ||
         (!state.cpu &&
-          !state.memory &&
+          !state.mem &&
           (exceededAverages.cpu - vmAverages.cpu < destinationAverages.cpu + vmAverages.cpu ||
             exceededAverages.memoryFree + vmAverages.memory > destinationAverages.memoryFree - vmAverages.memory))
       ) {
@@ -275,11 +272,17 @@ export default class PerformancePlan extends Plan {
         `Migrate VM (${vm.id} "${vm.name_label}") to Host (${destination.id} "${destination.name_label}") from Host (${fmtSrcHost}).`
       )
 
-      promises.push(this._migrateVm(vm, xapiSrc, this.xo.getXapi(destination), destination._xapiId))
-      optimizationCount++
+      const migrated = await this._migrateVm(vm, xapiSrc, this.xo!.getXapi(destination), destination._xapiId)
+      if (migrated) {
+        optimizationCount++
+      } else {
+        exceededAverages.cpu += vmAverages.cpu
+        destinationAverages.cpu -= vmAverages.cpu
+        exceededAverages.memoryFree -= vmAverages.memory
+        destinationAverages.memoryFree += vmAverages.memory
+      }
     }
 
-    await Promise.all(promises)
     debug(`Performance mode: ${optimizationCount} optimizations for Host (${fmtSrcHost}).`)
   }
 }
