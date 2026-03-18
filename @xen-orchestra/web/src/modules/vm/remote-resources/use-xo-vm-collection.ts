@@ -114,23 +114,42 @@ function createVmsByHostMap<THostLess extends boolean>(vms: FrontXoVm[], hostLes
 
   vms.forEach(vm => {
     const hasHost = vm.$container !== vm.$pool
+    const hostId = hasHost ? vm.$container : vm.affinityHost
 
-    if (hasHost && hostLess) {
-      return
+    if (hostLess) {
+      if (hostId !== undefined) {
+        return
+      }
+
+      const id = vm.$pool as THostLess extends true ? XoPool['id'] : XoHost['id']
+
+      if (!vmsMap.has(id)) {
+        vmsMap.set(id, [])
+      }
+
+      vmsMap.get(id)!.push(vm)
+    } else {
+      if (hostId === undefined) {
+        return
+      }
+
+      const id = hostId as THostLess extends true ? XoPool['id'] : XoHost['id']
+
+      if (!vmsMap.has(id)) {
+        vmsMap.set(id, [])
+      }
+
+      vmsMap.get(id)!.push(vm)
     }
-
-    const id = vm.$container as THostLess extends true ? XoPool['id'] : XoHost['id']
-
-    if (!vmsMap.has(id)) {
-      vmsMap.set(id, [])
-    }
-
-    vmsMap.get(id)!.push(vm)
   })
 
   return vmsMap
 }
 
 function extractVmHostId(vm: FrontXoVm) {
-  return vm.$container === vm.$pool ? undefined : (vm.$container as FrontXoHost['id'])
+  if (vm.$container !== vm.$pool) {
+    return vm.$container as FrontXoHost['id']
+  }
+
+  return vm.affinityHost as FrontXoHost['id'] | undefined
 }
