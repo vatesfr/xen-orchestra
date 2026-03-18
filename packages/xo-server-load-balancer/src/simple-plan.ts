@@ -3,7 +3,7 @@ import Plan from './plan.js'
 // ===================================================================
 
 export default class SimplePlan extends Plan {
-  async execute(): Promise<void> {
+  async _doExecute(): Promise<void> {
     await this._processAffinity()
     await this._processAntiAffinity()
   }

@@ -190,6 +190,7 @@ class LoadBalancerPlugin {
   _globalOptions!: GlobalOptions
   _concurrentMigrationLimiter!: ConcurrencyLimiter
   _job: ReturnType<ReturnType<typeof createSchedule>['createJob']>
+  _unloadApiMethods: (() => void) | undefined
 
   constructor(xo: Xo) {
     this.xo = xo
@@ -225,10 +226,28 @@ class LoadBalancerPlugin {
 
   load(): void {
     this._job.start()
+
+    const loadBalancer = async ({ plan: planName, dryRun = true }: { plan: string; dryRun?: boolean }) => {
+      const plan = this._plans.find(p => p._name === planName)
+      if (plan === undefined) {
+        throw new Error(`Unknown plan: ${planName}`)
+      }
+      return plan.execute({ dryRun })
+    }
+    loadBalancer.description = 'Simulate or execute a load balancer plan, returns planned VM migrations'
+    loadBalancer.permission = 'admin'
+    loadBalancer.params = {
+      plan: { type: 'string' },
+      dryRun: { type: 'boolean', optional: true },
+    }
+
+    this._unloadApiMethods = this.xo.addApiMethods({ pool: { loadBalancer } })
   }
 
   unload(): void {
     this._job.stop()
+    this._unloadApiMethods?.()
+    this._unloadApiMethods = undefined
   }
 
   _addPlan(mode: number, { name, pools, ...options }: PlanConfig): void {
@@ -250,7 +269,7 @@ class LoadBalancerPlugin {
     this._plans.push(plan)
   }
 
-  _executePlans(): Promise<void[]> {
+  _executePlans(): Promise<Record<string, string>[]> {
     debug('Execute plans!')
 
     return Promise.all(this._plans.map(plan => plan.execute()))

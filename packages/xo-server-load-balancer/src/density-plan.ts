@@ -18,7 +18,7 @@ export default class DensityPlan extends Plan {
     })
   }
 
-  async execute(): Promise<void> {
+  async _doExecute(): Promise<void> {
     await this._processAffinity()
     await this._processAntiAffinity()
 
@@ -215,7 +215,7 @@ export default class DensityPlan extends Plan {
         debug(
           `Migrate VM (${vm.id} "${vm.name_label}") to Host (${destination.id} "${destination.name_label}") from Host (${fmtSrcHost}).`
         )
-        return this._migrateVm(vm, xapiSrc, this.xo!.getXapi(destination), destination._xapiId)
+        return this._migrateVm(vm, xapiSrc, destination)
       })
     )
 

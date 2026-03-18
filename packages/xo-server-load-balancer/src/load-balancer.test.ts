@@ -203,6 +203,7 @@ function createMockXo({
     getXapiHostStats: async (host: Host) => hostStats[host.id] as any,
     getXapiVmStats: async (vm: Vm) => vmStats[vm.id] as any,
     getXapiFor: (hostId: string) => xapiByHostId.get(hostId),
+    addApiMethods: () => () => {},
   }
 }
 

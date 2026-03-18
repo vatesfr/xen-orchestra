@@ -42,7 +42,7 @@ export default class PerformancePlan extends Plan {
     })
   }
 
-  async execute(): Promise<void> {
+  async _doExecute(): Promise<void> {
     try {
       await Promise.all(
         filter(this._getHosts({ powerState: 'Halted' }), host => host.powerOnMode !== '').map(host => {
@@ -272,7 +272,7 @@ export default class PerformancePlan extends Plan {
         `Migrate VM (${vm.id} "${vm.name_label}") to Host (${destination.id} "${destination.name_label}") from Host (${fmtSrcHost}).`
       )
 
-      const migrated = await this._migrateVm(vm, xapiSrc, this.xo!.getXapi(destination), destination._xapiId)
+      const migrated = await this._migrateVm(vm, xapiSrc, destination)
       if (migrated) {
         optimizationCount++
       } else {

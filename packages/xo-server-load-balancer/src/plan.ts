@@ -94,6 +94,7 @@ export interface Xo {
     vm: Vm,
     granularity: string
   ): Promise<{ stats: { cpus: number[][]; memoryFree: number[]; memory: number[] } }>
+  addApiMethods(methods: Record<string, Record<string, unknown>>): () => void
 }
 
 export interface GlobalOptions {
@@ -132,6 +133,7 @@ export default class Plan {
   _performanceSubmode: string
   _globalOptions: GlobalOptions
   _concurrentMigrationLimiter: ConcurrencyLimiter
+  _dryRunMoves: Record<string, string> | undefined
 
   constructor(
     xo: Xo | undefined,
@@ -179,7 +181,18 @@ export default class Plan {
     }
   }
 
-  execute(): Promise<void> {
+  async execute({ dryRun = false }: { dryRun?: boolean } = {}): Promise<Record<string, string>> {
+    const moves: Record<string, string> = {}
+    this._dryRunMoves = dryRun ? moves : undefined
+    try {
+      await this._doExecute()
+    } finally {
+      this._dryRunMoves = undefined
+    }
+    return moves
+  }
+
+  _doExecute(): Promise<void> {
     throw new Error('Not implemented')
   }
 
@@ -478,7 +491,7 @@ export default class Plan {
             sourceVms = Object.values(sourceHost.vms)
 
             promises.push(
-              this._migrateVm(vm, this.xo!.getXapi(source), this.xo!.getXapi(destination), destination._xapiId)
+              this._migrateVm(vm, this.xo!.getXapi(source), destination)
             )
             debugVcpuBalancing(`vCPU count per host: ${inspect(hostList, { depth: null })}`)
 
@@ -690,7 +703,7 @@ export default class Plan {
         delete sourceHost.vms[vm.id]
 
         promises.push(
-          this._migrateVm(vm, this.xo!.getXapi(source), this.xo!.getXapi(destination), destination._xapiId)
+          this._migrateVm(vm, this.xo!.getXapi(source), destination)
         )
         emptyLoop = false
 
@@ -1116,7 +1129,7 @@ export default class Plan {
 
     delete sourceHost.vms[vm.id]
 
-    return this._migrateVm(vm, this.xo!.getXapi(source), this.xo!.getXapi(destination), destination._xapiId)
+    return this._migrateVm(vm, this.xo!.getXapi(source), destination)
   }
 
   _isVmInCooldown(vm: Vm): boolean {
@@ -1130,8 +1143,14 @@ export default class Plan {
     return false
   }
 
-  async _migrateVm(vm: Vm, xapiSrc: Xapi, xapiDest: Xapi, destHostId: string): Promise<boolean> {
+  async _migrateVm(vm: Vm, xapiSrc: Xapi, destination: Host): Promise<boolean> {
+    if (this._dryRunMoves !== undefined) {
+      this._dryRunMoves[vm.id] = destination.id
+      return true
+    }
     const { migrationHistory } = this._globalOptions
+    const xapiDest = this.xo!.getXapi(destination)
+    const destHostId = destination._xapiId
     try {
       await xapiSrc.assertCanMigrateVm(vm._xapiId, destHostId)
       await this._concurrentMigrationLimiter.call(xapiSrc, 'migrateVm', vm._xapiId, xapiDest, destHostId)
