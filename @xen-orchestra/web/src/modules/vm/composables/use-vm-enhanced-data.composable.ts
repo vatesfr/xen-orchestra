@@ -1,3 +1,8 @@
+import {
+  getAffinityGroups,
+  getAntiAffinityGroups,
+  isLoadBalancerIgnored,
+} from '@/modules/load-balancer/utils/load-balancer-tags.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -15,6 +20,9 @@ export interface VmFilterableData extends FrontXoVm {
   ramSize: number // raw bytes
   diskSpaceSize: number // raw bytes
   ipAddresses: string[]
+  loadBalancerAffinityGroups: string
+  loadBalancerAntiAffinityGroups: string
+  loadBalancerIgnored: string
 }
 
 export interface VmDisplayData extends VmFilterableData {
@@ -50,6 +58,9 @@ export function useVmEnhancedData(rawVms: MaybeRefOrGetter<FrontXoVm[]>) {
           ramSize: vm.memory.size, // raw bytes
           diskSpaceSize: getRawDiskSpace(vm), // raw bytes
           ipAddresses: getVmIpAddresses(vm),
+          loadBalancerAffinityGroups: getAffinityGroups(vm.tags).join(', '),
+          loadBalancerAntiAffinityGroups: getAntiAffinityGroups(vm.tags).join(', '),
+          loadBalancerIgnored: isLoadBalancerIgnored(vm.tags) ? 'yes' : '',
         }) as VmFilterableData
     )
   )

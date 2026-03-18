@@ -48,6 +48,11 @@
         {{ t('vms') }}
       </TabItem>
     </RouterLink>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/load-balancer', params: { id: pool.id } }" custom>
+      <TabItem :active="isActive" :href tag="a">
+        {{ t('load-balancer:load-balancer') }}
+      </TabItem>
+    </RouterLink>
   </TabList>
 </template>
 
