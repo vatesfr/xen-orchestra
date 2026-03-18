@@ -1,20 +1,42 @@
-import type { Xapi, XcpPatches, XoAlarm, XoHost, XoSr, XoVm, XoVmTemplate, XsPatches } from '@vates/types'
+import type {
+  BOND_MODE,
+  Xapi,
+  XcpPatches,
+  XoAlarm,
+  XoHost,
+  XoPif,
+  XoSr,
+  XoVm,
+  XoVmTemplate,
+  XsPatches,
+} from '@vates/types'
 import { Unbrand } from '../open-api/common/response.common.mjs'
 
-export interface CreateNetworkBody {
+type BaseCreateNetworkBody = {
   name: string
   description?: string
-  pif: string
   /**
    * @default 1500
    */
   mtu?: number
+}
+
+export type CreateNetworkBody = BaseCreateNetworkBody & {
+  pif: XoPif['id']
+
   /**
    * @minimum 0 vlan must be between 0 and 4094
    * @maximum 4094 vlan must be between 0 and 4094
    */
   vlan: number
 }
+
+export type CreateBondedNetworkBody = BaseCreateNetworkBody & {
+  pifIds: XoPif['id'][]
+  bondMode: BOND_MODE
+}
+
+export type CreateInternalNetworkBody = BaseCreateNetworkBody
 
 export type CreateVmParams = Parameters<Xapi['createVm']>[1]
 /**
