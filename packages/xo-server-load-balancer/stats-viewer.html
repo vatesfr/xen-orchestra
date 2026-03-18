@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Load Balancer — Migration Stats Viewer</title>
+    <style>
+      :root {
+        --bg: #0f1117;
+        --bg2: #1a1d2e;
+        --bg3: #252840;
+        --accent: #6c8ebf;
+        --ok: #4caf50;
+        --warn: #ff9800;
+        --danger: #f44336;
+        --text: #e0e3f0;
+        --sub: #8890b0;
+        --border: #2e3250;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      h1 {
+        padding: 24px 32px 8px;
+        font-size: 1.5rem;
+        color: var(--accent);
+      }
+      h2 {
+        font-size: 1rem;
+        color: var(--sub);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin: 24px 32px 12px;
+      }
+      h3 {
+        font-size: 0.9rem;
+        color: var(--text);
+        margin-bottom: 10px;
+      }
+      .toolbar {
+        display: flex;
+        gap: 12px;
+        padding: 0 32px 24px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .toolbar label {
+        color: var(--sub);
+        font-size: 0.85rem;
+      }
+      input[type='file'] {
+        color: var(--text);
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 6px 12px;
+        cursor: pointer;
+      }
+      input[type='file']:hover {
+        border-color: var(--accent);
+      }
+      .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 0.78rem;
+        font-weight: 600;
+      }
+      .badge-ok {
+        background: #1b3a1f;
+        color: var(--ok);
+      }
+      .badge-warn {
+        background: #3a2d10;
+        color: var(--warn);
+      }
+      .badge-err {
+        background: #3a1212;
+        color: var(--danger);
+      }
+      .badge-info {
+        background: #1a2a40;
+        color: var(--accent);
+      }
+      /* Grid layout */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 16px;
+        padding: 0 32px;
+      }
+      .card {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 18px;
+      }
+      .card .val {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--accent);
+        margin: 4px 0;
+      }
+      .card .label {
+        color: var(--sub);
+        font-size: 0.8rem;
+      }
+      /* Host table */
+      .section {
+        padding: 0 32px;
+        margin-bottom: 32px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--bg2);
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+      }
+      th {
+        background: var(--bg3);
+        color: var(--sub);
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 10px 14px;
+        text-align: left;
+      }
+      td {
+        padding: 10px 14px;
+        border-top: 1px solid var(--border);
+        vertical-align: middle;
+      }
+      tr:hover td {
+        background: var(--bg3);
+      }
+      /* Bar charts */
+      .bar-wrap {
+        background: var(--bg3);
+        border-radius: 4px;
+        height: 8px;
+        width: 120px;
+        display: inline-block;
+        overflow: hidden;
+      }
+      .bar {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.3s;
+      }
+      .bar-cpu {
+        background: var(--accent);
+      }
+      .bar-mem {
+        background: var(--ok);
+      }
+      .bar-cpu.critical {
+        background: var(--danger);
+      }
+      .bar-cpu.high {
+        background: var(--warn);
+      }
+      /* VM chips */
+      .vm-chip {
+        display: inline-block;
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 2px 8px;
+        margin: 2px;
+        font-size: 0.78rem;
+        cursor: default;
+      }
+      .vm-chip.migrated {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .vm-chip.ignored {
+        opacity: 0.45;
+      }
+      /* Tag pill */
+      .tag {
+        display: inline-block;
+        background: #1a2640;
+        color: #7ab;
+        border-radius: 4px;
+        padding: 0 6px;
+        font-size: 0.72rem;
+        margin-left: 4px;
+      }
+      /* Diff section */
+      .diff-ok {
+        color: var(--ok);
+      }
+      .diff-warn {
+        color: var(--warn);
+      }
+      /* Comparison table */
+      .compare {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        padding: 0 32px;
+        margin-bottom: 32px;
+      }
+      @media (max-width: 700px) {
+        .compare {
+          grid-template-columns: 1fr;
+        }
+      }
+      .placeholder {
+        color: var(--sub);
+        padding: 40px 32px;
+        font-size: 0.9rem;
+      }
+      /* Toggle */
+      .toggle {
+        display: flex;
+        gap: 0;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        overflow: hidden;
+        width: fit-content;
+      }
+      .toggle button {
+        background: var(--bg2);
+        color: var(--sub);
+        border: none;
+        padding: 6px 14px;
+        cursor: pointer;
+        font-size: 0.85rem;
+      }
+      .toggle button.active {
+        background: var(--accent);
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Load Balancer — Migration Stats Viewer</h1>
+
+    <div class="toolbar">
+      <div>
+        <label>JS result JSON</label><br />
+        <input type="file" id="js-file" accept=".json" />
+      </div>
+      <div>
+        <label>TS result JSON</label><br />
+        <input type="file" id="ts-file" accept=".json" />
+      </div>
+      <div class="toggle" id="view-toggle" style="align-self: flex-end">
+        <button class="active" onclick="setView('before')">Before</button>
+        <button onclick="setView('after')">After</button>
+      </div>
+    </div>
+
+    <div id="root"><p class="placeholder">Load one or both JSON result files to see the stats.</p></div>
+
+    <script>
+      // ── state ─────────────────────────────────────────────────────────────────────
+      let jsData = null,
+        tsData = null
+      let currentView = 'before'
+
+      function setView(v) {
+        currentView = v
+        document.querySelectorAll('#view-toggle button').forEach((b, i) => {
+          b.classList.toggle('active', (i === 0 && v === 'before') || (i === 1 && v === 'after'))
+        })
+        render()
+      }
+
+      document.getElementById('js-file').addEventListener('change', e => {
+        readFile(e.target.files[0], d => {
+          jsData = d
+          render()
+        })
+      })
+      document.getElementById('ts-file').addEventListener('change', e => {
+        readFile(e.target.files[0], d => {
+          tsData = d
+          render()
+        })
+      })
+
+      function readFile(file, cb) {
+        if (!file) return
+        const r = new FileReader()
+        r.onload = e => {
+          try {
+            cb(JSON.parse(e.target.result))
+          } catch (err) {
+            alert('Invalid JSON: ' + err.message)
+          }
+        }
+        r.readAsText(file)
+      }
+
+      // ── rendering ─────────────────────────────────────────────────────────────────
+      function render() {
+        const root = document.getElementById('root')
+        if (!jsData && !tsData) {
+          root.innerHTML = '<p class="placeholder">Load one or both JSON result files to see the stats.</p>'
+          return
+        }
+
+        const active = tsData || jsData // prefer TS (new API)
+        const snap = active[currentView] // array of host objects
+        const migs = active.summary?.migrationMap ?? {}
+        const migrations = active.migrations ?? []
+
+        let html = ''
+
+        // ── summary cards ────────────────────────────────────────────────────────────
+        html += buildSummaryCards(jsData, tsData, active, migrations)
+
+        // ── host table ───────────────────────────────────────────────────────────────
+        if (snap) {
+          html += '<h2>Host overview (' + currentView + ')</h2>'
+          html += '<div class="section">' + buildHostTable(snap, migs) + '</div>'
+        }
+
+        // ── migration list ────────────────────────────────────────────────────────────
+        if (migrations.length) {
+          html += '<h2>Planned migrations (' + migrations.length + ')</h2>'
+          html += '<div class="section">' + buildMigrationTable(migrations) + '</div>'
+        }
+
+        // ── JS vs TS comparison ───────────────────────────────────────────────────────
+        if (jsData && tsData) {
+          html += '<h2>JS vs TS comparison</h2>'
+          html += '<div class="compare">' + buildComparison(jsData, tsData) + '</div>'
+        }
+
+        root.innerHTML = html
+      }
+
+      function buildSummaryCards(js, ts, active, migrations) {
+        const m = active.meta ?? {}
+        const s = active.summary ?? {}
+        const migsCount = migrations.length
+
+        const vmIgnored = migrations.filter(m => (m.vmTags ?? []).includes('xo:load:balancer:ignore')).length
+
+        const cards = [
+          { label: 'VMs in scope', val: s.totalVms ?? '–' },
+          { label: 'Hosts', val: s.totalHosts ?? '–' },
+          { label: 'Migrations planned', val: migsCount },
+          { label: 'Plan mode', val: m.planMode ?? '–' },
+          { label: 'Elapsed (ms)', val: m.elapsedMs ?? '–' },
+          { label: 'CPU critical %', val: m.thresholds?.cpuCriticalPct ?? m.thresholds?.cpu ?? '–' },
+          {
+            label: 'Mem free critical',
+            val: (m.thresholds?.memFreeCriticalMb ?? m.thresholds?.memoryFree ?? '–') + ' MB',
+          },
+          { label: 'Dry run', val: m.dryRun !== undefined ? String(m.dryRun) : 'N/A' },
+        ]
+
+        let html = '<h2>Summary</h2><div class="grid">'
+        for (const c of cards) {
+          html += `<div class="card"><div class="label">${c.label}</div><div class="val">${c.val}</div></div>`
+        }
+        html += '</div>'
+        return html
+      }
+
+      function cpuClass(pct) {
+        return pct >= 76.5 ? 'critical' : pct >= 58.5 ? 'high' : ''
+      }
+
+      function bar(pct, cls) {
+        const w = Math.min(100, Math.round(pct))
+        return `<div class="bar-wrap"><div class="bar bar-${cls} ${cls === 'cpu' ? cpuClass(pct) : ''}" style="width:${w}%"></div></div>`
+      }
+
+      function buildHostTable(snap, migs) {
+        let html = '<table><thead><tr><th>Host</th><th>CPU %</th><th>Mem free (MB)</th><th>VMs</th></tr></thead><tbody>'
+        for (const h of snap) {
+          const cpuPct = Math.round(h.cpuPct * 10) / 10
+          const memFree = Math.round(h.memFreeMb)
+          const vmChips = (h.vms ?? [])
+            .map(v => {
+              const isIgnored = (v.tags ?? []).includes('xo:load:balancer:ignore')
+              const isMigrated = migs[v.id] !== undefined
+              const cls = isIgnored ? 'ignored' : isMigrated ? 'migrated' : ''
+              const tagHtml = (v.tags ?? [])
+                .filter(t => t.startsWith('xo:load:balancer:'))
+                .map(t => `<span class="tag">${t.replace('xo:load:balancer:', '')}</span>`)
+                .join('')
+              return (
+                `<span class="vm-chip ${cls}" title="${v.id}">` +
+                `${v.id} ${v.memGb}GB${tagHtml}` +
+                (isMigrated ? ` →${migs[v.id]}` : '') +
+                `</span>`
+              )
+            })
+            .join('')
+
+          html += `<tr>
+      <td><strong>${h.host}</strong></td>
+      <td>${bar(cpuPct, 'cpu')} <small>${cpuPct}%</small></td>
+      <td>${bar(Math.min(100, (memFree / 1280) * 100), 'mem')} <small>${memFree.toLocaleString()} MB</small></td>
+      <td style="max-width:420px">${vmChips}</td>
+    </tr>`
+        }
+        html += '</tbody></table>'
+        return html
+      }
+
+      function buildMigrationTable(migrations) {
+        let html = `<table><thead><tr><th>VM</th><th>Memory</th><th>vCPUs</th><th>Tags</th><th>From</th><th>To</th></tr></thead><tbody>`
+        for (const m of migrations) {
+          const tags = (m.vmTags ?? [])
+            .map(t => `<span class="tag">${t.replace('xo:load:balancer:', '')}</span>`)
+            .join('')
+          html += `<tr>
+      <td>${m.vmId}</td>
+      <td>${m.vmMemGb} GB</td>
+      <td>${m.vmVcpus}</td>
+      <td>${tags || '–'}</td>
+      <td>${m.fromHostId ?? '–'}</td>
+      <td><strong>${m.toHostId}</strong></td>
+    </tr>`
+        }
+        html += '</tbody></table>'
+        return html
+      }
+
+      function buildComparison(js, ts) {
+        const jMap = js.summary?.migrationMap ?? {}
+        const tMap = ts.summary?.migrationMap ?? {}
+        const allVms = [...new Set([...Object.keys(jMap), ...Object.keys(tMap)])]
+        const diffs = allVms.filter(v => jMap[v] !== tMap[v])
+
+        const jsMig = js.summary?.migrationsPlanned ?? Object.keys(jMap).length
+        const tsMig = ts.summary?.migrationsPlanned ?? Object.keys(tMap).length
+        const identical = diffs.length === 0
+
+        let left = `<div class="card">
+    <h3>JS (old API) — direct plan call</h3>
+    <div class="label">Elapsed</div><div class="val">${js.meta?.elapsedMs ?? '–'} ms</div>
+    <div class="label">Migrations</div><div class="val">${jsMig}</div>
+  </div>`
+
+        let right = `<div class="card">
+    <h3>TS (new API) — plugin.loadBalancer()</h3>
+    <div class="label">Elapsed</div><div class="val">${ts.meta?.elapsedMs ?? '–'} ms</div>
+    <div class="label">Migrations</div><div class="val">${tsMig}</div>
+    <div class="label" style="margin-top:14px">Results identical</div>
+    <div class="val ${identical ? 'diff-ok' : 'diff-warn'}">${identical ? '✓ Yes' : '✗ No'}</div>
+    ${
+      diffs.length
+        ? '<div style="margin-top:10px">' +
+          diffs
+            .map(
+              v =>
+                `<div style="margin:4px 0"><span class="badge badge-warn">${v}</span> js:${jMap[v] ?? 'none'} → ts:${tMap[v] ?? 'none'}</div>`
+            )
+            .join('') +
+          '</div>'
+        : ''
+    }
+  </div>`
+
+        return left + right
+      }
+    </script>
+  </body>
+</html>

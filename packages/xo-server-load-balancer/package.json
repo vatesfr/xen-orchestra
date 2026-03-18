@@ -46,7 +46,8 @@
     "dev": "yarn run clean && tsc --watch",
     "prebuild": "yarn run clean",
     "prepublishOnly": "yarn run build",
-    "test": "cd dist && node --test"
+    "test": "cd dist && node --test",
+    "test:load": "node test-load.js && node --test dist/test-load.test.mjs"
   },
   "private": true
 }
