@@ -1,5 +1,5 @@
-import type { Rename } from '../helpers/helper.type.mjs'
 import type { CreateBondedNetworkBody, CreateInternalNetworkBody, CreateNetworkBody } from '../pools/pool.type.mjs'
+import type { ReplaceKey } from '../helpers/helper.type.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 import type { Xapi, XenApiNetworkWrapped, XoNetwork, XoPool } from '@vates/types'
 
@@ -12,7 +12,7 @@ export class NetworkService {
 
   async create(
     poolId: XoPool['id'],
-    body: Rename<CreateNetworkBody, 'pif', 'pifId'> | CreateBondedNetworkBody | CreateInternalNetworkBody
+    body: ReplaceKey<CreateNetworkBody, 'pif', 'pifId'> | CreateBondedNetworkBody | CreateInternalNetworkBody
   ): Promise<XoNetwork['id']> {
     const xapiPool = this.#restApi.getXapiObject<XoPool>(poolId, 'pool')
     const xapi = xapiPool.$xapi

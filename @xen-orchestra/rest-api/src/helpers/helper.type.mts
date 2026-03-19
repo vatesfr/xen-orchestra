@@ -34,7 +34,7 @@ export type IsEmptyData = { isEmpty: true }
 
 export type IsMaybeExpired<T> = T & { isExpired?: true }
 
-export type Rename<Type, OldKey extends keyof Type, NewKey extends string, NewKeyType = Type[OldKey]> = Omit<
+export type ReplaceKey<Type, OldKey extends keyof Type, NewKey extends string, NewKeyType = Type[OldKey]> = Omit<
   Type,
   OldKey
 > &
