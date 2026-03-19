@@ -5,6 +5,22 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { createServer, validateEnv, fetchDocumentation } from './index.mjs'
 import type { XoClient } from './xo-client.mjs'
 
+const EXPECTED_TOOL_NAMES = [
+  'check_connection',
+  'get_infrastructure_summary',
+  'get_network_details',
+  'get_pool_dashboard',
+  'get_sr_details',
+  'get_vm_details',
+  'list_hosts',
+  'list_networks',
+  'list_pools',
+  'list_srs',
+  'list_vdis',
+  'list_vms',
+  'search_documentation',
+]
+
 // Helper to create a mock XoClient
 // Uses `as unknown as XoClient` because @vates/types uses branded string IDs
 // that plain string literals don't satisfy at the type level.
@@ -48,26 +64,12 @@ async function setupTestServer(mockClient?: XoClient) {
 
 describe('createServer', () => {
   describe('tool listing', () => {
-    it('registers all 11 tools', async () => {
+    it(`registers all ${EXPECTED_TOOL_NAMES.length} tools`, async () => {
       const { mcpClient } = await setupTestServer()
       const { tools } = await mcpClient.listTools()
       const toolNames = tools.map(t => t.name).sort()
 
-      assert.deepStrictEqual(toolNames, [
-        'check_connection',
-        'get_infrastructure_summary',
-        'get_network_details',
-        'get_pool_dashboard',
-        'get_sr_details',
-        'get_vm_details',
-        'list_hosts',
-        'list_networks',
-        'list_pools',
-        'list_srs',
-        'list_vdis',
-        'list_vms',
-        'search_documentation',
-      ])
+      assert.deepStrictEqual(toolNames, EXPECTED_TOOL_NAMES)
     })
   })
 
