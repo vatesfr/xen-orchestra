@@ -2,6 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { XoClient } from '../../xo-client.mjs'
 import { formatToolError } from '../../helpers/tool-error.mjs'
+import { formatVmDetails } from '../../formatters/vm.mjs'
 
 export function registerGetVmDetails(server: McpServer, getClient: () => XoClient): void {
   server.registerTool(
@@ -18,7 +19,7 @@ export function registerGetVmDetails(server: McpServer, getClient: () => XoClien
         const client = getClient()
         const vm = await client.getVm(vm_id)
         return {
-          content: [{ type: 'text', text: JSON.stringify(vm, null, 2) }],
+          content: [{ type: 'text', text: formatVmDetails(vm) }],
         }
       } catch (error) {
         return {

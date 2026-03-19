@@ -15,6 +15,7 @@ const REQUEST_TIMEOUT_MS = 30_000
 
 export type XoClientConfig = { url: string; username: string; password: string } | { url: string; token: string }
 
+
 export class XoClient {
   private readonly baseUrl: string
   private readonly authHeaders: Record<string, string>

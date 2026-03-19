@@ -2,7 +2,6 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { XoClient } from '../../xo-client.mjs'
 import { formatToolError } from '../../helpers/tool-error.mjs'
-
 export function registerGetPoolDashboard(server: McpServer, getClient: () => XoClient): void {
   server.registerTool(
     'get_pool_dashboard',
