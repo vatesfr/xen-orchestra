@@ -911,13 +911,17 @@ export default class New extends Component {
                           <Icon icon='info' />
                         </Tooltip>
                       </label>
-                      <input
+                      <select
                         className='form-control'
                         onChange={this.linkState('preferredImageFormat')}
-                        placeholder='vhd, qcow2'
-                        type='text'
                         value={this.state.preferredImageFormat ?? ''}
-                      />
+                      >
+                        <option value='' />
+                        <option value='vhd'>vhd</option>
+                        <option value='vhd, qcow2'>vhd, qcow2</option>
+                        <option value='qcow2, vhd'>qcow2, vhd</option>
+                        <option value='qcow2'>qcow2</option>
+                      </select>
                     </fieldset>
                   )}
                 </fieldset>
