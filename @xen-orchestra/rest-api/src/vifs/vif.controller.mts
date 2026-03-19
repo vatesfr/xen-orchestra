@@ -29,6 +29,7 @@ import type {
   XoVm,
 } from '@vates/types'
 
+import { acl } from '../middlewares/acl.middleware.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { provide } from 'inversify-binding-decorators'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -39,6 +40,7 @@ import {
   internalServerErrorResp,
   invalidParameters as invalidParametersResp,
   noContentResp,
+  forbiddenOperationResp,
   notFoundResp,
   unauthorizedResp,
   type Unbrand,
@@ -101,10 +103,15 @@ export class VifController extends XapiXoController<XoVif> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vif, action: read
+   *
    * @example id "f028c5d4-578a-332c-394e-087aaca32dd3"
    */
   @Example(vif)
   @Get('{id}')
+  @Middlewares(acl({ resource: 'vif', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getVif(@Path() id: string): UnbrandedXoVif {
     return this.getObject(id as XoVif['id'])
