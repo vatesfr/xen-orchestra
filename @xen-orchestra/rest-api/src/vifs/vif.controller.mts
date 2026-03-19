@@ -70,8 +70,8 @@ export class VifController extends XapiXoController<XoVif> {
   @Example(vif)
   @Get('{id}')
   @Middlewares(acl({ resource: 'vif', action: 'read', objectId: 'params.id' }))
-  @Response(notFoundResp.status, notFoundResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
   getVif(@Path() id: string): UnbrandedXoVif {
     return this.getObject(id as XoVif['id'])
   }
