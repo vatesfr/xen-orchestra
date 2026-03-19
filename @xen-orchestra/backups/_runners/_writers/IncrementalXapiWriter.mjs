@@ -30,13 +30,23 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       return
     }
 
-    // @todo : this seems similar to decorateVmMetadata
-    // Only match live (non-snapshot) VDIs: a replication target is a single
-    // live VM and we need the active disk for in-place update.  This must
-    // stay consistent with the filter in #decorateVmMetadata.
+    // Only match live (non-snapshot) VDIs attached to exactly one
+    // non-control-domain VM that is a valid replication target for this job.
+    // This must stay consistent with the filter in #decorateVmMetadata.
     const replicatedVdis = sr.$VDIs.filter(vdi => {
-      // REPLICATED_TO_SR_UUID is not used here since we are already filtering from sr.$VDIs
-      return vdi?.managed && !vdi?.is_a_snapshot && baseUuidToSrcVdi.has(vdi?.other_config[COPY_OF])
+      if (!vdi?.managed || vdi?.is_a_snapshot || !baseUuidToSrcVdi.has(vdi?.other_config[COPY_OF])) {
+        return false
+      }
+      const userVbds = vdi.$VBDs?.filter(vbd => vbd.$VM && !vbd.$VM.is_control_domain) ?? []
+      if (userVbds.length !== 1) {
+        return false
+      }
+      const vm = userVbds[0].$VM
+      return (
+        vm.other_config[JOB_ID] === this._job.id &&
+        vm.other_config[VM_UUID] === this._vmUuid &&
+        'start' in vm.blocked_operations
+      )
     })
 
     const replicatedCopyOfUuids = replicatedVdis.map(({ other_config }) => other_config?.[COPY_OF]).filter(_ => !!_)
@@ -49,18 +59,8 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
 
     // Track the target VM (the replicated VM to update on the next transfer).
     if (replicatedVdis.length > 0) {
-      for (const vdi of replicatedVdis) {
-        const vbd = vdi.$VBDs?.find(vbd => !vbd.$VM.is_control_domain)
-        if (!vbd || !vbd.$VM) {
-          continue
-        }
-        const vm = vbd.$VM
-
-        if (vm.blocked_operations.start !== undefined) {
-          this._targetVmRef = vm.$ref
-          break
-        }
-      }
+      const vbd = replicatedVdis[0].$VBDs.find(vbd => vbd.$VM && !vbd.$VM.is_control_domain)
+      this._targetVmRef = vbd.$VM.$ref
     }
   }
   updateUuidAndChain() {
