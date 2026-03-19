@@ -10,7 +10,7 @@ import { setupContainer } from './ioc/ioc.mjs'
 import { setupApiContext } from './middlewares/authentication.middleware.mjs'
 import { logMiddleware } from './middlewares/log.middleware.mjs'
 import type { OpenAPIV3 } from 'openapi-types'
-import { createMountPluginRoute, sendObjects } from './plugins/mount-plugin.mjs'
+import { createExternalRouter, sendObjects } from './router/external-router.mjs'
 
 export * from './open-api/common/response.common.mjs'
 export { sendObjects }
@@ -51,11 +51,11 @@ export default function setupRestApi(express: Express, xoApp: XoApp) {
   setupContainer(xoApp)
 
   // Create dynamic router so it can be used by plugin to register rest routes
-  const { mountPluginRoute, pluginRouter } = createMountPluginRoute(swaggerOpenApiSpec)
+  const { mountExternalRoute, externalRouter } = createExternalRouter(swaggerOpenApiSpec)
 
   express.use(BASE_URL, setupApiContext(xoApp))
   express.use(BASE_URL, logMiddleware)
-  express.use(BASE_URL, pluginRouter)
+  express.use(BASE_URL, externalRouter)
 
   RegisterRoutes(express)
 
@@ -75,5 +75,5 @@ export default function setupRestApi(express: Express, xoApp: XoApp) {
   express.use(BASE_URL, tsoaToXoErrorHandler)
   express.use(BASE_URL, genericErrorHandler)
 
-  return { mountPluginRoute }
+  return { mountExternalRoute }
 }

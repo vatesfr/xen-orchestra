@@ -14,7 +14,7 @@ const subRouter = (app, path) => {
 export default class RestApi {
   #app
   #api
-  #mountPluginRoute
+  #mountExternalRoute
 
   constructor(app, { express }) {
     // don't set up the API if express is not present
@@ -25,15 +25,15 @@ export default class RestApi {
     const api = subRouter(express, '/rest/v0')
     this.#api = api
     this.#app = app
-    const { mountPluginRoute } = setupRestApi(express, app)
-    this.#mountPluginRoute = mountPluginRoute
+    const { mountExternalRoute } = setupRestApi(express, app)
+    this.#mountExternalRoute = mountExternalRoute
   }
 
   registerRestRoutes(routes, base = '/') {
     const unregisterFuncs = []
     routes.forEach(route => {
       route.endpoint = join(base, route.endpoint)
-      unregisterFuncs.push(this.#mountPluginRoute(route))
+      unregisterFuncs.push(this.#mountExternalRoute(route))
     })
 
     return () => {
