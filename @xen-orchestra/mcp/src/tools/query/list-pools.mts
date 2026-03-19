@@ -2,6 +2,8 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { XoClient } from '../../xo-client.mjs'
 import { formatToolError } from '../../helpers/tool-error.mjs'
+import { formatPoolList } from '../../formatters/pool.mjs'
+import { formatGenericList } from '../../formatters/generic.mjs'
 
 export function registerListPools(server: McpServer, getClient: () => XoClient): void {
   server.registerTool(
@@ -22,8 +24,9 @@ export function registerListPools(server: McpServer, getClient: () => XoClient):
       try {
         const client = getClient()
         const pools = await client.listPools(fields)
+        const text = fields ? formatGenericList(pools as Record<string, unknown>[], 'Pools') : formatPoolList(pools)
         return {
-          content: [{ type: 'text', text: JSON.stringify(pools, null, 2) }],
+          content: [{ type: 'text', text }],
         }
       } catch (error) {
         return {

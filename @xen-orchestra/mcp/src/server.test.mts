@@ -302,7 +302,7 @@ describe('createServer', () => {
   })
 
   describe('get_pool_dashboard tool', () => {
-    it('returns dashboard data', async () => {
+    it('returns dashboard as markdown', async () => {
       const { mcpClient } = await setupTestServer()
       const result = await mcpClient.callTool({
         name: 'get_pool_dashboard',
