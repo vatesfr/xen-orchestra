@@ -142,13 +142,13 @@ function addPathToSwagger(
 
   if (querySchema) operation.parameters?.push(...extractParametersFromZod(querySchema, 'query'))
 
-  if (bodySchema && bodyContentType) {
+  if (bodySchema) {
     const { schema: bodyJson } = createSchema(bodySchema, { io: 'input' })
 
     operation.requestBody = {
       required: true,
       content: {
-        [bodyContentType]: { schema: bodyJson as OpenAPIV3.SchemaObject },
+        [bodyContentType ?? 'text/plain']: { schema: bodyJson as OpenAPIV3.SchemaObject },
       },
     }
   }
