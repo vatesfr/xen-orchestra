@@ -21,11 +21,17 @@ const REQUEST_TIMEOUT_MS = 30_000
 export type XoClientConfig = { url: string; username: string; password: string } | { url: string; token: string }
 
 export interface XoPoolDashboard {
-  hostsByStatus?: Record<string, number>
-  vmsByStatus?: Record<string, number>
-  topHostsByRam?: Array<{ id: string; name: string; value: number }>
-  topHostsByCpu?: Array<{ id: string; name: string; value: number }>
-  alarms?: Array<{ id: string; name: string; time: number }>
+  hosts?: {
+    status?: Record<string, number>
+    topFiveUsage?: {
+      ram?: Array<{ id: string; name_label: string; size: number; usage: number; percent: number }>
+      cpu?: Array<{ id: string; name_label: string; percent: number }>
+    }
+  }
+  vms?: {
+    status?: Record<string, number>
+  }
+  alarms?: string[]
 }
 
 export class XoClient {
@@ -130,7 +136,7 @@ export class XoClient {
   }
 
   async listHosts(options?: ListOptions): Promise<Partial<XoHost>[]> {
-    const params = this.buildListParams('id,name_label,productBrand,version,power_state', options)
+    const params = this.buildListParams('id,name_label,productBrand,version,power_state,memory,address', options)
     return this.request<Partial<XoHost>[]>(`/hosts?${params}`)
   }
 
