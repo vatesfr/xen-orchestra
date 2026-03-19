@@ -8,8 +8,11 @@ import ensureArray from '../_ensureArray.mjs'
 import { asInteger } from '../xapi/utils.mjs'
 import { destroy as destroyXostor } from './xostor.mjs'
 import { forEach, isSrWritable, parseXml } from '../utils.mjs'
+import { PREFERED_IMAGE_FORMAT_PROPERTY } from '@xen-orchestra/xapi/pbd.mjs'
 
 const log = createLogger('xo:api:sr')
+
+const AUTHORIZED_IMAGE_FORMAT_LISTS = ['vhd', 'qcow2', 'vhd, qcow2', 'qcow2, vhd']
 
 // ===================================================================
 
@@ -229,12 +232,12 @@ export async function createNfs({
   }
 
   if (preferredImageFormat) {
-    deviceConfig['preferred-image-formats'] = preferredImageFormat
+    deviceConfig[PREFERED_IMAGE_FORMAT_PROPERTY] = preferredImageFormat
   }
 
   // Reattach
   if (srUuid !== undefined) {
-    delete deviceConfig['preferred-image-formats']
+    delete deviceConfig[PREFERED_IMAGE_FORMAT_PROPERTY]
     return xapi.reattachSr({
       uuid: srUuid,
       nameLabel,
@@ -266,7 +269,7 @@ createNfs.params = {
   nfsVersion: { type: 'string', optional: true },
   nfsOptions: { type: 'string', optional: true },
   srUuid: { type: 'string', optional: true },
-  preferredImageFormat: { enum: ['vhd', 'qcow2', 'vhd, qcow2', 'qcow2, vhd'], optional: true },
+  preferredImageFormat: { enum: AUTHORIZED_IMAGE_FORMAT_LISTS, optional: true },
 }
 
 createNfs.resolve = {
@@ -292,11 +295,11 @@ export async function createSmb({
   }
 
   if (preferredImageFormat) {
-    deviceConfig['preferred-image-formats'] = preferredImageFormat
+    deviceConfig[PREFERED_IMAGE_FORMAT_PROPERTY] = preferredImageFormat
   }
 
   if (srUuid !== undefined) {
-    delete deviceConfig['preferred-image-formats']
+    delete deviceConfig[PREFERED_IMAGE_FORMAT_PROPERTY]
     return xapi.reattachSr({
       uuid: srUuid,
       nameLabel,
@@ -326,7 +329,7 @@ createSmb.params = {
   srUuid: { type: 'string', optional: true },
   user: { type: 'string', optional: true },
   password: { type: 'string', optional: true },
-  preferredImageFormat: { enum: ['vhd', 'qcow2', 'vhd, qcow2', 'qcow2, vhd'], optional: true },
+  preferredImageFormat: { enum: AUTHORIZED_IMAGE_FORMAT_LISTS, optional: true },
 }
 
 createSmb.resolve = {
@@ -344,12 +347,12 @@ export async function createHba({ host, nameLabel, nameDescription, scsiId, srUu
     SCSIid: scsiId,
   }
   if (preferredImageFormat) {
-    deviceConfig['preferred-image-formats'] = preferredImageFormat
+    deviceConfig[PREFERED_IMAGE_FORMAT_PROPERTY] = preferredImageFormat
   }
 
   // Reattach
   if (srUuid !== undefined) {
-    delete deviceConfig['preferred-image-formats']
+    delete deviceConfig[PREFERED_IMAGE_FORMAT_PROPERTY]
     return xapi.reattachSr({
       uuid: srUuid,
       nameLabel,
@@ -378,7 +381,7 @@ createHba.params = {
   nameDescription: { type: 'string', minLength: 0 },
   scsiId: { type: 'string' },
   srUuid: { type: 'string', optional: true },
-  preferredImageFormat: { enum: ['vhd', 'qcow2', 'vhd, qcow2', 'qcow2, vhd'], optional: true },
+  preferredImageFormat: { enum: AUTHORIZED_IMAGE_FORMAT_LISTS, optional: true },
 }
 
 createHba.resolve = {
@@ -397,7 +400,7 @@ export async function createLvm({ host, nameLabel, nameDescription, device, pref
     device,
   }
   if (preferredImageFormat) {
-    deviceConfig['preferred-image-formats'] = preferredImageFormat
+    deviceConfig[PREFERED_IMAGE_FORMAT_PROPERTY] = preferredImageFormat
   }
 
   const srRef = await xapi.SR_create({
@@ -418,7 +421,7 @@ createLvm.params = {
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string', minLength: 0 },
   device: { type: 'string' },
-  preferredImageFormat: { enum: ['vhd', 'qcow2', 'vhd, qcow2', 'qcow2, vhd'], optional: true },
+  preferredImageFormat: { enum: AUTHORIZED_IMAGE_FORMAT_LISTS, optional: true },
 }
 
 createLvm.resolve = {
@@ -438,7 +441,7 @@ export async function createExt({ host, nameLabel, nameDescription, device, pref
   }
 
   if (preferredImageFormat) {
-    deviceConfig['preferred-image-formats'] = preferredImageFormat
+    deviceConfig[PREFERED_IMAGE_FORMAT_PROPERTY] = preferredImageFormat
   }
 
   const srRef = await xapi.SR_create({
@@ -459,7 +462,7 @@ createExt.params = {
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string', minLength: 0 },
   device: { type: 'string' },
-  preferredImageFormat: { enum: ['vhd', 'qcow2', 'vhd, qcow2', 'qcow2, vhd'], optional: true },
+  preferredImageFormat: { enum: AUTHORIZED_IMAGE_FORMAT_LISTS, optional: true },
 }
 
 createExt.resolve = {
@@ -517,7 +520,7 @@ export async function createZfs({ host, nameLabel, nameDescription, location, pr
   return await xapi.getField(
     'SR',
     await xapi.SR_create({
-      device_config: { location, 'preferred-image-formats': preferredImageFormat },
+      device_config: { location, PREFERED_IMAGE_FORMAT_PROPERTY: preferredImageFormat },
       host: host._xapiRef,
       name_description: nameDescription,
       name_label: nameLabel,
@@ -533,7 +536,7 @@ createZfs.params = {
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string', minLength: 0 },
   location: { type: 'string' },
-  preferredImageFormat: { enum: ['vhd', 'qcow2', 'vhd, qcow2', 'qcow2, vhd'], optional: true },
+  preferredImageFormat: { enum: AUTHORIZED_IMAGE_FORMAT_LISTS, optional: true },
 }
 
 createZfs.resolve = {
@@ -659,7 +662,7 @@ export async function createIscsi({
     SCSIid: scsiId,
   }
   if (preferredImageFormat) {
-    deviceConfig['preferred-image-formats'] = preferredImageFormat
+    deviceConfig[PREFERED_IMAGE_FORMAT_PROPERTY] = preferredImageFormat
   }
 
   // if we give user and password
@@ -675,7 +678,7 @@ export async function createIscsi({
 
   // Reattach
   if (srUuid !== undefined) {
-    delete deviceConfig['preferred-image-formats']
+    delete deviceConfig[PREFERED_IMAGE_FORMAT_PROPERTY]
     return xapi.reattachSr({
       uuid: srUuid,
       nameLabel,
@@ -709,7 +712,7 @@ createIscsi.params = {
   chapUser: { type: 'string', optional: true },
   chapPassword: { type: 'string', optional: true },
   srUuid: { type: 'string', optional: true },
-  preferredImageFormat: { enum: ['vhd', 'qcow2', 'vhd, qcow2', 'qcow2, vhd'], optional: true },
+  preferredImageFormat: { enum: AUTHORIZED_IMAGE_FORMAT_LISTS, optional: true },
 }
 
 createIscsi.resolve = {
