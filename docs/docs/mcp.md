@@ -218,6 +218,32 @@ List virtual disks (VDIs) in Xen Orchestra with optional filtering.
 
 ---
 
+### `list_srs`
+
+List storage repositories (SRs) in Xen Orchestra with optional filtering.
+
+| Parameter | Type   | Required | Description                                                                                                   |
+| --------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------- |
+| `filter`  | string | No       | Filter expression (e.g., `SR_type:lvm`, `shared:true`)                                                        |
+| `fields`  | string | No       | Comma-separated fields (default: `id,name_label,SR_type,allocationStrategy,size,usage,physical_usage,shared`) |
+| `limit`   | number | No       | Maximum number of results                                                                                     |
+
+**Example question:** "List all shared storage repositories"
+
+---
+
+### `get_sr_details`
+
+Get detailed information about a specific storage repository.
+
+| Parameter | Type   | Required | Description       |
+| --------- | ------ | -------- | ----------------- |
+| `sr_id`   | string | Yes      | The SR ID or UUID |
+
+**Example question:** "Give me the details of SR abc123"
+
+---
+
 ### `list_networks`
 
 List all networks in Xen Orchestra with optional filtering.
