@@ -23,24 +23,22 @@ export function registerGetInfrastructureSummary(server: McpServer, getClient: (
         const runningVms = vms.filter(vm => vm.power_state === 'Running').length
         const haltedVms = vms.filter(vm => vm.power_state === 'Halted').length
 
-        const summary = {
-          pools: {
-            total: pools.length,
-            names: pools.map(p => p.name_label),
-          },
-          hosts: {
-            total: hosts.length,
-          },
-          vms: {
-            total: vms.length,
-            running: runningVms,
-            halted: haltedVms,
-            other: vms.length - runningVms - haltedVms,
-          },
-        }
+        const poolNames = pools
+          .map(p => p.name_label)
+          .filter(Boolean)
+          .join(', ')
+        const otherVms = vms.length - runningVms - haltedVms
+
+        const lines = [
+          '## Infrastructure Summary',
+          '',
+          `- **Pools**: ${pools.length}${poolNames ? ` (${poolNames})` : ''}`,
+          `- **Hosts**: ${hosts.length}`,
+          `- **VMs**: ${vms.length} total — ${runningVms} running, ${haltedVms} halted${otherVms > 0 ? `, ${otherVms} other` : ''}`,
+        ]
 
         return {
-          content: [{ type: 'text', text: JSON.stringify(summary, null, 2) }],
+          content: [{ type: 'text', text: lines.join('\n') }],
         }
       } catch (error) {
         return {

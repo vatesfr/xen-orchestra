@@ -25,7 +25,7 @@ function createMockClient(overrides: Record<string, unknown> = {}): XoClient {
     ],
     getVm: async () => ({ id: 'vm1', name_label: 'VM 1', power_state: 'Running' }),
     getPool: async () => ({ id: 'pool1', name_label: 'Pool 1' }),
-    getPoolDashboard: async () => ({ hostsByStatus: { running: 1 } }),
+    getPoolDashboard: async () => ({ hosts: { status: { running: 1, total: 1 } }, vms: { status: { running: 2 } } }),
     getHost: async () => ({ id: 'host1', name_label: 'Host 1' }),
     getVmStats: async () => ({ endTimestamp: 0, interval: 0, stats: {} }),
     ...overrides,
@@ -86,12 +86,13 @@ describe('createServer', () => {
   })
 
   describe('list_pools tool', () => {
-    it('returns pools as JSON', async () => {
+    it('returns pools as markdown table', async () => {
       const { mcpClient } = await setupTestServer()
       const result = await mcpClient.callTool({ name: 'list_pools', arguments: {} })
       const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      const parsed = JSON.parse(text)
-      assert.strictEqual(parsed[0].id, 'pool1')
+      assert.ok(text.includes('## Pools'))
+      assert.ok(text.includes('Pool 1'))
+      assert.ok(text.includes('pool1'))
     })
 
     it('passes fields parameter', async () => {
@@ -121,12 +122,13 @@ describe('createServer', () => {
   })
 
   describe('list_vms tool', () => {
-    it('returns VMs as JSON', async () => {
+    it('returns VMs as markdown table', async () => {
       const { mcpClient } = await setupTestServer()
       const result = await mcpClient.callTool({ name: 'list_vms', arguments: {} })
       const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      const parsed = JSON.parse(text)
-      assert.strictEqual(parsed.length, 2)
+      assert.ok(text.includes('## VMs (2 found)'))
+      assert.ok(text.includes('VM 1'))
+      assert.ok(text.includes('VM 2'))
     })
 
     it('passes filter, fields, and limit', async () => {
@@ -149,13 +151,13 @@ describe('createServer', () => {
   })
 
   describe('list_vdis tool', () => {
-    it('returns VDIs as JSON', async () => {
+    it('returns VDIs as markdown table', async () => {
       const { mcpClient } = await setupTestServer()
       const result = await mcpClient.callTool({ name: 'list_vdis', arguments: {} })
       const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      const parsed = JSON.parse(text)
-      assert.strictEqual(parsed.length, 2)
-      assert.strictEqual(parsed[0].id, 'vdi1')
+      assert.ok(text.includes('## VDIs (2 found)'))
+      assert.ok(text.includes('VDI 1'))
+      assert.ok(text.includes('vdi1'))
     })
 
     it('passes filter, fields, and limit', async () => {
@@ -190,15 +192,16 @@ describe('createServer', () => {
   })
 
   describe('get_vm_details tool', () => {
-    it('returns VM details', async () => {
+    it('returns VM details as markdown', async () => {
       const { mcpClient } = await setupTestServer()
       const result = await mcpClient.callTool({
         name: 'get_vm_details',
         arguments: { vm_id: 'vm1' },
       })
       const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      const parsed = JSON.parse(text)
-      assert.strictEqual(parsed.id, 'vm1')
+      assert.ok(text.includes('## VM: VM 1'))
+      assert.ok(text.includes('Running'))
+      assert.ok(text.includes('vm1'))
     })
 
     it('returns error when VM not found', async () => {
@@ -218,42 +221,44 @@ describe('createServer', () => {
   })
 
   describe('get_infrastructure_summary tool', () => {
-    it('returns aggregated summary', async () => {
+    it('returns aggregated summary as markdown', async () => {
       const { mcpClient } = await setupTestServer()
       const result = await mcpClient.callTool({
         name: 'get_infrastructure_summary',
         arguments: {},
       })
       const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      const parsed = JSON.parse(text)
-      assert.strictEqual(parsed.pools.total, 1)
-      assert.strictEqual(parsed.hosts.total, 1)
-      assert.strictEqual(parsed.vms.total, 2)
-      assert.strictEqual(parsed.vms.running, 1)
-      assert.strictEqual(parsed.vms.halted, 1)
+      assert.ok(text.includes('## Infrastructure Summary'))
+      assert.ok(text.includes('**Pools**: 1'))
+      assert.ok(text.includes('**Hosts**: 1'))
+      assert.ok(text.includes('2 total'))
+      assert.ok(text.includes('1 running'))
+      assert.ok(text.includes('1 halted'))
     })
   })
 
   describe('get_pool_dashboard tool', () => {
-    it('returns dashboard data', async () => {
+    it('returns dashboard as markdown', async () => {
       const { mcpClient } = await setupTestServer()
       const result = await mcpClient.callTool({
         name: 'get_pool_dashboard',
         arguments: { pool_id: 'pool1' },
       })
       const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      const parsed = JSON.parse(text)
-      assert.deepStrictEqual(parsed.hostsByStatus, { running: 1 })
+      assert.ok(text.includes('## Pool Dashboard'))
+      assert.ok(text.includes('### Hosts'))
+      assert.ok(text.includes('**running**: 1'))
     })
   })
 
   describe('list_hosts tool', () => {
-    it('returns hosts as JSON', async () => {
+    it('returns hosts as markdown table', async () => {
       const { mcpClient } = await setupTestServer()
       const result = await mcpClient.callTool({ name: 'list_hosts', arguments: {} })
       const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      const parsed = JSON.parse(text)
-      assert.strictEqual(parsed[0].id, 'host1')
+      assert.ok(text.includes('## Hosts'))
+      assert.ok(text.includes('Host 1'))
+      assert.ok(text.includes('host1'))
     })
   })
 
