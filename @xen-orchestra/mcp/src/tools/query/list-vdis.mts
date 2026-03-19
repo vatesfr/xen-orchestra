@@ -2,6 +2,8 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { XoClient } from '../../xo-client.mjs'
 import { formatToolError } from '../../helpers/tool-error.mjs'
+import { formatVdiList } from '../../formatters/storage.mjs'
+import { formatGenericList } from '../../formatters/generic.mjs'
 
 export function registerListVdis(server: McpServer, getClient: () => XoClient): void {
   server.registerTool(
@@ -19,8 +21,9 @@ export function registerListVdis(server: McpServer, getClient: () => XoClient): 
       try {
         const client = getClient()
         const vdis = await client.listVdis({ filter, fields, limit })
+        const text = fields ? formatGenericList(vdis as Record<string, unknown>[], 'VDIs') : formatVdiList(vdis)
         return {
-          content: [{ type: 'text', text: JSON.stringify(vdis, null, 2) }],
+          content: [{ type: 'text', text }],
         }
       } catch (error) {
         return {
