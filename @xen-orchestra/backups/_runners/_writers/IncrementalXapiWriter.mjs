@@ -30,13 +30,13 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       return
     }
 
-    // @todo use an index if possible
     // @todo : this seems similar to decorateVmMetadata
+    // Only match live (non-snapshot) VDIs: a replication target is a single
+    // live VM and we need the active disk for in-place update.  This must
+    // stay consistent with the filter in #decorateVmMetadata.
     const replicatedVdis = sr.$VDIs.filter(vdi => {
       // REPLICATED_TO_SR_UUID is not used here since we are already filtering from sr.$VDIs
-      // Also search snapshot VDIs to support the single-VM replication flow where
-      // base VDIs live on snapshots of the replicated VM.
-      return vdi?.managed && baseUuidToSrcVdi.has(vdi?.other_config[COPY_OF])
+      return vdi?.managed && !vdi?.is_a_snapshot && baseUuidToSrcVdi.has(vdi?.other_config[COPY_OF])
     })
 
     const replicatedCopyOfUuids = replicatedVdis.map(({ other_config }) => other_config?.[COPY_OF]).filter(_ => !!_)
@@ -48,17 +48,13 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     }
 
     // Track the target VM (the replicated VM to update on the next transfer).
-    // For snapshot VDIs, traverse snapshot VM → snapshot_of to reach the replicated VM.
     if (replicatedVdis.length > 0) {
       for (const vdi of replicatedVdis) {
         const vbd = vdi.$VBDs?.find(vbd => !vbd.$VM.is_control_domain)
         if (!vbd || !vbd.$VM) {
           continue
         }
-        let vm = vbd.$VM
-        if (vm.is_a_snapshot) {
-          vm = vm.$snapshot_of
-        }
+        const vm = vbd.$VM
 
         if (vm.blocked_operations.start !== undefined) {
           this._targetVmRef = vm.$ref
