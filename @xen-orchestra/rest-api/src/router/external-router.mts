@@ -1,6 +1,7 @@
-import { FieldDefinition, RouteDefinition } from './types.mjs'
-import { json, Router, Request, Response } from 'express'
+import { BODY_PARSER_CONTENT_TYPES, FieldDefinition, RouteDefinition } from './types.mjs'
+import { Router, Request, Response } from 'express'
 import { invalidParameters } from 'xo-common/api-errors.js'
+import { createLogger } from '@xen-orchestra/log'
 import { pipeline } from 'node:stream/promises'
 import { Readable } from 'node:stream'
 import { z, ZodError } from 'zod'
@@ -11,18 +12,20 @@ import { AuthenticatedRequest } from '../helpers/helper.type.mjs'
 import { expressAuthentication } from '../middlewares/authentication.middleware.mjs'
 import { iocContainer } from '../ioc/ioc.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { isPromise } from 'node:util/types'
 
-// Returns a mountPluginRoute function tha allows routes to be added dynamically to the express router and a reference to the router
-export function createMountPluginRoute(swaggerOpenApiSpec: OpenAPIV3.Document): {
-  mountPluginRoute: Function
-  pluginRouter: Router
+const log = createLogger('xo:rest-api:external-router')
+
+// Returns a mountExternalRoute function that allows routes to be added dynamically to the express router and a reference to the router
+export function createExternalRouter(swaggerOpenApiSpec: OpenAPIV3.Document): {
+  mountExternalRoute: Function
+  externalRouter: Router
 } {
-  const pluginRouter = Router()
-  pluginRouter.use(json())
+  const externalRouter = Router()
 
-  const mountPluginRoute = function mountPluginRoute(route: RouteDefinition) {
+  const mountExternalRoute = function mountExternalRoute(route: RouteDefinition) {
     const restApi = iocContainer.get(RestApi)
+
+    const tags = route.tags ?? []
 
     // Build zod schema for input validation
     const paramsSchema = route.params ? buildZodSchema(route.params) : undefined
@@ -31,7 +34,15 @@ export function createMountPluginRoute(swaggerOpenApiSpec: OpenAPIV3.Document): 
 
     // Format route params for express
     const expressEndpoint = route.endpoint.replace(/{(\w+)}/g, ':$1')
-    pluginRouter[route.method](expressEndpoint, async (req, res, next) => {
+
+    // Get middlewares
+    const middlewares = route.middlewares ?? []
+
+    // Set the body content type based on the used middleware
+    const bodyContentType = middlewares.map(middleware => BODY_PARSER_CONTENT_TYPES[middleware.name]).find(Boolean)
+
+    // Add route to router
+    externalRouter[route.method](expressEndpoint, ...middlewares, async (req, res, next) => {
       try {
         // Handle authentification if required
         if (route.security === undefined) route.security = '*'
@@ -44,13 +55,8 @@ export function createMountPluginRoute(swaggerOpenApiSpec: OpenAPIV3.Document): 
         querySchema?.parse(req.query)
         bodySchema?.parse(req.body)
 
-        let result: ReturnType<typeof route.callback>
-        const callbackPromise = route.callback({ req, res, next, restApi })
-        if (isPromise(callbackPromise)) {
-          result = await callbackPromise
-        } else {
-          result = callbackPromise
-        }
+        // Call the route callback with the right context and parameters
+        const result = await Promise.resolve(route.callback({ req, res, next, restApi }))
 
         // Handle result formating if iterable, status code should be already be set by the route callback
         if (result !== undefined && !res.headersSent) {
@@ -66,7 +72,7 @@ export function createMountPluginRoute(swaggerOpenApiSpec: OpenAPIV3.Document): 
         // Handle zod validation error to run with existing error middleware
         if (error instanceof ZodError) {
           try {
-            invalidParameters(undefined, error.issues)
+            throw invalidParameters(undefined, error.issues)
           } catch (xoError) {
             return next(xoError)
           }
@@ -76,45 +82,49 @@ export function createMountPluginRoute(swaggerOpenApiSpec: OpenAPIV3.Document): 
       }
     })
 
-    // Add route to the swagger documentation in memory)
+    // Add route to the swagger documentation in memory
     addPathToSwagger(
       route.method,
       route.endpoint,
+      tags,
       paramsSchema,
       querySchema,
       bodySchema,
+      bodyContentType,
       route.responses,
       swaggerOpenApiSpec
     )
 
-    // Return an unregister function to remove the route when the plugin is unmounted
+    // Return an unregister function to remove the route when they are not needed anymore
     return () => {
-      const layer = pluginRouter.stack.at(-1)
-      if (layer) {
-        const index = pluginRouter.stack.indexOf(layer)
-        if (index !== -1) {
-          pluginRouter.stack.splice(index, 1)
-        }
+      const index = externalRouter.stack.findIndex(layer => {
+        // layer.route.methods is not exposed so we need to redefine the type
+        const r = layer.route as { path: string; methods: Record<string, boolean> } | undefined
+        return r?.path === expressEndpoint && r.methods[route.method] === true
+      })
+
+      if (index !== -1) {
+        externalRouter.stack.splice(index, 1)
 
         removePathFromSwagger(route.endpoint, route.method, swaggerOpenApiSpec)
       } else {
-        console.warn(
-          `Failed to unregister plugin route ${route.method.toUpperCase()} ${route.endpoint} from Express router.`
-        )
+        log.warn(`Failed to unregister external route ${route.method.toUpperCase()} ${route.endpoint} from REST API.`)
       }
     }
   }
 
-  return { mountPluginRoute, pluginRouter }
+  return { mountExternalRoute, externalRouter }
 }
 
 // Add the rest route path to the rest api swagger with the input schema and response definitons
 function addPathToSwagger(
   method: string,
   fullPath: string,
+  tags: string[],
   paramsSchema: z.ZodType | undefined,
   querySchema: z.ZodType | undefined,
   bodySchema: z.ZodType | undefined,
+  bodyContentType: string | undefined,
   responseDefinitions: RouteDefinition['responses'] = [],
   swaggerOpenApiSpec: OpenAPIV3.Document
 ): void {
@@ -122,30 +132,30 @@ function addPathToSwagger(
     swaggerOpenApiSpec.paths[fullPath] = {}
   }
 
-  const operation: any = {
-    tags: ['plugins'],
+  const operation: OpenAPIV3.OperationObject = {
+    tags: tags.length > 0 ? tags : ['plugins'],
     parameters: [],
     responses: {},
   }
 
-  if (paramsSchema) operation.parameters.push(...extractParametersFromZod(paramsSchema, 'path'))
+  if (paramsSchema) operation.parameters?.push(...extractParametersFromZod(paramsSchema, 'path'))
 
-  if (querySchema) operation.parameters.push(...extractParametersFromZod(querySchema, 'query'))
+  if (querySchema) operation.parameters?.push(...extractParametersFromZod(querySchema, 'query'))
 
-  if (bodySchema) {
+  if (bodySchema && bodyContentType) {
     const { schema: bodyJson } = createSchema(bodySchema, { io: 'input' })
 
     operation.requestBody = {
       required: true,
       content: {
-        'application/json': { schema: bodyJson },
+        [bodyContentType]: { schema: bodyJson as OpenAPIV3.SchemaObject },
       },
     }
   }
 
   if (responseDefinitions) {
     for (const responseDefinition of responseDefinitions ?? []) {
-      const response: any = {
+      const response: OpenAPIV3.ResponseObject = {
         description: responseDefinition.description,
       }
 
@@ -213,7 +223,7 @@ function buildZodSchema(def: Record<string, FieldDefinition>): z.ZodObject<Recor
 }
 
 // Build OpenApi parameters from zod schema
-function extractParametersFromZod(schema: z.ZodType, location: 'path' | 'query'): Array<Record<string, unknown>> {
+function extractParametersFromZod(schema: z.ZodType, location: 'path' | 'query'): Array<OpenAPIV3.ParameterObject> {
   const { schema: jsonSchema } = createSchema(schema, { io: 'input' })
 
   // If it’s a $ref, we can’t expand properties
@@ -223,7 +233,7 @@ function extractParametersFromZod(schema: z.ZodType, location: 'path' | 'query')
         name: location,
         in: location,
         required: true,
-        schema: jsonSchema,
+        schema: jsonSchema as OpenAPIV3.SchemaObject,
       },
     ]
   }
