@@ -3,6 +3,7 @@ import assert from 'node:assert'
 import { FileDescriptor } from '@xen-orchestra/fs'
 import {
   ArchiveCleanOptions,
+  CheckResult,
   VmBackupInterface,
   PartialBackupMetadata,
   ResolvedBackupCleanOptions,
@@ -97,7 +98,7 @@ export class VmFullBackupArchive implements VmBackupInterface {
 
   async init() {}
 
-  async check(): Promise<object> {
+  async check(): Promise<CheckResult> {
     try {
       if (this.isValid === undefined) {
         this.isValid = await isValidXva(this.handler, this.xvaPath)
@@ -109,7 +110,7 @@ export class VmFullBackupArchive implements VmBackupInterface {
     if (!this.isValid) {
       this.opts.logWarn('XVA might be broken', { path: this.xvaPath })
     }
-    return { xvaValid: this.isValid }
+    return { isValid: this.isValid! }
   }
 
   /**
