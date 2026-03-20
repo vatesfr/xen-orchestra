@@ -1,6 +1,12 @@
 import RemoteHandlerAbstract from '@xen-orchestra/fs'
 import { basename, normalize } from '@xen-orchestra/fs/path'
-import { MergeRemoteDisk, openDisk, openDiskChainFromPaths, instantiateDisk } from '@xen-orchestra/backups/disks'
+import {
+  MergeRemoteDisk,
+  openDisk,
+  openDiskChainFromPaths,
+  instantiateDisk,
+  RemoteDisk,
+} from '@xen-orchestra/backups/disks'
 import {
   DEFAULT_MERGE_CONCURRENCY,
   DEFAULT_REMOVE_CONCURRENCY,
@@ -61,7 +67,7 @@ export class RemoteDiskLineage {
     }
 
     for (const diskPath of this.#diskPaths) {
-      let disk: any
+      let disk: RemoteDisk | undefined
       try {
         disk = await openDisk({ handler: this.#handler as any, path: diskPath })
       } catch (error: any) {
@@ -165,9 +171,12 @@ export class RemoteDiskLineage {
 
     for (const orphan of this.#orphanDisks) {
       if (!visited.has(orphan)) {
-        const chain = getUsedChildChainOrDelete(orphan)
-        if (chain !== undefined && chain.length > 1) {
-          toMerge.push({ chain, isResuming: this.#interruptedMerges.has(chain[0]) })
+        const parent = this.#parentOf.get(orphan)
+        if (parent === undefined || !this.#orphanDisks.has(parent)) {
+          const chain = getUsedChildChainOrDelete(orphan)
+          if (chain !== undefined && chain.length > 1) {
+            toMerge.push({ chain, isResuming: this.#interruptedMerges.has(chain[0]) })
+          }
         }
       }
     }
