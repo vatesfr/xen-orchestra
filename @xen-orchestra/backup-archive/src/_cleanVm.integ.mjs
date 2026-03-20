@@ -242,6 +242,44 @@ test('it merges delta of non destroyed chain', async () => {
   assert.equal(remainingVhds.includes('grandchild.vhd'), true)
 })
 
+test('it merges a chain of multiple consecutive orphan ancestors in one pass', async () => {
+  // ancestor → child → grandchild
+  // only grandchild is referenced in metadata: both ancestor and child are orphans
+  // they must be merged as a single 3-disk chain, not processed separately
+  // (regression: if child was visited before ancestor, ancestor was incorrectly deleted)
+  await handler.writeFile(
+    `${rootPath}/metadata.json`,
+    JSON.stringify({
+      mode: 'delta',
+      size: 12000,
+      vhds: [`${relativePath}/grandchild.vhd`],
+    })
+  )
+
+  const ancestor = await generateVhd(`${basePath}/ancestor.vhd`)
+  const child = await generateVhd(`${basePath}/child.vhd`, {
+    header: { parentUnicodeName: 'ancestor.vhd', parentUuid: ancestor.footer.uuid },
+  })
+  await generateVhd(`${basePath}/grandchild.vhd`, {
+    header: { parentUnicodeName: 'child.vhd', parentUuid: child.footer.uuid },
+  })
+
+  const mergeChains = []
+  const logInfo = (message, opts) => {
+    if (message === 'merging disk chain') mergeChains.push(opts.chain)
+  }
+  await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true, merge: true, logInfo, logWarn: () => {} })
+
+  // all three disks must be handled in exactly one merge, not two separate operations
+  assert.equal(mergeChains.length, 1, 'exactly one merge should occur for the full chain')
+  assert.equal(mergeChains[0].length, 3, 'merge chain must include ancestor, child and grandchild')
+
+  const remainingVhds = await handler.list(basePath)
+  assert.equal(remainingVhds.includes('grandchild.vhd'), true)
+  assert.equal(remainingVhds.includes('ancestor.vhd'), false, 'ancestor should have been merged, not deleted directly')
+  assert.equal(remainingVhds.includes('child.vhd'), false)
+})
+
 test('it finish unterminated merge ', async () => {
   await handler.writeFile(
     `${rootPath}/metadata.json`,
