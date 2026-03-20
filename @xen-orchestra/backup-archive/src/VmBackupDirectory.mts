@@ -249,7 +249,7 @@ export class VmBackupDirectory implements VmBackupInterface {
       }
     } catch (error) {
       this.opts.logWarn(`Error trying to create backupArchive from ${metadataPath}`, { metadata })
-      throw new Error(`Error trying to create backupArchive from ${metadataPath}`)
+      throw new Error(`Error trying to create backupArchive from ${metadataPath}`, { cause: error })
     }
     await backupArchive.init()
     return backupArchive
