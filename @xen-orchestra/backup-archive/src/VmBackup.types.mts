@@ -1,5 +1,6 @@
 import { RemoteDisk } from '@xen-orchestra/backups/disks'
 import RemoteHandlerAbstract from '@xen-orchestra/fs'
+import { basename } from 'node:path'
 
 export function isMetadataFile(filename: string): boolean {
   return filename.endsWith('.json')
@@ -20,7 +21,7 @@ export function isVhdAlias(filename: string) {
   return filename.endsWith('.alias.vhd')
 }
 export function isDiskFile(filename: string) {
-  return isVhdFile(filename)
+  return isVhdFile(filename) && !basename(filename).startsWith('.')
 }
 export type AnomalyReport = {
   multipleChildren: Array<string>
