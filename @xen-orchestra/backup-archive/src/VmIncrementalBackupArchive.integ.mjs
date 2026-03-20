@@ -243,10 +243,9 @@ test('it merges delta of non destroyed chain', async () => {
 })
 
 test('it merges a chain of multiple consecutive orphan ancestors in one pass', async () => {
-  // ancestor → child → grandchild
+  // ancestor -> child -> grandchild
   // only grandchild is referenced in metadata: both ancestor and child are orphans
   // they must be merged as a single 3-disk chain, not processed separately
-  // (regression: if child was visited before ancestor, ancestor was incorrectly deleted)
   await handler.writeFile(
     `${rootPath}/metadata.json`,
     JSON.stringify({
@@ -438,6 +437,11 @@ describe('tests multiple combination ', { concurrency: 1 }, () => {
         const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
         // size should be the size of children + grand children + clean after the merge
         assert.deepEqual(metadata.size, 4404224)
+        // cache.json.gz must be regenerated when metadata changes after a merge
+        assert.ok(
+          (await handler.list(rootPath)).includes('cache.json.gz'),
+          'cache.json.gz should be regenerated after a merge'
+        )
 
         // broken vhd, non referenced, abandoned should be deleted ( alias and data)
         // ancestor and child should be merged
