@@ -278,7 +278,7 @@ export class RemoteDiskLineage {
 
     const merger = new MergeRemoteDisk(this.#handler as any, {
       logInfo: this.#opts.logInfo,
-      removeUnused: true,
+      removeUnused: this.#opts.remove,
     })
 
     // isResuming is known from #interruptedMerges — no extra file read needed
