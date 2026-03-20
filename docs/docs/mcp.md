@@ -218,6 +218,32 @@ List virtual disks (VDIs) in Xen Orchestra with optional filtering.
 
 ---
 
+### `list_networks`
+
+List all networks in Xen Orchestra with optional filtering.
+
+| Parameter | Type   | Required | Description                                                                       |
+| --------- | ------ | -------- | --------------------------------------------------------------------------------- |
+| `filter`  | string | No       | Filter expression (e.g., `bridge:xenbr0`)                                         |
+| `fields`  | string | No       | Comma-separated fields (default: `id,name_label,name_description,bridge,MTU,nbd`) |
+| `limit`   | number | No       | Maximum number of results                                                         |
+
+**Example question:** "List all networks using bridge xenbr0"
+
+---
+
+### `get_network_details`
+
+Get detailed information about a specific network.
+
+| Parameter    | Type   | Required | Description    |
+| ------------ | ------ | -------- | -------------- |
+| `network_id` | string | Yes      | The network ID |
+
+**Example question:** "Give me the details of network abc123"
+
+---
+
 ### `get_vm_details`
 
 Get detailed information about a specific virtual machine.

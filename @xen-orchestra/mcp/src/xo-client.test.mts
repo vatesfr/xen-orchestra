@@ -349,6 +349,59 @@ describe('XoClient', () => {
     })
   })
 
+  describe('listNetworks', () => {
+    it('returns networks with default fields', async () => {
+      const networks = [{ id: 'network1', name_label: 'Network 1' }]
+      const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'pass' })
+
+      globalThis.fetch = async (input: RequestInfo | URL) => {
+        const url = typeof input === 'string' ? input : input.toString()
+        assert.ok(url.includes('fields=id%2Cname_label%2Cname_description%2Cbridge%2CMTU%2Cnbd'))
+        return mockResponse(networks)
+      }
+      const result = await client.listNetworks()
+      assert.deepStrictEqual(result, networks)
+    })
+
+    it('passes filter, fields, and limit via object', async () => {
+      const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'pass' })
+
+      globalThis.fetch = async (input: RequestInfo | URL) => {
+        const url = typeof input === 'string' ? input : input.toString()
+        assert.ok(url.includes('filter=bridge'))
+        assert.ok(url.includes('limit=10'))
+        return mockResponse([])
+      }
+      await client.listNetworks({ filter: 'bridge:xenbr0', fields: 'id,name_label', limit: 10 })
+    })
+  })
+
+  describe('getNetwork', () => {
+    it('returns network details', async () => {
+      const network = { id: 'network1', name_label: 'Network 1', bridge: 'xenbr0' }
+      const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'pass' })
+
+      globalThis.fetch = async (input: RequestInfo | URL) => {
+        const url = typeof input === 'string' ? input : input.toString()
+        assert.ok(url.includes('/networks/network1'))
+        return mockResponse(network)
+      }
+      const result = await client.getNetwork('network1')
+      assert.deepStrictEqual(result, network)
+    })
+
+    it('encodes special characters in network ID', async () => {
+      const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'pass' })
+
+      globalThis.fetch = async (input: RequestInfo | URL) => {
+        const url = typeof input === 'string' ? input : input.toString()
+        assert.ok(url.includes('/networks/net%2Fspecial'), `URL should encode slash: ${url}`)
+        return mockResponse({ id: 'net/special', name_label: 'Special' })
+      }
+      await client.getNetwork('net/special')
+    })
+  })
+
   describe('getPoolDashboard', () => {
     it('returns dashboard data', async () => {
       const dashboard = { hostsByStatus: { running: 2 }, vmsByStatus: { running: 10 } }
