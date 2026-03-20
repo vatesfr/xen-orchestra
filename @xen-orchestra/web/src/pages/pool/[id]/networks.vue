@@ -12,6 +12,11 @@
                 {{ t('action:create-network') }}
               </UiLink>
             </MenuItem>
+            <MenuItem>
+              <UiLink :to="{ name: '/network/new-bonded', query: { poolid: pool.id } }" icon="fa:plus" size="medium">
+                {{ t('action:create-bonded-network') }}
+              </UiLink>
+            </MenuItem>
           </MenuList>
         </template>
       </NetworksTable>
