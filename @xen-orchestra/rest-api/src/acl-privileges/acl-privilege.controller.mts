@@ -1,3 +1,4 @@
+import type { AnyPrivilege } from '@xen-orchestra/acl'
 import {
   Body,
   Delete,
@@ -33,7 +34,6 @@ import {
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
-import type { RestAnyPrivilege } from './acl-privilege.type.mjs'
 import type { SafeOmit, SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { entityId } from '../open-api/oa-examples/common.oa-example.mjs'
@@ -44,12 +44,12 @@ import { entityId } from '../open-api/oa-examples/common.oa-example.mjs'
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('acls')
 @provide(AclPrivilegeController)
-export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
-  getAllCollectionObjects(): Promise<RestAnyPrivilege[]> {
-    return this.restApi.xoApp.getAclV2Privileges() as Promise<RestAnyPrivilege[]>
+export class AclPrivilegeController extends XoController<AnyPrivilege> {
+  getAllCollectionObjects(): Promise<AnyPrivilege[]> {
+    return this.restApi.xoApp.getAclV2Privileges() as Promise<AnyPrivilege[]>
   }
-  getCollectionObject(id: RestAnyPrivilege['id']): Promise<RestAnyPrivilege> {
-    return this.restApi.xoApp.getAclV2Privilege(id) as Promise<RestAnyPrivilege>
+  getCollectionObject(id: AnyPrivilege['id']): Promise<AnyPrivilege> {
+    return this.restApi.xoApp.getAclV2Privilege(id) as Promise<AnyPrivilege>
   }
 
   /**
@@ -69,7 +69,7 @@ export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
     @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): SendObjects<Partial<Unbrand<RestAnyPrivilege>>> {
+  ): SendObjects<Partial<Unbrand<AnyPrivilege>>> {
     return this.sendObjects(Object.values(await this.getObjects({ filter })), req, {
       limit,
       privilege: { action: 'read', resource: 'acl-privilege' },
@@ -93,9 +93,9 @@ export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParameters.status, invalidParameters.description)
   async createAclV2Privilege(
-    @Body() privilege: Unbrand<SafeOmit<RestAnyPrivilege, 'id'>>
-  ): Promise<{ id: Unbrand<RestAnyPrivilege>['id'] }> {
-    const newPrivilege = await this.restApi.xoApp.createAclV2Privilege(privilege as SafeOmit<RestAnyPrivilege, 'id'>)
+    @Body() privilege: Unbrand<SafeOmit<AnyPrivilege, 'id'>>
+  ): Promise<{ id: Unbrand<AnyPrivilege>['id'] }> {
+    const newPrivilege = await this.restApi.xoApp.createAclV2Privilege(privilege as SafeOmit<AnyPrivilege, 'id'>)
 
     return { id: newPrivilege.id }
   }
@@ -106,8 +106,8 @@ export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
   @Example(aclPrivilege)
   @Get('{id}')
   @Response(notFoundResp.status, notFoundResp.description)
-  getAclV2Privilege(@Path() id: string): Promise<Unbrand<RestAnyPrivilege>> {
-    return this.getObject(id as RestAnyPrivilege['id'])
+  getAclV2Privilege(@Path() id: string): Promise<Unbrand<AnyPrivilege>> {
+    return this.getObject(id as AnyPrivilege['id'])
   }
 
   /**
@@ -118,7 +118,7 @@ export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteAclV2Privilege(@Path() id: string): Promise<void> {
-    await this.restApi.xoApp.deleteAclV2Privilege(id as RestAnyPrivilege['id'])
+    await this.restApi.xoApp.deleteAclV2Privilege(id as AnyPrivilege['id'])
   }
 
   /**
@@ -138,8 +138,8 @@ export class AclPrivilegeController extends XoController<RestAnyPrivilege> {
   @Response(invalidParameters.status, invalidParameters.description)
   async updateAclV2Privilege(
     @Path() id: string,
-    @Body() privilege: Unbrand<SafeOmit<RestAnyPrivilege, 'id' | 'roleId'>>
+    @Body() privilege: Unbrand<SafeOmit<AnyPrivilege, 'id' | 'roleId'>>
   ): Promise<void> {
-    await this.restApi.xoApp.updateAclV2Privilege(id as RestAnyPrivilege['id'], privilege)
+    await this.restApi.xoApp.updateAclV2Privilege(id as AnyPrivilege['id'], privilege)
   }
 }

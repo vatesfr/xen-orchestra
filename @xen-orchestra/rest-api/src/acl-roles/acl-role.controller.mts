@@ -1,3 +1,4 @@
+import type { AnyPrivilege } from '@xen-orchestra/acl'
 import {
   Body,
   Delete,
@@ -35,7 +36,6 @@ import {
 import { BASE_URL } from '../index.mjs'
 import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
-import type { RestAnyPrivilege } from '../acl-privileges/acl-privilege.type.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
@@ -197,8 +197,8 @@ export class AclRoleController extends XoController<XoAclRole> {
     @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): SendObjects<Partial<Unbrand<RestAnyPrivilege>>> {
-    const privileges = (await this.restApi.xoApp.getAclV2RolePrivileges(id as XoAclRole['id'])) as RestAnyPrivilege[]
+  ): SendObjects<Partial<Unbrand<AnyPrivilege>>> {
+    const privileges = (await this.restApi.xoApp.getAclV2RolePrivileges(id as XoAclRole['id']))
     return this.sendObjects(limitAndFilterArray(privileges, { filter }), req, {
       path: 'acl-privileges',
       limit,
