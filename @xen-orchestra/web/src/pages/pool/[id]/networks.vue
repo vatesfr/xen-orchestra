@@ -22,7 +22,7 @@
       </NetworksTable>
       <NetworksTable :busy="!areNetworksReady" :error="hasNetworkFetchError" :networks="internalNetworks" internal>
         <template #title-actions>
-          <UiLink :to="{ name: '/network/new', query: { poolid: pool.id } }" icon="fa:plus" size="medium">
+          <UiLink :to="{ name: '/network/new-internal', query: { poolid: pool.id } }" icon="fa:plus" size="medium">
             {{ t('new') }}
           </UiLink>
         </template>
