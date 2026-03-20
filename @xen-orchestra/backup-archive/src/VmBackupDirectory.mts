@@ -13,7 +13,10 @@ import {
   DEFAULT_MERGE_CONCURRENCY,
 } from './VmBackup.types.mjs'
 import { asyncEach } from '@vates/async-each'
+import { createLogger } from '@xen-orchestra/log'
 import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter.mjs'
+
+const { info: logInfo, warn: logWarn } = createLogger('xo:backup-archive')
 
 const FILES_TO_KEEP = ['cache.json.gz', 'vdis']
 
@@ -39,8 +42,8 @@ export class VmBackupDirectory implements VmBackupInterface {
       fix: true,
       merge: false,
       remove: false,
-      logInfo: console.info,
-      logWarn: console.warn,
+      logInfo,
+      logWarn,
     }
   ) {
     this.handler = handler
@@ -50,8 +53,8 @@ export class VmBackupDirectory implements VmBackupInterface {
       fix: opts.fix ?? true,
       merge: opts.merge ?? false,
       remove: opts.remove ?? false,
-      logInfo: opts.logInfo ?? console.info,
-      logWarn: opts.logWarn ?? console.warn,
+      logInfo: opts.logInfo ?? logInfo,
+      logWarn: opts.logWarn ?? logWarn,
     }
     this.#remoteAdapter = new RemoteAdapter(handler)
   }
