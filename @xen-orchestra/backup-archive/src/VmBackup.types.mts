@@ -74,6 +74,16 @@ export interface BackupLineageInterface {
   getLinkedBackups(): Map<string, RemoteDisk>
 }
 
+export interface CheckResult {
+  isValid: boolean
+  // Files referenced by metadata but absent on disk
+  missingDisks?: string[]
+  // Files present on disk but not referenced by metadata
+  orphans?: string[]
+  // Files referenced by at least one valid backup
+  linked?: string[]
+}
+
 export interface VmBackupInterface {
   handler: RemoteHandlerAbstract
   // metadataPath: string
@@ -82,7 +92,7 @@ export interface VmBackupInterface {
   opts: BackupCleanOptions
 
   init(): Promise<void>
-  check(): Promise<object>
+  check(): Promise<CheckResult>
   clean(opts?: ArchiveCleanOptions): Promise<Array<string>>
   getAssociatedFiles(opts: object): Array<string>
 }

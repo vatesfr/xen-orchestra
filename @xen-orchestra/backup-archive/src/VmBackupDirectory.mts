@@ -7,6 +7,7 @@ import { RemoteDiskLineage } from './RemoteDiskLineage.mjs'
 import {
   ArchiveCleanOptions,
   BackupCleanOptions,
+  CheckResult,
   VmBackupInterface,
   PartialBackupMetadata,
   ResolvedBackupCleanOptions,
@@ -32,7 +33,7 @@ export class VmBackupDirectory implements VmBackupInterface {
   // Disk paths still referenced by at least one surviving complete delta backup
   #activeDiskPaths: Set<string> = new Set()
   // Cached result of the last check() call; invalidated by init()
-  #checkResult: { orphans: string[]; linked: string[] } | undefined = undefined
+  #checkResult: (CheckResult & { orphans: string[]; linked: string[] }) | undefined = undefined
   #remoteAdapter: RemoteAdapter
 
   constructor(
@@ -134,7 +135,7 @@ export class VmBackupDirectory implements VmBackupInterface {
     for (const file of this.files.filter(file => !allUsedFiles.includes(file))) {
       orphans.push(file)
     }
-    this.#checkResult = { orphans, linked: allUsedFiles }
+    this.#checkResult = { isValid: orphans.length === 0, orphans, linked: allUsedFiles }
     return this.#checkResult
   }
 
