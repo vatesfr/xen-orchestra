@@ -115,7 +115,7 @@ export class VmBackupDirectory implements VmBackupInterface {
     // Disks from incomplete backups are not protected so they can be cleaned up in one run.
     this.#activeDiskPaths = new Set()
     for (const archive of this.backupArchives.values()) {
-      if (archive instanceof VmIncrementalBackupArchive && archive.isComplete === true) {
+      if (archive instanceof VmIncrementalBackupArchive && archive.isComplete) {
         for (const diskPath of archive.diskPaths) {
           this.#activeDiskPaths.add(diskPath)
         }
