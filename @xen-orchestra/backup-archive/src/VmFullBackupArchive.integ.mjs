@@ -119,4 +119,26 @@ describe('VmBackupDirectory with full backups', { concurrency: 1 }, () => {
     assert.equal(remainingFiles.length, 3)
     assert.ok(remainingFiles.includes('cache.json.gz'))
   })
+
+  test('clean() removes an orphan XVA checksum file (no matching metadata or XVA)', async () => {
+    await handler.writeFile(`${rootPath}/stray.xva.checksum`, 'sha256:deadbeef')
+
+    await vmBackupDir.init()
+    await vmBackupDir.clean({ remove: true })
+
+    const remainingFiles = await handler.list(rootPath)
+    assert.ok(!remainingFiles.includes('stray.xva.checksum'), 'orphan XVA checksum should be deleted')
+  })
+
+  test('clean() keeps an XVA checksum file alongside its valid full backup', async () => {
+    await createFullBackupMetadata('backup1.json', 'backup1.xva')
+    await handler.writeFile(`${rootPath}/backup1.xva.checksum`, 'sha256:abc123')
+
+    await vmBackupDir.init()
+    await vmBackupDir.clean({ remove: true })
+
+    const remainingFiles = await handler.list(rootPath)
+    assert.ok(remainingFiles.includes('backup1.xva'), 'XVA should be kept')
+    assert.ok(remainingFiles.includes('backup1.xva.checksum'), 'checksum should be kept alongside its valid backup')
+  })
 })
