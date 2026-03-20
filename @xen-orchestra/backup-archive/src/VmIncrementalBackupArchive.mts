@@ -15,10 +15,14 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
   rootPath: string
   opts: ResolvedBackupCleanOptions
 
-  // undefined = check() not yet called
-  #isComplete: boolean | undefined = undefined
+  #isChecked = false
+  #isComplete = false
 
-  get isComplete(): boolean | undefined {
+  get isChecked(): boolean {
+    return this.#isChecked
+  }
+
+  get isComplete(): boolean {
     return this.#isComplete
   }
 
@@ -48,23 +52,23 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
     if (this.diskPaths.length === 0) {
       this.opts.logWarn('incremental backup has no disk paths', { metadataPath: this.metadataPath })
       this.#isComplete = false
-      return { complete: false, missingDisks }
-    }
+    } else {
+      for (const diskPath of this.diskPaths) {
+        try {
+          await this.handler.getSize(diskPath)
+        } catch {
+          missingDisks.push(diskPath)
+          this.opts.logWarn('disk file missing', { path: diskPath })
+        }
+      }
 
-    for (const diskPath of this.diskPaths) {
-      try {
-        await this.handler.getSize(diskPath)
-      } catch {
-        missingDisks.push(diskPath)
-        this.opts.logWarn('disk file missing', { path: diskPath })
+      this.#isComplete = missingDisks.length === 0
+      this.#isChecked = true
+      if (!this.#isComplete) {
+        this.opts.logWarn('incremental backup is incomplete', { metadataPath: this.metadataPath, missingDisks })
       }
     }
-
-    this.#isComplete = missingDisks.length === 0
-    if (!this.#isComplete) {
-      this.opts.logWarn('incremental backup is incomplete', { metadataPath: this.metadataPath, missingDisks })
-    }
-
+    this.#isChecked = true
     return { complete: this.#isComplete, missingDisks }
   }
 
@@ -73,7 +77,7 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
    * Actual disk merge/deletion is handled by RemoteDiskLineage.
    */
   async clean({ remove = this.opts.remove ?? false }: ArchiveCleanOptions = {}): Promise<Array<string>> {
-    if (this.#isComplete === undefined) {
+    if (!this.#isChecked) {
       await this.check()
     }
 
@@ -116,7 +120,7 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
    * Must be called after check().
    */
   getAssociatedFiles({ prefix = false }): Array<string> {
-    if (this.#isComplete !== true) {
+    if (!this.#isComplete) {
       return []
     }
     const files = [this.metadataPath]
