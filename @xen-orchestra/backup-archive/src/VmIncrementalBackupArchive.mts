@@ -1,5 +1,6 @@
 import {
   ArchiveCleanOptions,
+  CheckResult,
   ResolvedBackupCleanOptions,
   VmBackupInterface,
   PartialBackupMetadata,
@@ -46,7 +47,7 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
     // Validation is deferred to check()
   }
 
-  async check(): Promise<object> {
+  async check(): Promise<CheckResult> {
     const missingDisks: string[] = []
 
     if (this.diskPaths.length === 0) {
@@ -69,7 +70,7 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
       }
     }
     this.#isChecked = true
-    return { complete: this.#isComplete, missingDisks }
+    return { isValid: this.#isComplete, missingDisks }
   }
 
   /**
