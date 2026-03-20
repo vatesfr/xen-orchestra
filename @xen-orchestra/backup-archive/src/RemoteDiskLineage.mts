@@ -1,9 +1,13 @@
 import RemoteHandlerAbstract from '@xen-orchestra/fs'
 import { basename, normalize } from '@xen-orchestra/fs/path'
 import { MergeRemoteDisk, openDisk, openDiskChainFromPaths, instantiateDisk } from '@xen-orchestra/backups/disks'
-import { isDiskFile, ResolvedBackupCleanOptions } from './VmBackup.types.mjs'
-
-type MergeLimiter = (fn: (...args: any[]) => any) => (...args: any[]) => any
+import {
+  DEFAULT_MERGE_CONCURRENCY,
+  DEFAULT_REMOVE_CONCURRENCY,
+  isDiskFile,
+  ResolvedBackupCleanOptions,
+} from './VmBackup.types.mjs'
+import { asyncEach } from '@vates/async-each'
 
 const INTERRUPTED_VHD_RE = /^\.(.+)\.merge\.json$/
 
@@ -125,12 +129,9 @@ export class RemoteDiskLineage {
    * Deletes orphan merge state files (for missing disks) when opts.remove is true.
    *
    * Requires setActiveDiskPaths() to have been called first (done by VmBackupDirectory.check()).
-   * @param mergeLimiter - Wraps merge calls to limit global concurrency.
    * @returns Set of deleted disk paths.
    */
-  async clean(
-    mergeLimiter: MergeLimiter = fn => fn
-  ): Promise<{ deleted: Set<string>; mergedSizes: Map<string, number> }> {
+  async clean(): Promise<{ deleted: Set<string>; mergedSizes: Map<string, number> }> {
     const toDelete = new Set<string>()
     const toMerge: { chain: string[]; isResuming: boolean }[] = []
     const visited = new Set<string>()
@@ -196,27 +197,31 @@ export class RemoteDiskLineage {
     // mergeTargetPath → final size of the disk everything was merged into
     const mergedSizes = new Map<string, number>()
 
-    await Promise.all([
-      ...Array.from(toDelete).map(async path => {
-        if (this.#opts.remove) {
+    if (this.#opts.remove) {
+      await asyncEach(
+        Array.from(toDelete),
+        async path => {
           this.#opts.logInfo('deleting unused disk', { path })
           try {
             await instantiateDisk({ handler: this.#handler as any, path }).unlink({ force: true })
           } catch (error) {
             this.#opts.logWarn('failed to delete unused disk', { path, error })
           }
-        }
-      }),
-      ...(this.#opts.merge
-        ? toMerge.map(async ({ chain, isResuming }) => {
-            const { finalDiskSize, mergeTargetPath } = await mergeLimiter(this.#mergeChain.bind(this))(
-              chain,
-              isResuming
-            )
-            mergedSizes.set(mergeTargetPath, (mergedSizes.get(mergeTargetPath) ?? 0) + finalDiskSize)
-          })
-        : []),
-    ])
+        },
+        { concurrency: DEFAULT_REMOVE_CONCURRENCY }
+      )
+    }
+
+    if (this.#opts.merge) {
+      await asyncEach(
+        toMerge,
+        async ({ chain, isResuming }) => {
+          const { finalDiskSize, mergeTargetPath } = await this.#mergeChain(chain, isResuming)
+          mergedSizes.set(mergeTargetPath, (mergedSizes.get(mergeTargetPath) ?? 0) + finalDiskSize)
+        },
+        { concurrency: DEFAULT_MERGE_CONCURRENCY }
+      )
+    }
 
     await this.#cleanDataDirectory()
 

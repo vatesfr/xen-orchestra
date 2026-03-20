@@ -39,8 +39,8 @@ export interface PartialBackupMetadata {
   scheduleId: string
   timestamp: number
 }
-
-export type MergeLimiter = (fn: (...args: any[]) => any) => (...args: any[]) => any
+export const DEFAULT_MERGE_CONCURRENCY = 1
+export const DEFAULT_REMOVE_CONCURRENCY = 4
 
 export interface BackupCleanOptions {
   fix?: boolean
@@ -62,7 +62,6 @@ export interface ArchiveCleanOptions {
    * Ignored by full backups; reserved for incremental use.
    */
   activeDisks?: Set<string>
-  mergeLimiter?: MergeLimiter
 }
 
 export interface BackupLineageInterface {
