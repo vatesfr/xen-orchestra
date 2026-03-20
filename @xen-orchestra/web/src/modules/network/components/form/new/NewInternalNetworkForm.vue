@@ -1,8 +1,7 @@
 <template>
-  <form class="new-bonded-network-form" @submit.prevent="onSubmit()">
-    <div class="row">
+  <form class="new-internal-network-form" @submit.prevent="onSubmit()">
+    <div class="row pool">
       <NewNetworkPoolSelect :id="poolSelectId" />
-      <NewBondedNetworkInterfacesSelect :id="interfacesSelectId" />
     </div>
     <div class="row">
       <div class="column">
@@ -11,25 +10,22 @@
       </div>
       <NewNetworkDescriptionTextarea v-model="formData.description" />
     </div>
-    <NewBondedNetworkBondModeSelect :id="bondModeSelectId" class="bond-mode" />
     <div class="nbd">
       <NewNetworkNbdCheckbox v-model="formData.nbd" />
     </div>
-    <NewNetworkButtonsSection :cancel-to :submit-label="t('action:create-bonded-network')" />
+    <NewNetworkButtonsSection :cancel-to :submit-label="t('action:create-internal-network')" />
   </form>
 </template>
 
 <script lang="ts" setup>
-import NewBondedNetworkBondModeSelect from '@/modules/network/components/form/new/inputs/NewBondedNetworkBondModeSelect.vue'
-import NewBondedNetworkInterfacesSelect from '@/modules/network/components/form/new/inputs/NewBondedNetworkInterfacesSelect.vue'
 import NewNetworkDescriptionTextarea from '@/modules/network/components/form/new/inputs/NewNetworkDescriptionTextarea.vue'
 import NewNetworkMtuInput from '@/modules/network/components/form/new/inputs/NewNetworkMtuInput.vue'
 import NewNetworkNameInput from '@/modules/network/components/form/new/inputs/NewNetworkNameInput.vue'
 import NewNetworkNbdCheckbox from '@/modules/network/components/form/new/inputs/NewNetworkNbdCheckbox.vue'
 import NewNetworkPoolSelect from '@/modules/network/components/form/new/inputs/NewNetworkPoolSelect.vue'
 import NewNetworkButtonsSection from '@/modules/network/components/form/new/NewNetworkButtonsSection.vue'
-import { useNewBondedNetworkForm } from '@/modules/network/form/new-bonded/use-new-bonded-network-form.ts'
-import type { NewBondedNetworkPayload } from '@/modules/network/jobs/xo-bonded-network-create.job.ts'
+import { useNewInternalNetworkForm } from '@/modules/network/form/new-internal/use-new-internal-network-form.ts'
+import type { NewInternalNetworkPayload } from '@/modules/network/jobs/xo-internal-network-create.job.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
@@ -40,13 +36,12 @@ const { poolId, cancelTo } = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  create: [data: NewBondedNetworkPayload]
+  create: [data: NewInternalNetworkPayload]
 }>()
 
 const { t } = useI18n()
 
-const { formData, poolSelectId, interfacesSelectId, bondModeSelectId, validateAndBuildPayload } =
-  useNewBondedNetworkForm(() => poolId)
+const { formData, poolSelectId, validateAndBuildPayload } = useNewInternalNetworkForm(() => poolId)
 
 async function onSubmit() {
   const payload = await validateAndBuildPayload()
@@ -58,7 +53,7 @@ async function onSubmit() {
 </script>
 
 <style lang="postcss" scoped>
-.new-bonded-network-form {
+.new-internal-network-form {
   .row {
     display: flex;
     align-items: start;
@@ -85,9 +80,8 @@ async function onSubmit() {
     }
   }
 
-  .bond-mode {
+  .pool {
     max-width: 40rem;
-    margin-block-start: 2.4rem;
   }
 
   .nbd {
