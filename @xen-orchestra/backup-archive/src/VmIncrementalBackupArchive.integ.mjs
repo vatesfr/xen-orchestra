@@ -189,6 +189,11 @@ test('it remove backup meta data referencing a missing vhd in delta backup', asy
   await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true, logInfo, logWarn: () => {} })
   matched = logged.match(/deleting unused disk/g) || []
   assert.equal(matched.length, 2) // all vhds (orphan and  child  ) should have been deleted
+
+  assert.ok(
+    (await handler.list(rootPath)).includes('cache.json.gz'),
+    'cache.json.gz should be regenerated after metadata deletion'
+  )
 })
 
 test('it merges delta of non destroyed chain', async () => {

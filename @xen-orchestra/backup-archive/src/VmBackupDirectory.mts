@@ -143,10 +143,14 @@ export class VmBackupDirectory implements VmBackupInterface {
     const { orphans } = this.#checkResult ?? (await this.check())
 
     // Let each archive clean its own files (e.g. remove metadata for incomplete backups)
+    let cacheNeedsRegen = false
     await asyncEach(
       Array.from(this.backupArchives.values()),
       async (archive: VmBackupInterface) => {
-        await archive.clean({ remove })
+        const removedFiles = await archive.clean({ remove })
+        if (removedFiles.length > 0) {
+          cacheNeedsRegen = true
+        }
       },
       { concurrency: 2 }
     )
@@ -156,7 +160,10 @@ export class VmBackupDirectory implements VmBackupInterface {
     await asyncEach(
       Array.from(this.diskLineages.values()),
       async lineage => {
-        const { mergedSizes } = await lineage.clean()
+        const { mergedSizes, deleted } = await lineage.clean()
+        if (deleted.size > 0) {
+          cacheNeedsRegen = true
+        }
         for (const [diskPath, size] of mergedSizes) {
           allMergedSizes.set(diskPath, (allMergedSizes.get(diskPath) ?? 0) + size)
         }
@@ -164,8 +171,7 @@ export class VmBackupDirectory implements VmBackupInterface {
       { concurrency: DEFAULT_MERGE_CONCURRENCY }
     )
 
-    // Update metadata size for archives that had disks merged, then regenerate cache
-    let metadataUpdated = false
+    // Update metadata size for archives that had disks merged
     for (const archive of this.backupArchives.values()) {
       if (archive instanceof VmIncrementalBackupArchive) {
         let mergedSize = 0
@@ -174,11 +180,11 @@ export class VmBackupDirectory implements VmBackupInterface {
         }
         if (mergedSize > 0) {
           await archive.updateMetadata(mergedSize)
-          metadataUpdated = true
+          cacheNeedsRegen = true
         }
       }
     }
-    if (metadataUpdated) {
+    if (cacheNeedsRegen) {
       await this.#regenerateCache()
     }
 
