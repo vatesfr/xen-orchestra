@@ -5,14 +5,9 @@ import { type FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-colle
 import { type FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { type MaybeRefOrGetter, reactive, toRef } from 'vue'
 
-export type NewNetworkFormData = {
-  pool: FrontXoPool['id'] | undefined
+export type NewNetworkFormData = BaseNetworkFormData & {
   pif: FrontXoPif['id'] | undefined
-  name: string
-  description: string
-  mtu: number | undefined
   vlan: number | undefined
-  nbd: boolean
 }
 
 export function useNewNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'] | undefined>) {
@@ -34,13 +29,9 @@ export function useNewNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'] | 
 
   async function validateAndBuildPayload(): Promise<NewNetworkPayload | undefined> {
     return {
-      poolId: formData.pool!,
+      ...buildBasePayload(),
       pif: formData.pif!,
-      name: formData.name.trim(),
       vlan: formData.vlan!,
-      ...(formData.description.trim() !== '' && { description: formData.description.trim() }),
-      ...(typeof formData.mtu === 'number' && { mtu: formData.mtu }),
-      ...(formData.nbd && { nbd: formData.nbd }),
     }
   }
 
