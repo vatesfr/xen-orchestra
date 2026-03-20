@@ -48,14 +48,19 @@ export type XoAclSupportedActions<
   TResource extends XoAclSupportedResource<TActionsByResource>,
 > = (GetKeysRecursively<TActionsByResource[TResource]> & string) | '*'
 
-export type XoAclPrivilege<
-  TActionsByResource extends XoAclSupportedActionsByResource,
-  TResource extends XoAclSupportedResource<TActionsByResource>,
-> = {
+export type XoAclBasePrivilege = {
   id: Branded<'acl-v2-privilege'>
-  resource: TResource
-  action: XoAclSupportedActions<TActionsByResource, TResource>
+  resource: string
+  action: string
   selector?: CMType.Id<string> | Record<string, unknown>
   effect: 'allow' | 'deny'
   roleId: XoAclRole['id']
+}
+
+export type XoAclPrivilege<
+  TActionsByResource extends XoAclSupportedActionsByResource,
+  TResource extends XoAclSupportedResource<TActionsByResource>,
+> = XoAclBasePrivilege & {
+  resource: TResource
+  action: XoAclSupportedActions<TActionsByResource, TResource>
 }

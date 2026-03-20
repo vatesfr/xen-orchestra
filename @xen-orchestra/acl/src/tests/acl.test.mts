@@ -5,7 +5,13 @@ import type { XoUser } from '@vates/types/xo'
 
 import { Privilege } from '../class/privilege.mjs'
 import type { Privilege as TPrivilege } from '../index.mjs'
-import { filterObjectsWithPrivilege, getMissingPrivileges, hasPrivilegeOn, hasPrivileges } from '../index.mjs'
+import {
+  filterObjectsWithPrivilege,
+  getActionStrings,
+  getMissingPrivileges,
+  hasPrivilegeOn,
+  hasPrivileges,
+} from '../index.mjs'
 
 suite('Privilege.checkActionIsValid behavior', () => {
   test('throw on invalid resource', () => {
@@ -351,5 +357,22 @@ suite('ACL V2 behavior', async () => {
       })
       assert.strictEqual(vms.length, 2)
     })
+  })
+})
+
+suite('getActionStrings', () => {
+  test('returns flat actions for a resource without nesting', () => {
+    const actions = getActionStrings('host')
+    assert.ok(actions.includes('read'))
+    // @ts-ignore A TypeScript error is thrown because `foo` is not of type `SupportedActions<'vm'>`.
+    // To test for a negative value, the error is ignored.
+    assert.strictEqual(actions.includes('foo'), false)
+  })
+
+  test('parent action is included alongside its children', () => {
+    const actions = getActionStrings('vm')
+    assert.ok(actions.includes('shutdown'))
+    assert.ok(actions.includes('shutdown:clean'))
+    assert.ok(actions.includes('shutdown:hard'))
   })
 })

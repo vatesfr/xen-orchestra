@@ -4,6 +4,7 @@ import { pipeline } from 'node:stream/promises'
 import { Readable, type Transform } from 'node:stream'
 import { Request } from 'express'
 import {
+  type AnyPrivilege,
   hasPrivilegeOn,
   type SupportedActions,
   type SupportedActionsByResource,
@@ -19,13 +20,12 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
 import type { MaybePromise, SendObjects, WithHref } from '../helpers/helper.type.mjs'
 import type { Response as ExResponse } from 'express'
-import type { RestAnyPrivilege } from '../acl-privileges/acl-privilege.type.mjs'
 import { NDJSON_CONTENT_TYPE, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 
 const noop = () => {}
 
 export type CreateActionReturnType<CbType> = Promise<{ taskId: string } | CbType>
-export type RestXoRecord = XoRecord<SupportedActionsByResource, SupportedResource> | RestAnyPrivilege
+export type RestXoRecord = XoRecord<SupportedActionsByResource, SupportedResource> | AnyPrivilege
 
 export abstract class BaseController<T extends RestXoRecord, IsSync extends boolean> extends Controller {
   abstract getObjects(): IsSync extends false ? Promise<Record<T['id'], T>> : Record<T['id'], T>
