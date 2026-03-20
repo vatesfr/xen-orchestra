@@ -20,6 +20,7 @@
     "@vates/types": "^1.21.0"
   },
   "dependencies": {
+    "@xen-orchestra/log": "^0.7.1",
     "@xen-orchestra/fs": "^4.6.7",
     "@xen-orchestra/backups": "^0.69.2",
     "uuid": "^9.0.0",
