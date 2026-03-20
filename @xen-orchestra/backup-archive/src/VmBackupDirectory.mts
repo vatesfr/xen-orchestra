@@ -10,6 +10,7 @@ import {
   VmBackupInterface,
   PartialBackupMetadata,
   ResolvedBackupCleanOptions,
+  DEFAULT_MERGE_CONCURRENCY,
 } from './VmBackup.types.mjs'
 import { asyncEach } from '@vates/async-each'
 import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter.mjs'
@@ -134,7 +135,7 @@ export class VmBackupDirectory implements VmBackupInterface {
     return this.#checkResult
   }
 
-  async clean({ remove = this.opts.remove ?? false, mergeLimiter }: ArchiveCleanOptions = {}) {
+  async clean({ remove = this.opts.remove ?? false }: ArchiveCleanOptions = {}) {
     // Use cached check result if available, otherwise run check now
     const { orphans } = this.#checkResult ?? (await this.check())
 
@@ -148,15 +149,17 @@ export class VmBackupDirectory implements VmBackupInterface {
     )
 
     // Merge/delete orphan disks in VDI directories; collect merged sizes per disk path
-    const lineageResults = await Promise.all(
-      Array.from(this.diskLineages.values()).map(lineage => lineage.clean(mergeLimiter))
-    )
     const allMergedSizes = new Map<string, number>()
-    for (const { mergedSizes } of lineageResults) {
-      for (const [diskPath, size] of mergedSizes) {
-        allMergedSizes.set(diskPath, (allMergedSizes.get(diskPath) ?? 0) + size)
-      }
-    }
+    await asyncEach(
+      Array.from(this.diskLineages.values()),
+      async lineage => {
+        const { mergedSizes } = await lineage.clean()
+        for (const [diskPath, size] of mergedSizes) {
+          allMergedSizes.set(diskPath, (allMergedSizes.get(diskPath) ?? 0) + size)
+        }
+      },
+      { concurrency: DEFAULT_MERGE_CONCURRENCY }
+    )
 
     // Update metadata size for archives that had disks merged, then regenerate cache
     let metadataUpdated = false
