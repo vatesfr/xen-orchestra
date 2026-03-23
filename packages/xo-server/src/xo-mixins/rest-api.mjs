@@ -43,7 +43,7 @@ export default class RestApi {
     }
   }
 
-  // OLD METHOD, DEPRECIATED. USE registerRestRoutes
+  // OLD METHOD, DEPRECATED. USE registerRestRoutes
   registerRestApi(spec, base = '/') {
     const authUser = this.#authenticateUser.bind(this)
     const app = this.#app
@@ -78,7 +78,7 @@ export default class RestApi {
     }
   }
 
-  // OLD METHOD, DEPRECIATED. USE registerRestRoutes
+  // OLD METHOD, DEPRECATED. USE registerRestRoutes
   unregisterRestApi(spec, base = '/') {
     for (const path of Object.keys(spec)) {
       if (path[0] === '_') {
