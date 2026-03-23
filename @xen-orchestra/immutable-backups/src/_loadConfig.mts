@@ -42,10 +42,15 @@ export function parseConfig(config: AppConfigInput): AppConfig {
       'No remotes are configured in the config file, please add at least one [remotes.<remoteid>]  with a root property pointing to the absolute path of the remote to watch'
     )
   }
-  if (config.liftEvery) {
-    outputConfig.liftEvery = ms(config.liftEvery)
+
+  if (typeof config.liftEvery !== 'string') {
+    throw new Error(`${config.liftEvery}  must be a string for liftEvery`)
   }
-  for (const [remoteId, { immutabilityDuration, root }] of Object.entries(config.remotes)) {
+  outputConfig.liftEvery = ms(config.liftEvery)
+  if (isNaN(outputConfig.liftEvery)) {
+    throw new Error(`${config.liftEvery} is not a valid value for entry liftEvery`)
+  }
+  for (const [remoteId, { immutabilityDuration, root, delayBetweenSizeCheck }] of Object.entries(config.remotes)) {
     if (!root) {
       throw new Error(
         `Remote ${remoteId} don't have a root property,containing the absolute path to the root of a backup repository `
@@ -56,15 +61,25 @@ export function parseConfig(config: AppConfigInput): AppConfig {
         `Remote ${remoteId} don't have a immutabilityDuration property to indicate the minimal duration the backups should be  protected by immutability `
       )
     }
+    if (typeof immutabilityDuration !== 'string') {
+      throw new Error(`${immutabilityDuration} is must be a string for remote ${remoteId}`)
+    }
+    if (isNaN(ms(immutabilityDuration))) {
+      throw new Error(
+        `${immutabilityDuration} is not a valid value for entry immutabilityDuration for remote ${remoteId}`
+      )
+    }
     if (ms(immutabilityDuration) < ms('1d')) {
       throw new Error(
         `Remote ${remoteId} immutability duration is smaller than the minimum allowed (1d), current : ${immutabilityDuration}`
       )
     }
-    outputConfig.remotes[remoteId].immutabilityDuration = ms(immutabilityDuration)
-    const { delayBetweenSizeCheck } = config.remotes[remoteId]
-    outputConfig.remotes[remoteId].delayBetweenSizeCheck =
-      delayBetweenSizeCheck !== undefined ? ms(delayBetweenSizeCheck) : 100
+
+    outputConfig.remotes[remoteId] = {
+      immutabilityDuration: ms(immutabilityDuration),
+      root,
+      delayBetweenSizeCheck: delayBetweenSizeCheck !== undefined ? ms(delayBetweenSizeCheck) : 100,
+    }
   }
   return outputConfig
 }
