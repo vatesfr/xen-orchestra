@@ -17,7 +17,7 @@ const log = createLogger('xo:rest-api:external-router')
 
 // Returns a mountExternalRoute function that allows routes to be added dynamically to the express router and a reference to the router
 export function createExternalRouter(swaggerOpenApiSpec: OpenAPIV3.Document): {
-  mountExternalRoute: Function
+  mountExternalRoute: (route: RouteDefinition) => () => void
   externalRouter: Router
 } {
   const externalRouter = Router()
@@ -44,7 +44,7 @@ export function createExternalRouter(swaggerOpenApiSpec: OpenAPIV3.Document): {
     // Add route to router
     externalRouter[route.method](expressEndpoint, ...middlewares, async (req, res, next) => {
       try {
-        // Handle authentification if required
+        // Handle authentication if required
         if (route.security === undefined) route.security = '*'
         if (route.security !== 'none') {
           await expressAuthentication(req as AuthenticatedRequest, route.security)
@@ -58,12 +58,12 @@ export function createExternalRouter(swaggerOpenApiSpec: OpenAPIV3.Document): {
         // Call the route callback with the right context and parameters
         const result = await Promise.resolve(route.callback({ req, res, next, restApi }))
 
-        // Handle result formating if iterable, status code should be already be set by the route callback
+        // Handle result formatting if iterable, status code should be already be set by the route callback
         if (result !== undefined && !res.headersSent) {
           const isIterable =
             result != null && typeof (result[Symbol.iterator] ?? result[Symbol.asyncIterator]) === 'function'
           if (isIterable) {
-            await sendObjects(result, req, res)
+            await sendObjects(result as Iterable<unknown> | AsyncIterable<unknown>, req, res)
           } else {
             res.json(result)
           }
@@ -116,7 +116,7 @@ export function createExternalRouter(swaggerOpenApiSpec: OpenAPIV3.Document): {
   return { mountExternalRoute, externalRouter }
 }
 
-// Add the rest route path to the rest api swagger with the input schema and response definitons
+// Add the rest route path to the rest api swagger with the input schema and response definitions
 function addPathToSwagger(
   method: string,
   fullPath: string,
@@ -255,7 +255,7 @@ function extractParametersFromZod(schema: z.ZodType, location: 'path' | 'query')
 }
 
 // Exported for retro-compatibility
-export async function sendObjects(iterable: any, req: Request, res: Response) {
+export async function sendObjects(iterable: Iterable<unknown> | AsyncIterable<unknown>, req: Request, res: Response) {
   const jsonFormat = !Object.hasOwn(req.query, 'ndjson')
 
   res.setHeader('content-type', jsonFormat ? 'application/json' : 'application/x-ndjson')
@@ -263,7 +263,7 @@ export async function sendObjects(iterable: any, req: Request, res: Response) {
   return pipeline(Readable.from((jsonFormat ? makeJsonStream : makeNdJsonStream)(iterable)), res)
 }
 
-async function* makeJsonStream(iterable: any) {
+async function* makeJsonStream(iterable: Iterable<unknown> | AsyncIterable<unknown>) {
   yield '['
   let first = true
   for await (const object of iterable) {
@@ -278,7 +278,7 @@ async function* makeJsonStream(iterable: any) {
   yield '\n]\n'
 }
 
-async function* makeNdJsonStream(iterable: any) {
+async function* makeNdJsonStream(iterable: Iterable<unknown> | AsyncIterable<unknown>) {
   for await (const object of iterable) {
     yield JSON.stringify(object)
     yield '\n'

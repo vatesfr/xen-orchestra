@@ -1,8 +1,9 @@
+import { OpenAPIV3 } from 'openapi-types'
 import { FieldDefinition } from '../../router/types.mjs'
 
 // Build OpenApi schema from our FieldDefinition
-export function buildOpenApiSchema(def: Record<string, FieldDefinition>): Record<string, unknown> {
-  const schema: any = {
+export function buildOpenApiSchema(def: Record<string, FieldDefinition>): OpenAPIV3.SchemaObject {
+  const schema: OpenAPIV3.SchemaObject = {
     type: 'object',
     properties: {},
   }
@@ -10,7 +11,7 @@ export function buildOpenApiSchema(def: Record<string, FieldDefinition>): Record
   const required: string[] = []
 
   for (const [key, field] of Object.entries(def)) {
-    const property: any = {}
+    const property: OpenAPIV3.SchemaObject = {}
 
     if (field.type === 'enum') {
       property.type = 'string'
@@ -23,7 +24,7 @@ export function buildOpenApiSchema(def: Record<string, FieldDefinition>): Record
       property.example = field.example
     }
 
-    schema.properties[key] = property
+    schema.properties![key] = property
 
     if (!field.optional) {
       required.push(key)
