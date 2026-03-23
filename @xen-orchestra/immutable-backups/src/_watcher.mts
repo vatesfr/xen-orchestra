@@ -188,6 +188,11 @@ function watchBackupDateDirectory(
   const watcher = fs.watch(dateDir)
   let locked = false
 
+  function close() {
+    watcher.close()
+    watcher.removeAllListeners()
+  }
+
   watcher.on('change', (_eventType: string, filename: string | Buffer | null) => {
     if (filename == null || String(filename) !== 'metadata.json') {
       return
@@ -202,22 +207,24 @@ function watchBackupDateDirectory(
           return
         }
         locked = true
-        return Directory.makeImmutable(dateDir)
+        return Directory.makeImmutable(dateDir).then(close)
       })
       .catch(err => {
+        // we won't retry on error  tot ensure we don't leave watcher dangling
+        close()
         const code = (err as NodeJS.ErrnoException).code
         if (code === 'ENOENT') {
-          return // file gone — wait for next event
+          return // maybe an incomplete write that has been purged
         }
         onError(err)
       })
   })
 
-  watcher.on('error', onError)
-  return () => {
-    watcher.close()
-    watcher.removeAllListeners()
-  }
+  watcher.on('error', err => {
+    close()
+    onError(err)
+  })
+  return close
 }
 
 // Watch `dir` for subdirectories, invoke `makeChildWatcher` for each one,
@@ -275,6 +282,11 @@ async function watchSubdirectories(
 
   const watcher = fs.watch(dir)
 
+  function close() {
+    watcher.close()
+    watcher.removeAllListeners()
+  }
+
   watcher.on('change', (_eventType: string, filename: string | Buffer | null) => {
     if (filename == null) {
       return
@@ -300,7 +312,10 @@ async function watchSubdirectories(
     )
   })
 
-  watcher.on('error', onError)
+  watcher.on('error', err => {
+    close()
+    onError(err)
+  })
 
   const entries = await fsp.readdir(dir, { withFileTypes: true })
   for (const entry of entries) {
@@ -309,10 +324,7 @@ async function watchSubdirectories(
     }
   }
 
-  return () => {
-    watcher.close()
-    watcher.removeAllListeners()
-  }
+  return close
 }
 
 // Watch a backup remote root and lock all completed backup files.
