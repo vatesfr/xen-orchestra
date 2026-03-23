@@ -84,7 +84,7 @@ import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTableState } from '@core/composables/table-state.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useVifColumns } from '@core/tables/column-sets/vif-columns'
-import { getIpAddressesByDevice } from '@core/utils/ip-address.utils.ts'
+import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
 import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -113,11 +113,7 @@ const getIpAddresses = (vif: XenApiVif) => {
 
   const networks = getGuestMetricsByOpaqueRef(vm.guest_metrics)?.networks
 
-  if (!networks) {
-    return []
-  }
-
-  return [...new Set(getIpAddressesByDevice(networks)[vif.device])]
+  return getUniqueIpAddressesForDevice(networks, vif.device)
 }
 
 const searchQuery = ref('')

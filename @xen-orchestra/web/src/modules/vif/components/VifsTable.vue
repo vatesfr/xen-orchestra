@@ -43,7 +43,7 @@ import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { useVifColumns } from '@core/tables/column-sets/vif-columns.ts'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
-import { getIpAddressesByDevice } from '@core/utils/ip-address.utils.ts'
+import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
 import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -89,11 +89,7 @@ const state = useTableState({
 const getIpAddresses = (vif: FrontXoVif) => {
   const addresses = getVmById(vif.$VM)?.addresses
 
-  if (!addresses) {
-    return []
-  }
-
-  return [...new Set(getIpAddressesByDevice(addresses)[vif.device])]
+  return getUniqueIpAddressesForDevice(addresses, vif.device)
 }
 
 const { pageRecords: paginatedVifs, paginationBindings } = usePagination('vifs', filteredVifs)
