@@ -50,6 +50,8 @@ npm install -g @xen-orchestra/immutable-backups
 Create a configuration file at `/etc/xo-immutable-backups/config.toml`, with the following structure:
 
 ```toml
+
+liftEvery = "1h"
 [remotes.remote1]
 root = "/mnt/ssd/vhdblock/"
 immutabilityDuration = "7d"
@@ -57,18 +59,10 @@ immutabilityDuration = "7d"
 
 #### Mandatory Parameters
 
-- **`root`**: Specifies the directory where Xen Orchestra stores backups.
-- **`immutabilityDuration`**: Defines how long files remain protected from deletion (e.g., `7d` for 7 days).
-
-#### Optional Parameters
-
-For additional validation, you can enable:
-
-```toml
-rebuildIndexOnStart = true
-```
-
-This option scans and validates existing files when the service starts. It can be resource-intensive.
+- **`liftEvery`**: Define how often the scipt will check and lift immutabiltiy (e.g., `1h` for every hour).
+- Per remote
+  - **`root`**: Specifies the directory where Xen Orchestra stores backups.
+  - **`immutabilityDuration`**: Defines how long files remain protected from deletion (e.g., `7d` for 7 days).
 
 ### 3. Start the Service
 

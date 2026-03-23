@@ -13,8 +13,7 @@
     "url": "https://vates.fr"
   },
   "bin": {
-    "xo-immutable-remote": "./dist/protectRemotes.mjs",
-    "xo-lift-remote-immutability": "./dist/liftProtection.mjs"
+    "xo-immutable-remote": "./dist/protectRemotes.mjs"
   },
   "license": "AGPL-3.0-or-later",
   "version": "1.0.30",
