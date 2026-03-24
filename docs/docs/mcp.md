@@ -180,11 +180,11 @@ Get an aggregated dashboard for a specific pool, including host status, top reso
 
 List all hosts (hypervisors) in Xen Orchestra with optional filtering.
 
-| Parameter | Type   | Required | Description                                                                        |
-| --------- | ------ | -------- | ---------------------------------------------------------------------------------- |
-| `filter`  | string | No       | Filter expression (e.g., `productBrand:XCP-ng`)                                    |
-| `fields`  | string | No       | Comma-separated fields (default: `id,name_label,productBrand,version,power_state`) |
-| `limit`   | number | No       | Maximum number of results                                                          |
+| Parameter | Type   | Required | Description                                                                                                                |
+| --------- | ------ | -------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `filter`  | string | No       | [Filter expression](https://docs.xen-orchestra.com/manage_infrastructure#live-filter-search) (e.g., `productBrand:XCP-ng`) |
+| `fields`  | string | No       | Comma-separated fields (default: `id,name_label,productBrand,version,power_state`)                                         |
+| `limit`   | number | No       | Maximum number of results                                                                                                  |
 
 **Example question:** "Show me all XCP-ng hosts"
 
@@ -194,11 +194,11 @@ List all hosts (hypervisors) in Xen Orchestra with optional filtering.
 
 List virtual machines in Xen Orchestra with optional filtering.
 
-| Parameter | Type   | Required | Description                                                               |
-| --------- | ------ | -------- | ------------------------------------------------------------------------- |
-| `filter`  | string | No       | Filter expression (e.g., `power_state:Running`, `name_label:web*`)        |
-| `fields`  | string | No       | Comma-separated fields (default: `id,name_label,power_state,CPUs,memory`) |
-| `limit`   | number | No       | Maximum number of results                                                 |
+| Parameter | Type   | Required | Description                                                                                                                                   |
+| --------- | ------ | -------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `filter`  | string | No       | [Filter expression](https://docs.xen-orchestra.com/manage_infrastructure#live-filter-search) (e.g., `power_state:Running`, `name_label:web*`) |
+| `fields`  | string | No       | Comma-separated fields (default: `id,name_label,power_state,CPUs,memory`)                                                                     |
+| `limit`   | number | No       | Maximum number of results                                                                                                                     |
 
 **Example question:** "How many VMs are currently running?"
 
@@ -208,11 +208,11 @@ List virtual machines in Xen Orchestra with optional filtering.
 
 List virtual disks (VDIs) in Xen Orchestra with optional filtering.
 
-| Parameter | Type   | Required | Description                                                                                |
-| --------- | ------ | -------- | ------------------------------------------------------------------------------------------ |
-| `filter`  | string | No       | Filter expression (e.g., `VDI_type:User`, `name_label:backup*`)                            |
-| `fields`  | string | No       | Comma-separated fields (default: `id,name_label,name_description,$SR,size,usage,VDI_type`) |
-| `limit`   | number | No       | Maximum number of results                                                                  |
+| Parameter | Type   | Required | Description                                                                                                                                |
+| --------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `filter`  | string | No       | [Filter expression](https://docs.xen-orchestra.com/manage_infrastructure#live-filter-search) (e.g., `VDI_type:User`, `name_label:backup*`) |
+| `fields`  | string | No       | Comma-separated fields (default: `id,name_label,name_description,$SR,size,usage,VDI_type`)                                                 |
+| `limit`   | number | No       | Maximum number of results                                                                                                                  |
 
 **Example question:** "List all user VDIs larger than 100GB"
 
@@ -222,11 +222,11 @@ List virtual disks (VDIs) in Xen Orchestra with optional filtering.
 
 List storage repositories (SRs) in Xen Orchestra with optional filtering.
 
-| Parameter | Type   | Required | Description                                                                                                   |
-| --------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------- |
-| `filter`  | string | No       | Filter expression (e.g., `SR_type:lvm`, `shared:true`)                                                        |
-| `fields`  | string | No       | Comma-separated fields (default: `id,name_label,SR_type,allocationStrategy,size,usage,physical_usage,shared`) |
-| `limit`   | number | No       | Maximum number of results                                                                                     |
+| Parameter | Type   | Required | Description                                                                                                                       |
+| --------- | ------ | -------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `filter`  | string | No       | [Filter expression](https://docs.xen-orchestra.com/manage_infrastructure#live-filter-search) (e.g., `SR_type:lvm`, `shared:true`) |
+| `fields`  | string | No       | Comma-separated fields (default: `id,name_label,SR_type,allocationStrategy,size,usage,physical_usage,shared`)                     |
+| `limit`   | number | No       | Maximum number of results                                                                                                         |
 
 **Example question:** "List all shared storage repositories"
 
@@ -248,11 +248,11 @@ Get detailed information about a specific storage repository.
 
 List all networks in Xen Orchestra with optional filtering.
 
-| Parameter | Type   | Required | Description                                                                       |
-| --------- | ------ | -------- | --------------------------------------------------------------------------------- |
-| `filter`  | string | No       | Filter expression (e.g., `bridge:xenbr0`)                                         |
-| `fields`  | string | No       | Comma-separated fields (default: `id,name_label,name_description,bridge,MTU,nbd`) |
-| `limit`   | number | No       | Maximum number of results                                                         |
+| Parameter | Type   | Required | Description                                                                                                          |
+| --------- | ------ | -------- | -------------------------------------------------------------------------------------------------------------------- |
+| `filter`  | string | No       | [Filter expression](https://docs.xen-orchestra.com/manage_infrastructure#live-filter-search) (e.g., `bridge:xenbr0`) |
+| `fields`  | string | No       | Comma-separated fields (default: `id,name_label,name_description,bridge,MTU,nbd`)                                    |
+| `limit`   | number | No       | Maximum number of results                                                                                            |
 
 **Example question:** "List all networks using bridge xenbr0"
 
