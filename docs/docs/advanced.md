@@ -433,7 +433,7 @@ The metrics endpoint requires authentication. Without a valid Bearer token, requ
 
 ### Available Metrics
 
-All metrics are prefixed with `xcp_` and include enriched labels for easy filtering.
+Infrastructure metrics are prefixed with `xcp_` and XO management plane metrics are prefixed with `xo_`. All metrics include enriched labels for easy filtering.
 
 #### Host Metrics
 
@@ -504,6 +504,33 @@ All metrics are prefixed with `xcp_` and include enriched labels for easy filter
 | Metric               | Type  | Description                                                         |
 | -------------------- | ----- | ------------------------------------------------------------------- |
 | `xcp_pool_connected` | gauge | Pool connection status (1 when connected, absent when disconnected) |
+
+#### XO Management Plane Metrics
+
+| Metric                  | Type  | Labels                     | Description                                          |
+| ----------------------- | ----- | -------------------------- | ---------------------------------------------------- |
+| `xo_task_pending`       | gauge |                            | Total number of pending tasks                        |
+| `xo_pool_total`         | gauge |                            | Total number of pools                                |
+| `xo_host_total`         | gauge |                            | Total number of hosts                                |
+| `xo_vm_total`           | gauge |                            | Total number of virtual machines                     |
+| `xo_user_total`         | gauge |                            | Total number of users                                |
+| `xo_group_total`        | gauge |                            | Total number of groups                               |
+| `xo_socket_total`       | gauge |                            | Total number of CPU sockets across all hosts         |
+| `xo_sr_total`           | gauge | `content_type`             | Total number of storage repositories by content type |
+| `xo_host_version_total` | gauge | `product_brand`, `version` | Total number of hosts by product brand and version   |
+| `xo_host_license_total` | gauge | `sku_type`                 | Total number of hosts by license SKU type            |
+| `xo_backup_job_total`   | gauge | `type`                     | Total number of backup jobs by type                  |
+
+#### XO Node.js Process Metrics
+
+| Metric                             | Type  | Labels   | Description                                                                                                  |
+| ---------------------------------- | ----- | -------- | ------------------------------------------------------------------------------------------------------------ |
+| `xo_nodejs_process_memory_bytes`   | gauge | `type`   | Memory usage of the XO main process in bytes (`rss`, `heap_used`, `heap_total`, `external`, `array_buffers`) |
+| `xo_nodejs_heap_size_limit_bytes`  | gauge |          | V8 heap size limit in bytes — OOM occurs when heap_used approaches this value                                |
+| `xo_nodejs_heap_available_bytes`   | gauge |          | Remaining V8 heap space before hitting the size limit                                                        |
+| `xo_nodejs_detached_contexts`      | gauge |          | Number of detached V8 contexts not yet GC'd — non-zero and growing indicates a memory leak                   |
+| `xo_nodejs_process_cpu_seconds`    | gauge | `mode`   | CPU time consumed by the XO main process since last collection (`user`, `system`)                            |
+| `xo_nodejs_event_loop_utilization` | gauge | `metric` | Event loop utilization ratio since last collection (`mean`, `p99`, `max`)                                    |
 
 #### Labels
 
@@ -576,6 +603,27 @@ xcp_vm_cpu_usage{is_control_domain="false"} * 100
 
 # Top 5 user VMs by CPU (excluding dom0)
 topk(5, xcp_vm_cpu_usage{is_control_domain="false"}) * 100
+
+# XO infrastructure totals
+xo_pool_total
+xo_host_total
+xo_vm_total
+
+# Backup jobs by type
+xo_backup_job_total
+
+# Hosts by version
+xo_host_version_total
+
+# XO process heap usage percentage
+xo_nodejs_process_memory_bytes{type="heap_used"}
+  / xo_nodejs_heap_size_limit_bytes * 100
+
+# Event loop utilization (p99)
+xo_nodejs_event_loop_utilization{metric="p99"}
+
+# Detect potential memory leak (growing detached contexts)
+xo_nodejs_detached_contexts > 0
 ```
 
 ### Grafana Integration
@@ -726,6 +774,33 @@ groups:
         annotations:
           summary: 'Host {{ $labels.host_name }} recently rebooted'
           description: 'Host {{ $labels.host_name }} has been up for less than 10 minutes.'
+
+      - alert: XOHighHeapUsage
+        expr: (xo_nodejs_process_memory_bytes{type="heap_used"} / xo_nodejs_heap_size_limit_bytes) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'XO process heap usage above 85%'
+          description: 'The XO main process is approaching the V8 heap size limit. Consider increasing --max-old-space-size or investigating memory usage.'
+
+      - alert: XOHighEventLoopUtilization
+        expr: xo_nodejs_event_loop_utilization{metric="p99"} > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'XO event loop utilization above 80% (p99)'
+          description: 'The XO main process event loop is heavily saturated. API responsiveness may be degraded.'
+
+      - alert: XODetachedContextsLeak
+        expr: xo_nodejs_detached_contexts > 10
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Possible memory leak in XO process'
+          description: 'The XO main process has {{ $value }} detached V8 contexts, which may indicate a memory leak.'
 ```
 
 ### Security Recommendations
