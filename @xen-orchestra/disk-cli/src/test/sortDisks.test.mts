@@ -78,6 +78,26 @@ describe('sortDisks', () => {
     const firstErr = result.findIndex(d => !d.ok)
     assert.ok(result.slice(0, firstErr).every(d => d.ok))
   })
+
+  test('parent with multiple children: all children follow the parent directly', () => {
+    const sorted = sortDisks([ok('c2', 'a'), ok('a'), ok('c1', 'a')])
+
+    const parentIdx = sorted.findIndex(d => d.ok && d.uid === 'a')
+    const c1Idx = sorted.findIndex(d => d.ok && d.uid === 'c1')
+    const c2Idx = sorted.findIndex(d => d.ok && d.uid === 'c2')
+
+    assert.notStrictEqual(parentIdx, -1)
+    assert.notStrictEqual(c1Idx, -1)
+    assert.notStrictEqual(c2Idx, -1)
+
+    // Both children must occupy the two slots right after the parent
+    const childIndices = [c1Idx, c2Idx].sort()
+    assert.deepStrictEqual(
+      childIndices,
+      [parentIdx + 1, parentIdx + 2],
+      'both children must follow the parent directly'
+    )
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -117,5 +137,25 @@ describe('toTableRow', () => {
 
   test('differencing column shows "no" for base disk', () => {
     assert.strictEqual(toTableRow(ok('a'), undefined)[4], 'no')
+  })
+
+  test('parent with multiple children: at least one child shows parent UID instead of ↑', () => {
+    const sorted = sortDisks([ok('c2', 'a'), ok('a'), ok('c1', 'a')])
+
+    const rows = sorted.map((disk, i) => toTableRow(disk, sorted[i - 1]))
+
+    // Find rows for the two children
+    const childRows = rows.filter((_row, i) => {
+      const d = sorted[i]
+      return d.ok && (d.uid === 'c1' || d.uid === 'c2')
+    })
+
+    assert.strictEqual(childRows.length, 2, 'both child rows must be present')
+
+    const arrowCount = childRows.filter(r => r[5] === '↑').length
+    const uidCount = childRows.filter(r => r[5] === 'a').length
+
+    assert.ok(arrowCount >= 1, 'at least one child should show ↑ (the one directly after parent)')
+    assert.ok(uidCount >= 1, 'at least one child must show the parent UID instead of ↑')
   })
 })

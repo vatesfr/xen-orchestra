@@ -26,7 +26,6 @@ export async function openDisk({ handler, path }) {
  * @param {string} params.path
  * @returns {Promise<Disposable<RemoteDisk>>}
  */
-
 export async function openDisposableDisk({ handler, path }) {
   const disk = new RemoteVhdDisk({ handler, path })
   await disk.init()
