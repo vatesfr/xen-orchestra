@@ -23,6 +23,7 @@
 - [OpenMetrics] Add missing VBD throughput, VBD average latency, and DCMI power consumption metrics (PR [#9563](https://github.com/vatesfr/xen-orchestra/pull/9563))
 - [MCP] Add `list_networks` and `get_network_details` tools to query network resources (PR [#9595](https://github.com/vatesfr/xen-orchestra/pull/9595))
 - [Backup] Fix incremental replication always doing a full when source and target are in the same pool (PR [#9612](https://github.com/vatesfr/xen-orchestra/pull/9612))
+- [Backup] New `xo-disk-cli` command-line tool to inspect and export disks from backup repositories (`info`, `list`, `transform` commands) (PR [#9551](https://github.com/vatesfr/xen-orchestra/pull/9551))
 
 ### Bug fixes
 
@@ -51,10 +52,12 @@
 
 <!--packages-start-->
 
+- @vates/async-each patch
 - @vates/generator-toolbox patch
 - @vates/nbd-client minor
 - @vates/types minor
 - @xen-orchestra/backups minor
+- @xen-orchestra/disk-cli major
 - @xen-orchestra/disk-transform patch
 - @xen-orchestra/fs minor
 - @xen-orchestra/mcp minor

@@ -1,6 +1,5 @@
 import { asyncEach } from '@vates/async-each'
 import { Disk, DiskBlock } from '../Disk.mjs'
-import { DebugDisk } from './DebugDisk.mjs'
 
 /**
  *
