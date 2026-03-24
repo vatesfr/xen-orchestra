@@ -79,7 +79,7 @@ async function liftExpiredVmBackups(root: string, immutabilityDuration: number):
     try {
       jobIds = await fsp.readdir(vdisDir)
     } catch (err) {
-      if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err
+      if (err.code !== 'ENOENT') throw err
     }
     const vdiDirs: string[] = []
     await asyncEach(jobIds, async jobId => {
@@ -134,7 +134,7 @@ async function liftExpiredConfigBackups(root: string, immutabilityDuration: numb
         if (mtimeMs > threshold) continue
         await liftDirBackup(dateDir)
       } catch (err) {
-        const code = (err as NodeJS.ErrnoException).code
+        const code = err.code
         if (code !== 'ENOENT') warn('error lifting config backup immutability', { err, metadataPath })
       }
     }
@@ -155,7 +155,7 @@ async function liftExpiredPoolBackups(root: string, immutabilityDuration: number
           if (mtimeMs > threshold) continue
           await liftDirBackup(dateDir)
         } catch (err) {
-          const code = (err as NodeJS.ErrnoException).code
+          const code = err.code
           if (code !== 'ENOENT') warn('error lifting pool metadata backup immutability', { err, metadataPath })
         }
       }

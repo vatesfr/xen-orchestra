@@ -55,7 +55,7 @@ export async function watchRemote(
     await fs.access(settingPath)
     await File.liftImmutability(settingPath)
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+    if (error.code !== 'ENOENT') {
       info('error lifting immutability on current settings', { error })
     }
   }

@@ -59,7 +59,7 @@ immutabilityDuration = "7d"
 
 #### Mandatory Parameters
 
-- **`liftEvery`**: Define how often the scipt will check and lift immutabiltiy (e.g., `1h` for every hour).
+- **`liftEvery`**: Define how often the script will check and lift immutabiltiy (e.g., `1h` for every hour).
 - Per remote
   - **`root`**: Specifies the directory where Xen Orchestra stores backups.
   - **`immutabilityDuration`**: Defines how long files remain protected from deletion (e.g., `7d` for 7 days).

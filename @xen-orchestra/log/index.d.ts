@@ -9,7 +9,7 @@ type LogData = Record<string, unknown>
  * - a message string with optional structured data
  * - an Error instance (message is extracted, error is stored in data)
  */
-type LogMethod = (message: string | Error | null , data?: LogData | Error | number | string) => void
+type LogMethod = (message: string | Error | null, data?: LogData | Error | number | string | unknown) => void
 
 export interface Logger {
   fatal: LogMethod

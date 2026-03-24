@@ -44,7 +44,7 @@ export async function waitForWriteDone(path: string, timeout: number, delayBetwe
       }
       prevSize = size
     } catch (err) {
-      if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
+      if (err.code !== 'ENOENT') {
         throw err
       }
       // file not yet visible — keep waiting
@@ -77,7 +77,7 @@ async function lockBackup(vmDir: string, datetime: string): Promise<void> {
   try {
     jobIds = await fsp.readdir(vdisDir)
   } catch (err) {
-    if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err
+    if (err.code !== 'ENOENT') throw err
   }
 
   await Promise.all(
@@ -154,7 +154,7 @@ export function watchVmDirectory(
         return lockBackup(vmDir, datetime)
       })
       .catch(err => {
-        const code = (err as NodeJS.ErrnoException).code
+        const code = err.code
         if (code === 'ENOENT') {
           // file disappeared before write completed — next fs event will retry
           debug(`[watcher] watchVmDirectory: file gone (ENOENT) — will retry on next event`)
@@ -212,7 +212,7 @@ function watchBackupDateDirectory(
       .catch(err => {
         // we won't retry on error  tot ensure we don't leave watcher dangling
         close()
-        const code = (err as NodeJS.ErrnoException).code
+        const code = err.code
         if (code === 'ENOENT') {
           return // maybe an incomplete write that has been purged
         }
