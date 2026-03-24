@@ -29,7 +29,6 @@
     "ms": "^2.1.3"
   },
   "devDependencies": {
-    "@types/ms": "^0.7.34",
     "@types/node": "^22.3.0",
     "rimraf": "^6.0.1",
     "tap": "^18.6.1",
