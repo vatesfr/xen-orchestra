@@ -5,6 +5,22 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { createServer, validateEnv, fetchDocumentation } from './index.mjs'
 import type { XoClient } from './xo-client.mjs'
 
+const EXPECTED_TOOL_NAMES = [
+  'check_connection',
+  'get_infrastructure_summary',
+  'get_network_details',
+  'get_pool_dashboard',
+  'get_sr_details',
+  'get_vm_details',
+  'list_hosts',
+  'list_networks',
+  'list_pools',
+  'list_srs',
+  'list_vdis',
+  'list_vms',
+  'search_documentation',
+]
+
 // Helper to create a mock XoClient
 // Uses `as unknown as XoClient` because @vates/types uses branded string IDs
 // that plain string literals don't satisfy at the type level.
@@ -22,6 +38,8 @@ function createMockClient(overrides: Record<string, unknown> = {}): XoClient {
       { id: 'vdi2', name_label: 'VDI 2', size: 21474836480 },
     ],
     getVm: async () => ({ id: 'vm1', name_label: 'VM 1', power_state: 'Running' }),
+    listSrs: async () => [{ id: 'sr1', name_label: 'SR 1', SR_type: 'lvm', shared: true }],
+    getSr: async () => ({ id: 'sr1', name_label: 'SR 1', SR_type: 'lvm', shared: true }),
     getPool: async () => ({ id: 'pool1', name_label: 'Pool 1' }),
     getPoolDashboard: async () => ({ hostsByStatus: { running: 1 } }),
     getHost: async () => ({ id: 'host1', name_label: 'Host 1' }),
@@ -46,24 +64,12 @@ async function setupTestServer(mockClient?: XoClient) {
 
 describe('createServer', () => {
   describe('tool listing', () => {
-    it('registers all 11 tools', async () => {
+    it(`registers all ${EXPECTED_TOOL_NAMES.length} tools`, async () => {
       const { mcpClient } = await setupTestServer()
       const { tools } = await mcpClient.listTools()
       const toolNames = tools.map(t => t.name).sort()
 
-      assert.deepStrictEqual(toolNames, [
-        'check_connection',
-        'get_infrastructure_summary',
-        'get_network_details',
-        'get_pool_dashboard',
-        'get_vm_details',
-        'list_hosts',
-        'list_networks',
-        'list_pools',
-        'list_vdis',
-        'list_vms',
-        'search_documentation',
-      ])
+      assert.deepStrictEqual(toolNames, EXPECTED_TOOL_NAMES)
     })
   })
 
@@ -216,6 +222,75 @@ describe('createServer', () => {
       })
       const text = (result.content as Array<{ type: string; text: string }>)[0].text
       assert.ok(text.includes('Failed to get VM details'))
+    })
+  })
+
+  describe('list_srs tool', () => {
+    it('returns SRs as JSON', async () => {
+      const { mcpClient } = await setupTestServer()
+      const result = await mcpClient.callTool({ name: 'list_srs', arguments: {} })
+      const text = (result.content as Array<{ type: string; text: string }>)[0].text
+      const parsed = JSON.parse(text)
+      assert.strictEqual(parsed.length, 1)
+      assert.strictEqual(parsed[0].id, 'sr1')
+    })
+
+    it('passes filter, fields, and limit', async () => {
+      let receivedArgs: { filter?: string; fields?: string; limit?: number } = {}
+      const mockClient = createMockClient({
+        listSrs: async (options?: { filter?: string; fields?: string; limit?: number }) => {
+          receivedArgs = { filter: options?.filter, fields: options?.fields, limit: options?.limit }
+          return []
+        },
+      })
+      const { mcpClient } = await setupTestServer(mockClient)
+      await mcpClient.callTool({
+        name: 'list_srs',
+        arguments: { filter: 'SR_type:lvm', fields: 'id,name_label', limit: 5 },
+      })
+      assert.strictEqual(receivedArgs.filter, 'SR_type:lvm')
+      assert.strictEqual(receivedArgs.fields, 'id,name_label')
+      assert.strictEqual(receivedArgs.limit, 5)
+    })
+
+    it('returns error on failure', async () => {
+      const mockClient = createMockClient({
+        listSrs: async () => {
+          throw new Error('Connection refused')
+        },
+      })
+      const { mcpClient } = await setupTestServer(mockClient)
+      const result = await mcpClient.callTool({ name: 'list_srs', arguments: {} })
+      const text = (result.content as Array<{ type: string; text: string }>)[0].text
+      assert.ok(text.includes('Failed to list SRs'))
+    })
+  })
+
+  describe('get_sr_details tool', () => {
+    it('returns SR details', async () => {
+      const { mcpClient } = await setupTestServer()
+      const result = await mcpClient.callTool({
+        name: 'get_sr_details',
+        arguments: { sr_id: 'sr1' },
+      })
+      const text = (result.content as Array<{ type: string; text: string }>)[0].text
+      const parsed = JSON.parse(text)
+      assert.strictEqual(parsed.id, 'sr1')
+    })
+
+    it('returns error when SR not found', async () => {
+      const mockClient = createMockClient({
+        getSr: async () => {
+          throw new Error('XO API error (404 Not Found): Not found')
+        },
+      })
+      const { mcpClient } = await setupTestServer(mockClient)
+      const result = await mcpClient.callTool({
+        name: 'get_sr_details',
+        arguments: { sr_id: 'nonexistent' },
+      })
+      const text = (result.content as Array<{ type: string; text: string }>)[0].text
+      assert.ok(text.includes('Failed to get SR details'))
     })
   })
 

@@ -323,6 +323,72 @@ describe('XoClient', () => {
     })
   })
 
+  describe('listSrs', () => {
+    it('returns SRs with default fields', async () => {
+      const srs = [{ id: 'sr1', name_label: 'SR 1', SR_type: 'lvm' }]
+      const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'pass' })
+
+      globalThis.fetch = async (input: RequestInfo | URL) => {
+        const url = typeof input === 'string' ? input : input.toString()
+        assert.ok(
+          url.includes('fields=id%2Cname_label%2CSR_type%2CallocationStrategy%2Csize%2Cusage%2Cphysical_usage%2Cshared')
+        )
+        return mockResponse(srs)
+      }
+      const result = await client.listSrs()
+      assert.deepStrictEqual(result, srs)
+    })
+
+    it('passes filter, fields, and limit via object', async () => {
+      const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'pass' })
+
+      globalThis.fetch = async (input: RequestInfo | URL) => {
+        const url = typeof input === 'string' ? input : input.toString()
+        assert.ok(url.includes('filter=SR_type'))
+        assert.ok(url.includes('limit=10'))
+        return mockResponse([])
+      }
+      await client.listSrs({ filter: 'SR_type:lvm', fields: 'id,name_label', limit: 10 })
+    })
+
+    it('passes limit=0 correctly', async () => {
+      const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'pass' })
+
+      globalThis.fetch = async (input: RequestInfo | URL) => {
+        const url = typeof input === 'string' ? input : input.toString()
+        assert.ok(url.includes('limit=0'), 'limit=0 should be included in URL')
+        return mockResponse([])
+      }
+      await client.listSrs({ limit: 0 })
+    })
+  })
+
+  describe('getSr', () => {
+    it('returns SR details', async () => {
+      const sr = { id: 'sr1', name_label: 'SR 1', SR_type: 'lvm', shared: true }
+      const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'pass' })
+
+      globalThis.fetch = async (input: RequestInfo | URL) => {
+        const url = typeof input === 'string' ? input : input.toString()
+        assert.ok(url.includes('/srs/sr1'))
+        return mockResponse(sr)
+      }
+      const result = await client.getSr('sr1')
+      assert.deepStrictEqual(result, sr)
+    })
+
+    it('encodes special characters in SR ID', async () => {
+      const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'pass' })
+
+      globalThis.fetch = async (input: RequestInfo | URL) => {
+        const url = typeof input === 'string' ? input : input.toString()
+        assert.ok(url.includes('/srs/sr%2Fspecial'), `URL should encode slash: ${url}`)
+        return mockResponse({ id: 'sr/special', name_label: 'Special', SR_type: 'lvm' })
+      }
+      await client.getSr('sr/special')
+    })
+  })
+
   describe('getVm', () => {
     it('returns VM details', async () => {
       const vm = { id: 'vm1', name_label: 'VM 1', power_state: 'Running' }
