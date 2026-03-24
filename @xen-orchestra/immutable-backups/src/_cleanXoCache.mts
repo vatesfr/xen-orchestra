@@ -8,7 +8,7 @@ export default async (path: string): Promise<void> => {
   if (isBackupMetadata(path)) {
     // snipe vm metadata cache to force XO to update it
     await fs.unlink(join(dirname(path), 'cache.json.gz')).catch(err => {
-      if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
+      if (err.code !== 'ENOENT') {
         throw err
       }
     })

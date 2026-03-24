@@ -13,7 +13,7 @@ async function execChattrWithMissingFiles(args: string[]) {
   try {
     await execa('chattr', args)
   } catch (err) {
-    const stderr = (err as { stderr?: string })?.stderr ?? ''
+    const stderr: string = 'stderr' in err ? err.stderr : ''
     const hasUnexpected = stderr
       .split('\n')
       .some(line => line.trim() !== '' && !line.includes('No such file or directory while trying to stat'))

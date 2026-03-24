@@ -30,7 +30,7 @@ async function listDirs(dir: string): Promise<string[]> {
     const entries = await fsp.readdir(dir, { withFileTypes: true })
     return entries.filter(e => e.isDirectory()).map(e => join(dir, e.name))
   } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === 'ENOENT') return []
+    if (err.code === 'ENOENT') return []
     throw err
   }
 }

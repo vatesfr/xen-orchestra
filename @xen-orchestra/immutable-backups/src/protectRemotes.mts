@@ -12,7 +12,7 @@ for (const [remoteId, remote] of Object.entries(remotes)) {
   watchRemote(remoteId, remote).catch(err => warn('error during watchRemote', { err, remoteId, remote }))
 }
 
-info('setup watcher for immutability lifting', {})
+info('setup watcher for immutability lifting')
 setInterval(async () => {
   await liftImmutability(remotes).catch(error => warn('error while lifting immutability', error))
 }, liftEvery)
