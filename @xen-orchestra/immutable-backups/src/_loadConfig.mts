@@ -85,11 +85,11 @@ export function parseConfig(config: AppConfigInput): AppConfig {
 }
 
 // Load the raw configuration from disk via app-conf.
-export async function loadRawConfig(): Promise<AppConfigInput> {
+export function loadRawConfig(): Promise<AppConfigInput> {
   return load(APP_NAME, {
     appDir: APP_DIR,
     ignoreUnknownFormats: true,
-  }) as unknown as AppConfigInput
+  })
 }
 
 // Convenience default export: load from disk and parse in one call.

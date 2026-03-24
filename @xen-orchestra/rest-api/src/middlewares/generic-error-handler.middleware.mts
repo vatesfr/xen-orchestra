@@ -22,7 +22,7 @@ const log = createLogger('xo:rest-api:error-handler')
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function genericErrorHandler(error: unknown, req: Request, res: Response, _next: NextFunction) {
   if (!(error instanceof Error)) {
-    log.error(error as string)
+    log.error(JSON.stringify(error))
     res.status(500).json({ error })
     return
   }
