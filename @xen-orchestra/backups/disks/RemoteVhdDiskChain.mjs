@@ -124,6 +124,14 @@ export class RemoteVhdDiskChain extends RemoteDisk {
   }
 
   /**
+   * Resolves the alias to get the actual data file path.
+   * @returns {Promise<string>}
+   */
+  async getResolvedPath() {
+    return this.#disks[this.#disks.length - 1].getResolvedPath()
+  }
+
+  /**
    * @returns {string}
    */
   getUuid() {
@@ -263,10 +271,11 @@ export class RemoteVhdDiskChain extends RemoteDisk {
 
   /**
    * Deletes all the disks
+   * @param {Object} options
    */
-  async unlink() {
+  async unlink({ force = false } = {}) {
     for (const disk of this.#disks) {
-      await disk.unlink()
+      await disk.unlink({ force })
     }
   }
 }

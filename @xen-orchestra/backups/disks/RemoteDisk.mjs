@@ -57,6 +57,14 @@ export class RemoteDisk extends RandomAccessDisk {
 
   /**
    * Abstract
+   * @returns {Promise<string>}
+   */
+  async getResolvedPath() {
+    throw new Error(`getResolvedPath must be implemented`)
+  }
+
+  /**
+   * Abstract
    * @returns {string}
    */
   getUuid() {
@@ -195,8 +203,9 @@ export class RemoteDisk extends RandomAccessDisk {
   /**
    * Abstract
    * Deletes alias/disk/disks
+   * @param {Object} options
    */
-  async unlink() {
+  async unlink({ force = false } = {}) {
     throw new Error(`unlink must be implemented`)
   }
 

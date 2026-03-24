@@ -191,7 +191,6 @@ export class MergeRemoteDisk {
    */
   async #step_mergeBlocks(parentDisk, childDisk) {
     const getMaxBlockCount = childDisk.getMaxBlockCount()
-    await parentDisk.resize(getMaxBlockCount)
 
     if (this.#isResuming) {
       const alreadyMergedBlocks = []
