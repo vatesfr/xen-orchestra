@@ -67,20 +67,17 @@ describe('asyncEach', () => {
       })
 
       it('stops on first error when stopOnError is true', async () => {
-        const tracker = new assert.CallTracker()
-
         const error = new Error()
-        const iteratee = tracker.calls((_, i) => {
+        const iteratee = spy((_, i) => {
           if (i === 1) {
             throw error
           }
-        }, 2)
+        })
         assert.deepStrictEqual(
           await rejectionOf(asyncEach(iterable, iteratee, { concurrency: 1, stopOnError: true })),
           error
         )
-
-        tracker.verify()
+        assert.deepStrictEqual(iteratee.callCount, 2)
       })
 
       it('rejects AggregateError when stopOnError is false', async () => {
@@ -100,19 +97,16 @@ describe('asyncEach', () => {
       })
 
       it('can be interrupted with an AbortSignal', async () => {
-        const tracker = new assert.CallTracker()
-
         const ac = new AbortController()
-        const iteratee = tracker.calls((_, i) => {
+        const iteratee = spy((_, i) => {
           if (i === 1) {
             ac.abort()
           }
-        }, 2)
+        })
         await assert.rejects(asyncEach(iterable, iteratee, { concurrency: 1, signal: ac.signal }), {
           message: 'asyncEach aborted',
         })
-
-        tracker.verify()
+        assert.deepStrictEqual(iteratee.callCount, 2)
       })
 
       it('handle error on iterable', async () => {
