@@ -1,4 +1,3 @@
-import filter from 'lodash/filter.js'
 import isEmpty from 'lodash/isEmpty.js'
 import throttle from 'lodash/throttle.js'
 import { createLogger } from '@xen-orchestra/log'
@@ -916,7 +915,7 @@ probeNfsExists.resolve = {
 export const getAllUnhealthyVdiChainsLength = throttle(
   function getAllUnhealthyVdiChainsLength() {
     const unhealthyVdiChainsLengthBySr = {}
-    filter(this.objects.all, obj => obj.type === 'SR' && isSrWritable(obj)).forEach(sr => {
+    Object.values(this.getObjectsByType('SR', { filter: obj => isSrWritable(obj) })).forEach(sr => {
       const unhealthyVdiChainsLengthByVdi = this.getXapi(sr).getVdiChainsInfo(sr)
       if (!isEmpty(unhealthyVdiChainsLengthByVdi)) {
         unhealthyVdiChainsLengthBySr[sr.uuid] = unhealthyVdiChainsLengthByVdi
