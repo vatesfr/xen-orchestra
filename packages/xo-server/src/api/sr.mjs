@@ -915,14 +915,12 @@ probeNfsExists.resolve = {
 export const getAllUnhealthyVdiChainsLength = throttle(
   function getAllUnhealthyVdiChainsLength() {
     const unhealthyVdiChainsLengthBySr = {}
-    Object.values(this.objects.indexes.type.SR ?? {})
-      .filter(obj => isSrWritable(obj))
-      .forEach(sr => {
-        const unhealthyVdiChainsLengthByVdi = this.getXapi(sr).getVdiChainsInfo(sr)
-        if (!isEmpty(unhealthyVdiChainsLengthByVdi)) {
-          unhealthyVdiChainsLengthBySr[sr.uuid] = unhealthyVdiChainsLengthByVdi
-        }
-      })
+    Object.values(this.getObjectsByType('SR', { filter: obj => isSrWritable(obj) })).forEach(sr => {
+      const unhealthyVdiChainsLengthByVdi = this.getXapi(sr).getVdiChainsInfo(sr)
+      if (!isEmpty(unhealthyVdiChainsLengthByVdi)) {
+        unhealthyVdiChainsLengthBySr[sr.uuid] = unhealthyVdiChainsLengthByVdi
+      }
+    })
     return unhealthyVdiChainsLengthBySr
   },
   60e3,
