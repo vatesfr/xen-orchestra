@@ -22,7 +22,7 @@
 - [REST API] Add `POST /hosts/{id}/actions/disable` and `POST /hosts/{id}/actions/enable` endpoints (PR [#9532](https://github.com/vatesfr/xen-orchestra/pull/9532))
 - [OpenMetrics] Add missing VBD throughput, VBD average latency, and DCMI power consumption metrics (PR [#9563](https://github.com/vatesfr/xen-orchestra/pull/9563))
 - [MCP] Add `list_networks` and `get_network_details` tools to query network resources (PR [#9595](https://github.com/vatesfr/xen-orchestra/pull/9595))
-- [Backup] Fix incremental replication always doing a full hen source and target are in the same pool (PR [#9598](https://github.com/vatesfr/xen-orchestra/pull/9598))
+- [Backup] Fix incremental replication always doing a full when source and target are in the same pool (PR [#9612](https://github.com/vatesfr/xen-orchestra/pull/9612))
 
 ### Bug fixes
 
