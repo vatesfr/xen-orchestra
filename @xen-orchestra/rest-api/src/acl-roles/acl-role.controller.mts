@@ -19,7 +19,7 @@ import {
 } from 'tsoa'
 import { provide } from 'inversify-binding-decorators'
 import { type Request as ExRequest, json } from 'express'
-import type { XoAclRole, XoGroup, XoGroupRole, XoUser, XoUserRole } from '@vates/types'
+import type { XoAclRole, XoGroup, XoUser } from '@vates/types'
 
 import { aclPrivilegeIds, partialAclPrivileges } from '../open-api/oa-examples/acl-privilege.oa-example.mjs'
 import { aclRole, aclRoleIds, partialAclRoles } from '../open-api/oa-examples/acl-role.oa-example.mjs'
