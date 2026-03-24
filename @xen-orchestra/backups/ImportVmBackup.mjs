@@ -255,6 +255,14 @@ export class ImportVmBackup {
           : await importIncrementalVm(backup, await xapi.getRecord('SR', srRef), {
               newMacAddresses,
             })
+        let size = 0
+        if (isFull) {
+          size = sizeContainer.size
+        } else {
+          for (const disk of Object.values(backup.disks)) {
+            size += disk.getNbGeneratedBlock() * disk.getBlockSize()
+          }
+        }
         const remoteName = adapter._handler._remote.name
         let desc = `Restored on ${formatFilenameDate(+new Date())}`
         if (remoteName !== undefined) {
@@ -275,7 +283,7 @@ export class ImportVmBackup {
         ])
 
         return {
-          size: sizeContainer.size,
+          size,
           id: await xapi.getField('VM', vmRef, 'uuid'),
         }
       }
