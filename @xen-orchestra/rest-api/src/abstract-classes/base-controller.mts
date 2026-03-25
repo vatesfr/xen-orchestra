@@ -11,7 +11,7 @@ import {
   type SupportedResource,
 } from '@xen-orchestra/acl'
 import type { VatesTask } from '@vates/types/lib/vates/task'
-import type { XapiXoRecord, XoRecord, XoTask } from '@vates/types/xo'
+import type { XapiXoRecord, XoRecord, XoTask, XoUser } from '@vates/types/xo'
 import type { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
 
 import { BASE_URL } from '../index.mjs'
@@ -43,7 +43,7 @@ export abstract class BaseController<T extends RestXoRecord, IsSync extends bool
     req: Request,
     opts?: {
       path?: string | ((obj: Objects) => string)
-      privilege?: { action: SupportedActions<Resource>; resource: Resource }
+      privilege?: { action: SupportedActions<Resource>; resource: Resource; userId?: XoUser['id'] }
       limit?: number
     }
   ): SendObjects<Objects> {
@@ -51,6 +51,7 @@ export abstract class BaseController<T extends RestXoRecord, IsSync extends bool
     const mappedObjects: (string | WithHref<Partial<Objects>>)[] = []
 
     const user = this.restApi.getCurrentUser()
+    const isSelf = opts?.privilege?.userId === user.id
     const userPrivileges = opts?.privilege !== undefined ? await this.restApi.xoApp.getAclV2UserPrivileges(user.id) : []
 
     let limit = opts?.limit ?? Infinity
@@ -61,6 +62,7 @@ export abstract class BaseController<T extends RestXoRecord, IsSync extends bool
 
       if (
         opts?.privilege !== undefined &&
+        !isSelf &&
         !hasPrivilegeOn({ user, userPrivileges, objects: object, ...opts.privilege })
       ) {
         continue
