@@ -604,7 +604,7 @@
   "other-properties": "Other properties",
   "other-settings": "Other settings",
   "page-not-found": "This page is not to be found…",
-  "page-please-wait": "Hold tight, astronaut! The page is getting ready to take off. \nWe’re just aligning the thrusters and calibrating the systems. It won’t be long now, stay tuned!",
+  "page-please-wait": "Hold tight, astronaut! The page is getting ready to take off.{newline}We're just aligning the thrusters and calibrating the systems. It won't be long now, stay tuned!",
   "pagination:all": "@:all",
   "partially-connected": "Partially connected",
   "password": "Password",

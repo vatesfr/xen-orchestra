@@ -28,9 +28,13 @@
     <template #content>
       <VtsStateHero v-if="!isConnected" format="page" type="busy" size="large">
         <div class="state-content">
-          <span class="loading">{{ t('loading') }}</span>
+          <span class="typo-caption">{{ t('loading') }}</span>
           <span class="title typo-h1">{{ t('please-wait') }}</span>
-          <div class="description typo-body-bold">{{ t('page-please-wait') }}</div>
+          <div class="description typo-body-bold">
+            <I18nT scope="global" keypath="page-please-wait">
+              <template #newline><br /></template>
+            </I18nT>
+          </div>
         </div>
       </VtsStateHero>
       <slot v-else />
@@ -116,23 +120,12 @@ watch(
   gap: 2.4rem;
   text-align: center;
 
-  .loading {
-    font-size: 1.6rem;
-    font-weight: 700;
-    line-height: 2;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
   .title {
     color: var(--color-neutral-txt-primary);
   }
 
   .description {
-    display: flex;
-    justify-content: center;
     color: var(--color-neutral-txt-secondary);
-    white-space: pre-line;
   }
 }
 </style>
