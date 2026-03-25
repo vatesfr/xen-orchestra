@@ -4,7 +4,7 @@
       {{ t('configuration') }}
     </UiCardTitle>
     <div class="content">
-      <VdiFormatCard :format="vdi.image_format" />
+      <VdiFormatCardItem :format="vdi.image_format" />
       <VtsCardRowKeyValue>
         <template #key>
           {{ t('storage') }}
@@ -37,7 +37,7 @@
 
 <script setup lang="ts">
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import VdiFormatCard from '@/modules/vdi/components/list/panel/cards/VdiFormatCard.vue'
+import VdiFormatCardItem from '@/modules/vdi/components/list/panel/card-items/VdiFormatCardItem.vue'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'

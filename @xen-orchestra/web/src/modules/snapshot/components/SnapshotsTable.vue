@@ -46,9 +46,9 @@ import {
   useXoVmSnapshotCollection,
 } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'
 import { useSnapshotTrigger } from '@/modules/snapshot/composables/xo-snapshot-trigger.composable.ts'
+import { useXo5VmSnapshotRoute } from '@/modules/snapshot/composables/xo-vm-snapshot-route-xo5.composable.ts'
 import { useXoVmSnapshotJob } from '@/modules/vm/jobs/xo-vm-snapshot.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -58,9 +58,7 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useSnapshotColumns } from '@core/tables/column-sets/snapshot-columns.ts'
-import { createDateSorter } from '@core/utils/date-sorter.utils.ts'
 import { useSorted } from '@vueuse/core'
-import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -75,7 +73,7 @@ const { areSnapshotsReady, hasSnapshotFetchError } = useXoVmSnapshotCollection()
 
 const { getSnapshotTrigger } = useSnapshotTrigger()
 
-const { buildXo5Route } = useXoRoutes()
+const { buildXo5VmSnapshotRoute } = useXo5VmSnapshotRoute()
 
 const { run: snapshotJob, isRunning } = useXoVmSnapshotJob(() => [vm])
 
@@ -95,12 +93,15 @@ const filteredSnapshots = computed(() => {
   )
 })
 
-const sortedSnapshots = useSorted(filteredSnapshots, createDateSorter('snapshot_time'))
+const sortedSnapshots = useSorted(
+  filteredSnapshots,
+  (snapshot1, snapshot2) => snapshot2.snapshot_time - snapshot1.snapshot_time
+)
 
 const { pageRecords: paginatedSnapshots, paginationBindings } = usePagination('snapshots', sortedSnapshots)
 
 const state = useTableState({
-  busy: logicNot(areSnapshotsReady),
+  busy: !areSnapshotsReady,
   error: hasSnapshotFetchError,
   empty: () =>
     rawSnapshots.length === 0
@@ -110,12 +111,15 @@ const state = useTableState({
         : false,
 })
 
-const getXo5VmSnapshotHref = (snapshotId: string) => buildXo5Route(`/vms/${vm.id}/snapshots?s=1_0_asc-${snapshotId}`)
-
 const { HeadCells, BodyCells } = useSnapshotColumns({
   body: (snapshot: FrontXoVmSnapshot) => {
     return {
-      name: r => r({ label: snapshot.name_label, icon: 'object:vm-snapshot', href: getXo5VmSnapshotHref(snapshot.id) }),
+      name: r =>
+        r({
+          label: snapshot.name_label,
+          icon: 'object:vm-snapshot',
+          href: buildXo5VmSnapshotRoute(vm.id, snapshot.id),
+        }),
       description: r => r(snapshot.name_description),
       creationDate: r => r(snapshot.snapshot_time * 1000),
       trigger: r => r(getSnapshotTrigger(snapshot)),

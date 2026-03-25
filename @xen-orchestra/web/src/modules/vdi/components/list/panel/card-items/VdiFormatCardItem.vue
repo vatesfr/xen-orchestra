@@ -4,7 +4,7 @@
       {{ t('format') }}
     </template>
     <template #value>{{ format }}</template>
-    <template v-if="imageFormat" #addons>
+    <template v-if="rawFormat" #addons>
       <VtsCopyButton :value="format" />
     </template>
   </VtsCardRowKeyValue>
@@ -17,9 +17,9 @@ import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { imageFormat } = defineProps<{ imageFormat?: string }>()
+const { format: rawFormat } = defineProps<{ format?: string }>()
 
 const { t } = useI18n()
 
-const format = computed(() => getVdiFormat(imageFormat))
+const format = computed(() => getVdiFormat(rawFormat))
 </script>

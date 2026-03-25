@@ -1,7 +1,7 @@
 <template>
   <div class="snapshots" :class="{ mobile: uiStore.isSmall }">
     <div>
-      <div class="row card">
+      <div class="row">
         <VmSnapshotCard class="last-snapshot" :snapshot="lastSnapshot" :title="t('last-snapshot')" />
         <VmSnapshotCard class="last-revert" :snapshot="lastRevertSnapshot" :title="t('last-revert')" />
       </div>
@@ -74,10 +74,8 @@ const lastRevertSnapshot = computed(() => {
 
 <style scoped lang="postcss">
 .snapshots {
-  &:not(.mobile) {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 40rem;
-  }
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 40rem;
 
   .container {
     height: fit-content;
@@ -89,10 +87,7 @@ const lastRevertSnapshot = computed(() => {
     display: grid;
     gap: 0.8rem;
     margin: 0.8rem;
-  }
-
-  .card {
-    grid-template-columns: minmax(20rem, 1fr) minmax(20rem, 1fr);
+    grid-template-columns: repeat(2, minmax(20rem, 1fr));
     grid-template-areas: 'last-snapshot last-revert';
   }
 

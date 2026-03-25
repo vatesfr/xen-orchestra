@@ -1,10 +1,15 @@
 <template>
-  <UiCard>
+  <UiCard class="vm-snapshot-card">
     <UiCardTitle>{{ title }}</UiCardTitle>
-    <div class="vm-snapshot-card">
+    <div class="snapshot-row-container">
       <VtsQuickInfoRow :label="t('snapshot')" class="snapshot-row">
         <template #value>
-          <UiLink v-if="snapshot?.name_label" icon="object:vm-snapshot" size="medium" :href="xo5VmSnapshotHref">
+          <UiLink
+            v-if="snapshot?.name_label"
+            icon="object:vm-snapshot"
+            size="medium"
+            :href="buildXo5VmSnapshotRoute(snapshot?.$snapshot_of, snapshot?.id)"
+          >
             {{ snapshot.name_label }}
           </UiLink>
         </template>
@@ -21,7 +26,7 @@
 
 <script setup lang="ts">
 import type { FrontXoVmSnapshot } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import { useXo5VmSnapshotRoute } from '@/modules/snapshot/composables/xo-vm-snapshot-route-xo5.composable.ts'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -37,29 +42,27 @@ const { snapshot } = defineProps<{
 
 const { t, d } = useI18n()
 
-const { buildXo5Route } = useXoRoutes()
-
-const xo5VmSnapshotHref = computed(() =>
-  buildXo5Route(`/vms/${snapshot?.$snapshot_of}/snapshots?s=1_0_asc-${snapshot?.id}`)
-)
-
 const formattedDate = computed(() =>
   snapshot ? d(snapshot.snapshot_time * 1000, { dateStyle: 'short', timeStyle: 'medium' }) : undefined
 )
+
+const { buildXo5VmSnapshotRoute } = useXo5VmSnapshotRoute()
 </script>
 
 <style lang="postcss" scoped>
 .vm-snapshot-card {
-  position: relative;
-}
+  .snapshot-row-container {
+    position: relative;
 
-.snapshot-row {
-  padding-right: 2.5rem;
-}
+    .snapshot-row {
+      padding-right: 2.5rem;
+    }
 
-.copy-button {
-  position: absolute;
-  top: 0;
-  right: 0;
+    .copy-button {
+      position: absolute;
+      top: 0;
+      right: 0;
+    }
+  }
 }
 </style>

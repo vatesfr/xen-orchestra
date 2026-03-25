@@ -6,7 +6,7 @@
     </UiCardTitle>
     <div class="content">
       <div v-for="(vmSnapshotVdi, index) in vmSnapshotVdis" :key="vmSnapshotVdi.id" class="content">
-        <SnapshotVdiLinkCard :vdi="vmSnapshotVdi" :snapshot />
+        <SnapshotVdiLinkCardItem :vdi="vmSnapshotVdi" :snapshot />
         <!-- DESCRIPTION -->
         <VtsCardRowKeyValue truncate>
           <template #key>
@@ -18,9 +18,9 @@
           </template>
         </VtsCardRowKeyValue>
         <!-- USED SPACE -->
-        <SnapshotVdiUsageCard :usage="vmSnapshotVdi.usage" />
+        <SnapshotVdiUsageCardItem :usage="vmSnapshotVdi.usage" />
         <!-- FORMAT -->
-        <VdiFormatCard :format="vmSnapshotVdi.image_format" />
+        <VdiFormatCardItem :format="vmSnapshotVdi.image_format" />
         <VtsDivider v-if="index < vmSnapshotVdis.length - 1" class="divider" type="stretch" />
       </div>
     </div>
@@ -28,11 +28,11 @@
 </template>
 
 <script setup lang="ts">
-import SnapshotVdiLinkCard from '@/modules/snapshot/components/list/panel/cards/SnapshotVdiLinkCard.vue'
-import SnapshotVdiUsageCard from '@/modules/snapshot/components/list/panel/cards/SnapshotVdiUsageCard.vue'
+import SnapshotVdiLinkCardItem from '@/modules/snapshot/components/list/panel/card-items/SnapshotVdiLinkCardItem.vue'
+import SnapshotVdiUsageCardItem from '@/modules/snapshot/components/list/panel/card-items/SnapshotVdiUsageCardItem.vue'
 import type { FrontXoVmSnapshot } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'
 import { useXoVmSnapshotVdiCollection } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-vdi-collection.ts'
-import VdiFormatCard from '@/modules/vdi/components/list/panel/cards/VdiFormatCard.vue'
+import VdiFormatCardItem from '@/modules/vdi/components/list/panel/card-items/VdiFormatCardItem.vue'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
