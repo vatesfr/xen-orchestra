@@ -78,7 +78,7 @@ const uiStore = useUiStore()
   grid-template-columns: repeat(8, 1fr);
   grid-template-areas:
     'quick-info quick-info quick-info quick-info quick-info quick-info quick-info quick-info'
-    'alarms alarms alarms alarms alarms alarms patches patches'
+    'alarms alarms alarms alarms alarms patches patches patches'
     'vms-status vms-status cpu-provisioning cpu-provisioning cpu-provisioning ram-provisioning ram-provisioning ram-provisioning'
     'cpu-usage-chart cpu-usage-chart ram-usage-chart ram-usage-chart network-usage-chart network-usage-chart load-average-chart load-average-chart'
     'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
@@ -89,7 +89,7 @@ const uiStore = useUiStore()
 
   .alarms {
     grid-area: alarms;
-    height: 46.2rem;
+    max-height: 46.2rem;
   }
 
   .patches {
