@@ -90,7 +90,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
   async _prepare() {
     const adapter = this._adapter
     const settings = this._settings
-    const scheduleId = this._scheduleId
+    const scheduleId = this._schedule.id
     const vmUuid = this._vmUuid
 
     const oldEntries = getOldEntries(
@@ -180,7 +180,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
   async _transfer($defer, { isVhdDifferencing, timestamp, deltaExport, vm, vmSnapshot }) {
     const adapter = this._adapter
     const job = this._job
-    const scheduleId = this._scheduleId
+    const scheduleId = this._schedule.id
     const settings = this._settings
     const jobId = job.id
     const handler = adapter.handler

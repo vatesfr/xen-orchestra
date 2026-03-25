@@ -89,7 +89,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     const settings = this._settings
     const { uuid: srUuid, $xapi: xapi } = this._sr
     const vmUuid = this._vmUuid
-    const scheduleId = this._scheduleId
+    const scheduleId = this._schedule.id
 
     // delete previous interrupted copies
     ignoreErrors.call(asyncMapSettled(listReplicatedVms(xapi, scheduleId, undefined, vmUuid), vm => vm.$destroy))
@@ -132,7 +132,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     const sr = this._sr
     const vm = backup.vm
     const job = this._job
-    const scheduleId = this._scheduleId
+    const scheduleId = this._schedule.id
 
     vm.name_label = `${vm.name_label} - ${job.name}`
     // update other_config data as soon as possible to ensure the next job
