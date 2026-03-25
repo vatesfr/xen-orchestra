@@ -1,3 +1,5 @@
+import humanFormat from 'human-format'
+
 import { asyncMapSettled } from '@xen-orchestra/async-map'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 
@@ -134,7 +136,6 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     const job = this._job
     const scheduleId = this._schedule.id
 
-    vm.name_label = `${vm.name_label} - ${job.name}`
     // update other_config data as soon as possible to ensure the next job
     // will be able to detect any partial transfer and lean them
     vm.other_config[COPY_OF] = vm.uuid
@@ -197,7 +198,8 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     const { _warmMigration } = this._settings
     const sr = this._sr
     const job = this._job
-    const scheduleId = this._scheduleId
+    const schedule = this._schedule
+    const scheduleId = schedule.id
     const { uuid: srUuid, $xapi: xapi } = sr
 
     let targetVmRef
@@ -213,19 +215,26 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         vmUuid: vm.uuid,
         srUuid,
       })
-
+      const size = Object.values(deltaExport.disks).reduce(
+        (sum, disk) => sum + disk.getNbGeneratedBlock() * disk.getBlockSize(),
+        0
+      )
+      await xapi.setField(
+        'VM',
+        targetVmRef,
+        'name_description',
+        deltaExport.vm.name_description +
+          ` -- last replication: ${formatFilenameDate(timestamp)} ${humanFormat.bytes(size)} bytes read `
+      )
       // take a snapshot to ensure these data are not modified until next snapshot
       await Task.run({ name: 'target snapshot' }, () =>
         xapi.VM_snapshot(targetVmRef, {
-          name_label: `${vm.name_label} - ${job.name} - (${formatFilenameDate(timestamp)})`,
+          name_label: `${vm.name_label} - ${job.name} / ${schedule.name} ${formatFilenameDate(timestamp)}`,
         })
       )
-      // size is mandatory to ensure the task have the right data
+
       return {
-        size: Object.values(deltaExport.disks).reduce(
-          (sum, disk) => sum + disk.getNbGeneratedBlock() * disk.getBlockSize(),
-          0
-        ),
+        size,
       }
     })
     this._targetVmRef = targetVmRef
