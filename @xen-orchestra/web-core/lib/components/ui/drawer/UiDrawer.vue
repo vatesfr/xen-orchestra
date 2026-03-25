@@ -1,10 +1,10 @@
 <!-- v1 -->
 <template>
   <Transition name="drawer">
-    <form v-if="isOpen" class="ui-drawer" @click.self="emit('dismiss')" @submit="emit('submit', $event)">
+    <div v-if="isOpen" class="ui-drawer" @click.self="emit('dismiss')">
       <aside class="drawer">
         <div class="header">
-          <div class="typo-h4">
+          <div v-if="slots.title" class="typo-h4">
             <slot name="title" />
           </div>
           <UiButtonIcon
@@ -20,15 +20,16 @@
         <div class="content">
           <slot name="content" />
         </div>
-        <div v-if="slots.buttons" class="buttons">
+        <VtsButtonGroup v-if="slots.buttons" class="buttons">
           <slot name="buttons" />
-        </div>
+        </VtsButtonGroup>
       </aside>
-    </form>
+    </div>
   </Transition>
 </template>
 
 <script lang="ts" setup>
+import VtsButtonGroup from '@core/components/button-group/VtsButtonGroup.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 
 defineProps<{
@@ -38,12 +39,11 @@ defineProps<{
 
 const emit = defineEmits<{
   dismiss: []
-  submit: [event: SubmitEvent]
 }>()
 
 const slots = defineSlots<{
-  title?(): any
   content(): any
+  title?(): any
   buttons?(): any
 }>()
 </script>
@@ -81,7 +81,7 @@ const slots = defineSlots<{
   z-index: 1020;
   justify-content: flex-end;
   align-items: stretch;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: var(--color-opacity-primary);
 
   .drawer {
     display: flex;
@@ -107,12 +107,8 @@ const slots = defineSlots<{
       align-items: center;
       overflow: auto;
       flex: 1;
-      margin: 0 0.5rem;
-      padding: 2.5rem;
-    }
-
-    &:not(:has(.buttons)) {
-      padding-bottom: 3.2rem;
+      margin: 0 0.4rem;
+      padding: 2.4rem;
     }
 
     .buttons {
@@ -122,7 +118,7 @@ const slots = defineSlots<{
       border-top: 0.1rem solid var(--color-neutral-border);
     }
 
-    @media (min-width: 1023px) {
+    @media (--medium-or-large) {
       min-width: 50%;
       border-inline-start: 0.1rem solid var(--color-neutral-border);
     }
