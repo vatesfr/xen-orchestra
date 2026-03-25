@@ -472,7 +472,7 @@ describe('module structure', () => {
     await Promise.all([server.connect(serverTransport), mcpClient.connect(clientTransport)])
 
     const { tools } = await mcpClient.listTools()
-    assert.strictEqual(tools.length, 9)
+    assert.strictEqual(tools.length, 13)
   })
 })
 
