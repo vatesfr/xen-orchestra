@@ -13,15 +13,14 @@
     <div v-else class="replication">
       <VtsQuickInfoRow :label="t('vm')">
         <template v-if="vm" #value>
-          <VtsObjectIcon size="medium" :state="toLower(vm.power_state)" type="vm" />
-          <UiLink size="medium" :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
+          <UiLink size="medium" :icon="vmPowerStateIcon" :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
             {{ vm.name_label }}
           </UiLink>
         </template>
       </VtsQuickInfoRow>
       <VtsQuickInfoRow :label="t('date')">
         <template v-if="formattedDate" #value>
-          <span>{{ formattedDate }}</span>
+          {{ formattedDate }}
         </template>
       </VtsQuickInfoRow>
       <VtsQuickInfoRow :label="t('storage-repository')">
@@ -38,18 +37,15 @@
 
 <script setup lang="ts">
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
-import {
-  type FrontXoSr,
-  useXoSrCollection,
-} from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { XoVmDashboard } from '@/modules/vm/types/vm-dashboard.type.ts'
-import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import { objectIcon } from '@core/icons'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -74,13 +70,15 @@ const isEmpty = computed(() => replication.value !== undefined && Object.keys(re
 
 const vm = computed(() => getVmById(replication.value?.id))
 
+const vmPowerStateIcon = computed(() => objectIcon('vm', toLower(vm.value?.power_state)))
+
 const storageRepository = computed(() => getSrById(replication.value?.sr))
 
 const formattedDate = computed(() =>
   replication.value ? d(replication.value.timestamp, { dateStyle: 'short', timeStyle: 'medium' }) : undefined
 )
 
-const { srStatusIcon } = useXoSrUtils(() => storageRepository.value as FrontXoSr)
+const { srStatusIcon } = useXoSrUtils(() => storageRepository.value)
 </script>
 
 <style lang="postcss" scoped>
