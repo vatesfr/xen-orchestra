@@ -13,23 +13,23 @@
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { downloadFile } from '@core/utils/download-file.utils.ts'
+import { downloadBugTools } from '@core/utils/download-bugtools.utils'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { masterHost } = defineProps<{ masterHost: XenApiHost['$ref'] }>()
+const { masterHost: masterHostOpaqueRef } = defineProps<{ masterHost: XenApiHost['$ref'] }>()
 
 const { t } = useI18n()
 
 const { getByOpaqueRef, isReady, isFetching, hasError } = useHostStore().subscribe()
 
-const poolMaster = computed(() => getByOpaqueRef(masterHost))
+const poolMaster = computed(() => getByOpaqueRef(masterHostOpaqueRef))
 
 const download = () => {
   if (poolMaster.value?.address === undefined) {
     return
   }
 
-  downloadFile(`http://${poolMaster.value.address}/system-status?output=tar.bz2`, 'system-status.tar.bz2')
+  downloadBugTools(poolMaster.value.address)
 }
 </script>

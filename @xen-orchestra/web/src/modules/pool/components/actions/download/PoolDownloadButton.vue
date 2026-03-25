@@ -1,8 +1,8 @@
 <template>
   <MenuItem
     icon="action:download"
-    :busy="!areServersReady"
-    :disabled="(areServersReady && server === undefined) || hasServerFetchError"
+    :busy="areHostsFetching"
+    :disabled="(areHostsReady && poolMaster === undefined) || hasHostFetchError"
     @click="download()"
   >
     {{ t('action:download-bugtools-archive') }}
@@ -10,10 +10,10 @@
 </template>
 
 <script lang="ts" setup>
-import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { useXoServerCollection } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
+import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { downloadFile } from '@core/utils/download-file.utils.ts'
+import { downloadBugTools } from '@core/utils/download-bugtools.utils'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -21,14 +21,15 @@ const { poolId } = defineProps<{ poolId: FrontXoPool['id'] }>()
 
 const { t } = useI18n()
 
-const { serverByPool, areServersReady, hasServerFetchError } = useXoServerCollection()
+const { getMasterHostByPoolId, areHostsFetching, areHostsReady, hasHostFetchError } = useXoHostCollection()
 
-const server = computed(() => serverByPool.value.get(poolId)?.[0])
+const poolMaster = computed(() => getMasterHostByPoolId(poolId))
 
 const download = () => {
-  if (server.value === undefined) {
+  if (poolMaster.value?.address === undefined) {
     return
   }
-  downloadFile(`http://${server.value.host}/system-status?output=tar.bz2`, 'system-status.tar.bz2')
+
+  downloadBugTools(poolMaster.value.address)
 }
 </script>

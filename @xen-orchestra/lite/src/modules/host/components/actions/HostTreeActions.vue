@@ -1,12 +1,12 @@
 <template>
-  <HostMoreActions :host />
+  <HostDownloadButton :host-opaque-ref />
 </template>
 
 <script setup lang="ts">
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
-import HostMoreActions from '@/modules/host/components/actions/HostMoreActions.vue'
+import HostDownloadButton from '@/modules/host/components/actions/download/HostDownloadButton.vue'
 
 defineProps<{
-  host: XenApiHost
+  hostOpaqueRef: XenApiHost['$ref']
 }>()
 </script>

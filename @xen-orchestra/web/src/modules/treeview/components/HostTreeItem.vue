@@ -24,7 +24,6 @@
             <UiButtonIcon
               accent="brand"
               icon="action:more-actions"
-              variant="tertiary"
               size="small"
               :selected="isOpen"
               @click="open($event)"

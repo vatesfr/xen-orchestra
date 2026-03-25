@@ -21,13 +21,12 @@
             <UiButtonIcon
               accent="brand"
               icon="action:more-actions"
-              variant="tertiary"
               size="small"
               :selected="isOpen"
               @click="open($event)"
             />
           </template>
-          <HostTreeActions :host />
+          <HostTreeActions :host-opaque-ref="hostOpaqueRef" />
         </MenuList>
       </template>
     </UiTreeItemLabel>

@@ -1,9 +1,9 @@
 <template>
-  <PoolMoreActions :pool />
+  <PoolDownloadButton :pool-id="pool.id" />
 </template>
 
 <script setup lang="ts">
-import PoolMoreActions from '@/modules/pool/components/actions/PoolMoreActions.vue'
+import PoolDownloadButton from '@/modules/pool/components/actions/download/PoolDownloadButton.vue'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 
 defineProps<{
