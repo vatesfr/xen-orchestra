@@ -5,13 +5,13 @@
       prop('isOpen').bool().widget(),
       prop('onDismiss').bool().widget().help('Show dismiss button and enable backdrop click'),
       event('dismiss').help('Emitted when dismiss button or backdrop is clicked'),
-      event('submit').args({ event: 'SubmitEvent' }).help('Emitted when the form is submitted'),
       slot('title').help('Drawer title'),
       slot('content').help('Main content area'),
       slot('buttons').help('Footer buttons area'),
       setting('titleContent').widget(text()).preset('Drawer Title'),
       setting('mainContent').widget(text()).preset('This is the drawer content.'),
       setting('showButtons').widget(boolean()).preset(true),
+      setting('showTitle').widget(boolean()).preset(true),
     ]"
     :presets="{
       Dismissible: {
@@ -26,6 +26,24 @@
           onDismiss: false,
         },
       },
+      'No title': {
+        props: {
+          isOpen: true,
+          onDismiss: true,
+        },
+        settings: {
+          showTitle: false,
+        },
+      },
+      'No buttons': {
+        props: {
+          isOpen: true,
+          onDismiss: true,
+        },
+        settings: {
+          showButtons: false,
+        },
+      },
     }"
   >
     <UiButton variant="primary" accent="brand" size="medium" @click="isOpen = true">Open Drawer</UiButton>
@@ -34,10 +52,9 @@
       :is-open="isOpen"
       v-on="{
         dismiss: properties.onDismiss ? () => (isOpen = false) : undefined,
-        submit: handleSubmit,
       }"
     >
-      <template #title>{{ settings.titleContent }}</template>
+      <template v-if="settings.showTitle" #title>{{ settings.titleContent }}</template>
       <template #content>
         <p>{{ settings.mainContent }}</p>
       </template>
@@ -45,7 +62,7 @@
         <UiButton v-if="properties.onDismiss" variant="secondary" accent="brand" size="medium" @click="isOpen = false">
           Cancel
         </UiButton>
-        <UiButton variant="primary" accent="brand" size="medium" type="submit">Confirm</UiButton>
+        <UiButton variant="primary" accent="brand" size="medium" @click="isOpen = false">Confirm</UiButton>
       </template>
     </UiDrawer>
   </ComponentStory>
@@ -60,9 +77,4 @@ import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
 import { ref } from 'vue'
 
 const isOpen = ref(false)
-
-function handleSubmit(event: SubmitEvent) {
-  event.preventDefault()
-  isOpen.value = false
-}
 </script>

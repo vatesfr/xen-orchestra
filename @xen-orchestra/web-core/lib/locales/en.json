@@ -23,7 +23,6 @@
   "action:connect-n-vbds": "Connect 1 VBD | Connect {n} VBDs",
   "action:connect-n-vifs": "Connect 1 VIF | Connect {n} VIFs",
   "action:connect-pool": "Connect pool",
-  "action:continue": "Continue",
   "action:copy": "Copy",
   "action:copy-all": "Copy all",
   "action:copy-host": "Copy host",
