@@ -311,6 +311,64 @@ export function createServer(getClient: () => XoClient): McpServer {
   )
 
   // =============================================================================
+  // TOOL: list_srs
+  // =============================================================================
+  server.registerTool(
+    'list_srs',
+    {
+      title: 'List Storage Repositories',
+      description: 'List storage repositories (SRs) in Xen Orchestra with optional filtering',
+      inputSchema: {
+        filter: z.string().optional().describe('Filter expression (e.g., SR_type:lvm, shared:true)'),
+        fields: z.string().optional().describe('Comma-separated fields to return'),
+        limit: z.number().optional().describe('Maximum number of SRs to return'),
+      },
+    },
+    async ({ filter, fields, limit }) => {
+      try {
+        const client = getClient()
+        const srs = await client.listSrs({ filter, fields, limit })
+        return {
+          content: [{ type: 'text', text: JSON.stringify(srs, null, 2) }],
+        }
+      } catch (error) {
+        return {
+          content: [{ type: 'text', text: `Failed to list SRs: ${formatToolError(error)}` }],
+          isError: true,
+        }
+      }
+    }
+  )
+
+  // =============================================================================
+  // TOOL: get_sr_details
+  // =============================================================================
+  server.registerTool(
+    'get_sr_details',
+    {
+      title: 'Get SR Details',
+      description: 'Get detailed information about a specific storage repository',
+      inputSchema: {
+        sr_id: z.string().describe('The SR ID or UUID'),
+      },
+    },
+    async ({ sr_id }) => {
+      try {
+        const client = getClient()
+        const sr = await client.getSr(sr_id)
+        return {
+          content: [{ type: 'text', text: JSON.stringify(sr, null, 2) }],
+        }
+      } catch (error) {
+        return {
+          content: [{ type: 'text', text: `Failed to get SR details: ${formatToolError(error)}` }],
+          isError: true,
+        }
+      }
+    }
+  )
+
+  // =============================================================================
   // TOOL: get_vm_details
   // =============================================================================
   server.registerTool(
@@ -332,6 +390,64 @@ export function createServer(getClient: () => XoClient): McpServer {
       } catch (error) {
         return {
           content: [{ type: 'text', text: `Failed to get VM details: ${formatToolError(error)}` }],
+          isError: true,
+        }
+      }
+    }
+  )
+
+  // =============================================================================
+  // TOOL: list_networks
+  // =============================================================================
+  server.registerTool(
+    'list_networks',
+    {
+      title: 'List Networks',
+      description: 'List all networks in Xen Orchestra with optional filtering',
+      inputSchema: {
+        filter: z.string().optional().describe('Filter expression (e.g., bridge:xenbr0)'),
+        fields: z.string().optional().describe('Comma-separated fields to return'),
+        limit: z.number().optional().describe('Maximum number of networks to return'),
+      },
+    },
+    async ({ filter, fields, limit }) => {
+      try {
+        const client = getClient()
+        const networks = await client.listNetworks({ filter, fields, limit })
+        return {
+          content: [{ type: 'text', text: JSON.stringify(networks, null, 2) }],
+        }
+      } catch (error) {
+        return {
+          content: [{ type: 'text', text: `Failed to list networks: ${formatToolError(error)}` }],
+          isError: true,
+        }
+      }
+    }
+  )
+
+  // =============================================================================
+  // TOOL: get_network_details
+  // =============================================================================
+  server.registerTool(
+    'get_network_details',
+    {
+      title: 'Get Network Details',
+      description: 'Get detailed information about a specific network',
+      inputSchema: {
+        network_id: z.string().describe('The network ID'),
+      },
+    },
+    async ({ network_id }) => {
+      try {
+        const client = getClient()
+        const network = await client.getNetwork(network_id)
+        return {
+          content: [{ type: 'text', text: JSON.stringify(network, null, 2) }],
+        }
+      } catch (error) {
+        return {
+          content: [{ type: 'text', text: `Failed to get network details: ${formatToolError(error)}` }],
           isError: true,
         }
       }

@@ -36,6 +36,7 @@
     "postversion": "npm publish",
     "test": "node --test"
   },
+  "types": "./index.d.ts",
   "exports": {
     ".": "./index.js",
     "./_*": null,
