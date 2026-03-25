@@ -69,8 +69,14 @@ async function getServerTimestamp(xapi, hostRef) {
 // Stats
 // -------------------------------------------------------------------
 
+/**
+ * @param {{t: string, values: string[]}[]} dataRow
+ * @param {number} legendIndex
+ * @param {(value: number) => number} [transformValue]
+ * @returns {(number | null)[]}
+ */
 const computeValues = (dataRow, legendIndex, transformValue = identity) =>
-  map(dataRow, ({ values }) => {
+  dataRow.map(({ values }) => {
     const value = parseNumber(values[legendIndex])
 
     if (value === null) {

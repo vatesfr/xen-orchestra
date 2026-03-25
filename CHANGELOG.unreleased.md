@@ -37,6 +37,7 @@
 - [REST API] Exclude ISO SRs from the `/dashboard` endpoint in the `resourcesOverview.srSize` and `storageRepositories.size.*` properties (PR [#9608](https://github.com/vatesfr/xen-orchestra/pull/9608))
 - [VM] Fixed duplicated ip addresses in the network tab [Forum#101359](https://xcp-ng.org/forum/topic/11604/xo-6-dedicated-thread-for-all-your-feedback/110) (PR [#9547](https://github.com/vatesfr/xen-orchestra/pull/9547))
 - [VM/New] Fix template that was resetting (PR [#9603] (https://github.com/vatesfr/xen-orchestra/pull/9603))
+- [XO5/XO6/Stats] Return `null` instead of `0` when no stats available (PR [#9634](https://github.com/vatesfr/xen-orchestra/pull/9634))
 
 ### Packages to release
 
