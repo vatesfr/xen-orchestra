@@ -69,8 +69,16 @@ function parseNumber(value: number | string) {
 // Stats
 // -------------------------------------------------------------------
 
-const computeValues = (dataRow: any, legendIndex: number, transformValue = identity) =>
-  map(dataRow, ({ values }) => transformValue(parseNumber(values[legendIndex])))
+const computeValues = (dataRow: any, legendIndex: number, transformValue: (value: number) => number = identity) =>
+  map(dataRow, ({ values }) => {
+    const value = parseNumber(values[legendIndex])
+
+    if (value === null) {
+      return null
+    }
+
+    return transformValue(value)
+  })
 
 const createGetProperty = (obj: object, property: string, defaultValue: unknown) =>
   defaults(obj, { [property]: defaultValue })[property] as any

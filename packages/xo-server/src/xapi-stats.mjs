@@ -70,7 +70,15 @@ async function getServerTimestamp(xapi, hostRef) {
 // -------------------------------------------------------------------
 
 const computeValues = (dataRow, legendIndex, transformValue = identity) =>
-  map(dataRow, ({ values }) => transformValue(parseNumber(values[legendIndex])))
+  map(dataRow, ({ values }) => {
+    const value = parseNumber(values[legendIndex])
+
+    if (value === null) {
+      return null
+    }
+
+    return transformValue(value)
+  })
 
 const combineStats = (stats, path, combineValues) => zipWith(...map(stats, path), (...values) => combineValues(values))
 
