@@ -228,14 +228,13 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
         Object.entries(deltaExport.disks),
         async ([diskRef, disk]) => {
           const path = `${this._vmBackupDir}/${vhds[diskRef]}`
-          await adapter.writeVhd(path, disk, {
+          size += await adapter.writeVhd(path, disk, {
             // no checksum for VHDs, because they will be invalidated by
             // merges and chains
             checksum: false,
             validator: tmpPath => checkVhd(handler, tmpPath),
             writeBlockConcurrency: this._config.writeBlockConcurrency,
           })
-          size = size + disk.getNbGeneratedBlock() * disk.getBlockSize()
         },
         {
           concurrency: settings.diskPerVmConcurrency,
