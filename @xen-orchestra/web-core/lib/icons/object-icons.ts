@@ -6,6 +6,7 @@ import {
   faArrowLeft,
   faBarsProgress,
   faBoxesStacked,
+  faCamera,
   faCircle,
   faCity,
   faClock,
@@ -118,6 +119,21 @@ const schedule = defineIcon([
   },
 ])
 
+const camera = defineIcon([
+  {
+    icon: faCircle,
+    color: 'var(--color-neutral-background-primary)',
+    translate: [7, 5.5],
+    size: 13,
+  },
+  {
+    icon: faCamera,
+    color: 'var(--color-neutral-txt-primary)',
+    translate: [7, 5.5],
+    size: 10,
+  },
+])
+
 export const objectIcons = defineIconPack({
   instance: constructIcon(faSatellite),
   pool: constructIcon(faCity),
@@ -159,6 +175,12 @@ export const objectIcons = defineIconPack({
   'vm:suspended': [constructIcon(faDesktop), ...constructCircleStatus('suspended-circle')],
   'vm:warning': [constructIcon(faDesktop), ...constructCircleStatus('warning-circle')],
   'vm:halted': [constructIcon(faDesktop), ...constructCircleStatus('halted-circle')],
+  'vm-snapshot': [
+    constructIcon(faDesktop),
+    {
+      icon: camera,
+    },
+  ],
   sr: constructIcon(faDatabase),
   'sr:unknown': [
     {

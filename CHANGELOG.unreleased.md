@@ -28,6 +28,7 @@
 - [REST API] Expose `POST /rest/v0/pools/:id/actions/create_bonded_network` and `POST /rest/v0/pools/:id/actions/create_internal_network` (PR [#9611](https://github.com/vatesfr/xen-orchestra/pull/9611))
 - [REST API] Added `nbd` param in network creation endpoints (PR [#9611](https://github.com/vatesfr/xen-orchestra/pull/9611))
 - [VM] Add backup replication card on dashboard (PR [#9545](https://github.com/vatesfr/xen-orchestra/pull/9545))
+- [VM/Snapshot] Add VM snapshot tab page (PR [#9521] (https://github.com/vatesfr/xen-orchestra/pull/9521))
 
 ### Bug fixes
 
