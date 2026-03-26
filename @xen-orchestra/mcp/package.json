@@ -16,7 +16,7 @@
     "prebuild": "npm run clean",
     "prepublishOnly": "npm run build",
     "start": "node dist/index.mjs",
-    "test": "tsc && node --test dist/*.test.mjs"
+    "test": "tsc && cd dist && node --test"
   },
   "keywords": [
     "xen-orchestra",

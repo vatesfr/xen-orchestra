@@ -99,6 +99,43 @@ export class XoClient {
     }
   }
 
+  /** Public API for dynamic tool handlers — call any REST endpoint. */
+  async apiRequest(
+    method: string,
+    path: string,
+    options?: { query?: Record<string, string>; body?: unknown }
+  ): Promise<unknown> {
+    let endpoint = path.startsWith('/') ? path : `/${path}`
+    if (options?.query) {
+      const params = new URLSearchParams()
+      for (const [k, v] of Object.entries(options.query)) {
+        if (v !== undefined && v !== '') {
+          params.set(k, v)
+        }
+      }
+      const qs = params.toString()
+      if (qs) {
+        endpoint += `?${qs}`
+      }
+    }
+    const init: RequestInit = { method: method.toUpperCase() }
+    if (options?.body !== undefined) {
+      init.headers = { 'Content-Type': 'application/json' }
+      init.body = JSON.stringify(options.body)
+    }
+    return this.request<unknown>(endpoint, init)
+  }
+
+  /** Expose auth headers for the swagger fetcher. */
+  getAuthHeaders(): Record<string, string> {
+    return { ...this.authHeaders }
+  }
+
+  /** Base URL without trailing slash. */
+  getBaseUrl(): string {
+    return this.baseUrl
+  }
+
   async testConnection(): Promise<{ ok: boolean; error?: string }> {
     try {
       await this.request('/pools?limit=1')

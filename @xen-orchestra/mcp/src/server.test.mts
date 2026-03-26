@@ -7,9 +7,58 @@ import { createServer as createServerDirect } from './server.mjs'
 import { formatToolError } from './helpers/tool-error.mjs'
 import type { XoClient } from './xo-client.mjs'
 
+// Minimal OpenAPI spec for testing
+const MOCK_SWAGGER_SPEC = {
+  openapi: '3.0.0',
+  info: { title: 'XO API', version: '1.0.0' },
+  paths: {
+    '/pools': {
+      get: {
+        tags: ['pools'],
+        summary: 'List all pools',
+        parameters: [],
+      },
+    },
+    '/pools/{id}': {
+      get: {
+        tags: ['pools'],
+        summary: 'Get a pool',
+        parameters: [{ name: 'id', in: 'path', required: true }],
+      },
+    },
+    '/vms': {
+      get: {
+        tags: ['vms'],
+        summary: 'List all VMs',
+        parameters: [],
+      },
+    },
+    '/vms/{id}': {
+      get: {
+        tags: ['vms'],
+        summary: 'Get a VM',
+        parameters: [{ name: 'id', in: 'path', required: true }],
+      },
+    },
+    '/vms/{id}/actions/start': {
+      post: {
+        tags: ['vms'],
+        summary: 'Start a VM',
+        parameters: [{ name: 'id', in: 'path', required: true }],
+      },
+    },
+    '/hosts': {
+      get: {
+        tags: ['hosts'],
+        summary: 'List all hosts',
+        parameters: [],
+      },
+    },
+  },
+  tags: [{ name: 'pools' }, { name: 'vms' }, { name: 'hosts' }],
+}
+
 // Helper to create a mock XoClient
-// Uses `as unknown as XoClient` because @vates/types uses branded string IDs
-// that plain string literals don't satisfy at the type level.
 function createMockClient(overrides: Record<string, unknown> = {}): XoClient {
   return {
     testConnection: async () => ({ ok: true }),
@@ -28,14 +77,38 @@ function createMockClient(overrides: Record<string, unknown> = {}): XoClient {
     getPoolDashboard: async () => ({ hosts: { status: { running: 1, total: 1 } }, vms: { status: { running: 2 } } }),
     getHost: async () => ({ id: 'host1', name_label: 'Host 1' }),
     getVmStats: async () => ({ endTimestamp: 0, interval: 0, stats: {} }),
+    apiRequest: async () => [{ id: 'item1', name_label: 'Item 1' }],
+    getAuthHeaders: () => ({ cookie: 'authenticationToken=test' }),
+    getBaseUrl: () => 'http://xo.test',
     ...overrides,
   } as unknown as XoClient
+}
+
+let originalFetch: typeof globalThis.fetch
+
+// Set up fetch mock that returns the swagger spec
+function mockSwaggerFetch() {
+  originalFetch = globalThis.fetch
+  globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = typeof input === 'string' ? input : input.toString()
+    if (url.includes('/rest/v0/docs/swagger.json')) {
+      return new Response(JSON.stringify(MOCK_SWAGGER_SPEC), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    }
+    return originalFetch(input, init)
+  }
+}
+
+function restoreFetch() {
+  globalThis.fetch = originalFetch
 }
 
 // Helper to set up client + server connected via InMemoryTransport
 async function setupTestServer(mockClient?: XoClient) {
   const client = mockClient ?? createMockClient()
-  const server = createServer(() => client)
+  const server = await createServerDirect(() => client)
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair()
   const mcpClient = new Client({ name: 'test-client', version: '1.0.0' })
 
@@ -44,24 +117,30 @@ async function setupTestServer(mockClient?: XoClient) {
   return { mcpClient, server }
 }
 
-describe('createServer', () => {
+describe('createServer (dynamic bootstrap)', () => {
+  beforeEach(() => {
+    mockSwaggerFetch()
+  })
+
+  afterEach(() => {
+    restoreFetch()
+  })
+
   describe('tool listing', () => {
-    it('registers all 9 tools', async () => {
+    it('registers dynamic tools from swagger + utility tools', async () => {
       const { mcpClient } = await setupTestServer()
       const { tools } = await mcpClient.listTools()
       const toolNames = tools.map(t => t.name).sort()
 
-      assert.deepStrictEqual(toolNames, [
-        'check_connection',
-        'get_infrastructure_summary',
-        'get_pool_dashboard',
-        'get_vm_details',
-        'list_hosts',
-        'list_pools',
-        'list_vdis',
-        'list_vms',
-        'search_documentation',
-      ])
+      // Should have dynamic query tools (action tools are disabled for now)
+      // Plus utility: check_connection, search_documentation, get_infrastructure_summary
+      assert.ok(toolNames.includes('pools_query'), `Expected pools_query, got: ${toolNames.join(', ')}`)
+      assert.ok(toolNames.includes('vms_query'), `Expected vms_query, got: ${toolNames.join(', ')}`)
+      assert.ok(toolNames.includes('hosts_query'), `Expected hosts_query, got: ${toolNames.join(', ')}`)
+      assert.ok(!toolNames.includes('vms_action'), `Action tools should be disabled, got: ${toolNames.join(', ')}`)
+      assert.ok(toolNames.includes('check_connection'), `Expected check_connection`)
+      assert.ok(toolNames.includes('search_documentation'), `Expected search_documentation`)
+      assert.ok(toolNames.includes('get_infrastructure_summary'), `Expected get_infrastructure_summary`)
     })
   })
 
@@ -85,140 +164,73 @@ describe('createServer', () => {
     })
   })
 
-  describe('list_pools tool', () => {
-    it('returns pools as markdown table', async () => {
-      const { mcpClient } = await setupTestServer()
-      const result = await mcpClient.callTool({ name: 'list_pools', arguments: {} })
+  describe('dynamic query tools', () => {
+    it('pools_query list returns data', async () => {
+      const mockClient = createMockClient({
+        apiRequest: async () => [{ id: 'pool1', name_label: 'Pool 1', HA_enabled: true }],
+      })
+      const { mcpClient } = await setupTestServer(mockClient)
+      const result = await mcpClient.callTool({
+        name: 'pools_query',
+        arguments: { operation: 'list' },
+      })
       const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('## Pools'))
       assert.ok(text.includes('Pool 1'))
-      assert.ok(text.includes('pool1'))
     })
 
-    it('passes fields parameter', async () => {
-      let receivedFields: string | undefined
+    it('vms_query list returns data', async () => {
       const mockClient = createMockClient({
-        listPools: async (fields?: string) => {
-          receivedFields = fields
-          return [{ id: 'pool1', name_label: 'Pool 1' }]
-        },
+        apiRequest: async () => [{ id: 'vm1', name_label: 'VM 1', power_state: 'Running' }],
       })
       const { mcpClient } = await setupTestServer(mockClient)
-      await mcpClient.callTool({ name: 'list_pools', arguments: { fields: 'id,name_label' } })
-      assert.strictEqual(receivedFields, 'id,name_label')
-    })
-
-    it('returns error on failure', async () => {
-      const mockClient = createMockClient({
-        listPools: async () => {
-          throw new Error('Connection refused')
-        },
+      const result = await mcpClient.callTool({
+        name: 'vms_query',
+        arguments: { operation: 'list' },
       })
-      const { mcpClient } = await setupTestServer(mockClient)
-      const result = await mcpClient.callTool({ name: 'list_pools', arguments: {} })
       const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('Failed to list pools'))
-    })
-  })
-
-  describe('list_vms tool', () => {
-    it('returns VMs as markdown table', async () => {
-      const { mcpClient } = await setupTestServer()
-      const result = await mcpClient.callTool({ name: 'list_vms', arguments: {} })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('## VMs (2 found)'))
       assert.ok(text.includes('VM 1'))
-      assert.ok(text.includes('VM 2'))
     })
 
-    it('passes filter, fields, and limit', async () => {
-      let receivedArgs: { filter?: string; fields?: string; limit?: number } = {}
+    it('passes filter and fields as query params', async () => {
+      let receivedArgs: { method?: string; path?: string; query?: Record<string, string> } = {}
       const mockClient = createMockClient({
-        listVms: async (options?: { filter?: string; fields?: string; limit?: number }) => {
-          receivedArgs = { filter: options?.filter, fields: options?.fields, limit: options?.limit }
+        apiRequest: async (method: string, path: string, options?: { query?: Record<string, string> }) => {
+          receivedArgs = { method, path, query: options?.query }
           return []
         },
       })
       const { mcpClient } = await setupTestServer(mockClient)
       await mcpClient.callTool({
-        name: 'list_vms',
-        arguments: { filter: 'power_state:Running', fields: 'id', limit: 5 },
+        name: 'vms_query',
+        arguments: { operation: 'list', filter: 'power_state:Running', fields: 'id,name_label', limit: 5 },
       })
-      assert.strictEqual(receivedArgs.filter, 'power_state:Running')
-      assert.strictEqual(receivedArgs.fields, 'id')
-      assert.strictEqual(receivedArgs.limit, 5)
-    })
-  })
-
-  describe('list_vdis tool', () => {
-    it('returns VDIs as markdown table', async () => {
-      const { mcpClient } = await setupTestServer()
-      const result = await mcpClient.callTool({ name: 'list_vdis', arguments: {} })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('## VDIs (2 found)'))
-      assert.ok(text.includes('VDI 1'))
-      assert.ok(text.includes('vdi1'))
+      assert.strictEqual(receivedArgs.query?.filter, 'power_state:Running')
+      // Fields are merged with collection defaults, so user fields are included
+      const fields = receivedArgs.query?.fields ?? ''
+      assert.ok(fields.includes('id'), `Expected fields to include 'id', got: ${fields}`)
+      assert.ok(fields.includes('name_label'), `Expected fields to include 'name_label', got: ${fields}`)
+      assert.strictEqual(receivedArgs.query?.limit, '5')
     })
 
-    it('passes filter, fields, and limit', async () => {
-      let receivedArgs: { filter?: string; fields?: string; limit?: number } = {}
+    it('returns error on API failure', async () => {
       const mockClient = createMockClient({
-        listVdis: async (options?: { filter?: string; fields?: string; limit?: number }) => {
-          receivedArgs = { filter: options?.filter, fields: options?.fields, limit: options?.limit }
-          return []
-        },
-      })
-      const { mcpClient } = await setupTestServer(mockClient)
-      await mcpClient.callTool({
-        name: 'list_vdis',
-        arguments: { filter: 'VDI_type:User', fields: 'id,size', limit: 10 },
-      })
-      assert.strictEqual(receivedArgs.filter, 'VDI_type:User')
-      assert.strictEqual(receivedArgs.fields, 'id,size')
-      assert.strictEqual(receivedArgs.limit, 10)
-    })
-
-    it('returns error on failure', async () => {
-      const mockClient = createMockClient({
-        listVdis: async () => {
+        apiRequest: async () => {
           throw new Error('Connection refused')
         },
       })
       const { mcpClient } = await setupTestServer(mockClient)
-      const result = await mcpClient.callTool({ name: 'list_vdis', arguments: {} })
+      const result = await mcpClient.callTool({
+        name: 'pools_query',
+        arguments: { operation: 'list' },
+      })
       const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('Failed to list VDIs'))
+      assert.ok(text.includes('Failed to query'))
+      assert.ok(text.includes('Connection refused'))
     })
   })
 
-  describe('get_vm_details tool', () => {
-    it('returns VM details as markdown', async () => {
-      const { mcpClient } = await setupTestServer()
-      const result = await mcpClient.callTool({
-        name: 'get_vm_details',
-        arguments: { vm_id: 'vm1' },
-      })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('## VM: VM 1'))
-      assert.ok(text.includes('Running'))
-      assert.ok(text.includes('vm1'))
-    })
-
-    it('returns error when VM not found', async () => {
-      const mockClient = createMockClient({
-        getVm: async () => {
-          throw new Error('XO API error (404 Not Found): Not found')
-        },
-      })
-      const { mcpClient } = await setupTestServer(mockClient)
-      const result = await mcpClient.callTool({
-        name: 'get_vm_details',
-        arguments: { vm_id: 'nonexistent' },
-      })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('Failed to get VM details'))
-    })
-  })
+  // Action tools are disabled for now — tests will be re-enabled when actions are activated
+  // describe('dynamic action tools', () => { ... })
 
   describe('get_infrastructure_summary tool', () => {
     it('returns aggregated summary as markdown', async () => {
@@ -237,52 +249,24 @@ describe('createServer', () => {
     })
   })
 
-  describe('get_pool_dashboard tool', () => {
-    it('returns dashboard as markdown', async () => {
-      const { mcpClient } = await setupTestServer()
-      const result = await mcpClient.callTool({
-        name: 'get_pool_dashboard',
-        arguments: { pool_id: 'pool1' },
-      })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('## Pool Dashboard'))
-      assert.ok(text.includes('### Hosts'))
-      assert.ok(text.includes('**running**: 1'))
-    })
-  })
-
-  describe('list_hosts tool', () => {
-    it('returns hosts as markdown table', async () => {
-      const { mcpClient } = await setupTestServer()
-      const result = await mcpClient.callTool({ name: 'list_hosts', arguments: {} })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('## Hosts'))
-      assert.ok(text.includes('Host 1'))
-      assert.ok(text.includes('host1'))
-    })
-  })
-
   describe('search_documentation tool', () => {
-    let originalFetch: typeof globalThis.fetch
-
-    beforeEach(() => {
-      originalFetch = globalThis.fetch
-    })
-
-    afterEach(() => {
-      globalThis.fetch = originalFetch
-    })
-
     it('fetches and returns documentation', async () => {
-      globalThis.fetch = async (input: RequestInfo | URL) => {
+      const prevFetch = globalThis.fetch
+      globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
         const url = typeof input === 'string' ? input : input.toString()
+        if (url.includes('/rest/v0/docs/swagger.json')) {
+          return new Response(JSON.stringify(MOCK_SWAGGER_SPEC), {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          })
+        }
         if (url.includes('docs.xen-orchestra.com')) {
           return new Response('<h1>Installation Guide</h1><p>Install XO here.</p>', {
             status: 200,
             headers: { 'content-type': 'text/html' },
           })
         }
-        return originalFetch(input)
+        return prevFetch(input, init)
       }
 
       const { mcpClient } = await setupTestServer()
@@ -296,12 +280,19 @@ describe('createServer', () => {
     })
 
     it('returns error when documentation fetch fails', async () => {
-      globalThis.fetch = async (input: RequestInfo | URL) => {
+      const prevFetch = globalThis.fetch
+      globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
         const url = typeof input === 'string' ? input : input.toString()
+        if (url.includes('/rest/v0/docs/swagger.json')) {
+          return new Response(JSON.stringify(MOCK_SWAGGER_SPEC), {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          })
+        }
         if (url.includes('docs.xen-orchestra.com')) {
           return new Response('Not Found', { status: 404, statusText: 'Not Found' })
         }
-        return originalFetch(input)
+        return prevFetch(input, init)
       }
 
       const { mcpClient } = await setupTestServer()
@@ -316,21 +307,30 @@ describe('createServer', () => {
 })
 
 describe('module structure', () => {
+  beforeEach(() => {
+    mockSwaggerFetch()
+  })
+
+  afterEach(() => {
+    restoreFetch()
+  })
+
   it('createServer is accessible from both index and server module', () => {
     assert.strictEqual(typeof createServer, 'function')
     assert.strictEqual(typeof createServerDirect, 'function')
   })
 
-  it('direct server module creates identical server', async () => {
+  it('direct server module creates server with dynamic tools', async () => {
     const client = createMockClient()
-    const server = createServerDirect(() => client)
+    const server = await createServerDirect(() => client)
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair()
     const mcpClient = new Client({ name: 'test-client', version: '1.0.0' })
 
     await Promise.all([server.connect(serverTransport), mcpClient.connect(clientTransport)])
 
     const { tools } = await mcpClient.listTools()
-    assert.strictEqual(tools.length, 9)
+    // Should have at least the utility tools + dynamic tools
+    assert.ok(tools.length >= 5, `Expected at least 5 tools, got ${tools.length}`)
   })
 })
 
@@ -479,8 +479,6 @@ describe('validateEnv', () => {
 })
 
 describe('fetchDocumentation', () => {
-  let originalFetch: typeof globalThis.fetch
-
   beforeEach(() => {
     originalFetch = globalThis.fetch
   })
