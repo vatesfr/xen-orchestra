@@ -1,6 +1,5 @@
 import { asyncEach } from '@vates/async-each'
 import { Disk, DiskBlock } from '../Disk.mjs'
-import { DebugDisk } from './DebugDisk.mjs'
 
 /**
  *
@@ -14,7 +13,7 @@ export async function consume(disk: Disk, { blockDelay = 20, concurrency = 8 } =
 
   await asyncEach(
     disk.diskBlocks(),
-    async (block: DiskBlock) => {
+    async block => {
       consumed += block.data.length
       nbBlocks++
       await new Promise(resolve => setTimeout(resolve, blockDelay))

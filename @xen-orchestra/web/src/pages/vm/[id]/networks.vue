@@ -21,7 +21,7 @@
 <script setup lang="ts">
 import VifSidePanel from '@/modules/vif/components/panel/VifSidePanel.vue'
 import VifsTable from '@/modules/vif/components/VifsTable.vue'
-import { useXoVifCollection, type FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -42,6 +42,7 @@ const { buildXo5Route } = useXoRoutes()
 const xo5VmVifHref = computed(() => buildXo5Route(`/vms/${vm.id}/network`))
 
 const { vifs: rawVifs, getVifById } = useXoVifCollection()
+
 const uiStore = useUiStore()
 
 const { t } = useI18n()

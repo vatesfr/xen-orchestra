@@ -11,6 +11,7 @@ import { getOldEntries } from '../../_getOldEntries.mjs'
 import { Task } from '../../Task.mjs'
 import { Abstract } from './_Abstract.mjs'
 import {
+  COPY_OF,
   DATETIME,
   JOB_ID,
   SCHEDULE_ID,
@@ -242,11 +243,16 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     const xapi = this._xapi
 
     const vdiCandidates = {}
-
+    const vdiUuids = this._vm.$VBDs.map(({ VDI }) => VDI)
     Object.values(xapi.objects.indexes.type.VDI)
       .filter(_ => !!_) // filter nullish
-      .filter(({ other_config, $snapshot_of }) => {
-        return $snapshot_of !== undefined && other_config[JOB_ID] === jobId && other_config[VM_UUID] === this._vm.uuid
+      .filter(({ other_config, snapshot_of }) => {
+        return (
+          vdiUuids.includes(snapshot_of) &&
+          other_config[JOB_ID] === jobId &&
+          other_config[VM_UUID] === this._vm.uuid &&
+          other_config[COPY_OF] === undefined
+        )
       })
       .forEach(vdi => {
         vdiCandidates[vdi.uuid] = vdi

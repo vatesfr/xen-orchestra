@@ -93,7 +93,7 @@ type BaseXoVm = BaseXapiXo & {
   notes?: string
   os_version: Record<string, string> | null
   other: Record<string, string>
-  parent?: XoVm['id']
+  parent?: XoVmSnapshot['id']
   power_state: VM_POWER_STATE
   pvDriversDetected?: boolean
   pvDriversUpToDate?: boolean

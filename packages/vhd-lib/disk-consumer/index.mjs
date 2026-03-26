@@ -20,11 +20,12 @@ import { DiskConsumerVhdDirectory } from './DiskConsumerVhdDirectory.mjs'
 /**
  *
  * @param {Disk} disk
+ * @param {{ signal?: AbortSignal }} [options]
  * @returns {Promise<Readable>}
  */
-export async function toVhdStream(disk) {
+export async function toVhdStream(disk, { signal } = {}) {
   const consumer = new DiskConsumerVhdStream(disk)
-  return consumer.toStream()
+  return consumer.toStream(signal)
 }
 
 /**
@@ -32,8 +33,9 @@ export async function toVhdStream(disk) {
  * @param {object} param
  * @param {Disk} param.disk
  * @param {VhdRemoteTarget} param.target
+ * @param {AbortSignal} [param.signal]
  */
-export async function writeToVhdDirectory({ disk, target }) {
+export async function writeToVhdDirectory({ disk, target, signal }) {
   const consumer = new DiskConsumerVhdDirectory(disk, target)
-  await consumer.write()
+  await consumer.write(signal)
 }

@@ -70,7 +70,14 @@ import {
   poolMissingPatches,
   poolStats,
 } from '../open-api/oa-examples/pool.oa-example.mjs'
-import type { CreateNetworkBody, CreateVmBody, CreateVmParams, PoolDashboard } from './pool.type.mjs'
+import type {
+  CreateBondedNetworkBody,
+  CreateInternalNetworkBody,
+  CreateNetworkBody,
+  CreateVmBody,
+  CreateVmParams,
+  PoolDashboard,
+} from './pool.type.mjs'
 import { partialTasks, taskIds, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { createNetwork } from '../open-api/oa-examples/schedule.oa-example.mjs'
 import { BASE_URL } from '../index.mjs'
@@ -79,6 +86,7 @@ import { PoolService } from './pool.service.mjs'
 import { escapeUnsafeComplexMatcher, NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
+import { NetworkService } from '../networks/network.service.mjs'
 
 @Route('pools')
 @Security('*')
@@ -90,17 +98,20 @@ export class PoolController extends XapiXoController<XoPool> {
   #vmService: VmService
   #poolService: PoolService
   #alarmService: AlarmService
+  #networkService: NetworkService
 
   constructor(
     @inject(RestApi) restApi: RestApi,
     @inject(VmService) vmService: VmService,
     @inject(PoolService) poolService: PoolService,
-    @inject(AlarmService) alarmService: AlarmService
+    @inject(AlarmService) alarmService: AlarmService,
+    @inject(NetworkService) networkService: NetworkService
   ) {
     super('pool', restApi)
     this.#vmService = vmService
     this.#poolService = poolService
     this.#alarmService = alarmService
+    this.#networkService = networkService
   }
 
   /**
@@ -149,20 +160,19 @@ export class PoolController extends XapiXoController<XoPool> {
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   createNetwork(
     @Path() id: string,
-    @Body() body: CreateNetworkBody,
+    @Body() body: Unbrand<CreateNetworkBody>,
     @Query() sync?: boolean
   ): CreateActionReturnType<{ id: Unbrand<XoNetwork>['id'] }> {
     const poolId = id as XoPool['id']
     const action = async () => {
       const { pif, ...rest } = body
-      const xapiPool = this.getXapiObject(poolId)
-      const xapiNetwork = await xapiPool.$xapi.createNetwork({ pifId: pif as XoPif['id'], ...rest })
-      const network = this.restApi.getObject<XoNetwork>(xapiNetwork.uuid as XoNetwork['id'], 'network')
+      const networkId = await this.#networkService.create(poolId, { pifId: pif as XoPif['id'], ...rest })
 
-      return { id: network.id }
+      return { id: networkId }
     }
 
     return this.createAction<{ id: XoNetwork['id'] }>(action, {
@@ -170,6 +180,89 @@ export class PoolController extends XapiXoController<XoPool> {
       statusCode: createdResp.status,
       taskProperties: {
         name: 'create network',
+        objectId: poolId,
+        args: body,
+      },
+    })
+  }
+
+  /**
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
+   * @example body {
+   *    "name": "awes0me_bonded_network",
+   *    "description": "random description",
+   *    "pifIds": ["ad15b2c8-3d9a-194e-c43a-e3dcda74b256", "7b6bed50-26b2-bd27-8f3a-1b5a81989a92"],
+   *    "bondMode": "lacp"
+   * }
+   */
+  @Example(taskLocation)
+  @Example(createNetwork)
+  @Post('{id}/actions/create_bonded_network')
+  @Middlewares(json())
+  @Tags('networks')
+  @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  createBondedNetwork(
+    @Path() id: string,
+    @Body() body: Unbrand<CreateBondedNetworkBody>,
+    @Query() sync?: boolean
+  ): CreateActionReturnType<{ id: Unbrand<XoNetwork>['id'] }> {
+    const poolId = id as XoPool['id']
+    const action = async () => {
+      const { pifIds, ...rest } = body
+      const networkId = await this.#networkService.create(poolId, { pifIds: pifIds as XoPif['id'][], ...rest })
+
+      return { id: networkId }
+    }
+
+    return this.createAction<{ id: XoNetwork['uuid'] }>(action, {
+      sync,
+      statusCode: createdResp.status,
+      taskProperties: {
+        name: 'create bonded network',
+        objectId: poolId,
+        args: body,
+      },
+    })
+  }
+
+  /**
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
+   * @example body {
+   *    "name": "awes0me_internal_network",
+   *    "description": "random description"
+   * }
+   */
+  @Example(taskLocation)
+  @Example(createNetwork)
+  @Post('{id}/actions/create_internal_network')
+  @Middlewares(json())
+  @Tags('networks')
+  @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  createInternalNetwork(
+    @Path() id: string,
+    @Body() body: CreateInternalNetworkBody,
+    @Query() sync?: boolean
+  ): CreateActionReturnType<{ id: Unbrand<XoNetwork>['id'] }> {
+    const poolId = id as XoPool['id']
+    const action = async () => {
+      const networkId = await this.#networkService.create(poolId, body)
+
+      return { id: networkId }
+    }
+
+    return this.createAction<{ id: XoNetwork['uuid'] }>(action, {
+      sync,
+      statusCode: createdResp.status,
+      taskProperties: {
+        name: 'create internal network',
         objectId: poolId,
         args: body,
       },

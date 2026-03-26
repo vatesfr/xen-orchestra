@@ -175,6 +175,7 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
         memory_dynamic_min: vmRecord.memory_dynamic_min,
         memory_static_max: vmRecord.memory_static_max,
         memory_static_min: vmRecord.memory_static_min,
+        name_label: vmRecord.name_label,
         name_description: vmRecord.name_description,
         order: vmRecord.order,
         other_config: vmRecord.other_config,

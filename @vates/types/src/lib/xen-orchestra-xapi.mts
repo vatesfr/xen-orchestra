@@ -15,6 +15,7 @@ import {
   XenApiVtpm,
 } from '../xen-api.mjs'
 import type {
+  BOND_MODE,
   OPAQUE_REF_NULL,
   SUPPORTED_VDI_FORMAT,
   VBD_MODE,
@@ -92,6 +93,13 @@ export interface Xapi {
           vlan: number
         }
   ): Promise<XenApiNetworkWrapped>
+  createBondedNetwork(params: {
+    bondMode: BOND_MODE
+    pifIds: XoPif['id'][]
+    name: string
+    description?: string
+    mtu?: number
+  }): Promise<XenApiNetworkWrapped>
   deleteNetwork(id: XoNetwork['id']): Promise<void>
   deleteVif(vifId: XoVif['id']): Promise<void>
   exportVmOva(vmRef: XenApiVm['$ref']): Promise<PassThrough>
