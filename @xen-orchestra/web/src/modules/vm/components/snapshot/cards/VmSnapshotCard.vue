@@ -55,13 +55,13 @@ const { buildXo5VmSnapshotRoute } = useXo5VmSnapshotRoute()
     position: relative;
 
     .snapshot-row {
-      padding-right: 2.5rem;
+      padding-inline-end: 2.5rem;
     }
 
     .copy-button {
       position: absolute;
-      top: 0;
-      right: 0;
+      inset-block-start: 0;
+      inset-inline-end: 0;
     }
   }
 }
