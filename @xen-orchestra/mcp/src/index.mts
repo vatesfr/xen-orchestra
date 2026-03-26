@@ -5,6 +5,9 @@
  * Model Context Protocol server for Xen Orchestra.
  * Allows AI assistants to query and manage XO infrastructure.
  *
+ * At startup, fetches the OpenAPI spec from the XO REST API and dynamically
+ * generates MCP tools for all available endpoints.
+ *
  * Usage:
  *   XO_URL=http://xo.local XO_USERNAME=admin XO_PASSWORD=*** node dist/index.mjs
  */
@@ -69,7 +72,8 @@ export async function main() {
     return xoClient
   }
 
-  const server = createServer(getClient)
+  // createServer is now async — it fetches the OpenAPI spec at startup
+  const server = await createServer(getClient)
 
   const transport = new StdioServerTransport()
   await server.connect(transport)
