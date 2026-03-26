@@ -155,27 +155,26 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
         }
         return 'add'
       case 'update': {
-        let canSeeObject = false,
-          canSeePreviousObject = false
-        if (object !== undefined) {
-          canSeeObject = hasPrivilegeOn({
+        const canSeeObject =
+          object !== undefined &&
+          hasPrivilegeOn({
             user,
             userPrivileges,
             action: 'read',
             objects: object,
             resource,
           })
-        }
 
-        if (previousObject !== undefined) {
-          canSeePreviousObject = hasPrivilegeOn({
+        const canSeePreviousObject =
+          previousObject !== undefined &&
+          hasPrivilegeOn({
             user,
             userPrivileges,
             action: 'read',
             objects: previousObject,
             resource,
           })
-        }
+
         if (canSeeObject && canSeePreviousObject) {
           return 'update'
         }
