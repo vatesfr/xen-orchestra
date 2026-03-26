@@ -120,6 +120,23 @@ To use a custom plural form for complex translations, please refer to the [VueI1
 > [!NOTE]
 > You can check the pluralization rules for each language on the info page of the locale in Weblate (e.g. https://translate.vates.tech/projects/xen-orchestra/xen-orchestra-6/en/#information).
 
+### Line breaks
+
+Some translations contain a `{newline}` placeholder. It represents a line break that will be displayed in the application.
+
+When translating, keep `{newline}` as-is in your translation and place it where the line break should appear.
+
+> [!IMPORTANT]
+> Do not translate, modify, or remove `{newline}`.
+
+#### Example
+
+```json
+{
+  "page-please-wait": "Hold tight, astronaut! The page is getting ready to take off.{newline}We're just aligning the thrusters and calibrating the systems."
+}
+```
+
 ### Linked translations
 
 Sometimes we may need to add the same translation for different keys, because in one language the translation is the same, but in another language it may differ due to context (for example, in french the gender differs depending on the context).
