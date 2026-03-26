@@ -29,6 +29,7 @@
 - [REST API] Added `nbd` param in network creation endpoints (PR [#9611](https://github.com/vatesfr/xen-orchestra/pull/9611))
 - [VM] Add backup replication card on dashboard (PR [#9545](https://github.com/vatesfr/xen-orchestra/pull/9545))
 - [VM/Snapshot] Add VM snapshot tab page (PR [#9521] (https://github.com/vatesfr/xen-orchestra/pull/9521))
+- [SR] New "Preferred image format" field on SR creation forms (NFS, SMB, HBA, iSCSI, LVM, EXT) to control the disk format used by the SR (PR [#9596](https://github.com/vatesfr/xen-orchestra/pull/9596))
 
 ### Bug fixes
 
@@ -76,5 +77,6 @@
 - vhd-lib minor
 - xo-server minor
 - xo-server-openmetrics minor
+- xo-web minor
 
 <!--packages-end-->

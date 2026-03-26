@@ -808,6 +808,9 @@ const messages = {
   newSrLocalPathPlaceHolder: '/path/to/directory',
   newSrNfsDefaultVersion: 'Default NFS version',
   newSrNfsOptions: 'Comma delimited NFS options',
+  newSrPreferredImageFormat: 'Preferred image format',
+  newSrPreferredImageFormatTooltip:
+    'The list of the disk formats in descending order of priority. the qcow2 support must be installed on the host.',
   newSrNfs: 'NFS version',
   noSharedZfsAvailable: 'No shared ZFS available',
   reattachNewSrTooltip: 'Reattach SR',
