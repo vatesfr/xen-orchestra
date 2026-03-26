@@ -25,7 +25,7 @@ jobs:
       - name: Setup Node environment
         uses: actions/setup-node@v4
         with:
-          node-version: '22.3'
+          node-version: '22.13'
           cache: 'yarn'
 
       - name: Install project dependencies
