@@ -46,3 +46,61 @@ export function formatVmDetails(vm: VmLike & Record<string, unknown>): string {
 
   return lines.join('\n')
 }
+
+interface VmDashboardLike {
+  quickInfo?: VmLike & {
+    name_description?: string
+    mainIpAddress?: string
+    os_version?: { name?: string }
+    virtualizationMode?: string
+    pvDriversDetected?: boolean
+    pvDriversVersion?: string
+    startTime?: number
+    host?: string
+    $pool?: string
+    creation?: { date?: string }
+  }
+  alarms?: unknown[]
+  backupsInfo?: {
+    vmProtection?: string
+    lastRuns?: unknown[]
+  }
+}
+
+export function formatVmDashboard(dashboard: VmDashboardLike): string {
+  const qi = dashboard.quickInfo
+  if (!qi) return JSON.stringify(dashboard, null, 2)
+
+  const lines = [
+    `## VM Dashboard`,
+    '',
+    `- **State**: ${qi.power_state ?? 'Unknown'}`,
+    `- **vCPUs**: ${qi.CPUs?.number ?? '?'}`,
+    `- **RAM**: ${formatBytes(qi.memory?.size)}`,
+  ]
+
+  if (qi.name_description) lines.push(`- **Description**: ${qi.name_description}`)
+  if (qi.os_version?.name) lines.push(`- **OS**: ${qi.os_version.name}`)
+  if (qi.mainIpAddress) lines.push(`- **IP**: ${qi.mainIpAddress}`)
+  if (qi.virtualizationMode) lines.push(`- **Virtualization**: ${qi.virtualizationMode}`)
+  if (qi.host) lines.push(`- **Host**: ${qi.host}`)
+  if (qi.$pool) lines.push(`- **Pool**: ${qi.$pool}`)
+  if (qi.pvDriversDetected != null) {
+    lines.push(`- **PV Drivers**: ${qi.pvDriversDetected ? `yes (${qi.pvDriversVersion ?? '?'})` : 'no'}`)
+  }
+  if (qi.startTime) {
+    lines.push(`- **Started**: ${new Date(qi.startTime * 1000).toISOString()}`)
+  }
+  if (qi.creation?.date) {
+    lines.push(`- **Created**: ${qi.creation.date}`)
+  }
+  lines.push(`- **ID**: ${qi.id ?? 'Unknown'}`)
+
+  const alarmCount = dashboard.alarms?.length ?? 0
+  lines.push('', `### Alarms: ${alarmCount === 0 ? 'None' : alarmCount}`)
+
+  const protection = dashboard.backupsInfo?.vmProtection ?? 'unknown'
+  lines.push(`### Backup: ${protection}`)
+
+  return lines.join('\n')
+}

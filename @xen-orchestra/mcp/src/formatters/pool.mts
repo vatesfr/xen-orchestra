@@ -7,6 +7,8 @@ interface PoolLike {
   HA_enabled?: boolean
   auto_poweron?: boolean
   master?: string
+  default_SR?: string
+  cpus?: { cores?: number; sockets?: number }
 }
 
 interface PoolDashboardLike {
@@ -36,6 +38,23 @@ export function formatPoolList(pools: PoolLike[]): string {
   ])
 
   return `## Pools (${pools.length} found)\n\n${markdownTable(headers, rows)}`
+}
+
+export function formatPoolDetails(pool: PoolLike): string {
+  const lines = [
+    `## Pool: ${pool.name_label ?? 'Unknown'}`,
+    '',
+    `- **HA**: ${pool.HA_enabled ? 'Enabled' : 'Disabled'}`,
+    `- **Auto Power On**: ${pool.auto_poweron ? 'Yes' : 'No'}`,
+  ]
+
+  if (pool.name_description) lines.push(`- **Description**: ${pool.name_description}`)
+  if (pool.master) lines.push(`- **Master**: ${pool.master}`)
+  if (pool.default_SR) lines.push(`- **Default SR**: ${pool.default_SR}`)
+  if (pool.cpus) lines.push(`- **CPUs**: ${pool.cpus.cores ?? '?'} cores (${pool.cpus.sockets ?? '?'} sockets)`)
+  lines.push(`- **ID**: ${pool.id ?? 'Unknown'}`)
+
+  return lines.join('\n')
 }
 
 export function formatPoolDashboard(dashboard: PoolDashboardLike): string {

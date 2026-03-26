@@ -10,6 +10,20 @@ interface HostLike {
   address?: string
 }
 
+export function formatHostDetails(host: HostLike): string {
+  const lines = [
+    `## Host: ${host.name_label ?? 'Unknown'}`,
+    '',
+    `- **State**: ${host.power_state ?? 'Unknown'}`,
+    `- **Product**: ${host.productBrand ?? 'Unknown'}`,
+    `- **Version**: ${host.version ?? 'Unknown'}`,
+    `- **RAM**: ${formatBytes(host.memory?.size)}`,
+    `- **Address**: ${host.address ?? 'Unknown'}`,
+    `- **ID**: ${host.id ?? 'Unknown'}`,
+  ]
+  return lines.join('\n')
+}
+
 export function formatHostList(hosts: HostLike[]): string {
   if (hosts.length === 0) return 'No hosts found.'
 
