@@ -5,7 +5,12 @@
     </UiTitle>
     <VtsStateHero v-if="!areServersReady" format="card" type="busy" size="medium" />
     <template v-else>
-      <VtsQuickInfoRow :label="t('ip-address')" :value="server?.host" />
+      <VtsQuickInfoRow :label="t('ip-address')">
+        <template #value>
+          {{ server?.host }}
+          <VtsCopyButton v-if="server?.host" :value="server.host" />
+        </template>
+      </VtsQuickInfoRow>
       <VtsQuickInfoRow :label="t('proxy-url')" :value="server?.httpProxy" />
       <VtsQuickInfoRow :label="t('username')" :value="server?.username" />
       <VtsQuickInfoRow :label="t('read-only')">
@@ -25,6 +30,7 @@
 <script setup lang="ts">
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoServerCollection } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
+import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
