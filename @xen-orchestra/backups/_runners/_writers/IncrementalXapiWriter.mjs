@@ -19,6 +19,7 @@ import {
   REPLICATED_TO_SR_UUID,
   DATETIME,
   VM_UUID,
+  resetVmOtherConfig,
 } from '../../_otherConfig.mjs'
 import assert from 'node:assert'
 import { formatFilenameDate } from '../../_filenameDate.mjs'
@@ -260,11 +261,12 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
           ` -- last replication: ${formatFilenameDate(timestamp)} ${humanFormat.bytes(size)} bytes read `
       )
       // take a snapshot to ensure these data are not modified until next snapshot
-      await Task.run({ name: 'target snapshot' }, () =>
-        xapi.VM_snapshot(targetVmRef, {
+      await Task.run({ name: 'target snapshot' }, async () => {
+        await xapi.VM_snapshot(targetVmRef, {
           name_label: `${vm.name_label} - ${job.name} / ${schedule.name} ${formatFilenameDate(timestamp)}`,
         })
-      )
+        await resetVmOtherConfig(targetVmRef)
+      })
 
       return {
         size,
