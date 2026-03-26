@@ -144,7 +144,12 @@ function sendTextAsKeys(text: string) {
   }
 
   for (const char of text) {
-    const codePoint = char.codePointAt(0)!
+    const codePoint = char.codePointAt(0)
+
+    if (codePoint === undefined) {
+      continue
+    }
+
     let keysym: number
     if (char === '\n' || char === '\r') {
       keysym = 0xff0d // XK_Return
