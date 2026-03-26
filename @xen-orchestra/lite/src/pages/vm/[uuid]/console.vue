@@ -18,9 +18,9 @@
           <VtsDivider type="stretch" />
           <VtsClipboardConsole
             :clipboard-text="clipboardText"
-            :send-clipboard="sendClipboard"
             :has-guest-tools="guestToolsDetected"
             :guest-tools-url="XCP_LINKS.GUEST_TOOLS"
+            @send="sendClipboard"
           />
         </template>
       </VtsLayoutConsole>

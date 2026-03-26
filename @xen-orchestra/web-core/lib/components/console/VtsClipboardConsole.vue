@@ -1,7 +1,7 @@
 <template>
   <div class="vts-clipboard-console">
     <UiCardTitle>{{ t('console-clipboard') }}</UiCardTitle>
-    <UiTextarea accent="brand" :model-value="modelValue" @update:model-value="modelValue = $event" />
+    <UiTextarea v-model="modelValue" accent="brand" />
     <div v-if="!hasGuestTools" class="no-guest-tools">
       <VtsIcon name="status:halted-circle" size="medium" />
       <UiLink size="small" :href="guestToolsUrl">
@@ -9,16 +9,16 @@
       </UiLink>
     </div>
     <div class="buttons-container">
-      <UiButton accent="brand" variant="primary" size="medium" @click="onSend">
+      <UiButton accent="brand" variant="primary" size="medium" @click="onSend()">
         {{ t('action:send') }}
       </UiButton>
       <UiButton
-        v-tooltip="!isSupported ? t('copy-unavailable-http') : undefined"
+        v-tooltip="receiveTooltip"
         accent="brand"
         variant="secondary"
         size="medium"
         :disabled="!hasGuestTools"
-        @click="onReceive"
+        @click="onReceive()"
       >
         {{ t('receive') }}
       </UiButton>
@@ -34,33 +34,45 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useClipboard } from '@vueuse/core'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { clipboardText, hasGuestTools = true } = defineProps<{
   clipboardText: string
-  sendClipboard: (text: string) => void
-  hasGuestTools?: boolean | undefined
+  hasGuestTools?: boolean
   guestToolsUrl?: string
 }>()
+
+const emit = defineEmits<{ send: [text: string] }>()
 
 const { t } = useI18n()
 
 const modelValue = ref('')
 
 watch(
-  () => props.clipboardText,
+  () => clipboardText,
   text => {
     modelValue.value = text
   }
 )
 
-const { text, isSupported } = useClipboard({ read: true, legacy: true })
+const { isSupported } = useClipboard({ read: true, legacy: true })
 
-const onSend = () => props.sendClipboard(modelValue.value)
+const receiveTooltip = computed(() => {
+  if (!isSupported.value) {
+    return t('copy-unavailable-http')
+  }
+  if (!hasGuestTools) {
+    return t('no-xen-tools-detected')
+  }
+
+  return undefined
+})
+
+const onSend = () => emit('send', modelValue.value)
 
 const onReceive = () => {
-  modelValue.value = text.value
+  modelValue.value = clipboardText
 }
 </script>
 

@@ -14,9 +14,9 @@
       <VtsDivider type="stretch" />
       <VtsClipboardConsole
         :clipboard-text="clipboardText"
-        :send-clipboard="sendClipboard"
         :has-guest-tools="guestToolsDetected"
         :guest-tools-url="XCP_LINKS.GUEST_TOOLS"
+        @send="sendClipboard"
       />
     </template>
   </VtsLayoutConsole>
@@ -37,12 +37,12 @@ import { VM_OPERATIONS } from '@vates/types'
 import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { vm } = defineProps<{
   vm: FrontXoVm
 }>()
 
 const { t } = useI18n()
-const { hasGuestTools } = useXoVmUtils(() => props.vm)
+const { hasGuestTools } = useXoVmUtils(() => vm)
 
 const STOP_OPERATIONS = [
   VM_OPERATIONS.SHUTDOWN,
@@ -54,20 +54,18 @@ const STOP_OPERATIONS = [
   VM_OPERATIONS.SUSPEND,
 ]
 
-const url = computed(() => new URL(`/api/consoles/${props.vm.id}`, window.location.origin.replace(/^http/, 'ws')))
+const url = computed(() => new URL(`/api/consoles/${vm.id}`, window.location.origin.replace(/^http/, 'ws')))
 
-const isVmConsoleRunning = computed(() => props.vm.power_state === 'Running' && props.vm.other.disable_pv_vnc !== '1')
+const isVmConsoleRunning = computed(() => vm.power_state === 'Running' && vm.other.disable_pv_vnc !== '1')
 
-const isConsoleAvailable = computed(() =>
-  props.vm !== undefined ? !isVmOperationPending(props.vm, STOP_OPERATIONS) : false
-)
+const isConsoleAvailable = computed(() => !isVmOperationPending(vm, STOP_OPERATIONS))
 const consoleElement = useTemplateRef<InstanceType<typeof VtsRemoteConsole>>('console-element')
-const guestToolsDetected = computed(() => hasGuestTools(props.vm))
+const guestToolsDetected = computed(() => hasGuestTools(vm))
 
 const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
 const clipboardText = computed<string>(() => consoleElement.value?.clipboardText ?? '')
 const sendClipboard = (text: string) =>
-  hasGuestTools(props.vm) ? consoleElement.value?.sendClipboard(text) : consoleElement.value?.sendTextAsKeys(text)
+  hasGuestTools(vm) ? consoleElement.value?.sendClipboard(text) : consoleElement.value?.sendTextAsKeys(text)
 </script>
 
 <style scoped lang="postcss">

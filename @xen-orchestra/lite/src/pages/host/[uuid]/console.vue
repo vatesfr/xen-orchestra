@@ -16,7 +16,7 @@
         <template #actions>
           <VtsActionsConsole :send-ctrl-alt-del="sendCtrlAltDel" />
           <VtsDivider type="stretch" />
-          <VtsClipboardConsole :clipboard-text="clipboardText" :send-clipboard="sendClipboard" />
+          <VtsClipboardConsole :clipboard-text="clipboardText" @send="sendClipboard" />
         </template>
       </VtsLayoutConsole>
     </template>
