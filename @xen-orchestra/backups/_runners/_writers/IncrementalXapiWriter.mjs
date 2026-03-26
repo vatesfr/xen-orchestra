@@ -265,7 +265,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         await xapi.VM_snapshot(targetVmRef, {
           name_label: `${vm.name_label} - ${job.name} / ${schedule.name} ${formatFilenameDate(timestamp)}`,
         })
-        await resetVmOtherConfig(targetVmRef)
+        await resetVmOtherConfig(xapi, targetVmRef)
       })
 
       return {
