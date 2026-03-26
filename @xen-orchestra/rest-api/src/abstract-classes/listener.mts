@@ -72,33 +72,37 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
     }
 
     const broadcastAllSubscriber = async (...args: unknown[]) => {
-      await Promise.all(
-        this.#subscribers.values().map(async conf => {
-          if (!conf.subscriber.isAlive) {
-            this.removeSubscriber(conf.subscriber.id)
-            return
-          }
+      try {
+        await Promise.all(
+          this.#subscribers.values().map(async conf => {
+            if (!conf.subscriber.isAlive) {
+              this.removeSubscriber(conf.subscriber.id)
+              return
+            }
 
-          let data: Awaited<ReturnType<Listener['handleData']>>
-          try {
-            data = await this.handleData({ ...conf, event }, ...args)
-          } catch (error) {
-            log.error(
-              `cannot handle data for ${this.type} listener on subscriber: ${conf.subscriber.id} (user: ${conf.subscriber.userId}). Removing it from the subscriber list.`,
-              { error }
-            )
-            this.removeSubscriber(conf.subscriber.id)
-            conf.subscriber.clear()
-            return
-          }
-          if (data === undefined) {
-            return
-          }
-          const { event: overridenEvent, ...dataToBroadcast } = data
+            let data: Awaited<ReturnType<Listener['handleData']>>
+            try {
+              data = await this.handleData({ ...conf, event }, ...args)
+            } catch (error) {
+              log.error(
+                `cannot handle data for ${this.type} listener on subscriber: ${conf.subscriber.id} (user: ${conf.subscriber.userId}). Removing it from the subscriber list.`,
+                { error }
+              )
+              this.removeSubscriber(conf.subscriber.id)
+              conf.subscriber.clear()
+              return
+            }
+            if (data === undefined) {
+              return
+            }
+            const { event: overridenEvent, ...dataToBroadcast } = data
 
-          conf.subscriber.broadcast(overridenEvent ?? event, dataToBroadcast)
-        })
-      )
+            conf.subscriber.broadcast(overridenEvent ?? event, dataToBroadcast)
+          })
+        )
+      } catch (error) {
+        log.warn('unexpected error broadcasting to subscribers', { error })
+      }
     }
     this.#eventCallbacks.set(event, broadcastAllSubscriber)
     this.#eventEmitter.on(event, broadcastAllSubscriber)
@@ -150,8 +154,7 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
           return
         }
         return 'add'
-      case 'update':
-        // eslint-disable-next-line no-case-declarations
+      case 'update': {
         let canSeeObject = false,
           canSeePreviousObject = false
         if (object !== undefined) {
@@ -186,6 +189,7 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
         }
 
         return
+      }
       case 'remove':
         if (
           !hasPrivilegeOn({

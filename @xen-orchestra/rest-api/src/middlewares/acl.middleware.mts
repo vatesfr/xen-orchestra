@@ -73,7 +73,7 @@ export const XAPI_TYPE_BY_ACL_RESOURCE = {
   'vm-template': 'VM-template',
   vtpm: 'VTPM',
   sm: 'SM',
-}
+} satisfies Partial<Record<SupportedResource, XapiXoRecord['type']>>
 
 function normalizeAclEntry(acl: AclEntry) {
   const base = { resource: acl.resource, action: acl.action, getObject: acl.getObject }
