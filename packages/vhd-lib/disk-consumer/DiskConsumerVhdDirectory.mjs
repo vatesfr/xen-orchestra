@@ -11,7 +11,7 @@ import { asyncEach } from '@vates/async-each'
 import { VhdDirectory, VhdAbstract } from 'vhd-lib'
 import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'
 import { DEFAULT_BLOCK_SIZE } from '../_constants.js'
-import  assert  from 'node:assert'
+import assert from 'node:assert'
 
 /**
  * @typedef {Object} VhdRemoteTarget
@@ -47,7 +47,7 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
     const { handler, path, compression, flags, validator, concurrency } = this.#target
     const SUFFIX = '.alias.vhd'
     assert.ok(path.endsWith(SUFFIX), `filename must be an alias , got ${path}`)
-    const base = basename(path).substring(0, -SUFFIX.length)
+    const base = basename(path).slice(0, -SUFFIX.length)
     const dataPath = `${dirname(path)}/data/${base}.vhd`
     const uid = 'to stream ' + Math.random()
     let generator

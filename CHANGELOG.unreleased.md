@@ -12,8 +12,8 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [V2V] Make import cancellable (PR [#9552](https://github.com/vatesfr/xen-orchestra/pull/9552))
-
 - [MCP] Support token authentication via `XO_TOKEN` environment variable as an alternative to username/password (PR [#9577](https://github.com/vatesfr/xen-orchestra/pull/9577))
+- [MCP] Add `list_srs` and `get_sr_details` tools to query storage repositories (PR [#9599](https://github.com/vatesfr/xen-orchestra/pull/9599))
 - [MCP] Add `list_vdis` tool to list virtual disks (PR [#9559](https://github.com/vatesfr/xen-orchestra/pull/9559))
 - [Replication] Reuse the same VM as an incremental replication target (PR [#9524](https://github.com/vatesfr/xen-orchestra/pull/9524))
 - [S3] add configuration for max/minPartSize and maxPartNumber in the API (PR [#9561](https://github.com/vatesfr/xen-orchestra/pull/9561))
@@ -24,6 +24,13 @@
 - [MCP] Add `list_networks` and `get_network_details` tools to query network resources (PR [#9595](https://github.com/vatesfr/xen-orchestra/pull/9595))
 - [Backup] Fix incremental replication always doing a full when source and target are in the same pool (PR [#9612](https://github.com/vatesfr/xen-orchestra/pull/9612))
 - [Backup] New `xo-disk-cli` command-line tool to inspect and export disks from backup repositories (`info`, `list`, `transform` commands) (PR [#9551](https://github.com/vatesfr/xen-orchestra/pull/9551))
+- [MCP] Refactor into modular file structure for better extensibility (PR [#9621](https://github.com/vatesfr/xen-orchestra/pull/9621))
+- [REST API] Expose `POST /rest/v0/pools/:id/actions/create_bonded_network` and `POST /rest/v0/pools/:id/actions/create_internal_network` (PR [#9611](https://github.com/vatesfr/xen-orchestra/pull/9611))
+- [REST API] Added `nbd` param in network creation endpoints (PR [#9611](https://github.com/vatesfr/xen-orchestra/pull/9611))
+- [VM] Add backup replication card on dashboard (PR [#9545](https://github.com/vatesfr/xen-orchestra/pull/9545))
+- [VM/Snapshot] Add VM snapshot tab page (PR [#9521] (https://github.com/vatesfr/xen-orchestra/pull/9521))
+- [SR] New "Preferred image format" field on SR creation forms (NFS, SMB, HBA, iSCSI, LVM, EXT) to control the disk format used by the SR (PR [#9596](https://github.com/vatesfr/xen-orchestra/pull/9596))
+- [Treeview/Layout] Add Loader and "please wait" page on the first connection xo-server (PR [#9568](https://github.com/vatesfr/xen-orchestra/pull/9568))
 
 ### Bug fixes
 
@@ -35,6 +42,7 @@
 - [S3] Check provider compatibility before using batch deletion (PR [#9598](https://github.com/vatesfr/xen-orchestra/pull/9598))
 - [REST API] Exclude ISO SRs from the `/dashboard` endpoint in the `resourcesOverview.srSize` and `storageRepositories.size.*` properties (PR [#9608](https://github.com/vatesfr/xen-orchestra/pull/9608))
 - [VM] Fixed duplicated ip addresses in the network tab [Forum#101359](https://xcp-ng.org/forum/topic/11604/xo-6-dedicated-thread-for-all-your-feedback/110) (PR [#9547](https://github.com/vatesfr/xen-orchestra/pull/9547))
+- [VM/New] Fix template that was resetting (PR [#9603] (https://github.com/vatesfr/xen-orchestra/pull/9603))
 - [Restore] correctly compute the restored size of incremental backups(PR [#9632](https://github.com/vatesfr/xen-orchestra/pull/9632))
 
 ### Packages to release
@@ -66,9 +74,11 @@
 - @xen-orchestra/qcow2 minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer minor
-- @xen-orchestra/web patch
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - vhd-lib minor
 - xo-server minor
 - xo-server-openmetrics minor
+- xo-web minor
 
 <!--packages-end-->

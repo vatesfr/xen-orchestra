@@ -44,7 +44,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import { useVbdsStatus } from '@/modules/vbd/composables/use-vbds-status.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -58,6 +58,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
+import { useMapper } from '@core/packages/mapper'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -70,28 +71,19 @@ const { t } = useI18n()
 
 const { buildXo5Route } = useXoRoutes()
 
-const { getVbdsByIds } = useXoVbdCollection()
-
 const vdiHref = computed(() => buildXo5Route(`/vms/${vm.id}/disks/s=1_6_asc-${vdi.id}`))
 
-const vbdsStatus = computed(() => {
-  const vdiVbds = getVbdsByIds(vdi.$VBDs)
-  if (vdiVbds.length === 0) {
-    return CONNECTION_STATUS.DISCONNECTED
-  }
+const vbdAttachmentStatus = useVbdsStatus(() => vdi.$VBDs)
 
-  const areVdiVbdsAttached = vdiVbds.map(vbd => vbd.attached)
-
-  if (areVdiVbdsAttached.every(Boolean)) {
-    return CONNECTION_STATUS.CONNECTED
-  }
-
-  if (areVdiVbdsAttached.some(Boolean)) {
-    return CONNECTION_STATUS.PARTIALLY_CONNECTED
-  }
-
-  return CONNECTION_STATUS.DISCONNECTED
-})
+const vbdsStatus = useMapper(
+  () => vbdAttachmentStatus.value,
+  {
+    allAttached: CONNECTION_STATUS.CONNECTED,
+    someAttached: CONNECTION_STATUS.PARTIALLY_CONNECTED,
+    noneAttached: CONNECTION_STATUS.DISCONNECTED,
+  },
+  'noneAttached'
+)
 
 const { notCdDriveVbds } = useXoVmVbdsUtils(() => vm)
 
