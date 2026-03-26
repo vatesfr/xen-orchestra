@@ -8,6 +8,7 @@ import {
   Patch,
   Path,
   Post,
+  Put,
   Query,
   Request,
   Response,
@@ -18,7 +19,7 @@ import {
 } from 'tsoa'
 import { provide } from 'inversify-binding-decorators'
 import { type Request as ExRequest, json } from 'express'
-import type { XoAclRole } from '@vates/types'
+import type { XoAclRole, XoGroup, XoUser } from '@vates/types'
 
 import { aclPrivilegeIds, partialAclPrivileges } from '../open-api/oa-examples/acl-privilege.oa-example.mjs'
 import { aclRole, aclRoleIds, partialAclRoles } from '../open-api/oa-examples/acl-role.oa-example.mjs'
@@ -30,6 +31,7 @@ import {
   invalidParameters,
   noContentResp,
   notFoundResp,
+  resourceAlreadyExists,
   unauthorizedResp,
   Unbrand,
 } from '../open-api/common/response.common.mjs'
@@ -204,5 +206,81 @@ export class AclRoleController extends XoController<XoAclRole> {
       limit,
       privilege: { resource: 'acl-privilege', action: 'read' },
     })
+  }
+  
+  /**
+   * Attach an ACL V2 role to a group.
+   *
+   * @example id "784bd959-08de-4b26-b575-92ded5aef872"
+   * @example groupId "ee4965bf-d8af-4ca2-aa0e-5f29d0c5f9e2"
+   */
+  @Put('{id}/groups/{groupId}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(resourceAlreadyExists.status, resourceAlreadyExists.description)
+  async attachAclV2Group(@Path() id: string, @Path() groupId: string): Promise<void> {
+    const roleId = id as XoAclRole['id']
+
+    // addAclV2GroupRole does not check if the group exists so we get the group here to make sure it exists.
+    const group = await this.restApi.xoApp.getGroup(groupId as XoGroup['id'])
+
+    await this.restApi.xoApp.addAclV2GroupRole(group.id, roleId)
+  }
+
+  /**
+   * Detach an ACL V2 role from a group.
+   *
+   * @example id "784bd959-08de-4b26-b575-92ded5aef872"
+   * @example groupId "ee4965bf-d8af-4ca2-aa0e-5f29d0c5f9e2"
+   */
+  @Delete('{id}/groups/{groupId}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async detachAclV2Group(@Path() id: string, @Path() groupId: string): Promise<void> {
+    const roleId = id as XoAclRole['id']
+
+    // deleteAclV2GroupRole does not check if the group exists so we get the group here to make sure it exists.
+    const group = await this.restApi.xoApp.getGroup(groupId as XoGroup['id'])
+
+    await this.restApi.xoApp.deleteAclV2GroupRole(group.id, roleId)
+  }
+
+  /**
+   * Attach an ACL V2 role to a user.
+   *
+   * @example id "784bd959-08de-4b26-b575-92ded5aef872"
+   * @example userId "ee4965bf-d8af-4ca2-aa0e-5f29d0c5f9e2"
+   */
+  @Put('{id}/users/{userId}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(resourceAlreadyExists.status, resourceAlreadyExists.description)
+  async attachAclV2User(@Path() id: string, @Path() userId: string): Promise<void> {
+    const roleId = id as XoAclRole['id']
+
+    // addAclV2UserRole does not check if the user exists so we get the user here to make sure it exists.
+    const user = await this.restApi.xoApp.getUser(userId as XoUser['id'])
+
+    await this.restApi.xoApp.addAclV2UserRole(user.id, roleId)
+  }
+
+  /**
+   * Detach an ACL V2 role from a user.
+   *
+   * @example id "784bd959-08de-4b26-b575-92ded5aef872"
+   * @example userId "ee4965bf-d8af-4ca2-aa0e-5f29d0c5f9e2"
+   */
+  @Delete('{id}/users/{userId}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async detachAclV2User(@Path() id: string, @Path() userId: string): Promise<void> {
+    const roleId = id as XoAclRole['id']
+
+    // deleteAclV2UserRole does not check if the user exists so we get the user here to make sure it exists.
+    const user = await this.restApi.xoApp.getUser(userId as XoUser['id'])
+
+    await this.restApi.xoApp.deleteAclV2UserRole(user.id, roleId)
   }
 }
