@@ -70,7 +70,7 @@
 - @xen-orchestra/qcow2 minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer minor
-- @xen-orchestra/web minor
+- @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
 - vhd-lib minor
 - xo-server minor
