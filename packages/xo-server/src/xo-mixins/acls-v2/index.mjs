@@ -422,9 +422,12 @@ export default class {
    */
   async addAclV2UserRole(userId, roleId) {
     /**
-     * @type {UserRole}
+     * @type {UserRole[]}
      */
-    const userRole = await this.#userRoleDb._get({ userId, roleId })
+    const userRoles = await this.#userRoleDb._get({ userId, roleId })
+    if (userRoles.length > 1) throw new Error(`More than 1 userRoles were found for ${userId} and ${roleId}`)
+
+    const userRole = userRoles[0]
 
     if (userRole !== undefined) {
       throw objectAlreadyExists({ objectId: userRole.id, objectType: 'userRole' })
@@ -449,9 +452,12 @@ export default class {
    */
   async deleteAclV2UserRole(userId, roleId) {
     /**
-     * @type {UserRole}
+     * @type {UserRole[]}
      */
-    const userRole = await this.#userRoleDb._get({ userId, roleId })
+    const userRoles = await this.#userRoleDb._get({ userId, roleId })
+    if (userRoles.length > 1) throw new Error(`More than 1 userRoles were found for ${userId} and ${roleId}`)
+
+    const userRole = userRoles[0]
 
     if (userRole === undefined) {
       throw noSuchObject(`userId:${userId} and roleId:${roleId}`, 'userRole')
@@ -468,13 +474,16 @@ export default class {
    * @param {XoGroup['id']} groupId
    * @param {XoAclRole['id']} roleId
    *
-   * @returns {Promise<UserRole>}
+   * @returns {Promise<GroupRole>}
    */
   async addAclV2GroupRole(groupId, roleId) {
     /**
-     * @type {GroupRole}
+     * @type {GroupRole[]}
      */
-    const groupRole = await this.#groupRoleDb._get({ groupId, roleId })
+    const groupRoles = await this.#groupRoleDb._get({ groupId, roleId })
+    if (groupRoles.length > 1) throw new Error(`More than 1 groupRoles were found for ${groupId} and ${roleId}`)
+
+    const groupRole = groupRoles[0]
 
     if (groupRole !== undefined) {
       throw objectAlreadyExists({ objectId: groupRole.id, objectType: 'groupRole' })
@@ -499,9 +508,12 @@ export default class {
    */
   async deleteAclV2GroupRole(groupId, roleId) {
     /**
-     * @type {UserRole}
+     * @type {GroupRole[]}
      */
-    const groupRole = await this.#groupRoleDb._get({ groupId, roleId })
+    const groupRoles = await this.#groupRoleDb._get({ groupId, roleId })
+    if (groupRoles.length > 1) throw new Error(`More than 1 groupRoles were found for ${groupId} and ${roleId}`)
+
+    const groupRole = groupRoles[0]
 
     if (groupRole === undefined) {
       throw noSuchObject(`groupId:${groupId} and roleId:${roleId}`, 'groupRole')

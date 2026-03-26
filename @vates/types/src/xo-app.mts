@@ -46,6 +46,8 @@ import {
   XenApiVmWrapped,
   XenApiVtpmWrapped,
   XoAclRole,
+  XoGroupRole,
+  XoUserRole,
 } from './index.mjs'
 
 export type XapiConnection = Xapi & {
@@ -130,6 +132,8 @@ export type XoApp = {
   }
 
   // methods ------------
+  addAclV2GroupRole(groupId: XoGroup['id'], roleId: XoAclRole['id']): Promise<XoGroupRole>
+  addAclV2UserRole(userId: XoUser['id'], roleId: XoAclRole['id']): Promise<XoUserRole>
   addUserToGroup: (userId: XoUser['id'], groupId: XoGroup['id']) => Promise<void>
   authenticateUser: (
     credentials: { token?: string; username?: string; password?: string },
@@ -170,6 +174,7 @@ export type XoApp = {
     userId: XoUser['id']
   }): Promise<XoAuthenticationToken>
   createUser(params: { name?: string; password?: string;[key: string]: unknown }): Promise<XoUser>
+  deleteAclV2GroupRole(groupId: XoGroup['id'], roleId: XoAclRole['id']): Promise<Boolean>
   deleteAclV2Privilege(privilegeId: AnyPrivilege['id'], options?: { force?: boolean }): Promise<boolean>
   deleteAclV2Role(roleId: XoAclRole['id'], options?: { force?: boolean }): Promise<boolean>
   deleteGroup(id: XoGroup['id']): Promise<void>
@@ -181,6 +186,7 @@ export type XoApp = {
   getAclV2Privileges(): Promise<AnyPrivilege[]>
   getAclV2RolePrivileges(roleId: XoAclRole['id']): Promise<AnyPrivilege[]>
   getAclV2Role(id: XoAclRole['id']): Promise<XoAclRole>
+  deleteAclV2UserRole(userId: XoUser['id'], roleId: XoAclRole['id']): Promise<Boolean>
   getAclV2Roles(): Promise<XoAclRole[]>
   getAclV2UserPrivileges(userId: XoUser['id']): Promise<AnyPrivilege[]>
   getAllGroups(): Promise<XoGroup[]>
