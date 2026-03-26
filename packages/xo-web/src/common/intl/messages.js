@@ -810,7 +810,7 @@ const messages = {
   newSrNfsOptions: 'Comma delimited NFS options',
   newSrPreferredImageFormat: 'Preferred image format',
   newSrPreferredImageFormatTooltip:
-    'Accepted values: vhd, qcow2 or both (e.g. "vhd, qcow2"). Leave empty to use the default.',
+    'The list of the disk formats in descending order of priority. the qcow2 support must be installed on the host.',
   newSrNfs: 'NFS version',
   noSharedZfsAvailable: 'No shared ZFS available',
   reattachNewSrTooltip: 'Reattach SR',
