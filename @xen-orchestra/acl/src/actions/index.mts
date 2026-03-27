@@ -1,7 +1,6 @@
 import { default as aclPrivilege } from './acl-privilege.mjs'
 import { default as aclRole } from './acl-role.mjs'
 import { default as alarm } from './alarm.mjs'
-import { default as authenticationToken } from './authentication-token.mjs'
 import { default as backupArchive } from './backup-archive.mjs'
 import { default as backupJob } from './backup-job.mjs'
 import { default as backupLog } from './backup-log.mjs'
@@ -44,7 +43,6 @@ export const SUPPORTED_ACTIONS_BY_RESOURCE = {
   'acl-privilege': aclPrivilege,
   'acl-role': aclRole,
   alarm,
-  'authentication-token': authenticationToken,
   'backup-archive': backupArchive,
   'backup-job': backupJob,
   'backup-log': backupLog,
