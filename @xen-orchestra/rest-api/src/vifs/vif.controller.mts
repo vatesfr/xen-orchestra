@@ -261,7 +261,7 @@ export class VifController extends XapiXoController<XoVif> {
   }
 
   /**
-   * Hot-unplug the VBD, dynamically detaching it from the running VM
+   * Hot-unplug the VIF, dynamically detaching it from the running VM
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
