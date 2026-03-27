@@ -11,7 +11,7 @@ import {
   type SupportedResource,
 } from '@xen-orchestra/acl'
 import type { VatesTask } from '@vates/types/lib/vates/task'
-import type { XapiXoRecord, XoRecord, XoTask, XoUser } from '@vates/types/xo'
+import type { XapiXoRecord, XoRecord, XoTask } from '@vates/types/xo'
 import type { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
 
 import { BASE_URL } from '../index.mjs'
