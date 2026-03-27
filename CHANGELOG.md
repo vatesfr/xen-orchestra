@@ -36,8 +36,6 @@
 - [VM/New] Fix template that was resetting (PR [#9603] (https://github.com/vatesfr/xen-orchestra/pull/9603))
 - [Restore] correctly compute the restored size of incremental backups(PR [#9632](https://github.com/vatesfr/xen-orchestra/pull/9632))
 
-### Security
-
 ### Released packages
 
 - @vates/async-each 1.0.2
@@ -54,13 +52,14 @@
 - @xen-orchestra/immutable-backups 2.0.0
 - @xen-orchestra/web-core 0.47.0
 - @xen-orchestra/mcp 1.1.0
-- @xen-orchestra/proxy 0.29.52
 - @xen-orchestra/rest-api 0.28.0
 - @xen-orchestra/vmware-explorer 0.12.0
 - @xen-orchestra/web 0.45.0
-- xo-server 5.198.0
 - xo-server-openmetrics 1.4.0
 - xo-web 5.195.0
+- @xen-orchestra/xapi 8.7.0
+- @xen-orchestra/proxy 0.29.53
+- xo-server 5.198.1
 
 ## **6.2.2 ** (2026-03-09)
 
