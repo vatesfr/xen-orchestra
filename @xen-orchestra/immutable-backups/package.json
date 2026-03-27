@@ -16,13 +16,13 @@
     "xo-immutable-remote": "./dist/protectRemotes.mjs"
   },
   "license": "AGPL-3.0-or-later",
-  "version": "1.0.30",
+  "version": "2.0.0",
   "engines": {
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "@vates/async-each": "^1.0.1",
-    "@xen-orchestra/backups": "^0.69.4",
+    "@vates/async-each": "^1.0.2",
+    "@xen-orchestra/backups": "^0.70.0",
     "@xen-orchestra/log": "^0.7.1",
     "app-conf": "^3.0.0",
     "execa": "^5.0.0",
