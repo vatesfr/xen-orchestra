@@ -24,6 +24,9 @@ export function actionsFromBody<Resource extends SupportedResource>(
       return field in req.body
     })
 }
+export function actionFromBody<Resource extends SupportedResource>(action: SupportedActions<Resource>) {
+  return opts => actionsFromBody([action])(opts)[0]
+}
 
 export function actionsIfNotSelfUser<Resource extends SupportedResource>(
   actions: SupportedActions<Resource>[]
@@ -39,12 +42,20 @@ export function actionsIfNotSelfUser<Resource extends SupportedResource>(
     return []
   }
 }
+export function actionIfNotSelfUser<Resource extends SupportedResource>(action: SupportedActions<Resource>) {
+  return opts => actionsIfNotSelfUser([action])(opts)[0]
+}
 
 type AclEntry = {
   [Resource in SupportedResource]: {
     resource: Resource
   } & (
-    | { action: SupportedActions<Resource>; actions?: never }
+    | {
+        action:
+          | SupportedActions<Resource>
+          | ((opts: { req: AuthenticatedRequest; restApi: RestApi }) => SupportedActions<Resource>)
+        actions?: never
+      }
     | {
         actions:
           | SupportedActions<Resource>[]
@@ -110,19 +121,18 @@ const XAPI_TYPE_BY_ACL_RESOURCE: Record<SupportedResource, XapiXoRecord['type']>
 }
 
 function normalizeAclEntry(acl: AclEntry) {
-  let actionsResolver
+  const aclAction = acl.action
+  const aclActions =
+    'actions' in acl && acl.actions !== undefined
+      ? acl.actions
+      : typeof aclAction === 'function'
+        ? (opts: { req: AuthenticatedRequest; restApi: RestApi }) => [aclAction(opts)]
+        : [aclAction]
 
-  if ('actions' in acl) {
-    const aclActions = acl.actions
-    if (typeof aclActions === 'function') {
-      actionsResolver = (req, restApi) => aclActions({ req, restApi })
-    } else {
-      actionsResolver = () => aclActions
-    }
-  } else {
-    const action = acl.action
-    actionsResolver = () => [action]
-  }
+  const actionsResolver =
+    typeof aclActions === 'function'
+      ? (req: AuthenticatedRequest, restApi: RestApi) => aclActions({ req, restApi })
+      : () => aclActions
 
   const base = { resource: acl.resource, actionsResolver, getObject: acl.getObject }
 

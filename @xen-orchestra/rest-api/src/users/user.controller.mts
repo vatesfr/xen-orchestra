@@ -23,7 +23,7 @@ import { json, type Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
 import type { XoAuthenticationToken, XoGroup, XoTask, XoUser } from '@vates/types'
 
-import { acl, actionsFromBody, actionsIfNotSelfUser } from '../middlewares/acl.middleware.mjs'
+import { acl, actionIfNotSelfUser, actionsFromBody } from '../middlewares/acl.middleware.mjs'
 import {
   badRequestResp,
   createdResp,
@@ -117,7 +117,7 @@ export class UserController extends XoController<XoUser> {
   @Middlewares(
     acl({
       resource: 'user',
-      actions: actionsIfNotSelfUser(['read']),
+      action: actionIfNotSelfUser('read'),
       objectId: 'params.id',
       getObject: ({ restApi }) => restApi.xoApp.getUser,
     })

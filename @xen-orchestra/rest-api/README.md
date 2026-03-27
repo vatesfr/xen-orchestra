@@ -72,7 +72,7 @@ It is sometimes necessary to check ACLs based on the body of the request sent by
 
 `actionsFromBody(['update:name_label', 'update:name_description'])` checks if `name_label` is present in the request body, and then applies the ACL check. The same applies to `name_description`.
 
-`actionsIfNotSelfUser(['read'])` returns the given actions only if the current user is **not** the target user. If the current user is the target (self), no actions are returned and the ACL check is skipped entirely.
+`actionIfNotSelfUser(['read'])` returns the given action only if the current user is **not** the target user. If the current user is the target (self), no action is returned and the ACL check is skipped entirely.
 
 #### Guidelines
 

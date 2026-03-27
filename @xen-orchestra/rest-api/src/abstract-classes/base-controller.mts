@@ -43,7 +43,7 @@ export abstract class BaseController<T extends RestXoRecord, IsSync extends bool
     req: Request,
     opts?: {
       path?: string | ((obj: Objects) => string)
-      privilege?: { action: SupportedActions<Resource>; resource: Resource; userId?: XoUser['id'] }
+      privilege?: { action: SupportedActions<Resource>; resource: Resource }
       limit?: number
     }
   ): SendObjects<Objects> {
@@ -51,7 +51,6 @@ export abstract class BaseController<T extends RestXoRecord, IsSync extends bool
     const mappedObjects: (string | WithHref<Partial<Objects>>)[] = []
 
     const user = this.restApi.getCurrentUser()
-    const isSelf = opts?.privilege?.userId === user.id
     const userPrivileges = opts?.privilege !== undefined ? await this.restApi.xoApp.getAclV2UserPrivileges(user.id) : []
 
     let limit = opts?.limit ?? Infinity
@@ -62,7 +61,6 @@ export abstract class BaseController<T extends RestXoRecord, IsSync extends bool
 
       if (
         opts?.privilege !== undefined &&
-        !isSelf &&
         !hasPrivilegeOn({ user, userPrivileges, objects: object, ...opts.privilege })
       ) {
         continue
