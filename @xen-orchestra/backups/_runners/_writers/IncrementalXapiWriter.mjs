@@ -56,6 +56,8 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
 
     // ensure no data have been written since this snapshot
     // but there may be have some other snapshot for another job
+    let targetVmRef 
+    let canChainToTargetVm = true
     await asyncEach(snapshotCandidates, async snapshot => {
       let diffDisk
       try {
@@ -82,14 +84,20 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
             this.#baseVdisBySourceUuid.set(sourceUuid, activeVdi)
           }
           // Track the target VM (the replicated VM to update on the next transfer).
-          this._targetVmRef = vm.$ref
+          targetVmRef = vm.$ref
         } else {
+          // not empty, we will create a new VM 
+          canChainToTargetVm = false
           console.log(snapshot.$ref, 'not empty', diffDisk.getBlockIndexes().length )
         }
       } finally {
         diffDisk?.close()
       }
     })
+    
+    if(canChainToTargetVm){
+      this._targetVmRef = targetVmRef
+    }
     console.log('got replicated vdi,', this.#baseVdisBySourceUuid.size)
 
     for (const uuid of baseUuidToSrcVdi.keys()) {
