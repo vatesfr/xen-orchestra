@@ -1,5 +1,5 @@
 <template>
-  <PoolDownloadButton :master-host="pool.master" />
+  <PoolDownloadButton :master-host-opaque-ref="pool.master" />
 </template>
 
 <script setup lang="ts">

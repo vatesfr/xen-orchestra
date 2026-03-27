@@ -2,7 +2,7 @@
   <MenuItem
     icon="action:download"
     :busy="isFetching"
-    :disabled="(isReady && poolMaster === undefined) || hasError"
+    :disabled="(isReady && host === undefined) || hasError"
     @click="download()"
   >
     {{ t('action:download-bugtools-archive') }}
@@ -11,9 +11,9 @@
 
 <script lang="ts" setup>
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
-import { useHostStore } from '@/stores/xen-api/host.store'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { downloadBugTools } from '@core/utils/download-bugtools.utils'
+import { downloadBugTools } from '@core/utils/download-bugtools.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -23,13 +23,13 @@ const { t } = useI18n()
 
 const { getByOpaqueRef, isReady, isFetching, hasError } = useHostStore().subscribe()
 
-const poolMaster = computed(() => getByOpaqueRef(hostOpaqueRef))
+const host = computed(() => getByOpaqueRef(hostOpaqueRef))
 
 const download = () => {
-  if (poolMaster.value?.address === undefined) {
+  if (host.value?.address === undefined) {
     return
   }
 
-  downloadBugTools(poolMaster.value.address)
+  downloadBugTools(host.value.address)
 }
 </script>

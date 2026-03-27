@@ -12,22 +12,22 @@
 <script lang="ts" setup>
 import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { downloadBugTools } from '@core/utils/download-bugtools.utils'
+import { downloadBugTools } from '@core/utils/download-bugtools.utils.ts'
 import { useI18n } from 'vue-i18n'
 
 const { hostId } = defineProps<{ hostId: FrontXoHost['id'] }>()
 
 const { t } = useI18n()
 
-const { getHostById, areHostsFetching, areHostsReady, hasHostFetchError } = useXoHostCollection()
+const { useGetHostById, areHostsFetching, areHostsReady, hasHostFetchError } = useXoHostCollection()
 
-const host = getHostById(hostId)
+const host = useGetHostById(() => hostId)
 
 const download = () => {
-  if (!host) {
+  if (!host.value) {
     return
   }
 
-  downloadBugTools(host.address)
+  downloadBugTools(host.value.address)
 }
 </script>
