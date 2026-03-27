@@ -13,7 +13,7 @@ import { forwardResult, handleBackupLog } from '../_handleBackupLog.mjs'
 import { waitAll } from '../_waitAll.mjs'
 import { serializeError, unboxIdsFromPattern } from '../utils.mjs'
 
-const log = createLogger('xo:xo-mixins:metadata-backups')
+const logger = createLogger('xo:xo-mixins:metadata-backups')
 
 const METADATA_BACKUP_JOB_TYPE = 'metadataBackup'
 
@@ -318,7 +318,7 @@ export default class metadataBackup {
             pool[remoteId] = poolList
           }
         } catch (error) {
-          log.warn(`listMetadataBackups for remote ${remoteId}`, { error })
+          logger.warn(`listMetadataBackups for remote ${remoteId}`, { error })
         }
       })
     )
@@ -413,7 +413,9 @@ export default class metadataBackup {
               name: 'metadataRestore',
               metadata: JSON.parse(String(await handler.readFile(`${backupId}/metadata.json`))),
             },
-            onProgress: onLogFct,
+            onProgress: event => {
+              onLogFct(event).catch(logger.warn)
+            },
           },
           async () =>
             new RestoreMetadataBackup({

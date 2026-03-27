@@ -20,7 +20,7 @@ import { forwardResult, handleBackupLog } from '../../_handleBackupLog.mjs'
 import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
 import { waitAll } from '../../_waitAll.mjs'
 
-const log = createLogger('xo:xo-mixins:backups-ng')
+const logger = createLogger('xo:xo-mixins:backups-ng')
 
 const parseVmBackupId = id => {
   const i = id.indexOf('/')
@@ -194,7 +194,7 @@ export default class BackupNg {
               recordToXapi[uuid] = serverId
               servers.add(serverId)
             } catch (error) {
-              log.warn(error)
+              logger.warn(error)
             }
           }
           // can be empty for mirror backup job
@@ -219,7 +219,7 @@ export default class BackupNg {
               try {
                 remote = await app.getRemoteWithCredentials(id)
               } catch (error) {
-                log.warn('Error while instantiating remote', { error, remoteId: id })
+                logger.warn('Error while instantiating remote', { error, remoteId: id })
                 remoteErrors[id] = error
                 return
               }
@@ -330,8 +330,7 @@ export default class BackupNg {
             let result
             const onLogFct = makeOnProgress({
               onRootTaskStart: log => {
-                jobUpdateFct(log.id) // is async, but makeOnProgress doesn't await onRootTaskXXX functions
-                result = forwardResult(log)
+                jobUpdateFct(log.id).catch(logger.warn) // is async, but makeOnProgress doesn't await onRootTaskXXX functions
               },
               onRootTaskEnd: log => {
                 result = forwardResult(log)
@@ -621,7 +620,7 @@ export default class BackupNg {
       )
       return backupsByVm
     } catch (error) {
-      log.warn(`listVmBackups for remote ${remoteId}:`, { error })
+      logger.warn(`listVmBackups for remote ${remoteId}:`, { error })
     }
   }
 

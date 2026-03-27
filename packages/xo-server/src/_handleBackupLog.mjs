@@ -49,7 +49,7 @@ export const handleBackupLog = (taskLog, event, { app, jobName, store }) => {
   if (app !== undefined && jobName !== undefined) {
     if (event.type === 'end' && taskLog.properties?.type === 'VM') {
       // we arbitrary pick one transfer to get the size
-      const exportTask = taskLog.tasks.find(task => task.properties?.name === 'export')
+      const exportTask = taskLog.tasks?.find(task => task.properties?.name === 'export')
       const transferTask =
         exportTask === undefined ? undefined : exportTask.tasks.find(task => task.properties?.name === 'transfer')
       const vmBackupInfo = {

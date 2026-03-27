@@ -2,7 +2,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { EventEmitter } from 'node:events'
 import { makeOnProgress } from '@vates/task/combineEvents'
 import { noSuchObject } from 'xo-common/api-errors.js'
-import { Task } from '@vates/task'
+import { Task, serializeError } from '@vates/task'
 import iteratee from 'lodash/iteratee.js'
 import stubTrue from 'lodash/stubTrue.js'
 
@@ -13,15 +13,6 @@ const { warn } = createLogger('xo:mixins:Tasks')
 const noop = Function.prototype
 
 const DEFAULT_BACKUP_LOG_KEEP_DURATION = 31 * 24 * 60 * 60 * 1000
-
-// Create a serializable object from an error.
-const serializeError = error => ({
-  ...error, // Copy enumerable properties.
-  code: error.code,
-  message: error.message,
-  name: error.name,
-  stack: error.stack,
-})
 
 const getLogAge = (log, now) => {
   if (log.end !== undefined) {
