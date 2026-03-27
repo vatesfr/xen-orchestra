@@ -31,4 +31,6 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/xapi minor
+
 <!--packages-end-->
