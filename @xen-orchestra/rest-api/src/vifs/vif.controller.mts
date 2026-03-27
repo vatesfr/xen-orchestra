@@ -33,6 +33,7 @@ import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { provide } from 'inversify-binding-decorators'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import {
+  asynchronousActionResp,
   badRequestResp,
   createdResp,
   internalServerErrorResp,
@@ -49,7 +50,8 @@ import { partialVifs, vif, vifId, vifIds } from '../open-api/oa-examples/vif.oa-
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
-import { taskIds, partialTasks } from '../open-api/oa-examples/task.oa-example.mjs'
+import { taskIds, partialTasks, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
+import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 
 type UnbrandedXoVif = Unbrand<XoVif>
 
@@ -232,5 +234,61 @@ export class VifController extends XapiXoController<XoVif> {
   async destroyVif(@Path() id: string): Promise<void> {
     const xapi = this.getXapi(id as XoVif['id'])
     await xapi.deleteVif(id as XoVif['id'])
+  }
+
+  /**
+   * Hotplug the VIF, dynamically attaching it to the running VM
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/connect')
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async connectVif(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const vifId = id as XoVif['id']
+
+    const action = async () => {
+      const xapi = this.getXapi(vifId)
+      await xapi.connectVif(vifId)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'connect VIF',
+        objectId: vifId,
+      },
+    })
+  }
+
+  /**
+   * Hot-unplug the VBD, dynamically detaching it from the running VM
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/disconnect')
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async disconnectVif(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const vifId = id as XoVif['id']
+
+    const action = async () => {
+      const xapi = this.getXapi(vifId)
+      await xapi.disconnectVif(vifId)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'disconnect VIF',
+        objectId: vifId,
+      },
+    })
   }
 }
