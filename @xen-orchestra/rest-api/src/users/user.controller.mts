@@ -91,6 +91,7 @@ export class UserController extends XoController<XoUser> {
   @Example(userIds)
   @Example(partialUsers)
   @Get('')
+  @Security('*', ['acl'])
   async getUsers(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -128,6 +129,7 @@ export class UserController extends XoController<XoUser> {
   }
 
   /**
+   * You cannot change your own `permission` (even with the right privilege)
    *
    * Required privileges:
    * - resource: user, action: update (grants all fields)
@@ -159,6 +161,12 @@ export class UserController extends XoController<XoUser> {
   @Response(resourceAlreadyExists.status, resourceAlreadyExists.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   async updateUser(@Path() id: string, @Body() body: UpdateUserRequestBody): Promise<void> {
+    const currentUser = this.restApi.getCurrentUser()
+
+    if (body.permission !== undefined && currentUser.id === id) {
+      throw forbiddenOperation('update user', 'cannot change own permission')
+    }
+
     const user = await this.getObject(id as XoUser['id'])
 
     if (
@@ -227,6 +235,7 @@ export class UserController extends XoController<XoUser> {
   @Example(groupIds)
   @Example(partialGroups)
   @Get('{id}/groups')
+  @Security('*', ['acl'])
   @Tags('groups')
   @Response(notFoundResp.status, notFoundResp.description)
   async getUserGroups(
@@ -248,8 +257,7 @@ export class UserController extends XoController<XoUser> {
   }
 
   /**
-   * Returns all authentication tokens that match the following privilege:
-   * - resource: authentication-token, action: read (if not self)
+   * You can only see your own authentication tokens
    *
    * @example id "722d17b9-699b-49d2-8193-be1ac573d3de"
    * @example filter "expiration:>1757371582496"
@@ -257,6 +265,7 @@ export class UserController extends XoController<XoUser> {
    */
   @Example(authenticationTokens)
   @Get('{id}/authentication_tokens')
+  @Security('*', ['acl'])
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   async getAuthenticationTokens(
@@ -264,22 +273,17 @@ export class UserController extends XoController<XoUser> {
     @Path() id: string,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoAuthenticationToken>>>> {
-    const userId = id as XoUser['id']
-    const user = await this.getObject(userId)
+  ): Promise<Unbrand<XoAuthenticationToken>[]> {
+    const user = await this.getObject(id as XoUser['id'])
+
+    const me = this.restApi.getCurrentUser()
+    if (me.id !== user.id) {
+      throw forbiddenOperation('get authentication tokens', 'can only see own authentication tokens')
+    }
 
     const tokens = await this.restApi.xoApp.getAuthenticationTokensForUser(user.id)
 
-    // To avoid breaking changes, and keep compatibility with previous version, return all fields
-    req.query.fields = '*'
-    return this.sendObjects(limitAndFilterArray(tokens, { filter }), req, {
-      limit,
-      privilege: {
-        resource: 'authentication-token',
-        action: 'read',
-        userId,
-      },
-    })
+    return limitAndFilterArray(tokens, { filter, limit })
   }
 
   /**
@@ -294,6 +298,7 @@ export class UserController extends XoController<XoUser> {
   @Example(taskIds)
   @Example(partialTasks)
   @Get('{id}/tasks')
+  @Security('*', ['acl'])
   @Tags('tasks')
   @Response(notFoundResp.status, notFoundResp.description)
   async getUserTasks(
@@ -348,15 +353,14 @@ export class UserController extends XoController<XoUser> {
   // ----------- DEPRECATED TO BE REMOVED IN ONE YEAR  (10-13-2026)--------------------
 
   /**
-   * Required privilege:
-   * - resource: authentication-tokens, action: create
+   * You can only create authentication token for yourself
    *
    * @example id "me"
    * @example body {"client": {"id": "my-fav-client"}, "description": "token for CLI usage", "expiresIn": "1 hour"}
    */
   @Example(authenticationToken)
   @Post('{id}/authentication_tokens')
-  @Middlewares([json(), acl({ resource: 'authentication-token', action: 'create', object: ({ req }) => req.body })])
+  @Security('*', ['acl'])
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -372,6 +376,10 @@ export class UserController extends XoController<XoUser> {
     @Path() id: string
   ): Promise<{ token: Unbrand<XoAuthenticationToken> }> {
     const user = this.restApi.getCurrentUser()
+    if (user.id !== id) {
+      throw forbiddenOperation('create authentication token', 'you can only create token for yourself')
+    }
+
     const token = await this.restApi.xoApp.createAuthenticationToken({
       ...body,
       userId: user.id,
