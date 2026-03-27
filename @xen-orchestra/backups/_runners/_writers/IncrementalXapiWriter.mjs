@@ -189,7 +189,13 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
 
     const replicatedSnapshots = sr.$VDIs.filter(vdi => {
       // REPLICATED_TO_SR_UUID is not used here since we are already filtering from sr.$VDIs
-      return vdi?.managed && vdi?.is_a_snapshot && sourceVdiUuids.includes(vdi?.other_config[COPY_OF])
+      return (
+        vdi?.managed &&
+        vdi?.is_a_snapshot &&
+        sourceVdiUuids.includes(vdi?.other_config[COPY_OF]) &&
+        vdi?.other_config[JOB_ID] === job.id &&
+        vdi?.other_config[SCHEDULE_ID] === scheduleId
+      )
     })
 
     Object.values(backup.vdis).forEach(vdi => {
