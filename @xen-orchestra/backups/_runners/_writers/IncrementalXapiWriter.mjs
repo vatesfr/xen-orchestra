@@ -21,23 +21,24 @@ import {
   VM_UUID,
   resetVmOtherConfig,
 } from '../../_otherConfig.mjs'
-import assert from 'node:assert'
 import { formatFilenameDate } from '../../_filenameDate.mjs'
 import { XapiDiskSource } from '@xen-orchestra/xapi'
 import { asyncEach } from '@vates/async-each'
 
 export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWriter) {
+  // Map of source VDI UUID (COPY_OF) → validated active VDI on the target SR.
+  // Built by checkBaseVdis, consumed by #decorateVmMetadata to set baseVdi.
+  #baseVdisBySourceUuid = new Map()
+
   async checkBaseVdis(baseUuidToSrcVdi) {
     const sr = this._sr
+    this.#baseVdisBySourceUuid = new Map()
+
     if (baseUuidToSrcVdi.size === 0) {
       // searching for the vdis is expensive
       // don't do it if there is nothing to find
       return
     }
-
-    // Only match live (non-snapshot) VDIs attached to exactly one
-    // non-control-domain VM that is a valid replication target for this job.
-    // This must stay consistent with the filter in #decorateVmMetadata.
 
     // look for the same snapshot
     // ensure there are no data between the snapshot and the active disk
@@ -51,21 +52,23 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         baseUuidToSrcVdi.has(vdi?.other_config[COPY_OF])
       )
     })
+    console.log('got snapshot candidates,', snapshotCandidates.length)
 
     // ensure no data have been written since this snapshot
     // but there may be have some other snapshot for another job
-    const replicatedVdis = []
     await asyncEach(snapshotCandidates, async snapshot => {
       let diffDisk
       try {
         const activeVdi = sr.$xapi.getObject(snapshot.$snapshot_of)
         const userVbds = activeVdi.$VBDs?.filter(vbd => vbd.$VM && !vbd.$VM.is_control_domain) ?? []
         if (userVbds.length !== 1) {
+          console.log(snapshot.$ref, 'userVbds', userVbds.length)
           // shared vdi ignore
           return
         }
         const vm = userVbds[0].$VM
         if (!('start' in vm.blocked_operations)) {
+          console.log(snapshot.$ref, ' vm not blocked')
           // vm start unlocked
           // not really an issue since we have check the delta
           // but it indicates the users played with the blocked operations
@@ -74,19 +77,23 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         diffDisk = new XapiDiskSource({ xapi: sr.$xapi, vdiRef: activeVdi.$ref, baseRef: snapshot.$ref })
         await diffDisk.init()
         if (diffDisk.getBlockIndexes().length === 0) {
-          replicatedVdis.push(snapshot)
+          const sourceUuid = snapshot.other_config?.[COPY_OF]
+          if (sourceUuid) {
+            this.#baseVdisBySourceUuid.set(sourceUuid, activeVdi)
+          }
           // Track the target VM (the replicated VM to update on the next transfer).
           this._targetVmRef = vm.$ref
+        } else {
+          console.log(snapshot.$ref, 'not empty', diffDisk.getBlockIndexes().length )
         }
       } finally {
         diffDisk?.close()
       }
     })
-
-    const replicatedCopyOfUuids = replicatedVdis.map(({ other_config }) => other_config?.[COPY_OF]).filter(_ => !!_)
+    console.log('got replicated vdi,', this.#baseVdisBySourceUuid.size)
 
     for (const uuid of baseUuidToSrcVdi.keys()) {
-      if (!replicatedCopyOfUuids.includes(uuid)) {
+      if (!this.#baseVdisBySourceUuid.has(uuid)) {
         baseUuidToSrcVdi.delete(uuid)
       }
     }
@@ -179,24 +186,6 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     if (!_warmMigration) {
       vm.tags.push('Continuous Replication')
     }
-    // extracting the uuid of each delta vdi on the source
-    // get all in one pass, since there is a lot of objects
-    const sourceVdiUuids = Object.values(backup.vdis)
-      .map(({ other_config }) => other_config[BASE_DELTA_VDI])
-      // full vdi don't have a base
-      .filter(_ => !!_)
-    // @todo use index ?
-
-    const replicatedSnapshots = sr.$VDIs.filter(vdi => {
-      // REPLICATED_TO_SR_UUID is not used here since we are already filtering from sr.$VDIs
-      return (
-        vdi?.managed &&
-        vdi?.is_a_snapshot &&
-        sourceVdiUuids.includes(vdi?.other_config[COPY_OF]) &&
-        vdi?.other_config[JOB_ID] === job.id &&
-        vdi?.other_config[SCHEDULE_ID] === scheduleId
-      )
-    })
 
     Object.values(backup.vdis).forEach(vdi => {
       vdi.other_config[COPY_OF] = vdi.uuid
@@ -205,26 +194,12 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       vdi.other_config[REPLICATED_TO_SR_UUID] = sr.uuid
       vdi.other_config[VM_UUID] = vm.uuid
 
-      if (sourceVdiUuids.length > 0) {
-        const baseReplicatedTo = replicatedSnapshots.filter(
-          replicatedVdi => replicatedVdi.other_config[COPY_OF] === vdi.other_config[BASE_DELTA_VDI]
-        )
-        assert.ok(
-          baseReplicatedTo.length <= 1,
-          `Target of a replication must be unique, got ${baseReplicatedTo.length} candidates`
-        )
-
-        // baseReplicatedTo can be undefined if a new disk is added and other are already replicated
-        if (baseReplicatedTo.length === 0) {
-          return
-        }
-        // checkbase vdis ensured that there was the same date between the snapshot and vdi
-        // but target the active disk
-        const baseVdi = sr.$xapi.getObject(baseReplicatedTo[0].$snapshot_of)
-
-        vdi.baseVdi = baseVdi
+      const baseDeltaVdiUuid = vdi.other_config[BASE_DELTA_VDI]
+      if (baseDeltaVdiUuid !== undefined) {
+        // reuse the validated mapping built by checkBaseVdis
+        vdi.baseVdi = this.#baseVdisBySourceUuid.get(baseDeltaVdiUuid)
       } else {
-        // first replication of this disk
+        // first replication of this disk (full, no base)
         vdi.baseVdi = undefined
       }
       // ensure the VDI are created on the target SR
