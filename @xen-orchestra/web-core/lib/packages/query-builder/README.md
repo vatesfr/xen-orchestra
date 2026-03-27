@@ -303,7 +303,7 @@ The utilities create appropriate operator sets:
 
 - **`useStringSchema(label, values?)`**: Creates string operators (contains, startsWith, endsWith, regex, glob, etc.). With predefined `values`, it limits to exact match operators (is, isNot).
 - **`useNumberSchema(label, values?)`**: Creates numeric comparison operators (>, <, >=, <=, =, !=).
-- **`useBooleanSchema(label)`**: Creates boolean operators (isEmpty, isNotEmpty).
+- **`useBooleanSchema(label, values)`**: Creates boolean operators (isEmpty, isNotEmpty).
 
 ### Supported Operators
 
