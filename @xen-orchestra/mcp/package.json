@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "@xen-orchestra/mcp",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "MCP server for Xen Orchestra — allows AI assistants to query and manage XO infrastructure",
   "type": "module",
   "main": "./dist/index.mjs",
