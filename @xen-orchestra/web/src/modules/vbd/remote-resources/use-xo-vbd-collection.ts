@@ -4,6 +4,8 @@ import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoVbd } from '@vates/types'
 
+export type FrontXoVbd = Pick<XoVbd, (typeof vbdFields)[number]>
+
 const vbdFields = [
   'id',
   'VDI',
@@ -18,7 +20,7 @@ const vbdFields = [
 export const useXoVbdCollection = defineRemoteResource({
   url: `${BASE_URL}/vbds?fields=${vbdFields.join(',')}`,
   initWatchCollection: () => useWatchCollection({ resource: 'VBD', fields: vbdFields }),
-  initialData: () => [] as Pick<XoVbd, (typeof vbdFields)[number]>[],
+  initialData: () => [] as FrontXoVbd[],
   state: (vbds, context) =>
     useXoCollectionState(vbds, {
       context,

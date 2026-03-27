@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "@xen-orchestra/disk-cli",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "CLI tool to inspect and manage disks in backup repositories",
   "type": "module",
   "bin": {
@@ -19,13 +19,13 @@
     "postversion": "npm publish --access public"
   },
   "dependencies": {
-    "@vates/async-each": "^1.0.1",
-    "@xen-orchestra/backups": "^0.69.2",
-    "@xen-orchestra/disk-transform": "^1.2.1",
-    "@xen-orchestra/fs": "^4.6.7",
-    "@xen-orchestra/qcow2": "^1.1.2",
+    "@vates/async-each": "^1.0.2",
+    "@xen-orchestra/backups": "^0.70.0",
+    "@xen-orchestra/disk-transform": "^1.2.2",
+    "@xen-orchestra/fs": "^4.7.0",
+    "@xen-orchestra/qcow2": "^1.2.0",
     "promise-toolbox": "^0.21.0",
-    "vhd-lib": "^4.14.7"
+    "vhd-lib": "^4.15.0"
   },
   "devDependencies": {
     "@types/node": "^22.3.0",

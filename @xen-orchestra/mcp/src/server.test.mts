@@ -3,6 +3,8 @@ import { describe, it, beforeEach, afterEach } from 'node:test'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { createServer, validateEnv, fetchDocumentation } from './index.mjs'
+import { createServer as createServerDirect } from './server.mjs'
+import { formatToolError } from './helpers/tool-error.mjs'
 import type { XoClient } from './xo-client.mjs'
 
 const EXPECTED_TOOL_NAMES = [
@@ -452,6 +454,38 @@ describe('createServer', () => {
       const text = (result.content as Array<{ type: string; text: string }>)[0].text
       assert.ok(text.includes('Failed to fetch documentation'))
     })
+  })
+})
+
+describe('module structure', () => {
+  it('createServer is accessible from both index and server module', () => {
+    assert.strictEqual(typeof createServer, 'function')
+    assert.strictEqual(typeof createServerDirect, 'function')
+  })
+
+  it('direct server module creates identical server', async () => {
+    const client = createMockClient()
+    const server = createServerDirect(() => client)
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair()
+    const mcpClient = new Client({ name: 'test-client', version: '1.0.0' })
+
+    await Promise.all([server.connect(serverTransport), mcpClient.connect(clientTransport)])
+
+    const { tools } = await mcpClient.listTools()
+    assert.strictEqual(tools.length, 13)
+  })
+})
+
+describe('formatToolError', () => {
+  it('extracts message from Error instances', () => {
+    assert.strictEqual(formatToolError(new Error('test error')), 'test error')
+  })
+
+  it('returns default message for non-Error values', () => {
+    assert.strictEqual(formatToolError('string error'), 'Unknown error occurred')
+    assert.strictEqual(formatToolError(42), 'Unknown error occurred')
+    assert.strictEqual(formatToolError(null), 'Unknown error occurred')
+    assert.strictEqual(formatToolError(undefined), 'Unknown error occurred')
   })
 })
 

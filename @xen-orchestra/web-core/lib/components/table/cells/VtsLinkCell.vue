@@ -1,9 +1,13 @@
 <template>
   <UiTableCell>
-    <UiLink size="medium" :icon :to :href :target class="link">
-      <slot />
-      <VtsIcon v-if="rightIcon" v-tooltip="rightIcon.tooltip ?? false" :name="rightIcon.icon" size="medium" />
-    </UiLink>
+    <div class="vts-link-cell">
+      <UiLink size="medium" :icon :to :href :target class="link">
+        <slot />
+        <VtsIcon v-if="rightIcon" v-tooltip="rightIcon.tooltip ?? false" :name="rightIcon.icon" size="medium" />
+      </UiLink>
+      <span v-if="slots.suffix" class="interpunct" />
+      <slot name="suffix" />
+    </div>
   </UiTableCell>
 </template>
 
@@ -24,9 +28,24 @@ export type VtsLinkCellProps = LinkOptions & {
 }
 
 defineProps<VtsLinkCellProps>()
+
+const slots = defineSlots<{
+  default(): any
+  suffix?(): any
+}>()
 </script>
 
 <style lang="postcss" scoped>
+.vts-link-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.interpunct::before {
+  content: '•';
+}
+
 .link {
   line-height: 1.5;
 }

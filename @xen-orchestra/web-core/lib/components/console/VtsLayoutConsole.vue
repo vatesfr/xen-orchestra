@@ -22,7 +22,7 @@ const uiStore = useUiStore()
 <style lang="postcss" scoped>
 .vts-layout-console {
   display: flex;
-  gap: 2.4rem;
+  gap: 0.8rem;
   height: 100%;
   padding: 0.8rem;
 
