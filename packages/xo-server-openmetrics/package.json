@@ -29,7 +29,7 @@
     "node": ">=20"
   },
   "dependencies": {
-    "@vates/async-each": "^1.0.0",
+    "@vates/async-each": "^1.0.2",
     "@vates/types": "^1.21.0",
     "@xen-orchestra/log": "^0.7.1",
     "json5": "^2.2.3",
