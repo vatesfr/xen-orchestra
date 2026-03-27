@@ -55,7 +55,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         baseUuidToSrcVdi.has(vdi?.other_config[COPY_OF])
       )
     })
-    debug('Checkbasvdi, got snapshot candidates,', snapshotCandidates.length)
+    debug('checkBaseVdis, got snapshot candidates,', snapshotCandidates.length)
 
     // ensure no data have been written since this snapshot
     // but there may be have some other snapshot for another job
@@ -67,13 +67,13 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         const activeVdi = sr.$xapi.getObject(snapshot.$snapshot_of)
         const userVbds = activeVdi.$VBDs?.filter(vbd => vbd.$VM && !vbd.$VM.is_control_domain) ?? []
         if (userVbds.length !== 1) {
-          debug('Checkbasvdi, share vbd ', { ref: snapshot.$ref, userVbds })
+          debug('checkBaseVdis, share vbd ', { ref: snapshot.$ref, userVbds })
           // shared vdi ignore
           return
         }
         const vm = userVbds[0].$VM
         if (!('start' in vm.blocked_operations)) {
-          debug('Checkbasvdi, vm not blocked', { vmRef: vm.$ref })
+          debug('checkBaseVdis, vm not blocked', { vmRef: vm.$ref })
           // vm start unlocked
           // not really an issue since we have check the delta
           // but it indicates the users played with the blocked operations
@@ -91,7 +91,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         } else {
           // not empty, we will create a new VM
           canChainToTargetVm = false
-          debug('Checkbasevdi, data between snapshot and active disk', {
+          debug('checkBaseVdis, data between snapshot and active disk', {
             vdiRef: snapshot.$ref,
             nbBlocks: diffDisk.getBlockIndexes().length,
           })
@@ -102,7 +102,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     })
 
     if (canChainToTargetVm) {
-      debug('Checkbasevdi,got a valid vm target', targetVmRef)
+      debug('checkBaseVdis,got a valid vm target', targetVmRef)
       this._targetVmRef = targetVmRef
     }
 
