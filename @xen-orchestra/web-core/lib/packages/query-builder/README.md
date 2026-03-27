@@ -641,8 +641,8 @@ If you need full control over the UI, work directly with the root group structur
 
   <div v-else class="query-builder">
     <div class="group-controls">
-      <button @click="rootGroup.addChildFilter">+ Condition</button>
-      <button @click="rootGroup.addChildGroup">+ Group</button>
+      <button @click="rootGroup.addChildFilter()">+ Condition</button>
+      <button @click="rootGroup.addChildGroup()">+ Group</button>
       <select v-model="rootGroup.operator">
         <option value="and">AND</option>
         <option value="or">OR</option>
