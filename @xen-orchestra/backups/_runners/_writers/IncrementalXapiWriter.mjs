@@ -24,6 +24,9 @@ import {
 import { formatFilenameDate } from '../../_filenameDate.mjs'
 import { XapiDiskSource } from '@xen-orchestra/xapi'
 import { asyncEach } from '@vates/async-each'
+import { createLogger } from '@xen-orchestra/log'
+
+const { debug } = createLogger('xo:backups:IncrementalXapiWriter')
 
 export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWriter) {
   // Map of source VDI UUID (COPY_OF) → validated active VDI on the target SR.
@@ -52,11 +55,11 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         baseUuidToSrcVdi.has(vdi?.other_config[COPY_OF])
       )
     })
-    console.log('got snapshot candidates,', snapshotCandidates.length)
+    debug('Checkbasvdi, got snapshot candidates,', snapshotCandidates.length)
 
     // ensure no data have been written since this snapshot
     // but there may be have some other snapshot for another job
-    let targetVmRef 
+    let targetVmRef
     let canChainToTargetVm = true
     await asyncEach(snapshotCandidates, async snapshot => {
       let diffDisk
@@ -64,13 +67,13 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         const activeVdi = sr.$xapi.getObject(snapshot.$snapshot_of)
         const userVbds = activeVdi.$VBDs?.filter(vbd => vbd.$VM && !vbd.$VM.is_control_domain) ?? []
         if (userVbds.length !== 1) {
-          console.log(snapshot.$ref, 'userVbds', userVbds.length)
+          debug('Checkbasvdi, share vbd ', { ref: snapshot.$ref, userVbds })
           // shared vdi ignore
           return
         }
         const vm = userVbds[0].$VM
         if (!('start' in vm.blocked_operations)) {
-          console.log(snapshot.$ref, ' vm not blocked')
+          debug('Checkbasvdi, vm not blocked', { vmRef: vm.$ref })
           // vm start unlocked
           // not really an issue since we have check the delta
           // but it indicates the users played with the blocked operations
@@ -86,19 +89,22 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
           // Track the target VM (the replicated VM to update on the next transfer).
           targetVmRef = vm.$ref
         } else {
-          // not empty, we will create a new VM 
+          // not empty, we will create a new VM
           canChainToTargetVm = false
-          console.log(snapshot.$ref, 'not empty', diffDisk.getBlockIndexes().length )
+          debug('Checkbasevdi, data between snapshot and active disk', {
+            vdiRef: snapshot.$ref,
+            nbBlocks: diffDisk.getBlockIndexes().length,
+          })
         }
       } finally {
         diffDisk?.close()
       }
     })
-    
-    if(canChainToTargetVm){
+
+    if (canChainToTargetVm) {
+      debug('Checkbasevdi,got a valid vm target', targetVmRef)
       this._targetVmRef = targetVmRef
     }
-    console.log('got replicated vdi,', this.#baseVdisBySourceUuid.size)
 
     for (const uuid of baseUuidToSrcVdi.keys()) {
       if (!this.#baseVdisBySourceUuid.has(uuid)) {
