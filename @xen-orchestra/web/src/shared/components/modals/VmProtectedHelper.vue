@@ -1,7 +1,7 @@
 <template>
   <VtsModal icon="fa:user-astronaut" dismissible accent="info">
-    <template #title>{{ t('what-does-protected-means?') }}</template>
-    <template #content>{{ t('what-does-protected-means-content') }}</template>
+    <template #title>{{ t('what-does-protected-mean?') }}</template>
+    <template #content>{{ t('what-does-protected-mean-content') }}</template>
   </VtsModal>
 </template>
 
