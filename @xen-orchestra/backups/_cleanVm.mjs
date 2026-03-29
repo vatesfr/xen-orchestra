@@ -582,18 +582,13 @@ export async function cleanVm(
       return
     }
 
-    // systematically update size and differentials after a merge
-
-    // @todo : after 2024-04-01 remove the fixmetadata options since the size computation is fixed
-    if (mergedSize || (fixMetadata && fileSystemSize !== size)) {
-      metadata.size = mergedSize ?? fileSystemSize ?? size
-
-      if (mergedSize) {
-        // all disks are now key disk
-        metadata.isVhdDifferencing = {}
-        for (const id of Object.keys(metadata.vdis ?? {})) {
-          metadata.isVhdDifferencing[id] = false
-        }
+    // Rewrite metadata when a merge changed the backup layout.
+    if (mergedSize) {
+      metadata.size = mergedSize
+      // all disks are now key disk
+      metadata.isVhdDifferencing = {}
+      for (const id of Object.keys(metadata.vdis ?? {})) {
+        metadata.isVhdDifferencing[id] = false
       }
       mustRegenerateCache = true
       try {
