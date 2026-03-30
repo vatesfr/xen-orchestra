@@ -27,31 +27,19 @@ async function outputFile(path, content) {
   await fs.writeFile(path, content, { flag: 'wx', mode: 0o400 })
 }
 
-// https://datatracker.ietf.org/doc/html/rfc8555#section-8.4
-export async function dnsChallengeCreate(filePath, authz, keyAuthorization) {
-  const dnsRecord = `_acme-challenge.${authz.identifier.value}`
-  await fs.writeFile(filePath, JSON.stringify({ domain: dnsRecord, value: keyAuthorization }))
-  info('DNS-01 challenge: please create a TXT record', { dnsRecord, challengeFile: filePath })
-}
-
-export async function dnsChallengeRemove(filePath) {
-  try {
-    await fs.unlink(filePath)
-  } catch (error) {
-    if (error.code !== 'ENOENT') {
-      throw error
-    }
-  }
-}
-
 // from https://github.com/publishlab/node-acme-client/blob/master/examples/auto.js
 class SslCertificate {
   #cert
+  #challengeCreateFn
+  #challengeRemoveFn
   #delayBeforeRenewal = 30 * 24 * 60 * 60 * 1000 // 30 days
   #secureContext
   #updateSslCertificatePromise
 
-  constructor(cert, key) {
+  constructor({ challengeCreateFn, challengeRemoveFn }, cert, key) {
+    this.#challengeCreateFn = challengeCreateFn
+    this.#challengeRemoveFn = challengeRemoveFn
+
     this.#set(cert, key)
   }
 
@@ -103,12 +91,6 @@ class SslCertificate {
   async #updateSslCertificate(config) {
     const { cert: certPath, key: keyPath, acmeEmail, acmeDomain, acmeDnsChallengeFile } = config
     try {
-      if (acmeDnsChallengeFile === undefined) {
-        throw new Error(
-          'acmeDnsChallengeFile must be set in the configuration to use automatic certificate management. See the documentation for details.'
-        )
-      }
-
       let { acmeCa = 'letsencrypt/production' } = config
       if (!(acmeCa.startsWith('http:') || acmeCa.startsWith('https:'))) {
         acmeCa = get(acme.directory, acmeCa.split('/'))
@@ -128,12 +110,37 @@ class SslCertificate {
       key = key.toString()
       debug('Successfully generated key and csr')
 
+      let challengeCreateFn, challengeRemoveFn, challengePriority
+      if (acmeDnsChallengeFile !== undefined) {
+        challengePriority = ['dns-01']
+        challengeCreateFn = async (authz, _challenge, keyAuthorization) => {
+          const domain = `_acme-challenge.${authz.identifier.value}`
+          await outputFile(acmeDnsChallengeFile, JSON.stringify({ domain, value: keyAuthorization }))
+          info('DNS challenge file written, create the TXT record then trigger validation', {
+            domain,
+            file: acmeDnsChallengeFile,
+          })
+        }
+        challengeRemoveFn = async () => {
+          try {
+            await fs.unlink(acmeDnsChallengeFile)
+          } catch (error) {
+            if (error.code !== 'ENOENT') {
+              throw error
+            }
+          }
+        }
+      } else {
+        challengePriority = ['http-01']
+        challengeCreateFn = this.#challengeCreateFn
+        challengeRemoveFn = this.#challengeRemoveFn
+      }
+
       /* Certificate */
       const cert = await client.auto({
-        challengeCreateFn: (authz, _challenge, keyAuthorization) =>
-          dnsChallengeCreate(acmeDnsChallengeFile, authz, keyAuthorization),
-        challengePriority: ['dns-01'],
-        challengeRemoveFn: () => dnsChallengeRemove(acmeDnsChallengeFile),
+        challengeCreateFn,
+        challengePriority,
+        challengeRemoveFn,
         csr,
         email: acmeEmail,
         skipChallengeVerification: true,
@@ -157,6 +164,15 @@ class SslCertificate {
 
 export default class SslCertificates {
   #app
+  #challenges = new Map()
+  #challengeHandlers = {
+    challengeCreateFn: (authz, challenge, keyAuthorization) => {
+      this.#challenges.set(challenge.token, keyAuthorization)
+    },
+    challengeRemoveFn: (authz, challenge, keyAuthorization) => {
+      this.#challenges.delete(challenge.token)
+    },
+  }
   #handlers = new Map()
 
   constructor(app, { httpServer }) {
@@ -166,6 +182,14 @@ export default class SslCertificates {
     if (httpServer === undefined) {
       return
     }
+    const prefix = '/.well-known/acme-challenge/'
+    httpServer.on('request', (req, res) => {
+      const { url } = req
+      if (url.startsWith(prefix)) {
+        const token = url.slice(prefix.length)
+        this.#acmeChallengeMiddleware(req, res, token)
+      }
+    })
 
     this.#app = app
 
@@ -192,9 +216,25 @@ export default class SslCertificates {
     let handler = handlers.get(configKey)
     if (handler === undefined) {
       // register the handler for this domain
-      handler = new SslCertificate(initialCert, initialKey)
+      handler = new SslCertificate(this.#challengeHandlers, initialCert, initialKey)
       handlers.set(configKey, handler)
     }
     return handler.getSecureContext(config)
+  }
+
+  // middleware that will serve the http challenge to let's encrypt servers
+  #acmeChallengeMiddleware(req, res, token) {
+    debug('fetching challenge for token ', token)
+    const challenge = this.#challenges.get(token)
+    debug('challenge content is ', challenge)
+    if (challenge === undefined) {
+      res.statusCode = 404
+      res.end()
+      return
+    }
+
+    res.write(challenge)
+    res.end()
+    debug('successfully answered challenge ')
   }
 }
