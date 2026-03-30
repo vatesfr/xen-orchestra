@@ -82,22 +82,28 @@ Calls `importIncrementalVm` with:
 
 ### Combined scenarios
 
-**Scenario 1: Normal incremental run**
+#### Scenario 1: Normal incremental run
+
 All disks have valid bases on the target, diffs are empty. `_targetVmRef` is set. Transfer is fully incremental into the existing VM.
 
-**Scenario 2: One disk was modified on the target**
+#### Scenario 2: One disk was modified on the target
+
 Disk A's diff is empty, disk B has blocks written. `canChainToTargetVm = false`, so a new VM is created. But disk A still has a valid entry in `#baseVdisBySourceUuid`, so its transfer is incremental (chained to the existing active VDI). Disk B falls back to full.
 
-**Scenario 3: New disk added to source VM**
+#### Scenario 3: New disk added to source VM
+
 Existing disks have valid bases. The new disk has no `BASE_DELTA_VDI`. Existing disks transfer as delta; the new disk transfers as full. If the existing disks' VM is valid, `_targetVmRef` is set and the new disk is added to that VM.
 
-**Scenario 4: Target VM deleted or first run**
+#### Scenario 4: Target VM deleted or first run
+
 No snapshot candidates found. `#baseVdisBySourceUuid` is empty. All disks are full. A new VM is created.
 
-**Scenario 5: Disk valid on one writer but not another**
+#### Scenario 5: Disk valid on one writer but not another
+
 A job replicates to both SR-A (XAPI writer) and Remote-B (remote writer). Disk X has a valid base on SR-A but the VHD chain is broken on Remote-B. Remote-B removes disk X from the shared `presentBaseVdis` map. The runner exports disk X as full. SR-A's `#decorateVmMetadata` receives a full disk (no `BASE_DELTA_VDI`), so `baseVdi` is `undefined` despite SR-A having a valid candidate locally. Both writers get a full transfer for that disk.
 
-**Scenario 6: Multiple jobs replicate the same VM to the same SR**
+#### Scenario 6: Multiple jobs replicate the same VM to the same SR
+
 `checkBaseVdis` scopes candidates by `JOB_ID` + `VM_UUID`, so each job only sees its own VDI snapshots. `#decorateVmMetadata` reuses this scoped mapping, avoiding cross-job conflicts.
 
 ## After transfer
