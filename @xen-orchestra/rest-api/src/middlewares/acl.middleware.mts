@@ -49,8 +49,7 @@ type AclEntry = {
   )
 }[SupportedResource]
 
-// @ts-expect-error TS error because we have not listed all supported resources, but only those related to XAPI objects.
-const XAPI_TYPE_BY_ACL_RESOURCE: Record<SupportedResource, XapiXoRecord['type']> = {
+export const XAPI_TYPE_BY_ACL_RESOURCE = {
   message: 'message',
   gpuGroup: 'gpuGroup',
   host: 'host',
@@ -74,7 +73,7 @@ const XAPI_TYPE_BY_ACL_RESOURCE: Record<SupportedResource, XapiXoRecord['type']>
   'vm-template': 'VM-template',
   vtpm: 'VTPM',
   sm: 'SM',
-}
+} satisfies Partial<Record<SupportedResource, XapiXoRecord['type']>>
 
 function normalizeAclEntry(acl: AclEntry) {
   const base = { resource: acl.resource, action: acl.action, getObject: acl.getObject }
