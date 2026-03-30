@@ -27,7 +27,7 @@ export class FullRemoteWriter extends MixinRemoteWriter(AbstractFullWriter) {
   async _run({ maxStreamLength, timestamp, sizeContainer, stream, streamLength, vm, vmSnapshot }) {
     const settings = this._settings
     const job = this._job
-    const scheduleId = this._scheduleId
+    const scheduleId = this._schedule.id
 
     const adapter = this._adapter
     let metadata = await this._isAlreadyTransferred(timestamp)
