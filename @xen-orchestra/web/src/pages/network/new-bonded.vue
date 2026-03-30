@@ -46,7 +46,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import type { BOND_MODE, XoNetwork } from '@vates/types'
+import type { XoNetwork } from '@vates/types'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { type RouteLocationRaw, useRoute, useRouter } from 'vue-router'
@@ -66,14 +66,9 @@ onMounted(() => {
 const error = ref<ApiError | Error | undefined>()
 const hasNetworkCreationError = computed(() => error.value !== undefined)
 
-const payload = ref<NewBondedNetworkPayload>({
-  poolId: '' as FrontXoPool['id'],
-  pifIds: [],
-  name: '',
-  bondMode: '' as BOND_MODE,
-})
+const formPayload = ref<NewBondedNetworkPayload>()
 
-const { canRun, run: create, isRunning } = useXoBondedNetworkCreateJob([payload])
+const { canRun, run: create, isRunning } = useXoBondedNetworkCreateJob(formPayload)
 
 const cancelRoute = computed<RouteLocationRaw>(() => {
   if (!poolId.value) {
@@ -83,8 +78,8 @@ const cancelRoute = computed<RouteLocationRaw>(() => {
   return { name: '/pool/[id]/networks', params: { id: poolId.value } }
 })
 
-async function createNetwork(formPayload: NewBondedNetworkPayload) {
-  payload.value = formPayload
+async function createNetwork(newPayload: NewBondedNetworkPayload) {
+  formPayload.value = newPayload
 
   if (!canRun.value) {
     return
@@ -108,7 +103,7 @@ function handleGoBack() {
 }
 
 function redirectAfterSuccess(networkId: XoNetwork['id']) {
-  router.push(getPoolNetworkRoute(payload.value.poolId, networkId))
+  router.push(getPoolNetworkRoute(formPayload.value!.poolId, networkId))
 }
 </script>
 
