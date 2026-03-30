@@ -60,47 +60,56 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     // but there may be have some other snapshot for another job
     let targetVmRef
     let canChainToTargetVm = true
-    await asyncEach(snapshotCandidates, async snapshot => {
-      let diffDisk
-      try {
-        const activeVdi = sr.$xapi.getObject(snapshot.$snapshot_of)
-        const userVbds = activeVdi.$VBDs?.filter(vbd => vbd.$VM && !vbd.$VM.is_control_domain) ?? []
-        if (userVbds.length !== 1) {
-          debug('checkBaseVdis, share vbd ', { ref: snapshot.$ref, userVbds })
-          // shared vdi ignore
-          return
-        }
-        const vm = userVbds[0].$VM
-        if (!('start' in vm.blocked_operations)) {
-          debug('checkBaseVdis, vm not blocked', { vmRef: vm.$ref })
-          // vm start unlocked
-          // not really an issue since we have check the delta
-          // but it indicates the users played with the blocked operations
-          return
-        }
-        diffDisk = new XapiDiskSource({ xapi: sr.$xapi, vdiRef: activeVdi.$ref, baseRef: snapshot.$ref })
-        await diffDisk.init()
-        if (diffDisk.getBlockIndexes().length === 0) {
-          const sourceUuid = snapshot.other_config?.[COPY_OF]
-          if (sourceUuid) {
-            this.#baseVdisBySourceUuid.set(sourceUuid, activeVdi)
+    await asyncEach(
+      snapshotCandidates,
+      async snapshot => {
+        let diffDisk
+        try {
+          const activeVdi = sr.$xapi.getObject(snapshot.$snapshot_of)
+          const userVbds = activeVdi.$VBDs?.filter(vbd => vbd.$VM && !vbd.$VM.is_control_domain) ?? []
+          if (userVbds.length !== 1) {
+            debug('checkBaseVdis, share vbd ', { ref: snapshot.$ref, userVbds })
+            // shared vdi ignore
+            return
           }
-          // Track the target VM (the replicated VM to update on the next transfer).
-          targetVmRef = vm.$ref
-        } else {
-          // not empty, we will create a new VM
-          canChainToTargetVm = false
-          debug('checkBaseVdis, data between snapshot and active disk', {
-            vdiRef: snapshot.$ref,
-            nbBlocks: diffDisk.getBlockIndexes().length,
-          })
+          const vm = userVbds[0].$VM
+          if (!('start' in vm.blocked_operations)) {
+            debug('checkBaseVdis, vm not blocked', { vmRef: vm.$ref })
+            // vm start unlocked
+            // not really an issue since we have check the delta
+            // but it indicates the users played with the blocked operations
+            return
+          }
+          diffDisk = new XapiDiskSource({ xapi: sr.$xapi, vdiRef: activeVdi.$ref, baseRef: snapshot.$ref })
+          await diffDisk.init()
+          if (diffDisk.getBlockIndexes().length === 0) {
+            const sourceUuid = snapshot.other_config?.[COPY_OF]
+            if (sourceUuid) {
+              this.#baseVdisBySourceUuid.set(sourceUuid, activeVdi)
+            }
+            // Track the target VM (the replicated VM to update on the next transfer).
+            targetVmRef = vm.$ref
+          } else {
+            // not empty, we will create a new VM
+            canChainToTargetVm = false
+            debug('checkBaseVdis, data between snapshot and active disk', {
+              vdiRef: snapshot.$ref,
+              nbBlocks: diffDisk.getBlockIndexes().length,
+            })
+          }
+        } catch (error) {
+          debug('checkBaseVdis, skipping snapshot', { ref: snapshot.$ref, error })
+          return
+        } finally {
+          await diffDisk?.close().catch(error => debug('checkBaseVdis, error closing', error))
         }
-      } finally {
-        diffDisk?.close()
+      },
+      {
+        concurrency: 4,
       }
-    })
+    )
 
-    if (canChainToTargetVm) {
+    if (canChainToTargetVm && targetVmRef !== undefined) {
       debug('checkBaseVdis,got a valid vm target', targetVmRef)
       this._targetVmRef = targetVmRef
     }
@@ -252,7 +261,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         targetVmRef,
         'name_description',
         deltaExport.vm.name_description +
-          ` -- last replication: ${formatFilenameDate(timestamp)} ${humanFormat.bytes(size)} read `
+          ` -- last replication: ${formatFilenameDate(timestamp)} ${humanFormat.bytes(size)} read`
       )
       // take a snapshot to ensure these data are not modified until next snapshot
       await Task.run({ name: 'target snapshot' }, async () => {
