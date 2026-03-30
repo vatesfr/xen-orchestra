@@ -44,7 +44,7 @@ export function useNetworkPifSelect(
     () => selectedPool.value?.id,
     () => {
       if (options.multiple) {
-        if ((model.value as unknown[]).length > 0) {
+        if (Array.isArray(model.value) && model.value.length > 0) {
           model.value = []
         }
       } else {
