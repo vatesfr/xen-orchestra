@@ -7,7 +7,7 @@ import { noSuchObject } from 'xo-common/api-errors.js'
 
 import { Listener } from '../abstract-classes/listener.mjs'
 import type { CollectionEventType, EventType, SubscriberId, XoListenerType } from './event.type.mjs'
-import type { XapiXoRecord, XoAlarm, XoTask } from '@vates/types'
+import type { XapiXoRecord, XoAlarm, XoTask, XoUser } from '@vates/types'
 import type { AlarmService } from '../alarms/alarm.service.mjs'
 
 const log = createLogger('xo:rest-api:event-service')
@@ -17,6 +17,7 @@ export class Subscriber {
   #manager: SubscriberManager
   #connection: Response
   #isAlive: boolean
+  #userId: XoUser['id']
 
   get id() {
     return this.#id
@@ -30,7 +31,11 @@ export class Subscriber {
     return this.#connection
   }
 
-  constructor(res: Response, manager: SubscriberManager) {
+  get userId() {
+    return this.#userId
+  }
+
+  constructor(res: Response, manager: SubscriberManager, userId: XoUser['id']) {
     this.#id = crypto.randomUUID() as SubscriberId
 
     const headers = new Headers({
@@ -46,6 +51,7 @@ export class Subscriber {
     this.#connection = res
     this.#manager = manager
     this.#isAlive = true
+    this.#userId = userId
   }
 
   broadcast(event: EventType | 'init', data: object) {
@@ -64,25 +70,25 @@ export class Subscriber {
   }
 }
 
-export class XoListener extends Listener {
-  #type: XoListenerType
+export class XoListener extends Listener<XoListenerType> {
   #alarmService?: AlarmService
 
   constructor(type: XoListenerType, eventEmitter: EventEmitter, alarmService?: AlarmService) {
-    super(eventEmitter, ['add', 'update', 'remove'])
-    this.#type = type
+    super(eventEmitter, ['add', 'update', 'remove'], type)
     this.#alarmService = alarmService
   }
 
-  handleData<T extends Exclude<XapiXoRecord, XoAlarm> | XoTask>(
-    { fields, event }: { fields: '*' | string[]; subscriber: Subscriber; event: CollectionEventType },
+  async handleData<T extends Exclude<XapiXoRecord, XoAlarm> | XoTask>(
+    { fields, event, subscriber }: { fields: '*' | string[]; subscriber: Subscriber; event: CollectionEventType },
     object: T | undefined,
     previousObj?: T
-  ): (Partial<XapiXoRecord | XoTask> & { $subscription: XoListenerType }) | undefined {
+  ): Promise<
+    (Partial<XapiXoRecord | XoTask> & { $subscription: XoListenerType; event: CollectionEventType }) | undefined
+  > {
     let _object: Partial<XapiXoRecord | XoTask> | undefined = object
     let _prevObject: Partial<XapiXoRecord | XoTask> | undefined = previousObj
 
-    if (this.#type === 'alarm') {
+    if (this.type === 'alarm') {
       if (
         object !== undefined &&
         'type' in object &&
@@ -101,6 +107,18 @@ export class XoListener extends Listener {
       }
     }
 
+    const aclEvent = await this.getAclEvent({
+      event,
+      object: _object,
+      previousObject: _prevObject,
+      userId: subscriber.userId,
+    })
+    // If the user has no 'read' privileges for the changes, don't send the update
+    if (aclEvent === undefined) {
+      return
+    }
+    event = aclEvent
+
     if (fields !== '*') {
       if (_object !== undefined) {
         _object = pick(_object, fields)
@@ -116,7 +134,7 @@ export class XoListener extends Listener {
     }
 
     // if _object === undefined, this means we are on a remove event, so _prevObject will not be undefined
-    return { $subscription: this.#type, ...(_object ?? _prevObject) }
+    return { $subscription: this.type, event, ...(_object ?? _prevObject) }
   }
 }
 
@@ -130,7 +148,7 @@ export class PingListener extends Listener {
     }, 1000 * 30)
   }
 
-  handleData(): { ping: number } {
+  async handleData(): Promise<{ ping: number }> {
     return { ping: Date.now() }
   }
 
