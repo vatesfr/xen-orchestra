@@ -134,8 +134,22 @@ class AuthOidc {
 
           // See https://github.com/jaredhanson/passport-openidconnect/blob/master/lib/profile.js
           const { id } = profile
+
+          let name
+          if (usernameField === 'email') {
+            name = profile.emails?.[0]?.value ?? profile._json?.email
+          } else {
+            name = profile[usernameField] ?? profile._json?.[usernameField]
+          }
+
+          if (name === undefined) {
+            throw new Error(
+              `Could not find username: field "${usernameField}" is missing from the OIDC profile. Ensure the required scopes are configured and granted by your identity provider.`
+            )
+          }
+
           const user = await xo.registerUser2('oidc:' + issuer, {
-            user: { id, name: usernameField === 'email' ? profile.emails[0].value : profile[usernameField] },
+            user: { id, name },
           })
 
           await this._synchronizeGroups(user, groups)
