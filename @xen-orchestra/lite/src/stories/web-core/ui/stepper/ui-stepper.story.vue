@@ -4,8 +4,7 @@
     :params="[
       prop('steps').arr('StepDefinition').required().preset(steps),
       prop('currentStep').num().required().preset(currentStep),
-      slot('default').help('Content of the current step'),
-      slot('actions').help('Navigation buttons'),
+      slot().help('Content of the current step'),
       setting('contentStep1').preset('General information content').widget(text()).help('Content for step 1'),
       setting('contentStep2').preset('Next content').widget(text()).help('Content for step 2'),
       setting('contentStep3').preset('Review content').widget(text()).help('Content for step 3'),
