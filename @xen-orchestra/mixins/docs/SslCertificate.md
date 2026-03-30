@@ -1,18 +1,21 @@
-> This module provides [Let's Encrypt](https://letsencrypt.org/) integration to `xo-proxy` and `xo-server` using DNS-01 ACME challenges.
+> This module provides [Let's Encrypt](https://letsencrypt.org/) integration to `xo-proxy` and `xo-server`.
 
-When a certificate needs to be issued or renewed, XO writes a JSON file at a configured path containing the DNS record to create:
+Two challenge types are supported: **HTTP-01** (default) and **DNS-01**.
 
-```json
-{ "domain": "_acme-challenge.my.domain.net", "value": "..." }
+## HTTP-01 challenge (default)
+
+First of all, make sure your server is listening on HTTP on port 80 and on HTTPS 443.
+
+In `xo-server`, to avoid HTTP access, enable the redirection to HTTPs:
+
+```toml
+[http]
+redirectToHttps = true
 ```
 
-An `info` log is also emitted indicating the file path. You (or your own automation) are responsible for creating the corresponding `TXT` record in your DNS before Let's Encrypt attempts to verify it. XO deletes the file automatically once verification succeeds.
+Your server must be reachable with the configured domain to the certificate provider (e.g. Let's Encrypt), it usually means publicly reachable.
 
-This approach does not require XO to be publicly reachable on the internet.
-
-## Configuration
-
-Add the following entries to your HTTPS configuration:
+Finally, add the following entries to your HTTPS configuration.
 
 ```toml
 # Must be set to true for this feature
@@ -47,21 +50,38 @@ acmeDomain = 'my.domain.net'
 #
 # It will be notified of any issues.
 acmeEmail = 'admin@my.domain.net'
+```
 
-# Path to a file where XO will write the DNS-01 challenge value.
+## DNS-01 challenge
+
+Use this method when your XO server is **not publicly reachable** on port 80. Validation is done via a DNS TXT record instead.
+
+Add `acmeDnsChallengeFile` to your HTTPS configuration block:
+
+```toml
+autoCert = true
+
+cert = 'path/to/cert.pem'
+key = 'path/to/key.pem'
+
+acmeDomain = 'my.domain.net'
+acmeEmail = 'admin@my.domain.net'
+
+# Path to a file where XO will write the DNS challenge.
 #
-# The path must be writable by the xo-server process.
-# XO will create the file when a certificate needs to be issued or renewed,
-# and delete it once Let's Encrypt verifies the challenge.
-#
-# The file will contain a JSON object with the DNS TXT record to create:
-#   { "domain": "_acme-challenge.my.domain.net", "value": "..." }
-#
-# You are responsible for creating that TXT record before Let's Encrypt
-# verifies it. See docs/dns-challenge-hook.example.sh for a starting point.
+# When set, DNS-01 is used instead of HTTP-01.
+# XO does not need to be publicly reachable on port 80.
 acmeDnsChallengeFile = '/etc/xo-server/dns-challenge.json'
 ```
 
-## Hook script
+When a certificate needs to be issued or renewed, XO will:
 
-You need a process watching `acmeDnsChallengeFile` and creating the DNS TXT record when it appears. An example hook script is provided at [`docs/dns-challenge-hook.example.sh`](dns-challenge-hook.example.sh). Copy and adapt it for your DNS provider.
+1. Write a JSON file at the configured path:
+   ```json
+   { "domain": "_acme-challenge.my.domain.net", "value": "<token>" }
+   ```
+2. Log an `info` message indicating the file path and the domain to configure.
+3. Wait for your script or automation to create the corresponding DNS TXT record.
+4. Delete the file automatically once validation succeeds.
+
+You are responsible for monitoring the file and creating the DNS TXT record. A simple approach is to watch the file with a script and call your DNS provider's API when it appears.
