@@ -38,6 +38,7 @@ import {
   type NewBondedNetworkPayload,
   useXoBondedNetworkCreateJob,
 } from '@/modules/network/jobs/xo-bonded-network-create.job.ts'
+import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { type FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection'
 import type { ApiError } from '@/shared/error/api.error'
 import VtsOperationPendingCard from '@core/components/operation-pending-card/VtsOperationPendingCard.vue'
@@ -45,9 +46,8 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import type { BOND_MODE, XoNetwork } from '@vates/types'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { type RouteLocationRaw, useRoute, useRouter } from 'vue-router'
 
@@ -55,7 +55,13 @@ const { t } = useI18n()
 
 const router = useRouter()
 const route = useRoute()
-const poolId = useRouteQuery('poolid')
+const poolId = ref(route.query.poolid as FrontXoPool['id'] | undefined)
+
+onMounted(() => {
+  if (route.query.poolid) {
+    router.replace({ query: { ...route.query, poolid: undefined } })
+  }
+})
 
 const error = ref<ApiError | Error | undefined>()
 const hasNetworkCreationError = computed(() => error.value !== undefined)
@@ -79,7 +85,6 @@ const cancelRoute = computed<RouteLocationRaw>(() => {
 
 async function createNetwork(formPayload: NewBondedNetworkPayload) {
   payload.value = formPayload
-  await router.replace({ query: { ...route.query, poolid: formPayload.poolId } })
 
   if (!canRun.value) {
     return
@@ -103,7 +108,7 @@ function handleGoBack() {
 }
 
 function redirectAfterSuccess(networkId: XoNetwork['id']) {
-  router.push({ name: '/pool/[id]/networks', params: { id: poolId.value }, query: { id: networkId } })
+  router.push(getPoolNetworkRoute(payload.value.poolId, networkId))
 }
 </script>
 
