@@ -40,5 +40,6 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server patch
+- xo-server-netbox patch
 
 <!--packages-end-->
