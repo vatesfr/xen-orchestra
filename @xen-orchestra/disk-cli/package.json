@@ -1,0 +1,47 @@
+{
+  "private": false,
+  "name": "@xen-orchestra/disk-cli",
+  "version": "1.0.0",
+  "description": "CLI tool to inspect and manage disks in backup repositories",
+  "type": "module",
+  "bin": {
+    "xo-disk-cli": "./dist/index.mjs"
+  },
+  "preferGlobal": true,
+  "engines": {
+    "node": ">=22.3"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rimraf dist/",
+    "test": "tsc && node --experimental-test-module-mocks --test './dist/**/*.test.mjs'",
+    "postversion": "npm publish --access public"
+  },
+  "dependencies": {
+    "@vates/async-each": "^1.0.2",
+    "@xen-orchestra/backups": "^0.70.0",
+    "@xen-orchestra/disk-transform": "^1.2.2",
+    "@xen-orchestra/fs": "^4.7.0",
+    "@xen-orchestra/qcow2": "^1.2.0",
+    "promise-toolbox": "^0.21.0",
+    "vhd-lib": "^4.15.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.3.0",
+    "rimraf": "^6.0.1",
+    "typescript": "~5.6"
+  },
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/disk-cli",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/disk-cli",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "license": "AGPL-3.0-or-later",
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  }
+}

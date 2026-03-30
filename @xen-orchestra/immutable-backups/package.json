@@ -13,30 +13,31 @@
     "url": "https://vates.fr"
   },
   "bin": {
-    "xo-immutable-remote": "./protectRemotes.mjs",
-    "xo-lift-remote-immutability": "./liftProtection.mjs"
+    "xo-immutable-remote": "./dist/protectRemotes.mjs"
   },
   "license": "AGPL-3.0-or-later",
-  "version": "1.0.30",
+  "version": "2.0.0",
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=20.0.0"
   },
   "dependencies": {
-    "@vates/async-each": "^1.0.1",
-    "@xen-orchestra/backups": "^0.69.4",
+    "@vates/async-each": "^1.0.2",
+    "@xen-orchestra/backups": "^0.70.0",
     "@xen-orchestra/log": "^0.7.1",
     "app-conf": "^3.0.0",
-    "chokidar": "^3.6.0",
     "execa": "^5.0.0",
-    "ms": "^2.1.3",
-    "vhd-lib": "^4.14.7"
+    "ms": "^2.1.3"
   },
   "devDependencies": {
+    "@types/node": "^22.3.0",
     "rimraf": "^6.0.1",
-    "tap": "^18.6.1"
+    "tap": "^18.6.1",
+    "typescript": "~5.6"
   },
   "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist/",
     "postversion": "npm publish --access public",
-    "test-integration": "tap  *.integ.mjs"
+    "test-integration": "tsc && node --test dist/*.integ.mjs"
   }
 }

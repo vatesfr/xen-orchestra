@@ -18,6 +18,7 @@ import { adminOnly, connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
 import { Password, Select } from 'form'
+import Tooltip from 'tooltip'
 import { SelectHost } from 'select-objects'
 import { Sr } from 'render-xo-item'
 import { createCollectionWrapper, createFilter, createGetObjectsOfType, createSelector, getObject } from 'selectors'
@@ -194,6 +195,7 @@ const typeGroups = {
   isosr: ['local', 'nfsiso', 'smbiso'],
 }
 
+const AVAILABLE_IMAGE_FORMATS = ['vhd', 'qcow2']
 const getSrPath = id => (id !== undefined ? `/srs/${id}` : undefined)
 
 // ===================================================================
@@ -267,7 +269,22 @@ export default class New extends Component {
 
   _handleSubmit = async srUuid => {
     const { description, device, localPath, name, password, port, server, username, zfsLocation } = this.refs
-    const { host, iqn, lun, nfsOptions, nfsVersion, path, scsiId, type } = this.state
+    const { host, iqn, lun, nfsOptions, nfsVersion, path, preferredImageFormat, scsiId, type } = this.state
+    const preferredImageFormats =
+      preferredImageFormat
+        ?.trim()
+        .split(/[,\s]+/)
+        .filter(Boolean) ?? []
+    const invalidFormats = preferredImageFormats.filter(f => !AVAILABLE_IMAGE_FORMATS.includes(f))
+    if (invalidFormats.length > 0) {
+      error(
+        'SR Creation',
+        `Invalid image format(s): ${invalidFormats.join(', ')}. Accepted: ${AVAILABLE_IMAGE_FORMATS.join(', ')}`
+      )
+      return
+    }
+    const normalizedPreferredImageFormat =
+      preferredImageFormats.length > 0 ? preferredImageFormats.join(', ') : undefined
 
     const createMethodFactories = {
       nfs: () =>
@@ -279,10 +296,21 @@ export default class New extends Component {
           path,
           nfsVersion !== '' ? nfsVersion : undefined,
           nfsOptions,
-          srUuid
+          srUuid,
+          normalizedPreferredImageFormat
         ),
-      smb: () => createSrSmb(host.id, name.value, description.value, server.value, username.value, password.value),
-      hba: () => createSrHba(host.id, name.value, description.value, scsiId, srUuid),
+      smb: () =>
+        createSrSmb(
+          host.id,
+          name.value,
+          description.value,
+          server.value,
+          username.value,
+          password.value,
+          undefined,
+          normalizedPreferredImageFormat
+        ),
+      hba: () => createSrHba(host.id, name.value, description.value, scsiId, srUuid, normalizedPreferredImageFormat),
       iscsi: async () => {
         if (srUuid === undefined) {
           const previous = await probeSrIscsiExists(
@@ -315,12 +343,13 @@ export default class New extends Component {
           +port.value,
           username && username.value,
           password && password.value,
-          srUuid
+          srUuid,
+          normalizedPreferredImageFormat
         )
       },
-      lvm: () => createSrLvm(host.id, name.value, description.value, device.value),
-      ext: () => createSrExt(host.id, name.value, description.value, device.value),
-      zfs: () => createSrZfs(host.id, name.value, description.value, zfsLocation.value),
+      lvm: () => createSrLvm(host.id, name.value, description.value, device.value, normalizedPreferredImageFormat),
+      ext: () => createSrExt(host.id, name.value, description.value, device.value, normalizedPreferredImageFormat),
+      zfs: () => createSrZfs(host.id, name.value, description.value, zfsLocation.value, normalizedPreferredImageFormat),
       local: () => createSrIso(host.id, name.value, description.value, localPath.value, 'local'),
       nfsiso: () =>
         createSrIso(
@@ -871,6 +900,27 @@ export default class New extends Component {
                             {poolName} - {pool.mountpoint}
                           </option>
                         ))}
+                      </select>
+                    </fieldset>
+                  )}
+                  {includes(['nfs', 'smb', 'hba', 'iscsi', 'lvm', 'ext', 'zfs'], type) && (
+                    <fieldset>
+                      <label>
+                        {_('newSrPreferredImageFormat')}{' '}
+                        <Tooltip content={_('newSrPreferredImageFormatTooltip')}>
+                          <Icon icon='info' />
+                        </Tooltip>
+                      </label>
+                      <select
+                        className='form-control'
+                        onChange={this.linkState('preferredImageFormat')}
+                        value={this.state.preferredImageFormat ?? ''}
+                      >
+                        <option value='' />
+                        <option value='vhd'>vhd</option>
+                        <option value='vhd, qcow2'>vhd, qcow2</option>
+                        <option value='qcow2, vhd'>qcow2, vhd</option>
+                        <option value='qcow2'>qcow2</option>
                       </select>
                     </fieldset>
                   )}

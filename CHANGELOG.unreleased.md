@@ -11,23 +11,15 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [MCP] Support token authentication via `XO_TOKEN` environment variable as an alternative to username/password (PR [#9577](https://github.com/vatesfr/xen-orchestra/pull/9577))
-- [MCP] Add `list_vdis` tool to list virtual disks (PR [#9559](https://github.com/vatesfr/xen-orchestra/pull/9559))
-- [Replication] Reuse the same VM as an incremental replication target (PR [#9524](https://github.com/vatesfr/xen-orchestra/pull/9524))
-- [S3] add configuration for max/minPartSize and maxPartNumber in the API (PR [#9561](https://github.com/vatesfr/xen-orchestra/pull/9561))
-- [REST API] Expose `/rest/v0/vms/:id/actions/clone` (PR [#9453](https://github.com/vatesfr/xen-orchestra/pull/9453))
-- [REST API] Expose POST `/rest/v0/srs/:id/actions/forget` (PR [#9505](https://github.com/vatesfr/xen-orchestra/pull/9505))
-- [REST API] Add `POST /hosts/{id}/actions/disable` and `POST /hosts/{id}/actions/enable` endpoints (PR [#9532](https://github.com/vatesfr/xen-orchestra/pull/9532))
-- [OpenMetrics] Add missing VBD throughput, VBD average latency, and DCMI power consumption metrics (PR [#9563](https://github.com/vatesfr/xen-orchestra/pull/9563))
+- [QA Test] Add end-to-end QA test suite `@xen-orchestra/qa-test` for VM, backup and export testing (PR [#9626](https://github.com/vatesfr/xen-orchestra/pull/9626))
+- [i18n] Add Portuguese and Slovak and update Chinese (Simplified Han script), Czech, Dutch, German, Italian, Norwegian, Persian, Portuguese (Brasil), Russian, Spanish, Swedish and Ukrainian translations (PR [#9554](https://github.com/vatesfr/xen-orchestra/pull/9554))
+- [Treeview/Pool/Host] Add button to download bugtools (PR [#9419](https://github.com/vatesfr/xen-orchestra/pull/9419))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Backup] Reduce backup memory consumption (PR [#9557](https://github.com/vatesfr/xen-orchestra/pull/9557))
-- [VM/New] VCPU was ignored [Forum#11954](https://xcp-ng.org/forum/topic/11954/unable-to-define-count-of-cpus-during-vm-create) (PR [#9591](https://github.com/vatesfr/xen-orchestra/pull/9591))
-- [Backups/Runs] Fix transfer size calculation (PR [#9496](https://github.com/vatesfr/xen-orchestra/pull/9496))
-- [S3] Check provider compatibility before using batch deletion (PR [#9598](https://github.com/vatesfr/xen-orchestra/pull/9598))
+- [XO5/XO6/Stats] Return `null` instead of `0` when no stats available (PR [#9634](https://github.com/vatesfr/xen-orchestra/pull/9634))
 
 ### Packages to release
 
@@ -45,16 +37,9 @@
 
 <!--packages-start-->
 
-- @vates/generator-toolbox patch
-- @vates/types minor
-- @xen-orchestra/backups minor
-- @xen-orchestra/disk-transform patch
-- @xen-orchestra/fs minor
-- @xen-orchestra/mcp minor
-- @xen-orchestra/rest-api minor
-- @xen-orchestra/web patch
-- xo-server minor
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
+- xo-server patch
 - xo-server-netbox patch
-- xo-server-openmetrics minor
 
 <!--packages-end-->

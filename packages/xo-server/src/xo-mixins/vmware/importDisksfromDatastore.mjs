@@ -9,25 +9,31 @@ import { toQcow2Stream } from '@xen-orchestra/qcow2'
 const { warn } = createLogger('xo:importdiskfromdatastore')
 
 export async function importStream({ esxi, dataMap, disk, vmId, format }, consumerCallback) {
+  const signal = Task.abortSignal
   const { datastore: datastoreName, diskPath } = disk
 
   let vmdk
+  let stream
   try {
     // we read the data from the full chain to ensure we don't have partial blocks ( blocks with 0 when clusters are in parent only)
     const { nbdInfos } = await esxi.spanwNbdKitProcess(vmId, `[${datastoreName}] ${diskPath}`)
+    signal?.throwIfAborted()
     vmdk = new NbdDisk(nbdInfos, READ_BLOCK_SIZE, { dataMap })
 
     await vmdk.init()
+    signal?.throwIfAborted()
     vmdk = new ReadAhead(vmdk)
-    let stream
+
     if (format === VDI_FORMAT_QCOW2) {
-      stream = await toQcow2Stream(vmdk)
+      stream = await toQcow2Stream(vmdk, { signal })
     } else {
-      stream = await toVhdStream(vmdk)
+      stream = await toVhdStream(vmdk, { signal })
     }
+    Task.info(`got source stream for ${diskPath}`)
     await consumerCallback(stream)
     return Math.round((vmdk.getNbGeneratedBlock() * vmdk.getBlockSize()) / 1024 / 1024)
   } catch (err) {
+    stream?.destroy(err)
     Task.warning(err)
     throw err
   } finally {
@@ -86,7 +92,7 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
     existingVdi = diskIsAlreadyImported(existingVdis, existingDisk)
     Task.info(`found a previous import`, { vdiRef: existingVdi.$ref })
 
-    dataMap = await esxi.getDataMap(vmId, datastoreName, diskPath)
+    dataMap = await esxi.getDataMap(vmId, datastoreName, diskPath, Task.abortSignal)
   } else {
     Task.info(`no reference disk found, fall back a full import`)
   }
