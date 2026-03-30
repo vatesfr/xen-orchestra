@@ -32,6 +32,7 @@
   "action:delete-vms": "Delete 1 VM | Delete {n} VMs",
   "action:deploy": "Deploy",
   "action:deploy-xoa": "Deploy XOA",
+  "action:download-bugtools-archive": "Download bugtools archive",
   "action:duplicate": "Duplicate",
   "action:edit": "Edit",
   "action:edit-config": "Edit config",
