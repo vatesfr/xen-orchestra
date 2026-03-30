@@ -1,9 +1,10 @@
-import { useLocalStorage } from '@vueuse/core'
 import { watch } from 'vue'
 import { type RouteLocationRaw, type RouteRecordName, useRoute, useRouter } from 'vue-router'
 
+const TAB_MEMORY_DISPATCHER = 'tab-memory.dispatcher'
+const TAB_MEMORY_LAST = 'tab-memory.last'
+
 export function useDefaultTab(dispatcherRouteName: RouteRecordName & string, defaultTab: string) {
-  const storage = useLocalStorage('default-tabs', new Map<string, string>())
   const router = useRouter()
   const route = useRoute()
 
@@ -11,7 +12,8 @@ export function useDefaultTab(dispatcherRouteName: RouteRecordName & string, def
     () => route.name as string,
     name => {
       if (name === dispatcherRouteName) {
-        const tabName = storage.value.get(dispatcherRouteName) ?? defaultTab
+        const isSameDispatcher = localStorage.getItem(TAB_MEMORY_DISPATCHER) === dispatcherRouteName
+        const tabName = isSameDispatcher ? localStorage.getItem(TAB_MEMORY_LAST) : defaultTab
         void router.replace({ name: `${dispatcherRouteName}/${tabName}` } as RouteLocationRaw)
       } else if (!name.startsWith(dispatcherRouteName)) {
         return
@@ -19,7 +21,8 @@ export function useDefaultTab(dispatcherRouteName: RouteRecordName & string, def
 
       const tab = name.slice(dispatcherRouteName.length).split('/')[1] ?? defaultTab
 
-      storage.value.set(dispatcherRouteName, tab)
+      localStorage.setItem(TAB_MEMORY_DISPATCHER, dispatcherRouteName)
+      localStorage.setItem(TAB_MEMORY_LAST, tab)
     },
     { immediate: true }
   )
