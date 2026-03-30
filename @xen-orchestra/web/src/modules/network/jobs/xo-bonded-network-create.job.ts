@@ -2,7 +2,6 @@ import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable'
 import { fetchPost } from '@/shared/utils/fetch.util'
 import { defineJob, defineJobArg, JobError, JobRunningError } from '@core/packages/job'
 import type { BOND_MODE, XoNetwork, XoPif, XoPool, XoTask } from '@vates/types'
-import type { Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 // Payload that the REST API expects
@@ -16,8 +15,8 @@ export type NewBondedNetworkPayload = {
   nbd?: boolean
 }
 
-const payloadsArg = defineJobArg<Ref<NewBondedNetworkPayload>>({
-  identify: payload => payload.value.poolId,
+const payloadsArg = defineJobArg<NewBondedNetworkPayload>({
+  identify: payload => payload.poolId,
   toArray: true,
 })
 
@@ -29,7 +28,7 @@ export const useXoBondedNetworkCreateJob = defineJob('bonded-network.create', [p
     run(payloads): Promise<PromiseSettledResult<XoNetwork['id']>[]> {
       return Promise.allSettled(
         payloads.map(async payload => {
-          const { poolId, ...rest } = payload.value
+          const { poolId, ...rest } = payload
           const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(
             `pools/${poolId}/actions/create_bonded_network`,
             rest
@@ -51,21 +50,19 @@ export const useXoBondedNetworkCreateJob = defineJob('bonded-network.create', [p
       }
 
       payloads.forEach(payload => {
-        const { value } = payload
-
-        if (value.poolId === undefined) {
+        if (payload.poolId === undefined) {
           throw new JobError(t('job:arg:pool-id-required'))
         }
 
-        if (value.name.length === 0) {
+        if (payload.name.length === 0) {
           throw new JobError(t('job:arg:name-required'))
         }
 
-        if (value.pifIds === undefined || value.pifIds.length === 0) {
+        if (payload.pifIds === undefined || payload.pifIds.length === 0) {
           throw new JobError(t('job:arg:pif-ids-required'))
         }
 
-        if (value.bondMode === undefined) {
+        if (payload.bondMode === undefined) {
           throw new JobError(t('job:arg:bond-mode-required'))
         }
       })

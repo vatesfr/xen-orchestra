@@ -2,7 +2,6 @@ import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable'
 import { fetchPost } from '@/shared/utils/fetch.util'
 import { defineJob, defineJobArg, JobError, JobRunningError } from '@core/packages/job'
 import type { XoNetwork, XoPif, XoPool, XoTask } from '@vates/types'
-import type { Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 // Payload that the REST API expects
@@ -16,8 +15,8 @@ export type NewNetworkPayload = {
   nbd?: boolean
 }
 
-const payloadsArg = defineJobArg<Ref<NewNetworkPayload>>({
-  identify: payload => payload.value.poolId,
+const payloadsArg = defineJobArg<NewNetworkPayload>({
+  identify: payload => payload.poolId,
   toArray: true,
 })
 
@@ -29,7 +28,7 @@ export const useXoNetworkCreateJob = defineJob('network.create', [payloadsArg], 
     run(payloads): Promise<PromiseSettledResult<XoNetwork['id']>[]> {
       return Promise.allSettled(
         payloads.map(async payload => {
-          const { poolId, ...rest } = payload.value
+          const { poolId, ...rest } = payload
           const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`pools/${poolId}/actions/create_network`, rest)
           const { id } = await monitorTask<{ id: XoNetwork['id'] }>(taskId)
 
@@ -48,21 +47,19 @@ export const useXoNetworkCreateJob = defineJob('network.create', [payloadsArg], 
       }
 
       payloads.forEach(payload => {
-        const { value } = payload
-
-        if (value.poolId === undefined) {
+        if (payload.poolId === undefined) {
           throw new JobError(t('job:arg:pool-id-required'))
         }
 
-        if (value.name.length === 0) {
+        if (payload.name.length === 0) {
           throw new JobError(t('job:arg:name-required'))
         }
 
-        if (value.pif === undefined) {
+        if (payload.pif === undefined) {
           throw new JobError(t('job:arg:pif-id-required'))
         }
 
-        if (value.vlan === undefined) {
+        if (payload.vlan === undefined) {
           throw new JobError(t('job:arg:vlan-required'))
         }
       })

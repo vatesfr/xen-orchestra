@@ -66,12 +66,9 @@ onMounted(() => {
 const error = ref<ApiError | Error | undefined>()
 const hasNetworkCreationError = computed(() => error.value !== undefined)
 
-const payload = ref<NewInternalNetworkPayload>({
-  poolId: '' as FrontXoPool['id'],
-  name: '',
-})
+const formPayload = ref<NewInternalNetworkPayload>()
 
-const { canRun, run: create, isRunning } = useXoInternalNetworkCreateJob([payload])
+const { canRun, run: create, isRunning } = useXoInternalNetworkCreateJob(formPayload)
 
 const cancelRoute = computed<RouteLocationRaw>(() => {
   if (!poolId.value) {
@@ -81,8 +78,8 @@ const cancelRoute = computed<RouteLocationRaw>(() => {
   return { name: '/pool/[id]/networks', params: { id: poolId.value } }
 })
 
-async function createNetwork(formPayload: NewInternalNetworkPayload) {
-  payload.value = formPayload
+async function createNetwork(newPayload: NewInternalNetworkPayload) {
+  formPayload.value = newPayload
 
   if (!canRun.value) {
     return
@@ -106,7 +103,7 @@ function handleGoBack() {
 }
 
 function redirectAfterSuccess(networkId: XoNetwork['id']) {
-  router.push(getPoolNetworkRoute(payload.value.poolId, networkId))
+  router.push(getPoolNetworkRoute(formPayload.value!.poolId, networkId))
 }
 </script>
 
