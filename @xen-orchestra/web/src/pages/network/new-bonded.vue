@@ -57,9 +57,8 @@ const router = useRouter()
 const route = useRoute()
 const poolId = useRouteQuery('poolid')
 
-const hasNetworkCreationError = ref(false)
-
 const error = ref<ApiError | Error | undefined>()
+const hasNetworkCreationError = computed(() => error.value !== undefined)
 
 const payload = ref<NewBondedNetworkPayload>({
   poolId: '' as FrontXoPool['id'],
@@ -95,13 +94,11 @@ async function createNetwork(formPayload: NewBondedNetworkPayload) {
 
     redirectAfterSuccess(promiseCreateResult.value)
   } catch (_error) {
-    hasNetworkCreationError.value = true
     error.value = _error as ApiError | Error
   }
 }
 
 function handleGoBack() {
-  hasNetworkCreationError.value = false
   error.value = undefined
 }
 

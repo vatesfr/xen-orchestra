@@ -11,7 +11,7 @@ import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import { useI18n } from 'vue-i18n'
 
-const { id, error } = defineProps<{
+defineProps<{
   id: FormSelectId
   error?: InputWrapperMessage
 }>()

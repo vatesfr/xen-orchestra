@@ -10,7 +10,7 @@ import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { useI18n } from 'vue-i18n'
 
-const { error } = defineProps<{
+defineProps<{
   error?: InputWrapperMessage
 }>()
 

@@ -1,8 +1,6 @@
 <template>
   <form class="new-internal-network-form" @submit.prevent="onSubmit()">
-    <div class="row pool">
-      <NewNetworkPoolSelect :id="poolSelectId" />
-    </div>
+    <NewNetworkPoolSelect :id="poolSelectId" class="pool" />
     <div class="row">
       <div class="column">
         <NewNetworkNameInput v-model="formData.name" />
@@ -57,16 +55,18 @@ async function onSubmit() {
   .row {
     display: flex;
     align-items: start;
-    gap: 8rem;
-    max-width: 88rem;
-
-    @media (--small) {
-      flex-direction: column;
-      gap: 2.4rem;
-    }
+    flex-direction: column;
+    gap: 2.4rem;
 
     & > * {
-      flex: 1 0 0;
+      width: 100%;
+      min-width: 0;
+    }
+
+    @media (--medium-or-large) {
+      flex-direction: row;
+      gap: 8rem;
+      max-width: 88rem;
     }
 
     &:not(:first-child) {
@@ -80,8 +80,10 @@ async function onSubmit() {
     }
   }
 
-  .pool {
-    max-width: 40rem;
+  @media (--medium-or-large) {
+    .pool {
+      max-width: 40rem;
+    }
   }
 
   .nbd {

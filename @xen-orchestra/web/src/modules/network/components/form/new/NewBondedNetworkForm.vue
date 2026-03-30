@@ -62,16 +62,18 @@ async function onSubmit() {
   .row {
     display: flex;
     align-items: start;
-    gap: 8rem;
-    max-width: 88rem;
-
-    @media (--small) {
-      flex-direction: column;
-      gap: 2.4rem;
-    }
+    flex-direction: column;
+    gap: 2.4rem;
 
     & > * {
-      flex: 1 0 0;
+      width: 100%;
+      min-width: 0;
+    }
+
+    @media (--medium-or-large) {
+      flex-direction: row;
+      gap: 8rem;
+      max-width: 88rem;
     }
 
     &:not(:first-child) {
@@ -85,13 +87,15 @@ async function onSubmit() {
     }
   }
 
-  .bond-mode {
-    max-width: 40rem;
+  .bond-mode,
+  .nbd {
     margin-block-start: 2.4rem;
   }
 
-  .nbd {
-    margin-block-start: 2.4rem;
+  @media (--medium-or-large) {
+    .bond-mode {
+      max-width: 40rem;
+    }
   }
 }
 </style>

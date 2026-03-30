@@ -63,9 +63,8 @@ const payload = ref<NewNetworkPayload>({
   mtu: undefined,
 })
 
-const hasNetworkCreationError = ref(false)
-
 const error = ref<ApiError | Error | undefined>()
+const hasNetworkCreationError = computed(() => error.value !== undefined)
 
 const { canRun, run: create, isRunning } = useXoNetworkCreateJob([payload])
 
@@ -86,7 +85,6 @@ async function createNetwork(formPayload: NewNetworkPayload) {
 
     redirectAfterSuccess(promiseCreateResult.value)
   } catch (_error) {
-    hasNetworkCreationError.value = true
     error.value = _error as ApiError | Error
   }
 }
@@ -100,7 +98,6 @@ const cancelRoute = computed<RouteLocationRaw>(() => {
 })
 
 function handleGoBack() {
-  hasNetworkCreationError.value = false
   error.value = undefined
 }
 
