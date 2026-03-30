@@ -8,18 +8,11 @@
       <div class="typo-h3">{{ steps[currentStep]?.label }}</div>
     </div>
 
-    <div class="track">
-      <Step
-        v-for="index in steps.length"
-        :key="index - 1"
-        :is-active="index - 1 === currentStep"
-        :is-completed="index - 1 < currentStep"
-      />
+    <div class="steps-container">
+      <Step v-for="(_, index) in steps" :key="index" :is-active="index <= currentStep" />
     </div>
 
     <slot />
-
-    <slot name="actions" />
   </div>
 </template>
 
@@ -39,7 +32,6 @@ defineProps<{
 
 defineSlots<{
   default(): any
-  actions(): any
 }>()
 
 const { t } = useI18n()
@@ -50,20 +42,20 @@ const { t } = useI18n()
   display: flex;
   flex-direction: column;
   gap: 1.6rem;
-}
 
-.header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
+  .header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
 
-  .description {
-    color: var(--color-neutral-txt-secondary);
+    .description {
+      color: var(--color-neutral-txt-secondary);
+    }
   }
-}
 
-.track {
-  display: flex;
-  gap: 0.8rem;
+  .steps-container {
+    display: flex;
+    gap: 0.8rem;
+  }
 }
 </style>

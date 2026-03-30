@@ -3,9 +3,7 @@
     v-slot="{ properties, settings }"
     :params="[
       prop('steps').arr('StepDefinition').required().preset(steps),
-      prop('currentStep').num().required().widget().preset(currentStep),
-      event('prev').help('Emitted via composable when navigating back'),
-      event('next').help('Emitted via composable when navigating forward'),
+      prop('currentStep').num().required().preset(currentStep),
       slot('default').help('Content of the current step'),
       slot('actions').help('Navigation buttons'),
       setting('contentStep1').preset('General information content').widget(text()).help('Content for step 1'),
@@ -22,8 +20,7 @@
         <div v-if="currentStep === 0">{{ settings.contentStep1 }}</div>
         <div v-else-if="currentStep === 1">{{ settings.contentStep2 }}</div>
         <div v-else-if="currentStep === 2">{{ settings.contentStep3 }}</div>
-      </template>
-      <template #actions>
+
         <div class="actions">
           <UiButton accent="brand" variant="secondary" size="medium" :disabled="isFirstStep" @click="prev()">
             {{ settings.backLabel }}
@@ -39,7 +36,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { event, prop, setting, slot } from '@/libs/story/story-param'
+import { prop, setting, slot } from '@/libs/story/story-param'
 import { text } from '@/libs/story/story-widget'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiStepper, { type StepDefinition } from '@core/components/ui/stepper/UiStepper.vue'

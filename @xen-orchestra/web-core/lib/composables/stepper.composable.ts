@@ -1,5 +1,5 @@
 import type { StepDefinition } from '@core/components/ui/stepper/UiStepper.vue'
-import { toComputed } from '@core/utils/to-computed.util'
+import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter, ref } from 'vue'
 
 export type StepperBindings = {

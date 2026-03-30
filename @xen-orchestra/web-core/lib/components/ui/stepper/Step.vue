@@ -2,7 +2,6 @@
   <div
     class="step"
     :class="{
-      done: isCompleted,
       active: isActive,
     }"
   />
@@ -11,7 +10,6 @@
 <script lang="ts" setup>
 defineProps<{
   isActive: boolean
-  isCompleted: boolean
 }>()
 </script>
 
@@ -23,7 +21,6 @@ defineProps<{
   background-color: var(--color-neutral-background-disabled);
   transition: background 0.3s;
 
-  &.done,
   &.active {
     background-color: var(--color-brand-item-base);
   }
