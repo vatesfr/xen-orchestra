@@ -41,7 +41,7 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
 
   /**
    * @param {AbortSignal} [signal]
-   * @returns {Promise<void>}
+   * @returns {Promise<number>}
    */
   async write(signal) {
     const { handler, path, compression, flags, validator, concurrency } = this.#target
@@ -85,6 +85,7 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
       await Promise.all([vhd.writeFooter(), vhd.writeHeader(), vhd.writeBlockAllocationTable()])
       await validator(dataPath)
       await VhdAbstract.createAlias(handler, path, dataPath)
+      return vhd.streamSize()
     } catch (err) {
       await this.source.close().catch(() => {}) // close this disk in error
       await handler.rmtree(dataPath).catch(() => {}) // data

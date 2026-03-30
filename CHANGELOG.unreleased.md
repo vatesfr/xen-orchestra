@@ -18,6 +18,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [XO5/XO6/Stats] Return `null` instead of `0` when no stats available (PR [#9634](https://github.com/vatesfr/xen-orchestra/pull/9634))
+- [Backup] Fix cleanVm incorrect backup size in metadata (PR [#9637] (https://github.com/vatesfr/xen-orchestra/pull/9637))
 
 ### Packages to release
 
