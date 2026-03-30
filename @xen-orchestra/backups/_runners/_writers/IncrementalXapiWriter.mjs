@@ -252,7 +252,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         targetVmRef,
         'name_description',
         deltaExport.vm.name_description +
-          ` -- last replication: ${formatFilenameDate(timestamp)} ${humanFormat.bytes(size)} bytes read `
+          ` -- last replication: ${formatFilenameDate(timestamp)} ${humanFormat.bytes(size)} read `
       )
       // take a snapshot to ensure these data are not modified until next snapshot
       await Task.run({ name: 'target snapshot' }, async () => {
