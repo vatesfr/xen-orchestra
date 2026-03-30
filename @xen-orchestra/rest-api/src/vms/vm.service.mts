@@ -130,7 +130,7 @@ export class VmService {
           nSuspended++
           break
         default:
-          log.warn('Invalid VM power_state', {vmId: vm.id, vmPowerState : vm.power_state})
+          log.warn('Invalid VM power_state', { vmId: vm.id, vmPowerState: vm.power_state })
           nUnknown++
           break
       }
