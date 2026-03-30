@@ -8,12 +8,22 @@
               <UiDropdownButton @click="open($event)">{{ t('new') }}</UiDropdownButton>
             </template>
             <MenuItem>
-              <UiLink :to="{ name: '/network/new', query: { poolid: pool.id } }" icon="fa:plus" size="medium">
+              <UiLink
+                class="new-network-link"
+                :to="{ name: '/network/new', query: { poolid: pool.id } }"
+                icon="fa:plus"
+                size="medium"
+              >
                 {{ t('action:create-network') }}
               </UiLink>
             </MenuItem>
             <MenuItem>
-              <UiLink :to="{ name: '/network/new-bonded', query: { poolid: pool.id } }" icon="fa:plus" size="medium">
+              <UiLink
+                class="new-network-link"
+                :to="{ name: '/network/new-bonded', query: { poolid: pool.id } }"
+                icon="fa:plus"
+                size="medium"
+              >
                 {{ t('action:create-bonded-network') }}
               </UiLink>
             </MenuItem>
@@ -89,5 +99,14 @@ const selectedNetwork = useRouteQuery<FrontXoNetwork | undefined>('id', {
     margin: 0.8rem;
     gap: 4rem;
   }
+}
+
+/* This selector can't be nested,
+* as the links in MenuItem are teleported and are not children of .networks element.
+* This selector extends the clickable area of the links for better accessibility
+*/
+.new-network-link {
+  height: 100%;
+  width: 100%;
 }
 </style>
