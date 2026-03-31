@@ -101,7 +101,7 @@ export class RemoteVhdDisk extends RemoteDisk {
    */
   async close() {
     const dispose = this.#dispose
-    this.#dispose = () => {}
+    this.#dispose = () => Promise.resolve()
     await dispose()
   }
 
