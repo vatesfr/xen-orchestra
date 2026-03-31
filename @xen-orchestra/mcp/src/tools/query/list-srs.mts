@@ -18,9 +18,13 @@ export function registerListSrs(server: McpServer, getClient: () => XoClient): v
     async ({ filter, fields, limit }) => {
       try {
         const client = getClient()
-        const srs = await client.listSrs({ filter, fields, limit })
+        const text = await client.getMarkdown(
+          '/srs',
+          'id,name_label,SR_type,allocationStrategy,size,usage,physical_usage,shared',
+          { filter, fields, limit }
+        )
         return {
-          content: [{ type: 'text', text: JSON.stringify(srs, null, 2) }],
+          content: [{ type: 'text', text }],
         }
       } catch (error) {
         return {

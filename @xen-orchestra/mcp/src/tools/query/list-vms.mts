@@ -2,8 +2,6 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { XoClient } from '../../xo-client.mjs'
 import { formatToolError } from '../../helpers/tool-error.mjs'
-import { formatVmList } from '../../formatters/vm.mjs'
-import { formatGenericList } from '../../formatters/generic.mjs'
 
 export function registerListVms(server: McpServer, getClient: () => XoClient): void {
   server.registerTool(
@@ -20,8 +18,11 @@ export function registerListVms(server: McpServer, getClient: () => XoClient): v
     async ({ filter, fields, limit }) => {
       try {
         const client = getClient()
-        const vms = await client.listVms({ filter, fields, limit })
-        const text = fields ? formatGenericList(vms as Record<string, unknown>[], 'VMs') : formatVmList(vms)
+        const text = await client.getMarkdown('/vms', 'id,name_label,power_state,CPUs,memory', {
+          filter,
+          fields,
+          limit,
+        })
         return {
           content: [{ type: 'text', text }],
         }

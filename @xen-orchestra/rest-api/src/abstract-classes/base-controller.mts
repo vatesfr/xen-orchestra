@@ -8,6 +8,7 @@ import type { XapiXoRecord, XoRecord, XoTask } from '@vates/types/xo'
 import type { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
 
 import { BASE_URL } from '../index.mjs'
+import { makeMarkdownTable } from '../helpers/markdown.helper.mjs'
 import { makeNdJsonStream } from '../helpers/stream.helper.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
@@ -51,6 +52,11 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
       const stream = Readable.from(makeNdJsonStream(mappedObjects))
 
       return stream
+    } else if (req.query.markdown === 'true') {
+      const res = req.res as ExResponse
+      res.setHeader('Content-Type', 'text/markdown')
+
+      return makeMarkdownTable(mappedObjects)
     } else {
       return mappedObjects
     }

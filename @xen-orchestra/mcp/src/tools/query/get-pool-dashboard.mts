@@ -2,7 +2,6 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { XoClient } from '../../xo-client.mjs'
 import { formatToolError } from '../../helpers/tool-error.mjs'
-import { formatPoolDashboard } from '../../formatters/pool.mjs'
 
 export function registerGetPoolDashboard(server: McpServer, getClient: () => XoClient): void {
   server.registerTool(
@@ -17,9 +16,9 @@ export function registerGetPoolDashboard(server: McpServer, getClient: () => XoC
     async ({ pool_id }) => {
       try {
         const client = getClient()
-        const dashboard = await client.getPoolDashboard(pool_id)
+        const text = await client.getText(`/pools/${encodeURIComponent(pool_id)}/dashboard`)
         return {
-          content: [{ type: 'text', text: formatPoolDashboard(dashboard) }],
+          content: [{ type: 'text', text }],
         }
       } catch (error) {
         return {

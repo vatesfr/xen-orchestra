@@ -16,9 +16,9 @@ export function registerGetSrDetails(server: McpServer, getClient: () => XoClien
     async ({ sr_id }) => {
       try {
         const client = getClient()
-        const sr = await client.getSr(sr_id)
+        const text = await client.getMarkdown(`/srs/${encodeURIComponent(sr_id)}`, '*')
         return {
-          content: [{ type: 'text', text: JSON.stringify(sr, null, 2) }],
+          content: [{ type: 'text', text }],
         }
       } catch (error) {
         return {
