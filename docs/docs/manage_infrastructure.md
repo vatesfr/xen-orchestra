@@ -97,7 +97,9 @@ You can use custom filters here:
 
 ### Save your search
 
-If you want to record your filter, just click on the "Save" icon ![](./assets/xo5savefilter.png)
+If you want to record your filter, just click the **Save** icon:
+
+![](./assets/xo5savefilter.png)
 
 After giving a name to your filter, you will be able to find it in the dropdown filter menu.
 
@@ -307,7 +309,7 @@ Any object with a dotted underline can be edited with a mouse click: VM title, d
 
 ![](./assets/xo5editvm.png)
 
-In the advanced tab, you have extra options:
+In the **Advanced** tab, you have extra options:
 
 ![](./assets/xo5vmadvanced.png)
 
@@ -325,7 +327,12 @@ XCP-ng doesn't limit VMs to 32 vCPU
 
 Thanks to Xen Storage Motion, it's easy to move a VM disk from one storage location to another, while the VM is running! This feature can help you migrate from your local storage to a SAN, or just upgrade your SAN without any downtime.
 
-To do so: Access the Xen Orchestra page for your running VM, then enter the Disk tab. Long click on the current SR of the disk, and a drop down menu will be displayed with all compatible destinations. Just select one, that's all: the migration will start live!
+To do so: 
+
+1. Access the Xen Orchestra page for your running VM.
+2. Enter the Disk tab. 
+3. Long click on the current SR of the disk, and a drop down menu will be displayed, with all compatible destinations.
+4. Pick a destination: the migration will start live!
 
 ![](./assets/xo5diskmigrate.png)
 
@@ -335,7 +342,7 @@ Even though it's not currently supported in XCP-ng/XenServer, we can do it in Xe
 
 ### VM recovery
 
-In the advanced tab, use the "Recovery Start" button:
+In the **Advanced** tab, click the **Recovery start** button:
 
 ![](./assets/xo5recovery.png)
 
@@ -583,7 +590,9 @@ You can also see the available updates in the Dashboard view.
 
 On XCP-ng, there's multiple way to update your pools and hosts.
 
-:::details ⚙️ How it works
+:::note
+⚙️ **How it works**
+
 Xen Orchestra will request a plugin, bundled and hosted within your XCP-ng hosts. This plugin will query the status of updates. Then, when the update will be apply, it's also the plugin that will download and apply them. So unlike with Citrix Hypervisor, Xen Orchestra will not fetch or download updates, but it will order the host to do it by itself. Be sure that your host(s) can access the update repositories.
 :::
 
@@ -644,7 +653,9 @@ We do NOT recommend to install updates to individual hosts. Obviously except if 
 
 ### XenServer/Citrix Hypervisor
 
-:::details ⚙️ How it works
+:::note 
+⚙️ **How it works**
+
 Xen Orchestra will directly request a specific XML, hosted by Citrix. It will be analyzed and compared to the patch level on your hosts. If there's available/missing updates, XO will download it directly, then send it to the pool, and finally ask the pool to apply it. In that scenario, you should check if Xen Orchestra can access outside to get those updates.
 :::
 
@@ -652,12 +663,12 @@ Xen Orchestra will directly request a specific XML, hosted by Citrix. It will be
 
 It's recommended to apply patches from the entire pool, to be sure all your hosts are at the same patch level.
 
-When you click on "Install all patches", XOA will do all of the following automatically:
+When you click **Install all patches**, XOA will do all of the following automatically:
 
-- fetch all missing patches from Citrix servers
-- unzip them
-- upload them
-- apply them in the correct order
+- Fetch all missing patches from Citrix servers
+- Unzip them
+- Upload them
+- Apply them in the correct order
 
 You can see [more screenshots here](https://xen-orchestra.com/blog/hotfix-xs70e004-for-xenserver-7-0).
 
@@ -672,7 +683,7 @@ As for XCP-ng, we do NOT recommend to install updates to individual hosts. Pleas
 ## Pool Management
 
 :::danger
-As specified in the [documentation](https://xcp-ng.org/docs/requirements.html#pool-requirements) your pool shouldn't consist of hosts from different CPU vendors.
+As specified in the [documentation](https://xcp-ng.org/docs/requirements.html#pool-requirements), your pool shouldn't consist of hosts from different CPU vendors.
 :::
 
 :::warning
@@ -682,11 +693,11 @@ As specified in the [documentation](https://xcp-ng.org/docs/requirements.html#po
 
 ### Creating a pool
 
-First you should add your new host to XOA by going to New > Server as described in [the relevant chapter](manage_infrastructure.md#add-a-host).
+First you should add your new host to XOA by going to **New → Server**, as described in [the relevant chapter](manage_infrastructure.md#add-a-host).
 
 When you add your host to XOA a pool will automatically be created for it, taking the host name as the default pool name. The pool name can be edited to match your needs.
 
-To edit the name of your pool go to Home > Pools and long click on the pool name to edit it.
+To edit the name of your pool go to **Home → Pools** and long click on the pool name to edit it.
 
 ### Adding a host to an existing pool
 
@@ -703,7 +714,7 @@ Don't add pool slaves to your XOA server list! XOA will automatically find them 
 
 ### Remove a host from an existing pool
 
-To remove one host from a pool, you can go to the "Advanced" tab of the host page for the host you wish to remove, and click on "Detach"
+To remove one host from a pool, you can go to the **Advanced** tab of the host page for the host you wish to remove, and click **Detach**:
 
 ![](./assets/detach-host.png)
 
@@ -782,7 +793,7 @@ This process is the same whether you're adding a VLAN on top of a LACP network b
 
 ### Maintenance mode
 
-Need to shutdown your storage for maintenance? In the SR's Advanced tab, use the "Enable maintenance mode" button.
+Need to shutdown your storage for maintenance? In the SR's **Advanced** tab, use the **Enable maintenance mode** button.
 Maintenance mode will trigger two actions internally:
 
 - shutdown related VMs
@@ -803,7 +814,7 @@ If your SAN supports it, Xen Orchestra can instruct your XCP-ng host to send a t
 Visualizations can help you to understand your XCP-ng/XenServer infrastructure, as well as correlate events and detect bottlenecks.
 
 :::tip
-:construction_worker: This section needs to be completed: screenshots and how-to :construction_worker:
+👷 This section needs to be completed: screenshots and how-to 👷
 :::
 
 ### Dashboard
@@ -840,6 +851,7 @@ To select a default SR, go to the Home tab and click on 'Pools'. Select the pool
 ![](./assets/storageicon.png)
 
 Hover over the storage you want to select and click on the disk icon to set it as the default SR:
+
 ![](./assets/diskicon.png)
 
 ### Unhealthy VDIs
