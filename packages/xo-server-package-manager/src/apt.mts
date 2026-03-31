@@ -3,7 +3,7 @@ import type { OperationState, UpgradeProgress, UpgradeResult } from './types.mjs
 import { createLogger } from '@xen-orchestra/log'
 import { execFile, spawn } from 'node:child_process'
 import { access, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
-import { createWriteStream } from 'node:fs'
+import { accessSync, createWriteStream, readFileSync, unlinkSync } from 'node:fs'
 import { join } from 'node:path'
 import { parseUpgradableList, parseAptCacheShow, parseStatusFdLine, detectRequiredAction } from './parse.mjs'
 
@@ -64,7 +64,7 @@ export class AptPackageManager {
   checkAptAvailable(): void {
     try {
       // Synchronous check — called once at plugin load
-      require('node:fs').accessSync(APT_GET_PATH)
+      accessSync(APT_GET_PATH)
     } catch {
       throw new Error(`apt-get not found at ${APT_GET_PATH}. This plugin requires a Debian-based system.`)
     }
@@ -142,7 +142,7 @@ export class AptPackageManager {
 
     let stateJson: string
     try {
-      stateJson = require('node:fs').readFileSync(operationPath, 'utf-8')
+      stateJson = readFileSync(operationPath, 'utf-8')
     } catch {
       return null
     }
@@ -153,7 +153,7 @@ export class AptPackageManager {
     } catch {
       log.warn('Corrupt operation file, removing', { path: operationPath })
       try {
-        require('node:fs').unlinkSync(operationPath)
+        unlinkSync(operationPath)
       } catch {
         // ignore cleanup failure
       }
@@ -166,7 +166,7 @@ export class AptPackageManager {
     // Read progress file
     let progress: UpgradeProgress | undefined
     try {
-      const progressJson = require('node:fs').readFileSync(progressPath, 'utf-8')
+      const progressJson = readFileSync(progressPath, 'utf-8')
       progress = JSON.parse(progressJson)
     } catch {
       // no progress yet

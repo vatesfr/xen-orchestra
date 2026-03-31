@@ -65,8 +65,10 @@ export function parseAptCacheShow(
     for (const line of block.split('\n')) {
       if (line.startsWith('Package: ')) {
         name = line.slice('Package: '.length).trim()
-      } else if (line.startsWith('Description: ')) {
-        description = line.slice('Description: '.length).trim()
+      } else if (description === '' && (line.startsWith('Description: ') || line.startsWith('Description-en: '))) {
+        // Debian 13+ uses Description-en instead of Description
+        const prefix = line.startsWith('Description-en: ') ? 'Description-en: ' : 'Description: '
+        description = line.slice(prefix.length).trim()
       } else if (line.startsWith('Size: ')) {
         size = parseInt(line.slice('Size: '.length).trim(), 10) || 0
       } else if (line.startsWith('APT-Sources: ')) {

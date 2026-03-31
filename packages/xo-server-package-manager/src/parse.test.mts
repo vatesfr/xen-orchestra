@@ -140,6 +140,17 @@ Filename: pool/main/l/local-pkg/local-pkg_1.0_amd64.deb
     assert.equal(result.get('local-pkg')!.sourceRepository, 'pool/main/l/local-pkg/local-pkg_1.0_amd64.deb')
   })
 
+  it('handles Description-en field (Debian 13+)', () => {
+    const input = `Package: curl
+Version: 8.14.1-2+deb13u2
+Description-en: command line tool for transferring data with URL syntax
+Size: 281912
+Filename: pool/main/c/curl/curl_8.14.1-2+deb13u2_amd64.deb
+`
+    const result = parseAptCacheShow(input)
+    assert.equal(result.get('curl')!.description, 'command line tool for transferring data with URL syntax')
+  })
+
   it('keeps only first entry when package appears multiple times', () => {
     const input = `Package: curl
 Version: 7.88.1-10+deb12u8
