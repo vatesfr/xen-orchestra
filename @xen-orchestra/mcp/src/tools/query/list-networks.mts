@@ -18,9 +18,13 @@ export function registerListNetworks(server: McpServer, getClient: () => XoClien
     async ({ filter, fields, limit }) => {
       try {
         const client = getClient()
-        const networks = await client.listNetworks({ filter, fields, limit })
+        const text = await client.getMarkdown('/networks', 'id,name_label,name_description,bridge,MTU,nbd', {
+          filter,
+          fields,
+          limit,
+        })
         return {
-          content: [{ type: 'text', text: JSON.stringify(networks, null, 2) }],
+          content: [{ type: 'text', text }],
         }
       } catch (error) {
         return {

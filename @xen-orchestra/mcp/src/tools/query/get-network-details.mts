@@ -16,9 +16,9 @@ export function registerGetNetworkDetails(server: McpServer, getClient: () => Xo
     async ({ network_id }) => {
       try {
         const client = getClient()
-        const network = await client.getNetwork(network_id)
+        const text = await client.getMarkdown(`/networks/${encodeURIComponent(network_id)}`, '*')
         return {
-          content: [{ type: 'text', text: JSON.stringify(network, null, 2) }],
+          content: [{ type: 'text', text }],
         }
       } catch (error) {
         return {
