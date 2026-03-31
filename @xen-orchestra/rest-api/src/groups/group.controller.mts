@@ -76,6 +76,7 @@ export class GroupController extends XoController<XoGroup> {
   @Example(groupIds)
   @Example(partialGroups)
   @Get('')
+  @Security('*', ['acl'])
   async getGroups(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -194,6 +195,7 @@ export class GroupController extends XoController<XoGroup> {
   @Example(userIds)
   @Example(partialUsers)
   @Get('{id}/users')
+  @Security('*', ['acl'])
   @Tags('users')
   @Response(notFoundResp.status, notFoundResp.description)
   async getGroupUsers(
@@ -225,6 +227,7 @@ export class GroupController extends XoController<XoGroup> {
   @Example(taskIds)
   @Example(partialTasks)
   @Get('{id}/tasks')
+  @Security('*', ['acl'])
   @Tags('tasks')
   @Response(notFoundResp.status, notFoundResp.description)
   async getGroupTasks(

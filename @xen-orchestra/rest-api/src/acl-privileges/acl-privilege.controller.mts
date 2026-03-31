@@ -63,6 +63,7 @@ export class AclPrivilegeController extends XoController<AnyPrivilege> {
   @Example(aclPrivilegeIds)
   @Example(partialAclPrivileges)
   @Get('')
+  @Security('*', ['acl'])
   async getAclV2Privileges(
     @Request() req: ExRequest,
     @Query() fields?: string,

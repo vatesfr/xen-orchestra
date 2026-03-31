@@ -32,6 +32,7 @@ export class PgpuController extends XapiXoController<XoPgpu> {
   @Example(pgpuIds)
   @Example(partialPgpus)
   @Get('')
+  @Security('*', ['acl'])
   getPgpus(
     @Request() req: ExRequest,
     @Query() fields?: string,
