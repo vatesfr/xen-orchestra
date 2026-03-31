@@ -15,6 +15,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Dashboard] Fix infinite loader on dashboards (PR [#9660](https://github.com/vatesfr/xen-orchestra/pull/9660))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -30,5 +32,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/web-core patch
 
 <!--packages-end-->
