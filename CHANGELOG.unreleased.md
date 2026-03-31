@@ -46,6 +46,7 @@
 - [V2V] Keep the MAC address of a network card set by hand on VMware, instead of generating a new one, and no longer create a network interface for a card which is not present (PR [#10597](https://github.com/vatesfr/xen-orchestra/pull/10597))
 - [Replication] Fix `Cannot read properties of undefined (reading 'uuid')` error when an orphan replica snapshot exists on the target SR (PR [#10732](https://github.com/vatesfr/xen-orchestra/pull/10732))
 - [XO6/Modals] Modals no longer stretch across the screen: their width is limited to a third of the screen, up to 550px (PR [#10800](https://github.com/vatesfr/xen-orchestra/pull/10800))
+- [Auth/OIDC] Handle missing profile fields in username resolution (PR [#9648](https://github.com/vatesfr/xen-orchestra/pull/9648))
 
 ### Packages to release
 
@@ -74,6 +75,7 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server minor
+- xo-server-auth-oidc patch
 - xo-server-load-balancer patch
 - xo-web minor
 
