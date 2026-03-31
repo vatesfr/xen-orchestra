@@ -1,8 +1,10 @@
+import type { FrontAnyXoBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
+import { safePushInMap } from '@/shared/utils/map.util'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
-import type { AnyXoBackupJob, XoSchedule } from '@vates/types'
-import { computed } from 'vue'
+import type { XoSchedule } from '@vates/types'
+import { ref, watch } from 'vue'
 
 export type FrontXoSchedule = Pick<XoSchedule, (typeof scheduleFields)[number]>
 
@@ -24,17 +26,16 @@ export const useXoScheduleCollection = defineRemoteResource({
       baseName: 'schedule',
     })
 
-    const schedulesByJobId = computed(() => {
-      const schedulesByJobIdMap = new Map<AnyXoBackupJob['id'], FrontXoSchedule[]>()
+    const schedulesByJobId = ref(new Map<FrontAnyXoBackupJob['id'], FrontXoSchedule[]>())
 
-      schedules.value.forEach(schedule => {
-        if (!schedulesByJobIdMap.has(schedule.jobId)) {
-          schedulesByJobIdMap.set(schedule.jobId, [])
-        }
-        schedulesByJobIdMap.get(schedule.jobId)!.push(schedule)
+    watch(schedules, _schedules => {
+      const tmpSchedulesByJobId = new Map<FrontAnyXoBackupJob['id'], FrontXoSchedule[]>()
+
+      _schedules.forEach(schedule => {
+        safePushInMap(tmpSchedulesByJobId, schedule.jobId, schedule)
       })
 
-      return schedulesByJobIdMap
+      schedulesByJobId.value = tmpSchedulesByJobId
     })
 
     return {

@@ -8,7 +8,7 @@ import type { ResourceContext, UseRemoteResource } from '@core/packages/remote-r
 import type { VoidFunction } from '@core/types/utility.type.ts'
 import { ifElse } from '@core/utils/if-else.utils.ts'
 import { type MaybeRef, noop, useTimeoutPoll } from '@vueuse/core'
-import { merge, remove } from 'lodash-es'
+import { debounce, merge, remove } from 'lodash-es'
 import readNDJSONStream from 'ndjson-readablestream'
 import {
   computed,
@@ -20,6 +20,8 @@ import {
   reactive,
   type Ref,
   ref,
+  shallowRef,
+  triggerRef,
   toRef,
   toValue,
   watch,
@@ -255,7 +257,9 @@ export function defineRemoteResource<
 
     const hasError = computed(() => lastError.value !== undefined)
 
-    const data = ref(buildData()) as Ref<TData>
+    const data = shallowRef(buildData()) as Ref<TData>
+    // trigger reactivity on data when no more updates since 100ms or after 500ms
+    const flushData = debounce(() => triggerRef(data), 100, { maxWait: 500 })
 
     async function execute() {
       try {
@@ -275,9 +279,11 @@ export function defineRemoteResource<
         if (config.stream) {
           for await (const event of readNDJSONStream(response.body)) {
             onDataReceived(data, event)
+            flushData()
           }
         } else {
           onDataReceived(data, await response.json())
+          flushData()
         }
 
         isReady.value = true
@@ -302,8 +308,14 @@ export function defineRemoteResource<
           handleWatching,
           handlePost,
           resource,
-          onDataReceived: receivedData => onDataReceived(data, receivedData, context),
-          onDataRemoved: receivedData => onDataRemoved(data, receivedData, context),
+          onDataReceived: receivedData => {
+            onDataReceived(data, receivedData, context)
+            flushData()
+          },
+          onDataRemoved: receivedData => {
+            onDataRemoved(data, receivedData, context)
+            flushData()
+          },
         })
         await execute()
       }
