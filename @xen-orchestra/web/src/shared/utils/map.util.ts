@@ -1,7 +1,9 @@
 export function safePushInMap<_Map extends Map<Key, Value[]>, Key, Value>(map: _Map, key: Key, value: Value) {
-  if (!map.has(key)) {
-    map.set(key, [])
-  }
+  const values = map.get(key)
 
-  map.get(key)!.push(value)
+  if (values !== undefined) {
+    values.push(value)
+  } else {
+    map.set(key, [value])
+  }
 }
