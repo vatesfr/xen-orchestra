@@ -4,10 +4,11 @@ import { useWatchCollection } from '@/shared/composables/watch-collection.compos
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import type { ResourceContext } from '@core/packages/remote-resource/types.ts'
+import type { Task } from '@core/types/task.type'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoTask } from '@vates/types'
 import { useSorted } from '@vueuse/core'
-import { computed, type Ref } from 'vue'
+import { ref, watch, type Ref } from 'vue'
 
 export type FrontXoTask = Pick<XoTask, (typeof taskFields)[number]>
 
@@ -30,14 +31,24 @@ export function createTaskCollectionState<TArgs extends any[] = []>(
   tasks: Ref<FrontXoTask[]>,
   context: ResourceContext<TArgs>
 ) {
-  const lastDayTasks = computed(() => {
+  const sortedTasks = useSorted(tasks, (task1, task2) => task2.start - task1.start)
+  const lastDayTasks = ref<Task[]>([])
+
+  watch(sortedTasks, tasks => {
     const now = Date.now()
-    return tasks.value.filter(task => now - task.start < ONE_DAY).map(task => convertXoTaskToCore(task))
+
+    const tmpLastDayTasks: Task[] = []
+
+    tasks.forEach(task => {
+      if (now - task.start < ONE_DAY) {
+        tmpLastDayTasks.push(convertXoTaskToCore(task))
+      }
+    })
+
+    lastDayTasks.value = tmpLastDayTasks
   })
 
-  const sortedTasks = useSorted(tasks, (task1, task2) => task2.start - task1.start)
-
-  const getTaskById = (taskId: XoTask['id']) => {
+  const getTaskById = (taskId: FrontXoTask['id']) => {
     return findTaskById(sortedTasks.value, taskId)
   }
 
