@@ -24,6 +24,10 @@
 - [VM/Snapshot] Add VM snapshot tab page (PR [#9521] (https://github.com/vatesfr/xen-orchestra/pull/9521))
 - [SR] New "Preferred image format" field on SR creation forms (NFS, SMB, HBA, iSCSI, LVM, EXT) to control the disk format used by the SR (PR [#9596](https://github.com/vatesfr/xen-orchestra/pull/9596))
 - [Treeview/Layout] Add Loader and "please wait" page on the first connection xo-server (PR [#9568](https://github.com/vatesfr/xen-orchestra/pull/9568))
+- [QA Test] Add end-to-end QA test suite `@xen-orchestra/qa-test` for VM, backup and export testing (PR [#9626](https://github.com/vatesfr/xen-orchestra/pull/9626))
+- [i18n] Add Portuguese and Slovak and update Chinese (Simplified Han script), Czech, Dutch, German, Italian, Norwegian, Persian, Portuguese (Brasil), Russian, Spanish, Swedish and Ukrainian translations (PR [#9554](https://github.com/vatesfr/xen-orchestra/pull/9554))
+- [Treeview/Pool/Host] Add button to download bugtools (PR [#9419](https://github.com/vatesfr/xen-orchestra/pull/9419))
+- [Incremental Replication] show the schedule used and data volume read on each snapshot (PR [#9635](https://github.com/vatesfr/xen-orchestra/pull/9635))
 
 ### Bug fixes
 
@@ -35,6 +39,11 @@
 - [VM] Fixed duplicated ip addresses in the network tab [Forum#101359](https://xcp-ng.org/forum/topic/11604/xo-6-dedicated-thread-for-all-your-feedback/110) (PR [#9547](https://github.com/vatesfr/xen-orchestra/pull/9547))
 - [VM/New] Fix template that was resetting (PR [#9603] (https://github.com/vatesfr/xen-orchestra/pull/9603))
 - [Restore] correctly compute the restored size of incremental backups(PR [#9632](https://github.com/vatesfr/xen-orchestra/pull/9632))
+- [XO5/XO6/Stats] Return `null` instead of `0` when no stats available (PR [#9634](https://github.com/vatesfr/xen-orchestra/pull/9634))
+- [i18n] Fix English grammar issues on Site Dashboard, contribution by [@DustyArmstrong](https://github.com/DustyArmstrong) (PR [#9647](https://github.com/vatesfr/xen-orchestra/pull/9647))
+- [Incremental Replication] fix the disk target and cleanup to ensure replications and backups can be chained (PR [#9635](https://github.com/vatesfr/xen-orchestra/pull/9635))
+- [REST-API/VM/Dashboard] Fix _cannot read properties of undefined, (reading vms)_ [Forum#12031](https://xcp-ng.org/forum/topic/12031/backup-info-under-vm-tab-in-v6-never-loads...) (PR [#9650](https://github.com/vatesfr/xen-orchestra/pull/9650))
+- [Backups] Fix double close when merging disks (PR [#9636](https://github.com/vatesfr/xen-orchestra/pull/9636))
 
 ### Released packages
 
@@ -46,20 +55,21 @@
 - @vates/nbd-client 3.3.0
 - @vates/types 1.22.0
 - @xen-orchestra/qcow2 1.2.0
-- @xen-orchestra/backups 0.70.0
-- @xen-orchestra/backups-cli 1.1.9
-- @xen-orchestra/disk-cli 1.0.0
-- @xen-orchestra/immutable-backups 2.0.0
-- @xen-orchestra/web-core 0.47.0
 - @xen-orchestra/mcp 1.1.0
-- @xen-orchestra/rest-api 0.28.0
 - @xen-orchestra/vmware-explorer 0.12.0
-- @xen-orchestra/web 0.45.0
 - xo-server-openmetrics 1.4.0
 - xo-web 5.195.0
 - @xen-orchestra/xapi 8.7.0
-- @xen-orchestra/proxy 0.29.53
-- xo-server 5.198.1
+- @xen-orchestra/backups 0.71.0
+- @xen-orchestra/backups-cli 1.1.10
+- @xen-orchestra/disk-cli 1.0.1
+- @xen-orchestra/immutable-backups 2.0.1
+- @xen-orchestra/web-core 0.48.0
+- @xen-orchestra/proxy 0.29.54
+- @xen-orchestra/rest-api 0.28.1
+- @xen-orchestra/web 0.46.0
+- xo-server 5.198.2
+- xo-server-netbox 1.11.1
 
 ## **6.2.2 ** (2026-03-09)
 
