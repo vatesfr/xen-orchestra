@@ -1,19 +1,19 @@
 <template>
   <form class="new-bonded-network-form" @submit.prevent="onSubmit()">
     <div class="row">
-      <NewNetworkPoolSelect :id="poolSelectId" />
-      <NewBondedNetworkInterfacesSelect :id="interfacesSelectId" />
+      <NewNetworkPoolSelect v-bind="poolSelectBindings" />
+      <NewBondedNetworkInterfacesSelect v-bind="interfaceSelectBindings" />
     </div>
     <div class="row">
       <div class="column">
-        <NewNetworkNameInput v-model="formData.name" />
-        <NewNetworkMtuInput v-model="formData.mtu" />
+        <NewNetworkNameInput v-bind="nameInputBindings" />
+        <NewNetworkMtuInput v-bind="mtuInputBindings" />
       </div>
-      <NewNetworkDescriptionTextarea v-model="formData.description" />
+      <NewNetworkDescriptionTextarea v-bind="descriptionInputBindings" />
     </div>
-    <NewBondedNetworkBondModeSelect :id="bondModeSelectId" class="bond-mode" />
+    <NewBondedNetworkBondModeSelect v-bind="bondModeSelectBindings" class="bond-mode" />
     <div class="nbd">
-      <NewNetworkNbdCheckbox v-model="formData.nbd" />
+      <NewNetworkNbdCheckbox v-bind="nbdCheckboxBindings" />
     </div>
     <NewNetworkButtonsSection :cancel-to :submit-label="t('action:create-bonded-network')" />
   </form>
@@ -45,8 +45,16 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const { formData, poolSelectId, interfacesSelectId, bondModeSelectId, validateAndBuildPayload } =
-  useNewBondedNetworkForm(() => poolId)
+const {
+  poolSelectBindings,
+  interfaceSelectBindings,
+  nameInputBindings,
+  mtuInputBindings,
+  descriptionInputBindings,
+  nbdCheckboxBindings,
+  bondModeSelectBindings,
+  validateAndBuildPayload,
+} = useNewBondedNetworkForm(() => poolId)
 
 async function onSubmit() {
   const payload = await validateAndBuildPayload()

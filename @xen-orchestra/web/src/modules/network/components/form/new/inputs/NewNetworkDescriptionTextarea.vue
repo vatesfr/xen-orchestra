@@ -1,5 +1,5 @@
 <template>
-  <UiTextarea v-model="model" accent="brand">
+  <UiTextarea v-model.trim="model" accent="brand">
     {{ t('description') }}
   </UiTextarea>
 </template>

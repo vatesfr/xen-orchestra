@@ -7,6 +7,7 @@ import { useNetworkPifSelect } from '@/modules/network/form/use-network-pif-sele
 import type { NewBondedNetworkPayload } from '@/modules/network/jobs/xo-bonded-network-create.job.ts'
 import { type FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { type FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { useFormBindings } from '@core/packages/form-bindings'
 import { useFormSelect } from '@core/packages/form-select'
 import { BOND_MODE } from '@vates/types'
 import { type MaybeRefOrGetter, reactive, toRef } from 'vue'
@@ -27,7 +28,17 @@ export function useNewBondedNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['i
     bondMode: undefined,
   })
 
-  const { poolSelectId, selectedPool, buildBasePayload } = useNetworkFormBase(_poolId, formData)
+  const { useSelect } = useFormBindings(formData)
+
+  const {
+    selectedPool,
+    buildBasePayload,
+    poolSelectBindings,
+    nameInputBindings,
+    descriptionInputBindings,
+    mtuInputBindings,
+    nbdCheckboxBindings,
+  } = useNetworkFormBase(_poolId, formData)
 
   const { interfacesSelectId } = useNetworkPifSelect(selectedPool, toRef(formData, 'pifs'), {
     multiple: true,
@@ -50,10 +61,13 @@ export function useNewBondedNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['i
   }
 
   return {
-    formData,
-    poolSelectId,
-    interfacesSelectId,
-    bondModeSelectId,
+    poolSelectBindings,
+    nameInputBindings,
+    descriptionInputBindings,
+    mtuInputBindings,
+    nbdCheckboxBindings,
+    interfaceSelectBindings: useSelect(interfacesSelectId),
+    bondModeSelectBindings: useSelect(bondModeSelectId),
     validateAndBuildPayload,
   }
 }
