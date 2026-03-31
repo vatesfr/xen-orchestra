@@ -360,6 +360,7 @@ export class UserController extends XoController<XoUser> {
    */
   @Example(authenticationToken)
   @Post('{id}/authentication_tokens')
+  @Middlewares(json())
   @Security('*', ['acl'])
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
