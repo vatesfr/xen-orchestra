@@ -135,12 +135,10 @@ class AuthOidc {
           // See https://github.com/jaredhanson/passport-openidconnect/blob/master/lib/profile.js
           const { id } = profile
 
-          let name
-          if (usernameField === 'email') {
-            name = profile.emails?.[0]?.value ?? profile._json?.email
-          } else {
-            name = profile[usernameField] ?? profile._json?.[usernameField]
-          }
+          const name =
+            usernameField === 'email'
+              ? (profile.emails?.[0]?.value ?? claims.email)
+              : (profile[usernameField] ?? claims[usernameField])
 
           if (name === undefined) {
             throw new Error(
