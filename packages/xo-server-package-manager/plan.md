@@ -177,10 +177,13 @@ class AptPackageManager {
 
 ### Done when
 
-- Can run `listUpgradable()` on a real Debian system and get structured output
-- Can run `upgrade()` on a real system with progress events written to file
-- Pid file correctly created and cleaned up
-- Integration test: hold back a package, upgrade it, verify result
+- [x] `yarn build` compiles cleanly
+- [ ] Can run `listUpgradable()` on a real Debian system and get structured output
+- [ ] Can run `upgrade()` on a real system with progress events written to file
+- [ ] Pid file correctly created and cleaned up
+- [ ] Integration test: hold back a package, upgrade it, verify result
+
+### Status: CODE COMPLETE — awaiting integration testing on Debian VM
 
 ---
 
