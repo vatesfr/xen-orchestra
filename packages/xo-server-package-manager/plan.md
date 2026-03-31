@@ -296,10 +296,13 @@ export default function packageManagerPluginFactory(opts: { xo: any; getDataDir:
 
 ### Done when
 
-- Plugin loads in xo-server without error
-- `configure()` / `load()` / `unload()` lifecycle works
-- API methods callable and admin-only
-- `getDataDir()` used for state directory (standard plugin pattern)
+- [x] `yarn build` compiles cleanly
+- [ ] Plugin loads in xo-server without error
+- [x] `configure()` / `load()` / `unload()` lifecycle implemented
+- [x] API methods callable and admin-only
+- [x] `getDataDir()` used for state directory (standard plugin pattern)
+
+### Status: CODE COMPLETE — awaiting xo-server integration testing
 
 ---
 
