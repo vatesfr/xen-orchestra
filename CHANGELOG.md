@@ -44,6 +44,7 @@
 - [Incremental Replication] fix the disk target and cleanup to ensure replications and backups can be chained (PR [#9635](https://github.com/vatesfr/xen-orchestra/pull/9635))
 - [REST-API/VM/Dashboard] Fix _cannot read properties of undefined, (reading vms)_ [Forum#12031](https://xcp-ng.org/forum/topic/12031/backup-info-under-vm-tab-in-v6-never-loads...) (PR [#9650](https://github.com/vatesfr/xen-orchestra/pull/9650))
 - [Backups] Fix double close when merging disks (PR [#9636](https://github.com/vatesfr/xen-orchestra/pull/9636))
+- Fixed a performance issue causing browsers to freeze/crash (PR [#9627](https://github.com/vatesfr/xen-orchestra/pull/9627))
 
 ### Released packages
 
@@ -64,12 +65,12 @@
 - @xen-orchestra/backups-cli 1.1.10
 - @xen-orchestra/disk-cli 1.0.1
 - @xen-orchestra/immutable-backups 2.0.1
-- @xen-orchestra/web-core 0.48.0
 - @xen-orchestra/proxy 0.29.54
 - @xen-orchestra/rest-api 0.28.1
-- @xen-orchestra/web 0.46.0
 - xo-server 5.198.2
 - xo-server-netbox 1.11.1
+- @xen-orchestra/web-core 0.48.1
+- @xen-orchestra/web 0.46.1
 
 ## **6.2.2 ** (2026-03-09)
 
