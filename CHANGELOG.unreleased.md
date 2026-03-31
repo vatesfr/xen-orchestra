@@ -24,6 +24,7 @@
 - [i18n] Fix English grammar issues on Site Dashboard, contribution by [@DustyArmstrong](https://github.com/DustyArmstrong) (PR [#9647](https://github.com/vatesfr/xen-orchestra/pull/https://github.com/vatesfr/xen-orchestra/pull/9647))
 - [Incremental Replication] fix the disk target and cleanup to ensure replications and backups can be chained (PR [#9635](https://github.com/vatesfr/xen-orchestra/pull/9635))
 - [REST-API/VM/Dashboard] Fix _cannot read properties of undefined, (reading vms)_ [Forum#12031](https://xcp-ng.org/forum/topic/12031/backup-info-under-vm-tab-in-v6-never-loads...) (PR [#9650](https://github.com/vatesfr/xen-orchestra/pull/9650))
+- [Backups] Fix double close when merging disks (PR [#9636](https://github.com/vatesfr/xen-orchestra/pull/9636))
 
 ### Packages to release
 

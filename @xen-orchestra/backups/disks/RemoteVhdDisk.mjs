@@ -95,10 +95,14 @@ export class RemoteVhdDisk extends RemoteDisk {
 
   /**
    * Closes the VHD.
+   * We replace the dispose function call so the disk can only be closed once.
+   *
    * @returns {Promise<void>}
    */
   async close() {
-    await this.#dispose()
+    const dispose = this.#dispose
+    this.#dispose = () => Promise.resolve()
+    await dispose()
   }
 
   /**
