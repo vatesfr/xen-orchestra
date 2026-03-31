@@ -1,15 +1,15 @@
 <template>
   <form class="new-internal-network-form" @submit.prevent="onSubmit()">
-    <NewNetworkPoolSelect :id="poolSelectId" class="pool" />
+    <NewNetworkPoolSelect v-bind="poolSelectBindings" class="pool" />
     <div class="row">
       <div class="column">
-        <NewNetworkNameInput v-model="formData.name" />
-        <NewNetworkMtuInput v-model="formData.mtu" />
+        <NewNetworkNameInput v-bind="nameInputBindings" />
+        <NewNetworkMtuInput v-bind="mtuInputBindings" />
       </div>
-      <NewNetworkDescriptionTextarea v-model="formData.description" />
+      <NewNetworkDescriptionTextarea v-bind="descriptionInputBindings" />
     </div>
     <div class="nbd">
-      <NewNetworkNbdCheckbox v-model="formData.nbd" />
+      <NewNetworkNbdCheckbox v-bind="nbdCheckboxBindings" />
     </div>
     <NewNetworkButtonsSection :cancel-to :submit-label="t('action:create-internal-network')" />
   </form>
@@ -39,7 +39,14 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const { formData, poolSelectId, validateAndBuildPayload } = useNewInternalNetworkForm(() => poolId)
+const {
+  poolSelectBindings,
+  nameInputBindings,
+  mtuInputBindings,
+  descriptionInputBindings,
+  nbdCheckboxBindings,
+  validateAndBuildPayload,
+} = useNewInternalNetworkForm(() => poolId)
 
 async function onSubmit() {
   const payload = await validateAndBuildPayload()

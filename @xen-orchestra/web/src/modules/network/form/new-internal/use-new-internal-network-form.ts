@@ -14,15 +14,25 @@ export function useNewInternalNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool[
     nbd: false,
   })
 
-  const { poolSelectId, buildBasePayload } = useNetworkFormBase(_poolId, formData)
+  const {
+    buildBasePayload,
+    poolSelectBindings,
+    nameInputBindings,
+    descriptionInputBindings,
+    mtuInputBindings,
+    nbdCheckboxBindings,
+  } = useNetworkFormBase(_poolId, formData)
 
   async function validateAndBuildPayload(): Promise<NewInternalNetworkPayload | undefined> {
     return buildBasePayload()
   }
 
   return {
-    formData,
-    poolSelectId,
+    poolSelectBindings,
+    nameInputBindings,
+    descriptionInputBindings,
+    mtuInputBindings,
+    nbdCheckboxBindings,
     validateAndBuildPayload,
   }
 }

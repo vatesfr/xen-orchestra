@@ -1,4 +1,5 @@
 import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { useFormBindings } from '@core/packages/form-bindings'
 import { useFormSelect } from '@core/packages/form-select'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { BOND_MODE } from '@vates/types'
@@ -53,19 +54,25 @@ export function useNetworkFormBase<T extends BaseNetworkFormData>(
 
   const selectedPool = useGetPoolById(toRef(formData, 'pool'))
 
+  const { name, description, mtu, nbd, useSelect } = useFormBindings(formData)
+
   function buildBasePayload(): BaseNetworkPayload {
     return {
       poolId: formData.pool!,
-      name: formData.name.trim(),
-      ...(formData.description.trim() !== '' && { description: formData.description.trim() }),
+      name: formData.name,
+      ...(formData.description !== '' && { description: formData.description }),
       ...(typeof formData.mtu === 'number' && { mtu: formData.mtu }),
       ...(formData.nbd && { nbd: formData.nbd }),
     }
   }
 
   return {
-    poolSelectId,
     selectedPool,
     buildBasePayload,
+    poolSelectBindings: useSelect(poolSelectId),
+    nameInputBindings: name,
+    descriptionInputBindings: description,
+    mtuInputBindings: mtu,
+    nbdCheckboxBindings: nbd,
   }
 }
