@@ -28,8 +28,7 @@ function exec(cmd: string, args: string[]): Promise<string> {
       (err, stdout, stderr) => {
         if (err !== null) {
           const error = new Error(`Command failed: ${cmd} ${args.join(' ')}`)
-          ;(error as any).cause = err
-          ;(error as any).stderr = stderr
+          error.cause = err
           reject(error)
           return
         }
@@ -71,16 +70,19 @@ export class AptPackageManager {
   }
 
   /**
-   * List all upgradable packages with full metadata.
+   * Refresh the local package index (`apt-get update`).
+   */
+  async updatePackageList(): Promise<void> {
+    await exec(APT_GET_PATH, ['update', '-q'])
+  }
+
+  /**
+   * List all upgradable packages with full metadata from the local cache.
    *
-   * Runs two commands:
-   * 1. `apt list --upgradable` → name, version, installedVersion, release
-   * 2. `apt-cache show <packages>` → description, size, sourceRepository
+   * Reads from the already-fetched package index — call `updatePackageList()`
+   * first if you need fresh data.
    */
   async listUpgradable(): Promise<UpgradablePackage[]> {
-    // First, refresh the package index
-    await exec(APT_GET_PATH, ['update', '-q'])
-
     const stdout = await exec(APT_PATH, ['list', '--upgradable'])
     const partial = parseUpgradableList(stdout)
 

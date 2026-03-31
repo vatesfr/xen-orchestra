@@ -45,9 +45,13 @@ class PackageManagerPlugin {
     }
 
     // Register API methods
+    const updatePackageList = () => apt.updatePackageList()
+    updatePackageList.permission = 'admin'
+    updatePackageList.description = 'Refresh the local package index (apt-get update)'
+
     const listUpgradable = () => apt.listUpgradable()
     listUpgradable.permission = 'admin'
-    listUpgradable.description = 'List upgradable system packages'
+    listUpgradable.description = 'List upgradable system packages from local cache'
 
     const upgrade = ({ packages }: { packages?: string[] }) => apt.upgrade(packages)
     upgrade.permission = 'admin'
