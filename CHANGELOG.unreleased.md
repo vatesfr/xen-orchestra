@@ -15,6 +15,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Dashboard] Fix infinite loader on dashboards (PR [#9660](https://github.com/vatesfr/xen-orchestra/pull/9660))
 - [REST API] Fix `no such VDI ...` error when trying to fetch `/vms/:id/vdis` and `/vms/:id/dashboard` (PR [#9662](https://github.com/vatesfr/xen-orchestra/pull/9662))
 - [Replication] fix the fall back to full when going 6.2.->6.3 (PR [#9660](https://github.com/vatesfr/xen-orchestra/pull/9660))
 
@@ -36,5 +37,6 @@
 
 - @xen-orchestra/backups patch
 - @xen-orchestra/rest-api patch
+- @xen-orchestra/web-core patch
 
 <!--packages-end-->
