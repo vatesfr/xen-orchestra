@@ -101,7 +101,7 @@ suite('ACL V2 behavior', async () => {
     id: privilegeId,
     action: 'shutdown:clean',
     resource: 'vm',
-    selector: { creation: { creator: user.id } },
+    selector: `creation:creator:${user.id}`,
     effect: 'allow',
     roleId,
   } satisfies TPrivilege<'vm'>
@@ -110,14 +110,14 @@ suite('ACL V2 behavior', async () => {
     action: 'read',
     resource: 'vm',
     effect: 'deny',
-    selector: { id: xoaVm.id },
+    selector: `id: ${xoaVm.id}`,
     roleId,
   } satisfies TPrivilege<'vm'>
   const vdiCreate = {
     id: privilegeId,
     action: 'create',
     resource: 'vdi',
-    selector: { $SR: '2' },
+    selector: '$SR:2',
     effect: 'allow',
     roleId,
   } satisfies TPrivilege<'vdi'>
@@ -139,7 +139,7 @@ suite('ACL V2 behavior', async () => {
     id: privilegeId,
     action: 'instantiate',
     resource: 'vm-template',
-    selector: { $pool: '2' },
+    selector: '$pool:2',
     effect: 'deny',
     roleId,
   } satisfies TPrivilege<'vm-template'>
@@ -147,7 +147,7 @@ suite('ACL V2 behavior', async () => {
     id: privilegeId,
     action: 'boot',
     resource: 'vdi',
-    selector: { $SR: '3' },
+    selector: '$SR:3',
     effect: 'allow',
     roleId,
   } satisfies TPrivilege<'vdi'>

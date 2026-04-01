@@ -1,4 +1,3 @@
-import * as CMType from './complex-matcher.mjs'
 import { Branded } from '../common.mjs'
 import type { XoGroup, XoUser } from '../xo.mjs'
 
@@ -53,7 +52,7 @@ export type XoAclBasePrivilege = {
   id: Branded<'acl-v2-privilege'>
   resource: string
   action: string
-  selector?: CMType.Id<string> | Record<string, unknown>
+  selector?: string
   effect: 'allow' | 'deny'
   roleId: XoAclRole['id']
 }

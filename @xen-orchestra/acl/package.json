@@ -34,6 +34,6 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "dependencies": {
-    "value-matcher": "^0.2.0"
+    "complex-matcher": "^1.0.0"
   }
 }
