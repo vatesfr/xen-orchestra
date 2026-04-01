@@ -21,6 +21,7 @@
 - [i18n] Update Chinese (Simplified Han script), Czech, Dutch, German, Persian, Polish, Portuguese, Portuguese (Brasil), Slovak, Spanish and Swedish translations (PR [#9729](https://github.com/vatesfr/xen-orchestra/pull/9729))
 - [REST API] Add `POST rest/v0/plugins/sdn-controller/networks/:id/actions/add_traffic_rule` and `POST rest/v0/plugins/sdn-controller/networks/:id/actions/delete_traffic_rule` endpoints ([#9418](https://github.com/vatesfr/xen-orchestra/pull/9418))
 - [Pool/Network] Add Network deletion (PR [#9714](https://github.com/vatesfr/xen-orchestra/pull/9714))
+- [DNS] add Let's Encrypt DNS-01 challenge support (PR [#9592](https://github.com/vatesfr/xen-orchestra/pull/9592))
 
 ### Bug fixes
 
@@ -54,6 +55,7 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- @xen-orchestra/mixins minor
 - xo-server minor
 - xo-server-sdn-controller minor
 
