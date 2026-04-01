@@ -157,6 +157,7 @@ export class VmService {
     vmType: T['type']
   ): VdiType[] {
     const getObject = this.#restApi.getObject.bind(this.#restApi)
+    const vdiType = vmType === 'VM-snapshot' ? 'VDI-snapshot' : 'VDI'
     const vdis: VdiType[] = []
 
     const vm = getObject<T>(id, vmType)
@@ -164,8 +165,12 @@ export class VmService {
     for (const vbdId of vm.$VBDs) {
       const vbd = getObject<XoVbd>(vbdId, 'VBD')
       if (vbd.VDI !== undefined) {
-        const vdi = getObject<VdiType>(vbd.VDI, [vmType === 'VM-snapshot' ? 'VDI-snapshot' : 'VDI'])
-        vdis.push(vdi)
+        // Search for all VDI types, then push only the VDIs associated with the VM type.
+        // This avoids the "no such VDI ..." error if the VM has faulty VDIs. (is_snapshot:false, $snapshot_of: <vdiId>)
+        const vdi = getObject<VdiType>(vbd.VDI, ['VDI-snapshot', 'VDI'])
+        if (vdi.type === vdiType) {
+          vdis.push(vdi)
+        }
       }
     }
 
