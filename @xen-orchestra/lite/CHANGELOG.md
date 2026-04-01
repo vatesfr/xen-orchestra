@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **next**
+## **0.20.0** (2026-04-01)
 
 - [VM/New] Added secureBoot support (PR [#9423](https://github.com/vatesfr/xen-orchestra/pull/9423))
 - [Dashboard] Fix reactivity of dashboard (PR [#9378](https://github.com/vatesfr/xen-orchestra/pull/9378))
