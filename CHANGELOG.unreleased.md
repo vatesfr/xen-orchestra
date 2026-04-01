@@ -15,7 +15,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [REST API] Fix `no such VDI ...` error when trying to fetch `/vms/:id/vdis` and `/vms/:id/dashboard`
+- [REST API] Fix `no such VDI ...` error when trying to fetch `/vms/:id/vdis` and `/vms/:id/dashboard` (PR [#9662](https://github.com/vatesfr/xen-orchestra/pull/9662))
 
 ### Packages to release
 
