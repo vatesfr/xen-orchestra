@@ -133,6 +133,15 @@ export class RemoteVhdDiskChain extends RemoteDisk {
   }
 
   /**
+   * Disk chains return an array of disk paths.
+   *
+   * @returns {string[]}
+   */
+  getPaths() {
+    return this.#disks.map(disk => disk.getPath())
+  }
+
+  /**
    * @returns {string}
    */
   getUuid() {
