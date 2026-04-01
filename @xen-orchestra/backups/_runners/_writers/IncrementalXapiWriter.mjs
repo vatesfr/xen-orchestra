@@ -56,62 +56,77 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     })
     debug('checkBaseVdis, got snapshot candidates,', snapshotCandidates.length)
 
-    // ensure no data have been written since this snapshot
-    // but there may be have some other snapshot for another job
-    let targetVmRef
-    let canChainToTargetVm = true
-    await asyncEach(
-      snapshotCandidates,
-      async snapshot => {
-        let diffDisk
-        try {
-          const activeVdi = sr.$xapi.getObject(snapshot.$snapshot_of)
-          const userVbds = activeVdi.$VBDs?.filter(vbd => vbd.$VM && !vbd.$VM.is_control_domain) ?? []
-          if (userVbds.length !== 1) {
-            debug('checkBaseVdis, share vbd ', { ref: snapshot.$ref, userVbds })
-            // shared vdi ignore
-            return
-          }
-          const vm = userVbds[0].$VM
-          if (!('start' in vm.blocked_operations)) {
-            debug('checkBaseVdis, vm not blocked', { vmRef: vm.$ref })
-            // vm start unlocked
-            // not really an issue since we have check the delta
-            // but it indicates the users played with the blocked operations
-            return
-          }
-          diffDisk = new XapiDiskSource({ xapi: sr.$xapi, vdiRef: activeVdi.$ref, baseRef: snapshot.$ref })
-          await diffDisk.init()
-          if (diffDisk.getBlockIndexes().length === 0) {
-            const sourceUuid = snapshot.other_config?.[COPY_OF]
-            if (sourceUuid) {
-              this.#baseVdisBySourceUuid.set(sourceUuid, activeVdi)
+    if (snapshotCandidates.length > 0) {
+      // New snapshot-based flow (6.3+): verify no data was written between
+      // the target snapshot and its active VDI.
+      let targetVmRef
+      let canChainToTargetVm = true
+      await asyncEach(
+        snapshotCandidates,
+        async snapshot => {
+          let diffDisk
+          try {
+            const activeVdi = sr.$xapi.getObject(snapshot.$snapshot_of)
+            const userVbds = activeVdi.$VBDs?.filter(vbd => vbd.$VM && !vbd.$VM.is_control_domain) ?? []
+            if (userVbds.length !== 1) {
+              debug('checkBaseVdis, share vbd ', { ref: snapshot.$ref, userVbds })
+              // shared vdi ignore
+              return
             }
-            // Track the target VM (the replicated VM to update on the next transfer).
-            targetVmRef = vm.$ref
-          } else {
-            // not empty, we will create a new VM
-            canChainToTargetVm = false
-            debug('checkBaseVdis, data between snapshot and active disk', {
-              vdiRef: snapshot.$ref,
-              nbBlocks: diffDisk.getBlockIndexes().length,
-            })
+            const vm = userVbds[0].$VM
+            if (!('start' in vm.blocked_operations)) {
+              debug('checkBaseVdis, vm not blocked', { vmRef: vm.$ref })
+              // vm start unlocked
+              // not really an issue since we have check the delta
+              // but it indicates the users played with the blocked operations
+              return
+            }
+            diffDisk = new XapiDiskSource({ xapi: sr.$xapi, vdiRef: activeVdi.$ref, baseRef: snapshot.$ref })
+            await diffDisk.init()
+            if (diffDisk.getBlockIndexes().length === 0) {
+              const sourceUuid = snapshot.other_config?.[COPY_OF]
+              if (sourceUuid) {
+                this.#baseVdisBySourceUuid.set(sourceUuid, activeVdi)
+              }
+              // Track the target VM (the replicated VM to update on the next transfer).
+              targetVmRef = vm.$ref
+            } else {
+              // not empty, we will create a new VM
+              canChainToTargetVm = false
+              debug('checkBaseVdis, data between snapshot and active disk', {
+                vdiRef: snapshot.$ref,
+                nbBlocks: diffDisk.getBlockIndexes().length,
+              })
+            }
+          } catch (error) {
+            debug('checkBaseVdis, skipping snapshot', { ref: snapshot.$ref, error })
+            return
+          } finally {
+            await diffDisk?.close().catch(error => debug('checkBaseVdis, error closing', error))
           }
-        } catch (error) {
-          debug('checkBaseVdis, skipping snapshot', { ref: snapshot.$ref, error })
-          return
-        } finally {
-          await diffDisk?.close().catch(error => debug('checkBaseVdis, error closing', error))
+        },
+        {
+          concurrency: 4,
         }
-      },
-      {
-        concurrency: 4,
-      }
-    )
+      )
 
-    if (canChainToTargetVm && targetVmRef !== undefined) {
-      debug('checkBaseVdis,got a valid vm target', targetVmRef)
-      this._targetVmRef = targetVmRef
+      if (canChainToTargetVm && targetVmRef !== undefined) {
+        debug('checkBaseVdis,got a valid vm target', targetVmRef)
+        this._targetVmRef = targetVmRef
+      }
+    } else {
+      // Legacy fallback (upgrade from pre-6.3): no target snapshots exist yet,
+      // look for active (non-snapshot) VDIs with matching COPY_OF, like the old code did.
+      debug('checkBaseVdis, no snapshot candidates, falling back to legacy active VDI lookup')
+      const legacyVdis = sr.$VDIs.filter(vdi => {
+        return vdi?.managed && !vdi?.is_a_snapshot && baseUuidToSrcVdi.has(vdi?.other_config[COPY_OF])
+      })
+      for (const vdi of legacyVdis) {
+        const sourceUuid = vdi.other_config[COPY_OF]
+        if (sourceUuid) {
+          this.#baseVdisBySourceUuid.set(sourceUuid, vdi)
+        }
+      }
     }
 
     for (const uuid of baseUuidToSrcVdi.keys()) {
