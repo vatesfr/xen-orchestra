@@ -61,7 +61,7 @@
   "action:open-console-in-new-tab": "Abrir la cónsola en una nueva pestaña",
   "action:pick-template": "Escoger plantilla",
   "action:plus-and": "+ @:and",
-  "action:plus-or": "+ @:o",
+  "action:plus-or": "+ @:or",
   "action:query-builder:delete-filter": "Borrar filtro",
   "action:query-builder:delete-group": "Borrar grupo",
   "action:reboot": "Reiniciar",
