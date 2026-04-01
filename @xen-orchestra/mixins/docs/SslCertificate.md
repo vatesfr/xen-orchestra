@@ -72,7 +72,15 @@ acmeEmail = 'admin@my.domain.net'
 # When set, DNS-01 is used instead of HTTP-01.
 # XO does not need to be publicly reachable on port 80.
 acmeDnsChallengeFile = '/etc/xo-server/dns-challenge.json'
+
+# How long XO will wait for the DNS record to be validated before giving up.
+#
+# Expressed in milliseconds. Default is 1800000 (30 minutes).
+# Increase this value if your DNS provider has slow propagation.
+# acmeDnsChallengeTimeout = 1800000
 ```
+
+### How it works
 
 When a certificate needs to be issued or renewed, XO will:
 
@@ -80,8 +88,43 @@ When a certificate needs to be issued or renewed, XO will:
    ```json
    { "domain": "_acme-challenge.my.domain.net", "value": "<token>" }
    ```
-2. Log an `info` message indicating the file path and the domain to configure.
-3. Wait for your script or automation to create the corresponding DNS TXT record.
-4. Delete the file automatically once validation succeeds.
+2. Log an `info` message with the file path and the name of the done file to create.
+3. **Wait** — XO is now blocked until you signal that the DNS record is ready (see below).
+4. Ask Let's Encrypt to validate the DNS TXT record.
+5. Delete the challenge file automatically once validation succeeds.
 
-You are responsible for monitoring the file and creating the DNS TXT record. A simple approach is to watch the file with a script and call your DNS provider's API when it appears.
+### Your responsibilities
+
+XO cannot create DNS records on your behalf — it has no knowledge of your DNS provider or credentials. You are responsible for:
+
+1. **Watching** `acmeDnsChallengeFile` for changes (e.g. with `inotifywait` or a cron polling script)
+2. **Creating** the DNS TXT record via your provider's API or interface, with the `domain` and `value` from the JSON file
+3. **Waiting** for the record to propagate — this can take anywhere from a few seconds to several hours depending on your DNS provider and TTL settings
+4. **Signalling** XO that the record is ready by creating a done file at `<acmeDnsChallengeFile>.done` (e.g. `/etc/xo-server/dns-challenge.json.done`)
+
+Once XO detects the done file, it deletes it and immediately asks Let's Encrypt to validate.
+
+> **DNS propagation time varies greatly between providers.** Some propagate within seconds, others can take up to 24 hours. Make sure the TXT record is fully propagated before creating the done file, otherwise Let's Encrypt validation will fail.
+
+### Timeout
+
+XO will wait up to 30 minutes by default for the done file to appear. If the timeout is reached, XO logs a warning and aborts the certificate renewal — it will retry on the next restart or incoming HTTPS request.
+
+If your setup requires more time, increase `acmeDnsChallengeTimeout` in your configuration.
+
+### Example automation scripts
+
+Template scripts are available alongside this document:
+
+- **Shell** (Linux/macOS, requires `inotify-tools` and `jq`): [`dns-challenge.example.sh`](./dns-challenge.example.sh)
+- **PowerShell** (Windows): [`dns-challenge.example.ps1`](./dns-challenge.example.ps1)
+
+To use them:
+
+1. Copy the file for your platform and remove the `.example` extension:
+   ```sh
+   cp dns-challenge.example.sh dns-challenge.sh
+   chmod +x dns-challenge.sh
+   ```
+2. Edit the `# TODO` section to call your DNS provider's API.
+3. Run the script before or alongside `xo-server`.
