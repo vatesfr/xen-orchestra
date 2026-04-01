@@ -1,5 +1,22 @@
 # ChangeLog
 
+## **next**
+
+### Bug fixes
+
+- [Dashboard] Fix infinite loader on dashboards (PR [#9660](https://github.com/vatesfr/xen-orchestra/pull/9660))
+- [REST API] Fix `no such VDI ...` error when trying to fetch `/vms/:id/vdis` and `/vms/:id/dashboard` (PR [#9662](https://github.com/vatesfr/xen-orchestra/pull/9662))
+- [Replication] fix the fall back to full when going 6.2.->6.3 (PR [#9660](https://github.com/vatesfr/xen-orchestra/pull/9660))
+
+### Released packages
+
+- @xen-orchestra/backups 0.71.1
+- @xen-orchestra/web-core 0.48.2
+- @xen-orchestra/proxy 0.29.55
+- @xen-orchestra/rest-api 0.28.2
+- @xen-orchestra/web 0.46.2
+- xo-server 5.198.3
+
 ## **6.3.0** (2026-03-31)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
