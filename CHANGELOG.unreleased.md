@@ -20,6 +20,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Replication] fix the fall back to full when going 6.2.->6.3 (PR [#9660](https://github.com/vatesfr/xen-orchestra/pull/9660))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
