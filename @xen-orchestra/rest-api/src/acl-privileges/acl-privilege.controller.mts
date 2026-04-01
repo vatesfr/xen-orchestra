@@ -82,7 +82,7 @@ export class AclPrivilegeController extends XoController<AnyPrivilege> {
    *  "resource": "alarm",
    *  "roleId": "784bd959-08de-4b26-b575-92ded5aef872",
    *  "effect": "allow",
-   *  "selector": {"id": "784bd959-08de-4b26-b575-92ded5aef872"}
+   *  "selector": "id:784bd959-08de-4b26-b575-92ded5aef872"
    * }
    */
   @Example(entityId)
@@ -127,7 +127,7 @@ export class AclPrivilegeController extends XoController<AnyPrivilege> {
    *  "action": "read",
    *  "resource": "alarm",
    *  "effect": "allow",
-   *  "selector": {"id": "784bd959-08de-4b26-b575-92ded5aef872"}
+   *  "selector": "id:784bd959-08de-4b26-b575-92ded5aef872"
    * }
    */
   @Patch('{id}')
