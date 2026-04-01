@@ -151,6 +151,15 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
+   * Simple disks don't have a list of path to return.
+   *
+   * @returns {undefined}
+   */
+  getPaths() {
+    return undefined
+  }
+
+  /**
    * @returns {string}
    */
   getUuid() {
