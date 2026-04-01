@@ -7,8 +7,8 @@ import {
 import type { ResourceContext, UseRemoteResource } from '@core/packages/remote-resource/types.ts'
 import type { VoidFunction } from '@core/types/utility.type.ts'
 import { ifElse } from '@core/utils/if-else.utils.ts'
-import { type MaybeRef, noop, useTimeoutPoll } from '@vueuse/core'
-import { debounce, merge, remove } from 'lodash-es'
+import { type MaybeRef, noop, useDebounceFn, useTimeoutPoll } from '@vueuse/core'
+import { merge, remove } from 'lodash-es'
 import readNDJSONStream from 'ndjson-readablestream'
 import {
   computed,
@@ -259,7 +259,18 @@ export function defineRemoteResource<
 
     const data = shallowRef(buildData()) as Ref<TData>
     // trigger reactivity on data when no more updates since 100ms or after 500ms
-    const flushData = debounce(() => triggerRef(data), 100, { maxWait: 500 })
+    const flushData = useDebounceFn(
+      () => {
+        if (Array.isArray(data.value)) {
+          triggerRef(data)
+        } else if (data.value != null) {
+          // create a new JS reference to ensure vueJS detect the change
+          data.value = { ...data.value }
+        }
+      },
+      100,
+      { maxWait: 500 }
+    )
 
     async function execute() {
       try {
