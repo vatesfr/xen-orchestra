@@ -16,9 +16,9 @@ export function registerGetPoolDashboard(server: McpServer, getClient: () => XoC
     async ({ pool_id }) => {
       try {
         const client = getClient()
-        const dashboard = await client.getPoolDashboard(pool_id)
+        const text = await client.getText(`/pools/${encodeURIComponent(pool_id)}/dashboard`)
         return {
-          content: [{ type: 'text', text: JSON.stringify(dashboard, null, 2) }],
+          content: [{ type: 'text', text }],
         }
       } catch (error) {
         return {

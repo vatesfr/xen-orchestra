@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [MCP] Add `?markdown=true` output format to REST API and simplify MCP tools with declarative registry (PR [#9624](https://github.com/vatesfr/xen-orchestra/pull/9624))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -36,7 +38,8 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
-- @xen-orchestra/rest-api patch
+- @xen-orchestra/mcp minor
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/web-core patch
 
 <!--packages-end-->
