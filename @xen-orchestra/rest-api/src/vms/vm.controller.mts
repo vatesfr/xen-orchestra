@@ -574,8 +574,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/snapshot')
-  @Middlewares(json())
-  @Middlewares(acl({ resource: 'vm', action: 'snapshot', objectId: 'params.id' }))
+  @Middlewares([json(), acl({ resource: 'vm', action: 'snapshot', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(createdResp.status, 'Snapshot created')
