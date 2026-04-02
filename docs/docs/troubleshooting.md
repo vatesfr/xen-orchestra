@@ -43,10 +43,6 @@ Open a ticket for your issue in your [personal space](https://xen-orchestra.com/
 
 It means you don't have a default SR set on the pool you are importing XOA on. To set a default SR, you must first find the SR UUID you want, with `xe sr-list`. When you have the UUID, you can set the default SR with: `xe pool-param-set uuid=<pool-uuid> default-SR=<sr-uuid>`. For the pool UUID, just press tab after `xe pool-param-set uuid=` and it will autofill your pool UUID. When this is done, re-enter the deploy script command and it will work!
 
-## Unreachable after boot
-
-XOA uses HVM mode. If your physical host doesn't support virtualization extensions, XOA won't work. To check if your XCP-ng/XenServer supports hardware assisted virtualization (HVM), you can enter this command in your host: `grep --color vmx /proc/cpuinfo`. If you don't have any result, it means XOA won't work on this hardware.
-
 ## Set or recover XOA VM password
 
 As no password is set for the xoa system user by default, you will need to set your own. This can be done via the XenStore data of the VM. The following is to be ran on your XCP-ng host:
