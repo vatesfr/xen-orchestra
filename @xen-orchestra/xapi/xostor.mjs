@@ -124,15 +124,15 @@ export default class Xostor {
   }
 
   async delete(ref) {
-    const srUuid = await this.getField('SR', ref, 'uuid')
-    const srNameLabel = await this.getField('SR', ref, 'name_label')
+    const [srUuid, srNameLabel] = await Promise.all([
+      this.getField('SR', ref, 'uuid'),
+      this.getField('SR', ref, 'name_label'),
+    ])
 
     return Task.run(
       { properties: { name: `deletion of XOSTOR: ${srNameLabel}`, objectId: srUuid, type: 'xo:xostor:destroy' } },
       async () => {
-        const hostRefs = await Promise.all(
-          (await this.getField('SR', ref, 'PBDs')).map(pbdRef => this.getField('PBD', pbdRef, 'host'))
-        )
+        const hostRefs = Object.values(this.objects.indexes.type.host).map(host => host.$ref)
 
         await Task.run({ properties: { name: 'deletion of the storage', objectId: srUuid } }, () => this.destroySr(ref))
         await Task.run({ properties: { name: `destroy volume group on ${hostRefs.length} hosts` } }, () =>

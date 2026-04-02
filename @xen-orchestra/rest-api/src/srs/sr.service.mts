@@ -4,11 +4,9 @@ import { LicenseService } from '../licenses/license.service.mjs'
 
 export class SrService {
   #restApi: RestApi
-  #licenseService: LicenseService
 
   constructor(restApi: RestApi) {
     this.#restApi = restApi
-    this.#licenseService = restApi.ioc.get(LicenseService)
   }
 
   async delete(id: XoSr['id']): Promise<void> {
@@ -18,7 +16,7 @@ export class SrService {
 
     if (sr.SR_type === 'linstor') {
       await xapi.xostor_delete(xapiSr.$ref)
-      await this.#licenseService.unbindXostorLicenses(sr)
+      await this.#restApi.ioc.get(LicenseService).unbindXostorLicenses(id)
     } else {
       await xapi.destroySr(id)
     }
