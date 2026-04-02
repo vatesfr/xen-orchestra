@@ -20,6 +20,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Mirror Backup] Fix `Cannot read properties of undefined (reading 'id')` [Forum#12043](https://xcp-ng.org/forum/topic/12043/mirror-backup-broken-since-xo-6.3.0-release-error-cannot-read-properties-of-undefined-reading-id) (PR [#9667](https://github.com/vatesfr/xen-orchestra/pull/9667))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
