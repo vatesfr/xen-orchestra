@@ -55,7 +55,6 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
           healthCheckSr,
           job,
           schedule,
-
           vmUuid,
           settings,
         })
