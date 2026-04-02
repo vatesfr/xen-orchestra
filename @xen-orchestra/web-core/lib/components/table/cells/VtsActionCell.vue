@@ -8,7 +8,7 @@
         :target-scale="1.5"
         @click="$emit('click')"
       />
-      <VtsActionsMenu :actions />
+      <VtsActionsMenu v-if="actions?.length" :actions />
     </div>
   </UiTableCell>
 </template>
@@ -24,7 +24,7 @@ defineProps<{
   buttonIcon: IconName
   buttonAccent?: ButtonIconAccent
   buttonSize?: ButtonIconSize
-  actions: ActionItem[]
+  actions?: ActionItem[]
 }>()
 
 defineEmits<{
