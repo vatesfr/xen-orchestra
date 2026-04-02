@@ -1,10 +1,7 @@
 <template>
   <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
     <template #header>
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButton size="medium" variant="tertiary" accent="brand" left-icon="fa:edit">
-          {{ t('action:edit') }}
-        </UiButton>
+      <div class="header-actions" :class="{ 'action-buttons-container': uiStore.isSmall }">
         <UiButton
           size="medium"
           variant="tertiary"
@@ -215,6 +212,12 @@ const status = computed(() => (vif.attached ? CONNECTION_STATUS.CONNECTED : CONN
   .value:empty::before {
     content: '-';
   }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
 }
 
 .mobile-drawer {
