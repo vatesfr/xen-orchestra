@@ -10,12 +10,12 @@ export type { ActionItem }
 
 export const useActionColumn = defineColumn((config: HeaderConfig & ButtonIconConfig) => ({
   renderHead: () => renderHeadCell(config.headerIcon, config.headerLabel),
-  renderBody: (params: { onClick: () => void; actions: ActionItem[] }) =>
+  renderBody: (params: { onClick: () => void; actions?: ActionItem[] }) =>
     h(VtsActionCell, {
       buttonIcon: toValue(config.buttonIcon),
       buttonAccent: toValue(config.buttonAccent),
       buttonSize: toValue(config.buttonSize),
-      actions: params.actions,
+      actions: params.actions ?? [],
       onClick: params.onClick,
     }),
 }))

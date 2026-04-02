@@ -1,7 +1,7 @@
 import { xoVifsArg } from '@/modules/vif/jobs/xo-vif-args.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { fetchDelete } from '@/shared/utils/fetch.util.ts'
-import { defineJob, JobError } from '@core/packages/job'
+import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'
 
 export const useXoVifDeleteJob = defineJob('vif.delete', [xoVifsArg], () => {
@@ -27,6 +27,10 @@ export const useXoVifDeleteJob = defineJob('vif.delete', [xoVifsArg], () => {
     validate: (isRunning, vifs: FrontXoVif[]) => {
       if (!vifs || vifs.length === 0) {
         throw new JobError(t('job:vif-delete:missing-vif'))
+      }
+
+      if (isRunning) {
+        throw new JobRunningError(t('job:delete:in-progress'))
       }
 
       if (vifs.some(vif => vif.attached)) {
