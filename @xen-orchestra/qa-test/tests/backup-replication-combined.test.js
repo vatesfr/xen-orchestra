@@ -4,7 +4,15 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 
 import { backupConfig } from '../backup.config.js'
-import { assertFullOrDelta, generateBackupJobName, getDefaultSchedule, getScheduleKey } from '../utils/index.js'
+import {
+  assertFullOrDelta,
+  assertFullOrDeltaForSr,
+  findTaskByMessage,
+  generateBackupJobName,
+  getBackupTransferredBytes,
+  getDefaultSchedule,
+  getScheduleKey,
+} from '../utils/index.js'
 import {
   generateExportFileName,
   validateVhdIntegrity,
@@ -440,6 +448,123 @@ describe('Backup + Replication Combined Tests', () => {
       console.log(`Step 5/5: Re-backup completed successfully`)
 
       console.log(`Full cycle completed: backup -> export -> import -> re-backup`)
+    })
+  })
+
+  // =========================================================================
+  // CR Mode - Delta Replication to SR (target VM reuse + snapshots)
+  // =========================================================================
+
+  describe('CR Mode - Delta Replication to SR', () => {
+    it('should replicate VM to SR, reuse target VM on second run, and create snapshots', async () => {
+      const targetSrUuid = sr.uuid
+
+      // Create CR mode backup job: delta mode + srs (no remotes)
+      const name = generateBackupJobName()
+      const schedule = getDefaultSchedule()
+      const config = {
+        name,
+        mode: 'delta',
+        schedules: { '': schedule },
+        settings: { '': { timezone: 'Europe/Paris', copyRetention: 3 } },
+        vms: { [vm.uuid]: vm },
+        srs: { [targetSrUuid]: true },
+      }
+
+      const jobId = await dispatchClient.backup.createBackupJob(config)
+      const job = await dispatchClient.backup.details(jobId)
+      assert.strictEqual(job.mode, 'delta', 'CR mode job should be delta')
+
+      tracker.trackResource('backupJob', jobId, { name, mode: 'delta' })
+
+      const scheduleKey = getScheduleKey(job)
+      assert.ok(scheduleKey, 'Schedule key is required')
+      tracker.trackResource('schedule', scheduleKey, { name, backupJobId: jobId })
+
+      // Capture VM list before first replication to detect the new target VM
+      const vmsBefore = await dispatchClient.vm.list()
+      const vmUuidsBefore = new Set(vmsBefore.map(v => v.uuid))
+
+      // --- First replication (full — no existing target) ---
+      console.log('Running first CR replication (expected full)...')
+      const result1 = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
+      assertBackupSuccess(result1, 'First CR replication')
+      assertFullOrDeltaForSr(result1, targetSrUuid, { mustBeFull: true })
+
+      // Verify "target snapshot" task exists in the log
+      const snapshotTask1 = findTaskByMessage(result1, 'target snapshot')
+      assert.ok(snapshotTask1, 'First replication should include a "target snapshot" task')
+      assert.strictEqual(snapshotTask1.status, 'success', 'Target snapshot task should succeed')
+
+      // Find the newly created target VM
+      const vmsAfterFirst = await dispatchClient.vm.list()
+      const newVms = vmsAfterFirst.filter(v => !vmUuidsBefore.has(v.uuid))
+      assert.strictEqual(newVms.length, 1, 'First replication should create exactly one new target VM')
+
+      const targetVmUuid = newVms[0].uuid
+      restoredVmUuids.push(targetVmUuid)
+      console.log(`Target VM created: ${newVms[0].name_label} (${targetVmUuid})`)
+
+      // Check target VM has at least one snapshot
+      const targetVmAfterFirst = await dispatchClient.vm.details(targetVmUuid)
+      assert.ok(targetVmAfterFirst, 'Target VM should exist')
+      const snapshotsAfterFirst = targetVmAfterFirst.snapshots?.length ?? 0
+      assert.ok(
+        snapshotsAfterFirst >= 1,
+        `Target VM should have ≥1 snapshot after first replication, got ${snapshotsAfterFirst}`
+      )
+      console.log(`Target VM has ${snapshotsAfterFirst} snapshot(s) after first replication`)
+
+      // Record first transfer size for efficiency comparison
+      const firstTransferSize = getBackupTransferredBytes(result1)
+      console.log(`First replication transferred: ${firstTransferSize} bytes`)
+
+      // --- Second replication (delta — should reuse target VM) ---
+      console.log('Running second CR replication (expected delta)...')
+      const result2 = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
+      assertBackupSuccess(result2, 'Second CR replication')
+      assertFullOrDeltaForSr(result2, targetSrUuid, { mustBeFull: false })
+
+      // Verify "target snapshot" task in second run
+      const snapshotTask2 = findTaskByMessage(result2, 'target snapshot')
+      assert.ok(snapshotTask2, 'Second replication should include a "target snapshot" task')
+      assert.strictEqual(snapshotTask2.status, 'success', 'Target snapshot task should succeed on second run')
+
+      // Verify NO new VMs were created (target VM was reused)
+      const vmsAfterSecond = await dispatchClient.vm.list()
+      const newVmsAfterSecond = vmsAfterSecond.filter(v => !vmUuidsBefore.has(v.uuid))
+      assert.strictEqual(
+        newVmsAfterSecond.length,
+        1,
+        `Second replication should NOT create a new VM — expected 1 new VM total, got ${newVmsAfterSecond.length}`
+      )
+
+      // Target VM should now have more snapshots
+      const targetVmAfterSecond = await dispatchClient.vm.details(targetVmUuid)
+      const snapshotsAfterSecond = targetVmAfterSecond.snapshots?.length ?? 0
+      assert.ok(
+        snapshotsAfterSecond > snapshotsAfterFirst,
+        `Target VM should have more snapshots after second replication ` +
+          `(before: ${snapshotsAfterFirst}, after: ${snapshotsAfterSecond})`
+      )
+      console.log(`Target VM has ${snapshotsAfterSecond} snapshot(s) after second replication`)
+
+      // Verify delta efficiency: second transfer should be ≤ first
+      const secondTransferSize = getBackupTransferredBytes(result2)
+      console.log(`Second replication transferred: ${secondTransferSize} bytes`)
+
+      if (firstTransferSize !== null && secondTransferSize !== null) {
+        assert.ok(
+          secondTransferSize <= firstTransferSize,
+          `Delta transfer (${secondTransferSize} bytes) should be ≤ full transfer (${firstTransferSize} bytes)`
+        )
+      }
+
+      console.log(
+        `CR mode test passed: target VM reused (${targetVmUuid}), ` +
+          `snapshots ${snapshotsAfterFirst}→${snapshotsAfterSecond}, ` +
+          `transfer ${firstTransferSize}→${secondTransferSize} bytes`
+      )
     })
   })
 

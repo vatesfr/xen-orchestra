@@ -38,22 +38,31 @@ export class BackupRequest extends AbstractRequest {
 
     // Convert dynamic key format to XO expected format
     const convertConfig = cfg => {
-      const { vms, remotes, ...rest } = cfg
+      const { vms, remotes, srs, ...rest } = cfg
 
       // Extract first VM UUID
       const vmUuid = vms && typeof vms === 'object' ? Object.keys(vms)[0] : undefined
-      // Extract first Backup Repository ID
-      const backupRepositoryId = remotes && typeof remotes === 'object' ? Object.keys(remotes)[0] : undefined
 
-      return {
+      const result = {
         ...rest,
         vms: {
           id: vmUuid,
         },
-        remotes: {
-          id: backupRepositoryId,
-        },
       }
+
+      // Extract first Backup Repository ID (for backup to remote)
+      const backupRepositoryId = remotes && typeof remotes === 'object' ? Object.keys(remotes)[0] : undefined
+      if (backupRepositoryId !== undefined) {
+        result.remotes = { id: backupRepositoryId }
+      }
+
+      // Extract first SR ID (for CR/DR mode — replication to SR)
+      const srId = srs && typeof srs === 'object' ? Object.keys(srs)[0] : undefined
+      if (srId !== undefined) {
+        result.srs = { id: srId }
+      }
+
+      return result
     }
 
     const xoConfig = convertConfig({ ...config, mode: config.mode || 'delta' })
