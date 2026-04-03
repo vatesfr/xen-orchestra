@@ -19,7 +19,7 @@ import {
   validateXvaIntegrity,
   formatBytes,
 } from '../utils/exportUtils.js'
-import { assertBackupSuccess } from '../utils/backupUtils.js'
+import { assertBackupSuccess, assertRepositoryEmpty } from '../utils/backupUtils.js'
 import { setup, teardown } from './setup.js'
 
 /** Default backup repository name used across all tests */
@@ -132,6 +132,9 @@ describe('Backup + Replication Combined Tests', () => {
         name: BACKUP_REPOSITORY_NAME,
       })
     }
+
+    // Safety check: repository must be empty to avoid accidental data loss
+    await assertRepositoryEmpty(dispatchClient, backupRepository)
 
     // Get SR for health checks and restorations
     const srId = process.env.SR_ID

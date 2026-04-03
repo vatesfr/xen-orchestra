@@ -1,6 +1,30 @@
 import assert from 'node:assert'
 
 /**
+ * Asserts that a backup repository is empty (contains no VM backups).
+ *
+ * This safety check prevents tests from running against repositories that
+ * already contain data, which could lead to accidental data loss if the
+ * repository is misconfigured to point at a production remote.
+ *
+ * @param {import('../client/dispatchClient.js').DispatchClient} dispatchClient
+ * @param {{id: string, name: string}} repository - The backup repository to check
+ * @throws {Error} If the repository contains existing backups
+ */
+export const assertRepositoryEmpty = async (dispatchClient, repository) => {
+  const backups = await dispatchClient.backup.listVmBackups([repository.id])
+  const count = Object.values(backups).flatMap(vmBackups => Object.values(vmBackups).flat()).length
+
+  if (count > 0) {
+    throw new Error(
+      `Repository "${repository.name}" (${repository.id}) contains ${count} existing backup(s). ` +
+        `Tests require empty repositories to avoid accidental data loss. ` +
+        `Please purge the backups manually or use a dedicated test repository.`
+    )
+  }
+}
+
+/**
  * Extracts an error message from a backup task's result or error fields.
  *
  * XO backup logs store errors in various locations depending on the error type:
