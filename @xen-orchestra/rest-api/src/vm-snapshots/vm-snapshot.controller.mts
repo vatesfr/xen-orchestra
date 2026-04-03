@@ -145,7 +145,6 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   @Delete('{id}')
   @Middlewares(acl({ resource: 'vm-snapshot', action: 'delete', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
-  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(incorrectStateResp.status, incorrectStateResp.description)
