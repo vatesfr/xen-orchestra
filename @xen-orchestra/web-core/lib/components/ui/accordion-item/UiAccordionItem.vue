@@ -39,7 +39,7 @@ import { computed, inject, ref } from 'vue'
 const { size, disabled, identifier } = defineProps<{
   size: 'small' | 'large'
   title: string
-  identifier: string | number
+  identifier: string
   content?: string
   disabled?: boolean
 }>()
@@ -53,8 +53,8 @@ const accordion = inject(IK_ACCORDION)
 const localExpanded = ref(false)
 
 const isExpanded = computed(() => {
-  if (accordion) {
-    return accordion.expandedKey === String(identifier)
+  if (accordion && accordion.value) {
+    return accordion.value.expandedKey === identifier
   }
   return localExpanded.value
 })
@@ -64,8 +64,8 @@ const toggle = () => {
     return
   }
 
-  if (accordion) {
-    accordion.toggle(String(identifier))
+  if (accordion && accordion.value) {
+    accordion.value.toggle(identifier)
   } else {
     localExpanded.value = !localExpanded.value
   }
