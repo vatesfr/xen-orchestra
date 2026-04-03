@@ -1,5 +1,18 @@
 # ChangeLog
 
+## **next**
+
+### Bug fixes
+
+- [Mirror Backup] Fix `Cannot read properties of undefined (reading 'id')` [Forum#12043](https://xcp-ng.org/forum/topic/12043/mirror-backup-broken-since-xo-6.3.0-release-error-cannot-read-properties-of-undefined-reading-id) (PR [#9667](https://github.com/vatesfr/xen-orchestra/pull/9667))
+- [Incremental Replication] Fix `VTPM_MAX_AMOUNT_REACHED` [Forum#12047](https://xcp-ng.org/forum/topic/12047/xoa-6.1.3-replication-fails-with-vtpm_max_amount_reached-1/) (PR [#9671](https://github.com/vatesfr/xen-orchestra/pull/9671))
+
+### Released packages
+
+- @xen-orchestra/backups 0.71.2
+- @xen-orchestra/proxy 0.29.56
+- xo-server 5.198.4
+
 ## **6.3.1** (2026-04-01)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
