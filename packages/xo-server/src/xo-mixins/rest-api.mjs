@@ -20,7 +20,9 @@ export default class RestApi {
     // don't set up the API if express is not present
     //
     // that can happen when the app is instantiated in another context like xo-server-recover-account
-    if (!express) return
+    if (express === undefined) {
+      return
+    }
 
     const api = subRouter(express, '/rest/v0')
     this.#api = api
@@ -43,7 +45,10 @@ export default class RestApi {
     }
   }
 
-  // OLD METHOD, DEPRECATED. USE registerRestRoutes
+  /**
+   * @deprecated use registerRestRoutes instead
+   * @todo remove when not used anymore
+   */
   registerRestApi(spec, base = '/') {
     const authUser = this.#authenticateUser.bind(this)
     const app = this.#app
@@ -78,7 +83,10 @@ export default class RestApi {
     }
   }
 
-  // OLD METHOD, DEPRECATED. USE registerRestRoutes
+  /**
+   * @deprecated use registerRestRoutes instead
+   * @todo remove when not used anymore
+   */
   unregisterRestApi(spec, base = '/') {
     for (const path of Object.keys(spec)) {
       if (path[0] === '_') {
