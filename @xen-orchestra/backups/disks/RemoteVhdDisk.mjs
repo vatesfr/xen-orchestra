@@ -142,12 +142,12 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
-   * Simple disks don't have a list of path to return.
+   * Returns the disk path in an array.
    *
-   * @returns {undefined}
+   * @returns {string[]}
    */
   getPaths() {
-    return undefined
+    return [this.getPath()]
   }
 
   /**
