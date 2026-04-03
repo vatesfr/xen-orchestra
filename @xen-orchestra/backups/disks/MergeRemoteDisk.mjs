@@ -207,11 +207,9 @@ export class MergeRemoteDisk {
     } else {
       this.#state.child = { uuid: childDisk.getUuid() ?? undefined }
       this.#state.parent = { uuid: parentDisk.getUuid() ?? undefined }
-      const childPaths = childDisk.getPaths()
-      this.#state.chain =
-        childPaths !== undefined
-          ? [parentDisk.getPath(), ...childPaths].map(p => relativeFromFile(this.#statePath, p))
-          : undefined
+      this.#state.chain = [parentDisk.getPath(), ...childDisk.getPaths()].map(path =>
+        relativeFromFile(this.#statePath, path)
+      )
 
       // Finds first allocated block for the 2 following loops
       while (this.#state.currentBlock < getMaxBlockCount && !childDisk.hasBlock(this.#state.currentBlock)) {
