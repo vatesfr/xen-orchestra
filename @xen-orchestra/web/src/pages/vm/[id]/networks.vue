@@ -3,8 +3,8 @@
     <UiCard class="container">
       <VifsTable :vifs :vm>
         <template #title-actions>
-          <UiLink :href="xo5VmVifHref" icon="fa:plus" size="medium">
-            {{ t('action:add-vifs-in-xo-5') }}
+          <UiLink size="medium" :to="{ name: '/vif/new', query: { vmId: vm.id } }" icon="fa:plus">
+            {{ t('new-vif') }}
           </UiLink>
         </template>
       </VifsTable>
@@ -18,21 +18,16 @@ import VifSidePanel from '@/modules/vif/components/panel/VifSidePanel.vue'
 import VifsTable from '@/modules/vif/components/VifsTable.vue'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useArrayFilter } from '@vueuse/shared'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{
   vm: FrontXoVm
 }>()
-
-const { buildXo5Route } = useXoRoutes()
-const xo5VmVifHref = computed(() => buildXo5Route(`/vms/${vm.id}/network`))
 
 const { vifs: rawVifs, getVifById } = useXoVifCollection()
 
