@@ -4,7 +4,7 @@ import { MaybePromise } from '../helpers/helper.type.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 
 // Maps Express body-parser middleware function names to their OpenAPI content type
-export const BODY_PARSER_CONTENT_TYPES: Record<string, string> = {
+export const CONTENT_TYPE_BY_MIDDLEWARE_NAME: Record<string, string> = {
   jsonParser: 'application/json',
   urlencodedParser: 'application/x-www-form-urlencoded',
   textParser: 'text/plain',

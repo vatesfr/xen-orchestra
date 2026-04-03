@@ -1,5 +1,5 @@
-import { BODY_PARSER_CONTENT_TYPES, FieldDefinition, RouteDefinition } from './types.mjs'
-import { Router, Request, Response } from 'express'
+import { CONTENT_TYPE_BY_MIDDLEWARE_NAME, FieldDefinition, RouteDefinition } from './types.mjs'
+import { Router, type Request, type Response } from 'express'
 import { invalidParameters } from 'xo-common/api-errors.js'
 import { createLogger } from '@xen-orchestra/log'
 import { pipeline } from 'node:stream/promises'
@@ -7,8 +7,9 @@ import { Readable } from 'node:stream'
 import { z, ZodError } from 'zod'
 import { createSchema } from 'zod-openapi'
 import { buildOpenApiSchema } from '../open-api/schema/build-openapi-schema.mjs'
-import { OpenAPIV3 } from 'openapi-types'
-import { AuthenticatedRequest } from '../helpers/helper.type.mjs'
+import { makeJsonStream, makeNdJsonStream } from '../helpers/stream.helper.mjs'
+import type { OpenAPIV3 } from 'openapi-types'
+import type { AuthenticatedRequest } from '../helpers/helper.type.mjs'
 import { expressAuthentication } from '../middlewares/authentication.middleware.mjs'
 import { iocContainer } from '../ioc/ioc.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -28,9 +29,9 @@ export function createExternalRouter(swaggerOpenApiSpec: OpenAPIV3.Document): {
     const tags = route.tags ?? []
 
     // Build zod schema for input validation
-    const paramsSchema = route.params ? buildZodSchema(route.params) : undefined
-    const querySchema = route.query ? buildZodSchema(route.query) : undefined
-    const bodySchema = route.body ? buildZodSchema(route.body) : undefined
+    const paramsSchema = route.params && buildZodSchema(route.params)
+    const querySchema = route.query && buildZodSchema(route.query)
+    const bodySchema = route.body && buildZodSchema(route.body)
 
     // Format route params for express
     const expressEndpoint = route.endpoint.replace(/{(\w+)}/g, ':$1')
@@ -39,16 +40,16 @@ export function createExternalRouter(swaggerOpenApiSpec: OpenAPIV3.Document): {
     const middlewares = route.middlewares ?? []
 
     // Set the body content type based on the used middleware
-    const bodyContentType = middlewares.map(middleware => BODY_PARSER_CONTENT_TYPES[middleware.name]).find(Boolean)
+    const bodyContentType = middlewares
+      .map(middleware => CONTENT_TYPE_BY_MIDDLEWARE_NAME[middleware.name])
+      .find(Boolean)
 
     // Add route to router
     externalRouter[route.method](expressEndpoint, ...middlewares, async (req, res, next) => {
       try {
         // Handle authentication if required
         if (route.security === undefined) route.security = '*'
-        if (route.security !== 'none') {
-          await expressAuthentication(req as AuthenticatedRequest, route.security)
-        }
+        await expressAuthentication(req as AuthenticatedRequest, route.security)
 
         // Validate inputs, throws if invalid
         paramsSchema?.parse(req.params)
@@ -58,14 +59,18 @@ export function createExternalRouter(swaggerOpenApiSpec: OpenAPIV3.Document): {
         // Call the route callback with the right context and parameters
         const result = await Promise.resolve(route.callback({ req, res, next, restApi }))
 
-        // Handle result formatting if iterable, status code should be already be set by the route callback
-        if (result !== undefined && !res.headersSent) {
-          const isIterable =
-            result != null && typeof (result[Symbol.iterator] ?? result[Symbol.asyncIterator]) === 'function'
-          if (isIterable) {
-            await sendObjects(result as Iterable<unknown> | AsyncIterable<unknown>, req, res)
+        // Handle result formatting if the callback didn't already send a response
+        if (!res.headersSent) {
+          if (result === undefined) {
+            res.status(204).end()
           } else {
-            res.json(result)
+            const isIterable =
+              result != null && typeof (result[Symbol.iterator] ?? result[Symbol.asyncIterator]) === 'function'
+            if (isIterable) {
+              await sendObjects(result as Iterable<unknown> | AsyncIterable<unknown>, req, res)
+            } else {
+              res.json(result)
+            }
           }
         }
       } catch (error) {
@@ -261,26 +266,4 @@ export async function sendObjects(iterable: Iterable<unknown> | AsyncIterable<un
   res.setHeader('content-type', jsonFormat ? 'application/json' : 'application/x-ndjson')
 
   return pipeline(Readable.from((jsonFormat ? makeJsonStream : makeNdJsonStream)(iterable)), res)
-}
-
-async function* makeJsonStream(iterable: Iterable<unknown> | AsyncIterable<unknown>) {
-  yield '['
-  let first = true
-  for await (const object of iterable) {
-    if (first) {
-      first = false
-      yield '\n'
-    } else {
-      yield ',\n'
-    }
-    yield JSON.stringify(object, null, 2)
-  }
-  yield '\n]\n'
-}
-
-async function* makeNdJsonStream(iterable: Iterable<unknown> | AsyncIterable<unknown>) {
-  for await (const object of iterable) {
-    yield JSON.stringify(object)
-    yield '\n'
-  }
 }
