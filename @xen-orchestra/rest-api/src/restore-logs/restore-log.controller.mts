@@ -53,6 +53,7 @@ export class RestoreLogController extends XoController<XoRestoreLog> {
   @Example(restoreLogIds)
   @Example(partialRestoreLogs)
   @Get('')
+  @Security('*', ['acl'])
   async getRestoreLogs(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -123,6 +124,7 @@ export class DeprecatedRestoreController extends XoController<XoRestoreLog> {
   @Example(partialRestoreLogs)
   @Deprecated()
   @Get('')
+  @Security('*', ['acl'])
   async getDeprecatedRestoreLogs(
     @Request() req: ExRequest,
     @Query() fields?: string,

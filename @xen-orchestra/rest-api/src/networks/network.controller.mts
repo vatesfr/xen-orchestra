@@ -45,6 +45,7 @@ export class NetworkController extends XapiXoController<XoNetwork> {
   @Example(networkIds)
   @Example(partialNetworks)
   @Get('')
+  @Security('*', ['acl'])
   getNetworks(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -90,6 +91,7 @@ export class NetworkController extends XapiXoController<XoNetwork> {
    */
   @Example(genericAlarmsExample)
   @Get('{id}/alarms')
+  @Security('*', ['acl'])
   @Tags('alarms')
   @Response(notFoundResp.status, notFoundResp.description)
   getNetworkAlarms(
@@ -124,6 +126,7 @@ export class NetworkController extends XapiXoController<XoNetwork> {
   @Example(messageIds)
   @Example(partialMessages)
   @Get('{id}/messages')
+  @Security('*', ['acl'])
   @Tags('messages')
   @Response(notFoundResp.status, notFoundResp.description)
   getNetworkMessages(
@@ -155,6 +158,7 @@ export class NetworkController extends XapiXoController<XoNetwork> {
   @Example(taskIds)
   @Example(partialTasks)
   @Get('{id}/tasks')
+  @Security('*', ['acl'])
   @Tags('tasks')
   @Response(notFoundResp.status, notFoundResp.description)
   async getNetworkTasks(

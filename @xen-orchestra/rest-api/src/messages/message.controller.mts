@@ -66,6 +66,7 @@ export class MessageController extends XapiXoController<XoMessage> {
   @Example(messageIds)
   @Example(partialMessages)
   @Get('')
+  @Security('*', ['acl'])
   getMessages(
     @Request() req: ExRequest,
     @Query() fields?: string,

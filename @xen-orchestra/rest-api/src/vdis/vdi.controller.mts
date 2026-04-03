@@ -70,6 +70,7 @@ export class VdiController extends XapiXoController<XoVdi> {
   @Example(vdiIds)
   @Example(partialVdis)
   @Get('')
+  @Security('*', ['acl'])
   getVdis(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -166,6 +167,7 @@ export class VdiController extends XapiXoController<XoVdi> {
    */
   @Example(genericAlarmsExample)
   @Get('{id}/alarms')
+  @Security('*', ['acl'])
   @Tags('alarms')
   @Response(notFoundResp.status, notFoundResp.description)
   getVdiAlarms(
@@ -216,6 +218,7 @@ export class VdiController extends XapiXoController<XoVdi> {
   @Example(messageIds)
   @Example(partialMessages)
   @Get('{id}/messages')
+  @Security('*', ['acl'])
   @Tags('messages')
   @Response(notFoundResp.status, notFoundResp.description)
   getVdiMessages(
@@ -247,6 +250,7 @@ export class VdiController extends XapiXoController<XoVdi> {
   @Example(taskIds)
   @Example(partialTasks)
   @Get('{id}/tasks')
+  @Security('*', ['acl'])
   @Tags('tasks')
   @Response(notFoundResp.status, notFoundResp.description)
   async getVdiTasks(

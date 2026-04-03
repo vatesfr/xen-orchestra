@@ -45,6 +45,7 @@ export class ScheduleController extends XoController<XoSchedule> {
   @Example(scheduleIds)
   @Example(partialSchedules)
   @Get('')
+  @Security('*', ['acl'])
   async getSchedules(
     @Request() req: ExRequest,
     @Query() fields?: string,

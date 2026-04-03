@@ -90,6 +90,7 @@ export class UserController extends XoController<XoUser> {
   @Example(userIds)
   @Example(partialUsers)
   @Get('')
+  @Security('*', ['acl'])
   async getUsers(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -194,6 +195,7 @@ export class UserController extends XoController<XoUser> {
   @Example(groupIds)
   @Example(partialGroups)
   @Get('{id}/groups')
+  @Security('*', ['acl'])
   @Tags('groups')
   @Response(notFoundResp.status, notFoundResp.description)
   async getUserGroups(
@@ -253,6 +255,7 @@ export class UserController extends XoController<XoUser> {
   @Example(taskIds)
   @Example(partialTasks)
   @Get('{id}/tasks')
+  @Security('*', ['acl'])
   @Tags('tasks')
   @Response(notFoundResp.status, notFoundResp.description)
   async getUserTasks(
