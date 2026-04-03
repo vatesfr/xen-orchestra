@@ -68,6 +68,12 @@ To define an ACL for an endpoint, simply add the `acl` middleware and pass the r
 
 If an endpoint does not have a middleware ACL, it will be accessible **ONLY** to administrators.
 
+It is sometimes necessary to check ACLs based on the body of the request sent by the user (for example, for a PATCH endpoint). For this, you can use `actions` (which allows you to pass multiple actions) and `actionsFromBody` (a function exported from `acl.middleware.mts`).
+
+`actionsFromBody(['update:name_label', 'update:name_description'])` checks if `name_label` is present in the request body, and then applies the ACL check. The same applies to `name_description`.
+
+`actionIfNotSelfUser('read')` returns the given action only if the current user is **not** the target user. If the current user is the target (self), no action is returned and the ACL check is skipped entirely.
+
 #### Guidelines
 
 - **JSDoc Documentation**: Always document the required privileges in the JSDoc annotation so users know which permissions are needed. Use the format: `Required privilege: - ...`
@@ -117,6 +123,48 @@ When creating a resource (which doesn't exist yet), pass the object being create
    await VDI_create(bodyParam)
    // ...
  }
+```
+
+##### Example: Resource update
+
+When creating a resource (which doesn't exist yet), pass the object being created as the target:
+
+```ts
+/**
+ * Update a VM
+ *
+   * Required privileges:
+   * - resource: vm, action: update (grants all fields)
+   * - resource: vm, action: update:name_label (if name_label is passed)
+   * - resource: vm, action: update:name_description (if name_description is passed)
+  */
+ @Patch('{id}')
+ @Middlewares(acl({resource: 'vm', actions: actionsFromBody(['update:name_label', 'update:name_description']), objectId: 'params.id'}))
+ @Response(403)
+ createVdi(@Path() id: string, @Body() body: patchBody) {
+  updateVm(id, body)
+// ...
+ }
+```
+
+##### Example: Self-bypass ACL
+
+```ts
+/**
+ * Get a user
+ *
+ * Required privilege:
+ * - resource: user, action: read (if not self)
+ */
+@Get('{id}')
+@Middlewares(acl({
+  resource: 'user',
+  actions: actionsIfNotSelfUser(['read']),
+  objectId: 'params.id',
+  getObject: ({ restApi }) => restApi.xoApp.getUser,
+}))
+@Response(403)
+getUser(@Path() id: string) { ... }
 ```
 
 If you need to use a privilege that doesn't exist yet (e.g., `resource: 'vm', action: 'foo'`), you must register it in ACL Definition: here `@xen-orchestra/acl/src/actions/vm.mts`, add: `foo: true`.
