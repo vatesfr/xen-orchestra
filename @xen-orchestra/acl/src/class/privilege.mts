@@ -1,4 +1,4 @@
-import { createPredicate } from 'value-matcher'
+import * as CM from 'complex-matcher'
 import type { XoAclPrivilege, XoAclSupportedActions, XoAclSupportedResource } from '@vates/types/lib/xen-orchestra/acl'
 
 import { SUPPORTED_ACTIONS_BY_RESOURCE } from '../actions/index.mjs'
@@ -28,7 +28,7 @@ export class Privilege<T extends SupportedResource> {
     Privilege.checkActionIsValid(resource, action)
 
     this.#action = action
-    this.#selector = selector !== undefined ? createPredicate(selector) : undefined
+    this.#selector = selector !== undefined ? CM.parse(selector).createPredicate() : undefined
     this.#resource = resource
     this.#effect = effect
   }
