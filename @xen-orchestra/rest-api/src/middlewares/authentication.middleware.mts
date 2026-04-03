@@ -15,7 +15,7 @@ const log = createLogger('xo:rest-api:authentication')
 export type SecurityName = '*' | 'token' | 'basic' | 'none'
 
 // TSOA spec require this function to be async
-export async function expressAuthentication(req: AuthenticatedRequest, securityName: SecurityName, scopes: string[]) {
+export async function expressAuthentication(req: AuthenticatedRequest, securityName: SecurityName, scopes: 'acl'[]) {
   if (securityName === 'none') {
     return undefined
   }

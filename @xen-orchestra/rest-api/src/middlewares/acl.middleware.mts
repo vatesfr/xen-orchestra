@@ -8,45 +8,89 @@ import type { Response, NextFunction } from 'express'
 import type { AuthenticatedRequest } from '../helpers/helper.type.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { iocContainer } from '../ioc/ioc.mjs'
-import type { NonXapiXoRecord, XapiXoRecord, XoRecord } from '@vates/types'
+import type { Branded, NonXapiXoRecord, XapiXoRecord, XoRecord } from '@vates/types'
 import { ValidateError } from 'tsoa'
 import { ApiError } from '../helpers/error.helper.mjs'
 import type { XoApp } from '../rest-api/rest-api.type.mjs'
 
 export const ACL_MIDDLEWARE_NAME = '_aclMiddleware'
 
+export function actionsFromBody<Resource extends SupportedResource>(
+  actions: SupportedActions<Resource>[]
+): (opts: { req: AuthenticatedRequest }) => SupportedActions<Resource>[] {
+  return ({ req }) =>
+    actions.filter(action => {
+      const [, field] = action.split(':')
+      return field in req.body
+    })
+}
+export function actionFromBody<Resource extends SupportedResource>(action: SupportedActions<Resource>) {
+  return opts => actionsFromBody([action])(opts)[0]
+}
+
+export function actionsIfNotSelfUser<Resource extends SupportedResource>(
+  actions: SupportedActions<Resource>[]
+): (opts: { req: AuthenticatedRequest; restApi: RestApi }) => SupportedActions<Resource>[] {
+  return ({ req, restApi }) => {
+    const currentUser = restApi.getCurrentUser()
+    const userId = req.params.id
+
+    if (currentUser.id !== userId) {
+      return actions
+    }
+
+    return []
+  }
+}
+export function actionIfNotSelfUser<Resource extends SupportedResource>(action: SupportedActions<Resource>) {
+  return opts => actionsIfNotSelfUser([action])(opts)[0]
+}
+
 type AclEntry = {
   [Resource in SupportedResource]: {
     resource: Resource
-    action: SupportedActions<Resource>
   } & (
     | {
-        objectIds: string[] | ((opts: { req: AuthenticatedRequest }) => string[])
-        getObject?:
-          | ((opts: { restApi: RestApi }) => (...args: unknown[]) => Promise<NonXapiXoRecord>)
-          | ((opts: { restApi: RestApi }) => (...args: unknown[]) => XoRecord)
+        action:
+          | SupportedActions<Resource>
+          | ((opts: { req: AuthenticatedRequest; restApi: RestApi }) => SupportedActions<Resource>)
+        actions?: never
       }
     | {
-        objectId: string | ((opts: { req: AuthenticatedRequest }) => string)
-        getObject?:
-          | ((opts: { restApi: RestApi }) => (...args: unknown[]) => Promise<NonXapiXoRecord>)
-          | ((opts: { restApi: RestApi }) => (...args: unknown[]) => XoRecord)
+        actions:
+          | SupportedActions<Resource>[]
+          | ((opts: { req: AuthenticatedRequest; restApi: RestApi }) => SupportedActions<Resource>[])
+        action?: never
       }
-    | {
-        objectIds?: never
-        objectId?: never
-        getObject?: never
-        objects: object[] | ((opts: { req: AuthenticatedRequest }) => object[])
-        object?: never
-      }
-    | {
-        objectIds?: never
-        objectId?: never
-        getObject?: never
-        objects?: never
-        object: object | ((opts: { req: AuthenticatedRequest }) => object)
-      }
-  )
+  ) &
+    (
+      | {
+          objectIds: string[] | ((opts: { req: AuthenticatedRequest }) => XoRecord['id'][])
+          getObject?:
+            | ((opts: { restApi: RestApi }) => (id: Branded<any>) => Promise<NonXapiXoRecord>)
+            | ((opts: { restApi: RestApi }) => (id: Branded<any>) => XapiXoRecord)
+        }
+      | {
+          objectId: string | ((opts: { req: AuthenticatedRequest }) => XoRecord['id'])
+          getObject?:
+            | ((opts: { restApi: RestApi }) => (id: Branded<any>) => Promise<NonXapiXoRecord>)
+            | ((opts: { restApi: RestApi }) => (id: Branded<any>) => XapiXoRecord)
+        }
+      | {
+          objectIds?: never
+          objectId?: never
+          getObject?: never
+          objects: object[] | ((opts: { req: AuthenticatedRequest }) => object[])
+          object?: never
+        }
+      | {
+          objectIds?: never
+          objectId?: never
+          getObject?: never
+          objects?: never
+          object: object | ((opts: { req: AuthenticatedRequest }) => object)
+        }
+    )
 }[SupportedResource]
 
 export const XAPI_TYPE_BY_ACL_RESOURCE = {
@@ -76,7 +120,20 @@ export const XAPI_TYPE_BY_ACL_RESOURCE = {
 } satisfies Partial<Record<SupportedResource, XapiXoRecord['type']>>
 
 function normalizeAclEntry(acl: AclEntry) {
-  const base = { resource: acl.resource, action: acl.action, getObject: acl.getObject }
+  const aclAction = acl.action
+  const aclActions =
+    'actions' in acl && acl.actions !== undefined
+      ? acl.actions
+      : typeof aclAction === 'function'
+        ? (opts: { req: AuthenticatedRequest; restApi: RestApi }) => [aclAction(opts)]
+        : [aclAction]
+
+  const actionsResolver =
+    typeof aclActions === 'function'
+      ? (req: AuthenticatedRequest, restApi: RestApi) => aclActions({ req, restApi })
+      : () => aclActions
+
+  const base = { resource: acl.resource, actionsResolver, getObject: acl.getObject }
 
   if ('objects' in acl && acl.objects !== undefined) {
     return { ...base, objects: acl.objects }
@@ -153,7 +210,7 @@ export function acl(acls: AclEntry | AclEntry[]) {
 
           try {
             const object =
-              (await acl.getObject?.({ restApi })(id)) ??
+              (await acl.getObject?.({ restApi })(id as XoRecord['id'])) ??
               restApi.getObject(id as XapiXoRecord['id'], XAPI_TYPE_BY_ACL_RESOURCE[acl.resource])
             objects.push(object)
           } catch (error) {
@@ -169,12 +226,14 @@ export function acl(acls: AclEntry | AclEntry[]) {
         }
       }
 
-      // We cast here to restore the discriminated union correlation between `resource` and`action`.
+      // We cast here to restore the discriminated union correlation between `resource` and `action`.
       // When rebuilding an object from individual properties of a discriminated union, TypeScript transform it into an union type
       //   { resource: SupportedResource, action: SupportedAction<SupportedResource> }
       // This loses the original correlation (e.g. it would allow invalid pairs like { resource: 'vgpu', action: 'snapshot' }).
       // The `as` cast re-asserts the discriminated union member type.
-      missingPrivilegeParams.push({ action: acl.action, resource: acl.resource, objects, user } as AnyPrivilegeOnParam)
+      for (const action of acl.actionsResolver(req, restApi)) {
+        missingPrivilegeParams.push({ action, resource: acl.resource, objects, user } as AnyPrivilegeOnParam)
+      }
     }
 
     if (Object.keys(invalidFields).length > 0) {
