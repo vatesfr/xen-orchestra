@@ -1,4 +1,4 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import type { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { noSuchObject } from 'xo-common/api-errors.js'
@@ -6,7 +6,14 @@ import { provide } from 'inversify-binding-decorators'
 import type { XoAlarm, XoMessage } from '@vates/types'
 
 import { alarm, alarmIds, partialAlarms } from '../open-api/oa-examples/alarm.oa-example.mjs'
-import { badRequestResp, notFoundResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
+import { acl } from '../middlewares/acl.middleware.mjs'
+import {
+  badRequestResp,
+  forbiddenOperationResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
@@ -77,6 +84,8 @@ export class AlarmController extends XapiXoController<XoAlarm> {
    */
   @Example(alarm)
   @Get('{id}')
+  @Middlewares(acl({ resource: 'alarm', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getAlarm(@Path() id: string): UnbrandedXoAlarm {
     return this.getObject(id as XoAlarm['id'])
