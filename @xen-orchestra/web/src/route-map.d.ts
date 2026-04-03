@@ -8,15 +8,13 @@
 // Make sure to add this file to your tsconfig.json file as an "includes" or "files" entry.
 
 import type {
-  RouteRecordInfo,
   ParamValue,
   ParamValueOneOrMore,
   ParamValueZeroOrMore,
   ParamValueZeroOrOne,
+  RouteRecordInfo,
 } from 'vue-router'
-import type {
-  _ExtractParamParserType,
-} from 'vue-router/experimental'
+import type { _ExtractParamParserType, } from 'vue-router/experimental'
 
 declare module 'vue-router' {
   interface TypesConfig {
@@ -337,6 +335,13 @@ declare module 'vue-router/auto-routes' {
       '/vif/:id/traffic-rules',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
+      | never
+    >,
+    '/vif/new': RouteRecordInfo<
+      '/vif/new',
+      '/vif/new',
+      Record<never, never>,
+      Record<never, never>,
       | never
     >,
     '/vm/[id]': RouteRecordInfo<
@@ -699,6 +704,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/vif/[id]/traffic-rules.vue': {
       routes:
         | '/vif/[id]/traffic-rules'
+      views:
+        | never
+    }
+    'src/pages/vif/new.vue': {
+      routes:
+        | '/vif/new'
       views:
         | never
     }
