@@ -1,4 +1,18 @@
-import { Example, Get, Security, Query, Request, Response, Route, Tags, Path, Delete, SuccessResponse, Put } from 'tsoa'
+import {
+  Example,
+  Get,
+  Security,
+  Query,
+  Request,
+  Response,
+  Route,
+  Tags,
+  Path,
+  Delete,
+  SuccessResponse,
+  Put,
+  Middlewares,
+} from 'tsoa'
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
@@ -21,6 +35,7 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
+import { acl } from '../middlewares/acl.middleware.mjs'
 import {
   partialVmTemplates,
   vmTemplate,
@@ -79,10 +94,15 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
    *
    * Export VM-template. Compress is only used for XVA format
    *
+   * Required privilege:
+   * - resource: vm-template, action: read
+   *
    * @example id "b7569d99-30f8-178a-7d94-801de3e29b5b-f873abe0-b138-4995-8f6f-498b423d234d"
    */
   @Get('{id}.{format}')
+  @Middlewares(acl({ resource: 'vm-template', action: 'read', objectId: 'params.id' }))
   @SuccessResponse(200, 'Download started', 'application/octet-stream')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(422, 'Invalid format, Invalid compress')
   async exportVmTemplate(
@@ -103,19 +123,28 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vm-template, action: read
+   *
    * @example id "b7569d99-30f8-178a-7d94-801de3e29b5b-f873abe0-b138-4995-8f6f-498b423d234d"
    * */
   @Example(vmTemplate)
   @Get('{id}')
+  @Middlewares(acl({ resource: 'vm-template', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getVmTemplate(@Path() id: string): Unbrand<XoVmTemplate> {
     return this.getObject(id as XoVmTemplate['id'])
   }
 
   /**
+   * Required privilege:
+   * - resource: vm-template, action: delete
+   *
    * @example id "6d50ba76-0f11-1ff1-4f6a-b502afc31b8e"
    */
   @Delete('{id}')
+  @Middlewares(acl({ resource: 'vm-template', action: 'delete', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -250,11 +279,16 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vm-template, action: change-tags
+   *
    * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
    * @example tag "from-rest-api"
    */
   @Put('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'vm-template', action: 'change-tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async putVmTemplateTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vmTemplate = this.getXapiObject(id as XoVmTemplate['id'])
@@ -262,11 +296,16 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vm-template, action: change-tags
+   *
    * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
    * @example tag "from-rest-api"
    */
   @Delete('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'vm-template', action: 'change-tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteVmTemplateTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vmTemplate = this.getXapiObject(id as XoVmTemplate['id'])
