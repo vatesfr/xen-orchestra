@@ -4,8 +4,15 @@ import type { Request as ExRequest } from 'express'
 
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
-import { badRequestResp, notFoundResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
+import { Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { acl } from '../middlewares/acl.middleware.mjs'
+import {
+  badRequestResp,
+  forbiddenOperationResp,
+  notFoundResp,
+  unauthorizedResp,
+  Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { provide } from 'inversify-binding-decorators'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { partialPgpus, pgpu, pgpuIds } from '../open-api/oa-examples/pgpu.oa-example.mjs'
@@ -46,10 +53,15 @@ export class PgpuController extends XapiXoController<XoPgpu> {
   }
 
   /**
+   * Required privilege:
+   * - resource: pgpu, action: read
+   *
    * @example id "838335fa-ee21-15e1-760a-a37a3a4ef1db"
    */
   @Example(pgpu)
   @Get('{id}')
+  @Middlewares(acl({ resource: 'pgpu', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getPgpu(@Path() id: string): Unbrand<XoPgpu> {
     return this.getObject(id as XoPgpu['id'])
