@@ -1,23 +1,15 @@
 <!-- v7 -->
 <template>
-  <button
-    id="removeChip"
-    :class="classNames"
-    class="ui-chip typo-body-regular-small"
-    type="button"
-    :aria-disabled="disabled"
-    @click="!disabled && emit('remove')"
-  >
-    <span class="text-ellipsis">
+  <span :class="classNames" class="ui-chip typo-body-regular-small" @click="emit('edit')">
+    <span class="content text-ellipsis">
       <slot />
     </span>
-    <VtsIcon v-if="!disabled" name="action:close-cancel-clear" size="small" :color="iconColor" />
-  </button>
+    <UiButtonIcon accent="brand" icon="action:close-cancel-clear" size="small" :disabled @click.stop="emit('remove')" />
+  </span>
 </template>
 
 <script lang="ts" setup>
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import { useMapper } from '@core/packages/mapper'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { toVariants } from '@core/utils/to-variants.util'
 import { computed } from 'vue'
 
@@ -29,6 +21,7 @@ const { accent, disabled } = defineProps<{
 }>()
 
 const emit = defineEmits<{
+  edit: []
   remove: []
 }>()
 
@@ -36,30 +29,18 @@ defineSlots<{
   default(): any
 }>()
 
-const classNames = computed(() => {
-  return [
-    toVariants({
-      accent,
-      muted: disabled,
-    }),
-  ]
-})
-
-const iconColor = useMapper(
-  () => accent,
-  {
-    info: 'var(--color-brand-txt-base)',
-    success: 'var(--color-success-txt-base)',
-    warning: 'var(--color-warning-txt-base)',
-    danger: 'var(--color-danger-txt-base)',
-  },
-  'info'
-)
+const classNames = computed(() => [
+  toVariants({
+    accent,
+    muted: disabled,
+  }),
+])
 </script>
 
 <style lang="postcss" scoped>
 .ui-chip {
-  display: flex;
+  position: relative;
+  display: inline-flex;
   align-items: center;
   gap: 0.8rem;
   padding: 0.4rem 0.8rem;
@@ -70,7 +51,21 @@ const iconColor = useMapper(
   vertical-align: middle;
   white-space: nowrap;
   min-width: 0;
-  border: none;
+
+  .content {
+    display: flex;
+    align-items: center;
+    line-height: 1.6rem;
+    height: 2.24rem;
+  }
+
+  .ui-button-icon {
+    border-radius: calc(10rem - 0.8rem);
+  }
+
+  .ui-button-icon:focus-visible {
+    outline: none;
+  }
 
   &:focus-visible {
     outline: none;
@@ -80,28 +75,32 @@ const iconColor = useMapper(
     content: '';
     position: absolute;
     inset: -0.4rem;
-    box-sizing: content-box;
     border: 0.2rem solid transparent;
-    border-radius: 0.2rem;
     pointer-events: none;
   }
 
-  &:focus-visible::after {
+  &:focus-visible::after,
+  &:has(.ui-button-icon:focus-visible)::after {
     border-color: var(--color-brand-txt-base);
   }
 
   &.muted {
     color: var(--color-neutral-txt-secondary);
-    background-color: var(--color-info-item-disabled);
+    cursor: not-allowed;
     pointer-events: none;
+  }
+
+  :deep(.icon-path) {
+    color: var(--chip-icon-color);
   }
 
   /* COLOR VARIANTS */
 
   &.accent--info {
+    --chip-icon-color: var(--color-info-txt-base);
     background-color: var(--color-info-background-selected);
 
-    &:is(:hover, :focus-visible) {
+    &:hover {
       background-color: var(--color-info-background-hover);
     }
 
@@ -115,9 +114,10 @@ const iconColor = useMapper(
   }
 
   &.accent--success {
+    --chip-icon-color: var(--color-success-txt-base);
     background-color: var(--color-success-background-selected);
 
-    &:is(:hover, :focus-visible) {
+    &:hover {
       background-color: var(--color-success-background-hover);
     }
 
@@ -131,9 +131,10 @@ const iconColor = useMapper(
   }
 
   &.accent--warning {
+    --chip-icon-color: var(--color-warning-txt-base);
     background-color: var(--color-warning-background-selected);
 
-    &:is(:hover, :focus-visible) {
+    &:hover {
       background-color: var(--color-warning-background-hover);
     }
 
@@ -147,9 +148,10 @@ const iconColor = useMapper(
   }
 
   &.accent--danger {
+    --chip-icon-color: var(--color-danger-txt-base);
     background-color: var(--color-danger-background-selected);
 
-    &:is(:hover, :focus-visible) {
+    &:hover {
       background-color: var(--color-danger-background-hover);
     }
 

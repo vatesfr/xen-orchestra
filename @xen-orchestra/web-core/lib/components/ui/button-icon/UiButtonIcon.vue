@@ -183,7 +183,6 @@ const classNames = computed(() => {
       background-color: transparent;
     }
   }
-
   /* SIZE VARIANTS */
 
   &.size--small {
