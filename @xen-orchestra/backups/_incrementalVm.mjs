@@ -365,12 +365,16 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
       }
     }),
   ])
-  // recreate VTPMs
-  await Promise.all(
-    (incrementalVm.vtpms ?? []).map(async contents => {
-      await xapi.VTPM_create({ VM: vmRef, contents })
-    })
-  )
+
+  // recreate vtpm (note there is normally only one VTPM per VM at most)
+  const existingVtpmRefs = await xapi.getField('VM', vmRef, 'VTPMs')
+  for (const vtpmRef of existingVtpmRefs ?? []) {
+    await xapi.call('VTPM_destroy', vtpmRef)
+  }
+  for (const contents of incrementalVm.vtpms ?? []) {
+    await xapi.VTPM_create({ VM: vmRef, contents })
+  }
+
   const vm = await xapi.getRecord('VM', vmRef)
   await Promise.all([
     vmRecord.ha_always_run && xapi.setField('VM', vmRef, 'ha_always_run', true),
