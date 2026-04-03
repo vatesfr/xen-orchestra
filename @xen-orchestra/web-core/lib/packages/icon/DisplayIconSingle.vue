@@ -5,6 +5,7 @@
     class="display-icon-single"
     :class="spinClass"
     v-bind="icon.bindings"
+    :style="color != undefined ? { color } : undefined"
   >
     <path
       v-for="(path, index) of icon.paths"
@@ -23,6 +24,7 @@ import { computed } from 'vue'
 
 const { icon } = defineProps<{
   icon: IconSingle
+  color?: string
   stroke?: string
 }>()
 
