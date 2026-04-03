@@ -1,40 +1,42 @@
 <!-- v7 -->
 <template>
-  <button
-    id="removeChip"
-    :class="classNames"
-    class="ui-chip typo-body-regular-small"
-    type="button"
-    :aria-disabled="disabled"
-    @click="!disabled && emit('remove')"
-  >
-    <span class="text-ellipsis">
+  <span id="removeChip" :class="classNames" class="ui-chip typo-body-regular-small" type="button" @click="emit('edit')">
+    <span class="content text-ellipsis">
       <slot />
     </span>
-    <VtsIcon v-if="!disabled" name="action:close-cancel-clear" size="small" :color="iconColor" />
-  </button>
+    <UiButtonIcon
+      :accent="buttonAccent"
+      icon="action:close-cancel-clear"
+      size="small"
+      :icon-color="iconColor"
+      :aria-disabled="disabled"
+      @click="!disabled && emit('remove')"
+    />
+  </span>
 </template>
 
 <script lang="ts" setup>
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { useMapper } from '@core/packages/mapper'
 import { toVariants } from '@core/utils/to-variants.util'
 import { computed } from 'vue'
 
 export type ChipAccent = 'info' | 'success' | 'warning' | 'danger'
-
 const { accent, disabled } = defineProps<{
   accent: ChipAccent
   disabled?: boolean
 }>()
 
 const emit = defineEmits<{
+  edit: []
   remove: []
 }>()
 
 defineSlots<{
   default(): any
 }>()
+
+const buttonAccent = computed(() => (accent === 'info' || accent === 'success' ? 'brand' : accent))
 
 const classNames = computed(() => {
   return [
@@ -61,6 +63,7 @@ const iconColor = useMapper(
 .ui-chip {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.8rem;
   padding: 0.4rem 0.8rem;
   border-radius: 10rem;
@@ -71,6 +74,25 @@ const iconColor = useMapper(
   white-space: nowrap;
   min-width: 0;
   border: none;
+
+  .content {
+    line-height: 1.6rem;
+    height: 2.24rem;
+    display: flex;
+    align-items: center;
+  }
+
+  .ui-button-icon {
+    border-radius: calc(10rem - 0.8rem);
+  }
+
+  .ui-button-icon:focus-visible::before {
+    border: none;
+  }
+
+  .ui-button-icon:focus-visible {
+    outline: none;
+  }
 
   &:focus-visible {
     outline: none;
@@ -90,6 +112,10 @@ const iconColor = useMapper(
     border-color: var(--color-brand-txt-base);
   }
 
+  &:has(.ui-button-icon:focus-visible)::after {
+    border-color: var(--color-brand-txt-base);
+  }
+
   &.muted {
     color: var(--color-neutral-txt-secondary);
     background-color: var(--color-info-item-disabled);
@@ -101,14 +127,6 @@ const iconColor = useMapper(
   &.accent--info {
     background-color: var(--color-info-background-selected);
 
-    &:is(:hover, :focus-visible) {
-      background-color: var(--color-info-background-hover);
-    }
-
-    &:active {
-      background-color: var(--color-info-background-active);
-    }
-
     &.muted {
       background-color: var(--color-info-item-disabled);
     }
@@ -116,14 +134,6 @@ const iconColor = useMapper(
 
   &.accent--success {
     background-color: var(--color-success-background-selected);
-
-    &:is(:hover, :focus-visible) {
-      background-color: var(--color-success-background-hover);
-    }
-
-    &:active {
-      background-color: var(--color-success-background-active);
-    }
 
     &.muted {
       background-color: var(--color-success-item-disabled);
@@ -133,14 +143,6 @@ const iconColor = useMapper(
   &.accent--warning {
     background-color: var(--color-warning-background-selected);
 
-    &:is(:hover, :focus-visible) {
-      background-color: var(--color-warning-background-hover);
-    }
-
-    &:active {
-      background-color: var(--color-warning-background-active);
-    }
-
     &.muted {
       background-color: var(--color-warning-item-disabled);
     }
@@ -148,14 +150,6 @@ const iconColor = useMapper(
 
   &.accent--danger {
     background-color: var(--color-danger-background-selected);
-
-    &:is(:hover, :focus-visible) {
-      background-color: var(--color-danger-background-hover);
-    }
-
-    &:active {
-      background-color: var(--color-danger-background-active);
-    }
 
     &.muted {
       background-color: var(--color-danger-item-disabled);
