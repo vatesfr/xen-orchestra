@@ -26,4 +26,4 @@ export const IK_INPUT_WRAPPER_CONTROLLER = Symbol('IK_INPUT_WRAPPER_CONTROLLER')
 
 export const IK_MODAL_ACCENT = Symbol('IK_MODAL_ACCENT') as InjectionKey<ComputedRef<ModalAccent>>
 
-export const IK_ACCORDION = Symbol('IK_ACCORDION') as InjectionKey<UiAccordionController>
+export const IK_ACCORDION = Symbol('IK_ACCORDION') as InjectionKey<ComputedRef<UiAccordionController | undefined>>
