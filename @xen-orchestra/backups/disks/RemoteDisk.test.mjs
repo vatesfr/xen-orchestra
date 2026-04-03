@@ -910,13 +910,12 @@ describe('tests MergeRemoteDisk', { concurrency: 1 }, () => {
 
     const mergeRemoteDisk = new MergeRemoteDisk(handler, { removeUnused: true, writeStateDelay: 0 })
 
-    const isResumingMerge = await mergeRemoteDisk.isResuming(parent)
-    assert.ok(!isResumingMerge, 'merge is not resuming')
+    assert.ok(!(await mergeRemoteDisk.isResuming(parent)), 'merge is not resuming')
 
-    await parent.init({ force: isResumingMerge })
-    await child1.init({ force: isResumingMerge })
-    await child2.init({ force: isResumingMerge })
-    await childDiskChain.init({ force: isResumingMerge })
+    await parent.init({ force: false })
+    await child1.init({ force: false })
+    await child2.init({ force: false })
+    await childDiskChain.init({ force: false })
 
     // Make writeBlock fail, the state file is already written
     parent.writeBlock = async () => {
@@ -949,13 +948,12 @@ describe('tests MergeRemoteDisk', { concurrency: 1 }, () => {
     const child2b = new RemoteVhdDisk({ handler, path: `${basePath}/child_2.vhd` })
     const childDiskChain2 = new RemoteVhdDiskChain({ disks: [child1b, child2b] })
 
-    const isResumingMerge2 = await mergeRemoteDisk.isResuming(parent2)
-    assert.ok(isResumingMerge2, 'merge should be resuming')
+    assert.ok(await mergeRemoteDisk.isResuming(parent2), 'merge should be resuming')
 
-    await parent2.init({ force: isResumingMerge2 })
-    await child1b.init({ force: isResumingMerge2 })
-    await child2b.init({ force: isResumingMerge2 })
-    await childDiskChain2.init({ force: isResumingMerge2 })
+    await parent2.init({ force: true })
+    await child1b.init({ force: true })
+    await child2b.init({ force: true })
+    await childDiskChain2.init({ force: true })
 
     const result = await mergeRemoteDisk.merge(parent2, childDiskChain2)
 
