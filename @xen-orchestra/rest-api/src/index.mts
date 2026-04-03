@@ -9,7 +9,7 @@ import { RegisterRoutes } from './open-api/routes/routes.js'
 import { setupContainer } from './ioc/ioc.mjs'
 import { setupApiContext } from './middlewares/authentication.middleware.mjs'
 import { logMiddleware } from './middlewares/log.middleware.mjs'
-import type { OpenAPIV3 } from 'openapi-types'
+import { type OpenAPIV3 } from 'openapi-types'
 import { createExternalRouter, sendObjects } from './router/external-router.mjs'
 
 export * from './open-api/common/response.common.mjs'
