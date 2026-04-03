@@ -68,7 +68,7 @@ export class RemoteDisk extends RandomAccessDisk {
   /**
    * Either returns an array of disk paths for disk chains or undefined for simple disks.
    *
-   * @returns {string[] | undefined}
+   * @returns {string[]}
    */
   getPaths() {
     throw new Error(`getPaths must be implemented`)
