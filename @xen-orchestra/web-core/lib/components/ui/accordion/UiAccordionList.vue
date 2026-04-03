@@ -7,7 +7,9 @@
 
 <script setup lang="ts">
 import { IK_ACCORDION } from '@core/utils/injection-keys.util.ts'
-import { ref, provide, reactive } from 'vue'
+import { ref, provide, reactive, computed } from 'vue'
+
+const { unique } = defineProps<{ unique?: boolean }>()
 
 const expandedKey = ref<string | null>(null)
 
@@ -20,13 +22,20 @@ export type UiAccordionController = {
   toggle: (key: string) => void
 }
 
-provide(
-  IK_ACCORDION,
-  reactive({
-    expandedKey,
-    toggle,
-  })
-)
+const controllerRef = computed(() => {
+  if (unique) {
+    return reactive({
+      get expandedKey() {
+        return expandedKey.value
+      },
+      toggle,
+    })
+  } else {
+    return undefined
+  }
+})
+
+provide(IK_ACCORDION, controllerRef)
 </script>
 
 <style scoped lang="postcss">
