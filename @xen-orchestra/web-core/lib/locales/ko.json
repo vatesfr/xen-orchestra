@@ -1,4 +1,5 @@
 {
+  "accept-self-signed-certificates": "자체 서명 인증서 허용",
   "action:open-console-in-new-tab": "새 탭에서 콘솔 열기",
   "action:save": "저장",
   "action:search": "검색",
@@ -161,6 +162,7 @@
   "theme-monokai": "Monokai",
   "theme-nord": "Nord",
   "theme-solarized": "Solarized",
+  "untranslated-text-helper": "기본적으로, 번역되지 않은 텍스트는 영어로 표시됩니다.",
   "uuid": "UUID",
   "vga": "VGA",
   "viridian": "Viridian",
