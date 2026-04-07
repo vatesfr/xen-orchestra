@@ -7,10 +7,10 @@
 
 import { createLogger } from '@xen-orchestra/log'
 
-import type { HostStatusItem, LabelLookupData, SrDataItem, XoMetricsData } from './index.mjs'
+import type { HostStatusItem, LabelLookupData, SrDataItem, VdiDataItem, XoMetricsData } from './index.mjs'
 import type { ParsedMetric, ParsedRrdData } from './rrd-parser.mjs'
 
-export type { HostStatusItem, SrDataItem, XoMetricsData }
+export type { HostStatusItem, SrDataItem, VdiDataItem, XoMetricsData }
 
 const logger = createLogger('xo:xo-server-openmetrics:formatter')
 
@@ -452,6 +452,27 @@ export const SR_METRICS: MetricDefinition[] = [
     openMetricName: 'sr_physical_usage_bytes',
     type: 'gauge',
     help: 'SR physical space used in bytes',
+  },
+]
+
+/**
+ * VDI disk metric definitions.
+ *
+ * These metrics are derived from XO VDI objects, not RRD data.
+ * They provide per-VDI disk size information for monitoring.
+ */
+export const VDI_METRICS: MetricDefinition[] = [
+  {
+    test: 'virtual_size',
+    openMetricName: 'vdi_virtual_size_bytes',
+    type: 'gauge',
+    help: 'VDI virtual size in bytes',
+  },
+  {
+    test: 'physical_usage',
+    openMetricName: 'vdi_physical_usage_bytes',
+    type: 'gauge',
+    help: 'VDI physical space used in bytes (allocated on SR)',
   },
 ]
 
@@ -941,6 +962,67 @@ export function formatSrMetrics(srDataList: SrDataItem[]): FormattedMetric[] {
       type: 'gauge',
       labels: { ...baseLabels },
       value: sr.physical_usage,
+      timestamp,
+    })
+  }
+
+  return metrics
+}
+
+/**
+ * Format VDI disk size metrics.
+ *
+ * Creates two FormattedMetric entries per VDI:
+ * - virtual_size_bytes (virtual disk size)
+ * - physical_usage_bytes (actual space allocated on SR)
+ *
+ * Labels include pool, SR, VDI identifiers, and optionally VM info if attached.
+ *
+ * @param vdiDataList - Array of VDI data with size information
+ * @returns Array of FormattedMetric entries for VDI disk sizes
+ */
+export function formatVdiMetrics(vdiDataList: VdiDataItem[]): FormattedMetric[] {
+  const metrics: FormattedMetric[] = []
+  const timestamp = Math.floor(Date.now() / 1000)
+
+  for (const vdi of vdiDataList) {
+    const baseLabels: Record<string, string> = {
+      pool_id: vdi.pool_id,
+      sr_uuid: vdi.sr_uuid,
+      sr_name: vdi.sr_name,
+      vdi_uuid: vdi.uuid,
+      vdi_name: vdi.name_label,
+    }
+
+    if (vdi.pool_name !== '') {
+      baseLabels.pool_name = vdi.pool_name
+    }
+
+    // Add VM labels if VDI is attached to a VM
+    if (vdi.vm_uuid !== undefined) {
+      baseLabels.vm_uuid = vdi.vm_uuid
+    }
+    if (vdi.vm_name !== undefined) {
+      baseLabels.vm_name = vdi.vm_name
+    }
+
+    // Virtual size
+    metrics.push({
+      name: `${METRIC_PREFIX}_vdi_virtual_size_bytes`,
+      help: 'VDI virtual size in bytes',
+      type: 'gauge',
+      labels: { ...baseLabels },
+      value: vdi.size,
+      timestamp,
+    })
+
+    // Physical usage (allocated on SR)
+    metrics.push({
+      name: `${METRIC_PREFIX}_vdi_physical_usage_bytes`,
+      help: 'VDI physical space used in bytes (allocated on SR)',
+      type: 'gauge',
+      labels: { ...baseLabels },
+      value: vdi.usage,
       timestamp,
     })
   }

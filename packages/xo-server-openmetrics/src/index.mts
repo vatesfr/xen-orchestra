@@ -138,6 +138,23 @@ interface SrDataPayload {
   srs: SrDataItem[]
 }
 
+export type VdiDataItem = {
+  uuid: string
+  name_label: string
+  size: number
+  usage: number
+  sr_uuid: string
+  sr_name: string
+  pool_id: string
+  pool_name: string
+  vm_uuid?: string
+  vm_name?: string
+}
+
+interface VdiDataPayload {
+  vdis: VdiDataItem[]
+}
+
 export type HostStatusItem = Pick<XoHost, 'uuid' | 'name_label' | 'power_state' | 'enabled'> & {
   pool_id: string
   pool_name: string
@@ -401,6 +418,16 @@ class OpenMetricsPlugin {
         break
       }
 
+      case 'GET_VDI_DATA': {
+        const vdiData = this.#getVdiData()
+        this.#sendToChildNoWait({
+          type: 'VDI_DATA',
+          requestId: message.requestId,
+          payload: vdiData,
+        })
+        break
+      }
+
       case 'GET_HOST_STATUS': {
         const hostStatus = this.#getHostStatusData()
         this.#sendToChildNoWait({
@@ -583,6 +610,73 @@ class OpenMetricsPlugin {
 
     logger.debug('Returning SR data', { srCount: srs.length })
     return { srs }
+  }
+
+  /**
+   * Get VDI data for disk size metrics.
+   * Returns virtual size and physical usage for all VDIs (excluding snapshots and unmanaged).
+   */
+  #getVdiData(): VdiDataPayload {
+    const vdis: VdiDataItem[] = []
+
+    const allObjects = this.#xo.getObjects() as Record<string, XoObject>
+
+    // Get all pools to resolve pool labels
+    const allPools = this.#xo.getObjects({ filter: { type: 'pool' } }) as Record<string, XoPool>
+    const poolLabelMap = new Map<string, string>()
+    for (const pool of Object.values(allPools)) {
+      poolLabelMap.set(pool.uuid, pool.name_label)
+    }
+
+    // Build VM lookup for resolving attached VMs via VBDs
+    const allVms = this.#xo.getObjects({ filter: { type: 'VM' } }) as Record<string, XoVm>
+
+    // Map VM id -> VM object for quick lookup
+    const vmById = new Map<string, XoVm>()
+    for (const vm of Object.values(allVms)) {
+      vmById.set(vm.id, vm)
+    }
+
+    // Get all VDIs (excluding snapshots and unmanaged)
+    const allVdis = this.#xo.getObjects({ filter: { type: 'VDI' } }) as Record<string, XoVdi>
+
+    for (const vdi of Object.values(allVdis)) {
+      // Resolve SR
+      const srObj = allObjects[vdi.$SR]
+      if (srObj === undefined || srObj.type !== 'SR') {
+        continue
+      }
+      const sr = srObj as XoSr
+
+      const vdiData: VdiDataItem = {
+        uuid: vdi.uuid,
+        name_label: vdi.name_label,
+        size: vdi.size,
+        usage: vdi.usage,
+        sr_uuid: sr.uuid,
+        sr_name: sr.name_label,
+        pool_id: sr.$poolId,
+        pool_name: poolLabelMap.get(sr.$poolId) ?? '',
+      }
+
+      // Resolve attached VM via VBDs (use first found VM)
+      for (const vbdId of vdi.$VBDs) {
+        const vbd = allObjects[vbdId] as XoVbd | undefined
+        if (vbd !== undefined) {
+          const vm = vmById.get(vbd.VM)
+          if (vm !== undefined) {
+            vdiData.vm_uuid = vm.uuid
+            vdiData.vm_name = vm.name_label
+            break
+          }
+        }
+      }
+
+      vdis.push(vdiData)
+    }
+
+    logger.debug('Returning VDI data', { vdiCount: vdis.length })
+    return { vdis }
   }
 
   /**
