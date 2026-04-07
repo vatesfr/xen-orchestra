@@ -53,6 +53,9 @@ export class PciController extends XapiXoController<XoPci> {
   }
 
   /**
+   * Required privilege:
+   * - resource: pci, action: read
+   *
    * @example id "9377b642-cc71-8749-1e71-308898b652da"
    */
   @Example(pci)
