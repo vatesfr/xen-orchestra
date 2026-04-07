@@ -190,7 +190,7 @@ test('it remove backup meta data referencing a missing vhd in delta backup', asy
   assert.equal(matched.length, 2) // all vhds (orphan and  child  ) should have been deleted
 })
 
-test.only('it merges delta of non destroyed chain', async () => {
+test('it merges delta of non destroyed chain', async () => {
   await handler.writeFile(
     `${rootPath}/metadata.json`,
     JSON.stringify({
