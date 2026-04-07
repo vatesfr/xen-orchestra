@@ -1,15 +1,17 @@
-import { SecurityName } from '../middlewares/authentication.middleware.mjs'
-import type { NextFunction, Request, RequestHandler, Response } from 'express'
+import type { SecurityName } from '../middlewares/authentication.middleware.mjs'
+import type { NextFunction, Request, Response } from 'express'
 import { MaybePromise } from '../helpers/helper.type.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 
-// Maps Express body-parser middleware function names to their OpenAPI content type
+// Maps middleware descriptor names to their OpenAPI content type
 export const CONTENT_TYPE_BY_MIDDLEWARE_NAME: Record<string, string> = {
-  jsonParser: 'application/json',
-  urlencodedParser: 'application/x-www-form-urlencoded',
-  textParser: 'text/plain',
-  rawParser: 'application/octet-stream',
+  json: 'application/json',
+  urlencoded: 'application/x-www-form-urlencoded',
+  text: 'text/plain',
+  raw: 'application/octet-stream',
 }
+
+export type MiddlewareDescriptor = { name: 'json' | 'urlencoded' | 'text' | 'raw'; options?: Record<string, unknown> }
 
 export type FieldDefinition =
   | {
@@ -46,7 +48,7 @@ export interface RouteDefinition {
     description: string
     schema?: Record<string, FieldDefinition>
   }>
-  middlewares?: RequestHandler[]
+  middlewares?: MiddlewareDescriptor[]
   callback: (params: { req: Request; res: Response; next: NextFunction; restApi: RestApi }) => MaybePromise<unknown>
   security?: SecurityName
 }
