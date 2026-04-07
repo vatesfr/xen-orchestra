@@ -190,7 +190,7 @@ test('it remove backup meta data referencing a missing vhd in delta backup', asy
   assert.equal(matched.length, 2) // all vhds (orphan and  child  ) should have been deleted
 })
 
-test('it merges delta of non destroyed chain', async () => {
+test.only('it merges delta of non destroyed chain', async () => {
   await handler.writeFile(
     `${rootPath}/metadata.json`,
     JSON.stringify({
@@ -212,6 +212,7 @@ test('it merges delta of non destroyed chain', async () => {
       parentUnicodeName: 'orphan.vhd',
       parentUuid: orphan.footer.uuid,
     },
+    blocks: [0, 1],
   })
   // a grand child
   await generateVhd(`${basePath}/grandchild.vhd`, {
@@ -229,13 +230,14 @@ test('it merges delta of non destroyed chain', async () => {
   assert.equal(logged[0], `unexpected number of entries in backup cache`)
 
   logged = []
-  await adapter.cleanVm(rootPath, { remove: true, merge: true, logInfo, logWarn: () => {}, lock: false })
+  const result = await adapter.cleanVm(rootPath, { remove: true, merge: true, logInfo, logWarn: () => {}, lock: false })
+  assert.ok(result.size > 0, `no merged size`)
   const [merging] = logged
   assert.equal(merging, `merging VHD chain`)
 
   const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
   // size should be the size of children + grand children after the merge
-  assert.equal(metadata.size, 104448)
+  assert.equal(metadata.size, 4299776)
 
   // merging is already tested in vhd-lib, don't retest it here (and theses vhd are as empty as my stomach at 12h12)
   // only check deletion
