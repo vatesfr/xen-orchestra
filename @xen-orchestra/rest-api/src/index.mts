@@ -1,6 +1,6 @@
 import * as swaggerUi from 'swagger-ui-express'
 import { createRequire } from 'module'
-import { type Express } from 'express'
+import type { Express } from 'express'
 import type { XoApp } from '@vates/types/xo-app'
 
 import genericErrorHandler from './middlewares/generic-error-handler.middleware.mjs'

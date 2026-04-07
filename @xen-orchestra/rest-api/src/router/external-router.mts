@@ -1,5 +1,10 @@
-import { CONTENT_TYPE_BY_MIDDLEWARE_NAME, FieldDefinition, RouteDefinition } from './types.mjs'
-import { Router, type Request, type Response } from 'express'
+import {
+  CONTENT_TYPE_BY_MIDDLEWARE_NAME,
+  type FieldDefinition,
+  type MiddlewareDescriptor,
+  type RouteDefinition,
+} from './types.mjs'
+import { Router, json, urlencoded, text, raw, type Request, type Response, type RequestHandler } from 'express'
 import { invalidParameters } from 'xo-common/api-errors.js'
 import { createLogger } from '@xen-orchestra/log'
 import { pipeline } from 'node:stream/promises'
@@ -36,12 +41,13 @@ export function createExternalRouter(swaggerOpenApiSpec: OpenAPIV3.Document): {
     // Format route params for express
     const expressEndpoint = route.endpoint.replace(/{(\w+)}/g, ':$1')
 
-    // Get middlewares
-    const middlewares = route.middlewares ?? []
+    // Resolve middleware descriptors to actual Express RequestHandlers
+    const middlewareDescriptors = route.middlewares ?? []
+    const middlewares = middlewareDescriptors.map(resolveMiddleware)
 
     // Set the body content type based on the used middleware
-    const bodyContentType = middlewares
-      .map(middleware => CONTENT_TYPE_BY_MIDDLEWARE_NAME[middleware.name])
+    const bodyContentType = middlewareDescriptors
+      .map(descriptor => CONTENT_TYPE_BY_MIDDLEWARE_NAME[descriptor.name])
       .find(Boolean)
 
     // Add route to router
@@ -190,6 +196,21 @@ function removePathFromSwagger(path: string, method: string, swaggerOpenApiSpec:
     if (Object.keys(swaggerOpenApiSpec.paths[path]).length === 0) {
       delete swaggerOpenApiSpec.paths[path]
     }
+  }
+}
+
+// Resolve a middleware descriptor to an actual Express RequestHandler
+function resolveMiddleware(descriptor: MiddlewareDescriptor): RequestHandler {
+  const opts = descriptor.options as any
+  switch (descriptor.name) {
+    case 'json':
+      return json(opts)
+    case 'urlencoded':
+      return urlencoded(opts)
+    case 'text':
+      return text(opts)
+    case 'raw':
+      return raw(opts)
   }
 }
 
