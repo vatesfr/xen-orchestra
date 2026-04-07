@@ -97,9 +97,7 @@ You can use custom filters here:
 
 ### Save your search
 
-If you want to record your filter, just click the **Save** icon:
-
-![](./assets/xo5savefilter.png)
+If you want to record your filter, just click on the "Save" icon ![](./assets/xo5savefilter.png)
 
 After giving a name to your filter, you will be able to find it in the dropdown filter menu.
 
