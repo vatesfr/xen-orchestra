@@ -1,5 +1,5 @@
-import { OpenAPIV3 } from 'openapi-types'
-import { FieldDefinition } from '../../router/types.mjs'
+import type { OpenAPIV3 } from 'openapi-types'
+import type { FieldDefinition } from '../../router/types.mjs'
 
 // Build OpenApi schema from our FieldDefinition
 export function buildOpenApiSchema(def: Record<string, FieldDefinition>): OpenAPIV3.SchemaObject {
