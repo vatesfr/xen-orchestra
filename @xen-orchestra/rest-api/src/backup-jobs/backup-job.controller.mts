@@ -95,6 +95,7 @@ export class BackupJobController extends XoController<AnyXoBackupJob> {
   @Example(vmBackupJobIds)
   @Example(partialVmBackupJobs)
   @Get('')
+  @Security('*', ['acl'])
   async getBackupJobs(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -188,6 +189,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
   @Example(partialVmBackupJobs)
   @Deprecated()
   @Get('jobs/vm')
+  @Security('*', ['acl'])
   @Tags('backup-jobs')
   async getVmBackupJobs(
     @Request() req: ExRequest,
@@ -238,6 +240,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
   @Example(partialMetadataBackupJobs)
   @Deprecated()
   @Get('jobs/metadata')
+  @Security('*', ['acl'])
   @Tags('backup-jobs')
   async getMetadataBackupJobs(
     @Request() req: ExRequest,
@@ -279,6 +282,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
   @Example(partialMirrorBackupJobs)
   @Deprecated()
   @Get('jobs/mirror')
+  @Security('*', ['acl'])
   @Tags('backup-jobs')
   async getMirrorBackupJobs(
     @Request() req: ExRequest,
@@ -320,6 +324,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
   @Example(partialBackupLogs)
   @Deprecated()
   @Get('logs')
+  @Security('*', ['acl'])
   @Tags('backup-logs')
   async getDeprecatedBackupLogs(
     @Request() req: ExRequest,

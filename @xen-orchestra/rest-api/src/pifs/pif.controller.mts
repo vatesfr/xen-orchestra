@@ -41,6 +41,7 @@ export class PifController extends XapiXoController<XoPif> {
   @Example(pifIds)
   @Example(partialPifs)
   @Get('')
+  @Security('*', ['acl'])
   getPifs(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -76,6 +77,7 @@ export class PifController extends XapiXoController<XoPif> {
    */
   @Example(genericAlarmsExample)
   @Get('{id}/alarms')
+  @Security('*', ['acl'])
   @Tags('alarms')
   @Response(notFoundResp.status, notFoundResp.description)
   getPifAlarms(
@@ -111,6 +113,7 @@ export class PifController extends XapiXoController<XoPif> {
   @Example(messageIds)
   @Example(partialMessages)
   @Get('{id}/messages')
+  @Security('*', ['acl'])
   @Tags('messages')
   @Response(notFoundResp.status, notFoundResp.description)
   getPifMessages(
@@ -143,6 +146,7 @@ export class PifController extends XapiXoController<XoPif> {
   @Example(taskIds)
   @Example(partialTasks)
   @Get('{id}/tasks')
+  @Security('*', ['acl'])
   @Tags('tasks')
   @Response(notFoundResp.status, notFoundResp.description)
   async getPifTasks(

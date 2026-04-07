@@ -83,6 +83,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   @Example(backupArchiveIds)
   @Example(partialBackupArchives)
   @Get('')
+  @Security('*', ['acl'])
   @Response(notFoundResp.status, notFoundResp.description)
   async getBackupArchives(
     @Request() req: ExRequest,

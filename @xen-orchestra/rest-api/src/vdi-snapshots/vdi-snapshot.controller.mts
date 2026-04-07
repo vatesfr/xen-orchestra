@@ -53,6 +53,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
   @Example(vdiSnapshotIds)
   @Example(partialVdiSnapshots)
   @Get('')
+  @Security('*', ['acl'])
   getVdiSnapshots(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -113,6 +114,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
    */
   @Example(genericAlarmsExample)
   @Get('{id}/alarms')
+  @Security('*', ['acl'])
   @Tags('alarms')
   @Response(notFoundResp.status, notFoundResp.description)
   getVdiSnapshotAlarms(
@@ -159,6 +161,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
   @Example(messageIds)
   @Example(partialMessages)
   @Get('{id}/messages')
+  @Security('*', ['acl'])
   @Tags('messages')
   @Response(notFoundResp.status, notFoundResp.description)
   getVdiSnapshotMessages(
@@ -191,6 +194,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
   @Example(taskIds)
   @Example(partialTasks)
   @Get('{id}/tasks')
+  @Security('*', ['acl'])
   @Tags('tasks')
   @Response(notFoundResp.status, notFoundResp.description)
   async getVdiSnapshotTasks(

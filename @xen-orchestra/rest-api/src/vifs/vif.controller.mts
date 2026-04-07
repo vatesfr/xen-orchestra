@@ -88,6 +88,7 @@ export class VifController extends XapiXoController<XoVif> {
   @Example(vifIds)
   @Example(partialVifs)
   @Get('')
+  @Security('*', ['acl'])
   getVifs(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -128,6 +129,7 @@ export class VifController extends XapiXoController<XoVif> {
    */
   @Example(genericAlarmsExample)
   @Get('{id}/alarms')
+  @Security('*', ['acl'])
   @Tags('alarms')
   @Response(notFoundResp.status, notFoundResp.description)
   getVifAlarms(
@@ -163,6 +165,7 @@ export class VifController extends XapiXoController<XoVif> {
   @Example(messageIds)
   @Example(partialMessages)
   @Get('{id}/messages')
+  @Security('*', ['acl'])
   @Tags('messages')
   @Response(notFoundResp.status, notFoundResp.description)
   getVifMessages(
@@ -195,6 +198,7 @@ export class VifController extends XapiXoController<XoVif> {
   @Example(taskIds)
   @Example(partialTasks)
   @Get('{id}/tasks')
+  @Security('*', ['acl'])
   @Tags('tasks')
   @Response(notFoundResp.status, notFoundResp.description)
   async getVifTasks(

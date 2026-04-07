@@ -58,6 +58,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
   @Example(vmControllerIds)
   @Example(partialVmControllers)
   @Get('')
+  @Security('*', ['acl'])
   getVmControllers(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -93,6 +94,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
    */
   @Example(genericAlarmsExample)
   @Get('{id}/alarms')
+  @Security('*', ['acl'])
   @Tags('alarms')
   @Response(notFoundResp.status, notFoundResp.description)
   getVmControllerAlarms(
@@ -127,6 +129,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
    */
   @Example(vmControllerVdis)
   @Get('{id}/vdis')
+  @Security('*', ['acl'])
   @Tags('vdis')
   @Response(notFoundResp.status, notFoundResp.description)
   getVmControllerVdis(
@@ -158,6 +161,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
   @Example(messageIds)
   @Example(partialMessages)
   @Get('{id}/messages')
+  @Security('*', ['acl'])
   @Tags('messages')
   @Response(notFoundResp.status, notFoundResp.description)
   getVmControllerMessages(
@@ -190,6 +194,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
   @Example(taskIds)
   @Example(partialTasks)
   @Get('{id}/tasks')
+  @Security('*', ['acl'])
   @Tags('tasks')
   @Response(notFoundResp.status, notFoundResp.description)
   async getVmControllerTasks(

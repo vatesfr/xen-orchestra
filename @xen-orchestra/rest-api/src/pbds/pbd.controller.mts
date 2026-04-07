@@ -43,6 +43,7 @@ export class PbdController extends XapiXoController<XoPbd> {
   @Example(pbdIds)
   @Example(partialPbds)
   @Get('')
+  @Security('*', ['acl'])
   getPbds(
     @Request() req: ExRequest,
     @Query() fields?: string,

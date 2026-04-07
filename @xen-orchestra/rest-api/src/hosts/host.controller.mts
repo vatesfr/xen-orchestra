@@ -97,6 +97,7 @@ export class HostController extends XapiXoController<XoHost> {
   @Example(hostIds)
   @Example(partialHosts)
   @Get('')
+  @Security('*', ['acl'])
   getHosts(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -196,6 +197,7 @@ export class HostController extends XapiXoController<XoHost> {
    */
   @Example(genericAlarmsExample)
   @Get('{id}/alarms')
+  @Security('*', ['acl'])
   @Tags('alarms')
   @Response(notFoundResp.status, notFoundResp.description)
   getHostAlarms(
@@ -263,6 +265,7 @@ export class HostController extends XapiXoController<XoHost> {
   @Example(messageIds)
   @Example(partialMessages)
   @Get('{id}/messages')
+  @Security('*', ['acl'])
   @Tags('messages')
   @Response(notFoundResp.status, notFoundResp.description)
   getHostMessages(
@@ -295,6 +298,7 @@ export class HostController extends XapiXoController<XoHost> {
   @Example(taskIds)
   @Example(partialTasks)
   @Get('{id}/tasks')
+  @Security('*', ['acl'])
   @Tags('tasks')
   @Response(notFoundResp.status, notFoundResp.description)
   async getHostTasks(

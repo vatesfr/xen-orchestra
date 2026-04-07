@@ -70,6 +70,7 @@ export class VbdController extends XapiXoController<XoVbd> {
   @Example(vbdIds)
   @Example(partialVbds)
   @Get('')
+  @Security('*', ['acl'])
   getVbds(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -164,6 +165,7 @@ export class VbdController extends XapiXoController<XoVbd> {
    */
   @Example(genericAlarmsExample)
   @Get('{id}/alarms')
+  @Security('*', ['acl'])
   @Tags('alarms')
   @Response(notFoundResp.status, notFoundResp.description)
   getVbdAlarms(
@@ -199,6 +201,7 @@ export class VbdController extends XapiXoController<XoVbd> {
   @Example(messageIds)
   @Example(partialMessages)
   @Get('{id}/messages')
+  @Security('*', ['acl'])
   @Tags('messages')
   @Response(notFoundResp.status, notFoundResp.description)
   getVbdMessages(
@@ -231,6 +234,7 @@ export class VbdController extends XapiXoController<XoVbd> {
   @Example(taskIds)
   @Example(partialTasks)
   @Get('{id}/tasks')
+  @Security('*', ['acl'])
   @Tags('tasks')
   @Response(notFoundResp.status, notFoundResp.description)
   async getVbdTasks(

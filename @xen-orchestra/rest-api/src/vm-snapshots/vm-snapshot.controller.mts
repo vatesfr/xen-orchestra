@@ -61,6 +61,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   @Example(vmSnapshotIds)
   @Example(partialVmSnapshots)
   @Get('')
+  @Security('*', ['acl'])
   getVmSnapshots(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -136,6 +137,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
    */
   @Example(genericAlarmsExample)
   @Get('{id}/alarms')
+  @Security('*', ['acl'])
   @Tags('alarms')
   @Response(notFoundResp.status, notFoundResp.description)
   getVmSnapshotAlarms(
@@ -170,6 +172,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
    */
   @Example(vmSnapshotVdis)
   @Get('{id}/vdis')
+  @Security('*', ['acl'])
   @Tags('vdis')
   @Response(notFoundResp.status, notFoundResp.description)
   getVmSnapshotVdis(
@@ -201,6 +204,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   @Example(messageIds)
   @Example(partialMessages)
   @Get('{id}/messages')
+  @Security('*', ['acl'])
   @Tags('messages')
   @Response(notFoundResp.status, notFoundResp.description)
   getVmSnapshotsMessages(
@@ -233,6 +237,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   @Example(taskIds)
   @Example(partialTasks)
   @Get('{id}/tasks')
+  @Security('*', ['acl'])
   @Tags('tasks')
   @Response(notFoundResp.status, notFoundResp.description)
   async getVmSnapshotTasks(

@@ -32,6 +32,7 @@ export class SmController extends XapiXoController<XoSm> {
   @Example(smIds)
   @Example(partialSms)
   @Get('')
+  @Security('*', ['acl'])
   getSrs(
     @Request() req: ExRequest,
     @Query() fields?: string,

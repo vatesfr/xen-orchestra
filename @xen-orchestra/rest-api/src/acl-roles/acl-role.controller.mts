@@ -68,6 +68,7 @@ export class AclRoleController extends XoController<XoAclRole> {
   @Example(aclRoleIds)
   @Example(partialAclRoles)
   @Get('')
+  @Security('*', ['acl'])
   async getAclV2Roles(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -191,6 +192,7 @@ export class AclRoleController extends XoController<XoAclRole> {
   @Example(aclPrivilegeIds)
   @Example(partialAclPrivileges)
   @Get('{id}/privileges')
+  @Security('*', ['acl'])
   @Response(notFoundResp.status, notFoundResp.description)
   async getAclV2RolePrivileges(
     @Request() req: ExRequest,
@@ -200,14 +202,14 @@ export class AclRoleController extends XoController<XoAclRole> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<AnyPrivilege>>> {
-    const privileges = (await this.restApi.xoApp.getAclV2RolePrivileges(id as XoAclRole['id']))
+    const privileges = await this.restApi.xoApp.getAclV2RolePrivileges(id as XoAclRole['id'])
     return this.sendObjects(limitAndFilterArray(privileges, { filter }), req, {
       path: 'acl-privileges',
       limit,
       privilege: { resource: 'acl-privilege', action: 'read' },
     })
   }
-  
+
   /**
    * Attach an ACL V2 role to a group.
    *

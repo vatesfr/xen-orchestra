@@ -72,6 +72,7 @@ export class TaskController extends XoController<XoTask> {
   @Example(taskIds)
   @Example(partialTasks)
   @Get('')
+  @Security('*', ['acl'])
   @Response(badRequestResp.status, badRequestResp.description)
   async getTasks(
     @Request() req: ExRequest,
