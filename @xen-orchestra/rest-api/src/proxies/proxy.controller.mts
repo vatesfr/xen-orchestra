@@ -33,6 +33,7 @@ export class ProxyController extends XoController<XoProxy> {
   @Example(proxyIds)
   @Example(partialProxies)
   @Get('')
+  @Security('*', ['acl'])
   async getProxies(
     @Request() req: ExRequest,
     @Query() fields?: string,

@@ -51,6 +51,7 @@ export class BackupLogController extends XoController<XoBackupLog> {
   @Example(backupLogIds)
   @Example(partialBackupLogs)
   @Get('')
+  @Security('*', ['acl'])
   async getBackupLogs(
     @Request() req: ExRequest,
     @Query() fields?: string,

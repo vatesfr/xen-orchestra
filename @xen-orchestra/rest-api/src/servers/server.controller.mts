@@ -63,6 +63,7 @@ export class ServerController extends XoController<XoServer> {
   @Example(serverIds)
   @Example(partialServers)
   @Get('')
+  @Security('*', ['acl'])
   async getServers(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -172,6 +173,7 @@ export class ServerController extends XoController<XoServer> {
   @Example(taskIds)
   @Example(partialTasks)
   @Get('{id}/tasks')
+  @Security('*', ['acl'])
   @Tags('tasks')
   @Response(notFoundResp.status, notFoundResp.description)
   async getServerTasks(

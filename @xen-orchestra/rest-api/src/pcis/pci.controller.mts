@@ -32,6 +32,7 @@ export class PciController extends XapiXoController<XoPci> {
   @Example(pciIds)
   @Example(partialPcis)
   @Get('')
+  @Security('*', ['acl'])
   getPcis(
     @Request() req: ExRequest,
     @Query() fields?: string,

@@ -38,6 +38,7 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   @Example(backupRepositoryIds)
   @Example(partialBackupRepositories)
   @Get('')
+  @Security('*', ['acl'])
   async getRepositories(
     @Request() req: ExRequest,
     @Query() fields?: string,

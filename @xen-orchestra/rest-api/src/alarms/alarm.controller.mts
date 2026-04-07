@@ -59,6 +59,7 @@ export class AlarmController extends XapiXoController<XoAlarm> {
   @Example(alarmIds)
   @Example(partialAlarms)
   @Get('')
+  @Security('*', ['acl'])
   getAlarms(
     @Request() req: ExRequest,
     @Query() fields?: string,
