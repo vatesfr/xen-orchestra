@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard" :class="{ mobile: isSmall }">
+  <div class="dashboard" :class="{ mobile: uiStore.isSmall }">
     <VmDashboardQuickInfo class="quick-info" :vm />
     <div v-if="!isVmRunning" class="offline-hero-container">
       <VtsStateHero format="page" type="offline" size="large" horizontal>
@@ -18,7 +18,7 @@
       <VmDashboardBackupArchives class="backup-archives" :vm-dashboard :has-error />
       <VmDashboardBackupReplication class="backup-replication" :vm-dashboard :has-error />
       <DashboardAlarms
-        :class="alarmHero ? 'alarms-hero' : 'alarms'"
+        class="alarms"
         :alarms="vmAlarms"
         :is-ready="areVmAlarmsReady"
         :has-error="hasVmAlarmFetchError"
@@ -66,9 +66,7 @@ const { vmAlarms, areVmAlarmsReady, hasVmAlarmFetchError } = useXoVmAlarmsCollec
 
 const isVmRunning = computed(() => vm.power_state === VM_POWER_STATE.RUNNING)
 
-const alarmHero = computed(() => areVmAlarmsReady.value || hasVmAlarmFetchError.value || vmAlarms.value.length === 0)
-
-const { isSmall } = useUiStore()
+const uiStore = useUiStore()
 
 const { t } = useI18n()
 </script>
@@ -90,8 +88,7 @@ const { t } = useI18n()
     grid-area: quick-info;
   }
 
-  .alarms,
-  .alarms-hero {
+  .alarms {
     grid-area: alarms;
     max-height: 46.2rem;
   }
