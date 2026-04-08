@@ -127,15 +127,13 @@ export class VmBackupDirectory implements VmBackupInterface {
       lineage.setActiveDiskPaths(this.#activeDiskPaths)
       await lineage.check()
     }
-    const allUsedFiles = Array.from(this.backupArchives.values()).flatMap(archive =>
-      archive.getAssociatedFiles({ prefix: true })
-    )
-    allUsedFiles.push(...this.getAssociatedFiles({ prefix: true }))
-    const orphans = Array<string>()
-    for (const file of this.files.filter(file => !allUsedFiles.includes(file))) {
-      orphans.push(file)
-    }
-    this.#checkResult = { isValid: orphans.length === 0, orphans, linked: allUsedFiles }
+    const allUsedFiles = new Set<string>([
+      ...Array.from(this.backupArchives.values()).flatMap(archive => archive.getAssociatedFiles({ prefix: true })),
+      ...this.getAssociatedFiles({ prefix: true }),
+    ])
+    const orphans = this.files.filter(file => !allUsedFiles.has(file))
+    const linked = Array.from(allUsedFiles)
+    this.#checkResult = { isValid: orphans.length === 0, orphans, linked }
     return this.#checkResult
   }
 
