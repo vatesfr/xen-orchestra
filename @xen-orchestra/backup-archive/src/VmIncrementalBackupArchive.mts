@@ -64,7 +64,6 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
       }
 
       this.#isComplete = missingDisks.length === 0
-      this.#isChecked = true
       if (!this.#isComplete) {
         this.opts.logWarn('incremental backup is incomplete', { metadataPath: this.metadataPath, missingDisks })
       }
