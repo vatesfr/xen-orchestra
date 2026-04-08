@@ -4,6 +4,7 @@ import { FileDescriptor } from '@xen-orchestra/fs'
 import {
   ArchiveCleanOptions,
   CheckResult,
+  CleanResult,
   VmBackupInterface,
   PartialBackupMetadata,
   ResolvedBackupCleanOptions,
@@ -119,14 +120,14 @@ export class VmFullBackupArchive implements VmBackupInterface {
    * @param opts { remove: boolean }
    * @returns
    */
-  async clean({ remove = this.opts.remove ?? false }: ArchiveCleanOptions = {}) {
+  async clean({ remove = this.opts.remove ?? false }: ArchiveCleanOptions = {}): Promise<CleanResult> {
     await this.check()
-    let filesToRemove: Array<string> = []
+    const removedFiles: string[] = []
     if (!this.isValid) {
-      filesToRemove = [this.metadataPath, this.xvaPath, `${this.xvaPath}.checksum`]
+      removedFiles.push(this.metadataPath, this.xvaPath, `${this.xvaPath}.checksum`)
     }
     if (remove) {
-      for (const file of filesToRemove) {
+      for (const file of removedFiles) {
         try {
           await this.handler.unlink(file)
         } catch (error) {
@@ -134,7 +135,7 @@ export class VmFullBackupArchive implements VmBackupInterface {
         }
       }
     }
-    return filesToRemove
+    return { removedFiles, merge: false }
   }
 
   getAssociatedFiles({ prefix = false }): Array<string> {
