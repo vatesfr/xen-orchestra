@@ -107,7 +107,9 @@ export class VmBackupDirectory implements VmBackupInterface {
     return prefix ? files : files.map(file => basename(file))
   }
 
-  async check() {
+  async check(): Promise<CheckResult & { orphans: string[]; linked: string[] }> {
+    await this.#checkCacheCount()
+
     for (const backupArchive of this.backupArchives.values()) {
       await backupArchive.check()
     }
@@ -207,6 +209,16 @@ export class VmBackupDirectory implements VmBackupInterface {
     }
 
     return orphans
+  }
+
+  async #checkCacheCount(): Promise<void> {
+    const cachePath = `${this.rootPath}/cache.json.gz`
+    const existingCache = await this.#remoteAdapter._readCache(cachePath)
+    const actual = existingCache === undefined ? 0 : Object.keys(existingCache).length
+    const expected = this.backupArchives.size
+    if (actual !== expected) {
+      this.opts.logWarn('unexpected number of entries in backup cache', { path: cachePath, actual, expected })
+    }
   }
 
   async #regenerateCache(): Promise<void> {
