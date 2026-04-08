@@ -29,9 +29,14 @@ const FIBONACCI_MS_ARRAY: number[] = Array.from(fibonacci().toMs().take(N_TOTAL_
 
 const consoleContainer = useTemplateRef<HTMLDivElement | null>('console-container')
 const isReady = ref(false)
+const clipboardText = ref('')
 
 let vncClient: VncClient | undefined
 let nConnectionAttempts = 0
+
+function handleClipboardEvent(event: CustomEvent<{ text: string }>) {
+  clipboardText.value = event.detail.text
+}
 
 function handleDisconnectionEvent() {
   clearVncClient()
@@ -65,6 +70,7 @@ function clearVncClient() {
 
   vncClient.removeEventListener('disconnect', handleDisconnectionEvent)
   vncClient.removeEventListener('connect', handleConnectionEvent)
+  vncClient.removeEventListener('clipboard', handleClipboardEvent)
   vncClient.disconnect()
 
   vncClient = undefined
@@ -88,6 +94,7 @@ async function createVncConnection() {
 
   vncClient.addEventListener('disconnect', handleDisconnectionEvent)
   vncClient.addEventListener('connect', handleConnectionEvent)
+  vncClient.addEventListener('clipboard', handleClipboardEvent)
   const canvas = consoleContainer.value?.querySelector('canvas') as HTMLCanvasElement | null
   if (canvas !== null) {
     // Todo: See with Clémence to specify the desired focus behavior
@@ -129,8 +136,42 @@ onBeforeUnmount(() => {
   clearVncClient()
 })
 
+function sendTextAsKeys(text: string) {
+  if (vncClient === undefined) {
+    return
+  }
+
+  for (const char of text) {
+    const codePoint = char.codePointAt(0)
+
+    if (codePoint === undefined) {
+      continue
+    }
+
+    let keysym: number
+    if (char === '\n' || char === '\r') {
+      keysym = 0xff0d // XK_Return
+    } else if (codePoint >= 0x20 && codePoint <= 0x7e) {
+      keysym = codePoint // printable ASCII only — non-ASCII chars depend on host keyboard layout
+    } else {
+      continue
+    }
+    vncClient.sendKey(keysym, null)
+  }
+}
+
+function sendClipboard(text: string) {
+  if (vncClient === undefined) {
+    return
+  }
+  vncClient.clipboardPasteFrom(text)
+}
+
 defineExpose({
   sendCtrlAltDel: () => vncClient?.sendCtrlAltDel(),
+  sendClipboard,
+  sendTextAsKeys,
+  clipboardText,
 })
 </script>
 

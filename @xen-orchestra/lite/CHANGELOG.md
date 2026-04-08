@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **Next**
+
+- [VM/Console] Add clipboard management for VM and host consoles [#9593](https://github.com/vatesfr/xen-orchestra/pull/9593)
+
 ## **0.20.0** (2026-04-01)
 
 - [VM/New] Added secureBoot support (PR [#9423](https://github.com/vatesfr/xen-orchestra/pull/9423))
