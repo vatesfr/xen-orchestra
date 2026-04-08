@@ -8,6 +8,7 @@ import {
   ArchiveCleanOptions,
   BackupCleanOptions,
   CheckResult,
+  CleanResult,
   VmBackupInterface,
   PartialBackupMetadata,
   ResolvedBackupCleanOptions,
@@ -139,7 +140,10 @@ export class VmBackupDirectory implements VmBackupInterface {
     return this.#checkResult
   }
 
-  async clean({ remove = this.opts.remove ?? false }: ArchiveCleanOptions = {}) {
+  async clean({
+    remove = this.opts.remove ?? false,
+    merge = this.opts.merge ?? false,
+  }: ArchiveCleanOptions = {}): Promise<CleanResult> {
     // Use cached check result if available, otherwise run check now
     const { orphans } = this.#checkResult ?? (await this.check())
 
@@ -148,7 +152,7 @@ export class VmBackupDirectory implements VmBackupInterface {
     await asyncEach(
       Array.from(this.backupArchives.values()),
       async (archive: VmBackupInterface) => {
-        const removedFiles = await archive.clean({ remove })
+        const { removedFiles } = await archive.clean({ remove })
         if (removedFiles.length > 0) {
           cacheNeedsRegen = true
         }
@@ -161,7 +165,7 @@ export class VmBackupDirectory implements VmBackupInterface {
     await asyncEach(
       Array.from(this.diskLineages.values()),
       async lineage => {
-        const { mergedSizes, deleted } = await lineage.clean()
+        const { mergedSizes, deleted } = await lineage.clean({ remove, merge })
         if (deleted.size > 0) {
           cacheNeedsRegen = true
         }
@@ -208,7 +212,7 @@ export class VmBackupDirectory implements VmBackupInterface {
       )
     }
 
-    return orphans
+    return { removedFiles: orphans, merge: allMergedSizes.size > 0 }
   }
 
   async #checkCacheCount(): Promise<void> {
@@ -279,6 +283,7 @@ export class VmBackupDirectory implements VmBackupInterface {
     const dir = new VmBackupDirectory(handler, vmBackupPath, cleanOpts)
     await dir.init()
     await dir.check()
-    await dir.clean({ remove: cleanOpts.remove })
+    const { merge } = await dir.clean({ remove: cleanOpts.remove, merge: cleanOpts.merge })
+    return { merge }
   }
 }
