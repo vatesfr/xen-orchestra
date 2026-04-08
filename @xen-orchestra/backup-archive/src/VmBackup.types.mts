@@ -1,4 +1,3 @@
-import { RemoteDisk } from '@xen-orchestra/backups/disks'
 import RemoteHandlerAbstract from '@xen-orchestra/fs'
 import { basename } from 'node:path'
 
@@ -21,7 +20,7 @@ export function isVhdAlias(filename: string) {
   return filename.endsWith('.alias.vhd')
 }
 export function isDiskFile(filename: string) {
-  return isVhdFile(filename) && !basename(filename).startsWith('.')
+  return isVhdFile(filename)
 }
 export type AnomalyReport = {
   multipleChildren: Array<string>
@@ -47,6 +46,8 @@ export interface BackupCleanOptions {
   fix?: boolean
   merge?: boolean
   remove?: boolean
+  mergeBlockConcurrency?: number
+  onProgress?: (progress: { total: number; done: number }) => void
   logInfo?: (message: any, opts?: object) => void
   logWarn?: (message: any, opts?: object) => void
 }
@@ -58,20 +59,7 @@ export type ResolvedBackupCleanOptions = BackupCleanOptions & {
 
 export interface ArchiveCleanOptions {
   remove?: boolean
-  /**
-   * Set of disk paths still referenced by surviving backups.
-   * Ignored by full backups; reserved for incremental use.
-   */
-  activeDisks?: Set<string>
-}
-
-export interface BackupLineageInterface {
-  init(): Promise<void>
-  check(): Promise<void>
-  clean(opts?: ArchiveCleanOptions): Promise<Set<string>>
-
-  getOrphanDisks(): Set<string>
-  getLinkedBackups(): Map<string, RemoteDisk>
+  merge?: boolean
 }
 
 export interface CheckResult {
@@ -84,6 +72,11 @@ export interface CheckResult {
   linked?: string[]
 }
 
+export type CleanResult = {
+  removedFiles: string[]
+  merge: boolean
+}
+
 export interface VmBackupInterface {
   handler: RemoteHandlerAbstract
   // metadataPath: string
@@ -93,6 +86,6 @@ export interface VmBackupInterface {
 
   init(): Promise<void>
   check(): Promise<CheckResult>
-  clean(opts?: ArchiveCleanOptions): Promise<Array<string>>
+  clean(opts?: ArchiveCleanOptions): Promise<CleanResult>
   getAssociatedFiles(opts: object): Array<string>
 }
