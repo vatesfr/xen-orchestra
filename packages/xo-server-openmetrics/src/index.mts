@@ -70,6 +70,10 @@ export interface VmLabelInfo {
   vbdDeviceToVdiName: Record<string, string> // { "xvda": "System Disk" }
   vbdDeviceToVdiUuid: Record<string, XoVdi['uuid']> // { "xvda": "vdi-uuid-123" }
   vifIndexToNetworkName: Record<string, string> // { "0": "Pool-wide network" }
+  startTime: number | null // Unix timestamp of VM boot (from vm.startTime)
+  power_state: string // VM power state (Running, Paused, Halted, Suspended)
+  pool_id: string
+  pool_name: string
 }
 
 export interface HostLabelInfo {
@@ -145,6 +149,15 @@ export type HostStatusItem = Pick<XoHost, 'uuid' | 'name_label' | 'power_state' 
 
 interface HostStatusPayload {
   hosts: HostStatusItem[]
+}
+
+export type VmStatusItem = Pick<XoVm, 'uuid' | 'name_label' | 'power_state'> & {
+  pool_id: string
+  pool_name: string
+}
+
+interface VmStatusPayload {
+  vms: VmStatusItem[]
 }
 
 // Union type for all XO objects we handle
@@ -411,6 +424,16 @@ class OpenMetricsPlugin {
         break
       }
 
+      case 'GET_VM_STATUS': {
+        const vmStatus = this.#getVmStatusData()
+        this.#sendToChildNoWait({
+          type: 'VM_STATUS',
+          requestId: message.requestId,
+          payload: vmStatus,
+        })
+        break
+      }
+
       case 'GET_XO_METRICS': {
         this.#getXoMetrics()
           .then((xoMetrics: XoMetricsData) => {
@@ -616,6 +639,35 @@ class OpenMetricsPlugin {
   }
 
   /**
+   * Get VM status data for all VMs (excluding VM-controllers / dom0).
+   * Returns power_state for every VM.
+   */
+  #getVmStatusData(): VmStatusPayload {
+    const vms: VmStatusItem[] = []
+
+    const allPools = this.#xo.getObjects({ filter: { type: 'pool' } }) as Record<string, XoPool>
+    const poolLabelMap = new Map<string, string>()
+    for (const pool of Object.values(allPools)) {
+      poolLabelMap.set(pool.uuid, pool.name_label)
+    }
+
+    const allVms = this.#xo.getObjects({ filter: { type: 'VM' } }) as Record<string, XoVm>
+
+    for (const vm of Object.values(allVms)) {
+      vms.push({
+        uuid: vm.uuid,
+        name_label: vm.name_label,
+        power_state: vm.power_state,
+        pool_id: vm.$poolId,
+        pool_name: poolLabelMap.get(vm.$poolId) ?? '',
+      })
+    }
+
+    logger.debug('Returning VM status data', { vmCount: vms.length })
+    return { vms }
+  }
+
+  /**
    * Collect XO management plane metrics.
    * Gathers counts and stats from XO objects and XO APIs.
    */
@@ -771,6 +823,7 @@ class OpenMetricsPlugin {
 
     const vms: (XoVm | XoVmController)[] = []
     const hosts: XoHost[] = []
+    const pools: XoPool[] = []
     const srs: XoSr[] = []
     const vbds: XoVbd[] = []
     const vdis: XoVdi[] = []
@@ -786,6 +839,9 @@ class OpenMetricsPlugin {
           break
         case 'host':
           hosts.push(obj)
+          break
+        case 'pool':
+          pools.push(obj as XoPool)
           break
         case 'SR':
           srs.push(obj)
@@ -806,6 +862,12 @@ class OpenMetricsPlugin {
           networks.push(obj)
           break
       }
+    }
+
+    // Build pool label map (uuid -> name_label) for VM enrichment
+    const poolLabelMap = new Map<string, string>()
+    for (const pool of pools) {
+      poolLabelMap.set(pool.uuid, pool.name_label)
     }
 
     // Build network name map (id -> name_label)
@@ -906,6 +968,10 @@ class OpenMetricsPlugin {
         vbdDeviceToVdiName,
         vbdDeviceToVdiUuid,
         vifIndexToNetworkName,
+        startTime: vm.startTime ?? null,
+        power_state: vm.power_state,
+        pool_id: vm.$poolId,
+        pool_name: poolLabelMap.get(vm.$poolId) ?? '',
       }
     }
 
