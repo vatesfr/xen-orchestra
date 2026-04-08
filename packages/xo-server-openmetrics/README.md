@@ -19,6 +19,8 @@ This plugin creates an HTTP server that exposes a `/metrics` endpoint compatible
 - Host metrics: CPU, memory, network, disk IOPS/throughput/latency
 - Host uptime metric (`xcp_host_uptime_seconds`)
 - Host status metric (`xcp_host_status`) with `power_state` and `enabled` labels, including non-running hosts
+- VM status metric (`xcp_vm_status`) with `power_state` label, including non-running VMs
+- VM uptime metric (`xcp_vm_uptime_seconds`) for running VMs
 - VM metrics: CPU, memory, network, disk, runstate
 - `is_control_domain` label on all VM metrics to distinguish dom0 from user VMs
 - Bearer token authentication
