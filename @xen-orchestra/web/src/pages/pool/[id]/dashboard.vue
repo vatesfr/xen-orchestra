@@ -2,7 +2,7 @@
   <div class="dashboard" :class="{ mobile: uiStore.isSmall }">
     <div class="row first-row">
       <PoolDashboardStatus class="status" :pool-dashboard :has-error />
-      <DashboardAlarms :class="alarmHero ? 'alarms-hero' : 'alarms'" :alarms :is-ready :has-error />
+      <DashboardAlarms class="alarms" :alarms :is-ready :has-error="hasAlarmFetchError" />
       <PoolDashboardHostsPatches class="patches" :pool-dashboard :has-error />
     </div>
 
@@ -46,7 +46,6 @@ import { useFetchStats } from '@/shared/composables/fetch-stats.composable.ts'
 import { GRANULARITY } from '@/shared/utils/rest-api-stats.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { logicAnd } from '@vueuse/math'
-import { computed } from 'vue'
 
 const { pool } = defineProps<{ pool: FrontXoPool }>()
 
@@ -63,8 +62,6 @@ const { areSrsReady } = useXoSrCollection()
 const isReady = logicAnd(areAlarmsReady, areHostsReady, areVmsReady, areVmControllersReady, areSrsReady)
 
 const alarms = useGetAlarmsByIds(() => poolDashboard.value?.alarms ?? [])
-
-const alarmHero = computed(() => !isReady.value || hasAlarmFetchError.value || alarms.value.length === 0)
 
 const uiStore = useUiStore()
 </script>
@@ -93,12 +90,8 @@ const uiStore = useUiStore()
   }
 
   .alarms {
-    height: 46.2rem;
-  }
-
-  .alarms,
-  .alarms-hero {
     grid-area: alarms;
+    max-height: 46.2rem;
   }
 
   .patches {
