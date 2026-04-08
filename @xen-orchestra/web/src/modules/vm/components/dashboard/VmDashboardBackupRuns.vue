@@ -9,7 +9,7 @@
       </template>
     </UiCardTitle>
     <div v-if="areBackupRunsReady && !isError" class="backup-head">
-      <div class="protection-infos">
+      <VtsQuickInfoColumn>
         <VtsQuickInfoRow :label="t('protection-status')">
           <template #value>
             <UiInfo :accent="infoVmProtectionStatus.accent">{{ infoVmProtectionStatus.text }}</UiInfo>
@@ -20,11 +20,12 @@
           left-icon="status:info-circle"
           size="small"
           variant="tertiary"
+          class="button"
           @click="openProtectionHelpModal()"
         >
           {{ t('what-does-protected-mean?') }}
         </UiButton>
-      </div>
+      </VtsQuickInfoColumn>
     </div>
     <UiAlert v-if="isNotInActiveJob" accent="warning">
       <span class="typo-body-bold">{{ t('no-job-vm') }}</span>
@@ -56,6 +57,7 @@
 <script setup lang="ts">
 import { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection'
 import type { VmDashboardRun, VmProtectionStatus, XoVmDashboard } from '@/modules/vm/types/vm-dashboard.type'
+import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -143,11 +145,9 @@ const { HeadCells, BodyCells } = useBackupRunColumns({
   flex-direction: column;
   gap: 2.4rem;
 
-  .protection-infos {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.4rem;
+  .button {
+    grid-column: 1 / -1;
+    justify-self: start;
   }
 }
 </style>

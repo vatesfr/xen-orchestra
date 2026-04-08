@@ -3,12 +3,15 @@
     <UiTitle>
       {{ t('storage-configuration') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="t('suspend-storage-repository')" :value="vm.suspendSr ?? t('none')" />
+    <VtsQuickInfoColumn>
+      <VtsQuickInfoRow :label="t('suspend-storage-repository')" :value="vm.suspendSr ?? t('none')" />
+    </VtsQuickInfoColumn>
   </UiCard>
 </template>
 
 <script setup lang="ts">
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'

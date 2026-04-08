@@ -3,12 +3,15 @@
     <UiTitle>
       {{ t('resource-management') }}
     </UiTitle>
-    <VtsQuickInfoRow v-for="{ label, value } of resources" :key="label" :label :value />
+    <VtsQuickInfoColumn>
+      <VtsQuickInfoRow v-for="{ label, value } of resources" :key="label" :label :value />
+    </VtsQuickInfoColumn>
   </UiCard>
 </template>
 
 <script setup lang="ts">
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
@@ -19,10 +22,10 @@ import { useI18n } from 'vue-i18n'
 const { vm } = defineProps<{ vm: FrontXoVm }>()
 const { t } = useI18n()
 
-const staticMinMemoryFormated = computed(() => formatSizeRaw(vm.memory.static[0], 0))
-const staticMaxMemoryFormated = computed(() => formatSizeRaw(vm.memory.static[1], 0))
-const dynamicMinMemoryFormated = computed(() => formatSizeRaw(vm.memory.dynamic[0], 0))
-const dynamicMaxMemoryFormated = computed(() => formatSizeRaw(vm.memory.dynamic[1], 0))
+const staticMinMemoryFormatted = computed(() => formatSizeRaw(vm.memory.static[0], 0))
+const staticMaxMemoryFormatted = computed(() => formatSizeRaw(vm.memory.static[1], 0))
+const dynamicMinMemoryFormatted = computed(() => formatSizeRaw(vm.memory.dynamic[0], 0))
+const dynamicMaxMemoryFormatted = computed(() => formatSizeRaw(vm.memory.dynamic[1], 0))
 
 const resources = computed(() => {
   return [
@@ -57,19 +60,19 @@ const resources = computed(() => {
     },
     {
       label: t('minimum-static-memory'),
-      value: `${staticMinMemoryFormated.value.value} ${staticMinMemoryFormated.value.prefix}`,
+      value: `${staticMinMemoryFormatted.value.value} ${staticMinMemoryFormatted.value.prefix}`,
     },
     {
       label: t('maximum-static-memory'),
-      value: `${staticMaxMemoryFormated.value.value} ${staticMaxMemoryFormated.value.prefix}`,
+      value: `${staticMaxMemoryFormatted.value.value} ${staticMaxMemoryFormatted.value.prefix}`,
     },
     {
       label: t('minimum-dynamic-memory'),
-      value: `${dynamicMinMemoryFormated.value.value} ${dynamicMinMemoryFormated.value.prefix}`,
+      value: `${dynamicMinMemoryFormatted.value.value} ${dynamicMinMemoryFormatted.value.prefix}`,
     },
     {
       label: t('maximum-dynamic-memory'),
-      value: `${dynamicMaxMemoryFormated.value.value} ${dynamicMaxMemoryFormated.value.prefix}`,
+      value: `${dynamicMaxMemoryFormatted.value.value} ${dynamicMaxMemoryFormatted.value.prefix}`,
     },
     {
       label: t('gpus'),

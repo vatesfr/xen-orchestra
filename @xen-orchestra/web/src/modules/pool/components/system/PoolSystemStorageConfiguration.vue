@@ -4,7 +4,7 @@
       {{ t('storage-configuration') }}
     </UiTitle>
     <VtsStateHero v-if="!areSrsReady" format="card" type="busy" size="medium" />
-    <template v-else>
+    <VtsQuickInfoColumn v-else>
       <VtsQuickInfoRow :label="t('default-storage-repository')">
         <template #value>
           <template v-if="defaultSr">
@@ -51,7 +51,7 @@
           </template>
         </template>
       </VtsQuickInfoRow>
-    </template>
+    </VtsQuickInfoColumn>
   </UiCard>
 </template>
 
@@ -59,6 +59,7 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'

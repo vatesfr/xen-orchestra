@@ -3,21 +3,24 @@
     <UiTitle>
       {{ t('general-information') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="t('name')" :value="pool.name_label" />
-    <VtsQuickInfoRow :label="t('uuid')" :value="pool.id" />
-    <VtsQuickInfoRow :label="t('description')" :value="pool.name_description" />
-    <VtsQuickInfoRow :label="t('tags')">
-      <template v-if="pool.tags.length > 0" #value>
-        <UiTagsList>
-          <UiTag v-for="tag in pool.tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
-        </UiTagsList>
-      </template>
-    </VtsQuickInfoRow>
+    <VtsQuickInfoColumn>
+      <VtsQuickInfoRow :label="t('name')" :value="pool.name_label" />
+      <VtsQuickInfoRow :label="t('uuid')" :value="pool.id" />
+      <VtsQuickInfoRow :label="t('description')" :value="pool.name_description" />
+      <VtsQuickInfoRow :label="t('tags')">
+        <template v-if="pool.tags.length > 0" #value>
+          <UiTagsList>
+            <UiTag v-for="tag in pool.tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
+          </UiTagsList>
+        </template>
+      </VtsQuickInfoRow>
+    </VtsQuickInfoColumn>
   </UiCard>
 </template>
 
 <script setup lang="ts">
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'

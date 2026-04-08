@@ -3,48 +3,51 @@
     <UiTitle>
       {{ t('vm-management') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="t('high-availability')">
-      <template #value>
-        <VtsStatus :status="vm.high_availability !== ''" />
-      </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('affinity-host')">
-      <template #value>
-        <UiLink
-          v-if="vm.affinityHost"
-          icon="object:host"
-          :to="{ name: '/host/[id]/dashboard', params: { id: vm.affinityHost } }"
-          size="small"
-        >
-          {{ affinityHostName }}
-        </UiLink>
-        <template v-else>
-          {{ t('none') }}
+    <VtsQuickInfoColumn>
+      <VtsQuickInfoRow :label="t('high-availability')">
+        <template #value>
+          <VtsStatus :status="vm.high_availability !== ''" />
         </template>
-      </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('protect-from-accidental-deletion')">
-      <template #value>
-        <VtsStatus :status="vm.blockedOperations.destroy !== undefined" />
-      </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('protect-from-accidental-shutdown')">
-      <template #value>
-        <VtsStatus :status="isProtectedFromAccidentalShutdown" />
-      </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('auto-power')">
-      <template #value>
-        <VtsStatus :status="vm.auto_poweron" />
-      </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('start-delay')" :value="formattedStartDelay" />
+      </VtsQuickInfoRow>
+      <VtsQuickInfoRow :label="t('affinity-host')">
+        <template #value>
+          <UiLink
+            v-if="vm.affinityHost"
+            icon="object:host"
+            :to="{ name: '/host/[id]/dashboard', params: { id: vm.affinityHost } }"
+            size="small"
+          >
+            {{ affinityHostName }}
+          </UiLink>
+          <template v-else>
+            {{ t('none') }}
+          </template>
+        </template>
+      </VtsQuickInfoRow>
+      <VtsQuickInfoRow :label="t('protect-from-accidental-deletion')">
+        <template #value>
+          <VtsStatus :status="vm.blockedOperations.destroy !== undefined" />
+        </template>
+      </VtsQuickInfoRow>
+      <VtsQuickInfoRow :label="t('protect-from-accidental-shutdown')">
+        <template #value>
+          <VtsStatus :status="isProtectedFromAccidentalShutdown" />
+        </template>
+      </VtsQuickInfoRow>
+      <VtsQuickInfoRow :label="t('auto-power')">
+        <template #value>
+          <VtsStatus :status="vm.auto_poweron" />
+        </template>
+      </VtsQuickInfoRow>
+      <VtsQuickInfoRow :label="t('start-delay')" :value="formattedStartDelay" />
+    </VtsQuickInfoColumn>
   </UiCard>
 </template>
 
 <script setup lang="ts">
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'

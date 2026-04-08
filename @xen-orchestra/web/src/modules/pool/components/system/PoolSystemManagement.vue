@@ -4,7 +4,7 @@
       {{ t('pool-management') }}
     </UiTitle>
     <VtsStateHero v-if="!areHostsReady" format="card" type="busy" size="medium" />
-    <template v-else>
+    <VtsQuickInfoColumn v-else>
       <VtsQuickInfoRow :label="t('master')">
         <template #value>
           <UiLink
@@ -35,13 +35,14 @@
           <VtsStatus :status="pool.migrationCompression ?? false" />
         </template>
       </VtsQuickInfoRow>
-    </template>
+    </VtsQuickInfoColumn>
   </UiCard>
 </template>
 
 <script setup lang="ts">
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'

@@ -4,7 +4,7 @@
       {{ t('connections') }}
     </UiTitle>
     <VtsStateHero v-if="!areServersReady" format="card" type="busy" size="medium" />
-    <template v-else>
+    <VtsQuickInfoColumn v-else>
       <VtsQuickInfoRow :label="t('ip-address')" :value="server?.host" />
       <VtsQuickInfoRow :label="t('proxy-url')" :value="server?.httpProxy" />
       <VtsQuickInfoRow :label="t('username')" :value="server?.username" />
@@ -18,13 +18,14 @@
           <VtsStatus :status="server?.allowUnauthorized ?? false" />
         </template>
       </VtsQuickInfoRow>
-    </template>
+    </VtsQuickInfoColumn>
   </UiCard>
 </template>
 
 <script setup lang="ts">
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoServerCollection } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
+import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'

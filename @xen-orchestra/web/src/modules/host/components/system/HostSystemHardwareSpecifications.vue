@@ -3,26 +3,28 @@
     <UiTitle>
       {{ t('hardware-specifications') }}
     </UiTitle>
-    <VtsQuickInfoRow
-      :label="t('manufacturer-info')"
-      :value="`${host.bios_strings['system-manufacturer']} (${host.bios_strings['system-product-name']})`"
-    />
-    <VtsQuickInfoRow
-      :label="t('bios-info')"
-      :value="`${host.bios_strings['bios-vendor']} (${host.bios_strings['bios-version']})`"
-    />
-    <VtsQuickInfoRow :label="t('cpu-model')" :value="host.CPUs.modelname" />
-    <VtsQuickInfoRow :label="t('core-socket')" :value="`${host.cpus.cores} (${host.cpus.sockets})`" />
-    <VtsQuickInfoRow :label="t('gpus')">
-      <template v-if="isReady" #value>
-        <template v-if="devicesNames">
-          {{ devicesNames }}
+    <VtsQuickInfoColumn>
+      <VtsQuickInfoRow
+        :label="t('manufacturer-info')"
+        :value="`${host.bios_strings['system-manufacturer']} (${host.bios_strings['system-product-name']})`"
+      />
+      <VtsQuickInfoRow
+        :label="t('bios-info')"
+        :value="`${host.bios_strings['bios-vendor']} (${host.bios_strings['bios-version']})`"
+      />
+      <VtsQuickInfoRow :label="t('cpu-model')" :value="host.CPUs.modelname" />
+      <VtsQuickInfoRow :label="t('core-socket')" :value="`${host.cpus.cores} (${host.cpus.sockets})`" />
+      <VtsQuickInfoRow :label="t('gpus')">
+        <template v-if="isReady" #value>
+          <template v-if="devicesNames">
+            {{ devicesNames }}
+          </template>
+          <template v-else>
+            {{ t('none') }}
+          </template>
         </template>
-        <template v-else>
-          {{ t('none') }}
-        </template>
-      </template>
-    </VtsQuickInfoRow>
+      </VtsQuickInfoRow>
+    </VtsQuickInfoColumn>
   </UiCard>
 </template>
 
@@ -30,6 +32,7 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPciCollection } from '@/modules/pci/remote-resources/use-xo-pci-collection.ts'
 import { useXoPgpuCollection } from '@/modules/pgpu/remote-resources/use-xo-pgpu-collection.ts'
+import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'

@@ -1,21 +1,22 @@
 <template>
-  <div class="vts-quick-info-row" :class="{ mobile: uiStore.isSmall }">
-    <span v-tooltip class="typo-body-regular label text-ellipsis">
+  <div class="vts-quick-info-row">
+    <span class="typo-body-regular label">
       <slot name="label">
         {{ label }}
       </slot>
     </span>
-    <span v-tooltip class="typo-body-regular value text-ellipsis">
-      <slot name="value">
-        {{ value }}
-      </slot>
+    <span class="typo-body-regular value">
+      <span v-tooltip class="text-ellipsis">
+        <slot name="value">
+          {{ value }}
+        </slot>
+      </span>
     </span>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { useUiStore } from '@core/stores/ui.store.ts'
 
 defineProps<{
   label?: string
@@ -26,22 +27,23 @@ defineSlots<{
   label?(): any
   value?(): any
 }>()
-
-const uiStore = useUiStore()
 </script>
 
 <style lang="postcss" scoped>
 .vts-quick-info-row {
-  display: flex;
-  gap: 2.4rem;
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: span 2;
+  align-items: start;
 
-  &.mobile {
+  @container vts-quick-info-column (max-width: 40rem) {
+    display: flex;
     flex-direction: column;
+    align-items: stretch;
     gap: 0.8rem;
   }
 
   .label {
-    flex-shrink: 0;
     color: var(--color-neutral-txt-secondary);
   }
 
@@ -50,9 +52,14 @@ const uiStore = useUiStore()
     display: flex;
     align-items: center;
     gap: 0.8rem;
+    min-width: 0;
 
-    &:empty::before {
-      content: '-';
+    .text-ellipsis {
+      flex: 1;
+
+      &:empty::before {
+        content: '-';
+      }
     }
   }
 }

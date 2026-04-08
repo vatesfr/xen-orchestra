@@ -3,18 +3,21 @@
     <UiTitle>
       {{ t('software-tooling') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="t('version')" :value="host.version" />
-    <VtsQuickInfoRow :label="t('build-number')" :value="host.build" />
-    <VtsQuickInfoRow :label="t('toolstack-uptime')">
-      <template v-if="host.power_state === HOST_POWER_STATE.RUNNING" #value>
-        <VtsRelativeTime :date="Number(host.agentStartTime) * 1000" />
-      </template>
-    </VtsQuickInfoRow>
+    <VtsQuickInfoColumn>
+      <VtsQuickInfoRow :label="t('version')" :value="host.version" />
+      <VtsQuickInfoRow :label="t('build-number')" :value="host.build" />
+      <VtsQuickInfoRow :label="t('toolstack-uptime')">
+        <template v-if="host.power_state === HOST_POWER_STATE.RUNNING" #value>
+          <VtsRelativeTime :date="Number(host.agentStartTime) * 1000" />
+        </template>
+      </VtsQuickInfoRow>
+    </VtsQuickInfoColumn>
   </UiCard>
 </template>
 
 <script setup lang="ts">
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
