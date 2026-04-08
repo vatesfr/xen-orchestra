@@ -66,6 +66,7 @@
   "action:resume": "Продолжить",
   "action:save": "Сохранить",
   "action:search": "Поиск",
+  "action:search-treeview": "Поиск в дереве",
   "action:see-all": "Посмотреть все",
   "action:select-all": "Выбрать всё",
   "action:select-n-objects-of": "{from} - {to} из {total} объектов",
