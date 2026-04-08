@@ -42,6 +42,7 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import { partialUsers, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
 import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
+import { acl, actionFromBody, actionsFromBody } from '../middlewares/acl.middleware.mjs'
 
 @Route('groups')
 @Security('*')
@@ -91,21 +92,47 @@ export class GroupController extends XoController<XoGroup> {
   }
 
   /**
+   * Required privilege:
+   * - resource: group, action: read
+   *
    * @example id "7d98fee4-3357-41a7-ac3f-9124212badb7"
    */
   @Example(group)
   @Get('{id}')
+  @Middlewares(
+    acl({
+      resource: 'group',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getGroup,
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getGroup(@Path() id: string): Promise<Unbrand<XoGroup>> {
     return this.getObject(id as XoGroup['id'])
   }
 
   /**
+   * You cannot patch `syncronized` groups (even with the right privilege)
+   *
+   * Required privileges:
+   * - resource: group, action: update (grants all fields)
+   * - resource: group, action: update:name (if name is passed)
+   *
    * @example id "c98395a7-26d8-4e09-b055-d5f0f4a98312"
    * @example body { "name": "new group name" }
    */
   @Patch('{id}')
-  @Middlewares(json())
+  @Middlewares([
+    json(),
+    acl({
+      resource: 'group',
+      action: actionFromBody('update:name'),
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getGroup,
+    }),
+  ])
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(resourceAlreadyExists.status, resourceAlreadyExists.description)
@@ -121,14 +148,18 @@ export class GroupController extends XoController<XoGroup> {
   }
 
   /**
+   * Required privilege:
+   * - resource: group, action: create
+   *
    *  @example body {
    *    "name": "new group"
    *  }
    */
   @Example(groupId)
   @Post('')
-  @Middlewares(json())
+  @Middlewares([json(), acl({ resource: 'group', action: 'create', object: ({ req }) => req.body })])
   @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(invalidParameters.status, invalidParameters.description)
   @Response(resourceAlreadyExists.status, resourceAlreadyExists.description)
   async createGroup(@Body() body: { name: string }): Promise<{ id: Unbrand<XoGroup>['id'] }> {
@@ -138,10 +169,22 @@ export class GroupController extends XoController<XoGroup> {
   }
 
   /**
+   * Required privilege:
+   * - resource: group, action: delete
+   *
    * @example id "7d98fee4-3357-41a7-ac3f-9124212badb7"
    */
   @Delete('{id}')
+  @Middlewares(
+    acl({
+      resource: 'group',
+      action: 'delete',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getGroup,
+    })
+  )
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteGroup(@Path() id: string): Promise<void> {
     const groupId = id as XoGroup['id']
@@ -149,10 +192,23 @@ export class GroupController extends XoController<XoGroup> {
   }
 
   /**
+   * You cannot manage users of `syncronized` groups (even with the right privilege)
+   *
+   * Required privilege:
+   * - resource: group, action: update:users
+   *
    * @example id "c98395a7-26d8-4e09-b055-d5f0f4a98312"
    * @example userId "722d17b9-699b-49d2-8193-be1ac573d3de"
    */
   @Delete('{id}/users/{userId}')
+  @Middlewares(
+    acl({
+      resource: 'group',
+      action: 'update:users',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getGroup,
+    })
+  )
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -167,10 +223,23 @@ export class GroupController extends XoController<XoGroup> {
   }
 
   /**
+   * You cannot manage users of `syncronized` groups (even with the right privilege)
+   *
+   * Required privilege:
+   * - resource: group, action: update:users
+   *
    * @example id "6c81b5e1-afc1-43ea-8f8d-939ceb5f3f90"
    * @example userId "722d17b9-699b-49d2-8193-be1ac573d3de"
    */
   @Put('{id}/users/{userId}')
+  @Middlewares(
+    acl({
+      resource: 'group',
+      action: 'update:users',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getGroup,
+    })
+  )
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
