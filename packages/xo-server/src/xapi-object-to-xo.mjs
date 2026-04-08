@@ -857,6 +857,15 @@ const TRANSFORMS = {
       VIFs: link(obj, 'VIFs'),
       nbd: obj.purpose?.includes('nbd'),
       insecureNbd: obj.purpose?.includes('insecure_nbd'),
+      isBonded:
+        obj.$PIFs !== undefined
+          ? obj.$PIFs?.some(pif => {
+              const isBondMaster = !isEmpty(pif.bond_master_of)
+              const isBondSlave = pif.bond_slave_of !== 'OpaqueRef:NULL'
+
+              return isBondMaster || isBondSlave
+            })
+          : false,
     }
   },
 

@@ -32,6 +32,7 @@ const pifFields = [
   'isBondMaster',
   'isBondSlave',
   'bondSlaves',
+  'physical',
   'type',
 ] as const satisfies readonly (keyof XoPif)[]
 
