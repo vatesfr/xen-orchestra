@@ -1,6 +1,7 @@
 import {
   ArchiveCleanOptions,
   CheckResult,
+  CleanResult,
   ResolvedBackupCleanOptions,
   VmBackupInterface,
   PartialBackupMetadata,
@@ -76,18 +77,18 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
    * Removes the metadata file if the backup is incomplete (missing disks).
    * Actual disk merge/deletion is handled by RemoteDiskLineage.
    */
-  async clean({ remove = this.opts.remove ?? false }: ArchiveCleanOptions = {}): Promise<Array<string>> {
+  async clean({ remove = this.opts.remove ?? false }: ArchiveCleanOptions = {}): Promise<CleanResult> {
     if (!this.#isChecked) {
       await this.check()
     }
 
-    const filesToRemove: string[] = []
+    const removedFiles: string[] = []
     if (!this.#isComplete) {
-      filesToRemove.push(this.metadataPath)
+      removedFiles.push(this.metadataPath)
     }
 
     if (remove) {
-      for (const file of filesToRemove) {
+      for (const file of removedFiles) {
         try {
           await this.handler.unlink(file)
         } catch (error) {
@@ -96,7 +97,7 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
       }
     }
 
-    return filesToRemove
+    return { removedFiles, merge: false }
   }
 
   /**
