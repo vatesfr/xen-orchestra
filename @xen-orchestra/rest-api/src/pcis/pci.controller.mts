@@ -1,10 +1,17 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 import type { XoPci } from '@vates/types'
 
-import { badRequestResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import { acl } from '../middlewares/acl.middleware.mjs'
+import {
+  badRequestResp,
+  forbiddenOperationResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { partialPcis, pci, pciIds } from '../open-api/oa-examples/pci.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
@@ -47,10 +54,15 @@ export class PciController extends XapiXoController<XoPci> {
   }
 
   /**
+   * Required privilege:
+   * - resource: pci, action: read
+   *
    * @example id "9377b642-cc71-8749-1e71-308898b652da"
    */
   @Example(pci)
   @Get('{id}')
+  @Middlewares(acl({ resource: 'pci', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getPci(@Path() id: string): Unbrand<XoPci> {
     return this.getObject(id as XoPci['id'])
