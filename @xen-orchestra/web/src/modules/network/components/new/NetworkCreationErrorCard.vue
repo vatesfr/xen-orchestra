@@ -9,7 +9,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ApiError } from '@/shared/error/api.error.ts'
+import type { ApiError } from '@/shared/error/api.error.ts'
 import VtsOperationErrorCard from '@core/components/operation-error-card/VtsOperationErrorCard.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { useI18n } from 'vue-i18n'
