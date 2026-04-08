@@ -21,6 +21,7 @@ This plugin creates an HTTP server that exposes a `/metrics` endpoint compatible
 - Host status metric (`xcp_host_status`) with `power_state` and `enabled` labels, including non-running hosts
 - VM metrics: CPU, memory, network, disk, runstate
 - `is_control_domain` label on all VM metrics to distinguish dom0 from user VMs
+- VDI disk size metrics: virtual size and physical usage per VDI (`xcp_vdi_virtual_size_bytes`, `xcp_vdi_physical_usage_bytes`)
 - Bearer token authentication
 - OpenMetrics format with EOF marker
 
