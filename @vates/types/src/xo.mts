@@ -330,6 +330,7 @@ export type XoNetwork = BaseXapiXo & {
   defaultIsLocked: boolean
   id: Branded<'network'>
   insecureNbd?: boolean
+  isBonded: boolean
   name_description: string
   name_label: string
   nbd?: boolean

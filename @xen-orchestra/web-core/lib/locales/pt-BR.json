@@ -372,7 +372,7 @@
   "job:vm-create:incomplete-install-mode": "O modo de instalação está incompleto",
   "job:vm-delete:bad-power-state": "A VM deve ser desligada",
   "job:vm-delete:blocked-operation": "A eliminação da VM está bloqueada",
-  "job:vm-delete:in-progress": "A eliminar…",
+  "job:delete:in-progress": "A eliminar…",
   "job:vm-delete:missing-vm": "Não há máquinas virtuais para eliminar",
   "job:vm-export:in-progress": "Exportação em curso…",
   "job:vm-export:missing-compression": "Deve ser aplicada compressão",

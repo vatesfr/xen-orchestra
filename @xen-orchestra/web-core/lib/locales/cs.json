@@ -372,7 +372,7 @@
   "job:vm-create:incomplete-install-mode": "Instalační režim je nekompletní",
   "job:vm-delete:bad-power-state": "Je třeba, aby virt. stroj byl zastavený",
   "job:vm-delete:blocked-operation": "Smazání virt. stroje je blokováno",
-  "job:vm-delete:in-progress": "Probíhá mazání…",
+  "job:delete:in-progress": "Probíhá mazání…",
   "job:vm-delete:missing-vm": "Žádný virt. stroj ke smazání",
   "job:vm-export:in-progress": "Probíhá export…",
   "job:vm-export:missing-compression": "Je třeba zadat kompresi",

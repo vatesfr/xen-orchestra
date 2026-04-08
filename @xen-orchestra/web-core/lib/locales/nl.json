@@ -372,7 +372,7 @@
   "job:vm-create:incomplete-install-mode": "Installatiemodus is onvolledig",
   "job:vm-delete:bad-power-state": "VM moet worden stopgezet",
   "job:vm-delete:blocked-operation": "VM-verwijdering is geblokkeerd",
-  "job:vm-delete:in-progress": "Verwijderen in uitvoering…",
+  "job:delete:in-progress": "Verwijderen in uitvoering…",
   "job:vm-delete:missing-vm": "Geen VM om te verwijderen",
   "job:vm-export:in-progress": "Export wordt uitgevoerd…",
   "job:vm-export:missing-compression": "Compressie is vereist",

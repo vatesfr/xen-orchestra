@@ -205,7 +205,7 @@
   "job:vm-copy:in-progress": "کپی در حال انجام است…",
   "job:vm-copy:missing-vm": "ماشین مجازی‌ای برای کپی وجود ندارد",
   "job:vm-delete:bad-power-state": "ماشین مجازی باید متوقف شود",
-  "job:vm-delete:in-progress": "حذف در حال انجام است…",
+  "job:delete:in-progress": "حذف در حال انجام است…",
   "job:vm-delete:missing-vm": "ماشین مجازی‌ای برای حذف وجود ندارد",
   "job:vm-export:in-progress": "صدور در حال انجام است…",
   "job:vm-export:missing-compression": "فشرده‌سازی باید ارائه شود",

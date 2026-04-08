@@ -366,7 +366,7 @@
   "job:vm-create:incomplete-install-mode": "Installationsläget är inkomplett",
   "job:vm-delete:bad-power-state": "VMen måste vara stoppad",
   "job:vm-delete:blocked-operation": "VM-radering är blockerad",
-  "job:vm-delete:in-progress": "Radering pågår…",
+  "job:delete:in-progress": "Radering pågår…",
   "job:vm-delete:missing-vm": "Ingen VM att radera",
   "job:vm-export:in-progress": "Export pågår…",
   "job:vm-export:missing-compression": "Komprimering måste anges",

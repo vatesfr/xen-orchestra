@@ -367,7 +367,7 @@
   "job:vm-create:incomplete-install-mode": "El modo de instalación está incompleto",
   "job:vm-delete:bad-power-state": "La máquina virtual debe estar apagada",
   "job:vm-delete:blocked-operation": "La eliminación de la VM está bloqueada",
-  "job:vm-delete:in-progress": "Borrado en curso…",
+  "job:delete:in-progress": "Borrado en curso…",
   "job:vm-delete:missing-vm": "No hay máquinas virtuales para borrar",
   "job:vm-export:in-progress": "Exportación en curso…",
   "job:vm-export:missing-compression": "Se requiere compresión",

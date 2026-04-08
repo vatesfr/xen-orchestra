@@ -30,6 +30,7 @@ const pifFields = [
   'vlan',
   'isBondMaster',
   'bondSlaves',
+  'physical',
   'type',
 ] as const satisfies readonly (keyof XoPif)[]
 

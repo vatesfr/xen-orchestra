@@ -245,7 +245,7 @@
   "job:vm-copy:in-progress": "Kopiering i gang…",
   "job:vm-copy:missing-vm": "Ingen VM at kopiere",
   "job:vm-delete:bad-power-state": "VM skal stoppes",
-  "job:vm-delete:in-progress": "Sletning er i gang…",
+  "job:delete:in-progress": "Sletning er i gang…",
   "job:vm-delete:missing-vm": "Ingen VM at slette",
   "job:vm-export:in-progress": "Eksport er i gang…",
   "job:vm-export:missing-compression": "Komprimering skal angives",
