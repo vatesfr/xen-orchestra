@@ -358,7 +358,7 @@
   "modal:confirm-vm-force-shutdown": "Potvrďte vynútené vypnutie VM",
   "modal:confirm-vm-reboot": "Potvrďte reštart VM",
   "modal:confirm-vm-shutdown": "Potvrďte vypnutie VM",
-  "modal:vm-force-reboot-message": "Toto virtuálny stroj okamžite vypne bez čakania na korektné vypnutie. Môže dôjsť k strate dát a prebiehajúce procesy budú prerušené.",
+  "modal:vm-force-reboot-message": "Toto virtuálny stroj okamžite reštartuje bez čakania na korektné vypnutie. Môže dôjsť k strate dát a prebiehajúce procesy budú prerušené.",
   "modal:vm-force-shutdown-message": "Toto virtuálny stroj okamžite vypne bez čakania na korektné vypnutie. Môže dôjsť k strate dát a prebiehajúce procesy budú prerušené.",
   "modal:vm-shutdown-message": "Vykoná korektné vypnutie virtuálneho stroja. Všetky spustené procesy budú ukončené a používatelia odpojení. Virt. stroj je neskôr možné znova spustiť z webového rozhrania.",
   "mode": "Režim",
