@@ -3,14 +3,17 @@
     <UiTitle>
       {{ t('storage-configuration') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="t('suspend-storage-repository')" :value="srRepo?.uuid ?? t('none')" />
+    <VtsTabularKeyValueList>
+      <VtsTabularKeyValueRow :label="t('suspend-storage-repository')" :value="srRepo?.uuid ?? t('none')" />
+    </VtsTabularKeyValueList>
   </UiCard>
 </template>
 
 <script setup lang="ts">
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useSrStore } from '@/stores/xen-api/sr.store'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
+import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { computed } from 'vue'

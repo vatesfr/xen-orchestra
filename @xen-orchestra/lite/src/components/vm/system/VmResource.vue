@@ -3,7 +3,9 @@
     <UiTitle>
       {{ t('resource-management') }}
     </UiTitle>
-    <VtsQuickInfoRow v-for="{ label, value } of resources" :key="label" :label :value />
+    <VtsTabularKeyValueList>
+      <VtsTabularKeyValueRow v-for="{ label, value } of resources" :key="label" :label :value />
+    </VtsTabularKeyValueList>
   </UiCard>
 </template>
 
@@ -11,7 +13,8 @@
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
 import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
+import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { formatSizeRaw } from '@core/utils/size.util'

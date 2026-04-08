@@ -3,14 +3,17 @@
     <UiTitle>
       {{ t('licensing') }}
     </UiTitle>
-    <VtsQuickInfoRow />
-    <VtsQuickInfoRow />
-    <VtsQuickInfoRow />
+    <VtsTabularKeyValueList>
+      <VtsTabularKeyValueRow />
+      <VtsTabularKeyValueRow />
+      <VtsTabularKeyValueRow />
+    </VtsTabularKeyValueList>
   </UiCard>
 </template>
 
 <script setup lang="ts">
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
+import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'

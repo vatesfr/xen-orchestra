@@ -5,21 +5,23 @@
     </UiTitle>
     <VtsStateHero v-if="!isReady" format="card" type="busy" size="medium" />
     <template v-else>
-      <VtsQuickInfoRow :label="t('backup-network')">
-        <template #value>
-          <UiLink
-            v-if="backupNetwork !== undefined"
-            :to="`/pool/${pool.uuid}/network?id=${backupNetwork.uuid}`"
-            icon="object:network"
-            size="medium"
-          >
-            {{ backupNetwork.name_label }}
-          </UiLink>
-          <template v-else>
-            {{ t('none') }}
+      <VtsTabularKeyValueList>
+        <VtsTabularKeyValueRow :label="t('backup-network')">
+          <template #value>
+            <UiLink
+              v-if="backupNetwork !== undefined"
+              :to="`/pool/${pool.uuid}/network?id=${backupNetwork.uuid}`"
+              icon="object:network"
+              size="medium"
+            >
+              {{ backupNetwork.name_label }}
+            </UiLink>
+            <template v-else>
+              {{ t('none') }}
+            </template>
           </template>
-        </template>
-      </VtsQuickInfoRow>
+        </VtsTabularKeyValueRow>
+      </VtsTabularKeyValueList>
     </template>
   </UiCard>
 </template>
@@ -27,8 +29,9 @@
 <script setup lang="ts">
 import type { XenApiNetwork, XenApiPool } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
+import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'

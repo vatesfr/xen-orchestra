@@ -4,30 +4,31 @@
       {{ t('connections') }}
     </UiTitle>
     <VtsStateHero v-if="!areServersReady" format="card" type="busy" size="medium" />
-    <template v-else>
-      <VtsQuickInfoRow :label="t('ip-address')" :value="server?.host" />
-      <VtsQuickInfoRow :label="t('proxy-url')" :value="server?.httpProxy" />
-      <VtsQuickInfoRow :label="t('username')" :value="server?.username" />
-      <VtsQuickInfoRow :label="t('read-only')">
+    <VtsTabularKeyValueList v-else>
+      <VtsTabularKeyValueRow :label="t('ip-address')" :value="server?.host" />
+      <VtsTabularKeyValueRow :label="t('proxy-url')" :value="server?.httpProxy" />
+      <VtsTabularKeyValueRow :label="t('username')" :value="server?.username" />
+      <VtsTabularKeyValueRow :label="t('read-only')">
         <template #value>
           <VtsStatus :status="server?.readOnly ?? false" />
         </template>
-      </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="t('self-signed-certificates')">
+      </VtsTabularKeyValueRow>
+      <VtsTabularKeyValueRow :label="t('self-signed-certificates')">
         <template #value>
           <VtsStatus :status="server?.allowUnauthorized ?? false" />
         </template>
-      </VtsQuickInfoRow>
-    </template>
+      </VtsTabularKeyValueRow>
+    </VtsTabularKeyValueList>
   </UiCard>
 </template>
 
 <script setup lang="ts">
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoServerCollection } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
+import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
+import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { computed } from 'vue'

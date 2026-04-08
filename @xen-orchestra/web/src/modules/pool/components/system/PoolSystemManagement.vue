@@ -4,8 +4,8 @@
       {{ t('pool-management') }}
     </UiTitle>
     <VtsStateHero v-if="!areHostsReady" format="card" type="busy" size="medium" />
-    <template v-else>
-      <VtsQuickInfoRow :label="t('master')">
+    <VtsTabularKeyValueList v-else>
+      <VtsTabularKeyValueRow :label="t('master')">
         <template #value>
           <UiLink
             v-if="primaryHost"
@@ -19,32 +19,33 @@
             {{ t('none') }}
           </template>
         </template>
-      </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="t('auto-power')">
+      </VtsTabularKeyValueRow>
+      <VtsTabularKeyValueRow :label="t('auto-power')">
         <template #value>
           <VtsStatus :status="pool.auto_poweron" />
         </template>
-      </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="t('high-availability')">
+      </VtsTabularKeyValueRow>
+      <VtsTabularKeyValueRow :label="t('high-availability')">
         <template #value>
           <VtsStatus :status="pool.HA_enabled" />
         </template>
-      </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="t('migration-compression')">
+      </VtsTabularKeyValueRow>
+      <VtsTabularKeyValueRow :label="t('migration-compression')">
         <template #value>
           <VtsStatus :status="pool.migrationCompression ?? false" />
         </template>
-      </VtsQuickInfoRow>
-    </template>
+      </VtsTabularKeyValueRow>
+    </VtsTabularKeyValueList>
   </UiCard>
 </template>
 
 <script setup lang="ts">
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
+import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
+import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'

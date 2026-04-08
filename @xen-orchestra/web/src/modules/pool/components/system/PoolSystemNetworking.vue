@@ -4,8 +4,8 @@
       {{ t('networking') }}
     </UiTitle>
     <VtsStateHero v-if="!areNetworksReady" format="card" type="busy" size="medium" />
-    <template v-else>
-      <VtsQuickInfoRow :label="t('backup-network')">
+    <VtsTabularKeyValueList v-else>
+      <VtsTabularKeyValueRow :label="t('backup-network')">
         <template #value>
           <UiLink v-if="backupNetwork !== undefined" icon="object:network" :to="backupNetworkTo" size="medium">
             {{ backupNetwork.name_label }}
@@ -14,8 +14,8 @@
             {{ t('none') }}
           </template>
         </template>
-      </VtsQuickInfoRow>
-    </template>
+      </VtsTabularKeyValueRow>
+    </VtsTabularKeyValueList>
   </UiCard>
 </template>
 
@@ -23,8 +23,9 @@
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
+import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
