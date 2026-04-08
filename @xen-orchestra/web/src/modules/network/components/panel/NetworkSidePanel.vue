@@ -1,6 +1,7 @@
 <template>
   <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
     <template #header>
+      <NetworkDeleteButton :network />
       <div :class="{ 'action-buttons-container': uiStore.isSmall }">
         <UiButtonIcon
           v-tooltip="t('action:close')"
@@ -95,6 +96,7 @@
 </template>
 
 <script setup lang="ts">
+import NetworkDeleteButton from '@/modules/network/components/actions/NetworkDeleteButton.vue'
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import PifRow from '@/modules/pif/components/PifRow.vue'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
