@@ -12,12 +12,13 @@
     <template #actions>
       <VtsActionsConsole :send-ctrl-alt-del="sendCtrlAltDel" />
       <VtsDivider type="stretch" />
-      <VtsClipboardConsole
-        :clipboard-text="clipboardText"
-        :has-guest-tools="guestToolsDetected"
-        :guest-tools-url="XCP_LINKS.GUEST_TOOLS"
-        @send="sendClipboard"
-      />
+      <VtsClipboardConsole :clipboard-text="clipboardText" :has-guest-tools="guestToolsDetected" @send="sendClipboard">
+        <template #guest-tools-warning>
+          <UiLink size="small" :href="XCP_LINKS.GUEST_TOOLS" icon="status:halted-circle">
+            {{ t('no-xen-tools-detected') }}
+          </UiLink>
+        </template>
+      </VtsClipboardConsole>
     </template>
   </VtsLayoutConsole>
 </template>
@@ -32,6 +33,7 @@ import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
 import VtsRemoteConsole from '@core/components/console/VtsRemoteConsole.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import { XCP_LINKS } from '@core/constants.ts'
 import { VM_OPERATIONS } from '@vates/types'
 import { computed, useTemplateRef } from 'vue'
@@ -63,7 +65,7 @@ const consoleElement = useTemplateRef<InstanceType<typeof VtsRemoteConsole>>('co
 const guestToolsDetected = computed(() => hasGuestTools(vm))
 
 const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
-const clipboardText = computed<string>(() => consoleElement.value?.clipboardText ?? '')
+const clipboardText = computed(() => consoleElement.value?.clipboardText ?? '')
 const sendClipboard = (text: string) =>
   hasGuestTools(vm) ? consoleElement.value?.sendClipboard(text) : consoleElement.value?.sendTextAsKeys(text)
 </script>

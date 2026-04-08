@@ -110,7 +110,7 @@ const isConsoleAvailable = computed(() =>
 const consoleElement = useTemplateRef<InstanceType<typeof VtsRemoteConsole>>('console-element')
 
 const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
-const clipboardText = computed<string>(() => consoleElement.value?.clipboardText ?? '')
+const clipboardText = computed(() => consoleElement.value?.clipboardText ?? '')
 const sendClipboard = (text: string) => consoleElement.value?.sendClipboard(text)
 </script>
 

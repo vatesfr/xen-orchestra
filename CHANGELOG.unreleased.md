@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [VM/Console] Add clipboard management for VM and host consoles [#9593](https://github.com/vatesfr/xen-orchestra/pull/9593)
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -31,6 +33,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 
 <!--packages-end-->

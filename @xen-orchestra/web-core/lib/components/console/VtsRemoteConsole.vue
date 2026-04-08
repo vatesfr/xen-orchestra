@@ -30,7 +30,6 @@ const FIBONACCI_MS_ARRAY: number[] = Array.from(fibonacci().toMs().take(N_TOTAL_
 const consoleContainer = useTemplateRef<HTMLDivElement | null>('console-container')
 const isReady = ref(false)
 const clipboardText = ref('')
-const isExtendedClipboardSupported = ref(false)
 
 let vncClient: VncClient | undefined
 let nConnectionAttempts = 0
@@ -65,14 +64,13 @@ function handleConnectionEvent() {
 
 function clearVncClient() {
   isReady.value = false
-  isExtendedClipboardSupported.value = false
   if (vncClient === undefined) {
     return
   }
 
   vncClient.removeEventListener('disconnect', handleDisconnectionEvent)
   vncClient.removeEventListener('connect', handleConnectionEvent)
-  vncClient.removeEventListener('clipboard', handleClipboardEvent as EventListener)
+  vncClient.removeEventListener('clipboard', handleClipboardEvent)
   vncClient.disconnect()
 
   vncClient = undefined
@@ -96,7 +94,7 @@ async function createVncConnection() {
 
   vncClient.addEventListener('disconnect', handleDisconnectionEvent)
   vncClient.addEventListener('connect', handleConnectionEvent)
-  vncClient.addEventListener('clipboard', handleClipboardEvent as EventListener)
+  vncClient.addEventListener('clipboard', handleClipboardEvent)
   const canvas = consoleContainer.value?.querySelector('canvas') as HTMLCanvasElement | null
   if (canvas !== null) {
     // Todo: See with Clémence to specify the desired focus behavior
@@ -174,7 +172,6 @@ defineExpose({
   sendClipboard,
   sendTextAsKeys,
   clipboardText,
-  isExtendedClipboardSupported,
 })
 </script>
 

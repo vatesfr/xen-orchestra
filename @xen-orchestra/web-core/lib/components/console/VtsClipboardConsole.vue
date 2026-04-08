@@ -2,11 +2,8 @@
   <div class="vts-clipboard-console">
     <UiCardTitle>{{ t('console-clipboard') }}</UiCardTitle>
     <UiTextarea v-model="modelValue" accent="brand" />
-    <div v-if="!hasGuestTools" class="no-guest-tools">
-      <VtsIcon name="status:halted-circle" size="medium" />
-      <UiLink size="small" :href="guestToolsUrl">
-        {{ t('no-xen-tools-detected') }}
-      </UiLink>
+    <div v-if="!hasGuestTools && slots['guest-tools-warning']" class="no-guest-tools">
+      <slot name="guest-tools-warning" />
     </div>
     <div class="buttons-container">
       <UiButton accent="brand" variant="primary" size="medium" @click="onSend()">
@@ -27,10 +24,8 @@
 </template>
 
 <script setup lang="ts">
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useClipboard } from '@vueuse/core'
@@ -40,10 +35,11 @@ import { useI18n } from 'vue-i18n'
 const { clipboardText, hasGuestTools = true } = defineProps<{
   clipboardText: string
   hasGuestTools?: boolean
-  guestToolsUrl?: string
 }>()
 
 const emit = defineEmits<{ send: [text: string] }>()
+
+const slots = defineSlots<{ 'guest-tools-warning'?(): any }>()
 
 const { t } = useI18n()
 
