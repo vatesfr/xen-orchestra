@@ -3,35 +3,37 @@
     <UiTitle>
       {{ t('vm-management') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="t('high-availability')">
-      <template #value>
-        <VtsStatus :status="vm.ha_restart_priority !== ''" />
-      </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('affinity-host')">
-      <template v-if="affinityHost?.uuid" #value>
-        <UiLink icon="object:host" :to="`/host/${affinityHost.uuid}`" size="medium">
-          {{ affinityHost.name_label }}
-        </UiLink>
-      </template>
-      <template v-else #value>{{ t('none') }}</template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('protect-from-accidental-deletion')">
-      <template #value>
-        <VtsStatus :status="vm.blocked_operations?.destroy === 'true'" />
-      </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('protect-from-accidental-shutdown')">
-      <template #value>
-        <VtsStatus :status="isProtectedFromAccidentalShutdown" />
-      </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('auto-power')">
-      <template #value>
-        <VtsStatus :status="vm.other_config.auto_poweron === 'true'" />
-      </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('start-delay')" :value="formattedStartDelay" />
+    <VtsTabularKeyValueList>
+      <VtsTabularKeyValueRow :label="t('high-availability')">
+        <template #value>
+          <VtsStatus :status="vm.ha_restart_priority !== ''" />
+        </template>
+      </VtsTabularKeyValueRow>
+      <VtsTabularKeyValueRow :label="t('affinity-host')">
+        <template v-if="affinityHost?.uuid" #value>
+          <UiLink icon="object:host" :to="`/host/${affinityHost.uuid}`" size="medium">
+            {{ affinityHost.name_label }}
+          </UiLink>
+        </template>
+        <template v-else #value>{{ t('none') }}</template>
+      </VtsTabularKeyValueRow>
+      <VtsTabularKeyValueRow :label="t('protect-from-accidental-deletion')">
+        <template #value>
+          <VtsStatus :status="vm.blocked_operations?.destroy === 'true'" />
+        </template>
+      </VtsTabularKeyValueRow>
+      <VtsTabularKeyValueRow :label="t('protect-from-accidental-shutdown')">
+        <template #value>
+          <VtsStatus :status="isProtectedFromAccidentalShutdown" />
+        </template>
+      </VtsTabularKeyValueRow>
+      <VtsTabularKeyValueRow :label="t('auto-power')">
+        <template #value>
+          <VtsStatus :status="vm.other_config.auto_poweron === 'true'" />
+        </template>
+      </VtsTabularKeyValueRow>
+      <VtsTabularKeyValueRow :label="t('start-delay')" :value="formattedStartDelay" />
+    </VtsTabularKeyValueList>
   </UiCard>
 </template>
 
@@ -39,8 +41,9 @@
 import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
+import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
+import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'

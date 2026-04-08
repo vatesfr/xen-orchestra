@@ -9,22 +9,23 @@
       </template>
     </UiCardTitle>
     <div v-if="areBackupRunsReady && !isError" class="backup-head">
-      <div class="protection-infos">
-        <VtsQuickInfoRow :label="t('protection-status')">
+      <VtsTabularKeyValueList>
+        <VtsTabularKeyValueRow :label="t('protection-status')">
           <template #value>
             <UiInfo :accent="infoVmProtectionStatus.accent">{{ infoVmProtectionStatus.text }}</UiInfo>
           </template>
-        </VtsQuickInfoRow>
+        </VtsTabularKeyValueRow>
         <UiButton
           accent="brand"
           left-icon="status:info-circle"
           size="small"
           variant="tertiary"
+          class="button"
           @click="openProtectionHelpModal()"
         >
           {{ t('what-does-protected-mean?') }}
         </UiButton>
-      </div>
+      </VtsTabularKeyValueList>
     </div>
     <UiAlert v-if="isNotInActiveJob" accent="warning">
       <span class="typo-body-bold">{{ t('no-job-vm') }}</span>
@@ -56,9 +57,10 @@
 <script setup lang="ts">
 import { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection'
 import type { VmDashboardRun, VmProtectionStatus, XoVmDashboard } from '@/modules/vm/types/vm-dashboard.type'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
+import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
+import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -143,11 +145,9 @@ const { HeadCells, BodyCells } = useBackupRunColumns({
   flex-direction: column;
   gap: 2.4rem;
 
-  .protection-infos {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.4rem;
+  .button {
+    grid-column: 1 / -1;
+    justify-self: start;
   }
 }
 </style>

@@ -1,10 +1,14 @@
 <template>
   <div class="snapshots" :class="{ mobile: uiStore.isSmall }">
     <div>
-      <div class="row">
-        <VmSnapshotCard class="last-snapshot" :snapshot="lastSnapshot" :title="t('last-snapshot')" />
-        <VmSnapshotCard class="last-revert" :snapshot="lastRevertSnapshot" :title="t('last-revert')" />
-      </div>
+      <VtsColumns extra-space-around>
+        <VtsColumn>
+          <VmSnapshotCard :snapshot="lastSnapshot" :title="t('last-snapshot')" />
+        </VtsColumn>
+        <VtsColumn>
+          <VmSnapshotCard :snapshot="lastRevertSnapshot" :title="t('last-revert')" />
+        </VtsColumn>
+      </VtsColumns>
       <UiCard class="container">
         <SnapshotsTable :snapshots :vm />
       </UiCard>
@@ -27,6 +31,8 @@ import {
 import SnapshotsTable from '@/modules/snapshot/components/SnapshotsTable.vue'
 import VmSnapshotCard from '@/modules/vm/components/snapshot/cards/VmSnapshotCard.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import VtsColumn from '@core/components/column/VtsColumn.vue'
+import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'

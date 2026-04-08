@@ -4,20 +4,22 @@
       {{ t('configuration') }}
     </UiTitle>
     <template v-if="!isSmartModeEnabled">
-      <VtsQuickInfoRow :label="t('smart-mode')">
-        <template #value>
-          <VtsStatus status="disabled" />
-        </template>
-      </VtsQuickInfoRow>
+      <VtsTabularKeyValueList>
+        <VtsTabularKeyValueRow :label="t('smart-mode')">
+          <template #value>
+            <VtsStatus status="disabled" />
+          </template>
+        </VtsTabularKeyValueRow>
+      </VtsTabularKeyValueList>
     </template>
     <VtsColumns v-else>
-      <VtsColumn class="column">
-        <VtsQuickInfoRow :label="t('smart-mode')">
+      <VtsTabularKeyValueList>
+        <VtsTabularKeyValueRow :label="t('smart-mode')">
           <template #value>
             <VtsStatus status="enabled" />
           </template>
-        </VtsQuickInfoRow>
-        <VtsQuickInfoRow :label="t('vms-tags')">
+        </VtsTabularKeyValueRow>
+        <VtsTabularKeyValueRow :label="t('vms-tags')">
           <template v-if="smartModeTags?.included !== undefined && smartModeTags.included.length > 0" #value>
             <UiTagsList>
               <UiTag v-for="tag in smartModeTags.included" :key="tag" accent="info" variant="secondary">
@@ -25,10 +27,10 @@
               </UiTag>
             </UiTagsList>
           </template>
-        </VtsQuickInfoRow>
-      </VtsColumn>
-      <VtsColumn class="column">
-        <VtsQuickInfoRow :label="t('resident-on')">
+        </VtsTabularKeyValueRow>
+      </VtsTabularKeyValueList>
+      <VtsTabularKeyValueList>
+        <VtsTabularKeyValueRow :label="t('resident-on')">
           <template v-if="smartModePools !== undefined" #value>
             <UiLink
               v-for="pool in smartModePools.included"
@@ -40,8 +42,8 @@
               {{ pool.name_label }}
             </UiLink>
           </template>
-        </VtsQuickInfoRow>
-        <VtsQuickInfoRow :label="t('excluded-vms-tags')">
+        </VtsTabularKeyValueRow>
+        <VtsTabularKeyValueRow :label="t('excluded-vms-tags')">
           <template v-if="smartModeTags !== undefined && smartModeTags.excluded.length > 0" #value>
             <UiTagsList>
               <UiTag v-for="tag in smartModeTags.excluded" :key="tag" accent="info" variant="secondary">
@@ -49,10 +51,10 @@
               </UiTag>
             </UiTagsList>
           </template>
-        </VtsQuickInfoRow>
-      </VtsColumn>
-      <VtsColumn class="column">
-        <VtsQuickInfoRow :label="t('not-resident-on')">
+        </VtsTabularKeyValueRow>
+      </VtsTabularKeyValueList>
+      <VtsTabularKeyValueList>
+        <VtsTabularKeyValueRow :label="t('not-resident-on')">
           <template v-if="smartModePools !== undefined" #value>
             <UiLink
               v-for="pool in smartModePools.excluded"
@@ -64,14 +66,14 @@
               {{ pool.name_label }}
             </UiLink>
           </template>
-        </VtsQuickInfoRow>
-        <VtsQuickInfoRow :label="t('power-state')">
+        </VtsTabularKeyValueRow>
+        <VtsTabularKeyValueRow :label="t('power-state')">
           <template v-if="smartModePowerState !== undefined" #value>
             <VtsIcon size="small" :name="`object:vm:${toLower(smartModePowerState)}`" />
             {{ smartModePowerState }}
           </template>
-        </VtsQuickInfoRow>
-      </VtsColumn>
+        </VtsTabularKeyValueRow>
+      </VtsTabularKeyValueList>
     </VtsColumns>
   </UiCard>
 </template>
@@ -79,11 +81,11 @@
 <script lang="ts" setup>
 import { useXoBackedUpVmsUtils } from '@/modules/backup/composables/xo-backed-up-vms-utils.composable.ts'
 import type { FrontXoVmBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
-import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
+import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
+import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
@@ -102,9 +104,3 @@ const { isSmartModeEnabled, smartModePools, smartModeTags, smartModePowerState }
   () => backupJob.vms
 )
 </script>
-
-<style lang="postcss" scoped>
-.column {
-  gap: 2.4rem;
-}
-</style>

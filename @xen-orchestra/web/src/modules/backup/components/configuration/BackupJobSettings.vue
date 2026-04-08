@@ -2,28 +2,28 @@
   <UiCard>
     <UiTitle>{{ t('settings') }}</UiTitle>
     <VtsColumns>
-      <VtsColumn>
-        <VtsQuickInfoRow :label="t('proxy')" :value="proxy?.name" />
-        <VtsQuickInfoRow :label="t('snapshot-mode')">
+      <VtsTabularKeyValueList>
+        <VtsTabularKeyValueRow :label="t('proxy')" :value="proxy?.name" />
+        <VtsTabularKeyValueRow :label="t('snapshot-mode')">
           <template v-if="backupJob.mode" #value>
             <UiTag variant="secondary" accent="info">{{ snapshotModeTranslation }}</UiTag>
           </template>
-        </VtsQuickInfoRow>
-        <VtsQuickInfoRow
+        </VtsTabularKeyValueRow>
+        <VtsTabularKeyValueRow
           :label="t('vm-backup-failure-number-of-retries')"
           :value="
             settings.nRetriesVmBackupFailures !== undefined ? String(settings.nRetriesVmBackupFailures) : undefined
           "
         />
-        <VtsQuickInfoRow :label="t('timeout')" :value="formattedTimeout" />
-      </VtsColumn>
-      <VtsColumn>
-        <VtsQuickInfoRow
+        <VtsTabularKeyValueRow :label="t('timeout')" :value="formattedTimeout" />
+      </VtsTabularKeyValueList>
+      <VtsTabularKeyValueList>
+        <VtsTabularKeyValueRow
           :label="t('speed-limit')"
           :value="maxExportRate ? `${maxExportRate.value} ${maxExportRate.prefix}` : undefined"
         />
-        <VtsQuickInfoRow :label="t('report-when')" :value="reportWhenValueTranslation" />
-        <VtsQuickInfoRow :label="t('report-recipients')">
+        <VtsTabularKeyValueRow :label="t('report-when')" :value="reportWhenValueTranslation" />
+        <VtsTabularKeyValueRow :label="t('report-recipients')">
           <template #value>
             <UiTagsList v-if="settings.reportRecipients">
               <UiTag
@@ -36,30 +36,30 @@
               </UiTag>
             </UiTagsList>
           </template>
-        </VtsQuickInfoRow>
-        <VtsQuickInfoRow
+        </VtsTabularKeyValueRow>
+        <VtsTabularKeyValueRow
           :label="t('concurrency')"
           :value="settings.concurrency !== undefined ? String(settings.concurrency) : undefined"
         />
-      </VtsColumn>
-      <VtsColumn>
-        <VtsQuickInfoRow :label="t('compression')" :value="compression" />
-        <VtsQuickInfoRow :label="t('offline-backup')">
+      </VtsTabularKeyValueList>
+      <VtsTabularKeyValueList>
+        <VtsTabularKeyValueRow :label="t('compression')" :value="compression" />
+        <VtsTabularKeyValueRow :label="t('offline-backup')">
           <template #value>
             <VtsEnabledState :enabled="!!settings.offlineBackup" />
           </template>
-        </VtsQuickInfoRow>
-        <VtsQuickInfoRow :label="t('shorter-backup-reports')">
+        </VtsTabularKeyValueRow>
+        <VtsTabularKeyValueRow :label="t('shorter-backup-reports')">
           <template #value>
             <VtsEnabledState :enabled="settings.backupReportTpl ? settings.backupReportTpl === 'compactMjml' : false" />
           </template>
-        </VtsQuickInfoRow>
-        <VtsQuickInfoRow :label="t('merge-backups-synchronously')">
+        </VtsTabularKeyValueRow>
+        <VtsTabularKeyValueRow :label="t('merge-backups-synchronously')">
           <template #value>
             <VtsEnabledState :enabled="!!settings.mergeBackupsSynchronously" />
           </template>
-        </VtsQuickInfoRow>
-      </VtsColumn>
+        </VtsTabularKeyValueRow>
+      </VtsTabularKeyValueList>
     </VtsColumns>
   </UiCard>
 </template>
@@ -67,10 +67,10 @@
 <script setup lang="ts">
 import { useXoBackupJobSettingsUtils } from '@/modules/backup/composables/backup-job-settings/xo-backup-job-settings.composable.ts'
 import type { FrontXoVmBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
-import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
+import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'

@@ -1,35 +1,44 @@
 <template>
   <VtsQuickInfoCard class="vm-dashboard-quick-info" :loading="!areVmsReady">
-    <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="t('state')">
+    <VtsKeyValueList>
+      <VtsKeyValueRow :label="t('state')">
         <template #value>
           <span class="value">
             <VtsIcon :name="powerState.icon" size="medium" />
             {{ powerState.text }}
           </span>
         </template>
-      </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="t('ip-address')" :value="vm.mainIpAddress" />
-      <VtsQuickInfoRow :label="t('created-on')" :value="installDateFormatted" />
-      <VtsQuickInfoRow :label="t('created-by')" :value="userLabel ?? t('unknown')" />
-      <VtsQuickInfoRow :label="t('started')" :value="relativeStartTime" />
-    </VtsQuickInfoColumn>
-    <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="t('uuid')" :value="vm.id" />
-      <VtsQuickInfoRow :label="t('pool')">
+      </VtsKeyValueRow>
+      <VtsKeyValueRow :label="t('ip-address')" :value="vm.mainIpAddress" />
+      <VtsKeyValueRow :label="t('created-on')" :value="installDateFormatted" />
+      <VtsKeyValueRow :label="t('created-by')" :value="userLabel ?? t('unknown')" />
+      <VtsKeyValueRow :label="t('started')" :value="relativeStartTime" />
+    </VtsKeyValueList>
+    <VtsKeyValueList>
+      <VtsKeyValueRow :label="t('uuid')" :value="vm.id" />
+      <VtsKeyValueRow :label="t('pool')">
         <template #value>
-          <UiLink v-if="pool" :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }" size="medium" icon="object:pool">
+          <UiLink
+            v-if="pool"
+            :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }"
+            size="medium"
+            icon="object:pool"
+          >
             {{ pool.name_label }}
           </UiLink>
           <span v-else>
             {{ t('none') }}
           </span>
         </template>
-      </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="t('host')">
+      </VtsKeyValueRow>
+      <VtsKeyValueRow :label="t('host')">
         <template #value>
           <template v-if="host">
-            <UiLink :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }" size="medium" :icon="`object:host:${hostPowerState}`">
+            <UiLink
+              :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
+              size="medium"
+              :icon="`object:host:${hostPowerState}`"
+            >
               {{ host.name_label }}
             </UiLink>
             <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
@@ -38,13 +47,13 @@
             {{ t('none') }}
           </template>
         </template>
-      </VtsQuickInfoRow>
-    </VtsQuickInfoColumn>
-    <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="t('description')" :value="vm.name_description" />
-      <VtsQuickInfoRow :label="t('os-name')" :value="vm.os_version?.name" />
-      <VtsQuickInfoRow :label="t('virtualization-type')" :value="virtualizationType" />
-      <VtsQuickInfoRow :label="t('guest-tools')">
+      </VtsKeyValueRow>
+    </VtsKeyValueList>
+    <VtsKeyValueList>
+      <VtsKeyValueRow :label="t('description')" :value="vm.name_description" />
+      <VtsKeyValueRow :label="t('os-name')" :value="vm.os_version?.name" />
+      <VtsKeyValueRow :label="t('virtualization-type')" :value="virtualizationType" />
+      <VtsKeyValueRow :label="t('guest-tools')">
         <template #value>
           <div class="value">
             <VtsIcon
@@ -61,12 +70,12 @@
             </template>
           </div>
         </template>
-      </VtsQuickInfoRow>
-    </VtsQuickInfoColumn>
-    <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="t('vcpus')" :value="String(vm.CPUs.number)" />
-      <VtsQuickInfoRow :label="t('ram')" :value="ram" />
-      <VtsQuickInfoRow :label="t('tags')">
+      </VtsKeyValueRow>
+    </VtsKeyValueList>
+    <VtsKeyValueList>
+      <VtsKeyValueRow :label="t('vcpus')" :value="String(vm.CPUs.number)" />
+      <VtsKeyValueRow :label="t('ram')" :value="ram" />
+      <VtsKeyValueRow :label="t('tags')">
         <template #value>
           <UiTagsList v-if="vm.tags.length > 0">
             <UiTag v-for="tag in vm.tags" :key="tag" accent="info" variant="secondary">
@@ -74,8 +83,8 @@
             </UiTag>
           </UiTagsList>
         </template>
-      </VtsQuickInfoRow>
-    </VtsQuickInfoColumn>
+      </VtsKeyValueRow>
+    </VtsKeyValueList>
   </VtsQuickInfoCard>
 </template>
 
@@ -87,9 +96,9 @@ import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts
 import { useXoVmCollection, type FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { XCP_LINKS } from '@/shared/constants.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsKeyValueList from '@core/components/key-value-list/VtsKeyValueList.vue'
+import VtsKeyValueRow from '@core/components/key-value-row/VtsKeyValueRow.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
-import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'

@@ -1,11 +1,11 @@
 <template>
-  <div class="vts-quick-info-column">
+  <dl class="vts-key-value-list">
     <slot />
-  </div>
+  </dl>
 </template>
 
 <style lang="postcss" scoped>
-.vts-quick-info-column {
+.vts-key-value-list {
   display: flex;
   flex-direction: column;
   gap: 1.6rem;
