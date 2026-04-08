@@ -1,4 +1,6 @@
 export default {
-  'change-tags': true,
   read: true,
+  update: {
+    tags: true,
+  },
 }

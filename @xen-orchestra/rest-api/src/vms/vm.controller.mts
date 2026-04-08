@@ -232,13 +232,13 @@ export class VmController extends XapiXoController<XoVm> {
    * - **vif_#_tx_errors** : Transmit errors per second on virtual interface vif. Enabled by default. *Condition*: VIF vif exists.
    *
    * Required privilege:
-   * - resource: vm, action: change-datasources
+   * - resource: vm, action: update:datasources
    *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example dataSource "cpu0"
    */
   @Put('{id}/stats/data_source/{data_source}')
-  @Middlewares(acl({ resource: 'vm', action: 'change-datasources', objectId: 'params.id' }))
+  @Middlewares(acl({ resource: 'vm', action: 'update:datasources', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -253,13 +253,13 @@ export class VmController extends XapiXoController<XoVm> {
    * For a list of possible data sources, see the endpoint documentation: `GET {id}/stats/data_source/{data_source}`
    *
    * Required privilege:
-   * - resource: vm, action: change-datasources
+   * - resource: vm, action: update:datasources
    *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example dataSource "cpu0"
    */
   @Delete('{id}/stats/data_source/{data_source}')
-  @Middlewares(acl({ resource: 'vm', action: 'change-datasources', objectId: 'params.id' }))
+  @Middlewares(acl({ resource: 'vm', action: 'update:datasources', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -768,13 +768,13 @@ export class VmController extends XapiXoController<XoVm> {
 
   /**
    * Required privilege:
-   * - resource: vm, action: change-tags
+   * - resource: vm, action: update:tags
    *
    * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
    * @example tag "from-rest-api"
    */
   @Put('{id}/tags/{tag}')
-  @Middlewares(acl({ resource: 'vm', action: 'change-tags', objectId: 'params.id' }))
+  @Middlewares(acl({ resource: 'vm', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -785,13 +785,13 @@ export class VmController extends XapiXoController<XoVm> {
 
   /**
    * Required privilege:
-   * - resource: vm, action: change-tags
+   * - resource: vm, action: update:tags
    *
    * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
    * @example tag "from-rest-api"
    */
   @Delete('{id}/tags/{tag}')
-  @Middlewares(acl({ resource: 'vm', action: 'change-tags', objectId: 'params.id' }))
+  @Middlewares(acl({ resource: 'vm', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)

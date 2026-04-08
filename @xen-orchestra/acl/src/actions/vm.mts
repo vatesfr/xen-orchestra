@@ -1,6 +1,4 @@
 export default {
-  'change-datasources': true,
-  'change-tags': true,
   delete: true,
   pause: true,
   read: true,
@@ -17,4 +15,8 @@ export default {
   start: true,
   suspend: true,
   unpause: true,
+  update: {
+    datasources: true,
+    tags: true,
+  },
 }

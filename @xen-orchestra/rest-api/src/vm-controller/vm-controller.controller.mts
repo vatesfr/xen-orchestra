@@ -228,13 +228,13 @@ export class VmControllerController extends XapiXoController<XoVmController> {
 
   /**
    * Required privilege:
-   * - resource: vm-controller, action: change-tags
+   * - resource: vm-controller, action: update:tags
    *
    * @example id "9b4775bd-9493-490a-9afa-f786a44caa4f"
    * @example tag "from-rest-api"
    */
   @Put('{id}/tags/{tag}')
-  @Middlewares(acl({ resource: 'vm-controller', action: 'change-tags', objectId: 'params.id' }))
+  @Middlewares(acl({ resource: 'vm-controller', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -245,13 +245,13 @@ export class VmControllerController extends XapiXoController<XoVmController> {
 
   /**
    * Required privilege:
-   * - resource: vm-controller, action: change-tags
+   * - resource: vm-controller, action: update:tags
    *
    * @example id "9b4775bd-9493-490a-9afa-f786a44caa4f"
    * @example tag "from-rest-api"
    */
   @Delete('{id}/tags/{tag}')
-  @Middlewares(acl({ resource: 'vm-controller', action: 'change-tags', objectId: 'params.id' }))
+  @Middlewares(acl({ resource: 'vm-controller', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)

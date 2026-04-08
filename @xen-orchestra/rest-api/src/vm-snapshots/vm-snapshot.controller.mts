@@ -279,13 +279,13 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
 
   /**
    * Required privilege:
-   * - resource: vm-snapshot, action: change-tags
+   * - resource: vm-snapshot, action: update:tags
    *
    * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
    * @example tag "from-rest-api"
    */
   @Put('{id}/tags/{tag}')
-  @Middlewares(acl({ resource: 'vm-snapshot', action: 'change-tags', objectId: 'params.id' }))
+  @Middlewares(acl({ resource: 'vm-snapshot', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -296,13 +296,13 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
 
   /**
    * Required privilege:
-   * - resource: vm-snapshot, action: change-tags
+   * - resource: vm-snapshot, action: update:tags
    *
    * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
    * @example tag "from-rest-api"
    */
   @Delete('{id}/tags/{tag}')
-  @Middlewares(acl({ resource: 'vm-snapshot', action: 'change-tags', objectId: 'params.id' }))
+  @Middlewares(acl({ resource: 'vm-snapshot', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
