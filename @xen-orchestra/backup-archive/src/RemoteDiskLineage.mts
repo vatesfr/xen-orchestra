@@ -1,5 +1,5 @@
 import RemoteHandlerAbstract from '@xen-orchestra/fs'
-import { basename, normalize } from '@xen-orchestra/fs/path'
+import { basename, normalize, resolveFromFile } from '@xen-orchestra/fs/path'
 import {
   MergeRemoteDisk,
   openDisk,
@@ -7,6 +7,7 @@ import {
   instantiateDisk,
   RemoteDisk,
 } from '@xen-orchestra/backups/disks'
+import type { MergeState } from '@xen-orchestra/backups/disks'
 import {
   DEFAULT_MERGE_CONCURRENCY,
   DEFAULT_REMOVE_CONCURRENCY,
@@ -35,10 +36,12 @@ export class RemoteDiskLineage {
   #childOf: Map<string, string> = new Map()
   // Disk paths not referenced by any active backup (set by setActiveDiskPaths)
   #orphanDisks: Set<string> = new Set()
-  // Interrupted merges: normalized parent path → state file path
-  #interruptedMerges: Map<string, string> = new Map()
+  // Interrupted merges: normalized parent path: parsed state file info
+  #interruptedMerges: Map<string, { stateFilePath: string; chain?: string[]; childUuid?: string }> = new Map()
   // Resolved data file paths for all disks (populated during init via getResolvedPath)
   #resolvedPaths: Set<string> = new Set()
+  // disk UUID: normalized disk path (populated during init)
+  #uuidToPath: Map<string, string> = new Map()
 
   constructor(handler: RemoteHandlerAbstract, vdiDir: string, opts: ResolvedBackupCleanOptions) {
     this.#handler = handler
@@ -61,7 +64,18 @@ export class RemoteDiskLineage {
         if (match !== null) {
           const parentFilename = match[1]
           const parentPath = normalize(this.#vdiDir + '/' + parentFilename)
-          this.#interruptedMerges.set(parentPath, filePath)
+          let chain: string[] | undefined
+          let childUuid: string | undefined
+          try {
+            const state: MergeState = JSON.parse((await this.#handler.readFile(filePath)) as string)
+            if (Array.isArray(state?.chain)) {
+              chain = state.chain.map((relPath: string) => normalize(resolveFromFile(filePath, relPath)))
+            }
+            childUuid = state?.child?.uuid
+          } catch {
+            // unreadable — chain and childUuid stay undefined, fallback to #uuidToPath in clean()
+          }
+          this.#interruptedMerges.set(parentPath, { stateFilePath: filePath, chain, childUuid })
         }
       }
     }
@@ -80,6 +94,7 @@ export class RemoteDiskLineage {
       try {
         const resolvedPath = normalize(await disk.getResolvedPath())
         this.#resolvedPaths.add(resolvedPath)
+        this.#uuidToPath.set(disk.getUuid(), diskPath)
 
         if (disk.isDifferencing()) {
           const parentPath = normalize(disk.instantiateParent().getPath())
@@ -137,7 +152,10 @@ export class RemoteDiskLineage {
    * Requires setActiveDiskPaths() to have been called first (done by VmBackupDirectory.check()).
    * @returns Set of deleted disk paths.
    */
-  async clean(): Promise<{ deleted: Set<string>; mergedSizes: Map<string, number> }> {
+  async clean({
+    remove = this.#opts.remove ?? false,
+    merge = this.#opts.merge ?? false,
+  }: { remove?: boolean; merge?: boolean } = {}): Promise<{ deleted: Set<string>; mergedSizes: Map<string, number> }> {
     const toDelete = new Set<string>()
     const toMerge: { chain: string[]; isResuming: boolean }[] = []
     const visited = new Set<string>()
@@ -169,44 +187,55 @@ export class RemoteDiskLineage {
       return undefined
     }
 
+    // Process interrupted merges first so their disks are protected from the orphan loop
+    for (const [parentPath, { stateFilePath, chain: stateChain, childUuid }] of this.#interruptedMerges) {
+      if (!this.#diskPaths.has(parentPath)) {
+        // Orphan merge state: the disk no longer exists
+        if (remove) {
+          this.#opts.logInfo('deleting orphan merge state', { stateFilePath })
+          await this.#handler.unlink(stateFilePath)
+        }
+        continue
+      }
+
+      // Reconstruct chain from state file (chain is always written since MergeRemoteDisk was updated
+      // to include single-child merges). Fall back to uuid→path for old state files without chain.
+      let chain: string[] | undefined
+      if (stateChain !== undefined) {
+        const existing = stateChain.filter(p => this.#diskPaths.has(p))
+        if (existing.length >= 2) chain = existing
+      } else {
+        // old state file without chain: use child uuid to locate the child disk
+        const childPath = childUuid !== undefined ? this.#uuidToPath.get(childUuid) : undefined
+        if (childPath !== undefined) chain = [parentPath, childPath]
+      }
+
+      if (chain !== undefined) {
+        chain.forEach(p => visited.add(p))
+        toMerge.push({ chain, isResuming: true })
+      }
+    }
+
     for (const orphan of this.#orphanDisks) {
       if (!visited.has(orphan)) {
         const parent = this.#parentOf.get(orphan)
         if (parent === undefined || !this.#orphanDisks.has(parent)) {
           const chain = getUsedChildChainOrDelete(orphan)
           if (chain !== undefined && chain.length > 1) {
-            toMerge.push({ chain, isResuming: this.#interruptedMerges.has(chain[0]) })
+            toMerge.push({ chain, isResuming: false })
           }
         }
       }
     }
 
-    // Add interrupted merges that still have a valid child
-    for (const [parentPath, stateFilePath] of this.#interruptedMerges) {
-      if (!this.#diskPaths.has(parentPath)) {
-        // Orphan merge state: the disk no longer exists
-        if (this.#opts.remove) {
-          this.#opts.logInfo('deleting orphan merge state', { stateFilePath })
-          await this.#handler.unlink(stateFilePath)
-        }
-        continue
-      }
-      if (!visited.has(parentPath)) {
-        const childPath = this.#childOf.get(parentPath)
-        if (childPath !== undefined) {
-          toMerge.push({ chain: [parentPath, childPath], isResuming: true })
-        }
-      }
-    }
-
-    if (!this.#opts.merge && toMerge.length > 0) {
+    if (!merge && toMerge.length > 0) {
       this.#opts.logWarn('VHD chain needs merging', { count: toMerge.length })
     }
 
     // mergeTargetPath → final size of the disk everything was merged into
     const mergedSizes = new Map<string, number>()
 
-    if (this.#opts.remove) {
+    if (remove) {
       await asyncEach(
         Array.from(toDelete),
         async path => {
@@ -221,7 +250,7 @@ export class RemoteDiskLineage {
       )
     }
 
-    if (this.#opts.merge) {
+    if (merge) {
       await asyncEach(
         toMerge,
         async ({ chain, isResuming }) => {
@@ -288,6 +317,8 @@ export class RemoteDiskLineage {
     const merger = new MergeRemoteDisk(this.#handler as any, {
       logInfo: this.#opts.logInfo,
       removeUnused: this.#opts.remove,
+      mergeBlockConcurrency: this.#opts.mergeBlockConcurrency,
+      onProgress: this.#opts.onProgress,
     })
 
     // isResuming is known from #interruptedMerges — no extra file read needed
