@@ -185,6 +185,20 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
+   * Returns the parent path
+   *
+   * @returns {string}
+   */
+  getParentPath() {
+    if (this.#vhd === undefined) {
+      throw new Error(`can't call getParentPath of a RemoteVhdDisk before init`)
+    }
+
+    const parentPath = this.#vhd.header.parentUnicodeName
+    return join(dirname(this.#path), parentPath)
+  }
+
+  /**
    * @returns {Promise<boolean>} canMergeConcurently
    */
   async canMergeConcurently() {
