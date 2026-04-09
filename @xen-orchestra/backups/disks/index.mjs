@@ -16,42 +16,20 @@ export { MergeRemoteDisk } from './MergeRemoteDisk.mjs'
  * @param {FileAccessor} params.handler
  * @param {string} params.path
  * @param {boolean} [params.force]
+ * @param {boolean} [params.ignoreBlockIndexes]
  * @returns {Promise<RemoteDisk>}
  */
-export async function openDisk({ handler, path, force = false }) {
+export async function openDisk({ handler, path, force = false, ignoreBlockIndexes = false }) {
   const disk = new RemoteVhdDisk({ handler, path })
-  await disk.init({ force })
+  if (ignoreBlockIndexes) {
+    // Best-effort init: return the disk even if init fails so that callers
+    // can still use operations that work without a fully-opened VHD (e.g. unlink, checkAlias).
+    await disk.init({ force, ignoreBlockIndexes }).catch(() => {})
+  } else {
+    await disk.init({ force })
+  }
   return disk
 }
-/**
- *
- * @param {Object} params
- * @param {FileAccessor} params.handler
- * @param {string} params.path
- * @returns {Promise<Disposable<RemoteDisk>>}
- */
-export async function openDisposableDisk({ handler, path }) {
-  const disk = new RemoteVhdDisk({ handler, path })
-  await disk.init()
-  return {
-    value: disk,
-    dispose: () => disk.close(),
-  }
-}
-
-const DISK_EXTENSIONS = ['.vhd']
-
-/**
- * Returns true if the path points to a supported disk format.
- *
- * @param {FileAccessor} _handler - Remote file handler (reserved for future use)
- * @param {string} path - Path to check
- * @returns {boolean}
- */
-export function isDisk(_handler, path) {
-  return DISK_EXTENSIONS.some(ext => path.endsWith(ext))
-}
-
 /**
  * Opens one or more disk paths as a single RemoteDisk (or RemoteVhdDiskChain for multiple paths).
  * Use this when merging a chain: pass the child paths as an array; the chain is opened in order
