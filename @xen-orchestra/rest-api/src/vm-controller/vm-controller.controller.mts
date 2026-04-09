@@ -2,14 +2,30 @@ import { inject } from 'inversify'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { XoAlarm, XoMessage, XoTask, XoVdi, XoVdiSnapshot, XoVmController } from '@vates/types'
-import { Delete, Example, Get, Path, Put, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
+import {
+  Delete,
+  Example,
+  Get,
+  Path,
+  Put,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+  Middlewares,
+} from 'tsoa'
 import { Request as ExRequest } from 'express'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher, limitAndFilterArray } from '../helpers/utils.helper.mjs'
+import { acl } from '../middlewares/acl.middleware.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import {
   badRequestResp,
+  forbiddenOperationResp,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
@@ -73,11 +89,16 @@ export class VmControllerController extends XapiXoController<XoVmController> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vm-controller, action: read
+   *
    * @example id "9b4775bd-9493-490a-9afa-f786a44caa4f"
    */
   @Example(vmController)
   @Get('{id}')
+  @Middlewares(acl({ resource: 'vm-controller', action: 'read', objectId: 'params.id' }))
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   getVmController(@Path() id: string): Unbrand<XoVmController> {
     return this.getObject(id as XoVmController['id'])
   }
@@ -211,11 +232,16 @@ export class VmControllerController extends XapiXoController<XoVmController> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vm-controller, action: update:tags
+   *
    * @example id "9b4775bd-9493-490a-9afa-f786a44caa4f"
    * @example tag "from-rest-api"
    */
   @Put('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'vm-controller', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async putVmControllerTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vmController = this.getXapiObject(id as XoVmController['id'])
@@ -223,11 +249,16 @@ export class VmControllerController extends XapiXoController<XoVmController> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vm-controller, action: update:tags
+   *
    * @example id "9b4775bd-9493-490a-9afa-f786a44caa4f"
    * @example tag "from-rest-api"
    */
   @Delete('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'vm-controller', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteVmControllerTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vmController = this.getXapiObject(id as XoVmController['id'])
