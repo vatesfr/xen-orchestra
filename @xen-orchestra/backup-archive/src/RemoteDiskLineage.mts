@@ -262,23 +262,11 @@ export class RemoteDiskLineage {
   /**
    * Merges ancestors into the active child at the end of the chain.
    * Returns the final size of the merge target and its path.
-   * Throws NOT_SUPPORTED if the parent is a VHD directory (alias required for directory merges).
    */
   async #mergeChain(chain: string[], isResuming: boolean): Promise<{ finalDiskSize: number; mergeTargetPath: string }> {
     const parentPath = chain[0]
     // The last disk in the chain is the active one that everything gets merged into
     const mergeTargetPath = chain[chain.length - 1]
-
-    // Merging a VHD directory without alias is not supported
-    const parentIsDirectory = await this.#handler.list(parentPath).then(
-      () => true,
-      () => false
-    )
-    if (parentIsDirectory) {
-      const err: any = new Error('Cannot merge VHD directory without alias')
-      err.code = 'NOT_SUPPORTED'
-      throw err
-    }
 
     this.#opts.logInfo('merging disk chain', { chain })
 
