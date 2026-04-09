@@ -33,5 +33,6 @@
 
 - @xen-orchestra/immutable-backups patch
 - @xen-orchestra/web patch
+- @xen-orchestra/web-core minor
 
 <!--packages-end-->
