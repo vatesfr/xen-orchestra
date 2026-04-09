@@ -30,10 +30,10 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
 
   constructor(
     handler: RemoteHandlerAbstract,
-    rootPath: string,
-    metadataPath: string,
+    rootPath: string, // xo-vm-backups/<vmUuid>/
+    metadataPath: string, // xo-vm-backups/<vmUuid>/<timestamp>_<scheduleId>.json
     metadata: PartialBackupMetadata,
-    diskPaths: Array<string>,
+    diskPaths: Array<string>, // xo-vm-backups/<vmUuid>/vdis/<jobId>/<vdiUuid>/<snapshotUuid>.alias.vhd (one per VDI)
     opts: ResolvedBackupCleanOptions
   ) {
     this.handler = handler
