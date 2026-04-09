@@ -232,6 +232,11 @@ export function acl(acls: AclEntry | AclEntry[]) {
       // This loses the original correlation (e.g. it would allow invalid pairs like { resource: 'vgpu', action: 'snapshot' }).
       // The `as` cast re-asserts the discriminated union member type.
       for (const action of acl.actionsResolver(req, restApi)) {
+        if (action === undefined) {
+          // action can be undefined, if the action is created from `actionFromBody` or `actionIfNotSelf`
+          continue
+        }
+
         missingPrivilegeParams.push({ action, resource: acl.resource, objects, user } as AnyPrivilegeOnParam)
       }
     }
