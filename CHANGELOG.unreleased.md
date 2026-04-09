@@ -13,7 +13,7 @@
 
 ### Bug fixes
 
-- [Header]: Increase SSE ping timeout (PR [#9681](https://github.com/vatesfr/xen-orchestra/pull/9681))
+- [Header]: Fix `Unable to connect to XO server` falshing every 30 secondes (PR [#9681](https://github.com/vatesfr/xen-orchestra/pull/9681))
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
