@@ -83,10 +83,10 @@ export class VmFullBackupArchive implements VmBackupInterface {
 
   constructor(
     handler: RemoteHandlerAbstract,
-    rootPath: string,
-    metadataPath: string,
+    rootPath: string, // xo-vm-backups/<vmUuid>/
+    metadataPath: string, // xo-vm-backups/<vmUuid>/<timestamp>_<scheduleId>.json
     metadata: PartialBackupMetadata,
-    xvaPath: string,
+    xvaPath: string, // xo-vm-backups/<vmUuid>/<timestamp>_<scheduleId>.xva
     opts: ResolvedBackupCleanOptions
   ) {
     this.handler = handler
