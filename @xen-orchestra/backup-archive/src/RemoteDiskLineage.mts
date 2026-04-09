@@ -24,9 +24,9 @@ export class RemoteDiskLineage {
 
   // Concrete disk paths discovered in this VDI directory (normalized)
   #diskPaths: Set<string> = new Set()
-  // child path → parent path (from disk header)
+  // child path: parent path (from disk header)
   #parentOf: Map<string, string> = new Map()
-  // parent path → child path
+  // parent path: child path
   #childOf: Map<string, string> = new Map()
   // Disk paths not referenced by any active backup (set by setActiveDiskPaths)
   #orphanDisks: Set<string> = new Set()
@@ -65,7 +65,7 @@ export class RemoteDiskLineage {
             }
             childUuid = state?.child?.uuid
           } catch {
-            // unreadable — chain and childUuid stay undefined, fallback to #uuidToPath in clean()
+            // mergeState unreadable
           }
           this.#interruptedMerges.set(parentPath, { stateFilePath: filePath, chain, childUuid })
         }
