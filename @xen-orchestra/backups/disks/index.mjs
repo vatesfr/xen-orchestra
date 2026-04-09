@@ -16,22 +16,19 @@ export { MergeRemoteDisk } from './MergeRemoteDisk.mjs'
  * @param {FileAccessor} params.handler
  * @param {string} params.path
  * @param {boolean} [params.force]
+ * @param {boolean} [params.ignoreBlockIndexes]
  * @returns {Promise<RemoteDisk>}
  */
-export async function openDisk({ handler, path, force = false }) {
+export async function openDisk({ handler, path, force = false, ignoreBlockIndexes = false }) {
   const disk = new RemoteVhdDisk({ handler, path })
-  await disk.init({ force })
+  if (ignoreBlockIndexes) {
+    // Best-effort init: return the disk even if init fails so that callers
+    // can still use operations that work without a fully-opened VHD (e.g. unlink, checkAlias).
+    await disk.init({ force, ignoreBlockIndexes }).catch(() => {})
+  } else {
+    await disk.init({ force })
+  }
   return disk
-}
-
-/**
- * @param {Object} params
- * @param {FileAccessor} params.handler
- * @param {string} params.path
- * @returns {RemoteDisk}
- */
-export function instantiateDisk({ handler, path }) {
-  return new RemoteVhdDisk({ handler, path })
 }
 
 /**
