@@ -8,12 +8,15 @@ export function useDefaultTab(dispatcherRouteName: RouteRecordName & string, def
   const router = useRouter()
   const route = useRoute()
 
+  // TODO: Delete after 2 to 3 months (once all users have cleared their local storage)
+  localStorage.removeItem('default-tabs')
+
   watch(
     () => route.name as string,
     name => {
       if (name === dispatcherRouteName) {
         const isSameDispatcher = localStorage.getItem(TAB_MEMORY_DISPATCHER) === dispatcherRouteName
-        const tabName = isSameDispatcher ? localStorage.getItem(TAB_MEMORY_LAST) : defaultTab
+        const tabName = (isSameDispatcher ? localStorage.getItem(TAB_MEMORY_LAST) : null) ?? defaultTab
         void router.replace({ name: `${dispatcherRouteName}/${tabName}` } as RouteLocationRaw)
       } else if (!name.startsWith(dispatcherRouteName)) {
         return
