@@ -295,13 +295,17 @@ export class VmBackupDirectory implements VmBackupInterface {
         continue
       }
       const disk = await openDisk({ handler: handler as any, path, ignoreBlockIndexes: true })
-      const resolvedTarget = await disk.checkAlias({
-        remove: opts.remove,
-        logWarn: opts.logWarn,
-        logInfo: opts.logInfo,
-      })
-      if (resolvedTarget !== undefined) {
-        resolvedPaths.add(normalize(resolvedTarget))
+      try {
+        const resolvedTarget = await disk.checkAlias({
+          remove: opts.remove,
+          logWarn: opts.logWarn,
+          logInfo: opts.logInfo,
+        })
+        if (resolvedTarget !== undefined) {
+          resolvedPaths.add(normalize(resolvedTarget))
+        }
+      } finally {
+        await disk.close()
       }
     }
 
