@@ -17,7 +17,7 @@ export const useVmDeleteJob = defineJob('vm.delete', [vmsArg], () => {
       }
 
       if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATION.DESTROY))) {
-        throw new JobRunningError(t('job:vm-delete:in-progress'))
+        throw new JobRunningError(t('job:delete:in-progress'))
       }
 
       if (!vms.every(vm => vm.power_state === VM_POWER_STATE.HALTED)) {
