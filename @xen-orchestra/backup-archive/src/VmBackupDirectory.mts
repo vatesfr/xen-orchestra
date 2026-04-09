@@ -13,9 +13,8 @@ import {
   PartialBackupMetadata,
   ResolvedBackupCleanOptions,
   DEFAULT_MERGE_CONCURRENCY,
-  isVhdAlias,
 } from './VmBackup.types.mjs'
-import { openDisk } from '@xen-orchestra/backups/disks'
+import { openDisk, isDiskAlias } from '@xen-orchestra/backups/disks'
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter.mjs'
@@ -175,7 +174,7 @@ export class VmBackupDirectory implements VmBackupInterface {
           allMergedSizes.set(diskPath, (allMergedSizes.get(diskPath) ?? 0) + size)
         }
 
-        const aliasPaths = (await this.handler.list(vdiDir, { prependDir: true })).filter(isVhdAlias)
+        const aliasPaths = (await this.handler.list(vdiDir, { prependDir: true })).filter(isDiskAlias)
         await VmBackupDirectory.checkAliases(this.handler, aliasPaths, `${vdiDir}/data`, {
           remove,
           logWarn: this.opts.logWarn,
@@ -291,7 +290,7 @@ export class VmBackupDirectory implements VmBackupInterface {
   ): Promise<void> {
     const resolvedPaths = new Set<string>()
     for (const path of aliasPaths) {
-      if (!isVhdAlias(path)) {
+      if (!isDiskAlias(path)) {
         continue
       }
       const disk = await openDisk({ handler: handler as any, path, ignoreBlockIndexes: true })

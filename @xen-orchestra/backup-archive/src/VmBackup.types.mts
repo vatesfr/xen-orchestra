@@ -1,27 +1,6 @@
 import RemoteHandlerAbstract from '@xen-orchestra/fs'
 import { basename } from 'node:path'
 
-export function isMetadataFile(filename: string): boolean {
-  return filename.endsWith('.json')
-}
-export function isVhdFile(filename: string) {
-  return filename.endsWith('.vhd')
-}
-export function isVhdSumFile(filename: string) {
-  return filename.endsWith('.vhd.checksum')
-}
-export function isXvaFile(filename: string) {
-  return filename.endsWith('.xva')
-}
-export function isXvaSumFile(filename: string) {
-  return filename.endsWith('.xva.checksum')
-}
-export function isVhdAlias(filename: string) {
-  return filename.endsWith('.alias.vhd')
-}
-export function isDiskFile(filename: string) {
-  return isVhdFile(filename)
-}
 export type AnomalyReport = {
   multipleChildren: Array<string>
   brokenChains: Array<string>
