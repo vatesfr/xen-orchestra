@@ -38,8 +38,6 @@ export class RemoteDiskLineage {
   #orphanDisks: Set<string> = new Set()
   // Interrupted merges: normalized parent path: parsed state file info
   #interruptedMerges: Map<string, { stateFilePath: string; chain?: string[]; childUuid?: string }> = new Map()
-  // Resolved data file paths for all disks (populated during init via getResolvedPath)
-  #resolvedPaths: Set<string> = new Set()
   // disk UUID: normalized disk path (populated during init)
   #uuidToPath: Map<string, string> = new Map()
 
@@ -92,8 +90,6 @@ export class RemoteDiskLineage {
         continue
       }
       try {
-        const resolvedPath = normalize(await disk.getResolvedPath())
-        this.#resolvedPaths.add(resolvedPath)
         this.#uuidToPath.set(disk.getUuid(), diskPath)
 
         if (disk.isDifferencing()) {
@@ -261,34 +257,7 @@ export class RemoteDiskLineage {
       )
     }
 
-    await this.#cleanDataDirectory()
-
     return { deleted: toDelete, mergedSizes }
-  }
-
-  /**
-   * Deletes data files in the vdiDir/data/ subdirectory that are not referenced by any alias disk.
-   */
-  async #cleanDataDirectory(): Promise<void> {
-    const dataDir = `${this.#vdiDir}/data`
-    let dataFiles: string[]
-    try {
-      dataFiles = await this.#handler.list(dataDir, { prependDir: true })
-    } catch {
-      return
-    }
-    for (const dataFile of dataFiles) {
-      if (!this.#resolvedPaths.has(normalize(dataFile))) {
-        this.#opts.logWarn('no alias references data file', { path: dataFile })
-        if (this.#opts.remove) {
-          try {
-            await instantiateDisk({ handler: this.#handler as any, path: dataFile }).unlink({ force: true })
-          } catch (error) {
-            this.#opts.logWarn('failed to delete unreferenced data file', { path: dataFile, error })
-          }
-        }
-      }
-    }
   }
 
   /**

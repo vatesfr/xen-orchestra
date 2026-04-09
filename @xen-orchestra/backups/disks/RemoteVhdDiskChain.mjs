@@ -257,7 +257,7 @@ export class RemoteVhdDiskChain extends RemoteDisk {
   }
 
   /**
-   * @param {RemoteVhdDisk} childDisk
+   * @param {RemoteDisk} childDisk
    * @returns {Promise<void>}
    */
   async flushMetadata(childDisk) {
@@ -265,7 +265,7 @@ export class RemoteVhdDiskChain extends RemoteDisk {
   }
 
   /**
-   * @param {RemoteVhdDisk} childDisk
+   * @param {RemoteDisk} childDisk
    * @returns {Promise<void>}
    */
   mergeMetadata(childDisk) {
