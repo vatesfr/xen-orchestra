@@ -69,6 +69,7 @@ export class RemoteVhdDisk extends RemoteDisk {
   /**
    * @param {Object} [options]
    * @param {boolean} [options.force=false]
+   * @param {boolean} [options.ignoreBlockIndexes=false]
    * @returns {Promise<void>}
    */
   async init(options = {}) {
@@ -85,7 +86,9 @@ export class RemoteVhdDisk extends RemoteDisk {
         }
 
         this.#dispose = dispose
-        await this.#vhd.readBlockAllocationTable()
+        if (!options.ignoreBlockIndexes) {
+          await this.#vhd.readBlockAllocationTable()
+        }
         this.#isDifferencing = value.footer.diskType === DISK_TYPES.DIFFERENCING
       } catch (error) {
         await this.close()

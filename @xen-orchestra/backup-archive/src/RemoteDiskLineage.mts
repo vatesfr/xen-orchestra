@@ -1,12 +1,6 @@
 import RemoteHandlerAbstract from '@xen-orchestra/fs'
 import { basename, normalize, resolveFromFile } from '@xen-orchestra/fs/path'
-import {
-  MergeRemoteDisk,
-  openDisk,
-  openDiskChainFromPaths,
-  instantiateDisk,
-  RemoteDisk,
-} from '@xen-orchestra/backups/disks'
+import { MergeRemoteDisk, openDisk, openDiskChainFromPaths, RemoteDisk } from '@xen-orchestra/backups/disks'
 import type { MergeState } from '@xen-orchestra/backups/disks'
 import {
   DEFAULT_MERGE_CONCURRENCY,
@@ -237,7 +231,8 @@ export class RemoteDiskLineage {
         async path => {
           this.#opts.logInfo('deleting unused disk', { path })
           try {
-            await instantiateDisk({ handler: this.#handler as any, path }).unlink({ force: true })
+            const disk = await openDisk({ handler: this.#handler as any, path, ignoreBlockIndexes: true })
+            await disk.unlink({ force: true })
           } catch (error) {
             this.#opts.logWarn('failed to delete unused disk', { path, error })
           }
