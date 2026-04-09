@@ -771,7 +771,7 @@
   "start-console": "Aby bylo možné přistupovat ke konzoli a navázat ve fungování, {type} zapněte!",
   "start-date": "Počáteční datum",
   "start-delay": "Prodleva zapnutí",
-  "start-host": "Pro navázání ve fungování hostitele ho zapněte (případně sem zavítejte později, až bude zapnutý).",
+  "start-host": "Aby začal znovu fungovat, hostitele zapněte (případně sem zavítejte později, až bude zapnutý).",
   "start-vm": "Aby bylo možné přistupovat k jeho konzoli a podrobnostem k nastavení, je třeba ho spustit.",
   "started": "Spuštěné",
   "state": "Stav",
