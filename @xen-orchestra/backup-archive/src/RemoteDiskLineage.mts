@@ -205,8 +205,8 @@ export class RemoteDiskLineage {
         const existing = stateChain.filter(p => this.#diskPaths.has(p))
         if (existing.length >= 2) chain = existing
       } else {
-        // old state file without chain: use child uuid to locate the child disk
-        const childPath = childUuid !== undefined ? this.#uuidToPath.get(childUuid) : undefined
+        // old state file without chain: use child uuid to locate the child disk, or fall back to header-based map
+        const childPath = childUuid !== undefined ? this.#uuidToPath.get(childUuid) : this.#childOf.get(parentPath)
         if (childPath !== undefined) chain = [parentPath, childPath]
       }
 
