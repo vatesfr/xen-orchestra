@@ -218,9 +218,9 @@ export class VmBackupDirectory implements VmBackupInterface {
   async #checkCacheCount(): Promise<void> {
     const cachePath = `${this.rootPath}/cache.json.gz`
     const existingCache = await this.#remoteAdapter._readCache(cachePath)
-    const actual = existingCache === undefined ? 0 : Object.keys(existingCache).length
+    const actual = existingCache === undefined ? undefined : Object.keys(existingCache).length
     const expected = this.backupArchives.size
-    if (actual !== expected) {
+    if (actual !== undefined && actual !== expected) {
       this.opts.logWarn('unexpected number of entries in backup cache', { path: cachePath, actual, expected })
     }
   }
