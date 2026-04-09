@@ -90,10 +90,14 @@ export class RemoteDiskLineage {
           const parentPath = disk.getParentPath()
           this.#parentOf.set(diskPath, parentPath)
           if (this.#childOf.has(parentPath)) {
-            this.#opts.logWarn('multiple children for same parent disk', {
-              parent: parentPath,
-              child: diskPath,
+            const error = new Error('this script does not support multiple children', {
+              cause: {
+                parent: parentPath,
+                child1: this.#childOf.get(parentPath),
+                child2: diskPath,
+              },
             })
+            throw error // should we throw?
           }
           this.#childOf.set(parentPath, diskPath)
         }
