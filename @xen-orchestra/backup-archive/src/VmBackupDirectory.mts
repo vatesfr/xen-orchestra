@@ -15,7 +15,7 @@ import {
   DEFAULT_MERGE_CONCURRENCY,
   isVhdAlias,
 } from './VmBackup.types.mjs'
-import { instantiateDisk } from '@xen-orchestra/backups/disks'
+import { openDisk } from '@xen-orchestra/backups/disks'
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter.mjs'
@@ -294,7 +294,8 @@ export class VmBackupDirectory implements VmBackupInterface {
       if (!isVhdAlias(path)) {
         continue
       }
-      const resolvedTarget = await instantiateDisk({ handler: handler as any, path }).checkAlias({
+      const disk = await openDisk({ handler: handler as any, path, ignoreBlockIndexes: true })
+      const resolvedTarget = await disk.checkAlias({
         remove: opts.remove,
         logWarn: opts.logWarn,
         logInfo: opts.logInfo,
@@ -315,7 +316,8 @@ export class VmBackupDirectory implements VmBackupInterface {
         opts.logWarn('no alias references data file', { path: dataFile })
         if (opts.remove) {
           try {
-            await instantiateDisk({ handler: handler as any, path: dataFile }).unlink({ force: true })
+            const dataDisk = await openDisk({ handler: handler as any, path: dataFile, ignoreBlockIndexes: true })
+            await dataDisk.unlink({ force: true })
           } catch (error) {
             opts.logWarn('failed to delete unreferenced data file', { path: dataFile, error })
           }
