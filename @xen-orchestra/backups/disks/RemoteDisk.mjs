@@ -82,6 +82,14 @@ export class RemoteDisk extends RandomAccessDisk {
 
   /**
    * Abstract
+   * @returns {object}
+   */
+  getMetadata() {
+    throw new Error(`getMetadata must be implemented`)
+  }
+
+  /**
+   * Abstract
    * @returns {Promise<boolean>} canMergeConcurently
    */
   async canMergeConcurently() {
@@ -216,6 +224,22 @@ export class RemoteDisk extends RandomAccessDisk {
    */
   async unlink({ force = false } = {}) {
     throw new Error(`unlink must be implemented`)
+  }
+
+  /**
+   * Checks the integrity of the disk's external reference (e.g. alias target).
+   * No-op for plain disk files; override in alias-aware subclasses.
+   * @param {Object} [opts]
+   * @param {boolean} [opts.remove]
+   * @param {Function} [opts.logWarn]
+   * @param {Function} [opts.logInfo]
+   * @returns {Promise<void>}
+   */
+  /**
+   * @returns {Promise<string | undefined>}
+   */
+  async checkAlias(_opts = {}) {
+    return undefined
   }
 
   /**
