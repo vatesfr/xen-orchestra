@@ -1,13 +1,8 @@
 import RemoteHandlerAbstract from '@xen-orchestra/fs'
 import { basename, normalize, resolveFromFile } from '@xen-orchestra/fs/path'
-import { MergeRemoteDisk, openDisk, openDiskChainFromPaths, RemoteDisk } from '@xen-orchestra/backups/disks'
+import { MergeRemoteDisk, openDisk, openDiskChainFromPaths, RemoteDisk, isDiskFile } from '@xen-orchestra/backups/disks'
 import type { MergeState } from '@xen-orchestra/backups/disks'
-import {
-  DEFAULT_MERGE_CONCURRENCY,
-  DEFAULT_REMOVE_CONCURRENCY,
-  isDiskFile,
-  ResolvedBackupCleanOptions,
-} from './VmBackup.types.mjs'
+import { DEFAULT_MERGE_CONCURRENCY, DEFAULT_REMOVE_CONCURRENCY, ResolvedBackupCleanOptions } from './VmBackup.types.mjs'
 import { asyncEach } from '@vates/async-each'
 
 const INTERRUPTED_VHD_RE = /^\.(.+)\.merge\.json$/
