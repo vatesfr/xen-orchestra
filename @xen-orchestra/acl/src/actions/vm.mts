@@ -1,4 +1,5 @@
 export default {
+  create: true,
   read: true,
   start: true,
   shutdown: {

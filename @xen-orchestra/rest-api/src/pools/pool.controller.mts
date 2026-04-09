@@ -21,12 +21,14 @@ import { provide } from 'inversify-binding-decorators'
 import { json, type Request as ExRequest, type Response as ExResponse } from 'express'
 import type { VatesTask } from '@vates/types/lib/vates/task'
 
+import { acl } from '../middlewares/acl.middleware.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import {
   asynchronousActionResp,
   badRequestResp,
   createdResp,
   featureUnauthorized,
+  forbiddenOperationResp,
   internalServerErrorResp,
   noContentResp,
   notFoundResp,
@@ -128,16 +130,24 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   /**
+   * Required privilege:
+   * - resource: pool, action: read
+   *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
    */
   @Example(pool)
   @Get('{id}')
+  @Middlewares(acl({ resource: 'pool', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getPool(@Path() id: string): Unbrand<XoPool> {
     return this.getObject(id as XoPool['id'])
   }
 
   /**
+   * Required privilege:
+   * - resource: network, action: create
+   *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
    * @example body {
    *    "name": "awes0me_network",
@@ -149,9 +159,10 @@ export class PoolController extends XapiXoController<XoPool> {
   @Example(taskLocation)
   @Example(createNetwork)
   @Post('{id}/actions/create_network')
-  @Middlewares(json())
+  @Middlewares([json(), acl({ resource: 'network', action: 'create', object: ({ req }) => req.body })])
   @Tags('networks')
   @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -182,11 +193,16 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   /**
+   * Required privilege:
+   * - resource: pool, action: emergency-shutdown
+   *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
    */
   @Example(taskLocation)
   @Post('{id}/actions/emergency_shutdown')
+  @Middlewares(acl({ resource: 'pool', action: 'emergency-shutdown', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(featureUnauthorized.status, featureUnauthorized.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -208,11 +224,16 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   /**
+   * Required privilege:
+   * - resource: pool, action: rolling-reboot
+   *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
    */
   @Example(taskLocation)
   @Post('{id}/actions/rolling_reboot')
+  @Middlewares(acl({ resource: 'pool', action: 'rolling-reboot', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(featureUnauthorized.status, featureUnauthorized.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -235,11 +256,16 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   /**
+   * Required privilege:
+   * - resource: pool, action: rolling-update
+   *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
    */
   @Example(taskLocation)
   @Post('{id}/actions/rolling_update')
+  @Middlewares(acl({ resource: 'pool', action: 'rolling-update', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(featureUnauthorized.status, featureUnauthorized.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -265,14 +291,25 @@ export class PoolController extends XapiXoController<XoPool> {
   /**
    *  Import an XVA VM into a pool
    *
+   * Required privilege:
+   * - resource: sr, action: read
+   * - resource: vm, action: create
+   *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
    * @example sr "c787b75c-3e0d-70fa-d0c3-cbfd382d7e33"
    *
    */
   @Example(importVm)
   @Post('{id}/vms')
+  @Middlewares(
+    acl([
+      { resource: 'vm', action: 'create', object: ({ req }) => req.body },
+      { resource: 'sr', action: 'read', objectId: 'query.sr' },
+    ])
+  )
   @Tags('vms')
   @SuccessResponse(createdResp.status, 'VM imported')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async importVm(
@@ -297,6 +334,10 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vm, action: create
+   * - resource: vm-template, action: read
+   *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
    * @example body {
    * "name_label": "new VM from REST API",
@@ -307,9 +348,16 @@ export class PoolController extends XapiXoController<XoPool> {
   @Example(taskLocation)
   @Example(createVm)
   @Post('{id}/actions/create_vm')
-  @Middlewares(json())
+  @Middlewares([
+    json(),
+    acl([
+      { resource: 'vm', action: 'create', object: ({ req }) => req.body },
+      { resource: 'vm-template', action: 'read', objectId: 'body.template' },
+    ]),
+  ])
   @Tags('vms')
   @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -339,10 +387,15 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   /**
+   * Required privilege:
+   * - resource: pool, action: read
+   *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
    */
   @Example(poolStats)
   @Get('{id}/stats')
+  @Middlewares(acl({ resource: 'pool', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(422, 'Invalid granularity')
   getStats(@Path() id: string, @Query() granularity?: XapiStatsGranularity): Promise<XapiPoolStats> {
@@ -350,10 +403,15 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   /**
+   * Required privilege:
+   * - resource: pool, action: read
+   *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
    */
   @Example(poolDashboard)
   @Get('{id}/dashboard')
+  @Middlewares(acl({ resource: 'pool', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async getPoolDashboard(
     @Request() req: ExRequest,
@@ -416,10 +474,15 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   /**
+   * Required privilege:
+   * - resource: pool, action: read
+   *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
    */
   @Example(poolMissingPatches)
   @Get('{id}/missing_patches')
+  @Middlewares(acl({ resource: 'pool', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(featureUnauthorized.status, featureUnauthorized.description)
   async getPoolMissingPatches(@Path() id: string): Promise<XcpPatches[] | XsPatches[]> {
@@ -462,11 +525,16 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   /**
+   * Required privilege:
+   * - resource: pool, action: update:tags
+   *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
    * @example tag "from-rest-api"
    */
   @Put('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'pool', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async putPoolTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const pool = this.getXapiObject(id as XoPool['id'])
@@ -474,11 +542,16 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   /**
+   * Required privilege:
+   * - resource: pool, action: update:tags
+   *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
    * @example tag "from-rest-api"
    */
   @Delete('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'pool', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deletePoolTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const pool = this.getXapiObject(id as XoPool['id'])
