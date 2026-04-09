@@ -368,6 +368,7 @@
   "job:arg:sr-vdi-required": "El SR VDI es obligatorio",
   "job:arg:template-uuid-required": "El UUID de la plantilla es obligatorio",
   "job:arg:username-required": "Se requiere nombre de usuario",
+  "job:delete:in-progress": "Borrado en curso…",
   "job:create:in-progress": "Creación en progreso…",
   "job:delete:in-progress": "Borrado en curso…",
   "job:vm-copy:bad-power-state": "La máquina virtual debe estar apagada",
