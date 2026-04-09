@@ -10,7 +10,6 @@ import { pFromCallback } from 'promise-toolbox'
 import { VmBackupDirectory } from '../dist/VmBackupDirectory.mjs'
 import { VHDFOOTER, VHDHEADER } from './tests.fixtures.mjs'
 import { VhdFile, Constants, VhdDirectory, VhdAbstract } from 'vhd-lib'
-import { checkAliases } from '@xen-orchestra/backups/_cleanVm.mjs'
 import { dirname, basename } from 'node:path'
 import { rimraf } from 'rimraf'
 
@@ -491,16 +490,17 @@ test('check Aliases should work alone', async () => {
 
   await generateVhd(`vhds/data/missingalias.vhd`)
 
-  await checkAliases(['vhds/missingData.alias.vhd', 'vhds/ok.alias.vhd'], 'vhds/data', {
+  await VmBackupDirectory.checkAliases(handler, ['vhds/missingData.alias.vhd', 'vhds/ok.alias.vhd'], 'vhds/data', {
     remove: true,
-    handler,
     logWarn: () => {},
+    logInfo: () => {},
   })
 
   // only ok have survived
   const alias = (await handler.list('vhds')).filter(f => f.endsWith('.vhd'))
   assert.equal(alias.length, 1)
 
+  // missingalias.vhd has no alias pointing to it — should be deleted
   const data = await handler.list('vhds/data')
   assert.equal(data.length, 1)
 })
