@@ -49,7 +49,7 @@ export const useSseStore = defineStore('sse', () => {
       return false
     }
 
-    return now.value.getTime() - sse.value.lastPing > 32_000
+    return now.value.getTime() - sse.value.lastPing > 40_000
   })
 
   const hasErrorSse = computed(() => isError.value || sse.value.errorSse !== null)
