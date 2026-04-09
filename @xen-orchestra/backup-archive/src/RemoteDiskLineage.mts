@@ -293,7 +293,11 @@ export class RemoteDiskLineage {
       force: isResuming,
     })
 
-    const { finalDiskSize } = await merger.merge(parentDisk, childDisk)
-    return { finalDiskSize, mergeTargetPath }
+    try {
+      const { finalDiskSize } = await merger.merge(parentDisk, childDisk)
+      return { finalDiskSize, mergeTargetPath }
+    } finally {
+      await Promise.all([parentDisk.close(), childDisk.close()])
+    }
   }
 }
