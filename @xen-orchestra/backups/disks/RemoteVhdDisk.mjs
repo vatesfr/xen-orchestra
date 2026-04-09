@@ -511,17 +511,6 @@ export class RemoteVhdDisk extends RemoteDisk {
   /**
    * Checks the integrity of this disk's alias reference.
    * Only meaningful for alias files (.alias.vhd); no-op for plain VHDs.
-   * Mirrors the original checkAliases() logic from _cleanVm.mjs.
-   *
-   * @param {Object} [opts]
-   * @param {boolean} [opts.remove]
-   * @param {Function} [opts.logWarn]
-   * @param {Function} [opts.logInfo]
-   * @returns {Promise<void>}
-   */
-  /**
-   * Checks the integrity of this disk's alias reference.
-   * Only meaningful for alias files (.alias.vhd); no-op for plain VHDs.
    * Returns the resolved target path when the alias is valid, undefined otherwise.
    *
    * @param {Object} [opts]
