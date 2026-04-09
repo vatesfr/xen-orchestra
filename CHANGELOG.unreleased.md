@@ -14,6 +14,7 @@
 ### Bug fixes
 
 - [Header]: Fix `Unable to connect to XO server` falshing every 30 secondes (PR [#9681](https://github.com/vatesfr/xen-orchestra/pull/9681))
+- [Backups]: Fix regression on cleanVM speed (PR [#9692](https://github.com/vatesfr/xen-orchestra/pull/9692))
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
@@ -33,6 +34,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - @xen-orchestra/immutable-backups patch
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core patch
