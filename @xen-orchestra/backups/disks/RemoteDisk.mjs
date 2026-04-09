@@ -82,6 +82,22 @@ export class RemoteDisk extends RandomAccessDisk {
 
   /**
    * Abstract
+   * @returns {string}
+   */
+  getParentUuid() {
+    throw new Error(`getUuid must be implemented`)
+  }
+
+  /**
+   * Abstract
+   * @returns {string}
+   */
+  getParentPath() {
+    throw new Error(`getUuid must be implemented`)
+  }
+
+  /**
+   * Abstract
    * @returns {object}
    */
   getMetadata() {
