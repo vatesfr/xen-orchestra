@@ -382,7 +382,7 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
-   * @param {RemoteVhdDisk} childDisk
+   * @param {RemoteDisk} childDisk
    * @returns {Promise<void>}
    */
   async mergeMetadata(childDisk) {
@@ -513,5 +513,98 @@ export class RemoteVhdDisk extends RemoteDisk {
     }
 
     return this.#vhd instanceof VhdDirectory
+  }
+
+  /**
+   * Checks the integrity of this disk's alias reference.
+   * Only meaningful for alias files (.alias.vhd); no-op for plain VHDs.
+   * Mirrors the original checkAliases() logic from _cleanVm.mjs.
+   *
+   * @param {Object} [opts]
+   * @param {boolean} [opts.remove]
+   * @param {Function} [opts.logWarn]
+   * @param {Function} [opts.logInfo]
+   * @returns {Promise<void>}
+   */
+  /**
+   * Checks the integrity of this disk's alias reference.
+   * Only meaningful for alias files (.alias.vhd); no-op for plain VHDs.
+   * Returns the resolved target path when the alias is valid, undefined otherwise.
+   *
+   * @param {Object} [opts]
+   * @param {boolean} [opts.remove]
+   * @param {Function} [opts.logWarn]
+   * @param {Function} [opts.logInfo]
+   * @returns {Promise<string | undefined>} resolved target path if valid
+   */
+  async checkAlias({ remove = false, logWarn = () => {}, logInfo = () => {} } = {}) {
+    if (!isVhdAlias(this.#path)) {
+      return undefined
+    }
+
+    let target
+    try {
+      target = await resolveVhdAlias(this.#handler, this.#path)
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        logWarn('missing target of alias', { alias: this.#path })
+        if (remove) {
+          logInfo('removing alias with missing target', { alias: this.#path })
+          await this.#handler.unlink(this.#path)
+        }
+        return undefined
+      }
+      if (err.code === 'EISDIR') {
+        logWarn('alias is a vhd directory', { alias: this.#path })
+        if (remove) {
+          logInfo('removing vhd directory named as alias', { alias: this.#path })
+          await VhdAbstract.unlink(this.#handler, this.#path)
+        }
+        return undefined
+      }
+      logWarn('unhandled error while checking alias', { alias: this.#path, err })
+      return undefined
+    }
+
+    if (target === '') {
+      logWarn('empty target for alias', { alias: this.#path })
+      if (remove) {
+        logInfo('removing alias with empty target', { alias: this.#path })
+        await this.#handler.unlink(this.#path)
+      }
+      return undefined
+    }
+
+    if (!isVhdAlias(target) && !target.endsWith('.vhd')) {
+      logWarn('alias references non VHD target', { alias: this.#path, target })
+      if (remove) {
+        logInfo('removing alias and non VHD target', { alias: this.#path, target })
+        await this.#handler.unlink(target)
+        await this.#handler.unlink(this.#path)
+      }
+      return undefined
+    }
+
+    try {
+      const { dispose } = await openVhd(this.#handler, target)
+      try {
+        await dispose()
+      } catch (_) {
+        // errors during dispose should not trigger deletion
+      }
+      return target
+    } catch (error) {
+      logWarn('missing or broken alias target', { alias: this.#path, target, error })
+      if (remove) {
+        try {
+          await VhdAbstract.unlink(this.#handler, this.#path)
+        } catch (/** @type {any} */ err) {
+          if (err.code !== 'ENOENT') {
+            logWarn('error deleting broken alias', { alias: this.#path, target, err })
+          }
+        }
+      }
+      return undefined
+    }
   }
 }

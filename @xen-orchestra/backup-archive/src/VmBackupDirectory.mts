@@ -13,7 +13,9 @@ import {
   PartialBackupMetadata,
   ResolvedBackupCleanOptions,
   DEFAULT_MERGE_CONCURRENCY,
+  isVhdAlias,
 } from './VmBackup.types.mjs'
+import { instantiateDisk } from '@xen-orchestra/backups/disks'
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter.mjs'
@@ -163,8 +165,8 @@ export class VmBackupDirectory implements VmBackupInterface {
     // Merge/delete orphan disks in VDI directories; collect merged sizes per disk path
     const allMergedSizes = new Map<string, number>()
     await asyncEach(
-      Array.from(this.diskLineages.values()),
-      async lineage => {
+      Array.from(this.diskLineages.entries()),
+      async ([vdiDir, lineage]) => {
         const { mergedSizes, deleted } = await lineage.clean({ remove, merge })
         if (deleted.size > 0) {
           cacheNeedsRegen = true
@@ -172,6 +174,13 @@ export class VmBackupDirectory implements VmBackupInterface {
         for (const [diskPath, size] of mergedSizes) {
           allMergedSizes.set(diskPath, (allMergedSizes.get(diskPath) ?? 0) + size)
         }
+
+        const aliasPaths = (await this.handler.list(vdiDir, { prependDir: true })).filter(isVhdAlias)
+        await VmBackupDirectory.checkAliases(this.handler, aliasPaths, `${vdiDir}/data`, {
+          remove,
+          logWarn: this.opts.logWarn,
+          logInfo: this.opts.logInfo,
+        })
       },
       { concurrency: DEFAULT_MERGE_CONCURRENCY }
     )
@@ -268,6 +277,51 @@ export class VmBackupDirectory implements VmBackupInterface {
     }
     await backupArchive.init()
     return backupArchive
+  }
+
+  /**
+   * Validates alias files in aliasPaths and deletes data files in dataDir not referenced by any valid alias.
+   * Mirrors the original checkAliases() logic from _cleanVm.mjs.
+   */
+  static async checkAliases(
+    handler: RemoteHandlerAbstract,
+    aliasPaths: string[],
+    dataDir: string,
+    opts: Pick<ResolvedBackupCleanOptions, 'remove' | 'logWarn' | 'logInfo'>
+  ): Promise<void> {
+    const resolvedPaths = new Set<string>()
+    for (const path of aliasPaths) {
+      if (!isVhdAlias(path)) {
+        continue
+      }
+      const resolvedTarget = await instantiateDisk({ handler: handler as any, path }).checkAlias({
+        remove: opts.remove,
+        logWarn: opts.logWarn,
+        logInfo: opts.logInfo,
+      })
+      if (resolvedTarget !== undefined) {
+        resolvedPaths.add(normalize(resolvedTarget))
+      }
+    }
+
+    let dataFiles: string[]
+    try {
+      dataFiles = await handler.list(dataDir, { prependDir: true })
+    } catch {
+      return
+    }
+    for (const dataFile of dataFiles) {
+      if (!resolvedPaths.has(normalize(dataFile))) {
+        opts.logWarn('no alias references data file', { path: dataFile })
+        if (opts.remove) {
+          try {
+            await instantiateDisk({ handler: handler as any, path: dataFile }).unlink({ force: true })
+          } catch (error) {
+            opts.logWarn('failed to delete unreferenced data file', { path: dataFile, error })
+          }
+        }
+      }
+    }
   }
 
   /**

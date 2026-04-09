@@ -8,6 +8,7 @@ export { MergeRemoteDisk } from './MergeRemoteDisk.mjs'
 /**
  * @typedef {import('@xen-orchestra/disk-transform').FileAccessor} FileAccessor
  * @typedef {import('./RemoteDisk.mjs').RemoteDisk} RemoteDisk
+ * @typedef {import('./MergeRemoteDisk.mjs').MergeState} MergeState
  */
 
 /**
