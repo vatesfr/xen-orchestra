@@ -412,6 +412,8 @@ You can also restore specific files and directories inside a VM. It works with a
 
 That's it! Your chosen file will be restored.
 
+Alternatively, administrators can also restore files with the command-line interface, see [guide](https://github.com/vatesfr/xen-orchestra/blob/master/%40vates/fuse-vhd/README.md#restore-a-file-from-a-vhd-using-fuse-vhd-cli).
+
 ## About backup compression
 
 By default, _Backups_ are compressed (using GZIP or zstd, done on host side). There is no absolute rule but in general uncompressed backups are faster than GZIP backups (but sometimes much larger).
@@ -586,7 +588,7 @@ Xen Orchestra supports the **Grandfather-Father-Son (GFS)** backup retention str
 The start of the week is computed with the timezone set in the schedule.
 - **What GFS isn't:**\
 GFS in Xen Orchestra stands for Grandfather-Father-Son. It's a backup strategy, and is not related to the file system called GFS2 (or Global File System 2), supported by XenServer.
-- GFS retention is defined per schedule. For example, if a backup has two schedules, two independent GFS backups will be created.
+- GFS retention is defined per schedule. For example, if a backup has two schedules, two independent GFS backups will be created. We therefore recommend having a single schedule per job that uses GFS long-term retention.
 :::
 
 #### Enabling GFS Retention

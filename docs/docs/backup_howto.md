@@ -91,8 +91,6 @@ Below are the main backup and replication types available in Xen Orchestra.
 1. Configure a reliable remote with sufficient capacity
 2. Schedule during low I/O periods
 
-**Best suited usage**
-
 ---
 
 ### Delta backup
@@ -111,8 +109,6 @@ Below are the main backup and replication types available in Xen Orchestra.
 
 - Requires initial full backup
 - Can be combined with long-term retention
-
-**Best suited usage**
 
 ---
 
@@ -212,11 +208,13 @@ Below are the main backup and replication types available in Xen Orchestra.
 - **Encryption**: Protects backup data at rest.
 - **Concurrency**: Controls how many VMs run in parallel in this backup job.
 - **Retention policy**: Fine-tunes how many backups to keep over certain periods of time.
+- **Full backup interval**: Defines the maximum backup chain size. (only for delta backups and incremental replications)
 
 :::tip
 
 - **Compression** is configured at the backup job level, and applies only to full backups. For full backups, prefer [Zstandard (Zstd)](https://en.wikipedia.org/wiki/Zstd) if your host supports it.
 - **Encryption** is configured at the backup repository level, not per individual backup job. To use encryption with incremental backups, the **use VHD blocks** setting must be enabled.
+- Setting a **Full backup interval** value avoids having infinite chains of backups, which can lead to issues in the very long term. We recommend either setting a non-null value for this parameter, or enabling heath check on the schedule of your delta backup and incremental replication jobs.
 :::
 
 ---
