@@ -1,9 +1,23 @@
+import { isVhdAlias } from 'vhd-lib/aliases.js'
 import { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
 import { RemoteVhdDiskChain } from './RemoteVhdDiskChain.mjs'
 
 export { RemoteDisk } from './RemoteDisk.mjs'
 export { openDiskChain } from './openDiskChain.mjs'
 export { MergeRemoteDisk } from './MergeRemoteDisk.mjs'
+export { isVhdAlias } from 'vhd-lib/aliases.js'
+
+export function isVhdFile(filename) {
+  return filename.endsWith('.vhd')
+}
+
+export function isDiskFile(filename) {
+  return isVhdFile(filename)
+}
+
+export function isDiskAlias(filename) {
+  return isVhdAlias(filename)
+}
 
 /**
  * @typedef {import('@xen-orchestra/disk-transform').FileAccessor} FileAccessor
