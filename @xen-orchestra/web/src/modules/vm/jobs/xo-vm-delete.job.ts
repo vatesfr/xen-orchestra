@@ -32,7 +32,7 @@ export const useXoVmDeleteJob = defineJob('vm.delete', [xoVmsArg], () => {
       }
 
       if (isRunning || areVmsOperationPending(vms, VM_OPERATIONS.DESTROY)) {
-        throw new JobRunningError(t('job:vm-delete:in-progress'))
+        throw new JobRunningError(t('job:delete:in-progress'))
       }
 
       if (vms.some(vm => vm.blockedOperations.destroy)) {
