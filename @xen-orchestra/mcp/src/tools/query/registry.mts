@@ -111,9 +111,9 @@ export function registerQueryTools(server: McpServer, getClient: () => XoClient)
         title: tool.title,
         description: tool.description,
         inputSchema: {
-          filter: z.string().optional().describe('Filter expression'),
-          fields: z.string().optional().describe('Comma-separated fields to return'),
-          limit: z.number().optional().describe('Maximum number of results to return'),
+          filter: z.string().optional().meta({ description: 'Filter expression' }),
+          fields: z.string().optional().meta({ description: 'Comma-separated fields to return' }),
+          limit: z.number().optional().meta({ description: 'Maximum number of results to return' }),
         },
       },
       async ({ filter, fields, limit }) => {
@@ -138,7 +138,7 @@ export function registerQueryTools(server: McpServer, getClient: () => XoClient)
         title: tool.title,
         description: tool.description,
         inputSchema: {
-          [tool.paramName]: z.string().min(1).describe(tool.paramDescription),
+          [tool.paramName]: z.string().min(1).meta({ description: tool.paramDescription }),
         },
       },
       async args => {
