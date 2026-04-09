@@ -223,7 +223,7 @@ export class RemoteDiskLineage {
     }
 
     if (!merge && toMerge.length > 0) {
-      this.#opts.logWarn('VHD chain needs merging', { count: toMerge.length })
+      this.#opts.logWarn('Disk chain needs merging', { count: toMerge.length })
     }
 
     // mergeTargetPath → final size of the disk everything was merged into
