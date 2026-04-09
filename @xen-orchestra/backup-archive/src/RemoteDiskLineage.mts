@@ -87,7 +87,7 @@ export class RemoteDiskLineage {
         this.#uuidToPath.set(disk.getUuid(), diskPath)
 
         if (disk.isDifferencing()) {
-          const parentPath = normalize(disk.instantiateParent().getPath())
+          const parentPath = disk.getParentPath()
           this.#parentOf.set(diskPath, parentPath)
           if (this.#childOf.has(parentPath)) {
             this.#opts.logWarn('multiple children for same parent disk', {
