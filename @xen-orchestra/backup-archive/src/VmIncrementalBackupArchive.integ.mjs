@@ -231,7 +231,7 @@ test('it merges delta of non destroyed chain', async () => {
     logged.push(message)
   }
   await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true, logInfo, logWarn: logInfo })
-  assert.equal(logged[0], `VHD chain needs merging`)
+  assert.equal(logged[0], `Disk chain needs merging`)
 
   logged = []
   await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true, merge: true, logInfo, logWarn: () => {} })
