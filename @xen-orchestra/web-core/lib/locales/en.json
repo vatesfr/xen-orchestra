@@ -547,6 +547,7 @@
   "n-selected-of": "{count} selected of {total} objects",
   "n-snapshots": "1 snapshot | {n} snapshots",
   "n-subtasks": "1 subtask | {n} subtasks",
+  "n-vbds": "1 VBD | {n} VBDs",
   "n-vdis": "1 VDI | {n} VDIs",
   "n-vifs": "1 VIF | {n} VIFs",
   "n-vms": "1 VM | {n} VMs",
