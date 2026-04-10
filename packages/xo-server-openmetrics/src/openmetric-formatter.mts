@@ -115,6 +115,20 @@ export const HOST_METRICS: MetricDefinition[] = [
     extractLabels: matches => ({ core: matches[1]! }),
   },
 
+  // Aggregated network metrics (PIF)
+  {
+    test: 'pif_aggr_rx',
+    openMetricName: 'host_network_aggregated_receive_bytes',
+    type: 'gauge',
+    help: 'Aggregated received bytes per second',
+  },
+  {
+    test: 'pif_aggr_tx',
+    openMetricName: 'host_network_aggregated_transmit_bytes',
+    type: 'gauge',
+    help: 'Aggregated transmitted bytes per second',
+  },
+
   // Network metrics (PIF)
   {
     test: /^pif_(.+)_rx$/,
@@ -198,6 +212,67 @@ export const HOST_METRICS: MetricDefinition[] = [
     openMetricName: 'host_power_consumption_watts',
     type: 'gauge',
     help: 'Host power consumption in watts (DCMI)',
+  },
+
+  // Normalized host load
+  {
+    test: 'hostload',
+    openMetricName: 'host_load',
+    type: 'gauge',
+    help: 'Normalized host load',
+  },
+
+  // Reclaimed memory metrics
+  {
+    test: 'memory_reclaimed',
+    openMetricName: 'host_memory_reclaimed_bytes',
+    type: 'gauge',
+    help: 'Reclaimed host memory in bytes',
+    transformValue: v => v * 1024, // KiB to bytes
+  },
+  {
+    test: 'memory_reclaimed_max',
+    openMetricName: 'host_memory_reclaimed_max_bytes',
+    type: 'gauge',
+    help: 'Maximum reclaimable host memory in bytes',
+    transformValue: v => v * 1024, // KiB to bytes
+  },
+
+  // Running vCPUs
+  {
+    test: 'running_vcpus',
+    openMetricName: 'host_running_vcpus',
+    type: 'gauge',
+    help: 'Total number of running vCPUs',
+  },
+
+  // Total disk IOPS per SR
+  {
+    test: /^iops_total_(.+)$/,
+    openMetricName: 'host_disk_iops_total',
+    type: 'gauge',
+    help: 'Total IOPS (read + write) per SR',
+    extractLabels: matches => ({ sr: matches[1]! }),
+  },
+
+  // Total disk throughput per SR
+  {
+    test: /^io_throughput_total_(.+)$/,
+    openMetricName: 'host_disk_throughput_total_bytes',
+    type: 'gauge',
+    help: 'Total I/O throughput per SR in bytes per second',
+    transformValue: v => v * Math.pow(2, 20), // MiB to bytes
+    extractLabels: matches => ({ sr: matches[1]! }),
+  },
+
+  // Combined disk latency per SR
+  {
+    test: /^latency_(.+)$/,
+    openMetricName: 'host_disk_latency_seconds',
+    type: 'gauge',
+    help: 'Combined I/O latency per SR in seconds',
+    transformValue: v => v / 1e6, // µs to seconds
+    extractLabels: matches => ({ sr: matches[1]! }),
   },
 ]
 
