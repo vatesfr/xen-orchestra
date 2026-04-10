@@ -3,8 +3,8 @@ import { resolve } from 'path'
 import { fileURLToPath, URL } from 'url'
 import vueI18n from '@intlify/unplugin-vue-i18n/vite'
 import vue from '@vitejs/plugin-vue'
-import vueRouter from 'unplugin-vue-router/vite'
 import { defineConfig, PluginOption } from 'vite'
+import vueRouter from 'vue-router/vite'
 
 const GIT_HEAD = execFileSync('git', ['rev-parse', 'HEAD']).toString().trim()
 
@@ -16,6 +16,7 @@ export default defineConfig({
   },
   plugins: [
     vueRouter({
+      dts: './src/route-map.d.ts',
       routesFolder: [
         { src: resolve(__dirname, './src/pages') },
         {
@@ -25,7 +26,7 @@ export default defineConfig({
         },
       ],
       extendRoute(route) {
-        if (!route.name.startsWith('/story/')) {
+        if (!route.name || !route.name.startsWith('/story/')) {
           return
         }
 
@@ -98,22 +99,5 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['complex-matcher'],
-    esbuildOptions: {
-      target: 'es2020',
-      tsconfigRaw: {
-        // https://github.com/vitejs/vite/issues/15201#issuecomment-1875543124
-        compilerOptions: {
-          experimentalDecorators: true,
-        },
-      },
-    },
-  },
-  esbuild: {
-    tsconfigRaw: {
-      // https://github.com/vitejs/vite/issues/15201#issuecomment-1875543124
-      compilerOptions: {
-        experimentalDecorators: true,
-      },
-    },
   },
 })
