@@ -4,12 +4,6 @@
     :params="[
       prop('size').type(`'small' | 'large'`).enum('small', 'large').required().preset('large').widget(),
       prop('title').str().required().widget().preset('title'),
-      prop('identifier')
-        .str()
-        .required()
-        .widget()
-        .preset('aRandomId')
-        .help('is an id. for screen reader please use the number of element on the list.'),
       prop('content').str().widget().preset('content'),
       prop('disabled').bool().widget(),
       slot('content'),
