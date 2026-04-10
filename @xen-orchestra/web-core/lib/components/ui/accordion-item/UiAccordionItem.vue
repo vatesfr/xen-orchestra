@@ -2,12 +2,13 @@
 <template>
   <div class="ui-accordion-item" :class="className">
     <button
-      :id="`header-${identifier}`"
+      :id="`header-${uid}`"
       type="button"
       class="header"
       :class="fontClass"
       :aria-expanded="isExpanded"
-      :aria-controls="`panel-${identifier}`"
+      :aria-controls="`panel-${uid}`"
+      :disabled="isDisabled"
       @click="toggle()"
     >
       {{ title }}
@@ -19,7 +20,13 @@
       </div>
     </div>
     <div class="panel-wrapper" :class="{ expanded: isExpanded }">
-      <div :id="`panel-${identifier}`" role="region" :aria-labelledby="`header-${identifier}`" class="panel-inner">
+      <div
+        :id="`panel-${uid}`"
+        role="region"
+        :aria-labelledby="`header-${uid}`"
+        :aria-hidden="!isExpanded"
+        class="panel-inner"
+      >
         <slot name="content">
           {{ content }}
         </slot>
@@ -31,15 +38,15 @@
 <script setup lang="ts">
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsIcon, { type IconSize } from '@core/components/icon/VtsIcon.vue'
+import { useDisabled } from '@core/composables/disabled.composable'
 import { useMapper } from '@core/packages/mapper'
 import { IK_ACCORDION } from '@core/utils/injection-keys.util.ts'
 import { toVariants } from '@core/utils/to-variants.util.ts'
-import { computed, inject, ref } from 'vue'
+import { computed, inject, ref, useId } from 'vue'
 
-const { size, disabled, identifier } = defineProps<{
+const { size, disabled } = defineProps<{
   size: 'small' | 'large'
   title: string
-  identifier: string
   content?: string
   disabled?: boolean
 }>()
@@ -48,24 +55,28 @@ defineSlots<{
   content?(): any
 }>()
 
+const uid = useId()
+
+const isDisabled = useDisabled(() => disabled)
+
 const accordion = inject(IK_ACCORDION)
 
 const localExpanded = ref(false)
 
 const isExpanded = computed(() => {
   if (accordion && accordion.value) {
-    return accordion.value.expandedKey === identifier
+    return accordion.value.expandedKey === uid
   }
   return localExpanded.value
 })
 
 const toggle = () => {
-  if (disabled) {
+  if (isDisabled.value) {
     return
   }
 
   if (accordion && accordion.value) {
-    accordion.value.toggle(identifier)
+    accordion.value.toggle(uid)
   } else {
     localExpanded.value = !localExpanded.value
   }
@@ -80,13 +91,15 @@ const fontClass = useMapper(
   'large'
 )
 
-const className = computed(() =>
-  toVariants({
-    size,
-    muted: disabled ?? false,
-    expanded: isExpanded.value,
-  })
-)
+const className = computed(() => {
+  return [
+    toVariants({
+      size,
+      muted: isDisabled.value ?? false,
+      expanded: isExpanded.value,
+    }),
+  ]
+})
 
 const iconSize = computed<IconSize>(() => (size === 'small' ? 'medium' : 'large'))
 </script>
