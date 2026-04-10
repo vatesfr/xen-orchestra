@@ -12,9 +12,7 @@ export default defineConfig(({ mode }) => {
     base: './',
     plugins: [
       vueRouter({
-        // Temp fix to make prod build work
-        // TODO: uncomment when links in /dev pages are correctly handled
-        // exclude: mode !== 'development' ? ['src/pages/dev/**'] : [],
+        exclude: mode !== 'development' ? ['src/pages/dev/**'] : [],
       }),
       vue(),
       vueI18n({
