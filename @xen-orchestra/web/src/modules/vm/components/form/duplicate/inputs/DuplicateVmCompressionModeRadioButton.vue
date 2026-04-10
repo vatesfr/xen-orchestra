@@ -1,5 +1,5 @@
 <template>
-  <UiRadioButtonGroup :label="t('compression')" accent="brand" :gap="uiStore.isSmall ? 'narrow' : 'wide'">
+  <UiRadioButtonGroup accent="brand" :gap="uiStore.isSmall ? 'narrow' : 'wide'">
     <UiRadioButton v-model="model" accent="brand" value="disabled">{{ t('disabled') }}</UiRadioButton>
     <UiRadioButton v-model="model" accent="brand" value="gzip">
       {{ t('duplicate-vm:compression-gzip') }}

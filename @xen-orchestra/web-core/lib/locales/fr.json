@@ -598,6 +598,7 @@
   "operation:clean-reboot": "Redémarrage",
   "operation:clean-shutdown": "Arrêt",
   "operation:destroy": "Suppression",
+  "operation:duplicate": "Duplication",
   "operation:force-reboot": "Redémarrage forcé",
   "operation:force-shutdown": "Arrêt forcé",
   "operation:pause": "Mise en pause",

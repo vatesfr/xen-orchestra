@@ -53,7 +53,7 @@ export function useDuplicateVmForm(vm: FrontXoVm) {
   const isSrEmpty = computed(() => formData.copyMode === 'fullCopy' && selectedSr.value === undefined)
 
   const nameInputBindings = useField('name', (): { error?: InputWrapperMessage } => ({
-    error: formData.name.trim() === '' ? { content: t('duplicate-vm:name-required'), accent: 'danger' } : undefined,
+    error: formData.name === '' ? { content: t('duplicate-vm:name-required'), accent: 'danger' } : undefined,
   }))
 
   const srSelectBindings = useSelect(srSelectId, (): { error?: InputWrapperMessage } => ({
@@ -75,7 +75,7 @@ export function useDuplicateVmForm(vm: FrontXoVm) {
 
   const duplicateJob = useXoVmDuplicateJob(() => vm, payload)
 
-  const canDuplicate = computed(() => duplicateJob.canRun.value && formData.name.trim() !== '' && !isSrEmpty.value)
+  const canDuplicate = computed(() => duplicateJob.canRun.value && formData.name !== '' && !isSrEmpty.value)
 
   async function handleDuplicate() {
     if (!canDuplicate.value) {
