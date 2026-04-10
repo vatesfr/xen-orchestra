@@ -9,6 +9,8 @@
 
 ### Enhancements
 
+- [VM]: Add duplicate action (PR [#9580](https://github.com/vatesfr/xen-orchestra/pull/9580))
+
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 ### Bug fixes
@@ -34,7 +36,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/immutable-backups patch
-- @xen-orchestra/web patch
-- @xen-orchestra/web-core patch
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 
 <!--packages-end-->
