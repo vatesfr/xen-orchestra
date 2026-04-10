@@ -2,7 +2,7 @@ import { useXoVifDeleteJob } from '@/modules/vif/jobs/xo-vif-delete.job.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useModal } from '@core/packages/modal/use-modal.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import type { MaybeRefOrGetter } from '@vueuse/shared'
+import type { MaybeRefOrGetter } from 'vue'
 
 export function useVifDeleteModal(rawVifs: MaybeRefOrGetter<FrontXoVif[]>) {
   const vifs = toComputed(rawVifs)

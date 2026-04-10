@@ -12,6 +12,9 @@ export default defineConfig(({ mode }) => {
     base: './',
     plugins: [
       vueRouter({
+        // dts: './src/route-map.d.ts',
+        // Temp fix to make prod build work
+        // TODO: uncomment when links in /dev pages are correctly handled
         exclude: mode !== 'development' ? ['src/pages/dev/**'] : [],
       }),
       vue(),
