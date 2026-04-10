@@ -5,12 +5,12 @@ import { OpenFlowChannel } from './protocol/openflow-channel'
 const log = createLogger('xo:sdn-controller:openflowcontroller')
 export async function instantiateController(host, tlsHelper, config) {
   if (config.useDirectChannel) {
-    log.info('use direct openflow channel')
+    log.info('traffic-rules: use direct openflow channel')
     return new OpenFlowChannel(host, tlsHelper)
   } else {
     const controller = new OpenFlowPlugin(host)
     await controller.check(host)
-    log.info('use xapi plugin')
+    log.info('traffic-rules: use xapi plugin')
     return controller
   }
 }

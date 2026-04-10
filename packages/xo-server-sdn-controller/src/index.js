@@ -574,11 +574,20 @@ class SDNController extends EventEmitter {
       )
 
       // -----------------------------------------------------------------------
-
+      // Apply all VIF rules
       const vifs = filter(xapi.objects.all, { $type: 'VIF' })
       for (const vif of vifs) {
         await this._applyVifOfRules(vif)
       }
+
+      // -----------------------------------------------------------------------
+      // Communicate to XAPI the configuration we are using
+      const of_method = this.#staticConfig.useDirectChannel ? 'channel' : 'xapi-plugin'
+      const pools = filter(xapi.objects.all, { $type: 'pool' })
+      for (const pool of pools) {
+        pool.update_other_config('xo:sdn-controller:of-method', of_method)
+      }
+
     } catch (error) {
       log.error('Error while handling xapi connection', {
         id: xapi.pool.uuid,
