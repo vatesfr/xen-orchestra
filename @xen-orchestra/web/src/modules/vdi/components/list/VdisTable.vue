@@ -25,6 +25,7 @@
 </template>
 
 <script setup lang="ts">
+import { useXoVbdDeleteJob } from '@/modules/vbd/jobs/xo-vbd-delete.job.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { useVdiDeleteModal } from '@/modules/vdi/composables/use-vdi-delete-modal.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
@@ -81,6 +82,8 @@ const { HeadCells, BodyCells } = useVdiColumns({
   body: (vdi: FrontXoVdi) => {
     const vbds = useGetVbdsByIds(vdi.$VBDs)
 
+    const vbd = computed(() => vbds.value.find(vbd => vbd.VDI === vdi.id))
+
     const vmId = computed(() => vbds.value.find(vbd => vbd.VDI === vdi.id)?.VM)
 
     const href = computed(() =>
@@ -96,6 +99,26 @@ const { HeadCells, BodyCells } = useVdiColumns({
       isRunning: isDeletingVdi,
     } = useVdiDeleteModal(() => [vdi])
 
+
+    const {
+      run: deleteVbd,
+      canRun: canDeleteVbd,
+      isRunning: isDeletingVbd,
+    } = useXoVbdDeleteJob(() => (vbd.value ? [vbd.value] : []))
+
+    const openDetachModal = useModal({
+      component: import('@/modules/vdi/components/modal/VdiDetachModal.vue'),
+      props: { count: 1 },
+      onConfirm: async () => {
+        try {
+          await deleteVbd()
+          selectedVdiId.value = ''
+        } catch (error) {
+          console.error('Error when detaching VDI:', error)
+        }
+      },
+    })
+
     return {
       vdi: r => r({ label: vdi.name_label, href: href.value, icon: 'object:vdi' }),
       description: r => r(vdi.name_description),
@@ -106,6 +129,13 @@ const { HeadCells, BodyCells } = useVdiColumns({
         r({
           onClick: () => (selectedVdiId.value = vdi.id),
           actions: [
+            {
+              label: t('action:detach'),
+              icon: 'action:disconnect',
+              onClick: () => openDetachModal(),
+              disabled: !canDeleteVbd.value,
+              busy: isDeletingVbd.value,
+            },
             {
               label: t('action:delete'),
               hint: !canDeleteVdi.value ? t('running-vm') : undefined,
