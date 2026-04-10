@@ -619,9 +619,10 @@ class OpenMetricsPlugin {
   #getVdiData(): VdiDataPayload {
     const vdis: VdiDataItem[] = []
 
-    const allObjects = this.#xo.getObjects() as Record<string, XoObject>
+    // Get only the object types we need: SRs, VBDs, pools, VMs, VDIs
+    const allSrs = this.#xo.getObjects({ filter: { type: 'SR' } }) as Record<string, XoSr>
+    const allVbds = this.#xo.getObjects({ filter: { type: 'VBD' } }) as Record<string, XoVbd>
 
-    // Get all pools to resolve pool labels
     const allPools = this.#xo.getObjects({ filter: { type: 'pool' } }) as Record<string, XoPool>
     const poolLabelMap = new Map<string, string>()
     for (const pool of Object.values(allPools)) {
@@ -642,11 +643,10 @@ class OpenMetricsPlugin {
 
     for (const vdi of Object.values(allVdis)) {
       // Resolve SR
-      const srObj = allObjects[vdi.$SR]
-      if (srObj === undefined || srObj.type !== 'SR') {
+      const sr = allSrs[vdi.$SR]
+      if (sr === undefined) {
         continue
       }
-      const sr = srObj as XoSr
 
       const vdiData: VdiDataItem = {
         uuid: vdi.uuid,
@@ -661,7 +661,7 @@ class OpenMetricsPlugin {
 
       // Resolve attached VM via VBDs (use first found VM)
       for (const vbdId of vdi.$VBDs) {
-        const vbd = allObjects[vbdId] as XoVbd | undefined
+        const vbd = allVbds[vbdId]
         if (vbd !== undefined) {
           const vm = vmById.get(vbd.VM)
           if (vm !== undefined) {
