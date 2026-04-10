@@ -8,15 +8,13 @@
 // Make sure to add this file to your tsconfig.json file as an "includes" or "files" entry.
 
 import type {
-  RouteRecordInfo,
   ParamValue,
   ParamValueOneOrMore,
   ParamValueZeroOrMore,
   ParamValueZeroOrOne,
+  RouteRecordInfo,
 } from 'vue-router'
-import type {
-  _ExtractParamParserType,
-} from 'vue-router/experimental'
+import type { _ExtractParamParserType, } from 'vue-router/experimental'
 
 declare module 'vue-router' {
   interface TypesConfig {
@@ -361,6 +359,7 @@ declare module 'vue-router/auto-routes' {
       | '/vm/[id]/backups'
       | '/vm/[id]/console'
       | '/vm/[id]/dashboard'
+      | '/vm/[id]/duplicate'
       | '/vm/[id]/networks'
       | '/vm/[id]/snapshots'
       | '/vm/[id]/system'
@@ -384,6 +383,13 @@ declare module 'vue-router/auto-routes' {
     '/vm/[id]/dashboard': RouteRecordInfo<
       '/vm/[id]/dashboard',
       '/vm/:id/dashboard',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/vm/[id]/duplicate': RouteRecordInfo<
+      '/vm/[id]/duplicate',
+      '/vm/:id/duplicate',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
       | never
@@ -735,6 +741,7 @@ declare module 'vue-router/auto-routes' {
         | '/vm/[id]/backups'
         | '/vm/[id]/console'
         | '/vm/[id]/dashboard'
+        | '/vm/[id]/duplicate'
         | '/vm/[id]/networks'
         | '/vm/[id]/snapshots'
         | '/vm/[id]/system'
@@ -758,6 +765,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/vm/[id]/dashboard.vue': {
       routes:
         | '/vm/[id]/dashboard'
+      views:
+        | never
+    }
+    'src/pages/vm/[id]/duplicate.vue': {
+      routes:
+        | '/vm/[id]/duplicate'
       views:
         | never
     }
