@@ -25,6 +25,7 @@
 </template>
 
 <script setup lang="ts">
+import { useXoVbdDeleteJob } from '@/modules/vbd/jobs/xo-vbd-delete.job.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { useXoVdiDeleteJob } from '@/modules/vdi/jobs/xo-vdi-delete.job.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
@@ -82,6 +83,8 @@ const { HeadCells, BodyCells } = useVdiColumns({
   body: (vdi: FrontXoVdi) => {
     const vbds = useGetVbdsByIds(vdi.$VBDs)
 
+    const vbd = computed(() => vbds.value.find(vbd => vbd.VDI === vdi.id))
+
     const vmId = computed(() => vbds.value.find(vbd => vbd.VDI === vdi.id)?.VM)
 
     const href = computed(() =>
@@ -93,6 +96,12 @@ const { HeadCells, BodyCells } = useVdiColumns({
 
     const { run: deleteVdi, canRun: canDeleteVdi, isRunning: isDeletingVdi } = useXoVdiDeleteJob(() => [vdi])
 
+    const {
+      run: deleteVbd,
+      canRun: canDeleteVbd,
+      isRunning: isDeletingVbd,
+    } = useXoVbdDeleteJob(() => (vbd.value ? [vbd.value] : []))
+
     const openDeleteModal = useModal({
       component: import('@/modules/vdi/components/modal/VdiDeleteModal.vue'),
       props: { count: 1 },
@@ -101,6 +110,19 @@ const { HeadCells, BodyCells } = useVdiColumns({
           await deleteVdi()
         } catch (error) {
           console.error('Error when deleting VDI:', error)
+        }
+      },
+    })
+
+    const openDetachModal = useModal({
+      component: import('@/modules/vdi/components/modal/VdiDetachModal.vue'),
+      props: { count: 1 },
+      onConfirm: async () => {
+        try {
+          await deleteVbd()
+          selectedVdiId.value = ''
+        } catch (error) {
+          console.error('Error when detaching VDI:', error)
         }
       },
     })
@@ -115,6 +137,13 @@ const { HeadCells, BodyCells } = useVdiColumns({
         r({
           onClick: () => (selectedVdiId.value = vdi.id),
           actions: [
+            {
+              label: t('action:detach'),
+              icon: 'action:disconnect',
+              onClick: () => openDetachModal(),
+              disabled: !canDeleteVbd.value,
+              busy: isDeletingVbd.value,
+            },
             {
               label: t('action:delete'),
               icon: 'action:delete',
