@@ -7,7 +7,7 @@ import {
 import type { ResourceContext, UseRemoteResource } from '@core/packages/remote-resource/types.ts'
 import type { VoidFunction } from '@core/types/utility.type.ts'
 import { ifElse } from '@core/utils/if-else.utils.ts'
-import { type MaybeRef, noop, useDebounceFn, useTimeoutPoll } from '@vueuse/core'
+import { noop, useDebounceFn, useTimeoutPoll } from '@vueuse/core'
 import { merge, remove } from 'lodash-es'
 import readNDJSONStream from 'ndjson-readablestream'
 import {
@@ -25,6 +25,7 @@ import {
   toRef,
   toValue,
   watch,
+  type MaybeRef,
 } from 'vue'
 
 const DEFAULT_CACHE_EXPIRATION_MS = 10_000

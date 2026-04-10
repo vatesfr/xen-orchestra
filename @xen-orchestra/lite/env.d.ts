@@ -1,6 +1,5 @@
 /// <reference types="vite/client" />
 /// <reference types="json-rpc-2.0/dist" />
-/// <reference types="unplugin-vue-router/client" />
 /// <reference types="novnc__novnc" />
 
 declare const XO_LITE_VERSION: string

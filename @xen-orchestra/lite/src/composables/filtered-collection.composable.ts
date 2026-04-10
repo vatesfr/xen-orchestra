@@ -1,5 +1,4 @@
-import type { MaybeRef } from '@vueuse/core'
-import { computed, unref } from 'vue'
+import { computed, unref, type MaybeRef } from 'vue'
 
 export default function useFilteredCollection<T>(
   collection: MaybeRef<T[]>,
