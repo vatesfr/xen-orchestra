@@ -353,7 +353,7 @@
   "job-name": "Nombre del trabajo",
   "job:arg:host-required": "Se requiere un host",
   "job:arg:missing-payload": "Falta la carga",
-  "job:arg:name-label-required": "El nombre de la etiqueta es obligatorio",
+  "job:arg:name-required": "El nombre de la etiqueta es obligatorio",
   "job:arg:password-required": "La contraseña es obligatoria",
   "job:arg:pool-id-required": "El ID de Pool es obligatorio",
   "job:arg:sr-vdi-required": "El SR VDI es obligatorio",

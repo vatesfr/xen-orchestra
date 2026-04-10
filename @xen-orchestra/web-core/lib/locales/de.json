@@ -351,7 +351,7 @@
   "job-name": "Job Name",
   "job:arg:host-required": "Host ist erforderlich",
   "job:arg:missing-payload": "Nutzlast fehlt",
-  "job:arg:name-label-required": "Ein Name ist erforderlich",
+  "job:arg:name-required": "Ein Name ist erforderlich",
   "job:arg:password-required": "Passwort erforderlich",
   "job:arg:pool-id-required": "Pool ID erforderlich",
   "job:arg:sr-vdi-required": "SR VDI ist erforderlich",

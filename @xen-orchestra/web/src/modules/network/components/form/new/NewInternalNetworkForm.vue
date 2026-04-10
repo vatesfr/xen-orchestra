@@ -1,10 +1,10 @@
 <template>
   <form class="new-internal-network-form" @submit.prevent="onSubmit()">
-    <NewNetworkPoolSelect v-bind="poolSelectBindings" class="pool" />
+    <NetworkFormSelect v-bind="poolSelectBindings" class="pool" />
     <div class="row">
       <div class="column">
-        <NewNetworkNameInput v-bind="nameInputBindings" />
-        <NewNetworkMtuInput v-bind="mtuInputBindings" />
+        <NetworkFormTextInput v-bind="nameInputBindings" />
+        <NetworkFormNumberInput v-bind="mtuInputBindings" />
       </div>
       <NewNetworkDescriptionTextarea v-bind="descriptionInputBindings" />
     </div>
@@ -16,11 +16,11 @@
 </template>
 
 <script lang="ts" setup>
+import NetworkFormNumberInput from '@/modules/network/components/form/new/inputs/NetworkFormNumberInput.vue'
+import NetworkFormSelect from '@/modules/network/components/form/new/inputs/NetworkFormSelect.vue'
+import NetworkFormTextInput from '@/modules/network/components/form/new/inputs/NetworkFormTextInput.vue'
 import NewNetworkDescriptionTextarea from '@/modules/network/components/form/new/inputs/NewNetworkDescriptionTextarea.vue'
-import NewNetworkMtuInput from '@/modules/network/components/form/new/inputs/NewNetworkMtuInput.vue'
-import NewNetworkNameInput from '@/modules/network/components/form/new/inputs/NewNetworkNameInput.vue'
 import NewNetworkNbdCheckbox from '@/modules/network/components/form/new/inputs/NewNetworkNbdCheckbox.vue'
-import NewNetworkPoolSelect from '@/modules/network/components/form/new/inputs/NewNetworkPoolSelect.vue'
 import NewNetworkButtonsSection from '@/modules/network/components/form/new/NewNetworkButtonsSection.vue'
 import { useNewInternalNetworkForm } from '@/modules/network/form/new-internal/use-new-internal-network-form.ts'
 import type { NewInternalNetworkPayload } from '@/modules/network/jobs/xo-internal-network-create.job.ts'

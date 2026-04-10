@@ -358,7 +358,7 @@
   "job-name": "作业名称",
   "job:arg:host-required": "主机为必填项",
   "job:arg:missing-payload": "缺少有效负载",
-  "job:arg:name-label-required": "名称标签为必填项",
+  "job:arg:name-required": "名称标签为必填项",
   "job:arg:password-required": "密码为必填项",
   "job:arg:pool-id-required": "资源池ID为必填项",
   "job:arg:sr-vdi-required": "存储库/虚拟磁盘为必填项",

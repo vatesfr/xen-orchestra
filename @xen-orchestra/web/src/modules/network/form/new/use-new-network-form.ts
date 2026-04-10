@@ -5,6 +5,7 @@ import { type FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-colle
 import { type FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useFormBindings } from '@core/packages/form-bindings'
 import { type MaybeRefOrGetter, reactive, toRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 export type NewNetworkFormData = BaseNetworkFormData & {
   pif: FrontXoPif['id'] | undefined
@@ -22,7 +23,9 @@ export function useNewNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'] | 
     nbd: false,
   })
 
-  const { vlan, useSelect } = useFormBindings(formData)
+  const { t } = useI18n()
+
+  const { useField, useSelect } = useFormBindings(formData)
 
   const {
     selectedPool,
@@ -52,8 +55,8 @@ export function useNewNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'] | 
     descriptionInputBindings,
     mtuInputBindings,
     nbdCheckboxBindings,
-    interfaceSelectBindings: useSelect(interfacesSelectId),
-    vlanInputBindings: vlan,
+    interfaceSelectBindings: useSelect(interfacesSelectId, () => ({ label: t('interface') })),
+    vlanInputBindings: useField('vlan', () => ({ label: t('vlan'), required: true })),
     validateAndBuildPayload,
   }
 }

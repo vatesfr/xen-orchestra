@@ -4,6 +4,7 @@ import { useFormSelect } from '@core/packages/form-select'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { BOND_MODE } from '@vates/types'
 import { type MaybeRefOrGetter, toRef, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 export const BOND_MODES: BOND_MODE[] = ['balance-slb', 'active-backup', 'lacp']
 
@@ -54,7 +55,9 @@ export function useNetworkFormBase<T extends BaseNetworkFormData>(
 
   const selectedPool = useGetPoolById(toRef(formData, 'pool'))
 
-  const { name, description, mtu, nbd, useSelect } = useFormBindings(formData)
+  const { t } = useI18n()
+
+  const { useField, useSelect } = useFormBindings(formData)
 
   function buildBasePayload(): BaseNetworkPayload {
     return {
@@ -69,10 +72,10 @@ export function useNetworkFormBase<T extends BaseNetworkFormData>(
   return {
     selectedPool,
     buildBasePayload,
-    poolSelectBindings: useSelect(poolSelectId),
-    nameInputBindings: name,
-    descriptionInputBindings: description,
-    mtuInputBindings: mtu,
-    nbdCheckboxBindings: nbd,
+    poolSelectBindings: useSelect(poolSelectId, () => ({ label: t('pool') })),
+    nameInputBindings: useField('name', () => ({ label: t('name'), required: true })),
+    descriptionInputBindings: useField('description', () => ({ label: t('description') })),
+    mtuInputBindings: useField('mtu', () => ({ label: t('mtu'), info: t('mtu-default-value-message') })),
+    nbdCheckboxBindings: useField('nbd'),
   }
 }

@@ -11,6 +11,7 @@ import { useFormBindings } from '@core/packages/form-bindings'
 import { useFormSelect } from '@core/packages/form-select'
 import { BOND_MODE } from '@vates/types'
 import { type MaybeRefOrGetter, reactive, toRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 export type NewBondedNetworkFormData = BaseNetworkFormData & {
   pifs: Array<{ id: FrontXoPif['id'] }>
@@ -27,6 +28,8 @@ export function useNewBondedNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['i
     nbd: false,
     bondMode: undefined,
   })
+
+  const { t } = useI18n()
 
   const { useSelect } = useFormBindings(formData)
 
@@ -66,8 +69,8 @@ export function useNewBondedNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['i
     descriptionInputBindings,
     mtuInputBindings,
     nbdCheckboxBindings,
-    interfaceSelectBindings: useSelect(interfacesSelectId),
-    bondModeSelectBindings: useSelect(bondModeSelectId),
+    interfaceSelectBindings: useSelect(interfacesSelectId, () => ({ label: t('interfaces') })),
+    bondModeSelectBindings: useSelect(bondModeSelectId, () => ({ label: t('bond-mode') })),
     validateAndBuildPayload,
   }
 }

@@ -368,7 +368,6 @@
   "job:arg:bond-mode-required": "Le mode de liaison est obligatoire",
   "job:arg:host-required": "L'hôte est requis",
   "job:arg:missing-payload": "Aucune donnée fournie pour l'execution du job",
-  "job:arg:name-label-required": "@:job:arg:name-required",
   "job:arg:name-required": "Le nom est obligatoire",
   "job:arg:password-required": "Le mot de passe est obligatoire",
   "job:arg:pif-id-required": "L'ID de PIF est obligatoire",

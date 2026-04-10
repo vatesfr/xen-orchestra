@@ -358,7 +358,7 @@
   "job-name": "Nome do trabalho",
   "job:arg:host-required": "É necessário um servidor",
   "job:arg:missing-payload": "Payload está faltando",
-  "job:arg:name-label-required": "O rótulo do nome esta em falta",
+  "job:arg:name-required": "O rótulo do nome esta em falta",
   "job:arg:password-required": "É necessário utilizar uma palavra-passe.",
   "job:arg:pool-id-required": "Pool ID é obrigatório",
   "job:arg:sr-vdi-required": "SR VDI é obrigatório",

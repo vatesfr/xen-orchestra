@@ -358,7 +358,7 @@
   "job-name": "Název úlohy",
   "job:arg:host-required": "Je zapotřebí hostitele",
   "job:arg:missing-payload": "Chybí náklad",
-  "job:arg:name-label-required": "Je zapotřebí popisek názvu",
+  "job:arg:name-required": "Je zapotřebí popisek názvu",
   "job:arg:password-required": "Je zapotřebí heslo",
   "job:arg:pool-id-required": "Je zapotřebí identifikátor fondu",
   "job:arg:sr-vdi-required": "Je zapotřebí VDI repozitáře úložiště",

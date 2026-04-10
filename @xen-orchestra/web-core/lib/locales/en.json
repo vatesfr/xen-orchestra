@@ -368,7 +368,6 @@
   "job:arg:bond-mode-required": "Bond mode is required",
   "job:arg:host-required": "Host is required",
   "job:arg:missing-payload": "Payload is missing",
-  "job:arg:name-label-required": "Name label is required",
   "job:arg:name-required": "Name is required",
   "job:arg:password-required": "Password is required",
   "job:arg:pif-id-required": "PIF ID is required",

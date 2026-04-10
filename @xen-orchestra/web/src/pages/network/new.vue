@@ -24,7 +24,7 @@
       @go-back="handleGoBack()"
     />
 
-    <UiCard v-else>
+    <UiCard v-show="canDisplayForm">
       <UiTitle>{{ t('configuration') }}</UiTitle>
       <NewNetworkForm :cancel-to="cancelRoute" :pool-id="poolId as FrontXoPool['id']" @create="createNetwork" />
     </UiCard>
@@ -66,6 +66,8 @@ const error = ref<ApiError | Error | undefined>()
 const hasNetworkCreationError = computed(() => error.value !== undefined)
 
 const { canRun, run: create, isRunning } = useXoNetworkCreateJob(formPayload)
+
+const canDisplayForm = computed(() => !isRunning.value && !hasNetworkCreationError.value)
 
 async function createNetwork(newPayload: NewNetworkPayload) {
   formPayload.value = newPayload

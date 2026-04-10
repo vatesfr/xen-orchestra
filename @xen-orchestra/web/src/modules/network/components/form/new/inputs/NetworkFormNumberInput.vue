@@ -1,6 +1,6 @@
 <template>
-  <VtsInputWrapper :label="t('mtu')" :message="messages">
-    <UiInput v-model.number="model" accent="brand" type="number" @blur="emit('blur')" />
+  <VtsInputWrapper :label :message="messages">
+    <UiInput v-model.number="model" accent="brand" type="number" :required @blur="emit('blur')" />
   </VtsInputWrapper>
 </template>
 
@@ -9,20 +9,19 @@ import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInpu
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
-const { error, warning } = defineProps<{
+const { info, warning, error } = defineProps<{
+  label: string
   error?: InputWrapperMessage
   warning?: InputWrapperMessage
+  info?: string
+  required?: boolean
 }>()
 
 const emit = defineEmits<{ blur: [] }>()
-
 const model = defineModel<number | undefined>()
 
-const { t } = useI18n()
-
 const messages = computed<InputWrapperMessage>(
-  () => [t('mtu-default-value-message'), warning, error].filter(message => message !== undefined) as InputWrapperMessage
+  () => [info, warning, error].filter(message => message !== undefined) as InputWrapperMessage
 )
 </script>

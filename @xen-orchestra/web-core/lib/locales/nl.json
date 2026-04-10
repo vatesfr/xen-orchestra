@@ -358,7 +358,7 @@
   "job-name": "Taak naam",
   "job:arg:host-required": "Host is vereist",
   "job:arg:missing-payload": "Payload ontbreekt",
-  "job:arg:name-label-required": "Naamlabel is vereist",
+  "job:arg:name-required": "Naamlabel is vereist",
   "job:arg:password-required": "Wachtwoord is vereist",
   "job:arg:pool-id-required": "Pool-ID is vereist",
   "job:arg:sr-vdi-required": "SR VDI is vereist",

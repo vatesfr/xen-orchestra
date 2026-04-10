@@ -352,7 +352,7 @@
   "job-name": "Jobbnamn",
   "job:arg:host-required": "Host krävs",
   "job:arg:missing-payload": "Payload saknas",
-  "job:arg:name-label-required": "Namn krävs",
+  "job:arg:name-required": "Namn krävs",
   "job:arg:password-required": "Lösenord krävs",
   "job:arg:pool-id-required": "Pool ID krävs",
   "job:arg:sr-vdi-required": "SR VDI krävs",

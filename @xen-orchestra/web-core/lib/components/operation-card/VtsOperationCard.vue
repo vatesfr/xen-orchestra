@@ -5,6 +5,7 @@
       <span class="typo-h1 title">
         {{ title }}
       </span>
+      <VtsStateHero v-if="type === 'creating'" format="card" type="busy" size="medium" no-background />
       <slot />
     </div>
   </UiCard>

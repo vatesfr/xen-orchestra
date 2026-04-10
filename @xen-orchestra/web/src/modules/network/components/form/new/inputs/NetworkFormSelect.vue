@@ -1,5 +1,5 @@
 <template>
-  <VtsInputWrapper :label="t('interfaces')" :message="error">
+  <VtsInputWrapper :label :message="error">
     <VtsSelect :id accent="brand" />
   </VtsInputWrapper>
 </template>
@@ -9,12 +9,10 @@ import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInpu
 import type { FormSelectId } from '@core/packages/form-select'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
-import { useI18n } from 'vue-i18n'
 
 defineProps<{
   id: FormSelectId
+  label: string
   error?: InputWrapperMessage
 }>()
-
-const { t } = useI18n()
 </script>

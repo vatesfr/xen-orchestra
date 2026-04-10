@@ -1,17 +1,17 @@
 <template>
   <form class="new-network-form" @submit.prevent="onSubmit()">
     <div class="row">
-      <NewNetworkPoolSelect v-bind="poolSelectBindings" />
-      <NewNetworkInterfaceSelect v-bind="interfaceSelectBindings" />
+      <NetworkFormSelect v-bind="poolSelectBindings" />
+      <NetworkFormSelect v-bind="interfaceSelectBindings" />
     </div>
     <div class="row">
       <div class="column">
-        <NewNetworkNameInput v-bind="nameInputBindings" />
-        <NewNetworkMtuInput v-bind="mtuInputBindings" />
+        <NetworkFormTextInput v-bind="nameInputBindings" />
+        <NetworkFormNumberInput v-bind="mtuInputBindings" />
       </div>
       <NewNetworkDescriptionTextarea v-bind="descriptionInputBindings" />
     </div>
-    <NewNetworkVlanInput v-bind="vlanInputBindings" class="vlan" />
+    <NetworkFormNumberInput v-bind="vlanInputBindings" class="vlan" />
     <div class="nbd">
       <NewNetworkNbdCheckbox v-bind="nbdCheckboxBindings" />
     </div>
@@ -20,13 +20,11 @@
 </template>
 
 <script lang="ts" setup>
+import NetworkFormNumberInput from '@/modules/network/components/form/new/inputs/NetworkFormNumberInput.vue'
+import NetworkFormSelect from '@/modules/network/components/form/new/inputs/NetworkFormSelect.vue'
+import NetworkFormTextInput from '@/modules/network/components/form/new/inputs/NetworkFormTextInput.vue'
 import NewNetworkDescriptionTextarea from '@/modules/network/components/form/new/inputs/NewNetworkDescriptionTextarea.vue'
-import NewNetworkInterfaceSelect from '@/modules/network/components/form/new/inputs/NewNetworkInterfaceSelect.vue'
-import NewNetworkMtuInput from '@/modules/network/components/form/new/inputs/NewNetworkMtuInput.vue'
-import NewNetworkNameInput from '@/modules/network/components/form/new/inputs/NewNetworkNameInput.vue'
 import NewNetworkNbdCheckbox from '@/modules/network/components/form/new/inputs/NewNetworkNbdCheckbox.vue'
-import NewNetworkPoolSelect from '@/modules/network/components/form/new/inputs/NewNetworkPoolSelect.vue'
-import NewNetworkVlanInput from '@/modules/network/components/form/new/inputs/NewNetworkVlanInput.vue'
 import NewNetworkButtonsSection from '@/modules/network/components/form/new/NewNetworkButtonsSection.vue'
 import { useNewNetworkForm } from '@/modules/network/form/new/use-new-network-form.ts'
 import type { NewNetworkPayload } from '@/modules/network/jobs/xo-network-create.job.ts'

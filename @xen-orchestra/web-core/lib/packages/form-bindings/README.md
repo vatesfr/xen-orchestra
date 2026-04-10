@@ -16,13 +16,10 @@ const bindings = useFormBindings(formData)
 
 ## Return Value
 
-The return value contains one `ComputedRef<ModelBinding<T[K]>>` per key in `source`, plus two helper functions:
-
-| Property    | Type                                                   | Description                                           |
-| ----------- | ------------------------------------------------------ | ----------------------------------------------------- |
-| `[key]`     | `ComputedRef<ModelBinding<T[K]>>`                      | Ready-to-spread binding for each field in `source`    |
-| `useField`  | `(key, extras?) => ComputedRef<ModelBinding & extras>` | Creates a binding, optionally merged with extra props |
-| `useSelect` | `(id, extras?) => ComputedRef<{ id } & extras>`        | Creates a binding for a `VtsSelect`-like component    |
+| Property    | Type                                                       | Description                                           |
+| ----------- | ---------------------------------------------------------- | ----------------------------------------------------- |
+| `useField`  | `(key, metadata?) => ComputedRef<ModelBinding & metadata>` | Creates a binding, optionally merged with extra props |
+| `useSelect` | `(id, metadata?) => ComputedRef<{ id } & metadata>`        | Creates a binding for a `VtsSelect`-like component    |
 
 ### `ModelBinding<T>` object
 
@@ -33,22 +30,22 @@ Each field binding is a computed object with:
 | `modelValue`          | `T`                  | The current value of the field         |
 | `onUpdate:modelValue` | `(value: T) => void` | Setter — updates the field in `source` |
 
-## `useField(key, extras?)`
+## `useField(key, metadata?)`
 
-Returns the standard `ModelBinding` for the given key. Pass an optional `extras` factory function to merge additional props into the binding (e.g. for validation state, disabled state, etc.).
+Returns the standard `ModelBinding` for the given key. Pass an optional `metadata` factory function to merge additional props into the binding (e.g. label, validation state, disabled state, etc.).
 
 ```typescript
-// Without extras — equivalent to using the shorthand `bindings[key]`
+// Without metadata
 const nameBindings = bindings.useField('name')
 
-// With extras
+// With metadata
 const nameBindings = bindings.useField('name', () => ({
-  error: v$.name.$error,
-  disabled: isSubmitting.value,
+  label: t('name'),
+  required: true,
 }))
 ```
 
-## `useSelect(id, extras?)`
+## `useSelect(id, metadata?)`
 
 Returns a binding for a select component registered via `useFormSelect`. The `id` comes from the `useFormSelect` return value.
 
@@ -57,36 +54,13 @@ const { id: poolSelectId } = useFormSelect(pools, { ... })
 
 const poolSelectBindings = bindings.useSelect(poolSelectId)
 
-// With extras
+// With metadata
 const poolSelectBindings = bindings.useSelect(poolSelectId, () => ({
-  disabled: isSubmitting.value,
+  label: t('pool'),
 }))
 ```
 
-## Example: Basic form
-
-```vue
-<template>
-  <input v-bind="name" />
-  <input v-bind="description" />
-  <input type="checkbox" v-bind="active" />
-</template>
-
-<script lang="ts" setup>
-import { useFormBindings } from '@core/packages/form-bindings'
-import { reactive } from 'vue'
-
-const formData = reactive({
-  name: '',
-  description: '',
-  active: false,
-})
-
-const { name, description, active } = useFormBindings(formData)
-</script>
-```
-
-## Example: With extra props (e.g. validation)
+## Example: With metadata (e.g. label + validation)
 
 ```vue
 <template>
@@ -102,6 +76,7 @@ const formData = reactive({ name: '' })
 const { useField } = useFormBindings(formData)
 
 const nameBindings = useField('name', () => ({
+  label: 'Name',
   error: formData.name === '' ? 'Name is required' : undefined,
 }))
 </script>
