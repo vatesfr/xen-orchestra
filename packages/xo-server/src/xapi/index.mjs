@@ -414,6 +414,29 @@ export default class Xapi extends XapiBase {
       })
     ).body
 
+    // When exporting with compression, obtaining the first block of data may take some time.
+    // Therefore, we wait until the first block is received before starting the import, otherwise the import will time out.
+    // the promise timeout if no block is received after 30 minutes.
+    await new Promise((resolve, reject) => {
+      function _resolve() {
+        _clean()
+        resolve()
+      }
+      function _onError(err) {
+        _clean()
+        reject(err)
+      }
+      function _clean() {
+        clearTimeout(timeoutId)
+        stream.off('readable', _resolve)
+        stream.off('error', _onError)
+      }
+      const timeoutId = setTimeout(() => _onError(new Error('Export timeout')), 1000 * 60 * 30)
+
+      stream.once('readable', _resolve)
+      stream.once('error', _onError)
+    })
+
     const onVmCreation = nameLabel !== undefined ? vm => vm.set_name_label(nameLabel) : null
 
     const vm = await targetXapi._getOrWaitObject(await targetXapi.VM_import(stream, sr.$ref, onVmCreation))

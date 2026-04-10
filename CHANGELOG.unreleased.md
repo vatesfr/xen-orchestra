@@ -14,6 +14,8 @@
 ### Bug fixes
 
 - [Header]: Fix `Unable to connect to XO server` falshing every 30 secondes (PR [#9681](https://github.com/vatesfr/xen-orchestra/pull/9681))
+- **XO 5**:
+  - [VM/Copy]: Fix compression not used when copying a VM to another pool ([#9699](https://github.com/vatesfr/xen-orchestra/pull/9699))
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
@@ -36,5 +38,7 @@
 - @xen-orchestra/immutable-backups patch
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core patch
+- xo-server patch
+- xo-web patch
 
 <!--packages-end-->
