@@ -3,19 +3,16 @@
     <UiCard>
       <UiTitle>{{ t('general-information') }}</UiTitle>
       <DuplicateVmNameInput v-bind="nameInputBindings" />
-
       <UiTitle class="options-title">{{ t('options') }}</UiTitle>
       <DuplicateVmMethodRadioButton v-bind="copyModeBindings" :vm />
-
       <div v-if="formData.copyMode === 'fullCopy'" class="full-copy">
         <DuplicateVmSrSelect v-bind="srSelectBindings" />
-        <DuplicateVmCompressionModeRadioButton v-if="isCrossPool" v-bind="compressionModeBindings" />
-        <div v-else class="compression">
+        <div class="compression">
           <UiLabel accent="neutral">{{ t('compression') }}</UiLabel>
-          <UiInfo accent="info">{{ t('duplicate-vm:compression-not-available') }}</UiInfo>
+          <DuplicateVmCompressionModeRadioButton v-if="isCrossPool" v-bind="compressionModeBindings" />
+          <UiInfo v-else accent="info">{{ t('duplicate-vm:compression-not-available') }}</UiInfo>
         </div>
       </div>
-
       <DuplicateVmButtonSection :can-duplicate :is-running="duplicateJob.isRunning.value" />
     </UiCard>
   </form>

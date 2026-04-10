@@ -8,7 +8,7 @@
 import DuplicateVmForm from '@/modules/vm/components/form/duplicate/DuplicateVmForm.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 
-const { vm } = defineProps<{ vm: FrontXoVm }>()
+defineProps<{ vm: FrontXoVm }>()
 </script>
 
 <style scoped lang="postcss">
