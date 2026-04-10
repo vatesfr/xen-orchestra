@@ -33,6 +33,7 @@
 
 <!--packages-start-->
 
+- @vates/types patch
 - @xen-orchestra/immutable-backups patch
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core patch
