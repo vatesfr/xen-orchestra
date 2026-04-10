@@ -1,6 +1,6 @@
 <template>
   <VtsInputWrapper :label="t('duplicate-vm:name')" :message="error">
-    <UiInput v-model="model" required :accent="error ? 'danger' : 'brand'" />
+    <UiInput v-model.trim="model" required :accent="error ? 'danger' : 'brand'" />
   </VtsInputWrapper>
 </template>
 
