@@ -26,6 +26,7 @@
 
 <script setup lang="ts">
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import { useXoVdiDeleteJob } from '@/modules/vdi/jobs/xo-vdi-delete.job.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { getVdiFormat } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
@@ -36,6 +37,7 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
+import { useModal } from '@core/packages/modal/use-modal.ts'
 import { useVdiColumns } from '@core/tables/column-sets/vdi-columns.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { computed, ref } from 'vue'
@@ -89,13 +91,39 @@ const { HeadCells, BodyCells } = useVdiColumns({
     const size = computed(() => formatSizeRaw(vdi.size, 2))
     const format = computed(() => getVdiFormat(vdi.image_format))
 
+    const { run: deleteVdi, canRun: canDeleteVdi, isRunning: isDeletingVdi } = useXoVdiDeleteJob(() => [vdi])
+
+    const openDeleteModal = useModal({
+      component: import('@/modules/vdi/components/modal/VdiDeleteModal.vue'),
+      props: { count: 1 },
+      onConfirm: async () => {
+        try {
+          await deleteVdi()
+        } catch (error) {
+          console.error('Error when deleting VDI:', error)
+        }
+      },
+    })
+
     return {
       vdi: r => r({ label: vdi.name_label, href: href.value, icon: 'object:vdi' }),
       description: r => r(vdi.name_description),
       usedSpace: r => r(vdi.usage, vdi.size),
       size: r => r(size.value.value, size.value.prefix),
       format: r => r(format.value),
-      selectItem: r => r(() => (selectedVdiId.value = vdi.id)),
+      actions: r =>
+        r({
+          onClick: () => (selectedVdiId.value = vdi.id),
+          actions: [
+            {
+              label: t('action:delete'),
+              icon: 'action:delete',
+              onClick: () => openDeleteModal(),
+              disabled: !canDeleteVdi.value,
+              busy: isDeletingVdi.value,
+            },
+          ],
+        }),
     }
   },
 })

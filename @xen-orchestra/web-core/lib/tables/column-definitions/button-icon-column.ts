@@ -9,7 +9,7 @@ import { renderHeadCell } from '@core/tables/helpers/render-head-cell'
 import type { HeaderConfig } from '@core/tables/types.ts'
 import { h, toValue, type MaybeRefOrGetter } from 'vue'
 
-type ButtonIconConfig = {
+export type ButtonIconConfig = {
   buttonIcon: MaybeRefOrGetter<IconName>
   buttonSize?: MaybeRefOrGetter<ButtonIconSize>
   buttonAccent?: MaybeRefOrGetter<ButtonIconAccent>
