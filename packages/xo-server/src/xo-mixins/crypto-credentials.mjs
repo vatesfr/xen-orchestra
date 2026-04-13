@@ -2,6 +2,11 @@
 
 import { createLogger } from '@xen-orchestra/log'
 import { webcrypto, randomBytes } from 'node:crypto'
+import * as XenStore from '../_XenStore.mjs'
+import fs from 'fs-extra'
+
+const XENSTORE_KEY_PATH = 'vm-data/xo-encryption-key'
+const KEY_FILE_PATH = '/var/lib/xo-server/data/xo-encryption-key'
 
 const log = createLogger('xo:crypto-credentials')
 
@@ -22,13 +27,51 @@ export default class CryptoCredentials {
   #degraded = true
 
   /**
-   * @param {unknown} app
+   * @param {any} app
    */
   constructor(app) {
     this._app = app
+
+    app.hooks.on('core started', () => {
+      if (app.config.getOptional('redis.encryptCredentialDatabase') ?? false) {
+        return this.initialize()
+      }
+    })
   }
 
-  async initialize() {}
+  async initialize() {
+    /**
+     * @type {Buffer | undefined}
+     */
+    let xenStoreKey, fileKey
+
+    const readOrUndefined = async (/** @type () => Promise<any> */ fn) => {
+      try {
+        return await fn()
+      } catch {
+        return undefined
+      }
+    }
+
+    xenStoreKey = await readOrUndefined(async () => Buffer.from((await XenStore.read(XENSTORE_KEY_PATH)).trim(), 'hex'))
+    fileKey = await readOrUndefined(() => fs.readFile(KEY_FILE_PATH))
+
+    if (xenStoreKey && fileKey) {
+      await this._loadKey(xenStoreKey, fileKey)
+    } else {
+      xenStoreKey = randomBytes(32)
+      fileKey = randomBytes(32)
+
+      try {
+        await XenStore.write(XENSTORE_KEY_PATH, xenStoreKey.toString('hex'))
+        await fs.writeFile(KEY_FILE_PATH, fileKey, { mode: 0o400 })
+
+        await this._loadKey(xenStoreKey, fileKey)
+      } catch (error) {
+        throw new Error('Credential database encryption failed — running in degraded mode', { cause: error })
+      }
+    }
+  }
 
   /**
    * Encrypts credentials.
@@ -84,7 +127,7 @@ export default class CryptoCredentials {
   async _migrateToEncrypted() {}
 
   /**
-   * Derives the encryption and hmac keys from the xenstore and file keys.
+   * Derives the encryption and hmac keys from the xenStore and file keys.
    * @param {Buffer} halfA
    * @param {Buffer} halfB
    */
