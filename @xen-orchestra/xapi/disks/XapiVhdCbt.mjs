@@ -1,6 +1,7 @@
 // @ts-check
 /**
  * @typedef {import('@xen-orchestra/disk-transform').Disk} Disk
+ * @typedef {import('@vates/nbd-client/multi.mjs').default} MultiNbdClient
  */
 import assert from 'node:assert'
 import { RandomAccessDisk } from '@xen-orchestra/disk-transform'
@@ -14,7 +15,7 @@ import { connectNbdClientIfPossible } from './utils.mjs'
  * Represents a source for reading VHD (Virtual Hard Disk) data using Change Block Tracking (CBT).
  */
 export class XapiVhdCbtSource extends RandomAccessDisk {
-  /** @type {any} */
+  /** @type {MultiNbdClient|undefined} */
   #nbdClient
 
   /** @type {number} */
@@ -34,21 +35,24 @@ export class XapiVhdCbtSource extends RandomAccessDisk {
 
   /** @type {number | undefined} */
   #virtualSize
-
+  /** @type {boolean} */
+  #onlyListChangedBlocks = false
   /**
    * @param {Object} params
    * @param {string} params.vdiRef
    * @param {string|undefined} params.baseRef
    * @param {any} params.xapi
    * @param {number} params.nbdConcurrency
+   * @param {boolean} [params.onlyListChangedBlocks=false]
    */
-  constructor({ vdiRef, baseRef, xapi, nbdConcurrency }) {
+  constructor({ vdiRef, baseRef, xapi, nbdConcurrency, onlyListChangedBlocks = false }) {
     super()
     this.#ref = vdiRef
     this.#baseRef = baseRef
     assert.notEqual(baseRef, undefined, 'CBT source can only be used for delta, no baseref given')
     this.#xapi = xapi
     this.#nbdConcurrency = nbdConcurrency
+    this.#onlyListChangedBlocks = onlyListChangedBlocks
   }
 
   /** @returns {Promise<void>} */
@@ -72,8 +76,10 @@ export class XapiVhdCbtSource extends RandomAccessDisk {
     this.#virtualSize = size
 
     this.#cbt = await this.#xapi.VDI_listChangedBlock(this.#ref, this.#baseRef)
-    const client = await connectNbdClientIfPossible(xapi, ref, nbdConcurrency)
-    this.#nbdClient = client
+    if (!this.#onlyListChangedBlocks) {
+      const client = await connectNbdClientIfPossible(xapi, ref, nbdConcurrency)
+      this.#nbdClient = client
+    }
   }
 
   /** @returns {number} */
@@ -119,6 +125,9 @@ export class XapiVhdCbtSource extends RandomAccessDisk {
    * @returns {Promise<import('@xen-orchestra/disk-transform').DiskBlock>}
    */
   async readBlock(index) {
+    if (this.#onlyListChangedBlocks) {
+      throw new Error('Disk is open in "only list block mode "')
+    }
     const data = await this.#nbdClient.readBlock(index, this.getBlockSize())
     return { index, data }
   }

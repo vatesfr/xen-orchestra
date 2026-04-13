@@ -81,7 +81,12 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
               // but it indicates the users played with the blocked operations
               return
             }
-            diffDisk = new XapiDiskSource({ xapi: sr.$xapi, vdiRef: activeVdi.$ref, baseRef: snapshot.$ref })
+            diffDisk = new XapiDiskSource({
+              xapi: sr.$xapi,
+              vdiRef: activeVdi.$ref,
+              baseRef: snapshot.$ref,
+              onlyListChangedBlocks: true,
+            })
             await diffDisk.init()
             if (diffDisk.getBlockIndexes().length === 0) {
               const sourceUuid = snapshot.other_config?.[COPY_OF]
