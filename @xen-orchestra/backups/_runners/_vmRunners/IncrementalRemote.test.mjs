@@ -2,7 +2,6 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
 import { IncrementalRemote } from './IncrementalRemote.mjs'
-import { IncrementalRemoteWriter } from '../_writers/IncrementalRemoteWriter.mjs'
 
 const makeAdapter = () => ({
   listVmBackups: async () => [],
@@ -27,16 +26,20 @@ const makeRunner = ({ distributeBackups = false, schedule } = {}) => {
 
 describe('IncrementalRemote prepare()', () => {
   it('prepare() with IncrementalRemoteWriter (distributeBackups: false)', async () => {
-    const runner = makeRunner({ distributeBackups: false, schedule: { id: 'schedule-id' } })
+    const schedule = { id: 'schedule-id' }
+    const runner = makeRunner({ distributeBackups: false, schedule })
     for (const writer of runner._writers) {
       await writer.prepare({ isFull: false })
+      assert.equal(writer._schedule, schedule)
     }
   })
 
   it('prepare() AggregatedIncrementalRemoteWriter (distributeBackups: true)', async () => {
-    const runner = makeRunner({ distributeBackups: true, schedule: { id: 'schedule-id' } })
+    const schedule = { id: 'schedule-id' }
+    const runner = makeRunner({ distributeBackups: true, schedule })
     const [aggWriter] = runner._writers
     await aggWriter.setupWriters()
     await aggWriter.prepare({ isFull: false })
+    assert.equal(aggWriter.props.schedule, schedule)
   })
 })
