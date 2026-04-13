@@ -65,8 +65,9 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         snapshotCandidates,
         async snapshot => {
           let diffDisk
+          let activeVdi
           try {
-            const activeVdi = sr.$xapi.getObject(snapshot.$snapshot_of)
+            activeVdi = sr.$xapi.getObject(snapshot.$snapshot_of)
             const userVbds = activeVdi.$VBDs?.filter(vbd => vbd.$VM && !vbd.$VM.is_control_domain) ?? []
             if (userVbds.length !== 1) {
               debug('checkBaseVdis, share vbd ', { ref: snapshot.$ref, userVbds })
@@ -108,6 +109,10 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
             return
           } finally {
             await diffDisk?.close().catch(error => debug('checkBaseVdis, error closing', error))
+            await sr.$xapi.VDI_disconnectFromControlDomain(snapshot.$ref)
+            if (activeVdi !== undefined) {
+              await sr.$xapi.VDI_disconnectFromControlDomain(activeVdi.$ref)
+            }
           }
         },
         {
