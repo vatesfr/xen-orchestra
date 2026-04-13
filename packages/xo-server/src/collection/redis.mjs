@@ -55,7 +55,7 @@ export default class Redis extends Collection {
   // Input object can be mutated or a new one returned
   _unserialize(record) {}
 
-  constructor({ connection, indexes = [], namespace }) {
+  constructor({ connection, indexes = [], namespace, crypto }) {
     super()
 
     assert(!namespace.includes(':'), 'namespace must not contains ":": ' + namespace)
@@ -66,6 +66,7 @@ export default class Redis extends Collection {
     this.indexes = indexes
     this.prefix = prefix
     const redis = (this.redis = connection)
+    this.crypto = crypto
 
     redis.sAdd('xo::namespaces', namespace)::ignoreErrors()
 
@@ -193,7 +194,13 @@ export default class Redis extends Collection {
         model = this._serialize(model) ?? model
 
         const key = `${prefix}:${id}`
-        const promises = [redis.del(key), redis.set(key, JSON.stringify(model))]
+        const promises = [redis.del(key)]
+
+        if (this.crypto && !this.crypto.isDegraded()) {
+          promises.push(redis.set(key, await this.crypto.encrypt(JSON.stringify(model))))
+        } else {
+          promises.push(redis.set(key, JSON.stringify(model)))
+        }
 
         // Update indexes.
         forEach(indexes, index => {
@@ -228,7 +235,19 @@ export default class Redis extends Collection {
       const json = await redis.get(key)
 
       if (json !== null) {
-        model = JSON.parse(json)
+        if (this.crypto && !this.crypto.isDegraded()) {
+          let parsed
+
+          try {
+            parsed = JSON.parse(json)
+          } catch {
+            parsed = JSON.parse(await this.crypto.decrypt(json))
+          }
+
+          model = parsed
+        } else {
+          model = JSON.parse(json)
+        }
       }
     } catch (error) {
       if (!error.message.startsWith('WRONGTYPE')) {
@@ -259,14 +278,22 @@ export default class Redis extends Collection {
 
     const { indexes } = this
 
-    // Check for non indexed fields.
-    const unfit = difference(getKeys(properties), indexes)
-    if (unfit.length) {
-      throw new Error('fields not indexed: ' + unfit.join())
-    }
+    if (this.crypto && !this.crypto.isDegraded()) {
+      // When crypto is active, load all and filter in memory
+      return redis
+        .sMembers(prefix + '_ids')
+        .then(ids => this._extract(ids))
+        .then(models => filter(models, properties))
+    } else {
+      // Check for non indexed fields.
+      const unfit = difference(getKeys(properties), indexes)
+      if (unfit.length) {
+        throw new Error('fields not indexed: ' + unfit.join())
+      }
 
-    const keys = map(properties, (value, index) => `${prefix}_${index}:${String(value).toLowerCase()}`)
-    return redis.sInter(keys).then(ids => this._extract(ids))
+      const keys = map(properties, (value, index) => `${prefix}_${index}:${String(value).toLowerCase()}`)
+      return redis.sInter(keys).then(ids => this._extract(ids))
+    }
   }
 
   _remove(ids) {

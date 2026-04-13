@@ -6,11 +6,12 @@ import CryptoCredentials from './crypto-credentials.mjs'
 
 const { describe, it, before } = test
 
-describe('encrypt/decrypt', function () {
-  let cryptoCredentials
+describe('CryptoCredentials', function () {
+  let cryptoCredentials, mockApp
 
   before(async function () {
-    cryptoCredentials = new CryptoCredentials(null)
+    mockApp = { hooks: { on: () => {} }, config: { getOptional: () => false } }
+    cryptoCredentials = new CryptoCredentials(mockApp)
     await cryptoCredentials._loadKey(randomBytes(32), randomBytes(32))
   })
 
@@ -35,6 +36,23 @@ describe('encrypt/decrypt', function () {
     const encrypted2 = await cryptoCredentials.encrypt(payload)
 
     assert.notEqual(encrypted1, encrypted2)
+  })
+
+  it('same key halves always produce the same derived key', async function () {
+    const payload = 'vates_rocks'
+    const halfA = randomBytes(32)
+    const halfB = randomBytes(32)
+
+    const instance1 = new CryptoCredentials(mockApp)
+    await instance1._loadKey(halfA, halfB)
+
+    const instance2 = new CryptoCredentials(mockApp)
+    await instance2._loadKey(halfA, halfB)
+
+    const encrypted = await instance1.encrypt(payload)
+
+    // If HKDF is consistent, instance2 can decrypt what instance1 encrypted
+    assert.equal(await instance2.decrypt(encrypted), payload)
   })
 
   it('decrypt with wrong key throws', async function () {
