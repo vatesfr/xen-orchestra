@@ -53,6 +53,7 @@ import transportConsole from '@xen-orchestra/log/transports/console'
 import { configure } from '@xen-orchestra/log/configure'
 import { generateToken } from './utils.mjs'
 import { ProxyAgent } from 'proxy-agent'
+import { writeHeapSnapshot } from 'node:v8'
 
 // ===================================================================
 
@@ -75,6 +76,13 @@ configure([
 const log = createLogger('xo:main')
 
 // ===================================================================
+
+process.on('SIGUSR2', () => {
+  const path = `/tmp/xo-server-${process.pid}-${Date.now()}.heapsnapshot`
+  log.info('writing heap snapshot', { path })
+  writeHeapSnapshot(path)
+  log.info('heap snapshot written', { path })
+})
 
 const DEPRECATED_ENTRIES = ['users', 'servers']
 
