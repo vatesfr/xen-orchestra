@@ -44,6 +44,8 @@ export class XapiDiskSource extends DiskPassthrough {
   /** @type {number} */
   #timeout
 
+  /** @type {boolean} */
+  #onlyListChangedBlocks = false
   /**
    * @param {Object} params
    * @param {any} params.xapi
@@ -53,6 +55,7 @@ export class XapiDiskSource extends DiskPassthrough {
    * @param {number} [params.nbdConcurrency=2]
    * @param {number} [params.blockSize=2*1024*1024]
    * @param {number} [params.timeout=20*60*1000]
+   * @param {boolean} [params.onlyListChangedBlocks=false] When true, skips NBD client creation; only getBlockIndexes() may be called, readBlock() will throw.
    */
   constructor({
     xapi,
@@ -62,6 +65,7 @@ export class XapiDiskSource extends DiskPassthrough {
     nbdConcurrency = 2,
     blockSize = 2 * 1024 * 1024,
     timeout = 20 * 60 * 1000,
+    onlyListChangedBlocks = false,
   }) {
     super(undefined)
     this.#baseRef = baseRef
@@ -71,6 +75,7 @@ export class XapiDiskSource extends DiskPassthrough {
     this.#timeout = timeout
     this.#vdiRef = vdiRef
     this.#xapi = xapi
+    this.#onlyListChangedBlocks = onlyListChangedBlocks
   }
 
   /**
@@ -93,7 +98,13 @@ export class XapiDiskSource extends DiskPassthrough {
       if (streamSource === undefined) {
         throw new Error(`Can't open stream source`)
       }
-      source = new XapiStreamNbdSource(streamSource, { vdiRef, baseRef, xapi, nbdConcurrency: this.#nbdConcurrency })
+      source = new XapiStreamNbdSource(streamSource, {
+        vdiRef,
+        baseRef,
+        xapi,
+        nbdConcurrency: this.#nbdConcurrency,
+        onlyListChangedBlocks: this.#onlyListChangedBlocks,
+      })
       await source.init()
       if (source.getBlockSize() < this.#blockSize) {
         source = new DiskLargerBlock(source, this.#blockSize)
@@ -200,7 +211,13 @@ export class XapiDiskSource extends DiskPassthrough {
     /**
      * @type {RandomAccessDisk}
      */
-    let source = new XapiVhdCbtSource({ vdiRef, baseRef, xapi, nbdConcurrency: this.#nbdConcurrency })
+    let source = new XapiVhdCbtSource({
+      vdiRef,
+      baseRef,
+      xapi,
+      nbdConcurrency: this.#nbdConcurrency,
+      onlyListChangedBlocks: this.#onlyListChangedBlocks,
+    })
     try {
       await source.init()
       this.#useNbd = true
