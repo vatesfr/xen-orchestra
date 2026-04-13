@@ -42,7 +42,7 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import { partialUsers, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
 import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
-import { acl, actionFromBody, actionsFromBody } from '../middlewares/acl.middleware.mjs'
+import { acl, actionFromBody } from '../middlewares/acl.middleware.mjs'
 
 @Route('groups')
 @Security('*')
@@ -114,7 +114,7 @@ export class GroupController extends XoController<XoGroup> {
   }
 
   /**
-   * You cannot patch `syncronized` groups (even with the right privilege)
+   * You cannot patch `synchronized` groups (even with the right privilege)
    *
    * Required privileges:
    * - resource: group, action: update (grants all fields)
@@ -192,7 +192,7 @@ export class GroupController extends XoController<XoGroup> {
   }
 
   /**
-   * You cannot manage users of `syncronized` groups (even with the right privilege)
+   * You cannot manage users of `synchronized` groups (even with the right privilege)
    *
    * Required privilege:
    * - resource: group, action: update:users
@@ -223,7 +223,7 @@ export class GroupController extends XoController<XoGroup> {
   }
 
   /**
-   * You cannot manage users of `syncronized` groups (even with the right privilege)
+   * You cannot manage users of `synchronized` groups (even with the right privilege)
    *
    * Required privilege:
    * - resource: group, action: update:users

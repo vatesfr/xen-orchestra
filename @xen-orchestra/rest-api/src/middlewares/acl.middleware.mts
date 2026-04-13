@@ -233,7 +233,7 @@ export function acl(acls: AclEntry | AclEntry[]) {
       // The `as` cast re-asserts the discriminated union member type.
       for (const action of acl.actionsResolver(req, restApi)) {
         if (action === undefined) {
-          // action can be undefined, if the action is created from `actionFromBody` or `actionIfNotSelf`
+          // action can be undefined, if the action is created from `actionFromBody` or `actionIfNotSelfUser`
           continue
         }
 
