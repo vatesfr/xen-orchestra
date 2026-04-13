@@ -3,7 +3,10 @@ import type { Subscriber } from '../events/event.class.mjs'
 import type { EventType } from '../events/event.type.mjs'
 
 export abstract class Listener {
-  #subscribers: Map<Subscriber['id'], { fields: '*' | string[]; subscriber: Subscriber }> = new Map()
+  #subscribers: Map<
+    Subscriber['id'],
+    { fields: '*' | string[]; subscriber: Subscriber; unregisterOnClear: () => void }
+  > = new Map()
   #eventEmitter: EventEmitter
   #eventCallbacks: Map<string, (...args: unknown[]) => void> = new Map()
   #watchedEvent: EventType[]
@@ -22,7 +25,9 @@ export abstract class Listener {
   }
 
   addSubscriber(subscriber: Subscriber, fields: '*' | string[] = '*') {
-    this.#subscribers.set(subscriber.id, { fields, subscriber })
+    const unregisterOnClear = subscriber.onClear(() => this.removeSubscriber(subscriber.id))
+
+    this.#subscribers.set(subscriber.id, { fields, subscriber, unregisterOnClear })
 
     if (this.#subscribers.size === 1) {
       this.#watchedEvent.forEach(event => this.#addEventListener(event))
@@ -30,6 +35,12 @@ export abstract class Listener {
   }
 
   removeSubscriber(subscriberId: Subscriber['id']) {
+    const subscriberWithConf = this.#subscribers.get(subscriberId)
+    if (subscriberWithConf === undefined) {
+      return
+    }
+
+    subscriberWithConf.unregisterOnClear()
     this.#subscribers.delete(subscriberId)
 
     if (this.#subscribers.size === 0) {
