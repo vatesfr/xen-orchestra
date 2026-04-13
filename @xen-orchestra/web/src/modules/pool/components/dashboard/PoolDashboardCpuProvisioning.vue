@@ -1,8 +1,8 @@
 <template>
   <UiCard :has-error class="pool-dashboard-cpu-provisioning">
     <UiCardTitle>{{ t('cpu-provisioning') }}</UiCardTitle>
-    <VtsStateHero v-if="!isCpuProvisioningReady" format="card" type="busy" size="medium" horizontal />
-    <VtsStateHero v-else-if="hasError" format="card" type="error" size="extra-small" horizontal>
+    <VtsStateHero v-if="!isCpuProvisioningReady" format="card" type="busy" size="medium" />
+    <VtsStateHero v-else-if="hasError" format="card" type="error" size="extra-small">
       {{ t('error-no-data') }}
     </VtsStateHero>
     <template v-else>

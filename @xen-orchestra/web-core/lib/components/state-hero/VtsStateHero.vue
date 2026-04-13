@@ -37,7 +37,7 @@ const {
   format,
   type,
   size,
-  horizontal: horizontalProps,
+  horizontal: horizontalProp,
 } = defineProps<{
   format: StateHeroFormat
   type: StateHeroType
@@ -54,7 +54,7 @@ const uiStore = useUiStore()
 
 const { t } = useI18n()
 
-const horizontal = computed(() => horizontalProps && !uiStore.isSmall)
+const horizontal = computed(() => horizontalProp && !uiStore.isSmall)
 
 const typoClass = computed(() => (format === 'page' ? 'typo-h2' : 'typo-h4'))
 
