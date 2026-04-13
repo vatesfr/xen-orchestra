@@ -89,14 +89,18 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
               onlyListChangedBlocks: true,
             })
             await diffDisk.init()
+            const sourceUuid = snapshot.other_config?.[COPY_OF]
             if (diffDisk.getBlockIndexes().length === 0) {
-              const sourceUuid = snapshot.other_config?.[COPY_OF]
               if (sourceUuid) {
                 this.#baseVdisBySourceUuid.set(sourceUuid, activeVdi)
               }
               // Track the target VM (the replicated VM to update on the next transfer).
               targetVmRef = vm.$ref
             } else {
+              // if not chain to the snapshot, but create a new VM 
+              if (sourceUuid) {
+                this.#baseVdisBySourceUuid.set(sourceUuid, snapshot)
+              }
               // not empty, we will create a new VM
               canChainToTargetVm = false
               debug('checkBaseVdis, data between snapshot and active disk', {
