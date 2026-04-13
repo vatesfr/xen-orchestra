@@ -770,6 +770,12 @@ const TRANSFORMS = {
       snapshots: link(obj, 'snapshots'),
       tags: obj.tags,
       usage: +obj.physical_utilisation,
+      parentChainPhysicalUsage:
+        +obj.physical_utilisation +
+        obj.snapshots.reduce((sum, snapshotRef) => {
+          const snapshot = obj.$xapi._objectsByRef[snapshotRef]
+          return sum + (snapshot !== undefined ? +snapshot.physical_utilisation : 0)
+        }, 0),
       VDI_type: obj.type,
       current_operations: obj.current_operations,
       other_config: obj.other_config,
