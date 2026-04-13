@@ -20,6 +20,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- Focus lost on vdi name input in new VM form [\#9685](https://github.com/vatesfr/xen-orchestra/issues/9685)
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
