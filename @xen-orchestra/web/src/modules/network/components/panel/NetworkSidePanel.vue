@@ -1,7 +1,7 @@
 <template>
   <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
     <template #header>
-      <NetworkDeleteButton :network />
+      <NetworkDeleteButton :network class="delete-button" />
       <div :class="{ 'action-buttons-container': uiStore.isSmall }">
         <UiButtonIcon
           v-tooltip="t('action:close')"
@@ -144,6 +144,10 @@ const pifsCount = computed(() => pifs.value.length)
 </script>
 
 <style scoped lang="postcss">
+.delete-button {
+  margin-inline-end: auto;
+}
+
 .card-container {
   display: flex;
   flex-direction: column;
