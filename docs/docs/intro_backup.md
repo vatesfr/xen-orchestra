@@ -8,7 +8,7 @@ Xen Orchestra is currently the most capable and advanced solution to backup your
 
 Alternatively, here is a video recap on different backup capabilities:
 
-<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/FfUqIwT8KzI?si=kTvxIFhPjv-8Iwri" title="Administer and backup your VM infrastructure the easiest way" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="stricn-when-crt-origioss-origin" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/FfUqIwT8KzI?si=kTvxIFhPjv-8Iwri" title="Administer and backup your VM infrastructure the easiest way" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 - [Rolling Snapshots](rolling_snapshots.md)
 - [Full Backups](full_backups.md)
