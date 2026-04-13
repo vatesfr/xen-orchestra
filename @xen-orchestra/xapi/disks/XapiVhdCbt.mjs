@@ -43,9 +43,9 @@ export class XapiVhdCbtSource extends RandomAccessDisk {
    * @param {string|undefined} params.baseRef
    * @param {any} params.xapi
    * @param {number} params.nbdConcurrency
-   * @param {boolean} [params.onlyListChangedBlocks=false]
+   * @param {boolean} [params.onlyListChangedBlocks=false] When true, skips NBD client creation; only getBlockIndexes() may be called, readBlock() will throw.
    */
-  constructor({ vdiRef, baseRef, xapi, nbdConcurrency, onlyListChangedBlocks = false }) {
+  constructor({ vdiRef, baseRef, xapi, onlyListChangedBlocks = false, nbdConcurrency }) {
     super()
     this.#ref = vdiRef
     this.#baseRef = baseRef
@@ -126,7 +126,7 @@ export class XapiVhdCbtSource extends RandomAccessDisk {
    */
   async readBlock(index) {
     if (this.#onlyListChangedBlocks) {
-      throw new Error('Disk is open in "only list block mode "')
+      throw new Error(`Disk ${this.#ref} from ${this.#baseRef} is open in "only list block mode"`)
     }
     const data = await this.#nbdClient.readBlock(index, this.getBlockSize())
     return { index, data }

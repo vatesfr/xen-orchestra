@@ -140,7 +140,7 @@ class Vdi {
   /**
    * return a buffer with 0/1 bit, showing if the 64KB block corresponding
    * in the raw vdi has changed
-   * @returns {Buffer}
+   * @returns {Promise<Buffer>}
    */
   async listChangedBlock(ref, baseRef) {
     const encoded = await this.callAsync('VDI.list_changed_blocks', baseRef, ref)

@@ -55,7 +55,7 @@ export class XapiDiskSource extends DiskPassthrough {
    * @param {number} [params.nbdConcurrency=2]
    * @param {number} [params.blockSize=2*1024*1024]
    * @param {number} [params.timeout=20*60*1000]
-   * @param {boolean} [params.onlyListChangedBlocks=false] won't open nbd client if true
+   * @param {boolean} [params.onlyListChangedBlocks=false] When true, skips NBD client creation; only getBlockIndexes() may be called, readBlock() will throw.
    */
   constructor({
     xapi,
