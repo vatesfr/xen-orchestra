@@ -381,6 +381,8 @@
   "job:arg:sr-vdi-required": "Le VDI doit avoir un SR",
   "job:arg:template-uuid-required": "L'UUID de template est obligatoire",
   "job:arg:username-required": "Le nom d'utilisateur est obligatoire",
+  "job:arg:vlan-required": "Le VLAN est obligatoire",
+  "job:create:in-progress": "Création en cours…",
   "job:delete:in-progress": "Suppression en cours…",
   "job:network-delete:has-n-physical-pif-connected": "Le réseau a un PIF physique connecté | Le réseau a {n} PIFs physiques connectés",
   "job:network-delete:has-n-vif-attached": "Le réseau a un VIF attaché | Le réseau a {n} VIFs attachés",
