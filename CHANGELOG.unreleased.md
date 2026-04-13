@@ -17,7 +17,7 @@
 
 - [Header]: Fix `Unable to connect to XO server` falshing every 30 secondes (PR [#9681](https://github.com/vatesfr/xen-orchestra/pull/9681))
 - [Backups]: Fix regression on cleanVM speed (PR [#9692](https://github.com/vatesfr/xen-orchestra/pull/9692))
-- [Incremental Replication]: Fix "Storage_error ([S(Illegal_transition);[[S(Activated);S(RO)];[S(Activated);S(RW)]]])" (PR [#9702](https://github.com/vatesfr/xen-orchestra/pull/9702))
+- [Incremental Replication]: Fix "Storage_error ([S(Illegal_transition);[[S(Activated);S(RO)];[S(Activated);S(RW)]]])" [Forum#12059](https://xcp-ng.org/forum/topic/12059/xen-orchestra-6.3.2-random-replication-failure) (PR [#9702](https://github.com/vatesfr/xen-orchestra/pull/9702))
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
