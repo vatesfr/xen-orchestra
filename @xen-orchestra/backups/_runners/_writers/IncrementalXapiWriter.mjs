@@ -57,6 +57,9 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     debug('checkBaseVdis, got snapshot candidates,', snapshotCandidates.length)
 
     if (snapshotCandidates.length > 0) {
+      // reset before searching for candidates
+      this.#baseVdisBySourceUuid = new Map()
+      this._targetVmRef = undefined
       const { baseVdisBySourceUuid, targetVmRef } = await this.#validateSnapshotCandidates(snapshotCandidates)
       for (const [sourceUuid, vdi] of baseVdisBySourceUuid) {
         this.#baseVdisBySourceUuid.set(sourceUuid, vdi)
