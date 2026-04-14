@@ -14,6 +14,7 @@
   },
   "scripts": {
     "postversion": "npm publish --access public",
+    "test": "node --test",
     "test-integration": "node --test *.integ.mjs"
   },
   "dependencies": {

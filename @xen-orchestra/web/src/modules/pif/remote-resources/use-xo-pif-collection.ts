@@ -13,6 +13,7 @@ export type FrontXoPif = Pick<XoPif, (typeof pifFields)[number]>
 const pifFields = [
   '$host',
   '$network',
+  '$pool',
   'attached',
   'carrier',
   'device',
@@ -29,6 +30,7 @@ const pifFields = [
   'speed',
   'vlan',
   'isBondMaster',
+  'isBondSlave',
   'bondSlaves',
   'type',
 ] as const satisfies readonly (keyof XoPif)[]
