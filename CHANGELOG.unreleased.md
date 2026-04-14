@@ -44,6 +44,7 @@
 - [VM] Add possibility to remove a VBD on VDI tab (PR [#9698](https://github.com/vatesfr/xen-orchestra/pull/9698))
 - **XO 5**:
   - [Settings/Servers] Add info tip to remind users to only add pool masters
+- [Pool/Network] Add Network deletion (PR [#9714](https://github.com/vatesfr/xen-orchestra/pull/9714))
 
 ### Bug fixes
 
