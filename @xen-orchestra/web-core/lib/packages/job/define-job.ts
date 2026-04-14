@@ -92,7 +92,7 @@ export function defineJob<const TJobArgs extends JobArg[], TRunResult>(
       } catch (error) {
         if (error instanceof JobError) {
           error.args = args.value
-          error.jobName = name
+          error.jobName = error.jobName ?? name
 
           return error
         }
