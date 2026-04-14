@@ -5,6 +5,7 @@ import {
   type RouteDefinition,
 } from './types.mjs'
 import { Router, json, urlencoded, text, raw, type Request, type Response, type RequestHandler } from 'express'
+import type { Options, OptionsJson, OptionsText, OptionsUrlencoded } from 'body-parser'
 import { invalidParameters } from 'xo-common/api-errors.js'
 import { createLogger } from '@xen-orchestra/log'
 import { pipeline } from 'node:stream/promises'
@@ -201,16 +202,15 @@ function removePathFromSwagger(path: string, method: string, swaggerOpenApiSpec:
 
 // Resolve a middleware descriptor to an actual Express RequestHandler
 function resolveMiddleware(descriptor: MiddlewareDescriptor): RequestHandler {
-  const opts = descriptor.options as any
   switch (descriptor.name) {
     case 'json':
-      return json(opts)
+      return json(descriptor.options as OptionsJson)
     case 'urlencoded':
-      return urlencoded(opts)
+      return urlencoded(descriptor.options as OptionsUrlencoded)
     case 'text':
-      return text(opts)
+      return text(descriptor.options as OptionsText)
     case 'raw':
-      return raw(opts)
+      return raw(descriptor.options as Options)
   }
 }
 
@@ -266,21 +266,24 @@ function extractParametersFromZod(schema: z.ZodType, location: 'path' | 'query')
 
   // Otherwise, iterate properties
   if (jsonSchema.properties) {
-    return Object.entries(jsonSchema.properties).map(([name, property]: any) => ({
-      name,
-      in: location,
-      required: (jsonSchema.required ?? []).includes(name),
-      schema: {
-        type: property.type,
-      },
-      example: property.example,
-    }))
+    return (Object.entries(jsonSchema.properties) as Array<[string, OpenAPIV3.SchemaObject]>).map(
+      ([name, property]) => ({
+        name,
+        in: location,
+        required: (jsonSchema.required ?? []).includes(name),
+        schema: {
+          type: property.type,
+        },
+        example: property.example,
+      })
+    ) as OpenAPIV3.ParameterObject[]
   }
 
   return []
 }
 
 // Exported for retro-compatibility
+// TODO: remove export when RestApi.registerRestApi is no longer used
 export async function sendObjects(
   iterable: Iterable<unknown> | AsyncIterable<unknown>,
   req: Request,
