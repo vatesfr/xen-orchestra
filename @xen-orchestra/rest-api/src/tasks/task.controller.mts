@@ -14,11 +14,14 @@ import {
   Delete,
   Post,
   SuccessResponse,
+  Middlewares,
 } from 'tsoa'
+import { acl } from '../middlewares/acl.middleware.mjs'
 import { SendObjects } from '../helpers/helper.type.mjs'
 import {
   asynchronousActionResp,
   badRequestResp,
+  forbiddenOperationResp,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
@@ -137,10 +140,22 @@ export class TaskController extends XoController<XoTask> {
   }
 
   /**
+   * Required privilege:
+   * - resource: task, action: read
+   *
    * @example id "0mdd1basu"
    */
   @Example(task)
   @Get('{id}')
+  @Middlewares(
+    acl({
+      resource: 'task',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.tasks.get.bind(restApi.xoApp.tasks),
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async getTask(@Request() req: ExRequest, @Path() id: string, @Query() wait?: boolean): Promise<Unbrand<XoTask>> {
     const taskId = id as XoTask['id']
@@ -159,17 +174,44 @@ export class TaskController extends XoController<XoTask> {
     return this.getObject(taskId)
   }
 
+  /**
+   * Deletes all tasks the current user has the following privilege on:
+   * - resource: task, action: delete
+   */
   @Delete('')
+  @Security('*', ['acl'])
   @SuccessResponse(noContentResp.status, noContentResp.description)
   async deleteTasks(): Promise<void> {
-    await this.restApi.tasks.clearLogs()
+    const user = this.restApi.getCurrentUser()
+    const userPrivileges = await this.restApi.xoApp.getAclV2UserPrivileges(user.id)
+
+    const deletePromises: Promise<void>[] = []
+    for await (const task of this.restApi.tasks.list()) {
+      if (hasPrivilegeOn({ user, userPrivileges, resource: 'task', action: 'delete', objects: task })) {
+        deletePromises.push(this.restApi.tasks.deleteLog(task.id))
+      }
+    }
+
+    await Promise.all(deletePromises)
   }
 
   /**
+   * Required privilege:
+   * - resource: task, action: delete
+   *
    * @example id "0mdd1basu"
    */
   @Delete('{id}')
+  @Middlewares(
+    acl({
+      resource: 'task',
+      action: 'delete',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.tasks.get.bind(restApi.xoApp.tasks),
+    })
+  )
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteTask(@Path() id: string): Promise<void> {
     const task = await this.getObject(id as XoTask['id'])
@@ -177,12 +219,24 @@ export class TaskController extends XoController<XoTask> {
   }
 
   /**
+   * Required privilege:
+   * - resource: task, action: abort
+   *
    * @example id "0mdd1basu"
    */
   @Example(taskLocation)
   @Post('{id}/actions/abort')
+  @Middlewares(
+    acl({
+      resource: 'task',
+      action: 'abort',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.tasks.get.bind(restApi.xoApp.tasks),
+    })
+  )
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async abortTask(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const taskId = id as XoTask['id']
