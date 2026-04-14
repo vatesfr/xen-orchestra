@@ -57,75 +57,11 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     debug('checkBaseVdis, got snapshot candidates,', snapshotCandidates.length)
 
     if (snapshotCandidates.length > 0) {
-      // New snapshot-based flow (6.3+): verify no data was written between
-      // the target snapshot and its active VDI.
-      let targetVmRef
-      let canChainToTargetVm = true
-      await asyncEach(
-        snapshotCandidates,
-        async snapshot => {
-          let diffDisk
-          let activeVdi
-          try {
-            activeVdi = sr.$xapi.getObject(snapshot.$snapshot_of)
-            const userVbds = activeVdi.$VBDs?.filter(vbd => vbd.$VM && !vbd.$VM.is_control_domain) ?? []
-            if (userVbds.length !== 1) {
-              debug('checkBaseVdis, share vbd ', { ref: snapshot.$ref, userVbds })
-              // shared vdi ignore
-              return
-            }
-            const vm = userVbds[0].$VM
-            if (!('start' in vm.blocked_operations)) {
-              debug('checkBaseVdis, vm not blocked', { vmRef: vm.$ref })
-              // vm start unlocked
-              // not really an issue since we have check the delta
-              // but it indicates the users played with the blocked operations
-              return
-            }
-            diffDisk = new XapiDiskSource({
-              xapi: sr.$xapi,
-              vdiRef: activeVdi.$ref,
-              baseRef: snapshot.$ref,
-              onlyListChangedBlocks: true,
-            })
-            await diffDisk.init()
-            const sourceUuid = snapshot.other_config?.[COPY_OF]
-            if (diffDisk.getBlockIndexes().length === 0) {
-              if (sourceUuid) {
-                this.#baseVdisBySourceUuid.set(sourceUuid, activeVdi)
-              }
-              // Track the target VM (the replicated VM to update on the next transfer).
-              targetVmRef = vm.$ref
-            } else {
-              // if not chain to the snapshot, but create a new VM 
-              if (sourceUuid) {
-                this.#baseVdisBySourceUuid.set(sourceUuid, snapshot)
-              }
-              // not empty, we will create a new VM
-              canChainToTargetVm = false
-              debug('checkBaseVdis, data between snapshot and active disk', {
-                vdiRef: snapshot.$ref,
-                nbBlocks: diffDisk.getBlockIndexes().length,
-              })
-            }
-          } catch (error) {
-            debug('checkBaseVdis, skipping snapshot', { ref: snapshot.$ref, error })
-            return
-          } finally {
-            await diffDisk?.close().catch(error => debug('checkBaseVdis, error closing', error))
-            await sr.$xapi.VDI_disconnectFromControlDomain(snapshot.$ref)
-            if (activeVdi !== undefined) {
-              await sr.$xapi.VDI_disconnectFromControlDomain(activeVdi.$ref)
-            }
-          }
-        },
-        {
-          concurrency: 4,
-        }
-      )
-
-      if (canChainToTargetVm && targetVmRef !== undefined) {
-        debug('checkBaseVdis,got a valid vm target', targetVmRef)
+      const { baseVdisBySourceUuid, targetVmRef } = await this.#validateSnapshotCandidates(snapshotCandidates)
+      for (const [sourceUuid, vdi] of baseVdisBySourceUuid) {
+        this.#baseVdisBySourceUuid.set(sourceUuid, vdi)
+      }
+      if (targetVmRef !== undefined) {
         this._targetVmRef = targetVmRef
       }
     } else {
@@ -149,6 +85,89 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       }
     }
   }
+  /**
+   * 6.3+ snapshot-based validation: for each snapshot candidate, check whether
+   * the active VDI has diverged from the snapshot. Returns a baseVdisBySourceUuid
+   * map and, when all disks are clean, the targetVmRef to reuse.
+   */
+  async #validateSnapshotCandidates(snapshotCandidates) {
+    const sr = this._sr
+    const baseVdisBySourceUuid = new Map()
+    let targetVmRef
+    let canChainToTargetVm = true
+
+    await asyncEach(
+      snapshotCandidates,
+      async snapshot => {
+        let diffDisk
+        let activeVdi
+        try {
+          activeVdi = sr.$xapi.getObject(snapshot.$snapshot_of)
+          const userVbds = activeVdi.$VBDs?.filter(vbd => vbd.$VM && !vbd.$VM.is_control_domain) ?? []
+          if (userVbds.length !== 1) {
+            debug('checkBaseVdis, share vbd ', { ref: snapshot.$ref, userVbds })
+            // shared vdi ignore
+            return
+          }
+          const vm = userVbds[0].$VM
+          if (!('start' in vm.blocked_operations)) {
+            debug('checkBaseVdis, vm not blocked', { vmRef: vm.$ref })
+            // vm start unlocked
+            // not really an issue since we have check the delta
+            // but it indicates the users played with the blocked operations
+            return
+          }
+          diffDisk = new XapiDiskSource({
+            xapi: sr.$xapi,
+            vdiRef: activeVdi.$ref,
+            baseRef: snapshot.$ref,
+            onlyListChangedBlocks: true,
+          })
+          await diffDisk.init()
+          const sourceUuid = snapshot.other_config?.[COPY_OF]
+          if (diffDisk.getBlockIndexes().length === 0) {
+            if (sourceUuid) {
+              baseVdisBySourceUuid.set(sourceUuid, activeVdi)
+            }
+            // Track the target VM (the replicated VM to update on the next transfer).
+            targetVmRef = vm.$ref
+          } else {
+            // if not chain to the snapshot, but create a new VM
+            if (sourceUuid) {
+              baseVdisBySourceUuid.set(sourceUuid, snapshot)
+            }
+            // not empty, we will create a new VM
+            canChainToTargetVm = false
+            debug('checkBaseVdis, data between snapshot and active disk', {
+              vdiRef: snapshot.$ref,
+              nbBlocks: diffDisk.getBlockIndexes().length,
+            })
+          }
+        } catch (error) {
+          debug('checkBaseVdis, skipping snapshot', { ref: snapshot.$ref, error })
+          return
+        } finally {
+          await diffDisk?.close().catch(error => debug('checkBaseVdis, error closing', error))
+          await sr.$xapi.VDI_disconnectFromControlDomain(snapshot.$ref)
+          if (activeVdi !== undefined) {
+            await sr.$xapi.VDI_disconnectFromControlDomain(activeVdi.$ref)
+          }
+        }
+      },
+      {
+        concurrency: 4,
+      }
+    )
+
+    if (!canChainToTargetVm) {
+      targetVmRef = undefined
+    } else if (targetVmRef !== undefined) {
+      debug('checkBaseVdis,got a valid vm target', targetVmRef)
+    }
+
+    return { baseVdisBySourceUuid, targetVmRef }
+  }
+
   updateUuidAndChain() {
     // nothing to do, the chaining is not modified in this case
   }
