@@ -110,8 +110,8 @@ export function createExternalRouter(swaggerOpenApiSpec: OpenAPIV3.Document): {
     return () => {
       const index = externalRouter.stack.findIndex(layer => {
         // layer.route.methods is not exposed so we need to redefine the type
-        const r = layer.route as { path: string; methods: Record<string, boolean> } | undefined
-        return r?.path === expressEndpoint && r.methods[route.method] === true
+        const layerRoutes = layer.route as { path: string; methods: Record<string, boolean> } | undefined
+        return layerRoutes?.path === expressEndpoint && layerRoutes.methods[route.method] === true
       })
 
       if (index !== -1) {
@@ -144,7 +144,7 @@ function addPathToSwagger(
   }
 
   const operation: OpenAPIV3.OperationObject = {
-    tags: tags.length > 0 ? tags : ['plugins'],
+    tags: [...tags, 'external'],
     parameters: [],
     responses: {},
   }
@@ -281,7 +281,11 @@ function extractParametersFromZod(schema: z.ZodType, location: 'path' | 'query')
 }
 
 // Exported for retro-compatibility
-export async function sendObjects(iterable: Iterable<unknown> | AsyncIterable<unknown>, req: Request, res: Response) {
+export async function sendObjects(
+  iterable: Iterable<unknown> | AsyncIterable<unknown>,
+  req: Request,
+  res: Response
+): Promise<void> {
   const jsonFormat = !Object.hasOwn(req.query, 'ndjson')
 
   res.setHeader('content-type', jsonFormat ? 'application/json' : 'application/x-ndjson')
