@@ -12,6 +12,7 @@
             icon="object:vif"
             :to="vif ? { name: '/vif/[id]/general', params: { id: vif.id } } : undefined"
             :disabled="!vm"
+            wrap
           >
             {{ vifDevice }}
           </UiLink>
@@ -33,7 +34,7 @@
           {{ t('vm') }}
         </template>
         <template v-if="vm" #value>
-          <UiLink size="small" :icon="vmStatus" :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
+          <UiLink size="small" :icon="vmStatus" :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }" wrap>
             {{ vm.name_label }}
           </UiLink>
         </template>
@@ -46,7 +47,7 @@
           {{ t('network') }}
         </template>
         <template #value>
-          <UiLink v-if="network" size="small" :to="networkTo" icon="object:network">
+          <UiLink v-if="network" size="small" :to="networkTo" icon="object:network" wrap>
             {{ network.name_label }}
           </UiLink>
         </template>

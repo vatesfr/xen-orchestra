@@ -30,17 +30,23 @@
                 icon="object:vif"
                 :to="vif ? { name: '/vif/[id]/general', params: { id: vif.id } } : undefined"
                 :disabled="!vm"
+                wrap
               >
                 {{ vifDevice }}
               </UiLink>
               <div v-if="vm">
                 {{ t('in') }}
-                <UiLink size="small" :icon="vmPowerState" :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
+                <UiLink
+                  size="small"
+                  :icon="vmPowerState"
+                  :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }"
+                  wrap
+                >
                   {{ vm.name_label }}
                 </UiLink>
               </div>
             </template>
-            <UiLink v-else-if="network" size="small" icon="object:network" :to="networkTo">
+            <UiLink v-else-if="network" size="small" icon="object:network" :to="networkTo" wrap>
               {{ network.name_label }}
             </UiLink>
           </div>
