@@ -1,5 +1,25 @@
 # ChangeLog
 
+## **next**
+
+### Bug fixes
+
+- [Header]: Fix `Unable to connect to XO server` falshing every 30 secondes (PR [#9681](https://github.com/vatesfr/xen-orchestra/pull/9681))
+- [Backups]: Fix regression on cleanVM speed (PR [#9692](https://github.com/vatesfr/xen-orchestra/pull/9692))
+- [Backups]: Fix merge resume when child is disk chain (PR [#9692](https://github.com/vatesfr/xen-orchestra/pull/9668))
+- [Incremental Replication]: Fix "Storage_error ([S(Illegal_transition);[[S(Activated);S(RO)];[S(Activated);S(RW)]]])" [Forum#12059](https://xcp-ng.org/forum/topic/12059/xen-orchestra-6.3.2-random-replication-failure) (PR [#9702](https://github.com/vatesfr/xen-orchestra/pull/9702))
+- [Replication]: Distributed replication toggle not enabled when targetting 2 SRs (PR [#9715](https://github.com/vatesfr/xen-orchestra/pull/9715))
+
+<!--packages-start-->
+
+- @xen-orchestra/xapi 8.7.1
+- @xen-orchestra/backups 0.71.3
+- @xen-orchestra/immutable-backups 2.0.2
+- @xen-orchestra/proxy 0.29.57
+- xo-server 5.198.5
+
+<!--packages-end-->
+
 ## **6.3.2** (2026-04-03)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
