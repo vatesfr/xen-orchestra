@@ -1,6 +1,6 @@
 <template>
   <li>
-    <UiLink size="small" :icon="srStatusIcon" :href>
+    <UiLink size="small" :icon="srStatusIcon" :href wrap>
       {{ sr.name_label }}
     </UiLink>
   </li>
