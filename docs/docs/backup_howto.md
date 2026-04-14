@@ -208,13 +208,13 @@ Below are the main backup and replication types available in Xen Orchestra.
 - **Encryption**: Protects backup data at rest.
 - **Concurrency**: Controls how many VMs run in parallel in this backup job.
 - **Retention policy**: Fine-tunes how many backups to keep over certain periods of time.
-- **Full backup interval**: Defines the maximum backup chain size. (only for delta backups and incremental replications)
+- **Full backup interval**: Defines the maximum backup chain size (only for delta backups and incremental replications).
 
 :::tip
 
 - **Compression** is configured at the backup job level, and applies only to full backups. For full backups, prefer [Zstandard (Zstd)](https://en.wikipedia.org/wiki/Zstd) if your host supports it.
 - **Encryption** is configured at the backup repository level, not per individual backup job. To use encryption with incremental backups, the **use VHD blocks** setting must be enabled.
-- Setting a **Full backup interval** value avoids having infinite chains of backups, which can lead to issues in the very long term. We recommend either setting a non-null value for this parameter, or enabling heath check on the schedule of your delta backup and incremental replication jobs.
+- Setting a **Full backup interval** prevents infinite backup chains, which may degrade resilience against block corruption over time. We recommend either defining a regular interval or enabling health checks for your Delta backup and Continuous Replication jobs.
 :::
 
 ---
