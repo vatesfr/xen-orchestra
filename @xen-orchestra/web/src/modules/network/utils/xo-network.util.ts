@@ -4,6 +4,14 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import type { RouteLocationAsRelative } from 'vue-router'
 
+export const NETWORK_TYPE = {
+  BONDED: 'bonded',
+  INTERNAL: 'internal',
+  PHYSICAL: 'physical',
+}
+
+export type NetworkType = (typeof NETWORK_TYPE)[keyof typeof NETWORK_TYPE]
+
 export function getPoolNetworkRoute(
   poolId: FrontXoPool['id'],
   highlightNetworkId?: FrontXoNetwork['id']
@@ -35,4 +43,16 @@ export function getNetworkStatus(pifs: FrontXoPif[]) {
   }
 
   return CONNECTION_STATUS.DISCONNECTED
+}
+
+export function getNetworkType(network: FrontXoNetwork): NetworkType {
+  if (network.isBonded) {
+    return NETWORK_TYPE.BONDED
+  }
+
+  if (network.PIFs.length === 0) {
+    return NETWORK_TYPE.INTERNAL
+  }
+
+  return NETWORK_TYPE.PHYSICAL
 }

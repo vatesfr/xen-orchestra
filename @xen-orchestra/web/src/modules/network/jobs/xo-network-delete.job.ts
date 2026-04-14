@@ -5,6 +5,10 @@ import { fetchDelete } from '@/shared/utils/fetch.util'
 import { defineJob, defineJobArg, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'
 
+export const NETWORK_DELETE_ERROR = {
+  VIFS_IN_USE: 'vifs-in-use',
+}
+
 const payloadsArg = defineJobArg({
   identify: (network: FrontXoNetwork) => network.id,
   toArray: true,
@@ -54,7 +58,10 @@ export const useXoNetworkDeleteJob = defineJob('network.delete', [payloadsArg], 
       )
 
       if (nAttachedVif > 0) {
-        throw new JobError(t('job:network-delete:has-n-vif-attached', { n: nAttachedVif }))
+        throw new JobError(
+          t('job:network-delete:has-n-vif-attached', { n: nAttachedVif }),
+          NETWORK_DELETE_ERROR.VIFS_IN_USE
+        )
       }
 
       if (isRunning) {

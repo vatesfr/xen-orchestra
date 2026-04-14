@@ -5,7 +5,9 @@
     </template>
 
     <template #content>
-      {{ error }}
+      <slot name="content">
+        {{ error }}
+      </slot>
     </template>
 
     <template #buttons>
@@ -23,7 +25,11 @@ import { useI18n } from 'vue-i18n'
 
 defineProps<{
   title: string
-  error: string
+  error?: string
+}>()
+
+defineSlots<{
+  content?(): any
 }>()
 
 const { t } = useI18n()
