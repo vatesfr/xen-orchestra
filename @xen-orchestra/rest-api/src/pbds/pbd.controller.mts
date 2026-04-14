@@ -1,15 +1,17 @@
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
-import { Route, Security, Request, Response, Get, Query, Path, Tags, Example, Post, SuccessResponse } from 'tsoa'
+import { Middlewares, Route, Security, Request, Response, Get, Query, Path, Tags, Example, Post, SuccessResponse } from 'tsoa'
 import type { XoPbd } from '@vates/types'
 
+import { acl } from '../middlewares/acl.middleware.mjs'
 import {
   asynchronousActionResp,
   badRequestResp,
   internalServerErrorResp,
   invalidParameters as invalidParametersResp,
   noContentResp,
+  forbiddenOperationResp,
   notFoundResp,
   unauthorizedResp,
   type Unbrand,
@@ -59,10 +61,16 @@ export class PbdController extends XapiXoController<XoPbd> {
   }
 
   /**
+   * Required privilege:
+   * - resource: pbd, action: read
+   *
    * @example id "16b2a60f-7c4d-f45f-7c7a-963b06fc587d"
    */
   @Example(pbd)
   @Get('{id}')
+  @Middlewares(acl({ resource: 'pbd', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
   getPbd(@Path() id: string): Unbrand<XoPbd> {
     return this.getObject(id as XoPbd['id'])
   }
