@@ -134,8 +134,10 @@ watch(
     display: flex;
     align-items: end;
     gap: 0.8rem;
+    min-width: 0;
 
     .value {
+      min-width: 0;
       color: var(--color-neutral-txt-primary);
     }
 

@@ -8,7 +8,7 @@
       iconProp(),
       prop('disabled').bool().widget(),
       prop('target').enum('_blank', '_self').widget(),
-      prop('wrap').bool().widget(),
+      prop('wrap').bool().widget().help('Control whether the link wraps. If not, the text has ellipsis.'),
     ]"
   >
     <UiLink v-bind="properties">This is a link</UiLink>
