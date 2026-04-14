@@ -51,7 +51,7 @@ import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.m
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { taskIds, partialTasks, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
-import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
+import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 
 type UnbrandedXoVif = Unbrand<XoVif>
 
@@ -238,6 +238,8 @@ export class VifController extends XapiXoController<XoVif> {
 
   /**
    * Hotplug the VIF, dynamically attaching it to the running VM
+   * Requires pv drivers to be installed on the VM
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
@@ -266,6 +268,8 @@ export class VifController extends XapiXoController<XoVif> {
 
   /**
    * Hot-unplug the VIF, dynamically detaching it from the running VM
+   * Requires pv drivers to be installed on the VM
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
