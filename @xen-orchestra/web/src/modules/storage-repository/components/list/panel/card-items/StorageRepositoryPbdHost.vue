@@ -9,6 +9,7 @@
         size="small"
         icon="object:host"
         :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
+        wrap
       >
         {{ host.name_label }}
       </UiLink>

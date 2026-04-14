@@ -1,11 +1,20 @@
 <!-- v3 -->
 <template>
   <component :is="component" :class="classes" class="ui-link" v-bind="attributes">
-    <VtsIcon :name="icon" size="medium" />
+    <span>
+      <VtsIcon :name="icon" size="medium" />
+    </span>
     <span v-tooltip :class="wrap == true ? 'link-wrap' : 'text-ellipsis'">
       <slot />
     </span>
-    <VtsIcon v-if="attributes.target === '_blank'" name="fa:up-right-from-square" size="medium" class="external-icon" />
+    <span>
+      <VtsIcon
+        v-if="attributes.target === '_blank'"
+        name="fa:up-right-from-square"
+        size="medium"
+        class="external-icon"
+      />
+    </span>
   </component>
 </template>
 
@@ -37,7 +46,6 @@ const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.
 <style lang="postcss" scoped>
 .ui-link {
   display: inline-flex;
-  align-items: center;
   gap: 0.8rem;
   color: var(--color-brand-txt-base);
   min-width: 0;
@@ -79,6 +87,7 @@ const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.
   }
 
   .external-icon {
+    margin: calc((1em - 0.75em) / 2) 0;
     font-size: 0.75em;
   }
 }

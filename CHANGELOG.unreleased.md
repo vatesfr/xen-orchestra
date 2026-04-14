@@ -12,9 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [VM] Add possibility to remove a snapshot on snapshot tab (PR [#9749](https://github.com/vatesfr/xen-orchestra/pull/9749))
-
-- **XO 6:**
-  - [XO6] Add ellipsis on link (PR [#9234](https://github.com/vatesfr/xen-orchestra/pull/9234))
+- [XO6] Add ellipsis on link (PR [#9234](https://github.com/vatesfr/xen-orchestra/pull/9234))
 
 ### Bug fixes
 

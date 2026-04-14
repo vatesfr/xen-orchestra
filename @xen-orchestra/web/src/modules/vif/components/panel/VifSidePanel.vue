@@ -32,7 +32,7 @@
               {{ t('network') }}
             </template>
             <template #value>
-              <UiLink v-if="network" size="medium" :to="networkTo" icon="object:network">
+              <UiLink v-if="network" size="medium" :to="networkTo" icon="object:network" wrap>
                 {{ network.name_label }}
               </UiLink>
             </template>

@@ -1,7 +1,7 @@
 <template>
   <UiCard class="card-container">
     <div class="content">
-      <UiLink icon="object:vm" size="medium" :href="buildXo5VmSnapshotRoute(snapshot.$snapshot_of, snapshot.id)">
+      <UiLink icon="object:vm" size="medium" :href="buildXo5VmSnapshotRoute(snapshot.$snapshot_of, snapshot.id)" wrap>
         {{ snapshot.name_label }}
       </UiLink>
       <VtsCodeSnippet :content="snapshot.id" copy />
@@ -35,7 +35,13 @@
           {{ t('trigger') }}
         </template>
         <template #value>
-          <UiLink v-if="snapshot.other?.['xo:backup:schedule']" size="small" :icon="trigger.icon" :href="trigger.href">
+          <UiLink
+            v-if="snapshot.other?.['xo:backup:schedule']"
+            size="small"
+            :icon="trigger.icon"
+            :href="trigger.href"
+            wrap
+          >
             {{ trigger.label }}
           </UiLink>
           <span v-else>
