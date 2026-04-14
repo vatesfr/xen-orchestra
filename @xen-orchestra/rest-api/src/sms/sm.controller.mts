@@ -1,9 +1,10 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 import type { XoSm } from '@vates/types'
 
+import { acl } from '../middlewares/acl.middleware.mjs'
 import { badRequestResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { partialSms, sm, smIds } from '../open-api/oa-examples/sm.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -47,10 +48,14 @@ export class SmController extends XapiXoController<XoSm> {
   }
 
   /**
+   * Required privilege:
+   * - resource: sm, action: read
+   *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
   @Example(sm)
   @Get('{id}')
+  @Middlewares(acl({ resource: 'sm', action: 'read', objectId: 'params.id' }))
   @Response(notFoundResp.status, notFoundResp.description)
   getSr(@Path() id: string): Unbrand<XoSm> {
     return this.getObject(id as XoSm['id'])
