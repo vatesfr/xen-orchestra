@@ -142,6 +142,15 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
+   * Returns the disk path in an array.
+   *
+   * @returns {string[]}
+   */
+  getPaths() {
+    return [this.getPath()]
+  }
+
+  /**
    * @returns {string}
    */
   getUuid() {
