@@ -95,12 +95,12 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
    * Export VM-template. Compress is only used for XVA format
    *
    * Required privilege:
-   * - resource: vm-template, action: read
+   * - resource: vm-template, action: export
    *
    * @example id "b7569d99-30f8-178a-7d94-801de3e29b5b-f873abe0-b138-4995-8f6f-498b423d234d"
    */
   @Get('{id}.{format}')
-  @Middlewares(acl({ resource: 'vm-template', action: 'read', objectId: 'params.id' }))
+  @Middlewares(acl({ resource: 'vm-template', action: 'export', objectId: 'params.id' }))
   @SuccessResponse(200, 'Download started', 'application/octet-stream')
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)

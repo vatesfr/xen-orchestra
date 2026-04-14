@@ -116,12 +116,12 @@ export class VmController extends XapiXoController<XoVm> {
    * Export VM. Compress is only used for XVA format
    *
    * Required privilege:
-   * - resource: vm, action: read
+   * - resource: vm, action: export
    *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Get('{id}.{format}')
-  @Middlewares(acl({ resource: 'vm', action: 'read', objectId: 'params.id' }))
+  @Middlewares(acl({ resource: 'vm', action: 'export', objectId: 'params.id' }))
   @SuccessResponse(200, 'Download started', 'application/octet-stream')
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)

@@ -1,5 +1,6 @@
 export default {
   delete: true,
+  export: true,
   pause: true,
   read: true,
   reboot: {

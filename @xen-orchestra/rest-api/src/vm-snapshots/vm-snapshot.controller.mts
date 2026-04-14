@@ -94,12 +94,12 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
    * Export VM-snapshot. Compress is only used for XVA format
    *
    * Required privilege:
-   * - resource: vm-snapshot, action: read
+   * - resource: vm-snapshot, action: export
    *
    * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
    */
   @Get('{id}.{format}')
-  @Middlewares(acl({ resource: 'vm-snapshot', action: 'read', objectId: 'params.id' }))
+  @Middlewares(acl({ resource: 'vm-snapshot', action: 'export', objectId: 'params.id' }))
   @SuccessResponse(200, 'Download started', 'application/octet-stream')
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
