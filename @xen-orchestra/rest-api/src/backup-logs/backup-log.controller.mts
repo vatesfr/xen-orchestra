@@ -1,7 +1,6 @@
 import type { AnyXoLog, XoBackupLog } from '@vates/types'
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
-import { noSuchObject } from 'xo-common/api-errors.js'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 
@@ -9,8 +8,15 @@ import { backupLog, backupLogIds, partialBackupLogs } from '../open-api/oa-examp
 import { BackupLogService } from './backup-log.service.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
-import { badRequestResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  badRequestResp,
+  forbiddenOperationResp,
+  notFoundResp,
+  unauthorizedResp,
+  Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
+import { acl } from '../middlewares/acl.middleware.mjs'
 
 @Route('backup-logs')
 @Security('*')
@@ -32,12 +38,8 @@ export class BackupLogController extends XoController<XoBackupLog> {
     >
   }
 
-  async getCollectionObject(id: AnyXoLog['id']): Promise<XoBackupLog> {
-    const log = await this.restApi.xoApp.getBackupNgLogs(id)
-    if (!this.#backupLogService.isBackupLog(log)) {
-      throw noSuchObject('backup-log')
-    }
-    return log
+  getCollectionObject(id: AnyXoLog['id']): Promise<XoBackupLog> {
+    return this.#backupLogService.getBackupLog(id)
   }
 
   /**
@@ -67,10 +69,26 @@ export class BackupLogController extends XoController<XoBackupLog> {
   }
 
   /**
+   * Required privilege:
+   * - resource: backup-log, action: read
+   *
    * @example id "1753776067468"
    */
   @Example(backupLog)
   @Get('{id}')
+  @Middlewares(
+    acl({
+      resource: 'backup-log',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => {
+        const service = restApi.ioc.get(BackupLogService)
+        return service.getBackupLog.bind(service)
+      },
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
   getBackupLog(@Path() id: string): Promise<Unbrand<XoBackupLog>> {
     return this.getObject(id as XoBackupLog['id'])
   }
