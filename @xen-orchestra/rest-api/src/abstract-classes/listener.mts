@@ -56,8 +56,7 @@ export abstract class Listener {
   }
 
   clear() {
-    this.removeAllEventListeners()
-    this.#subscribers.clear()
+    this.#subscribers.forEach(({ subscriber }) => this.removeSubscriber(subscriber.id))
     this.#watchedEvent = []
   }
 

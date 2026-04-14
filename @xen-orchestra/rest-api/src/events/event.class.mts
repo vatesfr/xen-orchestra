@@ -77,9 +77,7 @@ export class Subscriber {
     }
 
     this.#isAlive = false
-    if (!this.#connection.closed || !this.#connection.destroyed) {
-      this.#connection.destroy()
-    }
+    this.#connection.destroy()
     this.#cleanupCallbacks.forEach(cb => cb())
     this.#cleanupCallbacks.clear()
     this.#manager.removeSubscriber(this.id)
@@ -191,11 +189,6 @@ export class SubscriberManager {
   }
 
   clear() {
-    this.#subscribers.forEach(subscriber => {
-      if (!subscriber.connection.closed) {
-        subscriber.connection.destroy()
-      }
-      this.#subscribers.delete(subscriber.id)
-    })
+    this.#subscribers.forEach(subscriber => subscriber.clear())
   }
 }
