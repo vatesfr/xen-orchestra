@@ -9,7 +9,6 @@ import { fromCallback, promisify } from 'promise-toolbox'
 import { join } from 'path'
 import { v4 as uuidv4 } from 'uuid'
 
-import { invalidParameters, notFoundResp } from '@xen-orchestra/rest-api'
 import { OvsdbClient } from './protocol/ovsdb-client'
 import { PrivateNetwork } from './private-network/private-network'
 import { TlsHelper } from './utils/tls-helper'
@@ -445,59 +444,6 @@ class SDNController extends EventEmitter {
         deleteNetworkRule,
       },
     })
-
-    this._xo.registerRestRoutes(
-      [
-        {
-          method: 'post',
-          endpoint: '/test/{id}',
-          params: {
-            id: {
-              type: 'string',
-              example: 'test parm',
-            },
-          },
-          query: {
-            query: {
-              type: 'string',
-              example: 'test query',
-            },
-          },
-          body: {
-            allow: {
-              type: 'boolean',
-            },
-            direction: {
-              type: 'enum',
-              enum: ['ingress', 'egress'],
-            },
-            vifId: {
-              type: 'string',
-              example: 'qjndcsncjjcsq',
-            },
-          },
-          responses: [
-            {
-              status: 200,
-              schema: {
-                id: {
-                  type: 'string',
-                  description: 'Desc',
-                  example: 'response id',
-                },
-              },
-            },
-            invalidParameters,
-            notFoundResp,
-          ],
-          middlewares: [{ name: 'json' }],
-          callback: async ({ req, res, next, restApi }) => {
-            res.status(200).send({ id: `test with param id:${req.params.id}` })
-          },
-        },
-      ],
-      '/my-plugin'
-    )
 
     forOwn(this._xo.getAllXapis(), xapi => {
       if (xapi.status === 'connected') {
