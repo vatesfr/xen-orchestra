@@ -18,6 +18,7 @@ const forwardedEvents = [
   'connection',
   'listening',
   'request',
+  'secureConnection',
   'upgrade',
 ]
 
