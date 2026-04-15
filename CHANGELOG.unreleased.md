@@ -7,6 +7,23 @@
 
 > Security fixes and new features should go in this section
 
+- [@vates/node-vsphere-soap] Update axios, follow-redirects (transitive) (PR [#9640](https://github.com/vatesfr/xen-orchestra/pull/9640))
+- [@xen-orchestra/backups] Update tar (PR [#9640](https://github.com/vatesfr/xen-orchestra/pull/9640))
+- [@xen-orchestra/fs] Update fast-xml-parser (transitive) (PR [#9640](https://github.com/vatesfr/xen-orchestra/pull/9640))
+- [@xen-orchestra/lite] Update lodash-es, vite, rollup (transitive), postcss (transitive) (PR [#9640](https://github.com/vatesfr/xen-orchestra/pull/9640))
+- [@xen-orchestra/mcp] Update hono (transitive), @hono/node-server (transitive), express-rate-limit (transitive) (PR [#9640](https://github.com/vatesfr/xen-orchestra/pull/9640))
+- [@xen-orchestra/mixins] Update node-forge (transitive) (PR [#9640](https://github.com/vatesfr/xen-orchestra/pull/9640))
+- [@xen-orchestra/proxy] Update koa (PR [#9640](https://github.com/vatesfr/xen-orchestra/pull/9640))
+- [@xen-orchestra/rest-api] Update @hapi/content (transitive), path-to-regexp (transitive) (PR [#9640](https://github.com/vatesfr/xen-orchestra/pull/9640))
+- [@xen-orchestra/vmware-explorer] Update undici (PR [#9640](https://github.com/vatesfr/xen-orchestra/pull/9640))
+- [@xen-orchestra/web] Update lodash-es, vite (PR [#9640](https://github.com/vatesfr/xen-orchestra/pull/9640))
+- [@xen-orchestra/web-core] Update lodash-es (PR [#9640](https://github.com/vatesfr/xen-orchestra/pull/9640))
+- [Packages] Update lodash, picomatch (transitive), minimatch (transitive), ajv (transitive), bn.js (transitive) (PR [#9640](https://github.com/vatesfr/xen-orchestra/pull/9640))
+- [xen-api] Update undici, basic-ftp (transitive) (PR [#9640](https://github.com/vatesfr/xen-orchestra/pull/9640))
+- [xo-server] Update fast-xml-parser, pug (PR [#9640](https://github.com/vatesfr/xen-orchestra/pull/9640))
+- [xo-server-auth-saml] Update @xmldom/xmldom (transitive) (PR [#9640](https://github.com/vatesfr/xen-orchestra/pull/9640))
+- [xo-web] Update immutable, pug (transitive), postcss (transitive) (PR [#9640](https://github.com/vatesfr/xen-orchestra/pull/9640))
+
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
@@ -37,11 +54,50 @@
 
 <!--packages-start-->
 
+- @vates/async-each patch
+- @vates/generator-toolbox patch
+- @vates/nbd-client minor
+- @vates/node-vsphere-soap patch
+- @vates/types minor
+- @xen-orchestra/async-map patch
+- @xen-orchestra/backups minor
+- @xen-orchestra/backups-cli patch
+- @xen-orchestra/cron patch
+- @xen-orchestra/disk-cli major
+- @xen-orchestra/disk-transform patch
+- @xen-orchestra/fs minor
+- @xen-orchestra/immutable-backups major
+- @xen-orchestra/log patch
 - @xen-orchestra/mcp minor
+- @xen-orchestra/mixin patch
+- @xen-orchestra/mixins patch
+- @xen-orchestra/proxy patch
+- @xen-orchestra/qcow2 minor
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/template patch
+- @xen-orchestra/upload-ova patch
+- @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi patch
+- complex-matcher patch
+- vhd-cli patch
+- vhd-lib minor
+- xapi-explore-sr patch
+- xen-api patch
+- xo-cli patch
+- xo-collection patch
+- xo-common patch
+- xo-lib patch
+- xo-remote-parser patch
+- xo-server minor
+- xo-server-backup-reports patch
+- xo-server-load-balancer patch
+- xo-server-netbox patch
 - xo-server-openmetrics minor
-- xo-web patch
+- xo-server-sdn-controller patch
+- xo-server-usage-report patch
+- xo-vmdk-to-vhd patch
+- xo-web minor
 
 <!--packages-end-->
