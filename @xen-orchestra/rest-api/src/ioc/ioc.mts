@@ -96,8 +96,9 @@ export function setupContainer(xoApp: XoApp) {
 
   iocContainer
     .bind(BackupLogService)
-    .toDynamicValue(() => {
-      return new BackupLogService()
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new BackupLogService(restApi)
     })
     .inSingletonScope()
 
