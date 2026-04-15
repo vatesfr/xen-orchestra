@@ -54,7 +54,7 @@
     "koa": "^2.5.1",
     "koa-compress": "^5.0.1",
     "koa-helmet": "^6.1.0",
-    "lodash": "^4.17.10",
+    "lodash": "^4.18.0",
     "node-zone": "^0.4.0",
     "parse-pairs": "^2.0.0",
     "promise-toolbox": "^0.21.0",
