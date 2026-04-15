@@ -63,6 +63,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoVmSnapshot>>> {
@@ -134,6 +135,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
@@ -161,6 +163,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoVdiSnapshot>>> {
@@ -184,6 +187,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
@@ -208,6 +212,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
