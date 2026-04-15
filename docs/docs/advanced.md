@@ -445,7 +445,7 @@ Infrastructure metrics are prefixed with `xcp_` and XO management plane metrics 
 | `xcp_host_disk_iops_write`                   | gauge   | Disk write IOPS per SR                                                 |
 | `xcp_host_disk_iops_total`                   | gauge   | Total IOPS (read + write) per SR                                       |
 | `xcp_host_disk_iowait`                       | gauge   | Disk IO wait ratio                                                     |
-| `xcp_host_disk_latency_seconds`              | gauge   | Combined I/O latency per SR in seconds                                 |
+| `xcp_host_disk_latency_seconds`              | gauge   | Total I/O latency per SR in seconds                                    |
 | `xcp_host_disk_read_latency_seconds`         | gauge   | Disk read latency                                                      |
 | `xcp_host_disk_write_latency_seconds`        | gauge   | Disk write latency                                                     |
 | `xcp_host_disk_throughput_read_bytes`        | gauge   | Disk read throughput (bytes/s)                                         |

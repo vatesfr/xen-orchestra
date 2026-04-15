@@ -189,9 +189,9 @@ const STATS = {
         getPath: matches => ['latency', 'w', matches[1]],
         transformValue: value => value / 1e3,
       },
-      combined: {
+      total: {
         test: /^latency_(\w+)$/,
-        getPath: matches => ['latency', 'combined', matches[1]],
+        getPath: matches => ['latency', 'total', matches[1]],
         transformValue: value => value / 1e3,
       },
     },
