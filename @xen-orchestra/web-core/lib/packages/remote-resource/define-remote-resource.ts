@@ -25,6 +25,7 @@ import {
   toRef,
   toValue,
   watch,
+  effectScope,
 } from 'vue'
 
 const DEFAULT_CACHE_EXPIRATION_MS = 10_000
@@ -106,6 +107,7 @@ export function defineRemoteResource<
       pause: VoidFunction
       resume: VoidFunction
       state: object
+      stateScope: EffectScope
       isReady: Ref<boolean>
       isFetching: Ref<boolean>
       lastError: Ref<Error | undefined>
@@ -239,6 +241,7 @@ export function defineRemoteResource<
 
     if (cacheExpiration !== false) {
       setTimeout(() => {
+        cache.get(url)?.stateScope.stop()
         cache.delete(url)
       }, cacheExpiration)
     }
@@ -340,13 +343,15 @@ export function defineRemoteResource<
       resume = timeoutPoll.resume
     }
 
-    const state = buildState(data, context)
+    const stateScope = effectScope(true)
+    const state = stateScope.run(() => buildState(data, context))!
 
     cache.set(url, {
       count: 0,
       pause,
       resume,
       state,
+      stateScope,
       isReady,
       isFetching,
       lastError,

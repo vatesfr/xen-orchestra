@@ -74,6 +74,7 @@ export class TaskController extends XoController<XoTask> {
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() watch?: boolean,
     @Query() filter?: string,
     @Query() limit?: number

@@ -10,6 +10,7 @@ import { createLogger } from '@xen-orchestra/log'
 
 import { basename, dirname } from 'path'
 import { asyncEach } from '@vates/async-each'
+import { relativeFromFile } from '@xen-orchestra/fs/path'
 
 // @ts-ignore
 const { warn } = createLogger('remote-disk:merge')
@@ -18,6 +19,7 @@ const { warn } = createLogger('remote-disk:merge')
  * @typedef {Object} MergeState
  * @property {{ uuid: string }} child
  * @property {{ uuid: string }} parent
+ * @property { string[]  | undefined} chain
  * @property {number} currentBlock
  * @property {number} mergedDataSize
  * @property {'mergeBlocks' | 'cleanup'} step
@@ -32,6 +34,7 @@ export class MergeRemoteDisk {
   #state = {
     child: { uuid: '0' },
     parent: { uuid: '0' },
+    chain: undefined,
     currentBlock: 0,
     mergedDataSize: 0,
     step: 'mergeBlocks',
@@ -205,6 +208,9 @@ export class MergeRemoteDisk {
     } else {
       this.#state.child = { uuid: childDisk.getUuid() ?? undefined }
       this.#state.parent = { uuid: parentDisk.getUuid() ?? undefined }
+      this.#state.chain = [parentDisk.getPath(), ...childDisk.getPaths()].map(path =>
+        relativeFromFile(this.#statePath, path)
+      )
 
       // Finds first allocated block for the 2 following loops
       while (this.#state.currentBlock < getMaxBlockCount && !childDisk.hasBlock(this.#state.currentBlock)) {
