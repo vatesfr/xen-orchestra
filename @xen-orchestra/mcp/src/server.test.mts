@@ -62,22 +62,9 @@ const MOCK_SWAGGER_SPEC = {
 function createMockClient(overrides: Record<string, unknown> = {}): XoClient {
   return {
     testConnection: async () => ({ ok: true }),
-    listPools: async () => [{ id: 'pool1', name_label: 'Pool 1' }],
-    listHosts: async () => [{ id: 'host1', name_label: 'Host 1' }],
-    listVms: async () => [
-      { id: 'vm1', name_label: 'VM 1', power_state: 'Running' },
-      { id: 'vm2', name_label: 'VM 2', power_state: 'Halted' },
-    ],
-    listVdis: async () => [
-      { id: 'vdi1', name_label: 'VDI 1', size: 10737418240 },
-      { id: 'vdi2', name_label: 'VDI 2', size: 21474836480 },
-    ],
-    getVm: async () => ({ id: 'vm1', name_label: 'VM 1', power_state: 'Running' }),
-    getPool: async () => ({ id: 'pool1', name_label: 'Pool 1' }),
-    getPoolDashboard: async () => ({ hosts: { status: { running: 1, total: 1 } }, vms: { status: { running: 2 } } }),
-    getHost: async () => ({ id: 'host1', name_label: 'Host 1' }),
-    getVmStats: async () => ({ endTimestamp: 0, interval: 0, stats: {} }),
     apiRequest: async () => [{ id: 'item1', name_label: 'Item 1' }],
+    getText: async () => '{"hosts":{"status":{"running":1,"total":1}},"vms":{"status":{"running":2}}}',
+    getMarkdown: async () => '| id | name_label |\n| --- | --- |\n| mock1 | Mock 1 |',
     getAuthHeaders: () => ({ cookie: 'authenticationToken=test' }),
     getBaseUrl: () => 'http://xo.test',
     ...overrides,
@@ -231,76 +218,6 @@ describe('createServer (dynamic bootstrap)', () => {
 
   // Action tools are disabled for now — tests will be re-enabled when actions are activated
   // describe('dynamic action tools', () => { ... })
-
-  describe('list_srs tool', () => {
-    it('returns markdown from API', async () => {
-      const { mcpClient } = await setupTestServer()
-      const result = await mcpClient.callTool({ name: 'list_srs', arguments: {} })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('mock1'))
-    })
-
-    it('passes filter, fields, and limit', async () => {
-      let receivedOptions: { filter?: string; fields?: string; limit?: number } = {}
-      const mockClient = createMockClient({
-        getMarkdown: async (
-          _path: string,
-          _defaultFields: string,
-          options?: { filter?: string; fields?: string; limit?: number }
-        ) => {
-          receivedOptions = options ?? {}
-          return ''
-        },
-      })
-      const { mcpClient } = await setupTestServer(mockClient)
-      await mcpClient.callTool({
-        name: 'list_srs',
-        arguments: { filter: 'SR_type:lvm', fields: 'id,name_label', limit: 5 },
-      })
-      assert.strictEqual(receivedOptions.filter, 'SR_type:lvm')
-      assert.strictEqual(receivedOptions.fields, 'id,name_label')
-      assert.strictEqual(receivedOptions.limit, 5)
-    })
-
-    it('returns error on failure', async () => {
-      const mockClient = createMockClient({
-        getMarkdown: async () => {
-          throw new Error('Connection refused')
-        },
-      })
-      const { mcpClient } = await setupTestServer(mockClient)
-      const result = await mcpClient.callTool({ name: 'list_srs', arguments: {} })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('Failed to list SRs'))
-    })
-  })
-
-  describe('get_sr_details tool', () => {
-    it('returns SR details as markdown', async () => {
-      const { mcpClient } = await setupTestServer()
-      const result = await mcpClient.callTool({
-        name: 'get_sr_details',
-        arguments: { sr_id: 'sr1' },
-      })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('mock1'))
-    })
-
-    it('returns error when SR not found', async () => {
-      const mockClient = createMockClient({
-        getMarkdown: async () => {
-          throw new Error('XO API error (404 Not Found): Not found')
-        },
-      })
-      const { mcpClient } = await setupTestServer(mockClient)
-      const result = await mcpClient.callTool({
-        name: 'get_sr_details',
-        arguments: { sr_id: 'nonexistent' },
-      })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('Failed to get SR details'))
-    })
-  })
 
   describe('get_infrastructure_summary tool', () => {
     it('returns aggregated summary as markdown', async () => {
