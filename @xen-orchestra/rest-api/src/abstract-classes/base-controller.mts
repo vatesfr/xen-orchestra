@@ -8,11 +8,13 @@ import type { XapiXoRecord, XoRecord, XoTask } from '@vates/types/xo'
 import type { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
 
 import { BASE_URL } from '../index.mjs'
+import { makeMarkdownTable } from '../helpers/markdown.helper.mjs'
 import { makeNdJsonStream } from '../helpers/stream.helper.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
 import type { MaybePromise, SendObjects, WithHref } from '../helpers/helper.type.mjs'
 import type { Response as ExResponse } from 'express'
+import { invalidParameters } from 'xo-common/api-errors.js'
 import { NDJSON_CONTENT_TYPE, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 
 const noop = () => {}
@@ -44,6 +46,10 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
     const mapper = makeObjectMapper(req, path)
     const mappedObjects = objects.map(mapper) as string[] | WithHref<Objects>[]
 
+    if (req.query.ndjson === 'true' && req.query.markdown === 'true') {
+      throw invalidParameters('Cannot use both ndjson and markdown output formats simultaneously')
+    }
+
     if (req.query.ndjson === 'true') {
       const res = req.res as ExResponse
       res.setHeader('Content-Type', NDJSON_CONTENT_TYPE)
@@ -51,6 +57,11 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
       const stream = Readable.from(makeNdJsonStream(mappedObjects))
 
       return stream
+    } else if (req.query.markdown === 'true') {
+      const res = req.res as ExResponse
+      res.setHeader('Content-Type', 'text/markdown; charset=utf-8')
+
+      return Readable.from([makeMarkdownTable(mappedObjects)])
     } else {
       return mappedObjects
     }
