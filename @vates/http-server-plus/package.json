@@ -1,0 +1,50 @@
+{
+  "name": "http-server-plus",
+  "version": "1.0.0",
+  "license": "ISC",
+  "description": "Augmented `http.Server`, HTTP/HTTPS/HTTP2 and multiple ports on the same instance",
+  "keywords": [
+    "http",
+    "https",
+    "server",
+    "ports"
+  ],
+  "homepage": "https://github.com/JsCommunity/http-server-plus",
+  "bugs": "https://github.com/JsCommunity/http-server-plus/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JsCommunity/http-server-plus.git"
+  },
+  "engines": {
+    "node": ">=6"
+  },
+  "dependencies": {
+    "promise-toolbox": "^0.21.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.13.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.23.3",
+    "eslint-plugin-n": "^15.1.0",
+    "eslint-plugin-promise": "^6.0.0",
+    "husky": "^4.3.8",
+    "lint-staged": "^12.4.0",
+    "prettier": "^2.3.0",
+    "tap": "^16.0.1",
+    "tcp-bind": "^1.2.0"
+  },
+  "scripts": {
+    "dev-test": "tap --no-check-coverage --watch",
+    "pretest": "eslint --ignore-path .gitignore .",
+    "test": "tap --no-check-coverage"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged && npm test"
+    }
+  },
+  "lint-staged": {
+    "*.js": "prettier --write"
+  }
+}
