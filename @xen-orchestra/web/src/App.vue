@@ -3,12 +3,14 @@
     <RouterView />
   </AppLayout>
   <VtsModalList />
+  <VtsDrawerList />
   <VtsTooltipList />
 </template>
 
 <script lang="ts" setup>
 import AppLayout from '@/layouts/AppLayout.vue'
 import { useTheme } from '@/shared/composables/theme.composable.ts'
+import VtsDrawerList from '@core/components/drawer/VtsDrawerList.vue'
 import VtsModalList from '@core/components/modal/VtsModalList.vue'
 import VtsTooltipList from '@core/components/tooltip-list/VtsTooltipList.vue'
 import { useChartTheme } from '@core/composables/chart-theme.composable.ts'

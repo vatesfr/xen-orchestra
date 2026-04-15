@@ -1,6 +1,6 @@
 <!-- v1 -->
 <template>
-  <Transition name="drawer">
+  <Transition name="drawer" @after-leave="emit('afterLeave')">
     <div v-if="isOpen" class="ui-drawer" @click.self="emit('dismiss')">
       <aside class="drawer">
         <div class="header">
@@ -39,6 +39,7 @@ defineProps<{
 
 const emit = defineEmits<{
   dismiss: []
+  afterLeave: []
 }>()
 
 const slots = defineSlots<{
