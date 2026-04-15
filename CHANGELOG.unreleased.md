@@ -40,7 +40,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/mcp minor
-- @xen-orchestra/rest-api minorr
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server-openmetrics minor
