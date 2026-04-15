@@ -42,7 +42,7 @@
     "golike-defer": "^0.5.1",
     "human-format": "^1.2.0",
     "limit-concurrency-decorator": "^0.6.0",
-    "lodash": "^4.17.20",
+    "lodash": "^4.18.0",
     "moment-timezone": "^0.5.46",
     "ms": "^2.1.3",
     "node-zone": "^0.4.0",

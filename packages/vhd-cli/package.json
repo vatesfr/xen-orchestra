@@ -29,7 +29,7 @@
     "exec-promise": "^0.7.0",
     "getopts": "^2.2.3",
     "human-format": "^1.0.0",
-    "lodash": "^4.17.21",
+    "lodash": "^4.18.0",
     "promise-toolbox": "^0.21.0",
     "uuid": "^9.0.0",
     "vhd-lib": "^4.15.0"
