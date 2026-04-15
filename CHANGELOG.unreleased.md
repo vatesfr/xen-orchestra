@@ -49,18 +49,32 @@
 <!--packages-start-->
 
 - @vates/types minor
-- @xen-orchestra/acl minor
-- @xen-orchestra/backup-archive major
-- @xen-orchestra/backups minor
-- @xen-orchestra/backups-cli patch
-- @xen-orchestra/disk-cli minor
-- @xen-orchestra/disk-transform minor
-- @xen-orchestra/fs minor
+- @xen-orchestra/acl major
+- @xen-orchestra/backups patch
+- @xen-orchestra/mixins minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi minor
+- complex-matcher patch
+- vhd-cli patch
+- vhd-lib minor
+- xapi-explore-sr patch
+- xen-api patch
+- xo-cli patch
+- xo-collection patch
+- xo-common patch
+- xo-lib patch
+- xo-remote-parser patch
 - xo-server minor
+- xo-server-backup-reports patch
+- xo-server-ipmi-sensors major
+- xo-server-load-balancer patch
+- xo-server-netbox minor
+- xo-server-openmetrics minor
+- xo-server-sdn-controller patch
+- xo-server-usage-report patch
+- xo-vmdk-to-vhd patch
 - xo-web minor
 
 <!--packages-end-->
