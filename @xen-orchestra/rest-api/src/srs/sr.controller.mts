@@ -68,6 +68,7 @@ export class SrController extends XapiXoController<XoSr> {
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoSr>>> {
@@ -99,6 +100,7 @@ export class SrController extends XapiXoController<XoSr> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
@@ -165,6 +167,7 @@ export class SrController extends XapiXoController<XoSr> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
@@ -189,6 +192,7 @@ export class SrController extends XapiXoController<XoSr> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
