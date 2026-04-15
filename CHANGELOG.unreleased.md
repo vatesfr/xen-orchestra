@@ -12,11 +12,13 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [Pool] Add new Network creation forms (normal, Bonded and Internal) (PR [#9629](https://github.com/vatesfr/xen-orchestra/pull/9629))
+- [MCP] Add `?markdown=true` output format to REST API and simplify MCP tools with declarative registry (PR [#9624](https://github.com/vatesfr/xen-orchestra/pull/9624))
+- [OpenMetrics] Add per-VDI disk size metrics: `xcp_vdi_virtual_size_bytes` and `xcp_vdi_physical_usage_bytes` [#9680](https://github.com/vatesfr/xen-orchestra/pull/9680)
 
 ### Bug fixes
 
-- [Header]: Fix `Unable to connect to XO server` falshing every 30 secondes (PR [#9681](https://github.com/vatesfr/xen-orchestra/pull/9681))
-- [Backups]: Fix regression on cleanVM speed (PR [#9692](https://github.com/vatesfr/xen-orchestra/pull/9692))
+- [Header] Fix `Unable to connect to XO server` falshing every 30 secondes (PR [#9681](https://github.com/vatesfr/xen-orchestra/pull/9681))
+- [Backups] Fix regression on cleanVM speed (PR [#9692](https://github.com/vatesfr/xen-orchestra/pull/9692))
 - [REST API] Fix memory leak on SSE (PR [#9707](https://github.com/vatesfr/xen-orchestra/pull/9707))
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -37,10 +39,11 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/backups patch
-- @xen-orchestra/immutable-backups patch
-- @xen-orchestra/rest-api patch
+- @xen-orchestra/mcp minor
+- @xen-orchestra/rest-api minorr
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- xo-server-openmetrics minor
+- xo-web patch
 
 <!--packages-end-->

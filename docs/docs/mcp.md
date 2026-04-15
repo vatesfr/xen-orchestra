@@ -131,6 +131,53 @@ npx @xen-orchestra/mcp
 
 The server communicates via stdio using the MCP protocol (JSON-RPC), compatible with any MCP client.
 
+#### Multiple XO instances
+
+To manage several XO servers from the same assistant, add one entry per instance with a different name:
+
+```json
+{
+  "mcpServers": {
+    "xo-production": {
+      "command": "npx",
+      "args": ["@xen-orchestra/mcp"],
+      "env": {
+        "XO_URL": "https://xo-production.example.com",
+        "XO_TOKEN": "prod-token"
+      }
+    },
+    "xo-staging": {
+      "command": "npx",
+      "args": ["@xen-orchestra/mcp"],
+      "env": {
+        "XO_URL": "https://xo-staging.example.com",
+        "XO_TOKEN": "staging-token"
+      }
+    }
+  }
+}
+```
+
+With Claude Code:
+
+```bash
+claude mcp add xo-production \
+  -e XO_URL=https://xo-production.example.com \
+  -e XO_TOKEN=prod-token \
+  -- npx @xen-orchestra/mcp
+
+claude mcp add xo-staging \
+  -e XO_URL=https://xo-staging.example.com \
+  -e XO_TOKEN=staging-token \
+  -- npx @xen-orchestra/mcp
+```
+
+Each entry starts its own process with its own credentials. The assistant gets a separate set of tools per instance, so you can ask about a specific environment by name ("list running VMs on xo-production").
+
+:::tip
+Pick descriptive names (`xo-production`, `xo-dr-site`, ...) so the assistant knows which instance you're referring to.
+:::
+
 ## How it works
 
 ![MCP architecture workflow](./assets/mcp_workflow.png)
