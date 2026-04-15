@@ -1,4 +1,4 @@
-import type { FormFieldMessages, FormValidationRules, UseFormValidationReturn } from './types.ts'
+import type { FormFieldMessages, FormFieldMetadata, FormValidationConfig, UseFormValidationReturn } from './types.ts'
 import type { ReglePartialRuleTree } from '@regle/core'
 import { useRegle } from '@regle/core'
 import { computed } from 'vue'
@@ -9,7 +9,6 @@ import { computed } from 'vue'
  * wrapper's implementation readable while staying free of `any`.
  */
 type FieldStatus = {
-  $error: boolean
   $touch: () => void
 }
 
@@ -31,8 +30,8 @@ type RegleStatusAccessor = {
  */
 function injectCollectionMarkers<TData extends Record<string, unknown>>(
   data: TData,
-  rules: FormValidationRules<TData>
-): FormValidationRules<TData> {
+  rules: FormValidationConfig<TData>['errors']
+): FormValidationConfig<TData>['errors'] {
   const arrayKeys = Object.keys(data).filter(key => Array.isArray(data[key]))
 
   if (arrayKeys.length === 0) {
@@ -69,16 +68,15 @@ function injectCollectionMarkers<TData extends Record<string, unknown>>(
  */
 function callUseRegle<TData extends Record<string, unknown>>(
   data: TData,
-  rules: FormValidationRules<TData>
+  rules: FormValidationConfig<TData>['errors']
 ): { r$: unknown } {
-  return (useRegle as unknown as (_data: TData, _rules: FormValidationRules<TData>) => { r$: unknown })(data, rules)
+  return (useRegle as unknown as (_data: TData, _rules: FormValidationConfig<TData>['errors']) => { r$: unknown })(
+    data,
+    rules
+  )
 }
 
-function toMessage(isError: boolean, fieldErrors: unknown): string | undefined {
-  if (!isError) {
-    return undefined
-  }
-
+function toMessage(fieldErrors: unknown): string | undefined {
   const [firstMessage] = fieldErrors as string[]
 
   return firstMessage
@@ -86,16 +84,13 @@ function toMessage(isError: boolean, fieldErrors: unknown): string | undefined {
 
 function buildMessages<TData extends Record<string, unknown>>(regle: RegleStatusAccessor): FormFieldMessages<TData> {
   return Object.fromEntries(
-    Object.keys(regle.$fields).map(key => [key, toMessage(regle.$fields[key].$error, regle.$errors[key])])
+    Object.keys(regle.$fields).map(key => [key, toMessage(regle.$errors[key])])
   ) as FormFieldMessages<TData>
 }
 
 export function useFormValidation<TData extends Record<string, unknown>>(
   data: TData,
-  config: {
-    errors: FormValidationRules<TData>
-    warnings?: FormValidationRules<TData>
-  }
+  config: FormValidationConfig<TData>
 ): UseFormValidationReturn<TData> {
   // Both useRegle calls must be unconditional — Vue composables cannot be called conditionally.
   // When no warnings rules are provided, an empty rules object produces an empty $fields map,
@@ -132,7 +127,32 @@ export function useFormValidation<TData extends Record<string, unknown>>(
   }
 
   function handleBlur(field: keyof TData): void {
-    warningRegle.$fields[field as string]?.$touch()
+    const key = field as string
+    // Evaluated at call time so the config object is always read fresh.
+    if (config.showOn?.errors === 'blur') {
+      errorRegle.$fields[key]?.$touch()
+    }
+    if (config.showOn?.warnings !== 'submit') {
+      // Default: 'blur' — touch warning fields on every blur.
+      warningRegle.$fields[key]?.$touch()
+    }
+  }
+
+  function useFieldMetadata(field: keyof TData): () => FormFieldMetadata
+  function useFieldMetadata<E extends Record<string, unknown>>(
+    field: keyof TData,
+    extras: () => E
+  ): () => FormFieldMetadata & E
+  function useFieldMetadata<E extends Record<string, unknown> = Record<string, unknown>>(
+    field: keyof TData,
+    extras?: () => E
+  ) {
+    return () => ({
+      error: errors.value[field],
+      warning: warnings.value[field],
+      onBlur: () => handleBlur(field),
+      ...extras?.(),
+    })
   }
 
   return {
@@ -141,5 +161,6 @@ export function useFormValidation<TData extends Record<string, unknown>>(
     validate,
     reset,
     handleBlur,
+    useFieldMetadata,
   }
 }

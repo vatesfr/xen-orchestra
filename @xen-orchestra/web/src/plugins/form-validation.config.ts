@@ -1,9 +1,7 @@
-import { outOfRange } from '@core/packages/form-validation'
-import { defineRegleOptions } from '@regle/core'
-import { integer, required, withMessage } from '@regle/rules'
+import { defineFormValidationConfig, integer, outOfRange, required, withMessage } from '@core/packages/form-validation'
 import { useI18n } from 'vue-i18n'
 
-export const regleOptions = defineRegleOptions({
+export const formValidationConfig = defineFormValidationConfig({
   rules: () => {
     const { t } = useI18n()
 

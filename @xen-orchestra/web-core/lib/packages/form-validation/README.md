@@ -7,7 +7,7 @@ Wraps [Regle](https://reglejs.dev) to provide a simple, unified interface for fo
 ```ts
 import { isFilled, integer, type Maybe, required, useFormValidation, withMessage } from '@core/packages/form-validation'
 
-const { errors, warnings, validate, touch, reset } = useFormValidation(formData, {
+const { errors, warnings, validate, handleBlur, reset, useFieldMetadata } = useFormValidation(formData, {
   errors: () => ({
     name: { required: withMessage(required, t('name-required')) },
     port: { integer },
@@ -32,36 +32,51 @@ const { errors, warnings, validate, touch, reset } = useFormValidation(formData,
 
 ### `config` object
 
-|            | Required | Type                                                                 | Description                                                                                                   |
-| ---------- | :------: | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `errors`   |    ✓     | `ReglePartialRuleTree<TData>` or `() => ReglePartialRuleTree<TData>` | Rules for blocking validation. Use a getter function to keep error messages reactive to locale changes.       |
-| `warnings` |          | `ReglePartialRuleTree<TData>` or `() => ReglePartialRuleTree<TData>` | Rules for non-blocking validation. Warning messages are shown after `touch(field)` or `validate()` is called. |
+|            | Required | Type                                                                 | Description                                                                                                        |
+| ---------- | :------: | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `errors`   |    ✓     | `ReglePartialRuleTree<TData>` or `() => ReglePartialRuleTree<TData>` | Rules for blocking validation. Use a getter function to keep error messages reactive to locale changes.            |
+| `warnings` |          | `ReglePartialRuleTree<TData>` or `() => ReglePartialRuleTree<TData>` | Rules for non-blocking validation. Warning messages are shown after `handleBlur(field)` or `validate()` is called. |
+| `showOn`   |          | `{ errors?: FormBlurBehavior, warnings?: FormBlurBehavior }`         | Controls when each severity level becomes visible (see table below).                                               |
+
+### `showOn` values
+
+| Value      | Description                                                          |
+| ---------- | -------------------------------------------------------------------- |
+| `'blur'`   | Messages shown when the user leaves a field (`handleBlur` is called) |
+| `'submit'` | Messages shown only when `validate()` is called                      |
+
+| Property          | Default    |
+| ----------------- | ---------- |
+| `showOn.errors`   | `'submit'` |
+| `showOn.warnings` | `'blur'`   |
 
 ## Return value
 
-|            | Type                                    | Description                                                                                                       |
-| ---------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `errors`   | `ComputedRef<FormFieldMessages<TData>>` | Per-field blocking message strings. A field is populated only after it is touched or `validate()` is called.      |
-| `warnings` | `ComputedRef<FormFieldMessages<TData>>` | Per-field advisory message strings. A field is populated after `touch(field)` or `validate()` is called.          |
-| `validate` | `() => Promise<boolean>`                | Touches all warning fields, validates all error rules, and returns `true` when the form is valid. Call on submit. |
-| `reset`    | `() => void`                            | Resets dirty flags and clears all messages for both errors and warnings.                                          |
-| `touch`    | `(field: keyof TData) => void`          | Marks a single field dirty in the warning instance so its warning message becomes visible. Call on field blur.    |
+|                    | Type                                                   | Description                                                                                                       |
+| ------------------ | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| `errors`           | `ComputedRef<FormFieldMessages<TData>>`                | Per-field blocking message strings. A field is populated only after it is touched or `validate()` is called.      |
+| `warnings`         | `ComputedRef<FormFieldMessages<TData>>`                | Per-field advisory message strings. A field is populated after `handleBlur(field)` or `validate()` is called.     |
+| `validate`         | `() => Promise<boolean>`                               | Touches all warning fields, validates all error rules, and returns `true` when the form is valid. Call on submit. |
+| `reset`            | `() => void`                                           | Resets dirty flags and clears all messages for both errors and warnings.                                          |
+| `handleBlur`       | `(field: keyof TData) => void`                         | Marks a field dirty according to the `showOn` config. Call on field blur.                                         |
+| `useFieldMetadata` | `(field, extras?) => () => FormFieldMetadata & extras` | Returns a metadata factory ready to pass to `useField`. Bundles error, warning, and the blur handler.             |
 
-`FormFieldMessages<TData>` is `{ [K in keyof TData]?: string }` — raw message strings, one per field.
+`FormFieldMessages<TData>` is `{ [K in keyof TData]: string | undefined }` — all fields are always present; the value is `undefined` when there is no active message.
 Wrapping them into UI-layer message objects (with an accent, array form, etc.) is the consumer's responsibility.
 Since `InputWrapperMessage` accepts a plain `string`, the field values can be passed directly to `:error` / `:warning` props with no conversion needed.
 
 ## Severity levels
 
-| Level   | Gates submit | When shown                                            |
-| ------- | :----------: | ----------------------------------------------------- |
-| Error   |      ✓       | After the field is touched or `validate()` is called  |
-| Warning |              | After `touch(field)` (blur) or `validate()` is called |
+| Level   | Gates submit | When shown                                                 |
+| ------- | :----------: | ---------------------------------------------------------- |
+| Error   |      ✓       | After the field is touched or `validate()` is called       |
+| Warning |              | After `handleBlur(field)` (blur) or `validate()` is called |
 
 ## Example: complete form composable
 
 ```ts
 import { useFormValidation, required, integer, withMessage } from '@core/packages/form-validation'
+import { useFormBindings } from '@core/packages/form-bindings'
 import { reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -78,7 +93,7 @@ export function useMyForm() {
     port: undefined,
   })
 
-  const { errors, warnings, validate, touch, reset } = useFormValidation(formData, {
+  const { validate, reset, useFieldMetadata } = useFormValidation(formData, {
     // Use a getter so error messages stay in sync with the active locale.
     errors: () => ({
       name: { required: withMessage(required, t('name-required')) },
@@ -92,7 +107,18 @@ export function useMyForm() {
         ),
       },
     }),
+    // Optional: show errors immediately when the user leaves a field
+    showOn: { errors: 'blur' },
   })
+
+  const { useField } = useFormBindings(formData)
+
+  // All field props (v-model, error, warning, blur handler) bundled in a single binding
+  const nameField = useField('name', useFieldMetadata('name'))
+  const portField = useField(
+    'port',
+    useFieldMetadata('port', () => ({ label: t('port') }))
+  )
 
   async function validateAndBuildPayload() {
     const valid = await validate()
@@ -103,8 +129,18 @@ export function useMyForm() {
     // formData is validated — safe to submit
   }
 
-  return { formData, errors, warnings, validateAndBuildPayload, touch, reset }
+  return { formData, nameField, portField, validateAndBuildPayload, reset }
 }
+```
+
+Template:
+
+```vue
+<template>
+  <!-- No separate @blur needed — onBlur is part of the binding -->
+  <VtsInput v-bind="nameField" />
+  <VtsInput v-bind="portField" />
+</template>
 ```
 
 ## Available rules
