@@ -9,7 +9,7 @@
     "@vates/read-chunk": "^1.2.1",
     "@vates/task": "^0.6.2",
     "@xen-orchestra/log": "^0.7.1",
-    "lodash": "^4.17.21",
+    "lodash": "^4.18.0",
     "semver": "^7.7.2",
     "undici": "^7.8.0",
     "vhd-lib": "^4.15.0",

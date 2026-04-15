@@ -37,7 +37,7 @@
     "golike-defer": "^0.5.1",
     "http-request-plus": "^1.0.0",
     "json-rpc-protocol": "^0.13.2",
-    "lodash": "^4.17.15",
+    "lodash": "^4.18.0",
     "promise-toolbox": "^0.21.0",
     "vhd-lib": "^4.15.0",
     "xo-common": "^0.9.0"

@@ -34,7 +34,7 @@
     "handlebars": "^4.7.6",
     "husky": "^8.0.2",
     "lint-staged": "^15.0.2",
-    "lodash": "^4.17.4",
+    "lodash": "^4.18.0",
     "prettier": "^3.0.1",
     "promise-toolbox": "^0.21.0",
     "semver": "^7.3.6",
