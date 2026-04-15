@@ -1,24 +1,24 @@
+import { pipeline } from 'node:stream/promises'
+import { Readable } from 'node:stream'
+import { Router, json, urlencoded, text, raw, type Request, type Response, type RequestHandler } from 'express'
+import type { Options, OptionsJson, OptionsText, OptionsUrlencoded } from 'body-parser'
+import { invalidParameters } from 'xo-common/api-errors.js'
+import { createLogger } from '@xen-orchestra/log'
+import { z, ZodError } from 'zod'
+import { createSchema } from 'zod-openapi'
+import type { OpenAPIV3 } from 'openapi-types'
+import { buildOpenApiSchema } from '../open-api/schema/build-openapi-schema.mjs'
+import { makeJsonStream, makeNdJsonStream } from '../helpers/stream.helper.mjs'
+import type { AuthenticatedRequest } from '../helpers/helper.type.mjs'
+import { expressAuthentication } from '../middlewares/authentication.middleware.mjs'
+import { iocContainer } from '../ioc/ioc.mjs'
+import { RestApi } from '../rest-api/rest-api.mjs'
 import {
   CONTENT_TYPE_BY_MIDDLEWARE_NAME,
   type FieldDefinition,
   type MiddlewareDescriptor,
   type RouteDefinition,
 } from './types.mjs'
-import { Router, json, urlencoded, text, raw, type Request, type Response, type RequestHandler } from 'express'
-import type { Options, OptionsJson, OptionsText, OptionsUrlencoded } from 'body-parser'
-import { invalidParameters } from 'xo-common/api-errors.js'
-import { createLogger } from '@xen-orchestra/log'
-import { pipeline } from 'node:stream/promises'
-import { Readable } from 'node:stream'
-import { z, ZodError } from 'zod'
-import { createSchema } from 'zod-openapi'
-import { buildOpenApiSchema } from '../open-api/schema/build-openapi-schema.mjs'
-import { makeJsonStream, makeNdJsonStream } from '../helpers/stream.helper.mjs'
-import type { OpenAPIV3 } from 'openapi-types'
-import type { AuthenticatedRequest } from '../helpers/helper.type.mjs'
-import { expressAuthentication } from '../middlewares/authentication.middleware.mjs'
-import { iocContainer } from '../ioc/ioc.mjs'
-import { RestApi } from '../rest-api/rest-api.mjs'
 
 const log = createLogger('xo:rest-api:external-router')
 
@@ -64,7 +64,7 @@ export function createExternalRouter(swaggerOpenApiSpec: OpenAPIV3.Document): {
         bodySchema?.parse(req.body)
 
         // Call the route callback with the right context and parameters
-        const result = await Promise.resolve(route.callback({ req, res, next, restApi }))
+        const result = await route.callback({ req, res, next, restApi })
 
         // Handle result formatting if the callback didn't already send a response
         if (!res.headersSent) {
@@ -165,8 +165,8 @@ function addPathToSwagger(
     }
   }
 
-  if (responseDefinitions) {
-    for (const responseDefinition of responseDefinitions ?? []) {
+  if (responseDefinitions?.length) {
+    for (const responseDefinition of responseDefinitions) {
       const response: OpenAPIV3.ResponseObject = {
         description: responseDefinition.description,
       }

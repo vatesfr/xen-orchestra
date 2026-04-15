@@ -55,9 +55,10 @@ export default function setupRestApi(express: Express, xoApp: XoApp) {
 
   express.use(BASE_URL, setupApiContext(xoApp))
   express.use(BASE_URL, logMiddleware)
-  express.use(BASE_URL, externalRouter)
 
   RegisterRoutes(express)
+
+  express.use(BASE_URL, externalRouter)
 
   express.get(`${BASE_URL}/docs/swagger.json`, (_req, res) => {
     res.setHeader('Content-Type', 'application/json')
