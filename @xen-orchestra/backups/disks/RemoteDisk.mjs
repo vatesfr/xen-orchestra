@@ -57,6 +57,16 @@ export class RemoteDisk extends RandomAccessDisk {
 
   /**
    * Abstract
+   * Returns an array of disk paths.
+   *
+   * @returns {string[]}
+   */
+  getPaths() {
+    throw new Error(`getPaths must be implemented`)
+  }
+
+  /**
+   * Abstract
    * @returns {string}
    */
   getUuid() {

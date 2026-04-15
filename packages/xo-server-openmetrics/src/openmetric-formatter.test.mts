@@ -14,11 +14,12 @@ import {
   formatAllPoolsToOpenMetrics,
   formatHostStatusMetrics,
   formatHostUptimeMetrics,
+  formatVdiMetrics,
   type FormattedMetric,
   type LabelContext,
 } from './openmetric-formatter.mjs'
 
-import type { HostStatusItem } from './index.mjs'
+import type { HostStatusItem, VdiDataItem } from './index.mjs'
 
 import type { ParsedMetric, ParsedRrdData } from './rrd-parser.mjs'
 
@@ -1645,5 +1646,145 @@ describe('formatHostUptimeMetrics', () => {
 
     assert.equal(metrics.length, 1)
     assert.equal(metrics[0]!.labels.host_name, undefined)
+  })
+})
+
+// ============================================================================
+// VDI Metrics Tests
+// ============================================================================
+
+describe('formatVdiMetrics', () => {
+  const createVdiDataItem = (overrides: Partial<VdiDataItem> = {}): VdiDataItem => ({
+    uuid: 'vdi-uuid-123',
+    name_label: 'System Disk',
+    size: 107374182400, // 100 GiB
+    usage: 53687091200, // 50 GiB
+    sr_uuid: 'sr-uuid-456',
+    sr_name: 'Local Storage',
+    pool_id: 'pool-789',
+    pool_name: 'Production Pool',
+    ...overrides,
+  })
+
+  it('should generate 2 metrics per VDI with all labels when attached to a VM', () => {
+    const vdiData: VdiDataItem[] = [
+      createVdiDataItem({
+        vm_uuid: 'vm-uuid-abc',
+        vm_name: 'My VM',
+      }),
+    ]
+
+    const metrics = formatVdiMetrics(vdiData)
+
+    assert.equal(metrics.length, 2)
+
+    // Virtual size metric
+    const virtualSize = metrics[0]!
+    assert.equal(virtualSize.name, 'xcp_vdi_virtual_size_bytes')
+    assert.equal(virtualSize.type, 'gauge')
+    assert.equal(virtualSize.help, 'VDI virtual size in bytes')
+    assert.equal(virtualSize.value, 107374182400)
+    assert.equal(virtualSize.labels.pool_id, 'pool-789')
+    assert.equal(virtualSize.labels.pool_name, 'Production Pool')
+    assert.equal(virtualSize.labels.sr_uuid, 'sr-uuid-456')
+    assert.equal(virtualSize.labels.sr_name, 'Local Storage')
+    assert.equal(virtualSize.labels.vdi_uuid, 'vdi-uuid-123')
+    assert.equal(virtualSize.labels.vdi_name, 'System Disk')
+    assert.equal(virtualSize.labels.vm_uuid, 'vm-uuid-abc')
+    assert.equal(virtualSize.labels.vm_name, 'My VM')
+
+    // Physical usage metric
+    const physicalUsage = metrics[1]!
+    assert.equal(physicalUsage.name, 'xcp_vdi_physical_usage_bytes')
+    assert.equal(physicalUsage.type, 'gauge')
+    assert.equal(physicalUsage.help, 'VDI physical space used in bytes (allocated on SR)')
+    assert.equal(physicalUsage.value, 53687091200)
+    assert.equal(physicalUsage.labels.vm_uuid, 'vm-uuid-abc')
+    assert.equal(physicalUsage.labels.vm_name, 'My VM')
+  })
+
+  it('should omit vm labels when VDI is not attached to a VM', () => {
+    const vdiData: VdiDataItem[] = [createVdiDataItem()]
+
+    const metrics = formatVdiMetrics(vdiData)
+
+    assert.equal(metrics.length, 2)
+    assert.equal(metrics[0]!.labels.vm_uuid, undefined)
+    assert.equal(metrics[0]!.labels.vm_name, undefined)
+    assert.equal(metrics[1]!.labels.vm_uuid, undefined)
+    assert.equal(metrics[1]!.labels.vm_name, undefined)
+  })
+
+  it('should return empty array for empty input', () => {
+    const metrics = formatVdiMetrics([])
+
+    assert.equal(metrics.length, 0)
+  })
+
+  it('should generate correct number of metrics for multiple VDIs', () => {
+    const vdiData: VdiDataItem[] = [
+      createVdiDataItem({ uuid: 'vdi-1', name_label: 'Disk 1' }),
+      createVdiDataItem({ uuid: 'vdi-2', name_label: 'Disk 2' }),
+      createVdiDataItem({ uuid: 'vdi-3', name_label: 'Disk 3' }),
+    ]
+
+    const metrics = formatVdiMetrics(vdiData)
+
+    assert.equal(metrics.length, 6) // 2 metrics * 3 VDIs
+  })
+
+  it('should map size to virtual_size_bytes and usage to physical_usage_bytes', () => {
+    const vdiData: VdiDataItem[] = [
+      createVdiDataItem({
+        size: 1000,
+        usage: 500,
+      }),
+    ]
+
+    const metrics = formatVdiMetrics(vdiData)
+
+    const virtualSize = metrics.find(m => m.name === 'xcp_vdi_virtual_size_bytes')!
+    const physicalUsage = metrics.find(m => m.name === 'xcp_vdi_physical_usage_bytes')!
+
+    assert.equal(virtualSize.value, 1000)
+    assert.equal(physicalUsage.value, 500)
+  })
+
+  it('should omit pool_name label when pool_name is empty', () => {
+    const vdiData: VdiDataItem[] = [createVdiDataItem({ pool_name: '' })]
+
+    const metrics = formatVdiMetrics(vdiData)
+
+    assert.equal(metrics[0]!.labels.pool_name, undefined)
+  })
+
+  it('should produce valid OpenMetrics output', () => {
+    const vdiData: VdiDataItem[] = [
+      createVdiDataItem({
+        vm_uuid: 'vm-uuid-abc',
+        vm_name: 'My VM',
+      }),
+    ]
+
+    const metrics = formatVdiMetrics(vdiData)
+    const output = formatToOpenMetrics(metrics)
+
+    assert.ok(output.includes('xcp_vdi_virtual_size_bytes'))
+    assert.ok(output.includes('xcp_vdi_physical_usage_bytes'))
+    assert.ok(output.includes('vdi_uuid="vdi-uuid-123"'))
+    assert.ok(output.includes('vm_uuid="vm-uuid-abc"'))
+  })
+
+  it('should escape special characters in label values', () => {
+    const vdiData: VdiDataItem[] = [
+      createVdiDataItem({
+        name_label: 'Disk "with quotes"',
+      }),
+    ]
+
+    const metrics = formatVdiMetrics(vdiData)
+    const output = formatToOpenMetrics(metrics)
+
+    assert.ok(output.includes('vdi_name="Disk \\"with quotes\\""'))
   })
 })
