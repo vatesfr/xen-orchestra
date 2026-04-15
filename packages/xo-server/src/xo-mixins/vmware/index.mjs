@@ -1,6 +1,5 @@
 import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
-import { fromEvent } from 'promise-toolbox'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { createLogger } from '@xen-orchestra/log'
@@ -21,8 +20,10 @@ export default class MigrateVm {
   #connectToEsxi(host, user, password, sslVerify) {
     return Task.run({ properties: { name: `connecting to ${host}` } }, async () => {
       const esxi = new Esxi(host, user, password, sslVerify)
-      await fromEvent(esxi, 'ready')
-      return esxi
+      return new Promise((resolve, reject) => {
+        esxi.on('ready', () => resolve(esxi))
+        esxi.on('error', error => reject(error))
+      })
     })
   }
 
