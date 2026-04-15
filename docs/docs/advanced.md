@@ -499,6 +499,15 @@ Infrastructure metrics are prefixed with `xcp_` and XO management plane metrics 
 | `xcp_sr_physical_size_bytes`  | gauge | SR physical size in bytes          |
 | `xcp_sr_physical_usage_bytes` | gauge | SR physical space used in bytes    |
 
+#### VDI Disk Size Metrics
+
+| Metric                         | Type  | Description                                        |
+| ------------------------------ | ----- | -------------------------------------------------- |
+| `xcp_vdi_virtual_size_bytes`   | gauge | VDI virtual size in bytes                          |
+| `xcp_vdi_physical_usage_bytes` | gauge | VDI physical space used in bytes (allocated on SR) |
+
+VDI metrics include labels `vdi_uuid`, `vdi_name`, `sr_uuid`, `sr_name`, `pool_id`, `pool_name`, and optionally `vm_uuid`, `vm_name` when the VDI is attached to a VM.
+
 #### Connection Metrics
 
 | Metric               | Type  | Description                                                         |
@@ -546,7 +555,8 @@ All metrics include these labels for filtering:
 | `vm_name`           | VM name (for VM metrics)                                                 |
 | `sr_uuid`           | Storage Repository UUID (for SR metrics)                                 |
 | `sr_name`           | Storage Repository name (for disk metrics)                               |
-| `vdi_name`          | Virtual Disk name (for VM disk metrics)                                  |
+| `vdi_uuid`          | Virtual Disk UUID (for VDI metrics)                                      |
+| `vdi_name`          | Virtual Disk name (for VM disk and VDI metrics)                          |
 | `network_name`      | Network name (for network metrics)                                       |
 | `interface`         | Network interface name                                                   |
 | `device`            | Disk device (xvda, xvdb, etc.)                                           |
@@ -588,6 +598,15 @@ sum by (sr_name) (xcp_host_disk_iops_read + xcp_host_disk_iops_write)
 
 # Over-provisioning ratio (virtual vs physical)
 xcp_sr_virtual_size_bytes / xcp_sr_physical_size_bytes
+
+# VDI thin-provisioning ratio (physical usage vs virtual size)
+xcp_vdi_physical_usage_bytes / xcp_vdi_virtual_size_bytes
+
+# Total physical disk usage per VM (sum of all attached VDIs)
+sum by (vm_name) (xcp_vdi_physical_usage_bytes)
+
+# VDIs with low physical usage (good thin-provisioning candidates)
+(xcp_vdi_physical_usage_bytes / xcp_vdi_virtual_size_bytes) < 0.1
 
 # Host uptime in days
 xcp_host_uptime_seconds / 86400
