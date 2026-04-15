@@ -9,7 +9,6 @@ import { fromCallback, promisify } from 'promise-toolbox'
 import { join } from 'path'
 import { v4 as uuidv4 } from 'uuid'
 
-import { invalidParameters, notFoundResp } from '@xen-orchestra/rest-api'
 import { OvsdbClient } from './protocol/ovsdb-client'
 import { PrivateNetwork } from './private-network/private-network'
 import { TlsHelper } from './utils/tls-helper'
