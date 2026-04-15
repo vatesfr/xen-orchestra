@@ -1,9 +1,16 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
 import type { XoBackupRepository } from '@vates/types'
 
-import { badRequestResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import { acl } from '../middlewares/acl.middleware.mjs'
+import {
+  badRequestResp,
+  forbiddenOperationResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import {
   backupRepositoryIds,
   partialBackupRepositories,
@@ -53,10 +60,22 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   }
 
   /**
+   * Required privilege:
+   * - resource: backup-repository, action: read
+   *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
   @Example(backupRepository)
   @Get('{id}')
+  @Middlewares(
+    acl({
+      resource: 'backup-repository',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getRemote,
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getRepository(@Path() id: string): Promise<Unbrand<XoBackupRepository>> {
     return this.getObject(id as XoBackupRepository['id'])
