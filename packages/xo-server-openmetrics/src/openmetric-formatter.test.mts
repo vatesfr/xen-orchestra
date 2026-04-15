@@ -189,6 +189,118 @@ describe('HOST_METRICS DCMI', () => {
   })
 })
 
+describe('HOST_METRICS new metrics', () => {
+  it('should include hostload metric', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_load')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.equal(metric.test, 'hostload')
+    assert.equal(metric.transformValue, undefined)
+  })
+
+  it('should include memory_reclaimed metric with KiB to bytes transformation', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_memory_reclaimed_bytes')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.equal(metric.test, 'memory_reclaimed')
+    assert.ok(metric.transformValue)
+    // 512 KiB * 1024 = 524288 bytes
+    assert.equal(metric.transformValue!(512), 512 * 1024)
+  })
+
+  it('should include memory_reclaimed_max metric with KiB to bytes transformation', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_memory_reclaimed_max_bytes')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.equal(metric.test, 'memory_reclaimed_max')
+    assert.ok(metric.transformValue)
+    assert.equal(metric.transformValue!(1024), 1024 * 1024)
+  })
+
+  it('should include running_vcpus metric', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_running_vcpus')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.equal(metric.test, 'running_vcpus')
+    assert.equal(metric.transformValue, undefined)
+  })
+
+  it('should include pif_aggr_rx metric', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_network_aggregated_receive_bytes')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.equal(metric.test, 'pif_aggr_rx')
+    assert.equal(metric.transformValue, undefined)
+  })
+
+  it('should include pif_aggr_tx metric', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_network_aggregated_transmit_bytes')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.equal(metric.test, 'pif_aggr_tx')
+    assert.equal(metric.transformValue, undefined)
+  })
+
+  it('should match pif_aggr_rx before the generic PIF regex', () => {
+    const result = findMetricDefinition('pif_aggr_rx', 'host')
+    assert.ok(result)
+    assert.equal(result.definition.openMetricName, 'host_network_aggregated_receive_bytes')
+  })
+
+  it('should include iops_total per SR with label extraction', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_disk_iops_total')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.ok(metric.extractLabels)
+
+    const regex = metric.test as RegExp
+    const match = regex.exec('iops_total_abc12345')
+    assert.ok(match)
+    assert.deepEqual(metric.extractLabels!(match), { sr: 'abc12345' })
+  })
+
+  it('should include io_throughput_total per SR with MiB to bytes transformation', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_disk_throughput_total_bytes')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.ok(metric.transformValue)
+    assert.ok(metric.extractLabels)
+
+    // 2 MiB/s = 2 * 2^20 bytes/s
+    assert.equal(metric.transformValue!(2), 2 * 2 ** 20)
+
+    const regex = metric.test as RegExp
+    const match = regex.exec('io_throughput_total_def-456-789')
+    assert.ok(match)
+    assert.deepEqual(metric.extractLabels!(match), { sr: 'def-456-789' })
+  })
+
+  it('should include latency per SR with µs to seconds transformation', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_disk_latency_seconds')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.ok(metric.transformValue)
+    assert.ok(metric.extractLabels)
+
+    // 500 µs / 1e6 = 0.0005 seconds
+    assert.equal(metric.transformValue!(500), 0.0005)
+
+    const regex = metric.test as RegExp
+    const match = regex.exec('latency_abc-def-123')
+    assert.ok(match)
+    assert.deepEqual(metric.extractLabels!(match), { sr: 'abc-def-123' })
+  })
+
+  it('should not match read_latency or write_latency with latency_<sr> regex', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_disk_latency_seconds')
+    assert.ok(metric)
+    const regex = metric.test as RegExp
+    // ^latency_ anchor prevents matching read_latency_ and write_latency_
+    assert.equal(regex.exec('read_latency_abc12345'), null)
+    assert.equal(regex.exec('write_latency_abc12345'), null)
+  })
+})
+
 // ============================================================================
 // findMetricDefinition Tests
 // ============================================================================
