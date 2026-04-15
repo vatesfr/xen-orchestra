@@ -13,6 +13,12 @@
   "engines": {
     "node": ">= 20.18"
   },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    }
+  },
   "scripts": {
     "build": "tsc && node scripts/generate-types.mjs",
     "clean": "rimraf dist/",
