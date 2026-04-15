@@ -1,7 +1,7 @@
 import type { SecurityName } from '../middlewares/authentication.middleware.mjs'
 import type { NextFunction, Request, Response } from 'express'
-import { MaybePromise } from '../helpers/helper.type.mjs'
-import { RestApi } from '../rest-api/rest-api.mjs'
+import type { MaybePromise } from '../helpers/helper.type.mjs'
+import type { RestApi } from '../rest-api/rest-api.mjs'
 
 // Maps middleware descriptor names to their OpenAPI content type
 export const CONTENT_TYPE_BY_MIDDLEWARE_NAME: Record<string, string> = {

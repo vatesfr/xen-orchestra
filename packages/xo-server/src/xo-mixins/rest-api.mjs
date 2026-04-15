@@ -1,6 +1,7 @@
 import setupRestApi, { sendObjects } from '@xen-orchestra/rest-api'
 import { invalidCredentials, unauthorized } from 'xo-common/api-errors.js'
 import { json, Router } from 'express'
+import pick from 'lodash/pick.js'
 import path from 'node:path'
 
 const { join } = path.posix
@@ -9,6 +10,37 @@ const subRouter = (app, path) => {
   const router = Router({ strict: false })
   app.use(path, router)
   return router
+}
+
+/**
+ * @deprecated
+ * @todo remove when registerRestApi is not used anymore
+ */
+async function* mapIterable(iterable, mapper) {
+  for await (const item of iterable) {
+    yield mapper(item)
+  }
+}
+
+/**
+ * @deprecated
+ * @todo remove when registerRestApi is not used anymore
+ */
+function makeObjectMapper(req) {
+  const makeUrl = ({ id }) => join(req.baseUrl, req.path, String(id))
+
+  let objectMapper
+  let { fields } = req.query
+  if (fields === undefined) {
+    objectMapper = makeUrl
+  } else if (fields === '*') {
+    objectMapper = object => ({ ...object, href: makeUrl(object) })
+  } else {
+    fields = fields.split(',')
+    objectMapper = object => ({ ...pick(object, fields), href: makeUrl(object) })
+  }
+
+  return entry => objectMapper(typeof entry === 'string' ? { id: entry } : entry)
 }
 
 export default class RestApi {
@@ -34,8 +66,7 @@ export default class RestApi {
   registerRestRoutes(routes, base = '/') {
     const unregisterFuncs = []
     routes.forEach(route => {
-      route.endpoint = join(base, route.endpoint)
-      unregisterFuncs.push(this.#mountExternalRoute(route))
+      unregisterFuncs.push(this.#mountExternalRoute({ ...route, endpoint: join(base, route.endpoint) }))
     })
 
     return () => {
@@ -65,7 +96,8 @@ export default class RestApi {
               const isIterable =
                 result !== null && typeof (result[Symbol.iterator] ?? result[Symbol.asyncIterator]) === 'function'
               if (isIterable) {
-                await sendObjects(result, req, res)
+                const mapped = mapIterable(result, makeObjectMapper(req))
+                await sendObjects(mapped, req, res)
               } else {
                 res.json(result)
               }
