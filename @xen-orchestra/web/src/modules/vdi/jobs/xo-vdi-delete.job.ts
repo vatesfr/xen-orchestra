@@ -19,7 +19,7 @@ export const useXoVdiDeleteJob = defineJob('vdi.delete', [xoVdisArg], () => {
 
       results.forEach((result, index) => {
         if (result.status === 'rejected') {
-          console.error(`Failed to delete VDI ${vdis[index].name_label}:`, result.reason)
+          console.error(`Failed to delete VDI ${vdis[index].id}:`, result.reason)
         }
       })
 
