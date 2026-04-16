@@ -10,6 +10,7 @@ import { pFromCallback } from 'promise-toolbox'
 import { VmBackupDirectory } from '../dist/VmBackupDirectory.mjs'
 import { VHDFOOTER, VHDHEADER } from './tests.fixtures.mjs'
 import { VhdFile, Constants, VhdDirectory, VhdAbstract } from 'vhd-lib'
+import { openDisk } from '@xen-orchestra/backups/disks/index.mjs'
 import { dirname, basename } from 'node:path'
 import { rimraf } from 'rimraf'
 
@@ -81,13 +82,19 @@ test('It remove broken vhd', async () => {
   // todo also tests a directory and an alias
 
   await handler.writeFile(`${basePath}/notReallyAVhd.vhd`, 'I AM NOT A VHD')
+  // metadata references a non-existent disk so the lineage is created for this vdiDir
+  // and notReallyAVhd.vhd is treated as an unreferenced orphan
+  await handler.writeFile(
+    `${rootPath}/metadata.json`,
+    JSON.stringify({ mode: 'delta', vhds: [`${relativePath}/nonexistent.vhd`] })
+  )
   assert.equal((await handler.list(basePath)).length, 1)
   let logged = ''
   const logInfo = message => {
     logged += message
   }
   await VmBackupDirectory.cleanVm(handler, rootPath, { remove: false, logInfo, logWarn: logInfo })
-  assert.equal(logged, `failed to open disk`)
+  assert.ok(logged.includes('failed to open disk'))
   // not removed
   assert.deepEqual(await handler.list(basePath), ['notReallyAVhd.vhd'])
   // really remove it
@@ -114,12 +121,11 @@ test('it remove vhd with missing or multiple ancestors', async () => {
     },
   })
   await handler.writeFile(
-    `metadata.json`,
+    `${rootPath}/metadata.json`,
     JSON.stringify({
       mode: 'delta',
-      vhds: [`${basePath}/child.vhd`, `${basePath}/abandoned.vhd`],
-    }),
-    { flags: 'w' }
+      vhds: [`${relativePath}/child.vhd`, `${relativePath}/abandoned.vhd`],
+    })
   )
   // clean
   let logged = ''
@@ -176,9 +182,9 @@ test('it remove backup meta data referencing a missing vhd in delta backup', asy
     JSON.stringify({
       mode: 'delta',
       vhds: [
-        `deleted.vhd`, // in metadata but not in vhds
-        `orphan.vhd`,
-        `child.vhd`,
+        `${relativePath}/deleted.vhd`, // in metadata but missing from disk
+        `${relativePath}/orphan.vhd`,
+        `${relativePath}/child.vhd`,
         // abandoned.vhd is not here anymore
       ],
     }),
@@ -281,6 +287,70 @@ test('it merges a chain of multiple consecutive orphan ancestors in one pass', a
   assert.equal(remainingVhds.includes('grandchild.vhd'), true)
   assert.equal(remainingVhds.includes('ancestor.vhd'), false, 'ancestor should have been merged, not deleted directly')
   assert.equal(remainingVhds.includes('child.vhd'), false)
+})
+
+test('it checks chaining of an interrupted merge from merge.json', async () => {
+  // Create a 3-disk chain: ancestor -> intermediate -> child
+  const ancestor = await generateVhd(`${basePath}/ancestor.vhd`, {
+    blocks: [0, 1, 2, 3, 4],
+  })
+  const intermediate = await generateVhd(`${basePath}/intermediate.vhd`, {
+    header: {
+      parentUnicodeName: 'ancestor.vhd',
+      parentUuid: ancestor.footer.uuid,
+    },
+    blocks: [5, 6],
+  })
+  await generateVhd(`${basePath}/child.vhd`, {
+    header: {
+      parentUnicodeName: 'intermediate.vhd',
+      parentUuid: intermediate.footer.uuid,
+    },
+    blocks: [7, 8],
+  })
+
+  // Simulate a merge interrupted mid-way (currentBlock = 3, blocks 0-2 merged so far)
+  const mergeJsonPath = `${basePath}/.ancestor.vhd.merge.json`
+  await handler.writeFile(
+    mergeJsonPath,
+    JSON.stringify({
+      parent: { uuid: '0' },
+      child: { uuid: '0' },
+      chain: ['ancestor.vhd', 'intermediate.vhd', 'child.vhd'],
+      currentBlock: 3,
+      mergedDataSize: 3 * 2 * 1024 * 1024,
+      step: 'mergeBlocks',
+      diskSize: 0,
+    })
+  )
+
+  // Read back merge.json as would happen on resume
+  const mergeState = JSON.parse(await handler.readFile(mergeJsonPath))
+
+  // Resolve chain paths relative to the merge.json location
+  const resolvedPaths = mergeState.chain.map(relativePath => `${dirname(mergeJsonPath)}/${relativePath}`)
+
+  // Open each disk individually
+  const disks = []
+  try {
+    for (const path of resolvedPaths) {
+      disks.push(await openDisk({ handler, path }))
+    }
+
+    // First = oldest (ancestor), last = newest (child)
+    // Check: disk[i+1].parentUuid === disk[i].uuid
+    for (let i = 0; i < disks.length - 1; i++) {
+      assert.equal(
+        disks[i + 1].getParentUuid(),
+        disks[i].getUuid(),
+        `disk[${i + 1}].parentUuid should equal disk[${i}].uuid`
+      )
+    }
+  } finally {
+    for (const disk of disks) {
+      await disk.close()
+    }
+  }
 })
 
 test('it finish unterminated merge ', async () => {
@@ -474,6 +544,11 @@ describe('tests multiple combination ', { concurrency: 1 }, () => {
 })
 test('it cleans orphan merge states ', async () => {
   await handler.writeFile(`${basePath}/.orphan.vhd.merge.json`, '')
+  // metadata is needed so the lineage is created for basePath (otherwise cleanOrphanDiskDirs deletes the whole dir)
+  await handler.writeFile(
+    `${rootPath}/metadata.json`,
+    JSON.stringify({ mode: 'delta', vhds: [`${relativePath}/nonexistent.vhd`] })
+  )
 
   await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true, logWarn: () => {} })
 
@@ -481,26 +556,32 @@ test('it cleans orphan merge states ', async () => {
 })
 
 test('check Aliases should work alone', async () => {
-  await handler.mkdir('vhds')
-  await handler.mkdir('vhds/data')
-  await generateVhd(`vhds/data/ok.vhd`)
-  await VhdAbstract.createAlias(handler, 'vhds/ok.alias.vhd', 'vhds/data/ok.vhd')
+  // valid alias pointing to an existing data file
+  await handler.mkdir(`${basePath}/data`)
+  await generateVhd(`${basePath}/data/ok.vhd`)
+  await VhdAbstract.createAlias(handler, `${basePath}/ok.alias.vhd`, `${basePath}/data/ok.vhd`)
 
-  await VhdAbstract.createAlias(handler, 'vhds/missingData.alias.vhd', 'vhds/data/nonexistent.vhd')
+  // broken alias pointing to a missing data file
+  await VhdAbstract.createAlias(handler, `${basePath}/missingData.alias.vhd`, `${basePath}/data/nonexistent.vhd`)
 
-  await generateVhd(`vhds/data/missingalias.vhd`)
+  // orphaned data file — no alias references it
+  await generateVhd(`${basePath}/data/missingalias.vhd`)
 
-  await VmBackupDirectory.checkAliases(handler, ['vhds/missingData.alias.vhd', 'vhds/ok.alias.vhd'], 'vhds/data', {
-    remove: true,
-    logWarn: () => {},
-    logInfo: () => {},
-  })
+  // only the valid alias is referenced by a complete backup
+  await handler.writeFile(
+    `${rootPath}/metadata.json`,
+    JSON.stringify({ mode: 'delta', vhds: [`${relativePath}/ok.alias.vhd`] })
+  )
 
-  // only ok have survived
-  const alias = (await handler.list('vhds')).filter(f => f.endsWith('.vhd'))
-  assert.equal(alias.length, 1)
+  await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true, logWarn: () => {}, logInfo: () => {} })
+
+  // only ok.alias.vhd has survived
+  const aliases = (await handler.list(basePath)).filter(f => f.endsWith('.vhd'))
+  assert.equal(aliases.length, 1)
+  assert.equal(aliases[0], 'ok.alias.vhd')
 
   // missingalias.vhd has no alias pointing to it — should be deleted
-  const data = await handler.list('vhds/data')
+  const data = await handler.list(`${basePath}/data`)
   assert.equal(data.length, 1)
+  assert.equal(data[0], 'ok.vhd')
 })
