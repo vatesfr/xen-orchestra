@@ -1,5 +1,5 @@
 import RemoteHandlerAbstract from '@xen-orchestra/fs'
-import { basename, normalize, resolveFromFile } from '@xen-orchestra/fs/path'
+import { basename, dirname, normalize, resolveFromFile } from '@xen-orchestra/fs/path'
 import { MergeRemoteDisk, openDisk, openDiskChainFromPaths, RemoteDisk, isDiskFile } from '@xen-orchestra/backups/disks'
 import type { MergeState } from '@xen-orchestra/backups/disks'
 import { DEFAULT_MERGE_CONCURRENCY, DEFAULT_REMOVE_CONCURRENCY, ResolvedBackupCleanOptions } from './VmBackup.types.mjs'
@@ -10,7 +10,7 @@ const INTERRUPTED_VHD_RE = /^\.(.+)\.merge\.json$/
 /**
  * Tracks the disk chain for a single VDI across all backup snapshots.
  * Owns merge and deletion decisions for its chain given which disks are still
- * referenced by active backups (supplied by VmBackupDirectory).
+ * referenced by active backups (accumulated via addActiveDiskPaths).
  */
 export class RemoteDiskLineage {
   #handler: RemoteHandlerAbstract
@@ -23,8 +23,8 @@ export class RemoteDiskLineage {
   #parentOf: Map<string, string> = new Map()
   // parent path: child path
   #childOf: Map<string, string> = new Map()
-  // Disk paths not referenced by any active backup (set by setActiveDiskPaths)
-  #orphanDisks: Set<string> = new Set()
+  // Disk paths declared active by their owning archives (accumulated across all referencing archives)
+  #activeDiskPaths: Set<string> = new Set()
   // Interrupted merges: normalized parent path: parsed state file info
   #interruptedMerges: Map<string, { stateFilePath: string; chain?: string[]; childUuid?: string }> = new Map()
   // disk UUID: normalized disk path (populated during init)
@@ -114,20 +114,14 @@ export class RemoteDiskLineage {
   }
 
   /**
-   * Computes the set of orphan disks given the paths still referenced by active backups.
-   * Must be called before getOrphanDisks() and clean().
+   * Declares disk paths as active for this lineage.
+   * Called by each archive that references this lineage after it determines it is complete.
+   * Accumulated across all referencing archives before clean() is called.
    */
-  setActiveDiskPaths(activeDiskPaths: Set<string>): void {
-    this.#orphanDisks = new Set()
-    for (const diskPath of this.#diskPaths) {
-      if (!activeDiskPaths.has(diskPath)) {
-        this.#orphanDisks.add(diskPath)
-      }
+  addActiveDiskPaths(diskPaths: string[]): void {
+    for (const path of diskPaths) {
+      this.#activeDiskPaths.add(normalize(path))
     }
-  }
-
-  getOrphanDisks(): Set<string> {
-    return new Set(this.#orphanDisks)
   }
 
   /**
@@ -138,13 +132,14 @@ export class RemoteDiskLineage {
    * Also resumes interrupted merges (detected via .merge.json files) when opts.merge is true.
    * Deletes orphan merge state files (for missing disks) when opts.remove is true.
    *
-   * Requires setActiveDiskPaths() to have been called first (done by VmBackupDirectory.check()).
+   * Requires addActiveDiskPaths() to have been called by all referencing archives before this.
    * @returns Set of deleted disk paths.
    */
   async clean({
     remove = this.#opts.remove ?? false,
     merge = this.#opts.merge ?? false,
   }: { remove?: boolean; merge?: boolean } = {}): Promise<{ deleted: Set<string>; mergedSizes: Map<string, number> }> {
+    const orphanDisks = new Set([...this.#diskPaths].filter(p => !this.#activeDiskPaths.has(p)))
     const toDelete = new Set<string>()
     const toMerge: { chain: string[]; isResuming: boolean }[] = []
     const visited = new Set<string>()
@@ -158,7 +153,7 @@ export class RemoteDiskLineage {
       }
       visited.add(diskPath)
 
-      if (!this.#orphanDisks.has(diskPath)) {
+      if (!orphanDisks.has(diskPath)) {
         // Active disk — anchor of the merge chain
         return [diskPath]
       }
@@ -205,10 +200,10 @@ export class RemoteDiskLineage {
       }
     }
 
-    for (const orphan of this.#orphanDisks) {
+    for (const orphan of orphanDisks) {
       if (!visited.has(orphan)) {
         const parent = this.#parentOf.get(orphan)
-        if (parent === undefined || !this.#orphanDisks.has(parent)) {
+        if (parent === undefined || !orphanDisks.has(parent)) {
           const chain = getUsedChildChainOrDelete(orphan)
           if (chain !== undefined && chain.length > 1) {
             toMerge.push({ chain, isResuming: false })
@@ -251,6 +246,8 @@ export class RemoteDiskLineage {
       )
     }
 
+    await this.#cleanOrphanDataFiles(remove)
+
     return { deleted: toDelete, mergedSizes }
   }
 
@@ -285,6 +282,40 @@ export class RemoteDiskLineage {
       return { finalDiskSize, mergeTargetPath }
     } finally {
       await Promise.all([parentDisk.close(), childDisk.close()])
+    }
+  }
+
+  /**
+   * Validates each disk integrity, then scans discovered data subdirs
+   * and deletes any files not associated to a known disk.
+   */
+  async #cleanOrphanDataFiles(remove: boolean): Promise<void> {
+    const claimedFiles = new Set<string>()
+    for (const diskPath of this.#diskPaths) {
+      const disk = await openDisk({ handler: this.#handler as any, path: diskPath, ignoreBlockIndexes: true })
+      await disk.clean({ remove, logWarn: this.#opts.logWarn, logInfo: this.#opts.logInfo })
+      const claimed = await disk.listAssociatedFiles(this.#vdiDir)
+      await disk.close()
+      for (const f of claimed) claimedFiles.add(normalize(f))
+    }
+
+    const dataDirs = new Set([...claimedFiles].map(p => dirname(normalize(p))).filter(p => p !== this.#vdiDir))
+    for (const dataDir of dataDirs) {
+      const items = await this.#handler.list(dataDir, { prependDir: true }).catch(() => [] as string[])
+      for (const item of items) {
+        if (!claimedFiles.has(normalize(item))) {
+          this.#opts.logWarn('orphaned data file', { path: item })
+          if (remove) {
+            await this.#handler.unlink(item).catch(async (err: any) => {
+              if (err?.code === 'EISDIR') {
+                await this.#handler.rmtree(item)
+              } else {
+                this.#opts.logWarn('failed to delete orphaned data file', { path: item, error: err })
+              }
+            })
+          }
+        }
+      }
     }
   }
 }
