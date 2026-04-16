@@ -81,6 +81,7 @@ function Server(opts) {
   this._createServer = (opts != null && opts.createServer) || require('http').createServer
   this._createSecureServer = (opts != null && opts.createSecureServer) || require('https').createServer
   this._servers = Object.create(null)
+  this._niceAddresses = Object.create(null)
 
   this.on('removeListener', onRemoveListener).on('newListener', onNewListener)
 }
@@ -94,6 +95,14 @@ function getAddress(serverId) {
 proto.addresses = function Server$addresses() {
   const servers = this._servers
   return Object.keys(servers).map(getAddress, servers)
+}
+
+function getNiceAddress(serverId) {
+  return this[serverId]
+}
+proto.niceAddresses = function Server$niceAddresses() {
+  const niceAddresses = this._niceAddresses
+  return Object.keys(niceAddresses).map(getNiceAddress, niceAddresses)
 }
 
 function close(server) {
@@ -137,6 +146,8 @@ proto.listen = function Server$listen(opts) {
   let socket = extractProperty(opts, 'socket')
 
   const servers = this._servers
+
+  const niceAddresses = this._niceAddresses
 
   let server, protocol
   if (opts.pfx || opts.SNICallback || (opts.cert && opts.key)) {
@@ -182,6 +193,7 @@ proto.listen = function Server$listen(opts) {
   const emit = this.emit.bind(this)
   server.once('close', function onClose() {
     delete servers[id]
+    delete niceAddresses[id]
 
     if (isEmpty(servers)) {
       emit('close')
@@ -204,14 +216,16 @@ proto.listen = function Server$listen(opts) {
   return fromEvent(server, 'listening').then(
     function () {
       const address = server.address()
-      if (typeof address === 'string') {
-        return protocol + '://' + address
-      }
-      return formatUrl({
-        protocol,
-        hostname: address.address,
-        port: address.port,
-      })
+      const niceAddress =
+        typeof address === 'string'
+          ? protocol + '://' + address
+          : formatUrl({
+              protocol,
+              hostname: address.address,
+              port: address.port,
+            })
+      niceAddresses[id] = niceAddress
+      return niceAddress
     },
     function (error) {
       error.niceAddress = niceAddress
