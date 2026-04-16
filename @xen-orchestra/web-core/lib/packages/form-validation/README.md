@@ -8,18 +8,26 @@ Wraps [Regle](https://reglejs.dev) to provide a simple, unified interface for fo
 import { isFilled, integer, type Maybe, required, useFormValidation, withMessage } from '@core/packages/form-validation'
 
 const { errors, warnings, validate, handleBlur, reset, useFieldMetadata } = useFormValidation(formData, {
-  errors: () => ({
-    name: { required: withMessage(required, t('name-required')) },
-    port: { integer },
-  }),
-  warnings: () => ({
-    port: {
-      outOfRange: withMessage(
-        (value: Maybe<number>) => !isFilled(value) || (value >= 1 && value <= 65535),
-        t('port-out-of-range')
-      ),
-    },
-  }),
+  errors: {
+    // onBlur → shown when the user leaves the field
+    onBlur: () => ({
+      port: { integer },
+    }),
+    // onSubmit → shown only when validate() is called
+    onSubmit: () => ({
+      name: { required: withMessage(required, t('name-required')) },
+    }),
+  },
+  warnings: {
+    onBlur: () => ({
+      port: {
+        outOfRange: withMessage(
+          (value: Maybe<number>) => !isFilled(value) || (value >= 1 && value <= 65535),
+          t('port-out-of-range')
+        ),
+      },
+    }),
+  },
 })
 ```
 
@@ -32,23 +40,31 @@ const { errors, warnings, validate, handleBlur, reset, useFieldMetadata } = useF
 
 ### `config` object
 
-|            | Required | Type                                                                 | Description                                                                                                        |
-| ---------- | :------: | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `errors`   |    ✓     | `ReglePartialRuleTree<TData>` or `() => ReglePartialRuleTree<TData>` | Rules for blocking validation. Use a getter function to keep error messages reactive to locale changes.            |
-| `warnings` |          | `ReglePartialRuleTree<TData>` or `() => ReglePartialRuleTree<TData>` | Rules for non-blocking validation. Warning messages are shown after `handleBlur(field)` or `validate()` is called. |
-| `showOn`   |          | `{ errors?: FormBlurBehavior, warnings?: FormBlurBehavior }`         | Controls when each severity level becomes visible (see table below).                                               |
+|            | Required | Type                             | Description                   |
+| ---------- | :------: | -------------------------------- | ----------------------------- |
+| `errors`   |          | `FormValidationRuleGroup<TData>` | Rules for blocking validation |
+| `warnings` |          | `FormValidationRuleGroup<TData>` | Rules for advisory validation |
 
-### `showOn` values
+### `FormValidationRuleGroup<TData>`
 
-| Value      | Description                                                          |
-| ---------- | -------------------------------------------------------------------- |
-| `'blur'`   | Messages shown when the user leaves a field (`handleBlur` is called) |
-| `'submit'` | Messages shown only when `validate()` is called                      |
+Rules are split into two groups that control when they become visible:
 
-| Property          | Default    |
-| ----------------- | ---------- |
-| `showOn.errors`   | `'submit'` |
-| `showOn.warnings` | `'blur'`   |
+| Key        | Description                                                       |
+| ---------- | ----------------------------------------------------------------- |
+| `onBlur`   | Rules shown when the user leaves a field (`handleBlur` is called) |
+| `onSubmit` | Rules shown only when `validate()` is called                      |
+
+Both groups are optional. A single field can have different rules in each group — for example, `required` in `onSubmit` (avoid surfacing the error while the user is still navigating) and a range check in `onBlur` (immediate feedback when leaving the field).
+
+Each group accepts either a plain rule tree object or a getter function — use a getter to keep translated messages reactive across locale changes:
+
+```ts
+errors: {
+  onSubmit: () => ({
+    name: { required: withMessage(required, t('name-required')) },
+  }),
+}
+```
 
 ## Return value
 
@@ -58,7 +74,7 @@ const { errors, warnings, validate, handleBlur, reset, useFieldMetadata } = useF
 | `warnings`         | `ComputedRef<FormFieldMessages<TData>>`                | Per-field advisory message strings. A field is populated after `handleBlur(field)` or `validate()` is called.     |
 | `validate`         | `() => Promise<boolean>`                               | Touches all warning fields, validates all error rules, and returns `true` when the form is valid. Call on submit. |
 | `reset`            | `() => void`                                           | Resets dirty flags and clears all messages for both errors and warnings.                                          |
-| `handleBlur`       | `(field: keyof TData) => void`                         | Marks a field dirty according to the `showOn` config. Call on field blur.                                         |
+| `handleBlur`       | `(field: keyof TData) => void`                         | Marks a field dirty in the `onBlur` rule groups. Call on field blur.                                              |
 | `useFieldMetadata` | `(field, extras?) => () => FormFieldMetadata & extras` | Returns a metadata factory ready to pass to `useField`. Bundles error, warning, and the blur handler.             |
 
 `FormFieldMessages<TData>` is `{ [K in keyof TData]: string | undefined }` — all fields are always present; the value is `undefined` when there is no active message.
@@ -94,21 +110,27 @@ export function useMyForm() {
   })
 
   const { validate, reset, useFieldMetadata } = useFormValidation(formData, {
-    // Use a getter so error messages stay in sync with the active locale.
-    errors: () => ({
-      name: { required: withMessage(required, t('name-required')) },
-      port: { required: withMessage(required, t('port-required')), integer },
-    }),
-    warnings: () => ({
-      port: {
-        outOfRange: withMessage(
-          (value: Maybe<number>) => !isFilled(value) || (value >= 1 && value <= 65535),
-          t('port-out-of-range')
-        ),
-      },
-    }),
-    // Optional: show errors immediately when the user leaves a field
-    showOn: { errors: 'blur' },
+    errors: {
+      // Show 'required' only on submit — don't nag the user before they've had a chance to fill in the form.
+      onSubmit: () => ({
+        name: { required: withMessage(required, t('name-required')) },
+        port: { required: withMessage(required, t('port-required')) },
+      }),
+      // Show format errors as soon as the user leaves the field.
+      onBlur: () => ({
+        port: { integer },
+      }),
+    },
+    warnings: {
+      onBlur: () => ({
+        port: {
+          outOfRange: withMessage(
+            (value: Maybe<number>) => !isFilled(value) || (value >= 1 && value <= 65535),
+            t('port-out-of-range')
+          ),
+        },
+      }),
+    },
   })
 
   const { useField } = useFormBindings(formData)

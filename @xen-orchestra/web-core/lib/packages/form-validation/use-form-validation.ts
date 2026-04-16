@@ -1,5 +1,11 @@
-import type { FormFieldMessages, FormFieldMetadata, FormValidationConfig, UseFormValidationReturn } from './types.ts'
-import type { ReglePartialRuleTree } from '@regle/core'
+import type {
+  FormFieldMessages,
+  FormFieldMetadata,
+  FormRuleTree,
+  FormValidationConfig,
+  FormValidationRules,
+  UseFormValidationReturn,
+} from './types.ts'
 import { useRegle } from '@regle/core'
 import { computed } from 'vue'
 
@@ -30,15 +36,15 @@ type RegleStatusAccessor = {
  */
 function injectCollectionMarkers<TData extends Record<string, unknown>>(
   data: TData,
-  rules: FormValidationConfig<TData>['errors']
-): FormValidationConfig<TData>['errors'] {
+  rules: FormValidationRules<TData>
+): FormValidationRules<TData> {
   const arrayKeys = Object.keys(data).filter(key => Array.isArray(data[key]))
 
   if (arrayKeys.length === 0) {
     return rules
   }
 
-  const inject = (ruleTree: ReglePartialRuleTree<TData>): ReglePartialRuleTree<TData> => {
+  const inject = (ruleTree: FormRuleTree<TData>): FormRuleTree<TData> => {
     const result = { ...ruleTree } as Record<string, unknown>
 
     for (const key of arrayKeys) {
@@ -49,11 +55,11 @@ function injectCollectionMarkers<TData extends Record<string, unknown>>(
       }
     }
 
-    return result as ReglePartialRuleTree<TData>
+    return result as FormRuleTree<TData>
   }
 
   if (typeof rules === 'function') {
-    return () => inject((rules as () => ReglePartialRuleTree<TData>)())
+    return () => inject((rules as () => FormRuleTree<TData>)())
   }
 
   return inject(rules)
@@ -68,12 +74,11 @@ function injectCollectionMarkers<TData extends Record<string, unknown>>(
  */
 function callUseRegle<TData extends Record<string, unknown>>(
   data: TData,
-  rules: FormValidationConfig<TData>['errors']
+  rules: FormRuleTree<TData> | (() => FormRuleTree<TData>)
 ): { r$: unknown } {
-  return (useRegle as unknown as (_data: TData, _rules: FormValidationConfig<TData>['errors']) => { r$: unknown })(
-    data,
-    rules
-  )
+  return (
+    useRegle as unknown as (_data: TData, _rules: FormRuleTree<TData> | (() => FormRuleTree<TData>)) => { r$: unknown }
+  )(data, rules)
 }
 
 function toMessage(fieldErrors: unknown): string | undefined {
@@ -82,60 +87,80 @@ function toMessage(fieldErrors: unknown): string | undefined {
   return firstMessage
 }
 
-function buildMessages<TData extends Record<string, unknown>>(regle: RegleStatusAccessor): FormFieldMessages<TData> {
-  return Object.fromEntries(
-    Object.keys(regle.$fields).map(key => [key, toMessage(regle.$errors[key])])
-  ) as FormFieldMessages<TData>
+function buildMessages(regle: RegleStatusAccessor): Record<string, string | undefined> {
+  return Object.fromEntries(Object.keys(regle.$fields).map(key => [key, toMessage(regle.$errors[key])]))
 }
+
+function mergeMessages(
+  a: Record<string, string | undefined>,
+  b: Record<string, string | undefined>
+): Record<string, string | undefined> {
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)])
+
+  return Object.fromEntries([...keys].map(key => [key, a[key] ?? b[key]]))
+}
+
+const EMPTY_RULES = {}
 
 export function useFormValidation<TData extends Record<string, unknown>>(
   data: TData,
   config: FormValidationConfig<TData>
 ): UseFormValidationReturn<TData> {
-  // Both useRegle calls must be unconditional — Vue composables cannot be called conditionally.
-  // When no warnings rules are provided, an empty rules object produces an empty $fields map,
-  // which means warnings will always be an empty record.
+  // All four useRegle calls must be unconditional — Vue composables cannot be called conditionally.
+  // When a group has no rules, an empty rule tree produces an empty $fields map.
   // injectCollectionMarkers ensures array fields always have $each declared so Regle produces
   // the { $self, $each } error shape.
-  const { r$ } = callUseRegle(data, injectCollectionMarkers(data, config.errors))
-  const { r$: w$ } = callUseRegle(
+  const { r$: blurErrors$ } = callUseRegle(data, injectCollectionMarkers(data, config.errors?.onBlur ?? EMPTY_RULES))
+  const { r$: submitErrors$ } = callUseRegle(
     data,
-    injectCollectionMarkers(data, config.warnings ?? ({} as ReglePartialRuleTree<TData>))
+    injectCollectionMarkers(data, config.errors?.onSubmit ?? EMPTY_RULES)
+  )
+  const { r$: blurWarnings$ } = callUseRegle(
+    data,
+    injectCollectionMarkers(data, config.warnings?.onBlur ?? EMPTY_RULES)
+  )
+  const { r$: submitWarnings$ } = callUseRegle(
+    data,
+    injectCollectionMarkers(data, config.warnings?.onSubmit ?? EMPTY_RULES)
   )
 
   // Cast at the Regle boundary: Regle's inferred types are too complex to thread through
   // generics here, but the runtime shape is always compatible with RegleStatusAccessor.
-  const errorRegle = r$ as RegleStatusAccessor
-  const warningRegle = w$ as RegleStatusAccessor
+  const blurErrorRegle = blurErrors$ as RegleStatusAccessor
+  const submitErrorRegle = submitErrors$ as RegleStatusAccessor
+  const blurWarningRegle = blurWarnings$ as RegleStatusAccessor
+  const submitWarningRegle = submitWarnings$ as RegleStatusAccessor
 
-  const errors = computed<FormFieldMessages<TData>>(() => buildMessages<TData>(errorRegle))
+  const errors = computed<FormFieldMessages<TData>>(
+    () => mergeMessages(buildMessages(blurErrorRegle), buildMessages(submitErrorRegle)) as FormFieldMessages<TData>
+  )
 
-  const warnings = computed<FormFieldMessages<TData>>(() => buildMessages<TData>(warningRegle))
+  const warnings = computed<FormFieldMessages<TData>>(
+    () => mergeMessages(buildMessages(blurWarningRegle), buildMessages(submitWarningRegle)) as FormFieldMessages<TData>
+  )
 
   async function validate(): Promise<boolean> {
-    // Touch all warning fields first so out-of-range values become visible even if never blurred.
-    warningRegle.$touch()
+    // Touch all warning fields so advisory messages become visible regardless of which group they're in.
+    blurWarningRegle.$touch()
+    submitWarningRegle.$touch()
 
-    const { valid } = await errorRegle.$validate()
+    const [blurResult, submitResult] = await Promise.all([blurErrorRegle.$validate(), submitErrorRegle.$validate()])
 
-    return valid
+    return blurResult.valid && submitResult.valid
   }
 
   function reset(): void {
-    errorRegle.$reset()
-    warningRegle.$reset()
+    blurErrorRegle.$reset()
+    submitErrorRegle.$reset()
+    blurWarningRegle.$reset()
+    submitWarningRegle.$reset()
   }
 
   function handleBlur(field: keyof TData): void {
     const key = field as string
-    // Evaluated at call time so the config object is always read fresh.
-    if (config.showOn?.errors === 'blur') {
-      errorRegle.$fields[key]?.$touch()
-    }
-    if (config.showOn?.warnings !== 'submit') {
-      // Default: 'blur' — touch warning fields on every blur.
-      warningRegle.$fields[key]?.$touch()
-    }
+    // Only touch blur-group fields — submit-group fields stay hidden until validate() is called.
+    blurErrorRegle.$fields[key]?.$touch()
+    blurWarningRegle.$fields[key]?.$touch()
   }
 
   function useFieldMetadata(field: keyof TData): () => FormFieldMetadata

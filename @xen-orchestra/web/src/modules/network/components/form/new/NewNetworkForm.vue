@@ -1,5 +1,5 @@
 <template>
-  <form class="new-network-form" @submit.prevent="onSubmit()">
+  <form class="new-network-form" novalidate @submit.prevent="onSubmit()">
     <div class="row">
       <NetworkFormSelect v-bind="poolSelectBindings" />
       <NetworkFormSelect v-bind="interfaceSelectBindings" />
