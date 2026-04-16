@@ -16,6 +16,7 @@ import { DISK_TYPES } from 'vhd-lib/_constants.js'
 import { isVhdAlias, resolveVhdAlias } from 'vhd-lib/aliases.js'
 import { stringify } from 'uuid'
 import { dirname, join } from 'node:path'
+import { normalize } from '@xen-orchestra/fs/path'
 
 export class RemoteVhdDisk extends RemoteDisk {
   /**
@@ -523,6 +524,38 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
+   * Returns all file paths within dir that this disk claims.
+   * For a plain VHD or VHD directory: [path]
+   * For a VHD alias: [aliasPath, resolvedDataPath]
+   * If the alias target cannot be resolved, only the alias path is returned.
+   *
+   * @param {string} dir
+   * @returns {Promise<string[]>}
+   */
+  async listAssociatedFiles(dir) {
+    const prefix = normalize(dir.endsWith('/') ? dir : dir + '/')
+    const isInDir = /** @param {string} p */ p => p === dir || p.startsWith(prefix)
+
+    const files = []
+    if (isInDir(this.#path)) {
+      files.push(this.#path)
+    }
+
+    if (isVhdAlias(this.#path)) {
+      try {
+        const resolved = await resolveVhdAlias(this.#handler, this.#path)
+        if (isInDir(resolved)) {
+          files.push(resolved)
+        }
+      } catch {
+        // broken alias — no data file to claim
+      }
+    }
+
+    return files
+  }
+
+  /**
    * Checks the integrity of this disk's alias reference.
    * Only meaningful for alias files (.alias.vhd); no-op for plain VHDs.
    * Returns the resolved target path when the alias is valid, undefined otherwise.
@@ -531,9 +564,9 @@ export class RemoteVhdDisk extends RemoteDisk {
    * @param {boolean} [opts.remove]
    * @param {Function} [opts.logWarn]
    * @param {Function} [opts.logInfo]
-   * @returns {Promise<string | undefined>} resolved target path if valid
+   * @returns {Promise<string | undefined>}
    */
-  async checkAlias({ remove = false, logWarn = () => {}, logInfo = () => {} } = {}) {
+  async clean({ remove = false, logWarn = () => {}, logInfo = () => {} } = {}) {
     if (!isVhdAlias(this.#path)) {
       return undefined
     }

@@ -244,18 +244,24 @@ export class RemoteDisk extends RandomAccessDisk {
 
   /**
    * Checks the integrity of the disk's external reference (e.g. alias target).
-   * No-op for plain disk files; override in alias-aware subclasses.
    * @param {Object} [opts]
    * @param {boolean} [opts.remove]
    * @param {Function} [opts.logWarn]
    * @param {Function} [opts.logInfo]
-   * @returns {Promise<void>}
-   */
-  /**
    * @returns {Promise<string | undefined>}
    */
-  async checkAlias(_opts = {}) {
+  async clean(opts = {}) {
     return undefined
+  }
+
+  /**
+   * Returns all file paths within dir that this disk claims.
+   *
+   * @param {string} dir
+   * @returns {Promise<string[]>}
+   */
+  async listAssociatedFiles(dir) {
+    throw new Error(`listAssociatedFiles must be implemented`)
   }
 
   /**
