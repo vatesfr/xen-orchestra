@@ -31,7 +31,7 @@ function mapMessages<TData extends Record<string, unknown>>(
   accent: 'danger' | 'warning'
 ): XoFormMessages<TData> {
   return Object.fromEntries(
-    Object.entries(messages).map(([key, msg]) => [key, toInputWrapperMessage(msg, accent)])
+    Object.entries(messages).map(([key, message]) => [key, toInputWrapperMessage(message, accent)])
   ) as XoFormMessages<TData>
 }
 

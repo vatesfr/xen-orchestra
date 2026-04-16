@@ -87,12 +87,12 @@ function buildMessages(regle: RegleStatusAccessor): Record<string, string | unde
 }
 
 function mergeMessages(
-  a: Record<string, string | undefined>,
-  b: Record<string, string | undefined>
+  blurMessages: Record<string, string | undefined>,
+  submitMessages: Record<string, string | undefined>
 ): Record<string, string | undefined> {
-  const keys = new Set([...Object.keys(a), ...Object.keys(b)])
+  const keys = new Set([...Object.keys(blurMessages), ...Object.keys(submitMessages)])
 
-  return Object.fromEntries([...keys].map(key => [key, a[key] ?? b[key]]))
+  return Object.fromEntries([...keys].map(key => [key, blurMessages[key] ?? submitMessages[key]]))
 }
 
 const EMPTY_RULES = {}
