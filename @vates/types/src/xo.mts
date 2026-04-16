@@ -106,6 +106,10 @@ type BaseXoVm = BaseXapiXo & {
   suspendSr?: XoSr['id']
   tags: string[]
   vga?: string
+  /**
+   * Value in MiB.
+   * See: https://wiki.xenproject.org/wiki/XCP_PV_templates_start
+   */
   videoram?: number
   viridian: boolean
   virtualizationMode: DOMAIN_TYPE
