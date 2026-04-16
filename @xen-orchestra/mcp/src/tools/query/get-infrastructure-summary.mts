@@ -15,32 +15,13 @@ export function registerGetInfrastructureSummary(server: McpServer, getClient: (
         const client = getClient()
 
         const [pools, hosts, vms] = await Promise.all([
-          client.listPools('id,name_label'),
-          client.listHosts({ fields: 'id,name_label,power_state' }),
-          client.listVms({ fields: 'id,power_state' }),
+          client.getMarkdown('/pools', 'id,name_label'),
+          client.getMarkdown('/hosts', 'id,name_label,power_state'),
+          client.getMarkdown('/vms', 'id,power_state'),
         ])
 
-        const runningVms = vms.filter(vm => vm.power_state === 'Running').length
-        const haltedVms = vms.filter(vm => vm.power_state === 'Halted').length
-
-        const summary = {
-          pools: {
-            total: pools.length,
-            names: pools.map(p => p.name_label),
-          },
-          hosts: {
-            total: hosts.length,
-          },
-          vms: {
-            total: vms.length,
-            running: runningVms,
-            halted: haltedVms,
-            other: vms.length - runningVms - haltedVms,
-          },
-        }
-
         return {
-          content: [{ type: 'text', text: JSON.stringify(summary, null, 2) }],
+          content: [{ type: 'text', text: `## Pools\n${pools}\n\n## Hosts\n${hosts}\n\n## VMs\n${vms}` }],
         }
       } catch (error) {
         return {

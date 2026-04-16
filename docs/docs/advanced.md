@@ -437,25 +437,34 @@ Infrastructure metrics are prefixed with `xcp_` and XO management plane metrics 
 
 #### Host Metrics
 
-| Metric                                  | Type    | Description                                                            |
-| --------------------------------------- | ------- | ---------------------------------------------------------------------- |
-| `xcp_host_load_average`                 | gauge   | Host load average                                                      |
-| `xcp_host_memory_free_bytes`            | gauge   | Free memory in bytes                                                   |
-| `xcp_host_memory_total_bytes`           | gauge   | Total memory in bytes                                                  |
-| `xcp_host_cpu_average`                  | gauge   | Average CPU usage (0-1)                                                |
-| `xcp_host_cpu_core_usage`               | gauge   | Per-core CPU usage                                                     |
-| `xcp_host_network_receive_bytes_total`  | counter | Network bytes received per interface                                   |
-| `xcp_host_network_transmit_bytes_total` | counter | Network bytes transmitted per interface                                |
-| `xcp_host_disk_iops_read`               | gauge   | Disk read IOPS per SR                                                  |
-| `xcp_host_disk_iops_write`              | gauge   | Disk write IOPS per SR                                                 |
-| `xcp_host_disk_throughput_read_bytes`   | gauge   | Disk read throughput (bytes/s)                                         |
-| `xcp_host_disk_throughput_write_bytes`  | gauge   | Disk write throughput (bytes/s)                                        |
-| `xcp_host_disk_read_latency_seconds`    | gauge   | Disk read latency                                                      |
-| `xcp_host_disk_write_latency_seconds`   | gauge   | Disk write latency                                                     |
-| `xcp_host_disk_iowait`                  | gauge   | Disk IO wait ratio                                                     |
-| `xcp_host_power_consumption_watts`      | gauge   | Power consumption in watts (DCMI)                                      |
-| `xcp_host_uptime_seconds`               | gauge   | Host uptime in seconds since boot                                      |
-| `xcp_host_status`                       | gauge   | Host status (1 = current state, `power_state` and `enabled` in labels) |
+| Metric                                       | Type    | Description                                                            |
+| -------------------------------------------- | ------- | ---------------------------------------------------------------------- |
+| `xcp_host_cpu_average`                       | gauge   | Average CPU usage (0-1)                                                |
+| `xcp_host_cpu_core_usage`                    | gauge   | Per-core CPU usage                                                     |
+| `xcp_host_disk_iops_read`                    | gauge   | Disk read IOPS per SR                                                  |
+| `xcp_host_disk_iops_write`                   | gauge   | Disk write IOPS per SR                                                 |
+| `xcp_host_disk_iops_total`                   | gauge   | Total IOPS (read + write) per SR                                       |
+| `xcp_host_disk_iowait`                       | gauge   | Disk IO wait ratio                                                     |
+| `xcp_host_disk_latency_seconds`              | gauge   | Total I/O latency per SR in seconds                                    |
+| `xcp_host_disk_read_latency_seconds`         | gauge   | Disk read latency                                                      |
+| `xcp_host_disk_write_latency_seconds`        | gauge   | Disk write latency                                                     |
+| `xcp_host_disk_throughput_read_bytes`        | gauge   | Disk read throughput (bytes/s)                                         |
+| `xcp_host_disk_throughput_write_bytes`       | gauge   | Disk write throughput (bytes/s)                                        |
+| `xcp_host_disk_throughput_total_bytes`       | gauge   | Total I/O throughput per SR (bytes/s)                                  |
+| `xcp_host_load`                              | gauge   | Normalized host load                                                   |
+| `xcp_host_load_average`                      | gauge   | Host load average                                                      |
+| `xcp_host_memory_free_bytes`                 | gauge   | Free memory in bytes                                                   |
+| `xcp_host_memory_reclaimed_bytes`            | gauge   | Reclaimed host memory in bytes                                         |
+| `xcp_host_memory_reclaimed_max_bytes`        | gauge   | Maximum reclaimable host memory in bytes                               |
+| `xcp_host_memory_total_bytes`                | gauge   | Total memory in bytes                                                  |
+| `xcp_host_network_aggregated_receive_bytes`  | gauge   | Aggregated received bytes per second                                   |
+| `xcp_host_network_aggregated_transmit_bytes` | gauge   | Aggregated transmitted bytes per second                                |
+| `xcp_host_network_receive_bytes_total`       | counter | Network bytes received per interface                                   |
+| `xcp_host_network_transmit_bytes_total`      | counter | Network bytes transmitted per interface                                |
+| `xcp_host_power_consumption_watts`           | gauge   | Power consumption in watts (DCMI)                                      |
+| `xcp_host_running_vcpus`                     | gauge   | Total number of running vCPUs                                          |
+| `xcp_host_status`                            | gauge   | Host status (1 = current state, `power_state` and `enabled` in labels) |
+| `xcp_host_uptime_seconds`                    | gauge   | Host uptime in seconds since boot                                      |
 
 #### VM Metrics
 
@@ -498,6 +507,15 @@ Infrastructure metrics are prefixed with `xcp_` and XO management plane metrics 
 | `xcp_sr_virtual_size_bytes`   | gauge | SR virtual allocated size in bytes |
 | `xcp_sr_physical_size_bytes`  | gauge | SR physical size in bytes          |
 | `xcp_sr_physical_usage_bytes` | gauge | SR physical space used in bytes    |
+
+#### VDI Disk Size Metrics
+
+| Metric                         | Type  | Description                                        |
+| ------------------------------ | ----- | -------------------------------------------------- |
+| `xcp_vdi_virtual_size_bytes`   | gauge | VDI virtual size in bytes                          |
+| `xcp_vdi_physical_usage_bytes` | gauge | VDI physical space used in bytes (allocated on SR) |
+
+VDI metrics include labels `vdi_uuid`, `vdi_name`, `sr_uuid`, `sr_name`, `pool_id`, `pool_name`, and optionally `vm_uuid`, `vm_name` when the VDI is attached to a VM.
 
 #### Connection Metrics
 
@@ -546,7 +564,8 @@ All metrics include these labels for filtering:
 | `vm_name`           | VM name (for VM metrics)                                                 |
 | `sr_uuid`           | Storage Repository UUID (for SR metrics)                                 |
 | `sr_name`           | Storage Repository name (for disk metrics)                               |
-| `vdi_name`          | Virtual Disk name (for VM disk metrics)                                  |
+| `vdi_uuid`          | Virtual Disk UUID (for VDI metrics)                                      |
+| `vdi_name`          | Virtual Disk name (for VM disk and VDI metrics)                          |
 | `network_name`      | Network name (for network metrics)                                       |
 | `interface`         | Network interface name                                                   |
 | `device`            | Disk device (xvda, xvdb, etc.)                                           |
@@ -578,7 +597,7 @@ rate(xcp_host_network_receive_bytes_total[5m]) / 1024 / 1024
 xcp_vm_disk_read_latency_seconds > 0.01
 
 # Total IOPS per Storage Repository
-sum by (sr_name) (xcp_host_disk_iops_read + xcp_host_disk_iops_write)
+sum by (sr_name) (xcp_host_disk_iops_total)
 
 # SR usage percentage
 (xcp_sr_physical_usage_bytes / xcp_sr_physical_size_bytes) * 100
@@ -588,6 +607,15 @@ sum by (sr_name) (xcp_host_disk_iops_read + xcp_host_disk_iops_write)
 
 # Over-provisioning ratio (virtual vs physical)
 xcp_sr_virtual_size_bytes / xcp_sr_physical_size_bytes
+
+# VDI thin-provisioning ratio (physical usage vs virtual size)
+xcp_vdi_physical_usage_bytes / xcp_vdi_virtual_size_bytes
+
+# Total physical disk usage per VM (sum of all attached VDIs)
+sum by (vm_name) (xcp_vdi_physical_usage_bytes)
+
+# VDIs with low physical usage (good thin-provisioning candidates)
+(xcp_vdi_physical_usage_bytes / xcp_vdi_virtual_size_bytes) < 0.1
 
 # Host uptime in days
 xcp_host_uptime_seconds / 86400

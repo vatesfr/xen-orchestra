@@ -33,6 +33,7 @@ export class PgpuController extends XapiXoController<XoPgpu> {
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoPgpu>>> {

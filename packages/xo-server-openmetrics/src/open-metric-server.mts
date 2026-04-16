@@ -26,9 +26,11 @@ import {
   formatHostUptimeMetrics,
   formatSrMetrics,
   formatToOpenMetrics,
+  formatVdiMetrics,
   formatXoMetrics,
   type HostStatusItem,
   type SrDataItem,
+  type VdiDataItem,
   type XoMetricsData,
 } from './openmetric-formatter.mjs'
 
@@ -97,6 +99,10 @@ interface SrDataPayload {
   srs: SrDataItem[]
 }
 
+interface VdiDataPayload {
+  vdis: VdiDataItem[]
+}
+
 interface HostStatusPayload {
   hosts: HostStatusItem[]
 }
@@ -162,6 +168,10 @@ function handleParentMessage(rawMessage: unknown): void {
       handleSrDataResponse(message)
       break
 
+    case 'VDI_DATA':
+      handleVdiDataResponse(message)
+      break
+
     case 'HOST_STATUS':
       handleHostStatusResponse(message)
       break
@@ -215,6 +225,20 @@ function handleCredentialsResponse(message: IpcMessage): void {
 }
 
 function handleSrDataResponse(message: IpcMessage): void {
+  const requestId = message.requestId
+  if (requestId === undefined) {
+    return
+  }
+
+  const pending = pendingRequests.get(requestId)
+  if (pending !== undefined) {
+    clearTimeout(pending.timer)
+    pendingRequests.delete(requestId)
+    pending.resolve(message.payload)
+  }
+}
+
+function handleVdiDataResponse(message: IpcMessage): void {
   const requestId = message.requestId
   if (requestId === undefined) {
     return
@@ -318,6 +342,25 @@ async function requestSrData(): Promise<SrDataPayload> {
     })
 
     sendToParent({ type: 'GET_SR_DATA', requestId })
+  })
+}
+
+async function requestVdiData(): Promise<VdiDataPayload> {
+  const requestId = `vdi-${++requestIdCounter}`
+
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pendingRequests.delete(requestId)
+      reject(new Error('Timeout waiting for VDI data from parent'))
+    }, IPC_REQUEST_TIMEOUT_MS)
+
+    pendingRequests.set(requestId, {
+      resolve: value => resolve(value as VdiDataPayload),
+      reject,
+      timer,
+    })
+
+    sendToParent({ type: 'GET_VDI_DATA', requestId })
   })
 }
 
@@ -437,9 +480,10 @@ async function fetchRrdFromHost(host: HostCredentials): Promise<ParsedRrdData | 
  * @returns OpenMetrics-formatted string
  */
 async function collectMetrics(): Promise<string> {
-  const [credentials, srData, hostStatusData, xoMetricsData] = await Promise.all([
+  const [credentials, srData, vdiData, hostStatusData, xoMetricsData] = await Promise.all([
     requestXapiCredentials(),
     requestSrData(),
+    requestVdiData(),
     requestHostStatusData(),
     requestXoMetrics(),
   ])
@@ -447,6 +491,7 @@ async function collectMetrics(): Promise<string> {
   logger.debug('Collecting metrics', {
     hostCount: credentials.hosts.length,
     srCount: srData.srs.length,
+    vdiCount: vdiData.vdis.length,
     hostStatusCount: hostStatusData.hosts.length,
   })
 
@@ -502,6 +547,11 @@ async function collectMetrics(): Promise<string> {
   const srMetricsOutput = srMetrics.length > 0 ? formatToOpenMetrics(srMetrics) : ''
   logger.debug('Formatted SR metrics', { srCount: srMetrics.length })
 
+  // Format VDI disk size metrics
+  const vdiMetrics = formatVdiMetrics(vdiData.vdis)
+  const vdiMetricsOutput = vdiMetrics.length > 0 ? formatToOpenMetrics(vdiMetrics) : ''
+  logger.debug('Formatted VDI metrics', { vdiCount: vdiMetrics.length })
+
   // Format host status metrics
   const hostStatusMetrics = formatHostStatusMetrics(hostStatusData.hosts)
   const hostStatusOutput = hostStatusMetrics.length > 0 ? formatToOpenMetrics(hostStatusMetrics) : ''
@@ -529,6 +579,10 @@ async function collectMetrics(): Promise<string> {
 
   if (srMetricsOutput !== '') {
     allMetricsSections.push(srMetricsOutput)
+  }
+
+  if (vdiMetricsOutput !== '') {
+    allMetricsSections.push(vdiMetricsOutput)
   }
 
   if (hostStatusOutput !== '') {

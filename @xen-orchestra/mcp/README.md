@@ -74,6 +74,12 @@ claude mcp add xo \
   -- npx @xen-orchestra/mcp
 ```
 
+### Multiple XO instances
+
+To connect several XO servers at once, add one entry per instance with a different name (e.g., `xo-production`, `xo-staging`). Each entry runs its own process with its own credentials.
+
+See the [full documentation](https://docs.xen-orchestra.com/mcp) for configuration examples.
+
 ### Prerequisites
 
 - **Node.js** >= 20

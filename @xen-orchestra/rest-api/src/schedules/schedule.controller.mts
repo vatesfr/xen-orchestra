@@ -52,6 +52,7 @@ export class ScheduleController extends XoController<XoSchedule> {
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoSchedule>>>> {
