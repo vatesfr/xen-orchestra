@@ -2272,6 +2272,7 @@ const messages = {
   serverDisable: 'Disable server',
   serverHttpProxy: ' HTTP proxy URL',
   serverHttpProxyPlaceHolder: ' HTTP proxy URL',
+  serverMasterInfo: 'Only add pool masters here, do not add slave hosts.',
 
   // ----- Copy VM -----
   copyVm: 'Copy VM',

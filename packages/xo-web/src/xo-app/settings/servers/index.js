@@ -188,6 +188,9 @@ export default class Servers extends Component {
 
     return (
       <Container>
+        <p className='text-info'>
+          <Icon icon='info' /> {_('serverMasterInfo')}
+        </p>
         <SortedTable
           collection={servers}
           columns={COLUMNS}
