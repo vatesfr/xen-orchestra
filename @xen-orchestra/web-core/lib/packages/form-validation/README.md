@@ -5,7 +5,7 @@ Wraps [Regle](https://reglejs.dev) to provide a simple, unified interface for fo
 ## Usage
 
 ```ts
-import { isFilled, integer, type Maybe, required, useFormValidation, withMessage } from '@core/packages/form-validation'
+import { integer, outOfRange, required, useFormValidation, withMessage } from '@core/packages/form-validation'
 
 const { errors, warnings, validate, handleBlur, reset, useFieldMetadata } = useFormValidation(formData, {
   errors: {
@@ -20,12 +20,7 @@ const { errors, warnings, validate, handleBlur, reset, useFieldMetadata } = useF
   },
   warnings: {
     onBlur: () => ({
-      port: {
-        outOfRange: withMessage(
-          (value: Maybe<number>) => !isFilled(value) || (value >= 1 && value <= 65535),
-          t('port-out-of-range')
-        ),
-      },
+      port: { outOfRange: outOfRange(1, 65535) },
     }),
   },
 })
@@ -91,7 +86,7 @@ Since `InputWrapperMessage` accepts a plain `string`, the field values can be pa
 ## Example: complete form composable
 
 ```ts
-import { useFormValidation, required, integer, withMessage } from '@core/packages/form-validation'
+import { useFormValidation, required, integer, outOfRange, withMessage } from '@core/packages/form-validation'
 import { useFormBindings } from '@core/packages/form-bindings'
 import { reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -123,12 +118,7 @@ export function useMyForm() {
     },
     warnings: {
       onBlur: () => ({
-        port: {
-          outOfRange: withMessage(
-            (value: Maybe<number>) => !isFilled(value) || (value >= 1 && value <= 65535),
-            t('port-out-of-range')
-          ),
-        },
+        port: { outOfRange: outOfRange(1, 65535) },
       }),
     },
   })
@@ -169,18 +159,51 @@ Template:
 
 All rules from `@regle/rules` are re-exported from this package. Commonly used rules:
 
-| Rule          | Description                              |
-| ------------- | ---------------------------------------- |
-| `required`    | Value must be filled                     |
-| `integer`     | Value must be an integer                 |
-| `minValue`    | Value must be ≥ a minimum                |
-| `maxValue`    | Value must be ≤ a maximum                |
-| `minLength`   | String/array length must be ≥ a minimum  |
-| `maxLength`   | String/array length must be ≤ a maximum  |
-| `email`       | Value must be a valid email address      |
-| `url`         | Value must be a valid URL                |
-| `requiredIf`  | Value is required when a condition holds |
-| `withMessage` | Attaches a custom message to any rule    |
-| `isFilled`    | Type guard: checks if a value is defined |
+| Rule          | Description                                                |
+| ------------- | ---------------------------------------------------------- |
+| `required`    | Value must be filled                                       |
+| `integer`     | Value must be an integer                                   |
+| `minValue`    | Value must be ≥ a minimum                                  |
+| `maxValue`    | Value must be ≤ a maximum                                  |
+| `minLength`   | String/array length must be ≥ a minimum                    |
+| `maxLength`   | String/array length must be ≤ a maximum                    |
+| `email`       | Value must be a valid email address                        |
+| `url`         | Value must be a valid URL                                  |
+| `requiredIf`  | Value is required when a condition holds                   |
+| `withMessage` | Attaches a custom message to any rule                      |
+| `isFilled`    | Type guard: checks if a value is defined                   |
+| `outOfRange`  | Number must be between `min` and `max` (passes when empty) |
 
-`type Maybe<T>` is also re-exported for use in custom validator signatures.
+`type Maybe<T>` and `type FormRuleDeclaration<T>` are also re-exported for use in custom validator signatures.
+
+## Global configuration
+
+`defineFormValidationConfig` (re-exported from `@regle/core` as `defineRegleOptions`) lets you override the default message of any rule for the entire application. Install the result via the `RegleVuePlugin`:
+
+```ts
+// src/plugins/form-validation.config.ts
+import { defineFormValidationConfig, integer, outOfRange, required, withMessage } from '@core/packages/form-validation'
+import { useI18n } from 'vue-i18n'
+
+export const formValidationConfig = defineFormValidationConfig({
+  rules: () => {
+    const { t } = useI18n()
+
+    return {
+      required: withMessage(required, () => t('form:error:required')),
+      integer: withMessage(integer, () => t('form:error:integer')),
+      outOfRange: withMessage(outOfRange, ({ $params: [min, max] }) => t('form:warning:out-of-range', { min, max })),
+    }
+  },
+})
+```
+
+```ts
+// src/main.ts
+import { formValidationConfig } from '@/plugins/form-validation.config.ts'
+import { RegleVuePlugin } from '@regle/core'
+
+app.use(RegleVuePlugin, formValidationConfig)
+```
+
+Once installed, `required`, `integer`, and `outOfRange` show the translated messages automatically — no `withMessage` call is needed at each call site.
