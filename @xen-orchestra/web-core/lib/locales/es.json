@@ -481,7 +481,7 @@
   "modal:confirm-vm-force-shutdown": "Confirmar el apagado forzado de la VM",
   "modal:confirm-vm-reboot": "Confirmar reinicio VM",
   "modal:confirm-vm-shutdown": "Confirmar apagado VM",
-  "modal:vm-force-reboot-message": "Esto apagará inmediatamente la máquina virtual sin un apagado limpio. Podrían producirse pérdidas de datos y se interrumpirán los procesos en curso.",
+  "modal:vm-force-reboot-message": "Esto reiniciará inmediatamente la máquina virtual sin un apagado limpio. Podrían producirse pérdidas de datos y se interrumpirán los procesos en curso.",
   "modal:vm-force-shutdown-message": "Esto apagará inmediatamente la máquina virtual sin un apagado limpio. Podrían producirse pérdidas de datos y se interrumpirán los procesos en curso.",
   "modal:vm-reboot-message": "Reinicia la máquina virtual correctamente, apagando y encendiendo de nuevo. Los procesos en ejecución se cerrarán correctamente.",
   "modal:vm-shutdown-message": "Esto apagará la máquina virtual correctamente. Todos los procesos en ejecución se detendrán y los usuarios podrían desconectarse. Puede reiniciar la máquina virtual más tarde desde la interfaz.",
