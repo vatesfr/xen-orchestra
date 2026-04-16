@@ -29,7 +29,7 @@
   "action:delete": "Eliminar",
   "action:delete-filter": "Borrar filtro",
   "action:delete-group": "Borrar grupo",
-  "action:delete-vms": "Borrar 1 VM | Borrar {n} VMs",
+  "action:delete-n-vms": "Borrar 1 VM | Borrar {n} VMs",
   "action:deploy": "Desplegar",
   "action:deploy-xoa": "Desplegar XOA",
   "action:download-bugtools-archive": "Descargar el archivo de bugtools",

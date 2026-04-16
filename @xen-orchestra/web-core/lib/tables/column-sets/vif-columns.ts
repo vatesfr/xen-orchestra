@@ -18,6 +18,6 @@ export const useVifColumns = defineColumns(() => {
     macAddresses: useAddressColumn({ headerLabel: () => t('mac-addresses') }),
     mtu: useNumberColumn({ headerLabel: () => t('mtu') }),
     lockingMode: useTextColumn({ headerLabel: () => t('locking-mode') }),
-    actions: useActionColumn({ buttonIcon: 'fa:eye' }),
+    actions: useActionColumn({}),
   }
 })

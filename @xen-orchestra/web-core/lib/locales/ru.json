@@ -29,7 +29,7 @@
   "action:delete": "Удалить",
   "action:delete-filter": "Удалить фильтр",
   "action:delete-group": "Удалить группу",
-  "action:delete-vms": "Удалена 1 VM | Удалено {n} VMs",
+  "action:delete-n-vms": "Удалена 1 VM | Удалено {n} VMs",
   "action:deploy": "Развернуть",
   "action:deploy-xoa": "Развернуть XOA",
   "action:download-bugtools-archive": "Скачать архив bugtools",

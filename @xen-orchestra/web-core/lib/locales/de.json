@@ -29,7 +29,7 @@
   "action:delete": "Löschen",
   "action:delete-filter": "Filter löschen",
   "action:delete-group": "Gruppe löschen",
-  "action:delete-vms": "1 VM löschen | {n} VMs löschen",
+  "action:delete-n-vms": "1 VM löschen | {n} VMs löschen",
   "action:deploy": "Bereitstellen",
   "action:deploy-xoa": "XOA bereitstellen",
   "action:duplicate": "Duplizieren",

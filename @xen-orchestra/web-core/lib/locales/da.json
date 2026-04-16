@@ -22,7 +22,7 @@
   "action:copy-info-json": "Kopier information til JSON",
   "action:create": "Opret",
   "action:delete": "Slet",
-  "action:delete-vms": "Slet 1 VM | Slet {n} VM'er",
+  "action:delete-n-vms": "Slet 1 VM | Slet {n} VM'er",
   "action:deploy": "Indsætte",
   "action:deploy-xoa": "Installer XOA",
   "action:edit": "Rediger",

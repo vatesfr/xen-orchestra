@@ -29,7 +29,7 @@
   "action:delete": "Smazat",
   "action:delete-filter": "Smazat filtr",
   "action:delete-group": "Smazat skupinu",
-  "action:delete-vms": "Smazat 1 virt. stroj | Smazat {n} virt. strojů",
+  "action:delete-n-vms": "Smazat 1 virt. stroj | Smazat {n} virt. strojů",
   "action:deploy": "Nasadit",
   "action:deploy-xoa": "Nasadit XOA",
   "action:download-bugtools-archive": "Stáhnout archiv s výstupem bugtools",

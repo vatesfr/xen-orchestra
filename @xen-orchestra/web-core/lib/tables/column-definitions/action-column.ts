@@ -8,14 +8,14 @@ import { h, toValue } from 'vue'
 
 export type { ActionItem }
 
-export const useActionColumn = defineColumn((config: HeaderConfig & ButtonIconConfig) => ({
+export const useActionColumn = defineColumn((config: HeaderConfig & Partial<ButtonIconConfig>) => ({
   renderHead: () => renderHeadCell(config.headerIcon, config.headerLabel),
   renderBody: (params: { onClick: () => void; actions?: ActionItem[] }) =>
     h(VtsActionCell, {
-      buttonIcon: toValue(config.buttonIcon),
+      buttonIcon: toValue(config.buttonIcon ?? 'fa:eye'),
       buttonAccent: toValue(config.buttonAccent),
       buttonSize: toValue(config.buttonSize),
-      actions: params.actions ?? [],
+      actions: params.actions,
       onClick: params.onClick,
     }),
 }))

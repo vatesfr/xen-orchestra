@@ -29,7 +29,7 @@
   "action:delete": "Radera",
   "action:delete-filter": "Radera filter",
   "action:delete-group": "Radera grupp",
-  "action:delete-vms": "Radera 1 VM | Radera {n} VMar",
+  "action:delete-n-vms": "Radera 1 VM | Radera {n} VMar",
   "action:deploy": "Driftsätt",
   "action:deploy-xoa": "Driftsätt XOA",
   "action:duplicate": "Klona",

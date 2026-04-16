@@ -29,7 +29,7 @@
   "action:delete": "Excluir",
   "action:delete-filter": "Excluir filtro",
   "action:delete-group": "Excluir grupo",
-  "action:delete-vms": "Excluir 1 VM | Excluir {n} VMs",
+  "action:delete-n-vms": "Excluir 1 VM | Excluir {n} VMs",
   "action:deploy": "Instalar",
   "action:deploy-xoa": "Instalar XOA",
   "action:duplicate": "Duplicar",

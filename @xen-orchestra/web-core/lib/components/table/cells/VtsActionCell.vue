@@ -1,14 +1,14 @@
 <template>
   <UiTableCell align="center">
-    <div class="action-cell">
+    <div class="vts-action-cell">
       <UiButtonIcon
         :icon="buttonIcon"
-        :accent="buttonAccent ?? 'brand'"
-        :size="buttonSize ?? 'small'"
+        :accent="buttonAccent"
+        :size="buttonSize"
         :target-scale="1.5"
-        @click="$emit('click')"
+        @click="emit('click')"
       />
-      <VtsActionsMenu v-if="actions?.length" :actions />
+      <VtsActionsMenu v-if="actions.length" :actions />
     </div>
   </UiTableCell>
 </template>
@@ -20,20 +20,24 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import type { IconName } from '@core/icons'
 
-defineProps<{
+const {
+  buttonAccent = 'brand',
+  buttonSize = 'small',
+  actions = [],
+} = defineProps<{
   buttonIcon: IconName
   buttonAccent?: ButtonIconAccent
   buttonSize?: ButtonIconSize
   actions?: ActionItem[]
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   click: []
 }>()
 </script>
 
 <style scoped lang="postcss">
-.action-cell {
+.vts-action-cell {
   display: flex;
   gap: 0.8rem;
 }

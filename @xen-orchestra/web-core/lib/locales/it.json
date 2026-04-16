@@ -22,7 +22,7 @@
   "action:copy-info-json": "Copia informazioni nel JSON",
   "action:create": "Crea",
   "action:delete": "Cancella",
-  "action:delete-vms": "Cancella 1 VM | Cancella {n} VM",
+  "action:delete-n-vms": "Cancella 1 VM | Cancella {n} VM",
   "action:deploy": "Impiega",
   "action:deploy-xoa": "Impiega XOA",
   "action:edit": "Modifica",

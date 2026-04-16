@@ -16,7 +16,7 @@
   "action:copy-info-json": "کپی کردن اطلاعات به فرمت JSON",
   "action:create": "ایجاد",
   "action:delete": "حذف کردن",
-  "action:delete-vms": "حذف کردن 1 ماشین مجازی | حذف کردن {n} ماشین مجازی",
+  "action:delete-n-vms": "حذف کردن 1 ماشین مجازی | حذف کردن {n} ماشین مجازی",
   "action:deploy": "مستقر کردن",
   "action:deploy-xoa": "مستقر کردن XOA",
   "action:edit": "ویرایش",

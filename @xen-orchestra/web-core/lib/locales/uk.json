@@ -21,7 +21,7 @@
   "action:copy-info-json": "Копіювати інформацію в JSON",
   "action:create": "Створити",
   "action:delete": "Видалити",
-  "action:delete-vms": "Видалено 1 VM | Видалено {n} VMs",
+  "action:delete-n-vms": "Видалено 1 VM | Видалено {n} VMs",
   "action:deploy": "Розгорнути",
   "action:deploy-xoa": "Розгорнути XOA",
   "action:edit": "Редагувати",

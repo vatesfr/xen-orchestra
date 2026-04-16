@@ -29,7 +29,7 @@
   "action:delete": "删除",
   "action:delete-filter": "删除筛选器",
   "action:delete-group": "删除群组",
-  "action:delete-vms": "删除1台虚拟机 | 删除{n}台虚拟机",
+  "action:delete-n-vms": "删除1台虚拟机 | 删除{n}台虚拟机",
   "action:deploy": "部署",
   "action:deploy-xoa": "部署XOA",
   "action:download-bugtools-archive": "下载 bugtools 压缩包",

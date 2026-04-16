@@ -29,7 +29,7 @@
   "action:delete": "Verwijderen",
   "action:delete-filter": "Filter verwijderen",
   "action:delete-group": "Groep verwijderen",
-  "action:delete-vms": "Verwijder 1 VM | Verwijder {n} VMs",
+  "action:delete-n-vms": "Verwijder 1 VM | Verwijder {n} VMs",
   "action:deploy": "Uitrollen",
   "action:deploy-xoa": "Rol XOA uit",
   "action:download-bugtools-archive": "Download het bugtools-archief",

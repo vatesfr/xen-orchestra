@@ -29,7 +29,7 @@
   "action:delete": "Odstrániť",
   "action:delete-filter": "Odstrániť filter",
   "action:delete-group": "Odstrániť skupinu",
-  "action:delete-vms": "Zmazať 1 virt. stroj | Zmazať {n} virt. strojov",
+  "action:delete-n-vms": "Zmazať 1 virt. stroj | Zmazať {n} virt. strojov",
   "action:deploy": "Nasadiť",
   "action:deploy-xoa": "Nasadiť XOA",
   "action:download-bugtools-archive": "Stiahnuť archív s výstupom bugtools",
