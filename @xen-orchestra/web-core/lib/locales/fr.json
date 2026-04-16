@@ -382,7 +382,7 @@
   "job:arg:username-required": "Le nom d'utilisateur est obligatoire",
   "job:delete:in-progress": "Suppression en cours…",
   "job:vdi-delete:missing-vdi": "Aucun VDI à supprimer",
-  "job:vdi-delete:vbd-attached": "Impossible de supprimer un VDI actuellement attaché",
+  "job:vdi-delete:vbd-attached": "Impossible de supprimer un VDI avec un VBD attaché",
   "job:arg:vlan-required": "Le VLAN est obligatoire",
   "job:create:in-progress": "Création en cours…",
   "job:delete:in-progress": "Suppression en cours…",
