@@ -9,7 +9,7 @@
     <template #buttons>
       <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
       <VtsModalConfirmButton>
-        {{ t(`action:detach-vdis`, { n: count }) }}
+        {{ t(`action:detach-n-vdis`, { n: count }) }}
       </VtsModalConfirmButton>
     </template>
   </VtsModal>
