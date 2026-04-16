@@ -22,7 +22,7 @@
           variant="tertiary"
           @click="openProtectionHelpModal()"
         >
-          {{ t('what-does-protected-means?') }}
+          {{ t('what-does-protected-mean?') }}
         </UiButton>
       </div>
     </div>

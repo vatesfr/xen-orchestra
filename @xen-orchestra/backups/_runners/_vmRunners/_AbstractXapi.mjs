@@ -105,7 +105,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
               config,
               healthCheckSr,
               job,
-              scheduleId: schedule.id,
+              schedule,
               vmUuid: vm.uuid,
               settings,
             })
@@ -123,7 +123,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
                   config,
                   healthCheckSr,
                   job,
-                  scheduleId: schedule.id,
+                  schedule,
                   vmUuid: vm.uuid,
                   remoteId,
                   settings: targetSettings,
@@ -141,7 +141,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
               healthCheckSr,
               job,
               ReplicationWriter,
-              scheduleId: schedule.id,
+              schedule,
               vmUuid: vm.uuid,
               srs,
               settings,
@@ -159,7 +159,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
                   config,
                   healthCheckSr,
                   job,
-                  scheduleId: schedule.id,
+                  schedule,
                   vmUuid: vm.uuid,
                   sr,
                   settings: targetSettings,
@@ -174,11 +174,9 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
   // ensure the VM itself does not have any backup metadata which would be
   // copied on manual snapshots and interfere with the backup jobs
+
   async _cleanMetadata() {
-    const vm = this._vm
-    if (JOB_ID in vm.other_config) {
-      await resetVmOtherConfig(this._xapi, vm.$ref)
-    }
+    await resetVmOtherConfig(this._xapi, this._vm.$ref)
   }
 
   async _snapshot() {

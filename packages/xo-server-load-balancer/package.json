@@ -30,7 +30,7 @@
     "@xen-orchestra/cron": "^1.0.6",
     "@xen-orchestra/log": "^0.7.1",
     "limit-concurrency-decorator": "^0.6.0",
-    "lodash": "^4.16.2"
+    "lodash": "^4.18.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",

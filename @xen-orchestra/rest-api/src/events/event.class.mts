@@ -17,6 +17,7 @@ export class Subscriber {
   #manager: SubscriberManager
   #connection: PassThrough
   #isAlive: boolean
+  #cleanupCallbacks: Set<() => void> = new Set()
 
   get id() {
     return this.#id
@@ -53,6 +54,11 @@ export class Subscriber {
     }
   }
 
+  onClear(callback: () => void): () => void {
+    this.#cleanupCallbacks.add(callback)
+    return () => this.#cleanupCallbacks.delete(callback)
+  }
+
   broadcast(event: EventType | 'init', data: object) {
     if (!this.#isAlive) {
       log.warn('broadcast called on a subscriber that is not alive, but still in memory! Force clear and do nothing')
@@ -66,10 +72,14 @@ export class Subscriber {
   }
 
   clear() {
-    this.#isAlive = false
-    if (!this.#connection.closed || !this.#connection.destroyed) {
-      this.#connection.destroy()
+    if (!this.#isAlive) {
+      return
     }
+
+    this.#isAlive = false
+    this.#connection.destroy()
+    this.#cleanupCallbacks.forEach(cb => cb())
+    this.#cleanupCallbacks.clear()
     this.#manager.removeSubscriber(this.id)
   }
 }
@@ -179,11 +189,6 @@ export class SubscriberManager {
   }
 
   clear() {
-    this.#subscribers.forEach(subscriber => {
-      if (!subscriber.connection.closed) {
-        subscriber.connection.destroy()
-      }
-      this.#subscribers.delete(subscriber.id)
-    })
+    this.#subscribers.forEach(subscriber => subscriber.clear())
   }
 }

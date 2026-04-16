@@ -70,6 +70,7 @@ export class ServerController extends XoController<XoServer> {
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoServer>>>> {
@@ -176,6 +177,7 @@ export class ServerController extends XoController<XoServer> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {

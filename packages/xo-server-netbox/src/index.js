@@ -211,7 +211,7 @@ class Netbox {
       throw new Error('UUID custom field was not found. Please create it manually from your Netbox interface.')
     }
     const types = uuidCustomField.object_types ?? uuidCustomField.content_types
-    const typesWithUuid = TYPES_WITH_UUID
+    const typesWithUuid = [...TYPES_WITH_UUID]
     if (this.#syncUsers) {
       typesWithUuid.push('tenancy.tenant')
     }

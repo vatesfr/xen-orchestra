@@ -50,7 +50,7 @@ export const MixinRemoteWriter = (BaseClass = Object) =>
 
     async getLongTermRetentionTags(currentEntry) {
       const settings = this._settings
-      const scheduleId = this._scheduleId
+      const scheduleId = this._schedule.id
       const vmUuid = this._vmUuid
       const adapter = this._adapter
 
