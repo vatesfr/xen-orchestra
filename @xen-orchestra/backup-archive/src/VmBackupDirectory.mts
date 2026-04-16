@@ -14,7 +14,7 @@ import {
   ResolvedBackupCleanOptions,
   DEFAULT_MERGE_CONCURRENCY,
 } from './VmBackup.types.mjs'
-import { openDisk, isDiskAlias } from '@xen-orchestra/backups/disks'
+import { cleanOrphanDiskDirs } from '@xen-orchestra/backups/disks'
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter.mjs'
@@ -29,13 +29,11 @@ export class VmBackupDirectory implements VmBackupInterface {
   files: Array<string> = new Array()
   orphans: Set<string> = new Set()
   backupArchives: Map<string, VmBackupInterface> = new Map()
-  diskLineages: Map<string, RemoteDiskLineage> = new Map()
   opts: ResolvedBackupCleanOptions
 
-  // Disk paths still referenced by at least one surviving complete delta backup
-  #activeDiskPaths: Set<string> = new Set()
   // Cached result of the last check() call; invalidated by init()
   #checkResult: (CheckResult & { orphans: string[]; linked: string[] }) | undefined = undefined
+  #uniqueLineages: Map<string, RemoteDiskLineage> | undefined = undefined
   #remoteAdapter: RemoteAdapter
 
   constructor(
@@ -64,8 +62,8 @@ export class VmBackupDirectory implements VmBackupInterface {
 
   async init() {
     this.files = (await this.handler.list(this.rootPath, { prependDir: true })).map(file => normalize(file))
-    this.#activeDiskPaths = new Set()
     this.#checkResult = undefined
+    this.#uniqueLineages = undefined
 
     for (const fullPath of this.files.filter(path => path.endsWith('.json'))) {
       let metadata: PartialBackupMetadata | undefined = undefined
@@ -78,29 +76,11 @@ export class VmBackupDirectory implements VmBackupInterface {
         try {
           const backupArchive = await this.instantiateBackupArchive(fullPath, metadata)
           this.backupArchives.set(fullPath, backupArchive)
-        } catch (error) {
+        } catch (error: any) {
+          if (error?.code === 'NOT_SUPPORTED') throw error
           this.opts.logWarn(`Issue loading ${metadata.xva ?? metadata.vhds}`, { json: fullPath, backup: metadata })
         }
       }
-    }
-
-    // Build one RemoteDiskLineage per VDI directory (vdis/<jobId>/<vdiUuid>/)
-    try {
-      const jobDirs = await this.handler.list(`${this.rootPath}/vdis`, {
-        prependDir: true,
-        ignoreMissing: true,
-      })
-      for (const jobDir of jobDirs) {
-        const vdiDirs = await this.handler.list(jobDir, { prependDir: true })
-        for (const vdiDir of vdiDirs) {
-          const lineage = new RemoteDiskLineage(this.handler, vdiDir, this.opts)
-          await lineage.init()
-          this.diskLineages.set(vdiDir, lineage)
-        }
-      }
-    } catch (error: any) {
-      if (error?.code === 'NOT_SUPPORTED') throw error
-      this.opts.logWarn('failed to scan VDI directories', { error })
     }
   }
 
@@ -116,25 +96,30 @@ export class VmBackupDirectory implements VmBackupInterface {
       await backupArchive.check()
     }
 
-    // Recompute active disk paths from complete delta archives only.
-    // Disks from incomplete backups are not protected so they can be cleaned up in one run.
-    this.#activeDiskPaths = new Set()
+    // Build the unique lineages map once after archives are checked (diskLineages are populated by init)
+    const uniqueLineages = new Map<string, RemoteDiskLineage>()
     for (const archive of this.backupArchives.values()) {
-      if (archive instanceof VmIncrementalBackupArchive && archive.isComplete) {
-        for (const diskPath of archive.diskPaths) {
-          this.#activeDiskPaths.add(diskPath)
+      if (archive instanceof VmIncrementalBackupArchive) {
+        for (const [vdiDir, lineage] of archive.diskLineages) {
+          if (!uniqueLineages.has(vdiDir)) {
+            uniqueLineages.set(vdiDir, lineage)
+          }
         }
       }
     }
+    this.#uniqueLineages = uniqueLineages
 
-    for (const lineage of this.diskLineages.values()) {
-      lineage.setActiveDiskPaths(this.#activeDiskPaths)
-      await lineage.check()
-    }
+    // allUsedFiles is used for root-level orphan detection only.
+    // Active disk paths are accumulated per-lineage by each archive during check() above.
     const allUsedFiles = new Set<string>([
       ...Array.from(this.backupArchives.values()).flatMap(archive => archive.getAssociatedFiles({ prefix: true })),
       ...this.getAssociatedFiles({ prefix: true }),
     ])
+
+    for (const lineage of this.#uniqueLineages.values()) {
+      await lineage.check()
+    }
+
     const orphans = this.files.filter(file => !allUsedFiles.has(file))
     const linked = Array.from(allUsedFiles)
     this.#checkResult = { isValid: orphans.length === 0, orphans, linked }
@@ -148,24 +133,13 @@ export class VmBackupDirectory implements VmBackupInterface {
     // Use cached check result if available, otherwise run check now
     const { orphans } = this.#checkResult ?? (await this.check())
 
-    // Let each archive clean its own files (e.g. remove metadata for incomplete backups)
     let cacheNeedsRegen = false
-    await asyncEach(
-      Array.from(this.backupArchives.values()),
-      async (archive: VmBackupInterface) => {
-        const { removedFiles } = await archive.clean({ remove })
-        if (removedFiles.length > 0) {
-          cacheNeedsRegen = true
-        }
-      },
-      { concurrency: 2 }
-    )
 
-    // Merge/delete orphan disks in VDI directories; collect merged sizes per disk path
+    // Merge/delete orphan disks in VDI directories covered by archives; collect merged sizes per disk path
     const allMergedSizes = new Map<string, number>()
     await asyncEach(
-      Array.from(this.diskLineages.entries()),
-      async ([vdiDir, lineage]) => {
+      Array.from(this.#uniqueLineages!.entries()),
+      async ([_vdiDir, lineage]) => {
         const { mergedSizes, deleted } = await lineage.clean({ remove, merge })
         if (deleted.size > 0) {
           cacheNeedsRegen = true
@@ -173,30 +147,31 @@ export class VmBackupDirectory implements VmBackupInterface {
         for (const [diskPath, size] of mergedSizes) {
           allMergedSizes.set(diskPath, (allMergedSizes.get(diskPath) ?? 0) + size)
         }
-
-        const aliasPaths = (await this.handler.list(vdiDir, { prependDir: true })).filter(isDiskAlias)
-        await VmBackupDirectory.checkAliases(this.handler, aliasPaths, `${vdiDir}/data`, {
-          remove,
-          logWarn: this.opts.logWarn,
-          logInfo: this.opts.logInfo,
-        })
       },
       { concurrency: DEFAULT_MERGE_CONCURRENCY }
     )
 
-    // Update metadata size for archives that had disks merged
-    for (const archive of this.backupArchives.values()) {
-      if (archive instanceof VmIncrementalBackupArchive) {
-        let mergedSize = 0
-        for (const diskPath of archive.diskPaths) {
-          mergedSize += allMergedSizes.get(diskPath) ?? 0
-        }
-        if (mergedSize > 0) {
-          await archive.updateMetadata(mergedSize)
+    // Delete VDI directories not referenced by any archive
+    const coveredDirs = new Set(this.#uniqueLineages!.keys())
+    await cleanOrphanDiskDirs(this.handler as any, this.rootPath, coveredDirs, {
+      remove,
+      logWarn: this.opts.logWarn,
+      logInfo: this.opts.logInfo,
+    })
+
+    // Let each archive clean its own files (e.g. remove metadata for incomplete backups)
+    // and update metadata with merged sizes if applicable
+    await asyncEach(
+      Array.from(this.backupArchives.values()),
+      async (archive: VmBackupInterface) => {
+        const { removedFiles, merge: didMerge } = await archive.clean({ remove, mergedSizes: allMergedSizes })
+        if (removedFiles.length > 0 || didMerge) {
           cacheNeedsRegen = true
         }
-      }
-    }
+      },
+      { concurrency: 2 }
+    )
+
     if (cacheNeedsRegen) {
       await this.#regenerateCache()
     }
@@ -276,57 +251,6 @@ export class VmBackupDirectory implements VmBackupInterface {
     }
     await backupArchive.init()
     return backupArchive
-  }
-
-  /**
-   * Validates alias files in aliasPaths and deletes data files in dataDir not referenced by any valid alias.
-   * Mirrors the original checkAliases() logic from _cleanVm.mjs.
-   */
-  static async checkAliases(
-    handler: RemoteHandlerAbstract,
-    aliasPaths: string[],
-    dataDir: string,
-    opts: Pick<ResolvedBackupCleanOptions, 'remove' | 'logWarn' | 'logInfo'>
-  ): Promise<void> {
-    const resolvedPaths = new Set<string>()
-    for (const path of aliasPaths) {
-      if (!isDiskAlias(path)) {
-        continue
-      }
-      const disk = await openDisk({ handler: handler as any, path, ignoreBlockIndexes: true })
-      try {
-        const resolvedTarget = await disk.checkAlias({
-          remove: opts.remove,
-          logWarn: opts.logWarn,
-          logInfo: opts.logInfo,
-        })
-        if (resolvedTarget !== undefined) {
-          resolvedPaths.add(normalize(resolvedTarget))
-        }
-      } finally {
-        await disk.close()
-      }
-    }
-
-    let dataFiles: string[]
-    try {
-      dataFiles = await handler.list(dataDir, { prependDir: true })
-    } catch {
-      return
-    }
-    for (const dataFile of dataFiles) {
-      if (!resolvedPaths.has(normalize(dataFile))) {
-        opts.logWarn('no alias references data file', { path: dataFile })
-        if (opts.remove) {
-          try {
-            const dataDisk = await openDisk({ handler: handler as any, path: dataFile, ignoreBlockIndexes: true })
-            await dataDisk.unlink({ force: true })
-          } catch (error) {
-            opts.logWarn('failed to delete unreferenced data file', { path: dataFile, error })
-          }
-        }
-      }
-    }
   }
 
   /**

@@ -7,7 +7,8 @@ import {
   PartialBackupMetadata,
 } from './VmBackup.types.mjs'
 import RemoteHandlerAbstract from '@xen-orchestra/fs'
-import { basename, normalize } from '@xen-orchestra/fs/path'
+import { basename, dirname, normalize } from '@xen-orchestra/fs/path'
+import { RemoteDiskLineage } from './RemoteDiskLineage.mjs'
 
 export class VmIncrementalBackupArchive implements VmBackupInterface {
   handler: RemoteHandlerAbstract
@@ -16,6 +17,7 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
   readonly diskPaths: Array<string>
   rootPath: string
   opts: ResolvedBackupCleanOptions
+  diskLineages: Map<string, RemoteDiskLineage> = new Map()
 
   #isChecked = false
   #isComplete = false
@@ -45,7 +47,20 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
   }
 
   async init(): Promise<void> {
-    // Validation is deferred to check()
+    // Build one RemoteDiskLineage per VDI directory derived from diskPaths
+    try {
+      for (const diskPath of this.diskPaths) {
+        const vdiDir = dirname(diskPath)
+        if (!this.diskLineages.has(vdiDir)) {
+          const lineage = new RemoteDiskLineage(this.handler, vdiDir, this.opts)
+          await lineage.init()
+          this.diskLineages.set(vdiDir, lineage)
+        }
+      }
+    } catch (error: any) {
+      if (error?.code === 'NOT_SUPPORTED') throw error
+      this.opts.logWarn('failed to scan VDI directories', { error })
+    }
   }
 
   async check(): Promise<CheckResult> {
@@ -69,15 +84,22 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
         this.opts.logWarn('incremental backup is incomplete', { metadataPath: this.metadataPath, missingDisks })
       }
     }
+    if (this.#isComplete) {
+      for (const lineage of this.diskLineages.values()) {
+        lineage.addActiveDiskPaths(this.diskPaths)
+      }
+    }
+
     this.#isChecked = true
     return { isValid: this.#isComplete, missingDisks }
   }
 
   /**
    * Removes the metadata file if the backup is incomplete (missing disks).
+   * If mergedSizes is provided, updates metadata with the total merged size for this archive's disks.
    * Actual disk merge/deletion is handled by RemoteDiskLineage.
    */
-  async clean({ remove = this.opts.remove ?? false }: ArchiveCleanOptions = {}): Promise<CleanResult> {
+  async clean({ remove = this.opts.remove ?? false, mergedSizes }: ArchiveCleanOptions = {}): Promise<CleanResult> {
     if (!this.#isChecked) {
       await this.check()
     }
@@ -97,7 +119,17 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
       }
     }
 
-    return { removedFiles, merge: false }
+    let mergedSize = 0
+    if (mergedSizes !== undefined) {
+      for (const diskPath of this.diskPaths) {
+        mergedSize += mergedSizes.get(diskPath) ?? 0
+      }
+      if (mergedSize > 0) {
+        await this.updateMetadata(mergedSize)
+      }
+    }
+
+    return { removedFiles, merge: mergedSize > 0 }
   }
 
   /**
@@ -116,15 +148,14 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
   }
 
   /**
-   * Returns the metadata file path if the backup is complete, empty otherwise.
-   * Disk paths are not included — they live under vdis/ and are managed by RemoteDiskLineage.
+   * Returns the metadata file path and active disk paths if the backup is complete, empty otherwise.
    * Must be called after check().
    */
   getAssociatedFiles({ prefix = false }): Array<string> {
     if (!this.#isComplete) {
       return []
     }
-    const files = [this.metadataPath]
+    const files = [this.metadataPath, ...this.diskPaths]
     return prefix ? files : files.map(file => basename(file))
   }
 }

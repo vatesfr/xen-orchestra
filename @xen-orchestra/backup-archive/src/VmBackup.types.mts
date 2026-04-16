@@ -39,6 +39,7 @@ export type ResolvedBackupCleanOptions = BackupCleanOptions & {
 export interface ArchiveCleanOptions {
   remove?: boolean
   merge?: boolean
+  mergedSizes?: Map<string, number>
 }
 
 export interface CheckResult {
