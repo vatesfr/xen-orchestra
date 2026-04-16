@@ -9,7 +9,7 @@
     </template>
 
     <template #confirm>
-      {{ t(`action:delete-vdis`, { n: count }) }}
+      {{ t(`action:delete-n-vdis`, { n: count }) }}
     </template>
   </VtsDeleteModal>
 </template>

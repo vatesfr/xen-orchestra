@@ -16,6 +16,6 @@ export const useVdiColumns = defineColumns(() => {
     usedSpace: useProgressBarColumn({ headerLabel: () => t('used-space') }),
     size: useNumberColumn({ headerLabel: () => t('size') }),
     format: useLiteralColumn({ headerLabel: () => t('format') }),
-    actions: useActionColumn({ buttonIcon: 'fa:eye' }),
+    actions: useActionColumn({}),
   }
 })

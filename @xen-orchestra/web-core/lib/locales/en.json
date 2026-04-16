@@ -384,7 +384,7 @@
   "job:vif-delete:blocked-operation": "VIF deletion is blocked",
   "job:vif-delete:missing-vif": "No VIFs to delete",
   "job:vdi-delete:missing-vdi": "No VDIs to delete",
-  "job:vdi-delete:vbd-attached": "Cannot delete a VDI that is currently attached",
+  "job:vdi-delete:vbd-attached": "Cannot delete a VDI with VBD attached",
   "job:vm-copy:bad-power-state": "VM must be halted",
   "job:vm-copy:in-progress": "Copy in progress…",
   "job:vm-copy:missing-vm": "No VMs to copy",
