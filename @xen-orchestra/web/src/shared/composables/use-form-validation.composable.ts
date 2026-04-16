@@ -35,16 +35,6 @@ function mapMessages<TData extends Record<string, unknown>>(
   ) as XoFormMessages<TData>
 }
 
-/**
- * App-level wrapper around `useFormValidation` from `@core/packages/form-validation`.
- *
- * Automatically maps raw validation messages to `InputWrapperMessage` objects:
- * - errors → accent `'danger'`
- * - warnings → accent `'warning'`
- *
- * Form composables should import from here instead of `@core/packages/form-validation`
- * to get ready-to-use `errors`, `warnings`, and `useFieldMetadata` without any manual mapping.
- */
 export function useFormValidation<TData extends Record<string, unknown>>(
   data: TData,
   config: FormValidationConfig<TData>

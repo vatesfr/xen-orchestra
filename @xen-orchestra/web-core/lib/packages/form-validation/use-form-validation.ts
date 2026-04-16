@@ -9,11 +9,6 @@ import type {
 import { useRegle } from '@regle/core'
 import { computed } from 'vue'
 
-/**
- * Internal accessor type that describes the minimal Regle status API we rely on.
- * Using this instead of the full (and very complex) Regle generic types keeps the
- * wrapper's implementation readable while staying free of `any`.
- */
 type FieldStatus = {
   $touch: () => void
 }
