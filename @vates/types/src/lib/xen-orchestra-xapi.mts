@@ -62,6 +62,11 @@ export interface Xapi {
     ref: T['$ref'],
     field: K
   ): Promise<T[K]>
+  getObject: <T extends XenApiRecord>(
+    // id is either uuid or ref
+    idOrUuidOrRef: T[Extract<'uuid', keyof T>] | T['$ref'],
+    defaultValue?: T
+  ) => T
   createNetwork(
     params:
       | {

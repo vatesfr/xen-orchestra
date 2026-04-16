@@ -146,6 +146,7 @@ export class PoolController extends XapiXoController<XoPool> {
 
   /**
    * Required privilege:
+   * - resource: pool, action: create:network
    * - resource: network, action: create
    *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
@@ -159,7 +160,14 @@ export class PoolController extends XapiXoController<XoPool> {
   @Example(taskLocation)
   @Example(createNetwork)
   @Post('{id}/actions/create_network')
-  @Middlewares([json(), acl({ resource: 'network', action: 'create', object: ({ req }) => req.body })])
+  @Middlewares([
+    json(),
+    acl([
+      // these two rights are a bit redundant, but for now this is the only way to restrict network creation on a given pool
+      { resource: 'pool', action: 'create:network', objectId: 'params.id' },
+      { resource: 'network', action: 'create', object: ({ req }) => req.body },
+    ]),
+  ])
   @Tags('networks')
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -292,8 +300,7 @@ export class PoolController extends XapiXoController<XoPool> {
    *  Import an XVA VM into a pool
    *
    * Required privilege:
-   * - resource: sr, action: read
-   * - resource: vm, action: create
+   * - resource: sr, action: import:vm
    *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
    * @example sr "c787b75c-3e0d-70fa-d0c3-cbfd382d7e33"
@@ -303,8 +310,18 @@ export class PoolController extends XapiXoController<XoPool> {
   @Post('{id}/vms')
   @Middlewares(
     acl([
-      { resource: 'vm', action: 'create', object: ({ req }) => req.body },
-      { resource: 'sr', action: 'read', objectId: 'query.sr' },
+      {
+        resource: 'sr',
+        action: 'import:vm',
+        objectId: ({ req, restApi }) => {
+          if (req.query.sr) {
+            return req.query.sr as XoSr['id']
+          } else {
+            const pool = restApi.getObject(req.params.id as XoPool['id'], 'pool') as XoPool
+            return pool.default_SR as XoSr['id']
+          }
+        },
+      },
     ])
   )
   @Tags('vms')
@@ -335,8 +352,12 @@ export class PoolController extends XapiXoController<XoPool> {
 
   /**
    * Required privilege:
-   * - resource: vm, action: create
-   * - resource: vm-template, action: read
+   * - resource: pool, action: create:vm
+   * - resource: vm-template, action: instantiate
+   * - resource: vdi, action: create (if vdis is passed)
+   * - resource: vdi, action: boot (if install.repository is passed)
+   * - resource: vif, action: create (if vifs is passed)
+   * - resource: host, action: allow-vm (if affinity is passed)
    *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
    * @example body {
@@ -351,8 +372,34 @@ export class PoolController extends XapiXoController<XoPool> {
   @Middlewares([
     json(),
     acl([
-      { resource: 'vm', action: 'create', object: ({ req }) => req.body },
-      { resource: 'vm-template', action: 'read', objectId: 'body.template' },
+      { resource: 'pool', action: 'create:vm', objectId: 'params.id' },
+      {
+        resource: 'vm-template',
+        action: 'instantiate',
+        objectId: ({ req, restApi }) => {
+          const pool = restApi.getXapiObject<XoPool>(req.params.id as XoPool['id'], 'pool')
+          const template = pool.$xapi.getObject<XenApiVm>(req.body.template)
+
+          if (template.is_default_template) {
+            return `${pool.uuid}-${template.uuid}`
+          }
+
+          return req.body.template
+        },
+      },
+      {
+        resource: 'vdi',
+        action: 'boot',
+        objectId: ({ req }) => {
+          const repository = req.body.install?.repository
+          if (repository !== '') {
+            return repository
+          }
+        },
+      },
+      { resource: 'vdi', action: 'create', objects: ({ req }) => req.body.vdis },
+      { resource: 'vif', action: 'create', objects: ({ req }) => req.body.vifs },
+      { resource: 'host', action: 'allow-vm', objectId: 'body.affinity' },
     ]),
   ])
   @Tags('vms')
