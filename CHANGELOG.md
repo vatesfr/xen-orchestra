@@ -201,7 +201,7 @@
 ### Enhancements
 
 - [Warm Migration] the api call now return the new VM uuid (PR [#9465](https://github.com/vatesfr/xen-orchestra/pull/9465))
-- [Warm Migration] stopped VM can be warm migrated (PR [#94653](https://github.com/vatesfr/xen-orchestra/pull/9465))
+- [Warm Migration] stopped VM can be warm migrated (PR [#9465](https://github.com/vatesfr/xen-orchestra/pull/9465))
 - [Netbox] Support version 4.5.x (PR [#9445](https://github.com/vatesfr/xen-orchestra/pull/9445))
 - [Storage] Add possibility to create VDI in qcow2 format if size > 2TB - 8KB (PR [#9493](https://github.com/vatesfr/xen-orchestra/pull/9493))
 - [Backups] Improve VHD dist handling an rework disk merge (delta backups) (PR [#9300](https://github.com/vatesfr/xen-orchestra/pull/9300))
@@ -391,7 +391,7 @@
   - [Netdata] Fix netdata URL (PR [#9354](https://github.com/vatesfr/xen-orchestra/pull/9354))
 
 - [OpenMetrics] Fix compliance with OpenMetrics 1.0 specification: use correct Content-Type header and timestamps in seconds (PR [#9351](https://github.com/vatesfr/xen-orchestra/pull/9351))
-- [OpenMetrics] Fix authentication bypass for `/openmetrics` routes to allow Prometheus scraping with Bearer token [#9351](https://github.com/vatesfr/xen-orchestra/pull/9351)
+- [OpenMetrics] Fix authentication bypass for `/openmetrics` routes to allow Prometheus scraping with Bearer token (PR [#9351](https://github.com/vatesfr/xen-orchestra/pull/9351))
 - [Select component] Fix randomly empty select component at initialization (PR [#9282](https://github.com/vatesfr/xen-orchestra/pull/9282))
 - [TaskItem] Fix tree on task item component due to a different behavior on firefox (PR [#9352](https://github.com/vatesfr/xen-orchestra/pull/9352))
 
