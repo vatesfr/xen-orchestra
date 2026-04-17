@@ -82,7 +82,12 @@ export class RemoteDiskLineage {
         continue
       }
       try {
-        this.#uuidToPath.set(disk.getUuid(), diskPath)
+        const uuid = disk.getUuid()
+        const existing = this.#uuidToPath.get(uuid)
+        if (existing !== undefined) {
+          this.#opts.logWarn('duplicate disk UUID detected', { uuid, path1: existing, path2: diskPath })
+        }
+        this.#uuidToPath.set(uuid, diskPath)
 
         if (disk.isDifferencing()) {
           const parentPath = disk.getParentPath()
