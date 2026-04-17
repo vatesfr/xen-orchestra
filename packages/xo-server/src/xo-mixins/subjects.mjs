@@ -30,11 +30,13 @@ export default class {
         connection: redis,
         namespace: 'group',
         indexes: ['name'],
+        crypto: app,
       }))
       const usersDb = (this._users = new Users({
         connection: redis,
         namespace: 'user',
         indexes: ['email'],
+        crypto: app,
       }))
 
       app.addConfigManager(
