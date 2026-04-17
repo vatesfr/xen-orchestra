@@ -38,6 +38,7 @@
 - [Backups] Backups no longer use their own task system, but instead use the same system as XO Task. This will help improve loading times in the future (PR [#9734](https://github.com/vatesfr/xen-orchestra/pull/9734))
 - [OpenMetrics] Add VM status (`xcp_vm_status`) and VM uptime (`xcp_vm_uptime_seconds`) metrics [#9684](https://github.com/vatesfr/xen-orchestra/pull/9684)
 - [Encryption] Implement encryption and decryption feature for redis ([9735](https://github.com/vatesfr/xen-orchestra/pull/9735))
+- [Encryption] Implement encryption and decryption feature for redis (PR [9735](https://github.com/vatesfr/xen-orchestra/pull/9735))
 
 ### Bug fixes
 
