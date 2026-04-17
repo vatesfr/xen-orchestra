@@ -37,9 +37,7 @@
       <VtsCardRowKeyValue v-bind="properties">
         <template #key>Network</template>
         <template #value>
-          <UiObjectLink route="`/vm/test/console`" icon="object:network:connected">
-            <span>Network Name</span>
-          </UiObjectLink>
+          <UiLink size="small" icon="object:network:connected" to="/vm/test/console">Network Name</UiLink>
         </template>
         <template #addons>
           <UiButtonIcon icon="fa:copy" size="small" accent="brand" />
@@ -81,7 +79,7 @@ import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
-import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 
