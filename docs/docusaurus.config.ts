@@ -34,27 +34,27 @@ export default {
       {
         redirects: [
           {
-            to: '/manage_infrastructure#vms',
+            to: '/xo5/manage_infrastructure#vms',
             from: '/administration',
           },
           {
-            to: '/users#acls',
+            to: '/xo5/users#acls',
             from: '/acls',
           },
           {
-            to: '/incremental_replication',
+            to: '/xo5/incremental_replication',
             from: '/continuous_replication',
           },
           {
-            to: '/advanced#alerts',
+            to: '/xo5/advanced#alerts',
             from: '/alerts',
           },
           {
-            to: '/architecture#plugins',
+            to: '/xo5/architecture#plugins',
             from: '/plugins',
           },
           {
-            to: '/troubleshooting',
+            to: '/xo5/troubleshooting',
             from: '/general-troubleshooting',
           },
         ],
@@ -111,7 +111,7 @@ export default {
             },
             {
               label: 'Installation',
-              href: '/installation',
+              href: '/xo5/installation',
             },
           ],
         },

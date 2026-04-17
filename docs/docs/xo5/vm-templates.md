@@ -2,7 +2,7 @@
 
 Virtual machine templates in Xen Orchestra make it easy to deploy new VMs by providing a ready-to-use configuration with predefined hardware specs and settings. Instead of manually setting up each VM from scratch, you can use templates to speed up deployment and keep things consistent.
 
-![Overview of the Template screen in Xen Orchestra](./assets/template-menu.png)
+![Overview of the Template screen in Xen Orchestra](../assets/template-menu.png)
 
 ## Creating Templates
 
@@ -19,7 +19,7 @@ Once you convert a VM into a template, it won’t show up in the VM list anymore
 1. Select your VM and go to the **Advanced** tab.
 2. Click **Convert to template**, then confirm.
 
-![VM screen with Convert to template button](./assets/convert-to-template.png)
+![VM screen with Convert to template button](../assets/convert-to-template.png)
 
 ### Clone an Existing Template
 
@@ -30,7 +30,7 @@ Duplicate one of the built-in templates and customize it to match your needs.
 3. Click the **Copy button** in the header.
 4. Fill out the details in the dialog box.
 
-![List of selected VM templates with Copy button](./assets/copy-template.png)
+![List of selected VM templates with Copy button](../assets/copy-template.png)
 
 ### Create a VM and Convert It
 
@@ -48,7 +48,7 @@ To check a template’s settings in Xen Orchestra:
 2. Check the box next to the template(s) you want to inspect.
 3. Click the hamburger button at the corresponding line to see details like CPU, RAM, and template tags.
 
-![Basic template details from the Xen Orchestra UI](./assets/template-details-ui.png)
+![Basic template details from the Xen Orchestra UI](../assets/template-details-ui.png)
 
 ### From the REST API
 
@@ -58,9 +58,9 @@ To know more on the REST API, read [its documentation](https://github.com/vatesf
 
 All collections are listed when you run `GET /rest/v0`, including the `vm-templates` collection:
 
-![List of VM templates, accessed from the REST API](./assets/template-list.png)
+![List of VM templates, accessed from the REST API](../assets/template-list.png)
 
-![VM template details, accessed from the REST API](./assets/rest-api-template-example.png)
+![VM template details, accessed from the REST API](../assets/rest-api-template-example.png)
 
 ### From the CLI
 
@@ -112,7 +112,7 @@ A list of VMs appears.
 The VM details screen appears.
 3. Click the **Advanced** tab to show more settings for your VM.
 4. In the **Xen settings** section, scroll to the end and activate the **Viridian** toggle switch:
-   ![Location of the Viridian toggle in XO](./assets/viridian-extensions.png)
+   ![Location of the Viridian toggle in XO](../assets/viridian-extensions.png)
    Viridian extensions are now enabled for your VM. You can now safely use this VM to create your Windows template.
 
 #### Enabling Viridian for other non-Windows VM templates
@@ -153,7 +153,7 @@ In XOA 5.31, we changed the Cloud-init config drive type from [OpenStack](https:
 
 ### Example: How to create a Cloudbase-init template with Windows Server?
 
-Refer to the [Windows Templates with Cloudbase-init: Step-by-step Guide & Best Practices](./windows-templates) document for complete instructions.
+Refer to the [Windows Templates with Cloudbase-init: Step-by-step Guide & Best Practices](../windows-templates) document for complete instructions.
 
 ### Example: How to create a Cloud-init template with Ubuntu 22.04 LTS?
 
@@ -175,21 +175,21 @@ Refer to the [Windows Templates with Cloudbase-init: Step-by-step Guide & Best P
 
 First, select your compatible template (CloudInit ready) and name it:
 
-![](./assets/cloud-init-1.png)
+![](../assets/cloud-init-1.png)
 
 Then, activate the config drive and insert your SSH key. Or you can also use a custom CloudInit configuration:
 
-![](./assets/cloud-init-2.png)
+![](../assets/cloud-init-2.png)
 
 > CloudInit configuration examples are [available here](http://cloudinit.readthedocs.org/en/latest/topics/examples.html).
 
 You can extend the disk size (**in this case, the template disk was 8 GiB originally**). We'll extend it to 20GiB:
 
-![](./assets/cloud-init-3.png)
+![](../assets/cloud-init-3.png)
 
 Finally, create the VM:
 
-![](./assets/cloud-init-4.png)
+![](../assets/cloud-init-4.png)
 
 Now start the VM and SSH to its IP:
 

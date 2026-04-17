@@ -29,7 +29,7 @@ The best way to propose a change to the documentation or code is
 to create a [GitHub pull request](https://help.github.com/articles/using-pull-requests/).
 
 1. Fork the [Xen Orchestra repository](https://github.com/vatesfr/xen-orchestra) using the Fork button
-2. Follow [the documentation](installation.md#from-the-sources) to install and run Xen Orchestra from the sources
+2. Follow [the documentation](./xo5/installation.md#from-the-sources) to install and run Xen Orchestra from the sources
 3. Create a branch for your work
 4. Edit the source files
 5. Add a summary of your changes to `CHANGELOG.unreleased.md`, if your changes do not relate to an existing changelog item and update the list of packages that must be released to take your changes into account
