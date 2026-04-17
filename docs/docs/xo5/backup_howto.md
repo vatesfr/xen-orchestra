@@ -18,7 +18,7 @@ This part explains the terminology of backup types and features.
 - [**Incremental replication**](./incremental_replication): Transfer and stores only the changes since the last backup to storage repositories (on the same pool or on another), reducing network needs. The first transfer transfers the VM completely.
 - [**Long-term retention**](./backups#long-term-backup-retention-with-gfs-strategy): Keeps backups over extended periods (weeks, months, or years) for compliance or archival purposes.
 - [**Mirror backup**](./mirror_backup): Mirror a backup repository to another. Retention and encryption of source and destination can be different.
-- [**Distributed backup and replication**](./distributed_backups): Distribute the backups and replications across multiple targets.
+- [**Distributed backup and replication**](../distributed_backups): Distribute the backups and replications across multiple targets.
 - [**Remote**](./backups#remotes): A storage location for backups. For instance:
   - Local storage (not recommended)
   - NFS

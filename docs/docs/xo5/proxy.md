@@ -8,9 +8,9 @@ The most current situation in which you might wish to use a XO proxy are:
 
 ## Architecture
 
-![](./assets/withoutproxy.png)
+![](../assets/withoutproxy.png)
 
-![](./assets/withproxy.png)
+![](../assets/withproxy.png)
 
 ## Deployment
 
@@ -30,7 +30,7 @@ XO proxies require the following resources:
 
 1. Go to the proxies section of your appliance
 
-![](./assets/proxy-section.png)
+![](../assets/proxy-section.png)
 
 2. Deploy a proxy in your infrastructure
 
@@ -58,7 +58,7 @@ While creating a standard backup job from your main Xen Orchestra appliance, you
 :::tip
 If you see this error: `The backup will not be run on this remote because it's not compatible with the selected proxy`, it means the selected remote is not accessible from the proxy or mounted on the proxy that you have selected for the job.
 
-![Error message: "The backup will not be run on this remote because it's not compatible with the selected proxy"](./assets/remote_not_compatible_with_proxy.png)
+![Error message: "The backup will not be run on this remote because it's not compatible with the selected proxy"](../assets/remote_not_compatible_with_proxy.png)
 :::
 
 ## Enabling login to a proxy appliance
