@@ -176,13 +176,4 @@ describe('XoClient', () => {
       await client.getMarkdown('/vms', '*', { filter: 'power_state:Running', limit: 5 })
     })
   })
-
-  describe('getText', () => {
-    it('returns raw text from endpoint', async () => {
-      const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'pass' })
-      globalThis.fetch = async () => new Response('{"hosts":{"running":1}}')
-      const result = await client.getText('/pools/pool1/dashboard')
-      assert.strictEqual(result, '{"hosts":{"running":1}}')
-    })
-  })
 })

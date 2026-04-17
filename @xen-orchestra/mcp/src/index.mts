@@ -1,20 +1,10 @@
 #!/usr/bin/env node
-/**
- * XO MCP Server
- *
- * Model Context Protocol server for Xen Orchestra.
- * Allows AI assistants to query and manage XO infrastructure.
- *
- * Usage:
- *   XO_URL=http://xo.local XO_USERNAME=admin XO_PASSWORD=*** node dist/index.mjs
- */
-
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { realpathSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { XoClient } from './xo-client.mjs'
-
-// Re-export for backward compatibility (used by tests and bin entry point)
 import { createServer } from './server.mjs'
+
 export { createServer }
 export { fetchDocumentation } from './tools/utility/search-docs.mjs'
 
@@ -34,12 +24,8 @@ export function validateEnv(): EnvConfig {
     )
   }
 
-  // Token auth takes priority
-  if (token) {
-    return { url, token }
-  }
+  if (token) return { url, token }
 
-  // Fall back to Basic Auth
   const missing: string[] = []
   if (!username) missing.push('XO_USERNAME')
   if (!password) missing.push('XO_PASSWORD')
@@ -63,24 +49,18 @@ export async function main() {
 
   let xoClient: XoClient | null = null
   function getClient(): XoClient {
-    if (!xoClient) {
-      xoClient = new XoClient(env)
-    }
+    if (!xoClient) xoClient = new XoClient(env)
     return xoClient
   }
 
-  const server = createServer(getClient)
-
+  const server = await createServer(getClient)
   const transport = new StdioServerTransport()
   await server.connect(transport)
 }
 
-// Only run main when executed directly (not when imported for testing)
-// realpathSync handles the case where the binary is invoked via a symlink (e.g., npx bin)
-import { fileURLToPath } from 'node:url'
+// realpathSync handles invocation via a symlink (e.g. the published bin).
 if (realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))) {
-  // console.error is used intentionally instead of @xen-orchestra/log because
-  // MCP servers communicate via stdout (JSON-RPC) — only stderr is safe for logging.
+  // stdout is reserved for JSON-RPC — all logging MUST go to stderr.
   main().catch(error => {
     console.error('Fatal error:', error instanceof Error ? error.message : error)
     process.exit(1)
