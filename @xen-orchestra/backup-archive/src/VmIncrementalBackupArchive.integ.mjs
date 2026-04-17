@@ -141,7 +141,7 @@ test('it remove vhd with missing or multiple ancestors', async () => {
   // we don't test the file on disk, since they will all be marked as unused and deleted without a metadata.json file
 })
 
-test('it remove backup meta data referencing a missing vhd in delta backup', async () => {
+test('it remove backup metadata referencing a missing vhd in delta backup', async () => {
   // create a metadata file marking child and orphan as ok
   await handler.writeFile(
     `${rootPath}/metadata.json`,
@@ -199,6 +199,39 @@ test('it remove backup meta data referencing a missing vhd in delta backup', asy
     (await handler.list(rootPath)).includes('cache.json.gz'),
     'cache.json.gz should be regenerated after metadata deletion'
   )
+})
+
+test('it removes metadata and broken vhd when an active backup references a corrupt disk', async () => {
+  // A VHD that exists on disk but is corrupted — openDisk will fail during lineage init
+  await handler.writeFile(`${basePath}/broken.vhd`, 'I AM NOT A VHD')
+
+  // Metadata references the corrupt VHD as if it were a valid active disk
+  await handler.writeFile(
+    `${rootPath}/metadata.json`,
+    JSON.stringify({
+      mode: 'delta',
+      vhds: [`${relativePath}/broken.vhd`],
+    })
+  )
+
+  let logged = ''
+  const logInfo = message => {
+    logged += message
+  }
+  await VmBackupDirectory.cleanVm(handler, rootPath, {
+    remove: true,
+    logInfo: () => {},
+    logWarn: logInfo,
+  })
+
+  assert.ok(logged.includes('disk check error'), 'should warn that the disk is broken')
+  assert.ok(logged.includes('incremental backup is incomplete'), 'backup should be flagged as incomplete')
+
+  // metadata removed because backup is incomplete
+  assert.ok(!(await handler.list(rootPath)).includes('metadata.json'), 'metadata should be deleted')
+
+  // broken VHD removed via the orphan path in lineage.clean()
+  assert.deepEqual(await handler.list(basePath), [], 'broken VHD should be deleted')
 })
 
 test('it merges delta of non destroyed chain', async () => {
@@ -555,7 +588,7 @@ test('it cleans orphan merge states ', async () => {
   assert.deepEqual(await handler.list(basePath), [])
 })
 
-test('check Aliases should work alone', async () => {
+test('check all types of aliases, corrupted, missing or not', async () => {
   // valid alias pointing to an existing data file
   await handler.mkdir(`${basePath}/data`)
   await generateVhd(`${basePath}/data/ok.vhd`)
