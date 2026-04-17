@@ -15,6 +15,11 @@ describe('CryptoCredentials', function () {
     await cryptoCredentials._loadKey(randomBytes(32), randomBytes(32))
   })
 
+  it('is not degraded by default', function () {
+    const instance = new CryptoCredentials(mockApp)
+    assert.equal(instance.isDegraded(), false)
+  })
+
   it('encrypts and decripts a string', async function () {
     const payload = 'vates_rocks'
 
@@ -27,6 +32,12 @@ describe('CryptoCredentials', function () {
     assert.equal(typeof decrypted, 'string')
     // encrypt and decrypt works
     assert.equal(decrypted, payload)
+  })
+
+  it('encrypted value is base64 and not valid JSON', async function () {
+    const encrypted = await cryptoCredentials.encrypt('{"why":"vates_rocks"}')
+    assert.throws(() => JSON.parse(encrypted))
+    assert.ok(Buffer.from(encrypted, 'base64url').length > 12)
   })
 
   it('multiple encrypts give different ciphertexts', async function () {
@@ -43,11 +54,14 @@ describe('CryptoCredentials', function () {
     const halfA = randomBytes(32)
     const halfB = randomBytes(32)
 
+    // Since _loadKey fills the key half buffers with zeros,
+    // we need to pass a copy using Buffer.from, not by reference.
+
     const instance1 = new CryptoCredentials(mockApp)
-    await instance1._loadKey(halfA, halfB)
+    await instance1._loadKey(Buffer.from(halfA), Buffer.from(halfB))
 
     const instance2 = new CryptoCredentials(mockApp)
-    await instance2._loadKey(halfA, halfB)
+    await instance2._loadKey(Buffer.from(halfA), Buffer.from(halfB))
 
     const encrypted = await instance1.encrypt(payload)
 
@@ -61,7 +75,7 @@ describe('CryptoCredentials', function () {
     const encrypted = await cryptoCredentials.encrypt(payload)
 
     // Technically, the random could be the same as the first loadKey,
-    // but you sometimes have to accept risks
+    // but you sometimes have to live dangerously
     await cryptoCredentials._loadKey(randomBytes(32), randomBytes(32))
 
     await assert.rejects(() => cryptoCredentials.decrypt(encrypted), { name: 'OperationError' })
