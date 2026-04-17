@@ -553,6 +553,9 @@ async function createWebServer({ listen, listenOptions }) {
   // causing TLSSockets to accumulate indefinitely. We add the missing handler here;
   // http-server-plus forwards it to underlying https.Server instances on listen().
   const pendingSockets = webServer._pendingSockets
+  if (!(pendingSockets instanceof Map)) {
+    throw new Error('stoppable internal API changed: _pendingSockets is missing')
+  }
   webServer.on('secureConnection', socket => {
     pendingSockets.set(socket, 0)
     socket.once('close', () => pendingSockets.delete(socket))

@@ -17,20 +17,17 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "engines": {
-    "node": ">=6"
+    "node": ">=20"
   },
   "dependencies": {
     "promise-toolbox": "^0.21.0"
   },
   "devDependencies": {
-    "eslint-plugin-n": "^15.1.0",
-    "tap": "^16.0.1",
-    "tcp-bind": "^1.2.0"
+    "eslint-plugin-n": "^15.1.0"
   },
   "scripts": {
-    "dev-test": "tap --no-check-coverage --watch",
     "pretest": "eslint .",
-    "test": "tap --no-check-coverage"
+    "test": "node --test index.spec.js"
   },
   "private": true,
   "author": {

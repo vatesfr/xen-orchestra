@@ -5,7 +5,7 @@
 const assert = require('assert/strict')
 const { EventEmitter } = require('events')
 const resolvePath = require('path').resolve
-const { describe, it } = require('tap').mocha
+const { describe, it } = require('node:test')
 
 const HttpServerPlus = require('./')
 
@@ -66,7 +66,6 @@ describe('HttpServerPlus', function () {
     })
   })
 
-  // TODO
   describe('secureConnection event forwarding', function () {
     function createMockHttpsServer() {
       const server = new EventEmitter()
@@ -301,7 +300,4 @@ describe('HttpServerPlus', function () {
       })
     })
   })
-
-  // TODO
-  it.todo('can be used exactly like `{http,https}.Server`')
 })
