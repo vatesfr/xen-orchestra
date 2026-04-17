@@ -352,6 +352,11 @@ export default class Api {
 
   async #callApiMethod(name, method, { _log, ...params }) {
     const app = this._app
+
+    if (app.isDegraded()) {
+      throw new Error('XO is running in degraded mode: credential decryption failed. Use xo-server-crypto CLI to fix.')
+    }
+
     const startTime = Date.now()
 
     const { connection, user } = this.apiContext

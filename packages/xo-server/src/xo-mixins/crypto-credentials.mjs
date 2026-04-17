@@ -18,6 +18,7 @@ export default class CryptoCredentials {
   #encryptionKey
 
   /**
+   * Reserved for spec 2
    * @type {webcrypto.CryptoKey | undefined}
    */
   #hmacKey
@@ -30,7 +31,7 @@ export default class CryptoCredentials {
   /**
    * @type {boolean}
    */
-  #degraded = true
+  #degraded = false
 
   /**
    * @param {any} app
@@ -52,11 +53,6 @@ export default class CryptoCredentials {
   }
 
   async initialize() {
-    /**
-     * @type {Buffer | undefined}
-     */
-    let xenStoreKey, fileKey
-
     const readOrUndefined = async (/** @type () => Promise<any> */ fn) => {
       try {
         return await fn()
@@ -64,6 +60,13 @@ export default class CryptoCredentials {
         return undefined
       }
     }
+
+    this.#degraded = true
+
+    /**
+     * @type {Buffer | undefined}
+     */
+    let xenStoreKey, fileKey
 
     xenStoreKey = await readOrUndefined(async () => Buffer.from((await XenStore.read(XENSTORE_KEY_PATH)).trim(), 'hex'))
     fileKey = await readOrUndefined(() => fs.readFile(KEY_FILE_PATH))
@@ -80,7 +83,9 @@ export default class CryptoCredentials {
 
         await this._loadKey(xenStoreKey, fileKey)
 
-        this.#migrationRequired = true
+        if (!this.#degraded) {
+          this.#migrationRequired = true
+        }
       } catch (error) {
         log.error('Credential database encryption failed — running in degraded mode', { cause: error })
       }
@@ -94,7 +99,7 @@ export default class CryptoCredentials {
    */
   async encrypt(plaintext) {
     if (!this.#encryptionKey) {
-      throw new Error('The encryption key needs to be extracted before encypt can be used')
+      throw new Error('The encryption key needs to be extracted before encrypt can be used')
     }
 
     const iv = randomBytes(12)
@@ -115,7 +120,7 @@ export default class CryptoCredentials {
    */
   async decrypt(blob) {
     if (!this.#encryptionKey) {
-      throw new Error('The encryption key needs to be extracted before decypt can be used')
+      throw new Error('The encryption key needs to be extracted before decrypt can be used')
     }
 
     const buf = Buffer.from(blob, 'base64')
@@ -141,9 +146,9 @@ export default class CryptoCredentials {
   async _migrateToEncrypted() {
     /**
      * Redis content to be backuped then encrypted
-     * @type {Record<string, Record<string, string | null>>} 
+     * @type {Record<string, Record<string, string | null>>}
      */
-    let redisContent = {}
+    const redisContent = {}
 
     /**
      * @type {string[]}
@@ -173,7 +178,6 @@ export default class CryptoCredentials {
     // Encrypt content then write to redis
     for (const namespace in redisContent) {
       for (const id in redisContent[namespace]) {
-
         if (redisContent[namespace][id] != null) {
           let isPlaintext
           try {
@@ -184,7 +188,10 @@ export default class CryptoCredentials {
           }
 
           if (isPlaintext) {
-            await this._app._redis.set('xo:' + namespace + ':' + id, await this._app.encrypt(redisContent[namespace][id]))
+            await this._app._redis.set(
+              'xo:' + namespace + ':' + id,
+              await this._app.encrypt(redisContent[namespace][id])
+            )
           }
         }
       }
