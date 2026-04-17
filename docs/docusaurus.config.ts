@@ -34,29 +34,173 @@ export default {
       {
         redirects: [
           {
-            to: '/manage_infrastructure#vms',
+            to: '/xo5/manage_infrastructure#vms',
             from: '/administration',
           },
           {
-            to: '/users#acls',
-            from: '/acls',
+            to: '/xo5/advanced',
+            from: '/advanced',
           },
           {
-            to: '/incremental_replication',
-            from: '/continuous_replication',
-          },
-          {
-            to: '/advanced#alerts',
+            to: '/xo5/advanced#alerts',
             from: '/alerts',
           },
           {
-            to: '/architecture#plugins',
+            to: '/xo5/users#acls',
+            from: '/acls',
+          },
+          {
+            to: '/xo5/architecture',
+            from: '/architecture',
+          },
+          {
+            to: '/xo5/architecture#plugins',
             from: '/plugins',
           },
           {
-            to: '/troubleshooting',
-            from: '/general-troubleshooting',
+            to: '/xo5/backup_howto',
+            from: '/backup_howto',
           },
+          {
+            to: '/xo5/backup_reports',
+            from: '/backup_reports',
+          },
+          {
+            to: '/xo5/backup_troubleshooting',
+            from: '/backup_troubleshooting',
+          },
+          {
+            to: '/xo5/backups',
+            from: '/backups',
+          },
+          {
+            to: '/xo6/community',
+            from: '/community',
+          },
+          {
+            to: '/xo5/configuration',
+            from: '/configuration',
+          },
+          {
+            to: '/xo5/full_backups',
+            from: '/full_backups',
+          },
+          {
+            to: '/xo5/full_replication',
+            from: '/full_replication',
+          },
+          {
+            to: '/xo5/immutability',
+            from: '/immutability',
+          },
+          {
+            to: '/xo5/incremental_backups',
+            from: '/incremental_backups',
+          }, 
+          {
+            to: '/xo5/incremental_replication',
+            from: '/incremental_replication',
+          },  
+          {
+            to: '/xo5/installation',
+            from: '/installation',
+          },  
+          {
+            to: '/xo6/support',
+            from: '/support',
+          },  
+          {
+            to: '/xo5/backup',
+            from: '/backup',
+          },  
+          {
+            to: '/xo5/license_management',
+            from: '/license_management',
+          }, 
+          {
+            to: '/xo5/load_balancing',
+            from: '/load_balancing',
+          }, 
+          {
+            to: '/xo5/manage',
+            from: '/manage',
+          }, 
+          {
+            to: '/xo5/manage_infrastructure',
+            from: '/manage_infrastructure',
+          }, 
+          {
+            to: '/xo5/mcp',
+            from: '/mcp',
+          }, 
+          {
+            to: '/xo5/metadata_backup',
+            from: '/metadata_backup',
+          }, 
+          {
+            to: '/xo5/migrate_to_new_xoa',
+            from: '/migrate_to_new_xoa',
+          }, 
+          {
+            to: '/xo5/mirror_backup',
+            from: '/mirror_backup',
+          }, 
+          {
+            to: '/xo5/object-storage-support',
+            from: '/object-storage-support',
+          }, 
+          {
+            to: '/xo5/proxy',
+            from: '/proxy',
+          }, 
+          {
+            to: '/xo6/purchase',
+            from: '/purchase',
+          }, 
+          {
+            to: '/xo5/releases',
+            from: '/releases',
+          }, 
+          {
+            to: '/xo5/restapi',
+            from: '/restapi',
+          }, 
+          {
+            to: '/xo5/rolling_snapshots',
+            from: '/rolling_snapshots',
+          }, 
+          {
+            to: '/xo5/sdn_controller',
+            from: '/sdn_controller',
+          }, 
+          {
+            to: '/xo5/supported_hosts',
+            from: '/supported_hosts',
+          }, 
+          {
+            to: '/xo5/troubleshooting',
+            from: ['/general-troubleshooting', '/troubleshooting']
+          },
+          {
+            to: '/xo5/updater',
+            from: '/updater',
+          }, 
+          {
+            to: '/xo5/users',
+            from: '/users',
+          }, 
+          {
+            to: '/xo5/v2v-migration-guide',
+            from: '/v2v-migration-guide',
+          }, 
+          {
+            to: '/xo5/vm-templates',
+            from: '/vm-templates',
+          }, 
+          {
+            to: '/xo5/xoa',
+            from: '/xoa',
+          }, 
         ],
       },
     ],
@@ -111,7 +255,7 @@ export default {
             },
             {
               label: 'Installation',
-              href: '/installation',
+              href: '/xo5/installation',
             },
           ],
         },
