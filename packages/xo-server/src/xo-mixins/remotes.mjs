@@ -63,6 +63,7 @@ export default class {
         connection: app._redis,
         namespace: 'remote',
         indexes: ['enabled'],
+        crypto: app,
       })
 
       app.addConfigManager(

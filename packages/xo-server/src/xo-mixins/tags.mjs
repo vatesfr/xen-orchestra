@@ -10,6 +10,7 @@ export default class Tags {
         connection: app._redis,
         namespace: 'tag',
         indexes: ['id'],
+        crypto: app,
       })
       app.addConfigManager(
         'tags',
