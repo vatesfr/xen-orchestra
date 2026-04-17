@@ -2,7 +2,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { EventEmitter } from 'node:events'
 import { makeOnProgress } from '@vates/task/combineEvents'
 import { noSuchObject } from 'xo-common/api-errors.js'
-import { Task } from '@vates/task'
+import { Task, serializeError } from '@vates/task'
 import iteratee from 'lodash/iteratee.js'
 import stubTrue from 'lodash/stubTrue.js'
 
@@ -10,18 +10,20 @@ export { Task }
 
 const { warn } = createLogger('xo:mixins:Tasks')
 
-const formatId = timestamp => timestamp.toString(36).padStart(9, '0')
-
 const noop = Function.prototype
 
-// Create a serializable object from an error.
-const serializeError = error => ({
-  ...error, // Copy enumerable properties.
-  code: error.code,
-  message: error.message,
-  name: error.name,
-  stack: error.stack,
-})
+const DEFAULT_BACKUP_LOG_KEEP_DURATION = 31 * 24 * 60 * 60 * 1000
+
+const getLogAge = (log, now) => {
+  if (log.end !== undefined) {
+    return now - log.end
+  }
+  if (log.start !== undefined) {
+    return now - log.start
+  }
+  // if we can't evaluate the log's age, assume it's too old
+  return now
+}
 
 export default class Tasks extends EventEmitter {
   #logsToClearOnSuccess = new Set()
@@ -110,7 +112,13 @@ export default class Tasks extends EventEmitter {
     this.#app = app
 
     app.hooks
-      .on('clean', () => this.#gc(app.config.getOptional('tasks.gc.keep') ?? 1e3))
+      .on('clean', () =>
+        this.#gc({
+          keepRegularLogs: app.config.getOptional('tasks.gc.keep') ?? 1e3,
+          backupKeepDuration:
+            app.config.getOptionalDuration('tasks.gc.backupKeepDuration') ?? DEFAULT_BACKUP_LOG_KEEP_DURATION,
+        })
+      )
       .on('start', async () => {
         this.#store = await app.getStore('tasks')
 
@@ -124,10 +132,15 @@ export default class Tasks extends EventEmitter {
       })
   }
 
-  #gc(keep) {
+  /**
+   * keepRegularLogs: number of non-backup log entries to keep.
+   * backupKeepDuration: Max duration to keep backup logs (only backup logs)
+   */
+  #gc({ keepRegularLogs, backupKeepDuration }) {
     return new Promise((resolve, reject) => {
       const db = this.#store
 
+      // used to prevent resolving the promise before all undesired entries are deleted
       let count = 1
 
       const cb = () => {
@@ -135,25 +148,31 @@ export default class Tasks extends EventEmitter {
           resolve()
         }
       }
-      const stream = db.createKeyStream({
+
+      const deleteEntry = data => {
+        ++count
+
+        this.deleteLog(data.key, cb)
+      }
+
+      const stream = db.createReadStream({
         reverse: true,
       })
 
-      const deleteEntry = key => {
-        ++count
+      const now = Date.now()
 
-        this.deleteLog(key, cb)
+      const onData = data => {
+        if (data.value?.properties?.name === 'backup run') {
+          if (getLogAge(data.value, now) > backupKeepDuration) {
+            return deleteEntry(data)
+          }
+        } else {
+          if (--keepRegularLogs < 0) {
+            return deleteEntry(data)
+          }
+        }
       }
 
-      const onData =
-        keep !== 0
-          ? () => {
-              if (--keep === 0) {
-                stream.on('data', deleteEntry)
-                stream.removeListener('data', onData)
-              }
-            }
-          : deleteEntry
       stream.on('data', onData)
 
       stream.on('end', cb).on('error', reject)
@@ -169,7 +188,7 @@ export default class Tasks extends EventEmitter {
   }
 
   async clearLogs() {
-    await this.#gc(0)
+    await this.#gc({ keepRegularLogs: 0, backupKeepDuration: 0 })
   }
 
   /**
@@ -190,20 +209,9 @@ export default class Tasks extends EventEmitter {
 
     const task = new Task({ properties: { ...props, name, objectId, userId, type }, onProgress: this.#onProgress })
 
-    // Use a compact, sortable, string representation of the creation date
-    //
-    // Due to the padding, dates are sortable up to 5188-04-22T11:04:28.415Z
-    let now = Date.now()
-    let id
-    while (tasks.has((id = formatId(now)))) {
-      // if the current id is already taken, use the next millisecond
-      ++now
-    }
-    task.id = id
-
-    tasks.set(id, task)
+    tasks.set(task.id, task)
     if (clearLogOnSuccess) {
-      this.#logsToClearOnSuccess.add(id)
+      this.#logsToClearOnSuccess.add(task.id)
     }
 
     return task

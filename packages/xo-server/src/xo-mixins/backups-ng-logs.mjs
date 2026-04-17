@@ -1,4 +1,3 @@
-import forEach from 'lodash/forEach.js'
 import isEmpty from 'lodash/isEmpty.js'
 import iteratee from 'lodash/iteratee.js'
 import ms from 'ms'
@@ -13,10 +12,10 @@ const isSkippedError = error =>
     error.message === 'no VMs match this pattern' ||
     error.message === 'unhealthy VDI chain')
 
-const getStatus = (error, status = error === undefined ? 'success' : 'failure') =>
+export const getStatus = (error, status = error === undefined ? 'success' : 'failure') =>
   status === 'failure' && isSkippedError(error) ? 'skipped' : status
 
-const computeStatusAndSortTasks = (status, tasks) => {
+export const computeStatusAndSortTasks = (status, tasks) => {
   if (status === 'failure' || tasks === undefined) {
     return status
   }
@@ -52,6 +51,30 @@ const taskTimeComparator = ({ start: s1, end: e1 }, { start: s2, end: e2 }) => {
   return 1
 }
 
+function adaptTask(task) {
+  const { name, ...data } = task.properties
+  task.message = name
+  if (Object.keys(data).length > 0) {
+    task.data = data
+  }
+  delete task.properties
+  task.tasks?.forEach(adaptTask)
+}
+
+function taskFormatAdapter(log) {
+  const isXoTask = log.tasks?.length > 0 && !!log.tasks[0].properties
+  if (isXoTask) {
+    adaptTask(log.tasks[0])
+    if (log.tasks[0].infos !== undefined && log.tasks[0].infos.length > 0) {
+      log.infos = [...(log.infos ?? []), ...log.tasks[0].infos]
+    }
+    if (log.tasks[0].warnings !== undefined && log.tasks[0].warnings.length !== 0) {
+      log.warnings = [...(log.warnings ?? []), ...log.tasks[0].warnings]
+    }
+    log.tasks = log.tasks[0].tasks
+  }
+}
+
 // type Task = {
 //   data: any,
 //   end?: number,
@@ -73,12 +96,13 @@ export default {
         this.getLogs('restore'),
         this.getLogs('metadataRestore'),
       ])
+      const taskStore = await this.getStore('tasks')
 
       const { runningJobs, runningRestores, runningMetadataRestores } = this
       const consolidated = {}
       const started = {}
 
-      const handleLog = ({ data, time, message }, id) => {
+      const handleLog = async ({ data, time, message }, id) => {
         const { event } = data
         if (event === 'job.start') {
           if ((data.type === 'backup' || data.key === undefined) && (runId === undefined || runId === id)) {
@@ -102,6 +126,13 @@ export default {
             delete started[runJobId]
             log.end = time
             log.status = computeStatusAndSortTasks(getStatus((log.result = data.error)), log.tasks)
+          }
+        } else if (event === 'job.backupTaskStart') {
+          // happens once, only for backups using XO Tasks
+          const { runJobId } = data
+          const log = started[runJobId]
+          if (log !== undefined && (await taskStore.has(data.backupTaskId))) {
+            log.tasks = [await taskStore.get(data.backupTaskId)]
           }
         } else if (event === 'task.start') {
           const task = {
@@ -175,9 +206,19 @@ export default {
         }
       }
 
-      forEach(jobLogs, handleLog)
-      forEach(restoreLogs, handleLog)
-      forEach(restoreMetadataLogs, handleLog)
+      for (const [logId, log] of Object.entries(jobLogs)) {
+        await handleLog(log, logId)
+      }
+      for (const [logId, log] of Object.entries(restoreLogs)) {
+        await handleLog(log, logId)
+      }
+      for (const [logId, log] of Object.entries(restoreMetadataLogs)) {
+        await handleLog(log, logId)
+      }
+
+      for (const log of Object.values(consolidated)) {
+        taskFormatAdapter(log)
+      }
 
       if (runId !== undefined) {
         if (consolidated[runId] === undefined) {
