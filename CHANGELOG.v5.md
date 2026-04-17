@@ -127,8 +127,6 @@
 
 ## **5.112.1** (2025-11-03)
 
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
-
 ### Bug fixes
 
 - [Hub/EasyVirt] Fix the EasyVirt deployment form to allow static network configuration and password for DC Netscope web interface (PR [#9107](https://github.com/vatesfr/xen-orchestra/pull/9107))
@@ -275,8 +273,6 @@
 - xo-web 5.188.0
 
 ## **5.111.1** (2025-10-06)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Enhancements
 

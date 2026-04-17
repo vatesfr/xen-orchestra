@@ -7,7 +7,8 @@ This composable manages automatic navigation to default tabs and remembers the l
 The composable watches route changes and:
 
 - Automatically redirects to the remembered or default tab when navigating to the base dispatcher route
-- Stores the current tab in localStorage for future visits
+- Stores the last visited tab when switching between objects of the same type (e.g., VM → VM)
+- Resets to default tab when navigating to a different object type or any other page
 - Uses the naming convention `{dispatcherRouteName}/{tabName}` for tab route names
 
 ## Parameters
@@ -21,22 +22,27 @@ The composable watches route changes and:
 
 ```typescript
 // In the dispatcher page component (e.g., `pages/pool/[id].vue`)
-useDefaultTab('pool/[id]', 'dashboard')
+useDefaultTab('/pool/[id]', 'dashboard')
 
-// User first navigates to /pool/123
+// User navigates to /pool/123
 // → Automatic redirect to /pool/123/dashboard (default tab)
 
-// User then navigates to /pool/123/stats
-// → 'stats' is stored as the last visited tab for this route
+// User navigates to /pool/123/system
+// → 'system' is stored as the last visited tab
 
-// Finally, user navigates to /pool/456
-// → Automatic redirect to /pool/456/stats
+// User navigates to /pool/456 (same object type)
+// → Automatic redirect to /pool/456/system (tab remembered)
+
+// User navigates to /vm/789 (different object type)
+// → Automatic redirect to /vm/789/dashboard (Tab memory is reset)
+
+// User navigates back to /pool/456
+// → Automatic redirect to /pool/456/dashboard (default tab)
 ```
 
 ## Storage
 
-Tab preferences are stored in localStorage under the key `default-tabs` with the structure:
+Tab memory is stored in localStorage using two different keys:
 
-```typescript
-Map<string, string> // dispatcherRouteName -> lastVisitedTab
-```
+- `tab-memory.dispatcher` — the dispatcher route name of the last visited object type
+- `tab-memory.last` — the last visited tab name

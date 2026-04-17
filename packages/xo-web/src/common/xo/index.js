@@ -3912,8 +3912,6 @@ export const editNetworkConfig = (networkConfig, props) =>
 
 export const getResourceCatalog = ({ filters } = {}) => _call('cloud.getResourceCatalog', { filters })
 
-export const getAllResourceCatalog = () => _call('cloud.getAllResourceCatalog')
-
 export const downloadAndInstallResource = ({ namespace, id, version, sr, templateOnly }) =>
   _call('cloud.downloadAndInstallResource', {
     namespace,

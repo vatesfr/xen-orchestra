@@ -37,7 +37,7 @@
     "fs-extra": "^11.1.0",
     "get-stream": "^6.0.0",
     "limit-concurrency-decorator": "^0.6.0",
-    "lodash": "^4.17.4",
+    "lodash": "^4.18.0",
     "promise-toolbox": "^0.21.0",
     "proper-lockfile": "^4.1.2",
     "readable-stream": "^4.1.0",
