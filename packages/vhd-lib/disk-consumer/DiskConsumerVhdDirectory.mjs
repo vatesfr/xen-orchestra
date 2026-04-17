@@ -85,6 +85,7 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
       await Promise.all([vhd.writeFooter(), vhd.writeHeader(), vhd.writeBlockAllocationTable()])
       await validator(dataPath)
       await VhdAbstract.createAlias(handler, path, dataPath)
+      // this will return VHD metadata size + block size, even for disk bigger than bigger than 2TB
       return vhd.streamSize()
     } catch (err) {
       await this.source.close().catch(() => {}) // close this disk in error
