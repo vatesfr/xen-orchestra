@@ -53,7 +53,7 @@ export function useNetworkFormBase<T extends BaseNetworkFormData>(
     { immediate: true }
   )
 
-  const selectedPool = useGetPoolById(toRef(formData, 'pool'))
+  const selectedPool = useGetPoolById(() => formData.pool)
 
   const { t } = useI18n()
 
