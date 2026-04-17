@@ -42,7 +42,10 @@
 - [Header] Fix `Unable to connect to XO server` falshing every 30 secondes (PR [#9681](https://github.com/vatesfr/xen-orchestra/pull/9681))
 - [Backups] Fix regression on cleanVM speed (PR [#9692](https://github.com/vatesfr/xen-orchestra/pull/9692))
 - [REST API] Fix memory leak on SSE (PR [#9707](https://github.com/vatesfr/xen-orchestra/pull/9707))
-
+- [Header]: Fix `Unable to connect to XO server` falshing every 30 secondes (PR [#9681](https://github.com/vatesfr/xen-orchestra/pull/9681))
+- **XO 5**:
+  - [VM/Copy]: Fix compression not used when copying a VM to another pool ([#9699](https://github.com/vatesfr/xen-orchestra/pull/9699))
+ 
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -58,6 +61,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
 
 - @vates/async-each patch
 - @vates/generator-toolbox patch
