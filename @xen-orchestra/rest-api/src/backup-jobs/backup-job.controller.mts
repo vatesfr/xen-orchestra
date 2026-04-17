@@ -97,6 +97,7 @@ export class BackupJobController extends XoController<AnyXoBackupJob> {
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<UnbrandAnyXoBackupJob>>> {
@@ -184,6 +185,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<UnbrandXoVmBackupJob>>> {
@@ -227,6 +229,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<UnbrandXoMetadataBackupJob>>> {
@@ -261,6 +264,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<UnbrandXoMirrorBackupJob>>> {
@@ -294,6 +298,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoBackupLog>>>> {

@@ -558,6 +558,29 @@ class Vm {
         finished(response.body, destroySnapshot)
       }
 
+      // When exporting with compression, obtaining the first block of data may take some time.
+      // Therefore, we wait until the first block is received before returning the stream
+      // the promise timeout if no block is received after 30 minutes.
+      await new Promise((resolve, reject) => {
+        function _resolve() {
+          _clean()
+          resolve()
+        }
+        function _onError(err) {
+          _clean()
+          reject(err)
+        }
+        function _clean() {
+          clearTimeout(timeoutId)
+          response.body.off('readable', _resolve)
+          response.body.off('error', _onError)
+        }
+        const timeoutId = setTimeout(() => _onError(new Error('Export timeout')), 1000 * 60 * 30)
+
+        response.body.once('readable', _resolve)
+        response.body.once('error', _onError)
+      })
+
       return response
     } catch (error) {
       // augment the error with as much relevant info as possible

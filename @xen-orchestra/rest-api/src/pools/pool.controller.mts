@@ -127,6 +127,7 @@ export class PoolController extends XapiXoController<XoPool> {
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoPool>>> {
@@ -494,6 +495,7 @@ export class PoolController extends XapiXoController<XoPool> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
@@ -536,6 +538,7 @@ export class PoolController extends XapiXoController<XoPool> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
@@ -583,6 +586,7 @@ export class PoolController extends XapiXoController<XoPool> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {

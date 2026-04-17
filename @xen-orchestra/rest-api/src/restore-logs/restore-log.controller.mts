@@ -54,6 +54,7 @@ export class RestoreLogController extends XoController<XoRestoreLog> {
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoRestoreLog>>>> {
@@ -118,6 +119,7 @@ export class DeprecatedRestoreController extends XoController<XoRestoreLog> {
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoRestoreLog>>>> {
