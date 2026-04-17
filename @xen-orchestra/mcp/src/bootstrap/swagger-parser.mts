@@ -1,12 +1,5 @@
-/**
- * Swagger Parser
- *
- * Parses an OpenAPI spec into Domain objects grouped by tag.
- * Merges related tags (e.g., vdis + srs → storage) and classifies
- * each route as either a query or action operation.
- */
-
 import type { OpenApiSpec, OpenApiOperation, OpenApiParameter } from './swagger-fetcher.mjs'
+import { isExcludedRoute } from './route-filter.mjs'
 
 export interface ParameterInfo {
   name: string
@@ -21,6 +14,10 @@ export interface Operation {
   path: string
   description: string
   parameters: ParameterInfo[]
+  /** GET on a collection root (no path param, returns an array). */
+  isCollectionList: boolean
+  /** Trailing binary download segment (e.g. /vdi.{format}, /backup-log.ndjson). */
+  isFileEndpoint: boolean
 }
 
 export interface Domain {
@@ -29,7 +26,6 @@ export interface Domain {
   actionOps: Operation[]
 }
 
-/** Maps original swagger tags to merged domain names. */
 const TAG_MERGES: Record<string, string> = {
   'vm-templates': 'vms',
   'vm-snapshots': 'vms',
@@ -61,122 +57,67 @@ const TAG_MERGES: Record<string, string> = {
 
 const HTTP_METHODS = ['get', 'post', 'put', 'patch', 'delete'] as const
 
-/** Strip trailing 's' for singular form (vdis→vdi, pools→pool, vms→vm). */
 function singularize(name: string): string {
-  if (name.endsWith('ses')) return name.slice(0, -2) // statuses→status
-  if (name.endsWith('ies')) return name.slice(0, -3) + 'y' // entries→entry
+  if (name.endsWith('ses')) return name.slice(0, -2)
+  if (name.endsWith('ies')) return name.slice(0, -3) + 'y'
   if (name.endsWith('s') && !name.endsWith('ss')) return name.slice(0, -1)
   return name
 }
 
-/** Extract the collection name from a path: /vdis/{id}/foo → vdis */
 function getCollection(path: string): string {
-  const parts = path.replace(/^\//, '').split('/')
-  return parts[0]
+  return path.replace(/^\//, '').split('/')[0]
 }
 
 /**
- * Build a unique, readable operation name from method + path.
+ * Build an operation name from method + path. Verb prefix for CRUD, original
+ * collection as suffix when the path's collection differs from its merged
+ * domain (e.g. /vdis → `list_vdis` under `storage`).
  *
- * Strategy: use all non-parameter path segments (excluding the collection)
- * to build the name. Prefix with action verb (list/get/create/delete/update).
- * For merged domains, append the original tag's singular form.
- *
- * Examples (non-merged):
- *   GET /pools                    → list
- *   GET /pools/{id}               → get
- *   GET /pools/{id}/dashboard     → dashboard
- *   POST /pools/{id}/actions/X    → X
- *   DELETE /pools/{id}            → delete
- *
- * Examples (merged, e.g. vdis→storage):
- *   GET /vdis                     → list_vdis
- *   GET /vdis/{id}                → get_vdi
- *
- * Examples (cross-collection paths, e.g. /backup/jobs/vm tagged as backup-jobs):
- *   GET /backup/jobs/vm           → list_vm
- *   GET /backup/jobs/vm/{id}      → get_vm
- *   GET /backup/jobs/metadata     → list_metadata
+ *   GET /pools                → list
+ *   GET /pools/{id}           → get
+ *   GET /pools/{id}/dashboard → dashboard
+ *   POST /pools/{id}/actions/X → X
+ *   GET /vdis (merged→storage) → list_vdis
  */
-function deriveOperationName(method: string, path: string, _originalTag: string, domainTag: string): string {
+function deriveOperationName(method: string, path: string, domainTag: string): string {
   const parts = path.replace(/^\//, '').split('/')
   const collection = parts[0]
-
-  // Need a suffix when the path's collection differs from the domain it belongs to.
-  // e.g., /vm-snapshots tagged as vms, or /vdis merged into storage.
   const needsSuffix = collection !== domainTag
-  const collectionSingular = singularize(collection)
   const suffix = needsSuffix ? `_${collection}` : ''
-  const singularSuffix = needsSuffix ? `_${collectionSingular}` : ''
+  const singularSuffix = needsSuffix ? `_${singularize(collection)}` : ''
 
-  // Skip paths that serve file downloads: /collection/{id}.{format}
-  if (parts.some(p => p.includes('.{format}'))) {
-    return `export${singularSuffix}`
-  }
+  if (parts.some(p => p.includes('.{format}'))) return `export${singularSuffix}`
 
-  // POST /collection/{id}/actions/X → action name
   if (method === 'post' && parts.includes('actions')) {
-    const actionIdx = parts.indexOf('actions')
-    const actionName = parts.slice(actionIdx + 1).join('_')
+    const actionName = parts.slice(parts.indexOf('actions') + 1).join('_')
     return `${actionName}${singularSuffix}`
   }
 
-  // Sub-segments: everything after the collection that isn't a param
   const subSegments = parts.slice(1).filter(p => !p.startsWith('{'))
   const hasTrailingParam = parts.length > 1 && parts[parts.length - 1].startsWith('{')
 
-  // DELETE
   if (method === 'delete') {
-    if (subSegments.length > 0) {
-      return `delete_${subSegments.join('_')}${singularSuffix}`
-    }
-    return `delete${singularSuffix}`
+    return subSegments.length > 0 ? `delete_${subSegments.join('_')}${singularSuffix}` : `delete${singularSuffix}`
   }
-
-  // PUT/PATCH
   if (method === 'put' || method === 'patch') {
-    if (subSegments.length > 0) {
-      return `update_${subSegments.join('_')}${singularSuffix}`
-    }
-    return `update${singularSuffix}`
+    return subSegments.length > 0 ? `update_${subSegments.join('_')}${singularSuffix}` : `update${singularSuffix}`
   }
-
-  // POST (non-action)
   if (method === 'post') {
-    if (subSegments.length > 0) {
-      return `${subSegments.join('_')}${singularSuffix}`
-    }
-    return `create${singularSuffix}`
+    return subSegments.length > 0 ? `${subSegments.join('_')}${singularSuffix}` : `create${singularSuffix}`
   }
-
-  // GET
   if (method === 'get') {
-    // GET /collection → list
-    if (parts.length === 1) {
-      return `list${suffix}`
-    }
-
-    // GET /collection/{id} → get
-    if (parts.length === 2 && hasTrailingParam) {
-      return `get${singularSuffix}`
-    }
-
-    // Multi-segment: use sub-segments for the name
+    if (parts.length === 1) return `list${suffix}`
+    if (parts.length === 2 && hasTrailingParam) return `get${singularSuffix}`
     if (subSegments.length > 0) {
       const subName = subSegments.join('_')
-      if (hasTrailingParam) {
-        return `get_${subName}${singularSuffix}`
-      }
-      return `${subName}${singularSuffix}`
+      return hasTrailingParam ? `get_${subName}${singularSuffix}` : `${subName}${singularSuffix}`
     }
-
     return hasTrailingParam ? `get${singularSuffix}` : `list${suffix}`
   }
 
   return `${method}${suffix}`
 }
 
-/** Classify whether an operation is a query (read) or action (write). */
 function isQueryMethod(method: string): boolean {
   return method === 'get'
 }
@@ -202,7 +143,6 @@ function extractParameters(
   return result
 }
 
-/** Deduplicate operation names within a list by appending _2, _3, etc. */
 function deduplicateOps(ops: Operation[]): Operation[] {
   const nameCount = new Map<string, number>()
   return ops.map(op => {
@@ -220,9 +160,7 @@ export function parseSwagger(spec: OpenApiSpec): Map<string, Domain> {
 
   for (const [path, pathItem] of Object.entries(spec.paths)) {
     if (!pathItem) continue
-
-    // Skip file/binary endpoints that don't return JSON
-    if (/\.(txt|tgz|tar|gz|zip|raw|iso)$/.test(path)) continue
+    if (isExcludedRoute(path)) continue
 
     const pathLevelParams = pathItem.parameters as OpenApiParameter[] | undefined
 
@@ -230,27 +168,30 @@ export function parseSwagger(spec: OpenApiSpec): Map<string, Domain> {
       const operation = pathItem[method] as OpenApiOperation | undefined
       if (!operation) continue
 
-      // For sub-resource paths like /vms/{id}/alarms, prefer the parent tag (2nd tag)
-      // over the sub-resource tag (1st tag) to keep them in the parent's domain.
+      // Sub-resources (e.g. /vms/{id}/alarms) carry both the sub-resource tag
+      // and the parent tag; prefer the parent so they land in the parent domain.
       const tags = operation.tags ?? []
       const originalTag = (tags.length > 1 ? tags[1] : tags[0]) ?? getCollection(path)
       const domainTag = TAG_MERGES[originalTag] ?? originalTag
-      const isMerged = domainTag !== originalTag
 
       if (!domains.has(domainTag)) {
         domains.set(domainTag, { tag: domainTag, queryOps: [], actionOps: [] })
       }
 
       const domain = domains.get(domainTag)!
-      const opName = deriveOperationName(method, path, originalTag, domainTag)
+      const opName = deriveOperationName(method, path, domainTag)
       const description = operation.summary ?? operation.description ?? `${method.toUpperCase()} ${path}`
 
+      const pathSegments = path.replace(/^\//, '').split('/')
+      const lastSegment = pathSegments[pathSegments.length - 1] ?? ''
       const op: Operation = {
         name: opName,
         method: method.toUpperCase(),
         path,
         description,
         parameters: extractParameters(operation.parameters, pathLevelParams),
+        isCollectionList: method === 'get' && pathSegments.length === 1,
+        isFileEndpoint: /\.\w+$/.test(lastSegment.replace(/\{[^}]+\}/g, '')),
       }
 
       if (isQueryMethod(method)) {
@@ -261,7 +202,6 @@ export function parseSwagger(spec: OpenApiSpec): Map<string, Domain> {
     }
   }
 
-  // Deduplicate operation names within each domain
   for (const domain of domains.values()) {
     domain.queryOps = deduplicateOps(domain.queryOps)
     domain.actionOps = deduplicateOps(domain.actionOps)

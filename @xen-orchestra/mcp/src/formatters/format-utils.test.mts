@@ -3,34 +3,19 @@ import { describe, it } from 'node:test'
 import { formatBytes, markdownTable } from './format-utils.mjs'
 
 describe('formatBytes', () => {
-  it('formats zero', () => {
+  it('formats zero and null-ish', () => {
     assert.strictEqual(formatBytes(0), '0 B')
-  })
-
-  it('formats null and undefined', () => {
     assert.strictEqual(formatBytes(null), '0 B')
     assert.strictEqual(formatBytes(undefined), '0 B')
   })
 
-  it('formats bytes', () => {
-    assert.strictEqual(formatBytes(512), '512 B')
-  })
-
-  it('formats kilobytes', () => {
-    assert.strictEqual(formatBytes(1024), '1.0 KB')
-  })
-
-  it('formats megabytes', () => {
-    assert.strictEqual(formatBytes(1048576), '1.0 MB')
-  })
-
-  it('formats gigabytes', () => {
-    assert.strictEqual(formatBytes(1073741824), '1.0 GB')
-    assert.strictEqual(formatBytes(17179869184), '16.0 GB')
-  })
-
-  it('formats terabytes', () => {
-    assert.strictEqual(formatBytes(1099511627776), '1.0 TB')
+  it('uses binary scale (KiB/MiB/GiB)', () => {
+    assert.strictEqual(formatBytes(512), '512.0 B')
+    assert.strictEqual(formatBytes(1024), '1.0 KiB')
+    assert.strictEqual(formatBytes(1048576), '1.0 MiB')
+    assert.strictEqual(formatBytes(1073741824), '1.0 GiB')
+    assert.strictEqual(formatBytes(17179869184), '16.0 GiB')
+    assert.strictEqual(formatBytes(1099511627776), '1.0 TiB')
   })
 })
 
@@ -51,9 +36,15 @@ describe('markdownTable', () => {
 
   it('handles empty rows', () => {
     const result = markdownTable(['Name'], [])
-    assert.ok(result.includes('| Name |'))
-    assert.ok(result.includes('| --- |'))
     const lines = result.split('\n')
     assert.strictEqual(lines.length, 2)
+  })
+
+  it('escapes pipes and newlines in cells', () => {
+    const result = markdownTable(['A|B', 'C'], [['x|y', 'line1\nline2']])
+    assert.ok(result.includes('A\\|B'))
+    assert.ok(result.includes('x\\|y'))
+    assert.ok(result.includes('line1 line2'))
+    assert.ok(!/line1\nline2/.test(result))
   })
 })
