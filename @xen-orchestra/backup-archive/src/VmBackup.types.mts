@@ -46,6 +46,8 @@ export interface CheckResult {
   isValid: boolean
   // Files referenced by metadata but absent on disk
   missingDisks?: string[]
+  // Disk files that exist but failed to open (corrupted)
+  brokenDisks?: string[]
   // Files present on disk but not referenced by metadata
   orphans?: string[]
   // Files referenced by at least one valid backup
