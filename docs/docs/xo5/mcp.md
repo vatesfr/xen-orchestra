@@ -180,7 +180,7 @@ Pick descriptive names (`xo-production`, `xo-dr-site`, ...) so the assistant kno
 
 ## How it works
 
-![MCP architecture workflow](./assets/mcp_workflow.png)
+![MCP architecture workflow](../assets/mcp_workflow.png)
 
 1. You ask a question in natural language to your AI assistant.
 2. The assistant determines which MCP tool to call.
@@ -361,11 +361,11 @@ Generates a natural language overview of the XO infrastructure. When invoked, th
 
 **Infrastructure overview:**
 
-![Querying infrastructure with MCP](./assets/mcp_infra.gif)
+![Querying infrastructure with MCP](../assets/mcp_infra.gif)
 
 **Searching documentation:**
 
-![Searching XO documentation with MCP](./assets/mcp_doc.gif)
+![Searching XO documentation with MCP](../assets/mcp_doc.gif)
 
 ## Troubleshooting
 
