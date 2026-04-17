@@ -19,6 +19,8 @@ export class RemoteDiskLineage {
 
   // Concrete disk paths discovered in this VDI directory (normalized)
   #diskPaths: Set<string> = new Set()
+  // Disk paths that exist on disk but failed to open (corrupted)
+  #brokenDiskPaths: Set<string> = new Set()
   // child path: parent path (from disk header)
   #parentOf: Map<string, string> = new Map()
   // parent path: child path
@@ -76,6 +78,7 @@ export class RemoteDiskLineage {
           throw error
         }
         this.#opts.logWarn('failed to open disk', { path: diskPath, error })
+        this.#brokenDiskPaths.add(diskPath)
         continue
       }
       try {
@@ -102,6 +105,19 @@ export class RemoteDiskLineage {
         await disk.close()
       }
     }
+  }
+
+  /**
+   * Returns true if the disk path exists on disk and opened without errors during init.
+   * Used by VmIncrementalBackupArchive.check() to detect corrupted disks without extra I/O.
+   */
+  isPathAccessible(diskPath: string): boolean {
+    return this.#diskPaths.has(diskPath) && !this.#brokenDiskPaths.has(diskPath)
+  }
+
+  /** Returns true if the disk exists but failed to open during init. */
+  isBroken(diskPath: string): boolean {
+    return this.#brokenDiskPaths.has(diskPath)
   }
 
   /** Verifies that every parent referenced in disk headers exists in the directory. */

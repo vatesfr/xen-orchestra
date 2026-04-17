@@ -65,23 +65,32 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
 
   async check(): Promise<CheckResult> {
     const missingDisks: string[] = []
+    const brokenDisks: string[] = []
 
     if (this.diskPaths.length === 0) {
       this.opts.logWarn('incremental backup has no disk paths', { metadataPath: this.metadataPath })
       this.#isComplete = false
     } else {
       for (const diskPath of this.diskPaths) {
-        try {
-          await this.handler.getSize(diskPath)
-        } catch {
-          missingDisks.push(diskPath)
-          this.opts.logWarn('disk file missing', { path: diskPath })
+        const lineage = this.diskLineages.get(dirname(diskPath))
+        if (lineage === undefined || !lineage.isPathAccessible(diskPath)) {
+          if (lineage?.isBroken(diskPath)) {
+            this.opts.logWarn('disk check error', { path: diskPath })
+            brokenDisks.push(diskPath)
+          } else {
+            this.opts.logWarn('disk file missing', { path: diskPath })
+            missingDisks.push(diskPath)
+          }
         }
       }
 
-      this.#isComplete = missingDisks.length === 0
+      this.#isComplete = missingDisks.length === 0 && brokenDisks.length === 0
       if (!this.#isComplete) {
-        this.opts.logWarn('incremental backup is incomplete', { metadataPath: this.metadataPath, missingDisks })
+        this.opts.logWarn('incremental backup is incomplete', {
+          metadataPath: this.metadataPath,
+          missingDisks,
+          brokenDisks,
+        })
       }
     }
     if (this.#isComplete) {
@@ -91,7 +100,7 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
     }
 
     this.#isChecked = true
-    return { isValid: this.#isComplete, missingDisks }
+    return { isValid: this.#isComplete, missingDisks, brokenDisks }
   }
 
   /**
