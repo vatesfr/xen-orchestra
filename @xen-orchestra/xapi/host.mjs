@@ -5,13 +5,6 @@ import { defer } from 'golike-defer'
 import { incorrectState, operationFailed } from 'xo-common/api-errors.js'
 
 import { getCurrentVmUuid } from './_XenStore.mjs'
-import {
-  addCustomIpmiSensors,
-  addIpmiSensorDataType,
-  containsDigit,
-  IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME,
-  isRelevantIpmiSensor,
-} from './host/_ipmi.mjs'
 
 const waitAgentRestart = (xapi, hostRef, prevAgentStartTime) =>
   new Promise(resolve => {
@@ -144,64 +137,6 @@ class Host {
     const agentStartTime = +(await this.getField('host', ref, 'other_config')).agent_start_time
     await this.callAsync('host.reboot', ref)
     await waitAgentRestart(this, ref, agentStartTime)
-  }
-
-  async getIpmiSensors(ref, { cache } = {}) {
-    const biosStrings = await this.call(cache, 'host.get_bios_strings', ref)
-    let productName = biosStrings['system-product-name']?.toLowerCase()
-
-    // Olivier.L request: consider all DELL servers in the same way
-    if (biosStrings['system-manufacturer']?.toLowerCase().includes('dell')) {
-      productName = 'dell'
-    }
-
-    // Olivier.L request: consider all Lenovo servers in the same way
-    if (biosStrings['system-manufacturer']?.toLowerCase().includes('lenovo')) {
-      productName = 'lenovo'
-    }
-
-    const callIpmiPlugin = fn => this.call(cache, 'host.call_plugin', ref, 'ipmitool.py', fn, {})
-
-    if (
-      IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME[productName] === undefined ||
-      (await callIpmiPlugin('is_ipmi_device_available')) === 'false'
-    ) {
-      return {}
-    }
-
-    const [stringifiedIpmiSensors, stringifiedIpmiLan] = await Promise.all([
-      callIpmiPlugin('get_all_sensors'),
-      callIpmiPlugin('get_ipmi_lan'),
-    ])
-    const ipmiSensors = JSON.parse(stringifiedIpmiSensors)
-    const ipmiLan = JSON.parse(stringifiedIpmiLan)
-
-    const ipmiSensorsByDataType = {}
-    for (const ipmiSensor of [...ipmiSensors, ...ipmiLan]) {
-      if (!isRelevantIpmiSensor(ipmiSensor, productName)) {
-        continue
-      }
-
-      addIpmiSensorDataType(ipmiSensor, productName)
-      const dataType = ipmiSensor.dataType
-
-      const ipmiSensors = ipmiSensorsByDataType[dataType]
-      if (ipmiSensors === undefined) {
-        ipmiSensorsByDataType[dataType] = containsDigit(ipmiSensor.name) ? [] : ipmiSensor
-      } else if (!Array.isArray(ipmiSensors)) {
-        // it can happen various sensors have the same name (e.g. temp for dell cpu temp)
-        // in such case, consider it as an array instead of single value
-        ipmiSensorsByDataType[dataType] = [ipmiSensors]
-      }
-
-      if (Array.isArray(ipmiSensorsByDataType[dataType])) {
-        ipmiSensorsByDataType[dataType].push(ipmiSensor)
-      }
-    }
-
-    addCustomIpmiSensors(ipmiSensorsByDataType, productName)
-
-    return ipmiSensorsByDataType
   }
 
   async getMdadmHealth(ref) {

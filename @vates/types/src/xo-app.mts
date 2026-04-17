@@ -129,6 +129,7 @@ export type XoApp = {
 
   // methods ------------
   addUserToGroup: (userId: XoUser['id'], groupId: XoGroup['id']) => Promise<void>
+  addApiMethod: <A extends unknown[], R>(name: string, method: (...args: A) => Promise<R>) => () => void
   authenticateUser: (
     credentials: { token?: string; username?: string; password?: string },
     userData?: { ip?: string },

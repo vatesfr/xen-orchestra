@@ -695,7 +695,7 @@ export const subscribeIpmiSensors = host => {
     subscribeHostsIpmiSensors[hostId] = createSubscription(
       async () =>
         _isAdmin
-          ? await _call('host.getIpmiSensors', {
+          ? await _call('ipmi-sensors.get_ipmi_sensors', {
               id: hostId,
             })
           : undefined,

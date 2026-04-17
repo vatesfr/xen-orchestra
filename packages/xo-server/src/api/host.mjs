@@ -17,11 +17,6 @@ import { debounceWithKey } from '../_pDebounceWithKey.mjs'
 /** @typedef {import('@vates/types').XoPif} XoPif */
 
 const CERT_PUBKEY_MIN_SIZE = 2048
-const IPMI_CACHE_TTL = 6e4
-const IPMI_CACHE = new TTLCache({
-  ttl: IPMI_CACHE_TTL,
-  max: 1000,
-})
 
 const CACHE_2CRSI = new TTLCache({
   ttl: 6e4,
@@ -667,16 +662,7 @@ getBlockdevices.params = {
 getBlockdevices.resolve = {
   host: ['id', 'host', 'administrate'],
 }
-
-export function getIpmiSensors({ host }) {
-  return this.getXapi(host).host_getIpmiSensors(host._xapiRef, { cache: IPMI_CACHE })
-}
-getIpmiSensors.params = {
-  id: { type: 'string' },
-}
-getIpmiSensors.resolve = {
-  host: ['id', 'host', 'administrate'],
-}
+// host.getApiMethod moved to packages/xo-server-ipmi-sensors/src/index.mts
 
 export function getBiosInfo({ host }) {
   return this.getXapi(host).getHostBiosInfo(host._xapiRef, { cache: CACHE_2CRSI })

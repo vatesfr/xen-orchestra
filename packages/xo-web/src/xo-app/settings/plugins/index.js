@@ -55,10 +55,33 @@ class Plugin extends Component {
 
   _getUiSchema = createSelector(() => this.props.configurationSchema, generateUiSchema)
 
+  getSchemaDefaults(schema) {
+    if (schema?.type !== 'object' || !schema.properties) {
+      return undefined
+    }
+    const result = {}
+    let hasDefaults = false
+    for (const [key, propSchema] of Object.entries(schema.properties)) {
+      if (propSchema.default !== undefined) {
+        result[key] = propSchema.default
+        hasDefaults = true
+      } else if (propSchema.type === 'object') {
+        const nested = getSchemaDefaults(propSchema)
+        if (nested !== undefined) {
+          result[key] = nested
+          hasDefaults = true
+        }
+      }
+    }
+    return hasDefaults ? result : undefined
+  }
   _updateExpanded = () => {
-    this.setState({
-      expanded: !this.state.expanded,
-    })
+    const newExpanded = !this.state.expanded
+    const editedConfig =
+      newExpanded && !this.props.configuration && this.state.editedConfig === undefined
+        ? this.getSchemaDefaults(this.props.configurationSchema)
+        : this.state.editedConfig
+    this.setState({ expanded: newExpanded, editedConfig })
   }
 
   _setAutoload = event => {
