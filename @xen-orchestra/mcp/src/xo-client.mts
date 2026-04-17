@@ -1,10 +1,3 @@
-/**
- * XO REST API Client
- *
- * Minimal client using native fetch to interact with Xen Orchestra REST API.
- * Authentication is done via Basic Auth or token cookie.
- */
-
 export interface ListOptions {
   filter?: string
   fields?: string
@@ -14,7 +7,6 @@ export interface ListOptions {
 const REQUEST_TIMEOUT_MS = 30_000
 
 export type XoClientConfig = { url: string; username: string; password: string } | { url: string; token: string }
-
 
 export class XoClient {
   private readonly baseUrl: string
@@ -76,7 +68,6 @@ export class XoClient {
     return response
   }
 
-  /** Public API for dynamic tool handlers — call any REST endpoint. */
   async apiRequest(
     method: string,
     path: string,
@@ -86,14 +77,10 @@ export class XoClient {
     if (options?.query) {
       const params = new URLSearchParams()
       for (const [k, v] of Object.entries(options.query)) {
-        if (v !== undefined && v !== '') {
-          params.set(k, v)
-        }
+        if (v !== undefined && v !== '') params.set(k, v)
       }
       const qs = params.toString()
-      if (qs) {
-        endpoint += `?${qs}`
-      }
+      if (qs) endpoint += `?${qs}`
     }
     const init: RequestInit = { method: method.toUpperCase() }
     if (options?.body !== undefined) {
@@ -102,18 +89,14 @@ export class XoClient {
     }
     const response = await this.fetch(endpoint, init)
     const contentType = response.headers.get('content-type') ?? ''
-    if (contentType.includes('application/json')) {
-      return response.json() as Promise<unknown>
-    }
+    if (contentType.includes('application/json')) return response.json() as Promise<unknown>
     return response.text()
   }
 
-  /** Expose auth headers for the swagger fetcher. */
   getAuthHeaders(): Record<string, string> {
     return { ...this.authHeaders }
   }
 
-  /** Base URL without trailing slash. */
   getBaseUrl(): string {
     return this.baseUrl
   }
@@ -127,20 +110,11 @@ export class XoClient {
     }
   }
 
-  async getText(endpoint: string): Promise<string> {
-    const response = await this.fetch(endpoint)
-    return response.text()
-  }
-
   async getMarkdown(path: string, defaultFields: string, options?: ListOptions): Promise<string> {
     const params = new URLSearchParams()
     params.set('fields', options?.fields ?? defaultFields)
-    if (options?.filter) {
-      params.set('filter', options.filter)
-    }
-    if (options?.limit !== undefined) {
-      params.set('limit', String(options.limit))
-    }
+    if (options?.filter) params.set('filter', options.filter)
+    if (options?.limit !== undefined) params.set('limit', String(options.limit))
     params.set('markdown', 'true')
     const response = await this.fetch(`${path}?${params}`)
     return response.text()

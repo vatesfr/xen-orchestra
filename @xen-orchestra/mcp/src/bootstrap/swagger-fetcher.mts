@@ -1,10 +1,3 @@
-/**
- * Swagger Fetcher
- *
- * Fetches and validates the OpenAPI spec from the XO REST API at startup.
- * Fatal error if the spec is unreachable — the server refuses to start.
- */
-
 const FETCH_TIMEOUT_MS = 10_000
 
 export interface OpenApiParameter {

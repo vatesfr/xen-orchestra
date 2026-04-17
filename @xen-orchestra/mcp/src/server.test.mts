@@ -7,7 +7,6 @@ import { createServer as createServerDirect } from './server.mjs'
 import { formatToolError } from './helpers/tool-error.mjs'
 import type { XoClient } from './xo-client.mjs'
 
-// Minimal OpenAPI spec for testing
 const MOCK_SWAGGER_SPEC = {
   openapi: '3.0.0',
   info: { title: 'XO API', version: '1.0.0' },
@@ -58,12 +57,10 @@ const MOCK_SWAGGER_SPEC = {
   tags: [{ name: 'pools' }, { name: 'vms' }, { name: 'hosts' }],
 }
 
-// Helper to create a mock XoClient
 function createMockClient(overrides: Record<string, unknown> = {}): XoClient {
   return {
     testConnection: async () => ({ ok: true }),
     apiRequest: async () => [{ id: 'item1', name_label: 'Item 1' }],
-    getText: async () => '{"hosts":{"status":{"running":1,"total":1}},"vms":{"status":{"running":2}}}',
     getMarkdown: async () => '| id | name_label |\n| --- | --- |\n| mock1 | Mock 1 |',
     getAuthHeaders: () => ({ cookie: 'authenticationToken=test' }),
     getBaseUrl: () => 'http://xo.test',
@@ -73,7 +70,6 @@ function createMockClient(overrides: Record<string, unknown> = {}): XoClient {
 
 let originalFetch: typeof globalThis.fetch
 
-// Set up fetch mock that returns the swagger spec
 function mockSwaggerFetch() {
   originalFetch = globalThis.fetch
   globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -92,7 +88,6 @@ function restoreFetch() {
   globalThis.fetch = originalFetch
 }
 
-// Helper to set up client + server connected via InMemoryTransport
 async function setupTestServer(mockClient?: XoClient) {
   const client = mockClient ?? createMockClient()
   const server = await createServerDirect(() => client)
@@ -119,8 +114,6 @@ describe('createServer (dynamic bootstrap)', () => {
       const { tools } = await mcpClient.listTools()
       const toolNames = tools.map(t => t.name).sort()
 
-      // Should have dynamic query tools (action tools are disabled for now)
-      // Plus utility: check_connection, search_documentation, get_infrastructure_summary
       assert.ok(toolNames.includes('pools_query'), `Expected pools_query, got: ${toolNames.join(', ')}`)
       assert.ok(toolNames.includes('vms_query'), `Expected vms_query, got: ${toolNames.join(', ')}`)
       assert.ok(toolNames.includes('hosts_query'), `Expected hosts_query, got: ${toolNames.join(', ')}`)
@@ -192,7 +185,6 @@ describe('createServer (dynamic bootstrap)', () => {
         arguments: { operation: 'list', filter: 'power_state:Running', fields: 'id,name_label', limit: 5 },
       })
       assert.strictEqual(receivedArgs.query?.filter, 'power_state:Running')
-      // Fields are merged with collection defaults, so user fields are included
       const fields = receivedArgs.query?.fields ?? ''
       assert.ok(fields.includes('id'), `Expected fields to include 'id', got: ${fields}`)
       assert.ok(fields.includes('name_label'), `Expected fields to include 'name_label', got: ${fields}`)
@@ -215,9 +207,6 @@ describe('createServer (dynamic bootstrap)', () => {
       assert.ok(text.includes('Connection refused'))
     })
   })
-
-  // Action tools are disabled for now — tests will be re-enabled when actions are activated
-  // describe('dynamic action tools', () => { ... })
 
   describe('get_infrastructure_summary tool', () => {
     it('returns aggregated summary as markdown', async () => {
@@ -314,7 +303,6 @@ describe('module structure', () => {
     await Promise.all([server.connect(serverTransport), mcpClient.connect(clientTransport)])
 
     const { tools } = await mcpClient.listTools()
-    // Should have at least the utility tools + dynamic tools
     assert.ok(tools.length >= 5, `Expected at least 5 tools, got ${tools.length}`)
   })
 })
