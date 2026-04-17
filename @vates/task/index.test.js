@@ -4,7 +4,7 @@ const assert = require('node:assert').strict
 const { describe, it } = require('node:test')
 
 const { makeOnProgress } = require('./combineEvents.js')
-const { Task } = require('./index.js')
+const { Task, serializeError } = require('./index.js')
 
 const noop = Function.prototype
 
@@ -27,6 +27,36 @@ function createTask(opts) {
   task.$events = events
   return task
 }
+
+describe('serializeError', function () {
+  it('serializes simple error', function () {
+    const err = new Error('test Error')
+    err.code = 404
+    const serialized = serializeError(err)
+    assert.equal(serialized.message, 'test Error')
+    assert.equal(serialized.name, 'Error')
+    assert.equal(serialized.code, 404)
+    assert.notEqual(serialized.stack, undefined)
+  })
+
+  it('serializes aggregate error', function () {
+    const err = new AggregateError([new Error('test error 1'), new Error('test error 2')], 'Error message', {
+      cause: 'broken',
+    })
+    const serialized = serializeError(err)
+    assert.equal(serialized.message, 'Error message')
+    assert.equal(serialized.name, 'AggregateError')
+    assert.equal(serialized.cause, 'broken')
+    assert.notEqual(serialized.stack, undefined)
+    assert.equal(serialized.errors.length, 2)
+    assert.equal(serialized.errors[0].name, 'Error')
+    assert.equal(serialized.errors[1].name, 'Error')
+    assert.equal(serialized.errors[0].message, 'test error 1')
+    assert.equal(serialized.errors[1].message, 'test error 2')
+    assert.notEqual(serialized.errors[0].stack, undefined)
+    assert.notEqual(serialized.errors[1].stack, undefined)
+  })
+})
 
 describe('Task', function () {
   describe('constructor', function () {
@@ -106,7 +136,7 @@ describe('Task', function () {
       assert.equal(task.$events.length, 3)
       assertEvent(task, { type: 'start' }, 0)
       assertEvent(task, { type: 'abortionRequested', reason }, 1)
-      assertEvent(task, { type: 'end', status: 'failure', result }, 2)
+      assertEvent(task, { type: 'end', status: 'failure', result: serializeError(result) }, 2)
     })
 
     it('does not abort if the task succeed', async function () {
@@ -176,7 +206,7 @@ describe('Task', function () {
 
       assertEvent(task, {
         status: 'failure',
-        result: error,
+        result: serializeError(error),
         type: 'end',
       })
     })
@@ -475,7 +505,7 @@ describe('Task', function () {
       assert.equal(task.status, 'failure')
       assertEvent(task, {
         status: 'failure',
-        result: e,
+        result: serializeError(e),
         type: 'end',
       })
     })
@@ -511,7 +541,7 @@ describe('Task', function () {
       assert.equal(task.status, 'failure')
       assertEvent(task, {
         status: 'failure',
-        result: e,
+        result: serializeError(e),
         type: 'end',
       })
     })
