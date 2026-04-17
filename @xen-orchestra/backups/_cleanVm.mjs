@@ -514,18 +514,22 @@ export async function cleanVm(
     })
   }
 
+  let totalMergedDataSize = 0
   const metadataWithMergedVhd = {}
   const doMerge = async () => {
     await asyncMap(toMerge, async chain => {
-      const { finalDiskSize } = await limitedMergeVhdChain(handler, chain, {
+      const { finalDiskSize, mergedDataSize } = await limitedMergeVhdChain(handler, chain, {
         logInfo,
         logWarn,
         remove,
         mergeBlockConcurrency,
       })
+      totalMergedDataSize += mergedDataSize
       const metadataPath = vhdsToJSons[chain[chain.length - 1]] // all the chain should have the same metadata file
       metadataWithMergedVhd[metadataPath] = (metadataWithMergedVhd[metadataPath] ?? 0) + finalDiskSize
     })
+
+    return { size: totalMergedDataSize }
   }
 
   await Promise.all([
@@ -619,5 +623,6 @@ export async function cleanVm(
   return {
     // boolean whether some VHDs were merged (or should be merged)
     merge: toMerge.length !== 0,
+    size: totalMergedDataSize,
   }
 }
