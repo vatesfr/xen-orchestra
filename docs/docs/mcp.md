@@ -15,7 +15,7 @@ MCP enables new ways to interact with your infrastructure:
 - **Quick diagnostics** — Ask about specific VMs, hosts, or pools without leaving your conversation
 - **Documentation at your fingertips** — Search XO documentation directly from the assistant
 
-All operations are **read-only by design**, ensuring safe interaction with your production environment.
+All operations are **read-only by default**, ensuring safe interaction with your production environment. Write operations can be enabled explicitly — see [Write operations](#write-operations).
 
 ## Installation
 
@@ -41,12 +41,13 @@ npx @xen-orchestra/mcp
 
 The MCP server connects to Xen Orchestra via the REST API. Two authentication modes are supported: **token** (recommended) or **username/password**.
 
-| Variable      | Required                | Description                                               |
-| ------------- | ----------------------- | --------------------------------------------------------- |
-| `XO_URL`      | Yes                     | Xen Orchestra server URL (e.g., `https://xo.example.com`) |
-| `XO_TOKEN`    | If no username/password | Authentication token                                      |
-| `XO_USERNAME` | If no token             | XO user with admin privileges                             |
-| `XO_PASSWORD` | If no token             | XO password                                               |
+| Variable                | Required                | Description                                                                                   |
+| ----------------------- | ----------------------- | --------------------------------------------------------------------------------------------- |
+| `XO_URL`                | Yes                     | Xen Orchestra server URL (e.g., `https://xo.example.com`)                                     |
+| `XO_TOKEN`              | If no username/password | Authentication token                                                                          |
+| `XO_USERNAME`           | If no token             | XO user with admin privileges                                                                 |
+| `XO_PASSWORD`           | If no token             | XO password                                                                                   |
+| `XO_MCP_ENABLE_ACTIONS` | No                      | Set to `1` to expose write/destructive operations (see [Write operations](#write-operations)) |
 
 To generate a token, go to the XO user page (`/user`) or run `xo-cli create-token`. If both `XO_TOKEN` and `XO_USERNAME`/`XO_PASSWORD` are set, token authentication takes priority.
 
@@ -182,14 +183,20 @@ Pick descriptive names (`xo-production`, `xo-dr-site`, ...) so the assistant kno
 
 ![MCP architecture workflow](./assets/mcp_workflow.png)
 
-1. You ask a question in natural language to your AI assistant.
-2. The assistant determines which MCP tool to call.
-3. The MCP server queries the XO REST API (`/rest/v0/...`).
-4. Results are returned to the assistant, which formats a natural language answer.
+1. On startup, the MCP server fetches the OpenAPI spec from your XO instance (`/rest/v0/docs/swagger.json`) and generates one tool per resource domain.
+2. You ask a question in natural language to your AI assistant.
+3. The assistant picks a tool (e.g. `pools_query`) and chooses an `operation` (e.g. `list`, `dashboard`).
+4. The MCP server calls the corresponding XO REST endpoint and returns a markdown-formatted response.
+
+Because the tool surface is generated from the live OpenAPI spec, it always reflects the XO version you're connecting to — new endpoints become available automatically as XO evolves.
 
 ## Available Tools
 
-### `check_connection`
+### Utility tools
+
+These three tools are always present regardless of the XO spec.
+
+#### `check_connection`
 
 Test the connection to the Xen Orchestra server. Use this to validate your setup before querying infrastructure.
 
@@ -199,139 +206,9 @@ Test the connection to the Xen Orchestra server. Use this to validate your setup
 
 ---
 
-### `list_pools`
+#### `get_infrastructure_summary`
 
-List all pools in Xen Orchestra with their basic information.
-
-| Parameter | Type   | Required | Description                                                                                          |
-| --------- | ------ | -------- | ---------------------------------------------------------------------------------------------------- |
-| `fields`  | string | No       | Comma-separated fields to return (default: `id,name_label,name_description,auto_poweron,HA_enabled`) |
-
-**Example question:** "List all my pools"
-
----
-
-### `get_pool_dashboard`
-
-Get an aggregated dashboard for a specific pool, including host status, top resource consumers, and active alarms.
-
-| Parameter | Type   | Required | Description |
-| --------- | ------ | -------- | ----------- |
-| `pool_id` | string | Yes      | The pool ID |
-
-**Example question:** "Show me the dashboard for pool X"
-
----
-
-### `list_hosts`
-
-List all hosts (hypervisors) in Xen Orchestra with optional filtering.
-
-| Parameter | Type   | Required | Description                                                                                                                |
-| --------- | ------ | -------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `filter`  | string | No       | [Filter expression](https://docs.xen-orchestra.com/manage_infrastructure#live-filter-search) (e.g., `productBrand:XCP-ng`) |
-| `fields`  | string | No       | Comma-separated fields (default: `id,name_label,productBrand,version,power_state`)                                         |
-| `limit`   | number | No       | Maximum number of results                                                                                                  |
-
-**Example question:** "Show me all XCP-ng hosts"
-
----
-
-### `list_vms`
-
-List virtual machines in Xen Orchestra with optional filtering.
-
-| Parameter | Type   | Required | Description                                                                                                                                   |
-| --------- | ------ | -------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `filter`  | string | No       | [Filter expression](https://docs.xen-orchestra.com/manage_infrastructure#live-filter-search) (e.g., `power_state:Running`, `name_label:web*`) |
-| `fields`  | string | No       | Comma-separated fields (default: `id,name_label,power_state,CPUs,memory`)                                                                     |
-| `limit`   | number | No       | Maximum number of results                                                                                                                     |
-
-**Example question:** "How many VMs are currently running?"
-
----
-
-### `list_vdis`
-
-List virtual disks (VDIs) in Xen Orchestra with optional filtering.
-
-| Parameter | Type   | Required | Description                                                                                                                                |
-| --------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `filter`  | string | No       | [Filter expression](https://docs.xen-orchestra.com/manage_infrastructure#live-filter-search) (e.g., `VDI_type:User`, `name_label:backup*`) |
-| `fields`  | string | No       | Comma-separated fields (default: `id,name_label,name_description,$SR,size,usage,VDI_type`)                                                 |
-| `limit`   | number | No       | Maximum number of results                                                                                                                  |
-
-**Example question:** "List all user VDIs larger than 100GB"
-
----
-
-### `list_srs`
-
-List storage repositories (SRs) in Xen Orchestra with optional filtering.
-
-| Parameter | Type   | Required | Description                                                                                                                       |
-| --------- | ------ | -------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `filter`  | string | No       | [Filter expression](https://docs.xen-orchestra.com/manage_infrastructure#live-filter-search) (e.g., `SR_type:lvm`, `shared:true`) |
-| `fields`  | string | No       | Comma-separated fields (default: `id,name_label,SR_type,allocationStrategy,size,usage,physical_usage,shared`)                     |
-| `limit`   | number | No       | Maximum number of results                                                                                                         |
-
-**Example question:** "List all shared storage repositories"
-
----
-
-### `get_sr_details`
-
-Get detailed information about a specific storage repository.
-
-| Parameter | Type   | Required | Description       |
-| --------- | ------ | -------- | ----------------- |
-| `sr_id`   | string | Yes      | The SR ID or UUID |
-
-**Example question:** "Give me the details of SR abc123"
-
----
-
-### `list_networks`
-
-List all networks in Xen Orchestra with optional filtering.
-
-| Parameter | Type   | Required | Description                                                                                                          |
-| --------- | ------ | -------- | -------------------------------------------------------------------------------------------------------------------- |
-| `filter`  | string | No       | [Filter expression](https://docs.xen-orchestra.com/manage_infrastructure#live-filter-search) (e.g., `bridge:xenbr0`) |
-| `fields`  | string | No       | Comma-separated fields (default: `id,name_label,name_description,bridge,MTU,nbd`)                                    |
-| `limit`   | number | No       | Maximum number of results                                                                                            |
-
-**Example question:** "List all networks using bridge xenbr0"
-
----
-
-### `get_network_details`
-
-Get detailed information about a specific network.
-
-| Parameter    | Type   | Required | Description    |
-| ------------ | ------ | -------- | -------------- |
-| `network_id` | string | Yes      | The network ID |
-
-**Example question:** "Give me the details of network abc123"
-
----
-
-### `get_vm_details`
-
-Get detailed information about a specific virtual machine.
-
-| Parameter | Type   | Required | Description       |
-| --------- | ------ | -------- | ----------------- |
-| `vm_id`   | string | Yes      | The VM ID or UUID |
-
-**Example question:** "Give me the details of VM abc123"
-
----
-
-### `get_infrastructure_summary`
-
-Get a high-level summary of the entire XO infrastructure, including pool count, host count, and VM counts by power state (running, halted, other).
+Aggregate pools, hosts, and VMs across the entire infrastructure into a single markdown summary.
 
 **Parameters:** None
 
@@ -339,7 +216,7 @@ Get a high-level summary of the entire XO infrastructure, including pool count, 
 
 ---
 
-### `search_documentation`
+#### `search_documentation`
 
 Search and retrieve Xen Orchestra documentation. Useful for learning about XO features, configuration, and best practices.
 
@@ -349,13 +226,73 @@ Search and retrieve Xen Orchestra documentation. Useful for learning about XO fe
 
 **Example question:** "How do I configure backups in XO?"
 
+### Domain query tools
+
+Each domain exposes a single `{domain}_query` tool. The assistant picks an `operation` from the tool's enum and supplies the relevant arguments. All query tools share the same argument shape:
+
+| Parameter   | Type   | Required    | Description                                                                                                                                     |
+| ----------- | ------ | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `operation` | enum   | Yes         | The operation to perform (e.g. `list`, `get`, `dashboard`). The list of valid operations is domain-specific and listed in the tool description. |
+| `id`        | string | If required | Resource ID (required for `get`, sub-resource operations, etc.)                                                                                 |
+| `filter`    | string | No          | [Filter expression](https://docs.xen-orchestra.com/manage_infrastructure#live-filter-search) for list operations                                |
+| `fields`    | string | No          | Comma-separated fields to return. Leave empty to use optimized defaults.                                                                        |
+| `limit`     | number | No          | Maximum number of results for list operations                                                                                                   |
+
+Generated domain tools (operation list is indicative — the exact enum depends on your XO version):
+
+| Tool                | Covers                                 | Common operations                                                      |
+| ------------------- | -------------------------------------- | ---------------------------------------------------------------------- |
+| `pools_query`       | pools                                  | `list`, `get`, `dashboard`, `alarms`, `missing_patches`, `messages`, … |
+| `hosts_query`       | hosts                                  | `list`, `get`, `alarms`, `smt`, `missing_patches`, `messages`, …       |
+| `vms_query`         | VMs, templates, snapshots, controllers | `list`, `get`, `alarms`, `vdis`, `dashboard`, `list_vm-templates`, …   |
+| `storage_query`     | VDIs, SRs, VBDs, PBDs                  | `list_vdis`, `get_vdi`, `list_srs`, `get_sr`, `list_vbds`, …           |
+| `networks_query`    | networks, VIFs, PIFs                   | `list`, `get`, `list_vifs`, `get_vif`, `list_pifs`, `get_pif`, …       |
+| `backup_query`      | schedules, logs, repositories          | `list_schedules`, `list_backup-logs`, `list_backup-repositories`, …    |
+| `backup-jobs_query` | backup jobs                            | `list`, `get`, `jobs_vm_backup`, `jobs_metadata_backup`, …             |
+| `admin_query`       | users, groups, servers                 | `list_users`, `get_user`, `list_groups`, `list_servers`, …             |
+| `infra_query`       | tasks, messages, alarms, events        | `list_tasks`, `list_messages`, `list_alarms`, `list_events`, …         |
+| `system_query`      | PCIs, PGPUs, proxies, SMs              | `list_pcis`, `list_pgpus`, `list_proxies`, `list_sms`, …               |
+| `docs_query`        | OpenAPI spec                           | `swagger.json`                                                         |
+| `xoa_query`         | XO appliance                           | `list_dashboard`, `list_ping`, `list_gui-routes`                       |
+
+**Example questions:**
+
+- "List all my pools" → `pools_query` with `operation: list`
+- "Show the dashboard for pool X" → `pools_query` with `operation: dashboard, id: X`
+- "How many VMs are currently running?" → `vms_query` with `operation: list, filter: power_state:Running`
+- "List user VDIs larger than 100GB" → `storage_query` with `operation: list_vdis, filter: VDI_type:User`
+- "Show all XCP-ng hosts" → `hosts_query` with `operation: list, filter: productBrand:XCP-ng`
+
+:::note Excluded endpoints
+Stats endpoints (`/…/stats`) are deliberately not exposed as MCP tools: a single response can contain hundreds of time-series points across dozens of metrics, blowing past the LLM context window without a meaningful way to narrow the payload via query parameters. Hit the REST API directly (`GET /rest/v0/{resource}/{id}/stats`) when you need raw metric series.
+:::
+
+### Write operations
+
+By default, the MCP server only exposes read-only tools. Set `XO_MCP_ENABLE_ACTIONS=1` in the server environment to also expose `{domain}_action` tools covering POST/PUT/PATCH/DELETE operations.
+
+Action tools share this argument shape:
+
+| Parameter       | Type   | Required         | Description                                                                                |
+| --------------- | ------ | ---------------- | ------------------------------------------------------------------------------------------ |
+| `operation`     | enum   | Yes              | The action to perform (e.g. `start`, `delete`, `emergency_shutdown`).                      |
+| `id`            | string | For most actions | Target resource ID                                                                         |
+| `body`          | object | No               | Request body for create/update operations                                                  |
+| `confirm_token` | string | For risky ops    | One-shot token returned by a prior preview call — required to execute dangerous operations |
+
+**Confirmation flow for dangerous operations.** All `DELETE`s and a hand-picked set of destructive operations (`pools/emergency_shutdown`, `pools/rolling_reboot`, `pools/rolling_update`, `vms/hard_shutdown`, `vms/hard_reboot`) require explicit confirmation. The first call returns a preview and a `confirm_token`; the assistant must call back within 5 minutes with that token to execute. This turns "Yes, delete all my snapshots" into a two-step handshake and neutralises accidental destructive calls.
+
+:::warning Only enable actions if you trust the caller
+Enabling `XO_MCP_ENABLE_ACTIONS` lets the assistant mutate your infrastructure. Confirmations reduce the blast radius for destructive operations, but non-destructive writes (create, update) proceed without a second round-trip. Keep read-only mode unless you have a specific need.
+:::
+
 ## Prompts
 
 The MCP server also provides a built-in prompt:
 
 ### `infrastructure-overview`
 
-Generates a natural language overview of the XO infrastructure. When invoked, the assistant calls `get_infrastructure_summary` and formats the results as a readable summary with pool names, host counts, and VM statistics.
+Generates a natural language overview of the XO infrastructure. When invoked, the assistant calls `get_infrastructure_summary` and formats the results as a readable summary.
 
 ## Example Conversations
 
