@@ -37,7 +37,7 @@ describe('CryptoCredentials', function () {
   it('encrypted value is base64 and not valid JSON', async function () {
     const encrypted = await cryptoCredentials.encrypt('{"why":"vates_rocks"}')
     assert.throws(() => JSON.parse(encrypted))
-    assert.ok(Buffer.from(encrypted, 'base64url').length > 12)
+    assert.ok(Buffer.from(encrypted, 'base64').length > 12)
   })
 
   it('multiple encrypts give different ciphertexts', async function () {
