@@ -12,7 +12,6 @@ import { logMiddleware } from './middlewares/log.middleware.mjs'
 import { type OpenAPIV3 } from 'openapi-types'
 import { createExternalRouter, sendObjects } from './router/external-router.mjs'
 
-export * from './open-api/common/response.common.mjs'
 export { sendObjects }
 
 // Avoid using "import from" to import a json file as this requires assert/with and will break compatibility with recent node versions
