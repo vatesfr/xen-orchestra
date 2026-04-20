@@ -45,9 +45,17 @@ export default class CryptoCredentials {
       }
     })
 
-    app.hooks.on('start', () => {
+    app.hooks.on('start', async () => {
       if (this.#migrationRequired) {
-        return this._migrateToEncrypted()
+        try {
+          await this._migrateToEncrypted()
+        } catch (error) {
+          this.#degraded = true
+          log.error('Credential database migration failed - running in degraded mode', {
+            cause: error,
+            backupPath: BACKUP_FILE_PATH,
+          })
+        }
       }
     })
   }
@@ -211,7 +219,7 @@ export default class CryptoCredentials {
       try {
         JSON.parse(decryptedValue)
       } catch {
-        throw new Error(`An error occurred during encryption, redis backup file located at ${BACKUP_FILE_PATH}`)
+        throw new Error(`An error occurred during encryption migration`)
       }
     }
 
