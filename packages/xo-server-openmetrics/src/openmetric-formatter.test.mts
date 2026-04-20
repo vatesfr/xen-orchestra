@@ -2040,14 +2040,20 @@ describe('formatVmStatusMetrics', () => {
     const metrics = formatVmStatusMetrics(vms)
     const output = formatToOpenMetrics(metrics)
 
-    assert.ok(output.includes('# HELP xcp_vm_status VM status (1 = current state)'))
+    assert.ok(
+      output.includes(
+        '# HELP xcp_vm_status VM power state indicator (always 1; current state is carried by the power_state label)'
+      )
+    )
     assert.ok(output.includes('# TYPE xcp_vm_status gauge'))
     assert.ok(output.includes('power_state="Running"'))
     assert.ok(output.includes('power_state="Halted"'))
 
     // HELP and TYPE should appear only once
     const helpCount = (output.match(/# HELP xcp_vm_status/g) || []).length
+    const typeCount = (output.match(/# TYPE xcp_vm_status/g) || []).length
     assert.equal(helpCount, 1)
+    assert.equal(typeCount, 1)
   })
 
   it('should escape special characters in VM names', () => {

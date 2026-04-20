@@ -172,27 +172,12 @@ function handleParentMessage(rawMessage: unknown): void {
       break
 
     case 'XAPI_CREDENTIALS':
-      handleCredentialsResponse(message)
-      break
-
     case 'SR_DATA':
-      handleSrDataResponse(message)
-      break
-
     case 'VDI_DATA':
-      handleVdiDataResponse(message)
-      break
-
     case 'HOST_STATUS':
-      handleHostStatusResponse(message)
-      break
-
     case 'VM_STATUS':
-      handleVmStatusResponse(message)
-      break
-
     case 'XO_METRICS':
-      handleXoMetricsResponse(message)
+      resolvePendingRequest(message)
       break
 
     default:
@@ -225,77 +210,7 @@ async function handleShutdown(): Promise<void> {
   await cleanup()
 }
 
-function handleCredentialsResponse(message: IpcMessage): void {
-  const requestId = message.requestId
-  if (requestId === undefined) {
-    return
-  }
-
-  const pending = pendingRequests.get(requestId)
-  if (pending !== undefined) {
-    clearTimeout(pending.timer)
-    pendingRequests.delete(requestId)
-    pending.resolve(message.payload)
-  }
-}
-
-function handleSrDataResponse(message: IpcMessage): void {
-  const requestId = message.requestId
-  if (requestId === undefined) {
-    return
-  }
-
-  const pending = pendingRequests.get(requestId)
-  if (pending !== undefined) {
-    clearTimeout(pending.timer)
-    pendingRequests.delete(requestId)
-    pending.resolve(message.payload)
-  }
-}
-
-function handleVdiDataResponse(message: IpcMessage): void {
-  const requestId = message.requestId
-  if (requestId === undefined) {
-    return
-  }
-
-  const pending = pendingRequests.get(requestId)
-  if (pending !== undefined) {
-    clearTimeout(pending.timer)
-    pendingRequests.delete(requestId)
-    pending.resolve(message.payload)
-  }
-}
-
-function handleHostStatusResponse(message: IpcMessage): void {
-  const requestId = message.requestId
-  if (requestId === undefined) {
-    return
-  }
-
-  const pending = pendingRequests.get(requestId)
-  if (pending !== undefined) {
-    clearTimeout(pending.timer)
-    pendingRequests.delete(requestId)
-    pending.resolve(message.payload)
-  }
-}
-
-function handleVmStatusResponse(message: IpcMessage): void {
-  const requestId = message.requestId
-  if (requestId === undefined) {
-    return
-  }
-
-  const pending = pendingRequests.get(requestId)
-  if (pending !== undefined) {
-    clearTimeout(pending.timer)
-    pendingRequests.delete(requestId)
-    pending.resolve(message.payload)
-  }
-}
-
-function handleXoMetricsResponse(message: IpcMessage): void {
+function resolvePendingRequest(message: IpcMessage): void {
   const requestId = message.requestId
   if (requestId === undefined) {
     return

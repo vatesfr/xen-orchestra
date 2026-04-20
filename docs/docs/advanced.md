@@ -826,13 +826,13 @@ groups:
           summary: 'VM {{ $labels.vm_name }} is {{ $labels.power_state }}'
           description: 'VM {{ $labels.vm_name }} in pool {{ $labels.pool_name }} has power state {{ $labels.power_state }}.'
 
-      - alert: VMRecentlyRebooted
+      - alert: VMRecentlyStarted
         expr: xcp_vm_uptime_seconds < 600
         for: 1m
         labels:
           severity: info
         annotations:
-          summary: 'VM {{ $labels.vm_name }} recently rebooted'
+          summary: 'VM {{ $labels.vm_name }} recently started'
           description: 'VM {{ $labels.vm_name }} has been up for less than 10 minutes.'
 
       - alert: XOHighHeapUsage

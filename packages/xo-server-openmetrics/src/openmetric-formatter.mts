@@ -1172,7 +1172,7 @@ export function formatVmStatusMetrics(vmStatusList: VmStatusItem[]): FormattedMe
 
     metrics.push({
       name: `${METRIC_PREFIX}_vm_status`,
-      help: 'VM status (1 = current state)',
+      help: 'VM power state indicator (always 1; current state is carried by the power_state label)',
       type: 'gauge',
       labels,
       value: 1,
