@@ -1,0 +1,37 @@
+{
+  "name": "@vates/http-server-plus",
+  "version": "1.0.0",
+  "license": "ISC",
+  "description": "Augmented `http.Server`, HTTP/HTTPS/HTTP2 and multiple ports on the same instance",
+  "keywords": [
+    "http",
+    "https",
+    "server",
+    "ports"
+  ],
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/http-server-plus",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@vates/http-server-plus",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "promise-toolbox": "^0.21.0"
+  },
+  "devDependencies": {
+    "eslint-plugin-n": "^15.1.0"
+  },
+  "scripts": {
+    "pretest": "eslint .",
+    "test": "node --test index.spec.js"
+  },
+  "private": true,
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  }
+}
