@@ -7,10 +7,10 @@
 
 import { createLogger } from '@xen-orchestra/log'
 
-import type { HostStatusItem, LabelLookupData, SrDataItem, VdiDataItem, XoMetricsData } from './index.mjs'
+import type { HostStatusItem, LabelLookupData, SrDataItem, VdiDataItem, VmStatusItem, XoMetricsData } from './index.mjs'
 import type { ParsedMetric, ParsedRrdData } from './rrd-parser.mjs'
 
-export type { HostStatusItem, SrDataItem, VdiDataItem, XoMetricsData }
+export type { HostStatusItem, SrDataItem, VdiDataItem, VmStatusItem, XoMetricsData }
 
 const logger = createLogger('xo:xo-server-openmetrics:formatter')
 
@@ -1144,6 +1144,46 @@ export function formatHostStatusMetrics(hostStatusList: HostStatusItem[]): Forma
 }
 
 /**
+ * Format VM status metrics.
+ *
+ * Creates one FormattedMetric per VM with power_state label.
+ *
+ * @param vmStatusList - Array of VM status data
+ * @returns Array of FormattedMetric entries for VM status
+ */
+export function formatVmStatusMetrics(vmStatusList: VmStatusItem[]): FormattedMetric[] {
+  const metrics: FormattedMetric[] = []
+  const timestamp = Math.floor(Date.now() / 1000)
+
+  for (const vm of vmStatusList) {
+    const labels: Record<string, string> = {
+      pool_id: vm.pool_id,
+      uuid: vm.uuid,
+      power_state: vm.power_state,
+    }
+
+    if (vm.pool_name !== '') {
+      labels.pool_name = vm.pool_name
+    }
+
+    if (vm.name_label !== '') {
+      labels.vm_name = vm.name_label
+    }
+
+    metrics.push({
+      name: `${METRIC_PREFIX}_vm_status`,
+      help: 'VM power state indicator (always 1; current state is carried by the power_state label)',
+      type: 'gauge',
+      labels,
+      value: 1,
+      timestamp,
+    })
+  }
+
+  return metrics
+}
+
+/**
  * Format XO management plane metrics to OpenMetrics format.
  *
  * Produces counters/gauges for pools, hosts, VMs, SRs, users, groups,
@@ -1341,6 +1381,62 @@ export function formatHostUptimeMetrics(labelContext: LabelContext): FormattedMe
     metrics.push({
       name: `${METRIC_PREFIX}_host_uptime_seconds`,
       help: 'Host uptime in seconds since boot',
+      type: 'gauge',
+      labels,
+      value: uptimeSeconds,
+      timestamp: now,
+    })
+  }
+
+  return metrics
+}
+
+/**
+ * Format VM uptime metrics to OpenMetrics format.
+ *
+ * Creates a FormattedMetric entry for each VM's uptime, calculated as
+ * the difference between current time and vm.startTime (boot time).
+ * VM-controllers (dom0) are excluded.
+ *
+ * @param labelContext - Label context containing host credentials and label lookup data
+ * @returns Array of FormattedMetric entries for VM uptime
+ */
+export function formatVmUptimeMetrics(labelContext: LabelContext): FormattedMetric[] {
+  const metrics: FormattedMetric[] = []
+  const now = Math.floor(Date.now() / 1000)
+
+  for (const [vmUuid, vmInfo] of Object.entries(labelContext.labels.vms)) {
+    if (vmInfo.is_control_domain) {
+      continue
+    }
+
+    // Only emit uptime for running VMs — halted/suspended VMs retain stale startTime
+    if (vmInfo.power_state !== 'Running') {
+      continue
+    }
+
+    if (vmInfo.startTime === null || vmInfo.startTime === undefined) {
+      continue
+    }
+
+    const uptimeSeconds = Math.max(0, now - vmInfo.startTime)
+
+    const labels: Record<string, string> = {
+      pool_id: vmInfo.pool_id,
+      uuid: vmUuid,
+    }
+
+    if (vmInfo.pool_name !== '') {
+      labels.pool_name = vmInfo.pool_name
+    }
+
+    if (vmInfo.name_label !== '') {
+      labels.vm_name = vmInfo.name_label
+    }
+
+    metrics.push({
+      name: `${METRIC_PREFIX}_vm_uptime_seconds`,
+      help: 'VM uptime in seconds since boot',
       type: 'gauge',
       labels,
       value: uptimeSeconds,
