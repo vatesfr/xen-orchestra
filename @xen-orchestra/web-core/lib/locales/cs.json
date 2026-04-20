@@ -919,7 +919,7 @@
   "vm-disable-blocked-protection": "Pokud chcete pokračovat, je možné ochranu vypnout v nastavení virt. stroje.",
   "vm-disable-delete-protection": "Pokud ho chcete oderat, upravte jeho nastavení (vypněte ochranu proti smazání).",
   "vm-is-running": "Virt. stroj je spuštěný",
-  "vm-limit-topology": "Topologie limitu virt. stroje",
+  "vm-limit-topology": "Limit topologie virt. stroje",
   "vm-management": "Správa virt. stroje",
   "vm-not-running": "Virt. stroj není spuštěný",
   "vm-off": "Tento virtuální stroj je vypnutý.",
