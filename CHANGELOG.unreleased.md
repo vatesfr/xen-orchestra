@@ -35,5 +35,6 @@
 
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- xo-server-sdn-controller patch
 
 <!--packages-end-->
