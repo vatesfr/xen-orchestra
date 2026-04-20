@@ -75,6 +75,7 @@ export default class XenServers {
         connection: app._redis,
         namespace: 'server',
         indexes: ['host'],
+        crypto: app,
       }))
 
       app.addConfigManager(

@@ -30,6 +30,7 @@ export default class {
       this._pluginsMetadata = new PluginsMetadata({
         connection: app._redis,
         namespace: 'plugin-metadata',
+        crypto: app,
       })
 
       app.addConfigManager(
