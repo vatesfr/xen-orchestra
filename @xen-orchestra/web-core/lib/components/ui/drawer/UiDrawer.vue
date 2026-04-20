@@ -98,14 +98,13 @@ const slots = defineSlots<{
       align-items: center;
       padding: 1.6rem;
       background-color: var(--color-neutral-background-primary);
-      border-bottom: 0.1rem solid var(--color-neutral-border);
+      border-block-end: 0.1rem solid var(--color-neutral-border);
     }
 
     .content {
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
-      align-items: center;
       overflow: auto;
       flex: 1;
       margin: 0 0.4rem;
@@ -113,10 +112,10 @@ const slots = defineSlots<{
     }
 
     .buttons {
-      margin-top: auto;
+      margin-block-start: auto;
       padding: 1.6rem;
       background-color: var(--color-neutral-background-primary);
-      border-top: 0.1rem solid var(--color-neutral-border);
+      border-block-start: 0.1rem solid var(--color-neutral-border);
     }
 
     @media (--medium-or-large) {
