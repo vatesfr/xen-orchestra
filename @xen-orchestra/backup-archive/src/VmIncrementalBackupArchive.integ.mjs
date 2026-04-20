@@ -573,6 +573,10 @@ test('check all types of aliases, corrupted, missing or not', async () => {
   // broken alias pointing to a missing data file
   await VhdAbstract.createAlias(handler, `${basePath}/missingData.alias.vhd`, `${basePath}/data/nonexistent.vhd`)
 
+  // alias pointing to an existing but corrupt data file
+  await handler.writeFile(`${basePath}/data/corrupt.vhd`, 'I AM NOT A VHD')
+  await VhdAbstract.createAlias(handler, `${basePath}/corrupt.alias.vhd`, `${basePath}/data/corrupt.vhd`)
+
   // data file without alias
   await generateVhd(`${basePath}/data/missingalias.vhd`)
 
@@ -589,7 +593,7 @@ test('check all types of aliases, corrupted, missing or not', async () => {
   assert.equal(aliases.length, 1)
   assert.equal(aliases[0], 'ok.alias.vhd')
 
-  // missingalias.vhd has no alias pointing to it, should be deleted
+  // corrupt.vhd and missingalias.vhd must be gone
   const data = await handler.list(`${basePath}/data`)
   assert.equal(data.length, 1)
   assert.equal(data[0], 'ok.vhd')
