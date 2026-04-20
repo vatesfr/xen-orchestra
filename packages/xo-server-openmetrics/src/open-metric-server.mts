@@ -27,10 +27,13 @@ import {
   formatSrMetrics,
   formatToOpenMetrics,
   formatVdiMetrics,
+  formatVmStatusMetrics,
+  formatVmUptimeMetrics,
   formatXoMetrics,
   type HostStatusItem,
   type SrDataItem,
   type VdiDataItem,
+  type VmStatusItem,
   type XoMetricsData,
 } from './openmetric-formatter.mjs'
 
@@ -70,6 +73,10 @@ interface VmLabelInfo {
   vbdDeviceToVdiName: Record<string, string>
   vbdDeviceToVdiUuid: Record<string, string>
   vifIndexToNetworkName: Record<string, string>
+  startTime: number | null
+  power_state: string
+  pool_id: string
+  pool_name: string
 }
 
 interface HostLabelInfo {
@@ -105,6 +112,10 @@ interface VdiDataPayload {
 
 interface HostStatusPayload {
   hosts: HostStatusItem[]
+}
+
+interface VmStatusPayload {
+  vms: VmStatusItem[]
 }
 
 interface PendingRequest<T> {
@@ -161,23 +172,12 @@ function handleParentMessage(rawMessage: unknown): void {
       break
 
     case 'XAPI_CREDENTIALS':
-      handleCredentialsResponse(message)
-      break
-
     case 'SR_DATA':
-      handleSrDataResponse(message)
-      break
-
     case 'VDI_DATA':
-      handleVdiDataResponse(message)
-      break
-
     case 'HOST_STATUS':
-      handleHostStatusResponse(message)
-      break
-
+    case 'VM_STATUS':
     case 'XO_METRICS':
-      handleXoMetricsResponse(message)
+      resolvePendingRequest(message)
       break
 
     default:
@@ -210,63 +210,7 @@ async function handleShutdown(): Promise<void> {
   await cleanup()
 }
 
-function handleCredentialsResponse(message: IpcMessage): void {
-  const requestId = message.requestId
-  if (requestId === undefined) {
-    return
-  }
-
-  const pending = pendingRequests.get(requestId)
-  if (pending !== undefined) {
-    clearTimeout(pending.timer)
-    pendingRequests.delete(requestId)
-    pending.resolve(message.payload)
-  }
-}
-
-function handleSrDataResponse(message: IpcMessage): void {
-  const requestId = message.requestId
-  if (requestId === undefined) {
-    return
-  }
-
-  const pending = pendingRequests.get(requestId)
-  if (pending !== undefined) {
-    clearTimeout(pending.timer)
-    pendingRequests.delete(requestId)
-    pending.resolve(message.payload)
-  }
-}
-
-function handleVdiDataResponse(message: IpcMessage): void {
-  const requestId = message.requestId
-  if (requestId === undefined) {
-    return
-  }
-
-  const pending = pendingRequests.get(requestId)
-  if (pending !== undefined) {
-    clearTimeout(pending.timer)
-    pendingRequests.delete(requestId)
-    pending.resolve(message.payload)
-  }
-}
-
-function handleHostStatusResponse(message: IpcMessage): void {
-  const requestId = message.requestId
-  if (requestId === undefined) {
-    return
-  }
-
-  const pending = pendingRequests.get(requestId)
-  if (pending !== undefined) {
-    clearTimeout(pending.timer)
-    pendingRequests.delete(requestId)
-    pending.resolve(message.payload)
-  }
-}
-
-function handleXoMetricsResponse(message: IpcMessage): void {
+function resolvePendingRequest(message: IpcMessage): void {
   const requestId = message.requestId
   if (requestId === undefined) {
     return
@@ -383,6 +327,25 @@ async function requestHostStatusData(): Promise<HostStatusPayload> {
   })
 }
 
+async function requestVmStatusData(): Promise<VmStatusPayload> {
+  const requestId = `vm-status-${++requestIdCounter}`
+
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pendingRequests.delete(requestId)
+      reject(new Error('Timeout waiting for VM status data from parent'))
+    }, IPC_REQUEST_TIMEOUT_MS)
+
+    pendingRequests.set(requestId, {
+      resolve: value => resolve(value as VmStatusPayload),
+      reject,
+      timer,
+    })
+
+    sendToParent({ type: 'GET_VM_STATUS', requestId })
+  })
+}
+
 async function requestXoMetrics(): Promise<XoMetricsData> {
   const requestId = `xo-metrics-${++requestIdCounter}`
 
@@ -480,11 +443,12 @@ async function fetchRrdFromHost(host: HostCredentials): Promise<ParsedRrdData | 
  * @returns OpenMetrics-formatted string
  */
 async function collectMetrics(): Promise<string> {
-  const [credentials, srData, vdiData, hostStatusData, xoMetricsData] = await Promise.all([
+  const [credentials, srData, vdiData, hostStatusData, vmStatusData, xoMetricsData] = await Promise.all([
     requestXapiCredentials(),
     requestSrData(),
     requestVdiData(),
     requestHostStatusData(),
+    requestVmStatusData(),
     requestXoMetrics(),
   ])
 
@@ -493,6 +457,7 @@ async function collectMetrics(): Promise<string> {
     srCount: srData.srs.length,
     vdiCount: vdiData.vdis.length,
     hostStatusCount: hostStatusData.hosts.length,
+    vmStatusCount: vmStatusData.vms.length,
   })
 
   if (credentials.hosts.length === 0) {
@@ -562,6 +527,16 @@ async function collectMetrics(): Promise<string> {
   const uptimeMetricsOutput = uptimeMetrics.length > 0 ? formatToOpenMetrics(uptimeMetrics) : ''
   logger.debug('Formatted host uptime metrics', { hostCount: uptimeMetrics.length })
 
+  // Format VM status metrics
+  const vmStatusMetrics = formatVmStatusMetrics(vmStatusData.vms)
+  const vmStatusOutput = vmStatusMetrics.length > 0 ? formatToOpenMetrics(vmStatusMetrics) : ''
+  logger.debug('Formatted VM status metrics', { vmCount: vmStatusMetrics.length })
+
+  // Format VM uptime metrics
+  const vmUptimeMetrics = formatVmUptimeMetrics(credentials)
+  const vmUptimeOutput = vmUptimeMetrics.length > 0 ? formatToOpenMetrics(vmUptimeMetrics) : ''
+  logger.debug('Formatted VM uptime metrics', { vmCount: vmUptimeMetrics.length })
+
   // Format XO management plane metrics
   const xoMetrics = formatXoMetrics(xoMetricsData)
   const xoMetricsOutput = xoMetrics.length > 0 ? formatToOpenMetrics(xoMetrics) : ''
@@ -591,6 +566,14 @@ async function collectMetrics(): Promise<string> {
 
   if (uptimeMetricsOutput !== '') {
     allMetricsSections.push(uptimeMetricsOutput)
+  }
+
+  if (vmStatusOutput !== '') {
+    allMetricsSections.push(vmStatusOutput)
+  }
+
+  if (vmUptimeOutput !== '') {
+    allMetricsSections.push(vmUptimeOutput)
   }
 
   if (xoMetricsOutput !== '') {

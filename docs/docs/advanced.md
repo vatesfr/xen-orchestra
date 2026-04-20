@@ -468,37 +468,39 @@ Infrastructure metrics are prefixed with `xcp_` and XO management plane metrics 
 
 #### VM Metrics
 
-| Metric                                 | Type    | Description                        |
-| -------------------------------------- | ------- | ---------------------------------- |
-| `xcp_vm_memory_bytes`                  | gauge   | Memory usage in bytes              |
-| `xcp_vm_memory_internal_free_bytes`    | gauge   | Internal free memory               |
-| `xcp_vm_memory_target_bytes`           | gauge   | Memory target                      |
-| `xcp_vm_cpu_usage`                     | gauge   | CPU usage ratio                    |
-| `xcp_vm_cpu_core_usage`                | gauge   | Per-vCPU usage                     |
-| `xcp_vm_runstate_fullrun`              | gauge   | Runstate: full run ratio           |
-| `xcp_vm_runstate_full_contention`      | gauge   | Runstate: full contention ratio    |
-| `xcp_vm_runstate_partial_run`          | gauge   | Runstate: partial run ratio        |
-| `xcp_vm_runstate_partial_contention`   | gauge   | Runstate: partial contention ratio |
-| `xcp_vm_runstate_concurrency_hazard`   | gauge   | Runstate: concurrency hazard ratio |
-| `xcp_vm_runstate_blocked`              | gauge   | Runstate: blocked ratio            |
-| `xcp_vm_network_receive_bytes_total`   | counter | Network bytes received per VIF     |
-| `xcp_vm_network_transmit_bytes_total`  | counter | Network bytes transmitted per VIF  |
-| `xcp_vm_network_receive_errors_total`  | counter | Network receive errors             |
-| `xcp_vm_network_transmit_errors_total` | counter | Network transmit errors            |
-| `xcp_vm_disk_read_bytes_total`         | counter | Disk read bytes per device         |
-| `xcp_vm_disk_write_bytes_total`        | counter | Disk write bytes per device        |
-| `xcp_vm_disk_iops_read`                | gauge   | Disk read IOPS                     |
-| `xcp_vm_disk_iops_write`               | gauge   | Disk write IOPS                    |
-| `xcp_vm_disk_iops_total`               | gauge   | Disk total IOPS                    |
-| `xcp_vm_disk_read_latency_seconds`     | gauge   | Disk read latency                  |
-| `xcp_vm_disk_write_latency_seconds`    | gauge   | Disk write latency                 |
-| `xcp_vm_disk_throughput_read_bytes`    | gauge   | Disk read throughput (bytes/s)     |
-| `xcp_vm_disk_throughput_write_bytes`   | gauge   | Disk write throughput (bytes/s)    |
-| `xcp_vm_disk_throughput_total_bytes`   | gauge   | Disk total throughput (bytes/s)    |
-| `xcp_vm_disk_latency_seconds`          | gauge   | Disk average IO latency            |
-| `xcp_vm_disk_iowait`                   | gauge   | Disk IO wait ratio                 |
-| `xcp_vm_disk_inflight`                 | gauge   | In-flight disk operations          |
-| `xcp_vm_disk_queue_size`               | gauge   | Disk queue size                    |
+| Metric                                 | Type    | Description                                                                       |
+| -------------------------------------- | ------- | --------------------------------------------------------------------------------- |
+| `xcp_vm_memory_bytes`                  | gauge   | Memory usage in bytes                                                             |
+| `xcp_vm_memory_internal_free_bytes`    | gauge   | Internal free memory                                                              |
+| `xcp_vm_memory_target_bytes`           | gauge   | Memory target                                                                     |
+| `xcp_vm_cpu_usage`                     | gauge   | CPU usage ratio                                                                   |
+| `xcp_vm_cpu_core_usage`                | gauge   | Per-vCPU usage                                                                    |
+| `xcp_vm_runstate_fullrun`              | gauge   | Runstate: full run ratio                                                          |
+| `xcp_vm_runstate_full_contention`      | gauge   | Runstate: full contention ratio                                                   |
+| `xcp_vm_runstate_partial_run`          | gauge   | Runstate: partial run ratio                                                       |
+| `xcp_vm_runstate_partial_contention`   | gauge   | Runstate: partial contention ratio                                                |
+| `xcp_vm_runstate_concurrency_hazard`   | gauge   | Runstate: concurrency hazard ratio                                                |
+| `xcp_vm_runstate_blocked`              | gauge   | Runstate: blocked ratio                                                           |
+| `xcp_vm_network_receive_bytes_total`   | counter | Network bytes received per VIF                                                    |
+| `xcp_vm_network_transmit_bytes_total`  | counter | Network bytes transmitted per VIF                                                 |
+| `xcp_vm_network_receive_errors_total`  | counter | Network receive errors                                                            |
+| `xcp_vm_network_transmit_errors_total` | counter | Network transmit errors                                                           |
+| `xcp_vm_disk_read_bytes_total`         | counter | Disk read bytes per device                                                        |
+| `xcp_vm_disk_write_bytes_total`        | counter | Disk write bytes per device                                                       |
+| `xcp_vm_disk_iops_read`                | gauge   | Disk read IOPS                                                                    |
+| `xcp_vm_disk_iops_write`               | gauge   | Disk write IOPS                                                                   |
+| `xcp_vm_disk_iops_total`               | gauge   | Disk total IOPS                                                                   |
+| `xcp_vm_disk_read_latency_seconds`     | gauge   | Disk read latency                                                                 |
+| `xcp_vm_disk_write_latency_seconds`    | gauge   | Disk write latency                                                                |
+| `xcp_vm_disk_throughput_read_bytes`    | gauge   | Disk read throughput (bytes/s)                                                    |
+| `xcp_vm_disk_throughput_write_bytes`   | gauge   | Disk write throughput (bytes/s)                                                   |
+| `xcp_vm_disk_throughput_total_bytes`   | gauge   | Disk total throughput (bytes/s)                                                   |
+| `xcp_vm_disk_latency_seconds`          | gauge   | Disk average IO latency                                                           |
+| `xcp_vm_disk_iowait`                   | gauge   | Disk IO wait ratio                                                                |
+| `xcp_vm_disk_inflight`                 | gauge   | In-flight disk operations                                                         |
+| `xcp_vm_disk_queue_size`               | gauge   | Disk queue size                                                                   |
+| `xcp_vm_uptime_seconds`                | gauge   | VM uptime in seconds since boot (running VMs only)                                |
+| `xcp_vm_status`                        | gauge   | VM status (1 = current state, `power_state` in labels), including non-running VMs |
 
 #### SR Capacity Metrics
 
@@ -554,28 +556,28 @@ VDI metrics include labels `vdi_uuid`, `vdi_name`, `sr_uuid`, `sr_name`, `pool_i
 
 All metrics include these labels for filtering:
 
-| Label               | Description                                                              |
-| ------------------- | ------------------------------------------------------------------------ |
-| `pool_id`           | Pool UUID                                                                |
-| `pool_name`         | Pool name                                                                |
-| `uuid`              | Object UUID (host or VM)                                                 |
-| `type`              | Object type (`host` or `vm`)                                             |
-| `host_name`         | Host name (for host metrics)                                             |
-| `vm_name`           | VM name (for VM metrics)                                                 |
-| `sr_uuid`           | Storage Repository UUID (for SR metrics)                                 |
-| `sr_name`           | Storage Repository name (for disk metrics)                               |
-| `vdi_uuid`          | Virtual Disk UUID (for VDI metrics)                                      |
-| `vdi_name`          | Virtual Disk name (for VM disk and VDI metrics)                          |
-| `network_name`      | Network name (for network metrics)                                       |
-| `interface`         | Network interface name                                                   |
-| `device`            | Disk device (xvda, xvdb, etc.)                                           |
-| `core`              | CPU core number                                                          |
-| `vif`               | VIF index (for VM network metrics)                                       |
-| `sr`                | SR UUID suffix (for host disk metrics)                                   |
-| `host_id`           | Host UUID (for local SR capacity metrics)                                |
-| `is_control_domain` | Whether the VM is a control domain / dom0 (`true`/`false`)               |
-| `power_state`       | Host power state: `Running`, `Halted`, `Unknown` (for `xcp_host_status`) |
-| `enabled`           | Whether the host is enabled: `true`/`false` (for `xcp_host_status`)      |
+| Label               | Description                                                                                                                           |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `pool_id`           | Pool UUID                                                                                                                             |
+| `pool_name`         | Pool name                                                                                                                             |
+| `uuid`              | Object UUID (host or VM)                                                                                                              |
+| `type`              | Object type (`host` or `vm`)                                                                                                          |
+| `host_name`         | Host name (for host metrics)                                                                                                          |
+| `vm_name`           | VM name (for VM metrics)                                                                                                              |
+| `sr_uuid`           | Storage Repository UUID (for SR metrics)                                                                                              |
+| `sr_name`           | Storage Repository name (for disk metrics)                                                                                            |
+| `vdi_uuid`          | Virtual Disk UUID (for VDI metrics)                                                                                                   |
+| `vdi_name`          | Virtual Disk name (for VM disk and VDI metrics)                                                                                       |
+| `network_name`      | Network name (for network metrics)                                                                                                    |
+| `interface`         | Network interface name                                                                                                                |
+| `device`            | Disk device (xvda, xvdb, etc.)                                                                                                        |
+| `core`              | CPU core number                                                                                                                       |
+| `vif`               | VIF index (for VM network metrics)                                                                                                    |
+| `sr`                | SR UUID suffix (for host disk metrics)                                                                                                |
+| `host_id`           | Host UUID (for local SR capacity metrics)                                                                                             |
+| `is_control_domain` | Whether the VM is a control domain / dom0 (`true`/`false`)                                                                            |
+| `power_state`       | Power state: `Running`, `Halted`, `Unknown` (for `xcp_host_status`); `Running`, `Paused`, `Halted`, `Suspended` (for `xcp_vm_status`) |
+| `enabled`           | Whether the host is enabled: `true`/`false` (for `xcp_host_status`)                                                                   |
 
 ### PromQL Query Examples
 
@@ -625,6 +627,18 @@ xcp_host_status{power_state!="Running"}
 
 # Hosts in maintenance mode
 xcp_host_status{power_state="Running", enabled="false"}
+
+# Non-running VMs
+xcp_vm_status{power_state!="Running"}
+
+# Halted VMs
+xcp_vm_status{power_state="Halted"}
+
+# VM uptime in days (running VMs only)
+xcp_vm_uptime_seconds / 86400
+
+# VMs running for more than 30 days (may need a reboot)
+xcp_vm_uptime_seconds > 30 * 86400
 
 # VM CPU usage excluding dom0
 xcp_vm_cpu_usage{is_control_domain="false"} * 100
@@ -802,6 +816,24 @@ groups:
         annotations:
           summary: 'Host {{ $labels.host_name }} recently rebooted'
           description: 'Host {{ $labels.host_name }} has been up for less than 10 minutes.'
+
+      - alert: VMNotRunning
+        expr: xcp_vm_status{power_state!="Running"} == 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'VM {{ $labels.vm_name }} is {{ $labels.power_state }}'
+          description: 'VM {{ $labels.vm_name }} in pool {{ $labels.pool_name }} has power state {{ $labels.power_state }}.'
+
+      - alert: VMRecentlyStarted
+        expr: xcp_vm_uptime_seconds < 600
+        for: 1m
+        labels:
+          severity: info
+        annotations:
+          summary: 'VM {{ $labels.vm_name }} recently started'
+          description: 'VM {{ $labels.vm_name }} has been up for less than 10 minutes.'
 
       - alert: XOHighHeapUsage
         expr: (xo_nodejs_process_memory_bytes{type="heap_used"} / xo_nodejs_heap_size_limit_bytes) > 0.85
