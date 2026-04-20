@@ -23,8 +23,8 @@ export default class ConfigManagement {
   }
 
   async exportConfig({ compress = false, entries, passphrase } = {}) {
-    if((this._app.config.getOptional('redis.encryptCredentialDatabase') ?? false) && !passphrase){
-      throw new Error("Config export requires a passphrase when credential encryption is enabled.")
+    if ((this._app.config.getOptional('redis.encryptCredentialDatabase') ?? false) && !passphrase) {
+      throw new Error('Config export requires a passphrase when credential encryption is enabled.')
     }
 
     let managers = this._managers

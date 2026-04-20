@@ -211,7 +211,7 @@ export default class CryptoCredentials {
       try {
         JSON.parse(decryptedValue)
       } catch {
-        throw new Error(`An error occured during encryption, redis backup file located at ${BACKUP_FILE_PATH}`)
+        throw new Error(`An error occurred during encryption, redis backup file located at ${BACKUP_FILE_PATH}`)
       }
     }
 

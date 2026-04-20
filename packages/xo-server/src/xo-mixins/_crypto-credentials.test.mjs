@@ -20,7 +20,7 @@ describe('CryptoCredentials', function () {
     assert.equal(instance.isDegraded(), false)
   })
 
-  it('encrypts and decripts a string', async function () {
+  it('encrypts and decrypts a string', async function () {
     const payload = 'vates_rocks'
 
     const encrypted = await cryptoCredentials.encrypt(payload)
