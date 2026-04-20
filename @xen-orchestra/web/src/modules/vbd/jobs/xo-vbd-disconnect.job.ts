@@ -40,7 +40,7 @@ export const useXoVbdDisconnectJob = defineJob('vbd.disconnect', [xoVbdsArg, xoV
       }
 
       if (vbds.some(vbd => !vbd.attached)) {
-        throw new JobError(t('job:vbd-disconnect:vbd-not-connected'))
+        throw new JobError(t('job:vbd-disconnect:vbd-disconnected'))
       }
 
       if (!vm || vm.power_state !== VM_POWER_STATE.RUNNING) {

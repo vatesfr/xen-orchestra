@@ -7,6 +7,7 @@
     @click="openVdiDeleteModal()"
   >
     {{ t('action:delete') }}
+    <i v-if="hint">{{ hint }}</i>
   </MenuItem>
 </template>
 
@@ -14,6 +15,7 @@
 import { useVdiDeleteModal } from '@/modules/vdi/composables/use-vdi-delete-modal.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vdi } = defineProps<{
@@ -23,6 +25,8 @@ const { vdi } = defineProps<{
 const { t } = useI18n()
 
 const { openModal: openVdiDeleteModal, canRun: canDeleteVdi, isRunning: isDeletingVdi } = useVdiDeleteModal(() => [vdi])
+
+const hint = computed(() => (!canDeleteVdi.value ? t('running-vm') : undefined))
 </script>
 
 <style lang="postcss" scoped>

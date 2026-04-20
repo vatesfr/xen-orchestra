@@ -25,9 +25,9 @@
 </template>
 
 <script setup lang="ts">
+import { useVbdConnectModal } from '@/modules/vbd/composables/use-vbd-connect-modal.composable.ts'
 import { useVbdDeleteModal } from '@/modules/vbd/composables/use-vbd-delete-modal.composable.ts'
-import { useXoVbdConnectJob } from '@/modules/vbd/jobs/xo-vbd-connect.job.ts'
-import { useXoVbdDisconnectJob } from '@/modules/vbd/jobs/xo-vbd-disconnect.job.ts'
+import { useVbdDisconnectModal } from '@/modules/vbd/composables/use-vbd-disconnect-modal.composable.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { useVdiDeleteModal } from '@/modules/vdi/composables/use-vdi-delete-modal.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
@@ -41,7 +41,6 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
-import { useModal } from '@core/packages/modal/use-modal.ts'
 import { useVdiColumns } from '@core/tables/column-sets/vdi-columns.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { computed, ref } from 'vue'
@@ -99,57 +98,35 @@ const { HeadCells, BodyCells } = useVdiColumns({
     const format = computed(() => getVdiFormat(vdi.image_format))
 
     const {
+      openModal: openVbdDisconnectModal,
+      canRun: canDisconnectVbd,
+      isRunning: isDisconnectingVbd,
+    } = useVbdDisconnectModal(
+      () => (vbd.value ? [vbd.value] : []),
+      () => vm
+    )
+
+    const {
+      openModal: openVbdConnectModal,
+      canRun: canConnectVbd,
+      isRunning: isConnectingVbd,
+    } = useVbdConnectModal(
+      () => (vbd.value ? [vbd.value] : []),
+      () => vm
+    )
+
+    const {
       openModal: openVbdDeleteModal,
       canRun: canDeleteVbd,
       isRunning: isDeletingVbd,
     } = useVbdDeleteModal(() => (vbd.value ? [vbd.value] : []))
 
     const {
-      run: connectVbd,
-      canRun: canConnectVbd,
-      isRunning: isConnectingVbd,
-    } = useXoVbdConnectJob(
-      () => (vbd.value ? [vbd.value] : []),
-      () => vm
-    )
-
-    const {
-      run: disconnectVbd,
-      canRun: canDisconnectVbd,
-      isRunning: isDisconnectingVbd,
-    } = useXoVbdDisconnectJob(
-      () => (vbd.value ? [vbd.value] : []),
-      () => vm
-    )
-    const {
       openModal: openVdiDeleteModal,
       canRun: canDeleteVdi,
       isRunning: isDeletingVdi,
     } = useVdiDeleteModal(() => [vdi])
 
-    const openConnectModal = useModal({
-      component: import('@/modules/vbd/components/modal/VbdConnectModal.vue'),
-      props: { count: 1 },
-      onConfirm: async () => {
-        try {
-          await connectVbd()
-        } catch (error) {
-          console.error('Error when connecting VBD:', error)
-        }
-      },
-    })
-
-    const openDisconnectModal = useModal({
-      component: import('@/modules/vbd/components/modal/VbdDisconnectModal.vue'),
-      props: { count: 1 },
-      onConfirm: async () => {
-        try {
-          await disconnectVbd()
-        } catch (error) {
-          console.error('Error when disconnecting VBD:', error)
-        }
-      },
-    })
     return {
       vdi: r => r({ label: vdi.name_label, href: href.value, icon: 'object:vdi' }),
       description: r => r(vdi.name_description),
@@ -164,14 +141,14 @@ const { HeadCells, BodyCells } = useVdiColumns({
               ? {
                   label: t('action:disconnect'),
                   icon: 'status:disabled',
-                  onClick: () => openDisconnectModal(),
+                  onClick: () => openVbdDisconnectModal(),
                   disabled: !canDisconnectVbd.value,
                   busy: isDisconnectingVbd.value,
                 }
               : {
                   label: t('action:connect'),
                   icon: 'status:success-circle',
-                  onClick: () => openConnectModal(),
+                  onClick: () => openVbdConnectModal(),
                   disabled: !canConnectVbd.value,
                   busy: isConnectingVbd.value,
                 },
