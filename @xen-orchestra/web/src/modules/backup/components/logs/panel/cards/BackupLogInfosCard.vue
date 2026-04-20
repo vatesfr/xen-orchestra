@@ -49,8 +49,9 @@
       <VtsCardRowKeyValue v-if="backupLog.tasks !== undefined && backupLog.tasks.length > 0">
         <template #key>{{ t('task') }}</template>
         <template #value>
-          <!-- TODO: add link to task when Tasks page will be available -->
-          <UiLink size="small">{{ backupLog.tasks[0].id }}</UiLink>
+          <UiLink size="small" :to="{ path: '/tasks', query: { id: backupLog.tasks[0].id } }" wrap>
+            {{ backupLog.tasks[0].id }}
+          </UiLink>
         </template>
       </VtsCardRowKeyValue>
     </div>

@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- [XoLite] Add ellipsis on link (PR [#9234](https://github.com/vatesfr/xen-orchestra/pull/9234))
+
 ## **0.20.0** (2026-04-01)
 
 - [VM/New] Added secureBoot support (PR [#9423](https://github.com/vatesfr/xen-orchestra/pull/9423))

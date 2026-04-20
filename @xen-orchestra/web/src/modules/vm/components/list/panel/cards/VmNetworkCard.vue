@@ -2,7 +2,12 @@
   <UiCard class="card-container">
     <UiCardTitle>
       {{ t('networks') }}
-      <UiLink v-if="ipAddresses.length > 0" size="medium" :to="{ name: '/vm/[id]/networks', params: { id: vm.id } }">
+      <UiLink
+        v-if="ipAddresses.length > 0"
+        size="medium"
+        :to="{ name: '/vm/[id]/networks', params: { id: vm.id } }"
+        wrap
+      >
         {{ t('see-details') }}
       </UiLink>
     </UiCardTitle>

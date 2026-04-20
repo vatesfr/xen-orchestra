@@ -3,7 +3,7 @@
     <VtsQuickInfoColumn>
       <VtsQuickInfoRow :label="t('state')">
         <template #value>
-          <span class="value">
+          <span class="power-state">
             <VtsIcon :name="powerState.icon" size="medium" />
             {{ powerState.text }}
           </span>
@@ -18,7 +18,12 @@
       <VtsQuickInfoRow :label="t('uuid')" :value="vm.id" />
       <VtsQuickInfoRow :label="t('pool')">
         <template #value>
-          <UiLink v-if="pool" :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }" size="medium" icon="object:pool">
+          <UiLink
+            v-if="pool"
+            :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }"
+            size="medium"
+            icon="object:pool"
+          >
             {{ pool.name_label }}
           </UiLink>
           <span v-else>
@@ -29,7 +34,11 @@
       <VtsQuickInfoRow :label="t('host')">
         <template #value>
           <template v-if="host">
-            <UiLink :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }" size="medium" :icon="`object:host:${hostPowerState}`">
+            <UiLink
+              :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
+              size="medium"
+              :icon="`object:host:${hostPowerState}`"
+            >
               {{ host.name_label }}
             </UiLink>
             <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
@@ -46,7 +55,7 @@
       <VtsQuickInfoRow :label="t('virtualization-type')" :value="virtualizationType" />
       <VtsQuickInfoRow :label="t('guest-tools')">
         <template #value>
-          <div class="value">
+          <div class="guest-tools">
             <VtsIcon
               v-if="guestToolsDisplay.value !== '-'"
               v-tooltip="guestToolsDisplay.tooltip"
@@ -136,10 +145,19 @@ const hostPowerState = computed(() =>
 
 <style lang="postcss" scoped>
 .vm-dashboard-quick-info {
-  .value {
+  .power-state,
+  .pool-name,
+  .host-name,
+  .guest-tools {
     display: flex;
     align-items: center;
     gap: 0.8rem;
+  }
+
+  .pool-name,
+  .host-name,
+  .guest-tools {
+    min-width: 0;
   }
 }
 </style>

@@ -1,15 +1,27 @@
 <!-- v3 -->
 <template>
   <component :is="component" :class="classes" class="ui-link" v-bind="attributes">
-    <VtsIcon :name="icon" size="medium" />
-    <slot />
-    <VtsIcon v-if="attributes.target === '_blank'" name="fa:up-right-from-square" size="medium" class="external-icon" />
+    <span>
+      <VtsIcon :name="icon" size="medium" />
+    </span>
+    <span v-tooltip :class="wrap == true ? 'link-wrap' : 'text-ellipsis'">
+      <slot />
+    </span>
+    <span>
+      <VtsIcon
+        v-if="attributes.target === '_blank'"
+        name="fa:up-right-from-square"
+        size="medium"
+        class="external-icon"
+      />
+    </span>
   </component>
 </template>
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { type LinkOptions, useLinkComponent } from '@core/composables/link-component.composable'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import type { IconName } from '@core/icons'
 import { computed } from 'vue'
 
@@ -17,6 +29,7 @@ const props = defineProps<
   LinkOptions & {
     size: 'small' | 'medium'
     icon?: IconName
+    wrap?: boolean
   }
 >()
 
@@ -33,9 +46,10 @@ const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.
 <style lang="postcss" scoped>
 .ui-link {
   display: inline-flex;
-  align-items: center;
   gap: 0.8rem;
   color: var(--color-brand-txt-base);
+  min-width: 0;
+  max-width: 100%;
 
   &:hover {
     color: var(--color-brand-txt-hover);
@@ -62,12 +76,18 @@ const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.
     cursor: not-allowed;
   }
 
+  .link-wrap {
+    text-wrap: wrap;
+    overflow-wrap: anywhere;
+  }
+
   &:not([href]) {
     text-decoration: none;
     cursor: default;
   }
 
   .external-icon {
+    margin: calc((1em - 0.75em) / 2) 0;
     font-size: 0.75em;
   }
 }
