@@ -912,7 +912,7 @@
   "vm-tools-missing": "Las VM tools no estan instaladas",
   "vm:status:active": "@:status:active",
   "vm:status:halted": "Detenida",
-  "vm:status:inactive": "@:status:Inactiva",
+  "vm:status:inactive": "@:status:Inactive",
   "vm:status:inactive:tooltip": "Paradas o suspendidas",
   "vm:status:paused": "@:status:pausada",
   "vm:status:running": "@:status:arrancada",
