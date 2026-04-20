@@ -15,19 +15,12 @@ export class BackupArchiveService {
 
   async getBackupArchive(id: XoVmBackupArchive['id']): Promise<XoVmBackupArchive> {
     const match = id.match(BACKUP_ARCHIVE_ID_REGEX)
-    console.log({ match })
     if (match === null) {
       throw noSuchObject(id, 'backup-archive')
     }
 
     const [, brId, vmId] = match as [XoVmBackupArchive['id'], XoBackupRepository['id'], XoVm['id'], string]
 
-    console.log({ brId })
-    console.log({ vmId })
-    const vmBackupsNg = await this.#restApi.xoApp.listVmBackupsNg([brId])
-    console.log({ vmBackupsNg })
-
-    console.log(vmBackupsNg[brId][vmId])
     const backupArchive = (await this.#restApi.xoApp.listVmBackupsNg([brId]))[brId]?.[vmId]?.find(ba => ba.id === id)
     if (backupArchive === undefined) {
       throw noSuchObject(id, 'backup-archive')
