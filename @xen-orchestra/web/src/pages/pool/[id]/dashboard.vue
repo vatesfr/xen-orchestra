@@ -91,7 +91,7 @@ const uiStore = useUiStore()
 
   .alarms {
     grid-area: alarms;
-    height: 46.2rem;
+    max-height: 46.2rem;
   }
 
   .patches {

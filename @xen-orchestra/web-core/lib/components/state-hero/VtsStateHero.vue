@@ -11,6 +11,7 @@
 
 <script lang="ts" setup>
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
+import { useUiStore } from '@core/stores/ui.store'
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -32,7 +33,12 @@ export type StateHeroType =
   | 'all-done'
   | 'creating'
 
-const { format, type, size } = defineProps<{
+const {
+  format,
+  type,
+  size,
+  horizontal: horizontalProp,
+} = defineProps<{
   format: StateHeroFormat
   type: StateHeroType
   size: StateHeroSize
@@ -44,7 +50,11 @@ const slots = defineSlots<{
   default?(): any
 }>()
 
+const uiStore = useUiStore()
+
 const { t } = useI18n()
+
+const horizontal = computed(() => horizontalProp && !uiStore.isSmall)
 
 const typoClass = computed(() => (format === 'page' ? 'typo-h2' : 'typo-h4'))
 
