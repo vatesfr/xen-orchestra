@@ -465,7 +465,7 @@
   "modal:confirm-vm-force-shutdown": "Bekräftaa tvingad nedstängning av VM",
   "modal:confirm-vm-reboot": "Bekräfta omstart av VM",
   "modal:confirm-vm-shutdown": "Bekräfta nedstängning av VM",
-  "modal:vm-force-reboot-message": "Detta kommer omedelbart att stänga av den virtuella maskinen utan en korrekt nedstängning. Dataförlust kan ske och pågående processer kommer att avbrytas.",
+  "modal:vm-force-reboot-message": "Detta kommer omedelbart startar om den virtuella maskinen utan en korrekt nedstängning. Dataförlust kan ske och pågående processer kommer att avbrytas.",
   "modal:vm-force-shutdown-message": "Detta kommer omedelbart att stänga av den virtuella maskinen utan en korrekt nedstängning. Dataförlust kan ske och pågående processer kommer att avbrytas.",
   "modal:vm-reboot-message": "Startar om den virtuella maskinen korrekt genom att stänga ned den och starta upp den igen. Processer stängs ner korrekt.",
   "modal:vm-shutdown-message": "Stänger ned den virtuella maskinen korrekt. Alla körande processer stoppas och användare kan kopplas ifrån. Du kan starta om VMen senare från gränssnittet.",

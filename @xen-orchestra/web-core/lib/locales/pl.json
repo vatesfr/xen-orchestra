@@ -216,7 +216,7 @@
   "properties": "Właściwości",
   "property": "Właściwość",
   "pxe": "PXE",
-  "query-search-bar:label": "Wyszukiwarka",
+  "query-search-bar:label": "@:query-builder:label",
   "read-only": "Tylko do odczytu",
   "relative-time:now": "Przed chwilą",
   "report-when:always": "Zawsze",

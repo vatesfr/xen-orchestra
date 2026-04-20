@@ -481,7 +481,7 @@
   "modal:confirm-vm-force-shutdown": "Bevestig gedwongen afsluiten van VM",
   "modal:confirm-vm-reboot": "Bevestig opnieuw opstarten van VM",
   "modal:confirm-vm-shutdown": "Bevestig afsluiten van VM",
-  "modal:vm-force-reboot-message": "Hierdoor wordt de virtuele machine onmiddellijk uitgeschakeld zonder een correcte afsluiting. Er kan gegevensverlies optreden en lopende processen worden onderbroken.",
+  "modal:vm-force-reboot-message": "Hierdoor wordt de virtuele machine onmiddellijk opnieuw opgestart zonder een correcte afsluiting. Er kan gegevensverlies optreden en lopende processen worden onderbroken.",
   "modal:vm-force-shutdown-message": "Hierdoor wordt de virtuele machine onmiddellijk uitgeschakeld zonder een correcte afsluiting. Er kan gegevensverlies optreden en lopende processen worden onderbroken.",
   "modal:vm-reboot-message": "Start de virtuele machine op een correcte manier opnieuw op door deze af te sluiten en opnieuw te starten. Actieve processen worden op de juiste manier afgesloten.",
   "modal:vm-shutdown-message": "Hiermee wordt de virtuele machine op een correcte manier afgesloten. Alle actieve processen worden gestopt en gebruikers kunnen worden verbroken. U kunt de VM later opnieuw opstarten via de interface.",
