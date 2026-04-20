@@ -135,6 +135,8 @@
 
 ### Released packages
 
+- @xen-orchestra/backups 0.69.5
+- @xen-orchestra/proxy 0.29.52
 - xo-server 5.197.6
 
 ## **6.2.2** (2026-03-09)
