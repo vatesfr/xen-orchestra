@@ -12,6 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [VM/new] Removed new VM form alert (PR [#9757](https://github.com/vatesfr/xen-orchestra/pull/9757))
+- [VM] Add possibility to connect or disconnect a VBD on VDI tab (PR [#9726](https://github.com/vatesfr/xen-orchestra/pull/9726))
 
 ### Bug fixes
 
@@ -33,6 +34,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/web minor
 - xo-server-sdn-controller patch
 
 <!--packages-end-->

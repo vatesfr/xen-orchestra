@@ -4,6 +4,10 @@
       {{ t('vbd-disconnect-title', { n: count }) }}
     </template>
 
+    <template #content>
+      {{ t('vbd-disconnect-info') }}
+    </template>
+
     <template #buttons>
       <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
       <VtsModalConfirmButton>
