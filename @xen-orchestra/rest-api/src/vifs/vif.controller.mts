@@ -238,7 +238,7 @@ export class VifController extends XapiXoController<XoVif> {
 
   /**
    * Hotplug the VIF, dynamically attaching it to the running VM
-   * Requires pv drivers to be installed on the VM
+   * Requires PV drivers to be installed on the VM
    *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
@@ -268,7 +268,7 @@ export class VifController extends XapiXoController<XoVif> {
 
   /**
    * Hot-unplug the VIF, dynamically detaching it from the running VM
-   * Requires pv drivers to be installed on the VM
+   * Requires PV drivers to be installed on the VM
    *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
