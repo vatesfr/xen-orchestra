@@ -161,7 +161,7 @@ export class RemoteDiskLineage {
       visited.add(diskPath)
 
       if (!orphanDisks.has(diskPath)) {
-        // Active disk — anchor of the merge chain
+        // Active disk, anchor of the merge chain
         return [diskPath]
       }
 
@@ -270,7 +270,6 @@ export class RemoteDiskLineage {
       onProgress: this.#opts.onProgress,
     })
 
-    // isResuming is known from #interruptedMerges — no extra file read needed
     const parentDisk = await openDisk({ handler: this.#handler as any, path: parentPath, force: isResuming })
     const childDisk = await openDiskChainFromPaths({
       handler: this.#handler as any,

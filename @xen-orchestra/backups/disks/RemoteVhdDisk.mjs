@@ -549,7 +549,7 @@ export class RemoteVhdDisk extends RemoteDisk {
           files.push(resolved)
         }
       } catch {
-        // broken alias — no data file to claim
+        // broken alias, no data file to claim
       }
     }
 

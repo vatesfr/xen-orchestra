@@ -202,7 +202,7 @@ test('it remove backup metadata referencing a missing vhd in delta backup', asyn
 })
 
 test('it removes metadata and broken vhd when an active backup references a corrupt disk', async () => {
-  // A VHD that exists on disk but is corrupted — openDisk will fail during lineage init
+  // A VHD that exists on disk but is corrupted, openDisk will fail during lineage init
   await handler.writeFile(`${basePath}/broken.vhd`, 'I AM NOT A VHD')
 
   // Metadata references the corrupt VHD as if it were a valid active disk
@@ -597,7 +597,7 @@ test('check all types of aliases, corrupted, missing or not', async () => {
   // broken alias pointing to a missing data file
   await VhdAbstract.createAlias(handler, `${basePath}/missingData.alias.vhd`, `${basePath}/data/nonexistent.vhd`)
 
-  // orphaned data file — no alias references it
+  // data file without alias
   await generateVhd(`${basePath}/data/missingalias.vhd`)
 
   // only the valid alias is referenced by a complete backup
@@ -613,7 +613,7 @@ test('check all types of aliases, corrupted, missing or not', async () => {
   assert.equal(aliases.length, 1)
   assert.equal(aliases[0], 'ok.alias.vhd')
 
-  // missingalias.vhd has no alias pointing to it — should be deleted
+  // missingalias.vhd has no alias pointing to it, should be deleted
   const data = await handler.list(`${basePath}/data`)
   assert.equal(data.length, 1)
   assert.equal(data[0], 'ok.vhd')
