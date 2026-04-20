@@ -58,6 +58,9 @@ export function createExternalRouter(swaggerOpenApiSpec: OpenAPIV3.Document): {
         if (route.security === undefined) route.security = '*'
         await expressAuthentication(req as AuthenticatedRequest, route.security)
 
+        // Coerces query boolean from string to boolean
+        coerceBooleanQueryParams(req.query as Record<string, unknown>, route.query)
+
         // Validate inputs, throws if invalid
         paramsSchema?.parse(req.params)
         querySchema?.parse(req.query)
@@ -72,7 +75,9 @@ export function createExternalRouter(swaggerOpenApiSpec: OpenAPIV3.Document): {
             res.status(204).end()
           } else {
             const isIterable =
-              result != null && typeof (result[Symbol.iterator] ?? result[Symbol.asyncIterator]) === 'function'
+              result != null &&
+              typeof result !== 'string' &&
+              typeof (result[Symbol.iterator] ?? result[Symbol.asyncIterator]) === 'function'
             if (isIterable) {
               await sendObjects(result as Iterable<unknown> | AsyncIterable<unknown>, req, res)
             } else {
@@ -280,6 +285,15 @@ function extractParametersFromZod(schema: z.ZodType, location: 'path' | 'query')
   }
 
   return []
+}
+
+function coerceBooleanQueryParams(query: Record<string, unknown>, def: RouteDefinition['query']): void {
+  if (!def) return
+  for (const [key, field] of Object.entries(def)) {
+    if (field.type === 'boolean' && typeof query[key] === 'string') {
+      query[key] = query[key] === 'true'
+    }
+  }
 }
 
 // Exported for retro-compatibility

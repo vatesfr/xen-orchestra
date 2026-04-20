@@ -36,11 +36,13 @@ export type FieldDefinition =
       optional?: boolean
     }
 
+export type ParamFieldDefinition = Exclude<FieldDefinition, { type: 'boolean' }>
+
 export interface RouteDefinition {
   method: 'get' | 'post' | 'put' | 'delete' | 'patch'
   endpoint: string
   tags?: string[]
-  params?: Record<string, FieldDefinition>
+  params?: Record<string, ParamFieldDefinition>
   query?: Record<string, FieldDefinition>
   body?: Record<string, FieldDefinition>
   responses?: Array<{
