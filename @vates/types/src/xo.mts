@@ -721,7 +721,6 @@ type BaseXoVdi = BaseXapiXo & {
   other_config: Record<string, string>
   parent?: XoVdiUnmanaged['id']
   image_format?: string
-  parentChainPhysicalUsage: number
   size: number
   snapshots: XoVdiSnapshot['id'][]
   tags: string[]
@@ -730,6 +729,7 @@ type BaseXoVdi = BaseXapiXo & {
 
 export type XoVdi = BaseXoVdi & {
   id: Branded<'VDI'>
+  parentChainPhysicalUsage: number
   type: 'VDI'
 }
 

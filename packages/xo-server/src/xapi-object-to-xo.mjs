@@ -770,12 +770,6 @@ const TRANSFORMS = {
       snapshots: link(obj, 'snapshots'),
       tags: obj.tags,
       usage: +obj.physical_utilisation,
-      parentChainPhysicalUsage:
-        +obj.physical_utilisation +
-        obj.snapshots.reduce((sum, snapshotRef) => {
-          const snapshot = obj.$xapi._objectsByRef[snapshotRef]
-          return sum + (snapshot !== undefined ? +snapshot.physical_utilisation : 0)
-        }, 0),
       VDI_type: obj.type,
       current_operations: obj.current_operations,
       other_config: obj.other_config,
@@ -790,6 +784,16 @@ const TRANSFORMS = {
       vdi.$snapshot_of = link(obj, 'snapshot_of')
     } else if (!obj.managed) {
       vdi.type += '-unmanaged'
+    } else {
+      let total = +obj.physical_utilisation
+      let parentUuid = obj.sm_config['vhd-parent']
+      while (parentUuid !== undefined) {
+        const parent = obj.$xapi.getObject(parentUuid, undefined)
+        if (parent === undefined) break
+        total += +parent.physical_utilisation
+        parentUuid = parent.sm_config?.['vhd-parent']
+      }
+      vdi.parentChainPhysicalUsage = total
     }
 
     return vdi
