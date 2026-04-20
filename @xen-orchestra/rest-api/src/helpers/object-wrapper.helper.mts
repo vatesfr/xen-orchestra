@@ -9,7 +9,7 @@ export function makeObjectMapper<T extends XoRecord>(req: Request, path?: string
   const makeUrl = (obj: T) => {
     let _path: string
     if (path === undefined) {
-      _path = req.path
+      _path = req.path.replace(/\/$/, '')
     } else {
       let tmpPath = typeof path === 'string' ? path : path(obj)
       if (tmpPath.startsWith('/')) {
