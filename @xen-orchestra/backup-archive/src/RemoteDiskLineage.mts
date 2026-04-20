@@ -1,11 +1,8 @@
 import RemoteHandlerAbstract from '@xen-orchestra/fs'
-import { basename, dirname, normalize, resolveFromFile } from '@xen-orchestra/fs/path'
+import { dirname, normalize } from '@xen-orchestra/fs/path'
 import { MergeRemoteDisk, openDisk, openDiskChainFromPaths, RemoteDisk, isDiskFile } from '@xen-orchestra/backups/disks'
-import type { MergeState } from '@xen-orchestra/backups/disks'
 import { DEFAULT_MERGE_CONCURRENCY, DEFAULT_REMOVE_CONCURRENCY, ResolvedBackupCleanOptions } from './VmBackup.types.mjs'
 import { asyncEach } from '@vates/async-each'
-
-const INTERRUPTED_VHD_RE = /^\.(.+)\.merge\.json$/
 
 /**
  * Tracks the disk chain for a single VDI across all backup snapshots.
@@ -27,10 +24,8 @@ export class RemoteDiskLineage {
   #childOf: Map<string, string> = new Map()
   // Disk paths declared active by their owning archives (accumulated across all referencing archives)
   #activeDiskPaths: Set<string> = new Set()
-  // Interrupted merges: normalized parent path: parsed state file info
-  #interruptedMerges: Map<string, { stateFilePath: string; chain?: string[]; childUuid?: string }> = new Map()
-  // disk UUID: normalized disk path (populated during init)
-  #uuidToPath: Map<string, string> = new Map()
+  // Interrupted merges: normalized parent path { stateFilePath, chain }
+  #interruptedMerges: Map<string, { stateFilePath: string; chain?: string[] }> = new Map()
 
   constructor(handler: RemoteHandlerAbstract, vdiDir: string, opts: ResolvedBackupCleanOptions) {
     this.#handler = handler
@@ -48,27 +43,10 @@ export class RemoteDiskLineage {
     for (const filePath of files) {
       if (isDiskFile(filePath)) {
         this.#diskPaths.add(normalize(filePath))
-      } else {
-        const match = INTERRUPTED_VHD_RE.exec(basename(filePath))
-        if (match !== null) {
-          const parentFilename = match[1]
-          const parentPath = normalize(this.#vdiDir + '/' + parentFilename)
-          let chain: string[] | undefined
-          let childUuid: string | undefined
-          try {
-            const state: MergeState = JSON.parse((await this.#handler.readFile(filePath)) as string)
-            if (Array.isArray(state?.chain)) {
-              chain = state.chain.map((relPath: string) => normalize(resolveFromFile(filePath, relPath)))
-            }
-            childUuid = state?.child?.uuid
-          } catch {
-            // mergeState unreadable
-          }
-          this.#interruptedMerges.set(parentPath, { stateFilePath: filePath, chain, childUuid })
-        }
       }
     }
 
+    const uuidToPath = new Map<string, string>()
     for (const diskPath of this.#diskPaths) {
       let disk: RemoteDisk | undefined
       try {
@@ -83,11 +61,11 @@ export class RemoteDiskLineage {
       }
       try {
         const uuid = disk.getUuid()
-        const existing = this.#uuidToPath.get(uuid)
+        const existing = uuidToPath.get(uuid)
         if (existing !== undefined) {
           this.#opts.logWarn('duplicate disk UUID detected', { uuid, path1: existing, path2: diskPath })
         }
-        this.#uuidToPath.set(uuid, diskPath)
+        uuidToPath.set(uuid, diskPath)
 
         if (disk.isDifferencing()) {
           const parentPath = disk.getParentPath()
@@ -110,6 +88,14 @@ export class RemoteDiskLineage {
         await disk.close()
       }
     }
+
+    this.#interruptedMerges = await MergeRemoteDisk.findInterruptedMerges(
+      this.#handler as any,
+      this.#vdiDir,
+      files,
+      uuidToPath,
+      this.#childOf
+    )
   }
 
   /**
@@ -193,7 +179,7 @@ export class RemoteDiskLineage {
     }
 
     // Process interrupted merges first so their disks are protected from the orphan loop
-    for (const [parentPath, { stateFilePath, chain: stateChain, childUuid }] of this.#interruptedMerges) {
+    for (const [parentPath, { stateFilePath, chain: stateChain }] of this.#interruptedMerges) {
       if (!this.#diskPaths.has(parentPath)) {
         // Orphan merge state: the disk no longer exists
         if (remove) {
@@ -203,16 +189,10 @@ export class RemoteDiskLineage {
         continue
       }
 
-      // Reconstruct chain from state file (chain is always written since MergeRemoteDisk was updated
-      // to include single-child merges). Fall back to uuid→path for old state files without chain.
       let chain: string[] | undefined
       if (stateChain !== undefined) {
         const existing = stateChain.filter(p => this.#diskPaths.has(p))
         if (existing.length >= 2) chain = existing
-      } else {
-        // old state file without chain: use child uuid to locate the child disk, or fall back to header-based map
-        const childPath = childUuid !== undefined ? this.#uuidToPath.get(childUuid) : this.#childOf.get(parentPath)
-        if (childPath !== undefined) chain = [parentPath, childPath]
       }
 
       if (chain !== undefined) {
