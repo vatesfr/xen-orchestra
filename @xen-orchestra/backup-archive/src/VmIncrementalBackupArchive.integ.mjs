@@ -283,6 +283,9 @@ test('it merges delta of non destroyed chain', async () => {
   assert.equal(remainingVhds.length, 2)
   assert.equal(remainingVhds.includes('child.vhd'), true)
   assert.equal(remainingVhds.includes('grandchild.vhd'), true)
+
+  const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
+  assert.equal(metadata.size, 104448, 'metadata.size should be updated after merge')
 })
 
 test('it merges a chain of multiple consecutive orphan ancestors in one pass', async () => {
