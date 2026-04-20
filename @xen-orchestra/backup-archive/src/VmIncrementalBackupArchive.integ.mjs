@@ -10,7 +10,6 @@ import { pFromCallback } from 'promise-toolbox'
 import { VmBackupDirectory } from '../dist/VmBackupDirectory.mjs'
 import { VHDFOOTER, VHDHEADER } from './tests.fixtures.mjs'
 import { VhdFile, Constants, VhdDirectory, VhdAbstract } from 'vhd-lib'
-import { openDisk } from '@xen-orchestra/backups/disks/index.mjs'
 import { dirname, basename } from 'node:path'
 import { rimraf } from 'rimraf'
 
@@ -325,30 +324,24 @@ test('it merges a chain of multiple consecutive orphan ancestors in one pass', a
   assert.equal(remainingVhds.includes('child.vhd'), false)
 })
 
-test('it checks chaining of an interrupted merge from merge.json', async () => {
-  // Create a 3-disk chain: ancestor -> intermediate -> child
-  const ancestor = await generateVhd(`${basePath}/ancestor.vhd`, {
-    blocks: [0, 1, 2, 3, 4],
-  })
+test('it resumes an interrupted merge with chain field', async () => {
+  await handler.writeFile(
+    `${rootPath}/metadata.json`,
+    JSON.stringify({ mode: 'delta', vhds: [`${relativePath}/child.vhd`] })
+  )
+
+  const ancestor = await generateVhd(`${basePath}/ancestor.vhd`, { blocks: [0, 1, 2, 3, 4] })
   const intermediate = await generateVhd(`${basePath}/intermediate.vhd`, {
-    header: {
-      parentUnicodeName: 'ancestor.vhd',
-      parentUuid: ancestor.footer.uuid,
-    },
+    header: { parentUnicodeName: 'ancestor.vhd', parentUuid: ancestor.footer.uuid },
     blocks: [5, 6],
   })
   await generateVhd(`${basePath}/child.vhd`, {
-    header: {
-      parentUnicodeName: 'intermediate.vhd',
-      parentUuid: intermediate.footer.uuid,
-    },
+    header: { parentUnicodeName: 'intermediate.vhd', parentUuid: intermediate.footer.uuid },
     blocks: [7, 8],
   })
 
-  // Simulate a merge interrupted mid-way (currentBlock = 3, blocks 0-2 merged so far)
-  const mergeJsonPath = `${basePath}/.ancestor.vhd.merge.json`
   await handler.writeFile(
-    mergeJsonPath,
+    `${basePath}/.ancestor.vhd.merge.json`,
     JSON.stringify({
       parent: { uuid: '0' },
       child: { uuid: '0' },
@@ -360,36 +353,16 @@ test('it checks chaining of an interrupted merge from merge.json', async () => {
     })
   )
 
-  // Read back merge.json as would happen on resume
-  const mergeState = JSON.parse(await handler.readFile(mergeJsonPath))
+  await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true, merge: true, logWarn: () => {} })
 
-  // Resolve chain paths relative to the merge.json location
-  const resolvedPaths = mergeState.chain.map(relativePath => `${dirname(mergeJsonPath)}/${relativePath}`)
-
-  // Open each disk individually
-  const disks = []
-  try {
-    for (const path of resolvedPaths) {
-      disks.push(await openDisk({ handler, path }))
-    }
-
-    // First = oldest (ancestor), last = newest (child)
-    // Check: disk[i+1].parentUuid === disk[i].uuid
-    for (let i = 0; i < disks.length - 1; i++) {
-      assert.equal(
-        disks[i + 1].getParentUuid(),
-        disks[i].getUuid(),
-        `disk[${i + 1}].parentUuid should equal disk[${i}].uuid`
-      )
-    }
-  } finally {
-    for (const disk of disks) {
-      await disk.close()
-    }
-  }
+  const files = await handler.list(basePath)
+  assert.ok(!files.some(f => f.endsWith('.merge.json')), 'merge state file should be deleted after successful resume')
+  assert.ok(!files.includes('ancestor.vhd'), 'ancestor should be removed after merge')
+  assert.ok(!files.includes('intermediate.vhd'), 'intermediate should be removed after merge')
+  assert.ok(files.includes('child.vhd'), 'child (merge target) should survive')
 })
 
-test('it finish unterminated merge ', async () => {
+test('it resumes an interrupted merge without chain field', async () => {
   await handler.writeFile(
     `${rootPath}/metadata.json`,
     JSON.stringify({
