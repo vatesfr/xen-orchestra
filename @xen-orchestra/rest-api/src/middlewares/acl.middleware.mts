@@ -1,6 +1,8 @@
 import {
   getMissingPrivileges,
   type AnyPrivilegeOnParam,
+  type AnyPrivilege,
+  type SupportedActionsByResource,
   type SupportedActions,
   type SupportedResource,
 } from '@xen-orchestra/acl'
@@ -46,6 +48,8 @@ export function actionIfNotSelfUser<Resource extends SupportedResource>(action: 
   return opts => actionsIfNotSelfUser([action])(opts)[0]
 }
 
+type RestNonXapiXoRecord = NonXapiXoRecord<SupportedActionsByResource, SupportedResource> | AnyPrivilege
+
 type AclEntry = {
   [Resource in SupportedResource]: {
     resource: Resource
@@ -67,13 +71,13 @@ type AclEntry = {
       | {
           objectIds: string[] | ((opts: { req: AuthenticatedRequest }) => XoRecord['id'][])
           getObject?:
-            | ((opts: { restApi: RestApi }) => (id: Branded<any>) => Promise<NonXapiXoRecord>)
+            | ((opts: { restApi: RestApi }) => (id: Branded<any>) => Promise<RestNonXapiXoRecord>)
             | ((opts: { restApi: RestApi }) => (id: Branded<any>) => XapiXoRecord)
         }
       | {
           objectId: string | ((opts: { req: AuthenticatedRequest }) => XoRecord['id'])
           getObject?:
-            | ((opts: { restApi: RestApi }) => (id: Branded<any>) => Promise<NonXapiXoRecord>)
+            | ((opts: { restApi: RestApi }) => (id: Branded<any>) => Promise<RestNonXapiXoRecord>)
             | ((opts: { restApi: RestApi }) => (id: Branded<any>) => XapiXoRecord)
         }
       | {

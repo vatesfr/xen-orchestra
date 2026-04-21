@@ -19,6 +19,7 @@ import {
 import { provide } from 'inversify-binding-decorators'
 import { json, type Request as ExRequest } from 'express'
 
+import { acl } from '../middlewares/acl.middleware.mjs'
 import {
   aclPrivilege,
   aclPrivilegeIds,
@@ -78,6 +79,9 @@ export class AclPrivilegeController extends XoController<AnyPrivilege> {
   }
 
   /**
+   * Required privilege:
+   * - resource: acl-privilege, action: create
+   *
    * @example privilege {
    *  "action": "read",
    *  "resource": "alarm",
@@ -88,7 +92,7 @@ export class AclPrivilegeController extends XoController<AnyPrivilege> {
    */
   @Example(entityId)
   @Post('')
-  @Middlewares(json())
+  @Middlewares([json(), acl({ resource: 'acl-privilege', action: 'create', object: ({ req }) => req.body })])
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -102,19 +106,42 @@ export class AclPrivilegeController extends XoController<AnyPrivilege> {
   }
 
   /**
+   * Required privilege:
+   * - resource: acl-privilege, action: read
+   *
    * @example id "c5d89d1a-df1e-4b72-98a0-c40adfdf49c1"
    */
   @Example(aclPrivilege)
   @Get('{id}')
+  @Middlewares(
+    acl({
+      resource: 'acl-privilege',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getAclV2Privilege,
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getAclV2Privilege(@Path() id: string): Promise<Unbrand<AnyPrivilege>> {
     return this.getObject(id as AnyPrivilege['id'])
   }
 
   /**
+   * Required privilege:
+   * - resource: acl-privilege, action: delete
+   *
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    */
   @Delete('{id}')
+  @Middlewares(
+    acl({
+      resource: 'acl-privilege',
+      action: 'delete',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getAclV2Privilege,
+    })
+  )
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -123,6 +150,9 @@ export class AclPrivilegeController extends XoController<AnyPrivilege> {
   }
 
   /**
+   * Required privilege:
+   * - resource: acl-privilege, action: update
+   *
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    * @example privilege {
    *  "action": "read",
@@ -132,7 +162,15 @@ export class AclPrivilegeController extends XoController<AnyPrivilege> {
    * }
    */
   @Patch('{id}')
-  @Middlewares(json())
+  @Middlewares([
+    json(),
+    acl({
+      resource: 'acl-privilege',
+      action: 'update',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getAclV2Privilege,
+    }),
+  ])
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
