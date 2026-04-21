@@ -26,7 +26,7 @@
   "action:copy-info-json": "Kopier informasjon til JSON",
   "action:create": "Opprett",
   "action:delete": "Slett",
-  "action:delete-vms": "Slett 1 VM | Slett {n} VM-er",
+  "action:delete-n-vms": "Slett 1 VM | Slett {n} VM-er",
   "action:deploy": "Distribuer",
   "action:deploy-xoa": "Distribuer XOA",
   "action:edit": "Rediger",

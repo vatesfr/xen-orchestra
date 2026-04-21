@@ -1,11 +1,11 @@
 <template>
   <VtsDeleteModal>
     <template #title>
-      {{ t('n-vms', { n: count }) }}
+      {{ t('n-vifs', { n: count }) }}
     </template>
 
     <template #confirm>
-      {{ t(`action:delete-n-vms`, { n: count }) }}
+      {{ t(`action:delete-n-vifs`, { n: count }) }}
     </template>
   </VtsDeleteModal>
 </template>
