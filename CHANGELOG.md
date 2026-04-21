@@ -125,9 +125,21 @@
 - @xen-orchestra/web-core 0.48.1
 - @xen-orchestra/web 0.46.1
 
-## **6.2.2** (2026-03-09)
+## **6.2.3** (2026-04-20)
 
 <img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
+
+### Bug fixes
+
+- [Backups]: Fix regression on cleanVM speed (PR [#9692](https://github.com/vatesfr/en-orchestra/pull/9692))
+
+### Released packages
+
+- @xen-orchestra/backups 0.69.5
+- @xen-orchestra/proxy 0.29.52
+- xo-server 5.197.6
+
+## **6.2.2** (2026-03-09)
 
 ### Enhancements
 
