@@ -45,7 +45,10 @@ import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-
 import { taskIds, partialTasks, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 
 type CreateVdiParams = Parameters<Xapi['VDI_create']>
-type CreateVdiBody = Omit<CreateVdiParams[0], 'SR'> & { srId: string } & CreateVdiParams[1]
+type CreateVdiBody = Omit<CreateVdiParams[0], 'SR' | 'other_config'> & {
+  srId: string
+  other_config: { [key: string]: string }
+} & CreateVdiParams[1]
 
 @Route('vdis')
 @Security('*')
