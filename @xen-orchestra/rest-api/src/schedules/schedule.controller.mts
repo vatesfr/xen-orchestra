@@ -1,12 +1,27 @@
 import type { XoSchedule } from '@vates/types'
-import { Example, Get, Path, Post, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
+import {
+  Example,
+  Get,
+  Middlewares,
+  Path,
+  Post,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+} from 'tsoa'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 
+import { acl } from '../middlewares/acl.middleware.mjs'
 import {
   asynchronousActionResp,
   badRequestResp,
   featureUnauthorized,
+  forbiddenOperationResp,
   internalServerErrorResp,
   noContentResp,
   notFoundResp,
@@ -60,23 +75,55 @@ export class ScheduleController extends XoController<XoSchedule> {
   }
 
   /**
+   *
+   * Required privilege:
+   * - resource: schedule, action: read
+   *
    * @example id "cf7249f8-d20b-494f-97f4-b1f32f94e780"
    */
   @Example(schedule)
   @Get('{id}')
+  @Middlewares(
+    acl({
+      resource: 'schedule',
+      action: 'read',
+      objectId: 'params.id',
+      getObject:
+        ({ restApi }) =>
+        id =>
+          restApi.xoApp.getSchedule(id),
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async getSchedule(@Path() id: string): Promise<Unbrand<XoSchedule>> {
     return this.getObject(id as XoSchedule['id'])
   }
 
   /**
+   *
+   * Required privilege:
+   * - resource: schedule, action: run
+   *
    * @example id "cf7249f8-d20b-494f-97f4-b1f32f94e780"
    */
   @Example(taskLocation)
   @Post('{id}/actions/run')
+  @Middlewares(
+    acl({
+      resource: 'schedule',
+      action: 'run',
+      objectId: 'params.id',
+      getObject:
+        ({ restApi }) =>
+        id =>
+          restApi.xoApp.getSchedule(id),
+    })
+  )
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(featureUnauthorized.status, featureUnauthorized.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async runSchedule(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
