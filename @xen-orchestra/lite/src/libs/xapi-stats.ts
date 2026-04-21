@@ -5,7 +5,7 @@ import { synchronized } from 'decorator-synchronized'
 // eslint-disable-next-line import/default -- https://github.com/json5/json5/issues/287
 import JSON5 from 'json5'
 import { limitConcurrency } from 'limit-concurrency-decorator'
-import { defaults, findKey, forEach, identity, map } from 'lodash-es'
+import { defaults, findKey, forEach, identity } from 'lodash-es'
 import { BaseError } from 'make-error'
 
 class FaultyGranularity extends BaseError {}
@@ -69,8 +69,20 @@ function parseNumber(value: number | string) {
 // Stats
 // -------------------------------------------------------------------
 
-const computeValues = (dataRow: any, legendIndex: number, transformValue = identity) =>
-  map(dataRow, ({ values }) => transformValue(parseNumber(values[legendIndex])))
+const computeValues = (
+  dataRow: { t: string; values: string[] }[],
+  legendIndex: number,
+  transformValue: (value: number) => number = identity
+): (number | null)[] =>
+  dataRow.map(({ values }) => {
+    const value = parseNumber(values[legendIndex])
+
+    if (value === null) {
+      return null
+    }
+
+    return transformValue(value)
+  })
 
 const createGetProperty = (obj: object, property: string, defaultValue: unknown) =>
   defaults(obj, { [property]: defaultValue })[property] as any
@@ -279,7 +291,7 @@ const STATS: { [key: string]: object } = {
     vbdIowait: {
       test: /^vbd_xvd(.)_iowait$/,
       getPath: (matches: unknown[]) => ['vbdIowait', matches[1]],
-      transofrmValue: (value: number) => value * 1e2,
+      transformValue: (value: number) => value * 1e2,
     },
     vbdInflight: {
       test: /^vbd_xvd(.)_inflight$/,

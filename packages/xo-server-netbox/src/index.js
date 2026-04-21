@@ -211,7 +211,7 @@ class Netbox {
       throw new Error('UUID custom field was not found. Please create it manually from your Netbox interface.')
     }
     const types = uuidCustomField.object_types ?? uuidCustomField.content_types
-    const typesWithUuid = TYPES_WITH_UUID
+    const typesWithUuid = [...TYPES_WITH_UUID]
     if (this.#syncUsers) {
       typesWithUuid.push('tenancy.tenant')
     }
@@ -498,18 +498,37 @@ class Netbox {
 
       const distro = xoVm.os_version?.distro
       if (distro != null) {
-        const slug = slugify(distro)
-        let nbPlatform = find(nbPlatforms, { slug })
-        if (nbPlatform === undefined) {
+        const distroSlug = slugify(distro)
+        let nbDistroPlatform = find(nbPlatforms, { slug: distroSlug })
+        if (nbDistroPlatform === undefined) {
           // TODO: Should we also delete/update platforms in Netbox?
-          nbPlatform = await this.#request('/dcim/platforms/', 'POST', {
+          nbDistroPlatform = await this.#request('/dcim/platforms/', 'POST', {
             name: distro,
-            slug,
+            slug: distroSlug,
           })
-          nbPlatforms[nbPlatform.id] = nbPlatform
+          nbPlatforms[nbDistroPlatform.id] = nbDistroPlatform
         }
 
-        nbVm.platform = nbPlatform.id
+        const major = xoVm.os_version?.major
+        if (major != null && this.#netboxVersion !== undefined && semver.satisfies(this.#netboxVersion, '>=4.4')) {
+          // Use the parent's name rather than the raw distro string to ensure
+          // consistent casing across sibling platforms (e.g. always "Fedora 37",
+          // "Fedora 38" even if different VMs report "fedora" and "Fedora")
+          const versionedName = `${nbDistroPlatform.name} ${major}`
+          const versionedSlug = slugify(versionedName)
+          let nbVersionedPlatform = find(nbPlatforms, { slug: versionedSlug })
+          if (nbVersionedPlatform === undefined) {
+            nbVersionedPlatform = await this.#request('/dcim/platforms/', 'POST', {
+              name: versionedName,
+              slug: versionedSlug,
+              parent: nbDistroPlatform.id,
+            })
+            nbPlatforms[nbVersionedPlatform.id] = nbVersionedPlatform
+          }
+          nbVm.platform = nbVersionedPlatform.id
+        } else {
+          nbVm.platform = nbDistroPlatform.id
+        }
       }
 
       // Tags

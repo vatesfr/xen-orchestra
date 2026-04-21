@@ -45,7 +45,10 @@ import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-
 import { taskIds, partialTasks, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 
 type CreateVdiParams = Parameters<Xapi['VDI_create']>
-type CreateVdiBody = Omit<CreateVdiParams[0], 'SR'> & { srId: string } & CreateVdiParams[1]
+type CreateVdiBody = Omit<CreateVdiParams[0], 'SR' | 'other_config'> & {
+  srId: string
+  other_config: { [key: string]: string }
+} & CreateVdiParams[1]
 
 @Route('vdis')
 @Security('*')
@@ -78,6 +81,7 @@ export class VdiController extends XapiXoController<XoVdi> {
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoVdi>>> {
@@ -156,6 +160,7 @@ export class VdiController extends XapiXoController<XoVdi> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
@@ -228,6 +233,7 @@ export class VdiController extends XapiXoController<XoVdi> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
@@ -252,6 +258,7 @@ export class VdiController extends XapiXoController<XoVdi> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {

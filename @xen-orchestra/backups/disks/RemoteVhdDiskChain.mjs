@@ -124,6 +124,15 @@ export class RemoteVhdDiskChain extends RemoteDisk {
   }
 
   /**
+   * Disk chains return an array of disk paths.
+   *
+   * @returns {string[]}
+   */
+  getPaths() {
+    return this.#disks.map(disk => disk.getPath())
+  }
+
+  /**
    * @returns {string}
    */
   getUuid() {
@@ -134,12 +143,7 @@ export class RemoteVhdDiskChain extends RemoteDisk {
    * @returns {Promise<boolean>} canMergeConcurently
    */
   async canMergeConcurently() {
-    for (const disk of this.#disks) {
-      if (!(await disk.isDirectory())) {
-        return true
-      }
-    }
-    return false
+    return this.isDirectory()
   }
 
   /**
@@ -222,6 +226,21 @@ export class RemoteVhdDiskChain extends RemoteDisk {
   }
 
   /**
+   * Gets a specific block path from the VHD directory disk.
+   * @param {number} index
+   * @returns {string} blockPath
+   */
+  getBlockPath(index) {
+    for (const disk of [...this.#disks].reverse()) {
+      if (disk.hasBlock(index)) {
+        return disk.getBlockPath(index)
+      }
+    }
+
+    throw new Error(`Block ${index} not found in chain`)
+  }
+
+  /**
    * @returns {VhdFooter}
    */
   getMetadata() {
@@ -268,5 +287,18 @@ export class RemoteVhdDiskChain extends RemoteDisk {
     for (const disk of this.#disks) {
       await disk.unlink()
     }
+  }
+
+  /**
+   * Check if all the disks in the chain are VHD directories.
+   * @returns {Promise<boolean>}
+   */
+  async isDirectory() {
+    for (const disk of this.#disks) {
+      if (!(await disk.isDirectory())) {
+        return false
+      }
+    }
+    return true
   }
 }

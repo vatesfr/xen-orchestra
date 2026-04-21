@@ -93,7 +93,7 @@ type BaseXoVm = BaseXapiXo & {
   notes?: string
   os_version: Record<string, string> | null
   other: Record<string, string>
-  parent?: XoVm['id']
+  parent?: XoVmSnapshot['id']
   power_state: VM_POWER_STATE
   pvDriversDetected?: boolean
   pvDriversUpToDate?: boolean
@@ -106,6 +106,10 @@ type BaseXoVm = BaseXapiXo & {
   suspendSr?: XoSr['id']
   tags: string[]
   vga?: string
+  /**
+   * Value in MiB.
+   * See: https://wiki.xenproject.org/wiki/XCP_PV_templates_start
+   */
   videoram?: number
   viridian: boolean
   virtualizationMode: DOMAIN_TYPE

@@ -68,6 +68,7 @@ export class SrController extends XapiXoController<XoSr> {
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoSr>>> {
@@ -99,6 +100,7 @@ export class SrController extends XapiXoController<XoSr> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
@@ -165,6 +167,7 @@ export class SrController extends XapiXoController<XoSr> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
@@ -189,6 +192,7 @@ export class SrController extends XapiXoController<XoSr> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
@@ -269,6 +273,33 @@ export class SrController extends XapiXoController<XoSr> {
       statusCode: noContentResp.status,
       taskProperties: {
         name: 'SR scan',
+        objectId: srId,
+      },
+    })
+  }
+
+  /**
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/forget')
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async forgetSr(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const srId = id as XoSr['id']
+    const action = async () => {
+      const xapiSr = this.getXapiObject(srId)
+      await xapiSr.$xapi.forgetSr(srId)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'forget sr',
         objectId: srId,
       },
     })

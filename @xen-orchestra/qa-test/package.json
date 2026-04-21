@@ -1,0 +1,41 @@
+{
+  "name": "@xen-orchestra/qa-test",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "description": "XenOrchestra QA Test Suite",
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "AGPL-3.0-or-later",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/qa-test",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/qa-test",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "xo-lib": "^0.11.1"
+  },
+  "scripts": {
+    "qa": "node --env-file-if-exists=.env --test --test-concurrency=1 tests/*.test.js",
+    "qa:infrastructure": "node --env-file-if-exists=.env --test tests/infrastructure.test.js",
+    "qa:vm": "node --env-file-if-exists=.env --test tests/vm.test.js",
+    "qa:backup": "node --env-file-if-exists=.env --test tests/backup.test.js",
+    "qa:backup:nbd": "node --env-file-if-exists=.env --test tests/backup.nbd.test.js",
+    "qa:backup:combined": "node --env-file-if-exists=.env --test tests/backup-replication-combined.test.js",
+    "qa:backup:combined:cycle": "node --env-file-if-exists=.env --test tests/backup-replication-combined.test.js --test-name-pattern='Full Cycle'",
+    "qa:backup:combined:cr": "node --env-file-if-exists=.env --test tests/backup-replication-combined.test.js --test-name-pattern='CR Mode'",
+    "qa:mirror": "node --env-file-if-exists=.env --test tests/backup-mirror.test.js",
+    "qa:export": "node --env-file-if-exists=.env --test tests/export.vhd.test.js",
+    "qa:export:vhd": "node --env-file-if-exists=.env --test tests/export.vhd.test.js --test-name-pattern='VDI VHD'",
+    "qa:export:xva": "node --env-file-if-exists=.env --test tests/export.vhd.test.js --test-name-pattern='XVA'",
+    "qa:export:restore": "node --env-file-if-exists=.env --test tests/export.vhd.test.js --test-name-pattern='Restoration'",
+    "demo": "node --env-file-if-exists=.env index.js"
+  }
+}

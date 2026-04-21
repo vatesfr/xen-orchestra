@@ -1787,13 +1787,15 @@ export const copyVms = (vms, type) => {
   return confirm({
     title: type === 'VM-template' ? _('copyTemplate') : _('copyVm'),
     body: <CopyVmsModalBody vms={_vms} type={type} />,
-  }).then(({ compress, copyMode, names, sr }) => {
+  }).then(({ compression, copyMode, names, sr }) => {
     if (copyMode === 'fastClone') {
       return Promise.all(_vms.map((vm, index) => cloneVm({ id: vm }, false, names[index])))
     }
 
     if (sr !== undefined) {
-      return Promise.all(_vms.map((vm, index) => _call('vm.copy', { vm, sr, compress, name: names[index] })))
+      return Promise.all(
+        _vms.map((vm, index) => _call('vm.copy', { vm, sr, compress: compression, name: names[index] }))
+      )
     }
     error(_('copyVmsNoTargetSr'), _('copyVmsNoTargetSrMessage'))
   }, noop)
@@ -3337,17 +3339,20 @@ export const createSrNfs = (
   serverPath,
   nfsVersion = undefined,
   nfsOptions,
-  srUuid
+  srUuid,
+  preferredImageFormat
 ) => {
   const params = { host, nameLabel, nameDescription, server, serverPath }
   nfsVersion && (params.nfsVersion = nfsVersion)
   nfsOptions && (params.nfsOptions = nfsOptions)
   srUuid && (params.srUuid = srUuid)
+  preferredImageFormat && (params.preferredImageFormat = preferredImageFormat)
   return _call('sr.createNfs', params)
 }
 
-export const createSrSmb = (host, nameLabel, nameDescription, server, user, password, srUuid) => {
+export const createSrSmb = (host, nameLabel, nameDescription, server, user, password, srUuid, preferredImageFormat) => {
   const params = { host, nameLabel, nameDescription, server, user, password }
+  preferredImageFormat && (params.preferredImageFormat = preferredImageFormat)
   if (srUuid !== undefined) {
     params.srUuid = srUuid
   }
@@ -3364,19 +3369,22 @@ export const createSrIscsi = (
   port = undefined,
   chapUser = undefined,
   chapPassword = undefined,
-  srUuid
+  srUuid,
+  preferredImageFormat
 ) => {
   const params = { host, nameLabel, nameDescription, target, targetIqn, scsiId }
   port && (params.port = port)
   chapUser && (params.chapUser = chapUser)
   chapPassword && (params.chapPassword = chapPassword)
   srUuid && (params.srUuid = srUuid)
+  preferredImageFormat && (params.preferredImageFormat = preferredImageFormat)
   return _call('sr.createIscsi', params)
 }
 
-export const createSrHba = (host, nameLabel, nameDescription, scsiId, srUuid) => {
+export const createSrHba = (host, nameLabel, nameDescription, scsiId, srUuid, preferredImageFormat) => {
   const params = { host, nameLabel, nameDescription, scsiId }
   srUuid && (params.srUuid = srUuid)
+  preferredImageFormat && (params.preferredImageFormat = preferredImageFormat)
   return _call('sr.createHba', params)
 }
 
@@ -3401,18 +3409,19 @@ export const createSrIso = (
   return _call('sr.createIso', params)
 }
 
-export const createSrLvm = (host, nameLabel, nameDescription, device) =>
-  _call('sr.createLvm', { host, nameLabel, nameDescription, device })
+export const createSrLvm = (host, nameLabel, nameDescription, device, preferredImageFormat) =>
+  _call('sr.createLvm', { host, nameLabel, nameDescription, device, preferredImageFormat })
 
-export const createSrExt = (host, nameLabel, nameDescription, device) =>
-  _call('sr.createExt', { host, nameLabel, nameDescription, device })
+export const createSrExt = (host, nameLabel, nameDescription, device, preferredImageFormat) =>
+  _call('sr.createExt', { host, nameLabel, nameDescription, device, preferredImageFormat })
 
-export const createSrZfs = (host, nameLabel, nameDescription, location) =>
+export const createSrZfs = (host, nameLabel, nameDescription, location, preferredImageFormat) =>
   _call('sr.createZfs', {
     host: resolveId(host),
     nameDescription,
     nameLabel,
     location,
+    preferredImageFormat,
   })
 
 // Job logs ----------------------------------------------------------
@@ -3902,8 +3911,6 @@ export const editNetworkConfig = (networkConfig, props) =>
 // XO-HUB   ---------------------------------------------------------------------
 
 export const getResourceCatalog = ({ filters } = {}) => _call('cloud.getResourceCatalog', { filters })
-
-export const getAllResourceCatalog = () => _call('cloud.getAllResourceCatalog')
 
 export const downloadAndInstallResource = ({ namespace, id, version, sr, templateOnly }) =>
   _call('cloud.downloadAndInstallResource', {

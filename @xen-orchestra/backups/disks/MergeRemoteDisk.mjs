@@ -10,6 +10,7 @@ import { createLogger } from '@xen-orchestra/log'
 
 import { basename, dirname } from 'path'
 import { asyncEach } from '@vates/async-each'
+import { relativeFromFile } from '@xen-orchestra/fs/path'
 
 // @ts-ignore
 const { warn } = createLogger('remote-disk:merge')
@@ -18,10 +19,12 @@ const { warn } = createLogger('remote-disk:merge')
  * @typedef {Object} MergeState
  * @property {{ uuid: string }} child
  * @property {{ uuid: string }} parent
+ * @property { string[]  | undefined} chain
  * @property {number} currentBlock
  * @property {number} mergedDataSize
  * @property {'mergeBlocks' | 'cleanup'} step
  * @property {number} diskSize
+ * @typedef {(message: string, data?: Record<string, unknown>) => void} Logger
  */
 
 export class MergeRemoteDisk {
@@ -31,6 +34,7 @@ export class MergeRemoteDisk {
   #state = {
     child: { uuid: '0' },
     parent: { uuid: '0' },
+    chain: undefined,
     currentBlock: 0,
     mergedDataSize: 0,
     step: 'mergeBlocks',
@@ -85,11 +89,11 @@ export class MergeRemoteDisk {
   /**
    * @param {FileAccessor} handler
    * @param {Object} params
-   * @param {Function} params.onProgress
-   * @param {Logger | Function} params.logInfo
-   * @param {boolean} params.removeUnused
-   * @param {number} params.mergeBlockConcurrency
-   * @param {number} params.writeStateDelay
+   * @param {Function} [params.onProgress]
+   * @param {Logger | Function} [params.logInfo]
+   * @param {boolean} [params.removeUnused]
+   * @param {number} [params.mergeBlockConcurrency]
+   * @param {number} [params.writeStateDelay]
    */
   constructor(
     handler,
@@ -202,8 +206,11 @@ export class MergeRemoteDisk {
 
       parentDisk.setAllocatedBlocks(alreadyMergedBlocks)
     } else {
-      this.#state.child = { uuid: childDisk.getUuid() ?? 0 }
-      this.#state.parent = { uuid: parentDisk.getUuid() ?? 0 }
+      this.#state.child = { uuid: childDisk.getUuid() ?? undefined }
+      this.#state.parent = { uuid: parentDisk.getUuid() ?? undefined }
+      this.#state.chain = [parentDisk.getPath(), ...childDisk.getPaths()].map(path =>
+        relativeFromFile(this.#statePath, path)
+      )
 
       // Finds first allocated block for the 2 following loops
       while (this.#state.currentBlock < getMaxBlockCount && !childDisk.hasBlock(this.#state.currentBlock)) {

@@ -2,9 +2,9 @@ import assert from 'node:assert'
 
 import { formatFilenameDate } from './_filenameDate.mjs'
 import { importIncrementalVm } from './_incrementalVm.mjs'
-import { Task } from './Task.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
 import { decorateClass } from '@vates/decorate-with'
+import { Task } from '@vates/task'
 import { createLogger } from '@xen-orchestra/log'
 import { dirname, join } from 'node:path'
 import pickBy from 'lodash/pickBy.js'
@@ -244,7 +244,7 @@ export class ImportVmBackup {
 
     return Task.run(
       {
-        name: 'transfer',
+        properties: { name: 'transfer' },
       },
       async () => {
         const xapi = this._xapi
@@ -255,6 +255,14 @@ export class ImportVmBackup {
           : await importIncrementalVm(backup, await xapi.getRecord('SR', srRef), {
               newMacAddresses,
             })
+        let size = 0
+        if (isFull) {
+          size = sizeContainer.size
+        } else {
+          for (const disk of Object.values(backup.disks)) {
+            size += disk.getNbGeneratedBlock() * disk.getBlockSize()
+          }
+        }
         const remoteName = adapter._handler._remote.name
         let desc = `Restored on ${formatFilenameDate(+new Date())}`
         if (remoteName !== undefined) {
@@ -275,7 +283,7 @@ export class ImportVmBackup {
         ])
 
         return {
-          size: sizeContainer.size,
+          size,
           id: await xapi.getField('VM', vmRef, 'uuid'),
         }
       }

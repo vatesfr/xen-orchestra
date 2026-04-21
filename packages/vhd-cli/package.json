@@ -2,6 +2,7 @@
   "private": false,
   "name": "vhd-cli",
   "version": "1.1.1",
+  "deprecated": "Use @xen-orchestra/disk-cli instead",
   "license": "ISC",
   "description": "Tools to read/create and merge VHD files",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/vhd-cli",
@@ -23,15 +24,15 @@
     "node": ">=10"
   },
   "dependencies": {
-    "@xen-orchestra/fs": "^4.6.7",
+    "@xen-orchestra/fs": "^4.7.0",
     "cli-progress": "^3.1.0",
     "exec-promise": "^0.7.0",
     "getopts": "^2.2.3",
     "human-format": "^1.0.0",
-    "lodash": "^4.17.21",
+    "lodash": "^4.18.0",
     "promise-toolbox": "^0.21.0",
     "uuid": "^9.0.0",
-    "vhd-lib": "^4.14.7"
+    "vhd-lib": "^4.15.0"
   },
   "scripts": {
     "postversion": "npm publish",

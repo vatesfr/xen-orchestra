@@ -1,4 +1,3 @@
-import filter from 'lodash/filter.js'
 import isEmpty from 'lodash/isEmpty.js'
 import throttle from 'lodash/throttle.js'
 import { createLogger } from '@xen-orchestra/log'
@@ -8,8 +7,11 @@ import ensureArray from '../_ensureArray.mjs'
 import { asInteger } from '../xapi/utils.mjs'
 import { destroy as destroyXostor } from './xostor.mjs'
 import { forEach, isSrWritable, parseXml } from '../utils.mjs'
+import { PREFERED_IMAGE_FORMAT_PROPERTY } from '@xen-orchestra/xapi/pbd.mjs'
 
 const log = createLogger('xo:api:sr')
+
+const AUTHORIZED_IMAGE_FORMAT_LISTS = ['vhd', 'qcow2', 'vhd, qcow2', 'qcow2, vhd']
 
 // ===================================================================
 
@@ -209,6 +211,7 @@ export async function createNfs({
   nfsVersion,
   nfsOptions,
   srUuid,
+  preferredImageFormat,
 }) {
   const xapi = this.getXapi(host)
 
@@ -227,8 +230,13 @@ export async function createNfs({
     deviceConfig.options = nfsOptions
   }
 
+  if (preferredImageFormat) {
+    deviceConfig[PREFERED_IMAGE_FORMAT_PROPERTY] = preferredImageFormat
+  }
+
   // Reattach
   if (srUuid !== undefined) {
+    delete deviceConfig[PREFERED_IMAGE_FORMAT_PROPERTY]
     return xapi.reattachSr({
       uuid: srUuid,
       nameLabel,
@@ -260,13 +268,23 @@ createNfs.params = {
   nfsVersion: { type: 'string', optional: true },
   nfsOptions: { type: 'string', optional: true },
   srUuid: { type: 'string', optional: true },
+  preferredImageFormat: { enum: AUTHORIZED_IMAGE_FORMAT_LISTS, optional: true },
 }
 
 createNfs.resolve = {
   host: ['host', 'host', 'administrate'],
 }
 
-export async function createSmb({ host, nameLabel, nameDescription, server, user, password, srUuid }) {
+export async function createSmb({
+  host,
+  nameLabel,
+  nameDescription,
+  server,
+  user,
+  password,
+  srUuid,
+  preferredImageFormat,
+}) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
@@ -275,7 +293,12 @@ export async function createSmb({ host, nameLabel, nameDescription, server, user
     password,
   }
 
+  if (preferredImageFormat) {
+    deviceConfig[PREFERED_IMAGE_FORMAT_PROPERTY] = preferredImageFormat
+  }
+
   if (srUuid !== undefined) {
+    delete deviceConfig[PREFERED_IMAGE_FORMAT_PROPERTY]
     return xapi.reattachSr({
       uuid: srUuid,
       nameLabel,
@@ -305,6 +328,7 @@ createSmb.params = {
   srUuid: { type: 'string', optional: true },
   user: { type: 'string', optional: true },
   password: { type: 'string', optional: true },
+  preferredImageFormat: { enum: AUTHORIZED_IMAGE_FORMAT_LISTS, optional: true },
 }
 
 createSmb.resolve = {
@@ -315,15 +339,19 @@ createSmb.resolve = {
 
 // This functions creates an HBA SR
 
-export async function createHba({ host, nameLabel, nameDescription, scsiId, srUuid }) {
+export async function createHba({ host, nameLabel, nameDescription, scsiId, srUuid, preferredImageFormat }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
     SCSIid: scsiId,
   }
+  if (preferredImageFormat) {
+    deviceConfig[PREFERED_IMAGE_FORMAT_PROPERTY] = preferredImageFormat
+  }
 
   // Reattach
   if (srUuid !== undefined) {
+    delete deviceConfig[PREFERED_IMAGE_FORMAT_PROPERTY]
     return xapi.reattachSr({
       uuid: srUuid,
       nameLabel,
@@ -352,6 +380,7 @@ createHba.params = {
   nameDescription: { type: 'string', minLength: 0 },
   scsiId: { type: 'string' },
   srUuid: { type: 'string', optional: true },
+  preferredImageFormat: { enum: AUTHORIZED_IMAGE_FORMAT_LISTS, optional: true },
 }
 
 createHba.resolve = {
@@ -363,11 +392,14 @@ createHba.resolve = {
 
 // This functions creates a local LVM SR
 
-export async function createLvm({ host, nameLabel, nameDescription, device }) {
+export async function createLvm({ host, nameLabel, nameDescription, device, preferredImageFormat }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
     device,
+  }
+  if (preferredImageFormat) {
+    deviceConfig[PREFERED_IMAGE_FORMAT_PROPERTY] = preferredImageFormat
   }
 
   const srRef = await xapi.SR_create({
@@ -388,6 +420,7 @@ createLvm.params = {
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string', minLength: 0 },
   device: { type: 'string' },
+  preferredImageFormat: { enum: AUTHORIZED_IMAGE_FORMAT_LISTS, optional: true },
 }
 
 createLvm.resolve = {
@@ -399,11 +432,15 @@ createLvm.resolve = {
 
 // This functions creates a local ext SR
 
-export async function createExt({ host, nameLabel, nameDescription, device }) {
+export async function createExt({ host, nameLabel, nameDescription, device, preferredImageFormat }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
     device,
+  }
+
+  if (preferredImageFormat) {
+    deviceConfig[PREFERED_IMAGE_FORMAT_PROPERTY] = preferredImageFormat
   }
 
   const srRef = await xapi.SR_create({
@@ -424,6 +461,7 @@ createExt.params = {
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string', minLength: 0 },
   device: { type: 'string' },
+  preferredImageFormat: { enum: AUTHORIZED_IMAGE_FORMAT_LISTS, optional: true },
 }
 
 createExt.resolve = {
@@ -473,14 +511,15 @@ probeZfs.resolve = {
   host: ['host', 'host', 'administrate'],
 }
 
-export async function createZfs({ host, nameLabel, nameDescription, location }) {
+export async function createZfs({ host, nameLabel, nameDescription, location, preferredImageFormat }) {
   const xapi = this.getXapi(host)
   // only XCP-ng >=8.2 support the ZFS SR
   const types = await xapi.call('SR.get_supported_types')
+
   return await xapi.getField(
     'SR',
     await xapi.SR_create({
-      device_config: { location },
+      device_config: { location, PREFERED_IMAGE_FORMAT_PROPERTY: preferredImageFormat },
       host: host._xapiRef,
       name_description: nameDescription,
       name_label: nameLabel,
@@ -496,6 +535,7 @@ createZfs.params = {
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string', minLength: 0 },
   location: { type: 'string' },
+  preferredImageFormat: { enum: AUTHORIZED_IMAGE_FORMAT_LISTS, optional: true },
 }
 
 createZfs.resolve = {
@@ -611,6 +651,7 @@ export async function createIscsi({
   chapUser,
   chapPassword,
   srUuid,
+  preferredImageFormat,
 }) {
   const xapi = this.getXapi(host)
 
@@ -618,6 +659,9 @@ export async function createIscsi({
     target,
     targetIQN: targetIqn,
     SCSIid: scsiId,
+  }
+  if (preferredImageFormat) {
+    deviceConfig[PREFERED_IMAGE_FORMAT_PROPERTY] = preferredImageFormat
   }
 
   // if we give user and password
@@ -633,6 +677,7 @@ export async function createIscsi({
 
   // Reattach
   if (srUuid !== undefined) {
+    delete deviceConfig[PREFERED_IMAGE_FORMAT_PROPERTY]
     return xapi.reattachSr({
       uuid: srUuid,
       nameLabel,
@@ -666,6 +711,7 @@ createIscsi.params = {
   chapUser: { type: 'string', optional: true },
   chapPassword: { type: 'string', optional: true },
   srUuid: { type: 'string', optional: true },
+  preferredImageFormat: { enum: AUTHORIZED_IMAGE_FORMAT_LISTS, optional: true },
 }
 
 createIscsi.resolve = {
@@ -916,7 +962,7 @@ probeNfsExists.resolve = {
 export const getAllUnhealthyVdiChainsLength = throttle(
   function getAllUnhealthyVdiChainsLength() {
     const unhealthyVdiChainsLengthBySr = {}
-    filter(this.objects.all, obj => obj.type === 'SR' && isSrWritable(obj)).forEach(sr => {
+    Object.values(this.getObjectsByType('SR', { filter: obj => isSrWritable(obj) })).forEach(sr => {
       const unhealthyVdiChainsLengthByVdi = this.getXapi(sr).getVdiChainsInfo(sr)
       if (!isEmpty(unhealthyVdiChainsLengthByVdi)) {
         unhealthyVdiChainsLengthBySr[sr.uuid] = unhealthyVdiChainsLengthByVdi

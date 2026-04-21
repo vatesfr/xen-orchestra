@@ -1,6 +1,7 @@
 import {
   WrappedXenApiRecord,
   XenApiHost,
+  XenApiHostWrapped,
   XenApiNetwork,
   XenApiNetworkWrapped,
   XenApiRecord,
@@ -14,6 +15,7 @@ import {
   XenApiVtpm,
 } from '../xen-api.mjs'
 import type {
+  BOND_MODE,
   OPAQUE_REF_NULL,
   SUPPORTED_VDI_FORMAT,
   VBD_MODE,
@@ -75,6 +77,7 @@ export interface Xapi {
     ref: T['$ref'],
     field: K
   ): Promise<T[K]>
+  connectVif(vifId: XoVif['id']): Promise<void>
   createNetwork(
     params:
       | {
@@ -91,8 +94,16 @@ export interface Xapi {
           vlan: number
         }
   ): Promise<XenApiNetworkWrapped>
+  createBondedNetwork(params: {
+    bondMode: BOND_MODE
+    pifIds: XoPif['id'][]
+    name: string
+    description?: string
+    mtu?: number
+  }): Promise<XenApiNetworkWrapped>
   deleteNetwork(id: XoNetwork['id']): Promise<void>
   deleteVif(vifId: XoVif['id']): Promise<void>
+  disconnectVif(vifId: XoVif['id']): Promise<void>
   exportVmOva(vmRef: XenApiVm['$ref']): Promise<PassThrough>
   migrateVm(
     vmId: XoVm['id'],
@@ -111,6 +122,30 @@ export interface Xapi {
   pool_emergencyShutdown(): Promise<void>
   resumeVm(id: XoVm['id']): Promise<void>
   unpauseVm(id: XoVm['id']): Promise<void>
+  cloneVm(
+    vmId: XoVm['id'],
+    opts?: {
+      nameLabel?: string
+      fast?: boolean
+    }
+  ): Promise<XenApiVmWrapped>
+  copyVm(
+    vmId: XoVm['id'],
+    opts?: {
+      nameLabel?: string
+      srOrSrId?: XoSr['id'] | XoSr
+    }
+  ): Promise<XenApiVmWrapped>
+  remoteCopyVm(
+    vmId: XoVm['id'],
+    targetXapi: Xapi,
+    targetSrId: XoSr['id'],
+    opts?: {
+      compress?: 'zstd' | 'gzip' | boolean
+      nameLabel?: string
+    }
+  ): Promise<{ vm: XenApiVmWrapped }>
+  forgetSr(id: XoSr['id']): Promise<void>
   SR_importVdi(
     ref: XenApiSr['$ref'],
     stream: Readable,
@@ -158,6 +193,7 @@ export interface Xapi {
     metadataVm: {
       affinityHost?: XoHost['id']
       autoPoweron?: boolean
+      cpus?: number
       memory?: number
       name_description?: string
       name_label: string
@@ -290,6 +326,16 @@ export interface Xapi {
     pathname: string,
     params?: { host?: XenApiHost; query?: Record<string, unknown>; task?: boolean | XenApiTask['$ref'] }
   ): Promise<{ body: Readable }>
+  clearHost(host: Pick<XenApiHostWrapped, '$ref' | '$pool'>, force?: boolean): Promise<void>
+  disableHost(hostId: XoHost['id']): Promise<void>
+  enableHost(hostId: XoHost['id']): Promise<void>
+  getRecordByUuid<
+    Type extends WrappedXenApiRecord['$type'],
+    XenApiRecord extends WrappedXenApiRecord = Extract<WrappedXenApiRecord, { $type: Type }>,
+  >(
+    type: Type,
+    uuid: XenApiRecord['uuid']
+  ): Promise<XenApiRecord>
   isHyperThreadingEnabled(hostId: XoHost['id']): Promise<boolean | null>
   VTPM_create(params: { VM: XenApiVm['$ref']; is_unique?: boolean; contents?: string }): Promise<XenApiVtpm['$ref']>
 }

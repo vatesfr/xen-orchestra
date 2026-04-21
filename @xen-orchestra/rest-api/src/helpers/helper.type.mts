@@ -17,7 +17,7 @@ export interface XoError extends Error {
 
 export type NdjsonStream = Readable
 
-export type SendObjects<T> = string[] | WithHref<T>[] | NdjsonStream
+export type SendObjects<T> = string[] | WithHref<T>[] | NdjsonStream | string
 
 export type PromiseWriteInStreamError = { error: true }
 
@@ -33,3 +33,9 @@ export type AuthenticatedRequest = Request & {
 export type IsEmptyData = { isEmpty: true }
 
 export type IsMaybeExpired<T> = T & { isExpired?: true }
+
+export type ReplaceKey<Type, OldKey extends keyof Type, NewKey extends string, NewKeyType = Type[OldKey]> = Omit<
+  Type,
+  OldKey
+> &
+  Record<NewKey, NewKeyType>

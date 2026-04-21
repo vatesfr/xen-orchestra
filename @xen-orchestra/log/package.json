@@ -29,13 +29,14 @@
     "node": ">=8.3"
   },
   "dependencies": {
-    "lodash": "^4.17.4",
+    "lodash": "^4.18.0",
     "promise-toolbox": "^0.21.0"
   },
   "scripts": {
     "postversion": "npm publish",
     "test": "node --test"
   },
+  "types": "./index.d.ts",
   "exports": {
     ".": "./index.js",
     "./_*": null,

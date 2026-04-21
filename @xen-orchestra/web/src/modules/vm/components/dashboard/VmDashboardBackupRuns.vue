@@ -8,7 +8,6 @@
         </UiLink>
       </template>
     </UiCardTitle>
-
     <div v-if="areBackupRunsReady && !isError" class="backup-head">
       <div class="protection-infos">
         <VtsQuickInfoRow :label="t('protection-status')">
@@ -23,11 +22,10 @@
           variant="tertiary"
           @click="openProtectionHelpModal()"
         >
-          {{ t('what-does-protected-means?') }}
+          {{ t('what-does-protected-mean?') }}
         </UiButton>
       </div>
     </div>
-
     <UiAlert v-if="isNotInActiveJob" accent="warning">
       <span class="typo-body-bold">{{ t('no-job-vm') }}</span>
       <template #description>
@@ -40,7 +38,6 @@
         </I18nT>
       </template>
     </UiAlert>
-
     <VtsTable :state horizontal>
       <thead v-if="!isEmpty">
         <tr>

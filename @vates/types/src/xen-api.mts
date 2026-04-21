@@ -82,6 +82,7 @@ type TagCallMethods = {
 type WrapperXenApi<T, Type extends string, Fn = { (): void }> = T & {
   $call: Fn
   $callAsync: Fn
+  $pool: XenApiPool
   $type: Type
   $snapshot(params: {
     cancelToken?: unknown
@@ -622,7 +623,9 @@ export interface XenApiHostCpu {
   vendor: string
 }
 
-type XenApiNetworkCallMethods = TagCallMethods & {}
+type XenApiNetworkCallMethods = TagCallMethods & {
+  (method: 'add_purpose', purpose: NETWORK_PURPOSE): Promise<void>
+}
 
 export interface XenApiNetwork {
   $ref: Branded<'network'>

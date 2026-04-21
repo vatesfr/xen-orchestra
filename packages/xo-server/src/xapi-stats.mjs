@@ -69,8 +69,22 @@ async function getServerTimestamp(xapi, hostRef) {
 // Stats
 // -------------------------------------------------------------------
 
+/**
+ * @param {{t: string, values: string[]}[]} dataRow
+ * @param {number} legendIndex
+ * @param {(value: number) => number} [transformValue]
+ * @returns {(number | null)[]}
+ */
 const computeValues = (dataRow, legendIndex, transformValue = identity) =>
-  map(dataRow, ({ values }) => transformValue(parseNumber(values[legendIndex])))
+  dataRow.map(({ values }) => {
+    const value = parseNumber(values[legendIndex])
+
+    if (value === null) {
+      return null
+    }
+
+    return transformValue(value)
+  })
 
 const combineStats = (stats, path, combineValues) => zipWith(...map(stats, path), (...values) => combineValues(values))
 
@@ -142,6 +156,10 @@ const STATS = {
         test: /^iops_write_(\w+)$/,
         getPath: matches => ['iops', 'w', matches[1]],
       },
+      total: {
+        test: /^iops_total_(\w+)$/,
+        getPath: matches => ['iops', 'total', matches[1]],
+      },
     },
     ioThroughput: {
       r: {
@@ -153,6 +171,11 @@ const STATS = {
         test: /^io_throughput_write_(\w+)$/,
         getPath: matches => ['ioThroughput', 'w', matches[1]],
         transformValue: value => value * 2 ** 20,
+      },
+      total: {
+        test: /^io_throughput_total_(\w+)$/,
+        getPath: matches => ['ioThroughput', 'total', matches[1]],
+        transformValue: value => value * 2 ** 20, // MiB/s to bytes/s
       },
     },
     latency: {
@@ -166,10 +189,39 @@ const STATS = {
         getPath: matches => ['latency', 'w', matches[1]],
         transformValue: value => value / 1e3,
       },
+      total: {
+        test: /^latency_(\w+)$/,
+        getPath: matches => ['latency', 'total', matches[1]],
+        transformValue: value => value / 1e3,
+      },
     },
     iowait: {
       test: /^iowait_(\w+)$/,
       getPath: matches => ['iowait', matches[1]],
+    },
+    hostload: {
+      test: 'hostload',
+    },
+    memoryReclaimed: {
+      test: 'memory_reclaimed',
+      transformValue: value => value * 1024, // KiB to bytes
+    },
+    memoryReclaimedMax: {
+      test: 'memory_reclaimed_max',
+      transformValue: value => value * 1024, // KiB to bytes
+    },
+    runningVcpus: {
+      test: 'running_vcpus',
+    },
+    pifsAggr: {
+      rx: {
+        test: 'pif_aggr_rx',
+        getPath: () => ['pifsAggr', 'rx'],
+      },
+      tx: {
+        test: 'pif_aggr_tx',
+        getPath: () => ['pifsAggr', 'tx'],
+      },
     },
   },
   vm: {
@@ -265,13 +317,35 @@ const STATS = {
       r: {
         test: /^vbd_xvd(.)_read_latency$/,
         getPath: matches => ['vbdLatency', 'r', matches[1]],
-        transformValue: value => value / 1000,
+        transformValue: value => value / 1e3, // µs to ms
       },
       w: {
         test: /^vbd_xvd(.)_write_latency$/,
         getPath: matches => ['vbdLatency', 'w', matches[1]],
-        transformValue: value => value / 1000,
+        transformValue: value => value / 1e3, // µs to ms
       },
+    },
+    ioThroughput: {
+      r: {
+        test: /^vbd_xvd(.)_io_throughput_read$/,
+        getPath: matches => ['ioThroughput', 'r', matches[1]],
+        transformValue: value => value * 2 ** 20,
+      },
+      w: {
+        test: /^vbd_xvd(.)_io_throughput_write$/,
+        getPath: matches => ['ioThroughput', 'w', matches[1]],
+        transformValue: value => value * 2 ** 20,
+      },
+      total: {
+        test: /^vbd_xvd(.)_io_throughput_total$/,
+        getPath: matches => ['ioThroughput', 'total', matches[1]],
+        transformValue: value => value * 2 ** 20,
+      },
+    },
+    vbdAvgLatency: {
+      test: /^vbd_xvd(.)_latency$/,
+      getPath: matches => ['vbdAvgLatency', matches[1]],
+      transformValue: value => value / 1e3, // µs to ms (for xo-web formatTime)
     },
     vbdIowait: {
       test: /^vbd_xvd(.)_iowait$/,

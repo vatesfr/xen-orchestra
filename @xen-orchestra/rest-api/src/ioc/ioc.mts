@@ -14,6 +14,7 @@ import { UserService } from '../users/user.service.mjs'
 import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
 import { BackupLogService } from '../backup-logs/backup-log.service.mjs'
 import { EventService } from '../events/event.service.mjs'
+import { NetworkService } from '../networks/network.service.mjs'
 
 const iocContainer = new Container()
 
@@ -106,6 +107,14 @@ export function setupContainer(xoApp: XoApp) {
     .toDynamicValue(ctx => {
       const restApi = ctx.container.get(RestApi)
       return new EventService(restApi)
+    })
+    .inSingletonScope()
+
+  iocContainer
+    .bind(NetworkService)
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new NetworkService(restApi)
     })
     .inSingletonScope()
 }

@@ -10,7 +10,11 @@ export class BackupLogService {
   }
 
   isVmInBackupLog(log: XoBackupLog, vmId: XoVm['id']) {
-    const vmIds = (log.infos?.find(info => info.message === 'vms')?.data as { vms: XoVm['id'] }).vms ?? []
-    return vmIds.includes(vmId)
+    const backupLogInfos = log.infos?.find(info => info.message === 'vms')?.data as { vms: XoVm['id'] } | undefined
+    if (backupLogInfos?.vms === undefined) {
+      return false
+    }
+
+    return backupLogInfos.vms.includes(vmId)
   }
 }

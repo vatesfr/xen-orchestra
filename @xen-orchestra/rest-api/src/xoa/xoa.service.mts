@@ -22,7 +22,7 @@ import { Writable } from 'node:stream'
 
 import { type AsyncCacheEntry, getFromAsyncCache } from '../helpers/cache.helper.mjs'
 import { DashboardBackupRepositoriesSizeInfo, DashboardBackupsInfo, SrSizeInfo, XoaDashboard } from './xoa.type.mjs'
-import { isReplicaVm, isSrWritableOrIso, promiseWriteInStream, vmContainsNoBakTag } from '../helpers/utils.helper.mjs'
+import { isReplicaVm, isSrWritable, promiseWriteInStream, vmContainsNoBakTag } from '../helpers/utils.helper.mjs'
 import type { IsEmptyData, IsMaybeExpired, MaybePromise } from '../helpers/helper.type.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { HostService } from '../hosts/host.service.mjs'
@@ -174,7 +174,7 @@ export class XoaService {
     const hosts = Object.values(this.#restApi.getObjectsByType<XoHost>('host'))
     const srs = Object.values(
       this.#restApi.getObjectsByType<XoSr>('SR', {
-        filter: isSrWritableOrIso,
+        filter: isSrWritable,
       })
     )
 
@@ -330,7 +330,7 @@ export class XoaService {
 
   #getStorageRepositoriesSizeInfo(): SrSizeInfo | IsEmptyData {
     const writableSrs = this.#restApi.getObjectsByType<XoSr>('SR', {
-      filter: isSrWritableOrIso,
+      filter: isSrWritable,
     })
 
     const srs = Object.values(writableSrs)

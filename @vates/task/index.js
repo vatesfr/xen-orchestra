@@ -7,6 +7,27 @@ function alreadyEnded() {
   throw new Error('task has already ended')
 }
 
+const serializeErrors = errors => (Array.isArray(errors) ? errors.map(serializeError) : errors)
+
+// Create a serializable object from an error.
+//
+// Otherwise some fields might be non-enumerable and missing from logs.
+const serializeError = error => {
+  return error instanceof Error
+    ? {
+        ...error, // Copy enumerable properties.
+        cause: error.cause,
+        code: error.code,
+        errors: serializeErrors(error.errors), // supports AggregateError
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+      }
+    : error
+}
+
+exports.serializeError = serializeError
+
 // define a read-only, non-enumerable, non-configurable property
 function define(object, property, value) {
   Object.defineProperty(object, property, { value })
@@ -72,7 +93,11 @@ class Task {
   _onProgress
 
   get id() {
-    return (this.id = Math.random().toString(36).slice(2))
+    // Use a compact, sortable, string representation of the creation date,
+    // and add a random part to differentiate tasks created at the same time
+    //
+    // Due to the padding, dates are sortable up to 5188-04-22T11:04:28.415Z
+    return (this.id = Date.now().toString(36).padStart(9, '0') + '-' + Math.random().toString(36).slice(2))
   }
   set id(value) {
     define(this, 'id', value)
@@ -135,6 +160,10 @@ class Task {
   #end(status, result) {
     assert.equal(this.#status, PENDING)
     assert.equal(this.#running, false)
+
+    if (result instanceof Error && result.toJSON === undefined) {
+      result = serializeError(result)
+    }
 
     this.#emit('end', { status, result })
     this._onProgress = alreadyEnded

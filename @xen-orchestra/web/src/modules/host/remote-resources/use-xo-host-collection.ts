@@ -1,12 +1,13 @@
-import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { useXoPoolCollection, type FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
+import { safePushInMap } from '@/shared/utils/map.util'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
-import type { XoHost, XoPool } from '@vates/types'
+import type { XoHost } from '@vates/types'
 import { useSorted } from '@vueuse/core'
-import { computed } from 'vue'
+import { ref, watch } from 'vue'
 
 export type FrontXoHost = Pick<XoHost, (typeof hostFields)[number]>
 
@@ -44,36 +45,32 @@ export const useXoHostCollection = defineRemoteResource({
   initialData: () => [] as FrontXoHost[],
   initWatchCollection: () => useWatchCollection({ resource: 'host', fields: hostFields }),
   state: (rawHosts, context) => {
-    const hosts = useSorted(rawHosts, sortByNameLabel)
+    const sortedHosts = useSorted(rawHosts, sortByNameLabel)
 
-    const state = useXoCollectionState(hosts, {
+    const state = useXoCollectionState(sortedHosts, {
       context,
       baseName: 'host',
     })
 
     const { pools, getPoolById } = useXoPoolCollection(context)
 
-    const hostsByPool = computed(() => {
-      const hostsByPoolMap = new Map<XoPool['id'], FrontXoHost[]>()
+    const hostsByPool = ref(new Map<FrontXoPool['id'], FrontXoHost[]>())
 
-      hosts.value.forEach(host => {
-        const poolId = host.$pool
+    watch(sortedHosts, hosts => {
+      const tmpHostsByPool = new Map<FrontXoPool['id'], FrontXoHost[]>()
 
-        if (!hostsByPoolMap.has(poolId)) {
-          hostsByPoolMap.set(poolId, [])
-        }
-
-        hostsByPoolMap.get(poolId)!.push(host)
+      hosts.forEach(host => {
+        safePushInMap(tmpHostsByPool, host.$pool, host)
       })
 
-      return hostsByPoolMap
+      hostsByPool.value = tmpHostsByPool
     })
 
-    function isMasterHost(hostId: XoHost['id']) {
+    function isMasterHost(hostId: FrontXoHost['id']) {
       return !!pools.value.find(pool => pool.master === hostId)
     }
 
-    function getMasterHostByPoolId(poolId: XoPool['id']) {
+    function getMasterHostByPoolId(poolId: FrontXoPool['id']) {
       const masterHostId = getPoolById(poolId)?.master
 
       if (masterHostId === undefined) {

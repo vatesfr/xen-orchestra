@@ -24,7 +24,8 @@
     "url": "https://vates.fr"
   },
   "license": "ISC",
-  "version": "1.0.1",
+  "types": "index.d.ts",
+  "version": "1.0.2",
   "engines": {
     "node": ">=8.10"
   },

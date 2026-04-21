@@ -15,7 +15,8 @@
       <SidebarSearch v-model="filter" />
     </template>
     <template #sidebar-content>
-      <VtsTreeList v-if="!isReady">
+      <VtsStateHero v-if="!isConnected && !isDevPage" format="card" type="busy" size="medium" class="loader" />
+      <VtsTreeList v-else-if="!isReady">
         <VtsTreeLoadingItem v-for="i in 5" :key="i" icon="object:pool" />
       </VtsTreeList>
       <VtsStateHero v-else-if="isSearching" format="card" type="busy" size="medium" class="loader" />
@@ -25,7 +26,18 @@
       <SiteTreeList v-else :branches="sites" />
     </template>
     <template #content>
-      <slot />
+      <VtsStateHero v-if="!isConnected && !isDevPage" format="page" type="busy" size="large">
+        <div class="state-content">
+          <span class="typo-caption">{{ t('loading') }}</span>
+          <span class="title typo-h1">{{ t('please-wait') }}</span>
+          <div class="description typo-body-bold">
+            <I18nT scope="global" keypath="page-please-wait">
+              <template #newline><br /></template>
+            </I18nT>
+          </div>
+        </div>
+      </VtsStateHero>
+      <slot v-else />
     </template>
   </CoreLayout>
 </template>
@@ -44,8 +56,10 @@ import VtsTreeLoadingItem from '@core/components/tree/VtsTreeLoadingItem.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLogoText from '@core/components/ui/logo-text/UiLogoText.vue'
 import CoreLayout from '@core/layouts/CoreLayout.vue'
+import { useSseStore } from '@core/packages/remote-resource/sse.store.ts'
 import { useUiStore } from '@core/stores/ui.store'
-import { onMounted, watch, computed } from 'vue'
+import { storeToRefs } from 'pinia'
+import { computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
@@ -56,11 +70,17 @@ const { t } = useI18n()
 
 const uiStore = useUiStore()
 
+const sseStore = useSseStore()
+
+const { isConnected } = storeToRefs(sseStore)
+
 const { sites, isReady, filter, isSearching, scrollToNodeElement } = useXoSiteTree()
 const route = useRoute<'/pool/[id]' | '/host/[id]' | '/vm/[id]'>()
 
 const { buildXo5Route } = useXoRoutes()
 const xo5Route = computed(() => buildXo5Route('/'))
+
+const isDevPage = computed(() => route.path.startsWith('/dev'))
 
 async function scrollToRouteParamId() {
   const paramId = route.params.id
@@ -94,5 +114,20 @@ watch(
 
 .mobile {
   display: none;
+}
+.state-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.4rem;
+  text-align: center;
+
+  .title {
+    color: var(--color-neutral-txt-primary);
+  }
+
+  .description {
+    color: var(--color-neutral-txt-secondary);
+  }
 }
 </style>

@@ -14,11 +14,14 @@ import {
   formatAllPoolsToOpenMetrics,
   formatHostStatusMetrics,
   formatHostUptimeMetrics,
+  formatVdiMetrics,
+  formatVmStatusMetrics,
+  formatVmUptimeMetrics,
   type FormattedMetric,
   type LabelContext,
 } from './openmetric-formatter.mjs'
 
-import type { HostStatusItem } from './index.mjs'
+import type { HostStatusItem, VdiDataItem, VmStatusItem } from './index.mjs'
 
 import type { ParsedMetric, ParsedRrdData } from './rrd-parser.mjs'
 
@@ -123,6 +126,181 @@ describe('VM_METRICS', () => {
     assert.ok(runstate)
     assert.equal(runstate.type, 'gauge')
   })
+
+  it('should include VBD throughput metrics with transformation', () => {
+    const throughputRead = VM_METRICS.find(m => m.openMetricName === 'vm_disk_throughput_read_bytes')
+    assert.ok(throughputRead)
+    assert.equal(throughputRead.type, 'gauge')
+    assert.ok(throughputRead.transformValue)
+    // 1.5 MiB/s * 2^20 = 1572864 bytes/s
+    assert.equal(throughputRead.transformValue!(1.5), 1.5 * 2 ** 20)
+
+    const regex = throughputRead.test as RegExp
+    const match = regex.exec('vbd_xvda_io_throughput_read')
+    assert.ok(match)
+    assert.deepEqual(throughputRead.extractLabels!(match), { device: 'xvda' })
+  })
+
+  it('should include VBD throughput write and total metrics', () => {
+    const throughputWrite = VM_METRICS.find(m => m.openMetricName === 'vm_disk_throughput_write_bytes')
+    assert.ok(throughputWrite)
+    assert.equal(throughputWrite.type, 'gauge')
+    assert.ok(throughputWrite.transformValue)
+
+    const throughputTotal = VM_METRICS.find(m => m.openMetricName === 'vm_disk_throughput_total_bytes')
+    assert.ok(throughputTotal)
+    assert.equal(throughputTotal.type, 'gauge')
+    assert.ok(throughputTotal.transformValue)
+  })
+
+  it('should include VBD average latency metric with transformation', () => {
+    const latency = VM_METRICS.find(m => m.openMetricName === 'vm_disk_latency_seconds')
+    assert.ok(latency)
+    assert.equal(latency.type, 'gauge')
+    assert.ok(latency.transformValue)
+    // 500 µs / 1e6 = 0.0005 seconds
+    assert.equal(latency.transformValue!(500), 0.0005)
+
+    const regex = latency.test as RegExp
+    const match = regex.exec('vbd_xvda_latency')
+    assert.ok(match)
+    assert.deepEqual(latency.extractLabels!(match), { device: 'xvda' })
+  })
+
+  it('should not match vbd_xvda_latency with read_latency or write_latency regex', () => {
+    const readLatency = VM_METRICS.find(m => m.openMetricName === 'vm_disk_read_latency_seconds')
+    assert.ok(readLatency)
+    const readRegex = readLatency.test as RegExp
+    assert.equal(readRegex.exec('vbd_xvda_latency'), null)
+
+    const writeLatency = VM_METRICS.find(m => m.openMetricName === 'vm_disk_write_latency_seconds')
+    assert.ok(writeLatency)
+    const writeRegex = writeLatency.test as RegExp
+    assert.equal(writeRegex.exec('vbd_xvda_latency'), null)
+  })
+})
+
+describe('HOST_METRICS DCMI', () => {
+  it('should include DCMI power reading metric', () => {
+    const dcmi = HOST_METRICS.find(m => m.openMetricName === 'host_power_consumption_watts')
+    assert.ok(dcmi)
+    assert.equal(dcmi.type, 'gauge')
+    assert.equal(dcmi.test, 'DCMI-power-reading')
+    assert.equal(dcmi.transformValue, undefined)
+    assert.equal(dcmi.extractLabels, undefined)
+  })
+})
+
+describe('HOST_METRICS new metrics', () => {
+  it('should include hostload metric', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_load')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.equal(metric.test, 'hostload')
+    assert.equal(metric.transformValue, undefined)
+  })
+
+  it('should include memory_reclaimed metric with KiB to bytes transformation', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_memory_reclaimed_bytes')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.equal(metric.test, 'memory_reclaimed')
+    assert.ok(metric.transformValue)
+    // 512 KiB * 1024 = 524288 bytes
+    assert.equal(metric.transformValue!(512), 512 * 1024)
+  })
+
+  it('should include memory_reclaimed_max metric with KiB to bytes transformation', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_memory_reclaimed_max_bytes')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.equal(metric.test, 'memory_reclaimed_max')
+    assert.ok(metric.transformValue)
+    assert.equal(metric.transformValue!(1024), 1024 * 1024)
+  })
+
+  it('should include running_vcpus metric', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_running_vcpus')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.equal(metric.test, 'running_vcpus')
+    assert.equal(metric.transformValue, undefined)
+  })
+
+  it('should include pif_aggr_rx metric', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_network_aggregated_receive_bytes')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.equal(metric.test, 'pif_aggr_rx')
+    assert.equal(metric.transformValue, undefined)
+  })
+
+  it('should include pif_aggr_tx metric', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_network_aggregated_transmit_bytes')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.equal(metric.test, 'pif_aggr_tx')
+    assert.equal(metric.transformValue, undefined)
+  })
+
+  it('should match pif_aggr_rx before the generic PIF regex', () => {
+    const result = findMetricDefinition('pif_aggr_rx', 'host')
+    assert.ok(result)
+    assert.equal(result.definition.openMetricName, 'host_network_aggregated_receive_bytes')
+  })
+
+  it('should include iops_total per SR with label extraction', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_disk_iops_total')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.ok(metric.extractLabels)
+
+    const regex = metric.test as RegExp
+    const match = regex.exec('iops_total_abc12345')
+    assert.ok(match)
+    assert.deepEqual(metric.extractLabels!(match), { sr: 'abc12345' })
+  })
+
+  it('should include io_throughput_total per SR with MiB to bytes transformation', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_disk_throughput_total_bytes')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.ok(metric.transformValue)
+    assert.ok(metric.extractLabels)
+
+    // 2 MiB/s = 2 * 2^20 bytes/s
+    assert.equal(metric.transformValue!(2), 2 * 2 ** 20)
+
+    const regex = metric.test as RegExp
+    const match = regex.exec('io_throughput_total_def-456-789')
+    assert.ok(match)
+    assert.deepEqual(metric.extractLabels!(match), { sr: 'def-456-789' })
+  })
+
+  it('should include latency per SR with µs to seconds transformation', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_disk_latency_seconds')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.ok(metric.transformValue)
+    assert.ok(metric.extractLabels)
+
+    // 500 µs / 1e6 = 0.0005 seconds
+    assert.equal(metric.transformValue!(500), 0.0005)
+
+    const regex = metric.test as RegExp
+    const match = regex.exec('latency_abc-def-123')
+    assert.ok(match)
+    assert.deepEqual(metric.extractLabels!(match), { sr: 'abc-def-123' })
+  })
+
+  it('should not match read_latency or write_latency with latency_<sr> regex', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_disk_latency_seconds')
+    assert.ok(metric)
+    const regex = metric.test as RegExp
+    // ^latency_ anchor prevents matching read_latency_ and write_latency_
+    assert.equal(regex.exec('read_latency_abc12345'), null)
+    assert.equal(regex.exec('write_latency_abc12345'), null)
+  })
 })
 
 // ============================================================================
@@ -164,6 +342,27 @@ describe('findMetricDefinition', () => {
     assert.equal(result.definition.openMetricName, 'vm_disk_write_bytes_total')
     assert.ok(result.matches)
     assert.equal(result.matches[1], 'b')
+  })
+
+  it('should find VM VBD throughput metric', () => {
+    const result = findMetricDefinition('vbd_xvdb_io_throughput_read', 'vm')
+    assert.ok(result)
+    assert.equal(result.definition.openMetricName, 'vm_disk_throughput_read_bytes')
+    assert.ok(result.matches)
+    assert.equal(result.matches[1], 'b')
+  })
+
+  it('should find VM VBD average latency metric', () => {
+    const result = findMetricDefinition('vbd_xvda_latency', 'vm')
+    assert.ok(result)
+    assert.equal(result.definition.openMetricName, 'vm_disk_latency_seconds')
+  })
+
+  it('should find host DCMI power reading metric', () => {
+    const result = findMetricDefinition('DCMI-power-reading', 'host')
+    assert.ok(result)
+    assert.equal(result.definition.openMetricName, 'host_power_consumption_watts')
+    assert.equal(result.matches, null)
   })
 
   it('should return null for unknown metric', () => {
@@ -538,6 +737,10 @@ describe('transformMetric with labelContext', () => {
           vbdDeviceToVdiName: { xvda: 'System Disk', xvdb: 'Data Disk' },
           vbdDeviceToVdiUuid: { xvda: 'vdi-uuid-system', xvdb: 'vdi-uuid-data' },
           vifIndexToNetworkName: { '0': 'Pool-wide network', '1': 'Storage network' },
+          startTime: null,
+          power_state: 'Running',
+          pool_id: 'pool-456',
+          pool_name: 'Production Pool',
         },
       },
       hosts: {
@@ -767,6 +970,10 @@ describe('transformMetric with labelContext', () => {
       vbdDeviceToVdiName: {},
       vbdDeviceToVdiUuid: {},
       vifIndexToNetworkName: {},
+      startTime: null,
+      power_state: 'Running',
+      pool_id: 'pool-456',
+      pool_name: 'Production Pool',
     }
 
     const metric: ParsedMetric = {
@@ -850,6 +1057,10 @@ describe('formatAllPoolsToOpenMetrics with labelContext', () => {
           vbdDeviceToVdiName: { xvda: 'System Disk' },
           vbdDeviceToVdiUuid: { xvda: 'vdi-1' },
           vifIndexToNetworkName: { '0': 'Management' },
+          startTime: null,
+          power_state: 'Running',
+          pool_id: 'pool-1',
+          pool_name: 'Production',
         },
       },
       hosts: {
@@ -1117,6 +1328,10 @@ describe('CPU usage fallback', () => {
             vbdDeviceToVdiName: {},
             vbdDeviceToVdiUuid: {},
             vifIndexToNetworkName: {},
+            startTime: null,
+            power_state: 'Running',
+            pool_id: 'pool-1',
+            pool_name: 'Production',
           },
         },
         hosts: {},
@@ -1561,5 +1776,507 @@ describe('formatHostUptimeMetrics', () => {
 
     assert.equal(metrics.length, 1)
     assert.equal(metrics[0]!.labels.host_name, undefined)
+  })
+})
+
+// ============================================================================
+// VDI Metrics Tests
+// ============================================================================
+
+describe('formatVdiMetrics', () => {
+  const createVdiDataItem = (overrides: Partial<VdiDataItem> = {}): VdiDataItem => ({
+    uuid: 'vdi-uuid-123',
+    name_label: 'System Disk',
+    size: 107374182400, // 100 GiB
+    usage: 53687091200, // 50 GiB
+    sr_uuid: 'sr-uuid-456',
+    sr_name: 'Local Storage',
+    pool_id: 'pool-789',
+    pool_name: 'Production Pool',
+    ...overrides,
+  })
+
+  it('should generate 2 metrics per VDI with all labels when attached to a VM', () => {
+    const vdiData: VdiDataItem[] = [
+      createVdiDataItem({
+        vm_uuid: 'vm-uuid-abc',
+        vm_name: 'My VM',
+      }),
+    ]
+
+    const metrics = formatVdiMetrics(vdiData)
+
+    assert.equal(metrics.length, 2)
+
+    // Virtual size metric
+    const virtualSize = metrics[0]!
+    assert.equal(virtualSize.name, 'xcp_vdi_virtual_size_bytes')
+    assert.equal(virtualSize.type, 'gauge')
+    assert.equal(virtualSize.help, 'VDI virtual size in bytes')
+    assert.equal(virtualSize.value, 107374182400)
+    assert.equal(virtualSize.labels.pool_id, 'pool-789')
+    assert.equal(virtualSize.labels.pool_name, 'Production Pool')
+    assert.equal(virtualSize.labels.sr_uuid, 'sr-uuid-456')
+    assert.equal(virtualSize.labels.sr_name, 'Local Storage')
+    assert.equal(virtualSize.labels.vdi_uuid, 'vdi-uuid-123')
+    assert.equal(virtualSize.labels.vdi_name, 'System Disk')
+    assert.equal(virtualSize.labels.vm_uuid, 'vm-uuid-abc')
+    assert.equal(virtualSize.labels.vm_name, 'My VM')
+
+    // Physical usage metric
+    const physicalUsage = metrics[1]!
+    assert.equal(physicalUsage.name, 'xcp_vdi_physical_usage_bytes')
+    assert.equal(physicalUsage.type, 'gauge')
+    assert.equal(physicalUsage.help, 'VDI physical space used in bytes (allocated on SR)')
+    assert.equal(physicalUsage.value, 53687091200)
+    assert.equal(physicalUsage.labels.vm_uuid, 'vm-uuid-abc')
+    assert.equal(physicalUsage.labels.vm_name, 'My VM')
+  })
+
+  it('should omit vm labels when VDI is not attached to a VM', () => {
+    const vdiData: VdiDataItem[] = [createVdiDataItem()]
+
+    const metrics = formatVdiMetrics(vdiData)
+
+    assert.equal(metrics.length, 2)
+    assert.equal(metrics[0]!.labels.vm_uuid, undefined)
+    assert.equal(metrics[0]!.labels.vm_name, undefined)
+    assert.equal(metrics[1]!.labels.vm_uuid, undefined)
+    assert.equal(metrics[1]!.labels.vm_name, undefined)
+  })
+
+  it('should return empty array for empty input', () => {
+    const metrics = formatVdiMetrics([])
+
+    assert.equal(metrics.length, 0)
+  })
+
+  it('should generate correct number of metrics for multiple VDIs', () => {
+    const vdiData: VdiDataItem[] = [
+      createVdiDataItem({ uuid: 'vdi-1', name_label: 'Disk 1' }),
+      createVdiDataItem({ uuid: 'vdi-2', name_label: 'Disk 2' }),
+      createVdiDataItem({ uuid: 'vdi-3', name_label: 'Disk 3' }),
+    ]
+
+    const metrics = formatVdiMetrics(vdiData)
+
+    assert.equal(metrics.length, 6) // 2 metrics * 3 VDIs
+  })
+
+  it('should map size to virtual_size_bytes and usage to physical_usage_bytes', () => {
+    const vdiData: VdiDataItem[] = [
+      createVdiDataItem({
+        size: 1000,
+        usage: 500,
+      }),
+    ]
+
+    const metrics = formatVdiMetrics(vdiData)
+
+    const virtualSize = metrics.find(m => m.name === 'xcp_vdi_virtual_size_bytes')!
+    const physicalUsage = metrics.find(m => m.name === 'xcp_vdi_physical_usage_bytes')!
+
+    assert.equal(virtualSize.value, 1000)
+    assert.equal(physicalUsage.value, 500)
+  })
+
+  it('should omit pool_name label when pool_name is empty', () => {
+    const vdiData: VdiDataItem[] = [createVdiDataItem({ pool_name: '' })]
+
+    const metrics = formatVdiMetrics(vdiData)
+
+    assert.equal(metrics[0]!.labels.pool_name, undefined)
+  })
+
+  it('should produce valid OpenMetrics output', () => {
+    const vdiData: VdiDataItem[] = [
+      createVdiDataItem({
+        vm_uuid: 'vm-uuid-abc',
+        vm_name: 'My VM',
+      }),
+    ]
+
+    const metrics = formatVdiMetrics(vdiData)
+    const output = formatToOpenMetrics(metrics)
+
+    assert.ok(output.includes('xcp_vdi_virtual_size_bytes'))
+    assert.ok(output.includes('xcp_vdi_physical_usage_bytes'))
+    assert.ok(output.includes('vdi_uuid="vdi-uuid-123"'))
+    assert.ok(output.includes('vm_uuid="vm-uuid-abc"'))
+  })
+
+  it('should escape special characters in label values', () => {
+    const vdiData: VdiDataItem[] = [
+      createVdiDataItem({
+        name_label: 'Disk "with quotes"',
+      }),
+    ]
+
+    const metrics = formatVdiMetrics(vdiData)
+    const output = formatToOpenMetrics(metrics)
+
+    assert.ok(output.includes('vdi_name="Disk \\"with quotes\\""'))
+  })
+})
+
+// ============================================================================
+// formatVmStatusMetrics Tests
+// ============================================================================
+
+describe('formatVmStatusMetrics', () => {
+  it('should return empty array for empty input', () => {
+    const result = formatVmStatusMetrics([])
+    assert.deepEqual(result, [])
+  })
+
+  it('should create one metric per VM with value 1', () => {
+    const vms: VmStatusItem[] = [
+      {
+        uuid: 'vm-1',
+        name_label: 'VM 1',
+        power_state: 'Running',
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+      {
+        uuid: 'vm-2',
+        name_label: 'VM 2',
+        power_state: 'Halted',
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+    ]
+
+    const result = formatVmStatusMetrics(vms)
+
+    assert.equal(result.length, 2)
+    assert.equal(result[0]!.value, 1)
+    assert.equal(result[1]!.value, 1)
+  })
+
+  it('should set correct metric name and type', () => {
+    const vms: VmStatusItem[] = [
+      {
+        uuid: 'vm-1',
+        name_label: 'VM 1',
+        power_state: 'Running',
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+    ]
+
+    const result = formatVmStatusMetrics(vms)
+
+    assert.equal(result[0]!.name, 'xcp_vm_status')
+    assert.equal(result[0]!.type, 'gauge')
+  })
+
+  it('should include all expected labels', () => {
+    const vms: VmStatusItem[] = [
+      {
+        uuid: 'vm-1',
+        name_label: 'VM 1',
+        power_state: 'Running',
+        pool_id: 'pool-1',
+        pool_name: 'Production',
+      },
+    ]
+
+    const result = formatVmStatusMetrics(vms)
+    const labels = result[0]!.labels
+
+    assert.equal(labels.pool_id, 'pool-1')
+    assert.equal(labels.pool_name, 'Production')
+    assert.equal(labels.uuid, 'vm-1')
+    assert.equal(labels.vm_name, 'VM 1')
+    assert.equal(labels.power_state, 'Running')
+  })
+
+  it('should omit pool_name when empty', () => {
+    const vms: VmStatusItem[] = [
+      { uuid: 'vm-1', name_label: 'VM 1', power_state: 'Running', pool_id: 'pool-1', pool_name: '' },
+    ]
+
+    const result = formatVmStatusMetrics(vms)
+
+    assert.equal(result[0]!.labels.pool_name, undefined)
+  })
+
+  it('should handle all VM power_state values', () => {
+    const vms: VmStatusItem[] = [
+      { uuid: 'vm-0', name_label: 'VM 0', power_state: 'Running', pool_id: 'pool-1', pool_name: 'Pool' },
+      { uuid: 'vm-1', name_label: 'VM 1', power_state: 'Paused', pool_id: 'pool-1', pool_name: 'Pool' },
+      { uuid: 'vm-2', name_label: 'VM 2', power_state: 'Halted', pool_id: 'pool-1', pool_name: 'Pool' },
+      { uuid: 'vm-3', name_label: 'VM 3', power_state: 'Suspended', pool_id: 'pool-1', pool_name: 'Pool' },
+    ]
+
+    const result = formatVmStatusMetrics(vms)
+
+    assert.equal(result.length, 4)
+    assert.equal(result[0]!.labels.power_state, 'Running')
+    assert.equal(result[1]!.labels.power_state, 'Paused')
+    assert.equal(result[2]!.labels.power_state, 'Halted')
+    assert.equal(result[3]!.labels.power_state, 'Suspended')
+  })
+
+  it('should produce valid OpenMetrics output', () => {
+    const vms: VmStatusItem[] = [
+      {
+        uuid: 'vm-1',
+        name_label: 'VM 1',
+        power_state: 'Running',
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+      {
+        uuid: 'vm-2',
+        name_label: 'VM 2',
+        power_state: 'Halted',
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+    ]
+
+    const metrics = formatVmStatusMetrics(vms)
+    const output = formatToOpenMetrics(metrics)
+
+    assert.ok(
+      output.includes(
+        '# HELP xcp_vm_status VM power state indicator (always 1; current state is carried by the power_state label)'
+      )
+    )
+    assert.ok(output.includes('# TYPE xcp_vm_status gauge'))
+    assert.ok(output.includes('power_state="Running"'))
+    assert.ok(output.includes('power_state="Halted"'))
+
+    // HELP and TYPE should appear only once
+    const helpCount = (output.match(/# HELP xcp_vm_status/g) || []).length
+    const typeCount = (output.match(/# TYPE xcp_vm_status/g) || []).length
+    assert.equal(helpCount, 1)
+    assert.equal(typeCount, 1)
+  })
+
+  it('should escape special characters in VM names', () => {
+    const vms: VmStatusItem[] = [
+      {
+        uuid: 'vm-1',
+        name_label: 'VM "with quotes"',
+        power_state: 'Running',
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+    ]
+
+    const metrics = formatVmStatusMetrics(vms)
+    const output = formatToOpenMetrics(metrics)
+
+    assert.ok(output.includes('vm_name="VM \\"with quotes\\""'))
+  })
+
+  it('should omit vm_name when empty', () => {
+    const vms: VmStatusItem[] = [
+      { uuid: 'vm-1', name_label: '', power_state: 'Running', pool_id: 'pool-1', pool_name: 'Pool' },
+    ]
+
+    const result = formatVmStatusMetrics(vms)
+
+    assert.equal(result[0]!.labels.vm_name, undefined)
+  })
+})
+
+// ============================================================================
+// formatVmUptimeMetrics Tests
+// ============================================================================
+
+describe('formatVmUptimeMetrics', () => {
+  const createVmLabelContext = (
+    overrides: Partial<{
+      startTime: number | null
+      is_control_domain: boolean
+      name_label: string
+      pool_name: string
+      power_state: string
+    }> = {}
+  ): LabelContext => ({
+    hosts: [
+      {
+        hostId: 'host-1',
+        hostAddress: '192.168.1.1',
+        hostLabel: 'Host 1',
+        poolId: 'pool-456',
+        poolLabel: 'Production Pool',
+        sessionId: 'session-123',
+        protocol: 'https:',
+      },
+    ],
+    labels: {
+      vms: {
+        'vm-uuid-123': {
+          name_label: overrides.name_label ?? 'Test VM',
+          is_control_domain: overrides.is_control_domain ?? false,
+          vbdDeviceToVdiName: {},
+          vbdDeviceToVdiUuid: {},
+          vifIndexToNetworkName: {},
+          startTime: overrides.startTime !== undefined ? overrides.startTime : Math.floor(Date.now() / 1000) - 3600,
+          power_state: overrides.power_state ?? 'Running',
+          pool_id: 'pool-456',
+          pool_name: overrides.pool_name ?? 'Production Pool',
+        },
+      },
+      hosts: {
+        'host-1': {
+          name_label: 'Host 1',
+          pifDeviceToNetworkName: {},
+          startTime: Math.floor(Date.now() / 1000) - 7200,
+        },
+      },
+      srs: {},
+      srSuffixToUuid: {},
+      vdiUuidToSrUuid: {},
+    },
+  })
+
+  it('should generate uptime metric for VM with valid startTime', () => {
+    const now = Math.floor(Date.now() / 1000)
+    const bootTime = now - 3600 // 1 hour ago
+    const labelContext = createVmLabelContext({ startTime: bootTime })
+
+    const metrics = formatVmUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 1)
+    const metric = metrics[0]!
+    assert.equal(metric.name, 'xcp_vm_uptime_seconds')
+    assert.equal(metric.type, 'gauge')
+    assert.equal(metric.help, 'VM uptime in seconds since boot')
+    assert.equal(metric.labels.pool_id, 'pool-456')
+    assert.equal(metric.labels.pool_name, 'Production Pool')
+    assert.equal(metric.labels.uuid, 'vm-uuid-123')
+    assert.equal(metric.labels.vm_name, 'Test VM')
+    // Value should be approximately 3600 (1 hour)
+    assert.ok(metric.value >= 3599 && metric.value <= 3601)
+  })
+
+  it('should skip VM with null startTime', () => {
+    const labelContext = createVmLabelContext({ startTime: null })
+
+    const metrics = formatVmUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 0)
+  })
+
+  it('should skip VM-controller (is_control_domain)', () => {
+    const labelContext = createVmLabelContext({ is_control_domain: true })
+
+    const metrics = formatVmUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 0)
+  })
+
+  it('should generate metrics for multiple VMs', () => {
+    const now = Math.floor(Date.now() / 1000)
+    const labelContext: LabelContext = {
+      hosts: [
+        {
+          hostId: 'host-1',
+          hostAddress: '192.168.1.1',
+          hostLabel: 'Host 1',
+          poolId: 'pool-1',
+          poolLabel: 'Pool A',
+          sessionId: 'session-1',
+          protocol: 'https:',
+        },
+      ],
+      labels: {
+        vms: {
+          'vm-1': {
+            name_label: 'VM 1',
+            is_control_domain: false,
+            vbdDeviceToVdiName: {},
+            vbdDeviceToVdiUuid: {},
+            vifIndexToNetworkName: {},
+            startTime: now - 7200, // 2 hours
+            power_state: 'Running',
+            pool_id: 'pool-1',
+            pool_name: 'Pool A',
+          },
+          'vm-2': {
+            name_label: 'VM 2',
+            is_control_domain: false,
+            vbdDeviceToVdiName: {},
+            vbdDeviceToVdiUuid: {},
+            vifIndexToNetworkName: {},
+            startTime: now - 1800, // 30 minutes
+            power_state: 'Running',
+            pool_id: 'pool-1',
+            pool_name: 'Pool A',
+          },
+        },
+        hosts: {
+          'host-1': {
+            name_label: 'Host 1',
+            pifDeviceToNetworkName: {},
+            startTime: now - 86400,
+          },
+        },
+        srs: {},
+        srSuffixToUuid: {},
+        vdiUuidToSrUuid: {},
+      },
+    }
+
+    const metrics = formatVmUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 2)
+    const vm1Metric = metrics.find(m => m.labels.uuid === 'vm-1')
+    const vm2Metric = metrics.find(m => m.labels.uuid === 'vm-2')
+    assert.ok(vm1Metric)
+    assert.ok(vm2Metric)
+    assert.ok(vm1Metric.value >= 7199 && vm1Metric.value <= 7201)
+    assert.ok(vm2Metric.value >= 1799 && vm2Metric.value <= 1801)
+  })
+
+  it('should omit pool_name when empty', () => {
+    const labelContext = createVmLabelContext({ pool_name: '' })
+
+    const metrics = formatVmUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 1)
+    assert.equal(metrics[0]!.labels.pool_name, undefined)
+  })
+
+  it('should omit vm_name when empty', () => {
+    const labelContext = createVmLabelContext({ name_label: '' })
+
+    const metrics = formatVmUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 1)
+    assert.equal(metrics[0]!.labels.vm_name, undefined)
+  })
+
+  it('should skip halted VM with stale startTime', () => {
+    const now = Math.floor(Date.now() / 1000)
+    const labelContext = createVmLabelContext({ startTime: now - 86400, power_state: 'Halted' })
+
+    const metrics = formatVmUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 0)
+  })
+
+  it('should skip suspended VM', () => {
+    const now = Math.floor(Date.now() / 1000)
+    const labelContext = createVmLabelContext({ startTime: now - 3600, power_state: 'Suspended' })
+
+    const metrics = formatVmUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 0)
+  })
+
+  it('should skip paused VM', () => {
+    const now = Math.floor(Date.now() / 1000)
+    const labelContext = createVmLabelContext({ startTime: now - 3600, power_state: 'Paused' })
+
+    const metrics = formatVmUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 0)
   })
 })

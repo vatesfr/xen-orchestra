@@ -18,7 +18,7 @@ To quickly access the old UI without changing any configuration, `/v5` to your U
 
 ### Making XO 5 the default UI
 
-To permanently use XO 5 as the default interface, create a new config file (you can call it `config.mounts.toml`). This configuration file can placed either in `~/.config/xo-server/` of the process running xo-server or if you are using a xoa in `/etc/xo-server/`. This file will contain :
+To permanently use XO 5 as the default interface, create a new config file (you can call it `config.mounts.toml`). This configuration file can be placed either in `~/.config/xo-server/` of the process running xo-server or if you are using a xoa in `/etc/xo-server/`. This file will contain :
 
 ```toml
 [http.mounts]

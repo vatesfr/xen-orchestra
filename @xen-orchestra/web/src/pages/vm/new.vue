@@ -287,6 +287,7 @@ import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useFormSelect } from '@core/packages/form-select'
 import { useMapper } from '@core/packages/mapper'
 import { useUiStore } from '@core/stores/ui.store'
@@ -771,6 +772,7 @@ const vmData = computed(() => {
   return {
     autoPoweron: vmState.autoPoweron,
     boot: vmState.boot_vm,
+    cpus: vmState.vCPU,
     clone: vmState.clone,
     memory: vmState.ram,
     name_description: vmState.description,
@@ -919,11 +921,11 @@ watch(
 watch(
   pools,
   newPools => {
-    const targetPool = newPools.find(pool => pool.id === poolId.value)
-
-    if (targetPool?.id !== vmState.pool?.id) {
-      vmState.pool = targetPool
+    if (!poolId.value || vmState.pool !== undefined) {
+      return
     }
+
+    vmState.pool = newPools.find(pool => pool.id === poolId.value)
   },
   { immediate: true }
 )
