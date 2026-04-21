@@ -12,10 +12,11 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [VM] Add possibility to remove a snapshot on snapshot tab (PR [#9749](https://github.com/vatesfr/xen-orchestra/pull/9749))
+- [XO6] Pool > Hosts: management IP is now always shown first in the IP column (PR [#9747](https://github.com/vatesfr/xen-orchestra/pull/9747))
 
 ### Bug fixes
 
-> Users must be able to say: “I had this issue, happy to know it's fixed”
+> Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [xo-server] Fix VM-template still visible after deletion (PR [#9760](https://github.com/vatesfr/xen-orchestra/pull/9760))
 
