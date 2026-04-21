@@ -67,8 +67,6 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const { openModal: openVdiDeleteModal, canRun: canDeleteVdi, isRunning: isDeletingVdi } = useVdiDeleteModal(() => [vdi])
-
 const uiStore = useUiStore()
 
 const { useGetVbdsByIds } = useXoVbdCollection()

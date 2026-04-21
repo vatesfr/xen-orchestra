@@ -3,9 +3,11 @@
     <template #title>
       {{ t('vbd-delete-title', { n: count }) }}
     </template>
+
     <template #content>
       {{ t('vbd-delete-info') }}
     </template>
+
     <template #buttons>
       <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
       <VtsModalConfirmButton>
