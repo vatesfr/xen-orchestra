@@ -96,7 +96,7 @@ export default class {
         connection: app._redis,
         namespace: 'token',
         indexes: ['client_id', 'user_id'],
-        crypto: app,
+        crypto: app.cryptoCredentials,
       }))
 
       app.addConfigManager(

@@ -12,6 +12,8 @@ import { v4 as generateUuid } from 'uuid'
 
 import Collection, { ModelAlreadyExists } from '../collection.mjs'
 
+/** @typedef {import('../xo-mixins/crypto-credentials.mjs').default} CryptoCredentials */
+
 // ===================================================================
 
 // ///////////////////////////////////////////////////////////////////
@@ -35,6 +37,13 @@ import Collection, { ModelAlreadyExists } from '../collection.mjs'
 const VERSION = '20170905'
 
 export default class Redis extends Collection {
+  /** @type {CryptoCredentials | undefined} */
+  #crypto
+
+  get crypto() {
+    return this.#crypto
+  }
+
   // Called before a new model is added
   //
   // If throws, the add operation is aborted
@@ -66,7 +75,7 @@ export default class Redis extends Collection {
     this.indexes = indexes
     this.prefix = prefix
     const redis = (this.redis = connection)
-    this.crypto = crypto
+    this.#crypto = crypto
 
     redis.sAdd('xo::namespaces', namespace)::ignoreErrors()
 
@@ -194,15 +203,16 @@ export default class Redis extends Collection {
         model = this._serialize(model) ?? model
 
         const key = `${prefix}:${id}`
-        const promises = [redis.del(key)]
-
-        if (this.crypto && !this.crypto.isDegraded()) {
-          promises.push(redis.set(key, await this.crypto.encrypt(JSON.stringify(model))))
-        } else {
-          promises.push(redis.set(key, JSON.stringify(model)))
+        let serialized = JSON.stringify(model)
+        if (this.#crypto && !this.#crypto.isDegraded()) {
+          serialized = await this.#crypto.encrypt(serialized)
         }
 
+        await redis.del(key)
+        await redis.set(key, serialized)
+
         // Update indexes.
+        const promises = []
         forEach(indexes, index => {
           const value = model[index]
           if (value === undefined) {
@@ -212,7 +222,6 @@ export default class Redis extends Collection {
           const key = prefix + '_' + index + ':' + String(value).toLowerCase()
           promises.push(redis.sAdd(key, id))
         })
-
         await Promise.all(promises)
 
         model = this._unserialize(model) ?? model
@@ -235,16 +244,8 @@ export default class Redis extends Collection {
       const json = await redis.get(key)
 
       if (json !== null) {
-        if (this.crypto && !this.crypto.isDegraded()) {
-          let parsed
-
-          try {
-            parsed = JSON.parse(json)
-          } catch {
-            parsed = JSON.parse(await this.crypto.decrypt(json))
-          }
-
-          model = parsed
+        if (this.#crypto && !this.#crypto.isDegraded()) {
+          model = JSON.parse(await this.#crypto.decrypt(json))
         } else {
           model = JSON.parse(json)
         }
@@ -278,7 +279,7 @@ export default class Redis extends Collection {
 
     const { indexes } = this
 
-    if (this.crypto && !this.crypto.isDegraded()) {
+    if (this.#crypto && !this.#crypto.isDegraded()) {
       // When crypto is active, load all and filter in memory
       return redis
         .sMembers(prefix + '_ids')
