@@ -9,9 +9,24 @@ const XENSTORE_KEY_PATH = 'vm-data/xo-encryption-key'
 const KEY_FILE_PATH = '/var/lib/xo-server/data/xo-encryption-key'
 const BACKUP_FILE_PATH = '/var/lib/xo-server/data/pre-encryption-backup.json'
 
+const CIPHER_ALGORITHM = 'AES-GCM'
+const HASH_ALGORITHM = 'SHA-256'
+const KDF_ALGORITHM = 'HKDF'
+const HMAC_ALGORITHM = 'HMAC'
+const IV_LENGTH = 12
+
+export const ENCRYPTION_PREFIX = 'enc:'
+
 const log = createLogger('xo:crypto-credentials')
 
 export default class CryptoCredentials {
+  /**
+   * @returns {CryptoCredentials | null}
+   */
+  get cryptoCredentials() {
+    return (this._app.config.getOptional('redis.encryptCredentialDatabase') ?? false) ? this : null
+  }
+
   /**
    * @type {webcrypto.CryptoKey | undefined}
    */
@@ -71,9 +86,7 @@ export default class CryptoCredentials {
 
     this.#degraded = true
 
-    /**
-     * @type {Buffer | undefined}
-     */
+    /** @type {Buffer | undefined} */
     let xenStoreKey, fileKey
 
     xenStoreKey = await readOrUndefined(async () => Buffer.from((await XenStore.read(XENSTORE_KEY_PATH)).trim(), 'hex'))
@@ -95,6 +108,9 @@ export default class CryptoCredentials {
           this.#migrationRequired = true
         }
       } catch (error) {
+        XenStore.rm(XENSTORE_KEY_PATH).catch(() => {})
+        fs.unlink(KEY_FILE_PATH).catch(() => {})
+
         log.error('Credential database encryption failed — running in degraded mode', { cause: error })
       }
     }
@@ -102,6 +118,8 @@ export default class CryptoCredentials {
 
   /**
    * Encrypts credentials.
+   * All encrypted values have a plaintext prefix string added.
+   *
    * @param {string} plaintext
    * @returns {Promise<string>}
    */
@@ -110,33 +128,41 @@ export default class CryptoCredentials {
       throw new Error('The encryption key needs to be extracted before encrypt can be used')
     }
 
-    const iv = randomBytes(12)
+    const iv = randomBytes(IV_LENGTH)
 
     const ciphertext = await webcrypto.subtle.encrypt(
-      { name: 'AES-GCM', iv },
+      { name: CIPHER_ALGORITHM, iv },
       this.#encryptionKey,
       Buffer.from(plaintext)
     )
 
-    return Buffer.concat([iv, Buffer.from(ciphertext)]).toString('base64')
+    return ENCRYPTION_PREFIX + Buffer.concat([iv, Buffer.from(ciphertext)]).toString('base64')
   }
 
   /**
    * Decrypts credentials.
-   * @param {string} blob
+   * All encrypted values have a plaintext prefix string,
+   * only decrypt if the prefix is present.
+   *
+   * @param {string} value
    * @returns {Promise<string>}
    */
-  async decrypt(blob) {
+  async decrypt(value) {
+    if (!value.startsWith(ENCRYPTION_PREFIX)) {
+      return value
+    }
+    value = value.slice(ENCRYPTION_PREFIX.length)
+
     if (!this.#encryptionKey) {
       throw new Error('The encryption key needs to be extracted before decrypt can be used')
     }
 
-    const buf = Buffer.from(blob, 'base64')
-    const iv = buf.subarray(0, 12)
-    const ciphertext = buf.subarray(12)
+    const buf = Buffer.from(value, 'base64')
+    const iv = buf.subarray(0, IV_LENGTH)
+    const ciphertext = buf.subarray(IV_LENGTH)
 
     return Buffer.from(
-      await webcrypto.subtle.decrypt({ name: 'AES-GCM', iv }, this.#encryptionKey, ciphertext)
+      await webcrypto.subtle.decrypt({ name: CIPHER_ALGORITHM, iv }, this.#encryptionKey, ciphertext)
     ).toString('utf8')
   }
 
@@ -158,22 +184,16 @@ export default class CryptoCredentials {
      */
     const redisContent = {}
 
-    /**
-     * @type {string[]}
-     */
+    /** @type {string[]} */
     const namespaces = await this._app._redis.sMembers('xo::namespaces')
     for (const namespace of namespaces) {
       redisContent[namespace] = {}
 
-      /**
-       * @type {string[]}
-       */
+      /** @type {string[]} */
       const ids = await this._app._redis.sMembers('xo:' + namespace + '_ids')
 
       for (const id of ids) {
-        /**
-         * @type {string}
-         */
+        /** @type {string} */
         const value = await this._app._redis.get('xo:' + namespace + ':' + id)
 
         redisContent[namespace][id] = value
@@ -186,21 +206,8 @@ export default class CryptoCredentials {
     // Encrypt content then write to redis
     for (const namespace in redisContent) {
       for (const id in redisContent[namespace]) {
-        if (redisContent[namespace][id] != null) {
-          let isPlaintext
-          try {
-            JSON.parse(redisContent[namespace][id])
-            isPlaintext = true
-          } catch {
-            isPlaintext = false
-          }
-
-          if (isPlaintext) {
-            await this._app._redis.set(
-              'xo:' + namespace + ':' + id,
-              await this._app.encrypt(redisContent[namespace][id])
-            )
-          }
+        if (redisContent[namespace][id] != null && !redisContent[namespace][id].startsWith(ENCRYPTION_PREFIX)) {
+          await this._app._redis.set('xo:' + namespace + ':' + id, await this._app.encrypt(redisContent[namespace][id]))
         }
       }
     }
@@ -214,10 +221,11 @@ export default class CryptoCredentials {
       // Skip namespace if first entry returns null
       if (redisContent[namespace][testedId] === null) continue
 
-      const decryptedValue = await this._app.decrypt(await this._app._redis.get('xo:' + namespace + ':' + testedId))
-
+      const testedValue = await this._app._redis.get('xo:' + namespace + ':' + testedId)
       try {
-        JSON.parse(decryptedValue)
+        if (!testedValue.startsWith(ENCRYPTION_PREFIX)) throw new Error()
+
+        await this._app.decrypt(testedValue)
       } catch {
         throw new Error(`An error occurred during encryption migration`)
       }
@@ -236,7 +244,7 @@ export default class CryptoCredentials {
     try {
       const fullKey = Buffer.concat([halfA, halfB])
       // Input key material
-      const ikm = await webcrypto.subtle.importKey('raw', fullKey, 'HKDF', false, ['deriveKey'])
+      const ikm = await webcrypto.subtle.importKey('raw', fullKey, KDF_ALGORITHM, false, ['deriveKey'])
 
       // Memory safety
       halfA.fill(0)
@@ -244,17 +252,22 @@ export default class CryptoCredentials {
       fullKey.fill(0)
 
       this.#encryptionKey = await webcrypto.subtle.deriveKey(
-        { name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(0), info: Buffer.from('xo-credentials-aes') },
+        { name: KDF_ALGORITHM, hash: HASH_ALGORITHM, salt: new Uint8Array(0), info: Buffer.from('xo-credentials-aes') },
         ikm,
-        { name: 'AES-GCM', length: 256 },
+        { name: CIPHER_ALGORITHM, length: 256 },
         false,
         ['encrypt', 'decrypt']
       )
 
       this.#hmacKey = await webcrypto.subtle.deriveKey(
-        { name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(0), info: Buffer.from('xo-credentials-hmac') },
+        {
+          name: KDF_ALGORITHM,
+          hash: HASH_ALGORITHM,
+          salt: new Uint8Array(0),
+          info: Buffer.from('xo-credentials-hmac'),
+        },
         ikm,
-        { name: 'HMAC', hash: 'SHA-256' },
+        { name: HMAC_ALGORITHM, hash: HASH_ALGORITHM },
         false,
         ['sign', 'verify']
       )

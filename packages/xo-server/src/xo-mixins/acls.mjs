@@ -17,7 +17,7 @@ export default class {
         connection: app._redis,
         namespace: 'acl',
         indexes: ['subject', 'object'],
-        crypto: app,
+        crypto: app.cryptoCredentials,
       }))
 
       app.addConfigManager(

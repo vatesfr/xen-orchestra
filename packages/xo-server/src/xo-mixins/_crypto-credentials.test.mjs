@@ -2,7 +2,7 @@ import assert from 'assert/strict'
 import { randomBytes } from 'node:crypto'
 import test from 'node:test'
 
-import CryptoCredentials from './crypto-credentials.mjs'
+import CryptoCredentials, { ENCRYPTION_PREFIX } from './crypto-credentials.mjs'
 
 const { describe, it, before } = test
 
@@ -25,8 +25,8 @@ describe('CryptoCredentials', function () {
 
     const encrypted = await cryptoCredentials.encrypt(payload)
     assert.equal(typeof encrypted, 'string')
-    // valid base64 decodes without throwing
-    assert.ok(Buffer.from(encrypted, 'base64').length > 0)
+    // Check that encryption prefix has been added
+    assert.ok(encrypted.startsWith(ENCRYPTION_PREFIX))
 
     const decrypted = await cryptoCredentials.decrypt(encrypted)
     assert.equal(typeof decrypted, 'string')
@@ -36,7 +36,8 @@ describe('CryptoCredentials', function () {
 
   it('encrypted value is base64 and not valid JSON', async function () {
     const encrypted = await cryptoCredentials.encrypt('{"why":"vates_rocks"}')
-    assert.throws(() => JSON.parse(encrypted))
+
+    assert.ok(encrypted.startsWith(ENCRYPTION_PREFIX))
     assert.ok(Buffer.from(encrypted, 'base64').length > 12)
   })
 
