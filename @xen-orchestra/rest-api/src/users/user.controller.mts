@@ -54,6 +54,7 @@ import { groupIds, partialGroups } from '../open-api/oa-examples/group.oa-exampl
 import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
 import { redirectMeAlias } from './user.middleware.mjs'
 import { aclPrivilegeIds, partialAclPrivileges } from '../open-api/oa-examples/acl-privilege.oa-example.mjs'
+import type { AnyPrivilege } from '@xen-orchestra/acl'
 
 const log = createLogger('xo:rest-api:user-controller')
 
@@ -392,7 +393,7 @@ export class UserController extends XoController<XoUser> {
 
   /**
    * Returns all ACL privileges that match the following privilege:
-   * - resource: acl-privilege, action: read
+   * - resource: acl-privilege, action: read (if not self)
    *
    * @example id "me"
    * @example fields "id,action,resource"
@@ -412,7 +413,7 @@ export class UserController extends XoController<XoUser> {
     @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ) {
+  ): SendObjects<Partial<Unbrand<AnyPrivilege>>> {
     const user = await this.getObject(id as XoUser['id'])
     const currentUser = this.restApi.getCurrentUser()
 
