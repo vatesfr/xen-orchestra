@@ -26,6 +26,7 @@
 
 <script setup lang="ts">
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import { useVdiDeleteModal } from '@/modules/vdi/composables/use-vdi-delete-modal.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { getVdiFormat } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
@@ -89,13 +90,32 @@ const { HeadCells, BodyCells } = useVdiColumns({
     const size = computed(() => formatSizeRaw(vdi.size, 2))
     const format = computed(() => getVdiFormat(vdi.image_format))
 
+    const {
+      openModal: openDeleteModal,
+      canRun: canDeleteVdi,
+      isRunning: isDeletingVdi,
+    } = useVdiDeleteModal(() => [vdi])
+
     return {
       vdi: r => r({ label: vdi.name_label, href: href.value, icon: 'object:vdi' }),
       description: r => r(vdi.name_description),
       usedSpace: r => r(vdi.usage, vdi.size),
       size: r => r(size.value.value, size.value.prefix),
       format: r => r(format.value),
-      selectItem: r => r(() => (selectedVdiId.value = vdi.id)),
+      actions: r =>
+        r({
+          onClick: () => (selectedVdiId.value = vdi.id),
+          actions: [
+            {
+              label: t('action:delete'),
+              hint: !canDeleteVdi.value ? t('running-vm') : undefined,
+              icon: 'action:delete',
+              onClick: () => openDeleteModal(),
+              disabled: !canDeleteVdi.value,
+              busy: isDeletingVdi.value,
+            },
+          ],
+        }),
     }
   },
 })
