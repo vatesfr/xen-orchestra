@@ -1,5 +1,5 @@
 import * as assert from 'node:assert'
-import { afterEach as teardown, beforeEach as setup, suite, test } from 'node:test'
+import { after, afterEach, before, beforeEach, suite, test } from 'node:test'
 import { Client as DBClient, escapeIdentifier } from 'pg'
 import {
   createEventModels,
@@ -8,22 +8,28 @@ import {
   recordEventsForClass,
   ReferenceStore,
 } from '../src/db_history.mjs'
-
-const DB_URL = 'postgresql://localhost:5432/postgres'
+import { closeServer, createServer } from './pglite.mjs'
 
 suite('db_history tests', async function () {
   const random_slug = (Math.random() + 1).toString(36).substring(2)
   const schema_prefix = 'test_history_' + random_slug
   const EVENT_SCHEMA = schema_prefix + '_events'
   let dbClient = null
-
-  setup(async function () {
-    dbClient = new DBClient({ connectionString: DB_URL })
+  let server
+  let socketPath
+  before(async () => {
+    ;({ server, socketPath } = await createServer())
+  })
+  after(async () => {
+    await closeServer(server)
+  })
+  beforeEach(async function () {
+    dbClient = new DBClient({ connectionString: socketPath })
     await dbClient.connect()
     await dbClient.query(`CREATE SCHEMA ${escapeIdentifier(EVENT_SCHEMA)}`)
   })
 
-  teardown(async function () {
+  afterEach(async function () {
     await dbClient.query(`DROP SCHEMA ${escapeIdentifier(EVENT_SCHEMA)} CASCADE`)
     await dbClient.end()
   })

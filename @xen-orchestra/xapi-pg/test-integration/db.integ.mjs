@@ -1,11 +1,10 @@
 import * as assert from 'node:assert'
-import { afterEach as teardown, beforeEach as setup, suite, test } from 'node:test'
+import { afterEach, beforeEach, after, before, suite, test } from 'node:test'
 import { escapeIdentifier, Client as DBClient } from 'pg'
 import { convertClassesToTables, createViewsDDL, createViewNames, persistEntities } from '../src/db.mjs'
 import { absRelationEsc } from '../src/sql.mjs'
 import { ident } from '../src/types.mjs'
-
-const DB_URL = 'postgresql://localhost:5432/postgres'
+import { closeServer, createServer } from './pglite.mjs'
 
 suite('live DB tests', function () {
   // https://stackoverflow.com/a/8084248
@@ -35,22 +34,27 @@ suite('live DB tests', function () {
                             ORDER BY uuid`)
     ).rows
   }
-
-  setup(async function () {
-    dbClient = new DBClient({ connectionString: DB_URL })
+  let server
+  let socketPath
+  before(async () => {
+    ;({ server, socketPath } = await createServer())
+  })
+  after(async () => {
+    await closeServer(server)
+  })
+  beforeEach(async () => {
+    dbClient = new DBClient({ connectionString: socketPath })
     await dbClient.connect()
     await dbClient.query(`CREATE SCHEMA ${escapeIdentifier(TABLE_SCHEMA)}`)
     await dbClient.query(`CREATE SCHEMA ${escapeIdentifier(EVENT_SCHEMA)}`)
     await dbClient.query(`CREATE SCHEMA ${escapeIdentifier(VIEW_SCHEMA)}`)
   })
-  teardown(async () => {
+  afterEach(async () => {
     await dbClient.query(`DROP SCHEMA ${escapeIdentifier(TABLE_SCHEMA)} CASCADE`)
     await dbClient.query(`DROP SCHEMA ${escapeIdentifier(EVENT_SCHEMA)} CASCADE`)
     await dbClient.query(`DROP SCHEMA ${escapeIdentifier(VIEW_SCHEMA)} CASCADE`)
-    // the test runner waits for a timeout otherwise
     await dbClient.end()
   })
-
   async function runDDL(classesDict) {
     const xapiDbClasses = convertClassesToTables(classesDict, TABLE_SCHEMA)
     const mainDDL = []
