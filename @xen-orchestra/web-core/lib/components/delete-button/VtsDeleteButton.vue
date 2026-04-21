@@ -7,7 +7,6 @@
     left-icon="action:delete"
     :disabled
     :busy
-    @click="emit('click')"
   >
     {{ t('action:delete') }}
   </UiButton>
@@ -22,10 +21,6 @@ defineProps<{
   busy?: boolean
   disabled?: boolean
   tooltip?: string | false
-}>()
-
-const emit = defineEmits<{
-  click: []
 }>()
 
 const { t } = useI18n()
