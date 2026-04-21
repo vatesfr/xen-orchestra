@@ -114,14 +114,10 @@ export class VmFullBackupArchive implements VmBackupInterface {
     return { isValid: this.isValid! }
   }
 
-  /**
-   * Does nothing for now because VmBackupDirectory already handles deletion for orphan xvas
-   * Should remove files if XVA is invalid or does not exist, but right now it never throws to avoid side effects
-   * @param opts { remove: boolean }
-   * @returns
-   */
   async clean({ remove = this.opts.remove ?? false }: ArchiveCleanOptions = {}): Promise<CleanResult> {
-    await this.check()
+    if (this.isValid === undefined) {
+      await this.check()
+    }
     const removedFiles: string[] = []
     if (!this.isValid) {
       removedFiles.push(this.metadataPath, this.xvaPath, `${this.xvaPath}.checksum`)
