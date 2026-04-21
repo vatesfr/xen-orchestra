@@ -15,12 +15,12 @@ export function makeObjectMapper<T extends XoRecord>(req: Request, path?: string
       if (tmpPath.startsWith('/')) {
         tmpPath = tmpPath.slice(1)
       }
-      if (tmpPath.endsWith('/')) {
-        tmpPath = tmpPath.slice(0, -1)
-      }
       _path = `${BASE_URL}/${tmpPath}`
     }
 
+    if (_path.endsWith('/')) {
+      _path = _path.slice(0, -1)
+    }
     return `${_path}/${String(obj.id)}`
   }
   let objectMapper: (object: T) => string | WithHref<Partial<T>> | WithHref<T>
