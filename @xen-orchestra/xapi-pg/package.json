@@ -15,9 +15,13 @@
   "dependencies": {
     "pg": "^8.20.0"
   },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.4.4",
+    "@electric-sql/pglite-socket": "^0.1.4"
+  },
   "scripts": {
     "test": "node --test --experimental-test-coverage  test/*.test.mjs",
-    "test-integration": "node --test --experimental-test-coverage  test-integration/*.integ.mjs  *.integ.mjs",
+    "test-integration": "node --test test-integration/*.integ.mjs",
     "lcov": "node ./run_coverage.mjs"
   }
 }

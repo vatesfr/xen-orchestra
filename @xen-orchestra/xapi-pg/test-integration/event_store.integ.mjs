@@ -1,11 +1,10 @@
 import * as assert from 'node:assert'
-import { afterEach as teardown, beforeEach as setup, suite, test } from 'node:test'
+import { after, afterEach as teardown, before, beforeEach as setup, suite, test } from 'node:test'
 import { Client as DBClient, escapeIdentifier } from 'pg'
 import { convertClassesToTables, createViewsDDL, createViewNames } from '../src/db.mjs'
 import { createEventModels } from '../src/db_history.mjs'
 import { EventStore } from '../src/event_store.mjs'
-
-const DB_URL = 'postgresql://localhost:5432/postgres'
+import { closeServer, createServer } from './pglite.mjs'
 
 suite('EventStore tests', function () {
   const random_slug = (Math.random() + 1).toString(36).substring(2)
@@ -17,9 +16,16 @@ suite('EventStore tests', function () {
   let eventStore = null
   let xapiDbClasses = null
   let historyTableName = null
-
+  let server
+  let socketPath
+  before(async () => {
+    ;({ server, socketPath } = await createServer())
+  })
+  after(async () => {
+    await closeServer(server)
+  })
   setup(async function () {
-    dbClient = new DBClient({ connectionString: DB_URL })
+    dbClient = new DBClient({ connectionString: socketPath })
     await dbClient.connect()
     await dbClient.query(`CREATE SCHEMA ${escapeIdentifier(TABLE_SCHEMA)}`)
     await dbClient.query(`CREATE SCHEMA ${escapeIdentifier(EVENT_SCHEMA)}`)
