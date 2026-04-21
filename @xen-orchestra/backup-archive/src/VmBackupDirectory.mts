@@ -173,7 +173,7 @@ export class VmBackupDirectory implements VmBackupInterface {
           } catch (error: any) {
             if (error?.code === 'EISDIR') {
               this.opts.logWarn('orphan is a directory, skipping deletion', { path: orphan })
-            } else {
+            } else if (error?.code !== 'ENOENT') {
               throw error
             }
           }
