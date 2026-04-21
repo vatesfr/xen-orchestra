@@ -181,7 +181,7 @@ export class RemoteDiskLineage {
     // Process interrupted merges first so their disks are protected from the orphan loop
     for (const [parentPath, { stateFilePath, chain: stateChain }] of this.#interruptedMerges) {
       if (!this.#diskPaths.has(parentPath)) {
-        // Orphan merge state: the disk no longer exists
+        this.#opts.logWarn('orphan merge state', { stateFilePath, missingDisk: parentPath })
         if (remove) {
           this.#opts.logInfo('deleting orphan merge state', { stateFilePath })
           await this.#handler.unlink(stateFilePath)
