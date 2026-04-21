@@ -108,7 +108,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
           activeVdi = sr.$xapi.getObject(snapshot.$snapshot_of)
           const userVbds = activeVdi.$VBDs?.filter(vbd => vbd.$VM && !vbd.$VM.is_control_domain) ?? []
           if (userVbds.length !== 1) {
-            debug('checkBaseVdis, share vbd ', { ref: snapshot.$ref, userVbds })
+            debug('checkBaseVdis, shared vbd ', { ref: snapshot.$ref, userVbds })
             // shared vdi ignore
             return
           }
