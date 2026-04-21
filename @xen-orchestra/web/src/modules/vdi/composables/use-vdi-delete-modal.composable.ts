@@ -7,7 +7,7 @@ export function useVdiDeleteModal(vdis: () => FrontXoVdi[]) {
 
   const openModal = useModal({
     component: import('@/modules/vdi/components/modal/VdiDeleteModal.vue'),
-    props: { count: 1 },
+    props: { count: vdis().length },
     onConfirm: async () => {
       try {
         await run()
