@@ -233,6 +233,52 @@ test('it removes metadata and broken vhd when an active backup references a corr
   assert.deepEqual(await handler.list(basePath), [], 'broken VHD should be deleted')
 })
 
+test('it preserves all disks when multiple backups reference the same VDI directory', async () => {
+  // Three delta backups share the same VDI directory: snapshot1 ← snapshot2 ← snapshot3.
+  // Each snapshot is the active disk for exactly one backup metadata file.
+  //
+  // Regression guard for a shared-lineage bug: each VmIncrementalBackupArchive creates its
+  // own RemoteDiskLineage for the same vdiDir; only the first archive's lineage reaches
+  // RemoteDiskLineage.clean(). The second and third archives mark their disks as active on
+  // their own (dead) lineage instances, so snapshot2 and snapshot3 appear orphaned and are
+  // deleted — destroying two live backups.
+
+  const snapshot1 = await generateVhd(`${basePath}/snapshot1.vhd`)
+  const snapshot2 = await generateVhd(`${basePath}/snapshot2.vhd`, {
+    header: { parentUnicodeName: 'snapshot1.vhd', parentUuid: snapshot1.footer.uuid },
+  })
+  await generateVhd(`${basePath}/snapshot3.vhd`, {
+    header: { parentUnicodeName: 'snapshot2.vhd', parentUuid: snapshot2.footer.uuid },
+  })
+
+  await handler.writeFile(
+    `${rootPath}/metadata1.json`,
+    JSON.stringify({ mode: 'delta', vhds: [`${relativePath}/snapshot1.vhd`] })
+  )
+  await handler.writeFile(
+    `${rootPath}/metadata2.json`,
+    JSON.stringify({ mode: 'delta', vhds: [`${relativePath}/snapshot2.vhd`] })
+  )
+  await handler.writeFile(
+    `${rootPath}/metadata3.json`,
+    JSON.stringify({ mode: 'delta', vhds: [`${relativePath}/snapshot3.vhd`] })
+  )
+
+  await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true, logWarn: () => {} })
+
+  const remaining = await handler.list(basePath)
+  assert.ok(remaining.includes('snapshot1.vhd'), 'snapshot1.vhd must survive (referenced by metadata1)')
+  assert.ok(remaining.includes('snapshot2.vhd'), 'snapshot2.vhd must survive (referenced by metadata2)')
+  assert.ok(remaining.includes('snapshot3.vhd'), 'snapshot3.vhd must survive (referenced by metadata3)')
+  assert.equal(remaining.length, 3, 'no extra files should remain')
+
+  // All three metadata files must also survive (all backups are complete)
+  const rootFiles = await handler.list(rootPath)
+  assert.ok(rootFiles.includes('metadata1.json'), 'metadata1.json must survive')
+  assert.ok(rootFiles.includes('metadata2.json'), 'metadata2.json must survive')
+  assert.ok(rootFiles.includes('metadata3.json'), 'metadata3.json must survive')
+})
+
 test('it merges delta of non destroyed chain', async () => {
   await handler.writeFile(
     `${rootPath}/metadata.json`,
