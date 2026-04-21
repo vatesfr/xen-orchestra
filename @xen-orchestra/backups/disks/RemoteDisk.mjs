@@ -120,6 +120,18 @@ export class RemoteDisk extends RandomAccessDisk {
   }
 
   /**
+   * Returns true if every block present in `other` is also present in this disk.
+   * @param {RemoteDisk} other
+   * @returns {boolean}
+   */
+  containsAllDataOf(other) {
+    for (const blockIndex of other.getBlockIndexes()) {
+      if (!this.hasBlock(blockIndex)) return false
+    }
+    return true
+  }
+
+  /**
    * Checks if the VHD contains a specific block.
    * @param {number} index
    * @returns {boolean}

@@ -33,6 +33,20 @@ export class RemoteDiskLineage {
     this.#opts = opts
   }
 
+  #unregisterDisk(diskPath: string): void {
+    this.#diskPaths.delete(diskPath)
+    const parent = this.#parentOf.get(diskPath)
+    if (parent !== undefined) {
+      this.#parentOf.delete(diskPath)
+      this.#childOf.delete(parent)
+    }
+    const child = this.#childOf.get(diskPath)
+    if (child !== undefined) {
+      this.#childOf.delete(diskPath)
+      this.#parentOf.delete(child)
+    }
+  }
+
   /**
    * Lists disk files and reads their headers to build the parent-child chain.
    * Also detects interrupted merge state files.
@@ -61,9 +75,28 @@ export class RemoteDiskLineage {
       }
       try {
         const uuid = disk.getUuid()
-        const existing = uuidToPath.get(uuid)
-        if (existing !== undefined) {
-          this.#opts.logWarn('duplicate disk UUID detected', { uuid, path1: existing, path2: diskPath })
+        // Detect Disks with the same UUIDs
+        // Due to a bug introduced in a1bcd35e2
+        const existingPath = uuidToPath.get(uuid)
+        if (existingPath !== undefined) {
+          this.#opts.logWarn('duplicate disk UUID detected', { uuid, path1: existingPath, path2: diskPath })
+          const existingDisk = await openDisk({ handler: this.#handler as any, path: existingPath })
+          try {
+            if (existingDisk.containsAllDataOf(disk)) {
+              this.#opts.logWarn('dropping duplicate disk, existing is superset', { dropped: diskPath })
+              this.#unregisterDisk(diskPath)
+              continue
+            } else if (disk.containsAllDataOf(existingDisk)) {
+              this.#opts.logWarn('dropping duplicate disk, new is superset', { dropped: existingPath })
+              this.#unregisterDisk(existingPath)
+            } else {
+              this.#opts.logWarn('duplicate disks have different content, keeping first-seen', { dropped: diskPath })
+              this.#unregisterDisk(diskPath)
+              continue
+            }
+          } finally {
+            await existingDisk.close()
+          }
         }
         uuidToPath.set(uuid, diskPath)
 
