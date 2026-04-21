@@ -77,6 +77,7 @@ export interface Xapi {
     ref: T['$ref'],
     field: K
   ): Promise<T[K]>
+  connectVif(vifId: XoVif['id']): Promise<void>
   createNetwork(
     params:
       | {
@@ -102,6 +103,7 @@ export interface Xapi {
   }): Promise<XenApiNetworkWrapped>
   deleteNetwork(id: XoNetwork['id']): Promise<void>
   deleteVif(vifId: XoVif['id']): Promise<void>
+  disconnectVif(vifId: XoVif['id']): Promise<void>
   exportVmOva(vmRef: XenApiVm['$ref']): Promise<PassThrough>
   migrateVm(
     vmId: XoVm['id'],
