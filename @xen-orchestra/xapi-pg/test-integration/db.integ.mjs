@@ -1,10 +1,8 @@
 import * as assert from 'node:assert'
-import { afterEach, beforeEach, after, before, suite, test } from 'node:test'
 import { escapeIdentifier, Client as DBClient } from 'pg'
 import { convertClassesToTables, createViewsDDL, createViewNames, persistEntities } from '../src/db.mjs'
 import { absRelationEsc } from '../src/sql.mjs'
 import { ident } from '../src/types.mjs'
-import { closeServer, createServer } from './pglite.mjs'
 
 suite('live DB tests', function () {
   // https://stackoverflow.com/a/8084248
