@@ -1,5 +1,4 @@
 import * as assert from 'node:assert'
-import { after, afterEach as teardown, before, beforeEach as setup, suite, test } from 'node:test'
 import { Client as DBClient, escapeIdentifier } from 'pg'
 import { convertClassesToTables, createViewsDDL, createViewNames } from '../src/db.mjs'
 import { createEventModels } from '../src/db_history.mjs'
@@ -16,6 +15,7 @@ suite('EventStore tests', function () {
   let eventStore = null
   let xapiDbClasses = null
   let historyTableName = null
+
   let server
   let socketPath
   before(async () => {
