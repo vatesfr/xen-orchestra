@@ -36,7 +36,8 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
     metadataPath: string, // xo-vm-backups/<vmUuid>/<timestamp>_<scheduleId>.json
     metadata: PartialBackupMetadata,
     diskPaths: Array<string>, // xo-vm-backups/<vmUuid>/vdis/<jobId>/<vdiUuid>/<snapshotUuid>.alias.vhd (one per VDI)
-    opts: ResolvedBackupCleanOptions
+    opts: ResolvedBackupCleanOptions,
+    lineageRegistry?: Map<string, RemoteDiskLineage>
   ) {
     this.handler = handler
     this.rootPath = normalize(rootPath)
@@ -44,6 +45,9 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
     this.metadata = metadata
     this.diskPaths = diskPaths.map(path => normalize(path))
     this.opts = opts
+    if (lineageRegistry !== undefined) {
+      this.diskLineages = lineageRegistry
+    }
   }
 
   async init(): Promise<void> {

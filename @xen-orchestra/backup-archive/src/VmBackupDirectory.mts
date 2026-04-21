@@ -63,7 +63,7 @@ export class VmBackupDirectory implements VmBackupInterface {
   async init() {
     this.files = (await this.handler.list(this.rootPath, { prependDir: true })).map(file => normalize(file))
     this.#checkResult = undefined
-    this.#uniqueLineages = undefined
+    this.#uniqueLineages = new Map()
 
     for (const fullPath of this.files.filter(path => path.endsWith('.json'))) {
       let metadata: PartialBackupMetadata | undefined = undefined
@@ -96,19 +96,6 @@ export class VmBackupDirectory implements VmBackupInterface {
       await backupArchive.check()
     }
 
-    // Build the unique lineages map once after archives are checked (diskLineages are populated by init)
-    const uniqueLineages = new Map<string, RemoteDiskLineage>()
-    for (const archive of this.backupArchives.values()) {
-      if (archive instanceof VmIncrementalBackupArchive) {
-        for (const [vdiDir, lineage] of archive.diskLineages) {
-          if (!uniqueLineages.has(vdiDir)) {
-            uniqueLineages.set(vdiDir, lineage)
-          }
-        }
-      }
-    }
-    this.#uniqueLineages = uniqueLineages
-
     // allUsedFiles is used for root-level orphan detection only.
     // Active disk paths are accumulated per-lineage by each archive during check() above.
     const allUsedFiles = new Set<string>([
@@ -116,7 +103,7 @@ export class VmBackupDirectory implements VmBackupInterface {
       ...this.getAssociatedFiles({ prefix: true }),
     ])
 
-    for (const lineage of this.#uniqueLineages.values()) {
+    for (const lineage of this.#uniqueLineages!.values()) {
       await lineage.check()
     }
 
@@ -240,7 +227,8 @@ export class VmBackupDirectory implements VmBackupInterface {
           metadataPath,
           metadata,
           diskPaths,
-          this.opts
+          this.opts,
+          this.#uniqueLineages
         )
       } else {
         throw new Error(`Mode ${metadata.mode} not supported`)
