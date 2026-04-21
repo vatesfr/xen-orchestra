@@ -154,6 +154,7 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells } = useNetworkColumns({
+  exclude: ['actions'],
   body: (network: XenApiNetwork) => {
     const status = computed(() => getNetworkStatus(network))
     const vlan = computed(() => getNetworkVlan(network))

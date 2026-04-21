@@ -106,7 +106,7 @@ const getLockingMode = (isLocked: boolean) => (isLocked ? t('disabled') : t('unl
 const { pageRecords: paginatedNetworks, paginationBindings } = usePagination('networks', filteredNetworks)
 
 const { HeadCells, BodyCells } = useNetworkColumns({
-  exclude: internal ? ['vlan', 'status'] : [],
+  exclude: internal ? ['vlan', 'status', 'selectItem'] : ['selectItem'],
   body: (network: FrontXoNetwork) => {
     const { buildXo5Route } = useXoRoutes()
 

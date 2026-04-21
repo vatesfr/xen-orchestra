@@ -2,6 +2,7 @@ import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useActionColumn } from '@core/tables/column-definitions/action-column.ts'
 import { useLinkColumn } from '@core/tables/column-definitions/link-column'
 import { useNumberColumn } from '@core/tables/column-definitions/number-column.ts'
+import { useSelectItemColumn } from '@core/tables/column-definitions/select-item-column.ts'
 import { useStatusColumn } from '@core/tables/column-definitions/status-column.ts'
 import { useTextColumn } from '@core/tables/column-definitions/text-column.ts'
 import { useTruncatedTextColumn } from '@core/tables/column-definitions/truncated-text-column'
@@ -18,5 +19,6 @@ export const useNetworkColumns = defineColumns(() => {
     mtu: useNumberColumn({ headerLabel: () => t('mtu') }),
     defaultLockingMode: useTextColumn({ headerLabel: () => t('default-locking-mode') }),
     actions: useActionColumn({}),
+    selectItem: useSelectItemColumn(),
   }
 })
