@@ -10,7 +10,7 @@ export function useVdiDetachModal(vbds: () => FrontXoVbd[]) {
 
   const openModal = useModal({
     component: import('@/modules/vdi/components/modal/VdiDetachModal.vue'),
-    props: { count: 1 },
+    props: { count: vbds().length },
     onConfirm: async () => {
       try {
         await run()
