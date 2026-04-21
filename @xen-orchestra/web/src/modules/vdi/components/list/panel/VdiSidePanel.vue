@@ -6,7 +6,7 @@
         :disabled="!canDeleteVdi"
         :busy="isDeletingVdi"
         class="delete-button"
-        @click="openDeleteModal()"
+        @click="openVdiDeleteModal()"
       />
       <div :class="{ 'action-buttons-container': uiStore.isSmall }">
         <UiButtonIcon
@@ -52,7 +52,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const { openModal: openDeleteModal, canRun: canDeleteVdi, isRunning: isDeletingVdi } = useVdiDeleteModal(() => [vdi])
+const { openModal: openVdiDeleteModal, canRun: canDeleteVdi, isRunning: isDeletingVdi } = useVdiDeleteModal(() => [vdi])
 
 const uiStore = useUiStore()
 </script>
