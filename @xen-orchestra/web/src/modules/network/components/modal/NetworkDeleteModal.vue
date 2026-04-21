@@ -5,7 +5,7 @@
     </template>
 
     <template #confirm>
-      {{ t(`action:delete-networks`, { n: count }) }}
+      {{ t(`action:delete-n-networks`, { n: count }) }}
     </template>
   </VtsDeleteModal>
 </template>

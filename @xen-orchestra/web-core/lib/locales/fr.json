@@ -34,7 +34,7 @@
   "action:delete-group": "Supprimer le groupe",
   "action:delete-n-vbds": "Supprimer 1 VBD | Supprimer {n} VBDs",
   "action:delete-n-vdis": "Supprimer 1 VDI | Supprimer {n} VDIs",
-  "action:delete-networks": "Supprimer 1 réseau | Supprimer {n} réseaux",
+  "action:delete-n-networks": "Supprimer 1 réseau | Supprimer {n} réseaux",
   "action:delete-n-vifs": "Supprimer 1 VIF | Supprimer {n} VIFs",
   "action:delete-n-vms": "Supprimer 1 VM | Supprimer {n} VMs",
   "action:delete-vbd": "Supprimer le VBD",

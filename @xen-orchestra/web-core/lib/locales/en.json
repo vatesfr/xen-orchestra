@@ -32,7 +32,7 @@
   "action:delete": "Delete",
   "action:delete-filter": "Delete filter",
   "action:delete-group": "Delete group",
-  "action:delete-networks": "Delete 1 network | Delete {n} networks",
+  "action:delete-n-networks": "Delete 1 network | Delete {n} networks",
   "action:delete-n-vbds": "Delete 1 VBD | Delete {n} VBDs",
   "action:delete-n-vdis": "Delete 1 VDI | Delete {n} VDIs",
   "action:delete-n-vifs": "Delete 1 VIF | Delete {n} VIFs",
