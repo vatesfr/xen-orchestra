@@ -31,3 +31,8 @@ export function getPifsIpAddresses(pifs?: FrontXoPif[]): string[] {
     return acc
   }, [] as string[])
 }
+
+export function getHostIpAddresses(managementIp: string, pifs?: FrontXoPif[]): string[] {
+  const others = getPifsIpAddresses(pifs).filter(ip => ip !== managementIp)
+  return managementIp ? [managementIp, ...others] : others
+}
