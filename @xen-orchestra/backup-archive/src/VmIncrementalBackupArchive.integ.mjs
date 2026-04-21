@@ -15,7 +15,7 @@ import { rimraf } from 'rimraf'
 
 const { beforeEach, afterEach, describe } = test
 
-let tempDir, handler, jobId, vdiId, basePath, relativePath
+let tempDir, handler, jobId, vdiId, basePath, relativePath, vdiId2, basePath2, relativePath2
 const rootPath = 'xo-vm-backups/VMUUID/'
 
 beforeEach(async () => {
@@ -26,7 +26,11 @@ beforeEach(async () => {
   vdiId = uniqueId()
   relativePath = `vdis/${jobId}/${vdiId}`
   basePath = `${rootPath}/${relativePath}`
+  vdiId2 = uniqueId()
+  relativePath2 = `vdis/${jobId}/${vdiId2}`
+  basePath2 = `${rootPath}/${relativePath2}`
   await fs.mkdirp(`${tempDir}/${basePath}`)
+  await fs.mkdirp(`${tempDir}/${basePath2}`)
 })
 
 afterEach(async () => {
@@ -277,6 +281,44 @@ test('it preserves all disks when multiple backups reference the same VDI direct
   assert.ok(rootFiles.includes('metadata1.json'), 'metadata1.json must survive')
   assert.ok(rootFiles.includes('metadata2.json'), 'metadata2.json must survive')
   assert.ok(rootFiles.includes('metadata3.json'), 'metadata3.json must survive')
+})
+
+test('it handles multiple VDI directories independently', async () => {
+  // vdiDir1: diskA1 (base) <- diskA2, plus an orphan
+  const diskA1 = await generateVhd(`${basePath}/diskA1.vhd`)
+  await generateVhd(`${basePath}/diskA2.vhd`, {
+    header: { parentUnicodeName: 'diskA1.vhd', parentUuid: diskA1.footer.uuid },
+  })
+  await generateVhd(`${basePath}/orphanA.vhd`)
+
+  // vdiDir2: diskB1 (base) <- diskB2, plus an orphan
+  const diskB1 = await generateVhd(`${basePath2}/diskB1.vhd`)
+  await generateVhd(`${basePath2}/diskB2.vhd`, {
+    header: { parentUnicodeName: 'diskB1.vhd', parentUuid: diskB1.footer.uuid },
+  })
+  await generateVhd(`${basePath2}/orphanB.vhd`)
+
+  // archive1 covers both base disks, archive2 covers both child disks
+  await handler.writeFile(
+    `${rootPath}/metadata1.json`,
+    JSON.stringify({ mode: 'delta', vhds: [`${relativePath}/diskA1.vhd`, `${relativePath2}/diskB1.vhd`] })
+  )
+  await handler.writeFile(
+    `${rootPath}/metadata2.json`,
+    JSON.stringify({ mode: 'delta', vhds: [`${relativePath}/diskA2.vhd`, `${relativePath2}/diskB2.vhd`] })
+  )
+
+  await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true, logWarn: () => {} })
+
+  const remaining1 = await handler.list(basePath)
+  assert.ok(remaining1.includes('diskA1.vhd'), 'diskA1.vhd must survive (metadata1)')
+  assert.ok(remaining1.includes('diskA2.vhd'), 'diskA2.vhd must survive (metadata2)')
+  assert.ok(!remaining1.includes('orphanA.vhd'), 'orphanA.vhd must be deleted')
+
+  const remaining2 = await handler.list(basePath2)
+  assert.ok(remaining2.includes('diskB1.vhd'), 'diskB1.vhd must survive (metadata1)')
+  assert.ok(remaining2.includes('diskB2.vhd'), 'diskB2.vhd must survive (metadata2)')
+  assert.ok(!remaining2.includes('orphanB.vhd'), 'orphanB.vhd must be deleted')
 })
 
 test('it merges delta of non destroyed chain', async () => {
