@@ -25,9 +25,9 @@
 </template>
 
 <script setup lang="ts">
+import { useVbdDeleteModal } from '@/modules/vbd/composables/use-vbd-delete-modal.composable.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { useVdiDeleteModal } from '@/modules/vdi/composables/use-vdi-delete-modal.composable.ts'
-import { useVdiDetachModal } from '@/modules/vdi/composables/use-vdi-detach-modal.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { getVdiFormat } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
@@ -94,10 +94,10 @@ const { HeadCells, BodyCells } = useVdiColumns({
     const format = computed(() => getVdiFormat(vdi.image_format))
 
     const {
-      openModal: openVdiDetachModal,
+      openModal: openVbdDeleteModal,
       canRun: canDeleteVbd,
       isRunning: isDeletingVbd,
-    } = useVdiDetachModal(() => (vbd.value ? [vbd.value] : []))
+    } = useVbdDeleteModal(() => (vbd.value ? [vbd.value] : []))
 
     const {
       openModal: openVdiDeleteModal,
@@ -116,10 +116,10 @@ const { HeadCells, BodyCells } = useVdiColumns({
           onClick: () => (selectedVdiId.value = vdi.id),
           actions: [
             {
-              label: t('action:detach'),
+              label: t('action:delete-vbd'),
               hint: !canDeleteVbd.value ? t('running-vm') : undefined,
               icon: 'action:disconnect',
-              onClick: () => openVdiDetachModal(),
+              onClick: () => openVbdDeleteModal(),
               disabled: !canDeleteVbd.value,
               busy: isDeletingVbd.value,
             },

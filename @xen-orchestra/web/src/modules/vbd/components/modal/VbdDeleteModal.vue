@@ -1,24 +1,24 @@
 <template>
   <VtsModal accent="info" icon="status:info-picto">
     <template #title>
-      {{ t('vdi-detach-title', { n: count }) }}
+      {{ t('vbd-delete-title', { n: count }) }}
     </template>
     <template #content>
-      {{ t('vdi-detach-info') }}
+      {{ t('vbd-delete-info') }}
     </template>
     <template #buttons>
       <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
       <VtsModalConfirmButton>
-        {{ t(`action:detach-n-vdis`, { n: count }) }}
+        {{ t(`action:delete-n-vbds`, { n: count }) }}
       </VtsModalConfirmButton>
     </template>
   </VtsModal>
 </template>
 
 <script lang="ts" setup>
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsModal from '@xen-orchestra/web-core/components/modal/VtsModal.vue'
+import VtsModalCancelButton from '@xen-orchestra/web-core/components/modal/VtsModalCancelButton.vue'
+import VtsModalConfirmButton from '@xen-orchestra/web-core/components/modal/VtsModalConfirmButton.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{

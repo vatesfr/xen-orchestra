@@ -8,9 +8,9 @@
         :disabled="!canDeleteVbd"
         left-icon="action:disconnect"
         :busy="isDeletingVbd"
-        @click="openDetachModal()"
+        @click="openVbdDeleteModal()"
       >
-        {{ t('action:detach') }}
+        {{ t('action:delete-vbd') }}
       </UiButton>
       <VtsDeleteButton
         :tooltip="!canDeleteVdi && t('running-vm')"
@@ -39,12 +39,12 @@
 </template>
 
 <script setup lang="ts">
+import { useVbdDeleteModal } from '@/modules/vbd/composables/use-vbd-delete-modal.composable.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import VdiConfigurationCard from '@/modules/vdi/components/list/panel/cards/VdiConfigurationCard.vue'
 import VdiInfosCard from '@/modules/vdi/components/list/panel/cards/VdiInfosCard.vue'
 import VdiSpaceCard from '@/modules/vdi/components/list/panel/cards/VdiSpaceCard.vue'
 import { useVdiDeleteModal } from '@/modules/vdi/composables/use-vdi-delete-modal.composable.ts'
-import { useVdiDetachModal } from '@/modules/vdi/composables/use-vdi-detach-modal.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
@@ -71,17 +71,17 @@ const { openModal: openVdiDeleteModal, canRun: canDeleteVdi, isRunning: isDeleti
 
 const uiStore = useUiStore()
 
-const { getVbdsByIds } = useXoVbdCollection()
+const { useGetVbdsByIds } = useXoVbdCollection()
 
-const vbd = computed(() => getVbdsByIds(vdi.$VBDs).find(vbd => vbd.VDI === vdi.id))
+const vbd = computed(() => useGetVbdsByIds(vdi.$VBDs).value.find(vbd => vbd.VDI === vdi.id))
 
 const {
-  openModal: openDetachModal,
+  openModal: openVbdDeleteModal,
   canRun: canDeleteVbd,
   isRunning: isDeletingVbd,
-} = useVdiDetachModal(() => (vbd.value ? [vbd.value] : []))
+} = useVbdDeleteModal(() => (vbd.value ? [vbd.value] : []))
 
-const { openModal: openDeleteModal, canRun: canDeleteVdi, isRunning: isDeletingVdi } = useVdiDeleteModal(() => [vdi])
+const { openModal: openVdiDeleteModal, canRun: canDeleteVdi, isRunning: isDeletingVdi } = useVdiDeleteModal(() => [vdi])
 </script>
 
 <style scoped lang="postcss">
