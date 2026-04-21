@@ -7,7 +7,7 @@ export function useVifDeleteModal(vifs: () => FrontXoVif[]) {
 
   const openModal = useModal({
     component: import('@/modules/vif/components/modal/VifDeleteModal.vue'),
-    props: { count: 1 },
+    props: { count: vifs().length },
     onConfirm: async () => {
       try {
         await run()
