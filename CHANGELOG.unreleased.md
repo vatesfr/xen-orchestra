@@ -39,7 +39,7 @@
 - [OpenMetrics] Add VM status (`xcp_vm_status`) and VM uptime (`xcp_vm_uptime_seconds`) metrics [#9684](https://github.com/vatesfr/xen-orchestra/pull/9684)
 - [REST API] Fix the `href` property in collection responses when the request URL has a trailing slash. (PR [#9741](https://github.com/vatesfr/xen-orchestra/pull/9741))
 - [REST API] Expose `POST /vifs/:id/actions/connect` and `POST /vifs/:id/actions/disconnect` (PR [#9643](https://github.com/vatesfr/xen-orchestra/pull/9643))
-- [XO6] Pool > Hosts: management IP is now always shown first in the IP column (PR [#9747](https://github.com/vatesfr/xen-orchestra/pull/9747))
+- [Pool/Hosts] Management IP is now highlighted and always shown first in the IP column (PR [#9747](https://github.com/vatesfr/xen-orchestra/pull/9747))
 - **XO 5**:
   - [Settings/Servers] Add info tip to remind users to only add pool masters
 

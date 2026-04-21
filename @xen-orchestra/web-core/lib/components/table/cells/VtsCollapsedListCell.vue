@@ -1,7 +1,7 @@
 <template>
   <UiTableCell>
     <div v-if="items.length > 1 && !isExpanded" class="content">
-      {{ items[0] }}
+      <span :class="{ highlighted: highlightFirst }">{{ items[0] }}</span>
       <UiButton
         accent="brand"
         size="small"
@@ -15,7 +15,7 @@
     <ul v-else>
       <li v-for="(item, index) of items" :key="index">
         <div class="content">
-          {{ item }}
+          <span :class="{ highlighted: highlightFirst && index === 0 }">{{ item }}</span>
           <UiButton
             v-if="isExpanded && index === 0"
             accent="brand"
@@ -41,6 +41,7 @@ import { useToggle } from '@vueuse/shared'
 
 defineProps<{
   items: MaybeArray<string>
+  highlightFirst?: boolean
 }>()
 
 const [isExpanded, toggleExpand] = useToggle()
@@ -55,5 +56,10 @@ const [isExpanded, toggleExpand] = useToggle()
   .more {
     color: var(--color-neutral-txt-secondary);
   }
+}
+
+.highlighted {
+  color: var(--color-brand-txt-base);
+  font-weight: 500;
 }
 </style>
