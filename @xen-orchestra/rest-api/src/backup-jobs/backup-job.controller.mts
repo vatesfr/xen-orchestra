@@ -26,9 +26,16 @@ import {
 import type { Request as ExRequest, Response as ExResponse } from 'express'
 import { provide } from 'inversify-binding-decorators'
 
+import { acl, autoBindService } from '../middlewares/acl.middleware.mjs'
 import { backupLog, backupLogIds, partialBackupLogs } from '../open-api/oa-examples/backup-log.oa-example.mjs'
 import { BackupLogService } from '../backup-logs/backup-log.service.mjs'
-import { badRequestResp, notFoundResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  badRequestResp,
+  forbiddenOperationResp,
+  notFoundResp,
+  unauthorizedResp,
+  Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { limitAndFilterArray, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 import type {
@@ -75,13 +82,8 @@ export class BackupJobController extends XoController<AnyXoBackupJob> {
     return backupJobs
   }
 
-  async getCollectionObject(id: AnyXoBackupJob['id']): Promise<AnyXoBackupJob> {
-    const job = await this.restApi.xoApp.getJob(id)
-    if (!this.#backupJobService.isBackupJob(job)) {
-      throw noSuchObject(id, 'backup-job')
-    }
-
-    return job
+  getCollectionObject(id: AnyXoBackupJob['id']): Promise<AnyXoBackupJob> {
+    return this.#backupJobService.getBackupJob(id)
   }
 
   /**
@@ -112,11 +114,24 @@ export class BackupJobController extends XoController<AnyXoBackupJob> {
   }
 
   /**
+   *
+   * Required privilege:
+   * - resource: backup-job, action: read
+   *
    * @example id "d33f3dc1-92b4-469c-ad58-4c2a106a4721"
    */
   @Example(vmBackupJob)
-  @Response(notFoundResp.status, notFoundResp.description)
   @Get('{id}')
+  @Middlewares(
+    acl({
+      resource: 'backup-job',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: autoBindService(BackupJobService, 'getBackupJob'),
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
   getBackupJob(@Path() id: string): Promise<UnbrandAnyXoBackupJob> {
     return this.getObject(id as AnyXoBackupJob['id'])
   }
