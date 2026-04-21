@@ -20,11 +20,11 @@
 
 <script setup lang="ts">
 import SnapshotSidePanel from '@/modules/snapshot/components/list/panel/SnapshotSidePanel.vue'
+import SnapshotsTable from '@/modules/snapshot/components/list/SnapshotsTable.vue'
 import {
   type FrontXoVmSnapshot,
   useXoVmSnapshotCollection,
 } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'
-import SnapshotsTable from '@/modules/snapshot/components/SnapshotsTable.vue'
 import VmSnapshotCard from '@/modules/vm/components/snapshot/cards/VmSnapshotCard.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
