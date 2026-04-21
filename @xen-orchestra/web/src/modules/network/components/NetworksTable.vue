@@ -25,6 +25,7 @@
 </template>
 
 <script setup lang="ts">
+import { useNetworkDeleteModal } from '@/modules/network/composables/use-network-delete-modal.composable.ts'
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getNetworkStatus } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
@@ -116,6 +117,8 @@ const { HeadCells, BodyCells } = useNetworkColumns({
     const defaultLockingMode = computed(() => getLockingMode(network.defaultIsLocked))
     const href = computed(() => buildXo5Route(`/pools/${network.$pool}/network?s=1_0_asc-${network.id}`))
 
+    const { openModal: openDeleteModal, isRunning: isDeletingNetwork } = useNetworkDeleteModal(() => [network])
+
     return {
       network: r =>
         r({
@@ -128,7 +131,18 @@ const { HeadCells, BodyCells } = useNetworkColumns({
       vlan: r => r(vlan.value),
       mtu: r => r(network.MTU),
       defaultLockingMode: r => r(defaultLockingMode.value),
-      selectItem: r => r(() => (selectedNetworkId.value = network.id)),
+      actions: r =>
+        r({
+          onClick: () => (selectedNetworkId.value = network.id),
+          actions: [
+            {
+              label: t('action:delete'),
+              icon: 'action:delete',
+              onClick: () => openDeleteModal(),
+              busy: isDeletingNetwork.value,
+            },
+          ],
+        }),
     }
   },
 })

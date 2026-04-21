@@ -1,7 +1,7 @@
 <template>
   <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
     <template #header>
-      <NetworkDeleteButton :network class="delete-button" />
+      <VtsDeleteButton :busy="isDeletingNetwork" class="delete-button" @click="openDeleteModal()" />
       <div :class="{ 'action-buttons-container': uiStore.isSmall }">
         <UiButtonIcon
           v-tooltip="t('action:close')"
@@ -96,13 +96,14 @@
 </template>
 
 <script setup lang="ts">
-import NetworkDeleteButton from '@/modules/network/components/actions/NetworkDeleteButton.vue'
+import { useNetworkDeleteModal } from '@/modules/network/composables/use-network-delete-modal.composable.ts'
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import PifRow from '@/modules/pif/components/PifRow.vue'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
@@ -120,6 +121,8 @@ const { network } = defineProps<{
 const emit = defineEmits<{
   close: []
 }>()
+
+const { openModal: openDeleteModal, isRunning: isDeletingNetwork } = useNetworkDeleteModal(() => [network])
 
 const { getPifsByNetworkId } = useXoPifCollection()
 const uiStore = useUiStore()
