@@ -9,8 +9,8 @@ import { RemoteVhdDisk } from './disks/RemoteVhdDisk.mjs'
 import { RemoteVhdDiskChain } from './disks/RemoteVhdDiskChain.mjs'
 import { MergeRemoteDisk } from './disks/MergeRemoteDisk.mjs'
 
-import { Task } from './Task.mjs'
 import { Disposable } from 'promise-toolbox'
+import { Task } from '@vates/task'
 import handlerPath from '@xen-orchestra/fs/path'
 
 const { DISK_TYPES } = Constants
@@ -514,23 +514,27 @@ export async function cleanVm(
     })
   }
 
+  let totalMergedDataSize = 0
   const metadataWithMergedVhd = {}
   const doMerge = async () => {
     await asyncMap(toMerge, async chain => {
-      const { finalDiskSize } = await limitedMergeVhdChain(handler, chain, {
+      const { finalDiskSize, mergedDataSize } = await limitedMergeVhdChain(handler, chain, {
         logInfo,
         logWarn,
         remove,
         mergeBlockConcurrency,
       })
+      totalMergedDataSize += mergedDataSize
       const metadataPath = vhdsToJSons[chain[chain.length - 1]] // all the chain should have the same metadata file
       metadataWithMergedVhd[metadataPath] = (metadataWithMergedVhd[metadataPath] ?? 0) + finalDiskSize
     })
+
+    return { size: totalMergedDataSize }
   }
 
   await Promise.all([
     ...unusedVhdsDeletion,
-    toMerge.length !== 0 && (merge ? Task.run({ name: 'merge' }, doMerge) : () => Promise.resolve()),
+    toMerge.length !== 0 && (merge ? Task.run({ properties: { name: 'merge' } }, doMerge) : () => Promise.resolve()),
     asyncMap(unusedXvas, path => {
       logWarn('unused XVA', { path })
       if (remove) {
@@ -619,5 +623,6 @@ export async function cleanVm(
   return {
     // boolean whether some VHDs were merged (or should be merged)
     merge: toMerge.length !== 0,
+    size: totalMergedDataSize,
   }
 }

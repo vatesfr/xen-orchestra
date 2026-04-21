@@ -38,22 +38,31 @@ export class BackupRequest extends AbstractRequest {
 
     // Convert dynamic key format to XO expected format
     const convertConfig = cfg => {
-      const { vms, remotes, ...rest } = cfg
+      const { vms, remotes, srs, ...rest } = cfg
 
       // Extract first VM UUID
       const vmUuid = vms && typeof vms === 'object' ? Object.keys(vms)[0] : undefined
-      // Extract first Backup Repository ID
-      const backupRepositoryId = remotes && typeof remotes === 'object' ? Object.keys(remotes)[0] : undefined
 
-      return {
+      const result = {
         ...rest,
         vms: {
           id: vmUuid,
         },
-        remotes: {
-          id: backupRepositoryId,
-        },
       }
+
+      // Extract first Backup Repository ID (for backup to remote)
+      const backupRepositoryId = remotes && typeof remotes === 'object' ? Object.keys(remotes)[0] : undefined
+      if (backupRepositoryId !== undefined) {
+        result.remotes = { id: backupRepositoryId }
+      }
+
+      // Extract first SR ID (for CR/DR mode — replication to SR)
+      const srId = srs && typeof srs === 'object' ? Object.keys(srs)[0] : undefined
+      if (srId !== undefined) {
+        result.srs = { id: srId }
+      }
+
+      return result
     }
 
     const xoConfig = convertConfig({ ...config, mode: config.mode || 'delta' })
@@ -154,6 +163,139 @@ export class BackupRequest extends AbstractRequest {
       throw error
     }
   }
+
+  // ===========================================================================
+  // Mirror Backup operations (mirrorBackup.* API)
+  // ===========================================================================
+
+  /**
+   * Creates a new mirror backup job in XenOrchestra.
+   *
+   * Mirror backup replicates backups from one remote to another.
+   * Uses `mirrorBackup.createJob` WebSocket API.
+   *
+   * @param {Object} config - Mirror backup job configuration
+   * @param {string} config.mode - 'full' or 'delta'
+   * @param {string} config.sourceRemote - ID of the source remote
+   * @param {Object} config.remotes - Destination remotes (e.g., { [remoteId]: {} })
+   * @param {string} [config.name] - Job name
+   * @param {Object} [config.schedules] - Schedule definitions
+   * @param {Object} [config.settings] - Job settings
+   * @param {Object} [config.filter] - VM filter (by UUID)
+   * @returns {Promise<string>} The created mirror backup job ID
+   */
+  async createMirrorBackupJob(config) {
+    this._ensureConnected()
+
+    if (!config || typeof config !== 'object') {
+      throw new Error('Valid mirror backup configuration object is required')
+    }
+
+    const { remotes, ...rest } = config
+
+    // Convert remotes to { id: remoteId } format
+    const remoteId = remotes && typeof remotes === 'object' ? Object.keys(remotes)[0] : undefined
+
+    const xoConfig = {
+      ...rest,
+      mode: config.mode || 'full',
+    }
+
+    if (remoteId !== undefined) {
+      xoConfig.remotes = { id: remoteId }
+    }
+
+    try {
+      const result = await this.dispatchClient.xoClient.call('mirrorBackup.createJob', xoConfig)
+      return result
+    } catch (error) {
+      console.error('❌ Mirror backup job creation failed:', {
+        message: error.message,
+        code: error.code,
+        data: error.data,
+      })
+      throw error
+    }
+  }
+
+  /**
+   * Deletes a mirror backup job.
+   *
+   * @param {string} jobId - ID of the mirror backup job to delete
+   * @returns {Promise<Object>} Deletion result
+   */
+  async deleteMirrorBackupJob(jobId) {
+    this._ensureConnected()
+
+    if (!jobId || typeof jobId !== 'string') {
+      throw new Error('Valid mirror backup job ID is required')
+    }
+
+    try {
+      const result = await this.dispatchClient.xoClient.call('mirrorBackup.deleteJob', { id: jobId })
+      return result
+    } catch (error) {
+      console.error('❌ Delete mirror backup job failed:', error.message)
+      throw error
+    }
+  }
+
+  /**
+   * Executes a mirror backup job and monitors completion.
+   *
+   * @param {string} jobId - Mirror backup job ID to execute
+   * @param {string} scheduleId - Schedule ID to use for this execution
+   * @returns {Promise<Object>} Complete backup log with status and details
+   */
+  async runMirrorJobAndGetLog(jobId, scheduleId) {
+    this._ensureConnected()
+
+    console.log(`🚀 Running mirror backup job ${jobId} with schedule ${scheduleId}...`)
+
+    const runStartTime = Date.now() - 5000
+
+    try {
+      await this.dispatchClient.xoClient.call('mirrorBackup.runJob', {
+        id: jobId,
+        schedule: scheduleId,
+      })
+    } catch (wsError) {
+      console.error('❌ Run mirror backup job failed:', wsError.message)
+      throw wsError
+    }
+
+    const backupLog = await waitUntil(
+      async () => {
+        try {
+          const latestLog = await this.dispatchClient.backupLog.getLatestForJob(jobId, runStartTime)
+
+          if (!latestLog) {
+            return false
+          }
+
+          const status = latestLog.status?.toLowerCase()
+          if (status === 'success' || status === 'failure' || latestLog.end) {
+            return latestLog
+          }
+
+          return false
+        } catch (error) {
+          console.debug('Waiting for mirror backup completion...', error.message)
+          return false
+        }
+      },
+      2000,
+      300_000,
+      { exponentialBackoff: true, backoffMultiplier: 1.2, maxInterval: 10_000 }
+    )
+
+    console.log(`✅ Mirror backup completed: ${backupLog.status}`)
+    return backupLog
+  }
+
+  // ===========================================================================
+  // Standard Backup operations (backupNg.* API)
+  // ===========================================================================
 
   /**
    * Executes a backup job and monitors completion.

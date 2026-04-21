@@ -65,9 +65,9 @@ export class EventService {
     })
     res.setHeaders(headers)
 
-    const maxRam = this.#restApi.xoApp.config.get<number>('rest-api.percentOfRamAllocatedPerSseClient')
+    const maxRam = this.#restApi.xoApp.config.get<number>('rest-api.maxRamAllocatedPerSseClient')
     const connection = new PassThrough({
-      highWaterMark: Math.round(os.totalmem() * (maxRam / 100)),
+      highWaterMark: Math.round(1024 * 1024 * maxRam),
     })
     pipeline(connection, res, error => {
       if (error?.code !== 'ERR_STREAM_PREMATURE_CLOSE') {

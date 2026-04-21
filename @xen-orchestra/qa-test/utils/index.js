@@ -197,6 +197,116 @@ export function getIsFullForBackupRepository(logEntry, backupRepositoryUuid) {
 }
 
 // =============================================================================
+// SR REPLICATION (CR/DR MODE) UTILITIES
+// =============================================================================
+
+/**
+ * Determines whether a replication was full or incremental for a specific SR.
+ *
+ * Similar to getIsFullForBackupRepository but checks for SR-type exports
+ * (used in CR mode — delta replication to SR).
+ *
+ * @param {Object} logEntry - Backup log entry object from XenOrchestra
+ * @param {string} srUuid - UUID of the target SR
+ * @returns {boolean|undefined} True if full, false if incremental, undefined if not found
+ */
+export function getIsFullForSr(logEntry, srUuid) {
+  if (!logEntry || typeof logEntry !== 'object') {
+    throw new Error('Valid log entry object is required')
+  }
+
+  assertNonEmptyString(srUuid, 'Valid SR UUID string is required')
+
+  function searchTasks(tasks) {
+    if (!Array.isArray(tasks)) {
+      return undefined
+    }
+
+    for (const task of tasks) {
+      if (
+        task.message === 'export' &&
+        task.data &&
+        task.data.id === srUuid &&
+        task.data.type === 'SR' &&
+        typeof task.data.isFull === 'boolean'
+      ) {
+        return task.data.isFull
+      }
+
+      if (task.tasks && task.tasks.length > 0) {
+        const result = searchTasks(task.tasks)
+        if (result !== undefined) {
+          return result
+        }
+      }
+    }
+
+    return undefined
+  }
+
+  if (logEntry.tasks && logEntry.tasks.length > 0) {
+    const result = searchTasks(logEntry.tasks)
+    if (result !== undefined) {
+      return result
+    }
+  }
+
+  return undefined
+}
+
+/**
+ * Asserts replication type (full or delta) for a given target SR.
+ *
+ * @param {Object} result - Backup log result
+ * @param {string} srUuid - UUID of the target SR
+ * @param {Object} options
+ * @param {boolean} options.mustBeFull - Whether replication should be full
+ * @throws {Error} If replication type does not match expectation
+ */
+export function assertFullOrDeltaForSr(result, srUuid, { mustBeFull }) {
+  const isFull = getIsFullForSr(result, srUuid)
+  assert.strictEqual(
+    isFull,
+    mustBeFull,
+    `SR replication should be ${mustBeFull ? 'full' : 'delta'}, got ${isFull === undefined ? 'not found' : isFull ? 'full' : 'delta'}`
+  )
+}
+
+/**
+ * Finds the first task matching a given message name in a backup log entry.
+ *
+ * Recursively searches through all tasks and subtasks.
+ *
+ * @param {Object} logEntry - Backup log entry from XenOrchestra
+ * @param {string} message - Task message to search for (e.g., 'target snapshot', 'transfer')
+ * @returns {Object|null} The matching task or null if not found
+ */
+export function findTaskByMessage(logEntry, message) {
+  function search(tasks) {
+    if (!Array.isArray(tasks)) {
+      return null
+    }
+
+    for (const task of tasks) {
+      if (task.message === message) {
+        return task
+      }
+
+      if (task.tasks && task.tasks.length > 0) {
+        const result = search(task.tasks)
+        if (result) {
+          return result
+        }
+      }
+    }
+
+    return null
+  }
+
+  return search(logEntry.tasks || [])
+}
+
+// =============================================================================
 // BACKUP ASSERTION UTILITIES
 // =============================================================================
 

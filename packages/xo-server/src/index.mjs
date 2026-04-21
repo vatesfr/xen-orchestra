@@ -53,6 +53,7 @@ import transportConsole from '@xen-orchestra/log/transports/console'
 import { configure } from '@xen-orchestra/log/configure'
 import { generateToken } from './utils.mjs'
 import { ProxyAgent } from 'proxy-agent'
+import { writeHeapSnapshot } from 'node:v8'
 
 // ===================================================================
 
@@ -75,6 +76,13 @@ configure([
 const log = createLogger('xo:main')
 
 // ===================================================================
+
+process.on('SIGUSR2', () => {
+  const path = `/tmp/xo-server-${process.pid}-${Date.now()}.heapsnapshot`
+  log.info('writing heap snapshot', { path })
+  writeHeapSnapshot(path)
+  log.info('heap snapshot written', { path })
+})
 
 const DEPRECATED_ENTRIES = ['users', 'servers']
 
@@ -545,6 +553,22 @@ async function makeWebServerListen(
 
 async function createWebServer({ listen, listenOptions }) {
   const webServer = stoppable(new WebServer())
+
+  // stoppable uses `instanceof https.Server` to decide whether to track sockets via
+  // 'secureConnection'. http-server-plus extends EventEmitter (not https.Server), so
+  // stoppable falls back to 'connection' (raw TCP) only. req.socket is the TLSSocket,
+  // so every HTTPS request adds a TLSSocket to _pendingSockets without a close listener,
+  // causing TLSSockets to accumulate indefinitely. We add the missing handler here;
+  // http-server-plus forwards it to underlying https.Server instances on listen().
+  const pendingSockets = webServer._pendingSockets
+  if (!(pendingSockets instanceof Map)) {
+    throw new Error('stoppable internal API changed: _pendingSockets is missing')
+  }
+  webServer.on('secureConnection', socket => {
+    pendingSockets.set(socket, 0)
+    socket.once('close', () => pendingSockets.delete(socket))
+  })
+
   await asyncMap(Object.entries(listen), ([configKey, opts]) =>
     makeWebServerListen(webServer, { ...listenOptions, ...opts, configKey })
   )

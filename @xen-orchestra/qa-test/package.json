@@ -30,6 +30,8 @@
     "qa:backup:nbd": "node --env-file-if-exists=.env --test tests/backup.nbd.test.js",
     "qa:backup:combined": "node --env-file-if-exists=.env --test tests/backup-replication-combined.test.js",
     "qa:backup:combined:cycle": "node --env-file-if-exists=.env --test tests/backup-replication-combined.test.js --test-name-pattern='Full Cycle'",
+    "qa:backup:combined:cr": "node --env-file-if-exists=.env --test tests/backup-replication-combined.test.js --test-name-pattern='CR Mode'",
+    "qa:mirror": "node --env-file-if-exists=.env --test tests/backup-mirror.test.js",
     "qa:export": "node --env-file-if-exists=.env --test tests/export.vhd.test.js",
     "qa:export:vhd": "node --env-file-if-exists=.env --test tests/export.vhd.test.js --test-name-pattern='VDI VHD'",
     "qa:export:xva": "node --env-file-if-exists=.env --test tests/export.vhd.test.js --test-name-pattern='XVA'",

@@ -21,7 +21,7 @@
     "node": ">=6"
   },
   "dependencies": {
-    "lodash": "^4.13.1",
+    "lodash": "^4.18.0",
     "url-parse": "^1.4.7"
   },
   "devDependencies": {

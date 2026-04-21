@@ -272,7 +272,12 @@ export class CleanupClient {
         }
       }
 
-      await this.dispatchClient.backup.deleteBackupJob(job.id)
+      // Mirror backup jobs require mirrorBackup.deleteJob, standard jobs use backupNg.deleteJob
+      if (job.type === 'mirrorBackup') {
+        await this.dispatchClient.backup.deleteMirrorBackupJob(job.id)
+      } else {
+        await this.dispatchClient.backup.deleteBackupJob(job.id)
+      }
     }
 
     return await this._deleteResourcesBatch('backup job', findJobs, deleteJob, {

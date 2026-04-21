@@ -16,6 +16,7 @@ import { DISK_TYPES } from 'vhd-lib/_constants.js'
 import { isVhdAlias, resolveVhdAlias } from 'vhd-lib/aliases.js'
 import { stringify } from 'uuid'
 import { dirname, join } from 'node:path'
+import { RemoteVhdDiskChain } from './RemoteVhdDiskChain.mjs'
 
 export class RemoteVhdDisk extends RemoteDisk {
   /**
@@ -141,6 +142,15 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
+   * Returns the disk path in an array.
+   *
+   * @returns {string[]}
+   */
+  getPaths() {
+    return [this.getPath()]
+  }
+
+  /**
    * @returns {string}
    */
   getUuid() {
@@ -259,7 +269,11 @@ export class RemoteVhdDisk extends RemoteDisk {
    * @returns {Promise<number>} blockSize
    */
   async mergeBlock(childDisk, index, isResumingMerge) {
-    if ((await this.isDirectory()) && childDisk instanceof RemoteVhdDisk && (await childDisk.isDirectory())) {
+    if (
+      (childDisk instanceof RemoteVhdDisk || childDisk instanceof RemoteVhdDiskChain) &&
+      (await this.isDirectory()) &&
+      (await childDisk.isDirectory())
+    ) {
       try {
         await this.#handler.rename(childDisk.getBlockPath(index), this.getBlockPath(index))
 

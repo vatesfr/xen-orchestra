@@ -31,7 +31,7 @@
 - [Settings] fix key-value alignment and refactor page (PR [#8981](https://github.com/vatesfr/xen-orchestra/pull/8981))
 - [Settings] Add icon for external links on settings page (PR [#8980](https://github.com/vatesfr/xen-orchestra/pull/8980))
 - [VM/dashboard] Update QuickInfo card in dashboard to show more information (PR [#8952](https://github.com/vatesfr/xen-orchestra/pull/8952))
-- [StateHero] Update VtsStateHero component and modify usages in every component (PR [#8910](https://github.com/vatesfr/pull/8910))
+- [StateHero] Update VtsStateHero component and modify usages in every component (PR [#8910](https://github.com/vatesfr/xen-orchestra/pull/8910))
 
 ## **0.14.1** (2025-09-04)
 
@@ -70,7 +70,7 @@
 
 ## **0.11.0** (2025-05-27)
 
-- [VM/system] Display system information in vm/system tab (PR [##8547](https://github.com/vatesfr/xen-orchestra/pull/8547))
+- [VM/system] Display system information in vm/system tab (PR [#8547](https://github.com/vatesfr/xen-orchestra/pull/8547))
 - [Host/system] Display system view information in host/system tab (PR [#8536](https://github.com/vatesfr/xen-orchestra/pull/8536))
 - [Host/Dashboard] Update CPU provisioning logic (PR [#8648](https://github.com/vatesfr/xen-orchestra/pull/8648))
 
@@ -99,7 +99,7 @@
 ## **0.8.0** (2025-02-27)
 
 - [i18n] Add Swedish, update Czech and Spanish translations (contributions made by [@xiscoj](https://github.com/xiscoj), [@p-bo](https://github.com/p-bo) and [Jonas](https://translate.vates.tech/user/Jonas/)) (PR [#8294](https://github.com/vatesfr/xen-orchestra/pull/8294))
-- [i18n] Merge XO Lite translations files into one file in web-core ([PR #8380](https://github.com/vatesfr/xen-orchestra/pull/8380))
+- [i18n] Merge XO Lite translations files into one file in web-core (PR [#8380](https://github.com/vatesfr/xen-orchestra/pull/8380))
 - [Pool/Network]: Display networks and host internal networks information in side panel (PR [#8150](https://github.com/vatesfr/xen-orchestra/pull/8150))
 - [Host/Network]: Display pifs information in side panel (PR [#8186](https://github.com/vatesfr/xen-orchestra/pull/8186))
 
@@ -115,7 +115,7 @@
 - [Console]: Adding a border when console is focused (PR [#8235](https://github.com/vatesfr/xen-orchestra/pull/8235))
 - [Pool/Network]: Display networks and host internal networks lists in pool view (PR [#8147](https://github.com/vatesfr/xen-orchestra/pull/8147))
 - [Host/Network]: Display pifs list in host view (PR [#8180](https://github.com/vatesfr/xen-orchestra/pull/8180))
-- [Host/Network]: Fix issue with wording in host pif table (PR [8285](https://github.com/vatesfr/xen-orchestra/pull/8285))
+- [Host/Network]: Fix issue with wording in host pif table (PR [#8285](https://github.com/vatesfr/xen-orchestra/pull/8285))
 - [Pool/Network]: Fix issue with network status (PR [#8284](https://github.com/vatesfr/xen-orchestra/pull/8284))
 
 ## **0.6.0** (2024-11-29)
@@ -154,7 +154,7 @@
 ## **0.2.1** (2024-04-02)
 
 - Fix duplicate consoles after failed connection (PR [#7505](https://github.com/vatesfr/xen-orchestra/pull/7505))
-- [Tabs] Disable navigation to in-progress views (PR [7482](https://github.com/vatesfr/xen-orchestra/pull/7482))
+- [Tabs] Disable navigation to in-progress views (PR [#7482](https://github.com/vatesfr/xen-orchestra/pull/7482))
 
 ## **0.2.0** (2024-02-29)
 
@@ -221,7 +221,7 @@
 - Add "Under Construction" views (PR [#6673](https://github.com/vatesfr/xen-orchestra/pull/6673))
 - Ability to change the state of selected VMs from the pool's list of VMs (PR [#6782](https://github.com/vatesfr/xen-orchestra/pull/6782))
 - Ability to copy selected VMs from the pool's list of VMs (PR [#6847](https://github.com/vatesfr/xen-orchestra/pull/6847))
-- Ability to delete selected VMs from the pool's list of VMs (PR [#6673](https://github.com/vatesfr/xen-orchestra/pull/6860))
+- Ability to delete selected VMs from the pool's list of VMs (PR [#6860](https://github.com/vatesfr/xen-orchestra/pull/6860))
 
 ## **0.1.0**
 
