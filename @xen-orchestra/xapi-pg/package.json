@@ -1,0 +1,27 @@
+{
+  "name": "xapi-pg",
+  "version": "1.0.0",
+  "description": "Save XAPI entities to PostgresSQL",
+  "license": "AGPL-3.0-or-later",
+  "main": "index.js",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/fs",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "preferGlobal": true,
+  "private": false,
+  "dependencies": {
+    "pg": "^8.20.0"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.4.4",
+    "@electric-sql/pglite-socket": "^0.1.4"
+  },
+  "scripts": {
+    "test": "node --test --experimental-test-coverage  test/*.test.mjs",
+    "test-integration": "node --test test-integration/*.integ.mjs",
+    "lcov": "node ./run_coverage.mjs"
+  }
+}
