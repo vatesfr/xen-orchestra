@@ -17,7 +17,7 @@ Our REST API is versioned, and the current version is `/v0` (see URL format belo
 Most endpoints require authentication. For this, you can either attach a valid authentication token as a cookie, or use the [Authorization header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Authorization)
 
 :::tip
-Only admin users can currently use the API.
+Admin users have access to all REST API endpoints. Non-admin users can use the REST API according to the [ACL v2](./acl-v2.md) permissions defined on their account.
 :::
 
 ### Usage
