@@ -725,7 +725,7 @@ class SDNController extends EventEmitter {
             host: vif.$VM.$resident_on?.uuid,
           })
         } else {
-          throw (error)
+          throw error
         }
       }
 
