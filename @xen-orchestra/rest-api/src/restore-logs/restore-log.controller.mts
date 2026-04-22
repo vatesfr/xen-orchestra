@@ -135,7 +135,6 @@ export class DeprecatedRestoreController extends XoController<XoRestoreLog> {
   @Example(partialRestoreLogs)
   @Deprecated()
   @Get('')
-  @Security('*', ['acl'])
   async getDeprecatedRestoreLogs(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -152,24 +151,11 @@ export class DeprecatedRestoreController extends XoController<XoRestoreLog> {
   }
 
   /**
-   * Required privilege:
-   * - resource: restore-log, action: read
-   *
    * @example id "1758180544428"
    */
   @Example(restoreLog)
   @Deprecated()
   @Get('{id}')
-  @Middlewares(
-    acl({
-      resource: 'restore-log',
-      action: 'read',
-      objectId: 'params.id',
-      getObject: autoBindService(BackupLogService, 'getRestoreLog'),
-    })
-  )
-  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
-  @Response(notFoundResp.status, notFoundResp.description)
   getDeprecatedRestoreLog(@Path() id: string): Promise<Unbrand<XoRestoreLog>> {
     return this.getObject(id as XoRestoreLog['id'])
   }
