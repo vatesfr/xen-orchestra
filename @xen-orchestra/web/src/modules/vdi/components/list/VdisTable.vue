@@ -101,6 +101,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
       openModal: openVbdDisconnectModal,
       canRun: canDisconnectVbd,
       isRunning: isDisconnectingVbd,
+      errorMessage: disconnectErrorMessage,
     } = useVbdDisconnectModal(
       () => (vbd.value ? [vbd.value] : []),
       () => vm
@@ -110,6 +111,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
       openModal: openVbdConnectModal,
       canRun: canConnectVbd,
       isRunning: isConnectingVbd,
+      errorMessage: connectErrorMessage,
     } = useVbdConnectModal(
       () => (vbd.value ? [vbd.value] : []),
       () => vm
@@ -140,6 +142,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
             vbd.value?.attached
               ? {
                   label: t('action:disconnect'),
+                  hint: !canDisconnectVbd.value ? disconnectErrorMessage.value : undefined,
                   icon: 'status:disabled',
                   onClick: () => openVbdDisconnectModal(),
                   disabled: !canDisconnectVbd.value,
@@ -147,6 +150,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
                 }
               : {
                   label: t('action:connect'),
+                  hint: !canConnectVbd.value ? connectErrorMessage.value : undefined,
                   icon: 'status:success-circle',
                   onClick: () => openVbdConnectModal(),
                   disabled: !canConnectVbd.value,

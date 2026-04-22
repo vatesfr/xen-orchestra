@@ -31,8 +31,8 @@
 </template>
 
 <script setup lang="ts">
-import VbdConnectButton from '@/modules/vbd/components/actions/VbdConnectButton.vue'
-import VbdDisconnectButton from '@/modules/vbd/components/actions/VbdDisconnectButton.vue'
+import VbdConnectButton from '@/modules/vbd/components/actions/connect/VbdConnectButton.vue'
+import VbdDisconnectButton from '@/modules/vbd/components/actions/disconnect/VbdDisconnectButton.vue'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import VdiActions from '@/modules/vdi/components/actions/VdiActions.vue'
 import VdiConfigurationCard from '@/modules/vdi/components/list/panel/cards/VdiConfigurationCard.vue'

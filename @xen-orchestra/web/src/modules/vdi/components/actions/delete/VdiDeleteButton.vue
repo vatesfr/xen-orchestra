@@ -13,8 +13,8 @@
 
 <script lang="ts" setup>
 import { useVdiDeleteModal } from '@/modules/vdi/composables/use-vdi-delete-modal.composable.ts'
-import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import MenuItem from '@core/components/menu/MenuItem.vue'
+import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.js'
+import MenuItem from '@xen-orchestra/web-core/components/menu/MenuItem.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

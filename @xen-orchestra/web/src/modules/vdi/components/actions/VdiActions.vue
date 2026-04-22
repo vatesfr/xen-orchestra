@@ -4,9 +4,9 @@
 </template>
 
 <script lang="ts" setup>
-import VbdDeleteButton from '@/modules/vbd/components/actions/VbdDeleteButton.vue'
+import VbdDeleteButton from '@/modules/vbd/components/actions/delete/VbdDeleteButton.vue'
 import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
-import VdiDeleteButton from '@/modules/vdi/components/actions/VdiDeleteButton.vue'
+import VdiDeleteButton from '@/modules/vdi/components/actions/delete/VdiDeleteButton.vue'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 
 defineProps<{

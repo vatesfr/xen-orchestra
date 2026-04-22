@@ -391,7 +391,6 @@
   "job:connect:in-progress": "Connexion en cours…",
   "job:create:in-progress": "Création en cours…",
   "job:disconnect:in-progress": "Déconnexion en cours…",
-  "job:no-guest-tools": "Les guest tools ne sont pas installés sur la VM",
   "job:vbd-connect:missing-vbd": "Aucun VBD à connecter",
   "job:vbd-connect:vbd-already-connected": "Le VBD est déjà connecté",
   "job:vbd-delete:missing-vbd": "Aucun VBD à supprimer",

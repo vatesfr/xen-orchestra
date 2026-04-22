@@ -389,7 +389,6 @@
   "job:create:in-progress": "Create in progress…",
   "job:delete:in-progress": "Delete in progress…",
   "job:disconnect:in-progress": "Disconnect in progress…",
-  "job:no-guest-tools": "Guest tools are not installed on the VM",
   "job:vbd-connect:missing-vbd": "No VBDs to connect",
   "job:vbd-connect:vbd-already-connected": "VBD is already connected",
   "job:vbd-delete:missing-vbd": "No VBDs to delete",
