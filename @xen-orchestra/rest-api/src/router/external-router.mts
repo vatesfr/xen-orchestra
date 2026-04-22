@@ -77,6 +77,7 @@ export function createExternalRouter(swaggerOpenApiSpec: OpenAPIV3.Document): {
             const isIterable =
               result != null &&
               typeof result !== 'string' &&
+              !Buffer.isBuffer(result) &&
               typeof (result[Symbol.iterator] ?? result[Symbol.asyncIterator]) === 'function'
             if (isIterable) {
               await sendObjects(result as Iterable<unknown> | AsyncIterable<unknown>, req, res)
