@@ -29,7 +29,7 @@ export function createExternalRouter(swaggerOpenApiSpec: OpenAPIV3.Document): {
 } {
   const externalRouter = Router()
 
-  const mountExternalRoute = function mountExternalRoute(route: RouteDefinition) {
+  const mountExternalRoute = (route: RouteDefinition) => {
     const restApi = iocContainer.get(RestApi)
 
     const tags = route.tags ?? []
@@ -59,7 +59,7 @@ export function createExternalRouter(swaggerOpenApiSpec: OpenAPIV3.Document): {
         await expressAuthentication(req as AuthenticatedRequest, route.security)
 
         // Coerces query boolean from string to boolean
-        coerceBooleanQueryParams(req.query as Record<string, unknown>, route.query)
+        coerceBooleanQueryParams(req.query, route.query)
 
         // Validate inputs, throws if invalid
         paramsSchema?.parse(req.params)
@@ -240,7 +240,7 @@ function buildZodSchema(def: Record<string, FieldDefinition>): z.ZodObject<Recor
         schema = z.enum(field.enum as [string, ...string[]])
         break
       default:
-        throw new Error(`Unsupported type: ${(field as any).type}`)
+        throw new Error(`Unsupported type: ${(field as { type: unknown }).type}`)
     }
 
     if (field.example) schema = schema.meta({ example: field.example })
