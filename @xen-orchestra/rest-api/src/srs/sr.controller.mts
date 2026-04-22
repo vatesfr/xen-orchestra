@@ -133,7 +133,7 @@ export class SrController extends XapiXoController<XoSr> {
    * Import an exported VDI
    *
    * Required privilege:
-   * - resource: sr, action: import-vdi
+   * - resource: sr, action: import:vdi
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    * @example name_label "VDI_foo_import"
@@ -142,7 +142,7 @@ export class SrController extends XapiXoController<XoSr> {
    */
   @Example(vdiId)
   @Post('{id}/vdis')
-  @Middlewares(acl({ resource: 'sr', action: 'import-vdi', objectId: 'params.id' }))
+  @Middlewares(acl({ resource: 'sr', action: 'import:vdi', objectId: 'params.id' }))
   @Tags('vdis')
   @SuccessResponse(createdResp.status, 'VDI imported')
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
