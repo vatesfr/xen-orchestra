@@ -30,9 +30,11 @@
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
+import { useVifConnectModal } from '@/modules/vif/composables/use-vif-connect-modal.composable.ts'
 import { useVifDeleteModal } from '@/modules/vif/composables/use-vif-delete-modal.composable.ts'
+import { useVifDisconnectModal } from '@/modules/vif/composables/use-vif-disconnect-modal.composable.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
-import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -49,8 +51,9 @@ import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vifs: rawVifs } = defineProps<{
+const { vifs: rawVifs, vm } = defineProps<{
   vifs: FrontXoVif[]
+  vm: FrontXoVm
 }>()
 
 defineSlots<{
@@ -111,6 +114,26 @@ const { HeadCells, BodyCells } = useVifColumns({
       isRunning: isDeletingVif,
     } = useVifDeleteModal(() => [vif])
 
+    const {
+      openModal: openVifConnectModal,
+      canRun: canConnectVif,
+      isRunning: isConnectingVif,
+      errorMessage: connectErrorMessage,
+    } = useVifConnectModal(
+      () => [vif],
+      () => vm
+    )
+
+    const {
+      openModal: openVifDisconnectModal,
+      canRun: canDisconnectVif,
+      isRunning: isDisconnectingVif,
+      errorMessage: disconnectErrorMessage,
+    } = useVifDisconnectModal(
+      () => [vif],
+      () => vm
+    )
+
     return {
       network: r =>
         network.value
@@ -130,6 +153,23 @@ const { HeadCells, BodyCells } = useVifColumns({
         r({
           onClick: () => (selectedVifId.value = vif.id),
           actions: [
+            vif.attached
+              ? {
+                  label: t('action:disconnect'),
+                  hint: !canDisconnectVif.value ? disconnectErrorMessage.value : undefined,
+                  icon: 'status:disabled',
+                  onClick: () => openVifDisconnectModal(),
+                  disabled: !canDisconnectVif.value,
+                  busy: isDisconnectingVif.value,
+                }
+              : {
+                  label: t('action:connect'),
+                  hint: !canConnectVif.value ? connectErrorMessage.value : undefined,
+                  icon: 'status:success-circle',
+                  onClick: () => openVifConnectModal(),
+                  disabled: !canConnectVif.value,
+                  busy: isConnectingVif.value,
+                },
             {
               label: t('action:delete'),
               hint: !canDeleteVif.value ? t('vif-connected') : undefined,

@@ -1,13 +1,16 @@
 <template>
   <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
     <template #header>
-      <VtsDeleteButton
-        :tooltip="!canDeleteVif && t('vif-connected')"
-        :disabled="!canDeleteVif"
-        :busy="isDeletingVif"
-        class="delete-button"
-        @click="openDeleteModal()"
-      />
+      <div class="action-buttons">
+        <VifConnectButton v-if="!vif.attached" :vif :vm />
+        <VifDisconnectButton v-else :vif :vm />
+        <MenuList placement="bottom-end">
+          <template #trigger="{ open }">
+            <UiButtonIcon icon="action:more-actions" accent="brand" size="medium" @click="open($event)" />
+          </template>
+          <VifActions :vif />
+        </MenuList>
+      </div>
       <div :class="{ 'action-buttons-container': uiStore.isSmall }">
         <UiButtonIcon
           v-tooltip="t('action:close')"
@@ -146,14 +149,16 @@
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
-import { useVifDeleteModal } from '@/modules/vif/composables/use-vif-delete-modal.composable.ts'
+import VifConnectButton from '@/modules/vif/components/actions/connect/VifConnectButton.vue'
+import VifDisconnectButton from '@/modules/vif/components/actions/disconnect/VifDisconnectButton.vue'
+import VifActions from '@/modules/vif/components/actions/VifActions.vue'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
-import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
+import MenuList from '@core/components/menu/MenuList.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -166,15 +171,16 @@ import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vif } = defineProps<{ vif: FrontXoVif }>()
+const { vif, vm } = defineProps<{
+  vif: FrontXoVif
+  vm: FrontXoVm
+}>()
 
 const emit = defineEmits<{
   close: []
 }>()
 
 const { t } = useI18n()
-
-const { openModal: openDeleteModal, canRun: canDeleteVif, isRunning: isDeletingVif } = useVifDeleteModal(() => [vif])
 
 const { useGetNetworkById } = useXoNetworkCollection()
 const { getVmById } = useXoVmCollection()
@@ -196,7 +202,9 @@ const status = computed(() => (vif.attached ? CONNECTION_STATUS.CONNECTED : CONN
 </script>
 
 <style scoped lang="postcss">
-.delete-button {
+.action-buttons {
+  display: flex;
+  align-items: center;
   margin-inline-end: auto;
 }
 
