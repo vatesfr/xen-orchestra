@@ -5,12 +5,8 @@
     </template>
     <template v-if="network" #default>
       <UiCard class="card-container">
-        <UiCardTitle v-tooltip="{ placement: 'bottom-end' }" class="typo-body-bold">
-          {{ network.name_label }}
-        </UiCardTitle>
+        <VtsCardObjectTitle :id="network.id" :label="network.name_label" icon="object:network" />
         <div class="content">
-          <!-- ID -->
-          <VtsCodeSnippet :content="network.id" copy />
           <!-- DESCRIPTION -->
           <VtsCardRowKeyValue truncate align-top>
             <template #key>{{ t('description') }}</template>
@@ -67,7 +63,7 @@ import { useNetworkDeleteModal } from '@/modules/network/composables/use-network
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
+import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'

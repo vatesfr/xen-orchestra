@@ -1,17 +1,7 @@
 <template>
   <UiCard class="card-container">
-    <UiCardTitle>
-      <UiLink
-        v-if="backupJob.name !== undefined"
-        size="small"
-        icon="object:backup-job"
-        :to="{ name: '/backup/[id]/runs', params: { id: backupJob.id } }"
-      >
-        {{ backupJob.name }}
-      </UiLink>
-    </UiCardTitle>
+    <VtsCardObjectTitle :id="backupJob.id" :label="backupJob.name" icon="object:backup-job" />
     <div class="content">
-      <VtsCodeSnippet :content="backupJob.id" copy />
       <VtsCardRowKeyValue v-for="(mode, index) in backupJobModes" :key="mode">
         <template #key>
           <template v-if="index === 0">{{ t('mode', backupJobModes.length) }}</template>
@@ -37,12 +27,10 @@
 import { useXoBackupUtils } from '@/modules/backup/composables/xo-backup-utils.composable.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
+import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

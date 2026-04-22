@@ -1,14 +1,10 @@
 <template>
   <UiCard class="card-container">
-    <UiLink
-      size="medium"
+    <VtsCardObjectTitle :id="vdi.id" :label="vdi.name_label"
       :to="{ name: '/vdi/[id]/general', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.VM } }"
       :icon="vdiIcon"
-    >
-      {{ vdi.name_label }}
-    </UiLink>
+    />
     <div class="content">
-      <VtsCodeSnippet :content="vdi.id" copy />
       <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('description') }}</template>
         <template #value>{{ vdi.name_description }}</template>
@@ -55,12 +51,13 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
 import type { IconName } from '@core/icons'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
+import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { useMapper } from '@core/packages/mapper'
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
