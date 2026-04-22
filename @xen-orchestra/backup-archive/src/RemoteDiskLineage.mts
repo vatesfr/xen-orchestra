@@ -115,7 +115,7 @@ export class RemoteDiskLineage {
                 child2: diskPath,
               },
             })
-            throw error // should we throw?
+            throw error
           }
           this.#childOf.set(parentPath, diskPath)
         }
