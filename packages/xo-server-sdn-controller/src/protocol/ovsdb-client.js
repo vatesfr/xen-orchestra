@@ -5,7 +5,7 @@ import { forOwn, toPairs } from 'lodash'
 
 // =============================================================================
 
-const log = createLogger('xo:xo-server:sdn-controller:ovsdb-client')
+const log = createLogger('xo:xo-server-sdn-controller:ovsdb-client')
 
 const OVSDB_PORT = 6640
 const PROTOCOLS = 'OpenFlow11' // Supported OpenFlow versions

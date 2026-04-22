@@ -4,7 +4,8 @@ import { strictEqual } from 'node:assert'
 
 const PLUGIN_NAME = 'sdncontroller.py'
 
-const log = createLogger('xo:sdn-controller:openflowplugin')
+const log = createLogger('xo:xo-server-sdn-controller:openflow-plugin')
+
 export class OpenFlowPlugin {
   #getBridge(network) {
     return network.bridge // following discussion with David, it may not be the right bridge

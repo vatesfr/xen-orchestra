@@ -5,7 +5,7 @@ import { randomBytes } from 'crypto'
 
 // =============================================================================
 
-const log = createLogger('xo:xo-server:sdn-controller:private-network')
+const log = createLogger('xo:xo-server-sdn-controller:private-network')
 
 // =============================================================================
 

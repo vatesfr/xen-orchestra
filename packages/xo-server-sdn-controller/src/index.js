@@ -18,7 +18,7 @@ import { invalidParameters } from 'xo-common/api-errors.js'
 
 // =============================================================================
 
-const log = createLogger('xo:xo-server:sdn-controller')
+const log = createLogger('xo:xo-server-sdn-controller')
 
 const PROTOCOL = 'pssl'
 
