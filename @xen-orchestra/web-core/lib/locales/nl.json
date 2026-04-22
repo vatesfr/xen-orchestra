@@ -521,7 +521,6 @@
   "new-vm": "Nieuwe VM",
   "new-vm:add": "Voeg nieuwe VM toe",
   "new-vm:description": "VM omschrijving",
-  "new-vm:feature-not-supported": "Dit is ons nieuwe formulier voor het aanmaken van VM's. Cloud-init-configuratie, geavanceerde opties en vTPM-beheer worden nog niet ondersteund. Een bijgewerkte versie zal binnenkort beschikbaar zijn in 2026. In de tussentijd is de volledige set functies hier beschikbaar in {xo-5}",
   "new-vm:install-source": "Installatiebron",
   "new-vm:name": "VM naam",
   "new-vm:network-config": "Netwerkconfiguratie is alleen compatibel met {noCloudLink}.",

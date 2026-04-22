@@ -521,7 +521,6 @@
   "new-vm": "新建虚拟机",
   "new-vm:add": "添加新虚拟机",
   "new-vm:description": "虚拟机描述",
-  "new-vm:feature-not-supported": "这是我们新的虚拟机创建表单。暂不支持 Cloud-init 配置、高级选项和 vTPM 管理功能。2026 年内将很快推出更新版本。在此期间，完整功能集可在 {xo-5} 中使用",
   "new-vm:install-source": "安装源",
   "new-vm:name": "虚拟机名称",
   "new-vm:network-config": "网络配置仅与 {noCloudLink} 兼容。",

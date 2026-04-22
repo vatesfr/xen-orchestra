@@ -42,6 +42,7 @@
 - [VM] Add possibility to remove a VIF on network tab (PR [#9601](https://github.com/vatesfr/xen-orchestra/pull/9601))
 - [VM] Add possibility to remove a VDI on VDI tab (PR [#9689](https://github.com/vatesfr/xen-orchestra/pull/9689))
 - [VM] Add possibility to remove a VBD on VDI tab (PR [#9698](https://github.com/vatesfr/xen-orchestra/pull/9698))
+- [VM/new] Removed new VM form alert (PR [#9757](https://github.com/vatesfr/xen-orchestra/pull/9757))
 - **XO 5**:
   - [Settings/Servers] Add info tip to remind users to only add pool masters
 
