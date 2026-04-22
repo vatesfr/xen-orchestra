@@ -23,6 +23,9 @@
     "name": "Vates SAS",
     "url": "https://vates.fr"
   },
+  "bin": {
+    "xo-package-manager": "dist/cli.mjs"
+  },
   "main": "dist/index.mjs",
   "engines": {
     "node": ">=20"
@@ -39,6 +42,7 @@
     "build": "tsc",
     "clean": "rimraf dist/",
     "dev": "yarn run clean && tsc --watch",
+    "postbuild": "chmod +x dist/cli.mjs",
     "prebuild": "yarn run clean",
     "prepublishOnly": "yarn run build",
     "test": "cd dist && node --test"
