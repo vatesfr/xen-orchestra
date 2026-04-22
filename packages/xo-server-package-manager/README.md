@@ -1,0 +1,97 @@
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
+
+# xo-server-package-manager
+
+> XO Server plugin for managing system packages (apt) on the XO appliance
+
+## Usage
+
+Like all other xo-server plugins, it can be configured directly via
+the web interface, see [the plugin documentation](https://xen-orchestra.com/docs/plugins.html).
+
+## API methods
+
+Once the plugin is enabled, the following JSON-RPC methods are available (admin permission required):
+
+| Method                              | Parameters            | Description                                      |
+| ----------------------------------- | --------------------- | ------------------------------------------------ |
+| `packageManager.listUpgradable`     | —                     | List upgradable packages from the local cache    |
+| `packageManager.upgrade`            | `packages?: string[]` | Upgrade specific packages, or all if omitted     |
+| `packageManager.systemUpgrade`      | —                     | Full distribution upgrade (`dist-upgrade`)       |
+| `packageManager.getOperationStatus` | —                     | Get status of a running or interrupted operation |
+
+> Call `packageManager.upgrade` without arguments before `packageManager.listUpgradable` to refresh the local package index.
+
+## App-level methods
+
+The plugin also attaches methods directly on the `xo` app object so other plugins can call them:
+
+```js
+xo.listUpgradablePackages()
+xo.updatePackageList()
+xo.upgradePackages(packages?)
+xo.systemUpgradePackages()
+xo.getPackageOperationStatus()
+```
+
+## CLI
+
+The package ships a standalone CLI: `xo-package-manager`.
+
+```
+Usage: xo-package-manager <command> [options]
+
+Commands:
+  list                     List upgradable packages (from local cache)
+  update                   Refresh the local package index
+  upgrade [pkg...]         Upgrade packages (all if none specified)
+  system-upgrade           Full distribution upgrade (dist-upgrade)
+  status                   Show current operation status
+
+Options:
+  --state-dir <path>       State directory (default: /var/lib/xo-server/data/xo-server-package-manager)
+  --json                   Output results as JSON
+  --help                   Show this help message
+```
+
+> Most commands require root (`sudo`) since they invoke `apt-get`.
+
+### Examples
+
+```sh
+# Refresh the package index
+sudo xo-package-manager update
+
+# List all upgradable packages
+sudo xo-package-manager list
+
+# Upgrade a specific package
+sudo xo-package-manager upgrade curl
+
+# Upgrade all packages
+sudo xo-package-manager upgrade
+
+# Full distribution upgrade
+sudo xo-package-manager system-upgrade
+
+# Check progress of a running upgrade (no root needed)
+xo-package-manager status
+
+# Machine-readable output
+sudo xo-package-manager list --json
+```
+
+## Contributions
+
+Contributions are _very_ welcomed, either on the documentation or on
+the code.
+
+You may:
+
+- report any [issue](https://github.com/vatesfr/xen-orchestra/issues)
+  you've encountered;
+- fork and create a pull request.
+
+## License
+
+[AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)
