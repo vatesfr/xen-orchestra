@@ -100,13 +100,8 @@ export class VmFullBackupArchive implements VmBackupInterface {
   async init() {}
 
   async check(): Promise<CheckResult> {
-    try {
-      if (this.isValid === undefined) {
-        this.isValid = await isValidXva(this.handler, this.xvaPath)
-      }
-    } catch (error) {
-      this.opts.logWarn(error)
-      this.isValid = false
+    if (this.isValid === undefined) {
+      this.isValid = await isValidXva(this.handler, this.xvaPath)
     }
     if (!this.isValid) {
       this.opts.logWarn('XVA might be broken', { path: this.xvaPath })
