@@ -11,7 +11,7 @@ export type FileDescriptor = number
  * and we are generally reading the vhd sequentially
  */
 export interface FileAccessor {
-  isEncrypted: Boolean
+  isEncrypted: boolean
   list(path: string, opts?: unknown): Promise<string[]>
   closeFile(filehandle: number): Promise<void>
   openFile(path: string, opts?: unknown): Promise<number>
