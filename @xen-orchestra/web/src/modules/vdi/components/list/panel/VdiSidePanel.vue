@@ -1,25 +1,17 @@
 <template>
   <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
     <template #header>
-      <UiButton
-        size="medium"
-        variant="tertiary"
-        accent="brand"
-        :disabled="!canDeleteVbd"
-        left-icon="action:disconnect"
-        :busy="isDeletingVbd"
-        @click="openVbdDeleteModal()"
-      >
-        {{ t('action:delete-vbd') }}
-      </UiButton>
-      <VtsDeleteButton
-        :tooltip="!canDeleteVdi && t('running-vm')"
-        :disabled="!canDeleteVdi"
-        :busy="isDeletingVdi"
-        class="delete-button"
-        @click="openVdiDeleteModal()"
-      />
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
+      <div class="action-buttons">
+        <VbdConnectButton v-if="!vbd?.attached" :vbd :vm />
+        <VbdDisconnectButton v-else :vbd :vm />
+        <MenuList placement="bottom-end">
+          <template #trigger="{ open }">
+            <UiButtonIcon icon="action:more-actions" accent="brand" size="medium" @click="open($event)" />
+          </template>
+          <VdiActions :vdi :vbd />
+        </MenuList>
+      </div>
+      <div :class="{ 'close-button': uiStore.isSmall }">
         <UiButtonIcon
           v-tooltip="t('action:close')"
           size="small"
@@ -39,16 +31,16 @@
 </template>
 
 <script setup lang="ts">
-import { useVbdDeleteModal } from '@/modules/vbd/composables/use-vbd-delete-modal.composable.ts'
+import VbdConnectButton from '@/modules/vbd/components/actions/connect/VbdConnectButton.vue'
+import VbdDisconnectButton from '@/modules/vbd/components/actions/disconnect/VbdDisconnectButton.vue'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import VdiActions from '@/modules/vdi/components/actions/VdiActions.vue'
 import VdiConfigurationCard from '@/modules/vdi/components/list/panel/cards/VdiConfigurationCard.vue'
 import VdiInfosCard from '@/modules/vdi/components/list/panel/cards/VdiInfosCard.vue'
 import VdiSpaceCard from '@/modules/vdi/components/list/panel/cards/VdiSpaceCard.vue'
-import { useVdiDeleteModal } from '@/modules/vdi/composables/use-vdi-delete-modal.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
+import MenuList from '@core/components/menu/MenuList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
@@ -56,7 +48,7 @@ import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vdi } = defineProps<{
+const { vdi, vm } = defineProps<{
   vdi: FrontXoVdi
   vm: FrontXoVm
 }>()
@@ -72,18 +64,12 @@ const uiStore = useUiStore()
 const { useGetVbdsByIds } = useXoVbdCollection()
 
 const vbd = computed(() => useGetVbdsByIds(vdi.$VBDs).value.find(vbd => vbd.VDI === vdi.id))
-
-const {
-  openModal: openVbdDeleteModal,
-  canRun: canDeleteVbd,
-  isRunning: isDeletingVbd,
-} = useVbdDeleteModal(() => (vbd.value ? [vbd.value] : []))
-
-const { openModal: openVdiDeleteModal, canRun: canDeleteVdi, isRunning: isDeletingVdi } = useVdiDeleteModal(() => [vdi])
 </script>
 
 <style scoped lang="postcss">
-.delete-button {
+.action-buttons {
+  display: flex;
+  align-items: center;
   margin-inline-end: auto;
 }
 
@@ -91,11 +77,10 @@ const { openModal: openVdiDeleteModal, canRun: canDeleteVdi, isRunning: isDeleti
   position: fixed;
   inset: 0;
 
-  .action-buttons-container {
+  .close-button {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 100%;
   }
 }
 </style>
