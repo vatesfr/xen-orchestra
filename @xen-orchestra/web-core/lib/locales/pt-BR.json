@@ -490,7 +490,6 @@
   "n-hosts": "1 servidor | {n} servidores",
   "n-percent": "{n}%",
   "new-features-are-coming!": "Novidades em breve!",
-  "new-vm:feature-not-supported": "Este é o nosso novo formulário de criação de VM. A configuração do Cloud-init, as opções avançadas e a gestão de vTPM ainda não são suportadas. Uma versão atualizada estará disponível em breve, em 2026. Enquanto isso, todas as funcionalidades estão disponíveis aqui em {xo-5}",
   "news": "Notícias",
   "no-alarm-detected": "Nenhum alarme detectado",
   "no-alarm-triggered": "Nenhum alarme foi acionado",

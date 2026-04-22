@@ -505,7 +505,6 @@
   "new-vm": "Ny VM",
   "new-vm:add": "Lägg till ny VM",
   "new-vm:description": "VM-beskrivning",
-  "new-vm:feature-not-supported": "Det här är vår nya VM-mall. Cloud-init, Avancerade inställningar och vTPM-hantering stöds inte än. En uppdaterad version kommer släppas under 2026. Under tiden finns alla funktioner tillgängliga här i {xo-5}",
   "new-vm:install-source": "Installationskälla",
   "new-vm:name": "VM-namn",
   "new-vm:network-config": "Nätverkskonfiguration stöds endast med {noCloudLink}.",

@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [VM/new] Removed new VM form alert (PR [#9757](https://github.com/vatesfr/xen-orchestra/pull/9757))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"

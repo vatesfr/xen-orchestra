@@ -316,7 +316,6 @@
   "new-vm": "Ny VM",
   "new-vm:add": "Tilføj en ny VM",
   "new-vm:description": "VM beskrivelse",
-  "new-vm:feature-not-supported": "Dette er vores nye VM oprettelsesformular. Cloud-init konfiguration, avancerede indstillinger og vTPM administration understøttes endnu ikke. En opdateret version vil være tilgængelig snart i 2026. I mellemtiden er hele funktionssættet tilgængeligt her i {xo-5}",
   "new-vm:name": "VM navn",
   "news": "Nyheder",
   "news-name": "{name} nyheder",

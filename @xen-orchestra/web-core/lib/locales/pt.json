@@ -513,7 +513,6 @@
   "new-vm": "Nova VM",
   "new-vm:add": "Adicionar uma nova VM",
   "new-vm:description": "Descrição da VM",
-  "new-vm:feature-not-supported": "Este é o nosso novo formulário de criação de VM. A configuração do Cloud-init, as opções avançadas e a gestão de vTPM ainda não são suportadas. Uma versão atualizada estará disponível em breve, em 2026. Enquanto isso, todas as funcionalidades estão disponíveis aqui em {xo-5}",
   "new-vm:install-source": "Fonte de instalação",
   "new-vm:name": "Nome da VM",
   "new-vm:network-config": "A configuração de rede é compatível apenas com o {noCloudLink}.",
