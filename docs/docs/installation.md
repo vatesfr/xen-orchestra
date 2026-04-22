@@ -111,7 +111,7 @@ XO needs the following packages to be installed. Redis is used as a database by 
 For example, on Debian/Ubuntu:
 
 ```sh
-apt-get install build-essential redis-server libpng-dev git python3-minimal libvhdi-utils lvm2 cifs-utils nfs-common ntfs-3g openssl
+apt-get install build-essential redis-server libpng-dev git python3-minimal libvhdi-utils lvm2 cifs-utils nfs-common ntfs-3g openssl libfuse2
 ```
 
 On Fedora/CentOS like:
