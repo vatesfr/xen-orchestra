@@ -44,6 +44,7 @@
 - [VM] Add possibility to remove a VBD on VDI tab (PR [#9698](https://github.com/vatesfr/xen-orchestra/pull/9698))
 - **XO 5**:
   - [Settings/Servers] Add info tip to remind users to only add pool masters
+- [SidePanels] Add and use new `VtsCardObjectTitle` component to display object title and ID in side panels (PR [#9755](https://github.com/vatesfr/xen-orchestra/pull/9755))
 
 ### Bug fixes
 
