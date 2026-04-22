@@ -338,6 +338,20 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     }
 
     this._jobSnapshotVdis = Object.values(vdiCandidates)
+
+    // For VMs with no disks, retention must be tracked directly on VM snapshots
+    // since there are no VDIs to anchor the discovery.
+    if (vdiUuids.length === 0) {
+      this._disklessJobSnapshotVms = this._vm.$snapshots.filter(Boolean).filter(
+        ({ other_config, $snapshot_of }) =>
+          $snapshot_of !== undefined &&
+          other_config[JOB_ID] === jobId &&
+          other_config[VM_UUID] === this._vm.uuid &&
+          other_config[COPY_OF] === undefined
+      )
+    } else {
+      this._disklessJobSnapshotVms = []
+    }
   }
 
   async _removeUnusedSnapshots() {
@@ -349,9 +363,10 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     await xapi.barrier()
     // ensure cached object are up to date
     this._jobSnapshotVdis = this._jobSnapshotVdis.map(vdi => xapi.getObject(vdi.$ref))
+    const disklessVmSnapshots = this._disklessJobSnapshotVms.map(vm => xapi.getObject(vm.$ref))
 
-    // get the datetime of the most recent snapshot
-    const lastSnapshotDateTime = this._jobSnapshotVdis
+    // get the datetime of the most recent snapshot across both VDI and diskless VM snapshots
+    const lastSnapshotDateTime = [...this._jobSnapshotVdis, ...disklessVmSnapshots]
       .map(({ other_config }) => other_config[DATETIME])
       .sort()
       .pop()
@@ -427,6 +442,27 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         }
       })
     })
+
+    // Retention for VMs with no disks: VM snapshots are not reachable via VDIs
+    if (disklessVmSnapshots.length > 0) {
+      const snapshotsPerSchedule = groupBy(disklessVmSnapshots, _ => _.other_config[SCHEDULE_ID])
+      await asyncEach(Object.entries(snapshotsPerSchedule), async ([scheduleId, snapshots]) => {
+        const snapshotPerDatetime = groupBy(snapshots, _ => _.other_config[DATETIME])
+        const datetimes = Object.keys(snapshotPerDatetime).sort()
+        const settings = {
+          ...baseSettings,
+          ...allSettings[scheduleId],
+          ...allSettings[this._vm.uuid],
+        }
+        const retention = settings.snapshotRetention ?? 0
+        await asyncEach(getOldEntries(retention, datetimes), async datetime => {
+          if (this.job.mode === 'delta' && datetime === lastSnapshotDateTime) {
+            return
+          }
+          await asyncEach(snapshotPerDatetime[datetime], vmSnap => xapi.VM_destroy(vmSnap.$ref))
+        })
+      })
+    }
 
     // list and remove the snapshot were the jobs failed between
     // makesnapshot and update_other_config

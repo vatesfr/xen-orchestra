@@ -31,6 +31,7 @@
 
 - [Backup] Fix cleanVm incorrect backup size in metadata (PR [#9637] (https://github.com/vatesfr/xen-orchestra/pull/9637))
 - [xo-server] Fix VM-template still visible after deletion (PR [#9760](https://github.com/vatesfr/xen-orchestra/pull/9760))
+- [Backups] Fix diskless snapshot retention (PR [#9758](https://github.com/vatesfr/xen-orchestra/pull/9758))
 - **XO 5**:
   - [Icons] Fix display of RHEL 10 icons in vm list (PR [#9766](https://github.com/vatesfr/xen-orchestra/pull/9766))
   - [xo-server-sdn-controller] Better traffic-rules synchronization related to VM lifecycle (PR [#9518](https://github.com/vatesfr/xen-orchestra/pull/9518))
