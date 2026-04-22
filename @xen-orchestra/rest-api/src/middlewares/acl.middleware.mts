@@ -11,7 +11,7 @@ import type { AuthenticatedRequest, MaybePromise } from '../helpers/helper.type.
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { iocContainer } from '../ioc/ioc.mjs'
 import type { Branded, NonXapiXoRecord, XapiXoRecord, XoRecord } from '@vates/types'
-import { ValidateError } from 'tsoa'
+import { ServiceIdentifier, ValidateError } from 'tsoa'
 import { ApiError } from '../helpers/error.helper.mjs'
 import type { XoApp } from '../rest-api/rest-api.type.mjs'
 
@@ -46,6 +46,22 @@ export function actionsIfNotSelfUser<Resource extends SupportedResource>(
 }
 export function actionIfNotSelfUser<Resource extends SupportedResource>(action: SupportedActions<Resource>) {
   return opts => actionsIfNotSelfUser([action])(opts)[0]
+}
+
+export function autoBindService<Service extends object, Method extends keyof Service>(
+  serviceId: ServiceIdentifier<Service>,
+  method: Method
+) {
+  return ({ restApi }: { restApi: RestApi }): Service[Method] => {
+    const service = restApi.ioc.get(serviceId)
+
+    const fn = service[method]
+    if (typeof fn !== 'function') {
+      throw new Error(`Invalid method: ${String(method)}`)
+    }
+
+    return fn.bind(service)
+  }
 }
 
 type RestNonXapiXoRecord = NonXapiXoRecord<SupportedActionsByResource, SupportedResource> | AnyPrivilege

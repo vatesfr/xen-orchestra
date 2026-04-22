@@ -1,10 +1,16 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { noSuchObject } from 'xo-common/api-errors.js'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 import type { XoBackupRepository, XoVm, XoVmBackupArchive } from '@vates/types'
 
-import { badRequestResp, notFoundResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  badRequestResp,
+  forbiddenOperationResp,
+  notFoundResp,
+  unauthorizedResp,
+  Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import {
   backupArchive,
@@ -12,9 +18,10 @@ import {
   partialBackupArchives,
 } from '../open-api/oa-examples/backup-archive.oa-example.mjs'
 import { SendObjects } from '../helpers/helper.type.mjs'
-
-// BR uuid/xo-vm-backups/VM uuid/(ISO 8601 compact).json
-const BACKUP_ARCHIVE_ID_REGEX = /^([0-9a-fA-F-]{36})\/+xo-vm-backups\/+([0-9a-fA-F-]{36})\/+(\d{8}T\d{6}Z)\.json$/
+import { inject } from 'inversify'
+import { BackupArchiveService } from './backup-archive.service.mjs'
+import { RestApi } from '../rest-api/rest-api.mjs'
+import { acl, autoBindService } from '../middlewares/acl.middleware.mjs'
 
 @Route('backup-archives')
 @Security('*')
@@ -23,6 +30,16 @@ const BACKUP_ARCHIVE_ID_REGEX = /^([0-9a-fA-F-]{36})\/+xo-vm-backups\/+([0-9a-fA
 @Tags('backup-archives')
 @provide(BackupArchiveController)
 export class BackupArchiveController extends XoController<XoVmBackupArchive> {
+  #backupArchiveService: BackupArchiveService
+
+  constructor(
+    @inject(RestApi) restApi: RestApi,
+    @inject(BackupArchiveService) backupArchiveService: BackupArchiveService
+  ) {
+    super(restApi)
+    this.#backupArchiveService = backupArchiveService
+  }
+
   async getAllCollectionObjects({
     backupRepositories = [],
   }: { backupRepositories?: (XoBackupRepository['id'] | '*')[] } = {}): Promise<XoVmBackupArchive[]> {
@@ -47,20 +64,8 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
     return vmBackupArchives
   }
 
-  async getCollectionObject(id: XoVmBackupArchive['id']): Promise<XoVmBackupArchive> {
-    const match = id.match(BACKUP_ARCHIVE_ID_REGEX)
-    if (match === null) {
-      throw noSuchObject(id, 'backup-archive')
-    }
-
-    const [, brId, vmId] = match as [XoVmBackupArchive['id'], XoBackupRepository['id'], XoVm['id'], string]
-
-    const backupArchive = (await this.restApi.xoApp.listVmBackupsNg([brId]))[brId]?.[vmId]?.find(ba => ba.id === id)
-    if (backupArchive === undefined) {
-      throw noSuchObject(id, 'backup-archive')
-    }
-
-    return backupArchive
+  getCollectionObject(id: XoVmBackupArchive['id']): Promise<XoVmBackupArchive> {
+    return this.#backupArchiveService.getBackupArchive(id)
   }
 
   /**
@@ -95,10 +100,22 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   }
 
   /**
-   * @example id "231264c3-af43-4ec0-a3be-394c5b1fdbfc//xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json"
+   * Required privilege:
+   * - resource: backup-archive, action: read
+   *
+   * @example id "231264c3-af43-4ec0-a3be-394c5b1fdbfc/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json"
    */
   @Example(backupArchive)
   @Get('{id}')
+  @Middlewares(
+    acl({
+      resource: 'backup-archive',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async getBackupArchive(@Path() id: string): Promise<Unbrand<XoVmBackupArchive>> {
     const backupArchive = await this.getObject(id as XoVmBackupArchive['id'])

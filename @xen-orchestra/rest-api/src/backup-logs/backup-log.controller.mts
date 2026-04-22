@@ -16,7 +16,7 @@ import {
   Unbrand,
 } from '../open-api/common/response.common.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
-import { acl } from '../middlewares/acl.middleware.mjs'
+import { acl, autoBindService } from '../middlewares/acl.middleware.mjs'
 
 @Route('backup-logs')
 @Security('*')
@@ -81,10 +81,7 @@ export class BackupLogController extends XoController<XoBackupLog> {
       resource: 'backup-log',
       action: 'read',
       objectId: 'params.id',
-      getObject: ({ restApi }) => {
-        const service = restApi.ioc.get(BackupLogService)
-        return service.getBackupLog.bind(service)
-      },
+      getObject: autoBindService(BackupLogService, 'getBackupLog'),
     })
   )
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)

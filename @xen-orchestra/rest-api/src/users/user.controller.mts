@@ -53,6 +53,8 @@ import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
 import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
 import { redirectMeAlias } from './user.middleware.mjs'
+import { aclPrivilegeIds, partialAclPrivileges } from '../open-api/oa-examples/acl-privilege.oa-example.mjs'
+import type { AnyPrivilege } from '@xen-orchestra/acl'
 
 const log = createLogger('xo:rest-api:user-controller')
 
@@ -387,5 +389,40 @@ export class UserController extends XoController<XoUser> {
     })
 
     return { token }
+  }
+
+  /**
+   * Returns all ACL privileges that match the following privilege:
+   * - resource: acl-privilege, action: read (if not self)
+   *
+   * @example id "me"
+   * @example fields "id,action,resource"
+   * @example filter "action:create"
+   * @example limit 42
+   */
+  @Example(aclPrivilegeIds)
+  @Example(partialAclPrivileges)
+  @Get('{id}/acl-privileges')
+  @Security('*', ['acl'])
+  @Tags('acls')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getUserPrivileges(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<AnyPrivilege>>> {
+    const user = await this.getObject(id as XoUser['id'])
+    const currentUser = this.restApi.getCurrentUser()
+
+    const userPrivileges = await this.restApi.xoApp.getAclV2UserPrivileges(user.id)
+
+    return this.sendObjects(limitAndFilterArray(userPrivileges, { filter }), req, {
+      path: 'acl-privileges',
+      limit,
+      privilege: currentUser.id === user.id ? undefined : { action: 'read', resource: 'acl-privilege' },
+    })
   }
 }
