@@ -1,19 +1,7 @@
 <template>
   <UiCard class="card-container">
-    <UiCardTitle>
-      <UiLink v-if="task.properties.name !== undefined" size="small" icon="fa:bars-progress">
-        {{ task.properties.name }}
-      </UiLink>
-      <template v-else>{{ task.id }}</template>
-    </UiCardTitle>
+    <VtsCardObjectTitle :id="task.id" :label="task.properties.name" icon="fa:bars-progress" />
     <div class="content">
-      <VtsCardRowKeyValue>
-        <template #key>{{ t('id') }}</template>
-        <template #value>{{ task.id }}</template>
-        <template #addons>
-          <VtsCopyButton :value="task.id" />
-        </template>
-      </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('task-type') }}</template>
         <template #value>
@@ -72,11 +60,10 @@ import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-co
 import { getTaskAccents } from '@/modules/task/utils/xo-task.util.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCircleProgressBar from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'

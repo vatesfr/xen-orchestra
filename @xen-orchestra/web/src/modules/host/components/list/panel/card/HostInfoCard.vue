@@ -1,16 +1,12 @@
 <template>
   <UiCard class="card-container">
-    <UiCardTitle>
-      <UiLink
-        :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
-        size="medium"
-        :icon="`object:host:${toLower(host.power_state)}`"
-      >
-        {{ host.name_label }}
-      </UiLink>
-    </UiCardTitle>
+    <VtsCardObjectTitle
+      :id="host.id"
+      :label="host.name_label"
+      :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
+      :icon="`object:host:${toLower(host.power_state)}`"
+    />
     <div class="content">
-      <VtsCodeSnippet :content="host.id" copy />
       <VtsCardRowKeyValue>
         <template #key>{{ t('state') }}</template>
         <template #value>
@@ -108,12 +104,11 @@ import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-res
 import { useXoHostMissingPatchesCollection } from '@/modules/host/remote-resources/use-xo-host-missing-patches-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
+import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'

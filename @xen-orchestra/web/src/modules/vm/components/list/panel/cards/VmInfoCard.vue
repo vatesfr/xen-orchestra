@@ -1,17 +1,12 @@
 <template>
   <UiCard class="card-container">
-    <UiCardTitle>
-      <UiLink
-        v-if="vm.name_label !== ''"
-        size="medium"
-        :icon="`object:vm:${toLower(vm.power_state)}`"
-        :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }"
-      >
-        {{ vm.name_label }}
-      </UiLink>
-    </UiCardTitle>
+    <VtsCardObjectTitle
+      :id="vm.id"
+      :label="vm.name_label"
+      :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }"
+      :icon="`object:vm:${toLower(vm.power_state)}`"
+    />
     <div class="content">
-      <VtsCodeSnippet :content="vm.id" copy />
       <VtsCardRowKeyValue>
         <template #key>{{ t('state') }}</template>
         <template #value>
@@ -56,7 +51,11 @@
         <template #key>{{ t('host') }}</template>
         <template #value>
           <div v-if="host" class="value">
-            <UiLink :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }" size="small" :icon="`object:host:${hostPowerState}`">
+            <UiLink
+              :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
+              size="small"
+              :icon="`object:host:${hostPowerState}`"
+            >
               {{ host.name_label }}
             </UiLink>
             <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="status:primary-circle" size="small" />
@@ -150,11 +149,10 @@ import { useXoVmTemplateCollection } from '@/modules/vm/remote-resources/use-xo-
 import { XCP_LINKS } from '@/shared/constants.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
+import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'

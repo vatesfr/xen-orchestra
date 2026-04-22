@@ -1,11 +1,11 @@
 <template>
   <UiCard class="card-container">
-    <div class="content">
-      <UiLink icon="object:vm" size="medium" :href="buildXo5VmSnapshotRoute(snapshot.$snapshot_of, snapshot.id)">
-        {{ snapshot.name_label }}
-      </UiLink>
-      <VtsCodeSnippet :content="snapshot.id" copy />
-    </div>
+    <VtsCardObjectTitle
+      :id="snapshot.id"
+      :label="snapshot.name_label"
+      :href="buildXo5VmSnapshotRoute(snapshot.$snapshot_of, snapshot.id)"
+      icon="object:vm"
+    />
     <div class="content">
       <!-- DESCRIPTION -->
       <VtsCardRowKeyValue truncate align-top>
@@ -66,7 +66,7 @@ import type { FrontXoVmSnapshot } from '@/modules/snapshot/components/remote-res
 import { useSnapshotTrigger } from '@/modules/snapshot/composables/xo-snapshot-trigger.composable.ts'
 import { useXo5VmSnapshotRoute } from '@/modules/snapshot/composables/xo-vm-snapshot-route-xo5.composable.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
+import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'

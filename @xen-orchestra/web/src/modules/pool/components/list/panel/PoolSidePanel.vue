@@ -15,12 +15,8 @@
     </template>
     <template #default>
       <UiCard v-if="server.error === undefined" class="card-container">
-        <UiCardTitle>
-          {{ t('general-information') }}
-        </UiCardTitle>
+        <VtsCardObjectTitle :id="server.id" :label="server.label" icon="object:pool" />
         <div class="content">
-          <!-- ID -->
-          <VtsCodeSnippet :content="server.id" copy />
           <!-- Pool -->
           <VtsCardRowKeyValue>
             <template #key>{{ t('pool') }}</template>
@@ -176,7 +172,7 @@ import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { FrontXoServer } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
+import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'

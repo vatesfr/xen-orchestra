@@ -38,21 +38,8 @@
     <template #default>
       <!-- PIF -->
       <UiCard class="card">
-        <UiCardTitle>{{ isBond ? t('bond') : t('pif') }}</UiCardTitle>
+        <VtsCardObjectTitle :id="pif.uuid" :label="isBond ? t('bond') : t('pif')" />
         <div class="content">
-          <!-- UUID -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('uuid') }}
-            </template>
-            <template #value>
-              {{ pif.uuid }}
-            </template>
-            <template #addons>
-              <VtsIcon v-if="pif.management" v-tooltip="t('management')" name="status:primary-circle" size="medium" />
-              <VtsCopyButton :value="pif.uuid" />
-            </template>
-          </VtsCardRowKeyValue>
           <!-- NETWORK -->
           <VtsCardRowKeyValue>
             <template #key>
@@ -75,6 +62,7 @@
             </template>
             <template #value>
               {{ pif.device }}
+              <VtsIcon v-if="pif.management" v-tooltip="t('management')" name="status:primary-circle" size="medium" />
             </template>
             <template #addons>
               <VtsCopyButton :value="pif.device" />
@@ -293,6 +281,7 @@ import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
