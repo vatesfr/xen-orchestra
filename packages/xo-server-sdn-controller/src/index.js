@@ -452,6 +452,10 @@ class SDNController extends EventEmitter {
           ':id/rules': {
             _post: async (req, res, next) => {
               const validationErrors = []
+              if (!req.body) {
+                validationErrors.push('body is required')
+                throw invalidParameters(validationErrors)
+              }
 
               if (!req.body.allow || (req.body.allow !== 'true' && req.body.allow !== 'false')) {
                 validationErrors.push('allow is required and must be a boolean')
@@ -467,6 +471,9 @@ class SDNController extends EventEmitter {
 
               if (!req.body.protocol || typeof req.body.protocol !== 'string') {
                 validationErrors.push('protocol is required and must be a string')
+              }
+              if (req.body.port && isNaN(parseInt(req.body.port))) {
+                validationErrors.push('port must be an integer')
               }
 
               if (validationErrors.length > 0) {
@@ -715,7 +722,7 @@ class SDNController extends EventEmitter {
             host: vif.$VM.$resident_on?.uuid,
           })
         } else {
-          throw (error)
+          throw error
         }
       }
 
