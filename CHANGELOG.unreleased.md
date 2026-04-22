@@ -24,6 +24,7 @@
 - [REST API] Add `POST rest/v0/plugins/sdn-controller/vifs/:id/actions/add_traffic_rule` and `POST rest/v0/plugins/sdn-controller/vifs/:id/actions/delete_traffic_rule` endpoints ([#9759](https://github.com/vatesfr/xen-orchestra/pull/9759))
 - [Pool/Network] Add Network deletion (PR [#9714](https://github.com/vatesfr/xen-orchestra/pull/9714))
 - [DNS] add Let's Encrypt DNS-01 challenge support (PR [#9592](https://github.com/vatesfr/xen-orchestra/pull/9592))
+- [VM] Add possibility to connect or disconnect a VIF on network tab (PR [#9756](https://github.com/vatesfr/xen-orchestra/pull/9756))
 
 ### Bug fixes
 
