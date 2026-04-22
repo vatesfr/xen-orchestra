@@ -116,10 +116,15 @@ export class VmController extends XapiXoController<XoVm> {
    *
    * Export VM. Compress is only used for XVA format
    *
+   * Required privilege:
+   * - resource: vm, action: export
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Get('{id}.{format}')
+  @Middlewares(acl({ resource: 'vm', action: 'export', objectId: 'params.id' }))
   @SuccessResponse(200, 'Download started', 'application/octet-stream')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(422, 'Invalid format, Invalid compress')
   async exportVm(
@@ -151,9 +156,13 @@ export class VmController extends XapiXoController<XoVm> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vm, action: delete
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Delete('{id}')
+  @Middlewares(acl({ resource: 'vm', action: 'delete', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -167,10 +176,15 @@ export class VmController extends XapiXoController<XoVm> {
    *
    *  VM must be running
    *
+   * Required privilege:
+   * - resource: vm, action: read
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(vmStatsExample)
   @Get('{id}/stats')
+  @Middlewares(acl({ resource: 'vm', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(422, 'Invalid granularity, VM is halted or host could not be found')
   async getVmStats(@Path() id: string, @Query() granularity?: XapiStatsGranularity): Promise<XapiVmStats> {
@@ -217,13 +231,19 @@ export class VmController extends XapiXoController<XoVm> {
    * - **vif_#_tx** : Bytes per second transmitted on virtual interface vif. Enabled by default. *Condition*: VIF vif exists.
    * - **vif_#_rx_errors** : Receive errors per second on virtual interface vif. Enabled by default. *Condition*: VIF vif exists.
    * - **vif_#_tx_errors** : Transmit errors per second on virtual interface vif. Enabled by default. *Condition*: VIF vif exists.
+   *
+   * Required privilege:
+   * - resource: vm, action: update:datasources
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example dataSource "cpu0"
    */
+  @Put('{id}/stats/data_source/{data_source}')
+  @Middlewares(acl({ resource: 'vm', action: 'update:datasources', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  @Put('{id}/stats/data_source/{data_source}')
   async addDataSource(@Path() id: string, @Path('data_source') dataSource: string) {
     await this.getXapiObject(id as XoVm['id']).$call('record_data_source', dataSource)
   }
@@ -233,13 +253,18 @@ export class VmController extends XapiXoController<XoVm> {
    *
    * For a list of possible data sources, see the endpoint documentation: `GET {id}/stats/data_source/{data_source}`
    *
+   * Required privilege:
+   * - resource: vm, action: update:datasources
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example dataSource "cpu0"
    */
+  @Delete('{id}/stats/data_source/{data_source}')
+  @Middlewares(acl({ resource: 'vm', action: 'update:datasources', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  @Delete('{id}/stats/data_source/{data_source}')
   async deleteDataSource(@Path() id: string, @Path('data_source') dataSource: string) {
     await this.getXapiObject(id as XoVm['id']).$call('forget_data_source_archives', dataSource)
   }
@@ -353,11 +378,16 @@ export class VmController extends XapiXoController<XoVm> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vm, action: shutdown:hard
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
   @Post('{id}/actions/hard_shutdown')
+  @Middlewares(acl({ resource: 'vm', action: 'shutdown:hard', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -378,11 +408,16 @@ export class VmController extends XapiXoController<XoVm> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vm, action: reboot:hard
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
   @Post('{id}/actions/hard_reboot')
+  @Middlewares(acl({ resource: 'vm', action: 'reboot:hard', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -405,11 +440,16 @@ export class VmController extends XapiXoController<XoVm> {
   /**
    * The VM must be running
    *
+   * Required privilege:
+   * - resource: vm, action: pause
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
   @Post('{id}/actions/pause')
+  @Middlewares(acl({ resource: 'vm', action: 'pause', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -432,11 +472,16 @@ export class VmController extends XapiXoController<XoVm> {
   /**
    * The VM must be running
    *
+   * Required privilege:
+   * - resource: vm, action: suspend
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
   @Post('{id}/actions/suspend')
+  @Middlewares(acl({ resource: 'vm', action: 'suspend', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -459,11 +504,16 @@ export class VmController extends XapiXoController<XoVm> {
   /**
    * The VM must be suspended
    *
+   * Required privilege:
+   * - resource: vm, action: resume
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
   @Post('{id}/actions/resume')
+  @Middlewares(acl({ resource: 'vm', action: 'resume', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -486,11 +536,16 @@ export class VmController extends XapiXoController<XoVm> {
   /**
    * The VM must be paused
    *
+   * Required privilege:
+   * - resource: vm, action: unpause
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
   @Post('{id}/actions/unpause')
+  @Middlewares(acl({ resource: 'vm', action: 'unpause', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -511,13 +566,17 @@ export class VmController extends XapiXoController<XoVm> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vm, action: snapshot
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example body { "name_label": "my_awesome_snapshot" }
    */
   @Example(taskLocation)
   @Post('{id}/actions/snapshot')
-  @Middlewares(json())
+  @Middlewares([json(), acl({ resource: 'vm', action: 'snapshot', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(createdResp.status, 'Snapshot created')
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -714,11 +773,16 @@ export class VmController extends XapiXoController<XoVm> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vm, action: update:tags
+   *
    * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
    * @example tag "from-rest-api"
    */
   @Put('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'vm', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async putVmTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vm = this.getXapiObject(id as XoVm['id'])
@@ -726,11 +790,16 @@ export class VmController extends XapiXoController<XoVm> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vm, action: update:tags
+   *
    * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
    * @example tag "from-rest-api"
    */
   @Delete('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'vm', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteVmTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vm = this.getXapiObject(id as XoVm['id'])
@@ -738,10 +807,15 @@ export class VmController extends XapiXoController<XoVm> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vm, action: read
+   *
    * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
    */
   @Example(vmDashboard)
   @Get('{id}/dashboard')
+  @Middlewares(acl({ resource: 'vm', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   async getVmDashboard(
     @Request() req: AuthenticatedRequest,
     @Path() id: string,

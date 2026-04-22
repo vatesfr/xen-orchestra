@@ -2,6 +2,7 @@ import {
   Delete,
   Example,
   Get,
+  Middlewares,
   Path,
   Post,
   Put,
@@ -19,6 +20,7 @@ import { Request as ExRequest } from 'express'
 import type { XenApiVdi, XoMessage, XoTask, XoVdi, XoAlarm, XoSr } from '@vates/types'
 import { SUPPORTED_VDI_FORMAT } from '@vates/types'
 
+import { acl } from '../middlewares/acl.middleware.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { BASE_URL } from '../index.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
@@ -26,6 +28,7 @@ import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.m
 import {
   badRequestResp,
   createdResp,
+  forbiddenOperationResp,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
@@ -78,10 +81,15 @@ export class SrController extends XapiXoController<XoSr> {
   }
 
   /**
+   * Required privilege:
+   * - resource: sr, action: read
+   *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
   @Example(sr)
   @Get('{id}')
+  @Middlewares(acl({ resource: 'sr', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getSr(@Path() id: string): Unbrand<XoSr> {
     return this.getObject(id as XoSr['id'])
@@ -123,6 +131,10 @@ export class SrController extends XapiXoController<XoSr> {
 
   /**
    * Import an exported VDI
+   *
+   * Required privilege:
+   * - resource: sr, action: import-vdi
+   *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    * @example name_label "VDI_foo_import"
    * @example name_description "VDI imported by the REST API"
@@ -130,8 +142,10 @@ export class SrController extends XapiXoController<XoSr> {
    */
   @Example(vdiId)
   @Post('{id}/vdis')
+  @Middlewares(acl({ resource: 'sr', action: 'import-vdi', objectId: 'params.id' }))
   @Tags('vdis')
   @SuccessResponse(createdResp.status, 'VDI imported')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async srImportVdi(
     @Request() req: ExRequest & { length?: number },
@@ -223,24 +237,34 @@ export class SrController extends XapiXoController<XoSr> {
   }
 
   /**
+   * Required privilege:
+   * - resource: sr, action: update:tags
+   *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    * @example tag "from-rest-api"
    */
-  @SuccessResponse(noContentResp.status, noContentResp.description)
-  @Response(notFoundResp.status, notFoundResp.description)
   @Put('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'sr', action: 'update:tags', objectId: 'params.id' }))
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
   async putSrTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const sr = this.getXapiObject(id as XoSr['id'])
     await sr.$call('add_tags', tag)
   }
 
   /**
+   * Required privilege:
+   * - resource: sr, action: update:tags
+   *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    * @example tag "from-rest-api"
    */
-  @SuccessResponse(noContentResp.status, noContentResp.description)
-  @Response(notFoundResp.status, notFoundResp.description)
   @Delete('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'sr', action: 'update:tags', objectId: 'params.id' }))
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
   async deleteSrTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const sr = this.getXapiObject(id as XoSr['id'])
     await sr.$call('remove_tags', tag)

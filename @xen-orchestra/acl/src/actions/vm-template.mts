@@ -1,4 +1,9 @@
 export default {
-  read: true,
+  delete: true,
+  export: true,
   instantiate: true,
+  read: true,
+  update: {
+    tags: true,
+  },
 }
