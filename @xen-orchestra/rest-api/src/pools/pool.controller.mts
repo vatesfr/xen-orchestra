@@ -378,7 +378,7 @@ export class PoolController extends XapiXoController<XoPool> {
         action: 'instantiate',
         objectId: ({ req, restApi }) => {
           const pool = restApi.getXapiObject<XoPool>(req.params.id as XoPool['id'], 'pool')
-          const template = pool.$xapi.getObject<XenApiVm>(req.body.template)
+          const template = pool.$xapi.getObject<XoVm>(req.body.template)
 
           if (template.is_default_template) {
             return `${pool.uuid}-${template.uuid}`

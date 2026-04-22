@@ -23,6 +23,7 @@ import type {
   XoVmTemplate,
 } from '../xo.mjs'
 import type { SUPPORTED_VDI_FORMAT } from '../common.mjs'
+import type { XapiXoRecord } from '../xo.mjs'
 
 export type XcpPatches = {
   changelog?: {
@@ -62,11 +63,13 @@ export interface Xapi {
     ref: T['$ref'],
     field: K
   ): Promise<T[K]>
-  getObject: <T extends XenApiRecord>(
-    // id is either uuid or ref
-    idOrUuidOrRef: T[Extract<'uuid', keyof T>] | T['$ref'],
-    defaultValue?: T
-  ) => T
+  getObject: <
+    XoRecord extends XapiXoRecord,
+    WrappedRecord extends WrappedXenApiRecord = Extract<WrappedXenApiRecord, { $type: XoRecord['type'] }>,
+  >(
+    idOrUuidOrRef: XoRecord['id'] | WrappedRecord['$ref'] | WrappedRecord['uuid'],
+    defaultValue?: WrappedRecord
+  ) => WrappedRecord
   createNetwork(
     params:
       | {
