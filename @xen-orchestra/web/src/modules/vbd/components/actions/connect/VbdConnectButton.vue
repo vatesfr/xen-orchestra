@@ -1,5 +1,6 @@
 <template>
   <UiButton
+    v-tooltip="!canConnectVbd && connectErrorMessage"
     size="medium"
     variant="tertiary"
     accent="brand"
@@ -14,9 +15,10 @@
 
 <script lang="ts" setup>
 import { useVbdConnectModal } from '@/modules/vbd/composables/use-vbd-connect-modal.composable.ts'
-import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
-import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import UiButton from '@core/components/ui/button/UiButton.vue'
+import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.js'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.js'
+import UiButton from '@xen-orchestra/web-core/components/ui/button/UiButton.vue'
+import { vTooltip } from '@xen-orchestra/web-core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
 const { vbd, vm } = defineProps<{
@@ -30,6 +32,7 @@ const {
   openModal: openVbdConnectModal,
   canRun: canConnectVbd,
   isRunning: isConnectingVbd,
+  errorMessage: connectErrorMessage,
 } = useVbdConnectModal(
   () => (vbd ? [vbd] : []),
   () => vm

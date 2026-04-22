@@ -48,7 +48,7 @@ export const useXoVbdConnectJob = defineJob('vbd.connect', [xoVbdsArg, xoVmArg],
       }
 
       if (!vm.managementAgentDetected || !vm.pvDriversDetected) {
-        throw new JobError(t('job:no-guest-tools'))
+        throw new JobError(t('vm-tools-missing'))
       }
     },
   }
