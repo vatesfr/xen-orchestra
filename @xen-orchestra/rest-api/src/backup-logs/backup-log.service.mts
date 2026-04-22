@@ -1,4 +1,4 @@
-import type { AnyXoLog, XoBackupLog, XoVm } from '@vates/types'
+import type { AnyXoLog, XoBackupLog, XoRestoreLog, XoVm } from '@vates/types'
 import { noSuchObject } from 'xo-common/api-errors.js'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 
@@ -17,6 +17,14 @@ export class BackupLogService {
     const log = await this.#restApi.xoApp.getBackupNgLogs(id)
     if (!this.isBackupLog(log)) {
       throw noSuchObject('backup-log')
+    }
+    return log
+  }
+
+  async getRestoreLog(id: AnyXoLog['id']): Promise<XoRestoreLog> {
+    const log = await this.#restApi.xoApp.getBackupNgLogs(id)
+    if (this.isBackupLog(log)) {
+      throw noSuchObject('restore-log')
     }
     return log
   }
