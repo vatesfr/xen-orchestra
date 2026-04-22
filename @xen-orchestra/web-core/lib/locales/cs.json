@@ -521,7 +521,6 @@
   "new-vm": "Nový virt. stroj",
   "new-vm:add": "Přidat nový virt. stroj",
   "new-vm:description": "Popis virt. stroje",
-  "new-vm:feature-not-supported": "Toto je nová podoba vytváření virt. stroje. Nastavení přes cloud-init, pokročilé možnosti a správa vTPM zatím ještě nejsou podporovány. Aktualizovaná verze bude k dispozici brzy v roce 2026. Mezitím je úplná sada funkcí k dispozici zde v {xo-5}",
   "new-vm:install-source": "Instalační zdroj",
   "new-vm:name": "Název virt. stroje",
   "new-vm:network-config": "Nastavování sítě je kompatibilní pouze s {noCloudLink}.",

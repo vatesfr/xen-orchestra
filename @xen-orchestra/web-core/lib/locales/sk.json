@@ -391,7 +391,6 @@
   "new-vif": "Nové VIF",
   "new-vm": "Nový VM",
   "new-vm:description": "Popis VM",
-  "new-vm:feature-not-supported": "Toto je nová podoba vytvárania virt. stroje. Nastavenia cez cloud-init, pokročilé možnosti a správa vTPM zatiaľ ešte nie sú podporované. Aktualizovaná verzia bude k dispozícii čoskoro v roku 2026. Medzitým je úplná sada funkcií k dispozícii tu v {xo-5}",
   "new-vm:install-source": "Zdroj inštalácie",
   "new-vm:name": "Názov VM",
   "new-vm:network-config": "Konfigurácia siete je kompatibilná iba s {noCloudLink}.",
