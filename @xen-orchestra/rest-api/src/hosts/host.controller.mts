@@ -1,4 +1,18 @@
-import { Delete, Example, Get, Path, Put, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
+import {
+  Delete,
+  Example,
+  Get,
+  Middlewares,
+  Path,
+  Put,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+} from 'tsoa'
 import type { Request as ExRequest, Response as ExResponse } from 'express'
 import { inject } from 'inversify'
 import { pipeline } from 'node:stream/promises'
@@ -31,6 +45,7 @@ import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import {
   badRequestResp,
   featureUnauthorized,
+  forbiddenOperationResp,
   internalServerErrorResp,
   noContentResp,
   notFoundResp,
@@ -40,6 +55,7 @@ import {
 import { HostService } from './host.service.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
+import { acl } from '../middlewares/acl.middleware.mjs'
 
 @Route('hosts')
 @Security('*')
@@ -87,21 +103,31 @@ export class HostController extends XapiXoController<XoHost> {
   }
 
   /**
+   * Required privilege:
+   * - resource: host, action: read
+   *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(host)
   @Get('{id}')
+  @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getHost(@Path() id: string): Unbrand<XoHost> {
     return this.getObject(id as XoHost['id'])
   }
 
   /**
+   * Required privilege:
+   * - resource: host, action: read
+   *
    * Host must be running
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(hostStats)
   @Get('{id}/stats')
+  @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(422, 'Invalid granularity')
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -110,6 +136,9 @@ export class HostController extends XapiXoController<XoHost> {
   }
 
   /**
+   * Required privilege:
+   * - resource: host, action: export:logs
+   *
    * Host must be running
    *
    * Download the audit log of a host.
@@ -118,7 +147,9 @@ export class HostController extends XapiXoController<XoHost> {
    *
    */
   @Get('{id}/audit.txt')
+  @Middlewares(acl({ resource: 'host', action: 'export:logs', objectId: 'params.id' }))
   @SuccessResponse(200, 'Download started', 'application/octet-stream')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async getAuditLog(@Request() req: ExRequest, @Path() id: string) {
@@ -138,6 +169,9 @@ export class HostController extends XapiXoController<XoHost> {
   }
 
   /**
+   * Required privilege:
+   * - resource: host, action: export:logs
+   *
    * Host must be running
    *
    * Download all logs of a host.
@@ -146,7 +180,9 @@ export class HostController extends XapiXoController<XoHost> {
    *
    */
   @Get('{id}/logs.tgz')
+  @Middlewares(acl({ resource: 'host', action: 'export:logs', objectId: 'params.id' }))
   @SuccessResponse(200, 'Download started', 'application/gzip')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async getHostLogs(@Request() req: ExRequest, @Path() id: string) {
@@ -195,12 +231,17 @@ export class HostController extends XapiXoController<XoHost> {
   }
 
   /**
+   * Required privilege:
+   * - resource: host, action: read
+   *
    * Returns a boolean indicating whether SMT (Simultaneous Multi-Threading) is enabled
    *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(hostSmt)
   @Get('{id}/smt')
+  @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async gethostSmt(@Path() id: string): Promise<{ enabled: boolean }> {
@@ -213,12 +254,17 @@ export class HostController extends XapiXoController<XoHost> {
   }
 
   /**
+   * Required privilege:
+   * - resource: host, action: read
+   *
    * Host must be running
    *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(hostMissingPatches)
   @Get('{id}/missing_patches')
+  @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(featureUnauthorized.status, featureUnauthorized.description)
   async getMissingPatches(@Path() id: string): Promise<XcpPatches[] | XsPatches[]> {
@@ -291,11 +337,16 @@ export class HostController extends XapiXoController<XoHost> {
   }
 
   /**
+   * Required privilege:
+   * - resource: host, action: update:tags
+   *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    * @example tag "from-rest-api"
    */
   @Put('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'host', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async putHostTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const host = this.getXapiObject(id as XoHost['id'])
@@ -303,11 +354,16 @@ export class HostController extends XapiXoController<XoHost> {
   }
 
   /**
+   * Required privilege:
+   * - resource: host, action: update:tags
+   *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    * @example tag "from-rest-api"
    */
   @Delete('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'host', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteHostTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const host = this.getXapiObject(id as XoHost['id'])
