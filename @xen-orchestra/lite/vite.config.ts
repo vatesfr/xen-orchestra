@@ -54,7 +54,7 @@ export default defineConfig({
 
   // https://vitejs.dev/guide/dep-pre-bundling.html#monorepos-and-linked-dependencies
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         manualChunks: id => {
           if (id.includes('node_modules')) {
@@ -91,9 +91,6 @@ export default defineConfig({
           },
         },
       ],
-    },
-    commonjsOptions: {
-      include: [/complex-matcher/, /node_modules/],
     },
     target: 'es2020',
   },
