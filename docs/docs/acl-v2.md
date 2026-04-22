@@ -26,9 +26,9 @@ ACL v2 follows a **deny-by-default** model:
 
 The system is built around two building blocks:
 
-| Concept | Description |
-|---------|-------------|
-| **Role** | A named container for privileges. |
+| Concept       | Description                                                                                                             |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **Role**      | A named container for privileges.                                                                                       |
 | **Privilege** | A rule inside a role: which action is allowed (or denied) on which resource, and optionally on which subset of objects. |
 
 ### Roles
@@ -40,21 +40,22 @@ A user's effective privileges are the union of all privileges from all their dir
 ### Privileges
 
 A privilege defines:
+
 - **resource** — the type of object (e.g. `vm`, `backup-job`, `sr`)
 - **action** — what operation is allowed or denied (e.g. `read`, `start`, `delete`)
 - **effect** — `allow` or `deny`
-- **selector** *(optional)* — a filter expression to restrict the privilege to a subset of objects (complex-matcher format)
+- **selector** _(optional)_ — a filter expression to restrict the privilege to a subset of objects (complex-matcher format)
 
 ### Action hierarchy
 
 Actions use a `:` separator to form a hierarchy. A broader action automatically covers its children:
 
-| Privilege action | Covers |
-|-----------------|--------|
-| `shutdown` | `shutdown:clean` and `shutdown:hard` |
-| `reboot` | `reboot:clean` and `reboot:hard` |
-| `update` | `update:tags`, `update:datasources`, … |
-| `*` | every action on the resource |
+| Privilege action | Covers                                 |
+| ---------------- | -------------------------------------- |
+| `shutdown`       | `shutdown:clean` and `shutdown:hard`   |
+| `reboot`         | `reboot:clean` and `reboot:hard`       |
+| `update`         | `update:tags`, `update:datasources`, … |
+| `*`              | every action on the resource           |
 
 The reverse is not true: granting `shutdown:clean` does **not** grant `shutdown:hard`.
 
@@ -66,12 +67,12 @@ Xen Orchestra ships with four ready-to-use role templates. They are **immutable*
 
 To use them, **copy** a template into a new role and assign that copy to your users or groups. This ensures the built-in templates always stay up to date without affecting your custom configuration.
 
-| Role | Description |
-|------|-------------|
-| **Read only** | Read access to the entire infrastructure and all XO objects. Cannot modify anything. |
-| **VMs power state manager** | Can start, stop, reboot, pause, suspend, resume, and unpause VMs. |
-| **VMs creator** | Can instantiate VM templates and create VDIs and VIFs. |
-| **VMs read only** | Can only list and view VMs. |
+| Role                        | Description                                                                          |
+| --------------------------- | ------------------------------------------------------------------------------------ |
+| **Read only**               | Read access to the entire infrastructure and all XO objects. Cannot modify anything. |
+| **VMs power state manager** | Can start, stop, reboot, pause, suspend, resume, and unpause VMs.                    |
+| **VMs creator**             | Can instantiate VM templates and create VDIs and VIFs.                               |
+| **VMs read only**           | Can only list and view VMs.                                                          |
 
 ![acl-role copy documented in Swagger](./assets/swagger-role-copy.png)
 
@@ -81,11 +82,11 @@ To use them, **copy** a template into a new role and assign that copy to your us
 
 Some endpoints are always accessible to a logged-in user **without any ACL privilege**, as they only expose information about the user themselves:
 
-| Endpoint | Description |
-|----------|-------------|
-| `GET /rest/v0/users/me` | Get your own user profile |
-| `GET /rest/v0/users/me/privileges` | List your own privileges |
-| `GET /rest/v0/users/me/authentication_tokens` | List your own authentication tokens |
+| Endpoint                                       | Description                                 |
+| ---------------------------------------------- | ------------------------------------------- |
+| `GET /rest/v0/users/me`                        | Get your own user profile                   |
+| `GET /rest/v0/users/me/privileges`             | List your own privileges                    |
+| `GET /rest/v0/users/me/authentication_tokens`  | List your own authentication tokens         |
 | `POST /rest/v0/users/me/authentication_tokens` | Create an authentication token for yourself |
 
 `me` is a convenience alias — it is automatically redirected to `/rest/v0/users/{your-id}`.
@@ -100,55 +101,55 @@ The Swagger UI available at `/rest/v0/swagger` documents every endpoint with its
 
 ### Infrastructure resources
 
-| Resource | Available actions |
-|----------|------------------|
-| `vm` | `read`, `delete`, `export`, `pause`, `start`, `reboot` (`clean`, `hard`), `shutdown` (`clean`, `hard`), `resume`, `snapshot`, `suspend`, `unpause`, `update` (`datasources`, `tags`) |
-| `vm-snapshot` | `read`, `delete`, `export`, `update:tags` |
-| `vm-template` | `read`, `instantiate` |
-| `vm-controller` | `read` |
-| `vdi` | `read`, `create`, `delete`, `boot`, `export-content`, `import-content`, `update:tags` |
-| `vdi-snapshot` | `read` |
-| `vdi-unmanaged` | `read` |
-| `vif` | `read`, `create` |
-| `vbd` | `read` |
-| `sr` | `read`, `import-vdi`, `update:tags` |
-| `host` | `read`, `allow-vm` |
-| `pool` | `read` |
-| `network` | `read` |
-| `pif` | `read` |
-| `pbd` | `read` |
-| `pci` | `read` |
-| `pgpu` | `read` |
-| `vgpu` | `read` |
-| `vgpuType` | `read` |
-| `vtpm` | `read` |
-| `sm` | `read` |
-| `gpuGroup` | `read` |
+| Resource        | Available actions                                                                                                                                                                    |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `vm`            | `read`, `delete`, `export`, `pause`, `start`, `reboot` (`clean`, `hard`), `shutdown` (`clean`, `hard`), `resume`, `snapshot`, `suspend`, `unpause`, `update` (`datasources`, `tags`) |
+| `vm-snapshot`   | `read`, `delete`, `export`, `update:tags`                                                                                                                                            |
+| `vm-template`   | `read`, `instantiate`                                                                                                                                                                |
+| `vm-controller` | `read`                                                                                                                                                                               |
+| `vdi`           | `read`, `create`, `delete`, `boot`, `export-content`, `import-content`, `update:tags`                                                                                                |
+| `vdi-snapshot`  | `read`                                                                                                                                                                               |
+| `vdi-unmanaged` | `read`                                                                                                                                                                               |
+| `vif`           | `read`, `create`                                                                                                                                                                     |
+| `vbd`           | `read`                                                                                                                                                                               |
+| `sr`            | `read`, `import-vdi`, `update:tags`                                                                                                                                                  |
+| `host`          | `read`, `allow-vm`                                                                                                                                                                   |
+| `pool`          | `read`                                                                                                                                                                               |
+| `network`       | `read`                                                                                                                                                                               |
+| `pif`           | `read`                                                                                                                                                                               |
+| `pbd`           | `read`                                                                                                                                                                               |
+| `pci`           | `read`                                                                                                                                                                               |
+| `pgpu`          | `read`                                                                                                                                                                               |
+| `vgpu`          | `read`                                                                                                                                                                               |
+| `vgpuType`      | `read`                                                                                                                                                                               |
+| `vtpm`          | `read`                                                                                                                                                                               |
+| `sm`            | `read`                                                                                                                                                                               |
+| `gpuGroup`      | `read`                                                                                                                                                                               |
 
 ### XO management resources
 
-| Resource | Available actions |
-|----------|------------------|
-| `backup-job` | `read` |
-| `backup-archive` | `read` |
-| `backup-log` | `read` |
-| `backup-repository` | `read` |
-| `schedule` | `read`, `run` |
-| `restore-log` | `read` |
-| `proxy` | `read` |
-| `server` | `read` |
-| `task` | `read` |
-| `alarm` | `read` |
-| `message` | `read` |
+| Resource            | Available actions |
+| ------------------- | ----------------- |
+| `backup-job`        | `read`            |
+| `backup-archive`    | `read`            |
+| `backup-log`        | `read`            |
+| `backup-repository` | `read`            |
+| `schedule`          | `read`, `run`     |
+| `restore-log`       | `read`            |
+| `proxy`             | `read`            |
+| `server`            | `read`            |
+| `task`              | `read`            |
+| `alarm`             | `read`            |
+| `message`           | `read`            |
 
 ### User management resources
 
-| Resource | Available actions |
-|----------|------------------|
-| `user` | `read`, `create`, `delete`, `update` (`name`, `password`, `permission`, `preferences`) |
-| `group` | `read` |
-| `acl-role` | `read` |
-| `acl-privilege` | `read` |
+| Resource        | Available actions                                                                      |
+| --------------- | -------------------------------------------------------------------------------------- |
+| `user`          | `read`, `create`, `delete`, `update` (`name`, `password`, `permission`, `preferences`) |
+| `group`         | `read`                                                                                 |
+| `acl-role`      | `read`                                                                                 |
+| `acl-privilege` | `read`                                                                                 |
 
 ---
 
@@ -231,7 +232,6 @@ To assign to a group instead (all group members inherit the role):
 
 ![add group to role documented in Swagger](./assets/swagger-add-group-to-role.png)
 
-
 ---
 
 ## Selectors
@@ -242,14 +242,12 @@ A selector is evaluated against each object's properties. If it matches, the pri
 
 ### Common selector patterns
 
-| Goal | Selector example |
-|------|-----------------|
-| A specific object by its ID | `id: <uuid>` |
-| All objects in a pool | `$pool: <pool-uuid>` |
-| All VDIs in a specific SR | `$SR: <sr-uuid>` |
-| All VIFs on a specific network | `$network: <network-uuid>` |
-| VMs tagged with a label | `tags: <tag>` |
-| VMs by power state | `power_state: Running` |
+| Goal                           | Selector example              |
+| ------------------------------ | ----------------------------- |
+| A specific object by its ID    | `id: <uuid>`                  |
+| All objects in a pool          | `$pool: <pool-uuid>`          |
+| VMs tagged with a label        | `tags: <tag>`                 |
+| VMs by power state             | `power_state: Running`        |
 | VMs created by a specific user | `creation:creator: <user-id>` |
 
 ---
