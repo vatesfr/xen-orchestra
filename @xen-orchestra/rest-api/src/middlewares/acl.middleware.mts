@@ -7,7 +7,7 @@ import {
   type SupportedResource,
 } from '@xen-orchestra/acl'
 import type { Response, NextFunction } from 'express'
-import type { AuthenticatedRequest } from '../helpers/helper.type.mjs'
+import type { AuthenticatedRequest, MaybePromise } from '../helpers/helper.type.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { iocContainer } from '../ioc/ioc.mjs'
 import type { Branded, NonXapiXoRecord, XapiXoRecord, XoRecord } from '@vates/types'
@@ -84,7 +84,7 @@ type AclEntry = {
           objectIds?: never
           objectId?: never
           getObject?: never
-          objects: object[] | ((opts: { req: AuthenticatedRequest }) => object[])
+          objects: object[] | ((opts: { req: AuthenticatedRequest; restApi: RestApi }) => MaybePromise<object[]>)
           object?: never
         }
       | {
@@ -92,7 +92,7 @@ type AclEntry = {
           objectId?: never
           getObject?: never
           objects?: never
-          object: object | ((opts: { req: AuthenticatedRequest }) => object)
+          object: object | ((opts: { req: AuthenticatedRequest; restApi: RestApi }) => MaybePromise<object>)
         }
     )
 }[SupportedResource]
@@ -144,10 +144,10 @@ function normalizeAclEntry(acl: AclEntry) {
   }
 
   if ('object' in acl && acl.object !== undefined) {
-    let objects: object[] | ((opts: { req: AuthenticatedRequest }) => object[])
+    let objects: object[] | ((opts: { req: AuthenticatedRequest; restApi: RestApi }) => MaybePromise<object[]>)
     if (typeof acl.object === 'function') {
       const fn = acl.object
-      objects = (opts: { req: AuthenticatedRequest }) => [fn(opts)]
+      objects = async (opts: { req: AuthenticatedRequest; restApi: RestApi }) => [await fn(opts)]
     } else {
       objects = [acl.object]
     }
@@ -224,7 +224,7 @@ export function acl(acls: AclEntry | AclEntry[]) {
       }
       if ('objects' in acl) {
         if (typeof acl.objects === 'function') {
-          objects = acl.objects({ req })
+          objects = await acl.objects({ req, restApi })
         } else {
           objects = acl.objects
         }

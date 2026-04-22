@@ -7,5 +7,6 @@ export default {
     password: true,
     permission: true,
     preferences: true,
+    roles: true,
   },
 }
