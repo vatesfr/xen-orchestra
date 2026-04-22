@@ -80,8 +80,9 @@ export class RemoteDiskLineage {
         const existingPath = uuidToPath.get(uuid)
         if (existingPath !== undefined) {
           this.#opts.logWarn('duplicate disk UUID detected', { uuid, path1: existingPath, path2: diskPath })
-          const existingDisk = await openDisk({ handler: this.#handler as any, path: existingPath })
+          let existingDisk: RemoteDisk | undefined
           try {
+            existingDisk = await openDisk({ handler: this.#handler as any, path: existingPath })
             if (existingDisk.containsAllDataOf(disk)) {
               this.#opts.logWarn('dropping duplicate disk, existing is superset', { dropped: diskPath })
               this.#unregisterDisk(diskPath)
@@ -94,8 +95,11 @@ export class RemoteDiskLineage {
               this.#unregisterDisk(diskPath)
               continue
             }
+          } catch (error) {
+            this.#opts.logWarn('failed to open existing duplicate disk, dropping it', { path: existingPath, error })
+            this.#unregisterDisk(existingPath)
           } finally {
-            await existingDisk.close()
+            await existingDisk?.close()
           }
         }
         uuidToPath.set(uuid, diskPath)
