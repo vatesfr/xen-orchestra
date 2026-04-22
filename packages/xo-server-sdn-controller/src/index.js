@@ -13,7 +13,7 @@ import { OvsdbClient } from './protocol/ovsdb-client'
 import { PrivateNetwork } from './private-network/private-network'
 import { TlsHelper } from './utils/tls-helper'
 import { instantiateController } from './openflow-controller'
-import { invalidParameters } from 'api-errors.js'
+import { invalidParameters } from 'xo-common/api-errors'
 
 // =============================================================================
 
@@ -715,7 +715,7 @@ class SDNController extends EventEmitter {
             host: vif.$VM.$resident_on?.uuid,
           })
         } else {
-          throw (error)
+          throw error
         }
       }
 
