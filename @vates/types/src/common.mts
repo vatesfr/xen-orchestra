@@ -740,3 +740,13 @@ export type XapiVmStatsRaw = {
 export type XapiVmStats = XapiStatsResponse<XapiVmStatsRaw>
 
 export type XapiPoolStats = Record<XoHost['id'], XapiHostStats | { error: Record<string, unknown> }>
+
+export interface UpgradablePackage {
+  name: string
+  version: string
+  installedVersion: string
+  release: string
+  description: string
+  size: number
+  sourceRepository: string
+}
