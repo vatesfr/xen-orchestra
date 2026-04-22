@@ -3,6 +3,7 @@
 ## **next**
 
 - Update the UiTitle component to use the one from web-core (PR [#9869](https://github.com/vatesfr/xen-orchestra/pull/9869))
+- [SidePanels] Add and use new `VtsCardObjectTitle` component to display object title and ID in side panels (PR [#9755](https://github.com/vatesfr/xen-orchestra/pull/9755))
 
 ## **0.22.0** (2026-05-28)
 
