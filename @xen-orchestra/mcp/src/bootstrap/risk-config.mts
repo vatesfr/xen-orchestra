@@ -3,31 +3,28 @@ import { randomUUID } from 'node:crypto'
 export type RiskLevel = 'direct' | 'confirm'
 
 /**
- * Patterns are matched in order:
- *   - `METHOD *`      → any operation using that HTTP method
- *   - `tag/operation` → a specific operation within a domain
+ * Patterns matched against the incoming operation:
+ *   - `METHOD *`     → any call using that HTTP method (e.g. all DELETEs)
+ *   - bare string    → an exact operationId (the `operationId` from the spec)
  */
 const CONFIRM_PATTERNS: string[] = [
   'DELETE *',
-  'pools/emergency_shutdown',
-  'pools/rolling_reboot',
-  'pools/rolling_update',
-  'vms/hard_shutdown',
-  'vms/hard_reboot',
+  'EmergencyShutdownPool',
+  'RollingReboot',
+  'RollingUpdate',
+  'HardShutdownVm',
+  'HardRebootVm',
 ]
 
-export function getRiskLevel(method: string, domainTag: string, operationName: string): RiskLevel {
+export function getRiskLevel(method: string, operationId: string): RiskLevel {
   const upperMethod = method.toUpperCase()
-  const key = `${domainTag}/${operationName}`
-
   for (const pattern of CONFIRM_PATTERNS) {
     if (pattern.endsWith(' *')) {
       if (upperMethod === pattern.slice(0, -2)) return 'confirm'
       continue
     }
-    if (key === pattern) return 'confirm'
+    if (operationId === pattern) return 'confirm'
   }
-
   return 'direct'
 }
 
@@ -40,7 +37,6 @@ interface PendingConfirmation {
 }
 
 const CONFIRM_TTL_MS = 5 * 60 * 1000
-
 const pendingConfirmations = new Map<string, PendingConfirmation>()
 
 function cleanExpired(): void {

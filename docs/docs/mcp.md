@@ -228,43 +228,58 @@ Search and retrieve Xen Orchestra documentation. Useful for learning about XO fe
 
 ### Domain query tools
 
-Each domain exposes a single `{domain}_query` tool. The assistant picks an `operation` from the tool's enum and supplies the relevant arguments. All query tools share the same argument shape:
+Each resource family exposes a single `{domain}_query` tool. Domains come from the spec's primary tag (`tags[0]`) verbatim — no client-side remapping. The MCP layer asks the REST API for a pre-rendered markdown table (`?markdown=true`) and relays the bytes verbatim; there is no client-side formatting.
 
-| Parameter   | Type   | Required    | Description                                                                                                                                     |
-| ----------- | ------ | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `operation` | enum   | Yes         | The operation to perform (e.g. `list`, `get`, `dashboard`). The list of valid operations is domain-specific and listed in the tool description. |
-| `id`        | string | If required | Resource ID (required for `get`, sub-resource operations, etc.)                                                                                 |
-| `filter`    | string | No          | [Filter expression](https://docs.xen-orchestra.com/manage_infrastructure#live-filter-search) for list operations                                |
-| `fields`    | string | No          | Comma-separated fields to return. Leave empty to use optimized defaults.                                                                        |
-| `limit`     | number | No          | Maximum number of results for list operations                                                                                                   |
+All query tools share the same argument shape:
 
-Generated domain tools (operation list is indicative — the exact enum depends on your XO version):
+| Parameter   | Type   | Required    | Description                                                                                                              |
+| ----------- | ------ | ----------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `operation` | enum   | Yes         | The OpenAPI `operationId` to invoke. Valid values are listed in the tool description.                                    |
+| `id`        | string | If required | Resource ID (required for single-resource and sub-resource operations)                                                   |
+| `filter`    | string | No          | [Filter expression](https://docs.xen-orchestra.com/manage_infrastructure#live-filter-search) for list operations         |
+| `fields`    | string | No          | Comma-separated fields to return (e.g. `id,name_label`). Passed straight to the REST API; leave empty to get all fields. |
+| `limit`     | number | No          | Maximum number of results for list operations                                                                            |
 
-| Tool                | Covers                                 | Common operations                                                      |
-| ------------------- | -------------------------------------- | ---------------------------------------------------------------------- |
-| `pools_query`       | pools                                  | `list`, `get`, `dashboard`, `alarms`, `missing_patches`, `messages`, … |
-| `hosts_query`       | hosts                                  | `list`, `get`, `alarms`, `smt`, `missing_patches`, `messages`, …       |
-| `vms_query`         | VMs, templates, snapshots, controllers | `list`, `get`, `alarms`, `vdis`, `dashboard`, `list_vm-templates`, …   |
-| `storage_query`     | VDIs, SRs, VBDs, PBDs                  | `list_vdis`, `get_vdi`, `list_srs`, `get_sr`, `list_vbds`, …           |
-| `networks_query`    | networks, VIFs, PIFs                   | `list`, `get`, `list_vifs`, `get_vif`, `list_pifs`, `get_pif`, …       |
-| `backup_query`      | schedules, logs, repositories          | `list_schedules`, `list_backup-logs`, `list_backup-repositories`, …    |
-| `backup-jobs_query` | backup jobs                            | `list`, `get`, `jobs_vm_backup`, `jobs_metadata_backup`, …             |
-| `admin_query`       | users, groups, servers                 | `list_users`, `get_user`, `list_groups`, `list_servers`, …             |
-| `infra_query`       | tasks, messages, alarms, events        | `list_tasks`, `list_messages`, `list_alarms`, `list_events`, …         |
-| `system_query`      | PCIs, PGPUs, proxies, SMs              | `list_pcis`, `list_pgpus`, `list_proxies`, `list_sms`, …               |
-| `docs_query`        | OpenAPI spec                           | `swagger.json`                                                         |
-| `xoa_query`         | XO appliance                           | `list_dashboard`, `list_ping`, `list_gui-routes`                       |
+Operation names are the `operationId`s emitted by the server (tsoa, PascalCase). Examples:
+
+| operationId             | Endpoint                                      |
+| ----------------------- | --------------------------------------------- |
+| `GetPools`              | `GET /pools`                                  |
+| `GetPool`               | `GET /pools/{id}`                             |
+| `GetPoolDashboard`      | `GET /pools/{id}/dashboard`                   |
+| `EmergencyShutdownPool` | `POST /pools/{id}/actions/emergency_shutdown` |
+| `StartVm`               | `POST /vms/{id}/actions/start`                |
+| `DeleteVm`              | `DELETE /vms/{id}`                            |
+| `GetVmAlarms`           | `GET /vms/{id}/alarms`                        |
+
+Generated domains (on a current xo-server):
+
+- Compute: `pools_query`, `hosts_query`, `vms_query` (covers VMs, templates, snapshots, controllers — tsoa groups them under `vms` server-side)
+- Storage: `vdis_query` (includes VDI snapshots), `srs_query`, `vbds_query`, `pbds_query`
+- Network: `networks_query`, `vifs_query`, `pifs_query`
+- Backup: `backup_jobs_query`, `backup_logs_query`, `restore_logs_query`, `backup_repositories_query`, `backup_archives_query`, `schedules_query`
+- Access: `users_query`, `groups_query`, `servers_query`
+- Observability: `alarms_query`, `messages_query`, `events_query`, `tasks_query`
+- System: `proxies_query`, `pgpus_query`, `pcis_query`, `sms_query`, `xoa_query`
+- Misc: `docs_query`
 
 **Example questions:**
 
-- "List all my pools" → `pools_query` with `operation: list`
-- "Show the dashboard for pool X" → `pools_query` with `operation: dashboard, id: X`
-- "How many VMs are currently running?" → `vms_query` with `operation: list, filter: power_state:Running`
-- "List user VDIs larger than 100GB" → `storage_query` with `operation: list_vdis, filter: VDI_type:User`
-- "Show all XCP-ng hosts" → `hosts_query` with `operation: list, filter: productBrand:XCP-ng`
+- "List all my pools" → `pools_query` with `operation: GetPools`
+- "Show the dashboard for pool X" → `pools_query` with `operation: GetPoolDashboard, id: X`
+- "How many VMs are currently running?" → `vms_query` with `operation: GetVms, filter: power_state:Running`
+- "List user VDIs larger than 100GB" → `vdis_query` with `operation: GetVdis, filter: VDI_type:User`
+- "Show all XCP-ng hosts" → `hosts_query` with `operation: GetHosts, filter: productBrand:XCP-ng`
+
+**Configuration env vars:**
+
+| Env var                 | Effect                                                                               |
+| ----------------------- | ------------------------------------------------------------------------------------ |
+| `XO_MCP_ENABLE_ACTIONS` | Set to `1` to expose write operations (`{domain}_action` tools). Default: read-only. |
+| `XO_MCP_DENY_LIST`      | Comma-separated `operationId`s to drop entirely, e.g. `DeleteVm,HardShutdownVm`.     |
 
 :::note Excluded endpoints
-Stats endpoints (`/…/stats`) are deliberately not exposed as MCP tools: a single response can contain hundreds of time-series points across dozens of metrics, blowing past the LLM context window without a meaningful way to narrow the payload via query parameters. Hit the REST API directly (`GET /rest/v0/{resource}/{id}/stats`) when you need raw metric series.
+Stats endpoints (`/…/stats`) and binary downloads (`.xva`, `.ova`, `.raw`, `.vhd`, `.{format}`, …) are deliberately not exposed as MCP tools: their payloads are unsuitable for LLM context. Hit the REST API directly when you need them.
 :::
 
 ### Write operations
@@ -275,12 +290,12 @@ Action tools share this argument shape:
 
 | Parameter       | Type   | Required         | Description                                                                                |
 | --------------- | ------ | ---------------- | ------------------------------------------------------------------------------------------ |
-| `operation`     | enum   | Yes              | The action to perform (e.g. `start`, `delete`, `emergency_shutdown`).                      |
+| `operation`     | enum   | Yes              | The `operationId` of the action to perform (e.g. `StartVm`, `DeleteVm`, `HardShutdownVm`). |
 | `id`            | string | For most actions | Target resource ID                                                                         |
 | `body`          | object | No               | Request body for create/update operations                                                  |
 | `confirm_token` | string | For risky ops    | One-shot token returned by a prior preview call — required to execute dangerous operations |
 
-**Confirmation flow for dangerous operations.** All `DELETE`s and a hand-picked set of destructive operations (`pools/emergency_shutdown`, `pools/rolling_reboot`, `pools/rolling_update`, `vms/hard_shutdown`, `vms/hard_reboot`) require explicit confirmation. The first call returns a preview and a `confirm_token`; the assistant must call back within 5 minutes with that token to execute. This turns "Yes, delete all my snapshots" into a two-step handshake and neutralises accidental destructive calls.
+**Confirmation flow for dangerous operations.** All `DELETE`s and a hand-picked set of destructive operations (`EmergencyShutdownPool`, `RollingReboot`, `RollingUpdate`, `HardShutdownVm`, `HardRebootVm`) require explicit confirmation. The first call returns a preview and a `confirm_token`; the assistant must call back within 5 minutes with that token to execute. This turns "Yes, delete all my snapshots" into a two-step handshake and neutralises accidental destructive calls. Set `XO_MCP_DENY_LIST` to remove them from the exposed surface entirely when you don't want them offered at all.
 
 :::warning Only enable actions if you trust the caller
 Enabling `XO_MCP_ENABLE_ACTIONS` lets the assistant mutate your infrastructure. Confirmations reduce the blast radius for destructive operations, but non-destructive writes (create, update) proceed without a second round-trip. Keep read-only mode unless you have a specific need.

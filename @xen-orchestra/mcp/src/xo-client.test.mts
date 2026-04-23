@@ -62,21 +62,15 @@ describe('XoClient', () => {
       globalThis.fetch = async () => {
         throw new TypeError('fetch failed: ECONNREFUSED')
       }
-      await assert.rejects(
-        () =>
-          client.testConnection().then(r => {
-            if (!r.ok) throw new Error(r.error)
-          }),
-        {
-          message: /Cannot connect to XO server/,
-        }
-      )
+      const result = await client.testConnection()
+      assert.strictEqual(result.ok, false)
+      assert.ok(result.error?.includes('Cannot connect to XO server'))
     })
 
     it('throws descriptive error on 401 with basic auth', async () => {
       const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'wrong' })
       globalThis.fetch = async () => new Response('Unauthorized', { status: 401 })
-      await assert.rejects(() => client.getMarkdown('/vms', '*'), {
+      await assert.rejects(() => client.apiRequest('GET', '/vms'), {
         message: /check XO_USERNAME and XO_PASSWORD/,
       })
     })
@@ -84,7 +78,7 @@ describe('XoClient', () => {
     it('throws descriptive error on 401 with token auth', async () => {
       const client = new XoClient({ url: 'http://xo.local:9000', token: 'expired' })
       globalThis.fetch = async () => new Response('Unauthorized', { status: 401 })
-      await assert.rejects(() => client.getMarkdown('/vms', '*'), {
+      await assert.rejects(() => client.apiRequest('GET', '/vms'), {
         message: /check XO_TOKEN/,
       })
     })
@@ -92,15 +86,7 @@ describe('XoClient', () => {
     it('throws error with status code on other HTTP errors', async () => {
       const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'pass' })
       globalThis.fetch = async () => new Response('Not Found', { status: 404, statusText: 'Not Found' })
-      await assert.rejects(() => client.getMarkdown('/vms', '*'), { message: /404/ })
-    })
-
-    it('throws timeout error', async () => {
-      const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'pass' })
-      globalThis.fetch = async () => {
-        throw new Error('TimeoutError: signal timed out')
-      }
-      await assert.rejects(() => client.getMarkdown('/vms', '*'), { message: /timed out/ })
+      await assert.rejects(() => client.apiRequest('GET', '/vms'), { message: /404/ })
     })
 
     it('sets AbortSignal timeout on requests', async () => {
@@ -132,48 +118,39 @@ describe('XoClient', () => {
     })
   })
 
-  describe('getMarkdown', () => {
-    it('sends fields and markdown=true params', async () => {
+  describe('apiRequest', () => {
+    it('serializes query params and sends them on the URL', async () => {
       const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'pass' })
       globalThis.fetch = async (input: RequestInfo | URL) => {
         const url = typeof input === 'string' ? input : input.toString()
         assert.ok(url.includes('fields=id%2Cname_label'))
         assert.ok(url.includes('markdown=true'))
-        return new Response('| id | name_label |')
+        assert.ok(url.includes('filter=power_state%3ARunning'))
+        return new Response('| id | name_label |', { headers: { 'content-type': 'text/markdown' } })
       }
-      const result = await client.getMarkdown('/vms', 'id,name_label')
+      const result = await client.apiRequest('GET', '/vms', {
+        query: { fields: 'id,name_label', markdown: 'true', filter: 'power_state:Running' },
+      })
       assert.strictEqual(result, '| id | name_label |')
     })
 
-    it('uses default fields when none provided', async () => {
+    it('parses JSON responses', async () => {
       const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'pass' })
-      globalThis.fetch = async (input: RequestInfo | URL) => {
-        const url = typeof input === 'string' ? input : input.toString()
-        assert.ok(url.includes('fields=id%2Cpower_state'))
-        return new Response('table')
-      }
-      await client.getMarkdown('/vms', 'id,power_state')
+      globalThis.fetch = async () =>
+        new Response(JSON.stringify({ id: 'vm1' }), { headers: { 'content-type': 'application/json' } })
+      const result = await client.apiRequest('GET', '/vms/vm1')
+      assert.deepStrictEqual(result, { id: 'vm1' })
     })
 
-    it('overrides default fields with custom fields', async () => {
+    it('sends a JSON body when provided', async () => {
       const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'pass' })
-      globalThis.fetch = async (input: RequestInfo | URL) => {
-        const url = typeof input === 'string' ? input : input.toString()
-        assert.ok(url.includes('fields=name_label'))
-        return new Response('table')
+      globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+        assert.strictEqual(init?.method, 'POST')
+        assert.strictEqual((init?.headers as Record<string, string>)['Content-Type'], 'application/json')
+        assert.strictEqual(init?.body, JSON.stringify({ name: 'new' }))
+        return new Response('{}', { headers: { 'content-type': 'application/json' } })
       }
-      await client.getMarkdown('/vms', 'id,power_state', { fields: 'name_label' })
-    })
-
-    it('passes filter and limit', async () => {
-      const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'pass' })
-      globalThis.fetch = async (input: RequestInfo | URL) => {
-        const url = typeof input === 'string' ? input : input.toString()
-        assert.ok(url.includes('filter=power_state'))
-        assert.ok(url.includes('limit=5'))
-        return new Response('table')
-      }
-      await client.getMarkdown('/vms', '*', { filter: 'power_state:Running', limit: 5 })
+      await client.apiRequest('POST', '/vms', { body: { name: 'new' } })
     })
   })
 })

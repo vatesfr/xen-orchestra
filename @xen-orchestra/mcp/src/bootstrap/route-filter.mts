@@ -1,7 +1,7 @@
 /**
  * Declarative allowlist for REST routes the MCP refuses to expose as tools.
- * `swagger-parser` consults this during parsing; keep exclusions here (not
- * inline) so the rationale stays auditable in one place.
+ * `swagger.mts` consults this during parsing; keep exclusions here (not inline)
+ * so the rationale stays auditable in one place.
  */
 
 export interface RouteExclusion {
@@ -11,8 +11,14 @@ export interface RouteExclusion {
 
 export const EXCLUDED_ROUTES: RouteExclusion[] = [
   {
-    pathPattern: /\.(txt|tgz|tar|gz|zip|raw|iso)$/,
-    reason: 'Binary/file downloads — these endpoints do not return JSON and are meant for direct REST clients.',
+    pathPattern: /\.(txt|tgz|tar|gz|zip|raw|iso|vhd|xva|ova|ndjson)$/,
+    reason:
+      'Binary / non-JSON downloads (archives, disk images, newline-delimited JSON). Streaming these through an LLM context is wasteful and often harmful.',
+  },
+  {
+    pathPattern: /\.\{[^}]+\}$/,
+    reason:
+      'Format-parameterized export endpoints (e.g. /vdis/{id}/vdi.{format}) serve binary payloads — unsuitable for LLM context.',
   },
   {
     pathPattern: /\/stats$/,
