@@ -23,10 +23,9 @@ import { event, prop, slot } from '@/libs/story/story-param'
 import VtsDrawerList from '@core/components/drawer/VtsDrawerList.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { useDrawer } from '@core/packages/drawer/use-drawer.ts'
-import DrawerDemo from './DrawerDemo.vue'
 
 const openDrawer = useDrawer({
-  component: Promise.resolve({ default: DrawerDemo }),
+  component: import('./DrawerDemo.vue'),
   props: { dismissible: true },
 })
 </script>
