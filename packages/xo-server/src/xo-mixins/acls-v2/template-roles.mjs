@@ -66,6 +66,7 @@ export const VMS_CREATOR = {
   name: 'VMs creator',
   description: 'Allow to create VMs',
   privileges: [
+    { action: 'create:vm', resource: 'pool', effect: 'allow' },
     { action: 'instantiate', resource: 'vm-template', effect: 'allow' },
     { action: 'create', resource: 'vdi', effect: 'allow' },
     { action: 'create', resource: 'vif', effect: 'allow' },
