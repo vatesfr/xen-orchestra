@@ -13,8 +13,7 @@
     class="warning-not-current-pool"
     @click="xenApi.resetPoolMasterIp"
   >
-    <div class="wrapper">
-      <VtsIcon name="fa:triangle-exclamation" size="medium" />
+    <UiInfo accent="warning">
       <p v-if="!asTooltip">
         <I18nT keypath="you-are-currently-on">
           <strong>{{ masterSessionStorage }}</strong>
@@ -22,13 +21,13 @@
         <br />
         {{ t('click-to-return-default-pool') }}
       </p>
-    </div>
+    </UiInfo>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { useXenApiStore } from '@/stores/xen-api.store'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useSessionStorage } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
@@ -47,14 +46,5 @@ const masterSessionStorage = useSessionStorage('master', null)
 .warning-not-current-pool {
   color: var(--color-warning-txt-base);
   cursor: pointer;
-
-  .wrapper {
-    display: flex;
-    justify-content: center;
-
-    svg {
-      margin: auto 1rem;
-    }
-  }
 }
 </style>
