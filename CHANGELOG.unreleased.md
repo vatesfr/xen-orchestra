@@ -44,6 +44,7 @@
 - [VM] Add possibility to remove a VBD on VDI tab (PR [#9698](https://github.com/vatesfr/xen-orchestra/pull/9698))
 - **XO 5**:
   - [Settings/Servers] Add info tip to remind users to only add pool masters
+  - [REST API] Add `POST rest/v0/plugins/sdn-controller/vifs/:id/rules` and `DELETE rest/v0/plugins/sdn-controller/vifs/:id/rules` traffic rule endpoints for VIFs ([#9418](https://github.com/vatesfr/xen-orchestra/pull/9418))
 
 ### Bug fixes
 
