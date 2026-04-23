@@ -248,7 +248,7 @@ export class RemoteVhdDiskChain extends RemoteDisk {
   }
 
   /**
-   * @param {RemoteVhdDisk} childDisk
+   * @param {RemoteDisk} childDisk
    * @returns {Promise<void>}
    */
   async flushMetadata(childDisk) {
@@ -256,7 +256,7 @@ export class RemoteVhdDiskChain extends RemoteDisk {
   }
 
   /**
-   * @param {RemoteVhdDisk} childDisk
+   * @param {RemoteDisk} childDisk
    * @returns {Promise<void>}
    */
   mergeMetadata(childDisk) {
@@ -282,10 +282,11 @@ export class RemoteVhdDiskChain extends RemoteDisk {
 
   /**
    * Deletes all the disks
+   * @param {Object} options
    */
-  async unlink() {
+  async unlink({ force = false } = {}) {
     for (const disk of this.#disks) {
-      await disk.unlink()
+      await disk.unlink({ force })
     }
   }
 

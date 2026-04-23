@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+    "declaration": true,
+    "strict": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "ES2022",
+    "rootDir": "./src",
+    "skipLibCheck": true,
+    "noImplicitAny": false,
+    "types": ["node"] // Only use types from Node.js and packages that are explicitly imported
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

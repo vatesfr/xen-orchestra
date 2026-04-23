@@ -4726,6 +4726,13 @@
     "@types/express" "*"
     "@types/serve-static" "*"
 
+"@types/tar-stream@^3.1.4":
+  version "3.1.4"
+  resolved "https://registry.yarnpkg.com/@types/tar-stream/-/tar-stream-3.1.4.tgz#7eca21004291f8d4803437fe20cc01b0744782a8"
+  integrity sha512-921gW0+g29mCJX0fRvqeHzBlE/XclDaAG0Ousy1LCghsOhvaKacDeRGEVzQP9IPfKn8Vysy7FEXAIxycpc/CMg==
+  dependencies:
+    "@types/node" "*"
+
 "@types/through2@^2.0.31":
   version "2.0.41"
   resolved "https://registry.yarnpkg.com/@types/through2/-/through2-2.0.41.tgz#3e5e1720d71ffdfa03c22f2aad6593d12a47034f"
@@ -5372,6 +5379,49 @@
   version "13.9.0"
   resolved "https://registry.yarnpkg.com/@vueuse/shared/-/shared-13.9.0.tgz#7168b4ed647e625b05eb4e7e80fe8aabd00e3923"
   integrity sha512-e89uuTLMh0U5cZ9iDpEI2senqPGfbPRTHM/0AaQkcxnpqjkZqDYP8rpfm7edOz8s+pOCOROEy1PIveSW8+fL5g==
+
+"@xen-orchestra/backups@^0.69.2":
+  version "0.69.5"
+  resolved "https://registry.yarnpkg.com/@xen-orchestra/backups/-/backups-0.69.5.tgz#48e6c62c3e1b0510315e4d384cf5f008b3109d5d"
+  integrity sha512-0IVKmuynN7f+4FsFHHVml1Eh6oeoWa8kYuOJTdzKbPf6r9Cb6nzi+n/vvOf2u1/zSQbADpl6fYHbMFf/JnT/cw==
+  dependencies:
+    "@iarna/toml" "^2.2.5"
+    "@kldzj/stream-throttle" "^1.1.1"
+    "@vates/async-each" "^1.0.1"
+    "@vates/cached-dns.lookup" "^1.0.0"
+    "@vates/compose" "^2.1.0"
+    "@vates/decorate-with" "^2.1.0"
+    "@vates/disposable" "^0.1.6"
+    "@vates/fuse-vhd" "^2.1.2"
+    "@vates/generator-toolbox" "^1.1.0"
+    "@vates/nbd-client" "^3.2.3"
+    "@vates/parse-duration" "^0.1.1"
+    "@xen-orchestra/async-map" "^0.1.2"
+    "@xen-orchestra/disk-transform" "^1.2.1"
+    "@xen-orchestra/fs" "^4.6.7"
+    "@xen-orchestra/log" "^0.7.1"
+    "@xen-orchestra/qcow2" "^1.1.2"
+    "@xen-orchestra/template" "^0.1.0"
+    app-conf "^3.0.0"
+    compare-versions "^6.0.0"
+    d3-time-format "^4.1.0"
+    decorator-synchronized "^0.6.0"
+    golike-defer "^0.5.1"
+    human-format "^1.2.0"
+    limit-concurrency-decorator "^0.6.0"
+    lodash "^4.17.20"
+    moment-timezone "^0.5.46"
+    ms "^2.1.3"
+    node-zone "^0.4.0"
+    parse-pairs "^2.0.0"
+    promise-toolbox "^0.21.0"
+    proper-lockfile "^4.1.2"
+    tar "^7.5.3"
+    uuid "^9.0.0"
+    value-matcher "^0.2.0"
+    vhd-lib "^4.14.7"
+    xen-api "^4.7.6"
+    yazl "^2.5.1"
 
 "@xen-orchestra/log@^0.6.0":
   version "0.6.0"
@@ -13660,7 +13710,7 @@ lodash.upperfirst@^4.3.1:
   resolved "https://registry.yarnpkg.com/lodash.upperfirst/-/lodash.upperfirst-4.3.1.tgz#1365edf431480481ef0d1c68957a5ed99d49f7ce"
   integrity sha512-sReKOYJIJf74dhJONhU4e0/shzi1trVbSWDOhKYE5XV2O+H7Sb2Dihwuc7xWxVl+DgFPyTqIN3zMfT9cq5iWDg==
 
-lodash@^4.17.11, lodash@^4.17.21, lodash@^4.17.4, lodash@^4.18.0, lodash@^4.2.0, lodash@^4.2.1:
+lodash@^4.17.11, lodash@^4.17.20, lodash@^4.17.21, lodash@^4.17.4, lodash@^4.18.0, lodash@^4.2.0, lodash@^4.2.1:
   version "4.18.1"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.18.1.tgz#ff2b66c1f6326d59513de2407bf881439812771c"
   integrity sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q==
@@ -19045,7 +19095,7 @@ tap@^18.6.1, tap@^18.7.0:
     "@tapjs/worker" "1.1.22"
     resolve-import "^1.4.5"
 
-tar-stream@^3.1.6:
+tar-stream@^3.1.6, tar-stream@^3.1.8:
   version "3.1.8"
   resolved "https://registry.yarnpkg.com/tar-stream/-/tar-stream-3.1.8.tgz#a26f5b26c34dfd4936a4f8a9e694a8f5102af13d"
   integrity sha512-U6QpVRyCGHva435KoNWy9PRoi2IFYCgtEhq9nmrPPpbRacPs9IH4aJ3gbrFC8dPcXvdSZ4XXfXT5Fshbp2MtlQ==
@@ -19573,7 +19623,7 @@ typescript-eslint@^8.23.0:
     "@typescript-eslint/typescript-estree" "8.58.2"
     "@typescript-eslint/utils" "8.58.2"
 
-typescript@5, typescript@^5.0.0, typescript@^5.0.3, typescript@^5.7.2:
+typescript@5, typescript@^5.0.0, typescript@^5.0.3, typescript@^5.7.2, typescript@^5.9.3:
   version "5.9.3"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.9.3.tgz#5b4f59e15310ab17a216f5d6cf53ee476ede670f"
   integrity sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==

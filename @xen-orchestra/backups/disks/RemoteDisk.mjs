@@ -75,6 +75,30 @@ export class RemoteDisk extends RandomAccessDisk {
 
   /**
    * Abstract
+   * @returns {string}
+   */
+  getParentUuid() {
+    throw new Error(`getUuid must be implemented`)
+  }
+
+  /**
+   * Abstract
+   * @returns {string}
+   */
+  getParentPath() {
+    throw new Error(`getUuid must be implemented`)
+  }
+
+  /**
+   * Abstract
+   * @returns {object}
+   */
+  getMetadata() {
+    throw new Error(`getMetadata must be implemented`)
+  }
+
+  /**
+   * Abstract
    * @returns {Promise<boolean>} canMergeConcurently
    */
   async canMergeConcurently() {
@@ -86,6 +110,18 @@ export class RemoteDisk extends RandomAccessDisk {
    */
   getMaxBlockCount() {
     return Math.ceil(this.getVirtualSize() / this.getBlockSize())
+  }
+
+  /**
+   * Returns true if every block present in `other` is also present in this disk.
+   * @param {RemoteDisk} other
+   * @returns {boolean}
+   */
+  containsAllDataOf(other) {
+    for (const blockIndex of other.getBlockIndexes()) {
+      if (!this.hasBlock(blockIndex)) return false
+    }
+    return true
   }
 
   /**
@@ -205,9 +241,32 @@ export class RemoteDisk extends RandomAccessDisk {
   /**
    * Abstract
    * Deletes alias/disk/disks
+   * @param {Object} options
    */
-  async unlink() {
+  async unlink({ force = false } = {}) {
     throw new Error(`unlink must be implemented`)
+  }
+
+  /**
+   * Checks the integrity of the disk's external reference (e.g. alias target).
+   * @param {Object} [opts]
+   * @param {boolean} [opts.remove]
+   * @param {Function} [opts.logWarn]
+   * @param {Function} [opts.logInfo]
+   * @returns {Promise<string | undefined>}
+   */
+  async clean(opts = {}) {
+    return undefined
+  }
+
+  /**
+   * Returns all file paths within dir that this disk claims.
+   *
+   * @param {string} dir
+   * @returns {Promise<string[]>}
+   */
+  async listAssociatedFiles(dir) {
+    throw new Error(`listAssociatedFiles must be implemented`)
   }
 
   /**

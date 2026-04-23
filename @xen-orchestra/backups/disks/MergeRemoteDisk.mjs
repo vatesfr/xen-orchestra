@@ -10,15 +10,15 @@ import { createLogger } from '@xen-orchestra/log'
 
 import { basename, dirname } from 'path'
 import { asyncEach } from '@vates/async-each'
-import { relativeFromFile } from '@xen-orchestra/fs/path'
+import { relativeFromFile, normalize, resolveFromFile } from '@xen-orchestra/fs/path'
 
 // @ts-ignore
 const { warn } = createLogger('remote-disk:merge')
 
 /**
  * @typedef {Object} MergeState
- * @property {{ uuid: string }} child
- * @property {{ uuid: string }} parent
+ * @property {{ uuid?: string }} child
+ * @property {{ uuid?: string }} parent
  * @property { string[]  | undefined} chain
  * @property {number} currentBlock
  * @property {number} mergedDataSize
@@ -321,5 +321,45 @@ export class MergeRemoteDisk {
     }
 
     return { mergedDataSize, finalDiskSize }
+  }
+
+  /**
+   * Scans vdiDir files for interrupted merge state files and resolves their chains
+   *
+   * @param {FileAccessor} handler
+   * @param {string} vdiDir
+   * @param {string[]} files - all file paths in vdiDir (prependDir: true)
+   * @param {Map<string, string>} uuidToPath - diskUuid: normalized disk path
+   * @param {Map<string, string>} childOf - parentPath: child path (from disk headers)
+   * @returns {Promise<Map<string, { stateFilePath: string, chain?: string[] }>>}
+   */
+  static async findInterruptedMerges(handler, vdiDir, files, uuidToPath, childOf) {
+    const STATE_FILE_RE = /^\.(.+)\.merge\.json$/
+    const result = new Map()
+
+    for (const filePath of files) {
+      const match = STATE_FILE_RE.exec(basename(filePath))
+      if (match === null) continue
+
+      const parentPath = normalize(vdiDir + '/' + match[1])
+      let chain
+      try {
+        const state = JSON.parse(await handler.readFile(filePath))
+        if (Array.isArray(state?.chain)) {
+          chain = state.chain.map((/** @type {string} */ relPath) => normalize(resolveFromFile(filePath, relPath)))
+        } else {
+          // old state file without chain: fall back to UUID lookup then header-based map
+          const childUuid = state?.child?.uuid
+          const childPath = childUuid !== undefined ? uuidToPath.get(childUuid) : childOf.get(parentPath)
+          if (childPath !== undefined) chain = [parentPath, childPath]
+        }
+      } catch {
+        warn("Merge state unreadable, can't restart merging.")
+      }
+
+      result.set(parentPath, { stateFilePath: filePath, chain })
+    }
+
+    return result
   }
 }
