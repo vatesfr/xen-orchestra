@@ -5,7 +5,7 @@ import { provide } from 'inversify-binding-decorators'
 import type { XoAlarm, XoMessage } from '@vates/types'
 
 import { alarm, alarmIds, partialAlarms } from '../open-api/oa-examples/alarm.oa-example.mjs'
-import { acl } from '../middlewares/acl.middleware.mjs'
+import { acl, autoBindService } from '../middlewares/acl.middleware.mjs'
 import {
   badRequestResp,
   forbiddenOperationResp,
@@ -76,17 +76,19 @@ export class AlarmController extends XapiXoController<XoAlarm> {
   /**
    * Required privilege:
    * - resource: alarm, action: read
-   * 
+   *
    * @example id "0c98c71c-2f9c-d5c2-b9b6-2c8371730eab"
    */
   @Example(alarm)
   @Get('{id}')
-  // @ts-ignore
-  @Middlewares(acl({
-    resource: 'alarm', action: 'read', objectId: 'params.id', getObject: () => {
-      // TODO after rebase
-    }
-  }))
+  @Middlewares(
+    acl({
+      resource: 'alarm',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: autoBindService(AlarmService, 'getAlarm'),
+    })
+  )
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getAlarm(@Path() id: string): UnbrandedXoAlarm {
