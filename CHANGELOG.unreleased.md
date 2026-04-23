@@ -39,6 +39,7 @@
 - [OpenMetrics] Add VM status (`xcp_vm_status`) and VM uptime (`xcp_vm_uptime_seconds`) metrics [#9684](https://github.com/vatesfr/xen-orchestra/pull/9684)
 - [REST API] Fix the `href` property in collection responses when the request URL has a trailing slash. (PR [#9741](https://github.com/vatesfr/xen-orchestra/pull/9741))
 - [REST API] Expose `POST /vifs/:id/actions/connect` and `POST /vifs/:id/actions/disconnect` (PR [#9643](https://github.com/vatesfr/xen-orchestra/pull/9643))
+- [REST API] Add `POST rest/v0/plugins/sdn-controller/vifs/:id/rules` and `DELETE rest/v0/plugins/sdn-controller/vifs/:id/rules` traffic rule endpoints for VIFs ([#9418](https://github.com/vatesfr/xen-orchestra/pull/9418))
 - [VM] Add possibility to remove a VIF on network tab (PR [#9601](https://github.com/vatesfr/xen-orchestra/pull/9601))
 - [VM] Add possibility to remove a VDI on VDI tab (PR [#9689](https://github.com/vatesfr/xen-orchestra/pull/9689))
 - [VM] Add possibility to remove a VBD on VDI tab (PR [#9698](https://github.com/vatesfr/xen-orchestra/pull/9698))
@@ -117,7 +118,7 @@
 - xo-server-load-balancer patch
 - xo-server-netbox minor
 - xo-server-openmetrics minor
-- xo-server-sdn-controller patch
+- xo-server-sdn-controller minor
 - xo-server-usage-report patch
 - xo-vmdk-to-vhd patch
 - xo-web minor
