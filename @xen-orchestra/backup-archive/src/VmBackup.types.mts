@@ -1,11 +1,4 @@
 import RemoteHandlerAbstract from '@xen-orchestra/fs'
-import { basename } from 'node:path'
-
-export type AnomalyReport = {
-  multipleChildren: Array<string>
-  brokenChains: Array<string>
-  incompleteChains: Array<string>
-}
 
 export interface PartialBackupMetadata {
   mode: 'full' | 'delta'

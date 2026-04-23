@@ -250,13 +250,6 @@ export class RemoteDiskLineage {
       }
     }
 
-    if (!merge && toMerge.length > 0) {
-      this.#opts.logWarn('Disk chain needs merging', { count: toMerge.length })
-    }
-
-    // mergeTargetPath → final size of the disk everything was merged into
-    const mergedSizes = new Map<string, number>()
-
     if (remove) {
       await asyncEach(
         Array.from(toDelete),
@@ -273,6 +266,12 @@ export class RemoteDiskLineage {
       )
     }
 
+    if (toMerge.length > 0) {
+      this.#opts.logInfo('Disk chain needs merging', { count: toMerge.length })
+    }
+
+    // mergeTargetPath: final size of the disk everything was merged into
+    const mergedSizes = new Map<string, number>()
     if (merge) {
       await asyncEach(
         toMerge,
