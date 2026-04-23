@@ -14,6 +14,15 @@ describe('route-filter', () => {
       assert.ok(isExcludedRoute('/backup-archives/{id}.tgz'))
       assert.ok(isExcludedRoute('/vdis/{id}.raw'))
       assert.ok(isExcludedRoute('/backup-logs/{id}.txt'))
+      assert.ok(isExcludedRoute('/backup-logs/{id}.ndjson'))
+      assert.ok(isExcludedRoute('/vms/{id}/export.xva'))
+      assert.ok(isExcludedRoute('/vms/{id}/export.ova'))
+      assert.ok(isExcludedRoute('/vdis/{id}.vhd'))
+    })
+
+    it('excludes format-parameterized export endpoints', () => {
+      assert.ok(isExcludedRoute('/vdis/{id}/vdi.{format}'))
+      assert.ok(isExcludedRoute('/vms/{id}/export.{format}'))
     })
 
     it('does not exclude regular endpoints', () => {
@@ -24,7 +33,6 @@ describe('route-filter', () => {
     })
 
     it('does not false-match paths containing "stats" as a segment prefix', () => {
-      // Only trailing /stats is excluded — guard against drift.
       assert.strictEqual(isExcludedRoute('/stats-report'), undefined)
       assert.strictEqual(isExcludedRoute('/pools/{id}/stats-summary'), undefined)
     })

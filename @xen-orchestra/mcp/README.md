@@ -102,7 +102,7 @@ To generate a token, go to the XO user page (`/user`) or run `xo-cli create-toke
 
 ### Available Tools
 
-At startup, the server fetches the OpenAPI spec from your XO instance (`/rest/v0/docs/swagger.json`) and generates one tool per resource domain. Each domain tool takes an `operation` enum plus optional `id`/`filter`/`fields`/`limit` arguments, so the exact list of operations reflects the XO version you connect to.
+At startup, the server fetches the OpenAPI spec from your XO instance (`/rest/v0/docs/swagger.json`) and generates one tool per resource domain. Domain and operation names come straight from the spec: the primary tag (`tags[0]`) becomes `{tag}_query`, and each `operationId` (e.g. `GetVms`, `StartVm`, `HardShutdownVm`) is used verbatim as the enum value. No hand-curated mapping — if the XO server adds a new endpoint, it appears automatically. Responses are rendered as markdown tables by the REST API itself (via `?markdown=true`); the MCP layer only relays them.
 
 **Utility tools** (always present):
 
@@ -112,24 +112,25 @@ At startup, the server fetches the OpenAPI spec from your XO instance (`/rest/v0
 | `search_documentation`       | Search and retrieve Xen Orchestra documentation                             |
 | `get_infrastructure_summary` | Aggregate pools/hosts/VMs across the infrastructure into a markdown summary |
 
-**Domain query tools** (generated, read-only):
+**Domain query tools** (generated, read-only). Each tool accepts an `operation` enum (the OpenAPI `operationId`) plus optional `id`, `filter`, `fields`, `limit`. On a current xo-server the generated domains are:
 
-| Tool                | Typical operations                                                     |
-| ------------------- | ---------------------------------------------------------------------- |
-| `pools_query`       | `list`, `get`, `dashboard`, `alarms`, `missing_patches`, `messages`, … |
-| `hosts_query`       | `list`, `get`, `alarms`, `smt`, `missing_patches`, `messages`, …       |
-| `vms_query`         | `list`, `get`, `alarms`, `vdis`, `backup-jobs`, `dashboard`, …         |
-| `storage_query`     | `list_vdis`, `get_vdi`, `list_srs`, `get_sr`, `list_vbds`, …           |
-| `networks_query`    | `list`, `get`, `list_vifs`, `get_vif`, `list_pifs`, `get_pif`, …       |
-| `backup_query`      | `list_schedules`, `list_backup-logs`, `list_backup-repositories`, …    |
-| `backup-jobs_query` | `list`, `get`, `jobs_vm_backup`, `jobs_metadata_backup`, …             |
-| `admin_query`       | `list_users`, `get_user`, `list_groups`, `list_servers`, …             |
-| `infra_query`       | `list_tasks`, `list_messages`, `list_alarms`, `list_events`, …         |
-| `system_query`      | `list_pcis`, `list_pgpus`, `list_proxies`, `list_sms`, …               |
-| `docs_query`        | `swagger.json`                                                         |
-| `xoa_query`         | `list_dashboard`, `list_ping`, `list_gui-routes`                       |
+- Compute: `pools_query`, `hosts_query`, `vms_query` (covers VMs, templates, snapshots, controllers — tsoa groups them under the `vms` tag server-side)
+- Storage: `vdis_query` (includes VDI snapshots), `srs_query`, `vbds_query`, `pbds_query`
+- Network: `networks_query`, `vifs_query`, `pifs_query`
+- Backup: `backup_jobs_query`, `backup_logs_query`, `restore_logs_query`, `backup_repositories_query`, `backup_archives_query`, `schedules_query`
+- Access: `users_query`, `groups_query`, `servers_query`
+- Observability: `alarms_query`, `messages_query`, `events_query`, `tasks_query`
+- System: `proxies_query`, `pgpus_query`, `pcis_query`, `sms_query`, `xoa_query`
+- Misc: `docs_query`
 
-Stats endpoints (`/…/stats`) are deliberately not exposed — the time-series payloads would exceed the LLM context window. Query them via the REST API directly when needed.
+Stats endpoints (`/…/stats`) and binary download endpoints (`.xva`, `.ova`, `.vhd`, `.raw`, …) are deliberately not exposed — the payloads are unsuitable for LLM context. Query them via the REST API directly when needed.
+
+### Configuration
+
+| Env var                 | Effect                                                                                   |
+| ----------------------- | ---------------------------------------------------------------------------------------- |
+| `XO_MCP_ENABLE_ACTIONS` | Set to `1` to expose write operations (`{domain}_action` tools). Default: read-only.     |
+| `XO_MCP_DENY_LIST`      | Comma-separated list of `operationId`s to drop entirely, e.g. `DeleteVm,HardShutdownVm`. |
 
 ### Write operations
 
