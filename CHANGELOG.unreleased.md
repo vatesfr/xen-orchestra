@@ -45,6 +45,7 @@
 - [VDI] Add chainPhysicalUsage to have a proper usage linked to the complete chain (PR [#9708](https://github.com/vatesfr/xen-orchestra/pull/9708))
 - **XO 5**:
   - [Settings/Servers] Add info tip to remind users to only add pool masters
+- [SidePanels] Add and use new `VtsCardObjectTitle` component to display object title and ID in side panels (PR [#9755](https://github.com/vatesfr/xen-orchestra/pull/9755))
 
 ### Bug fixes
 
