@@ -117,6 +117,7 @@
 - xo-server-load-balancer patch
 - xo-server-netbox minor
 - xo-server-openmetrics minor
+- xo-server-package-manager major
 - xo-server-sdn-controller patch
 - xo-server-usage-report patch
 - xo-vmdk-to-vhd patch

@@ -217,6 +217,9 @@ export type XoApp = {
     backupRepositoryIds: XoBackupRepository['id'][],
     opts?: { _forceRefresh?: boolean; vmId: XoVm['id'] }
   ): Promise<Record<XoBackupRepository['id'], Record<XoVm['id'], XoVmBackupArchive[]>>>
+  addApiMethods(methods: Record<string, unknown>): () => void
+  defineProperty(name: string, value: unknown, thisArg?: object): () => void
+  defineProperties(props: Record<string, unknown>): () => void
   /** Allow to add a new server in the DB (XCP-ng/XenServer) */
   registerXenServer(
     body: Pick<XoServer, 'host' | 'httpProxy' | 'label' | 'username'> & {
