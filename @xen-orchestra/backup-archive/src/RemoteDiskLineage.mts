@@ -324,10 +324,14 @@ export class RemoteDiskLineage {
   async #cleanOrphanDataFiles(remove: boolean): Promise<void> {
     const claimedFiles = new Set<string>()
     for (const diskPath of this.#diskPaths) {
+      let claimed: string[] = []
       const disk = await openDisk({ handler: this.#handler as any, path: diskPath, ignoreBlockIndexes: true })
-      await disk.clean({ remove, logWarn: this.#opts.logWarn, logInfo: this.#opts.logInfo })
-      const claimed = await disk.listAssociatedFiles(this.#vdiDir)
-      await disk.close()
+      try {
+        await disk.clean({ remove, logWarn: this.#opts.logWarn, logInfo: this.#opts.logInfo })
+        claimed = await disk.listAssociatedFiles(this.#vdiDir)
+      } finally {
+        await disk.close()
+      }
       for (const f of claimed) claimedFiles.add(normalize(f))
     }
 
