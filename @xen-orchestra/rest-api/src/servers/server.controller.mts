@@ -21,10 +21,12 @@ import type { XoServer, XoTask } from '@vates/types'
 
 import type { InsertableXoServer } from './server.type.mjs'
 
+import { acl } from '../middlewares/acl.middleware.mjs'
 import {
   asynchronousActionResp,
   badRequestResp,
   createdResp,
+  forbiddenOperationResp,
   invalidParameters,
   noContentResp,
   notFoundResp,
@@ -85,26 +87,53 @@ export class ServerController extends XoController<XoServer> {
   }
 
   /**
+   * Required privilege:
+   * - resource: server, action: read
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(server)
   @Get('{id}')
+  @Middlewares(
+    acl({
+      resource: 'server',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getXenServer,
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getServer(@Path() id: string): Promise<Unbrand<XoServer>> {
     return this.getObject(id as XoServer['id'])
   }
 
   /**
+   * Required privilege:
+   * - resource: server, action: delete
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Delete('{id}')
+  @Middlewares(
+    acl({
+      resource: 'server',
+      action: 'delete',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getXenServer,
+    })
+  )
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteServer(@Path() id: string) {
     await this.restApi.xoApp.unregisterXenServer(id as XoServer['id'])
   }
 
   /**
+   * Required privilege:
+   * - resource: server, action: create
+   *
    * @example body {
    *   "allowUnauthorized": true,
    *   "host": "192.168.1.10",
@@ -115,8 +144,9 @@ export class ServerController extends XoController<XoServer> {
    */
   @Example(serverId)
   @Post('')
-  @Middlewares(json())
+  @Middlewares([json(), acl({ resource: 'server', action: 'create', object: ({ req }) => req.body })])
   @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(resourceAlreadyExists.status, resourceAlreadyExists.description)
   @Response(invalidParameters.status, invalidParameters.description)
   async addServer(@Body() body: InsertableXoServer): Promise<{ id: string }> {
@@ -125,12 +155,24 @@ export class ServerController extends XoController<XoServer> {
   }
 
   /**
+   * Required privilege:
+   * - resource: server, action: connect
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
   @Post('{id}/actions/connect')
+  @Middlewares(
+    acl({
+      resource: 'server',
+      action: 'connect',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getXenServer,
+    })
+  )
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(409, 'The server is already connected')
   connectServer(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
@@ -147,12 +189,24 @@ export class ServerController extends XoController<XoServer> {
   }
 
   /**
+   * Required privilege:
+   * - resource: server, action: disconnect
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
   @Post('{id}/actions/disconnect')
+  @Middlewares(
+    acl({
+      resource: 'server',
+      action: 'disconnect',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getXenServer,
+    })
+  )
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(409, 'The server is already disconnected')
   disconnectServer(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
