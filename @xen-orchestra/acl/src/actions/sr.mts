@@ -1,5 +1,8 @@
 export default {
-  'import-vdi': true,
+  import: {
+    vdi: true,
+    vm: true,
+  },
   read: true,
   update: {
     tags: true,
