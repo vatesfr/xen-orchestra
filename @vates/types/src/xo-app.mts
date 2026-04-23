@@ -79,6 +79,13 @@ type XapiRecordByXapiXoRecord = {
   VTPM: XenApiVtpmWrapped
 }
 export type XoApp = {
+  hooks: EventEmitter
+  _redis: {
+    get(key: string): Promise<string | null>
+    mSet(args: string[]): Promise<unknown>
+    sMembers(key: string): Promise<string[]>
+    sIsMember(key: string, member: string): Promise<boolean>
+  }
   config: {
     get<T = string>(path: string): T
     getOptional(path: string): Record<string, string> | undefined

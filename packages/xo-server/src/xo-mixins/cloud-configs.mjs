@@ -14,6 +14,7 @@ export default class {
       const db = (this._db = new CloudConfigs({
         connection: app._redis,
         namespace: 'cloudConfig',
+        crypto: app.cryptoCredentials,
       }))
 
       return app.addConfigManager(
