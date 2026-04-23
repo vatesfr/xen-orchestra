@@ -54,13 +54,13 @@ export default class CryptoCredentials {
   constructor(app) {
     this._app = app
 
-    app.hooks.on('start core', () => {
+    this._app.hooks.on('start core', () => {
       if (app.config.getOptional('redis.encryptCredentialDatabase') ?? false) {
         return this.initialize()
       }
     })
 
-    app.hooks.on('start', async () => {
+    this._app.hooks.on('start', async () => {
       if (this.#migrationRequired) {
         try {
           await this._migrateToEncrypted()
@@ -76,7 +76,7 @@ export default class CryptoCredentials {
   }
 
   async initialize() {
-    const readOrUndefined = async (/** @type () => Promise<any> */ fn) => {
+    const readOrUndefined = async (/** @type () => Promise<Buffer | undefined> */ fn) => {
       try {
         return await fn()
       } catch {
@@ -222,13 +222,11 @@ export default class CryptoCredentials {
       if (redisContent[namespace][testedId] === null) continue
 
       const testedValue = await this._app._redis.get('xo:' + namespace + ':' + testedId)
-      try {
-        if (!testedValue.startsWith(ENCRYPTION_PREFIX)) throw new Error()
-
-        await this._app.decrypt(testedValue)
-      } catch {
-        throw new Error(`An error occurred during encryption migration`)
+      if (!testedValue.startsWith(ENCRYPTION_PREFIX)) {
+        throw new Error(`Missing prefix when checking migrated data, got ${testedValue}`)
       }
+
+      await this._app.decrypt(testedValue)
     }
 
     // Delete backup file if the verification has not thrown
