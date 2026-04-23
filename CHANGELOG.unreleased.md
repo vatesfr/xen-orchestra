@@ -20,6 +20,7 @@
 - [OpenMetrics] Add per-VDI disk size metrics: `xcp_vdi_virtual_size_bytes` and `xcp_vdi_physical_usage_bytes` [#9680](https://github.com/vatesfr/xen-orchestra/pull/9680)
 - [i18n] Update Chinese (Simplified Han script), Czech, Dutch, German, Persian, Polish, Portuguese, Portuguese (Brasil), Slovak, Spanish and Swedish translations (PR [#9729](https://github.com/vatesfr/xen-orchestra/pull/9729))
 - [REST API] Add `POST rest/v0/plugins/sdn-controller/networks/:id/actions/add_traffic_rule` and `POST rest/v0/plugins/sdn-controller/networks/:id/actions/delete_traffic_rule` endpoints ([#9418](https://github.com/vatesfr/xen-orchestra/pull/9418))
+- [REST API] Add `POST rest/v0/plugins/sdn-controller/vifs/:id/actions/add_traffic_rule` and `POST rest/v0/plugins/sdn-controller/vifs/:id/actions/delete_traffic_rule` endpoints ([#9759](https://github.com/vatesfr/xen-orchestra/pull/9759))
 - [Pool/Network] Add Network deletion (PR [#9714](https://github.com/vatesfr/xen-orchestra/pull/9714))
 
 ### Bug fixes

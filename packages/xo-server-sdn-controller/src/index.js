@@ -459,7 +459,7 @@ class SDNController extends EventEmitter {
         res.status(statusCode)
         return result ?? {}
       } else {
-        pResult.catch(() => {})
+        pResult.catch(() => { })
         res.status(202).set('Location', `/rest/v0/tasks/${task.id}`).json({ taskId: task.id })
         return undefined
       }
@@ -551,6 +551,102 @@ class SDNController extends EventEmitter {
                 taskProperties: {
                   name: 'delete network traffic rule',
                   objectId: rule.networkId,
+                },
+              })
+            },
+          },
+        },
+        vifs: {
+          ':id/actions/add_traffic_rule': {
+            _post: async (req, res, next) => {
+              const validationErrors = []
+              if (!req.body) {
+                validationErrors.push('body is required')
+                throw invalidParameters(validationErrors)
+              }
+
+              if (!req.body.allow || typeof req.body.allow !== 'boolean') {
+                validationErrors.push('allow is required and must be a boolean')
+              }
+
+              if (!req.body.direction || typeof req.body.direction !== 'string') {
+                validationErrors.push('direction is required and must be a string')
+              }
+
+              if (!req.body.ipRange || typeof req.body.ipRange !== 'string') {
+                validationErrors.push('ipRange is required and must be a string')
+              }
+
+              if (!req.body.protocol || typeof req.body.protocol !== 'string') {
+                validationErrors.push('protocol is required and must be a string')
+              }
+              if (req.body.port && isNaN(parseInt(req.body.port))) {
+                validationErrors.push('port must be an integer')
+              }
+
+              if (validationErrors.length > 0) {
+                throw invalidParameters(validationErrors)
+              }
+
+              const rule = {
+                allow: req.body.allow,
+                direction: req.body.direction,
+                ipRange: req.body.ipRange,
+                protocol: req.body.protocol,
+                vifId: req.params.id,
+              }
+
+              if (req.body.port != null) {
+                rule.port = req.body.port
+              }
+
+              return createAction(res, () => this._addRule(rule), {
+                sync: req.query.sync ?? false,
+                statusCode: 204,
+                taskProperties: {
+                  name: 'add vif traffic rule',
+                  objectId: rule.vifId,
+                },
+              })
+            },
+          },
+          ':id/actions/delete_traffic_rule': {
+            _post: async (req, res, next) => {
+              const validationErrors = []
+
+              if (!req.body.direction || typeof req.body.direction !== 'string') {
+                validationErrors.push('direction is required and must be a string')
+              }
+
+              if (!req.body.ipRange || typeof req.body.ipRange !== 'string') {
+                validationErrors.push('ipRange is required and must be a string')
+              }
+
+              if (!req.body.protocol || typeof req.body.protocol !== 'string') {
+                validationErrors.push('protocol is required and must be a string')
+              }
+
+              if (validationErrors.length > 0) {
+                throw invalidParameters(validationErrors)
+              }
+
+              const rule = {
+                direction: req.body.direction,
+                ipRange: req.body.ipRange,
+                protocol: req.body.protocol,
+                vifId: req.params.id,
+              }
+
+              if (req.body.port != null) {
+                rule.port = req.body.port
+              }
+
+              return createAction(res, () => this._deleteRule(rule), {
+                sync: req.query.sync ?? false,
+                statusCode: 204,
+                taskProperties: {
+                  name: 'delete vif traffic rule',
+                  objectId: rule.vifId,
                 },
               })
             },
