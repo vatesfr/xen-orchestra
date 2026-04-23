@@ -793,7 +793,7 @@ const TRANSFORMS = {
         total += +parent.physical_utilisation
         parentUuid = parent.sm_config?.['vhd-parent']
       }
-      vdi.parentChainPhysicalUsage = total
+      vdi.chainPhysicalUsage = total
     }
 
     return vdi
