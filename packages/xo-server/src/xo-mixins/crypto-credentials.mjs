@@ -5,6 +5,8 @@ import { webcrypto, randomBytes } from 'node:crypto'
 import * as XenStore from '../_XenStore.mjs'
 import fs from 'fs-extra'
 
+/** @typedef {import('@vates/types/xo-app').XoApp} XoApp */
+
 const XENSTORE_KEY_PATH = 'vm-data/xo-encryption-key'
 const KEY_FILE_PATH = '/var/lib/xo-server/data/xo-encryption-key'
 const BACKUP_FILE_PATH = '/var/lib/xo-server/data/pre-encryption-backup.json'
@@ -44,26 +46,33 @@ export default class CryptoCredentials {
   #migrationRequired = false
 
   /**
+   * @type {Promise<void> | undefined}
+   */
+  #migrationLock
+
+  /**
    * @type {boolean}
    */
   #degraded = false
 
   /**
-   * @param {any} app
+   * @param {XoApp} app
    */
   constructor(app) {
     this._app = app
 
     this._app.hooks.on('start core', () => {
       if (app.config.getOptional('redis.encryptCredentialDatabase') ?? false) {
-        return this.initialize()
+        return this.#initialize()
       }
     })
 
     this._app.hooks.on('start', async () => {
       if (this.#migrationRequired) {
         try {
-          await this._migrateToEncrypted()
+          await this.#migrateToEncrypted()
+
+          log.info('Encryption keys generation and migration successful')
         } catch (error) {
           this.#degraded = true
           log.error('Credential database migration failed - running in degraded mode', {
@@ -75,7 +84,7 @@ export default class CryptoCredentials {
     })
   }
 
-  async initialize() {
+  async #initialize() {
     const readOrUndefined = async (/** @type () => Promise<Buffer | undefined> */ fn) => {
       try {
         return await fn()
@@ -117,13 +126,10 @@ export default class CryptoCredentials {
   }
 
   /**
-   * Encrypts credentials.
-   * All encrypted values have a plaintext prefix string added.
-   *
    * @param {string} plaintext
    * @returns {Promise<string>}
    */
-  async encrypt(plaintext) {
+  async #encrypt(plaintext) {
     if (!this.#encryptionKey) {
       throw new Error('The encryption key needs to be extracted before encrypt can be used')
     }
@@ -140,97 +146,81 @@ export default class CryptoCredentials {
   }
 
   /**
-   * Decrypts credentials.
-   * All encrypted values have a plaintext prefix string,
-   * only decrypt if the prefix is present.
-   *
-   * @param {string} value
-   * @returns {Promise<string>}
-   */
-  async decrypt(value) {
-    if (!value.startsWith(ENCRYPTION_PREFIX)) {
-      return value
-    }
-    value = value.slice(ENCRYPTION_PREFIX.length)
-
-    if (!this.#encryptionKey) {
-      throw new Error('The encryption key needs to be extracted before decrypt can be used')
-    }
-
-    const buf = Buffer.from(value, 'base64')
-    const iv = buf.subarray(0, IV_LENGTH)
-    const ciphertext = buf.subarray(IV_LENGTH)
-
-    return Buffer.from(
-      await webcrypto.subtle.decrypt({ name: CIPHER_ALGORITHM, iv }, this.#encryptionKey, ciphertext)
-    ).toString('utf8')
-  }
-
-  /**
-   * Is XO running in degraded mode due to decryption fail.
-   * @returns {boolean}
-   */
-  isDegraded() {
-    return this.#degraded
-  }
-
-  /**
    * Run the initial encryption process with backup for recovery in case of failure.
+   * Holds the migration lock for the entire operation so no concurrent writes can
+   * produce encrypted entries while migration is in an intermediate state.
    */
-  async _migrateToEncrypted() {
-    /**
-     * Redis content to be backuped then encrypted
-     * @type {Record<string, Record<string, string | null>>}
-     */
-    const redisContent = {}
+  async #migrateToEncrypted() {
+    /** @type {() => void} */
+    let resolveLock = () => {}
+    this.#migrationLock = new Promise(resolve => {
+      resolveLock = resolve
+    })
 
-    /** @type {string[]} */
-    const namespaces = await this._app._redis.sMembers('xo::namespaces')
-    for (const namespace of namespaces) {
-      redisContent[namespace] = {}
-
-      /** @type {string[]} */
-      const ids = await this._app._redis.sMembers('xo:' + namespace + '_ids')
-
-      for (const id of ids) {
-        /** @type {string} */
-        const value = await this._app._redis.get('xo:' + namespace + ':' + id)
-
-        redisContent[namespace][id] = value
-      }
-    }
-
-    // Write backup file
-    await fs.writeFile(BACKUP_FILE_PATH, JSON.stringify(redisContent), { mode: 0o400 })
-
-    // Encrypt content then write to redis
-    for (const namespace in redisContent) {
-      for (const id in redisContent[namespace]) {
-        if (redisContent[namespace][id] != null && !redisContent[namespace][id].startsWith(ENCRYPTION_PREFIX)) {
-          await this._app._redis.set('xo:' + namespace + ':' + id, await this._app.encrypt(redisContent[namespace][id]))
+    try {
+      // Start by collecting all existing redis entries.
+      /** @type {Record<string, Record<string, string | null>>} */
+      const redisContent = {}
+      const namespaces = await this._app._redis.sMembers('xo::namespaces')
+      for (const namespace of namespaces) {
+        redisContent[namespace] = {}
+        const ids = await this._app._redis.sMembers('xo:' + namespace + '_ids')
+        for (const id of ids) {
+          redisContent[namespace][id] = await this._app._redis.get('xo:' + namespace + ':' + id)
         }
       }
-    }
 
-    // Check that encrypted content is decryptable
-    for (const namespace in redisContent) {
-      // Skip namespace if it's empty
-      if (Object.keys(redisContent[namespace]).length === 0) continue
+      // Write all redis entries in a backup file in case migration fails.
+      await fs.writeFile(BACKUP_FILE_PATH, JSON.stringify(redisContent), { mode: 0o400 })
 
-      const testedId = Object.keys(redisContent[namespace])[0]
-      // Skip namespace if first entry returns null
-      if (redisContent[namespace][testedId] === null) continue
+      // Encrypt all plaintext redis entries.
+      /** @type {string[]} */
+      const mSetArgs = []
+      for (const namespace in redisContent) {
+        for (const id in redisContent[namespace]) {
+          const value = redisContent[namespace][id]
 
-      const testedValue = await this._app._redis.get('xo:' + namespace + ':' + testedId)
-      if (!testedValue.startsWith(ENCRYPTION_PREFIX)) {
-        throw new Error(`Missing prefix when checking migrated data, got ${testedValue}`)
+          // Check that the entry value is plaintext.
+          if (value === null || value.startsWith(ENCRYPTION_PREFIX)) {
+            delete redisContent[namespace][id]
+            continue
+          }
+
+          // Check that the entry still exists.
+          if (!(await this._app._redis.sIsMember('xo:' + namespace + '_ids', id))) {
+            delete redisContent[namespace][id]
+            continue
+          }
+
+          mSetArgs.push('xo:' + namespace + ':' + id, await this.#encrypt(value))
+        }
       }
 
-      await this._app.decrypt(testedValue)
-    }
+      // Write all encrypted values to redis atomically.
+      if (mSetArgs.length > 0) {
+        await this._app._redis.mSet(mSetArgs)
+      }
 
-    // Delete backup file if the verification has not thrown
-    await fs.rm(BACKUP_FILE_PATH)
+      // Verify that encrypted content is decryptable
+      for (const namespace in redisContent) {
+        // Skip namespace if it's empty
+        if (Object.keys(redisContent[namespace]).length === 0) continue
+
+        const testedId = Object.keys(redisContent[namespace])[0]
+        const testedValue = await this._app._redis.get('xo:' + namespace + ':' + testedId)
+        if (testedValue === null || !testedValue.startsWith(ENCRYPTION_PREFIX)) {
+          throw new Error(`Missing prefix when checking migrated data, got ${testedValue}`)
+        }
+
+        await this.decrypt(testedValue)
+      }
+
+      // Delete backup file if the verification has not thrown
+      await fs.rm(BACKUP_FILE_PATH)
+    } finally {
+      resolveLock()
+      this.#migrationLock = undefined
+    }
   }
 
   /**
@@ -272,7 +262,55 @@ export default class CryptoCredentials {
 
       this.#degraded = false
     } catch (error) {
-      log.error('Credential database decryption failed — running in degraded mode', { error })
+      log.error('Credential database decryption failed — running in degraded mode', { cause: error })
     }
+  }
+
+  /**
+   * Encrypts credentials.
+   * All encrypted values have a plaintext prefix string added.
+   * Waits for any in-progress migration to complete before encrypting.
+   *
+   * @param {string} plaintext
+   * @returns {Promise<string>}
+   */
+  async encrypt(plaintext) {
+    await this.#migrationLock
+    return this.#encrypt(plaintext)
+  }
+
+  /**
+   * Decrypts credentials.
+   * All encrypted values have a plaintext prefix string,
+   * only decrypt if the prefix is present.
+   *
+   * @param {string} value
+   * @returns {Promise<string>}
+   */
+  async decrypt(value) {
+    if (!value.startsWith(ENCRYPTION_PREFIX)) {
+      return value
+    }
+    value = value.slice(ENCRYPTION_PREFIX.length)
+
+    if (!this.#encryptionKey) {
+      throw new Error('The encryption key needs to be extracted before decrypt can be used')
+    }
+
+    const buf = Buffer.from(value, 'base64')
+    const iv = buf.subarray(0, IV_LENGTH)
+    const ciphertext = buf.subarray(IV_LENGTH)
+
+    return Buffer.from(
+      await webcrypto.subtle.decrypt({ name: CIPHER_ALGORITHM, iv }, this.#encryptionKey, ciphertext)
+    ).toString('utf8')
+  }
+
+  /**
+   * Is XO running in degraded mode due to decryption fail.
+   * @returns {boolean}
+   */
+  isDegraded() {
+    return this.#degraded
   }
 }
