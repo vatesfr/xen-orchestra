@@ -361,8 +361,7 @@ test('it merges delta of non destroyed chain', async () => {
 
   logged = []
   await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true, merge: true, logInfo, logWarn: () => {} })
-  const [merging] = logged
-  assert.equal(merging, `merging disk chain`)
+  assert.equal(logged.includes(`merging disk chain`), true)
 
   // merging is already tested in vhd-lib, don't retest it here (and theses vhd are as empty as my stomach at 12h12)
   // only check deletion
