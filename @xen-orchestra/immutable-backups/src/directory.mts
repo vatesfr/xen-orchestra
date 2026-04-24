@@ -6,19 +6,34 @@ export async function makeImmutable(dirPath: string): Promise<void> {
 }
 
 // chattr processes all paths even when some are missing (it does not abort on the first
-// error), so every existing path is correctly lifted.  Per-path "while trying to stat"
-// messages (ENOENT) are silently ignored regardless of locale; any other error
-// (e.g. permission denied) causes the error to be re-thrown.
-// Note: chattr localizes the ENOENT description ("No such file or directory" becomes
-// e.g. "Aucun fichier ou dossier de ce nom" in French) but "while trying to stat" is
-// always emitted in English, so we match on that suffix only.
-async function execChattrWithMissingFiles(args: string[]) {
-  try {
-    await execa('chattr', args)
-  } catch (err) {
-    const stderr = (err as ExecaError).stderr ?? ''
-    const hasUnexpected = stderr.split('\n').some(line => line.trim() !== '' && !line.includes('while trying to stat'))
-    if (hasUnexpected) {
+// error), so every existing path is correctly lifted.
+//
+// Per-path "while trying to stat" messages (ENOENT) are silently ignored regardless of
+// locale — these are always expected for optional paths (.xva, .alias.vhd, …) that are
+// absent in delta backups.  chattr localises the error description but "while trying to
+// stat" is always emitted in English, so we match on that suffix only.
+//
+// Any other error (e.g. EAGAIN on NFS when the file is still open, permission denied) is
+// retried up to 3 times with a 1 s delay before being re-thrown.
+async function execChattrWithMissingFiles(args: string[]): Promise<void> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      await execa('chattr', args)
+      return
+    } catch (err) {
+      const stderr = (err as ExecaError).stderr ?? ''
+      const lines = stderr.split('\n').filter(line => line.trim() !== '')
+
+      // All errors are ENOENT for optional missing paths — silently accept, no retry.
+      if (lines.every(line => line.includes('while trying to stat'))) {
+        return
+      }
+
+      // At least one non-ENOENT error — retry up to 3 times, then re-throw.
+      if (attempt < 3) {
+        await new Promise<void>(resolve => setTimeout(resolve, 1000))
+        continue
+      }
       throw err
     }
   }
