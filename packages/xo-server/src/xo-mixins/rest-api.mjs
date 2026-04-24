@@ -1,86 +1,10 @@
-import setupRestApi from '@xen-orchestra/rest-api'
+import setupRestApi, { sendObjects } from '@xen-orchestra/rest-api'
 import { invalidCredentials, unauthorized } from 'xo-common/api-errors.js'
-import { pipeline } from 'node:stream/promises'
 import { json, Router } from 'express'
-import path from 'node:path'
 import pick from 'lodash/pick.js'
+import path from 'node:path'
 
 const { join } = path.posix
-
-async function* mapIterable(iterable, mapper) {
-  for await (const item of iterable) {
-    yield mapper(item)
-  }
-}
-
-async function* makeJsonStream(iterable) {
-  yield '['
-  let first = true
-  for await (const object of iterable) {
-    if (first) {
-      first = false
-      yield '\n'
-    } else {
-      yield ',\n'
-    }
-    yield JSON.stringify(object, null, 2)
-  }
-  yield '\n]\n'
-}
-
-async function* makeNdJsonStream(iterable) {
-  for await (const object of iterable) {
-    yield JSON.stringify(object)
-    yield '\n'
-  }
-}
-
-function makeObjectMapper(req, path = req.path) {
-  const { query } = req
-
-  const { baseUrl } = req
-  const makeUrl =
-    typeof path === 'function'
-      ? object => join(baseUrl, path(object), typeof object.id === 'number' ? String(object.id) : object.id)
-      : ({ id }) => join(baseUrl, path, typeof id === 'number' ? String(id) : id)
-
-  let objectMapper
-  let { fields } = query
-  if (fields === undefined) {
-    objectMapper = makeUrl
-  } else if (fields === '*') {
-    objectMapper = object => ({
-      ...object,
-      href: makeUrl(object),
-    })
-  } else {
-    fields = fields.split(',')
-    objectMapper = object => {
-      const url = makeUrl(object)
-      object = pick(object, fields)
-      object.href = url
-      return object
-    }
-  }
-
-  return function (entry) {
-    return objectMapper(typeof entry === 'string' ? { id: entry } : entry)
-  }
-}
-
-async function sendObjects(iterable, req, res, mapper) {
-  const json = !Object.hasOwn(req.query, 'ndjson')
-
-  if (mapper !== null) {
-    if (typeof mapper !== 'function') {
-      mapper = makeObjectMapper(req, ...Array.prototype.slice.call(arguments, 3))
-    }
-    iterable = mapIterable(iterable, mapper)
-  }
-
-  res.setHeader('content-type', json ? 'application/json' : 'application/x-ndjson')
-  return pipeline((json ? makeJsonStream : makeNdJsonStream)(iterable), res)
-}
 
 const subRouter = (app, path) => {
   const router = Router({ strict: false })
@@ -88,9 +12,41 @@ const subRouter = (app, path) => {
   return router
 }
 
+/**
+ * @deprecated
+ * @todo remove when registerRestApi is not used anymore
+ */
+async function* mapIterable(iterable, mapper) {
+  for await (const item of iterable) {
+    yield mapper(item)
+  }
+}
+
+/**
+ * @deprecated
+ * @todo remove when registerRestApi is not used anymore
+ */
+function makeObjectMapper(req) {
+  const makeUrl = ({ id }) => join(req.baseUrl, req.path, String(id))
+
+  let objectMapper
+  let { fields } = req.query
+  if (fields === undefined) {
+    objectMapper = makeUrl
+  } else if (fields === '*') {
+    objectMapper = object => ({ ...object, href: makeUrl(object) })
+  } else {
+    fields = fields.split(',')
+    objectMapper = object => ({ ...pick(object, fields), href: makeUrl(object) })
+  }
+
+  return entry => objectMapper(typeof entry === 'string' ? { id: entry } : entry)
+}
+
 export default class RestApi {
   #app
   #api
+  #mountExternalRoute
 
   constructor(app, { express }) {
     // don't set up the API if express is not present
@@ -103,27 +59,27 @@ export default class RestApi {
     const api = subRouter(express, '/rest/v0')
     this.#api = api
     this.#app = app
-
-    setupRestApi(express, app)
+    const { mountExternalRoute } = setupRestApi(express, app)
+    this.#mountExternalRoute = mountExternalRoute
   }
 
-  async #authenticateUser(req) {
-    const app = this.#app
-    const { cookies, ip } = req
+  registerRestRoutes(routes, base = '/') {
+    const unregisterFuncs = []
+    routes.forEach(route => {
+      unregisterFuncs.push(this.#mountExternalRoute({ ...route, endpoint: join(base, route.endpoint) }))
+    })
 
-    const token = cookies.authenticationToken ?? cookies.token
-    if (token === undefined) {
-      throw invalidCredentials()
+    return () => {
+      for (const unregisterFunc of unregisterFuncs) {
+        unregisterFunc()
+      }
     }
-
-    const { user } = await app.authenticateUser({ token }, { ip })
-    if (user.permission !== 'admin') {
-      throw unauthorized()
-    }
-
-    return user
   }
 
+  /**
+   * @deprecated use registerRestRoutes instead
+   * @todo remove when not used anymore
+   */
   registerRestApi(spec, base = '/') {
     const authUser = this.#authenticateUser.bind(this)
     const app = this.#app
@@ -138,9 +94,12 @@ export default class RestApi {
 
             if (result !== undefined) {
               const isIterable =
-                result !== null && typeof (result[Symbol.iterator] ?? result[Symbol.asyncIterator]) === 'function'
+                result !== null &&
+                !Buffer.isBuffer(result) &&
+                typeof (result[Symbol.iterator] ?? result[Symbol.asyncIterator]) === 'function'
               if (isIterable) {
-                await sendObjects(result, req, res)
+                const mapped = mapIterable(result, makeObjectMapper(req))
+                await sendObjects(mapped, req, res)
               } else {
                 res.json(result)
               }
@@ -158,6 +117,10 @@ export default class RestApi {
     }
   }
 
+  /**
+   * @deprecated use registerRestRoutes instead
+   * @todo remove when not used anymore
+   */
   unregisterRestApi(spec, base = '/') {
     for (const path of Object.keys(spec)) {
       if (path[0] === '_') {
@@ -185,5 +148,22 @@ export default class RestApi {
         this.unregisterRestApi(spec[path], join(base, path))
       }
     }
+  }
+
+  async #authenticateUser(req) {
+    const { cookies, ip } = req
+    const token = cookies.authenticationToken ?? cookies.token
+
+    if (!token) {
+      throw invalidCredentials()
+    }
+
+    const { user } = await this.#app.authenticateUser({ token }, { ip })
+
+    if (user.permission !== 'admin') {
+      throw unauthorized()
+    }
+
+    return user
   }
 }
