@@ -7,8 +7,7 @@ import { useMapper } from '@core/packages/mapper'
 import { parseDateTime } from '@core/utils/time.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { VM_POWER_STATE } from '@vates/types'
-import type { MaybeRefOrGetter } from '@vueuse/shared'
-import { computed } from 'vue'
+import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {

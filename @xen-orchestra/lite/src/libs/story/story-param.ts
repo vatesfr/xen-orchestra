@@ -5,10 +5,10 @@ import { icons } from '@core/icons'
 
 function WithType(Base: MixinAbstractConstructor<BaseParam>) {
   abstract class WithType extends Base /* implements HasType */ {
-    #type: string | undefined
+    _type: string | undefined
 
     type(type: string) {
-      this.#type = type
+      this._type = type
 
       return this
     }
@@ -16,7 +16,7 @@ function WithType(Base: MixinAbstractConstructor<BaseParam>) {
     abstract getTypeLabel(): string
 
     getType() {
-      return this.#type
+      return this._type
     }
   }
 
@@ -25,22 +25,22 @@ function WithType(Base: MixinAbstractConstructor<BaseParam>) {
 
 function WithWidget(Base: MixinAbstractConstructor<BaseParam>) {
   abstract class WithWidget extends Base /* implements HasWidget */ {
-    #widget: Widget | undefined
+    _widget: Widget | undefined
 
     abstract guessWidget(): Widget | undefined
 
     widget(widget?: Widget): this {
-      this.#widget = widget === undefined ? this.guessWidget() : widget
+      this._widget = widget === undefined ? this.guessWidget() : widget
 
       return this
     }
 
     getWidget() {
-      return this.#widget
+      return this._widget
     }
 
     hasWidget() {
-      return this.#widget !== undefined
+      return this._widget !== undefined
     }
   }
 
@@ -48,20 +48,20 @@ function WithWidget(Base: MixinAbstractConstructor<BaseParam>) {
 }
 
 abstract class BaseParam {
-  #help: string | undefined
-  readonly #name: string
-  #presetValue: any
+  _help: string | undefined
+  readonly _name: string
+  _presetValue: any
 
   abstract getNamePrefix(): string
 
   abstract getNameSuffix(): string
 
   constructor(name: string) {
-    this.#name = name
+    this._name = name
   }
 
   get name() {
-    return this.#name
+    return this._name
   }
 
   getFullName() {
@@ -69,40 +69,40 @@ abstract class BaseParam {
   }
 
   help(help: string) {
-    this.#help = help
+    this._help = help
     return this
   }
 
   getHelp() {
-    return this.#help
+    return this._help
   }
 
   preset(presetValue: any) {
-    this.#presetValue = presetValue
+    this._presetValue = presetValue
     return this
   }
 
   getPresetValue() {
-    return this.#presetValue
+    return this._presetValue
   }
 }
 
 export class PropParam extends mixin(BaseParam, WithWidget, WithType) {
-  #isRequired = false
-  #defaultValue: any
-  #isVModel: boolean
+  _isRequired = false
+  _defaultValue: any
+  _isVModel: boolean
 
   constructor(name: string, isVModel = false) {
     super(name)
-    this.#isVModel = isVModel
+    this._isVModel = isVModel
   }
 
   isRequired() {
-    return this.#isRequired
+    return this._isRequired
   }
 
   isVModel() {
-    return this.#isVModel
+    return this._isVModel
   }
 
   getVModelDirective() {
@@ -124,8 +124,8 @@ export class PropParam extends mixin(BaseParam, WithWidget, WithType) {
       return type
     }
 
-    if (this.#isEnum) {
-      return this.#enumItems.map(item => JSON.stringify(item)).join(' | ')
+    if (this._isEnum) {
+      return this._enumItems.map(item => JSON.stringify(item)).join(' | ')
     }
 
     const presetValue = this.getPresetValue()
@@ -137,12 +137,12 @@ export class PropParam extends mixin(BaseParam, WithWidget, WithType) {
     return 'unknown'
   }
 
-  guessWidget() {
-    if (this.#isEnum) {
-      return choice(...this.#enumItems)
+  guessWidget(): Widget | undefined {
+    if (this._isEnum) {
+      return choice(...this._enumItems)
     }
 
-    if (this.#isObject) {
+    if (this._isObject) {
       return object()
     }
 
@@ -157,17 +157,17 @@ export class PropParam extends mixin(BaseParam, WithWidget, WithType) {
   }
 
   required() {
-    this.#isRequired = true
+    this._isRequired = true
     return this
   }
 
   default(defaultValue: any) {
-    this.#defaultValue = defaultValue
+    this._defaultValue = defaultValue
     return this
   }
 
   getDefaultValue() {
-    return this.#defaultValue
+    return this._defaultValue
   }
 
   bool() {
@@ -186,12 +186,12 @@ export class PropParam extends mixin(BaseParam, WithWidget, WithType) {
     return this.type(`${type}[]`)
   }
 
-  #isEnum = false
-  #enumItems: any[] = []
+  _isEnum = false
+  _enumItems: any[] = []
 
   enum(...items: any[]) {
-    this.#isEnum = true
-    this.#enumItems = items
+    this._isEnum = true
+    this._enumItems = items
     return this
   }
 
@@ -199,33 +199,33 @@ export class PropParam extends mixin(BaseParam, WithWidget, WithType) {
     return this.type('any')
   }
 
-  #isObject = false
+  _isObject = false
 
   obj(type = 'object') {
-    this.#isObject = true
+    this._isObject = true
     return this.type(type)
   }
 
-  #isUsingContext = false
+  _isUsingContext = false
 
   ctx() {
-    this.#isUsingContext = true
+    this._isUsingContext = true
     return this
   }
 
   isUsingContext() {
-    return this.#isUsingContext
+    return this._isUsingContext
   }
 }
 
 export class EventParam extends mixin(BaseParam, WithType) {
-  #args: Record<string, string> = {}
-  #returnType: string | undefined
-  readonly #isVModel: boolean
+  _args: Record<string, string> = {}
+  _returnType: string | undefined
+  readonly _isVModel: boolean
 
   constructor(name: string, isVModel = false) {
     super(name)
-    this.#isVModel = isVModel
+    this._isVModel = isVModel
   }
 
   get name() {
@@ -241,7 +241,7 @@ export class EventParam extends mixin(BaseParam, WithType) {
   }
 
   isVModel() {
-    return this.#isVModel
+    return this._isVModel
   }
 
   getNamePrefix() {
@@ -253,16 +253,16 @@ export class EventParam extends mixin(BaseParam, WithType) {
   }
 
   args(args: Record<string, string>) {
-    this.#args = args
+    this._args = args
     return this
   }
 
   getArguments() {
-    return this.#args
+    return this._args
   }
 
   return(returnType: string) {
-    this.#returnType = returnType
+    this._returnType = returnType
     return this
   }
 
@@ -275,16 +275,16 @@ export class EventParam extends mixin(BaseParam, WithType) {
 
     const args: string[] = []
 
-    Object.entries(this.#args).forEach(([name, type]) => {
+    Object.entries(this._args).forEach(([name, type]) => {
       args.push(`${name}: ${type}`)
     })
 
-    return `(${args.join(', ')}) => ${this.#returnType ?? 'void'}`
+    return `(${args.join(', ')}) => ${this._returnType ?? 'void'}`
   }
 }
 
 export class SlotParam extends BaseParam {
-  #props: { name: string; type: string }[] = []
+  _props: { name: string; type: string }[] = []
 
   getNamePrefix() {
     return '#'
@@ -295,20 +295,20 @@ export class SlotParam extends BaseParam {
   }
 
   prop(name: string, type: string) {
-    this.#props.push({ name, type })
+    this._props.push({ name, type })
     return this
   }
 
   getPropsType() {
-    return `{ ${this.#props.map(prop => `${prop.name}: ${prop.type}`).join(', ')} }`
+    return `{ ${this._props.map(prop => `${prop.name}: ${prop.type}`).join(', ')} }`
   }
 
   hasProps() {
-    return this.#props.length > 0
+    return this._props.length > 0
   }
 
   get props() {
-    return this.#props
+    return this._props
   }
 
   preset(): never {
@@ -325,7 +325,7 @@ export class SettingParam extends mixin(BaseParam, WithWidget) {
     return ''
   }
 
-  guessWidget() {
+  guessWidget(): Widget | undefined {
     const type = typeof this.getPresetValue()
 
     switch (type) {
@@ -336,8 +336,8 @@ export class SettingParam extends mixin(BaseParam, WithWidget) {
 }
 
 export class ModelParam extends BaseParam {
-  readonly #prop: PropParam
-  readonly #event: EventParam
+  readonly _prop: PropParam
+  readonly _event: EventParam
 
   getNameSuffix() {
     return ''
@@ -349,49 +349,49 @@ export class ModelParam extends BaseParam {
 
   constructor(name: string) {
     super(name)
-    this.#prop = new PropParam(name, true)
-    this.#event = new EventParam(name, true).args({
+    this._prop = new PropParam(name, true)
+    this._event = new EventParam(name, true).args({
       value: 'unknown',
     })
   }
 
   prop(func: (param: PropParam) => void) {
-    func(this.#prop)
+    func(this._prop)
     return this
   }
 
   event(func: (param: EventParam) => void) {
-    func(this.#event)
+    func(this._event)
     return this
   }
 
   required() {
-    this.#prop.required()
+    this._prop.required()
     return this
   }
 
   type(type: string) {
-    this.#prop.type(type)
-    this.#event.args({ value: type })
+    this._prop.type(type)
+    this._event.args({ value: type })
     return this
   }
 
   preset(presetValue: any) {
-    this.#prop.preset(presetValue)
+    this._prop.preset(presetValue)
     return this
   }
 
   help(help: string) {
-    this.#prop.help(help)
+    this._prop.help(help)
     return this
   }
 
   getPropParam() {
-    return this.#prop
+    return this._prop
   }
 
   getEventParam() {
-    return this.#event
+    return this._event
   }
 }
 

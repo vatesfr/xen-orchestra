@@ -8,7 +8,8 @@
 <script lang="ts" setup>
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useUiStore } from '@core/stores/ui.store'
-import VncClient from '@novnc/novnc/lib/rfb'
+import type NoVncClient from '@novnc/novnc/lib/rfb'
+import _RFB from '@novnc/novnc/lib/rfb'
 import { whenever } from '@vueuse/core'
 import { promiseTimeout } from '@vueuse/shared'
 import { fibonacci } from 'iterable-backoff'
@@ -30,7 +31,10 @@ const FIBONACCI_MS_ARRAY: number[] = Array.from(fibonacci().toMs().take(N_TOTAL_
 const consoleContainer = useTemplateRef<HTMLDivElement | null>('console-container')
 const isReady = ref(false)
 
-let vncClient: VncClient | undefined
+// See https://rolldown.rs/in-depth/bundling-cjs#ambiguous-default-import-from-cjs-modules
+const VncClient = typeof _RFB === 'object' && _RFB !== null && (_RFB as any).__esModule ? (_RFB as any).default : _RFB
+
+let vncClient: NoVncClient | undefined
 let nConnectionAttempts = 0
 
 function handleDisconnectionEvent() {
@@ -82,7 +86,7 @@ async function createVncConnection() {
 
   vncClient = new VncClient(consoleContainer.value!, props.url.toString(), {
     wsProtocols: ['binary'],
-  })
+  }) as NoVncClient
   vncClient.scaleViewport = true
   vncClient.background = 'transparent'
 
