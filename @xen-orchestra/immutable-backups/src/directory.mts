@@ -6,17 +6,18 @@ export async function makeImmutable(dirPath: string): Promise<void> {
 }
 
 // chattr processes all paths even when some are missing (it does not abort on the first
-// error), so every existing path is correctly lifted.  Per-path "No such file or
-// directory while trying to stat" messages are silently ignored; any other error
+// error), so every existing path is correctly lifted.  Per-path "while trying to stat"
+// messages (ENOENT) are silently ignored regardless of locale; any other error
 // (e.g. permission denied) causes the error to be re-thrown.
+// Note: chattr localizes the ENOENT description ("No such file or directory" becomes
+// e.g. "Aucun fichier ou dossier de ce nom" in French) but "while trying to stat" is
+// always emitted in English, so we match on that suffix only.
 async function execChattrWithMissingFiles(args: string[]) {
   try {
     await execa('chattr', args)
   } catch (err) {
     const stderr: string = 'stderr' in err ? err.stderr : ''
-    const hasUnexpected = stderr
-      .split('\n')
-      .some(line => line.trim() !== '' && !line.includes('No such file or directory while trying to stat'))
+    const hasUnexpected = stderr.split('\n').some(line => line.trim() !== '' && !line.includes('while trying to stat'))
     if (hasUnexpected) {
       throw err
     }
