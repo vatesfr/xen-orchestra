@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@xen-orchestra/log": "^0.7.2",
-    "@xen-orchestra/template": "^0.1.0",
+    "@xen-orchestra/template": "^0.1.1",
     "buffer-crc32": "^0.2.13"
   },
   "devDependencies": {
