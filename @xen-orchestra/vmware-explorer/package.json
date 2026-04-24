@@ -8,7 +8,7 @@
     "@vates/node-vsphere-soap": "^2.1.2",
     "@vates/read-chunk": "^1.2.1",
     "@vates/task": "^0.6.2",
-    "@xen-orchestra/log": "^0.7.1",
+    "@xen-orchestra/log": "^0.7.2",
     "lodash": "^4.18.0",
     "semver": "^7.7.2",
     "undici": "^7.8.0",

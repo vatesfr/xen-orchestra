@@ -31,7 +31,7 @@
   "dependencies": {
     "@vates/async-each": "^1.0.3",
     "@vates/types": "^1.22.0",
-    "@xen-orchestra/log": "^0.7.1",
+    "@xen-orchestra/log": "^0.7.2",
     "json5": "^2.2.3",
     "undici": "^6.2.1"
   },

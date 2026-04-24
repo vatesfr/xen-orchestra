@@ -47,7 +47,7 @@
     "@vates/decorate-with": "^2.1.0",
     "@xen-orchestra/audit-core": "^0.4.0",
     "@xen-orchestra/cron": "^1.0.6",
-    "@xen-orchestra/log": "^0.7.1",
+    "@xen-orchestra/log": "^0.7.2",
     "async-iterator-to-stream": "^1.1.0",
     "complex-matcher": "^1.1.0",
     "golike-defer": "^0.5.1",
