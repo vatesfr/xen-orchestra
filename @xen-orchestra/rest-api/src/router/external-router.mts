@@ -7,14 +7,16 @@ import { createLogger } from '@xen-orchestra/log'
 import { z, ZodError } from 'zod'
 import { createSchema } from 'zod-openapi'
 import type { OpenAPIV3 } from 'openapi-types'
+import type { VatesTask } from '@vates/types/lib/vates/task'
 import { buildOpenApiSchema } from '../open-api/schema/build-openapi-schema.mjs'
 import { makeJsonStream, makeNdJsonStream } from '../helpers/stream.helper.mjs'
-import type { AuthenticatedRequest } from '../helpers/helper.type.mjs'
+import type { AuthenticatedRequest, MaybePromise } from '../helpers/helper.type.mjs'
 import { expressAuthentication } from '../middlewares/authentication.middleware.mjs'
 import { iocContainer } from '../ioc/ioc.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import {
   CONTENT_TYPE_BY_MIDDLEWARE_NAME,
+  type CreateAction,
   type FieldDefinition,
   type MiddlewareDescriptor,
   type RouteDefinition,
@@ -66,8 +68,38 @@ export function createExternalRouter(swaggerOpenApiSpec: OpenAPIV3.Document): {
         querySchema?.parse(req.query)
         bodySchema?.parse(req.body)
 
+        // Per-request createAction helper pre-wired with res and restApi.tasks
+        const createAction: CreateAction = async <CbType,>(
+          cb: (task: VatesTask) => MaybePromise<CbType>,
+          {
+            sync = false,
+            statusCode = 200,
+            taskProperties,
+          }: {
+            sync?: boolean
+            statusCode?: number
+            taskProperties: { name: string; [key: string]: unknown }
+          }
+        ): Promise<CbType | undefined> => {
+          taskProperties.name = 'REST API: ' + taskProperties.name
+          taskProperties.type = 'xo:rest-api:action'
+
+          const task = restApi.tasks.create(taskProperties)
+          const pResult = task.run(() => cb(task))
+
+          if (sync) {
+            const result = await pResult
+            res.status(statusCode)
+            return result
+          } else {
+            pResult.catch(() => {})
+            res.status(202).set('Location', `/rest/v0/tasks/${task.id}`).json({ taskId: task.id })
+            return undefined
+          }
+        }
+
         // Call the route callback with the right context and parameters
-        const result = await route.callback({ req, res, next, restApi })
+        const result = await route.callback({ req, res, next, restApi, createAction })
 
         // Handle result formatting if the callback didn't already send a response
         if (!res.headersSent) {

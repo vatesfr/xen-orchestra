@@ -10,8 +10,21 @@ import RestApi from './rest-api.mjs'
 
 configure({ level: 'FATAL', transport: () => {} })
 
+// Minimal tasks mock - records every create() call for inspection in tests
+const createMockTasks = () => {
+  const calls = []
+  return {
+    calls,
+    create(properties) {
+      const id = `task-${calls.length}`
+      calls.push({ id, properties: { ...properties } })
+      return { id, run: fn => Promise.resolve().then(() => fn({ id })) }
+    },
+  }
+}
+
 // Minimal XoApp mock
-const createMockXoApp = ({ validToken = 'valid-token', permission = 'admin' } = {}) => {
+const createMockXoApp = ({ validToken = 'valid-token', permission = 'admin', tasks } = {}) => {
   const storage = new AsyncLocalStorage()
   return {
     get apiContext() {
@@ -26,6 +39,7 @@ const createMockXoApp = ({ validToken = 'valid-token', permission = 'admin' } = 
       return { user: { id: 'test-user', permission } }
     },
     runWithApiContext: (user, fn) => storage.run({ user }, fn),
+    tasks: tasks ?? createMockTasks(),
   }
 }
 
@@ -841,6 +855,167 @@ describe('RestApi', () => {
         )
         const response = await get(port, '/basic-only-test')
         assert.equal(response.status, 401)
+      })
+    })
+
+    describe('actions', () => {
+      before(() => {
+        restApi.registerRestRoutes(
+          [
+            {
+              endpoint: '/action-async',
+              method: 'post',
+              callback: ({ createAction }) =>
+                createAction(
+                  () => {
+                    return { done: true }
+                  },
+                  {
+                    taskProperties: {
+                      name: 'async action',
+                      extra: 'data',
+                    },
+                  }
+                ),
+            },
+            {
+              endpoint: '/action-async-error',
+              method: 'post',
+              callback: ({ createAction }) =>
+                createAction(
+                  () => {
+                    throw new Error('action failed')
+                  },
+                  {
+                    taskProperties: {
+                      name: 'failing action',
+                    },
+                  }
+                ),
+            },
+            {
+              endpoint: '/action-sync',
+              method: 'post',
+              callback: ({ createAction }) =>
+                createAction(
+                  () => {
+                    return { done: true }
+                  },
+                  {
+                    sync: true,
+                    taskProperties: {
+                      name: 'sync action',
+                    },
+                  }
+                ),
+            },
+            {
+              endpoint: '/action-sync-undefined',
+              method: 'post',
+              callback: ({ createAction }) =>
+                createAction(
+                  () => {
+                    return undefined
+                  },
+                  {
+                    sync: true,
+                    taskProperties: {
+                      name: 'undefined action',
+                    },
+                  }
+                ),
+            },
+            {
+              endpoint: '/action-sync-status',
+              method: 'post',
+              callback: ({ createAction }) =>
+                createAction(
+                  () => {
+                    return { created: true }
+                  },
+                  {
+                    sync: true,
+                    statusCode: 201,
+                    taskProperties: {
+                      name: 'created action',
+                    },
+                  }
+                ),
+            },
+            {
+              endpoint: '/action-sync-error',
+              method: 'post',
+              callback: ({ createAction }) =>
+                createAction(
+                  () => {
+                    throw new Error('sync action failed')
+                  },
+                  {
+                    sync: true,
+                    taskProperties: {
+                      name: 'sync error action',
+                    },
+                  }
+                ),
+            },
+          ],
+          '/'
+        )
+      })
+
+      it('async: responds 202 with taskId and Location header', async () => {
+        const response = await post(port, '/action-async')
+        assert.equal(response.status, 202)
+        const body = await response.json()
+        assert.ok(typeof body.taskId === 'string')
+        assert.ok(response.headers.get('location')?.endsWith(`/tasks/${body.taskId}`))
+      })
+
+      it('async: silently catches action errors', async () => {
+        const response = await post(port, '/action-async-error')
+        assert.equal(response.status, 202)
+        const body = await response.json()
+        assert.ok(typeof body.taskId === 'string')
+      })
+
+      it('sync: awaits action and returns result as JSON with 200', async () => {
+        const response = await post(port, '/action-sync')
+        assert.equal(response.status, 200)
+        assert.deepEqual(await response.json(), { done: true })
+      })
+
+      it('sync: returns 204 when action returns undefined', async () => {
+        const response = await post(port, '/action-sync-undefined')
+        assert.equal(response.status, 204)
+      })
+
+      it('sync: uses provided statusCode', async () => {
+        const response = await post(port, '/action-sync-status')
+        assert.equal(response.status, 201)
+      })
+
+      it('sync: propagates action errors to error middleware', async () => {
+        const response = await post(port, '/action-sync-error')
+        assert.equal(response.status, 500)
+        assert.equal((await response.json()).error, 'sync action failed')
+      })
+
+      it('prepends "REST API: " to task name', async () => {
+        const start = mainXoApp.tasks.calls.length
+        await post(port, '/action-async')
+        assert.equal(mainXoApp.tasks.calls[start].properties.name, 'REST API: async action')
+      })
+
+      it('sets task type to "xo:rest-api:action"', async () => {
+        const start = mainXoApp.tasks.calls.length
+        await post(port, '/action-async')
+        assert.equal(mainXoApp.tasks.calls[start].properties.type, 'xo:rest-api:action')
+      })
+
+      it('passes extra taskProperties to task.create', async () => {
+        const start = mainXoApp.tasks.calls.length
+        await post(port, '/action-async')
+        assert.equal(mainXoApp.tasks.calls[start].properties.extra, 'data')
       })
     })
 
