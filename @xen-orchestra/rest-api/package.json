@@ -33,7 +33,7 @@
     "typescript-eslint": "^8.23.0"
   },
   "dependencies": {
-    "@vates/async-each": "^1.0.2",
+    "@vates/async-each": "^1.0.3",
     "@vates/task": "^0.6.1",
     "@vates/types": "^1.22.0",
     "@xen-orchestra/backups": "^0.71.3",

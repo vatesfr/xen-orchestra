@@ -19,7 +19,7 @@
     "postversion": "npm publish --access public"
   },
   "dependencies": {
-    "@vates/async-each": "^1.0.2",
+    "@vates/async-each": "^1.0.3",
     "@xen-orchestra/backups": "^0.71.3",
     "@xen-orchestra/disk-transform": "^1.2.2",
     "@xen-orchestra/fs": "^4.7.0",

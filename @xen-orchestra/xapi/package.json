@@ -23,7 +23,7 @@
     "test": "node --test"
   },
   "dependencies": {
-    "@vates/async-each": "^1.0.2",
+    "@vates/async-each": "^1.0.3",
     "@vates/decorate-with": "^2.1.0",
     "@vates/nbd-client": "^3.3.0",
     "@vates/parse-duration": "^0.1.1",
