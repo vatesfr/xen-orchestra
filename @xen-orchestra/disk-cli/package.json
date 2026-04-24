@@ -25,7 +25,7 @@
     "@xen-orchestra/fs": "^4.8.0",
     "@xen-orchestra/qcow2": "^1.2.0",
     "promise-toolbox": "^0.21.0",
-    "vhd-lib": "^4.15.0"
+    "vhd-lib": "^4.16.0"
   },
   "devDependencies": {
     "@types/node": "^22.3.0",
