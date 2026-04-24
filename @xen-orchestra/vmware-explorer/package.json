@@ -14,7 +14,7 @@
     "undici": "^7.8.0",
     "vhd-lib": "^4.16.0",
     "xml2js": "^0.6.2",
-    "xo-vmdk-to-vhd": "^2.5.9"
+    "xo-vmdk-to-vhd": "^2.5.10"
   },
   "engines": {
     "node": ">=20.18.1"
