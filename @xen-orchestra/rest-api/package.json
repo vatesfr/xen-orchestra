@@ -36,7 +36,7 @@
     "@vates/async-each": "^1.0.3",
     "@vates/task": "^0.7.0",
     "@vates/types": "^1.23.0",
-    "@xen-orchestra/backups": "^0.71.3",
+    "@xen-orchestra/backups": "^0.72.0",
     "@xen-orchestra/log": "^0.7.2",
     "@xen-orchestra/xapi": "^8.7.2",
     "complex-matcher": "^1.1.0",
