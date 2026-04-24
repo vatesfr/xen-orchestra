@@ -1,6 +1,6 @@
 {
   "name": "xo-server-openmetrics",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "license": "AGPL-3.0-or-later",
   "description": "XO Server plugin exposing metrics in OpenMetrics/Prometheus format",
   "type": "module",
@@ -29,9 +29,9 @@
     "node": ">=20"
   },
   "dependencies": {
-    "@vates/async-each": "^1.0.2",
-    "@vates/types": "^1.22.0",
-    "@xen-orchestra/log": "^0.7.1",
+    "@vates/async-each": "^1.0.3",
+    "@vates/types": "^1.23.0",
+    "@xen-orchestra/log": "^0.7.2",
     "json5": "^2.2.3",
     "undici": "^6.2.1"
   },

@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/upload-ova",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "license": "AGPL-3.0-or-later",
   "description": "Basic CLI to upload ova files to Xen-Orchestra",
   "keywords": [
@@ -42,8 +42,8 @@
     "progress-stream": "^2.0.0",
     "pw": "^0.0.4",
     "xdg-basedir": "^4.0.0",
-    "xo-lib": "^0.11.1",
-    "xo-vmdk-to-vhd": "^2.5.9"
+    "xo-lib": "^0.11.2",
+    "xo-vmdk-to-vhd": "^2.5.10"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
