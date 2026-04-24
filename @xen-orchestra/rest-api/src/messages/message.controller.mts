@@ -22,6 +22,16 @@ import { safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 
 type UnbrandedXoMessage = Unbrand<XoMessage>
 
+function getMessage(restApi: RestApi, id: XoMessage['id']): XoMessage {
+  const message = restApi.getObject<XoMessage>(id, 'message')
+
+  if (alarmPredicate(message)) {
+    throw noSuchObject(id, 'message')
+  }
+
+  return message
+}
+
 @Route('messages')
 @Security('*')
 @Response(badRequestResp.status, badRequestResp.description)
@@ -53,13 +63,7 @@ export class MessageController extends XapiXoController<XoMessage> {
    * Override parent getObject in order to exclude`ALARM` message
    */
   getObject(id: XoMessage['id']): XoMessage {
-    const message = super.getObject(id)
-
-    if (alarmPredicate(message)) {
-      throw noSuchObject(id, 'message')
-    }
-
-    return message
+    return getMessage(this.restApi, id)
   }
 
   /**
@@ -95,7 +99,17 @@ export class MessageController extends XapiXoController<XoMessage> {
    */
   @Example(message)
   @Get('{id}')
-  @Middlewares(acl({ resource: 'message', action: 'read', objectId: 'params.id' }))
+  @Middlewares(
+    acl({
+      resource: 'message',
+      action: 'read',
+      objectId: 'params.id',
+      getObject:
+        ({ restApi }) =>
+        id =>
+          getMessage(restApi, id),
+    })
+  )
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getMessage(@Path() id: string): UnbrandedXoMessage {
