@@ -9,7 +9,7 @@
     "@vates/async-each": "^1.0.3",
     "@xen-orchestra/async-map": "^0.1.3",
     "@xen-orchestra/backups": "^0.71.3",
-    "@xen-orchestra/fs": "^4.7.0",
+    "@xen-orchestra/fs": "^4.8.0",
     "filenamify": "^6.0.0",
     "getopts": "^2.2.5",
     "lodash": "^4.18.0",

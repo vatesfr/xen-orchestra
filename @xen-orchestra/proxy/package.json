@@ -34,7 +34,7 @@
     "@vates/task": "^0.6.2",
     "@xen-orchestra/async-map": "^0.1.3",
     "@xen-orchestra/backups": "^0.71.3",
-    "@xen-orchestra/fs": "^4.7.0",
+    "@xen-orchestra/fs": "^4.8.0",
     "@xen-orchestra/log": "^0.7.2",
     "@xen-orchestra/mixin": "^0.2.0",
     "@xen-orchestra/mixins": "^0.18.0",
