@@ -38,7 +38,7 @@
     "@babel/preset-react": "^7.12.13",
     "@babel/register": "^7.13.8",
     "@nraynaud/novnc": "0.6.1",
-    "@xen-orchestra/cron": "^1.0.6",
+    "@xen-orchestra/cron": "^1.0.7",
     "@xen-orchestra/defined": "^0.0.2",
     "@xen-orchestra/log": "^0.7.2",
     "@xen-orchestra/template": "^0.1.1",

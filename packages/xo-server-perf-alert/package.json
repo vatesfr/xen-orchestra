@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@vates/async-each": "^1.0.3",
-    "@xen-orchestra/cron": "^1.0.6",
+    "@xen-orchestra/cron": "^1.0.7",
     "@xen-orchestra/log": "^0.7.2",
     "d3-time-format": "^3.0.0",
     "handlebars": "^4.7.8",
