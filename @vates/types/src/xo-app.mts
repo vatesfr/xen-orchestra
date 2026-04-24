@@ -56,6 +56,26 @@ export type XapiConnection = Xapi & {
   sessionId: string
   _url?: { protocol: string; hostname: string; port?: string }
 }
+
+type FeatureCode =
+  | 'BACKUP.DELTA'
+  | 'BACKUP.DELTA_REPLICATION'
+  | 'BACKUP.FULL'
+  | 'BACKUP.HEALTHCHECK'
+  | 'BACKUP.METADATA'
+  | 'BACKUP.MIRROR'
+  | 'BACKUP.WITH_RAM'
+  | 'BACKUP.SMART_BACKUP'
+  | 'BACKUP.S3'
+  | 'DOCKER'
+  | 'EXPORT.XVA'
+  | 'LIST_MISSING_PATCHES'
+  | 'POOL_EMERGENCY_SHUTDOWN'
+  | 'ROLLING_POOL_UPDATE'
+  | 'ROLLING_POOL_REBOOT'
+  | 'WARM_MIGRATION'
+  | 'PLUGIN.OPENMETRICS'
+
 type XapiRecordByXapiXoRecord = {
   gpuGroup: XenApiGpuGroupWrapped
   host: XenApiHostWrapped
@@ -135,11 +155,11 @@ export type XoApp = {
         path: string
       }
       [key: string]:
-        | undefined
-        | {
-            url: string
-            path: string
-          }
+      | undefined
+      | {
+        url: string
+        path: string
+      }
     }>
   }
 
@@ -184,7 +204,7 @@ export type XoApp = {
     opts?: { bypassOtp?: boolean; bypassTaskCreation?: boolean }
   ) => Promise<{ bypassOtp: boolean; expiration: number; user: XoUser }>
   /* Throw if no authorization */
-  checkFeatureAuthorization(featureCode: string): Promise<void>
+  checkFeatureAuthorization(featureCode: FeatureCode): Promise<void>
   /* connect a server (XCP-ng/XenServer) */
   connectXenServer(id: XoServer['id']): Promise<void>
   // TODO: replace all XoAclBasePrivilege with a more strict type. (discriminate union)
@@ -208,7 +228,7 @@ export type XoApp = {
     expiresIn?: string | number
     userId: XoUser['id']
   }): Promise<XoAuthenticationToken>
-  createUser(params: { name?: string; password?: string; [key: string]: unknown }): Promise<XoUser>
+  createUser(params: { name?: string; password?: string;[key: string]: unknown }): Promise<XoUser>
   deleteAclV2GroupRole(groupId: XoGroup['id'], roleId: XoAclRole['id']): Promise<boolean>
   deleteAclV2Privilege(privilegeId: XoAclBasePrivilege['id'], options?: { force?: boolean }): Promise<boolean>
   deleteAclV2Role(roleId: XoAclRole['id'], options?: { force?: boolean }): Promise<boolean>
