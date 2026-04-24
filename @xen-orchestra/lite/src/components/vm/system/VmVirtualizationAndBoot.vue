@@ -3,31 +3,33 @@
     <UiTitle>
       {{ t('virtualization-boot-settings') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="t('virtualization-mode')" :value="virtualizationMode" />
-    <VtsQuickInfoRow :label="t('secure-boot')">
-      <template #value>
-        <VtsStatus :status="vm.platform.secureboot === 'true'" />
-      </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow
-      :label="t('virtual-tpm')"
-      :value="vm.VTPMs.length > 0 ? (vtpm?.uuid ?? t('unknown')) : t('none')"
-    />
-    <VtsQuickInfoRow :label="t('viridian')">
-      <template #value>
-        <VtsStatus :status="vm.platform.viridian === 'true'" />
-      </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('manage-citrix-pv-drivers-via-windows-update')">
-      <template #value>
-        <VtsStatus :status="vm.has_vendor_device" />
-      </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('nested-virtualization')">
-      <template #value>
-        <VtsStatus :status="isNestedVirtualizationEnabled" />
-      </template>
-    </VtsQuickInfoRow>
+    <VtsTabularKeyValueList>
+      <VtsTabularKeyValueRow :label="t('virtualization-mode')" :value="virtualizationMode" />
+      <VtsTabularKeyValueRow :label="t('secure-boot')">
+        <template #value>
+          <VtsStatus :status="vm.platform.secureboot === 'true'" />
+        </template>
+      </VtsTabularKeyValueRow>
+      <VtsTabularKeyValueRow
+        :label="t('virtual-tpm')"
+        :value="vm.VTPMs.length > 0 ? (vtpm?.uuid ?? t('unknown')) : t('none')"
+      />
+      <VtsTabularKeyValueRow :label="t('viridian')">
+        <template #value>
+          <VtsStatus :status="vm.platform.viridian === 'true'" />
+        </template>
+      </VtsTabularKeyValueRow>
+      <VtsTabularKeyValueRow :label="t('manage-citrix-pv-drivers-via-windows-update')">
+        <template #value>
+          <VtsStatus :status="vm.has_vendor_device" />
+        </template>
+      </VtsTabularKeyValueRow>
+      <VtsTabularKeyValueRow :label="t('nested-virtualization')">
+        <template #value>
+          <VtsStatus :status="isNestedVirtualizationEnabled" />
+        </template>
+      </VtsTabularKeyValueRow>
+    </VtsTabularKeyValueList>
   </UiCard>
 </template>
 
@@ -36,8 +38,9 @@ import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { useVtpmStore } from '@/stores/xen-api/vtpm.store.ts'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
+import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
+import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { satisfies } from 'semver'

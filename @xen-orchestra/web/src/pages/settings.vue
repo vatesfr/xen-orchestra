@@ -5,62 +5,62 @@
     <div class="container">
       <UiTitle>{{ t('about') }}</UiTitle>
       <VtsColumns class="columns" :class="{ 'mobile-about': uiStore.isSmall }">
-        <VtsQuickInfoColumn>
+        <VtsTabularKeyValueList>
           <div class="typo-h6">{{ t('xen-orchestra') }}</div>
-          <VtsQuickInfoRow :label="t('version')" />
-          <VtsQuickInfoRow :label="t('news')">
+          <VtsTabularKeyValueRow :label="t('version')" />
+          <VtsTabularKeyValueRow :label="t('news')">
             <template #value>
               <UiLink size="medium" :href="XO_LINKS.BLOG">
                 {{ t('news-name', { name: t('xen-orchestra') }) }}
               </UiLink>
             </template>
-          </VtsQuickInfoRow>
-          <VtsQuickInfoRow :label="t('community')">
+          </VtsTabularKeyValueRow>
+          <VtsTabularKeyValueRow :label="t('community')">
             <template #value>
               <UiLink size="medium" :href="XO_LINKS.COMMUNITY">
                 {{ t('community-name', { name: t('xen-orchestra') }) }}
               </UiLink>
             </template>
-          </VtsQuickInfoRow>
-          <VtsQuickInfoRow :label="t('documentation')">
+          </VtsTabularKeyValueRow>
+          <VtsTabularKeyValueRow :label="t('documentation')">
             <template #value>
               <UiLink size="medium" :href="XO_LINKS.DOC">
                 {{ t('documentation-name', { name: t('xen-orchestra') }) }}
               </UiLink>
             </template>
-          </VtsQuickInfoRow>
-        </VtsQuickInfoColumn>
-        <VtsQuickInfoColumn>
+          </VtsTabularKeyValueRow>
+        </VtsTabularKeyValueList>
+        <VtsTabularKeyValueList>
           <div class="typo-h6">{{ t('xcp-ng') }}</div>
-          <VtsQuickInfoRow :label="t('news')">
+          <VtsTabularKeyValueRow :label="t('news')">
             <template #value>
               <UiLink size="medium" :href="XCP_LINKS.BLOG">
                 {{ t('news-name', { name: t('xcp-ng') }) }}
               </UiLink>
             </template>
-          </VtsQuickInfoRow>
-          <VtsQuickInfoRow :label="t('community')">
+          </VtsTabularKeyValueRow>
+          <VtsTabularKeyValueRow :label="t('community')">
             <template #value>
               <UiLink size="medium" :href="XCP_LINKS.COMMUNITY">
                 {{ t('community-name', { name: t('xcp-ng') }) }}
               </UiLink>
             </template>
-          </VtsQuickInfoRow>
-          <VtsQuickInfoRow :label="t('documentation')">
+          </VtsTabularKeyValueRow>
+          <VtsTabularKeyValueRow :label="t('documentation')">
             <template #value>
               <UiLink size="medium" :href="XCP_LINKS.DOC">
                 {{ t('documentation-name', { name: t('xcp-ng') }) }}
               </UiLink>
             </template>
-          </VtsQuickInfoRow>
-          <VtsQuickInfoRow :label="t('support')">
+          </VtsTabularKeyValueRow>
+          <VtsTabularKeyValueRow :label="t('support')">
             <template #value>
               <UiLink size="medium" :href="XCP_LINKS.SUPPORT">
                 {{ t('pro-support', { name: t('xcp-ng') }) }}
               </UiLink>
             </template>
-          </VtsQuickInfoRow>
-        </VtsQuickInfoColumn>
+          </VtsTabularKeyValueRow>
+        </VtsTabularKeyValueList>
       </VtsColumns>
     </div>
     <!-- APPEARANCE -->
@@ -119,21 +119,21 @@
     <div class="container">
       <UiTitle>{{ t('language-preferences') }}</UiTitle>
       <VtsColumns class="columns" :class="{ 'mobile-language': uiStore.isSmall }">
-        <VtsQuickInfoColumn class="language">
+        <VtsTabularKeyValueList class="language">
           <VtsInputWrapper :label="t('language')">
             <VtsSelect :id="localeSelectId" accent="brand" />
             <UiInfo accent="info" wrap>{{ t('untranslated-text-helper') }}</UiInfo>
           </VtsInputWrapper>
-        </VtsQuickInfoColumn>
-        <VtsQuickInfoColumn>
-          <VtsQuickInfoRow :label="t('translation-tool')">
+        </VtsTabularKeyValueList>
+        <VtsTabularKeyValueList>
+          <VtsTabularKeyValueRow :label="t('translation-tool')">
             <template #value>
               <UiLink size="medium" :href="XO_LINKS.TRANSLATION">
                 {{ t('weblate') }}
               </UiLink>
             </template>
-          </VtsQuickInfoRow>
-        </VtsQuickInfoColumn>
+          </VtsTabularKeyValueRow>
+        </VtsTabularKeyValueList>
       </VtsColumns>
     </div>
   </UiCard>
@@ -145,9 +145,9 @@ import { XCP_LINKS, XO_LINKS } from '@/shared/constants.ts'
 import VtsColumns from '@core/components/column/VtsColumn.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
-import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
+import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
+import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'

@@ -45,6 +45,7 @@
 - [VDI] Add chainPhysicalUsage to have a proper usage linked to the complete chain (PR [#9708](https://github.com/vatesfr/xen-orchestra/pull/9708))
 - **XO 5**:
   - [Settings/Servers] Add info tip to remind users to only add pool masters
+- [System] Update system pages layout ([user feedback](https://feedback.vates.tech/posts/37/xo6-ui-very-messy-columns-width-in-vm-system-far-better-in-xo5)) (PR [#9746](https://github.com/vatesfr/xen-orchestra/pull/9746))
 
 ### Bug fixes
 

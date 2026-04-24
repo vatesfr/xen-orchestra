@@ -3,21 +3,27 @@
     <UiTitle>{{ t('general-information') }}</UiTitle>
     <VtsColumns>
       <VtsColumn>
-        <VtsQuickInfoRow :label="t('name')" :value="backupJob.name" />
+        <VtsKeyValueList>
+          <VtsKeyValueRow :label="t('name')" :value="backupJob.name" />
+        </VtsKeyValueList>
       </VtsColumn>
       <VtsColumn>
-        <VtsQuickInfoRow :label="t('id')" :value="backupJob.id" />
+        <VtsKeyValueList>
+          <VtsKeyValueRow :label="t('id')" :value="backupJob.id" />
+        </VtsKeyValueList>
       </VtsColumn>
       <VtsColumn>
-        <VtsQuickInfoRow :label="t('modes')">
-          <template v-if="modeLabels.length > 0" #value>
-            <UiTagsList>
-              <UiTag v-for="label in modeLabels" :key="label" variant="secondary" accent="info">
-                {{ label }}
-              </UiTag>
-            </UiTagsList>
-          </template>
-        </VtsQuickInfoRow>
+        <VtsKeyValueList>
+          <VtsKeyValueRow :label="t('modes')">
+            <template v-if="modeLabels.length > 0" #value>
+              <UiTagsList>
+                <UiTag v-for="label in modeLabels" :key="label" variant="secondary" accent="info">
+                  {{ label }}
+                </UiTag>
+              </UiTagsList>
+            </template>
+          </VtsKeyValueRow>
+        </VtsKeyValueList>
       </VtsColumn>
     </VtsColumns>
   </UiCard>
@@ -28,7 +34,8 @@ import { useXoBackupUtils } from '@/modules/backup/composables/xo-backup-utils.c
 import type { FrontXoVmBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import VtsKeyValueList from '@core/components/key-value-list/VtsKeyValueList.vue'
+import VtsKeyValueRow from '@core/components/key-value-row/VtsKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'

@@ -3,7 +3,7 @@
   <VtsStateHero v-else-if="pool === undefined" format="page" type="no-data" size="medium">
     {{ t('no-data') }}
   </VtsStateHero>
-  <VtsColumns v-else>
+  <VtsColumns v-else extra-space-around>
     <VtsColumn>
       <PoolGeneralInfo :pool />
       <PoolNetworking :pool />
