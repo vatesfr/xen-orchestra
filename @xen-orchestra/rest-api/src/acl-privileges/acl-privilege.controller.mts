@@ -181,7 +181,7 @@ export class AclPrivilegeController extends XoController<AnyPrivilege> {
   @Response(invalidParameters.status, invalidParameters.description)
   async updateAclV2Privilege(
     @Path() id: string,
-    @Body() privilege: Unbrand<SafeOmit<AnyPrivilege, 'id' | 'roleId'>>
+    @Body() privilege: Unbrand<SafeOmit<Partial<AnyPrivilege>, 'id' | 'roleId'>>
   ): Promise<void> {
     await this.restApi.xoApp.updateAclV2Privilege(id as AnyPrivilege['id'], privilege)
   }
