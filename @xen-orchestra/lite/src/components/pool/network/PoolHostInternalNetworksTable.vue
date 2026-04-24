@@ -119,7 +119,7 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells } = useNetworkColumns({
-  exclude: ['status', 'vlan'],
+  exclude: ['status', 'vlan', 'actions'],
   body: (network: XenApiNetwork) => ({
     network: r => r({ label: network.name_label }),
     description: r => r(network.name_description),

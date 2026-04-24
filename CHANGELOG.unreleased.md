@@ -45,6 +45,7 @@
 - [VDI] Add chainPhysicalUsage to have a proper usage linked to the complete chain (PR [#9708](https://github.com/vatesfr/xen-orchestra/pull/9708))
 - **XO 5**:
   - [Settings/Servers] Add info tip to remind users to only add pool masters
+- [Pool/Network] Add Network deletion (PR [#9714](https://github.com/vatesfr/xen-orchestra/pull/9714))
 
 ### Bug fixes
 
