@@ -29,7 +29,7 @@
     "@vates/parse-duration": "^0.1.1",
     "@vates/read-chunk": "^1.2.1",
     "@vates/task": "^0.6.2",
-    "@xen-orchestra/async-map": "^0.1.2",
+    "@xen-orchestra/async-map": "^0.1.3",
     "@xen-orchestra/disk-transform": "^1.2.2",
     "@xen-orchestra/log": "^0.7.1",
     "@xen-orchestra/qcow2": "^1.2.0",
