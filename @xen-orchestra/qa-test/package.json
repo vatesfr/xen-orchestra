@@ -20,7 +20,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "xo-lib": "^0.11.1"
+    "xo-lib": "^0.11.2"
   },
   "scripts": {
     "qa": "node --env-file-if-exists=.env --test --test-concurrency=1 tests/*.test.js",
