@@ -3,7 +3,9 @@ export default {
   delete: true,
   read: true,
   update: {
+    description: true,
     groups: true,
+    name: true,
     users: true,
   },
 }

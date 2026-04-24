@@ -19,7 +19,7 @@ import {
 import { provide } from 'inversify-binding-decorators'
 import { json, type Request as ExRequest } from 'express'
 
-import { acl } from '../middlewares/acl.middleware.mjs'
+import { acl, actionsFromBody } from '../middlewares/acl.middleware.mjs'
 import {
   aclPrivilege,
   aclPrivilegeIds,
@@ -151,7 +151,11 @@ export class AclPrivilegeController extends XoController<AnyPrivilege> {
 
   /**
    * Required privilege:
-   * - resource: acl-privilege, action: update
+   * - resource: acl-privilege, action: update (grants all fields)
+   * - resource: acl-privilege, action: update:action (if action is passed)
+   * - resource: acl-privilege, action: update:resource (if resource is passed)
+   * - resource: acl-privilege, action: update:effect (if effect is passed)
+   * - resource: acl-privilege, action: update:selector (if selector is passed)
    *
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    * @example privilege {
@@ -166,7 +170,7 @@ export class AclPrivilegeController extends XoController<AnyPrivilege> {
     json(),
     acl({
       resource: 'acl-privilege',
-      action: 'update',
+      actions: actionsFromBody(['update:action', 'update:resource', 'update:effect', 'update:selector']),
       objectId: 'params.id',
       getObject: ({ restApi }) => restApi.xoApp.getAclV2Privilege,
     }),
