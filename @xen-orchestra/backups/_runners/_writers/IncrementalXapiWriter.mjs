@@ -129,17 +129,19 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
           await diffDisk.init()
           const sourceUuid = snapshot.other_config?.[COPY_OF]
           if (diffDisk.getBlockIndexes().length === 0) {
+            // no block modification since the common snapshot, we can chain VM and disk
             if (sourceUuid) {
               baseVdisBySourceUuid.set(sourceUuid, activeVdi)
             }
             // Track the target VM (the replicated VM to update on the next transfer).
             targetVmRef = vm.$ref
           } else {
-            // if not chain to the snapshot, but create a new VM
             if (sourceUuid) {
               baseVdisBySourceUuid.set(sourceUuid, snapshot)
             }
-            // not empty, we will create a new VM
+            // there are changed block since the snapshot
+            // we can reuse it to transfer a delta, but we will
+            // create a new VM
             canChainToTargetVm = false
             debug('checkBaseVdis, data between snapshot and active disk', {
               vdiRef: snapshot.$ref,
@@ -163,6 +165,8 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     )
 
     if (!canChainToTargetVm) {
+      // if at least one disk has new data, create a new VM
+      // instead of updating it
       targetVmRef = undefined
     } else if (targetVmRef !== undefined) {
       debug('checkBaseVdis,got a valid vm target', targetVmRef)
