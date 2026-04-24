@@ -45,7 +45,7 @@
     "@vates/predicates": "^1.1.0",
     "@vates/read-chunk": "^1.2.1",
     "@vates/task": "^0.7.0",
-    "@vates/types": "^1.22.0",
+    "@vates/types": "^1.23.0",
     "@vates/xml": "^2.0.0",
     "@vates/xml-rpc": "^1.0.0",
     "@xen-orchestra/async-map": "^0.1.3",
