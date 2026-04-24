@@ -39,7 +39,7 @@
     "@xen-orchestra/backups": "^0.72.0",
     "@xen-orchestra/log": "^0.7.2",
     "@xen-orchestra/xapi": "^8.7.2",
-    "complex-matcher": "^1.1.0",
+    "complex-matcher": "^1.1.1",
     "golike-defer": "^0.5.1",
     "inversify": "^6.2.2",
     "inversify-binding-decorators": "^4.0.0",
