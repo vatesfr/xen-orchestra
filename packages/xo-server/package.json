@@ -56,7 +56,7 @@
     "@xen-orchestra/emit-async": "^1.0.0",
     "@xen-orchestra/fs": "^4.8.0",
     "@xen-orchestra/log": "^0.7.2",
-    "@xen-orchestra/mixin": "^0.2.0",
+    "@xen-orchestra/mixin": "^0.2.1",
     "@xen-orchestra/mixins": "^0.18.0",
     "@xen-orchestra/qcow2": "^1.3.0",
     "@xen-orchestra/rest-api": "^0.28.2",
