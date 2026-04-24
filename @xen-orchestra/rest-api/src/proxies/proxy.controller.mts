@@ -1,9 +1,16 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 import type { XoProxy } from '@vates/types'
 
-import { badRequestResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import { acl } from '../middlewares/acl.middleware.mjs'
+import {
+  badRequestResp,
+  forbiddenOperationResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { partialProxies, proxy, proxyIds } from '../open-api/oa-examples/proxy.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
@@ -49,10 +56,22 @@ export class ProxyController extends XoController<XoProxy> {
   }
 
   /**
+   * Required privilege:
+   * - resource: proxy, action: read
+   *
    * @example id "e625ea0c-a876-405a-b838-109d762efe88"
    */
   @Example(proxy)
   @Get('{id}')
+  @Middlewares(
+    acl({
+      resource: 'proxy',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getProxy,
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getProxy(@Path() id: string): Promise<Unbrand<XoProxy>> {
     return this.getObject(id as XoProxy['id'])

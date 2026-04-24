@@ -85,13 +85,13 @@ type AclEntry = {
   ) &
     (
       | {
-          objectIds: string[] | ((opts: { req: AuthenticatedRequest }) => XoRecord['id'][])
+          objectIds: string[] | ((opts: { req: AuthenticatedRequest; restApi: RestApi }) => XoRecord['id'][])
           getObject?:
             | ((opts: { restApi: RestApi }) => (id: Branded<any>) => Promise<RestNonXapiXoRecord>)
             | ((opts: { restApi: RestApi }) => (id: Branded<any>) => XapiXoRecord)
         }
       | {
-          objectId: string | ((opts: { req: AuthenticatedRequest }) => XoRecord['id'])
+          objectId: string | ((opts: { req: AuthenticatedRequest; restApi: RestApi }) => XoRecord['id'])
           getObject?:
             | ((opts: { restApi: RestApi }) => (id: Branded<any>) => Promise<RestNonXapiXoRecord>)
             | ((opts: { restApi: RestApi }) => (id: Branded<any>) => XapiXoRecord)
@@ -100,7 +100,9 @@ type AclEntry = {
           objectIds?: never
           objectId?: never
           getObject?: never
-          objects: object[] | ((opts: { req: AuthenticatedRequest; restApi: RestApi }) => MaybePromise<object[]>)
+          objects:
+            | object[]
+            | ((opts: { req: AuthenticatedRequest; restApi: RestApi }) => MaybePromise<object[]> | undefined)
           object?: never
         }
       | {
@@ -108,7 +110,7 @@ type AclEntry = {
           objectId?: never
           getObject?: never
           objects?: never
-          object: object | ((opts: { req: AuthenticatedRequest; restApi: RestApi }) => MaybePromise<object>)
+          object: object | ((opts: { req: AuthenticatedRequest; restApi: RestApi }) => MaybePromise<object> | undefined)
         }
     )
 }[SupportedResource]
@@ -160,7 +162,9 @@ function normalizeAclEntry(acl: AclEntry) {
   }
 
   if ('object' in acl && acl.object !== undefined) {
-    let objects: object[] | ((opts: { req: AuthenticatedRequest; restApi: RestApi }) => MaybePromise<object[]>)
+    let objects:
+      | object[]
+      | ((opts: { req: AuthenticatedRequest; restApi: RestApi }) => MaybePromise<object[]> | undefined)
     if (typeof acl.object === 'function') {
       const fn = acl.object
       objects = async (opts: { req: AuthenticatedRequest; restApi: RestApi }) => [await fn(opts)]
@@ -175,10 +179,10 @@ function normalizeAclEntry(acl: AclEntry) {
   }
 
   if ('objectId' in acl && acl.objectId !== undefined) {
-    let objectIds: string[] | ((opts: { req: AuthenticatedRequest }) => string[])
+    let objectIds: string[] | ((opts: { req: AuthenticatedRequest; restApi: RestApi }) => string[])
     if (typeof acl.objectId === 'function') {
       const fn = acl.objectId
-      objectIds = (opts: { req: AuthenticatedRequest }) => [fn(opts)]
+      objectIds = (opts: { req: AuthenticatedRequest; restApi: RestApi }) => [fn(opts)]
     } else {
       objectIds = [acl.objectId]
     }
@@ -204,10 +208,10 @@ export function acl(acls: AclEntry | AclEntry[]) {
       if ('objectIds' in acl) {
         let ids: { id: unknown; path?: string }[] = []
         if (typeof acl.objectIds === 'function') {
-          ids = acl.objectIds({ req }).map(id => ({ id }))
+          ids = acl.objectIds({ req, restApi }).map(id => ({ id }))
         } else {
           for (const path of acl.objectIds) {
-            const id: unknown = path.split('.').reduce((obj, part) => obj[part], req)
+            const id: unknown = path.split('.').reduce((obj, part) => obj?.[part], req)
             ids.push({ id, path })
           }
         }
@@ -240,7 +244,10 @@ export function acl(acls: AclEntry | AclEntry[]) {
       }
       if ('objects' in acl) {
         if (typeof acl.objects === 'function') {
-          objects = await acl.objects({ req, restApi })
+          const _objects = await acl.objects({ req, restApi })
+          if (_objects !== undefined) {
+            objects = _objects
+          }
         } else {
           objects = acl.objects
         }

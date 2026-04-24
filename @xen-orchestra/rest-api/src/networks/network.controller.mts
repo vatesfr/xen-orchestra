@@ -1,4 +1,18 @@
-import { Example, Get, Path, Query, Response, Request, Route, Security, Tags, Delete, SuccessResponse, Put } from 'tsoa'
+import {
+  Example,
+  Get,
+  Path,
+  Query,
+  Response,
+  Request,
+  Route,
+  Security,
+  Tags,
+  Delete,
+  SuccessResponse,
+  Put,
+  Middlewares,
+} from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
@@ -10,6 +24,7 @@ import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.m
 import { network, networkIds, partialNetworks } from '../open-api/oa-examples/network.oa-example.mjs'
 import {
   badRequestResp,
+  forbiddenOperationResp,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
@@ -20,6 +35,7 @@ import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
+import { acl } from '../middlewares/acl.middleware.mjs'
 
 @Route('networks')
 @Security('*')
@@ -60,19 +76,29 @@ export class NetworkController extends XapiXoController<XoNetwork> {
   }
 
   /**
+   * Required privilege:
+   * - resource: network, action: read
+   *
    * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
    */
   @Example(network)
   @Get('{id}')
+  @Middlewares(acl({ resource: 'network', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getNetwork(@Path() id: string): Unbrand<XoNetwork> {
     return this.getObject(id as XoNetwork['id'])
   }
 
   /**
-   * @example id "593c39a5-9c56-28eb-969b-255b2f53791b"
+   * Required privilege:
+   * - resource: network, action: delete
+   *
+   * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
    */
   @Delete('{id}')
+  @Middlewares(acl({ resource: 'network', action: 'delete', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteNetwork(@Path() id: string): Promise<void> {
@@ -179,11 +205,16 @@ export class NetworkController extends XapiXoController<XoNetwork> {
   }
 
   /**
+   * Required privilege:
+   * - resource: network, action: update:tags
+   *
    * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
    * @example tag "from-rest-api"
    */
   @Put('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'network', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async putNetworkTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const network = this.getXapiObject(id as XoNetwork['id'])
@@ -191,11 +222,16 @@ export class NetworkController extends XapiXoController<XoNetwork> {
   }
 
   /**
+   * Required privilege:
+   * - resource: network, action: update:tags
+   *
    * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
    * @example tag "from-rest-api"
    */
   @Delete('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'network', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteNetworkTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const network = this.getXapiObject(id as XoNetwork['id'])
