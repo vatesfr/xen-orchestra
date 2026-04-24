@@ -2,7 +2,7 @@
 <!-- TODO: Add complex icon -->
 <template>
   <button :class="classNames" :disabled class="ui-button-icon" type="button">
-    <VtsIcon :name="icon" size="current" />
+    <VtsIcon :name="icon" size="current" :color="iconColor" />
     <span v-if="dot" class="dot" />
   </button>
 </template>
@@ -25,6 +25,7 @@ const { accent, size, disabled, selected, targetScale } = defineProps<{
   selected?: boolean
   dot?: boolean
   targetScale?: number | { x: number; y: number }
+  iconColor?: string
 }>()
 
 const cssTargetScale = computed(() => {
