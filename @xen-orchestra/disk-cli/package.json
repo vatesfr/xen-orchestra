@@ -21,7 +21,7 @@
   "dependencies": {
     "@vates/async-each": "^1.0.3",
     "@xen-orchestra/backups": "^0.71.3",
-    "@xen-orchestra/disk-transform": "^1.2.2",
+    "@xen-orchestra/disk-transform": "^1.2.3",
     "@xen-orchestra/fs": "^4.8.0",
     "@xen-orchestra/qcow2": "^1.2.0",
     "promise-toolbox": "^0.21.0",

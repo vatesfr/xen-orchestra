@@ -33,7 +33,7 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "@xen-orchestra/disk-transform": "^1.2.2",
+    "@xen-orchestra/disk-transform": "^1.2.3",
     "@xen-orchestra/fs": "^4.8.0",
     "execa": "^5.0.0",
     "get-stream": "^6.0.0",
