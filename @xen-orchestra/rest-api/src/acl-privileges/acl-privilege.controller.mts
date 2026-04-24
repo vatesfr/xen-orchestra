@@ -150,7 +150,7 @@ export class AclPrivilegeController extends XoController<AnyPrivilege> {
   }
 
   /**
-   * Required privilege:
+   * Required privileges:
    * - resource: acl-privilege, action: update (grants all fields)
    * - resource: acl-privilege, action: update:action (if action is passed)
    * - resource: acl-privilege, action: update:resource (if resource is passed)

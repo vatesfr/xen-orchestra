@@ -157,7 +157,7 @@ export class AclRoleController extends XoController<XoAclRole> {
   }
 
   /**
-   * Required privilege:
+   * Required privileges:
    * - resource: acl-role, action: update (grants all fields)
    * - resource: acl-role, action: update:name (if name is passed)
    * - resource: acl-role, action: update:description (if description is passed)
@@ -286,7 +286,7 @@ export class AclRoleController extends XoController<XoAclRole> {
   /**
    * Attach an ACL V2 role to a group.
    *
-   * Required privileges:
+   * Required privilege:
    * - resource: acl-role, action: update:groups
    *
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
@@ -317,7 +317,7 @@ export class AclRoleController extends XoController<XoAclRole> {
   /**
    * Detach an ACL V2 role from a group.
    *
-   * Required privileges:
+   * Required privilege:
    * - resource: acl-role, action: update:groups
    *
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
@@ -347,7 +347,7 @@ export class AclRoleController extends XoController<XoAclRole> {
   /**
    * Attach an ACL V2 role to a user.
    *
-   * Required privileges:
+   * Required privilege:
    * - resource: acl-role, action: update:users
    *
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
@@ -378,7 +378,7 @@ export class AclRoleController extends XoController<XoAclRole> {
   /**
    * Detach an ACL V2 role from a user.
    *
-   * Required privileges:
+   * Required privilege:
    * - resource: acl-role, action: update:users
    *
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
