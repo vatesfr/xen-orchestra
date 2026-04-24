@@ -1,4 +1,4 @@
-import execa from 'execa'
+import execa, { type ExecaError } from 'execa'
 
 // Recursively set the immutable (`+i`) attribute on a directory and all its contents.
 export async function makeImmutable(dirPath: string): Promise<void> {
@@ -16,7 +16,7 @@ async function execChattrWithMissingFiles(args: string[]) {
   try {
     await execa('chattr', args)
   } catch (err) {
-    const stderr: string = 'stderr' in err ? err.stderr : ''
+    const stderr = (err as ExecaError).stderr ?? ''
     const hasUnexpected = stderr.split('\n').some(line => line.trim() !== '' && !line.includes('while trying to stat'))
     if (hasUnexpected) {
       throw err
