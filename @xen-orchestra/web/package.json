@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/web",
-  "version": "0.46.2",
+  "version": "0.47.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
