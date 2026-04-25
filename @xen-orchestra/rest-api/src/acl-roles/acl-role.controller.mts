@@ -21,6 +21,7 @@ import { provide } from 'inversify-binding-decorators'
 import { type Request as ExRequest, json } from 'express'
 import type { XoAclRole, XoGroup, XoUser } from '@vates/types'
 
+import { acl, actionsFromBody } from '../middlewares/acl.middleware.mjs'
 import { aclPrivilegeIds, partialAclPrivileges } from '../open-api/oa-examples/acl-privilege.oa-example.mjs'
 import { aclRole, aclRoleIds, partialAclRoles } from '../open-api/oa-examples/acl-role.oa-example.mjs'
 import {
@@ -83,6 +84,9 @@ export class AclRoleController extends XoController<XoAclRole> {
   }
 
   /**
+   * Required privilege:
+   * - resource: acl-role, action: create
+   *
    * @example body {
    *  "name": "VMs creator",
    *  "description": "Allow to create VMs"
@@ -90,8 +94,16 @@ export class AclRoleController extends XoController<XoAclRole> {
    */
   @Example(entityId)
   @Post('')
-  @Middlewares(json())
+  @Middlewares([
+    json(),
+    acl({
+      resource: 'acl-role',
+      action: 'create',
+      object: ({ req }) => req.body,
+    }),
+  ])
   @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(invalidParameters.status, invalidParameters.description)
   async createAclV2Role(
     @Body() body: { name: string; description?: string }
@@ -101,19 +113,42 @@ export class AclRoleController extends XoController<XoAclRole> {
   }
 
   /**
+   * Required privilege:
+   * - resource: acl-role, action: read
+   *
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    */
   @Example(aclRole)
   @Get('{id}')
+  @Middlewares(
+    acl({
+      resource: 'acl-role',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getAclV2Role,
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getAclV2Role(@Path() id: string): Promise<Unbrand<XoAclRole>> {
     return this.getObject(id as XoAclRole['id'])
   }
 
   /**
+   * Required privilege:
+   * - resource: acl-role, action: delete
+   *
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    */
   @Delete('{id}')
+  @Middlewares(
+    acl({
+      resource: 'acl-role',
+      action: 'delete',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getAclV2Role,
+    })
+  )
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -122,6 +157,11 @@ export class AclRoleController extends XoController<XoAclRole> {
   }
 
   /**
+   * Required privileges:
+   * - resource: acl-role, action: update (grants all fields)
+   * - resource: acl-role, action: update:name (if name is passed)
+   * - resource: acl-role, action: update:description (if description is passed)
+   *
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    * @example body {
    *  "name": "VMs creator",
@@ -129,7 +169,15 @@ export class AclRoleController extends XoController<XoAclRole> {
    * }
    */
   @Patch('{id}')
-  @Middlewares(json())
+  @Middlewares([
+    json(),
+    acl({
+      resource: 'acl-role',
+      actions: actionsFromBody(['update:name', 'update:description']),
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getAclV2Role,
+    }),
+  ])
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -144,13 +192,38 @@ export class AclRoleController extends XoController<XoAclRole> {
   /**
    * Copy a role with all its privileges. Possibility to modify the name and description of the copied role.
    *
+   * Required privileges:
+   * - resource: acl-role, action: create
+   * - resource: acl-privilege, action: create (if copied role has privileges)
+   *
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    * @example body {"name": "Copied role"}
    */
   @Example(taskLocation)
   @Post('{id}/actions/copy')
-  @Middlewares(json())
+  @Middlewares([
+    json(),
+    acl([
+      {
+        resource: 'acl-role',
+        action: 'create',
+        object: async ({ req, restApi }) => {
+          const model = await restApi.xoApp.getAclV2Role(req.params.id as XoAclRole['id'])
+          return { name: req.body.name ?? model.name, description: req.body.description ?? model.description }
+        },
+      },
+      {
+        resource: 'acl-privilege',
+        action: 'create',
+        objects: async ({ req, restApi }) => {
+          const privileges = await restApi.xoApp.getAclV2RolePrivileges(req.params.id as XoAclRole['id'])
+          return privileges.map(({ id, ...rest }) => rest)
+        },
+      },
+    ]),
+  ])
   @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   copyAclV2Role(
@@ -213,10 +286,21 @@ export class AclRoleController extends XoController<XoAclRole> {
   /**
    * Attach an ACL V2 role to a group.
    *
+   * Required privilege:
+   * - resource: acl-role, action: update:groups
+   *
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    * @example groupId "ee4965bf-d8af-4ca2-aa0e-5f29d0c5f9e2"
    */
   @Put('{id}/groups/{groupId}')
+  @Middlewares(
+    acl({
+      resource: 'acl-role',
+      action: 'update:groups',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getAclV2Role,
+    })
+  )
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -233,11 +317,23 @@ export class AclRoleController extends XoController<XoAclRole> {
   /**
    * Detach an ACL V2 role from a group.
    *
+   * Required privilege:
+   * - resource: acl-role, action: update:groups
+   *
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    * @example groupId "ee4965bf-d8af-4ca2-aa0e-5f29d0c5f9e2"
    */
   @Delete('{id}/groups/{groupId}')
+  @Middlewares(
+    acl({
+      resource: 'acl-role',
+      action: 'update:groups',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getAclV2Role,
+    })
+  )
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async detachAclV2Group(@Path() id: string, @Path() groupId: string): Promise<void> {
     const roleId = id as XoAclRole['id']
@@ -251,10 +347,21 @@ export class AclRoleController extends XoController<XoAclRole> {
   /**
    * Attach an ACL V2 role to a user.
    *
+   * Required privilege:
+   * - resource: acl-role, action: update:users
+   *
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    * @example userId "ee4965bf-d8af-4ca2-aa0e-5f29d0c5f9e2"
    */
   @Put('{id}/users/{userId}')
+  @Middlewares(
+    acl({
+      resource: 'acl-role',
+      action: 'update:users',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getAclV2Role,
+    })
+  )
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -271,11 +378,23 @@ export class AclRoleController extends XoController<XoAclRole> {
   /**
    * Detach an ACL V2 role from a user.
    *
+   * Required privilege:
+   * - resource: acl-role, action: update:users
+   *
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    * @example userId "ee4965bf-d8af-4ca2-aa0e-5f29d0c5f9e2"
    */
   @Delete('{id}/users/{userId}')
+  @Middlewares(
+    acl({
+      resource: 'acl-role',
+      action: 'update:users',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getAclV2Role,
+    })
+  )
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async detachAclV2User(@Path() id: string, @Path() userId: string): Promise<void> {
     const roleId = id as XoAclRole['id']
