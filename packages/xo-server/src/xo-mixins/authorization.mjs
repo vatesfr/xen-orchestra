@@ -11,11 +11,26 @@ const STARTER = 2
 const ENTERPRISE = 3
 const PREMIUM = 4
 
+// https://git.vates.tech/vates/www-xo/src/branch/main/src/productNames.js#L230
+const BUNDLE_ESSENTIAL = 'bundle-essential'
+const BUNDLE_ESSENTIAL_PLUS = 'bundle-essential-plus'
+const BUNDLE_ENTERPRISE = 'bundle-enterprise'
+const BUNDLE_PRO = 'bundle-pro'
+const BUNDLE_X1 = 'bundle-x1'
+
 export const PLANS = {
   free: FREE,
   starter: STARTER,
   enterprise: ENTERPRISE,
   premium: PREMIUM,
+}
+
+const BUNDLE_TO_PLAN = {
+  [BUNDLE_ESSENTIAL]: STARTER,
+  [BUNDLE_ESSENTIAL_PLUS]: PREMIUM,
+  [BUNDLE_ENTERPRISE]: PREMIUM,
+  [BUNDLE_PRO]: ENTERPRISE,
+  [BUNDLE_X1]: STARTER,
 }
 
 const AUTHORIZATIONS = {
@@ -44,6 +59,9 @@ const AUTHORIZATIONS = {
   },
 }
 
+// features: https://vates.tech/en/pricing-and-support/
+const BUNDLE_AUTHORIZATIONS = {}
+
 export default class Authorization {
   #app
   constructor(app) {
@@ -71,20 +89,58 @@ export default class Authorization {
     return PLANS[plan]
   }
 
+  async #getCurrentBundleId() {
+    const now = Date.now()
+    const xoaLicences = await retry(() => this.#app.getSelfLicenses(), {
+      when: error => error.message?.includes('invalid status connecting'),
+      onRetry(error) {
+        log.warn('XOA connection not ready, retrying', {
+          attempt: this.attemptNumber,
+          delay: this.delay,
+          error,
+        })
+      },
+    })
+    const activeBundleLicenses = xoaLicences?.filter(
+      ({ expires, bundleInfo }) => (expires === undefined || expires > now) && bundleInfo !== undefined
+    )
+    if (activeBundleLicenses?.length === 0) {
+      return undefined
+    }
+    const bundleIds = activeBundleLicenses.map(({ bundleInfo: { id } }) => id)
+    return bundleIds.sort((a, b) => (BUNDLE_TO_PLAN[b] ?? 0) - (BUNDLE_TO_PLAN[a] ?? 0))[0]
+  }
+
   async checkFeatureAuthorization(featureCode) {
     if (this.#app.getXoaPlan === undefined) {
       // source user => everything is open
       return
     }
 
-    const minPlan = this.#getMinPlan(featureCode)
-    const currentPlan = await this.#getCurrentPlan()
-    if (currentPlan < minPlan) {
-      throw featureUnauthorized({
-        featureCode,
-        currentPlan,
-        minPlan,
-      })
+    const bundleId = await this.#getCurrentBundleId()
+    if (bundleId !== undefined) {
+      console.log({ bundleId })
+      const allowedBundles = get(BUNDLE_AUTHORIZATIONS, featureCode)
+      if (allowedBundles === undefined) {
+        const minPlan = this.#getMinPlan(featureCode)
+        if (BUNDLE_TO_PLAN[bundleId] >= minPlan) {
+          return
+        }
+      } else {
+        if (allowedBundles.includes(bundleId)) {
+          return
+        }
+      }
+
+      throw featureUnauthorized({ featureCode, currentBundle: bundleId, allowedBundles })
+    } else {
+      console.log("no bundle ID, fallback to legacy check")
+      // fallback to legacy feature check
+      const minPlan = this.#getMinPlan(featureCode)
+      const currentPlan = await this.#getCurrentPlan()
+      if (currentPlan < minPlan) {
+        throw featureUnauthorized({ featureCode, currentPlan, minPlan })
+      }
     }
   }
 

@@ -206,11 +206,13 @@ exports.incorrectState = create(25, ({ actual, expected, object, property }) => 
   message: 'incorrect state',
 }))
 
-exports.featureUnauthorized = create(26, ({ featureCode, currentPlan, minPlan }) => ({
+exports.featureUnauthorized = create(26, ({ featureCode, currentPlan, minPlan, currentBundle, allowedBundles }) => ({
   data: {
     featureCode,
     currentPlan,
     minPlan,
+    currentBundle,
+    allowedBundles
   },
   message: 'feature Unauthorized',
 }))
