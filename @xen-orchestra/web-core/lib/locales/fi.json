@@ -187,6 +187,7 @@
   "pause": "Tauko",
   "pending": "Odottaa",
   "physical-interface-status": "Fyysisen rajapinnan tila",
+  "pool:status:unreachable:tooltip": "Määritetyt palvelimet, joihin ei saada yhteyttä",
   "professional-support": "Ammattimainen tuki",
   "progress": "Edistyminen",
   "properties": "Ominaisuudet",
