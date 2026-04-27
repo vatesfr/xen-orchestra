@@ -2,6 +2,9 @@
   <div class="vm-vdis-table">
     <UiTitle>
       {{ t('vdis') }}
+      <template #action>
+        <slot name="title-actions" />
+      </template>
     </UiTitle>
     <div class="container">
       <div class="table-actions">
@@ -53,6 +56,10 @@ const { vdis, vm, busy, error } = defineProps<{
   busy?: boolean
 }>()
 
+defineSlots<{
+  'title-actions'(): any
+}>()
+
 const { t } = useI18n()
 
 const selectedVdiId = useRouteQuery('id')
@@ -86,13 +93,9 @@ const { HeadCells, BodyCells } = useVdiColumns({
   body: (vdi: FrontXoVdi) => {
     const vbds = useGetVbdsByIds(vdi.$VBDs)
 
-    const vbd = computed(() => vbds.value.find(vbd => vbd.VDI === vdi.id))
+    const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm.id))
 
-    const vmId = computed(() => vbds.value.find(vbd => vbd.VDI === vdi.id)?.VM)
-
-    const href = computed(() =>
-      vmId.value ? buildXo5Route(`/vms/${vmId.value}/disks?s=1_6_asc-${vdi.id}`) : undefined
-    )
+    const href = computed(() => buildXo5Route(`/vms/${vm.id}/disks?s=1_6_asc-${vdi.id}`))
 
     const size = computed(() => formatSizeRaw(vdi.size, 2))
     const format = computed(() => getVdiFormat(vdi.image_format))
@@ -112,13 +115,21 @@ const { HeadCells, BodyCells } = useVdiColumns({
       openModal: openVbdDeleteModal,
       canRun: canDeleteVbd,
       isRunning: isDeletingVbd,
-    } = useVbdDeleteModal(() => (vbd.value ? [vbd.value] : []))
+      errorMessage: deleteVbdErrorMessage,
+    } = useVbdDeleteModal(
+      () => (vbd.value ? [vbd.value] : []),
+      () => vm
+    )
 
     const {
       openModal: openVdiDeleteModal,
       canRun: canDeleteVdi,
       isRunning: isDeletingVdi,
-    } = useVdiDeleteModal(() => [vdi])
+      errorMessage: deleteVdiErrorMessage,
+    } = useVdiDeleteModal(
+      () => [vdi],
+      () => vm
+    )
 
     return {
       vdi: r => r({ label: vdi.name_label, href: href.value, icon: 'object:vdi' }),
@@ -140,7 +151,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
             },
             {
               label: t('action:delete-vbd'),
-              hint: !canDeleteVbd.value ? t('vm-running') : undefined,
+              hint: deleteVbdErrorMessage.value,
               icon: 'action:disconnect',
               onClick: () => openVbdDeleteModal(),
               disabled: !canDeleteVbd.value,
@@ -148,7 +159,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
             },
             {
               label: t('action:delete'),
-              hint: !canDeleteVdi.value ? t('vm-running') : undefined,
+              hint: deleteVdiErrorMessage.value,
               icon: 'action:delete',
               onClick: () => openVdiDeleteModal(),
               disabled: !canDeleteVdi.value,
