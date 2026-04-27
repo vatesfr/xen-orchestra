@@ -154,10 +154,11 @@ export function getRefFromType(xapiType) {
 
 /**
  *
- * @param {string} xapiTimestamp
- * @return {string}
+ * @param {string|null} xapiTimestamp
+ * @return {string|null}
  */
 export function datetimeXapi2Db(xapiTimestamp) {
+  if (xapiTimestamp == null || xapiTimestamp.length === 0) return null
   // xapi example:  '20200903T20:50:13Z'
   // JS requirement: '2020-09-03 20:50:13.000z'
   return (
@@ -173,10 +174,11 @@ export function datetimeXapi2Db(xapiTimestamp) {
 
 /**
  *
- * @param {Date} dbTimestamp
- * @return {string}
+ * @param {Date|null} dbTimestamp
+ * @return {string|null}
  */
 export function datetimeDb2Xapi(dbTimestamp) {
+  if (dbTimestamp == null) return null
   // xapi example:  '20200903T20:50:13Z'
   // JS requirement: '2020-09-03 20:50:13.000z'
   const msResult = dbTimestamp.toISOString().replaceAll('-', '').replace(' ', 'T').toUpperCase()
