@@ -51,8 +51,8 @@ const openVmProtectedModal = useModal({
     accent: 'info',
     icon: 'status:info-picto',
     dismissible: true,
-    title: t('what-does-protected-means?'),
-    content: t('what-does-protected-means-content'),
+    title: t('what-does-protected-mean?'),
+    content: t('what-does-protected-mean-content'),
   },
 })
 

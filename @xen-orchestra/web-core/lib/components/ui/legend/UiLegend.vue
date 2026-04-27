@@ -1,7 +1,7 @@
 <!-- v7 -->
 <template>
   <li :class="classNames" class="ui-legend">
-    <VtsIcon name="fa:circle" size="extra-small" class="circle-icon" />
+    <VtsIcon name="fa:circle" size="current" class="circle-icon" />
     <span class="label typo-body-regular-small"><slot /></span>
     <UiButtonIcon
       v-if="modalInfo"
@@ -53,12 +53,11 @@ const classNames = computed(() => toVariants({ accent }))
 <style lang="postcss" scoped>
 .ui-legend {
   display: flex;
+  align-items: center;
   gap: 0.8rem;
 
   .circle-icon {
-    height: 2.4rem;
-    display: flex;
-    align-items: center;
+    font-size: 0.8rem;
   }
 
   .modal-info {
