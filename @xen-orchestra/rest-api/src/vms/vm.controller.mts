@@ -615,6 +615,40 @@ export class VmController extends XapiXoController<XoVm> {
   }
 
   /**
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   * @example body { "snapshot": "f07ab729-c0e8-721c-45ec-f11276377030", "snapshotBefore": true }
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/revert_snapshot')
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async revertSnapshotVm(
+    @Path() id: string,
+    @Body() body: { snapshot: XoVmSnapshot['id']; snapshotBefore?: boolean },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const vmId = id as XoVm['id']
+    const action = async () => {
+      if (body.snapshotBefore) {
+        await this.getXapiObject(vmId).$snapshot({ ignoredVdisTag: IGNORED_VDIS_TAG })
+      }
+
+      await this.getXapi(vmId).revertVm(body.snapshot)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'revert VM snapshot',
+        objectId: vmId,
+      },
+    })
+  }
+
+  /**
    *
    * - For fast clone on the same SR, omit `srId` and set `fast` to `true`.
    * - For full copy on the same SR, omit `srId` and set `fast` to `false`.
