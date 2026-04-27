@@ -43,5 +43,6 @@ const items: LegendGroupProps['items'] = [
 const title: LegendGroupProps['title'] = {
   label: 'Legend Title',
   icon: 'fa:info-circle',
+  iconTooltip: 'This is a tooltip',
 }
 </script>
