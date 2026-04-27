@@ -37,7 +37,7 @@ import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { hasPrivilegeOn } from '@xen-orchestra/acl'
+import { AnyPrivilege, hasPrivilegeOn } from '@xen-orchestra/acl'
 
 @Route('tasks')
 @Security('*')
@@ -113,7 +113,7 @@ export class TaskController extends XoController<XoTask> {
       const userId = this.restApi.getCurrentUser().id
       const update = async (task: XoTask) => {
         const user = await this.restApi.xoApp.getUser(userId)
-        const userPrivileges = await this.restApi.xoApp.getAclV2UserPrivileges(user.id)
+        const userPrivileges = (await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
 
         if (
           hasPrivilegeOn({ user, userPrivileges, action: 'read', resource: 'task', objects: task }) &&
@@ -124,7 +124,7 @@ export class TaskController extends XoController<XoTask> {
       }
       const remove = async (task: XoTask) => {
         const user = await this.restApi.xoApp.getUser(userId)
-        const userPrivileges = await this.restApi.xoApp.getAclV2UserPrivileges(user.id)
+        const userPrivileges = (await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
 
         if (
           hasPrivilegeOn({ user, userPrivileges, action: 'read', resource: 'task', objects: task }) &&
@@ -190,7 +190,7 @@ export class TaskController extends XoController<XoTask> {
   @SuccessResponse(noContentResp.status, noContentResp.description)
   async deleteTasks(): Promise<void> {
     const user = this.restApi.getCurrentUser()
-    const userPrivileges = await this.restApi.xoApp.getAclV2UserPrivileges(user.id)
+    const userPrivileges = (await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
 
     const deletePromises: Promise<void>[] = []
     for await (const task of this.restApi.tasks.list()) {

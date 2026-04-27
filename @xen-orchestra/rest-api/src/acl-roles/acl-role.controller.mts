@@ -43,6 +43,8 @@ import type { SendObjects } from '../helpers/helper.type.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { entityId } from '../open-api/oa-examples/common.oa-example.mjs'
+import { inject } from 'inversify'
+import { RestApi } from '../rest-api/rest-api.mjs'
 
 @Route('acl-roles')
 @Security('*')
@@ -51,6 +53,10 @@ import { entityId } from '../open-api/oa-examples/common.oa-example.mjs'
 @Tags('acls')
 @provide(AclRoleController)
 export class AclRoleController extends XoController<XoAclRole> {
+  constructor(@inject(RestApi) restApi: RestApi) {
+    super('acl-role', restApi)
+  }
+
   getAllCollectionObjects(): Promise<XoAclRole[]> {
     return this.restApi.xoApp.getAclV2Roles()
   }
@@ -275,7 +281,7 @@ export class AclRoleController extends XoController<XoAclRole> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<AnyPrivilege>>> {
-    const privileges = await this.restApi.xoApp.getAclV2RolePrivileges(id as XoAclRole['id'])
+    const privileges = (await this.restApi.xoApp.getAclV2RolePrivileges(id as XoAclRole['id'])) as AnyPrivilege[]
     return this.sendObjects(limitAndFilterArray(privileges, { filter }), req, {
       path: 'acl-privileges',
       limit,

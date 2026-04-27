@@ -1,4 +1,3 @@
-import type { AnyPrivilege, SupportedResource } from '@xen-orchestra/acl'
 import { EventEmitter } from 'node:stream'
 import type {
   AnyXoBackupJob,
@@ -45,6 +44,7 @@ import {
   XenApiVifWrapped,
   XenApiVmWrapped,
   XenApiVtpmWrapped,
+  XoAclBasePrivilege,
   XoAclRole,
   XoGroupRole,
   XoUserRole,
@@ -144,21 +144,13 @@ export type XoApp = {
   checkFeatureAuthorization(featureCode: string): Promise<void>
   /* connect a server (XCP-ng/XenServer) */
   connectXenServer(id: XoServer['id']): Promise<void>
-  createAclV2Privilege<
-    Resource extends SupportedResource,
-    Privilege extends AnyPrivilege = Extract<AnyPrivilege, { resource: Resource }>,
-  >(
-    privilege: {
-      action: Privilege['action']
-      selector?: Privilege['selector']
-      effect?: Privilege['effect']
-      resource: Resource
-      roleId: Privilege['roleId']
-    },
+  // TODO: replace all XoAclBasePrivilege with a more strict type. (discriminate union)
+  createAclV2Privilege(
+    privilege: Omit<XoAclBasePrivilege, 'id'>,
     options?: {
       force?: boolean
     }
-  ): Promise<Privilege>
+  ): Promise<XoAclBasePrivilege>
   copyAclV2Role(
     id: XoAclRole['id'],
     params?: { name?: XoAclRole['name']; description?: XoAclRole['description'] }
@@ -173,22 +165,22 @@ export type XoApp = {
     expiresIn?: string | number
     userId: XoUser['id']
   }): Promise<XoAuthenticationToken>
-  createUser(params: { name?: string; password?: string;[key: string]: unknown }): Promise<XoUser>
+  createUser(params: { name?: string; password?: string; [key: string]: unknown }): Promise<XoUser>
   deleteAclV2GroupRole(groupId: XoGroup['id'], roleId: XoAclRole['id']): Promise<Boolean>
-  deleteAclV2Privilege(privilegeId: AnyPrivilege['id'], options?: { force?: boolean }): Promise<boolean>
+  deleteAclV2Privilege(privilegeId: XoAclBasePrivilege['id'], options?: { force?: boolean }): Promise<boolean>
   deleteAclV2Role(roleId: XoAclRole['id'], options?: { force?: boolean }): Promise<boolean>
   deleteGroup(id: XoGroup['id']): Promise<void>
   deleteUser(id: XoUser['id']): Promise<void>
   createGroup(params: { name: string; provider?: string; providerGroup?: string }): Promise<XoGroup>
   /* disconnect a server (XCP-ng/XenServer) */
   disconnectXenServer(id: XoServer['id']): Promise<void>
-  getAclV2Privilege(id: AnyPrivilege['id']): Promise<AnyPrivilege>
-  getAclV2Privileges(): Promise<AnyPrivilege[]>
-  getAclV2RolePrivileges(roleId: XoAclRole['id']): Promise<AnyPrivilege[]>
+  getAclV2Privilege(id: XoAclBasePrivilege['id']): Promise<XoAclBasePrivilege>
+  getAclV2Privileges(): Promise<XoAclBasePrivilege[]>
+  getAclV2RolePrivileges(roleId: XoAclRole['id']): Promise<XoAclBasePrivilege[]>
   getAclV2Role(id: XoAclRole['id']): Promise<XoAclRole>
   deleteAclV2UserRole(userId: XoUser['id'], roleId: XoAclRole['id']): Promise<Boolean>
   getAclV2Roles(): Promise<XoAclRole[]>
-  getAclV2UserPrivileges(userId: XoUser['id']): Promise<AnyPrivilege[]>
+  getAclV2UserPrivileges(userId: XoUser['id']): Promise<XoAclBasePrivilege[]>
   getAllGroups(): Promise<XoGroup[]>
   getAllProxies(): Promise<XoProxy[]>
   getAllJobs<T extends AnyXoBackupJob['type']>(type: T): Promise<Extract<AnyXoBackupJob, { type: T }>[]>
@@ -282,18 +274,10 @@ export type XoApp = {
       preferences?: Record<string, string>
     }
   ): Promise<void>
-  updateAclV2Privilege<
-    Resource extends SupportedResource,
-    Privilege extends AnyPrivilege = Extract<AnyPrivilege, { resource: Resource }>,
-  >(
-    privilegeId: Privilege['id'],
-    privilege: {
-      action?: Privilege['action']
-      selector?: Privilege['selector'] | null
-      effect?: Privilege['effect']
-      resource?: Resource
-    }
-  ): Promise<Privilege>
+  updateAclV2Privilege(
+    privilegeId: XoAclBasePrivilege['id'],
+    privilege: XoAclBasePrivilege
+  ): Promise<XoAclBasePrivilege>
   updateAclV2Role(
     roleId: XoAclRole['id'],
     role: {

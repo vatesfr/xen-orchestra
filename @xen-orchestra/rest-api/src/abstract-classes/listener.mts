@@ -1,6 +1,6 @@
 import { createLogger } from '@xen-orchestra/log'
 import type { EventEmitter } from 'node:events'
-import { hasPrivilegeOn, SupportedResource } from '@xen-orchestra/acl'
+import { AnyPrivilege, hasPrivilegeOn, SupportedResource } from '@xen-orchestra/acl'
 import type { XapiXoRecord, XoUser } from '@vates/types'
 import type { CollectionEventType, EventType, XoListenerType } from '../events/event.type.mjs'
 import { iocContainer } from '../ioc/ioc.mjs'
@@ -14,7 +14,7 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
   #subscribers: Map<
     Subscriber['id'],
     { fields: '*' | string[]; subscriber: Subscriber; unregisterOnClear: () => void }
-    > = new Map()
+  > = new Map()
   #eventEmitter: EventEmitter
   #eventCallbacks: Map<string, (...args: unknown[]) => void> = new Map()
   #watchedEvent: EventType[]
@@ -138,7 +138,7 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
       return event
     }
 
-    const userPrivileges = await restApi.xoApp.getAclV2UserPrivileges(user.id)
+    const userPrivileges = (await restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
     let resource: SupportedResource | undefined
 
     // alarm and task are not real `XAPI` type

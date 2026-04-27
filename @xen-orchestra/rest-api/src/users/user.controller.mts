@@ -420,7 +420,7 @@ export class UserController extends XoController<XoUser> {
     const user = await this.getObject(id as XoUser['id'])
     const currentUser = this.restApi.getCurrentUser()
 
-    const userPrivileges = await this.restApi.xoApp.getAclV2UserPrivileges(user.id)
+    const userPrivileges = (await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
 
     return this.sendObjects(limitAndFilterArray(userPrivileges, { filter }), req, {
       path: 'acl-privileges',

@@ -657,6 +657,8 @@ export type XoTask = {
       | 'server'
       | 'task'
       | 'user'
+      | 'acl-privilege'
+      | 'acl-role'
     params?: Record<string, unknown>
     progress?: number
     type?: string

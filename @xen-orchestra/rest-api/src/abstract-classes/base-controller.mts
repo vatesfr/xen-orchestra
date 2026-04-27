@@ -26,7 +26,7 @@ import { NDJSON_CONTENT_TYPE, safeParseComplexMatcher } from '../helpers/utils.h
 
 const noop = () => {}
 
-export type BaseControllerType<T extends XoRecord> = T extends XapiXoRecord
+export type BaseControllerType<T extends RestXoRecord> = T extends XapiXoRecord
   ? T['type']
   : NonNullable<XoTask['properties']['objectType']>
 
@@ -59,7 +59,9 @@ export abstract class BaseController<T extends RestXoRecord, IsSync extends bool
     const mappedObjects: (string | WithHref<Partial<Objects>>)[] = []
 
     const user = this.restApi.getCurrentUser()
-    const userPrivileges = opts?.privilege !== undefined ? await this.restApi.xoApp.getAclV2UserPrivileges(user.id) : []
+    const userPrivileges = (
+      opts?.privilege !== undefined ? await this.restApi.xoApp.getAclV2UserPrivileges(user.id) : []
+    ) as AnyPrivilege[]
 
     let limit = opts?.limit ?? Infinity
     for (const object of objects) {

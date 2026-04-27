@@ -38,6 +38,9 @@ import {
 import type { SafeOmit, SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { entityId } from '../open-api/oa-examples/common.oa-example.mjs'
+import { XoAclBasePrivilege } from '@vates/types'
+import { inject } from 'inversify'
+import { RestApi } from '../rest-api/rest-api.mjs'
 
 @Route('acl-privileges')
 @Security('*')
@@ -46,6 +49,10 @@ import { entityId } from '../open-api/oa-examples/common.oa-example.mjs'
 @Tags('acls')
 @provide(AclPrivilegeController)
 export class AclPrivilegeController extends XoController<AnyPrivilege> {
+  constructor(@inject(RestApi) restApi: RestApi) {
+    super('acl-privilege', restApi)
+  }
+
   getAllCollectionObjects(): Promise<AnyPrivilege[]> {
     return this.restApi.xoApp.getAclV2Privileges() as Promise<AnyPrivilege[]>
   }
@@ -183,6 +190,6 @@ export class AclPrivilegeController extends XoController<AnyPrivilege> {
     @Path() id: string,
     @Body() privilege: Unbrand<SafeOmit<Partial<AnyPrivilege>, 'id' | 'roleId'>>
   ): Promise<void> {
-    await this.restApi.xoApp.updateAclV2Privilege(id as AnyPrivilege['id'], privilege)
+    await this.restApi.xoApp.updateAclV2Privilege(id as AnyPrivilege['id'], privilege as XoAclBasePrivilege)
   }
 }
