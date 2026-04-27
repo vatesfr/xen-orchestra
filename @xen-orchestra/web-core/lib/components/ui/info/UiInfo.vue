@@ -1,8 +1,8 @@
-<!-- v4 -->
+<!-- v6 -->
 <template>
   <div class="ui-info">
-    <VtsIcon class="icon" :name="icon" size="medium" />
-    <p v-tooltip="!wrap" class="typo-body-regular-small label" :class="{ 'text-ellipsis': !wrap }">
+    <VtsIcon class="icon" :name="icon" :size="size" />
+    <p v-tooltip="!wrap" class="label" :class="[textSize, { 'text-ellipsis': !wrap }]">
       <slot />
     </p>
   </div>
@@ -13,17 +13,24 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import type { IconName } from '@core/icons'
 import { useMapper } from '@core/packages/mapper'
+import { computed } from 'vue'
 
 export type InfoAccent = 'info' | 'success' | 'warning' | 'danger' | 'muted'
+type Size = 'small' | 'medium'
 
-const { accent } = defineProps<{
+const { accent, size: sizeProps } = defineProps<{
   accent: InfoAccent
   wrap?: boolean
+  size?: Size
 }>()
 
 defineSlots<{
   default(): any
 }>()
+
+const size = computed(() => {
+  return sizeProps ?? 'medium'
+})
 
 const icon = useMapper<InfoAccent, IconName>(
   () => accent,
@@ -35,6 +42,15 @@ const icon = useMapper<InfoAccent, IconName>(
     muted: 'status:disabled',
   },
   'muted'
+)
+
+const textSize = useMapper<Size, any>(
+  () => sizeProps,
+  {
+    small: 'typo-body-regular-small',
+    medium: 'typo-body-regular',
+  },
+  'medium'
 )
 </script>
 
