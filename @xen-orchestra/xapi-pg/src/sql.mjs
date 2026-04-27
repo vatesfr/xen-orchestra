@@ -1,3 +1,4 @@
+import assert from 'node:assert'
 import { escapeIdentifier, escapeLiteral } from 'pg'
 import { rows2Columns } from './db.mjs'
 import { UUID_TYPE } from './types.mjs'
@@ -51,12 +52,13 @@ export class TableCreator {
       this.delayedDDL.push(alter)
     } else {
       let sql = `${colEsc} ${type}`
+      // it is not possible to prepare and bind a "CREATE TABLE" statement, so we have to escape the text of the default value
       if (defaultValue != null) sql += ` DEFAULT ${escapeLiteral(String(defaultValue))}`
       this.createTableColumns.push(sql)
       this.availableAtCreateColumns.add(colName)
     }
     if (comment) {
-      this.delayedDDL.push(`COMMENT ON COLUMN ${tableNameEsc}.${colEsc} IS ${escapeLiteral(comment)};`)
+      this.delayedDDL.push(commentDDL('COLUMN', `${tableNameEsc}.${colEsc}`, comment))
     }
   }
 
@@ -80,7 +82,7 @@ export class TableCreator {
     if (atCreationPrimaryKey) columDefs.push(primaryKeyClause)
     const tableEsc = absRelationEsc(this.schema, this.name)
     const create = `CREATE TABLE IF NOT EXISTS ${tableEsc} (${columDefs.join(', ')})`
-    if (this.comment) this.delayedDDL.push(`COMMENT ON TABLE ${tableEsc} IS ${escapeLiteral(this.comment)};`)
+    if (this.comment) this.delayedDDL.push(commentDDL('TABLE', tableEsc, this.comment))
     if (this.indices)
       for (const { name, columns } of this.indices) {
         this.delayedDDL.push(
@@ -99,6 +101,12 @@ export const absRelationEsc = (schema, tableName) => `${escapeIdentifier(schema)
 export const absReferenceEsc = (schema, tableName, colName) =>
   `${absRelationEsc(schema, tableName)}(${escapeIdentifier(colName)})`
 
+function commentDDL(type, identifierEsc, commentRaw) {
+  assert.ok(identifierEsc.startsWith('"'), `identifier should have been double quoted, got: ${identifierEsc}`)
+  // it is not possible to prepare and bind a "COMMENT ON" statement, so we have to escape the text
+  return `COMMENT ON ${type} ${identifierEsc} IS ${escapeLiteral(commentRaw)}`
+}
+
 export function createViewDDL(cls, viewNameEsc, ddlStatementsCollector, commentStatementsCollector) {
   const columnsEsc = []
   const laterals = []
@@ -106,7 +114,7 @@ export function createViewDDL(cls, viewNameEsc, ddlStatementsCollector, commentS
     const colNameEsc = escapeIdentifier(f.name)
     columnsEsc.push(f.viewExpressionEsc)
     laterals.push(f.viewLateral)
-    commentStatementsCollector.push(`COMMENT ON COLUMN ${viewNameEsc}.${colNameEsc} IS ${escapeLiteral(f.comment)}`)
+    commentStatementsCollector.push(commentDDL('COLUMN', `${viewNameEsc}.${colNameEsc}`, f.comment))
   }
   const projectionEsc = columnsEsc.join(', ')
   const statement = `
@@ -115,7 +123,7 @@ export function createViewDDL(cls, viewNameEsc, ddlStatementsCollector, commentS
         ${laterals.filter(Boolean).join('\n')};`
   ddlStatementsCollector.push(statement)
   if (cls.xapiClass.description) {
-    commentStatementsCollector.push(`COMMENT ON VIEW ${viewNameEsc} IS ${escapeLiteral(cls.xapiClass.description)}`)
+    commentStatementsCollector.push(commentDDL('VIEW', viewNameEsc, cls.xapiClass.description))
   }
 }
 
