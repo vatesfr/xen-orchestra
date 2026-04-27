@@ -43,7 +43,7 @@
     "vue-eslint-parser": "^9.4.3"
   },
   "engines": {
-    "node": ">=14",
+    "node": ">=22",
     "yarn": "^1.7.0"
   },
   "lint-staged": {
@@ -68,7 +68,7 @@
     "test": "npm run test-lint && npm run test-unit",
     "test-integration": "scripts/run-script.js --parallel test-integration",
     "test-lint": "eslint --ignore-path .gitignore --ignore-pattern packages/xo-web .",
-    "test-unit": "scripts/run-script.js --bail test"
+    "test-unit": "scripts/run-script.js test"
   },
   "workspaces": [
     "@*/*",
