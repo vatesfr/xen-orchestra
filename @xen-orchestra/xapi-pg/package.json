@@ -1,5 +1,5 @@
 {
-  "name": "xapi-pg",
+  "name": "@xen-orchestra/xapi-pg",
   "version": "1.0.0",
   "description": "Save XAPI entities to PostgresSQL",
   "license": "AGPL-3.0-or-later",

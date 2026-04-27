@@ -73,9 +73,10 @@ export class TableCreator {
     // the primary key columns might be reference fields, those are added later, so the primary key has to be added even later.
     // There are only 2 layers of dependencies: Xapi object tables and Set or Map tables pointing to those Xapi objects.
     // Xapi object tables always point directly to other Xapi object tables uuid column.
-    const atCreationPrimaryKey = this.primaryKeyCols?.every(col => this.availableAtCreateColumns.has(col))
-    const delayedPrimaryKey = this.primaryKeyCols && !atCreationPrimaryKey
-    const columDefs = this.createTableColumns
+    const atCreationPrimaryKey =
+      this.primaryKeyCols.length && this.primaryKeyCols?.every(col => this.availableAtCreateColumns.has(col))
+    const delayedPrimaryKey = this.primaryKeyCols.length && !atCreationPrimaryKey
+    const columDefs = [...this.createTableColumns]
     if (atCreationPrimaryKey) columDefs.push(primaryKeyClause)
     const tableEsc = absRelationEsc(this.schema, this.name)
     const create = `CREATE TABLE IF NOT EXISTS ${tableEsc} (${columDefs.join(', ')})`
