@@ -4,15 +4,7 @@
       {{ title.label }}
     </UiLegendTitle>
     <VtsLegendList>
-      <UiLegend
-        v-for="item in items"
-        :key="item.label"
-        :accent="item.accent"
-        :modal-info="item.modalInfo"
-        :unit="item.unit"
-        :value="item.value"
-        @open-modal="emit('openModal', item.label)"
-      >
+      <UiLegend v-for="item in items" v-bind="item" :key="item.label" @open-modal="emit('openModal', item.label)">
         {{ item.label }}
       </UiLegend>
     </VtsLegendList>
