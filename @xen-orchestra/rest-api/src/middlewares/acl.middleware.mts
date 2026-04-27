@@ -207,7 +207,11 @@ export function acl(acls: AclEntry | AclEntry[]) {
       if ('objectIds' in acl) {
         let ids: { id: unknown; path?: string }[] = []
         if (typeof acl.objectIds === 'function') {
-          ids = acl.objectIds({ req, restApi }).map(id => ({ id }))
+          try {
+            ids = acl.objectIds({ req, restApi }).map(id => ({ id }))
+          } catch (error) {
+            return next(error)
+          }
         } else {
           for (const path of acl.objectIds) {
             const id: unknown = path.split('.').reduce((obj, part) => obj?.[part], req)
