@@ -98,8 +98,8 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
       }
     }
     if (this.#isComplete) {
-      for (const lineage of this.diskLineages.values()) {
-        lineage.addActiveDiskPaths(this.diskPaths)
+      for (const diskPath of this.diskPaths) {
+        this.diskLineages.get(dirname(diskPath))?.addActiveDiskPath(diskPath)
       }
     }
 

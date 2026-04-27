@@ -15,7 +15,7 @@ import { asyncEach } from '@vates/async-each'
 /**
  * Tracks the disk chain for a single VDI across all backup snapshots.
  * Owns merge and deletion decisions for its chain given which disks are still
- * referenced by active backups (accumulated via addActiveDiskPaths).
+ * referenced by active backups (accumulated via addActiveDiskPath).
  */
 export class RemoteDiskLineage {
   #handler: RemoteHandlerAbstract
@@ -170,10 +170,8 @@ export class RemoteDiskLineage {
    * Called by each archive that references this lineage after it determines it is complete.
    * Accumulated across all referencing archives before clean() is called.
    */
-  addActiveDiskPaths(diskPaths: string[]): void {
-    for (const path of diskPaths) {
-      this.#activeDiskPaths.add(normalize(path))
-    }
+  addActiveDiskPath(diskPath: string): void {
+    this.#activeDiskPaths.add(normalize(diskPath))
   }
 
   /**
@@ -184,7 +182,7 @@ export class RemoteDiskLineage {
    * Also resumes interrupted merges (detected via .merge.json files) when opts.merge is true.
    * Deletes orphan merge state files (for missing disks) when opts.remove is true.
    *
-   * Requires addActiveDiskPaths() to have been called by all referencing archives before this.
+   * Requires activeDiskPaths to be completed to have been called by all referencing archives before this.
    * @returns Set of deleted disk paths.
    */
   async clean({
