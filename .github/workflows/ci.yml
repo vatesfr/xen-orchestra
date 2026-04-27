@@ -47,4 +47,4 @@ jobs:
         run: yarn test-lint
 
       - name: Integration tests
-        run: sudo yarn test-integration
+        run: sudo PATH=$PATH yarn test-integration
