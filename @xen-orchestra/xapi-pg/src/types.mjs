@@ -105,7 +105,8 @@ export function splitMapType(xapiType) {
   return null
 }
 
-/** unwrap "T option" to "T"  or returns the input */
+/** unwrap "T option" to "T" or returns the input.
+ *  Also not described in the official doc, `sr_stat.uuid` and `probe_result.sr` are typed option */
 export function unwrapOption(xapiType) {
   const split = xapiType.split(' ')
   if (split[split.length - 1] === 'option') {
@@ -114,7 +115,8 @@ export function unwrapOption(xapiType) {
   return xapiType
 }
 
-/** unwrap "T record" to "T"  or returns the input */
+/** unwrap "T record" to "T" or returns the input.
+ * `probe_result.sr` is typed `sr_stat record option` */
 export function unwrapRecord(xapiType) {
   const split = xapiType.split(' ')
   if (split[split.length - 1] === 'record') {
@@ -194,6 +196,7 @@ export const PRIMITIVE_TYPE_CONVERTERS = {
 
 export function converterForSimpleType(xapiType) {
   assert.ok(isSimpleType(xapiType), xapiType)
+  xapiType = unwrapOption(xapiType)
   return xapiType in PRIMITIVE_TYPE_CONVERTERS ? PRIMITIVE_TYPE_CONVERTERS[xapiType] : IDENT_CONVERTER
 }
 
