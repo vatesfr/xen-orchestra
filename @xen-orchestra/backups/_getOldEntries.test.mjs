@@ -127,19 +127,19 @@ describe('_getOldEntries() should succeed', () => {
       args: [
         0,
         [
-          { timestamp: +new Date('2024-08-31 09:01:00'), id: 1 }, // 4th day too old
-          { timestamp: +new Date('2024-09-01 00:10:00'), id: 2 }, // third day
-          { timestamp: +new Date('2024-09-01 14:20:00'), id: 3 }, // second day, oldest
-          { timestamp: +new Date('2024-09-02 00:22:00'), id: 4 }, // second day
-          { timestamp: +new Date('2024-09-03 14:00:00'), id: 5 }, // same day oldest
-          { timestamp: +new Date('2024-09-04 00:09:00'), id: 6 }, // same day in NZ
-          { timestamp: +new Date('2024-09-04 00:10:00'), id: 7 }, // most recent
+          { timestamp: +new Date('2024-08-31T09:01:00Z'), id: 1 }, // 4th day too old
+          { timestamp: +new Date('2024-09-01T00:10:00Z'), id: 2 }, // third day
+          { timestamp: +new Date('2024-09-01T14:20:00Z'), id: 3 }, // second day, oldest
+          { timestamp: +new Date('2024-09-02T00:22:00Z'), id: 4 }, // second day
+          { timestamp: +new Date('2024-09-03T14:00:00Z'), id: 5 }, // same day oldest
+          { timestamp: +new Date('2024-09-04T00:09:00Z'), id: 6 }, // same day in NZ
+          { timestamp: +new Date('2024-09-04T00:10:00Z'), id: 7 }, // most recent
         ],
         {
           longTermRetention: {
             daily: { retention: 3 },
           },
-          timezone: 'Pacific/Auckland', // GMT +13
+          timezone: 'Pacific/Auckland', // GMT +12 (NZST in September)
         },
       ],
       expectedIds: [1, 4, 6, 7],

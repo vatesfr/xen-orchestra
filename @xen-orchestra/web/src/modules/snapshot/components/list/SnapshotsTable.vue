@@ -45,20 +45,21 @@ import {
   type FrontXoVmSnapshot,
   useXoVmSnapshotCollection,
 } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'
+import { useVmSnapshotDeleteModal } from '@/modules/snapshot/composables/use-vm-snapshot-delete-modal.composable.ts'
 import { useSnapshotTrigger } from '@/modules/snapshot/composables/xo-snapshot-trigger.composable.ts'
 import { useXo5VmSnapshotRoute } from '@/modules/snapshot/composables/xo-vm-snapshot-route-xo5.composable.ts'
 import { useXoVmSnapshotJob } from '@/modules/vm/jobs/xo-vm-snapshot.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import VtsRow from '@core/components/table/VtsRow.vue'
-import VtsTable from '@core/components/table/VtsTable.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
-import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { usePagination } from '@core/composables/pagination.composable.ts'
-import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import { useTableState } from '@core/composables/table-state.composable.ts'
-import { useSnapshotColumns } from '@core/tables/column-sets/snapshot-columns.ts'
 import { useSorted } from '@vueuse/core'
+import VtsRow from '@xen-orchestra/web-core/components/table/VtsRow.vue'
+import VtsTable from '@xen-orchestra/web-core/components/table/VtsTable.vue'
+import UiButton from '@xen-orchestra/web-core/components/ui/button/UiButton.vue'
+import UiQuerySearchBar from '@xen-orchestra/web-core/components/ui/query-search-bar/UiQuerySearchBar.vue'
+import UiTitle from '@xen-orchestra/web-core/components/ui/title/UiTitle.vue'
+import { usePagination } from '@xen-orchestra/web-core/composables/pagination.composable.ts'
+import { useRouteQuery } from '@xen-orchestra/web-core/composables/route-query.composable.ts'
+import { useTableState } from '@xen-orchestra/web-core/composables/table-state.composable.ts'
+import { useSnapshotColumns } from '@xen-orchestra/web-core/tables/column-sets/snapshot-columns.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -113,6 +114,12 @@ const state = useTableState({
 
 const { HeadCells, BodyCells } = useSnapshotColumns({
   body: (snapshot: FrontXoVmSnapshot) => {
+    const {
+      openModal: openSnapshotDeleteModal,
+      canRun: canDeleteSnapshot,
+      isRunning: isDeletingSnapshot,
+    } = useVmSnapshotDeleteModal(() => [snapshot])
+
     return {
       name: r =>
         r({
@@ -123,7 +130,19 @@ const { HeadCells, BodyCells } = useSnapshotColumns({
       description: r => r(snapshot.name_description),
       creationDate: r => r(snapshot.snapshot_time * 1000),
       trigger: r => r(getSnapshotTrigger(snapshot)),
-      selectItem: r => r(() => (selectedSnapshotId.value = snapshot.id)),
+      actions: r =>
+        r({
+          onClick: () => (selectedSnapshotId.value = snapshot.id),
+          actions: [
+            {
+              label: t('action:delete'),
+              icon: 'action:delete',
+              onClick: () => openSnapshotDeleteModal(),
+              disabled: !canDeleteSnapshot.value,
+              busy: isDeletingSnapshot.value,
+            },
+          ],
+        }),
     }
   },
 })
