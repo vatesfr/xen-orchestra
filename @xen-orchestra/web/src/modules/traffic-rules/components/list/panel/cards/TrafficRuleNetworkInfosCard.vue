@@ -8,7 +8,7 @@
         </template>
         <template #value>
           <UiLink size="small" :to="networkTo" icon="object:network">
-            <span v-tooltip class="text-ellipsis">{{ network.name_label }}</span>
+            <span>{{ network.name_label }}</span>
           </UiLink>
         </template>
         <template #addons>
@@ -95,7 +95,6 @@ import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

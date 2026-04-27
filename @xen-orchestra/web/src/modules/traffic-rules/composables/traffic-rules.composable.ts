@@ -13,15 +13,6 @@ function parseRules(raw: string | undefined) {
   return (JSON.parse(raw) as string[]).map(entry => JSON.parse(entry))
 }
 
-function hashRule(rule: any) {
-  const serializedRule = JSON.stringify(rule)
-  let hash = 0
-  for (let index = 0; index < serializedRule.length; index++) {
-    hash = (Math.imul(31, hash) + serializedRule.charCodeAt(index)) | 0
-  }
-  return hash
-}
-
 export function useTrafficRules(
   rawVifs: MaybeRefOrGetter<FrontXoVif[]>,
   rawNetworks: MaybeRefOrGetter<FrontXoNetwork[]>
@@ -49,18 +40,18 @@ export function useTrafficRules(
 
     return [
       ...sortedNetworks.flatMap(network =>
-        parseRules(network.other_config?.[OF_RULES_KEY]).map(rule => ({
+        parseRules(network.other_config?.[OF_RULES_KEY]).map((rule, index) => ({
           ...rule,
-          id: `network:${hashRule({ parent: network.id, rule })}`,
+          id: `network:${network.id}:${index}`,
           sourceId: network.id,
           type: 'network' as const,
           networkId: network.id,
         }))
       ),
       ...sortedVifs.flatMap(vif =>
-        parseRules(vif.other_config?.[OF_RULES_KEY]).map(rule => ({
+        parseRules(vif.other_config?.[OF_RULES_KEY]).map((rule, index) => ({
           ...rule,
-          id: `VIF:${hashRule({ parent: vif.id, rule })}`,
+          id: `VIF:${vif.id}:${index}`,
           sourceId: vif.id,
           type: 'VIF' as const,
           networkId: vif.$network,

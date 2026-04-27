@@ -16,21 +16,18 @@
             <VtsStatus :status="policy" icon-only>{{ policy }}</VtsStatus>
             {{ rule.port ? `${rule.protocol}:${rule.port}` : rule.protocol }}
             {{ direction.a }} {{ rule.ipRange }} {{ direction.b }}
-            <template v-if="rule.type === 'VIF' && vif">
+            <template v-if="vif">
               <UiLink size="small" :to="{ name: '/vm/[id]/networks', params: { id: vif.$VM } }">
                 {{ t('vif-device', { device: vif.device }) }}
               </UiLink>
-              {{ t('traffic-rules:in') }}
-              <UiLink
-                v-if="vm"
-                size="small"
-                :icon="vmStatus"
-                :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }"
-              >
-                {{ vm.name_label }}
-              </UiLink>
+              <div v-if="vm">
+                {{ t('traffic-rules:in') }}
+                <UiLink size="small" :icon="vmStatus" :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
+                  {{ vm.name_label }}
+                </UiLink>
+              </div>
             </template>
-            <UiLink v-else-if="rule.type === 'network' && network" size="small" icon="object:network" :to="networkTo">
+            <UiLink v-else-if="network" size="small" icon="object:network" :to="networkTo">
               {{ network.name_label }}
             </UiLink>
           </div>
@@ -46,6 +43,7 @@
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
+import { useTrafficRuleTarget } from '@/modules/traffic-rules/composables/traffic-rule-target.composable.ts'
 import type { TrafficRule } from '@/modules/traffic-rules/types.ts'
 import { getDirectionLabels } from '@/modules/traffic-rules/utils/direction-labels-utils.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
@@ -72,7 +70,11 @@ const { getVmById } = useXoVmCollection()
 
 const { getNetworkById } = useXoNetworkCollection()
 
+const getTarget = useTrafficRuleTarget()
+
 const policy = computed(() => (rule.allow ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED))
+
+const target = computed(() => getTarget(rule))
 
 const vif = computed(() => (rule.type === 'VIF' ? getVifById(rule.sourceId) : undefined))
 
@@ -97,18 +99,17 @@ const direction = computed(() => {
 const description = computed(() => {
   const policyLabel = rule.allow ? t('traffic-rules:allow') : t('traffic-rules:drop')
   const protocol = rule.port ? `${rule.protocol}:${rule.port}` : rule.protocol
+  const { label, suffix } = target.value
   const descriptionParts = [policyLabel, protocol, direction.value.a, rule.ipRange, direction.value.b]
 
-  if (rule.type === 'VIF' && vif.value) {
-    descriptionParts.push(t('vif-device', { device: vif.value.device }))
-    if (vm.value) {
-      descriptionParts.push(t('traffic-rules:in'), vm.value.name_label)
+  if (label) {
+    descriptionParts.push(label)
+    if (suffix) {
+      descriptionParts.push(t('traffic-rules:in'), suffix.label)
     }
-  } else if (rule.type === 'network' && network.value) {
-    descriptionParts.push(network.value.name_label)
   }
 
-  return descriptionParts.filter(Boolean).join(' ')
+  return descriptionParts.join(' ')
 })
 </script>
 

@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('traffic-rules') }}
       <template #action>
-        <UiButton variant="secondary" accent="brand" size="medium" left-icon="fa:plus">{{ t('new') }} </UiButton>
+        <slot name="title-action" />
       </template>
     </UiTitle>
     <UiAlert accent="info">{{ t('traffic-rules:info-message') }}</UiAlert>
@@ -16,7 +16,11 @@
           </tr>
         </thead>
         <tbody>
-          <VtsRow v-for="rule of paginatedRules" :key="`${rule.id}:${rule.order}`">
+          <VtsRow
+            v-for="rule of paginatedRules"
+            :key="`${rule.id}:${rule.order}`"
+            :selected="selectedRuleId === rule.id"
+          >
             <BodyCells :item="rule" />
           </VtsRow>
         </tbody>
@@ -26,20 +30,16 @@
 </template>
 
 <script setup lang="ts">
-import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
+import { useTrafficRuleTarget } from '@/modules/traffic-rules/composables/traffic-rule-target.composable.ts'
 import type { EnrichedTrafficRule, TrafficRule } from '@/modules/traffic-rules/types.ts'
 import { getDirectionLabels } from '@/modules/traffic-rules/utils/direction-labels-utils.ts'
-import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
-import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { IconName } from '@core/icons'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
@@ -59,29 +59,17 @@ const {
   error?: boolean
 }>()
 
-const emit = defineEmits<{ select: [rule: TrafficRule] }>()
-
 const { t } = useI18n()
 
-const { getVifById } = useXoVifCollection()
+const selectedRuleId = useRouteQuery('id')
 
-const { getVmById } = useXoVmCollection()
-
-const { getNetworkById } = useXoNetworkCollection()
+const getTarget = useTrafficRuleTarget()
 
 const enrichedRules = computed(() =>
   rawRules.map((rule, index) => {
     const [directionA, directionB] = getDirectionLabels(rule)
 
-    let objectLabel = ''
-    if (rule.type === 'VIF') {
-      const vif = getVifById(rule.sourceId)
-      const vm = vif ? getVmById(vif.$VM) : undefined
-      objectLabel = [vif ? t('vif-device', { device: vif.device }) : '', vm?.name_label ?? ''].filter(Boolean).join(' ')
-    } else {
-      const network = getNetworkById(rule.sourceId)
-      objectLabel = network?.name_label ?? ''
-    }
+    const target = getTarget(rule)
 
     return {
       ...rule,
@@ -89,7 +77,7 @@ const enrichedRules = computed(() =>
       directionA,
       directionB,
       direction: `${directionA} ${directionB}`,
-      objectLabel,
+      objectLabel: target.suffix ? `${target.label} ${target.suffix.label}` : target.label,
     }
   })
 )
@@ -109,44 +97,6 @@ const schema = useQueryBuilderSchema<EnrichedTrafficRule>({
   objectLabel: useStringSchema(t('object')),
 })
 
-const { HeadCells, BodyCells } = useTrafficRulesColumns({
-  body: (rule: EnrichedTrafficRule & { order: number }) => {
-    return {
-      order: r => r(rule.order),
-      policy: r => r(rule.allow ? t('traffic-rules:allow') : t('traffic-rules:drop')),
-      protocol: r => r(rule.port ? `${rule.protocol}:${rule.port}` : rule.protocol),
-      directionA: r => r(rule.directionA),
-      target: r => r(rule.ipRange),
-      directionB: r => r(rule.directionB),
-      object: r => {
-        if (rule.type === 'VIF') {
-          const vif = getVifById(rule.sourceId)
-          const vm = vif ? getVmById(vif.$VM) : undefined
-          return r({
-            label: vif ? t('vif-device', { device: vif.device }) : '',
-            icon: 'object:vif',
-            to: vif ? { name: '/vm/[id]/networks', params: { id: vif.$VM } } : undefined,
-            suffix: vm
-              ? {
-                  label: vm.name_label,
-                  icon: `object:vm:${vm.power_state.toLowerCase()}` as IconName,
-                  to: { name: '/vm/[id]/dashboard', params: { id: vm.id } },
-                }
-              : undefined,
-          })
-        }
-        const network = getNetworkById(rule.sourceId)
-        return r({
-          label: network?.name_label ?? '',
-          icon: 'object:network',
-          to: network ? getPoolNetworkRoute(network.$pool, network.id) : undefined,
-        })
-      },
-      selectItem: r => r(() => emit('select', rule)),
-    }
-  },
-})
-
 const state = useTableState({
   busy: () => busy,
   error: () => error,
@@ -156,6 +106,21 @@ const state = useTableState({
       : filteredRules.value.length === 0
         ? { type: 'no-result' }
         : false,
+})
+
+const { HeadCells, BodyCells } = useTrafficRulesColumns({
+  body: (rule: EnrichedTrafficRule & { order: number }) => {
+    return {
+      order: r => r(rule.order),
+      policy: r => r(rule.allow ? t('traffic-rules:allow') : t('traffic-rules:drop')),
+      protocol: r => r(rule.port ? `${rule.protocol}:${rule.port}` : rule.protocol),
+      directionA: r => r(rule.directionA),
+      target: r => r(rule.ipRange),
+      directionB: r => r(rule.directionB),
+      object: r => r(getTarget(rule)),
+      selectItem: r => r(() => (selectedRuleId.value = rule.id)),
+    }
+  },
 })
 </script>
 

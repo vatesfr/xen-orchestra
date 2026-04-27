@@ -15,7 +15,7 @@
     </template>
     <template #default>
       <TrafficRuleSummaryCard :rule />
-      <template v-if="rule.type === 'VIF' && vif">
+      <template v-if="vif">
         <TrafficRuleVifInfosCard :rule :vif />
         <TrafficRuleVifNetworkInfoCard :rule :vif />
       </template>

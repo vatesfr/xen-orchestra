@@ -7,7 +7,7 @@
           {{ t('name') }}
         </template>
         <template #value>
-          <UiLink size="small" :to="{ name: '/vm/[id]/networks', params: { id: vif.$VM } }">
+          <UiLink size="small" :to="{ name: '/vm/[id]/networks', params: { id: vm?.id } }">
             {{ t('vif-device', { device: vif.device }) }}
           </UiLink>
         </template>
@@ -27,13 +27,13 @@
         <template #key>
           {{ t('vm') }}
         </template>
-        <template #value>
-          <UiLink size="small" :icon="vmStatus" :to="{ name: '/vm/[id]/dashboard', params: { id: vif.$VM } }">
-            {{ vmName }}
+        <template v-if="vm" #value>
+          <UiLink size="small" :icon="vmStatus" :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
+            {{ vm.name_label }}
           </UiLink>
         </template>
-        <template #addons>
-          <VtsCopyButton :value="vif.$VM" />
+        <template v-if="vm" #addons>
+          <VtsCopyButton :value="vm.name_label" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -42,7 +42,7 @@
         </template>
         <template #value>
           <UiLink v-if="network" size="small" :to="networkTo" icon="object:network">
-            <span v-tooltip class="text-ellipsis">{{ network.name_label }}</span>
+            <span>{{ network.name_label }}</span>
           </UiLink>
         </template>
         <template v-if="network" #addons>
@@ -130,7 +130,6 @@ import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -140,16 +139,17 @@ const { t } = useI18n()
 
 const { useGetNetworkById } = useXoNetworkCollection()
 
-const { getVmById } = useXoVmCollection()
+const { useGetVmById } = useXoVmCollection()
 
 const { getPifsByNetworkId } = useXoPifCollection()
 
 const status = computed(() => (vif.attached ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED))
 
-const vmName = computed(() => getVmById(vif.$VM)?.name_label)
+const vm = useGetVmById(() => vif.$VM)
 
 const vmStatus = computed(() => {
-  const state = getVmById(vif.$VM)?.power_state.toLowerCase()
+  const state = vm.value?.power_state.toLowerCase()
+
   return `object:vm:${state}` as IconName
 })
 
