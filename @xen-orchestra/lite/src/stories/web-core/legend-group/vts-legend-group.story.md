@@ -10,22 +10,20 @@ const items: LegendGroupProps['items'] = [
     label: 'First segment',
     accent: 'info',
     value: 42,
-    unit: '%'
+    unit: '%',
   },
   {
     label: 'Second segment',
-    accent: 'info',
+    accent: 'neutral',
     value: 58,
     unit: '%',
-    iconTooltip: true
-    @open-modal="openInfoModal()"
-  }
+    modalInfo: true,
+  },
 ]
 
 const title: LegendGroupProps['title'] = {
   label: 'Legend Title',
   icon: 'fa:info-circle',
-  iconTooltip: true
-  @open-modal="openInfoModal()"
+  iconTooltip: 'This is a tooltip'
 }
 ```
