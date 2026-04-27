@@ -35,59 +35,7 @@
 
 <!--packages-start-->
 
-- @vates/types minor
-- @xen-orchestra/acl major
-- @xen-orchestra/rest-api minor
-- @xen-orchestra/web minor
-- xo-server minor
-- xo-server-sdn-controller minor
-- @vates/async-each patch
-- @vates/generator-toolbox patch
-- @vates/http-server-plus major
-- @vates/nbd-client minor
-- @vates/node-vsphere-soap patch
-- @vates/task minor
-- @vates/types minor
-- @xen-orchestra/async-map patch
-- @xen-orchestra/backups minor
-- @xen-orchestra/backups-cli patch
-- @xen-orchestra/cron patch
-- @xen-orchestra/disk-cli major
-- @xen-orchestra/disk-transform patch
-- @xen-orchestra/fs minor
-- @xen-orchestra/immutable-backups major
-- @xen-orchestra/log patch
-- @xen-orchestra/mcp minor
-- @xen-orchestra/mixin patch
-- @xen-orchestra/mixins minor
-- @xen-orchestra/proxy minor
-- @xen-orchestra/qcow2 minor
-- @xen-orchestra/rest-api minor
-- @xen-orchestra/template patch
-- @xen-orchestra/upload-ova patch
-- @xen-orchestra/vmware-explorer minor
-- @xen-orchestra/web minor
-- @xen-orchestra/web-core minor
-- @xen-orchestra/xapi patch
-- complex-matcher patch
-- vhd-cli patch
-- vhd-lib minor
-- xapi-explore-sr patch
-- xen-api patch
-- xo-cli patch
-- xo-collection patch
-- xo-common patch
-- xo-lib patch
-- xo-remote-parser patch
-- xo-server minor
-- xo-server-backup-reports patch
-- xo-server-load-balancer patch
-- xo-server-netbox minor
-- xo-server-openmetrics minor
-- xo-server-sdn-controller minor
-- xo-server-usage-report patch
-- xo-vmdk-to-vhd patch
-- xo-web minor
+- xo-server patch
 - xo-server-sdn-controller minor
 
 <!--packages-end-->
