@@ -8,7 +8,7 @@ export const NETWORK_TYPE = {
   BONDED: 'bonded',
   INTERNAL: 'internal',
   PHYSICAL: 'physical',
-}
+} as const
 
 export type NetworkType = (typeof NETWORK_TYPE)[keyof typeof NETWORK_TYPE]
 

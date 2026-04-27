@@ -1,18 +1,14 @@
+import { payloadsArg } from '@/modules/network/jobs/xo-network-delete-args.ts'
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { fetchDelete } from '@/shared/utils/fetch.util'
-import { defineJob, defineJobArg, JobError, JobRunningError } from '@core/packages/job'
+import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'
 
 export const NETWORK_DELETE_ERROR = {
   VIFS_IN_USE: 'vifs-in-use',
 }
-
-const payloadsArg = defineJobArg({
-  identify: (network: FrontXoNetwork) => network.id,
-  toArray: true,
-})
 
 export const useXoNetworkDeleteJob = defineJob('network.delete', [payloadsArg], () => {
   const { t } = useI18n()
@@ -41,6 +37,10 @@ export const useXoNetworkDeleteJob = defineJob('network.delete', [payloadsArg], 
         throw new JobError(t('job:arg:missing-payload'))
       }
 
+      if (isRunning) {
+        throw new JobRunningError(t('job:delete:in-progress'))
+      }
+
       const nPhysicalPif = networks.reduce(
         (count, network) =>
           count + (network.isBonded ? 0 : getPifsByNetworkId(network.id).filter(pif => pif.physical).length),
@@ -62,10 +62,6 @@ export const useXoNetworkDeleteJob = defineJob('network.delete', [payloadsArg], 
           t('job:network-delete:has-n-vif-attached', { n: nAttachedVif }),
           NETWORK_DELETE_ERROR.VIFS_IN_USE
         )
-      }
-
-      if (isRunning) {
-        throw new JobRunningError(t('job:delete:in-progress'))
       }
     },
   }

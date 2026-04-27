@@ -20,8 +20,8 @@ export function useNetworkDeleteModal(rawNetworks: MaybeRefOrGetter<FrontXoNetwo
     onConfirm: async () => {
       try {
         await run()
-      } catch (error) {
-        console.error('Error when deleting network:', error)
+      } catch (apiError) {
+        console.error('Error when deleting network:', apiError)
       }
     },
   })

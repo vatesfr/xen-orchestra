@@ -23,7 +23,7 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { showConnectedVifsMessage } = defineProps<{
+defineProps<{
   error?: string
   showConnectedVifsMessage?: boolean
 }>()
