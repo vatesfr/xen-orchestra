@@ -13,7 +13,7 @@ export const TOKEN_TYPE = 'VARCHAR(42)'
 // very rarely used
 export const REF_TYPE = 'VARCHAR(50)'
 export const VARCHAR_255 = 'VARCHAR(255)'
-export const JSON_TYPE = 'JSON'
+export const JSON_TYPE = 'JSONB'
 
 // simple types are primitive or enum
 export function isSimpleType(xapiType) {
