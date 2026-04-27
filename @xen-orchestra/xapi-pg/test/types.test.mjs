@@ -1,6 +1,22 @@
 import * as assert from 'node:assert'
 import { test, suite } from 'node:test'
-import { getRefFromType, isNonRef, isSupportedMapType, splitMapType, unwrapSet } from '../src/types.mjs'
+import {
+  convertSimpleType,
+  converterForSimpleType,
+  datetimeDb2Xapi,
+  datetimeXapi2Db,
+  getRefFromType,
+  ident,
+  isNonRef,
+  isSimpleType,
+  isStorableRef,
+  isSupportedMapType,
+  isSupportedSetType,
+  splitMapType,
+  unwrapOption,
+  unwrapRecord,
+  unwrapSet,
+} from '../src/types.mjs'
 suite('Types tests', function () {
   test('getRefFromType test', function () {
     const cases = [
@@ -57,5 +73,60 @@ suite('Types tests', function () {
     assert.deepEqual(unwrapSet('int set'), 'int')
     assert.deepEqual(unwrapSet('cls ref set'), 'cls ref')
     assert.deepEqual(unwrapSet('int'), null)
+  })
+
+  test('isNonRef with record', function () {
+    assert.strictEqual(isNonRef('my_record record'), false)
+  })
+
+  test('isStorableRef with record', function () {
+    assert.strictEqual(isStorableRef('my_record record'), false)
+  })
+
+  test('unwrapOption', function () {
+    assert.strictEqual(unwrapOption('string option'), 'string')
+    assert.strictEqual(unwrapOption('string'), 'string')
+  })
+
+  test('unwrapRecord', function () {
+    assert.strictEqual(unwrapRecord('my_record record'), 'my_record')
+    assert.strictEqual(unwrapRecord('string'), null)
+  })
+
+  test('datetimeDb2Xapi', function () {
+    assert.strictEqual(datetimeDb2Xapi(null), null)
+    assert.strictEqual(datetimeDb2Xapi(undefined), null)
+
+    const date = new Date('2020-09-03T20:50:13.000Z')
+    assert.strictEqual(datetimeDb2Xapi(date), '20200903T20:50:13Z')
+  })
+
+  test('datetimeXapi2Db', function () {
+    assert.strictEqual(datetimeXapi2Db('20200903T20:50:13Z'), '2020-09-03 20:50:13Z')
+    assert.strictEqual(datetimeXapi2Db(''), null)
+    assert.strictEqual(datetimeXapi2Db(null), null)
+  })
+
+  test('isSimpleType', function () {
+    assert.strictEqual(isSimpleType('string option'), true)
+    assert.strictEqual(isSimpleType('enum foo'), true)
+    assert.strictEqual(isSimpleType('foo'), false)
+  })
+
+  test('convertSimpleType', function () {
+    assert.strictEqual(convertSimpleType('string option'), 'TEXT')
+    assert.strictEqual(convertSimpleType('foo'), 'VARCHAR(255)')
+  })
+
+  test('isSupportedSetType', function () {
+    assert.strictEqual(isSupportedSetType('cls ref set'), true)
+    assert.strictEqual(isSupportedSetType('string set'), false)
+    assert.strictEqual(isSupportedSetType('string'), null)
+  })
+
+  test('converterForSimpleType', function () {
+    assert.deepStrictEqual(converterForSimpleType('datetime'), [datetimeXapi2Db, datetimeDb2Xapi])
+    assert.deepStrictEqual(converterForSimpleType('string'), [ident, ident])
+    assert.throws(() => converterForSimpleType('foo'))
   })
 })
