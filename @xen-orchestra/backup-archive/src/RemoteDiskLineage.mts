@@ -1,6 +1,14 @@
 import RemoteHandlerAbstract from '@xen-orchestra/fs'
 import { dirname, normalize } from '@xen-orchestra/fs/path'
-import { MergeRemoteDisk, openDisk, openDiskChainFromPaths, RemoteDisk, isDiskFile } from '@xen-orchestra/backups/disks'
+import {
+  MergeRemoteDisk,
+  openDisk,
+  openDiskChainFromPaths,
+  openDisposableDisk,
+  RemoteDisk,
+  isDisk,
+} from '@xen-orchestra/backups/disks'
+import Disposable from 'promise-toolbox/Disposable'
 import { DEFAULT_MERGE_CONCURRENCY, DEFAULT_REMOVE_CONCURRENCY, ResolvedBackupCleanOptions } from './VmBackup.types.mjs'
 import { asyncEach } from '@vates/async-each'
 
@@ -55,7 +63,7 @@ export class RemoteDiskLineage {
     const files = await this.#handler.list(this.#vdiDir, { prependDir: true })
 
     for (const filePath of files) {
-      if (isDiskFile(filePath)) {
+      if (isDisk(this.#handler, filePath)) {
         this.#diskPaths.add(normalize(filePath))
       }
     }
@@ -324,14 +332,13 @@ export class RemoteDiskLineage {
   async #cleanOrphanDataFiles(remove: boolean): Promise<void> {
     const claimedFiles = new Set<string>()
     for (const diskPath of this.#diskPaths) {
-      let claimed: string[] = []
-      const disk = await openDisk({ handler: this.#handler as any, path: diskPath, ignoreBlockIndexes: true })
-      try {
-        await disk.clean({ remove, logWarn: this.#opts.logWarn, logInfo: this.#opts.logInfo })
-        claimed = await disk.listAssociatedFiles(this.#vdiDir)
-      } finally {
-        await disk.close()
-      }
+      const claimed = await Disposable.use(
+        openDisposableDisk({ handler: this.#handler as any, path: diskPath, ignoreBlockIndexes: true }),
+        async disk => {
+          await disk.clean({ remove, logWarn: this.#opts.logWarn, logInfo: this.#opts.logInfo })
+          return disk.listAssociatedFiles(this.#vdiDir)
+        }
+      )
       for (const f of claimed) claimedFiles.add(normalize(f))
     }
 

@@ -15,14 +15,6 @@ const DISK_EXTENSIONS = ['.vhd']
  * @typedef {import('./MergeRemoteDisk.mjs').MergeState} MergeState
  */
 
-export function isVhdFile(filename) {
-  return filename.endsWith('.vhd')
-}
-
-export function isDiskFile(filename) {
-  return isVhdFile(filename)
-}
-
 export function isDiskAlias(filename) {
   return isVhdAlias(filename)
 }
@@ -36,14 +28,19 @@ export function isDisk(_handler, path) {
  * @param {Object} params
  * @param {FileAccessor} params.handler
  * @param {string} params.path
- * @returns {Promise<Disposable<RemoteDisk>>}
- * @param {string[]} params.paths
  * @param {boolean} [params.force]
- * @returns {Promise<RemoteDisk>}
+ * @param {boolean} [params.ignoreBlockIndexes]
+ * @returns {Promise<Disposable<RemoteDisk>>}
  */
-export async function openDisposableDisk({ handler, path }) {
+export async function openDisposableDisk({ handler, path, force = false, ignoreBlockIndexes = false }) {
   const disk = new RemoteVhdDisk({ handler, path })
-  await disk.init()
+  if (ignoreBlockIndexes) {
+    // Best-effort init: return the disk even if init fails so that callers
+    // can still use operations that work without a fully-opened VHD (e.g. unlink, checkAlias).
+    await disk.init({ force, ignoreBlockIndexes }).catch(() => {})
+  } else {
+    await disk.init({ force })
+  }
   return {
     value: disk,
     dispose: () => disk.close(),
