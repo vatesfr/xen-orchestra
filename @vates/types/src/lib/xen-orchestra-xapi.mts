@@ -4,11 +4,14 @@ import {
   XenApiHostWrapped,
   XenApiNetwork,
   XenApiNetworkWrapped,
+  XenApiPoolWrapped,
   XenApiRecord,
   XenApiSr,
+  XenApiSrWrapped,
   XenApiTask,
   XenApiVbd,
   XenApiVdi,
+  XenApiVdiWrapped,
   XenApiVif,
   XenApiVm,
   XenApiVmWrapped,
@@ -350,7 +353,13 @@ export interface Xapi {
   xostor_delete(ref: XenApiSr['$ref']): Promise<void>
   objects: {
     indexes: {
-      type: { host: Record<string, XenApiHostWrapped> } & Record<string, Record<string, WrappedXenApiRecord>>
+      type: {
+        host: Record<string, XenApiHostWrapped>
+        pool: Record<string, XenApiPoolWrapped>
+        SR: Record<string, XenApiSrWrapped>
+        VDI: Record<string, XenApiVdiWrapped>
+        VM: Record<string, XenApiVmWrapped>
+      } & Record<string, Record<string, WrappedXenApiRecord>>
     }
   }
 }

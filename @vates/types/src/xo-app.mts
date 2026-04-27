@@ -82,20 +82,30 @@ type XapiRecordByXapiXoRecord = {
   'VM-template': XenApiVmWrapped
   VTPM: XenApiVtpmWrapped
 }
+export type LicenseProductId =
+  | 'premium'
+  | 'xcpng-enterprise'
+  | 'xcpng-standard'
+  | 'xo-proxy'
+  | 'xosan.trial'
+  | 'xostor'
+  | 'xostor.trial'
+export type LicenseProductType = 'xo' | 'xoproxy' | 'xcpng' | 'xosan' | 'xostor'
+
 export type License = {
   id: string
-  type: string
+  type: 'license'
   created: number
-  licenseType: string
-  productId: string
+  licenseType: 'unit'
+  productId: LicenseProductId
   tags: string[]
   expires?: number
   boundObjectId?: string
   bindDate?: number
   buyer?: { token: string; email: string }
-  history?: Array<{ date: number; boundObjectId: string }>
+  history?: { date: number; boundObjectId: string }[]
   rebound?: number
-  productTypes?: string[]
+  productTypes?: LicenseProductType[]
   bundleInfo?: { name: string; id: string }
 }
 
@@ -313,9 +323,9 @@ export type XoApp = {
   ): void
   getAllXapis(): Record<string, XapiConnection>
   getObjects(opts?: { filter?: Record<string, unknown>; limit?: number }): Record<string, XapiXoRecord>
-  getLicenses(params?: { productType?: string }): Promise<License[]>
+  getLicenses(params?: { productType?: LicenseProductType }): Promise<License[]>
   unbindLicense(params: {
-    productId: string
+    productId: LicenseProductId
     boundObjectId: string
     licenseId: string
     data?: Record<string, string>
