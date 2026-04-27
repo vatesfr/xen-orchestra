@@ -62,6 +62,14 @@ const textSize = useMapper<Size, any>(
 
   .icon {
     font-size: 1.6rem;
+
+    &.size--medium {
+      margin-top: 0.4rem;
+    }
+
+    &.size--small {
+      margin-top: 0.5rem;
+    }
   }
 
   .label:empty {
