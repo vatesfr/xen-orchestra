@@ -97,7 +97,7 @@ export class Xapi extends EventEmitter {
     super()
 
     const { transport = 'auto' } = opts
-    if (typeof transport !== 'function') {
+    if (typeof transport === 'function') {
       this._createTransport = transport
     } else {
       const createTransport = transports[transport]
