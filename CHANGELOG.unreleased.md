@@ -18,7 +18,7 @@
 
 ### Bug fixes
 
-> Users must be able to say: "I had this issue, happy to know it's fixed"
+> Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [REST] Fixed ignored parameters in request body due to a tsoa bug (see https://github.com/lukeautry/tsoa/pull/1858) (PR [#9793](https://github.com/vatesfr/xen-orchestra/pull/9793))
 
@@ -42,7 +42,12 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi minor
+<<<<<<< HEAD
 - xo-server minor
 - xo-web minor
+||||||| parent of 8c6c2e4fd (correct changelog for CI)
+=======
+- xo-server-sdn-controller patch
+>>>>>>> 8c6c2e4fd (correct changelog for CI)
 
 <!--packages-end-->
