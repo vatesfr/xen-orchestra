@@ -447,10 +447,28 @@ class SDNController extends EventEmitter {
       },
     })
 
+    const createAction = async (res, callback, { sync = false, statusCode = 200, taskProperties }) => {
+      taskProperties.name = 'REST API: ' + taskProperties.name
+      taskProperties.type = 'xo:rest-api:action'
+
+      const task = this._xo.tasks.create(taskProperties)
+      const pResult = task.run(callback)
+
+      if (sync) {
+        const result = await pResult
+        res.status(statusCode)
+        return result
+      } else {
+        pResult.catch(() => {})
+        res.status(202).set('Location', `/rest/v0/tasks/${task.id}`).json({ taskId: task.id })
+        return undefined
+      }
+    }
+
     this._xo.registerRestApi(
       {
         networks: {
-          ':id/rules': {
+          ':id/actions/add_traffic_rule': {
             _post: async (req, res, next) => {
               const validationErrors = []
 
@@ -486,11 +504,18 @@ class SDNController extends EventEmitter {
                 rule.port = req.body.port
               }
 
-              await this._addNetworkRule(rule)
-
-              res.sendStatus(204)
+              return createAction(res, () => this._addNetworkRule(rule), {
+                sync: req.query.sync ?? false,
+                statusCode: 204,
+                taskProperties: {
+                  name: 'add network traffic rule',
+                  objectId: rule.networkId,
+                },
+              })
             },
-            _delete: async (req, res, next) => {
+          },
+          ':id/actions/delete_traffic_rule': {
+            _post: async (req, res, next) => {
               const validationErrors = []
 
               if (!req.body.direction || typeof req.body.direction !== 'string') {
@@ -520,9 +545,14 @@ class SDNController extends EventEmitter {
                 rule.port = req.body.port
               }
 
-              await this._deleteNetworkOfRule(rule)
-
-              res.sendStatus(204)
+              return createAction(res, () => this._deleteNetworkOfRule(rule), {
+                sync: req.query.sync ?? false,
+                statusCode: 204,
+                taskProperties: {
+                  name: 'delete network traffic rule',
+                  objectId: rule.networkId,
+                },
+              })
             },
           },
         },

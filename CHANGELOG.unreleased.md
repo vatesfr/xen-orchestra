@@ -11,7 +11,7 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [REST API] Add `POST rest/v0/plugins/sdn-controller/networks/:id/rules` and `DELETE rest/v0/plugins/sdn-controller/networks/:id/rules` traffic rule endpoints for networks ([#9418](https://github.com/vatesfr/xen-orchestra/pull/9418))
+- [REST API] Add `POST rest/v0/plugins/sdn-controller/networks/:id/actions/add_traffic_rules` and `POST rest/v0/plugins/sdn-controller/networks/:id/actions/delete_traffic_rule` endpoints ([#9418](https://github.com/vatesfr/xen-orchestra/pull/9418))
 
 ### Bug fixes
 
