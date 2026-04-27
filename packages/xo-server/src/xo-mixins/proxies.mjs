@@ -282,16 +282,23 @@ export default class Proxy {
       [namespace]: { xva },
     } = await app.getResourceCatalog()
     const xapi = app.getXapi(srId)
-    const vm = await xapi._getOrWaitObject(
-      await xapi.VM_import(
-        await app.requestResource({
-          id: xva.id,
-          namespace,
-          version: xva.version,
-        }),
-        srId && app.getObject(srId, 'SR')._xapiRef
-      )
-    )
+    const sourceStream = await app.requestResource({
+      id: xva.id,
+      namespace,
+      version: xva.version,
+    })
+    // ensure source is readable
+    try {
+      const chunk = await readChunk(sourceStream, 1024 * 1024)
+      sourceStream.unshift(chunk)
+    } catch (error) {
+      const newErr = new Error('Error while reading proxy VM from source  ', { cause: error })
+      throw newErr
+    }
+
+    const vmRef = await xapi.VM_import(sourceStream, srId && app.getObject(srId, 'SR')._xapiRef)
+    const vm = await xapi._getOrWaitObject(vmRef)
+
     $defer.onFailure(() => xapi.VM_destroy(vm.$ref))
 
     const arg = { licenseId, boundObjectId: vm.uuid }
