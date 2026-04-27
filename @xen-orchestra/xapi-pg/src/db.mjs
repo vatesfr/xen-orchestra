@@ -327,19 +327,17 @@ export class XapiDbField {
     return code.immediate.concat(code.delayed)
   }
 
+  /** monkey-patched after instantiation */
   xapi2Db(jsonValue, _refConverter, _ownerUuid) {
     return jsonValue
   }
 
+  /** monkey-patched after instantiation */
   db2Xapi(dbValue, _refConverter) {
     return dbValue
   }
 
-  /**
-   *
-   * @param _record
-   * @returns {string[]}
-   */
+  /** monkey-patched after instantiation */
   getRefsFromRecord(_record) {
     return []
   }
