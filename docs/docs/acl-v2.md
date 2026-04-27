@@ -105,17 +105,17 @@ The Swagger UI available at `/rest/v0/swagger` documents every endpoint with its
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `vm`            | `read`, `delete`, `export`, `pause`, `start`, `reboot` (`clean`, `hard`), `shutdown` (`clean`, `hard`), `resume`, `snapshot`, `suspend`, `unpause`, `update` (`datasources`, `tags`) |
 | `vm-snapshot`   | `read`, `delete`, `export`, `update:tags`                                                                                                                                            |
-| `vm-template`   | `read`, `instantiate`                                                                                                                                                                |
-| `vm-controller` | `read`                                                                                                                                                                               |
+| `vm-template`   | `read`, `delete`, `export`, `instantiate`, `update:tags`                                                                                                                             |
+| `vm-controller` | `read`, `update:tags`                                                                                                                                                                |
 | `vdi`           | `read`, `create`, `delete`, `boot`, `export-content`, `import-content`, `update:tags`                                                                                                |
 | `vdi-snapshot`  | `read`                                                                                                                                                                               |
 | `vdi-unmanaged` | `read`                                                                                                                                                                               |
 | `vif`           | `read`, `create`                                                                                                                                                                     |
 | `vbd`           | `read`                                                                                                                                                                               |
-| `sr`            | `read`, `import-vdi`, `update:tags`                                                                                                                                                  |
-| `host`          | `read`, `allow-vm`                                                                                                                                                                   |
-| `pool`          | `read`                                                                                                                                                                               |
-| `network`       | `read`                                                                                                                                                                               |
+| `sr`            | `read`, `import:vdi`, `import:vm`, `update:tags`                                                                                                                                     |
+| `host`          | `read`, `allow-vm`, `export:logs`, `update:tags`                                                                                                                                     |
+| `pool`          | `read`, `create:network`, `create:vm`, `emergency-shutdown`, `rolling-reboot`, `rolling-update`, `update:tags`                                                                       |
+| `network`       | `read`, `create`, `delete`, `update:tags`                                                                                                                                            |
 | `pif`           | `read`                                                                                                                                                                               |
 | `pbd`           | `read`                                                                                                                                                                               |
 | `pci`           | `read`                                                                                                                                                                               |
@@ -128,28 +128,28 @@ The Swagger UI available at `/rest/v0/swagger` documents every endpoint with its
 
 ### XO management resources
 
-| Resource            | Available actions |
-| ------------------- | ----------------- |
-| `backup-job`        | `read`            |
-| `backup-archive`    | `read`            |
-| `backup-log`        | `read`            |
-| `backup-repository` | `read`            |
-| `schedule`          | `read`, `run`     |
-| `restore-log`       | `read`            |
-| `proxy`             | `read`            |
-| `server`            | `read`            |
-| `task`              | `read`            |
-| `alarm`             | `read`            |
-| `message`           | `read`            |
+| Resource            | Available actions                                   |
+| ------------------- | --------------------------------------------------- |
+| `backup-job`        | `read`                                              |
+| `backup-archive`    | `read`                                              |
+| `backup-log`        | `read`                                              |
+| `backup-repository` | `read`                                              |
+| `schedule`          | `read`, `run`                                       |
+| `restore-log`       | `read`                                              |
+| `proxy`             | `read`                                              |
+| `server`            | `read`, `create`, `delete`, `connect`, `disconnect` |
+| `task`              | `read`, `abort`, `delete`                           |
+| `alarm`             | `read`                                              |
+| `message`           | `read`                                              |
 
 ### User management resources
 
 | Resource        | Available actions                                                                      |
 | --------------- | -------------------------------------------------------------------------------------- |
 | `user`          | `read`, `create`, `delete`, `update` (`name`, `password`, `permission`, `preferences`) |
-| `group`         | `read`                                                                                 |
-| `acl-role`      | `read`                                                                                 |
-| `acl-privilege` | `read`                                                                                 |
+| `group`         | `read`, `create`, `delete`, `update` (`name`, `users`)                                 |
+| `acl-role`      | `read`, `create`, `delete`, `update` (`name`, `description`, `users`, `groups`)        |
+| `acl-privilege` | `read`, `create`, `delete`, `update` (`action`, `effect`, `resource`, `selector`)      |
 
 ---
 
@@ -176,18 +176,18 @@ This means a single tag change is enough to grant or revoke access to a resource
 
 ---
 
-### Bob: Rename only running VMs
+### Bob: Snapshot only running VMs
 
-> Bob is allowed to rename VMs, but only while they are running — to prevent renaming VMs that are off and might be part of an automated process.
+> Bob is allowed to snapshot VMs, but only while they are running — to avoid snapshotting stopped VMs that may be part of an automated maintenance process.
 
-Create a `Running VM Renamer` role with these privileges:
+Create a `Running VM Snapshot` role with these privileges:
 
 ```json
-{ "resource": "vm", "action": "read",              "effect": "allow", "selector": "power_state:Running" }
-{ "resource": "vm", "action": "update:name_label", "effect": "allow", "selector": "power_state:Running" }
+{ "resource": "vm", "action": "read",     "effect": "allow", "selector": "power_state:Running" }
+{ "resource": "vm", "action": "snapshot", "effect": "allow", "selector": "power_state:Running" }
 ```
 
-Bob can see and rename any running VM. Stopped VMs are completely invisible to him.
+Bob can see and snapshot any running VM. Stopped VMs are completely invisible to him.
 
 ---
 
