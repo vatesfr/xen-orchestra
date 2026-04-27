@@ -554,6 +554,9 @@ function createRefMapDBField(xapiDbClass, fieldName, fieldDescription, xapiType)
 export function xapi2DbRefField(xapiDbClass, fieldName, xapiType, fieldDescription, modelDict) {
   const ref = unwrapDirectRef(xapiType)
   if (ref) {
+    if (!modelDict[ref]) {
+      throw new Error(`ref field ${xapiDbClass.name}.${fieldName} (${xapiType}) points to unknown class ${ref}`)
+    }
     const def = {
       type: UUID_TYPE,
       references: { model: modelDict[ref].name, key: 'uuid' },
