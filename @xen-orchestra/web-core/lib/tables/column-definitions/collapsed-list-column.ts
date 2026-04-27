@@ -6,10 +6,7 @@ import type { MaybeArray } from '@core/types/utility.type.ts'
 import { toArray } from '@core/utils/to-array.utils.ts'
 import { h } from 'vue'
 
-type CollapsedListConfig = HeaderConfig & { highlightFirst?: boolean }
-
-export const useCollapsedListColumn = defineColumn((config?: CollapsedListConfig) => ({
+export const useCollapsedListColumn = defineColumn((config?: HeaderConfig) => ({
   renderHead: () => renderHeadCell(config?.headerIcon ?? 'fa:square-caret-down', config?.headerLabel),
-  renderBody: (items: MaybeArray<string>) =>
-    h(VtsCollapsedListCell, { items: toArray(items), highlightFirst: config?.highlightFirst }),
+  renderBody: (items: MaybeArray<string>) => h(VtsCollapsedListCell, { items: toArray(items) }),
 }))

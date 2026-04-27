@@ -12,7 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [VM] Add possibility to remove a snapshot on snapshot tab (PR [#9749](https://github.com/vatesfr/xen-orchestra/pull/9749))
-- [Pool/Hosts] Management IP is now highlighted and always shown first in the IP column (PR [#9747](https://github.com/vatesfr/xen-orchestra/pull/9747))
+- [Pool/Hosts] Management IP is now always shown first and the IP column is renamed to "Management IP" (PR [#9747](https://github.com/vatesfr/xen-orchestra/pull/9747))
 
 ### Bug fixes
 
