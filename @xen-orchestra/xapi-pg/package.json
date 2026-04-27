@@ -22,6 +22,7 @@
   "scripts": {
     "test": "node --test --experimental-test-coverage  test/*.test.mjs",
     "test-integration": "node --test test-integration/*.integ.mjs",
+    "test-all": "node --test --experimental-test-coverage test/*.test.mjs test-integration/*.integ.mjs",
     "lcov": "node ./run_coverage.mjs"
   }
 }
