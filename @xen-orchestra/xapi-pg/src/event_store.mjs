@@ -7,9 +7,6 @@ function groupByEntries(obj, keySelector) {
 }
 
 export class EventStore {
-  /**
-   * @typedef {{type: any, value: Record, attr: string, uuid: string}} DeferredAssociation
-   */
   /** @type {{[name:string]: XapiDBClass}} */
   classesDict
 
