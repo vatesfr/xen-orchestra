@@ -5,7 +5,7 @@
         {{ label }}
       </slot>
     </span>
-    <span v-tooltip class="typo-body-regular value text-ellipsis">
+    <span v-tooltip="noValueTooltip ? false : undefined" class="typo-body-regular value text-ellipsis">
       <slot name="value">
         {{ value }}
       </slot>
@@ -20,6 +20,7 @@ import { useUiStore } from '@core/stores/ui.store.ts'
 defineProps<{
   label?: string
   value?: string
+  noValueTooltip?: boolean
 }>()
 
 defineSlots<{

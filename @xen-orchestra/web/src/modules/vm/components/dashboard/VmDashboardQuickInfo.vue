@@ -20,9 +20,9 @@
       <VtsQuickInfoRow :label="t('started')" :value="relativeStartTime" />
     </VtsQuickInfoColumn>
     <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="t('uuid')">
+      <VtsQuickInfoRow :label="t('uuid')" no-value-tooltip>
         <template #value>
-          {{ vm.id }}
+          <span v-tooltip class="text-ellipsis">{{ vm.id }}</span>
           <VtsCopyButton :value="vm.id" />
         </template>
       </VtsQuickInfoRow>
