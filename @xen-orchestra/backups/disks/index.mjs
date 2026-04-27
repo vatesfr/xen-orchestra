@@ -7,6 +7,14 @@ export { openDiskChain } from './openDiskChain.mjs'
 export { MergeRemoteDisk } from './MergeRemoteDisk.mjs'
 export { isVhdAlias } from 'vhd-lib/aliases.js'
 
+const DISK_EXTENSIONS = ['.vhd']
+
+/**
+ * @typedef {import('@xen-orchestra/disk-transform').FileAccessor} FileAccessor
+ * @typedef {import('./RemoteDisk.mjs').RemoteDisk} RemoteDisk
+ * @typedef {import('./MergeRemoteDisk.mjs').MergeState} MergeState
+ */
+
 export function isVhdFile(filename) {
   return filename.endsWith('.vhd')
 }
@@ -19,11 +27,28 @@ export function isDiskAlias(filename) {
   return isVhdAlias(filename)
 }
 
+export function isDisk(_handler, path) {
+  return DISK_EXTENSIONS.some(ext => path.endsWith(ext))
+}
+
 /**
- * @typedef {import('@xen-orchestra/disk-transform').FileAccessor} FileAccessor
- * @typedef {import('./RemoteDisk.mjs').RemoteDisk} RemoteDisk
- * @typedef {import('./MergeRemoteDisk.mjs').MergeState} MergeState
+ *
+ * @param {Object} params
+ * @param {FileAccessor} params.handler
+ * @param {string} params.path
+ * @returns {Promise<Disposable<RemoteDisk>>}
+ * @param {string[]} params.paths
+ * @param {boolean} [params.force]
+ * @returns {Promise<RemoteDisk>}
  */
+export async function openDisposableDisk({ handler, path }) {
+  const disk = new RemoteVhdDisk({ handler, path })
+  await disk.init()
+  return {
+    value: disk,
+    dispose: () => disk.close(),
+  }
+}
 
 /**
  * @param {Object} params
