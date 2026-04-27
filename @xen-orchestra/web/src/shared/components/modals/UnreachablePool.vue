@@ -1,5 +1,5 @@
 <template>
-  <VtsModal icon="fa:user-astronaut" dismissible accent="info" class="unreachable-pool" :dismissible-key>
+  <VtsModal icon="fa:user-astronaut" dismissible accent="info" class="unreachable-pool">
     <template #title>
       {{ t('pool-unreachable') }}
     </template>
@@ -15,12 +15,7 @@
 
 <script lang="ts" setup>
 import VtsModal from '@core/components/modal/VtsModal.vue'
-import type { UseMagicKeysReturn } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
-
-const { dismissibleKey } = defineProps<{
-  dismissibleKey?: Array<UseMagicKeysReturn<false>>
-}>()
 
 const { t } = useI18n()
 </script>
