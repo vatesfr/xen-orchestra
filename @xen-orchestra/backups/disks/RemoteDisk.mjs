@@ -78,7 +78,7 @@ export class RemoteDisk extends RandomAccessDisk {
    * @returns {string}
    */
   getParentUuid() {
-    throw new Error(`getUuid must be implemented`)
+    throw new Error(`getParentUuid must be implemented`)
   }
 
   /**
@@ -86,7 +86,7 @@ export class RemoteDisk extends RandomAccessDisk {
    * @returns {string}
    */
   getParentPath() {
-    throw new Error(`getUuid must be implemented`)
+    throw new Error(`getParentPath must be implemented`)
   }
 
   /**
