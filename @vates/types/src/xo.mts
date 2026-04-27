@@ -729,6 +729,7 @@ type BaseXoVdi = BaseXapiXo & {
 
 export type XoVdi = BaseXoVdi & {
   id: Branded<'VDI'>
+  chainPhysicalUsage: number
   type: 'VDI'
 }
 

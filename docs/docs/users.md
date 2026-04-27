@@ -9,6 +9,10 @@ There are 2 types of XO users:
 - **admins**, with all rights on all connected resources
 - **users**, with no rights by default
 
+:::note
+Local user accounts should be avoided in production environments. LDAP authentication is strongly recommended for centralized credential management.
+:::
+
 ## Authentication
 
 Xen Orchestra supports various types of user authentication, internal or even external thanks to the usage of the [Passport library](http://passportjs.org/).
