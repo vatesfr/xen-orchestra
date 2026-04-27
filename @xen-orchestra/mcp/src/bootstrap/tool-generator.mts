@@ -31,7 +31,7 @@ export function registerQueryTool(server: McpServer, getClient: () => XoClient, 
     {
       title: `Query ${domain.tag}`,
       description: `Query ${domain.tag} resources. Available operations:\n${describeOps(domain.queryOps)}`,
-      annotations: { readOnlyHint: true, destructiveHint: false },
+      annotations: { readOnlyHint: true },
       inputSchema: {
         operation: z.enum(opNames).describe('The query operation to perform (OpenAPI operationId)'),
         id: z.string().optional().describe('Resource ID (required for operations on a specific item)'),
@@ -78,7 +78,7 @@ export function registerActionTool(server: McpServer, getClient: () => XoClient,
     {
       title: `${domain.tag} actions`,
       description: `Perform actions on ${domain.tag} resources. Available operations:\n${describeOps(domain.actionOps)}`,
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: { destructiveHint: true },
       inputSchema: {
         operation: z.enum(opNames).describe('The action to perform (OpenAPI operationId)'),
         id: z.string().optional().describe('Resource ID (required for most actions)'),
