@@ -1,9 +1,10 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 import type { XoSm } from '@vates/types'
 
+import { acl } from '../middlewares/acl.middleware.mjs'
 import { badRequestResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { partialSms, sm, smIds } from '../open-api/oa-examples/sm.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -22,6 +23,9 @@ export class SmController extends XapiXoController<XoSm> {
   }
 
   /**
+   * Returns all SMs that match the following privilege:
+   * - resource: sm, action: read
+   *
    * @example fields "uuid,name_label,SM_type"
    * @example filter "SM_type:ext"
    * @example limit 42
@@ -29,6 +33,7 @@ export class SmController extends XapiXoController<XoSm> {
   @Example(smIds)
   @Example(partialSms)
   @Get('')
+  @Security('*', ['acl'])
   getSrs(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -37,14 +42,21 @@ export class SmController extends XapiXoController<XoSm> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoSm>>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'sm' },
+    })
   }
 
   /**
+   * Required privilege:
+   * - resource: sm, action: read
+   *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
   @Example(sm)
   @Get('{id}')
+  @Middlewares(acl({ resource: 'sm', action: 'read', objectId: 'params.id' }))
   @Response(notFoundResp.status, notFoundResp.description)
   getSr(@Path() id: string): Unbrand<XoSm> {
     return this.getObject(id as XoSm['id'])

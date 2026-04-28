@@ -20,7 +20,7 @@
 <script setup lang="ts">
 import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import { getPifsIpAddresses } from '@/modules/pif/utils/xo-pif.util.ts'
+import { getHostIpAddresses } from '@/modules/pif/utils/xo-pif.util.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -98,7 +98,7 @@ function getMasterIcon(host: FrontXoHost) {
 
 const { HeadCells, BodyCells } = useHostColumns({
   body: (host: FrontXoHost) => {
-    const ipAddresses = computed(() => getPifsIpAddresses(pifsByHost.value.get(host.id)))
+    const ipAddresses = computed(() => getHostIpAddresses(host.address, pifsByHost.value.get(host.id)))
     const hostIcon = computed(() => objectIcon('host', toLower(host.power_state)))
     const rightIcon = computed(() => getMasterIcon(host))
 

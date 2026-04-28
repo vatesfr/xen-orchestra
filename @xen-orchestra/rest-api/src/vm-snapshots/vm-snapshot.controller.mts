@@ -1,4 +1,18 @@
-import { Delete, Example, Get, Path, Put, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
+import {
+  Delete,
+  Example,
+  Get,
+  Path,
+  Put,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+  Middlewares,
+} from 'tsoa'
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { Readable } from 'node:stream'
@@ -18,6 +32,7 @@ import {
 } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
+import { acl } from '../middlewares/acl.middleware.mjs'
 import type { XoAlarm, XoMessage, XoVdiSnapshot, XoTask, XoVmSnapshot } from '@vates/types'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { provide } from 'inversify-binding-decorators'
@@ -51,6 +66,8 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   }
 
   /**
+   * Returns all VM snapshots that match the following privilege:
+   * - resource: vm-snapshot, action: read
    *
    * @example fields "uuid,snapshot_time,$snapshot_of"
    * @example filter "snapshot_time:>1725020038"
@@ -59,6 +76,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   @Example(vmSnapshotIds)
   @Example(partialVmSnapshots)
   @Get('')
+  @Security('*', ['acl'])
   getVmSnapshots(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -67,17 +85,25 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoVmSnapshot>>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'vm-snapshot' },
+    })
   }
 
   /**
    *
    * Export VM-snapshot. Compress is only used for XVA format
    *
+   * Required privilege:
+   * - resource: vm-snapshot, action: export
+   *
    * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
    */
   @Get('{id}.{format}')
+  @Middlewares(acl({ resource: 'vm-snapshot', action: 'export', objectId: 'params.id' }))
   @SuccessResponse(200, 'Download started', 'application/octet-stream')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(422, 'Invalid format, Invalid compress')
   async exportVmSnapshot(
@@ -98,19 +124,28 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vm-snapshot, action: read
+   *
    * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
    */
   @Example(vmSnapshot)
   @Get('{id}')
+  @Middlewares(acl({ resource: 'vm-snapshot', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getVmSnapshot(@Path() id: string): Unbrand<XoVmSnapshot> {
     return this.getObject(id as XoVmSnapshot['id'])
   }
 
   /**
+   * Required privilege:
+   * - resource: vm-snapshot, action: delete
+   *
    * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
    */
   @Delete('{id}')
+  @Middlewares(acl({ resource: 'vm-snapshot', action: 'delete', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -121,6 +156,9 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   }
 
   /**
+   * Returns all alarms that match the following privilege:
+   * - resource: alarm, action: read
+   *
    * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
    * @example fields "id,time"
    * @example filter "time:>1747053793"
@@ -128,6 +166,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
    */
   @Example(genericAlarmsExample)
   @Get('{id}/alarms')
+  @Security('*', ['acl'])
   @Tags('alarms')
   @Response(notFoundResp.status, notFoundResp.description)
   getVmSnapshotAlarms(
@@ -142,13 +181,19 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
     const vmSnapshot = this.getObject(id as XoVmSnapshot['id'])
     const alarms = this.#alarmService.getAlarms({
       filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${vmSnapshot.uuid}`,
-      limit,
     })
 
-    return this.sendObjects(Object.values(alarms), req, 'alarms')
+    return this.sendObjects(Object.values(alarms), req, {
+      path: 'alarms',
+      limit,
+      privilege: { action: 'read', resource: 'alarm' },
+    })
   }
 
   /**
+   * Returns all VDIs that match the following privilege:
+   * - resource: vdi, action: read
+   *
    * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
    * @example fields "VDI_type,id,name_label"
    * @example filter "VDI_type:user"
@@ -156,6 +201,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
    */
   @Example(vmSnapshotVdis)
   @Get('{id}/vdis')
+  @Security('*', ['acl'])
   @Tags('vdis')
   @Response(notFoundResp.status, notFoundResp.description)
   getVmSnapshotVdis(
@@ -168,10 +214,17 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoVdiSnapshot>>> {
     const vdis = this.#vmService.getVmVdis(id as XoVmSnapshot['id'], 'VM-snapshot')
-    return this.sendObjects(limitAndFilterArray(vdis, { filter, limit }), req, obj => obj.type.toLowerCase() + 's')
+    return this.sendObjects(limitAndFilterArray(vdis, { filter }), req, {
+      path: obj => obj.type.toLowerCase() + 's',
+      limit,
+      privilege: { action: 'read', resource: 'vdi' },
+    })
   }
 
   /**
+   * Returns all messages that match the following privilege:
+   * - resource: message, action: read
+   *
    * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
    * @example fields "name,id,$object"
    * @example filter "name:VM_STARTED"
@@ -180,6 +233,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   @Example(messageIds)
   @Example(partialMessages)
   @Get('{id}/messages')
+  @Security('*', ['acl'])
   @Tags('messages')
   @Response(notFoundResp.status, notFoundResp.description)
   getVmSnapshotsMessages(
@@ -191,12 +245,19 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
-    const messages = this.getMessagesForObject(id as XoVmSnapshot['id'], { filter, limit })
+    const messages = this.getMessagesForObject(id as XoVmSnapshot['id'], { filter })
 
-    return this.sendObjects(Object.values(messages), req, 'messages')
+    return this.sendObjects(Object.values(messages), req, {
+      path: 'messages',
+      limit,
+      privilege: { action: 'read', resource: 'message' },
+    })
   }
 
   /**
+   * Returns all tasks that match the following privilege:
+   * - resource: task, action: read
+   *
    * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
    * @example fields "id,status,properties"
    * @example filter "status:failure"
@@ -205,6 +266,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   @Example(taskIds)
   @Example(partialTasks)
   @Get('{id}/tasks')
+  @Security('*', ['acl'])
   @Tags('tasks')
   @Response(notFoundResp.status, notFoundResp.description)
   async getVmSnapshotTasks(
@@ -215,18 +277,27 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
     @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
-    const tasks = await this.getTasksForObject(id as XoVmSnapshot['id'], { filter, limit })
+  ): SendObjects<Partial<Unbrand<XoTask>>> {
+    const tasks = await this.getTasksForObject(id as XoVmSnapshot['id'], { filter })
 
-    return this.sendObjects(Object.values(tasks), req, 'tasks')
+    return this.sendObjects(Object.values(tasks), req, {
+      path: 'tasks',
+      limit,
+      privilege: { action: 'read', resource: 'task' },
+    })
   }
 
   /**
+   * Required privilege:
+   * - resource: vm-snapshot, action: update:tags
+   *
    * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
    * @example tag "from-rest-api"
    */
   @Put('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'vm-snapshot', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async putVmSnapshotTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vmSnapshot = this.getXapiObject(id as XoVmSnapshot['id'])
@@ -234,11 +305,16 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vm-snapshot, action: update:tags
+   *
    * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
    * @example tag "from-rest-api"
    */
   @Delete('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'vm-snapshot', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteVmSnapshotTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vmSnapshot = this.getXapiObject(id as XoVmSnapshot['id'])

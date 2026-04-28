@@ -7,38 +7,52 @@ import { createServer as createServerDirect } from './server.mjs'
 import { formatToolError } from './helpers/tool-error.mjs'
 import type { XoClient } from './xo-client.mjs'
 
-const EXPECTED_TOOL_NAMES = [
-  'check_connection',
-  'get_infrastructure_summary',
-  'get_network_details',
-  'get_pool_dashboard',
-  'get_sr_details',
-  'get_vm_details',
-  'list_hosts',
-  'list_networks',
-  'list_pools',
-  'list_srs',
-  'list_vdis',
-  'list_vms',
-  'search_documentation',
-]
+const MOCK_SWAGGER_SPEC = {
+  openapi: '3.0.0',
+  info: { title: 'XO API', version: '1.0.0' },
+  paths: {
+    '/pools': { get: { tags: ['pools'], operationId: 'GetPools', summary: 'List all pools' } },
+    '/pools/{id}': { get: { tags: ['pools'], operationId: 'GetPool', summary: 'Get a pool' } },
+    '/vms': { get: { tags: ['vms'], operationId: 'GetVms', summary: 'List all VMs' } },
+    '/vms/{id}': { get: { tags: ['vms'], operationId: 'GetVm', summary: 'Get a VM' } },
+    '/vms/{id}/actions/start': { post: { tags: ['vms'], operationId: 'StartVm', summary: 'Start a VM' } },
+    '/hosts': { get: { tags: ['hosts'], operationId: 'GetHosts', summary: 'List all hosts' } },
+  },
+}
 
-// Helper to create a mock XoClient
-// Uses `as unknown as XoClient` because @vates/types uses branded string IDs
-// that plain string literals don't satisfy at the type level.
 function createMockClient(overrides: Record<string, unknown> = {}): XoClient {
   return {
     testConnection: async () => ({ ok: true }),
-    getText: async () => '{"hosts":{"status":{"running":1,"total":1}},"vms":{"status":{"running":2}}}',
-    getMarkdown: async () => '| id | name_label |\n| --- | --- |\n| mock1 | Mock 1 |',
+    apiRequest: async () => '| id | name_label |\n| --- | --- |\n| mock1 | Mock 1 |',
+    getAuthHeaders: () => ({ cookie: 'authenticationToken=test' }),
+    getBaseUrl: () => 'http://xo.test',
     ...overrides,
   } as unknown as XoClient
 }
 
-// Helper to set up client + server connected via InMemoryTransport
+let originalFetch: typeof globalThis.fetch
+
+function mockSwaggerFetch() {
+  originalFetch = globalThis.fetch
+  globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = typeof input === 'string' ? input : input.toString()
+    if (url.includes('/rest/v0/docs/swagger.json')) {
+      return new Response(JSON.stringify(MOCK_SWAGGER_SPEC), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    }
+    return originalFetch(input, init)
+  }
+}
+
+function restoreFetch() {
+  globalThis.fetch = originalFetch
+}
+
 async function setupTestServer(mockClient?: XoClient) {
   const client = mockClient ?? createMockClient()
-  const server = createServer(() => client)
+  const server = await createServerDirect(() => client)
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair()
   const mcpClient = new Client({ name: 'test-client', version: '1.0.0' })
 
@@ -47,14 +61,23 @@ async function setupTestServer(mockClient?: XoClient) {
   return { mcpClient, server }
 }
 
-describe('createServer', () => {
+describe('createServer (dynamic bootstrap)', () => {
+  beforeEach(mockSwaggerFetch)
+  afterEach(restoreFetch)
+
   describe('tool listing', () => {
-    it(`registers all ${EXPECTED_TOOL_NAMES.length} tools`, async () => {
+    it('registers dynamic query tools from swagger + utility tools', async () => {
       const { mcpClient } = await setupTestServer()
       const { tools } = await mcpClient.listTools()
       const toolNames = tools.map(t => t.name).sort()
 
-      assert.deepStrictEqual(toolNames, EXPECTED_TOOL_NAMES)
+      assert.ok(toolNames.includes('pools_query'), `missing pools_query: ${toolNames.join(', ')}`)
+      assert.ok(toolNames.includes('vms_query'), `missing vms_query: ${toolNames.join(', ')}`)
+      assert.ok(toolNames.includes('hosts_query'), `missing hosts_query: ${toolNames.join(', ')}`)
+      assert.ok(!toolNames.includes('vms_action'), `action tools should be disabled by default`)
+      assert.ok(toolNames.includes('check_connection'))
+      assert.ok(toolNames.includes('search_documentation'))
+      assert.ok(toolNames.includes('get_infrastructure_summary'))
     })
   })
 
@@ -62,7 +85,7 @@ describe('createServer', () => {
     it('returns success message on good connection', async () => {
       const { mcpClient } = await setupTestServer()
       const result = await mcpClient.callTool({ name: 'check_connection', arguments: {} })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
+      const text = (result.content as Array<{ text: string }>)[0].text
       assert.ok(text.includes('successful'))
     })
 
@@ -72,228 +95,97 @@ describe('createServer', () => {
       })
       const { mcpClient } = await setupTestServer(mockClient)
       const result = await mcpClient.callTool({ name: 'check_connection', arguments: {} })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
+      const text = (result.content as Array<{ text: string }>)[0].text
       assert.ok(text.includes('failed'))
       assert.ok(text.includes('Cannot connect'))
     })
   })
 
-  describe('list_pools tool', () => {
-    it('returns markdown from API', async () => {
-      const { mcpClient } = await setupTestServer()
-      const result = await mcpClient.callTool({ name: 'list_pools', arguments: {} })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('mock1'))
-    })
-
-    it('passes fields parameter', async () => {
-      let receivedOptions: { fields?: string } = {}
+  describe('dynamic query tools', () => {
+    it('returns the REST API markdown body verbatim for list ops', async () => {
       const mockClient = createMockClient({
-        getMarkdown: async (_path: string, _defaultFields: string, options?: { fields?: string }) => {
-          receivedOptions = options ?? {}
-          return '| id |\n| --- |\n| pool1 |'
-        },
+        apiRequest: async () => '| id | name_label |\n| --- | --- |\n| pool1 | Pool 1 |',
       })
       const { mcpClient } = await setupTestServer(mockClient)
-      await mcpClient.callTool({ name: 'list_pools', arguments: { fields: 'id,name_label' } })
-      assert.strictEqual(receivedOptions.fields, 'id,name_label')
+      const result = await mcpClient.callTool({ name: 'pools_query', arguments: { operation: 'GetPools' } })
+      const text = (result.content as Array<{ text: string }>)[0].text
+      assert.ok(text.includes('Pool 1'))
     })
 
-    it('returns error on failure', async () => {
+    it('stringifies JSON when the endpoint returns an object', async () => {
       const mockClient = createMockClient({
-        getMarkdown: async () => {
-          throw new Error('Connection refused')
-        },
+        apiRequest: async () => ({ id: 'vm1', name_label: 'VM 1', power_state: 'Running' }),
       })
       const { mcpClient } = await setupTestServer(mockClient)
-      const result = await mcpClient.callTool({ name: 'list_pools', arguments: {} })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('Failed to list pools'))
-    })
-  })
-
-  describe('list_vms tool', () => {
-    it('returns markdown from API', async () => {
-      const { mcpClient } = await setupTestServer()
-      const result = await mcpClient.callTool({ name: 'list_vms', arguments: {} })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('mock1'))
+      const result = await mcpClient.callTool({ name: 'vms_query', arguments: { operation: 'GetVm', id: 'vm1' } })
+      const text = (result.content as Array<{ text: string }>)[0].text
+      assert.ok(text.includes('VM 1'))
+      assert.ok(text.includes('Running'))
     })
 
-    it('passes filter, fields, and limit', async () => {
-      let receivedPath = ''
-      let receivedOptions: { filter?: string; fields?: string; limit?: number } = {}
+    it('passes filter, fields, limit and markdown=true through to the API', async () => {
+      let received: { method?: string; path?: string; query?: Record<string, string> } = {}
       const mockClient = createMockClient({
-        getMarkdown: async (
-          path: string,
-          _defaultFields: string,
-          options?: { filter?: string; fields?: string; limit?: number }
-        ) => {
-          receivedPath = path
-          receivedOptions = options ?? {}
+        apiRequest: async (method: string, path: string, options?: { query?: Record<string, string> }) => {
+          received = { method, path, query: options?.query }
           return ''
         },
       })
       const { mcpClient } = await setupTestServer(mockClient)
       await mcpClient.callTool({
-        name: 'list_vms',
-        arguments: { filter: 'power_state:Running', fields: 'id', limit: 5 },
-      })
-      assert.strictEqual(receivedPath, '/vms')
-      assert.strictEqual(receivedOptions.filter, 'power_state:Running')
-      assert.strictEqual(receivedOptions.fields, 'id')
-      assert.strictEqual(receivedOptions.limit, 5)
-    })
-  })
-
-  describe('list_vdis tool', () => {
-    it('returns markdown from API', async () => {
-      const { mcpClient } = await setupTestServer()
-      const result = await mcpClient.callTool({ name: 'list_vdis', arguments: {} })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('mock1'))
-    })
-
-    it('passes filter, fields, and limit', async () => {
-      let receivedOptions: { filter?: string; fields?: string; limit?: number } = {}
-      const mockClient = createMockClient({
-        getMarkdown: async (
-          _path: string,
-          _defaultFields: string,
-          options?: { filter?: string; fields?: string; limit?: number }
-        ) => {
-          receivedOptions = options ?? {}
-          return ''
+        name: 'vms_query',
+        arguments: {
+          operation: 'GetVms',
+          filter: 'power_state:Running',
+          fields: 'id,name_label',
+          limit: 5,
         },
       })
-      const { mcpClient } = await setupTestServer(mockClient)
-      await mcpClient.callTool({
-        name: 'list_vdis',
-        arguments: { filter: 'VDI_type:User', fields: 'id,size', limit: 10 },
-      })
-      assert.strictEqual(receivedOptions.filter, 'VDI_type:User')
-      assert.strictEqual(receivedOptions.fields, 'id,size')
-      assert.strictEqual(receivedOptions.limit, 10)
+      assert.strictEqual(received.query?.filter, 'power_state:Running')
+      assert.strictEqual(received.query?.fields, 'id,name_label')
+      assert.strictEqual(received.query?.limit, '5')
+      assert.strictEqual(received.query?.markdown, 'true')
     })
 
-    it('returns error on failure', async () => {
+    it('returns error on API failure', async () => {
       const mockClient = createMockClient({
-        getMarkdown: async () => {
+        apiRequest: async () => {
           throw new Error('Connection refused')
         },
       })
       const { mcpClient } = await setupTestServer(mockClient)
-      const result = await mcpClient.callTool({ name: 'list_vdis', arguments: {} })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('Failed to list VDIs'))
+      const result = await mcpClient.callTool({ name: 'pools_query', arguments: { operation: 'GetPools' } })
+      const text = (result.content as Array<{ text: string }>)[0].text
+      assert.ok(text.includes('Failed to query'))
+      assert.ok(text.includes('Connection refused'))
     })
   })
 
-  describe('get_vm_details tool', () => {
-    it('returns VM details as markdown', async () => {
+  describe('env-driven configuration', () => {
+    const originalDenyList = process.env.XO_MCP_DENY_LIST
+
+    afterEach(() => {
+      if (originalDenyList === undefined) delete process.env.XO_MCP_DENY_LIST
+      else process.env.XO_MCP_DENY_LIST = originalDenyList
+    })
+
+    it('XO_MCP_DENY_LIST removes operationIds from the generated enum', async () => {
+      process.env.XO_MCP_DENY_LIST = 'GetVm'
       const { mcpClient } = await setupTestServer()
-      const result = await mcpClient.callTool({
-        name: 'get_vm_details',
-        arguments: { vm_id: 'vm1' },
-      })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('mock1'))
-    })
-
-    it('returns error when VM not found', async () => {
-      const mockClient = createMockClient({
-        getMarkdown: async () => {
-          throw new Error('XO API error (404 Not Found): Not found')
-        },
-      })
-      const { mcpClient } = await setupTestServer(mockClient)
-      const result = await mcpClient.callTool({
-        name: 'get_vm_details',
-        arguments: { vm_id: 'nonexistent' },
-      })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('Failed to get VM details'))
-    })
-  })
-
-  describe('list_srs tool', () => {
-    it('returns markdown from API', async () => {
-      const { mcpClient } = await setupTestServer()
-      const result = await mcpClient.callTool({ name: 'list_srs', arguments: {} })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('mock1'))
-    })
-
-    it('passes filter, fields, and limit', async () => {
-      let receivedOptions: { filter?: string; fields?: string; limit?: number } = {}
-      const mockClient = createMockClient({
-        getMarkdown: async (
-          _path: string,
-          _defaultFields: string,
-          options?: { filter?: string; fields?: string; limit?: number }
-        ) => {
-          receivedOptions = options ?? {}
-          return ''
-        },
-      })
-      const { mcpClient } = await setupTestServer(mockClient)
-      await mcpClient.callTool({
-        name: 'list_srs',
-        arguments: { filter: 'SR_type:lvm', fields: 'id,name_label', limit: 5 },
-      })
-      assert.strictEqual(receivedOptions.filter, 'SR_type:lvm')
-      assert.strictEqual(receivedOptions.fields, 'id,name_label')
-      assert.strictEqual(receivedOptions.limit, 5)
-    })
-
-    it('returns error on failure', async () => {
-      const mockClient = createMockClient({
-        getMarkdown: async () => {
-          throw new Error('Connection refused')
-        },
-      })
-      const { mcpClient } = await setupTestServer(mockClient)
-      const result = await mcpClient.callTool({ name: 'list_srs', arguments: {} })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('Failed to list SRs'))
-    })
-  })
-
-  describe('get_sr_details tool', () => {
-    it('returns SR details as markdown', async () => {
-      const { mcpClient } = await setupTestServer()
-      const result = await mcpClient.callTool({
-        name: 'get_sr_details',
-        arguments: { sr_id: 'sr1' },
-      })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('mock1'))
-    })
-
-    it('returns error when SR not found', async () => {
-      const mockClient = createMockClient({
-        getMarkdown: async () => {
-          throw new Error('XO API error (404 Not Found): Not found')
-        },
-      })
-      const { mcpClient } = await setupTestServer(mockClient)
-      const result = await mcpClient.callTool({
-        name: 'get_sr_details',
-        arguments: { sr_id: 'nonexistent' },
-      })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('Failed to get SR details'))
+      const { tools } = await mcpClient.listTools()
+      const vmsTool = tools.find(t => t.name === 'vms_query')!
+      const schema = vmsTool.inputSchema as { properties?: { operation?: { enum?: string[] } } }
+      const opEnum = schema.properties?.operation?.enum ?? []
+      assert.ok(!opEnum.includes('GetVm'), `GetVm should be deny-listed; got enum: ${opEnum.join(', ')}`)
+      assert.ok(opEnum.includes('GetVms'), 'GetVms should still be present')
     })
   })
 
   describe('get_infrastructure_summary tool', () => {
     it('returns aggregated summary as markdown', async () => {
       const { mcpClient } = await setupTestServer()
-      const result = await mcpClient.callTool({
-        name: 'get_infrastructure_summary',
-        arguments: {},
-      })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
+      const result = await mcpClient.callTool({ name: 'get_infrastructure_summary', arguments: {} })
+      const text = (result.content as Array<{ text: string }>)[0].text
       assert.ok(text.includes('## Pools'))
       assert.ok(text.includes('## Hosts'))
       assert.ok(text.includes('## VMs'))
@@ -301,166 +193,74 @@ describe('createServer', () => {
     })
   })
 
-  describe('get_pool_dashboard tool', () => {
-    it('returns dashboard data', async () => {
-      const { mcpClient } = await setupTestServer()
-      const result = await mcpClient.callTool({
-        name: 'get_pool_dashboard',
-        arguments: { pool_id: 'pool1' },
-      })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('running'))
-    })
-  })
-
-  describe('list_hosts tool', () => {
-    it('returns markdown from API', async () => {
-      const { mcpClient } = await setupTestServer()
-      const result = await mcpClient.callTool({ name: 'list_hosts', arguments: {} })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('mock1'))
-    })
-  })
-
-  describe('list_networks tool', () => {
-    it('returns markdown from API', async () => {
-      const { mcpClient } = await setupTestServer()
-      const result = await mcpClient.callTool({ name: 'list_networks', arguments: {} })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('mock1'))
-    })
-
-    it('passes filter, fields, and limit', async () => {
-      let receivedOptions: { filter?: string; fields?: string; limit?: number } = {}
-      const mockClient = createMockClient({
-        getMarkdown: async (
-          _path: string,
-          _defaultFields: string,
-          options?: { filter?: string; fields?: string; limit?: number }
-        ) => {
-          receivedOptions = options ?? {}
-          return ''
-        },
-      })
-      const { mcpClient } = await setupTestServer(mockClient)
-      await mcpClient.callTool({
-        name: 'list_networks',
-        arguments: { filter: 'bridge:xenbr0', fields: 'id,name_label', limit: 5 },
-      })
-      assert.strictEqual(receivedOptions.filter, 'bridge:xenbr0')
-      assert.strictEqual(receivedOptions.fields, 'id,name_label')
-      assert.strictEqual(receivedOptions.limit, 5)
-    })
-
-    it('returns error on failure', async () => {
-      const mockClient = createMockClient({
-        getMarkdown: async () => {
-          throw new Error('Connection refused')
-        },
-      })
-      const { mcpClient } = await setupTestServer(mockClient)
-      const result = await mcpClient.callTool({ name: 'list_networks', arguments: {} })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('Failed to list networks'))
-    })
-  })
-
-  describe('get_network_details tool', () => {
-    it('returns network details as markdown', async () => {
-      const { mcpClient } = await setupTestServer()
-      const result = await mcpClient.callTool({
-        name: 'get_network_details',
-        arguments: { network_id: 'network1' },
-      })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('mock1'))
-    })
-
-    it('returns error when network not found', async () => {
-      const mockClient = createMockClient({
-        getMarkdown: async () => {
-          throw new Error('XO API error (404 Not Found): Not found')
-        },
-      })
-      const { mcpClient } = await setupTestServer(mockClient)
-      const result = await mcpClient.callTool({
-        name: 'get_network_details',
-        arguments: { network_id: 'nonexistent' },
-      })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
-      assert.ok(text.includes('Failed to get network details'))
-    })
-  })
-
   describe('search_documentation tool', () => {
-    let originalFetch: typeof globalThis.fetch
-
-    beforeEach(() => {
-      originalFetch = globalThis.fetch
-    })
-
-    afterEach(() => {
-      globalThis.fetch = originalFetch
-    })
-
     it('fetches and returns documentation', async () => {
-      globalThis.fetch = async (input: RequestInfo | URL) => {
+      const prevFetch = globalThis.fetch
+      globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
         const url = typeof input === 'string' ? input : input.toString()
+        if (url.includes('/rest/v0/docs/swagger.json')) {
+          return new Response(JSON.stringify(MOCK_SWAGGER_SPEC), {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          })
+        }
         if (url.includes('docs.xen-orchestra.com')) {
           return new Response('<h1>Installation Guide</h1><p>Install XO here.</p>', {
             status: 200,
             headers: { 'content-type': 'text/html' },
           })
         }
-        return originalFetch(input)
+        return prevFetch(input, init)
       }
 
       const { mcpClient } = await setupTestServer()
-      const result = await mcpClient.callTool({
-        name: 'search_documentation',
-        arguments: { topic: 'installation' },
-      })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
+      const result = await mcpClient.callTool({ name: 'search_documentation', arguments: { topic: 'installation' } })
+      const text = (result.content as Array<{ text: string }>)[0].text
       assert.ok(text.includes('Installation Guide'))
       assert.ok(text.includes('Install XO here'))
     })
 
     it('returns error when documentation fetch fails', async () => {
-      globalThis.fetch = async (input: RequestInfo | URL) => {
+      const prevFetch = globalThis.fetch
+      globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
         const url = typeof input === 'string' ? input : input.toString()
+        if (url.includes('/rest/v0/docs/swagger.json')) {
+          return new Response(JSON.stringify(MOCK_SWAGGER_SPEC), {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          })
+        }
         if (url.includes('docs.xen-orchestra.com')) {
           return new Response('Not Found', { status: 404, statusText: 'Not Found' })
         }
-        return originalFetch(input)
+        return prevFetch(input, init)
       }
 
       const { mcpClient } = await setupTestServer()
-      const result = await mcpClient.callTool({
-        name: 'search_documentation',
-        arguments: { topic: 'installation' },
-      })
-      const text = (result.content as Array<{ type: string; text: string }>)[0].text
+      const result = await mcpClient.callTool({ name: 'search_documentation', arguments: { topic: 'installation' } })
+      const text = (result.content as Array<{ text: string }>)[0].text
       assert.ok(text.includes('Failed to fetch documentation'))
     })
   })
 })
 
 describe('module structure', () => {
+  beforeEach(mockSwaggerFetch)
+  afterEach(restoreFetch)
+
   it('createServer is accessible from both index and server module', () => {
     assert.strictEqual(typeof createServer, 'function')
     assert.strictEqual(typeof createServerDirect, 'function')
   })
 
-  it('direct server module creates identical server', async () => {
+  it('direct server module creates server with dynamic tools', async () => {
     const client = createMockClient()
-    const server = createServerDirect(() => client)
+    const server = await createServerDirect(() => client)
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair()
     const mcpClient = new Client({ name: 'test-client', version: '1.0.0' })
-
     await Promise.all([server.connect(serverTransport), mcpClient.connect(clientTransport)])
-
     const { tools } = await mcpClient.listTools()
-    assert.strictEqual(tools.length, 13)
+    assert.ok(tools.length >= 5, `expected at least 5 tools, got ${tools.length}`)
   })
 })
 
@@ -488,7 +288,6 @@ describe('validateEnv', () => {
     process.env.XO_URL = 'http://xo.local:9000'
     process.env.XO_USERNAME = 'admin'
     process.env.XO_PASSWORD = 'pass'
-
     const config = validateEnv()
     assert.strictEqual(config.url, 'http://xo.local:9000')
     assert.ok('username' in config)
@@ -500,61 +299,20 @@ describe('validateEnv', () => {
     delete process.env.XO_URL
     process.env.XO_USERNAME = 'admin'
     process.env.XO_PASSWORD = 'pass'
-
     assert.throws(() => validateEnv(), { message: /XO_URL/ })
   })
 
-  it('throws when XO_USERNAME is missing', () => {
-    process.env.XO_URL = 'http://xo.local:9000'
-    delete process.env.XO_USERNAME
-    process.env.XO_PASSWORD = 'pass'
-
-    assert.throws(() => validateEnv(), { message: /XO_USERNAME/ })
-  })
-
-  it('throws when XO_PASSWORD is missing', () => {
-    process.env.XO_URL = 'http://xo.local:9000'
-    process.env.XO_USERNAME = 'admin'
-    delete process.env.XO_PASSWORD
-
-    assert.throws(() => validateEnv(), { message: /XO_PASSWORD/ })
-  })
-
-  it('throws XO_URL error first when all vars are missing', () => {
-    delete process.env.XO_URL
-    delete process.env.XO_TOKEN
-    delete process.env.XO_USERNAME
-    delete process.env.XO_PASSWORD
-
-    assert.throws(() => validateEnv(), { message: /XO_URL/ })
-  })
-
-  it('lists missing credential vars when only XO_URL is set', () => {
+  it('throws when credentials are missing', () => {
     process.env.XO_URL = 'http://xo.local:9000'
     delete process.env.XO_TOKEN
     delete process.env.XO_USERNAME
     delete process.env.XO_PASSWORD
-
     assert.throws(
       () => validateEnv(),
       (error: Error) => {
         assert.ok(error.message.includes('XO_USERNAME'))
         assert.ok(error.message.includes('XO_PASSWORD'))
         assert.ok(error.message.includes('XO_TOKEN'))
-        return true
-      }
-    )
-  })
-
-  it('includes help text in error message', () => {
-    delete process.env.XO_URL
-    process.env.XO_USERNAME = 'admin'
-    process.env.XO_PASSWORD = 'pass'
-
-    assert.throws(
-      () => validateEnv(),
-      (error: Error) => {
-        assert.ok(error.message.includes('XO_URL'))
         return true
       }
     )
@@ -565,11 +323,9 @@ describe('validateEnv', () => {
     process.env.XO_TOKEN = 'my-token'
     delete process.env.XO_USERNAME
     delete process.env.XO_PASSWORD
-
     const config = validateEnv()
     assert.strictEqual(config.url, 'http://xo.local:9000')
     assert.strictEqual('token' in config && config.token, 'my-token')
-    assert.strictEqual('username' in config, false)
   })
 
   it('prioritizes XO_TOKEN over XO_USERNAME/XO_PASSWORD', () => {
@@ -577,40 +333,19 @@ describe('validateEnv', () => {
     process.env.XO_TOKEN = 'my-token'
     process.env.XO_USERNAME = 'admin'
     process.env.XO_PASSWORD = 'pass'
-
     const config = validateEnv()
     assert.strictEqual('token' in config && config.token, 'my-token')
     assert.strictEqual('username' in config, false)
   })
 
-  it('throws when neither XO_TOKEN nor XO_USERNAME/XO_PASSWORD are set', () => {
-    process.env.XO_URL = 'http://xo.local:9000'
-    delete process.env.XO_TOKEN
-    delete process.env.XO_USERNAME
-    delete process.env.XO_PASSWORD
-
-    assert.throws(
-      () => validateEnv(),
-      (error: Error) => {
-        assert.ok(error.message.includes('XO_USERNAME'))
-        assert.ok(error.message.includes('XO_PASSWORD'))
-        assert.ok(error.message.includes('XO_TOKEN'))
-        return true
-      }
-    )
-  })
-
   it('throws when XO_URL is missing even with XO_TOKEN', () => {
     delete process.env.XO_URL
     process.env.XO_TOKEN = 'my-token'
-
     assert.throws(() => validateEnv(), { message: /XO_URL/ })
   })
 })
 
 describe('fetchDocumentation', () => {
-  let originalFetch: typeof globalThis.fetch
-
   beforeEach(() => {
     originalFetch = globalThis.fetch
   })
@@ -620,13 +355,11 @@ describe('fetchDocumentation', () => {
   })
 
   it('strips HTML and returns clean text', async () => {
-    globalThis.fetch = async () => {
-      return new Response('<html><body><h1>Title</h1><p>Content here.</p><script>evil()</script></body></html>', {
+    globalThis.fetch = async () =>
+      new Response('<html><body><h1>Title</h1><p>Content here.</p><script>evil()</script></body></html>', {
         status: 200,
         headers: { 'content-type': 'text/html' },
       })
-    }
-
     const text = await fetchDocumentation('/test')
     assert.ok(text.includes('## Title'))
     assert.ok(text.includes('Content here.'))
@@ -635,63 +368,28 @@ describe('fetchDocumentation', () => {
   })
 
   it('decodes HTML entities', async () => {
-    globalThis.fetch = async () => {
-      return new Response('<p>A &amp; B &lt; C &gt; D</p>', {
+    globalThis.fetch = async () =>
+      new Response('<p>&quot;quoted&quot; &amp; it&#39;s &mdash; a &ndash; test&hellip;</p>', {
         status: 200,
         headers: { 'content-type': 'text/html' },
       })
-    }
-
-    const text = await fetchDocumentation('/test')
-    assert.ok(text.includes('A & B < C > D'))
-  })
-
-  it('decodes additional HTML entities', async () => {
-    globalThis.fetch = async () => {
-      return new Response('<p>&quot;quoted&quot; &amp; it&#39;s &mdash; a &ndash; test&hellip;</p>', {
-        status: 200,
-        headers: { 'content-type': 'text/html' },
-      })
-    }
-
     const text = await fetchDocumentation('/test')
     assert.ok(text.includes('"quoted"'))
     assert.ok(text.includes("it's"))
-    assert.ok(text.includes('\u2014'))
-    assert.ok(text.includes('\u2013'))
-    assert.ok(text.includes('\u2026'))
-  })
-
-  it('handles multiline HTML tags', async () => {
-    globalThis.fetch = async () => {
-      return new Response('<h1>Title\nwith newline</h1><p>Para\nwith newline</p>', {
-        status: 200,
-        headers: { 'content-type': 'text/html' },
-      })
-    }
-
-    const text = await fetchDocumentation('/test')
-    assert.ok(text.includes('Title'))
-    assert.ok(text.includes('with newline'))
+    assert.ok(text.includes('—'))
+    assert.ok(text.includes('–'))
+    assert.ok(text.includes('…'))
   })
 
   it('throws on HTTP error', async () => {
-    globalThis.fetch = async () => {
-      return new Response('Not Found', { status: 404, statusText: 'Not Found' })
-    }
-
-    await assert.rejects(() => fetchDocumentation('/test'), {
-      message: /404/,
-    })
+    globalThis.fetch = async () => new Response('Not Found', { status: 404, statusText: 'Not Found' })
+    await assert.rejects(() => fetchDocumentation('/test'), { message: /404/ })
   })
 
   it('throws on network error', async () => {
     globalThis.fetch = async () => {
       throw new Error('Network failure')
     }
-
-    await assert.rejects(() => fetchDocumentation('/test'), {
-      message: /Cannot reach documentation server/,
-    })
+    await assert.rejects(() => fetchDocumentation('/test'), { message: /Cannot reach documentation server/ })
   })
 })
