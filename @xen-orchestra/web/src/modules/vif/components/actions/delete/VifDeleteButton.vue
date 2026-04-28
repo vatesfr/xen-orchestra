@@ -18,11 +18,7 @@ const { vif } = defineProps<{
 
 const { t } = useI18n()
 
-const {
-  openModal: openVifDeleteModal,
-  canRun: canDeleteVif,
-  isRunning: isDeletingVif,
-} = useVifDeleteModal(() => (vif ? [vif] : []))
+const { openModal: openVifDeleteModal, canRun: canDeleteVif, isRunning: isDeletingVif } = useVifDeleteModal(() => [vif])
 
 const hint = computed(() => (!canDeleteVif.value ? t('vif-connected') : undefined))
 </script>

@@ -28,4 +28,9 @@ export const RULE_STATUS = {
   DROP: 'drop',
 } as const
 
+export const CONNECTION_ACTION = {
+  CONNECT: 'connect',
+  DISCONNECT: 'disconnect',
+} as const
+
 export const ONE_GB = 1024 ** 3

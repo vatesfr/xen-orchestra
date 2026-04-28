@@ -14,15 +14,16 @@
 </template>
 
 <script lang="ts" setup>
-import { useVifDisconnectModal } from '@/modules/vif/composables/use-vif-disconnect-modal.composable.ts'
+import { useVifConnectionToggleModal } from '@/modules/vif/composables/use-vif-connection-toggle-modal.composable.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.js'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.js'
+import { CONNECTION_ACTION } from '@/shared/constants.ts'
 import UiButton from '@xen-orchestra/web-core/components/ui/button/UiButton.vue'
 import { vTooltip } from '@xen-orchestra/web-core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
 const { vif, vm } = defineProps<{
-  vif?: FrontXoVif
+  vif: FrontXoVif
   vm: FrontXoVm
 }>()
 
@@ -33,8 +34,9 @@ const {
   canRun: canDisconnectVif,
   isRunning: isDisconnectingVif,
   errorMessage: disconnectErrorMessage,
-} = useVifDisconnectModal(
-  () => (vif ? [vif] : []),
+} = useVifConnectionToggleModal(
+  CONNECTION_ACTION.DISCONNECT,
+  () => [vif],
   () => vm
 )
 </script>

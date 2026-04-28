@@ -30,12 +30,11 @@
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
-import { useVifConnectModal } from '@/modules/vif/composables/use-vif-connect-modal.composable.ts'
+import { useVifConnectionToggleModal } from '@/modules/vif/composables/use-vif-connection-toggle-modal.composable.ts'
 import { useVifDeleteModal } from '@/modules/vif/composables/use-vif-delete-modal.composable.ts'
-import { useVifDisconnectModal } from '@/modules/vif/composables/use-vif-disconnect-modal.composable.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { CONNECTION_STATUS } from '@/shared/constants.ts'
+import { CONNECTION_ACTION, CONNECTION_STATUS } from '@/shared/constants.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -115,21 +114,12 @@ const { HeadCells, BodyCells } = useVifColumns({
     } = useVifDeleteModal(() => [vif])
 
     const {
-      openModal: openVifConnectModal,
-      canRun: canConnectVif,
-      isRunning: isConnectingVif,
-      errorMessage: connectErrorMessage,
-    } = useVifConnectModal(
-      () => [vif],
-      () => vm
-    )
-
-    const {
-      openModal: openVifDisconnectModal,
-      canRun: canDisconnectVif,
-      isRunning: isDisconnectingVif,
-      errorMessage: disconnectErrorMessage,
-    } = useVifDisconnectModal(
+      openModal: openVifConnectionToggleModal,
+      canRun: canToggleVifConnection,
+      isRunning: isTogglingVifConnection,
+      errorMessage: toggleConnectionErrorMessage,
+    } = useVifConnectionToggleModal(
+      () => (vif.attached ? CONNECTION_ACTION.DISCONNECT : CONNECTION_ACTION.CONNECT),
       () => [vif],
       () => vm
     )
@@ -153,23 +143,14 @@ const { HeadCells, BodyCells } = useVifColumns({
         r({
           onClick: () => (selectedVifId.value = vif.id),
           actions: [
-            vif.attached
-              ? {
-                  label: t('action:disconnect'),
-                  hint: !canDisconnectVif.value ? disconnectErrorMessage.value : undefined,
-                  icon: 'status:disabled',
-                  onClick: () => openVifDisconnectModal(),
-                  disabled: !canDisconnectVif.value,
-                  busy: isDisconnectingVif.value,
-                }
-              : {
-                  label: t('action:connect'),
-                  hint: !canConnectVif.value ? connectErrorMessage.value : undefined,
-                  icon: 'status:success-circle',
-                  onClick: () => openVifConnectModal(),
-                  disabled: !canConnectVif.value,
-                  busy: isConnectingVif.value,
-                },
+            {
+              label: vif.attached ? t('action:disconnect') : t('action:connect'),
+              hint: !canToggleVifConnection.value ? toggleConnectionErrorMessage.value : undefined,
+              icon: vif.attached ? 'status:disabled' : 'status:success-circle',
+              onClick: () => openVifConnectionToggleModal(),
+              disabled: !canToggleVifConnection.value,
+              busy: isTogglingVifConnection.value,
+            },
             {
               label: t('action:delete'),
               hint: !canDeleteVif.value ? t('vif-connected') : undefined,

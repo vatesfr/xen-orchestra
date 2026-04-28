@@ -9,7 +9,7 @@ export function useVifDeleteModal(rawVifs: MaybeRefOrGetter<FrontXoVif[]>) {
 
   const { run, canRun, isRunning } = useXoVifDeleteJob(vifs)
 
-  const openModal = useModal({
+  const openModal = useModal(() => ({
     component: import('@/modules/vif/components/modal/VifDeleteModal.vue'),
     props: { count: vifs.value.length },
     onConfirm: async () => {
@@ -19,7 +19,7 @@ export function useVifDeleteModal(rawVifs: MaybeRefOrGetter<FrontXoVif[]>) {
         console.error('Error when deleting VIF:', error)
       }
     },
-  })
+  }))
 
   return { openModal, canRun, isRunning }
 }
