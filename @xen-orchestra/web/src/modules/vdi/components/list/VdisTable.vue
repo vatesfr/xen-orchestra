@@ -158,7 +158,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
                 },
             {
               label: t('action:delete-vbd'),
-              hint: !canDeleteVbd.value ? t('running-vm') : undefined,
+              hint: !canDeleteVbd.value ? t('vm-running') : undefined,
               icon: 'action:disconnect',
               onClick: () => openVbdDeleteModal(),
               disabled: !canDeleteVbd.value,
@@ -166,7 +166,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
             },
             {
               label: t('action:delete'),
-              hint: !canDeleteVdi.value ? t('running-vm') : undefined,
+              hint: !canDeleteVdi.value ? t('vm-running') : undefined,
               icon: 'action:delete',
               onClick: () => openVdiDeleteModal(),
               disabled: !canDeleteVdi.value,

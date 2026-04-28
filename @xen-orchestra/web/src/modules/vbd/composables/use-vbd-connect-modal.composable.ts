@@ -3,7 +3,7 @@ import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-colle
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useModal } from '@core/packages/modal/use-modal.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import type { MaybeRefOrGetter } from 'vue'
+import { type MaybeRefOrGetter } from 'vue'
 
 export function useVbdConnectModal(rawVbds: MaybeRefOrGetter<FrontXoVbd[]>, rawVm: MaybeRefOrGetter<FrontXoVm>) {
   const vbds = toComputed(rawVbds)
@@ -11,7 +11,7 @@ export function useVbdConnectModal(rawVbds: MaybeRefOrGetter<FrontXoVbd[]>, rawV
 
   const { run, canRun, isRunning, errorMessage } = useXoVbdConnectJob(vbds, vm)
 
-  const openModal = useModal({
+  const openModal = useModal(() => ({
     component: import('@/modules/vbd/components/modal/VbdConnectModal.vue'),
     props: { count: vbds.value.length },
     onConfirm: async () => {
@@ -21,7 +21,7 @@ export function useVbdConnectModal(rawVbds: MaybeRefOrGetter<FrontXoVbd[]>, rawV
         console.error('Error when connecting VBD:', error)
       }
     },
-  })
+  }))
 
   return { openModal, canRun, isRunning, errorMessage }
 }

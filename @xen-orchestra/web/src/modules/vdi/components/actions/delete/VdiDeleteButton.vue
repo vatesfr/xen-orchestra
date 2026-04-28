@@ -26,7 +26,7 @@ const { t } = useI18n()
 
 const { openModal: openVdiDeleteModal, canRun: canDeleteVdi, isRunning: isDeletingVdi } = useVdiDeleteModal(() => [vdi])
 
-const hint = computed(() => (!canDeleteVdi.value ? t('running-vm') : undefined))
+const hint = computed(() => (!canDeleteVdi.value ? t('vm-running') : undefined))
 </script>
 
 <style lang="postcss" scoped>

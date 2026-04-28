@@ -11,7 +11,7 @@ export function useVbdDisconnectModal(rawVbds: MaybeRefOrGetter<FrontXoVbd[]>, r
 
   const { run, canRun, isRunning, errorMessage } = useXoVbdDisconnectJob(vbds, vm)
 
-  const openModal = useModal({
+  const openModal = useModal(() => ({
     component: import('@/modules/vbd/components/modal/VbdDisconnectModal.vue'),
     props: { count: vbds.value.length },
     onConfirm: async () => {
@@ -21,7 +21,7 @@ export function useVbdDisconnectModal(rawVbds: MaybeRefOrGetter<FrontXoVbd[]>, r
         console.error('Error when disconnecting VBD:', error)
       }
     },
-  })
+  }))
 
   return { openModal, canRun, isRunning, errorMessage }
 }
