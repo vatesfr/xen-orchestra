@@ -1,6 +1,6 @@
-<!-- v5 -->
+<!-- v8 -->
 <template>
-  <label :class="classNames" :style="checkboxStyle" class="ui-checkbox" v-bind="wrapperAttrs">
+  <label :class="classNames" class="ui-checkbox" v-bind="wrapperAttrs">
     <input
       v-model="checkboxModel"
       :class="{ indeterminate: isIndeterminate }"
@@ -16,8 +16,11 @@
       <slot />
     </span>
   </label>
-  <UiInfo v-if="slots.info" :accent="accent === 'brand' ? 'info' : accent">
+  <UiInfo v-if="slots.info" accent="info">
     <slot name="info" />
+  </UiInfo>
+  <UiInfo v-if="slots.infoMessage && accent !== 'brand'" :accent>
+    <slot name="infoMessage" />
   </UiInfo>
 </template>
 
@@ -26,7 +29,7 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import { useDisabled } from '@core/composables/disabled.composable'
 import { toVariants } from '@core/utils/to-variants.util'
-import { computed, type CSSProperties, type LabelHTMLAttributes, useAttrs } from 'vue'
+import { computed, type LabelHTMLAttributes, useAttrs } from 'vue'
 
 type CheckboxAccent = 'brand' | 'warning' | 'danger'
 
@@ -43,6 +46,7 @@ const checkboxModel = defineModel<boolean | undefined | string[]>({ default: und
 const slots = defineSlots<{
   default?(): any
   info?(): any
+  infoMessage?(): any
 }>()
 
 const isDisabled = useDisabled(() => disabled)
@@ -58,25 +62,11 @@ const isIndeterminate = computed(() => checkboxModel.value === undefined)
 
 const icon = computed(() => (isIndeterminate.value ? 'fa:minus' : 'fa:check'))
 
-const checkboxStyle = computed<CSSProperties>(() => {
-  return {
-    '--checkbox-item-base': `var(--color-${accent}-item-base)`,
-    '--checkbox-item-hover': `var(--color-${accent}-item-hover)`,
-    '--checkbox-item-active': `var(--color-${accent}-item-active)`,
-    '--checkbox-icon-color': `var(--color-neutral-background-primary)`,
-  }
-})
-
 const attrs = useAttrs()
 </script>
 
 <style lang="postcss" scoped>
 .ui-checkbox {
-  --checkbox-item-base: var(--color-brand-item-base);
-  --checkbox-item-hover: var(--color-brand-item-hover);
-  --checkbox-item-active: var(--color-brand-item-active);
-  --checkbox-icon-color: var(--color-neutral-background-primary);
-
   display: inline-flex;
   align-items: center;
   gap: 0.8rem;
@@ -96,7 +86,7 @@ const attrs = useAttrs()
 
     .icon {
       font-size: 0.75rem;
-      color: var(--checkbox-icon-color);
+      color: var(--color-neutral-background-primary);
       transition: opacity 0.125s ease-in-out;
     }
   }
@@ -109,7 +99,7 @@ const attrs = useAttrs()
 
     &.indeterminate + .fake-checkbox > .icon {
       opacity: 1;
-      color: var(--checkbox-icon-color);
+      color: var(--color-neutral-background-primary);
     }
 
     & + .fake-checkbox > .icon {
@@ -134,52 +124,160 @@ const attrs = useAttrs()
     }
   }
 
-  .input:not(:disabled) {
-    & + .fake-checkbox {
-      border-color: var(--checkbox-item-base);
-    }
+  &.accent--brand {
+    .input:not(:disabled) {
+      & + .fake-checkbox {
+        border-color: var(--color-brand-txt-base);
+      }
 
-    &.indeterminate + .fake-checkbox {
-      background-color: var(--checkbox-item-base);
+      &.indeterminate + .fake-checkbox {
+        background-color: var(--color-brand-txt-base);
 
-      &:hover {
+        &:hover {
+          border-color: transparent;
+          background-color: var(--color-brand-txt-hover);
+        }
+
+        &:active {
+          background-color: var(--color-brand-txt-active);
+        }
+      }
+
+      &.indeterminate:hover + .fake-checkbox {
         border-color: transparent;
-        background-color: var(--checkbox-item-hover);
+        background-color: var(--color-brand-txt-hover);
       }
 
-      &:active {
-        background-color: var(--checkbox-item-active);
+      &:hover + .fake-checkbox {
+        border-color: var(--color-brand-txt-hover);
+      }
+
+      &:focus-visible + .fake-checkbox::before {
+        border: 0.2rem solid var(--color-brand-txt-base);
+      }
+
+      &:active + .fake-checkbox {
+        border-color: var(--color-brand-txt-active);
+      }
+
+      &:checked + .fake-checkbox {
+        border-color: transparent;
+        background-color: var(--color-brand-txt-base);
+      }
+
+      &:checked:hover + .fake-checkbox {
+        background-color: var(--color-brand-txt-hover);
+      }
+
+      &:checked:active + .fake-checkbox {
+        background-color: var(--color-brand-txt-active);
       }
     }
+  }
 
-    &.indeterminate:hover + .fake-checkbox {
-      border-color: transparent;
-      background-color: var(--checkbox-item-hover);
+  &.accent--warning {
+    .input:not(:disabled) {
+      & + .fake-checkbox {
+        border-color: var(--color-warning-txt-base);
+      }
+
+      &.indeterminate + .fake-checkbox {
+        background-color: var(--color-warning-txt-base);
+
+        &:hover {
+          border-color: transparent;
+          background-color: var(--color-warning-txt-hover);
+        }
+
+        &:active {
+          background-color: var(--color-warning-txt-active);
+        }
+      }
+
+      &.indeterminate:hover + .fake-checkbox {
+        border-color: transparent;
+        background-color: var(--color-warning-txt-hover);
+      }
+
+      &:hover + .fake-checkbox {
+        border-color: var(--color-warning-txt-hover);
+      }
+
+      &:focus-visible + .fake-checkbox::before {
+        border: 0.2rem solid var(--color-brand-txt-base);
+      }
+
+      &:active + .fake-checkbox {
+        border-color: var(--color-warning-txt-active);
+      }
+
+      &:checked + .fake-checkbox {
+        border-color: transparent;
+        background-color: var(--color-warning-txt-base);
+      }
+
+      &:checked:hover + .fake-checkbox {
+        background-color: var(--color-warning-txt-hover);
+      }
+
+      &:checked:active + .fake-checkbox {
+        background-color: var(--color-warning-txt-active);
+      }
     }
+  }
 
-    &:hover + .fake-checkbox {
-      border-color: var(--checkbox-item-hover);
-    }
+  &.accent--danger {
+    .input:not(:disabled) {
+      & + .fake-checkbox {
+        border-color: var(--color-danger-txt-base);
 
-    &:focus-visible + .fake-checkbox::before {
-      border: 0.2rem solid var(--color-brand-txt-base);
-    }
+        > .icon {
+          color: var(--color-danger-txt-item);
+        }
+      }
 
-    &:active + .fake-checkbox {
-      border-color: var(--checkbox-item-active);
-    }
+      &.indeterminate + .fake-checkbox {
+        background-color: var(--color-danger-txt-base);
 
-    &:checked + .fake-checkbox {
-      border-color: transparent;
-      background-color: var(--checkbox-item-base);
-    }
+        &:hover {
+          border-color: transparent;
+          background-color: var(--color-danger-txt-hover);
+        }
 
-    &:checked:hover + .fake-checkbox {
-      background-color: var(--checkbox-item-hover);
-    }
+        &:active {
+          background-color: var(--color-danger-txt-active);
+        }
+      }
 
-    &:checked:active + .fake-checkbox {
-      background-color: var(--checkbox-item-active);
+      &.indeterminate:hover + .fake-checkbox {
+        border-color: transparent;
+        background-color: var(--color-danger-txt-hover);
+      }
+
+      &:hover + .fake-checkbox {
+        border-color: var(--color-danger-txt-hover);
+      }
+
+      &:focus-visible + .fake-checkbox::before {
+        border: 0.2rem solid var(--color-brand-txt-base);
+      }
+
+      &:active + .fake-checkbox {
+        border-color: var(--color-danger-txt-active);
+      }
+
+      &:checked + .fake-checkbox {
+        border-color: transparent;
+        background-color: var(--color-danger-txt-base);
+      }
+
+      &:checked:hover + .fake-checkbox {
+        background-color: var(--color-danger-txt-hover);
+      }
+
+      &:checked:active + .fake-checkbox {
+        background-color: var(--color-danger-txt-active);
+      }
     }
   }
 
