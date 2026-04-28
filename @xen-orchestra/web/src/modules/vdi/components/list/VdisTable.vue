@@ -25,14 +25,14 @@
 </template>
 
 <script setup lang="ts">
-import { useVbdConnectModal } from '@/modules/vbd/composables/use-vbd-connect-modal.composable.ts'
+import { useVbdConnectionToggleModal } from '@/modules/vbd/composables/use-vbd-connection-toggle-modal.composable.ts'
 import { useVbdDeleteModal } from '@/modules/vbd/composables/use-vbd-delete-modal.composable.ts'
-import { useVbdDisconnectModal } from '@/modules/vbd/composables/use-vbd-disconnect-modal.composable.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { useVdiDeleteModal } from '@/modules/vdi/composables/use-vdi-delete-modal.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { getVdiFormat } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { CONNECTION_ACTION } from '@/shared/constants.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -98,21 +98,12 @@ const { HeadCells, BodyCells } = useVdiColumns({
     const format = computed(() => getVdiFormat(vdi.image_format))
 
     const {
-      openModal: openVbdDisconnectModal,
-      canRun: canDisconnectVbd,
-      isRunning: isDisconnectingVbd,
-      errorMessage: disconnectErrorMessage,
-    } = useVbdDisconnectModal(
-      () => (vbd.value ? [vbd.value] : []),
-      () => vm
-    )
-
-    const {
-      openModal: openVbdConnectModal,
-      canRun: canConnectVbd,
-      isRunning: isConnectingVbd,
-      errorMessage: connectErrorMessage,
-    } = useVbdConnectModal(
+      openModal: openVbdConnectionToggleModal,
+      canRun: canToggleVbdConnection,
+      isRunning: isTogglingVbdConnection,
+      errorMessage: toggleVbdConnectionErrorMessage,
+    } = useVbdConnectionToggleModal(
+      () => (vbd.value?.attached ? CONNECTION_ACTION.DISCONNECT : CONNECTION_ACTION.CONNECT),
       () => (vbd.value ? [vbd.value] : []),
       () => vm
     )
@@ -139,23 +130,14 @@ const { HeadCells, BodyCells } = useVdiColumns({
         r({
           onClick: () => (selectedVdiId.value = vdi.id),
           actions: [
-            vbd.value?.attached
-              ? {
-                  label: t('action:disconnect'),
-                  hint: !canDisconnectVbd.value ? disconnectErrorMessage.value : undefined,
-                  icon: 'status:disabled',
-                  onClick: () => openVbdDisconnectModal(),
-                  disabled: !canDisconnectVbd.value,
-                  busy: isDisconnectingVbd.value,
-                }
-              : {
-                  label: t('action:connect'),
-                  hint: !canConnectVbd.value ? connectErrorMessage.value : undefined,
-                  icon: 'status:success-circle',
-                  onClick: () => openVbdConnectModal(),
-                  disabled: !canConnectVbd.value,
-                  busy: isConnectingVbd.value,
-                },
+            {
+              label: vbd.value?.attached ? t('action:disconnect') : t('action:connect'),
+              hint: !canToggleVbdConnection.value ? toggleVbdConnectionErrorMessage.value : undefined,
+              icon: vbd.value?.attached ? 'status:disabled' : 'status:success-circle',
+              onClick: () => openVbdConnectionToggleModal(),
+              disabled: !canToggleVbdConnection.value,
+              busy: isTogglingVbdConnection.value,
+            },
             {
               label: t('action:delete-vbd'),
               hint: !canDeleteVbd.value ? t('vm-running') : undefined,

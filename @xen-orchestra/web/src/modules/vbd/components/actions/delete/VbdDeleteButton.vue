@@ -18,11 +18,7 @@ const { vbd } = defineProps<{
 
 const { t } = useI18n()
 
-const {
-  openModal: openVbdDeleteModal,
-  canRun: canDeleteVbd,
-  isRunning: isDeletingVbd,
-} = useVbdDeleteModal(() => (vbd ? [vbd] : []))
+const { openModal: openVbdDeleteModal, canRun: canDeleteVbd, isRunning: isDeletingVbd } = useVbdDeleteModal(() => [vbd])
 
-const hint = computed(() => (!canDeleteVbd.value ? t('running-vm') : undefined))
+const hint = computed(() => (!canDeleteVbd.value ? t('vm-running') : undefined))
 </script>

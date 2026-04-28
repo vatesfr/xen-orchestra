@@ -14,15 +14,16 @@
 </template>
 
 <script lang="ts" setup>
-import { useVbdDisconnectModal } from '@/modules/vbd/composables/use-vbd-disconnect-modal.composable.ts'
+import { useVbdConnectionToggleModal } from '@/modules/vbd/composables/use-vbd-connection-toggle-modal.composable.ts'
 import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.js'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.js'
+import { CONNECTION_ACTION } from '@/shared/constants.ts'
 import UiButton from '@xen-orchestra/web-core/components/ui/button/UiButton.vue'
 import { vTooltip } from '@xen-orchestra/web-core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
 const { vbd, vm } = defineProps<{
-  vbd?: FrontXoVbd
+  vbd: FrontXoVbd
   vm: FrontXoVm
 }>()
 
@@ -33,8 +34,9 @@ const {
   canRun: canDisconnectVbd,
   isRunning: isDisconnectingVbd,
   errorMessage: disconnectErrorMessage,
-} = useVbdDisconnectModal(
-  () => (vbd ? [vbd] : []),
+} = useVbdConnectionToggleModal(
+  CONNECTION_ACTION.DISCONNECT,
+  () => [vbd],
   () => vm
 )
 </script>

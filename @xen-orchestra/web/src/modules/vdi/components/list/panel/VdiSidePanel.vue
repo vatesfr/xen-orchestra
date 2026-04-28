@@ -2,8 +2,10 @@
   <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
     <template #header>
       <div class="action-buttons">
-        <VbdConnectButton v-if="!vbd?.attached" :vbd :vm />
-        <VbdDisconnectButton v-else :vbd :vm />
+        <template v-if="vbd">
+          <VbdConnectButton v-if="!vbd.attached" :vbd :vm />
+          <VbdDisconnectButton v-else :vbd :vm />
+        </template>
         <MenuList placement="bottom-end">
           <template #trigger="{ open }">
             <UiButtonIcon icon="action:more-actions" accent="brand" size="medium" @click="open($event)" />
