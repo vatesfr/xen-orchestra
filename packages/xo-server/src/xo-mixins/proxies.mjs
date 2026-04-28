@@ -15,7 +15,7 @@ import { defer } from 'golike-defer'
 import { format, parse } from 'json-rpc-peer'
 import { incorrectState, invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
-import { readChunk } from '@vates/read-chunk'
+import { readChunk, readChunkStrict } from '@vates/read-chunk'
 import { Ref } from 'xen-api'
 import { synchronized } from 'decorator-synchronized'
 import { timeout } from 'promise-toolbox'
@@ -296,7 +296,7 @@ export default class Proxy {
 
     // ensure source is readable
     try {
-      const chunk = await readChunk(sourceStream, 1024 * 1024)
+      const chunk = await readChunkStrict(sourceStream, 1024)
       sourceStream.unshift(chunk)
     } catch (error) {
       const newErr = new Error('Error while reading proxy VM from source  ', { cause: error })
