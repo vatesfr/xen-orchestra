@@ -447,7 +447,8 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     if (disklessVmSnapshots.length > 0) {
       const snapshotsPerSchedule = groupBy(disklessVmSnapshots, _ => _.other_config[SCHEDULE_ID])
       await asyncEach(Object.entries(snapshotsPerSchedule), async ([scheduleId, snapshots]) => {
-        const snapshotPerDatetime = groupBy(snapshots, _ => _.other_config[DATETIME])
+        // we only have one snapshot per date time since it's at the VM level 
+        const snapshotPerDatetime = Object.fromEntries(snapshots.map(s => [s.other_config[DATETIME], s.$ref]))
         const datetimes = Object.keys(snapshotPerDatetime).sort()
         const settings = {
           ...baseSettings,
@@ -459,7 +460,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           if (this.job.mode === 'delta' && datetime === lastSnapshotDateTime) {
             return
           }
-          await asyncEach(snapshotPerDatetime[datetime], vmSnap => xapi.VM_destroy(vmSnap.$ref))
+          await xapi.VM_destroy(snapshotPerDatetime[datetime])
         })
       })
     }
