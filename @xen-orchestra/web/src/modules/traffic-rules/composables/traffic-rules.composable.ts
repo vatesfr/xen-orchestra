@@ -1,5 +1,5 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import { OF_RULES_KEY, type TrafficRule } from '@/modules/traffic-rules/types.ts'
+import { SDN_CONTROLLER_OF_RULES_KEY, type TrafficRule } from '@/modules/traffic-rules/types.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -24,23 +24,25 @@ export function useTrafficRules(
   const { getVmById } = useXoVmCollection()
 
   const trafficRules = computed<TrafficRule[]>(() => {
-    const sortedNetworks = [...networks.value].sort((a, b) => (a.name_label ?? '').localeCompare(b.name_label ?? ''))
+    const sortedNetworks = [...networks.value].sort((networkA, networkB) =>
+      (networkA.name_label ?? '').localeCompare(networkB.name_label ?? '')
+    )
 
-    const sortedVifs = [...vifs.value].sort((a, b) => {
-      const vmA = getVmById(a.$VM)?.name_label ?? ''
-      const vmB = getVmById(b.$VM)?.name_label ?? ''
-      const vmComparison = vmA.localeCompare(vmB)
+    const sortedVifs = [...vifs.value].sort((vifA, vifB) => {
+      const vmNameLabelA = getVmById(vifA.$VM)?.name_label ?? ''
+      const vmNameLabelB = getVmById(vifB.$VM)?.name_label ?? ''
+      const vmComparison = vmNameLabelA.localeCompare(vmNameLabelB)
 
       if (vmComparison !== 0) {
         return vmComparison
       }
 
-      return Number(a.device) - Number(b.device)
+      return Number(vifA.device) - Number(vifB.device)
     })
 
     return [
       ...sortedNetworks.flatMap(network =>
-        parseRules(network.other_config?.[OF_RULES_KEY]).map((rule, index) => ({
+        parseRules(network.other_config?.[SDN_CONTROLLER_OF_RULES_KEY]).map((rule, index) => ({
           ...rule,
           id: `network:${network.id}:${index}`,
           sourceId: network.id,
@@ -49,7 +51,7 @@ export function useTrafficRules(
         }))
       ),
       ...sortedVifs.flatMap(vif =>
-        parseRules(vif.other_config?.[OF_RULES_KEY]).map((rule, index) => ({
+        parseRules(vif.other_config?.[SDN_CONTROLLER_OF_RULES_KEY]).map((rule, index) => ({
           ...rule,
           id: `VIF:${vif.id}:${index}`,
           sourceId: vif.id,

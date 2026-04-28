@@ -5,6 +5,7 @@ import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-co
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { LinkOptions } from '@core/composables/link-component.composable.ts'
 import type { IconName } from '@core/icons'
+import { toLower } from 'lodash-es'
 import { useI18n } from 'vue-i18n'
 
 type TrafficRuleTargetEntry = {
@@ -24,30 +25,30 @@ export function useTrafficRuleTarget() {
   const { getNetworkById } = useXoNetworkCollection()
 
   return (rule: TrafficRule): TrafficRuleTarget => {
-    if (rule.type === 'VIF') {
-      const vif = getVifById(rule.sourceId)
-      const vm = vif ? getVmById(vif.$VM) : undefined
+    if (rule.type === 'network') {
+      const network = getNetworkById(rule.sourceId)
 
       return {
-        label: vif ? t('vif-device', { device: vif.device }) : '',
-        icon: 'object:vif',
-        to: vif ? { name: '/vm/[id]/networks', params: { id: vif.$VM } } : undefined,
-        suffix: vm
-          ? {
-              label: vm.name_label,
-              icon: `object:vm:${vm.power_state.toLowerCase()}` as IconName,
-              to: { name: '/vm/[id]/dashboard', params: { id: vm.id } },
-            }
-          : undefined,
+        label: network?.name_label ?? '',
+        icon: 'object:network',
+        to: network ? getPoolNetworkRoute(network.$pool, network.id) : undefined,
       }
     }
 
-    const network = getNetworkById(rule.sourceId)
+    const vif = getVifById(rule.sourceId)
+    const vm = vif ? getVmById(vif.$VM) : undefined
 
     return {
-      label: network?.name_label ?? '',
-      icon: 'object:network',
-      to: network ? getPoolNetworkRoute(network.$pool, network.id) : undefined,
+      label: vif ? `${t('vif')}${vif.device}` : '',
+      icon: 'object:vif',
+      to: vif && vm ? { name: '/vm/[id]/networks', params: { id: vif.$VM } } : undefined,
+      suffix: vm
+        ? {
+            label: vm.name_label,
+            icon: `object:vm:${toLower(vm.power_state)}`,
+            to: { name: '/vm/[id]/dashboard', params: { id: vm.id } },
+          }
+        : undefined,
     }
   }
 }

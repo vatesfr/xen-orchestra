@@ -13,16 +13,20 @@
         </template>
         <template #value>
           <div class="value-content">
-            <VtsStatus :status="policy" icon-only>{{ policy }}</VtsStatus>
+            <VtsStatus :status="policy" icon-only />
             {{ rule.port ? `${rule.protocol}:${rule.port}` : rule.protocol }}
-            {{ direction.a }} {{ rule.ipRange }} {{ direction.b }}
+            {{ direction.labelA }} {{ rule.ipRange }} {{ direction.labelB }}
             <template v-if="vif">
-              <UiLink size="small" :to="{ name: '/vm/[id]/networks', params: { id: vif.$VM } }">
-                {{ t('vif-device', { device: vif.device }) }}
+              <UiLink
+                size="small"
+                icon="object:vif"
+                :to="vm ? { name: '/vm/[id]/networks', params: { id: vif.$VM } } : undefined"
+              >
+                {{ vifDevice }}
               </UiLink>
               <div v-if="vm">
-                {{ t('traffic-rules:in') }}
-                <UiLink size="small" :icon="vmStatus" :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
+                {{ t('in') }}
+                <UiLink size="small" :icon="vmPowerState" :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
                   {{ vm.name_label }}
                 </UiLink>
               </div>
@@ -45,11 +49,11 @@ import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-x
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { useTrafficRuleTarget } from '@/modules/traffic-rules/composables/traffic-rule-target.composable.ts'
 import type { TrafficRule } from '@/modules/traffic-rules/types.ts'
-import { getDirectionLabels } from '@/modules/traffic-rules/utils/direction-labels-utils.ts'
+import { getDirectionLabels } from '@/modules/traffic-rules/utils/direction-labels-util.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { CONNECTION_STATUS } from '@/shared/constants.ts'
-import type { IconName } from '@core/icons'
+import { RULE_STATUS } from '@/shared/constants.ts'
+import type { ObjectIconName } from '@core/icons'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -57,6 +61,7 @@ import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -72,7 +77,7 @@ const { getNetworkById } = useXoNetworkCollection()
 
 const getTarget = useTrafficRuleTarget()
 
-const policy = computed(() => (rule.allow ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED))
+const policy = computed(() => (rule.allow ? RULE_STATUS.ALLOW : RULE_STATUS.DROP))
 
 const target = computed(() => getTarget(rule))
 
@@ -86,31 +91,33 @@ const networkTo = computed(() =>
   network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
 )
 
-const vmStatus = computed(() => {
-  const state = vm.value?.power_state.toLowerCase()
-  return `object:vm:${state}` as IconName
+const vmPowerState = computed(() => {
+  const state = toLower(vm.value?.power_state)
+  return `object:vm:${state === undefined ? 'unknown' : state}` satisfies ObjectIconName
 })
 
 const direction = computed(() => {
-  const [a, b] = getDirectionLabels(rule)
-  return { a, b }
+  const [labelA, labelB] = getDirectionLabels(rule)
+  return { labelA, labelB }
 })
 
 const description = computed(() => {
-  const policyLabel = rule.allow ? t('traffic-rules:allow') : t('traffic-rules:drop')
+  const policyLabel = rule.allow ? t('allow') : t('drop')
   const protocol = rule.port ? `${rule.protocol}:${rule.port}` : rule.protocol
   const { label, suffix } = target.value
-  const descriptionParts = [policyLabel, protocol, direction.value.a, rule.ipRange, direction.value.b]
+  const descriptionParts = [policyLabel, protocol, direction.value.labelA, rule.ipRange, direction.value.labelB]
 
   if (label) {
     descriptionParts.push(label)
     if (suffix) {
-      descriptionParts.push(t('traffic-rules:in'), suffix.label)
+      descriptionParts.push(t('in'), suffix.label)
     }
   }
 
   return descriptionParts.join(' ')
 })
+
+const vifDevice = computed(() => `${t('vif')}${vif.value?.device}`)
 </script>
 
 <style scoped lang="postcss">

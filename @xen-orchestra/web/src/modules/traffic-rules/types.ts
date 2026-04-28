@@ -1,7 +1,7 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 
-export const OF_RULES_KEY = 'xo:sdn-controller:of-rules'
+export const SDN_CONTROLLER_OF_RULES_KEY = 'xo:sdn-controller:of-rules'
 
 export type RawTrafficRule = {
   allow: boolean

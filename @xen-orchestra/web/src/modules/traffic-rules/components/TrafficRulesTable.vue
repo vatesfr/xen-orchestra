@@ -32,7 +32,7 @@
 <script setup lang="ts">
 import { useTrafficRuleTarget } from '@/modules/traffic-rules/composables/traffic-rule-target.composable.ts'
 import type { EnrichedTrafficRule, TrafficRule } from '@/modules/traffic-rules/types.ts'
-import { getDirectionLabels } from '@/modules/traffic-rules/utils/direction-labels-utils.ts'
+import { getDirectionLabels } from '@/modules/traffic-rules/utils/direction-labels-util.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -45,6 +45,7 @@ import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-q
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useTrafficRulesColumns } from '@core/tables/column-sets/traffic-rules-columns.ts'
 import { useBooleanSchema } from '@core/utils/query-builder/use-boolean-schema.ts'
+import { useNumberSchema } from '@core/utils/query-builder/use-number-schema.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -87,13 +88,14 @@ const { pageRecords: paginatedRules, paginationBindings } = usePagination('traff
 
 const schema = useQueryBuilderSchema<EnrichedTrafficRule>({
   '': useStringSchema(t('any-property')),
-  allow: useBooleanSchema(t('traffic-rules:policy'), {
-    true: t('traffic-rules:allow'),
-    false: t('traffic-rules:drop'),
+  allow: useBooleanSchema(t('policy'), {
+    true: t('allow'),
+    false: t('drop'),
   }),
-  protocol: useStringSchema(t('traffic-rules:protocol:port')),
-  direction: useStringSchema(t('traffic-rules:direction')),
-  ipRange: useStringSchema(t('traffic-rules:target')),
+  protocol: useStringSchema(t('protocol')),
+  port: useNumberSchema(t('port')),
+  direction: useStringSchema(t('direction')),
+  ipRange: useStringSchema(t('target')),
   objectLabel: useStringSchema(t('object')),
 })
 
@@ -102,7 +104,7 @@ const state = useTableState({
   error: () => error,
   empty: () =>
     rawRules?.length === 0
-      ? t('no-traffic-rules-detected')
+      ? t('traffic-rules:no-traffic-rules-detected')
       : filteredRules.value.length === 0
         ? { type: 'no-result' }
         : false,
@@ -112,7 +114,7 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
   body: (rule: EnrichedTrafficRule & { order: number }) => {
     return {
       order: r => r(rule.order),
-      policy: r => r(rule.allow ? t('traffic-rules:allow') : t('traffic-rules:drop')),
+      policy: r => r(rule.allow ? t('allow') : t('drop')),
       protocol: r => r(rule.port ? `${rule.protocol}:${rule.port}` : rule.protocol),
       directionA: r => r(rule.directionA),
       target: r => r(rule.ipRange),

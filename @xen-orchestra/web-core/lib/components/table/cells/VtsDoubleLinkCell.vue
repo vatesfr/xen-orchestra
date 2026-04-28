@@ -7,13 +7,13 @@
       <UiLink
         v-if="suffix"
         size="medium"
-        :icon="suffix?.icon"
-        :to="suffix?.to"
-        :href="suffix?.href"
-        :target="suffix?.target"
+        :icon="suffix.icon"
+        :to="suffix.to"
+        :href="suffix.href"
+        :target="suffix.target"
         class="link"
       >
-        <slot name="suffix">{{ suffix?.label }}</slot>
+        {{ suffix.label }}
       </UiLink>
     </div>
   </UiTableCell>
@@ -22,7 +22,7 @@
 <script setup lang="ts">
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
-import type { LinkOptions } from '@core/composables/link-component.composable'
+import type { LinkOptions } from '@core/composables/link-component.composable.ts'
 import type { IconName } from '@core/icons'
 
 export type VtsDoubleLinkCellProps = LinkOptions & {
@@ -37,7 +37,6 @@ defineProps<VtsDoubleLinkCellProps>()
 
 defineSlots<{
   default(): any
-  suffix?(): any
 }>()
 </script>
 

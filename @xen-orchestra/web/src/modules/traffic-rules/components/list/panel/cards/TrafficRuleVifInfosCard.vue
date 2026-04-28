@@ -7,8 +7,12 @@
           {{ t('name') }}
         </template>
         <template #value>
-          <UiLink size="small" :to="{ name: '/vm/[id]/networks', params: { id: vm?.id } }">
-            {{ t('vif-device', { device: vif.device }) }}
+          <UiLink
+            size="small"
+            icon="object:vif"
+            :to="vm ? { name: '/vm/[id]/networks', params: { id: vm?.id } } : undefined"
+          >
+            {{ vifDevice }}
           </UiLink>
         </template>
         <template #addons>
@@ -42,7 +46,7 @@
         </template>
         <template #value>
           <UiLink v-if="network" size="small" :to="networkTo" icon="object:network">
-            <span>{{ network.name_label }}</span>
+            {{ network.name_label }}
           </UiLink>
         </template>
         <template v-if="network" #addons>
@@ -65,17 +69,17 @@
           {{ t('vif-status') }}
         </template>
         <template #value>
-          <VtsStatus :status />
+          <VtsStatus :status="vifStatus" />
         </template>
         <template #addons>
-          <VtsCopyButton :value="status" />
+          <VtsCopyButton :value="vifStatus" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>
           {{ t('vlan') }}
         </template>
-        <template #value> {{ networkVlan }} </template>
+        <template #value>{{ networkVlan }}</template>
         <template v-if="networkVlan" #addons>
           <VtsCopyButton :value="networkVlan" />
         </template>
@@ -122,7 +126,7 @@ import type { TrafficRule } from '@/modules/traffic-rules/types'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
-import type { IconName } from '@core/icons'
+import type { ObjectIconName } from '@core/icons'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -130,6 +134,7 @@ import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -143,14 +148,14 @@ const { useGetVmById } = useXoVmCollection()
 
 const { getPifsByNetworkId } = useXoPifCollection()
 
-const status = computed(() => (vif.attached ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED))
+const vifStatus = computed(() => (vif.attached ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED))
 
 const vm = useGetVmById(() => vif.$VM)
 
 const vmStatus = computed(() => {
-  const state = vm.value?.power_state.toLowerCase()
+  const state = toLower(vm.value?.power_state)
 
-  return `object:vm:${state}` as IconName
+  return `object:vm:${state === undefined ? 'unknown' : state}` as ObjectIconName
 })
 
 const network = useGetNetworkById(() => vif.$network)

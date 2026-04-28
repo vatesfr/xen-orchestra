@@ -23,4 +23,9 @@ export const CONNECTION_STATUS = {
   DISCONNECTED_FROM_PHYSICAL_DEVICE: 'disconnected-from-physical-device',
 } as const
 
+export const RULE_STATUS = {
+  ALLOW: 'allow',
+  DROP: 'drop',
+} as const
+
 export const ONE_GB = 1024 ** 3

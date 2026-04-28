@@ -8,7 +8,7 @@
         </template>
         <template #value>
           <UiLink size="small" :to="networkTo" icon="object:network">
-            <span>{{ network.name_label }}</span>
+            {{ network.name_label }}
           </UiLink>
         </template>
         <template #addons>
@@ -88,6 +88,7 @@
 
 <script setup lang="ts">
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import type { TrafficRule } from '@/modules/traffic-rules/types.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
@@ -105,11 +106,7 @@ const { network } = defineProps<{
 
 const { t } = useI18n()
 
-const networkTo = computed(() => ({
-  name: '/pool/[id]/networks',
-  params: { id: network.$pool },
-  query: { id: network.id },
-}))
+const networkTo = computed(() => (network ? getPoolNetworkRoute(network.$pool, network.id) : undefined))
 
 const { getPifsByNetworkId } = useXoPifCollection()
 
