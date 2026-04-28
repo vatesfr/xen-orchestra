@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
+import { Task } from '@vates/task'
 
 import { HealthCheckVmBackup } from '../../HealthCheckVmBackup.mjs'
-import { Task } from '../../Task.mjs'
 import ms from 'ms'
 
 export const MixinXapiWriter = (BaseClass = Object) =>
@@ -33,7 +33,7 @@ export const MixinXapiWriter = (BaseClass = Object) =>
       // copy VM
       return Task.run(
         {
-          name: 'health check',
+          properties: { name: 'health check' },
         },
         async () => {
           const { $xapi: xapi } = sr
@@ -47,12 +47,12 @@ export const MixinXapiWriter = (BaseClass = Object) =>
             }
             if (await this.#isAlreadyOnHealthCheckSr(baseVm)) {
               healthCheckVmRef = await Task.run(
-                { name: 'cloning-vm' },
+                { properties: { name: 'cloning-vm' } },
                 async () => await xapi.callAsync('VM.clone', this._targetVmRef, `Health Check - ${baseVm.name_label}`)
               )
             } else {
               healthCheckVmRef = await Task.run(
-                { name: 'copying-vm' },
+                { properties: { name: 'copying-vm' } },
                 async () =>
                   await xapi.callAsync(
                     'VM.copy',

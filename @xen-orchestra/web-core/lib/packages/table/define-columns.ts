@@ -1,6 +1,6 @@
 import type { AreAllPropertiesOptional, Columns } from '@core/packages/table/types.ts'
-import { objectOmit } from '@vueuse/shared'
-import { computed, defineComponent, Fragment, h, ref, type Component, type Ref, type VNode } from 'vue'
+import { objectOmit, toReactive } from '@vueuse/shared'
+import { type Component, computed, defineComponent, Fragment, h, ref, type Ref, type VNode } from 'vue'
 
 export function defineColumns<TSetupArgs extends any[], TColumns extends Columns>(
   setup: (...args: TSetupArgs) => TColumns
@@ -85,7 +85,8 @@ export function defineColumns<TSetupArgs extends any[], TColumns extends Columns
         },
       },
       setup(props) {
-        const bodyCellRenderers = config.body(props.item as TBodyItem) ?? ({} as TBodyRenderers)
+        const bodyCellRenderers =
+          config.body(toReactive(computed(() => props.item)) as TBodyItem) ?? ({} as TBodyRenderers)
 
         return () =>
           visibleColumnIds.value.map(columnId => {

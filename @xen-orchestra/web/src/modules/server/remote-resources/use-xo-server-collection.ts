@@ -1,8 +1,10 @@
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
+import { safePushInMap } from '@/shared/utils/map.util'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
-import type { XoPool, XoServer } from '@vates/types'
-import { computed } from 'vue'
+import type { XoServer } from '@vates/types'
+import { ref, watch } from 'vue'
 
 export type FrontXoServer = Pick<XoServer, (typeof serverFields)[number]>
 
@@ -26,23 +28,18 @@ export const useXoServerCollection = defineRemoteResource({
   url: `${BASE_URL}/servers?fields=${serverFields.join(',')}`,
   initialData: () => [] as FrontXoServer[],
   state: (servers, context) => {
-    const serverByPool = computed(() => {
-      const serverByPoolMap = new Map<XoPool['id'], FrontXoServer[]>()
+    const serverByPool = ref(new Map<FrontXoPool['id'], FrontXoServer[]>())
 
-      servers.value.forEach(server => {
-        const poolId = server.poolId
+    watch(servers, _servers => {
+      const tmpServerByPool = new Map<FrontXoPool['id'], FrontXoServer[]>()
 
-        if (!poolId) {
-          return
+      _servers.forEach(server => {
+        if (server.poolId !== undefined) {
+          safePushInMap(tmpServerByPool, server.poolId, server)
         }
-
-        if (!serverByPoolMap.has(poolId)) {
-          serverByPoolMap.set(poolId, [])
-        }
-        serverByPoolMap.get(poolId)!.push(server)
       })
 
-      return serverByPoolMap
+      serverByPool.value = tmpServerByPool
     })
 
     return {

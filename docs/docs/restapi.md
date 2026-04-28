@@ -416,6 +416,89 @@ $ curl \
 "2b0266aa-c753-6fbc-e4dd-c79be7782052"
 ```
 
+## Events
+
+The REST API exposes a [Server-Sent Events (SSE)](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events) endpoint to receive real-time notifications when objects change in the infrastructure (VMs, hosts, SRs, etc.).
+
+### Opening a connection
+
+```http
+GET /rest/v0/events HTTP/1.1
+Cookie: authenticationToken=TN2YBOMYtXB_hHtf4wTzm9p5tTuqq2i15yeuhcz2xXM
+
+HTTP/1.1 200 OK
+Content-Type: text/event-stream
+```
+
+The first event sent is `init`, which contains the connection ID needed to manage subscriptions:
+
+```
+event: init
+data: {"id":"0d8b28c6-e9bf-4c9d-a382-3c9e0d7cfbff"}
+```
+
+A `ping` event is sent every 30 seconds to keep the connection alive:
+
+```
+event: ping
+data: {"ping":1713194362080}
+```
+
+### Managing subscriptions
+
+By default an open connection has no active subscriptions. Use the connection ID returned by `init` to subscribe to a collection:
+
+```http
+POST /rest/v0/events/0d8b28c6-e9bf-4c9d-a382-3c9e0d7cfbff/subscriptions HTTP/1.1
+Cookie: authenticationToken=TN2YBOMYtXB_hHtf4wTzm9p5tTuqq2i15yeuhcz2xXM
+Content-Type: application/json
+
+{"collection": "VM", "fields": ["id", "name_label", "power_state"]}
+```
+
+The `fields` property is optional. When omitted, all fields are returned. When provided, only the listed fields are included in events (and `update` events whose watched fields did not change are suppressed entirely).
+
+To unsubscribe:
+
+```http
+DELETE /rest/v0/events/0d8b28c6-e9bf-4c9d-a382-3c9e0d7cfbff/subscriptions/VM HTTP/1.1
+Cookie: authenticationToken=TN2YBOMYtXB_hHtf4wTzm9p5tTuqq2i15yeuhcz2xXM
+```
+
+### Received events
+
+Once subscribed, the stream emits the following events for the relevant collection:
+
+| Event    | Meaning                                    |
+| -------- | ------------------------------------------ |
+| `add`    | An object has been added to the collection |
+| `update` | An object has been updated                 |
+| `remove` | An object has been removed                 |
+
+Each event's `data` is a JSON object containing the object's fields plus a `$subscription` property indicating which collection it belongs to:
+
+```
+event: add
+data: {"$subscription":"VM","id":"770aa52a-fd42-8faf-f167-8c5c4a237cac","name_label":"Debian 12","power_state":"Halted"}
+
+event: update
+data: {"$subscription":"VM","id":"770aa52a-fd42-8faf-f167-8c5c4a237cac","name_label":"Debian 12","power_state":"Running"}
+
+event: remove
+data: {"$subscription":"VM","id":"770aa52a-fd42-8faf-f167-8c5c4a237cac","name_label":"Debian 12","power_state":"Running"}
+```
+
+### Memory limit per connection
+
+Each SSE connection buffers events internally until the client consumes them. To protect the server from memory exhaustion caused by slow or unresponsive clients, the buffer size per connection is configurable via `maxRamAllocatedPerSseClient` in `config.toml`:
+
+```toml
+[rest-api]
+maxRamAllocatedPerSseClient = 20
+```
+
+When a connection's buffer exceeds this limit, the server logs an error and immediately destroys that connection. The client will receive a closed stream and must reconnect.
+
 ## OpenAPI/Swagger
 
 ### What is Swagger?

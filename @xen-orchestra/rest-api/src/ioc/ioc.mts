@@ -15,13 +15,14 @@ import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
 import { BackupLogService } from '../backup-logs/backup-log.service.mjs'
 import { EventService } from '../events/event.service.mjs'
 import { NetworkService } from '../networks/network.service.mjs'
+import { BackupArchiveService } from '../backup-archives/backup-archive.service.mjs'
 
 const iocContainer = new Container()
 
-decorate(injectable(), Controller)
-iocContainer.load(buildProviderModule())
-
 export function setupContainer(xoApp: XoApp) {
+  decorate(injectable(), Controller)
+  iocContainer.load(buildProviderModule())
+
   if (iocContainer.isBound(RestApi)) {
     iocContainer.unbind(RestApi)
   }
@@ -97,8 +98,9 @@ export function setupContainer(xoApp: XoApp) {
 
   iocContainer
     .bind(BackupLogService)
-    .toDynamicValue(() => {
-      return new BackupLogService()
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new BackupLogService(restApi)
     })
     .inSingletonScope()
 
@@ -115,6 +117,14 @@ export function setupContainer(xoApp: XoApp) {
     .toDynamicValue(ctx => {
       const restApi = ctx.container.get(RestApi)
       return new NetworkService(restApi)
+    })
+    .inSingletonScope()
+
+  iocContainer
+    .bind(BackupArchiveService)
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new BackupArchiveService(restApi)
     })
     .inSingletonScope()
 }

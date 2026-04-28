@@ -30,6 +30,7 @@ export type StateHeroType =
   | 'offline'
   | 'all-good'
   | 'all-done'
+  | 'creating'
 
 const { format, type, size } = defineProps<{
   format: StateHeroFormat

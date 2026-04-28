@@ -25,6 +25,7 @@ import type {
 } from '../common.mjs'
 import type { PassThrough, Readable } from 'node:stream'
 import type {
+  XapiXoRecord,
   XoGpuGroup,
   XoHost,
   XoNetwork,
@@ -72,11 +73,19 @@ export interface Xapi {
   callAsync: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
 
   barrier<T extends XenApiRecord>(ref: T['$ref']): Promise<Extract<WrappedXenApiRecord, { $ref: T['$ref'] }>>
+  connectVif(vifId: XoVif['id']): Promise<void>
   getField<T extends XenApiRecord, K extends keyof T>(
     type: Extract<WrappedXenApiRecord, T>['$type'],
     ref: T['$ref'],
     field: K
   ): Promise<T[K]>
+  getObject: <
+    XoRecord extends XapiXoRecord,
+    WrappedRecord extends WrappedXenApiRecord = Extract<WrappedXenApiRecord, { $type: XoRecord['type'] }>,
+  >(
+    idOrUuidOrRef: XoRecord['id'] | WrappedRecord['$ref'] | WrappedRecord['uuid'],
+    defaultValue?: WrappedRecord
+  ) => WrappedRecord
   createNetwork(
     params:
       | {
@@ -102,6 +111,7 @@ export interface Xapi {
   }): Promise<XenApiNetworkWrapped>
   deleteNetwork(id: XoNetwork['id']): Promise<void>
   deleteVif(vifId: XoVif['id']): Promise<void>
+  disconnectVif(vifId: XoVif['id']): Promise<void>
   exportVmOva(vmRef: XenApiVm['$ref']): Promise<PassThrough>
   migrateVm(
     vmId: XoVm['id'],

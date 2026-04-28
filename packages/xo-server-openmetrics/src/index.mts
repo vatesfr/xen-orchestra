@@ -70,6 +70,10 @@ export interface VmLabelInfo {
   vbdDeviceToVdiName: Record<string, string> // { "xvda": "System Disk" }
   vbdDeviceToVdiUuid: Record<string, XoVdi['uuid']> // { "xvda": "vdi-uuid-123" }
   vifIndexToNetworkName: Record<string, string> // { "0": "Pool-wide network" }
+  startTime: number | null // Unix timestamp of VM boot (from vm.startTime)
+  power_state: string // VM power state (Running, Paused, Halted, Suspended)
+  pool_id: string
+  pool_name: string
 }
 
 export interface HostLabelInfo {
@@ -138,6 +142,23 @@ interface SrDataPayload {
   srs: SrDataItem[]
 }
 
+export type VdiDataItem = {
+  uuid: string
+  name_label: string
+  size: number
+  usage: number
+  sr_uuid: string
+  sr_name: string
+  pool_id: string
+  pool_name: string
+  vm_uuid?: string
+  vm_name?: string
+}
+
+interface VdiDataPayload {
+  vdis: VdiDataItem[]
+}
+
 export type HostStatusItem = Pick<XoHost, 'uuid' | 'name_label' | 'power_state' | 'enabled'> & {
   pool_id: string
   pool_name: string
@@ -145,6 +166,15 @@ export type HostStatusItem = Pick<XoHost, 'uuid' | 'name_label' | 'power_state' 
 
 interface HostStatusPayload {
   hosts: HostStatusItem[]
+}
+
+export type VmStatusItem = Pick<XoVm, 'uuid' | 'name_label' | 'power_state'> & {
+  pool_id: string
+  pool_name: string
+}
+
+interface VmStatusPayload {
+  vms: VmStatusItem[]
 }
 
 // Union type for all XO objects we handle
@@ -401,12 +431,32 @@ class OpenMetricsPlugin {
         break
       }
 
+      case 'GET_VDI_DATA': {
+        const vdiData = this.#getVdiData()
+        this.#sendToChildNoWait({
+          type: 'VDI_DATA',
+          requestId: message.requestId,
+          payload: vdiData,
+        })
+        break
+      }
+
       case 'GET_HOST_STATUS': {
         const hostStatus = this.#getHostStatusData()
         this.#sendToChildNoWait({
           type: 'HOST_STATUS',
           requestId: message.requestId,
           payload: hostStatus,
+        })
+        break
+      }
+
+      case 'GET_VM_STATUS': {
+        const vmStatus = this.#getVmStatusData()
+        this.#sendToChildNoWait({
+          type: 'VM_STATUS',
+          requestId: message.requestId,
+          payload: vmStatus,
         })
         break
       }
@@ -586,6 +636,73 @@ class OpenMetricsPlugin {
   }
 
   /**
+   * Get VDI data for disk size metrics.
+   * Returns virtual size and physical usage for all VDIs (excluding snapshots and unmanaged).
+   */
+  #getVdiData(): VdiDataPayload {
+    const vdis: VdiDataItem[] = []
+
+    // Get only the object types we need: SRs, VBDs, pools, VMs, VDIs
+    const allSrs = this.#xo.getObjects({ filter: { type: 'SR' } }) as Record<string, XoSr>
+    const allVbds = this.#xo.getObjects({ filter: { type: 'VBD' } }) as Record<string, XoVbd>
+
+    const allPools = this.#xo.getObjects({ filter: { type: 'pool' } }) as Record<string, XoPool>
+    const poolLabelMap = new Map<string, string>()
+    for (const pool of Object.values(allPools)) {
+      poolLabelMap.set(pool.uuid, pool.name_label)
+    }
+
+    // Build VM lookup for resolving attached VMs via VBDs
+    const allVms = this.#xo.getObjects({ filter: { type: 'VM' } }) as Record<string, XoVm>
+
+    // Map VM id -> VM object for quick lookup
+    const vmById = new Map<string, XoVm>()
+    for (const vm of Object.values(allVms)) {
+      vmById.set(vm.id, vm)
+    }
+
+    // Get all VDIs (excluding snapshots and unmanaged)
+    const allVdis = this.#xo.getObjects({ filter: { type: 'VDI' } }) as Record<string, XoVdi>
+
+    for (const vdi of Object.values(allVdis)) {
+      // Resolve SR
+      const sr = allSrs[vdi.$SR]
+      if (sr === undefined) {
+        continue
+      }
+
+      const vdiData: VdiDataItem = {
+        uuid: vdi.uuid,
+        name_label: vdi.name_label,
+        size: vdi.size,
+        usage: vdi.usage,
+        sr_uuid: sr.uuid,
+        sr_name: sr.name_label,
+        pool_id: sr.$poolId,
+        pool_name: poolLabelMap.get(sr.$poolId) ?? '',
+      }
+
+      // Resolve attached VM via VBDs (use first found VM)
+      for (const vbdId of vdi.$VBDs) {
+        const vbd = allVbds[vbdId]
+        if (vbd !== undefined) {
+          const vm = vmById.get(vbd.VM)
+          if (vm !== undefined) {
+            vdiData.vm_uuid = vm.uuid
+            vdiData.vm_name = vm.name_label
+            break
+          }
+        }
+      }
+
+      vdis.push(vdiData)
+    }
+
+    logger.debug('Returning VDI data', { vdiCount: vdis.length })
+    return { vdis }
+  }
+
+  /**
    * Get host status data for all hosts.
    * Returns power_state and enabled for every host, including non-running ones.
    */
@@ -613,6 +730,35 @@ class OpenMetricsPlugin {
 
     logger.debug('Returning host status data', { hostCount: hosts.length })
     return { hosts }
+  }
+
+  /**
+   * Get VM status data for all VMs (excluding VM-controllers / dom0).
+   * Returns power_state for every VM.
+   */
+  #getVmStatusData(): VmStatusPayload {
+    const vms: VmStatusItem[] = []
+
+    const allPools = this.#xo.getObjects({ filter: { type: 'pool' } }) as Record<string, XoPool>
+    const poolLabelMap = new Map<string, string>()
+    for (const pool of Object.values(allPools)) {
+      poolLabelMap.set(pool.uuid, pool.name_label)
+    }
+
+    const allVms = this.#xo.getObjects({ filter: { type: 'VM' } }) as Record<string, XoVm>
+
+    for (const vm of Object.values(allVms)) {
+      vms.push({
+        uuid: vm.uuid,
+        name_label: vm.name_label,
+        power_state: vm.power_state,
+        pool_id: vm.$poolId,
+        pool_name: poolLabelMap.get(vm.$poolId) ?? '',
+      })
+    }
+
+    logger.debug('Returning VM status data', { vmCount: vms.length })
+    return { vms }
   }
 
   /**
@@ -771,6 +917,7 @@ class OpenMetricsPlugin {
 
     const vms: (XoVm | XoVmController)[] = []
     const hosts: XoHost[] = []
+    const pools: XoPool[] = []
     const srs: XoSr[] = []
     const vbds: XoVbd[] = []
     const vdis: XoVdi[] = []
@@ -786,6 +933,9 @@ class OpenMetricsPlugin {
           break
         case 'host':
           hosts.push(obj)
+          break
+        case 'pool':
+          pools.push(obj as XoPool)
           break
         case 'SR':
           srs.push(obj)
@@ -806,6 +956,12 @@ class OpenMetricsPlugin {
           networks.push(obj)
           break
       }
+    }
+
+    // Build pool label map (uuid -> name_label) for VM enrichment
+    const poolLabelMap = new Map<string, string>()
+    for (const pool of pools) {
+      poolLabelMap.set(pool.uuid, pool.name_label)
     }
 
     // Build network name map (id -> name_label)
@@ -906,6 +1062,10 @@ class OpenMetricsPlugin {
         vbdDeviceToVdiName,
         vbdDeviceToVdiUuid,
         vifIndexToNetworkName,
+        startTime: vm.startTime ?? null,
+        power_state: vm.power_state,
+        pool_id: vm.$poolId,
+        pool_name: poolLabelMap.get(vm.$poolId) ?? '',
       }
     }
 

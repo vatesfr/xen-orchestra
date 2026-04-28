@@ -18,7 +18,7 @@
           variant="tertiary"
           @click="openVmProtectedModal()"
         >
-          {{ t('what-does-protected-means?') }}
+          {{ t('what-does-protected-mean?') }}
         </UiButton>
       </div>
     </template>

@@ -1787,13 +1787,15 @@ export const copyVms = (vms, type) => {
   return confirm({
     title: type === 'VM-template' ? _('copyTemplate') : _('copyVm'),
     body: <CopyVmsModalBody vms={_vms} type={type} />,
-  }).then(({ compress, copyMode, names, sr }) => {
+  }).then(({ compression, copyMode, names, sr }) => {
     if (copyMode === 'fastClone') {
       return Promise.all(_vms.map((vm, index) => cloneVm({ id: vm }, false, names[index])))
     }
 
     if (sr !== undefined) {
-      return Promise.all(_vms.map((vm, index) => _call('vm.copy', { vm, sr, compress, name: names[index] })))
+      return Promise.all(
+        _vms.map((vm, index) => _call('vm.copy', { vm, sr, compress: compression, name: names[index] }))
+      )
     }
     error(_('copyVmsNoTargetSr'), _('copyVmsNoTargetSrMessage'))
   }, noop)
@@ -3909,8 +3911,6 @@ export const editNetworkConfig = (networkConfig, props) =>
 // XO-HUB   ---------------------------------------------------------------------
 
 export const getResourceCatalog = ({ filters } = {}) => _call('cloud.getResourceCatalog', { filters })
-
-export const getAllResourceCatalog = () => _call('cloud.getAllResourceCatalog')
 
 export const downloadAndInstallResource = ({ namespace, id, version, sr, templateOnly }) =>
   _call('cloud.downloadAndInstallResource', {

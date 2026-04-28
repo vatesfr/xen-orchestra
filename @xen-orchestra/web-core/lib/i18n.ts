@@ -85,6 +85,14 @@ export const locales: Locales = {
     code: 'zh-Hans',
     name: '中文（简体）',
   },
+  sk: {
+    code: 'sk',
+    name: 'Slovenčina',
+  },
+  pt: {
+    code: 'pt',
+    name: 'Português',
+  },
 }
 
 export default createI18n({

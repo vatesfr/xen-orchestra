@@ -1,16 +1,19 @@
-import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection'
 import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
+import { safePushInMap } from '@/shared/utils/map.util'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
-import type { XoHost, XoNetwork, XoPif } from '@vates/types'
-import { computed } from 'vue'
+import type { XoPif } from '@vates/types'
+import { ref, watch } from 'vue'
 
 export type FrontXoPif = Pick<XoPif, (typeof pifFields)[number]>
 
 const pifFields = [
   '$host',
   '$network',
+  '$pool',
   'attached',
   'carrier',
   'device',
@@ -27,6 +30,7 @@ const pifFields = [
   'speed',
   'vlan',
   'isBondMaster',
+  'isBondSlave',
   'bondSlaves',
   'type',
 ] as const satisfies readonly (keyof XoPif)[]
@@ -43,40 +47,27 @@ export const useXoPifCollection = defineRemoteResource({
 
     const { isMasterHost } = useXoHostCollection(context)
 
-    const hostMasterPifsByNetwork = computed(() => {
-      const hostMasterPifsByNetworkMap = new Map<XoNetwork['id'], FrontXoPif[]>()
+    const hostMasterPifsByNetwork = ref(new Map<FrontXoNetwork['id'], FrontXoPif[]>())
+    const pifsByHost = ref(new Map<FrontXoHost['id'], FrontXoPif[]>())
 
-      pifs.value
-        .filter(pif => isMasterHost(pif.$host))
-        .forEach(pif => {
-          const networkId = pif.$network
-          if (!hostMasterPifsByNetworkMap.has(networkId)) {
-            hostMasterPifsByNetworkMap.set(networkId, [])
-          }
-          hostMasterPifsByNetworkMap.get(networkId)?.push(pif)
-        })
+    watch(pifs, _pifs => {
+      const tmpHostMasterPifsByNetwork = new Map<FrontXoNetwork['id'], FrontXoPif[]>()
+      const tmpPifsByHost = new Map<FrontXoHost['id'], FrontXoPif[]>()
 
-      return hostMasterPifsByNetworkMap
-    })
-
-    function getPifsByNetworkId(networkId: XoNetwork['id']) {
-      return pifs.value.filter(pif => pif.$network === networkId)
-    }
-
-    const pifsByHost = computed(() => {
-      const pifsByHostMap = new Map<XoHost['id'], FrontXoPif[]>()
-
-      pifs.value.forEach(pif => {
-        const hostId = pif.$host
-        if (!pifsByHostMap.has(hostId)) {
-          pifsByHostMap.set(hostId, [])
+      _pifs.forEach(pif => {
+        if (isMasterHost(pif.$host)) {
+          safePushInMap(tmpHostMasterPifsByNetwork, pif.$network, pif)
         }
-
-        pifsByHostMap.get(hostId)!.push(pif)
+        safePushInMap(tmpPifsByHost, pif.$host, pif)
       })
 
-      return pifsByHostMap
+      hostMasterPifsByNetwork.value = tmpHostMasterPifsByNetwork
+      pifsByHost.value = tmpPifsByHost
     })
+
+    function getPifsByNetworkId(networkId: FrontXoNetwork['id']) {
+      return pifs.value.filter(pif => pif.$network === networkId)
+    }
 
     function getBondsDevices(pif: FrontXoPif) {
       if (!pif.isBondMaster || !pif.bondSlaves) {

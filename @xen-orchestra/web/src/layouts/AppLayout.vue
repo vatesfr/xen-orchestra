@@ -15,7 +15,7 @@
       <SidebarSearch v-model="filter" />
     </template>
     <template #sidebar-content>
-      <VtsStateHero v-if="!isConnected" format="card" type="busy" size="medium" class="loader" />
+      <VtsStateHero v-if="!isConnected && !isDevPage" format="card" type="busy" size="medium" class="loader" />
       <VtsTreeList v-else-if="!isReady">
         <VtsTreeLoadingItem v-for="i in 5" :key="i" icon="object:pool" />
       </VtsTreeList>
@@ -26,7 +26,7 @@
       <SiteTreeList v-else :branches="sites" />
     </template>
     <template #content>
-      <VtsStateHero v-if="!isConnected" format="page" type="busy" size="large">
+      <VtsStateHero v-if="!isConnected && !isDevPage" format="page" type="busy" size="large">
         <div class="state-content">
           <span class="typo-caption">{{ t('loading') }}</span>
           <span class="title typo-h1">{{ t('please-wait') }}</span>
@@ -79,6 +79,8 @@ const route = useRoute<'/pool/[id]' | '/host/[id]' | '/vm/[id]'>()
 
 const { buildXo5Route } = useXoRoutes()
 const xo5Route = computed(() => buildXo5Route('/'))
+
+const isDevPage = computed(() => route.path.startsWith('/dev'))
 
 async function scrollToRouteParamId() {
   const paramId = route.params.id

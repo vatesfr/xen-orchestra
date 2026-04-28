@@ -212,6 +212,7 @@ test('it merges delta of non destroyed chain', async () => {
       parentUnicodeName: 'orphan.vhd',
       parentUuid: orphan.footer.uuid,
     },
+    blocks: [0, 1],
   })
   // a grand child
   await generateVhd(`${basePath}/grandchild.vhd`, {
@@ -229,13 +230,14 @@ test('it merges delta of non destroyed chain', async () => {
   assert.equal(logged[0], `unexpected number of entries in backup cache`)
 
   logged = []
-  await adapter.cleanVm(rootPath, { remove: true, merge: true, logInfo, logWarn: () => {}, lock: false })
+  const result = await adapter.cleanVm(rootPath, { remove: true, merge: true, logInfo, logWarn: () => {}, lock: false })
+  assert.ok(result.size > 0, `no merged size`)
   const [merging] = logged
   assert.equal(merging, `merging VHD chain`)
 
   const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
   // size should be the size of children + grand children after the merge
-  assert.equal(metadata.size, 104448)
+  assert.equal(metadata.size, 4299776)
 
   // merging is already tested in vhd-lib, don't retest it here (and theses vhd are as empty as my stomach at 12h12)
   // only check deletion
@@ -284,6 +286,54 @@ test('it finish unterminated merge ', async () => {
   const remainingVhds = await handler.list(basePath)
   assert.equal(remainingVhds.length, 1)
   assert.equal(remainingVhds.includes('child.vhd'), true)
+})
+
+test('it finishes unterminated merge when child is a disk chain', async () => {
+  // This test covers the case where a merge was interrupted and the child disk is a disk chain.
+
+  await handler.writeFile(
+    `${rootPath}/metadata.json`,
+    JSON.stringify({
+      mode: 'delta',
+      size: 209920,
+      vhds: [`${relativePath}/child.vhd`],
+    })
+  )
+
+  const ancestor = await generateVhd(`${basePath}/ancestor.vhd`)
+  const intermediate = await generateVhd(`${basePath}/intermediate.vhd`, {
+    header: {
+      parentUnicodeName: 'ancestor.vhd',
+      parentUuid: ancestor.footer.uuid,
+    },
+  })
+  await generateVhd(`${basePath}/child.vhd`, {
+    header: {
+      parentUnicodeName: 'intermediate.vhd',
+      parentUuid: intermediate.footer.uuid,
+    },
+  })
+
+  // merge state file with chain field
+  await handler.writeFile(
+    `${basePath}/.ancestor.vhd.merge.json`,
+    JSON.stringify({
+      parent: { uuid: '0' },
+      child: { uuid: '0' },
+      chain: ['ancestor.vhd', 'intermediate.vhd', 'child.vhd'],
+      currentBlock: 0,
+      mergedDataSize: 0,
+      step: 'mergeBlocks',
+      diskSize: 0,
+    })
+  )
+
+  await adapter.cleanVm(rootPath, { remove: true, merge: true, logWarn: () => {}, lock: false })
+
+  // ancestor should be renamed to child.vhd (replacing it), intermediate.vhd should be deleted
+  const remainingVhds = await handler.list(basePath)
+  assert.equal(remainingVhds.length, 1)
+  assert.equal(remainingVhds[0], 'child.vhd')
 })
 
 // each of the vhd can be a file, a directory, an alias to a file or an alias to a directory

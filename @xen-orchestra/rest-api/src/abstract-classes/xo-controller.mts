@@ -1,11 +1,14 @@
 import type { NonXapiXoRecord } from '@vates/types/xo'
+import type { AnyPrivilege, SupportedActionsByResource, SupportedResource } from '@xen-orchestra/acl'
 
 import { BaseController, type BaseControllerType } from './base-controller.mjs'
 
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
 
-export abstract class XoController<T extends NonXapiXoRecord> extends BaseController<T, false> {
+export abstract class XoController<
+  T extends NonXapiXoRecord<SupportedActionsByResource, SupportedResource> | AnyPrivilege,
+> extends BaseController<T, false> {
   abstract getAllCollectionObjects(opts: Record<string, unknown>): Promise<T[]>
   abstract getCollectionObject(id: T['id']): Promise<T>
 

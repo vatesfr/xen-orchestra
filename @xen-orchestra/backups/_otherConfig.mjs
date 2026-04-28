@@ -85,6 +85,7 @@ export async function getVmDeltaChainLength(xapi, vmRef) {
 export function resetVmOtherConfig(xapi, vmRef) {
   return applyToVmAndVdis(xapi, vmRef, (type, ref) => {
     return xapi.setFieldEntries(type, ref, 'other_config', {
+      [COPY_OF]: null,
       [DATETIME]: null,
       [DELTA_CHAIN_LENGTH]: null,
       [EXPORTED_SUCCESSFULLY]: null,

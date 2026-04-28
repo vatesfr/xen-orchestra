@@ -6,6 +6,6 @@ import type { HeaderConfig } from '@core/tables/types.ts'
 import { h } from 'vue'
 
 export const useTextColumn = defineColumn((config?: HeaderConfig) => ({
-  renderHead: () => renderHeadCell(config?.headerIcon, config?.headerLabel),
+  renderHead: () => renderHeadCell(config?.headerIcon ?? 'fa:align-left', config?.headerLabel),
   renderBody: (content: string, props?: TextCellProps) => h(VtsTextCell, props, () => content),
 }))

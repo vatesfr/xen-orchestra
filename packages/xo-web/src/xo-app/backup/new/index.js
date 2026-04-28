@@ -1075,7 +1075,7 @@ const New = decorate([
                         id={state.inputDistributeReplications}
                         name='distributeReplications'
                         value={distributeReplications}
-                        disabled={Object.keys(state.remotes).length < 2}
+                        disabled={Object.keys(state.srs).length < 2}
                         onChange={effects.setDistributeReplications}
                       />
                     </FormGroup>

@@ -1,9 +1,12 @@
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection'
 import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
+import { safePushInMap } from '@/shared/utils/map.util'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
-import type { XoHost, XoPbd, XoSr } from '@vates/types'
-import { computed } from 'vue'
+import type { XoPbd } from '@vates/types'
+import { ref, watch } from 'vue'
 
 export type FrontXoPbd = Pick<XoPbd, (typeof pbdFields)[number]>
 
@@ -28,36 +31,20 @@ export const useXoPbdCollection = defineRemoteResource({
       baseName: 'pbd',
     })
 
-    const pbdsBySr = computed(() => {
-      const pbdsBySrMap = new Map<XoSr['id'], FrontXoPbd[]>()
+    const pbdsBySr = ref(new Map<FrontXoSr['id'], FrontXoPbd[]>())
+    const pbdsByHost = ref(new Map<FrontXoHost['id'], FrontXoPbd[]>())
 
-      pbds.value.forEach(pbd => {
-        const srId = pbd.SR
+    watch(pbds, _pbds => {
+      const tmpPbdsBySr = new Map<FrontXoSr['id'], FrontXoPbd[]>()
+      const tmpPbdsByHost = new Map<FrontXoHost['id'], FrontXoPbd[]>()
 
-        if (!pbdsBySrMap.has(srId)) {
-          pbdsBySrMap.set(srId, [])
-        }
-
-        pbdsBySrMap.get(srId)!.push(pbd)
+      _pbds.forEach(pbd => {
+        safePushInMap(tmpPbdsBySr, pbd.SR, pbd)
+        safePushInMap(tmpPbdsByHost, pbd.host, pbd)
       })
 
-      return pbdsBySrMap
-    })
-
-    const pbdsByHost = computed(() => {
-      const pbdsByHostMap = new Map<XoHost['id'], FrontXoPbd[]>()
-
-      pbds.value.forEach(pbd => {
-        const hostId = pbd.host
-
-        if (!pbdsByHostMap.has(hostId)) {
-          pbdsByHostMap.set(hostId, [])
-        }
-
-        pbdsByHostMap.get(hostId)!.push(pbd)
-      })
-
-      return pbdsByHostMap
+      pbdsBySr.value = tmpPbdsBySr
+      pbdsByHost.value = tmpPbdsByHost
     })
 
     return {

@@ -25,7 +25,9 @@
 </template>
 
 <script setup lang="ts">
+import { useVbdDeleteModal } from '@/modules/vbd/composables/use-vbd-delete-modal.composable.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import { useVdiDeleteModal } from '@/modules/vdi/composables/use-vdi-delete-modal.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { getVdiFormat } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
@@ -80,6 +82,8 @@ const { HeadCells, BodyCells } = useVdiColumns({
   body: (vdi: FrontXoVdi) => {
     const vbds = useGetVbdsByIds(vdi.$VBDs)
 
+    const vbd = computed(() => vbds.value.find(vbd => vbd.VDI === vdi.id))
+
     const vmId = computed(() => vbds.value.find(vbd => vbd.VDI === vdi.id)?.VM)
 
     const href = computed(() =>
@@ -89,13 +93,46 @@ const { HeadCells, BodyCells } = useVdiColumns({
     const size = computed(() => formatSizeRaw(vdi.size, 2))
     const format = computed(() => getVdiFormat(vdi.image_format))
 
+    const {
+      openModal: openVbdDeleteModal,
+      canRun: canDeleteVbd,
+      isRunning: isDeletingVbd,
+    } = useVbdDeleteModal(() => (vbd.value ? [vbd.value] : []))
+
+    const {
+      openModal: openVdiDeleteModal,
+      canRun: canDeleteVdi,
+      isRunning: isDeletingVdi,
+    } = useVdiDeleteModal(() => [vdi])
+
     return {
       vdi: r => r({ label: vdi.name_label, href: href.value, icon: 'object:vdi' }),
       description: r => r(vdi.name_description),
       usedSpace: r => r(vdi.usage, vdi.size),
       size: r => r(size.value.value, size.value.prefix),
       format: r => r(format.value),
-      selectItem: r => r(() => (selectedVdiId.value = vdi.id)),
+      actions: r =>
+        r({
+          onClick: () => (selectedVdiId.value = vdi.id),
+          actions: [
+            {
+              label: t('action:delete-vbd'),
+              hint: !canDeleteVbd.value ? t('running-vm') : undefined,
+              icon: 'action:disconnect',
+              onClick: () => openVbdDeleteModal(),
+              disabled: !canDeleteVbd.value,
+              busy: isDeletingVbd.value,
+            },
+            {
+              label: t('action:delete'),
+              hint: !canDeleteVdi.value ? t('running-vm') : undefined,
+              icon: 'action:delete',
+              onClick: () => openVdiDeleteModal(),
+              disabled: !canDeleteVdi.value,
+              busy: isDeletingVdi.value,
+            },
+          ],
+        }),
     }
   },
 })

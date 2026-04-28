@@ -1,6 +1,6 @@
 import { asyncMap } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
-import { Task } from '../../Task.mjs'
+import { Task } from '@vates/task'
 
 const { debug, warn } = createLogger('xo:backups:AbstractVmRunner')
 
@@ -83,7 +83,7 @@ export const Abstract = class AbstractVmBackupRunner {
       // create a task to have an info in the logs and reports
       return Task.run(
         {
-          name: 'health check',
+          properties: { name: 'health check' },
         },
         () => {
           Task.info(`This VM doesn't match the health check's tags for this schedule`)

@@ -1,11 +1,13 @@
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection'
 import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
+import { safePushInMap } from '@/shared/utils/map.util'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
-import type { XoPool, XoVmTemplate } from '@vates/types'
+import type { XoVmTemplate } from '@vates/types'
 import { useSorted } from '@vueuse/core'
-import { computed } from 'vue'
+import { ref, watch } from 'vue'
 
 export type FrontXoVmTemplate = Pick<XoVmTemplate, (typeof vmTemplateFields)[number]>
 
@@ -33,26 +35,22 @@ export const useXoVmTemplateCollection = defineRemoteResource({
   initWatchCollection: () => useWatchCollection({ resource: 'VM-template', fields: vmTemplateFields }),
   initialData: () => [] as FrontXoVmTemplate[],
   state: (rawTemplates, context) => {
-    const templates = useSorted(rawTemplates, sortByNameLabel)
+    const sortedTemplates = useSorted(rawTemplates, sortByNameLabel)
 
-    const vmsTemplatesByPool = computed(() => {
-      const vmTemplatesByPoolMap = new Map<XoPool['id'], FrontXoVmTemplate[]>()
+    const vmsTemplatesByPool = ref(new Map<FrontXoPool['id'], FrontXoVmTemplate[]>())
 
-      templates.value.forEach(template => {
-        const poolId = template.$pool
+    watch(sortedTemplates, templates => {
+      const tmpTemplatesByPool = new Map<FrontXoPool['id'], FrontXoVmTemplate[]>()
 
-        if (!vmTemplatesByPoolMap.has(poolId)) {
-          vmTemplatesByPoolMap.set(poolId, [])
-        }
-
-        vmTemplatesByPoolMap.get(poolId)!.push(template)
+      templates.forEach(template => {
+        safePushInMap(tmpTemplatesByPool, template.$pool, template)
       })
 
-      return vmTemplatesByPoolMap
+      vmsTemplatesByPool.value = tmpTemplatesByPool
     })
 
     return {
-      ...useXoCollectionState(templates, {
+      ...useXoCollectionState(sortedTemplates, {
         context,
         baseName: 'template',
       }),

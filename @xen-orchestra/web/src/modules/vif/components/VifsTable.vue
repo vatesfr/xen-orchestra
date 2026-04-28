@@ -30,6 +30,7 @@
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
+import { useVifDeleteModal } from '@/modules/vif/composables/use-vif-delete-modal.composable.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
@@ -104,6 +105,12 @@ const { HeadCells, BodyCells } = useVifColumns({
       network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
     )
 
+    const {
+      openModal: openDeleteModal,
+      canRun: canDeleteVif,
+      isRunning: isDeletingVif,
+    } = useVifDeleteModal(() => [vif])
+
     return {
       network: r =>
         network.value
@@ -119,7 +126,20 @@ const { HeadCells, BodyCells } = useVifColumns({
       macAddresses: r => r(vif.MAC),
       mtu: r => r(vif.MTU),
       lockingMode: r => r(vif.lockingMode),
-      selectItem: r => r(() => (selectedVifId.value = vif.id)),
+      actions: r =>
+        r({
+          onClick: () => (selectedVifId.value = vif.id),
+          actions: [
+            {
+              label: t('action:delete'),
+              hint: !canDeleteVif.value ? t('vif-connected') : undefined,
+              icon: 'action:delete',
+              onClick: () => openDeleteModal(),
+              disabled: !canDeleteVif.value,
+              busy: isDeletingVif.value,
+            },
+          ],
+        }),
     }
   },
 })

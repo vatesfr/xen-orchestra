@@ -69,7 +69,7 @@ export const useXoVmCreateJob = defineJob('vm.create', [payloadsArg], () => {
 
     validate(isRunning, payloads) {
       if (isRunning) {
-        throw new JobRunningError(t('job:vm-create:in-progress'))
+        throw new JobRunningError(t('job:create:in-progress'))
       }
 
       if (payloads.length === 0) {
@@ -95,7 +95,7 @@ export const useXoVmCreateJob = defineJob('vm.create', [payloadsArg], () => {
         }
 
         if (value.name_label.length === 0) {
-          throw new JobError(t('job:arg:name-label-required'))
+          throw new JobError(t('job:arg:name-required'))
         }
 
         if (value.vdis?.some(vdi => vdi.sr === undefined)) {

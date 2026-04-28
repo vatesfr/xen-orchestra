@@ -583,9 +583,10 @@ You can also see the available updates in the Dashboard view.
 
 On XCP-ng, there's multiple way to update your pools and hosts.
 
-:::details ⚙️ How it works
-Xen Orchestra will request a plugin, bundled and hosted within your XCP-ng hosts. This plugin will query the status of updates. Then, when the update will be apply, it's also the plugin that will download and apply them. So unlike with Citrix Hypervisor, Xen Orchestra will not fetch or download updates, but it will order the host to do it by itself. Be sure that your host(s) can access the update repositories.
-:::
+#### ⚙️ How it works
+
+Xen Orchestra will request a plugin, bundled and hosted within your XCP-ng hosts. This plugin will query the status of updates. Then, when the update will be applied, it's also the plugin that will download and apply them. 
+So unlike with Citrix Hypervisor, Xen Orchestra will not fetch or download updates, but it will order the host to do it by itself. Be sure that your host(s) can access the update repositories.
 
 #### Rolling Pool Updates (RPU)
 
@@ -644,9 +645,9 @@ We do NOT recommend to install updates to individual hosts. Obviously except if 
 
 ### XenServer/Citrix Hypervisor
 
-:::details ⚙️ How it works
-Xen Orchestra will directly request a specific XML, hosted by Citrix. It will be analyzed and compared to the patch level on your hosts. If there's available/missing updates, XO will download it directly, then send it to the pool, and finally ask the pool to apply it. In that scenario, you should check if Xen Orchestra can access outside to get those updates.
-:::
+#### ⚙️ How it works
+Xen Orchestra will directly request a specific XML, hosted by Citrix. It will be analyzed and compared to the patch level on your hosts. 
+If there's available/missing updates, XO will download it directly, then send it to the pool, and finally ask the pool to apply it. In that scenario, you should check if Xen Orchestra can access outside to get those updates.
 
 #### Pool updates
 
@@ -697,7 +698,7 @@ Then you need to add the new host to the desired pool. Navigate to Home > Pools,
 ### Adding an existing pool
 
 If your hosts are already in a pool you only need to add your pool master host to XOA, the slaves will be added automatically.
-::: danger
+:::danger
 Don't add pool slaves to your XOA server list! XOA will automatically find them from the master you add.
 :::
 
@@ -803,7 +804,7 @@ If your SAN supports it, Xen Orchestra can instruct your XCP-ng host to send a t
 Visualizations can help you to understand your XCP-ng/XenServer infrastructure, as well as correlate events and detect bottlenecks.
 
 :::tip
-:construction_worker: This section needs to be completed: screenshots and how-to :construction_worker:
+👷 This section needs to be completed: screenshots and how-to 👷
 :::
 
 ### Dashboard

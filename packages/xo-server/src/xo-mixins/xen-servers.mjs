@@ -256,6 +256,13 @@ export default class XenServers {
         }
 
         const xoId = xoObject.id
+        const previousXoId = xapiIdsToXo[xapiId]
+        // XO ID can change for the same XAPI ID (E.g. default template -> non-default template)
+        // So we need to remove the old cache entry
+        if (previousXoId !== undefined && previousXoId !== xoId) {
+          objects.unset(previousXoId)
+        }
+
         xapiIdsToXo[xapiId] = xoId
 
         const previous = objects.get(xoId, undefined)
