@@ -537,11 +537,27 @@ export class RemoteAdapter {
       }
 
       const results = []
-      await asyncMapSettled(partitions, partition =>
-        partition.type === LVM_PARTITION_TYPE_MBR || partition.type === LVM_PARTITION_TYPE_GPT
-          ? this._listLvmLogicalVolumes(devicePath, partition, results)
-          : results.push(partition)
-      )
+      await asyncMapSettled(partitions, async partition => {
+        if (partition.type === LVM_PARTITION_TYPE_MBR || partition.type === LVM_PARTITION_TYPE_GPT) {
+          return this._listLvmLogicalVolumes(devicePath, partition, results)
+        }
+
+        // Some Linux installers (e.g. Ubuntu subiquity) mark LVM PV partitions with a
+        // generic Linux filesystem type instead of the standard LVM type. Probe the
+        // partition: if pvs finds logical volumes, expose them; otherwise treat it as a
+        // regular mountable partition.
+        const lvResults = []
+        try {
+          await this._listLvmLogicalVolumes(devicePath, partition, lvResults)
+        } catch (_) {
+          // not an LVM PV — fall through to regular partition handling
+        }
+        if (lvResults.length > 0) {
+          results.push(...lvResults)
+        } else {
+          results.push(partition)
+        }
+      })
       return results
     })
   }
