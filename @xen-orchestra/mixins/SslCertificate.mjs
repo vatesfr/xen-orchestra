@@ -53,6 +53,7 @@ class SslCertificate {
   #challengeCreateFn
   #challengeRemoveFn
   #delayBeforeRenewal = 30 * 24 * 60 * 60 * 1000 // 30 days
+  #retryAfter = 0
   #secureContext
   #updateSslCertificatePromise
 
@@ -82,7 +83,7 @@ class SslCertificate {
       return this.#secureContext
     }
 
-    if (this.#updateSslCertificatePromise === undefined) {
+    if (this.#updateSslCertificatePromise === undefined && Date.now() >= this.#retryAfter) {
       // not currently updating certificate
       //
       // ensure we only refresh certificate once at a time
@@ -96,7 +97,12 @@ class SslCertificate {
       return this.#secureContext
     }
 
-    return this.#updateSslCertificatePromise
+    if (this.#updateSslCertificatePromise === undefined) {
+      return undefined
+    }
+
+    const timeout = new Promise(resolve => setTimeout(() => resolve(undefined), 2 * 60 * 1000))
+    return Promise.race([this.#updateSslCertificatePromise, timeout])
   }
 
   async #save(certPath, cert, keyPath, key) {
@@ -189,6 +195,7 @@ class SslCertificate {
       return this.#secureContext
     } catch (error) {
       warn(`couldn't renew ssl certificate`, { acmeDomain, error })
+      this.#retryAfter = Date.now() + 5 * 60 * 1000
     } finally {
       this.#updateSslCertificatePromise = undefined
     }
