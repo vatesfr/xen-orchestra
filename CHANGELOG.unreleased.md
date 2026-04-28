@@ -17,7 +17,6 @@
 
 - [xo-server] Fix VM-template still visible after deletion (PR [#9760](https://github.com/vatesfr/xen-orchestra/pull/9760))
 
-
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -34,6 +33,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/mixins patch
 - xo-server patch
 
 <!--packages-end-->
