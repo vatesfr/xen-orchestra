@@ -798,7 +798,7 @@ class SDNController extends EventEmitter {
       for (const pool of pools) {
         pool.update_other_config('xo:sdn-controller:of-method', of_method)
       }
-      
+
     } catch (error) {
       log.error('Error while handling xapi connection', {
         id: xapi.pool.uuid,
@@ -902,7 +902,7 @@ class SDNController extends EventEmitter {
       let cookie
       if (matchRules.length !== 0) {
         // use the one in rule if matching rule is present
-         cookie = matchRules.map(rule => { return rule.cookie })[0]
+        cookie = matchRules.map(rule => { return rule.cookie })[0]
 
       } else {
         // generate a new cookie not in use (OpenVSwitch cookie range: 0x1 to 0xFFFF_FFFF_FFFF_FFFF)
@@ -984,7 +984,7 @@ class SDNController extends EventEmitter {
             host: vif.$VM.$resident_on?.uuid,
           })
         } else {
-          throw error
+          throw (error)
         }
       }
 
@@ -1062,7 +1062,7 @@ class SDNController extends EventEmitter {
         if (error.code === 'HOST_OFFLINE') {
           log.info('deleteNetworkOfRule: Ignoring HOST_OFFLINE', { network: networkId })
         } else {
-          throw error
+          throw (error)
         }
       }
 
