@@ -282,11 +282,18 @@ export default class Proxy {
       [namespace]: { xva },
     } = await app.getResourceCatalog()
     const xapi = app.getXapi(srId)
-    const sourceStream = await app.requestResource({
-      id: xva.id,
-      namespace,
-      version: xva.version,
-    })
+    let sourceStream
+    try {
+      sourceStream = await app.requestResource({
+        id: xva.id,
+        namespace,
+        version: xva.version,
+      })
+    } catch (error) {
+      const newErr = new Error('Error while building the proxy VM source stream', { cause: error })
+      throw newErr
+    }
+
     // ensure source is readable
     try {
       const chunk = await readChunk(sourceStream, 1024 * 1024)
