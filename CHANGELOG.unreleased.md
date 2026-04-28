@@ -35,7 +35,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
+- @xen-orchestra/backups patch
 - xo-server patch
 
 <!--packages-end-->
