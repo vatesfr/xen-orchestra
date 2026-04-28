@@ -258,5 +258,6 @@ A selector is evaluated against each object's properties. If it matches, the pri
 
 - **Start minimal.** Add only the privileges a user actually needs. It is easy to add more later.
 - **Use groups.** Assigning a role to a group avoids repeating the same assignment for every user.
-- **Combine `allow` and `deny`.** When a user needs broad access with specific exceptions, grant with a wildcard privilege and carve out exceptions with `deny` + a selector.- **Template roles are immutable.** Copy them first before customizing.
+- **Combine `allow` and `deny`.** When a user needs broad access with specific exceptions, grant with a wildcard privilege and carve out exceptions with `deny` + a selector.
+- **Template roles are immutable.** Copy them first before customizing.
 - **Endpoint permissions** are visible in the Swagger UI (`/rest/v0/swagger`). Endpoints without a declared privilege require admin access.
