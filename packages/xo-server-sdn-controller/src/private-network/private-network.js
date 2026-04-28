@@ -1,6 +1,7 @@
 import assert from 'assert'
 import { createLogger } from '@xen-orchestra/log'
-import { filter, forOwn, sample } from 'lodash'
+import { filter, forOwn } from 'lodash'
+import { randomBytes } from 'crypto'
 
 // =============================================================================
 
@@ -8,8 +9,21 @@ const log = createLogger('xo:xo-server:sdn-controller:private-network')
 
 // =============================================================================
 
-const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789?!'
-const createPassword = () => Array.from({ length: 16 }, _ => sample(CHARS)).join('')
+const createPassword = () => {
+  const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789?!'
+  const length = 16
+
+  const buffer = randomBytes(length)
+  let password = ''
+
+  for (let i = 0; i < length; i++) {
+    // no modular bias as length=16 CHARS.length=64
+    const randomIndex = buffer[i] % CHARS.length
+    password += CHARS[randomIndex]
+  }
+
+  return password
+}
 
 // =============================================================================
 
