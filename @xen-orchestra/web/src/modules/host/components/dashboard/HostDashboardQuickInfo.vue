@@ -9,9 +9,9 @@
           </span>
         </template>
       </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="t('ip-address')">
+      <VtsQuickInfoRow :label="t('ip-address')" no-value-tooltip>
         <template #value>
-          {{ host.address }}
+          <span v-tooltip class="text-ellipsis">{{ host.address }}</span>
           <VtsCopyButton v-if="host.address" :value="host.address" />
         </template>
       </VtsQuickInfoRow>
@@ -37,9 +37,9 @@
       </VtsQuickInfoRow>
     </VtsQuickInfoColumn>
     <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="t('uuid')">
+      <VtsQuickInfoRow :label="t('uuid')" no-value-tooltip>
         <template #value>
-          {{ host.id }}
+          <span v-tooltip class="text-ellipsis">{{ host.id }}</span>
           <VtsCopyButton :value="host.id" />
         </template>
       </VtsQuickInfoRow>

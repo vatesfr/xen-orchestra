@@ -5,9 +5,9 @@
     </UiTitle>
     <VtsStateHero v-if="!areServersReady" format="card" type="busy" size="medium" />
     <template v-else>
-      <VtsQuickInfoRow :label="t('ip-address')">
+      <VtsQuickInfoRow :label="t('ip-address')" no-value-tooltip>
         <template #value>
-          {{ server?.host }}
+          <span v-tooltip class="text-ellipsis">{{ server?.host }}</span>
           <VtsCopyButton v-if="server?.host" :value="server.host" />
         </template>
       </VtsQuickInfoRow>
@@ -36,6 +36,7 @@ import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

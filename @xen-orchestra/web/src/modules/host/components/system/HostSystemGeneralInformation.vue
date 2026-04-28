@@ -3,15 +3,15 @@
     <UiTitle>
       {{ t('general-information') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="t('name')">
+    <VtsQuickInfoRow :label="t('name')" no-value-tooltip>
       <template #value>
-        {{ host.name_label }}
+        <span v-tooltip class="text-ellipsis">{{ host.name_label }}</span>
         <VtsCopyButton v-if="host.name_label" :value="host.name_label" />
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('uuid')">
+    <VtsQuickInfoRow :label="t('uuid')" no-value-tooltip>
       <template #value>
-        {{ host.id }}
+        <span v-tooltip class="text-ellipsis">{{ host.id }}</span>
         <VtsCopyButton :value="host.id" />
       </template>
     </VtsQuickInfoRow>

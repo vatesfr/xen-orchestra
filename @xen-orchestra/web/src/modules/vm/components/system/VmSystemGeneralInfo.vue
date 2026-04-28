@@ -3,15 +3,15 @@
     <UiTitle>
       {{ t('general-information') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="t('name')">
+    <VtsQuickInfoRow :label="t('name')" no-value-tooltip>
       <template #value>
-        {{ vm.name_label }}
+        <span v-tooltip class="text-ellipsis">{{ vm.name_label }}</span>
         <VtsCopyButton v-if="vm.name_label" :value="vm.name_label" />
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('id')">
+    <VtsQuickInfoRow :label="t('id')" no-value-tooltip>
       <template #value>
-        {{ vm.id }}
+        <span v-tooltip class="text-ellipsis">{{ vm.id }}</span>
         <VtsCopyButton :value="vm.id" />
       </template>
     </VtsQuickInfoRow>
@@ -37,6 +37,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{ vm: FrontXoVm }>()
