@@ -52,10 +52,10 @@
 - @vates/types minor
 - @xen-orchestra/acl major
 - @xen-orchestra/backups patch
+- @xen-orchestra/mixins minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
-- @xen-orchestra/mixins minor
 - xo-server minor
 - xo-server-sdn-controller minor
 
