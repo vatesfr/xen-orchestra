@@ -457,7 +457,7 @@ class SDNController extends EventEmitter {
       if (sync) {
         const result = await pResult
         res.status(statusCode)
-        return result
+        return result ?? {}
       } else {
         pResult.catch(() => {})
         res.status(202).set('Location', `/rest/v0/tasks/${task.id}`).json({ taskId: task.id })
@@ -472,7 +472,7 @@ class SDNController extends EventEmitter {
             _post: async (req, res, next) => {
               const validationErrors = []
 
-              if (!req.body.allow || (req.body.allow !== 'true' && req.body.allow !== 'false')) {
+              if (!req.body.allow || typeof req.body.allow !== 'boolean') {
                 validationErrors.push('allow is required and must be a boolean')
               }
 
