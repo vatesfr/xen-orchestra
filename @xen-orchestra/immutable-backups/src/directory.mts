@@ -30,7 +30,7 @@ async function execChattrWithMissingFiles(args: string[]): Promise<void> {
       }
 
       // At least one non-ENOENT error — retry up to 3 times, then re-throw.
-      if (attempt < 3) {
+      if (attempt <= 3) {
         await new Promise<void>(resolve => setTimeout(resolve, 1000))
         continue
       }
