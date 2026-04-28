@@ -1,16 +1,3 @@
-/**
- * XO REST API Client
- *
- * Minimal client using native fetch to interact with Xen Orchestra REST API.
- * Authentication is done via Basic Auth or token cookie.
- */
-
-export interface ListOptions {
-  filter?: string
-  fields?: string
-  limit?: number
-}
-
 const REQUEST_TIMEOUT_MS = 30_000
 
 export type XoClientConfig = { url: string; username: string; password: string } | { url: string; token: string }
@@ -40,10 +27,7 @@ export class XoClient {
     try {
       response = await fetch(url, {
         ...options,
-        headers: {
-          ...this.authHeaders,
-          ...options.headers,
-        },
+        headers: { ...this.authHeaders, ...options.headers },
         signal: options.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       })
     } catch (cause) {
@@ -75,6 +59,46 @@ export class XoClient {
     return response
   }
 
+  /**
+   * Generic REST call. Returns a string for text/markdown responses, a parsed
+   * object/array for JSON responses. Callers that want markdown should set
+   * `query.markdown = 'true'`; the server ignores it when the endpoint does
+   * not support markdown rendering.
+   */
+  async apiRequest(
+    method: string,
+    path: string,
+    options?: { query?: Record<string, string>; body?: unknown }
+  ): Promise<unknown> {
+    let endpoint = path.startsWith('/') ? path : `/${path}`
+    if (options?.query) {
+      const params = new URLSearchParams()
+      for (const [k, v] of Object.entries(options.query)) {
+        if (v !== undefined && v !== '') params.set(k, v)
+      }
+      const qs = params.toString()
+      if (qs) endpoint += `?${qs}`
+    }
+
+    const init: RequestInit = { method: method.toUpperCase() }
+    if (options?.body !== undefined) {
+      init.headers = { 'Content-Type': 'application/json' }
+      init.body = JSON.stringify(options.body)
+    }
+
+    const response = await this.fetch(endpoint, init)
+    const contentType = response.headers.get('content-type') ?? ''
+    return contentType.includes('application/json') ? ((await response.json()) as unknown) : await response.text()
+  }
+
+  getAuthHeaders(): Record<string, string> {
+    return { ...this.authHeaders }
+  }
+
+  getBaseUrl(): string {
+    return this.baseUrl
+  }
+
   async testConnection(): Promise<{ ok: boolean; error?: string }> {
     try {
       await this.fetch('/pools?limit=1')
@@ -82,24 +106,5 @@ export class XoClient {
     } catch (error) {
       return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' }
     }
-  }
-
-  async getText(endpoint: string): Promise<string> {
-    const response = await this.fetch(endpoint)
-    return response.text()
-  }
-
-  async getMarkdown(path: string, defaultFields: string, options?: ListOptions): Promise<string> {
-    const params = new URLSearchParams()
-    params.set('fields', options?.fields ?? defaultFields)
-    if (options?.filter) {
-      params.set('filter', options.filter)
-    }
-    if (options?.limit !== undefined) {
-      params.set('limit', String(options.limit))
-    }
-    params.set('markdown', 'true')
-    const response = await this.fetch(`${path}?${params}`)
-    return response.text()
   }
 }

@@ -1,4 +1,4 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
@@ -6,8 +6,15 @@ import type { XoAlarm, XoMessage, XoPif, XoTask } from '@vates/types'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
+import { acl } from '../middlewares/acl.middleware.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
-import { badRequestResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  badRequestResp,
+  forbiddenOperationResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { partialPifs, pif, pifIds } from '../open-api/oa-examples/pif.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
@@ -31,6 +38,9 @@ export class PifController extends XapiXoController<XoPif> {
   }
 
   /**
+   * Returns all PIFs that match the following privilege:
+   * - resource: pif, action: read
+   *
    * @example fields "attached,device,deviceName,id"
    * @example filter "attached?"
    * @example limit 42
@@ -38,6 +48,7 @@ export class PifController extends XapiXoController<XoPif> {
   @Example(pifIds)
   @Example(partialPifs)
   @Get('')
+  @Security('*', ['acl'])
   getPifs(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -46,20 +57,31 @@ export class PifController extends XapiXoController<XoPif> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<UnbrandedXoPif>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'pif' },
+    })
   }
 
   /**
+   * Required privilege:
+   * - resource: pif, action: read
+   *
    * @example id "d9e42451-3794-089f-de81-4ee0e6137bee"
    */
   @Example(pif)
   @Get('{id}')
+  @Middlewares(acl({ resource: 'pif', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getPif(@Path() id: string): UnbrandedXoPif {
     return this.getObject(id as XoPif['id'])
   }
 
   /**
+   * Returns all alarms that match the following privilege:
+   * - resource: alarm, action: read
+   *
    * @example id "d9e42451-3794-089f-de81-4ee0e6137bee"
    * @example fields "id,time"
    * @example filter "time:>1747053793"
@@ -67,6 +89,7 @@ export class PifController extends XapiXoController<XoPif> {
    */
   @Example(genericAlarmsExample)
   @Get('{id}/alarms')
+  @Security('*', ['acl'])
   @Tags('alarms')
   @Response(notFoundResp.status, notFoundResp.description)
   getPifAlarms(
@@ -81,13 +104,19 @@ export class PifController extends XapiXoController<XoPif> {
     const pif = this.getObject(id as XoPif['id'])
     const alarms = this.#alarmService.getAlarms({
       filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${pif.uuid}`,
-      limit,
     })
 
-    return this.sendObjects(Object.values(alarms), req, 'alarms')
+    return this.sendObjects(Object.values(alarms), req, {
+      path: 'alarms',
+      limit,
+      privilege: { action: 'read', resource: 'alarm' },
+    })
   }
 
   /**
+   * Returns all messages that match the following privilege:
+   * - resource: message, action: read
+   *
    * @example id "d9e42451-3794-089f-de81-4ee0e6137bee"
    * @example fields "name,id,$object"
    * @example filter "name:VM_STARTED"
@@ -96,6 +125,7 @@ export class PifController extends XapiXoController<XoPif> {
   @Example(messageIds)
   @Example(partialMessages)
   @Get('{id}/messages')
+  @Security('*', ['acl'])
   @Tags('messages')
   @Response(notFoundResp.status, notFoundResp.description)
   getPifMessages(
@@ -107,12 +137,19 @@ export class PifController extends XapiXoController<XoPif> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
-    const messages = this.getMessagesForObject(id as XoPif['id'], { filter, limit })
+    const messages = this.getMessagesForObject(id as XoPif['id'], { filter })
 
-    return this.sendObjects(Object.values(messages), req, 'messages')
+    return this.sendObjects(Object.values(messages), req, {
+      path: 'messages',
+      limit,
+      privilege: { action: 'read', resource: 'message' },
+    })
   }
 
   /**
+   * Returns all tasks that match the following privilege:
+   * - resource: task, action: read
+   *
    * @example id "d9e42451-3794-089f-de81-4ee0e6137bee"
    * @example fields "id,status,properties"
    * @example filter "status:failure"
@@ -121,6 +158,7 @@ export class PifController extends XapiXoController<XoPif> {
   @Example(taskIds)
   @Example(partialTasks)
   @Get('{id}/tasks')
+  @Security('*', ['acl'])
   @Tags('tasks')
   @Response(notFoundResp.status, notFoundResp.description)
   async getPifTasks(
@@ -131,9 +169,13 @@ export class PifController extends XapiXoController<XoPif> {
     @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
-    const tasks = await this.getTasksForObject(id as XoPif['id'], { filter, limit })
+  ): SendObjects<Partial<Unbrand<XoTask>>> {
+    const tasks = await this.getTasksForObject(id as XoPif['id'], { filter })
 
-    return this.sendObjects(Object.values(tasks), req, 'tasks')
+    return this.sendObjects(Object.values(tasks), req, {
+      path: 'tasks',
+      limit,
+      privilege: { action: 'read', resource: 'task' },
+    })
   }
 }

@@ -21,6 +21,7 @@ import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 import type { Xapi, XoAlarm, XoMessage, XoTask, XoVbd, XoVdi, XoVm } from '@vates/types'
 
+import { acl } from '../middlewares/acl.middleware.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
@@ -31,6 +32,7 @@ import {
   internalServerErrorResp,
   invalidParameters,
   noContentResp,
+  forbiddenOperationResp,
   notFoundResp,
   unauthorizedResp,
   type Unbrand,
@@ -55,6 +57,47 @@ export class VbdController extends XapiXoController<XoVbd> {
   constructor(@inject(RestApi) restApi: RestApi, @inject(AlarmService) alarmService) {
     super('VBD', restApi)
     this.#alarmService = alarmService
+  }
+
+  /**
+   * Returns all VBDs that match the following privilege:
+   * - resource: vbd, action: read
+   *
+   * @example fields "device,bootable,uuid"
+   * @example filter "!bootable?"
+   * @example limit 42
+   */
+  @Example(vbdIds)
+  @Example(partialVbds)
+  @Get('')
+  @Security('*', ['acl'])
+  getVbds(
+    @Request() req: ExRequest,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<XoVbd>>> {
+    return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'vbd' },
+    })
+  }
+
+  /**
+   * Required privilege:
+   * - resource: vbd, action: read
+   *
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Example(vbd)
+  @Get('{id}')
+  @Middlewares(acl({ resource: 'vbd', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  getVbd(@Path() id: string): Unbrand<XoVbd> {
+    return this.getObject(id as XoVbd['id'])
   }
 
   /**
@@ -95,38 +138,6 @@ export class VbdController extends XapiXoController<XoVbd> {
 
     return { id: vbdUuid }
   }
-
-  /**
-   *
-   * @example fields "device,bootable,uuid"
-   * @example filter "!bootable?"
-   * @example limit 42
-   */
-  @Example(vbdIds)
-  @Example(partialVbds)
-  @Get('')
-  getVbds(
-    @Request() req: ExRequest,
-    @Query() fields?: string,
-    @Query() ndjson?: boolean,
-    @Query() markdown?: boolean,
-    @Query() filter?: string,
-    @Query() limit?: number
-  ): SendObjects<Partial<Unbrand<XoVbd>>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
-  }
-
-  /**
-   *
-   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
-   */
-  @Example(vbd)
-  @Get('{id}')
-  @Response(notFoundResp.status, notFoundResp.description)
-  getVbd(@Path() id: string): Unbrand<XoVbd> {
-    return this.getObject(id as XoVbd['id'])
-  }
-
   /**
    * Delete a VBD
    *
@@ -144,6 +155,9 @@ export class VbdController extends XapiXoController<XoVbd> {
   }
 
   /**
+   * Returns all alarms that match the following privilege:
+   * - resource: alarm, action: read
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example fields "id,time"
    * @example filter "time:>1747053793"
@@ -151,6 +165,7 @@ export class VbdController extends XapiXoController<XoVbd> {
    */
   @Example(genericAlarmsExample)
   @Get('{id}/alarms')
+  @Security('*', ['acl'])
   @Tags('alarms')
   @Response(notFoundResp.status, notFoundResp.description)
   getVbdAlarms(
@@ -165,13 +180,19 @@ export class VbdController extends XapiXoController<XoVbd> {
     const vbd = this.getObject(id as XoVbd['id'])
     const alarms = this.#alarmService.getAlarms({
       filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${vbd.uuid}`,
-      limit,
     })
 
-    return this.sendObjects(Object.values(alarms), req, 'alarms')
+    return this.sendObjects(Object.values(alarms), req, {
+      path: 'alarms',
+      limit,
+      privilege: { action: 'read', resource: 'alarm' },
+    })
   }
 
   /**
+   * Returns all messages that match the following privilege:
+   * - resource: message, action: read
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example fields "name,id,$object"
    * @example filter "name:VM_STARTED"
@@ -180,6 +201,7 @@ export class VbdController extends XapiXoController<XoVbd> {
   @Example(messageIds)
   @Example(partialMessages)
   @Get('{id}/messages')
+  @Security('*', ['acl'])
   @Tags('messages')
   @Response(notFoundResp.status, notFoundResp.description)
   getVbdMessages(
@@ -191,12 +213,19 @@ export class VbdController extends XapiXoController<XoVbd> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
-    const messages = this.getMessagesForObject(id as XoVbd['id'], { filter, limit })
+    const messages = this.getMessagesForObject(id as XoVbd['id'], { filter })
 
-    return this.sendObjects(Object.values(messages), req, 'messages')
+    return this.sendObjects(Object.values(messages), req, {
+      path: 'messages',
+      limit,
+      privilege: { action: 'read', resource: 'message' },
+    })
   }
 
   /**
+   * Returns all tasks that match the following privilege:
+   * - resource: task, action: read
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example fields "id,status,properties"
    * @example filter "status:failure"
@@ -205,6 +234,7 @@ export class VbdController extends XapiXoController<XoVbd> {
   @Example(taskIds)
   @Example(partialTasks)
   @Get('{id}/tasks')
+  @Security('*', ['acl'])
   @Tags('tasks')
   @Response(notFoundResp.status, notFoundResp.description)
   async getVbdTasks(
@@ -215,9 +245,13 @@ export class VbdController extends XapiXoController<XoVbd> {
     @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
-    const tasks = await this.getTasksForObject(id as XoVbd['id'], { filter, limit })
-    return this.sendObjects(Object.values(tasks), req, 'tasks')
+  ): SendObjects<Partial<Unbrand<XoTask>>> {
+    const tasks = await this.getTasksForObject(id as XoVbd['id'], { filter })
+    return this.sendObjects(Object.values(tasks), req, {
+      path: 'tasks',
+      limit,
+      privilege: { action: 'read', resource: 'task' },
+    })
   }
 
   /**

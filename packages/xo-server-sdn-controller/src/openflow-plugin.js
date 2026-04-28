@@ -49,30 +49,32 @@ export class OpenFlowPlugin {
     })
   }
 
-  async addNetworkRule({ network, allow, protocol, ipRange, direction, port }) {
+  async addNetworkRule({ network, allow, protocol, ipRange, direction, port, cookie }) {
     if (port) {
       port = String(port)
     }
-    log.debug('addNetworkRule', { network, allow, protocol, ipRange, direction, port })
+    log.debug('addNetworkRule', { network, allow, protocol, ipRange, direction, port, cookie })
     return this.#callPluginOnAllNetwork(network, 'add-rule', {
       allow: allow ? 'true' : 'false',
       protocol,
       ipRange,
       direction,
       port,
+      cookie,
     })
   }
-  async deleteNetworkRule({ network, allow, protocol, ipRange, direction, port }) {
+  async deleteNetworkRule({ network, allow, protocol, ipRange, direction, port, cookie }) {
     if (port) {
       port = String(port)
     }
-    log.debug('deleteNetworkRule', { network, allow, protocol, ipRange, direction, port })
+    log.debug('deleteNetworkRule', { network, allow, protocol, ipRange, direction, port, cookie })
     return this.#callPluginOnAllNetwork(network, 'del-rule', {
       allow: allow ? 'true' : 'false',
       protocol,
       ipRange,
       direction,
       port,
+      cookie,
     })
   }
 

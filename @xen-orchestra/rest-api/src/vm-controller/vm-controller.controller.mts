@@ -1,15 +1,32 @@
 import { inject } from 'inversify'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import type { XoAlarm, XoMessage, XoTask, XoVdi, XoVmController } from '@vates/types'
-import { Delete, Example, Get, Path, Put, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
+import type { XoAlarm, XoMessage, XoTask, XoVdi, XoVdiSnapshot, XoVmController } from '@vates/types'
+import {
+  Delete,
+  Example,
+  Get,
+  Path,
+  Put,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+  Middlewares
+} from 'tsoa'
+
 import { Request as ExRequest } from 'express'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher, limitAndFilterArray } from '../helpers/utils.helper.mjs'
+import { acl } from '../middlewares/acl.middleware.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import {
   badRequestResp,
+  forbiddenOperationResp,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
@@ -48,6 +65,8 @@ export class VmControllerController extends XapiXoController<XoVmController> {
   }
 
   /**
+   * Returns all VM controllers that match the following privilege:
+   * - resource: vm-controller, action: read
    *
    * @example fields "type,uuid"
    * @example filter "power_state:Running"
@@ -56,6 +75,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
   @Example(vmControllerIds)
   @Example(partialVmControllers)
   @Get('')
+  @Security('*', ['acl'])
   getVmControllers(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -64,20 +84,31 @@ export class VmControllerController extends XapiXoController<XoVmController> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoVmController>>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'vm-controller' },
+    })
   }
 
   /**
+   * Required privilege:
+   * - resource: vm-controller, action: read
+   *
    * @example id "9b4775bd-9493-490a-9afa-f786a44caa4f"
    */
   @Example(vmController)
   @Get('{id}')
+  @Middlewares(acl({ resource: 'vm-controller', action: 'read', objectId: 'params.id' }))
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   getVmController(@Path() id: string): Unbrand<XoVmController> {
     return this.getObject(id as XoVmController['id'])
   }
 
   /**
+   * Returns all alarms that match the following privilege:
+   * - resource: alarm, action: read
+   *
    * @example id "9b4775bd-9493-490a-9afa-f786a44caa4f"
    * @example fields "id,time"
    * @example filter "time:>1747053793"
@@ -85,6 +116,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
    */
   @Example(genericAlarmsExample)
   @Get('{id}/alarms')
+  @Security('*', ['acl'])
   @Tags('alarms')
   @Response(notFoundResp.status, notFoundResp.description)
   getVmControllerAlarms(
@@ -99,13 +131,19 @@ export class VmControllerController extends XapiXoController<XoVmController> {
     const vmController = this.getObject(id as XoVmController['id'])
     const alarms = this.#alarmService.getAlarms({
       filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${vmController.uuid}`,
-      limit,
     })
 
-    return this.sendObjects(Object.values(alarms), req, 'alarms')
+    return this.sendObjects(Object.values(alarms), req, {
+      path: 'alarms',
+      limit,
+      privilege: { action: 'read', resource: 'alarm' },
+    })
   }
 
   /**
+   * Returns all VDIs that match the following privilege:
+   * - resource: vdi, action: read
+   *
    * @example id "9b4775bd-9493-490a-9afa-f786a44caa4f"
    * @example fields "VDI_type,id,name_label"
    * @example filter "VDI_type:user"
@@ -113,6 +151,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
    */
   @Example(vmControllerVdis)
   @Get('{id}/vdis')
+  @Security('*', ['acl'])
   @Tags('vdis')
   @Response(notFoundResp.status, notFoundResp.description)
   getVmControllerVdis(
@@ -125,10 +164,17 @@ export class VmControllerController extends XapiXoController<XoVmController> {
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoVdi>>> {
     const vdis = this.#vmService.getVmVdis(id as XoVmController['id'], 'VM-controller')
-    return this.sendObjects(limitAndFilterArray(vdis, { filter, limit }), req, obj => obj.type.toLowerCase() + 's')
+    return this.sendObjects(limitAndFilterArray(vdis, { filter }), req, {
+      path: obj => obj.type.toLowerCase() + 's',
+      limit,
+      privilege: { action: 'read', resource: 'vdi' },
+    })
   }
 
   /**
+   * Returns all messages that match the following privilege:
+   * - resource: message, action: read
+   *
    * @example id "9b4775bd-9493-490a-9afa-f786a44caa4f"
    * @example fields "name,id,$object"
    * @example filter "name:VM_STARTED"
@@ -137,6 +183,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
   @Example(messageIds)
   @Example(partialMessages)
   @Get('{id}/messages')
+  @Security('*', ['acl'])
   @Tags('messages')
   @Response(notFoundResp.status, notFoundResp.description)
   getVmControllerMessages(
@@ -148,12 +195,19 @@ export class VmControllerController extends XapiXoController<XoVmController> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
-    const messages = this.getMessagesForObject(id as XoVmController['id'], { filter, limit })
+    const messages = this.getMessagesForObject(id as XoVmController['id'], { filter })
 
-    return this.sendObjects(Object.values(messages), req, 'messages')
+    return this.sendObjects(Object.values(messages), req, {
+      path: 'messages',
+      limit,
+      privilege: { action: 'read', resource: 'message' },
+    })
   }
 
   /**
+   * Returns all tasks that match the following privilege:
+   * - resource: task, action: read
+   *
    * @example id "9b4775bd-9493-490a-9afa-f786a44caa4f"
    * @example fields "id,status,properties"
    * @example filter "status:failure"
@@ -162,6 +216,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
   @Example(taskIds)
   @Example(partialTasks)
   @Get('{id}/tasks')
+  @Security('*', ['acl'])
   @Tags('tasks')
   @Response(notFoundResp.status, notFoundResp.description)
   async getVmControllerTasks(
@@ -172,18 +227,27 @@ export class VmControllerController extends XapiXoController<XoVmController> {
     @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
-    const tasks = await this.getTasksForObject(id as XoVmController['id'], { filter, limit })
+  ): SendObjects<Partial<Unbrand<XoTask>>> {
+    const tasks = await this.getTasksForObject(id as XoVmController['id'], { filter })
 
-    return this.sendObjects(Object.values(tasks), req, 'tasks')
+    return this.sendObjects(Object.values(tasks), req, {
+      path: 'tasks',
+      limit,
+      privilege: { action: 'read', resource: 'task' },
+    })
   }
 
   /**
+   * Required privilege:
+   * - resource: vm-controller, action: update:tags
+   *
    * @example id "9b4775bd-9493-490a-9afa-f786a44caa4f"
    * @example tag "from-rest-api"
    */
   @Put('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'vm-controller', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async putVmControllerTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vmController = this.getXapiObject(id as XoVmController['id'])
@@ -191,11 +255,16 @@ export class VmControllerController extends XapiXoController<XoVmController> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vm-controller, action: update:tags
+   *
    * @example id "9b4775bd-9493-490a-9afa-f786a44caa4f"
    * @example tag "from-rest-api"
    */
   @Delete('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'vm-controller', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteVmControllerTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vmController = this.getXapiObject(id as XoVmController['id'])

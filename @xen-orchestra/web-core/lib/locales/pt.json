@@ -473,7 +473,7 @@
   "modal:confirm-vm-force-shutdown": "Confirmar o encerramento forçado da VM",
   "modal:confirm-vm-reboot": "Confirmar o reinício da VM",
   "modal:confirm-vm-shutdown": "Confirmar o encerramento da VM",
-  "modal:vm-force-reboot-message": "Isto irá desligar imediatamente a máquina virtual sem um encerramento normal. Poderá ocorrer perda de dados e os processos em execução serão interrompidos.",
+  "modal:vm-force-reboot-message": "Isto irá reiniciar imediatamente a máquina virtual sem um encerramento normal. Poderá ocorrer perda de dados e os processos em execução serão interrompidos.",
   "modal:vm-force-shutdown-message": "Isto irá desligar imediatamente a máquina virtual sem um encerramento normal. Poderá ocorrer perda de dados e os processos em execução serão interrompidos.",
   "modal:vm-reboot-message": "Reinicia a máquina virtual de forma controlada, desligando-a e ligando-a novamente. Os processos em execução serão encerrados corretamente.",
   "modal:vm-shutdown-message": "Isto irá encerrar a máquina virtual de forma controlada. Todos os processos em execução serão interrompidos e os utilizadores poderão ser desconectados. Pode reiniciar a VM mais tarde a partir da interface.",

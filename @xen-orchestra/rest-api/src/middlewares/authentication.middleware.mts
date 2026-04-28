@@ -1,21 +1,21 @@
 import { createLogger } from '@xen-orchestra/log'
-import { NextFunction, Request, Response } from 'express'
+import type { NextFunction, Request, Response } from 'express'
 import { unauthorized } from 'xo-common/api-errors.js'
 import type { XoApp } from '@vates/types/xo-app'
 
+import { ApiError } from '../helpers/error.helper.mjs'
+import type { AuthenticatedRequest } from '../helpers/helper.type.mjs'
+
 import { iocContainer } from '../ioc/ioc.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import type { AuthenticatedRequest } from '../helpers/helper.type.mjs'
-import { ApiError } from '../helpers/error.helper.mjs'
+import { ACL_MIDDLEWARE_NAME } from './acl.middleware.mjs'
 
 const log = createLogger('xo:rest-api:authentication')
 
 export type SecurityName = '*' | 'token' | 'basic' | 'none'
 
-// TODO: correctly handle ACL/Resource set users
-// for now only support "xoa-admin"
 // TSOA spec require this function to be async
-export async function expressAuthentication(req: AuthenticatedRequest, securityName: SecurityName) {
+export async function expressAuthentication(req: AuthenticatedRequest, securityName: SecurityName, scopes: 'acl'[]) {
   if (securityName === 'none') {
     return undefined
   }
@@ -28,8 +28,20 @@ export async function expressAuthentication(req: AuthenticatedRequest, securityN
     throw new ApiError(`invalid authentification. please use ${securityName} authentication`, 401)
   }
 
-  if (user.permission !== 'admin') {
-    log.error(`The REST API can only be used by 'xoa-admin' users for now. Your permission: ${user.permission}`)
+  if (user.permission === 'admin') {
+    return user
+  }
+
+  // This means the route requires authentication, but it doesn't need to be associated with a specific ACL.
+  // The route's content will depend on the users' ACLs.
+  // (For example: GET /vms -> empty array if no VMs ACL; GET /events -> only changes related to the users' ACLs will be sent)
+  if (scopes.includes('acl')) {
+    return user
+  }
+
+  const aclMiddleware = req.route.stack.find(layer => layer.name === ACL_MIDDLEWARE_NAME)
+  if (aclMiddleware === undefined) {
+    log.error(`${req.route.path} can only be used by an administrator`)
     throw unauthorized()
   }
 

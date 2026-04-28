@@ -464,7 +464,7 @@
   "modal:confirm-vm-force-shutdown": "Erzwungenes Herunterfahren der VM bestätigen",
   "modal:confirm-vm-reboot": "VM Neustart bestätigen",
   "modal:confirm-vm-shutdown": "VM Abschaltung bestätigen",
-  "modal:vm-force-reboot-message": "Dadurch wird die virtuelle Maschine sofort ohne sauberes Herunterfahren ausgeschaltet. Es kann zu Datenverlust kommen und laufende Prozesse werden unterbrochen.",
+  "modal:vm-force-reboot-message": "Dadurch wird die virtuelle Maschine sofort ohne sauberes Herunterfahren neu gestartet. Es kann zu Datenverlust kommen und laufende Prozesse werden unterbrochen.",
   "modal:vm-force-shutdown-message": "Dadurch wird die virtuelle Maschine sofort ohne sauberes Herunterfahren ausgeschaltet. Es kann zu Datenverlust kommen und laufende Prozesse werden unterbrochen.",
   "modal:vm-reboot-message": "Startet die virtuelle Maschine ordnungsgemäß neu, indem sie heruntergefahren und erneut gestartet wird. Laufende Prozesse werden ordnungsgemäß geschlossen.",
   "modal:vm-shutdown-message": "Dadurch wird die virtuelle Maschine ordnungsgemäß heruntergefahren. Alle laufenden Prozesse werden gestoppt und die Verbindung der Benutzer wird möglicherweise getrennt. Sie können die VM später über die Schnittstelle neu starten.",
