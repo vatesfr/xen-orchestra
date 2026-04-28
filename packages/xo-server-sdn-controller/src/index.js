@@ -798,6 +798,7 @@ class SDNController extends EventEmitter {
       for (const pool of pools) {
         pool.update_other_config('xo:sdn-controller:of-method', of_method)
       }
+      
     } catch (error) {
       log.error('Error while handling xapi connection', {
         id: xapi.pool.uuid,
@@ -886,7 +887,9 @@ class SDNController extends EventEmitter {
       const network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
       assert(network.$PIFs.length > 0, 'Network needs to be plugged to add a rule')
 
-      const networkRules = JSON.parse(network.other_config['xo:sdn-controller:of-rules'] || '[]').map(JSON.parse)
+      const networkRules = JSON.parse(
+        network.other_config['xo:sdn-controller:of-rules'] || '[]'
+      ).map(JSON.parse)
 
       // filter matching rule (don't compare allow and cookie)
       const matchRules = networkRules.filter(rule => {
@@ -899,18 +902,15 @@ class SDNController extends EventEmitter {
       let cookie
       if (matchRules.length !== 0) {
         // use the one in rule if matching rule is present
-        cookie = matchRules.map(rule => {
-          return rule.cookie
-        })[0]
+         cookie = matchRules.map(rule => { return rule.cookie })[0]
+
       } else {
         // generate a new cookie not in use (OpenVSwitch cookie range: 0x1 to 0xFFFF_FFFF_FFFF_FFFF)
         do {
           cookie = '0x' + randomBytes(8).toString('hex')
         } while (
           cookie === '0x0000000000000000' ||
-          networkRules.filter(rule => {
-            return rule.cookie === cookie
-          }).length > 0
+          networkRules.filter(rule => { return rule.cookie === cookie }).length > 0
         )
       }
 
@@ -1032,7 +1032,9 @@ class SDNController extends EventEmitter {
       let network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
       assert(network.$PIFs.length > 0, 'Network needs to be plugged to delete a rule')
 
-      const networkRules = JSON.parse(network.other_config['xo:sdn-controller:of-rules'] || '[]').map(JSON.parse)
+      const networkRules = JSON.parse(
+        network.other_config['xo:sdn-controller:of-rules'] || '[]'
+      ).map(JSON.parse)
 
       // filter matching rule (don't compare allow and cookie)
       const matchRules = networkRules.filter(rule => {
@@ -1043,14 +1045,12 @@ class SDNController extends EventEmitter {
 
       // ignore processing if rule not present here
       if (matchRules.length === 0) {
-        log.info('_deleteNetworkOfRule: rule not present, ignoring', {})
+        log.info("_deleteNetworkOfRule: rule not present, ignoring", {})
         return
       }
 
       // extract the (first) matching cookie
-      const cookie = matchRules.map(rule => {
-        return rule.cookie
-      })[0]
+      const cookie = matchRules.map(rule => { return rule.cookie })[0]
 
       try {
         const host = this._xo.getXapiObject(this._xo.getObject(network.$PIFs[0].host, 'host'))
@@ -1072,11 +1072,7 @@ class SDNController extends EventEmitter {
 
       const newNetworkRules = networkRules.filter(rule => {
         return (
-          rule.protocol !== protocol ||
-          rule.port !== port ||
-          rule.ipRange !== ipRange ||
-          rule.direction !== direction ||
-          rule.cookie !== cookie
+          rule.protocol !== protocol || rule.port !== port || rule.ipRange !== ipRange || rule.direction !== direction || rule.cookie !== cookie
         )
       })
       await network.update_other_config(
