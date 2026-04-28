@@ -1,24 +1,24 @@
+import { payloadsArg } from '@/modules/network/jobs/xo-network-create-args.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable'
 import { fetchPost } from '@/shared/utils/fetch.util'
-import { defineJob, defineJobArg, JobError, JobRunningError } from '@core/packages/job'
+import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import type { XoNetwork, XoPif, XoPool, XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-// Payload that the REST API expects
-export type NewNetworkPayload = {
+// Base payload common to all network types
+export type BaseNewNetworkPayload = {
   poolId: XoPool['id']
-  pif: XoPif['id']
   name: string
-  vlan: number
   description?: string
   mtu?: number
   nbd?: boolean
 }
 
-const payloadsArg = defineJobArg<NewNetworkPayload>({
-  identify: payload => payload.poolId,
-  toArray: true,
-})
+// Payload that the REST API expects
+export type NewNetworkPayload = BaseNewNetworkPayload & {
+  pif: XoPif['id']
+  vlan: number
+}
 
 export const useXoNetworkCreateJob = defineJob('network.create', [payloadsArg], () => {
   const { monitorTask } = useXoTaskUtils()

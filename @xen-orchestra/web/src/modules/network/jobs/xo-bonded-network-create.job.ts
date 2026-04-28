@@ -1,18 +1,14 @@
+import type { BaseNetworkPayload } from '@/modules/network/form/use-network-form-base.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable'
 import { fetchPost } from '@/shared/utils/fetch.util'
 import { defineJob, defineJobArg, JobError, JobRunningError } from '@core/packages/job'
-import type { BOND_MODE, XoNetwork, XoPif, XoPool, XoTask } from '@vates/types'
+import type { BOND_MODE, XoNetwork, XoPif, XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 // Payload that the REST API expects
-export type NewBondedNetworkPayload = {
-  poolId: XoPool['id']
+export type NewBondedNetworkPayload = BaseNetworkPayload & {
   pifIds: XoPif['id'][]
-  name: string
   bondMode: BOND_MODE
-  description?: string
-  mtu?: number
-  nbd?: boolean
 }
 
 const payloadsArg = defineJobArg<NewBondedNetworkPayload>({
