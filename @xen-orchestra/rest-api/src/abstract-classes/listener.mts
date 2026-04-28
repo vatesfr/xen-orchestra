@@ -83,7 +83,7 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
     const broadcastAllSubscriber = async (...args: unknown[]) => {
       try {
         await Promise.all(
-          this.#subscribers.values().map(async conf => {
+          [...this.#subscribers.values()].map(async conf => {
             if (!conf.subscriber.isAlive) {
               this.removeSubscriber(conf.subscriber.id)
               return

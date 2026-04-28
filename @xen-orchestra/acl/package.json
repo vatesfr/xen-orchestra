@@ -24,7 +24,9 @@
     "clean": "rimraf dist/",
     "dev": "tsc --watch",
     "postversion": "npm publish --access public",
-    "test": "npm run build && node --test ./dist/**/*.test.mjs"
+    "test": "npm run build && node --test ./dist/**/*.test.mjs",
+    "prebuild": "npm run clean",
+    "prepublishOnly": "npm run build"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
