@@ -14,7 +14,7 @@ import { PrivateNetwork } from './private-network/private-network'
 import { TlsHelper } from './utils/tls-helper'
 import { instantiateController } from './openflow-controller'
 import { randomBytes } from 'crypto'
-import { invalidParameters } from 'api-errors.js'
+import { invalidParameters } from 'xo-common/api-errors.js'
 
 // =============================================================================
 
