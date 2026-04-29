@@ -25,19 +25,31 @@
 
 - [Backups] Backups no longer use their own task system, but instead use the same system as XO Task. This will help improve loading times in the future (PR [#9734](https://github.com/vatesfr/xen-orchestra/pull/9734))
 - [Backups] Add merged size in cleanVm task log (PR [#9679](https://github.com/vatesfr/xen-orchestra/pull/9679))
-- [Pool] Add new Network creation forms (normal, Bonded and Internal) (PR [#9629](https://github.com/vatesfr/xen-orchestra/pull/9629))
-- [MCP] Add `?markdown=true` output format to REST API and simplify MCP tools with declarative registry (PR [#9624](https://github.com/vatesfr/xen-orchestra/pull/9624))
 - [OpenMetrics] Add per-VDI disk size metrics: `xcp_vdi_virtual_size_bytes` and `xcp_vdi_physical_usage_bytes` (PR [#9680](https://github.com/vatesfr/xen-orchestra/pull/9680))
 - [OpenMetrics] Add 9 missing host RRD metrics: `hostload`, `memory_reclaimed`, `memory_reclaimed_max`, `running_vcpus`, `pif_aggr_rx`, `pif_aggr_tx`, `iops_total`, `io_throughput_total`, `latency` per SR (PR [#9696](https://github.com/vatesfr/xen-orchestra/pull/9696))
 - [OpenMetrics] Add VM status (`xcp_vm_status`) and VM uptime (`xcp_vm_uptime_seconds`) metrics [#9684](https://github.com/vatesfr/xen-orchestra/pull/9684)
-- [i18n] Update Chinese (Simplified Han script), Czech, Danish, Dutch, Finnish, German, Italian, Korean, Norwegian, Persian, Polish, Portuguese, Portuguese (Brasil), Russian, Slovak and Spanish translations (PR [#9649](https://github.com/vatesfr/xen-orchestra/pull/9649))
+- [OpenMetrics] Add per-VDI disk size metrics: `xcp_vdi_virtual_size_bytes` and `xcp_vdi_physical_usage_bytes` [#9680](https://github.com/vatesfr/xen-orchestra/pull/9680)
+- [i18n] Update Chinese (Simplified Han script), Czech, Danish, Dutch, Finnish, German, Italian, Korean, Norwegian, Persian, Polish, Portuguese, Portuguese (Brasil), Russian, Slovak, Spanish and Swedish translations (PRs [#9649](https://github.com/vatesfr/xen-orchestra/pull/9649) and [#9729](https://github.com/vatesfr/xen-orchestra/pull/9729))
 - [Netbox] Use platform hierarchy to assign versioned OS names (e.g. "Debian 12" instead of "Debian") when the major version is known (requires Netbox >= 4.4) [#7773](https://github.com/vatesfr/xen-orchestra/issues/7773) (PR [#9644](https://github.com/vatesfr/xen-orchestra/pull/9644))
 - [REST API] Fix the `href` property in collection responses when the request URL has a trailing slash. (PR [#9741](https://github.com/vatesfr/xen-orchestra/pull/9741))
 - [REST API] Expose `POST /vifs/:id/actions/connect` and `POST /vifs/:id/actions/disconnect` (PR [#9643](https://github.com/vatesfr/xen-orchestra/pull/9643))
+- [REST API] ACL V2 integration (PR [#9774](https://github.com/vatesfr/xen-orchestra/pull/9774))
+- [REST API] Add `POST rest/v0/plugins/sdn-controller/networks/:id/actions/add_traffic_rule` and `POST rest/v0/plugins/sdn-controller/networks/:id/actions/delete_traffic_rule` endpoints ([#9418](https://github.com/vatesfr/xen-orchestra/pull/9418))
+- [REST API] Add `POST rest/v0/plugins/sdn-controller/vifs/:id/actions/add_traffic_rule` and `POST rest/v0/plugins/sdn-controller/vifs/:id/actions/delete_traffic_rule` endpoints ([#9759](https://github.com/vatesfr/xen-orchestra/pull/9759))
 - [VM] Add possibility to remove a VIF on network tab (PR [#9601](https://github.com/vatesfr/xen-orchestra/pull/9601))
 - [VM] Add possibility to remove a VDI on VDI tab (PR [#9689](https://github.com/vatesfr/xen-orchestra/pull/9689))
 - [VM] Add possibility to remove a VBD on VDI tab (PR [#9698](https://github.com/vatesfr/xen-orchestra/pull/9698))
+- [VM] Add possibility to remove a snapshot on snapshot tab (PR [#9749](https://github.com/vatesfr/xen-orchestra/pull/9749))
+- [VM] Add possibility to connect or disconnect a VIF on network tab (PR [#9756](https://github.com/vatesfr/xen-orchestra/pull/9756))
 - [VDI] Add chainPhysicalUsage to have a proper usage linked to the complete chain (PR [#9708](https://github.com/vatesfr/xen-orchestra/pull/9708))
+- [Pool] Add new Network creation forms (normal, Bonded and Internal) (PR [#9629](https://github.com/vatesfr/xen-orchestra/pull/9629))
+- [Pool/Hosts] Management IP is now always shown first and the IP column is renamed to "Management IP" (PR [#9747](https://github.com/vatesfr/xen-orchestra/pull/9747))
+- [Pool/Security] Implement security tab to display traffic rules from VIF and Network (PR [#9770](https://github.com/vatesfr/xen-orchestra/pull/9770))
+- [MCP] Add `?markdown=true` output format to REST API and simplify MCP tools with declarative registry (PR [#9624](https://github.com/vatesfr/xen-orchestra/pull/9624))
+- [MCP] Add `?markdown=true` output format to REST API and simplify MCP tools with declarative registry (PR [#9624](https://github.com/vatesfr/xen-orchestra/pull/9624))
+- [MCP] Generate tools dynamically from the XO OpenAPI spec at startup: one `{domain}_query` tool per resource domain instead of a fixed tool per endpoint. Stats endpoints are excluded. Write operations can be opted in with `XO_MCP_ENABLE_ACTIONS=1`, with one-shot confirmation tokens for destructive calls. (PR [#9641](https://github.com/vatesfr/xen-orchestra/pull/9641))
+- [Pool/Network] Add Network deletion (PR [#9714](https://github.com/vatesfr/xen-orchestra/pull/9714))
+- [DNS] add Let's Encrypt DNS-01 challenge support (PR [#9592](https://github.com/vatesfr/xen-orchestra/pull/9592))
 - **XO 5**:
   - [Settings/Servers] Add info tip to remind users to only add pool masters (PR [#9742](https://github.com/vatesfr/xen-orchestra/pull/9742))
 
@@ -45,11 +57,16 @@
 
 - [Header] Fix `Unable to connect to XO server` falshing every 30 secondes (PR [#9681](https://github.com/vatesfr/xen-orchestra/pull/9681))
 - [Backups] Fix regression on cleanVM speed (PR [#9692](https://github.com/vatesfr/xen-orchestra/pull/9692))
+- [Backups] Fix cleanVm incorrect backup size in metadata (PR [#9637] (https://github.com/vatesfr/xen-orchestra/pull/9637))
+- [Backups] Fix diskless snapshot retention (PR [#9758](https://github.com/vatesfr/xen-orchestra/pull/9758))
 - [xo-server] Fix memory leak with secure session (PR [#9725](https://github.com/vatesfr/xen-orchestra/pull/9725))
+- [xo-server] Fix VM-template still visible after deletion (PR [#9760](https://github.com/vatesfr/xen-orchestra/pull/9760))
 - [REST API] Fix memory leak on SSE (PR [#9707](https://github.com/vatesfr/xen-orchestra/pull/9707))
 - [REST API] Fix `other_config` being ignored when creating a new VDI with `POST /rest/v0/vdis` (PR [#9695](https://github.com/vatesfr/xen-orchestra/pull/9695))
 - **XO 5**:
   - [VM/Copy]: Fix compression not used when copying a VM to another pool (PR [#9699](https://github.com/vatesfr/xen-orchestra/pull/9699))
+  - [Icons] Fix display of RHEL 10 icons in vm list (PR [#9766](https://github.com/vatesfr/xen-orchestra/pull/9766))
+  - [xo-server-sdn-controller] Better traffic-rules synchronization related to VM lifecycle (PR [#9518](https://github.com/vatesfr/xen-orchestra/pull/9518))
 
 ### Released packages
 
@@ -68,38 +85,39 @@
 - @vates/nbd-client 3.4.0
 - @vates/node-vsphere-soap 2.1.3
 - @vates/task 0.7.0
-- @vates/types 1.23.0
 - @xen-orchestra/qcow2 1.3.0
 - @xen-orchestra/template 0.1.1
 - @xen-orchestra/xapi 8.7.2
-- @xen-orchestra/backups 0.72.0
 - @xen-orchestra/backups-cli 1.1.11
 - @xen-orchestra/cron 1.0.7
 - @xen-orchestra/disk-cli 2.0.0
 - @xen-orchestra/immutable-backups 3.0.0
 - complex-matcher 1.1.1
-- @xen-orchestra/web-core 0.50.0
 - @xen-orchestra/mcp 1.2.0
 - @xen-orchestra/mixin 0.2.1
-- @xen-orchestra/mixins 0.19.0
-- @xen-orchestra/proxy 0.30.0
 - xo-lib 0.11.2
-- @xen-orchestra/rest-api 0.29.0
 - xo-vmdk-to-vhd 2.5.10
 - @xen-orchestra/upload-ova 0.1.7
 - @xen-orchestra/vmware-explorer 0.13.0
-- @xen-orchestra/web 0.47.0
 - vhd-cli 1.1.2
 - xapi-explore-sr 0.4.6
 - xo-cli 0.32.3
-- xo-server 5.199.0
 - xo-server-backup-reports 1.7.1
 - xo-server-load-balancer 0.12.1
 - xo-server-netbox 1.12.0
 - xo-server-openmetrics 1.5.0
-- xo-server-sdn-controller 1.2.2
 - xo-server-usage-report 0.11.1
 - xo-web 5.196.0
+- @vates/types 1.24.0
+- @xen-orchestra/acl 1.0.0
+- @xen-orchestra/backups 0.72.1
+- @xen-orchestra/web-core 0.51.0
+- @xen-orchestra/mixins 0.20.0
+- @xen-orchestra/proxy 0.30.1
+- @xen-orchestra/rest-api 0.30.0
+- @xen-orchestra/web 0.48.0
+- xo-server 5.200.0
+- xo-server-sdn-controller 1.3.0
 
 ## **6.3.3** (2026-04-14)
 
