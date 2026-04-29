@@ -1,7 +1,7 @@
 <template>
   <div class="vdis" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
-      <VdisTable :vdis="filteredVdisByNotCdVbd" :vm :busy="!areVmVdisReady" :error="hasVmVdiFetchError" />
+      <VdisTable :vdis="filteredVdisByNotCdVbd" :vm :busy="!areVmVdisReady" :error="hasVmVdiFetchError">
         <template #title-actions>
           <MenuList placement="bottom-end">
             <template #trigger="{ open }">
