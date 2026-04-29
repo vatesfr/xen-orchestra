@@ -41,6 +41,8 @@
 - [VM] Add possibility to remove a VBD on VDI tab (PR [#9698](https://github.com/vatesfr/xen-orchestra/pull/9698))
 - [VM] Add possibility to remove a snapshot on snapshot tab (PR [#9749](https://github.com/vatesfr/xen-orchestra/pull/9749))
 - [VM] Add possibility to connect or disconnect a VIF on network tab (PR [#9756](https://github.com/vatesfr/xen-orchestra/pull/9756))
+- [VM] Add possibility to connect or disconnect a VBD on VDI tab (PR [#9726](https://github.com/vatesfr/xen-orchestra/pull/9726))
+- [VM/new] Removed new VM form alert (PR [#9757](https://github.com/vatesfr/xen-orchestra/pull/9757))
 - [VDI] Add chainPhysicalUsage to have a proper usage linked to the complete chain (PR [#9708](https://github.com/vatesfr/xen-orchestra/pull/9708))
 - [Pool] Add new Network creation forms (normal, Bonded and Internal) (PR [#9629](https://github.com/vatesfr/xen-orchestra/pull/9629))
 - [Pool/Hosts] Management IP is now always shown first and the IP column is renamed to "Management IP" (PR [#9747](https://github.com/vatesfr/xen-orchestra/pull/9747))
@@ -115,9 +117,9 @@
 - @xen-orchestra/mixins 0.20.0
 - @xen-orchestra/proxy 0.30.1
 - @xen-orchestra/rest-api 0.30.0
-- @xen-orchestra/web 0.48.0
 - xo-server 5.200.0
-- xo-server-sdn-controller 1.3.0
+- @xen-orchestra/web 0.49.0
+- xo-server-sdn-controller 1.3.1
 
 ## **6.3.3** (2026-04-14)
 
