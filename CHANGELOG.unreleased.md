@@ -18,7 +18,7 @@
 
 ### Bug fixes
 
-> Users must be able to say: “I had this issue, happy to know it's fixed”
+> Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [REST] Fixed ignored parameters in request body due to a tsoa bug (see https://github.com/lukeautry/tsoa/pull/1858) (PR [#9793](https://github.com/vatesfr/xen-orchestra/pull/9793))
 
