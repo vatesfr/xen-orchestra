@@ -31,4 +31,6 @@
 
 <!--packages-start-->
 
+- xo-server-sdn-controller patch
+
 <!--packages-end-->
