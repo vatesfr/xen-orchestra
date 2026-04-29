@@ -9,9 +9,9 @@
           </span>
         </template>
       </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="t('ip-address')">
+      <VtsQuickInfoRow :label="t('ip-address')" no-value-tooltip>
         <template #value>
-          {{ vm.mainIpAddress }}
+          <span v-tooltip class="text-ellipsis">{{ vm.mainIpAddress }}</span>
           <VtsCopyButton v-if="vm.mainIpAddress" :value="vm.mainIpAddress" />
         </template>
       </VtsQuickInfoRow>
