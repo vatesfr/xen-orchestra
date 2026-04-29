@@ -4,6 +4,7 @@
     <VtsIcon :name="icon" size="medium" />
     <slot />
     <VtsIcon v-if="attributes.target === '_blank'" name="fa:up-right-from-square" size="medium" class="external-icon" />
+    <VtsIcon v-if="isPrimary" name="status:primary-circle" size="medium" class="external-icon" />
   </component>
 </template>
 
@@ -17,6 +18,7 @@ const props = defineProps<
   LinkOptions & {
     size: 'small' | 'medium'
     icon?: IconName
+    isPrimary?: boolean
   }
 >()
 

@@ -6,6 +6,7 @@
       prop('to').str().widget(),
       prop('href').str().widget(),
       iconProp(),
+      prop('isPrimary').bool().widget(),
       prop('disabled').bool().widget(),
       prop('target').enum('_blank', '_self').widget(),
     ]"
