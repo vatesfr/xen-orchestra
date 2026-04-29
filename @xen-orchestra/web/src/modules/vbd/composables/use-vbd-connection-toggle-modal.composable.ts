@@ -7,7 +7,7 @@ import { useModal } from '@core/packages/modal/use-modal.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
 
-export type VbdConnectionAction = 'connect' | 'disconnect'
+export type VbdConnectionAction = (typeof CONNECTION_ACTION)[keyof typeof CONNECTION_ACTION]
 
 export function useVbdConnectionToggleModal(
   rawAction: MaybeRefOrGetter<VbdConnectionAction>,
