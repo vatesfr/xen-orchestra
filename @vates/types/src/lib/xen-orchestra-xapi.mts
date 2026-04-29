@@ -354,12 +354,8 @@ export interface Xapi {
   objects: {
     indexes: {
       type: {
-        host: Record<string, XenApiHostWrapped>
-        pool: Record<string, XenApiPoolWrapped>
-        SR: Record<string, XenApiSrWrapped>
-        VDI: Record<string, XenApiVdiWrapped>
-        VM: Record<string, XenApiVmWrapped>
-      } & Record<string, Record<string, WrappedXenApiRecord>>
+        [XenApiRecord in WrappedXenApiRecord as XenApiRecord['$type']]: Record<XenApiRecord['uuid'], XenApiRecord>
+      }
     }
   }
 }
