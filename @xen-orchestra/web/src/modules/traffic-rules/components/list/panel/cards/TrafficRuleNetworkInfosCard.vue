@@ -106,7 +106,7 @@ const { network } = defineProps<{
 
 const { t } = useI18n()
 
-const networkTo = computed(() => (network ? getPoolNetworkRoute(network.$pool, network.id) : undefined))
+const networkTo = computed(() => getPoolNetworkRoute(network.$pool, network.id))
 
 const { getPifsByNetworkId } = useXoPifCollection()
 

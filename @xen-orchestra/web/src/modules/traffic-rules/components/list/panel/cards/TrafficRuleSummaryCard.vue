@@ -49,7 +49,7 @@ import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-x
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { useTrafficRuleTarget } from '@/modules/traffic-rules/composables/traffic-rule-target.composable.ts'
 import type { TrafficRule } from '@/modules/traffic-rules/types.ts'
-import { getDirectionLabels } from '@/modules/traffic-rules/utils/direction-labels-util.ts'
+import { getDirectionLabels } from '@/modules/traffic-rules/utils/direction-labels.util.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { RULE_STATUS } from '@/shared/constants.ts'

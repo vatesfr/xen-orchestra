@@ -32,7 +32,7 @@
 <script setup lang="ts">
 import { useTrafficRuleTarget } from '@/modules/traffic-rules/composables/traffic-rule-target.composable.ts'
 import type { EnrichedTrafficRule, TrafficRule } from '@/modules/traffic-rules/types.ts'
-import { getDirectionLabels } from '@/modules/traffic-rules/utils/direction-labels-util.ts'
+import { getDirectionLabels } from '@/modules/traffic-rules/utils/direction-labels.util.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
