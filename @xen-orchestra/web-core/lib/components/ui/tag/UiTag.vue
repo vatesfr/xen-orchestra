@@ -1,7 +1,13 @@
 <!-- v3 -->
 <!-- TODO: implement tertiary variant to bump to v4 -->
 <template>
-  <span :class="toVariants({ accent, variant })" class="ui-tag typo-body-regular-small">
+  <span v-if="variant == 'tertiary'" class="tertiary">
+    <UiTag :accent variant="primary">
+      <slot name="tertiaryTerm">{{ tertiaryTerm }}</slot>
+    </UiTag>
+    <UiTag :accent variant="secondary"><slot /></UiTag>
+  </span>
+  <span v-else :class="toVariants({ accent, variant })" class="ui-tag rounded typo-body-regular-small">
     <span>
       <slot />
     </span>
@@ -13,21 +19,34 @@ import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util'
 
 type TagAccent = 'info' | 'neutral' | 'success' | 'warning' | 'danger' | 'muted'
-type TagVariant = 'primary' | 'secondary'
+type TagVariant = 'primary' | 'secondary' | 'tertiary'
 
 defineProps<{
   accent: TagAccent
   variant: TagVariant
   icon?: IconName
+  tertiaryTerm?: string
 }>()
 
 defineSlots<{
   default(): any
-  icon?(): any
+  tertiaryTerm?(): any
 }>()
 </script>
 
 <style lang="postcss" scoped>
+.tertiary {
+  display: flex;
+  flex-direction: row;
+  .ui-tag:first-child {
+    border-radius: 0.4rem 0 0 0.4rem;
+  }
+
+  .ui-tag:last-child {
+    border-radius: 0 0.4rem 0.4rem 0;
+  }
+}
+
 .ui-tag {
   display: flex;
   justify-content: center;
@@ -36,8 +55,11 @@ defineSlots<{
   white-space: normal;
   word-break: break-word;
   padding: 0.2rem 0.8rem;
-  border-radius: 0.4rem;
   vertical-align: middle;
+
+  &.rounded {
+    border-radius: 0.4rem;
+  }
 
   /* COLOR VARIANTS */
 
