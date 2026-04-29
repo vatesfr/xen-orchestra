@@ -15,8 +15,8 @@
 
 <script lang="ts" setup>
 import { useVifConnectionToggleModal } from '@/modules/vif/composables/use-vif-connection-toggle-modal.composable.ts'
-import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.js'
-import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.js'
+import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { CONNECTION_ACTION } from '@/shared/constants.ts'
 import UiButton from '@xen-orchestra/web-core/components/ui/button/UiButton.vue'
 import { vTooltip } from '@xen-orchestra/web-core/directives/tooltip.directive.ts'

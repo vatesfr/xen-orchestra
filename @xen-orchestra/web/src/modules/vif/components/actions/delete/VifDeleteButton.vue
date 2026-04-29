@@ -7,7 +7,7 @@
 
 <script lang="ts" setup>
 import { useVifDeleteModal } from '@/modules/vif/composables/use-vif-delete-modal.composable.ts'
-import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.js'
+import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import MenuItem from '@xen-orchestra/web-core/components/menu/MenuItem.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
