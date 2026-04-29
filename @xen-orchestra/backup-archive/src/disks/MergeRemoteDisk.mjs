@@ -146,7 +146,7 @@ export class MergeRemoteDisk {
       //
       // currentBlock could be `null` due to the JSON.stringify of a `NaN` value
       // could also be -1 due to being set as Math.min(...merging) - 1 if merging contains 0
-      if (this.#state?.currentBlock === null || this.#state.currentBlock < 0) this.#state.currentBlock = 0
+      if (this.#state?.currentBlock === null || this.#state?.currentBlock < 0) this.#state.currentBlock = 0
       this.#isResuming = true
     } catch (error) {
       // @ts-ignore
