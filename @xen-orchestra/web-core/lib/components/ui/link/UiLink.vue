@@ -1,9 +1,15 @@
-<!-- v3 -->
+<!-- v6 -->
 <template>
   <component :is="component" :class="classes" class="ui-link" v-bind="attributes">
     <VtsIcon :name="icon" size="medium" />
     <slot />
-    <VtsIcon v-if="attributes.target === '_blank'" name="fa:up-right-from-square" size="medium" class="external-icon" />
+    <VtsIcon
+      v-if="attributes.target === '_blank'"
+      name="action:open-in-new-tab"
+      size="medium"
+      class="external-icon"
+      color="var(--color-brand-txt-base)"
+    />
     <VtsIcon v-if="isPrimary" name="status:primary-circle" size="medium" class="external-icon" />
   </component>
 </template>

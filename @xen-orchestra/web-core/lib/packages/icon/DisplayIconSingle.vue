@@ -5,6 +5,7 @@
     class="display-icon-single"
     :class="spinClass"
     v-bind="icon.bindings"
+    :style="svgStyle"
   >
     <path
       v-for="(path, index) of icon.paths"
@@ -21,14 +22,17 @@
 import type { IconSingle } from './types.ts'
 import { computed } from 'vue'
 
-const { icon } = defineProps<{
+const { icon, color } = defineProps<{
   icon: IconSingle
   stroke?: string
+  color?: string
 }>()
 
 const spinClass = computed(() => {
   return icon.bindings.style?.['--spin-duration'] ? 'spinning' : undefined
 })
+
+const svgStyle = computed(() => (color === undefined ? undefined : { color }))
 </script>
 
 <style lang="postcss" scoped>
