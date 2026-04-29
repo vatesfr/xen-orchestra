@@ -66,39 +66,15 @@
           </VtsCardRowKeyValue>
         </div>
       </UiCard>
-      <UiCard v-if="pifsCount && pifsCount > 0" class="card-container">
-        <div class="typo-body-bold">
-          {{ t('pifs') }}
-          <UiCounter :value="pifsCount" variant="primary" size="small" accent="neutral" />
-        </div>
-        <table class="simple-table">
-          <thead>
-            <tr>
-              <th class="text-left typo-body-regular-small">
-                {{ t('host') }}
-              </th>
-              <th class="text-left typo-body-regular-small">
-                {{ t('device') }}
-              </th>
-              <th class="text-left typo-body-regular-small">
-                {{ t('pifs-status') }}
-              </th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            <PifRow v-for="pif in pifs" :key="pif.id" :pif />
-          </tbody>
-        </table>
-      </UiCard>
+      <NetworkPifsInfoCard :network />
     </template>
   </UiPanel>
 </template>
 
 <script setup lang="ts">
+import NetworkPifsInfoCard from '@/modules/network/components/panel/cards/NetworkPifsInfoCard.vue'
 import { useNetworkDeleteModal } from '@/modules/network/composables/use-network-delete-modal.composable.ts'
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import PifRow from '@/modules/pif/components/PifRow.vue'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
@@ -107,7 +83,6 @@ import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
@@ -142,8 +117,6 @@ const networkVlan = computed(() => {
 const networkNbd = computed(() => (network.nbd ? t('on') : t('off')))
 
 const networkDefaultLockingMode = computed(() => (network.defaultIsLocked ? t('disabled') : t('unlocked')))
-
-const pifsCount = computed(() => pifs.value.length)
 </script>
 
 <style scoped lang="postcss">
@@ -163,19 +136,6 @@ const pifsCount = computed(() => pifs.value.length)
 
     .value:empty::before {
       content: '-';
-    }
-  }
-
-  .text-left {
-    text-align: left;
-  }
-
-  .simple-table {
-    border-spacing: 0;
-    padding: 0.4rem;
-
-    thead tr th {
-      color: var(--color-neutral-txt-secondary);
     }
   }
 }
