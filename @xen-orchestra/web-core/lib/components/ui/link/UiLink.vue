@@ -10,7 +10,13 @@
       class="external-icon"
       color="var(--color-brand-txt-base)"
     />
-    <VtsIcon v-if="isPrimary" name="status:primary-circle" size="medium" class="external-icon" />
+    <VtsIcon
+      v-if="isPrimary"
+      v-tooltip="t('master')"
+      name="status:primary-circle"
+      size="medium"
+      class="external-icon"
+    />
   </component>
 </template>
 
@@ -19,6 +25,7 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { type LinkOptions, useLinkComponent } from '@core/composables/link-component.composable'
 import type { IconName } from '@core/icons'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<
   LinkOptions & {
@@ -34,6 +41,7 @@ const typoClasses = {
 }
 
 const { component, attributes, isDisabled } = useLinkComponent('span', () => props)
+const { t } = useI18n()
 
 const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.value }])
 </script>

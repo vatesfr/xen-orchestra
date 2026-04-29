@@ -33,16 +33,16 @@
       </VtsKeyValueRow>
       <VtsKeyValueRow :label="t('host')">
         <template #value>
-          <template v-if="host">
-            <UiLink
-              :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
-              size="medium"
-              :icon="`object:host:${hostPowerState}`"
-            >
-              {{ host.name_label }}
-            </UiLink>
-            <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
-          </template>
+          <UiLink
+            v-if="host"
+            :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
+            size="medium"
+            :icon="`object:host:${hostPowerState}`"
+            :is-primary="isMaster"
+            :primary-tooltip="t('master')"
+          >
+            {{ host.name_label }}
+          </UiLink>
           <template v-else>
             {{ t('none') }}
           </template>

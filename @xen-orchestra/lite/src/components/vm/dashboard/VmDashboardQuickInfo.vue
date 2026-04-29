@@ -18,10 +18,14 @@
       <VtsKeyValueRow :label="t('host')">
         <template #value>
           <span v-if="host" class="host-name">
-            <UiLink :to="`/host/${host.uuid}`" size="medium" :icon="`object:host:${hostPowerState}`">
+            <UiLink
+              :to="`/host/${host.uuid}`"
+              size="medium"
+              :icon="`object:host:${hostPowerState}`"
+              :is-primary="isPoolMaster"
+            >
               {{ host.name_label }}
             </UiLink>
-            <VtsIcon v-if="isPoolMaster" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
           </span>
           <span v-else>
             {{ t('none') }}
@@ -65,7 +69,6 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
-import { vTooltip } from '@core/directives/tooltip.directive'
 import { useMapper } from '@core/packages/mapper'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { parseDateTime } from '@core/utils/time.util.ts'
@@ -182,14 +185,3 @@ const mainIpAddress = computed(() => {
   return [...new Set(Object.values(guestMetrics.value.networks).sort())][0]
 })
 </script>
-
-<style lang="postcss" scoped>
-.vm-dashboard-quick-info {
-  .power-state,
-  .host-name {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-}
-</style>
