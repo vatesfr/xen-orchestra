@@ -2,9 +2,6 @@
 <!-- TODO: implement tertiary variant to bump to v4 -->
 <template>
   <span :class="toVariants({ accent, variant })" class="ui-tag typo-body-regular-small">
-    <slot name="icon">
-      <VtsIcon :name="icon" size="medium" />
-    </slot>
     <span>
       <slot />
     </span>
@@ -12,7 +9,6 @@
 </template>
 
 <script lang="ts" setup>
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util'
 
