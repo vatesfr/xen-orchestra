@@ -65,6 +65,7 @@
 - [xo-server] Fix VM-template still visible after deletion (PR [#9760](https://github.com/vatesfr/xen-orchestra/pull/9760))
 - [REST API] Fix memory leak on SSE (PR [#9707](https://github.com/vatesfr/xen-orchestra/pull/9707))
 - [REST API] Fix `other_config` being ignored when creating a new VDI with `POST /rest/v0/vdis` (PR [#9695](https://github.com/vatesfr/xen-orchestra/pull/9695))
+- [VM/Host Console] Fix periodic VNC reconnection causing keyboard focus loss (PR [#9727](https://github.com/vatesfr/xen-orchestra/pull/9727))
 - **XO 5**:
   - [VM/Copy]: Fix compression not used when copying a VM to another pool (PR [#9699](https://github.com/vatesfr/xen-orchestra/pull/9699))
   - [Icons] Fix display of RHEL 10 icons in vm list (PR [#9766](https://github.com/vatesfr/xen-orchestra/pull/9766))
