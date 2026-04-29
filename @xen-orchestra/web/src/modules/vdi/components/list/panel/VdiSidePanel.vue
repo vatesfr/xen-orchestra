@@ -10,7 +10,7 @@
           <template #trigger="{ open }">
             <UiButtonIcon icon="action:more-actions" accent="brand" size="medium" @click="open($event)" />
           </template>
-          <VdiActions :vdi :vbd />
+          <VdiActions :vdi :vbd :vm />
         </MenuList>
       </div>
       <div :class="{ 'close-button': uiStore.isSmall }">
@@ -65,7 +65,9 @@ const uiStore = useUiStore()
 
 const { useGetVbdsByIds } = useXoVbdCollection()
 
-const vbd = computed(() => useGetVbdsByIds(vdi.$VBDs).value.find(vbd => vbd.VDI === vdi.id))
+const vbds = useGetVbdsByIds(vdi.$VBDs)
+
+const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm.id))
 </script>
 
 <style scoped lang="postcss">

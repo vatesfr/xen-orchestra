@@ -1,6 +1,6 @@
 <template>
-  <VbdDeleteButton v-if="vbd" :vbd />
-  <VdiDeleteButton :vdi />
+  <VbdDeleteButton v-if="vbd" :vbd :vm />
+  <VdiDeleteButton :vdi :vm />
 </template>
 
 <script lang="ts" setup>
@@ -8,8 +8,10 @@ import VbdDeleteButton from '@/modules/vbd/components/actions/delete/VbdDeleteBu
 import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import VdiDeleteButton from '@/modules/vdi/components/actions/delete/VdiDeleteButton.vue'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 
 defineProps<{
+  vm: FrontXoVm
   vdi: FrontXoVdi
   vbd?: FrontXoVbd
 }>()

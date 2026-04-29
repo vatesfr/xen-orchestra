@@ -22,7 +22,6 @@
       />
 
       <UiCard v-show="canDisplayForm">
-        <UiTitle>{{ t('general-information') }}</UiTitle>
         <VdiAttachForm :vm :cancel-to="cancelRoute" @attach="attachVdi" />
       </UiCard>
     </template>
@@ -39,7 +38,6 @@ import VtsOperationPendingCard from '@core/components/operation-pending-card/Vts
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
-import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { type RouteLocationRaw, useRoute, useRouter } from 'vue-router'

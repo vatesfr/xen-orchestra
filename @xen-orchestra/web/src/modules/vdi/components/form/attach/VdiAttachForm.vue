@@ -1,18 +1,23 @@
 <template>
   <form class="vdi-attach-form" @submit.prevent="onSubmit()">
-    <div class="row">
-      <VtsInputWrapper :label="srSelectBindings.label" :message="srMessage">
-        <VtsSelect :id="srSelectBindings.id" accent="brand" />
-      </VtsInputWrapper>
-      <VtsInputWrapper :label="vdiSelectBindings.label" :message="vdiMessage">
-        <VtsSelect :id="vdiSelectBindings.id" accent="brand" />
-      </VtsInputWrapper>
+    <div class="attach-form">
+      <UiTitle>{{ t('general-information') }}</UiTitle>
+      <div class="row">
+        <VtsInputWrapper :label="srSelectBindings.label" :message="srMessage">
+          <VtsSelect :id="srSelectBindings.id" accent="brand" />
+        </VtsInputWrapper>
+        <VtsInputWrapper :label="vdiSelectBindings.label" :message="vdiMessage">
+          <VtsSelect :id="vdiSelectBindings.id" accent="brand" />
+        </VtsInputWrapper>
+      </div>
     </div>
-    <UiTitle>{{ t('options') }}</UiTitle>
-    <div class="read-only">
-      <UiCheckbox v-model="readOnly" accent="brand">
-        {{ t('read-only') }}
-      </UiCheckbox>
+    <div class="attach-form">
+      <UiTitle>{{ t('options') }}</UiTitle>
+      <div>
+        <UiCheckbox v-model="readOnly" accent="brand">
+          {{ t('read-only') }}
+        </UiCheckbox>
+      </div>
     </div>
     <div class="buttons-container">
       <UiLink :to="cancelTo" size="medium">
@@ -71,6 +76,16 @@ function onSubmit() {
 
 <style lang="postcss" scoped>
 .vdi-attach-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4rem;
+
+  .attach-form {
+    display: flex;
+    flex-direction: column;
+    gap: 2.4rem;
+  }
+
   .row {
     display: flex;
     align-items: start;
@@ -87,14 +102,6 @@ function onSubmit() {
       gap: 8rem;
       max-width: 88rem;
     }
-
-    &:not(:first-child) {
-      margin-block-start: 2.4rem;
-    }
-  }
-
-  .read-only {
-    margin-block-start: 2.4rem;
   }
 
   .buttons-container {
@@ -102,7 +109,6 @@ function onSubmit() {
     justify-content: center;
     align-items: center;
     gap: 2.4rem;
-    margin-block-start: 2.4rem;
   }
 }
 </style>
