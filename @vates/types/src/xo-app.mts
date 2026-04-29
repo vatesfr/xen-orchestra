@@ -82,7 +82,8 @@ type XapiRecordByXapiXoRecord = {
   'VM-template': XenApiVmWrapped
   VTPM: XenApiVtpmWrapped
 }
-export type LicenseProductId =
+
+type LicenseProductId =
   | 'premium'
   | 'xcpng-enterprise'
   | 'xcpng-standard'
@@ -90,7 +91,7 @@ export type LicenseProductId =
   | 'xosan.trial'
   | 'xostor'
   | 'xostor.trial'
-export type LicenseProductType = 'xo' | 'xoproxy' | 'xcpng' | 'xosan' | 'xostor'
+type LicenseProductType = 'xo' | 'xoproxy' | 'xcpng' | 'xosan' | 'xostor'
 
 export type License = {
   id: string

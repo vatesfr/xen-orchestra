@@ -29,9 +29,9 @@ import {
   asynchronousActionResp,
   badRequestResp,
   createdResp,
+  forbiddenOperationResp,
   internalServerErrorResp,
   invalidParameters as invalidParametersResp,
-  forbiddenOperationResp,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
@@ -367,11 +367,16 @@ export class SrController extends XapiXoController<XoSr> {
   }
 
   /**
+   * Required privilege:
+   * - resource: sr, action: delete
+   *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Delete('{id}')
+  @Middlewares(acl({ resource: 'sr', action: 'delete', objectId: 'params.id' }))
   async deleteSr(@Path() id: string): Promise<void> {
     await this.#srService.delete(id as XoSr['id'])
   }
