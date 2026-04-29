@@ -582,8 +582,10 @@ export class VmController extends XapiXoController<XoVm> {
   @Post('{id}/actions/revert_snapshot')
   @Middlewares([json(), acl({ resource: 'vm', action: 'revert-snapshot', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async revertSnapshotVm(
     @Path() id: string,
@@ -592,11 +594,19 @@ export class VmController extends XapiXoController<XoVm> {
   ): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
+      const snapshotId = body.snapshot as XoVmSnapshot['id']
+
+      // Ensure the snapshot belongs to this VM
+      const vm = this.getObject(vmId)
+      if (!vm.snapshots.includes(snapshotId)) {
+        throw invalidParameters(`snapshot ${snapshotId} does not belong to VM ${vmId}`)
+      }
+
       if (body.snapshotBefore) {
         await this.getXapiObject(vmId).$snapshot({ ignoredVdisTag: IGNORED_VDIS_TAG })
       }
 
-      await this.getXapi(vmId).revertVm(body.snapshot as XoVmSnapshot['id'])
+      await this.getXapi(vmId).revertVm(snapshotId)
     }
 
     return this.createAction<void>(action, {
