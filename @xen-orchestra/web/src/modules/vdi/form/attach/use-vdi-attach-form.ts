@@ -10,6 +10,7 @@ import { useI18n } from 'vue-i18n'
 export type VdiAttachFormData = BaseVdiFormData & {
   vdi: FrontXoVdi['id'] | undefined
   readOnly: boolean
+  bootable: boolean
 }
 
 export function useVdiAttachForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
@@ -21,6 +22,7 @@ export function useVdiAttachForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     sr: undefined,
     vdi: undefined,
     readOnly: false,
+    bootable: false,
   })
 
   const { availableSrs, attachedVdiIds, getSrLocation, isFreeForWriting, selectedSr, srWarning, useSelect } =
@@ -70,7 +72,9 @@ export function useVdiAttachForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     },
   })
 
-  const { readOnly } = toRefs(formData)
+  const { readOnly, bootable } = toRefs(formData)
+
+  const isPv = computed(() => vm.value.virtualizationMode === 'pv')
 
   function validateAndBuildPayload(): NewVbdPayload | undefined {
     if (!formData.vdi) {
@@ -83,6 +87,7 @@ export function useVdiAttachForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
       VM: vm.value.id,
       VDI: formData.vdi,
       mode: formData.readOnly || forceReadOnly ? 'RO' : 'RW',
+      ...(isPv.value && { bootable: formData.bootable }),
     }
   }
 
@@ -98,6 +103,8 @@ export function useVdiAttachForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
       ...(vdiWarning.value !== undefined && { warning: vdiWarning.value }),
     })),
     readOnly,
+    bootable,
+    isPv,
     canSubmit,
     validateAndBuildPayload,
   }

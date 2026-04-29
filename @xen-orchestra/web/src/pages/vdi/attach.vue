@@ -49,6 +49,7 @@ const route = useRoute()
 const vmId = route.query.vmid as FrontXoVm['id'] | undefined
 
 const { areVmsReady, useGetVmById } = useXoVmCollection()
+
 const vm = useGetVmById(() => vmId)
 
 const formPayload = ref<NewVbdPayload>()

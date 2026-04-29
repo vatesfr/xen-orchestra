@@ -13,10 +13,15 @@
     </div>
     <div class="attach-form">
       <UiTitle>{{ t('options') }}</UiTitle>
-      <div>
+      <div class="checkbox">
         <UiCheckbox v-model="readOnly" accent="brand">
           {{ t('read-only') }}
         </UiCheckbox>
+        <span v-tooltip="!isPv && t('paravirtualized-vms-only')">
+          <UiCheckbox v-model="bootable" accent="brand" :disabled="!isPv">
+            {{ t('bootable') }}
+          </UiCheckbox>
+        </span>
       </div>
     </div>
     <div class="buttons-container">
@@ -40,6 +45,7 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
@@ -55,7 +61,8 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const { srSelectBindings, vdiSelectBindings, readOnly, canSubmit, validateAndBuildPayload } = useVdiAttachForm(() => vm)
+const { srSelectBindings, vdiSelectBindings, readOnly, bootable, isPv, canSubmit, validateAndBuildPayload } =
+  useVdiAttachForm(() => vm)
 
 const srMessage = computed<InputWrapperMessage | undefined>(() =>
   srSelectBindings.value.warning ? { content: srSelectBindings.value.warning, accent: 'warning' } : undefined
@@ -83,6 +90,11 @@ function onSubmit() {
   .attach-form {
     display: flex;
     flex-direction: column;
+    gap: 2.4rem;
+  }
+
+  .checkbox {
+    display: flex;
     gap: 2.4rem;
   }
 
