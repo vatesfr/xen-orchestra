@@ -20,6 +20,7 @@
 
 - [xo-server] Fix VM-template still visible after deletion (PR [#9760](https://github.com/vatesfr/xen-orchestra/pull/9760))
 - [xo-server-sdn-controller] Better traffic-rules synchronization related to VM lifecycle (PR [#9518](https://github.com/vatesfr/xen-orchestra/pull/9518))
+- [REST] Fixed ignored parameters in request body due to a tsoa bug (see https://github.com/lukeautry/tsoa/pull/1858) (PR [#9793](https://github.com/vatesfr/xen-orchestra/pull/9793))
 
 ### Packages to release
 
@@ -37,6 +38,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/rest-api patch
 - @xen-orchestra/web minor
 - xo-server patch
 - xo-server-sdn-controller minor
