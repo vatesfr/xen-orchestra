@@ -44,7 +44,7 @@ A privilege defines:
 - **resource** — the type of object (e.g. `vm`, `backup-job`, `sr`)
 - **action** — what operation is allowed or denied (e.g. `read`, `start`, `delete`)
 - **effect** — whether the privilege grants (`allow`) or blocks (`deny`) the action
-- **selector** _(optional)_ — a filter expression to restrict the privilege to a subset of objects ([complex-matcher format](./manage_infrastructure.md#filter-syntax))
+- **selector** _(optional)_ — a filter expression to restrict the privilege to a subset of objects ([complex-matcher format](../xo5/manage_infrastructure.md#filter-syntax))
 
 ### Action hierarchy
 
@@ -74,7 +74,7 @@ To use them, **copy** a template into a new role and assign that copy to your us
 | **VMs creator**             | Can instantiate VM templates and create VDIs and VIFs.                               |
 | **VMs read only**           | Can only list and view VMs.                                                          |
 
-![acl-role copy documented in Swagger](./assets/swagger-role-copy.png)
+![acl-role copy documented in Swagger](../assets/swagger-role-copy.png)
 
 ---
 
@@ -212,7 +212,7 @@ Carol can start, stop, delete, snapshot any VM she wants. Production VMs are com
 
 ### Step 1 — Create a role
 
-![acl-role create documented in Swagger](./assets/swagger-create-role.png)
+![acl-role create documented in Swagger](../assets/swagger-create-role.png)
 
 Response:
 
@@ -222,23 +222,23 @@ Response:
 
 ### Step 2 — Add privileges to the role
 
-![acl-privilege create documented in Swagger](./assets/swagger-create-privilege.png)
+![acl-privilege create documented in Swagger](../assets/swagger-create-privilege.png)
 
 ### Step 3 — Assign the role to the user
 
-![add user to role documented in Swagger](./assets/swagger-add-user-to-role.png)
+![add user to role documented in Swagger](../assets/swagger-add-user-to-role.png)
 
 The user can now list VMs.
 
 To assign to a group instead (all group members inherit the role):
 
-![add group to role documented in Swagger](./assets/swagger-add-group-to-role.png)
+![add group to role documented in Swagger](../assets/swagger-add-group-to-role.png)
 
 ---
 
 ## Selectors
 
-By default, a privilege applies to **all** objects of the given resource type. The optional `selector` field narrows it down using the [complex-matcher](./manage_infrastructure#filter-syntax) syntax — the same filter syntax used in the XO UI.
+By default, a privilege applies to **all** objects of the given resource type. The optional `selector` field narrows it down using the [complex-matcher](../xo5/manage_infrastructure#filter-syntax) syntax — the same filter syntax used in the XO UI.
 
 A selector is evaluated against each object's properties. If it matches, the privilege applies; otherwise it does not.
 
