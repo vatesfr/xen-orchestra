@@ -113,7 +113,10 @@ export class TaskController extends XoController<XoTask> {
       const userId = this.restApi.getCurrentUser().id
       const update = async (task: XoTask) => {
         const user = await this.restApi.xoApp.getUser(userId)
-        const userPrivileges = (await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
+        const userPrivileges =
+          user.permission === 'admin'
+            ? []
+            : ((await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[])
 
         if (
           hasPrivilegeOn({ user, userPrivileges, action: 'read', resource: 'task', objects: task }) &&
@@ -124,7 +127,10 @@ export class TaskController extends XoController<XoTask> {
       }
       const remove = async (task: XoTask) => {
         const user = await this.restApi.xoApp.getUser(userId)
-        const userPrivileges = (await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
+        const userPrivileges =
+          user.permission === 'admin'
+            ? []
+            : ((await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[])
 
         if (
           hasPrivilegeOn({ user, userPrivileges, action: 'read', resource: 'task', objects: task }) &&
@@ -190,7 +196,8 @@ export class TaskController extends XoController<XoTask> {
   @SuccessResponse(noContentResp.status, noContentResp.description)
   async deleteTasks(): Promise<void> {
     const user = this.restApi.getCurrentUser()
-    const userPrivileges = (await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
+    const userPrivileges =
+      user.permission === 'admin' ? [] : ((await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[])
 
     const deletePromises: Promise<void>[] = []
     for await (const task of this.restApi.tasks.list()) {
