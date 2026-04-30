@@ -507,7 +507,7 @@ When a connection's buffer exceeds this limit, the server logs an error and imme
 
 As part of our continuous efforts to improve the developer experience, we’ve begun documenting the Xen Orchestra REST API using the OpenAPI (Swagger) standard:
 
-![VM getID enpoints documented in Swagger](./assets/swagger-example.png)
+![VM getID enpoints documented in Swagger](../assets/swagger-example.png)
 
 :::tip
 

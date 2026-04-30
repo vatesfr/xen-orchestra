@@ -3,7 +3,7 @@
 This page recaps the actions you can perform if you have any problems with your XOA.
 
 :::warning
-If you have issues with XO installed from GitHub (not XOA), [please go to the dedicated section first!](community.md).
+If you have issues with XO installed from GitHub (not XOA), [please go to the dedicated section first!](../xo6/community.md).
 :::
 
 ## Recommendation

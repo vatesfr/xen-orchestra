@@ -10,7 +10,7 @@ The SDN Controller enables a user to **create pool-wide and cross-pool private n
 
 Interconnect your VMs and hosts within a dedicated and secured private network, even across different pools all around the world. This is a great way to protect "private links" (eg between applications and databases, management networks etc.) without any complicated deployment.
 
-![](./assets/gpn.png)
+![](../assets/gpn.png)
 
 ### How does it work?
 
@@ -36,7 +36,7 @@ In the network creation view:
 - Create the network
 - Have fun! ☺
 
-![](./assets/sdn-controller.png)
+![](../assets/sdn-controller.png)
 
 :::tip
 
@@ -103,8 +103,8 @@ In the VM network tab a new column has been added: _Network rules_.
 - The _Show rules_ button allow to display all rules for a VIF.
 - When the rules are display a button to delete a rule is available.
 
-![](./assets/add-rule.png)
-![](./assets/show-rules.png)
+![](../assets/add-rule.png)
+![](../assets/show-rules.png)
 
 ### XAPI Plugin
 
@@ -192,7 +192,7 @@ We provide a script to run from a host that has access to your pool. To run the 
 - The list of the addresses of your pool masters.
 - (optional) If your infrastructure is on the bigger side, it may be better to have ssh agents configured with keys to avoid the need to pass all the passwords.
 
-[check-sdn-features.sh (download script)](../static/sh/check-sdn-features.sh)
+[check-sdn-features.sh (download script)](../../static/sh/check-sdn-features.sh)
 
 Copy the file to where you want to run the script, then run this:
 
@@ -252,7 +252,7 @@ The update present in the `latest` channel will probably be available later than
 
 We provide a helper script to run on your XOA VM:
 
-[regenerate-certs.sh (download script)](../static/sh/regenerate-certs.sh)
+[regenerate-certs.sh (download script)](../../static/sh/regenerate-certs.sh)
 
 ```
 xoa@xoa:~$ sudo bash -e ./regenerate-certs.sh
