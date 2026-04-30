@@ -58,6 +58,7 @@ export type XapiConnection = Xapi & {
 }
 
 type FeatureCode =
+  | 'ACL'
   | 'BACKUP.DELTA'
   | 'BACKUP.DELTA_REPLICATION'
   | 'BACKUP.FULL'
