@@ -254,7 +254,13 @@ Ensure stable network connectivity between the VMware environment, Xen Orchestra
 If warm migration fails, power off the VM, remove all snapshots, and try again.
 
 ## ❓ Need more help?
-For additional details and alternative methods, see the [XCP-ng migration guide](https://docs.xcp-ng.org/installation/migrate-to-xcp-ng/#ova).
+
+### Booting issues when importing VMs
+:::tip
+When migrating a VM from VMware, the system may fail to boot if the required Xen drivers are not pre-installed.
+
+To avoid this, use the `dracut` utility on the source VM prior to migration. For the specific driver injection procedure, refer to the [XCP-ng migration guide](https://docs.xcp-ng.org/installation/migrate-to-xcp-ng/#ova).
+:::
 
 ## 🚀 Boosting migration performance
 Migration speed depends on several factors. By identifying bottlenecks and optimizing your setup, you can significantly improve performance.
