@@ -1,5 +1,5 @@
 <template>
-  <VtsDrawerButton variant="primary" @click="handleClick">
+  <VtsDrawerButton variant="primary" @click="handleClick()">
     <slot />
   </VtsDrawerButton>
 </template>

@@ -1,5 +1,5 @@
 <template>
-  <VtsDrawerButton variant="secondary" @click="handleClick">
+  <VtsDrawerButton variant="secondary" @click="handleClick()">
     <slot>{{ t('cancel') }}</slot>
   </VtsDrawerButton>
 </template>

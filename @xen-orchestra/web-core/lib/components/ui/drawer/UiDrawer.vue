@@ -10,7 +10,6 @@
           <UiButtonIcon
             v-if="onDismiss"
             :target-scale="2"
-            class="dismiss-button"
             icon="action:close-cancel-clear"
             accent="brand"
             size="small"
@@ -20,7 +19,7 @@
         <div class="content">
           <slot name="content" />
         </div>
-        <VtsButtonGroup v-if="slots.buttons" class="buttons">
+        <VtsButtonGroup v-if="slots.buttons" no-stack class="buttons">
           <slot name="buttons" />
         </VtsButtonGroup>
       </aside>
@@ -102,12 +101,8 @@ const slots = defineSlots<{
     }
 
     .content {
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
       overflow: auto;
       flex: 1;
-      margin: 0 0.4rem;
       padding: 2.4rem;
     }
 
@@ -120,6 +115,7 @@ const slots = defineSlots<{
 
     @media (--medium-or-large) {
       min-width: 50%;
+      max-width: 50%;
       border-inline-start: 0.1rem solid var(--color-neutral-border);
     }
   }

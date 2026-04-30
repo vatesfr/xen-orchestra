@@ -85,6 +85,8 @@ openMyDrawer('John')
 
 ### Payload and response
 
+Payloads are fully typed based on the return type of `onConfirm` and `onCancel`:
+
 ```ts
 const openMyDrawer = useDrawer({
   component: import('path/to/MyDrawer.vue'),
@@ -95,10 +97,44 @@ const openMyDrawer = useDrawer({
 const result = await openMyDrawer()
 
 if (result.confirmed) {
-  result.payload // 'saved'
+  result.payload // string
 } else {
-  result.payload // 'aborted'
+  result.payload // string
 }
+```
+
+### `onConfirm` and `onCancel` event args
+
+If your drawer component defines args for `confirm` and `cancel` events, you'll get them as arguments of the `onConfirm` and `onCancel` callbacks:
+
+```vue
+<!-- MyDrawer.vue -->
+<script lang="ts" setup>
+defineEmits<{
+  confirm: [value: string]
+  cancel: []
+}>()
+</script>
+```
+
+```ts
+const openMyDrawer = useDrawer({
+  component: import('path/to/MyDrawer.vue'),
+  onConfirm: (value: string) => console.log('Confirmed with', value),
+})
+```
+
+### Busy state
+
+If `onConfirm` or `onCancel` returns a `Promise`, the drawer closes optimistically and stays busy until the promise resolves. You can use the `busy` state from `useDrawer` to show a loading indicator:
+
+```ts
+const openMyDrawer = useDrawer({
+  component: import('path/to/MyDrawer.vue'),
+  onConfirm: async () => {
+    await saveToServer()
+  },
+})
 ```
 
 ### Aborting close

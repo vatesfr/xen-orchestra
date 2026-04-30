@@ -1,5 +1,5 @@
 <template>
-  <UiDrawer :is-open="isVisible" v-on="{ dismiss: handleDismiss, afterLeave: onAfterLeave }">
+  <UiDrawer :is-open="effectiveIsOpen" v-on="{ dismiss: handleDismiss, afterLeave: onAfterLeave }">
     <template v-if="slots.title" #title>
       <slot name="title" />
     </template>
@@ -20,9 +20,14 @@ import { IK_DRAWER } from '@core/packages/drawer/types.ts'
 import { useMagicKeys, whenever } from '@vueuse/core'
 import { computed, inject, onMounted, ref } from 'vue'
 
-const { dismissible, current } = defineProps<{
+const props = defineProps<{
   dismissible?: boolean
   current?: boolean
+  isOpen?: boolean
+}>()
+
+const emit = defineEmits<{
+  dismiss: []
 }>()
 
 const slots = defineSlots<{
@@ -31,13 +36,17 @@ const slots = defineSlots<{
   buttons?(): any
 }>()
 
-const drawer = inject(IK_DRAWER)
+const drawer = inject(IK_DRAWER, undefined)
 
-const isVisible = ref(false)
+const internalVisible = ref(false)
 
 onMounted(() => {
-  isVisible.value = true
+  if (props.isOpen === undefined) {
+    internalVisible.value = true
+  }
 })
+
+const effectiveIsOpen = computed(() => props.isOpen ?? internalVisible.value)
 
 let afterLeaveCallback: (() => void) | undefined
 
@@ -47,20 +56,25 @@ function onAfterLeave() {
 }
 
 const handleDismiss = computed(() => {
-  if (!dismissible) {
+  if (!props.dismissible) {
     return undefined
   }
 
   return () => {
+    if (props.isOpen !== undefined) {
+      emit('dismiss')
+      return
+    }
+
     afterLeaveCallback = () => drawer?.value.onCancel()
-    isVisible.value = false
+    internalVisible.value = false
   }
 })
 
 const { escape } = useMagicKeys()
 
 whenever(escape, () => {
-  if (dismissible && current) {
+  if (props.dismissible && props.current) {
     handleDismiss.value?.()
   }
 })

@@ -49,7 +49,7 @@
     <UiButton variant="primary" accent="brand" size="medium" @click="isOpen = true">Open Drawer</UiButton>
 
     <UiDrawer
-      :is-open="isOpen"
+      :is-open
       v-on="{
         dismiss: properties.onDismiss ? () => (isOpen = false) : undefined,
       }"
