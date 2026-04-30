@@ -102,8 +102,6 @@ It is sometimes necessary to check ACLs based on the body of the request sent by
 
 ##### Example: Resource creation
 
-When creating a resource (which doesn't exist yet), pass the object being created as the target:
-
 ```ts
 /**
   * Create a new VDI
@@ -112,10 +110,7 @@ When creating a resource (which doesn't exist yet), pass the object being create
   * - resource: vdi, action: create
   */
  @Post('/')
- @Middlewares(acl({resource: 'vdi', action: 'create', object: ({req}) => {
-  const {srId,...rest} = req.body
-  return {$SR: srId, ...rest}
- }}))
+ @Middlewares(acl({resource: 'vdi', action: 'create', object: ({req}) => req.body }))
  @Response(403)
  createVdi(@Body() body: VdiConfig) {
    const {srId, ...rest}
@@ -126,8 +121,6 @@ When creating a resource (which doesn't exist yet), pass the object being create
 ```
 
 ##### Example: Resource update
-
-When creating a resource (which doesn't exist yet), pass the object being created as the target:
 
 ```ts
 /**
