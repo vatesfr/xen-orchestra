@@ -235,6 +235,29 @@ describe('watchVmDirectory', () => {
     }
   })
 
+  it('does not re-lock a backup whose datetime is past the immutability window', async () => {
+    const dir = await mkTmp()
+    const vmDir = path.join(dir, 'vm')
+    await fs.mkdir(vmDir, { recursive: true })
+
+    const errors: unknown[] = []
+    // BACKUP_DATE (Jan 2024) is over a year ago — well past ONE_DAY_MS
+    const close = watchVmDirectory(vmDir, err => errors.push(err), {
+      delayBetweenSizeCheck: 100,
+      immutabilityDuration: ONE_DAY_MS,
+    })
+    try {
+      const jsonFile = path.join(vmDir, `${BACKUP_DATE}.json`)
+      await fs.writeFile(jsonFile, '{}')
+      await new Promise(r => setTimeout(r, 500))
+      assert.strictEqual(await File.isImmutable(jsonFile), false, 'expired backup must not be re-locked')
+      assert.strictEqual(errors.length, 0)
+    } finally {
+      close()
+      await cleanupRoot(dir)
+    }
+  })
+
   it('locks a flat VHD file when .json is written', async () => {
     const dir = await mkTmp()
     const vmDir = path.join(dir, 'vm')

@@ -1,8 +1,9 @@
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
-import { join } from 'node:path'
+import { join, basename } from 'node:path'
 import * as Directory from './directory.mjs'
 import { createLogger } from '@xen-orchestra/log'
+import { extractDatetime, parseDatetime } from './_datetime.mjs'
 
 const { debug } = createLogger('xen-orchestra:immutable-backups:watcher')
 
@@ -11,20 +12,8 @@ export interface WatchOptions {
   lockTimeout?: number
   /** Milliseconds to wait between consecutive size checks when polling for write completion. */
   delayBetweenSizeCheck: number
-}
-
-/**
- * Matches the datetime prefix shared by all files belonging to a single backup run.
- *
- * Examples:
- *   "20231215T142030.json"        → "20231215T142030"
- *   "20231215T142030.alias.vhd"   → "20231215T142030"
- *   "cache.json.gz"               → undefined  (not a backup file)
- */
-const DATETIME_RE = /^(\d{8}T\d{6}Z?)\./
-
-function extractDatetime(filename: string): string | undefined {
-  return DATETIME_RE.exec(filename)?.[1]
+  /** When set, backups whose filename-encoded datetime is already past the immutability window are not re-locked. */
+  immutabilityDuration?: number
 }
 
 // Poll `path` with `fs.stat` until the file size stops changing, indicating the
@@ -125,7 +114,7 @@ async function lockBackup(vmDir: string, datetime: string): Promise<void> {
 export function watchVmDirectory(
   vmDir: string,
   onError: (err: unknown) => void,
-  { lockTimeout = 10 * 60 * 1000, delayBetweenSizeCheck }: WatchOptions
+  { lockTimeout = 10 * 60 * 1000, delayBetweenSizeCheck, immutabilityDuration }: WatchOptions
 ): () => void {
   const watcher = fs.watch(vmDir)
 
@@ -145,9 +134,20 @@ export function watchVmDirectory(
     const datetime = extractDatetime(name)
     debug(`[watcher] watchVmDirectory: extractDatetime("${name}") → ${datetime}`)
     if (datetime === undefined) {
-      debug(`[watcher] watchVmDirectory: ignoring "${name}" — does not match DATETIME_RE ${DATETIME_RE}`)
+      debug(`[watcher] watchVmDirectory: ignoring "${name}" — does not match datetime pattern`)
       return // e.g. cache.json.gz
     }
+    // Skip re-locking files whose backup datetime is already past the immutability
+    // window — XO rewrites metadata json files periodically (cache refresh, reconciliation)
+    // which would otherwise cause the watcher to re-lock an already-expired backup.
+    if (immutabilityDuration !== undefined) {
+      const backupTimestamp = parseDatetime(datetime)
+      if (backupTimestamp !== undefined && Date.now() - backupTimestamp > immutabilityDuration) {
+        debug(`[watcher] watchVmDirectory: "${name}" is past immutability window — skip lock`)
+        return
+      }
+    }
+
     // ensure we handle event once per file
     // clear up the remaingin data after a reasonnable tie
     if (lockedDatetimes.has(datetime)) {
@@ -194,7 +194,7 @@ export function watchVmDirectory(
 function watchBackupDateDirectory(
   dateDir: string,
   onError: (err: unknown) => void,
-  { lockTimeout = 10 * 60 * 1000, delayBetweenSizeCheck }: WatchOptions
+  { lockTimeout = 10 * 60 * 1000, delayBetweenSizeCheck, immutabilityDuration }: WatchOptions
 ): () => void {
   const watcher = fs.watch(dateDir)
   let locked = false
@@ -210,6 +210,13 @@ function watchBackupDateDirectory(
     }
     if (locked) {
       return
+    }
+    if (immutabilityDuration !== undefined) {
+      const backupTimestamp = parseDatetime(basename(dateDir))
+      if (backupTimestamp !== undefined && Date.now() - backupTimestamp > immutabilityDuration) {
+        debug(`[watcher] watchBackupDateDirectory: "${dateDir}" is past immutability window — skip lock`)
+        return
+      }
     }
     const metadataPath = join(dateDir, 'metadata.json')
     waitForWriteDone(metadataPath, lockTimeout, delayBetweenSizeCheck)

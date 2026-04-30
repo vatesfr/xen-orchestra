@@ -1,5 +1,5 @@
 import fsp from 'node:fs/promises'
-import { join } from 'node:path'
+import { join, basename } from 'node:path'
 import * as Directory from './directory.mjs'
 import * as File from './file.mjs'
 import { createLogger } from '@xen-orchestra/log'
@@ -7,26 +7,14 @@ import { asyncEach } from '@vates/async-each'
 import cleanXoCache from './_cleanXoCache.mjs'
 import { RemoteConfig } from './_loadConfig.mjs'
 
+import { extractDatetime, parseDatetime } from './_datetime.mjs'
+
 const { debug, warn } = createLogger('xen-orchestra:immutable-backups:liftProtection')
 
 // On the very first lift run after startup, skip the isImmutable fast-path so
 // that orphaned immutable VHDs/XVAs left by a previous partial or buggy lock
 // are caught and released even when the .json sentinel is already mutable.
 let isFirstLift = true
-
-/**
- * Matches the datetime prefix shared by all files belonging to a single VM backup run.
- *
- * Examples:
- *   "20231215T142030.json"        → "20231215T142030"
- *   "20231215T142030Z.alias.vhd"  → "20231215T142030Z"
- *   "cache.json.gz"               → undefined  (not a backup file)
- */
-const DATETIME_RE = /^(\d{8}T\d{6}Z?)\./
-
-function extractDatetime(filename: string): string | undefined {
-  return DATETIME_RE.exec(filename)?.[1]
-}
 
 // Returns the absolute paths of all immediate subdirectories of `dir`.
 // Returns [] if `dir` does not exist.
@@ -66,11 +54,11 @@ async function liftExpiredVmBackups(root: string, immutabilityDuration: number, 
       if (!entry.isFile() || !entry.name.endsWith('.json')) continue
       const datetime = extractDatetime(entry.name)
       if (datetime === undefined) continue // e.g. cache.json.gz
+      const backupTimestamp = parseDatetime(datetime)
+      if (backupTimestamp === undefined || backupTimestamp > threshold) continue
       const jsonPath = join(vmDir, entry.name)
       try {
         if (!fullScan && !(await File.isImmutable(jsonPath))) continue
-        const { mtimeMs } = await fsp.stat(jsonPath)
-        if (mtimeMs > threshold) continue
         debug('VM backup expired, scheduling lift', { jsonPath })
         expiredDatetimes.push(datetime)
         firstExpiredJsonPath ??= jsonPath
@@ -138,11 +126,11 @@ async function liftExpiredConfigBackups(root: string, immutabilityDuration: numb
   debug('scanning config backup directories', { count: scheduleDirs.length, fullScan })
   await asyncEach(scheduleDirs, async scheduleDir => {
     for (const dateDir of await listDirs(scheduleDir)) {
+      const backupTimestamp = parseDatetime(basename(dateDir))
+      if (backupTimestamp === undefined || backupTimestamp > threshold) continue
       const metadataPath = join(dateDir, 'metadata.json')
       try {
         if (!fullScan && !(await File.isImmutable(metadataPath))) continue
-        const { mtimeMs } = await fsp.stat(metadataPath)
-        if (mtimeMs > threshold) continue
         debug('config backup expired, scheduling lift', { metadataPath })
         await liftDirBackup(dateDir)
         debug('config backup lifted', { dateDir })
@@ -163,11 +151,11 @@ async function liftExpiredPoolBackups(root: string, immutabilityDuration: number
   await asyncEach(scheduleDirs, async scheduleDir => {
     for (const poolDir of await listDirs(scheduleDir)) {
       for (const dateDir of await listDirs(poolDir)) {
+        const backupTimestamp = parseDatetime(basename(dateDir))
+        if (backupTimestamp === undefined || backupTimestamp > threshold) continue
         const metadataPath = join(dateDir, 'metadata.json')
         try {
           if (!fullScan && !(await File.isImmutable(metadataPath))) continue
-          const { mtimeMs } = await fsp.stat(metadataPath)
-          if (mtimeMs > threshold) continue
           debug('pool metadata backup expired, scheduling lift', { metadataPath })
           await liftDirBackup(dateDir)
           debug('pool metadata backup lifted', { dateDir })
