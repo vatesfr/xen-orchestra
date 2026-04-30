@@ -30,29 +30,40 @@ function extractDatetime(filename: string): string | undefined {
 // Poll `path` with `fs.stat` until the file size stops changing, indicating the
 // write is complete regardless of file format (plain or encrypted).
 // The first stat is issued immediately; resolution requires a stable non-zero
-// size across two consecutive polls spaced 100 ms apart.
-// Rejects with an error if `timeout` ms elapse before stability is reached.
+// size across two consecutive polls spaced delayBetweenSizeCheck ms apart.
+// Fails fast with code='ENOENT' if the file never appears within 2 s — this
+// handles spurious or deletion-triggered fs events where the file won't arrive.
+// Rejects with a plain Timeout error if the file appeared but never stabilised.
 export async function waitForWriteDone(path: string, timeout: number, delayBetweenSizeCheck: number): Promise<void> {
   const deadline = Date.now() + timeout
+  const firstSeenDeadline = Date.now() + Math.min(timeout, 2000)
   let prevSize = -1
+  let everSeen = false
 
   while (Date.now() < deadline) {
     try {
       const { size } = await fsp.stat(path)
+      everSeen = true
       if (size > 0 && size === prevSize) {
-        return // non-empty and size stable — write done
+        return // non-zero and size stable — write done
       }
       prevSize = size
     } catch (err) {
-      if (err.code !== 'ENOENT') {
+      if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
         throw err
       }
-      // file not yet visible — keep waiting
+      if (!everSeen && Date.now() >= firstSeenDeadline) {
+        throw Object.assign(new Error(`File never appeared: ${path}`), { code: 'ENOENT' })
+      }
     }
     await new Promise<void>(resolve => setTimeout(resolve, delayBetweenSizeCheck))
   }
 
-  throw new Error(`Timeout waiting for write to complete on ${path}`)
+  const error = new Error(`Timeout waiting for write to complete on ${path}`)
+  if (!everSeen) {
+    ;(error as NodeJS.ErrnoException).code = 'ENOENT'
+  }
+  throw error
 }
 
 // Lock every file belonging to the backup run identified by `datetime` inside `vmDir`.

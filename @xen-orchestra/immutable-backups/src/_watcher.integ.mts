@@ -89,6 +89,47 @@ describe('waitForWriteDone', () => {
     }
   })
 
+  it('rejects fast with code=ENOENT when file never appears', async () => {
+    const dir = await mkTmp()
+    try {
+      const file = path.join(dir, 'nonexistent.bin')
+      const start = Date.now()
+      await assert.rejects(waitForWriteDone(file, 30_000, 100), (err: NodeJS.ErrnoException) => {
+        assert.strictEqual(err.code, 'ENOENT', 'error must carry code ENOENT')
+        return true
+      })
+      const elapsed = Date.now() - start
+      assert.ok(elapsed < 5000, `should fail within 5 s (took ${elapsed} ms)`)
+    } finally {
+      await rimraf(dir)
+    }
+  })
+
+  it('rejects with no ENOENT code when file appears but never stabilises', async () => {
+    const dir = await mkTmp()
+    try {
+      const file = path.join(dir, 'growing2.bin')
+      let stop = false
+      const writer = (async () => {
+        let i = 0
+        while (!stop) {
+          await fs.appendFile(file, `chunk-${i++}\n`)
+          await new Promise(r => setTimeout(r, 80))
+        }
+      })()
+
+      await assert.rejects(waitForWriteDone(file, 500, 100), (err: NodeJS.ErrnoException) => {
+        assert.ok(/Timeout/.test(err.message), 'error must say Timeout')
+        assert.strictEqual(err.code, undefined, 'must not carry ENOENT code')
+        return true
+      })
+      stop = true
+      await writer
+    } finally {
+      await rimraf(dir)
+    }
+  })
+
   it('resolves once a growing file stops changing', async () => {
     const dir = await mkTmp()
     try {
