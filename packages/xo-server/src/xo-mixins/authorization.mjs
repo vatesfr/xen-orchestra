@@ -25,11 +25,19 @@ export const PLANS = {
   premium: PREMIUM,
 }
 
+export const BUNDLES = {
+  essential: BUNDLE_ESSENTIAL,
+  essentialPlus: BUNDLE_ESSENTIAL_PLUS,
+  enterprise: BUNDLE_ENTERPRISE,
+  pro: BUNDLE_PRO,
+  x1: BUNDLE_X1,
+}
+
 const BUNDLE_TO_PLAN = {
   [BUNDLE_ESSENTIAL]: STARTER,
   [BUNDLE_ESSENTIAL_PLUS]: PREMIUM,
-  [BUNDLE_ENTERPRISE]: PREMIUM,
   [BUNDLE_PRO]: ENTERPRISE,
+  [BUNDLE_ENTERPRISE]: PREMIUM,
   [BUNDLE_X1]: STARTER,
 }
 
@@ -61,7 +69,9 @@ const AUTHORIZATIONS = {
 }
 
 // features: https://vates.tech/en/pricing-and-support/
-const BUNDLE_AUTHORIZATIONS = {}
+const BUNDLE_AUTHORIZATIONS = {
+  ACL: [BUNDLE_ESSENTIAL_PLUS, BUNDLE_PRO, BUNDLE_ENTERPRISE],
+}
 
 export default class Authorization {
   #app
@@ -105,11 +115,13 @@ export default class Authorization {
     const activeBundleLicenses = xoaLicences?.filter(
       ({ expires, bundleInfo }) => (expires === undefined || expires > now) && bundleInfo !== undefined
     )
-    if (activeBundleLicenses?.length === 0) {
+    if (activeBundleLicenses === undefined || activeBundleLicenses.length === 0) {
       return undefined
     }
-    const bundleIds = activeBundleLicenses.map(({ bundleInfo: { id } }) => id)
-    return bundleIds.sort((a, b) => (BUNDLE_TO_PLAN[b] ?? 0) - (BUNDLE_TO_PLAN[a] ?? 0))[0]
+
+    return activeBundleLicenses.sort(
+      (a, b) => (BUNDLE_TO_PLAN[b.bundleInfo.id] ?? 0) - (BUNDLE_TO_PLAN[a.bundleInfo.id] ?? 0)
+    )[0].bundleInfo.id
   }
 
   async checkFeatureAuthorization(featureCode) {
@@ -120,7 +132,6 @@ export default class Authorization {
 
     const bundleId = await this.#getCurrentBundleId()
     if (bundleId !== undefined) {
-      console.log({ bundleId })
       const allowedBundles = get(BUNDLE_AUTHORIZATIONS, featureCode)
       if (allowedBundles === undefined) {
         const minPlan = this.#getMinPlan(featureCode)
@@ -135,7 +146,6 @@ export default class Authorization {
 
       throw featureUnauthorized({ featureCode, currentBundle: bundleId, allowedBundles })
     } else {
-      console.log("no bundle ID, fallback to legacy check")
       // fallback to legacy feature check
       const minPlan = this.#getMinPlan(featureCode)
       const currentPlan = await this.#getCurrentPlan()
