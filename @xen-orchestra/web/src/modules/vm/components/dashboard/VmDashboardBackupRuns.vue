@@ -15,17 +15,17 @@
             <UiInfo :accent="infoVmProtectionStatus.accent">{{ infoVmProtectionStatus.text }}</UiInfo>
           </template>
         </VtsTabularKeyValueRow>
-        <UiButton
-          accent="brand"
-          left-icon="status:info-circle"
-          size="small"
-          variant="tertiary"
-          class="button"
-          @click="openProtectionHelpModal()"
-        >
-          {{ t('what-does-protected-mean?') }}
-        </UiButton>
       </VtsTabularKeyValueList>
+      <UiButton
+        accent="brand"
+        left-icon="status:info-circle"
+        size="small"
+        variant="tertiary"
+        class="button"
+        @click="openProtectionHelpModal()"
+      >
+        {{ t('what-does-protected-mean?') }}
+      </UiButton>
     </div>
     <UiAlert v-if="isNotInActiveJob" accent="warning">
       <span class="typo-body-bold">{{ t('no-job-vm') }}</span>
@@ -143,11 +143,10 @@ const { HeadCells, BodyCells } = useBackupRunColumns({
 .backup-head {
   display: flex;
   flex-direction: column;
-  gap: 2.4rem;
+  gap: 0.8rem;
 
   .button {
-    grid-column: 1 / -1;
-    justify-self: start;
+    align-self: flex-start;
   }
 }
 </style>

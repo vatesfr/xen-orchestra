@@ -4,70 +4,74 @@
     <!-- ABOUT -->
     <div class="container">
       <UiTitle>{{ t('about') }}</UiTitle>
-      <VtsColumns class="columns" :class="{ 'mobile-about': uiStore.isSmall }">
-        <VtsTabularKeyValueList>
+      <VtsColumns>
+        <VtsColumn :class="{ 'mobile-about': uiStore.isSmall }">
           <div class="typo-h6">{{ t('xen-orchestra') }}</div>
-          <VtsTabularKeyValueRow :label="t('version')" />
-          <VtsTabularKeyValueRow :label="t('news')">
-            <template #value>
-              <UiLink size="medium" :href="XO_LINKS.BLOG">
-                {{ t('news-name', { name: t('xen-orchestra') }) }}
-              </UiLink>
-            </template>
-          </VtsTabularKeyValueRow>
-          <VtsTabularKeyValueRow :label="t('community')">
-            <template #value>
-              <UiLink size="medium" :href="XO_LINKS.COMMUNITY">
-                {{ t('community-name', { name: t('xen-orchestra') }) }}
-              </UiLink>
-            </template>
-          </VtsTabularKeyValueRow>
-          <VtsTabularKeyValueRow :label="t('documentation')">
-            <template #value>
-              <UiLink size="medium" :href="XO_LINKS.DOC">
-                {{ t('documentation-name', { name: t('xen-orchestra') }) }}
-              </UiLink>
-            </template>
-          </VtsTabularKeyValueRow>
-        </VtsTabularKeyValueList>
-        <VtsTabularKeyValueList>
+          <VtsTabularKeyValueList>
+            <VtsTabularKeyValueRow :label="t('version')" />
+            <VtsTabularKeyValueRow :label="t('news')">
+              <template #value>
+                <UiLink size="medium" :href="XO_LINKS.BLOG">
+                  {{ t('news-name', { name: t('xen-orchestra') }) }}
+                </UiLink>
+              </template>
+            </VtsTabularKeyValueRow>
+            <VtsTabularKeyValueRow :label="t('community')">
+              <template #value>
+                <UiLink size="medium" :href="XO_LINKS.COMMUNITY">
+                  {{ t('community-name', { name: t('xen-orchestra') }) }}
+                </UiLink>
+              </template>
+            </VtsTabularKeyValueRow>
+            <VtsTabularKeyValueRow :label="t('documentation')">
+              <template #value>
+                <UiLink size="medium" :href="XO_LINKS.DOC">
+                  {{ t('documentation-name', { name: t('xen-orchestra') }) }}
+                </UiLink>
+              </template>
+            </VtsTabularKeyValueRow>
+          </VtsTabularKeyValueList>
+        </VtsColumn>
+        <VtsColumn>
           <div class="typo-h6">{{ t('xcp-ng') }}</div>
-          <VtsTabularKeyValueRow :label="t('news')">
-            <template #value>
-              <UiLink size="medium" :href="XCP_LINKS.BLOG">
-                {{ t('news-name', { name: t('xcp-ng') }) }}
-              </UiLink>
-            </template>
-          </VtsTabularKeyValueRow>
-          <VtsTabularKeyValueRow :label="t('community')">
-            <template #value>
-              <UiLink size="medium" :href="XCP_LINKS.COMMUNITY">
-                {{ t('community-name', { name: t('xcp-ng') }) }}
-              </UiLink>
-            </template>
-          </VtsTabularKeyValueRow>
-          <VtsTabularKeyValueRow :label="t('documentation')">
-            <template #value>
-              <UiLink size="medium" :href="XCP_LINKS.DOC">
-                {{ t('documentation-name', { name: t('xcp-ng') }) }}
-              </UiLink>
-            </template>
-          </VtsTabularKeyValueRow>
-          <VtsTabularKeyValueRow :label="t('support')">
-            <template #value>
-              <UiLink size="medium" :href="XCP_LINKS.SUPPORT">
-                {{ t('pro-support', { name: t('xcp-ng') }) }}
-              </UiLink>
-            </template>
-          </VtsTabularKeyValueRow>
-        </VtsTabularKeyValueList>
+          <VtsTabularKeyValueList>
+            <VtsTabularKeyValueRow :label="t('news')">
+              <template #value>
+                <UiLink size="medium" :href="XCP_LINKS.BLOG">
+                  {{ t('news-name', { name: t('xcp-ng') }) }}
+                </UiLink>
+              </template>
+            </VtsTabularKeyValueRow>
+            <VtsTabularKeyValueRow :label="t('community')">
+              <template #value>
+                <UiLink size="medium" :href="XCP_LINKS.COMMUNITY">
+                  {{ t('community-name', { name: t('xcp-ng') }) }}
+                </UiLink>
+              </template>
+            </VtsTabularKeyValueRow>
+            <VtsTabularKeyValueRow :label="t('documentation')">
+              <template #value>
+                <UiLink size="medium" :href="XCP_LINKS.DOC">
+                  {{ t('documentation-name', { name: t('xcp-ng') }) }}
+                </UiLink>
+              </template>
+            </VtsTabularKeyValueRow>
+            <VtsTabularKeyValueRow :label="t('support')">
+              <template #value>
+                <UiLink size="medium" :href="XCP_LINKS.SUPPORT">
+                  {{ t('pro-support', { name: t('xcp-ng') }) }}
+                </UiLink>
+              </template>
+            </VtsTabularKeyValueRow>
+          </VtsTabularKeyValueList>
+        </VtsColumn>
       </VtsColumns>
     </div>
     <!-- APPEARANCE -->
     <div class="container">
       <UiTitle>{{ t('appearance') }}</UiTitle>
-      <VtsColumns>
-        <div class="typo-h6">{{ t('mode') }}</div>
+      <div>
+        <div class="typo-h6 title">{{ t('mode') }}</div>
         <!-- TODO replace this part when the component is available -->
         <div class="color-modes">
           <div
@@ -94,9 +98,9 @@
             </span>
           </div>
         </div>
-      </VtsColumns>
-      <VtsColumns>
-        <div class="typo-h6">{{ t('theme') }}</div>
+      </div>
+      <div>
+        <div class="typo-h6 title">{{ t('theme') }}</div>
         <div class="themes">
           <div
             v-for="theme in themes"
@@ -113,27 +117,31 @@
             <span class="typo-body-regular-small theme-description">{{ t(theme.description) }}</span>
           </div>
         </div>
-      </VtsColumns>
+      </div>
     </div>
     <!-- LANGUAGE -->
     <div class="container">
       <UiTitle>{{ t('language-preferences') }}</UiTitle>
-      <VtsColumns class="columns" :class="{ 'mobile-language': uiStore.isSmall }">
-        <VtsTabularKeyValueList class="language">
-          <VtsInputWrapper :label="t('language')">
-            <VtsSelect :id="localeSelectId" accent="brand" />
-            <UiInfo accent="info" wrap>{{ t('untranslated-text-helper') }}</UiInfo>
-          </VtsInputWrapper>
-        </VtsTabularKeyValueList>
-        <VtsTabularKeyValueList>
-          <VtsTabularKeyValueRow :label="t('translation-tool')">
-            <template #value>
-              <UiLink size="medium" :href="XO_LINKS.TRANSLATION">
-                {{ t('weblate') }}
-              </UiLink>
-            </template>
-          </VtsTabularKeyValueRow>
-        </VtsTabularKeyValueList>
+      <VtsColumns>
+        <VtsColumn :class="{ 'mobile-language': uiStore.isSmall }">
+          <div class="language">
+            <VtsInputWrapper :label="t('language')">
+              <VtsSelect :id="localeSelectId" accent="brand" />
+              <UiInfo accent="info" wrap>{{ t('untranslated-text-helper') }}</UiInfo>
+            </VtsInputWrapper>
+          </div>
+        </VtsColumn>
+        <VtsColumn>
+          <VtsTabularKeyValueList>
+            <VtsTabularKeyValueRow :label="t('translation-tool')">
+              <template #value>
+                <UiLink size="medium" :href="XO_LINKS.TRANSLATION">
+                  {{ t('weblate') }}
+                </UiLink>
+              </template>
+            </VtsTabularKeyValueRow>
+          </VtsTabularKeyValueList>
+        </VtsColumn>
       </VtsColumns>
     </div>
   </UiCard>
@@ -142,7 +150,8 @@
 <script setup lang="ts">
 import { useTheme } from '@/shared/composables/theme.composable.ts'
 import { XCP_LINKS, XO_LINKS } from '@/shared/constants.ts'
-import VtsColumns from '@core/components/column/VtsColumn.vue'
+import VtsColumn from '@core/components/column/VtsColumn.vue'
+import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
@@ -193,18 +202,9 @@ const { id: localeSelectId } = useFormSelect(availableLocales, {
     display: flex;
     flex-direction: column;
     gap: 1.6rem;
-  }
 
-  .columns {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(25rem, 1fr));
-    gap: 8rem;
-
-    &.mobile-about {
-      gap: 2.4rem;
-    }
-    &.mobile-language {
-      gap: 4rem;
+    .title {
+      margin-block-end: 0.8rem;
     }
   }
 
