@@ -7,7 +7,7 @@ import { asyncEach } from '@vates/async-each'
 import cleanXoCache from './_cleanXoCache.mjs'
 import { RemoteConfig } from './_loadConfig.mjs'
 
-const { warn } = createLogger('xen-orchestra:immutable-backups:liftProtection')
+const { debug, warn } = createLogger('xen-orchestra:immutable-backups:liftProtection')
 
 // On the very first lift run after startup, skip the isImmutable fast-path so
 // that orphaned immutable VHDs/XVAs left by a previous partial or buggy lock
@@ -54,7 +54,9 @@ async function liftDirBackup(dateDir: string): Promise<void> {
 // liftImmutabilityBatch call, and cleanXoCache is called once.
 async function liftExpiredVmBackups(root: string, immutabilityDuration: number, fullScan: boolean): Promise<void> {
   const threshold = Date.now() - immutabilityDuration
-  await asyncEach(await listDirs(join(root, 'xo-vm-backups')), async vmDir => {
+  const vmDirs = await listDirs(join(root, 'xo-vm-backups'))
+  debug('scanning VM backup directories', { count: vmDirs.length, fullScan })
+  await asyncEach(vmDirs, async vmDir => {
     // 1. Find all expired datetimes in this vmDir.
     const entries = await fsp.readdir(vmDir, { withFileTypes: true }).catch(() => [])
     const expiredDatetimes: string[] = []
@@ -69,6 +71,7 @@ async function liftExpiredVmBackups(root: string, immutabilityDuration: number, 
         if (!fullScan && !(await File.isImmutable(jsonPath))) continue
         const { mtimeMs } = await fsp.stat(jsonPath)
         if (mtimeMs > threshold) continue
+        debug('VM backup expired, scheduling lift', { jsonPath })
         expiredDatetimes.push(datetime)
         firstExpiredJsonPath ??= jsonPath
       } catch (err) {
@@ -120,6 +123,7 @@ async function liftExpiredVmBackups(root: string, immutabilityDuration: number, 
     try {
       await Directory.liftImmutabilityBatch(candidates)
       await cleanXoCache(firstExpiredJsonPath!)
+      debug('VM backups lifted', { vmDir, count: expiredDatetimes.length })
     } catch (err) {
       warn('error lifting VM backup immutability', { err, vmDir })
     }
@@ -130,14 +134,18 @@ async function liftExpiredVmBackups(root: string, immutabilityDuration: number, 
 // lift immutability on any backup directory whose metadata mtime is expired.
 async function liftExpiredConfigBackups(root: string, immutabilityDuration: number, fullScan: boolean): Promise<void> {
   const threshold = Date.now() - immutabilityDuration
-  await asyncEach(await listDirs(join(root, 'xo-config-backups')), async scheduleDir => {
+  const scheduleDirs = await listDirs(join(root, 'xo-config-backups'))
+  debug('scanning config backup directories', { count: scheduleDirs.length, fullScan })
+  await asyncEach(scheduleDirs, async scheduleDir => {
     for (const dateDir of await listDirs(scheduleDir)) {
       const metadataPath = join(dateDir, 'metadata.json')
       try {
         if (!fullScan && !(await File.isImmutable(metadataPath))) continue
         const { mtimeMs } = await fsp.stat(metadataPath)
         if (mtimeMs > threshold) continue
+        debug('config backup expired, scheduling lift', { metadataPath })
         await liftDirBackup(dateDir)
+        debug('config backup lifted', { dateDir })
       } catch (err) {
         const code = err.code
         if (code !== 'ENOENT') warn('error lifting config backup immutability', { err, metadataPath })
@@ -150,7 +158,9 @@ async function liftExpiredConfigBackups(root: string, immutabilityDuration: numb
 // files and lift immutability on any backup directory whose metadata mtime is expired.
 async function liftExpiredPoolBackups(root: string, immutabilityDuration: number, fullScan: boolean): Promise<void> {
   const threshold = Date.now() - immutabilityDuration
-  await asyncEach(await listDirs(join(root, 'xo-pool-metadata-backups')), async scheduleDir => {
+  const scheduleDirs = await listDirs(join(root, 'xo-pool-metadata-backups'))
+  debug('scanning pool metadata backup directories', { count: scheduleDirs.length, fullScan })
+  await asyncEach(scheduleDirs, async scheduleDir => {
     for (const poolDir of await listDirs(scheduleDir)) {
       for (const dateDir of await listDirs(poolDir)) {
         const metadataPath = join(dateDir, 'metadata.json')
@@ -158,7 +168,9 @@ async function liftExpiredPoolBackups(root: string, immutabilityDuration: number
           if (!fullScan && !(await File.isImmutable(metadataPath))) continue
           const { mtimeMs } = await fsp.stat(metadataPath)
           if (mtimeMs > threshold) continue
+          debug('pool metadata backup expired, scheduling lift', { metadataPath })
           await liftDirBackup(dateDir)
+          debug('pool metadata backup lifted', { dateDir })
         } catch (err) {
           const code = err.code
           if (code !== 'ENOENT') warn('error lifting pool metadata backup immutability', { err, metadataPath })
