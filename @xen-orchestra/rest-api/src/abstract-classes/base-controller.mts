@@ -60,7 +60,9 @@ export abstract class BaseController<T extends RestXoRecord, IsSync extends bool
 
     const user = this.restApi.getCurrentUser()
     const userPrivileges = (
-      opts?.privilege !== undefined ? await this.restApi.xoApp.getAclV2UserPrivileges(user.id) : []
+      opts?.privilege !== undefined && user.permission !== 'admin'
+        ? await this.restApi.xoApp.getAclV2UserPrivileges(user.id)
+        : []
     ) as AnyPrivilege[]
 
     let limit = opts?.limit ?? Infinity
