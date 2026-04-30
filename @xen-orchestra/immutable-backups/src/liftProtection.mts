@@ -9,6 +9,11 @@ import { RemoteConfig } from './_loadConfig.mjs'
 
 const { warn } = createLogger('xen-orchestra:immutable-backups:liftProtection')
 
+// On the very first lift run after startup, skip the isImmutable fast-path so
+// that orphaned immutable VHDs/XVAs left by a previous partial or buggy lock
+// are caught and released even when the .json sentinel is already mutable.
+let isFirstLift = true
+
 /**
  * Matches the datetime prefix shared by all files belonging to a single VM backup run.
  *
@@ -47,7 +52,7 @@ async function liftDirBackup(dateDir: string): Promise<void> {
 // any VM backup run whose metadata mtime is older than `immutabilityDuration`.
 // Per vmDir: vdis is read once, all expired datetimes are batched into a single
 // liftImmutabilityBatch call, and cleanXoCache is called once.
-async function liftExpiredVmBackups(root: string, immutabilityDuration: number): Promise<void> {
+async function liftExpiredVmBackups(root: string, immutabilityDuration: number, fullScan: boolean): Promise<void> {
   const threshold = Date.now() - immutabilityDuration
   await asyncEach(await listDirs(join(root, 'xo-vm-backups')), async vmDir => {
     // 1. Find all expired datetimes in this vmDir.
@@ -61,7 +66,7 @@ async function liftExpiredVmBackups(root: string, immutabilityDuration: number):
       if (datetime === undefined) continue // e.g. cache.json.gz
       const jsonPath = join(vmDir, entry.name)
       try {
-        if (!(await File.isImmutable(jsonPath))) continue
+        if (!fullScan && !(await File.isImmutable(jsonPath))) continue
         const { mtimeMs } = await fsp.stat(jsonPath)
         if (mtimeMs > threshold) continue
         expiredDatetimes.push(datetime)
@@ -123,13 +128,13 @@ async function liftExpiredVmBackups(root: string, immutabilityDuration: number):
 
 // Walk `xo-config-backups/<scheduleId>/<datetime>/metadata.json` files and
 // lift immutability on any backup directory whose metadata mtime is expired.
-async function liftExpiredConfigBackups(root: string, immutabilityDuration: number): Promise<void> {
+async function liftExpiredConfigBackups(root: string, immutabilityDuration: number, fullScan: boolean): Promise<void> {
   const threshold = Date.now() - immutabilityDuration
   await asyncEach(await listDirs(join(root, 'xo-config-backups')), async scheduleDir => {
     for (const dateDir of await listDirs(scheduleDir)) {
       const metadataPath = join(dateDir, 'metadata.json')
       try {
-        if (!(await File.isImmutable(metadataPath))) continue
+        if (!fullScan && !(await File.isImmutable(metadataPath))) continue
         const { mtimeMs } = await fsp.stat(metadataPath)
         if (mtimeMs > threshold) continue
         await liftDirBackup(dateDir)
@@ -143,14 +148,14 @@ async function liftExpiredConfigBackups(root: string, immutabilityDuration: numb
 
 // Walk `xo-pool-metadata-backups/<scheduleId>/<poolUUID>/<datetime>/metadata.json`
 // files and lift immutability on any backup directory whose metadata mtime is expired.
-async function liftExpiredPoolBackups(root: string, immutabilityDuration: number): Promise<void> {
+async function liftExpiredPoolBackups(root: string, immutabilityDuration: number, fullScan: boolean): Promise<void> {
   const threshold = Date.now() - immutabilityDuration
   await asyncEach(await listDirs(join(root, 'xo-pool-metadata-backups')), async scheduleDir => {
     for (const poolDir of await listDirs(scheduleDir)) {
       for (const dateDir of await listDirs(poolDir)) {
         const metadataPath = join(dateDir, 'metadata.json')
         try {
-          if (!(await File.isImmutable(metadataPath))) continue
+          if (!fullScan && !(await File.isImmutable(metadataPath))) continue
           const { mtimeMs } = await fsp.stat(metadataPath)
           if (mtimeMs > threshold) continue
           await liftDirBackup(dateDir)
@@ -165,18 +170,24 @@ async function liftExpiredPoolBackups(root: string, immutabilityDuration: number
 
 // Scan the filesystem for expired immutable backups under `root` and lift their
 // immutability.  No index is required — the backup tree is walked directly.
-export async function liftRemoteImmutability(root: string, immutabilityDuration: number): Promise<void> {
+export async function liftRemoteImmutability(
+  root: string,
+  immutabilityDuration: number,
+  fullScan: boolean
+): Promise<void> {
   await Promise.all([
-    liftExpiredVmBackups(root, immutabilityDuration),
-    liftExpiredConfigBackups(root, immutabilityDuration),
-    liftExpiredPoolBackups(root, immutabilityDuration),
+    liftExpiredVmBackups(root, immutabilityDuration, fullScan),
+    liftExpiredConfigBackups(root, immutabilityDuration, fullScan),
+    liftExpiredPoolBackups(root, immutabilityDuration, fullScan),
   ])
 }
 
 // Lift immutability on all expired backups across every configured remote.
 export async function liftImmutability(remotes: Record<string, RemoteConfig>): Promise<void> {
+  const fullScan = isFirstLift
+  isFirstLift = false
   for (const [remoteId, { root, immutabilityDuration }] of Object.entries(remotes)) {
-    await liftRemoteImmutability(root, immutabilityDuration).catch(err =>
+    await liftRemoteImmutability(root, immutabilityDuration, fullScan).catch(err =>
       warn('error during liftRemoteImmutability', { err, remoteId, root, immutabilityDuration })
     )
   }
