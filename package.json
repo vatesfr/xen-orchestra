@@ -68,7 +68,7 @@
     "test": "npm run test-lint && npm run test-unit",
     "test-integration": "scripts/run-script.js --parallel test-integration",
     "test-lint": "eslint --ignore-path .gitignore --ignore-pattern packages/xo-web .",
-    "test-unit": "scripts/run-script.js test"
+    "test-unit": "scripts/run-script.js --bail test"
   },
   "workspaces": [
     "@*/*",
