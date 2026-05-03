@@ -1,4 +1,5 @@
 import * as assert from 'node:assert'
+import { after, afterEach, before, beforeEach, suite, test } from 'node:test'
 import { Client as DBClient, escapeIdentifier } from 'pg'
 import { convertClassesToTables, createViewsDDL, createViewNames } from '../src/db.mjs'
 import { createEventModels } from '../src/db_history.mjs'
@@ -24,7 +25,7 @@ suite('EventStore tests', function () {
   after(async () => {
     await closeServer(server)
   })
-  setup(async function () {
+  beforeEach(async function () {
     dbClient = new DBClient({ connectionString: socketPath })
     await dbClient.connect()
     await dbClient.query(`CREATE SCHEMA ${escapeIdentifier(TABLE_SCHEMA)}`)
@@ -87,7 +88,7 @@ suite('EventStore tests', function () {
     )
   })
 
-  teardown(async () => {
+  afterEach(async () => {
     await dbClient.query(`DROP SCHEMA ${escapeIdentifier(TABLE_SCHEMA)} CASCADE`)
     await dbClient.query(`DROP SCHEMA ${escapeIdentifier(EVENT_SCHEMA)} CASCADE`)
     await dbClient.query(`DROP SCHEMA ${escapeIdentifier(VIEW_SCHEMA)} CASCADE`)
