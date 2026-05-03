@@ -14,6 +14,15 @@ export class BackupJobService {
     this.#restApi = restApi
   }
 
+  async getBackupJob(id: AnyXoBackupJob['id']): Promise<AnyXoBackupJob> {
+    const job = await this.#restApi.xoApp.getJob(id)
+    if (!this.isBackupJob(job)) {
+      throw noSuchObject(id, 'backup-job')
+    }
+
+    return job
+  }
+
   isBackupJob(anyJob: AnyXoJob): anyJob is AnyXoBackupJob {
     return this.#backupJobTypes.includes(anyJob.type)
   }

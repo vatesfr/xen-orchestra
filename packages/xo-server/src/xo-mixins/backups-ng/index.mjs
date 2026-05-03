@@ -77,10 +77,10 @@ export default class BackupNg {
         data,
         job,
         jobData,
+        jobUpdateFct,
         logger: jobsLogger,
         runJobId,
         schedule,
-        jobUpdateFct,
       }) => {
         const backupsConfig = app.config.get('backups')
 
@@ -163,6 +163,9 @@ export default class BackupNg {
         try {
           if (!useXoProxy && backupsConfig.disableWorkers) {
             const onLogFct = makeOnProgress({
+              onRootTaskStart: log => {
+                jobUpdateFct(log.id).catch(logger.warn) // is async, but makeOnProgress doesn't await onRootTaskXXX functions
+              },
               onTaskUpdate: (log, event) => {
                 handleBackupLog(log, event, { app: this._app, jobName: job.name, store: this._store })
               },
@@ -307,6 +310,9 @@ export default class BackupNg {
 
               let result
               const onLogFct = makeOnProgress({
+                onRootTaskStart: log => {
+                  jobUpdateFct(log.id).catch(logger.warn) // is async, but makeOnProgress doesn't await onRootTaskXXX functions
+                },
                 onRootTaskEnd: log => {
                   result = forwardResult(log)
                 },

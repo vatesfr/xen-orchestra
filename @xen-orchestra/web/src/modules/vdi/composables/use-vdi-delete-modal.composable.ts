@@ -9,7 +9,7 @@ export function useVdiDeleteModal(rawVdis: MaybeRefOrGetter<FrontXoVdi[]>) {
 
   const { run, canRun, isRunning } = useXoVdiDeleteJob(vdis)
 
-  const openModal = useModal({
+  const openModal = useModal(() => ({
     component: import('@/modules/vdi/components/modal/VdiDeleteModal.vue'),
     props: { count: vdis.value.length },
     onConfirm: async () => {
@@ -19,7 +19,7 @@ export function useVdiDeleteModal(rawVdis: MaybeRefOrGetter<FrontXoVdi[]>) {
         console.error('Error when deleting VDI:', error)
       }
     },
-  })
+  }))
 
   return { openModal, canRun, isRunning }
 }

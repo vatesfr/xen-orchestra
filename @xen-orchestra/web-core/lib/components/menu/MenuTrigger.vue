@@ -28,6 +28,7 @@ defineProps<{
 
   &.disabled {
     color: var(--color-neutral-txt-secondary);
+    background-color: var(--color-neutral-background-disabled);
   }
 
   &:not(.disabled) {

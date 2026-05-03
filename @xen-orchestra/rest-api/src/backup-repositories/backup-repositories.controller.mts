@@ -1,10 +1,17 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
 import type { XoBackupRepository } from '@vates/types'
 
-import { badRequestResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import { acl } from '../middlewares/acl.middleware.mjs'
+import {
+  badRequestResp,
+  forbiddenOperationResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import {
   backupRepositoryIds,
   partialBackupRepositories,
@@ -34,6 +41,9 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   }
 
   /**
+   * Returns all backup repositories that match the following privilege:
+   * - resource: backup-repository, action: read
+   *
    * @example fields "id,name,enabled"
    * @example filter "enabled?"
    * @example limit 42
@@ -41,6 +51,7 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   @Example(backupRepositoryIds)
   @Example(partialBackupRepositories)
   @Get('')
+  @Security('*', ['acl'])
   async getRepositories(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -48,15 +59,30 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
     @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoBackupRepository>>>> {
-    return this.sendObjects(Object.values(await this.getObjects({ filter, limit })), req)
+  ): SendObjects<Partial<Unbrand<XoBackupRepository>>> {
+    return this.sendObjects(Object.values(await this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'backup-repository' },
+    })
   }
 
   /**
+   * Required privilege:
+   * - resource: backup-repository, action: read
+   *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
   @Example(backupRepository)
   @Get('{id}')
+  @Middlewares(
+    acl({
+      resource: 'backup-repository',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getRemote,
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getRepository(@Path() id: string): Promise<Unbrand<XoBackupRepository>> {
     return this.getObject(id as XoBackupRepository['id'])

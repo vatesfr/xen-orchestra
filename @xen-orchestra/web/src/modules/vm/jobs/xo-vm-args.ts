@@ -5,3 +5,8 @@ export const xoVmsArg = defineJobArg({
   identify: (vm: FrontXoVm) => vm.id,
   toArray: true,
 })
+
+export const xoVmArg = defineJobArg({
+  identify: (vm: FrontXoVm) => vm.id,
+  toArray: false,
+})

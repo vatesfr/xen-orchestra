@@ -1,15 +1,17 @@
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
-import { Route, Security, Request, Response, Get, Query, Path, Tags, Example, Post, SuccessResponse } from 'tsoa'
+import { Middlewares, Route, Security, Request, Response, Get, Query, Path, Tags, Example, Post, SuccessResponse } from 'tsoa'
 import type { XoPbd } from '@vates/types'
 
+import { acl } from '../middlewares/acl.middleware.mjs'
 import {
   asynchronousActionResp,
   badRequestResp,
   internalServerErrorResp,
   invalidParameters as invalidParametersResp,
   noContentResp,
+  forbiddenOperationResp,
   notFoundResp,
   unauthorizedResp,
   type Unbrand,
@@ -33,6 +35,9 @@ export class PbdController extends XapiXoController<XoPbd> {
   }
 
   /**
+   * Returns all PBDs that match the following privilege:
+   * - resource: pbd, action: read
+   *
    * @example fields "attached,id,device_config"
    * @example filter "attached?"
    * @example limit 42
@@ -40,6 +45,7 @@ export class PbdController extends XapiXoController<XoPbd> {
   @Example(pbdIds)
   @Example(partialPbds)
   @Get('')
+  @Security('*', ['acl'])
   getPbds(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -48,14 +54,23 @@ export class PbdController extends XapiXoController<XoPbd> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoPbd>>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'pbd' },
+    })
   }
 
   /**
+   * Required privilege:
+   * - resource: pbd, action: read
+   *
    * @example id "16b2a60f-7c4d-f45f-7c7a-963b06fc587d"
    */
   @Example(pbd)
   @Get('{id}')
+  @Middlewares(acl({ resource: 'pbd', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
   getPbd(@Path() id: string): Unbrand<XoPbd> {
     return this.getObject(id as XoPbd['id'])
   }

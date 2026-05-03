@@ -17,7 +17,7 @@ export interface XoError extends Error {
 
 export type NdjsonStream = Readable
 
-export type SendObjects<T> = string[] | WithHref<T>[] | NdjsonStream | string
+export type SendObjects<T> = Promise<string[] | WithHref<T>[] | NdjsonStream | string>
 
 export type PromiseWriteInStreamError = { error: true }
 
@@ -39,3 +39,5 @@ export type ReplaceKey<Type, OldKey extends keyof Type, NewKey extends string, N
   OldKey
 > &
   Record<NewKey, NewKeyType>
+
+export type SafeOmit<T, K extends keyof T> = T extends T ? Omit<T, K> : never

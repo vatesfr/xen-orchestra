@@ -12,10 +12,10 @@ import VncClient from '@novnc/novnc/lib/rfb'
 import { whenever } from '@vueuse/core'
 import { promiseTimeout } from '@vueuse/shared'
 import { fibonacci } from 'iterable-backoff'
-import { onBeforeUnmount, ref, useTemplateRef, watchEffect } from 'vue'
+import { onBeforeUnmount, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { url, isConsoleAvailable } = defineProps<{
   url: URL
   isConsoleAvailable: boolean
 }>()
@@ -35,18 +35,16 @@ let nConnectionAttempts = 0
 
 function handleDisconnectionEvent() {
   clearVncClient()
-  if (props.isConsoleAvailable) {
+  if (isConsoleAvailable) {
     nConnectionAttempts++
 
     if (nConnectionAttempts > N_TOTAL_TRIES) {
-      console.error('The number of reconnection attempts has been exceeded for:', props.url)
+      console.error('The number of reconnection attempts has been exceeded for:', url)
       return
     }
 
     console.error(
-      `Connection lost for the remote console: ${props.url}. New attempt in ${
-        FIBONACCI_MS_ARRAY[nConnectionAttempts - 1]
-      }ms`
+      `Connection lost for the remote console: ${url}. New attempt in ${FIBONACCI_MS_ARRAY[nConnectionAttempts - 1]}ms`
     )
     createVncConnection()
   }
@@ -80,7 +78,7 @@ async function createVncConnection() {
     }
   }
 
-  vncClient = new VncClient(consoleContainer.value!, props.url.toString(), {
+  vncClient = new VncClient(consoleContainer.value!, url.toString(), {
     wsProtocols: ['binary'],
   })
   vncClient.scaleViewport = true
@@ -114,16 +112,20 @@ whenever(
   }
 )
 
-watchEffect(() => {
-  if (consoleContainer.value === null || !props.isConsoleAvailable) {
-    return
-  }
+watch(
+  [consoleContainer, () => isConsoleAvailable, () => url.toString()],
+  ([container, isAvailable]) => {
+    if (container === null || !isAvailable) {
+      return
+    }
 
-  nConnectionAttempts = 0
+    nConnectionAttempts = 0
 
-  clearVncClient()
-  createVncConnection()
-})
+    clearVncClient()
+    createVncConnection()
+  },
+  { immediate: true }
+)
 
 onBeforeUnmount(() => {
   clearVncClient()

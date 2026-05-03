@@ -9,7 +9,7 @@ export function useVmSnapshotDeleteModal(rawSnapshots: MaybeRefOrGetter<FrontXoV
 
   const { run, canRun, isRunning } = useXoVmSnapshotDeleteJob(snapshots)
 
-  const openModal = useModal({
+  const openModal = useModal(() => ({
     component: import('@/modules/snapshot/components/modal/VmSnapshotDeleteModal.vue'),
     props: { count: snapshots.value.length },
     onConfirm: async () => {
@@ -19,7 +19,7 @@ export function useVmSnapshotDeleteModal(rawSnapshots: MaybeRefOrGetter<FrontXoV
         console.error('Error when deleting snapshot:', error)
       }
     },
-  })
+  }))
 
   return { openModal, canRun, isRunning }
 }

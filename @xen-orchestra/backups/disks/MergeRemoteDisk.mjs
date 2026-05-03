@@ -222,6 +222,7 @@ export class MergeRemoteDisk {
     await this.#mergeBlocks(parentDisk, childDisk)
     await parentDisk.flushMetadata(childDisk)
     await parentDisk.mergeMetadata(childDisk)
+    this.#state.diskSize = parentDisk.getSizeOnDisk()
   }
 
   /**
@@ -265,8 +266,6 @@ export class MergeRemoteDisk {
     )
 
     await this.#writeState()
-
-    this.#state.diskSize = childDisk.getSizeOnDisk()
 
     this.#onProgress({ total: nBlocks, done: nBlocks })
   }

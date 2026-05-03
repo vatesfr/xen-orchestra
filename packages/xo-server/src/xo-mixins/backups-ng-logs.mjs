@@ -52,8 +52,11 @@ const taskTimeComparator = ({ start: s1, end: e1 }, { start: s2, end: e2 }) => {
 }
 
 function adaptTask(task) {
-  const { name, ...data } = task.properties
+  let { name, metadata, ...data } = task.properties
   task.message = name
+  if (metadata !== undefined) {
+    data = { ...data, ...metadata }
+  }
   if (Object.keys(data).length > 0) {
     task.data = data
   }
@@ -75,6 +78,27 @@ function taskFormatAdapter(log) {
   }
 }
 
+async function getRestoreLogs(store) {
+  return new Promise((resolve, reject) => {
+    const restoreLogs = {}
+    const metadataRestoreLogs = {}
+
+    store
+      .createReadStream()
+      .on('data', data => {
+        if (data.value.properties?.name === 'restore') {
+          restoreLogs[data.key] = data.value
+        } else if (data.value.properties?.name === 'metadataRestore') {
+          metadataRestoreLogs[data.key] = data.value
+        }
+      })
+      .on('end', () => {
+        resolve({ restoreLogs, metadataRestoreLogs })
+      })
+      .on('error', reject)
+  })
+}
+
 // type Task = {
 //   data: any,
 //   end?: number,
@@ -91,12 +115,13 @@ function taskFormatAdapter(log) {
 export default {
   getBackupNgLogs: debounceWithKey(
     async function getBackupNgLogs(runId) {
-      const [jobLogs, restoreLogs, restoreMetadataLogs] = await Promise.all([
+      const [jobLogs, oldRestoreLogs, oldMetadataRestoreLogs] = await Promise.all([
         this.getLogs('jobs'),
         this.getLogs('restore'),
         this.getLogs('metadataRestore'),
       ])
       const taskStore = await this.getStore('tasks')
+      const { restoreLogs, metadataRestoreLogs } = await getRestoreLogs(taskStore)
 
       const { runningJobs, runningRestores, runningMetadataRestores } = this
       const consolidated = {}
@@ -209,15 +234,26 @@ export default {
       for (const [logId, log] of Object.entries(jobLogs)) {
         await handleLog(log, logId)
       }
-      for (const [logId, log] of Object.entries(restoreLogs)) {
+      for (const [logId, log] of Object.entries(oldRestoreLogs)) {
         await handleLog(log, logId)
       }
-      for (const [logId, log] of Object.entries(restoreMetadataLogs)) {
+      for (const [logId, log] of Object.entries(oldMetadataRestoreLogs)) {
         await handleLog(log, logId)
       }
 
+      // adapt new backup logs to the old backup log structure
       for (const log of Object.values(consolidated)) {
         taskFormatAdapter(log)
+      }
+
+      for (const [logId, log] of Object.entries(restoreLogs)) {
+        adaptTask(log)
+        consolidated[logId] = log
+      }
+
+      for (const [logId, log] of Object.entries(metadataRestoreLogs)) {
+        adaptTask(log)
+        consolidated[logId] = log
       }
 
       if (runId !== undefined) {

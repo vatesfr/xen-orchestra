@@ -14,11 +14,14 @@ import {
   Delete,
   Post,
   SuccessResponse,
+  Middlewares,
 } from 'tsoa'
+import { acl } from '../middlewares/acl.middleware.mjs'
 import { SendObjects } from '../helpers/helper.type.mjs'
 import {
   asynchronousActionResp,
   badRequestResp,
+  forbiddenOperationResp,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
@@ -34,6 +37,7 @@ import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
+import { AnyPrivilege, hasPrivilegeOn } from '@xen-orchestra/acl'
 
 @Route('tasks')
 @Security('*')
@@ -59,6 +63,8 @@ export class TaskController extends XoController<XoTask> {
   }
 
   /**
+   * Returns all tasks that match the following privilege:
+   * - resource: task, action: read
    *
    * If watch is true, ndjson must also be true
    *
@@ -69,6 +75,7 @@ export class TaskController extends XoController<XoTask> {
   @Example(taskIds)
   @Example(partialTasks)
   @Get('')
+  @Security('*', ['acl'])
   @Response(badRequestResp.status, badRequestResp.description)
   async getTasks(
     @Request() req: ExRequest,
@@ -78,7 +85,7 @@ export class TaskController extends XoController<XoTask> {
     @Query() watch?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
+  ): SendObjects<Partial<Unbrand<XoTask>>> {
     if (watch) {
       if (!ndjson) {
         throw new ApiError('watch=true requires ndjson=true', 400)
@@ -103,13 +110,28 @@ export class TaskController extends XoController<XoTask> {
         req.destroy()
       })
 
-      function update(task: XoTask) {
-        if (userFilter === undefined || userFilter(task)) {
+      const userId = this.restApi.getCurrentUser().id
+      const update = async (task: XoTask) => {
+        const user = await this.restApi.xoApp.getUser(userId)
+        const userPrivileges = (await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
+
+        if (
+          hasPrivilegeOn({ user, userPrivileges, action: 'read', resource: 'task', objects: task }) &&
+          (userFilter === undefined || userFilter(task))
+        ) {
           stream.write(['update', task])
         }
       }
-      function remove(task: XoTask) {
-        stream.write(['remove', { id: task.id }])
+      const remove = async (task: XoTask) => {
+        const user = await this.restApi.xoApp.getUser(userId)
+        const userPrivileges = (await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
+
+        if (
+          hasPrivilegeOn({ user, userPrivileges, action: 'read', resource: 'task', objects: task }) &&
+          (userFilter === undefined || userFilter(task))
+        ) {
+          stream.write(['remove', { id: task.id }])
+        }
       }
 
       this.restApi.tasks.on('update', update).on('remove', remove)
@@ -117,15 +139,30 @@ export class TaskController extends XoController<XoTask> {
       return stream
     }
 
-    const tasks = Object.values(await this.getObjects({ filter, limit }))
-    return this.sendObjects(tasks, req)
+    const tasks = Object.values(await this.getObjects({ filter }))
+    return this.sendObjects(tasks, req, {
+      limit,
+      privilege: { action: 'read', resource: 'task' },
+    })
   }
 
   /**
+   * Required privilege:
+   * - resource: task, action: read
+   *
    * @example id "0mdd1basu"
    */
   @Example(task)
   @Get('{id}')
+  @Middlewares(
+    acl({
+      resource: 'task',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.tasks.get.bind(restApi.xoApp.tasks),
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async getTask(@Request() req: ExRequest, @Path() id: string, @Query() wait?: boolean): Promise<Unbrand<XoTask>> {
     const taskId = id as XoTask['id']
@@ -144,17 +181,44 @@ export class TaskController extends XoController<XoTask> {
     return this.getObject(taskId)
   }
 
+  /**
+   * Deletes all tasks the current user has the following privilege on:
+   * - resource: task, action: delete
+   */
   @Delete('')
+  @Security('*', ['acl'])
   @SuccessResponse(noContentResp.status, noContentResp.description)
   async deleteTasks(): Promise<void> {
-    await this.restApi.tasks.clearLogs()
+    const user = this.restApi.getCurrentUser()
+    const userPrivileges = (await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
+
+    const deletePromises: Promise<void>[] = []
+    for await (const task of this.restApi.tasks.list()) {
+      if (hasPrivilegeOn({ user, userPrivileges, resource: 'task', action: 'delete', objects: task })) {
+        deletePromises.push(this.restApi.tasks.deleteLog(task.id))
+      }
+    }
+
+    await Promise.all(deletePromises)
   }
 
   /**
+   * Required privilege:
+   * - resource: task, action: delete
+   *
    * @example id "0mdd1basu"
    */
   @Delete('{id}')
+  @Middlewares(
+    acl({
+      resource: 'task',
+      action: 'delete',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.tasks.get.bind(restApi.xoApp.tasks),
+    })
+  )
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteTask(@Path() id: string): Promise<void> {
     const task = await this.getObject(id as XoTask['id'])
@@ -162,12 +226,24 @@ export class TaskController extends XoController<XoTask> {
   }
 
   /**
+   * Required privilege:
+   * - resource: task, action: abort
+   *
    * @example id "0mdd1basu"
    */
   @Example(taskLocation)
   @Post('{id}/actions/abort')
+  @Middlewares(
+    acl({
+      resource: 'task',
+      action: 'abort',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.tasks.get.bind(restApi.xoApp.tasks),
+    })
+  )
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async abortTask(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const taskId = id as XoTask['id']

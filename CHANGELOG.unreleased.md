@@ -11,14 +11,9 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [VM] Add possibility to remove a snapshot on snapshot tab (PR [#9749](https://github.com/vatesfr/xen-orchestra/pull/9749))
-
 ### Bug fixes
 
-> Users must be able to say: “I had this issue, happy to know it's fixed”
-
-- [xo-server] Fix VM-template still visible after deletion (PR [#9760](https://github.com/vatesfr/xen-orchestra/pull/9760))
-
+> Users must be able to say: "I had this issue, happy to know it's fixed"
 
 ### Packages to release
 
@@ -35,8 +30,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- @xen-orchestra/web minor
-- xo-server patch
 
 <!--packages-end-->

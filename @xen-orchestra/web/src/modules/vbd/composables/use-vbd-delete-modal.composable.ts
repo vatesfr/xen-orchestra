@@ -12,7 +12,7 @@ export function useVbdDeleteModal(rawVbds: MaybeRefOrGetter<FrontXoVbd[]>) {
 
   const { run, canRun, isRunning } = useXoVbdDeleteJob(vbds)
 
-  const openModal = useModal({
+  const openModal = useModal(() => ({
     component: import('@/modules/vbd/components/modal/VbdDeleteModal.vue'),
     props: { count: vbds.value.length },
     onConfirm: async () => {
@@ -24,7 +24,7 @@ export function useVbdDeleteModal(rawVbds: MaybeRefOrGetter<FrontXoVbd[]>) {
         console.error('Error when deleting VBD:', error)
       }
     },
-  })
+  }))
 
   return { openModal, canRun, isRunning }
 }
