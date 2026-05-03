@@ -1,8 +1,10 @@
 import * as assert from 'node:assert'
-import { escapeIdentifier, Client as DBClient } from 'pg'
-import { convertClassesToTables, createViewsDDL, createViewNames, persistEntities } from '../src/db.mjs'
+import { after, afterEach, before, beforeEach, suite, test } from 'node:test'
+import { Client as DBClient, escapeIdentifier } from 'pg'
+import { convertClassesToTables, createViewNames, createViewsDDL, persistEntities } from '../src/db.mjs'
 import { absRelationEsc } from '../src/sql.mjs'
 import { ident } from '../src/types.mjs'
+import { closeServer, createServer } from './pglite.mjs'
 
 suite('live DB tests', function () {
   // https://stackoverflow.com/a/8084248
@@ -274,53 +276,114 @@ suite('live DB tests', function () {
     assert.deepEqual(viewResult2, expectedViewRows2)
   })
 
-  test('set field work correctly', async function () {
-    const cls = {
-      name: 'cls',
+  suite('set field work correctly', async function () {
+    const networkClass = {
+      name: 'network',
       fields: {
         uuid: { name: 'uuid', type: 'string' },
-        field1: { name: 'field1', type: 'clz ref set', description: 'description' },
+        field1: { name: 'VIFs', type: 'VIF ref set', description: 'list of connected VIFs' },
       },
     }
-    const clz = { name: 'clz', fields: { uuid: { name: 'uuid', type: 'string' } } }
-    const classesDict = { cls, clz }
-    const bystander = { uuid: '#uuidZBystander', field1: ['#uuidRef4'] }
-    let recordsByClass = {
-      clz: [{ uuid: '#uuidRef2' }, { uuid: '#uuidRef3' }, { uuid: '#uuidRef4' }],
-      cls: [
-        {
-          uuid: '#uuidRef1',
-          field1: ['#uuidRef2', '#uuidRef3'],
-        },
-        bystander,
+    const VIFClass = { name: 'VIF', fields: { uuid: { name: 'uuid', type: 'string' } } }
+    const classesDict = { network: networkClass, VIF: VIFClass }
+    const recordsByClass = {
+      VIF: [{ uuid: '#vif1' }, { uuid: '#vif2' }, { uuid: '#vif3' }, { uuid: '#vif4' }],
+      network: [
+        { uuid: '#network1', VIFs: ['#vif1', '#vif2'] },
+        { uuid: '#network2', VIFs: ['#vif4'] },
       ],
     }
-    const { xapiDbClasses } = await runDDL(classesDict)
-    await persistEntities(dbClient, recordsByClass, xapiDbClasses, identityResolver, null)
-    assert.deepEqual(await getViewContent('cls'), [
-      { uuid: '#uuidRef1', field1: ['#uuidRef2', '#uuidRef3'] },
-      bystander,
-    ])
-    // delete one entry and save
-    recordsByClass = { cls: [{ uuid: '#uuidRef1', field1: ['#uuidRef2'] }] }
-    await persistEntities(dbClient, recordsByClass, xapiDbClasses, identityResolver, null)
-    assert.deepEqual(await getViewContent('cls'), [{ uuid: '#uuidRef1', field1: ['#uuidRef2'] }, bystander])
-    // replace one entry
-    recordsByClass.cls[0].field1 = ['#uuidRef3']
-    await persistEntities(dbClient, recordsByClass, xapiDbClasses, identityResolver, null)
-    assert.deepEqual(await getViewContent('cls'), [{ uuid: '#uuidRef1', field1: ['#uuidRef3'] }, bystander])
-    // check the on delete cascade on cls
-    await dbClient.query(`DELETE FROM ${xapiDbClasses.cls.getTableNameEsc()} WHERE uuid = '#uuidRef1'`)
-    assert.deepEqual(await getViewContent('cls'), [bystander])
-    // check the delete cascade on clz
-    recordsByClass = { cls: [{ uuid: '#uuidRef1', field1: ['#uuidRef2', '#uuidRef3'] }] }
-    await persistEntities(dbClient, recordsByClass, xapiDbClasses, identityResolver, null)
-    await dbClient.query(`DELETE FROM ${xapiDbClasses.clz.getTableNameEsc()} WHERE uuid = '#uuidRef2'`)
-    assert.deepEqual(await getViewContent('cls'), [{ uuid: '#uuidRef1', field1: ['#uuidRef3'] }, bystander])
-    // check we can clear a set
-    recordsByClass = { cls: [{ uuid: '#uuidRef1', field1: [] }] }
-    await persistEntities(dbClient, recordsByClass, xapiDbClasses, identityResolver, null)
-    assert.deepEqual(await getViewContent('cls'), [{ uuid: '#uuidRef1', field1: [] }, bystander])
+    let xapiDbClasses
+    const bystanderNetwork = recordsByClass.network[1]
+    beforeEach(async function () {
+      xapiDbClasses = (await runDDL(classesDict)).xapiDbClasses
+      await persistEntities(dbClient, recordsByClass, xapiDbClasses, identityResolver)
+    })
+    afterEach(async function () {
+      await dbClient.query(`DELETE FROM ${xapiDbClasses.VIF.getTableNameEsc()}`)
+      await dbClient.query(`DELETE FROM ${xapiDbClasses.network.getTableNameEsc()}`)
+    })
+    async function getAllSetsRows() {
+      return (
+        await dbClient.query(
+          `SELECT *
+           FROM ${absRelationEsc(TABLE_SCHEMA, xapiDbClasses.network.getField('VIFs').throughTableName)}
+           ORDER BY "network", "VIFs"`
+        )
+      ).rows
+    }
+    test('persistEntities() works', async () => {
+      assert.deepEqual(await getViewContent('network'), [
+        { uuid: '#network1', VIFs: ['#vif1', '#vif2'] },
+        bystanderNetwork,
+      ])
+    })
+    test('persistEntities() can delete one set entry', async () => {
+      const editedNetwork1 = { network: [{ uuid: '#network1', VIFs: ['#vif2'] }] }
+      await persistEntities(dbClient, editedNetwork1, xapiDbClasses, identityResolver)
+      assert.deepEqual(await getViewContent('network'), [{ uuid: '#network1', VIFs: ['#vif2'] }, bystanderNetwork])
+    })
+    test('persistEntities() can replace the whole set', async () => {
+      const editedNetwork1 = { network: [{ uuid: '#network1', VIFs: ['#vif3'] }] }
+      await persistEntities(dbClient, editedNetwork1, xapiDbClasses, identityResolver)
+      assert.deepEqual(await getViewContent('network'), [{ uuid: '#network1', VIFs: ['#vif3'] }, bystanderNetwork])
+    })
+    test('persistEntities() can delete cascade on set owner', async () => {
+      await dbClient.query(`DELETE FROM ${xapiDbClasses.network.getTableNameEsc()} WHERE uuid = '#network1'`)
+      assert.deepEqual(await getAllSetsRows(), [{ VIFs: '#vif4', network: '#network2' }])
+    })
+    test('persistEntities() can delete cascade on set target', async () => {
+      await dbClient.query(`DELETE FROM ${xapiDbClasses.VIF.getTableNameEsc()} WHERE uuid = '#vif2'`)
+      assert.deepEqual(await getAllSetsRows(), [
+        { VIFs: '#vif1', network: '#network1' },
+        { VIFs: '#vif4', network: '#network2' },
+      ])
+    })
+    test('persistEntities() can clear a whole set', async () => {
+      const editedNetwork1 = { network: [{ uuid: '#network1', VIFs: [] }] }
+      await persistEntities(dbClient, editedNetwork1, xapiDbClasses, identityResolver)
+      assert.deepEqual(await getViewContent('network'), [{ uuid: '#network1', VIFs: [] }, bystanderNetwork])
+    })
+    test('we get the correct MERGE statement', async () => {
+      const expectedMerge = `
+        MERGE INTO "${TABLE_SCHEMA}"."network_VIFs" t
+              USING UNNEST($1::VARCHAR(40)[], $2::VARCHAR(40)[]) AS src("network", "VIFs")
+              ON (t."network" = src."network" AND t."VIFs" = src."VIFs")
+              WHEN MATCHED THEN DO NOTHING
+              WHEN NOT MATCHED THEN INSERT ("network", "VIFs") VALUES (src."network", src."VIFs")
+              WHEN NOT MATCHED BY SOURCE AND t."network" = ANY ($3::VARCHAR(40)[]) THEN DELETE;`
+      /* quick primer on MERGE:
+          - SOURCE is the new set of rows, coming from the client (USING)
+          - TARGET it the existing table (INTO, the through table of the materialized association, "network_VIFs")
+          - $3 is the unique values of $1
+          - '= ANY ()' is the inclusion test for arrays (IN is for rows).
+          - we join on the primary key of the through table (t."network", t."VIFs")
+          - the SCAN is a FULL OUTER JOIN i.e., both the entire SOURCE and the TARGET (limited to WHERE t."network" = ANY($3))
+              are scanned (because of WHEN NOT MATCHED BY SOURCE)
+      */
+      const expectedMergeNoSpace = expectedMerge.replace(/\n/g, '').replace(/\s+/g, ' ').trim()
+      const actualMerge = xapiDbClasses.network.getField('VIFs').customSaver.mergeStatement
+      const actualMergeNoSpace = actualMerge.replace(/\n/g, '').replace(/\s+/g, ' ').trim()
+      assert.equal(actualMergeNoSpace, expectedMergeNoSpace)
+      const $1 = ['#network1', '#network1']
+      const $2 = ['#vif3', '#vif4']
+      const $3 = ['#network1'] // unique values of $1
+      const sqlArray = arr => `'{ ${arr.join(',')} }'` // https://www.postgresql.org/docs/current/arrays.html#ARRAYS-INPUT
+      const manualMerge = `
+        MERGE INTO "${TABLE_SCHEMA}"."network_VIFs" t
+              USING UNNEST(${sqlArray($1)}::VARCHAR(40)[], ${sqlArray($2)}::VARCHAR(40)[]) AS src("network", "VIFs")
+              ON (t."network" = src."network" AND t."VIFs" = src."VIFs")
+              WHEN MATCHED THEN DO NOTHING
+              WHEN NOT MATCHED THEN INSERT ("network", "VIFs") VALUES (src."network", src."VIFs")
+              WHEN NOT MATCHED BY SOURCE AND t."network" = ANY (${sqlArray($3)}::VARCHAR(40)[]) THEN DELETE;`
+      await dbClient.query(manualMerge)
+      const rows = await getAllSetsRows()
+      assert.deepEqual(rows, [
+        { network: '#network1', VIFs: '#vif3' },
+        { network: '#network1', VIFs: '#vif4' },
+        { network: '#network2', VIFs: '#vif4' }, // bystander left untouched
+      ])
+    })
   })
 
   test('map field work correctly', async function () {
