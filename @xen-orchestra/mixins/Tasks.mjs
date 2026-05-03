@@ -14,6 +14,8 @@ const noop = Function.prototype
 
 const DEFAULT_BACKUP_LOG_KEEP_DURATION = 31 * 24 * 60 * 60 * 1000
 
+const BACKUP_LOG_NAMES = ['backup run', 'restore', 'metadataRestore']
+
 const getLogAge = (log, now) => {
   if (log.end !== undefined) {
     return now - log.end
@@ -162,7 +164,7 @@ export default class Tasks extends EventEmitter {
       const now = Date.now()
 
       const onData = data => {
-        if (data.value?.properties?.name === 'backup run') {
+        if (BACKUP_LOG_NAMES.includes(data.value?.properties?.name)) {
           if (getLogAge(data.value, now) > backupKeepDuration) {
             return deleteEntry(data)
           }

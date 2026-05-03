@@ -2,13 +2,19 @@ import { AnyXoLog, XoRestoreLog } from '@vates/types'
 import { createLogger } from '@xen-orchestra/log'
 import { Deprecated, Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
-import { noSuchObject } from 'xo-common/api-errors.js'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 
+import { acl, autoBindService } from '../middlewares/acl.middleware.mjs'
 import { BackupLogService } from '../backup-logs/backup-log.service.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { badRequestResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  badRequestResp,
+  forbiddenOperationResp,
+  notFoundResp,
+  unauthorizedResp,
+  Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { SendObjects } from '../helpers/helper.type.mjs'
 import { partialRestoreLogs, restoreLog, restoreLogIds } from '../open-api/oa-examples/restore-log.oa-example.mjs'
@@ -34,15 +40,14 @@ export class RestoreLogController extends XoController<XoRestoreLog> {
     return this.restApi.xoApp.getBackupNgLogsSorted({ filter }) as Promise<XoRestoreLog[]>
   }
 
-  async getCollectionObject(id: AnyXoLog['id']): Promise<XoRestoreLog> {
-    const log = await this.restApi.xoApp.getBackupNgLogs(id)
-    if (this.#backupLogService.isBackupLog(log)) {
-      throw noSuchObject('restore-log')
-    }
-    return log
+  getCollectionObject(id: AnyXoLog['id']): Promise<XoRestoreLog> {
+    return this.#backupLogService.getRestoreLog(id)
   }
 
   /**
+   * Returns all restore logs that match the following privilege:
+   * - resource: restore-log, action: read
+   *
    * @example fields "jobName,status,data"
    * @example filter "status:success"
    * @example limit 42
@@ -50,6 +55,7 @@ export class RestoreLogController extends XoController<XoRestoreLog> {
   @Example(restoreLogIds)
   @Example(partialRestoreLogs)
   @Get('')
+  @Security('*', ['acl'])
   async getRestoreLogs(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -58,15 +64,31 @@ export class RestoreLogController extends XoController<XoRestoreLog> {
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoRestoreLog>>>> {
-    const restoreLogs = await this.getObjects({ filter, limit })
-    return this.sendObjects(Object.values(restoreLogs), req)
+    const restoreLogs = await this.getObjects({ filter })
+    return this.sendObjects(Object.values(restoreLogs), req, {
+      limit,
+      privilege: { action: 'read', resource: 'restore-log' },
+    })
   }
 
   /**
-   * @example id "fo"
+   * Required privilege:
+   * - resource: restore-log, action: read
+   *
+   * @example id "1758180544428"
    */
   @Example(restoreLog)
   @Get('{id}')
+  @Middlewares(
+    acl({
+      resource: 'restore-log',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: autoBindService(BackupLogService, 'getRestoreLog'),
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
   getRestoreLog(@Path() id: string): Promise<Unbrand<XoRestoreLog>> {
     return this.getObject(id as XoRestoreLog['id'])
   }
@@ -98,15 +120,14 @@ export class DeprecatedRestoreController extends XoController<XoRestoreLog> {
     return this.restApi.xoApp.getBackupNgLogsSorted({ filter }) as Promise<XoRestoreLog[]>
   }
 
-  async getCollectionObject(id: AnyXoLog['id']): Promise<XoRestoreLog> {
-    const log = await this.restApi.xoApp.getBackupNgLogs(id)
-    if (this.#backupLogService.isBackupLog(log)) {
-      throw noSuchObject('restore-log')
-    }
-    return log
+  getCollectionObject(id: AnyXoLog['id']): Promise<XoRestoreLog> {
+    return this.#backupLogService.getRestoreLog(id)
   }
 
   /**
+   * Returns all restore logs that match the following privilege:
+   * - resource: restore-log, action: read
+   *
    * @example fields "jobName,status,data"
    * @example filter "status:success"
    * @example limit 42
@@ -122,9 +143,13 @@ export class DeprecatedRestoreController extends XoController<XoRestoreLog> {
     @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoRestoreLog>>>> {
-    const restoreLogs = await this.getObjects({ filter, limit })
-    return this.sendObjects(Object.values(restoreLogs), req, 'restore-logs')
+  ): SendObjects<Partial<Unbrand<XoRestoreLog>>> {
+    const restoreLogs = await this.getObjects({ filter })
+    return this.sendObjects(Object.values(restoreLogs), req, {
+      path: 'restore-logs',
+      limit,
+      privilege: { action: 'read', resource: 'restore-log' },
+    })
   }
 
   /**

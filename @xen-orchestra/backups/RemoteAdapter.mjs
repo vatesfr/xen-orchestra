@@ -702,7 +702,7 @@ export class RemoteAdapter {
     const handler = this._handler
 
     if (this.useVhdDirectory()) {
-      await writeToVhdDirectory({
+      return await writeToVhdDirectory({
         disk,
         target: {
           handler,
@@ -714,8 +714,9 @@ export class RemoteAdapter {
       })
     } else {
       const stream = await toVhdStream(disk)
-      await this.outputStream(path, stream, { validator, checksum: false })
+      const size = await this.outputStream(path, stream, { validator, checksum: false })
       await validator(path)
+      return size
     }
   }
 

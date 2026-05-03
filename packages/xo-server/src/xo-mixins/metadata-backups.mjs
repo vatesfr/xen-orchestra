@@ -39,7 +39,7 @@ export default class metadataBackup {
     })
   }
 
-  async _executor({ cancelToken, job: job_, jobData, logger: jobsLogger, runJobId, schedule }) {
+  async _executor({ cancelToken, job: job_, jobData, jobUpdateFct, logger: jobsLogger, runJobId, schedule }) {
     const job = cloneDeep(job_)
     const scheduleSettings = job.settings[schedule.id]
 
@@ -112,6 +112,9 @@ export default class metadataBackup {
 
         let result
         const onLogFct = makeOnProgress({
+          onRootTaskStart: log => {
+            jobUpdateFct(log.id).catch(logger.warn) // is async, but makeOnProgress doesn't await onRootTaskXXX functions
+          },
           onRootTaskEnd: log => {
             result = forwardResult(log)
           },
@@ -128,6 +131,9 @@ export default class metadataBackup {
         cancelToken.throwIfRequested()
 
         const onLogFct = makeOnProgress({
+          onRootTaskStart: log => {
+            jobUpdateFct(log.id).catch(logger.warn) // is async, but makeOnProgress doesn't await onRootTaskXXX functions
+          },
           onTaskUpdate: (log, event) => {
             handleBackupLog(log, event, { store: this._store })
           },

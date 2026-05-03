@@ -1,10 +1,17 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 import type { XoProxy } from '@vates/types'
 
-import { badRequestResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import { acl } from '../middlewares/acl.middleware.mjs'
+import {
+  badRequestResp,
+  forbiddenOperationResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { partialProxies, proxy, proxyIds } from '../open-api/oa-examples/proxy.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
@@ -29,6 +36,9 @@ export class ProxyController extends XoController<XoProxy> {
   }
 
   /**
+   * Returns all proxies that match the following privilege:
+   * - resource: proxy, action: read
+   *
    * @example fields "vmUuid,id,name"
    * @example filter "vmUuid?"
    * @example limit 42
@@ -36,6 +46,7 @@ export class ProxyController extends XoController<XoProxy> {
   @Example(proxyIds)
   @Example(partialProxies)
   @Get('')
+  @Security('*', ['acl'])
   async getProxies(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -43,16 +54,31 @@ export class ProxyController extends XoController<XoProxy> {
     @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoProxy>>>> {
-    const proxies = Object.values(await this.getObjects({ filter, limit }))
-    return this.sendObjects(proxies, req)
+  ): SendObjects<Partial<Unbrand<XoProxy>>> {
+    const proxies = Object.values(await this.getObjects({ filter }))
+    return this.sendObjects(proxies, req, {
+      limit,
+      privilege: { action: 'read', resource: 'proxy' },
+    })
   }
 
   /**
+   * Required privilege:
+   * - resource: proxy, action: read
+   *
    * @example id "e625ea0c-a876-405a-b838-109d762efe88"
    */
   @Example(proxy)
   @Get('{id}')
+  @Middlewares(
+    acl({
+      resource: 'proxy',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getProxy,
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getProxy(@Path() id: string): Promise<Unbrand<XoProxy>> {
     return this.getObject(id as XoProxy['id'])

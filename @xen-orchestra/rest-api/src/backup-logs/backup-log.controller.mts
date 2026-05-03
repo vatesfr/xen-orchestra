@@ -1,7 +1,6 @@
 import type { AnyXoLog, XoBackupLog } from '@vates/types'
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
-import { noSuchObject } from 'xo-common/api-errors.js'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 
@@ -9,8 +8,15 @@ import { backupLog, backupLogIds, partialBackupLogs } from '../open-api/oa-examp
 import { BackupLogService } from './backup-log.service.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
-import { badRequestResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  badRequestResp,
+  forbiddenOperationResp,
+  notFoundResp,
+  unauthorizedResp,
+  Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
+import { acl, autoBindService } from '../middlewares/acl.middleware.mjs'
 
 @Route('backup-logs')
 @Security('*')
@@ -32,15 +38,14 @@ export class BackupLogController extends XoController<XoBackupLog> {
     >
   }
 
-  async getCollectionObject(id: AnyXoLog['id']): Promise<XoBackupLog> {
-    const log = await this.restApi.xoApp.getBackupNgLogs(id)
-    if (!this.#backupLogService.isBackupLog(log)) {
-      throw noSuchObject('backup-log')
-    }
-    return log
+  getCollectionObject(id: AnyXoLog['id']): Promise<XoBackupLog> {
+    return this.#backupLogService.getBackupLog(id)
   }
 
   /**
+   * Returns all backup logs that match the following privilege:
+   * - resource: backup-log, action: read
+   *
    * @example fields "jobName,status,data"
    * @example filter "status:success"
    * @example limit 42
@@ -48,6 +53,7 @@ export class BackupLogController extends XoController<XoBackupLog> {
   @Example(backupLogIds)
   @Example(partialBackupLogs)
   @Get('')
+  @Security('*', ['acl'])
   async getBackupLogs(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -55,16 +61,32 @@ export class BackupLogController extends XoController<XoBackupLog> {
     @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoBackupLog>>>> {
-    const backupLogs = await this.getObjects({ filter, limit })
-    return this.sendObjects(Object.values(backupLogs), req)
+  ): SendObjects<Partial<Unbrand<XoBackupLog>>> {
+    const backupLogs = await this.getObjects({ filter })
+    return this.sendObjects(Object.values(backupLogs), req, {
+      limit,
+      privilege: { action: 'read', resource: 'backup-log' },
+    })
   }
 
   /**
+   * Required privilege:
+   * - resource: backup-log, action: read
+   *
    * @example id "1753776067468"
    */
   @Example(backupLog)
   @Get('{id}')
+  @Middlewares(
+    acl({
+      resource: 'backup-log',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: autoBindService(BackupLogService, 'getBackupLog'),
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
   getBackupLog(@Path() id: string): Promise<Unbrand<XoBackupLog>> {
     return this.getObject(id as XoBackupLog['id'])
   }

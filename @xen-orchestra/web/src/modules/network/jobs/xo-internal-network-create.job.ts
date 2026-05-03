@@ -1,17 +1,12 @@
+import type { BaseNetworkPayload } from '@/modules/network/form/use-network-form-base.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable'
 import { fetchPost } from '@/shared/utils/fetch.util'
 import { defineJob, defineJobArg, JobError, JobRunningError } from '@core/packages/job'
-import type { XoNetwork, XoPool, XoTask } from '@vates/types'
+import type { XoNetwork, XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 // Payload that the REST API expects
-export type NewInternalNetworkPayload = {
-  poolId: XoPool['id']
-  name: string
-  description?: string
-  mtu?: number
-  nbd?: boolean
-}
+export type NewInternalNetworkPayload = BaseNetworkPayload
 
 const payloadsArg = defineJobArg<NewInternalNetworkPayload>({
   identify: payload => payload.poolId,

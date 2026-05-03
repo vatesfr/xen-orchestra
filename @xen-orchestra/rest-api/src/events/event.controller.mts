@@ -70,6 +70,7 @@ export class EventController extends Controller {
    *   Data: the removed object.
    */
   @Get('')
+  @Security('*', ['acl'])
   @SuccessResponse(200, 'OK')
   openSseConnection(@Request() req: AuthenticatedRequest) {
     this.#eventService.createSseSubscriber(req.res)
@@ -83,6 +84,7 @@ export class EventController extends Controller {
    */
   @Example(addSubscription)
   @Post('{id}/subscriptions')
+  @Security('*', ['acl'])
   @Middlewares(json())
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -101,6 +103,7 @@ export class EventController extends Controller {
    * @example subscriptionId: "VM"
    */
   @Delete('{id}/subscriptions/{subscriptionId}')
+  @Security('*', ['acl'])
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   removeSubscription(@Path() id: string, @Path() subscriptionId: XoListenerType): void {

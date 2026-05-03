@@ -1,4 +1,3 @@
-import os from 'node:os'
 import { createLogger } from '@xen-orchestra/log'
 import { PassThrough, pipeline } from 'node:stream'
 import type { EventEmitter } from 'node:events'
@@ -6,7 +5,7 @@ import type { Response } from 'express'
 
 import type { Listener } from '../abstract-classes/listener.mjs'
 import { PingListener, Subscriber, SubscriberManager, XoListener } from './event.class.mjs'
-import type { ListenerType, SubscriberId } from './event.type.mjs'
+import type { ListenerType, SubscriberId, XoListenerType } from './event.type.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 
@@ -15,7 +14,7 @@ const log = createLogger('xo:rest-api:event-service')
 export class EventService {
   #alarmService: AlarmService
   #restApi: RestApi
-  #listeners: Map<string, Listener> = new Map()
+  #listeners: Map<string, Listener | Listener<XoListenerType>> = new Map()
   #subscriberManager = new SubscriberManager()
 
   constructor(restApi: RestApi) {
@@ -30,12 +29,12 @@ export class EventService {
     this.#alarmService = restApi.ioc.get(AlarmService)
   }
 
-  #getListener(type: ListenerType): Listener {
+  #getListener<Type extends ListenerType>(type: Type): Listener | Listener<XoListenerType> {
     if (this.#listeners.has(type)) {
       return this.#listeners.get(type)!
     }
 
-    let listener: Listener
+    let listener: Listener<XoListenerType> | Listener
     if (type === 'ping') {
       listener = new PingListener()
     } else {
@@ -75,7 +74,8 @@ export class EventService {
       }
     })
 
-    const subscriber = new Subscriber(connection, this.#subscriberManager)
+    const user = this.#restApi.getCurrentUser()
+    const subscriber = new Subscriber(connection, this.#subscriberManager, user.id)
     subscriber.broadcast('init', { id: subscriber.id })
 
     this.addListenerFor(subscriber.id, { type: 'ping' })

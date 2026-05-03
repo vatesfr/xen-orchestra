@@ -1,7 +1,7 @@
 <template>
   <div class="networks" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
-      <VifsTable :vifs>
+      <VifsTable :vifs :vm>
         <template #title-actions>
           <UiLink :href="xo5VmVifHref" icon="fa:plus" size="medium">
             {{ t('action:add-vifs-in-xo-5') }}
@@ -9,7 +9,7 @@
         </template>
       </VifsTable>
     </UiCard>
-    <VifSidePanel v-if="selectedVif" :vif="selectedVif" @close="selectedVif = undefined" />
+    <VifSidePanel v-if="selectedVif" :vif="selectedVif" :vm @close="selectedVif = undefined" />
     <UiPanel v-else-if="!uiStore.isSmall">
       <VtsStateHero format="panel" type="no-selection" size="medium">
         {{ t('select-to-see-details') }}
