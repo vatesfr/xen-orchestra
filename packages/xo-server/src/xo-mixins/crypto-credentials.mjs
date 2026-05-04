@@ -39,7 +39,7 @@ export default class CryptoCredentials {
   #hmacKey
 
   /**
-   * @type {boolean}
+   * @type {'encryption'|'decryption'|false}
    */
   #migrationRequired = false
 
@@ -59,14 +59,10 @@ export default class CryptoCredentials {
   constructor(app) {
     this._app = app
 
-    this._app.hooks.on('start core', () => {
-      if (app.config.getOptional('redis.encryptCredentialDatabase') ?? false) {
-        return this.#initialize()
-      }
-    })
+    this._app.hooks.on('start core', async () => this.#initialize())
 
     this._app.hooks.on('start', async () => {
-      if (this.#migrationRequired) {
+      if (this.#migrationRequired === 'encryption') {
         try {
           await this.#migrateToEncrypted()
 
@@ -78,13 +74,26 @@ export default class CryptoCredentials {
             backupPath: BACKUP_FILE_PATH,
           })
         }
+      } else if (this.#migrationRequired === 'decryption') {
+        try {
+          await this.#migrateToDecrypted()
+
+          log.info('Decryption migration successful')
+        } catch (error) {
+          this.#degraded = true
+          log.error('Credential database migration failed - running in degraded mode', {
+            cause: error,
+            backupPath: BACKUP_FILE_PATH,
+          })
+        }
       }
     })
   }
 
+  /**
+   * Check if encryption is active, if a migration is needed and load keys.
+   */
   async #initialize() {
-    this.#degraded = true
-
     /**
      * @type {Buffer | undefined}
      */
@@ -102,27 +111,42 @@ export default class CryptoCredentials {
       if (error.code !== 'ENOENT') throw error
     }
 
-    if (xenStoreKey && fileKey) {
-      await this._loadKey(xenStoreKey, fileKey)
-    } else {
-      xenStoreKey = randomBytes(32)
-      fileKey = randomBytes(32)
+    // Encryption is active, check if both key halves are present.
+    // If so, load them to derive the encryption and hmac keys.
+    // If not, generate both halves, save them, load them and
+    // sets #migrationRequired to require encryption migration.
+    if (this._app.config.getOptional('redis.encryptCredentialDatabase') ?? false) {
+      this.#degraded = true
 
-      try {
-        await XenStore.write(XENSTORE_KEY_PATH, xenStoreKey.toString('hex'))
-        await fs.writeFile(KEY_FILE_PATH, fileKey, { mode: 0o400 })
-
+      if (xenStoreKey && fileKey) {
         await this._loadKey(xenStoreKey, fileKey)
+      } else {
+        xenStoreKey = randomBytes(32)
+        fileKey = randomBytes(32)
 
-        if (!this.#degraded) {
-          this.#migrationRequired = true
+        try {
+          await XenStore.write(XENSTORE_KEY_PATH, xenStoreKey.toString('hex'))
+          await fs.writeFile(KEY_FILE_PATH, fileKey, { mode: 0o400 })
+
+          await this._loadKey(xenStoreKey, fileKey)
+
+          if (!this.#degraded) {
+            this.#migrationRequired = 'encryption'
+          }
+        } catch (error) {
+          XenStore.rm(XENSTORE_KEY_PATH).catch(() => {})
+          fs.unlink(KEY_FILE_PATH).catch(() => {})
+
+          log.error('Credential database encryption failed — running in degraded mode', { cause: error })
         }
-      } catch (error) {
-        XenStore.rm(XENSTORE_KEY_PATH).catch(() => {})
-        fs.unlink(KEY_FILE_PATH).catch(() => {})
-
-        log.error('Credential database encryption failed — running in degraded mode', { cause: error })
       }
+      // Encryption is inactive, we need to check if any key halves are present.
+      // If so, sets #migrationRequired to require decryption migration.
+    } else if (fileKey && xenStoreKey) {
+      // Load existing keys to enable decryption.
+      await this._loadKey(xenStoreKey, fileKey)
+
+      this.#migrationRequired = 'decryption'
     }
   }
 
@@ -278,6 +302,79 @@ export default class CryptoCredentials {
       resolveLock()
       this.#migrationLock = undefined
     }
+  }
+
+  async #migrateToDecrypted() {
+    // Start by collecting all existing redis entries.
+    /**
+     * @type {Record<string, Record<string, string | null>>}
+     */
+    const redisContent = {}
+    const namespaces = await this._app._redis.sMembers('xo::namespaces')
+    for (const namespace of namespaces) {
+      redisContent[namespace] = {}
+      const ids = await this._app._redis.sMembers('xo:' + namespace + '_ids')
+      for (const id of ids) {
+        redisContent[namespace][id] = await this._app._redis.get('xo:' + namespace + ':' + id)
+      }
+    }
+
+    // Write all redis entries in a backup file in case migration fails.
+    await fs.writeFile(BACKUP_FILE_PATH, JSON.stringify(redisContent), { mode: 0o400 })
+
+    // Decrypt all encrypted redis entries.
+    /**
+     * @type {string[]}
+     */
+    const mSetArgs = []
+    for (const namespace in redisContent) {
+      for (const id in redisContent[namespace]) {
+        const value = redisContent[namespace][id]
+
+        // Check that the entry value is plaintext.
+        if (value === null || !value.startsWith(ENCRYPTION_PREFIX)) {
+          delete redisContent[namespace][id]
+          continue
+        }
+
+        // Check that the entry still exists.
+        if (!(await this._app._redis.sIsMember('xo:' + namespace + '_ids', id))) {
+          delete redisContent[namespace][id]
+          continue
+        }
+
+        mSetArgs.push('xo:' + namespace + ':' + id, await this.decrypt(value))
+      }
+    }
+
+    // Write all decrypted values to redis atomically.
+    if (mSetArgs.length > 0) {
+      await this._app._redis.mSet(mSetArgs)
+    }
+
+    // Verify that decrypted content has no encryption prefix.
+    for (const namespace in redisContent) {
+      // Skip namespace if it's empty
+      if (Object.keys(redisContent[namespace]).length === 0) continue
+
+      const testedId = Object.keys(redisContent[namespace])[0]
+      const testedValue = await this._app._redis.get('xo:' + namespace + ':' + testedId)
+      if (testedValue === null || testedValue.startsWith(ENCRYPTION_PREFIX)) {
+        throw new Error(`Found prefix when checking migrated data, got ${testedValue}`)
+      }
+    }
+
+    // Rebuild collection indexes to normal indexes.
+    for (const collection of this.#collections) {
+      await collection.rebuildIndexes()
+    }
+
+    // Delete backup file if the the decryption, verification and index rebuild worked.
+    await fs.rm(BACKUP_FILE_PATH)
+
+    // Delete both key halves after successful decryption migration.
+    await XenStore.rm(XENSTORE_KEY_PATH)
+    await fs.unlink(KEY_FILE_PATH)
   }
 
   /**
