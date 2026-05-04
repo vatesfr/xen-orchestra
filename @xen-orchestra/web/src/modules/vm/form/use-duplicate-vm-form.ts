@@ -51,11 +51,11 @@ export function useDuplicateVmForm(vm: FrontXoVm) {
   const isSrEmpty = computed(() => formData.copyMode === 'fullCopy' && selectedSr.value === undefined)
 
   const nameInputBindings = useField('name', (): { error?: InputWrapperMessage } => ({
-    error: formData.name === '' ? { content: t('duplicate-vm:name-required'), accent: 'danger' } : undefined,
+    error: formData.name === '' ? { content: t('vm-name-required'), accent: 'danger' } : undefined,
   }))
 
   const srSelectBindings = useSelect(srSelectId, (): { error?: InputWrapperMessage } => ({
-    error: isSrEmpty.value ? { content: t('duplicate-vm:sr-required'), accent: 'danger' } : undefined,
+    error: isSrEmpty.value ? { content: t('sr-required'), accent: 'danger' } : undefined,
   }))
 
   const isCrossPool = computed(() => selectedSr.value !== undefined && selectedSr.value.$pool !== vm.$pool)
