@@ -10,7 +10,7 @@
         <div class="compression">
           <UiLabel accent="neutral">{{ t('compression') }}</UiLabel>
           <DuplicateVmCompressionModeRadioButton v-if="isCrossPool" v-bind="compressionModeBindings" />
-          <UiInfo v-else accent="info">{{ t('duplicate-vm:compression-not-available') }}</UiInfo>
+          <UiInfo v-else accent="info">{{ t('compression-not-available') }}</UiInfo>
         </div>
       </div>
       <DuplicateVmButtonSection :can-duplicate :is-running="duplicateJob.isRunning.value" />
