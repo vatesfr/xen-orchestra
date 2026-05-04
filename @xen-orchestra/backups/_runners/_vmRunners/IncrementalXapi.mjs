@@ -102,6 +102,41 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     await this._callWriters(writer => writer.cleanup(), 'writer.cleanup()')
   }
 
+  /**
+   * For each snapshot VDI in `snapshotVdis`, maps it to its live source VDI,
+   * attaches its CONTENT_KEY when present, calls checkBaseVdis on all writers,
+   * and returns both the full mapping and the subset confirmed present by writers.
+   *
+   * @param {import('@vates/types').XenApiVdi[]} snapshotVdis - Snapshot VDI records to use as base candidates
+   * @param {Record<string, object>} srcVdisByRef - Live VM VDI records keyed by $ref
+   * @returns {Promise<{ presentBaseVdis: Map<string, string>, baseUuidToSrcVdiUuid: Map<string, string> }>}
+   */
+  async _checkBaseVdis(snapshotVdis, srcVdisByRef) {
+    const baseUuidToSrcVdiUuid = new Map()
+    const baseUuidToContentKey = new Map()
+    for (const snapshotVdi of snapshotVdis) {
+      const baseUuid = snapshotVdi.uuid
+      const srcVdi = srcVdisByRef[snapshotVdi.snapshot_of]
+      if (srcVdi !== undefined) {
+        baseUuidToSrcVdiUuid.set(baseUuid, srcVdi.uuid)
+        const contentKey = snapshotVdi.other_config[CONTENT_KEY]
+        if (contentKey !== undefined) {
+          baseUuidToContentKey.set(baseUuid, contentKey)
+        }
+      } else {
+        debug('ignore snapshot VDI because no longer present on VM', { vdi: baseUuid })
+      }
+    }
+
+    const presentBaseVdis = new Map(baseUuidToSrcVdiUuid)
+    await this._callWriters(
+      writer => presentBaseVdis.size !== 0 && writer.checkBaseVdis(presentBaseVdis, baseUuidToContentKey),
+      'writer.checkBaseVdis()',
+      false
+    )
+    return { presentBaseVdis, baseUuidToSrcVdiUuid }
+  }
+
   async _selectBaseVm() {
     const xapi = this._xapi
 
@@ -139,31 +174,7 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
 
     const srcVdis = keyBy(await xapi.getRecords('VDI', await this._vm.$getDisks()), '$ref')
 
-    const baseUuidToSrcVdiUuid = new Map()
-    const baseUuidToContentKey = new Map()
-    for (const lastExportedVdi of lastExportedVdis) {
-      const baseUuid = lastExportedVdi.uuid
-      const snapshotOf = lastExportedVdi.snapshot_of
-      const srcVdi = srcVdis[snapshotOf]
-      if (srcVdi !== undefined) {
-        baseUuidToSrcVdiUuid.set(baseUuid, srcVdi.uuid)
-        if (baseUuid.other_config[CONTENT_KEY] !== undefined) {
-          baseUuidToContentKey.set(baseUuid, baseUuid.other_config[CONTENT_KEY])
-        }
-      } else {
-        debug('ignore snapshot VDI because no longer present on VM', {
-          vdi: baseUuid,
-        })
-      }
-    }
-
-    const presentBaseVdis = new Map(baseUuidToSrcVdiUuid)
-
-    await this._callWriters(
-      writer => presentBaseVdis.size !== 0 && writer.checkBaseVdis(presentBaseVdis, baseUuidToContentKey),
-      'writer.checkBaseVdis()',
-      false
-    )
+    const { presentBaseVdis, baseUuidToSrcVdiUuid } = await this._checkBaseVdis(lastExportedVdis, srcVdis)
 
     if (presentBaseVdis.size === 0) {
       debug('no base VM found')
