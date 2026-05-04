@@ -137,7 +137,7 @@ export default class CryptoCredentials {
           XenStore.rm(XENSTORE_KEY_PATH).catch(() => {})
           fs.unlink(KEY_FILE_PATH).catch(() => {})
 
-          log.error('Credential database encryption failed — running in degraded mode', { cause: error })
+          log.error('Credential database encryption failed - running in degraded mode', { cause: error })
         }
       }
       // Encryption is inactive, we need to check if any key halves are present.
@@ -146,7 +146,17 @@ export default class CryptoCredentials {
       // Load existing keys to enable decryption.
       await this._loadKey(xenStoreKey, fileKey)
 
-      this.#migrationRequired = 'decryption'
+      if (this.#encryptionKey) {
+        this.#migrationRequired = 'decryption'
+      } else {
+        this.#degraded = true
+
+        log.error('Existing key loading failed, decryption migration impossible - running in degraded mode')
+      }
+    } else if (fileKey || xenStoreKey) {
+      this.#degraded = true
+
+      log.error('Only one encryption key half found - running in degraded mode')
     }
   }
 
@@ -189,7 +199,7 @@ export default class CryptoCredentials {
 
       this.#degraded = false
     } catch (error) {
-      log.error('Credential database decryption failed — running in degraded mode', { cause: error })
+      log.error('Credential database decryption failed - running in degraded mode', { cause: error })
     }
   }
 
@@ -231,18 +241,7 @@ export default class CryptoCredentials {
 
     try {
       // Start by collecting all existing redis entries.
-      /**
-       * @type {Record<string, Record<string, string | null>>}
-       */
-      const redisContent = {}
-      const namespaces = await this._app._redis.sMembers('xo::namespaces')
-      for (const namespace of namespaces) {
-        redisContent[namespace] = {}
-        const ids = await this._app._redis.sMembers('xo:' + namespace + '_ids')
-        for (const id of ids) {
-          redisContent[namespace][id] = await this._app._redis.get('xo:' + namespace + ':' + id)
-        }
-      }
+      const redisContent = await this.#getRedisContent()
 
       // Write all redis entries in a backup file in case migration fails.
       await fs.writeFile(BACKUP_FILE_PATH, JSON.stringify(redisContent), { mode: 0o400 })
@@ -306,18 +305,7 @@ export default class CryptoCredentials {
 
   async #migrateToDecrypted() {
     // Start by collecting all existing redis entries.
-    /**
-     * @type {Record<string, Record<string, string | null>>}
-     */
-    const redisContent = {}
-    const namespaces = await this._app._redis.sMembers('xo::namespaces')
-    for (const namespace of namespaces) {
-      redisContent[namespace] = {}
-      const ids = await this._app._redis.sMembers('xo:' + namespace + '_ids')
-      for (const id of ids) {
-        redisContent[namespace][id] = await this._app._redis.get('xo:' + namespace + ':' + id)
-      }
-    }
+    const redisContent = await this.#getRedisContent()
 
     // Write all redis entries in a backup file in case migration fails.
     await fs.writeFile(BACKUP_FILE_PATH, JSON.stringify(redisContent), { mode: 0o400 })
@@ -373,8 +361,34 @@ export default class CryptoCredentials {
     await fs.rm(BACKUP_FILE_PATH)
 
     // Delete both key halves after successful decryption migration.
-    await XenStore.rm(XENSTORE_KEY_PATH)
-    await fs.unlink(KEY_FILE_PATH)
+    await XenStore.rm(XENSTORE_KEY_PATH).catch((/** @type {any} */ error) =>
+      log.warn('Failed to remove XenStore key', { cause: error })
+    )
+    await fs
+      .unlink(KEY_FILE_PATH)
+      .catch((/** @type {any} */ error) => log.warn('Failed to remove key file', { cause: error }))
+  }
+
+  /**
+   * Collects all existing redis entries
+   *
+   * @returns {Promise<Record<string, Record<string, string | null>>>}
+   */
+  async #getRedisContent() {
+    /**
+     * @type {Record<string, Record<string, string | null>>}
+     */
+    const redisContent = {}
+    const namespaces = await this._app._redis.sMembers('xo::namespaces')
+    for (const namespace of namespaces) {
+      redisContent[namespace] = {}
+      const ids = await this._app._redis.sMembers('xo:' + namespace + '_ids')
+      for (const id of ids) {
+        redisContent[namespace][id] = await this._app._redis.get('xo:' + namespace + ':' + id)
+      }
+    }
+
+    return redisContent
   }
 
   /**
