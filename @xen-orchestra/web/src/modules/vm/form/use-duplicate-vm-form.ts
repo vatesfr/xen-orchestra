@@ -80,10 +80,6 @@ export function useDuplicateVmForm(vm: FrontXoVm) {
       return
     }
 
-    if (formData.copyMode === 'fullCopy' && selectedSr.value === undefined) {
-      return
-    }
-
     await duplicateJob.run()
   }
 

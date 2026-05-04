@@ -1,6 +1,6 @@
 <template>
   <div class="duplicate">
-    <DuplicateVmForm :vm />
+    <DuplicateVmForm :key="vm.id" :vm />
   </div>
 </template>
 
