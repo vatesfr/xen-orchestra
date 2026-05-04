@@ -25,6 +25,7 @@ import { formatFilenameDate } from '../../_filenameDate.mjs'
 import { XapiDiskSource } from '@xen-orchestra/xapi'
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
+import { VM_POWER_STATE } from '@vates/types'
 
 const { debug } = createLogger('xo:backups:IncrementalXapiWriter')
 
@@ -154,16 +155,28 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
           activeVdi = sr.$xapi.getObject(snapshot.$snapshot_of)
           const userVbds = activeVdi.$VBDs?.filter(vbd => vbd.$VM && !vbd.$VM.is_control_domain) ?? []
           if (userVbds.length !== 1) {
+            canChainToTargetVm = false
             debug('checkBaseVdis, shared vbd ', { ref: snapshot.$ref, userVbds })
-            // shared vdi ignore
+            // shared vdi ignore / don't chain
             return
           }
           const vm = userVbds[0].$VM
-          if (!('start' in vm.blocked_operations)) {
-            debug('checkBaseVdis, vm not blocked', { vmRef: vm.$ref })
-            // vm start unlocked
-            // not really an issue since we have check the delta
-            // but it indicates the users played with the blocked operations
+
+          // a running VM will fail to compute disk exports
+          // also a running VM can be assumed to have changed data
+          if (vm.power_state !== VM_POWER_STATE.HALTED) {
+            canChainToTargetVm = false
+            debug('checkBaseVdis, target vm is not halted', {
+              ref: snapshot.$ref,
+              userVbds,
+              powerState: vm.power_state,
+            })
+          }
+          // from this disk of from another
+          // skip the costly part, only do the disk chaining
+          if (!canChainToTargetVm) {
+            debug("Can't chain VM anyway , fast return and chain with snapshot")
+            baseVdisBySourceUuid.set(sourceUuid, snapshot)
             return
           }
           diffDisk = new XapiDiskSource({
