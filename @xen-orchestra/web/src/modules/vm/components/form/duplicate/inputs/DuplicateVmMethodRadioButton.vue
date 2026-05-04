@@ -1,23 +1,19 @@
 <template>
-  <UiRadioButtonGroup
-    :label="t('duplicate-vm:duplication-method')"
-    accent="brand"
-    :gap="uiStore.isSmall ? 'narrow' : 'wide'"
-  >
+  <UiRadioButtonGroup :label="t('duplication-method')" accent="brand" :gap="uiStore.isSmall ? 'narrow' : 'wide'">
     <UiRadioButton
       v-model="model"
       :disabled="vm.power_state !== VM_POWER_STATE.HALTED"
       accent="brand"
       value="fastClone"
     >
-      {{ t('duplicate-vm:fast-clone') }}
+      {{ t('fast-clone') }}
     </UiRadioButton>
     <UiRadioButton v-model="model" accent="brand" value="fullCopy">
-      {{ t('duplicate-vm:full-copy') }}
+      {{ t('full-copy') }}
     </UiRadioButton>
     <template #info>
       <UiInfo accent="info">
-        {{ t('duplicate-vm:fast-clone-available') }}
+        {{ t('fast-clone-available') }}
       </UiInfo>
     </template>
   </UiRadioButtonGroup>
