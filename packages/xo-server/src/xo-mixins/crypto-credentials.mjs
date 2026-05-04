@@ -3,7 +3,7 @@
 import { createLogger } from '@xen-orchestra/log'
 import { webcrypto, randomBytes } from 'node:crypto'
 import * as XenStore from '../_XenStore.mjs'
-import fs from 'fs-extra'
+import fs from 'node:fs/promises'
 
 /** @typedef {import('@vates/types/xo-app').XoApp} XoApp */
 
@@ -85,21 +85,24 @@ export default class CryptoCredentials {
   }
 
   async #initialize() {
-    const readOrUndefined = async (/** @type () => Promise<Buffer | undefined> */ fn) => {
-      try {
-        return await fn()
-      } catch {
-        return undefined
-      }
-    }
-
     this.#degraded = true
 
-    /** @type {Buffer | undefined} */
+    /**
+     * @type {Buffer | undefined}
+     */
     let xenStoreKey, fileKey
 
-    xenStoreKey = await readOrUndefined(async () => Buffer.from((await XenStore.read(XENSTORE_KEY_PATH)).trim(), 'hex'))
-    fileKey = await readOrUndefined(() => fs.readFile(KEY_FILE_PATH))
+    try {
+      xenStoreKey = Buffer.from((await XenStore.read(XENSTORE_KEY_PATH)).trim(), 'hex')
+    } catch (/** @type {any} */ error) {
+      if (!error.stderr?.includes(`couldn't read path`)) throw error
+    }
+
+    try {
+      fileKey = await fs.readFile(KEY_FILE_PATH)
+    } catch (/** @type {any} */ error) {
+      if (error.code !== 'ENOENT') throw error
+    }
 
     if (xenStoreKey && fileKey) {
       await this._loadKey(xenStoreKey, fileKey)
@@ -151,7 +154,9 @@ export default class CryptoCredentials {
    * produce encrypted entries while migration is in an intermediate state.
    */
   async #migrateToEncrypted() {
-    /** @type {() => void} */
+    /**
+     * @type {() => void}
+     */
     let resolveLock = () => {}
     this.#migrationLock = new Promise(resolve => {
       resolveLock = resolve
@@ -159,7 +164,9 @@ export default class CryptoCredentials {
 
     try {
       // Start by collecting all existing redis entries.
-      /** @type {Record<string, Record<string, string | null>>} */
+      /**
+       * @type {Record<string, Record<string, string | null>>}
+       */
       const redisContent = {}
       const namespaces = await this._app._redis.sMembers('xo::namespaces')
       for (const namespace of namespaces) {
@@ -174,7 +181,9 @@ export default class CryptoCredentials {
       await fs.writeFile(BACKUP_FILE_PATH, JSON.stringify(redisContent), { mode: 0o400 })
 
       // Encrypt all plaintext redis entries.
-      /** @type {string[]} */
+      /**
+       * @type {string[]}
+       */
       const mSetArgs = []
       for (const namespace in redisContent) {
         for (const id in redisContent[namespace]) {
