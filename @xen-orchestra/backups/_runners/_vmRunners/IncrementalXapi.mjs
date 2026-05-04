@@ -13,6 +13,7 @@ import {
   EXPORTED_SUCCESSFULLY,
   setVmDeltaChainLength,
   markExportSuccessfull,
+  CONTENT_KEY,
 } from '../../_otherConfig.mjs'
 import { ThrottledDisk, SynchronizedDisk } from '@xen-orchestra/disk-transform'
 import { AggregatedIncrementalRemoteWriter } from '../_writers/AggregatedIncrementalRemoteWriter.mjs'
@@ -139,12 +140,16 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     const srcVdis = keyBy(await xapi.getRecords('VDI', await this._vm.$getDisks()), '$ref')
 
     const baseUuidToSrcVdiUuid = new Map()
+    const baseUuidToContentKey = new Map()
     for (const lastExportedVdi of lastExportedVdis) {
       const baseUuid = lastExportedVdi.uuid
       const snapshotOf = lastExportedVdi.snapshot_of
       const srcVdi = srcVdis[snapshotOf]
       if (srcVdi !== undefined) {
         baseUuidToSrcVdiUuid.set(baseUuid, srcVdi.uuid)
+        if (baseUuid.other_config[CONTENT_KEY] !== undefined) {
+          baseUuidToContentKey.set(baseUuid, baseUuid.other_config[CONTENT_KEY])
+        }
       } else {
         debug('ignore snapshot VDI because no longer present on VM', {
           vdi: baseUuid,
@@ -153,8 +158,9 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     }
 
     const presentBaseVdis = new Map(baseUuidToSrcVdiUuid)
+
     await this._callWriters(
-      writer => presentBaseVdis.size !== 0 && writer.checkBaseVdis(presentBaseVdis),
+      writer => presentBaseVdis.size !== 0 && writer.checkBaseVdis(presentBaseVdis, baseUuidToContentKey),
       'writer.checkBaseVdis()',
       false
     )
