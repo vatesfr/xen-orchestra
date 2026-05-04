@@ -6,6 +6,7 @@ import * as XenStore from '../_XenStore.mjs'
 import fs from 'node:fs/promises'
 
 /** @typedef {import('@vates/types/xo-app').XoApp} XoApp */
+/** @typedef {import('../collection/redis.mjs').default} Collection */
 
 const XENSTORE_KEY_PATH = 'vm-data/xo-encryption-key'
 const KEY_FILE_PATH = '/var/lib/xo-server/data/xo-encryption-key'
@@ -23,11 +24,9 @@ const log = createLogger('xo:crypto-credentials')
 
 export default class CryptoCredentials {
   /**
-   * @returns {CryptoCredentials | null}
+   * @type {Collection[]}
    */
-  get cryptoCredentials() {
-    return (this._app.config.getOptional('redis.encryptCredentialDatabase') ?? false) ? this : null
-  }
+  #collections = []
 
   /**
    * @type {webcrypto.CryptoKey | undefined}
@@ -35,7 +34,6 @@ export default class CryptoCredentials {
   #encryptionKey
 
   /**
-   * Reserved for spec 2
    * @type {webcrypto.CryptoKey | undefined}
    */
   #hmacKey
@@ -129,6 +127,51 @@ export default class CryptoCredentials {
   }
 
   /**
+   * Derives the encryption and hmac keys from the xenStore and file keys.
+   * @param {Buffer} halfA
+   * @param {Buffer} halfB
+   */
+  async _loadKey(halfA, halfB) {
+    try {
+      const fullKey = Buffer.concat([halfA, halfB])
+      // Input key material
+      const ikm = await webcrypto.subtle.importKey('raw', fullKey, KDF_ALGORITHM, false, ['deriveKey'])
+
+      // Memory safety
+      halfA.fill(0)
+      halfB.fill(0)
+      fullKey.fill(0)
+
+      this.#encryptionKey = await webcrypto.subtle.deriveKey(
+        { name: KDF_ALGORITHM, hash: HASH_ALGORITHM, salt: new Uint8Array(0), info: Buffer.from('xo-credentials-aes') },
+        ikm,
+        { name: CIPHER_ALGORITHM, length: 256 },
+        false,
+        ['encrypt', 'decrypt']
+      )
+
+      this.#hmacKey = await webcrypto.subtle.deriveKey(
+        {
+          name: KDF_ALGORITHM,
+          hash: HASH_ALGORITHM,
+          salt: new Uint8Array(0),
+          info: Buffer.from('xo-credentials-hmac'),
+        },
+        ikm,
+        { name: HMAC_ALGORITHM, hash: HASH_ALGORITHM },
+        false,
+        ['sign', 'verify']
+      )
+
+      this.#degraded = false
+    } catch (error) {
+      log.error('Credential database decryption failed — running in degraded mode', { cause: error })
+    }
+  }
+
+  /**
+   * Encrypts credentials.
+   *
    * @param {string} plaintext
    * @returns {Promise<string>}
    */
@@ -224,7 +267,12 @@ export default class CryptoCredentials {
         await this.decrypt(testedValue)
       }
 
-      // Delete backup file if the verification has not thrown
+      // Rebuild collection indexes to use blind indexes.
+      for (const collection of this.#collections) {
+        await collection.rebuildIndexes()
+      }
+
+      // Delete backup file if the the encryption, verification and index rebuild worked.
       await fs.rm(BACKUP_FILE_PATH)
     } finally {
       resolveLock()
@@ -233,46 +281,35 @@ export default class CryptoCredentials {
   }
 
   /**
-   * Derives the encryption and hmac keys from the xenStore and file keys.
-   * @param {Buffer} halfA
-   * @param {Buffer} halfB
+   * @returns {CryptoCredentials | null}
    */
-  async _loadKey(halfA, halfB) {
-    try {
-      const fullKey = Buffer.concat([halfA, halfB])
-      // Input key material
-      const ikm = await webcrypto.subtle.importKey('raw', fullKey, KDF_ALGORITHM, false, ['deriveKey'])
+  get cryptoCredentials() {
+    return (this._app.config.getOptional('redis.encryptCredentialDatabase') ?? false) ? this : null
+  }
 
-      // Memory safety
-      halfA.fill(0)
-      halfB.fill(0)
-      fullKey.fill(0)
+  /**
+   * Registers the collection for indexe rebuilding
+   *
+   * @param {Collection} collection
+   */
+  registerCollection(collection) {
+    this.#collections.push(collection)
+  }
 
-      this.#encryptionKey = await webcrypto.subtle.deriveKey(
-        { name: KDF_ALGORITHM, hash: HASH_ALGORITHM, salt: new Uint8Array(0), info: Buffer.from('xo-credentials-aes') },
-        ikm,
-        { name: CIPHER_ALGORITHM, length: 256 },
-        false,
-        ['encrypt', 'decrypt']
-      )
-
-      this.#hmacKey = await webcrypto.subtle.deriveKey(
-        {
-          name: KDF_ALGORITHM,
-          hash: HASH_ALGORITHM,
-          salt: new Uint8Array(0),
-          info: Buffer.from('xo-credentials-hmac'),
-        },
-        ikm,
-        { name: HMAC_ALGORITHM, hash: HASH_ALGORITHM },
-        false,
-        ['sign', 'verify']
-      )
-
-      this.#degraded = false
-    } catch (error) {
-      log.error('Credential database decryption failed — running in degraded mode', { cause: error })
+  /**
+   * Computes HMAC blind index.
+   *
+   * @param {string} plaintext
+   * @returns {Promise<string>}
+   */
+  async hmacIndex(plaintext) {
+    if (!this.#hmacKey) {
+      throw new Error('The encryption key needs to be extracted before hmacIndex can be used')
     }
+
+    return Buffer.from(
+      await webcrypto.subtle.sign({ name: HMAC_ALGORITHM }, this.#hmacKey, Buffer.from(plaintext))
+    ).toString('hex')
   }
 
   /**

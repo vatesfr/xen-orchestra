@@ -20,6 +20,8 @@ export default class {
         crypto: app.cryptoCredentials,
       }))
 
+      app.cryptoCredentials?.registerCollection(this._acls)
+
       app.addConfigManager(
         'acls',
         () => aclsDb.get(),

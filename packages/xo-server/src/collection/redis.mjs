@@ -2,7 +2,6 @@ import assert from 'assert'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import difference from 'lodash/difference.js'
 import filter from 'lodash/filter.js'
-import forEach from 'lodash/forEach.js'
 import getKeys from 'lodash/keys.js'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import isEmpty from 'lodash/isEmpty.js'
@@ -22,7 +21,7 @@ import Collection, { ModelAlreadyExists } from '../collection.mjs'
 // - prefix + '::indexes': set containing all indexes;
 // - prefix +'_ids': set containing identifier of all models;
 // - prefix +'_'+ index +':' + lowerCase(value): set of identifiers
-//   which have value for the given index.
+//   which have value for the given index. Value is an HMAC when crypto is active
 // - prefix +':'+ id: hash containing the properties of a model;
 // ///////////////////////////////////////////////////////////////////
 
@@ -115,14 +114,20 @@ export default class Redis extends Collection {
     )
 
     const idsIndex = `${prefix}_ids`
-    await asyncMapSettled(redis.sMembers(idsIndex), id => {
+    await asyncMapSettled(redis.sMembers(idsIndex), async id => {
       return this.#get(`${prefix}:${id}`).then(values =>
         values == null
           ? redis.sRem(idsIndex, id) // entry no longer exists
-          : asyncMapSettled(indexes, index => {
-              const value = values[index]
+          : asyncMapSettled(indexes, async index => {
+              let value = values[index]
               if (value !== undefined) {
-                return redis.sAdd(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
+                if (this.#crypto && !this.#crypto.isDegraded()) {
+                  value = await this.#crypto.hmacIndex(String(value).toLowerCase())
+                } else {
+                  value = String(value).toLowerCase()
+                }
+
+                return redis.sAdd(`${prefix}_${index}:${value}`, id)
               }
             })
       )
@@ -190,10 +195,16 @@ export default class Redis extends Collection {
 
           // remove the previous values from indexes
           if (indexes.length !== 0) {
-            await asyncMapSettled(indexes, index => {
-              const value = previous[index]
+            await asyncMapSettled(indexes, async index => {
+              let value = previous[index]
               if (value !== undefined) {
-                return redis.sRem(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
+                if (this.#crypto && !this.#crypto.isDegraded()) {
+                  value = await this.#crypto.hmacIndex(String(value).toLowerCase())
+                } else {
+                  value = String(value).toLowerCase()
+                }
+
+                return redis.sRem(`${prefix}_${index}:${value}`, id)
               }
             })
           }
@@ -212,17 +223,18 @@ export default class Redis extends Collection {
         await redis.set(key, serialized)
 
         // Update indexes.
-        const promises = []
-        forEach(indexes, index => {
-          const value = model[index]
-          if (value === undefined) {
-            return
+        await asyncMapSettled(indexes, async index => {
+          let value = model[index]
+          if (value === undefined) return
+
+          if (this.#crypto && !this.#crypto.isDegraded()) {
+            value = await this.#crypto.hmacIndex(String(value).toLowerCase())
+          } else {
+            value = String(value).toLowerCase()
           }
 
-          const key = prefix + '_' + index + ':' + String(value).toLowerCase()
-          promises.push(redis.sAdd(key, id))
+          return redis.sAdd(`${prefix}_${index}:${value}`, id)
         })
-        await Promise.all(promises)
 
         model = this._unserialize(model) ?? model
         model.id = id
@@ -261,7 +273,7 @@ export default class Redis extends Collection {
     return model
   }
 
-  _get(properties) {
+  async _get(properties) {
     const { prefix, redis } = this
 
     if (isEmpty(properties)) {
@@ -278,23 +290,24 @@ export default class Redis extends Collection {
     }
 
     const { indexes } = this
-
-    if (this.#crypto && !this.#crypto.isDegraded()) {
-      // When crypto is active, load all and filter in memory
-      return redis
-        .sMembers(prefix + '_ids')
-        .then(ids => this._extract(ids))
-        .then(models => filter(models, properties))
-    } else {
-      // Check for non indexed fields.
-      const unfit = difference(getKeys(properties), indexes)
-      if (unfit.length) {
-        throw new Error('fields not indexed: ' + unfit.join())
-      }
-
-      const keys = map(properties, (value, index) => `${prefix}_${index}:${String(value).toLowerCase()}`)
-      return redis.sInter(keys).then(ids => this._extract(ids))
+    // Check for non indexed fields.
+    const unfit = difference(getKeys(properties), indexes)
+    if (unfit.length) {
+      throw new Error('fields not indexed: ' + unfit.join())
     }
+
+    const keys = await Promise.all(
+      map(properties, async (value, index) => {
+        if (this.#crypto && !this.#crypto.isDegraded()) {
+          value = await this.#crypto.hmacIndex(String(value).toLowerCase())
+        } else {
+          value = String(value).toLowerCase()
+        }
+
+        return `${prefix}_${index}:${value}`
+      })
+    )
+    return redis.sInter(keys).then(ids => this._extract(ids))
   }
 
   _remove(ids) {
@@ -311,14 +324,20 @@ export default class Redis extends Collection {
     if (indexes.length !== 0) {
       promise = Promise.all([
         promise,
-        asyncMapSettled(ids, id =>
+        asyncMapSettled(ids, async id =>
           this.#get(`${prefix}:${id}`).then(
             values =>
               values != null &&
-              asyncMapSettled(indexes, index => {
-                const value = values[index]
+              asyncMapSettled(indexes, async index => {
+                let value = values[index]
                 if (value !== undefined) {
-                  return redis.sRem(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
+                  if (this.#crypto && !this.#crypto.isDegraded()) {
+                    value = await this.#crypto.hmacIndex(String(value).toLowerCase())
+                  } else {
+                    value = String(value).toLowerCase()
+                  }
+
+                  return redis.sRem(`${prefix}_${index}:${value}`, id)
                 }
               })
           )
