@@ -6,6 +6,10 @@ import { absRelationEsc } from '../src/sql.mjs'
 import { ident } from '../src/types.mjs'
 import { closeServer, createServer } from './pglite.mjs'
 
+function normalizeSQLStatement(expectedMerge) {
+  return expectedMerge.replace(/\n/g, '').replace(/\s+/g, ' ').trim()
+}
+
 suite('live DB tests', function () {
   // https://stackoverflow.com/a/8084248
   const random_slug = (Math.random() + 1).toString(36).substring(2)
@@ -293,10 +297,10 @@ suite('live DB tests', function () {
         { uuid: '#network2', VIFs: ['#vif4'] },
       ],
     }
-    let xapiDbClasses
+    let xapiDbClasses, viewNames
     const bystanderNetwork = recordsByClass.network[1]
     beforeEach(async function () {
-      xapiDbClasses = (await runDDL(classesDict)).xapiDbClasses
+      ;({ xapiDbClasses, viewNames } = await runDDL(classesDict))
       await persistEntities(dbClient, recordsByClass, xapiDbClasses, identityResolver)
     })
     afterEach(async function () {
@@ -352,18 +356,19 @@ suite('live DB tests', function () {
               WHEN MATCHED THEN DO NOTHING
               WHEN NOT MATCHED THEN INSERT ("network", "VIFs") VALUES (src."network", src."VIFs")
               WHEN NOT MATCHED BY SOURCE AND t."network" = ANY ($3::VARCHAR(40)[]) THEN DELETE;`
-      /* quick primer on MERGE:
-          - SOURCE is the new set of rows, coming from the client (USING)
-          - TARGET it the existing table (INTO, the through table of the materialized association, "network_VIFs")
-          - $3 is the unique values of $1
-          - '= ANY ()' is the inclusion test for arrays (IN is for rows).
-          - we join on the primary key of the through table (t."network", t."VIFs")
-          - the SCAN is a FULL OUTER JOIN i.e., both the entire SOURCE and the TARGET (limited to WHERE t."network" = ANY($3))
-              are scanned (because of WHEN NOT MATCHED BY SOURCE)
-      */
-      const expectedMergeNoSpace = expectedMerge.replace(/\n/g, '').replace(/\s+/g, ' ').trim()
-      const actualMerge = xapiDbClasses.network.getField('VIFs').customSaver.mergeStatement
-      const actualMergeNoSpace = actualMerge.replace(/\n/g, '').replace(/\s+/g, ' ').trim()
+      /** quick primer on `MERGE`:
+       *   - SOURCE is the new set of rows, coming from the client (`USING`)
+       *   - TARGET it the existing table (`INTO`, the through table of the materialized association, `"network_VIFs"`)
+       *   - `$3` contains the unique values of `$1`
+       *   - `= ANY ()` is the inclusion test for arrays (`IN` is for rows).
+       *   - we join on the primary key of the through table (`t."network"`, `t."VIFs"`)
+       *   - the scan is a FULL OUTER JOIN i.e., both the entire `SOURCE` and the TARGET (limited to `WHERE t."network" = ANY($3)`)
+       *       are scanned (because of `WHEN NOT MATCHED BY SOURCE`)
+       */
+      const expectedMergeNoSpace = normalizeSQLStatement(expectedMerge)
+      const actualMergeNoSpace = normalizeSQLStatement(
+        xapiDbClasses.network.getField('VIFs').customSaver.mergeStatement
+      )
       assert.equal(actualMergeNoSpace, expectedMergeNoSpace)
       const $1 = ['#network1', '#network1']
       const $2 = ['#vif3', '#vif4']
@@ -383,6 +388,33 @@ suite('live DB tests', function () {
         { network: '#network1', VIFs: '#vif4' },
         { network: '#network2', VIFs: '#vif4' }, // bystander left untouched
       ])
+    })
+    test('we get the correct CREATE VIEW statement', async () => {
+      const ddl = createViewsDDL(VIEW_SCHEMA, xapiDbClasses, new Map([['network', viewNames.get('network')]]))
+      /** - `LATERAL` allows us to run a query referencing the table in the `FROM` (the `WHERE linked."network"=uuid` would error otherwise)
+       *  - `LEFT JOIN` forces the lateral query to run from every row of the table `network`, including the ones whose VIFs is empty
+       *  - `array_agg()` transforms the `SELECT` rows into an array (GROUP BY is implicitly "all in one group")
+       *  - `array_agg()` returns NULL if the `SELECT` has no rows
+       *  - `COALESCE(..., '{}')` transforms NULL into an empty array
+       *  - `LEFT JOIN ... ON TRUE` because the subquery is returning only one row on the right per row on the left, no need to join anything.
+       *
+       *  In the end, `VIFs_t` becomes a relation containing only one row and one column (containing an array of VIF uuids).
+       *
+       *  Note that the table at the end of the relationship (`VIF`) is never used.
+       */
+      const expectedCreateView = `
+            CREATE OR REPLACE VIEW "${VIEW_SCHEMA}"."network" AS
+              SELECT "uuid", "VIFs_t"."VIFs"
+              FROM "${TABLE_SCHEMA}"."network"
+              LEFT JOIN LATERAL
+                ( SELECT COALESCE(array_agg(linked."VIFs" ORDER BY linked."VIFs"), '{}') AS "VIFs"
+                  FROM "${TABLE_SCHEMA}"."network_VIFs" AS linked
+                  WHERE linked."network"=uuid ) AS "VIFs_t"
+                ON TRUE;`
+      const createViewStatement = ddl.statements
+        .map(normalizeSQLStatement)
+        .find(s => s.match(/^CREATE (?:OR REPLACE)? VIEW/))
+      assert.equal(createViewStatement, normalizeSQLStatement(expectedCreateView))
     })
   })
 

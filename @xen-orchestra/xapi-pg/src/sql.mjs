@@ -137,9 +137,9 @@ export class GroupRefDbSaver {
     this.viewLateral = `
         LEFT JOIN LATERAL (
           SELECT ${aggregation} AS ${colNameEsc}
-          FROM ${tableNameEsc} linked
+          FROM ${tableNameEsc} AS linked
           WHERE linked.${ownerEsc}=uuid
-      ) ${fieldRelationEsc} ON TRUE`
+      ) AS ${fieldRelationEsc} ON TRUE`
   }
 
   async saveRows(_dbClient, _rows, _allOwners) {
