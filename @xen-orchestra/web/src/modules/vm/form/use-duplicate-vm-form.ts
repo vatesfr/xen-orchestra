@@ -28,12 +28,10 @@ export function useDuplicateVmForm(vm: FrontXoVm) {
     compressionMode: 'disabled',
   })
 
-  const {
-    copyMode: copyModeBindings,
-    compressionMode: compressionModeBindings,
-    useField,
-    useSelect,
-  } = useFormBindings(formData)
+  const { useField, useSelect } = useFormBindings(formData)
+
+  const copyModeBindings = useField('copyMode')
+  const compressionModeBindings = useField('compressionMode')
 
   const filteredSrs = computed(() => srs.value.filter(sr => sr.content_type !== 'iso' && sr.size > 0))
 
