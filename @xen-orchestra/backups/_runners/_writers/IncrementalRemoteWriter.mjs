@@ -39,14 +39,12 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
           ignoreMissing: true,
           prependDir: true,
         })
-        const packedBaseUuid = packUuid(baseUuid)
-        // the last one is probably the right one
-
-        for (let i = vhds.length - 1; i >= 0 && parentDestPath === undefined; i--) {
-          const path = vhds[i]
+        vhds.sort()
+        const mostRecentVhd = vhds.at(-1)
+        if (mostRecentVhd !== undefined) {
           try {
-            if (await adapter.isMergeableParent(packedBaseUuid, path)) {
-              parentDestPath = path
+            if (await adapter.isMergeableParent(packUuid(baseUuid), mostRecentVhd)) {
+              parentDestPath = mostRecentVhd
             }
           } catch (error) {
             warn('checkBaseVdis', { error })
