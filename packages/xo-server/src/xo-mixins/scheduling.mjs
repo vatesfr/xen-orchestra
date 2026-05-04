@@ -44,6 +44,8 @@ export default class Scheduling {
         crypto: app.cryptoCredentials,
       }))
 
+      app.cryptoCredentials?.registerCollection(this._db)
+
       app.addConfigManager(
         'schedules',
         () => db.get(),

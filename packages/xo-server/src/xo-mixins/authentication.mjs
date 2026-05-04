@@ -99,6 +99,8 @@ export default class {
         crypto: app.cryptoCredentials,
       }))
 
+      app.cryptoCredentials?.registerCollection(this._tokens)
+
       app.addConfigManager(
         'authTokens',
         () => tokensDb.get(),
