@@ -17,9 +17,10 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-### Packages to release
-
 - [immutable backups] Fix error while locking vhd files (PR [#9767](https://github.com/vatesfr/xen-orchestra/pull/9767))
+- [REST API] Fix REST API not available for clients with plan < Enterprise (PR [#9798](https://github.com/vatesfr/xen-orchestra/pull/9798))
+
+### Packages to release
 
 > When modifying a package, add it here with its release type.
 >
@@ -36,6 +37,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/immutable-backups patch
+- @xen-orchestra/rest-api patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server-sdn-controller patch

@@ -275,6 +275,11 @@ export function acl(acls: AclEntry | AclEntry[]) {
       return next(new ValidateError(invalidFields, 'invalid parameters'))
     }
 
+    if (user.permission === 'admin') {
+      // Administrator users do not need to go further
+      return next()
+    }
+
     let userPrivileges: AnyPrivilege[]
     try {
       userPrivileges = (await restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
