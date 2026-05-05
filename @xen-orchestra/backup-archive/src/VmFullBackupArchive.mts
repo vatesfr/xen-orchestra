@@ -49,24 +49,19 @@ export async function isValidXva(handler: RemoteHandlerAbstract, filePath: strin
     return true
   }
 
+  const fd = await handler.openFile(filePath, 'r')
   try {
-    const fd = await handler.openFile(filePath, 'r')
-    try {
-      const size = await handler.getSize(filePath)
-      if (size < 20) {
-        // neither a valid gzip nor tar
-        return false
-      }
-
-      return (await isCompressedFile(handler, fd))
-        ? true // compressed files cannot be validated at this time
-        : await isValidTar(handler, size, fd)
-    } finally {
-      handler.closeFile(fd).catch(noop)
+    const size = await handler.getSize(filePath)
+    if (size < 20) {
+      // neither a valid gzip nor tar
+      return false
     }
-  } catch (error) {
-    // never throw, log and report as valid to avoid side effects
-    return true
+
+    return (await isCompressedFile(handler, fd))
+      ? true // compressed files cannot be validated at this time
+      : await isValidTar(handler, size, fd)
+  } finally {
+    handler.closeFile(fd).catch(noop)
   }
 }
 
@@ -101,7 +96,27 @@ export class VmFullBackupArchive implements VmBackupInterface {
 
   async check(): Promise<CheckResult> {
     if (this.isValid === undefined) {
-      this.isValid = await isValidXva(this.handler, this.xvaPath)
+      try {
+        const fileSize = await this.handler.getSize(this.xvaPath)
+        this.isValid = fileSize > 0
+      } catch (error) {
+        this.isValid = false
+      }
+      let checkSumSize = 0
+      try {
+        checkSumSize = await this.handler.getSize(`${this.xvaPath}.checksum`)
+      } catch (error) {
+        this.opts.logWarn('Checksum file not valid, not blocking')
+      }
+      if (checkSumSize <= 0) {
+        this.opts.logWarn('Checksum file not valid, not blocking')
+      }
+
+      try {
+        this.isValid = await isValidXva(this.handler, this.xvaPath)
+      } catch (error) {
+        this.opts.logWarn('Error while checking XVA', { error })
+      }
     }
     if (!this.isValid) {
       this.opts.logWarn('XVA might be broken', { path: this.xvaPath })
@@ -113,27 +128,15 @@ export class VmFullBackupArchive implements VmBackupInterface {
     if (this.isValid === undefined) {
       await this.check()
     }
-    const removedFiles: string[] = []
-    if (!this.isValid) {
-      removedFiles.push(this.metadataPath, this.xvaPath, `${this.xvaPath}.checksum`)
-    }
+    const removedFiles = this.getAssociatedFiles({ prefix: false })
     if (remove) {
-      for (const file of removedFiles) {
-        try {
-          await this.handler.unlink(file)
-        } catch (error) {
-          this.opts.logWarn(`Issue removing ${file}`)
-        }
-      }
+      this.opts.logWarn(`This files may be corrupted but not yet to be removed`, { files: removedFiles })
     }
     return { removedFiles, merge: false }
   }
 
   getAssociatedFiles({ prefix = false }): Array<string> {
     let validFiles = [this.metadataPath, this.xvaPath, `${this.xvaPath}.checksum`]
-    if (!this.isValid) {
-      validFiles = []
-    }
     return prefix ? validFiles : validFiles.map(file => basename(file))
   }
 }
