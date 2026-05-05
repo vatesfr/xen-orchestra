@@ -13,7 +13,6 @@
     "node": ">=14.18"
   },
   "scripts": {
-    "build": "tsc",
     "postversion": "npm publish --access public",
     "test": "node --test",
     "test-integration": "node --test *.integ.mjs"
