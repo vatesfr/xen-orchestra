@@ -19,6 +19,7 @@ export interface BackupCleanOptions {
   merge?: boolean
   remove?: boolean
   mergeBlockConcurrency?: number
+  mergeConcurrency?: number
   onProgress?: (progress: { total: number; done: number }) => void
   logInfo?: (message: any, opts?: object) => void
   logWarn?: (message: any, opts?: object) => void

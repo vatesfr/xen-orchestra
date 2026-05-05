@@ -285,7 +285,7 @@ export class RemoteDiskLineage {
           const { finalDiskSize, mergeTargetPath } = await this.#mergeChain(chain, isResuming)
           mergedSizes.set(mergeTargetPath, (mergedSizes.get(mergeTargetPath) ?? 0) + finalDiskSize)
         },
-        { concurrency: DEFAULT_MERGE_CONCURRENCY }
+        { concurrency: this.#opts.mergeConcurrency ?? DEFAULT_MERGE_CONCURRENCY }
       )
     }
 
