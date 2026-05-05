@@ -1,5 +1,25 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [System] Update system pages layout ([user feedback](https://feedback.vates.tech/posts/37/xo6-ui-very-messy-columns-width-in-vm-system-far-better-in-xo5)) (PR [#9746](https://github.com/vatesfr/xen-orchestra/pull/9746))
+
+### Bug fixes
+
+- [immutable backups] Fix error while locking vhd files (PR [#9767](https://github.com/vatesfr/xen-orchestra/pull/9767))
+- [REST API] Fix REST API not available for clients with plan < Enterprise (PR [#9798](https://github.com/vatesfr/xen-orchestra/pull/9798))
+
+### Released packages
+
+- @xen-orchestra/immutable-backups 3.0.1
+- @xen-orchestra/web-core 0.52.0
+- @xen-orchestra/rest-api 0.30.1
+- @xen-orchestra/web 0.50.0
+- xo-server 5.200.1
+- xo-server-sdn-controller 1.3.2
+
 ## **6.4.0** (2026-04-29)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
