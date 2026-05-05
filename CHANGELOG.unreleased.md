@@ -19,6 +19,8 @@
 
 ### Packages to release
 
+- [immutable backups] Fix error while locking vhd files (PR [#9767](https://github.com/vatesfr/xen-orchestra/pull/9767))
+
 > When modifying a package, add it here with its release type.
 >
 > The format is the following: `- $packageName $releaseType`
@@ -33,7 +35,9 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/immutable-backups patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+
 
 <!--packages-end-->
