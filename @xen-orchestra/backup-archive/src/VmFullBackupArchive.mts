@@ -128,15 +128,28 @@ export class VmFullBackupArchive implements VmBackupInterface {
     if (this.isValid === undefined) {
       await this.check()
     }
-    const removedFiles = this.getAssociatedFiles({ prefix: false })
+    let removedFiles: string[] = []
     if (remove) {
-      this.opts.logWarn(`This files may be corrupted but not yet to be removed`, { files: removedFiles })
+      const checksumPath = `${this.xvaPath}.checksum`
+      try {
+        await this.handler.unlink(checksumPath)
+        removedFiles.push(basename(checksumPath))
+      } catch (error: any) {
+        if (error?.code !== 'ENOENT') {
+          this.opts.logWarn('failed to delete orphan checksum file', { path: checksumPath, error })
+        }
+      }
+      if (!this.isValid) {
+        this.opts.logWarn(`This files may be corrupted but not yet to be removed`, {
+          files: this.getAssociatedFiles({ prefix: false }),
+        })
+      }
     }
     return { removedFiles, merge: false }
   }
 
   getAssociatedFiles({ prefix = false }): Array<string> {
-    let validFiles = [this.metadataPath, this.xvaPath, `${this.xvaPath}.checksum`]
+    let validFiles = [this.metadataPath, this.xvaPath]
     return prefix ? validFiles : validFiles.map(file => basename(file))
   }
 }
