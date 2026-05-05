@@ -680,7 +680,7 @@
   "page-not-found": "Cette page est introuvable…",
   "page-please-wait": "Accrochez-vous, astronaute ! La page est sur le point de décoller.{newline}Nous alignons les propulseurs et calibrons les systèmes. Plus que quelques instants, restez à l'écoute !",
   "pagination:all": "Tous",
-  "paravirtualized-vms-only": "VMs paravirtualisées uniquement",
+  "pv-vms-only": "Disponible uniquement pour les VMs PV.",
   "partially-connected": "Partiellement connecté",
   "password": "Mot de passe",
   "password-invalid": "Mot de passe incorrect",

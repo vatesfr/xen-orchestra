@@ -3,7 +3,7 @@
     <div class="attach-form">
       <UiTitle>{{ t('general-information') }}</UiTitle>
       <div class="row">
-        <VtsInputWrapper :label="srSelectBindings.label" :message="srMessage">
+        <VtsInputWrapper :label="srSelectBindings.label" :message="srMessage" wrap>
           <VtsSelect :id="srSelectBindings.id" accent="brand" />
         </VtsInputWrapper>
         <VtsInputWrapper :label="vdiSelectBindings.label" :message="vdiMessage">
@@ -13,15 +13,16 @@
     </div>
     <div class="attach-form">
       <UiTitle>{{ t('options') }}</UiTitle>
-      <div class="checkbox">
-        <UiCheckbox v-model="readOnly" accent="brand">
-          {{ t('read-only') }}
+      <UiCheckbox v-model="readOnly" accent="brand">
+        {{ t('read-only') }}
+      </UiCheckbox>
+      <div>
+        <UiCheckbox v-model="bootable" accent="brand" :disabled="!isPv">
+          {{ t('bootable') }}
+          <template #info>
+            <span class="checkbox-info">{{ t('pv-vms-only') }}</span>
+          </template>
         </UiCheckbox>
-        <span v-tooltip="!isPv && t('paravirtualized-vms-only')">
-          <UiCheckbox v-model="bootable" accent="brand" :disabled="!isPv">
-            {{ t('bootable') }}
-          </UiCheckbox>
-        </span>
       </div>
     </div>
     <div class="buttons-container">
@@ -45,7 +46,6 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
@@ -90,11 +90,6 @@ function onSubmit() {
   .attach-form {
     display: flex;
     flex-direction: column;
-    gap: 2.4rem;
-  }
-
-  .checkbox {
-    display: flex;
     gap: 2.4rem;
   }
 

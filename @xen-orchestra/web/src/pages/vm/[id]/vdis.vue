@@ -5,13 +5,13 @@
         <template #title-actions>
           <MenuList placement="bottom-end">
             <template #trigger="{ open }">
-              <UiDropdownButton @click="open($event)">{{ t('new') }}</UiDropdownButton>
+              <UiDropdownButton icon="fa:plus" @click="open($event)">{{ t('action:add') }}</UiDropdownButton>
             </template>
             <MenuItem>
               <UiLink
-                class="new-vdi-link"
+                class="add-vdi-link"
                 :to="{ name: '/vdi/attach', query: { vmid: vm.id } }"
-                icon="fa:plus"
+                icon="fa:link"
                 size="medium"
               >
                 {{ t('action:attach-vdi') }}
@@ -88,7 +88,7 @@ const selectedVdi = useRouteQuery<FrontXoVdi | undefined>('id', {
 * as the links in MenuItem are teleported and are not children of .vdis element.
 * This selector extends the clickable area of the links for better accessibility
 */
-.new-vdi-link {
+.add-vdi-link {
   height: 100%;
   width: 100%;
 }

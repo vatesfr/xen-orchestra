@@ -680,7 +680,7 @@
   "page-not-found": "This page is not to be found…",
   "page-please-wait": "Hold tight, astronaut! The page is getting ready to take off.{newline}We're just aligning the thrusters and calibrating the systems. It won't be long now, stay tuned!",
   "pagination:all": "@:all",
-  "paravirtualized-vms-only": "Paravirtualized VMs only",
+  "pv-vms-only": "Avalaible only for PV VMs.",
   "partially-connected": "Partially connected",
   "password": "Password",
   "password-invalid": "Password invalid",
