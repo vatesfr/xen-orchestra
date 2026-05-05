@@ -4,16 +4,14 @@
       <VtsStateHero v-if="!isReady" format="panel" type="busy" size="medium" />
       <TrafficRulesTable v-else :rules="trafficRules">
         <template #title-action>
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            variant="secondary"
-            accent="brand"
+          <UiLink
+            class="new-traffic-rule-link"
+            :to="{ name: '/traffic-rule/new', query: { poolid: pool.id } }"
+            icon="fa:plus"
             size="medium"
-            left-icon="fa:plus"
-            disabled
           >
             {{ t('new') }}
-          </UiButton>
+          </UiLink>
         </template>
       </TrafficRulesTable>
     </UiCard>
@@ -35,11 +33,10 @@ import { useTrafficRules } from '@/modules/traffic-rules/composables/traffic-rul
 import type { TrafficRule } from '@/modules/traffic-rules/types.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'

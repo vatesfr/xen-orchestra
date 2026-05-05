@@ -30,9 +30,9 @@
 </template>
 
 <script setup lang="ts">
+import { useDirectionLabels } from '@/modules/traffic-rules/composables/direction-labels.composable.ts'
 import { useTrafficRuleTarget } from '@/modules/traffic-rules/composables/traffic-rule-target.composable.ts'
 import type { EnrichedTrafficRule, TrafficRule } from '@/modules/traffic-rules/types.ts'
-import { getDirectionLabels } from '@/modules/traffic-rules/utils/direction-labels.util.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -66,11 +66,12 @@ const selectedRuleId = useRouteQuery('id')
 
 const getTarget = useTrafficRuleTarget()
 
+const getDirectionLabels = useDirectionLabels()
+
 const enrichedRules = computed(() =>
   rawRules.map((rule, index) => {
-    const [directionA, directionB] = getDirectionLabels(rule)
-
     const target = getTarget(rule)
+    const [directionA, directionB] = getDirectionLabels(rule)
 
     return {
       ...rule,

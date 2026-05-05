@@ -7,6 +7,14 @@
       </UiLink>
     </UiCardTitle>
     <div class="content">
+      <VtsCardRowKeyValue>
+        <template #key>
+          {{ t('rule-type') }}
+        </template>
+        <template #value>
+          {{ rule.type }}
+        </template>
+      </VtsCardRowKeyValue>
       <VtsCardRowKeyValue align-top>
         <template #key>
           {{ t('description') }}
@@ -47,9 +55,9 @@
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
+import { useDirectionLabels } from '@/modules/traffic-rules/composables/direction-labels.composable.ts'
 import { useTrafficRuleTarget } from '@/modules/traffic-rules/composables/traffic-rule-target.composable.ts'
 import type { TrafficRule } from '@/modules/traffic-rules/types.ts'
-import { getDirectionLabels } from '@/modules/traffic-rules/utils/direction-labels.util.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { RULE_STATUS } from '@/shared/constants.ts'
@@ -77,6 +85,8 @@ const { getNetworkById } = useXoNetworkCollection()
 
 const getTarget = useTrafficRuleTarget()
 
+const getDirectionLabels = useDirectionLabels()
+
 const policy = computed(() => (rule.allow ? RULE_STATUS.ALLOW : RULE_STATUS.DROP))
 
 const target = computed(() => getTarget(rule))
@@ -98,6 +108,7 @@ const vmPowerState = computed(() => {
 
 const direction = computed(() => {
   const [labelA, labelB] = getDirectionLabels(rule)
+
   return { labelA, labelB }
 })
 

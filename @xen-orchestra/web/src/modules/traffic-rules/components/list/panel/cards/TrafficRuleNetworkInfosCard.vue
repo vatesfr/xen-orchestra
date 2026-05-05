@@ -42,10 +42,10 @@
           {{ t('type') }}
         </template>
         <template #value>
-          {{ rule.type }}
+          {{ network.type }}
         </template>
         <template #addons>
-          <VtsCopyButton :value="rule.type" />
+          <VtsCopyButton :value="network.type" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue v-if="networkVlan">

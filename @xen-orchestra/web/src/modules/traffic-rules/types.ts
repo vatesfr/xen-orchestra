@@ -2,6 +2,13 @@ import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-n
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 
 export const SDN_CONTROLLER_OF_RULES_KEY = 'xo:sdn-controller:of-rules'
+export const TRAFFIC_RULE_PROTOCOLS = ['ARP', 'ICMP', 'IP', 'TCP', 'UDP'] as const
+
+export type TrafficRuleDirection = 'from' | 'to' | 'from/to'
+
+export type TrafficRuleProtocol = (typeof TRAFFIC_RULE_PROTOCOLS)[number]
+
+export type TrafficRuleTargetType = 'network' | 'VIF'
 
 export type RawTrafficRule = {
   allow: boolean
