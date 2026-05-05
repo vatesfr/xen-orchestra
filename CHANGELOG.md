@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **6.4.1** (2026-05-05)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Enhancements
 
@@ -21,8 +23,6 @@
 - xo-server-sdn-controller 1.3.2
 
 ## **6.4.0** (2026-04-29)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Security
 
