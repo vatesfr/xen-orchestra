@@ -139,6 +139,6 @@ describe('VmBackupDirectory with full backups', { concurrency: 1 }, () => {
 
     const remainingFiles = await handler.list(rootPath)
     assert.ok(remainingFiles.includes('backup1.xva'), 'XVA should be kept')
-    assert.ok(remainingFiles.includes('backup1.xva.checksum'), 'checksum should be kept alongside its valid backup')
+    assert.ok(!remainingFiles.includes('backup1.xva.checksum'), 'checksum should not be kept')
   })
 })

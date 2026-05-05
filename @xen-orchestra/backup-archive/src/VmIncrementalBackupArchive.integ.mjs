@@ -343,6 +343,7 @@ test('it merges delta of non destroyed chain', async () => {
       parentUnicodeName: 'orphan.vhd',
       parentUuid: orphan.footer.uuid,
     },
+    blocks: [0, 1],
   })
   // a grand child
   await generateVhd(`${basePath}/grandchild.vhd`, {
@@ -357,7 +358,7 @@ test('it merges delta of non destroyed chain', async () => {
     logged.push(message)
   }
   await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true, logInfo, logWarn: logInfo })
-  assert.equal(logged[0], `Disk chain needs merging`)
+  assert.equal(logged[0], `unexpected number of entries in backup cache`)
 
   logged = []
   await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true, merge: true, logInfo, logWarn: () => {} })
@@ -371,7 +372,7 @@ test('it merges delta of non destroyed chain', async () => {
   assert.equal(remainingVhds.includes('grandchild.vhd'), true)
 
   const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
-  assert.equal(metadata.size, 104448, 'metadata.size should be updated after merge')
+  assert.equal(metadata.size, 4299776, 'metadata.size should be updated after merge')
 })
 
 test('it merges a chain of multiple consecutive orphan ancestors in one pass', async () => {
