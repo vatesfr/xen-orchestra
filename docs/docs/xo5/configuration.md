@@ -278,7 +278,15 @@ For advanced usage, you can customize the way XO connect to Redis:
 #renameCommands:
 #  del = '3dda29ad-3015-44f9-b13b-fa570de92489'
 #  srem = '3fd758c9-5610-4e9d-a058-dbf4cb6d8bf0'
+
+# Encrypt all credentials stored in Redis at rest using AES-256-GCM.
+# Requires a XenStore key half and a key file half to be present or generated.
+#
+# Default: false
+#encryptCredentialDatabase = true
 ```
+
+For more information about the encryption feature, see [credential database encryption](credential-encryption.md)
 
 ## Proxy for updates and patches
 

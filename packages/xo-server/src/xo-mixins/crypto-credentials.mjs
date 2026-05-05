@@ -10,7 +10,7 @@ import fs from 'node:fs/promises'
 
 const XENSTORE_KEY_PATH = 'vm-data/xo-encryption-key'
 const KEY_FILE_PATH = '/var/lib/xo-server/data/xo-encryption-key'
-const BACKUP_FILE_PATH = '/var/lib/xo-server/data/pre-encryption-backup.json'
+const BACKUP_FILE_PATH = '/var/lib/xo-server/data/encryption-backup.json'
 
 const CIPHER_ALGORITHM = 'AES-GCM'
 const HASH_ALGORITHM = 'SHA-256'

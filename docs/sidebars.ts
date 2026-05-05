@@ -74,6 +74,7 @@ export default {
         'xo5/supported_hosts',
         'xo5/installation',
         'xo5/configuration',
+        'xo5/credential-encryption',
         'xo5/migrate_to_new_xoa',
         'xo5/updater',
         'xo5/architecture',
