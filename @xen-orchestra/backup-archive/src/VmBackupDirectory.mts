@@ -181,16 +181,16 @@ export class VmBackupDirectory implements VmBackupInterface {
         { concurrency: 2 }
       )
     }
-
-    return { removedFiles: orphans, merge: allMergedSizes.size > 0 }
+    const size = [...allMergedSizes.values()].reduce((total, merged) => total + merged, 0)
+    return { removedFiles: orphans, merge: allMergedSizes.size > 0, size: size }
   }
 
   async #checkCacheCount(): Promise<void> {
     const cachePath = `${this.rootPath}/cache.json.gz`
     const existingCache = await this.#remoteAdapter._readCache(cachePath)
-    const actual = existingCache === undefined ? undefined : Object.keys(existingCache).length
+    const actual = existingCache === undefined ? 0 : Object.keys(existingCache).length
     const expected = this.backupArchives.size
-    if (actual !== undefined && actual !== expected) {
+    if (actual !== expected) {
       this.opts.logWarn('unexpected number of entries in backup cache', { path: cachePath, actual, expected })
     }
   }
@@ -254,7 +254,7 @@ export class VmBackupDirectory implements VmBackupInterface {
     const dir = new VmBackupDirectory(handler, vmBackupPath, cleanOpts)
     await dir.init()
     await dir.check()
-    const { merge } = await dir.clean({ remove: cleanOpts.remove, merge: cleanOpts.merge })
-    return { merge }
+    const { merge, size } = await dir.clean({ remove: cleanOpts.remove, merge: cleanOpts.merge })
+    return { merge, size }
   }
 }

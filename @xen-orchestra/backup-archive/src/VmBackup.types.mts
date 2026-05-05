@@ -50,6 +50,7 @@ export interface CheckResult {
 export type CleanResult = {
   removedFiles: string[]
   merge: boolean
+  size?: number
 }
 
 export interface VmBackupInterface {
