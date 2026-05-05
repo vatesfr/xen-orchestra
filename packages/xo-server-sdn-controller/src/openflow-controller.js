@@ -2,7 +2,8 @@ import { createLogger } from '@xen-orchestra/log'
 import { OpenFlowPlugin } from './openflow-plugin'
 import { OpenFlowChannel } from './protocol/openflow-channel'
 
-const log = createLogger('xo:sdn-controller:openflowcontroller')
+const log = createLogger('xo:xo-server-sdn-controller:openflow-controller')
+
 export async function instantiateController(host, tlsHelper, config) {
   if (config.useDirectChannel) {
     log.info('use direct openflow channel')

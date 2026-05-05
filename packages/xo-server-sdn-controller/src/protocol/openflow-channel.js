@@ -9,7 +9,7 @@ import { fromEvent } from 'promise-toolbox'
 
 // =============================================================================
 
-const log = createLogger('xo:xo-server:sdn-controller:openflow-controller')
+const log = createLogger('xo:xo-server-sdn-controller:openflow-channel')
 
 const version = openflow.versions.openFlow11
 const ofProtocol = openflow.protocols[version]
