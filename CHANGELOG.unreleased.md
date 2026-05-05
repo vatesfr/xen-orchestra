@@ -11,12 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [Backups] Add UserAgent in s3 client ([#9815](https://github.com/vatesfr/xen-orchestra/pull/9815))
-- [xo-web] support qcow2 format in disk > import (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
-- [xo-server] support qcow2 format in `disk.importContent` and `disk.import` jsonRPC api (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
-- [web-core] Update `UiTag` and parse tag for detecting tags with `=` (PR [#9811](https://github.com/vatesfr/xen-orchestra/pull/9811))
-- **XO 5**:
-  - [Export config] Hide passphrase by default (PR [#9824](https://github.com/vatesfr/xen-orchestra/pull/9824))
+- [System] Update system pages layout ([user feedback](https://feedback.vates.tech/posts/37/xo6-ui-very-messy-columns-width-in-vm-system-far-better-in-xo5)) (PR [#9746](https://github.com/vatesfr/xen-orchestra/pull/9746))
+- [Encryption] Implement encryption and decryption feature for redis (PR [9735](https://github.com/vatesfr/xen-orchestra/pull/9735))
 
 ### Bug fixes
 
@@ -46,6 +42,6 @@
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/web-core minor
 - xo-server minor
-- xo-web minor
+- xo-server-sdn-controller patch
 
 <!--packages-end-->
