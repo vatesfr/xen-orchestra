@@ -3,7 +3,7 @@ import { Readable } from 'node:stream'
 import type { RandomAccessDisk } from '@xen-orchestra/disk-transform'
 import Disposable from 'promise-toolbox/Disposable'
 import { getSyncedHandler, type RemoteHandler } from '@xen-orchestra/fs'
-import { openDisposableDisk, openDiskChain } from '@xen-orchestra/backups/disks'
+import { openDisposableDisk, openDiskChain, FileAccessor } from '@xen-orchestra/backup-archive/disks'
 import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
 import { toQcow2Stream } from '@xen-orchestra/qcow2'
 
@@ -30,7 +30,7 @@ export async function* rawGenerator(disk: RandomAccessDisk): AsyncGenerator<Buff
 
 // Returns a disposable for either a single disk or the full chain,
 // depending on whether the leaf disk is differencing.
-async function openDiskOrChain(handler: RemoteHandler, diskPath: string) {
+async function openDiskOrChain(handler: FileAccessor, diskPath: string) {
   const { value: leafDisk, dispose: disposeLeaf } = await openDisposableDisk({ handler, path: diskPath })
 
   if (leafDisk.isDifferencing()) {
@@ -50,7 +50,7 @@ export async function transformCommand(handlerUrl: string, diskPath: string, ext
     process.exit(1)
   }
 
-  await Disposable.use(getSyncedHandler({ url: handlerUrl }), async handler => {
+  await Disposable.use(getSyncedHandler({ url: handlerUrl }), async (handler: any) => {
     await Disposable.use(openDiskOrChain(handler, diskPath), async disk => {
       let stream: Readable
 
