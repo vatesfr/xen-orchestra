@@ -3,6 +3,7 @@ import { after, before, describe, it } from 'node:test'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
+import { createLogger } from '@xen-orchestra/log'
 import { FilterBuilder } from '../client/FilterBuilder.js'
 import {
   generateExportFileName,
@@ -13,6 +14,8 @@ import {
   formatBytes,
 } from '../utils/exportUtils.js'
 import { setup, teardown } from './setup.js'
+
+const log = createLogger('xo:qa-test:tests')
 
 describe('VHD/XVA Export Replication Tests', () => {
   /** @type {import('../client/dispatchClient.js').DispatchClient} */
@@ -39,7 +42,7 @@ describe('VHD/XVA Export Replication Tests', () => {
     assert(qaVms.length > 0, `Required VM with pattern "${vmPrefix}-QA-Test-*" not found - export tests cannot run`)
 
     vm = qaVms[0]
-    console.log(`Found test VM for export tests: ${vm.name_label} (${vm.uuid})`)
+    log.debug('Found test VM for export tests', { name: vm.name_label, uuid: vm.uuid })
 
     // Get SR for restoration tests
     const srId = process.env.SR_ID
@@ -52,26 +55,26 @@ describe('VHD/XVA Export Replication Tests', () => {
       throw new Error(`SR with ID "${srId}" not found`)
     }
 
-    console.log(`Found SR for tests: ${sr.name_label} (${sr.uuid})`)
+    log.debug('Found SR for tests', { name: sr.name_label, uuid: sr.uuid })
 
     // Set export path
     exportPath = process.env.VHD_EXPORT_PATH || '/tmp/xo-test-exports'
 
     // Ensure export directory exists
     await fs.mkdir(exportPath, { recursive: true })
-    console.log(`Export path: ${exportPath}`)
+    log.debug('Export path', { exportPath })
   })
 
   after(async () => {
     // Clean up exported files
     if (exportedFiles.length > 0) {
-      console.log(`Cleaning up ${exportedFiles.length} exported file(s)...`)
+      log.debug('Cleaning up exported files', { count: exportedFiles.length })
       for (const filePath of exportedFiles) {
         try {
           await fs.unlink(filePath)
-          console.log(`Deleted: ${filePath}`)
+          log.debug('Deleted exported file', { filePath })
         } catch (error) {
-          console.warn(`Failed to delete ${filePath}: ${error.message}`)
+          log.warn('Failed to delete exported file', { filePath, error: error.message })
         }
       }
     }
@@ -93,7 +96,7 @@ describe('VHD/XVA Export Replication Tests', () => {
       assert(vdis.length > 0, 'VM should have at least one VDI')
 
       const vdi = vdis[0]
-      console.log(`Exporting VDI: ${vdi.name_label} (${vdi.uuid}), size: ${formatBytes(vdi.virtual_size)}`)
+      log.debug('Exporting VDI', { name: vdi.name_label, uuid: vdi.uuid, size: formatBytes(vdi.virtual_size) })
 
       // Generate unique filename
       const fileName = generateExportFileName(vm.name_label, 'vhd')
@@ -110,7 +113,7 @@ describe('VHD/XVA Export Replication Tests', () => {
       assert(stats.size > 0, 'Exported VHD file should not be empty')
       assert.strictEqual(result.size, stats.size, 'Returned size should match file size')
 
-      console.log(`VHD export completed: ${formatBytes(result.size)} in ${result.duration}ms`)
+      log.debug('VHD export completed', { size: formatBytes(result.size), duration: result.duration })
     })
 
     it('should export VDI with NBD protocol', async () => {
@@ -133,7 +136,7 @@ describe('VHD/XVA Export Replication Tests', () => {
       const stats = await fs.stat(result.path)
       assert(stats.size > 0, 'Exported VHD file with NBD should not be empty')
 
-      console.log(`VHD export with NBD completed: ${formatBytes(result.size)} in ${result.duration}ms`)
+      log.debug('VHD export with NBD completed', { size: formatBytes(result.size), duration: result.duration })
     })
 
     it('should validate VHD file structure', async () => {
@@ -153,7 +156,7 @@ describe('VHD/XVA Export Replication Tests', () => {
       const validation = await validateVhdIntegrity(result.path)
 
       assert.strictEqual(validation.valid, true, `VHD validation failed: ${validation.error}`)
-      console.log(`VHD structure validated: magic bytes confirmed, size: ${formatBytes(validation.size)}`)
+      log.debug('VHD structure validated', { size: formatBytes(validation.size) })
     })
 
     it('should have reasonable export size', async () => {
@@ -174,10 +177,11 @@ describe('VHD/XVA Export Replication Tests', () => {
       assertExportSizeReasonable(result.size, vdi.virtual_size, { tolerance: 0.1 })
 
       const ratio = ((result.size / vdi.virtual_size) * 100).toFixed(1)
-      console.log(
-        `Size comparison: exported ${formatBytes(result.size)} vs ` +
-          `virtual ${formatBytes(vdi.virtual_size)} (${ratio}%)`
-      )
+      log.debug('VHD size comparison', {
+        exported: formatBytes(result.size),
+        virtual: formatBytes(vdi.virtual_size),
+        ratio: `${ratio}%`,
+      })
     })
   })
 
@@ -205,7 +209,7 @@ describe('VHD/XVA Export Replication Tests', () => {
       const stats = await fs.stat(result.path)
       assert(stats.size > 0, 'Exported XVA file should not be empty')
 
-      console.log(`XVA export (uncompressed) completed: ${formatBytes(result.size)} in ${result.duration}ms`)
+      log.debug('XVA export (uncompressed) completed', { size: formatBytes(result.size), duration: result.duration })
     })
 
     it('should export VM with compression', async () => {
@@ -227,7 +231,7 @@ describe('VHD/XVA Export Replication Tests', () => {
         assertCompressionEfficiency(result.size, uncompressedSize)
       }
 
-      console.log(`XVA export (compressed) completed: ${formatBytes(result.size)} in ${result.duration}ms`)
+      log.debug('XVA export (compressed) completed', { size: formatBytes(result.size), duration: result.duration })
     })
 
     it('should validate XVA structure', async () => {
@@ -244,7 +248,7 @@ describe('VHD/XVA Export Replication Tests', () => {
       const validation = await validateXvaIntegrity(result.path)
 
       assert.strictEqual(validation.valid, true, `XVA validation failed: ${validation.error}`)
-      console.log(`XVA structure validated: tar format confirmed, size: ${formatBytes(validation.size)}`)
+      log.debug('XVA structure validated', { size: formatBytes(validation.size) })
     })
   })
 
@@ -269,15 +273,15 @@ describe('VHD/XVA Export Replication Tests', () => {
             await dispatchClient.vm.waitForPowerState(restoredVmUuid, 'Halted', 60_000)
           }
           await dispatchClient.vm.delete(restoredVmUuid, { deleteDisks: true })
-          console.log(`Cleaned up restored VM: ${restoredVmUuid}`)
+          log.debug('Cleaned up restored VM', { uuid: restoredVmUuid })
         } catch (error) {
-          console.warn(`Failed to cleanup restored VM ${restoredVmUuid}: ${error.message}`)
+          log.warn('Failed to cleanup restored VM', { uuid: restoredVmUuid, error: error.message })
         }
       }
 
       // Note: VDI cleanup would require additional implementation
       if (importedVdiUuid) {
-        console.log(`Note: Imported VDI ${importedVdiUuid} may need manual cleanup`)
+        log.warn('Imported VDI may need manual cleanup', { uuid: importedVdiUuid })
       }
     })
 
@@ -297,7 +301,7 @@ describe('VHD/XVA Export Replication Tests', () => {
       importedVdiUuid = await dispatchClient.vdi.importVhd(exportResult.path, sr.uuid)
 
       assert(importedVdiUuid, 'Import should return VDI UUID')
-      console.log(`VHD imported as new VDI: ${importedVdiUuid}`)
+      log.debug('VHD imported as new VDI', { uuid: importedVdiUuid })
 
       // Verify VDI exists
       const importedVdi = await dispatchClient.vdi.details(importedVdiUuid)
@@ -305,28 +309,22 @@ describe('VHD/XVA Export Replication Tests', () => {
 
       // VDI size can be in virtual_size or size property depending on API version
       const vdiSize = importedVdi.virtual_size || importedVdi.size || 0
-      console.log(
-        `Imported VDI properties:`,
-        JSON.stringify(
-          {
-            uuid: importedVdi.uuid,
-            name_label: importedVdi.name_label,
-            virtual_size: importedVdi.virtual_size,
-            size: importedVdi.size,
-            physical_utilisation: importedVdi.physical_utilisation,
-          },
-          null,
-          2
-        )
-      )
+      log.debug('Imported VDI properties', {
+        uuid: importedVdi.uuid,
+        name: importedVdi.name_label,
+        virtualSize: importedVdi.virtual_size,
+        size: importedVdi.size,
+        physicalUtilisation: importedVdi.physical_utilisation,
+      })
 
       // Size validation - the VDI exists, that's the main check
       // Size might be 0 initially until the VDI is fully written
       assert(importedVdi.uuid, 'Imported VDI should have a valid UUID')
 
-      console.log(
-        `Restored VDI verified: ${importedVdi.name_label || importedVdiUuid}, ` + `size: ${formatBytes(vdiSize)}`
-      )
+      log.debug('Restored VDI verified', {
+        name: importedVdi.name_label || importedVdiUuid,
+        size: formatBytes(vdiSize),
+      })
     })
 
     it('should restore XVA to new VM', async () => {
@@ -343,14 +341,14 @@ describe('VHD/XVA Export Replication Tests', () => {
       restoredVmUuid = await dispatchClient.vm.importXva(exportResult.path, sr.uuid)
 
       assert(restoredVmUuid, 'Import should return VM UUID')
-      console.log(`XVA imported as new VM: ${restoredVmUuid}`)
+      log.debug('XVA imported as new VM', { uuid: restoredVmUuid })
 
       // Verify VM exists
       const restoredVm = await dispatchClient.vm.details(restoredVmUuid)
       assert(restoredVm, 'Restored VM should exist')
       assert.strictEqual(restoredVm.power_state, 'Halted', 'Restored VM should be in Halted state')
 
-      console.log(`Restored VM verified: ${restoredVm.name_label} (${restoredVmUuid})`)
+      log.debug('Restored VM verified', { name: restoredVm.name_label, uuid: restoredVmUuid })
     })
   })
 
@@ -377,12 +375,13 @@ describe('VHD/XVA Export Replication Tests', () => {
       const physicalRatio =
         vdi.physical_utilisation > 0 ? ((result.size / vdi.physical_utilisation) * 100).toFixed(1) : 'N/A'
 
-      console.log('Size comparison:')
-      console.log(`  Virtual size:  ${formatBytes(vdi.virtual_size)}`)
-      console.log(`  Physical used: ${formatBytes(vdi.physical_utilisation)}`)
-      console.log(`  Exported VHD:  ${formatBytes(result.size)}`)
-      console.log(`  VHD/Virtual:   ${virtualRatio}%`)
-      console.log(`  VHD/Physical:  ${physicalRatio}%`)
+      log.debug('Size comparison', {
+        virtualSize: formatBytes(vdi.virtual_size),
+        physicalUsed: formatBytes(vdi.physical_utilisation),
+        exportedVhd: formatBytes(result.size),
+        vhdVirtualRatio: `${virtualRatio}%`,
+        vhdPhysicalRatio: `${physicalRatio}%`,
+      })
 
       // VHD should be reasonable compared to virtual size
       assert(
@@ -414,11 +413,12 @@ describe('VHD/XVA Export Replication Tests', () => {
       const compressionRatio = ((compressedResult.size / uncompressedResult.size) * 100).toFixed(1)
       const savings = (((uncompressedResult.size - compressedResult.size) / uncompressedResult.size) * 100).toFixed(1)
 
-      console.log('Compression efficiency:')
-      console.log(`  Uncompressed: ${formatBytes(uncompressedResult.size)}`)
-      console.log(`  Compressed:   ${formatBytes(compressedResult.size)}`)
-      console.log(`  Ratio:        ${compressionRatio}%`)
-      console.log(`  Savings:      ${savings}%`)
+      log.debug('XVA compression efficiency', {
+        uncompressed: formatBytes(uncompressedResult.size),
+        compressed: formatBytes(compressedResult.size),
+        ratio: `${compressionRatio}%`,
+        savings: `${savings}%`,
+      })
 
       // Compressed should be smaller
       assert(

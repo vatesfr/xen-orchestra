@@ -1,4 +1,7 @@
+import { createLogger } from '@xen-orchestra/log'
 import { AbstractRequest } from './abstract.js'
+
+const log = createLogger('xo:qa-test:misc')
 
 /**
  * Specialized request handler for XenOrchestra backup repository operations.
@@ -31,7 +34,7 @@ export class BackupRepositoryRequest extends AbstractRequest {
     this._ensureConnected()
 
     const path = options.path || process.env.BACKUP_PATH || '/var/lib/xo/backups'
-    console.log(`📁 Creating backup repository: ${name} at ${path}`)
+    log.debug('Creating backup repository', { name, path })
 
     // Backup repository creation may not be available via REST API, use WebSocket directly
     try {
@@ -41,10 +44,10 @@ export class BackupRepositoryRequest extends AbstractRequest {
       })
 
       const backupRepositoryId = backupRepositoryResult?.id || backupRepositoryResult
-      console.log(`✅ Backup repository created successfully via WebSocket: ${name} (ID: ${backupRepositoryId})`)
+      log.debug('Backup repository created successfully', { name, id: backupRepositoryId })
       return backupRepositoryId
     } catch (error) {
-      console.error(`❌ Failed to create backup repository ${name}: ${error.message}`)
+      log.warn('Failed to create backup repository', { name, error: error.message })
       throw error
     }
   }

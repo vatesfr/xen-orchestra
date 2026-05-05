@@ -1,4 +1,7 @@
+import { createLogger } from '@xen-orchestra/log'
 import Xo from 'xo-lib'
+
+const log = createLogger('xo:qa-test:ws')
 
 const XoConnection = Xo.default
 
@@ -35,11 +38,11 @@ export async function xoConnection(config) {
     // Authenticate with credentials
     await xo.signIn({ username, password })
 
-    console.log(`🌐 Successfully connected to XenOrchestra at ${xoUrl}`)
+    log.debug('Successfully connected to XenOrchestra', { url: xoUrl })
 
     return xo
   } catch (error) {
-    console.error(`❌ Failed to connect to XO server: ${error.message}`)
+    log.warn('Failed to connect to XO server', { error: error.message })
     throw new Error(`XO connection failed: ${error.message}`)
   }
 }
