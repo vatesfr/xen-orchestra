@@ -5162,6 +5162,13 @@
   resolved "https://registry.yarnpkg.com/@vueuse/shared/-/shared-14.3.0.tgz#a3e7e6391f9ed7f363cbb28c32c4a278efaacbd0"
   integrity sha512-bZpge9eSXwa4ToSiqJ7j6KRwhAsneMFoSz3LMWKQDkqimm3D/tbFlrklrs/IOqC8tEcYmXQZJ6N0UrjhBirVCg==
 
+"@xen-orchestra/disk-transform@^1.2.3":
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/@xen-orchestra/disk-transform/-/disk-transform-1.2.3.tgz#025f774c99f5e762811189fbf69ae1d7bb7b1aa8"
+  integrity sha512-XoKh+uT23AzP6wYT+IsuN60f/lNeYzQ+d+l4B3XKGnedyqLBMNizh+nbjn+mrgfkKYKBLt6dAypnUgNojM2ytg==
+  dependencies:
+    "@vates/generator-toolbox" "^1.1.2"
+
 "@xen-orchestra/log@^0.6.0":
   version "0.6.0"
   resolved "https://registry.yarnpkg.com/@xen-orchestra/log/-/log-0.6.0.tgz#b7341818dbdc3a56facf815e7124867bf39ea89d"
@@ -10935,7 +10942,7 @@ glogg@^1.0.0:
   dependencies:
     sparkles "^1.0.0"
 
-golike-defer@^0.5.1:
+golike-defer@0.5.1, golike-defer@^0.5.1:
   version "0.5.1"
   resolved "https://registry.yarnpkg.com/golike-defer/-/golike-defer-0.5.1.tgz#64ead6f3ba71ca3318e9a9de2bd316debe057b8a"
   integrity sha512-8PBDAYO7tTGWBt2BGJ25s1sSVl2orsgdrrZ9zPyHOus1BvbIuqTRZyNaczPNzyXCfH+IJLildTXPZXvUxEkvgA==
