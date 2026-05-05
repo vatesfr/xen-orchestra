@@ -36,6 +36,10 @@ describe('CryptoCredentials', function () {
       assert.equal(decrypted, payload1)
     })
 
+    it('decrypt returns non-encrypted values unchanged', async function () {
+      assert.equal(await cryptoCredentials.decrypt(payload1), payload1)
+    })
+
     it('encrypted value is base64 and not valid JSON', async function () {
       const encrypted = await cryptoCredentials.encrypt('{"why":"vates_rocks"}')
 
