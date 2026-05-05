@@ -38,6 +38,7 @@
     "build": "tsc",
     "clean": "rimraf dist/",
     "postversion": "npm publish --access public",
+    "test": "tsc && node --test dist/*.test.mjs",
     "test-integration": "tsc && node --test dist/*.integ.mjs",
     "prebuild": "npm run clean",
     "prepublishOnly": "npm run build"

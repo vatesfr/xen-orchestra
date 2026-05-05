@@ -89,6 +89,47 @@ describe('waitForWriteDone', () => {
     }
   })
 
+  it('rejects fast with code=ENOENT when file never appears', async () => {
+    const dir = await mkTmp()
+    try {
+      const file = path.join(dir, 'nonexistent.bin')
+      const start = Date.now()
+      await assert.rejects(waitForWriteDone(file, 30_000, 100), (err: NodeJS.ErrnoException) => {
+        assert.strictEqual(err.code, 'ENOENT', 'error must carry code ENOENT')
+        return true
+      })
+      const elapsed = Date.now() - start
+      assert.ok(elapsed < 5000, `should fail within 5 s (took ${elapsed} ms)`)
+    } finally {
+      await rimraf(dir)
+    }
+  })
+
+  it('rejects with no ENOENT code when file appears but never stabilises', async () => {
+    const dir = await mkTmp()
+    try {
+      const file = path.join(dir, 'growing2.bin')
+      let stop = false
+      const writer = (async () => {
+        let i = 0
+        while (!stop) {
+          await fs.appendFile(file, `chunk-${i++}\n`)
+          await new Promise(r => setTimeout(r, 80))
+        }
+      })()
+
+      await assert.rejects(waitForWriteDone(file, 500, 100), (err: NodeJS.ErrnoException) => {
+        assert.ok(/Timeout/.test(err.message), 'error must say Timeout')
+        assert.strictEqual(err.code, undefined, 'must not carry ENOENT code')
+        return true
+      })
+      stop = true
+      await writer
+    } finally {
+      await rimraf(dir)
+    }
+  })
+
   it('resolves once a growing file stops changing', async () => {
     const dir = await mkTmp()
     try {
@@ -187,6 +228,29 @@ describe('watchVmDirectory', () => {
       await waitFor(() => File.isImmutable(jsonFile))
       // The file should be immutable exactly once — lockBackup was called once
       assert.strictEqual(await File.isImmutable(jsonFile), true)
+      assert.strictEqual(errors.length, 0)
+    } finally {
+      close()
+      await cleanupRoot(dir)
+    }
+  })
+
+  it('does not re-lock a backup whose datetime is past the immutability window', async () => {
+    const dir = await mkTmp()
+    const vmDir = path.join(dir, 'vm')
+    await fs.mkdir(vmDir, { recursive: true })
+
+    const errors: unknown[] = []
+    // BACKUP_DATE (Jan 2024) is over a year ago — well past ONE_DAY_MS
+    const close = watchVmDirectory(vmDir, err => errors.push(err), {
+      delayBetweenSizeCheck: 100,
+      immutabilityDuration: ONE_DAY_MS,
+    })
+    try {
+      const jsonFile = path.join(vmDir, `${BACKUP_DATE}.json`)
+      await fs.writeFile(jsonFile, '{}')
+      await new Promise(r => setTimeout(r, 500))
+      assert.strictEqual(await File.isImmutable(jsonFile), false, 'expired backup must not be re-locked')
       assert.strictEqual(errors.length, 0)
     } finally {
       close()
