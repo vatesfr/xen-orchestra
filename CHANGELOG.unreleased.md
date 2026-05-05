@@ -12,7 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [System] Update system pages layout ([user feedback](https://feedback.vates.tech/posts/37/xo6-ui-very-messy-columns-width-in-vm-system-far-better-in-xo5)) (PR [#9746](https://github.com/vatesfr/xen-orchestra/pull/9746))
-- [Encryption] Implement encryption and decryption feature for redis (PR [9735](https://github.com/vatesfr/xen-orchestra/pull/9735))
+- [Encryption] Implement encryption and decryption feature for redis (PR [#9735](https://github.com/vatesfr/xen-orchestra/pull/9735))
 
 ### Bug fixes
 
