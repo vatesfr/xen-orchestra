@@ -197,7 +197,7 @@ We provide a script to run from a host that has access to your pool. To run the 
 Copy the file to where you want to run the script, then run this:
 
 ```
-$ bash -xe check-sdn-features.sh <pool-master-ip1> [pool-master-ip2] [pool-master-ip3] ...
+$ bash check-sdn-features.sh <pool-master-ip1> [pool-master-ip2] [pool-master-ip3] ...
 ```
 
 The script will connect to those masters and check:
