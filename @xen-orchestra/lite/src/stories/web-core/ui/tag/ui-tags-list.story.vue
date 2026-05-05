@@ -8,6 +8,18 @@
       <UiTag accent="success" variant="primary">{{ settings.slot }}</UiTag>
       <UiTag accent="warning" variant="secondary">{{ settings.slot }}</UiTag>
       <UiTag accent="danger" variant="secondary">{{ settings.slot }}</UiTag>
+      <UiTag accent="info" variant="tertiary">
+        {{ settings.slot }}
+        <template #term>
+          {{ settings.slot }}
+        </template>
+      </UiTag>
+      <UiTag accent="success" variant="tertiary">
+        {{ settings.slot }}
+        <template #term>
+          {{ settings.slot }}
+        </template>
+      </UiTag>
     </UiTagsList>
   </ComponentStory>
 </template>

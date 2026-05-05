@@ -1,13 +1,16 @@
-<!-- v3 -->
-<!-- TODO: implement tertiary variant to bump to v4 -->
+<!-- v5 -->
 <template>
-  <span v-if="variant == 'tertiary'" class="tertiary">
+  <span v-if="variant === 'tertiary'" class="tertiary">
     <UiTag :accent variant="primary">
-      <slot name="tertiaryTerm">{{ tertiaryTerm }}</slot>
+      <slot name="term">{{ term }}</slot>
     </UiTag>
-    <UiTag :accent variant="secondary"><slot /></UiTag>
+    <UiTag :accent variant="secondary">
+      <span>
+        <slot />
+      </span>
+    </UiTag>
   </span>
-  <span v-else :class="toVariants({ accent, variant })" class="ui-tag rounded typo-body-regular-small">
+  <span v-else :class="className" class="ui-tag rounded typo-body-regular-small">
     <span>
       <slot />
     </span>
@@ -17,33 +20,39 @@
 <script lang="ts" setup>
 import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util'
+import { computed } from 'vue'
 
 type TagAccent = 'info' | 'neutral' | 'success' | 'warning' | 'danger' | 'muted'
 type TagVariant = 'primary' | 'secondary' | 'tertiary'
 
-defineProps<{
+const { accent, variant } = defineProps<{
   accent: TagAccent
   variant: TagVariant
   icon?: IconName
-  tertiaryTerm?: string
+  term?: string
 }>()
 
 defineSlots<{
   default(): any
-  tertiaryTerm?(): any
+  term?(): any
 }>()
+
+const className = computed(() => toVariants({ accent, variant }))
 </script>
 
 <style lang="postcss" scoped>
 .tertiary {
   display: flex;
   flex-direction: row;
+
   .ui-tag:first-child {
     border-radius: 0.4rem 0 0 0.4rem;
+    width: 100%;
   }
 
   .ui-tag:last-child {
     border-radius: 0 0.4rem 0.4rem 0;
+    width: 100%;
   }
 }
 
@@ -54,7 +63,7 @@ defineSlots<{
   gap: 0.8rem;
   white-space: normal;
   word-break: break-word;
-  padding: 0.2rem 0.8rem;
+  padding: 0.35rem 0.8rem;
   vertical-align: middle;
 
   &.rounded {
