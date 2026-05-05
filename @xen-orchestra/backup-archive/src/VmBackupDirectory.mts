@@ -14,7 +14,7 @@ import {
   ResolvedBackupCleanOptions,
   DEFAULT_MERGE_CONCURRENCY,
 } from './VmBackup.types.mjs'
-import { cleanOrphanDiskDirs } from './disks/index.mjs'
+import { cleanOrphanDiskDirs } from '@xen-orchestra/backup-archive/disks'
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { promisify } from 'node:util'
