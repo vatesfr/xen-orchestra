@@ -7,7 +7,7 @@ import {
   openDisposableDisk,
   RemoteDisk,
   isDisk,
-} from '@xen-orchestra/backups/disks'
+} from './disks/index.mjs'
 import Disposable from 'promise-toolbox/Disposable'
 import { DEFAULT_MERGE_CONCURRENCY, DEFAULT_REMOVE_CONCURRENCY, ResolvedBackupCleanOptions } from './VmBackup.types.mjs'
 import { asyncEach } from '@vates/async-each'

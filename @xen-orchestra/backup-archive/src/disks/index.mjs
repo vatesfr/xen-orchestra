@@ -3,6 +3,7 @@ import { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
 import { RemoteVhdDiskChain } from './RemoteVhdDiskChain.mjs'
 
 export { RemoteDisk } from './RemoteDisk.mjs'
+export { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
 export { openDiskChain } from './openDiskChain.mjs'
 export { MergeRemoteDisk } from './MergeRemoteDisk.mjs'
 export { isVhdAlias } from 'vhd-lib/aliases.js'

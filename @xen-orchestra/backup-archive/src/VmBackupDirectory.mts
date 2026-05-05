@@ -14,10 +14,14 @@ import {
   ResolvedBackupCleanOptions,
   DEFAULT_MERGE_CONCURRENCY,
 } from './VmBackup.types.mjs'
-import { cleanOrphanDiskDirs } from '@xen-orchestra/backups/disks'
+import { cleanOrphanDiskDirs } from './disks/index.mjs'
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
-import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter.mjs'
+import { promisify } from 'node:util'
+import zlib from 'node:zlib'
+
+const gzip = promisify(zlib.gzip)
+const gunzip = promisify(zlib.gunzip)
 
 const { info: logInfo, warn: logWarn } = createLogger('xo:backup-archive')
 
@@ -34,7 +38,6 @@ export class VmBackupDirectory implements VmBackupInterface {
   // Cached result of the last check() call; invalidated by init()
   #checkResult: (CheckResult & { orphans: string[]; linked: string[] }) | undefined = undefined
   #uniqueLineages: Map<string, RemoteDiskLineage> | undefined = undefined
-  #remoteAdapter: RemoteAdapter
 
   constructor(
     handler: RemoteHandlerAbstract,
@@ -57,7 +60,24 @@ export class VmBackupDirectory implements VmBackupInterface {
       logInfo: opts.logInfo ?? logInfo,
       logWarn: opts.logWarn ?? logWarn,
     }
-    this.#remoteAdapter = new RemoteAdapter(handler)
+  }
+
+  async #readCache(path: string): Promise<Record<string, unknown> | undefined> {
+    try {
+      return JSON.parse((await gunzip(await this.handler.readFile(path))).toString())
+    } catch (error: any) {
+      if (error?.code !== 'ENOENT') {
+        logWarn('failed to read cache', { error, path })
+      }
+    }
+  }
+
+  async #writeCache(path: string, data: Record<string, unknown>): Promise<void> {
+    try {
+      await this.handler.writeFile(path, await gzip(JSON.stringify(data)), { flags: 'w' })
+    } catch (error) {
+      logWarn('failed to write cache', { error, path })
+    }
   }
 
   async init() {
@@ -187,7 +207,7 @@ export class VmBackupDirectory implements VmBackupInterface {
 
   async #checkCacheCount(): Promise<void> {
     const cachePath = `${this.rootPath}/cache.json.gz`
-    const existingCache = await this.#remoteAdapter._readCache(cachePath)
+    const existingCache = await this.#readCache(cachePath)
     const actual = existingCache === undefined ? 0 : Object.keys(existingCache).length
     const expected = this.backupArchives.size
     if (actual !== expected) {
@@ -202,7 +222,7 @@ export class VmBackupDirectory implements VmBackupInterface {
       const a = archive as VmFullBackupArchive | VmIncrementalBackupArchive
       cache[path] = { _filename: path, id: path, ...a.metadata }
     }
-    await this.#remoteAdapter._writeCache(cachePath, cache)
+    await this.#writeCache(cachePath, cache)
   }
 
   async instantiateBackupArchive(metadataPath: string, metadata: PartialBackupMetadata) {
