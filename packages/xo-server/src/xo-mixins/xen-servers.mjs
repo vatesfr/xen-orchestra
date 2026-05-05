@@ -78,8 +78,6 @@ export default class XenServers {
         crypto: app.cryptoCredentials,
       }))
 
-      app.cryptoCredentials?.registerCollection(this._servers)
-
       app.addConfigManager(
         'xenServers',
         () => serversDb.get(),

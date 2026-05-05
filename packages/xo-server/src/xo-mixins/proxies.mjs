@@ -92,8 +92,6 @@ export default class Proxy {
         crypto: app.cryptoCredentials,
       }))
 
-      app.cryptoCredentials?.registerCollection(this._db)
-
       return app.addConfigManager(
         'proxies',
         () => db.get(),

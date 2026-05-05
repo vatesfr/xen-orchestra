@@ -39,9 +39,6 @@ export default class {
         crypto: app.cryptoCredentials,
       }))
 
-      app.cryptoCredentials?.registerCollection(this._groups)
-      app.cryptoCredentials?.registerCollection(this._users)
-
       app.addConfigManager(
         'groups',
         () => groupsDb.get(),

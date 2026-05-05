@@ -6,7 +6,6 @@ import * as XenStore from '../_XenStore.mjs'
 import fs from 'node:fs/promises'
 
 /** @typedef {import('@vates/types/xo-app').XoApp} XoApp */
-/** @typedef {import('../collection/redis.mjs').default} Collection */
 
 const XENSTORE_KEY_PATH = 'vm-data/xo-encryption-key'
 const KEY_FILE_PATH = '/var/lib/xo-server/data/xo-encryption-key'
@@ -23,11 +22,6 @@ export const ENCRYPTION_PREFIX = 'enc:'
 const log = createLogger('xo:crypto-credentials')
 
 export default class CryptoCredentials {
-  /**
-   * @type {Collection[]}
-   */
-  #collections = []
-
   /**
    * @type {webcrypto.CryptoKey | undefined}
    */
@@ -59,9 +53,9 @@ export default class CryptoCredentials {
   constructor(app) {
     this._app = app
 
-    this._app.hooks.on('start core', async () => this.#initialize())
+    this._app.hooks.on('start core', async () => {
+      await this.#initialize()
 
-    this._app.hooks.on('start', async () => {
       if (this.#migrationRequired === 'encryption') {
         try {
           await this.#migrateToEncrypted()
@@ -102,7 +96,7 @@ export default class CryptoCredentials {
     try {
       xenStoreKey = Buffer.from((await XenStore.read(XENSTORE_KEY_PATH)).trim(), 'hex')
     } catch (/** @type {any} */ error) {
-      if (!error.stderr?.includes(`couldn't read path`)) throw error
+      if (!error.message?.includes(`couldn't read path`)) throw error
     }
 
     try {
@@ -162,6 +156,7 @@ export default class CryptoCredentials {
 
   /**
    * Derives the encryption and hmac keys from the xenStore and file keys.
+   *
    * @param {Buffer} halfA
    * @param {Buffer} halfB
    */
@@ -229,6 +224,9 @@ export default class CryptoCredentials {
    * Run the initial encryption process with backup for recovery in case of failure.
    * Holds the migration lock for the entire operation so no concurrent writes can
    * produce encrypted entries while migration is in an intermediate state.
+   *
+   * Indexes are automatically rebuilt for each collection after the migration
+   * through the clean hook which runs just after the start hook.
    */
   async #migrateToEncrypted() {
     /**
@@ -290,12 +288,7 @@ export default class CryptoCredentials {
         await this.decrypt(testedValue)
       }
 
-      // Rebuild collection indexes to use blind indexes.
-      for (const collection of this.#collections) {
-        await collection.rebuildIndexes()
-      }
-
-      // Delete backup file if the the encryption, verification and index rebuild worked.
+      // Delete backup file if the the encryption and verification worked.
       await fs.rm(BACKUP_FILE_PATH)
     } finally {
       resolveLock()
@@ -303,6 +296,13 @@ export default class CryptoCredentials {
     }
   }
 
+  /**
+   * Run the decryption process  of an encrypted redis with backup for recovery
+   * in case of failure.
+   *
+   * Indexes are automatically rebuilt for each collection after the migration
+   * through the clean hook which runs just after the start hook.
+   */
   async #migrateToDecrypted() {
     // Start by collecting all existing redis entries.
     const redisContent = await this.#getRedisContent()
@@ -352,12 +352,7 @@ export default class CryptoCredentials {
       }
     }
 
-    // Rebuild collection indexes to normal indexes.
-    for (const collection of this.#collections) {
-      await collection.rebuildIndexes()
-    }
-
-    // Delete backup file if the the decryption, verification and index rebuild worked.
+    // Delete backup file if the the decryption and verification worked.
     await fs.rm(BACKUP_FILE_PATH)
 
     // Delete both key halves after successful decryption migration.
@@ -396,15 +391,6 @@ export default class CryptoCredentials {
    */
   get cryptoCredentials() {
     return (this._app.config.getOptional('redis.encryptCredentialDatabase') ?? false) ? this : null
-  }
-
-  /**
-   * Registers the collection for indexe rebuilding
-   *
-   * @param {Collection} collection
-   */
-  registerCollection(collection) {
-    this.#collections.push(collection)
   }
 
   /**
@@ -465,6 +451,7 @@ export default class CryptoCredentials {
 
   /**
    * Is XO running in degraded mode due to decryption fail.
+   *
    * @returns {boolean}
    */
   isDegraded() {

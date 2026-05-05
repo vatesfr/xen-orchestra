@@ -66,8 +66,6 @@ export default class {
         crypto: app.cryptoCredentials,
       })
 
-      app.cryptoCredentials?.registerCollection(this._remotes)
-
       app.addConfigManager(
         'remotes',
         () => this._remotes.get(),

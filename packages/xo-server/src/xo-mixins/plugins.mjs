@@ -33,8 +33,6 @@ export default class {
         crypto: app.cryptoCredentials,
       })
 
-      app.cryptoCredentials?.registerCollection(this._pluginsMetadata)
-
       app.addConfigManager(
         'plugins',
         () => this._pluginsMetadata.get(),

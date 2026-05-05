@@ -88,6 +88,7 @@ export default class {
       const roleDb = new Roles({
         connection: app._redis,
         namespace: 'acl-v2-role',
+        crypto: app.cryptoCredentials,
       })
       this.#roleDb = roleDb
 
@@ -96,6 +97,7 @@ export default class {
         namespace: 'acl-v2-privilege',
         // @ts-ignore indexes typed as never[]
         indexes: ['roleId'],
+        crypto: app.cryptoCredentials,
       })
       this.#privilegeDb = privilegeDb
 
@@ -104,6 +106,7 @@ export default class {
         namespace: 'acl-v2-user-role',
         // @ts-ignore indexes typed as never[]
         indexes: ['userId', 'roleId'],
+        crypto: app.cryptoCredentials,
       })
       this.#userRoleDb = userRoleDb
 
@@ -112,6 +115,7 @@ export default class {
         namespace: 'acl-v2-group-role',
         // @ts-ignore indexes typed as never[]
         indexes: ['groupId', 'roleId'],
+        crypto: app.cryptoCredentials,
       })
       this.#groupRoleDb = groupRoleDb
 

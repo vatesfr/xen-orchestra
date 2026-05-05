@@ -13,8 +13,6 @@ export default class Tags {
         crypto: app.cryptoCredentials,
       })
 
-      app.cryptoCredentials?.registerCollection(this._tags)
-
       app.addConfigManager(
         'tags',
         () => this._tags.get(),

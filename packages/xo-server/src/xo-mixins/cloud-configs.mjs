@@ -17,8 +17,6 @@ export default class {
         crypto: app.cryptoCredentials,
       }))
 
-      app.cryptoCredentials?.registerCollection(this._db)
-
       return app.addConfigManager(
         'cloudConfigs',
         () => db.get(),
