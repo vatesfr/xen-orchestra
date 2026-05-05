@@ -22,11 +22,10 @@ import * as tar from 'tar'
 import zlib from 'zlib'
 
 import { BACKUP_DIR } from './_getVmBackupDir.mjs'
-import { cleanVm } from './_cleanVm.mjs'
+import { VmBackupDirectory } from '@xen-orchestra/backup-archive'
 import { formatFilenameDate } from './_filenameDate.mjs'
 import { getTmpDir } from './_getTmpDir.mjs'
 import { isMetadataFile } from './_backupType.mjs'
-import { isValidXva } from './_isValidXva.mjs'
 import { listPartitions, LVM_PARTITION_TYPE_MBR, LVM_PARTITION_TYPE_GPT } from './_listPartitions.mjs'
 import { lvs, pvs } from './_lvm.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
@@ -879,14 +878,16 @@ export class RemoteAdapter {
 }
 
 Object.assign(RemoteAdapter.prototype, {
-  cleanVm(vmDir, { lock = true } = {}) {
+  cleanVm(vmBackupPath, opts = {}) {
+    const { lock = true, ...cleanOpts } = opts
     if (lock) {
-      return Disposable.use(this._handler.lock(vmDir), () => cleanVm.apply(this, arguments))
+      return Disposable.use(this._handler.lock(vmBackupPath), () => {
+        return VmBackupDirectory.cleanVm(this._handler, vmBackupPath, cleanOpts)
+      })
     } else {
-      return cleanVm.apply(this, arguments)
+      return VmBackupDirectory.cleanVm(this._handler, vmBackupPath, cleanOpts)
     }
   },
-  isValidXva,
 })
 
 decorateMethodsWith(RemoteAdapter, {
