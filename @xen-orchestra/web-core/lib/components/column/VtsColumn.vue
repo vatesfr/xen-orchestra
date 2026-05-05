@@ -13,9 +13,13 @@ defineSlots<{
 <style lang="postcss" scoped>
 .vts-column {
   flex: 1;
-  flex-basis: 0;
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
+  min-width: 0;
+
+  @container vts-columns (max-width: 90rem) {
+    flex-basis: 100%;
+  }
 }
 </style>

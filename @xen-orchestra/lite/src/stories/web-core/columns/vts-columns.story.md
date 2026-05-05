@@ -49,3 +49,16 @@
   </VtsColumn>
 </VtsColumns>
 ```
+
+## With extra space around
+
+```vue-template
+<VtsColumns extra-space-around>
+  <VtsColumn class="column">
+    <div>1st column</div>
+  </VtsColumn>
+  <VtsColumn class="column">
+    <div>2nd column</div>
+  </VtsColumn>
+</VtsColumns>
+```

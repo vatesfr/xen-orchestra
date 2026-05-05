@@ -2,7 +2,7 @@
   <VtsStateHero v-if="vm === undefined" format="page" type="not-found" size="large">
     {{ t('object-not-found', { id }) }}
   </VtsStateHero>
-  <VtsColumns v-else>
+  <VtsColumns v-else extra-space-around>
     <VtsColumn>
       <VmGeneralInfo :vm />
       <VmSystemNetworking :vm />
