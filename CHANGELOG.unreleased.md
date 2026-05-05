@@ -17,7 +17,7 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-- [REST API] Fix REST API not available for clients with plan < Entreprise (PR [#9798](https://github.com/vatesfr/xen-orchestra/pull/9798))
+- [REST API] Fix REST API not available for clients with plan < Enterprise (PR [#9798](https://github.com/vatesfr/xen-orchestra/pull/9798))
 
 ### Packages to release
 
