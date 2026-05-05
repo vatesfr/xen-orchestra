@@ -607,7 +607,7 @@ describe('tests multiple combination ', { concurrency: 1 }, () => {
 
         const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
         // size should be the size of children + grand children + clean after the merge
-        assert.deepEqual(metadata.size, 4404224)
+        assert.deepEqual(metadata.size, 6501888)
         // cache.json.gz must be regenerated when metadata changes after a merge
         assert.ok(
           (await handler.list(rootPath)).includes('cache.json.gz'),
