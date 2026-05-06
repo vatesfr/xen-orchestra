@@ -26,6 +26,7 @@ import { VmBackupDirectory } from '@xen-orchestra/backup-archive'
 import { formatFilenameDate } from './_filenameDate.mjs'
 import { getTmpDir } from './_getTmpDir.mjs'
 import { isMetadataFile } from './_backupType.mjs'
+import { isValidXva } from './_isValidXva.mjs'
 import { listPartitions, LVM_PARTITION_TYPE_MBR, LVM_PARTITION_TYPE_GPT } from './_listPartitions.mjs'
 import { lvs, pvs } from './_lvm.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
@@ -887,6 +888,7 @@ Object.assign(RemoteAdapter.prototype, {
       return VmBackupDirectory.cleanVm(this._handler, vmBackupPath, cleanOpts)
     }
   },
+  isValidXva,
 })
 
 decorateMethodsWith(RemoteAdapter, {
