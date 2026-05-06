@@ -352,8 +352,8 @@ export class MergeRemoteDisk {
           const childPath = childUuid !== undefined ? uuidToPath.get(childUuid) : childOf.get(parentPath)
           if (childPath !== undefined) chain = [parentPath, childPath]
         }
-      } catch {
-        warn("Merge state unreadable, can't restart merging.")
+      } catch(error) {
+        warn("Merge state unreadable, can't restart merging.", error)
       }
 
       result.set(parentPath, { stateFilePath: filePath, chain })
