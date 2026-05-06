@@ -93,6 +93,7 @@ export function resetVmOtherConfig(xapi, vmRef) {
       [JOB_ID]: null,
       [SCHEDULE_ID]: null,
       [VM_UUID]: null,
+
       // REPLICATED_TO_SR_UUID is not reset since we can replicate a replication
     })
   })
