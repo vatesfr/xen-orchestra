@@ -39,4 +39,4 @@ export const getSyncedHandler = async (...opts) => {
 }
 
 
-export { RemoteHandlerAbstract } from './abstract.js'
+export { default as RemoteHandlerAbstract } from './abstract.js'

@@ -9,7 +9,7 @@ import {
   PartialBackupMetadata,
   ResolvedBackupCleanOptions,
 } from './VmBackup.types.mjs'
-import RemoteHandlerAbstract from '@xen-orchestra/fs'
+import { RemoteHandlerAbstract } from '@xen-orchestra/fs'
 
 const COMPRESSED_MAGIC_NUMBERS: Buffer[] = [
   // https://tools.ietf.org/html/rfc1952.html#page-5

@@ -113,7 +113,7 @@ export interface LockDisposer {
 
 // ─── Abstract base class ─────────────────────────────────────────────────────
 
-export default abstract class RemoteHandlerAbstract {
+export abstract class RemoteHandlerAbstract {
   constructor(_remote: RemoteInfo, _options?: RemoteHandlerOptions) {}
   abstract get type(): string
   abstract get isEncrypted(): boolean

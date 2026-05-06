@@ -1,4 +1,4 @@
-import RemoteHandlerAbstract from '@xen-orchestra/fs'
+import { RemoteHandlerAbstract } from '@xen-orchestra/fs'
 
 export interface PartialBackupMetadata {
   mode: 'full' | 'delta'

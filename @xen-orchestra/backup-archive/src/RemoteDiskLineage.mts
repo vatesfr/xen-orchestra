@@ -1,4 +1,4 @@
-import RemoteHandlerAbstract from '@xen-orchestra/fs'
+import { RemoteHandlerAbstract } from '@xen-orchestra/fs'
 import { dirname, normalize } from '@xen-orchestra/fs/path'
 import {
   MergeRemoteDisk,

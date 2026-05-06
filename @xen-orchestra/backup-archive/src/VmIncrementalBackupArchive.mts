@@ -6,7 +6,7 @@ import {
   VmBackupInterface,
   PartialBackupMetadata,
 } from './VmBackup.types.mjs'
-import RemoteHandlerAbstract from '@xen-orchestra/fs'
+import { RemoteHandlerAbstract } from '@xen-orchestra/fs'
 import { basename, dirname, normalize } from '@xen-orchestra/fs/path'
 import { RemoteDiskLineage } from './RemoteDiskLineage.mjs'
 

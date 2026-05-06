@@ -1,4 +1,4 @@
-import RemoteHandlerAbstract from '@xen-orchestra/fs'
+import { RemoteHandlerAbstract } from '@xen-orchestra/fs'
 import { basename, normalize } from '@xen-orchestra/fs/path'
 import { resolve } from 'node:path'
 import { VmFullBackupArchive } from './VmFullBackupArchive.mjs'
