@@ -56,10 +56,15 @@
         <template #key>{{ t('host') }}</template>
         <template #value>
           <div v-if="host" class="value">
-            <UiLink :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }" size="small" :icon="`object:host:${hostPowerState}`">
+            <UiLink
+              :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
+              size="small"
+              :icon="`object:host:${hostPowerState}`"
+              :is-primary="isMaster"
+              :primary-tooltip="t('master')"
+            >
               {{ host.name_label }}
             </UiLink>
-            <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="status:primary-circle" size="small" />
           </div>
         </template>
         <template v-if="host" #addons>
