@@ -11,7 +11,7 @@ import {
 import Disposable from 'promise-toolbox/Disposable'
 import { DEFAULT_MERGE_CONCURRENCY, DEFAULT_REMOVE_CONCURRENCY, ResolvedBackupCleanOptions } from './VmBackup.types.mjs'
 import { asyncEach } from '@vates/async-each'
-
+import { Task } from '@vates/task'
 /**
  * Tracks the disk chain for a single VDI across all backup snapshots.
  * Owns merge and deletion decisions for its chain given which disks are still
@@ -293,14 +293,19 @@ export class RemoteDiskLineage {
     // mergeTargetPath: final size of the disk everything was merged into
     const mergedSizes = new Map<string, number>()
     if (merge) {
-      await asyncEach(
-        toMerge,
-        async ({ chain, isResuming }) => {
-          const { finalDiskSize, mergeTargetPath } = await this.#mergeChain(chain, isResuming)
-          mergedSizes.set(mergeTargetPath, (mergedSizes.get(mergeTargetPath) ?? 0) + finalDiskSize)
-        },
-        { concurrency: this.#opts.mergeConcurrency ?? DEFAULT_MERGE_CONCURRENCY }
-      )
+      const doMerge = async () => {
+        await asyncEach(
+          toMerge,
+          async ({ chain, isResuming }) => {
+            const { finalDiskSize, mergeTargetPath } = await this.#mergeChain(chain, isResuming)
+            mergedSizes.set(mergeTargetPath, (mergedSizes.get(mergeTargetPath) ?? 0) + finalDiskSize)
+          },
+          { concurrency: this.#opts.mergeConcurrency ?? DEFAULT_MERGE_CONCURRENCY }
+        )
+      }
+      if (toMerge.length !== 0) {
+        await Task.run({ properties: { name: 'merge' } }, doMerge)
+      }
     }
 
     await this.#cleanOrphanDataFiles(remove)
