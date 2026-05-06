@@ -20,6 +20,7 @@ import {
   DATETIME,
   VM_UUID,
   CONTENT_KEY,
+  resetVmOtherConfig,
 } from '../../_otherConfig.mjs'
 import { formatFilenameDate } from '../../_filenameDate.mjs'
 import { XapiDiskSource } from '@xen-orchestra/xapi'
@@ -390,6 +391,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         await xapi.VM_snapshot(targetVmRef, {
           name_label: `${vm.name_label} - ${job.name} / ${schedule.name} ${formatFilenameDate(timestamp)}`,
         })
+        await resetVmOtherConfig(xapi, targetVmRef)
       })
 
       return {
