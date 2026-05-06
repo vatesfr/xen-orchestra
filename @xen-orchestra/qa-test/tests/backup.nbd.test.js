@@ -1,5 +1,6 @@
 import assert from 'node:assert'
 import { after, before, describe, it } from 'node:test'
+import { createLogger } from '@xen-orchestra/log'
 
 import { backupConfig } from '../backup.config.js'
 import { FilterBuilder } from '../client/FilterBuilder.js'
@@ -15,6 +16,8 @@ import {
 } from '../utils/index.js'
 import { assertBackupSuccess } from '../utils/backupUtils.js'
 import { setup, teardown } from './setup.js'
+
+const log = createLogger('xo:qa-test:tests')
 
 describe('NBD Incremental Backup Tests', () => {
   let vm
@@ -38,16 +41,16 @@ describe('NBD Incremental Backup Tests', () => {
 
     // Use the first available QA VM for backup tests
     vm = qaVms[0]
-    console.log(`✅ Found test VM for NBD backup tests: ${vm.name_label} (${vm.uuid})`)
+    log.debug('Found test VM for NBD backup tests', { name: vm.name_label, uuid: vm.uuid })
 
     backupRepository = await dispatchClient.backupRepository.get({
       name: process.env.BACKUP_REPOSITORY_NAME || 'Test backup QA',
     })
 
     if (!backupRepository) {
-      console.warn(
-        `⚠️ Backup repository "${process.env.BACKUP_REPOSITORY_NAME || 'Test backup QA'}" not found, creating it for tests...`
-      )
+      log.warn('Backup repository not found, creating it for tests', {
+        name: process.env.BACKUP_REPOSITORY_NAME || 'Test backup QA',
+      })
 
       // Create the backup repository for testing
       try {
@@ -71,7 +74,7 @@ describe('NBD Incremental Backup Tests', () => {
           name: process.env.BACKUP_REPOSITORY_NAME || 'Test backup QA',
         })
       } catch (error) {
-        console.error('❌ Failed to create test backup repository:', error.message)
+        log.warn('Failed to create test backup repository', { error: error.message })
         assert.fail(
           `Backup repository "${process.env.BACKUP_REPOSITORY_NAME || 'Test backup QA'}" is required for NBD backup tests - could not create it: ${error.message}`
         )
@@ -84,14 +87,14 @@ describe('NBD Incremental Backup Tests', () => {
       throw new Error('SR_ID environment variable is required for NBD backup tests with health checks')
     }
 
-    console.log(`🔍 Getting SR for health checks by ID: ${srId}`)
+    log.debug('Getting SR for health checks', { srId })
     healthCheckSr = await dispatchClient.sr.details(srId)
 
     if (!healthCheckSr) {
       throw new Error(`SR with ID "${srId}" not found - cannot run NBD backup tests with health checks`)
     }
 
-    console.log(`✅ Found SR for health checks: ${healthCheckSr.name_label}`)
+    log.debug('Found SR for health checks', { name: healthCheckSr.name_label })
 
     // Helper functions for NBD tests
     createBackupJobForTest = async (config, mode) => {
@@ -130,7 +133,7 @@ describe('NBD Incremental Backup Tests', () => {
 
       // Run three backups: full, delta, delta
       for (let index = 0; index < 3; index++) {
-        console.log(`\n🚀 Running backup ${index + 1}/3 (${index === 0 ? 'FULL' : 'DELTA'})...`)
+        log.debug('Running backup', { run: index + 1, of: 3, type: index === 0 ? 'FULL' : 'DELTA' })
         const result = await dispatchClient.backup.runJobAndGetLog(backupJobId, realScheduleKey)
 
         assertBackupSuccess(result, `Backup ${index + 1}`)
@@ -142,23 +145,19 @@ describe('NBD Incremental Backup Tests', () => {
         const transferredBytes = getBackupTransferredBytes(result)
         const transferredMB = transferredBytes === null ? 'N/A' : (transferredBytes / 1024 / 1024).toFixed(2)
 
-        console.log(`✅ Backup ${index + 1} completed:`)
-        console.log(`   - Type: ${index === 0 ? 'FULL' : 'DELTA'}`)
-        console.log(`   - Transferred: ${transferredMB} MB`)
+        log.debug('Backup completed', { run: index + 1, type: index === 0 ? 'FULL' : 'DELTA', transferredMB })
 
         // Validate health check
         const healthCheckData = extractHealthCheckData(result)
         if (healthCheckData.exists) {
           assertHealthCheckSuccess(result)
-          console.log(`   - Health check: ${healthCheckData.status}`)
+          log.debug('Health check passed', { status: healthCheckData.status })
         }
       }
 
-      // Validate incremental backup efficiency
-      console.log('\n📊 Validating incremental backup efficiency...')
       assertIncrementalBackupEfficiency(backupLogs[1], backupLogs[0])
       assertIncrementalBackupEfficiency(backupLogs[2], backupLogs[0])
-      console.log('✅ Incremental backups are efficient (delta < full)')
+      log.debug('Incremental backups are efficient (delta < full)')
     })
   })
 
@@ -167,7 +166,7 @@ describe('NBD Incremental Backup Tests', () => {
       const concurrencySettings = [1, 4]
 
       for (const nbdConcurrency of concurrencySettings) {
-        console.log(`\n🔧 Testing NBD with concurrency=${nbdConcurrency}...`)
+        log.debug('Testing NBD concurrency', { nbdConcurrency })
 
         const name = generateBackupJobName()
         const schedule = getDefaultSchedule()
@@ -186,7 +185,7 @@ describe('NBD Incremental Backup Tests', () => {
 
         const transferredBytes = getBackupTransferredBytes(result)
         const transferredMB = transferredBytes === null ? 'N/A' : (transferredBytes / 1024 / 1024).toFixed(2)
-        console.log(`✅ NBD backup with concurrency=${nbdConcurrency} completed: ${transferredMB} MB`)
+        log.debug('NBD backup completed', { nbdConcurrency, transferredMB })
       }
     })
   })
@@ -205,14 +204,10 @@ describe('NBD Incremental Backup Tests', () => {
       const job = await dispatchClient.backup.details(backupJobId)
       const realScheduleKey = getScheduleKey(job)
 
-      console.log('\n🏥 Testing NBD compatibility with health checks...')
-      console.log('   Configuration:')
-      console.log('   - NBD enabled (preferNbd=true)')
-      console.log('   - Health check SR configured')
-      console.log('   - NBD concurrency: 2')
+      log.debug('Testing NBD compatibility with health checks', { preferNbd: true, nbdConcurrency: 2 })
 
       // Run first backup (full) with health check
-      console.log('\n🚀 Running full backup with health check...')
+      log.debug('Running full backup with health check')
       const fullBackup = await dispatchClient.backup.runJobAndGetLog(backupJobId, realScheduleKey)
 
       assertBackupSuccess(fullBackup, 'Full backup with health check')
@@ -227,7 +222,7 @@ describe('NBD Incremental Backup Tests', () => {
       const fullMB = fullBytes === null ? 'N/A' : (fullBytes / 1024 / 1024).toFixed(2)
 
       // Run second backup (delta) with health check
-      console.log('\n🚀 Running delta backup with health check...')
+      log.debug('Running delta backup with health check')
       const deltaBackup = await dispatchClient.backup.runJobAndGetLog(backupJobId, realScheduleKey)
 
       assertBackupSuccess(deltaBackup, 'Delta backup with health check')
@@ -241,15 +236,10 @@ describe('NBD Incremental Backup Tests', () => {
       const deltaBytes = getBackupTransferredBytes(deltaBackup)
       const deltaMB = deltaBytes === null ? 'N/A' : (deltaBytes / 1024 / 1024).toFixed(2)
 
-      // Summary
-      console.log('\n✅ NBD + Health Check Integration Test Complete:')
-      console.log('   Full backup:')
-      console.log(`     - Size: ${fullMB} MB`)
-      console.log(`     - Health check: ${fullHealthCheck.status} (${fullHealthCheck.duration}ms)`)
-      console.log('   Delta backup:')
-      console.log(`     - Size: ${deltaMB} MB`)
-      console.log(`     - Health check: ${deltaHealthCheck.status} (${deltaHealthCheck.duration}ms)`)
-      console.log('   ✓ NBD and health checks are fully compatible')
+      log.debug('NBD + Health Check integration complete', {
+        full: { sizeMB: fullMB, healthCheck: fullHealthCheck.status, duration: fullHealthCheck.duration },
+        delta: { sizeMB: deltaMB, healthCheck: deltaHealthCheck.status, duration: deltaHealthCheck.duration },
+      })
     })
   })
 

@@ -1,7 +1,10 @@
+import { createLogger } from '@xen-orchestra/log'
 import fs from 'node:fs/promises'
 import { FilterBuilder } from '../FilterBuilder.js'
 import { AbstractRequest } from './abstract.js'
 import { assertNonEmptyString } from '../../utils/index.js'
+
+const log = createLogger('xo:qa-test:vm')
 
 /**
  * Specialized request handler for XenOrchestra virtual machine operations.
@@ -42,7 +45,7 @@ export class VMRequest extends AbstractRequest {
     const templates = await this.dispatchClient.restApiClient.getObjects('/rest/v0/vm-templates', filterBuilder)
 
     if (templates && templates.length > 0) {
-      console.log('✅ Retrieved VM template via REST API with filtering')
+      log.debug('Retrieved VM template via REST API')
       return templates[0]
     }
 
@@ -86,14 +89,14 @@ export class VMRequest extends AbstractRequest {
             name_description: description,
           })
         } catch (error) {
-          console.warn(`⚠️ Failed to set VM description for ${clonedVmId}: ${error.message}`)
+          log.warn('Failed to set VM description', { vmId: clonedVmId, error: error.message })
         }
       }
 
-      console.log(`✅ VM cloned successfully: ${vmName} (${clonedVmId})`)
+      log.debug('VM cloned successfully', { name: vmName, id: clonedVmId })
       return clonedVmId
     } catch (error) {
-      console.error(`❌ Failed to clone VM ${vmUuid}:`, error.message)
+      log.warn('Failed to clone VM', { uuid: vmUuid, error: error.message })
       throw new Error(`Failed to clone VM ${vmUuid}: ${error.message}`)
     }
   }
@@ -128,9 +131,9 @@ export class VMRequest extends AbstractRequest {
         forceBlockedOperation,
       })
 
-      console.log(`✅ VM deleted successfully: ${vmUuid}`)
+      log.debug('VM deleted successfully', { uuid: vmUuid })
     } catch (error) {
-      console.error(`❌ Failed to delete VM ${vmUuid}:`, error.message)
+      log.warn('Failed to delete VM', { uuid: vmUuid, error: error.message })
       throw new Error(`Failed to delete VM ${vmUuid}: ${error.message}`)
     }
   }
@@ -216,7 +219,7 @@ export class VMRequest extends AbstractRequest {
           ? sendToPath
           : `${this.dispatchClient.restApiClient.baseUrl}${sendToPath}`
 
-        console.log(`Got upload URL for XVA import`)
+        log.debug('Got upload URL for XVA import')
 
         // Step 2: Stream XVA file to upload URL
         // FileHandle automatically closed via Symbol.asyncDispose when scope exits

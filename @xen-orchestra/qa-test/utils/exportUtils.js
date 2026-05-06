@@ -1,6 +1,9 @@
+import { createLogger } from '@xen-orchestra/log'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { waitUntil, assertNonEmptyString } from './index.js'
+
+const log = createLogger('xo:qa-test:export-utils')
 
 /**
  * VHD file format magic bytes at the start of the footer.
@@ -214,7 +217,11 @@ export function assertCompressionEfficiency(compressedSize, uncompressedSize, me
   }
 
   const savings = (((uncompressedSize - compressedSize) / uncompressedSize) * 100).toFixed(1)
-  console.log(`Compression savings: ${savings}% (${formatBytes(uncompressedSize)} -> ${formatBytes(compressedSize)})`)
+  log.debug('Compression savings', {
+    savings: `${savings}%`,
+    from: formatBytes(uncompressedSize),
+    to: formatBytes(compressedSize),
+  })
 }
 
 /**
@@ -260,7 +267,7 @@ export async function cleanupExportFiles(directory, patterns = ['*.vhd', '*.xva'
         try {
           await fs.unlink(filePath)
           deleted.push(file)
-          console.log(`Deleted export file: ${filePath}`)
+          log.debug('Deleted export file', { filePath })
         } catch (error) {
           errors.push(`Failed to delete ${file}: ${error.message}`)
         }
@@ -313,7 +320,7 @@ export async function waitForVmBoot(dispatchClient, vmUuid, timeoutMs = 300_000)
     throw error
   }
 
-  console.log(`Waiting for VM ${vmUuid} to boot (timeout: ${timeoutMs / 1000}s)...`)
+  log.debug('Waiting for VM to boot', { vmUuid, timeoutSec: timeoutMs / 1000 })
 
   // Wait for VM to reach Running state with tools active
   await waitUntil(
@@ -326,7 +333,7 @@ export async function waitForVmBoot(dispatchClient, vmUuid, timeoutMs = 300_000)
         return true
       }
 
-      console.log(`VM state: ${vm.power_state}, Xen Tools: ${vm.xenTools || 'unknown'}`)
+      log.debug('VM not ready yet', { powerState: vm.power_state, xenTools: vm.xenTools || 'unknown' })
       return false
     },
     5000, // Check every 5 seconds
@@ -337,7 +344,7 @@ export async function waitForVmBoot(dispatchClient, vmUuid, timeoutMs = 300_000)
   )
 
   const duration = Date.now() - startTime
-  console.log(`VM ${vmUuid} booted successfully in ${duration}ms`)
+  log.debug('VM booted successfully', { vmUuid, duration })
 
   return {
     booted: true,
@@ -360,7 +367,7 @@ export async function assertVhdIntegrity(filePath, message) {
     throw new Error(msg)
   }
 
-  console.log(`VHD integrity validated: ${filePath} (${formatBytes(result.size)})`)
+  log.debug('VHD integrity validated', { filePath, size: formatBytes(result.size) })
 }
 
 /**
@@ -378,5 +385,5 @@ export async function assertXvaIntegrity(filePath, message) {
     throw new Error(msg)
   }
 
-  console.log(`XVA integrity validated: ${filePath} (${formatBytes(result.size)})`)
+  log.debug('XVA integrity validated', { filePath, size: formatBytes(result.size) })
 }
