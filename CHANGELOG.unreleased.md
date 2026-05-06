@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [Backups] Add UserAgent in s3 client ([#PR]())
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -31,4 +33,5 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/fs minor
 <!--packages-end-->
