@@ -60,7 +60,7 @@ type CreateVifBody = Omit<CreateVifParams[0], 'network' | 'VM' | 'other_config' 
     networkId: string
     vmId: string
     other_config?: { [key: string]: string } //  "ethtool-tx" : "false"
-    qos_algorithm_params?: { [key: string]: string } // "kbps": "1000
+    qos_algorithm_params?: { [key: string]: string } // "kbps": "1000"
   }
 
 @Route('vifs')
