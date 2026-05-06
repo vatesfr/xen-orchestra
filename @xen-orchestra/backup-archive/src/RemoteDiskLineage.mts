@@ -12,6 +12,9 @@ import Disposable from 'promise-toolbox/Disposable'
 import { DEFAULT_MERGE_CONCURRENCY, DEFAULT_REMOVE_CONCURRENCY, ResolvedBackupCleanOptions } from './VmBackup.types.mjs'
 import { asyncEach } from '@vates/async-each'
 import { Task } from '@vates/task'
+import { limitConcurrency } from 'limit-concurrency-decorator'
+
+const defaultMergeLimiter = limitConcurrency(1)
 /**
  * Tracks the disk chain for a single VDI across all backup snapshots.
  * Owns merge and deletion decisions for its chain given which disks are still
@@ -293,11 +296,12 @@ export class RemoteDiskLineage {
     // mergeTargetPath: final size of the disk everything was merged into
     const mergedSizes = new Map<string, number>()
     if (merge) {
+      const limitedMergeChain = defaultMergeLimiter(this.#mergeChain.bind(this))
       const doMerge = async () => {
         await asyncEach(
           toMerge,
           async ({ chain, isResuming }) => {
-            const { finalDiskSize, mergeTargetPath } = await this.#mergeChain(chain, isResuming)
+            const { finalDiskSize, mergeTargetPath } = await limitedMergeChain(chain, isResuming)
             mergedSizes.set(mergeTargetPath, (mergedSizes.get(mergeTargetPath) ?? 0) + finalDiskSize)
           },
           { concurrency: this.#opts.mergeConcurrency ?? DEFAULT_MERGE_CONCURRENCY }
