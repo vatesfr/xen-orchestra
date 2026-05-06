@@ -92,15 +92,12 @@ export class RemoteDiskLineage {
           try {
             existingDisk = await openDisk({ handler: this.#handler as any, path: existingPath })
             if (existingDisk.containsAllDataOf(disk)) {
-              this.#opts.logWarn('dropping duplicate disk, existing is superset', { dropped: diskPath })
-              this.#unregisterDisk(diskPath)
+              this.#opts.logWarn('should drop duplicate disk, existing is superset', { dropped: diskPath })
               continue
             } else if (disk.containsAllDataOf(existingDisk)) {
-              this.#opts.logWarn('dropping duplicate disk, new is superset', { dropped: existingPath })
-              this.#unregisterDisk(existingPath)
+              this.#opts.logWarn('should drop old duplicate disk, new is superset', { dropped: existingPath })
             } else {
-              this.#opts.logWarn('duplicate disks have different content, keeping first-seen', { dropped: diskPath })
-              this.#unregisterDisk(diskPath)
+              this.#opts.logWarn('duplicate disks have different content, should first-seen', { dropped: diskPath })
               continue
             }
           } catch (error) {
