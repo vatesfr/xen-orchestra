@@ -1,7 +1,7 @@
 <!-- v6 -->
 <template>
   <div class="ui-info">
-    <VtsIcon class="icon" :name="icon" :size="size" />
+    <VtsIcon class="icon" :name="icon" :size />
     <p v-tooltip="!wrap" class="label" :class="[textSize, { 'text-ellipsis': !wrap }]">
       <slot />
     </p>
@@ -13,12 +13,11 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import type { IconName } from '@core/icons'
 import { useMapper } from '@core/packages/mapper'
-import { computed } from 'vue'
 
 export type InfoAccent = 'info' | 'success' | 'warning' | 'danger' | 'muted'
 type Size = 'small' | 'medium'
 
-const { accent, size: sizeProps } = defineProps<{
+const { accent, size = 'medium' } = defineProps<{
   accent: InfoAccent
   wrap?: boolean
   size?: Size
@@ -27,10 +26,6 @@ const { accent, size: sizeProps } = defineProps<{
 defineSlots<{
   default(): any
 }>()
-
-const size = computed(() => {
-  return sizeProps ?? 'medium'
-})
 
 const icon = useMapper<InfoAccent, IconName>(
   () => accent,
@@ -45,7 +40,7 @@ const icon = useMapper<InfoAccent, IconName>(
 )
 
 const textSize = useMapper<Size, any>(
-  () => sizeProps,
+  () => size,
   {
     small: 'typo-body-regular-small',
     medium: 'typo-body-regular',
@@ -56,20 +51,12 @@ const textSize = useMapper<Size, any>(
 
 <style lang="postcss" scoped>
 .ui-info {
-  align-items: start;
+  align-items: baseline;
   display: flex;
   gap: 0.8rem;
 
   .icon {
-    font-size: 1.6rem;
-
-    &.size--medium {
-      margin-top: 0.4rem;
-    }
-
-    &.size--small {
-      margin-top: 0.5rem;
-    }
+    transform: translateY(0.2ex);
   }
 
   .label:empty {
