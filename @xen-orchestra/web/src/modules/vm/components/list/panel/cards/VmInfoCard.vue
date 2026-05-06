@@ -61,6 +61,7 @@
               size="small"
               :icon="`object:host:${hostPowerState}`"
               :is-primary="isMaster"
+              :primary-tooltip="t('master')"
             >
               {{ host.name_label }}
             </UiLink>

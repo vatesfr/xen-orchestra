@@ -7,6 +7,8 @@
       prop('href').str().widget(),
       iconProp(),
       prop('isPrimary').bool().widget(),
+      prop('primaryTooltip').str().widget(),
+      prop('disabled').bool().widget(),
       prop('disabled').bool().widget(),
       prop('target').enum('_blank', '_self').widget(),
     ]"

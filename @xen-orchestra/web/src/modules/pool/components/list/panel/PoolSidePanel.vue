@@ -89,6 +89,7 @@
               size="small"
               :to="{ name: '/host/[id]/dashboard', params: { id: primaryHost.id } }"
               is-primary
+              :primary-tooltip="t('master')"
             >
               {{ primaryHost.name_label }}
             </UiLink>

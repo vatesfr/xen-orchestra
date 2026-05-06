@@ -70,6 +70,7 @@
               size="small"
               :icon="`object:host:${toLower(masterHost.power_state)}`"
               is-primary
+              :primary-tooltip="t('master')"
             >
               {{ masterHost.name_label }}
             </UiLink>

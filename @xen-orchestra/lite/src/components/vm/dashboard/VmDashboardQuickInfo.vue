@@ -17,16 +17,16 @@
       <VtsKeyValueRow :label="t('uuid')" :value="vm.uuid" />
       <VtsKeyValueRow :label="t('host')">
         <template #value>
-          <span v-if="host" class="host-name">
-            <UiLink
-              :to="`/host/${host.uuid}`"
-              size="medium"
-              :icon="`object:host:${hostPowerState}`"
-              :is-primary="isPoolMaster"
-            >
-              {{ host.name_label }}
-            </UiLink>
-          </span>
+          <UiLink
+            v-if="host"
+            :to="`/host/${host.uuid}`"
+            size="medium"
+            :icon="`object:host:${hostPowerState}`"
+            :is-primary="isPoolMaster"
+            :primary-tooltip="t('master')"
+          >
+            {{ host.name_label }}
+          </UiLink>
           <span v-else>
             {{ t('none') }}
           </span>
@@ -185,3 +185,13 @@ const mainIpAddress = computed(() => {
   return [...new Set(Object.values(guestMetrics.value.networks).sort())][0]
 })
 </script>
+
+<style lang="postcss" scoped>
+.vm-dashboard-quick-info {
+  .power-state {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+}
+</style>

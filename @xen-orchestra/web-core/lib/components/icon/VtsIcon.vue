@@ -1,6 +1,6 @@
 <template>
   <UiLoader v-if="busy" />
-  <DisplayIcon v-else-if="icon" class="vts-icon" :class="className" :icon :color />
+  <DisplayIcon v-else-if="icon" class="vts-icon" :class="className" :icon />
 </template>
 
 <script lang="ts" setup>
@@ -16,7 +16,6 @@ const { size, name } = defineProps<{
   size: IconSize
   name: IconName | undefined
   busy?: boolean
-  color?: string
 }>()
 
 const className = computed(() =>
