@@ -138,6 +138,23 @@ export class RemoteDiskLineage {
       uuidToPath,
       this.#childOf
     )
+
+    const propagateBroken = (diskPath: string) => {
+      if (!this.#brokenDiskPaths.has(diskPath)) {
+        this.#brokenDiskPaths.add(diskPath)
+        const child = this.#childOf.get(diskPath)
+        if (child !== undefined) {
+          propagateBroken(child)
+        }
+      }
+    }
+
+    for (const [child, parent] of this.#parentOf) {
+      if (!this.#diskPaths.has(parent) || this.#brokenDiskPaths.has(parent)) {
+        this.#opts.logWarn('disk broken: parent missing or broken', { child, parent })
+        propagateBroken(child)
+      }
+    }
   }
 
   /**
