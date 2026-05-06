@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [disk] support qcow2 format in cli and front (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"

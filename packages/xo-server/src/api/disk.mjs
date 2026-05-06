@@ -12,7 +12,8 @@ import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 
 import { VDI_FORMAT_VHD, VDI_FORMAT_RAW } from '../xapi/index.mjs'
 import { parseSize } from '../utils.mjs'
-import { readChunk } from '@vates/read-chunk'
+import { readChunk, readChunkStrict } from '@vates/read-chunk'
+import { VDI_FORMAT_QCOW2 } from '@xen-orchestra/xapi'
 
 const log = createLogger('xo:disk')
 
@@ -157,7 +158,7 @@ exportContent.resolve = {
 
 // -------------------------------------------------------------------
 
-async function handleImportContent(req, res, { vdi }) {
+async function handleImportContent(req, res, { vdi, type }) {
   // Timeout seems to be broken in Node 4.
   // See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) // 12 hours
@@ -232,15 +233,33 @@ async function handleImport(req, res, { type, name, description, vmdkData, srId,
                 size = footer.currentSize
               }
               break
+            case 'qcow2': {
+              const QCOW2_MAGIC = 0x514649fb
+              const header = await readChunkStrict(part, 104)
+              if (header === undefined || header.length < 104) {
+                throw new JsonRpcError('QCOW2 file is too small to be valid')
+              }
+              part.unshift(header)
+              if (header.readUInt32BE(0) !== QCOW2_MAGIC) {
+                throw new JsonRpcError(`QCOW2 file had an invalid header magic`)
+              }
+              const virtualSize = header.readBigUInt64BE(24)
+              if (virtualSize >= BigInt(Number.MAX_SAFE_INTEGER)) {
+                throw new JsonRpcError('QCOW2 virtual size exceeds maximum safe integer')
+              }
+              diskFormat = VDI_FORMAT_QCOW2
+              vhdStream = part
+              size = Number(virtualSize)
+              break
+            }
             case 'iso':
               diskFormat = VDI_FORMAT_RAW
               vhdStream = part
               size = part.byteCount
               break
             default:
-              throw new JsonRpcError(`Unknown disk type, expected "iso", "vhd" or "vmdk", got ${type}`)
+              throw new JsonRpcError(`Unknown disk type, expected "iso", "vhd", "vmdk" or "qcow2", got ${type}`)
           }
-
           const vdi = await xapi._getOrWaitObject(
             await xapi.VDI_create({
               name_description: description,

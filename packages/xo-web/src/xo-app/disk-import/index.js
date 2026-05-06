@@ -46,7 +46,7 @@ const getInitialState = () => ({
 const FILE_GROUP_TYPE = {
   // .raw is supported for all types of SRs
   raw: ['.iso', '.raw'],
-  other: ['.vmdk', '.vhd', '.raw'],
+  other: ['.vmdk', '.vhd', '.raw', '.qcow2'],
 }
 
 const DiskImport = decorate([
