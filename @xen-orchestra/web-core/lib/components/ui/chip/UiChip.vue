@@ -1,27 +1,30 @@
-<!-- v7 -->
+<!-- v8 -->
 <template>
-  <span :class="classNames" class="ui-chip typo-body-regular-small" @click="emit('edit')">
+  <span :class="classNames" class="ui-chip typo-body-regular-small">
     <span class="content text-ellipsis">
       <slot />
     </span>
-    <UiButtonIcon accent="brand" icon="action:close-cancel-clear" size="small" :disabled @click.stop="emit('remove')" />
+    <button v-if="!disabled" class="icon" type="button" @click.stop="emit('remove')">
+      <VtsIcon name="action:close-cancel-clear" size="medium" />
+    </button>
   </span>
 </template>
 
 <script lang="ts" setup>
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util'
 import { computed } from 'vue'
 
-export type ChipAccent = 'info' | 'success' | 'warning' | 'danger'
+export type ChipAccent = 'normal' | 'success' | 'warning' | 'danger'
 
 const { accent, disabled } = defineProps<{
   accent: ChipAccent
+  icon?: IconName
   disabled?: boolean
 }>()
 
 const emit = defineEmits<{
-  edit: []
   remove: []
 }>()
 
@@ -29,12 +32,14 @@ defineSlots<{
   default(): any
 }>()
 
-const classNames = computed(() => [
-  toVariants({
-    accent,
-    muted: disabled,
-  }),
-])
+const classNames = computed(() => {
+  return [
+    toVariants({
+      accent,
+      muted: disabled,
+    }),
+  ]
+})
 </script>
 
 <style lang="postcss" scoped>
@@ -43,7 +48,6 @@ const classNames = computed(() => [
   display: inline-flex;
   align-items: center;
   gap: 0.8rem;
-  padding: 0.4rem 0.8rem;
   border-radius: 10rem;
   color: var(--color-neutral-txt-primary);
   cursor: pointer;
@@ -52,59 +56,56 @@ const classNames = computed(() => [
   white-space: nowrap;
   min-width: 0;
 
+  &.muted {
+    color: var(--color-neutral-txt-secondary);
+    pointer-events: none;
+  }
+
   .content {
+    line-height: 1.6rem;
+    padding: 0.4rem 0.8rem;
+  }
+
+  .icon {
+    border-radius: 0 10rem 10rem 0;
+    padding: 0.4rem;
     display: flex;
     align-items: center;
-    line-height: 1.6rem;
-    height: 2.24rem;
-  }
-
-  .ui-button-icon {
-    border-radius: calc(10rem - 0.8rem);
-  }
-
-  .ui-button-icon:focus-visible {
+    justify-content: center;
+    cursor: pointer;
     outline: none;
+    border: none;
   }
 
-  &:focus-visible {
-    outline: none;
-  }
-
-  &::after {
+  &:has(.icon:focus-visible)::before {
     content: '';
     position: absolute;
     inset: -0.4rem;
-    border: 0.2rem solid transparent;
-    pointer-events: none;
+    border-radius: 0.4rem;
+    border: 0.2rem solid var(--color-brand-txt-base);
   }
 
-  &:focus-visible::after,
-  &:has(.ui-button-icon:focus-visible)::after {
-    border-color: var(--color-brand-txt-base);
+  .icon::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: scale(2, 1.5);
   }
-
-  &.muted {
-    color: var(--color-neutral-txt-secondary);
-    cursor: not-allowed;
-    pointer-events: none;
-  }
-
-  :deep(.icon-path) {
-    color: var(--chip-icon-color);
-  }
-
   /* COLOR VARIANTS */
 
-  &.accent--info {
-    --chip-icon-color: var(--color-info-txt-base);
+  &.accent--normal {
     background-color: var(--color-info-background-selected);
 
-    &:hover {
+    .icon {
+      color: var(--color-info-txt-hover);
+      background-color: var(--color-info-background-selected);
+    }
+
+    .icon:is(:hover, :focus-visible) {
       background-color: var(--color-info-background-hover);
     }
 
-    &:active {
+    .icon:active {
       background-color: var(--color-info-background-active);
     }
 
@@ -114,14 +115,18 @@ const classNames = computed(() => [
   }
 
   &.accent--success {
-    --chip-icon-color: var(--color-success-txt-base);
     background-color: var(--color-success-background-selected);
 
-    &:hover {
+    .icon {
+      color: var(--color-success-txt-hover);
+      background-color: var(--color-success-background-selected);
+    }
+
+    .icon:is(:hover, :focus-visible) {
       background-color: var(--color-success-background-hover);
     }
 
-    &:active {
+    .icon:active {
       background-color: var(--color-success-background-active);
     }
 
@@ -131,31 +136,39 @@ const classNames = computed(() => [
   }
 
   &.accent--warning {
-    --chip-icon-color: var(--color-warning-txt-base);
     background-color: var(--color-warning-background-selected);
 
-    &:hover {
+    .icon {
+      color: var(--color-warning-txt-hover);
+      background-color: var(--color-warning-background-selected);
+    }
+
+    .icon:is(:hover, :focus-visible) {
       background-color: var(--color-warning-background-hover);
     }
 
-    &:active {
+    .icon:active {
       background-color: var(--color-warning-background-active);
     }
 
-    &.muted {
+    .muted {
       background-color: var(--color-warning-item-disabled);
     }
   }
 
   &.accent--danger {
-    --chip-icon-color: var(--color-danger-txt-base);
     background-color: var(--color-danger-background-selected);
 
-    &:hover {
+    .icon {
+      color: var(--color-danger-txt-hover);
+      background-color: var(--color-danger-background-selected);
+    }
+
+    .icon:is(:hover, :focus-visible) {
       background-color: var(--color-danger-background-hover);
     }
 
-    &:active {
+    .icon:active {
       background-color: var(--color-danger-background-active);
     }
 

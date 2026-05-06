@@ -61,7 +61,7 @@
                   <UiInput v-model.trim="vmState.tag" accent="brand" @keydown.enter.prevent="addTag" />
                 </VtsInputWrapper>
                 <div v-if="vmState.tags.length > 0" class="chips">
-                  <UiChip v-for="(tag, index) in vmState.tags" :key="index" accent="info" @remove="removeTag(index)">
+                  <UiChip v-for="(tag, index) in vmState.tags" :key="index" accent="normal" @remove="removeTag(index)">
                     {{ tag }}
                   </UiChip>
                 </div>
