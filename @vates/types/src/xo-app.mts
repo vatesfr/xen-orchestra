@@ -231,6 +231,7 @@ export type XoApp = {
   getProxy(id: XoProxy['id']): Promise<XoProxy>
   getRemote(id: XoBackupRepository['id']): Promise<XoBackupRepository>
   getAllRemotes(): Promise<XoBackupRepository[]>
+  removeRemote(id: XoBackupRepository['id']): Promise<void>
   getAllRemotesInfo(): Promise<
     Record<
       XoBackupRepository['id'],
