@@ -1,5 +1,8 @@
+import { createLogger } from '@xen-orchestra/log'
 import assert from 'node:assert/strict'
 import fs from 'node:fs/promises'
+
+const log = createLogger('xo:qa-test:utils')
 
 // =============================================================================
 // VALIDATION UTILITIES
@@ -116,7 +119,7 @@ export async function waitUntil(conditionFn, interval = 1000, timeout = 15_000, 
       }
     } catch (error) {
       // Continue waiting on errors
-      console.debug('waitUntil condition error:', error.message)
+      log.debug('waitUntil condition error', { error: error.message })
     }
 
     await delay(currentInterval)

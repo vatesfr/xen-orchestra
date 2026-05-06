@@ -13,10 +13,14 @@ export class OpenFlowPlugin {
 
   async #callPluginOnAllNetwork(network, method, parameters) {
     const bridge = this.#getBridge(network)
-    return asyncEach(network.$PIFs, async PIF => {
-      const host = PIF.$host
-      return host.$xapi.call('host.call_plugin', host.$ref, PLUGIN_NAME, method, { ...parameters, bridge })
-    }, { stopOnError: false })
+    return asyncEach(
+      network.$PIFs,
+      async PIF => {
+        const host = PIF.$host
+        return host.$xapi.call('host.call_plugin', host.$ref, PLUGIN_NAME, method, { ...parameters, bridge })
+      },
+      { stopOnError: false }
+    )
   }
 
   async addRule({ vif, allow, protocol, ipRange, direction, port }) {
@@ -86,6 +90,7 @@ export class OpenFlowPlugin {
     let lastError
     if (!host.$PIFs) {
       log.error('error while listing the host PIFs', host)
+      lastError = new Error(`No network associated to host ${host.id}`)
     } else {
       for (const { $network } of host.$PIFs) {
         try {
@@ -105,13 +110,18 @@ export class OpenFlowPlugin {
             // plugin is not installed , no need to test other networks
             throw error
           }
-          log.error('error while checking if the host has the sdn plugin', error)
-          // track at least
+          log.warn('error while checking if the host has the sdn plugin', {
+            host: host.uuid,
+            network: $network.uuid,
+            bridge: $network.bridge,
+            error,
+          })
+          // track it: it will be throw only if no call_plugin successed
           lastError = error
         }
       }
     }
 
-    throw lastError ?? new Error(`No network associated to host ${host.id}`)
+    throw lastError
   }
 }

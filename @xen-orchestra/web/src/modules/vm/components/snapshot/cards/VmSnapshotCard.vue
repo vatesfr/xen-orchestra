@@ -1,8 +1,8 @@
 <template>
   <UiCard class="vm-snapshot-card">
     <UiCardTitle>{{ title }}</UiCardTitle>
-    <div class="snapshot-row-container">
-      <VtsQuickInfoRow :label="t('snapshot')" class="snapshot-row">
+    <VtsKeyValueList class="snapshot-row-container">
+      <VtsKeyValueRow :label="t('snapshot')" class="snapshot-row">
         <template #value>
           <UiLink
             v-if="snapshot?.name_label"
@@ -13,14 +13,14 @@
             {{ snapshot.name_label }}
           </UiLink>
         </template>
-      </VtsQuickInfoRow>
+      </VtsKeyValueRow>
       <VtsCopyButton v-if="snapshot?.name_label" :value="snapshot.name_label" class="copy-button" />
-    </div>
-    <VtsQuickInfoRow :label="t('snapshot-created-on')">
-      <template #value>
-        <span v-if="formattedDate">{{ formattedDate }}</span>
-      </template>
-    </VtsQuickInfoRow>
+      <VtsKeyValueRow :label="t('snapshot-created-on')">
+        <template #value>
+          <span v-if="formattedDate">{{ formattedDate }}</span>
+        </template>
+      </VtsKeyValueRow>
+    </VtsKeyValueList>
   </UiCard>
 </template>
 
@@ -28,7 +28,8 @@
 import type { FrontXoVmSnapshot } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'
 import { useXo5VmSnapshotRoute } from '@/modules/snapshot/composables/xo-vm-snapshot-route-xo5.composable.ts'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import VtsKeyValueList from '@core/components/key-value-list/VtsKeyValueList.vue'
+import VtsKeyValueRow from '@core/components/key-value-row/VtsKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -60,7 +61,7 @@ const { buildXo5VmSnapshotRoute } = useXo5VmSnapshotRoute()
 
     .copy-button {
       position: absolute;
-      inset-block-start: 0;
+      inset-block-start: -0.2rem;
       inset-inline-end: 0;
     }
   }

@@ -69,10 +69,11 @@
               :to="{ name: '/host/[id]/dashboard', params: { id: masterHost.id } }"
               size="small"
               :icon="`object:host:${toLower(masterHost.power_state)}`"
+              is-primary
+              :primary-tooltip="t('master')"
             >
               {{ masterHost.name_label }}
             </UiLink>
-            <VtsIcon v-if="masterHost" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
           </div>
         </template>
         <template v-if="masterHost !== undefined" #addons>

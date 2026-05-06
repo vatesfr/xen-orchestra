@@ -1,7 +1,10 @@
+import { createLogger } from '@xen-orchestra/log'
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import { FilterBuilder } from './FilterBuilder.js'
 import { BACKUP_JOB_NAME_PREFIX } from '../utils/index.js'
+
+const log = createLogger('xo:qa-test:cleanup')
 
 /**
  * Allowed paths for automatic backup cleanup.
@@ -13,7 +16,7 @@ const ALLOWED_CLEANUP_PATHS = (() => {
 
   // SECURITY: Reject paths containing path traversal sequences
   if (repoPath.includes('..')) {
-    console.warn(`⚠️ Rejected cleanup path "${repoPath}": contains path traversal`)
+    log.warn('Rejected cleanup path: contains path traversal', { repoPath })
     return []
   }
 
@@ -21,7 +24,7 @@ const ALLOWED_CLEANUP_PATHS = (() => {
   const isTestPath = ['test', 'qa', 'tmp/xo'].some(marker => normalized.includes(marker))
 
   if (!isTestPath) {
-    console.warn(`⚠️ Rejected cleanup path "${repoPath}": not a test path`)
+    log.warn('Rejected cleanup path: not a test path', { repoPath })
     return []
   }
 
@@ -94,11 +97,11 @@ export class CleanupClient {
       results.scanned = resources.length
 
       if (resources.length === 0) {
-        console.log(`✅ No ${resourceType}s found`)
+        log.debug('No resources found', { resourceType })
         return results
       }
 
-      console.log(`🗑️ Deleting ${resources.length} ${resourceType}(s)`)
+      log.debug('Deleting resources', { count: resources.length, resourceType })
 
       for (const resource of resources) {
         try {
@@ -124,10 +127,10 @@ export class CleanupClient {
       }
 
       if (results.failed > 0) {
-        console.log(`⚠️ ${resourceType} cleanup: ${results.deleted} deleted, ${results.failed} failed`)
+        log.warn('Cleanup partially failed', { resourceType, deleted: results.deleted, failed: results.failed })
       }
     } catch (error) {
-      console.error(`❌ ${resourceType} cleanup failed:`, error.message)
+      log.warn('Cleanup failed', { resourceType, error: error.message })
       throw error
     }
 
@@ -179,7 +182,7 @@ export class CleanupClient {
       ...options,
     }
 
-    console.log(`🧹 Starting QA VM cleanup with patterns: ${config.namePatterns.join(', ')}`)
+    log.debug('Starting QA VM cleanup', { patterns: config.namePatterns })
 
     const findVMs = async () => {
       const pattern = config.namePatterns[0] || `${vmPrefix}-QA-Test-*`
@@ -195,7 +198,7 @@ export class CleanupClient {
             additionalVms.push(vm)
           }
         } catch (error) {
-          console.warn(`⚠️ Could not fetch VM ${vmId}:`, error.message)
+          log.warn('Could not fetch VM', { vmId, error: error.message })
         }
       }
 
@@ -236,7 +239,7 @@ export class CleanupClient {
       ...options,
     }
 
-    console.log(`🧹 Starting backup job cleanup with patterns: ${config.namePatterns.join(', ')}`)
+    log.debug('Starting backup job cleanup', { patterns: config.namePatterns })
 
     const findJobs = async () => {
       const allJobs = await this.dispatchClient.backup.list()
@@ -257,18 +260,18 @@ export class CleanupClient {
             const backupIds = this._extractBackupIds(backupsByRemote, job.id)
 
             if (backupIds.length > 0) {
-              console.log(`   🗑️ Deleting ${backupIds.length} backup file(s) for job ${job.name}`)
+              log.debug('Deleting backup files for job', { count: backupIds.length, jobName: job.name })
               for (let i = 0; i < backupIds.length; i += 10) {
                 try {
                   await this.dispatchClient.backup.deleteVmBackups(backupIds.slice(i, i + 10))
                 } catch (batchError) {
-                  console.warn(`   ⚠️ Failed to delete backup batch: ${batchError.message}`)
+                  log.warn('Failed to delete backup batch', { error: batchError.message })
                 }
               }
             }
           }
         } catch (error) {
-          console.warn(`⚠️ Backup files cleanup failed for job ${job.id}: ${error.message}`)
+          log.warn('Backup files cleanup failed for job', { jobId: job.id, error: error.message })
         }
       }
 
@@ -352,11 +355,11 @@ export class CleanupClient {
       deletedFiles: [],
     }
 
-    console.log(`🧹 Starting export file cleanup`)
+    log.debug('Starting export file cleanup')
 
     // SECURITY: Reject paths containing path traversal sequences
     if (config.directory.includes('..')) {
-      console.warn(`⚠️ Rejected cleanup path "${config.directory}": contains path traversal`)
+      log.warn('Rejected cleanup path: contains path traversal', { directory: config.directory })
       return results
     }
 
@@ -365,7 +368,7 @@ export class CleanupClient {
     const isTestPath = ['test', 'qa', 'tmp/xo', 'tmp/'].some(marker => normalizedDir.toLowerCase().includes(marker))
 
     if (!isTestPath) {
-      console.warn(`⚠️ Rejected cleanup path "${config.directory}": not a test path`)
+      log.warn('Rejected cleanup path: not a test path', { directory: config.directory })
       return results
     }
 
@@ -382,7 +385,7 @@ export class CleanupClient {
           .map(file => path.join(config.directory, file))
         filesToDelete.push(...matchingFiles)
       } catch (error) {
-        console.warn(`⚠️ Could not read directory ${config.directory}: ${error.message}`)
+        log.warn('Could not read directory', { directory: config.directory, error: error.message })
       }
     }
 
@@ -391,11 +394,11 @@ export class CleanupClient {
     results.scanned = filesToDelete.length
 
     if (filesToDelete.length === 0) {
-      console.log(`✅ No export files found to cleanup`)
+      log.debug('No export files found to cleanup')
       return results
     }
 
-    console.log(`🗑️ Deleting ${filesToDelete.length} export file(s)`)
+    log.debug('Deleting export files', { count: filesToDelete.length })
 
     for (const filePath of filesToDelete) {
       try {
@@ -405,7 +408,7 @@ export class CleanupClient {
           path: filePath,
           deletedAt: new Date().toISOString(),
         })
-        console.log(`   ✅ Deleted: ${path.basename(filePath)}`)
+        log.debug('Deleted export file', { file: path.basename(filePath) })
       } catch (error) {
         results.failed++
         results.errors.push({
@@ -420,9 +423,9 @@ export class CleanupClient {
     }
 
     if (results.failed > 0) {
-      console.log(`⚠️ Export file cleanup: ${results.deleted} deleted, ${results.failed} failed`)
+      log.warn('Export file cleanup partially failed', { deleted: results.deleted, failed: results.failed })
     } else {
-      console.log(`✅ Export file cleanup completed: ${results.deleted} file(s) deleted`)
+      log.debug('Export file cleanup completed', { deleted: results.deleted })
     }
 
     return results
@@ -450,7 +453,7 @@ export class CleanupClient {
     }
 
     if (config.vmIds.length === 0) {
-      console.log(`✅ No restored VMs to cleanup`)
+      log.debug('No restored VMs to cleanup')
       return {
         scanned: 0,
         deleted: 0,
@@ -460,7 +463,7 @@ export class CleanupClient {
       }
     }
 
-    console.log(`🧹 Starting restored VM cleanup: ${config.vmIds.length} VM(s)`)
+    log.debug('Starting restored VM cleanup', { count: config.vmIds.length })
 
     const findVMs = async () => {
       const vms = []
@@ -471,7 +474,7 @@ export class CleanupClient {
             vms.push(vm)
           }
         } catch (error) {
-          console.warn(`⚠️ Could not fetch VM ${vmId}: ${error.message}`)
+          log.warn('Could not fetch VM', { vmId, error: error.message })
         }
       }
       return vms
@@ -485,7 +488,7 @@ export class CleanupClient {
           // Wait briefly for shutdown
           await new Promise(resolve => setTimeout(resolve, 2000))
         } catch (error) {
-          console.warn(`⚠️ Could not stop VM ${vm.uuid}: ${error.message}`)
+          log.warn('Could not stop VM', { uuid: vm.uuid, error: error.message })
         }
       }
 
@@ -515,7 +518,7 @@ export class CleanupClient {
       throw new Error('Backup repository ID is required')
     }
 
-    console.log(`🧹 Deleting test backup repository: ${backupRepositoryId}`)
+    log.debug('Deleting test backup repository', { backupRepositoryId })
 
     try {
       // Get repository path and check if it's in allowed cleanup paths
@@ -526,7 +529,7 @@ export class CleanupClient {
           repoPath = repoDetails.url.replace('file://', '')
         }
       } catch (error) {
-        console.warn(`⚠️ Could not get repository details: ${error.message}`)
+        log.warn('Could not get repository details', { error: error.message })
       }
 
       // Clean up backup files if path is allowed
@@ -539,28 +542,28 @@ export class CleanupClient {
           const backupIds = this._extractBackupIds(backups)
 
           if (backupIds.length > 0) {
-            console.log(`   🗑️ Deleting ${backupIds.length} backup file(s)`)
+            log.debug('Deleting backup files', { count: backupIds.length })
             for (let i = 0; i < backupIds.length; i += 10) {
               try {
                 await this.dispatchClient.backup.deleteVmBackups(backupIds.slice(i, i + 10))
               } catch (error) {
-                console.warn(`   ⚠️ Failed to delete backup batch: ${error.message}`)
+                log.warn('Failed to delete backup batch', { error: error.message })
               }
             }
           }
         } catch (error) {
-          console.warn(`⚠️ Backup files cleanup failed: ${error.message}`)
+          log.warn('Backup files cleanup failed', { error: error.message })
         }
       } else if (repoPath) {
-        console.warn(`⚠️ Skipping backup cleanup: path "${repoPath}" not in allowed paths`)
+        log.warn('Skipping backup cleanup: path not in allowed paths', { repoPath })
       }
 
       const result = await this.dispatchClient.backupRepository.delete(backupRepositoryId)
-      console.log(`✅ Backup repository deleted successfully`)
+      log.debug('Backup repository deleted successfully')
 
       return result
     } catch (error) {
-      console.error(`❌ Backup repository deletion failed:`, error.message)
+      log.warn('Backup repository deletion failed', { error: error.message })
       throw error
     }
   }
@@ -602,7 +605,7 @@ export class CleanupClient {
       success: false,
     }
 
-    console.log(`🧹 Cleaning up test resources...`)
+    log.debug('Cleaning up test resources')
 
     try {
       // Cleanup in order: Jobs → Schedules → VMs → Repository
@@ -629,7 +632,7 @@ export class CleanupClient {
           fullResults.backupRepository = await this.deleteBackupRepository(config.backupRepositoryId)
           fullResults.totalDeleted++
         } catch (error) {
-          console.warn(`⚠️ Repository cleanup failed:`, error.message)
+          log.warn('Repository cleanup failed', { error: error.message })
           fullResults.backupRepository = { error: error.message }
           fullResults.totalFailed++
         }
@@ -639,12 +642,12 @@ export class CleanupClient {
       fullResults.success = fullResults.totalFailed === 0
 
       const duration = (new Date(fullResults.completedAt) - new Date(fullResults.startedAt)) / 1000
-      console.log(`✅ Cleanup completed: ${fullResults.totalDeleted} resources deleted in ${Math.round(duration)}s`)
+      log.debug('Cleanup completed', { totalDeleted: fullResults.totalDeleted, durationSec: Math.round(duration) })
     } catch (error) {
       fullResults.completedAt = new Date().toISOString()
       fullResults.error = error.message
       fullResults.success = false
-      console.error(`❌ Full cleanup failed:`, error.message)
+      log.warn('Full cleanup failed', { error: error.message })
       throw error
     }
 

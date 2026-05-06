@@ -1,5 +1,8 @@
+import { createLogger } from '@xen-orchestra/log'
 import { waitUntil } from '../../utils/index.js'
 import { AbstractRequest } from './abstract.js'
+
+const log = createLogger('xo:qa-test:backup')
 
 /**
  * Specialized request handler for XenOrchestra backup operations.
@@ -71,12 +74,7 @@ export class BackupRequest extends AbstractRequest {
       const result = await this.dispatchClient.xoClient.call('backupNg.createJob', xoConfig)
       return result
     } catch (error) {
-      console.error('❌ Backup job creation failed:', {
-        message: error.message,
-        code: error.code,
-        data: error.data,
-        fullError: JSON.stringify(error, null, 2),
-      })
+      log.warn('Backup job creation failed', { message: error.message, code: error.code, data: error.data })
       throw error
     }
   }
@@ -102,7 +100,7 @@ export class BackupRequest extends AbstractRequest {
       const result = await this.dispatchClient.xoClient.call('backupNg.deleteJob', { id: jobId })
       return result
     } catch (error) {
-      console.error('❌ Delete backup job failed:', error.message)
+      log.warn('Delete backup job failed', { error: error.message })
       throw error
     }
   }
@@ -130,7 +128,7 @@ export class BackupRequest extends AbstractRequest {
         remotes,
       })
     } catch (error) {
-      console.error('❌ List VM backups failed:', error.message)
+      log.warn('List VM backups failed', { error: error.message })
       throw error
     }
   }
@@ -159,7 +157,7 @@ export class BackupRequest extends AbstractRequest {
         ids,
       })
     } catch (error) {
-      console.error('❌ Delete VM backups failed:', error.message)
+      log.warn('Delete VM backups failed', { error: error.message })
       throw error
     }
   }
@@ -209,11 +207,7 @@ export class BackupRequest extends AbstractRequest {
       const result = await this.dispatchClient.xoClient.call('mirrorBackup.createJob', xoConfig)
       return result
     } catch (error) {
-      console.error('❌ Mirror backup job creation failed:', {
-        message: error.message,
-        code: error.code,
-        data: error.data,
-      })
+      log.warn('Mirror backup job creation failed', { message: error.message, code: error.code, data: error.data })
       throw error
     }
   }
@@ -235,7 +229,7 @@ export class BackupRequest extends AbstractRequest {
       const result = await this.dispatchClient.xoClient.call('mirrorBackup.deleteJob', { id: jobId })
       return result
     } catch (error) {
-      console.error('❌ Delete mirror backup job failed:', error.message)
+      log.warn('Delete mirror backup job failed', { error: error.message })
       throw error
     }
   }
@@ -250,7 +244,7 @@ export class BackupRequest extends AbstractRequest {
   async runMirrorJobAndGetLog(jobId, scheduleId) {
     this._ensureConnected()
 
-    console.log(`🚀 Running mirror backup job ${jobId} with schedule ${scheduleId}...`)
+    log.debug('Running mirror backup job', { jobId, scheduleId })
 
     const runStartTime = Date.now() - 5000
 
@@ -260,7 +254,7 @@ export class BackupRequest extends AbstractRequest {
         schedule: scheduleId,
       })
     } catch (wsError) {
-      console.error('❌ Run mirror backup job failed:', wsError.message)
+      log.warn('Run mirror backup job failed', { error: wsError.message })
       throw wsError
     }
 
@@ -280,7 +274,7 @@ export class BackupRequest extends AbstractRequest {
 
           return false
         } catch (error) {
-          console.debug('Waiting for mirror backup completion...', error.message)
+          log.debug('Waiting for mirror backup completion', { error: error.message })
           return false
         }
       },
@@ -289,7 +283,7 @@ export class BackupRequest extends AbstractRequest {
       { exponentialBackoff: true, backoffMultiplier: 1.2, maxInterval: 10_000 }
     )
 
-    console.log(`✅ Mirror backup completed: ${backupLog.status}`)
+    log.debug('Mirror backup completed', { status: backupLog.status })
     return backupLog
   }
 
@@ -311,7 +305,7 @@ export class BackupRequest extends AbstractRequest {
   async runJobAndGetLog(jobId, scheduleId) {
     this._ensureConnected()
 
-    console.log(`🚀 Running backup job ${jobId} with schedule ${scheduleId}...`)
+    log.debug('Running backup job', { jobId, scheduleId })
 
     // Capture timestamp BEFORE starting the job (with small buffer for clock differences)
     const runStartTime = Date.now() - 5000 // 5 second buffer before job start
@@ -323,7 +317,7 @@ export class BackupRequest extends AbstractRequest {
         schedule: scheduleId,
       })
     } catch (wsError) {
-      console.error('❌ Run backup job failed:', wsError.message)
+      log.warn('Run backup job failed', { error: wsError.message })
       throw wsError
     }
 
@@ -345,7 +339,7 @@ export class BackupRequest extends AbstractRequest {
 
           return false // Still running
         } catch (error) {
-          console.debug('Waiting for backup completion...', error.message)
+          log.debug('Waiting for backup completion', { error: error.message })
           return false
         }
       },
@@ -354,7 +348,7 @@ export class BackupRequest extends AbstractRequest {
       { exponentialBackoff: true, backoffMultiplier: 1.2, maxInterval: 10_000 }
     )
 
-    console.log(`✅ Backup completed: ${backupLog.status}`)
+    log.debug('Backup completed', { status: backupLog.status })
     return backupLog
   }
 }

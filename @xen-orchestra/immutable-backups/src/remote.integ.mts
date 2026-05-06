@@ -21,7 +21,9 @@ const VM_UUID = 'aaaaaaaa-0000-0000-0000-000000000001'
 const JOB_UUID = 'bbbbbbbb-0000-0000-0000-000000000001'
 const VDI_UUID = 'cccccccc-0000-0000-0000-000000000001'
 const SCHEDULE_UUID = 'dddddddd-0000-0000-0000-000000000001'
-const BACKUP_DATE = '20240115T120000Z'
+// Generate a current datetime so it falls within any reasonable immutabilityDuration window.
+// A hardcoded past date would be rejected by the datetime-based expiry check added in the watcher.
+const BACKUP_DATE = new Date().toISOString().replace(/[-:.]/g, '').slice(0, 15) + 'Z'
 
 // ---------------------------------------------------------------------------
 // Helpers

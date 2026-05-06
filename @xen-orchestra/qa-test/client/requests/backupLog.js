@@ -1,4 +1,7 @@
+import { createLogger } from '@xen-orchestra/log'
 import { AbstractRequest } from './abstract.js'
+
+const log = createLogger('xo:qa-test:backup-log')
 
 /**
  * Specialized request handler for XenOrchestra backup log operations.
@@ -83,7 +86,7 @@ export class BackupLogRequest extends AbstractRequest {
     // Use REST API with FilterBuilder
     const objects = await this.dispatchClient.restApiClient.getObjects(`/rest/v0/${this.endpoint}`, { filter })
 
-    console.log(`✅ Retrieved ${objects.length} backup logs via REST API`)
+    log.debug('Retrieved backup logs via REST API', { count: objects.length })
     return objects
   }
 }

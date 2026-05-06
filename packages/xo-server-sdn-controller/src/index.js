@@ -14,10 +14,11 @@ import { PrivateNetwork } from './private-network/private-network'
 import { TlsHelper } from './utils/tls-helper'
 import { instantiateController } from './openflow-controller'
 import { randomBytes } from 'crypto'
+import { invalidParameters } from 'xo-common/api-errors.js'
 
 // =============================================================================
 
-const log = createLogger('xo:xo-server:sdn-controller')
+const log = createLogger('xo:xo-server-sdn-controller')
 
 const PROTOCOL = 'pssl'
 
@@ -446,6 +447,223 @@ class SDNController extends EventEmitter {
       },
     })
 
+    const createAction = async (res, callback, { sync = false, statusCode = 200, taskProperties }) => {
+      taskProperties.name = 'REST API: ' + taskProperties.name
+      taskProperties.type = 'xo:rest-api:action'
+
+      const task = this._xo.tasks.create(taskProperties)
+      const pResult = task.run(callback)
+
+      if (sync) {
+        const result = await pResult
+        res.status(statusCode)
+        return result ?? {}
+      } else {
+        pResult.catch(() => {})
+        res.status(202).set('Location', `/rest/v0/tasks/${task.id}`).json({ taskId: task.id })
+        return undefined
+      }
+    }
+
+    this._xo.registerRestApi(
+      {
+        networks: {
+          ':id/actions/add_traffic_rule': {
+            _post: async (req, res, next) => {
+              const validationErrors = []
+
+              if (req.body.allow === undefined || typeof req.body.allow !== 'boolean') {
+                validationErrors.push('allow is required and must be a boolean')
+              }
+
+              if (!req.body.direction || typeof req.body.direction !== 'string') {
+                validationErrors.push('direction is required and must be a string')
+              }
+
+              if (!req.body.ipRange || typeof req.body.ipRange !== 'string') {
+                validationErrors.push('ipRange is required and must be a string')
+              }
+
+              if (!req.body.protocol || typeof req.body.protocol !== 'string') {
+                validationErrors.push('protocol is required and must be a string')
+              }
+              if (req.body.port && Number.isInteger(req.body.port) === false) {
+                validationErrors.push('port must be an integer')
+              }
+              if (validationErrors.length > 0) {
+                throw invalidParameters(validationErrors)
+              }
+
+              const rule = {
+                allow: req.body.allow,
+                direction: req.body.direction,
+                ipRange: req.body.ipRange,
+                protocol: req.body.protocol,
+                networkId: req.params.id,
+              }
+
+              if (req.body.port) {
+                rule.port = req.body.port
+              }
+
+              return createAction(res, () => this._addNetworkRule(rule), {
+                sync: req.query.sync ?? false,
+                statusCode: 204,
+                taskProperties: {
+                  name: 'add network traffic rule',
+                  objectId: rule.networkId,
+                },
+              })
+            },
+          },
+          ':id/actions/delete_traffic_rule': {
+            _post: async (req, res, next) => {
+              const validationErrors = []
+
+              if (!req.body.direction || typeof req.body.direction !== 'string') {
+                validationErrors.push('direction is required and must be a string')
+              }
+
+              if (!req.body.ipRange || typeof req.body.ipRange !== 'string') {
+                validationErrors.push('ipRange is required and must be a string')
+              }
+
+              if (!req.body.protocol || typeof req.body.protocol !== 'string') {
+                validationErrors.push('protocol is required and must be a string')
+              }
+              if (req.body.port && Number.isInteger(req.body.port) === false) {
+                validationErrors.push('port must be an integer')
+              }
+
+              if (validationErrors.length > 0) {
+                throw invalidParameters(validationErrors)
+              }
+
+              const rule = {
+                direction: req.body.direction,
+                ipRange: req.body.ipRange,
+                protocol: req.body.protocol,
+                networkId: req.params.id,
+              }
+
+              if (req.body.port) {
+                rule.port = req.body.port
+              }
+
+              return createAction(res, () => this._deleteNetworkOfRule(rule), {
+                sync: req.query.sync ?? false,
+                statusCode: 204,
+                taskProperties: {
+                  name: 'delete network traffic rule',
+                  objectId: rule.networkId,
+                },
+              })
+            },
+          },
+        },
+        vifs: {
+          ':id/actions/add_traffic_rule': {
+            _post: async (req, res, next) => {
+              const validationErrors = []
+              if (!req.body) {
+                validationErrors.push('body is required')
+                throw invalidParameters(validationErrors)
+              }
+
+              if (req.body.allow === undefined || typeof req.body.allow !== 'boolean') {
+                validationErrors.push('allow is required and must be a boolean')
+              }
+
+              if (!req.body.direction || typeof req.body.direction !== 'string') {
+                validationErrors.push('direction is required and must be a string')
+              }
+
+              if (!req.body.ipRange || typeof req.body.ipRange !== 'string') {
+                validationErrors.push('ipRange is required and must be a string')
+              }
+
+              if (!req.body.protocol || typeof req.body.protocol !== 'string') {
+                validationErrors.push('protocol is required and must be a string')
+              }
+              if (req.body.port && Number.isInteger(req.body.port) === false) {
+                validationErrors.push('port must be an integer')
+              }
+
+              if (validationErrors.length > 0) {
+                throw invalidParameters(validationErrors)
+              }
+
+              const rule = {
+                allow: req.body.allow,
+                direction: req.body.direction,
+                ipRange: req.body.ipRange,
+                protocol: req.body.protocol,
+                vifId: req.params.id,
+              }
+
+              if (req.body.port != null) {
+                rule.port = req.body.port
+              }
+
+              return createAction(res, () => this._addRule(rule), {
+                sync: req.query.sync ?? false,
+                statusCode: 204,
+                taskProperties: {
+                  name: 'add vif traffic rule',
+                  objectId: rule.vifId,
+                },
+              })
+            },
+          },
+          ':id/actions/delete_traffic_rule': {
+            _post: async (req, res, next) => {
+              const validationErrors = []
+
+              if (!req.body.direction || typeof req.body.direction !== 'string') {
+                validationErrors.push('direction is required and must be a string')
+              }
+
+              if (!req.body.ipRange || typeof req.body.ipRange !== 'string') {
+                validationErrors.push('ipRange is required and must be a string')
+              }
+
+              if (!req.body.protocol || typeof req.body.protocol !== 'string') {
+                validationErrors.push('protocol is required and must be a string')
+              }
+              if (req.body.port && Number.isInteger(req.body.port) === false) {
+                validationErrors.push('port must be an integer')
+              }
+
+              if (validationErrors.length > 0) {
+                throw invalidParameters(validationErrors)
+              }
+
+              const rule = {
+                direction: req.body.direction,
+                ipRange: req.body.ipRange,
+                protocol: req.body.protocol,
+                vifId: req.params.id,
+              }
+
+              if (req.body.port != null) {
+                rule.port = req.body.port
+              }
+
+              return createAction(res, () => this._deleteRule(rule), {
+                sync: req.query.sync ?? false,
+                statusCode: 204,
+                taskProperties: {
+                  name: 'delete vif traffic rule',
+                  objectId: rule.vifId,
+                },
+              })
+            },
+          },
+        },
+      },
+      '/plugins/sdn-controller'
+    )
+
     forOwn(this._xo.getAllXapis(), xapi => {
       if (xapi.status === 'connected') {
         this._handleConnectedXapi(xapi)
@@ -588,7 +806,6 @@ class SDNController extends EventEmitter {
       for (const pool of pools) {
         pool.update_other_config('xo:sdn-controller:of-method', of_method)
       }
-
     } catch (error) {
       log.error('Error while handling xapi connection', {
         id: xapi.pool.uuid,
@@ -641,7 +858,7 @@ class SDNController extends EventEmitter {
             host: vif.$VM.$resident_on?.uuid,
           })
         } else {
-          throw (error)
+          throw error
         }
       }
 
@@ -677,9 +894,7 @@ class SDNController extends EventEmitter {
       const network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
       assert(network.$PIFs.length > 0, 'Network needs to be plugged to add a rule')
 
-      const networkRules = JSON.parse(
-        network.other_config['xo:sdn-controller:of-rules'] || '[]'
-      ).map(JSON.parse)
+      const networkRules = JSON.parse(network.other_config['xo:sdn-controller:of-rules'] || '[]').map(JSON.parse)
 
       // filter matching rule (don't compare allow and cookie)
       const matchRules = networkRules.filter(rule => {
@@ -692,15 +907,18 @@ class SDNController extends EventEmitter {
       let cookie
       if (matchRules.length !== 0) {
         // use the one in rule if matching rule is present
-        cookie = matchRules.map(rule => { return rule.cookie })[0]
-
+        cookie = matchRules.map(rule => {
+          return rule.cookie
+        })[0]
       } else {
         // generate a new cookie not in use (OpenVSwitch cookie range: 0x1 to 0xFFFF_FFFF_FFFF_FFFF)
         do {
           cookie = '0x' + randomBytes(8).toString('hex')
         } while (
           cookie === '0x0000000000000000' ||
-          networkRules.filter(rule => { return rule.cookie === cookie }).length > 0
+          networkRules.filter(rule => {
+            return rule.cookie === cookie
+          }).length > 0
         )
       }
 
@@ -774,7 +992,7 @@ class SDNController extends EventEmitter {
             host: vif.$VM.$resident_on?.uuid,
           })
         } else {
-          throw (error)
+          throw error
         }
       }
 
@@ -822,9 +1040,7 @@ class SDNController extends EventEmitter {
       let network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
       assert(network.$PIFs.length > 0, 'Network needs to be plugged to delete a rule')
 
-      const networkRules = JSON.parse(
-        network.other_config['xo:sdn-controller:of-rules'] || '[]'
-      ).map(JSON.parse)
+      const networkRules = JSON.parse(network.other_config['xo:sdn-controller:of-rules'] || '[]').map(JSON.parse)
 
       // filter matching rule (don't compare allow and cookie)
       const matchRules = networkRules.filter(rule => {
@@ -835,12 +1051,14 @@ class SDNController extends EventEmitter {
 
       // ignore processing if rule not present here
       if (matchRules.length === 0) {
-        log.info("_deleteNetworkOfRule: rule not present, ignoring", {})
+        log.info('_deleteNetworkOfRule: rule not present, ignoring', {})
         return
       }
 
       // extract the (first) matching cookie
-      const cookie = matchRules.map(rule => { return rule.cookie })[0]
+      const cookie = matchRules.map(rule => {
+        return rule.cookie
+      })[0]
 
       try {
         const host = this._xo.getXapiObject(this._xo.getObject(network.$PIFs[0].host, 'host'))
@@ -852,7 +1070,7 @@ class SDNController extends EventEmitter {
         if (error.code === 'HOST_OFFLINE') {
           log.info('deleteNetworkOfRule: Ignoring HOST_OFFLINE', { network: networkId })
         } else {
-          throw (error)
+          throw error
         }
       }
 
@@ -862,7 +1080,11 @@ class SDNController extends EventEmitter {
 
       const newNetworkRules = networkRules.filter(rule => {
         return (
-          rule.protocol !== protocol || rule.port !== port || rule.ipRange !== ipRange || rule.direction !== direction || rule.cookie !== cookie
+          rule.protocol !== protocol ||
+          rule.port !== port ||
+          rule.ipRange !== ipRange ||
+          rule.direction !== direction ||
+          rule.cookie !== cookie
         )
       })
       await network.update_other_config(

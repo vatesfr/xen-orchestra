@@ -193,7 +193,7 @@ export const osFamily = invoke(
     netbsd: ['netbsd'],
     oracle: ['oracle'],
     osx: ['osx'],
-    redhat: ['redhat', 'rhel'],
+    redhat: ['redhat', 'rhel', 'red hat enterprise linux'],
     solaris: ['solaris'],
     suse: ['sles', 'suse', 'opensuse', 'opensuse-leap', 'opensuse-microos'],
     ubuntu: ['ubuntu'],

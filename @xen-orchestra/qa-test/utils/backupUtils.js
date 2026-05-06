@@ -1,4 +1,7 @@
+import { createLogger } from '@xen-orchestra/log'
 import assert from 'node:assert'
+
+const log = createLogger('xo:qa-test:backup-utils')
 
 /**
  * Asserts that a backup repository is empty (contains no VM backups).
@@ -92,7 +95,7 @@ export const assertBackupSuccess = (result, context = 'Backup') => {
   if (result.status !== 'success') {
     const errors = extractBackupErrors(result)
     const details = errors.length > 0 ? errors.join(' | ') : 'no task-level error details'
-    console.error(`${context} failed — raw backup log tasks:`, JSON.stringify(result.tasks, null, 2))
+    log.warn(`${context} failed`, { tasks: result.tasks })
     assert.strictEqual(result.status, 'success', `${context} should succeed, got '${result.status}': ${details}`)
   }
 }

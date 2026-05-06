@@ -17,6 +17,8 @@ const vifFields = [
   'MAC',
   'MTU',
   'type',
+  'other_config',
+  '$pool',
 ] as const satisfies readonly (keyof XoVif)[]
 
 export const useXoVifCollection = defineRemoteResource({

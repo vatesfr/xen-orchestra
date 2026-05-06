@@ -1,5 +1,5 @@
 <template>
-  <UiInfo v-tooltip="iconOnly ? currentStatus.text : false" class="vts-status" :accent="currentStatus.accent">
+  <UiInfo v-tooltip="iconOnly ? currentStatus.text : false" :accent="currentStatus.accent">
     <template v-if="!iconOnly">{{ currentStatus.text }}</template>
   </UiInfo>
 </template>
@@ -25,6 +25,8 @@ export type Status =
   | 'pending'
   | 'enabled'
   | 'disabled'
+  | 'allow'
+  | 'drop'
   | true
   | false
 
@@ -52,15 +54,11 @@ const currentStatus = useMapper<Status, { text: string; accent: InfoAccent }>(
     ['pending', { text: t('in-progress'), accent: 'info' }],
     ['enabled', { text: t('enabled'), accent: 'success' }],
     ['disabled', { text: t('disabled'), accent: 'muted' }],
+    ['allow', { text: t('allow'), accent: 'success' }],
+    ['drop', { text: t('drop'), accent: 'danger' }],
     [true, { text: t('enabled'), accent: 'success' }],
     [false, { text: t('disabled'), accent: 'muted' }],
   ],
   false
 )
 </script>
-
-<style lang="postcss" scoped>
-.vts-status {
-  align-items: center;
-}
-</style>

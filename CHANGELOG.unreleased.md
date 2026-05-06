@@ -11,15 +11,10 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [VM] Add possibility to remove a snapshot on snapshot tab (PR [#9749](https://github.com/vatesfr/xen-orchestra/pull/9749))
-- [Pool/Hosts] Management IP is now always shown first and the IP column is renamed to "Management IP" (PR [#9747](https://github.com/vatesfr/xen-orchestra/pull/9747))
-
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-- [xo-server] Fix VM-template still visible after deletion (PR [#9760](https://github.com/vatesfr/xen-orchestra/pull/9760))
-- [xo-server-sdn-controller] Better traffic-rules synchronization related to VM lifecycle (PR [#9518](https://github.com/vatesfr/xen-orchestra/pull/9518))
 - [REST] Fixed ignored parameters in request body due to a tsoa bug (see https://github.com/lukeautry/tsoa/pull/1858) (PR [#9793](https://github.com/vatesfr/xen-orchestra/pull/9793))
 
 ### Packages to release
@@ -39,8 +34,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/rest-api patch
-- @xen-orchestra/web minor
-- xo-server patch
-- xo-server-sdn-controller minor
+- @xen-orchestra/web-core minor
 
 <!--packages-end-->

@@ -3,14 +3,17 @@
     <UiTitle>
       {{ t('resource-management') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="t('control-domain-memory')" :value="controllerMemory" />
+    <VtsTabularKeyValueList>
+      <VtsTabularKeyValueRow :label="t('control-domain-memory')" :value="controllerMemory" />
+    </VtsTabularKeyValueList>
   </UiCard>
 </template>
 
 <script setup lang="ts">
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoVmControllerCollection } from '@/modules/vm/remote-resources/use-xo-vm-controller-collection.ts'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
+import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { formatSize } from '@core/utils/size.util.ts'

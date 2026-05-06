@@ -451,8 +451,8 @@ describe('tests multiple combination ', { concurrency: 1 }, () => {
         await adapter.cleanVm(rootPath, { remove: true, merge: true, logWarn: () => {}, lock: false })
 
         const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
-        // size should be the size of children + grand children + clean after the merge
-        assert.deepEqual(metadata.size, 4404224)
+        // size is the sum of the merged chains' final on-disk sizes:
+        assert.deepEqual(metadata.size, 6501888)
 
         // broken vhd, non referenced, abandoned should be deleted ( alias and data)
         // ancestor and child should be merged

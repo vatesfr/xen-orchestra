@@ -3,6 +3,7 @@
     v-slot="{ properties }"
     :params="[
       prop('columns').num().default(2).widget(),
+      prop('extra-space-around').bool().widget(),
       slot().help('Meant to receive VtsColumn component or any element'),
     ]"
     :presets

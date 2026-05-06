@@ -1,3 +1,4 @@
+import { noSuchObject } from 'xo-common/api-errors.js'
 import { XapiXoRecord, XoAlarm, XoMessage } from '@vates/types'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { BASE_URL } from '../index.mjs'
@@ -74,5 +75,15 @@ export class AlarmService {
       }
     }
     return alarms
+  }
+
+  getAlarm(id: XoMessage['id']): XoAlarm {
+    const maybeAlarm = this.#restApi.getObject<XoMessage>(id, 'message')
+
+    if (!this.isAlarm(maybeAlarm)) {
+      throw noSuchObject(id, 'alarm')
+    }
+
+    return this.parseAlarm(maybeAlarm)
   }
 }

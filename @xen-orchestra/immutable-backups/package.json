@@ -16,13 +16,13 @@
     "xo-immutable-remote": "./dist/protectRemotes.mjs"
   },
   "license": "AGPL-3.0-or-later",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "engines": {
     "node": ">=20.0.0"
   },
   "dependencies": {
     "@vates/async-each": "^1.0.3",
-    "@xen-orchestra/backups": "^0.72.0",
+    "@xen-orchestra/backups": "^0.72.1",
     "@xen-orchestra/log": "^0.7.2",
     "app-conf": "^3.0.0",
     "execa": "^5.0.0",
@@ -38,6 +38,7 @@
     "build": "tsc",
     "clean": "rimraf dist/",
     "postversion": "npm publish --access public",
+    "test": "tsc && node --test dist/*.test.mjs",
     "test-integration": "tsc && node --test dist/*.integ.mjs",
     "prebuild": "npm run clean",
     "prepublishOnly": "npm run build"

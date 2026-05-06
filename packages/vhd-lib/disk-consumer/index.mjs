@@ -37,5 +37,5 @@ export async function toVhdStream(disk, { signal } = {}) {
  */
 export async function writeToVhdDirectory({ disk, target, signal }) {
   const consumer = new DiskConsumerVhdDirectory(disk, target)
-  await consumer.write(signal)
+  return await consumer.write(signal)
 }
