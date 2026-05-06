@@ -11,7 +11,7 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [Backups] Add UserAgent in s3 client ([#PR]())
+- [Backups] Add UserAgent in s3 client ([#9815](https://github.com/vatesfr/xen-orchestra/pull/9815))
 
 ### Bug fixes
 
