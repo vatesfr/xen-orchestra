@@ -2,7 +2,8 @@ import { Example, Get, Middlewares, Path, Query, Request, Response, Route, Secur
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
-import type { XoBackupRepository } from '@vates/types'
+import type { AnyXoBackupJob, XoBackupRepository } from '@vates/types'
+import type { UnbrandAnyXoBackupJob } from '../backup-jobs/backup-job.type.mjs'
 
 import { acl } from '../middlewares/acl.middleware.mjs'
 import {
@@ -20,6 +21,16 @@ import {
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
+import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
+
+type BackupJobForRepository = Omit<UnbrandAnyXoBackupJob, 'srs'> & {
+  srs?: string | Record<string, unknown>
+}
+
+type BackupRepositoryWithJobs = {
+  repository: Unbrand<XoBackupRepository>
+  backupJobs: BackupJobForRepository[]
+}
 
 @Route('backup-repositories')
 @Security('*')
@@ -28,8 +39,11 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 @Tags('backup-repositories')
 @provide(BackupRepositoryController)
 export class BackupRepositoryController extends XoController<XoBackupRepository> {
-  constructor(@inject(RestApi) restApi: RestApi) {
+  #backupJobService: BackupJobService
+
+  constructor(@inject(RestApi) restApi: RestApi, @inject(BackupJobService) backupJobService: BackupJobService) {
     super('backup-repository', restApi)
+    this.#backupJobService = backupJobService
   }
 
   // --- abstract methods
@@ -86,5 +100,37 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   @Response(notFoundResp.status, notFoundResp.description)
   getRepository(@Path() id: string): Promise<Unbrand<XoBackupRepository>> {
     return this.getObject(id as XoBackupRepository['id'])
+  }
+
+  /**
+   * Returns a backup repository and its associated backup jobs.
+   *
+   * Required privilege:
+   * - resource: backup-repository, action: read
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   */
+  @Example(backupRepository)
+  @Get('{id}/backup-jobs')
+  @Security('*', ['acl'])
+  @Middlewares(
+    acl({
+      resource: 'backup-repository',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getRemote,
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getRepositoryWithBackupJobs(@Path() id: string): Promise<BackupRepositoryWithJobs> {
+    const repositoryId = id as XoBackupRepository['id']
+    const repository = await this.getObject(repositoryId)
+    const backupJobs = await this.#backupJobService.getBackupJobsForRepository(repositoryId)
+
+    return {
+      repository,
+      backupJobs: backupJobs as BackupJobForRepository[],
+    }
   }
 }

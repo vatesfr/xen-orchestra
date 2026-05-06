@@ -1,7 +1,7 @@
 import { createPredicate } from 'value-matcher'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { noSuchObject } from 'xo-common/api-errors.js'
-import type { XoVmBackupJob, XoVm, XoSchedule, AnyXoJob, AnyXoBackupJob } from '@vates/types'
+import type { XoVmBackupJob, XoVm, XoSchedule, AnyXoJob, AnyXoBackupJob, XoBackupRepository } from '@vates/types'
 
 import type { RestApi } from '../rest-api/rest-api.mjs'
 import { vmContainsNoBakTag } from '../helpers/utils.helper.mjs'
@@ -66,5 +66,30 @@ export class BackupJobService {
       }
     }
     return false
+  }
+
+  async getBackupJobsForRepository(repositoryId: XoBackupRepository['id']): Promise<AnyXoBackupJob[]> {
+    const allJobs = await this.#restApi.xoApp.getAllJobs()
+
+    return allJobs.filter((job): job is AnyXoBackupJob => {
+      if (!this.isBackupJob(job)) {
+        return false
+      }
+
+      if (job.type === 'mirrorBackup' && job.sourceRemote === repositoryId) {
+        return true
+      }
+
+      if (!job.remotes) {
+        return false
+      }
+
+      try {
+        return extractIdsFromSimplePattern(job.remotes).some(id => id === repositoryId)
+      } catch {
+        const predicate = createPredicate(job.remotes)
+        return predicate({ id: repositoryId })
+      }
+    })
   }
 }
