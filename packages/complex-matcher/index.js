@@ -618,7 +618,8 @@ exports.getPropertyClausesStrings = function getPropertyClausesStrings(node) {
 // -------------------------------------------------------------------
 
 exports.setPropertyClause = function setPropertyClause(node, name, child) {
-  const property = child && new Property(name, typeof child === 'string' ? new StringNode(child) : child)
+  const property =
+    child !== undefined ? new Property(name, typeof child === 'string' ? new StringNode(child) : child) : undefined
 
   if (node === undefined) {
     return property
