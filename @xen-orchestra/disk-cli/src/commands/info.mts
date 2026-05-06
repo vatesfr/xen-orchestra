@@ -4,7 +4,7 @@ import { openDisposableDisk, RemoteDisk } from '@xen-orchestra/backup-archive/di
 import { formatBytes } from '../utils.mjs'
 
 export async function infoCommand(handlerUrl: string, diskPath: string, _extraArgs: string[]): Promise<void> {
-  await Disposable.use(getSyncedHandler({ url: handlerUrl }), async (handler: any) => {
+  await Disposable.use(getSyncedHandler({ url: handlerUrl }), async handler => {
     await Disposable.use(openDisposableDisk({ handler, path: diskPath }), async (disk: RemoteDisk) => {
       const isDifferencing = disk.isDifferencing()
       const virtualSize = disk.getVirtualSize()

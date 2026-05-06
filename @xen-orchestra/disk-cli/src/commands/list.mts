@@ -72,7 +72,7 @@ export function toTableRow(disk: DiskInfo, prevDisk: DiskInfo | undefined): stri
 }
 
 export async function listCommand(handlerUrl: string, dirPath: string, _extraArgs: string[]): Promise<void> {
-  await Disposable.use(getSyncedHandler({ url: handlerUrl }), async (handler: any) => {
+  await Disposable.use(getSyncedHandler({ url: handlerUrl }), async handler => {
     const entries = await handler.list(dirPath, { prependDir: true })
     const diskPaths = entries.filter(entry => isDisk(handler, entry))
 
