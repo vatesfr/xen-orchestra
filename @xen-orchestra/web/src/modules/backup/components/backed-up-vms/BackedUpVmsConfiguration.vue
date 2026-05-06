@@ -22,9 +22,7 @@
         <VtsTabularKeyValueRow :label="t('vms-tags')">
           <template v-if="smartModeTags?.included !== undefined && smartModeTags.included.length > 0" #value>
             <UiTagsList>
-              <UiTag v-for="tag in smartModeTags.included" :key="tag" accent="info" variant="secondary">
-                {{ tag }}
-              </UiTag>
+              <VtsTag v-for="tag in smartModeTags.included" :key="tag" :value="tag" />
             </UiTagsList>
           </template>
         </VtsTabularKeyValueRow>
@@ -46,9 +44,7 @@
         <VtsTabularKeyValueRow :label="t('excluded-vms-tags')">
           <template v-if="smartModeTags !== undefined && smartModeTags.excluded.length > 0" #value>
             <UiTagsList>
-              <UiTag v-for="tag in smartModeTags.excluded" :key="tag" accent="info" variant="secondary">
-                {{ tag }}
-              </UiTag>
+              <VtsTag v-for="tag in smartModeTags.excluded" :key="tag" :value="tag" />
             </UiTagsList>
           </template>
         </VtsTabularKeyValueRow>
@@ -86,9 +82,9 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
+import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { toLower } from 'lodash-es'

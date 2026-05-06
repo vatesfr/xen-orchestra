@@ -1,61 +1,30 @@
 <!-- v5 -->
 <template>
-  <span v-if="variant === 'tertiary'" class="tertiary">
-    <UiTag :accent variant="primary">
-      <slot name="term">{{ term }}</slot>
-    </UiTag>
-    <UiTag :accent variant="secondary">
-      <span>
-        <slot />
-      </span>
-    </UiTag>
-  </span>
-  <span v-else :class="className" class="ui-tag rounded typo-body-regular-small">
-    <span>
-      <slot />
-    </span>
+  <span :class="className" class="ui-tag typo-body-regular-small">
+    <slot />
   </span>
 </template>
 
 <script lang="ts" setup>
-import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util'
 import { computed } from 'vue'
 
-type TagAccent = 'info' | 'neutral' | 'success' | 'warning' | 'danger' | 'muted'
-type TagVariant = 'primary' | 'secondary' | 'tertiary'
+export type TagAccent = 'info' | 'neutral' | 'success' | 'warning' | 'danger' | 'muted'
+type TagVariant = 'primary' | 'secondary'
 
 const { accent, variant } = defineProps<{
   accent: TagAccent
   variant: TagVariant
-  icon?: IconName
-  term?: string
 }>()
 
 defineSlots<{
   default(): any
-  term?(): any
 }>()
 
 const className = computed(() => toVariants({ accent, variant }))
 </script>
 
 <style lang="postcss" scoped>
-.tertiary {
-  display: flex;
-  flex-direction: row;
-
-  .ui-tag:first-child {
-    border-radius: 0.4rem 0 0 0.4rem;
-    width: 100%;
-  }
-
-  .ui-tag:last-child {
-    border-radius: 0 0.4rem 0.4rem 0;
-    width: 100%;
-  }
-}
-
 .ui-tag {
   display: flex;
   justify-content: center;
@@ -65,10 +34,7 @@ const className = computed(() => toVariants({ accent, variant }))
   word-break: break-word;
   padding: 0.35rem 0.8rem;
   vertical-align: middle;
-
-  &.rounded {
-    border-radius: 0.4rem;
-  }
+  border-radius: 0.4rem;
 
   /* COLOR VARIANTS */
 
