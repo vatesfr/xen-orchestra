@@ -96,32 +96,30 @@ export class VmFullBackupArchive implements VmBackupInterface {
 
   async check(): Promise<CheckResult> {
     if (this.isValid === undefined) {
+      let fileSize,
+        checkSumSize = 0
+      let validDisk = false
       try {
-        const fileSize = await this.handler.getSize(this.xvaPath)
-        this.isValid = fileSize > 0
+        fileSize = await this.handler.getSize(this.xvaPath)
       } catch (error) {
-        this.isValid = false
+        this.opts.logWarn('Issue while checking XVA', { error })
       }
-      let checkSumSize = 0
       try {
         checkSumSize = await this.handler.getSize(`${this.xvaPath}.checksum`)
       } catch (error) {
-        this.opts.logWarn('Checksum file not valid, not blocking')
+        this.opts.logWarn('Checksum file not valid, not blocking', { error })
       }
-      if (checkSumSize <= 0) {
-        this.opts.logWarn('Checksum file not valid, not blocking')
-      }
-
       try {
-        this.isValid = await isValidXva(this.handler, this.xvaPath)
+        validDisk = await isValidXva(this.handler, this.xvaPath)
       } catch (error) {
         this.opts.logWarn('Error while checking XVA', { error })
       }
+      this.isValid = fileSize > 0 && fileSize === this.metadata.size && validDisk
     }
     if (!this.isValid) {
       this.opts.logWarn('XVA might be broken', { path: this.xvaPath })
     }
-    return { isValid: this.isValid! }
+    return { isValid: this.isValid }
   }
 
   async clean({ remove = this.opts.remove ?? false }: ArchiveCleanOptions = {}): Promise<CleanResult> {
@@ -130,15 +128,6 @@ export class VmFullBackupArchive implements VmBackupInterface {
     }
     let removedFiles: string[] = []
     if (remove) {
-      const checksumPath = `${this.xvaPath}.checksum`
-      try {
-        await this.handler.unlink(checksumPath)
-        removedFiles.push(basename(checksumPath))
-      } catch (error: any) {
-        if (error?.code !== 'ENOENT') {
-          this.opts.logWarn('failed to delete orphan checksum file', { path: checksumPath, error })
-        }
-      }
       if (!this.isValid) {
         this.opts.logWarn(`This files may be corrupted but not yet to be removed`, {
           files: this.getAssociatedFiles({ prefix: false }),
@@ -149,7 +138,7 @@ export class VmFullBackupArchive implements VmBackupInterface {
   }
 
   getAssociatedFiles({ prefix = false }): Array<string> {
-    let validFiles = [this.metadataPath, this.xvaPath]
+    let validFiles = [this.metadataPath, this.xvaPath, `${this.xvaPath}.checksum`]
     return prefix ? validFiles : validFiles.map(file => basename(file))
   }
 }

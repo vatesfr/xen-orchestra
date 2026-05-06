@@ -44,15 +44,17 @@ afterEach(async () => {
 const uniqueId = () => uuid.v1()
 
 async function createFullBackupMetadata(name, xvaName) {
+  await handler.writeFile(`${rootPath}/${xvaName}`, await createMinimalXva())
+  const size = await handler.getSize(`${rootPath}/${xvaName}`)
   const metadata = {
     mode: 'full',
     xva: `${rootPath}/${xvaName}`,
     vm: { uuid: vmUuid },
     jobId: uniqueId(),
     timestamp: Date.now(),
+    size,
   }
   await handler.writeFile(`${rootPath}/${name}`, JSON.stringify(metadata))
-  await handler.writeFile(`${rootPath}/${xvaName}`, await createMinimalXva())
   return metadata
 }
 
@@ -139,6 +141,7 @@ describe('VmBackupDirectory with full backups', { concurrency: 1 }, () => {
 
     const remainingFiles = await handler.list(rootPath)
     assert.ok(remainingFiles.includes('backup1.xva'), 'XVA should be kept')
-    assert.ok(!remainingFiles.includes('backup1.xva.checksum'), 'checksum should not be kept')
+    assert.ok(vmBackupDir.backupArchives.get(`/${rootPath}/backup1.json`).isValid)
+    assert.ok(remainingFiles.includes('backup1.xva.checksum'), 'checksum should be kept')
   })
 })
