@@ -94,6 +94,10 @@ export class VmFullBackupArchive implements VmBackupInterface {
 
   async init() {}
 
+  /**
+   * As we are not 100% sure if XVA is valid,
+   * we prefer to warn if it is the case but not remove it.
+   */
   async check(): Promise<CheckResult> {
     if (this.isValid === undefined) {
       let fileSize,
