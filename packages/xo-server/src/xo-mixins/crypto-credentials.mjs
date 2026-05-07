@@ -21,6 +21,23 @@ export const ENCRYPTION_PREFIX = 'enc:'
 
 const log = createLogger('xo:crypto-credentials')
 
+async function getBackupFilePath() {
+  try {
+    await fs.access(BACKUP_FILE_PATH)
+  } catch {
+    return BACKUP_FILE_PATH
+  }
+
+  for (let i = 1; ; i++) {
+    const path = BACKUP_FILE_PATH.replace('.json', `_${i}.json`)
+    try {
+      await fs.access(path)
+    } catch {
+      return path
+    }
+  }
+}
+
 export default class CryptoCredentials {
   /**
    * @type {webcrypto.CryptoKey | undefined}
@@ -57,27 +74,29 @@ export default class CryptoCredentials {
       await this.#initialize()
 
       if (this.#migrationRequired === 'encryption') {
+        const backupFilePath = await getBackupFilePath()
         try {
-          await this.#migrateToEncrypted()
+          await this.#migrateToEncrypted(backupFilePath)
 
           log.info('Encryption keys generation and migration successful')
         } catch (error) {
           this.#degraded = true
           log.error('Credential database migration failed - running in degraded mode', {
             cause: error,
-            backupPath: BACKUP_FILE_PATH,
+            backupPath: backupFilePath,
           })
         }
       } else if (this.#migrationRequired === 'decryption') {
+        const backupFilePath = await getBackupFilePath()
         try {
-          await this.#migrateToDecrypted()
+          await this.#migrateToDecrypted(backupFilePath)
 
           log.info('Decryption migration successful')
         } catch (error) {
           this.#degraded = true
           log.error('Credential database migration failed - running in degraded mode', {
             cause: error,
-            backupPath: BACKUP_FILE_PATH,
+            backupPath: backupFilePath,
           })
         }
       }
@@ -227,8 +246,10 @@ export default class CryptoCredentials {
    *
    * Indexes are automatically rebuilt for each collection after the migration
    * through the clean hook which runs just after the start hook.
+   *
+   * @param {string} backupFilePath
    */
-  async #migrateToEncrypted() {
+  async #migrateToEncrypted(backupFilePath) {
     /**
      * @type {() => void}
      */
@@ -242,7 +263,7 @@ export default class CryptoCredentials {
       const redisContent = await this.#getRedisContent()
 
       // Write all redis entries in a backup file in case migration fails.
-      await fs.writeFile(BACKUP_FILE_PATH, JSON.stringify(redisContent), { mode: 0o400 })
+      await fs.writeFile(backupFilePath, JSON.stringify(redisContent), { mode: 0o400 })
 
       // Encrypt all plaintext redis entries.
       /**
@@ -289,7 +310,7 @@ export default class CryptoCredentials {
       }
 
       // Delete backup file if the the encryption and verification worked.
-      await fs.rm(BACKUP_FILE_PATH)
+      await fs.rm(backupFilePath)
     } finally {
       resolveLock()
       this.#migrationLock = undefined
@@ -297,18 +318,20 @@ export default class CryptoCredentials {
   }
 
   /**
-   * Run the decryption process  of an encrypted redis with backup for recovery
+   * Run the decryption process of an encrypted redis with backup for recovery
    * in case of failure.
    *
    * Indexes are automatically rebuilt for each collection after the migration
    * through the clean hook which runs just after the start hook.
+   *
+   * @param {string} backupFilePath
    */
-  async #migrateToDecrypted() {
+  async #migrateToDecrypted(backupFilePath) {
     // Start by collecting all existing redis entries.
     const redisContent = await this.#getRedisContent()
 
     // Write all redis entries in a backup file in case migration fails.
-    await fs.writeFile(BACKUP_FILE_PATH, JSON.stringify(redisContent), { mode: 0o400 })
+    await fs.writeFile(backupFilePath, JSON.stringify(redisContent), { mode: 0o400 })
 
     // Decrypt all encrypted redis entries.
     /**
@@ -353,7 +376,7 @@ export default class CryptoCredentials {
     }
 
     // Delete backup file if the the decryption and verification worked.
-    await fs.rm(BACKUP_FILE_PATH)
+    await fs.rm(backupFilePath)
 
     // Delete both key halves after successful decryption migration.
     await XenStore.rm(XENSTORE_KEY_PATH).catch((/** @type {any} */ error) =>

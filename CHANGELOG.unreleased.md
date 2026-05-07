@@ -38,7 +38,8 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/fs minor
+- @vates/types minor
+- @xen-orchestra/immutable-backups patch
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/web-core minor
 - xo-server minor
