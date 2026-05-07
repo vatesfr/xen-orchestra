@@ -94,9 +94,7 @@ export default class RestApi {
 
             if (result !== undefined) {
               const isIterable =
-                result !== null &&
-                !Buffer.isBuffer(result) &&
-                typeof (result[Symbol.iterator] ?? result[Symbol.asyncIterator]) === 'function'
+                result !== null && typeof (result[Symbol.iterator] ?? result[Symbol.asyncIterator]) === 'function'
               if (isIterable) {
                 const mapped = mapIterable(result, makeObjectMapper(req))
                 await sendObjects(mapped, req, res)

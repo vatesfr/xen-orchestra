@@ -12,6 +12,7 @@ import { buildOpenApiSchema } from '../open-api/schema/build-openapi-schema.mjs'
 import { makeJsonStream, makeNdJsonStream } from '../helpers/stream.helper.mjs'
 import type { AuthenticatedRequest, MaybePromise } from '../helpers/helper.type.mjs'
 import { expressAuthentication } from '../middlewares/authentication.middleware.mjs'
+import { acl } from '../middlewares/acl.middleware.mjs'
 import { iocContainer } from '../ioc/ioc.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import {
@@ -58,7 +59,7 @@ export function createExternalRouter(swaggerOpenApiSpec: OpenAPIV3.Document): {
       try {
         // Handle authentication if required
         if (route.security === undefined) route.security = '*'
-        await expressAuthentication(req as AuthenticatedRequest, route.security)
+        await expressAuthentication(req as AuthenticatedRequest, route.security, route.scope === 'acl' ? ['acl'] : [])
 
         // Coerces query boolean from string to boolean
         coerceBooleanQueryParams(req.query, route.query)
@@ -142,7 +143,8 @@ export function createExternalRouter(swaggerOpenApiSpec: OpenAPIV3.Document): {
       bodySchema,
       bodyContentType,
       route.responses,
-      swaggerOpenApiSpec
+      swaggerOpenApiSpec,
+      route.description
     )
 
     // Return an unregister function to remove the route when they are not needed anymore
@@ -176,7 +178,8 @@ function addPathToSwagger(
   bodySchema: z.ZodType | undefined,
   bodyContentType: string | undefined,
   responseDefinitions: RouteDefinition['responses'] = [],
-  swaggerOpenApiSpec: OpenAPIV3.Document
+  swaggerOpenApiSpec: OpenAPIV3.Document,
+  description?: string
 ): void {
   if (!swaggerOpenApiSpec.paths[fullPath]) {
     swaggerOpenApiSpec.paths[fullPath] = {}
@@ -184,6 +187,7 @@ function addPathToSwagger(
 
   const operation: OpenAPIV3.OperationObject = {
     tags: [...tags, 'external'],
+    description,
     parameters: [],
     responses: {},
   }
@@ -249,6 +253,8 @@ function resolveMiddleware(descriptor: MiddlewareDescriptor): RequestHandler {
       return text(descriptor.options as OptionsText)
     case 'raw':
       return raw(descriptor.options as Options)
+    case 'acl':
+      return acl(descriptor.acls) as RequestHandler
   }
 }
 

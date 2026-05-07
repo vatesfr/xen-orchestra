@@ -24,7 +24,14 @@ const createMockTasks = () => {
 }
 
 // Minimal XoApp mock
-const createMockXoApp = ({ validToken = 'valid-token', permission = 'admin', tasks } = {}) => {
+// extraUsers: { [token]: { id, permission, privileges? } } — additional tokens with specific user config
+const createMockXoApp = ({
+  validToken = 'valid-token',
+  permission = 'admin',
+  tasks,
+  privileges,
+  extraUsers = {},
+} = {}) => {
   const storage = new AsyncLocalStorage()
   return {
     get apiContext() {
@@ -32,6 +39,7 @@ const createMockXoApp = ({ validToken = 'valid-token', permission = 'admin', tas
     },
     authenticateUser: async ({ token, username, password }) => {
       if (token !== undefined) {
+        if (extraUsers[token]) return { user: { id: extraUsers[token].id, permission: extraUsers[token].permission } }
         if (token !== validToken) throw invalidCredentials()
       } else if (!(username === 'test-user' && password === 'test-pass')) {
         throw invalidCredentials()
@@ -40,6 +48,10 @@ const createMockXoApp = ({ validToken = 'valid-token', permission = 'admin', tas
     },
     runWithApiContext: (user, fn) => storage.run({ user }, fn),
     tasks: tasks ?? createMockTasks(),
+    getAclV2UserPrivileges: async userId => {
+      const extraUser = Object.values(extraUsers).find(u => u.id === userId)
+      return extraUser?.privileges ?? privileges ?? []
+    },
   }
 }
 
@@ -274,23 +286,6 @@ describe('RestApi', () => {
         assert.equal(body[1].id, 'bar')
       })
 
-      it('sends Buffer as JSON, not as a stream', async () => {
-        restApi.registerRestApi(
-          {
-            'buffer-test': {
-              _get: async () => Buffer.from(JSON.stringify({ ok: true })),
-            },
-          },
-          '/'
-        )
-
-        const response = await get(port, '/buffer-test')
-        assert.equal(response.status, 200)
-        const body = await response.json()
-        assert.equal(body.type, 'Buffer')
-        assert.ok(Array.isArray(body.data))
-      })
-
       it('passes handler errors to error middleware', async () => {
         restApi.registerRestApi(
           {
@@ -335,7 +330,23 @@ describe('RestApi', () => {
     let server, restApi, port, mainXoApp
 
     before(async () => {
-      ;({ server, restApi, port, xoApp: mainXoApp } = await createTestServer())
+      ;({
+        server,
+        restApi,
+        port,
+        xoApp: mainXoApp,
+      } = await createTestServer(
+        createMockXoApp({
+          extraUsers: {
+            'user-token': { id: 'non-admin-user', permission: 'user', privileges: [] },
+            'privileged-user-token': {
+              id: 'privileged-user',
+              permission: 'user',
+              privileges: [{ resource: 'vm', action: 'read', effect: 'allow' }],
+            },
+          },
+        })
+      ))
     })
 
     after(() => new Promise((resolve, reject) => server.close(err => (err ? reject(err) : resolve()))))
@@ -365,25 +376,8 @@ describe('RestApi', () => {
       })
 
       it('rejects non-admin user', async () => {
-        let { server, restApi, port } = await createTestServer(createMockXoApp({ permission: 'user' }))
-        try {
-          restApi.registerRestRoutes(
-            [
-              {
-                endpoint: '/',
-                method: 'get',
-                callback: () => ({}),
-              },
-            ],
-            '/auth-test-rr'
-          )
-          const response = await get(port, '/auth-test-rr')
-          assert.equal(response.status, 403)
-        } finally {
-          await new Promise((resolve, reject) => server.close(err => (err ? reject(err) : resolve())))
-          // The IoC container is a global singleton; creating a temp RestApi restores its binding to mainXoApp
-          restApi = new RestApi(mainXoApp, { express: express() })
-        }
+        const response = await get(port, '/auth-test-rr', { token: 'user-token' })
+        assert.equal(response.status, 403)
       })
     })
 
@@ -1016,6 +1010,84 @@ describe('RestApi', () => {
         const start = mainXoApp.tasks.calls.length
         await post(port, '/action-async')
         assert.equal(mainXoApp.tasks.calls[start].properties.extra, 'data')
+      })
+    })
+
+    describe('ACL', () => {
+      it('admin bypasses ACL middleware privilege check', async () => {
+        const unregister = restApi.registerRestRoutes(
+          [
+            {
+              endpoint: '/acl-admin-bypass',
+              method: 'get',
+              middlewares: [{ name: 'acl', acls: { resource: 'vm', action: 'read', objects: [{}] } }],
+              callback: () => ({ ok: true }),
+            },
+          ],
+          '/'
+        )
+        try {
+          const response = await get(port, '/acl-admin-bypass')
+          assert.equal(response.status, 200)
+          assert.deepEqual(await response.json(), { ok: true })
+        } finally {
+          unregister()
+        }
+      })
+
+      it("scope: 'acl' allows non-admin user through without ACL middleware", async () => {
+        const unregister = restApi.registerRestRoutes(
+          [{ endpoint: '/acl-scope-test', method: 'get', scope: 'acl', callback: () => ({ ok: true }) }],
+          '/'
+        )
+        try {
+          const response = await get(port, '/acl-scope-test', { token: 'user-token' })
+          assert.equal(response.status, 200)
+          assert.deepEqual(await response.json(), { ok: true })
+        } finally {
+          unregister()
+        }
+      })
+
+      it('allows non-admin user with sufficient privilege', async () => {
+        const unregister = restApi.registerRestRoutes(
+          [
+            {
+              endpoint: '/acl-pass',
+              method: 'get',
+              middlewares: [{ name: 'acl', acls: { resource: 'vm', action: 'read', objects: [{}] } }],
+              callback: () => ({ ok: true }),
+            },
+          ],
+          '/'
+        )
+        try {
+          const response = await get(port, '/acl-pass', { token: 'privileged-user-token' })
+          assert.equal(response.status, 200)
+          assert.deepEqual(await response.json(), { ok: true })
+        } finally {
+          unregister()
+        }
+      })
+
+      it('rejects non-admin user without required privilege', async () => {
+        const unregister = restApi.registerRestRoutes(
+          [
+            {
+              endpoint: '/acl-reject',
+              method: 'get',
+              middlewares: [{ name: 'acl', acls: { resource: 'vm', action: 'read', objects: [{}] } }],
+              callback: () => ({ ok: true }),
+            },
+          ],
+          '/'
+        )
+        try {
+          const response = await get(port, '/acl-reject', { token: 'user-token' })
+          assert.equal(response.status, 403)
+        } finally {
+          unregister()
+        }
       })
     })
 
