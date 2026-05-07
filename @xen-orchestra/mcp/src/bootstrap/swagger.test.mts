@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
-import { describe, it } from 'node:test'
-import { parseSwagger, type OpenApiSpec } from './swagger.mjs'
+import { describe, it, beforeEach, afterEach } from 'node:test'
+import { fetchSwaggerSpec, parseSwagger, type OpenApiSpec } from './swagger.mjs'
+import { resetProxyCache, snapshotProxyEnv } from '../utils/proxy.mjs'
 
 function spec(paths: OpenApiSpec['paths']): OpenApiSpec {
   return { info: { title: 'Test', version: '1.0.0' }, paths }
@@ -148,5 +149,45 @@ describe('parseSwagger', () => {
   it('uses path fallback when tags are missing', () => {
     const domains = parseSwagger(spec({ '/custom-thing': { get: { operationId: 'GetCustomThing' } } }))
     assert.ok(domains.has('custom-thing'))
+  })
+})
+
+describe('fetchSwaggerSpec', () => {
+  let restoreEnv: () => void
+  let originalFetch: typeof globalThis.fetch
+
+  beforeEach(() => {
+    restoreEnv = snapshotProxyEnv()
+    resetProxyCache()
+    originalFetch = globalThis.fetch
+  })
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch
+    restoreEnv()
+    resetProxyCache()
+  })
+
+  it('passes a dispatcher to fetch when HTTP_PROXY is set', async () => {
+    process.env.HTTP_PROXY = 'http://proxy.example.com:8080'
+    let captured: RequestInit | undefined
+    globalThis.fetch = async (_input, init) => {
+      captured = init
+      return new Response(JSON.stringify({ paths: {} }), { headers: { 'content-type': 'application/json' } })
+    }
+    await fetchSwaggerSpec('http://xo.local:9000', {})
+    const init = captured as (RequestInit & { dispatcher?: unknown }) | undefined
+    assert.ok(init?.dispatcher, 'dispatcher should be defined when HTTP_PROXY is set')
+  })
+
+  it('passes no dispatcher when no proxy env var is set', async () => {
+    let captured: RequestInit | undefined
+    globalThis.fetch = async (_input, init) => {
+      captured = init
+      return new Response(JSON.stringify({ paths: {} }), { headers: { 'content-type': 'application/json' } })
+    }
+    await fetchSwaggerSpec('http://xo.local:9000', {})
+    const init = captured as (RequestInit & { dispatcher?: unknown }) | undefined
+    assert.strictEqual(init?.dispatcher, undefined)
   })
 })
