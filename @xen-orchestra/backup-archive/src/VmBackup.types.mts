@@ -18,6 +18,7 @@ export interface BackupCleanOptions {
   fix?: boolean
   merge?: boolean
   remove?: boolean
+  removeTmp?: boolean
   mergeBlockConcurrency?: number
   mergeConcurrency?: number
   onProgress?: (progress: { total: number; done: number }) => void

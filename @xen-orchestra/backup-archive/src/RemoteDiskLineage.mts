@@ -1,5 +1,5 @@
 import { RemoteHandlerAbstract } from '@xen-orchestra/fs'
-import { dirname, normalize } from '@xen-orchestra/fs/path'
+import { basename, dirname, normalize } from '@xen-orchestra/fs/path'
 import {
   MergeRemoteDisk,
   openDisk,
@@ -72,7 +72,20 @@ export class RemoteDiskLineage {
 
     for (const filePath of files) {
       if (isDisk(this.#handler, filePath)) {
-        this.#diskPaths.add(normalize(filePath))
+        if (basename(filePath).startsWith('.')) {
+          if (this.#opts.removeTmp) {
+            this.#opts.logInfo('deleting temporary disk file', { path: filePath })
+            try {
+              await this.#handler.unlink(filePath)
+            } catch (error: any) {
+              if (error?.code !== 'ENOENT') {
+                this.#opts.logWarn('failed to delete temporary disk file', { path: filePath, error })
+              }
+            }
+          }
+        } else {
+          this.#diskPaths.add(normalize(filePath))
+        }
       }
     }
 

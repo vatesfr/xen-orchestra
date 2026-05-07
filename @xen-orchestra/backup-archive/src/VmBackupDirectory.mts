@@ -57,6 +57,7 @@ export class VmBackupDirectory implements VmBackupInterface {
       fix: opts.fix ?? true,
       merge: opts.merge ?? false,
       remove: opts.remove ?? false,
+      removeTmp: opts.removeTmp ?? opts.remove ?? false,
       logInfo: opts.logInfo ?? logInfo,
       logWarn: opts.logWarn ?? logWarn,
     }
