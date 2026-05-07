@@ -149,11 +149,11 @@ export class VmBackupDirectory implements VmBackupInterface {
     await asyncEach(
       Array.from(this.#uniqueLineages!.entries()),
       async ([_vdiDir, lineage]) => {
-        const { mergedSizes, removedFiles, merge } = await lineage.clean({ remove, merge })
+        const { mergedSizes, removedFiles, merge: hasPendingMerge } = await lineage.clean({ remove, merge })
         if (removedFiles.length > 0) {
           cacheNeedsRegen = true
         }
-        if (merge) {
+        if (hasPendingMerge) {
           someLineageMergedOrShouldBe = true
         }
         for (const [diskPath, size] of mergedSizes || []) {
