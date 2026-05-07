@@ -72,6 +72,7 @@ export class VmFullBackupArchive implements VmBackupInterface {
   rootPath: string
   xvaPath: string
   isValid?: boolean
+  missingDisk = false
   metadataPath: string
   metadata: PartialBackupMetadata
   opts: ResolvedBackupCleanOptions
@@ -105,18 +106,18 @@ export class VmFullBackupArchive implements VmBackupInterface {
       let validDisk = false
       try {
         fileSize = await this.handler.getSize(this.xvaPath)
-      } catch (error) {
+        validDisk = await isValidXva(this.handler, this.xvaPath)
+      } catch (error: any) {
+        validDisk = false
+        if (error?.code === 'ENOENT') {
+          this.missingDisk = true
+        }
         this.opts.logWarn('Issue while checking XVA', { error })
       }
       try {
         checkSumSize = await this.handler.getSize(`${this.xvaPath}.checksum`)
       } catch (error) {
         this.opts.logWarn('Checksum file not valid, not blocking', { error })
-      }
-      try {
-        validDisk = await isValidXva(this.handler, this.xvaPath)
-      } catch (error) {
-        this.opts.logWarn('Error while checking XVA', { error })
       }
       this.isValid = fileSize > 0 && fileSize === this.metadata.size && validDisk
     }
@@ -130,14 +131,30 @@ export class VmFullBackupArchive implements VmBackupInterface {
     if (this.isValid === undefined) {
       await this.check()
     }
-    let removedFiles: string[] = []
+    const removedFiles: string[] = []
+
+    if (!this.isValid && this.missingDisk) {
+      removedFiles.push(this.metadataPath, `${this.xvaPath}.checksum`)
+    }
+
     if (remove) {
       if (!this.isValid) {
-        this.opts.logWarn(`This files may be corrupted but not yet to be removed`, {
-          files: this.getAssociatedFiles({ prefix: false }),
-        })
+        if (!this.missingDisk) {
+          this.opts.logWarn(`This files may be corrupted but not yet to be removed`, {
+            files: this.getAssociatedFiles({ prefix: false }),
+          })
+        } else {
+          for (const file of removedFiles) {
+            try {
+              await this.handler.unlink(file)
+            } catch (error) {
+              this.opts.logWarn(`Issue removing ${file}`, { error })
+            }
+          }
+        }
       }
     }
+
     return { removedFiles, merge: false }
   }
 
