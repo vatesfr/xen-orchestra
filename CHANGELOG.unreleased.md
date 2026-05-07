@@ -11,7 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [disk] support qcow2 format in cli and front (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
+- [xo-web] support qcow2 format in disk > import (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
+- [xo-server] support qcow2 format in `disk.importContent` and `disk.import` jsonRPC api (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
 
 ### Bug fixes
 
@@ -34,5 +35,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/web-core minor
+- xo-server minor
+- xo-web minor
 
 <!--packages-end-->
