@@ -11,6 +11,9 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- **XO 5**:
+  - [Export config] Hide passphrase by default
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -35,5 +38,6 @@
 
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/web-core minor
+- xo-web minor
 
 <!--packages-end-->
