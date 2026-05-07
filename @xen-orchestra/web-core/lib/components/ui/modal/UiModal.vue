@@ -1,4 +1,4 @@
-<!-- v2 -->
+<!-- v3 -->
 <template>
   <form :class="className" class="ui-modal" @click.self="emit('dismiss')">
     <div class="modal">
@@ -7,8 +7,8 @@
         :accent="closeIconAccent"
         :target-scale="2"
         class="dismiss-button"
-        icon="fa:xmark"
-        size="small"
+        icon="action:close-cancel-clear"
+        size="medium"
         @click="emit('dismiss')"
       />
       <main class="main">
@@ -84,7 +84,10 @@ const className = computed(() => toVariants({ accent }))
     max-height: min(90vh, 80rem);
     padding: 3.2rem 2.4rem 2.4rem;
     gap: 2.4rem;
+    background-color: var(--color-neutral-background-primary);
     border-radius: 1rem;
+    border-width: 0.1rem;
+    border-style: solid;
 
     &:not(:has(.buttons)) {
       padding-bottom: 3.2rem;
@@ -122,7 +125,7 @@ const className = computed(() => toVariants({ accent }))
 
   &.accent--info {
     .modal {
-      background-color: var(--color-info-background-selected);
+      border-color: var(--color-info-item-base);
     }
 
     .main .icon {
@@ -132,7 +135,7 @@ const className = computed(() => toVariants({ accent }))
 
   &.accent--success {
     .modal {
-      background-color: var(--color-success-background-selected);
+      border-color: var(--color-success-item-base);
     }
 
     .main .icon {
@@ -142,7 +145,7 @@ const className = computed(() => toVariants({ accent }))
 
   &.accent--warning {
     .modal {
-      background-color: var(--color-warning-background-selected);
+      border-color: var(--color-warning-item-base);
     }
 
     .main .icon {
@@ -152,7 +155,7 @@ const className = computed(() => toVariants({ accent }))
 
   &.accent--danger {
     .modal {
-      background-color: var(--color-danger-background-selected);
+      border-color: var(--color-danger-item-base);
     }
 
     .main .icon {
