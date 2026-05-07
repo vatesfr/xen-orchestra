@@ -12,7 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - **XO 5**:
-  - [Export config] Hide passphrase by default
+  - [Export config] Hide passphrase by default (PR [#9824](https://github.com/vatesfr/xen-orchestra/pull/9824))
 
 ### Bug fixes
 
