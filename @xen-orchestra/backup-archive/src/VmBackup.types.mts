@@ -52,6 +52,7 @@ export type CleanResult = {
   removedFiles: string[]
   merge: boolean
   size?: number
+  mergedSizes?: Map<string, number>
 }
 
 export interface VmBackupInterface {

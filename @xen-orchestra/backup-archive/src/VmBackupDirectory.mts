@@ -141,17 +141,21 @@ export class VmBackupDirectory implements VmBackupInterface {
     const { orphans } = this.#checkResult ?? (await this.check())
 
     let cacheNeedsRegen = false
+    let someLineageMergedOrShouldBe = false
 
     // Merge/delete orphan disks in VDI directories covered by archives; collect merged sizes per disk path
     const allMergedSizes = new Map<string, number>()
     await asyncEach(
       Array.from(this.#uniqueLineages!.entries()),
       async ([_vdiDir, lineage]) => {
-        const { mergedSizes, deleted } = await lineage.clean({ remove, merge })
-        if (deleted.size > 0) {
+        const { mergedSizes, removedFiles, merge } = await lineage.clean({ remove, merge })
+        if (removedFiles.length > 0) {
           cacheNeedsRegen = true
         }
-        for (const [diskPath, size] of mergedSizes) {
+        if (merge) {
+          someLineageMergedOrShouldBe = true
+        }
+        for (const [diskPath, size] of mergedSizes || []) {
           allMergedSizes.set(diskPath, (allMergedSizes.get(diskPath) ?? 0) + size)
         }
       },
@@ -202,7 +206,7 @@ export class VmBackupDirectory implements VmBackupInterface {
       )
     }
     const size = [...allMergedSizes.values()].reduce((total, merged) => total + merged, 0)
-    return { removedFiles: orphans, merge: allMergedSizes.size > 0, size: size }
+    return { removedFiles: orphans, merge: someLineageMergedOrShouldBe, size: size }
   }
 
   async #checkCacheCount(): Promise<void> {

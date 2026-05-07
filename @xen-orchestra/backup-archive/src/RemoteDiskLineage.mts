@@ -9,7 +9,12 @@ import {
   isDisk,
 } from '@xen-orchestra/backup-archive/disks'
 import Disposable from 'promise-toolbox/Disposable'
-import { DEFAULT_MERGE_CONCURRENCY, DEFAULT_REMOVE_CONCURRENCY, ResolvedBackupCleanOptions } from './VmBackup.types.mjs'
+import {
+  CleanResult,
+  DEFAULT_MERGE_CONCURRENCY,
+  DEFAULT_REMOVE_CONCURRENCY,
+  ResolvedBackupCleanOptions,
+} from './VmBackup.types.mjs'
 import { asyncEach } from '@vates/async-each'
 import { Task } from '@vates/task'
 import { limitConcurrency } from 'limit-concurrency-decorator'
@@ -205,7 +210,7 @@ export class RemoteDiskLineage {
   async clean({
     remove = this.#opts.remove ?? false,
     merge = this.#opts.merge ?? false,
-  }: { remove?: boolean; merge?: boolean } = {}): Promise<{ deleted: Set<string>; mergedSizes: Map<string, number> }> {
+  }: { remove?: boolean; merge?: boolean } = {}): Promise<CleanResult> {
     const orphanDisks = new Set([...this.#diskPaths].filter(p => !this.#activeDiskPaths.has(p)))
     const toDelete = new Set<string>()
     const toMerge: { chain: string[]; isResuming: boolean }[] = []
@@ -314,7 +319,12 @@ export class RemoteDiskLineage {
 
     await this.#cleanOrphanDataFiles(remove)
 
-    return { deleted: toDelete, mergedSizes }
+    return {
+      removedFiles: Array.from(toDelete),
+      merge: toMerge.length > 0,
+      size: [...mergedSizes.values()].reduce((total, subSize) => total + subSize, 0),
+      mergedSizes,
+    }
   }
 
   /**
