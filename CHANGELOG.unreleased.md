@@ -23,6 +23,7 @@
   - [Export config] Hide passphrase by default (PR [#9824](https://github.com/vatesfr/xen-orchestra/pull/9824))
 - [Backups] Refactor clean phase for incremental and full backups ([#9765](https://github.com/vatesfr/xen-orchestra/pull/9765))
 - [REST API] Expose `DELETE /rest/v0/srs/:id` (PR [#9464](https://github.com/vatesfr/xen-orchestra/pull/9464))
+- [MCP] Read `HTTP_PROXY`/`HTTPS_PROXY`/`NO_PROXY` so an internal XOA stays reachable when the AI assistant goes through a corporate proxy (PR [#9820](https://github.com/vatesfr/xen-orchestra/pull/9820))
 
 ### Bug fixes
 
@@ -57,6 +58,7 @@
 - @xen-orchestra/disk-cli minor
 - @xen-orchestra/disk-transform minor
 - @xen-orchestra/fs minor
+- @xen-orchestra/mcp minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
