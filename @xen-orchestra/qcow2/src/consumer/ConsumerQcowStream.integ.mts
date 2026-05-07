@@ -7,7 +7,7 @@ import fs from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { DiskBlock, RandomAccessDisk } from '@xen-orchestra/disk-transform'
-import { toQcow2Stream } from './ConsumerQcowStream.mjs'
+import { toQcow2Stream, QcowStreamGenerator } from './ConsumerQcowStream.mjs'
 
 class MockDisk extends RandomAccessDisk {
   private readonly size: number
@@ -247,7 +247,6 @@ describe('QCOW2 Stream Generation', () => {
 
   it('should handle unaligned disks', async () => {
     const NB_BLOCKS = 5
-    const RATIO = 3
     const disk = new MockDisk(
       NB_BLOCKS,
       Array.from({ length: NB_BLOCKS }, (_, i) => i),
@@ -275,6 +274,54 @@ describe('QCOW2 Stream Generation', () => {
         await fs.unlink(tmpFile)
       } catch (err) {
         console.error('Failed to clean up unaligned file:', err)
+      }
+    }
+  })
+
+  it('should reject non-power-of-2 cluster sizes', () => {
+    const disk = new MockDisk(8, [0, 1, 2])
+    assert.throws(() => new QcowStreamGenerator(disk, 65000), /power of 2/)
+    assert.throws(() => new QcowStreamGenerator(disk, 3), /power of 2/)
+  })
+
+  it('should reject cluster sizes outside [512, 2MB]', () => {
+    const disk = new MockDisk(8, [0, 1, 2])
+    assert.throws(() => new QcowStreamGenerator(disk, 256), /between 512/)
+    assert.throws(() => new QcowStreamGenerator(disk, 4 * 1024 * 1024), /between 512/)
+  })
+
+  it('should generate valid qcow2 files with various cluster sizes', async () => {
+    const clusterSizes = [512, 4096, 65536, 131072]
+
+    for (const clusterSize of clusterSizes) {
+      const disk = new MockDisk(4, [0, 1, 2, 3])
+      const tmpFile = join(tmpdir(), `test-clustersize-${clusterSize}-${Date.now()}.qcow2`)
+
+      try {
+        const stream = toQcow2Stream(disk, { clusterSize })
+        const file = await fs.open(tmpFile, 'w')
+        await new Promise((resolve, reject) => {
+          const writeStream = file.createWriteStream()
+          stream.pipe(writeStream)
+          writeStream.on('finish', () => resolve(undefined))
+          writeStream.on('error', reject)
+        })
+        await file.close()
+
+        const { stdout } = await execa('qemu-img', ['info', tmpFile])
+        assert.match(stdout, /file format: qcow2/, `Expected qcow2 format for clusterSize=${clusterSize}`)
+        assert.match(
+          stdout,
+          new RegExp(`cluster_size: ${clusterSize}`),
+          `Expected cluster_size=${clusterSize} in qemu-img info`
+        )
+
+        const { stdout: checkOut } = await execa('qemu-img', ['check', tmpFile])
+        assert.match(checkOut, /No errors were found/, `Validation failed for clusterSize=${clusterSize}`)
+
+        console.log(`✅ clusterSize=${clusterSize} passed validation`)
+      } finally {
+        await fs.unlink(tmpFile).catch(() => {})
       }
     }
   })

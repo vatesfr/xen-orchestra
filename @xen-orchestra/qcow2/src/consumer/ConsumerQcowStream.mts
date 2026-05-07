@@ -12,10 +12,11 @@ const L2_ADDRESS_ENTRY_SIZE = 8 // Size of L2 table entries (64 bits)
 /**
  * Creates a buffer aligned to cluster size boundaries, initialized with a value
  * @param length Desired minimum length
+ * @param clusterSize Desired cluster alignement length
  * @returns Buffer with length rounded up to nearest cluster size multiple
  */
-function getAlignedBuffer(length: number): Buffer {
-  const aligned = Math.ceil(length / CLUSTER_SIZE) * CLUSTER_SIZE
+function getAlignedBuffer(length: number, clusterSize = CLUSTER_SIZE): Buffer {
+  const aligned = Math.ceil(length / clusterSize) * clusterSize
   return Buffer.alloc(aligned, 0)
 }
 
@@ -31,23 +32,30 @@ type WithLength<T> = T & { length?: number }
 export class QcowStreamGenerator {
   #disk: Disk
   #offset = 0
+  #clusterSize: number
 
   /**
    * Creates a new QCOW2 stream generator
    * @param disk The disk to convert to QCOW2 format
    */
-  constructor(disk: Disk) {
-    if (disk.getBlockSize() < CLUSTER_SIZE) {
+  constructor(disk: Disk, clusterSize: number = CLUSTER_SIZE) {
+    assert(
+      clusterSize >= 512 && clusterSize <= 2 * 1024 * 1024,
+      `clusterSize must be between 512 and 2MB, got ${clusterSize}`
+    )
+    assert((clusterSize & (clusterSize - 1)) === 0, `clusterSize must be a power of 2, got ${clusterSize}`)
+    this.#clusterSize = clusterSize
+    if (disk.getBlockSize() < this.#clusterSize) {
       if (disk.isDifferencing() && !(disk instanceof RandomAccessDisk)) {
         throw new Error(`Can't create differential disk with larger block without random access`)
       }
-      this.#disk = new DiskLargerBlock(disk as RandomAccessDisk, CLUSTER_SIZE)
-    } else if (disk.getBlockSize() > CLUSTER_SIZE) {
-      this.#disk = new DiskSmallerBlock(disk, CLUSTER_SIZE)
+      this.#disk = new DiskLargerBlock(disk as RandomAccessDisk, this.#clusterSize)
+    } else if (disk.getBlockSize() > this.#clusterSize) {
+      this.#disk = new DiskSmallerBlock(disk, this.#clusterSize)
     } else {
       this.#disk = disk
     }
-    assert.strictEqual(this.#disk.getBlockSize(), CLUSTER_SIZE)
+    assert.strictEqual(this.#disk.getBlockSize(), this.#clusterSize)
   }
 
   /**
@@ -68,11 +76,11 @@ export class QcowStreamGenerator {
   #computeAddressingSpace(): { size: number; nbL1Entries: number } {
     const disk = this.#disk
     const nbBlocks = Math.ceil(disk.getVirtualSize() / disk.getBlockSize())
-    const nbL2PerL1Entry = CLUSTER_SIZE / L2_ADDRESS_ENTRY_SIZE
+    const nbL2PerL1Entry = this.#clusterSize / L2_ADDRESS_ENTRY_SIZE
     const nbL1Entries = Math.ceil(nbBlocks / nbL2PerL1Entry)
 
     // L1 table size (aligned to cluster size)
-    let size = Math.ceil((nbL1Entries * 8) / CLUSTER_SIZE) * CLUSTER_SIZE
+    let size = Math.ceil((nbL1Entries * 8) / this.#clusterSize) * this.#clusterSize
 
     // Add size for each L2 table that contains at least one allocated block
     for (let i = 0; i < nbL1Entries; i++) {
@@ -82,7 +90,7 @@ export class QcowStreamGenerator {
           break // Last L2 table
         }
         if (disk.hasBlock(blockIndex)) {
-          size += CLUSTER_SIZE // Each L2 table takes one cluster
+          size += this.#clusterSize // Each L2 table takes one cluster
           break // We only need to know if this L2 table has any blocks
         }
       }
@@ -107,11 +115,11 @@ export class QcowStreamGenerator {
     const nbBlocks = disk.getBlockIndexes().length
 
     // Total clusters needed (header + addressing tables + data clusters)
-    let nbAllocatedClusters = 1 /* header */ + addressTableSize / CLUSTER_SIZE + nbBlocks
+    let nbAllocatedClusters = 1 /* header */ + addressTableSize / this.#clusterSize + nbBlocks
 
     // Refcount structure parameters
-    const refCountsPerL2Table = Math.floor(CLUSTER_SIZE / 8) // Each L2 refcount table entry is 8 bytes
-    const refcountsPerCluster = Math.floor(CLUSTER_SIZE / REFCOUNT_BYTES) // Each refcount is 2 bytes
+    const refCountsPerL2Table = Math.floor(this.#clusterSize / 8) // Each L2 refcount table entry is 8 bytes
+    const refcountsPerCluster = Math.floor(this.#clusterSize / REFCOUNT_BYTES) // Each refcount is 2 bytes
 
     // Initial calculation
     let nbClustersL2 = Math.ceil(nbAllocatedClusters / refcountsPerCluster)
@@ -130,8 +138,8 @@ export class QcowStreamGenerator {
     }
 
     return {
-      refCountL1Size: nbClustersL1 * CLUSTER_SIZE, // L1 refcount table size
-      refCountL2Size: nbClustersL2 * CLUSTER_SIZE, // L2 refcount blocks size
+      refCountL1Size: nbClustersL1 * this.#clusterSize, // L1 refcount table size
+      refCountL2Size: nbClustersL2 * this.#clusterSize, // L2 refcount blocks size
     }
   }
 
@@ -141,9 +149,9 @@ export class QcowStreamGenerator {
    * @private
    */
   *#yieldRefCounts(nbClusters: number): Generator<Buffer, void, unknown> {
-    const refCountsPerCluster = Math.floor(CLUSTER_SIZE / REFCOUNT_BYTES)
+    const refCountsPerCluster = Math.floor(this.#clusterSize / REFCOUNT_BYTES)
     const nbRefCountClusters = Math.ceil(nbClusters / refCountsPerCluster)
-    const refCountsPerL2 = Math.floor(CLUSTER_SIZE / 8)
+    const refCountsPerL2 = Math.floor(this.#clusterSize / 8)
     const nbL1Entries = Math.ceil(nbRefCountClusters / refCountsPerL2)
 
     // Generate L1 refcount table
@@ -153,7 +161,7 @@ export class QcowStreamGenerator {
     // Write L1 entries pointing to L2 tables
     for (let i = 0; i < nbRefCountClusters; i++) {
       l1Table.writeBigUint64BE(BigInt(l2Offset), i * 8)
-      l2Offset += CLUSTER_SIZE
+      l2Offset += this.#clusterSize
     }
     yield* this.#trackAndYield(l1Table)
 
@@ -184,7 +192,7 @@ export class QcowStreamGenerator {
     const QCOW_OFLAG_COPIED = 1n << 63n // Flag indicating cluster is allocated
 
     const nbBlocks = Math.ceil(disk.getVirtualSize() / disk.getBlockSize())
-    const nbEntriesPerL2Table = CLUSTER_SIZE / 8
+    const nbEntriesPerL2Table = this.#clusterSize / 8
     const nbL1Entries = Math.ceil(nbBlocks / nbEntriesPerL2Table)
 
     // Generate L1 table
@@ -200,7 +208,7 @@ export class QcowStreamGenerator {
         }
         if (disk.hasBlock(blockIndex)) {
           l1Table.writeBigUint64BE(BigInt(l2Offset) | QCOW_OFLAG_COPIED, i * 8)
-          l2Offset += CLUSTER_SIZE
+          l2Offset += this.#clusterSize
           break // We only need to know if this L2 table has any blocks
         }
       }
@@ -224,7 +232,7 @@ export class QcowStreamGenerator {
           }
           // Write cluster offset with COPIED flag
           l2Table.writeBigUint64BE(BigInt(dataClusterOffset) | QCOW_OFLAG_COPIED, j * 8)
-          dataClusterOffset += CLUSTER_SIZE
+          dataClusterOffset += this.#clusterSize
         }
       }
 
@@ -254,31 +262,31 @@ export class QcowStreamGenerator {
     header.writeUint32BE(2, 4) // Version 2
     header.writeBigUint64BE(0n, 8) // backing_file_offset (none)
     header.writeUInt32BE(0, 16) // backing_file_size (none)
-    header.writeUInt32BE(Math.log2(CLUSTER_SIZE), 20) // cluster_bits
-    header.writeBigUInt64BE(BigInt(nbTotalBlock * disk.getBlockSize()), 24) //aligned size
+    header.writeUInt32BE(Math.log2(this.#clusterSize), 20) // cluster_bits
+    header.writeBigUInt64BE(BigInt(nbTotalBlock * this.#clusterSize), 24) //aligned size
     header.writeUInt32BE(0, 32) // crypt_method: none
     header.writeUInt32BE(nbL1Entries, 36) // l1_size
     header.writeBigUInt64BE(BigInt(header.length + refCountL1Size + refCountL2Size), 40) // l1_table_offset
     header.writeBigUInt64BE(BigInt(header.length), 48) // refcount_table_offset
-    header.writeUInt32BE(refCountL1Size / CLUSTER_SIZE, 56) // refcount_table_clusters
+    header.writeUInt32BE(refCountL1Size / this.#clusterSize, 56) // refcount_table_clusters
     header.writeUInt32BE(0, 60) // nb_snapshots
     header.writeUInt32BE(0, 64) // snapshots_offset
     // Calculate total stream length
     const expectedStreamLength =
-      header.length + refCountL1Size + refCountL2Size + addressTableSize + nbAllocatedBlocks * CLUSTER_SIZE
+      header.length + refCountL1Size + refCountL2Size + addressTableSize + nbAllocatedBlocks * this.#clusterSize
 
     const self = this
     async function* generator(): AsyncGenerator<Buffer, void, unknown> {
       // Yield all parts in order
       signal?.throwIfAborted()
       yield* self.#trackAndYield(header)
-      assert.strictEqual(self.#offset, CLUSTER_SIZE, 'header aligned')
-      yield* self.#yieldRefCounts(expectedStreamLength / CLUSTER_SIZE)
-      assert.strictEqual(self.#offset, CLUSTER_SIZE + refCountL1Size + refCountL2Size, 'refcounts aligned')
+      assert.strictEqual(self.#offset, self.#clusterSize, 'header aligned')
+      yield* self.#yieldRefCounts(expectedStreamLength / self.#clusterSize)
+      assert.strictEqual(self.#offset, self.#clusterSize + refCountL1Size + refCountL2Size, 'refcounts aligned')
       yield* self.#yieldAddressingTables()
       assert.strictEqual(
         self.#offset,
-        CLUSTER_SIZE + refCountL1Size + refCountL2Size + addressTableSize,
+        self.#clusterSize + refCountL1Size + refCountL2Size + addressTableSize,
         'addresses aligned'
       )
 
@@ -329,7 +337,10 @@ export class QcowStreamGenerator {
  * @param options.signal Optional AbortSignal to cancel the stream
  * @returns Readable stream of QCOW2 data
  */
-export function toQcow2Stream(disk: Disk, { signal }: { signal?: AbortSignal } = {}): Readable {
-  const generator = new QcowStreamGenerator(disk)
+export function toQcow2Stream(
+  disk: Disk,
+  { signal, clusterSize }: { signal?: AbortSignal; clusterSize?: number } = {}
+): Readable {
+  const generator = new QcowStreamGenerator(disk, clusterSize)
   return generator.stream(signal)
 }
