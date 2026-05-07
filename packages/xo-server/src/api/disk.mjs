@@ -10,10 +10,9 @@ import { pipeline } from 'stream'
 import { peekFooterFromVhdStream } from 'vhd-lib'
 import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 
-import { VDI_FORMAT_VHD, VDI_FORMAT_RAW } from '../xapi/index.mjs'
 import { parseSize } from '../utils.mjs'
 import { readChunk, readChunkStrict } from '@vates/read-chunk'
-import { VDI_FORMAT_QCOW2 } from '@xen-orchestra/xapi'
+import { VDI_FORMAT_QCOW2, VDI_FORMAT_VHD, VDI_FORMAT_RAW } from '@xen-orchestra/xapi'
 
 const log = createLogger('xo:disk')
 
@@ -158,12 +157,12 @@ exportContent.resolve = {
 
 // -------------------------------------------------------------------
 
-async function handleImportContent(req, res, { vdi, type }) {
+async function handleImportContent(req, res, { vdi, format }) {
   // Timeout seems to be broken in Node 4.
   // See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) // 12 hours
   req.length = +req.headers['content-length']
-  await vdi.$importContent(req, { format: VDI_FORMAT_VHD })
+  await vdi.$importContent(req, { format })
   res.end(format.response(0, true))
 }
 
@@ -178,6 +177,7 @@ export async function importContent({ vdi }) {
 importContent.description = 'import contents into a VDI'
 importContent.params = {
   id: { type: 'string' },
+  format: { type: 'string', optional: true, default: VDI_FORMAT_VHD },
 }
 importContent.resolve = {
   vdi: ['id', ['VDI'], 'operate'],
