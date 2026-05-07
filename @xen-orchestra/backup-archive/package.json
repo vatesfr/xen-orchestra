@@ -27,6 +27,7 @@
     "@xen-orchestra/log": "^0.7.1",
     "@xen-orchestra/fs": "^4.6.7",
     "@xen-orchestra/disk-transform": "^1.2.3",
+    "@vates/task": "0.7.0",
     "golike-defer": "0.5.1",
     "uuid": "^9.0.0",
     "promise-toolbox": "^0.21.0",
