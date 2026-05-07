@@ -67,6 +67,7 @@ import { partialVmBackupJobs, vmBackupJobIds } from '../open-api/oa-examples/bac
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import type { UnbrandedVmDashboard } from './vm.type.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
+import { Task } from '@vates/task'
 
 const IGNORED_VDIS_TAG = '[NOSNAP]'
 
@@ -574,27 +575,38 @@ export class VmController extends XapiXoController<XoVm> {
   /**
    * Required privilege:
    * - resource: vm, action: revert-snapshot
+   * - resource: vm, action: snapshot
    *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
-   * @example body { "snapshot": "f07ab729-c0e8-721c-45ec-f11276377030", "snapshotBefore": true }
+   * @example body { "snapshotId": "f07ab729-c0e8-721c-45ec-f11276377030", "snapshotBefore": true }
    */
   @Example(taskLocation)
   @Post('{id}/actions/revert_snapshot')
-  @Middlewares([json(), acl({ resource: 'vm', action: 'revert-snapshot', objectId: 'params.id' })])
+  @Middlewares([
+    json(),
+    acl([
+      { resource: 'vm', action: 'revert-snapshot', objectId: 'params.id' },
+      {
+        resource: 'vm',
+        actions: ({ req }) => (req.body.snapshotBefore ? ['snapshot'] : []),
+        objectId: 'params.id',
+      },
+    ]),
+  ])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
-  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async revertSnapshotVm(
     @Path() id: string,
-    @Body() body: { snapshot: string; snapshotBefore?: boolean },
+    @Body() body: { snapshotId: string; snapshotBefore?: boolean },
     @Query() sync?: boolean
   ): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
-      const snapshotId = body.snapshot as XoVmSnapshot['id']
+      const snapshotId = body.snapshotId as XoVmSnapshot['id']
 
       // Ensure the snapshot belongs to this VM
       const vm = this.getObject(vmId)
@@ -603,10 +615,14 @@ export class VmController extends XapiXoController<XoVm> {
       }
 
       if (body.snapshotBefore) {
-        await this.getXapiObject(vmId).$snapshot({ ignoredVdisTag: IGNORED_VDIS_TAG })
-      }
+        await Task.run({ properties: { name: 'snapshot VM' } }, () =>
+          this.getXapiObject(vmId).$snapshot({ ignoredVdisTag: IGNORED_VDIS_TAG })
+        )
 
-      await this.getXapi(vmId).revertVm(snapshotId)
+        await Task.run({ properties: { name: 'revert snapshot' } }, () => this.getXapi(vmId).revertVm(snapshotId))
+      } else {
+        await this.getXapi(vmId).revertVm(snapshotId)
+      }
     }
 
     return this.createAction<void>(action, {
