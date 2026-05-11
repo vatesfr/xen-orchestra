@@ -21,9 +21,15 @@
       </div>
 
       <div class="main-content">
-        <div v-if="task.name" class="content-left">
+        <div v-if="task.nameSegments || task.name" class="content-left">
           <UiLink size="medium">
-            {{ task.name }}
+            <template v-if="task.nameSegments">
+              <template v-for="(segment, index) in task.nameSegments" :key="index">
+                <RouterLink v-if="segment.to" :to="segment.to">{{ segment.text }}</RouterLink>
+                <span v-else>{{ segment.text }}</span>
+              </template>
+            </template>
+            <template v-else>{{ task.name }}</template>
           </UiLink>
           <div v-if="shouldShowInfos || hasSubTasks" class="infos">
             <UiCounter v-if="hasSubTasks" :value="subTasksCount" accent="brand" variant="secondary" size="small" />
@@ -61,14 +67,17 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTaskList from '@core/components/ui/task-list/UiTaskList.vue'
 import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import type { TaskNameSegment } from '@core/types/task.type.ts'
 import { logicOr } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { RouterLink } from 'vue-router'
 
 export type Task = {
   id: string
   infos?: { data: unknown; message: string }[]
   name?: string
+  nameSegments?: TaskNameSegment[]
   progress?: number
   end?: number
   status: 'failure' | 'interrupted' | 'pending' | 'success'
