@@ -39,7 +39,7 @@ import {
 function constructIcon(icon: IconDefinition): IconSingleConfig {
   return {
     icon,
-    color: 'var(--color-neutral-txt-primary)',
+    color: 'currentColor',
   }
 }
 

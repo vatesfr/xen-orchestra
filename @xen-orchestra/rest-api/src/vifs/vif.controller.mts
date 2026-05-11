@@ -56,12 +56,13 @@ import { taskIds, partialTasks, taskLocation } from '../open-api/oa-examples/tas
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 
 type UnbrandedXoVif = Unbrand<XoVif>
-
 type CreateVifParams = Parameters<Xapi['VIF_create']>
-type CreateVifBody = Omit<CreateVifParams[0], 'network' | 'VM'> &
+type CreateVifBody = Omit<CreateVifParams[0], 'network' | 'VM' | 'other_config' | 'qos_algorithm_params'> &
   CreateVifParams[1] & {
     networkId: string
     vmId: string
+    other_config?: { [key: string]: string } //  "ethtool-tx" : "false"
+    qos_algorithm_params?: { [key: string]: string } // "kbps": "1000"
   }
 
 @Route('vifs')
@@ -222,7 +223,14 @@ export class VifController extends XapiXoController<XoVif> {
   /**
    * @example body {
    *  "networkId": "6b6ca0f5-6611-0636-4b0a-1fb1c1e96414",
-   *  "vmId": "613f541c-4bed-fc77-7ca8-2db6b68f079c"
+   *  "vmId": "613f541c-4bed-fc77-7ca8-2db6b68f079c",
+   *   "other_config": {
+   *"ethtool-tx": "false"
+   *    },
+   *  "qos_algorithm_params": {
+   *    "kbps": "42"
+   *  },
+   *  "qos_algorithm_type": "ratelimit"
    * }
    */
   @Example(vifId)

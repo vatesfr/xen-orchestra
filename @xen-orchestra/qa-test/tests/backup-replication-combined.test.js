@@ -2,6 +2,7 @@ import assert from 'node:assert'
 import { after, before, describe, it } from 'node:test'
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import { createLogger } from '@xen-orchestra/log'
 
 import { backupConfig } from '../backup.config.js'
 import {
@@ -21,6 +22,8 @@ import {
 } from '../utils/exportUtils.js'
 import { assertBackupSuccess, assertRepositoryEmpty } from '../utils/backupUtils.js'
 import { setup, teardown } from './setup.js'
+
+const log = createLogger('xo:qa-test:tests')
 
 /** Default backup repository name used across all tests */
 const BACKUP_REPOSITORY_NAME = process.env.BACKUP_REPOSITORY_NAME || 'Test backup QA'
@@ -59,12 +62,12 @@ describe('Backup + Replication Combined Tests', () => {
         }
       }
       if (ids.length > 0) {
-        console.log(`Purging ${ids.length} VM backup(s) from repository to free space...`)
+        log.debug('Purging VM backups from repository', { count: ids.length })
         await dispatchClient.backup.deleteVmBackups(ids)
-        console.log(`Purged ${ids.length} VM backup(s)`)
+        log.debug('Purged VM backups', { count: ids.length })
       }
     } catch (error) {
-      console.warn(`Backup data purge failed: ${error.message}`)
+      log.warn('Backup data purge failed', { error: error.message })
     }
 
     // Clean up local exported files
@@ -107,7 +110,7 @@ describe('Backup + Replication Combined Tests', () => {
     vm = setupResult.vm
 
     assert.ok(vm, 'Setup should provide a test VM')
-    console.log(`Using test VM from setup: ${vm.name_label} (${vm.uuid})`)
+    log.debug('Using test VM from setup', { name: vm.name_label, uuid: vm.uuid })
 
     // Get backup repository
     backupRepository = await dispatchClient.backupRepository.get({
@@ -115,7 +118,7 @@ describe('Backup + Replication Combined Tests', () => {
     })
 
     if (!backupRepository) {
-      console.warn(`Backup repository not found, creating it for tests...`)
+      log.warn('Backup repository not found, creating it for tests')
 
       const backupRepositoryId = await dispatchClient.backupRepository.create(BACKUP_REPOSITORY_NAME, {
         path: process.env.BACKUP_REPOSITORY_PATH || '/tmp/xo-test-backups',
@@ -147,24 +150,24 @@ describe('Backup + Replication Combined Tests', () => {
       throw new Error(`SR with ID "${srId}" not found`)
     }
 
-    console.log(`Found SR: ${sr.name_label} (${sr.uuid})`)
+    log.debug('Found SR', { name: sr.name_label, uuid: sr.uuid })
 
     // Set export path
     exportPath = process.env.VHD_EXPORT_PATH || '/tmp/xo-test-exports'
     await fs.mkdir(exportPath, { recursive: true })
-    console.log(`Export path: ${exportPath}`)
+    log.debug('Export path', { exportPath })
   })
 
   after(async () => {
     // Clean up exported files
     if (exportedFiles.length > 0) {
-      console.log(`Cleaning up ${exportedFiles.length} exported file(s)...`)
+      log.debug('Cleaning up exported files', { count: exportedFiles.length })
       for (const filePath of exportedFiles) {
         try {
           await fs.unlink(filePath)
-          console.log(`Deleted: ${filePath}`)
+          log.debug('Deleted exported file', { filePath })
         } catch (error) {
-          console.warn(`Failed to delete ${filePath}: ${error.message}`)
+          log.warn('Failed to delete exported file', { filePath, error: error.message })
         }
       }
     }
@@ -182,9 +185,9 @@ describe('Backup + Replication Combined Tests', () => {
           await dispatchClient.vm.waitForPowerState(vmUuid, 'Halted', 60_000)
         }
         await dispatchClient.vm.delete(vmUuid, { deleteDisks: true })
-        console.log(`Cleaned up restored VM: ${vmUuid}`)
+        log.debug('Cleaned up restored VM', { vmUuid })
       } catch (error) {
-        console.warn(`Failed to cleanup restored VM ${vmUuid}: ${error.message}`)
+        log.warn('Failed to cleanup restored VM', { vmUuid, error: error.message })
       }
     }
 
@@ -210,18 +213,18 @@ describe('Backup + Replication Combined Tests', () => {
       const { jobId, scheduleKey } = await createBackupJobForTest(config, 'delta')
       assert.ok(scheduleKey, 'Schedule key is required')
 
-      console.log(`Running delta backup before export...`)
+      log.debug('Running delta backup before export')
       const backupResult = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
 
       assertBackupSuccess(backupResult, 'Delta backup before XVA export')
       assertFullOrDelta(backupResult, backupRepository.id, { mustBeFull: true })
-      console.log(`Backup completed successfully`)
+      log.debug('Backup completed successfully')
 
       // Step 2: Export VM as XVA
       const fileName = generateExportFileName(`${vm.name_label}-combined-xva`, 'xva')
       const outputPath = path.join(exportPath, fileName)
 
-      console.log(`Exporting VM as XVA after backup...`)
+      log.debug('Exporting VM as XVA after backup')
       const exportResult = await dispatchClient.vm.exportAsXva(vm.uuid, outputPath, {
         compress: true,
       })
@@ -235,9 +238,10 @@ describe('Backup + Replication Combined Tests', () => {
       const stats = await fs.stat(exportResult.path)
       assert.ok(stats.size > 0, 'Exported XVA file should not be empty')
 
-      console.log(
-        `Backup + Export XVA workflow completed: backup=${backupResult.status}, export=${formatBytes(exportResult.size)}`
-      )
+      log.debug('Backup + Export XVA workflow completed', {
+        backupStatus: backupResult.status,
+        exportSize: formatBytes(exportResult.size),
+      })
     })
 
     it('should backup delta then export VDI as VHD', async () => {
@@ -249,12 +253,12 @@ describe('Backup + Replication Combined Tests', () => {
       const { jobId, scheduleKey } = await createBackupJobForTest(config, 'delta')
       assert.ok(scheduleKey, 'Schedule key is required')
 
-      console.log(`Running delta backup before VHD export...`)
+      log.debug('Running delta backup before VHD export')
       const backupResult = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
 
       assertBackupSuccess(backupResult, 'Delta backup before VHD export')
       assertFullOrDelta(backupResult, backupRepository.id, { mustBeFull: true })
-      console.log(`Backup completed successfully`)
+      log.debug('Backup completed successfully')
 
       // Step 2: Export VDI as VHD
       const vdis = await dispatchClient.vdi.getVdisForVm(vm.uuid)
@@ -264,7 +268,7 @@ describe('Backup + Replication Combined Tests', () => {
       const fileName = generateExportFileName(`${vm.name_label}-combined-vhd`, 'vhd')
       const outputPath = path.join(exportPath, fileName)
 
-      console.log(`Exporting VDI as VHD after backup: ${vdi.name_label} (${vdi.uuid})`)
+      log.debug('Exporting VDI as VHD after backup', { name: vdi.name_label, uuid: vdi.uuid })
       const exportResult = await dispatchClient.vdi.exportAsVhd(vdi.uuid, outputPath)
       exportedFiles.push(exportResult.path)
 
@@ -272,9 +276,10 @@ describe('Backup + Replication Combined Tests', () => {
       const validation = await validateVhdIntegrity(exportResult.path)
       assert.strictEqual(validation.valid, true, `VHD validation failed: ${validation.error}`)
 
-      console.log(
-        `Backup + Export VHD workflow completed: backup=${backupResult.status}, VHD=${formatBytes(exportResult.size)}`
-      )
+      log.debug('Backup + Export VHD workflow completed', {
+        backupStatus: backupResult.status,
+        vhdSize: formatBytes(exportResult.size),
+      })
     })
   })
 
@@ -294,25 +299,25 @@ describe('Backup + Replication Combined Tests', () => {
       const { jobId, scheduleKey } = await createBackupJobForTest(config, 'full')
       assert.ok(scheduleKey, 'Schedule key is required')
 
-      console.log(`Running full backup before restoration...`)
+      log.debug('Running full backup before restoration')
       const backupResult = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
 
       assertBackupSuccess(backupResult, 'Full backup before XVA restore')
       assertFullOrDelta(backupResult, backupRepository.id, { mustBeFull: true })
-      console.log(`Full backup completed successfully`)
+      log.debug('Full backup completed successfully')
 
       // Step 2: Export VM as XVA
       const fileName = generateExportFileName(`${vm.name_label}-restore-xva`, 'xva')
       const outputPath = path.join(exportPath, fileName)
 
-      console.log(`Exporting VM as XVA for restoration...`)
+      log.debug('Exporting VM as XVA for restoration')
       const exportResult = await dispatchClient.vm.exportAsXva(vm.uuid, outputPath, {
         compress: true,
       })
       exportedFiles.push(exportResult.path)
 
       // Step 3: Import XVA to create a new VM
-      console.log(`Importing XVA to restore VM...`)
+      log.debug('Importing XVA to restore VM')
       const restoredVmUuid = await dispatchClient.vm.importXva(exportResult.path, sr.uuid)
 
       assert.ok(restoredVmUuid, 'Import should return VM UUID')
@@ -323,7 +328,7 @@ describe('Backup + Replication Combined Tests', () => {
       assert.ok(restoredVm, 'Restored VM should exist')
       assert.strictEqual(restoredVm.power_state, 'Halted', 'Restored VM should be in Halted state')
 
-      console.log(`Backup + Restore workflow completed: ${restoredVm.name_label} (${restoredVmUuid})`)
+      log.debug('Backup + Restore workflow completed', { name: restoredVm.name_label, uuid: restoredVmUuid })
     })
 
     it('should backup delta then restore VDI from VHD export', async () => {
@@ -335,17 +340,17 @@ describe('Backup + Replication Combined Tests', () => {
       const { jobId, scheduleKey } = await createBackupJobForTest(config, 'delta')
       assert.ok(scheduleKey, 'Schedule key is required')
 
-      console.log(`Running first backup (full baseline)...`)
+      log.debug('Running first backup (full baseline)')
       const fullResult = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
       assertBackupSuccess(fullResult, 'Full baseline before delta')
       assertFullOrDelta(fullResult, backupRepository.id, { mustBeFull: true })
-      console.log(`First backup completed (full)`)
+      log.debug('First backup completed (full)')
 
-      console.log(`Running second backup (delta)...`)
+      log.debug('Running second backup (delta)')
       const backupResult = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
       assertBackupSuccess(backupResult, 'Delta backup before VDI restore')
       assertFullOrDelta(backupResult, backupRepository.id, { mustBeFull: false })
-      console.log(`Delta backup completed successfully`)
+      log.debug('Delta backup completed successfully')
 
       // Step 2: Export VDI as VHD
       const vdis = await dispatchClient.vdi.getVdisForVm(vm.uuid)
@@ -355,23 +360,23 @@ describe('Backup + Replication Combined Tests', () => {
       const fileName = generateExportFileName(`${vm.name_label}-restore-vhd`, 'vhd')
       const outputPath = path.join(exportPath, fileName)
 
-      console.log(`Exporting VDI as VHD: ${vdi.name_label}`)
+      log.debug('Exporting VDI as VHD', { name: vdi.name_label })
       const exportResult = await dispatchClient.vdi.exportAsVhd(vdi.uuid, outputPath)
       exportedFiles.push(exportResult.path)
 
       // Step 3: Import VHD to create a new VDI
-      console.log(`Importing VHD to restore VDI...`)
+      log.debug('Importing VHD to restore VDI')
       const importedVdiUuid = await dispatchClient.vdi.importVhd(exportResult.path, sr.uuid)
 
       assert.ok(importedVdiUuid, 'Import should return VDI UUID')
-      console.log(`VHD imported as new VDI: ${importedVdiUuid}`)
+      log.debug('VHD imported as new VDI', { uuid: importedVdiUuid })
 
       // Step 4: Validate imported VDI
       const importedVdi = await dispatchClient.vdi.details(importedVdiUuid)
       assert.ok(importedVdi, 'Imported VDI should exist')
       assert.ok(importedVdi.uuid, 'Imported VDI should have a valid UUID')
 
-      console.log(`Backup + VDI Restore workflow completed: VDI ${importedVdiUuid}`)
+      log.debug('Backup + VDI Restore workflow completed', { uuid: importedVdiUuid })
     })
   })
 
@@ -391,18 +396,18 @@ describe('Backup + Replication Combined Tests', () => {
       const { jobId: jobId1, scheduleKey: scheduleKey1 } = await createBackupJobForTest(config1, 'full')
       assert.ok(scheduleKey1, 'Schedule key is required')
 
-      console.log(`Step 1/5: Running full backup of original VM...`)
+      log.debug('Step 1/5: Running full backup of original VM')
       const backupResult1 = await dispatchClient.backup.runJobAndGetLog(jobId1, scheduleKey1)
 
       assertBackupSuccess(backupResult1, 'Initial full backup (cycle step 1)')
       assertFullOrDelta(backupResult1, backupRepository.id, { mustBeFull: true })
-      console.log(`Step 1/5: Initial backup completed`)
+      log.debug('Step 1/5: Initial backup completed')
 
       // Step 2: Export VM as XVA
       const fileName = generateExportFileName(`${vm.name_label}-cycle-xva`, 'xva')
       const outputPath = path.join(exportPath, fileName)
 
-      console.log(`Step 2/5: Exporting VM as XVA...`)
+      log.debug('Step 2/5: Exporting VM as XVA')
       const exportResult = await dispatchClient.vm.exportAsXva(vm.uuid, outputPath, {
         compress: true,
       })
@@ -410,10 +415,10 @@ describe('Backup + Replication Combined Tests', () => {
 
       const xvaValidation = await validateXvaIntegrity(exportResult.path)
       assert.strictEqual(xvaValidation.valid, true, `XVA validation failed: ${xvaValidation.error}`)
-      console.log(`Step 2/5: XVA export completed (${formatBytes(exportResult.size)})`)
+      log.debug('Step 2/5: XVA export completed', { size: formatBytes(exportResult.size) })
 
       // Step 3: Import XVA to create a restored VM
-      console.log(`Step 3/5: Importing XVA to create restored VM...`)
+      log.debug('Step 3/5: Importing XVA to create restored VM')
       const restoredVmUuid = await dispatchClient.vm.importXva(exportResult.path, sr.uuid)
 
       assert.ok(restoredVmUuid, 'Import should return VM UUID')
@@ -422,7 +427,7 @@ describe('Backup + Replication Combined Tests', () => {
       const restoredVm = await dispatchClient.vm.details(restoredVmUuid)
       assert.ok(restoredVm, 'Restored VM should exist')
       assert.strictEqual(restoredVm.power_state, 'Halted', 'Restored VM should be in Halted state')
-      console.log(`Step 3/5: VM restored: ${restoredVm.name_label} (${restoredVmUuid})`)
+      log.debug('Step 3/5: VM restored', { name: restoredVm.name_label, uuid: restoredVmUuid })
 
       // Step 4: Create a backup job targeting the restored VM (without health check - restored VM may lack Xen Tools)
       const name2 = generateBackupJobName()
@@ -441,16 +446,16 @@ describe('Backup + Replication Combined Tests', () => {
       }
       assert.ok(scheduleKey2, 'Schedule key for second backup job is required')
 
-      console.log(`Step 4/5: Created backup job for restored VM`)
+      log.debug('Step 4/5: Created backup job for restored VM')
 
       // Step 5: Run backup of the restored VM
-      console.log(`Step 5/5: Running backup of restored VM...`)
+      log.debug('Step 5/5: Running backup of restored VM')
       const backupResult2 = await dispatchClient.backup.runJobAndGetLog(jobId2, scheduleKey2)
 
       assertBackupSuccess(backupResult2, 'Re-backup of restored VM (cycle step 5)')
-      console.log(`Step 5/5: Re-backup completed successfully`)
+      log.debug('Step 5/5: Re-backup completed successfully')
 
-      console.log(`Full cycle completed: backup -> export -> import -> re-backup`)
+      log.debug('Full cycle completed: backup -> export -> import -> re-backup')
     })
   })
 
@@ -489,7 +494,7 @@ describe('Backup + Replication Combined Tests', () => {
       const vmUuidsBefore = new Set(vmsBefore.map(v => v.uuid))
 
       // --- First replication (full — no existing target) ---
-      console.log('Running first CR replication (expected full)...')
+      log.debug('Running first CR replication (expected full)')
       const result1 = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
       assertBackupSuccess(result1, 'First CR replication')
       assertFullOrDeltaForSr(result1, targetSrUuid, { mustBeFull: true })
@@ -506,7 +511,7 @@ describe('Backup + Replication Combined Tests', () => {
 
       const targetVmUuid = newVms[0].uuid
       restoredVmUuids.push(targetVmUuid)
-      console.log(`Target VM created: ${newVms[0].name_label} (${targetVmUuid})`)
+      log.debug('Target VM created', { name: newVms[0].name_label, uuid: targetVmUuid })
 
       // Check target VM has at least one snapshot
       const targetVmAfterFirst = await dispatchClient.vm.details(targetVmUuid)
@@ -516,14 +521,14 @@ describe('Backup + Replication Combined Tests', () => {
         snapshotsAfterFirst >= 1,
         `Target VM should have ≥1 snapshot after first replication, got ${snapshotsAfterFirst}`
       )
-      console.log(`Target VM has ${snapshotsAfterFirst} snapshot(s) after first replication`)
+      log.debug('Target VM snapshots after first replication', { count: snapshotsAfterFirst })
 
       // Record first transfer size for efficiency comparison
       const firstTransferSize = getBackupTransferredBytes(result1)
-      console.log(`First replication transferred: ${firstTransferSize} bytes`)
+      log.debug('First replication transferred', { bytes: firstTransferSize })
 
       // --- Second replication (delta — should reuse target VM) ---
-      console.log('Running second CR replication (expected delta)...')
+      log.debug('Running second CR replication (expected delta)')
       const result2 = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
       assertBackupSuccess(result2, 'Second CR replication')
       assertFullOrDeltaForSr(result2, targetSrUuid, { mustBeFull: false })
@@ -550,11 +555,11 @@ describe('Backup + Replication Combined Tests', () => {
         `Target VM should have more snapshots after second replication ` +
           `(before: ${snapshotsAfterFirst}, after: ${snapshotsAfterSecond})`
       )
-      console.log(`Target VM has ${snapshotsAfterSecond} snapshot(s) after second replication`)
+      log.debug('Target VM snapshots after second replication', { count: snapshotsAfterSecond })
 
       // Verify delta efficiency: second transfer should be ≤ first
       const secondTransferSize = getBackupTransferredBytes(result2)
-      console.log(`Second replication transferred: ${secondTransferSize} bytes`)
+      log.debug('Second replication transferred', { bytes: secondTransferSize })
 
       if (firstTransferSize !== null && secondTransferSize !== null) {
         assert.ok(
@@ -563,11 +568,13 @@ describe('Backup + Replication Combined Tests', () => {
         )
       }
 
-      console.log(
-        `CR mode test passed: target VM reused (${targetVmUuid}), ` +
-          `snapshots ${snapshotsAfterFirst}→${snapshotsAfterSecond}, ` +
-          `transfer ${firstTransferSize}→${secondTransferSize} bytes`
-      )
+      log.debug('CR mode test passed', {
+        targetVmUuid,
+        snapshotsAfterFirst,
+        snapshotsAfterSecond,
+        firstTransferSize,
+        secondTransferSize,
+      })
     })
   })
 
@@ -583,7 +590,7 @@ describe('Backup + Replication Combined Tests', () => {
       const initialVdis = await dispatchClient.vdi.getVdisForVm(vm.uuid)
       const initialVdiCount = initialVdis.length
 
-      console.log(`Initial state: power_state=${initialPowerState}, VDIs=${initialVdiCount}`)
+      log.debug('Initial state', { power_state: initialPowerState, vdiCount: initialVdiCount })
       assert.ok(initialVdiCount > 0, 'VM should have at least one VDI')
 
       // Step 1: Run two delta backups — first is always full, second is the actual delta
@@ -594,13 +601,13 @@ describe('Backup + Replication Combined Tests', () => {
       const { jobId, scheduleKey } = await createBackupJobForTest(config, 'delta')
       assert.ok(scheduleKey, 'Schedule key is required')
 
-      console.log(`Running first backup (full baseline)...`)
+      log.debug('Running first backup (full baseline)')
       const fullResult = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
       assertBackupSuccess(fullResult, 'Full baseline for state validation')
       assertFullOrDelta(fullResult, backupRepository.id, { mustBeFull: true })
-      console.log(`First backup completed (full)`)
+      log.debug('First backup completed (full)')
 
-      console.log(`Running second backup (delta) and checking state consistency...`)
+      log.debug('Running second backup (delta) and checking state consistency')
       const backupResult = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
       assertBackupSuccess(backupResult, 'Delta backup for state validation')
       assertFullOrDelta(backupResult, backupRepository.id, { mustBeFull: false })
@@ -611,15 +618,16 @@ describe('Backup + Replication Combined Tests', () => {
 
       const afterBackupVdis = await dispatchClient.vdi.getVdisForVm(vm.uuid)
       assert.strictEqual(afterBackupVdis.length, initialVdiCount, 'VDI count should be unchanged after backup')
-      console.log(
-        `State after backup: power_state=${afterBackupVm.power_state}, VDIs=${afterBackupVdis.length} (unchanged)`
-      )
+      log.debug('State after backup (unchanged)', {
+        power_state: afterBackupVm.power_state,
+        vdiCount: afterBackupVdis.length,
+      })
 
       // Step 2: Export VM as XVA
       const fileName = generateExportFileName(`${vm.name_label}-state-check`, 'xva')
       const outputPath = path.join(exportPath, fileName)
 
-      console.log(`Exporting VM and checking state consistency...`)
+      log.debug('Exporting VM and checking state consistency')
       const exportResult = await dispatchClient.vm.exportAsXva(vm.uuid, outputPath, {
         compress: false,
       })
@@ -631,15 +639,16 @@ describe('Backup + Replication Combined Tests', () => {
 
       const afterExportVdis = await dispatchClient.vdi.getVdisForVm(vm.uuid)
       assert.strictEqual(afterExportVdis.length, initialVdiCount, 'VDI count should be unchanged after export')
-      console.log(
-        `State after export: power_state=${afterExportVm.power_state}, VDIs=${afterExportVdis.length} (unchanged)`
-      )
+      log.debug('State after export (unchanged)', {
+        power_state: afterExportVm.power_state,
+        vdiCount: afterExportVdis.length,
+      })
 
       // Validate export integrity
       const validation = await validateXvaIntegrity(exportResult.path)
       assert.strictEqual(validation.valid, true, `XVA validation failed: ${validation.error}`)
 
-      console.log(`State validation completed: VM state consistent across all operations`)
+      log.debug('State validation completed: VM state consistent across all operations')
     })
   })
 })

@@ -31,7 +31,7 @@
         <template #key>{{ t('tags') }}</template>
         <template #value>
           <UiTagsList v-if="host.tags.length > 0">
-            <UiTag v-for="tag in host.tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
+            <VtsTag v-for="tag in host.tags" :key="tag" :value="tag" />
           </UiTagsList>
         </template>
         <template v-if="host.tags.length > 0" #addons>
@@ -69,10 +69,11 @@
               :to="{ name: '/host/[id]/dashboard', params: { id: masterHost.id } }"
               size="small"
               :icon="`object:host:${toLower(masterHost.power_state)}`"
+              is-primary
+              :primary-tooltip="t('master')"
             >
               {{ masterHost.name_label }}
             </UiLink>
-            <VtsIcon v-if="masterHost" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
           </div>
         </template>
         <template v-if="masterHost !== undefined" #addons>
@@ -104,7 +105,7 @@
 
 <script lang="ts" setup>
 import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
-import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoHostMissingPatchesCollection } from '@/modules/host/remote-resources/use-xo-host-missing-patches-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
@@ -112,11 +113,11 @@ import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { toLower } from 'lodash-es'

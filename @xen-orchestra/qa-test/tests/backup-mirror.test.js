@@ -1,5 +1,6 @@
 import assert from 'node:assert'
 import { after, before, describe, it } from 'node:test'
+import { createLogger } from '@xen-orchestra/log'
 
 import { backupConfig } from '../backup.config.js'
 import {
@@ -12,6 +13,8 @@ import {
 } from '../utils/index.js'
 import { assertBackupSuccess, assertRepositoryEmpty } from '../utils/backupUtils.js'
 import { setup, teardown } from './setup.js'
+
+const log = createLogger('xo:qa-test:tests')
 
 /** Source backup repository — where initial backups are stored */
 const SOURCE_REPOSITORY_NAME = process.env.BACKUP_REPOSITORY_NAME || 'Test backup QA'
@@ -65,11 +68,11 @@ describe('Mirror Backup - Full Remote', () => {
           }
         }
         if (ids.length > 0) {
-          console.log(`Purging ${ids.length} backup(s) from ${repo.name}...`)
+          log.debug('Purging backups from repository', { count: ids.length, repo: repo.name })
           await dispatchClient.backup.deleteVmBackups(ids)
         }
       } catch (error) {
-        console.warn(`Backup purge failed for ${repo.name}: ${error.message}`)
+        log.warn('Backup purge failed', { repo: repo.name, error: error.message })
       }
     }
   }
@@ -139,7 +142,7 @@ describe('Mirror Backup - Full Remote', () => {
     vm = setupResult.vm
 
     assert.ok(vm, 'Setup should provide a test VM')
-    console.log(`Using test VM: ${vm.name_label} (${vm.uuid})`)
+    log.debug('Using test VM', { name: vm.name_label, uuid: vm.uuid })
 
     // Get source backup repository
     sourceRepository = await dispatchClient.backupRepository.get({
@@ -156,7 +159,7 @@ describe('Mirror Backup - Full Remote', () => {
       }
       tracker.trackResource('backupRepository', id, { name: SOURCE_REPOSITORY_NAME })
     }
-    console.log(`Source repository: ${sourceRepository.name} (${sourceRepository.id})`)
+    log.debug('Source repository', { name: sourceRepository.name, id: sourceRepository.id })
 
     // Get or create destination backup repository
     if (!MIRROR_DESTINATION_REPOSITORY_PATH) {
@@ -177,7 +180,7 @@ describe('Mirror Backup - Full Remote', () => {
       }
       tracker.trackResource('backupRepository', id, { name: MIRROR_DESTINATION_REPOSITORY_NAME })
     }
-    console.log(`Destination repository: ${destRepository.name} (${destRepository.id})`)
+    log.debug('Destination repository', { name: destRepository.name, id: destRepository.id })
 
     // Safety check: repositories must be empty to avoid accidental data loss
     await assertRepositoryEmpty(dispatchClient, sourceRepository)
@@ -202,15 +205,15 @@ describe('Mirror Backup - Full Remote', () => {
     })
 
     it('should mirror full backups from source to destination', async () => {
-      console.log('Step 1: Running full backup to populate source repository...')
+      log.debug('Step 1: Running full backup to populate source repository')
       const backupResult = await runFullBackup()
       assertFullOrDelta(backupResult, sourceRepository.id, { mustBeFull: true })
 
       const sourceCount = await countVmBackups(sourceRepository.id, vm.uuid)
       assert.ok(sourceCount > 0, 'Source repository should contain at least one backup')
-      console.log(`Source repository contains ${sourceCount} backup(s)`)
+      log.debug('Source repository backup count', { count: sourceCount })
 
-      console.log('Step 2: Running full mirror backup (source → destination)...')
+      log.debug('Step 2: Running full mirror backup (source → destination)')
       const mirrorResult = await runMirror()
 
       const transferTask = findTaskByMessage(mirrorResult, 'transfer')
@@ -218,25 +221,25 @@ describe('Mirror Backup - Full Remote', () => {
       assert.strictEqual(transferTask.status, 'success', 'Transfer task should succeed')
 
       const transferredBytes = getBackupTransferredBytes(mirrorResult)
-      console.log(`Mirror transferred: ${transferredBytes} bytes`)
+      log.debug('Mirror transferred', { bytes: transferredBytes })
 
       const destCount = await countVmBackups(destRepository.id, vm.uuid)
       assert.ok(destCount > 0, 'Destination repository should contain backups after mirror')
-      console.log(`Destination repository contains ${destCount} backup(s) after mirror`)
+      log.debug('Destination backup count after mirror', { count: destCount })
     })
 
     it('should only transfer new backups on second mirror run', async () => {
       const destCountBefore = await countVmBackups(destRepository.id, vm.uuid)
-      console.log(`Destination has ${destCountBefore} backup(s) before second mirror`)
+      log.debug('Destination backup count before second mirror', { count: destCountBefore })
 
-      console.log('Step 1: Running another full backup to add data on source...')
+      log.debug('Step 1: Running another full backup to add data on source')
       await runFullBackup()
 
-      console.log('Step 2: Running second mirror backup...')
+      log.debug('Step 2: Running second mirror backup')
       await runMirror()
 
       const destCountAfter = await countVmBackups(destRepository.id, vm.uuid)
-      console.log(`Destination has ${destCountAfter} backup(s) after second mirror`)
+      log.debug('Destination backup count after second mirror', { count: destCountAfter })
 
       assert.ok(
         destCountAfter > destCountBefore,
@@ -259,22 +262,21 @@ describe('Mirror Backup - Full Remote', () => {
       const DEST_RETENTION = 2
 
       // Populate source with SOURCE_RETENTION full backups
-      console.log(`Creating ${SOURCE_RETENTION} full backups on source (retention=${SOURCE_RETENTION})...`)
+      log.debug('Creating full backups on source', { count: SOURCE_RETENTION })
       for (let i = 0; i < SOURCE_RETENTION; i++) {
-        console.log(`  Backup ${i + 1}/${SOURCE_RETENTION}...`)
+        log.debug('Running backup', { run: i + 1, of: SOURCE_RETENTION })
         await runFullBackup()
       }
 
       const sourceCount = await countVmBackups(sourceRepository.id, vm.uuid)
-      console.log(`Source has ${sourceCount} backup(s)`)
+      log.debug('Source backup count', { count: sourceCount })
       assert.ok(sourceCount >= SOURCE_RETENTION, `Source should have at least ${SOURCE_RETENTION} backups`)
 
-      // Mirror with lower retention on destination
-      console.log(`Running mirror with destination exportRetention=${DEST_RETENTION}...`)
+      log.debug('Running mirror with destination exportRetention', { exportRetention: DEST_RETENTION })
       await runMirror({ exportRetention: DEST_RETENTION })
 
       const destCount = await countVmBackups(destRepository.id, vm.uuid)
-      console.log(`Destination has ${destCount} backup(s) (expected ≤ ${DEST_RETENTION})`)
+      log.debug('Destination backup count', { count: destCount, expectedMax: DEST_RETENTION })
 
       assert.ok(
         destCount <= DEST_RETENTION,
@@ -301,33 +303,31 @@ describe('Mirror Backup - Full Remote', () => {
       // Create SOURCE_RETENTION backups, mirror, repeat — destination should accumulate
 
       // Round 1: populate source + mirror
-      console.log(`Round 1: creating ${SOURCE_RETENTION} backups on source...`)
+      log.debug('Round 1: creating backups on source', { count: SOURCE_RETENTION })
       for (let i = 0; i < SOURCE_RETENTION; i++) {
         await runFullBackup()
       }
 
-      console.log(`Round 1: mirroring with destination exportRetention=${DEST_RETENTION}...`)
+      log.debug('Round 1: mirroring', { exportRetention: DEST_RETENTION })
       await runMirror({ exportRetention: DEST_RETENTION })
 
       const destCountRound1 = await countVmBackups(destRepository.id, vm.uuid)
-      console.log(`Destination has ${destCountRound1} backup(s) after round 1`)
+      log.debug('Destination backup count after round 1', { count: destCountRound1 })
       assert.ok(destCountRound1 > 0, 'Destination should have backups after first mirror')
 
-      // Round 2: create more backups on source + mirror again
-      console.log(`Round 2: creating ${SOURCE_RETENTION} more backups on source...`)
+      log.debug('Round 2: creating more backups on source', { count: SOURCE_RETENTION })
       for (let i = 0; i < SOURCE_RETENTION; i++) {
         await runFullBackup()
       }
 
-      console.log(`Round 2: mirroring again...`)
+      log.debug('Round 2: mirroring again')
       await runMirror({ exportRetention: DEST_RETENTION })
 
       const destCountRound2 = await countVmBackups(destRepository.id, vm.uuid)
-      console.log(`Destination has ${destCountRound2} backup(s) after round 2`)
+      log.debug('Destination backup count after round 2', { count: destCountRound2 })
 
-      // Destination should have accumulated more backups than source currently holds
       const sourceCount = await countVmBackups(sourceRepository.id, vm.uuid)
-      console.log(`Source currently has ${sourceCount} backup(s)`)
+      log.debug('Source current backup count', { count: sourceCount })
 
       assert.ok(
         destCountRound2 > destCountRound1,

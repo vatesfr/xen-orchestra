@@ -12,10 +12,17 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [Backups] Add UserAgent in s3 client ([#9815](https://github.com/vatesfr/xen-orchestra/pull/9815))
+- [xo-web] support qcow2 format in disk > import (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
+- [xo-server] support qcow2 format in `disk.importContent` and `disk.import` jsonRPC api (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
+- [web-core] Update `UiTag` and parse tag for detecting tags with `=` (PR [#9811](https://github.com/vatesfr/xen-orchestra/pull/9811))
+- **XO 5**:
+  - [Export config] Hide passphrase by default (PR [#9824](https://github.com/vatesfr/xen-orchestra/pull/9824))
 
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
+
+- [REST] Fixed ignored parameters in request body due to a tsoa bug (see https://github.com/lukeautry/tsoa/pull/1858) (PR [#9793](https://github.com/vatesfr/xen-orchestra/pull/9793))
 
 ### Packages to release
 
@@ -34,4 +41,9 @@
 <!--packages-start-->
 
 - @xen-orchestra/fs minor
+- @xen-orchestra/rest-api patch
+- @xen-orchestra/web-core minor
+- xo-server minor
+- xo-web minor
+
 <!--packages-end-->

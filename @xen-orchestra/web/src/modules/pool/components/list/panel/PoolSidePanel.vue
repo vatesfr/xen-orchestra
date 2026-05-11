@@ -51,7 +51,7 @@
             <template #key>{{ t('tags') }}</template>
             <template #value>
               <UiTagsList v-if="pool !== undefined && pool.tags.length > 0">
-                <UiTag v-for="tag in pool.tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
+                <VtsTag v-for="tag in pool.tags" :key="tag" :value="tag" />
               </UiTagsList>
             </template>
             <template v-if="pool !== undefined && pool.tags.length > 0" #addons>
@@ -88,9 +88,10 @@
               :icon="`object:host:${toLower(primaryHost.power_state)}`"
               size="small"
               :to="{ name: '/host/[id]/dashboard', params: { id: primaryHost.id } }"
+              is-primary
+              :primary-tooltip="t('master')"
             >
               {{ primaryHost.name_label }}
-              <VtsIcon accent="info" name="status:primary-circle" size="medium" />
             </UiLink>
           </template>
           <template v-if="primaryHost !== undefined" #addons>
@@ -181,6 +182,7 @@ import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
+import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -190,7 +192,6 @@ import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useMapper } from '@core/packages/mapper'

@@ -17,12 +17,16 @@
       <VtsKeyValueRow :label="t('uuid')" :value="vm.uuid" />
       <VtsKeyValueRow :label="t('host')">
         <template #value>
-          <span v-if="host" class="host-name">
-            <UiLink :to="`/host/${host.uuid}`" size="medium" :icon="`object:host:${hostPowerState}`">
-              {{ host.name_label }}
-            </UiLink>
-            <VtsIcon v-if="isPoolMaster" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
-          </span>
+          <UiLink
+            v-if="host"
+            :to="`/host/${host.uuid}`"
+            size="medium"
+            :icon="`object:host:${hostPowerState}`"
+            :is-primary="isPoolMaster"
+            :primary-tooltip="t('master')"
+          >
+            {{ host.name_label }}
+          </UiLink>
           <span v-else>
             {{ t('none') }}
           </span>
@@ -41,7 +45,7 @@
       <VtsKeyValueRow :label="t('tags')">
         <template #value>
           <UiTagsList v-if="vm.tags.length > 0">
-            <UiTag v-for="tag in vm.tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
+            <VtsTag v-for="tag in vm.tags" :key="tag" :value="tag" />
           </UiTagsList>
         </template>
       </VtsKeyValueRow>
@@ -61,11 +65,10 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsKeyValueList from '@core/components/key-value-list/VtsKeyValueList.vue'
 import VtsKeyValueRow from '@core/components/key-value-row/VtsKeyValueRow.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
+import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
-import { vTooltip } from '@core/directives/tooltip.directive'
 import { useMapper } from '@core/packages/mapper'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { parseDateTime } from '@core/utils/time.util.ts'
@@ -185,11 +188,10 @@ const mainIpAddress = computed(() => {
 
 <style lang="postcss" scoped>
 .vm-dashboard-quick-info {
-  .power-state,
-  .host-name {
+  .power-state {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.8rem;
   }
 }
 </style>

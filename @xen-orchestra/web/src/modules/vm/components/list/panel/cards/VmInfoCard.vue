@@ -32,7 +32,7 @@
         <template #key>{{ t('tags') }}</template>
         <template #value>
           <UiTagsList v-if="vm.tags.length > 0">
-            <UiTag v-for="tag in vm.tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
+            <VtsTag v-for="tag in vm.tags" :key="tag" :value="tag" />
           </UiTagsList>
         </template>
         <template v-if="vm.tags.length > 0" #addons>
@@ -56,10 +56,15 @@
         <template #key>{{ t('host') }}</template>
         <template #value>
           <div v-if="host" class="value">
-            <UiLink :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }" size="small" :icon="`object:host:${hostPowerState}`">
+            <UiLink
+              :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
+              size="small"
+              :icon="`object:host:${hostPowerState}`"
+              :is-primary="isMaster"
+              :primary-tooltip="t('master')"
+            >
               {{ host.name_label }}
             </UiLink>
-            <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="status:primary-circle" size="small" />
           </div>
         </template>
         <template v-if="host" #addons>
@@ -145,7 +150,7 @@ import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
-import { useXoVmCollection, type FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoVmTemplateCollection } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import { XCP_LINKS } from '@/shared/constants.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
@@ -153,10 +158,10 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'

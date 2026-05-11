@@ -1443,7 +1443,7 @@ const messages = {
   format: 'Format',
   importVdi: 'Import VDI content',
   importVdiNoFile: 'No file selected',
-  selectVdiMessage: 'Drop VHD file here',
+  selectVdiMessage: 'Drop VHD or Qcow2 file here',
   useQuotaWarning:
     'Creating this disk will use the disk space quota from the resource set {resourceSet} ({spaceLeft} left)',
   notEnoughSpaceInResourceSet: 'Not enough space in resource set {resourceSet} ({spaceLeft} left)',

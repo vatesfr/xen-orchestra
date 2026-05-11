@@ -1,8 +1,11 @@
+import { createLogger } from '@xen-orchestra/log'
 import fs from 'node:fs/promises'
 import { createWriteStream } from 'node:fs'
 import { pipeline } from 'node:stream/promises'
 import { FilterBuilder } from '../FilterBuilder.js'
 import { assertNonEmptyString, assertFileExists } from '../../utils/index.js'
+
+const log = createLogger('xo:qa-test:request')
 
 /**
  * Abstract base class for all XenOrchestra request handlers.
@@ -75,7 +78,7 @@ export class AbstractRequest {
     if (this.endpoint) {
       const result = await this._tryRestGet(filter)
       if (result !== undefined) {
-        console.log(`✅ Retrieved ${this.endpoint} via REST API`)
+        log.debug('Retrieved via REST API', { endpoint: this.endpoint })
       }
       return result // Returns result or undefined if not found
     }
@@ -100,7 +103,7 @@ export class AbstractRequest {
     // Use REST API if endpoint is available
     if (this.endpoint) {
       const result = await this._tryRestList(filter)
-      console.log(`✅ Retrieved ${this.endpoint} list via REST API`)
+      log.debug('Retrieved list via REST API', { endpoint: this.endpoint })
       return result
     }
 
@@ -128,7 +131,7 @@ export class AbstractRequest {
     if (this.endpoint) {
       const result = await this.dispatchClient.restApiClient.get(`/rest/v0/${this.endpoint}/${id}`)
       if (result) {
-        console.log(`✅ Retrieved ${this.endpoint} details via REST API`)
+        log.debug('Retrieved details via REST API', { endpoint: this.endpoint })
         return result
       }
       throw new Error(`Object with ID ${id} not found`)
@@ -265,15 +268,19 @@ export class AbstractRequest {
     await assertFileExists(filePath)
     const stats = await fs.stat(filePath)
 
-    console.log(
-      `Importing ${format} ${filePath} to ${targetType} ${targetUuid} (${(stats.size / 1024 / 1024).toFixed(2)} MB)`
-    )
+    log.debug('Importing file', {
+      format,
+      filePath,
+      targetType,
+      targetUuid,
+      sizeMB: (stats.size / 1024 / 1024).toFixed(2),
+    })
 
     try {
       const resourceId = await uploadHandler(stats)
       const duration = Date.now() - startTime
 
-      console.log(`${format} imported successfully as ${resultType} ${resourceId} in ${duration}ms`)
+      log.debug('File imported successfully', { format, resultType, resourceId, duration })
 
       return resourceId
     } catch (error) {
@@ -324,17 +331,24 @@ export class AbstractRequest {
     const queryString = queryParams?.toString() ?? ''
     const endpoint = `${baseEndpoint}/${resourceUuid}${extension}${queryString ? '?' + queryString : ''}`
 
-    console.log(
-      `Exporting ${resourceType} ${resourceUuid} to ${format}: ${outputPath}${logSuffix ? ` ${logSuffix}` : ''}`
-    )
+    log.debug('Exporting resource', {
+      resourceType,
+      resourceUuid,
+      format,
+      outputPath,
+      ...(logSuffix && { suffix: logSuffix }),
+    })
 
     try {
       const result = await this._downloadToFile(endpoint, outputPath, { timeout })
 
-      console.log(
-        `${format} exported successfully: ${outputPath} ` +
-          `(${(result.size / 1024 / 1024).toFixed(2)} MB in ${result.duration}ms${logSuffix ? `, ${logSuffix}` : ''})`
-      )
+      log.debug('Resource exported successfully', {
+        format,
+        outputPath,
+        sizeMB: (result.size / 1024 / 1024).toFixed(2),
+        duration: result.duration,
+        ...(logSuffix && { suffix: logSuffix }),
+      })
 
       return {
         ...result,
@@ -404,7 +418,7 @@ export class AbstractRequest {
       try {
         await fs.unlink(outputPath)
       } catch (cleanupError) {
-        console.warn(`Cleanup failed for ${outputPath}: ${cleanupError.message}`)
+        log.warn('Cleanup failed for partial download', { outputPath, error: cleanupError.message })
       }
 
       if (error.code) {

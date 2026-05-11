@@ -7,23 +7,23 @@
 
 import assert from 'node:assert'
 import { after, before, describe, it } from 'node:test'
+import { createLogger } from '@xen-orchestra/log'
 import { setup, teardown } from './setup.js'
+
+const log = createLogger('xo:qa-test:tests')
 
 describe('Infrastructure Tests', () => {
   let dispatchClient
   let tracker
 
   before(async () => {
-    console.log('\n🚀 Setting up infrastructure tests...')
     ;({ dispatchClient, tracker } = await setup())
-    console.log('✅ Infrastructure setup complete')
   })
 
   after(async () => {
     if (dispatchClient) {
       // Use proper teardown which includes resource cleanup
       await teardown(dispatchClient, tracker)
-      console.log('✅ Infrastructure cleanup complete')
     }
   })
 
@@ -45,11 +45,11 @@ describe('Infrastructure Tests', () => {
       try {
         const serverInfo = await dispatchClient.getServerInfo()
         assert(serverInfo !== undefined, 'Should get some server information')
-        console.log(`   Server info: ${JSON.stringify(serverInfo)}`)
+        log.debug('WebSocket server info', { serverInfo })
       } catch (error) {
         // Accept connection test even if specific method fails
         if (error.message.includes('method not found')) {
-          console.log('   WebSocket connection verified (method unavailable)')
+          log.debug('WebSocket connection verified (method unavailable)')
           assert(true, 'WebSocket connection is working')
         } else {
           throw error
@@ -62,11 +62,11 @@ describe('Infrastructure Tests', () => {
         // Test a simple REST API call
         const response = await dispatchClient.restApiClient.get('/rest/v0/hosts')
         assert(response !== undefined, 'Should get REST API response')
-        console.log('   REST API call successful')
+        log.debug('REST API call successful')
       } catch (error) {
         // Even if endpoint doesn't exist, we confirmed auth works from initialization
         if (error.message.includes('404') || error.message.includes('Request failed')) {
-          console.log('   REST API connection verified (endpoint may not exist)')
+          log.debug('REST API connection verified (endpoint may not exist)')
           assert(true, 'REST API connection is working')
         } else {
           throw error

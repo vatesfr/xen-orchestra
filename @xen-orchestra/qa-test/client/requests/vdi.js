@@ -1,6 +1,9 @@
+import { createLogger } from '@xen-orchestra/log'
 import fs from 'node:fs/promises'
 import { AbstractRequest } from './abstract.js'
 import { assertNonEmptyString } from '../../utils/index.js'
+
+const log = createLogger('xo:qa-test:vdi')
 
 /**
  * Specialized request handler for XenOrchestra VDI (Virtual Disk Image) operations.
@@ -136,7 +139,7 @@ export class VDIRequest extends AbstractRequest {
       )
 
       if (!vdis || vdis.length === 0) {
-        console.log(`No VDIs found for VM ${vmUuid}`)
+        log.debug('No VDIs found for VM', { vmUuid })
         return []
       }
 
@@ -151,7 +154,7 @@ export class VDIRequest extends AbstractRequest {
           SR: vdi.$SR,
         }))
 
-      console.log(`Found ${diskVdis.length} VDI(s) for VM ${vmUuid}`)
+      log.debug('Found VDIs for VM', { count: diskVdis.length, vmUuid })
       return diskVdis
     } catch (error) {
       if (error.code) {

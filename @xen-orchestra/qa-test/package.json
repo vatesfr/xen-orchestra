@@ -20,6 +20,7 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@xen-orchestra/log": "^0.7.2",
     "xo-lib": "^0.11.2"
   },
   "scripts": {

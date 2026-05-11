@@ -1,8 +1,8 @@
-<!-- v4 -->
+<!-- v6 -->
 <template>
   <div class="ui-info">
-    <VtsIcon class="icon" :name="icon" size="medium" />
-    <p v-tooltip="!wrap" class="typo-body-regular-small label" :class="{ 'text-ellipsis': !wrap }">
+    <VtsIcon class="icon" :name="icon" :size />
+    <p v-tooltip="!wrap" class="label" :class="[textSize, { 'text-ellipsis': !wrap }]">
       <slot />
     </p>
   </div>
@@ -15,10 +15,12 @@ import type { IconName } from '@core/icons'
 import { useMapper } from '@core/packages/mapper'
 
 export type InfoAccent = 'info' | 'success' | 'warning' | 'danger' | 'muted'
+type Size = 'small' | 'medium'
 
-const { accent } = defineProps<{
+const { accent, size = 'medium' } = defineProps<{
   accent: InfoAccent
   wrap?: boolean
+  size?: Size
 }>()
 
 defineSlots<{
@@ -36,16 +38,25 @@ const icon = useMapper<InfoAccent, IconName>(
   },
   'muted'
 )
+
+const textSize = useMapper<Size, any>(
+  () => size,
+  {
+    small: 'typo-body-regular-small',
+    medium: 'typo-body-regular',
+  },
+  'medium'
+)
 </script>
 
 <style lang="postcss" scoped>
 .ui-info {
-  align-items: start;
+  align-items: baseline;
   display: flex;
   gap: 0.8rem;
 
   .icon {
-    font-size: 1.6rem;
+    transform: translateY(0.2ex);
   }
 
   .label:empty {
