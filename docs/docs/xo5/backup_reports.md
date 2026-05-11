@@ -168,6 +168,116 @@ You need to be an admin:
 
 ![Mattermost](../assets/DocImg9.png)
 
+## Nagios
+
+The `transport-nagios` plugin allows you to integrate Xen Orchestra backup reports directly into your Nagios monitoring system.
+
+Instead of relying solely on email notifications, this plugin sends the status of your backup jobs as **passive checks** to Nagios. This ensures that your infrastructure monitoring dashboard remains the single source of truth for your backup health.
+
+![Preview of the Nagios interface](../assets/nagios-preview.jpg)
+
+### Overview
+
+When a backup job completes, Xen Orchestra sends a report. By using the plugin, the result (`Success`, `Warning`, or `Error`) is pushed to the Nagios command file.
+
+* **Success**: Sends an `OK` status.
+* **Warning**: Sends a `WARNING` status.
+* **Error/Partial Success**: Sends a `CRITICAL` status.
+
+### Prerequisites
+
+#### NSCA
+
+In order to contact Nagios, you must have NSCA (Nagios Service Check Acceptor) running on this Nagios host. 
+
+:::note
+NSCA is a Linux/Unix daemon that lets remote systems "push" status updates to a Nagios server as passive checks. It basically acts as a bridge, by sending data from a client to a server-side daemon that feeds the results directly into Nagios's command file.
+:::
+
+The architecture is like this:
+
+![NSCA schema](../assets/nsca.png)
+
+Check your config file and add a password and a least XOR encryption:
+
+```
+password=mypassword
+decryption_method=1
+```
+
+#### Nagios configuration
+
+#### 1. Create a host for XOA
+
+```
+define host{
+        use                     generic-host            ; Name of $
+        host_name               xoa
+        alias                   Xen Orchestra Appliance
+        address                 192.168.0.245
+        }
+```
+
+#### 2. Create a dedicated service for XOA backups
+
+```
+define service{
+        name                            passif-generic
+        use                             generic-service
+        service_description             xoabackups
+        host_name                       xoa
+        active_checks_enabled           0
+        passive_checks_enabled          1
+        is_volatile                     1
+        max_check_attempts              1
+        check_freshness                 1
+        freshness_threshold             86400
+        check_command                   no-backup-report!0!No backup message sent in the last 24 hours
+}
+```
+
+This service will wait for XOA to send backup news in the last 24 hours.
+
+Your Nagios setup is now ready. If the service doesn't have news from XOA, it will be in `CRITICAL` state, like this:
+
+![Critical alert in Nagios](../assets/xo5nagiosset.png)
+
+### Installation in XOA
+
+The plugin is part of the standard Xen Orchestra transport packages. 
+
+1. Go to **Settings → Plugins**.
+2. Locate `transport-nagios`.
+3. Toggle the switch to **Enabled**.
+
+### Configuration
+
+Once the plugin is enabled, you need to configure the connection to your Nagios server. 
+
+1. Click the edit icon (+) for the `transport-nagios` plugin to show the configuration form:
+
+![transport-nagios plugin configuration form](../assets/nagios-plugin-configuration.png)
+
+2. Enter your desired values.
+3. Click **Save configuration** to save and apply your changes.
+
+### Test the plugin
+
+In the transport-nagios configuration form, you can test the plugin.
+
+If the plugin works correctly, the result should look like this:
+
+![Test for the transport-nagios plugin. The plugin is shown as working fine](../assets/transport-nagios-test.png)
+
+If your backup was completed successfully, the result should look like this:
+
+![Test for the transport-nagios plugin, showing a successful backup](../assets/transport-nagios-backup-successful.png)
+
+### Further resources
+
+- [Nagios website](https://www.nagios.org/)
+- [Official Nagios documentation](https://www.nagios.org/documentation/)
+
 ## Web hooks
 
 You can also configure web hooks to be sent to a custom server before and/or after a backup job runs. This won't send a formatted report but raw JSON data that you can use in custom scripts on your side. Follow the [web-hooks plugin documentation](./advanced#web-hooks) to configure it.

@@ -1,34 +1,27 @@
-<!-- v3 -->
-<!-- TODO: implement tertiary variant to bump to v4 -->
+<!-- v5 -->
 <template>
-  <span :class="toVariants({ accent, variant })" class="ui-tag typo-body-regular-small">
-    <slot name="icon">
-      <VtsIcon :name="icon" size="medium" />
-    </slot>
-    <span>
-      <slot />
-    </span>
+  <span :class="className" class="ui-tag typo-body-regular-small">
+    <slot />
   </span>
 </template>
 
 <script lang="ts" setup>
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util'
+import { computed } from 'vue'
 
-type TagAccent = 'info' | 'neutral' | 'success' | 'warning' | 'danger' | 'muted'
+export type TagAccent = 'info' | 'neutral' | 'success' | 'warning' | 'danger' | 'muted'
 type TagVariant = 'primary' | 'secondary'
 
-defineProps<{
+const { accent, variant } = defineProps<{
   accent: TagAccent
   variant: TagVariant
-  icon?: IconName
 }>()
 
 defineSlots<{
   default(): any
-  icon?(): any
 }>()
+
+const className = computed(() => toVariants({ accent, variant }))
 </script>
 
 <style lang="postcss" scoped>
@@ -39,9 +32,9 @@ defineSlots<{
   gap: 0.8rem;
   white-space: normal;
   word-break: break-word;
-  padding: 0.2rem 0.8rem;
-  border-radius: 0.4rem;
+  padding: 0.35rem 0.8rem;
   vertical-align: middle;
+  border-radius: 0.4rem;
 
   /* COLOR VARIANTS */
 

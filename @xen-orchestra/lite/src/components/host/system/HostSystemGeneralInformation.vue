@@ -10,9 +10,7 @@
       <VtsTabularKeyValueRow :label="t('tags')">
         <template v-if="host.tags.length > 0" #value>
           <UiTagsList class="value">
-            <UiTag v-for="tag in host.tags" :key="tag" accent="info" variant="secondary">
-              {{ tag }}
-            </UiTag>
+            <VtsTag v-for="tag in host.tags" :key="tag" :value="tag" />
           </UiTagsList>
         </template>
       </VtsTabularKeyValueRow>
@@ -67,9 +65,9 @@ import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
+import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'

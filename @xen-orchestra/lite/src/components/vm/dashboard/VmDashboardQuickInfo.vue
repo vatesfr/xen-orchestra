@@ -45,7 +45,7 @@
       <VtsKeyValueRow :label="t('tags')">
         <template #value>
           <UiTagsList v-if="vm.tags.length > 0">
-            <UiTag v-for="tag in vm.tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
+            <VtsTag v-for="tag in vm.tags" :key="tag" :value="tag" />
           </UiTagsList>
         </template>
       </VtsKeyValueRow>
@@ -65,8 +65,8 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsKeyValueList from '@core/components/key-value-list/VtsKeyValueList.vue'
 import VtsKeyValueRow from '@core/components/key-value-row/VtsKeyValueRow.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
+import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
 import { useMapper } from '@core/packages/mapper'

@@ -11,6 +11,10 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [xo-web] support qcow2 format in disk > import (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
+- [xo-server] support qcow2 format in `disk.importContent` and `disk.import` jsonRPC api (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
+- [web-core] Update `UiTag` and parse tag for detecting tags with `=` (PR [#9811](https://github.com/vatesfr/xen-orchestra/pull/9811))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -35,6 +39,7 @@
 
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/web-core minor
-- xo-server patch
+- xo-server minor
+- xo-web minor
 
 <!--packages-end-->

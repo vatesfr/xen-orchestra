@@ -5,7 +5,7 @@
     </template>
     <template #value>
       <UiTagsList v-if="tags.length > 0">
-        <UiTag v-for="tag in tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
+        <VtsTag v-for="tag in tags" :key="tag" :value="tag" />
       </UiTagsList>
     </template>
   </VtsCardRowKeyValue>
@@ -13,7 +13,7 @@
 
 <script lang="ts" setup>
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
+import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 
 defineProps<{

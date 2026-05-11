@@ -1,31 +1,28 @@
-<!-- v4 -->
+<!-- v8 -->
 <template>
-  <span :class="classNames" class="ui-chip typo-body-regular-small" @click="emit('edit')">
-    <ChipIcon :disabled :icon />
-    <span class="content text-ellipsis">
+  <span :class="classNames" class="ui-chip typo-body-regular-small">
+    <span class="text-ellipsis">
       <slot />
     </span>
-    <ChipRemoveIcon v-if="!disabled" :accent @click.stop="emit('remove')" />
+    <button v-if="!disabled" class="icon" type="button" @click.stop="emit('remove')">
+      <VtsIcon name="action:close-cancel-clear" size="medium" />
+    </button>
   </span>
 </template>
 
 <script lang="ts" setup>
-import ChipIcon from '@core/components/ui/chip/ChipIcon.vue'
-import ChipRemoveIcon from '@core/components/ui/chip/ChipRemoveIcon.vue'
-import type { IconName } from '@core/icons'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { toVariants } from '@core/utils/to-variants.util'
 import { computed } from 'vue'
 
 export type ChipAccent = 'info' | 'success' | 'warning' | 'danger'
 
-const props = defineProps<{
+const { accent, disabled } = defineProps<{
   accent: ChipAccent
-  icon?: IconName
   disabled?: boolean
 }>()
 
 const emit = defineEmits<{
-  edit: []
   remove: []
 }>()
 
@@ -36,8 +33,8 @@ defineSlots<{
 const classNames = computed(() => {
   return [
     toVariants({
-      accent: props.accent,
-      muted: props.disabled,
+      accent,
+      muted: disabled,
     }),
   ]
 })
@@ -45,37 +42,51 @@ const classNames = computed(() => {
 
 <style lang="postcss" scoped>
 .ui-chip {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.8rem;
-  padding: 0.4rem 0.8rem;
+  gap: 0.4rem;
+  padding: 0.4rem 1.2rem;
   border-radius: 10rem;
   color: var(--color-neutral-txt-primary);
-  cursor: pointer;
   min-height: 2.4rem;
   vertical-align: middle;
   white-space: nowrap;
-  min-width: 0;
 
   &.muted {
     color: var(--color-neutral-txt-secondary);
     pointer-events: none;
   }
 
-  .content {
-    line-height: 1.6rem;
+  .icon {
+    border-radius: 0 10rem 10rem 0;
+    padding: 0.4rem;
+    margin: -0.4rem -1.2rem -0.4rem 0;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
   }
 
+  .icon:focus-visible {
+    outline: 0.2rem solid var(--color-brand-txt-base);
+    outline-offset: 0.2rem;
+  }
   /* COLOR VARIANTS */
-
   &.accent--info {
     background-color: var(--color-info-background-selected);
 
-    &:is(:hover, :focus-visible) {
+    .icon {
+      color: var(--color-info-txt-hover);
+    }
+
+    .icon:hover {
       background-color: var(--color-info-background-hover);
     }
 
-    &:active {
+    .icon:active {
       background-color: var(--color-info-background-active);
     }
 
@@ -87,11 +98,15 @@ const classNames = computed(() => {
   &.accent--success {
     background-color: var(--color-success-background-selected);
 
-    &:is(:hover, :focus-visible) {
+    .icon {
+      color: var(--color-success-txt-hover);
+    }
+
+    .icon:hover {
       background-color: var(--color-success-background-hover);
     }
 
-    &:active {
+    .icon:active {
       background-color: var(--color-success-background-active);
     }
 
@@ -103,11 +118,15 @@ const classNames = computed(() => {
   &.accent--warning {
     background-color: var(--color-warning-background-selected);
 
-    &:is(:hover, :focus-visible) {
+    .icon {
+      color: var(--color-warning-txt-hover);
+    }
+
+    .icon:hover {
       background-color: var(--color-warning-background-hover);
     }
 
-    &:active {
+    .icon:active {
       background-color: var(--color-warning-background-active);
     }
 
@@ -119,11 +138,15 @@ const classNames = computed(() => {
   &.accent--danger {
     background-color: var(--color-danger-background-selected);
 
-    &:is(:hover, :focus-visible) {
+    .icon {
+      color: var(--color-danger-txt-hover);
+    }
+
+    .icon:hover {
       background-color: var(--color-danger-background-hover);
     }
 
-    &:active {
+    .icon:active {
       background-color: var(--color-danger-background-active);
     }
 
