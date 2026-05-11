@@ -16,7 +16,6 @@ import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useUiStore } from '@core/stores/ui.store'
-import { useI18n } from 'vue-i18n'
 
 const uiStore = useUiStore()
 

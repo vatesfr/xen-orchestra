@@ -17,7 +17,6 @@ import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-co
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
   host: FrontXoHost
@@ -25,7 +24,6 @@ const { host } = defineProps<{
 
 const { getTaskById, sortedTasks, hasTaskFetchError, areTasksReady } = useXoHostTasksCollection({}, () => host.id)
 
-const { t } = useI18n()
 
 const selectedTask = useRouteQuery<FrontXoTask | undefined>('id', {
   toData: id => getTaskById(id as FrontXoTask['id']),
