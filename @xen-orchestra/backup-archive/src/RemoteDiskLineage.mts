@@ -229,6 +229,13 @@ export class RemoteDiskLineage {
     const toMerge: { chain: string[]; isResuming: boolean }[] = []
     const visited = new Set<string>()
 
+    // Broken disks cannot be merged
+    // skip orphan chain traversal for them
+    for (const diskPath of this.#brokenDiskPaths) {
+      toDelete.add(diskPath)
+      visited.add(diskPath)
+    }
+
     // Walk from an orphan toward its descendants.
     // Returns a merge chain [orphan, ..., activeAnchor] if an active child exists,
     // or undefined if the subtree is entirely orphaned (mark for deletion).
