@@ -100,6 +100,8 @@ export class RemoteDiskLineage {
           throw error
         }
         this.#opts.logWarn('failed to open disk', { path: diskPath, error })
+        // Broken disks will be removed by the clean phase
+        // because they are marked as NOT active
         this.#brokenDiskPaths.add(diskPath)
         continue
       }
@@ -229,13 +231,6 @@ export class RemoteDiskLineage {
     const toDelete = new Set<string>()
     const toMerge: { chain: string[]; isResuming: boolean }[] = []
     const visited = new Set<string>()
-
-    // Broken disks cannot be merged
-    // skip orphan chain traversal for them
-    for (const diskPath of this.#brokenDiskPaths) {
-      toDelete.add(diskPath)
-      visited.add(diskPath)
-    }
 
     // Walk from an orphan toward its descendants.
     // Returns a merge chain [orphan, ..., activeAnchor] if an active child exists,
