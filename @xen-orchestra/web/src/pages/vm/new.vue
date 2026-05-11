@@ -108,7 +108,7 @@
                 </UiButton>
                 <div class="ssh-chips">
                   <div v-for="(key, index) in vmState.sshKeys" :key="index" class="ssh-chip-wrapper">
-                    <UiChip accent="normal" @remove="removeSshKey(index)">
+                    <UiChip accent="info" @remove="removeSshKey(index)">
                       {{ key }}
                     </UiChip>
                   </div>
