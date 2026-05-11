@@ -11,6 +11,7 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [Backups] Add UserAgent in s3 client ([#9815](https://github.com/vatesfr/xen-orchestra/pull/9815))
 - [xo-web] support qcow2 format in disk > import (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
 - [xo-server] support qcow2 format in `disk.importContent` and `disk.import` jsonRPC api (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
 - [web-core] Update `UiTag` and parse tag for detecting tags with `=` (PR [#9811](https://github.com/vatesfr/xen-orchestra/pull/9811))
@@ -39,6 +40,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/fs minor
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/web-core minor
 - xo-server minor
