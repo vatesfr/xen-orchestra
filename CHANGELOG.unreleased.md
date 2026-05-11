@@ -13,6 +13,7 @@
 
 - [xo-web] support qcow2 format in disk > import (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
 - [xo-server] support qcow2 format in `disk.importContent` and `disk.import` jsonRPC api (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
+- [REST API] Expose POST `/backup-repositories/:id/actions/connect` and POST `/backup-repositories/:id/actions/disable` routes (PR [#](https://github.com/vatesfr/xen-orchestra/pull/))
 
 ### Bug fixes
 
@@ -36,7 +37,9 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/rest-api patch
+- @vates/types minor
+- @xen-orchestra/acl minor
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/web-core minor
 - xo-server minor
 - xo-web minor

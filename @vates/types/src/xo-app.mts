@@ -294,6 +294,7 @@ export type XoApp = {
       name?: string
     }
   ): void
+  updateRemote(id: XoBackupRepository['id'], props: { enabled?: boolean }): Promise<void>
   getAllXapis(): Record<string, XapiConnection>
   getObjects(opts?: { filter?: Record<string, unknown>; limit?: number }): Record<string, XapiXoRecord>
 }
