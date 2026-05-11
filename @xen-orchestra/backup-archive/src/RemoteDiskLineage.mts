@@ -73,20 +73,7 @@ export class RemoteDiskLineage {
 
     for (const filePath of files) {
       if (isDisk(this.#handler, filePath)) {
-        if (basename(filePath).startsWith('.')) {
-          if (this.#opts.removeTmp) {
-            this.#opts.logInfo('deleting temporary disk file', { path: filePath })
-            try {
-              await this.#handler.unlink(filePath)
-            } catch (error) {
-              if (error?.code !== 'ENOENT') {
-                this.#opts.logWarn('failed to delete temporary disk file', { path: filePath, error })
-              }
-            }
-          }
-        } else {
-          this.#diskPaths.add(normalize(filePath))
-        }
+        this.#diskPaths.add(normalize(filePath))
       }
     }
 
