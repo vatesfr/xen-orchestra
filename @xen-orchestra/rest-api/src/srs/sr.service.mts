@@ -15,8 +15,14 @@ export class SrService {
     const xapi = xapiSr.$xapi
 
     if (sr.SR_type === 'linstor') {
-      await this.#restApi.ioc.get(LicenseService).unbindXostorLicenses(id)
-      await xapi.xostor_delete(xapiSr.$ref)
+      const licenseService = this.#restApi.ioc.get(LicenseService)
+      const bindings = await licenseService.unbindXostorLicenses(id)
+      try {
+        await xapi.xostor_delete(xapiSr.$ref)
+      } catch (error) {
+        await licenseService.rebindXostorLicenses(bindings)
+        throw error
+      }
     } else {
       await xapi.destroySr(id)
     }

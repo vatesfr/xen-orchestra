@@ -372,11 +372,11 @@ export class SrController extends XapiXoController<XoSr> {
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
-  @SuccessResponse(noContentResp.status, noContentResp.description)
-  @Response(notFoundResp.status, notFoundResp.description)
-  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Delete('{id}')
   @Middlewares(acl({ resource: 'sr', action: 'delete', objectId: 'params.id' }))
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
   async deleteSr(@Path() id: string): Promise<void> {
     await this.#srService.delete(id as XoSr['id'])
   }

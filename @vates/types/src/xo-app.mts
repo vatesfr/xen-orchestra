@@ -93,7 +93,7 @@ type LicenseProductId =
   | 'xostor.trial'
 type LicenseProductType = 'xo' | 'xoproxy' | 'xcpng' | 'xosan' | 'xostor'
 
-export type License = {
+type License = {
   id: string
   type: 'license'
   created: number
@@ -325,6 +325,7 @@ export type XoApp = {
   getAllXapis(): Record<string, XapiConnection>
   getObjects(opts?: { filter?: Record<string, unknown>; limit?: number }): Record<string, XapiXoRecord>
   getLicenses(params?: { productType?: LicenseProductType }): Promise<License[]>
+  bindLicense(params: { licenseId: string; boundObjectId: string }): Promise<License>
   unbindLicense(params: {
     productId: LicenseProductId
     boundObjectId: string
