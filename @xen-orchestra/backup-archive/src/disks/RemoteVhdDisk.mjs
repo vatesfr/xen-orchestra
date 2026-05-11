@@ -5,7 +5,7 @@
  * @typedef {import('vhd-lib/Vhd/VhdFile.js').VhdFile} VhdFile
  * @typedef {import('vhd-lib/_createFooterHeader.js').VhdFooter} VhdFooter
  * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
- * @typedef {import('@xen-orchestra/disk-transform').FileAccessor} FileAccessor
+ * @typedef {import('@xen-orchestra/fs').RemoteHandlerAbstract} RemoteHandlerAbstract
  *
 
  */
@@ -26,7 +26,7 @@ export class RemoteVhdDisk extends RemoteDisk {
   #path
 
   /**
-   * @type {FileAccessor}
+   * @type {RemoteHandlerAbstract}
    */
   #handler
 
@@ -57,7 +57,7 @@ export class RemoteVhdDisk extends RemoteDisk {
 
   /**
    * @param {Object} params
-   * @param {FileAccessor} params.handler
+   * @param {RemoteHandlerAbstract} params.handler
    * @param {string} params.path
    */
   constructor({ handler, path }) {

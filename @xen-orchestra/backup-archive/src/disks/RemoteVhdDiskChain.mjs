@@ -4,7 +4,7 @@
  * @typedef {import('./RemoteVhdDisk.mjs').VhdFooter} VhdFooter
  * @typedef {import('./RemoteVhdDisk.mjs').RemoteVhdDisk} RemoteVhdDisk
  * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
- * @typedef {import('@xen-orchestra/disk-transform').FileAccessor} FileAccessor
+ * @typedef {import('@xen-orchestra/fs').RemoteHandlerAbstract} RemoteHandlerAbstract
  */
 
 import { RemoteDisk } from './RemoteDisk.mjs'
@@ -37,7 +37,7 @@ export class RemoteVhdDiskChain extends RemoteDisk {
 
   /**
    * @param {Object} params
-   * @param {FileAccessor} params.handler
+   * @param {RemoteHandlerAbstract} params.handler
    * @param {RemoteVhdDisk[]} params.disks
    */
   constructor({ disks }) {
@@ -301,5 +301,17 @@ export class RemoteVhdDiskChain extends RemoteDisk {
       }
     }
     return true
+  }
+
+  /**
+   * Checks the integrity of the disk's external reference (e.g. alias target).
+   * @param {Object} [opts]
+   * @param {boolean} [opts.remove]
+   * @param {Function} [opts.logWarn]
+   * @param {Function} [opts.logInfo]
+   * @returns {Promise<string | undefined>}
+   */
+  async clean(opts = {}) {
+    throw new Error(`Can't clean a disk chain`)
   }
 }
