@@ -48,7 +48,7 @@ export class BackupRepositoryRequest extends AbstractRequest {
       log.debug('Backup repository created successfully', { name, id: backupRepositoryId })
       return backupRepositoryId
     } catch (error) {
-      log.warn('Failed to create backup repository', { name, error: error.message })
+      log.warn('Failed to create backup repository', { name, error })
       throw error
     }
   }

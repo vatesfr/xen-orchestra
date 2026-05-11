@@ -68,7 +68,7 @@ describe('Backup + Replication Combined Tests', () => {
         log.debug('Purged VM backups', { count: ids.length })
       }
     } catch (error) {
-      log.warn('Backup data purge failed', { error: error.message })
+      log.warn('Backup data purge failed', { error })
     }
 
     // Clean up local exported files
@@ -165,7 +165,7 @@ describe('Backup + Replication Combined Tests', () => {
           await fs.unlink(filePath)
           log.debug('Deleted exported file', { filePath })
         } catch (error) {
-          log.warn('Failed to delete exported file', { filePath, error: error.message })
+          log.warn('Failed to delete exported file', { filePath, error })
         }
       }
     }
@@ -185,7 +185,7 @@ describe('Backup + Replication Combined Tests', () => {
         await dispatchClient.vm.delete(vmUuid, { deleteDisks: true })
         log.debug('Cleaned up restored VM', { vmUuid })
       } catch (error) {
-        log.warn('Failed to cleanup restored VM', { vmUuid, error: error.message })
+        log.warn('Failed to cleanup restored VM', { vmUuid, error })
       }
     }
 

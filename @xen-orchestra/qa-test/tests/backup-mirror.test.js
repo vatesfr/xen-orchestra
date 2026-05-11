@@ -73,7 +73,7 @@ describe('Mirror Backup - Full Remote', () => {
           await dispatchClient.backup.deleteVmBackups(ids)
         }
       } catch (error) {
-        log.warn('Backup purge failed', { repo: repo.name, error: error.message })
+        log.warn('Backup purge failed', { repo: repo.name, error })
       }
     }
   }

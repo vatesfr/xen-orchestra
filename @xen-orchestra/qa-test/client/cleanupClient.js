@@ -135,7 +135,7 @@ export class CleanupClient {
         log.warn('Cleanup partially failed', { resourceType, deleted: results.deleted, failed: results.failed })
       }
     } catch (error) {
-      log.warn('Cleanup failed', { resourceType, error: error.message })
+      log.warn('Cleanup failed', { resourceType, error })
       throw error
     }
 
@@ -203,7 +203,7 @@ export class CleanupClient {
             additionalVms.push(vm)
           }
         } catch (error) {
-          log.warn('Could not fetch VM', { vmId, error: error.message })
+          log.warn('Could not fetch VM', { vmId, error })
         }
       }
 
@@ -276,7 +276,7 @@ export class CleanupClient {
             }
           }
         } catch (error) {
-          log.warn('Backup files cleanup failed for job', { jobId: job.id, error: error.message })
+          log.warn('Backup files cleanup failed for job', { jobId: job.id, error })
         }
       }
 
@@ -390,7 +390,7 @@ export class CleanupClient {
           .map(file => path.join(config.directory, file))
         filesToDelete.push(...matchingFiles)
       } catch (error) {
-        log.warn('Could not read directory', { directory: config.directory, error: error.message })
+        log.warn('Could not read directory', { directory: config.directory, error })
       }
     }
 
@@ -479,7 +479,7 @@ export class CleanupClient {
             vms.push(vm)
           }
         } catch (error) {
-          log.warn('Could not fetch VM', { vmId, error: error.message })
+          log.warn('Could not fetch VM', { vmId, error })
         }
       }
       return vms
@@ -493,7 +493,7 @@ export class CleanupClient {
           // Wait briefly for shutdown
           await new Promise(resolve => setTimeout(resolve, 2000))
         } catch (error) {
-          log.warn('Could not stop VM', { uuid: vm.uuid, error: error.message })
+          log.warn('Could not stop VM', { uuid: vm.uuid, error })
         }
       }
 
@@ -534,7 +534,7 @@ export class CleanupClient {
           repoPath = repoDetails.url.replace('file://', '')
         }
       } catch (error) {
-        log.warn('Could not get repository details', { error: error.message })
+        log.warn('Could not get repository details', { error })
       }
 
       // Clean up backup files if path is allowed
@@ -552,12 +552,12 @@ export class CleanupClient {
               try {
                 await this.dispatchClient.backup.deleteVmBackups(backupIds.slice(i, i + 10))
               } catch (error) {
-                log.warn('Failed to delete backup batch', { error: error.message })
+                log.warn('Failed to delete backup batch', { error })
               }
             }
           }
         } catch (error) {
-          log.warn('Backup files cleanup failed', { error: error.message })
+          log.warn('Backup files cleanup failed', { error })
         }
       } else if (repoPath) {
         log.warn('Skipping backup cleanup: path not in allowed paths', { repoPath })
@@ -568,7 +568,7 @@ export class CleanupClient {
 
       return result
     } catch (error) {
-      log.warn('Backup repository deletion failed', { error: error.message })
+      log.warn('Backup repository deletion failed', { error })
       throw error
     }
   }
@@ -637,7 +637,7 @@ export class CleanupClient {
           fullResults.backupRepository = await this.deleteBackupRepository(config.backupRepositoryId)
           fullResults.totalDeleted++
         } catch (error) {
-          log.warn('Repository cleanup failed', { error: error.message })
+          log.warn('Repository cleanup failed', { error })
           fullResults.backupRepository = { error: error.message }
           fullResults.totalFailed++
         }
@@ -652,7 +652,7 @@ export class CleanupClient {
       fullResults.completedAt = new Date().toISOString()
       fullResults.error = error.message
       fullResults.success = false
-      log.warn('Full cleanup failed', { error: error.message })
+      log.warn('Full cleanup failed', { error })
       throw error
     }
 

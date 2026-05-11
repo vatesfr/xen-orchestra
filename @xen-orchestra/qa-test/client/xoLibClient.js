@@ -42,7 +42,7 @@ export async function xoConnection(config) {
 
     return xo
   } catch (error) {
-    log.warn('Failed to connect to XO server', { error: error.message })
+    log.warn('Failed to connect to XO server', { error })
     throw new Error(`XO connection failed: ${error.message}`)
   }
 }

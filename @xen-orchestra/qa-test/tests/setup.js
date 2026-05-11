@@ -1,3 +1,4 @@
+import '../logSetup.js'
 import { createLogger } from '@xen-orchestra/log'
 import { DispatchClient } from '../client/dispatchClient.js'
 import { createResourceTracker } from '../utils/resourceTracker.js'
@@ -23,7 +24,7 @@ async function generateIncrementalVmName(dispatchClient, baseName) {
 
     return `${baseName}-${maxNumber + 1}`
   } catch (error) {
-    log.warn('Failed to generate incremental name', { error: error.message })
+    log.warn('Failed to generate incremental name', { error })
     return `${baseName}-${Date.now()}`
   }
 }
@@ -85,7 +86,7 @@ export const setup = async () => {
 
     log.debug('Setup completed', { tracked: tracker.getResourceSummary() })
   } catch (error) {
-    log.warn('Setup failed', { error: error.message })
+    log.warn('Setup failed', { error })
 
     try {
       log.debug('Cleaning up partial resources')
@@ -113,12 +114,12 @@ export const teardown = async (dispatchClient, tracker) => {
     await performCleanup(dispatchClient, tracker)
     log.debug('Teardown completed')
   } catch (error) {
-    log.warn('Teardown failed', { error: error.message })
+    log.warn('Teardown failed', { error })
   } finally {
     try {
       await dispatchClient.close()
     } catch (error) {
-      log.warn('Failed to close connections', { error: error.message })
+      log.warn('Failed to close connections', { error })
     }
   }
 }
@@ -178,7 +179,7 @@ async function performCleanup(dispatchClient, tracker, forceCleanup = false) {
 
     tracker.clearTrackedResources()
   } catch (error) {
-    log.warn('Cleanup failed', { error: error.message })
+    log.warn('Cleanup failed', { error })
     if (!forceCleanup) {
       throw error
     }

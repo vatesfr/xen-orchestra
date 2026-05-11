@@ -68,7 +68,7 @@ describe('Backup basic tests', () => {
         // Track the newly created repository for cleanup
         tracker.trackResource('backupRepository', backupRepositoryId, { name: backupRepositoryName })
       } catch (error) {
-        log.warn('Failed to create test backup repository', { error: error.message })
+        log.warn('Failed to create test backup repository', { error })
         assert.fail(
           `Backup repository "${backupRepositoryName}" is required for backup tests - could not create it: ${error.message}`
         )

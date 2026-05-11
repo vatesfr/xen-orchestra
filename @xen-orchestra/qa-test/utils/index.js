@@ -138,7 +138,7 @@ export async function waitUntil(conditionFn, interval = 1000, timeout = 15_000, 
       }
     } catch (error) {
       // Continue waiting on errors
-      log.debug('waitUntil condition error', { error: error.message })
+      log.debug('waitUntil condition error', { error })
     }
 
     await delay(currentInterval)

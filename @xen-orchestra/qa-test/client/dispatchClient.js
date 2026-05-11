@@ -112,7 +112,7 @@ export class DispatchClient {
 
       log.debug('All connections established successfully')
     } catch (error) {
-      log.warn('Failed to initialize connections', { error: error.message })
+      log.warn('Failed to initialize connections', { error })
       throw error
     }
   }

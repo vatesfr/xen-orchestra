@@ -72,7 +72,7 @@ describe('VHD/XVA Export Replication Tests', () => {
           await fs.unlink(filePath)
           log.debug('Deleted exported file', { filePath })
         } catch (error) {
-          log.warn('Failed to delete exported file', { filePath, error: error.message })
+          log.warn('Failed to delete exported file', { filePath, error })
         }
       }
     }
@@ -273,7 +273,7 @@ describe('VHD/XVA Export Replication Tests', () => {
           await dispatchClient.vm.delete(restoredVmUuid, { deleteDisks: true })
           log.debug('Cleaned up restored VM', { uuid: restoredVmUuid })
         } catch (error) {
-          log.warn('Failed to cleanup restored VM', { uuid: restoredVmUuid, error: error.message })
+          log.warn('Failed to cleanup restored VM', { uuid: restoredVmUuid, error })
         }
       }
 
