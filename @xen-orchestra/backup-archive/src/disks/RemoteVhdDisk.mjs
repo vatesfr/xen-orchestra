@@ -245,6 +245,13 @@ export class RemoteVhdDisk extends RemoteDisk {
     const parent = new RemoteVhdDisk({ handler: this.#handler, path: fullParentPath })
     return parent
   }
+  /**
+   * Parent of a RemoteVhdDisk is a RemoteVhdDisk
+   * @returns {Promise<RemoteVhdDisk>}
+   */
+  async openParent() {
+    return /** @type {Promise<RemoteVhdDisk>} */ (super.openParent())
+  }
 
   /**
    * Writes a full block into this VHD.

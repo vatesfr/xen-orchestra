@@ -3,10 +3,10 @@ import { basename, dirname, normalize } from '@xen-orchestra/fs/path'
 import {
   MergeRemoteDisk,
   openDisk,
-  openDiskChainFromPaths,
   openDisposableDisk,
   RemoteDisk,
   isDisk,
+  openDiskChain,
 } from '@xen-orchestra/backup-archive/disks'
 import Disposable from 'promise-toolbox/Disposable'
 import {
@@ -18,6 +18,7 @@ import {
 import { asyncEach } from '@vates/async-each'
 import { Task } from '@vates/task'
 import { limitConcurrency } from 'limit-concurrency-decorator'
+import assert from 'node:assert/strict'
 
 const defaultMergeLimiter = limitConcurrency(1)
 /**
@@ -352,7 +353,9 @@ export class RemoteDiskLineage {
    * Returns the final size of the merge target and its path.
    */
   async #mergeChain(chain: string[], isResuming: boolean): Promise<{ finalDiskSize: number; mergeTargetPath: string }> {
+    assert.ok(chain.length > 2, `look to merge a chain shorter than 2 ${JSON.stringify(chain)}`)
     const parentPath = chain[0]
+    const leafPath = chain.pop()!
     // The last disk in the chain is the active one that everything gets merged into
     const mergeTargetPath = chain[chain.length - 1]
 
@@ -364,16 +367,22 @@ export class RemoteDiskLineage {
       mergeBlockConcurrency: this.#opts.mergeBlockConcurrency,
       onProgress: this.#opts.onProgress,
     })
+    let parentDisk: RemoteDisk | undefined
+    let childDisk: RemoteDisk | undefined
+    try {
+      parentDisk = await openDisk({ handler: this.#handler as any, path: parentPath, force: isResuming })
+      childDisk = await openDiskChain({ handler: this.#handler, path: leafPath, until: parentPath, force: isResuming })
 
-    const parentDisk = await openDisk({ handler: this.#handler as any, path: parentPath, force: isResuming })
-    const childDisk = await openDiskChainFromPaths({
-      handler: this.#handler as any,
-      paths: chain.slice(1),
-      force: isResuming,
-    })
-
-    const { finalDiskSize } = (await merger.merge(parentDisk, childDisk))!
-    return { finalDiskSize, mergeTargetPath }
+      const { finalDiskSize } = (await merger.merge(parentDisk, childDisk!))!
+      return { finalDiskSize, mergeTargetPath }
+    } finally {
+      await parentDisk?.close().catch(() => {
+        /* should log */
+      })
+      await childDisk?.close().catch(() => {
+        /* should log */
+      })
+    }
   }
 
   /**
