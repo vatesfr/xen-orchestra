@@ -18,9 +18,7 @@
         <template #key>{{ t('task-type') }}</template>
         <template #value>
           <UiTagsList v-if="task.properties.type !== undefined">
-            <UiTag accent="info" variant="secondary">
-              {{ task.properties.type }}
-            </UiTag>
+            <VtsTag :value="task.properties.type" />
           </UiTagsList>
         </template>
         <template v-if="task.properties.type !== undefined" #addons>
@@ -73,6 +71,7 @@ import { getTaskAccents } from '@/modules/task/utils/xo-task.util.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCircleProgressBar from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'

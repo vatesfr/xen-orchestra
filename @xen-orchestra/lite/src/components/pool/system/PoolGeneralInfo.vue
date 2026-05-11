@@ -10,9 +10,7 @@
       <VtsTabularKeyValueRow :label="t('tags')">
         <template v-if="pool.tags.length > 0" #value>
           <UiTagsList>
-            <UiTag v-for="tag in pool.tags" :key="tag" accent="info" variant="secondary">
-              {{ tag }}
-            </UiTag>
+            <VtsTag v-for="tag in pool.tags" :key="tag" :value="tag" />
           </UiTagsList>
         </template>
       </VtsTabularKeyValueRow>
@@ -24,8 +22,8 @@
 import type { XenApiPool } from '@/libs/xen-api/xen-api.types'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
+import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
