@@ -14,6 +14,8 @@
 - [xo-web] support qcow2 format in disk > import (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
 - [xo-server] support qcow2 format in `disk.importContent` and `disk.import` jsonRPC api (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
 - [web-core] Update `UiTag` and parse tag for detecting tags with `=` (PR [#9811](https://github.com/vatesfr/xen-orchestra/pull/9811))
+- **XO 5**:
+  - [Export config] Hide passphrase by default (PR [#9824](https://github.com/vatesfr/xen-orchestra/pull/9824))
 
 ### Bug fixes
 
