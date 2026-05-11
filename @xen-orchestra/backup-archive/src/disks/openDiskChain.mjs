@@ -36,6 +36,7 @@ async function _openDiskChain($defer, { handler, path, until, force = false }) {
     disk = await disk.openParent()
     if (disk.getPath() === until) {
       foundRootDisk = true
+      await disk.close()
       break
     }
     disks.unshift(disk)
