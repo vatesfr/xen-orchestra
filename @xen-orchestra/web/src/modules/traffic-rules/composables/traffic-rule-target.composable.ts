@@ -41,7 +41,7 @@ export function useTrafficRuleTarget() {
     return {
       label: vif ? `${t('vif')}${vif.device}` : '',
       icon: 'object:vif',
-      to: vif && vm ? { name: '/vm/[id]/networks', params: { id: vif.$VM } } : undefined,
+      to: vif ? { name: '/vif/[id]/traffic-rules', params: { id: vif.id } } : undefined,
       suffix: vm
         ? {
             label: vm.name_label,

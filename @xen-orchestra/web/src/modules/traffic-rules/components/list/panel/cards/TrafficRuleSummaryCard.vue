@@ -28,7 +28,7 @@
               <UiLink
                 size="small"
                 icon="object:vif"
-                :to="vm ? { name: '/vm/[id]/networks', params: { id: vif.$VM } } : undefined"
+                :to="vif ? { name: '/vif/[id]/traffic-rules', params: { id: vif.id } } : undefined"
               >
                 {{ vifDevice }}
               </UiLink>
