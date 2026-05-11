@@ -335,13 +335,11 @@ export class RemoteDiskLineage {
    * Returns the final size of the merge target and its path.
    */
   async #mergeChain(chain: string[], isResuming: boolean): Promise<{ finalDiskSize: number; mergeTargetPath: string }> {
-    assert.ok(chain.length > 2, `look to merge a chain shorter than 2 ${JSON.stringify(chain)}`)
+    assert.ok(chain.length >= 2, `look to merge a chain shorter than 2 ${JSON.stringify(chain)}`)
     const parentPath = chain[0]
-    const leafPath = chain.pop()!
-    // The last disk in the chain is the active one that everything gets merged into
-    const mergeTargetPath = chain[chain.length - 1]
-
     this.#opts.logInfo('merging disk chain', { chain })
+    // The last disk in the chain is the active one that everything gets merged into
+    const mergeTargetPath = chain.pop()!
 
     const merger = new MergeRemoteDisk(this.#handler as any, {
       logInfo: this.#opts.logInfo,
@@ -353,7 +351,12 @@ export class RemoteDiskLineage {
     let childDisk: RemoteDisk | undefined
     try {
       parentDisk = await openDisk({ handler: this.#handler as any, path: parentPath, force: isResuming })
-      childDisk = await openDiskChain({ handler: this.#handler, path: leafPath, until: parentPath, force: isResuming })
+      childDisk = await openDiskChain({
+        handler: this.#handler,
+        path: mergeTargetPath,
+        until: parentPath,
+        force: isResuming,
+      })
 
       const { finalDiskSize } = (await merger.merge(parentDisk, childDisk!))!
       return { finalDiskSize, mergeTargetPath }
