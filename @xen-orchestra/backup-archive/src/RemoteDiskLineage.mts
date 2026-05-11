@@ -72,7 +72,7 @@ export class RemoteDiskLineage {
     const files = await this.#handler.list(this.#vdiDir, { prependDir: true })
 
     for (const filePath of files) {
-      if (isDisk(this.#handler, filePath)) {
+      if (isDisk(filePath)) {
         this.#diskPaths.add(normalize(filePath))
       }
     }

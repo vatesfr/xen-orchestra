@@ -1,12 +1,9 @@
-import { isVhdAlias } from 'vhd-lib/aliases.js'
 import { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
-import { RemoteVhdDiskChain } from './RemoteVhdDiskChain.mjs'
 
 export { RemoteDisk } from './RemoteDisk.mjs'
 export { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
 export { openDiskChain } from './openDiskChain.mjs'
 export { MergeRemoteDisk } from './MergeRemoteDisk.mjs'
-export { isVhdAlias } from 'vhd-lib/aliases.js'
 
 const DISK_EXTENSIONS = ['.vhd']
 
@@ -16,11 +13,7 @@ const DISK_EXTENSIONS = ['.vhd']
  * @typedef {import('./MergeRemoteDisk.mjs').MergeState} MergeState
  */
 
-export function isDiskAlias(filename) {
-  return isVhdAlias(filename)
-}
-
-export function isDisk(_handler, path) {
+export function isDisk(path) {
   return DISK_EXTENSIONS.some(ext => path.endsWith(ext))
 }
 
@@ -66,26 +59,6 @@ export async function openDisk({ handler, path, force = false, ignoreBlockIndexe
     await disk.init({ force })
   }
   return disk
-}
-/**
- * Opens one or more disk paths as a single RemoteDisk (or RemoteVhdDiskChain for multiple paths).
- * Use this when merging a chain: pass the child paths as an array; the chain is opened in order
- * from oldest to newest (same order expected by RemoteVhdDiskChain).
- *
- * @param {Object} params
- * @param {FileAccessor} params.handler
- * @param {string[]} params.paths
- * @param {boolean} [params.force]
- * @returns {Promise<RemoteDisk>}
- */
-export async function openDiskChainFromPaths({ handler, paths, force = false }) {
-  if (paths.length === 1) {
-    return openDisk({ handler, path: paths[0], force })
-  }
-  const disks = paths.map(path => new RemoteVhdDisk({ handler, path }))
-  const chain = new RemoteVhdDiskChain({ disks })
-  await chain.init({ force })
-  return chain
 }
 
 /**
