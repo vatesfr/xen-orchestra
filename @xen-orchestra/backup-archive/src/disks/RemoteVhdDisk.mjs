@@ -187,7 +187,7 @@ export class RemoteVhdDisk extends RemoteDisk {
     }
 
     const parentPath = this.#vhd.header.parentUnicodeName
-    return join(dirname(this.#path), parentPath)
+    return normalize(join(dirname(this.#path), parentPath))
   }
 
   /**
