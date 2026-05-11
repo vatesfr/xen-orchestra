@@ -10,6 +10,7 @@ import {
   getBackupTransferredBytes,
   getDefaultSchedule,
   getScheduleKey,
+  getRequiredEnv,
 } from '../utils/index.js'
 import { assertBackupSuccess, assertRepositoryEmpty } from '../utils/backupUtils.js'
 import { setup, teardown } from './setup.js'
@@ -17,11 +18,11 @@ import { setup, teardown } from './setup.js'
 const log = createLogger('xo:qa-test:tests')
 
 /** Source backup repository — where initial backups are stored */
-const SOURCE_REPOSITORY_NAME = process.env.BACKUP_REPOSITORY_NAME || 'Test backup QA'
+const SOURCE_REPOSITORY_NAME = getRequiredEnv('BACKUP_REPOSITORY_NAME')
 
 /** Destination backup repository — mirror target */
-const MIRROR_DESTINATION_REPOSITORY_NAME = process.env.MIRROR_DESTINATION_REPOSITORY_NAME || 'Test mirror QA'
-const MIRROR_DESTINATION_REPOSITORY_PATH = process.env.MIRROR_DESTINATION_REPOSITORY_PATH
+const MIRROR_DESTINATION_REPOSITORY_NAME = getRequiredEnv('MIRROR_DESTINATION_REPOSITORY_NAME')
+const MIRROR_DESTINATION_REPOSITORY_PATH = getRequiredEnv('MIRROR_DESTINATION_REPOSITORY_PATH')
 
 describe('Mirror Backup - Full Remote', () => {
   /** @type {import('../client/dispatchClient.js').DispatchClient} */
@@ -151,7 +152,7 @@ describe('Mirror Backup - Full Remote', () => {
 
     if (!sourceRepository) {
       const id = await dispatchClient.backupRepository.create(SOURCE_REPOSITORY_NAME, {
-        path: process.env.BACKUP_REPOSITORY_PATH || '/tmp/xo-test-backups',
+        path: getRequiredEnv('BACKUP_REPOSITORY_PATH'),
       })
       sourceRepository = await dispatchClient.backupRepository.get({ id })
       if (!sourceRepository) {
@@ -160,11 +161,6 @@ describe('Mirror Backup - Full Remote', () => {
       tracker.trackResource('backupRepository', id, { name: SOURCE_REPOSITORY_NAME })
     }
     log.debug('Source repository', { name: sourceRepository.name, id: sourceRepository.id })
-
-    // Get or create destination backup repository
-    if (!MIRROR_DESTINATION_REPOSITORY_PATH) {
-      throw new Error('MIRROR_DESTINATION_REPOSITORY_PATH environment variable is required for mirror backup tests')
-    }
 
     destRepository = await dispatchClient.backupRepository.get({
       name: MIRROR_DESTINATION_REPOSITORY_NAME,

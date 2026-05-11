@@ -1,5 +1,6 @@
 import { createLogger } from '@xen-orchestra/log'
 import { AbstractRequest } from './abstract.js'
+import { getRequiredEnv } from '../../utils/index.js'
 
 const log = createLogger('xo:qa-test:misc')
 
@@ -26,14 +27,14 @@ export class BackupRepositoryRequest extends AbstractRequest {
    *
    * @param {string} name - Name for the backup repository
    * @param {Object} options - Creation options
-   * @param {string} [options.path] - File path for the backup repository. If not provided, uses BACKUP_PATH environment variable or defaults to /var/lib/xo/backups
+   * @param {string} [options.path] - File path for the backup repository. If not provided, uses BACKUP_PATH environment variable (required when omitted).
    * @returns {Promise<string>} Created backup repository ID
    * @throws {Error} If creation fails
    */
   async create(name, options = {}) {
     this._ensureConnected()
 
-    const path = options.path || process.env.BACKUP_PATH || '/var/lib/xo/backups'
+    const path = options.path || getRequiredEnv('BACKUP_PATH')
     log.debug('Creating backup repository', { name, path })
 
     // Backup repository creation may not be available via REST API, use WebSocket directly

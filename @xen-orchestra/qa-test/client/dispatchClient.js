@@ -8,6 +8,7 @@ import { BackupRepositoryRequest } from './requests/misc.js'
 import { SRRequest } from './requests/sr.js'
 import { VDIRequest } from './requests/vdi.js'
 import { CleanupClient } from './cleanupClient.js'
+import { getRequiredEnv } from '../utils/index.js'
 
 const log = createLogger('xo:qa-test:dispatch')
 
@@ -84,16 +85,10 @@ export class DispatchClient {
    * @throws {Error} If initialization fails or required environment variables are missing
    */
   async initialize() {
-    // Load environment variables
     const config = {
-      xoUrl: process.env.HOSTNAME,
-      username: process.env.USERNAME,
-      password: process.env.PASSWORD,
-    }
-
-    // Validate configuration
-    if (!config.xoUrl || !config.username || !config.password) {
-      throw new Error('Missing required environment variables: HOSTNAME, USERNAME, PASSWORD')
+      xoUrl: getRequiredEnv('HOSTNAME'),
+      username: getRequiredEnv('USERNAME'),
+      password: getRequiredEnv('PASSWORD'),
     }
 
     log.debug('Initializing XenOrchestra connections')

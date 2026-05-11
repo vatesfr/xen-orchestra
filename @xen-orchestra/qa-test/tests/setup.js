@@ -1,6 +1,7 @@
 import { createLogger } from '@xen-orchestra/log'
 import { DispatchClient } from '../client/dispatchClient.js'
 import { createResourceTracker } from '../utils/resourceTracker.js'
+import { getRequiredEnv } from '../utils/index.js'
 
 const log = createLogger('xo:qa-test:setup')
 
@@ -36,11 +37,7 @@ export const setup = async () => {
 
   const tracker = createResourceTracker()
   const dispatchClient = new DispatchClient()
-  await dispatchClient.initialize({
-    xoUrl: process.env.HOSTNAME,
-    username: process.env.USERNAME,
-    password: process.env.PASSWORD,
-  })
+  await dispatchClient.initialize()
 
   const createdResources = {
     vm: null,
@@ -52,7 +49,7 @@ export const setup = async () => {
     // Find and clone reference VM (ID is required)
     const referenceVm = await findReferenceVm(dispatchClient)
 
-    const vmPrefix = process.env.VM_PREFIX || 'TST'
+    const vmPrefix = getRequiredEnv('VM_PREFIX')
     const testVmName = await generateIncrementalVmName(dispatchClient, `${vmPrefix}-QA-Test`)
 
     log.debug('Creating test VM', { name: testVmName })
@@ -66,14 +63,14 @@ export const setup = async () => {
     tracker.trackResource('vm', testVmId, { name: testVmName, source: referenceVm.name_label })
 
     // Create or get backup repository
-    const backupRepositoryName = process.env.BACKUP_REPOSITORY_NAME || 'Test backup QA'
+    const backupRepositoryName = getRequiredEnv('BACKUP_REPOSITORY_NAME')
     let backupRepository = await dispatchClient.backupRepository.get({ name: backupRepositoryName })
 
     if (backupRepository) {
       log.debug('Using existing backup repository', { name: backupRepositoryName })
     } else {
       const backupRepositoryId = await dispatchClient.backupRepository.create(backupRepositoryName, {
-        path: process.env.BACKUP_REPOSITORY_PATH || '/tmp/xo-test-backups',
+        path: getRequiredEnv('BACKUP_REPOSITORY_PATH'),
       })
 
       backupRepository = await dispatchClient.backupRepository.get({ id: backupRepositoryId })
@@ -131,11 +128,7 @@ export const teardown = async (dispatchClient, tracker) => {
  * @private
  */
 async function findReferenceVm(dispatchClient) {
-  const referenceVmId = process.env.REFERENCE_VM_ID
-
-  if (!referenceVmId) {
-    throw new Error('REFERENCE_VM_ID environment variable is required but not set')
-  }
+  const referenceVmId = getRequiredEnv('REFERENCE_VM_ID')
 
   log.debug('Searching reference VM by ID', { referenceVmId })
   const referenceVm = await dispatchClient.vm.details(referenceVmId)

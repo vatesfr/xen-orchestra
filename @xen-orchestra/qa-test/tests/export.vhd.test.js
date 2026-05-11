@@ -14,6 +14,7 @@ import {
   formatBytes,
 } from '../utils/exportUtils.js'
 import { setup, teardown } from './setup.js'
+import { getRequiredEnv } from '../utils/index.js'
 
 const log = createLogger('xo:qa-test:tests')
 
@@ -35,7 +36,7 @@ describe('VHD/XVA Export Replication Tests', () => {
     ;({ dispatchClient, tracker } = await setup())
 
     // Find test VM
-    const vmPrefix = process.env.VM_PREFIX || 'TST'
+    const vmPrefix = getRequiredEnv('VM_PREFIX')
     const filter = FilterBuilder.create().withGlob('name_label', `${vmPrefix}-QA-Test-*`)
     const qaVms = await dispatchClient.vm.list(filter)
 
@@ -45,10 +46,7 @@ describe('VHD/XVA Export Replication Tests', () => {
     log.debug('Found test VM for export tests', { name: vm.name_label, uuid: vm.uuid })
 
     // Get SR for restoration tests
-    const srId = process.env.SR_ID
-    if (!srId) {
-      throw new Error('SR_ID environment variable is required for export tests')
-    }
+    const srId = getRequiredEnv('SR_ID')
 
     sr = await dispatchClient.sr.details(srId)
     if (!sr) {
@@ -58,7 +56,7 @@ describe('VHD/XVA Export Replication Tests', () => {
     log.debug('Found SR for tests', { name: sr.name_label, uuid: sr.uuid })
 
     // Set export path
-    exportPath = process.env.VHD_EXPORT_PATH || '/tmp/xo-test-exports'
+    exportPath = getRequiredEnv('VHD_EXPORT_PATH')
 
     // Ensure export directory exists
     await fs.mkdir(exportPath, { recursive: true })

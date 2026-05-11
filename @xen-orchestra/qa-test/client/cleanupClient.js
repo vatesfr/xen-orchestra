@@ -2,17 +2,22 @@ import { createLogger } from '@xen-orchestra/log'
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import { FilterBuilder } from './FilterBuilder.js'
-import { BACKUP_JOB_NAME_PREFIX } from '../utils/index.js'
+import { BACKUP_JOB_NAME_PREFIX, getRequiredEnv } from '../utils/index.js'
 
 const log = createLogger('xo:qa-test:cleanup')
 
 /**
  * Allowed paths for automatic backup cleanup.
  * SECURITY: Only test-scoped paths containing 'test', 'qa', or 'tmp/xo'.
- * @constant {Array<string>}
+ *
+ * Computed lazily so that `process.env.BACKUP_REPOSITORY_PATH` is read at call
+ * time rather than module-load time — otherwise ESM import hoisting would make
+ * it evaluate before any in-code env loading runs.
+ *
+ * @returns {Array<string>}
  */
-const ALLOWED_CLEANUP_PATHS = (() => {
-  const repoPath = process.env.BACKUP_REPOSITORY_PATH || '/tmp/xo-test-backups'
+const getAllowedCleanupPaths = () => {
+  const repoPath = getRequiredEnv('BACKUP_REPOSITORY_PATH')
 
   // SECURITY: Reject paths containing path traversal sequences
   if (repoPath.includes('..')) {
@@ -29,7 +34,7 @@ const ALLOWED_CLEANUP_PATHS = (() => {
   }
 
   return [path.resolve(repoPath)]
-})()
+}
 
 /**
  * Orchestration client for XenOrchestra cleanup operations.
@@ -173,7 +178,7 @@ export class CleanupClient {
   async deleteQAVMs(options = {}) {
     this._ensureConnected()
 
-    const vmPrefix = process.env.VM_PREFIX || 'TST'
+    const vmPrefix = getRequiredEnv('VM_PREFIX')
     const config = {
       namePatterns: [`${vmPrefix}-QA-Test-*`],
       includeIds: [],
@@ -341,7 +346,7 @@ export class CleanupClient {
   async deleteExportedFiles(options = {}) {
     const config = {
       filePaths: [],
-      directory: process.env.VHD_EXPORT_PATH || '/tmp/xo-test-exports',
+      directory: options.directory ?? getRequiredEnv('VHD_EXPORT_PATH'),
       extensions: ['.vhd', '.xva'],
       continueOnError: true,
       ...options,
@@ -534,7 +539,7 @@ export class CleanupClient {
 
       // Clean up backup files if path is allowed
       const normalizedPath = repoPath ? path.normalize(repoPath) : null
-      const isAllowed = normalizedPath && ALLOWED_CLEANUP_PATHS.some(p => normalizedPath.startsWith(p))
+      const isAllowed = normalizedPath && getAllowedCleanupPaths().some(p => normalizedPath.startsWith(p))
 
       if (isAllowed) {
         try {

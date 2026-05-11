@@ -13,6 +13,7 @@ import {
   getBackupTransferredBytes,
   getDefaultSchedule,
   getScheduleKey,
+  getRequiredEnv,
 } from '../utils/index.js'
 import {
   generateExportFileName,
@@ -25,8 +26,8 @@ import { setup, teardown } from './setup.js'
 
 const log = createLogger('xo:qa-test:tests')
 
-/** Default backup repository name used across all tests */
-const BACKUP_REPOSITORY_NAME = process.env.BACKUP_REPOSITORY_NAME || 'Test backup QA'
+/** Backup repository name used across all tests (read from required env var) */
+const BACKUP_REPOSITORY_NAME = getRequiredEnv('BACKUP_REPOSITORY_NAME')
 
 describe('Backup + Replication Combined Tests', () => {
   /** @type {import('../client/dispatchClient.js').DispatchClient} */
@@ -121,7 +122,7 @@ describe('Backup + Replication Combined Tests', () => {
       log.warn('Backup repository not found, creating it for tests')
 
       const backupRepositoryId = await dispatchClient.backupRepository.create(BACKUP_REPOSITORY_NAME, {
-        path: process.env.BACKUP_REPOSITORY_PATH || '/tmp/xo-test-backups',
+        path: getRequiredEnv('BACKUP_REPOSITORY_PATH'),
       })
 
       // eslint-disable-next-line require-atomic-updates -- sequential code in before() hook, no race condition
@@ -140,10 +141,7 @@ describe('Backup + Replication Combined Tests', () => {
     await assertRepositoryEmpty(dispatchClient, backupRepository)
 
     // Get SR for health checks and restorations
-    const srId = process.env.SR_ID
-    if (!srId) {
-      throw new Error('SR_ID environment variable is required for combined tests')
-    }
+    const srId = getRequiredEnv('SR_ID')
 
     sr = await dispatchClient.sr.details(srId)
     if (!sr) {
@@ -153,7 +151,7 @@ describe('Backup + Replication Combined Tests', () => {
     log.debug('Found SR', { name: sr.name_label, uuid: sr.uuid })
 
     // Set export path
-    exportPath = process.env.VHD_EXPORT_PATH || '/tmp/xo-test-exports'
+    exportPath = getRequiredEnv('VHD_EXPORT_PATH')
     await fs.mkdir(exportPath, { recursive: true })
     log.debug('Export path', { exportPath })
   })
