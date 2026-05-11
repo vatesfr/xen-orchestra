@@ -19,6 +19,7 @@ const vifFields = [
   'type',
   'other_config',
   '$pool',
+  'rateLimit',
 ] as const satisfies readonly (keyof XoVif)[]
 
 export const useXoVifCollection = defineRemoteResource({

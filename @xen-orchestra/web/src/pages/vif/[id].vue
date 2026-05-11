@@ -13,8 +13,11 @@
 import VifHeader from '@/modules/vif/components/VifHeader.vue'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
+
+useDefaultTab('/vif/[id]', 'general')
 
 const route = useRoute<'/vif/[id]'>()
 

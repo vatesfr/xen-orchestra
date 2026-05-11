@@ -15,6 +15,11 @@
     </UiBreadcrumb>
   </div>
   <TabList>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vif/[id]/general', params: { id: vif.id } }" custom>
+      <TabItem :active="isActive" :href tag="a">
+        {{ t('general') }}
+      </TabItem>
+    </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vif/[id]/traffic-rules', params: { id: vif.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('traffic-rules') }}
