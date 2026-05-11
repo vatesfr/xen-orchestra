@@ -107,7 +107,7 @@ export class VmFullBackupArchive implements VmBackupInterface {
       try {
         fileSize = await this.handler.getSize(this.xvaPath)
         validDisk = await isValidXva(this.handler, this.xvaPath)
-      } catch (error: any) {
+      } catch (error) {
         validDisk = false
         if (error?.code === 'ENOENT') {
           this.missingDisk = true

@@ -61,7 +61,7 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
           this.diskLineages.set(vdiDir, lineage)
         }
       }
-    } catch (error: any) {
+    } catch (error) {
       if (error?.code === 'NOT_SUPPORTED') throw error
       this.opts.logWarn('failed to scan VDI directories', { error })
     }

@@ -66,7 +66,7 @@ export class VmBackupDirectory implements VmBackupInterface {
   async #readCache(path: string): Promise<Record<string, unknown> | undefined> {
     try {
       return JSON.parse((await gunzip(await this.handler.readFile(path))).toString())
-    } catch (error: any) {
+    } catch (error) {
       if (error?.code !== 'ENOENT') {
         logWarn('failed to read cache', { error, path })
       }
@@ -97,7 +97,7 @@ export class VmBackupDirectory implements VmBackupInterface {
         try {
           const backupArchive = await this.instantiateBackupArchive(fullPath, metadata)
           this.backupArchives.set(fullPath, backupArchive)
-        } catch (error: any) {
+        } catch (error) {
           if (error?.code === 'NOT_SUPPORTED') throw error
           this.opts.logWarn(`Issue loading ${metadata.xva ?? metadata.vhds}`, { json: fullPath, backup: metadata })
         }
@@ -195,7 +195,7 @@ export class VmBackupDirectory implements VmBackupInterface {
         async (orphan: string) => {
           try {
             await this.handler.unlink(orphan)
-          } catch (error: any) {
+          } catch (error) {
             if (error?.code === 'EISDIR') {
               this.opts.logWarn('orphan is a directory, skipping deletion', { path: orphan })
             } else if (error?.code !== 'ENOENT') {

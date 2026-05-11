@@ -77,7 +77,7 @@ export class RemoteDiskLineage {
             this.#opts.logInfo('deleting temporary disk file', { path: filePath })
             try {
               await this.#handler.unlink(filePath)
-            } catch (error: any) {
+            } catch (error) {
               if (error?.code !== 'ENOENT') {
                 this.#opts.logWarn('failed to delete temporary disk file', { path: filePath, error })
               }
@@ -94,7 +94,7 @@ export class RemoteDiskLineage {
       let disk: RemoteDisk | undefined
       try {
         disk = await openDisk({ handler: this.#handler as any, path: diskPath })
-      } catch (error: any) {
+      } catch (error) {
         if (error?.code === 'NOT_SUPPORTED' && this.#opts.merge) {
           throw error
         }
