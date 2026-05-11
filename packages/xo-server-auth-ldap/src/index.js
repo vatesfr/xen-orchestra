@@ -28,7 +28,7 @@ const evalFilter = (filter, vars) =>
       throw new Error('invalid variable: ' + name)
     }
 
-    return escape(value)
+    return value === '*' ? value : escape(value)
   })
 
 export const configurationSchema = {
