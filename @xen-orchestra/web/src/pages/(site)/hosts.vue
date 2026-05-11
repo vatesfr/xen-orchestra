@@ -5,9 +5,7 @@
     </UiCard>
     <HostSidePanel v-if="selectedHost" :host="selectedHost" @close="selectedHost = undefined" />
     <UiPanel v-else-if="!uiStore.isSmall">
-      <VtsStateHero format="panel" type="no-selection" size="medium">
-        {{ t('select-to-see-details') }}
-      </VtsStateHero>
+      <VtsStateHero format="panel" type="no-selection" size="medium" />
     </UiPanel>
   </div>
 </template>
@@ -21,13 +19,10 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store'
-import { useI18n } from 'vue-i18n'
 
 const uiStore = useUiStore()
 
 const { hosts, getHostById, hasHostFetchError, areHostsReady } = useXoHostCollection()
-
-const { t } = useI18n()
 
 const selectedHost = useRouteQuery<FrontXoHost | undefined>('id', {
   toData: id => getHostById(id as FrontXoHost['id']),

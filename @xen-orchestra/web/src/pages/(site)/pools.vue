@@ -5,9 +5,7 @@
     </UiCard>
     <PoolSidePanel v-if="selectedServer" :server="selectedServer" @close="selectedServer = undefined" />
     <UiPanel v-else-if="!uiStore.isSmall">
-      <VtsStateHero format="panel" type="no-selection" size="medium">
-        {{ t('select-to-see-details') }}
-      </VtsStateHero>
+      <VtsStateHero format="panel" type="no-selection" size="medium" />
     </UiPanel>
   </div>
 </template>
@@ -24,7 +22,6 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store'
-import { useI18n } from 'vue-i18n'
 
 const { servers, getServerById } = useXoServerCollection()
 const uiStore = useUiStore()
@@ -33,8 +30,6 @@ const selectedServer = useRouteQuery<FrontXoServer | undefined>('id', {
   toData: id => getServerById(id as FrontXoServer['id']),
   toQuery: server => server?.id ?? '',
 })
-
-const { t } = useI18n()
 </script>
 
 <style scoped lang="postcss">

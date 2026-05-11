@@ -5,9 +5,7 @@
     </UiCard>
     <TaskSidePanel v-if="selectedTask" :task="selectedTask" @close="selectedTask = undefined" />
     <UiPanel v-else-if="!uiStore.isSmall">
-      <VtsStateHero format="panel" type="no-selection" size="medium">
-        {{ t('select-to-see-details') }}
-      </VtsStateHero>
+      <VtsStateHero format="panel" type="no-selection" size="medium" />
     </UiPanel>
   </div>
 </template>
@@ -25,14 +23,11 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useUiStore } from '@core/stores/ui.store'
 import type { XoUser } from '@vates/types'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 const uiStore = useUiStore()
 
 const { getTaskById, sortedTasks, hasTaskFetchError, areTasksReady } = useXoTaskCollection()
 const { getUserById } = useXoUserCollection()
-
-const { t } = useI18n()
 
 const selectedTask = useRouteQuery<FrontXoTask | undefined>('id', {
   toData: id => getTaskById(id as FrontXoTask['id']),

@@ -1,4 +1,4 @@
-<!-- v2 -->
+<!-- v3 -->
 <template>
   <div class="ui-panel" :class="{ error, 'mobile-drawer': uiStore.isSmall }">
     <div v-if="slots.header" class="header">
