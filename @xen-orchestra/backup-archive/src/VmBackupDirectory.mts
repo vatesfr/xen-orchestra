@@ -175,15 +175,15 @@ export class VmBackupDirectory implements VmBackupInterface {
     await asyncEach(
       Array.from(this.backupArchives.values()),
       async (archive: VmBackupInterface) => {
-        const { removedFiles, merge: didMerge } = await archive.clean({ remove, mergedSizes: allMergedSizes })
-        if (removedFiles.length > 0 || didMerge) {
+        const { removedFiles } = await archive.clean({ remove, mergedSizes: allMergedSizes })
+        if (removedFiles.length > 0) {
           cacheNeedsRegen = true
         }
       },
       { concurrency: 2 }
     )
 
-    if (cacheNeedsRegen) {
+    if (allMergedSizes.size > 0 || cacheNeedsRegen) {
       await this.#regenerateCache()
     }
 

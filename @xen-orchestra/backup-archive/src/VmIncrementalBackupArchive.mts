@@ -142,7 +142,7 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
       }
     }
 
-    return { removedFiles, merge: (mergedSizes?.size ?? 0) > 0 }
+    return { removedFiles }
   }
 
   /**

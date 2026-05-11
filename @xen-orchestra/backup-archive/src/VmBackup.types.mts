@@ -50,7 +50,7 @@ export interface CheckResult {
 
 export type CleanResult = {
   removedFiles: string[]
-  merge: boolean
+  merge?: boolean
   size?: number
   mergedSizes?: Map<string, number>
 }
