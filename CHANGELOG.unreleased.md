@@ -42,12 +42,7 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi minor
-<<<<<<< HEAD
 - xo-server minor
 - xo-web minor
-||||||| parent of 8c6c2e4fd (correct changelog for CI)
-=======
-- xo-server-sdn-controller patch
->>>>>>> 8c6c2e4fd (correct changelog for CI)
 
 <!--packages-end-->
