@@ -1,5 +1,5 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
+  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }" closable @close="emit('close')">
     <template #header>
       <UiButton
         :disabled="!canRevertSnapshot || isDeletingSnapshot"
@@ -18,16 +18,6 @@
         class="delete-button"
         @click="openSnapshotDeleteModal()"
       />
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButtonIcon
-          v-tooltip="t('action:close')"
-          size="small"
-          variant="tertiary"
-          accent="brand"
-          :icon="uiStore.isSmall ? 'fa:angle-left' : 'fa:close'"
-          @click="emit('close')"
-        />
-      </div>
     </template>
     <template #default>
       <SnapshotInfoCard :snapshot />
@@ -44,9 +34,7 @@ import { useVmSnapshotDeleteModal } from '@/modules/snapshot/composables/use-vm-
 import { useVmSnapshotRevertModal } from '@/modules/snapshot/composables/use-vm-snapshot-revert-modal.composable.ts'
 import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { useI18n } from 'vue-i18n'
 
@@ -58,9 +46,9 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const uiStore = useUiStore()
-
 const { t } = useI18n()
+
+const uiStore = useUiStore()
 
 const {
   openModal: openSnapshotDeleteModal,

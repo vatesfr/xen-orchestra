@@ -1,17 +1,5 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
-    <template #header>
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButtonIcon
-          v-tooltip="t('action:close')"
-          size="small"
-          variant="tertiary"
-          accent="brand"
-          :icon="uiStore.isSmall ? 'fa:angle-left' : 'fa:close'"
-          @click="emit('close')"
-        />
-      </div>
-    </template>
+  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }" closable @close="emit('close')">
     <template #default>
       <BackupJobInfosCard :backup-job />
       <BackupJobSchedulesCard :backup-job-schedules />
@@ -42,13 +30,10 @@ import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool
 import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { extractIdsFromSimplePattern } from '@/shared/utils/pattern.util.ts'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import type { XoSr, XoPool, XoBackupRepository } from '@vates/types'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 const { backupJob } = defineProps<{
   backupJob: FrontAnyXoBackupJob
@@ -58,7 +43,6 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const { t } = useI18n()
 const uiStore = useUiStore()
 
 const { getSrsByIds } = useXoSrCollection()

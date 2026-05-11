@@ -1,17 +1,5 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
-    <template #header>
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButtonIcon
-          v-tooltip="t('action:close')"
-          size="small"
-          variant="tertiary"
-          accent="brand"
-          :icon="uiStore.isSmall ? 'fa:angle-left' : 'fa:close'"
-          @click="emit('close')"
-        />
-      </div>
-    </template>
+  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }" closable @close="emit('close')">
     <template #default>
       <HostInfoCard :host />
       <HostNetworkCard :host />
@@ -29,11 +17,8 @@ import HostInfoCard from '@/modules/host/components/list/panel/card/HostInfoCard
 import HostNetworkCard from '@/modules/host/components/list/panel/card/HostNetworkCard.vue'
 import HostSoftwareCard from '@/modules/host/components/list/panel/card/HostSoftwareCard.vue'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { useI18n } from 'vue-i18n'
 
 defineProps<{
   host: FrontXoHost
@@ -42,8 +27,6 @@ defineProps<{
 const emit = defineEmits<{
   close: []
 }>()
-
-const { t } = useI18n()
 
 const uiStore = useUiStore()
 </script>
