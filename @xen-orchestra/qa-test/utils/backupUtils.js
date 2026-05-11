@@ -28,6 +28,31 @@ export const assertRepositoryEmpty = async (dispatchClient, repository) => {
 }
 
 /**
+ * Asserts that a backup repository's URL matches the path declared in the .env.
+ *
+ * The QA suite identifies repositories by name (e.g. `BACKUP_REPOSITORY_NAME`)
+ * but it is the file path that determines where data physically lands. If a
+ * repository with the expected name already exists on the XO server but points
+ * at a different location, tests would silently operate on the wrong directory.
+ * This check fails fast so that the operator can either delete the misconfigured
+ * remote in XO or update the .env to match it.
+ *
+ * @param {{id: string, name: string, url: string}} repository - Repository as returned by the REST API
+ * @param {string} expectedPath - Filesystem path expected by the test (typically from `.env`)
+ * @throws {Error} If `repository.url` is not exactly `file://${expectedPath}`
+ */
+export const assertRepositoryMatchesConfig = (repository, expectedPath) => {
+  const expectedUrl = `file://${expectedPath}`
+  if (repository.url !== expectedUrl) {
+    throw new Error(
+      `Backup repository "${repository.name}" (${repository.id}) has url "${repository.url}", ` +
+        `but the .env requires "${expectedUrl}". ` +
+        `Delete this remote in XO and re-run, or update the env to match the existing remote.`
+    )
+  }
+}
+
+/**
  * Extracts an error message from a backup task's result or error fields.
  *
  * XO backup logs store errors in various locations depending on the error type:
