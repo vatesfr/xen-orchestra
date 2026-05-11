@@ -117,9 +117,7 @@
             </template>
             <template #value>
               <UiTagsList class="tags value">
-                <UiTag v-for="tag in network?.tags" :key="tag" accent="info" variant="secondary">
-                  {{ tag }}
-                </UiTag>
+                <VtsTag v-for="tag in network?.tags" :key="tag" :value="tag" />
               </UiTagsList>
             </template>
           </VtsCardRowKeyValue>
@@ -296,12 +294,12 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
+import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store.ts'

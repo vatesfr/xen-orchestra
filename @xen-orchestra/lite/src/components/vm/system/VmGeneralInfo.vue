@@ -10,7 +10,7 @@
       <VtsTabularKeyValueRow :label="t('tags')">
         <template v-if="vm.tags.length > 0" #value>
           <UiTagsList>
-            <UiTag v-for="tag in vm.tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
+            <VtsTag v-for="tag in vm.tags" :key="tag" :value="tag" />
           </UiTagsList>
         </template>
       </VtsTabularKeyValueRow>
@@ -26,8 +26,8 @@ import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
+import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { computed } from 'vue'

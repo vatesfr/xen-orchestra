@@ -17,9 +17,7 @@
           <VtsKeyValueRow :label="t('modes')">
             <template v-if="modeLabels.length > 0" #value>
               <UiTagsList>
-                <UiTag v-for="label in modeLabels" :key="label" variant="secondary" accent="info">
-                  {{ label }}
-                </UiTag>
+                <VtsTag v-for="label in modeLabels" :key="label" :value="label" />
               </UiTagsList>
             </template>
           </VtsKeyValueRow>
@@ -36,8 +34,8 @@ import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsKeyValueList from '@core/components/key-value-list/VtsKeyValueList.vue'
 import VtsKeyValueRow from '@core/components/key-value-row/VtsKeyValueRow.vue'
+import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { computed } from 'vue'
