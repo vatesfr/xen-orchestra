@@ -5,9 +5,7 @@
     </UiCard>
     <HostSidePanel v-if="selectedHost" :host="selectedHost" @close="selectedHost = undefined" />
     <UiPanel v-else-if="!uiStore.isSmall">
-      <VtsStateHero format="panel" type="no-selection" size="medium">
-        {{ t('select-to-see-details') }}
-      </VtsStateHero>
+      <VtsStateHero format="panel" type="no-selection" size="medium" />
     </UiPanel>
   </div>
 </template>
@@ -23,7 +21,6 @@ import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{
   pool: FrontXoPool
@@ -32,8 +29,6 @@ const { pool } = defineProps<{
 const uiStore = useUiStore()
 
 const { areHostsReady, hostsByPool, hasHostFetchError } = useXoHostCollection()
-
-const { t } = useI18n()
 
 const hosts = computed(() => hostsByPool.value.get(pool.id) ?? [])
 

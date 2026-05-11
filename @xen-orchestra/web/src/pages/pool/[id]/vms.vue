@@ -5,9 +5,7 @@
     </UiCard>
     <VmSidePanel v-if="selectedVm" :vm="selectedVm" @close="selectedVm = undefined" />
     <UiPanel v-else-if="!uiStore.isSmall">
-      <VtsStateHero format="panel" type="no-selection" size="medium">
-        {{ t('select-to-see-details') }}
-      </VtsStateHero>
+      <VtsStateHero format="panel" type="no-selection" size="medium" />
     </UiPanel>
   </div>
 </template>
@@ -23,15 +21,12 @@ import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{
   pool: FrontXoPool
 }>()
 
 const uiStore = useUiStore()
-
-const { t } = useI18n()
 
 const { areVmsReady, vmsByPool, hasVmFetchError } = useXoVmCollection()
 

@@ -9,6 +9,13 @@
       <div v-if="success">{{ t('all-good!') }}</div>
       <slot />
     </div>
+    <div v-else-if="type === 'no-selection'" :class="typoClass" class="content">
+      <I18nT keypath="select-to-see-details" tag="p">
+        <template #icon>
+          <VtsIcon name="fa:eye" size="current" />
+        </template>
+      </I18nT>
+    </div>
   </div>
 </template>
 
@@ -18,6 +25,7 @@ import { useUiStore } from '@core/stores/ui.store'
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import VtsIcon from '../icon/VtsIcon.vue'
 
 export type StateHeroFormat = 'page' | 'card' | 'panel' | 'table'
 

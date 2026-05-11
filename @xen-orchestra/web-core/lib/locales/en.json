@@ -886,7 +886,7 @@
   "select-compression": "Select a compression",
   "select-destination-host": "Select a destination host",
   "select-host": "Select host",
-  "select-to-see-details": "Select an element to see details",
+  "select-to-see-details": "Click on {icon} to see details",
   "selected-vms-in-execution": "Some selected VMs are running",
   "self-signed-certificates": "Self-signed certificates",
   "send-us-feedback": "Send us feedback",

@@ -5,9 +5,7 @@
     </UiCard>
     <StorageRepositorySidePanel v-if="selectedSr" :sr="selectedSr" :scope @close="selectedSr = undefined" />
     <UiPanel v-else-if="!uiStore.isSmall">
-      <VtsStateHero format="panel" type="no-selection" size="medium">
-        {{ t('select-to-see-details') }}
-      </VtsStateHero>
+      <VtsStateHero format="panel" type="no-selection" size="medium" />
     </UiPanel>
   </div>
 </template>
@@ -30,13 +28,10 @@ import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
   host: FrontXoHost
 }>()
-
-const { t } = useI18n()
 
 const { hasSrFetchError, getSrById, areSrsReady } = useXoSrCollection()
 const { pbdsByHost, arePbdsReady } = useXoPbdCollection()
