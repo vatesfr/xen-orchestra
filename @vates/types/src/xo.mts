@@ -680,7 +680,7 @@ export type XoUser = {
   groups: XoGroup['id'][]
   id: Branded<'user'>
   name?: string
-  permission: string
+  permission: 'none' | 'admin'
   pw_hash?: string
   preferences: Record<string, string>
 }
