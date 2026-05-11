@@ -1,6 +1,6 @@
 <template>
   <VtsStateHero v-if="!isReady" format="panel" type="busy" size="medium" />
-  <UiPanel v-else :key="panelSignature" :class="{ 'mobile-drawer': uiStore.isSmall }">
+  <UiPanel v-else :key="panelSignature" :class="{ 'mobile-drawer': uiStore.isSmall }" closable @close="emit('close')">
     <template #header>
       <VtsDeleteButton
         class="sr-delete-button"
@@ -9,16 +9,6 @@
         @click="openSrDeleteModal()"
       />
       <SrDisconnectButton class="sr-disconnect-button" :sr :scope />
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButtonIcon
-          v-tooltip="t('action:close')"
-          size="small"
-          variant="tertiary"
-          accent="brand"
-          :icon="uiStore.isSmall ? 'fa:angle-left' : 'fa:close'"
-          @click="emit('close')"
-        />
-      </div>
     </template>
     <template #default>
       <StorageRepositoryInfosCard :sr :scope />
@@ -48,14 +38,11 @@ import type { StorageScope } from '@/modules/storage-repository/types/storage-sc
 import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import type { XoVdi } from '@vates/types'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 const { sr, scope } = defineProps<{
   sr: FrontXoSr
@@ -66,7 +53,6 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const { t } = useI18n()
 const uiStore = useUiStore()
 
 const { useGetVdisByIds, areVdisReady } = useXoVdiCollection()

@@ -1,17 +1,5 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
-    <template #header>
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButtonIcon
-          v-tooltip="t('action:close')"
-          size="medium"
-          variant="tertiary"
-          accent="brand"
-          :icon="uiStore.isSmall ? 'fa:angle-left' : 'fa:close'"
-          @click="emit('close')"
-        />
-      </div>
-    </template>
+  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }" closable @close="emit('close')">
     <template #default>
       <TaskQuickInfosCard :task />
       <TaskInfosCard v-if="task.infos" :task />
@@ -32,12 +20,9 @@ import TaskQuickInfosCard from '@/modules/task/components/list/panel/cards/TaskQ
 import TaskWarningsCard from '@/modules/task/components/list/panel/cards/TaskWarningsCard.vue'
 import { useXoTaskPropertiesUtils } from '@/modules/task/composables/xo-task-properties-utils.composable.ts'
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 const { task } = defineProps<{
   task: FrontXoTask
@@ -47,7 +32,6 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const { t } = useI18n()
 const uiStore = useUiStore()
 
 const { properties } = useXoTaskPropertiesUtils(() => task)

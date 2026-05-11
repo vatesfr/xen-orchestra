@@ -1,5 +1,5 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
+  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }" closable @close="emit('close')">
     <template #header>
       <div class="action-buttons">
         <VifConnectButton v-if="!vif.attached" :vif :vm />
@@ -11,17 +11,8 @@
           <VifActions :vif />
         </MenuList>
       </div>
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButtonIcon
-          v-tooltip="t('action:close')"
-          size="small"
-          variant="tertiary"
-          accent="brand"
-          :icon="uiStore.isSmall ? 'fa:angle-left' : 'fa:close'"
-          @click="emit('close')"
-        />
-      </div>
     </template>
+
     <template #default>
       <!-- VIF -->
       <UiCard class="card">

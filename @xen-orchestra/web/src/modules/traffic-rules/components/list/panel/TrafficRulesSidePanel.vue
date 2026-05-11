@@ -1,18 +1,6 @@
 <template>
   <VtsStateHero v-if="!isReady" format="panel" type="busy" size="medium" />
-  <UiPanel v-else :class="{ 'mobile-drawer': uiStore.isSmall }">
-    <template #header>
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButtonIcon
-          v-tooltip="t('action:close')"
-          size="small"
-          variant="tertiary"
-          accent="brand"
-          :icon="uiStore.isSmall ? 'fa:angle-left' : 'fa:close'"
-          @click="emit('close')"
-        />
-      </div>
-    </template>
+  <UiPanel v-else :class="{ 'mobile-drawer': uiStore.isSmall }" closable @close="emit('close')">
     <template #default>
       <TrafficRuleSummaryCard :rule />
       <template v-if="vif">
@@ -36,14 +24,11 @@ import TrafficRuleVifInfosCard from '@/modules/traffic-rules/components/list/pan
 import TrafficRuleVifNetworkInfoCard from '@/modules/traffic-rules/components/list/panel/cards/TrafficRuleVifNetworkInfoCard.vue'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import type { TrafficRule } from '@vates/types'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 const { rule } = defineProps<{ rule: TrafficRule }>()
 
@@ -52,8 +37,6 @@ const emit = defineEmits<{
 }>()
 
 const uiStore = useUiStore()
-
-const { t } = useI18n()
 
 const { getVifById, areVifsReady } = useXoVifCollection()
 

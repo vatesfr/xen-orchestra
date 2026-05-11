@@ -1,16 +1,7 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
+  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }" closable @close="emit('close')">
     <template #header>
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButtonIcon
-          v-if="uiStore.isSmall"
-          v-tooltip="t('action:close')"
-          size="small"
-          variant="tertiary"
-          accent="brand"
-          icon="fa:angle-left"
-          @click="emit('close')"
-        />
+      <div class="action-buttons-container">
         <div class="action-buttons">
           <UiButton
             v-tooltip="t('coming-soon!')"
@@ -212,6 +203,10 @@ const status = computed(() => (vif.currently_attached ? 'connected' : 'disconnec
   .value:empty::before {
     content: '-';
   }
+}
+
+.action-buttons-container {
+  margin-inline-end: auto;
 }
 
 .mobile-drawer {

@@ -1,18 +1,6 @@
 <template>
   <VtsStateHero v-if="!arePoolsReady" format="panel" type="busy" size="medium" />
-  <UiPanel v-else :class="{ 'mobile-drawer': uiStore.isSmall }">
-    <template #header>
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButtonIcon
-          v-tooltip="t('action:close')"
-          size="small"
-          variant="tertiary"
-          accent="brand"
-          :icon="uiStore.isSmall ? 'fa:angle-left' : 'fa:close'"
-          @click="emit('close')"
-        />
-      </div>
-    </template>
+  <UiPanel v-else :class="{ 'mobile-drawer': uiStore.isSmall }" closable @close="emit('close')">
     <template #default>
       <UiCard v-if="server.error === undefined" class="card-container">
         <UiCardTitle>
@@ -184,7 +172,6 @@ import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
@@ -193,7 +180,6 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useMapper } from '@core/packages/mapper'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { toLower } from 'lodash-es'

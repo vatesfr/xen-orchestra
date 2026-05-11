@@ -1,8 +1,20 @@
-<!-- v3 -->
+<!-- v5 -->
+<!-- TODO Pinning behaviour waiting for design clarifications -->
 <template>
   <div class="ui-panel" :class="{ error, 'mobile-drawer': uiStore.isSmall }">
-    <div v-if="slots.header" class="header">
-      <slot name="header" />
+    <div v-if="slots.header || closable" class="header">
+      <slot v-if="slots.header" name="header" />
+      <div v-if="closable" class="built-in-buttons">
+        <UiButtonIcon
+          v-if="closable"
+          v-tooltip="t('action:close')"
+          size="small"
+          variant="tertiary"
+          accent="brand"
+          :icon="uiStore.isSmall ? 'fa:angle-left' : 'action:close-cancel-clear'"
+          @click="emit('close')"
+        />
+      </div>
     </div>
     <div class="content">
       <slot />
@@ -12,9 +24,16 @@
 
 <script setup lang="ts">
 import { useUiStore } from '@core/stores/ui.store'
+import { useI18n } from 'vue-i18n'
+import UiButtonIcon from '../button-icon/UiButtonIcon.vue'
 
 defineProps<{
   error?: boolean
+  closable?: boolean
+}>()
+
+const emit = defineEmits<{
+  close: []
 }>()
 
 const slots = defineSlots<{
@@ -23,6 +42,8 @@ const slots = defineSlots<{
 }>()
 
 const uiStore = useUiStore()
+
+const { t } = useI18n()
 </script>
 
 <style scoped lang="postcss">
@@ -56,6 +77,11 @@ const uiStore = useUiStore()
   }
 
   &.mobile-drawer {
+    .header {
+      .built-in-buttons {
+        order: -1;
+      }
+    }
     .content {
       overflow: auto;
     }
