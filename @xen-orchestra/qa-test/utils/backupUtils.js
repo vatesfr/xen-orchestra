@@ -19,11 +19,12 @@ export const assertRepositoryEmpty = async (dispatchClient, repository) => {
   const count = Object.values(backups).flatMap(vmBackups => Object.values(vmBackups).flat()).length
 
   if (count > 0) {
-    throw new Error(
+    const message =
       `Repository "${repository.name}" (${repository.id}) contains ${count} existing backup(s). ` +
-        `Tests require empty repositories to avoid accidental data loss. ` +
-        `Please purge the backups manually or use a dedicated test repository.`
-    )
+      `Tests require empty repositories to avoid accidental data loss. ` +
+      `Please purge the backups manually or use a dedicated test repository.`
+    log.warn(message, { repositoryName: repository.name, repositoryId: repository.id, count })
+    throw new Error(message)
   }
 }
 
