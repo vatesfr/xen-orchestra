@@ -121,7 +121,7 @@ export const assertBackupSuccess = (result, context = 'Backup') => {
   if (result.status !== 'success') {
     const errors = extractBackupErrors(result)
     const details = errors.length > 0 ? errors.join(' | ') : 'no task-level error details'
-    log.warn(`${context} failed`, { tasks: result.tasks })
+    log.warn(`${context} failed`, { details, tasks: result.tasks })
     assert.strictEqual(result.status, 'success', `${context} should succeed, got '${result.status}': ${details}`)
   }
 }

@@ -14,6 +14,7 @@ import {
   assertHealthCheckSuccess,
   getRequiredEnv,
 } from '../utils/index.js'
+import { assertBackupSuccess } from '../utils/backupUtils.js'
 import { setup, teardown } from './setup.js'
 
 const log = createLogger('qa:backup:base')
@@ -125,7 +126,7 @@ describe('Backup basic tests', () => {
 
       for (let index = 0; index < 3; index++) {
         const result = await dispatchClient.backup.runJobAndGetLog(backupJobId, realScheduleKey)
-        assert(result.status === 'success', `Expected backup status to be 'success', but got '${result.status}'`)
+        assertBackupSuccess(result, `Delta backup run ${index + 1}/3`)
         assertFullOrDelta(result, backupRepository.id, { mustBeFull: index === 0 })
 
         // Validate health check
@@ -142,7 +143,7 @@ describe('Backup basic tests', () => {
       assert(realScheduleKey, 'Schedule key is required but was undefined')
 
       const result = await dispatchClient.backup.runJobAndGetLog(backupJobId, realScheduleKey)
-      assert(result.status === 'success', `Expected backup status to be 'success', but got '${result.status}'`)
+      assertBackupSuccess(result, 'Full backup with health checks')
       assertFullOrDelta(result, backupRepository.id, { mustBeFull: true })
 
       // Validate health check
