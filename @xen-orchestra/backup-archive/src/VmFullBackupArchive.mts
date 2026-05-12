@@ -103,6 +103,7 @@ export class VmFullBackupArchive implements VmBackupInterface {
     if (this.isValid === undefined) {
       let fileSize = 0
       let validDisk = false
+      let validSize = true
       try {
         fileSize = await this.handler.getSize(this.xvaPath)
         validDisk = await isValidXva(this.handler, this.xvaPath)
@@ -118,7 +119,10 @@ export class VmFullBackupArchive implements VmBackupInterface {
       } catch (error) {
         this.opts.logWarn('Checksum file not valid, not blocking', { error })
       }
-      this.isValid = fileSize > 0 && fileSize === this.metadata.size && validDisk
+      if (this.metadata.size !== undefined) {
+        validSize = this.metadata.size === fileSize
+      }
+      this.isValid = fileSize > 0 && validSize && validDisk
     }
     if (!this.isValid) {
       this.opts.logWarn('XVA might be broken', { path: this.xvaPath })
