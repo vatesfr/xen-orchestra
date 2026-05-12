@@ -52,4 +52,25 @@ export class BackupRepositoryRequest extends AbstractRequest {
       throw error
     }
   }
+
+  /**
+   * Deletes a backup repository by ID.
+   *
+   * @param {string} id - Backup repository ID to delete
+   * @returns {Promise<void>}
+   * @throws {Error} If deletion fails
+   */
+  async delete(id) {
+    this._ensureConnected()
+
+    log.debug('Deleting backup repository', { id })
+
+    try {
+      await this.dispatchClient.xoClient.call('remote.delete', { id })
+      log.debug('Backup repository deleted successfully', { id })
+    } catch (error) {
+      log.warn('Failed to delete backup repository', { id, error })
+      throw error
+    }
+  }
 }
