@@ -4,7 +4,6 @@
  * @typedef {import('./RemoteVhdDisk.mjs').VhdFooter} VhdFooter
  * @typedef {import('./RemoteVhdDisk.mjs').RemoteVhdDisk} RemoteVhdDisk
  * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
- * @typedef {import('@xen-orchestra/fs').RemoteHandlerAbstract} RemoteHandlerAbstract
  */
 
 import { RemoteDisk } from './RemoteDisk.mjs'

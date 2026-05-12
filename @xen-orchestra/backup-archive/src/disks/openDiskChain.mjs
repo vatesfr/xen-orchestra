@@ -45,7 +45,7 @@ async function _openDiskChain($defer, { handler, path, until, force = false }) {
     throw new Error(`trying to open chain from ${path} to ${until}, root disk not found`)
   }
   // the root disk
-  return new RemoteVhdDiskChain({ handler, disks })
+  return new RemoteVhdDiskChain({ disks })
 }
 
 /**
