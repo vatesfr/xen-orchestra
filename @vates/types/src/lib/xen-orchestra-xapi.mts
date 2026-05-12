@@ -174,6 +174,7 @@ export interface Xapi {
     }
   ): Promise<XenApiVdi['$ref']>
   SR_reclaimSpace(ref: XenApiSr['$ref']): Promise<void>
+  editVm(id: XoVm['id'], props: Record<string, unknown>): Promise<void>
   startVm(
     id: XoVm['id'],
     opts?: {
