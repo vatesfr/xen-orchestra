@@ -108,6 +108,14 @@ function getPrimaryIcon(sr: FrontXoSr) {
 
 const { getPbdsByIds } = useXoPbdCollection()
 
+function toggleSrState(sr: FrontXoSr) {
+  // TODO Add a modal like in the VBD/VDI tables, expose busy etc
+  const { allPbdsConnectionStatus } = useXoPbdUtils(() => getPbdsByIds(sr.$PBDs))
+  // TODO Remove the eslint-disable below
+  // eslint-disable-next-line no-console
+  console.log('toggleSrState', sr.id, allPbdsConnectionStatus.value)
+}
+
 const { HeadCells, BodyCells } = useSrColumns({
   body: (sr: FrontXoSr) => {
     const { buildXo5Route } = useXoRoutes()
@@ -135,6 +143,12 @@ const { HeadCells, BodyCells } = useSrColumns({
         r({
           onClick: () => (selectedSrId.value = sr.id),
           actions: [
+            {
+              label: allPbdsConnectionStatus.value === 'disconnected' ? t('action:connect') : t('action:disconnect'),
+              icon: allPbdsConnectionStatus.value === 'disconnected' ? 'action:connect' : 'action:disconnect',
+              onClick: () => toggleSrState(sr),
+              // busy: isTogglingVbdConnection.value,
+            },
             {
               label: t('action:delete'),
               icon: 'action:delete',
