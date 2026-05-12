@@ -17,7 +17,12 @@ const RAW_STRING_SYMBOLS = {
 const isRawStringChar = c =>
   (c >= '0' && c <= '9') || c in RAW_STRING_SYMBOLS || !(c === c.toUpperCase() && c === c.toLowerCase())
 
-const isRawString = string => [...string].every(isRawStringChar)
+const isRawString = string => {
+  for (const c of string) {
+    if (!isRawStringChar(c)) return false
+  }
+  return true
+}
 
 // -------------------------------------------------------------------
 

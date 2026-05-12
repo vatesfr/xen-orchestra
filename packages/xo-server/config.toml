@@ -205,7 +205,7 @@ timeout = 600e3
 
 [selfService]
 
-# If true, a snapshot of a Self Service VM will consume as much resources as a
+# If false, a snapshot of a Self Service VM will consume as much resources as a
 # normal VM would
 ignoreVmSnapshotResources = false
 
