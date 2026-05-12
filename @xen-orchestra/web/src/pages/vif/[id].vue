@@ -4,7 +4,7 @@
     {{ t('object-not-found', { id: route.params.id }) }}
   </VtsStateHero>
   <RouterView v-else v-slot="{ Component }">
-    <VifHeader v-if="uiStore.hasUi && vif" :vif />
+    <VifHeader v-if="uiStore.hasUi" :vif />
     <component :is="Component" :vif />
   </RouterView>
 </template>

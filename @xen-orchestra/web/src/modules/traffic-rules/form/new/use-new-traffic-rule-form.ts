@@ -15,7 +15,7 @@ import { type FormValidationConfig, required, requiredIf, withMessage } from '@c
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { TrafficRuleTargetType } from '@vates/types'
 import { toLower } from 'lodash-es'
-import { computed, type MaybeRefOrGetter, reactive, watch } from 'vue'
+import { computed, type MaybeRefOrGetter, reactive, toValue, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export type NewTrafficRuleFormData = BaseTrafficRuleFormData & {
@@ -31,9 +31,14 @@ type TargetOption = {
   icon: 'object:network' | 'object:vif'
 }
 
-export function useNewTrafficRuleForm(rawPoolId: MaybeRefOrGetter<FrontXoPool['id'] | undefined>) {
-  const poolId = toComputed(rawPoolId)
+export function useNewTrafficRuleForm(
+  rawPoolId: MaybeRefOrGetter<FrontXoPool['id'] | undefined>,
+  rawVifId: MaybeRefOrGetter<FrontXoVif['id'] | undefined>
+) {
   const { t } = useI18n()
+
+  const poolId = toComputed(rawPoolId)
+  const vifId = toComputed(() => toValue(rawVifId))
 
   const formData = reactive<NewTrafficRuleFormData>({
     allow: true,
@@ -41,7 +46,7 @@ export function useNewTrafficRuleForm(rawPoolId: MaybeRefOrGetter<FrontXoPool['i
     protocol: 'TCP',
     port: undefined,
     ipRange: '',
-    targetType: 'network',
+    targetType: vifId.value ? 'VIF' : 'network',
     vmId: undefined,
     targetId: undefined,
   })
@@ -49,8 +54,23 @@ export function useNewTrafficRuleForm(rawPoolId: MaybeRefOrGetter<FrontXoPool['i
   const isVifTarget = computed(() => formData.targetType === 'VIF')
 
   const { networks } = useXoNetworkCollection()
-  const { vifs } = useXoVifCollection()
+  const { vifs, useGetVifById } = useXoVifCollection()
   const { vmsByPool } = useXoVmCollection()
+
+  const sourceVif = useGetVifById(() => vifId.value)
+
+  const isParentNetworkPlugged = computed(() => {
+    const vif = sourceVif.value
+
+    if (!vif) {
+      return true
+    }
+
+    const parentNetwork = networks.value.find(network => network.id === vif.$network)
+
+    return parentNetwork ? parentNetwork.PIFs.length > 0 : false
+  })
+
 
   const poolNetworks = computed(() =>
     networks.value.filter(network => network.$pool === poolId.value && network.PIFs.length > 0)
@@ -122,18 +142,21 @@ export function useNewTrafficRuleForm(rawPoolId: MaybeRefOrGetter<FrontXoPool['i
 
   const { id: targetTypeSelectId } = useFormSelect('targetType', targetTypeOptions, {
     required: true,
+    disabled: () => !isParentNetworkPlugged.value,
     option: { label: 'label', value: 'value' },
   })
 
   const { id: vmSelectId } = useFormSelect('vmId', vmOptions, {
     required: true,
     searchable: true,
+    disabled: () => sourceVif.value !== undefined,
     option: { label: 'label', value: 'value', properties: source => ({ icon: source.icon }) },
   })
 
   const { id: targetSelectId } = useFormSelect('targetId', targetOptions, {
     required: true,
     searchable: true,
+    disabled: () => sourceVif.value !== undefined || (formData.targetType === 'VIF' && formData.vmId === undefined),
     option: {
       label: 'label',
       value: 'value',

@@ -58,6 +58,7 @@ import TrafficRuleFormTextInput from '@/modules/traffic-rules/components/form/ne
 import NewTrafficRuleButtonsSection from '@/modules/traffic-rules/components/form/new/NewTrafficRuleButtonsSection.vue'
 import { useNewTrafficRuleForm } from '@/modules/traffic-rules/form/new/use-new-traffic-rule-form.ts'
 import type { NewTrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
+import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import VtsForm from '@core/components/form/VtsForm.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
@@ -65,8 +66,9 @@ import VtsStatus from '@core/components/status/VtsStatus.vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
 
-const { poolId } = defineProps<{
+const { poolId, vifId } = defineProps<{
   poolId?: FrontXoPool['id']
+  vifId?: FrontXoVif['id']
   cancelTo: RouteLocationRaw
 }>()
 
@@ -88,7 +90,10 @@ const {
   vmSelectBindings,
   targetSelectBindings,
   validateAndBuildPayload,
-} = useNewTrafficRuleForm(() => poolId)
+} = useNewTrafficRuleForm(
+  () => poolId,
+  () => vifId
+)
 
 async function onSubmit() {
   const payload = await validateAndBuildPayload()
