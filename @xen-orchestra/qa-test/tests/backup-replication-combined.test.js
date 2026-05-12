@@ -472,7 +472,14 @@ describe('Backup + Replication Combined Tests', () => {
         name,
         mode: 'delta',
         schedules: { '': schedule },
-        settings: { '': { timezone: 'Europe/Paris', copyRetention: 3, mergeBackupsSynchronously: true } },
+        settings: {
+          '': {
+            timezone: 'Europe/Paris',
+            copyRetention: 3,
+            bypassVdiChainsCheck: true,
+            mergeBackupsSynchronously: true,
+          },
+        },
         vms: { [vm.uuid]: vm },
         srs: { [targetSrUuid]: true },
       }

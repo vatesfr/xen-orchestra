@@ -118,6 +118,7 @@ describe('Mirror Backup - Full Remote', () => {
         '': {
           exportRetention: 3,
           mergeBackupsSynchronously: true,
+          bypassVdiChainsCheck: true,
           ...settingsOverride,
         },
       },
