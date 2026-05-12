@@ -258,6 +258,7 @@ export class VmController extends XapiXoController<XoVm> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async updateVm(@Path() id: string, @Body() body: UpdateVmRequestBody): Promise<void> {
     await this.#vmService.updateVm(id as XoVm['id'], body)
   }
