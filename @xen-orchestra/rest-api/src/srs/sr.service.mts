@@ -16,11 +16,18 @@ export class SrService {
 
     if (sr.SR_type === 'linstor') {
       const licenseService = this.#restApi.ioc.get(LicenseService)
-      const bindings = await licenseService.unbindXostorLicenses(id)
+      const licenses = await licenseService.getXostorLicenses(id)
+      await Promise.all(
+        licenses.map(({ licenseId, boundObjectId }) =>
+          this.#restApi.xoApp.unbindLicense({ licenseId, boundObjectId, productId: 'xostor' })
+        )
+      )
       try {
         await xapi.xostor_delete(xapiSr.$ref)
       } catch (error) {
-        await licenseService.rebindXostorLicenses(bindings)
+        await Promise.all(
+          licenses.map(({ licenseId, boundObjectId }) => this.#restApi.xoApp.bindLicense({ licenseId, boundObjectId }))
+        )
         throw error
       }
     } else {
