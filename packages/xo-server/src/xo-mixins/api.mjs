@@ -354,7 +354,8 @@ export default class Api {
     const app = this._app
 
     if (app.isDegraded()) {
-      throw new Error('XO is running in degraded mode: credential decryption failed. Use xo-server-crypto CLI to fix.')
+      // TODO: Add "Use xo-server-crypto CLI to fix." to error message when CLI is implemented.
+      throw new Error('XO is running in degraded mode: credential decryption failed.')
     }
 
     const startTime = Date.now()

@@ -180,15 +180,10 @@ export default class CryptoCredentials {
    * @param {Buffer} halfB
    */
   async _loadKey(halfA, halfB) {
+    const fullKey = Buffer.concat([halfA, halfB])
     try {
-      const fullKey = Buffer.concat([halfA, halfB])
       // Input key material
       const ikm = await webcrypto.subtle.importKey('raw', fullKey, KDF_ALGORITHM, false, ['deriveKey'])
-
-      // Memory safety
-      halfA.fill(0)
-      halfB.fill(0)
-      fullKey.fill(0)
 
       this.#encryptionKey = await webcrypto.subtle.deriveKey(
         { name: KDF_ALGORITHM, hash: HASH_ALGORITHM, salt: new Uint8Array(0), info: Buffer.from('xo-credentials-aes') },
@@ -214,6 +209,11 @@ export default class CryptoCredentials {
       this.#degraded = false
     } catch (error) {
       log.error('Credential database decryption failed - running in degraded mode', { cause: error })
+    } finally {
+      // Memory safety
+      halfA.fill(0)
+      halfB.fill(0)
+      fullKey.fill(0)
     }
   }
 
@@ -342,7 +342,7 @@ export default class CryptoCredentials {
       for (const id in redisContent[namespace]) {
         const value = redisContent[namespace][id]
 
-        // Check that the entry value is plaintext.
+        // Skip entries that are already plaintext.
         if (value === null || !value.startsWith(ENCRYPTION_PREFIX)) {
           delete redisContent[namespace][id]
           continue
