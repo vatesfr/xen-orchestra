@@ -4,7 +4,7 @@ import { DispatchClient } from '../client/dispatchClient.js'
 import { createResourceTracker } from '../utils/resourceTracker.js'
 import { getRequiredEnv } from '../utils/index.js'
 
-const log = createLogger('xo:qa-test:setup')
+const log = createLogger('setup')
 
 /**
  * Generates incremental VM name by finding the highest existing number.

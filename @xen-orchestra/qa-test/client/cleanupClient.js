@@ -4,7 +4,7 @@ import fs from 'node:fs/promises'
 import { FilterBuilder } from './FilterBuilder.js'
 import { BACKUP_JOB_NAME_PREFIX, getRequiredEnv } from '../utils/index.js'
 
-const log = createLogger('xo:qa-test:cleanup')
+const log = createLogger('cleanup')
 
 /**
  * Allowed paths for automatic backup cleanup.

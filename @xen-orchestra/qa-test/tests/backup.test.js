@@ -16,7 +16,7 @@ import {
 } from '../utils/index.js'
 import { setup, teardown } from './setup.js'
 
-const log = createLogger('xo:qa-test:tests')
+const log = createLogger('qa:backup:base')
 
 describe('Backup basic tests', () => {
   let vm

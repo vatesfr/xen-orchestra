@@ -24,7 +24,7 @@ import {
 import { assertBackupSuccess, assertRepositoryEmpty } from '../utils/backupUtils.js'
 import { setup, teardown } from './setup.js'
 
-const log = createLogger('xo:qa-test:tests')
+const log = createLogger('qa:backup:combined')
 
 /** Backup repository name used across all tests (read from required env var) */
 const BACKUP_REPOSITORY_NAME = getRequiredEnv('BACKUP_REPOSITORY_NAME')

@@ -16,7 +16,7 @@ import {
 import { setup, teardown } from './setup.js'
 import { getRequiredEnv } from '../utils/index.js'
 
-const log = createLogger('xo:qa-test:tests')
+const log = createLogger('qa:export')
 
 describe('VHD/XVA Export Replication Tests', () => {
   /** @type {import('../client/dispatchClient.js').DispatchClient} */

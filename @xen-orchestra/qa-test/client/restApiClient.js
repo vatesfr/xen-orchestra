@@ -1,7 +1,7 @@
 import { createLogger } from '@xen-orchestra/log'
 import { FilterBuilder } from './FilterBuilder.js'
 
-const log = createLogger('xo:qa-test:rest')
+const log = createLogger('rest')
 
 /**
  * REST API client for XenOrchestra HTTP-based operations.

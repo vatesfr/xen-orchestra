@@ -18,7 +18,7 @@ import {
 import { assertBackupSuccess } from '../utils/backupUtils.js'
 import { setup, teardown } from './setup.js'
 
-const log = createLogger('xo:qa-test:tests')
+const log = createLogger('qa:backup:nbd')
 
 describe('NBD Incremental Backup Tests', () => {
   let vm

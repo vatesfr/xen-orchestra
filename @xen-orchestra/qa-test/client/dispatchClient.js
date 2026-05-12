@@ -10,7 +10,7 @@ import { VDIRequest } from './requests/vdi.js'
 import { CleanupClient } from './cleanupClient.js'
 import { getRequiredEnv } from '../utils/index.js'
 
-const log = createLogger('xo:qa-test:dispatch')
+const log = createLogger('dispatch')
 
 /**
  * Central orchestration client for XenOrchestra operations.

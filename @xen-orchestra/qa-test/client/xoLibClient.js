@@ -1,7 +1,7 @@
 import { createLogger } from '@xen-orchestra/log'
 import Xo from 'xo-lib'
 
-const log = createLogger('xo:qa-test:ws')
+const log = createLogger('ws')
 
 const XoConnection = Xo.default
 
