@@ -89,6 +89,7 @@ export default class Proxy {
         connection: app._redis,
         indexes: ['address', 'vmUuid'],
         namespace: 'proxy',
+        crypto: app.cryptoCredentials,
       }))
 
       return app.addConfigManager(
