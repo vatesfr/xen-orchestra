@@ -164,7 +164,7 @@ export class VmBackupDirectory implements VmBackupInterface {
 
     // Delete VDI directories not referenced by any archive
     const coveredDirs = new Set(this.#uniqueLineages!.keys())
-    await cleanOrphanDiskDirs(this.handler as any, this.rootPath, coveredDirs, {
+    await cleanOrphanDiskDirs(this.handler, this.rootPath, coveredDirs, {
       remove,
       logWarn: this.opts.logWarn,
       logInfo: this.opts.logInfo,

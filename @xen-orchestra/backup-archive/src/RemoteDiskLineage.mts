@@ -81,7 +81,7 @@ export class RemoteDiskLineage {
     for (const diskPath of this.#diskPaths) {
       let disk: RemoteDisk | undefined
       try {
-        disk = await openDisk({ handler: this.#handler as any, path: diskPath })
+        disk = await openDisk({ handler: this.#handler, path: diskPath })
       } catch (error) {
         if (error?.code === 'NOT_SUPPORTED' && this.#opts.merge) {
           throw error
@@ -101,7 +101,7 @@ export class RemoteDiskLineage {
           this.#opts.logWarn('duplicate disk UUID detected', { uuid, path1: existingPath, path2: diskPath })
           let existingDisk: RemoteDisk | undefined
           try {
-            existingDisk = await openDisk({ handler: this.#handler as any, path: existingPath })
+            existingDisk = await openDisk({ handler: this.#handler, path: existingPath })
             if (existingDisk.containsAllDataOf(disk)) {
               this.#opts.logWarn('should drop duplicate disk, existing is superset', { dropped: diskPath })
               continue
@@ -143,7 +143,7 @@ export class RemoteDiskLineage {
     }
 
     this.#interruptedMerges = await MergeRemoteDisk.findInterruptedMerges(
-      this.#handler as any,
+      this.#handler,
       this.#vdiDir,
       files,
       uuidToPath,
@@ -287,7 +287,7 @@ export class RemoteDiskLineage {
         async path => {
           this.#opts.logInfo('deleting unused disk', { path })
           try {
-            const disk = await openDisk({ handler: this.#handler as any, path, ignoreBlockIndexes: true })
+            const disk = await openDisk({ handler: this.#handler, path, ignoreBlockIndexes: true })
             await disk.unlink({ force: true })
           } catch (error) {
             this.#opts.logWarn('failed to delete unused disk', { path, error })
@@ -341,7 +341,7 @@ export class RemoteDiskLineage {
     // The last disk in the chain is the active one that everything gets merged into
     const mergeTargetPath = chain.pop()!
 
-    const merger = new MergeRemoteDisk(this.#handler as any, {
+    const merger = new MergeRemoteDisk(this.#handler, {
       logInfo: this.#opts.logInfo,
       removeUnused: this.#opts.remove,
       mergeBlockConcurrency: this.#opts.mergeBlockConcurrency,
@@ -350,7 +350,7 @@ export class RemoteDiskLineage {
     let parentDisk: RemoteDisk | undefined
     let childDisk: RemoteDisk | undefined
     try {
-      parentDisk = await openDisk({ handler: this.#handler as any, path: parentPath, force: isResuming })
+      parentDisk = await openDisk({ handler: this.#handler, path: parentPath, force: isResuming })
       childDisk = await openDiskChain({
         handler: this.#handler,
         path: mergeTargetPath,
@@ -378,7 +378,7 @@ export class RemoteDiskLineage {
     const claimedFiles = new Set<string>()
     for (const diskPath of this.#diskPaths) {
       const claimed = await Disposable.use(
-        openDisposableDisk({ handler: this.#handler as any, path: diskPath, ignoreBlockIndexes: true }),
+        openDisposableDisk({ handler: this.#handler, path: diskPath, ignoreBlockIndexes: true }),
         async disk => {
           await disk.clean({ remove, logWarn: this.#opts.logWarn, logInfo: this.#opts.logInfo })
           return disk.listAssociatedFiles(this.#vdiDir)
@@ -394,7 +394,7 @@ export class RemoteDiskLineage {
         if (!claimedFiles.has(normalize(item))) {
           this.#opts.logWarn('orphaned data file', { path: item })
           if (remove) {
-            await this.#handler.unlink(item).catch(async (err: any) => {
+            await this.#handler.unlink(item).catch(async err => {
               if (err?.code === 'EISDIR') {
                 await this.#handler.rmtree(item)
               } else {

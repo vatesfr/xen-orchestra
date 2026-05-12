@@ -2,7 +2,7 @@
 
 /**
  * @typedef {import('./RemoteDisk.mjs').RemoteDisk} RemoteDisk
- * @typedef {import('@xen-orchestra/disk-transform').FileAccessor} FileAccessor
+ * @typedef {import('@xen-orchestra/fs').RemoteHandlerAbstract} RemoteHandlerAbstract
  */
 
 import assert from 'assert'
@@ -82,12 +82,12 @@ export class MergeRemoteDisk {
   #lastStateWrittenAt
 
   /**
-   * @type {FileAccessor}
+   * @type {RemoteHandlerAbstract}
    */
   #handler
 
   /**
-   * @param {FileAccessor} handler
+   * @param {RemoteHandlerAbstract} handler
    * @param {Object} params
    * @param {Function} [params.onProgress]
    * @param {Logger | Function} [params.logInfo]
@@ -325,7 +325,7 @@ export class MergeRemoteDisk {
   /**
    * Scans vdiDir files for interrupted merge state files and resolves their chains
    *
-   * @param {FileAccessor} handler
+   * @param {RemoteHandlerAbstract} handler
    * @param {string} vdiDir
    * @param {string[]} files - all file paths in vdiDir (prependDir: true)
    * @param {Map<string, string>} uuidToPath - diskUuid: normalized disk path
@@ -352,7 +352,7 @@ export class MergeRemoteDisk {
           const childPath = childUuid !== undefined ? uuidToPath.get(childUuid) : childOf.get(parentPath)
           if (childPath !== undefined) chain = [parentPath, childPath]
         }
-      } catch(error) {
+      } catch (error) {
         warn("Merge state unreadable, can't restart merging.", error)
       }
 

@@ -8,7 +8,7 @@ export { MergeRemoteDisk } from './MergeRemoteDisk.mjs'
 const DISK_EXTENSIONS = ['.vhd']
 
 /**
- * @typedef {import('@xen-orchestra/disk-transform').FileAccessor} FileAccessor
+ * @typedef {import('@xen-orchestra/fs').RemoteHandlerAbstract} RemoteHandlerAbstract
  * @typedef {import('./RemoteDisk.mjs').RemoteDisk} RemoteDisk
  * @typedef {import('./MergeRemoteDisk.mjs').MergeState} MergeState
  */
@@ -20,7 +20,7 @@ export function isDisk(path) {
 /**
  *
  * @param {Object} params
- * @param {FileAccessor} params.handler
+ * @param {RemoteHandlerAbstract} params.handler
  * @param {string} params.path
  * @param {boolean} [params.force]
  * @param {boolean} [params.ignoreBlockIndexes]
@@ -43,7 +43,7 @@ export async function openDisposableDisk({ handler, path, force = false, ignoreB
 
 /**
  * @param {Object} params
- * @param {FileAccessor} params.handler
+ * @param {RemoteHandlerAbstract} params.handler
  * @param {string} params.path
  * @param {boolean} [params.force]
  * @param {boolean} [params.ignoreBlockIndexes]
@@ -65,7 +65,7 @@ export async function openDisk({ handler, path, force = false, ignoreBlockIndexe
  * Deletes VDI directories under `vmDir/vdis/<jobId>/<vdiId>/` that are not in coveredDirs.
  * Used to clean up disk directories that no backup metadata references at all.
  *
- * @param {FileAccessor} handler
+ * @param {RemoteHandlerAbstract} handler
  * @param {string} vmDir  - root of the VM backup directory (xo-vm-backups/<vmUuid>)
  * @param {Set<string>} coveredDirs - normalized vdiDir paths already managed by a lineage
  * @param {{ remove?: boolean, logWarn?: Function, logInfo?: Function }} opts
