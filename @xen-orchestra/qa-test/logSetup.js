@@ -1,17 +1,25 @@
+import { createWriteStream } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import transportConsole from '@xen-orchestra/log/transports/console'
 import { configure } from '@xen-orchestra/log/configure'
 
-// Side-effect module: must be imported once, before any other module that
-// emits logs. `@xen-orchestra/log` is silent until a transport is registered
-// here, which is why test failures used to disappear without a trace.
-//
-// `level: 'info'` keeps info/warn/error/fatal always visible (test failures
-// surface). `filter: process.env.DEBUG` lets debug-level logs through when
-// the user opts in with e.g. `DEBUG='xo:qa-test:*'`.
+const logFile = join(tmpdir(), `xo-qa-test-${Date.now()}.log`)
+const logStream = createWriteStream(logFile)
+process.stderr.write(`[qa-test] debug log: ${logFile}\n`)
+
+const fileTransport = ({ data, level, namespace, message, time }) => {
+  logStream.write(JSON.stringify({ time: time.toISOString(), level, namespace, message, data }) + '\n')
+}
+
 configure([
   {
     filter: process.env.DEBUG,
-    level: 'info',
+    level: process.env.DEBUG_LEVEL ?? 'info',
     transport: transportConsole(),
+  },
+  {
+    level: 'debug', // capture everything
+    transport: fileTransport,
   },
 ])
