@@ -316,6 +316,27 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       never
     >
+    '/story/web-core/key-value-list/vts-key-value-list': RouteRecordInfo<
+      '/story/web-core/key-value-list/vts-key-value-list',
+      '/story/web-core/key-value-list/vts-key-value-list',
+      Record<never, never>,
+      Record<never, never>,
+      never
+    >
+    '/story/web-core/key-value-pair/vts-key-value-pair': RouteRecordInfo<
+      '/story/web-core/key-value-pair/vts-key-value-pair',
+      '/story/web-core/key-value-pair/vts-key-value-pair',
+      Record<never, never>,
+      Record<never, never>,
+      never
+    >
+    '/story/web-core/key-value-row/vts-key-value-row': RouteRecordInfo<
+      '/story/web-core/key-value-row/vts-key-value-row',
+      '/story/web-core/key-value-row/vts-key-value-row',
+      Record<never, never>,
+      Record<never, never>,
+      never
+    >
     '/story/web-core/legend-group/vts-legend-group': RouteRecordInfo<
       '/story/web-core/legend-group/vts-legend-group',
       '/story/web-core/legend-group/vts-legend-group',
@@ -389,6 +410,20 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/tab/tab-list': RouteRecordInfo<
       '/story/web-core/tab/tab-list',
       '/story/web-core/tab/tab-list',
+      Record<never, never>,
+      Record<never, never>,
+      never
+    >
+    '/story/web-core/tabular-key-value-list/vts-tabular-key-value-list': RouteRecordInfo<
+      '/story/web-core/tabular-key-value-list/vts-tabular-key-value-list',
+      '/story/web-core/tabular-key-value-list/vts-tabular-key-value-list',
+      Record<never, never>,
+      Record<never, never>,
+      never
+    >
+    '/story/web-core/tabular-key-value-row/vts-tabular-key-value-row': RouteRecordInfo<
+      '/story/web-core/tabular-key-value-row/vts-tabular-key-value-row',
+      '/story/web-core/tabular-key-value-row/vts-tabular-key-value-row',
       Record<never, never>,
       Record<never, never>,
       never
@@ -757,6 +792,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       never
     >
+    '/story/web-core/ui/tag/ui-tertiary-tag': RouteRecordInfo<
+      '/story/web-core/ui/tag/ui-tertiary-tag',
+      '/story/web-core/ui/tag/ui-tertiary-tag',
+      Record<never, never>,
+      Record<never, never>,
+      never
+    >
     '/story/web-core/ui/task-item/ui-task-item': RouteRecordInfo<
       '/story/web-core/ui/task-item/ui-task-item',
       '/story/web-core/ui/task-item/ui-task-item',
@@ -1090,6 +1132,18 @@ declare module 'vue-router/auto-routes' {
       routes: '/story/web-core/input-wrapper/vts-input-wrapper'
       views: never
     }
+    'src/stories/web-core/key-value-list/vts-key-value-list.story.vue': {
+      routes: '/story/web-core/key-value-list/vts-key-value-list'
+      views: never
+    }
+    'src/stories/web-core/key-value-pair/vts-key-value-pair.story.vue': {
+      routes: '/story/web-core/key-value-pair/vts-key-value-pair'
+      views: never
+    }
+    'src/stories/web-core/key-value-row/vts-key-value-row.story.vue': {
+      routes: '/story/web-core/key-value-row/vts-key-value-row'
+      views: never
+    }
     'src/stories/web-core/legend-group/vts-legend-group.story.vue': {
       routes: '/story/web-core/legend-group/vts-legend-group'
       views: never
@@ -1132,6 +1186,14 @@ declare module 'vue-router/auto-routes' {
     }
     'src/stories/web-core/tab/tab-list.story.vue': {
       routes: '/story/web-core/tab/tab-list'
+      views: never
+    }
+    'src/stories/web-core/tabular-key-value-list/vts-tabular-key-value-list.story.vue': {
+      routes: '/story/web-core/tabular-key-value-list/vts-tabular-key-value-list'
+      views: never
+    }
+    'src/stories/web-core/tabular-key-value-row/vts-tabular-key-value-row.story.vue': {
+      routes: '/story/web-core/tabular-key-value-row/vts-tabular-key-value-row'
       views: never
     }
     'src/stories/web-core/tree/vts-tree-item.story.vue': {
@@ -1340,6 +1402,10 @@ declare module 'vue-router/auto-routes' {
     }
     'src/stories/web-core/ui/tag/ui-tags-list.story.vue': {
       routes: '/story/web-core/ui/tag/ui-tags-list'
+      views: never
+    }
+    'src/stories/web-core/ui/tag/ui-tertiary-tag.story.vue': {
+      routes: '/story/web-core/ui/tag/ui-tertiary-tag'
       views: never
     }
     'src/stories/web-core/ui/task-item/ui-task-item.story.vue': {

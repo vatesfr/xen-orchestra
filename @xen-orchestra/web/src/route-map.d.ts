@@ -88,17 +88,6 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       never
     >
-    '/dev/': RouteRecordInfo<'/dev/', '/dev', Record<never, never>, Record<never, never>, never>
-    '/dev/colors': RouteRecordInfo<'/dev/colors', '/dev/colors', Record<never, never>, Record<never, never>, never>
-    '/dev/icons/': RouteRecordInfo<'/dev/icons/', '/dev/icons', Record<never, never>, Record<never, never>, never>
-    '/dev/icons/[name]': RouteRecordInfo<
-      '/dev/icons/[name]',
-      '/dev/icons/:name',
-      { name: ParamValue<true> },
-      { name: ParamValue<false> },
-      never
-    >
-    '/dev/token': RouteRecordInfo<'/dev/token', '/dev/token', Record<never, never>, Record<never, never>, never>
     '/host/[id]': RouteRecordInfo<
       '/host/[id]',
       '/host/:id',
@@ -184,6 +173,7 @@ declare module 'vue-router/auto-routes' {
       | '/pool/[id]/dashboard'
       | '/pool/[id]/hosts'
       | '/pool/[id]/networks'
+      | '/pool/[id]/security'
       | '/pool/[id]/storage'
       | '/pool/[id]/system'
       | '/pool/[id]/tasks'
@@ -206,6 +196,13 @@ declare module 'vue-router/auto-routes' {
     '/pool/[id]/networks': RouteRecordInfo<
       '/pool/[id]/networks',
       '/pool/:id/networks',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      never
+    >
+    '/pool/[id]/security': RouteRecordInfo<
+      '/pool/[id]/security',
+      '/pool/:id/security',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
       never
@@ -394,26 +391,6 @@ declare module 'vue-router/auto-routes' {
       routes: '/backup/[id]/targets'
       views: never
     }
-    'src/pages/dev/index.vue': {
-      routes: '/dev/'
-      views: never
-    }
-    'src/pages/dev/colors.vue': {
-      routes: '/dev/colors'
-      views: never
-    }
-    'src/pages/dev/icons/index.vue': {
-      routes: '/dev/icons/'
-      views: never
-    }
-    'src/pages/dev/icons/[name].vue': {
-      routes: '/dev/icons/[name]'
-      views: never
-    }
-    'src/pages/dev/token.vue': {
-      routes: '/dev/token'
-      views: never
-    }
     'src/pages/host/[id].vue': {
       routes:
         | '/host/[id]'
@@ -472,6 +449,7 @@ declare module 'vue-router/auto-routes' {
         | '/pool/[id]/dashboard'
         | '/pool/[id]/hosts'
         | '/pool/[id]/networks'
+        | '/pool/[id]/security'
         | '/pool/[id]/storage'
         | '/pool/[id]/system'
         | '/pool/[id]/tasks'
@@ -488,6 +466,10 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/pool/[id]/networks.vue': {
       routes: '/pool/[id]/networks'
+      views: never
+    }
+    'src/pages/pool/[id]/security.vue': {
+      routes: '/pool/[id]/security'
       views: never
     }
     'src/pages/pool/[id]/storage.vue': {
