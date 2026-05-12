@@ -388,7 +388,7 @@ export class HostController extends XapiXoController<XoHost> {
 
   /**
    * Required privileges:
-   * - resource: host, action: update:management-interface,
+   * - resource: host, action: update:management-interface
    * - resource: pif, action: allow-management
    *
    * Reconfigure the management interface of the host to use the given PIF.
