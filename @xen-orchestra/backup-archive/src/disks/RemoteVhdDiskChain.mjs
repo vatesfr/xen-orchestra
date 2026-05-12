@@ -37,7 +37,6 @@ export class RemoteVhdDiskChain extends RemoteDisk {
 
   /**
    * @param {Object} params
-   * @param {RemoteHandlerAbstract} params.handler
    * @param {RemoteVhdDisk[]} params.disks
    */
   constructor({ disks }) {

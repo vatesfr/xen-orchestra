@@ -101,8 +101,7 @@ export class VmFullBackupArchive implements VmBackupInterface {
    */
   async check(): Promise<CheckResult> {
     if (this.isValid === undefined) {
-      let fileSize,
-        checkSumSize = 0
+      let fileSize = 0
       let validDisk = false
       try {
         fileSize = await this.handler.getSize(this.xvaPath)
@@ -115,7 +114,7 @@ export class VmFullBackupArchive implements VmBackupInterface {
         this.opts.logWarn('Issue while checking XVA', { error })
       }
       try {
-        checkSumSize = await this.handler.getSize(`${this.xvaPath}.checksum`)
+        await this.handler.getSize(`${this.xvaPath}.checksum`)
       } catch (error) {
         this.opts.logWarn('Checksum file not valid, not blocking', { error })
       }
