@@ -35,6 +35,8 @@ describe('Mirror Backup - Full Remote', () => {
   let sourceRepository
   /** @type {{id: string, name: string}} */
   let destRepository
+  /** Set to true only after assertRepositoryEmpty passes — guards after() from purging data it did not create */
+  let reposVerifiedEmpty = false
 
   /**
    * Counts backups for a specific VM on a given repository.
@@ -182,10 +184,13 @@ describe('Mirror Backup - Full Remote', () => {
     // Safety check: repositories must be empty to avoid accidental data loss
     await assertRepositoryEmpty(dispatchClient, sourceRepository)
     await assertRepositoryEmpty(dispatchClient, destRepository)
+    reposVerifiedEmpty = true
   })
 
   after(async () => {
-    await purgeBackupData(sourceRepository, destRepository)
+    if (reposVerifiedEmpty) {
+      await purgeBackupData(sourceRepository, destRepository)
+    }
 
     if (dispatchClient && tracker) {
       await teardown(dispatchClient, tracker)
