@@ -44,7 +44,7 @@ export function useXoBackupLogsUtils() {
           totalSize = (totalSize ?? 0) + nestedSize
         }
       } else {
-        if (!('message' in task) || task.message !== 'transfer' || typeof task.result.size !== 'number') {
+        if (!('message' in task) || task.message !== 'transfer' || typeof task.result?.size !== 'number') {
           return totalSize
         }
 
