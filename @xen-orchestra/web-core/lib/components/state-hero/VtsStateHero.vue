@@ -1,5 +1,8 @@
 <template>
-  <div :class="[className, { horizontal, error, success, 'no-background': noBackground }]" class="vts-state-hero">
+  <div
+    :class="[className, { horizontal: isHorizontal, error, success, 'no-background': noBackground }]"
+    class="vts-state-hero"
+  >
     <UiLoader v-if="type === 'busy'" class="loader" />
     <img v-else-if="imageSrc" :src="imageSrc" :alt="type" class="image" />
     <div v-if="slots.default || success" :class="typoClass" class="content">
@@ -33,12 +36,7 @@ export type StateHeroType =
   | 'all-done'
   | 'creating'
 
-const {
-  format,
-  type,
-  size,
-  horizontal: horizontalProp,
-} = defineProps<{
+const { format, type, size, horizontal } = defineProps<{
   format: StateHeroFormat
   type: StateHeroType
   size: StateHeroSize
@@ -54,7 +52,7 @@ const uiStore = useUiStore()
 
 const { t } = useI18n()
 
-const horizontal = computed(() => horizontalProp && !uiStore.isSmall)
+const isHorizontal = computed(() => horizontal && !uiStore.isSmall)
 
 const typoClass = computed(() => (format === 'page' ? 'typo-h2' : 'typo-h4'))
 
