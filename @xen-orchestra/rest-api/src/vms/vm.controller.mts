@@ -575,7 +575,7 @@ export class VmController extends XapiXoController<XoVm> {
   /**
    * Required privilege:
    * - resource: vm, action: revert-snapshot
-   * - resource: vm, action: snapshot
+   * - resource: vm, action: snapshot (if `snapshotBefore: true`)
    *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example body { "snapshotId": "f07ab729-c0e8-721c-45ec-f11276377030", "snapshotBefore": true }
@@ -615,11 +615,13 @@ export class VmController extends XapiXoController<XoVm> {
       }
 
       if (body.snapshotBefore) {
-        await Task.run({ properties: { name: 'snapshot VM' } }, () =>
+        await Task.run({ properties: { name: 'snapshot VM', objectId: vmId, objectType: 'VM' } }, () =>
           this.getXapiObject(vmId).$snapshot({ ignoredVdisTag: IGNORED_VDIS_TAG })
         )
 
-        await Task.run({ properties: { name: 'revert snapshot' } }, () => this.getXapi(vmId).revertVm(snapshotId))
+        await Task.run({ properties: { name: 'revert snapshot', objectId: vmId, objectType: 'VM' } }, () =>
+          this.getXapi(vmId).revertVm(snapshotId)
+        )
       } else {
         await this.getXapi(vmId).revertVm(snapshotId)
       }
