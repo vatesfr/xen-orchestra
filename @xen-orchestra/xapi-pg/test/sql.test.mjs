@@ -117,29 +117,23 @@ suite('sql.mjs unit tests', function () {
 
   suite('SetFieldDbSaver', function () {
     test('mergeStatement is correctly generated', function () {
-      const saver = new SetFieldDbSaver('"s"."t"', 'field', 'owner_uuid', 'ref_uuid')
+      const saver = new SetFieldDbSaver('"s"."t"', 'field')
       assert.ok(saver.mergeStatement.includes('MERGE INTO "s"."t" t'))
       assert.ok(saver.mergeStatement.includes(`USING UNNEST($1::${UUID_TYPE}[], $2::${UUID_TYPE}[])`))
-      assert.ok(saver.mergeStatement.includes('AS src("owner_uuid", "ref_uuid")'))
+      assert.ok(saver.mergeStatement.includes('AS src(owner, member)'), saver.mergeStatement)
       // Check for unquoted identifiers in ON clause if that's what's happening
-      assert.ok(
-        saver.mergeStatement.includes('t."owner_uuid" = src."owner_uuid"') ||
-          saver.mergeStatement.includes('t.owner_uuid = src.owner_uuid')
-      )
-      assert.ok(
-        saver.mergeStatement.includes('t."ref_uuid" = src."ref_uuid"') ||
-          saver.mergeStatement.includes('t.ref_uuid = src.ref_uuid')
-      )
+      assert.ok(saver.mergeStatement.includes('t.owner = src.owner'))
+      assert.ok(saver.mergeStatement.includes('t.member = src.member'))
     })
   })
 
   suite('MapFieldDbSaver', function () {
     test('mergeStatement is correctly generated', function () {
-      const saver = new MapFieldDbSaver('"s"."t"', 'field', 'owner_uuid', 'text', 'uuid')
+      const saver = new MapFieldDbSaver('"s"."t"', 'field', 'text', 'uuid')
       assert.ok(saver.mergeStatement.includes('MERGE INTO "s"."t" t'))
       assert.ok(saver.mergeStatement.includes(`USING UNNEST($1::${UUID_TYPE}[], $2::text[], $3::uuid[])`))
-      assert.ok(saver.mergeStatement.includes('AS src("owner_uuid", key, value)'))
-      assert.ok(saver.mergeStatement.includes('t."owner_uuid" = src."owner_uuid" AND t.key = src.key'))
+      assert.ok(saver.mergeStatement.includes('AS src(owner, key, value)'))
+      assert.ok(saver.mergeStatement.includes('t.owner = src.owner AND t.key = src.key'))
       assert.ok(saver.mergeStatement.includes('UPDATE SET value = src.value'))
     })
   })

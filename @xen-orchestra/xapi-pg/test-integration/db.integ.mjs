@@ -10,7 +10,7 @@ function normalizeSQLStatement(expectedMerge) {
   return expectedMerge.replace(/\n/g, '').replace(/\s+/g, ' ').trim()
 }
 
-suite('live DB tests', function () {
+suite('live DB tests', async function () {
   // https://stackoverflow.com/a/8084248
   const random_slug = (Math.random() + 1).toString(36).substring(2)
   const schema_prefix = 'test_' + random_slug
@@ -77,7 +77,7 @@ suite('live DB tests', function () {
     return { viewNames, xapiDbClasses }
   }
 
-  test('the underlying machinery of persistEntities work', async function () {
+  await test('the underlying machinery of persistEntities work', async function () {
     const mapField = 'field1'
     const fieldType = '(clz ref -> int) map'
     const cls = {
@@ -92,7 +92,7 @@ suite('live DB tests', function () {
       fields: { uuid: { name: 'uuid', type: 'string' } },
     }
     const expectedViewRows = [{ uuid: '#uuidRef1', field1: { '#uuidRef2': 10 } }]
-    const expectedDbRecord = { value: 10, cls: '#uuidRef1', key: '#uuidRef2' }
+    const expectedDbRecord = { value: 10, owner: '#uuidRef1', key: '#uuidRef2' }
     const xapiRecord = { uuid: '#uuidRef1', field1: { '#uuidRef2': 10 } }
     const { xapiDbClasses } = await runDDL({ cls, clz })
     const clzDb = xapiDbClasses.clz
@@ -187,12 +187,8 @@ suite('live DB tests', function () {
     const clz = { name: 'clz', fields: { uuid: { name: 'uuid', type: 'string' } } }
     const expectedViewRows = [{ uuid: '#uuidRef1', field1: { 10: '#uuidRef2', 11: '#uuidRef2' } }]
     const expectedDbRecords = [
-      { key: '10', cls: '#uuidRef1', value: '#uuidRef2' },
-      {
-        key: '11',
-        cls: '#uuidRef1',
-        value: '#uuidRef2',
-      },
+      { owner: '#uuidRef1', key: '10', value: '#uuidRef2' },
+      { owner: '#uuidRef1', key: '11', value: '#uuidRef2' },
     ]
     const xapiRecord = { uuid: '#uuidRef1', field1: { 10: '#uuidRef2', 11: '#uuidRef2' } }
     const classesDict = { cls, clz }
@@ -223,7 +219,7 @@ suite('live DB tests', function () {
       await dbClient.query(
         `select *
        from ${TABLE_SCHEMA}.${xapiDbClass.refFields[0].throughTableName}
-       ORDER BY cls, key`
+       ORDER BY owner, key`
       )
     ).rows
     assert.deepEqual(tableResult, expectedDbRecords)
@@ -312,7 +308,7 @@ suite('live DB tests', function () {
         await dbClient.query(
           `SELECT *
            FROM ${absRelationEsc(TABLE_SCHEMA, xapiDbClasses.network.getField('VIFs').throughTableName)}
-           ORDER BY "network", "VIFs"`
+           ORDER BY owner, member`
         )
       ).rows
     }
@@ -334,13 +330,13 @@ suite('live DB tests', function () {
     })
     test('persistEntities() can delete cascade on set owner', async () => {
       await dbClient.query(`DELETE FROM ${xapiDbClasses.network.getTableNameEsc()} WHERE uuid = '#network1'`)
-      assert.deepEqual(await getAllSetsRows(), [{ VIFs: '#vif4', network: '#network2' }])
+      assert.deepEqual(await getAllSetsRows(), [{ member: '#vif4', owner: '#network2' }])
     })
     test('persistEntities() can delete cascade on set target', async () => {
       await dbClient.query(`DELETE FROM ${xapiDbClasses.VIF.getTableNameEsc()} WHERE uuid = '#vif2'`)
       assert.deepEqual(await getAllSetsRows(), [
-        { VIFs: '#vif1', network: '#network1' },
-        { VIFs: '#vif4', network: '#network2' },
+        { member: '#vif1', owner: '#network1' },
+        { member: '#vif4', owner: '#network2' },
       ])
     })
     test('persistEntities() can clear a whole set', async () => {
@@ -351,18 +347,18 @@ suite('live DB tests', function () {
     test('we get the correct MERGE statement', async () => {
       const expectedMerge = `
         MERGE INTO "${TABLE_SCHEMA}"."network_VIFs" t
-              USING UNNEST($1::VARCHAR(40)[], $2::VARCHAR(40)[]) AS src("network", "VIFs")
-              ON (t."network" = src."network" AND t."VIFs" = src."VIFs")
+              USING UNNEST($1::VARCHAR(40)[], $2::VARCHAR(40)[]) AS src(owner, member)
+              ON (t.owner = src.owner AND t.member = src.member)
               WHEN MATCHED THEN DO NOTHING
-              WHEN NOT MATCHED THEN INSERT ("network", "VIFs") VALUES (src."network", src."VIFs")
-              WHEN NOT MATCHED BY SOURCE AND t."network" = ANY ($3::VARCHAR(40)[]) THEN DELETE;`
+              WHEN NOT MATCHED THEN INSERT (owner, member) VALUES (src.owner, src.member)
+              WHEN NOT MATCHED BY SOURCE AND t.owner = ANY ($3::VARCHAR(40)[]) THEN DELETE;`
       /** quick primer on `MERGE`:
        *   - SOURCE is the new set of rows, coming from the client (`USING`)
        *   - TARGET it the existing table (`INTO`, the through table of the materialized association, `"network_VIFs"`)
        *   - `$3` contains the unique values of `$1`
        *   - `= ANY ()` is the inclusion test for arrays (`IN` is for rows).
-       *   - we join on the primary key of the through table (`t."network"`, `t."VIFs"`)
-       *   - the scan is a FULL OUTER JOIN i.e., both the entire `SOURCE` and the TARGET (limited to `WHERE t."network" = ANY($3)`)
+       *   - we join on the primary key of the through table (`t.owner`, `t.member`)
+       *   - the scan is a FULL OUTER JOIN i.e., both the entire `SOURCE` and the TARGET (limited to `WHERE t.owner = ANY($3)`)
        *       are scanned (because of `WHEN NOT MATCHED BY SOURCE`)
        */
       const expectedMergeNoSpace = normalizeSQLStatement(expectedMerge)
@@ -376,17 +372,17 @@ suite('live DB tests', function () {
       const sqlArray = arr => `'{ ${arr.join(',')} }'` // https://www.postgresql.org/docs/current/arrays.html#ARRAYS-INPUT
       const manualMerge = `
         MERGE INTO "${TABLE_SCHEMA}"."network_VIFs" t
-              USING UNNEST(${sqlArray($1)}::VARCHAR(40)[], ${sqlArray($2)}::VARCHAR(40)[]) AS src("network", "VIFs")
-              ON (t."network" = src."network" AND t."VIFs" = src."VIFs")
+              USING UNNEST(${sqlArray($1)}::VARCHAR(40)[], ${sqlArray($2)}::VARCHAR(40)[]) AS src(owner, member)
+              ON (t.owner = src.owner AND t.member = src.member)
               WHEN MATCHED THEN DO NOTHING
-              WHEN NOT MATCHED THEN INSERT ("network", "VIFs") VALUES (src."network", src."VIFs")
-              WHEN NOT MATCHED BY SOURCE AND t."network" = ANY (${sqlArray($3)}::VARCHAR(40)[]) THEN DELETE;`
+              WHEN NOT MATCHED THEN INSERT (owner, member) VALUES (src.owner, src.member)
+              WHEN NOT MATCHED BY SOURCE AND t.owner = ANY (${sqlArray($3)}::VARCHAR(40)[]) THEN DELETE;`
       await dbClient.query(manualMerge)
       const rows = await getAllSetsRows()
       assert.deepEqual(rows, [
-        { network: '#network1', VIFs: '#vif3' },
-        { network: '#network1', VIFs: '#vif4' },
-        { network: '#network2', VIFs: '#vif4' }, // bystander left untouched
+        { owner: '#network1', member: '#vif3' },
+        { owner: '#network1', member: '#vif4' },
+        { owner: '#network2', member: '#vif4' }, // bystander left untouched
       ])
     })
     test('we get the correct CREATE VIEW statement', async () => {
@@ -406,10 +402,10 @@ suite('live DB tests', function () {
             CREATE OR REPLACE VIEW "${VIEW_SCHEMA}"."network" AS
               SELECT "uuid", "VIFs_t"."VIFs"
               FROM "${TABLE_SCHEMA}"."network"
-              LEFT JOIN LATERAL
-                ( SELECT COALESCE(array_agg(linked."VIFs" ORDER BY linked."VIFs"), '{}') AS "VIFs"
+              LEFT JOIN LATERAL (
+                  SELECT COALESCE(array_agg(linked.member ORDER BY linked.member), '{}') AS "VIFs"
                   FROM "${TABLE_SCHEMA}"."network_VIFs" AS linked
-                  WHERE linked."network"=uuid ) AS "VIFs_t"
+                  WHERE linked.owner=uuid ) AS "VIFs_t"
                 ON TRUE;`
       const createViewStatement = ddl.statements
         .map(normalizeSQLStatement)

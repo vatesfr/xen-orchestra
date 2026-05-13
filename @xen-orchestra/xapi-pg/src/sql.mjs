@@ -128,17 +128,16 @@ export function createViewDDL(cls, viewNameEsc, ddlStatementsCollector, commentS
 }
 
 export class GroupRefDbSaver {
-  constructor(tableNameEsc, fieldName, ownerFieldName, aggregation) {
-    const ownerEsc = escapeIdentifier(ownerFieldName)
+  constructor(tableNameEsc, fieldName, aggregation) {
     const fieldRelationEsc = escapeIdentifier(fieldName + '_t')
     const colNameEsc = escapeIdentifier(fieldName)
     this.viewExpressionEsc = `${fieldRelationEsc}.${colNameEsc}`
-    // we need "coalesce" because empty groups produce null instead of {}
+    // we need LEFT JOIN ... ON TRUE so that the join doesn't skip empty rows.
     this.viewLateral = `
         LEFT JOIN LATERAL (
           SELECT ${aggregation} AS ${colNameEsc}
           FROM ${tableNameEsc} AS linked
-          WHERE linked.${ownerEsc}=uuid
+          WHERE linked.owner=uuid
       ) AS ${fieldRelationEsc} ON TRUE`
   }
 
@@ -149,37 +148,30 @@ export class GroupRefDbSaver {
 
 /**
  * Saver for a Set table.
- * Set-typed class fields referencing another class are materialized as a separate association table to reflect the foreign key cnstraint.
+ * Set-typed class fields referencing another class are materialized as a separate association table to reflect the foreign key constraint.
  *
  * The `owner` of a row of said table is the uuid of the entity whose field is materialized.
  * Emptying Sets needs a bit of gymnastics explained in `saveRows()`
  */
 export class SetFieldDbSaver extends GroupRefDbSaver {
-  ownerFieldName
-  referenceFieldName
-
-  constructor(tableNameEsc, fieldName, ownerFieldName, referenceFieldName) {
-    const colNameEsc = escapeIdentifier(fieldName)
-    const aggregation = `COALESCE(array_agg(linked.${colNameEsc} ORDER BY linked.${colNameEsc}), '{}')`
-    super(tableNameEsc, fieldName, ownerFieldName, aggregation)
-    this.ownerFieldName = ownerFieldName
-    this.referenceFieldName = referenceFieldName
-    const ownerEsc = escapeIdentifier(ownerFieldName)
-    const refEsc = escapeIdentifier(referenceFieldName)
+  constructor(tableNameEsc, fieldName) {
+    // we need "coalesce" because empty groups produce null instead of {}
+    const aggregation = `COALESCE(array_agg(linked.member ORDER BY linked.member), '{}')`
+    super(tableNameEsc, fieldName, aggregation)
     // UNNEST https://stackoverflow.com/a/31071043
-    // UNNEST allows binding arrays of columns, instead of binding dozens of individual parameters
+    // UNNEST allows binding arrays of columns; instead of binding dozens of individual parameters.
     // it's necessary because postgres only allows single type arrays so we can't send an array of rows
     this.mergeStatement = `
         MERGE INTO ${tableNameEsc} t
         USING UNNEST($1::${UUID_TYPE}[], $2::${UUID_TYPE}[])
-            AS src(${ownerEsc}, ${refEsc})
-        ON (t.${ownerEsc} = src.${ownerEsc} AND
-            t.${refEsc} = src.${refEsc})
+            AS src(owner, member)
+        ON (t.owner = src.owner AND
+            t.member = src.member)
         WHEN MATCHED THEN
             DO NOTHING
         WHEN NOT MATCHED THEN
-            INSERT (${ownerEsc}, ${refEsc}) VALUES (src.${ownerEsc}, src.${refEsc})
-        WHEN NOT MATCHED BY SOURCE AND t.${ownerEsc} = ANY ($3::${UUID_TYPE}[]) THEN
+            INSERT (owner, member) VALUES (src.owner, src.member)
+        WHEN NOT MATCHED BY SOURCE AND t.owner = ANY ($3::${UUID_TYPE}[]) THEN
             DELETE;`
   }
 
@@ -194,10 +186,7 @@ export class SetFieldDbSaver extends GroupRefDbSaver {
    * @returns {Promise<void>}
    */
   async saveRows(dbClient, records, allOwners) {
-    const { [this.ownerFieldName]: owners, [this.referenceFieldName]: values } = rows2Columns(records, [
-      this.ownerFieldName,
-      this.referenceFieldName,
-    ])
+    const { owner: owners, member: values } = rows2Columns(records, ['owner', 'member'])
     await dbClient.query(this.mergeStatement, [owners, values, allOwners])
   }
 }
@@ -209,36 +198,32 @@ export class SetFieldDbSaver extends GroupRefDbSaver {
  *
  * The "owner" of a row of said table is the uuid of the entity whose field is materialized.
  *
- * E.g.: `pool.blobs` typed `(string -> blob ref) map` will produce a table `pool_blobs(pool, key, value)`.
- * `pool` will be the "owner" field, that is the foreign key to `pool.uuid`.
+ * E.g.: `pool.blobs` typed `(string -> blob ref) map` will produce a table `pool_blobs(oner, key, value)`.
  *
  * Emptying Maps needs a bit of gymnastics explained in `saveRows()`.
  */
 export class MapFieldDbSaver extends GroupRefDbSaver {
-  ownerFieldName
   keySQLType
   valueSQLType
 
-  constructor(tableNameEsc, fieldName, ownerFieldName, keySQLType, valueSQLType) {
+  constructor(tableNameEsc, fieldName, keySQLType, valueSQLType) {
     const aggregation = `COALESCE(json_object_agg(linked."key", linked."value" ORDER BY linked."key"), '{}')`
-    super(tableNameEsc, fieldName, ownerFieldName, aggregation)
+    super(tableNameEsc, fieldName, aggregation)
     this.keySQLType = keySQLType
     this.valueSQLType = valueSQLType
-    this.ownerFieldName = ownerFieldName
-    const ownerEsc = escapeIdentifier(ownerFieldName)
     // UNNEST https://stackoverflow.com/a/31071043
-    // UNNEST allows binding arrays of columns, instead of binding dozens of individual parameters
+    // UNNEST allows binding arrays of columns; instead of binding dozens of individual parameters.
     // it's necessary because postgres only allows single type arrays so we can't send an array of rows
     this.mergeStatement = `
         MERGE INTO ${tableNameEsc} t
         USING UNNEST($1::${UUID_TYPE}[], $2::${keySQLType}[], $3::${valueSQLType}[])
-            AS src(${ownerEsc}, key, value)
-        ON (t.${ownerEsc} = src.${ownerEsc} AND t.key = src.key)
+            AS src(owner, key, value)
+        ON (t.owner = src.owner AND t.key = src.key)
         WHEN MATCHED THEN
             UPDATE SET value = src.value
         WHEN NOT MATCHED THEN
-            INSERT (${ownerEsc}, key, value) VALUES (src.${ownerEsc}, src.key, src.value)
-        WHEN NOT MATCHED BY SOURCE AND t.${ownerEsc} =ANY($4::${UUID_TYPE}[]) THEN
+            INSERT (owner, key, value) VALUES (src.owner, src.key, src.value)
+        WHEN NOT MATCHED BY SOURCE AND t.owner =ANY($4::${UUID_TYPE}[]) THEN
             DELETE;`
   }
 
@@ -253,11 +238,7 @@ export class MapFieldDbSaver extends GroupRefDbSaver {
    * @returns {Promise<void>}
    */
   async saveRows(dbClient, records, allOwners) {
-    const {
-      [this.ownerFieldName]: owners,
-      key: keys,
-      value: values,
-    } = rows2Columns(records, [this.ownerFieldName, 'key', 'value'])
+    const { owner: owners, key: keys, value: values } = rows2Columns(records, ['owner', 'key', 'value'])
     await dbClient.query(this.mergeStatement, [owners, keys, values, allOwners])
   }
 }
