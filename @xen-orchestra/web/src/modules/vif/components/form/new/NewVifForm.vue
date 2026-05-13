@@ -1,15 +1,15 @@
 <template>
   <form class="new-vif-form" @submit.prevent="onSubmit()">
     <div class="row">
-      <NewVifNetworkSelect v-bind="networkSelectBindings" />
+      <VifNetworkSelect v-bind="networkSelectBindings" />
       <NewVifMacInput v-bind="macInputBindings" />
     </div>
     <div class="row">
-      <NewVifRateLimitInput v-bind="rateLimitInputBindings" />
-      <NewVifAllowedIpsTextarea v-bind="allowedIpsTextareaBindings" />
+      <VifRateLimitInput v-bind="rateLimitInputBindings" />
+      <VifAllowedIpsTextarea v-bind="allowedIpsTextareaBindings" />
     </div>
     <div class="tx-checksumming">
-      <NewVifTxChecksummingCheckbox v-bind="txChecksummingCheckboxBindings" />
+      <VifTxChecksummingCheckbox v-bind="txChecksummingCheckboxBindings" />
     </div>
     <NewVifButtonsSection :cancel-to />
   </form>
@@ -17,16 +17,16 @@
 
 <script setup lang="ts">
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import NewVifAllowedIpsTextarea from '@/modules/vif/components/form/new/inputs/NewVifAllowedIpsTextarea.vue'
 import NewVifMacInput from '@/modules/vif/components/form/new/inputs/NewVifMacInput.vue'
-import NewVifNetworkSelect from '@/modules/vif/components/form/new/inputs/NewVifNetworkSelect.vue'
-import NewVifRateLimitInput from '@/modules/vif/components/form/new/inputs/NewVifRateLimitInput.vue'
-import NewVifTxChecksummingCheckbox from '@/modules/vif/components/form/new/inputs/NewVifTxChecksummingCheckbox.vue'
 import NewVifButtonsSection from '@/modules/vif/components/form/new/NewVifButtonsSection.vue'
 import { type NewVifPayload, useNewVifForm } from '@/modules/vif/form/new/use-new-vif-form.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 
 import type { RouteLocationRaw } from 'vue-router'
+import VifAllowedIpsTextarea from './inputs/VifAllowedIpsTextarea.vue'
+import VifNetworkSelect from './inputs/VifNetworkSelect.vue'
+import VifRateLimitInput from './inputs/VifRateLimitInput.vue'
+import VifTxChecksummingCheckbox from './inputs/VifTxChecksummingCheckbox.vue'
 
 const { vmId, poolId } = defineProps<{
   vmId: FrontXoVm['id']
