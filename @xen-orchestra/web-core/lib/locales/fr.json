@@ -424,6 +424,8 @@
   "interfaces": "Interfaces",
   "interrupted": "Interrompu",
   "invalid-field": "Champ invalide",
+  "invalid-ip-addresses": "Une ou plusieurs adresses IP invalides",
+  "invalid-mac-address": "Adresse MAC invalide",
   "ip-address": "Adresse IP",
   "ip-address-info": "Vous pouvez appliquer une règle à une seule adresse IP ou à un sous-réseau au format CIDR. Exemples : 192.168.1.10 ou 10.20.0.0/16",
   "ip-address-invalid": "Le format de l'adresse IP est invalide.",
