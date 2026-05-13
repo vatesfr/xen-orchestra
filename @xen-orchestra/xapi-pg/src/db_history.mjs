@@ -58,7 +58,7 @@ export function getDDL(eventTableNameEsc, historyTableNameEsc, ref2UuidTableName
   return ddl
 }
 
-export async function createEventModels(eventSchema) {
+export function createEventModels(eventSchema) {
   const historyTableNameEsc = absRelationEsc(eventSchema, 'history')
   const eventTableNameEsc = absRelationEsc(eventSchema, 'event')
   const ref2UuidTableNameEsc = absRelationEsc(eventSchema, 'ref_uuid_assoc')
