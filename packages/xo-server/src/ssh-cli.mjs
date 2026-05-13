@@ -46,7 +46,7 @@ Registered pools:
   process.stdout.write(`  ${'UUID'.padEnd(idW)}  ${'Master IP'.padEnd(ipW)}  Label\n`)
   process.stdout.write(`  ${'-'.repeat(idW)}  ${'-'.repeat(ipW)}  -----\n`)
   for (const pool of pools) {
-    process.stdout.write(`  ${pool.id.padEnd(idW)}  ${(pool.host ?? '').padEnd(ipW)}  ${pool.label ?? ''}\n`)
+    process.stdout.write(`  ${pool.id.padEnd(idW)}  ${(pool.host ?? '').padEnd(ipW)}  ${pool.poolNameLabel ?? ''}\n`)
   }
   process.stdout.write('\n')
 }

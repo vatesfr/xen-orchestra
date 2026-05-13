@@ -3,8 +3,8 @@ import { test } from 'node:test'
 import { findPool, printUsage } from './ssh-cli.mjs'
 
 const POOLS = [
-  { id: 'aaaa-bbbb-cccc-dddd', host: '192.168.1.1', username: 'root', password: 's3cr3t', label: 'prod-pool' },
-  { id: 'eeee-ffff-0000-1111', host: '10.0.0.1', username: 'root', password: 'p4ssw0rd', label: 'dev-pool' },
+  { id: 'aaaa-bbbb-cccc-dddd', host: '192.168.1.1', username: 'root', password: 's3cr3t', poolNameLabel: 'prod-pool' },
+  { id: 'eeee-ffff-0000-1111', host: '10.0.0.1', username: 'root', password: 'p4ssw0rd', poolNameLabel: 'dev-pool' },
 ]
 
 test('findPool matches by UUID', () => {
