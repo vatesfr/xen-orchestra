@@ -5,8 +5,12 @@ import { watch } from 'vue'
 /**
  * Normalize a Task error into a JS Error. Keep the original stacktrace
  */
-function normalizeError(taskError: Record<string, unknown>) {
+function normalizeError(taskError: Record<string, unknown> | undefined) {
   const error = new Error()
+
+  if (taskError === undefined) {
+    return error
+  }
 
   if ('message' in taskError) {
     error.message = taskError.message as string

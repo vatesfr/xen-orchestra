@@ -2,19 +2,19 @@
   <UiCard class="card-container">
     <UiCardTitle>
       {{ t('errors') }}
-      <UiCounter :value="Array(task.result).length" accent="danger" size="small" variant="primary" />
+      <UiCounter :value="Array(task.result)?.length" accent="danger" size="small" variant="primary" />
     </UiCardTitle>
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('message') }}</template>
-        <template #value>{{ task.result.message }}</template>
-        <template v-if="task.result.message" #addons>
+        <template #value>{{ task.result?.message }}</template>
+        <template v-if="task.result?.message" #addons>
           <VtsCopyButton :value="String(task.result.message)" />
         </template>
       </VtsCardRowKeyValue>
     </div>
     <UiLogEntryViewer
-      v-if="task.result.stack"
+      v-if="task.result?.stack"
       :content="task.result.stack"
       :label="t('api-error-details')"
       size="small"
