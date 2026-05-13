@@ -91,8 +91,13 @@ export class TableCreator {
       }
     // using delayed alter table because the targeted column might be added by a belated "alter table"
     if (delayedPrimaryKey)
-      this.delayedDDL.push(`ALTER TABLE ${tableEsc}
-        ADD ${primaryKeyClause}`)
+      // https://stackoverflow.com/a/69511564
+      // creating a fake 'ADD PRIMARY KEY ... IF NOT EXISTS'
+      this.delayedDDL.push(`
+          DO $$ BEGIN
+            IF NOT EXISTS (SELECT FROM pg_constraint WHERE conrelid = '${tableEsc}'::regclass AND contype = 'p')
+            THEN ALTER TABLE ${tableEsc} ADD ${primaryKeyClause}; END IF;
+          END $$;`)
     return { immediate: [create], delayed: this.delayedDDL }
   }
 }
@@ -240,5 +245,70 @@ export class MapFieldDbSaver extends GroupRefDbSaver {
   async saveRows(dbClient, records, allOwners) {
     const { owner: owners, key: keys, value: values } = rows2Columns(records, ['owner', 'key', 'value'])
     await dbClient.query(this.mergeStatement, [owners, keys, values, allOwners])
+  }
+}
+
+/** find or create the schemas to store the data of the given pool uuid.
+ * The uuid is shortened and used in the name. The full uuid is stored as a comment and used to avoid collisions.
+ * @param dbClient
+ * @param poolUuid
+ * @param {Object} prefixes
+ * @return {Promise<{}>}
+ */
+export async function ensureSchemasExistsWithoutConflict(dbClient, poolUuid, prefixes) {
+  // https://stackoverflow.com/a/7616484
+  const generateHash = string => {
+    let hash = 0
+    for (const char of string) {
+      hash = (hash << 5) - hash + char.charCodeAt(0)
+      hash |= 0 // Constrain to 32bit integer
+    }
+    return hash.toString(16)
+  }
+  const shortId = generateHash(poolUuid)
+  let result = {}
+  dbClient.query(`BEGIN TRANSACTION;`)
+  try {
+    const schemas = (
+      await dbClient.query(`SELECT oid, nspname, obj_description(oid) AS comment FROM pg_namespace order by nspname;`)
+    ).rows
+    const checkSchemaNamesAreAvailable = id =>
+      Object.values(prefixes).every(p => schemas.find(s => s.nspname === p + '_' + id) == null)
+    const schemasByComment = Object.groupBy(schemas, s => s.comment)
+    if (schemasByComment[poolUuid]) {
+      for (const [type, prefix] of Object.entries(prefixes)) {
+        const found = schemasByComment[poolUuid].find(s => s.nspname.startsWith(prefix))
+        if (found) {
+          result[type] = found.nspname
+        }
+      }
+      if (Object.keys(result).length === Object.keys(prefixes).length) {
+        await dbClient.query(`ROLLBACK TRANSACTION;`)
+        return result
+      }
+    }
+    if (checkSchemaNamesAreAvailable(shortId)) {
+      result = Object.fromEntries(Object.entries(prefixes).map(([type, p]) => [type, p + '_' + shortId]))
+    } else {
+      for (let i = 2; i < 100; i++) {
+        const currentId = shortId + '_' + i
+        if (checkSchemaNamesAreAvailable(currentId)) {
+          result = Object.fromEntries(Object.entries(prefixes).map(([type, p]) => [type, p + '_' + currentId]))
+          break
+        }
+      }
+    }
+    if (Object.keys(result).length === 0) {
+      throw new Error('Could not find a unique schema name for the pool ' + poolUuid)
+    }
+    for (const schemaName of Object.values(result)) {
+      await dbClient.query(`CREATE SCHEMA IF NOT EXISTS ${escapeIdentifier(schemaName)}`)
+      await dbClient.query(`COMMENT ON SCHEMA ${escapeIdentifier(schemaName)} IS ${escapeLiteral(poolUuid)};`)
+    }
+    await dbClient.query(`COMMIT TRANSACTION;`)
+    return result
+  } catch (e) {
+    await dbClient.query(`ROLLBACK TRANSACTION;`)
+    throw e
   }
 }
