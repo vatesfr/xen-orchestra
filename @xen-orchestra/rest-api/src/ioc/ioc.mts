@@ -18,14 +18,10 @@ import { NetworkService } from '../networks/network.service.mjs'
 import { BackupArchiveService } from '../backup-archives/backup-archive.service.mjs'
 
 const iocContainer = new Container()
-let _containerInitialized = false
 
 export function setupContainer(xoApp: XoApp) {
-  if (!_containerInitialized) {
-    decorate(injectable(), Controller)
-    iocContainer.load(buildProviderModule())
-    _containerInitialized = true
-  }
+  decorate(injectable(), Controller)
+  iocContainer.load(buildProviderModule())
 
   if (iocContainer.isBound(RestApi)) {
     iocContainer.unbind(RestApi)

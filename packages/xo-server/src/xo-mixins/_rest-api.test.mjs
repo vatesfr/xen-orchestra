@@ -114,16 +114,32 @@ const post = (port, path, { token = 'valid-token', body, contentType } = {}) => 
 const fetchSwagger = port => fetch(`http://127.0.0.1:${port}/rest/v0/docs/swagger.json`)
 
 describe('RestApi', () => {
+  let server, restApi, port, mainXoApp
+
+  before(async () => {
+    ;({
+      server,
+      restApi,
+      port,
+      xoApp: mainXoApp,
+    } = await createTestServer(
+      createMockXoApp({
+        extraUsers: {
+          'user-token': { id: 'non-admin-user', permission: 'none', privileges: [] },
+          'privileged-user-token': {
+            id: 'privileged-user',
+            permission: 'none',
+            privileges: [{ resource: 'vm', action: 'read', effect: 'allow' }],
+          },
+        },
+      })
+    ))
+  })
+
+  after(() => new Promise((resolve, reject) => server.close(err => (err ? reject(err) : resolve()))))
+
   // TODO: Remove when registerRestApi is not used anymore
   describe('registerRestApi() (legacy)', () => {
-    let server, restApi, port
-
-    before(async () => {
-      ;({ server, restApi, port } = await createTestServer())
-    })
-
-    after(() => new Promise((resolve, reject) => server.close(err => (err ? reject(err) : resolve()))))
-
     describe('authentication', () => {
       before(() => {
         restApi.registerRestApi(
@@ -145,14 +161,8 @@ describe('RestApi', () => {
       })
 
       it('rejects non-admin user', async () => {
-        const { server, restApi, port } = await createTestServer(createMockXoApp({ permission: 'user' }))
-        try {
-          restApi.registerRestApi({ _get: async () => ({}) }, '/auth-test')
-          const response = await get(port, '/auth-test')
-          assert.equal(response.status, 403)
-        } finally {
-          await new Promise((resolve, reject) => server.close(err => (err ? reject(err) : resolve())))
-        }
+        const response = await get(port, '/auth-test', { token: 'user-token' })
+        assert.equal(response.status, 403)
       })
     })
 
@@ -327,30 +337,6 @@ describe('RestApi', () => {
   })
 
   describe('registerRestRoutes()', () => {
-    let server, restApi, port, mainXoApp
-
-    before(async () => {
-      ;({
-        server,
-        restApi,
-        port,
-        xoApp: mainXoApp,
-      } = await createTestServer(
-        createMockXoApp({
-          extraUsers: {
-            'user-token': { id: 'non-admin-user', permission: 'user', privileges: [] },
-            'privileged-user-token': {
-              id: 'privileged-user',
-              permission: 'user',
-              privileges: [{ resource: 'vm', action: 'read', effect: 'allow' }],
-            },
-          },
-        })
-      ))
-    })
-
-    after(() => new Promise((resolve, reject) => server.close(err => (err ? reject(err) : resolve()))))
-
     describe('authentication', () => {
       before(() => {
         restApi.registerRestRoutes(
