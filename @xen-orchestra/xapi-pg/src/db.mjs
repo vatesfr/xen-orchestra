@@ -427,22 +427,22 @@ function createRefSetDBField(xapiDbClass, fieldName, fieldDescription, xapiType)
   const fromName = xapiDbClass.name
   const linkingTableName = fromName + '_' + fieldName
   const throughTableAttributes = {
-    [fromName]: {
+    owner: {
       type: UUID_TYPE,
       primaryKey: true,
       references: { model: fromName, key: 'uuid' },
       onDelete: 'CASCADE',
     },
-    [fieldName]: {
+    member: {
       type: UUID_TYPE,
       primaryKey: true,
       references: { model: ref, key: 'uuid' },
       onDelete: 'CASCADE',
     },
   }
-  const throughTableIndexes = [{ fields: [fromName] }]
+  const throughTableIndexes = [{ fields: ['owner'] }]
   const linkTableEsc = absRelationEsc(xapiDbClass.schema, linkingTableName)
-  const customSaver = new SetFieldDbSaver(linkTableEsc, fieldName, fromName, fieldName)
+  const customSaver = new SetFieldDbSaver(linkTableEsc, fieldName)
   const dbField = new XapiDbField(fieldName, xapiType, null, fieldDescription, customSaver, linkingTableName)
   dbField.throughTableAttributes = throughTableAttributes
   dbField.throughTableIndexes = throughTableIndexes
@@ -452,10 +452,7 @@ function createRefSetDBField(xapiDbClass, fieldName, fieldDescription, xapiType)
     return value
       .map(refConverter)
       .filter(uuid => uuid != null)
-      .map(uuid => ({
-        [fromName]: ownerUuid,
-        [fieldName]: uuid,
-      }))
+      .map(uuid => ({ owner: ownerUuid, member: uuid }))
   }
   dbField.db2Xapi = (value, refConverter) => value.map(refConverter)
   dbField.getRefsFromRecord = record => (record[fieldName] == null ? [] : record[fieldName])
@@ -476,7 +473,7 @@ function createRefMapDBField(xapiDbClass, fieldName, fieldDescription, xapiType)
     return { type: convertSimpleType(type) }
   }
   const throughTableAttributes = {
-    [from.name]: {
+    owner: {
       type: UUID_TYPE,
       primaryKey: true,
       references: { model: from.name, key: 'uuid' },
@@ -486,7 +483,7 @@ function createRefMapDBField(xapiDbClass, fieldName, fieldDescription, xapiType)
     key: { ...transformField(kType), primaryKey: true },
     value: transformField(vType),
   }
-  const throughTableIndexes = [{ fields: [from.name] }]
+  const throughTableIndexes = [{ fields: ['owner'] }]
 
   let getRefsFromEntry
   let xapiEntry2Db
@@ -504,7 +501,6 @@ function createRefMapDBField(xapiDbClass, fieldName, fieldDescription, xapiType)
   const customSaver = new MapFieldDbSaver(
     linkingTableEsc,
     fieldName,
-    from.name,
     throughTableAttributes.key.type,
     throughTableAttributes.value.type
   )
@@ -525,9 +521,9 @@ function createRefMapDBField(xapiDbClass, fieldName, fieldDescription, xapiType)
     return entries
       .map(e => {
         const [key, value] = xapiEntry2Db(e, refConverter)
-        return { key, value, [from.name]: ownerUuid }
+        return { key, value, owner: ownerUuid }
       })
-      .filter(row => row.key && row[from.name])
+      .filter(row => row.key && row.owner)
   }
   dbField.db2Xapi = (value, refConverter) => {
     if (value == null) {
