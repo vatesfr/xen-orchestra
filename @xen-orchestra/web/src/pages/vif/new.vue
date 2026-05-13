@@ -22,7 +22,7 @@ import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
+import { type RouteLocationRaw, useRoute, useRouter } from 'vue-router'
 
 const { t } = useI18n()
 
@@ -35,7 +35,7 @@ const { getVmById } = useXoVmCollection()
 
 const vm = computed(() => (vmId.value ? getVmById(vmId.value) : undefined))
 
-const cancelRoute = computed(() =>
+const cancelRoute = computed<RouteLocationRaw>(() =>
   vm.value ? { name: '/vm/[id]/networks', params: { id: vm.value.id } } : { name: '/(site)/dashboard' }
 )
 
