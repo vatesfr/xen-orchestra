@@ -46,6 +46,7 @@
 - @vates/types minor
 - @xen-orchestra/fs minor
 - @xen-orchestra/rest-api patch
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server minor
 - xo-web minor
