@@ -223,7 +223,7 @@ export class MapFieldDbSaver extends GroupRefDbSaver {
             UPDATE SET value = src.value
         WHEN NOT MATCHED THEN
             INSERT (owner, key, value) VALUES (src.owner, src.key, src.value)
-        WHEN NOT MATCHED BY SOURCE AND t.owner =ANY($4::${UUID_TYPE}[]) THEN
+        WHEN NOT MATCHED BY SOURCE AND t.owner = ANY($4::${UUID_TYPE}[]) THEN
             DELETE;`
   }
 
