@@ -6,9 +6,8 @@ import { objectIcon } from '@core/icons'
 import { formatSizeRaw, type SizeInfo } from '@core/utils/size.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { XoVdi } from '@vates/types'
-import type { MaybeRefOrGetter } from '@vueuse/core'
 import { toLower } from 'lodash-es'
-import { computed } from 'vue'
+import { computed, type MaybeRefOrGetter } from 'vue'
 
 export interface VmFilterableData extends FrontXoVm {
   // Raw values for filtering

@@ -4,9 +4,8 @@ import type { FrontXoServer } from '@/modules/server/remote-resources/use-xo-ser
 import type { Status } from '@core/components/status/VtsStatus.vue'
 import { icon, objectIcon } from '@core/icons'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import type { MaybeRefOrGetter } from '@vueuse/core'
 import { toLower } from 'lodash-es'
-import { computed } from 'vue'
+import { computed, type MaybeRefOrGetter } from 'vue'
 
 export interface PoolFilterableData extends FrontXoServer {
   // Raw values for filtering

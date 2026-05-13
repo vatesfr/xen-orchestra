@@ -4,8 +4,7 @@ import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-n
 import { getNetworkType } from '@/modules/network/utils/xo-network.util.ts'
 import { useModal } from '@core/packages/modal/use-modal.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import type { MaybeRefOrGetter } from '@vueuse/shared'
-import { computed } from 'vue'
+import { computed, type MaybeRefOrGetter } from 'vue'
 
 export function useNetworkDeleteModal(rawNetworks: MaybeRefOrGetter<FrontXoNetwork[]>) {
   const networks = toComputed(rawNetworks)
