@@ -43,11 +43,10 @@ export class EventStore {
    The events classes are supposed to be in the correct case.
    * @param {Client} dbClient
    * @param {{token, events:[FromEvent], valid_ref_counts}} eventResult
-   * @param {string} previousToken
    * @param sessionId
    * @return {Promise<Set<string>>} a set of the references we couldn't resolve
    */
-  async ingestEvents(dbClient, eventResult, previousToken, sessionId) {
+  async ingestEvents(dbClient, eventResult, sessionId) {
     const refStore = this.refStore
     const currentToken = eventResult.token
     let events = eventResult.events
@@ -300,5 +299,29 @@ export class EventStore {
     const records = await this.getViewRecordsForClass(dbClient, cls.viewNameEsc, null)
     const { converter } = await this.convertBatchOfViewRecords(dbClient, { [className]: records })
     return Object.fromEntries(records.map(rec => [converter(rec.uuid), rec]))
+  }
+}
+
+/**
+ * Xapi's event.from() returns the classes in lower case, fixing it now.
+ * The inner function returns a copy of the fixed object to avoid upsetting XO.
+ * @param classesDict
+ */
+export function createClassNameFixer(classesDict) {
+  const lowercase2XapiCase = Object.fromEntries(Object.entries(classesDict).map(([k, _v]) => [k.toLowerCase(), k]))
+  return eventResult => {
+    const copiedEvents = []
+    for (const e of eventResult.events) {
+      const newEvent = { ...e, class: lowercase2XapiCase[e.class] }
+      copiedEvents.push(newEvent)
+    }
+    const entries = Object.entries(eventResult.valid_ref_counts).map(([k, v]) => {
+      if (lowercase2XapiCase[k] === undefined) {
+        return undefined
+      }
+      return [lowercase2XapiCase[k], v]
+    })
+    const newValidCounts = Object.fromEntries(entries.filter(e => e !== undefined))
+    return { ...eventResult, events: copiedEvents, valid_ref_counts: newValidCounts }
   }
 }

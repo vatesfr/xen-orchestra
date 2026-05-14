@@ -116,7 +116,7 @@ suite('EventStore tests', function () {
       valid_ref_counts: { VM: 1 },
     }
 
-    const unknownRefs = await eventStore.ingestEvents(dbClient, eventResult, '', 'session1')
+    const unknownRefs = await eventStore.ingestEvents(dbClient, eventResult, 'session1')
     assert.strictEqual(unknownRefs.size, 1) // Host ref is unknown
     assert.ok(unknownRefs.has('OpaqueRef:host1'))
 
@@ -150,7 +150,6 @@ suite('EventStore tests', function () {
         ],
         valid_ref_counts: { VM: 1 },
       },
-      '',
       'session1'
     )
 
@@ -174,7 +173,7 @@ suite('EventStore tests', function () {
       valid_ref_counts: { VM: 1 },
     }
 
-    await eventStore.ingestEvents(dbClient, modEventResult, 'token1', 'session1')
+    await eventStore.ingestEvents(dbClient, modEventResult, 'session1')
 
     const records = (await dbClient.query(`SELECT * FROM ${xapiDbClasses.VM.getTableNameEsc()}`)).rows
     assert.strictEqual(records.length, 1)
@@ -202,7 +201,6 @@ suite('EventStore tests', function () {
         ],
         valid_ref_counts: { VM: 1 },
       },
-      '',
       'session1'
     )
 
@@ -221,7 +219,7 @@ suite('EventStore tests', function () {
       valid_ref_counts: { VM: 0 },
     }
 
-    await eventStore.ingestEvents(dbClient, delEventResult, 'token1', 'session1')
+    await eventStore.ingestEvents(dbClient, delEventResult, 'session1')
 
     const records = (await dbClient.query(`SELECT * FROM ${xapiDbClasses.VM.getTableNameEsc()}`)).rows
     assert.strictEqual(records.length, 0)
@@ -246,7 +244,6 @@ suite('EventStore tests', function () {
         ],
         valid_ref_counts: { VM: 1 },
       },
-      '',
       'session1'
     )
 
@@ -265,7 +262,6 @@ suite('EventStore tests', function () {
         ],
         valid_ref_counts: { VM: 2 },
       },
-      'token1',
       'session1'
     )
 
@@ -300,7 +296,7 @@ suite('EventStore tests', function () {
       valid_ref_counts: { VM: 1 },
     }
 
-    await eventStore.ingestEvents(dbClient, eventResult, '', 'session1')
+    await eventStore.ingestEvents(dbClient, eventResult, 'session1')
 
     // VM should be ingested, UNKNOWN_CLASS should be ignored
     const records = (await dbClient.query(`SELECT * FROM ${xapiDbClasses.VM.getTableNameEsc()}`)).rows
@@ -360,7 +356,6 @@ suite('EventStore tests', function () {
         ],
         valid_ref_counts: { VM: 1 },
       },
-      '',
       'session-all'
     )
     const records = await eventStore.get_all_records(dbClient, 'VM')
@@ -388,7 +383,6 @@ suite('EventStore tests', function () {
         ],
         valid_ref_counts: { VM: 1 },
       },
-      '',
       'session-p1'
     )
     // 2. Mod record
@@ -407,7 +401,6 @@ suite('EventStore tests', function () {
         ],
         valid_ref_counts: { VM: 1 },
       },
-      'token-p1',
       'session-p1'
     )
     // Now check for mod event
@@ -431,7 +424,6 @@ suite('EventStore tests', function () {
         ],
         valid_ref_counts: { VM: 0 },
       },
-      'token-p2',
       'session-p1'
     )
     // Now check for del event

@@ -312,3 +312,12 @@ export async function ensureSchemasExistsWithoutConflict(dbClient, poolUuid, pre
     throw e
   }
 }
+
+export async function withClient(pool, task) {
+  const client = await pool.connect()
+  try {
+    return await task(client)
+  } finally {
+    client.release()
+  }
+}

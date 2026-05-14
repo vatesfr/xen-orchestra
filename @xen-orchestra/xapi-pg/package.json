@@ -13,6 +13,7 @@
   "preferGlobal": true,
   "private": false,
   "dependencies": {
+    "@xen-orchestra/log": "^0.7.2",
     "pg": "^8.20.0"
   },
   "devDependencies": {
