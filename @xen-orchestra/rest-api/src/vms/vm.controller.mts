@@ -588,7 +588,7 @@ export class VmController extends XapiXoController<XoVm> {
       { resource: 'vm', action: 'revert-snapshot', objectId: 'params.id' },
       {
         resource: 'vm',
-        actions: ({ req }) => (req.body.snapshotBefore ? ['snapshot'] : []),
+        action: ({ req }) => (req.body.snapshotBefore ? 'snapshot' : undefined),
         objectId: 'params.id',
       },
     ]),
