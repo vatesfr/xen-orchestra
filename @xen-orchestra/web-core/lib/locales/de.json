@@ -698,7 +698,7 @@
   "pool-ram-usage": "Pool Arbeitsspeicherbelegung",
   "pool:status:connected": "@:status:connected",
   "pool:status:disconnected": "@:status:disconnected",
-  "pool:status:unreachable": "Nicht erreichbar",
+  "pool:status:unreachable": "@:status:unreachable",
   "pool:status:unreachable:tooltip": "Server konfiguriert, aber nicht erreichbar",
   "pools": "Pools",
   "pools-status": "Pools-Status",
