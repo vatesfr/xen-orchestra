@@ -52,8 +52,8 @@ const classNames = computed(() => toVariants({ accent }))
 
 <style lang="postcss" scoped>
 .ui-legend {
+  align-items: baseline;
   display: flex;
-  align-items: center;
   gap: 0.8rem;
 
   .circle-icon {
