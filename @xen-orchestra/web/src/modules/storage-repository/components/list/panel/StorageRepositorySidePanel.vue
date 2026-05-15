@@ -8,6 +8,8 @@
         :busy="isDeletingSr"
         @click="openSrDeleteModal()"
       />
+      <SrConnectButton v-if="allPbdsConnectionStatus === CONNECTION_STATUS.DISCONNECTED" :sr />
+      <SrDisconnectButton v-else :sr />
       <div :class="{ 'action-buttons-container': uiStore.isSmall }">
         <UiButtonIcon
           v-tooltip="t('action:close')"
@@ -32,7 +34,10 @@
 
 <script setup lang="ts">
 import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import SrConnectButton from '@/modules/storage-repository/components/actions/connect/SrConnectButton.vue'
+import SrDisconnectButton from '@/modules/storage-repository/components/actions/disconnect/SrDisconnectButton.vue'
 import StorageRepositoryCustomFieldsCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositoryCustomFieldsCard.vue'
 import StorageRepositoryHostsCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositoryHostsCard.vue'
 import StorageRepositoryInfosCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositoryInfosCard.vue'
@@ -42,6 +47,7 @@ import StorageRepositoryVdisCard from '@/modules/storage-repository/components/l
 import { useSrDeleteModal } from '@/modules/storage-repository/composables/use-sr-delete-modal.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
@@ -67,6 +73,7 @@ const uiStore = useUiStore()
 const { useGetVdisByIds, areVdisReady } = useXoVdiCollection()
 const { getHostById, areHostsReady } = useXoHostCollection()
 const { pbdsBySr, arePbdsReady } = useXoPbdCollection()
+const { getPbdsByIds } = useXoPbdCollection()
 
 const isReady = logicAnd(areVdisReady, areHostsReady, arePbdsReady)
 
@@ -99,6 +106,7 @@ const customFields = computed(() => {
 })
 
 const { openModal: openSrDeleteModal, canRun: canDeleteSr, isRunning: isDeletingSr } = useSrDeleteModal(() => [sr])
+const { allPbdsConnectionStatus } = useXoPbdUtils(() => getPbdsByIds(sr.$PBDs))
 </script>
 
 <style scoped lang="postcss">

@@ -27,11 +27,13 @@
 <script setup lang="ts">
 import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import { useSrConnectionToggleModal } from '@/modules/storage-repository/composables/use-sr-connection-toggle-modal.composable.ts'
 import { useSrDeleteModal } from '@/modules/storage-repository/composables/use-sr-delete-modal.composable.ts'
 import {
   useXoSrCollection,
   type FrontXoSr,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { CONNECTION_ACTION, CONNECTION_STATUS } from '@/shared/constants.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -108,14 +110,6 @@ function getPrimaryIcon(sr: FrontXoSr) {
 
 const { getPbdsByIds } = useXoPbdCollection()
 
-function toggleSrState(sr: FrontXoSr) {
-  // TODO Add a modal like in the VBD/VDI tables, expose busy etc
-  const { allPbdsConnectionStatus } = useXoPbdUtils(() => getPbdsByIds(sr.$PBDs))
-  // TODO Remove the eslint-disable below
-  // eslint-disable-next-line no-console
-  console.log('toggleSrState', sr.id, allPbdsConnectionStatus.value)
-}
-
 const { HeadCells, BodyCells } = useSrColumns({
   body: (sr: FrontXoSr) => {
     const { buildXo5Route } = useXoRoutes()
@@ -126,6 +120,18 @@ const { HeadCells, BodyCells } = useSrColumns({
     const { allPbdsConnectionStatus } = useXoPbdUtils(() => getPbdsByIds(sr.$PBDs))
 
     const { openModal: openSrDeleteModal, canRun: canDeleteSr, isRunning: isDeletingSr } = useSrDeleteModal(() => [sr])
+    const {
+      openModal: openSrConnectionToggleModal,
+      canRun: canToggleSrConnection,
+      isRunning: isTogglingSrConnection,
+      errorMessage: toggleSrConnectionErrorMessage,
+    } = useSrConnectionToggleModal(
+      () =>
+        allPbdsConnectionStatus.value === CONNECTION_STATUS.DISCONNECTED
+          ? CONNECTION_ACTION.CONNECT
+          : CONNECTION_ACTION.DISCONNECT,
+      () => [sr]
+    )
 
     return {
       storageRepository: r =>
@@ -144,10 +150,18 @@ const { HeadCells, BodyCells } = useSrColumns({
           onClick: () => (selectedSrId.value = sr.id),
           actions: [
             {
-              label: allPbdsConnectionStatus.value === 'disconnected' ? t('action:connect') : t('action:disconnect'),
-              icon: allPbdsConnectionStatus.value === 'disconnected' ? 'action:connect' : 'action:disconnect',
-              onClick: () => toggleSrState(sr),
-              // busy: isTogglingVbdConnection.value,
+              label:
+                allPbdsConnectionStatus.value === CONNECTION_STATUS.DISCONNECTED
+                  ? t('action:connect')
+                  : t('action:disconnect'),
+              icon:
+                allPbdsConnectionStatus.value === CONNECTION_STATUS.DISCONNECTED
+                  ? 'action:connect'
+                  : 'action:disconnect',
+              onClick: () => openSrConnectionToggleModal(),
+              busy: isTogglingSrConnection.value,
+              disabled: !canToggleSrConnection.value,
+              hint: toggleSrConnectionErrorMessage.value,
             },
             {
               label: t('action:delete'),

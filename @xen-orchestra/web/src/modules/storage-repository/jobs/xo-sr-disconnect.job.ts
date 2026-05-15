@@ -1,4 +1,3 @@
-// TODO Add `job:sr-disconnect:missing-sr` and remove the eslint-disable below
 import { xoSrArg } from '@/modules/storage-repository/jobs/xo-sr-args.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
@@ -32,7 +31,6 @@ export const useXoSrDisconnectJob = defineJob('sr.disconnect', [xoSrArg], () => 
 
     validate: (isRunning, srs: FrontXoSr[] | undefined) => {
       if (!srs || srs.length === 0) {
-        // eslint-disable-next-line @intlify/vue-i18n/no-missing-keys
         throw new JobError(t('job:sr-disconnect:missing-sr'))
       }
 
