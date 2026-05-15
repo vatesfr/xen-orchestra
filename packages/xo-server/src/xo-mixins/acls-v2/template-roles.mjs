@@ -83,3 +83,14 @@ export const VMS_READ_ONLY = {
   description: 'Allow to only see VMs',
   privileges: [{ action: 'read', resource: 'vm', effect: 'allow' }],
 }
+
+export const VMS_ADMINISTRATOR = {
+  roleTemplateId: 5,
+  name: 'VMs administrator',
+  description: 'Full control over VM lifecycle',
+  privileges: [
+    { action: '*', resource: 'vm', effect: 'allow' },
+    { action: 'read', resource: 'vm-snapshot', effect: 'allow' },
+    { action: 'delete', resource: 'vm-snapshot', effect: 'allow' },
+  ],
+}
