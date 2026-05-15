@@ -41,7 +41,7 @@ export function containsDigit(str: string): boolean {
 }
 
 function parseRegex(str: string): RegExp | undefined {
-  if (str === undefined || str === '') return undefined
+  if (str === '') return undefined
   const match = str.match(/^\/(.+)\/([a-z]*)$/i)
   if (!match) throw new Error(`Invalid regex string: ${str}`)
   const [, pattern, flags] = match

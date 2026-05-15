@@ -93,7 +93,7 @@ class IpmiSensorsPlugin {
    * Configure the plugin with the provided configuration.
    */
   async configure(configuration: PluginConfiguration): Promise<void> {
-    this.#configuredRulesByProduct = configuration.vendors ? parseRegexConfig(configuration.vendors) : []
+    this.#configuredRulesByProduct = parseRegexConfig(configuration.vendors)
     logger.debug('Plugin configured')
   }
 
@@ -108,11 +108,9 @@ class IpmiSensorsPlugin {
         { host: ['id', 'host', 'administrate'] }
       ),
       // replacement for the method in packages/xo-server/src/api/host.mjs
-      this.#xo.addApiMethod<[{ id: string }], FinalSensorData>(
-        'host.get_ipmi_sensors',
-        this.getIpmiSensors.bind(this),
-        { host: ['id', 'host', 'administrate'] }
-      )
+      this.#xo.addApiMethod<[{ id: string }], FinalSensorData>('host.getIpmiSensors', this.getIpmiSensors.bind(this), {
+        host: ['id', 'host', 'administrate'],
+      })
     )
   }
 
