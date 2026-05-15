@@ -1,4 +1,4 @@
-import { Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Get, Middlewares, Path, Post, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
@@ -8,6 +8,7 @@ import { acl } from '../middlewares/acl.middleware.mjs'
 import {
   badRequestResp,
   forbiddenOperationResp,
+  internalServerErrorResp,
   notFoundResp,
   unauthorizedResp,
   type Unbrand,
@@ -86,5 +87,30 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   @Response(notFoundResp.status, notFoundResp.description)
   getRepository(@Path() id: string): Promise<Unbrand<XoBackupRepository>> {
     return this.getObject(id as XoBackupRepository['id'])
+  }
+
+  /**
+   * Required privilege:
+   * - resource: backup-repository, action: test
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   */
+  @Example({ success: true })
+  @Post('{id}/test')
+  @Middlewares(
+    acl({
+      resource: 'backup-repository',
+      action: 'test',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getRemote,
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  testRepository(
+    @Path() id: string
+  ): Promise<{ success: true } | { success: false; step: string; file: string; error: unknown }> {
+    return this.restApi.xoApp.testRemote(id as XoBackupRepository['id'])
   }
 }
