@@ -308,6 +308,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/vdi/new': RouteRecordInfo<
+      '/vdi/new',
+      '/vdi/new',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >
     '/vif/[id]': RouteRecordInfo<
       '/vif/[id]',
       '/vif/:id',
@@ -656,6 +663,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/vdi/attach.vue': {
       routes:
         | '/vdi/attach'
+      views:
+        | never
+    }
+    'src/pages/vdi/new.vue': {
+      routes:
+        '/vdi/new'
       views:
         | never
     }

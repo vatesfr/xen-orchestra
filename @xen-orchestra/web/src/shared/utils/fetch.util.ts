@@ -54,6 +54,16 @@ export async function fetchPost<T>(endpoint: string, body?: unknown): Promise<T>
   })
 }
 
+export async function fetchPut<T>(endpoint: string, body?: unknown): Promise<T> {
+  const isBinary = body instanceof Blob || body instanceof ArrayBuffer
+
+  return fetchRequest<T>(endpoint, {
+    method: 'PUT',
+    ...(isBinary && { headers: { 'Content-Type': 'application/octet-stream' } }),
+    body: isBinary ? (body as BodyInit) : body !== undefined ? JSON.stringify(body) : undefined,
+  })
+}
+
 export async function fetchDelete(endpoint: string): Promise<void> {
   return fetchRequest<void>(endpoint, {
     method: 'DELETE',
