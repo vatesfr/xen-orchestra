@@ -327,6 +327,9 @@ export type XoApp = {
   removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>
   runJob(job: AnyXoJob, schedule: XoSchedule): void
   runWithApiContext: (user: XoUser | undefined, fn: () => void) => Promise<unknown>
+  testRemote(
+    id: XoBackupRepository['id']
+  ): Promise<{ success: true } | { success: false; step: string; file: string; error: unknown }>
   /** Remove a server from the DB (XCP-ng/XenServer) */
   unregisterXenServer(id: XoServer['id']): Promise<void>
   updateUser(

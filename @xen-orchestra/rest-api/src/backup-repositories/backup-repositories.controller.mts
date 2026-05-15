@@ -28,6 +28,7 @@ import {
   forbiddenOperationResp,
   invalidParameters,
   noContentResp,
+  internalServerErrorResp,
   notFoundResp,
   unauthorizedResp,
   type Unbrand,
@@ -223,5 +224,30 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
     @Body() body: Unbrand<Parameters<XoApp['updateRemote']>[1]>
   ): Promise<void> {
     await this.restApi.xoApp.updateRemote(id as XoBackupRepository['id'], body as Parameters<XoApp['updateRemote']>[1])
+  }
+
+  /**
+   * Required privilege:
+   * - resource: backup-repository, action: test
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   */
+  @Example({ success: true })
+  @Post('{id}/test')
+  @Middlewares(
+    acl({
+      resource: 'backup-repository',
+      action: 'test',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getRemote,
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  testRepository(
+    @Path() id: string
+  ): Promise<{ success: true } | { success: false; step: string; file: string; error: unknown }> {
+    return this.restApi.xoApp.testRemote(id as XoBackupRepository['id'])
   }
 }
