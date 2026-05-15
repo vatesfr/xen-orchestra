@@ -23,6 +23,7 @@
 - [REST API/RBAC] Add a built-in Storage administrator ACL role template to administer SRs, VDIs, VBDs, PBDs and backup repositories (PR [#9963](https://github.com/vatesfr/xen-orchestra/pull/9963))
 - [XO6/VM] add available actions on VMs tab (PR [#10030](https://github.com/vatesfr/xen-orchestra/pull/10030))
 - [XO6/VDI] add possibility to migrate VDI on SR (PR [#9973](https://github.com/vatesfr/xen-orchestra/pull/9973))
+- [REST API] Expose POST `/backup-repositories/:id/test` (PR [#9847](https://github.com/vatesfr/xen-orchestra/pull/9847))
 
 ### Bug fixes
 
