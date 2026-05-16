@@ -8,6 +8,7 @@ export interface PackageManager {
   systemUpgrade(): Promise<UpgradeResult>
   getOperationStatus(): (OperationState & { progress?: UpgradeProgress }) | null
   cleanupStaleOperation(): Promise<OperationState | undefined>
+  isRebootRequired(): boolean
 }
 
 export interface PackageManagerConfiguration {

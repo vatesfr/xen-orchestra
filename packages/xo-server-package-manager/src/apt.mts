@@ -141,6 +141,18 @@ export class AptPackageManager implements PackageManager {
   }
 
   /**
+   * Returns true if /var/run/reboot-required exists (set by dpkg after upgrades that need a reboot).
+   */
+  isRebootRequired(): boolean {
+    try {
+      accessSync('/var/run/reboot-required')
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  /**
    * Get the status of a running or interrupted operation.
    * Returns null if idle (no operation in progress).
    */

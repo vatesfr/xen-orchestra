@@ -306,4 +306,5 @@ export type XoApp = {
   ): void
   getAllXapis(): Record<string, XapiConnection>
   getObjects(opts?: { filter?: Record<string, unknown>; limit?: number }): Record<string, XapiXoRecord>
+  registerRestRoutes(routes: readonly unknown[], base?: string): () => void
 }
