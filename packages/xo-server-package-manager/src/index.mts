@@ -12,6 +12,14 @@ export const configurationSchema = {
   additionalProperties: false,
 }
 
+// Minimal request shape used by route callbacks — only the properties we access
+type RouteCtx = {
+  req: {
+    params: Readonly<Record<string, string | undefined>>
+    body: unknown
+  }
+}
+
 // --- Plugin class ---
 class PackageManagerPlugin {
   readonly #xo: XoApp
@@ -19,6 +27,7 @@ class PackageManagerPlugin {
   #configuration: PackageManagerConfiguration | undefined
   #unregisterApiMethods: (() => void) | undefined
   #undefineAppMethods: (() => void) | undefined
+  #unregisterRestRoutes: (() => void) | undefined
 
   constructor({ xo, getDataDir }: { xo: XoApp; getDataDir: () => Promise<string> }) {
     this.#xo = xo
@@ -85,6 +94,83 @@ class PackageManagerPlugin {
       getPackageOperationStatus: () => systemPackageManager.getOperationStatus(),
     })
 
+    this.#unregisterRestRoutes = this.#xo.registerRestRoutes(
+      [
+        {
+          method: 'get',
+          endpoint: '/updates',
+          description: 'List upgradable system packages from local cache',
+          tags: ['xoa'],
+          callback: async (_ctx: RouteCtx) => ({
+            packages: await systemPackageManager.listUpgradable(),
+            isRebootRequired: systemPackageManager.isRebootRequired(),
+          }),
+        },
+        {
+          method: 'post',
+          endpoint: '/updates/refresh',
+          description: 'Run apt-get update and return the updated list of upgradable packages',
+          tags: ['xoa'],
+          callback: async (_ctx: RouteCtx) => {
+            await systemPackageManager.updatePackageList()
+            return {
+              packages: await systemPackageManager.listUpgradable(),
+              isRebootRequired: systemPackageManager.isRebootRequired(),
+            }
+          },
+        },
+        {
+          method: 'post',
+          endpoint: '/updates/upgrade',
+          description: 'Upgrade all upgradable packages, or a specific subset via JSON body',
+          tags: ['xoa'],
+          middlewares: [{ name: 'json' }],
+          callback: async ({ req }: RouteCtx) => {
+            const body = req.body as Record<string, unknown> | null | undefined
+            const packages =
+              body !== null && body !== undefined && Array.isArray(body['packages'])
+                ? (body['packages'] as string[])
+                : undefined
+            const { packagesUpgraded, requiredAction } = await systemPackageManager.upgrade(packages)
+            return { packagesUpgraded, requiredAction }
+          },
+        },
+        {
+          method: 'post',
+          endpoint: '/updates/packages/{name}/upgrade',
+          description: 'Upgrade a specific system package by name',
+          tags: ['xoa'],
+          params: { name: { type: 'string' } },
+          callback: async ({ req }: RouteCtx) => {
+            const name = req.params['name']
+            if (name === undefined) {
+              throw new Error('Package name is required')
+            }
+            const { packagesUpgraded, requiredAction } = await systemPackageManager.upgrade([name])
+            return { packagesUpgraded, requiredAction }
+          },
+        },
+        {
+          method: 'post',
+          endpoint: '/updates/dist-upgrade',
+          description: 'Perform a full distribution upgrade (apt-get dist-upgrade)',
+          tags: ['xoa'],
+          callback: async (_ctx: RouteCtx) => {
+            const { packagesUpgraded, requiredAction } = await systemPackageManager.systemUpgrade()
+            return { packagesUpgraded, requiredAction }
+          },
+        },
+        {
+          method: 'get',
+          endpoint: '/updates/operation',
+          description: 'Get the status of the current or last package operation',
+          tags: ['xoa'],
+          callback: (_ctx: RouteCtx) => systemPackageManager.getOperationStatus(),
+        },
+      ],
+      '/xoa'
+    )
+
     log.info('Plugin loaded')
   }
 
@@ -93,6 +179,8 @@ class PackageManagerPlugin {
     this.#unregisterApiMethods = undefined
     this.#undefineAppMethods?.()
     this.#undefineAppMethods = undefined
+    this.#unregisterRestRoutes?.()
+    this.#unregisterRestRoutes = undefined
     log.info('Plugin unloaded')
   }
 }

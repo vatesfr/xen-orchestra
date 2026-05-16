@@ -603,4 +603,5 @@ export type XoApp = EventEmitter & {
     licenseId: string
     data?: Record<string, string>
   }): Promise<License>
+  registerRestRoutes(routes: readonly unknown[], base?: string): () => void
 }
