@@ -1,6 +1,8 @@
+import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
+import { useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { fetchPost, fetchRequest } from '@/shared/utils/fetch.util.ts'
 import type { UpgradablePackage } from '@vates/types'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 
 export type DistroUpgrade = {
   fromVersion: string
@@ -17,49 +19,71 @@ export function useSystemUpdates() {
   const isLoading = ref(false)
   const isRestartNeeded = ref(false)
   const distroUpgrade = ref<DistroUpgrade | null>(null)
+  const activeTaskId = ref<FrontXoTask['id'] | undefined>()
+
+  const { getTaskById } = useXoTaskCollection()
+
+  // Watch the active upgrade task; refresh the package list when it ends
+  watch(
+    () => (activeTaskId.value !== undefined ? getTaskById(activeTaskId.value) : undefined),
+    task => {
+      if (task === undefined || task.status === 'pending') return
+      isLoading.value = false
+      activeTaskId.value = undefined
+      fetchUpdates().catch(err => console.warn('Failed to refresh package list after upgrade', err))
+    }
+  )
+
+  async function applyUpdatesResponse(data: UpdatesResponse): Promise<void> {
+    patches.value = data.packages
+    isRestartNeeded.value = data.isRebootRequired
+  }
 
   async function fetchUpdates(): Promise<void> {
-    isLoading.value = true
-    try {
-      const data = await fetchRequest<UpdatesResponse>('xoa/updates')
-      patches.value = data.packages
-      isRestartNeeded.value = data.isRebootRequired
-    } finally {
-      isLoading.value = false
-    }
+    const data = await fetchRequest<UpdatesResponse>('xoa/updates')
+    await applyUpdatesResponse(data)
   }
 
   async function refreshList(): Promise<void> {
     isLoading.value = true
     try {
       const data = await fetchPost<UpdatesResponse>('xoa/updates/refresh')
-      patches.value = data.packages
-      isRestartNeeded.value = data.isRebootRequired
+      await applyUpdatesResponse(data)
     } finally {
       isLoading.value = false
     }
   }
 
+  async function startUpgradeTask(endpoint: string): Promise<void> {
+    isLoading.value = true
+    const { taskId } = await fetchPost<{ taskId: FrontXoTask['id'] }>(endpoint)
+    activeTaskId.value = taskId
+  }
+
   async function upgradePatch(name: string): Promise<void> {
-    await fetchPost(`xoa/updates/packages/${encodeURIComponent(name)}/upgrade`)
-    await fetchUpdates()
+    await startUpgradeTask(`xoa/updates/packages/${encodeURIComponent(name)}/upgrade`)
   }
 
   async function upgradeAll(): Promise<void> {
-    await fetchPost('xoa/updates/upgrade')
-    await fetchUpdates()
+    await startUpgradeTask('xoa/updates/upgrade')
   }
 
   async function upgradeDistro(): Promise<void> {
-    await fetchPost('xoa/updates/dist-upgrade')
-    await fetchUpdates()
+    await startUpgradeTask('xoa/updates/dist-upgrade')
   }
 
   async function restartXo(): Promise<void> {
     // implemented later
   }
 
-  onMounted(fetchUpdates)
+  onMounted(async () => {
+    isLoading.value = true
+    try {
+      await fetchUpdates()
+    } finally {
+      isLoading.value = false
+    }
+  })
 
   return {
     patches,

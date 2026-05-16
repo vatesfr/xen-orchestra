@@ -12,12 +12,20 @@ export const configurationSchema = {
   additionalProperties: false,
 }
 
-// Minimal request shape used by route callbacks — only the properties we access
+type CreateAction = <CbType>(
+  cb: (task: unknown) => CbType | Promise<CbType>,
+  options: {
+    sync?: boolean
+    taskProperties: { name: string; [key: string]: unknown }
+  }
+) => Promise<CbType | undefined>
+
 type RouteCtx = {
   req: {
     params: Readonly<Record<string, string | undefined>>
     body: unknown
   }
+  createAction: CreateAction
 }
 
 // --- Plugin class ---
@@ -25,8 +33,6 @@ class PackageManagerPlugin {
   readonly #xo: XoApp
   readonly #getDataDir: () => Promise<string>
   #configuration: PackageManagerConfiguration | undefined
-  #unregisterApiMethods: (() => void) | undefined
-  #undefineAppMethods: (() => void) | undefined
   #unregisterRestRoutes: (() => void) | undefined
 
   constructor({ xo, getDataDir }: { xo: XoApp; getDataDir: () => Promise<string> }) {
@@ -42,57 +48,6 @@ class PackageManagerPlugin {
     const dataDir = await this.#getDataDir()
     const systemPackageManager = new AptPackageManager(dataDir)
     systemPackageManager.checkAvailable()
-
-    // Recover interrupted operations from a previous crash
-    const stale = await systemPackageManager.cleanupStaleOperation()
-    if (stale !== undefined) {
-      log.warn('Cleaned up interrupted package operation', {
-        operation: stale.operation,
-        pid: stale.pid,
-        startedAt: new Date(stale.startedAt).toISOString(),
-      })
-    }
-
-    // Register API methods
-    const updatePackageList = () => systemPackageManager.updatePackageList()
-    updatePackageList.permission = 'admin'
-    updatePackageList.description = 'Refresh the local package index (apt-get update)'
-
-    const listUpgradable = () => systemPackageManager.listUpgradable()
-    listUpgradable.permission = 'admin'
-    listUpgradable.description = 'List upgradable system packages from local cache'
-
-    const upgrade = ({ packages }: { packages?: string[] }) => systemPackageManager.upgrade(packages)
-    upgrade.permission = 'admin'
-    upgrade.description = 'Upgrade system packages'
-    upgrade.params = {
-      packages: { type: 'array', items: { type: 'string' }, optional: true },
-    }
-
-    const systemUpgrade = () => systemPackageManager.systemUpgrade()
-    systemUpgrade.permission = 'admin'
-    systemUpgrade.description = 'Perform a full distribution upgrade'
-
-    const getOperationStatus = () => systemPackageManager.getOperationStatus()
-    getOperationStatus.permission = 'admin'
-    getOperationStatus.description = 'Get status of running package operation'
-
-    this.#unregisterApiMethods = this.#xo.addApiMethods({
-      packageManager: {
-        listUpgradable,
-        upgrade,
-        systemUpgrade,
-        getOperationStatus,
-      },
-    })
-
-    this.#undefineAppMethods = this.#xo.defineProperties({
-      listUpgradablePackages: () => systemPackageManager.listUpgradable(),
-      updatePackageList: () => systemPackageManager.updatePackageList(),
-      upgradePackages: (packages?: string[]) => systemPackageManager.upgrade(packages),
-      systemUpgradePackages: () => systemPackageManager.systemUpgrade(),
-      getPackageOperationStatus: () => systemPackageManager.getOperationStatus(),
-    })
 
     this.#unregisterRestRoutes = this.#xo.registerRestRoutes(
       [
@@ -122,50 +77,49 @@ class PackageManagerPlugin {
         {
           method: 'post',
           endpoint: '/updates/upgrade',
-          description: 'Upgrade all upgradable packages, or a specific subset via JSON body',
+          description:
+            'Start upgrading all packages (or a subset via JSON body). Returns 202 with taskId; watch /rest/v0/tasks/:taskId for progress.',
           tags: ['xoa'],
           middlewares: [{ name: 'json' }],
-          callback: async ({ req }: RouteCtx) => {
+          callback: async ({ req, createAction }: RouteCtx) => {
             const body = req.body as Record<string, unknown> | null | undefined
             const packages =
               body !== null && body !== undefined && Array.isArray(body['packages'])
                 ? (body['packages'] as string[])
                 : undefined
-            const { packagesUpgraded, requiredAction } = await systemPackageManager.upgrade(packages)
-            return { packagesUpgraded, requiredAction }
+            await createAction(async () => systemPackageManager.runUpgrade(packages), {
+              taskProperties: { name: 'upgrade packages' },
+            })
           },
         },
         {
           method: 'post',
           endpoint: '/updates/packages/{name}/upgrade',
-          description: 'Upgrade a specific system package by name',
+          description:
+            'Start upgrading a specific package. Returns 202 with taskId; watch /rest/v0/tasks/:taskId for progress.',
           tags: ['xoa'],
           params: { name: { type: 'string' } },
-          callback: async ({ req }: RouteCtx) => {
+          callback: async ({ req, createAction }: RouteCtx) => {
             const name = req.params['name']
             if (name === undefined) {
               throw new Error('Package name is required')
             }
-            const { packagesUpgraded, requiredAction } = await systemPackageManager.upgrade([name])
-            return { packagesUpgraded, requiredAction }
+            await createAction(async () => systemPackageManager.runUpgrade([name]), {
+              taskProperties: { name: `upgrade ${name}` },
+            })
           },
         },
         {
           method: 'post',
           endpoint: '/updates/dist-upgrade',
-          description: 'Perform a full distribution upgrade (apt-get dist-upgrade)',
+          description:
+            'Start a full distribution upgrade. Returns 202 with taskId; watch /rest/v0/tasks/:taskId for progress.',
           tags: ['xoa'],
-          callback: async (_ctx: RouteCtx) => {
-            const { packagesUpgraded, requiredAction } = await systemPackageManager.systemUpgrade()
-            return { packagesUpgraded, requiredAction }
+          callback: async ({ createAction }: RouteCtx) => {
+            await createAction(async () => systemPackageManager.runSystemUpgrade(), {
+              taskProperties: { name: 'dist-upgrade' },
+            })
           },
-        },
-        {
-          method: 'get',
-          endpoint: '/updates/operation',
-          description: 'Get the status of the current or last package operation',
-          tags: ['xoa'],
-          callback: (_ctx: RouteCtx) => systemPackageManager.getOperationStatus(),
         },
       ],
       '/xoa'
@@ -175,10 +129,6 @@ class PackageManagerPlugin {
   }
 
   async unload() {
-    this.#unregisterApiMethods?.()
-    this.#unregisterApiMethods = undefined
-    this.#undefineAppMethods?.()
-    this.#undefineAppMethods = undefined
     this.#unregisterRestRoutes?.()
     this.#unregisterRestRoutes = undefined
     log.info('Plugin unloaded')

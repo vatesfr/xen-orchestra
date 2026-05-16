@@ -13,7 +13,6 @@ Commands:
   update                   Refresh the local package index
   upgrade [pkg...]         Upgrade packages (all if none specified)
   system-upgrade           Full distribution upgrade (dist-upgrade)
-  status                   Show current operation status
 
 Options:
   --state-dir <path>       State directory (default: ${DEFAULT_STATE_DIR})
@@ -152,30 +151,6 @@ try {
       printJson(result)
     } else {
       printUpgradeResult(result)
-    }
-  } else if (command === 'status') {
-    const status = apt.getOperationStatus()
-    if (asJson) {
-      printJson(status)
-    } else if (status === null) {
-      process.stdout.write('No operation in progress.\n')
-    } else {
-      const elapsedS = Math.round((Date.now() - status.startedAt) / 1000)
-      process.stdout.write(`Operation:  ${status.operation}\n`)
-      process.stdout.write(`PID:        ${status.pid}\n`)
-      process.stdout.write(`Started:    ${new Date(status.startedAt).toLocaleString()} (${elapsedS}s ago)\n`)
-      if (status.packages !== undefined) {
-        process.stdout.write(`Packages:   ${status.packages.join(', ')}\n`)
-      }
-      if (status.progress !== undefined) {
-        process.stdout.write(`Status:     ${status.progress.status}\n`)
-        if (status.progress.currentPackage !== undefined) {
-          process.stdout.write(`Package:    ${status.progress.currentPackage}\n`)
-        }
-        if (status.progress.percentage !== undefined) {
-          process.stdout.write(`Progress:   ${status.progress.percentage.toFixed(1)}%\n`)
-        }
-      }
     }
   } else {
     process.stderr.write(`Unknown command: ${command}\n\n${USAGE}`)

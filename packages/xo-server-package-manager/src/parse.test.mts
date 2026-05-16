@@ -184,7 +184,6 @@ describe('parseStatusFdLine', () => {
   it('parses a valid pmstatus line', () => {
     const result = parseStatusFdLine('pmstatus:libgnutls30:50.0000:Installing libgnutls30 (amd64)...')
     assert.ok(result)
-    assert.equal(result.status, 'running')
     assert.equal(result.currentPackage, 'libgnutls30')
     assert.equal(result.percentage, 50)
   })
