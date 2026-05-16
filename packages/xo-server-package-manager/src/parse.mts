@@ -1,6 +1,11 @@
 import type { UpgradablePackage } from '@vates/types'
-import type { RequiredAction, UpgradeProgress } from './types.mjs'
+import type { RequiredAction } from './types.mjs'
 import { access } from 'node:fs/promises'
+
+export type StatusFdProgress = {
+  currentPackage: string
+  percentage: number
+}
 
 /**
  * Parse the output of `apt list --upgradable`.
@@ -98,7 +103,7 @@ export function parseAptCacheShow(
  * Format: pmstatus:package:percentage:message
  * Example: pmstatus:libgnutls30:50.0000:Installing libgnutls30 (amd64)...
  */
-export function parseStatusFdLine(line: string): UpgradeProgress | undefined {
+export function parseStatusFdLine(line: string): StatusFdProgress | undefined {
   if (!line.startsWith('pmstatus:')) {
     return undefined
   }
@@ -116,7 +121,6 @@ export function parseStatusFdLine(line: string): UpgradeProgress | undefined {
   }
 
   return {
-    status: 'running',
     currentPackage,
     percentage: Math.round(percentage * 100) / 100,
   }

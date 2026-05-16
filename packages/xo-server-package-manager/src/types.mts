@@ -4,10 +4,10 @@ export interface PackageManager {
   checkAvailable(): void
   updatePackageList(): Promise<void>
   listUpgradable(): Promise<UpgradablePackage[]>
+  runUpgrade(packages?: string[]): Promise<void>
+  runSystemUpgrade(): Promise<void>
   upgrade(packages?: string[]): Promise<UpgradeResult>
   systemUpgrade(): Promise<UpgradeResult>
-  getOperationStatus(): (OperationState & { progress?: UpgradeProgress }) | null
-  cleanupStaleOperation(): Promise<OperationState | undefined>
   isRebootRequired(): boolean
 }
 
@@ -19,24 +19,9 @@ export interface PackageManagerConfiguration {
 
 export type RequiredAction = 'none' | 'restartServices' | 'restartXoServer' | 'restartSystem'
 
-export interface UpgradeProgress {
-  status: 'running' | 'completed' | 'failed' | 'interrupted'
-  currentPackage?: string
-  currentIndex?: number
-  totalPackages?: number
-  percentage?: number
-}
-
 export interface UpgradeResult {
   success: boolean
   packagesUpgraded: string[]
   requiredAction: RequiredAction
   logFile: string
-}
-
-export interface OperationState {
-  pid: number
-  startedAt: number
-  operation: 'upgrade' | 'systemUpgrade'
-  packages?: string[]
 }

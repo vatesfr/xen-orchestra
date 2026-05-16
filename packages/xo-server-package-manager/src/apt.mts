@@ -1,9 +1,11 @@
 import type { UpgradablePackage } from '@vates/types'
-import type { OperationState, PackageManager, UpgradeProgress, UpgradeResult } from './types.mjs'
+import type { PackageManager, RequiredAction, UpgradeResult } from './types.mjs'
 import { createLogger } from '@xen-orchestra/log'
+import { Task } from '@vates/task'
+import { AsyncResource } from 'node:async_hooks'
 import { execFile, spawn } from 'node:child_process'
-import { mkdir, rename, rm, writeFile } from 'node:fs/promises'
-import { accessSync, createWriteStream, readFileSync, unlinkSync } from 'node:fs'
+import { mkdir } from 'node:fs/promises'
+import { accessSync, createWriteStream } from 'node:fs'
 import { join } from 'node:path'
 import { parseUpgradableList, parseAptCacheShow, parseStatusFdLine, detectRequiredAction } from './parse.mjs'
 
@@ -13,8 +15,12 @@ const APT_GET_PATH = '/usr/bin/apt-get'
 const APT_PATH = '/usr/bin/apt'
 const APT_CACHE_PATH = '/usr/bin/apt-cache'
 
-const OPERATION_FILE = 'operation.json'
-const PROGRESS_FILE = 'progress.json'
+type AptResult = {
+  exitCode: number | null
+  stdoutBuf: string
+  stderrBuf: string
+  logFile: string
+}
 
 /**
  * Run a command and return stdout as a string.
@@ -40,21 +46,9 @@ function exec(cmd: string, args: string[]): Promise<string> {
   })
 }
 
-/**
- * Check if a process with the given pid is alive.
- */
-function isProcessAlive(pid: number): boolean {
-  try {
-    process.kill(pid, 0)
-    return true
-  } catch (err) {
-    // EPERM means the process exists but we lack permission to signal it (e.g. root process, non-root caller)
-    return (err as NodeJS.ErrnoException).code === 'EPERM'
-  }
-}
-
 export class AptPackageManager implements PackageManager {
   readonly #stateDir: string
+  #isRunning = false
 
   constructor(stateDir: string) {
     this.#stateDir = stateDir
@@ -65,7 +59,6 @@ export class AptPackageManager implements PackageManager {
    */
   checkAvailable(): void {
     try {
-      // Synchronous check — called once at plugin load
       accessSync(APT_GET_PATH)
     } catch {
       throw new Error(`apt-get not found at ${APT_GET_PATH}. This plugin requires a Debian-based system.`)
@@ -87,21 +80,16 @@ export class AptPackageManager implements PackageManager {
    */
   async listUpgradable(): Promise<UpgradablePackage[]> {
     const stdout = await exec(APT_PATH, ['list', '--upgradable'])
-    //apt list --upgradable only returns name, new version, installed version, *
-    // and release — it has no description or package size
     const partial = parseUpgradableList(stdout)
 
     if (partial.length === 0) {
       return []
     }
 
-    // Get full metadata via apt-cache show
-    // apt-cache show provides the full metadata for those fields.
     const packageNames = partial.map(p => p.name!)
     const cacheStdout = await exec(APT_CACHE_PATH, ['show', ...packageNames])
     const cacheData = parseAptCacheShow(cacheStdout)
 
-    // Merge the two data sources
     const results: UpgradablePackage[] = []
     for (const pkg of partial) {
       const cache = cacheData.get(pkg.name!)
@@ -120,24 +108,71 @@ export class AptPackageManager implements PackageManager {
   }
 
   /**
-   * Upgrade specific packages (or all upgradable if none specified).
-   * Uses `apt-get upgrade -y`.
+   * Upgrade specific packages (or all upgradable) within the current task context.
+   * Reports per-package subtasks and overall progress to the parent task via AsyncLocalStorage.
+   * Use from a REST route's createAction callback.
    */
-  async upgrade(packages?: string[]): Promise<UpgradeResult> {
-    const args = ['upgrade', '-y', '-o', 'APT::Status-Fd=3']
-    if (packages !== undefined && packages.length > 0) {
-      args.push(...packages)
+  async runUpgrade(packages?: string[]): Promise<void> {
+    this.#guardConcurrency()
+    this.#isRunning = true
+    try {
+      const args = ['upgrade', '-y', '-o', 'APT::Status-Fd=3']
+      if (packages !== undefined && packages.length > 0) {
+        args.push(...packages)
+      }
+      const { exitCode, stderrBuf } = await this.#runAptGet(args)
+      this.#throwOnFailure(exitCode, stderrBuf)
+    } finally {
+      this.#isRunning = false
     }
-    return this.#runAptGet(args, 'upgrade', packages)
   }
 
   /**
-   * Perform a full distribution upgrade.
-   * Uses `apt-get dist-upgrade -y`.
+   * Perform a full distribution upgrade within the current task context.
+   * Reports per-package subtasks and overall progress to the parent task via AsyncLocalStorage.
+   * Use from a REST route's createAction callback.
+   */
+  async runSystemUpgrade(): Promise<void> {
+    this.#guardConcurrency()
+    this.#isRunning = true
+    try {
+      const { exitCode, stderrBuf } = await this.#runAptGet(['dist-upgrade', '-y', '-o', 'APT::Status-Fd=3'])
+      this.#throwOnFailure(exitCode, stderrBuf)
+    } finally {
+      this.#isRunning = false
+    }
+  }
+
+  /**
+   * Upgrade specific packages (or all upgradable). Blocks until completion.
+   * For use by the CLI — prefer runUpgrade() from REST route handlers.
+   */
+  async upgrade(packages?: string[]): Promise<UpgradeResult> {
+    this.#guardConcurrency()
+    this.#isRunning = true
+    try {
+      const args = ['upgrade', '-y', '-o', 'APT::Status-Fd=3']
+      if (packages !== undefined && packages.length > 0) {
+        args.push(...packages)
+      }
+      return await this.#buildUpgradeResult(await this.#runAptGet(args))
+    } finally {
+      this.#isRunning = false
+    }
+  }
+
+  /**
+   * Perform a full distribution upgrade. Blocks until completion.
+   * For use by the CLI — prefer runSystemUpgrade() from REST route handlers.
    */
   async systemUpgrade(): Promise<UpgradeResult> {
-    const args = ['dist-upgrade', '-y', '-o', 'APT::Status-Fd=3']
-    return this.#runAptGet(args, 'systemUpgrade')
+    this.#guardConcurrency()
+    this.#isRunning = true
+    try {
+      return await this.#buildUpgradeResult(await this.#runAptGet(['dist-upgrade', '-y', '-o', 'APT::Status-Fd=3']))
+    } finally {
+      this.#isRunning = false
+    }
   }
 
   /**
@@ -152,105 +187,30 @@ export class AptPackageManager implements PackageManager {
     }
   }
 
-  /**
-   * Get the status of a running or interrupted operation.
-   * Returns null if idle (no operation in progress).
-   */
-  getOperationStatus(): (OperationState & { progress?: UpgradeProgress }) | null {
-    const operationPath = join(this.#stateDir, OPERATION_FILE)
-    const progressPath = join(this.#stateDir, PROGRESS_FILE)
-
-    let stateJson: string
-    try {
-      stateJson = readFileSync(operationPath, 'utf-8')
-    } catch {
-      return null
-    }
-
-    let state: OperationState
-    try {
-      state = JSON.parse(stateJson)
-    } catch {
-      log.warn('Corrupt operation file, removing', { path: operationPath })
-      try {
-        unlinkSync(operationPath)
-      } catch {
-        // ignore cleanup failure
-      }
-      return null
-    }
-
-    // Check if the process is still alive
-    const alive = isProcessAlive(state.pid)
-
-    // Read progress file
-    let progress: UpgradeProgress | undefined
-    try {
-      const progressJson = readFileSync(progressPath, 'utf-8')
-      progress = JSON.parse(progressJson)
-    } catch {
-      // no progress yet
-    }
-
-    if (!alive) {
-      // Process is dead but pid file exists → interrupted
-      return {
-        ...state,
-        progress: {
-          status: 'interrupted',
-          ...(progress !== undefined
-            ? { currentPackage: progress.currentPackage, percentage: progress.percentage }
-            : {}),
-        },
-      }
-    }
-
-    return {
-      ...state,
-      progress,
-    }
-  }
-
-  /**
-   * Clean up stale operation state (dead pid file).
-   * Called on plugin load for crash recovery.
-   */
-  async cleanupStaleOperation(): Promise<OperationState | undefined> {
-    const status = this.getOperationStatus()
-    if (status === null) {
-      return undefined
-    }
-
-    if (status.progress?.status === 'interrupted') {
-      // Clean up stale files
-      await this.#cleanupStateFiles()
-      return status
-    }
-
-    return undefined
-  }
-
   // ---------------------------------------------------------------------------
   // Private
   // ---------------------------------------------------------------------------
 
-  /**
-   * Core method: spawn apt-get with progress tracking via Status-Fd.
-   */
-  async #runAptGet(
-    args: string[],
-    operation: OperationState['operation'],
-    packages?: string[]
-  ): Promise<UpgradeResult> {
-    // Concurrency guard
-    const existing = this.getOperationStatus()
-    if (existing !== null && existing.progress?.status !== 'interrupted') {
-      throw new Error(
-        `Another package operation is already in progress (pid ${existing.pid}, operation: ${existing.operation})`
-      )
+  #guardConcurrency(): void {
+    if (this.#isRunning) {
+      throw new Error('Another package operation is already in progress')
     }
+  }
 
-    // Ensure state dir exists
+  #throwOnFailure(exitCode: number | null, stderrBuf: string): void {
+    if (exitCode !== 0) {
+      if (stderrBuf.includes('Could not get lock') || stderrBuf.includes('Unable to acquire')) {
+        throw new Error('Another package operation is in progress (apt lock held by another process)')
+      }
+      throw Object.assign(new Error(`apt-get failed with exit code ${exitCode}`), { stderr: stderrBuf })
+    }
+  }
+
+  /**
+   * Spawn apt-get and stream overall progress to the current VatesTask in context.
+   * AsyncResource.bind propagates the AsyncLocalStorage context into the Status-Fd callback.
+   */
+  async #runAptGet(args: string[]): Promise<AptResult> {
     await mkdir(this.#stateDir, { recursive: true })
 
     const timestamp = Date.now()
@@ -262,27 +222,15 @@ export class AptPackageManager implements PackageManager {
       env: { ...process.env, DEBIAN_FRONTEND: 'noninteractive', LC_ALL: 'C' },
     })
 
-    const pid = child.pid
-    if (pid === undefined) {
+    if (child.pid === undefined) {
       logStream.destroy()
       throw new Error('Failed to spawn apt-get process')
     }
 
-    // Write operation state atomically
-    const operationState: OperationState = {
-      pid,
-      startedAt: timestamp,
-      operation,
-      ...(packages !== undefined ? { packages } : {}),
-    }
-    await this.#writeStateFile(OPERATION_FILE, operationState)
-
-    // Track upgraded packages from stdout
-    const packagesUpgraded: string[] = []
     let stdoutBuf = ''
     let stderrBuf = ''
+    let statusFdBuf = ''
 
-    // Pipe stdout/stderr to log file and capture
     child.stdout!.on('data', (data: Buffer) => {
       const text = data.toString()
       stdoutBuf += text
@@ -295,93 +243,61 @@ export class AptPackageManager implements PackageManager {
       logStream.write(`[stderr] ${text}`)
     })
 
-    // Read progress from fd 3 (Status-Fd)
     const statusFd = child.stdio[3]
-    let statusBuf = ''
     if (statusFd !== undefined && statusFd !== null && 'on' in statusFd) {
-      ;(statusFd as NodeJS.ReadableStream).on('data', (data: Buffer) => {
-        statusBuf += data.toString()
-        const lines = statusBuf.split('\n')
-        // Keep the last incomplete line in the buffer
-        statusBuf = lines.pop()!
-        for (const line of lines) {
-          const progress = parseStatusFdLine(line)
-          if (progress !== undefined) {
-            // Write progress to file (fire and forget)
-            this.#writeStateFile(PROGRESS_FILE, progress).catch(() => {})
+      // AsyncResource.bind captures the current AsyncLocalStorage context so that
+      // Task.set() resolves the correct parent task inside the EventEmitter callback.
+      ;(statusFd as NodeJS.ReadableStream).on(
+        'data',
+        AsyncResource.bind((data: Buffer) => {
+          statusFdBuf += data.toString()
+          const lines = statusFdBuf.split('\n')
+          statusFdBuf = lines.pop()!
+          for (const line of lines) {
+            const progress = parseStatusFdLine(line)
+            if (progress !== undefined) {
+              Task.set('progress', progress.percentage)
+            }
           }
-        }
-      })
+        })
+      )
     }
 
-    // Wait for the child process to exit
     const exitCode = await new Promise<number | null>((resolve, reject) => {
-      child.on('error', reject)
-      child.on('close', resolve)
+      child.on('error', err => {
+        logStream.end()
+        const error = new Error('apt-get process error')
+        error.cause = err
+        reject(error)
+      })
+      child.on('close', code => {
+        logStream.end()
+        resolve(code)
+      })
     })
 
-    logStream.end()
+    if (exitCode === 0) {
+      Task.set('progress', 100)
+    }
 
-    // Parse upgraded packages from stdout
-    // apt-get outputs lines like "Unpacking libfoo (1.2.3) over (1.2.2) ..."
-    // or "Setting up libfoo (1.2.3) ..."
+    return { exitCode, stdoutBuf, stderrBuf, logFile }
+  }
+
+  /**
+   * Build an UpgradeResult from a completed apt-get run (CLI path only).
+   */
+  async #buildUpgradeResult({ exitCode, stdoutBuf, stderrBuf, logFile }: AptResult): Promise<UpgradeResult> {
+    this.#throwOnFailure(exitCode, stderrBuf)
+
+    const packagesUpgraded: string[] = []
     for (const line of stdoutBuf.split('\n')) {
-      const setupMatch = line.match(/^Setting up (\S+)\s/)
-      if (setupMatch !== null) {
-        packagesUpgraded.push(setupMatch[1]!)
-      }
+      const match = line.match(/^Setting up (\S+)\s/)
+      if (match !== null) packagesUpgraded.push(match[1]!)
     }
 
-    // Clean up state files
-    await this.#cleanupStateFiles()
+    const requiredAction: RequiredAction = await detectRequiredAction(packagesUpgraded)
+    log.info('Upgrade completed', { packagesUpgraded: packagesUpgraded.length, requiredAction })
 
-    if (exitCode !== 0) {
-      log.error('apt-get failed', { exitCode, stderr: stderrBuf.slice(0, 500) })
-
-      // Check for lock contention
-      if (stderrBuf.includes('Could not get lock') || stderrBuf.includes('Unable to acquire')) {
-        throw new Error('Another package operation is in progress (apt lock held by another process)')
-      }
-
-      const error = new Error(`apt-get ${args[0]} failed with exit code ${exitCode}`)
-      ;(error as any).stderr = stderrBuf
-      ;(error as any).logFile = logFile
-      throw error
-    }
-
-    const requiredAction = await detectRequiredAction(packagesUpgraded)
-
-    log.info('Upgrade completed', {
-      operation,
-      packagesUpgraded: packagesUpgraded.length,
-      requiredAction,
-    })
-
-    return {
-      success: true,
-      packagesUpgraded,
-      requiredAction,
-      logFile,
-    }
-  }
-
-  /**
-   * Write a JSON state file atomically (write to tmp, then rename).
-   */
-  async #writeStateFile(filename: string, data: unknown): Promise<void> {
-    const targetPath = join(this.#stateDir, filename)
-    const tmpPath = `${targetPath}.tmp`
-    await writeFile(tmpPath, JSON.stringify(data), 'utf-8')
-    await rename(tmpPath, targetPath)
-  }
-
-  /**
-   * Remove operation and progress state files.
-   */
-  async #cleanupStateFiles(): Promise<void> {
-    const operationPath = join(this.#stateDir, OPERATION_FILE)
-    const progressPath = join(this.#stateDir, PROGRESS_FILE)
-    await rm(operationPath, { force: true })
-    await rm(progressPath, { force: true })
+    return { success: true, packagesUpgraded, requiredAction, logFile }
   }
 }
