@@ -7,7 +7,7 @@
       </UiLink>
     </template>
   </UiHeadBar>
-  <TabList>
+  <TabList v-if="!route.meta.hideTabs">
     <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/(site)/dashboard' }" custom>
       <TabItem :active="isExactActive" :href tag="a">
         {{ t('dashboard') }}
@@ -42,6 +42,8 @@ import TabList from '@core/components/tab/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 
 const { t } = useI18n()
+const route = useRoute()
 </script>
