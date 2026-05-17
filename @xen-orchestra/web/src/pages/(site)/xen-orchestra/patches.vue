@@ -2,11 +2,6 @@
   <div class="patches">
     <VtsBanner v-if="isRestartNeeded" accent="warning">
       {{ t('patches:restart-needed') }}
-      <template #addons>
-        <UiButton accent="warning" variant="secondary" size="small" @click="restartXo()">
-          {{ t('action:restart-xo') }}
-        </UiButton>
-      </template>
     </VtsBanner>
 
     <VtsBanner v-if="distroUpgrade !== null" accent="brand">
@@ -81,17 +76,8 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
-const {
-  patches,
-  isLoading,
-  isRestartNeeded,
-  distroUpgrade,
-  refreshList,
-  upgradePatch,
-  upgradeAll,
-  upgradeDistro,
-  restartXo,
-} = useSystemUpdates()
+const { patches, isLoading, isRestartNeeded, distroUpgrade, refreshList, upgradePatch, upgradeAll, upgradeDistro } =
+  useSystemUpdates()
 
 const tableState = computed<TableState | undefined>(() => {
   if (isLoading.value) {

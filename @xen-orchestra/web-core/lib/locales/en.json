@@ -681,7 +681,7 @@
   "patches-up-to-date": "Patches up to date",
   "patches:distro-upgrade-available": "Debian upgrade available: {fromVersion} → {toVersion}",
   "patches:n-available": "{n} patch available | {n} patches available",
-  "patches:restart-needed": "XO needs to restart to apply updates.",
+  "patches:restart-needed": "Some installed updates require a reboot of the XO VM to take effect.",
   "patches:upgrade-all": "Upgrade all patches?",
   "patches:upgrade-all-confirm": "{count} patch(es) will be installed. XO may need to restart afterwards.",
   "pause": "Pause",
