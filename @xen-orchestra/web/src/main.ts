@@ -40,14 +40,8 @@ async function init() {
     handleHotUpdate(router)
   }
 
-  const pinia = createPinia()
-
-  // Load plugins — each dynamic import becomes a separate Vite chunk (PoC)
-  const { default: xoaPlugin } = await import('./plugins/xoa/index.ts')
-  await xoaPlugin.install({ router, pinia })
-
   app.use(i18n)
-  app.use(pinia)
+  app.use(createPinia())
   app.use(router)
 
   app.mount('#app')

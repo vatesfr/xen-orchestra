@@ -32,6 +32,9 @@
     <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/(site)/vms' }" custom>
       <TabItem :active="isExactActive" :href tag="a">{{ t('vms') }}</TabItem>
     </RouterLink>
+    <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/(site)/xen-orchestra/patches' }" custom>
+      <TabItem :active="isExactActive" :href tag="a">{{ t('patches') }}</TabItem>
+    </RouterLink>
   </TabList>
 </template>
 
