@@ -1,50 +1,61 @@
 <template>
-  <div class="updates-page">
+  <div class="patches">
     <VtsBanner v-if="isRestartNeeded" accent="warning">
-      XO needs to restart to apply updates.
+      {{ t('patches:restart-needed') }}
       <template #addons>
-        <UiButton accent="warning" variant="secondary" size="small" @click="restartXo">
-          Restart XO
+        <UiButton accent="warning" variant="secondary" size="small" @click="restartXo()">
+          {{ t('action:restart-xo') }}
         </UiButton>
       </template>
     </VtsBanner>
 
     <VtsBanner v-if="distroUpgrade !== null" accent="brand">
-      Debian upgrade available: {{ distroUpgrade.fromVersion }} → {{ distroUpgrade.toVersion }}
+      {{
+        t('patches:distro-upgrade-available', {
+          fromVersion: distroUpgrade.fromVersion,
+          toVersion: distroUpgrade.toVersion,
+        })
+      }}
       <template #addons>
-        <UiButton accent="brand" variant="secondary" size="small" @click="upgradeDistro">
-          Upgrade distribution
+        <UiButton accent="brand" variant="secondary" size="small" @click="upgradeDistro()">
+          {{ t('action:upgrade-distribution') }}
         </UiButton>
       </template>
     </VtsBanner>
 
     <div class="toolbar">
-      <span class="count typo-body-regular-small">{{ patches.length }} patch(es) available</span>
-      <UiButtonIcon accent="brand" icon="fa:rotate-left" size="medium" title="Refresh" @click="refreshList" />
+      <span class="count typo-body-regular-small">{{ t('patches:n-available', patches.length) }}</span>
+      <UiButtonIcon
+        accent="brand"
+        icon="fa:rotate-left"
+        size="medium"
+        :title="t('action:refresh')"
+        @click="refreshList()"
+      />
       <UiButton
         accent="brand"
         variant="primary"
         size="medium"
         :disabled="patches.length === 0"
-        @click="openUpgradeAllModal"
+        @click="openUpgradeAllModal()"
       >
-        Upgrade All
+        {{ t('action:upgrade-all') }}
       </UiButton>
     </div>
 
     <VtsTable :state="tableState">
       <thead>
         <VtsRow>
-          <VtsHeaderCell>Package</VtsHeaderCell>
-          <VtsHeaderCell>Version</VtsHeaderCell>
-          <VtsHeaderCell>Description</VtsHeaderCell>
+          <VtsHeaderCell>{{ t('package') }}</VtsHeaderCell>
+          <VtsHeaderCell>{{ t('version') }}</VtsHeaderCell>
+          <VtsHeaderCell>{{ t('description') }}</VtsHeaderCell>
           <VtsHeaderCell />
         </VtsRow>
       </thead>
       <tbody>
         <VtsRow v-for="patch in patches" :key="patch.name">
           <VtsTextCell>{{ patch.name }}</VtsTextCell>
-          <VtsTextCell>{{ patch.version }}-{{ patch.release }}</VtsTextCell>
+          <VtsTextCell>{{ patch.version + '-' + patch.release }}</VtsTextCell>
           <VtsTruncatedTextCell :content="patch.description" />
           <VtsActionCell button-icon="fa:arrow-up" button-accent="brand" @click="upgradePatch(patch.name)" />
         </VtsRow>
@@ -54,37 +65,55 @@
 </template>
 
 <script lang="ts" setup>
+import { useSystemUpdates } from '@/modules/xoa/composables/use-system-updates.ts'
+import VtsBanner from '@core/components/banner/VtsBanner.vue'
 import VtsActionCell from '@core/components/table/cells/VtsActionCell.vue'
 import VtsHeaderCell from '@core/components/table/cells/VtsHeaderCell.vue'
 import VtsTextCell from '@core/components/table/cells/VtsTextCell.vue'
 import VtsTruncatedTextCell from '@core/components/table/cells/VtsTruncatedTextCell.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable, { type TableState } from '@core/components/table/VtsTable.vue'
-import VtsBanner from '@core/components/banner/VtsBanner.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { useModal } from '@core/packages/modal/use-modal.ts'
 import { computed } from 'vue'
-import { useSystemUpdates } from './use-system-updates.ts'
+import { useI18n } from 'vue-i18n'
 
-const { patches, isLoading, isRestartNeeded, distroUpgrade, refreshList, upgradePatch, upgradeAll, upgradeDistro, restartXo } =
-  useSystemUpdates()
+const { t } = useI18n()
+
+const {
+  patches,
+  isLoading,
+  isRestartNeeded,
+  distroUpgrade,
+  refreshList,
+  upgradePatch,
+  upgradeAll,
+  upgradeDistro,
+  restartXo,
+} = useSystemUpdates()
 
 const tableState = computed<TableState | undefined>(() => {
-  if (isLoading.value) return { type: 'busy' }
-  if (patches.value.length === 0) return { type: 'no-data' }
+  if (isLoading.value) {
+    return { type: 'busy' }
+  }
+
+  if (patches.value.length === 0) {
+    return { type: 'no-data' }
+  }
+
   return undefined
 })
 
 const openUpgradeAllModal = useModal(() => ({
-  component: import('./UpgradeAllModal.vue'),
+  component: import('@/modules/xoa/components/UpgradeAllModal.vue'),
   props: { count: patches.value.length },
   onConfirm: () => upgradeAll(),
 }))
 </script>
 
 <style scoped lang="postcss">
-.updates-page {
+.patches {
   display: flex;
   flex-direction: column;
 
