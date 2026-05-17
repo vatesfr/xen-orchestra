@@ -72,10 +72,6 @@ export function useSystemUpdates() {
     await startUpgradeTask('xoa/updates/dist-upgrade')
   }
 
-  async function restartXo(): Promise<void> {
-    // implemented later
-  }
-
   onMounted(async () => {
     isLoading.value = true
     try {
@@ -94,6 +90,5 @@ export function useSystemUpdates() {
     upgradePatch,
     upgradeAll,
     upgradeDistro,
-    restartXo,
   }
 }
