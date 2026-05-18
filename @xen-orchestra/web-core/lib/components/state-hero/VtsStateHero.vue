@@ -81,10 +81,6 @@ const imageSrc = computed(() => {
 
   &:not(.horizontal) {
     flex-direction: column;
-
-    .content {
-      align-items: center;
-    }
   }
 
   .image {
