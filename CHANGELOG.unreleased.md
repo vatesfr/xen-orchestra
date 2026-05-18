@@ -21,6 +21,7 @@
 - **XO 5**:
   - [Export config] Hide passphrase by default (PR [#9824](https://github.com/vatesfr/xen-orchestra/pull/9824))
 - [Backups] Refactor clean phase for incremental and full backups ([#9765](https://github.com/vatesfr/xen-orchestra/pull/9765))
+- [REST API] Expose `DELETE /rest/v0/srs/:id` (PR [#9464](https://github.com/vatesfr/xen-orchestra/pull/9464))
 
 ### Bug fixes
 
@@ -48,6 +49,7 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/acl minor
 - @xen-orchestra/backup-archive major
 - @xen-orchestra/backups minor
 - @xen-orchestra/backups-cli patch
@@ -57,6 +59,7 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi minor
 - xo-server minor
 - xo-web minor
 
