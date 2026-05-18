@@ -10,47 +10,6 @@ export { fetchDocumentation } from './tools/utility/search-docs.mjs'
 
 export type EnvConfig = { url: string; username: string; password: string } | { url: string; token: string }
 
-/**
- * Warn (never throw) about malformed proxy env vars. We tolerate everything —
- * the MCP must keep working even if `HTTP_PROXY` is junk; undici will simply
- * fall back to a direct connection in that case.
- *
- * Lookup order (`lowercase ?? UPPERCASE`) matches undici's
- * `EnvHttpProxyAgent` so we validate the value undici will actually use.
- */
-export function validateProxyEnv(emit: (msg: string) => void = msg => console.error(msg)): void {
-  const httpProxy = process.env.http_proxy ?? process.env.HTTP_PROXY
-  const httpsProxy = process.env.https_proxy ?? process.env.HTTPS_PROXY
-  const noProxy = process.env.no_proxy ?? process.env.NO_PROXY
-
-  const isSet = (v: string | undefined): v is string => v !== undefined && v !== ''
-
-  const checkUrl = (name: string, value: string) => {
-    let url: URL
-    try {
-      url = new URL(value)
-    } catch {
-      emit(
-        `${name} does not look like a valid URL — proxying may fail. ` +
-          'Expected format: http://host:port (with optional user:pass@).'
-      )
-      return
-    }
-    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-      emit(
-        `${name} uses unsupported scheme "${url.protocol}" — proxying will be skipped. ` +
-          'Only http: and https: are valid for proxy URLs.'
-      )
-    }
-  }
-
-  if (isSet(httpProxy)) checkUrl('HTTP_PROXY', httpProxy)
-  if (isSet(httpsProxy)) checkUrl('HTTPS_PROXY', httpsProxy)
-  if (!isSet(httpProxy) && !isSet(httpsProxy) && isSet(noProxy)) {
-    emit('NO_PROXY is set but neither HTTP_PROXY nor HTTPS_PROXY is — NO_PROXY has no effect on its own.')
-  }
-}
-
 export function validateEnv(): EnvConfig {
   const url = process.env.XO_URL
   const token = process.env.XO_TOKEN
@@ -64,8 +23,6 @@ export function validateEnv(): EnvConfig {
         '  XO_URL - Xen Orchestra server URL (e.g., http://xo.local:9000)'
     )
   }
-
-  validateProxyEnv()
 
   if (token) return { url, token }
 

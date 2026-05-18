@@ -129,8 +129,6 @@ Example for Claude Desktop, with a corporate proxy and a XOA on the internal net
 }
 ```
 
-`NO_PROXY` on its own does nothing. If you set it without `HTTP_PROXY` or `HTTPS_PROXY`, the MCP logs a warning at startup. A malformed proxy URL is reported on stderr but does not crash the server; it falls back to direct connections.
-
 ### Available Tools
 
 At startup, the server fetches the OpenAPI spec from your XO instance (`/rest/v0/docs/swagger.json`) and generates one tool per resource domain. Domain and operation names come straight from the spec: the primary tag (`tags[0]`) becomes `{tag}_query`, and each `operationId` (e.g. `GetVms`, `StartVm`, `HardShutdownVm`) is used verbatim as the enum value. No hand-curated mapping — if the XO server adds a new endpoint, it appears automatically. Responses are rendered as markdown tables by the REST API itself (via `?markdown=true`); the MCP layer only relays them.

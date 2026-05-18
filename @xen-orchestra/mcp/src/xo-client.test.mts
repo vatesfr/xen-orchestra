@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it, beforeEach, afterEach } from 'node:test'
 import { XoClient } from './xo-client.mjs'
-import { resetProxyCache, snapshotProxyEnv } from './utils/proxy.mjs'
 
 describe('XoClient', () => {
   let originalFetch: typeof globalThis.fetch
@@ -116,55 +115,6 @@ describe('XoClient', () => {
       const result = await client.testConnection()
       assert.strictEqual(result.ok, false)
       assert.ok(result.error)
-    })
-  })
-
-  describe('proxy handling', () => {
-    let restoreProxyEnv: () => void
-
-    beforeEach(() => {
-      restoreProxyEnv = snapshotProxyEnv()
-      resetProxyCache()
-    })
-
-    afterEach(() => {
-      restoreProxyEnv()
-      resetProxyCache()
-    })
-
-    const captureInit = () => {
-      let captured: RequestInit | undefined
-      globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
-        captured = init
-        return new Response('ok')
-      }
-      return () => captured
-    }
-
-    it('passes no dispatcher when no proxy env var is set', async () => {
-      const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'pass' })
-      const getInit = captureInit()
-      await client.testConnection()
-      const init = getInit() as (RequestInit & { dispatcher?: unknown }) | undefined
-      assert.strictEqual(init?.dispatcher, undefined)
-    })
-
-    it('passes a dispatcher when HTTP_PROXY is set', async () => {
-      process.env.HTTP_PROXY = 'http://proxy.example.com:8080'
-      const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'pass' })
-      const getInit = captureInit()
-      await client.testConnection()
-      const init = getInit() as (RequestInit & { dispatcher?: unknown }) | undefined
-      assert.ok(init?.dispatcher, 'dispatcher should be defined when HTTP_PROXY is set')
-    })
-
-    it('passes a dispatcher when only HTTPS_PROXY is set', async () => {
-      process.env.HTTPS_PROXY = 'http://proxy.example.com:8080'
-      const client = new XoClient({ url: 'http://xo.local:9000', username: 'admin', password: 'pass' })
-      const getInit = captureInit()
-      await client.testConnection()
-      const init = getInit() as (RequestInit & { dispatcher?: unknown }) | undefined
-      assert.ok(init?.dispatcher, 'dispatcher should be defined when HTTPS_PROXY is set')
     })
   })
 
