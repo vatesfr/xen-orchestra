@@ -361,11 +361,11 @@ export class RemoteDiskLineage {
       const { finalDiskSize } = (await merger.merge(parentDisk, childDisk!))!
       return { finalDiskSize, mergeTargetPath }
     } finally {
-      await parentDisk?.close().catch(() => {
-        /* should log */
+      await parentDisk?.close().catch(error => {
+        this.#opts.logWarn('Error closing parent Disk', error)
       })
-      await childDisk?.close().catch(() => {
-        /* should log */
+      await childDisk?.close().catch(error => {
+        this.#opts.logWarn('Error closing child Disk', error)
       })
     }
   }
