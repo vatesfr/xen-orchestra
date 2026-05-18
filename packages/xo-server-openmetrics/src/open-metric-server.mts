@@ -30,11 +30,19 @@ import {
   formatVmStatusMetrics,
   formatVmUptimeMetrics,
   formatXoMetrics,
+  formatXostorAlarmsMetrics,
+  formatXostorClusterMetrics,
+  formatXostorSmartMetrics,
+  formatXostorUpdatesMetrics,
   type HostStatusItem,
   type SrDataItem,
   type VdiDataItem,
   type VmStatusItem,
   type XoMetricsData,
+  type XostorAlarmsPayload,
+  type XostorPayload,
+  type XostorSmartPayload,
+  type XostorUpdatesPayload,
 } from './openmetric-formatter.mjs'
 
 const logger = createLogger('xo:xo-server-openmetrics:child')
@@ -87,6 +95,8 @@ interface HostLabelInfo {
 
 interface SrLabelInfo {
   name_label: string
+  /** Mirrors `XoSr.SR_type` — see the canonical type in `index.mts`. */
+  SR_type: string
 }
 
 interface LabelLookupData {
@@ -177,6 +187,10 @@ function handleParentMessage(rawMessage: unknown): void {
     case 'HOST_STATUS':
     case 'VM_STATUS':
     case 'XO_METRICS':
+    case 'XOSTOR_DATA':
+    case 'XOSTOR_ALARMS':
+    case 'XOSTOR_SMART':
+    case 'XOSTOR_UPDATES':
       resolvePendingRequest(message)
       break
 
@@ -365,6 +379,82 @@ async function requestXoMetrics(): Promise<XoMetricsData> {
   })
 }
 
+async function requestXostorData(): Promise<XostorPayload> {
+  const requestId = `xostor-${++requestIdCounter}`
+
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pendingRequests.delete(requestId)
+      reject(new Error('Timeout waiting for XOSTOR data from parent'))
+    }, IPC_REQUEST_TIMEOUT_MS)
+
+    pendingRequests.set(requestId, {
+      resolve: value => resolve(value as XostorPayload),
+      reject,
+      timer,
+    })
+
+    sendToParent({ type: 'GET_XOSTOR_DATA', requestId })
+  })
+}
+
+async function requestXostorAlarms(): Promise<XostorAlarmsPayload> {
+  const requestId = `xostor-alarms-${++requestIdCounter}`
+
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pendingRequests.delete(requestId)
+      reject(new Error('Timeout waiting for XOSTOR alarms from parent'))
+    }, IPC_REQUEST_TIMEOUT_MS)
+
+    pendingRequests.set(requestId, {
+      resolve: value => resolve(value as XostorAlarmsPayload),
+      reject,
+      timer,
+    })
+
+    sendToParent({ type: 'GET_XOSTOR_ALARMS', requestId })
+  })
+}
+
+async function requestXostorSmart(): Promise<XostorSmartPayload> {
+  const requestId = `xostor-smart-${++requestIdCounter}`
+
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pendingRequests.delete(requestId)
+      reject(new Error('Timeout waiting for XOSTOR SMART data from parent'))
+    }, IPC_REQUEST_TIMEOUT_MS)
+
+    pendingRequests.set(requestId, {
+      resolve: value => resolve(value as XostorSmartPayload),
+      reject,
+      timer,
+    })
+
+    sendToParent({ type: 'GET_XOSTOR_SMART', requestId })
+  })
+}
+
+async function requestXostorUpdates(): Promise<XostorUpdatesPayload> {
+  const requestId = `xostor-updates-${++requestIdCounter}`
+
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pendingRequests.delete(requestId)
+      reject(new Error('Timeout waiting for XOSTOR updates from parent'))
+    }, IPC_REQUEST_TIMEOUT_MS)
+
+    pendingRequests.set(requestId, {
+      resolve: value => resolve(value as XostorUpdatesPayload),
+      reject,
+      timer,
+    })
+
+    sendToParent({ type: 'GET_XOSTOR_UPDATES', requestId })
+  })
+}
+
 // ============================================================================
 // RRD Data Fetching
 // ============================================================================
@@ -442,14 +532,41 @@ async function fetchRrdFromHost(host: HostCredentials): Promise<ParsedRrdData | 
  *
  * @returns OpenMetrics-formatted string
  */
+/**
+ * Wrap an XOSTOR IPC request so any failure logs a warning and yields the
+ * supplied fallback. Keeps `/metrics` responding even when one collector
+ * misbehaves.
+ */
+function safeXostorRequest<T>(promise: Promise<T>, label: string, empty: T): Promise<T> {
+  return promise.catch((err: unknown) => {
+    logger.warn(`XOSTOR ${label} request failed; emitting empty payload`, { error: err })
+    return empty
+  })
+}
+
 async function collectMetrics(): Promise<string> {
-  const [credentials, srData, vdiData, hostStatusData, vmStatusData, xoMetricsData] = await Promise.all([
+  const [
+    credentials,
+    srData,
+    vdiData,
+    hostStatusData,
+    vmStatusData,
+    xoMetricsData,
+    xostorData,
+    xostorAlarms,
+    xostorSmart,
+    xostorUpdates,
+  ] = await Promise.all([
     requestXapiCredentials(),
     requestSrData(),
     requestVdiData(),
     requestHostStatusData(),
     requestVmStatusData(),
     requestXoMetrics(),
+    safeXostorRequest(requestXostorData(), 'data', { clusters: [] } as XostorPayload),
+    safeXostorRequest(requestXostorAlarms(), 'alarms', { clusters: [] } as XostorAlarmsPayload),
+    safeXostorRequest(requestXostorSmart(), 'SMART', { hosts: [] } as XostorSmartPayload),
+    safeXostorRequest(requestXostorUpdates(), 'updates', { hosts: [] } as XostorUpdatesPayload),
   ])
 
   logger.debug('Collecting metrics', {
@@ -458,6 +575,10 @@ async function collectMetrics(): Promise<string> {
     vdiCount: vdiData.vdis.length,
     hostStatusCount: hostStatusData.hosts.length,
     vmStatusCount: vmStatusData.vms.length,
+    xostorClusterCount: xostorData.clusters.length,
+    xostorAlarmClusterCount: xostorAlarms.clusters.length,
+    xostorSmartHostCount: xostorSmart.hosts.length,
+    xostorUpdatesHostCount: xostorUpdates.hosts.length,
   })
 
   if (credentials.hosts.length === 0) {
@@ -542,6 +663,26 @@ async function collectMetrics(): Promise<string> {
   const xoMetricsOutput = xoMetrics.length > 0 ? formatToOpenMetrics(xoMetrics) : ''
   logger.debug('Formatted XO metrics', { count: xoMetrics.length })
 
+  // Format XOSTOR cluster metrics
+  const xostorMetrics = formatXostorClusterMetrics(xostorData)
+  const xostorMetricsOutput = xostorMetrics.length > 0 ? formatToOpenMetrics(xostorMetrics) : ''
+  logger.debug('Formatted XOSTOR metrics', { count: xostorMetrics.length })
+
+  // Format XOSTOR alarm metrics
+  const xostorAlarmsMetrics = formatXostorAlarmsMetrics(xostorAlarms)
+  const xostorAlarmsOutput = xostorAlarmsMetrics.length > 0 ? formatToOpenMetrics(xostorAlarmsMetrics) : ''
+  logger.debug('Formatted XOSTOR alarm metrics', { count: xostorAlarmsMetrics.length })
+
+  // Format XOSTOR SMART metrics
+  const xostorSmartMetrics = formatXostorSmartMetrics(xostorSmart)
+  const xostorSmartOutput = xostorSmartMetrics.length > 0 ? formatToOpenMetrics(xostorSmartMetrics) : ''
+  logger.debug('Formatted XOSTOR SMART metrics', { count: xostorSmartMetrics.length })
+
+  // Format XOSTOR pending-updates metrics
+  const xostorUpdatesMetrics = formatXostorUpdatesMetrics(xostorUpdates)
+  const xostorUpdatesOutput = xostorUpdatesMetrics.length > 0 ? formatToOpenMetrics(xostorUpdatesMetrics) : ''
+  logger.debug('Formatted XOSTOR update metrics', { count: xostorUpdatesMetrics.length })
+
   // Combine pool metrics with RRD metrics, SR metrics, host status metrics, uptime metrics, and XO metrics
   // Remove the # EOF from rrdMetrics if present (we'll add our own)
   const rrdMetricsWithoutEof = rrdMetrics.replace(/\n# EOF$/, '')
@@ -578,6 +719,22 @@ async function collectMetrics(): Promise<string> {
 
   if (xoMetricsOutput !== '') {
     allMetricsSections.push(xoMetricsOutput)
+  }
+
+  if (xostorMetricsOutput !== '') {
+    allMetricsSections.push(xostorMetricsOutput)
+  }
+
+  if (xostorAlarmsOutput !== '') {
+    allMetricsSections.push(xostorAlarmsOutput)
+  }
+
+  if (xostorSmartOutput !== '') {
+    allMetricsSections.push(xostorSmartOutput)
+  }
+
+  if (xostorUpdatesOutput !== '') {
+    allMetricsSections.push(xostorUpdatesOutput)
   }
 
   return allMetricsSections.join('\n') + '\n# EOF'
