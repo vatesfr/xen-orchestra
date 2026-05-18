@@ -5,7 +5,7 @@
     <span class="label" :class="size == 'small' ? 'typo-action-button-small' : 'typo-action-button'">
       <slot />
     </span>
-    <VtsIcon name="fa:angle-down" :size="size ?? 'medium'" />
+    <VtsIcon name="table:angle-down" :size="size ?? 'medium'" />
   </button>
 </template>
 
