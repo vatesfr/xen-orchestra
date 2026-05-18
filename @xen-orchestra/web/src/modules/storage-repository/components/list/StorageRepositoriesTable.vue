@@ -27,6 +27,7 @@
 <script setup lang="ts">
 import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import { useSrDeleteModal } from '@/modules/storage-repository/composables/use-sr-delete-modal.composable.ts'
 import {
   useXoSrCollection,
   type FrontXoSr,
@@ -116,6 +117,8 @@ const { HeadCells, BodyCells } = useSrColumns({
 
     const { allPbdsConnectionStatus } = useXoPbdUtils(() => getPbdsByIds(sr.$PBDs))
 
+    const { openModal: openSrDeleteModal, canRun: canDeleteSr, isRunning: isDeletingSr } = useSrDeleteModal(() => [sr])
+
     return {
       storageRepository: r =>
         r({
@@ -128,7 +131,19 @@ const { HeadCells, BodyCells } = useSrColumns({
       storageFormat: r => r(sr.SR_type),
       accessMode: r => r(sr.shared ? t('shared') : t('local')),
       usedSpace: r => r(sr.physical_usage, sr.size),
-      selectItem: r => r(() => (selectedSrId.value = sr.id)),
+      actions: r =>
+        r({
+          onClick: () => (selectedSrId.value = sr.id),
+          actions: [
+            {
+              label: t('action:delete'),
+              icon: 'action:delete',
+              onClick: () => openSrDeleteModal(),
+              disabled: !canDeleteSr.value,
+              busy: isDeletingSr.value,
+            },
+          ],
+        }),
     }
   },
 })
