@@ -1,9 +1,14 @@
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
-import type { CollectionItemProperties } from '@core/packages/collection'
-import type { GetItemId } from '@core/packages/collection'
+import type { CollectionItemProperties, GetItemId } from '@core/packages/collection'
 import { useFormBindings } from '@core/packages/form-bindings'
 import { useFormSelect as _useFormSelect } from '@core/packages/form-select'
-import type { ExtractValue, FormSelectId, GetOptionLabel, GetOptionValue, UseFormSelectReturn } from '@core/packages/form-select/types.ts'
+import type {
+  ExtractValue,
+  FormSelectId,
+  GetOptionLabel,
+  GetOptionValue,
+  UseFormSelectReturn,
+} from '@core/packages/form-select/types.ts'
 import { useFormValidation } from '@core/packages/form-validation'
 import type { FormValidationConfig } from '@core/packages/form-validation/types.ts'
 import type { EmptyObject, MaybeArray } from '@core/types/utility.type.ts'
@@ -38,7 +43,9 @@ type UseFormSelectConfig<TSource, TCustomProperties extends CollectionItemProper
   }>
   option?: {
     id?: GetItemId<TSource>
-    value?: GetOptionValue<TSource, TCustomProperties> | ((source: TSource, properties: TCustomProperties, index: number) => unknown)
+    value?:
+      | GetOptionValue<TSource, TCustomProperties>
+      | ((source: TSource, properties: TCustomProperties, index: number) => unknown)
     properties?: (source: TSource) => TCustomProperties
     label?: GetOptionLabel<TSource, TCustomProperties>
     selectedLabel?: (source: TSource, properties: TCustomProperties) => string
@@ -64,7 +71,10 @@ export function useValidatedForm<TData extends Record<string, unknown>>(
     })
   }
 
-  function fieldMetadataWithExtras<E extends Record<string, unknown>>(key: keyof TData, extras: () => E): () => FieldMetadata & E {
+  function fieldMetadataWithExtras<E extends Record<string, unknown>>(
+    key: keyof TData,
+    extras: () => E
+  ): () => FieldMetadata & E {
     return () => ({
       error: toMessage(rawErrors.value[key], 'danger'),
       warning: toMessage(rawWarnings.value[key], 'warning'),
@@ -103,10 +113,12 @@ export function useValidatedForm<TData extends Record<string, unknown>>(
   ): UseFormSelectReturn<TCustomProperties, TSource, $TValue | TEmptyValue, TMultiple> {
     const model = toRef(data, key) as Ref<unknown>
 
-    const result = (_useFormSelect as unknown as (
-      sources: MaybeRefOrGetter<TSource[]>,
-      config: UseFormSelectConfig<TSource, TCustomProperties> & { model: Ref<unknown> }
-    ) => UseFormSelectReturn<TCustomProperties, TSource, $TValue | TEmptyValue, TMultiple>)(sources, {
+    const result = (
+      _useFormSelect as unknown as (
+        sources: MaybeRefOrGetter<TSource[]>,
+        config: UseFormSelectConfig<TSource, TCustomProperties> & { model: Ref<unknown> }
+      ) => UseFormSelectReturn<TCustomProperties, TSource, $TValue | TEmptyValue, TMultiple>
+    )(sources, {
       ...formSelectConfig,
       model,
     })
