@@ -666,7 +666,7 @@ export type XoTask = {
     userId?: string
     [key: string]: unknown | undefined
   }
-  result: Record<string, unknown>
+  result?: Record<string, unknown>
   start: number
   status: 'failure' | 'interrupted' | 'pending' | 'success'
   tasks?: XoTask[]
