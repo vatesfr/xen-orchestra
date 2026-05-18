@@ -61,7 +61,7 @@ export function useValidatedForm<TData extends Record<string, unknown>>(
   const { useField: _useField, useSelect: _useSelect } = useFormBindings(data)
   const { errors: rawErrors, warnings: rawWarnings, validate, reset, handleBlur } = useFormValidation(data, config)
 
-  const selectRegistry = new Map<symbol, keyof TData>()
+  const selectRegistry = new Map<FormSelectId, keyof TData>()
 
   function fieldMetadata(key: keyof TData): () => FieldMetadata {
     return () => ({
@@ -123,7 +123,7 @@ export function useValidatedForm<TData extends Record<string, unknown>>(
       model,
     })
 
-    selectRegistry.set(result.id as unknown as symbol, key)
+    selectRegistry.set(result.id, key)
 
     return result
   }
@@ -151,7 +151,7 @@ export function useValidatedForm<TData extends Record<string, unknown>>(
     }
 
     const extrasFromRegistry = keyOrExtras as (() => E) | undefined
-    const registryKey = selectRegistry.get(id as unknown as symbol)
+    const registryKey = selectRegistry.get(id)
 
     if (registryKey !== undefined) {
       const metadata =

@@ -2,6 +2,18 @@
 
 Provides two composables for building validated forms: `useValidatedForm` for single-step forms and `useMultiStepValidatedForm` for wizard-style multi-step forms.
 
+> **Note:** Always use `VtsForm` instead of a raw `<form>` element when using these composables. `VtsForm` sets `novalidate` unconditionally, preventing browser-native validation from interfering with the custom validation logic.
+>
+> ```vue
+> <VtsForm @submit="onSubmit">…</VtsForm>
+> ```
+>
+> If you must use a raw `<form>`, add `novalidate` manually:
+>
+> ```html
+> <form novalidate @submit.prevent="onSubmit">…</form>
+> ```
+
 ---
 
 ## `useValidatedForm` composable
@@ -355,19 +367,21 @@ const {
 </script>
 
 <template>
-  <div v-if="currentStep === 'general'">
-    <VtsSelect v-bind="categorySelectBindings" />
-    <VtsInput v-bind="titleInputBindings" />
-    <VtsInput v-bind="summaryInputBindings" />
-    <VtsCheckbox v-bind="featuredCheckboxBindings" />
-  </div>
-  <div v-else-if="currentStep === 'details'">
-    <VtsSelect v-bind="regionSelectBindings" />
-    <VtsInput v-bind="quantityInputBindings" />
-  </div>
+  <form novalidate @submit.prevent="onSubmit">
+    <div v-if="currentStep === 'general'">
+      <VtsSelect v-bind="categorySelectBindings" />
+      <VtsInput v-bind="titleInputBindings" />
+      <VtsInput v-bind="summaryInputBindings" />
+      <VtsCheckbox v-bind="featuredCheckboxBindings" />
+    </div>
+    <div v-else-if="currentStep === 'details'">
+      <VtsSelect v-bind="regionSelectBindings" />
+      <VtsInput v-bind="quantityInputBindings" />
+    </div>
 
-  <button :disabled="currentStep === 'general'" @click="back">Back</button>
-  <button v-if="currentStep !== 'details'" @click="next">Next</button>
-  <button v-else :disabled="!areAllStepsValid" @click="onSubmit">Submit</button>
+    <button :disabled="currentStep === 'general'" @click="back">Back</button>
+    <button v-if="currentStep !== 'details'" @click="next">Next</button>
+    <button v-else :disabled="!areAllStepsValid" @click="onSubmit">Submit</button>
+  </form>
 </template>
 ```
