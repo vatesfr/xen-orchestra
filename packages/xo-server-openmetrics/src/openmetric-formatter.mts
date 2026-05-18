@@ -843,7 +843,7 @@ export function transformMetric(
         if (extractedLabels.sr !== undefined) {
           const srSuffix = extractedLabels.sr
           // Try to find the full SR UUID from the suffix
-          const srUuid = labelContext.labels.srSuffixToUuid[srSuffix]
+          const srUuid = labelContext.labels.srTruncatedToUuid[srSuffix]
           if (srUuid !== undefined) {
             const srInfo = labelContext.labels.srs[srUuid]
             if (srInfo !== undefined) {

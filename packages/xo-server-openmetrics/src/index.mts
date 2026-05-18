@@ -97,7 +97,7 @@ export interface LabelLookupData {
   vms: Record<XoVm['uuid'] | XoVmController['uuid'], VmLabelInfo>
   hosts: Record<XoHost['uuid'], HostLabelInfo>
   srs: Record<XoSr['uuid'], SrLabelInfo>
-  srSuffixToUuid: Record<string, XoSr['uuid']> // maps UUID suffix to full SR UUID
+  srTruncatedToUuid: Record<string, XoSr['uuid']> // maps any UUID truncation (prefix or suffix) to the full SR UUID
   vdiUuidToSrUuid: Record<XoVdi['uuid'], XoSr['uuid']> // maps VDI UUID to parent SR UUID
 }
 
@@ -488,6 +488,32 @@ function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promi
       }
     )
   })
+}
+
+/** UUID truncation lengths used by XAPI RRD legends. */
+export const SR_UUID_TRUNCATIONS: ReadonlyArray<number> = [8, 12, 16, 20]
+
+/**
+ * Insert every (prefix, suffix) truncation of `uuid` into `index`, mapping
+ * each truncation to the full UUID. XCP-ng RRD legends encode the SR as the
+ * first 8 chars of the UUID, but older / variant builds may use the suffix;
+ * indexing both keeps the SR-name and `sr_type` resolution stable across
+ * versions. First match wins, so existing entries are never overwritten.
+ *
+ * Exported for testability.
+ */
+export function indexSrUuidTruncations(uuid: string, index: Record<string, string>): void {
+  for (const truncLen of SR_UUID_TRUNCATIONS) {
+    if (uuid.length < truncLen) continue
+    const prefix = uuid.slice(0, truncLen)
+    const suffix = uuid.slice(-truncLen)
+    if (index[prefix] === undefined) {
+      index[prefix] = uuid
+    }
+    if (index[suffix] === undefined) {
+      index[suffix] = uuid
+    }
+  }
 }
 
 /**
@@ -1722,7 +1748,7 @@ class OpenMetricsPlugin {
       vms: {},
       hosts: {},
       srs: {},
-      srSuffixToUuid: {},
+      srTruncatedToUuid: {},
       vdiUuidToSrUuid: {},
     }
 
@@ -1900,24 +1926,12 @@ class OpenMetricsPlugin {
       }
     }
 
-    // Build SR labels with suffix mapping
     for (const sr of srs) {
       labels.srs[sr.uuid] = {
         name_label: sr.name_label,
         SR_type: sr.SR_type ?? '',
       }
-
-      // Create suffix mappings for different suffix lengths (8, 12, 16 chars)
-      // SR metrics in RRD use truncated UUIDs
-      for (const suffixLen of [8, 12, 16, 20]) {
-        if (sr.uuid.length >= suffixLen) {
-          const suffix = sr.uuid.slice(-suffixLen)
-          // Only store if not already mapped (first match wins)
-          if (labels.srSuffixToUuid[suffix] === undefined) {
-            labels.srSuffixToUuid[suffix] = sr.uuid
-          }
-        }
-      }
+      indexSrUuidTruncations(sr.uuid, labels.srTruncatedToUuid)
     }
 
     logger.debug('Label lookup data built', {

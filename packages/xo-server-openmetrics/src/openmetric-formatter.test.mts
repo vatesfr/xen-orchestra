@@ -26,6 +26,8 @@ import {
   type LabelContext,
 } from './openmetric-formatter.mjs'
 
+import { indexSrUuidTruncations } from './index.mjs'
+
 import type {
   HostStatusItem,
   SrDataItem,
@@ -770,7 +772,7 @@ describe('transformMetric with labelContext', () => {
           SR_type: 'lvm',
         },
       },
-      srSuffixToUuid: {
+      srTruncatedToUuid: {
         '1234567890': 'sr-uuid-full-1234567890',
       },
       vdiUuidToSrUuid: {
@@ -1001,6 +1003,35 @@ describe('transformMetric with labelContext', () => {
     assert.equal(result.labels.sr_type, undefined)
   })
 
+  it('should resolve sr_name and sr_type from a UUID prefix (XCP-ng RRD encoding)', () => {
+    // XCP-ng encodes the SR in RRD legends as the first 8 chars of the UUID.
+    // The label context must therefore index that prefix.
+    const fullUuid = 'c787b75c-3e0d-70fa-d0c3-cbfd382d7e33'
+    const prefix = fullUuid.slice(0, 8)
+    const ctx = createLabelContext()
+    ctx.labels.srs[fullUuid] = { name_label: 'XOSTOR NVME', SR_type: 'linstor' }
+    ctx.labels.srTruncatedToUuid[prefix] = fullUuid
+
+    const metric: ParsedMetric = {
+      legend: {
+        cf: 'AVERAGE',
+        objectType: 'host',
+        uuid: 'host-uuid-123',
+        metricName: `iops_read_${prefix}`,
+        rawLegend: `AVERAGE:host:host-uuid-123:iops_read_${prefix}`,
+      },
+      value: 42,
+      timestamp: 1700000000,
+    }
+
+    const result = transformMetric(metric, 'pool-456', ctx)
+
+    assert.ok(result)
+    assert.equal(result.labels.sr, prefix)
+    assert.equal(result.labels.sr_name, 'XOSTOR NVME')
+    assert.equal(result.labels.sr_type, 'linstor')
+  })
+
   it('should handle missing label context gracefully', () => {
     const metric: ParsedMetric = {
       legend: {
@@ -1149,7 +1180,7 @@ describe('formatAllPoolsToOpenMetrics with labelContext', () => {
         },
       },
       srs: {},
-      srSuffixToUuid: {},
+      srTruncatedToUuid: {},
       vdiUuidToSrUuid: {},
     },
   })
@@ -1414,7 +1445,7 @@ describe('CPU usage fallback', () => {
         },
         hosts: {},
         srs: {},
-        srSuffixToUuid: {},
+        srTruncatedToUuid: {},
         vdiUuidToSrUuid: {},
       },
     }
@@ -1672,7 +1703,7 @@ describe('formatHostUptimeMetrics', () => {
         },
       },
       srs: {},
-      srSuffixToUuid: {},
+      srTruncatedToUuid: {},
       vdiUuidToSrUuid: {},
     },
   })
@@ -1722,7 +1753,7 @@ describe('formatHostUptimeMetrics', () => {
         vms: {},
         hosts: {},
         srs: {},
-        srSuffixToUuid: {},
+        srTruncatedToUuid: {},
         vdiUuidToSrUuid: {},
       },
     }
@@ -1770,7 +1801,7 @@ describe('formatHostUptimeMetrics', () => {
           },
         },
         srs: {},
-        srSuffixToUuid: {},
+        srTruncatedToUuid: {},
         vdiUuidToSrUuid: {},
       },
     }
@@ -1810,7 +1841,7 @@ describe('formatHostUptimeMetrics', () => {
           },
         },
         srs: {},
-        srSuffixToUuid: {},
+        srTruncatedToUuid: {},
         vdiUuidToSrUuid: {},
       },
     }
@@ -1845,7 +1876,7 @@ describe('formatHostUptimeMetrics', () => {
           },
         },
         srs: {},
-        srSuffixToUuid: {},
+        srTruncatedToUuid: {},
         vdiUuidToSrUuid: {},
       },
     }
@@ -2291,7 +2322,7 @@ describe('formatVmUptimeMetrics', () => {
         },
       },
       srs: {},
-      srSuffixToUuid: {},
+      srTruncatedToUuid: {},
       vdiUuidToSrUuid: {},
     },
   })
@@ -2379,7 +2410,7 @@ describe('formatVmUptimeMetrics', () => {
           },
         },
         srs: {},
-        srSuffixToUuid: {},
+        srTruncatedToUuid: {},
         vdiUuidToSrUuid: {},
       },
     }
@@ -3089,5 +3120,46 @@ describe('formatXostorUpdatesMetrics', () => {
     assert.match(output, /# HELP xcp_xostor_package_update_available /)
     assert.match(output, /# TYPE xcp_xostor_package_update_available gauge/)
     assert.match(output, /package="linstor-controller"/)
+  })
+})
+
+// ============================================================================
+// indexSrUuidTruncations Tests
+// ============================================================================
+
+describe('indexSrUuidTruncations', () => {
+  it('should index both UUID prefix and suffix at all configured lengths', () => {
+    const uuid = 'c787b75c-3e0d-70fa-d0c3-cbfd382d7e33'
+    const index: Record<string, string> = {}
+
+    indexSrUuidTruncations(uuid, index)
+
+    // XCP-ng's typical 8-char prefix (the reason the bug existed)
+    assert.equal(index[uuid.slice(0, 8)], uuid)
+    // 8-char suffix (legacy / variant builds)
+    assert.equal(index[uuid.slice(-8)], uuid)
+    // 12, 16, 20 truncations also indexed at both ends
+    for (const len of [12, 16, 20]) {
+      assert.equal(index[uuid.slice(0, len)], uuid)
+      assert.equal(index[uuid.slice(-len)], uuid)
+    }
+  })
+
+  it('should not overwrite existing entries (first match wins)', () => {
+    const index: Record<string, string> = { c787b75c: 'first-sr-uuid' }
+
+    indexSrUuidTruncations('c787b75c-3e0d-70fa-d0c3-cbfd382d7e33', index)
+
+    assert.equal(index['c787b75c'], 'first-sr-uuid')
+  })
+
+  it('should skip truncations longer than the UUID itself', () => {
+    const shortUuid = 'abc1234'
+    const index: Record<string, string> = {}
+
+    indexSrUuidTruncations(shortUuid, index)
+
+    // 8/12/16/20 are all longer than the 7-char input
+    assert.equal(Object.keys(index).length, 0)
   })
 })

@@ -103,7 +103,7 @@ interface LabelLookupData {
   vms: Record<string, VmLabelInfo>
   hosts: Record<string, HostLabelInfo>
   srs: Record<string, SrLabelInfo>
-  srSuffixToUuid: Record<string, string>
+  srTruncatedToUuid: Record<string, string>
   vdiUuidToSrUuid: Record<string, string>
 }
 
