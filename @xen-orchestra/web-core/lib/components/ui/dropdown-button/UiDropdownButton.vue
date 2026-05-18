@@ -1,4 +1,4 @@
-<!-- v5 -->
+<!-- v8 -->
 <template>
   <button :class="{ selected }" :disabled="isDisabled" class="ui-dropdown-item" type="button">
     <VtsIcon :name="icon" :size="size ?? 'medium'" />
@@ -32,27 +32,39 @@ const isDisabled = useDisabled(() => disabled)
   padding-inline: 1.6rem;
   gap: 0.8rem;
   background: var(--color-neutral-background-primary);
-  border: 0.1rem solid var(--color-brand-txt-base);
+  border: 0.1rem solid var(--color-brand-item-base);
   border-radius: 9rem;
   cursor: pointer;
   position: relative;
   color: var(--color-brand-txt-base);
 
+  :deep(.icon-path) {
+    color: var(--color-brand-txt-base);
+  }
+
   &:hover {
-    border-color: var(--color-brand-txt-hover);
+    border-color: var(--color-brand-item-hover);
     background-color: var(--color-brand-background-hover);
     color: var(--color-brand-txt-hover);
+
+    :deep(.icon-path) {
+      color: var(--color-brand-txt-hover);
+    }
   }
 
   &:active {
-    border-color: var(--color-brand-txt-active);
+    border-color: var(--color-brand-item-active);
     background-color: var(--color-brand-background-active);
     color: var(--color-brand-txt-active);
+
+    :deep(.icon-path) {
+      color: var(--color-brand-txt-active);
+    }
   }
 
   &.selected:not(:disabled) {
     background-color: var(--color-brand-background-selected);
-    outline: 0.1rem solid var(--color-brand-txt-base);
+    outline: 0.1rem solid var(--color-brand-item-base);
   }
 
   &:focus-visible {
@@ -72,6 +84,10 @@ const isDisabled = useDisabled(() => disabled)
     border-color: var(--color-neutral-txt-secondary);
     background-color: var(--color-neutral-background-disabled);
     color: var(--color-neutral-txt-secondary);
+
+    :deep(.icon-path) {
+      color: var(--color-neutral-txt-secondary);
+    }
   }
 }
 </style>
