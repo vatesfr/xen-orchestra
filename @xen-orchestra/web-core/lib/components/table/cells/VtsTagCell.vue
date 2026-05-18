@@ -1,16 +1,14 @@
 <template>
   <UiTableCell>
     <UiTagsList>
-      <UiTag v-for="tagItem of tags" :key="tagItem" accent="info" variant="secondary">
-        {{ tagItem }}
-      </UiTag>
+      <VtsTag v-for="tagItem of tags" :key="tagItem" :value="tagItem" />
     </UiTagsList>
   </UiTableCell>
 </template>
 
 <script setup lang="ts">
+import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import type { MaybeArray } from '@core/types/utility.type'
 import { toArray } from '@core/utils/to-array.utils'

@@ -10,7 +10,7 @@ import { dirname, join } from 'node:path'
 import pickBy from 'lodash/pickBy.js'
 import { defer } from 'golike-defer'
 import { NegativeDisk } from '@xen-orchestra/disk-transform'
-import { openDiskChain } from './disks/openDiskChain.mjs'
+import { openDiskChain } from '@xen-orchestra/backup-archive/disks'
 import { resetVmOtherConfig } from './_otherConfig.mjs'
 
 const { debug, info, warn } = createLogger('xo:backups:importVmBackup')

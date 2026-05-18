@@ -26,6 +26,7 @@ import guessAwsRegion from './_guessAwsRegion.js'
 import RemoteHandlerAbstract from './abstract'
 import { basename, join, split } from './path'
 import { asyncEach } from '@vates/async-each'
+import { version } from '../package.json'
 
 // endpoints https://docs.aws.amazon.com/general/latest/gr/s3.html
 
@@ -64,6 +65,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
     this.#minPartSize = minPartSize
 
     this.#s3 = new S3Client({
+      customUserAgent: `xen-orchestra-fs-${version}`,
       apiVersion: '2006-03-01',
       endpoint: `${protocol}://${host}`,
       forcePathStyle: true,

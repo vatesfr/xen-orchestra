@@ -752,7 +752,7 @@ set.params = {
   // Kernel arguments for PV VM.
   PV_args: { type: 'string', optional: true },
 
-  cpuMask: { type: 'array', optional: true },
+  cpuMask: { type: 'array', items: { type: 'integer' }, optional: true },
 
   cpuWeight: { type: ['integer', 'null'], optional: true },
 

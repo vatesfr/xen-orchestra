@@ -29,6 +29,8 @@ export const REAL_ONLY_ALL = {
     { action: 'read', resource: 'sm', effect: 'allow' },
 
     // XO objects privileges
+    { action: 'read', resource: 'acl-privilege', effect: 'allow' },
+    { action: 'read', resource: 'acl-role', effect: 'allow' },
     { action: 'read', resource: 'alarm', effect: 'allow' },
     { action: 'read', resource: 'backup-archive', effect: 'allow' },
     { action: 'read', resource: 'backup-job', effect: 'allow' },

@@ -16,7 +16,7 @@
         <template #key>{{ t('tags') }}</template>
         <template #value>
           <UiTagsList v-if="vdi.tags.length > 0">
-            <UiTag v-for="tag in vdi.tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
+            <VtsTag v-for="tag in vdi.tags" :key="tag" :value="tag" />
           </UiTagsList>
         </template>
         <template v-if="vdi.tags.length > 0" #addons>
@@ -54,9 +54,9 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
+import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { useMapper } from '@core/packages/mapper'
 import { computed } from 'vue'

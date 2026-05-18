@@ -1,6 +1,4 @@
-import type { MaybeRef } from '@vueuse/core'
-import type { MaybeRefOrGetter } from '@vueuse/shared'
-import type { ComputedRef, EffectScope, Ref, ToRef } from 'vue'
+import type { ComputedRef, EffectScope, MaybeRef, MaybeRefOrGetter, Ref, ToRef } from 'vue'
 
 export type ResourceContext<TArgs extends any[]> = {
   scope: EffectScope

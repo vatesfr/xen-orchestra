@@ -2,7 +2,6 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      iconProp(),
       prop('accent')
         .type('TagAccent')
         .required()
@@ -14,12 +13,14 @@
       setting('slot').preset('Label').widget(),
     ]"
   >
-    <UiTag v-bind="properties">{{ settings.slot }}</UiTag>
+    <UiTag v-bind="properties">
+      {{ settings.slot }}
+    </UiTag>
   </ComponentStory>
 </template>
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { iconProp, prop, setting, slot } from '@/libs/story/story-param'
+import { prop, setting, slot } from '@/libs/story/story-param'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 </script>

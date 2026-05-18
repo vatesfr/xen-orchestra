@@ -83,7 +83,7 @@ const xo5Route = computed(() => buildXo5Route('/'))
 const isDevPage = computed(() => route.path.startsWith('/dev'))
 
 async function scrollToRouteParamId() {
-  const paramId = route.params.id
+  const paramId = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id
   await scrollToNodeElement(paramId)
 }
 

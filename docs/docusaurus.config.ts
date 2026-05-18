@@ -82,6 +82,10 @@ export default {
             from: '/configuration',
           },
           {
+            to: '/xo5/credential-encryption',
+            from: '/credential-encryption',
+          },
+          {
             to: '/xo5/full_backups',
             from: '/full_backups',
           },

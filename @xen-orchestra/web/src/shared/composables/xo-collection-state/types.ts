@@ -1,6 +1,5 @@
 import type { XoRecord } from '@vates/types'
-import type { MaybeRefOrGetter } from '@vueuse/shared'
-import type { ComputedRef, Ref } from 'vue'
+import type { ComputedRef, MaybeRefOrGetter, Ref } from 'vue'
 
 export type NameConfig = {
   records: string
