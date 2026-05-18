@@ -581,9 +581,12 @@ function tryParsePluginJson(raw: unknown, pluginLabel: string, contextId: string
 /**
  * Validate and normalize the `smartctl.py health` plugin response.
  *
- * Expected shape: `{ [device: string]: { status?: string, ... } }`. Unknown
- * or malformed entries collapse to `status: 'UNKNOWN'` rather than being
- * dropped — operators see *something* even when the upstream format drifts.
+ * Real shape (confirmed against XCP-ng 8.3 and the consumer in
+ * `xo-web/src/xo-app/host/tab-advanced.js`): `{ [device]: string }` where
+ * the value is the overall-health string directly (e.g. `'PASSED'`).
+ * Older or variant builds may wrap each entry in `{ status: '...' }`; both
+ * shapes are accepted. Malformed entries collapse to `'UNKNOWN'`.
+ *
  * Throws when the response is not a JSON object at all (caller catches and
  * surfaces via `up: false`).
  */
@@ -596,7 +599,9 @@ function parseXostorSmartHealth(raw: unknown, hostUuid: string): XostorSmartDevi
   const devices: XostorSmartDevice[] = []
   for (const [device, entry] of Object.entries(obj)) {
     let status: string = 'UNKNOWN'
-    if (entry !== null && typeof entry === 'object') {
+    if (typeof entry === 'string' && entry !== '') {
+      status = entry
+    } else if (entry !== null && typeof entry === 'object') {
       const rawStatus = (entry as Record<string, unknown>).status
       if (typeof rawStatus === 'string' && rawStatus !== '') {
         status = rawStatus
