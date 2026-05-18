@@ -1,9 +1,9 @@
 <template>
   <div class="storage" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
-      <StorageRepositoriesTable :srs :busy="!isReady" :error="hasSrFetchError" />
+      <StorageRepositoriesTable :srs :busy="!isReady" :error="hasSrFetchError" :scope />
     </UiCard>
-    <StorageRepositorySidePanel v-if="selectedSr" :sr="selectedSr" @close="selectedSr = undefined" />
+    <StorageRepositorySidePanel v-if="selectedSr" :sr="selectedSr" :scope @close="selectedSr = undefined" />
     <UiPanel v-else-if="!uiStore.isSmall">
       <VtsStateHero format="panel" type="no-selection" size="medium">
         {{ t('select-to-see-details') }}
@@ -21,6 +21,7 @@ import {
   useXoSrCollection,
   type FrontXoSr,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { StorageScope } from '@/modules/storage-repository/types/storage-scope.type.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
@@ -64,6 +65,8 @@ const selectedSr = useRouteQuery<FrontXoSr | undefined>('id', {
   toData: id => getSrById(id as FrontXoSr['id']),
   toQuery: sr => sr?.id ?? '',
 })
+
+const scope: StorageScope = { type: 'host', hostId: host.id }
 </script>
 
 <style scoped lang="postcss">

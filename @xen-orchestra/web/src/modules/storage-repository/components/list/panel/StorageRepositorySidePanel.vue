@@ -8,8 +8,7 @@
         :busy="isDeletingSr"
         @click="openSrDeleteModal()"
       />
-      <!-- TODO Add v-if with the proper condition depending on if we are on the pool or host page -->
-      <SrDisconnectButton :sr />
+      <SrDisconnectButton v-if="isSrConnectedInScope" :sr />
       <div :class="{ 'action-buttons-container': uiStore.isSmall }">
         <UiButtonIcon
           v-tooltip="t('action:close')"
@@ -34,7 +33,6 @@
 
 <script setup lang="ts">
 import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-// import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import SrDisconnectButton from '@/modules/storage-repository/components/actions/disconnect/SrDisconnectButton.vue'
 import StorageRepositoryCustomFieldsCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositoryCustomFieldsCard.vue'
@@ -44,7 +42,9 @@ import StorageRepositoryPbdsCard from '@/modules/storage-repository/components/l
 import StorageRepositorySpaceCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositorySpaceCard.vue'
 import StorageRepositoryVdisCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositoryVdisCard.vue'
 import { useSrDeleteModal } from '@/modules/storage-repository/composables/use-sr-delete-modal.composable.ts'
+import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { StorageScope } from '@/modules/storage-repository/types/storage-scope.type.ts'
 import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -57,8 +57,9 @@ import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { sr } = defineProps<{
+const { sr, scope } = defineProps<{
   sr: FrontXoSr
+  scope: StorageScope
 }>()
 
 const emit = defineEmits<{
@@ -71,11 +72,13 @@ const uiStore = useUiStore()
 const { useGetVdisByIds, areVdisReady } = useXoVdiCollection()
 const { getHostById, areHostsReady } = useXoHostCollection()
 const { pbdsBySr, arePbdsReady } = useXoPbdCollection()
-// const { getPbdsByIds } = useXoPbdCollection()
 
 const isReady = logicAnd(areVdisReady, areHostsReady, arePbdsReady)
 
 const vdis = useGetVdisByIds(() => sr.VDIs as XoVdi['id'][])
+
+const { pbdsInScope } = useXoSrUtils(sr, scope)
+const isSrConnectedInScope = computed(() => pbdsInScope.value.length > 0 && pbdsInScope.value.some(pbd => pbd.attached))
 
 const pbds = computed(() => pbdsBySr.value.get(sr.id) ?? [])
 

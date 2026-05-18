@@ -450,6 +450,8 @@
   "job:disconnect:in-progress": "Déconnexion en cours…",
   "job:network-delete:has-n-physical-pif-connected": "Le réseau a un PIF physique connecté | Le réseau a {n} PIFs physiques connectés",
   "job:network-delete:has-n-vif-attached": "Le réseau a un VIF attaché | Le réseau a {n} VIFs attachés",
+  "job:pbd-unplug:missing-pbd": "Aucun PBD à débrancher",
+  "job:pbd-unplug:pbd-disconnected": "Un ou plusieurs PBDs sont déjà déconnectés",
   "job:snapshot-delete:missing-snapshot": "Aucun instantané à supprimer",
   "job:sr-connect:missing-sr": "Aucun SR à connecter",
   "job:sr-delete:missing-sr": "Aucun SR à supprimer",
