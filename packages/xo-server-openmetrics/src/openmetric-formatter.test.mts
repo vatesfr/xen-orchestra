@@ -3146,11 +3146,13 @@ describe('indexSrUuidTruncations', () => {
   })
 
   it('should not overwrite existing entries (first match wins)', () => {
-    const index: Record<string, string> = { c787b75c: 'first-sr-uuid' }
+    const uuid = 'c787b75c-3e0d-70fa-d0c3-cbfd382d7e33'
+    const prefix = uuid.slice(0, 8)
+    const index: Record<string, string> = { [prefix]: 'first-sr-uuid' }
 
-    indexSrUuidTruncations('c787b75c-3e0d-70fa-d0c3-cbfd382d7e33', index)
+    indexSrUuidTruncations(uuid, index)
 
-    assert.equal(index['c787b75c'], 'first-sr-uuid')
+    assert.equal(index[prefix], 'first-sr-uuid')
   })
 
   it('should skip truncations longer than the UUID itself', () => {
