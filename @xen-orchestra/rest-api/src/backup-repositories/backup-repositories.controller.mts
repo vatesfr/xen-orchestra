@@ -1,4 +1,17 @@
-import { Delete, Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import {
+  Delete,
+  Example,
+  Get,
+  Middlewares,
+  Path,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+} from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
@@ -9,6 +22,7 @@ import { acl } from '../middlewares/acl.middleware.mjs'
 import {
   badRequestResp,
   forbiddenOperationResp,
+  noContentResp,
   notFoundResp,
   unauthorizedResp,
   type Unbrand,
@@ -21,6 +35,7 @@ import {
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
+import { BackupRepositoriesService } from './backup-repositories.service.mjs'
 
 @Route('backup-repositories')
 @Security('*')
@@ -29,8 +44,13 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 @Tags('backup-repositories')
 @provide(BackupRepositoryController)
 export class BackupRepositoryController extends XoController<XoBackupRepository> {
-  constructor(@inject(RestApi) restApi: RestApi) {
+  #backupRepositoriesService: BackupRepositoriesService
+  constructor(
+    @inject(RestApi) restApi: RestApi,
+    @inject(BackupRepositoriesService) backupRepositoriesService: BackupRepositoriesService
+  ) {
     super('backup-repository', restApi)
+    this.#backupRepositoriesService = backupRepositoriesService
   }
 
   // --- abstract methods
@@ -108,17 +128,21 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
       getObject: ({ restApi }) => restApi.xoApp.getRemote,
     })
   )
+  @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  async forgetRepository(@Path() id: string): Promise<void> {
+  async deleteRepository(@Path() id: string): Promise<void> {
     const repositoryId = id as XoBackupRepository['id']
 
     const allJobs = await this.restApi.xoApp.getAllJobs()
     const referencingJobs = allJobs.filter(job => {
       if (job.type === 'backup' || job.type === 'metadataBackup') {
-        return this.isRepositoryInRemotes(job.remotes, repositoryId)
+        return this.#backupRepositoriesService.isRepositoryInRemotes(job.remotes, repositoryId)
       } else if (job.type === 'mirrorBackup') {
-        return job.sourceRemote === repositoryId || this.isRepositoryInRemotes(job.remotes, repositoryId)
+        return (
+          job.sourceRemote === repositoryId ||
+          this.#backupRepositoriesService.isRepositoryInRemotes(job.remotes, repositoryId)
+        )
       }
       return false
     })
@@ -131,18 +155,5 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
     }
 
     await this.restApi.xoApp.removeRemote(repositoryId)
-  }
-
-  // remotes in stored jobs use the complex-matcher shape: { id: 'uuid' } or { id: { __or: [...] } }
-  private isRepositoryInRemotes(
-    remotes: IdOr<XoBackupRepository['id']> | undefined,
-    repositoryId: XoBackupRepository['id']
-  ): boolean {
-    if (remotes === undefined) {
-      return false
-    }
-    const { id } = remotes
-    const ids = typeof id === 'string' ? [id] : id.__or
-    return ids.includes(repositoryId)
   }
 }
