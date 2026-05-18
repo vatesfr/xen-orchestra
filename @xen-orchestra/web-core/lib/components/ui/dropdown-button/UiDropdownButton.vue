@@ -1,11 +1,11 @@
 <!-- v5 -->
 <template>
   <button :class="{ selected }" :disabled="isDisabled" class="ui-dropdown-item" type="button">
-    <VtsIcon :name="icon" size="medium" />
-    <span class="typo-action-button label">
+    <VtsIcon :name="icon" :size="size ?? 'medium'" />
+    <span class="label" :class="size == 'small' ? 'typo-action-button-small' : 'typo-action-button'">
       <slot />
     </span>
-    <VtsIcon name="fa:angle-down" size="medium" />
+    <VtsIcon name="fa:angle-down" :size="size ?? 'medium'" />
   </button>
 </template>
 
@@ -18,6 +18,7 @@ const { disabled, selected, icon } = defineProps<{
   disabled?: boolean
   selected?: boolean
   icon?: IconName
+  size?: 'small' | 'medium'
 }>()
 
 const isDisabled = useDisabled(() => disabled)

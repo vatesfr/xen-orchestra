@@ -5,6 +5,7 @@
       iconProp(),
       prop('selected').bool().widget(),
       prop('disabled').bool().widget().ctx(),
+      prop('size').enum('small', 'medium').widget().default('medium'),
       slot(),
       setting('defaultSlotContent').preset('Dropdown title').widget(text()).help('Content for default slot'),
     ]"
