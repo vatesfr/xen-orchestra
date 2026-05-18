@@ -208,6 +208,7 @@ export type XoApp = {
     expiresIn?: string | number
     userId: XoUser['id']
   }): Promise<XoAuthenticationToken>
+  createRemote(params: { name: string; options?: string; proxy?: string; url: string }): Promise<XoBackupRepository>
   createUser(params: { name?: string; password?: string; [key: string]: unknown }): Promise<XoUser>
   deleteAclV2GroupRole(groupId: XoGroup['id'], roleId: XoAclRole['id']): Promise<boolean>
   deleteAclV2Privilege(privilegeId: XoAclBasePrivilege['id'], options?: { force?: boolean }): Promise<boolean>
@@ -339,6 +340,16 @@ export type XoApp = {
       name?: string
     }
   ): void
+  updateRemote(
+    id: XoBackupRepository['id'],
+    params: {
+      enabled?: boolean
+      name?: string
+      options?: string | null
+      proxy?: string | null
+      url?: string
+    }
+  ): Promise<XoBackupRepository>
   getAllXapis(): Record<string, XapiConnection>
   getObjects(opts?: { filter?: Record<string, unknown>; limit?: number }): Record<string, XapiXoRecord>
   getLicenses(params?: { productType?: LicenseProductType }): Promise<License[]>
