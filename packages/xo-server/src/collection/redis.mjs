@@ -191,22 +191,24 @@ export default class Redis extends Collection {
           }
 
           const previous = await this.#get(`${prefix}:${id}`)
-          await this._beforeUpdate(model, this._unserialize(previous) ?? previous)
+          if (previous !== undefined) {
+            await this._beforeUpdate(model, this._unserialize(previous) ?? previous)
 
-          // remove the previous values from indexes
-          if (indexes.length !== 0) {
-            await asyncMapSettled(indexes, async index => {
-              let value = previous[index]
-              if (value !== undefined) {
-                if (this.#crypto && !this.#crypto.isDegraded()) {
-                  value = await this.#crypto.hmacIndex(String(value).toLowerCase())
-                } else {
-                  value = String(value).toLowerCase()
+            // remove the previous values from indexes
+            if (indexes.length !== 0) {
+              await asyncMapSettled(indexes, async index => {
+                let value = previous[index]
+                if (value !== undefined) {
+                  if (this.#crypto && !this.#crypto.isDegraded()) {
+                    value = await this.#crypto.hmacIndex(String(value).toLowerCase())
+                  } else {
+                    value = String(value).toLowerCase()
+                  }
+
+                  return redis.sRem(`${prefix}_${index}:${value}`, id)
                 }
-
-                return redis.sRem(`${prefix}_${index}:${value}`, id)
-              }
-            })
+              })
+            }
           }
         }
 
