@@ -13,6 +13,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { ignoreErrors, pCatch } from 'promise-toolbox'
+import { invalidParameters } from 'xo-common/api-errors.js'
 import { Ref } from 'xen-api'
 
 import { parseSize } from '../../utils.mjs'
@@ -541,6 +542,41 @@ const methods = {
           vm.update_HVM_boot_params('firmware', firmware),
           vm.update_platform('device-model', 'qemu-upstream-' + (firmware === 'uefi' ? 'uefi' : 'compat')),
         ]),
+    },
+
+    suspendSr: {
+      set(value, vm) {
+        return this.call('VM.set_suspend_SR', vm.$ref, value === null ? Ref.EMPTY : this.getObject(value).$ref)
+      },
+    },
+
+    uefiMode: {
+      set(value, vm) {
+        return this.call('VM.set_uefi_mode', vm.$ref, value)
+      },
+    },
+
+    xenStoreData: {
+      set(value, vm) {
+        const prefixed = {}
+        for (const [key, val] of Object.entries(value)) {
+          // Sandbox the xenstore namespace: strip any client-supplied `vm-data/` prefix
+          // and reject path-traversal segments before re-applying the prefix.
+          const stripped = key.replace(/^(vm-data\/)+/, '')
+          if (stripped === '' || stripped.includes('..') || stripped.startsWith('/')) {
+            throw invalidParameters(`invalid xenstore key: ${key}`)
+          }
+          prefixed['vm-data/' + stripped] = val
+        }
+        return vm.update_xenstore_data(prefixed)
+      },
+    },
+
+    creation: {
+      set(value, vm) {
+        const existing = xoData.extract(vm)
+        return xoData.set(vm, { creation: { ...existing?.creation, ...value } })
+      },
     },
   }),
 

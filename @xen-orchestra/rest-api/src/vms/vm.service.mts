@@ -3,7 +3,6 @@ import { type Defer, defer } from 'golike-defer'
 import { Task } from '@vates/task'
 import {
   AnyXoVm,
-  OPAQUE_REF,
   VM_POWER_STATE,
   XapiXoRecord,
   XoAlarm,
@@ -24,7 +23,6 @@ import {
 } from '@vates/types'
 import { Response as ExResponse } from 'express'
 import { Readable, Writable } from 'node:stream'
-import { invalidParameters, unauthorized } from 'xo-common/api-errors.js'
 
 import type { CreateVmAfterCreateParams, CreateVmParams } from '../pools/pool.type.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
@@ -33,21 +31,8 @@ import { AlarmService } from '../alarms/alarm.service.mjs'
 import { parseDateTime } from '@xen-orchestra/xapi'
 import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
 import groupBy from 'lodash/groupBy.js'
-import * as xoData from '@xen-orchestra/xapi/xoData.mjs'
 import type { UpdateVmRequestBody, VmDashboard } from './vm.type.mjs'
 import { BackupLogService } from '../backup-logs/backup-log.service.mjs'
-
-const XENSTORE_DATA_PREFIX = 'vm-data/'
-
-// Sandbox the xenstore namespace: strip any client-supplied `vm-data/` prefix and reject
-// path-traversal segments before re-applying the prefix.
-function normalizeXenstoreKey(rawKey: string): string {
-  const stripped = rawKey.replace(/^(vm-data\/)+/, '')
-  if (stripped === '' || stripped.includes('..') || stripped.startsWith('/')) {
-    throw invalidParameters(`invalid xenstore key: ${rawKey}`)
-  }
-  return XENSTORE_DATA_PREFIX + stripped
-}
 
 const log = createLogger('xo:rest-api:vm-service')
 
@@ -233,60 +218,24 @@ export class VmService {
   }
 
   async updateVm(id: XoVm['id'], body: UpdateVmRequestBody): Promise<void> {
-    const { resourceSet, share, suspendSr, xenStoreData, uefiMode, creation, ...editProps } = body
+    const { resourceSet, share, ...editProps } = body
 
     // Touch the object so 404 is raised before any side effect.
-    const xoVm = this.#restApi.getObject<XoVm>(id, 'VM')
+    void this.#restApi.getObject<XoVm>(id, 'VM')
     const xoApp = this.#restApi.xoApp
-    const xapi = xoApp.getXapi(id)
-    const xapiVm = xoApp.getXapiObject<XoVm>(id, 'VM')
-    const isAdmin = this.#restApi.getCurrentUser().permission === 'admin'
-
-    // cpuWeight is a host-wide scheduler knob, admin-only — parity with vm.set (api/vm.mjs:710).
-    if (editProps.cpuWeight !== undefined && !isAdmin) {
-      throw unauthorized()
-    }
 
     if (resourceSet !== undefined) {
-      if (!isAdmin) {
-        throw unauthorized()
-      }
       await xoApp.setVmResourceSet(id, resourceSet, true)
     } else if (share) {
-      // `share: false` is a no-op, matching vm.set.
+      // `share: false` is a no-op.
       await xoApp.shareVmResourceSet(id)
-    }
-
-    const vmRef = xapiVm.$ref
-
-    if (suspendSr !== undefined) {
-      const srRef =
-        suspendSr === null ? OPAQUE_REF.EMPTY : this.#restApi.getXapiObject<XoSr>(suspendSr as XoSr['id'], 'SR').$ref
-      await xapi.call('VM.set_suspend_SR', vmRef, srRef)
-    }
-
-    if (xenStoreData !== undefined) {
-      const prefixed: Record<string, string | null> = {}
-      for (const [key, value] of Object.entries(xenStoreData)) {
-        prefixed[normalizeXenstoreKey(key)] = value
-      }
-      await xapi.call('VM.update_xenstore_data', vmRef, prefixed)
-    }
-
-    if (creation !== undefined) {
-      // Merge with the existing creation data — see api/vm.mjs:684.
-      await xoData.set(xapiVm, { creation: { ...xoVm.creation, ...creation } })
-    }
-
-    if (uefiMode !== undefined) {
-      await xapi.call('VM.set_uefi_mode', vmRef, uefiMode)
     }
 
     if (Object.keys(editProps).length === 0) {
       return
     }
 
-    await xapi.editVm(id, editProps)
+    await xoApp.getXapi(id).editVm(id, editProps)
   }
 
   #getDashboardQuickInfo(id: XoVm['id']): VmDashboard['quickInfo'] {

@@ -40,6 +40,8 @@ import type {
 } from '@vates/types'
 import { PassThrough, Readable } from 'node:stream'
 
+import { SUPPORTED_ACTIONS_BY_RESOURCE, type SupportedActions } from '@xen-orchestra/acl'
+
 import { acl, actionsFromBody } from '../middlewares/acl.middleware.mjs'
 import {
   asynchronousActionResp,
@@ -76,59 +78,14 @@ import type { UnbrandXoVmBackupJob } from '../backup-jobs/backup-job.type.mjs'
 import { partialVmBackupJobs, vmBackupJobIds } from '../open-api/oa-examples/backup-job.oa-example.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import type { UnbrandedVmDashboard, UpdateVmRequestBody } from './vm.type.mjs'
-
-// `satisfies` keeps each literal a valid action; the `_Exhaustive` type below makes adding a
-// `UpdateVmRequestBody` key without a matching action a compile error.
-const UPDATE_VM_ACTIONS = [
-  'update:affinityHost',
-  'update:auto_poweron',
-  'update:blockedOperations',
-  'update:coresPerSocket',
-  'update:cpuCap',
-  'update:cpuMask',
-  'update:cpuWeight',
-  'update:CPUs',
-  'update:cpusMax',
-  'update:creation',
-  'update:expNestedHvm',
-  'update:hasVendorDevice',
-  'update:high_availability',
-  'update:hvmBootFirmware',
-  'update:memory',
-  'update:memoryMax',
-  'update:memoryMin',
-  'update:memoryStaticMax',
-  'update:name_description',
-  'update:name_label',
-  'update:nestedVirt',
-  'update:nicType',
-  'update:notes',
-  'update:PV_args',
-  'update:resourceSet',
-  'update:secureBoot',
-  'update:share',
-  'update:startDelay',
-  'update:suspendSr',
-  'update:tags',
-  'update:uefiMode',
-  'update:vga',
-  'update:videoram',
-  'update:viridian',
-  'update:virtualizationMode',
-  'update:xenStoreData',
-] as const satisfies readonly `update:${keyof UpdateVmRequestBody}`[]
-
-type _UpdateVmActionsExhaustive =
-  Exclude<`update:${keyof UpdateVmRequestBody}`, (typeof UPDATE_VM_ACTIONS)[number]> extends never
-    ? true
-    : 'A `UpdateVmRequestBody` key is missing from UPDATE_VM_ACTIONS'
-// Force the compiler to evaluate the check.
-const _updateVmActionsExhaustivenessCheck: _UpdateVmActionsExhaustive = true
-void _updateVmActionsExhaustivenessCheck
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { Task } from '@vates/task'
 
 const IGNORED_VDIS_TAG = '[NOSNAP]'
+
+const UPDATE_VM_ACTIONS = Object.keys(SUPPORTED_ACTIONS_BY_RESOURCE.vm.update).map(
+  k => `update:${k}` as SupportedActions<'vm'>
+)
 
 @Route('vms')
 @Security('*')
@@ -228,18 +185,13 @@ export class VmController extends XapiXoController<XoVm> {
    * Partial update of a VM. Only the fields present in the body are modified;
    * everything else is left untouched.
    *
-   * Field names mirror the JSON-RPC `vm.set` method (e.g. `name_label`,
-   * `name_description`, `auto_poweron`). The underlying `_editVm` accepts both
-   * camelCase and snake_case aliases.
-   *
    * Operations are applied sequentially: if one fails, previously applied
-   * changes are not rolled back. This matches the behaviour of `vm.set`.
+   * changes are not rolled back.
    *
    * Required privilege per field provided in the body:
    * - resource: vm, action: update:&lt;field&gt; (e.g. update:name_label, update:CPUs, ...)
    *
    * Special fields:
-   * - `resourceSet` requires admin permission
    * - `xenStoreData` keys are automatically prefixed with `vm-data/` when missing
    *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
@@ -250,7 +202,7 @@ export class VmController extends XapiXoController<XoVm> {
     json(),
     acl({
       resource: 'vm',
-      actions: actionsFromBody([...UPDATE_VM_ACTIONS]),
+      actions: actionsFromBody(UPDATE_VM_ACTIONS),
       objectId: 'params.id',
     }),
   ])

@@ -40,6 +40,54 @@ import type {
   XoVmSnapshot,
 } from '../xo.mjs'
 
+/**
+ * Properties accepted by {@link Xapi.editVm}.
+ *
+ * Field names mirror the legacy JSON-RPC `vm.set` method so existing clients
+ * can switch transports without renaming fields. The underlying `_editVm`
+ * accepts both camelCase and snake_case aliases.
+ */
+export interface EditVmProps {
+  affinityHost?: string | null
+  auto_poweron?: boolean
+  blockedOperations?: Record<string, boolean | string | null>
+  coresPerSocket?: number | string | null
+  cpuCap?: number | null
+  cpuMask?: number[]
+  cpuWeight?: number | null
+  CPUs?: number
+  cpusMax?: number | string
+  /**
+   * Update VM creation metadata stored under `other_config.xo:*`. The object is
+   * merged with the existing data.
+   */
+  creation?: { user?: string }
+  expNestedHvm?: boolean
+  hasVendorDevice?: boolean
+  high_availability?: 'best-effort' | 'restart' | ''
+  hvmBootFirmware?: string | null
+  memory?: number | string
+  memoryMax?: number | string
+  memoryMin?: number | string
+  memoryStaticMax?: number | string
+  name_description?: string
+  name_label?: string
+  nestedVirt?: boolean
+  nicType?: string | null
+  notes?: string | null
+  PV_args?: string
+  secureBoot?: boolean
+  startDelay?: number
+  suspendSr?: string | null
+  tags?: string[]
+  uefiMode?: 'setup' | 'user'
+  vga?: 'std' | 'cirrus'
+  videoram?: 1 | 2 | 4 | 8 | 16
+  viridian?: boolean
+  virtualizationMode?: 'pv' | 'hvm'
+  xenStoreData?: Record<string, string | null>
+}
+
 export type XcpPatches = {
   changelog?: {
     author: string
@@ -174,7 +222,7 @@ export interface Xapi {
     }
   ): Promise<XenApiVdi['$ref']>
   SR_reclaimSpace(ref: XenApiSr['$ref']): Promise<void>
-  editVm(id: XoVm['id'], props: Record<string, unknown>): Promise<void>
+  editVm(id: XoVm['id'], props: EditVmProps): Promise<void>
   startVm(
     id: XoVm['id'],
     opts?: {
