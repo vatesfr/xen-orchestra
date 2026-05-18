@@ -441,10 +441,9 @@ export class RemoteVhdDisk extends RemoteDisk {
     if (isVhdAlias(newPath)) {
       const dataPath = await resolveVhdAlias(this.#handler, this.#path)
 
-      await this.#handler.unlink(this.#path)
       await this.#handler.unlink(newPath)
-
       await VhdAbstract.createAlias(this.#handler, newPath, dataPath)
+      await this.#handler.unlink(this.#path)
 
       this.#path = newPath
     } else {
