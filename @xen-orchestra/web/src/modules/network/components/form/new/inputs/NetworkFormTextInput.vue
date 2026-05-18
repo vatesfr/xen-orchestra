@@ -1,6 +1,6 @@
 <template>
   <VtsInputWrapper :label :message="error">
-    <UiInput v-model.trim="model" accent="brand" :required @blur="emit('blur')" />
+    <UiInput v-model.trim="model" accent="brand" :required />
   </VtsInputWrapper>
 </template>
 
@@ -14,8 +14,6 @@ defineProps<{
   error?: InputWrapperMessage
   required?: boolean
 }>()
-
-const emit = defineEmits<{ blur: [] }>()
 
 const model = defineModel<string>({ required: true })
 </script>

@@ -1,6 +1,4 @@
 import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { useCommonValidationRules } from '@/shared/composables/use-common-validation-rules.composable.ts'
-import { useFormValidation } from '@/shared/composables/use-form-validation.composable.ts'
 import { useFormBindings } from '@core/packages/form-bindings'
 import { useFormSelect } from '@core/packages/form-select'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -56,23 +54,7 @@ export function useNetworkFormBase<T extends BaseNetworkFormData>(
 
   const { t } = useI18n()
 
-  const { requiredRule, outOfRangeRule } = useCommonValidationRules()
-
   const { useField, useSelect } = useFormBindings(formData)
-
-  const { useFieldMetadata, validate } = useFormValidation(formData, {
-    errors: {
-      onSubmit: () => ({
-        pool: { required: requiredRule() },
-        name: { required: requiredRule() },
-      }),
-    },
-    warnings: {
-      onBlur: () => ({
-        mtu: { outOfRange: outOfRangeRule(1280, 9000) },
-      }),
-    },
-  })
 
   function buildBasePayload(): BaseNetworkPayload {
     return {
@@ -84,29 +66,13 @@ export function useNetworkFormBase<T extends BaseNetworkFormData>(
     }
   }
 
-  const poolSelectBindings = useSelect(
-    poolSelectId,
-    useFieldMetadata('pool', () => ({ label: t('pool') }))
-  )
-  const nameInputBindings = useField(
-    'name',
-    useFieldMetadata('name', () => ({ label: t('name'), required: true }))
-  )
-  const descriptionInputBindings = useField('description', () => ({ label: t('description') }))
-  const mtuInputBindings = useField(
-    'mtu',
-    useFieldMetadata('mtu', () => ({ label: t('mtu'), info: t('mtu-default-value-message') }))
-  )
-  const nbdCheckboxBindings = useField('nbd')
-
   return {
     selectedPool,
     buildBasePayload,
-    validate,
-    poolSelectBindings,
-    nameInputBindings,
-    descriptionInputBindings,
-    mtuInputBindings,
-    nbdCheckboxBindings,
+    poolSelectBindings: useSelect(poolSelectId, () => ({ label: t('pool') })),
+    nameInputBindings: useField('name', () => ({ label: t('name'), required: true })),
+    descriptionInputBindings: useField('description', () => ({ label: t('description') })),
+    mtuInputBindings: useField('mtu', () => ({ label: t('mtu'), info: t('mtu-default-value-message') })),
+    nbdCheckboxBindings: useField('nbd'),
   }
 }

@@ -1,5 +1,5 @@
 <template>
-  <VtsInputWrapper :label :message="error" @focusout="onFocusOut">
+  <VtsInputWrapper :label :message="error">
     <VtsSelect :id accent="brand" />
   </VtsInputWrapper>
 </template>
@@ -15,14 +15,4 @@ defineProps<{
   label: string
   error?: InputWrapperMessage
 }>()
-
-const emit = defineEmits<{ blur: [] }>()
-
-function onFocusOut(event: FocusEvent) {
-  const container = event.currentTarget as HTMLElement
-
-  if (!container.contains(event.relatedTarget as Node | null)) {
-    emit('blur')
-  }
-}
 </script>
