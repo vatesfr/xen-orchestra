@@ -12,9 +12,9 @@ export const useXoSrDisconnectJob = defineJob('sr.disconnect', [xoSrArg], () => 
 
   return {
     async run(srs: FrontXoSr[]) {
+      // TODO Replace with PBD unplug (one if disconnecting from host, all if disconnecting from pool)
       const results = await Promise.allSettled(
         srs.map(async sr => {
-          // TODO Check that the route is correct once implemented in the API
           const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`srs/${sr.id}/actions/unplug`)
           await monitorTask(taskId)
         })

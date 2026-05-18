@@ -22,7 +22,6 @@
   "action:close": "Close",
   "action:connect": "Connect",
   "action:connect-another-pool": "Connect another pool",
-  "action:connect-n-srs": "Connect 1 SR | Connect {n} SRs",
   "action:connect-n-vbds": "Connect 1 VBD | Connect {n} VBDs",
   "action:connect-n-vdis": "Connect 1 VDI | Connect {n} VDIs",
   "action:connect-n-vifs": "Connect 1 VIF | Connect {n} VIFs",
