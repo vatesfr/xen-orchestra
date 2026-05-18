@@ -1,14 +1,14 @@
-import { useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
-import type { XoTask } from '@vates/types'
+import { type FrontXoTask, useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { watch } from 'vue'
 
 /**
  * Normalize a Task error into a JS Error. Keep the original stacktrace
  */
-function normalizeError(taskError: Record<string, unknown> | undefined) {
+function normalizeError(taskError: Record<string, unknown> | undefined, taskId: FrontXoTask['id']) {
   const error = new Error()
 
   if (taskError === undefined) {
+    error.message = `Task ${taskId} failed without error details`
     return error
   }
 
@@ -30,7 +30,7 @@ function normalizeError(taskError: Record<string, unknown> | undefined) {
 export function useXoTaskUtils() {
   const { useGetTaskById } = useXoTaskCollection()
 
-  async function monitorTask<TResult>(taskId: XoTask['id']): Promise<TResult> {
+  async function monitorTask<TResult>(taskId: FrontXoTask['id']): Promise<TResult> {
     const task = useGetTaskById(taskId)
 
     return new Promise((resolve, reject) => {
@@ -50,10 +50,10 @@ export function useXoTaskUtils() {
               resolve(task.result as TResult)
             } else if (task.status === 'failure') {
               cleanup()
-              reject(normalizeError(task.result))
+              reject(normalizeError(task.result, taskId))
             } else if (task.status !== 'pending') {
               cleanup()
-              reject(normalizeError(task.result))
+              reject(normalizeError(task.result, taskId))
             }
           }
         },

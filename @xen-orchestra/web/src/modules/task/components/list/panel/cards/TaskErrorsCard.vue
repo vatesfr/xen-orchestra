@@ -2,7 +2,7 @@
   <UiCard class="card-container">
     <UiCardTitle>
       {{ t('errors') }}
-      <UiCounter :value="Array(task.result)?.length" accent="danger" size="small" variant="primary" />
+      <UiCounter :value="1" accent="danger" size="small" variant="primary" />
     </UiCardTitle>
     <div class="content">
       <VtsCardRowKeyValue>
