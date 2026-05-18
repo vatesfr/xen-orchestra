@@ -236,7 +236,7 @@ export class RemoteVhdDisk extends RemoteDisk {
     }
 
     const parentPath = this.#vhd.header.parentUnicodeName
-    const fullParentPath = join(dirname(this.#path), parentPath)
+    const fullParentPath = normalize(join(dirname(this.#path), parentPath))
 
     if (!parentPath) {
       throw new Error(`disk ${this.#path} doesn't have parents`)
