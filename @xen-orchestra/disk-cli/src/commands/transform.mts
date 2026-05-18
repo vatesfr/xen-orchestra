@@ -3,7 +3,7 @@ import { Readable } from 'node:stream'
 import type { RandomAccessDisk } from '@xen-orchestra/disk-transform'
 import Disposable from 'promise-toolbox/Disposable'
 import { getSyncedHandler, type RemoteHandler } from '@xen-orchestra/fs'
-import { openDisposableDisk, openDiskChain } from '@xen-orchestra/backups/disks'
+import { openDisposableDisk, openDiskChain } from '@xen-orchestra/backup-archive/disks'
 import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
 import { toQcow2Stream } from '@xen-orchestra/qcow2'
 

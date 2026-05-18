@@ -18,6 +18,7 @@
 - [Encryption] Implement encryption and decryption feature for redis (PR [#9735](https://github.com/vatesfr/xen-orchestra/pull/9735))
 - **XO 5**:
   - [Export config] Hide passphrase by default (PR [#9824](https://github.com/vatesfr/xen-orchestra/pull/9824))
+- [Backups] Refactor clean phase for incremental and full backups ([#9765](https://github.com/vatesfr/xen-orchestra/pull/9765))
 
 ### Bug fixes
 
@@ -44,6 +45,11 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/backup-archive major
+- @xen-orchestra/backups minor
+- @xen-orchestra/backups-cli patch
+- @xen-orchestra/disk-cli minor
+- @xen-orchestra/disk-transform minor
 - @xen-orchestra/fs minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
