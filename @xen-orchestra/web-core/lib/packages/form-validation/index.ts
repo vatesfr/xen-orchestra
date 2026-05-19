@@ -1,4 +1,5 @@
 export * from './custom-rules/out-of-range.rule.ts'
+export * from './merge-validation-configs.ts'
 export * from './types.ts'
 export * from './use-form-validation.ts'
 
