@@ -212,6 +212,26 @@ Example for Claude Desktop, with a corporate proxy and a XOA on the internal net
 `NO_PROXY` on its own does nothing. If you set it without `HTTP_PROXY` or `HTTPS_PROXY`, the MCP logs a warning at startup. A malformed proxy URL is reported on stderr but does not crash the server; it falls back to direct connections.
 :::
 
+### Disabling MCP globally
+
+Sometimes you need to shut MCP off across the board — during an incident, while reviewing an internal policy, or simply to keep AI access turned off until you've decided who should have it. The xo-server config has a flag for that:
+
+```toml
+[mcp]
+enabled = false
+```
+
+Restart xo-server and the change takes effect immediately:
+
+- The `@xen-orchestra/mcp` binary refuses to start. It prints `MCP disabled by admin` on stderr and exits with code 1.
+- Any MCP client already running gets a `403` with `{ "error": "mcp_disabled" }` on its next request, so sessions shut down without leaving stale connections on the server.
+
+The default is `enabled = true`; legacy configs without an `[mcp]` section behave the same way. Flip the value, reload, done — no other state to clean up.
+
+:::note Detection caveat
+The kill-switch keys off the `X-XO-Client: mcp` header the official binary sends. A third-party MCP client, or an older `@xen-orchestra/mcp` version that predates this header, will bypass the gate. Pin to a recent release if you rely on the kill-switch as a hard control.
+:::
+
 ## How it works
 
 ![MCP architecture workflow](../assets/mcp_workflow.png)
@@ -372,4 +392,8 @@ If your AI assistant injects `HTTPS_PROXY` into the MCP process and your XOA liv
 
 :::note Missing required environment variables
 `XO_URL` is always required. You must also set either `XO_TOKEN` or both `XO_USERNAME` and `XO_PASSWORD`. When using Claude Desktop, make sure they are in the `env` section of the MCP server configuration.
+:::
+
+:::note MCP disabled by admin
+The xo-server administrator has set `[mcp] enabled = false` in the server config. The binary won't start until that flag is removed or set back to `true`. See [Disabling MCP globally](#disabling-mcp-globally) for the server-side details.
 :::

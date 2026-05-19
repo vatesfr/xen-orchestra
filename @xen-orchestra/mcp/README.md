@@ -165,6 +165,10 @@ Stats endpoints (`/…/stats`) and binary download endpoints (`.xva`, `.ova`, `.
 
 Action tools (create/update/delete) are gated behind `XO_MCP_ENABLE_ACTIONS=1` so the default surface stays read-only. When enabled, each domain gets a companion `{domain}_action` tool. Destructive operations (`DELETE *`, `pools/emergency_shutdown`, `vms/hard_shutdown`, …) return a preview and a one-shot `confirm_token` — the assistant must call back with that token within 5 minutes to execute.
 
+### Server-side kill-switch
+
+An xo-server admin can globally block MCP by setting `[mcp] enabled = false` in the server config. With that flag set, the binary exits at startup with `MCP disabled by admin` on stderr and any active client receives `403 { "error": "mcp_disabled" }` on its next request. It's not a bug — re-enable MCP in xo-server's config to recover.
+
 Full documentation with tool parameters, examples, and troubleshooting: [docs.xen-orchestra.com/mcp](https://docs.xen-orchestra.com/mcp)
 
 ## Contributions

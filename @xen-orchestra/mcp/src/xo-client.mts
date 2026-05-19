@@ -2,6 +2,10 @@ import { getProxyDispatcher, type FetchInit } from './utils/proxy.mjs'
 
 const REQUEST_TIMEOUT_MS = 30_000
 
+// Identifies outgoing requests as coming from the MCP binary so the
+// xo-server `mcp-detect` middleware can apply the global kill-switch.
+export const MCP_CLIENT_HEADER: Readonly<Record<string, string>> = Object.freeze({ 'X-XO-Client': 'mcp' })
+
 export type XoClientConfig = { url: string; username: string; password: string } | { url: string; token: string }
 
 export class XoClient {
@@ -29,7 +33,7 @@ export class XoClient {
     try {
       const init: FetchInit = {
         ...options,
-        headers: { ...this.authHeaders, ...options.headers },
+        headers: { ...MCP_CLIENT_HEADER, ...this.authHeaders, ...options.headers },
         signal: options.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
         dispatcher: getProxyDispatcher(),
       }

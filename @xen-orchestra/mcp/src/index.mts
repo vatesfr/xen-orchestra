@@ -2,8 +2,11 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { realpathSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { XoClient } from './xo-client.mjs'
+import { MCP_CLIENT_HEADER, XoClient } from './xo-client.mjs'
 import { createServer } from './server.mjs'
+import { getProxyDispatcher, type FetchInit } from './utils/proxy.mjs'
+
+const BOOT_CHECK_TIMEOUT_MS = 10_000
 
 export { createServer }
 export { fetchDocumentation } from './tools/utility/search-docs.mjs'
@@ -44,8 +47,51 @@ export function validateEnv(): EnvConfig {
   return { url, username: username!, password: password! }
 }
 
+export async function assertMcpEnabled(xoUrl: string): Promise<void> {
+  const url = `${xoUrl.replace(/\/$/, '')}/rest/v0/mcp/status`
+
+  let response: Response
+  try {
+    const init: FetchInit = {
+      headers: { ...MCP_CLIENT_HEADER },
+      signal: AbortSignal.timeout(BOOT_CHECK_TIMEOUT_MS),
+      dispatcher: getProxyDispatcher(),
+    }
+    response = await fetch(url, init)
+  } catch (cause) {
+    const message = cause instanceof Error ? cause.message : String(cause)
+    throw new Error(`Unable to reach XO server at ${xoUrl} to verify MCP status: ${message}`, { cause })
+  }
+
+  if (response.ok) {
+    return
+  }
+
+  // A fetch Response body can only be read once, so read it as text first and
+  // then attempt to parse it as JSON instead of chaining `.json()` and `.text()`
+  // — the second call would throw "Body is unusable".
+  const text = await response.text().catch(() => '')
+  let body: { error?: string } | undefined
+  try {
+    body = text === '' ? undefined : (JSON.parse(text) as { error?: string })
+  } catch {
+    body = undefined
+  }
+
+  // The kill-switch can manifest as either 503 (from `/mcp/status`) or 403
+  // (from `mcp-gate` on any other route) — both must terminate the binary
+  // with the same message.
+  if ((response.status === 503 || response.status === 403) && body?.error === 'mcp_disabled') {
+    throw new Error('MCP disabled by admin')
+  }
+
+  throw new Error(`Unable to verify MCP status (HTTP ${response.status}): ${text || response.statusText}`)
+}
+
 export async function main() {
   const env = validateEnv()
+
+  await assertMcpEnabled(env.url)
 
   let xoClient: XoClient | null = null
   function getClient(): XoClient {
