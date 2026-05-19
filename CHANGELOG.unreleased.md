@@ -22,7 +22,6 @@
   - [Export config] Hide passphrase by default (PR [#9824](https://github.com/vatesfr/xen-orchestra/pull/9824))
 - [Backups] Refactor clean phase for incremental and full backups ([#9765](https://github.com/vatesfr/xen-orchestra/pull/9765))
 - [REST API] Expose `DELETE /rest/v0/srs/:id` (PR [#9464](https://github.com/vatesfr/xen-orchestra/pull/9464))
-- [xo-server-ipmi-sensors] Migrated the old ipmi feature to a new plugin and added user defined sensors (PR [#9724](https://github.com/vatesfr/xen-orchestra/pull/9724))
 
 ### Bug fixes
 
@@ -32,6 +31,7 @@
 - [Tasks] Fixed issue with task without result and backup runs on task size (PR [#9841](https://github.com/vatesfr/xen-orchestra/pull/9841))
 - **XO 5**:
   - [Job] Error while using vm.set with `cpuMask` in job view (PR [#9823](https://github.com/vatesfr/xen-orchestra/pull/9823))
+- [xo-server-ipmi-sensors] Migrated the old ipmi feature to a new plugin and added user defined sensors (PR [#9724](https://github.com/vatesfr/xen-orchestra/pull/9724))
 
 ### Packages to release
 
@@ -50,32 +50,19 @@
 <!--packages-start-->
 
 - @vates/types minor
-- @xen-orchestra/acl major
-- @xen-orchestra/backups patch
-- @xen-orchestra/mixins minor
+- @xen-orchestra/acl minor
+- @xen-orchestra/backup-archive major
+- @xen-orchestra/backups minor
+- @xen-orchestra/backups-cli patch
+- @xen-orchestra/disk-cli minor
+- @xen-orchestra/disk-transform minor
+- @xen-orchestra/fs minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi minor
-- complex-matcher patch
-- vhd-cli patch
-- vhd-lib minor
-- xapi-explore-sr patch
-- xen-api patch
-- xo-cli patch
-- xo-collection patch
-- xo-common patch
-- xo-lib patch
-- xo-remote-parser patch
 - xo-server minor
-- xo-server-backup-reports patch
 - xo-server-ipmi-sensors major
-- xo-server-load-balancer patch
-- xo-server-netbox minor
-- xo-server-openmetrics minor
-- xo-server-sdn-controller patch
-- xo-server-usage-report patch
-- xo-vmdk-to-vhd patch
 - xo-web minor
 
 <!--packages-end-->
