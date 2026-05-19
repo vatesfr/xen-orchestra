@@ -1,4 +1,6 @@
 export default {
-  'allow-management': true,
   read: true,
+  update: {
+    management: true,
+  },
 }

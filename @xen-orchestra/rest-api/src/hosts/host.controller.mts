@@ -389,7 +389,7 @@ export class HostController extends XapiXoController<XoHost> {
   /**
    * Required privileges:
    * - resource: host, action: update:management-interface
-   * - resource: pif, action: allow-management
+   * - resource: pif, action: update:management
    *
    * Reconfigure the management interface of the host to use the given PIF.
    *
@@ -404,7 +404,7 @@ export class HostController extends XapiXoController<XoHost> {
     json(),
     acl([
       { resource: 'host', action: 'update:management-interface', objectId: 'params.id' },
-      { resource: 'pif', action: 'allow-management', objectId: 'body.pif' },
+      { resource: 'pif', action: 'update:management', objectId: 'body.pif' },
     ]),
   ])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
