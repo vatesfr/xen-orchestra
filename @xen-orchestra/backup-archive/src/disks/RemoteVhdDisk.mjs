@@ -3,9 +3,9 @@
 /**
  * @typedef {import('vhd-lib/Vhd/VhdDirectory.js').VhdDirectory} VhdDirectory
  * @typedef {import('vhd-lib/Vhd/VhdFile.js').VhdFile} VhdFile
- * @typedef {import('vhd-lib/_createFooterHeader').VhdFooter} VhdFooter
+ * @typedef {import('vhd-lib/_createFooterHeader.js').VhdFooter} VhdFooter
  * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
- * @typedef {import('@xen-orchestra/disk-transform').FileAccessor} FileAccessor
+ * @typedef {import('@xen-orchestra/fs').RemoteHandlerAbstract} RemoteHandlerAbstract
  *
 
  */
@@ -17,6 +17,7 @@ import { isVhdAlias, resolveVhdAlias } from 'vhd-lib/aliases.js'
 import { stringify } from 'uuid'
 import { dirname, join } from 'node:path'
 import { RemoteVhdDiskChain } from './RemoteVhdDiskChain.mjs'
+import { normalize } from '@xen-orchestra/fs/path'
 
 export class RemoteVhdDisk extends RemoteDisk {
   /**
@@ -25,7 +26,7 @@ export class RemoteVhdDisk extends RemoteDisk {
   #path
 
   /**
-   * @type {FileAccessor}
+   * @type {RemoteHandlerAbstract}
    */
   #handler
 
@@ -56,7 +57,7 @@ export class RemoteVhdDisk extends RemoteDisk {
 
   /**
    * @param {Object} params
-   * @param {FileAccessor} params.handler
+   * @param {RemoteHandlerAbstract} params.handler
    * @param {string} params.path
    */
   constructor({ handler, path }) {
@@ -69,6 +70,7 @@ export class RemoteVhdDisk extends RemoteDisk {
   /**
    * @param {Object} [options]
    * @param {boolean} [options.force=false]
+   * @param {boolean} [options.ignoreBlockIndexes=false]
    * @returns {Promise<void>}
    */
   async init(options = {}) {
@@ -85,7 +87,9 @@ export class RemoteVhdDisk extends RemoteDisk {
         }
 
         this.#dispose = dispose
-        await this.#vhd.readBlockAllocationTable()
+        if (!options.ignoreBlockIndexes) {
+          await this.#vhd.readBlockAllocationTable()
+        }
         this.#isDifferencing = value.footer.diskType === DISK_TYPES.DIFFERENCING
       } catch (error) {
         await this.close()
@@ -173,6 +177,20 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
+   * Returns the parent path
+   *
+   * @returns {string}
+   */
+  getParentPath() {
+    if (this.#vhd === undefined) {
+      throw new Error(`can't call getParentPath of a RemoteVhdDisk before init`)
+    }
+
+    const parentPath = this.#vhd.header.parentUnicodeName
+    return normalize(join(dirname(this.#path), parentPath))
+  }
+
+  /**
    * @returns {Promise<boolean>} canMergeConcurently
    */
   async canMergeConcurently() {
@@ -218,7 +236,7 @@ export class RemoteVhdDisk extends RemoteDisk {
     }
 
     const parentPath = this.#vhd.header.parentUnicodeName
-    const fullParentPath = join(dirname(this.#path), parentPath)
+    const fullParentPath = normalize(join(dirname(this.#path), parentPath))
 
     if (!parentPath) {
       throw new Error(`disk ${this.#path} doesn't have parents`)
@@ -226,6 +244,13 @@ export class RemoteVhdDisk extends RemoteDisk {
 
     const parent = new RemoteVhdDisk({ handler: this.#handler, path: fullParentPath })
     return parent
+  }
+  /**
+   * Parent of a RemoteVhdDisk is a RemoteVhdDisk
+   * @returns {Promise<RemoteVhdDisk>}
+   */
+  async openParent() {
+    return /** @type {Promise<RemoteVhdDisk>} */ (super.openParent())
   }
 
   /**
@@ -373,7 +398,7 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
-   * @param {RemoteVhdDisk} childDisk
+   * @param {RemoteDisk} childDisk
    * @returns {Promise<void>}
    */
   async mergeMetadata(childDisk) {
@@ -416,10 +441,9 @@ export class RemoteVhdDisk extends RemoteDisk {
     if (isVhdAlias(newPath)) {
       const dataPath = await resolveVhdAlias(this.#handler, this.#path)
 
-      await this.#handler.unlink(this.#path)
       await this.#handler.unlink(newPath)
-
       await VhdAbstract.createAlias(this.#handler, newPath, dataPath)
+      await this.#handler.unlink(this.#path)
 
       this.#path = newPath
     } else {
@@ -439,29 +463,57 @@ export class RemoteVhdDisk extends RemoteDisk {
 
   /**
    * Deletes disk
+   * @param {Object} options
    */
-  async unlink() {
+  async unlink({ force = false } = {}) {
     if (this.#vhd === undefined) {
-      throw new Error(`can't call unlink of a RemoteVhdDisk before init`)
-    }
+      if (force) {
+        let resolved = this.#path
+        try {
+          resolved = await resolveVhdAlias(this.#handler, this.#path)
+        } catch (err) {
+          // broken vhd directory must be unlinkable
+          if (err.code !== 'EISDIR') {
+            throw err
+          }
+          // warn('Deleting directly a VhdDirectory', { this.#path, err })
+        }
+        try {
+          await this.#handler.unlink(resolved)
+        } catch (err) {
+          if (err.code === 'EISDIR') {
+            await this.#handler.rmtree(resolved)
+          } else {
+            throw err
+          }
+        }
 
-    await this.close()
+        // also delete the alias file
+        if (this.#path !== resolved) {
+          await this.#handler.unlink(this.#path)
+        }
+      } else {
+        throw new Error(`can't call unlink of a RemoteVhdDisk before init`)
+      }
+    } else {
+      await this.close()
 
-    if (isVhdAlias(this.#path)) {
-      try {
-        await this.#handler.unlink(await resolveVhdAlias(this.#handler, this.#path))
-      } catch (err) {
-        if (err && typeof err === 'object' && 'code' in err && err.code === 'EISDIR') {
-          await this.#handler.rmtree(await resolveVhdAlias(this.#handler, this.#path)).catch(() => {})
+      if (isVhdAlias(this.#path)) {
+        try {
+          await this.#handler.unlink(await resolveVhdAlias(this.#handler, this.#path))
+        } catch (err) {
+          if (err && typeof err === 'object' && 'code' in err && err.code === 'EISDIR') {
+            await this.#handler.rmtree(await resolveVhdAlias(this.#handler, this.#path)).catch(() => {})
+          }
         }
       }
-    }
 
-    try {
-      await this.#handler.unlink(this.#path)
-    } catch (err) {
-      if (err && typeof err === 'object' && 'code' in err && err.code === 'EISDIR') {
-        await this.#handler.rmtree(this.#path).catch(() => {})
+      try {
+        await this.#handler.unlink(this.#path)
+      } catch (err) {
+        if (err && typeof err === 'object' && 'code' in err && err.code === 'EISDIR') {
+          await this.#handler.rmtree(this.#path).catch(() => {})
+        }
       }
     }
   }
@@ -476,5 +528,119 @@ export class RemoteVhdDisk extends RemoteDisk {
     }
 
     return this.#vhd instanceof VhdDirectory
+  }
+
+  /**
+   * Returns all file paths within dir that this disk claims.
+   * For a plain VHD or VHD directory: [path]
+   * For a VHD alias: [aliasPath, resolvedDataPath]
+   * If the alias target cannot be resolved, only the alias path is returned.
+   *
+   * @param {string} dir
+   * @returns {Promise<string[]>}
+   */
+  async listAssociatedFiles(dir) {
+    const prefix = normalize(dir.endsWith('/') ? dir : dir + '/')
+    const isInDir = /** @param {string} p */ p => p === dir || p.startsWith(prefix)
+
+    const files = []
+    if (isInDir(this.#path)) {
+      files.push(this.#path)
+    }
+
+    if (isVhdAlias(this.#path)) {
+      try {
+        const resolved = await resolveVhdAlias(this.#handler, this.#path)
+        if (isInDir(resolved)) {
+          files.push(resolved)
+        }
+      } catch {
+        // broken alias, no data file to claim
+      }
+    }
+
+    return files
+  }
+
+  /**
+   * Checks the integrity of this disk's alias reference.
+   * Only meaningful for alias files (.alias.vhd); no-op for plain VHDs.
+   * Returns the resolved target path when the alias is valid, undefined otherwise.
+   *
+   * @param {Object} [opts]
+   * @param {boolean} [opts.remove]
+   * @param {Function} [opts.logWarn]
+   * @param {Function} [opts.logInfo]
+   * @returns {Promise<string | undefined>}
+   */
+  async clean({ remove = false, logWarn = () => {}, logInfo = () => {} } = {}) {
+    if (!isVhdAlias(this.#path)) {
+      return undefined
+    }
+
+    let target
+    try {
+      target = await resolveVhdAlias(this.#handler, this.#path)
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        logWarn('missing target of alias', { alias: this.#path })
+        if (remove) {
+          logInfo('removing alias with missing target', { alias: this.#path })
+          await this.#handler.unlink(this.#path)
+        }
+        return undefined
+      }
+      if (err.code === 'EISDIR') {
+        logWarn('alias is a vhd directory', { alias: this.#path })
+        if (remove) {
+          logInfo('removing vhd directory named as alias', { alias: this.#path })
+          await VhdAbstract.unlink(this.#handler, this.#path)
+        }
+        return undefined
+      }
+      logWarn('unhandled error while checking alias', { alias: this.#path, err })
+      return undefined
+    }
+
+    if (target === '') {
+      logWarn('empty target for alias', { alias: this.#path })
+      if (remove) {
+        logInfo('removing alias with empty target', { alias: this.#path })
+        await this.#handler.unlink(this.#path)
+      }
+      return undefined
+    }
+
+    if (!isVhdAlias(target) && !target.endsWith('.vhd')) {
+      logWarn('alias references non VHD target', { alias: this.#path, target })
+      if (remove) {
+        logInfo('removing alias and non VHD target', { alias: this.#path, target })
+        await this.#handler.unlink(target)
+        await this.#handler.unlink(this.#path)
+      }
+      return undefined
+    }
+
+    try {
+      const { dispose } = await openVhd(this.#handler, target)
+      try {
+        await dispose()
+      } catch (_) {
+        // errors during dispose should not trigger deletion
+      }
+      return target
+    } catch (error) {
+      logWarn('missing or broken alias target', { alias: this.#path, target, error })
+      if (remove) {
+        try {
+          await VhdAbstract.unlink(this.#handler, this.#path)
+        } catch (/** @type {any} */ err) {
+          if (err.code !== 'ENOENT') {
+            logWarn('error deleting broken alias', { alias: this.#path, target, err })
+          }
+        }
+      }
+      return undefined
+    }
   }
 }

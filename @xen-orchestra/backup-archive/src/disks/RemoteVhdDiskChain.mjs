@@ -4,7 +4,6 @@
  * @typedef {import('./RemoteVhdDisk.mjs').VhdFooter} VhdFooter
  * @typedef {import('./RemoteVhdDisk.mjs').RemoteVhdDisk} RemoteVhdDisk
  * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
- * @typedef {import('@xen-orchestra/disk-transform').FileAccessor} FileAccessor
  */
 
 import { RemoteDisk } from './RemoteDisk.mjs'
@@ -37,7 +36,6 @@ export class RemoteVhdDiskChain extends RemoteDisk {
 
   /**
    * @param {Object} params
-   * @param {FileAccessor} params.handler
    * @param {RemoteVhdDisk[]} params.disks
    */
   constructor({ disks }) {
@@ -248,7 +246,7 @@ export class RemoteVhdDiskChain extends RemoteDisk {
   }
 
   /**
-   * @param {RemoteVhdDisk} childDisk
+   * @param {RemoteDisk} childDisk
    * @returns {Promise<void>}
    */
   async flushMetadata(childDisk) {
@@ -256,7 +254,7 @@ export class RemoteVhdDiskChain extends RemoteDisk {
   }
 
   /**
-   * @param {RemoteVhdDisk} childDisk
+   * @param {RemoteDisk} childDisk
    * @returns {Promise<void>}
    */
   mergeMetadata(childDisk) {
@@ -282,10 +280,11 @@ export class RemoteVhdDiskChain extends RemoteDisk {
 
   /**
    * Deletes all the disks
+   * @param {Object} options
    */
-  async unlink() {
+  async unlink({ force = false } = {}) {
     for (const disk of this.#disks) {
-      await disk.unlink()
+      await disk.unlink({ force })
     }
   }
 
@@ -300,5 +299,17 @@ export class RemoteVhdDiskChain extends RemoteDisk {
       }
     }
     return true
+  }
+
+  /**
+   * Checks the integrity of the disk's external reference (e.g. alias target).
+   * @param {Object} [opts]
+   * @param {boolean} [opts.remove]
+   * @param {Function} [opts.logWarn]
+   * @param {Function} [opts.logInfo]
+   * @returns {Promise<string | undefined>}
+   */
+  async clean(opts = {}) {
+    throw new Error(`Can't clean a disk chain`)
   }
 }

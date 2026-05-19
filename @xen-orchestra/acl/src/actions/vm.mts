@@ -8,6 +8,7 @@ export default {
     hard: true,
   },
   resume: true,
+  'revert-snapshot': true,
   shutdown: {
     clean: true,
     hard: true,

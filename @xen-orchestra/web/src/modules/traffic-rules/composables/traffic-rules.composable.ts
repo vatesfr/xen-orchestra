@@ -3,8 +3,7 @@ import { SDN_CONTROLLER_OF_RULES_KEY, type TrafficRule } from '@/modules/traffic
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import type { MaybeRefOrGetter } from '@vueuse/core'
-import { computed } from 'vue'
+import { computed, type MaybeRefOrGetter } from 'vue'
 
 function parseRules(raw: string | undefined) {
   if (!raw) {

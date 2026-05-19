@@ -9,7 +9,6 @@ import { pFromCallback } from 'promise-toolbox'
 import { RemoteAdapter } from './RemoteAdapter.mjs'
 import { VHDFOOTER, VHDHEADER } from './tests.fixtures.mjs'
 import { VhdFile, Constants, VhdDirectory, VhdAbstract } from 'vhd-lib'
-import { checkAliases } from './_cleanVm.mjs'
 import { dirname, basename } from 'node:path'
 import { rimraf } from 'rimraf'
 
@@ -82,13 +81,17 @@ test('It remove broken vhd', async () => {
   // todo also tests a directory and an alias
 
   await handler.writeFile(`${basePath}/notReallyAVhd.vhd`, 'I AM NOT A VHD')
+  await handler.writeFile(
+    `${rootPath}/metadata.json`,
+    JSON.stringify({ mode: 'delta', vhds: [`${relativePath}/notReallyAVhd.vhd`] })
+  )
   assert.equal((await handler.list(basePath)).length, 1)
   let logged = ''
   const logInfo = message => {
     logged += message
   }
   await adapter.cleanVm(rootPath, { remove: false, logInfo, logWarn: logInfo, lock: false })
-  assert.equal(logged, `VHD check error`)
+  assert.ok(logged.includes('disk check error'), `expected 'disk check error' in: ${logged}`)
   // not removed
   assert.deepEqual(await handler.list(basePath), ['notReallyAVhd.vhd'])
   // really remove it
@@ -115,10 +118,10 @@ test('it remove vhd with missing or multiple ancestors', async () => {
     },
   })
   await handler.writeFile(
-    `metadata.json`,
+    `${rootPath}/metadata.json`,
     JSON.stringify({
       mode: 'delta',
-      vhds: [`${basePath}/child.vhd`, `${basePath}/abandoned.vhd`],
+      vhds: [`${relativePath}/child.vhd`, `${relativePath}/abandoned.vhd`],
     }),
     { flags: 'w' }
   )
@@ -129,13 +132,13 @@ test('it remove vhd with missing or multiple ancestors', async () => {
   }
   await adapter.cleanVm(rootPath, { remove: true, logInfo, logWarn: logInfo, lock: false })
 
-  const deletedOrphanVhd = logged.match(/deleting orphan VHD/g) || []
-  assert.equal(deletedOrphanVhd.length, 1) // only one vhd should have been deleted
+  const detectedMissingParent = logged.match(/parent disk is missing/g) || []
+  assert.equal(detectedMissingParent.length, 1) // only one vhd should have been deleted
 
   // we don't test the file on disk, since they will all be marker as unused and deleted without a metadata.json file
 })
 
-test('it remove backup meta data referencing a missing vhd in delta backup', async () => {
+test('it remove backup metadata referencing a missing vhd in delta backup', async () => {
   // create a metadata file marking child and orphan as ok
   await handler.writeFile(
     `${rootPath}/metadata.json`,
@@ -167,7 +170,7 @@ test('it remove backup meta data referencing a missing vhd in delta backup', asy
     logged += message + '\n'
   }
   await adapter.cleanVm(rootPath, { remove: true, logInfo, logWarn: logInfo, lock: false })
-  let matched = logged.match(/deleting unused VHD/g) || []
+  let matched = logged.match(/deleting unused disk/g) || []
   assert.equal(matched.length, 1) // only one vhd should have been deleted
 
   // a missing vhd cause clean to remove all vhds
@@ -176,9 +179,9 @@ test('it remove backup meta data referencing a missing vhd in delta backup', asy
     JSON.stringify({
       mode: 'delta',
       vhds: [
-        `deleted.vhd`, // in metadata but not in vhds
-        `orphan.vhd`,
-        `child.vhd`,
+        `${relativePath}/deleted.vhd`, // in metadata but missing from disk
+        `${relativePath}/orphan.vhd`,
+        `${relativePath}/child.vhd`,
         // abandoned.vhd is not here anymore
       ],
     }),
@@ -186,7 +189,7 @@ test('it remove backup meta data referencing a missing vhd in delta backup', asy
   )
   logged = ''
   await adapter.cleanVm(rootPath, { remove: true, logInfo, logWarn: () => {}, lock: false })
-  matched = logged.match(/deleting unused VHD/g) || []
+  matched = logged.match(/deleting unused disk/g) || []
   assert.equal(matched.length, 2) // all vhds (orphan and  child  ) should have been deleted
 })
 
@@ -233,7 +236,7 @@ test('it merges delta of non destroyed chain', async () => {
   const result = await adapter.cleanVm(rootPath, { remove: true, merge: true, logInfo, logWarn: () => {}, lock: false })
   assert.ok(result.size > 0, `no merged size`)
   const [merging] = logged
-  assert.equal(merging, `merging VHD chain`)
+  assert.equal(merging, `Disk chain needs merging`)
 
   const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
   // size should be the size of children + grand children after the merge
@@ -481,32 +484,12 @@ describe('tests multiple combination ', { concurrency: 1 }, () => {
 })
 test('it cleans orphan merge states ', async () => {
   await handler.writeFile(`${basePath}/.orphan.vhd.merge.json`, '')
+  await handler.writeFile(
+    `${rootPath}/metadata.json`,
+    JSON.stringify({ mode: 'delta', vhds: [`${relativePath}/nonexistent.vhd`] })
+  )
 
   await adapter.cleanVm(rootPath, { remove: true, logWarn: () => {}, lock: false })
 
   assert.deepEqual(await handler.list(basePath), [])
-})
-
-test('check Aliases should work alone', async () => {
-  await handler.mkdir('vhds')
-  await handler.mkdir('vhds/data')
-  await generateVhd(`vhds/data/ok.vhd`)
-  await VhdAbstract.createAlias(handler, 'vhds/ok.alias.vhd', 'vhds/data/ok.vhd')
-
-  await VhdAbstract.createAlias(handler, 'vhds/missingData.alias.vhd', 'vhds/data/nonexistent.vhd')
-
-  await generateVhd(`vhds/data/missingalias.vhd`)
-
-  await checkAliases(['vhds/missingData.alias.vhd', 'vhds/ok.alias.vhd'], 'vhds/data', {
-    remove: true,
-    handler,
-    logWarn: () => {},
-  })
-
-  // only ok have survived
-  const alias = (await handler.list('vhds')).filter(f => f.endsWith('.vhd'))
-  assert.equal(alias.length, 1)
-
-  const data = await handler.list('vhds/data')
-  assert.equal(data.length, 1)
 })

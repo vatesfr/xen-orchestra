@@ -69,6 +69,7 @@ export default class Jobs {
         connection: app._redis,
         namespace: 'job',
         indexes: ['user_id', 'key'],
+        crypto: app.cryptoCredentials,
       }))
 
       app.addConfigManager(

@@ -281,7 +281,7 @@ module.exports = {
       },
     },
     {
-      files: ['@xen-orchestra/{web-core,lite,web}/typed-router.d.ts'],
+      files: ['@xen-orchestra/{web-core,lite,web}/src/route-map.d.ts'],
       parserOptions: {
         sourceType: 'module',
       },

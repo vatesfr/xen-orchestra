@@ -1,7 +1,6 @@
 import type { Stat } from '@/composables/fetch-stats.composable'
 import type { StatData } from '@/types/stat'
-import type { MaybeRef } from '@vueuse/core'
-import { computed, type ComputedRef, toRef } from 'vue'
+import { computed, type ComputedRef, type MaybeRef, toRef } from 'vue'
 
 export const useStatStatus = (
   _stats: MaybeRef<Stat<any>[]>,

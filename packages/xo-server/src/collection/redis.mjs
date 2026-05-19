@@ -2,7 +2,6 @@ import assert from 'assert'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import difference from 'lodash/difference.js'
 import filter from 'lodash/filter.js'
-import forEach from 'lodash/forEach.js'
 import getKeys from 'lodash/keys.js'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import isEmpty from 'lodash/isEmpty.js'
@@ -12,6 +11,8 @@ import { v4 as generateUuid } from 'uuid'
 
 import Collection, { ModelAlreadyExists } from '../collection.mjs'
 
+/** @typedef {import('../xo-mixins/crypto-credentials.mjs').default} CryptoCredentials */
+
 // ===================================================================
 
 // ///////////////////////////////////////////////////////////////////
@@ -20,7 +21,7 @@ import Collection, { ModelAlreadyExists } from '../collection.mjs'
 // - prefix + '::indexes': set containing all indexes;
 // - prefix +'_ids': set containing identifier of all models;
 // - prefix +'_'+ index +':' + lowerCase(value): set of identifiers
-//   which have value for the given index.
+//   which have value for the given index. Value is an HMAC when crypto is active
 // - prefix +':'+ id: hash containing the properties of a model;
 // ///////////////////////////////////////////////////////////////////
 
@@ -35,6 +36,13 @@ import Collection, { ModelAlreadyExists } from '../collection.mjs'
 const VERSION = '20170905'
 
 export default class Redis extends Collection {
+  /** @type {CryptoCredentials | undefined} */
+  #crypto
+
+  get crypto() {
+    return this.#crypto
+  }
+
   // Called before a new model is added
   //
   // If throws, the add operation is aborted
@@ -55,7 +63,7 @@ export default class Redis extends Collection {
   // Input object can be mutated or a new one returned
   _unserialize(record) {}
 
-  constructor({ connection, indexes = [], namespace }) {
+  constructor({ connection, indexes = [], namespace, crypto }) {
     super()
 
     assert(!namespace.includes(':'), 'namespace must not contains ":": ' + namespace)
@@ -66,6 +74,7 @@ export default class Redis extends Collection {
     this.indexes = indexes
     this.prefix = prefix
     const redis = (this.redis = connection)
+    this.#crypto = crypto
 
     redis.sAdd('xo::namespaces', namespace)::ignoreErrors()
 
@@ -105,14 +114,20 @@ export default class Redis extends Collection {
     )
 
     const idsIndex = `${prefix}_ids`
-    await asyncMapSettled(redis.sMembers(idsIndex), id => {
+    await asyncMapSettled(redis.sMembers(idsIndex), async id => {
       return this.#get(`${prefix}:${id}`).then(values =>
         values == null
           ? redis.sRem(idsIndex, id) // entry no longer exists
-          : asyncMapSettled(indexes, index => {
-              const value = values[index]
+          : asyncMapSettled(indexes, async index => {
+              let value = values[index]
               if (value !== undefined) {
-                return redis.sAdd(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
+                if (this.#crypto && !this.#crypto.isDegraded()) {
+                  value = await this.#crypto.hmacIndex(String(value).toLowerCase())
+                } else {
+                  value = String(value).toLowerCase()
+                }
+
+                return redis.sAdd(`${prefix}_${index}:${value}`, id)
               }
             })
       )
@@ -180,10 +195,16 @@ export default class Redis extends Collection {
 
           // remove the previous values from indexes
           if (indexes.length !== 0) {
-            await asyncMapSettled(indexes, index => {
-              const value = previous[index]
+            await asyncMapSettled(indexes, async index => {
+              let value = previous[index]
               if (value !== undefined) {
-                return redis.sRem(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
+                if (this.#crypto && !this.#crypto.isDegraded()) {
+                  value = await this.#crypto.hmacIndex(String(value).toLowerCase())
+                } else {
+                  value = String(value).toLowerCase()
+                }
+
+                return redis.sRem(`${prefix}_${index}:${value}`, id)
               }
             })
           }
@@ -193,20 +214,27 @@ export default class Redis extends Collection {
         model = this._serialize(model) ?? model
 
         const key = `${prefix}:${id}`
-        const promises = [redis.del(key), redis.set(key, JSON.stringify(model))]
+        let serialized = JSON.stringify(model)
+        if (this.#crypto && !this.#crypto.isDegraded()) {
+          serialized = await this.#crypto.encrypt(serialized)
+        }
+
+        await redis.del(key)
+        await redis.set(key, serialized)
 
         // Update indexes.
-        forEach(indexes, index => {
-          const value = model[index]
-          if (value === undefined) {
-            return
+        await asyncMapSettled(indexes, async index => {
+          let value = model[index]
+          if (value === undefined) return
+
+          if (this.#crypto && !this.#crypto.isDegraded()) {
+            value = await this.#crypto.hmacIndex(String(value).toLowerCase())
+          } else {
+            value = String(value).toLowerCase()
           }
 
-          const key = prefix + '_' + index + ':' + String(value).toLowerCase()
-          promises.push(redis.sAdd(key, id))
+          return redis.sAdd(`${prefix}_${index}:${value}`, id)
         })
-
-        await Promise.all(promises)
 
         model = this._unserialize(model) ?? model
         model.id = id
@@ -228,7 +256,11 @@ export default class Redis extends Collection {
       const json = await redis.get(key)
 
       if (json !== null) {
-        model = JSON.parse(json)
+        if (this.#crypto && !this.#crypto.isDegraded()) {
+          model = JSON.parse(await this.#crypto.decrypt(json))
+        } else {
+          model = JSON.parse(json)
+        }
       }
     } catch (error) {
       if (!error.message.startsWith('WRONGTYPE')) {
@@ -241,7 +273,7 @@ export default class Redis extends Collection {
     return model
   }
 
-  _get(properties) {
+  async _get(properties) {
     const { prefix, redis } = this
 
     if (isEmpty(properties)) {
@@ -258,14 +290,23 @@ export default class Redis extends Collection {
     }
 
     const { indexes } = this
-
     // Check for non indexed fields.
     const unfit = difference(getKeys(properties), indexes)
     if (unfit.length) {
       throw new Error('fields not indexed: ' + unfit.join())
     }
 
-    const keys = map(properties, (value, index) => `${prefix}_${index}:${String(value).toLowerCase()}`)
+    const keys = await Promise.all(
+      map(properties, async (value, index) => {
+        if (this.#crypto && !this.#crypto.isDegraded()) {
+          value = await this.#crypto.hmacIndex(String(value).toLowerCase())
+        } else {
+          value = String(value).toLowerCase()
+        }
+
+        return `${prefix}_${index}:${value}`
+      })
+    )
     return redis.sInter(keys).then(ids => this._extract(ids))
   }
 
@@ -283,14 +324,20 @@ export default class Redis extends Collection {
     if (indexes.length !== 0) {
       promise = Promise.all([
         promise,
-        asyncMapSettled(ids, id =>
+        asyncMapSettled(ids, async id =>
           this.#get(`${prefix}:${id}`).then(
             values =>
               values != null &&
-              asyncMapSettled(indexes, index => {
-                const value = values[index]
+              asyncMapSettled(indexes, async index => {
+                let value = values[index]
                 if (value !== undefined) {
-                  return redis.sRem(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
+                  if (this.#crypto && !this.#crypto.isDegraded()) {
+                    value = await this.#crypto.hmacIndex(String(value).toLowerCase())
+                  } else {
+                    value = String(value).toLowerCase()
+                  }
+
+                  return redis.sRem(`${prefix}_${index}:${value}`, id)
                 }
               })
           )

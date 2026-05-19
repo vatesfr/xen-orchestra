@@ -1,11 +1,11 @@
 import Disposable from 'promise-toolbox/Disposable'
 import { getSyncedHandler } from '@xen-orchestra/fs'
-import { openDisposableDisk } from '@xen-orchestra/backups/disks'
+import { openDisposableDisk, RemoteDisk } from '@xen-orchestra/backup-archive/disks'
 import { formatBytes } from '../utils.mjs'
 
 export async function infoCommand(handlerUrl: string, diskPath: string, _extraArgs: string[]): Promise<void> {
   await Disposable.use(getSyncedHandler({ url: handlerUrl }), async handler => {
-    await Disposable.use(openDisposableDisk({ handler, path: diskPath }), async disk => {
+    await Disposable.use(openDisposableDisk({ handler, path: diskPath }), async (disk: RemoteDisk) => {
       const isDifferencing = disk.isDifferencing()
       const virtualSize = disk.getVirtualSize()
       const blockSize = disk.getBlockSize()

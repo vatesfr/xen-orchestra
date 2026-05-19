@@ -65,14 +65,14 @@ export function autoBindService<Service extends object, Method extends keyof Ser
 
 type RestNonXapiXoRecord = NonXapiXoRecord<SupportedActionsByResource, SupportedResource> | AnyPrivilege
 
-type AclEntry = {
+export type AclEntry = {
   [Resource in SupportedResource]: {
     resource: Resource
   } & (
     | {
         action:
           | SupportedActions<Resource>
-          | ((opts: { req: AuthenticatedRequest; restApi: RestApi }) => SupportedActions<Resource>)
+          | ((opts: { req: AuthenticatedRequest; restApi: RestApi }) => SupportedActions<Resource> | undefined)
         actions?: never
       }
     | {
