@@ -16,6 +16,8 @@
 - [Backups] Add UserAgent in s3 client (PR [#9815](https://github.com/vatesfr/xen-orchestra/pull/9815))
 - [xo-web] support qcow2 format in disk > import (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
 - [xo-server] support qcow2 format in `disk.importContent` and `disk.import` jsonRPC api (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
+- [XO config] Rename exported XO config file from `config.json` to `XO-config_<date>.json`  
+  (PR [#9859](https://github.com/vatesfr/xen-orchestra/pull/9859))
 - [web-core] Update `UiTag` and parse tag for detecting tags with `=` (PR [#9811](https://github.com/vatesfr/xen-orchestra/pull/9811))
 - [Encryption] Implement encryption and decryption feature for redis (PR [#9735](https://github.com/vatesfr/xen-orchestra/pull/9735))
 - [REST API] Add `vms/:id/actions/revert_snapshot` REST route (PR [#9788](https://github.com/vatesfr/xen-orchestra/pull/9788))
