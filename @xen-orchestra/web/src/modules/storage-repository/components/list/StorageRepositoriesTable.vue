@@ -16,7 +16,7 @@
         </thead>
         <tbody>
           <VtsRow v-for="sr of paginatedSrs" :key="sr.id" :selected="selectedSrId === sr.id">
-            <BodyCells :key="getRowSignature(sr)" :item="sr" />
+            <BodyCells :key="getSrPbdsSignature(sr, scope)" :item="sr" />
           </VtsRow>
         </tbody>
       </VtsTable>
@@ -25,10 +25,9 @@
 </template>
 
 <script setup lang="ts">
-import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import { useSrDeleteModal } from '@/modules/storage-repository/composables/use-sr-delete-modal.composable.ts'
 import { useSrDisconnectModal } from '@/modules/storage-repository/composables/use-sr-disconnect-modal.composable.ts'
-import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
+import { useGetPbdsInScope, useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import {
   useXoSrCollection,
   type FrontXoSr,
@@ -99,14 +98,7 @@ const state = useTableState({
 
 const { pageRecords: paginatedSrs, paginationBindings } = usePagination('srs', filteredSrs)
 
-const { pbdsBySr } = useXoPbdCollection()
-
-function getRowSignature(sr: FrontXoSr) {
-  const srPbds = pbdsBySr.value.get(sr.id) ?? []
-  const scopedPbds = scope.type === 'host' ? srPbds.filter(pbd => pbd.host === scope.hostId) : srPbds
-
-  return scopedPbds.map(pbd => `${pbd.id}:${pbd.attached}`).join('|') || sr.id
-}
+const { getSrPbdsSignature } = useGetPbdsInScope()
 
 function getPrimaryIcon(sr: FrontXoSr) {
   if (!isDefaultSr(sr)) {
@@ -134,7 +126,10 @@ const { HeadCells, BodyCells } = useSrColumns({
       canRun: canDisconnectSr,
       isRunning: isDisconnectingSr,
       errorMessage: disconnectSrErrorMessage,
-    } = useSrDisconnectModal(() => [sr])
+    } = useSrDisconnectModal(
+      () => [sr],
+      () => scope
+    )
 
     return {
       storageRepository: r =>
