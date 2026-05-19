@@ -8,7 +8,6 @@ export default {
   },
   read: true,
   update: {
-    'management-interface': true,
     tags: true,
   },
 }

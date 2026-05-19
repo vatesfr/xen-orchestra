@@ -387,8 +387,7 @@ export class HostController extends XapiXoController<XoHost> {
   }
 
   /**
-   * Required privileges:
-   * - resource: host, action: update:management-interface
+   * Required privilege:
    * - resource: pif, action: update:management
    *
    * Reconfigure the management interface of the host to use the given PIF.
@@ -400,13 +399,7 @@ export class HostController extends XapiXoController<XoHost> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/management_reconfigure')
-  @Middlewares([
-    json(),
-    acl([
-      { resource: 'host', action: 'update:management-interface', objectId: 'params.id' },
-      { resource: 'pif', action: 'update:management', objectId: 'body.pif' },
-    ]),
-  ])
+  @Middlewares([json(), acl({ resource: 'pif', action: 'update:management', objectId: 'body.pif' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
