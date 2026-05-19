@@ -77,9 +77,19 @@ function callUseRegle<TData extends Record<string, unknown>>(
 }
 
 function toMessage(fieldErrors: unknown): string | undefined {
-  const [firstMessage] = fieldErrors as string[]
+  if (Array.isArray(fieldErrors)) {
+    return fieldErrors[0]
+  }
 
-  return firstMessage
+  // Collection-field errors take the { $self: string[], $each: ... } shape ? surface the first $self message.
+  if (fieldErrors !== null && typeof fieldErrors === 'object' && '$self' in fieldErrors) {
+    const $self = (fieldErrors as { $self?: unknown }).$self
+    if (Array.isArray($self)) {
+      return $self[0]
+    }
+  }
+
+  return undefined
 }
 
 function buildMessages(regle: RegleStatusAccessor): Record<string, string | undefined> {
