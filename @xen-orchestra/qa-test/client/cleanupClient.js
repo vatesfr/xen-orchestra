@@ -143,6 +143,41 @@ export class CleanupClient {
   }
 
   /**
+   * Deletes all cache.json.gz files under a repository's xo-vm-backups directory.
+   *
+   * A stale cache causes listVmBackups to reference .json metadata files that no
+   * longer exist, producing ENOENT errors on the next test run. Clearing the cache
+   * forces XO to rebuild it from the actual files present on disk.
+   *
+   * @param {string} repositoryPath - Filesystem path of the backup repository
+   * @private
+   */
+  async _clearAllCacheFiles(repositoryPath) {
+    const vmBackupsDir = path.join(repositoryPath, 'xo-vm-backups')
+    try {
+      await fs.rm(path.join(vmBackupsDir, 'cache.json.gz'), { force: true })
+    } catch {
+      // ignore
+    }
+    let entries
+    try {
+      entries = await fs.readdir(vmBackupsDir, { withFileTypes: true })
+    } catch {
+      return
+    }
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        try {
+          await fs.rm(path.join(vmBackupsDir, entry.name, 'cache.json.gz'), { force: true })
+        } catch {
+          // ignore
+        }
+      }
+    }
+    log.debug('Cleared backup cache files', { repositoryPath })
+  }
+
+  /**
    * Extracts backup IDs from nested backup structure returned by backupNg.listVmBackups.
    *
    * Iterates through backupsByRemote → backupsByVm → vmBackups[] structure,
@@ -286,6 +321,15 @@ export class CleanupClient {
           }
         } catch (error) {
           log.warn('Backup files cleanup failed for job', { jobId: job.id, error })
+        }
+
+        // Clear stale cache files even if some deletions failed, so the next run
+        // does not encounter ENOENT when listVmBackups reads missing metadata.
+        try {
+          const repoPath = getRequiredEnv('BACKUP_REPOSITORY_PATH')
+          await this._clearAllCacheFiles(repoPath)
+        } catch (cacheError) {
+          log.debug('Post-cleanup cache clear skipped', { error: cacheError.message })
         }
       }
 
@@ -584,6 +628,9 @@ export class CleanupClient {
               }
             }
           }
+
+          // Clear stale caches regardless of whether deletions succeeded
+          await this._clearAllCacheFiles(normalizedPath)
         } catch (error) {
           log.warn('Backup files cleanup failed', { error })
         }
