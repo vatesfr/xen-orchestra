@@ -2,17 +2,22 @@ import { createLogger } from '@xen-orchestra/log'
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import { FilterBuilder } from './FilterBuilder.js'
-import { BACKUP_JOB_NAME_PREFIX } from '../utils/index.js'
+import { BACKUP_JOB_NAME_PREFIX, getRequiredEnv } from '../utils/index.js'
 
-const log = createLogger('xo:qa-test:cleanup')
+const log = createLogger('cleanup')
 
 /**
  * Allowed paths for automatic backup cleanup.
  * SECURITY: Only test-scoped paths containing 'test', 'qa', or 'tmp/xo'.
- * @constant {Array<string>}
+ *
+ * Computed lazily so that `process.env.BACKUP_REPOSITORY_PATH` is read at call
+ * time rather than module-load time — otherwise ESM import hoisting would make
+ * it evaluate before any in-code env loading runs.
+ *
+ * @returns {Array<string>}
  */
-const ALLOWED_CLEANUP_PATHS = (() => {
-  const repoPath = process.env.BACKUP_REPOSITORY_PATH || '/tmp/xo-test-backups'
+const getAllowedCleanupPaths = () => {
+  const repoPath = getRequiredEnv('BACKUP_REPOSITORY_PATH')
 
   // SECURITY: Reject paths containing path traversal sequences
   if (repoPath.includes('..')) {
@@ -29,7 +34,7 @@ const ALLOWED_CLEANUP_PATHS = (() => {
   }
 
   return [path.resolve(repoPath)]
-})()
+}
 
 /**
  * Orchestration client for XenOrchestra cleanup operations.
@@ -130,7 +135,7 @@ export class CleanupClient {
         log.warn('Cleanup partially failed', { resourceType, deleted: results.deleted, failed: results.failed })
       }
     } catch (error) {
-      log.warn('Cleanup failed', { resourceType, error: error.message })
+      log.warn('Cleanup failed', { resourceType, error })
       throw error
     }
 
@@ -173,7 +178,7 @@ export class CleanupClient {
   async deleteQAVMs(options = {}) {
     this._ensureConnected()
 
-    const vmPrefix = process.env.VM_PREFIX || 'TST'
+    const vmPrefix = getRequiredEnv('VM_PREFIX')
     const config = {
       namePatterns: [`${vmPrefix}-QA-Test-*`],
       includeIds: [],
@@ -198,7 +203,7 @@ export class CleanupClient {
             additionalVms.push(vm)
           }
         } catch (error) {
-          log.warn('Could not fetch VM', { vmId, error: error.message })
+          log.warn('Could not fetch VM', { vmId, error })
         }
       }
 
@@ -271,7 +276,7 @@ export class CleanupClient {
             }
           }
         } catch (error) {
-          log.warn('Backup files cleanup failed for job', { jobId: job.id, error: error.message })
+          log.warn('Backup files cleanup failed for job', { jobId: job.id, error })
         }
       }
 
@@ -341,7 +346,7 @@ export class CleanupClient {
   async deleteExportedFiles(options = {}) {
     const config = {
       filePaths: [],
-      directory: process.env.VHD_EXPORT_PATH || '/tmp/xo-test-exports',
+      directory: options.directory ?? getRequiredEnv('VHD_EXPORT_PATH'),
       extensions: ['.vhd', '.xva'],
       continueOnError: true,
       ...options,
@@ -385,7 +390,7 @@ export class CleanupClient {
           .map(file => path.join(config.directory, file))
         filesToDelete.push(...matchingFiles)
       } catch (error) {
-        log.warn('Could not read directory', { directory: config.directory, error: error.message })
+        log.warn('Could not read directory', { directory: config.directory, error })
       }
     }
 
@@ -474,7 +479,7 @@ export class CleanupClient {
             vms.push(vm)
           }
         } catch (error) {
-          log.warn('Could not fetch VM', { vmId, error: error.message })
+          log.warn('Could not fetch VM', { vmId, error })
         }
       }
       return vms
@@ -488,7 +493,7 @@ export class CleanupClient {
           // Wait briefly for shutdown
           await new Promise(resolve => setTimeout(resolve, 2000))
         } catch (error) {
-          log.warn('Could not stop VM', { uuid: vm.uuid, error: error.message })
+          log.warn('Could not stop VM', { uuid: vm.uuid, error })
         }
       }
 
@@ -529,12 +534,12 @@ export class CleanupClient {
           repoPath = repoDetails.url.replace('file://', '')
         }
       } catch (error) {
-        log.warn('Could not get repository details', { error: error.message })
+        log.warn('Could not get repository details', { error })
       }
 
       // Clean up backup files if path is allowed
       const normalizedPath = repoPath ? path.normalize(repoPath) : null
-      const isAllowed = normalizedPath && ALLOWED_CLEANUP_PATHS.some(p => normalizedPath.startsWith(p))
+      const isAllowed = normalizedPath && getAllowedCleanupPaths().some(p => normalizedPath.startsWith(p))
 
       if (isAllowed) {
         try {
@@ -547,12 +552,12 @@ export class CleanupClient {
               try {
                 await this.dispatchClient.backup.deleteVmBackups(backupIds.slice(i, i + 10))
               } catch (error) {
-                log.warn('Failed to delete backup batch', { error: error.message })
+                log.warn('Failed to delete backup batch', { error })
               }
             }
           }
         } catch (error) {
-          log.warn('Backup files cleanup failed', { error: error.message })
+          log.warn('Backup files cleanup failed', { error })
         }
       } else if (repoPath) {
         log.warn('Skipping backup cleanup: path not in allowed paths', { repoPath })
@@ -563,7 +568,7 @@ export class CleanupClient {
 
       return result
     } catch (error) {
-      log.warn('Backup repository deletion failed', { error: error.message })
+      log.warn('Backup repository deletion failed', { error })
       throw error
     }
   }
@@ -632,7 +637,7 @@ export class CleanupClient {
           fullResults.backupRepository = await this.deleteBackupRepository(config.backupRepositoryId)
           fullResults.totalDeleted++
         } catch (error) {
-          log.warn('Repository cleanup failed', { error: error.message })
+          log.warn('Repository cleanup failed', { error })
           fullResults.backupRepository = { error: error.message }
           fullResults.totalFailed++
         }
@@ -647,7 +652,7 @@ export class CleanupClient {
       fullResults.completedAt = new Date().toISOString()
       fullResults.error = error.message
       fullResults.success = false
-      log.warn('Full cleanup failed', { error: error.message })
+      log.warn('Full cleanup failed', { error })
       throw error
     }
 

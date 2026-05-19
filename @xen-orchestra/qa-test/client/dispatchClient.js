@@ -8,8 +8,9 @@ import { BackupRepositoryRequest } from './requests/misc.js'
 import { SRRequest } from './requests/sr.js'
 import { VDIRequest } from './requests/vdi.js'
 import { CleanupClient } from './cleanupClient.js'
+import { getRequiredEnv } from '../utils/index.js'
 
-const log = createLogger('xo:qa-test:dispatch')
+const log = createLogger('dispatch')
 
 /**
  * Central orchestration client for XenOrchestra operations.
@@ -84,16 +85,10 @@ export class DispatchClient {
    * @throws {Error} If initialization fails or required environment variables are missing
    */
   async initialize() {
-    // Load environment variables
     const config = {
-      xoUrl: process.env.HOSTNAME,
-      username: process.env.USERNAME,
-      password: process.env.PASSWORD,
-    }
-
-    // Validate configuration
-    if (!config.xoUrl || !config.username || !config.password) {
-      throw new Error('Missing required environment variables: HOSTNAME, USERNAME, PASSWORD')
+      xoUrl: getRequiredEnv('HOSTNAME'),
+      username: getRequiredEnv('USERNAME'),
+      password: getRequiredEnv('PASSWORD'),
     }
 
     log.debug('Initializing XenOrchestra connections')
@@ -117,7 +112,7 @@ export class DispatchClient {
 
       log.debug('All connections established successfully')
     } catch (error) {
-      log.warn('Failed to initialize connections', { error: error.message })
+      log.warn('Failed to initialize connections', { error })
       throw error
     }
   }

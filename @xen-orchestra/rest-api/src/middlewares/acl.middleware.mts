@@ -72,7 +72,7 @@ export type AclEntry = {
     | {
         action:
           | SupportedActions<Resource>
-          | ((opts: { req: AuthenticatedRequest; restApi: RestApi }) => SupportedActions<Resource>)
+          | ((opts: { req: AuthenticatedRequest; restApi: RestApi }) => SupportedActions<Resource> | undefined)
         actions?: never
       }
     | {

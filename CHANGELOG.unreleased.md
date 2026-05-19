@@ -18,11 +18,13 @@
 - [xo-server] support qcow2 format in `disk.importContent` and `disk.import` jsonRPC api (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
 - [web-core] Update `UiTag` and parse tag for detecting tags with `=` (PR [#9811](https://github.com/vatesfr/xen-orchestra/pull/9811))
 - [Encryption] Implement encryption and decryption feature for redis (PR [#9735](https://github.com/vatesfr/xen-orchestra/pull/9735))
+- [REST API] Add `vms/:id/actions/revert_snapshot` REST route (PR [#9788](https://github.com/vatesfr/xen-orchestra/pull/9788))
 - **XO 5**:
   - [Export config] Hide passphrase by default (PR [#9824](https://github.com/vatesfr/xen-orchestra/pull/9824))
 - [Backups] Refactor clean phase for incremental and full backups ([#9765](https://github.com/vatesfr/xen-orchestra/pull/9765))
 - [REST API] Expose `DELETE /rest/v0/srs/:id` (PR [#9464](https://github.com/vatesfr/xen-orchestra/pull/9464))
 - [xo-server-ipmi-sensors] Migrated the old ipmi feature to a new plugin and added user defined sensors (PR [#9724](https://github.com/vatesfr/xen-orchestra/pull/9724))
+- [MCP] Read `HTTP_PROXY`/`HTTPS_PROXY`/`NO_PROXY` so an internal XOA stays reachable when the AI assistant goes through a corporate proxy (PR [#9820](https://github.com/vatesfr/xen-orchestra/pull/9820))
 
 ### Bug fixes
 
@@ -57,6 +59,7 @@
 - @xen-orchestra/disk-cli minor
 - @xen-orchestra/disk-transform minor
 - @xen-orchestra/fs minor
+- @xen-orchestra/mcp minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor

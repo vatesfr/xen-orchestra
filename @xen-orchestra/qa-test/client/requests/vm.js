@@ -89,14 +89,14 @@ export class VMRequest extends AbstractRequest {
             name_description: description,
           })
         } catch (error) {
-          log.warn('Failed to set VM description', { vmId: clonedVmId, error: error.message })
+          log.warn('Failed to set VM description', { vmId: clonedVmId, error })
         }
       }
 
       log.debug('VM cloned successfully', { name: vmName, id: clonedVmId })
       return clonedVmId
     } catch (error) {
-      log.warn('Failed to clone VM', { uuid: vmUuid, error: error.message })
+      log.warn('Failed to clone VM', { uuid: vmUuid, error })
       throw new Error(`Failed to clone VM ${vmUuid}: ${error.message}`)
     }
   }
@@ -133,7 +133,7 @@ export class VMRequest extends AbstractRequest {
 
       log.debug('VM deleted successfully', { uuid: vmUuid })
     } catch (error) {
-      log.warn('Failed to delete VM', { uuid: vmUuid, error: error.message })
+      log.warn('Failed to delete VM', { uuid: vmUuid, error })
       throw new Error(`Failed to delete VM ${vmUuid}: ${error.message}`)
     }
   }

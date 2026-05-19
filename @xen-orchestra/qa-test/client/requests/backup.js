@@ -100,7 +100,7 @@ export class BackupRequest extends AbstractRequest {
       const result = await this.dispatchClient.xoClient.call('backupNg.deleteJob', { id: jobId })
       return result
     } catch (error) {
-      log.warn('Delete backup job failed', { error: error.message })
+      log.warn('Delete backup job failed', { error })
       throw error
     }
   }
@@ -128,7 +128,7 @@ export class BackupRequest extends AbstractRequest {
         remotes,
       })
     } catch (error) {
-      log.warn('List VM backups failed', { error: error.message })
+      log.warn('List VM backups failed', { error })
       throw error
     }
   }
@@ -157,7 +157,7 @@ export class BackupRequest extends AbstractRequest {
         ids,
       })
     } catch (error) {
-      log.warn('Delete VM backups failed', { error: error.message })
+      log.warn('Delete VM backups failed', { error })
       throw error
     }
   }
@@ -229,7 +229,7 @@ export class BackupRequest extends AbstractRequest {
       const result = await this.dispatchClient.xoClient.call('mirrorBackup.deleteJob', { id: jobId })
       return result
     } catch (error) {
-      log.warn('Delete mirror backup job failed', { error: error.message })
+      log.warn('Delete mirror backup job failed', { error })
       throw error
     }
   }
@@ -274,7 +274,7 @@ export class BackupRequest extends AbstractRequest {
 
           return false
         } catch (error) {
-          log.debug('Waiting for mirror backup completion', { error: error.message })
+          log.debug('Waiting for mirror backup completion', { error })
           return false
         }
       },
@@ -339,7 +339,7 @@ export class BackupRequest extends AbstractRequest {
 
           return false // Still running
         } catch (error) {
-          log.debug('Waiting for backup completion', { error: error.message })
+          log.debug('Waiting for backup completion', { error })
           return false
         }
       },
