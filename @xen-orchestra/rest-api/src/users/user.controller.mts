@@ -197,7 +197,7 @@ export class UserController extends XoController<XoUser> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(invalidParameters.status, invalidParameters.description)
   async createUser(
-    @Body() body: { name: string; password: string; permission?: string }
+    @Body() body: { name: string; password: string; permission?: XoUser['permission'] }
   ): Promise<{ id: Unbrand<XoUser>['id'] }> {
     const user = await this.restApi.xoApp.createUser(body)
 

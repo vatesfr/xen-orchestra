@@ -69,15 +69,15 @@ suite('ACL V2 behavior', async () => {
     permission: 'admin',
     email: 'admin@admin.net',
     preferences: {},
-  }
+  } satisfies XoUser
 
   const user = {
     id: '2' as XoUser['id'],
     groups: [],
-    permission: 'user',
+    permission: 'none',
     email: 'user@user.net',
     preferences: {},
-  }
+  } satisfies XoUser
 
   const privilegeId = 'fake-priv-test-id' as Branded<'acl-v2-privilege'>
   const roleId = 'fake-role-test-id' as Branded<'acl-v2-role'>
