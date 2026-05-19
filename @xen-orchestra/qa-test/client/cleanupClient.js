@@ -17,19 +17,19 @@ const log = createLogger('cleanup')
  * @returns {Array<string>}
  */
 const getAllowedCleanupPaths = () => {
-  const repoPath = getRequiredEnv('BACKUP_REPOSITORY_PATH')
+  const repoPath = process.env.BACKUP_REPOSITORY_PATH
 
   // SECURITY: Reject paths containing path traversal sequences
-  if (repoPath.includes('..')) {
+  if (repoPath?.includes('..')) {
     log.warn('Rejected cleanup path: contains path traversal', { repoPath })
     return []
   }
 
-  const normalized = path.resolve(repoPath).toLowerCase()
+  const normalized = repoPath ? path.resolve(repoPath).toLowerCase() : ''
   const isTestPath = ['test', 'qa', 'tmp/xo'].some(marker => normalized.includes(marker))
 
   if (!isTestPath) {
-    log.warn('Rejected cleanup path: not a test path', { repoPath })
+    if (repoPath) log.warn('Rejected cleanup path: not a test path', { repoPath })
     return []
   }
 
@@ -270,7 +270,7 @@ export class CleanupClient {
                 try {
                   await this.dispatchClient.backup.deleteVmBackups(backupIds.slice(i, i + 10))
                 } catch (batchError) {
-                  log.warn('Failed to delete backup batch', { error: batchError.message })
+                  log.warn('Delete VM backups failed', { error: batchError })
                 }
               }
             }
