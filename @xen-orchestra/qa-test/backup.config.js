@@ -23,6 +23,7 @@ export function backupConfig(name, schedule, vm, backupRepository, options = {})
         timezone: 'Europe/Paris',
         exportRetention: 2,
         mergeBackupsSynchronously: true,
+        bypassVdiChainsCheck: true,
       },
     },
     vms: {

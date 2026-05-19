@@ -9,6 +9,25 @@ const log = createLogger('xo:qa-test:utils')
 // =============================================================================
 
 /**
+ * Reads a required environment variable, throwing if it is missing or empty.
+ *
+ * Used everywhere the QA suite needs configuration so that a missing `.env`
+ * (or a typoed key) fails the test immediately with a clear message rather
+ * than silently falling back to a default that may point at production data.
+ *
+ * @param {string} name - Environment variable name
+ * @returns {string} The variable's value
+ * @throws {Error} If the variable is unset or an empty string
+ */
+export function getRequiredEnv(name) {
+  const value = process.env[name]
+  if (value === undefined || value === '') {
+    throw new Error(`Required environment variable ${name} is not set — check that .env is loaded`)
+  }
+  return value
+}
+
+/**
  * Asserts that a value is a non-empty string.
  *
  * @param {unknown} value - Value to validate
@@ -119,7 +138,7 @@ export async function waitUntil(conditionFn, interval = 1000, timeout = 15_000, 
       }
     } catch (error) {
       // Continue waiting on errors
-      log.debug('waitUntil condition error', { error: error.message })
+      log.debug('waitUntil condition error', { error })
     }
 
     await delay(currentInterval)
