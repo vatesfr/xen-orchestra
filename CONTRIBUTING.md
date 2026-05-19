@@ -30,13 +30,13 @@ to julien.fontanet@vates.fr.
 
 > If you want to ask a question, we assume that you have read the available [Documentation](https://docs.xen-orchestra.com/).
 
-Before you ask a question, it is best to search for existing [topics on our forum](https://xcp-ng.org/forum/category/12/xen-orchestra) that might help you. In case you have found a suitable topic and still need clarification, you can write your question in this thread. It is also advisable to search the internet for answers first.
+Before you ask a question, it is best to search for existing [topics on our forum](https://xcp-ng.org/forum/category/12/xen-orchestra) that might help you. In case you have found a suitable topic and still need clarification, you can write your question in that thread. It is also advisable to search the internet for answers first.
 
 If you then still feel the need to ask a question and need clarification, we recommend the following:
 
 - Open a new Topic.
 - Provide as much context as you can about what you're running into.
-- Provide project and platform versions (nodejs, npm, etc), depending on what seems relevant.
+- Provide project and platform versions (Node.js, npm, etc.), depending on what seems relevant.
 
 The community will then answer you as soon as possible.
 
@@ -53,19 +53,20 @@ The community will then answer you as soon as possible.
 A good bug report shouldn't leave others needing to chase you up for more information. Therefore, we ask you to investigate carefully, collect information and describe the issue in detail in your report. Please complete the following steps in advance to help us fix any potential bug as fast as possible.
 
 - Make sure that you are using the latest version.
-- Determine if your bug is really a bug and not an error on your side e.g. using incompatible environment components/versions (Make sure that you have read the [documentation](https://docs.xen-orchestra.com/). If you are looking for support, you might want to check [this section](#i-have-a-question)).
-- To see if other users have experienced (and potentially already solved) the same issue you are having, check if there is not already a bug report existing for your bug or error in the [bug tracker](https://github.com/vatesfr/xen-orchestra/issues?q=label%3Abug).
-- Also make sure to search the internet (including Stack Overflow) to see if users outside of the GitHub community have discussed the issue.
+- Determine if your bug is really a bug and not an error on your side, e.g., using incompatible environment components/versions (Make sure that you have read the [documentation](https://docs.xen-orchestra.com/). If you are looking for support, you might want to check [this section](#i-have-a-question)).
+- To see if other users have experienced (and potentially already solved) the same issue you are having, check if there is already a bug report for your bug or error in the [bug tracker](https://github.com/vatesfr/xen-orchestra/issues?q=label%3Abug).
+- Also make sure to search the Internet (including Stack Overflow) to see if users outside of the GitHub community have discussed the issue.
 - Collect information about the bug:
-- Stack trace (Traceback)
-- OS, Platform and Version (Windows, Linux, macOS, x86, ARM)
-- Version of the interpreter, compiler, SDK, runtime environment, package manager, depending on what seems relevant.
-- Possibly your input and the output
-- Can you reliably reproduce the issue? And can you also reproduce it with older versions?
+  - Stack trace (Traceback)
+  - OS, platform and version (Windows, Linux, macOS, x86, ARM)
+  - Version of the interpreter, compiler, SDK, runtime environment, package manager, depending on what seems relevant.
+  - Possibly your input and the output
+  - Can you reliably reproduce the issue?
+  - And can you also reproduce it with older versions?
 
 #### How Do I Submit a Good Bug Report?
 
-> You must never report security related issues, vulnerabilities or bugs including sensitive information to the issue tracker, or elsewhere in public. Instead sensitive bugs must be reported on [this dedicated page](https://github.com/vatesfr/xen-orchestra/security/advisories/new).
+> You must never report security related issues, vulnerabilities or bugs including sensitive information to the issue tracker, or elsewhere in public. Instead, sensitive bugs must be reported on [this dedicated page](https://github.com/vatesfr/xen-orchestra/security/advisories/new).
 
 We use GitHub issues to track bugs and errors. If you run into an issue with the project:
 
@@ -91,7 +92,7 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/vatesf
 
 - Use a **clear and descriptive title** for the issue to identify the suggestion.
 - Provide a **step-by-step description of the suggested enhancement** in as many details as possible.
-- **Describe the current behavior** and **explain which behavior you expected to see instead** and why. At this point you can also tell which alternatives do not work for you.
+- **Describe the current behavior** and **explain which behavior you expected to see instead** and why. At this point, you can also tell which alternatives do not work for you.
 - You may want to **include screenshots and animated GIFs** which help you demonstrate the steps or point out the part which the suggestion is related to. You can use [this tool](https://www.cockos.com/licecap/) to record GIFs on macOS and Windows, and [this tool](https://github.com/colinkeenan/silentcast) or [this tool](https://github.com/GNOME/byzanz) on Linux.
 - **Explain why this enhancement would be useful** to most Xen Orchestra users. You may also want to point out the other projects that solved it better and which could serve as inspiration.
 
