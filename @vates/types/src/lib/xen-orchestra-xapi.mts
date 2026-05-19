@@ -37,6 +37,7 @@ import type {
   XoVm,
   XoVmTemplate,
   XoVif,
+  XoVmSnapshot,
 } from '../xo.mjs'
 
 export type XcpPatches = {
@@ -129,6 +130,7 @@ export interface Xapi {
   listMissingPatches(host: XoHost['id']): Promise<XcpPatches[] | XsPatches[]>
   pool_emergencyShutdown(): Promise<void>
   resumeVm(id: XoVm['id']): Promise<void>
+  revertVm(snapshotId: XoVmSnapshot['id']): Promise<void>
   unpauseVm(id: XoVm['id']): Promise<void>
   cloneVm(
     vmId: XoVm['id'],

@@ -105,7 +105,7 @@ Actions are written using the exact string you pass in a privilege. A parent act
 
 | Resource        | Available actions                                                                                                                                                                               |
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `vm`            | `read`, `delete`, `export`, `pause`, `start`, `resume`, `snapshot`, `suspend`, `unpause`, `reboot:clean`, `reboot:hard`, `shutdown:clean`, `shutdown:hard`, `update:datasources`, `update:tags` |
+| `vm`            | `read`, `delete`, `export`, `pause`, `start`, `resume`, `revert-snapshot`, `snapshot`, `suspend`, `unpause`, `reboot:clean`, `reboot:hard`, `shutdown:clean`, `shutdown:hard`, `update:datasources`, `update:tags` |
 | `vm-snapshot`   | `read`, `delete`, `export`, `update:tags`                                                                                                                                                       |
 | `vm-template`   | `read`, `delete`, `export`, `instantiate`, `update:tags`                                                                                                                                        |
 | `vm-controller` | `read`, `update:tags`                                                                                                                                                                           |
