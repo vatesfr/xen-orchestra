@@ -1,4 +1,4 @@
-<!-- v3 -->
+<!-- v4 -->
 <template>
   <form :class="className" class="ui-modal" @click.self="emit('dismiss')">
     <div class="modal">
@@ -36,7 +36,7 @@ import { useMapper } from '@core/packages/mapper'
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 
-export type ModalAccent = 'info' | 'success' | 'warning' | 'danger'
+export type ModalAccent = 'info' | 'warning' | 'danger'
 
 const { accent } = defineProps<{
   accent: ModalAccent
@@ -58,7 +58,6 @@ const closeIconAccent = useMapper(
   () => accent,
   {
     info: 'brand',
-    success: 'brand',
     warning: 'warning',
     danger: 'danger',
   },
@@ -76,6 +75,11 @@ const className = computed(() => toVariants({ accent }))
   justify-content: center;
   align-items: center;
 
+  &.story {
+    position: relative;
+    height: 100%;
+  }
+
   .modal {
     display: flex;
     flex-direction: column;
@@ -84,7 +88,7 @@ const className = computed(() => toVariants({ accent }))
     max-height: min(90vh, 80rem);
     padding: 3.2rem 2.4rem 2.4rem;
     gap: 2.4rem;
-    background-color: var(--color-neutral-background-primary);
+    background-color: var(--color-neutral-background-secondary);
     border-radius: 1rem;
     border-width: 0.1rem;
     border-style: solid;
@@ -130,16 +134,6 @@ const className = computed(() => toVariants({ accent }))
 
     .main .icon {
       color: var(--color-info-txt-base);
-    }
-  }
-
-  &.accent--success {
-    .modal {
-      border-color: var(--color-success-item-base);
-    }
-
-    .main .icon {
-      color: var(--color-success-txt-base);
     }
   }
 
