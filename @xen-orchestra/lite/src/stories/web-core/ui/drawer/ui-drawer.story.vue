@@ -2,6 +2,7 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
+      prop('title').str().widget().preset('Title'),
       prop('isOpen').bool().widget(),
       prop('onDismiss').widget().help('Callback when drawer is dismissed'),
       event('dismiss').help('Emitted when dismiss button or backdrop is clicked'),

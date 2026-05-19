@@ -3,6 +3,7 @@
     <DrawerProvider v-for="(drawer, index) of drawerStore.drawers" :key="drawer.id" :drawer>
       <component
         :is="drawer.component"
+        class="drawer-component"
         v-bind="drawer.props"
         :current="index === drawerStore.drawers.length - 1"
         @confirm="drawer.onConfirm"
@@ -26,7 +27,7 @@ const drawerStore = useDrawerStore()
   background-color: var(--color-opacity-primary);
   z-index: 1020;
 
-  .modal-component:not(:last-child) {
+  .drawer-component:not(:last-child) {
     filter: brightness(0.8);
   }
 }
