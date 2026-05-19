@@ -4,8 +4,10 @@
     <div v-if="isOpen" class="ui-drawer" @click.self="emit('dismiss')">
       <aside class="drawer">
         <div class="header">
-          <div v-if="slots.title" class="typo-h4">
-            <slot name="title" />
+          <div v-if="slots.title || title !== undefined" class="typo-h4">
+            <slot name="title">
+              {{ title }}
+            </slot>
           </div>
           <UiButtonIcon
             v-if="onDismiss"
@@ -34,6 +36,7 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 defineProps<{
   isOpen: boolean
   onDismiss?: () => void
+  title?: string
 }>()
 
 const emit = defineEmits<{
@@ -78,10 +81,8 @@ const slots = defineSlots<{
   position: fixed;
   display: flex;
   inset: 0;
-  z-index: 1020;
   justify-content: flex-end;
   align-items: stretch;
-  background-color: var(--color-opacity-primary);
 
   .drawer {
     display: flex;

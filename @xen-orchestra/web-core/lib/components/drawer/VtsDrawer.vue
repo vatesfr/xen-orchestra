@@ -22,7 +22,6 @@ import { computed, inject, onMounted, ref } from 'vue'
 
 const props = defineProps<{
   dismissible?: boolean
-  current?: boolean
   isOpen?: boolean
 }>()
 
@@ -74,7 +73,7 @@ const handleDismiss = computed(() => {
 const { escape } = useMagicKeys()
 
 whenever(escape, () => {
-  if (props.dismissible && props.current) {
+  if (props.dismissible) {
     handleDismiss.value?.()
   }
 })

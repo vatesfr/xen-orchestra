@@ -1,5 +1,5 @@
 <template>
-  <template v-if="drawerStore.drawers.length > 0">
+  <div v-if="drawerStore.drawers.length > 0" class="vts-drawer-list">
     <DrawerProvider v-for="(drawer, index) of drawerStore.drawers" :key="drawer.id" :drawer>
       <component
         :is="drawer.component"
@@ -9,7 +9,7 @@
         @cancel="drawer.onCancel"
       />
     </DrawerProvider>
-  </template>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -18,3 +18,16 @@ import DrawerProvider from '@core/packages/drawer/DrawerProvider.vue'
 
 const drawerStore = useDrawerStore()
 </script>
+
+<style lang="postcss" scoped>
+.vts-drawer-list {
+  position: fixed;
+  inset: 0;
+  background-color: var(--color-opacity-primary);
+  z-index: 1020;
+
+  .modal-component:not(:last-child) {
+    filter: brightness(0.8);
+  }
+}
+</style>

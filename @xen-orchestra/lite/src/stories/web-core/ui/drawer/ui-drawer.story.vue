@@ -3,7 +3,7 @@
     v-slot="{ properties, settings }"
     :params="[
       prop('isOpen').bool().widget(),
-      prop('onDismiss').bool().widget().help('Show dismiss button and enable backdrop click'),
+      prop('onDismiss').widget().help('Callback when drawer is dismissed'),
       event('dismiss').help('Emitted when dismiss button or backdrop is clicked'),
       slot('title').help('Drawer title'),
       slot('content').help('Main content area'),
@@ -17,19 +17,19 @@
       Dismissible: {
         props: {
           isOpen: true,
-          onDismiss: true,
+          dismissible: true,
         },
       },
       Persistent: {
         props: {
           isOpen: true,
-          onDismiss: false,
+          dismissible: false,
         },
       },
       'No title': {
         props: {
           isOpen: true,
-          onDismiss: true,
+          dismissible: true,
         },
         settings: {
           showTitle: false,
@@ -38,7 +38,7 @@
       'No buttons': {
         props: {
           isOpen: true,
-          onDismiss: true,
+          dismissible: true,
         },
         settings: {
           showButtons: false,
@@ -59,7 +59,13 @@
         <p>{{ settings.mainContent }}</p>
       </template>
       <template v-if="settings.showButtons" #buttons>
-        <UiButton v-if="properties.onDismiss" variant="secondary" accent="brand" size="medium" @click="isOpen = false">
+        <UiButton
+          v-if="properties.dismissible"
+          variant="secondary"
+          accent="brand"
+          size="medium"
+          @click="isOpen = false"
+        >
           Cancel
         </UiButton>
         <UiButton variant="primary" accent="brand" size="medium" @click="isOpen = false">Confirm</UiButton>
