@@ -300,7 +300,14 @@ export class RemoteAdapter {
   async deleteFullVmBackups(backups) {
     const handler = this._handler
     await asyncMapSettled(backups, ({ _filename, xva }) =>
-      Promise.all([handler.unlink(_filename), handler.unlink(resolveRelativeFromFile(_filename, xva))])
+      Promise.all([
+        handler.unlink(_filename).catch(err => {
+          if (err.code !== 'ENOENT') throw err
+        }),
+        handler.unlink(resolveRelativeFromFile(_filename, xva)).catch(err => {
+          if (err.code !== 'ENOENT') throw err
+        }),
+      ])
     )
 
     await this.#removeVmBackupsFromCache(backups)
@@ -311,8 +318,30 @@ export class RemoteAdapter {
   }
 
   async deleteVmBackups(files) {
-    const metadata = await asyncMap(files, file => this.readVmBackupMetadata(file))
-    const { delta, full, ...others } = groupBy(metadata, 'mode')
+    const metadataOrNull = await asyncMap(files, async file => {
+      try {
+        return await this.readVmBackupMetadata(file)
+      } catch (error) {
+        if (error.code === 'ENOENT') {
+          // File was already removed (e.g. by coalescing); clean the stale cache entry
+          warn('backup metadata not found, removing stale cache entry', { file })
+          return null
+        }
+        throw error
+      }
+    })
+
+    const presentMetadata = []
+    const missingFiles = []
+    for (let i = 0; i < files.length; i++) {
+      if (metadataOrNull[i] === null) {
+        missingFiles.push({ _filename: files[i] })
+      } else {
+        presentMetadata.push(metadataOrNull[i])
+      }
+    }
+
+    const { delta, full, ...others } = groupBy(presentMetadata, 'mode')
 
     const unsupportedModes = Object.keys(others)
     if (unsupportedModes.length !== 0) {
@@ -322,6 +351,7 @@ export class RemoteAdapter {
     await Promise.all([
       delta !== undefined && this.deleteDeltaVmBackups(delta),
       full !== undefined && this.deleteFullVmBackups(full),
+      missingFiles.length !== 0 && this.#removeVmBackupsFromCache(missingFiles),
     ])
 
     await asyncMap(new Set(files.map(file => dirname(file))), dir =>
