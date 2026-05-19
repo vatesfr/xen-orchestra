@@ -83,3 +83,14 @@ export const VMS_READ_ONLY = {
   description: 'Allow to only see VMs',
   privileges: [{ action: 'read', resource: 'vm', effect: 'allow' }],
 }
+export const BACKUP_ADMINISTRATOR = {
+  roleTemplateId: 8,
+  name: 'Backup administrator',
+  description: 'Allow to manage backups',
+  privileges: [
+    { action: '*', resource: 'backup-job', effect: 'allow' },
+    { action: '*', resource: 'backup-repository', effect: 'allow' },
+    { action: '*', resource: 'backup-archive', effect: 'allow' },
+    { action: '*', resource: 'backup-log', effect: 'allow' },
+  ],
+}
