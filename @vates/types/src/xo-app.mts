@@ -173,7 +173,8 @@ export type XoApp = {
     name: string,
     method: (...args: A) => Promise<R>,
     //we use any since it is a legacy call, might be better typed in another pr
-    resolve?: any
+    resolve?: any,
+    params?: any
   ) => () => void // eslint-disable-line @typescript-eslint/no-explicit-any
   authenticateUser: (
     credentials: { token?: string; username?: string; password?: string },

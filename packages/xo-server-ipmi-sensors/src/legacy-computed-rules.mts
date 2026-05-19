@@ -2,7 +2,7 @@ import { FinalSensorData, IPMI_SENSOR_DATA_TYPE_STRINGS, IPMI_SENSOR_DATA_TYPE, 
 
 type CUSTOM_SENSOR_BY_DATA_TYPE_FN = (
   ipmiSensorsByDataType: FinalSensorData
-) => Partial<Record<IPMI_SENSOR_DATA_TYPE_STRINGS, ReturnedSensorData | ReturnedSensorData[]>>
+) => Partial<ReturnedSensorData | ReturnedSensorData[]>
 type CUSTOM_SENSOR_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME = Record<
   string,
   Partial<Record<IPMI_SENSOR_DATA_TYPE_STRINGS, CUSTOM_SENSOR_BY_DATA_TYPE_FN>>

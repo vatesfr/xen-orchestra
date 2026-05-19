@@ -22,6 +22,7 @@
   - [Export config] Hide passphrase by default (PR [#9824](https://github.com/vatesfr/xen-orchestra/pull/9824))
 - [Backups] Refactor clean phase for incremental and full backups ([#9765](https://github.com/vatesfr/xen-orchestra/pull/9765))
 - [REST API] Expose `DELETE /rest/v0/srs/:id` (PR [#9464](https://github.com/vatesfr/xen-orchestra/pull/9464))
+- [xo-server-ipmi-sensors] Migrated the old ipmi feature to a new plugin and added user defined sensors (PR [#9724](https://github.com/vatesfr/xen-orchestra/pull/9724))
 
 ### Bug fixes
 

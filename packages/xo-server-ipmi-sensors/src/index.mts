@@ -102,19 +102,25 @@ class IpmiSensorsPlugin {
    */
   async load(): Promise<void> {
     this.#unloadApiMethods.push(
-      this.#xo.addApiMethod<[{ id: string }], FinalSensorData>(
+      this.#xo.addApiMethod<[XoHost], FinalSensorData>(
         'ipmi-sensors.get_ipmi_sensors',
         this.getIpmiSensors.bind(this),
-        { host: ['id', 'host', 'administrate'] }
+        { host: ['id', 'host', 'administrate'] },
+        { id: 'string' }
       ),
       // replacement for the method in packages/xo-server/src/api/host.mjs
-      this.#xo.addApiMethod<[{ id: string }], FinalSensorData>('host.getIpmiSensors', this.getIpmiSensors.bind(this), {
-        host: ['id', 'host', 'administrate'],
-      })
+      this.#xo.addApiMethod<[XoHost], FinalSensorData>(
+        'host.getIpmiSensors',
+        this.getIpmiSensors.bind(this),
+        {
+          host: ['id', 'host', 'administrate'],
+        },
+        { id: 'string' }
+      )
     )
   }
 
-  async getIpmiSensors(host: { id: string }): Promise<FinalSensorData> {
+  async getIpmiSensors(host: XoHost): Promise<FinalSensorData> {
     const xApiHost = this.#xo.getXapiObject<XoHost>(host.id as Branded<'host'>, 'host')
     const biosStrings = xApiHost.bios_strings
     let productName = biosStrings['system-product-name']?.toLowerCase() || ''
