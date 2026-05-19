@@ -165,9 +165,9 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
 
           // a running VM will fail to compute disk exports
           // also a running VM can be assumed to have changed data
-          if (vm.power_state !== VM_POWER_STATE.HALTED) {
+          if (vm.power_state !== VM_POWER_STATE.HALTED && vm.power_state !== VM_POWER_STATE.SUSPENDED) {
             canChainToTargetVm = false
-            debug('checkBaseVdis, target vm is not halted', {
+            debug('checkBaseVdis, target vm is not halted or suspended', {
               ref: snapshot.$ref,
               userVbds,
               powerState: vm.power_state,
