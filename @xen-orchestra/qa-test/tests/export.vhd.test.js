@@ -59,7 +59,17 @@ describe('VHD/XVA Export Replication Tests', () => {
     exportPath = getRequiredEnv('VHD_EXPORT_PATH')
 
     // Ensure export directory exists
-    await fs.mkdir(exportPath, { recursive: true })
+    try {
+      await fs.mkdir(exportPath, { recursive: true })
+    } catch (cause) {
+      const error = new Error(
+        `Cannot create export directory "${exportPath}" (${cause.code}) — ` +
+          `run: sudo mkdir -p "${exportPath}" && sudo chown $USER "${exportPath}", ` +
+          `or set VHD_EXPORT_PATH to a writable path`
+      )
+      error.cause = cause
+      throw error
+    }
     log.debug('Export path', { exportPath })
   })
 
