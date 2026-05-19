@@ -23,7 +23,7 @@
     "xo-server-db": "dist/db-cli.mjs",
     "xo-server-logs": "dist/logs-cli.mjs",
     "xo-server-recover-account": "dist/recover-account-cli.mjs",
-    "xo-server-ssh": "dist/ssh-cli.mjs"
+    "xo-xcppool-ssh": "dist/ssh-cli.mjs"
   },
   "engines": {
     "node": ">=14.18"
