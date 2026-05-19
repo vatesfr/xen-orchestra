@@ -48,7 +48,7 @@ async function createFullBackupMetadata(name, xvaName) {
   const size = await handler.getSize(`${rootPath}/${xvaName}`)
   const metadata = {
     mode: 'full',
-    xva: `${rootPath}/${xvaName}`,
+    xva: `./${xvaName}`,
     vm: { uuid: vmUuid },
     jobId: uniqueId(),
     timestamp: Date.now(),
