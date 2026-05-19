@@ -23,6 +23,7 @@ import { forbiddenOperation } from 'xo-common/api-errors.js'
 
 import { acl, actionsFromBody } from '../middlewares/acl.middleware.mjs'
 import {
+  asynchronousActionResp,
   badRequestResp,
   createdResp,
   forbiddenOperationResp,
@@ -45,6 +46,8 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import { BackupRepositoryService } from './backup-repository.service.mjs'
 import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
+
+type TestRepositoryResult = Awaited<ReturnType<XoApp['testRemote']>>
 
 @Route('backup-repositories')
 @Security('*')
@@ -232,8 +235,9 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
+  @Example(taskLocation)
   @Example({ success: true })
-  @Post('{id}/test')
+  @Post('{id}/actions/test')
   @Middlewares(
     acl({
       resource: 'backup-repository',
@@ -242,12 +246,24 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
       getObject: ({ restApi }) => restApi.xoApp.getRemote,
     })
   )
-  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(200, 'Ok')
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  testRepository(
-    @Path() id: string
-  ): Promise<{ success: true } | { success: false; step: string; file: string; error: unknown }> {
-    return this.restApi.xoApp.testRemote(id as XoBackupRepository['id'])
+  testRepository(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<TestRepositoryResult> {
+    const backupRepositoryId = id as XoBackupRepository['id']
+    const action = async () => {
+      return this.restApi.xoApp.testRemote(backupRepositoryId)
+    }
+
+    return this.createAction<TestRepositoryResult>(action, {
+      sync,
+      statusCode: 200,
+      taskProperties: {
+        name: 'test backup repository',
+        objectId: backupRepositoryId,
+      },
+    })
   }
 }
