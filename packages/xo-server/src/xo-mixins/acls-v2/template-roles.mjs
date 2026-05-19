@@ -83,3 +83,10 @@ export const VMS_READ_ONLY = {
   description: 'Allow to only see VMs',
   privileges: [{ action: 'read', resource: 'vm', effect: 'allow' }],
 }
+
+export const STORAGE_ADMINISTRATOR = {
+  roleTemplateId: 6,
+  name: 'Storage administrator',
+  description: 'Allow to manage storage',
+  privileges: [{ action: '*', resource: 'vdi', effect: 'allow' }],
+}
