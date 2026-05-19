@@ -138,8 +138,8 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
    * the active VDI has diverged from the snapshot. Returns a baseVdisBySourceUuid
    * map and, when all disks are clean, the targetVmRef to reuse.
    *
-   * @param {Map<XenApiVdi['id'], import('@vates/types').XenApiVdi[]>} snapshotCandidates - Snapshot VDIs on the target SR to validate.
-   * @returns {Promise<{ baseVdisBySourceUuid: Map<string, import('@vates/types').XenApiVdi>, targetVmRef: string | undefined }>}
+   * @param {Map<XenApiVdi['id'], import('@vates/types').XenApiVdi>} snapshotCandidates - Snapshot VDIs on the target SR to validate.
+   * @returns {Promise<{ baseVdisBySourceUuid: Map<string, import('@vates/types').XenApiVdi>, targetVmRef:  import('@vates/types').XenApiVm['$ref'] | undefined }>}
    */
   async #validateSnapshotCandidates(snapshotCandidates) {
     const sr = this._sr
