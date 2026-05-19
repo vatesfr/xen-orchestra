@@ -83,3 +83,10 @@ export const VMS_READ_ONLY = {
   description: 'Allow to only see VMs',
   privileges: [{ action: 'read', resource: 'vm', effect: 'allow' }],
 }
+
+export const NETWORK_ADMINISTRATOR = {
+  roleTemplateId: 7,
+  name: 'Network administrator',
+  description: 'Allow to manage network',
+  privileges: [{ action: '*', resource: 'vif', effect: 'allow' }],
+}
