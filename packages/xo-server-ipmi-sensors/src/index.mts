@@ -6,7 +6,7 @@
  * using configurable regex rules for supported products.
  */
 
-import type { Branded, XoApp, XoHost } from '@vates/types'
+import type { XoApp, XoHost } from '@vates/types'
 import { createLogger } from '@xen-orchestra/log'
 import { DEFAULT_IPMI_SENSOR_REGEX_CONFIG_STRINGIFIED } from './default-rules.mjs'
 import { addIpmiSensorDataType, containsDigit, isRelevantIpmiSensor, parseRegexConfig } from './ipmi-rules.mjs'
@@ -102,26 +102,28 @@ class IpmiSensorsPlugin {
    */
   async load(): Promise<void> {
     this.#unloadApiMethods.push(
-      this.#xo.addApiMethod<[XoHost], FinalSensorData>(
+      this.#xo.addApiMethod<[{ host: XoHost }], FinalSensorData>(
         'ipmi-sensors.get_ipmi_sensors',
         this.getIpmiSensors.bind(this),
-        { host: ['id', 'host', 'administrate'] },
-        { id: 'string' }
+        {
+          resolve: { host: ['id', 'host', 'administrate'] },
+          params: { id: { type: 'string' } },
+        }
       ),
       // replacement for the method in packages/xo-server/src/api/host.mjs
-      this.#xo.addApiMethod<[XoHost], FinalSensorData>(
+      this.#xo.addApiMethod<[{ host: XoHost }], FinalSensorData>(
         'host.getIpmiSensors',
         this.getIpmiSensors.bind(this),
         {
-          host: ['id', 'host', 'administrate'],
-        },
-        { id: 'string' }
+          resolve: { host: ['id', 'host', 'administrate'] },
+          params: { id: { type: 'string' } },
+        }
       )
     )
   }
 
-  async getIpmiSensors(host: XoHost): Promise<FinalSensorData> {
-    const xApiHost = this.#xo.getXapiObject<XoHost>(host.id as Branded<'host'>, 'host')
+  async getIpmiSensors({ host }: { host: XoHost }): Promise<FinalSensorData> {
+    const xApiHost = this.#xo.getXapiObject<XoHost>(host, 'host')
     const biosStrings = xApiHost.bios_strings
     let productName = biosStrings['system-product-name']?.toLowerCase() || ''
     const systemManufacturer = biosStrings['system-manufacturer']?.toLowerCase() || ''
