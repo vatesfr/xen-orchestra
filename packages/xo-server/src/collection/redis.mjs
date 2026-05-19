@@ -9,6 +9,8 @@ import map from 'lodash/map.js'
 import omit from 'lodash/omit.js'
 import { v4 as generateUuid } from 'uuid'
 
+import { createLogger } from '@xen-orchestra/log'
+
 import Collection, { ModelAlreadyExists } from '../collection.mjs'
 
 /** @typedef {import('../xo-mixins/crypto-credentials.mjs').default} CryptoCredentials */
@@ -34,6 +36,8 @@ import Collection, { ModelAlreadyExists } from '../collection.mjs'
 // TODO: Remote events.
 
 const VERSION = '20170905'
+
+const log = createLogger('xo:redis')
 
 export default class Redis extends Collection {
   /** @type {CryptoCredentials | undefined} */
@@ -209,6 +213,8 @@ export default class Redis extends Collection {
                 }
               })
             }
+          } else {
+            log.warn(`The id ${prefix}:${id} had no attached entries.`)
           }
         }
 
