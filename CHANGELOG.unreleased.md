@@ -51,6 +51,11 @@
 
 - @vates/types minor
 - @xen-orchestra/acl minor
+- @xen-orchestra/backup-archive major
+- @xen-orchestra/backups minor
+- @xen-orchestra/backups-cli patch
+- @xen-orchestra/disk-cli minor
+- @xen-orchestra/disk-transform minor
 - @xen-orchestra/fs minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
