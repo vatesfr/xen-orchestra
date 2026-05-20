@@ -1,5 +1,5 @@
 <template>
-  <form class="new-vdi-form" @submit.prevent="onSubmit()">
+  <VtsForm class="new-vdi-form" @submit="onSubmit()">
     <div class="section">
       <UiTitle>{{ t('general-information') }}</UiTitle>
 
@@ -40,11 +40,11 @@
 
     <div class="buttons-container">
       <UiLink :to="cancelTo" size="medium">{{ t('cancel') }}</UiLink>
-      <UiButton type="submit" size="medium" accent="brand" variant="primary" :disabled="!canSubmit">
+      <UiButton type="submit" size="medium" accent="brand" variant="primary">
         {{ t('action:create') }}
       </UiButton>
     </div>
-  </form>
+  </VtsForm>
 </template>
 
 <script lang="ts" setup>
@@ -56,6 +56,7 @@ import NewVdiSourceSelector from '@/modules/vdi/components/form/new/NewVdiSource
 import { useNewVdiForm } from '@/modules/vdi/form/new/use-new-vdi-form.ts'
 import type { NewVdiPayload } from '@/modules/vdi/jobs/xo-vdi-create.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import VtsForm from '@core/components/form/VtsForm.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -85,12 +86,11 @@ const {
   readOnly,
   bootable,
   isPv,
-  canSubmit,
   validateAndBuildPayload,
 } = useNewVdiForm(() => vm)
 
-function onSubmit() {
-  const payload = validateAndBuildPayload()
+async function onSubmit() {
+  const payload = await validateAndBuildPayload()
   if (payload !== undefined) {
     emit('create', payload)
   }

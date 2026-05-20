@@ -4,9 +4,10 @@ import { type BaseVdiFormData, useVdiFormBase } from '@/modules/vdi/form/use-vdi
 import type { NewVdiPayload, VdiSource } from '@/modules/vdi/jobs/xo-vdi-create.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { objectIcon } from '@core/icons'
-import { useFormSelect } from '@core/packages/form-select'
+import { minValue, required } from '@core/packages/form-validation'
+import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import { computed, type MaybeRefOrGetter, reactive, toRef, toRefs } from 'vue'
+import { computed, type MaybeRefOrGetter, reactive, toRefs } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const BYTES_PER_GB = 1024 ** 3
@@ -36,15 +37,24 @@ export function useNewVdiForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     bootable: false,
   })
 
-  const { availableSrs, getSrLocation, selectedSr, srWarning, useField, useSelect } = useVdiFormBase(vm, formData)
+  const { useField, useFormSelect, useSelect, validate } = useValidatedForm(formData, {
+    errors: {
+      onSubmit: () => ({
+        sr: { required },
+        name_label: { required },
+        allocatedSpace: { required, minValue: minValue(1) },
+      }),
+    },
+  })
+
+  const { availableSrs, getSrLocation, selectedSr, srWarning } = useVdiFormBase(vm, formData)
   const { pbdsBySr } = useXoPbdCollection()
 
   const selectableSrs = computed(() => availableSrs.value.filter(sr => sr.content_type !== 'iso'))
 
-  const { id: srSelectId } = useFormSelect(selectableSrs, {
+  const { id: srSelectId } = useFormSelect('sr', selectableSrs, {
     searchable: true,
     required: true,
-    model: toRef(formData, 'sr'),
     option: {
       label: sr => {
         const gbLeft = Math.floor((sr.size - sr.physical_usage) / BYTES_PER_GB)
@@ -57,23 +67,18 @@ export function useNewVdiForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
 
   const isPv = computed(() => vm.value.virtualizationMode === 'pv')
 
-  const canSubmit = computed(() => {
-    if (!formData.sr || formData.name_label.trim() === '') {
-      return false
-    }
-    return formData.allocatedSpace !== undefined && formData.allocatedSpace > 0
-  })
+  async function validateAndBuildPayload(): Promise<NewVdiPayload | undefined> {
+    const isValid = await validate()
 
-  function validateAndBuildPayload(): NewVdiPayload | undefined {
-    if (!canSubmit.value || !formData.sr) {
+    if (!isValid) {
       return undefined
     }
 
     return {
       source: formData.source,
-      srId: formData.sr,
+      srId: formData.sr!,
       name_label: formData.name_label.trim(),
-      virtual_size: (formData.allocatedSpace ?? 0) * BYTES_PER_GB,
+      virtual_size: formData.allocatedSpace! * BYTES_PER_GB,
       vm: vm.value.id,
       ...(formData.name_description.trim() !== '' && { name_description: formData.name_description.trim() }),
       ...(formData.readOnly && { read_only: true }),
@@ -99,7 +104,6 @@ export function useNewVdiForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     readOnly,
     bootable,
     isPv,
-    canSubmit,
     validateAndBuildPayload,
   }
 }
