@@ -1,4 +1,4 @@
-# `use-validated-form` package
+# `validated-form` package
 
 Provides two composables for building validated forms: `useValidatedForm` for single-step forms and `useMultiStepValidatedForm` for wizard-style multi-step forms.
 
@@ -23,17 +23,18 @@ Combines `useFormBindings` and `useFormValidation` into a single composable so e
 ### Usage
 
 ```typescript
-import { useValidatedForm } from '@core/packages/use-validated-form'
+import { required, outOfRange } from '@core/packages/form-validation'
+import { useValidatedForm } from '@core/packages/validated-form'
 
 const { useField, useFormSelect, useSelect, validate, reset, handleBlur } = useValidatedForm(formData, {
   errors: {
     onSubmit: () => ({
-      title: { required: requiredRule() },
+      title: { required },
     }),
   },
   warnings: {
     onBlur: () => ({
-      quantity: { outOfRange: outOfRangeRule(1, 999) },
+      quantity: { outOfRange: outOfRange(1, 999) },
     }),
   },
 })
@@ -95,7 +96,7 @@ Both overloads return a `ComputedRef` merging `{ id }`, `FieldMetadata`, and any
 ### Example: form with text inputs and a managed select
 
 ```typescript
-import { useValidatedForm } from '@core/packages/use-validated-form'
+import { useValidatedForm } from '@core/packages/validated-form'
 import { reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -162,7 +163,7 @@ const quantityInputBindings = useField('quantity', () => ({ label: t('quantity')
 Helper that creates a typed reactive object for multi-step forms. It is the recommended way to declare form data for `useMultiStepValidatedForm` — TypeScript infers the full nested shape so no separate type declaration is needed.
 
 ```typescript
-import { defineFormSteps } from '@core/packages/use-validated-form'
+import { defineFormSteps } from '@core/packages/validated-form'
 
 const formData = defineFormSteps({
   general: { category: undefined as string | undefined, title: '' },
@@ -183,7 +184,7 @@ TypeScript infers step names from the data and config keys, giving full autocomp
 ### Usage
 
 ```typescript
-import { defineFormSteps, useMultiStepValidatedForm } from '@core/packages/use-validated-form'
+import { defineFormSteps, useMultiStepValidatedForm } from '@core/packages/validated-form'
 
 const formData = defineFormSteps({
   general: { category: undefined as string | undefined, title: '' },
@@ -198,7 +199,7 @@ const { useField, currentStep, next, back, isStepValid, areAllStepsValid, valida
     details: {
       errors: {
         onSubmit: () => ({ region: { required }, quantity: { required } }),
-        onBlur: () => ({ quantity: { outOfRange: outOfRangeRule(1, 999) } }),
+        onBlur: () => ({ quantity: { outOfRange: outOfRange(1, 999) } }),
       },
     },
   })
@@ -248,7 +249,8 @@ Each step config is a `FormValidationConfig` scoped to its own sub-object: writi
 ### Example: wizard form with navigation and per-step validation
 
 ```typescript
-import { defineFormSteps, useMultiStepValidatedForm } from '@core/packages/use-validated-form'
+import { required, outOfRange } from '@core/packages/form-validation'
+import { defineFormSteps, useMultiStepValidatedForm } from '@core/packages/validated-form'
 import { useI18n } from 'vue-i18n'
 
 export function useCreateItemWizard() {
@@ -281,18 +283,18 @@ export function useCreateItemWizard() {
     general: {
       errors: {
         onSubmit: () => ({
-          category: { required: requiredRule() },
-          title: { required: requiredRule() },
+          category: { required },
+          title: { required },
         }),
       },
     },
     details: {
       errors: {
         onSubmit: () => ({
-          region: { required: requiredRule() },
-          quantity: { required: requiredRule() },
+          region: { required },
+          quantity: { required },
         }),
-        onBlur: () => ({ quantity: { outOfRange: outOfRangeRule(1, 999) } }),
+        onBlur: () => ({ quantity: { outOfRange: outOfRange(1, 999) } }),
       },
     },
   })
@@ -367,7 +369,7 @@ const {
 </script>
 
 <template>
-  <form novalidate @submit.prevent="onSubmit">
+  <VtsForm @submit="onSubmit">
     <div v-if="currentStep === 'general'">
       <VtsSelect v-bind="categorySelectBindings" />
       <VtsInput v-bind="titleInputBindings" />
@@ -382,6 +384,6 @@ const {
     <button :disabled="currentStep === 'general'" @click="back">Back</button>
     <button v-if="currentStep !== 'details'" @click="next">Next</button>
     <button v-else :disabled="!areAllStepsValid" @click="onSubmit">Submit</button>
-  </form>
+  </VtsForm>
 </template>
 ```

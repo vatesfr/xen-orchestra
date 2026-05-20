@@ -11,16 +11,16 @@ const { errors, warnings, validate, handleBlur, reset, useFieldMetadata } = useF
   errors: {
     // onBlur → shown when the user leaves the field
     onBlur: () => ({
-      port: { integer },
+      age: { integer },
     }),
     // onSubmit → shown only when validate() is called
     onSubmit: () => ({
-      name: { required: withMessage(required, t('name-required')) },
+      label: { required: withMessage(required, t('label-required')) },
     }),
   },
   warnings: {
     onBlur: () => ({
-      port: { outOfRange: outOfRange(1, 65535) },
+      age: { outOfRange: outOfRange(0, 150) },
     }),
   },
 })
@@ -56,7 +56,7 @@ Each group accepts either a plain rule tree object or a getter function — use 
 ```ts
 errors: {
   onSubmit: () => ({
-    name: { required: withMessage(required, t('name-required')) },
+    label: { required: withMessage(required, t('label-required')) },
   }),
 }
 ```
@@ -73,8 +73,8 @@ errors: {
 | `useFieldMetadata` | `(field, extras?) => () => FormFieldMetadata & extras` | Returns a metadata factory ready to pass to `useField`. Bundles error, warning, and the blur handler.             |
 
 `FormFieldMessages<TData>` is `{ [K in keyof TData]: string | undefined }` — all fields are always present; the value is `undefined` when there is no active message.
-Wrapping them into UI-layer message objects (with an accent, array form, etc.) is the consumer's responsibility.
-Since `InputWrapperMessage` accepts a plain `string`, the field values can be passed directly to `:error` / `:warning` props with no conversion needed.
+
+To wire these into `VtsInputWrapper`-based components, each string must be converted to `{ content, accent: 'danger' }` for errors and `{ content, accent: 'warning' }` for warnings — a plain string defaults to the `'info'` accent. `useValidatedForm` (from `@core/packages/validated-form`) performs this conversion automatically and is the recommended way to integrate validation with form fields.
 
 ## Severity levels
 
@@ -92,67 +92,131 @@ import { reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 type MyFormData = {
-  name: string
-  port: number | undefined
+  label: string
+  age: number | undefined
 }
 
 export function useMyForm() {
   const { t } = useI18n()
 
   const formData = reactive<MyFormData>({
-    name: '',
-    port: undefined,
+    label: '',
+    age: undefined,
   })
 
   const { validate, reset, useFieldMetadata } = useFormValidation(formData, {
     errors: {
       // Show 'required' only on submit — don't nag the user before they've had a chance to fill in the form.
       onSubmit: () => ({
-        name: { required: withMessage(required, t('name-required')) },
-        port: { required: withMessage(required, t('port-required')) },
+        label: { required: withMessage(required, t('label-required')) },
+        age: { required: withMessage(required, t('age-required')) },
       }),
       // Show format errors as soon as the user leaves the field.
       onBlur: () => ({
-        port: { integer },
+        age: { integer },
       }),
     },
     warnings: {
       onBlur: () => ({
-        port: { outOfRange: outOfRange(1, 65535) },
+        age: { outOfRange: outOfRange(0, 150) },
       }),
     },
   })
 
   const { useField } = useFormBindings(formData)
 
-  // All field props (v-model, error, warning, blur handler) bundled in a single binding
-  const nameField = useField('name', useFieldMetadata('name'))
-  const portField = useField(
-    'port',
-    useFieldMetadata('port', () => ({ label: t('port') }))
+  const labelField = useField('label', useFieldMetadata('label'))
+  const ageField = useField(
+    'age',
+    useFieldMetadata('age', () => ({ label: t('age') }))
   )
 
   async function validateAndBuildPayload() {
     const valid = await validate()
+
     if (!valid) {
       return
     }
-
-    // formData is validated — safe to submit
   }
 
-  return { formData, nameField, portField, validateAndBuildPayload, reset }
+  return { formData, labelField, ageField, validateAndBuildPayload, reset }
 }
 ```
 
-Template:
+## Merging configs — base / augmented form pattern
 
-```vue
-<template>
-  <!-- No separate @blur needed — onBlur is part of the binding -->
-  <VtsInput v-bind="nameField" />
-  <VtsInput v-bind="portField" />
-</template>
+`mergeValidationConfigs` combines two `FormValidationConfig` objects into one. It is useful when a reusable **base form composable** defines common validation rules and a derived **augmented form** composable adds extra fields and rules on top.
+
+```ts
+mergeValidationConfigs(base, extra?)
+```
+
+| Parameter | Required | Type                           | Description                              |
+| --------- | :------: | ------------------------------ | ---------------------------------------- |
+| `base`    |    ✓     | `FormValidationConfig<TBase>`  | The base config to extend                |
+| `extra`   |          | `FormValidationConfig<TExtra>` | Additional rules to layer on top of base |
+
+- `errors` and `warnings` groups are merged independently.
+- Within each group, `onBlur` and `onSubmit` rule trees are merged by spreading `extra` over `base` — extra fields win on key collision.
+- Both plain objects and getter functions are supported; if either side is a getter the result is a getter.
+- When `extra` is omitted, `base` is returned as-is.
+
+### Example
+
+```ts
+// use-base-form.ts — base composable shared by several form variants
+import {
+  mergeValidationConfigs,
+  useFormValidation,
+  required,
+  withMessage,
+  type FormValidationConfig,
+} from '@core/packages/form-validation'
+import { reactive } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+type BaseFormData = { label: string; description: string }
+
+export function useBaseForm(extraConfig?: FormValidationConfig<BaseFormData>) {
+  const { t } = useI18n()
+  const formData = reactive<BaseFormData>({ label: '', description: '' })
+
+  const baseConfig: FormValidationConfig<BaseFormData> = {
+    errors: {
+      onSubmit: () => ({
+        label: { required: withMessage(required, t('error:label-required')) },
+      }),
+    },
+  }
+
+  const { validate, reset, useFieldMetadata } = useFormValidation(
+    formData,
+    mergeValidationConfigs(baseConfig, extraConfig)
+  )
+
+  // …
+  return { formData, validate, reset, useFieldMetadata }
+}
+```
+
+```ts
+// use-extended-form.ts — augmented form that adds extra validation on top
+import { minLength, type FormValidationConfig } from '@core/packages/form-validation'
+import { useBaseForm } from './use-base-form'
+
+type BaseFormData = { label: string; description: string }
+
+export function useExtendedForm() {
+  const extras: FormValidationConfig<BaseFormData> = {
+    errors: {
+      onBlur: () => ({
+        label: { minLength: minLength(3) },
+      }),
+    },
+  }
+
+  return useBaseForm(extras)
+}
 ```
 
 ## Available rules
