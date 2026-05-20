@@ -14,9 +14,9 @@ import type { FormValidationConfig } from '@core/packages/form-validation/types.
 import type { EmptyObject, MaybeArray } from '@core/types/utility.type.ts'
 import { toRef, type MaybeRefOrGetter, type ComputedRef, type Ref } from 'vue'
 
-type ModelBinding<T> = { modelValue: T; 'onUpdate:modelValue': (value: T) => void }
+export type ModelBinding<T> = { modelValue: T; 'onUpdate:modelValue': (value: T) => void }
 
-type FieldMetadata = {
+export type FieldMetadata = {
   error: InputWrapperMessage | undefined
   warning: InputWrapperMessage | undefined
   onBlur: () => void
@@ -26,7 +26,7 @@ function toMessage(content: string | undefined, accent: 'danger' | 'warning'): I
   return content !== undefined ? { content, accent } : undefined
 }
 
-type UseFormSelectConfig<TSource, TCustomProperties extends CollectionItemProperties> = {
+export type UseFormSelectConfig<TSource, TCustomProperties extends CollectionItemProperties> = {
   multiple?: MaybeRefOrGetter<boolean>
   disabled?: MaybeRefOrGetter<boolean>
   selectedLabel?: (count: number, labels: string[]) => string | undefined

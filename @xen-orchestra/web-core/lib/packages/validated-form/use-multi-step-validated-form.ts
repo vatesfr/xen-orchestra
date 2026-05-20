@@ -1,52 +1,19 @@
-import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
-import type { CollectionItemProperties, GetItemId } from '@core/packages/collection'
+import type { CollectionItemProperties } from '@core/packages/collection'
 import type {
   ExtractValue,
   FormSelectId,
-  GetOptionLabel,
   GetOptionValue,
   UseFormSelectReturn,
 } from '@core/packages/form-select/types.ts'
 import type { FormValidationConfig } from '@core/packages/form-validation/types.ts'
-import type { EmptyObject, MaybeArray } from '@core/types/utility.type.ts'
+import type { EmptyObject } from '@core/types/utility.type.ts'
 import { computed, reactive, ref, shallowReactive, type ComputedRef, type MaybeRefOrGetter } from 'vue'
-import { useValidatedForm } from './use-validated-form.ts'
-
-type ModelBinding<T> = { modelValue: T; 'onUpdate:modelValue': (value: T) => void }
-
-type FieldMetadata = {
-  error: InputWrapperMessage | undefined
-  warning: InputWrapperMessage | undefined
-  onBlur: () => void
-}
-
-type UseFormSelectConfig<TSource, TCustomProperties extends CollectionItemProperties> = {
-  multiple?: MaybeRefOrGetter<boolean>
-  disabled?: MaybeRefOrGetter<boolean>
-  selectedLabel?: (count: number, labels: string[]) => string | undefined
-  placeholder?: MaybeRefOrGetter<string>
-  searchPlaceholder?: MaybeRefOrGetter<string>
-  loading?: MaybeRefOrGetter<boolean>
-  required?: MaybeRefOrGetter<boolean>
-  searchable?: MaybeRefOrGetter<boolean>
-  emptyOption?: MaybeRefOrGetter<{
-    value: unknown
-    properties?: TCustomProperties
-    label: string
-    selectedLabel?: string
-  }>
-  option?: {
-    id?: GetItemId<TSource>
-    value?:
-      | GetOptionValue<TSource, TCustomProperties>
-      | ((source: TSource, properties: TCustomProperties, index: number) => unknown)
-    properties?: (source: TSource) => TCustomProperties
-    label?: GetOptionLabel<TSource, TCustomProperties>
-    selectedLabel?: (source: TSource, properties: TCustomProperties) => string
-    disabled?: (source: TSource, properties: TCustomProperties) => boolean
-    searchableTerm?: (source: TSource, properties: TCustomProperties) => MaybeArray<string>
-  }
-}
+import {
+  useValidatedForm,
+  type FieldMetadata,
+  type ModelBinding,
+  type UseFormSelectConfig,
+} from './use-validated-form.ts'
 
 export type NestedFormData = Record<string, Record<string, unknown>>
 
@@ -56,31 +23,34 @@ type FieldValue<TData extends NestedFormData, K extends string> = {
   [S in keyof TData]: K extends keyof TData[S] ? TData[S][K] : never
 }[keyof TData]
 
+type StepForms<TData extends NestedFormData> = {
+  [K in keyof TData]: ReturnType<typeof useValidatedForm<TData[K]>>
+}
+
 export function useMultiStepValidatedForm<
   TData extends NestedFormData,
   TSteps extends { [K in keyof TData]: FormValidationConfig<TData[K]> },
 >(data: TData, stepConfigs: TSteps) {
-  type AnyStepForm = ReturnType<typeof useValidatedForm<Record<string, unknown>>>
-
   const stepForms = Object.fromEntries(
-    Object.keys(stepConfigs).map(stepKey => [
+    (Object.keys(stepConfigs) as (keyof TData & string)[]).map(stepKey => [
       stepKey,
-      useValidatedForm(
-        data[stepKey],
-        stepConfigs[stepKey as keyof TSteps] as FormValidationConfig<Record<string, unknown>>
-      ),
+      useValidatedForm(data[stepKey], stepConfigs[stepKey]),
     ])
-  ) as Record<string, AnyStepForm>
+  ) as unknown as StepForms<TData>
 
-  const fieldToStep = new Map<string, string>()
+  const fieldToStep = new Map<FlatKeys<TData>, keyof TData & string>()
 
-  for (const stepKey of Object.keys(data)) {
-    for (const fieldKey of Object.keys(data[stepKey])) {
+  for (const stepKey of Object.keys(data) as (keyof TData & string)[]) {
+    for (const fieldKey of Object.keys(data[stepKey]) as FlatKeys<TData>[]) {
+      if (fieldToStep.has(fieldKey)) {
+        throw new Error(`useMultiStepValidatedForm: field "${fieldKey}" is declared in multiple steps`)
+      }
+
       fieldToStep.set(fieldKey, stepKey)
     }
   }
 
-  const idToStep = new Map<symbol, string>()
+  const idToStep = new Map<FormSelectId, keyof TData & string>()
 
   const stepKeys = Object.keys(stepConfigs) as (keyof TSteps & string)[]
   const currentStepIndex = ref(0)
@@ -97,8 +67,8 @@ export function useMultiStepValidatedForm<
     return stepValidStates.get(stepName)
   }
 
-  async function validateStep(stepName: keyof TSteps): Promise<boolean> {
-    const isValid = await stepForms[stepName as string].validate()
+  async function validateStep(stepName: keyof TSteps & string): Promise<boolean> {
+    const isValid = await stepForms[stepName].validate()
     stepValidStates.set(stepName, isValid)
     return isValid
   }
@@ -136,13 +106,28 @@ export function useMultiStepValidatedForm<
     }
   }
 
+  function resolveStepFromField<K extends FlatKeys<TData>>(key: K): keyof TData & string {
+    const stepKey = fieldToStep.get(key)
+
+    if (stepKey === undefined) {
+      throw new Error(`useMultiStepValidatedForm: field "${String(key)}" is not declared in any step`)
+    }
+
+    return stepKey
+  }
+
   function useField<K extends FlatKeys<TData>>(key: K): ComputedRef<ModelBinding<FieldValue<TData, K>> & FieldMetadata>
   function useField<K extends FlatKeys<TData>, E extends Record<string, unknown>>(
     key: K,
     extras: () => E
   ): ComputedRef<ModelBinding<FieldValue<TData, K>> & FieldMetadata & E>
-  function useField<K extends FlatKeys<TData>, E extends Record<string, unknown>>(key: K, extras?: () => E) {
-    return (stepForms[fieldToStep.get(key)!] as any).useField(key, extras)
+  function useField<K extends FlatKeys<TData>, E extends Record<string, unknown>>(key: K, extras?: () => E): unknown {
+    const stepKey = resolveStepFromField(key)
+    const stepForm = stepForms[stepKey] as StepForms<TData>[keyof TData] & {
+      useField: (key: string, extras?: () => Record<string, unknown>) => unknown
+    }
+
+    return extras !== undefined ? stepForm.useField(key, extras) : stepForm.useField(key)
   }
 
   function useFormSelect<
@@ -157,9 +142,14 @@ export function useMultiStepValidatedForm<
     sources: MaybeRefOrGetter<TSource[]>,
     formSelectConfig?: UseFormSelectConfig<TSource, TCustomProperties>
   ): UseFormSelectReturn<TCustomProperties, TSource, $TValue | TEmptyValue, TMultiple> {
-    const stepKey = fieldToStep.get(key)!
-    const result = (stepForms[stepKey] as any).useFormSelect(key, sources, formSelectConfig)
-    idToStep.set(result.id as unknown as symbol, stepKey)
+    const stepKey = resolveStepFromField(key)
+    const result = stepForms[stepKey].useFormSelect(key as never, sources, formSelectConfig) as UseFormSelectReturn<
+      TCustomProperties,
+      TSource,
+      $TValue | TEmptyValue,
+      TMultiple
+    >
+    idToStep.set(result.id, stepKey)
     return result
   }
 
@@ -168,10 +158,11 @@ export function useMultiStepValidatedForm<
     id: FormSelectId,
     extras: () => E
   ): ComputedRef<{ id: FormSelectId } & FieldMetadata & E>
+  function useSelect(id: FormSelectId, key: FlatKeys<TData>): ComputedRef<{ id: FormSelectId } & FieldMetadata>
   function useSelect<E extends Record<string, unknown>>(
     id: FormSelectId,
     key: FlatKeys<TData>,
-    extras?: () => E
+    extras: () => E
   ): ComputedRef<{ id: FormSelectId } & FieldMetadata & E>
   function useSelect<E extends Record<string, unknown> = Record<string, unknown>>(
     id: FormSelectId,
@@ -179,16 +170,17 @@ export function useMultiStepValidatedForm<
     extras?: () => E
   ) {
     if (typeof keyOrExtras === 'string') {
-      return (stepForms[fieldToStep.get(keyOrExtras)!] as any).useSelect(id, keyOrExtras, extras)
+      const stepKey = resolveStepFromField(keyOrExtras)
+      return stepForms[stepKey].useSelect(id, keyOrExtras as never, extras as never)
     }
 
-    const stepKey = idToStep.get(id as unknown as symbol)
+    const stepKey = idToStep.get(id)
 
-    if (stepKey !== undefined) {
-      return (stepForms[stepKey] as any).useSelect(id, keyOrExtras)
+    if (stepKey === undefined) {
+      throw new Error('useSelect: could not resolve step for select id — ensure useFormSelect was called first')
     }
 
-    throw new Error('useSelect: could not resolve step for select id — ensure useFormSelect was called first')
+    return stepForms[stepKey].useSelect(id, keyOrExtras as never)
   }
 
   return {
