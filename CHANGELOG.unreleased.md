@@ -21,6 +21,8 @@
 - [xo-server] Fix network being put first in boot order when HVM template has VDIs (PR [#9867](https://github.com/vatesfr/xen-orchestra/pull/9867))
 - [Backup] Fix OUT_OF_RANGE error when resuming failed merge (PR [#9782](https://github.com/vatesfr/xen-orchestra/pull/9782))
 - [xo-server] Fix TLS memory leak (PR [#9842](https://github.com/vatesfr/xen-orchestra/pull/9842))
+- **XO 5**:
+  - [Dashboard/Health] Ignore the replicated VM when checking the number of snapshots(PR [#9868](https://github.com/vatesfr/xen-orchestra/pull/9868))
 
 ### Packages to release
 
@@ -41,5 +43,6 @@
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/web minor
 - xo-server patch
+- xo-web patch
 
 <!--packages-end-->
