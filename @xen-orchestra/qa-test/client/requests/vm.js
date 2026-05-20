@@ -2,7 +2,7 @@ import { createLogger } from '@xen-orchestra/log'
 import fs from 'node:fs/promises'
 import { FilterBuilder } from '../FilterBuilder.js'
 import { AbstractRequest } from './abstract.js'
-import { assertNonEmptyString } from '../../utils/index.js'
+import { assertNonEmptyString, waitUntil } from '../../utils/index.js'
 
 const log = createLogger('xo:qa-test:vm')
 
@@ -234,23 +234,14 @@ export class VMRequest extends AbstractRequest {
     assertNonEmptyString(targetState, 'Valid target state is required', 'INVALID_TARGET_STATE')
     this._ensureConnected()
 
-    const deadline = Date.now() + timeout
-    const pollInterval = 3_000
-
-    while (Date.now() < deadline) {
-      const vm = await this.details(vmUuid)
-      if (vm?.power_state === targetState) {
-        log.debug('VM reached target power state', { uuid: vmUuid, state: targetState })
-        return
-      }
-      const remaining = deadline - Date.now()
-      if (remaining <= 0) {
-        break
-      }
-      await new Promise(resolve => setTimeout(resolve, Math.min(pollInterval, remaining)))
-    }
-
-    throw new Error(`VM ${vmUuid} did not reach power state '${targetState}' within ${timeout}ms`)
+    return waitUntil(
+      async () => {
+        const vm = await this.details(vmUuid)
+        return vm?.power_state === targetState
+      },
+      3_000,
+      timeout
+    )
   }
 
   /**
