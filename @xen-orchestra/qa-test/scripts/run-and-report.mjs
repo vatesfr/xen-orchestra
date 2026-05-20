@@ -13,8 +13,8 @@
  *   SMTP_FROM     Sender address (defaults to SMTP_USER)
  *
  * Usage:
- *   node --env-file-if-exists=.env scripts/run-and-report.mjs
- *   yarn report
+ *   yarn report               run the full test suite and send results
+ *   yarn report:smtp-test     verify SMTP config by sending an empty test mail
  */
 
 import { spawn, execSync } from 'node:child_process'
@@ -93,6 +93,35 @@ if (missing.length > 0) {
   process.exit(2)
 }
 
+const transport = createTransport({
+  host: process.env.SMTP_HOST ?? 'smtp.gmail.com',
+  port: Number(process.env.SMTP_PORT ?? 587),
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+})
+
+// ---------------------------------------------------------------------------
+// SMTP connectivity test — yarn report:smtp-test
+// ---------------------------------------------------------------------------
+
+if (process.argv.includes('--smtp-test')) {
+  process.stderr.write(`[run-and-report] Sending SMTP test mail to ${process.env.SMTP_TO}...\n`)
+  await transport.sendMail({
+    from: process.env.SMTP_FROM ?? process.env.SMTP_USER,
+    to: process.env.SMTP_TO,
+    subject: `[qa-test] SMTP connectivity test ${formatDatetime(new Date())}`,
+    text: 'SMTP configuration is working correctly.',
+  })
+  process.stderr.write(`[run-and-report] Test mail sent → ${process.env.SMTP_TO}\n`)
+  process.exit(0)
+}
+
+// ---------------------------------------------------------------------------
+// Full run
+// ---------------------------------------------------------------------------
+
 const branch = getBranchName()
 const startedAt = new Date()
 
@@ -115,15 +144,6 @@ if (logFilePath !== null) {
     process.stderr.write(`[run-and-report] Could not read log file: ${err.message}\n`)
   }
 }
-
-const transport = createTransport({
-  host: process.env.SMTP_HOST ?? 'smtp.gmail.com',
-  port: Number(process.env.SMTP_PORT ?? 587),
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-})
 
 await transport.sendMail({
   from: process.env.SMTP_FROM ?? process.env.SMTP_USER,
