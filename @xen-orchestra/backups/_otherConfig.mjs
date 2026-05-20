@@ -85,6 +85,7 @@ export async function getVmDeltaChainLength(xapi, vmRef) {
 export function resetVmOtherConfig(xapi, vmRef) {
   return applyToVmAndVdis(xapi, vmRef, (type, ref) => {
     return xapi.setFieldEntries(type, ref, 'other_config', {
+      [CONTENT_KEY]: null,
       [COPY_OF]: null,
       [DATETIME]: null,
       [DELTA_CHAIN_LENGTH]: null,
@@ -92,6 +93,7 @@ export function resetVmOtherConfig(xapi, vmRef) {
       [JOB_ID]: null,
       [SCHEDULE_ID]: null,
       [VM_UUID]: null,
+
       // REPLICATED_TO_SR_UUID is not reset since we can replicate a replication
     })
   })

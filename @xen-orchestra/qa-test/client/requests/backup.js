@@ -317,8 +317,13 @@ export class BackupRequest extends AbstractRequest {
         schedule: scheduleId,
       })
     } catch (wsError) {
-      log.warn('Run backup job failed', { error: wsError.message })
-      throw wsError
+      if (wsError.code === -32000 && wsError.message.includes('task has not started yet')) {
+        // sometimes we get a task not started error
+        await new Promise(resolve => setTimeout(resolve, 10_000))
+      } else {
+        console.error('❌ Run backup job failed:', wsError.message)
+        throw wsError
+      }
     }
 
     // Wait for the backup to complete and get the log
