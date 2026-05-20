@@ -289,11 +289,30 @@ export class CleanupClient {
         }
       }
 
-      // Mirror backup jobs require mirrorBackup.deleteJob, standard jobs use backupNg.deleteJob
+      // Mirror backup jobs require mirrorBackup.deleteJob, standard jobs use backupNg.deleteJob.
+      // The REST API may not expose the type field for mirror jobs, so fall back when backupNg
+      // returns "no such job" (error.data.type === 'job').
       if (job.type === 'mirrorBackup') {
         await this.dispatchClient.backup.deleteMirrorBackupJob(job.id)
       } else {
-        await this.dispatchClient.backup.deleteBackupJob(job.id)
+        try {
+          await this.dispatchClient.backup.deleteBackupJob(job.id)
+        } catch (error) {
+          if (error?.data?.type !== 'job') {
+            throw error
+          }
+          // backupNg doesn't know this job — may be a mirror backup job; try the mirror method
+          try {
+            await this.dispatchClient.backup.deleteMirrorBackupJob(job.id)
+          } catch (mirrorError) {
+            if (mirrorError?.data?.type === 'job') {
+              // Job is unreachable through both RPCs (orphaned from a previous run) — skip silently
+              log.debug('Backup job not found via any delete method, skipping', { jobId: job.id })
+              return
+            }
+            throw mirrorError
+          }
+        }
       }
     }
 

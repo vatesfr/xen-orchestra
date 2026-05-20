@@ -100,7 +100,10 @@ export class BackupRequest extends AbstractRequest {
       const result = await this.dispatchClient.xoClient.call('backupNg.deleteJob', { id: jobId })
       return result
     } catch (error) {
-      log.warn('Delete backup job failed', { error })
+      // "no such job" means the caller used the wrong delete method (e.g. mirror job) — let it handle the fallback
+      if (error?.data?.type !== 'job') {
+        log.warn('Delete backup job failed', { error })
+      }
       throw error
     }
   }
@@ -229,7 +232,9 @@ export class BackupRequest extends AbstractRequest {
       const result = await this.dispatchClient.xoClient.call('mirrorBackup.deleteJob', { id: jobId })
       return result
     } catch (error) {
-      log.warn('Delete mirror backup job failed', { error })
+      if (error?.data?.type !== 'job') {
+        log.warn('Delete mirror backup job failed', { error })
+      }
       throw error
     }
   }
