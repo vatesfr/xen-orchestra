@@ -98,6 +98,7 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
         const queue = new Set(vmIds)
         const taskByVmId = {}
         const nTriesByVmId = {}
+        const vmErrors = []
 
         const handleVm = vmUuid => {
           const getVmTask = () => {
@@ -175,11 +176,19 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
                     } else {
                       // ending the task with error or not ending the task
                       vmBackupFailed(taskError, task)
+                      if (isLastRun) {
+                        vmErrors.push(taskError)
+                      }
                     }
                   })
                   .catch(noop) // errors are handled by logs
               }),
-            error => vmBackupFailed(error, getVmTask())
+            error => {
+              vmBackupFailed(error, getVmTask())
+              if (isLastRun) {
+                vmErrors.push(error)
+              }
+            }
           )
         }
         const { concurrency } = settings
@@ -191,6 +200,8 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
 
           await asyncMapSettled(vmIds, _handleVm)
         }
+
+        this._throwVmErrors(vmErrors)
       }
     )
   }

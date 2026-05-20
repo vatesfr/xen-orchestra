@@ -71,6 +71,7 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
         const queue = new Set(vmsUuids)
         const taskByVmId = {}
         const nTriesByVmId = {}
+        const vmErrors = []
 
         const handleVm = vmUuid => {
           if (nTriesByVmId[vmUuid] === undefined) {
@@ -126,6 +127,7 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
                       return task.success(result)
                     }
                     if (isLastRun) {
+                      vmErrors.push(taskError)
                       return task.failure(taskError)
                     }
                     // don't end the task
@@ -148,6 +150,8 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
 
           await asyncMapSettled(vmIds, _handleVm)
         }
+
+        this._throwVmErrors(vmErrors)
       }
     )
   }
