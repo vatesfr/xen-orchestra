@@ -125,7 +125,11 @@ export class VmFullBackupArchive implements VmBackupInterface {
       this.isValid = fileSize > 0 && validSize && validDisk
     }
     if (!this.isValid) {
-      this.opts.logWarn('XVA might be broken', { path: this.xvaPath })
+      if (this.missingDisk) {
+        this.opts.logWarn('XVA is missing', { path: this.xvaPath })
+      } else {
+        this.opts.logWarn('XVA might be broken', { path: this.xvaPath })
+      }
     }
     return { isValid: this.isValid }
   }
