@@ -211,10 +211,19 @@ export class CleanupClient {
     }
 
     const deleteVM = async vm => {
+      if (vm.power_state === 'Running') {
+        try {
+          await this.dispatchClient.vm.stop(vm.uuid, { force: true })
+          await new Promise(resolve => setTimeout(resolve, 3_000))
+        } catch (error) {
+          log.warn('Could not stop VM before deletion', { uuid: vm.uuid, error })
+        }
+      }
+
       await this.dispatchClient.vm.delete(vm.uuid, {
         deleteDisks: true,
-        force: config.force,
-        forceBlockedOperation: config.force,
+        force: true,
+        forceBlockedOperation: true,
       })
     }
 
