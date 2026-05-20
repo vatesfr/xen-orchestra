@@ -1,24 +1,21 @@
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { payloadsVdiArg } from '@/modules/vdi/jobs/xo-vdi-create-args.ts'
-import { fetchPost, fetchPut } from '@/shared/utils/fetch.util.ts'
+import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
-import type { XoSr, XoVdi, XoVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export type VdiSource = 'empty' | 'file' | 'url'
 
-export type VdiUploadFormat = 'vhd' | 'raw' | 'qcow2'
-
 export type NewVdiPayload = {
   source: VdiSource
-  srId: XoSr['id']
+  srId: FrontXoSr['id']
   name_label: string
   name_description?: string
   virtual_size: number
   read_only?: boolean
-  file?: File
-  url?: string
-  format?: VdiUploadFormat
-  vm?: XoVm['id']
+  vm?: FrontXoVm['id']
   bootable?: boolean
 }
 
@@ -26,14 +23,10 @@ export const useXoVdiCreateJob = defineJob('vdi.create', [payloadsVdiArg], () =>
   const { t } = useI18n()
 
   return {
-    run(payloads): Promise<PromiseSettledResult<XoVdi['id']>[]> {
+    run(payloads): Promise<PromiseSettledResult<FrontXoVdi['id']>[]> {
       return Promise.allSettled(
         payloads.map(async payload => {
-          if (payload.source === 'url') {
-            throw new JobError(t('new-vdi:url-source-not-supported'))
-          }
-
-          const { id } = await fetchPost<{ id: XoVdi['id'] }>('vdis', {
+          const { id } = await fetchPost<{ id: FrontXoVdi['id'] }>('vdis', {
             srId: payload.srId,
             name_label: payload.name_label,
             virtual_size: payload.virtual_size,
@@ -42,10 +35,6 @@ export const useXoVdiCreateJob = defineJob('vdi.create', [payloadsVdiArg], () =>
               payload.name_description !== '' && { name_description: payload.name_description }),
             ...(payload.read_only && { read_only: true }),
           })
-
-          if (payload.source === 'file' && payload.file !== undefined && payload.format !== undefined) {
-            await fetchPut(`vdis/${id}.${payload.format}`, payload.file)
-          }
 
           if (payload.vm !== undefined) {
             await fetchPost('vbds', {
@@ -81,14 +70,6 @@ export const useXoVdiCreateJob = defineJob('vdi.create', [payloadsVdiArg], () =>
 
         if (payload.source === 'empty' && !(payload.virtual_size > 0)) {
           throw new JobError(t('job:arg:allocated-space-required'))
-        }
-
-        if (payload.source === 'file' && payload.file === undefined) {
-          throw new JobError(t('job:arg:file-required'))
-        }
-
-        if (payload.source === 'url' && !payload.url) {
-          throw new JobError(t('job:arg:url-required'))
         }
       })
     },

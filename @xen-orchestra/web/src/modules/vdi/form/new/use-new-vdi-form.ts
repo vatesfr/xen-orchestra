@@ -1,15 +1,12 @@
+import { getPbdsConnectionStatus } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
+import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import { type BaseVdiFormData, useVdiFormBase } from '@/modules/vdi/form/use-vdi-form-base.ts'
 import type { NewVdiPayload, VdiSource } from '@/modules/vdi/jobs/xo-vdi-create.job.ts'
-import {
-  getFileExtension,
-  getFormatFromExtension,
-  ISO_SR_FILE_EXTENSIONS,
-  WRITABLE_SR_FILE_EXTENSIONS,
-} from '@/modules/vdi/utils/xo-vdi.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { objectIcon } from '@core/icons'
 import { useFormSelect } from '@core/packages/form-select'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import { computed, type MaybeRefOrGetter, reactive, toRef, toRefs, watch } from 'vue'
+import { computed, type MaybeRefOrGetter, reactive, toRef, toRefs } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const BYTES_PER_GB = 1024 ** 3
@@ -20,8 +17,6 @@ type NewVdiFormData = BaseVdiFormData & {
   name_description: string
   // GB, in user-facing units
   allocatedSpace: number | undefined
-  file: File | undefined
-  url: string
   readOnly: boolean
   bootable: boolean
 }
@@ -37,53 +32,14 @@ export function useNewVdiForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     name_label: '',
     name_description: '',
     allocatedSpace: undefined,
-    file: undefined,
-    url: '',
     readOnly: false,
     bootable: false,
   })
 
   const { availableSrs, getSrLocation, selectedSr, srWarning, useField, useSelect } = useVdiFormBase(vm, formData)
+  const { pbdsBySr } = useXoPbdCollection()
 
-  // ISO SRs only make sense when the user imports content; an empty VDI has no use there.
-  const selectableSrs = computed(() =>
-    formData.source === 'empty' ? availableSrs.value.filter(sr => sr.content_type !== 'iso') : availableSrs.value
-  )
-
-  // Reset source-specific state when switching modes
-  watch(
-    () => formData.source,
-    next => {
-      if (next !== 'file') {
-        formData.file = undefined
-      }
-      if (next !== 'url') {
-        formData.url = ''
-      }
-    }
-  )
-
-  // Track the last value we auto-filled so we can refresh it on file change without
-  // overwriting a name the user has typed by hand.
-  let lastAutoFilledName: string | undefined
-
-  // For "file" source: derive name_label and allocatedSpace from the picked file
-  watch(
-    () => formData.file,
-    file => {
-      if (file === undefined) {
-        return
-      }
-
-      if (formData.name_label === '' || formData.name_label === lastAutoFilledName) {
-        const derivedName = file.name.replace(/\.[^.]+$/, '')
-        formData.name_label = derivedName
-        lastAutoFilledName = derivedName
-      }
-
-      formData.allocatedSpace = Math.max(1, Math.ceil(file.size / BYTES_PER_GB))
-    }
-  )
+  const selectableSrs = computed(() => availableSrs.value.filter(sr => sr.content_type !== 'iso'))
 
   const { id: srSelectId } = useFormSelect(selectableSrs, {
     searchable: true,
@@ -95,40 +51,17 @@ export function useNewVdiForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
         return `${sr.name_label} (${getSrLocation(sr)}) - ${t('n-gb-left', { n: gbLeft })}`
       },
       value: 'id',
+      properties: sr => ({ icon: objectIcon('sr', getPbdsConnectionStatus(pbdsBySr.value.get(sr.id) ?? [])) }),
     },
   })
 
   const isPv = computed(() => vm.value.virtualizationMode === 'pv')
 
-  const isSrIso = computed(() => selectedSr.value?.content_type === 'iso')
-
-  const acceptedFileExtensions = computed(() =>
-    isSrIso.value ? [...ISO_SR_FILE_EXTENSIONS] : [...WRITABLE_SR_FILE_EXTENSIONS]
-  )
-
-  const fileFormat = computed(() =>
-    formData.file !== undefined ? getFormatFromExtension(getFileExtension(formData.file)) : undefined
-  )
-
-  const isFileCompatibleWithSr = computed(() => {
-    if (formData.file === undefined || selectedSr.value === undefined) {
-      return true
-    }
-    const extension = getFileExtension(formData.file)
-    return extension !== undefined && acceptedFileExtensions.value.includes(extension as never)
-  })
-
   const canSubmit = computed(() => {
     if (!formData.sr || formData.name_label.trim() === '') {
       return false
     }
-    if (formData.source === 'empty') {
-      return formData.allocatedSpace !== undefined && formData.allocatedSpace > 0
-    }
-    if (formData.source === 'file') {
-      return formData.file !== undefined && fileFormat.value !== undefined && isFileCompatibleWithSr.value
-    }
-    return formData.url.trim() !== ''
+    return formData.allocatedSpace !== undefined && formData.allocatedSpace > 0
   })
 
   function validateAndBuildPayload(): NewVdiPayload | undefined {
@@ -136,7 +69,7 @@ export function useNewVdiForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
       return undefined
     }
 
-    const base: NewVdiPayload = {
+    return {
       source: formData.source,
       srId: formData.sr,
       name_label: formData.name_label.trim(),
@@ -146,20 +79,9 @@ export function useNewVdiForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
       ...(formData.readOnly && { read_only: true }),
       ...(isPv.value && { bootable: formData.bootable }),
     }
-
-    if (formData.source === 'file' && formData.file !== undefined && fileFormat.value !== undefined) {
-      base.file = formData.file
-      base.format = fileFormat.value
-    }
-
-    if (formData.source === 'url') {
-      base.url = formData.url.trim()
-    }
-
-    return base
   }
 
-  const { readOnly, bootable, file, source } = toRefs(formData)
+  const { readOnly, bootable, source } = toRefs(formData)
 
   return {
     source,
@@ -172,17 +94,11 @@ export function useNewVdiForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     descriptionInputBindings: useField('name_description', () => ({ label: t('vdi-description') })),
     allocatedSpaceBindings: useField('allocatedSpace', () => ({
       label: t('allocated-space'),
-      required: formData.source !== 'file',
-      readonly: formData.source === 'file',
+      required: true,
     })),
-    urlInputBindings: useField('url', () => ({ label: t('url'), required: true })),
     readOnly,
     bootable,
-    file,
     isPv,
-    isSrIso,
-    acceptedFileExtensions,
-    isFileCompatibleWithSr,
     canSubmit,
     validateAndBuildPayload,
   }

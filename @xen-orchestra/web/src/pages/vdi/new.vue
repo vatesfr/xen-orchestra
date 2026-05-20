@@ -13,16 +13,20 @@
     <template v-else>
       <VtsOperationPendingCard v-if="isRunning" :title="t('creating-new-vdi')" />
 
-      <VdiCreationErrorCard
+      <VtsOperationErrorCard
         v-else-if="hasCreationError && error"
         :title="t('unable-to-create-new-vdi')"
         :error
         :error-message="t('new-vdi:error-message')"
-        @go-back="handleGoBack()"
-      />
+      >
+        <template #actions>
+          <UiButton variant="secondary" accent="brand" size="medium" @click="handleGoBack()">
+            {{ t('action:go-back') }}
+          </UiButton>
+        </template>
+      </VtsOperationErrorCard>
 
       <UiCard v-show="canDisplayForm">
-        <UiTitle>{{ t('configuration') }}</UiTitle>
         <NewVdiForm :vm :cancel-to="cancelRoute" @create="createVdi" />
       </UiCard>
     </template>
@@ -31,15 +35,15 @@
 
 <script lang="ts" setup>
 import NewVdiForm from '@/modules/vdi/components/form/new/NewVdiForm.vue'
-import VdiCreationErrorCard from '@/modules/vdi/components/new/VdiCreationErrorCard.vue'
 import { type NewVdiPayload, useXoVdiCreateJob } from '@/modules/vdi/jobs/xo-vdi-create.job.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { ApiError } from '@/shared/error/api.error.ts'
+import VtsOperationErrorCard from '@core/components/operation-error-card/VtsOperationErrorCard.vue'
 import VtsOperationPendingCard from '@core/components/operation-pending-card/VtsOperationPendingCard.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
-import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { type RouteLocationRaw, useRoute, useRouter } from 'vue-router'

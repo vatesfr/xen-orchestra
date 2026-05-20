@@ -5,29 +5,27 @@
 
       <NewVdiSourceSelector v-model="source" />
 
-      <NewVdiFileDropzone
-        v-if="source === 'file'"
-        v-model="file"
-        :accepted-extensions="acceptedFileExtensions"
-        :message="dropzoneMessage"
-      />
+      <div class="row">
+        <VdiFormTextInput v-bind="nameInputBindings" />
+        <VdiFormDescriptionTextarea v-bind="descriptionInputBindings" />
+      </div>
 
-      <VdiFormTextInput v-if="source === 'url'" v-bind="urlInputBindings" />
-
-      <template v-if="showRemainingFields">
-        <div class="row">
-          <VdiFormTextInput v-bind="nameInputBindings" />
-          <VdiFormDescriptionTextarea v-bind="descriptionInputBindings" />
-        </div>
-
-        <div class="row">
-          <VdiFormSelect v-bind="srSelectBindings" />
-          <NewVdiAllocatedSpaceInput v-bind="allocatedSpaceBindings" />
-        </div>
-      </template>
+      <div class="row">
+        <VdiFormSelect v-bind="srSelectBindings">
+          <template #option="{ option }">
+            <VtsOption :option>
+              <span class="sr-option-content">
+                <VtsIcon v-if="option.properties.icon" :name="option.properties.icon" size="medium" />
+                {{ option.properties.label }}
+              </span>
+            </VtsOption>
+          </template>
+        </VdiFormSelect>
+        <NewVdiAllocatedSpaceInput v-bind="allocatedSpaceBindings" />
+      </div>
     </div>
 
-    <div v-if="showRemainingFields" class="section">
+    <div class="section">
       <UiTitle>{{ t('options') }}</UiTitle>
       <UiCheckbox v-model="readOnly" accent="brand">
         {{ t('read-only') }}
@@ -35,7 +33,7 @@
       <UiCheckbox v-model="bootable" accent="brand" :disabled="!isPv">
         {{ t('bootable') }}
         <template #info>
-          <span class="checkbox-info">{{ t('pv-vms-only') }}</span>
+          {{ t('pv-vms-only') }}
         </template>
       </UiCheckbox>
     </div>
@@ -54,16 +52,16 @@ import VdiFormDescriptionTextarea from '@/modules/vdi/components/form/new/inputs
 import VdiFormSelect from '@/modules/vdi/components/form/new/inputs/VdiFormSelect.vue'
 import VdiFormTextInput from '@/modules/vdi/components/form/new/inputs/VdiFormTextInput.vue'
 import NewVdiAllocatedSpaceInput from '@/modules/vdi/components/form/new/NewVdiAllocatedSpaceInput.vue'
-import NewVdiFileDropzone from '@/modules/vdi/components/form/new/NewVdiFileDropzone.vue'
 import NewVdiSourceSelector from '@/modules/vdi/components/form/new/NewVdiSourceSelector.vue'
 import { useNewVdiForm } from '@/modules/vdi/form/new/use-new-vdi-form.ts'
 import type { NewVdiPayload } from '@/modules/vdi/jobs/xo-vdi-create.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsOption from '@core/components/select/VtsOption.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
 
@@ -84,32 +82,12 @@ const {
   nameInputBindings,
   descriptionInputBindings,
   allocatedSpaceBindings,
-  urlInputBindings,
   readOnly,
   bootable,
-  file,
   isPv,
-  acceptedFileExtensions,
-  isFileCompatibleWithSr,
   canSubmit,
   validateAndBuildPayload,
 } = useNewVdiForm(() => vm)
-
-const dropzoneMessage = computed(() =>
-  !isFileCompatibleWithSr.value
-    ? { content: t('new-vdi:file-incompatible-with-sr'), accent: 'danger' as const }
-    : undefined
-)
-
-const showRemainingFields = computed(() => {
-  if (source.value === 'empty') {
-    return true
-  }
-  if (source.value === 'file') {
-    return file.value !== undefined
-  }
-  return urlInputBindings.value.modelValue.trim() !== ''
-})
 
 function onSubmit() {
   const payload = validateAndBuildPayload()
@@ -155,5 +133,11 @@ function onSubmit() {
     align-items: center;
     gap: 2.4rem;
   }
+}
+
+.sr-option-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
 }
 </style>
