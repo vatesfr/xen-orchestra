@@ -95,7 +95,7 @@ export class RestApiClient {
         },
       }
 
-      const url = `${this.baseUrl}/rest/v0/users/authentication_tokens`
+      const url = `${this.baseUrl}/rest/v0/users/me/authentication_tokens`
       const response = await fetch(url, options)
 
       if (!response.ok) {
