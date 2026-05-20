@@ -71,17 +71,19 @@ export async function assertMcpEnabled(xoUrl: string): Promise<void> {
   // then attempt to parse it as JSON instead of chaining `.json()` and `.text()`
   // — the second call would throw "Body is unusable".
   const text = await response.text().catch(() => '')
-  let body: { error?: string } | undefined
+  let body: { data?: { error?: string } } | undefined
   try {
-    body = text === '' ? undefined : (JSON.parse(text) as { error?: string })
+    body = text === '' ? undefined : (JSON.parse(text) as { data?: { error?: string } })
   } catch {
     body = undefined
   }
 
+  // xo-server serializes ApiError as `{ error: <human message>, data: { error: 'mcp_disabled' } }`,
+  // so the machine-readable code lives under `data.error`, not at the top level.
   // The kill-switch can manifest as either 503 (from `/mcp/status`) or 403
   // (from `mcp-gate` on any other route) — both must terminate the binary
   // with the same message.
-  if ((response.status === 503 || response.status === 403) && body?.error === 'mcp_disabled') {
+  if ((response.status === 503 || response.status === 403) && body?.data?.error === 'mcp_disabled') {
     throw new Error('MCP disabled by admin')
   }
 
