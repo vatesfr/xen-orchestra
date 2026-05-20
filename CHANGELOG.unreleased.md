@@ -23,6 +23,7 @@
   - [Export config] Hide passphrase by default (PR [#9824](https://github.com/vatesfr/xen-orchestra/pull/9824))
 - [Backups] Refactor clean phase for incremental and full backups ([#9765](https://github.com/vatesfr/xen-orchestra/pull/9765))
 - [REST API] Expose `DELETE /rest/v0/srs/:id` (PR [#9464](https://github.com/vatesfr/xen-orchestra/pull/9464))
+- [xo-server-ipmi-sensors] Migrated the old ipmi feature to a new plugin and added user defined sensors (PR [#9724](https://github.com/vatesfr/xen-orchestra/pull/9724))
 - [MCP] Read `HTTP_PROXY`/`HTTPS_PROXY`/`NO_PROXY` so an internal XOA stays reachable when the AI assistant goes through a corporate proxy (PR [#9820](https://github.com/vatesfr/xen-orchestra/pull/9820))
 
 ### Bug fixes
@@ -64,6 +65,7 @@
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi minor
 - xo-server minor
+- xo-server-ipmi-sensors major
 - xo-web minor
 
 <!--packages-end-->
