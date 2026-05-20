@@ -301,11 +301,17 @@ export class RemoteAdapter {
     const handler = this._handler
     await asyncMapSettled(backups, ({ _filename, xva }) =>
       Promise.all([
-        handler.unlink(_filename).catch(err => {
-          if (err.code !== 'ENOENT') throw err
+        handler.unlink(_filename).catch(error => {
+          warn('error while removing full vm backup metadata', { error, filename: _filename })
+          if (error.code !== 'ENOENT') throw error
         }),
-        handler.unlink(resolveRelativeFromFile(_filename, xva)).catch(err => {
-          if (err.code !== 'ENOENT') throw err
+        handler.unlink(resolveRelativeFromFile(_filename, xva)).catch(error => {
+          warn('error while removing full vm backup file', { error, filename: _filename })
+          if (error.code !== 'ENOENT') throw error
+        }),
+        handler.unlink(resolveRelativeFromFile(_filename, `${xva}.checksum`)).catch(error => {
+          // checksum can be missing , it's not an issue
+          if (error.code !== 'ENOENT') throw error
         }),
       ])
     )
