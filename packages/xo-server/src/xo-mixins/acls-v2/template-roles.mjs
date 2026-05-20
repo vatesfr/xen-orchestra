@@ -91,6 +91,5 @@ export const VMS_ADMINISTRATOR = {
   privileges: [
     { action: '*', resource: 'vm', effect: 'allow' },
     { action: 'read', resource: 'vm-snapshot', effect: 'allow' },
-    { action: 'delete', resource: 'vm-snapshot', effect: 'allow' },
   ],
 }
