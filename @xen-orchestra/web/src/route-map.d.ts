@@ -8,11 +8,11 @@
 // Make sure to add this file to your tsconfig.json file as an "includes" or "files" entry.
 
 import type {
+  RouteRecordInfo,
   ParamValue,
   ParamValueOneOrMore,
   ParamValueZeroOrMore,
   ParamValueZeroOrOne,
-  RouteRecordInfo,
 } from 'vue-router'
 import type { _ExtractParamParserType } from 'vue-router/experimental'
 
