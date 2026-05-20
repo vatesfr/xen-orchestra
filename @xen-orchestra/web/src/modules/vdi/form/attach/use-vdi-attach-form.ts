@@ -1,11 +1,19 @@
+import { getPbdsConnectionStatus } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
+import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import type { NewVbdPayload } from '@/modules/vbd/jobs/xo-vbd-create.job.ts'
+import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import { getVdiIcon } from '@/modules/vdi/composables/xo-vdi-utils.composable.ts'
 import { type BaseVdiFormData, useVdiFormBase } from '@/modules/vdi/form/use-vdi-form-base.ts'
 import { type FrontXoVdi, useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { useFormSelect } from '@core/packages/form-select'
+import { objectIcon } from '@core/icons'
+import { required } from '@core/packages/form-validation'
+import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import { computed, type MaybeRefOrGetter, reactive, toRef, toRefs, watch } from 'vue'
+import { computed, type MaybeRefOrGetter, reactive, toRefs, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+
+const BYTES_PER_GB = 1024 ** 3
 
 export type VdiAttachFormData = BaseVdiFormData & {
   vdi: FrontXoVdi['id'] | undefined
@@ -25,9 +33,22 @@ export function useVdiAttachForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     bootable: false,
   })
 
-  const { availableSrs, attachedVdiIds, getSrLocation, isFreeForWriting, selectedSr, srWarning, useSelect } =
-    useVdiFormBase(vm, formData)
+  const { useFormSelect, useSelect, validate } = useValidatedForm(formData, {
+    errors: {
+      onSubmit: () => ({
+        sr: { required },
+        vdi: { required },
+      }),
+    },
+  })
 
+  const { availableSrs, attachedVdiIds, getSrLocation, isFreeForWriting, selectedSr, srWarning } = useVdiFormBase(
+    vm,
+    formData
+  )
+
+  const { pbdsBySr } = useXoPbdCollection()
+  const { getVbdsByIds } = useXoVbdCollection()
   const { useGetVdiById, useGetVdisByIds } = useXoVdiCollection()
 
   const availableVdis = useGetVdisByIds(() => (selectedSr.value?.VDIs ?? []) as FrontXoVdi['id'][])
@@ -38,7 +59,9 @@ export function useVdiAttachForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     if (!formData.vdi) {
       return undefined
     }
-    return attachedVdiIds.value.has(formData.vdi) ? t('warning:vdi-already-attached') : undefined
+    return attachedVdiIds.value.has(formData.vdi)
+      ? { content: t('warning:vdi-already-attached'), accent: 'warning' }
+      : undefined
   })
 
   watch(
@@ -48,52 +71,60 @@ export function useVdiAttachForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     }
   )
 
-  const { id: srSelectId } = useFormSelect(availableSrs, {
+  const { id: srSelectId } = useFormSelect('sr', availableSrs, {
     searchable: true,
     required: true,
-    model: toRef(formData, 'sr'),
     option: {
       label: sr => {
-        const gbLeft = Math.floor((sr.size - sr.physical_usage) / 1024 ** 3)
+        const gbLeft = Math.floor((sr.size - sr.physical_usage) / BYTES_PER_GB)
         return `${sr.name_label} (${getSrLocation(sr)}) - ${t('n-gb-left', { n: gbLeft })}`
       },
       value: 'id',
+      properties: sr => ({ icon: objectIcon('sr', getPbdsConnectionStatus(pbdsBySr.value.get(sr.id) ?? [])) }),
     },
   })
 
-  const { id: vdiSelectId } = useFormSelect(availableVdis, {
+  const { id: vdiSelectId } = useFormSelect('vdi', availableVdis, {
     searchable: true,
     required: true,
     disabled: () => formData.sr === undefined,
-    model: toRef(formData, 'vdi'),
     option: {
       label: 'name_label',
       value: 'id',
+      properties: vdi => ({ icon: getVdiIcon(getVbdsByIds(vdi.$VBDs)) }),
     },
   })
 
-  const { readOnly, bootable } = toRefs(formData)
+  const { bootable } = toRefs(formData)
 
   const isPv = computed(() => vm.value.virtualizationMode === 'pv')
 
-  function validateAndBuildPayload(): NewVbdPayload | undefined {
-    if (!formData.vdi) {
+  const forceReadOnly = computed(() => selectedVdi.value !== undefined && !isFreeForWriting(selectedVdi.value))
+
+  const readOnly = computed({
+    get: () => formData.readOnly || forceReadOnly.value,
+    set: value => {
+      formData.readOnly = value
+    },
+  })
+
+  async function validateAndBuildPayload(): Promise<NewVbdPayload | undefined> {
+    const isValid = await validate()
+
+    if (!isValid) {
       return undefined
     }
 
-    const forceReadOnly = selectedVdi.value !== undefined && !isFreeForWriting(selectedVdi.value)
-
     return {
       VM: vm.value.id,
-      VDI: formData.vdi,
-      mode: formData.readOnly || forceReadOnly ? 'RO' : 'RW',
+      VDI: formData.vdi!,
+      mode: readOnly.value ? 'RO' : 'RW',
       ...(isPv.value && { bootable: formData.bootable }),
     }
   }
 
-  const canSubmit = computed(() => formData.sr !== undefined && formData.vdi !== undefined)
-
   return {
+    selectedSr,
     srSelectBindings: useSelect(srSelectId, () => ({
       label: t('storage-repository'),
       ...(srWarning.value !== undefined && { warning: srWarning.value }),
@@ -103,9 +134,9 @@ export function useVdiAttachForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
       ...(vdiWarning.value !== undefined && { warning: vdiWarning.value }),
     })),
     readOnly,
+    forceReadOnly,
     bootable,
     isPv,
-    canSubmit,
     validateAndBuildPayload,
   }
 }

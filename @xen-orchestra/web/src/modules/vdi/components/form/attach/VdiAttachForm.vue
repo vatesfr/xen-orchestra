@@ -1,52 +1,62 @@
 <template>
-  <form class="vdi-attach-form" @submit.prevent="onSubmit()">
+  <VtsForm class="vdi-attach-form" @submit="onSubmit()">
     <div class="attach-form">
       <UiTitle>{{ t('general-information') }}</UiTitle>
       <div class="row">
-        <VtsInputWrapper :label="srSelectBindings.label" :message="srMessage" wrap>
-          <VtsSelect :id="srSelectBindings.id" accent="brand" />
-        </VtsInputWrapper>
-        <VtsInputWrapper :label="vdiSelectBindings.label" :message="vdiMessage">
-          <VtsSelect :id="vdiSelectBindings.id" accent="brand" />
-        </VtsInputWrapper>
+        <VdiFormSelect v-bind="srSelectBindings">
+          <template #option="{ option }">
+            <VtsOption :option>
+              <span class="select-option">
+                <VtsIcon v-if="option.properties.icon" :name="option.properties.icon" size="medium" />
+                {{ option.properties.label }}
+              </span>
+            </VtsOption>
+          </template>
+        </VdiFormSelect>
+        <VdiFormSelect v-bind="vdiSelectBindings">
+          <template #option="{ option }">
+            <VtsOption :option>
+              <span class="select-option">
+                <VtsIcon v-if="option.properties.icon" :name="option.properties.icon" size="medium" />
+                {{ option.properties.label }}
+              </span>
+            </VtsOption>
+          </template>
+        </VdiFormSelect>
       </div>
     </div>
     <div class="attach-form">
       <UiTitle>{{ t('options') }}</UiTitle>
-      <UiCheckbox v-model="readOnly" accent="brand">
-        {{ t('read-only') }}
-      </UiCheckbox>
-      <div>
-        <UiCheckbox v-model="bootable" accent="brand" :disabled="!isPv">
-          {{ t('bootable') }}
-          <template #info>
-            <span class="checkbox-info">{{ t('pv-vms-only') }}</span>
-          </template>
-        </UiCheckbox>
-      </div>
+      <VdiFormCheckbox v-model="readOnly" :label="t('read-only')" :disabled="forceReadOnly">
+        <template v-if="forceReadOnly" #info>{{ t('info:vdi-attached-rw') }}</template>
+      </VdiFormCheckbox>
+      <VdiFormCheckbox v-model="bootable" :label="t('bootable')" :disabled="!isPv">
+        <template #info>{{ t('pv-vms-only') }}</template>
+      </VdiFormCheckbox>
     </div>
     <div class="buttons-container">
       <UiLink :to="cancelTo" size="medium">
         {{ t('cancel') }}
       </UiLink>
-      <UiButton type="submit" size="medium" accent="brand" variant="primary" :disabled="!canSubmit">
+      <UiButton type="submit" size="medium" accent="brand" variant="primary">
         {{ t('action:attach') }}
       </UiButton>
     </div>
-  </form>
+  </VtsForm>
 </template>
 
 <script lang="ts" setup>
 import type { NewVbdPayload } from '@/modules/vbd/jobs/xo-vbd-create.job.ts'
+import VdiFormCheckbox from '@/modules/vdi/components/form/attach/inputs/VdiFormCheckbox.vue'
+import VdiFormSelect from '@/modules/vdi/components/form/attach/inputs/VdiFormSelect.vue'
 import { useVdiAttachForm } from '@/modules/vdi/form/attach/use-vdi-attach-form.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import VtsInputWrapper, { type InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
-import VtsSelect from '@core/components/select/VtsSelect.vue'
+import VtsForm from '@core/components/form/VtsForm.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsOption from '@core/components/select/VtsOption.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
 
@@ -61,19 +71,11 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const { srSelectBindings, vdiSelectBindings, readOnly, bootable, isPv, canSubmit, validateAndBuildPayload } =
+const { srSelectBindings, vdiSelectBindings, readOnly, forceReadOnly, bootable, isPv, validateAndBuildPayload } =
   useVdiAttachForm(() => vm)
 
-const srMessage = computed<InputWrapperMessage | undefined>(() =>
-  srSelectBindings.value.warning ? { content: srSelectBindings.value.warning, accent: 'warning' } : undefined
-)
-
-const vdiMessage = computed<InputWrapperMessage | undefined>(() =>
-  vdiSelectBindings.value.warning ? { content: vdiSelectBindings.value.warning, accent: 'warning' } : undefined
-)
-
-function onSubmit() {
-  const payload = validateAndBuildPayload()
+async function onSubmit() {
+  const payload = await validateAndBuildPayload()
 
   if (payload !== undefined) {
     emit('attach', payload)
@@ -117,5 +119,11 @@ function onSubmit() {
     align-items: center;
     gap: 2.4rem;
   }
+}
+
+.select-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
 }
 </style>

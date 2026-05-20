@@ -5,13 +5,13 @@
         <template #title-actions>
           <MenuList placement="bottom-end">
             <template #trigger="{ open }">
-              <UiDropdownButton icon="fa:plus" @click="open($event)">{{ t('action:add') }}</UiDropdownButton>
+              <UiDropdownButton icon="action:add" @click="open($event)">{{ t('action:add') }}</UiDropdownButton>
             </template>
             <MenuItem>
               <UiLink
                 class="add-vdi-link"
                 :to="{ name: '/vdi/attach', query: { vmid: vm.id } }"
-                icon="fa:link"
+                icon="action:connect"
                 size="medium"
               >
                 {{ t('action:attach-vdi') }}

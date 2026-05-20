@@ -1,7 +1,19 @@
 import type { FrontXoPbd } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import { useArrayEvery, useArrayFilter, useArraySome } from '@vueuse/shared'
-import { computed, toValue, type MaybeRefOrGetter } from 'vue'
+import { computed, type MaybeRefOrGetter, toValue } from 'vue'
+
+export function getPbdsConnectionStatus(pbds: FrontXoPbd[]) {
+  if (pbds.length === 0 || pbds.every(pbd => !pbd.attached)) {
+    return CONNECTION_STATUS.DISCONNECTED
+  }
+
+  if (pbds.some(pbd => !pbd.attached)) {
+    return CONNECTION_STATUS.PARTIALLY_CONNECTED
+  }
+
+  return CONNECTION_STATUS.CONNECTED
+}
 
 export function useXoPbdUtils(rawPbds: MaybeRefOrGetter<FrontXoPbd[]>) {
   const pbds = computed(() => toValue(rawPbds))
@@ -14,17 +26,7 @@ export function useXoPbdUtils(rawPbds: MaybeRefOrGetter<FrontXoPbd[]>) {
 
   const areSomePbdsDisconnected = useArraySome(pbds, predicate)
 
-  const allPbdsConnectionStatus = computed(() => {
-    if (areAllPbdsDisconnected.value) {
-      return CONNECTION_STATUS.DISCONNECTED
-    }
-
-    if (areSomePbdsDisconnected.value) {
-      return CONNECTION_STATUS.PARTIALLY_CONNECTED
-    }
-
-    return CONNECTION_STATUS.CONNECTED
-  })
+  const allPbdsConnectionStatus = computed(() => getPbdsConnectionStatus(pbds.value))
 
   return {
     allPbdsConnectionStatus,

@@ -133,6 +133,10 @@ defineExpose({ focus })
     color: var(--color-brand-txt-base);
   }
 
+  &.disabled .right-icon {
+    color: var(--color-neutral-txt-secondary);
+  }
+
   .readonly-input {
     border: none;
     width: 0;

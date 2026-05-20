@@ -27,7 +27,7 @@
     <template #default>
       <VdiInfosCard :vdi :vm />
       <VdiSpaceCard :vdi />
-      <VdiConfigurationCard :vdi />
+      <VdiConfigurationCard :vdi :vm />
     </template>
   </UiPanel>
 </template>

@@ -1,5 +1,5 @@
 <template>
-  <UiHeadBar icon="fa:plus">
+  <UiHeadBar icon="fa:link">
     {{ t('attach-vdi') }}
   </UiHeadBar>
 
@@ -13,13 +13,18 @@
     <template v-else>
       <VtsOperationPendingCard v-if="isRunning" :title="t('attaching-vdi')" />
 
-      <VdiAttachErrorCard
+      <VtsOperationErrorCard
         v-else-if="hasAttachError && error"
         :title="t('unable-to-attach-vdi')"
         :error
         :error-message="t('attach-vdi:error-message')"
-        @go-back="handleGoBack()"
-      />
+      >
+        <template #actions>
+          <UiButton variant="secondary" accent="brand" size="medium" @click="handleGoBack()">
+            {{ t('action:go-back') }}
+          </UiButton>
+        </template>
+      </VtsOperationErrorCard>
 
       <UiCard v-show="canDisplayForm">
         <VdiAttachForm :vm :cancel-to="cancelRoute" @attach="attachVdi" />
@@ -30,12 +35,13 @@
 
 <script lang="ts" setup>
 import { type NewVbdPayload, useXoVbdCreateJob } from '@/modules/vbd/jobs/xo-vbd-create.job.ts'
-import VdiAttachErrorCard from '@/modules/vdi/components/attach/VdiAttachErrorCard.vue'
 import VdiAttachForm from '@/modules/vdi/components/form/attach/VdiAttachForm.vue'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { ApiError } from '@/shared/error/api.error.ts'
+import VtsOperationErrorCard from '@core/components/operation-error-card/VtsOperationErrorCard.vue'
 import VtsOperationPendingCard from '@core/components/operation-pending-card/VtsOperationPendingCard.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import { computed, ref } from 'vue'

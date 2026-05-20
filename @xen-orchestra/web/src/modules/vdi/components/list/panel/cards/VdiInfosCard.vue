@@ -1,6 +1,6 @@
 <template>
   <UiCard class="card-container">
-    <UiLink size="medium" :href="vdiHref" icon="object:vdi">
+    <UiLink size="medium" :href="vdiHref" :icon="vdiIcon">
       {{ vdi.name_label }}
     </UiLink>
     <div class="content">
@@ -45,6 +45,8 @@
 
 <script lang="ts" setup>
 import { useVbdsStatus } from '@/modules/vbd/composables/use-vbds-status.composable.ts'
+import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import { getVdiIcon } from '@/modules/vdi/composables/xo-vdi-utils.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -72,6 +74,12 @@ const { t } = useI18n()
 const { buildXo5Route } = useXoRoutes()
 
 const vdiHref = computed(() => buildXo5Route(`/vms/${vm.id}/disks/s=1_6_asc-${vdi.id}`))
+
+const { useGetVbdsByIds } = useXoVbdCollection()
+
+const vbds = useGetVbdsByIds(() => vdi.$VBDs)
+
+const vdiIcon = computed(() => getVdiIcon(vbds.value))
 
 const vbdAttachmentStatus = useVbdsStatus(() => vdi.$VBDs)
 

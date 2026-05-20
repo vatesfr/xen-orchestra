@@ -1,12 +1,14 @@
 import { payloadsVbdArg } from '@/modules/vbd/jobs/xo-vbd-create-args.ts'
+import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
-import type { XoVbd, XoVdi, XoVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export type NewVbdPayload = {
-  VM: XoVm['id']
-  VDI: XoVdi['id']
+  VM: FrontXoVm['id']
+  VDI: FrontXoVdi['id']
   mode: 'RW' | 'RO'
   bootable?: boolean
 }
@@ -15,10 +17,10 @@ export const useXoVbdCreateJob = defineJob('vbd.create', [payloadsVbdArg], () =>
   const { t } = useI18n()
 
   return {
-    run(payloads): Promise<PromiseSettledResult<XoVbd['id']>[]> {
+    run(payloads): Promise<PromiseSettledResult<FrontXoVbd['id']>[]> {
       return Promise.allSettled(
         payloads.map(async payload => {
-          const { id } = await fetchPost<{ id: XoVbd['id'] }>('vbds', payload)
+          const { id } = await fetchPost<{ id: FrontXoVbd['id'] }>('vbds', payload)
           return id
         })
       )

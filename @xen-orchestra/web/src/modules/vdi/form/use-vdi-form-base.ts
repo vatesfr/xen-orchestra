@@ -7,7 +7,7 @@ import {
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { type FrontXoVdi, useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { useFormBindings } from '@core/packages/form-bindings'
+import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -85,17 +85,15 @@ export function useVdiFormBase<T extends BaseVdiFormData>(rawVm: MaybeRefOrGette
 
   const selectedSr = useGetSrById(() => formData.sr)
 
-  const srWarning = computed(() => {
+  const srWarning = computed<InputWrapperMessage | undefined>(() => {
     const sr = selectedSr.value
 
     if (!sr || sr.shared || requiredHost.value === undefined || sr.$container === requiredHost.value) {
       return undefined
     }
 
-    return t('warning:vdi-sr')
+    return { content: t('warning:vdi-sr'), accent: 'warning' }
   })
-
-  const { useField, useSelect } = useFormBindings(formData)
 
   return {
     availableSrs,
@@ -105,7 +103,5 @@ export function useVdiFormBase<T extends BaseVdiFormData>(rawVm: MaybeRefOrGette
     requiredHost,
     selectedSr,
     srWarning,
-    useField,
-    useSelect,
   }
 }

@@ -32,6 +32,7 @@ import { useVbdConnectionToggleModal } from '@/modules/vbd/composables/use-vbd-c
 import { useVbdDeleteModal } from '@/modules/vbd/composables/use-vbd-delete-modal.composable.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { useVdiDeleteModal } from '@/modules/vdi/composables/use-vdi-delete-modal.composable.ts'
+import { getVdiIcon } from '@/modules/vdi/composables/xo-vdi-utils.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { getVdiFormat } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -99,6 +100,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
 
     const size = computed(() => formatSizeRaw(vdi.size, 2))
     const format = computed(() => getVdiFormat(vdi.image_format))
+    const vdiIcon = computed(() => getVdiIcon(vbds.value))
 
     const {
       openModal: openVbdConnectionToggleModal,
@@ -132,7 +134,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
     )
 
     return {
-      vdi: r => r({ label: vdi.name_label, href: href.value, icon: 'object:vdi' }),
+      vdi: r => r({ label: vdi.name_label, href: href.value, icon: vdiIcon.value }),
       description: r => r(vdi.name_description),
       usedSpace: r => r(vdi.usage, vdi.size),
       size: r => r(size.value.value, size.value.prefix),
