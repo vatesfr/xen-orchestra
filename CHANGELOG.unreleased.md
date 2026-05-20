@@ -19,6 +19,11 @@
 - [web-core] Update `UiTag` and parse tag for detecting tags with `=` (PR [#9811](https://github.com/vatesfr/xen-orchestra/pull/9811))
 - [Encryption] Implement encryption and decryption feature for redis (PR [#9735](https://github.com/vatesfr/xen-orchestra/pull/9735))
 - [REST API] Add `vms/:id/actions/revert_snapshot` REST route (PR [#9788](https://github.com/vatesfr/xen-orchestra/pull/9788))
+- **RBAC** check for REST API endpoints:
+  - `/hosts/:id/actions/disable` (PR [#9840](https://github.com/vatesfr/xen-orchestra/pull/9840))
+  - `/hosts/:id/actions/enable` (PR [#9840](https://github.com/vatesfr/xen-orchestra/pull/9840))
+  - `/hosts/:id/actions/management_reconfigure` (PR [#9840](https://github.com/vatesfr/xen-orchestra/pull/9840))
+
 - **XO 5**:
   - [Export config] Hide passphrase by default (PR [#9824](https://github.com/vatesfr/xen-orchestra/pull/9824))
 - [Backups] Refactor clean phase for incremental and full backups ([#9765](https://github.com/vatesfr/xen-orchestra/pull/9765))
