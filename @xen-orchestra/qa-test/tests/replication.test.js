@@ -1,5 +1,6 @@
 import assert from 'node:assert'
 import { after, before, describe, it } from 'node:test'
+import { createLogger } from '@xen-orchestra/log'
 
 import {
   assertFullOrDeltaForSr,
@@ -11,6 +12,8 @@ import {
 } from '../utils/index.js'
 import { assertBackupSuccess } from '../utils/backupUtils.js'
 import { setup, teardown } from './setup.js'
+
+const log = createLogger('qa:replication')
 
 /** Target SR for cross-SR replication */
 const REPLICATION_DESTINATION_SR_ID = process.env.REPLICATION_DESTINATION_SR_ID
@@ -44,13 +47,13 @@ describe('Incremental Replication', () => {
     sourceVmSrUuid = vdis[0].SR
     assert.ok(sourceVmSrUuid, 'Could not determine source SR from VM VDIs')
 
-    console.log(`Test VM: ${vm.name_label} (${vm.uuid}), source SR: ${sourceVmSrUuid}`)
+    log.debug('Test VM', { name: vm.name_label, uuid: vm.uuid, sourceSrUuid: sourceVmSrUuid })
 
     // Start the source VM so its disks are active during replication.
     // No need to wait for the OS to fully boot — the VM being in Running
     // state is enough to guarantee writes on the active VDI.
     await dispatchClient.vm.start(vm.uuid)
-    console.log(`Source VM started (booting in background): ${vm.uuid}`)
+    log.debug('Source VM started (booting in background)', { uuid: vm.uuid })
   })
 
   after(async () => {
@@ -64,7 +67,7 @@ describe('Incremental Replication', () => {
           await dispatchClient.vm.waitForPowerState(vm.uuid, 'Halted', 60_000)
         }
       } catch (error) {
-        console.warn(`Failed to stop source VM before teardown: ${error.message}`)
+        log.warn('Failed to stop source VM before teardown', { error })
       }
     }
 
@@ -131,9 +134,9 @@ describe('Incremental Replication', () => {
           await dispatchClient.vm.waitForPowerState(vmUuid, 'Halted', 60_000)
         }
         await dispatchClient.vm.delete(vmUuid, { deleteDisks: true })
-        console.log(`Cleaned up VM: ${vmUuid}`)
+        log.debug('Cleaned up VM', { uuid: vmUuid })
       } catch (error) {
-        console.warn(`Failed to clean up VM ${vmUuid}: ${error.message}`)
+        log.warn('Failed to clean up VM', { uuid: vmUuid, error })
       }
     }
   }
@@ -166,7 +169,7 @@ describe('Incremental Replication', () => {
         }
         destSr = await dispatchClient.sr.details(destSrId)
         assert.ok(destSr, `Destination SR "${destSrId}" not found — check REPLICATION_DESTINATION_SR_ID in .env`)
-        console.log(`[${label}] Destination SR: ${destSr.name_label} (${destSr.uuid})`)
+        log.debug('Destination SR', { label, name: destSr.name_label, uuid: destSr.uuid })
       })
 
       after(async () => cleanupVms(replicatedVmUuids))
@@ -271,13 +274,13 @@ describe('Incremental Replication', () => {
           const vmUuidsBefore = new Set((await dispatchClient.vm.list()).map(v => v.uuid))
 
           // --- Run 1: full transfer, new VM created ---
-          console.log(`[${label}] Running first replication (expected full)...`)
+          log.debug('Running first replication (expected full)', { label })
           const result1 = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
           assertBackupSuccess(result1, 'First replication')
           assertFullOrDeltaForSr(result1, destSr.uuid, { mustBeFull: true })
 
           const bytes1 = getBackupTransferredBytes(result1)
-          console.log(`[${label}] First run transferred: ${bytes1} bytes (full)`)
+          log.debug('First run transferred (full)', { label, bytes: bytes1 })
 
           const newUuids1 = await findNewVmUuids(vmUuidsBefore)
           assert.strictEqual(newUuids1.length, 1, 'First replication should create exactly one new VM')
@@ -290,7 +293,7 @@ describe('Incremental Replication', () => {
           replicatedVmUuids.push(replicatedVmUuid)
 
           const replicatedVm = await dispatchClient.vm.details(replicatedVmUuid)
-          console.log(`[${label}] Replicated VM created: ${replicatedVm.name_label} (${replicatedVmUuid})`)
+          log.debug('Replicated VM created', { label, name: replicatedVm.name_label, uuid: replicatedVmUuid })
 
           const snapshotTask1 = findTaskByMessage(result1, 'target snapshot')
           assert.ok(snapshotTask1, 'First replication should include a "target snapshot" task')
@@ -301,20 +304,20 @@ describe('Incremental Replication', () => {
             snapshotsAfterFirst >= 1,
             `Replicated VM should have ≥1 snapshot after first run, got ${snapshotsAfterFirst}`
           )
-          console.log(`[${label}] Replicated VM has ${snapshotsAfterFirst} snapshot(s) after first run`)
+          log.debug('Replicated VM snapshot count after first run', { label, snapshots: snapshotsAfterFirst })
 
-          console.log(`[${label}] Checking CONTENT_KEY propagation after first run...`)
+          log.debug('Checking CONTENT_KEY propagation after first run', { label })
           await assertContentKeyInvariants(jobId, replicatedVmUuid)
-          console.log(`[${label}] CONTENT_KEY invariants verified after first run`)
+          log.debug('CONTENT_KEY invariants verified after first run', { label })
 
           // --- Run 2: incremental transfer, same VM reused ---
-          console.log(`[${label}] Running second replication (expected incremental, same VM reused)...`)
+          log.debug('Running second replication (expected incremental, same VM reused)', { label })
           const result2 = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
           assertBackupSuccess(result2, 'Second replication')
           assertFullOrDeltaForSr(result2, destSr.uuid, { mustBeFull: false })
 
           const bytes2 = getBackupTransferredBytes(result2)
-          console.log(`[${label}] Second run transferred: ${bytes2} bytes (incremental)`)
+          log.debug('Second run transferred (incremental)', { label, bytes: bytes2 })
 
           if (bytes1 !== null && bytes2 !== null) {
             assert.ok(
@@ -340,13 +343,16 @@ describe('Incremental Replication', () => {
             snapshotsAfterSecond > snapshotsAfterFirst,
             `Replicated VM should accumulate snapshots across runs (before: ${snapshotsAfterFirst}, after: ${snapshotsAfterSecond})`
           )
-          console.log(
-            `[${label}] VM ${replicatedVmUuid} reused: snapshots ${snapshotsAfterFirst} → ${snapshotsAfterSecond}`
-          )
+          log.debug('VM reused', {
+            label,
+            uuid: replicatedVmUuid,
+            snapshotsBefore: snapshotsAfterFirst,
+            snapshotsAfter: snapshotsAfterSecond,
+          })
 
-          console.log(`[${label}] Checking CONTENT_KEY propagation after second run...`)
+          log.debug('Checking CONTENT_KEY propagation after second run', { label })
           await assertContentKeyInvariants(jobId, replicatedVmUuid)
-          console.log(`[${label}] CONTENT_KEY invariants verified after second run`)
+          log.debug('CONTENT_KEY invariants verified after second run', { label })
 
           // --- Run 3: destination VM started (DR site in use), incremental but new VM ---
           //
@@ -354,15 +360,15 @@ describe('Incremental Replication', () => {
           // last replication snapshot. IncrementalXapiWriter detects changed blocks on the
           // destination's active VDI and cannot update it in place — a new VM is created.
           // CONTENT_KEY still matches a common snapshot, so the transfer stays incremental.
-          console.log(`[${label}] Starting replicated VM to simulate DR site in use...`)
+          log.debug('Starting replicated VM to simulate DR site in use', { label })
           await dispatchClient.vm.start(replicatedVmUuid, { force: true })
           await dispatchClient.vm.waitForPowerState(replicatedVmUuid, 'Running', 60_000)
-          console.log(`[${label}] Replicated VM is running`)
+          log.debug('Replicated VM is running', { label })
           await new Promise(resolve => setTimeout(resolve, 30_000))
           await dispatchClient.vm.stop(replicatedVmUuid, { force: true })
           await dispatchClient.vm.waitForPowerState(replicatedVmUuid, 'Halted', 60_000)
 
-          console.log(`[${label}] Running third replication (delta transfer, but new VM expected)...`)
+          log.debug('Running third replication (delta transfer, but new VM expected)', { label })
           const result3 = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
           assertBackupSuccess(result3, 'Third replication (after destination VM started)')
           assertFullOrDeltaForSr(result3, destSr.uuid, { mustBeFull: false })
@@ -382,7 +388,7 @@ describe('Incremental Replication', () => {
           )
           replicatedVmUuids.push(secondReplicaUuid)
 
-          console.log(`[${label}] New replica created: ${secondReplicaUuid} (original ${replicatedVmUuid} kept)`)
+          log.debug('New replica created', { label, newUuid: secondReplicaUuid, originalUuid: replicatedVmUuid })
         })
       })
     })
@@ -405,7 +411,7 @@ describe('Incremental Replication', () => {
     before(async () => {
       destSr = await dispatchClient.sr.details(REPLICATION_DESTINATION_SR_ID)
       assert.ok(destSr, `Destination SR "${REPLICATION_DESTINATION_SR_ID}" not found`)
-      console.log(`DR SR: ${destSr.name_label} (${destSr.uuid})`)
+      log.debug('DR SR', { name: destSr.name_label, uuid: destSr.uuid })
     })
 
     after(async () => cleanupVms(replicatedVmUuids))
@@ -415,13 +421,13 @@ describe('Incremental Replication', () => {
       // the last replication snapshot — this lets Job B update it in place.
       const currentVmState = await dispatchClient.vm.details(vm.uuid)
       if (currentVmState.power_state === 'Running') {
-        console.log('Stopping source VM for planned-switch test...')
+        log.debug('Stopping source VM for planned-switch test')
         await dispatchClient.vm.stop(vm.uuid, { force: true })
         await dispatchClient.vm.waitForPowerState(vm.uuid, 'Halted', 60_000)
       }
 
       // --- Job A: prod → DR (one run, full transfer) ---
-      console.log('Job A: replicating source VM to DR SR...')
+      log.debug('Job A: replicating source VM to DR SR')
       const { jobId: jobAId, scheduleKey: scheduleKeyA } = await createReplicationJob(
         vm,
         destSr.uuid,
@@ -440,10 +446,10 @@ describe('Incremental Replication', () => {
       replicatedVmUuids.push(replicatedVmUuid)
 
       const replicatedVm = await dispatchClient.vm.details(replicatedVmUuid)
-      console.log(`Replicated VM on DR SR: ${replicatedVm.name_label} (${replicatedVmUuid})`)
+      log.debug('Replicated VM on DR SR', { name: replicatedVm.name_label, uuid: replicatedVmUuid })
 
       // --- Job B: DR → prod ---
-      console.log('Job B: creating reverse replication job (DR → prod)...')
+      log.debug('Job B: creating reverse replication job (DR → prod)')
       const { jobId: jobBId, scheduleKey: scheduleKeyB } = await createReplicationJob(
         replicatedVm,
         sourceVmSrUuid,
@@ -451,11 +457,11 @@ describe('Incremental Replication', () => {
       )
 
       // Force-start the replicated VM to simulate the DR site being in active use.
-      console.log('Force-starting replicated VM (DR site now active)...')
+      log.debug('Force-starting replicated VM (DR site now active)')
       await dispatchClient.vm.start(replicatedVmUuid, { force: true })
       await dispatchClient.vm.waitForPowerState(replicatedVmUuid, 'Running', 60_000)
       await new Promise(resolve => setTimeout(resolve, 30_000))
-      console.log('Replicated VM is running on DR SR')
+      log.debug('Replicated VM is running on DR SR')
 
       const vmUuidsBeforeB = new Set((await dispatchClient.vm.list()).map(v => v.uuid))
       const snapshotsOnSourceBefore = (await dispatchClient.vm.details(vm.uuid)).snapshots?.length ?? 0
@@ -484,10 +490,10 @@ describe('Incremental Replication', () => {
         `Source VM should have gained a snapshot from Job B (before: ${snapshotsOnSourceBefore}, after: ${snapshotsOnSourceAfter})`
       )
 
-      console.log(
-        `Planned switch completed — delta transfer confirmed, source VM updated in place ` +
-          `(snapshots: ${snapshotsOnSourceBefore} → ${snapshotsOnSourceAfter})`
-      )
+      log.debug('Planned switch completed — delta transfer confirmed, source VM updated in place', {
+        snapshotsBefore: snapshotsOnSourceBefore,
+        snapshotsAfter: snapshotsOnSourceAfter,
+      })
     })
   })
 })
