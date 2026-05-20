@@ -114,10 +114,14 @@ const methods = {
       const isHvm = isVmHvm(vm)
 
       if (isHvm) {
-        if ((isEmpty(vdis) && isEmpty(existingVdis)) || installMethod === 'network') {
+        // For HVM, boot order is controlled exclusively by HVM_boot_params.order ('c'=disk, 'd'=CD, 'n'=network).
+        // Only modify the order when an install method is set, otherwise preserve the template's boot order to avoid unintended network boot attempts.
+        if (installMethod === 'network') {
           const { order } = vm.HVM_boot_params
-
           vm.update_HVM_boot_params('order', order ? 'n' + order.replace('n', '') : 'ncd')
+        } else if (installMethod === 'cd') {
+          const { order } = vm.HVM_boot_params
+          vm.update_HVM_boot_params('order', order ? 'd' + order.replace('d', '') : 'dcn')
         }
       } else {
         // PV
