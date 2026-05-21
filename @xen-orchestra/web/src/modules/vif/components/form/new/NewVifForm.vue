@@ -1,5 +1,5 @@
 <template>
-  <form class="new-vif-form" @submit.prevent="onSubmit()">
+  <VtsForm class="new-vif-form" @submit="onSubmit()">
     <div class="row">
       <VifNetworkSelect v-bind="networkSelectBindings" />
       <NewVifMacInput v-bind="macInputBindings" />
@@ -12,7 +12,7 @@
       <VifTxChecksummingCheckbox v-bind="txChecksummingCheckboxBindings" />
     </div>
     <NewVifButtonsSection :cancel-to />
-  </form>
+  </VtsForm>
 </template>
 
 <script setup lang="ts">
@@ -21,6 +21,7 @@ import NewVifMacInput from '@/modules/vif/components/form/new/inputs/NewVifMacIn
 import NewVifButtonsSection from '@/modules/vif/components/form/new/NewVifButtonsSection.vue'
 import { type NewVifPayload, useNewVifForm } from '@/modules/vif/form/new/use-new-vif-form.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import VtsForm from '@core/components/form/VtsForm.vue'
 
 import type { RouteLocationRaw } from 'vue-router'
 import VifAllowedIpsTextarea from './inputs/VifAllowedIpsTextarea.vue'
@@ -50,8 +51,8 @@ const {
   () => poolId
 )
 
-function onSubmit() {
-  const payload = validateAndBuildPayload()
+async function onSubmit() {
+  const payload = await validateAndBuildPayload()
 
   if (payload !== undefined) {
     emit('create', payload)

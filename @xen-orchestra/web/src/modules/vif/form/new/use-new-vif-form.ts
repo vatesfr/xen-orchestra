@@ -3,11 +3,17 @@ import {
   useXoNetworkCollection,
 } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { type BaseVifFormData, type BaseVifPayload, useVifFormBase } from '@/modules/vif/form/use-vif-form-base.ts'
+import {
+  type BaseVifFormData,
+  type BaseVifPayload,
+  buildBaseVifPayload,
+  useVifFormBaseValidation,
+} from '@/modules/vif/form/use-vif-form-base.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { useFormSelect } from '@core/packages/form-select'
+import { mergeValidationConfigs, required } from '@core/packages/form-validation'
+import { useValidatedForm } from '@core/packages/validated-form'
 import { useArrayFilter } from '@vueuse/shared'
-import { type MaybeRefOrGetter, reactive, toRef, toValue, watch } from 'vue'
+import { type MaybeRefOrGetter, reactive, toValue, watch } from 'vue'
 
 export type NewVifFormData = BaseVifFormData & {
   network: FrontXoNetwork['id'] | undefined
@@ -31,21 +37,20 @@ export function useNewVifForm(_vmId: MaybeRefOrGetter<FrontXoVm['id']>, _poolId:
     txChecksumming: true,
   })
 
-  const {
-    useSelect,
-    buildBasePayload,
-    isMacValid,
-    isAllowedIpsValid,
-    macInputBindings,
-    rateLimitInputBindings,
-    allowedIpsTextareaBindings,
-    txChecksummingCheckboxBindings,
-  } = useVifFormBase(formData)
+  const { useField, useFormSelect, useSelect, validate } = useValidatedForm(
+    formData,
+    mergeValidationConfigs<BaseVifFormData, NewVifFormData>(useVifFormBaseValidation(), {
+      errors: {
+        onSubmit: () => ({
+          network: { required },
+        }),
+      },
+    })
+  )
 
-  const { id: networkSelectId } = useFormSelect(poolNetworks, {
+  const { id: networkSelectId } = useFormSelect('network', poolNetworks, {
     searchable: true,
     required: true,
-    model: toRef(formData, 'network'),
     option: {
       label: 'name_label',
       value: 'id',
@@ -59,24 +64,26 @@ export function useNewVifForm(_vmId: MaybeRefOrGetter<FrontXoVm['id']>, _poolId:
     }
   )
 
-  function validateAndBuildPayload(): NewVifPayload | undefined {
-    if (formData.network === undefined || !isMacValid.value || !isAllowedIpsValid.value) {
+  async function validateAndBuildPayload(): Promise<NewVifPayload | undefined> {
+    const isValid = await validate()
+
+    if (!isValid) {
       return undefined
     }
 
     return {
       vmId: toValue(_vmId),
-      networkId: formData.network,
-      ...buildBasePayload(),
+      networkId: formData.network!,
+      ...buildBaseVifPayload(formData),
     }
   }
 
   return {
     networkSelectBindings: useSelect(networkSelectId),
-    macInputBindings,
-    rateLimitInputBindings,
-    allowedIpsTextareaBindings,
-    txChecksummingCheckboxBindings,
+    macInputBindings: useField('mac'),
+    rateLimitInputBindings: useField('rateLimit'),
+    allowedIpsTextareaBindings: useField('allowedIps'),
+    txChecksummingCheckboxBindings: useField('txChecksumming'),
     validateAndBuildPayload,
   }
 }
