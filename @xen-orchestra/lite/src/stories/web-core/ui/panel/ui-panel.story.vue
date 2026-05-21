@@ -2,38 +2,37 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      prop('error').bool().widget(),
-      setting('action1').widget(text()).preset('Edit'),
-      setting('action2').widget(text()).preset('Delete'),
+      prop('error').bool().widget().preset(false),
+      prop('closable').bool().widget().preset(true),
       slot(),
       slot('header').help('Meant to receive UiButton or other information'),
+      setting('forceMaxWidth').widget(boolean()).preset(true).help('Simulate the side panel\'s default width'),
+      setting('showDemoButtons').widget(boolean()).preset(true),
+      setting('moreButtons')
+        .widget(boolean())
+        .preset(false)
+        .help('Combine with forceMaxWidth to test the header scroll behaviour'),
+      setting('showHero').widget(boolean()).preset(true),
+      setting('heroType')
+        .widget(choice(...stateHeroTypes))
+        .preset('no-selection'),
     ]"
-    :presets="{
-      Normal: {
-        props: {
-          error: false,
-        },
-      },
-      Error: {
-        props: {
-          error: true,
-        },
-      },
-    }"
   >
-    <UiSidePanel v-bind="properties" :error="properties.error">
+    <UiSidePanel v-bind="properties" :class="{ 'force-max-width': settings.forceMaxWidth }">
       <template #header>
-        <UiButton variant="tertiary" size="medium" accent="brand" @click="toggle()">Toggle</UiButton>
-        <UiButton variant="tertiary" size="medium" accent="brand" left-icon="fa:edit"> {{ settings.action1 }}</UiButton>
-        <UiButton variant="tertiary" size="medium" accent="danger" left-icon="fa:trash">
-          {{ settings.action2 }}
-        </UiButton>
+        <template v-if="settings.showDemoButtons">
+          <UiButton variant="tertiary" size="medium" accent="brand" left-icon="action:edit">Edit</UiButton>
+          <UiButton variant="tertiary" size="medium" accent="danger" left-icon="action:delete">Delete</UiButton>
+          <template v-if="settings.moreButtons">
+            <UiButton variant="tertiary" size="medium" accent="warning" left-icon="action:disconnect">
+              Disconnect<UiCounter value="3" accent="warning" variant="primary" size="small" />
+            </UiButton>
+          </template>
+        </template>
       </template>
-      <VtsStateHero v-if="!isReady" format="card" type="busy" size="medium" />
-      <UiCard v-else-if="!properties.error">
-        <div>Content 1</div>
-        <div>Content 1</div>
-        <div>Content 1</div>
+      <VtsStateHero v-if="settings.showHero" format="card" :type="settings.heroType" size="medium" />
+      <UiCard v-else>
+        <div>Card Content</div>
       </UiCard>
     </UiSidePanel>
   </ComponentStory>
@@ -42,14 +41,31 @@
 <script setup lang="ts">
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop, setting, slot } from '@/libs/story/story-param'
-import { text } from '@/libs/story/story-widget'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import { boolean, choice } from '@/libs/story/story-widget'
+import VtsStateHero, { type StateHeroType } from '@core/components/state-hero/VtsStateHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiSidePanel from '@core/components/ui/panel/UiPanel.vue'
-import { useToggle } from '@vueuse/core'
-import { computed } from 'vue'
 
-const [isToggled, toggle] = useToggle()
-const isReady = computed(() => isToggled.value)
+const stateHeroTypes = [
+  'busy',
+  'no-result',
+  'under-construction',
+  'no-data',
+  'no-selection',
+  'error',
+  'not-found',
+  'offline',
+  'all-good',
+  'all-done',
+  'creating',
+] as const satisfies readonly StateHeroType[]
 </script>
+
+<style scoped lang="postcss">
+.force-max-width {
+  max-width: 40rem;
+  margin: 0 auto;
+}
+</style>
