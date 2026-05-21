@@ -25,6 +25,7 @@
 </template>
 
 <script setup lang="ts">
+import { useSrConnectModal } from '@/modules/storage-repository/composables/use-sr-connect-modal.composable.ts'
 import { useSrDeleteModal } from '@/modules/storage-repository/composables/use-sr-delete-modal.composable.ts'
 import { useSrDisconnectModal } from '@/modules/storage-repository/composables/use-sr-disconnect-modal.composable.ts'
 import { useGetPbdsInScope, useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
@@ -121,6 +122,18 @@ const { HeadCells, BodyCells } = useSrColumns({
     const { srStatusIcon } = useXoSrUtils(sr, () => scope)
 
     const { openModal: openSrDeleteModal, canRun: canDeleteSr, isRunning: isDeletingSr } = useSrDeleteModal(() => [sr])
+
+    const {
+      openModal: openSrConnectModal,
+      canRun: canConnectSr,
+      isRunning: isConnectingSr,
+      errorMessage: connectSrErrorMessage,
+      targetCount: connectTargetCount,
+    } = useSrConnectModal(
+      () => [sr],
+      () => scope
+    )
+
     const {
       openModal: openSrDisconnectModal,
       canRun: canDisconnectSr,
@@ -130,6 +143,12 @@ const { HeadCells, BodyCells } = useSrColumns({
     } = useSrDisconnectModal(
       () => [sr],
       () => scope
+    )
+
+    const connectLabel = computed(() =>
+      connectTargetCount.value > (scope.type === 'pool' ? 0 : 1)
+        ? t('action:connect-n', { n: connectTargetCount.value })
+        : t('action:connect')
     )
 
     const disconnectLabel = computed(() =>
@@ -154,6 +173,14 @@ const { HeadCells, BodyCells } = useSrColumns({
         r({
           onClick: () => (selectedSrId.value = sr.id),
           actions: [
+            {
+              label: connectLabel.value,
+              icon: icon('action:connect'),
+              onClick: () => openSrConnectModal(),
+              busy: isConnectingSr.value,
+              disabled: !canConnectSr.value,
+              hint: connectSrErrorMessage.value,
+            },
             {
               label: disconnectLabel.value,
               icon: 'action:disconnect',
