@@ -1,8 +1,8 @@
-import { useXoSrDeleteJob } from '@xen-orchestra/web/src/modules/storage-repository/jobs/xo-sr-delete.job.ts'
+import { useXoSrDeleteJob } from '@/modules/storage-repository/jobs/xo-sr-delete.job.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useModal } from '@core/packages/modal/use-modal.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import type { FrontXoSr } from '@xen-orchestra/web/src/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { useModal } from '@xen-orchestra/web-core/packages/modal/use-modal.ts'
 import type { MaybeRefOrGetter } from 'vue'
 
 export function useSrDeleteModal(rawSrs: MaybeRefOrGetter<FrontXoSr[]>) {

@@ -9,11 +9,7 @@ export const useXoSrDeleteJob = defineJob('sr.delete', [xoSrArg], () => {
 
   return {
     async run(srs: FrontXoSr[]) {
-      const results = await Promise.allSettled(
-        srs.map(async sr => {
-          return await fetchDelete(`srs/${sr.id}`)
-        })
-      )
+      const results = await Promise.allSettled(srs.map(sr => fetchDelete(`srs/${sr.id}`)))
 
       results.forEach((result, index) => {
         if (result.status === 'rejected') {

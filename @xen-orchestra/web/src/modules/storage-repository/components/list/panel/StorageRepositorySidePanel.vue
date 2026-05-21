@@ -2,7 +2,12 @@
   <VtsStateHero v-if="!isReady" format="panel" type="busy" size="medium" />
   <UiPanel v-else :class="{ 'mobile-drawer': uiStore.isSmall }">
     <template #header>
-      <VtsDeleteButton :disabled="!canDeleteSr" :busy="isDeletingSr" @click="openSrDeleteModal()" />
+      <VtsDeleteButton
+        class="sr-delete-button"
+        :disabled="!canDeleteSr"
+        :busy="isDeletingSr"
+        @click="openSrDeleteModal()"
+      />
       <div :class="{ 'action-buttons-container': uiStore.isSmall }">
         <UiButtonIcon
           v-tooltip="t('action:close')"
@@ -97,6 +102,10 @@ const { openModal: openSrDeleteModal, canRun: canDeleteSr, isRunning: isDeleting
 </script>
 
 <style scoped lang="postcss">
+.sr-delete-button {
+  margin-inline-end: auto;
+}
+
 .mobile-drawer {
   position: fixed;
   inset: 0;
