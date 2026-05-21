@@ -3,7 +3,9 @@
 <template>
   <div class="ui-panel" :class="{ error, 'mobile-drawer': uiStore.isSmall }">
     <div v-if="slots.header || closable" class="header">
-      <slot v-if="slots.header" name="header" />
+      <div v-if="slots.header" class="header-content">
+        <slot name="header" />
+      </div>
       <div v-if="closable" class="built-in-buttons">
         <UiButtonIcon
           v-if="closable"
@@ -67,6 +69,13 @@ const { t } = useI18n()
     align-items: center;
     gap: 1.6rem;
     padding: 0.4rem 1.6rem;
+
+    .header-content {
+      flex: 1;
+      display: flex;
+      gap: 0.8rem;
+      overflow-x: scroll;
+    }
   }
 
   .content {
