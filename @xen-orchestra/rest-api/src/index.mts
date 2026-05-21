@@ -9,7 +9,6 @@ import { RegisterRoutes } from './open-api/routes/routes.js'
 import { setupContainer } from './ioc/ioc.mjs'
 import { setupApiContext } from './middlewares/authentication.middleware.mjs'
 import { logMiddleware } from './middlewares/log.middleware.mjs'
-import { mcpDetectMiddleware } from './middlewares/mcp-detect.middleware.mjs'
 import { mcpGateMiddleware } from './middlewares/mcp-gate.middleware.mjs'
 import { type OpenAPIV3 } from 'openapi-types'
 import { createExternalRouter, sendObjects } from './router/external-router.mjs'
@@ -56,7 +55,6 @@ export default function setupRestApi(express: Express, xoApp: XoApp) {
 
   express.use(BASE_URL, setupApiContext(xoApp))
   express.use(BASE_URL, logMiddleware)
-  express.use(BASE_URL, mcpDetectMiddleware)
   express.use(BASE_URL, mcpGateMiddleware)
 
   RegisterRoutes(express)
