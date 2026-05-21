@@ -1,6 +1,7 @@
 import {
   Delete,
   Example,
+  Extension,
   Get,
   Middlewares,
   Path,
@@ -76,6 +77,7 @@ export class SrController extends XapiXoController<XoSr> {
    */
   @Example(srIds)
   @Example(partialSrs)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   getSrs(
@@ -99,6 +101,7 @@ export class SrController extends XapiXoController<XoSr> {
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
   @Example(sr)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(acl({ resource: 'sr', action: 'read', objectId: 'params.id' }))
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -117,6 +120,7 @@ export class SrController extends XapiXoController<XoSr> {
    * @example limit 42
    */
   @Example(genericAlarmsExample)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/alarms')
   @Security('*', ['acl'])
   @Tags('alarms')
@@ -154,6 +158,7 @@ export class SrController extends XapiXoController<XoSr> {
    * @example raw true
    */
   @Example(vdiId)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/vdis')
   @Middlewares(acl({ resource: 'sr', action: 'import:vdi', objectId: 'params.id' }))
   @Tags('vdis')
@@ -197,6 +202,7 @@ export class SrController extends XapiXoController<XoSr> {
    */
   @Example(messageIds)
   @Example(partialMessages)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/messages')
   @Security('*', ['acl'])
   @Tags('messages')
@@ -230,6 +236,7 @@ export class SrController extends XapiXoController<XoSr> {
    */
   @Example(taskIds)
   @Example(partialTasks)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/tasks')
   @Security('*', ['acl'])
   @Tags('tasks')
@@ -258,6 +265,7 @@ export class SrController extends XapiXoController<XoSr> {
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    * @example tag "from-rest-api"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Put('{id}/tags/{tag}')
   @Middlewares(acl({ resource: 'sr', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
@@ -275,6 +283,7 @@ export class SrController extends XapiXoController<XoSr> {
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    * @example tag "from-rest-api"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}/tags/{tag}')
   @Middlewares(acl({ resource: 'sr', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
@@ -289,6 +298,7 @@ export class SrController extends XapiXoController<XoSr> {
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/reclaim_space')
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
@@ -316,6 +326,7 @@ export class SrController extends XapiXoController<XoSr> {
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/scan')
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
@@ -343,6 +354,7 @@ export class SrController extends XapiXoController<XoSr> {
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/forget')
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
@@ -372,6 +384,7 @@ export class SrController extends XapiXoController<XoSr> {
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}')
   @Middlewares(acl({ resource: 'sr', action: 'delete', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)

@@ -1,19 +1,20 @@
 import {
+  Body,
+  Delete,
   Example,
+  Extension,
   Get,
+  Middlewares,
   Path,
+  Post,
+  Put,
   Query,
-  Response,
   Request,
+  Response,
   Route,
   Security,
-  Tags,
-  Post,
-  Middlewares,
-  Body,
   SuccessResponse,
-  Put,
-  Delete,
+  Tags,
 } from 'tsoa'
 import { inject } from 'inversify'
 import { invalidParameters } from 'xo-common/api-errors.js'
@@ -126,6 +127,7 @@ export class PoolController extends XapiXoController<XoPool> {
    */
   @Example(poolIds)
   @Example(partialPools)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   getPools(
@@ -149,6 +151,7 @@ export class PoolController extends XapiXoController<XoPool> {
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
    */
   @Example(pool)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(acl({ resource: 'pool', action: 'read', objectId: 'params.id' }))
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -172,6 +175,7 @@ export class PoolController extends XapiXoController<XoPool> {
    */
   @Example(taskLocation)
   @Example(createNetwork)
+  @Extension('x-mcp-exposure', 'allow')
   @Post('{id}/actions/create_network')
   @Middlewares([
     json(),
@@ -223,6 +227,7 @@ export class PoolController extends XapiXoController<XoPool> {
    */
   @Example(taskLocation)
   @Example(createNetwork)
+  @Extension('x-mcp-exposure', 'allow')
   @Post('{id}/actions/create_bonded_network')
   @Middlewares(json())
   @Tags('networks')
@@ -264,6 +269,7 @@ export class PoolController extends XapiXoController<XoPool> {
    */
   @Example(taskLocation)
   @Example(createNetwork)
+  @Extension('x-mcp-exposure', 'allow')
   @Post('{id}/actions/create_internal_network')
   @Middlewares(json())
   @Tags('networks')
@@ -302,6 +308,7 @@ export class PoolController extends XapiXoController<XoPool> {
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/emergency_shutdown')
   @Middlewares(acl({ resource: 'pool', action: 'emergency-shutdown', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
@@ -333,6 +340,7 @@ export class PoolController extends XapiXoController<XoPool> {
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/rolling_reboot')
   @Middlewares(acl({ resource: 'pool', action: 'rolling-reboot', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
@@ -365,6 +373,7 @@ export class PoolController extends XapiXoController<XoPool> {
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/rolling_update')
   @Middlewares(acl({ resource: 'pool', action: 'rolling-update', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
@@ -402,6 +411,7 @@ export class PoolController extends XapiXoController<XoPool> {
    *
    */
   @Example(importVm)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/vms')
   @Middlewares(
     acl([
@@ -463,6 +473,7 @@ export class PoolController extends XapiXoController<XoPool> {
    */
   @Example(taskLocation)
   @Example(createVm)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/create_vm')
   @Middlewares([
     json(),
@@ -545,6 +556,7 @@ export class PoolController extends XapiXoController<XoPool> {
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
    */
   @Example(poolStats)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/stats')
   @Middlewares(acl({ resource: 'pool', action: 'read', objectId: 'params.id' }))
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -561,6 +573,7 @@ export class PoolController extends XapiXoController<XoPool> {
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
    */
   @Example(poolDashboard)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/dashboard')
   @Middlewares(acl({ resource: 'pool', action: 'read', objectId: 'params.id' }))
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -601,6 +614,7 @@ export class PoolController extends XapiXoController<XoPool> {
    * @example limit 42
    */
   @Example(genericAlarmsExample)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/alarms')
   @Security('*', ['acl'])
   @Tags('alarms')
@@ -633,6 +647,7 @@ export class PoolController extends XapiXoController<XoPool> {
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
    */
   @Example(poolMissingPatches)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/missing_patches')
   @Middlewares(acl({ resource: 'pool', action: 'read', objectId: 'params.id' }))
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -656,6 +671,7 @@ export class PoolController extends XapiXoController<XoPool> {
    */
   @Example(messageIds)
   @Example(partialMessages)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/messages')
   @Security('*', ['acl'])
   @Tags('messages')
@@ -685,6 +701,7 @@ export class PoolController extends XapiXoController<XoPool> {
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
    * @example tag "from-rest-api"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Put('{id}/tags/{tag}')
   @Middlewares(acl({ resource: 'pool', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
@@ -702,6 +719,7 @@ export class PoolController extends XapiXoController<XoPool> {
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
    * @example tag "from-rest-api"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}/tags/{tag}')
   @Middlewares(acl({ resource: 'pool', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
@@ -722,6 +740,7 @@ export class PoolController extends XapiXoController<XoPool> {
    */
   @Example(taskIds)
   @Example(partialTasks)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/tasks')
   @Security('*', ['acl'])
   @Tags('tasks')
@@ -754,6 +773,7 @@ export class PoolController extends XapiXoController<XoPool> {
    * @example body { "network": "c787b75c-3e0d-70fa-d0c3-cbfd382d7e33" }
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/management_reconfigure')
   @Middlewares(json())
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)

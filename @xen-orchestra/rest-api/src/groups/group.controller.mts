@@ -2,6 +2,7 @@ import {
   Body,
   Delete,
   Example,
+  Extension,
   Get,
   Middlewares,
   Patch,
@@ -76,6 +77,7 @@ export class GroupController extends XoController<XoGroup> {
    */
   @Example(groupIds)
   @Example(partialGroups)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   async getGroups(
@@ -99,6 +101,7 @@ export class GroupController extends XoController<XoGroup> {
    * @example id "7d98fee4-3357-41a7-ac3f-9124212badb7"
    */
   @Example(group)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(
     acl({
@@ -124,6 +127,7 @@ export class GroupController extends XoController<XoGroup> {
    * @example id "c98395a7-26d8-4e09-b055-d5f0f4a98312"
    * @example body { "name": "new group name" }
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Patch('{id}')
   @Middlewares([
     json(),
@@ -157,6 +161,7 @@ export class GroupController extends XoController<XoGroup> {
    *  }
    */
   @Example(groupId)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('')
   @Middlewares([json(), acl({ resource: 'group', action: 'create', object: ({ req }) => req.body })])
   @SuccessResponse(createdResp.status, createdResp.description)
@@ -175,6 +180,7 @@ export class GroupController extends XoController<XoGroup> {
    *
    * @example id "7d98fee4-3357-41a7-ac3f-9124212badb7"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}')
   @Middlewares(
     acl({
@@ -201,6 +207,7 @@ export class GroupController extends XoController<XoGroup> {
    * @example id "c98395a7-26d8-4e09-b055-d5f0f4a98312"
    * @example userId "722d17b9-699b-49d2-8193-be1ac573d3de"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}/users/{userId}')
   @Middlewares(
     acl({
@@ -232,6 +239,7 @@ export class GroupController extends XoController<XoGroup> {
    * @example id "6c81b5e1-afc1-43ea-8f8d-939ceb5f3f90"
    * @example userId "722d17b9-699b-49d2-8193-be1ac573d3de"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Put('{id}/users/{userId}')
   @Middlewares(
     acl({
@@ -264,6 +272,7 @@ export class GroupController extends XoController<XoGroup> {
    */
   @Example(userIds)
   @Example(partialUsers)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/users')
   @Security('*', ['acl'])
   @Tags('users')
@@ -297,6 +306,7 @@ export class GroupController extends XoController<XoGroup> {
    */
   @Example(taskIds)
   @Example(partialTasks)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/tasks')
   @Security('*', ['acl'])
   @Tags('tasks')

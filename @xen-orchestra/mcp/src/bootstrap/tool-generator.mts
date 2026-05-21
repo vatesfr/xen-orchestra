@@ -2,7 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { XoClient } from '../xo-client.mjs'
 import type { Domain, Operation } from './swagger.mjs'
-import { getRiskLevel, createConfirmation, consumeConfirmation } from './risk-config.mjs'
+import { createConfirmation, consumeConfirmation } from './risk-config.mjs'
 import { formatToolError } from '../helpers/tool-error.mjs'
 
 function describeOps(ops: Operation[]): string {
@@ -112,7 +112,7 @@ export function registerActionTool(server: McpServer, getClient: () => XoClient,
         }
 
         const path = resolvePath(op.path, id)
-        if (getRiskLevel(op.method, operation) === 'confirm') {
+        if (op.requiresConfirm) {
           const token = createConfirmation(op.method, path, body)
           const preview = [
             '## Confirmation Required',
@@ -145,14 +145,7 @@ export function registerActionTool(server: McpServer, getClient: () => XoClient,
   )
 }
 
-/**
- * Action tools (write ops, with per-operation confirmation for destructive ones)
- * are gated behind XO_MCP_ENABLE_ACTIONS so the default MCP surface stays
- * read-only. Set XO_MCP_ENABLE_ACTIONS=1 to opt in.
- */
-const actionsEnabled = process.env.XO_MCP_ENABLE_ACTIONS === '1'
-
 export function registerDomainTools(server: McpServer, getClient: () => XoClient, domain: Domain): void {
   registerQueryTool(server, getClient, domain)
-  if (actionsEnabled) registerActionTool(server, getClient, domain)
+  registerActionTool(server, getClient, domain)
 }

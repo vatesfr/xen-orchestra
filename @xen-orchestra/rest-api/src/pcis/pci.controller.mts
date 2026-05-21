@@ -1,4 +1,4 @@
-import { Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Extension, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
@@ -38,6 +38,7 @@ export class PciController extends XapiXoController<XoPci> {
    */
   @Example(pciIds)
   @Example(partialPcis)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   getPcis(
@@ -61,6 +62,7 @@ export class PciController extends XapiXoController<XoPci> {
    * @example id "9377b642-cc71-8749-1e71-308898b652da"
    */
   @Example(pci)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(acl({ resource: 'pci', action: 'read', objectId: 'params.id' }))
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
