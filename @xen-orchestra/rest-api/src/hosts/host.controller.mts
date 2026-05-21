@@ -67,6 +67,7 @@ import type { CreateActionReturnType } from '../abstract-classes/base-controller
 import { HostService } from './host.service.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { partialTasks, taskIds, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
+import type { SupportedActions } from '@xen-orchestra/acl'
 
 @Route('hosts')
 @Security('*')
@@ -386,6 +387,9 @@ export class HostController extends XapiXoController<XoHost> {
   }
 
   /**
+   * Required privilege:
+   * - resource: pif, action: update:management
+   *
    * Reconfigure the management interface of the host to use the given PIF.
    *
    * The target PIF must already have an IP address configured.
@@ -395,9 +399,10 @@ export class HostController extends XapiXoController<XoHost> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/management_reconfigure')
-  @Middlewares(json())
+  @Middlewares([json(), acl({ resource: 'pif', action: 'update:management', objectId: 'body.pif' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(badRequestResp.status, badRequestResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
@@ -430,6 +435,10 @@ export class HostController extends XapiXoController<XoHost> {
   }
 
   /**
+   * Required privileges:
+   * - resource: host, action: disable
+   * - resource: host, action: evacuate (if `evacuate: true`)
+   *
    * Disable a host.
    *
    * Set `evacuate` to `true` to also evacuate all running VMs to other hosts in the pool.
@@ -443,9 +452,23 @@ export class HostController extends XapiXoController<XoHost> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/disable')
-  @Middlewares(json())
+  @Middlewares([
+    json(),
+    acl({
+      resource: 'host',
+      actions: ({ req }) => {
+        const actions: SupportedActions<'host'>[] = ['disable']
+        if (req.body?.evacuate) {
+          actions.push('evacuate')
+        }
+        return actions
+      },
+      objectId: 'params.id',
+    }),
+  ])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -493,14 +516,19 @@ export class HostController extends XapiXoController<XoHost> {
   }
 
   /**
+   * Required privilege:
+   * - resource: host, action: enable
+   *
    * Enable a host, taking it out of disabled state.
    *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(taskLocation)
   @Post('{id}/actions/enable')
+  @Middlewares(acl({ resource: 'host', action: 'enable', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   enable(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {

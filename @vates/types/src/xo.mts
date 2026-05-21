@@ -666,7 +666,7 @@ export type XoTask = {
     userId?: string
     [key: string]: unknown | undefined
   }
-  result: Record<string, unknown>
+  result?: Record<string, unknown>
   start: number
   status: 'failure' | 'interrupted' | 'pending' | 'success'
   tasks?: XoTask[]
@@ -680,7 +680,7 @@ export type XoUser = {
   groups: XoGroup['id'][]
   id: Branded<'user'>
   name?: string
-  permission: string
+  permission: 'none' | 'admin'
   pw_hash?: string
   preferences: Record<string, string>
 }

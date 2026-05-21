@@ -100,7 +100,7 @@ export class BackupRequest extends AbstractRequest {
       const result = await this.dispatchClient.xoClient.call('backupNg.deleteJob', { id: jobId })
       return result
     } catch (error) {
-      log.warn('Delete backup job failed', { error: error.message })
+      log.warn('Delete backup job failed', { error })
       throw error
     }
   }
@@ -128,7 +128,7 @@ export class BackupRequest extends AbstractRequest {
         remotes,
       })
     } catch (error) {
-      log.warn('List VM backups failed', { error: error.message })
+      log.warn('List VM backups failed', { error })
       throw error
     }
   }
@@ -157,7 +157,7 @@ export class BackupRequest extends AbstractRequest {
         ids,
       })
     } catch (error) {
-      log.warn('Delete VM backups failed', { error: error.message })
+      log.warn('Delete VM backups failed', { error })
       throw error
     }
   }
@@ -229,7 +229,7 @@ export class BackupRequest extends AbstractRequest {
       const result = await this.dispatchClient.xoClient.call('mirrorBackup.deleteJob', { id: jobId })
       return result
     } catch (error) {
-      log.warn('Delete mirror backup job failed', { error: error.message })
+      log.warn('Delete mirror backup job failed', { error })
       throw error
     }
   }
@@ -274,7 +274,7 @@ export class BackupRequest extends AbstractRequest {
 
           return false
         } catch (error) {
-          log.debug('Waiting for mirror backup completion', { error: error.message })
+          log.debug('Waiting for mirror backup completion', { error })
           return false
         }
       },
@@ -317,8 +317,13 @@ export class BackupRequest extends AbstractRequest {
         schedule: scheduleId,
       })
     } catch (wsError) {
-      log.warn('Run backup job failed', { error: wsError.message })
-      throw wsError
+      if (wsError.code === -32000 && wsError.message.includes('task has not started yet')) {
+        // sometimes we get a task not started error
+        await new Promise(resolve => setTimeout(resolve, 10_000))
+      } else {
+        console.error('❌ Run backup job failed:', wsError.message)
+        throw wsError
+      }
     }
 
     // Wait for the backup to complete and get the log
@@ -339,7 +344,7 @@ export class BackupRequest extends AbstractRequest {
 
           return false // Still running
         } catch (error) {
-          log.debug('Waiting for backup completion', { error: error.message })
+          log.debug('Waiting for backup completion', { error })
           return false
         }
       },

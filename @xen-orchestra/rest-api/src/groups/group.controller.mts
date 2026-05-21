@@ -129,7 +129,7 @@ export class GroupController extends XoController<XoGroup> {
     json(),
     acl({
       resource: 'group',
-      action: actionFromBody('update:name'),
+      action: actionFromBody<'group'>('update:name'),
       objectId: 'params.id',
       getObject: ({ restApi }) => restApi.xoApp.getGroup,
     }),

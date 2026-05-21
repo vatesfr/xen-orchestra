@@ -37,6 +37,7 @@ import type {
   XoVm,
   XoVmTemplate,
   XoVif,
+  XoVmSnapshot,
 } from '../xo.mjs'
 
 export type XcpPatches = {
@@ -129,6 +130,7 @@ export interface Xapi {
   listMissingPatches(host: XoHost['id']): Promise<XcpPatches[] | XsPatches[]>
   pool_emergencyShutdown(): Promise<void>
   resumeVm(id: XoVm['id']): Promise<void>
+  revertVm(snapshotId: XoVmSnapshot['id']): Promise<void>
   unpauseVm(id: XoVm['id']): Promise<void>
   cloneVm(
     vmId: XoVm['id'],
@@ -346,4 +348,13 @@ export interface Xapi {
   ): Promise<XenApiRecord>
   isHyperThreadingEnabled(hostId: XoHost['id']): Promise<boolean | null>
   VTPM_create(params: { VM: XenApiVm['$ref']; is_unique?: boolean; contents?: string }): Promise<XenApiVtpm['$ref']>
+  destroySr(id: XoSr['id']): Promise<void>
+  xostor_delete(ref: XenApiSr['$ref']): Promise<void>
+  objects: {
+    indexes: {
+      type: {
+        [XenApiRecord in WrappedXenApiRecord as XenApiRecord['$type']]: Record<XenApiRecord['uuid'], XenApiRecord>
+      }
+    }
+  }
 }

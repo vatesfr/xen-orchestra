@@ -104,30 +104,30 @@ Actions are written using the exact string you pass in a privilege. A parent act
 
 ### Infrastructure resources
 
-| Resource        | Available actions                                                                                                                                                                               |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `vm`            | `read`, `delete`, `export`, `pause`, `start`, `resume`, `snapshot`, `suspend`, `unpause`, `reboot:clean`, `reboot:hard`, `shutdown:clean`, `shutdown:hard`, `update:datasources`, `update:tags` |
-| `vm-snapshot`   | `read`, `delete`, `export`, `update:tags`                                                                                                                                                       |
-| `vm-template`   | `read`, `delete`, `export`, `instantiate`, `update:tags`                                                                                                                                        |
-| `vm-controller` | `read`, `update:tags`                                                                                                                                                                           |
-| `vdi`           | `read`, `create`, `delete`, `boot`, `export-content`, `import-content`, `update:tags`                                                                                                           |
-| `vdi-snapshot`  | `read`                                                                                                                                                                                          |
-| `vdi-unmanaged` | `read`                                                                                                                                                                                          |
-| `vif`           | `read`, `create`                                                                                                                                                                                |
-| `vbd`           | `read`                                                                                                                                                                                          |
-| `sr`            | `read`, `import:vdi`, `import:vm`, `update:tags`                                                                                                                                                |
-| `host`          | `read`, `allow-vm`, `export:logs`, `update:tags`                                                                                                                                                |
-| `pool`          | `read`, `emergency-shutdown`, `rolling-reboot`, `rolling-update`, `create:network`, `create:vm`, `update:tags`                                                                                  |
-| `network`       | `read`, `create`, `delete`, `update:tags`                                                                                                                                                       |
-| `pif`           | `read`                                                                                                                                                                                          |
-| `pbd`           | `read`                                                                                                                                                                                          |
-| `pci`           | `read`                                                                                                                                                                                          |
-| `pgpu`          | `read`                                                                                                                                                                                          |
-| `vgpu`          | `read`                                                                                                                                                                                          |
-| `vgpuType`      | `read`                                                                                                                                                                                          |
-| `vtpm`          | `read`                                                                                                                                                                                          |
-| `sm`            | `read`                                                                                                                                                                                          |
-| `gpuGroup`      | `read`                                                                                                                                                                                          |
+| Resource        | Available actions                                                                                                                                                                                                  |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `vm`            | `read`, `delete`, `export`, `pause`, `start`, `resume`, `revert-snapshot`, `snapshot`, `suspend`, `unpause`, `reboot:clean`, `reboot:hard`, `shutdown:clean`, `shutdown:hard`, `update:datasources`, `update:tags` |
+| `vm-snapshot`   | `read`, `delete`, `export`, `update:tags`                                                                                                                                                                          |
+| `vm-template`   | `read`, `delete`, `export`, `instantiate`, `update:tags`                                                                                                                                                           |
+| `vm-controller` | `read`, `update:tags`                                                                                                                                                                                              |
+| `vdi`           | `read`, `create`, `delete`, `boot`, `export-content`, `import-content`, `update:tags`                                                                                                                              |
+| `vdi-snapshot`  | `read`                                                                                                                                                                                                             |
+| `vdi-unmanaged` | `read`                                                                                                                                                                                                             |
+| `vif`           | `read`, `create`                                                                                                                                                                                                   |
+| `vbd`           | `read`                                                                                                                                                                                                             |
+| `sr`            | `read`, `delete`, `import:vdi`, `import:vm`, `update:tags`                                                                                                                                                         |
+| `host`          | `read`, `allow-vm`, `export:logs`, `update:tags`, `disable`, `enable`, `evacuate`                                                                                                                                  |
+| `pool`          | `read`, `emergency-shutdown`, `rolling-reboot`, `rolling-update`, `create:network`, `create:vm`, `update:tags`                                                                                                     |
+| `network`       | `read`, `create`, `delete`, `update:tags`                                                                                                                                                                          |
+| `pif`           | `read`, `update:management`                                                                                                                                                                                        |
+| `pbd`           | `read`                                                                                                                                                                                                             |
+| `pci`           | `read`                                                                                                                                                                                                             |
+| `pgpu`          | `read`                                                                                                                                                                                                             |
+| `vgpu`          | `read`                                                                                                                                                                                                             |
+| `vgpuType`      | `read`                                                                                                                                                                                                             |
+| `vtpm`          | `read`                                                                                                                                                                                                             |
+| `sm`            | `read`                                                                                                                                                                                                             |
+| `gpuGroup`      | `read`                                                                                                                                                                                                             |
 
 ### XO management resources
 

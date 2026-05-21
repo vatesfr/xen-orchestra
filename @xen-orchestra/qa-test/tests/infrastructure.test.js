@@ -10,7 +10,7 @@ import { after, before, describe, it } from 'node:test'
 import { createLogger } from '@xen-orchestra/log'
 import { setup, teardown } from './setup.js'
 
-const log = createLogger('xo:qa-test:tests')
+const log = createLogger('qa:infrastructure')
 
 describe('Infrastructure Tests', () => {
   let dispatchClient

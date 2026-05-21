@@ -231,7 +231,9 @@ export class XapiDiskSource extends DiskPassthrough {
       readAhead.progressHandler = new XapiProgressHandler(xapi, `Exporting content of VDI ${label} through NBD+CBT`)
       return readAhead
     } catch (error) {
-      info('Error in openNbdCBT', error)
+      if (error.code !== 'CBT_DISABLED') {
+        info('Error in openNbdCBT', error)
+      }
       // init probaby failed, so nothing to close , but better safe than sorry
       await source?.close().catch(warn)
 

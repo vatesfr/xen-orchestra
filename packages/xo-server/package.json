@@ -22,7 +22,8 @@
     "xo-server": "dist/cli.mjs",
     "xo-server-db": "dist/db-cli.mjs",
     "xo-server-logs": "dist/logs-cli.mjs",
-    "xo-server-recover-account": "dist/recover-account-cli.mjs"
+    "xo-server-recover-account": "dist/recover-account-cli.mjs",
+    "xo-xcppool-ssh": "dist/ssh-cli.mjs"
   },
   "engines": {
     "node": ">=14.18"
@@ -132,6 +133,7 @@
     "sonic-boom": "^4.2.0",
     "source-map-support": "^0.5.16",
     "split-host": "^2.0.0",
+    "ssh2": "^1.16.0",
     "split2": "^4.1.0",
     "stoppable": "^1.0.5",
     "subleveldown": "^6.0.1",

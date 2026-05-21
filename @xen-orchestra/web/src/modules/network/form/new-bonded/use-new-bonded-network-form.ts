@@ -1,8 +1,4 @@
-import {
-  type BaseNetworkFormData,
-  BOND_MODES,
-  useNetworkFormBase,
-} from '@/modules/network/form/use-network-form-base.ts'
+import { type BaseNetworkFormData, useNetworkFormBase } from '@/modules/network/form/use-network-form-base.ts'
 import { useNetworkPifSelect } from '@/modules/network/form/use-network-pif-select.ts'
 import type { NewBondedNetworkPayload } from '@/modules/network/jobs/xo-bonded-network-create.job.ts'
 import { type FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
@@ -12,6 +8,8 @@ import { useFormSelect } from '@core/packages/form-select'
 import { BOND_MODE } from '@vates/types'
 import { type MaybeRefOrGetter, reactive, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
+
+export const BOND_MODES: BOND_MODE[] = ['balance-slb', 'active-backup', 'lacp']
 
 export type NewBondedNetworkFormData = BaseNetworkFormData & {
   pifs: Array<{ id: FrontXoPif['id'] }>

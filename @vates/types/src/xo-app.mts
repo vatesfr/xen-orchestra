@@ -56,7 +56,6 @@ export type XapiConnection = Xapi & {
   sessionId: string
   _url?: { protocol: string; hostname: string; port?: string }
 }
-
 type XapiRecordByXapiXoRecord = {
   gpuGroup: XenApiGpuGroupWrapped
   host: XenApiHostWrapped
@@ -82,6 +81,34 @@ type XapiRecordByXapiXoRecord = {
   'VM-template': XenApiVmWrapped
   VTPM: XenApiVtpmWrapped
 }
+
+type LicenseProductId =
+  | 'premium'
+  | 'xcpng-enterprise'
+  | 'xcpng-standard'
+  | 'xo-proxy'
+  | 'xosan.trial'
+  | 'xostor'
+  | 'xostor.trial'
+type LicenseProductType = 'xo' | 'xoproxy' | 'xcpng' | 'xosan' | 'xostor'
+
+type License = {
+  id: string
+  type: 'license'
+  created: number
+  licenseType: 'unit'
+  productId: LicenseProductId
+  tags: string[]
+  expires?: number
+  boundObjectId?: string
+  bindDate?: number
+  buyer?: { token: string; email: string }
+  history?: { date: number; boundObjectId: string }[]
+  rebound?: number
+  productTypes?: LicenseProductType[]
+  bundleInfo?: { name: string; id: string }
+}
+
 export type XoApp = {
   hooks: EventEmitter
   _redis: {
@@ -142,6 +169,15 @@ export type XoApp = {
   addAclV2GroupRole(groupId: XoGroup['id'], roleId: XoAclRole['id']): Promise<XoGroupRole>
   addAclV2UserRole(userId: XoUser['id'], roleId: XoAclRole['id']): Promise<XoUserRole>
   addUserToGroup: (userId: XoUser['id'], groupId: XoGroup['id']) => Promise<void>
+  addApiMethod: <A extends unknown[], R>(
+    name: string,
+    method: (...args: A) => Promise<R>,
+    //we use any since it is a legacy call, might be better typed in another pr
+    info: {
+      resolve?: any
+      params?: any
+    }
+  ) => () => void // eslint-disable-line @typescript-eslint/no-explicit-any
   authenticateUser: (
     credentials: { token?: string; username?: string; password?: string },
     userData?: { ip?: string },
@@ -303,4 +339,12 @@ export type XoApp = {
   ): void
   getAllXapis(): Record<string, XapiConnection>
   getObjects(opts?: { filter?: Record<string, unknown>; limit?: number }): Record<string, XapiXoRecord>
+  getLicenses(params?: { productType?: LicenseProductType }): Promise<License[]>
+  bindLicense(params: { licenseId: string; boundObjectId: string }): Promise<License>
+  unbindLicense(params: {
+    productId: LicenseProductId
+    boundObjectId: string
+    licenseId: string
+    data?: Record<string, string>
+  }): Promise<License>
 }

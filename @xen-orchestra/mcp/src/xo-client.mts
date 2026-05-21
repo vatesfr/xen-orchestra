@@ -1,3 +1,5 @@
+import { getProxyDispatcher, type FetchInit } from './utils/proxy.mjs'
+
 const REQUEST_TIMEOUT_MS = 30_000
 
 export type XoClientConfig = { url: string; username: string; password: string } | { url: string; token: string }
@@ -25,11 +27,13 @@ export class XoClient {
 
     let response: Response
     try {
-      response = await fetch(url, {
+      const init: FetchInit = {
         ...options,
         headers: { ...this.authHeaders, ...options.headers },
         signal: options.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      })
+        dispatcher: getProxyDispatcher(),
+      }
+      response = await fetch(url, init)
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : String(cause)
       if (message.includes('ECONNREFUSED') || message.includes('fetch failed')) {

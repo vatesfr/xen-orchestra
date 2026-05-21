@@ -1,7 +1,7 @@
 import { createLogger } from '@xen-orchestra/log'
 import { FilterBuilder } from './FilterBuilder.js'
 
-const log = createLogger('xo:qa-test:rest')
+const log = createLogger('rest')
 
 /**
  * REST API client for XenOrchestra HTTP-based operations.
@@ -112,7 +112,7 @@ export class RestApiClient {
       this.updateHeaders(jsonResp.token.id)
       log.debug('Successfully authenticated with XenOrchestra REST API')
     } catch (error) {
-      log.warn('Failed to connect to XO REST API', { error: error.message })
+      log.warn('Failed to connect to XO REST API', { error })
       throw error
     }
   }
@@ -138,7 +138,7 @@ export class RestApiClient {
       }
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     } catch (error) {
-      log.warn('GET request failed', { error: error.message })
+      log.warn('GET request failed', { error })
       throw error
     }
   }
@@ -168,7 +168,7 @@ export class RestApiClient {
       }
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     } catch (error) {
-      log.warn(`${method} request failed`, { error: error.message })
+      log.warn(`${method} request failed`, { error })
       throw error
     }
   }
@@ -231,7 +231,7 @@ export class RestApiClient {
       }
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     } catch (error) {
-      log.warn('DELETE request failed', { error: error.message })
+      log.warn('DELETE request failed', { error })
       throw error
     }
   }

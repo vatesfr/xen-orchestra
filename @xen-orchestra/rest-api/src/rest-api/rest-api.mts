@@ -4,7 +4,6 @@ import type { XapiXoRecord, XoApp, XoUser } from '@vates/types'
 
 import type { Container } from 'inversify'
 import { safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
-import { AnyPrivilege } from '@xen-orchestra/acl'
 
 const log = createLogger('xo:rest-api:error-handler')
 
