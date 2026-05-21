@@ -75,11 +75,6 @@ const className = computed(() => toVariants({ accent }))
   justify-content: center;
   align-items: center;
 
-  &.story {
-    position: relative;
-    height: 100%;
-  }
-
   .modal {
     display: flex;
     flex-direction: column;

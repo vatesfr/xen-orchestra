@@ -21,11 +21,11 @@
       setting('showDemoButton').widget(boolean()).preset(true),
     ]"
   >
-    <UiModal :accent="properties.accent" :dismissible="properties.dismissible" class="story" v-bind="properties">
+    <UiModal class="story" v-bind="properties">
       <template #title>{{ settings.titleSlotContent }}</template>
       <template #content>{{ settings.contentSlotContent }}</template>
       <template v-if="settings.showDemoButton" #buttons>
-        <UiButton :accent="properties.accent == 'info' ? 'brand' : properties.accent" variant="primary" size="medium">
+        <UiButton :accent="properties.accent === 'info' ? 'brand' : properties.accent" variant="primary" size="medium">
           Confirm
         </UiButton>
       </template>
@@ -40,3 +40,10 @@ import { text, boolean } from '@/libs/story/story-widget'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiModal from '@core/components/ui/modal/UiModal.vue'
 </script>
+
+<style lang="postcss" scoped>
+.story {
+  position: relative;
+  height: 100%;
+}
+</style>

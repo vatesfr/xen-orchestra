@@ -24,7 +24,7 @@
       setting('showDemoButtons').widget(boolean()),
     ]"
   >
-    <VtsModal :accent="properties.accent" :dismissible="properties.dismissible" class="story" v-bind="properties">
+    <VtsModal class="story" v-bind="properties">
       <template #title>{{ settings.titleSlotContent }}</template>
       <template #content>{{ settings.contentSlotContent }}</template>
       <template v-if="settings.showDemoButtons" #buttons>
@@ -43,3 +43,10 @@ import VtsModal from '@core/components/modal/VtsModal.vue'
 import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
 import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
 </script>
+
+<style lang="postcss" scoped>
+.story {
+  position: relative;
+  height: 100%;
+}
+</style>
