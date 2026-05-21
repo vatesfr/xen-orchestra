@@ -15,7 +15,7 @@ import { type FormValidationConfig, required, requiredIf, withMessage } from '@c
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { TrafficRuleTargetType } from '@vates/types'
 import { toLower } from 'lodash-es'
-import { computed, type MaybeRefOrGetter, reactive, toValue, watch } from 'vue'
+import { computed, type MaybeRefOrGetter, reactive, toValue, watch, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export type NewTrafficRuleFormData = BaseTrafficRuleFormData & {
@@ -70,7 +70,6 @@ export function useNewTrafficRuleForm(
 
     return parentNetwork ? parentNetwork.PIFs.length > 0 : false
   })
-
 
   const poolNetworks = computed(() =>
     networks.value.filter(network => network.$pool === poolId.value && network.PIFs.length > 0)
@@ -147,7 +146,7 @@ export function useNewTrafficRuleForm(
   })
 
   const { id: vmSelectId } = useFormSelect('vmId', vmOptions, {
-    required: true,
+    required: () => isVifTarget.value,
     searchable: true,
     disabled: () => sourceVif.value !== undefined,
     option: { label: 'label', value: 'value', properties: source => ({ icon: source.icon }) },
@@ -178,6 +177,26 @@ export function useNewTrafficRuleForm(
       formData.targetId = undefined
     }
   )
+
+  watchEffect(() => {
+    if (!sourceVif.value) {
+      return
+    }
+
+    if (formData.targetType === 'VIF') {
+      if (!formData.vmId) {
+        formData.vmId = sourceVif.value.$VM
+      }
+
+      if (!formData.targetId) {
+        formData.targetId = sourceVif.value.id
+      }
+    } else if (formData.targetType === 'network') {
+      if (!formData.targetId) {
+        formData.targetId = sourceVif.value.$network
+      }
+    }
+  })
 
   async function validateAndBuildPayload(): Promise<NewTrafficRulePayload | undefined> {
     const valid = await validate()
