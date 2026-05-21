@@ -1,27 +1,28 @@
 <template>
-  <VtsStateHero v-if="!isReady" format="panel" size="medium" type="busy" />
-  <UiPanel v-else :key="panelSignature" :class="{ 'mobile-drawer': uiStore.isSmall }" closable @close="emit('close')">
-    <template #header>
-      <div class="action-buttons">
-        <SrConnectButton :scope :sr />
-        <MenuList placement="bottom-end">
-          <template #trigger="{ open }">
-            <UiButtonIcon accent="brand" icon="action:more-actions" size="medium" @click="open($event)" />
-          </template>
-          <SrDisconnectButton :scope :sr />
-          <SrDeleteButton :sr />
-        </MenuList>
-      </div>
+  <VtsSidePanel :key="panelSignature" :selected="!!sr" :closable="!!sr" @close="emit('close')">
+    <template v-if="sr" #actions>
+      <SrConnectButton :scope :sr />
+      <MenuList placement="bottom-end">
+        <template #trigger="{ open }">
+          <UiButtonIcon accent="brand" icon="action:more-actions" size="medium" @click="open($event)" />
+        </template>
+        <SrDisconnectButton :scope :sr />
+        <SrDeleteButton :sr />
+      </MenuList>
     </template>
     <template #default>
-      <StorageRepositoryInfosCard :scope :sr />
-      <StorageRepositorySpaceCard :sr />
-      <StorageRepositoryVdisCard :vdi-snapshots :vdis />
-      <StorageRepositoryHostsCard :hosts />
-      <StorageRepositoryPbdsCard :scope :sr />
-      <StorageRepositoryCustomFieldsCard :custom-fields />
+      <VtsStateHero v-if="!sr" format="panel" type="no-selection" size="medium" />
+      <VtsStateHero v-else-if="!isReady" format="panel" type="busy" size="medium" />
+      <template v-else>
+        <StorageRepositoryInfosCard :scope :sr />
+        <StorageRepositorySpaceCard :sr />
+        <StorageRepositoryVdisCard :vdi-snapshots :vdis />
+        <StorageRepositoryHostsCard :hosts />
+        <StorageRepositoryPbdsCard :scope :sr />
+        <StorageRepositoryCustomFieldsCard :custom-fields />
+      </template>
     </template>
-  </UiPanel>
+  </VtsSidePanel>
 </template>
 
 <script lang="ts" setup>
@@ -45,24 +46,21 @@ import {
 } from '@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'
 import type { SrScope } from '@core/types/storage-repository.type.ts'
 import MenuList from '@core/components/menu/MenuList.vue'
+import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { useUiStore } from '@core/stores/ui.store.ts'
 import type { XoVdi } from '@vates/types'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 
 const { sr, scope } = defineProps<{
-  sr: FrontXoSr
+  sr?: FrontXoSr
   scope: SrScope
 }>()
 
 const emit = defineEmits<{
   close: []
 }>()
-
-const uiStore = useUiStore()
 
 const { useGetVdisByIds, areVdisReady } = useXoVdiCollection()
 const { getHostById, areHostsReady } = useXoHostCollection()
@@ -71,7 +69,7 @@ const { useGetVdiSnapshotsByIds, areVdiSnapshotsReady } = useXoVdiSnapshotCollec
 
 const isReady = logicAnd(areVdisReady, areHostsReady, arePbdsReady, areVdiSnapshotsReady)
 
-const vdis = useGetVdisByIds(() => sr.VDIs as XoVdi['id'][])
+const vdis = useGetVdisByIds(() => (sr?.VDIs ?? []) as XoVdi['id'][])
 
 const vdiSnapshots = useGetVdiSnapshotsByIds(() => sr.VDIs as FrontXoVdiSnapshot['id'][])
 
@@ -79,7 +77,7 @@ const { getSrPbdsSignature } = useGetPbdsInScope()
 
 const panelSignature = computed(() => getSrPbdsSignature(sr, scope))
 
-const pbds = computed(() => pbdsBySr.value.get(sr.id) ?? [])
+const pbds = computed(() => (sr !== undefined ? pbdsBySr.value.get(sr.id) : undefined) ?? [])
 
 const hosts = computed(() =>
   pbds.value.reduce<FrontXoHost[]>((acc, pbd) => {
@@ -94,6 +92,10 @@ const hosts = computed(() =>
 )
 
 const customFields = computed(() => {
+  if (sr === undefined) {
+    return {}
+  }
+
   const prefix = 'XenCenter.CustomFields.'
 
   return Object.entries(sr.other_config).reduce<Record<string, unknown>>((acc, [key, value]) => {
@@ -105,22 +107,3 @@ const customFields = computed(() => {
   }, {})
 })
 </script>
-
-<style lang="postcss" scoped>
-.action-buttons {
-  display: flex;
-  align-items: center;
-  margin-inline-end: auto;
-}
-.mobile-drawer {
-  position: fixed;
-  inset: 0;
-
-  .action-buttons-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-  }
-}
-</style>

@@ -1,25 +1,21 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }" closable @close="emit('close')">
-    <template #header>
-      <div class="action-buttons">
-        <template v-if="vbd">
-          <VbdConnectButton v-if="!vbd.attached" :vbd :vm />
-          <VbdDisconnectButton v-else :vbd :vm />
-        </template>
-        <MenuList placement="bottom-end">
-          <template #trigger="{ open }">
-            <UiButtonIcon icon="action:more-actions" accent="brand" size="medium" @click="open($event)" />
-          </template>
-          <VdiActions :vdi :vbd :vm />
-        </MenuList>
-      </div>
+  <VtsSidePanel :selected="!!vdi" :closable="!!vdi" @close="emit('close')">
+    <template v-if="vbd" #actions>
+      <VbdConnectButton v-if="!vbd.attached" :vbd :vm />
+      <VbdDisconnectButton v-else :vbd :vm />
+    </template>
+    <template v-if="vdi" #more-actions>
+      <VdiActions :vdi :vbd :vm />
     </template>
     <template #default>
-      <VdiInfosCard :vdi :vm />
-      <VdiSpaceCard :vdi />
-      <VdiConfigurationCard :vdi :vm />
+      <VtsStateHero v-if="!vdi" format="panel" type="no-selection" size="medium" />
+      <template v-else>
+        <VdiInfosCard :vdi :vm />
+        <VdiSpaceCard :vdi />
+        <VdiConfigurationCard :vdi :vm />
+      </template>
     </template>
-  </UiPanel>
+  </VtsSidePanel>
 </template>
 
 <script setup lang="ts">
@@ -32,14 +28,12 @@ import VdiInfosCard from '@/modules/vdi/components/list/panel/cards/VdiInfosCard
 import VdiSpaceCard from '@/modules/vdi/components/list/panel/cards/VdiSpaceCard.vue'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import MenuList from '@core/components/menu/MenuList.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { useUiStore } from '@core/stores/ui.store.ts'
+import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { computed } from 'vue'
 
 const { vdi, vm } = defineProps<{
-  vdi: FrontXoVdi
+  vdi?: FrontXoVdi
   vm: FrontXoVm
 }>()
 
@@ -47,30 +41,9 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const uiStore = useUiStore()
-
 const { useGetVbdsByIds } = useXoVbdCollection()
 
-const vbds = useGetVbdsByIds(vdi.$VBDs)
+const vbds = useGetVbdsByIds(vdi?.$VBDs ?? [])
 
 const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm.id))
 </script>
-
-<style scoped lang="postcss">
-.action-buttons {
-  display: flex;
-  align-items: center;
-  margin-inline-end: auto;
-}
-
-.mobile-drawer {
-  position: fixed;
-  inset: 0;
-
-  .close-button {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-}
-</style>
