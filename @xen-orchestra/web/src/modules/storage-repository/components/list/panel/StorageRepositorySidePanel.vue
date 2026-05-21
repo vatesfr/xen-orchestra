@@ -1,24 +1,28 @@
 <template>
-  <VtsStateHero v-if="!isReady" format="panel" type="busy" size="medium" />
-  <UiPanel v-else :key="panelSignature" :class="{ 'mobile-drawer': uiStore.isSmall }" closable @close="emit('close')">
-    <template #header>
+  <VtsSidePanel :key="panelSignature" :selected="!!sr" :closable="!!sr" @close="emit('close')">
+    <template #actions>
       <VtsDeleteButton
+        v-if="sr"
         class="sr-delete-button"
         :disabled="!canDeleteSr"
         :busy="isDeletingSr"
         @click="openSrDeleteModal()"
       />
-      <SrDisconnectButton class="sr-disconnect-button" :sr :scope />
+      <SrDisconnectButton v-if="sr" class="sr-disconnect-button" :sr :scope />
     </template>
     <template #default>
-      <StorageRepositoryInfosCard :sr :scope />
-      <StorageRepositorySpaceCard :sr />
-      <StorageRepositoryVdisCard :vdis />
-      <StorageRepositoryHostsCard :hosts />
-      <StorageRepositoryPbdsCard :sr :scope />
-      <StorageRepositoryCustomFieldsCard :custom-fields />
+      <VtsStateHero v-if="!sr" format="panel" type="no-selection" size="medium" />
+      <VtsStateHero v-else-if="!isReady" format="panel" type="busy" size="medium" />
+      <template v-else>
+        <StorageRepositoryInfosCard :sr :scope />
+        <StorageRepositorySpaceCard :sr />
+        <StorageRepositoryVdisCard :vdis />
+        <StorageRepositoryHostsCard :hosts />
+        <StorageRepositoryPbdsCard :sr :scope />
+        <StorageRepositoryCustomFieldsCard :custom-fields />
+      </template>
     </template>
-  </UiPanel>
+  </VtsSidePanel>
 </template>
 
 <script setup lang="ts">
@@ -37,15 +41,14 @@ import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/us
 import type { StorageScope } from '@/modules/storage-repository/types/storage-scope.type.ts'
 import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
+import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { useUiStore } from '@core/stores/ui.store.ts'
 import type { XoVdi } from '@vates/types'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 
 const { sr, scope } = defineProps<{
-  sr: FrontXoSr
+  sr?: FrontXoSr
   scope: StorageScope
 }>()
 
@@ -53,21 +56,19 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const uiStore = useUiStore()
-
 const { useGetVdisByIds, areVdisReady } = useXoVdiCollection()
 const { getHostById, areHostsReady } = useXoHostCollection()
 const { pbdsBySr, arePbdsReady } = useXoPbdCollection()
 
 const isReady = logicAnd(areVdisReady, areHostsReady, arePbdsReady)
 
-const vdis = useGetVdisByIds(() => sr.VDIs as XoVdi['id'][])
+const vdis = useGetVdisByIds(() => (sr?.VDIs ?? []) as XoVdi['id'][])
 
 const { getSrPbdsSignature } = useGetPbdsInScope()
 
 const panelSignature = computed(() => getSrPbdsSignature(sr, scope))
 
-const pbds = computed(() => pbdsBySr.value.get(sr.id) ?? [])
+const pbds = computed(() => (sr !== undefined ? pbdsBySr.value.get(sr.id) : undefined) ?? [])
 
 const hosts = computed(() =>
   pbds.value.reduce<FrontXoHost[]>((acc, pbd) => {
@@ -82,6 +83,10 @@ const hosts = computed(() =>
 )
 
 const customFields = computed(() => {
+  if (sr === undefined) {
+    return {}
+  }
+
   const prefix = 'XenCenter.CustomFields.'
 
   return Object.entries(sr.other_config).reduce<Record<string, unknown>>((acc, [key, value]) => {
@@ -93,23 +98,9 @@ const customFields = computed(() => {
   }, {})
 })
 
-const { openModal: openSrDeleteModal, canRun: canDeleteSr, isRunning: isDeletingSr } = useSrDeleteModal(() => [sr])
+const {
+  openModal: openSrDeleteModal,
+  canRun: canDeleteSr,
+  isRunning: isDeletingSr,
+} = useSrDeleteModal(() => (sr !== undefined ? [sr] : []))
 </script>
-
-<style scoped lang="postcss">
-.sr-disconnect-button {
-  margin-inline-end: auto;
-}
-
-.mobile-drawer {
-  position: fixed;
-  inset: 0;
-
-  .action-buttons-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-  }
-}
-</style>
