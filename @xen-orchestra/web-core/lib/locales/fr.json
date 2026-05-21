@@ -865,6 +865,7 @@
   "snapshot-created-on": "Instantané créé le",
   "snapshot-delete-warning": "Supprimer 1 instantané peut entraîner une perte de données irréversible. Cette action est définitive et ne peut pas être annulée. | Supprimer {n} instantanés en une seule fois peut entraîner une perte de données irréversible. Cette action est définitive et ne peut pas être annulée.",
   "snapshot-mode": "Mode de sauvegarde",
+  "snapshot-revert-snapshot-before": "Créer un instantané de la VM avant la restauration",
   "snapshot-revert-warning": "La VM sera restaurée à l'état de l'instantané sélectionné. Tous les changements effectués depuis (données, configuration et état des disques) seront perdus. Cette action est irréversible.",
   "snapshots": "Instantanés",
   "sockets-with-cores-per-socket": "{nSockets} sockets × {nCores} cœurs/socket",
