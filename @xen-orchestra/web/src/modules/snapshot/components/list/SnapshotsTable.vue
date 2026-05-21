@@ -125,7 +125,7 @@ const { HeadCells, BodyCells } = useSnapshotColumns({
       openModal: openSnapshotRevertModal,
       canRun: canRevertSnapshot,
       isRunning: isRevertingSnapshot,
-    } = useVmSnapshotRevertModal(() => [snapshot])
+    } = useVmSnapshotRevertModal(() => snapshot)
 
     return {
       name: r =>

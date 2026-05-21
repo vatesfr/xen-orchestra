@@ -50,7 +50,10 @@ import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { useI18n } from 'vue-i18n'
 
-const { snapshot } = defineProps<{ snapshot: FrontXoVmSnapshot }>()
+const { snapshot } = defineProps<{
+  snapshot: FrontXoVmSnapshot
+}>()
+
 const emit = defineEmits<{
   close: []
 }>()
@@ -69,7 +72,7 @@ const {
   openModal: openSnapshotRevertModal,
   canRun: canRevertSnapshot,
   isRunning: isRevertingSnapshot,
-} = useVmSnapshotRevertModal(() => [snapshot])
+} = useVmSnapshotRevertModal(() => snapshot)
 </script>
 
 <style scoped lang="postcss">

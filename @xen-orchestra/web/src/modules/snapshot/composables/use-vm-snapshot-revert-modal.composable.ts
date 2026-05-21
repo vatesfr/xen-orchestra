@@ -4,10 +4,10 @@ import { useModal } from '@core/packages/modal/use-modal.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
 
-export function useVmSnapshotRevertModal(rawSnapshots: MaybeRefOrGetter<FrontXoVmSnapshot[]>) {
-  const snapshots = toComputed(rawSnapshots)
+export function useVmSnapshotRevertModal(rawSnapshot: MaybeRefOrGetter<FrontXoVmSnapshot>) {
+  const snapshot = toComputed(rawSnapshot)
 
-  const { run, canRun, isRunning } = useXoVmSnapshotRevertJob(snapshots)
+  const { run, canRun, isRunning } = useXoVmSnapshotRevertJob(snapshot)
 
   const openModal = useModal(() => ({
     component: import('@/modules/snapshot/components/modal/VmSnapshotRevertModal.vue'),
