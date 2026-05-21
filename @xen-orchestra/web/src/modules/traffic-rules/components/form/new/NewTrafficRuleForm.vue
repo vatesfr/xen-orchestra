@@ -1,5 +1,5 @@
 <template>
-  <form class="new-traffic-rule-form" novalidate @submit.prevent="onSubmit()">
+  <VtsForm class="new-traffic-rule-form" @submit="onSubmit()">
     <div class="row">
       <TrafficRuleFormSelect v-bind="allowSelectBindings">
         <template #option="{ option }">
@@ -48,7 +48,7 @@
       </TrafficRuleFormSelect>
     </div>
     <NewTrafficRuleButtonsSection :cancel-to :submit-label="t('action:create-traffic-rule')" />
-  </form>
+  </VtsForm>
 </template>
 
 <script setup lang="ts">
@@ -59,6 +59,7 @@ import TrafficRuleFormTextInput from '@/modules/traffic-rules/components/form/ne
 import NewTrafficRuleButtonsSection from '@/modules/traffic-rules/components/form/new/NewTrafficRuleButtonsSection.vue'
 import { useNewTrafficRuleForm } from '@/modules/traffic-rules/form/new/use-new-traffic-rule-form.ts'
 import type { NewTrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
+import VtsForm from '@core/components/form/VtsForm.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'

@@ -8,14 +8,12 @@ import type { NewTrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traf
 import type { TrafficRuleTargetType } from '@/modules/traffic-rules/types.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { danger } from '@/shared/utils/input-message.util.ts'
 import type { ObjectIconName } from '@core/icons'
-import { useFormBindings } from '@core/packages/form-bindings'
-import { useFormSelect } from '@core/packages/form-select'
+import { type FormValidationConfig, required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { XoNetwork, XoVif } from '@vates/types'
 import { toLower } from 'lodash-es'
-import { computed, type MaybeRefOrGetter, reactive, toRef, watch } from 'vue'
+import { computed, type MaybeRefOrGetter, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export type NewTrafficRuleFormData = BaseTrafficRuleFormData & {
@@ -41,6 +39,8 @@ export function useNewTrafficRuleForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'
     targetId: undefined,
   })
 
+  const isVifTarget = computed(() => formData.targetType === 'VIF')
+
   const { networks } = useXoNetworkCollection()
   const { vifs } = useXoVifCollection()
   const { vmsByPool } = useXoVmCollection()
@@ -54,8 +54,6 @@ export function useNewTrafficRuleForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'
   const vmVifs = computed(() =>
     vifs.value.filter(vif => vif.$VM === formData.vmId).sort((vifA, vifB) => Number(vifA.device) - Number(vifB.device))
   )
-
-  const isVifTarget = computed(() => formData.targetType === 'VIF')
 
   const targetOptions = computed<TargetOption[]>(() =>
     isVifTarget.value
@@ -86,6 +84,58 @@ export function useNewTrafficRuleForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'
     })
   )
 
+  const targetTypeOptions = [
+    { id: 'network', label: t('network'), value: 'network' },
+    { id: 'VIF', label: t('vif'), value: 'VIF' },
+  ]
+
+  const extraConfig: FormValidationConfig<NewTrafficRuleFormData> = {
+    errors: {
+      onSubmit: () => ({
+        targetId: {
+          required: withMessage(required, () => (isVifTarget.value ? t('vif-required') : t('network-required'))),
+        },
+        vmId: {
+          requiredIf: withMessage(requiredIf(isVifTarget), t('vm-required')),
+        },
+      }),
+    },
+  }
+
+  const {
+    validate,
+    useFormSelect,
+    useSelect,
+    hasPort,
+    allowSelectBindings,
+    directionSelectBindings,
+    protocolSelectBindings,
+    portInputBindings,
+    ipRangeInputBindings,
+    buildBaseRulePayload,
+  } = useTrafficRuleFormBase(formData, extraConfig)
+
+  const { id: targetTypeSelectId } = useFormSelect('targetType', targetTypeOptions, {
+    required: true,
+    option: { label: 'label', value: 'value' },
+  })
+
+  const { id: vmSelectId } = useFormSelect('vmId', vmOptions, {
+    required: true,
+    searchable: true,
+    option: { label: 'label', value: 'value', properties: source => ({ icon: source.icon }) },
+  })
+
+  const { id: targetSelectId } = useFormSelect('targetId', targetOptions, {
+    required: true,
+    searchable: true,
+    option: {
+      label: 'label',
+      value: 'value',
+      properties: source => ({ icon: source.icon }),
+    },
+  })
+
   watch(
     () => formData.targetType,
     () => {
@@ -101,77 +151,10 @@ export function useNewTrafficRuleForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'
     }
   )
 
-  const targetTypeOptions = [
-    { id: 'network', label: t('network'), value: 'network' },
-    { id: 'VIF', label: t('vif'), value: 'VIF' },
-  ]
-
-  const { id: targetTypeSelectId } = useFormSelect(targetTypeOptions, {
-    required: true,
-    model: toRef(formData, 'targetType'),
-    option: { label: 'label', value: 'value' },
-  })
-
-  const { id: vmSelectId } = useFormSelect(vmOptions, {
-    required: true,
-    searchable: true,
-    model: toRef(formData, 'vmId'),
-    option: { label: 'label', value: 'value', properties: source => ({ icon: source.icon }) },
-  })
-
-  const { id: targetSelectId } = useFormSelect(targetOptions, {
-    required: true,
-    searchable: true,
-    model: toRef(formData, 'targetId'),
-    option: {
-      label: 'label',
-      value: 'value',
-      properties: source => ({ icon: source.icon }),
-    },
-  })
-
-  const { useSelect } = useFormBindings(formData)
-
-  const {
-    hasSubmitted,
-    isBaseValid,
-    buildBaseRulePayload,
-    hasPort,
-    allowSelectBindings,
-    directionSelectBindings,
-    protocolSelectBindings,
-    portInputBindings,
-    ipRangeInputBindings,
-  } = useTrafficRuleFormBase(formData)
-
-  const targetError = computed(() => {
-    if (!hasSubmitted.value || formData.targetId) {
-      return undefined
-    }
-
-    return danger(isVifTarget.value ? t('vif-mandatory') : t('network-mandatory'))
-  })
-
-  const vmError = computed(() => {
-    if (!hasSubmitted.value || !isVifTarget.value || formData.vmId) {
-      return undefined
-    }
-
-    return danger(t('vm-mandatory'))
-  })
-
   async function validateAndBuildPayload(): Promise<NewTrafficRulePayload | undefined> {
-    hasSubmitted.value = true
+    const valid = await validate()
 
-    if (!isBaseValid.value) {
-      return undefined
-    }
-
-    if (!formData.targetId) {
-      return undefined
-    }
-
-    if (isVifTarget.value && !formData.vmId) {
+    if (!valid) {
       return undefined
     }
 
@@ -191,10 +174,9 @@ export function useNewTrafficRuleForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'
     directionSelectBindings,
     ipRangeInputBindings,
     targetTypeSelectBindings: useSelect(targetTypeSelectId, () => ({ label: t('rule-type') })),
-    vmSelectBindings: useSelect(vmSelectId, () => ({ label: t('from-vm'), error: vmError.value })),
+    vmSelectBindings: useSelect(vmSelectId, () => ({ label: t('from-vm') })),
     targetSelectBindings: useSelect(targetSelectId, () => ({
       label: formData.targetType === 'network' ? t('choose-network') : t('choose-vif'),
-      error: targetError.value,
     })),
     validateAndBuildPayload,
   }
