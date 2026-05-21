@@ -12,7 +12,7 @@
           {{ t('rule-type') }}
         </template>
         <template #value>
-          {{ rule.type }}
+          {{ ruleTypeLabel }}
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue align-top>
@@ -102,9 +102,11 @@ const networkTo = computed(() =>
 )
 
 const vmPowerState = computed(() => {
-  const state = toLower(vm.value?.power_state)
-  return `object:vm:${state === undefined ? 'unknown' : state}` satisfies ObjectIconName
+  const state = toLower(vm.value?.power_state) || 'unknown'
+  return `object:vm:${state}` as ObjectIconName
 })
+
+const ruleTypeLabel = computed(() => (rule.type === 'VIF' ? t('vif') : t('network')))
 
 const direction = computed(() => {
   const [labelA, labelB] = getDirectionLabels(rule)

@@ -45,19 +45,19 @@ export function useTrafficRuleFormBase<T extends BaseTrafficRuleFormData>(
   const baseConfig: FormValidationConfig<BaseTrafficRuleFormData> = {
     errors: {
       onSubmit: () => ({
-        ipRange: { required: withMessage(required, t('ip-address-required')) },
+        ipRange: { required: withMessage(required, () => t('ip-address-required')) },
         port: {
           requiredIf: withMessage(
             requiredIf(() => protocolHasPort(formData.protocol)),
-            t('port-required')
+            () => t('port-required')
           ),
         },
       }),
     },
     warnings: {
       onBlur: () => ({
-        ipRange: { ipv4OrCidr: withMessage(ipv4OrCidr, t('ip-address-invalid')) },
-        port: { outOfRange: withMessage(outOfRange(0, 65535), t('port-invalid')) },
+        ipRange: { ipv4OrCidr: withMessage(ipv4OrCidr, () => t('ip-address-invalid')) },
+        port: { outOfRange: withMessage(outOfRange(0, 65535), () => t('port-invalid')) },
       }),
     },
   }

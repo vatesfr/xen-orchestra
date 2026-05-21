@@ -60,6 +60,8 @@ const {
   error?: boolean
 }>()
 
+defineSlots<{ 'title-action'?(): any }>()
+
 const { t } = useI18n()
 
 const selectedRuleId = useRouteQuery('id')

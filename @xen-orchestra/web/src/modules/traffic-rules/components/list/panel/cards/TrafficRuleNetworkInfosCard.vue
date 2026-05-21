@@ -42,10 +42,10 @@
           {{ t('type') }}
         </template>
         <template #value>
-          {{ network.type }}
+          {{ networkTypeLabel }}
         </template>
         <template #addons>
-          <VtsCopyButton :value="network.type" />
+          <VtsCopyButton :value="networkTypeLabel" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue v-if="networkVlan">
@@ -123,6 +123,8 @@ const networkVlan = computed(() => {
 const networkNbd = computed(() => (network.nbd ? t('on') : t('off')))
 
 const networkDefaultLockingMode = computed(() => (network.defaultIsLocked ? t('disabled') : t('unlocked')))
+
+const networkTypeLabel = computed(() => t(network.type))
 </script>
 
 <style scoped lang="postcss">

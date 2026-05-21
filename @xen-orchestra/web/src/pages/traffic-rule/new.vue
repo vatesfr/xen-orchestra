@@ -1,9 +1,22 @@
 <template>
   <UiHeadBar>
-    <span class="header">{{ t('new-traffic-rule:add') }}</span>
+    <span>{{ t('new-traffic-rule:add') }}</span>
   </UiHeadBar>
 
   <div class="card-container">
+    <VtsOperationPendingCard v-if="isRunning" :title="t('creating-new-traffic-rule')" />
+    <VtsOperationErrorCard
+      v-else-if="hasTrafficRuleCreationError && error"
+      :title="t('unable-to-create-new-traffic-rule')"
+      :error
+      :error-message="t('new-traffic-rule:error-message')"
+    >
+      <template #actions>
+        <UiButton variant="secondary" accent="brand" size="medium" @click="handleGoBack()">
+          {{ t('action:go-back') }}
+        </UiButton>
+      </template>
+    </VtsOperationErrorCard>
     <UiCard v-show="canDisplayForm">
       <UiTitle>{{ t('general-information') }}</UiTitle>
       <NewTrafficRuleForm :cancel-to="cancelRoute" :pool-id="poolId" @create="createTrafficRule" />
@@ -19,10 +32,13 @@ import {
   useXoTrafficRuleCreateJob,
 } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
 import type { ApiError } from '@/shared/error/api.error.ts'
+import VtsOperationErrorCard from '@core/components/operation-error-card/VtsOperationErrorCard.vue'
+import VtsOperationPendingCard from '@core/components/operation-pending-card/VtsOperationPendingCard.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { type RouteLocationRaw, useRoute, useRouter } from 'vue-router'
 
@@ -32,12 +48,6 @@ const router = useRouter()
 const route = useRoute()
 const poolId = ref(route.query.poolid as FrontXoPool['id'] | undefined)
 
-onMounted(() => {
-  if (route.query.poolid) {
-    router.replace({ query: { ...route.query, poolid: undefined } })
-  }
-})
-
 const formPayload = ref<NewTrafficRulePayload>()
 
 const error = ref<ApiError | Error | undefined>()
@@ -46,6 +56,10 @@ const hasTrafficRuleCreationError = computed(() => error.value !== undefined)
 const { canRun, run: create, isRunning } = useXoTrafficRuleCreateJob(formPayload)
 
 const canDisplayForm = computed(() => !isRunning.value && !hasTrafficRuleCreationError.value)
+
+function handleGoBack() {
+  error.value = undefined
+}
 
 async function createTrafficRule(newPayload: NewTrafficRulePayload) {
   formPayload.value = newPayload
@@ -82,10 +96,6 @@ const cancelRoute = computed<RouteLocationRaw>(() => {
 </script>
 
 <style lang="postcss" scoped>
-.header {
-  font-family: 'Poppins Vates', sans-serif;
-}
-
 .card-container {
   padding: 0.8rem;
 }

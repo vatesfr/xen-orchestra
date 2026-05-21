@@ -153,9 +153,9 @@ const vifStatus = computed(() => (vif.attached ? CONNECTION_STATUS.CONNECTED : C
 const vm = useGetVmById(() => vif.$VM)
 
 const vmStatus = computed(() => {
-  const state = toLower(vm.value?.power_state)
+  const state = toLower(vm.value?.power_state) || 'unknown'
 
-  return `object:vm:${state === undefined ? 'unknown' : state}` as ObjectIconName
+  return `object:vm:${state}` as ObjectIconName
 })
 
 const network = useGetNetworkById(() => vif.$network)

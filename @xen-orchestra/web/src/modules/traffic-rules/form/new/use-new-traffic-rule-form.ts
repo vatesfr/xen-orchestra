@@ -73,13 +73,13 @@ export function useNewTrafficRuleForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'
 
   const vmOptions = computed(() =>
     poolVms.value.map(vm => {
-      const state = toLower(vm.power_state)
+      const state = toLower(vm.power_state) || 'unknown'
 
       return {
         id: vm.id,
         label: vm.name_label,
         value: vm.id,
-        icon: `object:vm:${state === undefined ? 'unknown' : state}` as ObjectIconName,
+        icon: `object:vm:${state}` as ObjectIconName,
       }
     })
   )
@@ -96,7 +96,7 @@ export function useNewTrafficRuleForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'
           required: withMessage(required, () => (isVifTarget.value ? t('vif-required') : t('network-required'))),
         },
         vmId: {
-          requiredIf: withMessage(requiredIf(isVifTarget), t('vm-required')),
+          requiredIf: withMessage(requiredIf(isVifTarget), () => t('vm-required')),
         },
       }),
     },
