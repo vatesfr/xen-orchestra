@@ -608,7 +608,7 @@ export class HostController extends XapiXoController<XoHost> {
       )
     }
 
-    // masterPassword is intentionally ommited from the taskProperties to avoid logging credentials.
+    // masterPassword is intentionally omitted from the taskProperties to avoid logging credentials.
     return this.createAction<void>(action, {
       sync,
       statusCode: noContentResp.status,
