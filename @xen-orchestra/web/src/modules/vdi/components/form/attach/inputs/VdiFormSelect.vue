@@ -1,5 +1,5 @@
 <template>
-  <VtsInputWrapper :label :message="messages" wrap>
+  <VtsInputWrapper :label :message="messages" wrap-message>
     <VtsSelect :id accent="brand">
       <template v-if="slots.option" #default="slotProps">
         <slot name="option" v-bind="slotProps" />

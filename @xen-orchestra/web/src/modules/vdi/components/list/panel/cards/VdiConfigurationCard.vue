@@ -27,9 +27,6 @@
         <template #value>
           <VtsStatus :status="isReadOnly" />
         </template>
-        <template v-if="isReadOnly" #addons>
-          <VtsCopyButton :value="t('enabled')" />
-        </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>
@@ -38,9 +35,6 @@
         <template #value>
           <VtsStatus :status="vdi.cbt_enabled ?? false" />
         </template>
-        <template v-if="vdi.cbt_enabled" #addons>
-          <VtsCopyButton :value="t('enabled')" />
-        </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>
@@ -48,9 +42,6 @@
         </template>
         <template #value>
           <VtsStatus :status="isBootable" />
-        </template>
-        <template v-if="isBootable" #addons>
-          <VtsCopyButton :value="t('enabled')" />
         </template>
       </VtsCardRowKeyValue>
     </div>

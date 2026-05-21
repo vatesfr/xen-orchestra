@@ -1,11 +1,12 @@
-import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import { useGetSrLocation } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import {
   type FrontXoSr,
   useXoSrCollection,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { isSrWritable } from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { type FrontXoVdi, useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -24,28 +25,10 @@ export function useVdiFormBase<T extends BaseVdiFormData>(rawVm: MaybeRefOrGette
   const { srs, useGetSrById, useGetSrsByIds } = useXoSrCollection()
   const { useGetVdisByIds } = useXoVdiCollection()
   const { useGetVbdsByIds } = useXoVbdCollection()
-  const { pbdsBySr } = useXoPbdCollection()
-  const { useGetHostById } = useXoHostCollection()
 
-  const isSrWritable = (sr: FrontXoSr) => sr.content_type !== 'iso' && sr.size > 0
+  const getSrLocation = useGetSrLocation()
 
-  function getSrLocation(sr: FrontXoSr): string {
-    if (sr.shared) {
-      return t('shared')
-    }
-
-    const hostName = pbdsBySr.value
-      .get(sr.id)
-      ?.map(pbd => useGetHostById(pbd.host).value?.name_label)
-      .find(name => name !== undefined)
-
-    return hostName ?? t('unknown')
-  }
-
-  function isFreeForWriting(vdi: FrontXoVdi) {
-    const vbds = useGetVbdsByIds(() => vdi.$VBDs).value
-    return vbds.every(vbd => !vbd.attached || vbd.read_only)
-  }
+  const { notCdDriveVbds } = useXoVmVbdsUtils(vm)
 
   const availableSrs = computed(() => srs.value.filter(sr => sr.$pool === vm.value.$pool && isSrWritable(sr)))
 
@@ -55,9 +38,7 @@ export function useVdiFormBase<T extends BaseVdiFormData>(rawVm: MaybeRefOrGette
     () => new Set(vmVbds.value.flatMap(vbd => (vbd.VDI ? [vbd.VDI as FrontXoVdi['id']] : [])))
   )
 
-  const vmVdiIds = computed(
-    () => vmVbds.value.filter(vbd => !vbd.is_cd_drive && vbd.VDI).map(vbd => vbd.VDI) as FrontXoVdi['id'][]
-  )
+  const vmVdiIds = computed(() => notCdDriveVbds.value.flatMap(vbd => (vbd.VDI ? [vbd.VDI as FrontXoVdi['id']] : [])))
 
   const vmVdis = useGetVdisByIds(vmVdiIds)
 
@@ -99,7 +80,6 @@ export function useVdiFormBase<T extends BaseVdiFormData>(rawVm: MaybeRefOrGette
     availableSrs,
     attachedVdiIds,
     getSrLocation,
-    isFreeForWriting,
     requiredHost,
     selectedSr,
     srWarning,

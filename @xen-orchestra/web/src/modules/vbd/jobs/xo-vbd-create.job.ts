@@ -4,12 +4,13 @@ import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-colle
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
+import type { VBD_MODE } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export type NewVbdPayload = {
   VM: FrontXoVm['id']
   VDI: FrontXoVdi['id']
-  mode: 'RW' | 'RO'
+  mode: VBD_MODE
   bootable?: boolean
 }
 

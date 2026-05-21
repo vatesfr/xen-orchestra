@@ -1,10 +1,11 @@
-import { getPbdsConnectionStatus } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import { getPbdsConnectionStatus } from '@/modules/pbd/utils/xo-pbd.util.ts'
 import type { NewVbdPayload } from '@/modules/vbd/jobs/xo-vbd-create.job.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
-import { getVdiIcon } from '@/modules/vdi/composables/xo-vdi-utils.composable.ts'
+import { useXoVdiUtils } from '@/modules/vdi/composables/xo-vdi-utils.composable.ts'
 import { type BaseVdiFormData, useVdiFormBase } from '@/modules/vdi/form/use-vdi-form-base.ts'
 import { type FrontXoVdi, useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import { getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { objectIcon } from '@core/icons'
 import { required } from '@core/packages/form-validation'
@@ -42,18 +43,19 @@ export function useVdiAttachForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     },
   })
 
-  const { availableSrs, attachedVdiIds, getSrLocation, isFreeForWriting, selectedSr, srWarning } = useVdiFormBase(
-    vm,
-    formData
-  )
+  const { availableSrs, attachedVdiIds, getSrLocation, selectedSr, srWarning } = useVdiFormBase(vm, formData)
 
   const { pbdsBySr } = useXoPbdCollection()
-  const { getVbdsByIds } = useXoVbdCollection()
+  const { getVbdsByIds, useGetVbdsByIds } = useXoVbdCollection()
   const { useGetVdiById, useGetVdisByIds } = useXoVdiCollection()
 
   const availableVdis = useGetVdisByIds(() => (selectedSr.value?.VDIs ?? []) as FrontXoVdi['id'][])
 
   const selectedVdi = useGetVdiById(() => formData.vdi)
+
+  const selectedVdiVbds = useGetVbdsByIds(() => selectedVdi.value?.$VBDs ?? [])
+
+  const { isVdiFreeForWriting } = useXoVdiUtils(selectedVdiVbds)
 
   const vdiWarning = computed(() => {
     if (!formData.vdi) {
@@ -99,7 +101,7 @@ export function useVdiAttachForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
 
   const isPv = computed(() => vm.value.virtualizationMode === 'pv')
 
-  const forceReadOnly = computed(() => selectedVdi.value !== undefined && !isFreeForWriting(selectedVdi.value))
+  const forceReadOnly = computed(() => selectedVdi.value !== undefined && !isVdiFreeForWriting.value)
 
   const readOnly = computed({
     get: () => formData.readOnly || forceReadOnly.value,

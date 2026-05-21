@@ -52,11 +52,11 @@ const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 
-const vmId = route.query.vmid as FrontXoVm['id'] | undefined
+const vmId = computed(() => route.query.vmid as FrontXoVm['id'] | undefined)
 
 const { areVmsReady, useGetVmById } = useXoVmCollection()
 
-const vm = useGetVmById(() => vmId)
+const vm = useGetVmById(vmId)
 
 const formPayload = ref<NewVbdPayload>()
 const error = ref<ApiError | Error | undefined>()
@@ -68,11 +68,11 @@ const hasAttachError = computed(() => error.value !== undefined)
 const canDisplayForm = computed(() => !isRunning.value && !hasAttachError.value)
 
 const cancelRoute = computed<RouteLocationRaw>(() => {
-  if (!vmId) {
+  if (!vmId.value) {
     return { name: '/(site)/dashboard' }
   }
 
-  return { name: '/vm/[id]/vdis', params: { id: vmId } }
+  return { name: '/vm/[id]/vdis', params: { id: vmId.value } }
 })
 
 async function attachVdi(newPayload: NewVbdPayload) {
