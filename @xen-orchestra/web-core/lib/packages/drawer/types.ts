@@ -1,5 +1,4 @@
-import type { MaybeRef } from '@vueuse/core'
-import type { Component, ComputedRef, InjectionKey } from 'vue'
+import type { Component, ComputedRef, InjectionKey, MaybeRef } from 'vue'
 
 export type DrawerPropsOption<TProps> = {
   [K in keyof TProps]: MaybeRef<TProps[K]>

@@ -16,10 +16,12 @@ export function createDrawerOpener() {
   const route = useRoute()
 
   const ids = new Set<symbol | string>()
+  const cancelers = new Map<string | symbol, () => void>()
 
   function closeById(id: string | symbol) {
     drawerStore.removeDrawer(id)
     ids.delete(id)
+    cancelers.delete(id)
   }
 
   watch(
@@ -27,6 +29,7 @@ export function createDrawerOpener() {
     () => {
       ids.forEach(id => {
         if (!drawerStore.getDrawer(id)?.keepOpenOnRouteChange) {
+          cancelers.get(id)?.()
           closeById(id)
         }
       })
@@ -42,12 +45,19 @@ export function createDrawerOpener() {
   >(id: string | symbol, config: DrawerConfig<TProps, TConfirmArgs, TCancelArgs, TConfirmPayload, TCancelPayload>) {
     const close = () => closeById(id)
 
-    const promise = new Promise<DrawerResponse<TConfirmPayload, TCancelPayload>>(resolve => {
+    const promise = new Promise<DrawerResponse<TConfirmPayload, TCancelPayload>>((resolve, reject) => {
       const isBusy = ref(false)
+
+      cancelers.set(id, () => resolve(new DrawerCancelResponse(undefined as TCancelPayload)))
 
       drawerStore.addDrawer({
         id,
-        component: defineAsyncComponent(() => config.component),
+        component: defineAsyncComponent({
+          loader: () => config.component,
+          onError(_error, _retry, fail) {
+            fail()
+          },
+        }),
         isBusy: computed(() => isBusy.value),
         props: reactive(config.props ?? {}),
         keepOpenOnRouteChange: config.keepOpenOnRouteChange ?? false,
@@ -68,6 +78,8 @@ export function createDrawerOpener() {
             } else {
               resolve(new DrawerConfirmResponse(result))
             }
+          } catch (error) {
+            reject(error)
           } finally {
             isBusy.value = false
           }
@@ -89,6 +101,8 @@ export function createDrawerOpener() {
             }
 
             close()
+          } catch (error) {
+            reject(error)
           } finally {
             isBusy.value = false
           }

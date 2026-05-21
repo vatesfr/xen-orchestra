@@ -1,8 +1,7 @@
-<!-- v1 -->
 <template>
   <Transition name="drawer" @after-leave="emit('afterLeave')">
-    <div v-if="isOpen" class="ui-drawer" @click.self="emit('dismiss')">
-      <aside class="drawer">
+    <div v-if="isOpen" class="ui-drawer" @click.self="onDismiss && emit('dismiss')">
+      <aside class="drawer" role="dialog" aria-modal="true">
         <div class="header">
           <div v-if="slots.title || title !== undefined" class="typo-h4">
             <slot name="title">

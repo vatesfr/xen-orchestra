@@ -1,5 +1,9 @@
 <template>
-  <UiDrawer :is-open="effectiveIsOpen" v-on="{ dismiss: handleDismiss, afterLeave: onAfterLeave }">
+  <UiDrawer
+    :is-open="effectiveIsOpen"
+    :on-dismiss="handleDismiss"
+    v-on="{ dismiss: handleDismiss, afterLeave: onAfterLeave }"
+  >
     <template v-if="slots.title" #title>
       <slot name="title" />
     </template>
@@ -23,6 +27,7 @@ import { computed, inject, onMounted, ref } from 'vue'
 const props = defineProps<{
   dismissible?: boolean
   isOpen?: boolean
+  current?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -73,7 +78,7 @@ const handleDismiss = computed(() => {
 const { escape } = useMagicKeys()
 
 whenever(escape, () => {
-  if (props.dismissible) {
+  if (props.dismissible && props.current) {
     handleDismiss.value?.()
   }
 })

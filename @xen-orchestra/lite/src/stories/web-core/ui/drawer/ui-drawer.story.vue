@@ -2,48 +2,31 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      prop('title').str().widget().preset('Title'),
+      prop('title').str().widget().preset('Drawer Title'),
       prop('isOpen').bool().widget(),
-      prop('onDismiss').widget().help('Callback when drawer is dismissed'),
+      prop('onDismiss').type('() => void').help('Show dismiss button and enable backdrop click'),
       event('dismiss').help('Emitted when dismiss button or backdrop is clicked'),
-      slot('title').help('Drawer title'),
       slot('content').help('Main content area'),
       slot('buttons').help('Footer buttons area'),
-      setting('titleContent').widget(text()).preset('Drawer Title'),
-      setting('mainContent').widget(text()).preset('This is the drawer content.'),
+      setting('dismissible').widget(boolean()).preset(true).help('Toggle dismiss behavior in this story'),
       setting('showButtons').widget(boolean()).preset(true),
-      setting('showTitle').widget(boolean()).preset(true),
     ]"
     :presets="{
       Dismissible: {
-        props: {
-          isOpen: true,
-          dismissible: true,
-        },
+        props: { isOpen: true },
+        settings: { dismissible: true },
       },
       Persistent: {
-        props: {
-          isOpen: true,
-          dismissible: false,
-        },
+        props: { isOpen: true },
+        settings: { dismissible: false },
       },
       'No title': {
-        props: {
-          isOpen: true,
-          dismissible: true,
-        },
-        settings: {
-          showTitle: false,
-        },
+        props: { isOpen: true, title: '' },
+        settings: { dismissible: true },
       },
       'No buttons': {
-        props: {
-          isOpen: true,
-          dismissible: true,
-        },
-        settings: {
-          showButtons: false,
-        },
+        props: { isOpen: true },
+        settings: { dismissible: true, showButtons: false },
       },
     }"
   >
@@ -51,22 +34,15 @@
 
     <UiDrawer
       :is-open
-      v-on="{
-        dismiss: properties.onDismiss ? () => (isOpen = false) : undefined,
-      }"
+      :title="properties.title"
+      :on-dismiss="settings.dismissible ? () => (isOpen = false) : undefined"
+      @dismiss="isOpen = false"
     >
-      <template v-if="settings.showTitle" #title>{{ settings.titleContent }}</template>
       <template #content>
-        <p>{{ settings.mainContent }}</p>
+        <p>This is the drawer content.</p>
       </template>
       <template v-if="settings.showButtons" #buttons>
-        <UiButton
-          v-if="properties.dismissible"
-          variant="secondary"
-          accent="brand"
-          size="medium"
-          @click="isOpen = false"
-        >
+        <UiButton v-if="settings.dismissible" variant="secondary" accent="brand" size="medium" @click="isOpen = false">
           Cancel
         </UiButton>
         <UiButton variant="primary" accent="brand" size="medium" @click="isOpen = false">Confirm</UiButton>
@@ -78,7 +54,7 @@
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { event, prop, setting, slot } from '@/libs/story/story-param'
-import { boolean, text } from '@/libs/story/story-widget'
+import { boolean } from '@/libs/story/story-widget'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
 import { ref } from 'vue'
