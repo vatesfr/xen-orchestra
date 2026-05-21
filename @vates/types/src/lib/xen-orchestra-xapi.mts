@@ -176,6 +176,7 @@ export interface Xapi {
       bypassAssert?: boolean
     }
   ): Promise<void>
+  joinPool(masterAddress: string, masterUsername: string, masterPassword: string, force?: boolean): Promise<void>
   listMissingPatches(host: XoHost['id']): Promise<XcpPatches[] | XsPatches[]>
   pool_emergencyShutdown(): Promise<void>
   resumeVm(id: XoVm['id']): Promise<void>
