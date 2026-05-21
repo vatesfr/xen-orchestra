@@ -8,6 +8,7 @@
         :busy="isDeletingSr"
         @click="openSrDeleteModal()"
       />
+      <SrConnectButton :sr :scope />
       <SrDisconnectButton class="sr-disconnect-button" :sr :scope />
       <div :class="{ 'action-buttons-container': uiStore.isSmall }">
         <UiButtonIcon
@@ -34,6 +35,7 @@
 <script setup lang="ts">
 import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import SrConnectButton from '@/modules/storage-repository/components/actions/connect/SrConnectButton.vue'
 import SrDisconnectButton from '@/modules/storage-repository/components/actions/disconnect/SrDisconnectButton.vue'
 import StorageRepositoryCustomFieldsCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositoryCustomFieldsCard.vue'
 import StorageRepositoryHostsCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositoryHostsCard.vue'

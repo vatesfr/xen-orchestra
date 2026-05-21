@@ -27,13 +27,29 @@ export function useGetPbdsInScope() {
     return getPbdsInScope(sr, scope).filter(pbd => pbd.attached)
   }
 
+  function getDetachedPbdsInScope(sr: FrontXoSr, scope: StorageScope): FrontXoPbd[] {
+    return getPbdsInScope(sr, scope).filter(pbd => !pbd.attached)
+  }
+
   function getSrPbdsSignature(sr: FrontXoSr, scope: StorageScope) {
     const scopedPbds = getPbdsInScope(sr, scope)
 
     return scopedPbds.map(pbd => `${pbd.id}:${pbd.attached}`).join('|') || sr.id
   }
 
-  return { getPbdsInScope, getAttachedPbdsInScope, getSrPbdsSignature }
+  function isPartiallyConnectedInScope(sr: FrontXoSr, scope: StorageScope) {
+    const pbds = getPbdsInScope(sr, scope)
+
+    return pbds.some(pbd => pbd.attached) && pbds.some(pbd => !pbd.attached)
+  }
+
+  return {
+    getPbdsInScope,
+    getAttachedPbdsInScope,
+    getDetachedPbdsInScope,
+    getSrPbdsSignature,
+    isPartiallyConnectedInScope,
+  }
 }
 
 export function useXoSrUtils(
@@ -45,7 +61,7 @@ export function useXoSrUtils(
   const sr = toComputed(rawSr)
   const scope = toComputed(rawScope)
 
-  const { getPbdsInScope } = useGetPbdsInScope()
+  const { getPbdsInScope, isPartiallyConnectedInScope: getIsPartiallyConnectedInScope } = useGetPbdsInScope()
   const { pbdsBySr } = useXoPbdCollection()
   const { getHostById } = useXoHostCollection()
 
@@ -55,6 +71,14 @@ export function useXoSrUtils(
     }
 
     return getPbdsInScope(sr.value, scope.value)
+  })
+
+  const isPartiallyConnectedInScope = computed(() => {
+    if (sr.value === undefined) {
+      return false
+    }
+
+    return getIsPartiallyConnectedInScope(sr.value, scope.value)
   })
 
   const { allPbdsConnectionStatus } = useXoPbdUtils(pbdsInScope)
@@ -77,6 +101,7 @@ export function useXoSrUtils(
   return {
     pbdsInScope,
     srConnectionStatus: allPbdsConnectionStatus,
+    isPartiallyConnectedInScope,
     srStatusIcon,
     getSrLocation,
   }
