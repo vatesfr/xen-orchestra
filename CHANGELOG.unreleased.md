@@ -15,7 +15,7 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-- [REST API] `POST /vdis` no longer necessarily requires `other_config`
+- [REST API] `POST /vdis` no longer necessarily requires `other_config` (PR [#9883]https://github.com/vatesfr/xen-orchestra/pull/9883)
 
 ### Packages to release
 
