@@ -1,4 +1,4 @@
-import { payloadsVbdArg } from '@/modules/vbd/jobs/xo-vbd-create-args.ts'
+import { payloadsArg } from '@/modules/vbd/jobs/xo-vbd-create-args.ts'
 import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -14,7 +14,7 @@ export type NewVbdPayload = {
   bootable?: boolean
 }
 
-export const useXoVbdCreateJob = defineJob('vbd.create', [payloadsVbdArg], () => {
+export const useXoVbdCreateJob = defineJob('vbd.create', [payloadsArg], () => {
   const { t } = useI18n()
 
   return {

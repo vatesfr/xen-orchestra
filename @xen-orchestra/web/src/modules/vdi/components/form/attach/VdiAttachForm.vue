@@ -27,12 +27,16 @@
     </div>
     <div class="attach-form">
       <UiTitle>{{ t('options') }}</UiTitle>
-      <VdiFormCheckbox v-model="readOnly" :label="t('read-only')" :disabled="forceReadOnly">
-        <template v-if="forceReadOnly" #info>{{ t('info:vdi-attached-rw') }}</template>
-      </VdiFormCheckbox>
-      <VdiFormCheckbox v-model="bootable" :label="t('bootable')" :disabled="!isPv">
-        <template #info>{{ t('pv-vms-only') }}</template>
-      </VdiFormCheckbox>
+      <div>
+        <VdiFormCheckbox v-model="readOnly" :label="t('read-only')" :disabled="forceReadOnly">
+          <template v-if="forceReadOnly" #info>{{ t('info:vdi-attached-rw') }}</template>
+        </VdiFormCheckbox>
+      </div>
+      <div>
+        <VdiFormCheckbox v-model="bootable" :label="t('bootable')" :disabled="!isPv">
+          <template #info>{{ t('pv-vms-only') }}</template>
+        </VdiFormCheckbox>
+      </div>
     </div>
     <div class="buttons-container">
       <UiLink :to="cancelTo" size="medium">

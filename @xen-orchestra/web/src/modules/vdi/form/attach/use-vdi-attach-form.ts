@@ -7,14 +7,14 @@ import { type BaseVdiFormData, useVdiFormBase } from '@/modules/vdi/form/use-vdi
 import { type FrontXoVdi, useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { ONE_GB } from '@/shared/constants.ts'
 import { objectIcon } from '@core/icons'
 import { required } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
+import { DOMAIN_TYPE, VBD_MODE } from '@vates/types'
 import { computed, type MaybeRefOrGetter, reactive, toRefs, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-
-const BYTES_PER_GB = 1024 ** 3
 
 export type VdiAttachFormData = BaseVdiFormData & {
   vdi: FrontXoVdi['id'] | undefined
@@ -78,7 +78,7 @@ export function useVdiAttachForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     required: true,
     option: {
       label: sr => {
-        const gbLeft = Math.floor((sr.size - sr.physical_usage) / BYTES_PER_GB)
+        const gbLeft = Math.floor((sr.size - sr.physical_usage) / ONE_GB)
         return `${sr.name_label} (${getSrLocation(sr)}) - ${t('n-gb-left', { n: gbLeft })}`
       },
       value: 'id',
@@ -99,7 +99,7 @@ export function useVdiAttachForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
 
   const { bootable } = toRefs(formData)
 
-  const isPv = computed(() => vm.value.virtualizationMode === 'pv')
+  const isPv = computed(() => vm.value.virtualizationMode === DOMAIN_TYPE.PV)
 
   const forceReadOnly = computed(() => selectedVdi.value !== undefined && !isVdiFreeForWriting.value)
 
@@ -120,7 +120,7 @@ export function useVdiAttachForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     return {
       VM: vm.value.id,
       VDI: formData.vdi!,
-      mode: readOnly.value ? 'RO' : 'RW',
+      mode: readOnly.value ? VBD_MODE.RO : VBD_MODE.RW,
       ...(isPv.value && { bootable: formData.bootable }),
     }
   }

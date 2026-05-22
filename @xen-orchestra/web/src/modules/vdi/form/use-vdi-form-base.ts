@@ -1,4 +1,4 @@
-import { useGetSrLocation } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
+import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import {
   type FrontXoSr,
   useXoSrCollection,
@@ -26,7 +26,7 @@ export function useVdiFormBase<T extends BaseVdiFormData>(rawVm: MaybeRefOrGette
   const { useGetVdisByIds } = useXoVdiCollection()
   const { useGetVbdsByIds } = useXoVbdCollection()
 
-  const getSrLocation = useGetSrLocation()
+  const { getSrLocation } = useXoSrUtils()
 
   const { notCdDriveVbds } = useXoVmVbdsUtils(vm)
 

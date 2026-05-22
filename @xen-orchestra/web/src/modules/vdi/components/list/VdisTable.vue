@@ -32,9 +32,8 @@ import { useVbdConnectionToggleModal } from '@/modules/vbd/composables/use-vbd-c
 import { useVbdDeleteModal } from '@/modules/vbd/composables/use-vbd-delete-modal.composable.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { useVdiDeleteModal } from '@/modules/vdi/composables/use-vdi-delete-modal.composable.ts'
-import { useXoVdiUtils } from '@/modules/vdi/composables/xo-vdi-utils.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import { getVdiFormat } from '@/modules/vdi/utils/xo-vdi.util.ts'
+import { getVdiFormat, getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { CONNECTION_ACTION } from '@/shared/constants.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
@@ -67,7 +66,7 @@ const selectedVdiId = useRouteQuery('id')
 
 const { buildXo5Route } = useXoRoutes()
 
-const { useGetVbdsByIds } = useXoVbdCollection()
+const { getVbdsByIds, useGetVbdsByIds } = useXoVbdCollection()
 
 const searchQuery = ref('')
 
@@ -100,7 +99,6 @@ const { HeadCells, BodyCells } = useVdiColumns({
 
     const size = computed(() => formatSizeRaw(vdi.size, 2))
     const format = computed(() => getVdiFormat(vdi.image_format))
-    const { vdiIcon } = useXoVdiUtils(vbds)
 
     const {
       openModal: openVbdConnectionToggleModal,
@@ -134,7 +132,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
     )
 
     return {
-      vdi: r => r({ label: vdi.name_label, href: href.value, icon: vdiIcon.value }),
+      vdi: r => r({ label: vdi.name_label, href: href.value, icon: getVdiIcon(getVbdsByIds(vdi.$VBDs)) }),
       description: r => r(vdi.name_description),
       usedSpace: r => r(vdi.usage, vdi.size),
       size: r => r(size.value.value, size.value.prefix),

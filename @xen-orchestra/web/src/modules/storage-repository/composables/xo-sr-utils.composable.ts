@@ -7,26 +7,19 @@ import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export function useXoSrUtils(rawSr: MaybeRefOrGetter<FrontXoSr | undefined>) {
+export function useXoSrUtils(rawSr?: MaybeRefOrGetter<FrontXoSr | undefined>) {
+  const { t } = useI18n()
+
   const sr = toComputed(rawSr)
 
-  const { getPbdsByIds } = useXoPbdCollection()
+  const { getPbdsByIds, pbdsBySr } = useXoPbdCollection()
+  const { getHostById } = useXoHostCollection()
 
   const { allPbdsConnectionStatus } = useXoPbdUtils(() => getPbdsByIds(sr.value?.$PBDs ?? []))
 
   const srStatusIcon = computed<IconName>(() => objectIcon('sr', allPbdsConnectionStatus.value))
 
-  return {
-    srStatusIcon,
-  }
-}
-
-export function useGetSrLocation() {
-  const { t } = useI18n()
-  const { pbdsBySr } = useXoPbdCollection()
-  const { getHostById } = useXoHostCollection()
-
-  return function getSrLocation(sr: FrontXoSr): string {
+  function getSrLocation(sr: FrontXoSr): string {
     if (sr.shared) {
       return t('shared')
     }
@@ -37,5 +30,10 @@ export function useGetSrLocation() {
       .find(name => name !== undefined)
 
     return hostName ?? t('unknown')
+  }
+
+  return {
+    srStatusIcon,
+    getSrLocation,
   }
 }
