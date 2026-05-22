@@ -41,6 +41,7 @@
     "test-integration": "yarn run clean && tsc && node --test **/*.integ.mjs",
     "clean": "rimraf dist/"
   },
+  "private": false,
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/backup-archive",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
