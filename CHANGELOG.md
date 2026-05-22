@@ -44,7 +44,7 @@
 - @xen-orchestra/disk-transform 1.3.0
 - @vates/types 1.25.0
 - @xen-orchestra/acl 1.1.0
-- @xen-orchestra/backup-archive 2.0.0
+- @xen-orchestra/backup-archive 1.0.0
 - @xen-orchestra/xapi 8.8.0
 - @xen-orchestra/backups 0.73.0
 - @xen-orchestra/backups-cli 1.1.12
