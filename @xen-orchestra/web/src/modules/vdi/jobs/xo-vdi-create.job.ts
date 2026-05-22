@@ -1,5 +1,5 @@
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { payloadsVdiArg } from '@/modules/vdi/jobs/xo-vdi-create-args.ts'
+import { payloadsArg } from '@/modules/vdi/jobs/xo-vdi-create-args.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
@@ -19,7 +19,7 @@ export type NewVdiPayload = {
   bootable?: boolean
 }
 
-export const useXoVdiCreateJob = defineJob('vdi.create', [payloadsVdiArg], () => {
+export const useXoVdiCreateJob = defineJob('vdi.create', [payloadsArg], () => {
   const { t } = useI18n()
 
   return {

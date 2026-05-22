@@ -1,6 +1,6 @@
 <template>
   <VtsInputWrapper :label :message="error">
-    <UiInput v-model.number="model" accent="brand" type="number" :required :readonly>
+    <UiInput v-model.number="model" accent="brand" type="number" :required>
       <template #right-icon>
         <span class="unit typo-body-regular">{{ t('bytes:gi') }}</span>
       </template>
@@ -18,7 +18,6 @@ defineProps<{
   label: string
   error?: InputWrapperMessage
   required?: boolean
-  readonly?: boolean
 }>()
 
 const model = defineModel<number | undefined>()

@@ -1,13 +1,13 @@
 <template>
   <UiRadioButtonGroup accent="brand" gap="wide" :label="t('source')">
-    <UiRadioButton v-model="model" :value="EMPTY" accent="brand">
-      {{ t('source:empty') }}
+    <UiRadioButton v-model="model" value="empty" accent="brand">
+      {{ t('empty') }}
     </UiRadioButton>
-    <UiRadioButton v-model="model" v-tooltip="t('coming-soon!')" disabled :value="FILE" accent="brand">
-      {{ t('source:file') }}
+    <UiRadioButton v-model="model" v-tooltip="t('coming-soon!')" disabled value="file" accent="brand">
+      {{ t('file') }}
     </UiRadioButton>
-    <UiRadioButton v-model="model" v-tooltip="t('coming-soon!')" disabled :value="URL_" accent="brand">
-      {{ t('source:url') }}
+    <UiRadioButton v-model="model" v-tooltip="t('coming-soon!')" disabled value="url" accent="brand">
+      {{ t('url') }}
     </UiRadioButton>
   </UiRadioButtonGroup>
 </template>
@@ -22,8 +22,4 @@ import { useI18n } from 'vue-i18n'
 const model = defineModel<VdiSource>({ required: true })
 
 const { t } = useI18n()
-
-const EMPTY: VdiSource = 'empty'
-const FILE: VdiSource = 'file'
-const URL_: VdiSource = 'url'
 </script>

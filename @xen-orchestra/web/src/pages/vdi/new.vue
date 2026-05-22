@@ -1,6 +1,6 @@
 <template>
   <UiHeadBar icon="fa:plus">
-    {{ t('new-vdi:add') }}
+    {{ t('create-new-vdi') }}
   </UiHeadBar>
 
   <div class="card-container">

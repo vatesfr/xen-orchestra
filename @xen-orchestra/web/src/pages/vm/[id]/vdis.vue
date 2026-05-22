@@ -16,6 +16,8 @@
               >
                 {{ t('action:create-vdi') }}
               </UiLink>
+            </MenuItem>
+            <MenuItem>
               <UiLink
                 class="add-vdi-link"
                 :to="{ name: '/vdi/attach', query: { vmid: vm.id } }"

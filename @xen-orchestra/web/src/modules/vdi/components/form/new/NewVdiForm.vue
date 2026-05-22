@@ -1,13 +1,13 @@
 <template>
-  <VtsForm class="new-vdi-form" @submit="onSubmit()">
-    <div class="section">
+  <VtsForm class="vdi-new-form" @submit="onSubmit()">
+    <div class="new-form">
       <UiTitle>{{ t('general-information') }}</UiTitle>
 
       <NewVdiSourceSelector v-model="source" />
 
       <div class="row">
         <VdiFormTextInput v-bind="nameInputBindings" />
-        <VdiFormDescriptionTextarea v-bind="descriptionInputBindings" />
+        <VdiFormTextarea v-bind="descriptionInputBindings" />
       </div>
 
       <div class="row">
@@ -25,17 +25,19 @@
       </div>
     </div>
 
-    <div class="section">
+    <div class="new-form">
       <UiTitle>{{ t('options') }}</UiTitle>
       <UiCheckbox v-model="readOnly" accent="brand">
         {{ t('read-only') }}
       </UiCheckbox>
-      <UiCheckbox v-model="bootable" accent="brand" :disabled="!isPv">
-        {{ t('bootable') }}
-        <template #info>
-          {{ t('pv-vms-only') }}
-        </template>
-      </UiCheckbox>
+      <div>
+        <UiCheckbox v-model="bootable" accent="brand" :disabled="!isPv">
+          {{ t('bootable') }}
+          <template #info>
+            {{ t('pv-vms-only') }}
+          </template>
+        </UiCheckbox>
+      </div>
     </div>
 
     <div class="buttons-container">
@@ -48,7 +50,6 @@
 </template>
 
 <script lang="ts" setup>
-import VdiFormDescriptionTextarea from '@/modules/vdi/components/form/new/inputs/VdiFormDescriptionTextarea.vue'
 import VdiFormSelect from '@/modules/vdi/components/form/new/inputs/VdiFormSelect.vue'
 import VdiFormTextInput from '@/modules/vdi/components/form/new/inputs/VdiFormTextInput.vue'
 import NewVdiAllocatedSpaceInput from '@/modules/vdi/components/form/new/NewVdiAllocatedSpaceInput.vue'
@@ -65,6 +66,7 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
+import VdiFormTextarea from './inputs/VdiFormTextarea.vue'
 
 const { vm } = defineProps<{
   vm: FrontXoVm
@@ -98,12 +100,12 @@ async function onSubmit() {
 </script>
 
 <style lang="postcss" scoped>
-.new-vdi-form {
+.vdi-new-form {
   display: flex;
   flex-direction: column;
   gap: 4rem;
 
-  .section {
+  .new-form {
     display: flex;
     flex-direction: column;
     gap: 2.4rem;

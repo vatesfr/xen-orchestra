@@ -1,5 +1,5 @@
-import { getPbdsConnectionStatus } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import { getPbdsConnectionStatus } from '@/modules/pbd/utils/xo-pbd.util.ts'
 import { type BaseVdiFormData, useVdiFormBase } from '@/modules/vdi/form/use-vdi-form-base.ts'
 import type { NewVdiPayload, VdiSource } from '@/modules/vdi/jobs/xo-vdi-create.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -16,7 +16,6 @@ type NewVdiFormData = BaseVdiFormData & {
   source: VdiSource
   name_label: string
   name_description: string
-  // GB, in user-facing units
   allocatedSpace: number | undefined
   readOnly: boolean
   bootable: boolean
@@ -47,12 +46,10 @@ export function useNewVdiForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     },
   })
 
-  const { availableSrs, getSrLocation, selectedSr, srWarning } = useVdiFormBase(vm, formData)
+  const { availableSrs, getSrLocation, srWarning } = useVdiFormBase(vm, formData)
   const { pbdsBySr } = useXoPbdCollection()
 
-  const selectableSrs = computed(() => availableSrs.value.filter(sr => sr.content_type !== 'iso'))
-
-  const { id: srSelectId } = useFormSelect('sr', selectableSrs, {
+  const { id: srSelectId } = useFormSelect('sr', availableSrs, {
     searchable: true,
     required: true,
     option: {
@@ -77,7 +74,7 @@ export function useNewVdiForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     return {
       source: formData.source,
       srId: formData.sr!,
-      name_label: formData.name_label.trim(),
+      name_label: formData.name_label,
       virtual_size: formData.allocatedSpace! * BYTES_PER_GB,
       vm: vm.value.id,
       ...(formData.name_description.trim() !== '' && { name_description: formData.name_description.trim() }),
@@ -90,7 +87,6 @@ export function useNewVdiForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
 
   return {
     source,
-    selectedSr,
     srSelectBindings: useSelect(srSelectId, () => ({
       label: t('storage-repository'),
       ...(srWarning.value !== undefined && { warning: srWarning.value }),
