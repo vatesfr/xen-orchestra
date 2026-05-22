@@ -13,6 +13,7 @@
 
 - [Swagger] Rename the `acls` tag to `rbacs` (PR [#9874](https://github.com/vatesfr/xen-orchestra/pull/9874))
 - [VM] Add possibility to attach a VDI on tab VDI (PR [#9772](https://github.com/vatesfr/xen-orchestra/pull/9772))
+- [IPMI-Sensors] Add default outlet regex to the dell preset (PR [#9884] (https://github.com/vatesfr/xen-orchestra/pull/9884))
 
 ### Bug fixes
 
@@ -36,5 +37,5 @@
 
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/web minor
-
+- xo-server-ipmi-sensors minor
 <!--packages-end-->
