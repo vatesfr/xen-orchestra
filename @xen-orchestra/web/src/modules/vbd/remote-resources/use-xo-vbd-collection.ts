@@ -15,6 +15,8 @@ const vbdFields = [
   'type',
   'attached',
   'device',
+  'read_only',
+  'bootable',
 ] as const satisfies readonly (keyof XoVbd)[]
 
 export const useXoVbdCollection = defineRemoteResource({

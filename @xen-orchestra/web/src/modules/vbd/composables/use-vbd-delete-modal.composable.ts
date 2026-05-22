@@ -1,16 +1,18 @@
-import { useXoVbdDeleteJob } from '@xen-orchestra/web/src/modules/vbd/jobs/xo-vbd-delete.job.ts'
+import { useXoVbdDeleteJob } from '@/modules/vbd/jobs/xo-vbd-delete.job.ts'
+import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useModal } from '@core/packages/modal/use-modal.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import type { FrontXoVbd } from '@xen-orchestra/web/src/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
-import { useRouteQuery } from '@xen-orchestra/web-core/composables/route-query.composable.ts'
-import { useModal } from '@xen-orchestra/web-core/packages/modal/use-modal.ts'
 import type { MaybeRefOrGetter } from 'vue'
 
-export function useVbdDeleteModal(rawVbds: MaybeRefOrGetter<FrontXoVbd[]>) {
+export function useVbdDeleteModal(rawVbds: MaybeRefOrGetter<FrontXoVbd[]>, rawVm: MaybeRefOrGetter<FrontXoVm>) {
   const vbds = toComputed(rawVbds)
+  const vm = toComputed(rawVm)
 
   const selectedVdiId = useRouteQuery('id')
 
-  const { run, canRun, isRunning } = useXoVbdDeleteJob(vbds)
+  const { run, canRun, isRunning, errorMessage } = useXoVbdDeleteJob(vbds, vm)
 
   const openModal = useModal(() => ({
     component: import('@/modules/vbd/components/modal/VbdDeleteModal.vue'),
@@ -26,5 +28,5 @@ export function useVbdDeleteModal(rawVbds: MaybeRefOrGetter<FrontXoVbd[]>) {
     },
   }))
 
-  return { openModal, canRun, isRunning }
+  return { openModal, canRun, isRunning, errorMessage }
 }

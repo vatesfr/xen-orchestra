@@ -12,6 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [Swagger] Rename the `acls` tag to `rbacs` (PR [#9874](https://github.com/vatesfr/xen-orchestra/pull/9874))
+- [VM] Add possibility to attach a VDI on tab VDI (PR [#9772](https://github.com/vatesfr/xen-orchestra/pull/9772))
 
 ### Bug fixes
 
@@ -34,6 +35,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/rest-api patch
-- @xen-orchestra/web patch
+- @xen-orchestra/web minor
 
 <!--packages-end-->
