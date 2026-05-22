@@ -1,14 +1,17 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }" closable @close="emit('close')">
+  <VtsSidePanel :selected="!!host" :closable="!!host" @close="emit('close')">
     <template #default>
-      <HostInfoCard :host />
-      <HostNetworkCard :host />
-      <!-- host licensing -->
-      <HostSoftwareCard :host />
-      <HostHardwareSpecificationsCard :host />
-      <!-- host hardware health -->
+      <VtsStateHero v-if="!host" format="panel" type="no-selection" size="medium" />
+      <template v-else>
+        <HostInfoCard :host />
+        <HostNetworkCard :host />
+        <!-- host licensing -->
+        <HostSoftwareCard :host />
+        <HostHardwareSpecificationsCard :host />
+        <!-- host hardware health -->
+      </template>
     </template>
-  </UiPanel>
+  </VtsSidePanel>
 </template>
 
 <script setup lang="ts">
@@ -17,30 +20,14 @@ import HostInfoCard from '@/modules/host/components/list/panel/card/HostInfoCard
 import HostNetworkCard from '@/modules/host/components/list/panel/card/HostNetworkCard.vue'
 import HostSoftwareCard from '@/modules/host/components/list/panel/card/HostSoftwareCard.vue'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { useUiStore } from '@core/stores/ui.store.ts'
+import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 
 defineProps<{
-  host: FrontXoHost
+  host?: FrontXoHost
 }>()
 
 const emit = defineEmits<{
   close: []
 }>()
-
-const uiStore = useUiStore()
 </script>
-
-<style scoped lang="postcss">
-.mobile-drawer {
-  position: fixed;
-  inset: 0;
-
-  .action-buttons-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-  }
-}
-</style>

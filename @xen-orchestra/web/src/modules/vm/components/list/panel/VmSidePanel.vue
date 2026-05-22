@@ -1,11 +1,14 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }" closable @close="emit('close')">
+  <VtsSidePanel :selected="!!vm" :closable="!!vm" @close="emit('close')">
     <template #default>
-      <VmInfoCard :vm />
-      <VmNetworkCard :vm />
-      <VmResourcesCard :vm />
+      <VtsStateHero v-if="!vm" format="panel" type="no-selection" size="medium" />
+      <template v-else>
+        <VmInfoCard :vm />
+        <VmNetworkCard :vm />
+        <VmResourcesCard :vm />
+      </template>
     </template>
-  </UiPanel>
+  </VtsSidePanel>
 </template>
 
 <script setup lang="ts">
@@ -13,30 +16,14 @@ import VmInfoCard from '@/modules/vm/components/list/panel/cards/VmInfoCard.vue'
 import VmNetworkCard from '@/modules/vm/components/list/panel/cards/VmNetworkCard.vue'
 import VmResourcesCard from '@/modules/vm/components/list/panel/cards/VmResourcesCard.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { useUiStore } from '@core/stores/ui.store.ts'
+import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 
 defineProps<{
-  vm: FrontXoVm
+  vm?: FrontXoVm
 }>()
 
 const emit = defineEmits<{
   close: []
 }>()
-
-const uiStore = useUiStore()
 </script>
-
-<style scoped lang="postcss">
-.mobile-drawer {
-  position: fixed;
-  inset: 0;
-
-  .action-buttons-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-  }
-}
-</style>

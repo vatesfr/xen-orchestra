@@ -1,12 +1,9 @@
 <template>
-  <div class="hosts" :class="{ mobile: uiStore.isSmall }">
+  <div class="hosts" :class="{ mobile: uiStore.isSmall, locked: panelStore.isLocked && !uiStore.isSmall }">
     <UiCard class="container">
       <HostsTable :hosts :busy="!areHostsReady" :error="hasHostFetchError" />
     </UiCard>
-    <HostSidePanel v-if="selectedHost" :host="selectedHost" @close="selectedHost = undefined" />
-    <UiPanel v-else-if="!uiStore.isSmall">
-      <VtsStateHero format="panel" type="no-selection" size="medium" />
-    </UiPanel>
+    <HostSidePanel :host="selectedHost" @close="selectedHost = undefined" />
   </div>
 </template>
 
@@ -15,10 +12,9 @@ import HostsTable from '@/modules/host/components/list/HostsTable.vue'
 import HostSidePanel from '@/modules/host/components/list/panel/HostSidePanel.vue'
 import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
+import { usePanelStore } from '@core/stores/panel.store'
 import { useUiStore } from '@core/stores/ui.store'
 import { computed } from 'vue'
 
@@ -26,6 +22,7 @@ const { pool } = defineProps<{
   pool: FrontXoPool
 }>()
 
+const panelStore = usePanelStore()
 const uiStore = useUiStore()
 
 const { areHostsReady, hostsByPool, hasHostFetchError } = useXoHostCollection()
@@ -40,7 +37,7 @@ const selectedHost = useRouteQuery<FrontXoHost | undefined>('id', {
 
 <style scoped lang="postcss">
 .hosts {
-  &:not(.mobile) {
+  &.locked:not(.mobile) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 40rem;
   }
