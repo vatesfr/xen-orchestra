@@ -1,14 +1,8 @@
 <template>
   <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
     <template #header>
-      <VtsDeleteButton
-        :disabled="!canDeleteSnapshot"
-        :busy="isDeletingSnapshot"
-        class="delete-button"
-        @click="openSnapshotDeleteModal()"
-      />
       <UiButton
-        :disabled="!canRevertSnapshot"
+        :disabled="!canRevertSnapshot || isDeletingSnapshot"
         :busy="isRevertingSnapshot"
         size="medium"
         variant="tertiary"
@@ -18,6 +12,12 @@
       >
         {{ t('action:revert-vm-here') }}
       </UiButton>
+      <VtsDeleteButton
+        :disabled="!canDeleteSnapshot || isRevertingSnapshot"
+        :busy="isDeletingSnapshot"
+        class="delete-button"
+        @click="openSnapshotDeleteModal()"
+      />
       <div :class="{ 'action-buttons-container': uiStore.isSmall }">
         <UiButtonIcon
           v-tooltip="t('action:close')"
