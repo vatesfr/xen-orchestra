@@ -34,5 +34,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/rest-api patch
+- @xen-orchestra/web patch
 
 <!--packages-end-->
