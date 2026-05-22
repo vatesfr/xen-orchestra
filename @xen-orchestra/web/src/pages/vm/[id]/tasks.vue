@@ -1,12 +1,9 @@
 <template>
-  <div class="tasks" :class="{ mobile: uiStore.isSmall }">
+  <div class="tasks" :class="{ mobile: uiStore.isSmall, locked: panelStore.isLocked && !uiStore.isSmall }">
     <UiCard class="container">
       <TasksList :tasks="convertedTasks" :has-error="hasTaskFetchError" :busy="!areTasksReady" />
     </UiCard>
-    <TaskSidePanel v-if="selectedTask" :task="selectedTask" @close="selectedTask = undefined" />
-    <UiPanel v-else-if="!uiStore.isSmall">
-      <VtsStateHero format="panel" type="no-selection" size="medium" />
-    </UiPanel>
+    <TaskSidePanel :task="selectedTask" @close="selectedTask = undefined" />
   </div>
 </template>
 
@@ -18,10 +15,9 @@ import { convertXoTaskToCore } from '@/modules/task/utils/convert-xo-task-to-cor
 import { useXoUserCollection } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoVmTasksCollection } from '@/modules/vm/remote-resources/use-xo-vm-tasks-collection.ts'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { usePanelStore } from '@core/stores/panel.store'
 import { useUiStore } from '@core/stores/ui.store'
 import type { XoUser } from '@vates/types'
 import { computed } from 'vue'
@@ -30,6 +26,7 @@ const { vm } = defineProps<{
   vm: FrontXoVm
 }>()
 
+const panelStore = usePanelStore()
 const uiStore = useUiStore()
 
 const { getTaskById, sortedTasks, hasTaskFetchError, areTasksReady } = useXoVmTasksCollection({}, () => vm.id)
@@ -58,7 +55,7 @@ const convertedTasks = computed(() =>
 
 <style scoped lang="postcss">
 .tasks {
-  &:not(.mobile) {
+  &.locked:not(.mobile) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 40rem;
   }

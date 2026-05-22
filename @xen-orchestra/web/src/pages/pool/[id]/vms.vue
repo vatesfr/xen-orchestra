@@ -1,12 +1,9 @@
 <template>
-  <div class="vms" :class="{ mobile: uiStore.isSmall }">
+  <div class="vms" :class="{ mobile: uiStore.isSmall, locked: panelStore.isLocked && !uiStore.isSmall }">
     <UiCard class="container">
       <VmsTable :vms :busy="!areVmsReady" :error="hasVmFetchError" />
     </UiCard>
-    <VmSidePanel v-if="selectedVm" :vm="selectedVm" @close="selectedVm = undefined" />
-    <UiPanel v-else-if="!uiStore.isSmall">
-      <VtsStateHero format="panel" type="no-selection" size="medium" />
-    </UiPanel>
+    <VmSidePanel :vm="selectedVm" @close="selectedVm = undefined" />
   </div>
 </template>
 
@@ -15,10 +12,9 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import VmSidePanel from '@/modules/vm/components/list/panel/VmSidePanel.vue'
 import VmsTable from '@/modules/vm/components/list/VmsTable.vue'
 import { useXoVmCollection, type FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { usePanelStore } from '@core/stores/panel.store'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
 
@@ -26,6 +22,7 @@ const { pool } = defineProps<{
   pool: FrontXoPool
 }>()
 
+const panelStore = usePanelStore()
 const uiStore = useUiStore()
 
 const { areVmsReady, vmsByPool, hasVmFetchError } = useXoVmCollection()
@@ -40,7 +37,7 @@ const selectedVm = useRouteQuery<FrontXoVm | undefined>('id', {
 
 <style scoped lang="postcss">
 .vms {
-  &:not(.mobile) {
+  &.locked:not(.mobile) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 40rem;
   }
