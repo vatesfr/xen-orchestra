@@ -47,13 +47,13 @@
 - @xen-orchestra/backup-archive 1.0.0
 - @xen-orchestra/xapi 8.8.0
 - @xen-orchestra/backups 0.73.1
-- @xen-orchestra/backups-cli 1.1.12
+- @xen-orchestra/backups-cli 1.1.13
 - @xen-orchestra/disk-cli 2.1.1
-- @xen-orchestra/immutable-backups 3.0.2
+- @xen-orchestra/immutable-backups 3.0.3
 - @xen-orchestra/web-core 0.53.0
 - @xen-orchestra/mcp 1.3.0
 - @xen-orchestra/proxy 0.30.2
-- @xen-orchestra/rest-api 0.31.0
+- @xen-orchestra/rest-api 0.31.1
 - @xen-orchestra/web 0.51.0
 - xo-server 5.201.0
 - xo-server-ipmi-sensors 2.0.0
