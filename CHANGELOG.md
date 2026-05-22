@@ -46,9 +46,9 @@
 - @xen-orchestra/acl 1.1.0
 - @xen-orchestra/backup-archive 1.0.0
 - @xen-orchestra/xapi 8.8.0
-- @xen-orchestra/backups 0.73.0
+- @xen-orchestra/backups 0.73.1
 - @xen-orchestra/backups-cli 1.1.12
-- @xen-orchestra/disk-cli 2.1.0
+- @xen-orchestra/disk-cli 2.1.1
 - @xen-orchestra/immutable-backups 3.0.2
 - @xen-orchestra/web-core 0.53.0
 - @xen-orchestra/mcp 1.3.0
