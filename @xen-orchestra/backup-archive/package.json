@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/backup-archive",
-  "version": "2.0.0",
+  "version": "1.0.0",
   "description": "Helper to handle generic backup archives",
   "license": "ISC",
   "author": "",
@@ -41,7 +41,6 @@
     "test-integration": "yarn run clean && tsc && node --test **/*.integ.mjs",
     "clean": "rimraf dist/"
   },
-  "private": true,
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/backup-archive",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
