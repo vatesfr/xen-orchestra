@@ -43,7 +43,7 @@
     "vue-eslint-parser": "^9.4.3"
   },
   "engines": {
-    "node": ">=14",
+    "node": ">=22",
     "yarn": "^1.7.0"
   },
   "lint-staged": {
