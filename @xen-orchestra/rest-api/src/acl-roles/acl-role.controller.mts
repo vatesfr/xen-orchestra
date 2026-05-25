@@ -50,7 +50,7 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 @Security('*')
 @Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
-@Tags('acls')
+@Tags('rbacs')
 @provide(AclRoleController)
 export class AclRoleController extends XoController<XoAclRole> {
   constructor(@inject(RestApi) restApi: RestApi) {

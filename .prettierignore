@@ -3,4 +3,4 @@
 **/*.hbs
 
 # Generated files
-/@xen-orchestra/web/typed-router.d.ts
+/@xen-orchestra/web/src/route-map.d.ts
