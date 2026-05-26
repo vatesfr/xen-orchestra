@@ -353,12 +353,17 @@ export class RemoteAdapter {
     if (unsupportedModes.length !== 0) {
       throw new Error('no deleter for backup modes: ' + unsupportedModes.join(', '))
     }
-
-    await Promise.all([
-      delta !== undefined && this.deleteDeltaVmBackups(delta),
-      full !== undefined && this.deleteFullVmBackups(full),
-      missingFiles.length !== 0 && this.#removeVmBackupsFromCache(missingFiles),
-    ])
+    const promises = []
+    if (delta !== undefined) {
+      promises.push(this.deleteDeltaVmBackups(delta))
+    }
+    if (full !== undefined) {
+      promises.push(this.deleteFullVmBackups(full))
+    }
+    if (missingFiles.length) {
+      promises.push(this.#removeVmBackupsFromCache(missingFiles))
+    }
+    await Promise.all(promises)
 
     await asyncMap(new Set(files.map(file => dirname(file))), dir =>
       // - don't merge in main process, unused VHDs will be merged in the next backup run
