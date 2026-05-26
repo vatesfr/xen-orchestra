@@ -194,7 +194,7 @@ export class VmController extends XapiXoController<XoVm> {
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(vmStatsExample)
-  @Extension('x-mcp-exposure', 'allow')
+  @Extension('x-mcp-exposure', 'deny')
   @Get('{id}/stats')
   @Middlewares(acl({ resource: 'vm', action: 'read', objectId: 'params.id' }))
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -598,7 +598,7 @@ export class VmController extends XapiXoController<XoVm> {
    * @example body { "snapshotId": "f07ab729-c0e8-721c-45ec-f11276377030", "snapshotBefore": true }
    */
   @Example(taskLocation)
-  @Extension('x-mcp-exposure', 'allow')
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/revert_snapshot')
   @Middlewares([
     json(),
@@ -663,7 +663,7 @@ export class VmController extends XapiXoController<XoVm> {
    * @example body { "name_label": "my_awesome_snapshot" }
    */
   @Example(taskLocation)
-  @Extension('x-mcp-exposure', 'allow')
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/snapshot')
   @Middlewares([json(), acl({ resource: 'vm', action: 'snapshot', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
@@ -709,7 +709,7 @@ export class VmController extends XapiXoController<XoVm> {
    * @example body { "name_label": "cloned_vm", "fast": true }
    */
   @Example(taskLocation)
-  @Extension('x-mcp-exposure', 'allow')
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/clone')
   @Middlewares(json())
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)

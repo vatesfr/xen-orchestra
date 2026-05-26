@@ -5,6 +5,15 @@
  * every `@Get/@Post/@Put/@Patch/@Delete` method. tsoa detects extension
  * decorators by AST identifier name, so the `Extension` literal must appear in
  * source — a `@McpExpose` wrapper would not be picked up.
+ *
+ * Scope: this is a SURFACE-CONTROL policy, not a security control. The value
+ * only decides which endpoints the official `@xen-orchestra/mcp` server turns
+ * into LLM tools; the REST API itself never reads `x-mcp-exposure`. Every
+ * endpoint stays gated by its own RBAC/ACL middleware regardless of this
+ * annotation, and any REST client with valid credentials (including a
+ * non-official MCP) can still call a `'deny'`-tagged endpoint directly. The
+ * rule only guarantees the exposure decision is made explicitly per endpoint —
+ * it does not harden the REST API.
  */
 
 const HTTP_METHOD_DECORATORS = new Set(['Get', 'Post', 'Put', 'Patch', 'Delete'])

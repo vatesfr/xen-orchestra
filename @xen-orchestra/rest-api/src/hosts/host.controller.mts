@@ -141,7 +141,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(hostStats)
-  @Extension('x-mcp-exposure', 'allow')
+  @Extension('x-mcp-exposure', 'deny')
   @Get('{id}/stats')
   @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)

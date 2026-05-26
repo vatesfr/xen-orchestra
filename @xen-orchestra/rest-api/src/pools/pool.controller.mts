@@ -175,7 +175,7 @@ export class PoolController extends XapiXoController<XoPool> {
    */
   @Example(taskLocation)
   @Example(createNetwork)
-  @Extension('x-mcp-exposure', 'allow')
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/create_network')
   @Middlewares([
     json(),
@@ -227,7 +227,7 @@ export class PoolController extends XapiXoController<XoPool> {
    */
   @Example(taskLocation)
   @Example(createNetwork)
-  @Extension('x-mcp-exposure', 'allow')
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/create_bonded_network')
   @Middlewares(json())
   @Tags('networks')
@@ -269,7 +269,7 @@ export class PoolController extends XapiXoController<XoPool> {
    */
   @Example(taskLocation)
   @Example(createNetwork)
-  @Extension('x-mcp-exposure', 'allow')
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/create_internal_network')
   @Middlewares(json())
   @Tags('networks')
@@ -556,7 +556,7 @@ export class PoolController extends XapiXoController<XoPool> {
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
    */
   @Example(poolStats)
-  @Extension('x-mcp-exposure', 'allow')
+  @Extension('x-mcp-exposure', 'deny')
   @Get('{id}/stats')
   @Middlewares(acl({ resource: 'pool', action: 'read', objectId: 'params.id' }))
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
