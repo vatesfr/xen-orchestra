@@ -1,10 +1,10 @@
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
-import type { TrafficRule } from '@/modules/traffic-rules/types.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { LinkOptions } from '@core/composables/link-component.composable.ts'
 import type { IconName } from '@core/icons'
+import type { TrafficRule } from '@vates/types'
 import { toLower } from 'lodash-es'
 import { useI18n } from 'vue-i18n'
 

@@ -1,4 +1,4 @@
-import { Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Extension, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
@@ -45,6 +45,7 @@ export class ProxyController extends XoController<XoProxy> {
    */
   @Example(proxyIds)
   @Example(partialProxies)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   async getProxies(
@@ -69,6 +70,7 @@ export class ProxyController extends XoController<XoProxy> {
    * @example id "e625ea0c-a876-405a-b838-109d762efe88"
    */
   @Example(proxy)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(
     acl({

@@ -119,7 +119,7 @@ export type XoApp = {
   }
   config: {
     get<T = string>(path: string): T
-    getOptional(path: string): Record<string, string> | undefined
+    getOptional<T = unknown>(path: string): T | undefined
     getOptionalDuration(path: string): number | undefined
     getGuiRoutes(): Promise<{
       default: {

@@ -101,8 +101,7 @@ describe('VmBackupDirectory with full backups', { concurrency: 1 }, () => {
     await createFullBackupMetadata('backup1.json', 'backup1.xva')
     await handler.writeFile(`${rootPath}/orphan.xva`, 'orphan-content')
 
-    await vmBackupDir.init()
-    await vmBackupDir.clean({ remove: true })
+    await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true })
 
     const remainingFiles = await handler.list(rootPath)
     assert.ok(remainingFiles.includes('backup1.json'))
@@ -110,12 +109,24 @@ describe('VmBackupDirectory with full backups', { concurrency: 1 }, () => {
     assert.ok(!remainingFiles.includes('orphan.xva'))
   })
 
+  test('Missing XVA cleans the metadata', async () => {
+    await createFullBackupMetadata('metadata.json', 'missing.xva')
+    await handler.unlink(`${rootPath}/missing.xva`)
+    let logged = ''
+    const logInfo = message => {
+      logged += message + '\n'
+    }
+    await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true, logInfo, logWarn: logInfo })
+    const remainingFiles = await handler.list(rootPath)
+    assert.ok(logged.match(/XVA is missing/g))
+    assert.ok(!remainingFiles.includes('metadata.json'))
+  })
+
   test('clean() preserves cache.json.gz', async () => {
     await createFullBackupMetadata('backup1.json', 'backup1.xva')
     await handler.writeFile(`${rootPath}/cache.json.gz`, 'cache')
 
-    await vmBackupDir.init()
-    await vmBackupDir.clean()
+    await VmBackupDirectory.cleanVm(handler, rootPath)
 
     const remainingFiles = await handler.list(rootPath)
     assert.equal(remainingFiles.length, 3)
@@ -125,8 +136,7 @@ describe('VmBackupDirectory with full backups', { concurrency: 1 }, () => {
   test('clean() removes an orphan XVA checksum file (no matching metadata or XVA)', async () => {
     await handler.writeFile(`${rootPath}/stray.xva.checksum`, 'sha256:deadbeef')
 
-    await vmBackupDir.init()
-    await vmBackupDir.clean({ remove: true })
+    await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true })
 
     const remainingFiles = await handler.list(rootPath)
     assert.ok(!remainingFiles.includes('stray.xva.checksum'), 'orphan XVA checksum should be deleted')

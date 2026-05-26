@@ -8,13 +8,15 @@ import { registerSearchDocs } from './tools/utility/search-docs.mjs'
 import { registerGetInfrastructureSummary } from './tools/utility/get-infrastructure-summary.mjs'
 
 function parseEnvOverrides(): ParseOptions {
-  const denyRaw = process.env.XO_MCP_DENY_LIST
-  if (!denyRaw) return {}
-  const denyList = denyRaw
-    .split(',')
+  const opts: ParseOptions = {}
+  if (process.env.XO_MCP_ENABLE_ACTIONS === '1') opts.includeConfirm = true
+
+  const denyList = process.env.XO_MCP_DENY_LIST?.split(',')
     .map(s => s.trim())
     .filter(Boolean)
-  return denyList.length > 0 ? { denyList } : {}
+  if (denyList?.length) opts.denyList = denyList
+
+  return opts
 }
 
 export async function createServer(getClient: () => XoClient): Promise<McpServer> {
