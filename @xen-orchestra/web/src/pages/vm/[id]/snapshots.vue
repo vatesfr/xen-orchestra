@@ -1,5 +1,5 @@
 <template>
-  <div class="snapshots" :class="{ mobile: uiStore.isSmall }">
+  <div class="snapshots" :class="{ mobile: uiStore.isSmall, locked: panelStore.isLocked && !uiStore.isSmall }">
     <div>
       <VtsColumns extra-space-around>
         <VtsColumn>
@@ -13,10 +13,7 @@
         <SnapshotsTable :snapshots :vm />
       </UiCard>
     </div>
-    <SnapshotSidePanel v-if="selectedSnapshot" :snapshot="selectedSnapshot" @close="selectedSnapshot = undefined" />
-    <UiPanel v-else-if="!uiStore.isSmall">
-      <VtsStateHero format="panel" type="no-selection" size="medium" />
-    </UiPanel>
+    <SnapshotSidePanel :snapshot="selectedSnapshot" @close="selectedSnapshot = undefined" />
   </div>
 </template>
 
@@ -31,10 +28,9 @@ import VmSnapshotCard from '@/modules/vm/components/snapshot/cards/VmSnapshotCar
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { usePanelStore } from '@core/stores/panel.store'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { useArrayFilter } from '@vueuse/shared'
 import { computed } from 'vue'
@@ -46,6 +42,7 @@ const { vm } = defineProps<{
 
 const { snapshots: snapshotsCollection, getSnapshotById } = useXoVmSnapshotCollection()
 
+const panelStore = usePanelStore()
 const uiStore = useUiStore()
 
 const { t } = useI18n()
@@ -78,8 +75,10 @@ const lastRevertSnapshot = computed(() => {
 
 <style scoped lang="postcss">
 .snapshots {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 40rem;
+  &.locked:not(.mobile) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 40rem;
+  }
 
   .container {
     height: fit-content;
