@@ -12,6 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [REST API] Expose `GET /backup-repositories/:id/health` and `POST /backup-repositories/:id/actions/benchmark` routes (PR [#9847](https://github.com/vatesfr/xen-orchestra/pull/9847))
+- [REST API] Added start, stop, restart, restart_toolstask, emergency_shutdown, detach and forget REST action route for hosts (PR [#9887](https://github.com/vatesfr/xen-orchestra/pull/9887))
 
 ### Bug fixes
 
