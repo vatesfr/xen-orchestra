@@ -30,7 +30,7 @@ export function mcpGateMiddleware(req: Request, _res: Response, next: NextFuncti
   }
 
   if (!isMcpEnabled(iocContainer.get(RestApi))) {
-    return next(new ApiError('MCP is disabled by administrator', 403, { data: { error: MCP_DISABLED_ERROR } }))
+    return next(new ApiError('MCP is disabled by administrator', 503, { data: { error: MCP_DISABLED_ERROR } }))
   }
 
   next()

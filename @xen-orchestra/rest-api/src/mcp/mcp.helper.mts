@@ -3,7 +3,7 @@ import type { RestApi } from '../rest-api/rest-api.mjs'
 // Single source of truth for reading the MCP kill-switch flag. Defaults to
 // `true` so legacy configs without a `[mcp]` section keep MCP enabled.
 export function isMcpEnabled(restApi: RestApi): boolean {
-  return (restApi.xoApp.config.getOptional('mcp.enabled') as boolean | undefined) ?? true
+  return restApi.xoApp.config.getOptional<boolean>('mcp.enabled') ?? true
 }
 
 // Wire-level identifier used by the kill-switch contract; shared between the

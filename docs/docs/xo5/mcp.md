@@ -224,7 +224,7 @@ enabled = false
 Restart xo-server and the change takes effect immediately:
 
 - The `@xen-orchestra/mcp` binary refuses to start. It prints `MCP disabled by admin` on stderr and exits with code 1.
-- Any MCP client already running gets a `403` with `{ "error": "mcp_disabled" }` on its next request, so sessions shut down without leaving stale connections on the server.
+- Any MCP client already running gets a `503` with `{ "error": "mcp_disabled" }` on its next request, so sessions shut down without leaving stale connections on the server.
 
 The default is `enabled = true`; legacy configs without an `[mcp]` section behave the same way. Flip the value, reload, done — no other state to clean up.
 

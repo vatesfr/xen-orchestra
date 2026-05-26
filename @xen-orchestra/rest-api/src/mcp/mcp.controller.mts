@@ -1,4 +1,4 @@
-import { Controller, Example, Get, Response, Route, Security, Tags } from 'tsoa'
+import { Controller, Example, Get, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 
@@ -20,8 +20,8 @@ export type McpStatus = { enabled: true }
 
 @Route('mcp')
 @Tags('mcp')
-@provide(McpStatusController)
-export class McpStatusController extends Controller {
+@provide(McpController)
+export class McpController extends Controller {
   #restApi: RestApi
 
   constructor(@inject(RestApi) restApi: RestApi) {
@@ -30,15 +30,16 @@ export class McpStatusController extends Controller {
   }
 
   /**
-   * Returns the global MCP kill-switch status.
+   * Returns whether MCP is currently enabled on this XO server.
    *
-   * The route is anonymous (`@Security('none')`) so the `@xen-orchestra/mcp`
-   * binary can probe it before authentication is established at startup.
+   * The route is publicly reachable (no authentication required) so the
+   * `@xen-orchestra/mcp` binary can check the kill-switch at startup,
+   * before any credentials have been configured.
    */
   @Security('none')
   @Example<McpStatus>({ enabled: true })
   @Get('status')
-  @Response(ENABLED_RESPONSE.status, ENABLED_RESPONSE.description)
+  @SuccessResponse(ENABLED_RESPONSE.status, ENABLED_RESPONSE.description)
   @Response(DISABLED_RESPONSE.status, DISABLED_RESPONSE.description)
   getMcpStatus(): McpStatus {
     if (!isMcpEnabled(this.#restApi)) {

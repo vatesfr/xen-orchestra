@@ -221,7 +221,7 @@ port = 80
 # Set `enabled = false` to globally block all MCP client connections.
 # When disabled, the `@xen-orchestra/mcp` binary will fail-fast at startup
 # and every HTTP request carrying the `X-XO-Client: mcp` header will be
-# rejected with `403 { error: 'mcp_disabled' }`.
+# rejected with `503 { error: 'mcp_disabled' }`.
 #
 # Default: true
 [mcp]
