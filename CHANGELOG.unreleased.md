@@ -7,6 +7,8 @@
 
 > Security fixes and new features should go in this section
 
+- [MCP] Global kill-switch — set `[mcp] enabled = false` in `xo-server` config to immediately reject every MCP client connection
+
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
@@ -41,7 +43,9 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/rest-api patch
+- @vates/types patch
+- @xen-orchestra/mcp minor
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - xo-server patch
 - xo-web patch

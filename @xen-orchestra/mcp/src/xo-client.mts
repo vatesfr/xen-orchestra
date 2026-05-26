@@ -1,6 +1,14 @@
 import { getProxyDispatcher, type FetchInit } from './utils/proxy.mjs'
 
 const REQUEST_TIMEOUT_MS = 30_000
+const BOOT_CHECK_TIMEOUT_MS = 10_000
+
+// Identifies outgoing requests as coming from the MCP binary so the
+// xo-server `mcp-gate` middleware can apply the global kill-switch.
+export const MCP_CLIENT_HEADER: Readonly<Record<string, string>> = Object.freeze({ 'X-XO-Client': 'mcp' })
+
+// Wire-level error code returned by xo-server when the MCP kill-switch is on.
+const MCP_DISABLED_ERROR = 'mcp_disabled'
 
 export type XoClientConfig = { url: string; username: string; password: string } | { url: string; token: string }
 
@@ -8,6 +16,51 @@ export class XoClient {
   private readonly baseUrl: string
   private readonly authHeaders: Record<string, string>
   private readonly authMode: 'token' | 'basic'
+
+  /**
+   * Probes the XO server's `/rest/v0/mcp/status` endpoint to verify that the
+   * MCP kill-switch is not engaged. Throws with a human-readable error when
+   * the server is unreachable or when MCP has been disabled by the admin.
+   */
+  static async assertMcpEnabled(xoUrl: string): Promise<void> {
+    const url = `${xoUrl.replace(/\/$/, '')}/rest/v0/mcp/status`
+
+    let response: Response
+    try {
+      const init: FetchInit = {
+        headers: { ...MCP_CLIENT_HEADER },
+        signal: AbortSignal.timeout(BOOT_CHECK_TIMEOUT_MS),
+        dispatcher: getProxyDispatcher(),
+      }
+      response = await fetch(url, init)
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : String(cause)
+      throw new Error(`Unable to reach XO server at ${xoUrl} to verify MCP status: ${message}`, { cause })
+    }
+
+    if (response.ok) {
+      return
+    }
+
+    // A fetch Response body can only be read once, so read it as text first and
+    // then attempt to parse it as JSON instead of chaining `.json()` and `.text()`
+    // — the second call would throw "Body is unusable".
+    const text = await response.text().catch(() => '')
+    let body: { data?: { error?: string } } | undefined
+    try {
+      body = text === '' ? undefined : (JSON.parse(text) as { data?: { error?: string } })
+    } catch {
+      body = undefined
+    }
+
+    // xo-server serializes ApiError as `{ error: <human message>, data: { error: 'mcp_disabled' } }`,
+    // so the machine-readable code lives under `data.error`, not at the top level.
+    if (response.status === 503 && body?.data?.error === MCP_DISABLED_ERROR) {
+      throw new Error('MCP disabled by admin')
+    }
+
+    throw new Error(`Unable to verify MCP status (HTTP ${response.status}): ${text || response.statusText}`)
+  }
 
   constructor(config: XoClientConfig) {
     this.baseUrl = config.url.replace(/\/$/, '')
@@ -29,7 +82,7 @@ export class XoClient {
     try {
       const init: FetchInit = {
         ...options,
-        headers: { ...this.authHeaders, ...options.headers },
+        headers: { ...MCP_CLIENT_HEADER, ...this.authHeaders, ...options.headers },
         signal: options.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
         dispatcher: getProxyDispatcher(),
       }
