@@ -7,33 +7,25 @@
 
 > Security fixes and new features should go in this section
 
-- [XO 5] Update sanitize-html dependency (Dependabot alert [484](https://github.com/vatesfr/xen-orchestra/security/dependabot/484)) (PR [#9851](https://github.com/vatesfr/xen-orchestra/pull/9851))
 - [MCP] Global kill-switch — set `[mcp] enabled = false` in `xo-server` config to immediately reject every MCP client connection
 
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [Backups] Add UserAgent in s3 client (PR [#9815](https://github.com/vatesfr/xen-orchestra/pull/9815))
-- [xo-web] support qcow2 format in disk > import (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
-- [xo-server] support qcow2 format in `disk.importContent` and `disk.import` jsonRPC api (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
-- [web-core] Update `UiTag` and parse tag for detecting tags with `=` (PR [#9811](https://github.com/vatesfr/xen-orchestra/pull/9811))
-- [Encryption] Implement encryption and decryption feature for redis (PR [#9735](https://github.com/vatesfr/xen-orchestra/pull/9735))
-- [REST API] Add `vms/:id/actions/revert_snapshot` REST route (PR [#9788](https://github.com/vatesfr/xen-orchestra/pull/9788))
-- **XO 5**:
-  - [Export config] Hide passphrase by default (PR [#9824](https://github.com/vatesfr/xen-orchestra/pull/9824))
-- [Backups] Refactor clean phase for incremental and full backups ([#9765](https://github.com/vatesfr/xen-orchestra/pull/9765))
-- [REST API] Expose `DELETE /rest/v0/srs/:id` (PR [#9464](https://github.com/vatesfr/xen-orchestra/pull/9464))
-- [MCP] Read `HTTP_PROXY`/`HTTPS_PROXY`/`NO_PROXY` so an internal XOA stays reachable when the AI assistant goes through a corporate proxy (PR [#9820](https://github.com/vatesfr/xen-orchestra/pull/9820))
+- [Swagger] Rename the `acls` tag to `rbacs` (PR [#9874](https://github.com/vatesfr/xen-orchestra/pull/9874))
+- [VM] Add possibility to attach a VDI on tab VDI (PR [#9772](https://github.com/vatesfr/xen-orchestra/pull/9772))
 
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-- [REST] Fixed ignored parameters in request body due to a tsoa bug (see https://github.com/lukeautry/tsoa/pull/1858) (PR [#9793](https://github.com/vatesfr/xen-orchestra/pull/9793))
-- [Tasks] Fixed issue with task without result and backup runs on task size (PR [#9841](https://github.com/vatesfr/xen-orchestra/pull/9841))
+- [REST API] `POST /vdis` no longer necessarily requires `other_config` (PR [#9883](https://github.com/vatesfr/xen-orchestra/pull/9883))
+- [xo-server] Fix network being put first in boot order when HVM template has VDIs (PR [#9867](https://github.com/vatesfr/xen-orchestra/pull/9867))
+- [Backup] Fix OUT_OF_RANGE error when resuming failed merge (PR [#9782](https://github.com/vatesfr/xen-orchestra/pull/9782))
+- [xo-server] Fix TLS memory leak (PR [#9842](https://github.com/vatesfr/xen-orchestra/pull/9842))
 - **XO 5**:
-  - [Job] Error while using vm.set with `cpuMask` in job view (PR [#9823](https://github.com/vatesfr/xen-orchestra/pull/9823))
+  - [Dashboard/Health] Ignore the replicated VM when checking the number of snapshots(PR [#9868](https://github.com/vatesfr/xen-orchestra/pull/9868))
 
 ### Packages to release
 
@@ -51,20 +43,11 @@
 
 <!--packages-start-->
 
-- @vates/types minor
-- @xen-orchestra/acl minor
-- @xen-orchestra/backup-archive major
-- @xen-orchestra/backups minor
-- @xen-orchestra/backups-cli patch
-- @xen-orchestra/disk-cli minor
-- @xen-orchestra/disk-transform minor
-- @xen-orchestra/fs minor
+- @vates/types patch
 - @xen-orchestra/mcp minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
-- @xen-orchestra/web-core minor
-- @xen-orchestra/xapi minor
-- xo-server minor
-- xo-web minor
+- xo-server patch
+- xo-web patch
 
 <!--packages-end-->

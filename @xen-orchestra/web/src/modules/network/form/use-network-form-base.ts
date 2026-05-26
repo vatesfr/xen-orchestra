@@ -2,11 +2,8 @@ import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-res
 import { useFormBindings } from '@core/packages/form-bindings'
 import { useFormSelect } from '@core/packages/form-select'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import type { BOND_MODE } from '@vates/types'
 import { type MaybeRefOrGetter, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-
-export const BOND_MODES: BOND_MODE[] = ['balance-slb', 'active-backup', 'lacp']
 
 export type BaseNetworkFormData = {
   pool: FrontXoPool['id'] | undefined

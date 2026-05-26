@@ -2,7 +2,7 @@ import { createLogger } from '@xen-orchestra/log'
 import fs from 'node:fs/promises'
 import { FilterBuilder } from '../FilterBuilder.js'
 import { AbstractRequest } from './abstract.js'
-import { assertNonEmptyString } from '../../utils/index.js'
+import { assertNonEmptyString, waitUntil } from '../../utils/index.js'
 
 const log = createLogger('xo:qa-test:vm')
 
@@ -89,16 +89,97 @@ export class VMRequest extends AbstractRequest {
             name_description: description,
           })
         } catch (error) {
-          log.warn('Failed to set VM description', { vmId: clonedVmId, error: error.message })
+          log.warn('Failed to set VM description', { vmId: clonedVmId, error })
         }
       }
 
       log.debug('VM cloned successfully', { name: vmName, id: clonedVmId })
       return clonedVmId
     } catch (error) {
-      log.warn('Failed to clone VM', { uuid: vmUuid, error: error.message })
+      log.warn('Failed to clone VM', { uuid: vmUuid, error })
       throw new Error(`Failed to clone VM ${vmUuid}: ${error.message}`)
     }
+  }
+
+  /**
+   * Starts a virtual machine.
+   *
+   * Always uses JSON-RPC — the REST API does not expose the `force` parameter.
+   *
+   * @param {string} vmUuid - UUID of the VM to start
+   * @param {Object} [options={}]
+   * @param {boolean} [options.force=false] - Bypass any start-operation block set on the VM
+   * @returns {Promise<void>}
+   * @throws {Error} If the VM UUID is invalid or the start operation fails
+   */
+  async start(vmUuid, options = {}) {
+    if (!vmUuid || typeof vmUuid !== 'string') {
+      throw new Error('Valid VM UUID is required')
+    }
+
+    this._ensureConnected()
+
+    const { force = false } = options
+
+    try {
+      await this.dispatchClient.xoClient.call('vm.start', { id: vmUuid, force })
+      console.log(`VM started: ${vmUuid}`)
+    } catch (error) {
+      console.error(`❌ Failed to start VM ${vmUuid}:`, error.message)
+      throw new Error(`Failed to start VM ${vmUuid}: ${error.message}`)
+    }
+  }
+
+  /**
+   * Stops a virtual machine.
+   *
+   * Always uses JSON-RPC — the REST API does not expose the `force` parameter.
+   *
+   * @param {string} vmUuid - UUID of the VM to stop
+   * @param {Object} [options={}]
+   * @param {boolean} [options.force=false] - Hard-stop (equivalent to power cut)
+   * @returns {Promise<void>}
+   * @throws {Error} If the VM UUID is invalid or the stop operation fails
+   */
+  async stop(vmUuid, options = {}) {
+    if (!vmUuid || typeof vmUuid !== 'string') {
+      throw new Error('Valid VM UUID is required')
+    }
+
+    this._ensureConnected()
+
+    const { force = false } = options
+
+    try {
+      await this.dispatchClient.xoClient.call('vm.stop', { id: vmUuid, force })
+      console.log(`VM stopped: ${vmUuid}`)
+    } catch (error) {
+      console.error(`❌ Failed to stop VM ${vmUuid}:`, error.message)
+      throw new Error(`Failed to stop VM ${vmUuid}: ${error.message}`)
+    }
+  }
+
+  /**
+   * Waits for a VM to reach a specific power state.
+   *
+   * Polls the VM details until the expected power_state is observed or the
+   * timeout is exceeded.
+   *
+   * @param {string} vmUuid - UUID of the VM to monitor
+   * @param {'Running'|'Halted'|'Paused'|'Suspended'} targetState - Expected power state
+   * @param {number} [timeout=60000] - Timeout in milliseconds
+   * @returns {Promise<void>}
+   * @throws {Error} If the VM does not reach the target state within the timeout
+   */
+  async waitForPowerState(vmUuid, targetState, timeout = 60_000) {
+    await waitUntil(
+      async () => {
+        const vmDetails = await this.details(vmUuid)
+        return vmDetails?.power_state === targetState
+      },
+      2_000,
+      timeout
+    )
   }
 
   /**
@@ -133,7 +214,7 @@ export class VMRequest extends AbstractRequest {
 
       log.debug('VM deleted successfully', { uuid: vmUuid })
     } catch (error) {
-      log.warn('Failed to delete VM', { uuid: vmUuid, error: error.message })
+      log.warn('Failed to delete VM', { uuid: vmUuid, error })
       throw new Error(`Failed to delete VM ${vmUuid}: ${error.message}`)
     }
   }

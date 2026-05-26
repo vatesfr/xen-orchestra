@@ -491,7 +491,9 @@ export interface XenApiDrTask {
   uuid: string
 }
 
-type XenApiHostCallMethods = TagCallMethods & {}
+type XenApiHostCallMethods = TagCallMethods & {
+  <T>(method: 'call_plugin',plugin:string, fn: string, args: Record<string, string>): Promise<T>
+}
 export interface XenApiHost {
   $ref: Branded<'host'>
   address: string

@@ -1,5 +1,64 @@
 # ChangeLog
 
+## **next**
+
+### Security
+
+- [XO 5] Update sanitize-html dependency (Dependabot alert [484](https://github.com/vatesfr/xen-orchestra/security/dependabot/484)) (PR [#9851](https://github.com/vatesfr/xen-orchestra/pull/9851))
+
+### Enhancements
+
+- [xo-server] support qcow2 format in `disk.importContent` and `disk.import` jsonRPC api (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
+- [web-core] Update `UiTag` and parse tag for detecting tags with `=` (PR [#9811](https://github.com/vatesfr/xen-orchestra/pull/9811))
+- [Encryption] Implement encryption and decryption feature for redis (PR [#9735](https://github.com/vatesfr/xen-orchestra/pull/9735))
+
+- [xo-server-ipmi-sensors] Migrated the old ipmi feature to a new plugin and added user defined sensors (PR [#9724](https://github.com/vatesfr/xen-orchestra/pull/9724))
+- [MCP] Read `HTTP_PROXY`/`HTTPS_PROXY`/`NO_PROXY` so an internal XOA stays reachable when the AI assistant goes through a corporate proxy (PR [#9820](https://github.com/vatesfr/xen-orchestra/pull/9820))
+- [REST API] Expose `DELETE /rest/v0/srs/:id` (PR [#9464](https://github.com/vatesfr/xen-orchestra/pull/9464))
+- [REST API] Add `vms/:id/actions/revert_snapshot` REST route (PR [#9788](https://github.com/vatesfr/xen-orchestra/pull/9788))
+
+- **Backups**:
+  - [Backups] Refactor clean phase for incremental and full backups ([#9765](https://github.com/vatesfr/xen-orchestra/pull/9765))
+  - [Backups] bidirectional replication, reuse snapshot when possible (PR [#9806](https://github.com/vatesfr/xen-orchestra/pull/9806))
+  - [Backups/fs] Add UserAgent in s3 client (PR [#9815](https://github.com/vatesfr/xen-orchestra/pull/9815))
+
+- **RBAC** check for REST API endpoints:
+  - `/hosts/:id/actions/disable` (PR [#9840](https://github.com/vatesfr/xen-orchestra/pull/9840))
+  - `/hosts/:id/actions/enable` (PR [#9840](https://github.com/vatesfr/xen-orchestra/pull/9840))
+  - `/hosts/:id/actions/management_reconfigure` (PR [#9840](https://github.com/vatesfr/xen-orchestra/pull/9840))
+
+- **XO 5**:
+  - [Export config] Hide passphrase by default (PR [#9824](https://github.com/vatesfr/xen-orchestra/pull/9824))
+  - [xo-web] support qcow2 format in disk > import (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
+
+### Bug fixes
+
+- [REST] Fixed ignored parameters in request body due to a tsoa bug (see https://github.com/lukeautry/tsoa/pull/1858) (PR [#9793](https://github.com/vatesfr/xen-orchestra/pull/9793))
+- [Tasks] Fixed issue with task without result and backup runs on task size (PR [#9841](https://github.com/vatesfr/xen-orchestra/pull/9841))
+- **XO 5**:
+  - [Job] Error while using vm.set with `cpuMask` in job view (PR [#9823](https://github.com/vatesfr/xen-orchestra/pull/9823))
+
+### Released packages
+
+- @xen-orchestra/fs 4.9.0
+- @xen-orchestra/disk-transform 1.3.0
+- @vates/types 1.25.0
+- @xen-orchestra/acl 1.1.0
+- @xen-orchestra/backup-archive 1.0.0
+- @xen-orchestra/xapi 8.8.0
+- @xen-orchestra/backups 0.73.1
+- @xen-orchestra/backups-cli 1.1.13
+- @xen-orchestra/disk-cli 2.1.1
+- @xen-orchestra/immutable-backups 3.0.3
+- @xen-orchestra/web-core 0.53.0
+- @xen-orchestra/mcp 1.3.0
+- @xen-orchestra/proxy 0.30.2
+- @xen-orchestra/rest-api 0.31.1
+- @xen-orchestra/web 0.51.0
+- xo-server 5.201.0
+- xo-server-ipmi-sensors 2.0.0
+- xo-web 5.197.0
+
 ## **6.4.1** (2026-05-05)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />

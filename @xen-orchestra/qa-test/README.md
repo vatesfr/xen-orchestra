@@ -1,3 +1,11 @@
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
+
+# @xen-orchestra/qa-test
+
+> XenOrchestra QA Test Suite
+
+## Usage
+
 # @xen-orchestra/qa-test
 
 End-to-end QA test suite for Xen Orchestra. Tests core features (VM, backup, export) against a real XO instance.
@@ -26,27 +34,57 @@ Copy the example file and fill in the values:
 cp .env.example .env
 ```
 
-### Required variables
+### Variables
 
-| Variable          | Description                                      | Example                  |
-| ----------------- | ------------------------------------------------ | ------------------------ |
-| `HOSTNAME`        | XO instance URL                                  | `http://10.1.4.216:9000` |
-| `USERNAME`        | XO user                                          | `admin@admin.net`        |
-| `PASSWORD`        | XO password                                      | `admin`                  |
-| `REFERENCE_VM_ID` | UUID of the VM to clone for tests                | `61c24db9-262d-...`      |
-| `SR_ID`           | UUID of the Storage Repository for health checks | `8aa2fb4a-143e-...`      |
+All variables are required. The test suite fails immediately if any are missing.
 
-### Optional variables
+| Variable                 | Description                                                                | Example                  |
+| ------------------------ | -------------------------------------------------------------------------- | ------------------------ |
+| `HOSTNAME`               | XO instance URL                                                            | `http://10.1.4.216:9000` |
+| `USERNAME`               | XO user                                                                    | `admin@admin.net`        |
+| `PASSWORD`               | XO password                                                                | `admin`                  |
+| `REFERENCE_VM_ID`        | UUID of the VM to clone for tests                                          | `61c24db9-262d-...`      |
+| `SR_ID`                  | UUID of the Storage Repository                                             | `8aa2fb4a-143e-...`      |
+| `VM_PREFIX`              | Test VM name prefix                                                        | `TST`                    |
+| `BACKUP_REPOSITORY_NAME` | Backup repository name in XO                                               | `Test backup QA`         |
+| `BACKUP_REPOSITORY_PATH` | Test backup path on the XO server (must contain `test`, `qa`, or `tmp/xo`) | `/tmp/xo-test-backups`   |
+| `BACKUP_PATH`            | Production backup path used for repository creation (not cleaned up)       | `/var/lib/xo/backups`    |
+| `VHD_EXPORT_PATH`        | VHD/XVA export directory (must contain `test`, `qa`, or `tmp/`)            | `/tmp/xo-test-exports`   |
 
-| Variable                 | Description                      | Default                |
-| ------------------------ | -------------------------------- | ---------------------- |
-| `VM_PREFIX`              | Test VM name prefix              | `TST`                  |
-| `BACKUP_REPOSITORY_NAME` | Backup repository name           | `Test backup QA`       |
-| `BACKUP_REPOSITORY_PATH` | Backup path on the XO server     | `/tmp/xo-test-backups` |
-| `BACKUP_PATH`            | Production path (not cleaned up) | `/var/lib/xo/backups`  |
-| `VHD_EXPORT_PATH`        | VHD/XVA export directory         | `/tmp/xo-test-exports` |
+The following are required only for mirror backup tests (`qa:backup:mirror`):
 
-> **Safety**: cleanup paths must contain `test`, `qa` or `tmp/xo` to prevent accidental deletion of production data.
+| Variable                             | Description                                                      | Example               |
+| ------------------------------------ | ---------------------------------------------------------------- | --------------------- |
+| `MIRROR_DESTINATION_REPOSITORY_NAME` | Mirror destination repository name                               | `Test mirror QA`      |
+| `MIRROR_DESTINATION_REPOSITORY_PATH` | Mirror destination path (must contain `test`, `qa`, or `tmp/xo`) | `/tmp/xo-test-mirror` |
+
+> **Safety**: paths used for automatic cleanup must contain `test`, `qa`, or `tmp/xo` to prevent accidental deletion of production data.
+
+## Logging
+
+Console output defaults to `info` level. Two env variables control verbosity:
+
+| Variable      | Description                               | Example            |
+| ------------- | ----------------------------------------- | ------------------ |
+| `DEBUG`       | Enable debug logs for matching namespaces | `DEBUG='qa:*'`     |
+| `DEBUG_LEVEL` | Override the default console log level    | `DEBUG_LEVEL=warn` |
+
+All debug-level logs are also written to a temp file at startup regardless of `DEBUG`. The path is printed to stderr:
+
+```
+[qa-test] debug log: /tmp/xo-qa-test-1715000000000.log
+```
+
+Log namespaces follow the pattern `qa:<suite>[:<variant>]`:
+
+| Namespace            | Test file                                   |
+| -------------------- | ------------------------------------------- |
+| `qa:infrastructure`  | `tests/infrastructure.test.js`              |
+| `qa:backup:base`     | `tests/backup.test.js`                      |
+| `qa:backup:nbd`      | `tests/backup.nbd.test.js`                  |
+| `qa:backup:combined` | `tests/backup-replication-combined.test.js` |
+| `qa:mirror`          | `tests/backup-mirror.test.js`               |
+| `qa:export`          | `tests/export.vhd.test.js`                  |
 
 ## Running tests
 
@@ -143,4 +181,18 @@ The local `.eslintrc.cjs` configures:
 
 - `@babel/eslint-parser` to support `await using` syntax (Explicit Resource Management)
 - `sourceType: 'module'` (root ESLint defaults to `sourceType: 'script'`)
-- `no-console: 'off'` (tests use `console.log` for reporting)
+
+## Contributions
+
+Contributions are _very_ welcomed, either on the documentation or on
+the code.
+
+You may:
+
+- report any [issue](https://github.com/vatesfr/xen-orchestra/issues)
+  you've encountered;
+- fork and create a pull request.
+
+## License
+
+[AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)
