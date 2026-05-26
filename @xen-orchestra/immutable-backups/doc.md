@@ -1,100 +1,118 @@
 # Immutability
 
-the goal is to make a remote that XO can write, but not modify during the immutability duration set on the remote. That way, it's not possible for XO to delete or encrypt any backup during this period. It protects your backup against ransomware, at least as long as the attacker does not have a root access to the remote server.
+The goal is to make a remote that XO can write to, but not modify during the immutability duration set per remote. That way, it is not possible for XO to delete or encrypt any backup during this period. It protects your backups against ransomware, at least as long as the attacker does not have root access to the remote server.
 
-We target `governance` type of immutability, **the local root account of the remote server will be able to lift immutability**.
+We target `governance` type of immutability: **the local root account of the remote server will be able to lift immutability**.
 
-We use the file system capabilities, they are tested on the protection process start.
+We use Linux filesystem capabilities (`chattr +i`). They are tested on process start.
 
 It is compatible with encryption at rest made by XO.
 
 ## Prerequisites
 
-The commands must be run as root on the remote, or by a user with the `CAP_LINUX_IMMUTABLE` capability . On start, the protect process writes into the remote `immutability.json` file its status and the immutability duration.
-
-the `chattr` and `lsattr` should be installed on the system
+- The service must run as root, or as a user with the `CAP_LINUX_IMMUTABLE` capability.
+- `chattr` and `lsattr` must be installed on the system.
+- The underlying filesystem must support the immutable attribute (ext2/ext3/ext4, btrfs, etc.).
 
 ## Configuring
 
-this package uses app-conf to store its config. The application name is `xo-immutable-backup`. A sample config file is provided in this package.
+This package uses `app-conf` to load its configuration. The application name is `xo-immutable-backups`. A sample config file is provided in this package.
 
-## Making a file immutable
+The default config path is `/etc/xo-immutable-backups/config.toml`. Example:
 
-when marking a file or a folder immutable, it create an alias file in the `<indexPath>/<DayOfFileCreation>/<sha256(fullpath)>`.
+```toml
+liftEvery = "1h"
 
-`indexPath` can be defined in the config file; otherwise, `XDG_HOME` is used. If not available it goes to `~/.local/share`
-
-This index is used when lifting the immutability of the remote, it will only look at the old enough `<indexPath>/<DayOfFileCreation>/` folders.
-
-## Real time protecting
-
-On start, the watcher will create the index if it does not exists.
-It will also do a checkup to ensure immutability could work on this remote and handle the easiest issues.
-
-The watching process depends on the backup type, since we don't want to make temporary files and cache immutable.
-
-It won't protect files during upload, only when the files have been completely written on disk. Real time, in this case, means "protecting critical files as soon as possible after they are uploaded"
-
-This can be alleviated by :
-
-- Coupling immutability with encryption to ensure the file is not modified
-- Making health check to ensure the data are exactly as the snapshot data
-
-List of protected files :
-
-```js
-const PATHS = [
-  // xo-config-backups/scheduleId/date/metadata.json
-  'xo-config-backups/*/*/data',
-  'xo-config-backups/*/*/data.json',
-  'xo-config-backups/*/*/metadata.json',
-  // xo-pool-metadata-backups/backupId/scheduleId/date/metadata.json
-  'xo-pool-metadata-backups/*/*/*/metadata.json',
-  'xo-pool-metadata-backups/*/*/*/data',
-  // xo-vm-backups/<vmuuid>/
-  'xo-vm-backups/*/*.json',
-  'xo-vm-backups/*/*.xva',
-  'xo-vm-backups/*/*.xva.checksum',
-  // xo-vm-backups/<vmuuid>/vdis/<jobid>/<vdiUuid>
-  'xo-vm-backups/*/vdis/*/*/*.vhd', // can be an alias or a vhd file
-  // for vhd directory :
-  'xo-vm-backups/*/vdis/*/*/data/*.vhd/bat',
-  'xo-vm-backups/*/vdis/*/*/data/*.vhd/header',
-  'xo-vm-backups/*/vdis/*/*/data/*.vhd/footer',
-]
+[remotes.remote1]
+root = "/mnt/ssd/vhdblock/"
+immutabilityDuration = "7d"
 ```
 
-## Releasing protection on old enough files on a remote
+### Parameters
 
-the watcher will periodically check if some file must by unlocked
+- **`liftEvery`** (required): How often the service checks for files whose immutability duration has expired and lifts their protection (e.g. `1h`).
+- Per remote:
+  - **`root`** (required): Absolute path to the root of the backup repository.
+  - **`immutabilityDuration`** (required, minimum `1d`): How long files remain protected after the backup datetime encoded in their filename.
+  - **`delayBetweenSizeCheck`** (optional, default `100ms`): Polling interval used when waiting for a file write to complete before locking it.
+
+## CLI commands
+
+- **`xo-immutable-remote`**: Start the watching daemon. Must be kept running to protect new backups reliably.
+- **`xo-lift-remote-immutability`**: Manually trigger a lifting pass. If `liftEvery` is set in the config, the process continues running and repeats the check on that interval.
+
+## How protection works
+
+On startup, `xo-immutable-remote`:
+
+1. Verifies the filesystem supports immutability by creating, locking, and deleting a temporary test file.
+2. Writes an `immutability.json` file to the remote root (containing `since`, `duration`, and `immutable: true`) and locks it with `chattr +i`.
+3. Sets up `fs.watch` listeners on the backup directory tree (see below).
+
+Protection is applied to a backup only after the file write is complete. The service polls the file size until it stabilises before locking. This means "real-time" here means "as soon as possible after each backup file is fully written".
+
+### VM backups (`xo-vm-backups/<vmUUID>/`)
+
+The watcher triggers on `<YYYYMMDD>T<HHmmss>[Z].json` files appearing in a VM directory. The `.json` metadata file is always written last by XO, so its stable size guarantees all other files for that run are already fully written.
+
+Once stable, the following paths are locked together with a single `chattr +i -R` call:
+
+```
+<vmDir>/<datetime>.json
+<vmDir>/<datetime>.xva
+<vmDir>/<datetime>.xva.checksum
+<vmDir>/vdis/<jobId>/<vdiId>/<datetime>.vhd        (flat VHD or alias)
+<vmDir>/vdis/<jobId>/<vdiId>/<datetime>.alias.vhd
+<vmDir>/vdis/<jobId>/<vdiId>/data/<datetime>.vhd   (VHD directory — locked recursively)
+```
+
+Missing optional paths (e.g. `.xva` for delta backups, `.alias.vhd` for full backups) are silently skipped by `chattr`.
+
+### Config backups (`xo-config-backups/<scheduleId>/<datetime>/`)
+
+### Pool metadata backups (`xo-pool-metadata-backups/<scheduleId>/<poolUUID>/<datetime>/`)
+
+The watcher triggers on `metadata.json` appearing in the date directory. Once its write is complete, the **entire date directory** is locked recursively with `chattr +i -R`, covering `data`, `data.json`, `metadata.json`, and any other files inside.
+
+## How lifting works
+
+On each `liftEvery` tick (and once immediately on startup), the service walks the backup directory tree directly:
+
+- It parses the datetime encoded in each backup's filename or directory name.
+- It compares that datetime against the threshold `now - immutabilityDuration`.
+- Files older than the threshold have their immutability lifted with `chattr -i -R`.
+
+The expiry reference is the **datetime in the filename**, not the file's `mtime`. XO periodically rewrites metadata `.json` files (cache refresh, reconciliation), which would otherwise reset `mtime` and defer expiry indefinitely.
+
+On the **first lift run after startup**, all backup files are scanned unconditionally (full scan). This catches orphaned immutable files left by a previous partial or interrupted lock. Subsequent runs use a fast-path: only backups whose `.json` sentinel is currently immutable are processed.
 
 ## Troubleshooting
 
-### some files are still locked
+### Some files are still immutable after the duration expired
 
-add the `rebuildIndexOnStart` option to the config file
+Restart `xo-immutable-remote`. The first lift run after startup always performs a full scan, which will find and release any expired files that were missed.
 
-### make remote fully mutable again
+### Make a remote fully mutable again
 
-- Update the immutability setting with a 0 duration
-- launch the `liftProtection` cli.
-- remove the `protectRemotes` service
+1. Stop the `xo-immutable-remote` service.
+2. As root on the file server, run:
+   ```bash
+   chattr -i -R /path/to/remote/on/fileserver/
+   ```
 
-### increasing the immutability duration
+### Increasing the immutability duration
 
-this will prolong immutable file, but won't protect files that are already out of immutability
+Change the setting. The next lift cycle will use the new duration; files already past the old duration but within the new one will remain protected.
 
-### reducing the immutability duration
+### Reducing the immutability duration
 
-change the setting, and launch the `liftProtection` cli , or wait for next planed execution
+Change the setting, then run `xo-lift-remote-immutability` to apply immediately, or wait for the next scheduled `liftEvery` cycle.
 
-### why are my incremental backups not marked as protected in XO ?
+### Why are my incremental backups not marked as protected in XO?
 
-are not marked as protected in XO ?
+For incremental backups to be marked as protected in XO, the entire backup chain must be within the immutability window. To guarantee at least 7 days of protected backups, set both the immutability duration and the retention to 14 days, with a full backup interval of 7 days.
 
-For incremental backups to be marked as protected in XO, the entire chain must be under protection. To ensure at least 7 days of backups are protected, you need to set the immutability duration and retention at 14 days, the full backup interval at 7 days
-
-That means that if the last backup chain is complete ( 7 backup ) it is completely under protection, and if not, the precedent chain is also under protection. K are key backups, and are delta
+This ensures that when the last chain is complete, it and the previous chain are both fully under protection:
 
 ```
 Kd Kdddddd Kdddddd K #  8 backups protected, 2 chains
@@ -103,12 +121,14 @@ K Kdddddd Kdddddd Kd #  9 backups protected, 2 chains
  Kddddd Kdddddd Kddd # 11 backups protected, 2 chains
  Kdddd Kdddddd Kdddd # 12 backups protected, 2 chains
  Kddd Kdddddd Kddddd # 13 backups protected, 2 chains
- Kdd Kdddddd Kdddddd #  7 backups protected, 1 chain since precedent full is now mutable
+ Kdd Kdddddd Kdddddd #  7 backups protected, 1 chain (previous full is now mutable)
 Kd Kdddddd Kdddddd K #  8 backups protected, 2 chains
 ```
 
-### Why doesn't the protect process start ?
+(`K` = full backup, `d` = delta)
 
-- it should be run as root or by a user with the `CAP_LINUX_IMMUTABLE` capability
-- the underlying file system should support immutability, especially the `chattr` and `lsattr` command
-- logs are in journalctl
+### Why doesn't the service start?
+
+- It must run as root or as a user with the `CAP_LINUX_IMMUTABLE` capability.
+- The underlying filesystem must support the immutable attribute (`chattr`/`lsattr` must work).
+- Check logs with `journalctl`.
