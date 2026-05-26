@@ -5,7 +5,7 @@
   >
     <UiLoader v-if="type === 'busy'" class="loader" />
     <img v-else-if="imageSrc" :src="imageSrc" :alt="type" class="image" />
-    <div v-if="slots.default || success" :class="typoClass" class="content">
+    <div v-if="slots.default || success" :class="[typoClass, { mobile: isMobile }]" class="content">
       <div v-if="success">{{ t('all-good!') }}</div>
       <slot />
     </div>
@@ -54,6 +54,8 @@ const { t } = useI18n()
 
 const isHorizontal = computed(() => horizontal && !uiStore.isSmall)
 
+const isMobile = computed(() => uiStore.isSmall)
+
 const typoClass = computed(() => (format === 'page' ? 'typo-h2' : 'typo-h4'))
 
 const className = computed(() => toVariants({ size, format }))
@@ -91,6 +93,10 @@ const imageSrc = computed(() => {
     display: flex;
     flex-direction: column;
     gap: 1.6rem;
+
+    &:not(.mobile) {
+      text-align: center;
+    }
 
     &:empty {
       display: none;
