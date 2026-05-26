@@ -13,6 +13,7 @@
 
 - [Swagger] Rename the `acls` tag to `rbacs` (PR [#9874](https://github.com/vatesfr/xen-orchestra/pull/9874))
 - [VM] Add possibility to attach a VDI on tab VDI (PR [#9772](https://github.com/vatesfr/xen-orchestra/pull/9772))
+- [ACL] Add Administrator role (PR [#9885](https://github.com/vatesfr/xen-orchestra/pull/9885))
 
 ### Bug fixes
 
@@ -37,6 +38,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/acl minor
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/web minor
 
