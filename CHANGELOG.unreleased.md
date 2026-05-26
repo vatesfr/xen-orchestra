@@ -18,11 +18,7 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-- [REST] Fixed ignored parameters in request body due to a tsoa bug (see https://github.com/lukeautry/tsoa/pull/1858) (PR [#9793](https://github.com/vatesfr/xen-orchestra/pull/9793))
-- [Tasks] Fixed issue with task without result and backup runs on task size (PR [#9841](https://github.com/vatesfr/xen-orchestra/pull/9841))
 - [xo-server] Fix network being put first in boot order when HVM template has VDIs (PR [#9867](https://github.com/vatesfr/xen-orchestra/pull/9867))
-- **XO 5**:
-  - [Job] Error while using vm.set with `cpuMask` in job view (PR [#9823](https://github.com/vatesfr/xen-orchestra/pull/9823))
 
 ### Packages to release
 
