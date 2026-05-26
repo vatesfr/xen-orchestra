@@ -179,6 +179,8 @@ export interface Xapi {
   deleteVif(vifId: XoVif['id']): Promise<void>
   disconnectVif(vifId: XoVif['id']): Promise<void>
   exportVmOva(vmRef: XenApiVm['$ref']): Promise<PassThrough>
+  emergencyShutdownHost(hostId: XoHost['id']): Promise<void>
+  ejectHostFromPool(hostId: XoHost['id']): Promise<void>
   migrateVm(
     vmId: XoVm['id'],
     hostXapi: Xapi,
@@ -222,6 +224,10 @@ export interface Xapi {
     }
   ): Promise<{ vm: XenApiVmWrapped }>
   forgetSr(id: XoSr['id']): Promise<void>
+  forgetHost(hostId: XoHost['id']): Promise<void>
+  powerOnHost(hostId: XoHost['id']): Promise<void>
+  rebootHost(hostId: XoHost['id'], force?: boolean): Promise<void>
+  shutdownHost(hostId: XoHost['id'], opts?: { force?: boolean; bypassEvacuate?: boolean }): Promise<void>
   SR_importVdi(
     ref: XenApiSr['$ref'],
     stream: Readable,

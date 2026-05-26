@@ -562,4 +562,245 @@ export class HostController extends XapiXoController<XoHost> {
       },
     })
   }
+
+  /**
+   * Required privilege:
+   * - resource: host, action: start
+   *
+   * Start a host.
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/start')
+  @Middlewares(acl({ resource: 'host', action: 'start', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  start(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const hostId = id as XoHost['id']
+    const action = async () => {
+      await this.getXapiObject(hostId).$xapi.powerOnHost(hostId)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'start host',
+        objectId: hostId,
+      },
+    })
+  }
+
+  /**
+   * Required privilege:
+   * - resource: host, action: stop
+   *
+   * Stop a host.
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   * @example body { "force": false, "bypassEvacuate": false }
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/stop')
+  @Middlewares([json(), acl({ resource: 'host', action: 'stop', objectId: 'params.id' })])
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  stop(
+    @Path() id: string,
+    @Body()
+    body?: {
+      force?: boolean
+      bypassEvacuate?: boolean
+    },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const hostId = id as XoHost['id']
+    const action = async () => {
+      await this.getXapiObject(hostId).$xapi.shutdownHost(hostId, body)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'stop host',
+        objectId: hostId,
+      },
+    })
+  }
+
+  /**
+   * Required privilege:
+   * - resource: host, action: restart
+   *
+   * Restart a host.
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   * @example body { "force": false }
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/restart')
+  @Middlewares([json(), acl({ resource: 'host', action: 'restart', objectId: 'params.id' })])
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  restart(
+    @Path() id: string,
+    @Body()
+    body?: {
+      force?: boolean
+    },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const hostId = id as XoHost['id']
+    const action = async () => {
+      await this.getXapiObject(hostId).$xapi.rebootHost(hostId, body?.force)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'restart host',
+        objectId: hostId,
+      },
+    })
+  }
+
+  /**
+   * Required privilege:
+   * - resource: host, action: restart-toolstack
+   *
+   * Restart a host's toolstack.
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/restart_toolstack')
+  @Middlewares(acl({ resource: 'host', action: 'restart-toolstack', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  restartToolstack(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const hostId = id as XoHost['id']
+    const action = async () => {
+      await this.getXapiObject(hostId).$restartAgent()
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: "restart host's toolstack",
+        objectId: hostId,
+      },
+    })
+  }
+
+  /**
+   * Required privilege:
+   * - resource: host, action: emergency-shutdown
+   *
+   * Emergency shutdowns a host.
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/emergency_shutdown')
+  @Middlewares(acl({ resource: 'host', action: 'emergency-shutdown', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  emergencyShutdown(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const hostId = id as XoHost['id']
+    const action = async () => {
+      await this.getXapiObject(hostId).$xapi.emergencyShutdownHost(hostId)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'emergency shutdown host',
+        objectId: hostId,
+      },
+    })
+  }
+
+  /**
+   * Required privilege:
+   * - resource: host, action: detach
+   *
+   * Detaches a host.
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/detach')
+  @Middlewares(acl({ resource: 'host', action: 'detach', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  detach(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const hostId = id as XoHost['id']
+    const action = async () => {
+      await this.restApi.xoApp.detachHostFromPool(hostId)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'detach host',
+        objectId: hostId,
+      },
+    })
+  }
+
+  /**
+   * Required privilege:
+   * - resource: host, action: forget
+   *
+   * Forgets a host.
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/forget')
+  @Middlewares(acl({ resource: 'host', action: 'forget', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  forget(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const hostId = id as XoHost['id']
+    const action = async () => {
+      await this.getXapiObject(hostId).$xapi.forgetHost(hostId)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'forget host',
+        objectId: hostId,
+      },
+    })
+  }
 }
