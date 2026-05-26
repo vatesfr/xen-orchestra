@@ -1,5 +1,5 @@
 <template>
-  <div class="networks" :class="{ mobile: uiStore.isSmall }">
+  <div class="networks" :class="{ mobile: uiStore.isSmall, locked: panelStore.isLocked && !uiStore.isSmall }">
     <UiCard class="container">
       <NetworksTable :busy="!areNetworksReady" :error="hasNetworkFetchError" :networks>
         <template #title-actions>
@@ -38,10 +38,7 @@
         </template>
       </NetworksTable>
     </UiCard>
-    <NetworkSidePanel v-if="selectedNetwork" :network="selectedNetwork" @close="selectedNetwork = undefined" />
-    <UiPanel v-else-if="!uiStore.isSmall">
-      <VtsStateHero format="panel" type="no-selection" size="medium" />
-    </UiPanel>
+    <NetworkSidePanel :network="selectedNetwork" @close="selectedNetwork = undefined" />
   </div>
 </template>
 
@@ -55,12 +52,11 @@ import {
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
+import { usePanelStore } from '@core/stores/panel.store'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -73,6 +69,7 @@ const { t } = useI18n()
 
 const { areNetworksReady, hasNetworkFetchError, networksWithoutPifs, networksWithPifs, getNetworkById } =
   useXoNetworkCollection()
+const panelStore = usePanelStore()
 const uiStore = useUiStore()
 
 const internalNetworks = computed(() => networksWithoutPifs.value.filter(network => network.$pool === pool.id))
@@ -87,7 +84,7 @@ const selectedNetwork = useRouteQuery<FrontXoNetwork | undefined>('id', {
 
 <style scoped lang="postcss">
 .networks {
-  &:not(.mobile) {
+  &.locked:not(.mobile) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 40rem;
   }
