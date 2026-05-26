@@ -72,11 +72,40 @@ Launch the `xo-immutable-remote` service and check its logs (use `systemd`, for 
 
 Once active, any backups written by Xen Orchestra to this repository will be protected for the specified duration. Even if Xen Orchestra is compromised, the immutability configuration remains secure, as it is managed entirely on the backup host.
 
+### Locking
+
+The service watches the backup directory tree in real time. When a backup completes, it waits until the final file (the metadata `.json`) has been fully written to disk, then locks all files belonging to that backup run with the Linux `chattr +i` attribute. This prevents any process — including Xen Orchestra — from modifying or deleting them.
+
+### Lifting
+
+Protection is released automatically once the `immutabilityDuration` has elapsed. The service periodically (every `liftEvery` interval) scans the backup tree, computes the age of each backup from the datetime encoded in its filename, and removes the immutable attribute from any backup that has expired.
+
+The expiry reference is the **datetime in the filename**, not the file's modification time. XO periodically rewrites metadata files for cache updates and reconciliation, which would reset `mtime` and indefinitely defer expiry if that were used instead.
+
+On the first scan after the service starts, all files are checked unconditionally regardless of their current state, to catch anything that may have been missed (e.g. after a crash or restart).
+
 ## Working With Immutable Backups
 
 When setting up backup jobs in Xen Orchestra, select your configured immutable remote (whether it's an S3 bucket or an on-premises repository). Define your retention and rotation policies as you normally would. Immutability ensures that existing backups cannot be deleted or altered before their protection period expires, while still allowing new backups to be added.
 
 ## Best Practices
+
+### Only Enable on Stable, Healthy Backup Jobs
+
+:::warning
+Immutability should only be enabled on backup jobs that are already running correctly and whose retention policy is fully settled.
+:::
+
+Immutability and retention are two independent mechanisms, and they can conflict if a backup job is not in a clean state:
+
+- **Jobs that run more than once per schedule** (accidental duplicates, misconfigured triggers) will accumulate extra backups that XO cannot clean up while they are protected. Those backups count against storage but cannot be removed until their immutability duration expires.
+- **Backups in an incorrect or partial state** (failed mid-run, inconsistent chain) will be locked in place for the full immutability duration. The normal cleanup scripts cannot remove them, because any attempt to delete or overwrite a protected file raises a permission error (`EPERM`). Those errors are logged, but the files stay.
+- **Retention and immutability durations must be aligned.** If the immutability duration is longer than the retention window, XO will keep trying — and failing — to delete backups it considers expired. Set `immutabilityDuration` to be at most equal to the retention period, so that files are only released after XO has already rotated them out.
+- **Do not use Long Term Retention (LTR) with immutability.** LTR may select and remove intermediate backups from within a chain — for example, to keep only one backup per month. If any of those intermediate files are still immutable, the deletion fails with `EPERM`. The backup chain is left in an inconsistent state that XO cannot repair until the immutability duration expires.
+- **A broken chain root blocks cleanup of the rest of the chain.** In delta backup chains, removing any backup requires starting from the root. If the chain root is in a bad state (missing, corrupted, or partially written) and the remaining files are immutable, the cleanup script cannot remove them either — it encounters `EPERM` on each attempt and leaves the orphaned files in place until they age out naturally.
+- **Disks are not protected during upload.** The immutable attribute is applied only after all disk images for a given backup run have been fully uploaded. During the upload window, those files can still be modified or deleted. Coupling immutability with XO's at-rest encryption reduces this exposure, since an encrypted file is useless even if tampered with before locking.
+
+In short: make sure your backup jobs are stable and producing clean results before adding immutability. Applying it to a job that already has problems will lock those problems in place.
 
 ### Define a Clear Immutability Policy
 
