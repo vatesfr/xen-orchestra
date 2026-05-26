@@ -18,6 +18,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [xo-server] Fix network being put first in boot order when HVM template has VDIs (PR [#9867](https://github.com/vatesfr/xen-orchestra/pull/9867))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
