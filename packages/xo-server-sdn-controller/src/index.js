@@ -245,7 +245,7 @@ function getHostTunnelForNetwork(host, networkRef) {
     return
   }
 
-  return Object.values(host.$xapi.objects.indexes.type.tunnel ?? {}).find(_ => _.access_PIF === pif.$ref)
+  return Object.values(host.$xapi.objects.indexes.type.tunnel ?? {}).find(tunnel => tunnel.access_PIF === pif.$ref)
 }
 
 // -----------------------------------------------------------------------------
