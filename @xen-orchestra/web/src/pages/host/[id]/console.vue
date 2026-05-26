@@ -61,7 +61,6 @@ const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
   display: flex;
   flex-direction: column;
   gap: 1.4rem;
-  align-items: center;
   color: var(--color-neutral-txt-secondary);
 }
 </style>
