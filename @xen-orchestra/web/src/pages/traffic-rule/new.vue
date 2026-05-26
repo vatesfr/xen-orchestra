@@ -19,7 +19,7 @@
     </VtsOperationErrorCard>
     <UiCard v-show="canDisplayForm">
       <UiTitle>{{ t('general-information') }}</UiTitle>
-      <NewTrafficRuleForm :cancel-to="cancelRoute" :pool-id @create="createTrafficRule" />
+      <NewTrafficRuleForm :cancel-to="cancelRoute" :pool-id :vif-id @create="createTrafficRule" />
     </UiCard>
   </div>
 </template>
