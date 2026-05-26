@@ -38,8 +38,8 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/acl minor
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/web minor
+- xo-server minor
 
 <!--packages-end-->

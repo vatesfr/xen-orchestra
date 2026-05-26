@@ -90,7 +90,7 @@ export const ADMINISTRATOR = {
   name: 'Administrator',
   description: 'Full access to the entire infra, all objects, and user management',
   privileges: [
-    // XAPI objects privilges
+    // XAPI objects privileges
     { action: '*', resource: 'sr', effect: 'allow' },
     { action: '*', resource: 'vdi', effect: 'allow' },
     { action: '*', resource: 'vdi-snapshot', effect: 'allow' },
