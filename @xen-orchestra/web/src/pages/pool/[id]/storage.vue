@@ -1,12 +1,9 @@
 <template>
-  <div class="storage" :class="{ mobile: uiStore.isSmall }">
+  <div class="storage" :class="{ mobile: uiStore.isSmall, locked: panelStore.isLocked && !uiStore.isSmall }">
     <UiCard class="container">
       <StorageRepositoriesTable :srs :scope :busy="!areSrsReady" :error="hasSrFetchError" />
     </UiCard>
-    <StorageRepositorySidePanel v-if="selectedSr" :sr="selectedSr" :scope @close="selectedSr = undefined" />
-    <UiPanel v-else-if="!uiStore.isSmall">
-      <VtsStateHero format="panel" type="no-selection" size="medium" />
-    </UiPanel>
+    <StorageRepositorySidePanel :sr="selectedSr" :scope @close="selectedSr = undefined" />
   </div>
 </template>
 
@@ -18,10 +15,9 @@ import {
   useXoSrCollection,
   type FrontXoSr,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useRouteQuery } from '@core/composables/route-query.composable'
+import { usePanelStore } from '@core/stores/panel.store'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
 import { computed } from 'vue'
@@ -31,6 +27,7 @@ const { pool } = defineProps<{
 }>()
 
 const { srsByPool, hasSrFetchError, getSrById, areSrsReady } = useXoSrCollection()
+const panelStore = usePanelStore()
 const uiStore = useUiStore()
 
 const srs = computed(() => srsByPool.value.get(pool.id) ?? [])
@@ -45,7 +42,7 @@ const selectedSr = useRouteQuery<FrontXoSr | undefined>('id', {
 
 <style scoped lang="postcss">
 .storage {
-  &:not(.mobile) {
+  &.locked:not(.mobile) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 40rem;
   }

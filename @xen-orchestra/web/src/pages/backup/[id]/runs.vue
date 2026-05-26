@@ -1,16 +1,9 @@
 <template>
-  <div class="backups" :class="{ mobile: uiStore.isSmall }">
+  <div class="backups" :class="{ mobile: uiStore.isSmall, locked: panelStore.isLocked && !uiStore.isSmall }">
     <UiCard class="container">
       <BackupLogsTable :backup-logs :busy="!areBackupLogsReady" :error="hasBackupLogFetchError" />
     </UiCard>
-    <BackupLogSidePanel
-      v-if="selectedBackupLog"
-      :backup-log="selectedBackupLog"
-      @close="selectedBackupLog = undefined"
-    />
-    <UiPanel v-else-if="!uiStore.isSmall">
-      <VtsStateHero format="panel" type="no-selection" size="medium" />
-    </UiPanel>
+    <BackupLogSidePanel :backup-log="selectedBackupLog" @close="selectedBackupLog = undefined" />
   </div>
 </template>
 
@@ -22,10 +15,9 @@ import {
   useXoBackupLogCollection,
   type FrontXoBackupLog,
 } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
+import { usePanelStore } from '@core/stores/panel.store'
 import { useUiStore } from '@core/stores/ui.store'
 import { computed } from 'vue'
 
@@ -33,6 +25,7 @@ const { backupJob } = defineProps<{
   backupJob: FrontAnyXoBackupJob
 }>()
 
+const panelStore = usePanelStore()
 const uiStore = useUiStore()
 
 const { backupLogsByJobId, hasBackupLogFetchError, areBackupLogsReady } = useXoBackupLogCollection()
@@ -47,7 +40,7 @@ const selectedBackupLog = useRouteQuery<FrontXoBackupLog | undefined>('id', {
 
 <style scoped lang="postcss">
 .backups {
-  &:not(.mobile) {
+  &.locked:not(.mobile) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 40rem;
   }

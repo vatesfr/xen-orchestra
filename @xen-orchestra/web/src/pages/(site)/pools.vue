@@ -1,12 +1,9 @@
 <template>
-  <div class="pools" :class="{ mobile: uiStore.isSmall }">
+  <div class="pools" :class="{ mobile: uiStore.isSmall, locked: panelStore.isLocked && !uiStore.isSmall }">
     <UiCard class="container">
       <PoolsTable :servers />
     </UiCard>
-    <PoolSidePanel v-if="selectedServer" :server="selectedServer" @close="selectedServer = undefined" />
-    <UiPanel v-else-if="!uiStore.isSmall">
-      <VtsStateHero format="panel" type="no-selection" size="medium" />
-    </UiPanel>
+    <PoolSidePanel :server="selectedServer" @close="selectedServer = undefined" />
   </div>
 </template>
 
@@ -17,13 +14,13 @@ import {
   useXoServerCollection,
   type FrontXoServer,
 } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
+import { usePanelStore } from '@core/stores/panel.store'
 import { useUiStore } from '@core/stores/ui.store'
 
 const { servers, getServerById } = useXoServerCollection()
+const panelStore = usePanelStore()
 const uiStore = useUiStore()
 
 const selectedServer = useRouteQuery<FrontXoServer | undefined>('id', {
@@ -34,7 +31,7 @@ const selectedServer = useRouteQuery<FrontXoServer | undefined>('id', {
 
 <style scoped lang="postcss">
 .pools {
-  &:not(.mobile) {
+  &.locked:not(.mobile) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 40rem;
   }
