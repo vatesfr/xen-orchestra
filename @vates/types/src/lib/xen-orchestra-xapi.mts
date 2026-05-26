@@ -22,6 +22,7 @@ import type {
   VBD_TYPE,
   VDI_TYPE,
   VIF_LOCKING_MODE,
+  VM_OPERATIONS,
 } from '../common.mjs'
 import type { PassThrough, Readable } from 'node:stream'
 import type {
@@ -43,20 +44,20 @@ import type {
 /**
  * Properties accepted by {@link Xapi.editVm}.
  *
- * Field names mirror the legacy JSON-RPC `vm.set` method so existing clients
- * can switch transports without renaming fields. The underlying `_editVm`
- * accepts both camelCase and snake_case aliases.
+ * Field names match the canonical (camelCase) properties defined by the
+ * underlying `_editVm` (via `makeEditObject`). `_editVm` still resolves the
+ * snake_case and legacy aliases, but the canonical names are used here.
  */
 export interface EditVmProps {
   affinityHost?: string | null
-  auto_poweron?: boolean
-  blockedOperations?: Record<string, boolean | string | null>
+  autoPoweron?: boolean
+  blockedOperations?: Record<VM_OPERATIONS, boolean | string | null>
   coresPerSocket?: number | string | null
   cpuCap?: number | null
   cpuMask?: number[]
   cpuWeight?: number | null
-  CPUs?: number
-  cpusMax?: number | string
+  cpus?: number
+  cpusStaticMax?: number | string
   /**
    * Update VM creation metadata stored under `other_config.xo:*`. The object is
    * merged with the existing data.
@@ -64,14 +65,14 @@ export interface EditVmProps {
   creation?: { user?: string }
   expNestedHvm?: boolean
   hasVendorDevice?: boolean
-  high_availability?: 'best-effort' | 'restart' | ''
+  highAvailability?: 'best-effort' | 'restart' | ''
   hvmBootFirmware?: string | null
   memory?: number | string
   memoryMax?: number | string
   memoryMin?: number | string
   memoryStaticMax?: number | string
-  name_description?: string
-  name_label?: string
+  nameDescription?: string
+  nameLabel?: string
   nestedVirt?: boolean
   nicType?: string | null
   notes?: string | null
@@ -222,7 +223,11 @@ export interface Xapi {
     }
   ): Promise<XenApiVdi['$ref']>
   SR_reclaimSpace(ref: XenApiSr['$ref']): Promise<void>
-  editVm(id: XoVm['id'], props: EditVmProps): Promise<void>
+  editVm(
+    id: XoVm['id'],
+    props: EditVmProps,
+    checkLimits?: (limits: Record<string, number>, vm: XenApiVmWrapped) => Promise<void>
+  ): Promise<void>
   startVm(
     id: XoVm['id'],
     opts?: {

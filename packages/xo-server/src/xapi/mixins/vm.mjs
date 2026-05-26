@@ -545,6 +545,7 @@ const methods = {
     },
 
     suspendSr: {
+      get: 'suspend_SR',
       set(value, vm) {
         return this.call('VM.set_suspend_SR', vm.$ref, value === null ? Ref.EMPTY : this.getObject(value).$ref)
       },

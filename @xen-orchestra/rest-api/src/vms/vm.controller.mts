@@ -83,9 +83,11 @@ import { Task } from '@vates/task'
 
 const IGNORED_VDIS_TAG = '[NOSNAP]'
 
-const UPDATE_VM_ACTIONS = Object.keys(SUPPORTED_ACTIONS_BY_RESOURCE.vm.update).map(
-  k => `update:${k}` as SupportedActions<'vm'>
-)
+// `datasources` is managed through the dedicated `/vms/{id}/stats/data_source`
+// endpoints, not as a direct VM property, so it cannot be updated via PATCH /vms.
+const UPDATE_VM_ACTIONS = Object.keys(SUPPORTED_ACTIONS_BY_RESOURCE.vm.update)
+  .filter(action => action !== 'datasources')
+  .map(k => `update:${k}` as SupportedActions<'vm'>)
 
 @Route('vms')
 @Security('*')
@@ -189,7 +191,7 @@ export class VmController extends XapiXoController<XoVm> {
    * changes are not rolled back.
    *
    * Required privilege per field provided in the body:
-   * - resource: vm, action: update:&lt;field&gt; (e.g. update:name_label, update:CPUs, ...)
+   * - resource: vm, action: update:&lt;field&gt; (e.g. update:nameLabel, update:cpus, ...)
    *
    * Special fields:
    * - `xenStoreData` keys are automatically prefixed with `vm-data/` when missing

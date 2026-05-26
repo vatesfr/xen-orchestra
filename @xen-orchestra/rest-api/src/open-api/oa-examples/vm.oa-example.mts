@@ -4,8 +4,8 @@ export const vmIds = [
 ]
 
 export const updateVmExample = {
-  name_label: 'web-prod-01',
-  name_description: 'Production web frontend — managed by n8n',
+  nameLabel: 'web-prod-01',
+  nameDescription: 'Production web frontend — managed by n8n',
   notes: 'Docker containers: nginx, app-1, app-2',
 }
 
