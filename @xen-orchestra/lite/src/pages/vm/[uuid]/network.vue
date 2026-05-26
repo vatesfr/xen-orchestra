@@ -1,12 +1,9 @@
 <template>
-  <div class="vm-network-view" :class="{ mobile: uiStore.isSmall }">
+  <div class="vm-network-view" :class="{ mobile: uiStore.isSmall, locked: panelStore.isLocked && !uiStore.isSmall }">
     <UiCard class="container">
       <VmVifsTable :vifs />
     </UiCard>
-    <VmVifsSidePanel v-if="selectedVif" :vif="selectedVif" @close="selectedVif = undefined" />
-    <UiPanel v-else-if="!uiStore.isSmall">
-      <VtsStateHero format="panel" type="no-selection" size="medium" />
-    </UiPanel>
+    <VmVifsSidePanel :vif="selectedVif" @close="selectedVif = undefined" />
   </div>
 </template>
 
@@ -17,10 +14,9 @@ import type { XenApiVif } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useVifStore } from '@/stores/xen-api/vif.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
+import { usePanelStore } from '@core/stores/panel.store'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { useArrayFilter } from '@vueuse/shared'
 import { useI18n } from 'vue-i18n'
@@ -28,6 +24,7 @@ import { useRoute } from 'vue-router'
 
 const { records } = useVifStore().subscribe()
 const { getByOpaqueRef } = useVmStore().subscribe()
+const panelStore = usePanelStore()
 const uiStore = useUiStore()
 
 const route = useRoute<'/vm/[uuid]/network'>()
@@ -49,7 +46,7 @@ const selectedVif = useRouteQuery<XenApiVif | undefined>('id', {
 
 <style lang="postcss" scoped>
 .vm-network-view {
-  &:not(.mobile) {
+  &.locked:not(.mobile) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 40rem;
   }
