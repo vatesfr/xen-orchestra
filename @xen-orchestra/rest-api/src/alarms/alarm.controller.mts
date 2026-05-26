@@ -1,4 +1,4 @@
-import { Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Extension, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import type { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
@@ -58,6 +58,7 @@ export class AlarmController extends XapiXoController<XoAlarm> {
    */
   @Example(alarmIds)
   @Example(partialAlarms)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   getAlarms(
@@ -81,6 +82,7 @@ export class AlarmController extends XapiXoController<XoAlarm> {
    * @example id "0c98c71c-2f9c-d5c2-b9b6-2c8371730eab"
    */
   @Example(alarm)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(
     acl({

@@ -1,4 +1,4 @@
-import { Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Extension, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import type { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { noSuchObject } from 'xo-common/api-errors.js'
@@ -76,6 +76,7 @@ export class MessageController extends XapiXoController<XoMessage> {
    */
   @Example(messageIds)
   @Example(partialMessages)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   getMessages(
@@ -99,6 +100,7 @@ export class MessageController extends XapiXoController<XoMessage> {
    * @example id "f775eaeb-abe5-94e0-9682-14c37c3a1dfe"
    */
   @Example(message)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(
     acl({

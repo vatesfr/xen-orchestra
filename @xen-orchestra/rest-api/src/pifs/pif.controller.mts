@@ -1,4 +1,4 @@
-import { Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Extension, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
@@ -47,6 +47,7 @@ export class PifController extends XapiXoController<XoPif> {
    */
   @Example(pifIds)
   @Example(partialPifs)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   getPifs(
@@ -70,6 +71,7 @@ export class PifController extends XapiXoController<XoPif> {
    * @example id "d9e42451-3794-089f-de81-4ee0e6137bee"
    */
   @Example(pif)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(acl({ resource: 'pif', action: 'read', objectId: 'params.id' }))
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -88,6 +90,7 @@ export class PifController extends XapiXoController<XoPif> {
    * @example limit 42
    */
   @Example(genericAlarmsExample)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/alarms')
   @Security('*', ['acl'])
   @Tags('alarms')
@@ -124,6 +127,7 @@ export class PifController extends XapiXoController<XoPif> {
    */
   @Example(messageIds)
   @Example(partialMessages)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/messages')
   @Security('*', ['acl'])
   @Tags('messages')
@@ -157,6 +161,7 @@ export class PifController extends XapiXoController<XoPif> {
    */
   @Example(taskIds)
   @Example(partialTasks)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/tasks')
   @Security('*', ['acl'])
   @Tags('tasks')

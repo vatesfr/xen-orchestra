@@ -12,6 +12,7 @@ import { noSuchObject } from 'xo-common/api-errors.js'
 import {
   Deprecated,
   Example,
+  Extension,
   Get,
   Hidden,
   Middlewares,
@@ -96,6 +97,7 @@ export class BackupJobController extends XoController<AnyXoBackupJob> {
    */
   @Example(vmBackupJobIds)
   @Example(partialVmBackupJobs)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   async getBackupJobs(
@@ -122,6 +124,7 @@ export class BackupJobController extends XoController<AnyXoBackupJob> {
    * @example id "d33f3dc1-92b4-469c-ad58-4c2a106a4721"
    */
   @Example(vmBackupJob)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(
     acl({
@@ -203,6 +206,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
   @Example(vmBackupJobIds)
   @Example(partialVmBackupJobs)
   @Deprecated()
+  @Extension('x-mcp-exposure', 'allow')
   @Get('jobs/vm')
   @Security('*', ['acl'])
   @Tags('backup-jobs')
@@ -224,6 +228,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
 
   // For compatibility, redirect /backup/jobs/:id to /backup/jobs/vm/:id
   @Hidden()
+  @Extension('x-mcp-exposure', 'allow')
   @Get('jobs/{id}')
   @Tags('backup-jobs')
   async redirectToVmBackupJob(@Request() req: ExRequest, @Path() id: string) {
@@ -237,6 +242,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
   @Example(vmBackupJob)
   @Deprecated()
   @Response(notFoundResp.status, notFoundResp.description)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('jobs/vm/{id}')
   @Tags('backup-jobs')
   getVmBackupJob(@Path() id: string): Promise<UnbrandXoVmBackupJob> {
@@ -254,6 +260,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
   @Example(metadataBackupJobIds)
   @Example(partialMetadataBackupJobs)
   @Deprecated()
+  @Extension('x-mcp-exposure', 'allow')
   @Get('jobs/metadata')
   @Security('*', ['acl'])
   @Tags('backup-jobs')
@@ -279,6 +286,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
   @Example(metadataBackupJob)
   @Deprecated()
   @Response(notFoundResp.status, notFoundResp.description)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('jobs/metadata/{id}')
   @Tags('backup-jobs')
   getMetadataBackupJob(@Path() id: string): Promise<UnbrandXoMetadataBackupJob> {
@@ -296,6 +304,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
   @Example(mirrorBackupJobIds)
   @Example(partialMirrorBackupJobs)
   @Deprecated()
+  @Extension('x-mcp-exposure', 'allow')
   @Get('jobs/mirror')
   @Security('*', ['acl'])
   @Tags('backup-jobs')
@@ -321,6 +330,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
   @Example(mirrorBackupJob)
   @Deprecated()
   @Response(notFoundResp.status, notFoundResp.description)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('jobs/mirror/{id}')
   @Tags('backup-jobs')
   getMirrorBackupJob(@Path() id: string): Promise<UnbrandXoMirrorBackupJob> {
@@ -338,6 +348,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
   @Example(backupLogIds)
   @Example(partialBackupLogs)
   @Deprecated()
+  @Extension('x-mcp-exposure', 'allow')
   @Get('logs')
   @Security('*', ['acl'])
   @Tags('backup-logs')
@@ -371,6 +382,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
    */
   @Example(backupLog)
   @Deprecated()
+  @Extension('x-mcp-exposure', 'allow')
   @Get('logs/{id}')
   @Tags('backup-logs')
   async getDeprecatedBackupLog(@Path() id: string): Promise<Unbrand<XoBackupLog>> {

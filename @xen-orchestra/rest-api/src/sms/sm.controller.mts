@@ -1,4 +1,4 @@
-import { Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Extension, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
@@ -32,6 +32,7 @@ export class SmController extends XapiXoController<XoSm> {
    */
   @Example(smIds)
   @Example(partialSms)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   getSrs(
@@ -55,6 +56,7 @@ export class SmController extends XapiXoController<XoSm> {
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
   @Example(sm)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(acl({ resource: 'sm', action: 'read', objectId: 'params.id' }))
   @Response(notFoundResp.status, notFoundResp.description)

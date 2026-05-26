@@ -11,12 +11,22 @@ const MOCK_SWAGGER_SPEC = {
   openapi: '3.0.0',
   info: { title: 'XO API', version: '1.0.0' },
   paths: {
-    '/pools': { get: { tags: ['pools'], operationId: 'GetPools', summary: 'List all pools' } },
-    '/pools/{id}': { get: { tags: ['pools'], operationId: 'GetPool', summary: 'Get a pool' } },
-    '/vms': { get: { tags: ['vms'], operationId: 'GetVms', summary: 'List all VMs' } },
-    '/vms/{id}': { get: { tags: ['vms'], operationId: 'GetVm', summary: 'Get a VM' } },
-    '/vms/{id}/actions/start': { post: { tags: ['vms'], operationId: 'StartVm', summary: 'Start a VM' } },
-    '/hosts': { get: { tags: ['hosts'], operationId: 'GetHosts', summary: 'List all hosts' } },
+    '/pools': {
+      get: { tags: ['pools'], operationId: 'GetPools', summary: 'List all pools', 'x-mcp-exposure': 'allow' },
+    },
+    '/pools/{id}': {
+      get: { tags: ['pools'], operationId: 'GetPool', summary: 'Get a pool', 'x-mcp-exposure': 'allow' },
+    },
+    '/vms': { get: { tags: ['vms'], operationId: 'GetVms', summary: 'List all VMs', 'x-mcp-exposure': 'allow' } },
+    '/vms/{id}': {
+      get: { tags: ['vms'], operationId: 'GetVm', summary: 'Get a VM', 'x-mcp-exposure': 'allow' },
+    },
+    '/vms/{id}/actions/start': {
+      post: { tags: ['vms'], operationId: 'StartVm', summary: 'Start a VM', 'x-mcp-exposure': 'confirm' },
+    },
+    '/hosts': {
+      get: { tags: ['hosts'], operationId: 'GetHosts', summary: 'List all hosts', 'x-mcp-exposure': 'allow' },
+    },
   },
 }
 

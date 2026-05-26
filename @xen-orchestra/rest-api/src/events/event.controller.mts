@@ -1,8 +1,9 @@
 import {
   Body,
   Controller,
-  Example,
   Delete,
+  Example,
+  Extension,
   Get,
   Middlewares,
   Path,
@@ -69,6 +70,7 @@ export class EventController extends Controller {
    * - **remove**: Triggered when an object has been removed.
    *   Data: the removed object.
    */
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   @SuccessResponse(200, 'OK')
@@ -83,6 +85,7 @@ export class EventController extends Controller {
    * @example body {"collection": "VM", "fields": ["id", "name_label"]}
    */
   @Example(addSubscription)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/subscriptions')
   @Security('*', ['acl'])
   @Middlewares(json())
@@ -102,6 +105,7 @@ export class EventController extends Controller {
    * @example id "0d8b28c6-e9bf-4c9d-a382-3c9e0d7cfbff"
    * @example subscriptionId: "VM"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}/subscriptions/{subscriptionId}')
   @Security('*', ['acl'])
   @SuccessResponse(noContentResp.status, noContentResp.description)

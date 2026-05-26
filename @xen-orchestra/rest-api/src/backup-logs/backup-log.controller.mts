@@ -1,5 +1,5 @@
 import type { AnyXoLog, XoBackupLog } from '@vates/types'
-import { Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Extension, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
@@ -52,6 +52,7 @@ export class BackupLogController extends XoController<XoBackupLog> {
    */
   @Example(backupLogIds)
   @Example(partialBackupLogs)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   async getBackupLogs(
@@ -76,6 +77,7 @@ export class BackupLogController extends XoController<XoBackupLog> {
    * @example id "1753776067468"
    */
   @Example(backupLog)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(
     acl({

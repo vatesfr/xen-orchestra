@@ -346,12 +346,12 @@ Action tools share this argument shape:
 | `operation`     | enum   | Yes              | The `operationId` of the action to perform (e.g. `StartVm`, `DeleteVm`, `HardShutdownVm`). |
 | `id`            | string | For most actions | Target resource ID                                                                         |
 | `body`          | object | No               | Request body for create/update operations                                                  |
-| `confirm_token` | string | For risky ops    | One-shot token returned by a prior preview call — required to execute dangerous operations |
+| `confirm_token` | string | Yes, for actions | One-shot token from a prior preview call; required to run an action                        |
 
-**Confirmation flow for dangerous operations.** All `DELETE`s and a hand-picked set of destructive operations (`EmergencyShutdownPool`, `RollingReboot`, `RollingUpdate`, `HardShutdownVm`, `HardRebootVm`) require explicit confirmation. The first call returns a preview and a `confirm_token`; the assistant must call back within 5 minutes with that token to execute. This turns "Yes, delete all my snapshots" into a two-step handshake and neutralises accidental destructive calls. Set `XO_MCP_DENY_LIST` to remove them from the exposed surface entirely when you don't want them offered at all.
+**Confirmation flow.** Every action runs as a two-step handshake. The first call returns a preview (method, path, body) and a one-shot `confirm_token`; the assistant must call back with that token within 5 minutes to execute. A blunt "yes, delete everything" can't go through in one shot, so an accidental or hallucinated call stops at the preview. Use `XO_MCP_DENY_LIST` to drop specific operations from the surface entirely when you don't want them offered at all.
 
 :::warning Only enable actions if you trust the caller
-Enabling `XO_MCP_ENABLE_ACTIONS` lets the assistant mutate your infrastructure. Confirmations reduce the blast radius for destructive operations, but non-destructive writes (create, update) proceed without a second round-trip. Keep read-only mode unless you have a specific need.
+Enabling `XO_MCP_ENABLE_ACTIONS` lets the assistant mutate your infrastructure. The confirm-token handshake means no action runs without a second, explicit call, but it's still write access. Keep the default read-only mode unless you have a specific need.
 :::
 
 ## Prompts
