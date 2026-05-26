@@ -10,6 +10,7 @@
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
+- [REST] Add RBAC checks to vif endpoints (PR [#9889](https://github.com/vatesfr/xen-orchestra/pull/9889))
 
 ### Bug fixes
 
