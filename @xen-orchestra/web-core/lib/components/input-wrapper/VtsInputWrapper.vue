@@ -4,7 +4,7 @@
       <slot name="label">{{ label }}</slot>
     </UiLabel>
     <slot />
-    <UiInfo v-for="{ content, accent } of messages" :key="content" :accent>
+    <UiInfo v-for="{ content, accent } of messages" :key="content" :accent :wrap="wrapMessage">
       {{ content }}
     </UiInfo>
   </div>
@@ -33,6 +33,7 @@ const { message: _message } = defineProps<{
   label?: string
   learnMoreUrl?: string
   message?: InputWrapperMessage
+  wrapMessage?: boolean
 }>()
 
 defineSlots<{

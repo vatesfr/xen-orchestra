@@ -1,7 +1,7 @@
 import type { FrontXoPbd } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import { useArrayEvery, useArrayFilter, useArraySome } from '@vueuse/shared'
-import { computed, toValue, type MaybeRefOrGetter } from 'vue'
+import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 
 export function useXoPbdUtils(rawPbds: MaybeRefOrGetter<FrontXoPbd[]>) {
   const pbds = computed(() => toValue(rawPbds))

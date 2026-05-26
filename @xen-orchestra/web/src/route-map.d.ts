@@ -8,11 +8,11 @@
 // Make sure to add this file to your tsconfig.json file as an "includes" or "files" entry.
 
 import type {
-  RouteRecordInfo,
   ParamValue,
   ParamValueOneOrMore,
   ParamValueZeroOrMore,
   ParamValueZeroOrOne,
+  RouteRecordInfo,
 } from 'vue-router'
 import type { _ExtractParamParserType } from 'vue-router/experimental'
 
@@ -86,8 +86,8 @@ declare module 'vue-router/auto-routes' {
       '/backup/:id/targets',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/host/[id]': RouteRecordInfo<
       '/host/[id]',
       '/host/:id',
@@ -243,6 +243,7 @@ declare module 'vue-router/auto-routes' {
       never
     >
     '/settings': RouteRecordInfo<'/settings', '/settings', Record<never, never>, Record<never, never>, never>
+    '/vdi/attach': RouteRecordInfo<'/vdi/attach', '/vdi/attach', Record<never, never>, Record<never, never>, never>
     '/vm/[id]': RouteRecordInfo<
       '/vm/[id]',
       '/vm/:id',
@@ -388,8 +389,10 @@ declare module 'vue-router/auto-routes' {
       views: never
     }
     'src/pages/backup/[id]/targets.vue': {
-      routes: '/backup/[id]/targets'
-      views: never
+      routes:
+        | '/backup/[id]/targets'
+      views:
+        | never
     }
     'src/pages/host/[id].vue': {
       routes:
@@ -494,6 +497,10 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/settings.vue': {
       routes: '/settings'
+      views: never
+    }
+    'src/pages/vdi/attach.vue': {
+      routes: '/vdi/attach'
       views: never
     }
     'src/pages/vm/[id].vue': {

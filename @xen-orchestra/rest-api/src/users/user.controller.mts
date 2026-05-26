@@ -407,7 +407,7 @@ export class UserController extends XoController<XoUser> {
   @Example(partialAclPrivileges)
   @Get('{id}/acl-privileges')
   @Security('*', ['acl'])
-  @Tags('acls')
+  @Tags('rbacs')
   @Response(notFoundResp.status, notFoundResp.description)
   async getUserPrivileges(
     @Request() req: ExRequest,

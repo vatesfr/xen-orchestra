@@ -11,11 +11,19 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [Swagger] Rename the `acls` tag to `rbacs` (PR [#9874](https://github.com/vatesfr/xen-orchestra/pull/9874))
+- [VM] Add possibility to attach a VDI on tab VDI (PR [#9772](https://github.com/vatesfr/xen-orchestra/pull/9772))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [REST API] `POST /vdis` no longer necessarily requires `other_config` (PR [#9883](https://github.com/vatesfr/xen-orchestra/pull/9883))
+- [xo-server] Fix network being put first in boot order when HVM template has VDIs (PR [#9867](https://github.com/vatesfr/xen-orchestra/pull/9867))
+- [Backup] Fix OUT_OF_RANGE error when resuming failed merge (PR [#9782](https://github.com/vatesfr/xen-orchestra/pull/9782))
+- [xo-server] Fix TLS memory leak (PR [#9842](https://github.com/vatesfr/xen-orchestra/pull/9842))
+- **XO 5**:
+  - [Dashboard/Health] Ignore the replicated VM when checking the number of snapshots(PR [#9868](https://github.com/vatesfr/xen-orchestra/pull/9868))
 
 ### Packages to release
 
@@ -34,5 +42,8 @@
 <!--packages-start-->
 
 - @xen-orchestra/rest-api patch
+- @xen-orchestra/web minor
+- xo-server patch
+- xo-web patch
 
 <!--packages-end-->

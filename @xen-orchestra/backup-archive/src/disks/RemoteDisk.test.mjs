@@ -972,6 +972,53 @@ describe('tests MergeRemoteDisk', { concurrency: 1 }, () => {
     assert.deepEqual(parent2.getBlockIndexes(), [0, 1, 2, 3], 'all blocks from the chain should be merged')
   })
 
+  test('mergeRemoteDisk resumes when state has currentBlock = -1', async () => {
+    // If the merge fails it will try to resume the merge at the lowest merging block - 1,
+    // if block 0 was being merged at this time, the state file currentBlock will be set to -1
+    // which is not a valid block id.
+
+    const parentVhdPath = `${basePath}/parent.vhd`
+    await generateVhd(parentVhdPath, { blocks: [1] })
+    const parent = new RemoteVhdDisk({ handler, path: parentVhdPath })
+    await parent.init({ force: false })
+
+    const childVhdPath = `${basePath}/child.vhd`
+    await generateVhd(childVhdPath, { blocks: [0] })
+    const child = new RemoteVhdDisk({ handler, path: childVhdPath })
+    await child.init({ force: false })
+
+    // Fail after asyncEach completes
+    parent.flushMetadata = async () => {
+      throw new Error('simulated interruption')
+    }
+
+    const mergeRemoteDisk = new MergeRemoteDisk(handler, { writeStateDelay: 0 })
+    let threw = false
+    try {
+      await mergeRemoteDisk.merge(parent, child)
+    } catch (err) {
+      threw = true
+      assert.equal(err.message, 'simulated interruption')
+    }
+    assert.ok(threw, 'first merge attempt should throw on simulated interruption')
+
+    const stateFileName = `.parent.vhd.merge.json`
+    assert.ok((await handler.list(basePath)).includes(stateFileName), 'state file should exist after failure')
+
+    // Resume with fresh instances
+    const parent2 = new RemoteVhdDisk({ handler, path: parentVhdPath })
+    await parent2.init({ force: true })
+    const child2 = new RemoteVhdDisk({ handler, path: childVhdPath })
+    await child2.init({ force: true })
+
+    const mergeRemoteDisk2 = new MergeRemoteDisk(handler, { removeUnused: false })
+    await mergeRemoteDisk2.merge(parent2, child2)
+
+    const indexes = parent2.getBlockIndexes()
+    assert.ok(indexes.includes(0), 'block 0 from child should be merged into parent')
+    assert.ok(indexes.includes(1), 'block 1 from parent should remain')
+  })
+
   test('mergeRemoteDisk merge a bigger child into a parent', async () => {
     const parentVhdPath = `${basePath}/parent.vhd`
     await generateVhd(parentVhdPath, { blocks: [0, 1] })
