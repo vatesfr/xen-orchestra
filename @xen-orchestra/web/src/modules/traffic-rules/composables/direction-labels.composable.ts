@@ -1,21 +1,19 @@
-import type { TrafficRule } from '@/modules/traffic-rules/types.ts'
+import type { TrafficRule } from '@vates/types'
 import { useI18n } from 'vue-i18n'
-
-const DIRECTION_LABEL_KEYS: Record<string, [string, string]> = {
-  VIF_from: ['direction-from', 'direction-to'],
-  VIF_to: ['direction-to', 'direction-from'],
-  'VIF_from/to': ['direction-between', 'direction-and'],
-  network_from: ['direction-from', 'direction-on'],
-  network_to: ['direction-to', 'direction-on'],
-  'network_from/to': ['direction-from-to', 'direction-on'],
-}
 
 export function useDirectionLabels() {
   const { t } = useI18n()
 
   return (rule: TrafficRule): [string, string] => {
-    const [keyA, keyB] = DIRECTION_LABEL_KEYS[`${rule.type}_${rule.direction}`] ?? ['', '']
+    const labels: Record<string, [string, string]> = {
+      VIF_from: [t('direction-from'), t('direction-to')],
+      VIF_to: [t('direction-to'), t('direction-from')],
+      'VIF_from/to': [t('direction-between'), t('direction-and')],
+      network_from: [t('direction-from'), t('direction-on')],
+      network_to: [t('direction-to'), t('direction-on')],
+      'network_from/to': [t('direction-from-to'), t('direction-on')],
+    }
 
-    return [keyA ? t(keyA) : '', keyB ? t(keyB) : '']
+    return labels[`${rule.type}_${rule.direction}`] ?? ['', '']
   }
 }

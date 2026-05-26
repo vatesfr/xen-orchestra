@@ -42,10 +42,10 @@
           {{ t('type') }}
         </template>
         <template #value>
-          {{ networkTypeLabel }}
+          {{ t('network') }}
         </template>
         <template #addons>
-          <VtsCopyButton :value="networkTypeLabel" />
+          <VtsCopyButton :value="t('network')" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue v-if="networkVlan">
@@ -90,12 +90,12 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import type { TrafficRule } from '@/modules/traffic-rules/types.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import type { TrafficRule } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -123,8 +123,6 @@ const networkVlan = computed(() => {
 const networkNbd = computed(() => (network.nbd ? t('on') : t('off')))
 
 const networkDefaultLockingMode = computed(() => (network.defaultIsLocked ? t('disabled') : t('unlocked')))
-
-const networkTypeLabel = computed(() => t(network.type))
 </script>
 
 <style scoped lang="postcss">

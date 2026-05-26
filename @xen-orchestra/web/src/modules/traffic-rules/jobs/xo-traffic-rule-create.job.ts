@@ -1,9 +1,16 @@
 import { payloadsArg } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create-args.ts'
-import type { TrafficRuleDirection, TrafficRuleProtocol, TrafficRuleTargetType } from '@/modules/traffic-rules/types.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
-import type { XoNetwork, XoTask, XoVif } from '@vates/types'
+import {
+  TRAFFIC_RULE_PROTOCOLS_WITH_PORT,
+  type TrafficRuleDirection,
+  type TrafficRuleProtocol,
+  type TrafficRuleTargetType,
+  type XoNetwork,
+  type XoTask,
+  type XoVif,
+} from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export type NewTrafficRulePayload = {
@@ -59,7 +66,7 @@ export const useXoTrafficRuleCreateJob = defineJob('traffic-rule.create', [paylo
         if (!payload.ipRange) {
           throw new JobError(t('job:arg:ip-range-required'))
         }
-        if ((payload.protocol === 'TCP' || payload.protocol === 'UDP') && payload.port === undefined) {
+        if (TRAFFIC_RULE_PROTOCOLS_WITH_PORT.includes(payload.protocol) && payload.port === undefined) {
           throw new JobError(t('job:arg:port-required-for-tcp-udp'))
         }
       })

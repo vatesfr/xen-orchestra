@@ -1,17 +1,19 @@
-import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import {
+  type FrontXoNetwork,
+  useXoNetworkCollection,
+} from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import {
   type BaseTrafficRuleFormData,
   useTrafficRuleFormBase,
 } from '@/modules/traffic-rules/form/use-traffic-rule-form-base.ts'
 import type { NewTrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
-import type { TrafficRuleTargetType } from '@/modules/traffic-rules/types.ts'
-import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { ObjectIconName } from '@core/icons'
+import { objectIcon } from '@core/icons'
 import { type FormValidationConfig, required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import type { XoNetwork, XoVif } from '@vates/types'
+import type { TrafficRuleTargetType } from '@vates/types'
 import { toLower } from 'lodash-es'
 import { computed, type MaybeRefOrGetter, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -19,13 +21,18 @@ import { useI18n } from 'vue-i18n'
 export type NewTrafficRuleFormData = BaseTrafficRuleFormData & {
   targetType: TrafficRuleTargetType
   vmId: FrontXoVm['id'] | undefined
-  targetId: string | undefined
+  targetId: FrontXoNetwork['id'] | FrontXoVif['id'] | undefined
 }
 
-type TargetOption = { id: string; label: string; value: string; icon: 'object:network' | 'object:vif' }
+type TargetOption = {
+  id: FrontXoVif['id'] | FrontXoNetwork['id']
+  label: string
+  value: FrontXoVif['id'] | FrontXoNetwork['id']
+  icon: 'object:network' | 'object:vif'
+}
 
-export function useNewTrafficRuleForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'] | undefined>) {
-  const poolId = toComputed(_poolId)
+export function useNewTrafficRuleForm(rawPoolId: MaybeRefOrGetter<FrontXoPool['id'] | undefined>) {
+  const poolId = toComputed(rawPoolId)
   const { t } = useI18n()
 
   const formData = reactive<NewTrafficRuleFormData>({
@@ -73,13 +80,11 @@ export function useNewTrafficRuleForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'
 
   const vmOptions = computed(() =>
     poolVms.value.map(vm => {
-      const state = toLower(vm.power_state) || 'unknown'
-
       return {
         id: vm.id,
         label: vm.name_label,
         value: vm.id,
-        icon: `object:vm:${state}` as ObjectIconName,
+        icon: objectIcon('vm', toLower(vm.power_state)),
       }
     })
   )
@@ -154,14 +159,14 @@ export function useNewTrafficRuleForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'
   async function validateAndBuildPayload(): Promise<NewTrafficRulePayload | undefined> {
     const valid = await validate()
 
-    if (!valid) {
+    if (!valid || formData.targetId === undefined) {
       return undefined
     }
 
     return {
       ...buildBaseRulePayload(),
       targetType: formData.targetType,
-      targetId: formData.targetId as XoNetwork['id'] | XoVif['id'],
+      targetId: formData.targetId,
     }
   }
 

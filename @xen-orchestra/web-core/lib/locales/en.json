@@ -421,7 +421,7 @@
   "job:arg:port-required-for-tcp-udp": "Port is required for TCP and UDP",
   "job:arg:protocol-required": "Protocol is required",
   "job:arg:sr-vdi-required": "SR VDI is required",
-  "job:arg:target-id-required": "Target id is required",
+  "job:arg:target-id-required": "Target ID is required",
   "job:arg:template-uuid-required": "Template UUID is required",
   "job:arg:username-required": "Username is required",
   "job:arg:vdi-id-required": "VDI ID is required",

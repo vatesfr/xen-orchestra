@@ -22,7 +22,6 @@
 
     <div class="row target-row">
       <span class="prefix-wrapper">
-        <span class="label-spacer" aria-hidden="true" />
         <span class="prefix">{{ t('on') }}</span>
       </span>
       <TrafficRuleFormSelect v-bind="targetTypeSelectBindings" />
@@ -147,14 +146,7 @@ async function onSubmit() {
       align-items: start;
 
       .prefix-wrapper {
-        display: flex;
-        flex-direction: column;
-        gap: 0.4rem;
-        justify-self: end;
-
-        .label-spacer {
-          min-height: 2.4rem;
-        }
+        place-self: end;
 
         .prefix {
           height: 4rem;

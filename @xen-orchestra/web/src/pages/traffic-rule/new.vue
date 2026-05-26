@@ -1,6 +1,6 @@
 <template>
   <UiHeadBar>
-    <span>{{ t('new-traffic-rule:add') }}</span>
+    {{ t('new-traffic-rule:add') }}
   </UiHeadBar>
 
   <div class="card-container">
@@ -19,7 +19,7 @@
     </VtsOperationErrorCard>
     <UiCard v-show="canDisplayForm">
       <UiTitle>{{ t('general-information') }}</UiTitle>
-      <NewTrafficRuleForm :cancel-to="cancelRoute" :pool-id="poolId" @create="createTrafficRule" />
+      <NewTrafficRuleForm :cancel-to="cancelRoute" :pool-id @create="createTrafficRule" />
     </UiCard>
   </div>
 </template>
@@ -43,6 +43,8 @@ import { useI18n } from 'vue-i18n'
 import { type RouteLocationRaw, useRoute, useRouter } from 'vue-router'
 
 const { t } = useI18n()
+
+// TODO: Waiting for the drawer (if it takes too long, check that the poolId is present)
 
 const router = useRouter()
 const route = useRoute()

@@ -1,8 +1,3 @@
-import {
-  TRAFFIC_RULE_PROTOCOLS,
-  type TrafficRuleDirection,
-  type TrafficRuleProtocol,
-} from '@/modules/traffic-rules/types.ts'
 import { RULE_STATUS } from '@/shared/constants.ts'
 import {
   type FormValidationConfig,
@@ -14,11 +9,16 @@ import {
   withMessage,
 } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
+import {
+  TRAFFIC_RULE_PROTOCOLS,
+  TRAFFIC_RULE_PROTOCOLS_WITH_PORT,
+  type TrafficRuleDirection,
+  type TrafficRuleProtocol,
+} from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const PROTOCOLS_WITH_PORT: TrafficRuleProtocol[] = ['TCP', 'UDP']
-const protocolHasPort = (protocol: TrafficRuleProtocol) => PROTOCOLS_WITH_PORT.includes(protocol)
+const protocolHasPort = (protocol: TrafficRuleProtocol) => TRAFFIC_RULE_PROTOCOLS_WITH_PORT.includes(protocol)
 
 export type BaseTrafficRuleFormData = {
   allow: boolean
