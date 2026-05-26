@@ -1,16 +1,9 @@
 <template>
-  <div class="backups" :class="{ mobile: uiStore.isSmall }">
+  <div class="backups" :class="{ mobile: uiStore.isSmall, locked: panelStore.isLocked && !uiStore.isSmall }">
     <UiCard class="container">
       <BackupJobsTable :backup-jobs :busy="!areBackupJobsReady" :error="hasBackupJobFetchError" />
     </UiCard>
-    <BackupJobSidePanel
-      v-if="selectedBackupJob"
-      :backup-job="selectedBackupJob"
-      @close="selectedBackupJob = undefined"
-    />
-    <UiPanel v-else-if="!uiStore.isSmall">
-      <VtsStateHero format="panel" type="no-selection" size="medium" />
-    </UiPanel>
+    <BackupJobSidePanel :backup-job="selectedBackupJob" @close="selectedBackupJob = undefined" />
   </div>
 </template>
 
@@ -21,12 +14,12 @@ import {
   useXoBackupJobCollection,
   type FrontAnyXoBackupJob,
 } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { usePanelStore } from '@core/stores/panel.store'
 import { useUiStore } from '@core/stores/ui.store'
 
+const panelStore = usePanelStore()
 const uiStore = useUiStore()
 
 const { backupJobs, getBackupJobById, areBackupJobsReady, hasBackupJobFetchError } = useXoBackupJobCollection()
@@ -39,7 +32,7 @@ const selectedBackupJob = useRouteQuery<FrontAnyXoBackupJob | undefined>('id', {
 
 <style scoped lang="postcss">
 .backups {
-  &:not(.mobile) {
+  &.locked:not(.mobile) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 40rem;
   }

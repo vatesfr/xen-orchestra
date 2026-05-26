@@ -43,7 +43,7 @@ const emit = defineEmits<{
 
 const { useGetVbdsByIds } = useXoVbdCollection()
 
-const vbds = useGetVbdsByIds(vdi?.$VBDs ?? [])
+const vbds = useGetVbdsByIds(() => vdi?.$VBDs ?? [])
 
 const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm.id))
 </script>

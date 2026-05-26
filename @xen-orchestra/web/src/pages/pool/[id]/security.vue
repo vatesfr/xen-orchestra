@@ -1,5 +1,5 @@
 <template>
-  <div class="security" :class="{ mobile: uiStore.isSmall }">
+  <div class="security" :class="{ mobile: uiStore.isSmall, locked: panelStore.isLocked && !uiStore.isSmall }">
     <UiCard class="container">
       <VtsStateHero v-if="!isReady" format="page" type="busy" size="medium" />
       <TrafficRulesTable v-else :rules="trafficRules">
@@ -10,10 +10,7 @@
         </template>
       </TrafficRulesTable>
     </UiCard>
-    <TrafficRulesSidePanel v-if="selectedRule" :rule="selectedRule" @close="selectedRule = undefined" />
-    <UiPanel v-else-if="!uiStore.isSmall">
-      <VtsStateHero format="panel" type="no-selection" size="medium" />
-    </UiPanel>
+    <TrafficRulesSidePanel :rule="selectedRule" @close="selectedRule = undefined" />
   </div>
 </template>
 
@@ -27,8 +24,8 @@ import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-co
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { usePanelStore } from '@core/stores/panel.store.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import type { TrafficRule } from '@vates/types'
 import { logicAnd } from '@vueuse/math'
@@ -39,6 +36,7 @@ const { pool } = defineProps<{
   pool: FrontXoPool
 }>()
 
+const panelStore = usePanelStore()
 const uiStore = useUiStore()
 
 const { t } = useI18n()
@@ -63,7 +61,7 @@ const selectedRule = useRouteQuery<TrafficRule | undefined>('id', {
 
 <style scoped lang="postcss">
 .security {
-  &:not(.mobile) {
+  &.locked:not(.mobile) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 40rem;
   }
