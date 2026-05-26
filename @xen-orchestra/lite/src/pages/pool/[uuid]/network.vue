@@ -1,13 +1,10 @@
 <template>
-  <div class="pool-network-view" :class="{ mobile: uiStore.isSmall }">
+  <div class="pool-network-view" :class="{ mobile: uiStore.isSmall, locked: panelStore.isLocked && !uiStore.isSmall }">
     <UiCard class="container">
       <PoolNetworksTable :networks="networksWithPifs" />
       <PoolHostInternalNetworksTable :networks="networksWithoutPifs" />
     </UiCard>
-    <PoolNetworkSidePanel v-if="selectedNetwork" :network="selectedNetwork" @close="selectedNetwork = undefined" />
-    <UiPanel v-else-if="!uiStore.isSmall">
-      <VtsStateHero format="panel" type="no-selection" size="medium" />
-    </UiPanel>
+    <PoolNetworkSidePanel :network="selectedNetwork" @close="selectedNetwork = undefined" />
   </div>
 </template>
 
@@ -18,10 +15,9 @@ import PoolNetworksTable from '@/components/pool/network/PoolNetworksTable.vue'
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
+import { usePanelStore } from '@core/stores/panel.store'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { useI18n } from 'vue-i18n'
 
@@ -29,6 +25,7 @@ const { t } = useI18n()
 usePageTitleStore().setTitle(t('network'))
 
 const { getByUuid, networksWithPifs, networksWithoutPifs } = useNetworkStore().subscribe()
+const panelStore = usePanelStore()
 const uiStore = useUiStore()
 
 const selectedNetwork = useRouteQuery<XenApiNetwork | undefined>('id', {
@@ -39,7 +36,7 @@ const selectedNetwork = useRouteQuery<XenApiNetwork | undefined>('id', {
 
 <style lang="postcss" scoped>
 .pool-network-view {
-  &:not(.mobile) {
+  &.locked:not(.mobile) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 40rem;
   }
