@@ -245,18 +245,13 @@ function getHostTunnelForNetwork(host, networkRef) {
     return
   }
 
-  const tunnel = find(host.$xapi.objects.all, {
-    $type: 'tunnel',
-    access_PIF: pif.$ref,
-  })
-
-  return tunnel
+  return Object.values(host.$xapi.objects.indexes.type.tunnel ?? {}).find(_ => _.access_PIF === pif.$ref)
 }
 
 // -----------------------------------------------------------------------------
 
 function isControllerNeeded(xapi) {
-  const controller = find(xapi.objects.all, { $type: 'SDN_controller' })
+  const controller = Object.values(xapi.objects.indexes.type.SDN_controller ?? {})[0]
   return !(controller?.protocol === PROTOCOL && controller.address === '' && controller.port === 0)
 }
 
@@ -720,14 +715,14 @@ class SDNController extends EventEmitter {
       }
 
       this._cleaners.push(await this._manageXapi(xapi))
-      const hosts = filter(xapi.objects.all, { $type: 'host' })
+      const hosts = Object.values(xapi.objects.indexes.type.host ?? {})
       for (const host of hosts) {
         this._getOrCreateOvsdbClient(host)
         await this._getOrCreateOfChannel(host)
       }
 
       // Add already existing private networks
-      const networks = filter(xapi.objects.all, { $type: 'network' })
+      const networks = Object.values(xapi.objects.indexes.type.network ?? {})
       const noVniNetworks = []
       await Promise.all(
         networks.map(async network => {
@@ -794,7 +789,7 @@ class SDNController extends EventEmitter {
 
       // -----------------------------------------------------------------------
       // Apply all VIF rules
-      const vifs = filter(xapi.objects.all, { $type: 'VIF' })
+      const vifs = Object.values(xapi.objects.indexes.type.VIF ?? {})
       for (const vif of vifs) {
         await this._applyVifOfRules(vif)
       }
@@ -802,7 +797,7 @@ class SDNController extends EventEmitter {
       // -----------------------------------------------------------------------
       // Communicate to XAPI the configuration we are using
       const of_method = this.#staticConfig.useDirectChannel ? 'channel' : 'xapi-plugin'
-      const pools = filter(xapi.objects.all, { $type: 'pool' })
+      const pools = Object.values(xapi.objects.indexes.type.pool ?? {})
       for (const pool of pools) {
         pool.update_other_config('xo:sdn-controller:of-method', of_method)
       }
@@ -1168,7 +1163,7 @@ class SDNController extends EventEmitter {
       })
 
       // For each pool's host, create a tunnel to the private network
-      const hosts = filter(pool.$xapi.objects.all, { $type: 'host' })
+      const hosts = Object.values(pool.$xapi.objects.indexes.type.host ?? {})
       await asyncEach(hosts, async host => {
         const hostPif = host.$PIFs.find(_pif => _pif.network === pif.network)
         await createTunnel(host, createdNetwork, hostPif)
@@ -1472,9 +1467,8 @@ class SDNController extends EventEmitter {
 
   async _setPoolControllerIfNeeded(pool) {
     if (isControllerNeeded(pool.$xapi)) {
-      const controller = find(pool.$xapi.objects.all, {
-        $type: 'SDN_controller',
-      })
+      const controller = Object.values(pool.$xapi.objects.indexes.type.SDN_controller ?? {})[0]
+
       if (controller !== undefined) {
         await pool.$xapi.call('SDN_controller.forget', controller.$ref)
         log.debug('Old SDN controller removed', {
@@ -1488,7 +1482,7 @@ class SDNController extends EventEmitter {
       })
     }
 
-    const hosts = filter(pool.$xapi.objects.all, { $type: 'host' })
+    const hosts = Object.values(pool.$xapi.objects.indexes.type.host ?? {})
     await Promise.all(
       hosts.map(host => {
         return this._setBridgeControllerForHost(host)
