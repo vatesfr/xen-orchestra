@@ -209,7 +209,7 @@ import { useFormSelect } from '@core/packages/form-select'
 import { useModal } from '@core/packages/modal/use-modal.ts'
 import { useUiStore } from '@core/stores/ui.store'
 import { logicNot } from '@vueuse/math'
-import { computed, ref, watch } from 'vue'
+import { computed, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave, useRouter } from 'vue-router'
 
@@ -254,9 +254,14 @@ const error = ref<string | undefined>()
 const url = ref<string | undefined>()
 const vmRef = ref<string | undefined>()
 
-onBeforeRouteLeave(() => {
+onBeforeRouteLeave(async () => {
   if (deploying.value) {
-    return window.confirm(t('do-you-really-want-to-leave-this-page?'))
+    if (!window.confirm(t('do-you-really-want-to-leave-this-page?'))) {
+      return false
+    }
+
+    await cancel()
+    return true
   }
 })
 
@@ -275,6 +280,10 @@ watch(
   },
   { flush: 'sync' }
 )
+
+onUnmounted(() => {
+  window.removeEventListener('beforeunload', beforeWindowUnload)
+})
 
 const resetValues = () => {
   deploying.value = false
@@ -493,6 +502,8 @@ async function deploy() {
 
     // TODO: handle IPv6
     url.value = `https://${networks['0/ip']}`
+
+    deploying.value = false
   } catch (err: any) {
     console.error(err)
     error.value = err?.message ?? err?.code ?? 'Unknown error'
