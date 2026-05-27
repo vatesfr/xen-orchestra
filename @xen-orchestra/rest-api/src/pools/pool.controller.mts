@@ -217,6 +217,10 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   /**
+   * Required privileges:
+   * - resource: pool, action: create:network
+   * - resource: network, action: create
+   *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
    * @example body {
    *    "name": "awes0me_bonded_network",
@@ -229,9 +233,16 @@ export class PoolController extends XapiXoController<XoPool> {
   @Example(createNetwork)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/create_bonded_network')
-  @Middlewares(json())
+  @Middlewares([
+    json(),
+    acl([
+      { resource: 'pool', action: 'create:network', objectId: 'params.id' },
+      { resource: 'network', action: 'create', object: ({ req }) => req.body },
+    ]),
+  ])
   @Tags('networks')
   @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
@@ -261,6 +272,10 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   /**
+   * Required privileges:
+   * - resource: pool, action: create:network
+   * - resource: network, action: create
+   *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
    * @example body {
    *    "name": "awes0me_internal_network",
@@ -271,9 +286,16 @@ export class PoolController extends XapiXoController<XoPool> {
   @Example(createNetwork)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/create_internal_network')
-  @Middlewares(json())
+  @Middlewares([
+    json(),
+    acl([
+      { resource: 'pool', action: 'create:network', objectId: 'params.id' },
+      { resource: 'network', action: 'create', object: ({ req }) => req.body },
+    ]),
+  ])
   @Tags('networks')
   @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
@@ -764,6 +786,9 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   /**
+   * Required privilege:
+   * - resource: pool, action: management-reconfigure
+   *
    * Reconfigure the management interface for all hosts in the pool to use the given network.
    *
    * Each host in the pool will switch their management interface to a PIF on the specified network.
@@ -775,9 +800,10 @@ export class PoolController extends XapiXoController<XoPool> {
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/management_reconfigure')
-  @Middlewares(json())
+  @Middlewares([json(), acl({ resource: 'pool', action: 'management-reconfigure', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(badRequestResp.status, badRequestResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
