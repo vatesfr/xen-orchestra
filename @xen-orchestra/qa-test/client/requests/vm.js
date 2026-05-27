@@ -258,6 +258,74 @@ export class VMRequest extends AbstractRequest {
   }
 
   /**
+   * Starts a virtual machine.
+   *
+   * @param {string} vmUuid - UUID of the VM to start
+   * @returns {Promise<void>}
+   * @throws {Error} If VM UUID is invalid or start operation fails
+   */
+  async start(vmUuid) {
+    assertNonEmptyString(vmUuid, 'Valid VM UUID is required', 'INVALID_VM_UUID')
+    this._ensureConnected()
+
+    try {
+      await this.dispatchClient.xoClient.call('vm.start', { id: vmUuid })
+      log.debug('VM start requested', { uuid: vmUuid })
+    } catch (error) {
+      log.warn('Failed to start VM', { uuid: vmUuid, error })
+      throw new Error(`Failed to start VM ${vmUuid}: ${error.message}`)
+    }
+  }
+
+  /**
+   * Stops a virtual machine.
+   *
+   * @param {string} vmUuid - UUID of the VM to stop
+   * @param {Object} [options={}] - Stop options
+   * @param {boolean} [options.force=false] - Force shutdown (equivalent to power cut)
+   * @returns {Promise<void>}
+   * @throws {Error} If VM UUID is invalid or stop operation fails
+   */
+  async stop(vmUuid, options = {}) {
+    assertNonEmptyString(vmUuid, 'Valid VM UUID is required', 'INVALID_VM_UUID')
+    this._ensureConnected()
+
+    const { force = false } = options
+
+    try {
+      await this.dispatchClient.xoClient.call('vm.stop', { id: vmUuid, force })
+      log.debug('VM stop requested', { uuid: vmUuid, force })
+    } catch (error) {
+      log.warn('Failed to stop VM', { uuid: vmUuid, error })
+      throw new Error(`Failed to stop VM ${vmUuid}: ${error.message}`)
+    }
+  }
+
+  /**
+   * Polls VM power state until it matches the target state or timeout is reached.
+   *
+   * @param {string} vmUuid - UUID of the VM to watch
+   * @param {'Running'|'Halted'|'Paused'|'Suspended'} targetState - Expected power state
+   * @param {number} timeout - Maximum wait time in milliseconds
+   * @returns {Promise<void>}
+   * @throws {Error} If the VM does not reach the target state within the timeout
+   */
+  async waitForPowerState(vmUuid, targetState, timeout) {
+    assertNonEmptyString(vmUuid, 'Valid VM UUID is required', 'INVALID_VM_UUID')
+    assertNonEmptyString(targetState, 'Valid target state is required', 'INVALID_TARGET_STATE')
+    this._ensureConnected()
+
+    return waitUntil(
+      async () => {
+        const vm = await this.details(vmUuid)
+        return vm?.power_state === targetState
+      },
+      3_000,
+      timeout
+    )
+  }
+
+  /**
    * Imports an XVA file to create a new VM.
    *
    * Uses JSON-RPC two-step approach:
