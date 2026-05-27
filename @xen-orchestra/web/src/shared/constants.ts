@@ -34,3 +34,9 @@ export const CONNECTION_ACTION = {
 } as const
 
 export const ONE_GB = 1024 ** 3
+
+export const VDI_SOURCE = {
+  EMPTY: 'empty',
+  FILE: 'file',
+  URL: 'url',
+} as const

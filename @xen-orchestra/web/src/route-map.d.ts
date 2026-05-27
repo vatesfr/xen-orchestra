@@ -8,13 +8,15 @@
 // Make sure to add this file to your tsconfig.json file as an "includes" or "files" entry.
 
 import type {
+  RouteRecordInfo,
   ParamValue,
   ParamValueOneOrMore,
   ParamValueZeroOrMore,
   ParamValueZeroOrOne,
-  RouteRecordInfo,
 } from 'vue-router'
-import type { _ExtractParamParserType, } from 'vue-router/experimental'
+import type {
+  _ExtractParamParserType,
+} from 'vue-router/experimental'
 
 declare module 'vue-router' {
   interface TypesConfig {
@@ -304,6 +306,13 @@ declare module 'vue-router/auto-routes' {
     '/vdi/attach': RouteRecordInfo<
       '/vdi/attach',
       '/vdi/attach',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/vdi/new': RouteRecordInfo<
+      '/vdi/new',
+      '/vdi/new',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -656,6 +665,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/vdi/attach.vue': {
       routes:
         | '/vdi/attach'
+      views:
+        | never
+    }
+    'src/pages/vdi/new.vue': {
+      routes:
+        | '/vdi/new'
       views:
         | never
     }
