@@ -69,9 +69,10 @@
 - @xen-orchestra/qa-test 1.0.1
 - @xen-orchestra/rest-api 0.32.0
 - @xen-orchestra/web 0.52.0
-- xo-server 5.201.1
 - xo-server-openmetrics 1.6.0
 - xo-web 5.197.1
+- @vates/http-server-plus 2.0.2
+- xo-server 5.201.3
 
 ## **6.4.1** (2026-05-05)
 
