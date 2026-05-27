@@ -14,9 +14,7 @@ import type {
   ParamValueZeroOrOne,
   RouteRecordInfo,
 } from 'vue-router'
-import type {
-  _ExtractParamParserType,
-} from 'vue-router/experimental'
+import type { _ExtractParamParserType, } from 'vue-router/experimental'
 
 declare module 'vue-router' {
   interface TypesConfig {

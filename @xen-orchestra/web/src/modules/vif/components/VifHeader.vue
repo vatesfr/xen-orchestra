@@ -8,7 +8,7 @@
       <UiLink v-if="vm && network" :size :to="{ name: '/vm/[id]/networks', params: { id: vm.id } }">
         {{ t('network') }}
       </UiLink>
-      <span class="vif-name">
+      <span>
         <VtsIcon name="object:vif" size="current" />
         {{ t('vif-device', { device: vif.device }) }}
       </span>
