@@ -59,15 +59,7 @@ import {
 import { BASE_URL } from '../index.mjs'
 import { limitAndFilterArray, NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
-import {
-  partialVms,
-  updateVmExample,
-  vm,
-  vmDashboard,
-  vmIds,
-  vmStatsExample,
-  vmVdis,
-} from '../open-api/oa-examples/vm.oa-example.mjs'
+import { partialVms, vm, vmDashboard, vmIds, vmStatsExample, vmVdis } from '../open-api/oa-examples/vm.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { partialTasks, taskIds, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { AuthenticatedRequest, SendObjects } from '../helpers/helper.type.mjs'
@@ -197,8 +189,12 @@ export class VmController extends XapiXoController<XoVm> {
    * - `xenStoreData` keys are automatically prefixed with `vm-data/` when missing
    *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   * @example body {
+   *    "nameLabel": "web-prod-01",
+   *    "nameDescription": "Production web frontend — managed by n8n",
+   *    "notes": "Docker containers: nginx, app-1, app-2"
+   * }
    */
-  @Example(updateVmExample)
   @Patch('{id}')
   @Middlewares([
     json(),

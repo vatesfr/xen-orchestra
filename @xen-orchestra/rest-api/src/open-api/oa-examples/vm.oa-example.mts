@@ -3,12 +3,6 @@ export const vmIds = [
   '/rest/v0/vms/d5d1c4a3-4c5e-ca7b-6be8-33c824f87571',
 ]
 
-export const updateVmExample = {
-  nameLabel: 'web-prod-01',
-  nameDescription: 'Production web frontend — managed by n8n',
-  notes: 'Docker containers: nginx, app-1, app-2',
-}
-
 export const partialVms = [
   {
     name_label: 'foo',
