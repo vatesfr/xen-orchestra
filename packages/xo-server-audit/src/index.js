@@ -106,6 +106,22 @@ const DEFAULT_BLOCKED_LIST = {
 
 const LAST_ID = 'lastId'
 
+const RECORD_FIELDS = {
+  data: { type: 'object', fields: {} },
+  event: { type: 'string', example: 'apiCall' },
+  id: { type: 'string', example: 'FYUYLGWX0uUv6uKyDpc6ftAJhrEB7iuf/BYefEbBLYc=' },
+  previousId: { type: 'string', example: 'ArU8U8Ck2u4dBBHc3wj0/Ht+SsyU8YKb5RfnFqBLZ2Y=' },
+  subject: {
+    type: 'object',
+    fields: {
+      userId: { type: 'string', example: '2f8f6c95-2fb7-4b5c-9b6f-8f4e7b6a1c3d' },
+      userIp: { type: 'string', example: '192.168.0.1' },
+      userName: { type: 'string', example: 'admin@admin.net' },
+    },
+  },
+  time: { type: 'number', example: 1699000000000 },
+}
+
 // interface Db {
 //   lastId: string
 //   [RecordId: string]: {
@@ -307,20 +323,21 @@ class AuditXoPlugin {
     )
 
     cleaners.push(
-      this._xo.registerRestApi(
-        {
-          records: {
-            ':id': {
-              _get: async (req, _, next) => {
-                const record = await this._auditCore.get(req.params.id)
-                if (record !== undefined) {
-                  return record
-                }
-                next()
-              },
+      this._xo.registerRestRoutes(
+        [
+          {
+            endpoint: '/records',
+            method: 'get',
+            description: 'List audit records, newest first',
+            tags: ['audit'],
+            query: {
+              from: { type: 'string', optional: true },
+              limit: { type: 'string', optional: true },
+              filter: { type: 'string', optional: true },
             },
-
-            _get: async function* ({ query }) {
+            responses: [{ status: 200, description: 'The list of audit records', schema: RECORD_FIELDS }],
+            callback: async function* ({ req }) {
+              const { query } = req
               const limit = query.limit === undefined ? Infinity : +query.limit
               const filter = query.filter === undefined ? () => true : CM.parse(query.filter).createPredicate()
 
@@ -336,8 +353,28 @@ class AuditXoPlugin {
               }
             }.bind(this),
           },
-        },
-        '/plugins/audit'
+          {
+            endpoint: '/records/{id}',
+            method: 'get',
+            description: 'Get a single audit record by its ID',
+            tags: ['audit'],
+            params: {
+              id: { type: 'string' },
+            },
+            responses: [
+              { status: 200, description: 'The audit record', schema: RECORD_FIELDS },
+              { status: 404, description: 'No record found for this ID' },
+            ],
+            callback: async ({ req, next }) => {
+              const record = await this._auditCore.get(req.params.id)
+              if (record !== undefined) {
+                return record
+              }
+              next()
+            },
+          },
+        ],
+        '/audit'
       )
     )
   }

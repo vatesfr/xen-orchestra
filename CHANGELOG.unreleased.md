@@ -34,5 +34,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/web patch
+- xo-server-audit patch
+- xo-server-sdn-controller patch
 
 <!--packages-end-->
