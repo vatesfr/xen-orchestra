@@ -4,7 +4,7 @@
     {{ t('object-not-found', { id: route.params.id }) }}
   </VtsStateHero>
   <RouterView v-else v-slot="{ Component }">
-    <VifHeader v-if="uiStore.hasUi" :vif />
+    <VifHeader :vif />
     <component :is="Component" :vif />
   </RouterView>
 </template>
@@ -13,15 +13,12 @@
 import VifHeader from '@/modules/vif/components/VifHeader.vue'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import { useUiStore } from '@core/stores/ui.store'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
 const route = useRoute<'/vif/[id]'>()
 
 const { t } = useI18n()
-
-const uiStore = useUiStore()
 
 const { areVifsReady, useGetVifById } = useXoVifCollection()
 

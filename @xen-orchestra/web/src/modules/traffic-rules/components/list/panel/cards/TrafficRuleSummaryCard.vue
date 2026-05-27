@@ -29,6 +29,7 @@
                 size="small"
                 icon="object:vif"
                 :to="vif ? { name: '/vif/[id]/traffic-rules', params: { id: vif.id } } : undefined"
+                :disabled="!vm"
               >
                 {{ vifDevice }}
               </UiLink>

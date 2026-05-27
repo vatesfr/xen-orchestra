@@ -1,15 +1,9 @@
 <template>
   <div class="traffic-rules" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
-      <VtsStateHero v-if="!areVifsReady" format="page" type="busy" size="medium" />
-      <TrafficRulesTable v-else :rules="trafficRules">
+      <TrafficRulesTable :rules="trafficRules">
         <template #title-action>
-          <UiLink
-            class="new-traffic-rule-link"
-            :to="{ name: '/traffic-rule/new', query: { vifid: vif.id } }"
-            icon="fa:plus"
-            size="medium"
-          >
+          <UiLink :to="{ name: '/traffic-rule/new', query: { vifid: vif.id } }" icon="fa:plus" size="medium">
             {{ t('new') }}
           </UiLink>
         </template>
@@ -28,7 +22,7 @@
 import TrafficRulesSidePanel from '@/modules/traffic-rules/components/list/panel/TrafficRulesSidePanel.vue'
 import TrafficRulesTable from '@/modules/traffic-rules/components/TrafficRulesTable.vue'
 import { useTrafficRules } from '@/modules/traffic-rules/composables/traffic-rules.composable.ts'
-import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { type FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -36,7 +30,6 @@ import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import type { TrafficRule } from '@vates/types'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vif } = defineProps<{ vif: FrontXoVif }>()
@@ -44,11 +37,7 @@ const uiStore = useUiStore()
 
 const { t } = useI18n()
 
-const { areVifsReady } = useXoVifCollection()
-
-const vifs = computed(() => [vif])
-
-const { trafficRules } = useTrafficRules(vifs, [])
+const { trafficRules } = useTrafficRules(() => [vif], [])
 
 const selectedRule = useRouteQuery<TrafficRule | undefined>('id', {
   toData: id => trafficRules.value.find(rule => rule.id === id),

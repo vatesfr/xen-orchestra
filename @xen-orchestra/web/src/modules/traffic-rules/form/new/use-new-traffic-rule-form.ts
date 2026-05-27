@@ -53,7 +53,7 @@ export function useNewTrafficRuleForm(
 
   const isVifTarget = computed(() => formData.targetType === 'VIF')
 
-  const { networks } = useXoNetworkCollection()
+  const { networks, getNetworkById } = useXoNetworkCollection()
   const { vifs, useGetVifById } = useXoVifCollection()
   const { vmsByPool } = useXoVmCollection()
 
@@ -66,7 +66,7 @@ export function useNewTrafficRuleForm(
       return true
     }
 
-    const parentNetwork = networks.value.find(network => network.id === vif.$network)
+    const parentNetwork = getNetworkById(vif.$network)
 
     return parentNetwork ? parentNetwork.PIFs.length > 0 : false
   })
@@ -220,7 +220,7 @@ export function useNewTrafficRuleForm(
     portInputBindings,
     directionSelectBindings,
     ipRangeInputBindings,
-    targetTypeSelectBindings: useSelect(targetTypeSelectId, () => ({ label: t('rule-type') })),
+    targetTypeSelectBindings: useSelect(targetTypeSelectId, () => ({ label: t('object') })),
     vmSelectBindings: useSelect(vmSelectId, () => ({ label: t('from-vm') })),
     targetSelectBindings: useSelect(targetSelectId, () => ({
       label: formData.targetType === 'network' ? t('choose-network') : t('choose-vif'),

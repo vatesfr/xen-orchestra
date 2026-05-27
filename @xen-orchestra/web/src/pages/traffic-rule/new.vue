@@ -86,24 +86,18 @@ async function createTrafficRule(newPayload: NewTrafficRulePayload) {
       throw promiseCreateResult.reason
     }
 
-    redirectAfterSuccess(newPayload)
+    redirectAfterSuccess()
   } catch (_error) {
     error.value = _error as ApiError | Error
   }
 }
 
-function redirectAfterSuccess(payload: NewTrafficRulePayload) {
-  if (payload.targetType === 'VIF') {
-    router.push({ name: '/vif/[id]/traffic-rules', params: { id: payload.targetId } })
-    return
+function redirectAfterSuccess() {
+  if (vifId.value) {
+    router.push({ name: '/vif/[id]/traffic-rules', params: { id: vifId.value } })
+  } else if (queryPoolId.value) {
+    router.push({ name: '/pool/[id]/security', params: { id: queryPoolId.value } })
   }
-
-  if (poolId.value) {
-    router.push({ name: '/pool/[id]/security', params: { id: poolId.value } })
-    return
-  }
-
-  router.push({ name: '/(site)/dashboard' })
 }
 
 const cancelRoute = computed<RouteLocationRaw>(() => {

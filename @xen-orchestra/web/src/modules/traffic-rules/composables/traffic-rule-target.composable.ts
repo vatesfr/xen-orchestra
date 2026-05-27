@@ -12,6 +12,7 @@ type TrafficRuleTargetEntry = {
   label: string
   icon: IconName
   to: LinkOptions['to']
+  disabled?: boolean
 }
 
 export type TrafficRuleTarget = TrafficRuleTargetEntry & {
@@ -42,6 +43,7 @@ export function useTrafficRuleTarget() {
       label: vif ? `${t('vif')}${vif.device}` : '',
       icon: 'object:vif',
       to: vif ? { name: '/vif/[id]/traffic-rules', params: { id: vif.id } } : undefined,
+      disabled: !vm,
       suffix: vm
         ? {
             label: vm.name_label,
