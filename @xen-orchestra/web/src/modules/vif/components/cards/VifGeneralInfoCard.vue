@@ -44,6 +44,7 @@
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import { useXoVifUtils } from '@/modules/vif/composables/xo-vif-utils.composable.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
@@ -56,7 +57,6 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { VIF_LOCKING_MODE } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useXoVifUtils } from '../../composables/xo-vif-utils.composable.ts'
 
 const { vif } = defineProps<{ vif: FrontXoVif }>()
 
