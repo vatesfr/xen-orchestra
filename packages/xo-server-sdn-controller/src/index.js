@@ -1576,7 +1576,7 @@ class SDNController extends EventEmitter {
   async _addHostToPrivateNetworks(host) {
     const xapi = host.$xapi
 
-    const tunnels = filter(xapi.objects.all, { $type: 'tunnel' })
+    const tunnels = Object.values(xapi.objects.indexes.type.SDN_tunnel ?? {})
     for (const tunnel of tunnels) {
       const accessPif = xapi.getObjectByRef(tunnel.access_PIF)
       if (accessPif.host !== host.$ref) {
