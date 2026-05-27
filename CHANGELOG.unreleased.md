@@ -44,5 +44,7 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
 - xo-server minor
+- xo-server-audit patch
+- xo-server-sdn-controller patch
 
 <!--packages-end-->

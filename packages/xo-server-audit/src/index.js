@@ -1,4 +1,3 @@
-import * as CM from 'complex-matcher'
 import asyncIteratorToStream from 'async-iterator-to-stream'
 import ndjson from 'ndjson'
 import { alteredAuditRecord, missingAuditRecord } from 'xo-common/api-errors'
@@ -10,6 +9,8 @@ import { defer } from 'golike-defer'
 import { fromCallback } from 'promise-toolbox'
 import { AlteredRecordError, AuditCore, MissingRecordError, NULL_ID, Storage } from '@xen-orchestra/audit-core'
 import { PassThrough, pipeline, promises } from 'readable-stream'
+
+import { createRestApi } from './rest-api.js'
 
 const log = createLogger('xo:xo-server-audit')
 
@@ -306,40 +307,7 @@ class AuditXoPlugin {
       })
     )
 
-    cleaners.push(
-      this._xo.registerRestApi(
-        {
-          records: {
-            ':id': {
-              _get: async (req, _, next) => {
-                const record = await this._auditCore.get(req.params.id)
-                if (record !== undefined) {
-                  return record
-                }
-                next()
-              },
-            },
-
-            _get: async function* ({ query }) {
-              const limit = query.limit === undefined ? Infinity : +query.limit
-              const filter = query.filter === undefined ? () => true : CM.parse(query.filter).createPredicate()
-
-              let i = 0
-              for await (const record of this._auditCore.getFrom(query.from)) {
-                if (++i > limit) {
-                  break
-                }
-
-                if (filter(record)) {
-                  yield record
-                }
-              }
-            }.bind(this),
-          },
-        },
-        '/plugins/audit'
-      )
-    )
+    cleaners.push(this._xo.registerRestRoutes(...createRestApi(this._auditCore)))
   }
 
   unload() {
