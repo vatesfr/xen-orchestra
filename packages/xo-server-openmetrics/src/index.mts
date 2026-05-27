@@ -70,6 +70,9 @@ import type {
   XostorUpdatesPayload,
 } from './types/xostor.mjs'
 
+import { TtlCache } from './utils/ttl-cache.mjs'
+import { withTimeout } from './utils/with-timeout.mjs'
+
 // Re-export the shared types so existing importers (formatter, tests) keep working.
 export type {
   HostCredentials,
@@ -135,46 +138,6 @@ export const XOSTOR_UPDATE_PACKAGES: ReadonlySet<string> = new Set([
  * grows the alarm-name set.
  */
 const XAPI_ALARM_NAMES = new Set<string>(['ALARM', 'BOND_STATUS_CHANGED', 'MULTIPATH_PERIODIC_ALERT'])
-
-/**
- * Time-based cache with in-flight call coalescing.
- *
- * `get()` returns the cached value while fresh; on miss it invokes the
- * supplied loader once and shares the same in-flight promise with any
- * concurrent caller until the loader settles. Keeps the parent process from
- * issuing redundant XAPI plugin calls when several Prometheus scrapes
- * overlap a cache miss.
- */
-class TtlCache<T> {
-  #ttlMs: number
-  #snapshot: { value: T; expiresAt: number } | undefined
-  #inFlight: Promise<T> | undefined
-
-  constructor(ttlMs: number) {
-    this.#ttlMs = ttlMs
-  }
-
-  async get(load: () => Promise<T>): Promise<T> {
-    const now = Date.now()
-    const snap = this.#snapshot
-    if (snap !== undefined && snap.expiresAt > now) {
-      return snap.value
-    }
-    if (this.#inFlight !== undefined) {
-      return this.#inFlight
-    }
-    const pending = load()
-      .then(value => {
-        this.#snapshot = { value, expiresAt: Date.now() + this.#ttlMs }
-        return value
-      })
-      .finally(() => {
-        this.#inFlight = undefined
-      })
-    this.#inFlight = pending
-    return pending
-  }
-}
 
 // ============================================================================
 // Constants
@@ -254,22 +217,6 @@ export const configurationSchema = {
 // ============================================================================
 // XOSTOR helpers (module scope)
 // ============================================================================
-
-function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(message)), ms)
-    promise.then(
-      value => {
-        clearTimeout(timer)
-        resolve(value)
-      },
-      err => {
-        clearTimeout(timer)
-        reject(err)
-      }
-    )
-  })
-}
 
 /** UUID truncation lengths used by XAPI RRD legends. */
 export const SR_UUID_TRUNCATIONS: ReadonlyArray<number> = [8, 12, 16, 20]
