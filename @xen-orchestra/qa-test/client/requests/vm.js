@@ -138,7 +138,6 @@ export class VMRequest extends AbstractRequest {
   /**
    * Stops a virtual machine.
    *
-   * Always uses JSON-RPC — the REST API does not expose the `force` parameter.
    *
    * @param {string} vmUuid - UUID of the VM to stop
    * @param {Object} [options={}]
@@ -163,7 +162,7 @@ export class VMRequest extends AbstractRequest {
 
     const action = force ? 'hard_shutdown' : 'clean_shutdown'
     try {
-      await this.dispatchClient.restApiClient.post(`/rest/v0/vms/${vmUuid}/actions/${action}`)
+      await this.dispatchClient.restApiClient.post(`/rest/v0/vms/${vmUuid}/actions/${action}?sync=true`)
       log.debug('VM stopped', { uuid: vmUuid, action })
     } catch (error) {
       throw new Error(`Failed to stop VM ${vmUuid}: ${error.message}`)
