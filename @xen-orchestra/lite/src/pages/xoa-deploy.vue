@@ -254,15 +254,15 @@ const error = ref<string | undefined>()
 const url = ref<string | undefined>()
 const vmRef = ref<string | undefined>()
 
-const beforeWindowUnload = (event: BeforeUnloadEvent) => {
-  event.preventDefault()
-}
-
 onBeforeRouteLeave(() => {
   if (deploying.value) {
     return window.confirm(t('do-you-really-want-to-leave-this-page?'))
   }
 })
+
+const beforeWindowUnload = (event: BeforeUnloadEvent) => {
+  event.preventDefault()
+}
 
 watch(
   deploying,
