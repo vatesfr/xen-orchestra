@@ -5,7 +5,7 @@
 ### Security
 
 - [XO 5] Update sanitize-html dependency (Dependabot alert [484](https://github.com/vatesfr/xen-orchestra/security/dependabot/484)) (PR [#9851](https://github.com/vatesfr/xen-orchestra/pull/9851))
-- [MCP] Global kill-switch: set `[mcp] enabled = false` in `xo-server` config to immediately reject every MCP client connection (PR [#9860](github.com/vatesfr/xen-orchestra/pull/9860))
+- [MCP] Global kill-switch: set `[mcp] enabled = false` in `xo-server` config to immediately reject every MCP client connection (PR [#9860](https://github.com/vatesfr/xen-orchestra/pull/9860))
 
 ### Enhancements
 
@@ -48,7 +48,7 @@
 - [xo-server] Fix TLS memory leak (PR [#9842](https://github.com/vatesfr/xen-orchestra/pull/9842))
 - **XO 5**:
   - [Job] Error while using vm.set with `cpuMask` in job view (PR [#9823](https://github.com/vatesfr/xen-orchestra/pull/9823))
-  - [Dashboard/Health] Ignore the replicated VM when checking the number of snapshots(PR [#9868](https://github.com/vatesfr/xen-orchestra/pull/9868))
+  - [Dashboard/Health] Ignore the replicated VM when checking the number of snapshots (PR [#9868](https://github.com/vatesfr/xen-orchestra/pull/9868))
 
 ### Released packages
 
