@@ -29,7 +29,7 @@
     "pretest": "eslint .",
     "test": "node --test index.spec.js"
   },
-  "private": true,
+  "private": false,
   "author": {
     "name": "Vates SAS",
     "url": "https://vates.fr"
