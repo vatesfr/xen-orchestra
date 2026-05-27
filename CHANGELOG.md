@@ -5,7 +5,7 @@
 ### Security
 
 - [XO 5] Update sanitize-html dependency (Dependabot alert [484](https://github.com/vatesfr/xen-orchestra/security/dependabot/484)) (PR [#9851](https://github.com/vatesfr/xen-orchestra/pull/9851))
-- [MCP] Global kill-switch: set `[mcp] enabled = false` in `xo-server` config to immediately reject every MCP client connection
+- [MCP] Global kill-switch: set `[mcp] enabled = false` in `xo-server` config to immediately reject every MCP client connection (PR [#9860](github.com/vatesfr/xen-orchestra/pull/9860))
 
 ### Enhancements
 
