@@ -19,7 +19,7 @@
     </VtsOperationErrorCard>
     <UiCard v-show="canDisplayForm">
       <UiTitle>{{ t('general-information') }}</UiTitle>
-      <NewTrafficRuleForm :cancel-to="cancelRoute" :pool-id @create="createTrafficRule" />
+      <NewTrafficRuleForm :cancel-to="cancelRoute" :pool-id :vif-id @create="createTrafficRule" />
     </UiCard>
   </div>
 </template>
@@ -31,6 +31,7 @@ import {
   type NewTrafficRulePayload,
   useXoTrafficRuleCreateJob,
 } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
+import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import type { ApiError } from '@/shared/error/api.error.ts'
 import VtsOperationErrorCard from '@core/components/operation-error-card/VtsOperationErrorCard.vue'
 import VtsOperationPendingCard from '@core/components/operation-pending-card/VtsOperationPendingCard.vue'
@@ -48,7 +49,15 @@ const { t } = useI18n()
 
 const router = useRouter()
 const route = useRoute()
-const poolId = ref(route.query.poolid as FrontXoPool['id'] | undefined)
+
+const queryPoolId = ref(route.query.poolid as FrontXoPool['id'] | undefined)
+const vifId = ref(route.query.vifid as FrontXoVif['id'] | undefined)
+
+const { useGetVifById } = useXoVifCollection()
+
+const vif = useGetVifById(() => vifId.value)
+
+const poolId = computed<FrontXoPool['id'] | undefined>(() => queryPoolId.value ?? vif.value?.$pool)
 
 const formPayload = ref<NewTrafficRulePayload>()
 
@@ -84,16 +93,23 @@ async function createTrafficRule(newPayload: NewTrafficRulePayload) {
 }
 
 function redirectAfterSuccess() {
-  if (poolId.value) {
-    router.push({ name: '/pool/[id]/security', params: { id: poolId.value } })
+  if (vifId.value) {
+    router.push({ name: '/vif/[id]/traffic-rules', params: { id: vifId.value } })
+  } else if (queryPoolId.value) {
+    router.push({ name: '/pool/[id]/security', params: { id: queryPoolId.value } })
   }
 }
 
 const cancelRoute = computed<RouteLocationRaw>(() => {
-  if (!poolId.value) {
-    return { name: '/(site)/dashboard' }
+  if (vifId.value) {
+    return { name: '/vif/[id]/traffic-rules', params: { id: vifId.value } }
   }
-  return { name: '/pool/[id]/security', params: { id: poolId.value } }
+
+  if (queryPoolId.value) {
+    return { name: '/pool/[id]/security', params: { id: queryPoolId.value } }
+  }
+
+  return { name: '/(site)/dashboard' }
 })
 </script>
 
