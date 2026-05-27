@@ -1,5 +1,3 @@
-import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
-import { getPbdsConnectionStatus } from '@/modules/pbd/utils/xo-pbd.util.ts'
 import type { NewVbdPayload } from '@/modules/vbd/jobs/xo-vbd-create.job.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { useXoVdiUtils } from '@/modules/vdi/composables/xo-vdi-utils.composable.ts'
@@ -7,8 +5,6 @@ import { type BaseVdiFormData, useVdiFormBase } from '@/modules/vdi/form/use-vdi
 import { type FrontXoVdi, useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { ONE_GB } from '@/shared/constants.ts'
-import { objectIcon } from '@core/icons'
 import { required } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -43,9 +39,8 @@ export function useVdiAttachForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     },
   })
 
-  const { availableSrs, attachedVdiIds, getSrLocation, selectedSr, srWarning } = useVdiFormBase(vm, formData)
+  const { attachedVdiIds, selectedSr, srSelectBindings } = useVdiFormBase(vm, formData, { useFormSelect, useSelect })
 
-  const { pbdsBySr } = useXoPbdCollection()
   const { getVbdsByIds, useGetVbdsByIds } = useXoVbdCollection()
   const { useGetVdiById, useGetVdisByIds } = useXoVdiCollection()
 
@@ -72,19 +67,6 @@ export function useVdiAttachForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
       formData.vdi = undefined
     }
   )
-
-  const { id: srSelectId } = useFormSelect('sr', availableSrs, {
-    searchable: true,
-    required: true,
-    option: {
-      label: sr => {
-        const gbLeft = Math.floor((sr.size - sr.physical_usage) / ONE_GB)
-        return `${sr.name_label} (${getSrLocation(sr)}) - ${t('n-gb-left', { n: gbLeft })}`
-      },
-      value: 'id',
-      properties: sr => ({ icon: objectIcon('sr', getPbdsConnectionStatus(pbdsBySr.value.get(sr.id) ?? [])) }),
-    },
-  })
 
   const { id: vdiSelectId } = useFormSelect('vdi', availableVdis, {
     searchable: true,
@@ -127,10 +109,7 @@ export function useVdiAttachForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
 
   return {
     selectedSr,
-    srSelectBindings: useSelect(srSelectId, () => ({
-      label: t('storage-repository'),
-      ...(srWarning.value !== undefined && { warning: srWarning.value }),
-    })),
+    srSelectBindings,
     vdiSelectBindings: useSelect(vdiSelectId, () => ({
       label: t('vdi'),
       ...(vdiWarning.value !== undefined && { warning: vdiWarning.value }),

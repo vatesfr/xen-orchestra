@@ -1,10 +1,7 @@
-import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
-import { getPbdsConnectionStatus } from '@/modules/pbd/utils/xo-pbd.util.ts'
 import { type BaseVdiFormData, useVdiFormBase } from '@/modules/vdi/form/use-vdi-form-base.ts'
 import type { NewVdiPayload, VdiSource } from '@/modules/vdi/jobs/xo-vdi-create.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { ONE_GB, VDI_SOURCE } from '@/shared/constants.ts'
-import { objectIcon } from '@core/icons'
 import { minValue, required } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -46,21 +43,7 @@ export function useNewVdiForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     },
   })
 
-  const { availableSrs, getSrLocation, srWarning } = useVdiFormBase(vm, formData)
-  const { pbdsBySr } = useXoPbdCollection()
-
-  const { id: srSelectId } = useFormSelect('sr', availableSrs, {
-    searchable: true,
-    required: true,
-    option: {
-      label: sr => {
-        const gbLeft = Math.floor((sr.size - sr.physical_usage) / ONE_GB)
-        return `${sr.name_label} (${getSrLocation(sr)}) - ${t('n-gb-left', { n: gbLeft })}`
-      },
-      value: 'id',
-      properties: sr => ({ icon: objectIcon('sr', getPbdsConnectionStatus(pbdsBySr.value.get(sr.id) ?? [])) }),
-    },
-  })
+  const { srSelectBindings } = useVdiFormBase(vm, formData, { useFormSelect, useSelect })
 
   const isPv = computed(() => vm.value.virtualizationMode === DOMAIN_TYPE.PV)
 
@@ -87,10 +70,7 @@ export function useNewVdiForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
 
   return {
     source,
-    srSelectBindings: useSelect(srSelectId, () => ({
-      label: t('storage-repository'),
-      ...(srWarning.value !== undefined && { warning: srWarning.value }),
-    })),
+    srSelectBindings,
     nameInputBindings: useField('name_label', () => ({ label: t('vdi-name'), required: true })),
     descriptionInputBindings: useField('name_description', () => ({ label: t('vdi-description') })),
     allocatedSpaceBindings: useField('allocatedSpace', () => ({

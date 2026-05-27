@@ -1,3 +1,5 @@
+import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import { getPbdsConnectionStatus } from '@/modules/pbd/utils/xo-pbd.util.ts'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import {
   type FrontXoSr,
@@ -8,7 +10,10 @@ import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-co
 import { type FrontXoVdi, useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { ONE_GB } from '@/shared/constants.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import type { useValidatedForm } from '@core/packages/validated-form'
+import { objectIcon } from '@core/icons'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -17,7 +22,16 @@ export type BaseVdiFormData = {
   sr: FrontXoSr['id'] | undefined
 }
 
-export function useVdiFormBase<T extends BaseVdiFormData>(rawVm: MaybeRefOrGetter<FrontXoVm>, formData: T) {
+type VdiFormSelectHelpers<T extends BaseVdiFormData & Record<string, unknown>> = Pick<
+  ReturnType<typeof useValidatedForm<T>>,
+  'useFormSelect' | 'useSelect'
+>
+
+export function useVdiFormBase<T extends BaseVdiFormData & Record<string, unknown>>(
+  rawVm: MaybeRefOrGetter<FrontXoVm>,
+  formData: T,
+  { useFormSelect, useSelect }: VdiFormSelectHelpers<T>
+) {
   const { t } = useI18n()
 
   const vm = toComputed(rawVm)
@@ -76,12 +90,29 @@ export function useVdiFormBase<T extends BaseVdiFormData>(rawVm: MaybeRefOrGette
     return { content: t('warning:vdi-sr'), accent: 'warning' }
   })
 
+  const { pbdsBySr } = useXoPbdCollection()
+
+  const { id: srSelectId } = useFormSelect('sr', availableSrs, {
+    searchable: true,
+    required: true,
+    option: {
+      label: sr => {
+        const gbLeft = Math.floor((sr.size - sr.physical_usage) / ONE_GB)
+        return `${sr.name_label} (${getSrLocation(sr)}) - ${t('n-gb-left', { n: gbLeft })}`
+      },
+      value: 'id',
+      properties: sr => ({ icon: objectIcon('sr', getPbdsConnectionStatus(pbdsBySr.value.get(sr.id) ?? [])) }),
+    },
+  })
+
+  const srSelectBindings = useSelect(srSelectId, () => ({
+    label: t('storage-repository'),
+    ...(srWarning.value !== undefined && { warning: srWarning.value }),
+  }))
+
   return {
-    availableSrs,
     attachedVdiIds,
-    getSrLocation,
-    requiredHost,
     selectedSr,
-    srWarning,
+    srSelectBindings,
   }
 }
