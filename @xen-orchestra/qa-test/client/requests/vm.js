@@ -121,11 +121,16 @@ export class VMRequest extends AbstractRequest {
 
     const { force = false } = options
 
+    const currentVm = await this.details(vmUuid)
+    if (currentVm?.power_state === 'Running') {
+      log.debug('VM already running, skipping start', { uuid: vmUuid })
+      return
+    }
+
     try {
       await this.dispatchClient.xoClient.call('vm.start', { id: vmUuid, force })
-      console.log(`VM started: ${vmUuid}`)
+      log.debug('VM started', { uuid: vmUuid })
     } catch (error) {
-      console.error(`❌ Failed to start VM ${vmUuid}:`, error.message)
       throw new Error(`Failed to start VM ${vmUuid}: ${error.message}`)
     }
   }
@@ -150,11 +155,16 @@ export class VMRequest extends AbstractRequest {
 
     const { force = false } = options
 
+    const currentVm = await this.details(vmUuid)
+    if (currentVm?.power_state === 'Halted') {
+      log.debug('VM already halted, skipping stop', { uuid: vmUuid })
+      return
+    }
+
     try {
       await this.dispatchClient.xoClient.call('vm.stop', { id: vmUuid, force })
-      console.log(`VM stopped: ${vmUuid}`)
+      log.debug('VM stopped', { uuid: vmUuid })
     } catch (error) {
-      console.error(`❌ Failed to stop VM ${vmUuid}:`, error.message)
       throw new Error(`Failed to stop VM ${vmUuid}: ${error.message}`)
     }
   }
