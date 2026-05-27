@@ -12,7 +12,34 @@ import { openVhd } from 'vhd-lib'
 import { getVmBackupDir } from '../../_getVmBackupDir.mjs'
 import { SynchronizedDisk, ThrottledDisk } from '@xen-orchestra/disk-transform'
 import { AggregatedIncrementalRemoteWriter } from '../_writers/AggregatedIncrementalRemoteWriter.mjs'
+import { Task } from '@vates/task'
 
+const MAX_DURATION_BETWEEN_PROGRESS_EMIT = 5e3
+const MIN_THRESHOLD_PERCENT_BETWEEN_PROGRESS_EMIT = 0.01
+
+class TaskProgressHandler {
+  #lastProgressDate
+  #lastProgressValue
+  async setProgress(progress) {
+    if (progress < 0 || progress > 1) {
+      return
+    }
+    if (
+      this.#lastProgressDate !== undefined &&
+      this.#lastProgressValue !== undefined &&
+      Date.now() - this.#lastProgressDate < MAX_DURATION_BETWEEN_PROGRESS_EMIT &&
+      progress - this.#lastProgressValue < MIN_THRESHOLD_PERCENT_BETWEEN_PROGRESS_EMIT
+    ) {
+      return
+    }
+    this.#lastProgressDate = Date.now()
+    this.#lastProgressValue = progress
+    Task.set('progress', Math.round(progress * 100))
+    // remove this before merging, it's only to have time
+    await new Promise(resolve => setTimeout(resolve, 500))
+  }
+  done() {}
+}
 const { warn } = createLogger('xo:backups:Incrementalremote')
 class IncrementalRemoteVmBackupRunner extends AbstractRemote {
   _getRemoteWriters() {
@@ -74,6 +101,7 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
       for (const key in incrementalExport.disks) {
         let disk = incrementalExport.disks[key]
         isVhdDifferencing[key] = disk.isDifferencing()
+        disk.progressHandler = new TaskProgressHandler()
         disk = new ThrottledDisk(disk, this._throttleGenerator)
         incrementalExport.disks[key] = new SynchronizedDisk(disk)
       }
