@@ -87,7 +87,8 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
   }
   async _run() {
     const transferList = await this._computeTransferList(({ mode }) => mode === 'delta')
-
+    const nbTransferrableVms = transferList.length
+    let nbTransferredVms = 0
     for (const metadata of transferList) {
       assert.strictEqual(metadata.mode, 'delta')
       const incrementalExport = await this._sourceRemoteAdapter.readIncrementalVmBackup(metadata, undefined, {
@@ -144,7 +145,10 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
       await this._callWriters(writer => writer.cleanup(), 'writer.cleanup()')
       // for healthcheck
       this._tags = metadata.vm.tags
+      nbTransferredVms++
+      Task.set('progress', Math.round((nbTransferredVms * 100) / nbTransferrableVms))
     }
+    Task.set('progress', 100)
     this._hasTransferredData = transferList.length > 0
   }
 }
