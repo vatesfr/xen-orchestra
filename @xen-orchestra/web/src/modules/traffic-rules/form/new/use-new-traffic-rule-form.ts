@@ -15,7 +15,7 @@ import { type FormValidationConfig, required, requiredIf, withMessage } from '@c
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { TrafficRuleTargetType } from '@vates/types'
 import { toLower } from 'lodash-es'
-import { computed, type MaybeRefOrGetter, reactive, toValue, watch, watchEffect } from 'vue'
+import { computed, type MaybeRefOrGetter, reactive, watch, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export type NewTrafficRuleFormData = BaseTrafficRuleFormData & {
@@ -38,7 +38,7 @@ export function useNewTrafficRuleForm(
   const { t } = useI18n()
 
   const poolId = toComputed(rawPoolId)
-  const vifId = toComputed(() => toValue(rawVifId))
+  const vifId = toComputed(rawVifId)
 
   const formData = reactive<NewTrafficRuleFormData>({
     allow: true,

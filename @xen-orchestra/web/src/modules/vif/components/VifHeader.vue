@@ -1,11 +1,11 @@
 <template>
   <div class="breadcrumb-container">
     <UiBreadcrumb :size>
-      <UiLink v-if="vm" :size :to="{ name: '/vm/[id]/networks', params: { id: vm.id } }">
+      <UiLink v-if="vm" :size :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
         <VtsObjectIcon type="vm" :state="vmPowerState" size="current" />
         {{ vm.name_label }}
       </UiLink>
-      <UiLink v-if="network" :size :to="networkTo">
+      <UiLink v-if="vm && network" :size :to="{ name: '/vm/[id]/networks', params: { id: vm.id } }">
         {{ t('network') }}
       </UiLink>
       <span class="vif-name">
@@ -25,7 +25,6 @@
 
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -48,14 +47,10 @@ const uiStore = useUiStore()
 const size = computed(() => (uiStore.isSmall ? 'small' : 'medium'))
 
 const { useGetVmById } = useXoVmCollection()
-const vm = useGetVmById(() => vif.$VM)
 const { useGetNetworkById } = useXoNetworkCollection()
 
+const vm = useGetVmById(() => vif.$VM)
 const network = useGetNetworkById(() => vif.$network)
-
-const networkTo = computed(() =>
-  network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
-)
 
 const vmPowerState = computed(() => toLower(vm.value?.power_state))
 </script>
