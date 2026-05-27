@@ -3,7 +3,6 @@ import Disposable from 'promise-toolbox/Disposable'
 import forOwn from 'lodash/forOwn.js'
 import groupBy from 'lodash/groupBy.js'
 import merge from 'lodash/merge.js'
-import { makeOnProgress } from '@vates/task/combineEvents'
 import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { decorateWith } from '@vates/decorate-with'
@@ -162,7 +161,7 @@ export default class BackupNg {
         const targetRemoteIds = unboxIdsFromPattern(job.remotes)
         try {
           if (!useXoProxy && backupsConfig.disableWorkers) {
-            const onLogFct = makeOnProgress({
+            const onLogFct = app.tasks.createExternalProgressHandler({
               onRootTaskStart: log => {
                 jobUpdateFct(log.id).catch(logger.warn) // is async, but makeOnProgress doesn't await onRootTaskXXX functions
               },
@@ -309,7 +308,7 @@ export default class BackupNg {
               )
 
               let result
-              const onLogFct = makeOnProgress({
+              const onLogFct = app.tasks.createExternalProgressHandler({
                 onRootTaskStart: log => {
                   jobUpdateFct(log.id).catch(logger.warn) // is async, but makeOnProgress doesn't await onRootTaskXXX functions
                 },
@@ -334,7 +333,7 @@ export default class BackupNg {
             }
           } else {
             let result
-            const onLogFct = makeOnProgress({
+            const onLogFct = app.tasks.createExternalProgressHandler({
               onRootTaskStart: log => {
                 jobUpdateFct(log.id).catch(logger.warn) // is async, but makeOnProgress doesn't await onRootTaskXXX functions
               },
@@ -515,7 +514,7 @@ export default class BackupNg {
             assertType: 'iterator',
           })
 
-          const onLogFct = makeOnProgress({
+          const onLogFct = app.tasks.createExternalProgressHandler({
             onRootTaskStart: log => {
               this._runningRestores.add(log.id)
               rootTaskId = log.id
@@ -542,7 +541,7 @@ export default class BackupNg {
         result = await Disposable.use(app.getBackupsRemoteAdapter(remote), async adapter => {
           const metadata = await adapter.readVmBackupMetadata(metadataFilename)
 
-          const onLogFct = makeOnProgress({
+          const onLogFct = app.tasks.createExternalProgressHandler({
             onRootTaskStart: log => {
               this._runningRestores.add(log.id)
               rootTaskId = log.id
