@@ -8,13 +8,18 @@
       <UiLink v-if="vm && network" :size :to="{ name: '/vm/[id]/networks', params: { id: vm.id } }">
         {{ t('network') }}
       </UiLink>
-      <span class="vif-name">
+      <span>
         <VtsIcon name="object:vif" size="current" />
         {{ t('vif-device', { device: vif.device }) }}
       </span>
     </UiBreadcrumb>
   </div>
   <TabList>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vif/[id]/general', params: { id: vif.id } }" custom>
+      <TabItem :active="isActive" :href tag="a">
+        {{ t('general') }}
+      </TabItem>
+    </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vif/[id]/traffic-rules', params: { id: vif.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('traffic-rules') }}

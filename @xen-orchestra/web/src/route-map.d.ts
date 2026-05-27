@@ -322,7 +322,15 @@ declare module 'vue-router/auto-routes' {
       '/vif/:id',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
+      | '/vif/[id]/general'
       | '/vif/[id]/traffic-rules'
+    >,
+    '/vif/[id]/general': RouteRecordInfo<
+      '/vif/[id]/general',
+      '/vif/:id/general',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
     >,
     '/vif/[id]/traffic-rules': RouteRecordInfo<
       '/vif/[id]/traffic-rules',
@@ -677,9 +685,16 @@ declare module 'vue-router/auto-routes' {
     'src/pages/vif/[id].vue': {
       routes:
         | '/vif/[id]'
+        | '/vif/[id]/general'
         | '/vif/[id]/traffic-rules'
       views:
         | 'default'
+    }
+    'src/pages/vif/[id]/general.vue': {
+      routes:
+        | '/vif/[id]/general'
+      views:
+        | never
     }
     'src/pages/vif/[id]/traffic-rules.vue': {
       routes:
