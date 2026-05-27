@@ -95,7 +95,7 @@
     "highland": "^2.11.1",
     "http-proxy": "^1.16.2",
     "http-request-plus": "^1.0.3",
-    "@vates/http-server-plus": "^2.0.1",
+    "@vates/http-server-plus": "^2.0.2",
     "human-format": "^1.0.0",
     "iterable-backoff": "^0.1.0",
     "js-yaml": "^4.1.0",
