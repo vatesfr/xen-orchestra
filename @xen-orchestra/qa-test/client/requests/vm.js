@@ -161,9 +161,10 @@ export class VMRequest extends AbstractRequest {
       return
     }
 
+    const action = force ? 'hard_shutdown' : 'clean_shutdown'
     try {
-      await this.dispatchClient.xoClient.call('vm.stop', { id: vmUuid, force })
-      log.debug('VM stopped', { uuid: vmUuid })
+      await this.dispatchClient.restApiClient.post(`/rest/v0/vms/${vmUuid}/actions/${action}`)
+      log.debug('VM stopped', { uuid: vmUuid, action })
     } catch (error) {
       throw new Error(`Failed to stop VM ${vmUuid}: ${error.message}`)
     }
