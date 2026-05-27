@@ -209,9 +209,9 @@ import { useFormSelect } from '@core/packages/form-select'
 import { useModal } from '@core/packages/modal/use-modal.ts'
 import { useUiStore } from '@core/stores/ui.store'
 import { logicNot } from '@vueuse/math'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { onBeforeRouteLeave, useRouter } from 'vue-router'
 
 const REQUIRED_GB = 20
 
@@ -253,6 +253,28 @@ const status = ref<string | undefined>()
 const error = ref<string | undefined>()
 const url = ref<string | undefined>()
 const vmRef = ref<string | undefined>()
+
+const beforeWindowUnload = (event: BeforeUnloadEvent) => {
+  event.preventDefault()
+}
+
+onBeforeRouteLeave(() => {
+  if (deploying.value) {
+    return window.confirm(t('do-you-really-want-to-leave-this-page?'))
+  }
+})
+
+watch(
+  deploying,
+  deploying => {
+    if (deploying) {
+      window.addEventListener('beforeunload', beforeWindowUnload)
+    } else {
+      window.removeEventListener('beforeunload', beforeWindowUnload)
+    }
+  },
+  { flush: 'sync' }
+)
 
 const resetValues = () => {
   deploying.value = false
