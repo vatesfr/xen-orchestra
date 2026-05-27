@@ -93,6 +93,7 @@ const {
 
 async function onSubmit() {
   const payload = await validateAndBuildPayload()
+
   if (payload !== undefined) {
     emit('create', payload)
   }

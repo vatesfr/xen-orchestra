@@ -3,14 +3,14 @@ import { getPbdsConnectionStatus } from '@/modules/pbd/utils/xo-pbd.util.ts'
 import { type BaseVdiFormData, useVdiFormBase } from '@/modules/vdi/form/use-vdi-form-base.ts'
 import type { NewVdiPayload, VdiSource } from '@/modules/vdi/jobs/xo-vdi-create.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { ONE_GB, VDI_SOURCE } from '@/shared/constants.ts'
 import { objectIcon } from '@core/icons'
 import { minValue, required } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
+import { DOMAIN_TYPE } from '@vates/types'
 import { computed, type MaybeRefOrGetter, reactive, toRefs } from 'vue'
 import { useI18n } from 'vue-i18n'
-
-const BYTES_PER_GB = 1024 ** 3
 
 type NewVdiFormData = BaseVdiFormData & {
   source: VdiSource
@@ -27,7 +27,7 @@ export function useNewVdiForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
   const vm = toComputed(rawVm)
 
   const formData = reactive<NewVdiFormData>({
-    source: 'empty',
+    source: VDI_SOURCE.EMPTY,
     sr: undefined,
     name_label: '',
     name_description: '',
@@ -54,7 +54,7 @@ export function useNewVdiForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     required: true,
     option: {
       label: sr => {
-        const gbLeft = Math.floor((sr.size - sr.physical_usage) / BYTES_PER_GB)
+        const gbLeft = Math.floor((sr.size - sr.physical_usage) / ONE_GB)
         return `${sr.name_label} (${getSrLocation(sr)}) - ${t('n-gb-left', { n: gbLeft })}`
       },
       value: 'id',
@@ -62,7 +62,7 @@ export function useNewVdiForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     },
   })
 
-  const isPv = computed(() => vm.value.virtualizationMode === 'pv')
+  const isPv = computed(() => vm.value.virtualizationMode === DOMAIN_TYPE.PV)
 
   async function validateAndBuildPayload(): Promise<NewVdiPayload | undefined> {
     const isValid = await validate()
@@ -75,9 +75,9 @@ export function useNewVdiForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
       source: formData.source,
       srId: formData.sr!,
       name_label: formData.name_label,
-      virtual_size: formData.allocatedSpace! * BYTES_PER_GB,
+      virtual_size: formData.allocatedSpace! * ONE_GB,
       vm: vm.value.id,
-      ...(formData.name_description.trim() !== '' && { name_description: formData.name_description.trim() }),
+      ...(formData.name_description !== '' && { name_description: formData.name_description }),
       ...(formData.readOnly && { read_only: true }),
       ...(isPv.value && { bootable: formData.bootable }),
     }

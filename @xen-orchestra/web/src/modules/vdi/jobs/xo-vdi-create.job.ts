@@ -2,11 +2,13 @@ import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/us
 import { payloadsArg } from '@/modules/vdi/jobs/xo-vdi-create-args.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { VDI_SOURCE } from '@/shared/constants.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
+import { VBD_MODE } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-export type VdiSource = 'empty' | 'file' | 'url'
+export type VdiSource = (typeof VDI_SOURCE)[keyof typeof VDI_SOURCE]
 
 export type NewVdiPayload = {
   source: VdiSource
@@ -40,7 +42,7 @@ export const useXoVdiCreateJob = defineJob('vdi.create', [payloadsArg], () => {
             await fetchPost('vbds', {
               VM: payload.vm,
               VDI: id,
-              mode: payload.read_only ? 'RO' : 'RW',
+              mode: payload.read_only ? VBD_MODE.RO : VBD_MODE.RW,
               ...(payload.bootable !== undefined && { bootable: payload.bootable }),
             })
           }
@@ -68,7 +70,7 @@ export const useXoVdiCreateJob = defineJob('vdi.create', [payloadsArg], () => {
           throw new JobError(t('job:arg:name-required'))
         }
 
-        if (payload.source === 'empty' && !(payload.virtual_size > 0)) {
+        if (payload.source === VDI_SOURCE.EMPTY && !(payload.virtual_size > 0)) {
           throw new JobError(t('job:arg:allocated-space-required'))
         }
       })
