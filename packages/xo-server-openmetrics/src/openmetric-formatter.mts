@@ -14,6 +14,8 @@ import type {
   VdiDataItem,
   VmStatusItem,
   XoMetricsData,
+} from './types/domain.mjs'
+import type {
   XostorAlarmEntry,
   XostorAlarmsItem,
   XostorAlarmsPayload,
@@ -25,7 +27,7 @@ import type {
   XostorUpdateItem,
   XostorUpdatePackage,
   XostorUpdatesPayload,
-} from './index.mjs'
+} from './types/xostor.mjs'
 import type { ParsedMetric, ParsedRrdData } from './rrd-parser.mjs'
 
 export type {

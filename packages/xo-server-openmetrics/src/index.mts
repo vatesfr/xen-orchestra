@@ -33,261 +33,83 @@ import v8 from 'node:v8'
 // Types
 // ============================================================================
 
-interface IpcMessage {
-  type: string
-  payload?: unknown
-  requestId?: string
-  error?: string
-}
+import type {
+  HostCredentials,
+  IpcMessage,
+  PendingRequest,
+  PluginConfiguration,
+  ServerConfiguration,
+} from './types/ipc.mjs'
+import type {
+  HostStatusItem,
+  HostStatusPayload,
+  LabelLookupData,
+  SrDataItem,
+  SrDataPayload,
+  VdiDataItem,
+  VdiDataPayload,
+  VmStatusItem,
+  VmStatusPayload,
+  XapiCredentialsPayload,
+  XoMetricsData,
+  XoObject,
+} from './types/domain.mjs'
+import type {
+  XostorAlarmEntry,
+  XostorAlarmsItem,
+  XostorAlarmsPayload,
+  XostorClusterItem,
+  XostorHealthCheckRaw,
+  XostorNodeItem,
+  XostorPayload,
+  XostorSmartDevice,
+  XostorSmartHost,
+  XostorSmartPayload,
+  XostorUpdateItem,
+  XostorUpdatePackage,
+  XostorUpdatesPayload,
+} from './types/xostor.mjs'
 
-interface PluginConfiguration {
-  secret: string
-}
-
-interface ServerConfiguration {
-  port: number
-  bindAddress: string
-  secret: string
-}
-
-interface PendingRequest {
-  resolve: (value: unknown) => void
-  reject: (error: Error) => void
-}
-
-interface HostCredentials {
-  hostId: string
-  hostAddress: string
-  hostLabel: string
-  poolId: string
-  poolLabel: string
-  sessionId: string
-  protocol: string
-}
-
-// Label lookup types for enriching metrics with human-readable names
-export interface VmLabelInfo {
-  name_label: string
-  is_control_domain: boolean
-  vbdDeviceToVdiName: Record<string, string> // { "xvda": "System Disk" }
-  vbdDeviceToVdiUuid: Record<string, XoVdi['uuid']> // { "xvda": "vdi-uuid-123" }
-  vifIndexToNetworkName: Record<string, string> // { "0": "Pool-wide network" }
-  startTime: number | null // Unix timestamp of VM boot (from vm.startTime)
-  power_state: string // VM power state (Running, Paused, Halted, Suspended)
-  pool_id: string
-  pool_name: string
-}
-
-export interface HostLabelInfo {
-  name_label: string
-  pifDeviceToNetworkName: Record<string, string> // { "eth0": "Management" }
-  startTime: number | null // Unix timestamp of host boot (from host.startTime)
-}
-
-export interface SrLabelInfo {
-  name_label: string
-  /**
-   * Mirrors `XoSr.SR_type` (kept in CamelCase to match the XAPI source field).
-   * Resolved into the `sr_type` snake_case OpenMetrics label by `transformMetric`.
-   */
-  SR_type: string
-}
-
-export interface LabelLookupData {
-  vms: Record<XoVm['uuid'] | XoVmController['uuid'], VmLabelInfo>
-  hosts: Record<XoHost['uuid'], HostLabelInfo>
-  srs: Record<XoSr['uuid'], SrLabelInfo>
-  srTruncatedToUuid: Record<string, XoSr['uuid']> // maps any UUID truncation (prefix or suffix) to the full SR UUID
-  vdiUuidToSrUuid: Record<XoVdi['uuid'], XoSr['uuid']> // maps VDI UUID to parent SR UUID
-}
-
-interface XapiCredentialsPayload {
-  hosts: HostCredentials[]
-  labels: LabelLookupData
-}
-
-export type SrDataItem = Pick<XoSr, 'uuid' | 'name_label' | 'size' | 'physical_usage' | 'usage'> & {
-  pool_id: string
-  pool_name: string
-  /**
-   * Verbatim `XoSr.SR_type` (e.g. `'linstor'`, `'lvm'`, `'nfs'`). Emitted as
-   * the `sr_type` OpenMetrics label so Grafana queries can filter / split
-   * by storage technology.
-   */
-  sr_type: string
-  host_id?: string
-  host_name?: string
-}
-
-export interface XoMetricsData {
-  pendingTaskCount: number
-  poolCount: number
-  hostCount: number
-  vmCount: number
-  srCountByContentType: Record<string, number>
-  userCount: number
-  groupCount: number
-  socketCount: number
-  hostCountByVersion: Array<{ productBrand: string; version: string; count: number }>
-  hostCountByLicense: Array<{ skuType: string; count: number }>
-  backupJobStats: Array<{
-    type: string
-    jobCount: number
-  }>
-  nodeProcess: {
-    eluMean: number
-    eluP99: number
-    eluMax: number
-    memoryRssBytes: number
-    memoryHeapUsedBytes: number
-    memoryHeapTotalBytes: number
-    memoryExternalBytes: number
-    memoryArrayBuffersBytes: number
-    heapSizeLimitBytes: number
-    heapAvailableBytes: number
-    detachedContexts: number
-    cpuUserSeconds: number
-    cpuSystemSeconds: number
-  }
-}
-
-interface SrDataPayload {
-  srs: SrDataItem[]
-}
-
-export type VdiDataItem = {
-  uuid: string
-  name_label: string
-  size: number
-  usage: number
-  sr_uuid: string
-  sr_name: string
-  /** SR_type of the parent SR, mirrored as the `sr_type` label. */
-  sr_type: string
-  pool_id: string
-  pool_name: string
-  vm_uuid?: string
-  vm_name?: string
-}
-
-interface VdiDataPayload {
-  vdis: VdiDataItem[]
-}
-
-export type HostStatusItem = Pick<XoHost, 'uuid' | 'name_label' | 'power_state' | 'enabled'> & {
-  pool_id: string
-  pool_name: string
-}
-
-interface HostStatusPayload {
-  hosts: HostStatusItem[]
-}
-
-export type VmStatusItem = Pick<XoVm, 'uuid' | 'name_label' | 'power_state'> & {
-  pool_id: string
-  pool_name: string
-}
-
-interface VmStatusPayload {
-  vms: VmStatusItem[]
-}
-
-/**
- * XOSTOR cluster node entry.
- *
- * Represents a single LINSTOR node in a XOSTOR cluster, identified by
- * its hostname. The role label distinguishes the pool master from satellites.
- * The state label carries the raw status returned by linstor-manager.healthCheck.
- */
-export interface XostorNodeItem {
-  node_name: string
-  role: 'master' | 'satellite'
-  state: string
-}
-
-/**
- * XOSTOR cluster summary for a single LINSTOR-backed SR.
- *
- * `up` indicates whether the healthCheck call succeeded. When false, `nodes`
- * is empty, `resourceCount` is 0, and `replicaStates` is `{}`; consumers
- * should treat the cluster as unreachable rather than empty.
- *
- * `replicaStates` maps each `disk-state` value reported by `linstor-manager`
- * (e.g., `UpToDate`, `Inconsistent`, `Outdated`, `Diskless`, `Unknown`) to the
- * number of replicas across all resources in that state. The sum equals
- * `# resources × replica_factor`.
- */
-export interface XostorClusterItem {
-  sr_uuid: string
-  pool_id: string
-  pool_name: string
-  up: boolean
-  nodes: XostorNodeItem[]
-  resourceCount: number
-  replicaStates: Record<string, number>
-}
-
-export interface XostorPayload {
-  clusters: XostorClusterItem[]
-}
-
-/**
- * One aggregated alarm bucket for a XOSTOR cluster.
- *
- * Counts the number of XAPI messages whose `name` matches `alarm_name` and
- * whose `$object` is either the XOSTOR SR itself (`target_type='sr'`) or one
- * of the hosts backing it via a PBD (`target_type='host'`).
- */
-export interface XostorAlarmEntry {
-  alarm_name: string
-  target_type: 'sr' | 'host'
-  count: number
-}
-
-export interface XostorAlarmsItem {
-  sr_uuid: string
-  pool_id: string
-  pool_name: string
-  up: boolean
-  entries: XostorAlarmEntry[]
-}
-
-export interface XostorAlarmsPayload {
-  clusters: XostorAlarmsItem[]
-}
-
-/**
- * One disk reported by `smartctl.py health` on a XOSTOR host.
- *
- * `status` is the raw overall-health string returned by the plugin
- * (e.g. `"PASSED"`, `"FAILED"`, `"UNKNOWN"`). Verbatim — dashboards
- * normalize via regex if they need to.
- */
-export interface XostorSmartDevice {
-  device: string
-  status: string
-}
-
-/**
- * SMART-health snapshot of a single XOSTOR host.
- *
- * `up` indicates whether the plugin call succeeded. When false, `devices`
- * is empty and the host is considered unreachable for SMART data — most
- * commonly because `smartctl.py` is not installed on the host.
- */
-export interface XostorSmartHost {
-  sr_uuid: string
-  pool_id: string
-  pool_name: string
-  host_uuid: string
-  host_name: string
-  up: boolean
-  devices: XostorSmartDevice[]
-}
-
-export interface XostorSmartPayload {
-  hosts: XostorSmartHost[]
-}
+// Re-export the shared types so existing importers (formatter, tests) keep working.
+export type {
+  HostCredentials,
+  IpcMessage,
+  PendingRequest,
+  PluginConfiguration,
+  ServerConfiguration,
+} from './types/ipc.mjs'
+export type {
+  HostLabelInfo,
+  HostStatusItem,
+  HostStatusPayload,
+  LabelLookupData,
+  SrDataItem,
+  SrDataPayload,
+  SrLabelInfo,
+  VdiDataItem,
+  VdiDataPayload,
+  VmLabelInfo,
+  VmStatusItem,
+  VmStatusPayload,
+  XapiCredentialsPayload,
+  XoMetricsData,
+  XoObject,
+} from './types/domain.mjs'
+export type {
+  XostorAlarmEntry,
+  XostorAlarmsItem,
+  XostorAlarmsPayload,
+  XostorClusterItem,
+  XostorHealthCheckRaw,
+  XostorNodeItem,
+  XostorPayload,
+  XostorSmartDevice,
+  XostorSmartHost,
+  XostorSmartPayload,
+  XostorUpdateItem,
+  XostorUpdatePackage,
+  XostorUpdatesPayload,
+} from './types/xostor.mjs'
 
 /**
  * RPMs whose updates are relevant to a running XOSTOR cluster.
@@ -305,34 +127,6 @@ export const XOSTOR_UPDATE_PACKAGES: ReadonlySet<string> = new Set([
 ])
 
 /**
- * One pending XOSTOR-related package update on a host.
- *
- * Severity is intentionally absent: XCP-ng's `updater.py check_update`
- * payload does not carry advisory severity. Adding it as a constant
- * `'Unknown'` would be misleading.
- */
-export interface XostorUpdatePackage {
-  package: string
-}
-
-export interface XostorUpdateItem {
-  sr_uuid: string
-  pool_id: string
-  pool_name: string
-  host_uuid: string
-  host_name: string
-  up: boolean
-  packages: XostorUpdatePackage[]
-}
-
-export interface XostorUpdatesPayload {
-  hosts: XostorUpdateItem[]
-}
-
-// Union type for all XO objects we handle
-type XoObject = XoHost | XoPool | XoVm | XoVmController | XoVbd | XoVdi | XoVif | XoPif | XoSr | XoNetwork
-
-/**
  * Names of XAPI message types treated as "alarms" by XO's web UI.
  *
  * Mirrors `isAlarm` in `packages/xo-server/src/utils.mjs`. Kept as a local
@@ -341,19 +135,6 @@ type XoObject = XoHost | XoPool | XoVm | XoVmController | XoVbd | XoVdi | XoVif 
  * grows the alarm-name set.
  */
 const XAPI_ALARM_NAMES = new Set<string>(['ALARM', 'BOND_STATUS_CHANGED', 'MULTIPATH_PERIODIC_ALERT'])
-
-/**
- * Subset of `linstor-manager.healthCheck` response we consume.
- *
- * The plugin returns a JSON-encoded string. The shape is not versioned and
- * can grow (the frontend tolerates `resources` being absent on older plugins).
- * We only depend on the two top-level maps and treat everything else as
- * untyped.
- */
-interface XostorHealthCheckRaw {
-  nodes?: Record<string, unknown>
-  resources?: Record<string, unknown>
-}
 
 /**
  * Time-based cache with in-flight call coalescing.

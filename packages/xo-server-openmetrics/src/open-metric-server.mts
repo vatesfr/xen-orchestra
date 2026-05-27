@@ -34,99 +34,26 @@ import {
   formatXostorClusterMetrics,
   formatXostorSmartMetrics,
   formatXostorUpdatesMetrics,
-  type HostStatusItem,
-  type SrDataItem,
-  type VdiDataItem,
-  type VmStatusItem,
   type XoMetricsData,
   type XostorAlarmsPayload,
   type XostorPayload,
   type XostorSmartPayload,
   type XostorUpdatesPayload,
 } from './openmetric-formatter.mjs'
+import type { HostCredentials, IpcMessage, ServerConfiguration } from './types/ipc.mjs'
+import type {
+  HostStatusPayload,
+  SrDataPayload,
+  VdiDataPayload,
+  VmStatusPayload,
+  XapiCredentialsPayload,
+} from './types/domain.mjs'
 
 const logger = createLogger('xo:xo-server-openmetrics:child')
 
 // ============================================================================
 // Types
 // ============================================================================
-
-interface IpcMessage {
-  type: string
-  payload?: unknown
-  requestId?: string
-  error?: string
-}
-
-interface ServerConfiguration {
-  port: number
-  bindAddress: string
-  secret: string
-}
-
-interface HostCredentials {
-  hostId: string
-  hostAddress: string
-  hostLabel: string
-  poolId: string
-  poolLabel: string
-  sessionId: string
-  protocol: string
-}
-
-// Label lookup types for enriching metrics with human-readable names
-interface VmLabelInfo {
-  name_label: string
-  is_control_domain: boolean
-  vbdDeviceToVdiName: Record<string, string>
-  vbdDeviceToVdiUuid: Record<string, string>
-  vifIndexToNetworkName: Record<string, string>
-  startTime: number | null
-  power_state: string
-  pool_id: string
-  pool_name: string
-}
-
-interface HostLabelInfo {
-  name_label: string
-  pifDeviceToNetworkName: Record<string, string>
-  startTime: number | null
-}
-
-interface SrLabelInfo {
-  name_label: string
-  /** Mirrors `XoSr.SR_type` — see the canonical type in `index.mts`. */
-  SR_type: string
-}
-
-interface LabelLookupData {
-  vms: Record<string, VmLabelInfo>
-  hosts: Record<string, HostLabelInfo>
-  srs: Record<string, SrLabelInfo>
-  srTruncatedToUuid: Record<string, string>
-  vdiUuidToSrUuid: Record<string, string>
-}
-
-interface XapiCredentialsPayload {
-  hosts: HostCredentials[]
-  labels: LabelLookupData
-}
-
-interface SrDataPayload {
-  srs: SrDataItem[]
-}
-
-interface VdiDataPayload {
-  vdis: VdiDataItem[]
-}
-
-interface HostStatusPayload {
-  hosts: HostStatusItem[]
-}
-
-interface VmStatusPayload {
-  vms: VmStatusItem[]
-}
 
 interface PendingRequest<T> {
   resolve: (value: T) => void
