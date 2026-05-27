@@ -27,7 +27,8 @@
   },
   "scripts": {
     "pretest": "eslint .",
-    "test": "node --test index.spec.js"
+    "test": "node --test index.spec.js",
+    "postversion": "npm publish --access public"
   },
   "private": false,
   "author": {
