@@ -14,8 +14,8 @@ import { PrivateNetwork } from './private-network/private-network'
 import { TlsHelper } from './utils/tls-helper'
 import { instantiateController } from './openflow-controller'
 import { randomBytes } from 'crypto'
-import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
-import { SDN_CONTROLLER_OF_RULES_KEY } from '@vates/types'
+import { createRestRoutes } from './rest-api'
+
 // =============================================================================
 
 const log = createLogger('xo:xo-server-sdn-controller')
@@ -810,6 +810,7 @@ class SDNController extends EventEmitter {
         this._handleConnectedXapi(xapi)
       }
     })
+    this._cleaners.push(this._xo.registerRestRoutes(createRestRoutes(this), '/plugins/sdn-controller'))
 
     const handleConnectedServer = ({ xapi }) => this._handleConnectedXapi(xapi)
     const handleDisconnectedServer = ({ xapi }) => this._handleDisconnectedXapi(xapi)
