@@ -6,7 +6,6 @@ import { type FrontXoVdi, useXoVdiCollection } from '@/modules/vdi/remote-resour
 import { getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { required } from '@core/packages/form-validation'
-import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { DOMAIN_TYPE, VBD_MODE } from '@vates/types'
 import { computed, type MaybeRefOrGetter, reactive, toRefs, watch } from 'vue'
@@ -30,16 +29,17 @@ export function useVdiAttachForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     bootable: false,
   })
 
-  const { useFormSelect, useSelect, validate } = useValidatedForm(formData, {
-    errors: {
-      onSubmit: () => ({
-        sr: { required },
-        vdi: { required },
-      }),
-    },
-  })
-
-  const { attachedVdiIds, selectedSr, srSelectBindings } = useVdiFormBase(vm, formData, { useFormSelect, useSelect })
+  const { useFormSelect, useSelect, validate, attachedVdiIds, selectedSr, srSelectBindings } = useVdiFormBase(
+    vm,
+    formData,
+    {
+      errors: {
+        onSubmit: () => ({
+          vdi: { required },
+        }),
+      },
+    }
+  )
 
   const { getVbdsByIds, useGetVbdsByIds } = useXoVbdCollection()
   const { useGetVdiById, useGetVdisByIds } = useXoVdiCollection()

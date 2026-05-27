@@ -3,7 +3,6 @@ import type { NewVdiPayload, VdiSource } from '@/modules/vdi/jobs/xo-vdi-create.
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { ONE_GB, VDI_SOURCE } from '@/shared/constants.ts'
 import { minValue, required } from '@core/packages/form-validation'
-import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { DOMAIN_TYPE } from '@vates/types'
 import { computed, type MaybeRefOrGetter, reactive, toRefs } from 'vue'
@@ -33,17 +32,14 @@ export function useNewVdiForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     bootable: false,
   })
 
-  const { useField, useFormSelect, useSelect, validate } = useValidatedForm(formData, {
+  const { useField, validate, srSelectBindings } = useVdiFormBase(vm, formData, {
     errors: {
       onSubmit: () => ({
-        sr: { required },
         name_label: { required },
         allocatedSpace: { required, minValue: minValue(1) },
       }),
     },
   })
-
-  const { srSelectBindings } = useVdiFormBase(vm, formData, { useFormSelect, useSelect })
 
   const isPv = computed(() => vm.value.virtualizationMode === DOMAIN_TYPE.PV)
 

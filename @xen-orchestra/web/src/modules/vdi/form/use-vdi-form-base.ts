@@ -12,8 +12,9 @@ import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.compo
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { ONE_GB } from '@/shared/constants.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
-import type { useValidatedForm } from '@core/packages/validated-form'
 import { objectIcon } from '@core/icons'
+import { type FormValidationConfig, mergeValidationConfigs, required } from '@core/packages/form-validation'
+import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -22,19 +23,27 @@ export type BaseVdiFormData = {
   sr: FrontXoSr['id'] | undefined
 }
 
-type VdiFormSelectHelpers<T extends BaseVdiFormData & Record<string, unknown>> = Pick<
-  ReturnType<typeof useValidatedForm<T>>,
-  'useFormSelect' | 'useSelect'
->
-
 export function useVdiFormBase<T extends BaseVdiFormData & Record<string, unknown>>(
   rawVm: MaybeRefOrGetter<FrontXoVm>,
   formData: T,
-  { useFormSelect, useSelect }: VdiFormSelectHelpers<T>
+  extraConfig?: FormValidationConfig<T>
 ) {
   const { t } = useI18n()
 
   const vm = toComputed(rawVm)
+
+  const baseConfig: FormValidationConfig<BaseVdiFormData> = {
+    errors: {
+      onSubmit: () => ({
+        sr: { required },
+      }),
+    },
+  }
+
+  const { useField, useFormSelect, useSelect, validate } = useValidatedForm(
+    formData,
+    mergeValidationConfigs(baseConfig, extraConfig)
+  )
 
   const { srs, useGetSrById, useGetSrsByIds } = useXoSrCollection()
   const { useGetVdisByIds } = useXoVdiCollection()
@@ -111,6 +120,10 @@ export function useVdiFormBase<T extends BaseVdiFormData & Record<string, unknow
   }))
 
   return {
+    useField,
+    useFormSelect,
+    useSelect,
+    validate,
     attachedVdiIds,
     selectedSr,
     srSelectBindings,
