@@ -17,7 +17,7 @@
 - [i18n] Update Chinese (Simplified Han script), Czech, Dutch, German, Korean, Slovak, Spanish and Swedish translations (PR [#9780](https://github.com/vatesfr/xen-orchestra/pull/9780))
 - [REST API] Add `PATCH /vms/{id}` to partially update a VM (PR [#9835](https://github.com/vatesfr/xen-orchestra/pull/9835))
 - [XO config] Rename exported XO config file from `config.json` to `XO-config_<date>.json` (PR [#9859](https://github.com/vatesfr/xen-orchestra/pull/9859))
-- [RBAC] Added VMS_ADMINISTRATOR role template (PR [#9845] (https://github.com/vatesfr/xen-orchestra/pull/9845/) )
+- [RBAC] Added VMS_ADMINISTRATOR role template (PR [#9845](https://github.com/vatesfr/xen-orchestra/pull/9845/))
 
 ### Bug fixes
 
