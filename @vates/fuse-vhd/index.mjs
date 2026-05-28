@@ -68,3 +68,63 @@ export const mount = Disposable.factory(async function* mount(handler, diskPath,
     fromCallback(cb => fuse.mount(cb))
   )
 })
+
+export const mountRemoteDisk = Disposable.factory(async function* mountRemoteDisk(disk, mountDir) {
+  const blockSize = disk.getBlockSize()
+  const virtualSize = disk.getVirtualSize()
+
+  const fuse = new Fuse(mountDir, {
+    async readdir(path, cb) {
+      if (path === '/') {
+        return cb(null, ['vhd0'])
+      }
+      cb(Fuse.ENOENT)
+    },
+    async getattr(path, cb) {
+      if (path === '/') {
+        return cb(
+          null,
+          stat({
+            mode: 'dir',
+            size: 4096,
+          })
+        )
+      }
+      if (path === '/vhd0') {
+        return cb(
+          null,
+          stat({
+            mode: 'file',
+            size: virtualSize,
+          })
+        )
+      }
+
+      cb(Fuse.ENOENT)
+    },
+    async read(path, fd, buf, len, pos, cb) {
+      if (path !== '/vhd0') throw new Error(`read file ${path} not exists`)
+      let remaining = len
+      let bufOffset = 0
+      while (remaining > 0) {
+        const blockIndex = Math.floor(pos / blockSize)
+        const offsetInBlock = pos % blockSize
+        const toRead = Math.min(remaining, blockSize - offsetInBlock)
+        if (disk.hasBlock(blockIndex)) {
+          const { data } = await disk.readBlock(blockIndex)
+          data.copy(buf, bufOffset, offsetInBlock, offsetInBlock + toRead)
+        } else {
+          buf.fill(0, bufOffset, bufOffset + toRead) // sparse block = zeros
+        }
+        bufOffset += toRead
+        pos += toRead
+        remaining -= toRead
+      }
+      cb(len)
+    },
+  })
+  return new Disposable(
+    () => fromCallback(cb => fuse.unmount(cb)),
+    fromCallback(cb => fuse.mount(cb))
+  )
+})

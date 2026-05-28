@@ -7,7 +7,7 @@ import { decorateMethodsWith } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped.js'
 import { dirname, join, resolve } from 'node:path'
 import { execFile } from 'child_process'
-import { mount } from '@vates/fuse-vhd'
+import { mountRemoteDisk } from '@vates/fuse-vhd'
 import { readdir, lstat } from 'node:fs/promises'
 import { synchronized } from 'decorator-synchronized'
 import { ZipFile } from 'yazl'
@@ -428,10 +428,15 @@ export class RemoteAdapter {
     const handler = this._handler
     // this is a disposable
     const mountDir = yield getTmpDir()
-    // this is also a disposable
-    yield mount(handler, diskId, mountDir)
-    // this will yield disk path to caller
-    yield `${mountDir}/vhd0`
+    const disk = await openDiskChain({ handler, path: diskId })
+    try {
+      // this is also a disposable
+      yield mountRemoteDisk(disk, mountDir)
+      // this will yield disk path to caller
+      yield `${mountDir}/vhd0`
+    } finally {
+      await disk.close()
+    }
   }
 
   // partitionId values:
