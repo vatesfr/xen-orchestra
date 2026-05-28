@@ -11,151 +11,25 @@
  * What this does NOT guard: the exact output of each individual formatter — that is
  * already locked by openmetric-formatter.test.mts (136 tests).
  *
- * `assembleMetrics()` below is a faithful replica of the pure tail of
- * `collectMetrics()` (everything after the I/O data-gathering). In commit 7 that
- * logic will be extracted into a pure `assembleMetrics(data)` function in
- * server/collect-metrics.mts, and this test will be re-pointed to the real export.
- * Until then the replica uses the REAL formatters, so any drift in formatter output
- * during the moves (commit 4) still surfaces here.
+ * Commit 7 extracted the pure tail of `collectMetrics()` (everything after the
+ * I/O data-gathering) into the exported `assembleMetrics(data)` function in
+ * server/collect-metrics.mts. This test imports that real export, so it now
+ * exercises PRODUCTION code — any drift in section order, dedup, empty-section
+ * skipping, the no-hosts short-circuit, or the trailing `# EOF` surfaces here.
  */
 
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
-import {
-  formatAllPoolsToOpenMetrics,
-  formatHostStatusMetrics,
-  formatHostUptimeMetrics,
-  formatSrMetrics,
-  formatToOpenMetrics,
-  formatVdiMetrics,
-  formatVmStatusMetrics,
-  formatVmUptimeMetrics,
-  formatXoMetrics,
-  formatXostorAlarmsMetrics,
-  formatXostorClusterMetrics,
-  formatXostorSmartMetrics,
-  formatXostorUpdatesMetrics,
-  type LabelContext,
-} from './openmetric-formatter.mjs'
+import type { LabelContext } from './openmetric-formatter.mjs'
 
-import type {
-  HostStatusItem,
-  SrDataItem,
-  VdiDataItem,
-  VmStatusItem,
-  XoMetricsData,
-  XostorAlarmsPayload,
-  XostorPayload,
-  XostorSmartPayload,
-  XostorUpdatesPayload,
-} from './index.mjs'
+import type { HostStatusItem, XoMetricsData } from './index.mjs'
 
 import type { ParsedRrdData } from './rrd-parser.mjs'
 
-// ============================================================================
-// Assembly logic — faithful replica of collectMetrics()'s pure tail.
-// Keep in sync with open-metric-server.mts until commit 7 extracts it.
-// ============================================================================
-
-interface CollectInput {
-  credentials: LabelContext
-  srData: { srs: SrDataItem[] }
-  vdiData: { vdis: VdiDataItem[] }
-  hostStatusData: { hosts: HostStatusItem[] }
-  vmStatusData: { vms: VmStatusItem[] }
-  xoMetricsData: XoMetricsData
-  xostorData: XostorPayload
-  xostorAlarms: XostorAlarmsPayload
-  xostorSmart: XostorSmartPayload
-  xostorUpdates: XostorUpdatesPayload
-  rrdDataList: ParsedRrdData[]
-}
-
-function assembleMetrics(data: CollectInput): string {
-  const {
-    credentials,
-    srData,
-    vdiData,
-    hostStatusData,
-    vmStatusData,
-    xoMetricsData,
-    xostorData,
-    xostorAlarms,
-    xostorSmart,
-    xostorUpdates,
-    rrdDataList,
-  } = data
-
-  if (credentials.hosts.length === 0) {
-    return '# No connected hosts\n# EOF'
-  }
-
-  const poolMetrics: string[] = []
-  poolMetrics.push('# HELP xcp_pool_connected Indicates if a pool is connected (1) or not (0)')
-  poolMetrics.push('# TYPE xcp_pool_connected gauge')
-
-  const seenPools = new Set<string>()
-  for (const host of credentials.hosts) {
-    if (!seenPools.has(host.poolId)) {
-      seenPools.add(host.poolId)
-      poolMetrics.push(`xcp_pool_connected{pool_id="${host.poolId}",pool_name="${host.poolLabel}"} 1`)
-    }
-  }
-
-  const rrdMetrics = formatAllPoolsToOpenMetrics(rrdDataList, credentials)
-
-  const srMetrics = formatSrMetrics(srData.srs)
-  const srMetricsOutput = srMetrics.length > 0 ? formatToOpenMetrics(srMetrics) : ''
-
-  const vdiMetrics = formatVdiMetrics(vdiData.vdis)
-  const vdiMetricsOutput = vdiMetrics.length > 0 ? formatToOpenMetrics(vdiMetrics) : ''
-
-  const hostStatusMetrics = formatHostStatusMetrics(hostStatusData.hosts)
-  const hostStatusOutput = hostStatusMetrics.length > 0 ? formatToOpenMetrics(hostStatusMetrics) : ''
-
-  const uptimeMetrics = formatHostUptimeMetrics(credentials)
-  const uptimeMetricsOutput = uptimeMetrics.length > 0 ? formatToOpenMetrics(uptimeMetrics) : ''
-
-  const vmStatusMetrics = formatVmStatusMetrics(vmStatusData.vms)
-  const vmStatusOutput = vmStatusMetrics.length > 0 ? formatToOpenMetrics(vmStatusMetrics) : ''
-
-  const vmUptimeMetrics = formatVmUptimeMetrics(credentials)
-  const vmUptimeOutput = vmUptimeMetrics.length > 0 ? formatToOpenMetrics(vmUptimeMetrics) : ''
-
-  const xoMetrics = formatXoMetrics(xoMetricsData)
-  const xoMetricsOutput = xoMetrics.length > 0 ? formatToOpenMetrics(xoMetrics) : ''
-
-  const xostorMetrics = formatXostorClusterMetrics(xostorData)
-  const xostorMetricsOutput = xostorMetrics.length > 0 ? formatToOpenMetrics(xostorMetrics) : ''
-
-  const xostorAlarmsMetrics = formatXostorAlarmsMetrics(xostorAlarms)
-  const xostorAlarmsOutput = xostorAlarmsMetrics.length > 0 ? formatToOpenMetrics(xostorAlarmsMetrics) : ''
-
-  const xostorSmartMetrics = formatXostorSmartMetrics(xostorSmart)
-  const xostorSmartOutput = xostorSmartMetrics.length > 0 ? formatToOpenMetrics(xostorSmartMetrics) : ''
-
-  const xostorUpdatesMetrics = formatXostorUpdatesMetrics(xostorUpdates)
-  const xostorUpdatesOutput = xostorUpdatesMetrics.length > 0 ? formatToOpenMetrics(xostorUpdatesMetrics) : ''
-
-  const rrdMetricsWithoutEof = rrdMetrics.replace(/\n# EOF$/, '')
-
-  const allMetricsSections = [poolMetrics.join('\n')]
-  if (rrdMetricsWithoutEof !== '') allMetricsSections.push(rrdMetricsWithoutEof)
-  if (srMetricsOutput !== '') allMetricsSections.push(srMetricsOutput)
-  if (vdiMetricsOutput !== '') allMetricsSections.push(vdiMetricsOutput)
-  if (hostStatusOutput !== '') allMetricsSections.push(hostStatusOutput)
-  if (uptimeMetricsOutput !== '') allMetricsSections.push(uptimeMetricsOutput)
-  if (vmStatusOutput !== '') allMetricsSections.push(vmStatusOutput)
-  if (vmUptimeOutput !== '') allMetricsSections.push(vmUptimeOutput)
-  if (xoMetricsOutput !== '') allMetricsSections.push(xoMetricsOutput)
-  if (xostorMetricsOutput !== '') allMetricsSections.push(xostorMetricsOutput)
-  if (xostorAlarmsOutput !== '') allMetricsSections.push(xostorAlarmsOutput)
-  if (xostorSmartOutput !== '') allMetricsSections.push(xostorSmartOutput)
-  if (xostorUpdatesOutput !== '') allMetricsSections.push(xostorUpdatesOutput)
-
-  return allMetricsSections.join('\n') + '\n# EOF'
-}
+// Commit 7 extracted the pure tail of collectMetrics() into this exported
+// function; the test now exercises that PRODUCTION code directly.
+import { assembleMetrics, type CollectInput } from './server/collect-metrics.mjs'
 
 // ============================================================================
 // Fixtures
