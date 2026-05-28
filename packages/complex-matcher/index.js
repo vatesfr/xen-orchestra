@@ -27,8 +27,8 @@ const isRawString = string => {
 // -------------------------------------------------------------------
 
 class Node {
-  createPredicate() {
-    return value => this.match(value)
+  createPredicate(resolver) {
+    return value => this.match(value, resolver)
   }
 }
 
@@ -55,8 +55,8 @@ class And extends Node {
     this.children = children
   }
 
-  match(value) {
-    return this.children.every(child => child.match(value))
+  match(value, resolver) {
+    return this.children.every(child => child.match(value, resolver))
   }
 
   toString(isNested) {
@@ -105,8 +105,8 @@ class Or extends Node {
     this.children = children
   }
 
-  match(value) {
-    return this.children.some(child => child.match(value))
+  match(value, resolver) {
+    return this.children.some(child => child.match(value, resolver))
   }
 
   toString() {
@@ -122,8 +122,8 @@ class Not extends Node {
     this.child = child
   }
 
-  match(value) {
-    return !this.child.match(value)
+  match(value, resolver) {
+    return !this.child.match(value, resolver)
   }
 
   toString() {
@@ -188,8 +188,8 @@ class Property extends Node {
     this.child = child
   }
 
-  match(value) {
-    return value != null && this.child.match(value[this.name])
+  match(value, resolver) {
+    return value != null && this.child.match(value[this.name], resolver)
   }
 
   toString() {
@@ -313,6 +313,39 @@ class TruthyProperty extends Node {
   }
 }
 exports.TruthyProperty = TruthyProperty
+
+class Resolve extends Node {
+  constructor(child) {
+    super()
+
+    this.child = child
+  }
+
+  match(value, resolver) {
+    if (resolver === undefined) {
+      throw new Error('[resolve] requires a resolver')
+    }
+
+    if (value == null) {
+      return false
+    }
+
+    if (Array.isArray(value)) {
+      return value.some(id => {
+        const obj = resolver(id)
+        return obj != null && this.child.match(obj, resolver)
+      })
+    }
+
+    const obj = resolver(value)
+    return obj != null && this.child.match(obj, resolver)
+  }
+
+  toString() {
+    return `[resolve]:${this.child.toString(true)}`
+  }
+}
+exports.Resolve = Resolve
 
 // -------------------------------------------------------------------
 
@@ -533,6 +566,7 @@ const parser = P.grammar({
       P.seq(P.regex(/[<>]=?/), r.rawString).map(([op, val]) => {
         return new Comparison(op, +val)
       }),
+      P.seq(P.text('[resolve]'), P.text(':'), r.ws, r.term).map(_ => new Resolve(_[3])),
       P.seq(r.property, r.ws, P.text(':'), r.ws, r.term).map(_ => new Property(_[0], _[4])),
       P.seq(r.property, P.text('?')).map(_ => new TruthyProperty(_[0])),
       r.value
