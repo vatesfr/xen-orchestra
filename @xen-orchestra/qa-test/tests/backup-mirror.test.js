@@ -12,14 +12,13 @@ import {
   getScheduleKey,
   getRequiredEnv,
 } from '../utils/index.js'
-import { assertBackupSuccess, assertRepositoryEmpty, clearRepositoryCacheFiles } from '../utils/backupUtils.js'
+import { assertBackupSuccess, assertRepositoryEmpty } from '../utils/backupUtils.js'
 import { setup, teardown } from './setup.js'
 
 const log = createLogger('qa:mirror')
 
 /** Source backup repository — where initial backups are stored */
 const SOURCE_REPOSITORY_NAME = getRequiredEnv('BACKUP_REPOSITORY_NAME')
-const SOURCE_REPOSITORY_PATH = getRequiredEnv('BACKUP_REPOSITORY_PATH')
 
 /** Destination backup repository — mirror target */
 const MIRROR_DESTINATION_REPOSITORY_NAME = getRequiredEnv('MIRROR_DESTINATION_REPOSITORY_NAME')
@@ -53,22 +52,10 @@ describe('Mirror Backup - Full Remote', () => {
   }
 
   /**
-   * Purges all VM backup data from one or more repositories, then clears the
-   * on-disk cache files so that stale entries cannot affect subsequent runs.
-   *
-   * The API-level deletion is best-effort: if individual backups are already
-   * missing on disk (e.g. a previous run left an incomplete state) the error is
-   * logged but cleanup continues. Cache files are wiped unconditionally so that
-   * the next `listVmBackups` / mirror-backup call rebuilds from actual files.
-   *
+   * Purges all VM backup data from one or more repositories.
    * @param  {...{id: string, name: string}} repos - Repositories to purge
    */
   const purgeBackupData = async (...repos) => {
-    const repoPaths = {
-      [sourceRepository?.id]: SOURCE_REPOSITORY_PATH,
-      [destRepository?.id]: MIRROR_DESTINATION_REPOSITORY_PATH,
-    }
-
     for (const repo of repos) {
       if (!repo) {
         continue
@@ -89,11 +76,6 @@ describe('Mirror Backup - Full Remote', () => {
         }
       } catch (error) {
         log.warn('Backup purge failed', { repo: repo.name, error })
-      }
-
-      const repoPath = repoPaths[repo.id]
-      if (repoPath) {
-        await clearRepositoryCacheFiles(repoPath, vm?.uuid)
       }
     }
   }

@@ -1,7 +1,5 @@
 import { createLogger } from '@xen-orchestra/log'
 import assert from 'node:assert'
-import fs from 'node:fs/promises'
-import path from 'node:path'
 
 const log = createLogger('xo:qa-test:backup-utils')
 
@@ -52,36 +50,6 @@ export const assertRepositoryMatchesConfig = (repository, expectedPath) => {
         `but the .env requires "${expectedUrl}". ` +
         `Delete this remote in XO and re-run, or update the env to match the existing remote.`
     )
-  }
-}
-
-/**
- * Deletes XO backup cache files for a repository path and optional VM UUID.
- *
- * XO writes `cache.json.gz` files that can become stale when backup files are
- * deleted outside the normal cleanup flow (e.g. partial failures). A stale cache
- * causes the mirror backup job to try opening `.xva` files that no longer exist,
- * resulting in ENOENT failures. Deleting the cache forces XO to rebuild it from
- * the actual files on the next access.
- *
- * Call this after every `purgeBackupData` invocation to guarantee a clean slate
- * for the next test run.
- *
- * @param {string} repositoryPath - Filesystem path of the backup repository
- * @param {string} [vmUuid] - Optional VM UUID to also clear the per-VM cache
- */
-export const clearRepositoryCacheFiles = async (repositoryPath, vmUuid) => {
-  const targets = [path.join(repositoryPath, 'xo-vm-backups', 'cache.json.gz')]
-  if (vmUuid) {
-    targets.push(path.join(repositoryPath, 'xo-vm-backups', vmUuid, 'cache.json.gz'))
-  }
-  for (const target of targets) {
-    try {
-      await fs.rm(target, { force: true })
-      log.debug('Cleared backup cache file', { target })
-    } catch (err) {
-      log.debug('Cache file cleanup skipped', { target, error: err.message })
-    }
   }
 }
 
