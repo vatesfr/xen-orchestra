@@ -15,6 +15,7 @@
 - [VM] Add possibility to create a VDI on tab VDI (PR [#9848](https://github.com/vatesfr/xen-orchestra/pull/9848))
 - [VIF] Add a new "General" tab to the VIF page (PR [#9831](https://github.com/vatesfr/xen-orchestra/pull/9831))
 - [i18n] Update Chinese (Simplified Han script), Czech, Dutch, German, Korean, Slovak, Spanish and Swedish translations (PR [#9780](https://github.com/vatesfr/xen-orchestra/pull/9780))
+- [REST API] Add `PATCH /vms/{id}` to partially update a VM (PR [#9835](https://github.com/vatesfr/xen-orchestra/pull/9835))
 
 ### Bug fixes
 
@@ -37,7 +38,10 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/acl minor
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- xo-server minor
 
 <!--packages-end-->

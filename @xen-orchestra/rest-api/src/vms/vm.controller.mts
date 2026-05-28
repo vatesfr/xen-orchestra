@@ -5,6 +5,7 @@ import {
   Extension,
   Get,
   Middlewares,
+  Patch,
   Path,
   Post,
   Put,
@@ -39,7 +40,9 @@ import type {
 } from '@vates/types'
 import { PassThrough, Readable } from 'node:stream'
 
-import { acl } from '../middlewares/acl.middleware.mjs'
+import { SUPPORTED_ACTIONS_BY_RESOURCE, type SupportedActions } from '@xen-orchestra/acl'
+
+import { acl, actionsFromBody } from '../middlewares/acl.middleware.mjs'
 import {
   asynchronousActionResp,
   badRequestResp,
@@ -66,11 +69,17 @@ import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
 import type { UnbrandXoVmBackupJob } from '../backup-jobs/backup-job.type.mjs'
 import { partialVmBackupJobs, vmBackupJobIds } from '../open-api/oa-examples/backup-job.oa-example.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
-import type { UnbrandedVmDashboard } from './vm.type.mjs'
+import type { UnbrandedVmDashboard, UpdateVmRequestBody } from './vm.type.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { Task } from '@vates/task'
 
 const IGNORED_VDIS_TAG = '[NOSNAP]'
+
+// `datasources` is managed through the dedicated `/vms/{id}/stats/data_source`
+// endpoints, not as a direct VM property, so it cannot be updated via PATCH /vms.
+const UPDATE_VM_ACTIONS = Object.keys(SUPPORTED_ACTIONS_BY_RESOURCE.vm.update)
+  .filter(action => action !== 'datasources')
+  .map(k => `update:${k}` as SupportedActions<'vm'>)
 
 @Route('vms')
 @Security('*')
@@ -164,6 +173,44 @@ export class VmController extends XapiXoController<XoVm> {
   @Response(notFoundResp.status, notFoundResp.description)
   getVm(@Path() id: string): Unbrand<XoVm> {
     return this.getObject(id as XoVm['id'])
+  }
+
+  /**
+   * Partial update of a VM. Only the fields present in the body are modified;
+   * everything else is left untouched.
+   *
+   * Operations are applied sequentially: if one fails, previously applied
+   * changes are not rolled back.
+   *
+   * Required privilege per field provided in the body:
+   * - resource: vm, action: update:&lt;field&gt; (e.g. update:nameLabel, update:cpus, ...)
+   *
+   * Special fields:
+   * - `xenStoreData` keys are automatically prefixed with `vm-data/` when missing
+   *
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   * @example body {
+   *    "nameLabel": "web-prod-01",
+   *    "nameDescription": "Production web frontend — managed by n8n",
+   *    "notes": "Docker containers: nginx, app-1, app-2"
+   * }
+   */
+  @Patch('{id}')
+  @Middlewares([
+    json(),
+    acl({
+      resource: 'vm',
+      actions: actionsFromBody(UPDATE_VM_ACTIONS),
+      objectId: 'params.id',
+    }),
+  ])
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async updateVm(@Path() id: string, @Body() body: UpdateVmRequestBody): Promise<void> {
+    await this.#vmService.updateVm(id as XoVm['id'], body)
   }
 
   /**
