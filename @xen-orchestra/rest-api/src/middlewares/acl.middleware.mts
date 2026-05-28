@@ -296,7 +296,15 @@ export function acl(acls: AclEntry | AclEntry[]) {
       return next(error)
     }
 
-    const missingPrivileges = getMissingPrivileges(missingPrivilegeParams, userPrivileges)
+    const resolver = (id: string) => {
+      try {
+        return restApi.getObject(id as XapiXoRecord['id'])
+      } catch {
+        return undefined
+      }
+    }
+
+    const missingPrivileges = getMissingPrivileges(missingPrivilegeParams, userPrivileges, resolver)
     if (missingPrivileges.length > 0) {
       return next(
         new ApiError('not enough privileges', 403, {

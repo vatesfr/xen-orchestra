@@ -1,5 +1,5 @@
 import type { Request as ExRequest } from 'express'
-import type { XoTask } from '@vates/types'
+import type { XapiXoRecord, XoTask } from '@vates/types'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import {
   Delete,
@@ -112,6 +112,14 @@ export class TaskController extends XoController<XoTask> {
         req.destroy()
       })
 
+      const resolver = (id: string) => {
+        try {
+          return this.restApi.getObject(id as XapiXoRecord['id'])
+        } catch {
+          return undefined
+        }
+      }
+
       const userId = this.restApi.getCurrentUser().id
       const update = async (task: XoTask) => {
         const user = await this.restApi.xoApp.getUser(userId)
@@ -121,7 +129,7 @@ export class TaskController extends XoController<XoTask> {
             : ((await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[])
 
         if (
-          hasPrivilegeOn({ user, userPrivileges, action: 'read', resource: 'task', objects: task }) &&
+          hasPrivilegeOn({ user, userPrivileges, action: 'read', resource: 'task', objects: task }, resolver) &&
           (userFilter === undefined || userFilter(task))
         ) {
           stream.write(['update', task])
@@ -135,7 +143,7 @@ export class TaskController extends XoController<XoTask> {
             : ((await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[])
 
         if (
-          hasPrivilegeOn({ user, userPrivileges, action: 'read', resource: 'task', objects: task }) &&
+          hasPrivilegeOn({ user, userPrivileges, action: 'read', resource: 'task', objects: task }, resolver) &&
           (userFilter === undefined || userFilter(task))
         ) {
           stream.write(['remove', { id: task.id }])
@@ -203,9 +211,17 @@ export class TaskController extends XoController<XoTask> {
     const userPrivileges =
       user.permission === 'admin' ? [] : ((await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[])
 
+    const resolver = (id: string) => {
+      try {
+        return this.restApi.getObject(id as XapiXoRecord['id'])
+      } catch {
+        return undefined
+      }
+    }
+
     const deletePromises: Promise<void>[] = []
     for await (const task of this.restApi.tasks.list()) {
-      if (hasPrivilegeOn({ user, userPrivileges, resource: 'task', action: 'delete', objects: task })) {
+      if (hasPrivilegeOn({ user, userPrivileges, resource: 'task', action: 'delete', objects: task }, resolver)) {
         deletePromises.push(this.restApi.tasks.deleteLog(task.id))
       }
     }
