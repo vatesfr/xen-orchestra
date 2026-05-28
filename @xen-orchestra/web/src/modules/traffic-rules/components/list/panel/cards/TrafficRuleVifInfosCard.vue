@@ -10,7 +10,8 @@
           <UiLink
             size="small"
             icon="object:vif"
-            :to="vm ? { name: '/vm/[id]/networks', params: { id: vm?.id } } : undefined"
+            :to="vif ? { name: '/vif/[id]/general', params: { id: vif.id } } : undefined"
+            :disabled="!vm"
           >
             {{ vifDevice }}
           </UiLink>
@@ -100,7 +101,7 @@
           {{ t('locking-mode') }}
         </template>
         <template #value>
-          {{ vif.lockingMode }}
+          {{ lockingModeLabel }}
         </template>
         <template #addons>
           <VtsCopyButton :value="vif.lockingMode" />
@@ -122,11 +123,10 @@
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import type { TrafficRule } from '@/modules/traffic-rules/types'
+import { useXoVifUtils } from '@/modules/vif/composables/xo-vif-utils.composable.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
-import type { ObjectIconName } from '@core/icons'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -134,6 +134,8 @@ import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import { objectIcon } from '@core/icons'
+import type { TrafficRule } from '@vates/types'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -148,15 +150,13 @@ const { useGetVmById } = useXoVmCollection()
 
 const { getPifsByNetworkId } = useXoPifCollection()
 
+const { lockingModeLabel } = useXoVifUtils(() => vif)
+
 const vifStatus = computed(() => (vif.attached ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED))
 
 const vm = useGetVmById(() => vif.$VM)
 
-const vmStatus = computed(() => {
-  const state = toLower(vm.value?.power_state)
-
-  return `object:vm:${state === undefined ? 'unknown' : state}` as ObjectIconName
-})
+const vmStatus = computed(() => objectIcon('vm', toLower(vm.value?.power_state)))
 
 const network = useGetNetworkById(() => vif.$network)
 

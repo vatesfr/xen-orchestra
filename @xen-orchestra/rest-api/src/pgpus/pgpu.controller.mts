@@ -4,7 +4,7 @@ import type { Request as ExRequest } from 'express'
 
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
-import { Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Extension, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { acl } from '../middlewares/acl.middleware.mjs'
 import {
   badRequestResp,
@@ -38,6 +38,7 @@ export class PgpuController extends XapiXoController<XoPgpu> {
    */
   @Example(pgpuIds)
   @Example(partialPgpus)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   getPgpus(
@@ -61,6 +62,7 @@ export class PgpuController extends XapiXoController<XoPgpu> {
    * @example id "838335fa-ee21-15e1-760a-a37a3a4ef1db"
    */
   @Example(pgpu)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(acl({ resource: 'pgpu', action: 'read', objectId: 'params.id' }))
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)

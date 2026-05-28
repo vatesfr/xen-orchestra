@@ -1,4 +1,6 @@
+import { formValidationConfig } from '@/plugins/form-validation.config.ts'
 import i18n from '@core/i18n'
+import { RegleVuePlugin } from '@regle/core'
 import type { XoUser } from '@vates/types'
 import { useFetch } from '@vueuse/core'
 import { createPinia } from 'pinia'
@@ -43,6 +45,7 @@ async function init() {
   app.use(i18n)
   app.use(createPinia())
   app.use(router)
+  app.use(RegleVuePlugin, formValidationConfig)
 
   app.mount('#app')
 }

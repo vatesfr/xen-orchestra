@@ -238,7 +238,7 @@ export class VmBackupDirectory implements VmBackupInterface {
           this.rootPath,
           metadataPath,
           metadata,
-          metadata.xva!,
+          resolve('/', this.rootPath, metadata.xva!),
           this.opts
         )
       } else if (metadata.mode === 'delta') {

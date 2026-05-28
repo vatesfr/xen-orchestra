@@ -13,11 +13,12 @@ import {
   getBackupTransferredBytes,
   getDefaultSchedule,
   getScheduleKey,
+  getRequiredEnv,
 } from '../utils/index.js'
 import { assertBackupSuccess } from '../utils/backupUtils.js'
 import { setup, teardown } from './setup.js'
 
-const log = createLogger('xo:qa-test:tests')
+const log = createLogger('qa:backup:nbd')
 
 describe('NBD Incremental Backup Tests', () => {
   let vm
@@ -33,7 +34,7 @@ describe('NBD Incremental Backup Tests', () => {
     ;({ dispatchClient, tracker } = await setup())
 
     // Look for test VMs with incremental naming pattern
-    const vmPrefix = process.env.VM_PREFIX || 'TST'
+    const vmPrefix = getRequiredEnv('VM_PREFIX')
     const filter = FilterBuilder.create().withGlob('name_label', `${vmPrefix}-QA-Test-*`)
     const qaVms = await dispatchClient.vm.list(filter)
 
@@ -43,23 +44,17 @@ describe('NBD Incremental Backup Tests', () => {
     vm = qaVms[0]
     log.debug('Found test VM for NBD backup tests', { name: vm.name_label, uuid: vm.uuid })
 
-    backupRepository = await dispatchClient.backupRepository.get({
-      name: process.env.BACKUP_REPOSITORY_NAME || 'Test backup QA',
-    })
+    const backupRepositoryName = getRequiredEnv('BACKUP_REPOSITORY_NAME')
+    backupRepository = await dispatchClient.backupRepository.get({ name: backupRepositoryName })
 
     if (!backupRepository) {
-      log.warn('Backup repository not found, creating it for tests', {
-        name: process.env.BACKUP_REPOSITORY_NAME || 'Test backup QA',
-      })
+      log.warn('Backup repository not found, creating it for tests', { name: backupRepositoryName })
 
       // Create the backup repository for testing
       try {
-        const backupRepositoryId = await dispatchClient.backupRepository.create(
-          process.env.BACKUP_REPOSITORY_NAME || 'Test backup QA',
-          {
-            path: process.env.BACKUP_REPOSITORY_PATH || '/tmp/xo-test-backups',
-          }
-        )
+        const backupRepositoryId = await dispatchClient.backupRepository.create(backupRepositoryName, {
+          path: getRequiredEnv('BACKUP_REPOSITORY_PATH'),
+        })
 
         // Fetch the canonical repository object from the API
         // eslint-disable-next-line require-atomic-updates -- sequential code in before() hook, no race condition
@@ -70,22 +65,17 @@ describe('NBD Incremental Backup Tests', () => {
         }
 
         // Track the newly created repository for cleanup
-        tracker.trackResource('backupRepository', backupRepositoryId, {
-          name: process.env.BACKUP_REPOSITORY_NAME || 'Test backup QA',
-        })
+        tracker.trackResource('backupRepository', backupRepositoryId, { name: backupRepositoryName })
       } catch (error) {
-        log.warn('Failed to create test backup repository', { error: error.message })
+        log.warn('Failed to create test backup repository', { error })
         assert.fail(
-          `Backup repository "${process.env.BACKUP_REPOSITORY_NAME || 'Test backup QA'}" is required for NBD backup tests - could not create it: ${error.message}`
+          `Backup repository "${backupRepositoryName}" is required for NBD backup tests - could not create it: ${error.message}`
         )
       }
     }
 
     // Get SR for health checks by ID
-    const srId = process.env.SR_ID
-    if (!srId) {
-      throw new Error('SR_ID environment variable is required for NBD backup tests with health checks')
-    }
+    const srId = getRequiredEnv('SR_ID')
 
     log.debug('Getting SR for health checks', { srId })
     healthCheckSr = await dispatchClient.sr.details(srId)

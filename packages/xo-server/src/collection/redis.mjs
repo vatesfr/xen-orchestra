@@ -9,6 +9,8 @@ import map from 'lodash/map.js'
 import omit from 'lodash/omit.js'
 import { v4 as generateUuid } from 'uuid'
 
+import { createLogger } from '@xen-orchestra/log'
+
 import Collection, { ModelAlreadyExists } from '../collection.mjs'
 
 /** @typedef {import('../xo-mixins/crypto-credentials.mjs').default} CryptoCredentials */
@@ -34,6 +36,8 @@ import Collection, { ModelAlreadyExists } from '../collection.mjs'
 // TODO: Remote events.
 
 const VERSION = '20170905'
+
+const log = createLogger('xo:redis')
 
 export default class Redis extends Collection {
   /** @type {CryptoCredentials | undefined} */
@@ -191,22 +195,26 @@ export default class Redis extends Collection {
           }
 
           const previous = await this.#get(`${prefix}:${id}`)
-          await this._beforeUpdate(model, this._unserialize(previous) ?? previous)
+          if (previous !== undefined) {
+            await this._beforeUpdate(model, this._unserialize(previous) ?? previous)
 
-          // remove the previous values from indexes
-          if (indexes.length !== 0) {
-            await asyncMapSettled(indexes, async index => {
-              let value = previous[index]
-              if (value !== undefined) {
-                if (this.#crypto && !this.#crypto.isDegraded()) {
-                  value = await this.#crypto.hmacIndex(String(value).toLowerCase())
-                } else {
-                  value = String(value).toLowerCase()
+            // remove the previous values from indexes
+            if (indexes.length !== 0) {
+              await asyncMapSettled(indexes, async index => {
+                let value = previous[index]
+                if (value !== undefined) {
+                  if (this.#crypto && !this.#crypto.isDegraded()) {
+                    value = await this.#crypto.hmacIndex(String(value).toLowerCase())
+                  } else {
+                    value = String(value).toLowerCase()
+                  }
+
+                  return redis.sRem(`${prefix}_${index}:${value}`, id)
                 }
-
-                return redis.sRem(`${prefix}_${index}:${value}`, id)
-              }
-            })
+              })
+            }
+          } else {
+            log.warn(`The id ${prefix}:${id} had no attached entries.`)
           }
         }
 
@@ -219,7 +227,6 @@ export default class Redis extends Collection {
           serialized = await this.#crypto.encrypt(serialized)
         }
 
-        await redis.del(key)
         await redis.set(key, serialized)
 
         // Update indexes.

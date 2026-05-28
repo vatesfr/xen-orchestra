@@ -14,8 +14,9 @@ import {
   formatBytes,
 } from '../utils/exportUtils.js'
 import { setup, teardown } from './setup.js'
+import { getRequiredEnv } from '../utils/index.js'
 
-const log = createLogger('xo:qa-test:tests')
+const log = createLogger('qa:export')
 
 describe('VHD/XVA Export Replication Tests', () => {
   /** @type {import('../client/dispatchClient.js').DispatchClient} */
@@ -35,7 +36,7 @@ describe('VHD/XVA Export Replication Tests', () => {
     ;({ dispatchClient, tracker } = await setup())
 
     // Find test VM
-    const vmPrefix = process.env.VM_PREFIX || 'TST'
+    const vmPrefix = getRequiredEnv('VM_PREFIX')
     const filter = FilterBuilder.create().withGlob('name_label', `${vmPrefix}-QA-Test-*`)
     const qaVms = await dispatchClient.vm.list(filter)
 
@@ -45,10 +46,7 @@ describe('VHD/XVA Export Replication Tests', () => {
     log.debug('Found test VM for export tests', { name: vm.name_label, uuid: vm.uuid })
 
     // Get SR for restoration tests
-    const srId = process.env.SR_ID
-    if (!srId) {
-      throw new Error('SR_ID environment variable is required for export tests')
-    }
+    const srId = getRequiredEnv('SR_ID')
 
     sr = await dispatchClient.sr.details(srId)
     if (!sr) {
@@ -58,10 +56,20 @@ describe('VHD/XVA Export Replication Tests', () => {
     log.debug('Found SR for tests', { name: sr.name_label, uuid: sr.uuid })
 
     // Set export path
-    exportPath = process.env.VHD_EXPORT_PATH || '/tmp/xo-test-exports'
+    exportPath = getRequiredEnv('VHD_EXPORT_PATH')
 
     // Ensure export directory exists
-    await fs.mkdir(exportPath, { recursive: true })
+    try {
+      await fs.mkdir(exportPath, { recursive: true })
+    } catch (cause) {
+      const error = new Error(
+        `Cannot create export directory "${exportPath}" (${cause.code}) — ` +
+          `run: sudo mkdir -p "${exportPath}" && sudo chown $USER "${exportPath}", ` +
+          `or set VHD_EXPORT_PATH to a writable path`
+      )
+      error.cause = cause
+      throw error
+    }
     log.debug('Export path', { exportPath })
   })
 
@@ -74,7 +82,7 @@ describe('VHD/XVA Export Replication Tests', () => {
           await fs.unlink(filePath)
           log.debug('Deleted exported file', { filePath })
         } catch (error) {
-          log.warn('Failed to delete exported file', { filePath, error: error.message })
+          log.warn('Failed to delete exported file', { filePath, error })
         }
       }
     }
@@ -275,7 +283,7 @@ describe('VHD/XVA Export Replication Tests', () => {
           await dispatchClient.vm.delete(restoredVmUuid, { deleteDisks: true })
           log.debug('Cleaned up restored VM', { uuid: restoredVmUuid })
         } catch (error) {
-          log.warn('Failed to cleanup restored VM', { uuid: restoredVmUuid, error: error.message })
+          log.warn('Failed to cleanup restored VM', { uuid: restoredVmUuid, error })
         }
       }
 

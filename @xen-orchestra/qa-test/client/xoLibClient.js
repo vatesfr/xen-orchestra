@@ -1,7 +1,7 @@
 import { createLogger } from '@xen-orchestra/log'
 import Xo from 'xo-lib'
 
-const log = createLogger('xo:qa-test:ws')
+const log = createLogger('ws')
 
 const XoConnection = Xo.default
 
@@ -42,7 +42,7 @@ export async function xoConnection(config) {
 
     return xo
   } catch (error) {
-    log.warn('Failed to connect to XO server', { error: error.message })
+    log.warn('Failed to connect to XO server', { error })
     throw new Error(`XO connection failed: ${error.message}`)
   }
 }

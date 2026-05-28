@@ -236,28 +236,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
   //   ensure they are attached to only one vm snapshot
   //   ensure any VM-snapshot harvested by this has all its disk harvested (no mix of vdi snapshot from this job and not)
 
-  async _fetchJobSnapshots() {
-    const jobId = this._jobId
-    const xapi = this._xapi
-
-    const vdiCandidates = {}
-    const vdiUuids = this._vm.$VBDs.map(({ VDI }) => VDI)
-    Object.values(xapi.objects.indexes.type.VDI)
-      .filter(_ => !!_) // filter nullish
-      .filter(({ other_config, snapshot_of }) => {
-        return (
-          vdiUuids.includes(snapshot_of) &&
-          other_config[JOB_ID] === jobId &&
-          other_config[VM_UUID] === this._vm.uuid &&
-          other_config[COPY_OF] === undefined
-        )
-      })
-      .forEach(vdi => {
-        vdiCandidates[vdi.uuid] = vdi
-      })
-
-    // check that user snapshots are clean
-
+  _filterValidSnapshotVdis(vdiCandidates) {
     for (const vdi of Object.values(vdiCandidates)) {
       // cbt metadata are always considered linked to a backup job
       // if they have the right other_config
@@ -279,7 +258,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       const userVms = vbds.map(({ $VM }) => $VM)
       if (vbds.length > 1) {
         warn(
-          `vdi ${vdi.name_label} (${vdi.uuid}) is linked to multipe vms :  ${userVms.map(({ name_label, uuid }) => `${name_label} ${uuid}`).join(', ')}. 
+          `vdi ${vdi.name_label} (${vdi.uuid}) is linked to multipe vms :  ${userVms.map(({ name_label, uuid }) => `${name_label} ${uuid}`).join(', ')}.
               This disk snapshot will be excluded from the backup cleaning`,
           { vdi, userVms }
         )
@@ -294,7 +273,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       // => we exclude these from the backup processing
       if (vm.$snapshot_of === undefined) {
         warn(
-          `vdi ${vdi.name_label} (${vdi.uuid}) is a snapshot linked to a non snapshot vm ${vm.name_label} ${vm.uuid}. 
+          `vdi ${vdi.name_label} (${vdi.uuid}) is a snapshot linked to a non snapshot vm ${vm.name_label} ${vm.uuid}.
           This disk snapshot will be excluded from the backup cleaning`,
           { vdi, vm }
         )
@@ -311,7 +290,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         vm.other_config[VM_UUID] !== vdi.other_config[VM_UUID]
       ) {
         warn(
-          `vdi ${vdi.name_label} (${vdi.uuid}) is a snapshot linked to a snapshot vm ${vm.name_label} ${vm.uuid} out of this backup job scope. 
+          `vdi ${vdi.name_label} (${vdi.uuid}) is a snapshot linked to a snapshot vm ${vm.name_label} ${vm.uuid} out of this backup job scope.
           This disk snapshot will be excluded from the backup cleaning`,
           { vdi, vm }
         )
@@ -328,7 +307,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         .forEach(({ $VDI: outOfSnapshotsVdi, ...other }) => {
           warn(
             `vdi ${vdi.name_label} ${vdi.uuid} is recognized as a snapshot of the backup job,
-           linked to vm ${vm.name_label} ${vm.uuid} but vdi ${outOfSnapshotsVdi.name_label} ${outOfSnapshotsVdi.uuid} 
+           linked to vm ${vm.name_label} ${vm.uuid} but vdi ${outOfSnapshotsVdi.name_label} ${outOfSnapshotsVdi.uuid}
            is not linked to the job. This disk snapshot will be excluded from the backup cleaning`,
             { vdi, vm, vbds, outOfSnapshotsVdi }
           )
@@ -336,19 +315,44 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           delete vdiCandidates[vdi.uuid]
         })
     }
+  }
+
+  async _fetchJobSnapshots() {
+    const jobId = this._jobId
+    const xapi = this._xapi
+
+    const vdiCandidates = {}
+    const vdiUuids = this._vm.$VBDs.map(({ VDI }) => VDI)
+    Object.values(xapi.objects.indexes.type.VDI)
+      .filter(_ => !!_) // filter nullish
+      .filter(({ other_config, snapshot_of }) => {
+        return (
+          vdiUuids.includes(snapshot_of) &&
+          other_config[JOB_ID] === jobId &&
+          other_config[VM_UUID] === this._vm.uuid &&
+          other_config[COPY_OF] === undefined
+        )
+      })
+      .forEach(vdi => {
+        vdiCandidates[vdi.uuid] = vdi
+      })
+
+    this._filterValidSnapshotVdis(vdiCandidates)
 
     this._jobSnapshotVdis = Object.values(vdiCandidates)
 
     // For VMs with no disks, retention must be tracked directly on VM snapshots
     // since there are no VDIs to anchor the discovery.
     if (vdiUuids.length === 0) {
-      this._disklessJobSnapshotVms = this._vm.$snapshots.filter(Boolean).filter(
-        ({ other_config, $snapshot_of }) =>
-          $snapshot_of !== undefined &&
-          other_config[JOB_ID] === jobId &&
-          other_config[VM_UUID] === this._vm.uuid &&
-          other_config[COPY_OF] === undefined
-      )
+      this._disklessJobSnapshotVms = this._vm.$snapshots
+        .filter(Boolean)
+        .filter(
+          ({ other_config, $snapshot_of }) =>
+            $snapshot_of !== undefined &&
+            other_config[JOB_ID] === jobId &&
+            other_config[VM_UUID] === this._vm.uuid &&
+            other_config[COPY_OF] === undefined
+        )
     } else {
       this._disklessJobSnapshotVms = []
     }
@@ -447,7 +451,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     if (disklessVmSnapshots.length > 0) {
       const snapshotsPerSchedule = groupBy(disklessVmSnapshots, _ => _.other_config[SCHEDULE_ID])
       await asyncEach(Object.entries(snapshotsPerSchedule), async ([scheduleId, snapshots]) => {
-        // we only have one snapshot per date time since it's at the VM level 
+        // we only have one snapshot per date time since it's at the VM level
         const snapshotPerDatetime = Object.fromEntries(snapshots.map(s => [s.other_config[DATETIME], s.$ref]))
         const datetimes = Object.keys(snapshotPerDatetime).sort()
         const settings = {

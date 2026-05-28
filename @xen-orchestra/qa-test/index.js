@@ -1,3 +1,4 @@
+import './logSetup.js'
 import { createLogger } from '@xen-orchestra/log'
 import { DispatchClient } from './client/dispatchClient.js'
 import { formatDuration } from './utils/index.js'
@@ -36,7 +37,7 @@ async function main() {
     log.debug('Infrastructure test completed successfully', { duration })
   } catch (error) {
     const duration = formatDuration(Date.now() - startTime)
-    log.warn('Infrastructure test failed', { duration, error: error.message })
+    log.warn('Infrastructure test failed', { duration, error })
     process.exit(1) // eslint-disable-line n/no-process-exit
   } finally {
     await dispatchClient.close()
@@ -44,6 +45,6 @@ async function main() {
 }
 
 main().catch(error => {
-  log.warn('Unexpected error', { error: error.message })
+  log.warn('Unexpected error', { error })
   process.exit(1) // eslint-disable-line n/no-process-exit
 })

@@ -2,6 +2,7 @@ import {
   Body,
   Delete,
   Example,
+  Extension,
   Get,
   Middlewares,
   Path,
@@ -69,6 +70,7 @@ export class VbdController extends XapiXoController<XoVbd> {
    */
   @Example(vbdIds)
   @Example(partialVbds)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   getVbds(
@@ -92,6 +94,7 @@ export class VbdController extends XapiXoController<XoVbd> {
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(vbd)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(acl({ resource: 'vbd', action: 'read', objectId: 'params.id' }))
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -106,6 +109,7 @@ export class VbdController extends XapiXoController<XoVbd> {
    * @example body { "VM": "4fe90510-8da4-1530-38e2-a7876ef374c7", "VDI": "656052a2-2e3e-467b-88ba-63a9ea5e4a54", "bootable": false, "mode": "RW" }
    */
   @Example(vbdId)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('')
   @Middlewares(json())
   @SuccessResponse(createdResp.status, createdResp.description)
@@ -146,6 +150,7 @@ export class VbdController extends XapiXoController<XoVbd> {
    *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}')
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -164,6 +169,7 @@ export class VbdController extends XapiXoController<XoVbd> {
    * @example limit 42
    */
   @Example(genericAlarmsExample)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/alarms')
   @Security('*', ['acl'])
   @Tags('alarms')
@@ -200,6 +206,7 @@ export class VbdController extends XapiXoController<XoVbd> {
    */
   @Example(messageIds)
   @Example(partialMessages)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/messages')
   @Security('*', ['acl'])
   @Tags('messages')
@@ -233,6 +240,7 @@ export class VbdController extends XapiXoController<XoVbd> {
    */
   @Example(taskIds)
   @Example(partialTasks)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/tasks')
   @Security('*', ['acl'])
   @Tags('tasks')
@@ -259,6 +267,7 @@ export class VbdController extends XapiXoController<XoVbd> {
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/connect')
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
@@ -286,6 +295,7 @@ export class VbdController extends XapiXoController<XoVbd> {
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/disconnect')
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)

@@ -56,7 +56,6 @@ export type XapiConnection = Xapi & {
   sessionId: string
   _url?: { protocol: string; hostname: string; port?: string }
 }
-
 type XapiRecordByXapiXoRecord = {
   gpuGroup: XenApiGpuGroupWrapped
   host: XenApiHostWrapped
@@ -120,7 +119,7 @@ export type XoApp = {
   }
   config: {
     get<T = string>(path: string): T
-    getOptional(path: string): Record<string, string> | undefined
+    getOptional<T = unknown>(path: string): T | undefined
     getOptionalDuration(path: string): number | undefined
     getGuiRoutes(): Promise<{
       default: {
@@ -170,6 +169,15 @@ export type XoApp = {
   addAclV2GroupRole(groupId: XoGroup['id'], roleId: XoAclRole['id']): Promise<XoGroupRole>
   addAclV2UserRole(userId: XoUser['id'], roleId: XoAclRole['id']): Promise<XoUserRole>
   addUserToGroup: (userId: XoUser['id'], groupId: XoGroup['id']) => Promise<void>
+  addApiMethod: <A extends unknown[], R>(
+    name: string,
+    method: (...args: A) => Promise<R>,
+    //we use any since it is a legacy call, might be better typed in another pr
+    info: {
+      resolve?: any
+      params?: any
+    }
+  ) => () => void // eslint-disable-line @typescript-eslint/no-explicit-any
   authenticateUser: (
     credentials: { token?: string; username?: string; password?: string },
     userData?: { ip?: string },
@@ -290,6 +298,8 @@ export type XoApp = {
   ): Promise<XoServer>
   rollingPoolReboot(pool: XoPool, opts?: { parentTask?: VatesTask }): Promise<void>
   rollingPoolUpdate(pool: XoPool, opts?: { rebootVm?: boolean; parentTask?: VatesTask }): Promise<void>
+  setVmResourceSet(vmId: XoVm['id'], resourceSetId: string | null, force?: boolean): Promise<void>
+  shareVmResourceSet(vmId: XoVm['id']): Promise<void>
   removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>
   runJob(job: AnyXoJob, schedule: XoSchedule): void
   runWithApiContext: (user: XoUser | undefined, fn: () => void) => Promise<unknown>

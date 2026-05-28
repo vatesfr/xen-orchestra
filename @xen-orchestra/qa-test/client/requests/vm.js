@@ -2,7 +2,7 @@ import { createLogger } from '@xen-orchestra/log'
 import fs from 'node:fs/promises'
 import { FilterBuilder } from '../FilterBuilder.js'
 import { AbstractRequest } from './abstract.js'
-import { assertNonEmptyString } from '../../utils/index.js'
+import { assertNonEmptyString, waitUntil } from '../../utils/index.js'
 
 const log = createLogger('xo:qa-test:vm')
 
@@ -89,15 +89,83 @@ export class VMRequest extends AbstractRequest {
             name_description: description,
           })
         } catch (error) {
-          log.warn('Failed to set VM description', { vmId: clonedVmId, error: error.message })
+          log.warn('Failed to set VM description', { vmId: clonedVmId, error })
         }
       }
 
       log.debug('VM cloned successfully', { name: vmName, id: clonedVmId })
       return clonedVmId
     } catch (error) {
-      log.warn('Failed to clone VM', { uuid: vmUuid, error: error.message })
+      log.warn('Failed to clone VM', { uuid: vmUuid, error })
       throw new Error(`Failed to clone VM ${vmUuid}: ${error.message}`)
+    }
+  }
+
+  /**
+   * Starts a virtual machine.
+   *
+   * Always uses JSON-RPC — the REST API does not expose the `force` parameter.
+   *
+   * @param {string} vmUuid - UUID of the VM to start
+   * @param {Object} [options={}]
+   * @param {boolean} [options.force=false] - Bypass any start-operation block set on the VM
+   * @returns {Promise<void>}
+   * @throws {Error} If the VM UUID is invalid or the start operation fails
+   */
+  async start(vmUuid, options = {}) {
+    if (!vmUuid || typeof vmUuid !== 'string') {
+      throw new Error('Valid VM UUID is required')
+    }
+
+    this._ensureConnected()
+
+    const { force = false } = options
+
+    const currentVm = await this.details(vmUuid)
+    if (currentVm?.power_state === 'Running') {
+      log.debug('VM already running, skipping start', { uuid: vmUuid })
+      return
+    }
+
+    try {
+      await this.dispatchClient.xoClient.call('vm.start', { id: vmUuid, force })
+      log.debug('VM started', { uuid: vmUuid })
+    } catch (error) {
+      throw new Error(`Failed to start VM ${vmUuid}: ${error.message}`)
+    }
+  }
+
+  /**
+   * Stops a virtual machine.
+   *
+   *
+   * @param {string} vmUuid - UUID of the VM to stop
+   * @param {Object} [options={}]
+   * @param {boolean} [options.force=false] - Hard-stop (equivalent to power cut)
+   * @returns {Promise<void>}
+   * @throws {Error} If the VM UUID is invalid or the stop operation fails
+   */
+  async stop(vmUuid, options = {}) {
+    if (!vmUuid || typeof vmUuid !== 'string') {
+      throw new Error('Valid VM UUID is required')
+    }
+
+    this._ensureConnected()
+
+    const { force = false } = options
+
+    const currentVm = await this.details(vmUuid)
+    if (currentVm?.power_state === 'Halted') {
+      log.debug('VM already halted, skipping stop', { uuid: vmUuid })
+      return
+    }
+
+    const action = force ? 'hard_shutdown' : 'clean_shutdown'
+    try {
+      await this.dispatchClient.restApiClient.post(`/rest/v0/vms/${vmUuid}/actions/${action}?sync=true`)
+      log.debug('VM stopped', { uuid: vmUuid, action })
+    } catch (error) {
+      throw new Error(`Failed to stop VM ${vmUuid}: ${error.message}`)
     }
   }
 
@@ -133,7 +201,7 @@ export class VMRequest extends AbstractRequest {
 
       log.debug('VM deleted successfully', { uuid: vmUuid })
     } catch (error) {
-      log.warn('Failed to delete VM', { uuid: vmUuid, error: error.message })
+      log.warn('Failed to delete VM', { uuid: vmUuid, error })
       throw new Error(`Failed to delete VM ${vmUuid}: ${error.message}`)
     }
   }
@@ -174,6 +242,30 @@ export class VMRequest extends AbstractRequest {
       logSuffix: `compression: ${compress}`,
       extraResult: { compressed: compress },
     })
+  }
+
+  /**
+   * Polls VM power state until it matches the target state or timeout is reached.
+   *
+   * @param {string} vmUuid - UUID of the VM to watch
+   * @param {'Running'|'Halted'|'Paused'|'Suspended'} targetState - Expected power state
+   * @param {number} timeout - Maximum wait time in milliseconds
+   * @returns {Promise<void>}
+   * @throws {Error} If the VM does not reach the target state within the timeout
+   */
+  async waitForPowerState(vmUuid, targetState, timeout) {
+    assertNonEmptyString(vmUuid, 'Valid VM UUID is required', 'INVALID_VM_UUID')
+    assertNonEmptyString(targetState, 'Valid target state is required', 'INVALID_TARGET_STATE')
+    this._ensureConnected()
+
+    return waitUntil(
+      async () => {
+        const vm = await this.details(vmUuid)
+        return vm?.power_state === targetState
+      },
+      3_000,
+      timeout
+    )
   }
 
   /**

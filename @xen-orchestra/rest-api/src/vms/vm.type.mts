@@ -1,5 +1,21 @@
-import type { XoAlarm, XoHost, XoSr, XoUser, XoVm, XoVmBackupArchive, XoVmBackupJob } from '@vates/types'
+import type { EditVmProps, XoAlarm, XoHost, XoSr, XoUser, XoVm, XoVmBackupArchive, XoVmBackupJob } from '@vates/types'
 import { Unbrand } from '../open-api/common/response.common.mjs'
+
+/**
+ * Body of `PATCH /vms/{id}`.
+ *
+ * Extends {@link EditVmProps} with two REST-only properties that the xo-server
+ * resource-set mixin handles outside of `editVm`.
+ */
+export interface UpdateVmRequestBody extends EditVmProps {
+  /** Moves the VM in/out of a resource set. */
+  resourceSet?: string | null
+  /**
+   * When `true` and the VM is in a resource set, share the VM with all members
+   * of that resource set. `false` is a no-op.
+   */
+  share?: boolean
+}
 
 type VmDashboardRun = { backupJobId: XoVmBackupJob['id']; timestamp: number; status: string }
 type VmDashboardBackupArchive = {

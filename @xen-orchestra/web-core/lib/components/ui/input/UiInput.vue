@@ -133,6 +133,10 @@ defineExpose({ focus })
     color: var(--color-brand-txt-base);
   }
 
+  &.disabled .right-icon {
+    color: var(--color-neutral-txt-secondary);
+  }
+
   .readonly-input {
     border: none;
     width: 0;
@@ -171,7 +175,7 @@ defineExpose({ focus })
       border-color: var(--color-brand-item-active);
     }
 
-    &:has(input:disabled) {
+    &.disabled {
       border-color: var(--color-neutral-border);
       background-color: var(--color-neutral-background-disabled);
     }
@@ -188,7 +192,7 @@ defineExpose({ focus })
       border-color: var(--color-warning-item-active);
     }
 
-    &:has(input:disabled) {
+    &.disabled {
       border-color: var(--color-neutral-border);
       background-color: var(--color-neutral-background-disabled);
     }
@@ -205,7 +209,7 @@ defineExpose({ focus })
       border-color: var(--color-danger-item-active);
     }
 
-    &:has(input:disabled) {
+    &.disabled {
       border-color: var(--color-neutral-border);
       background-color: var(--color-neutral-background-disabled);
     }

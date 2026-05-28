@@ -100,6 +100,35 @@ Two authentication modes are supported: **token** (recommended) or **username/pa
 
 To generate a token, go to the XO user page (`/user`) or run `xo-cli create-token`. If both `XO_TOKEN` and `XO_USERNAME`/`XO_PASSWORD` are set, token authentication takes priority.
 
+### Behind a corporate proxy
+
+The MCP server respects `HTTP_PROXY`, `HTTPS_PROXY`, and `NO_PROXY`. Set them when your AI assistant uses an outbound proxy but your XOA is on the internal network.
+
+| Variable      | Effect                                                                                                                                                                                                                                                                                                                                                              |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `HTTP_PROXY`  | Proxy URL for plain HTTP requests, e.g. `http://proxy.corp.example:3128`. Credentials are supported: `http://user:pass@proxy:3128` (Basic auth only — NTLM/Kerberos proxies need a sidecar like cntlm).                                                                                                                                                             |
+| `HTTPS_PROXY` | Proxy URL for HTTPS requests. Same format as `HTTP_PROXY`. The proxy itself is contacted over HTTP; `https://` schemes are unusual.                                                                                                                                                                                                                                 |
+| `NO_PROXY`    | Comma-separated list of hostnames that bypass the proxy. Three forms: exact host (`xoa.internal.example.com`), suffix wildcard (`.example.com` or `*.example.com` — matches subdomains, **not** the bare domain — list both if needed), or `*` alone to bypass everything. CIDR ranges are not supported by the underlying library. Lowercase `no_proxy` works too. |
+
+Example for Claude Desktop, with a corporate proxy and a XOA on the internal network:
+
+```json
+{
+  "mcpServers": {
+    "xo": {
+      "command": "npx",
+      "args": ["@xen-orchestra/mcp"],
+      "env": {
+        "XO_URL": "https://xoa.internal.example.com",
+        "XO_TOKEN": "your-token",
+        "HTTPS_PROXY": "http://proxy.corp.example:3128",
+        "NO_PROXY": "xoa.internal.example.com"
+      }
+    }
+  }
+}
+```
+
 ### Available Tools
 
 At startup, the server fetches the OpenAPI spec from your XO instance (`/rest/v0/docs/swagger.json`) and generates one tool per resource domain. Domain and operation names come straight from the spec: the primary tag (`tags[0]`) becomes `{tag}_query`, and each `operationId` (e.g. `GetVms`, `StartVm`, `HardShutdownVm`) is used verbatim as the enum value. No hand-curated mapping — if the XO server adds a new endpoint, it appears automatically. Responses are rendered as markdown tables by the REST API itself (via `?markdown=true`); the MCP layer only relays them.
@@ -134,7 +163,21 @@ Stats endpoints (`/…/stats`) and binary download endpoints (`.xva`, `.ova`, `.
 
 ### Write operations
 
-Action tools (create/update/delete) are gated behind `XO_MCP_ENABLE_ACTIONS=1` so the default surface stays read-only. When enabled, each domain gets a companion `{domain}_action` tool. Destructive operations (`DELETE *`, `pools/emergency_shutdown`, `vms/hard_shutdown`, …) return a preview and a one-shot `confirm_token` — the assistant must call back with that token within 5 minutes to execute.
+Action tools (create/update/delete) are gated behind `XO_MCP_ENABLE_ACTIONS=1` so the default surface stays read-only. When enabled, each domain gets a companion `{domain}_action` tool. Every action — from creating a snapshot to a `DELETE` or `pools/emergency_shutdown` — returns a preview and a one-shot `confirm_token` the assistant must send back within 5 minutes to execute.
+
+### Security model
+
+`x-mcp-exposure` controls **which REST endpoints this MCP server turns into LLM tools — it is not a REST API security boundary.**
+
+- The XO REST API never reads `x-mcp-exposure`; the annotation lives only in the OpenAPI spec and is consumed solely by this server's tool generation. Every endpoint keeps its own RBAC/ACL authorization, which remains the actual access-control gate.
+- Any REST client with valid credentials — including a non-official or compromised MCP — can call a `deny`-tagged endpoint directly. The annotation cannot stop it.
+- The benefit is a **narrower threat model**: limiting what an LLM can see and invoke (a guard against prompt injection and model mistakes), not authorization.
+
+In short, `x-mcp-exposure` (and the `mcp/require-mcp-expose` lint rule that enforces it on the REST side) is a _surface-control policy_ for the assistant's toolset. Rely on XO's RBAC/ACL for "who may do what".
+
+### Server-side kill-switch
+
+An xo-server admin can globally block MCP by setting `[mcp] enabled = false` in the server config. With that flag set, the binary exits at startup with `MCP disabled by admin` on stderr and any active client receives `503 { "error": "mcp_disabled" }` on its next request. It's not a bug — re-enable MCP in xo-server's config to recover.
 
 Full documentation with tool parameters, examples, and troubleshooting: [docs.xen-orchestra.com/mcp](https://docs.xen-orchestra.com/mcp)
 

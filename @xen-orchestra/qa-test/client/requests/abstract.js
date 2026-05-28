@@ -276,19 +276,34 @@ export class AbstractRequest {
       sizeMB: (stats.size / 1024 / 1024).toFixed(2),
     })
 
-    try {
-      const resourceId = await uploadHandler(stats)
-      const duration = Date.now() - startTime
+    const isRetryable = error =>
+      (error.code === 'IMPORT_HTTP_ERROR' || error.code === 'UPLOAD_HTTP_ERROR') && /HTTP 5\d\d/.test(error.message)
 
-      log.debug('File imported successfully', { format, resultType, resourceId, duration })
+    const maxRetries = 2
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const resourceId = await uploadHandler(stats)
+        const duration = Date.now() - startTime
 
-      return resourceId
-    } catch (error) {
-      if (error.code) {
-        throw error
+        log.debug('File imported successfully', { format, resultType, resourceId, duration })
+
+        return resourceId
+      } catch (error) {
+        log.warn(`${format} import failed`, { filePath, targetUuid, attempt, error })
+
+        if (attempt < maxRetries && isRetryable(error)) {
+          const delayMs = 3000 * (attempt + 1)
+          log.info(`Retrying ${format} import`, { attempt: attempt + 1, maxRetries, delayMs })
+          await new Promise(resolve => setTimeout(resolve, delayMs))
+          continue
+        }
+
+        if (error.code) {
+          throw error
+        }
+
+        throw this._createError(`${format} import failed: ${error.message}`, 'IMPORT_FAILED', error)
       }
-
-      throw this._createError(`${format} import failed: ${error.message}`, 'IMPORT_FAILED', error)
     }
   }
 

@@ -179,6 +179,59 @@ Each entry starts its own process with its own credentials. The assistant gets a
 Pick descriptive names (`xo-production`, `xo-dr-site`, ...) so the assistant knows which instance you're referring to.
 :::
 
+### Behind a corporate proxy
+
+The MCP server respects `HTTP_PROXY`, `HTTPS_PROXY`, and `NO_PROXY`. This matters in enterprise networks: your AI assistant may need an outbound proxy to reach the public internet, but your XOA is internal and must be reached directly. Without `NO_PROXY`, internal traffic gets sent through the proxy and rejected.
+
+| Variable      | Effect                                                                                                                                                                                                                                                                                                                                                              |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `HTTP_PROXY`  | Proxy URL for plain HTTP requests, e.g. `http://proxy.corp.example:3128`. Credentials are supported: `http://user:pass@proxy:3128` (Basic auth only — NTLM/Kerberos proxies need a sidecar like cntlm).                                                                                                                                                             |
+| `HTTPS_PROXY` | Proxy URL for HTTPS requests. Same format as `HTTP_PROXY`. The proxy itself is contacted over HTTP; `https://` schemes are unusual.                                                                                                                                                                                                                                 |
+| `NO_PROXY`    | Comma-separated list of hostnames that bypass the proxy. Three forms: exact host (`xoa.internal.example.com`), suffix wildcard (`.example.com` or `*.example.com` — matches subdomains, **not** the bare domain — list both if needed), or `*` alone to bypass everything. CIDR ranges are not supported by the underlying library. Lowercase `no_proxy` works too. |
+
+Example for Claude Desktop, with a corporate proxy and a XOA on the internal network:
+
+```json
+{
+  "mcpServers": {
+    "xo": {
+      "command": "npx",
+      "args": ["@xen-orchestra/mcp"],
+      "env": {
+        "XO_URL": "https://xoa.internal.example.com",
+        "XO_TOKEN": "your-token",
+        "HTTPS_PROXY": "http://proxy.corp.example:3128",
+        "NO_PROXY": "xoa.internal.example.com"
+      }
+    }
+  }
+}
+```
+
+:::note
+`NO_PROXY` on its own does nothing. If you set it without `HTTP_PROXY` or `HTTPS_PROXY`, the MCP logs a warning at startup. A malformed proxy URL is reported on stderr but does not crash the server; it falls back to direct connections.
+:::
+
+### Disabling MCP globally
+
+Sometimes you need to shut MCP off across the board — during an incident, while reviewing an internal policy, or simply to keep AI access turned off until you've decided who should have it. The xo-server config has a flag for that:
+
+```toml
+[mcp]
+enabled = false
+```
+
+Restart xo-server and the change takes effect immediately:
+
+- The `@xen-orchestra/mcp` binary refuses to start. It prints `MCP disabled by admin` on stderr and exits with code 1.
+- Any MCP client already running gets a `503` with `{ "error": "mcp_disabled" }` on its next request, so sessions shut down without leaving stale connections on the server.
+
+The default is `enabled = true`; legacy configs without an `[mcp]` section behave the same way. Flip the value, reload, done — no other state to clean up.
+
+:::note Detection caveat
+The kill-switch keys off the `X-XO-Client: mcp` header the official binary sends. A third-party MCP client, or an older `@xen-orchestra/mcp` version that predates this header, will bypass the gate. Pin to a recent release if you rely on the kill-switch as a hard control.
+:::
+
 ## How it works
 
 ![MCP architecture workflow](../assets/mcp_workflow.png)
@@ -293,12 +346,12 @@ Action tools share this argument shape:
 | `operation`     | enum   | Yes              | The `operationId` of the action to perform (e.g. `StartVm`, `DeleteVm`, `HardShutdownVm`). |
 | `id`            | string | For most actions | Target resource ID                                                                         |
 | `body`          | object | No               | Request body for create/update operations                                                  |
-| `confirm_token` | string | For risky ops    | One-shot token returned by a prior preview call — required to execute dangerous operations |
+| `confirm_token` | string | Yes, for actions | One-shot token from a prior preview call; required to run an action                        |
 
-**Confirmation flow for dangerous operations.** All `DELETE`s and a hand-picked set of destructive operations (`EmergencyShutdownPool`, `RollingReboot`, `RollingUpdate`, `HardShutdownVm`, `HardRebootVm`) require explicit confirmation. The first call returns a preview and a `confirm_token`; the assistant must call back within 5 minutes with that token to execute. This turns "Yes, delete all my snapshots" into a two-step handshake and neutralises accidental destructive calls. Set `XO_MCP_DENY_LIST` to remove them from the exposed surface entirely when you don't want them offered at all.
+**Confirmation flow.** Every action runs as a two-step handshake. The first call returns a preview (method, path, body) and a one-shot `confirm_token`; the assistant must call back with that token within 5 minutes to execute. A blunt "yes, delete everything" can't go through in one shot, so an accidental or hallucinated call stops at the preview. Use `XO_MCP_DENY_LIST` to drop specific operations from the surface entirely when you don't want them offered at all.
 
 :::warning Only enable actions if you trust the caller
-Enabling `XO_MCP_ENABLE_ACTIONS` lets the assistant mutate your infrastructure. Confirmations reduce the blast radius for destructive operations, but non-destructive writes (create, update) proceed without a second round-trip. Keep read-only mode unless you have a specific need.
+Enabling `XO_MCP_ENABLE_ACTIONS` lets the assistant mutate your infrastructure. The confirm-token handshake means no action runs without a second, explicit call, but it's still write access. Keep the default read-only mode unless you have a specific need.
 :::
 
 ## Prompts
@@ -333,6 +386,14 @@ If using token authentication, check that `XO_TOKEN` is valid — the token may 
 The MCP server has a 30-second timeout for API requests. If you experience timeouts, check network connectivity between the MCP server and your XO instance.
 :::
 
+:::note Internal XOA blocked when behind a corporate proxy
+If your AI assistant injects `HTTPS_PROXY` into the MCP process and your XOA lives on the internal network, the proxy may silently drop or reject the requests. Add the XOA hostname (and any internal CIDR ranges) to `NO_PROXY` so the traffic stays direct. See [Behind a corporate proxy](#behind-a-corporate-proxy).
+:::
+
 :::note Missing required environment variables
 `XO_URL` is always required. You must also set either `XO_TOKEN` or both `XO_USERNAME` and `XO_PASSWORD`. When using Claude Desktop, make sure they are in the `env` section of the MCP server configuration.
+:::
+
+:::note MCP disabled by admin
+The xo-server administrator has set `[mcp] enabled = false` in the server config. The binary won't start until that flag is removed or set back to `true`. See [Disabling MCP globally](#disabling-mcp-globally) for the server-side details.
 :::

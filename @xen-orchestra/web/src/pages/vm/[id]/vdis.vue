@@ -1,7 +1,35 @@
 <template>
   <div class="vdis" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
-      <VdisTable :vdis="filteredVdisByNotCdVbd" :vm :busy="!areVmVdisReady" :error="hasVmVdiFetchError" />
+      <VdisTable :vdis="filteredVdisByNotCdVbd" :vm :busy="!areVmVdisReady" :error="hasVmVdiFetchError">
+        <template #title-actions>
+          <MenuList placement="bottom-end">
+            <template #trigger="{ open }">
+              <UiDropdownButton icon="action:add" @click="open($event)">{{ t('action:add') }}</UiDropdownButton>
+            </template>
+            <MenuItem>
+              <UiLink
+                class="add-vdi-link"
+                :to="{ name: '/vdi/new', query: { vmid: vm.id } }"
+                icon="fa:plus"
+                size="medium"
+              >
+                {{ t('action:create-vdi') }}
+              </UiLink>
+            </MenuItem>
+            <MenuItem>
+              <UiLink
+                class="add-vdi-link"
+                :to="{ name: '/vdi/attach', query: { vmid: vm.id } }"
+                icon="action:connect"
+                size="medium"
+              >
+                {{ t('action:attach-vdi') }}
+              </UiLink>
+            </MenuItem>
+          </MenuList>
+        </template>
+      </VdisTable>
     </UiCard>
     <VdiSidePanel v-if="selectedVdi" :vdi="selectedVdi" :vm @close="selectedVdi = undefined" />
     <UiPanel v-else-if="!uiStore.isSmall">
@@ -19,8 +47,12 @@ import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-colle
 import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoVmVdisCollection } from '@/modules/vm/remote-resources/use-xo-vm-vdis-collection.ts'
+import MenuItem from '@core/components/menu/MenuItem.vue'
+import MenuList from '@core/components/menu/MenuList.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
@@ -60,5 +92,14 @@ const selectedVdi = useRouteQuery<FrontXoVdi | undefined>('id', {
     margin: 0.8rem;
     gap: 4rem;
   }
+}
+
+/* This selector can't be nested,
+* as the links in MenuItem are teleported and are not children of .vdis element.
+* This selector extends the clickable area of the links for better accessibility
+*/
+.add-vdi-link {
+  height: 100%;
+  width: 100%;
 }
 </style>

@@ -19,11 +19,14 @@ import {
   REPLICATED_TO_SR_UUID,
   DATETIME,
   VM_UUID,
+  CONTENT_KEY,
+  resetVmOtherConfig,
 } from '../../_otherConfig.mjs'
 import { formatFilenameDate } from '../../_filenameDate.mjs'
 import { XapiDiskSource } from '@xen-orchestra/xapi'
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
+import { VM_POWER_STATE } from '@vates/types'
 
 const { debug } = createLogger('xo:backups:IncrementalXapiWriter')
 
@@ -32,7 +35,20 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
   // Built by checkBaseVdis, consumed by #decorateVmMetadata to set baseVdi.
   #baseVdisBySourceUuid = new Map()
 
-  async checkBaseVdis(baseUuidToSrcVdi) {
+  /**
+   * Finds VDIs on the target SR that can serve as base for the next delta transfer.
+   *
+   * For each entry in `baseUuidToSrcVdi`, searches the target SR for a matching snapshot
+   * using CONTENT_KEY when available, then falls back to COPY_OF matching for older snapshots.
+   * Entries with no matching base found on the target SR are removed from `baseUuidToSrcVdi`.
+   *
+   * Side-effects: populates `#baseVdisBySourceUuid`; may set `_targetVmRef`.
+   *
+   * @param {Map<string, string>} baseUuidToSrcVdi - Source snapshot UUID → source active VDI UUID. Mutated in place.
+   * @param {Map<string, string>} contentKeys - Source snapshot UUID → CONTENT_KEY value (empty for pre-CONTENT_KEY snapshots).
+   * @returns {Promise<void>}
+   */
+  async checkBaseVdis(baseUuidToSrcVdi, contentKeys) {
     const sr = this._sr
     this.#baseVdisBySourceUuid = new Map()
 
@@ -45,18 +61,45 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     // look for the same snapshot
     // ensure there are no data between the snapshot and the active disk
 
-    const snapshotCandidates = sr.$VDIs.filter(vdi => {
-      return (
-        vdi?.managed &&
-        vdi?.is_a_snapshot &&
-        vdi.other_config[JOB_ID] === this._job.id &&
-        vdi.other_config[VM_UUID] === this._vmUuid &&
-        baseUuidToSrcVdi.has(vdi?.other_config[COPY_OF])
-      )
-    })
-    debug('checkBaseVdis, got snapshot candidates,', snapshotCandidates.length)
+    const snapshotCandidates = new Map()
 
-    if (snapshotCandidates.length > 0) {
+    for (const [baseUuid, srcVdiuid] of baseUuidToSrcVdi) {
+      let target
+
+      const contentKey = contentKeys.get(baseUuid)
+
+      if (contentKey !== undefined) {
+        debug('got one content key, look for a candidate')
+        target = sr.$VDIs.find(
+          vdi =>
+            vdi?.managed &&
+            vdi?.is_a_snapshot &&
+            vdi.other_config[CONTENT_KEY] === contentKey && // &&
+            // ensure we don't replicate on ourself or any of the vdi in the source  chain
+            vdi.$snapshot_of.uuid !== srcVdiuid
+        )
+      }
+
+      // fall back for older snapshots
+      if (target === undefined) {
+        debug('content key not here or not found , look by jobid ')
+        target = sr.$VDIs.find(
+          vdi =>
+            vdi?.managed &&
+            vdi?.is_a_snapshot &&
+            vdi.other_config[JOB_ID] === this._job.id &&
+            vdi.other_config[VM_UUID] === this._vmUuid &&
+            vdi?.other_config[COPY_OF] === baseUuid
+        )
+      }
+      if (target !== undefined) {
+        snapshotCandidates.set(baseUuid, target)
+      }
+    }
+
+    debug('checkBaseVdis, got snapshot candidates,', snapshotCandidates.size)
+
+    if (snapshotCandidates.size > 0) {
       // reset before searching for candidates
       this.#baseVdisBySourceUuid = new Map()
       this._targetVmRef = undefined
@@ -64,10 +107,12 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       for (const [sourceUuid, vdi] of baseVdisBySourceUuid) {
         this.#baseVdisBySourceUuid.set(sourceUuid, vdi)
       }
+      debug(' this.#baseVdisBySourceUuid ', this.#baseVdisBySourceUuid.size)
       if (targetVmRef !== undefined) {
         this._targetVmRef = targetVmRef
       }
     } else {
+      debug('legacy fallback ( no content key ) ')
       // Legacy fallback (upgrade from pre-6.3): no target snapshots exist yet,
       // look for active (non-snapshot) VDIs with matching COPY_OF, like the old code did.
       debug('checkBaseVdis, no snapshot candidates, falling back to legacy active VDI lookup')
@@ -92,6 +137,9 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
    * 6.3+ snapshot-based validation: for each snapshot candidate, check whether
    * the active VDI has diverged from the snapshot. Returns a baseVdisBySourceUuid
    * map and, when all disks are clean, the targetVmRef to reuse.
+   *
+   * @param {Map<XenApiVdi['id'], import('@vates/types').XenApiVdi>} snapshotCandidates - Snapshot VDIs on the target SR to validate.
+   * @returns {Promise<{ baseVdisBySourceUuid: Map<string, import('@vates/types').XenApiVdi>, targetVmRef:  import('@vates/types').XenApiVm['$ref'] | undefined }>}
    */
   async #validateSnapshotCandidates(snapshotCandidates) {
     const sr = this._sr
@@ -100,24 +148,36 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     let canChainToTargetVm = true
 
     await asyncEach(
-      snapshotCandidates,
-      async snapshot => {
+      snapshotCandidates.entries(),
+      async ([sourceUuid, snapshot]) => {
         let diffDisk
         let activeVdi
         try {
           activeVdi = sr.$xapi.getObject(snapshot.$snapshot_of)
           const userVbds = activeVdi.$VBDs?.filter(vbd => vbd.$VM && !vbd.$VM.is_control_domain) ?? []
           if (userVbds.length !== 1) {
+            canChainToTargetVm = false
             debug('checkBaseVdis, shared vbd ', { ref: snapshot.$ref, userVbds })
-            // shared vdi ignore
+            // shared vdi ignore / don't chain
             return
           }
           const vm = userVbds[0].$VM
-          if (!('start' in vm.blocked_operations)) {
-            debug('checkBaseVdis, vm not blocked', { vmRef: vm.$ref })
-            // vm start unlocked
-            // not really an issue since we have check the delta
-            // but it indicates the users played with the blocked operations
+
+          // a running VM will fail to compute disk exports
+          // also a running VM can be assumed to have changed data
+          if (vm.power_state !== VM_POWER_STATE.HALTED && vm.power_state !== VM_POWER_STATE.SUSPENDED) {
+            canChainToTargetVm = false
+            debug('checkBaseVdis, target vm is not halted or suspended', {
+              ref: snapshot.$ref,
+              userVbds,
+              powerState: vm.power_state,
+            })
+          }
+          // from this disk of from another
+          // skip the costly part, only do the disk chaining
+          if (!canChainToTargetVm) {
+            debug("Can't chain VM anyway , fast return and chain with snapshot")
+            baseVdisBySourceUuid.set(sourceUuid, snapshot)
             return
           }
           diffDisk = new XapiDiskSource({
@@ -127,18 +187,16 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
             onlyListChangedBlocks: true,
           })
           await diffDisk.init()
-          const sourceUuid = snapshot.other_config?.[COPY_OF]
           if (diffDisk.getBlockIndexes().length === 0) {
+            debug(' NO CHANGE , source detected ? ', !!sourceUuid)
             // no block modification since the common snapshot, we can chain VM and disk
-            if (sourceUuid) {
-              baseVdisBySourceUuid.set(sourceUuid, activeVdi)
-            }
+            // the disk is chained with the active to keep the chain linear
+            baseVdisBySourceUuid.set(sourceUuid, activeVdi)
             // Track the target VM (the replicated VM to update on the next transfer).
             targetVmRef = vm.$ref
           } else {
-            if (sourceUuid) {
-              baseVdisBySourceUuid.set(sourceUuid, snapshot)
-            }
+            debug(' GOT CHANGE, source detected ? ', !!sourceUuid)
+            baseVdisBySourceUuid.set(sourceUuid, snapshot)
             // there are changed block since the snapshot
             // we can reuse it to transfer a delta, but we will
             // create a new VM
@@ -165,6 +223,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     )
 
     if (!canChainToTargetVm) {
+      debug('checkBaseVdis,NOT a valid vm target')
       // if at least one disk has new data, create a new VM
       // instead of updating it
       targetVmRef = undefined
@@ -172,6 +231,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       debug('checkBaseVdis,got a valid vm target', targetVmRef)
     }
 
+    debug('checkBaseVdis,base vdis found : ', baseVdisBySourceUuid.size)
     return { baseVdisBySourceUuid, targetVmRef }
   }
 
@@ -269,6 +329,10 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     }
 
     Object.values(backup.vdis).forEach(vdi => {
+      // setVmSnapshotContentKeys sets CONTENT_KEY = the snapshot VDI's own UUID, but
+      // that XenAPI write may not be visible in the xapi cache yet when exportIncrementalVm
+      // reads vdi.other_config. Derive the correct value directly instead of relying on cache.
+      vdi.other_config[CONTENT_KEY] = vdi.uuid
       vdi.other_config[COPY_OF] = vdi.uuid
       vdi.other_config[JOB_ID] = job.id
       vdi.other_config[SCHEDULE_ID] = scheduleId
@@ -327,6 +391,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         await xapi.VM_snapshot(targetVmRef, {
           name_label: `${vm.name_label} - ${job.name} / ${schedule.name} ${formatFilenameDate(timestamp)}`,
         })
+        await resetVmOtherConfig(xapi, targetVmRef)
       })
 
       return {
