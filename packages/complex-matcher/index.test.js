@@ -128,3 +128,36 @@ describe('setPropertyClause', () => {
 it('toString', () => {
   assert.equal(ast.toString(), pattern)
 })
+
+describe('resolve', () => {
+  const target = { objects: 'object' }
+  const targetArray = { objects: ['object'] }
+  const store = { object: { tags: ['tag'] } }
+  const notFoundStore = { 'not-object': { tags: ['tag'] } }
+
+  it('match a single ID', () => {
+    assert(parse('objects:[resolve]:tags:tag').createPredicate(id => store[id])(target))
+  })
+
+  it('match an array of IDs', () => {
+    assert(parse('objects:[resolve]:tags:tag').createPredicate(id => store[id])(targetArray))
+  })
+
+  it('returns false when resolved object does not match', () => {
+    assert(!parse('objects:[resolve]:tags:not-found-tag').createPredicate(id => store[id])(target))
+  })
+
+  it('returns false when resolved object not found', () => {
+    assert(!parse('objects:[resolve]:tags:tag').createPredicate(id => notFoundStore[id])(target))
+  })
+
+  it('throws when no resolver is provided', () => {
+    assert.throws(() => parse('objects:[resolve]:tags:tag').createPredicate()(target), {
+      message: '[resolve] requires a resolver',
+    })
+  })
+
+  it('toString round-trips correctly', () => {
+    assert.equal(parse('objects:[resolve]:tags:tag').toString(), 'objects:[resolve]:tags:tag')
+  })
+})

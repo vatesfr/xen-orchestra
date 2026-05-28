@@ -153,36 +153,50 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
       ;[resource] = resourceXapiType as [keyof typeof XAPI_TYPE_BY_ACL_RESOURCE, XapiXoRecord['type']]
     }
 
+    const resolver = (id: string) => {
+      try {
+        return restApi.getObject(id as XapiXoRecord['id'])
+      } catch {
+        return undefined
+      }
+    }
+
     switch (event) {
       case 'add':
         if (object === undefined) {
           return
         }
 
-        if (!hasPrivilegeOn({ user, userPrivileges, action: 'read', objects: object, resource })) {
+        if (!hasPrivilegeOn({ user, userPrivileges, action: 'read', objects: object, resource }, resolver)) {
           return
         }
         return 'add'
       case 'update': {
         const canSeeObject =
           object !== undefined &&
-          hasPrivilegeOn({
-            user,
-            userPrivileges,
-            action: 'read',
-            objects: object,
-            resource,
-          })
+          hasPrivilegeOn(
+            {
+              user,
+              userPrivileges,
+              action: 'read',
+              objects: object,
+              resource,
+            },
+            resolver
+          )
 
         const canSeePreviousObject =
           previousObject !== undefined &&
-          hasPrivilegeOn({
-            user,
-            userPrivileges,
-            action: 'read',
-            objects: previousObject,
-            resource,
-          })
+          hasPrivilegeOn(
+            {
+              user,
+              userPrivileges,
+              action: 'read',
+              objects: previousObject,
+              resource,
+            },
+            resolver
+          )
 
         if (canSeeObject && canSeePreviousObject) {
           return 'update'
@@ -200,13 +214,16 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
       }
       case 'remove':
         if (
-          !hasPrivilegeOn({
-            user,
-            userPrivileges,
-            action: 'read',
-            objects: object ?? previousObject!,
-            resource,
-          })
+          !hasPrivilegeOn(
+            {
+              user,
+              userPrivileges,
+              action: 'read',
+              objects: object ?? previousObject!,
+              resource,
+            },
+            resolver
+          )
         ) {
           return
         }
