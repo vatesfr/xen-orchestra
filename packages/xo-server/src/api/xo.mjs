@@ -2,7 +2,7 @@ import * as CM from 'complex-matcher'
 import { fromCallback } from 'promise-toolbox'
 import { getStreamAsBuffer } from 'get-stream'
 import { pipeline } from 'readable-stream'
-
+import { safeDateFormat } from '../utils.mjs'
 import createNdJsonStream from '../_createNdJsonStream.mjs'
 
 // ===================================================================
@@ -16,7 +16,8 @@ clean.permission = 'admin'
 // -------------------------------------------------------------------
 
 export async function exportConfig({ compress, entries, passphrase }) {
-  let suffix = '/config.json'
+  const date = safeDateFormat(new Date())
+  let suffix = `/XO-config_${date}.json`
   if (compress) {
     suffix += '.gz'
   }
