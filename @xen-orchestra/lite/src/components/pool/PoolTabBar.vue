@@ -15,7 +15,7 @@
     <RouterTab :to="{ name: '/pool/[uuid]/network', params: { uuid: pool?.uuid ?? '-' } }">
       {{ t('network') }}
     </RouterTab>
-    <RouterTab :to="{ name: '/pool/[uuid]/storage', params: { uuid: pool?.uuid ?? '-' } }" disabled>
+    <RouterTab :to="{ name: '/pool/[uuid]/storage', params: { uuid: pool?.uuid ?? '-' } }">
       {{ t('storage') }}
     </RouterTab>
     <RouterTab :to="{ name: '/pool/[uuid]/tasks', params: { uuid: pool?.uuid ?? '-' } }">
