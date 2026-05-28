@@ -20,8 +20,6 @@ export class AbstractIncrementalWriter extends AbstractWriter {
   async transfer({ deltaExport, ...other }) {
     try {
       return await this._transfer({ deltaExport, ...other })
-    } catch (err) {
-      console.error({ err })
     } finally {
       // ensure all sources are properly closed
       for (const disk of Object.values(deltaExport.disks)) {
