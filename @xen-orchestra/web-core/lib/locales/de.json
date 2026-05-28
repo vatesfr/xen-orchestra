@@ -755,7 +755,7 @@
   "query-builder:placeholder": "Erstelle deine Query…",
   "query-search-bar:label": "@:query-builder:label",
   "query-search-bar:placeholder": "@:query-builder:placeholder",
-  "query-search-bar:use-query-builder": "@:query-builder",
+  "query-search-bar:use-query-builder": "Den Abfragekonstruktor verwenden",
   "quick-actions": "Schnellaktionen",
   "quick-info": "Schnell-Information",
   "ram": "Arbeitsspeicher",
