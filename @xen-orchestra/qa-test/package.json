@@ -38,6 +38,7 @@
     "qa:export:vhd": "node --env-file-if-exists=.env --test tests/export.vhd.test.js --test-name-pattern='VDI VHD'",
     "qa:export:xva": "node --env-file-if-exists=.env --test tests/export.vhd.test.js --test-name-pattern='XVA'",
     "qa:export:restore": "node --env-file-if-exists=.env --test tests/export.vhd.test.js --test-name-pattern='Restoration'",
+    "qa:backup:file-restore": "node --env-file-if-exists=.env --test tests/backup.file-restore.test.js",
     "demo": "node --env-file-if-exists=.env index.js"
   }
 }
