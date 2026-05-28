@@ -4,7 +4,13 @@ import keyBy from 'lodash/keyBy.js'
 import isEqual from 'lodash/isEqual.js'
 import { forbiddenOperation, noSuchObject, objectAlreadyExists } from 'xo-common/api-errors.js'
 
-import { REAL_ONLY_ALL, VMS_CREATOR, VMS_POWER_STATE_MANAGER, VMS_READ_ONLY } from './template-roles.mjs'
+import {
+  REAL_ONLY_ALL,
+  VMS_CREATOR,
+  VMS_POWER_STATE_MANAGER,
+  VMS_READ_ONLY,
+  VMS_ADMINISTRATOR,
+} from './template-roles.mjs'
 
 import { Roles } from '../../models/acls-v2/role.mjs'
 import { Privileges } from '../../models/acls-v2/privilege.mjs'
@@ -50,6 +56,7 @@ const TEMPLATE_ROLES = [
   /** @type {RoleTemplate} */ (VMS_POWER_STATE_MANAGER),
   /** @type {RoleTemplate} */ (VMS_CREATOR),
   /** @type {RoleTemplate} */ (VMS_READ_ONLY),
+  /** @type {RoleTemplate} */ (VMS_ADMINISTRATOR),
 ]
 
 export default class {
