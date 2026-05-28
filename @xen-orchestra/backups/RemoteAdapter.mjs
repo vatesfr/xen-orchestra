@@ -133,7 +133,7 @@ export class RemoteAdapter {
     debug('attach loop device', { devicePath, partition })
     const loopDevice = (await fromCallback(execFile, 'losetup', loopArgs)).trim()
 
-    let cowPath, cowLoop, mapperName, effectivePath
+    let cowPath, cowLoop, mapperName, effectivePath, originalVgName
     try {
       try {
         // Create a sparse COW file (~4 MB is enough to hold LVM metadata rewrites)
@@ -157,6 +157,10 @@ export class RemoteAdapter {
         // and can locate the Physical Volume ID on it
         await fromCallback(execFile, 'pvscan', ['--cache', `/dev/mapper/${mapperName}`])
 
+        // Capture the original VG name before vgimportclone renames it so callers
+        // can display a human-readable name even after the VG is renamed.
+        ;[originalVgName] = (await pvs('vg_name', `/dev/mapper/${mapperName}`).catch(() => [])).filter(Boolean)
+
         // Deterministic VG name: same hash for the same disk+partition across list and mount calls,
         // but unique across different disks — avoids duplicate VG name conflicts without state.
         const vgBase =
@@ -166,17 +170,23 @@ export class RemoteAdapter {
             .update(String(partition?.id ?? ''))
             .digest('hex')
             .slice(0, 10)
-        debug('import LVM volume group with unique name via dm-snapshot', { vgBase })
+        debug('import LVM volume group with unique name via dm-snapshot', { vgBase, originalVgName })
         await fromCallback(execFile, 'vgimportclone', ['--basevgname', vgBase, `/dev/mapper/${mapperName}`])
 
         effectivePath = `/dev/mapper/${mapperName}`
       } catch (error) {
         // dm-snapshot or vgimportclone unavailable — fall back to direct loop device.
         // Duplicate VG names across disks may still cause activation failures.
-        // Exit code 5 = "device is partitioned": expected when whole-disk detection runs on a
-        // partitioned disk that partx failed to parse — not a real failure, no need to warn.
-        if (error.code === 5) {
+        const message = String(error.message ?? '')
+        if (error.code === 5 && message.includes('device is partitioned')) {
           debug('device is partitioned, skipping vgimportclone', { devicePath, partition })
+        } else if (error.code === 5) {
+          // Other LVM exit-5 errors (e.g. "No physical volume found", "Failed to find PVID")
+          debug('vgimportclone failed, falling back to direct loop device', {
+            devicePath,
+            partition,
+            message,
+          })
         } else {
           warn('dm-snapshot overlay failed, falling back to direct loop device', { error })
         }
@@ -192,13 +202,19 @@ export class RemoteAdapter {
           await unlink(cowPath).catch(noop)
           cowPath = undefined
         }
+        originalVgName = undefined
         effectivePath = loopDevice
       }
 
       debug('scan LVM physical volumes', { path: effectivePath })
       await fromCallback(execFile, 'pvscan', ['--cache', effectivePath])
 
-      yield effectivePath
+      // In the fallback path the VG is unmodified, so query the original name now.
+      if (originalVgName === undefined) {
+        ;[originalVgName] = (await pvs('vg_name', effectivePath).catch(() => [])).filter(Boolean)
+      }
+
+      yield { path: effectivePath, originalVgName }
     } finally {
       try {
         const vgNames = (await pvs('vg_name', effectivePath).catch(() => [])).filter(Boolean)
@@ -262,15 +278,16 @@ export class RemoteAdapter {
   }
 
   _listLvmLogicalVolumes(devicePath, partition, results = []) {
-    return Disposable.use(this._getLvmPhysicalVolume(devicePath, partition), async path => {
-      const lvs = await pvs(['lv_name', 'lv_path', 'lv_size', 'vg_name'], path)
+    return Disposable.use(this._getLvmPhysicalVolume(devicePath, partition), async ({ path, originalVgName }) => {
+      const lvItems = await pvs(['lv_name', 'lv_path', 'lv_size', 'vg_name'], path)
       const partitionId = partition !== undefined ? partition.id : ''
-      lvs.forEach((lv, i) => {
-        const name = lv.lv_name
-        if (name !== '') {
+      lvItems.forEach(lv => {
+        const lvName = lv.lv_name
+        if (lvName !== '') {
           results.push({
-            id: `${partitionId}/${lv.vg_name}/${name}`,
-            name,
+            id: `${partitionId}/${lv.vg_name}/${lvName}`,
+            // show "ubuntu-vg/ubuntu-lv" so users can identify the volume group
+            name: originalVgName !== undefined ? `${originalVgName}/${lvName}` : lvName,
             size: lv.lv_size,
           })
         }
