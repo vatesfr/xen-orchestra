@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { fileURLToPath } from 'node:url'
+import { realpathSync } from 'node:fs'
 import { createClient as createRedisClient } from 'redis'
 import { Client } from 'ssh2'
 import appConf from 'app-conf'
@@ -156,7 +157,7 @@ async function main(args) {
   })
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {
   main(process.argv.slice(2)).catch(err => {
     process.stderr.write(err.message + '\n')
     process.exit(1)
