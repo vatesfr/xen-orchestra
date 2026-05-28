@@ -526,7 +526,7 @@ These metrics describe LINSTOR-backed XOSTOR clusters and only appear when the X
 | Metric                                | Type  | Description                                                                                              |
 | ------------------------------------- | ----- | -------------------------------------------------------------------------------------------------------- |
 | `xcp_xostor_up`                       | gauge | Cluster reachability (1 = `linstor-manager.healthCheck` succeeded, 0 = collection failed)                |
-| `xcp_xostor_node_status`              | gauge | One series per LINSTOR node (always 1; `role` ∈ {master, satellite} and raw `state` are labels)          |
+| `xcp_xostor_node_status`              | gauge | One series per LINSTOR node (always 1; `role` ∈ `{master, satellite}` and raw `state` are labels)        |
 | `xcp_xostor_resource_total`           | gauge | Total number of LINSTOR resources defined in the cluster                                                 |
 | `xcp_xostor_resource_state_count`     | gauge | Replica count per `disk-state` (UpToDate, Inconsistent, Outdated, Diskless, Unknown), summed per cluster |
 | `xcp_xostor_alarms_up`                | gauge | Alarm-collection status (1 = collected, 0 = collection failed)                                           |
