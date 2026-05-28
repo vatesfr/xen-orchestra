@@ -73,7 +73,7 @@ To use them, **copy** a template into a new role and assign that copy to your us
 | **VMs power state manager** | Can start, stop, reboot, pause, suspend, resume, and unpause VMs.                    |
 | **VMs creator**             | Can instantiate VM templates and create VDIs and VIFs.                               |
 | **VMs read only**           | Can only list and view VMs.                                                          |
-| **VMs administrator**       | Full control over VM lifecycle                                                       |
+| **VMs administrator**       | Full control over VM actions                                                       |
 
 ![acl-role copy documented in Swagger](../assets/swagger-role-copy.png)
 
