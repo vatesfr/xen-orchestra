@@ -22,7 +22,7 @@ export function findPool(pools, poolId) {
 
 export function printUsage(pools) {
   process.stdout.write(`
-xo-server-ssh <poolId> [ip]
+xo-xcppool-ssh <poolId> [ip]
 
   Open an interactive SSH session to an XCP-ng host using pool credentials.
 
