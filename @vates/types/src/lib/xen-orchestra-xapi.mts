@@ -51,7 +51,7 @@ import type {
 export interface EditVmProps {
   affinityHost?: string | null
   autoPoweron?: boolean
-  blockedOperations?: Record<VM_OPERATIONS, boolean | string | null>
+  blockedOperations?: Partial<Record<VM_OPERATIONS, boolean | string | null>>
   coresPerSocket?: number | string | null
   cpuCap?: number | null
   cpuMask?: number[]
