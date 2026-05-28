@@ -2,6 +2,8 @@
 
 ## **6.5.0** (2026-05-28)
 
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
 ### Security
 
 - [XO 5] Update sanitize-html dependency (Dependabot alert [484](https://github.com/vatesfr/xen-orchestra/security/dependabot/484)) (PR [#9851](https://github.com/vatesfr/xen-orchestra/pull/9851))
@@ -84,7 +86,7 @@
 
 ## **6.4.1** (2026-05-05)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Enhancements
 
@@ -350,8 +352,6 @@
 - @xen-orchestra/web 0.46.1
 
 ## **6.2.3** (2026-04-20)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
