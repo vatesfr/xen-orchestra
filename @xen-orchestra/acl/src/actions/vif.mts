@@ -1,7 +1,7 @@
 export default {
-  read: true,
+  connect: true,
   create: true,
   delete: true,
-  connect: true,
   disconnect: true,
+  read: true,
 }
