@@ -4,6 +4,7 @@ export default {
   delete: true,
   'export-content': true,
   'import-content': true,
+  migrate: true,
   read: true,
   update: {
     tags: true,

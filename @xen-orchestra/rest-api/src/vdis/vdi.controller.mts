@@ -213,13 +213,17 @@ export class VdiController extends XapiXoController<XoVdi> {
   /**
    * Create an empty VDI.
    *
+   * Required privilege:
+   * - resource: vdi, action: create
+   *
    * @example body { "srId": "c4284e12-37c9-7967-b9e8-83ef229c3e03", "virtual_size": 10737418240, "name_label": "test VDI" }
    */
   @Example(vdiId)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('')
-  @Middlewares(json())
+  @Middlewares([json(), acl({ resource: 'vdi', action: 'create', object: ({ req }) => req.body })])
   @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async createVdi(@Body() body: CreateVdiBody): Promise<{ id: string }> {
@@ -331,6 +335,9 @@ export class VdiController extends XapiXoController<XoVdi> {
   /**
    * Migrate a VDI to another SR.
    *
+   * Required privilege:
+   * - resource: vdi, action: migrate
+   *
    * Note: After migration, the VDI will have a new ID. The new ID is returned in the response.
    *
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
@@ -340,8 +347,9 @@ export class VdiController extends XapiXoController<XoVdi> {
   @Example(vdiId)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/migrate')
-  @Middlewares(json())
+  @Middlewares([json(), acl({ resource: 'vdi', action: 'migrate', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(200, 'Ok')
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
