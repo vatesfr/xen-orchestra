@@ -12,9 +12,9 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - **RBAC** check for REST API endpoints:
-  - `/pools/:id/actions/create_bonded_network (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
-  - `/pools/:id/actions/create_internal_network (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
-  - `/pools/:id/actions/management-reconfigure (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
+  - `/pools/:id/actions/create_bonded_network` (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
+  - `/pools/:id/actions/create_internal_network` (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
+  - `/pools/:id/actions/management-reconfigure` (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
 
 ### Bug fixes
 
