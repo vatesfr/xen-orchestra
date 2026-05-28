@@ -37,6 +37,8 @@
   - `DELETE /vdi-snapshots/{id}/tags/{tag}` (PR [#9906](https://github.com/vatesfr/xen-orchestra/pull/9906))/vdi-snapshots/{id}.{format}` (PR [#9906](https://github.com/vatesfr/xen-orchestra/pull/9906))
   - `POST /vdis` (PR [#9908](https://github.com/vatesfr/xen-orchestra/pull/9908))
   - `/vdis/:id/actions/migrate` (PR [#9908](https://github.com/vatesfr/xen-orchestra/pull/9908))
+  - `/vms/:id/actions/clone` (PR [#9910](https://github.com/vatesfr/xen-orchestra/pull/9910))
+  - `/vms/:id/actions/migrate` (PR [#9910](https://github.com/vatesfr/xen-orchestra/pull/9910))
 
 - [XO6] live update XO tasks (PR [#9901](https://github.com/vatesfr/xen-orchestra/pull/9901))
 - [XO6/Backup] add progress for backups tasks(PR [#9901](https://github.com/vatesfr/xen-orchestra/pull/9901))
