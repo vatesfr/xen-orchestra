@@ -1,6 +1,8 @@
 export default {
+  clone: true,
   delete: true,
   export: true,
+  migrate: true,
   pause: true,
   read: true,
   reboot: {
