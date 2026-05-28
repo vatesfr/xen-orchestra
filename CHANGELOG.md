@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **next**
+## **6.5.0** (2026-05-28)
 
 ### Security
 
