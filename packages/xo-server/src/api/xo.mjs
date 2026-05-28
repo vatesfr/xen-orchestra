@@ -4,6 +4,7 @@ import { getStreamAsBuffer } from 'get-stream'
 import { pipeline } from 'readable-stream'
 import { safeDateFormat } from '../utils.mjs'
 import createNdJsonStream from '../_createNdJsonStream.mjs'
+import { getCurrentVmUuid } from '../_XenStore.mjs'
 
 // ===================================================================
 
@@ -94,3 +95,17 @@ importConfig.permission = 'admin'
 importConfig.params = {
   passphrase: { type: 'string', optional: true },
 }
+
+export async function snapshotBeforeUpgrade() {
+  const SNAPSHOT_LABEL = 'Snapshot before update, delete after successful upgrade.'
+  const vmUuid = await getCurrentVmUuid()
+  const xoVm = this.getObject(vmUuid)
+  const xapi = this.getXapi(xoVm)
+  const vm = xapi.getObject(vmUuid) // ← XAPI object: has $ref, $snapshots with $destroy()
+  await Promise.all(vm.$snapshots.filter(({ name_label }) => name_label === SNAPSHOT_LABEL).map(s => s.$destroy()))
+  await xapi.VM_snapshot(vm.$ref, { name_label: SNAPSHOT_LABEL })
+}
+
+snapshotBeforeUpgrade.permission = 'admin'
+
+snapshotBeforeUpgrade.params = {}
