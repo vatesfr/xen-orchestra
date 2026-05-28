@@ -93,7 +93,7 @@ When setting up backup jobs in Xen Orchestra, select your configured immutable r
 ### Only Enable on Stable, Healthy Backup Jobs
 
 :::warning
-Immutability should only be enabled on backup jobs that are already running correctly and whose retention policy is fully settled.
+Immutability should only be enabled on backup jobs that are already running correctly and whose retention policy is fully settled. Nothing will be lost, but there will be a lot of EACCESS/EPERM errors in the backup log.
 :::
 
 Immutability and retention are two independent mechanisms, and they can conflict if a backup job is not in a clean state:
@@ -132,6 +132,10 @@ The immutability enforcement mechanism **must** operate independently of Xen Orc
 ## Limitations
 
 Cloud-based solutions such as S3 Object Lock depend on your provider’s implementation; not all S3‑compatible systems behave identically, so always test before production use.
+
+## Troubleshooting
+
+the main point for troubleshooiting resource is directly in the package documentation https://github.com/vatesfr/xen-orchestra/blob/master/%40xen-orchestra/immutable-backups/README.md
 
 ## Conclusion
 
