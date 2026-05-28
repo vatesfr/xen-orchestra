@@ -8,6 +8,7 @@ import { deduped } from '@vates/disposable/deduped.js'
 import { createHash, randomBytes } from 'node:crypto'
 import { dirname, join, resolve } from 'node:path'
 import { execFile } from 'child_process'
+import { finished } from 'node:stream/promises'
 import { lstat, open, readdir, unlink } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { mount } from '@vates/fuse-vhd'
@@ -15,7 +16,6 @@ import { synchronized } from 'decorator-synchronized'
 import { ZipFile } from 'yazl'
 import Disposable from 'promise-toolbox/Disposable'
 import fromCallback from 'promise-toolbox/fromCallback'
-import fromEvent from 'promise-toolbox/fromEvent'
 import groupBy from 'lodash/groupBy.js'
 import pDefer from 'promise-toolbox/defer'
 import pickBy from 'lodash/pickBy.js'
@@ -322,17 +322,26 @@ export class RemoteAdapter {
 
         if (format === 'tgz') {
           outputStream = tar.c({ cwd: path, gzip: true }, paths.map(makeRelative))
+          resolve(outputStream)
         } else if (format === 'zip') {
           const zip = new ZipFile()
+          // Resolve with the stream before enumeration so the client can start
+          // receiving data immediately — addZipEntries over FUSE/S3 can take
+          // minutes for large trees (e.g. node_modules) and would otherwise
+          // appear as a freeze with no response sent.
+          resolve(zip.outputStream)
+          outputStream = zip.outputStream
           await addZipEntries(zip, path, '', paths.map(makeRelative))
           zip.end()
-          ;({ outputStream } = zip)
         } else {
           throw new Error('unsupported format ' + format)
         }
 
-        resolve(outputStream)
-        await fromEvent(outputStream, 'end')
+        // Wait for the stream to finish before releasing the mounted partition.
+        // finished() correctly handles 'end', 'close', and 'error' — unlike
+        // fromEvent('end') which hangs forever if the stream errors (client
+        // disconnect, FUSE read failure), leaking the mount and loop devices.
+        await finished(outputStream).catch(noop)
       }.bind(this)
     ).catch(error => {
       warn(error)
