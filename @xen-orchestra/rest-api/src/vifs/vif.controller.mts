@@ -237,6 +237,8 @@ export class VifController extends XapiXoController<XoVif> {
    *    "kbps": "42"
    *  },
    *  "qos_algorithm_type": "ratelimit"
+   * Required privilege:
+   *  - resource : vif, action: create
    * }
    */
   @Example(vifId)
@@ -245,6 +247,7 @@ export class VifController extends XapiXoController<XoVif> {
   @Middlewares([json(), acl({ resource: 'vif', action: 'create', object: ({ req }) => req.body })])
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
   async createVif(
