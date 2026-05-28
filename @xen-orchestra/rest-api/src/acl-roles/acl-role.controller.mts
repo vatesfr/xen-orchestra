@@ -3,6 +3,7 @@ import {
   Body,
   Delete,
   Example,
+  Extension,
   Get,
   Middlewares,
   Patch,
@@ -50,7 +51,7 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 @Security('*')
 @Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
-@Tags('acls')
+@Tags('rbacs')
 @provide(AclRoleController)
 export class AclRoleController extends XoController<XoAclRole> {
   constructor(@inject(RestApi) restApi: RestApi) {
@@ -74,6 +75,7 @@ export class AclRoleController extends XoController<XoAclRole> {
    */
   @Example(aclRoleIds)
   @Example(partialAclRoles)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   async getAclV2Roles(
@@ -99,6 +101,7 @@ export class AclRoleController extends XoController<XoAclRole> {
    * }
    */
   @Example(entityId)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('')
   @Middlewares([
     json(),
@@ -125,6 +128,7 @@ export class AclRoleController extends XoController<XoAclRole> {
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    */
   @Example(aclRole)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(
     acl({
@@ -146,6 +150,7 @@ export class AclRoleController extends XoController<XoAclRole> {
    *
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}')
   @Middlewares(
     acl({
@@ -174,6 +179,7 @@ export class AclRoleController extends XoController<XoAclRole> {
    *  "description": "Allow to create VMs"
    * }
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Patch('{id}')
   @Middlewares([
     json(),
@@ -206,6 +212,7 @@ export class AclRoleController extends XoController<XoAclRole> {
    * @example body {"name": "Copied role"}
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/copy')
   @Middlewares([
     json(),
@@ -270,6 +277,7 @@ export class AclRoleController extends XoController<XoAclRole> {
    */
   @Example(aclPrivilegeIds)
   @Example(partialAclPrivileges)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/privileges')
   @Security('*', ['acl'])
   @Response(notFoundResp.status, notFoundResp.description)
@@ -298,6 +306,7 @@ export class AclRoleController extends XoController<XoAclRole> {
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    * @example groupId "ee4965bf-d8af-4ca2-aa0e-5f29d0c5f9e2"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Put('{id}/groups/{groupId}')
   @Middlewares(
     acl({
@@ -329,6 +338,7 @@ export class AclRoleController extends XoController<XoAclRole> {
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    * @example groupId "ee4965bf-d8af-4ca2-aa0e-5f29d0c5f9e2"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}/groups/{groupId}')
   @Middlewares(
     acl({
@@ -359,6 +369,7 @@ export class AclRoleController extends XoController<XoAclRole> {
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    * @example userId "ee4965bf-d8af-4ca2-aa0e-5f29d0c5f9e2"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Put('{id}/users/{userId}')
   @Middlewares(
     acl({
@@ -390,6 +401,7 @@ export class AclRoleController extends XoController<XoAclRole> {
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    * @example userId "ee4965bf-d8af-4ca2-aa0e-5f29d0c5f9e2"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}/users/{userId}')
   @Middlewares(
     acl({

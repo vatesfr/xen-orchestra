@@ -4,6 +4,10 @@ import { getProxyDispatcher, type FetchInit } from '../utils/proxy.mjs'
 const FETCH_TIMEOUT_MS = 10_000
 const HTTP_METHODS = ['get', 'post', 'put', 'patch', 'delete'] as const
 
+/** Per-endpoint MCP exposure decision, set by REST authors via `@Extension`. */
+export const MCP_EXPOSURE_EXTENSION_KEY = 'x-mcp-exposure'
+export type McpExposure = 'allow' | 'confirm' | 'deny'
+
 interface OpenApiExample {
   value?: unknown
 }
@@ -24,6 +28,7 @@ export interface OpenApiOperation {
   description?: string
   tags?: string[]
   responses?: Record<string, OpenApiResponse>
+  [vendorExtension: `x-${string}`]: unknown
 }
 
 interface OpenApiPathItem {
@@ -48,6 +53,8 @@ export interface Operation {
    * their own docs. Undefined when the spec has no usable example.
    */
   defaultFields?: string
+  /** True when the endpoint requires a confirm-token round-trip before execution. */
+  requiresConfirm: boolean
 }
 
 export interface Domain {
@@ -59,6 +66,8 @@ export interface Domain {
 export interface ParseOptions {
   /** operationIds to skip entirely (never exposed as a tool enum value). */
   denyList?: Iterable<string>
+  /** Include `'confirm'`-tagged operations. Gated by `XO_MCP_ENABLE_ACTIONS=1`. */
+  includeConfirm?: boolean
 }
 
 export async function fetchSwaggerSpec(baseUrl: string, authHeaders: Record<string, string>): Promise<OpenApiSpec> {
@@ -121,6 +130,12 @@ function extractDefaultFields(op: OpenApiOperation): string | undefined {
   return undefined
 }
 
+function getExposure(op: OpenApiOperation): McpExposure | undefined {
+  const raw = op[MCP_EXPOSURE_EXTENSION_KEY]
+  if (raw === 'allow' || raw === 'confirm' || raw === 'deny') return raw
+  return undefined
+}
+
 /**
  * Group operations by the **first path segment** — sub-resources (e.g.
  * `/hosts/{id}/alarms`, `/pools/{id}/messages`) land under their parent
@@ -128,9 +143,14 @@ function extractDefaultFields(op: OpenApiOperation): string | undefined {
  * Server-side tags are ignored here because tsoa emits the method-level tag
  * first (`tags[0] = 'alarms'` on `/hosts/{id}/alarms`), which would route the
  * endpoint away from its parent.
+ *
+ * Filters applied in order — route-filter BEFORE exposure so a binary endpoint
+ * mistakenly tagged `'allow'` still stays out of the MCP surface (defense in
+ * depth): route-filter regex → denyList → `x-mcp-exposure` (default deny).
  */
 export function parseSwagger(spec: OpenApiSpec, opts: ParseOptions = {}): Map<string, Domain> {
   const deny = new Set(opts.denyList ?? [])
+  const includeConfirm = opts.includeConfirm === true
   const domains = new Map<string, Domain>()
 
   for (const [path, pathItem] of Object.entries(spec.paths)) {
@@ -144,6 +164,10 @@ export function parseSwagger(spec: OpenApiSpec, opts: ParseOptions = {}): Map<st
       const operationId = op.operationId ?? deriveOperationId(method, path)
       if (deny.has(operationId)) continue
 
+      const exposure = getExposure(op)
+      if (exposure === undefined || exposure === 'deny') continue
+      if (exposure === 'confirm' && !includeConfirm) continue
+
       const tag = path.replace(/^\//, '').split('/')[0]
 
       if (!domains.has(tag)) domains.set(tag, { tag, queryOps: [], actionOps: [] })
@@ -155,6 +179,7 @@ export function parseSwagger(spec: OpenApiSpec, opts: ParseOptions = {}): Map<st
         path,
         description: op.summary ?? op.description ?? `${method.toUpperCase()} ${path}`,
         defaultFields: method === 'get' ? extractDefaultFields(op) : undefined,
+        requiresConfirm: exposure === 'confirm',
       }
       ;(method === 'get' ? domain.queryOps : domain.actionOps).push(operation)
     }

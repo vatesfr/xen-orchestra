@@ -1,4 +1,4 @@
-import { Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Extension, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
@@ -50,6 +50,7 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
    */
   @Example(backupRepositoryIds)
   @Example(partialBackupRepositories)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   async getRepositories(
@@ -73,6 +74,7 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
   @Example(backupRepository)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(
     acl({

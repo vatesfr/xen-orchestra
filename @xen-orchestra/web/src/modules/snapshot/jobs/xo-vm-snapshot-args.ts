@@ -5,3 +5,8 @@ export const xoVmSnapshotsArg = defineJobArg({
   identify: (snapshot: FrontXoVmSnapshot) => snapshot.id,
   toArray: true,
 })
+
+export const xoVmSnapshotArg = defineJobArg({
+  identify: (snapshot: FrontXoVmSnapshot) => snapshot.id,
+  toArray: false,
+})

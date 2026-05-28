@@ -142,10 +142,11 @@ export class MergeRemoteDisk {
       const mergeStateContent = await this.#handler.readFile(this.#statePath)
       this.#state = JSON.parse(mergeStateContent)
 
-      // work-around a bug introduce in 97d94b795
+      // work-around to bugs introduced in 97d94b795 and 4e50858
       //
       // currentBlock could be `null` due to the JSON.stringify of a `NaN` value
-      if (this.#state?.currentBlock === null) this.#state.currentBlock = 0
+      // could also be -1 due to being set as Math.min(...merging) - 1 if merging contains 0
+      if (this.#state?.currentBlock === null || this.#state?.currentBlock < 0) this.#state.currentBlock = 0
       this.#isResuming = true
     } catch (error) {
       // @ts-ignore
@@ -255,7 +256,7 @@ export class MergeRemoteDisk {
         const blockSize = await parentDisk.mergeBlock(childDisk, blockId, this.#isResuming)
         this.#state.mergedDataSize += blockSize
 
-        this.#state.currentBlock = Math.min(...merging) - 1
+        this.#state.currentBlock = Math.max(0, Math.min(...merging) - 1)
         merging.delete(blockId)
 
         this.#onProgress({ total: nBlocks, done: counter + 1 })

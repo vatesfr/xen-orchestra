@@ -17,19 +17,19 @@ const log = createLogger('cleanup')
  * @returns {Array<string>}
  */
 const getAllowedCleanupPaths = () => {
-  const repoPath = getRequiredEnv('BACKUP_REPOSITORY_PATH')
+  const repoPath = process.env.BACKUP_REPOSITORY_PATH
 
   // SECURITY: Reject paths containing path traversal sequences
-  if (repoPath.includes('..')) {
+  if (repoPath?.includes('..')) {
     log.warn('Rejected cleanup path: contains path traversal', { repoPath })
     return []
   }
 
-  const normalized = path.resolve(repoPath).toLowerCase()
+  const normalized = repoPath ? path.resolve(repoPath).toLowerCase() : ''
   const isTestPath = ['test', 'qa', 'tmp/xo'].some(marker => normalized.includes(marker))
 
   if (!isTestPath) {
-    log.warn('Rejected cleanup path: not a test path', { repoPath })
+    if (repoPath) log.warn('Rejected cleanup path: not a test path', { repoPath })
     return []
   }
 
@@ -211,10 +211,19 @@ export class CleanupClient {
     }
 
     const deleteVM = async vm => {
+      if (vm.power_state === 'Running') {
+        try {
+          await this.dispatchClient.vm.stop(vm.uuid, { force: true })
+          await new Promise(resolve => setTimeout(resolve, 3_000))
+        } catch (error) {
+          log.warn('Could not stop VM before deletion', { uuid: vm.uuid, error })
+        }
+      }
+
       await this.dispatchClient.vm.delete(vm.uuid, {
         deleteDisks: true,
-        force: config.force,
-        forceBlockedOperation: config.force,
+        force: true,
+        forceBlockedOperation: true,
       })
     }
 
@@ -270,7 +279,7 @@ export class CleanupClient {
                 try {
                   await this.dispatchClient.backup.deleteVmBackups(backupIds.slice(i, i + 10))
                 } catch (batchError) {
-                  log.warn('Failed to delete backup batch', { error: batchError.message })
+                  log.warn('Delete VM backups failed', { error: batchError })
                 }
               }
             }
@@ -280,11 +289,30 @@ export class CleanupClient {
         }
       }
 
-      // Mirror backup jobs require mirrorBackup.deleteJob, standard jobs use backupNg.deleteJob
+      // Mirror backup jobs require mirrorBackup.deleteJob, standard jobs use backupNg.deleteJob.
+      // The REST API may not expose the type field for mirror jobs, so fall back when backupNg
+      // returns "no such job" (error.data.type === 'job').
       if (job.type === 'mirrorBackup') {
         await this.dispatchClient.backup.deleteMirrorBackupJob(job.id)
       } else {
-        await this.dispatchClient.backup.deleteBackupJob(job.id)
+        try {
+          await this.dispatchClient.backup.deleteBackupJob(job.id)
+        } catch (error) {
+          if (error?.data?.type !== 'job') {
+            throw error
+          }
+          // backupNg doesn't know this job — may be a mirror backup job; try the mirror method
+          try {
+            await this.dispatchClient.backup.deleteMirrorBackupJob(job.id)
+          } catch (mirrorError) {
+            if (mirrorError?.data?.type === 'job') {
+              // Job is unreachable through both RPCs (orphaned from a previous run) — skip silently
+              log.debug('Backup job not found via any delete method, skipping', { jobId: job.id })
+              return
+            }
+            throw mirrorError
+          }
+        }
       }
     }
 

@@ -1,6 +1,6 @@
 <template>
   <UiCard class="card-container">
-    <UiLink size="medium" :href="vdiHref" icon="object:vdi">
+    <UiLink size="medium" :href="vdiHref" :icon="vdiIcon">
       {{ vdi.name_label }}
     </UiLink>
     <div class="content">
@@ -44,12 +44,13 @@
 </template>
 
 <script lang="ts" setup>
-import { useVbdsStatus } from '@/modules/vbd/composables/use-vbds-status.composable.ts'
+import { useVbdsStatus, type VbdAttachmentStatus } from '@/modules/vbd/composables/use-vbds-status.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import type { IconName } from '@core/icons'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -73,10 +74,20 @@ const { buildXo5Route } = useXoRoutes()
 
 const vdiHref = computed(() => buildXo5Route(`/vms/${vm.id}/disks/s=1_6_asc-${vdi.id}`))
 
-const vbdAttachmentStatus = useVbdsStatus(() => vdi.$VBDs)
+const vbdsAttachmentStatus = useVbdsStatus(() => vdi.$VBDs)
 
-const vbdsStatus = useMapper(
-  () => vbdAttachmentStatus.value,
+const vdiIcon = useMapper<VbdAttachmentStatus, IconName>(
+  () => vbdsAttachmentStatus.value,
+  {
+    allAttached: 'object:vdi:attached',
+    someAttached: 'object:vdi:warning',
+    noneAttached: 'object:vdi:detached',
+  },
+  'noneAttached'
+)
+
+const vbdsStatus = useMapper<VbdAttachmentStatus, (typeof CONNECTION_STATUS)[keyof typeof CONNECTION_STATUS]>(
+  () => vbdsAttachmentStatus.value,
   {
     allAttached: CONNECTION_STATUS.CONNECTED,
     someAttached: CONNECTION_STATUS.PARTIALLY_CONNECTED,

@@ -3,6 +3,7 @@ import {
   Body,
   Delete,
   Example,
+  Extension,
   Get,
   Middlewares,
   Patch,
@@ -46,7 +47,7 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 @Security('*')
 @Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
-@Tags('acls')
+@Tags('rbacs')
 @provide(AclPrivilegeController)
 export class AclPrivilegeController extends XoController<AnyPrivilege> {
   constructor(@inject(RestApi) restApi: RestApi) {
@@ -70,6 +71,7 @@ export class AclPrivilegeController extends XoController<AnyPrivilege> {
    */
   @Example(aclPrivilegeIds)
   @Example(partialAclPrivileges)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   async getAclV2Privileges(
@@ -98,6 +100,7 @@ export class AclPrivilegeController extends XoController<AnyPrivilege> {
    * }
    */
   @Example(entityId)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('')
   @Middlewares([json(), acl({ resource: 'acl-privilege', action: 'create', object: ({ req }) => req.body })])
   @SuccessResponse(createdResp.status, createdResp.description)
@@ -119,6 +122,7 @@ export class AclPrivilegeController extends XoController<AnyPrivilege> {
    * @example id "c5d89d1a-df1e-4b72-98a0-c40adfdf49c1"
    */
   @Example(aclPrivilege)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(
     acl({
@@ -140,6 +144,7 @@ export class AclPrivilegeController extends XoController<AnyPrivilege> {
    *
    * @example id "784bd959-08de-4b26-b575-92ded5aef872"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}')
   @Middlewares(
     acl({
@@ -172,6 +177,7 @@ export class AclPrivilegeController extends XoController<AnyPrivilege> {
    *  "selector": "id:784bd959-08de-4b26-b575-92ded5aef872"
    * }
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Patch('{id}')
   @Middlewares([
     json(),

@@ -17,6 +17,7 @@ const srFields = [
   'name_label',
   'name_description',
   '$pool',
+  '$container',
   'content_type',
   'physical_usage',
   'usage',

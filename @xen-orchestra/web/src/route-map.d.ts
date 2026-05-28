@@ -14,11 +14,14 @@ import type {
   ParamValueZeroOrMore,
   ParamValueZeroOrOne,
 } from 'vue-router'
-import type { _ExtractParamParserType } from 'vue-router/experimental'
+import type {
+  _ExtractParamParserType,
+} from 'vue-router/experimental'
 
 declare module 'vue-router' {
   interface TypesConfig {
-    ParamParsers: never
+    ParamParsers:
+      | never
   }
 }
 
@@ -32,62 +35,100 @@ declare module 'vue-router/auto-routes' {
       '/',
       Record<never, never>,
       Record<never, never>,
-      '/(site)/backups' | '/(site)/dashboard' | '/(site)/hosts' | '/(site)/pools' | '/(site)/tasks' | '/(site)/vms'
-    >
-    '/(site)/backups': RouteRecordInfo<'/(site)/backups', '/backups', Record<never, never>, Record<never, never>, never>
+      | '/(site)/backups'
+      | '/(site)/dashboard'
+      | '/(site)/hosts'
+      | '/(site)/pools'
+      | '/(site)/tasks'
+      | '/(site)/vms'
+    >,
+    '/(site)/backups': RouteRecordInfo<
+      '/(site)/backups',
+      '/backups',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/(site)/dashboard': RouteRecordInfo<
       '/(site)/dashboard',
       '/dashboard',
       Record<never, never>,
       Record<never, never>,
-      never
-    >
-    '/(site)/hosts': RouteRecordInfo<'/(site)/hosts', '/hosts', Record<never, never>, Record<never, never>, never>
-    '/(site)/pools': RouteRecordInfo<'/(site)/pools', '/pools', Record<never, never>, Record<never, never>, never>
-    '/(site)/tasks': RouteRecordInfo<'/(site)/tasks', '/tasks', Record<never, never>, Record<never, never>, never>
-    '/(site)/vms': RouteRecordInfo<'/(site)/vms', '/vms', Record<never, never>, Record<never, never>, never>
+      | never
+    >,
+    '/(site)/hosts': RouteRecordInfo<
+      '/(site)/hosts',
+      '/hosts',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/(site)/pools': RouteRecordInfo<
+      '/(site)/pools',
+      '/pools',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/(site)/tasks': RouteRecordInfo<
+      '/(site)/tasks',
+      '/tasks',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/(site)/vms': RouteRecordInfo<
+      '/(site)/vms',
+      '/vms',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/[...path]': RouteRecordInfo<
       '/[...path]',
       '/:path(.*)',
       { path: ParamValue<true> },
       { path: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/backup/[id]': RouteRecordInfo<
       '/backup/[id]',
       '/backup/:id',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      '/backup/[id]/backed-up-vms' | '/backup/[id]/configuration' | '/backup/[id]/runs' | '/backup/[id]/targets'
-    >
+      | '/backup/[id]/backed-up-vms'
+      | '/backup/[id]/configuration'
+      | '/backup/[id]/runs'
+      | '/backup/[id]/targets'
+    >,
     '/backup/[id]/backed-up-vms': RouteRecordInfo<
       '/backup/[id]/backed-up-vms',
       '/backup/:id/backed-up-vms',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/backup/[id]/configuration': RouteRecordInfo<
       '/backup/[id]/configuration',
       '/backup/:id/configuration',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/backup/[id]/runs': RouteRecordInfo<
       '/backup/[id]/runs',
       '/backup/:id/runs',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/backup/[id]/targets': RouteRecordInfo<
       '/backup/[id]/targets',
       '/backup/:id/targets',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/host/[id]': RouteRecordInfo<
       '/host/[id]',
       '/host/:id',
@@ -100,71 +141,77 @@ declare module 'vue-router/auto-routes' {
       | '/host/[id]/system'
       | '/host/[id]/tasks'
       | '/host/[id]/vms'
-    >
+    >,
     '/host/[id]/console': RouteRecordInfo<
       '/host/[id]/console',
       '/host/:id/console',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/host/[id]/dashboard': RouteRecordInfo<
       '/host/[id]/dashboard',
       '/host/:id/dashboard',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/host/[id]/networks': RouteRecordInfo<
       '/host/[id]/networks',
       '/host/:id/networks',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/host/[id]/storage': RouteRecordInfo<
       '/host/[id]/storage',
       '/host/:id/storage',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/host/[id]/system': RouteRecordInfo<
       '/host/[id]/system',
       '/host/:id/system',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/host/[id]/tasks': RouteRecordInfo<
       '/host/[id]/tasks',
       '/host/:id/tasks',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/host/[id]/vms': RouteRecordInfo<
       '/host/[id]/vms',
       '/host/:id/vms',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
-    '/network/new': RouteRecordInfo<'/network/new', '/network/new', Record<never, never>, Record<never, never>, never>
+      | never
+    >,
+    '/network/new': RouteRecordInfo<
+      '/network/new',
+      '/network/new',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/network/new-bonded': RouteRecordInfo<
       '/network/new-bonded',
       '/network/new-bonded',
       Record<never, never>,
       Record<never, never>,
-      never
-    >
+      | never
+    >,
     '/network/new-internal': RouteRecordInfo<
       '/network/new-internal',
       '/network/new-internal',
       Record<never, never>,
       Record<never, never>,
-      never
-    >
+      | never
+    >,
     '/pool/[id]': RouteRecordInfo<
       '/pool/[id]',
       '/pool/:id',
@@ -178,71 +225,120 @@ declare module 'vue-router/auto-routes' {
       | '/pool/[id]/system'
       | '/pool/[id]/tasks'
       | '/pool/[id]/vms'
-    >
+    >,
     '/pool/[id]/dashboard': RouteRecordInfo<
       '/pool/[id]/dashboard',
       '/pool/:id/dashboard',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/pool/[id]/hosts': RouteRecordInfo<
       '/pool/[id]/hosts',
       '/pool/:id/hosts',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/pool/[id]/networks': RouteRecordInfo<
       '/pool/[id]/networks',
       '/pool/:id/networks',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/pool/[id]/security': RouteRecordInfo<
       '/pool/[id]/security',
       '/pool/:id/security',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/pool/[id]/storage': RouteRecordInfo<
       '/pool/[id]/storage',
       '/pool/:id/storage',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/pool/[id]/system': RouteRecordInfo<
       '/pool/[id]/system',
       '/pool/:id/system',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/pool/[id]/tasks': RouteRecordInfo<
       '/pool/[id]/tasks',
       '/pool/:id/tasks',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/pool/[id]/vms': RouteRecordInfo<
       '/pool/[id]/vms',
       '/pool/:id/vms',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/pool/connect': RouteRecordInfo<
       '/pool/connect',
       '/pool/connect',
       Record<never, never>,
       Record<never, never>,
-      never
-    >
-    '/settings': RouteRecordInfo<'/settings', '/settings', Record<never, never>, Record<never, never>, never>
+      | never
+    >,
+    '/settings': RouteRecordInfo<
+      '/settings',
+      '/settings',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/traffic-rule/new': RouteRecordInfo<
+      '/traffic-rule/new',
+      '/traffic-rule/new',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/vdi/attach': RouteRecordInfo<
+      '/vdi/attach',
+      '/vdi/attach',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/vdi/new': RouteRecordInfo<
+      '/vdi/new',
+      '/vdi/new',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/vif/[id]': RouteRecordInfo<
+      '/vif/[id]',
+      '/vif/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | '/vif/[id]/general'
+      | '/vif/[id]/traffic-rules'
+    >,
+    '/vif/[id]/general': RouteRecordInfo<
+      '/vif/[id]/general',
+      '/vif/:id/general',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/vif/[id]/traffic-rules': RouteRecordInfo<
+      '/vif/[id]/traffic-rules',
+      '/vif/:id/traffic-rules',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/vm/[id]': RouteRecordInfo<
       '/vm/[id]',
       '/vm/:id',
@@ -256,64 +352,70 @@ declare module 'vue-router/auto-routes' {
       | '/vm/[id]/system'
       | '/vm/[id]/tasks'
       | '/vm/[id]/vdis'
-    >
+    >,
     '/vm/[id]/backups': RouteRecordInfo<
       '/vm/[id]/backups',
       '/vm/:id/backups',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/vm/[id]/console': RouteRecordInfo<
       '/vm/[id]/console',
       '/vm/:id/console',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/vm/[id]/dashboard': RouteRecordInfo<
       '/vm/[id]/dashboard',
       '/vm/:id/dashboard',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/vm/[id]/networks': RouteRecordInfo<
       '/vm/[id]/networks',
       '/vm/:id/networks',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/vm/[id]/snapshots': RouteRecordInfo<
       '/vm/[id]/snapshots',
       '/vm/:id/snapshots',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/vm/[id]/system': RouteRecordInfo<
       '/vm/[id]/system',
       '/vm/:id/system',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/vm/[id]/tasks': RouteRecordInfo<
       '/vm/[id]/tasks',
       '/vm/:id/tasks',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
+      | never
+    >,
     '/vm/[id]/vdis': RouteRecordInfo<
       '/vm/[id]/vdis',
       '/vm/:id/vdis',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      never
-    >
-    '/vm/new': RouteRecordInfo<'/vm/new', '/vm/new', Record<never, never>, Record<never, never>, never>
+      | never
+    >,
+    '/vm/new': RouteRecordInfo<
+      '/vm/new',
+      '/vm/new',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
   }
 
   /**
@@ -336,35 +438,50 @@ declare module 'vue-router/auto-routes' {
         | '/(site)/pools'
         | '/(site)/tasks'
         | '/(site)/vms'
-      views: 'default'
+      views:
+        | 'default'
     }
     'src/pages/(site)/backups.vue': {
-      routes: '/(site)/backups'
-      views: never
+      routes:
+        | '/(site)/backups'
+      views:
+        | never
     }
     'src/pages/(site)/dashboard.vue': {
-      routes: '/(site)/dashboard'
-      views: never
+      routes:
+        | '/(site)/dashboard'
+      views:
+        | never
     }
     'src/pages/(site)/hosts.vue': {
-      routes: '/(site)/hosts'
-      views: never
+      routes:
+        | '/(site)/hosts'
+      views:
+        | never
     }
     'src/pages/(site)/pools.vue': {
-      routes: '/(site)/pools'
-      views: never
+      routes:
+        | '/(site)/pools'
+      views:
+        | never
     }
     'src/pages/(site)/tasks.vue': {
-      routes: '/(site)/tasks'
-      views: never
+      routes:
+        | '/(site)/tasks'
+      views:
+        | never
     }
     'src/pages/(site)/vms.vue': {
-      routes: '/(site)/vms'
-      views: never
+      routes:
+        | '/(site)/vms'
+      views:
+        | never
     }
     'src/pages/[...path].vue': {
-      routes: '/[...path]'
-      views: never
+      routes:
+        | '/[...path]'
+      views:
+        | never
     }
     'src/pages/backup/[id].vue': {
       routes:
@@ -373,23 +490,32 @@ declare module 'vue-router/auto-routes' {
         | '/backup/[id]/configuration'
         | '/backup/[id]/runs'
         | '/backup/[id]/targets'
-      views: 'default'
+      views:
+        | 'default'
     }
     'src/pages/backup/[id]/backed-up-vms.vue': {
-      routes: '/backup/[id]/backed-up-vms'
-      views: never
+      routes:
+        | '/backup/[id]/backed-up-vms'
+      views:
+        | never
     }
     'src/pages/backup/[id]/configuration.vue': {
-      routes: '/backup/[id]/configuration'
-      views: never
+      routes:
+        | '/backup/[id]/configuration'
+      views:
+        | never
     }
     'src/pages/backup/[id]/runs.vue': {
-      routes: '/backup/[id]/runs'
-      views: never
+      routes:
+        | '/backup/[id]/runs'
+      views:
+        | never
     }
     'src/pages/backup/[id]/targets.vue': {
-      routes: '/backup/[id]/targets'
-      views: never
+      routes:
+        | '/backup/[id]/targets'
+      views:
+        | never
     }
     'src/pages/host/[id].vue': {
       routes:
@@ -401,47 +527,68 @@ declare module 'vue-router/auto-routes' {
         | '/host/[id]/system'
         | '/host/[id]/tasks'
         | '/host/[id]/vms'
-      views: 'default'
+      views:
+        | 'default'
     }
     'src/pages/host/[id]/console.vue': {
-      routes: '/host/[id]/console'
-      views: never
+      routes:
+        | '/host/[id]/console'
+      views:
+        | never
     }
     'src/pages/host/[id]/dashboard.vue': {
-      routes: '/host/[id]/dashboard'
-      views: never
+      routes:
+        | '/host/[id]/dashboard'
+      views:
+        | never
     }
     'src/pages/host/[id]/networks.vue': {
-      routes: '/host/[id]/networks'
-      views: never
+      routes:
+        | '/host/[id]/networks'
+      views:
+        | never
     }
     'src/pages/host/[id]/storage.vue': {
-      routes: '/host/[id]/storage'
-      views: never
+      routes:
+        | '/host/[id]/storage'
+      views:
+        | never
     }
     'src/pages/host/[id]/system.vue': {
-      routes: '/host/[id]/system'
-      views: never
+      routes:
+        | '/host/[id]/system'
+      views:
+        | never
     }
     'src/pages/host/[id]/tasks.vue': {
-      routes: '/host/[id]/tasks'
-      views: never
+      routes:
+        | '/host/[id]/tasks'
+      views:
+        | never
     }
     'src/pages/host/[id]/vms.vue': {
-      routes: '/host/[id]/vms'
-      views: never
+      routes:
+        | '/host/[id]/vms'
+      views:
+        | never
     }
     'src/pages/network/new.vue': {
-      routes: '/network/new'
-      views: never
+      routes:
+        | '/network/new'
+      views:
+        | never
     }
     'src/pages/network/new-bonded.vue': {
-      routes: '/network/new-bonded'
-      views: never
+      routes:
+        | '/network/new-bonded'
+      views:
+        | never
     }
     'src/pages/network/new-internal.vue': {
-      routes: '/network/new-internal'
-      views: never
+      routes:
+        | '/network/new-internal'
+      views:
+        | never
     }
     'src/pages/pool/[id].vue': {
       routes:
@@ -454,47 +601,106 @@ declare module 'vue-router/auto-routes' {
         | '/pool/[id]/system'
         | '/pool/[id]/tasks'
         | '/pool/[id]/vms'
-      views: 'default'
+      views:
+        | 'default'
     }
     'src/pages/pool/[id]/dashboard.vue': {
-      routes: '/pool/[id]/dashboard'
-      views: never
+      routes:
+        | '/pool/[id]/dashboard'
+      views:
+        | never
     }
     'src/pages/pool/[id]/hosts.vue': {
-      routes: '/pool/[id]/hosts'
-      views: never
+      routes:
+        | '/pool/[id]/hosts'
+      views:
+        | never
     }
     'src/pages/pool/[id]/networks.vue': {
-      routes: '/pool/[id]/networks'
-      views: never
+      routes:
+        | '/pool/[id]/networks'
+      views:
+        | never
     }
     'src/pages/pool/[id]/security.vue': {
-      routes: '/pool/[id]/security'
-      views: never
+      routes:
+        | '/pool/[id]/security'
+      views:
+        | never
     }
     'src/pages/pool/[id]/storage.vue': {
-      routes: '/pool/[id]/storage'
-      views: never
+      routes:
+        | '/pool/[id]/storage'
+      views:
+        | never
     }
     'src/pages/pool/[id]/system.vue': {
-      routes: '/pool/[id]/system'
-      views: never
+      routes:
+        | '/pool/[id]/system'
+      views:
+        | never
     }
     'src/pages/pool/[id]/tasks.vue': {
-      routes: '/pool/[id]/tasks'
-      views: never
+      routes:
+        | '/pool/[id]/tasks'
+      views:
+        | never
     }
     'src/pages/pool/[id]/vms.vue': {
-      routes: '/pool/[id]/vms'
-      views: never
+      routes:
+        | '/pool/[id]/vms'
+      views:
+        | never
     }
     'src/pages/pool/connect.vue': {
-      routes: '/pool/connect'
-      views: never
+      routes:
+        | '/pool/connect'
+      views:
+        | never
     }
     'src/pages/settings.vue': {
-      routes: '/settings'
-      views: never
+      routes:
+        | '/settings'
+      views:
+        | never
+    }
+    'src/pages/traffic-rule/new.vue': {
+      routes:
+        | '/traffic-rule/new'
+      views:
+        | never
+    }
+    'src/pages/vdi/attach.vue': {
+      routes:
+        | '/vdi/attach'
+      views:
+        | never
+    }
+    'src/pages/vdi/new.vue': {
+      routes:
+        | '/vdi/new'
+      views:
+        | never
+    }
+    'src/pages/vif/[id].vue': {
+      routes:
+        | '/vif/[id]'
+        | '/vif/[id]/general'
+        | '/vif/[id]/traffic-rules'
+      views:
+        | 'default'
+    }
+    'src/pages/vif/[id]/general.vue': {
+      routes:
+        | '/vif/[id]/general'
+      views:
+        | never
+    }
+    'src/pages/vif/[id]/traffic-rules.vue': {
+      routes:
+        | '/vif/[id]/traffic-rules'
+      views:
+        | never
     }
     'src/pages/vm/[id].vue': {
       routes:
@@ -507,43 +713,62 @@ declare module 'vue-router/auto-routes' {
         | '/vm/[id]/system'
         | '/vm/[id]/tasks'
         | '/vm/[id]/vdis'
-      views: 'default'
+      views:
+        | 'default'
     }
     'src/pages/vm/[id]/backups.vue': {
-      routes: '/vm/[id]/backups'
-      views: never
+      routes:
+        | '/vm/[id]/backups'
+      views:
+        | never
     }
     'src/pages/vm/[id]/console.vue': {
-      routes: '/vm/[id]/console'
-      views: never
+      routes:
+        | '/vm/[id]/console'
+      views:
+        | never
     }
     'src/pages/vm/[id]/dashboard.vue': {
-      routes: '/vm/[id]/dashboard'
-      views: never
+      routes:
+        | '/vm/[id]/dashboard'
+      views:
+        | never
     }
     'src/pages/vm/[id]/networks.vue': {
-      routes: '/vm/[id]/networks'
-      views: never
+      routes:
+        | '/vm/[id]/networks'
+      views:
+        | never
     }
     'src/pages/vm/[id]/snapshots.vue': {
-      routes: '/vm/[id]/snapshots'
-      views: never
+      routes:
+        | '/vm/[id]/snapshots'
+      views:
+        | never
     }
     'src/pages/vm/[id]/system.vue': {
-      routes: '/vm/[id]/system'
-      views: never
+      routes:
+        | '/vm/[id]/system'
+      views:
+        | never
     }
     'src/pages/vm/[id]/tasks.vue': {
-      routes: '/vm/[id]/tasks'
-      views: never
+      routes:
+        | '/vm/[id]/tasks'
+      views:
+        | never
     }
     'src/pages/vm/[id]/vdis.vue': {
-      routes: '/vm/[id]/vdis'
-      views: never
+      routes:
+        | '/vm/[id]/vdis'
+      views:
+        | never
     }
     'src/pages/vm/new.vue': {
-      routes: '/vm/new'
-      views: never
+      routes:
+        | '/vm/new'
+      views:
+        | never
     }
   }
 
@@ -554,7 +779,9 @@ declare module 'vue-router/auto-routes' {
    * @internal
    */
   export type _RouteNamesForFilePath<FilePath extends string> =
-    _RouteFileInfoMap extends Record<FilePath, infer Info> ? Info['routes'] : keyof RouteNamedMap
+    _RouteFileInfoMap extends Record<FilePath, infer Info>
+      ? Info['routes']
+      : keyof RouteNamedMap
 }
 
 export {}

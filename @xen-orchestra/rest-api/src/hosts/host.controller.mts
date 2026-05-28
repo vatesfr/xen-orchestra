@@ -2,6 +2,7 @@ import {
   Body,
   Delete,
   Example,
+  Extension,
   Get,
   Middlewares,
   Path,
@@ -99,6 +100,7 @@ export class HostController extends XapiXoController<XoHost> {
    */
   @Example(hostIds)
   @Example(partialHosts)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   getHosts(
@@ -122,6 +124,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(host)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -138,6 +141,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(hostStats)
+  @Extension('x-mcp-exposure', 'deny')
   @Get('{id}/stats')
   @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -159,6 +163,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    *
    */
+  @Extension('x-mcp-exposure', 'deny')
   @Get('{id}/audit.txt')
   @Middlewares(acl({ resource: 'host', action: 'export:logs', objectId: 'params.id' }))
   @SuccessResponse(200, 'Download started', 'application/octet-stream')
@@ -192,6 +197,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    *
    */
+  @Extension('x-mcp-exposure', 'deny')
   @Get('{id}/logs.tgz')
   @Middlewares(acl({ resource: 'host', action: 'export:logs', objectId: 'params.id' }))
   @SuccessResponse(200, 'Download started', 'application/gzip')
@@ -219,6 +225,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example limit 42
    */
   @Example(genericAlarmsExample)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/alarms')
   @Security('*', ['acl'])
   @Tags('alarms')
@@ -253,6 +260,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(hostSmt)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/smt')
   @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -276,6 +284,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(hostMissingPatches)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/missing_patches')
   @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -297,6 +306,7 @@ export class HostController extends XapiXoController<XoHost> {
    */
   @Example(messageIds)
   @Example(partialMessages)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/messages')
   @Security('*', ['acl'])
   @Tags('messages')
@@ -330,6 +340,7 @@ export class HostController extends XapiXoController<XoHost> {
    */
   @Example(taskIds)
   @Example(partialTasks)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/tasks')
   @Security('*', ['acl'])
   @Tags('tasks')
@@ -359,6 +370,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    * @example tag "from-rest-api"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Put('{id}/tags/{tag}')
   @Middlewares(acl({ resource: 'host', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
@@ -376,6 +388,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    * @example tag "from-rest-api"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}/tags/{tag}')
   @Middlewares(acl({ resource: 'host', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
@@ -398,6 +411,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example body { "pif": "d9e42451-3794-089f-de81-4ee0e6137bee" }
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/management_reconfigure')
   @Middlewares([json(), acl({ resource: 'pif', action: 'update:management', objectId: 'body.pif' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
@@ -451,6 +465,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example body { "evacuate": true, "vmIdsToForceMigrate": ["f07ab729-c0e8-721c-45ec-f11276377030"] }
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/disable')
   @Middlewares([
     json(),
@@ -524,6 +539,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/enable')
   @Middlewares(acl({ resource: 'host', action: 'enable', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)

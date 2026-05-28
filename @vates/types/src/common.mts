@@ -1,4 +1,4 @@
-import type { XoHost } from './xo.mjs'
+import type { XoHost, XoNetwork, XoVif } from './xo.mjs'
 
 declare const __brand: unique symbol
 
@@ -740,3 +740,30 @@ export type XapiVmStatsRaw = {
 export type XapiVmStats = XapiStatsResponse<XapiVmStatsRaw>
 
 export type XapiPoolStats = Record<XoHost['id'], XapiHostStats | { error: Record<string, unknown> }>
+
+export type TrafficRuleProtocol = (typeof TRAFFIC_RULE_PROTOCOLS)[number]
+
+export const SDN_CONTROLLER_OF_RULES_KEY = 'xo:sdn-controller:of-rules'
+export const TRAFFIC_RULE_PROTOCOLS = ['ARP', 'ICMP', 'IP', 'TCP', 'UDP'] as const
+export const TRAFFIC_RULE_PROTOCOLS_WITH_PORT: readonly TrafficRuleProtocol[] = ['TCP', 'UDP']
+
+export type TrafficRuleTargetType = XoNetwork['type'] | XoVif['type']
+
+export type TrafficRuleDirection = 'from' | 'to' | 'from/to'
+
+export type RawTrafficRule = {
+  allow: boolean
+  protocol: string
+  ipRange: string
+  direction: string
+  port?: string
+}
+
+type BaseTrafficRule = RawTrafficRule & {
+  id: string
+  networkId: XoNetwork['id']
+}
+
+export type TrafficRule =
+  | (BaseTrafficRule & { type: XoVif['type']; sourceId: XoVif['id'] })
+  | (BaseTrafficRule & { type: XoNetwork['type']; sourceId: XoNetwork['id'] })
