@@ -1,8 +1,8 @@
 export type ComparisonOperator = '>' | '>=' | '<' | '<='
 
 declare class BaseNode {
-  createPredicate(): (value: any) => boolean
-  match(value: any): boolean
+  createPredicate(resolver?: (id: string) => object | undefined): (value: any) => boolean
+  match(value: any, resolver?: (id: string) => object | undefined): boolean
   toString(isNested?: boolean): string
 }
 
@@ -72,6 +72,11 @@ export { StringNode as String }
 export class TruthyProperty extends BaseNode {
   constructor(name: string)
   name: string
+}
+
+export class Resolve extends BaseNode {
+  constructor(child: BaseNode)
+  child: BaseNode
 }
 
 export function parse(input: string): Node

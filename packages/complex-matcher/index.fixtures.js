@@ -2,7 +2,8 @@
 
 const CM = require('./')
 
-exports.pattern = 'foo !"\\\\ \\"" name:|(wonderwoman batman) hasCape? age:32 chi*go /^foo\\/bar\\./i'
+exports.pattern =
+  'foo !"\\\\ \\"" name:|(wonderwoman batman) hasCape? age:32 chi*go /^foo\\/bar\\./i object:[resolve]:tags:tag'
 
 exports.ast = new CM.And([
   new CM.String('foo'),
@@ -12,4 +13,5 @@ exports.ast = new CM.And([
   new CM.Property('age', new CM.NumberOrStringNode('32')),
   new CM.GlobPattern('chi*go'),
   new CM.RegExp('^foo/bar\\.', 'i'),
+  new CM.Property('object', new CM.Resolve(new CM.Property('tags', new CM.String('tag')))),
 ])
