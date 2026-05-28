@@ -16,6 +16,10 @@ const AGGRESSIVENESS_RATE = 1.5 // high-threshold ratio
 const AGGRESSIVENESS_RATE_LOW = 1.25 // low-threshold ratio
 const SIGNIFICANCE_THRESHOLD = 25 // don't optimize hosts under 25% CPU
 
+function truncateNumber(value) {
+  return Number.parseFloat(value).toFixed(1)
+}
+
 // ===================================================================
 
 export default class PerformancePlan extends Plan {
@@ -112,6 +116,7 @@ export default class PerformancePlan extends Plan {
                 exceededHost,
                 hosts: availableHosts,
                 hostsAverages: averages,
+                poolAverage,
                 thresholds,
               })
             }
@@ -163,7 +168,7 @@ export default class PerformancePlan extends Plan {
     return !aState.cpu ? -1 : 1
   }
 
-  async _optimize({ exceededHost, hosts, hostsAverages, thresholds = this._thresholds }) {
+  async _optimize({ exceededHost, hosts, hostsAverages, poolAverage, thresholds = this._thresholds }) {
     const vms = filter(this._getAllRunningVms(), vm => vm.$container === exceededHost.id)
     const vmsAverages = await this._getVmsAverages(vms, { [exceededHost.id]: exceededHost })
 
@@ -275,7 +280,19 @@ export default class PerformancePlan extends Plan {
         `Migrate VM (${vm.id} "${vm.name_label}") to Host (${destination.id} "${destination.name_label}") from Host (${fmtSrcHost}).`
       )
 
-      promises.push(this._migrateVm(vm, xapiSrc, this.xo.getXapi(destination), destination._xapiId))
+      const reason = poolAverage
+        ? `because CPU usage (${truncateNumber(exceededAverages.cpu)}%) is significantly higher than the pool average (${truncateNumber(poolAverage)}%)`
+        : `because CPU usage (${truncateNumber(exceededAverages.cpu)}%) has exceeded threshold (${truncateNumber(thresholds.cpu.high)}%) for too long`
+      promises.push(
+        this._migrateVm({
+          vm,
+          xapiSrc,
+          xapiDest: this.xo.getXapi(destination),
+          srcHostId: exceededHost.id,
+          destHostId: destination._xapiId,
+          reason,
+        })
+      )
       optimizationCount++
     }
 
