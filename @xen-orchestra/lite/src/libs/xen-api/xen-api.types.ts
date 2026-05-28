@@ -167,7 +167,10 @@ export interface XenApiHost extends XenApiRecord<'host'> {
 
 export interface XenApiSr extends XenApiRecord<'sr'> {
   content_type: string
+  name_description: string
   name_label: string
+  other_config: Record<string, string>
+  tags: string[]
   VDIs: XenApiVdi['$ref'][]
   PBDs: XenApiPbd['$ref'][]
   physical_size: number
@@ -182,6 +185,7 @@ export interface XenApiSr extends XenApiRecord<'sr'> {
 export interface XenApiPbd extends XenApiRecord<'pbd'> {
   SR: XenApiSr['$ref']
   currently_attached: boolean
+  device_config: Record<string, string>
   host: XenApiHost['$ref']
 }
 
