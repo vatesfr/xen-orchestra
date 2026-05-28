@@ -5,10 +5,12 @@ import { createLogger } from '@xen-orchestra/log'
 import { VhdDirectory, VhdSynthetic } from 'vhd-lib'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped.js'
+import { createHash, randomBytes } from 'node:crypto'
 import { dirname, join, resolve } from 'node:path'
 import { execFile } from 'child_process'
+import { lstat, open, readdir, unlink } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import { mount } from '@vates/fuse-vhd'
-import { readdir, lstat } from 'node:fs/promises'
 import { synchronized } from 'decorator-synchronized'
 import { ZipFile } from 'yazl'
 import Disposable from 'promise-toolbox/Disposable'
@@ -122,36 +124,109 @@ export class RemoteAdapter {
   }
 
   async *_getLvmPhysicalVolume(devicePath, partition) {
-    const args = []
+    const loopArgs = []
     if (partition !== undefined) {
-      args.push('-o', partition.start * 512, '--sizelimit', partition.size)
+      loopArgs.push('-o', partition.start * 512, '--sizelimit', partition.size)
     }
-    args.push('--show', '-f', devicePath)
+    loopArgs.push('--show', '-f', devicePath)
 
     debug('attach loop device', { devicePath, partition })
-    const path = (await fromCallback(execFile, 'losetup', args)).trim()
-    try {
-      debug('list LVM physical volume', { path })
-      await fromCallback(execFile, 'pvscan', ['--cache', path])
+    const loopDevice = (await fromCallback(execFile, 'losetup', loopArgs)).trim()
 
-      yield path
+    let cowPath, cowLoop, mapperName, effectivePath
+    try {
+      try {
+        // Create a sparse COW file (~4 MB is enough to hold LVM metadata rewrites)
+        mapperName = `xo-pv-${randomBytes(4).toString('hex')}`
+        cowPath = join(tmpdir(), `${mapperName}.cow`)
+        const fh = await open(cowPath, 'w')
+        await fh.truncate(4 * 1024 * 1024)
+        await fh.close()
+
+        cowLoop = (await fromCallback(execFile, 'losetup', ['--show', '-f', cowPath])).trim()
+
+        const sectors = (await fromCallback(execFile, 'blockdev', ['--getsz', loopDevice])).trim()
+        await fromCallback(execFile, 'dmsetup', [
+          'create',
+          mapperName,
+          '--table',
+          `0 ${sectors} snapshot ${loopDevice} ${cowLoop} P 8`,
+        ])
+
+        // pvscan must run before vgimportclone so LVM registers the snapshot device
+        // and can locate the Physical Volume ID on it
+        await fromCallback(execFile, 'pvscan', ['--cache', `/dev/mapper/${mapperName}`])
+
+        // Deterministic VG name: same hash for the same disk+partition across list and mount calls,
+        // but unique across different disks — avoids duplicate VG name conflicts without state.
+        const vgBase =
+          'xo' +
+          createHash('sha256')
+            .update(devicePath)
+            .update(String(partition?.id ?? ''))
+            .digest('hex')
+            .slice(0, 10)
+        debug('import LVM volume group with unique name via dm-snapshot', { vgBase })
+        await fromCallback(execFile, 'vgimportclone', ['--basevgname', vgBase, `/dev/mapper/${mapperName}`])
+
+        effectivePath = `/dev/mapper/${mapperName}`
+      } catch (error) {
+        // dm-snapshot or vgimportclone unavailable — fall back to direct loop device.
+        // Duplicate VG names across disks may still cause activation failures.
+        // Exit code 5 = "device is partitioned": expected when whole-disk detection runs on a
+        // partitioned disk that partx failed to parse — not a real failure, no need to warn.
+        if (error.code === 5) {
+          debug('device is partitioned, skipping vgimportclone', { devicePath, partition })
+        } else {
+          warn('dm-snapshot overlay failed, falling back to direct loop device', { error })
+        }
+        if (mapperName !== undefined) {
+          await fromCallback(execFile, 'dmsetup', ['remove', mapperName]).catch(noop)
+          mapperName = undefined
+        }
+        if (cowLoop !== undefined) {
+          await fromCallback(execFile, 'losetup', ['-d', cowLoop]).catch(noop)
+          cowLoop = undefined
+        }
+        if (cowPath !== undefined) {
+          await unlink(cowPath).catch(noop)
+          cowPath = undefined
+        }
+        effectivePath = loopDevice
+      }
+
+      debug('scan LVM physical volumes', { path: effectivePath })
+      await fromCallback(execFile, 'pvscan', ['--cache', effectivePath])
+
+      yield effectivePath
     } finally {
       try {
-        const vgNames = await pvs('vg_name', path)
-
-        debug('deactivate LVM volume groups', { vgNames })
-        await fromCallback(execFile, 'vgchange', ['-an', ...vgNames])
+        const vgNames = (await pvs('vg_name', effectivePath).catch(() => [])).filter(Boolean)
+        if (vgNames.length > 0) {
+          debug('deactivate LVM volume groups', { vgNames })
+          await fromCallback(execFile, 'vgchange', ['-an', ...vgNames])
+        }
       } finally {
-        debug('detach loop device', { path })
-        await fromCallback(execFile, 'losetup', ['-d', path])
+        if (mapperName !== undefined) {
+          debug('remove dm-snapshot', { mapperName })
+          await fromCallback(execFile, 'dmsetup', ['remove', mapperName]).catch(err =>
+            warn('failed to remove dm-snapshot', { mapperName, error: err })
+          )
+        }
+        if (cowLoop !== undefined) {
+          await fromCallback(execFile, 'losetup', ['-d', cowLoop]).catch(noop)
+        }
+        if (cowPath !== undefined) {
+          await unlink(cowPath).catch(noop)
+        }
+        debug('detach loop device', { loopDevice })
+        await fromCallback(execFile, 'losetup', ['-d', loopDevice])
       }
     }
   }
 
   async *_getPartition(devicePath, partition) {
-    // the norecovery option is necessary because if the partition is dirty,
-    // mount will try to fix it which is impossible if because the device is read-only
-    const options = ['loop', 'ro', 'norecovery']
+    const options = ['loop', 'ro']
 
     if (partition !== undefined) {
       const { size, start } = partition
@@ -171,8 +246,8 @@ export class RemoteAdapter {
       ])
     }
 
-    // `norecovery` option is used for ext3/ext4/xfs, if it fails it might be
-    // another fs, try without
+    // norecovery prevents mount from attempting journal replay on a read-only device (ext3/ext4/xfs).
+    // Other filesystems don't support it, so fall back without it on failure.
     try {
       await mount([...options, 'norecovery'])
     } catch (error) {
@@ -443,6 +518,9 @@ export class RemoteAdapter {
   async *getPartition(diskId, partitionId) {
     const devicePath = yield this.getDisk(diskId)
     if (partitionId === undefined) {
+      debug(
+        'no partition specified, attempting raw disk mount — call listPartitions first if disk has partitions or LVM'
+      )
       return yield this._getPartition(devicePath)
     }
 
@@ -525,7 +603,22 @@ export class RemoteAdapter {
 
   listPartitions(diskId) {
     return Disposable.use(this.getDisk(diskId), async devicePath => {
-      const partitions = await listPartitions(devicePath)
+      // partx may return empty on FUSE-backed files (vhd0); a loop device
+      // presents proper block-device semantics that partx reads reliably.
+      // losetup may itself fail if the FUSE mount isn't fully ready yet —
+      // fall back to the direct path so listPartitions returns [] instead of throwing.
+      let loopForParts, partitions
+      try {
+        loopForParts = (await fromCallback(execFile, 'losetup', ['--show', '-f', devicePath])).trim()
+        partitions = await listPartitions(loopForParts)
+      } catch (error) {
+        debug('partition probe via loop device failed, falling back to direct path', { error })
+        partitions = await listPartitions(devicePath)
+      } finally {
+        if (loopForParts !== undefined) {
+          await fromCallback(execFile, 'losetup', ['-d', loopForParts]).catch(noop)
+        }
+      }
 
       if (partitions.length === 0) {
         try {
