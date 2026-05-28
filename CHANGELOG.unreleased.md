@@ -17,9 +17,9 @@
 - [i18n] Update Chinese (Simplified Han script), Czech, Dutch, German, Korean, Slovak, Spanish and Swedish translations (PR [#9780](https://github.com/vatesfr/xen-orchestra/pull/9780))
 
 - **RBAC** check for REST API endpoints:
-  - `/pools/:id/actions/create_bonded_network (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
-  - `/pools/:id/actions/create_internal_network (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
-  - `/pools/:id/actions/management-reconfigure (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
+  - `/pools/:id/actions/create_bonded_network` (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
+  - `/pools/:id/actions/create_internal_network` (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
+  - `/pools/:id/actions/management-reconfigure` (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
 
 ### Bug fixes
 
