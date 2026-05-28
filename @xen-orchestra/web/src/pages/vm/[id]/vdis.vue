@@ -10,6 +10,16 @@
             <MenuItem>
               <UiLink
                 class="add-vdi-link"
+                :to="{ name: '/vdi/new', query: { vmid: vm.id } }"
+                icon="fa:plus"
+                size="medium"
+              >
+                {{ t('action:create-vdi') }}
+              </UiLink>
+            </MenuItem>
+            <MenuItem>
+              <UiLink
+                class="add-vdi-link"
                 :to="{ name: '/vdi/attach', query: { vmid: vm.id } }"
                 icon="action:connect"
                 size="medium"

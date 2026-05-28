@@ -5,6 +5,7 @@
 ### Security
 
 - [XO 5] Update sanitize-html dependency (Dependabot alert [484](https://github.com/vatesfr/xen-orchestra/security/dependabot/484)) (PR [#9851](https://github.com/vatesfr/xen-orchestra/pull/9851))
+- [MCP] Global kill-switch: set `[mcp] enabled = false` in `xo-server` config to immediately reject every MCP client connection (PR [#9860](https://github.com/vatesfr/xen-orchestra/pull/9860))
 
 ### Enhancements
 
@@ -14,8 +15,14 @@
 
 - [xo-server-ipmi-sensors] Migrated the old ipmi feature to a new plugin and added user defined sensors (PR [#9724](https://github.com/vatesfr/xen-orchestra/pull/9724))
 - [MCP] Read `HTTP_PROXY`/`HTTPS_PROXY`/`NO_PROXY` so an internal XOA stays reachable when the AI assistant goes through a corporate proxy (PR [#9820](https://github.com/vatesfr/xen-orchestra/pull/9820))
+- [MCP] Restrict which REST endpoints the AI assistant can reach: read-only endpoints are exposed by default, write actions require `XO_MCP_ENABLE_ACTIONS=1` with a confirmation step, and binary/stream endpoints stay hidden (PR [#9875](https://github.com/vatesfr/xen-orchestra/pull/9875))
 - [REST API] Expose `DELETE /rest/v0/srs/:id` (PR [#9464](https://github.com/vatesfr/xen-orchestra/pull/9464))
 - [REST API] Add `vms/:id/actions/revert_snapshot` REST route (PR [#9788](https://github.com/vatesfr/xen-orchestra/pull/9788))
+- [Swagger] Rename the `acls` tag to `rbacs` (PR [#9874](https://github.com/vatesfr/xen-orchestra/pull/9874))
+- [OpenMetrics] Add XOSTOR metrics (cluster status, replica health, SMART, alarms, pending updates) and an `sr_type` label on SR-tagged metrics so Grafana can filter by storage type (PR [#9849](https://github.com/vatesfr/xen-orchestra/pull/9849))
+- [VM/Snapshot] Add possibility to revert a snapshot on a VM (PR [#9862](https://github.com/vatesfr/xen-orchestra/pull/9862))
+- [VM] Add possibility to attach a VDI on tab VDI (PR [#9772](https://github.com/vatesfr/xen-orchestra/pull/9772))
+- [Pool/Security] Implement possibility to add new traffic rule from pool (PR [#9809](https://github.com/vatesfr/xen-orchestra/pull/9809))
 
 - **Backups**:
   - [Backups] Refactor clean phase for incremental and full backups ([#9765](https://github.com/vatesfr/xen-orchestra/pull/9765))
@@ -33,16 +40,20 @@
 
 ### Bug fixes
 
-- [REST] Fixed ignored parameters in request body due to a tsoa bug (see https://github.com/lukeautry/tsoa/pull/1858) (PR [#9793](https://github.com/vatesfr/xen-orchestra/pull/9793))
+- [REST API] Fixed ignored parameters in request body due to a tsoa bug (see https://github.com/lukeautry/tsoa/pull/1858) (PR [#9793](https://github.com/vatesfr/xen-orchestra/pull/9793))
+- [REST API] `POST /vdis` no longer necessarily requires `other_config` (PR [#9883](https://github.com/vatesfr/xen-orchestra/pull/9883))
 - [Tasks] Fixed issue with task without result and backup runs on task size (PR [#9841](https://github.com/vatesfr/xen-orchestra/pull/9841))
+- [Backup] Fix OUT_OF_RANGE error when resuming failed merge (PR [#9782](https://github.com/vatesfr/xen-orchestra/pull/9782))
+- [xo-server] Fix network being put first in boot order when HVM template has VDIs (PR [#9867](https://github.com/vatesfr/xen-orchestra/pull/9867))
+- [xo-server] Fix TLS memory leak (PR [#9842](https://github.com/vatesfr/xen-orchestra/pull/9842))
 - **XO 5**:
   - [Job] Error while using vm.set with `cpuMask` in job view (PR [#9823](https://github.com/vatesfr/xen-orchestra/pull/9823))
+  - [Dashboard/Health] Ignore the replicated VM when checking the number of snapshots (PR [#9868](https://github.com/vatesfr/xen-orchestra/pull/9868))
 
 ### Released packages
 
 - @xen-orchestra/fs 4.9.0
 - @xen-orchestra/disk-transform 1.3.0
-- @vates/types 1.25.0
 - @xen-orchestra/acl 1.1.0
 - @xen-orchestra/backup-archive 1.0.0
 - @xen-orchestra/xapi 8.8.0
@@ -51,13 +62,17 @@
 - @xen-orchestra/disk-cli 2.1.1
 - @xen-orchestra/immutable-backups 3.0.3
 - @xen-orchestra/web-core 0.53.0
-- @xen-orchestra/mcp 1.3.0
 - @xen-orchestra/proxy 0.30.2
-- @xen-orchestra/rest-api 0.31.1
-- @xen-orchestra/web 0.51.0
-- xo-server 5.201.0
 - xo-server-ipmi-sensors 2.0.0
-- xo-web 5.197.0
+- @vates/types 1.25.1
+- @xen-orchestra/mcp 1.4.0
+- @xen-orchestra/qa-test 1.0.1
+- @xen-orchestra/rest-api 0.32.0
+- @xen-orchestra/web 0.52.0
+- xo-server-openmetrics 1.6.0
+- xo-web 5.197.1
+- @vates/http-server-plus 2.0.2
+- xo-server 5.201.3
 
 ## **6.4.1** (2026-05-05)
 

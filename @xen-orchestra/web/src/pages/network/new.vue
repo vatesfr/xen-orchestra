@@ -16,13 +16,18 @@
       </template>
     </VtsOperationPendingCard>
 
-    <NetworkCreationErrorCard
+    <VtsOperationErrorCard
       v-else-if="hasNetworkCreationError && error"
       :title="t('unable-to-create-new-network')"
       :error
       :error-message="t('new-network:error-message')"
-      @go-back="handleGoBack()"
-    />
+    >
+      <template #actions>
+        <UiButton variant="secondary" accent="brand" size="medium" @click="handleGoBack()">
+          {{ t('action:go-back') }}
+        </UiButton>
+      </template>
+    </VtsOperationErrorCard>
 
     <UiCard v-show="canDisplayForm">
       <UiTitle>{{ t('configuration') }}</UiTitle>
@@ -33,12 +38,13 @@
 
 <script lang="ts" setup>
 import NewNetworkForm from '@/modules/network/components/form/new/NewNetworkForm.vue'
-import NetworkCreationErrorCard from '@/modules/network/components/new/NetworkCreationErrorCard.vue'
 import { type NewNetworkPayload, useXoNetworkCreateJob } from '@/modules/network/jobs/xo-network-create.job.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { type FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection'
 import type { ApiError } from '@/shared/error/api.error'
+import VtsOperationErrorCard from '@core/components/operation-error-card/VtsOperationErrorCard.vue'
 import VtsOperationPendingCard from '@core/components/operation-pending-card/VtsOperationPendingCard.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'

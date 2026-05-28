@@ -1,7 +1,7 @@
 <template>
   <div class="security" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
-      <VtsStateHero v-if="!isReady" format="panel" type="busy" size="medium" />
+      <VtsStateHero v-if="!isReady" format="page" type="busy" size="medium" />
       <TrafficRulesTable v-else :rules="trafficRules">
         <template #title-action>
           <UiLink :to="{ name: '/traffic-rule/new', query: { poolid: pool.id } }" icon="fa:plus" size="medium">

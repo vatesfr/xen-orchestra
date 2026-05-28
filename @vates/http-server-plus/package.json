@@ -1,6 +1,6 @@
 {
   "name": "@vates/http-server-plus",
-  "version": "2.0.0",
+  "version": "2.0.2",
   "license": "ISC",
   "description": "Augmented `http.Server`, HTTP/HTTPS/HTTP2 and multiple ports on the same instance",
   "keywords": [
@@ -27,9 +27,10 @@
   },
   "scripts": {
     "pretest": "eslint .",
-    "test": "node --test index.spec.js"
+    "test": "node --test index.spec.js",
+    "postversion": "npm publish --access public"
   },
-  "private": true,
+  "private": false,
   "author": {
     "name": "Vates SAS",
     "url": "https://vates.fr"

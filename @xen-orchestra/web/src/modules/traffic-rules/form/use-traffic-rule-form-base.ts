@@ -106,7 +106,7 @@ export function useTrafficRuleFormBase<T extends BaseTrafficRuleFormData>(
       allow: formData.allow,
       direction: formData.direction,
       protocol: formData.protocol,
-      ipRange: formData.ipRange.trim(),
+      ipRange: formData.ipRange,
       ...(protocolHasPort(formData.protocol) && typeof formData.port === 'number' && { port: formData.port }),
     }
   }
