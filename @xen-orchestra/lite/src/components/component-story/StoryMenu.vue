@@ -1,15 +1,12 @@
 <template>
   <RouterLink :to="{ name: '/story/' }">
-    <UiCardTitle>
-      <span class="typo-h4">Stories</span>
-    </UiCardTitle>
+    <span class="typo-h4">Stories</span>
   </RouterLink>
   <StoryMenuTree :tree :opened-directories="openedDirectories" @toggle-directory="toggleDirectory" />
 </template>
 
 <script lang="ts" setup>
 import StoryMenuTree from '@/components/component-story/StoryMenuTree.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { ref } from 'vue'
 import { type RouteRecordNormalized, useRoute, useRouter } from 'vue-router'
 
