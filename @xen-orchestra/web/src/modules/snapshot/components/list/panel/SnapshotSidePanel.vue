@@ -58,5 +58,5 @@ const {
   openModal: openSnapshotRevertModal,
   canRun: canRevertSnapshot,
   isRunning: isRevertingSnapshot,
-} = useVmSnapshotRevertModal(() => snapshot as FrontXoVmSnapshot)
+} = useVmSnapshotRevertModal(() => snapshot)
 </script>

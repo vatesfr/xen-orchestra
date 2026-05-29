@@ -20,7 +20,7 @@
       setting('showMoreButtons').widget(boolean()).preset(false),
       setting('showHero').widget(boolean()).preset(true),
       setting('heroType')
-        .widget(choice(...stateHeroTypes))
+        .widget(choice(...STATE_HERO_TYPES))
         .preset('no-selection'),
     ]"
   >
@@ -54,24 +54,11 @@ import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { event, iconProp, prop, setting, slot } from '@/libs/story/story-param'
 import { boolean, choice, text } from '@/libs/story/story-widget'
 import VtsPanel from '@core/components/panel/VtsPanel.vue'
-import VtsStateHero, { type StateHeroType } from '@core/components/state-hero/VtsStateHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
-
-const stateHeroTypes = [
-  'busy',
-  'no-result',
-  'under-construction',
-  'no-data',
-  'no-selection',
-  'error',
-  'not-found',
-  'offline',
-  'all-good',
-  'all-done',
-  'creating',
-] as const satisfies readonly StateHeroType[]
+import { STATE_HERO_TYPES } from '@core/types/state-hero.type.ts'
 </script>
 
 <style scoped lang="postcss">

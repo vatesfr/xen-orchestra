@@ -7,7 +7,7 @@
         size="medium"
         variant="tertiary"
         accent="brand"
-        left-icon="fa:edit"
+        left-icon="action:edit"
       >
         {{ t('action:edit') }}
       </UiButton>
@@ -17,7 +17,7 @@
         size="medium"
         variant="tertiary"
         accent="danger"
-        left-icon="fa:trash"
+        left-icon="action:delete"
       >
         {{ t('action:delete') }}
       </UiButton>

@@ -72,8 +72,10 @@ const { t } = useI18n()
 watch(
   [() => props.selected, () => panelStore.isLocked, () => uiStore.isSmall],
   ([selected]) => {
-    if (selected === undefined) return
-    panelStore.syncWithSelection(!!selected)
+    if (selected === undefined) {
+      return
+    }
+    panelStore.syncWithSelection(selected)
   },
   { immediate: true }
 )
@@ -89,6 +91,7 @@ function handleClose() {
 
 <style scoped lang="postcss">
 .vts-side-panel {
+  --panel-vertical-offset: 16.5rem;
   width: 40rem;
   z-index: 1010;
   transition:
@@ -98,7 +101,7 @@ function handleClose() {
   &:not(.mobile) {
     position: relative;
     top: 0;
-    min-height: calc(100dvh - v-bind('panelStore.cssVerticalOffset'));
+    min-height: calc(100dvh - var(--panel-vertical-offset));
 
     &.locked {
       margin-right: calc(-1 * v-bind('panelStore.cssHorizontalOffset'));
@@ -106,7 +109,7 @@ function handleClose() {
 
     &:not(.locked) {
       position: fixed;
-      top: v-bind('panelStore.cssVerticalOffset');
+      top: var(--panel-vertical-offset);
       right: 0;
       bottom: 0;
       transform: translateX(v-bind('panelStore.cssHorizontalOffset'));
@@ -131,6 +134,8 @@ function handleClose() {
     transform: translateX(v-bind('panelStore.cssHorizontalOffset'));
 
     :deep(.corner-actions) {
+      margin-inline-start: 0;
+      margin-inline-end: auto;
       order: -1;
     }
 

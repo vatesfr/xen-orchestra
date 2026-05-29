@@ -35,7 +35,7 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const { properties } = useXoTaskPropertiesUtils(() => task ?? ({ properties: {} } as FrontXoTask))
+const { properties } = useXoTaskPropertiesUtils(() => task)
 
 const isError = computed(() => task && task.result && (task.status === 'failure' || task.status === 'interrupted'))
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <div class="networks" :class="{ mobile: uiStore.isSmall, locked: panelStore.isLocked && !uiStore.isSmall }">
+  <VtsContentSidePanel class="networks">
     <UiCard class="container">
       <VifsTable :vifs :vm>
         <template #title-actions>
@@ -10,7 +10,7 @@
       </VifsTable>
     </UiCard>
     <VifSidePanel :vif="selectedVif" :vm @close="selectedVif = undefined" />
-  </div>
+  </VtsContentSidePanel>
 </template>
 
 <script setup lang="ts">
@@ -19,11 +19,10 @@ import VifsTable from '@/modules/vif/components/VifsTable.vue'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import { usePanelStore } from '@core/stores/panel.store'
-import { useUiStore } from '@core/stores/ui.store.ts'
 import { useArrayFilter } from '@vueuse/shared'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -37,9 +36,6 @@ const xo5VmVifHref = computed(() => buildXo5Route(`/vms/${vm.id}/network`))
 
 const { vifs: rawVifs, getVifById } = useXoVifCollection()
 
-const panelStore = usePanelStore()
-const uiStore = useUiStore()
-
 const { t } = useI18n()
 
 const vifs = useArrayFilter(rawVifs, vif => vif.$VM === vm.id)
@@ -52,11 +48,6 @@ const selectedVif = useRouteQuery<FrontXoVif | undefined>('id', {
 
 <style scoped lang="postcss">
 .networks {
-  &.locked:not(.mobile) {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 40rem;
-  }
-
   .container {
     height: fit-content;
     margin: 0.8rem;
