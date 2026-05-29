@@ -1,8 +1,23 @@
-import { Example, Extension, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import {
+  Example,
+  Extension,
+  Get,
+  Middlewares,
+  Path,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+} from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
-import type { Request as ExRequest } from 'express'
-import type { XoBackupRepository, XoVm, XoVmBackupArchive } from '@vates/types'
+import { pipeline } from 'node:stream/promises'
+import type { Readable } from 'node:stream'
+import { type Request as ExRequest, type Response as ExResponse } from 'express'
+import type { BackupDiskPartition, XoBackupRepository, XoVm, XoVmBackupArchive } from '@vates/types'
 
 import {
   badRequestResp,
@@ -122,5 +137,205 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   async getBackupArchive(@Path() id: string): Promise<Unbrand<XoVmBackupArchive>> {
     const backupArchive = await this.getObject(id as XoVmBackupArchive['id'])
     return backupArchive
+  }
+
+  /**
+   * Returns the list of disks in a backup archive.
+   *
+   * Required privilege:
+   * - resource: backup-archive, action: read
+   */
+  @Extension('x-mcp-exposure', 'confirm')
+  @Get('{id}/disks')
+  @Middlewares(
+    acl({
+      resource: 'backup-archive',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getBackupArchiveDisks(@Path() id: string): Promise<XoVmBackupArchive['disks']> {
+    const archive = await this.getObject(id as XoVmBackupArchive['id'])
+    return archive.disks
+  }
+
+  /**
+   * Returns the list of partitions of a disk in a backup archive.
+   * Returns an empty array for disks without a partition table (use the files endpoints directly).
+   *
+   * Required privilege:
+   * - resource: backup-archive, action: read
+   */
+  @Extension('x-mcp-exposure', 'deny')
+  @Get('{id}/disks/{diskId}/partitions')
+  @Middlewares(
+    acl({
+      resource: 'backup-archive',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getBackupArchiveDiskPartitions(@Path() id: string, @Path() diskId: string): Promise<BackupDiskPartition[]> {
+    return this.#backupArchiveService.listPartitions(id as XoVmBackupArchive['id'], diskId)
+  }
+
+  /**
+   * Returns the list of files at the given path inside a partition of a backup archive disk.
+   *
+   * Required privilege:
+   * - resource: backup-archive, action: read
+   *
+   * @example path "/etc"
+   */
+  @Extension('x-mcp-exposure', 'deny')
+  @Get('{id}/disks/{diskId}/partitions/{partitionId}/files')
+  @Middlewares(
+    acl({
+      resource: 'backup-archive',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getBackupArchivePartitionFiles(
+    @Path() id: string,
+    @Path() diskId: string,
+    @Path() partitionId: string,
+    @Query() path?: string
+  ): Promise<{ name: string; isFile: boolean }[]> {
+    const rawFiles = await this.#backupArchiveService.listFiles(
+      id as XoVmBackupArchive['id'],
+      diskId,
+      partitionId,
+      path ?? '/'
+    )
+    return Object.keys(rawFiles).map(name => ({ name, isFile: !name.endsWith('/') }))
+  }
+
+  /**
+   * Returns the list of files at the given path on a bare disk (no partition table) of a backup archive.
+   *
+   * Required privilege:
+   * - resource: backup-archive, action: read
+   *
+   * @example path "/etc"
+   */
+  @Extension('x-mcp-exposure', 'deny')
+  @Get('{id}/disks/{diskId}/files')
+  @Middlewares(
+    acl({
+      resource: 'backup-archive',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getBackupArchiveDiskFiles(
+    @Path() id: string,
+    @Path() diskId: string,
+    @Query() path?: string
+  ): Promise<{ name: string; isFile: boolean }[]> {
+    const rawFiles = await this.#backupArchiveService.listFiles(
+      id as XoVmBackupArchive['id'],
+      diskId,
+      undefined,
+      path ?? '/'
+    )
+    return Object.keys(rawFiles).map(name => ({ name, isFile: !name.endsWith('/') }))
+  }
+
+  /**
+   * Downloads the selected files from a partition of a backup archive disk as a tgz or zip archive.
+   *
+   * Required privilege:
+   * - resource: backup-archive, action: read
+   *
+   * @example paths ["/etc/passwd", "/etc/hosts"]
+   */
+  @Extension('x-mcp-exposure', 'deny')
+  @Get('{id}/disks/{diskId}/partitions/{partitionId}/files.{format}')
+  @Middlewares(
+    acl({
+      resource: 'backup-archive',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @SuccessResponse(200, 'Download started', 'application/octet-stream')
+  async downloadBackupArchivePartitionFiles(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Path() diskId: string,
+    @Path() partitionId: string,
+    @Path() format: 'tgz' | 'zip',
+    @Query() paths: string[]
+  ): Promise<void> {
+    const res = req.res as ExResponse
+    res.setHeader('content-type', 'application/octet-stream')
+    res.setHeader('content-disposition', 'attachment')
+    const stream = await this.#backupArchiveService.fetchFiles(
+      id as XoVmBackupArchive['id'],
+      diskId,
+      partitionId,
+      paths,
+      format
+    )
+    req.on('close', () => (stream as NodeJS.ReadableStream & { destroy?: () => void }).destroy?.())
+    await pipeline(stream as unknown as Readable, res)
+  }
+
+  /**
+   * Downloads the selected files from a bare disk (no partition table) of a backup archive as a tgz or zip archive.
+   *
+   * Required privilege:
+   * - resource: backup-archive, action: read
+   *
+   * @example paths ["/etc/passwd"]
+   */
+  @Extension('x-mcp-exposure', 'deny')
+  @Get('{id}/disks/{diskId}/files.{format}')
+  @Middlewares(
+    acl({
+      resource: 'backup-archive',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @SuccessResponse(200, 'Download started', 'application/octet-stream')
+  async downloadBackupArchiveDiskFiles(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Path() diskId: string,
+    @Path() format: 'tgz' | 'zip',
+    @Query() paths: string[]
+  ): Promise<void> {
+    const res = req.res as ExResponse
+    res.setHeader('content-type', 'application/octet-stream')
+    res.setHeader('content-disposition', 'attachment')
+    const stream = await this.#backupArchiveService.fetchFiles(
+      id as XoVmBackupArchive['id'],
+      diskId,
+      undefined,
+      paths,
+      format
+    )
+    req.on('close', () => (stream as NodeJS.ReadableStream & { destroy?: () => void }).destroy?.())
+    await pipeline(stream as unknown as Readable, res)
   }
 }

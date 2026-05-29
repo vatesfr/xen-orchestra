@@ -8,6 +8,7 @@ import { deduped } from '@vates/disposable/deduped.js'
 import { createHash, randomBytes } from 'node:crypto'
 import { dirname, join, resolve } from 'node:path'
 import { execFile } from 'child_process'
+import { createReadStream } from 'node:fs'
 import { finished } from 'node:stream/promises'
 import { lstat, open, readdir, unlink } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -48,6 +49,17 @@ const { debug, info, warn } = createLogger('xo:backups:RemoteAdapter')
 export const compareTimestamp = (a, b) => a.timestamp - b.timestamp
 
 const noop = Function.prototype
+
+// Detect the MIME type of a file using the `file` utility (magic-byte based).
+// Falls back to 'application/octet-stream' if the utility is unavailable or fails.
+async function getMimeType(filePath) {
+  try {
+    const output = await fromCallback(execFile, 'file', ['--mime-type', '-b', filePath])
+    return output.trim()
+  } catch {
+    return 'application/octet-stream'
+  }
+}
 
 const resolveRelativeFromFile = (file, path) => resolve('/', dirname(file), path).slice(1)
 const makeRelative = path => resolve('/', path).slice(1)
@@ -314,7 +326,7 @@ export class RemoteAdapter {
     })
   }
 
-  fetchPartitionFiles(diskId, partitionId, paths, format) {
+  fetchPartitionFiles(diskId, partitionId, paths, format, { range } = {}) {
     const { promise, reject, resolve } = pDefer()
     Disposable.use(
       async function* () {

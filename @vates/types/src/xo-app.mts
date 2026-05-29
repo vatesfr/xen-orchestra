@@ -3,6 +3,7 @@ import type {
   AnyXoBackupJob,
   AnyXoJob,
   AnyXoLog,
+  BackupDiskPartition,
   XapiXoRecord,
   XoAuthenticationToken,
   XoBackupRepository,
@@ -284,6 +285,21 @@ export type XoApp = {
     xo: Record<XoBackupRepository['id'], XoConfigBackupArchive[]>
     pool: Record<XoBackupRepository['id'], Record<XoPool['id'], XoPoolBackupArchive[]>>
   }>
+  listBackupNgDiskPartitions(remoteId: XoBackupRepository['id'], diskId: string): Promise<BackupDiskPartition[]>
+  listBackupNgPartitionFiles(
+    remoteId: XoBackupRepository['id'],
+    diskId: string,
+    partitionId: string | undefined,
+    path: string
+  ): Promise<Record<string, string>>
+  fetchBackupNgPartitionFiles(
+    remoteId: XoBackupRepository['id'],
+    diskId: string,
+    partitionId: string | undefined,
+    paths: string[],
+    format: string,
+    options?: { range?: { start?: number; end?: number } }
+  ): Promise<NodeJS.ReadableStream & { size?: number; totalSize?: number; mimeType?: string }>
   listVmBackupsNg(
     backupRepositoryIds: XoBackupRepository['id'][],
     opts?: { _forceRefresh?: boolean; vmId: XoVm['id'] }
