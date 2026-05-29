@@ -18,9 +18,23 @@ import { listPartitions, listFiles } from 'xo'
 // -----------------------------------------------------------------------------
 
 const PARTITION_TYPE_NAMES = {
+  // MBR types
+  0x05: 'Extended',
   0x07: 'NTFS',
-  0x0c: 'FAT',
-  0x83: 'LINUX',
+  0x0b: 'FAT32',
+  0x0c: 'FAT32',
+  0x0e: 'FAT16',
+  0x82: 'Linux swap',
+  0x83: 'Linux',
+  0x8e: 'LVM',
+  0xfd: 'Linux RAID',
+  // GPT types
+  '0657fd6d-a4ab-43c4-84e5-0933c84b4f4f': 'Linux swap',
+  '0fc63daf-8483-4772-8e79-3d69d8477de4': 'Linux',
+  '21686148-6449-6e6f-744e-656564454649': 'BIOS boot',
+  'c12a7328-f81f-11d2-ba4b-00a0c93ec93b': 'EFI System',
+  'e6d6d379-f507-44c2-a23c-238f2a3df928': 'LVM',
+  'ebd0a0a2-b9e5-4433-87c0-68b6b72699c7': 'Windows',
 }
 
 const BACKUP_RENDERER = getRenderXoItemOfType('backup')
@@ -31,12 +45,16 @@ const diskOptionRenderer = disk => (
   </span>
 )
 
-const partitionOptionRenderer = partition => (
-  <span>
-    {partition.name} {defined(PARTITION_TYPE_NAMES[partition.type], partition.type)}{' '}
-    {partition.size && `(${formatSize(+partition.size)})`}
-  </span>
-)
+const partitionOptionRenderer = partition => {
+  const typeName = defined(PARTITION_TYPE_NAMES[partition.type], partition.type)
+  const label = [partition.name, typeName].filter(Boolean).join(' ')
+  return (
+    <span>
+      {label}
+      {partition.size && ` (${formatSize(+partition.size)})`}
+    </span>
+  )
+}
 
 const fileOptionRenderer = ({ isFile, name }) => (
   <span>
