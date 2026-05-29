@@ -31,4 +31,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/vmware-explorer patch
+- @xen-orchestra/xva patch
+
 <!--packages-end-->
