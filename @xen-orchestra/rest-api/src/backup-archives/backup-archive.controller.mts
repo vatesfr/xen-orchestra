@@ -255,6 +255,39 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   }
 
   /**
+   * Returns the WebDAV URL path for a specific partition of a backup archive disk.
+   * Mount this URL with any WebDAV client (rclone, davfs2, Finder, Windows Explorer) to browse
+   * the partition content directly. Use the partition IDs from `GET …/partitions`.
+   * For disks without a partition table use the special partition ID `_bare_`.
+   *
+   * Required privilege:
+   * - resource: backup-archive, action: read
+   *
+   * @example partitionId "2"
+   * @example partitionId "_bare_"
+   */
+  @Extension('x-mcp-exposure', 'confirm')
+  @Get('{id}/disks/{diskId}/partitions/{partitionId}/webdav')
+  @Middlewares(
+    acl({
+      resource: 'backup-archive',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  getBackupArchivePartitionWebdavUrl(
+    @Path() id: string,
+    @Path() diskId: string,
+    @Path() partitionId: string
+  ): { url: string } {
+    const url = `/rest/v0/backup-archives/${encodeURIComponent(id)}/dav/${encodeURIComponent(diskId)}/${encodeURIComponent(partitionId)}/`
+    return { url }
+  }
+
+  /**
    * Downloads the selected files from a partition of a backup archive disk as a tgz or zip archive.
    *
    * Required privilege:
