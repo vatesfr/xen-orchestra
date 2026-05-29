@@ -36,5 +36,6 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/xva patch
+- xo-server patch
 
 <!--packages-end-->
