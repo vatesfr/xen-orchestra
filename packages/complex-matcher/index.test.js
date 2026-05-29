@@ -132,7 +132,7 @@ it('toString', () => {
 describe('resolve', () => {
   const target = { objects: 'object' }
   const targetArray = { objects: ['object'] }
-  const store = { object: { tags: ['tag'] } }
+  const store = { object: { tags: ['tag'], nested: 'nested-object' }, 'nested-object': { tags: ['nested-tag'] } }
   const notFoundStore = { 'not-object': { tags: ['tag'] } }
 
   it('match a single ID', () => {
@@ -143,12 +143,20 @@ describe('resolve', () => {
     assert(parse('objects:[resolve]:tags:tag').createPredicate(id => store[id])(targetArray))
   })
 
-  it('returns false when resolved object does not match', () => {
+  it('match with recursive resolution', () => {
+    assert(parse('objects:[resolve]:nested:[resolve]:tags:nested-tag').createPredicate(id => store[id])(target))
+  })
+
+  it("doesn't match when resolved object does not satisfy the predicate", () => {
     assert(!parse('objects:[resolve]:tags:not-found-tag').createPredicate(id => store[id])(target))
   })
 
-  it('returns false when resolved object not found', () => {
+  it("doesn't match when resolved object not found", () => {
     assert(!parse('objects:[resolve]:tags:tag').createPredicate(id => notFoundStore[id])(target))
+  })
+
+  it("doesn't match recursively when resolved object does not satisfy the predicate", () => {
+    assert(!parse('objects:[resolve]:nested:[resolve]:tags:not-found-tag').createPredicate(id => store[id])(target))
   })
 
   it('throws when no resolver is provided', () => {

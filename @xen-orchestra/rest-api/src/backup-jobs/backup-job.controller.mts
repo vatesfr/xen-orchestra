@@ -5,6 +5,7 @@ import {
   XoMirrorBackupJob,
   AnyXoLog,
   XoBackupLog,
+  XapiXoRecord,
 } from '@vates/types'
 import { createLogger } from '@xen-orchestra/log'
 import { inject } from 'inversify'
@@ -218,7 +219,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
     @Query() limit?: number
   ): SendObjects<Partial<UnbrandXoVmBackupJob>> {
     const vmBackupJobs = await this.restApi.xoApp.getAllJobs('backup')
-    return this.sendObjects(limitAndFilterArray(vmBackupJobs, { filter }), req, {
+    return this.sendObjects(limitAndFilterArray(vmBackupJobs, { filter }, this.objectResolver), req, {
       path: 'backup-jobs',
       limit,
       privilege: { action: 'read', resource: 'backup-job' },
@@ -272,7 +273,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
     @Query() limit?: number
   ): SendObjects<Partial<UnbrandXoMetadataBackupJob>> {
     const metadataBackupJobs = await this.restApi.xoApp.getAllJobs('metadataBackup')
-    return this.sendObjects(limitAndFilterArray(metadataBackupJobs, { filter }), req, {
+    return this.sendObjects(limitAndFilterArray(metadataBackupJobs, { filter }, this.objectResolver), req, {
       path: 'backup-jobs',
       limit,
       privilege: { action: 'read', resource: 'backup-job' },
@@ -316,7 +317,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
     @Query() limit?: number
   ): SendObjects<Partial<UnbrandXoMirrorBackupJob>> {
     const mirrorBackupJobs = await this.restApi.xoApp.getAllJobs('mirrorBackup')
-    return this.sendObjects(limitAndFilterArray(mirrorBackupJobs, { filter }), req, {
+    return this.sendObjects(limitAndFilterArray(mirrorBackupJobs, { filter }, this.objectResolver), req, {
       path: 'backup-jobs',
       limit,
       privilege: { action: 'read', resource: 'backup-job' },
@@ -359,7 +360,8 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoBackupLog>>> {
-    const userFilter = filter === undefined ? () => true : safeParseComplexMatcher(filter).createPredicate()
+    const userFilter =
+      filter === undefined ? () => true : safeParseComplexMatcher(filter).createPredicate(this.objectResolver)
 
     const predicate = (log: AnyXoLog) => {
       if (!this.#backupLogService.isBackupLog(log)) {

@@ -286,7 +286,7 @@ export class UserController extends XoController<XoUser> {
     const user = await this.getObject(id as XoUser['id'])
     const groups = await Promise.all(user.groups.map(group => this.restApi.xoApp.getGroup(group)))
 
-    return this.sendObjects(limitAndFilterArray(groups, { filter }), req, {
+    return this.sendObjects(limitAndFilterArray(groups, { filter }, this.objectResolver), req, {
       path: 'groups',
       limit,
       privilege: { action: 'read', resource: 'group' },
@@ -321,7 +321,7 @@ export class UserController extends XoController<XoUser> {
 
     const tokens = await this.restApi.xoApp.getAuthenticationTokensForUser(user.id)
 
-    return limitAndFilterArray(tokens, { filter, limit })
+    return limitAndFilterArray(tokens, { filter, limit }, this.objectResolver)
   }
 
   /**
@@ -460,7 +460,7 @@ export class UserController extends XoController<XoUser> {
 
     const userPrivileges = (await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
 
-    return this.sendObjects(limitAndFilterArray(userPrivileges, { filter }), req, {
+    return this.sendObjects(limitAndFilterArray(userPrivileges, { filter }, this.objectResolver), req, {
       path: 'acl-privileges',
       limit,
       privilege: currentUser.id === user.id ? undefined : { action: 'read', resource: 'acl-privilege' },
