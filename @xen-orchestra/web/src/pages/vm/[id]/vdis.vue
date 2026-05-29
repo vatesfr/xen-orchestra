@@ -1,5 +1,5 @@
 <template>
-  <div class="vdis" :class="{ mobile: uiStore.isSmall, locked: panelStore.isLocked && !uiStore.isSmall }">
+  <VtsContentSidePanel class="vdis">
     <UiCard class="container">
       <VdisTable :vdis="filteredVdisByNotCdVbd" :vm :busy="!areVmVdisReady" :error="hasVmVdiFetchError">
         <template #title-actions>
@@ -32,7 +32,7 @@
       </VdisTable>
     </UiCard>
     <VdiSidePanel :vdi="selectedVdi" :vm @close="selectedVdi = undefined" />
-  </div>
+  </VtsContentSidePanel>
 </template>
 
 <script setup lang="ts">
@@ -42,14 +42,13 @@ import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-colle
 import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoVmVdisCollection } from '@/modules/vm/remote-resources/use-xo-vm-vdis-collection.ts'
+import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import { usePanelStore } from '@core/stores/panel.store'
-import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -60,9 +59,6 @@ const { vm } = defineProps<{
 const { t } = useI18n()
 
 const { vmVdis, getVmVdiById, hasVmVdiFetchError, areVmVdisReady } = useXoVmVdisCollection({}, () => vm.id)
-
-const panelStore = usePanelStore()
-const uiStore = useUiStore()
 
 const { notCdDriveVbds } = useXoVmVbdsUtils(() => vm)
 
@@ -78,11 +74,6 @@ const selectedVdi = useRouteQuery<FrontXoVdi | undefined>('id', {
 
 <style scoped lang="postcss">
 .vdis {
-  &.locked:not(.mobile) {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 40rem;
-  }
-
   .container {
     height: fit-content;
     margin: 0.8rem;

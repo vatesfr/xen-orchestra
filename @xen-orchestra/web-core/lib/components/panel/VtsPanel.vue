@@ -1,10 +1,7 @@
 <!-- v5 -->
 <template>
-  <UiPanel :error class="vts-panel">
-    <template
-      v-if="slots.header || slots.actions || slots['more-actions'] || slots['corner-actions'] || closable"
-      #header
-    >
+  <UiPanel :error>
+    <template v-if="needsHeader" #header>
       <slot v-if="slots.header" name="header" />
       <div v-if="slots.actions || slots['more-actions']" class="action-buttons">
         <template v-if="slots.actions">
@@ -40,18 +37,14 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import type { IconName } from '@core/icons'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-withDefaults(
-  defineProps<{
-    error?: boolean
-    closable?: boolean
-    closeIcon?: IconName
-  }>(),
-  {
-    closeIcon: 'action:close-cancel-clear',
-  }
-)
+const { closable, closeIcon = 'action:close-cancel-clear' } = defineProps<{
+  error?: boolean
+  closable?: boolean
+  closeIcon?: IconName
+}>()
 
 const emit = defineEmits<{
   close: []
@@ -66,6 +59,10 @@ const slots = defineSlots<{
 }>()
 
 const { t } = useI18n()
+
+const needsHeader = computed(
+  () => slots.header || slots.actions || slots['more-actions'] || slots['corner-actions'] || closable
+)
 </script>
 
 <style scoped lang="postcss">
@@ -79,11 +76,5 @@ const { t } = useI18n()
   align-items: center;
   margin-inline-start: auto;
   gap: 0.8rem;
-}
-.mobile {
-  .corner-actions {
-    margin-inline-start: 0;
-    margin-inline-end: auto;
-  }
 }
 </style>

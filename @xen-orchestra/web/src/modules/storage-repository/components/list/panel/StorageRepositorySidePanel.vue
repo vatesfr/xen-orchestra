@@ -1,14 +1,13 @@
 <template>
   <VtsSidePanel :key="panelSignature" :selected="!!sr" :closable="!!sr" @close="emit('close')">
-    <template #actions>
+    <template v-if="sr" #actions>
       <VtsDeleteButton
-        v-if="sr"
         class="sr-delete-button"
         :disabled="!canDeleteSr"
         :busy="isDeletingSr"
         @click="openSrDeleteModal()"
       />
-      <SrDisconnectButton v-if="sr" class="sr-disconnect-button" :sr :scope />
+      <SrDisconnectButton class="sr-disconnect-button" :sr :scope />
     </template>
     <template #default>
       <VtsStateHero v-if="!sr" format="panel" type="no-selection" size="medium" />
