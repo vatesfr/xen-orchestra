@@ -213,7 +213,8 @@ export class VdiController extends XapiXoController<XoVdi> {
   /**
    * Create an empty VDI.
    *
-   * Required privilege:
+   * Required privileges:
+   * - resource: sr, action: import:vdi (on the target SR)
    * - resource: vdi, action: create
    *
    * @example body { "srId": "c4284e12-37c9-7967-b9e8-83ef229c3e03", "virtual_size": 10737418240, "name_label": "test VDI" }
@@ -221,7 +222,13 @@ export class VdiController extends XapiXoController<XoVdi> {
   @Example(vdiId)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('')
-  @Middlewares([json(), acl({ resource: 'vdi', action: 'create', object: ({ req }) => req.body })])
+  @Middlewares([
+    json(),
+    acl([
+      { resource: 'sr', action: 'import:vdi', objectId: 'body.srId' },
+      { resource: 'vdi', action: 'create', object: ({ req }) => req.body },
+    ]),
+  ])
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -335,8 +342,9 @@ export class VdiController extends XapiXoController<XoVdi> {
   /**
    * Migrate a VDI to another SR.
    *
-   * Required privilege:
+   * Required privileges:
    * - resource: vdi, action: migrate
+   * - resource: sr, action: import:vdi (on the target SR)
    *
    * Note: After migration, the VDI will have a new ID. The new ID is returned in the response.
    *
@@ -347,7 +355,13 @@ export class VdiController extends XapiXoController<XoVdi> {
   @Example(vdiId)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/migrate')
-  @Middlewares([json(), acl({ resource: 'vdi', action: 'migrate', objectId: 'params.id' })])
+  @Middlewares([
+    json(),
+    acl([
+      { resource: 'vdi', action: 'migrate', objectId: 'params.id' },
+      { resource: 'sr', action: 'import:vdi', objectId: 'body.srId' },
+    ]),
+  ])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(200, 'Ok')
