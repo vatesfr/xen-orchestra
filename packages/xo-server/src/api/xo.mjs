@@ -99,9 +99,16 @@ importConfig.params = {
 export async function snapshotBeforeUpgrade() {
   const SNAPSHOT_LABEL = 'Snapshot before update, delete after successful upgrade.'
   const vmUuid = await getCurrentVmUuid()
-  const xoVm = this.getObject(vmUuid)
-  const xapi = this.getXapi(xoVm)
-  const vm = xapi.getObject(vmUuid) // ← XAPI object: has $ref, $snapshots with $destroy()
+  let vm, xapi
+  try {
+    const xoVm = this.getObject(vmUuid)
+    xapi = this.getXapi(xoVm)
+    vm = xapi.getObject(vmUuid) // ← XAPI object: has $ref, $snapshots with $destroy()
+  } catch (err) {
+    throw new Error(`This Vm is not handled by this XOA, maybe it's not connected to the pool running it `, {
+      cause: err,
+    })
+  }
   await Promise.all(vm.$snapshots.filter(({ name_label }) => name_label === SNAPSHOT_LABEL).map(s => s.$destroy()))
   await xapi.VM_snapshot(vm.$ref, { name_label: SNAPSHOT_LABEL })
 }
