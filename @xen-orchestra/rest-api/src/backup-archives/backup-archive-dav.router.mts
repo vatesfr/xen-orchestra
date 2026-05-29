@@ -11,26 +11,37 @@ import { iocContainer } from '../ioc/ioc.mjs'
 
 const log = createLogger('xo:rest-api:backup-archives:dav')
 
+// ─── Segment encoding ─────────────────────────────────────────────────────────
+// The archive ID, disk ID and (LVM) partition IDs contain "/". Percent-encoding
+// them as "%2F" breaks WebDAV clients: okhttp keeps "%2F" in its request URI but
+// normalizes it to "/" when parsing response hrefs, so the self entry no longer
+// matches the request and the whole listing is discarded. base64url has no "/"
+// (alphabet: A-Z a-z 0-9 - _), so the path stays a clean single segment everywhere.
+const encodeSeg = (s: string): string => Buffer.from(s, 'utf8').toString('base64url')
+const decodeSeg = (s: string): string => Buffer.from(s, 'base64url').toString('utf8')
+
 // ─── XML helpers ──────────────────────────────────────────────────────────────
 
 function xmlEscape(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
-type DavEntry = { name: string; isFile: boolean }
+// `name` is the human-readable display name; `segment` is the URL path segment to
+// append to the parent href (already encoded: base64url for ids, %xx for file names).
+type DavEntry = { name: string; isFile: boolean; segment: string }
 
-function buildMultistatus(selfHref: string, entries: DavEntry[], depth: string): string {
-  const selfName = selfHref.replace(/\/$/, '').split('/').pop() ?? ''
+// Always return direct children for directory PROPFIND regardless of the requested Depth.
+// RFC 4918 says Depth:0 means "self only", but many Android WebDAV clients (okhttp-based)
+// send Depth:0 for every request and never follow with Depth:1 — so they would see an
+// empty directory. Returning children unconditionally is the pragmatic fix.
+function buildMultistatus(selfHref: string, selfName: string, entries: DavEntry[]): string {
   const responses: string[] = [davResponse(selfHref, selfName, false)]
 
-  if (depth !== '0') {
-    const baseHref = selfHref.endsWith('/') ? selfHref : selfHref + '/'
-    for (const entry of entries) {
-      // encodeURIComponent so special chars (e.g. "/" in LVM IDs) stay valid in the href.
-      const encodedName = encodeURIComponent(entry.name)
-      const entryHref = baseHref + (entry.isFile ? encodedName : encodedName + '/')
-      responses.push(davResponse(entryHref, entry.name, entry.isFile))
-    }
+  const baseHref = selfHref.endsWith('/') ? selfHref : selfHref + '/'
+
+  for (const entry of entries) {
+    const entryHref = baseHref + (entry.isFile ? entry.segment : entry.segment + '/')
+    responses.push(davResponse(entryHref, entry.name, entry.isFile))
   }
 
   return `<?xml version="1.0" encoding="utf-8"?>\n<D:multistatus xmlns:D="DAV:">\n${responses.join('\n')}\n</D:multistatus>`
@@ -38,12 +49,19 @@ function buildMultistatus(selfHref: string, entries: DavEntry[], depth: string):
 
 function davResponse(href: string, displayName: string, isFile: boolean): string {
   const resourceType = isFile ? '' : '<D:collection/>'
+  // getcontenttype/getlastmodified help clients render entries. getcontentlength is
+  // intentionally omitted: file sizes aren't available from the listing, and reporting
+  // a fake 0 can make strict clients skip the download. Clients learn the real size on GET.
+  const contentType = isFile ? 'application/octet-stream' : 'httpd/unix-directory'
+  const lastModified = new Date().toUTCString()
   return `  <D:response>
     <D:href>${xmlEscape(href)}</D:href>
     <D:propstat>
       <D:prop>
         <D:resourcetype>${resourceType}</D:resourcetype>
         <D:displayname>${xmlEscape(displayName)}</D:displayname>
+        <D:getcontenttype>${contentType}</D:getcontenttype>
+        <D:getlastmodified>${lastModified}</D:getlastmodified>
       </D:prop>
       <D:status>HTTP/1.1 200 OK</D:status>
     </D:propstat>
@@ -56,9 +74,8 @@ function buildHtmlListing(href: string, entries: DavEntry[]): string {
   const title = xmlEscape(href)
   const rows = entries
     .map(e => {
-      const name = xmlEscape(e.name)
-      const link = e.isFile ? name : name + '/'
-      return `    <tr><td><a href="${link}">${link}</a></td></tr>`
+      const link = e.isFile ? e.segment : e.segment + '/'
+      return `    <tr><td><a href="${xmlEscape(link)}">${xmlEscape(e.name)}${e.isFile ? '' : '/'}</a></td></tr>`
     })
     .join('\n')
   return `<!DOCTYPE html><html><head><title>${title}</title></head><body>
@@ -86,14 +103,15 @@ function parseRangeHeader(header: string): RangeParsed | undefined {
 
 // ─── ACL ─────────────────────────────────────────────────────────────────────
 
-// objectId 'params.archiveId' is resolved via dot notation against `req`
+// objectId 'params.archiveId' is resolved via dot notation against `req`.
+// The archiveId in the DAV URL is base64url-encoded, so decode it before resolving.
 const DAV_ACL = acl({
   resource: 'backup-archive',
   action: 'read',
   objectId: 'params.archiveId',
   getObject: () => {
     const service = iocContainer.get(BackupArchiveService)
-    return (id: XoVmBackupArchive['id']) => service.getBackupArchive(id)
+    return (id: XoVmBackupArchive['id']) => service.getBackupArchive(decodeSeg(id) as XoVmBackupArchive['id'])
   },
 })
 
@@ -109,6 +127,9 @@ export function createBackupArchiveDavRouter(): Router {
     async (req: Request, res: Response, next: NextFunction) => {
       const method = req.method.toUpperCase()
 
+      // RFC 4918 requires DAV: 1 on all responses, not just OPTIONS.
+      res.setHeader('DAV', '1')
+
       if (method === 'OPTIONS') {
         res.set({ DAV: '1', Allow: 'OPTIONS, GET, HEAD, PROPFIND', 'Accept-Ranges': 'bytes' })
         return res.status(200).end()
@@ -119,57 +140,63 @@ export function createBackupArchiveDavRouter(): Router {
         return res.status(405).end()
       }
 
-      const archiveId = (req as AuthenticatedRequest).params.archiveId as XoVmBackupArchive['id']
-      const depth = (req.headers['depth'] as string | undefined) ?? '1'
+      const archiveId = decodeSeg((req as AuthenticatedRequest).params.archiveId as string) as XoVmBackupArchive['id']
       const service = iocContainer.get(BackupArchiveService)
 
-      // req.path is relative to /:archiveId/dav — i.e. everything after /dav.
-      // Decode each segment so LVM partition IDs like "0%2Fvg%2Flv" reach services as "0/vg/lv".
-      // selfHref stays raw (from originalUrl) so PROPFIND hrefs remain valid URLs.
-      const pathParts = req.path
-        .split('/')
-        .filter(Boolean)
-        .map(s => decodeURIComponent(s))
+      // req.path is relative to /:archiveId/dav. Segments 0 (diskId) and 1 (partitionId)
+      // are base64url-encoded; file-path segments after that are normal %xx-encoded names.
+      const rawParts = req.path.split('/').filter(Boolean)
+
+      // Absolute-path hrefs (RFC 4918 allows path or full URI). base64url segments make
+      // self-matching work without needing a full http(s)://host URI, and a path avoids
+      // having to reconstruct the public host behind reverse proxies.
       const selfHref = req.originalUrl.split('?')[0]
+
+      log.debug('DAV request', { method, archiveId, rawParts })
 
       try {
         // ── /dav/ → list disks ───────────────────────────────────────────────
-        if (pathParts.length === 0) {
+        if (rawParts.length === 0) {
           const archive = await service.getBackupArchive(archiveId)
-          const entries: DavEntry[] = archive.disks.map(d => ({ name: d.name || d.id, isFile: false }))
-
-          if (method === 'PROPFIND') {
-            const xml = buildMultistatus(selfHref.endsWith('/') ? selfHref : selfHref + '/', entries, depth)
-            return res.status(207).set('Content-Type', 'application/xml; charset=utf-8').end(xml)
-          }
-
-          // GET / HEAD on root → HTML listing
-          if (method === 'HEAD') return res.status(200).end()
-          return res
-            .status(200)
-            .set('Content-Type', 'text/html; charset=utf-8')
-            .end(buildHtmlListing(selfHref, entries))
-        }
-
-        const diskId = pathParts[0]
-
-        // ── /dav/{diskId}/ → list partitions or bare-disk root ───────────────
-        // For bare disks (no partition table), files live under the synthetic "_bare_"
-        // partition segment to avoid path ambiguity with partition IDs.
-        if (pathParts.length === 1) {
-          const partitions = await service.listPartitions(archiveId, diskId)
-          const entries: DavEntry[] =
-            partitions.length === 0
-              ? [{ name: '_bare_', isFile: false }]
-              : partitions.map(p => ({ name: p.id, isFile: false }))
+          const entries: DavEntry[] = archive.disks.map(d => ({
+            name: d.name || d.id,
+            isFile: false,
+            segment: encodeSeg(d.id),
+          }))
 
           const baseHref = selfHref.endsWith('/') ? selfHref : selfHref + '/'
-
           if (method === 'PROPFIND') {
             return res
               .status(207)
               .set('Content-Type', 'application/xml; charset=utf-8')
-              .end(buildMultistatus(baseHref, entries, depth))
+              .end(buildMultistatus(baseHref, 'backup-archive', entries))
+          }
+          if (method === 'HEAD') return res.status(200).end()
+          return res
+            .status(200)
+            .set('Content-Type', 'text/html; charset=utf-8')
+            .end(buildHtmlListing(baseHref, entries))
+        }
+
+        const diskId = decodeSeg(rawParts[0])
+
+        // ── /dav/{diskId}/ → list partitions or bare-disk root ───────────────
+        // For bare disks (no partition table), files live under the synthetic "_bare_"
+        // partition segment to avoid path ambiguity with partition IDs.
+        if (rawParts.length === 1) {
+          const partitions = await service.listPartitions(archiveId, diskId)
+
+          const entries: DavEntry[] =
+            partitions.length === 0
+              ? [{ name: '_bare_', isFile: false, segment: encodeSeg('_bare_') }]
+              : partitions.map(p => ({ name: p.id, isFile: false, segment: encodeSeg(p.id) }))
+
+          const baseHref = selfHref.endsWith('/') ? selfHref : selfHref + '/'
+          if (method === 'PROPFIND') {
+            return res
+              .status(207)
+              .set('Content-Type', 'application/xml; charset=utf-8')
+              .end(buildMultistatus(baseHref, diskId, entries))
           }
           if (method === 'HEAD') return res.status(200).end()
           return res
@@ -180,26 +207,28 @@ export function createBackupArchiveDavRouter(): Router {
 
         // ── /dav/{diskId}/{partitionId}/[path] ───────────────────────────────
         // "_bare_" is a synthetic sentinel for disks with no partition table.
-        const rawPartitionId = pathParts[1]
+        const rawPartitionId = decodeSeg(rawParts[1])
         const partitionId = rawPartitionId === '_bare_' ? undefined : rawPartitionId
-        const filePath = '/' + pathParts.slice(2).join('/')
+        const fileSegments = rawParts.slice(2).map(s => decodeURIComponent(s))
+        const filePath = '/' + fileSegments.join('/')
         const isDirectory = req.path.endsWith('/')
 
         // PROPFIND on a directory
         if (method === 'PROPFIND' || isDirectory) {
           const listPath = isDirectory ? filePath : filePath + '/'
           const rawFiles = await service.listFiles(archiveId, diskId, partitionId, listPath)
-          const entries: DavEntry[] = Object.keys(rawFiles).map(name => ({
-            name: name.replace(/\/$/, ''),
-            isFile: !name.endsWith('/'),
-          }))
+          const entries: DavEntry[] = Object.keys(rawFiles).map(rawName => {
+            const name = rawName.replace(/\/$/, '')
+            return { name, isFile: !rawName.endsWith('/'), segment: encodeURIComponent(name) }
+          })
           const baseHref = selfHref.endsWith('/') ? selfHref : selfHref + '/'
+          const selfName = fileSegments[fileSegments.length - 1] ?? partitionId ?? '_bare_'
 
           if (method === 'PROPFIND') {
             return res
               .status(207)
               .set('Content-Type', 'application/xml; charset=utf-8')
-              .end(buildMultistatus(baseHref, entries, depth))
+              .end(buildMultistatus(baseHref, selfName, entries))
           }
           // GET / HEAD on a directory → HTML listing
           if (method === 'HEAD') return res.status(200).end()
@@ -212,7 +241,7 @@ export function createBackupArchiveDavRouter(): Router {
         // ── File GET / HEAD ──────────────────────────────────────────────────
         await handleFileGet(archiveId, diskId, partitionId, filePath, service, req, res, method === 'HEAD')
       } catch (err) {
-        log.warn('DAV request failed', { method, path: req.path, error: err })
+        log.warn('DAV request failed', { method, path: req.path, archiveId, error: err })
         next(err)
       }
     }

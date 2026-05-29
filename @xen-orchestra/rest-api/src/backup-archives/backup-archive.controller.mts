@@ -279,12 +279,29 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getBackupArchivePartitionWebdavUrl(
+    @Request() req: ExRequest,
     @Path() id: string,
     @Path() diskId: string,
     @Path() partitionId: string
   ): { url: string } {
-    const url = `/rest/v0/backup-archives/${encodeURIComponent(id)}/dav/${encodeURIComponent(diskId)}/${encodeURIComponent(partitionId)}/`
-    return { url }
+    // The slash-containing ids are base64url-encoded (not %2F) because WebDAV clients
+    // normalize %2F→/ when parsing response hrefs, which breaks self-entry matching.
+    // The DAV router decodes these segments with the matching base64url scheme.
+    const seg = (s: string) => Buffer.from(s, 'utf8').toString('base64url')
+    const path = `/rest/v0/backup-archives/${seg(id)}/dav/${seg(diskId)}/${seg(partitionId)}/`
+
+    // Resolve protocol and host, respecting reverse-proxy headers
+    const proto = (req.headers['x-forwarded-proto'] as string | undefined) ?? req.protocol ?? 'http'
+    const host = (req.headers['x-forwarded-host'] as string | undefined) ?? (req.headers.host as string) ?? 'localhost'
+
+    // Mirror setupApiContext's token extraction: prefer authenticationToken, fall back to token.
+    // Embed it as HTTP Basic auth credentials so WebDAV clients (rclone, davfs2, Finder, Windows)
+    // can parse ":<token>@host" from the URL and send Authorization: Basic on every sub-request.
+    const { cookies } = req as ExRequest & { cookies: Record<string, string> }
+    const token = cookies.authenticationToken ?? cookies.token
+    const auth = token !== undefined ? `:${encodeURIComponent(token)}@` : ''
+
+    return { url: `${proto}://${auth}${host}${path}` }
   }
 
   /**
