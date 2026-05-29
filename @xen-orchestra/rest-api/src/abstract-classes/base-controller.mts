@@ -32,6 +32,14 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
   restApi: RestApi
   readonly type: BaseControllerType<T>
 
+  objectResolver = (id: string) => {
+    try {
+      return this.restApi.getObject(id as XapiXoRecord['id'])
+    } catch {
+      return undefined
+    }
+  }
+
   constructor(type: BaseControllerType<T>, restApi: RestApi) {
     super()
     this.type = type
@@ -57,14 +65,6 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
         : []
     ) as AnyPrivilege[]
 
-    const resolver = (id: string) => {
-      try {
-        return this.restApi.getObject(id as XapiXoRecord['id'])
-      } catch {
-        return undefined
-      }
-    }
-
     let limit = opts?.limit ?? Infinity
     for (const object of objects) {
       if (limit === 0) {
@@ -73,7 +73,7 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
 
       if (
         opts?.privilege !== undefined &&
-        !hasPrivilegeOn({ user, userPrivileges, objects: object, ...opts.privilege }, resolver)
+        !hasPrivilegeOn({ user, userPrivileges, objects: object, ...opts.privilege }, this.objectResolver)
       ) {
         continue
       }
@@ -115,7 +115,8 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
 
     let userFilter: (task: XoTask) => boolean = () => true
     if (filter !== undefined) {
-      userFilter = typeof filter === 'string' ? safeParseComplexMatcher(filter).createPredicate() : filter
+      userFilter =
+        typeof filter === 'string' ? safeParseComplexMatcher(filter).createPredicate(this.objectResolver) : filter
     }
 
     for await (const task of this.restApi.tasks.list({ filter: objectFilter })) {

@@ -96,7 +96,8 @@ export class TaskController extends XoController<XoTask> {
         throw new ApiError('watch=true requires ndjson=true', 400)
       }
 
-      const userFilter = filter === undefined ? undefined : safeParseComplexMatcher(filter).createPredicate()
+      const userFilter =
+        filter === undefined ? undefined : safeParseComplexMatcher(filter).createPredicate(this.objectResolver)
       const mapper = makeObjectMapper(req)
       const stream = new Transform({
         objectMode: true,

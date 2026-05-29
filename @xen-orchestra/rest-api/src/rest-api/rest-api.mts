@@ -55,7 +55,15 @@ export class RestApi {
     { filter, ...opts }: { filter?: string | ((obj: T) => boolean); limit?: number } = {}
   ): Record<T['id'], T> {
     if (filter !== undefined && typeof filter === 'string') {
-      filter = safeParseComplexMatcher(filter).createPredicate()
+      const objectResolver = (id: string) => {
+        try {
+          return this.getObject(id as XapiXoRecord['id'])
+        } catch {
+          return undefined
+        }
+      }
+
+      filter = safeParseComplexMatcher(filter).createPredicate(objectResolver)
     }
     return this.#xoApp.getObjectsByType(type, { filter, ...opts }) ?? ({} as Record<T['id'], T>)
   }
