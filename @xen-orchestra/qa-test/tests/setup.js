@@ -60,6 +60,10 @@ export const setup = async () => {
       fastClone: true,
     })
 
+    log.debug('Starting test VM', { id: testVmId })
+    await dispatchClient.vm.start(testVmId)
+    await dispatchClient.vm.waitForPowerState(testVmId, 'Running', 120_000)
+
     createdResources.vm = await dispatchClient.vm.details(testVmId)
     tracker.trackResource('vm', testVmId, { name: testVmName, source: referenceVm.name_label })
 

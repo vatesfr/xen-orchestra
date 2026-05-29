@@ -1,4 +1,18 @@
-import { Delete, Example, Get, Path, Put, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
+import {
+  Delete,
+  Example,
+  Extension,
+  Get,
+  Path,
+  Put,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+} from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Readable } from 'node:stream'
@@ -52,6 +66,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
    */
   @Example(vdiSnapshotIds)
   @Example(partialVdiSnapshots)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   getVdiSnapshots(
@@ -74,6 +89,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
    *
    * @example id "d2727772-735b-478f-b6f9-11e7db56dfd0"
    */
+  @Extension('x-mcp-exposure', 'deny')
   @Get('{id}.{format}')
   @SuccessResponse(200, 'Download started', 'application/octet-stream')
   @Response(notFoundResp.status, notFoundResp.description)
@@ -97,6 +113,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
    * @example id "d2727772-735b-478f-b6f9-11e7db56dfd0"
    */
   @Example(vdiSnapshot)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Response(notFoundResp.status, notFoundResp.description)
   getVdiSnapshot(@Path() id: string): Unbrand<XoVdiSnapshot> {
@@ -113,6 +130,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
    * @example limit 42
    */
   @Example(genericAlarmsExample)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/alarms')
   @Security('*', ['acl'])
   @Tags('alarms')
@@ -141,6 +159,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
   /**
    * @example id "d2727772-735b-478f-b6f9-11e7db56dfd0"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}')
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -160,6 +179,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
    */
   @Example(messageIds)
   @Example(partialMessages)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/messages')
   @Security('*', ['acl'])
   @Tags('messages')
@@ -193,6 +213,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
    */
   @Example(taskIds)
   @Example(partialTasks)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/tasks')
   @Security('*', ['acl'])
   @Tags('tasks')
@@ -218,6 +239,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
    * @example id "d2727772-735b-478f-b6f9-11e7db56dfd0"
    * @example tag "from-rest-api"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Put('{id}/tags/{tag}')
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -230,6 +252,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
    * @example id "d2727772-735b-478f-b6f9-11e7db56dfd0"
    * @example tag "from-rest-api"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}/tags/{tag}')
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)

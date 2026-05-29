@@ -2,6 +2,7 @@ import {
   Body,
   Delete,
   Example,
+  Extension,
   Get,
   Middlewares,
   Path,
@@ -70,6 +71,7 @@ export class ServerController extends XoController<XoServer> {
    */
   @Example(serverIds)
   @Example(partialServers)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   async getServers(
@@ -93,6 +95,7 @@ export class ServerController extends XoController<XoServer> {
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(server)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(
     acl({
@@ -114,6 +117,7 @@ export class ServerController extends XoController<XoServer> {
    *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}')
   @Middlewares(
     acl({
@@ -143,6 +147,7 @@ export class ServerController extends XoController<XoServer> {
    * }
    */
   @Example(serverId)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('')
   @Middlewares([json(), acl({ resource: 'server', action: 'create', object: ({ req }) => req.body })])
   @SuccessResponse(createdResp.status, createdResp.description)
@@ -161,6 +166,7 @@ export class ServerController extends XoController<XoServer> {
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/connect')
   @Middlewares(
     acl({
@@ -195,6 +201,7 @@ export class ServerController extends XoController<XoServer> {
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/disconnect')
   @Middlewares(
     acl({
@@ -233,6 +240,7 @@ export class ServerController extends XoController<XoServer> {
    */
   @Example(taskIds)
   @Example(partialTasks)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/tasks')
   @Security('*', ['acl'])
   @Tags('tasks')

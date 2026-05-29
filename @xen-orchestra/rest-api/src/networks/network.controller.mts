@@ -1,17 +1,18 @@
 import {
+  Delete,
   Example,
+  Extension,
   Get,
+  Middlewares,
   Path,
+  Put,
   Query,
-  Response,
   Request,
+  Response,
   Route,
   Security,
-  Tags,
-  Delete,
   SuccessResponse,
-  Put,
-  Middlewares,
+  Tags,
 } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
@@ -60,6 +61,7 @@ export class NetworkController extends XapiXoController<XoNetwork> {
    */
   @Example(networkIds)
   @Example(partialNetworks)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   getNetworks(
@@ -83,6 +85,7 @@ export class NetworkController extends XapiXoController<XoNetwork> {
    * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
    */
   @Example(network)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(acl({ resource: 'network', action: 'read', objectId: 'params.id' }))
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -97,6 +100,7 @@ export class NetworkController extends XapiXoController<XoNetwork> {
    *
    * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}')
   @Middlewares(acl({ resource: 'network', action: 'delete', objectId: 'params.id' }))
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -117,6 +121,7 @@ export class NetworkController extends XapiXoController<XoNetwork> {
    * @example limit 42
    */
   @Example(genericAlarmsExample)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/alarms')
   @Security('*', ['acl'])
   @Tags('alarms')
@@ -153,6 +158,7 @@ export class NetworkController extends XapiXoController<XoNetwork> {
    */
   @Example(messageIds)
   @Example(partialMessages)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/messages')
   @Security('*', ['acl'])
   @Tags('messages')
@@ -186,6 +192,7 @@ export class NetworkController extends XapiXoController<XoNetwork> {
    */
   @Example(taskIds)
   @Example(partialTasks)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/tasks')
   @Security('*', ['acl'])
   @Tags('tasks')
@@ -215,6 +222,7 @@ export class NetworkController extends XapiXoController<XoNetwork> {
    * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
    * @example tag "from-rest-api"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Put('{id}/tags/{tag}')
   @Middlewares(acl({ resource: 'network', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
@@ -232,6 +240,7 @@ export class NetworkController extends XapiXoController<XoNetwork> {
    * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
    * @example tag "from-rest-api"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}/tags/{tag}')
   @Middlewares(acl({ resource: 'network', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)

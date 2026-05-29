@@ -3,6 +3,7 @@ import {
   Delete,
   Deprecated,
   Example,
+  Extension,
   Get,
   Middlewares,
   Patch,
@@ -92,6 +93,7 @@ export class UserController extends XoController<XoUser> {
    */
   @Example(userIds)
   @Example(partialUsers)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   async getUsers(
@@ -116,6 +118,7 @@ export class UserController extends XoController<XoUser> {
    * @example id "722d17b9-699b-49d2-8193-be1ac573d3de"
    */
   @Example(user)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(
     acl({
@@ -149,6 +152,7 @@ export class UserController extends XoController<XoUser> {
    *   "preferences": {}
    *  }
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Patch('{id}')
   @Middlewares([
     json(),
@@ -190,6 +194,7 @@ export class UserController extends XoController<XoUser> {
    * @example body { "name": "new user", "password": "password", "permission": "none" }
    */
   @Example(userId)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('')
   @Middlewares([json(), acl({ resource: 'user', action: 'create', object: ({ req }) => req.body })])
   @SuccessResponse(createdResp.status, createdResp.description)
@@ -210,6 +215,7 @@ export class UserController extends XoController<XoUser> {
    *
    * @example id "722d17b9-699b-49d2-8193-be1ac573d3de"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}')
   @Middlewares(
     acl({
@@ -237,6 +243,7 @@ export class UserController extends XoController<XoUser> {
    */
   @Example(groupIds)
   @Example(partialGroups)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/groups')
   @Security('*', ['acl'])
   @Tags('groups')
@@ -268,6 +275,7 @@ export class UserController extends XoController<XoUser> {
    * @example limit 42
    */
   @Example(authenticationTokens)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/authentication_tokens')
   @Security('*', ['acl'])
   @Response(notFoundResp.status, notFoundResp.description)
@@ -301,6 +309,7 @@ export class UserController extends XoController<XoUser> {
    */
   @Example(taskIds)
   @Example(partialTasks)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/tasks')
   @Security('*', ['acl'])
   @Tags('tasks')
@@ -329,6 +338,7 @@ export class UserController extends XoController<XoUser> {
    */
   @Example(authenticationToken)
   @Deprecated()
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('authentication_tokens')
   @Middlewares(json())
   @SuccessResponse(createdResp.status, createdResp.description)
@@ -364,6 +374,7 @@ export class UserController extends XoController<XoUser> {
    * @example body {"client": {"id": "my-fav-client"}, "description": "token for CLI usage", "expiresIn": "1 hour"}
    */
   @Example(authenticationToken)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/authentication_tokens')
   @Middlewares(json())
   @Security('*', ['acl'])
@@ -405,6 +416,7 @@ export class UserController extends XoController<XoUser> {
    */
   @Example(aclPrivilegeIds)
   @Example(partialAclPrivileges)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/acl-privileges')
   @Security('*', ['acl'])
   @Tags('rbacs')

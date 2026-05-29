@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **next**
+## **0.22.0** (2026-05-28)
 
 - [System] Update system pages layout ([user feedback](https://feedback.vates.tech/posts/37/xo6-ui-very-messy-columns-width-in-vm-system-far-better-in-xo5)) (PR [#9746](https://github.com/vatesfr/xen-orchestra/pull/9746))
 - Introduce robots.txt for avoid browser indexing (PR [#9858](https://github.com/vatesfr/xen-orchestra/pull/9858))

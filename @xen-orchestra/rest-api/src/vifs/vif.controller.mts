@@ -2,6 +2,7 @@ import {
   Body,
   Delete,
   Example,
+  Extension,
   Get,
   Middlewares,
   Path,
@@ -88,6 +89,7 @@ export class VifController extends XapiXoController<XoVif> {
    */
   @Example(vifIds)
   @Example(partialVifs)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   getVifs(
@@ -111,6 +113,7 @@ export class VifController extends XapiXoController<XoVif> {
    * @example id "f028c5d4-578a-332c-394e-087aaca32dd3"
    */
   @Example(vif)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(acl({ resource: 'vif', action: 'read', objectId: 'params.id' }))
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -129,6 +132,7 @@ export class VifController extends XapiXoController<XoVif> {
    * @example limit 42
    */
   @Example(genericAlarmsExample)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/alarms')
   @Security('*', ['acl'])
   @Tags('alarms')
@@ -165,6 +169,7 @@ export class VifController extends XapiXoController<XoVif> {
    */
   @Example(messageIds)
   @Example(partialMessages)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/messages')
   @Security('*', ['acl'])
   @Tags('messages')
@@ -198,6 +203,7 @@ export class VifController extends XapiXoController<XoVif> {
    */
   @Example(taskIds)
   @Example(partialTasks)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/tasks')
   @Security('*', ['acl'])
   @Tags('tasks')
@@ -234,6 +240,7 @@ export class VifController extends XapiXoController<XoVif> {
    * }
    */
   @Example(vifId)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('')
   @Middlewares(json())
   @SuccessResponse(createdResp.status, createdResp.description)
@@ -272,6 +279,7 @@ export class VifController extends XapiXoController<XoVif> {
   /**
    * @example id "6b6ca0f5-6611-0636-4b0a-1fb1c1e96414"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}')
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -288,6 +296,7 @@ export class VifController extends XapiXoController<XoVif> {
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/connect')
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
@@ -318,6 +327,7 @@ export class VifController extends XapiXoController<XoVif> {
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/disconnect')
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
