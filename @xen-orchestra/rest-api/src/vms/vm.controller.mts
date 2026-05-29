@@ -1064,8 +1064,9 @@ export class VmController extends XapiXoController<XoVm> {
   }
 
   /**
-   * Required privilege:
+   * Required privileges:
    * - resource: vm, action: migrate
+   * - resource: host, action: allow-vm (on the destination host)
    *
    * VIF mapping is not allowed for intra-pool migration
    *
@@ -1077,7 +1078,13 @@ export class VmController extends XapiXoController<XoVm> {
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/migrate')
-  @Middlewares([json(), acl({ resource: 'vm', action: 'migrate', objectId: 'params.id' })])
+  @Middlewares([
+    json(),
+    acl([
+      { resource: 'vm', action: 'migrate', objectId: 'params.id' },
+      { resource: 'host', action: 'allow-vm', objectId: 'body.hostId' },
+    ]),
+  ])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(noContentResp.status, noContentResp.description)
