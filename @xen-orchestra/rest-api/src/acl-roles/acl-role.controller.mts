@@ -20,7 +20,7 @@ import {
 } from 'tsoa'
 import { provide } from 'inversify-binding-decorators'
 import { type Request as ExRequest, json } from 'express'
-import type { XoAclRole, XoGroup, XoUser } from '@vates/types'
+import type { XapiXoRecord, XoAclRole, XoGroup, XoUser } from '@vates/types'
 
 import { acl, actionsFromBody } from '../middlewares/acl.middleware.mjs'
 import { aclPrivilegeIds, partialAclPrivileges } from '../open-api/oa-examples/acl-privilege.oa-example.mjs'
@@ -290,7 +290,7 @@ export class AclRoleController extends XoController<XoAclRole> {
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<AnyPrivilege>>> {
     const privileges = (await this.restApi.xoApp.getAclV2RolePrivileges(id as XoAclRole['id'])) as AnyPrivilege[]
-    return this.sendObjects(limitAndFilterArray(privileges, { filter }), req, {
+    return this.sendObjects(limitAndFilterArray(privileges, { filter }, this.objectResolver), req, {
       path: 'acl-privileges',
       limit,
       privilege: { resource: 'acl-privilege', action: 'read' },

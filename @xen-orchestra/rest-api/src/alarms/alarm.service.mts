@@ -61,7 +61,15 @@ export class AlarmService {
 
     let userFilter: (obj: XoAlarm) => boolean = () => true
     if (filter !== undefined) {
-      userFilter = typeof filter === 'string' ? safeParseComplexMatcher(filter).createPredicate() : filter
+      const objectResolver = (id: string) => {
+        try {
+          return this.#restApi.getObject(id as XapiXoRecord['id'])
+        } catch {
+          return undefined
+        }
+      }
+
+      userFilter = typeof filter === 'string' ? safeParseComplexMatcher(filter).createPredicate(objectResolver) : filter
     }
     const alarms: Record<XoAlarm['id'], XoAlarm> = {}
     for (const id in rawAlarms) {
