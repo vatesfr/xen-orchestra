@@ -24,17 +24,19 @@ export function createDrawerOpener() {
     cancelers.delete(id)
   }
 
-  watch(
-    () => route.path,
-    () => {
-      ids.forEach(id => {
-        if (!drawerStore.getDrawer(id)?.keepOpenOnRouteChange) {
-          cancelers.get(id)?.()
-          closeById(id)
-        }
-      })
-    }
-  )
+  if (route !== undefined) {
+    watch(
+      () => route.path,
+      () => {
+        ids.forEach(id => {
+          if (!drawerStore.getDrawer(id)?.keepOpenOnRouteChange) {
+            cancelers.get(id)?.()
+            closeById(id)
+          }
+        })
+      }
+    )
+  }
 
   return function openDrawer<
     TProps,
