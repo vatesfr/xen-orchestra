@@ -12,13 +12,24 @@ import { iocContainer } from '../ioc/ioc.mjs'
 const log = createLogger('xo:rest-api:backup-archives:dav')
 
 // ─── Segment encoding ─────────────────────────────────────────────────────────
-// The archive ID, disk ID and (LVM) partition IDs contain "/". Percent-encoding
-// them as "%2F" breaks WebDAV clients: okhttp keeps "%2F" in its request URI but
-// normalizes it to "/" when parsing response hrefs, so the self entry no longer
-// matches the request and the whole listing is discarded. base64url has no "/"
-// (alphabet: A-Z a-z 0-9 - _), so the path stays a clean single segment everywhere.
-const encodeSeg = (s: string): string => Buffer.from(s, 'utf8').toString('base64url')
-const decodeSeg = (s: string): string => Buffer.from(s, 'base64url').toString('utf8')
+// IDs that contain "/" (the archive ID, disk ID, and LVM partition IDs like
+// "pv/vg/lv") can't be a single URL path segment: percent-encoding them as "%2F"
+// breaks WebDAV clients (okhttp keeps "%2F" in its request URI but normalizes it to
+// "/" when parsing response hrefs, so the self entry no longer matches and the whole
+// listing is discarded). base64url has no "/" (alphabet: A-Z a-z 0-9 - _), so it
+// stays a clean single segment. Slash-free IDs (GPT/MBR partition IDs) are left
+// readable so clients like rclone — which name folders from the URL segment, not
+// <D:displayname> — show the real partition ID instead of base64url gibberish.
+export const encodeDavSeg = (s: string): string => Buffer.from(s, 'utf8').toString('base64url')
+const decodeDavSeg = (s: string): string => Buffer.from(s, 'base64url').toString('utf8')
+
+// LVM partition IDs contain "/" and must be base64url-encoded; this prefix marks them
+// so the router knows to base64url-decode rather than treat the segment as a literal ID.
+const LVM_SEG_PREFIX = '_lvm_'
+export const encodePartitionSeg = (id: string): string =>
+  id.includes('/') ? LVM_SEG_PREFIX + encodeDavSeg(id) : encodeURIComponent(id)
+const decodePartitionSeg = (seg: string): string =>
+  seg.startsWith(LVM_SEG_PREFIX) ? decodeDavSeg(seg.slice(LVM_SEG_PREFIX.length)) : decodeURIComponent(seg)
 
 // ─── XML helpers ──────────────────────────────────────────────────────────────
 
@@ -28,39 +39,45 @@ function xmlEscape(str: string): string {
 
 // `name` is the human-readable display name; `segment` is the URL path segment to
 // append to the parent href (already encoded: base64url for ids, %xx for file names).
-type DavEntry = { name: string; isFile: boolean; segment: string }
+// `size`/`mtime` are only set for files (bytes / epoch ms).
+type DavEntry = { name: string; isFile: boolean; segment: string; size?: number; mtime?: number }
 
 // Always return direct children for directory PROPFIND regardless of the requested Depth.
 // RFC 4918 says Depth:0 means "self only", but many Android WebDAV clients (okhttp-based)
 // send Depth:0 for every request and never follow with Depth:1 — so they would see an
 // empty directory. Returning children unconditionally is the pragmatic fix.
 function buildMultistatus(selfHref: string, selfName: string, entries: DavEntry[]): string {
-  const responses: string[] = [davResponse(selfHref, selfName, false)]
+  const responses: string[] = [davResponse(selfHref, selfName, { isFile: false })]
 
   const baseHref = selfHref.endsWith('/') ? selfHref : selfHref + '/'
 
   for (const entry of entries) {
     const entryHref = baseHref + (entry.isFile ? entry.segment : entry.segment + '/')
-    responses.push(davResponse(entryHref, entry.name, entry.isFile))
+    responses.push(davResponse(entryHref, entry.name, entry))
   }
 
   return `<?xml version="1.0" encoding="utf-8"?>\n<D:multistatus xmlns:D="DAV:">\n${responses.join('\n')}\n</D:multistatus>`
 }
 
-function davResponse(href: string, displayName: string, isFile: boolean): string {
+function davResponse(
+  href: string,
+  displayName: string,
+  { isFile, size, mtime }: { isFile: boolean; size?: number; mtime?: number }
+): string {
   const resourceType = isFile ? '' : '<D:collection/>'
-  // getcontenttype/getlastmodified help clients render entries. getcontentlength is
-  // intentionally omitted: file sizes aren't available from the listing, and reporting
-  // a fake 0 can make strict clients skip the download. Clients learn the real size on GET.
   const contentType = isFile ? 'application/octet-stream' : 'httpd/unix-directory'
-  const lastModified = new Date().toUTCString()
+  const lastModified = (mtime !== undefined ? new Date(mtime) : new Date()).toUTCString()
+  // getcontentlength is required for files: rclone (and others) trust the listed size and
+  // will not GET a file reported as 0 bytes, so it would appear empty. Real sizes come from
+  // the partition's lstat; omit the property only when the size is genuinely unknown.
+  const lengthProp = isFile && size !== undefined ? `\n        <D:getcontentlength>${size}</D:getcontentlength>` : ''
   return `  <D:response>
     <D:href>${xmlEscape(href)}</D:href>
     <D:propstat>
       <D:prop>
         <D:resourcetype>${resourceType}</D:resourcetype>
         <D:displayname>${xmlEscape(displayName)}</D:displayname>
-        <D:getcontenttype>${contentType}</D:getcontenttype>
+        <D:getcontenttype>${contentType}</D:getcontenttype>${lengthProp}
         <D:getlastmodified>${lastModified}</D:getlastmodified>
       </D:prop>
       <D:status>HTTP/1.1 200 OK</D:status>
@@ -111,7 +128,7 @@ const DAV_ACL = acl({
   objectId: 'params.archiveId',
   getObject: () => {
     const service = iocContainer.get(BackupArchiveService)
-    return (id: XoVmBackupArchive['id']) => service.getBackupArchive(decodeSeg(id) as XoVmBackupArchive['id'])
+    return (id: XoVmBackupArchive['id']) => service.getBackupArchive(decodeDavSeg(id) as XoVmBackupArchive['id'])
   },
 })
 
@@ -140,11 +157,14 @@ export function createBackupArchiveDavRouter(): Router {
         return res.status(405).end()
       }
 
-      const archiveId = decodeSeg((req as AuthenticatedRequest).params.archiveId as string) as XoVmBackupArchive['id']
+      const archiveId = decodeDavSeg(
+        (req as AuthenticatedRequest).params.archiveId as string
+      ) as XoVmBackupArchive['id']
       const service = iocContainer.get(BackupArchiveService)
 
-      // req.path is relative to /:archiveId/dav. Segments 0 (diskId) and 1 (partitionId)
-      // are base64url-encoded; file-path segments after that are normal %xx-encoded names.
+      // req.path is relative to /:archiveId/dav. Segment 0 (diskId) is base64url; segment 1
+      // (partitionId) is base64url only for LVM ids (see encodePartitionSeg); file-path
+      // segments after that are normal %xx-encoded names.
       const rawParts = req.path.split('/').filter(Boolean)
 
       // Absolute-path hrefs (RFC 4918 allows path or full URI). base64url segments make
@@ -161,7 +181,7 @@ export function createBackupArchiveDavRouter(): Router {
           const entries: DavEntry[] = archive.disks.map(d => ({
             name: d.name || d.id,
             isFile: false,
-            segment: encodeSeg(d.id),
+            segment: encodeDavSeg(d.id),
           }))
 
           const baseHref = selfHref.endsWith('/') ? selfHref : selfHref + '/'
@@ -178,7 +198,7 @@ export function createBackupArchiveDavRouter(): Router {
             .end(buildHtmlListing(baseHref, entries))
         }
 
-        const diskId = decodeSeg(rawParts[0])
+        const diskId = decodeDavSeg(rawParts[0])
 
         // ── /dav/{diskId}/ → list partitions or bare-disk root ───────────────
         // For bare disks (no partition table), files live under the synthetic "_bare_"
@@ -188,8 +208,8 @@ export function createBackupArchiveDavRouter(): Router {
 
           const entries: DavEntry[] =
             partitions.length === 0
-              ? [{ name: '_bare_', isFile: false, segment: encodeSeg('_bare_') }]
-              : partitions.map(p => ({ name: p.id, isFile: false, segment: encodeSeg(p.id) }))
+              ? [{ name: '_bare_', isFile: false, segment: encodePartitionSeg('_bare_') }]
+              : partitions.map(p => ({ name: p.id, isFile: false, segment: encodePartitionSeg(p.id) }))
 
           const baseHref = selfHref.endsWith('/') ? selfHref : selfHref + '/'
           if (method === 'PROPFIND') {
@@ -207,7 +227,7 @@ export function createBackupArchiveDavRouter(): Router {
 
         // ── /dav/{diskId}/{partitionId}/[path] ───────────────────────────────
         // "_bare_" is a synthetic sentinel for disks with no partition table.
-        const rawPartitionId = decodeSeg(rawParts[1])
+        const rawPartitionId = decodePartitionSeg(rawParts[1])
         const partitionId = rawPartitionId === '_bare_' ? undefined : rawPartitionId
         const fileSegments = rawParts.slice(2).map(s => decodeURIComponent(s))
         const filePath = '/' + fileSegments.join('/')
@@ -217,9 +237,10 @@ export function createBackupArchiveDavRouter(): Router {
         if (method === 'PROPFIND' || isDirectory) {
           const listPath = isDirectory ? filePath : filePath + '/'
           const rawFiles = await service.listFiles(archiveId, diskId, partitionId, listPath)
-          const entries: DavEntry[] = Object.keys(rawFiles).map(rawName => {
+          const entries: DavEntry[] = Object.entries(rawFiles).map(([rawName, info]) => {
             const name = rawName.replace(/\/$/, '')
-            return { name, isFile: !rawName.endsWith('/'), segment: encodeURIComponent(name) }
+            const isFile = !rawName.endsWith('/')
+            return { name, isFile, segment: encodeURIComponent(name), size: info?.size, mtime: info?.mtime }
           })
           const baseHref = selfHref.endsWith('/') ? selfHref : selfHref + '/'
           const selfName = fileSegments[fileSegments.length - 1] ?? partitionId ?? '_bare_'

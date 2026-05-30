@@ -46,7 +46,7 @@ export class BackupArchiveService {
     diskId: string,
     partitionId: string | undefined,
     path: string
-  ): Promise<Record<string, string>> {
+  ): Promise<Record<string, { size?: number; mtime?: number }>> {
     return this.#restApi.xoApp.listBackupNgPartitionFiles(this.#getRemoteId(archiveId), diskId, partitionId, path)
   }
 

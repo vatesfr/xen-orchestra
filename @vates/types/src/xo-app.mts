@@ -291,7 +291,9 @@ export type XoApp = {
     diskId: string,
     partitionId: string | undefined,
     path: string
-  ): Promise<Record<string, string>>
+    // keys ending in "/" are directories; files carry size (bytes) and mtime (epoch ms).
+    // Values may be empty ({}) for directories or when served by an older proxy.
+  ): Promise<Record<string, { size?: number; mtime?: number }>>
   fetchBackupNgPartitionFiles(
     remoteId: XoBackupRepository['id'],
     diskId: string,

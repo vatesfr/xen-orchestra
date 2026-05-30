@@ -370,6 +370,22 @@ export class RemoteAdapter {
             resolve(zip.outputStream)
             await addZipEntries(zip, path, '', paths.map(makeRelative))
             zip.end()
+          } else if (format === 'raw') {
+            if (paths.length !== 1) {
+              throw new Error('raw format requires exactly one path, got ' + paths.length)
+            }
+            const filePath = resolveSubpath(path, paths[0])
+            const stat = await lstat(filePath)
+            const totalSize = stat.size
+            const mimeType = await getMimeType(filePath)
+            outputStream = createReadStream(filePath, range)
+            const start = range?.start ?? 0
+            const end = range?.end ?? totalSize - 1
+            outputStream.size = end - start + 1
+            outputStream.totalSize = totalSize
+            outputStream.mimeType = mimeType
+            watchStreamSize(outputStream, transmitted)
+            resolve(outputStream)
           } else {
             throw new Error('unsupported format ' + format)
           }
@@ -652,7 +668,9 @@ export class RemoteAdapter {
             if (stats.isDirectory()) {
               entriesMap[name + '/'] = {}
             } else if (stats.isFile()) {
-              entriesMap[name] = {}
+              // size/mtime let WebDAV/REST clients show real file sizes (a missing or
+              // zero size makes clients like rclone treat the file as empty and skip it).
+              entriesMap[name] = { size: stats.size, mtime: stats.mtimeMs }
             }
           } catch (error) {
             if (error == null || error.code !== 'ENOENT') {

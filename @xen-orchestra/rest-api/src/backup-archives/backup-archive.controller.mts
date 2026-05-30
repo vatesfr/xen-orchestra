@@ -36,6 +36,7 @@ import {
 import { SendObjects } from '../helpers/helper.type.mjs'
 import { BackupArchiveService } from './backup-archive.service.mjs'
 import { acl, autoBindService } from '../middlewares/acl.middleware.mjs'
+import { encodeDavSeg, encodePartitionSeg } from './backup-archive-dav.router.mjs'
 
 @Route('backup-archives')
 @Security('*')
@@ -210,14 +211,18 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
     @Path() diskId: string,
     @Path() partitionId: string,
     @Query() path?: string
-  ): Promise<{ name: string; isFile: boolean }[]> {
+  ): Promise<{ name: string; isFile: boolean; size?: number }[]> {
     const rawFiles = await this.#backupArchiveService.listFiles(
       id as XoVmBackupArchive['id'],
       diskId,
       partitionId,
       path ?? '/'
     )
-    return Object.keys(rawFiles).map(name => ({ name, isFile: !name.endsWith('/') }))
+    return Object.entries(rawFiles).map(([name, info]) => ({
+      name,
+      isFile: !name.endsWith('/'),
+      size: info?.size,
+    }))
   }
 
   /**
@@ -244,14 +249,18 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
     @Path() id: string,
     @Path() diskId: string,
     @Query() path?: string
-  ): Promise<{ name: string; isFile: boolean }[]> {
+  ): Promise<{ name: string; isFile: boolean; size?: number }[]> {
     const rawFiles = await this.#backupArchiveService.listFiles(
       id as XoVmBackupArchive['id'],
       diskId,
       undefined,
       path ?? '/'
     )
-    return Object.keys(rawFiles).map(name => ({ name, isFile: !name.endsWith('/') }))
+    return Object.entries(rawFiles).map(([name, info]) => ({
+      name,
+      isFile: !name.endsWith('/'),
+      size: info?.size,
+    }))
   }
 
   /**
@@ -284,11 +293,9 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
     @Path() diskId: string,
     @Path() partitionId: string
   ): { url: string } {
-    // The slash-containing ids are base64url-encoded (not %2F) because WebDAV clients
-    // normalize %2F→/ when parsing response hrefs, which breaks self-entry matching.
-    // The DAV router decodes these segments with the matching base64url scheme.
-    const seg = (s: string) => Buffer.from(s, 'utf8').toString('base64url')
-    const path = `/rest/v0/backup-archives/${seg(id)}/dav/${seg(diskId)}/${seg(partitionId)}/`
+    // Encode segments with the exact scheme the DAV router decodes: base64url for the
+    // slash-containing archive/disk ids, conditional base64url for the partition id.
+    const path = `/rest/v0/backup-archives/${encodeDavSeg(id)}/dav/${encodeDavSeg(diskId)}/${encodePartitionSeg(partitionId)}/`
 
     // Resolve protocol and host, respecting reverse-proxy headers
     const proto = (req.headers['x-forwarded-proto'] as string | undefined) ?? req.protocol ?? 'http'
