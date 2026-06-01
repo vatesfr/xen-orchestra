@@ -65,7 +65,7 @@
     "@xen-orchestra/template": "^0.1.1",
     "@xen-orchestra/vmware-explorer": "^0.13.1",
     "@xen-orchestra/xapi": "^8.8.0",
-    "@xen-orchestra/xva": "^1.0.2",
+    "@xen-orchestra/xva": "^1.0.3",
     "ajv": "^8.0.3",
     "app-conf": "^3.0.0",
     "async-iterator-to-stream": "^1.0.1",
