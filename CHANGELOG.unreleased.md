@@ -29,6 +29,8 @@
 - **XO 5**:
   - [Jobs] fix array values being incorrectly handled (used for instance on job.runSequence) (PR [#9928](https://github.com/vatesfr/xen-orchestra/pull/9928))
 
+- xo-server-sdn-controller: apply/clean network rules on VIF update (PR [#9933](https://github.com/vatesfr/xen-orchestra/pull/9933))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -48,6 +50,7 @@
 - @vates/types minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/rest-api minor
+- xo-server-sdn-controller patch
 - xo-web patch
 
 <!--packages-end-->
