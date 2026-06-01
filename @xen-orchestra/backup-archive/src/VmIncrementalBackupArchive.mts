@@ -52,18 +52,18 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
 
   async init(): Promise<void> {
     // Build one RemoteDiskLineage per VDI directory derived from diskPaths
-    try {
-      for (const diskPath of this.diskPaths) {
-        const vdiDir = dirname(diskPath)
-        if (!this.diskLineages.has(vdiDir)) {
-          const lineage = new RemoteDiskLineage(this.handler, vdiDir, this.opts)
+    for (const diskPath of this.diskPaths) {
+      const vdiDir = dirname(diskPath)
+      if (!this.diskLineages.has(vdiDir)) {
+        const lineage = new RemoteDiskLineage(this.handler, vdiDir, this.opts)
+        this.diskLineages.set(vdiDir, lineage)
+        try {
           await lineage.init()
-          this.diskLineages.set(vdiDir, lineage)
+        } catch (error) {
+          if (error?.code === 'NOT_SUPPORTED') throw error
+          this.opts.logWarn('failed to scan VDI directory', { vdiDir, error })
         }
       }
-    } catch (error) {
-      if (error?.code === 'NOT_SUPPORTED') throw error
-      this.opts.logWarn('failed to scan VDI directories', { error })
     }
   }
 
