@@ -10,6 +10,7 @@ import { dirname, join, resolve } from 'node:path'
 import { execFile } from 'child_process'
 import { finished } from 'node:stream/promises'
 import { lstat, open, readdir, unlink } from 'node:fs/promises'
+import { Readable } from 'node:stream'
 import { tmpdir } from 'node:os'
 import { mount } from '@vates/fuse-vhd'
 import { synchronized } from 'decorator-synchronized'
@@ -53,7 +54,34 @@ const resolveRelativeFromFile = (file, path) => resolve('/', dirname(file), path
 const makeRelative = path => resolve('/', path).slice(1)
 const resolveSubpath = (root, path) => resolve(root, makeRelative(path))
 
+// Open the file only when yazl actually pumps this entry, so the source is read
+// strictly one file at a time. yazl's addFile() instead eagerly fs.stat()s every
+// added file at add-time; on a FUSE-backed restore mount that floods the libuv
+// threadpool and can deadlock the restore (the upper-layer reads starve the
+// lower-level vhd/CIFS reads that NTFS-3g depends on — a FUSE-on-FUSE deadlock).
+function createLazyReadStream(realPath) {
+  return Readable.from(
+    (async function* () {
+      const fh = await open(realPath, 'r')
+      try {
+        yield* fh.createReadStream()
+      } finally {
+        await fh.close()
+      }
+    })()
+  )
+}
+
 async function addZipEntries(zip, realBasePath, virtualBasePath, relativePaths) {
+  // Walk the source tree strictly sequentially to bound concurrency on the
+  // FUSE-backed mount: list this directory, add its files, then descend into
+  // each sub-directory one at a time. Files are added via lazy read streams
+  // (one open file at a time) rather than zip.addFile to avoid yazl's eager
+  // per-file fs.stat. Together this keeps the libuv threadpool from being
+  // saturated by the restore. See createLazyReadStream above.
+  const subDirs = []
+
+  // 1. listing: stat each entry once, classify into files / sub-directories
   for (const relativePath of relativePaths) {
     const realPath = join(realBasePath, relativePath)
     const virtualPath = join(virtualBasePath, relativePath)
@@ -63,10 +91,16 @@ async function addZipEntries(zip, realBasePath, virtualBasePath, relativePaths) 
     const opts = { mode, mtime }
     if (stats.isDirectory()) {
       zip.addEmptyDirectory(virtualPath, opts)
-      await addZipEntries(zip, realPath, virtualPath, await readdir(realPath))
+      subDirs.push({ realPath, virtualPath })
     } else if (stats.isFile()) {
-      zip.addFile(realPath, virtualPath, opts)
+      // 2. files of this directory (read lazily, one at a time, when pumped)
+      zip.addReadStream(createLazyReadStream(realPath), virtualPath, opts)
     }
+  }
+
+  // 3. sub-directories, one at a time
+  for (const { realPath, virtualPath } of subDirs) {
+    await addZipEntries(zip, realPath, virtualPath, await readdir(realPath))
   }
 }
 
@@ -321,7 +355,12 @@ export class RemoteAdapter {
         let outputStream
 
         if (format === 'tgz') {
-          outputStream = tar.c({ cwd: path, gzip: true }, paths.map(makeRelative))
+          // jobs: 1 — process one entry at a time. node-tar defaults to 4
+          // concurrent jobs, which on a FUSE-backed restore mount means up to 4
+          // simultaneous reads; those saturate the libuv threadpool and starve
+          // the underlying vhd/CIFS reads NTFS-3g depends on (FUSE-on-FUSE
+          // threadpool deadlock). Serializing keeps a worker free for them.
+          outputStream = tar.c({ cwd: path, gzip: true, jobs: 1 }, paths.map(makeRelative))
           resolve(outputStream)
         } else if (format === 'zip') {
           const zip = new ZipFile()
