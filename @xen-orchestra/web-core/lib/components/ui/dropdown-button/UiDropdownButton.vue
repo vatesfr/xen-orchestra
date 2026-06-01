@@ -1,11 +1,11 @@
 <!-- v8 -->
 <template>
-  <button :class="{ selected }" :disabled="isDisabled" class="ui-dropdown-item" type="button">
-    <VtsIcon :name="icon" :size="size ?? 'medium'" />
-    <span class="label" :class="size == 'small' ? 'typo-action-button-small' : 'typo-action-button'">
+  <button :class="[className, { selected }]" :disabled="isDisabled" class="ui-dropdown-item" type="button">
+    <VtsIcon :name="icon" :size="size" />
+    <span :class="size === 'small' ? 'typo-action-button-small' : 'typo-action-button'">
       <slot />
     </span>
-    <VtsIcon name="table:angle-down" :size="size ?? 'medium'" />
+    <VtsIcon name="fa:angle-down" :size="size" />
   </button>
 </template>
 
@@ -13,8 +13,15 @@
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { useDisabled } from '@core/composables/disabled.composable'
 import type { IconName } from '@core/icons'
+import { toVariants } from '@core/utils/to-variants.util'
+import { computed } from 'vue'
 
-const { disabled, selected, icon } = defineProps<{
+const {
+  disabled,
+  selected,
+  icon,
+  size = 'medium',
+} = defineProps<{
   disabled?: boolean
   selected?: boolean
   icon?: IconName
@@ -22,6 +29,8 @@ const { disabled, selected, icon } = defineProps<{
 }>()
 
 const isDisabled = useDisabled(() => disabled)
+
+const className = computed(() => toVariants({ size }))
 </script>
 
 <style lang="postcss" scoped>
@@ -38,28 +47,26 @@ const isDisabled = useDisabled(() => disabled)
   position: relative;
   color: var(--color-brand-txt-base);
 
-  :deep(.icon-path) {
-    color: var(--color-brand-txt-base);
+  &.size--small {
+    padding-block: 0.8rem;
+    padding-inline: 1.2rem;
+  }
+
+  &.size--medium {
+    padding-block: 1.2rem;
+    padding-inline: 1.6rem;
   }
 
   &:hover {
     border-color: var(--color-brand-item-hover);
     background-color: var(--color-brand-background-hover);
     color: var(--color-brand-txt-hover);
-
-    :deep(.icon-path) {
-      color: var(--color-brand-txt-hover);
-    }
   }
 
   &:active {
     border-color: var(--color-brand-item-active);
     background-color: var(--color-brand-background-active);
     color: var(--color-brand-txt-active);
-
-    :deep(.icon-path) {
-      color: var(--color-brand-txt-active);
-    }
   }
 
   &.selected:not(:disabled) {
@@ -84,10 +91,6 @@ const isDisabled = useDisabled(() => disabled)
     border-color: var(--color-neutral-txt-secondary);
     background-color: var(--color-neutral-background-disabled);
     color: var(--color-neutral-txt-secondary);
-
-    :deep(.icon-path) {
-      color: var(--color-neutral-txt-secondary);
-    }
   }
 }
 </style>
