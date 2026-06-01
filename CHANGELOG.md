@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **6.5.0** (2026-05-28)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Security
 
@@ -18,11 +20,16 @@
 - [MCP] Restrict which REST endpoints the AI assistant can reach: read-only endpoints are exposed by default, write actions require `XO_MCP_ENABLE_ACTIONS=1` with a confirmation step, and binary/stream endpoints stay hidden (PR [#9875](https://github.com/vatesfr/xen-orchestra/pull/9875))
 - [REST API] Expose `DELETE /rest/v0/srs/:id` (PR [#9464](https://github.com/vatesfr/xen-orchestra/pull/9464))
 - [REST API] Add `vms/:id/actions/revert_snapshot` REST route (PR [#9788](https://github.com/vatesfr/xen-orchestra/pull/9788))
+- [REST API] Add `PATCH /vms/{id}` to partially update a VM (PR [#9835](https://github.com/vatesfr/xen-orchestra/pull/9835))
 - [Swagger] Rename the `acls` tag to `rbacs` (PR [#9874](https://github.com/vatesfr/xen-orchestra/pull/9874))
 - [OpenMetrics] Add XOSTOR metrics (cluster status, replica health, SMART, alarms, pending updates) and an `sr_type` label on SR-tagged metrics so Grafana can filter by storage type (PR [#9849](https://github.com/vatesfr/xen-orchestra/pull/9849))
 - [VM/Snapshot] Add possibility to revert a snapshot on a VM (PR [#9862](https://github.com/vatesfr/xen-orchestra/pull/9862))
 - [VM] Add possibility to attach a VDI on tab VDI (PR [#9772](https://github.com/vatesfr/xen-orchestra/pull/9772))
+- [VM] Add possibility to create a VDI on tab VDI (PR [#9848](https://github.com/vatesfr/xen-orchestra/pull/9848))
 - [Pool/Security] Implement possibility to add new traffic rule from pool (PR [#9809](https://github.com/vatesfr/xen-orchestra/pull/9809))
+- [VIF] Implement possibility to add new traffic rule from VIF (PR [#9837](https://github.com/vatesfr/xen-orchestra/pull/9837))
+- [VIF] Add a new "General" tab to the VIF page (PR [#9831](https://github.com/vatesfr/xen-orchestra/pull/9831))
+- [i18n] Update Chinese (Simplified Han script), Czech, Dutch, German, Korean, Slovak, Spanish and Swedish translations (PR [#9780](https://github.com/vatesfr/xen-orchestra/pull/9780))
 
 - **Backups**:
   - [Backups] Refactor clean phase for incremental and full backups ([#9765](https://github.com/vatesfr/xen-orchestra/pull/9765))
@@ -33,10 +40,13 @@
   - `/hosts/:id/actions/disable` (PR [#9840](https://github.com/vatesfr/xen-orchestra/pull/9840))
   - `/hosts/:id/actions/enable` (PR [#9840](https://github.com/vatesfr/xen-orchestra/pull/9840))
   - `/hosts/:id/actions/management_reconfigure` (PR [#9840](https://github.com/vatesfr/xen-orchestra/pull/9840))
+  - Added VMS_ADMINISTRATOR role template (PR [#9845](https://github.com/vatesfr/xen-orchestra/pull/9845/))
 
 - **XO 5**:
   - [Export config] Hide passphrase by default (PR [#9824](https://github.com/vatesfr/xen-orchestra/pull/9824))
   - [xo-web] support qcow2 format in disk > import (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
+
+- [XO config] Rename exported XO config file from `config.json` to `XO-config_<date>.json` (PR [#9859](https://github.com/vatesfr/xen-orchestra/pull/9859))
 
 ### Bug fixes
 
@@ -54,29 +64,29 @@
 
 - @xen-orchestra/fs 4.9.0
 - @xen-orchestra/disk-transform 1.3.0
-- @xen-orchestra/acl 1.1.0
 - @xen-orchestra/backup-archive 1.0.0
 - @xen-orchestra/xapi 8.8.0
 - @xen-orchestra/backups 0.73.1
 - @xen-orchestra/backups-cli 1.1.13
 - @xen-orchestra/disk-cli 2.1.1
 - @xen-orchestra/immutable-backups 3.0.3
-- @xen-orchestra/web-core 0.53.0
 - @xen-orchestra/proxy 0.30.2
 - xo-server-ipmi-sensors 2.0.0
-- @vates/types 1.25.1
 - @xen-orchestra/mcp 1.4.0
 - @xen-orchestra/qa-test 1.0.1
-- @xen-orchestra/rest-api 0.32.0
-- @xen-orchestra/web 0.52.0
 - xo-server-openmetrics 1.6.0
 - xo-web 5.197.1
 - @vates/http-server-plus 2.0.2
-- xo-server 5.201.3
+- @vates/types 1.26.0
+- @xen-orchestra/acl 1.2.0
+- @xen-orchestra/web-core 0.54.0
+- @xen-orchestra/rest-api 0.33.0
+- @xen-orchestra/web 0.53.0
+- xo-server 5.202.1
 
 ## **6.4.1** (2026-05-05)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Enhancements
 
@@ -342,8 +352,6 @@
 - @xen-orchestra/web 0.46.1
 
 ## **6.2.3** (2026-04-20)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 

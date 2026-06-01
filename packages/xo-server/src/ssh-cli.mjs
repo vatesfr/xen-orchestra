@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { fileURLToPath } from 'node:url'
+import { realpathSync } from 'node:fs'
 import { createClient as createRedisClient } from 'redis'
 import { Client } from 'ssh2'
 import appConf from 'app-conf'
@@ -21,7 +22,7 @@ export function findPool(pools, poolId) {
 
 export function printUsage(pools) {
   process.stdout.write(`
-xo-server-ssh <poolId> [ip]
+xo-xcppool-ssh <poolId> [ip]
 
   Open an interactive SSH session to an XCP-ng host using pool credentials.
 
@@ -156,7 +157,7 @@ async function main(args) {
   })
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {
   main(process.argv.slice(2)).catch(err => {
     process.stderr.write(err.message + '\n')
     process.exit(1)

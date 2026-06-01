@@ -10,20 +10,13 @@
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
-
-- [Swagger] Rename the `acls` tag to `rbacs` (PR [#9874](https://github.com/vatesfr/xen-orchestra/pull/9874))
-- [VM] Add possibility to attach a VDI on tab VDI (PR [#9772](https://github.com/vatesfr/xen-orchestra/pull/9772))
 - [IPMI-Plugin] Add default outlet regex to the dell preset (PR [#9884](https://github.com/vatesfr/xen-orchestra/pull/9884))
-- [Pool/Security] Implement possibility to add new traffic rule from pool (PR [#9809](https://github.com/vatesfr/xen-orchestra/pull/9809))
-- [VM/Snapshot] Add possibility to revert a snapshot on a VM (PR [#9862](https://github.com/vatesfr/xen-orchestra/pull/9862))
-- [MCP] Restrict which REST endpoints the AI assistant can reach: read-only endpoints are exposed by default, write actions require `XO_MCP_ENABLE_ACTIONS=1` with a confirmation step, and binary/stream endpoints stay hidden (PR [#9875](https://github.com/vatesfr/xen-orchestra/pull/9875))
-- [OpenMetrics] Add XOSTOR metrics (cluster status, replica health, SMART, alarms, pending updates) and an `sr_type` label on SR-tagged metrics so Grafana can filter by storage type (PR [#9849](https://github.com/vatesfr/xen-orchestra/pull/9849))
-- [VIF] Implement possibility to add new traffic rule from VIF (PR [#9837](https://github.com/vatesfr/xen-orchestra/pull/9837))
-- [VIF] Add a new "General" tab to the VIF page (PR [#9831](https://github.com/vatesfr/xen-orchestra/pull/9831))
 
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
+
+- [Backup] fix transfer size only counting the last disk transferred (PR [#9900](https://github.com/vatesfr/xen-orchestra/pull/9900))
 
 ### Packages to release
 
@@ -41,7 +34,10 @@
 
 <!--packages-start-->
 
-- @vates/types minor
-- @xen-orchestra/web minor
+- @xen-orchestra/backups patch
+- @xen-orchestra/vmware-explorer patch
+- @xen-orchestra/xva patch
+- xo-server patch
 - xo-server-ipmi-sensors patch
+
 <!--packages-end-->
