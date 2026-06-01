@@ -10,7 +10,6 @@ import { dirname, join, resolve } from 'node:path'
 import { execFile } from 'child_process'
 import { finished } from 'node:stream/promises'
 import { lstat, open, readdir, unlink } from 'node:fs/promises'
-import { Readable } from 'node:stream'
 import { tmpdir } from 'node:os'
 import { mount } from '@vates/fuse-vhd'
 import { synchronized } from 'decorator-synchronized'
@@ -44,7 +43,7 @@ export const DIR_XO_POOL_METADATA_BACKUPS = 'xo-pool-metadata-backups'
 
 const IMMUTABILITY_METADATA_FILENAME = '/immutability.json'
 
-const { debug, warn } = createLogger('xo:backups:RemoteAdapter')
+const { debug, info, warn } = createLogger('xo:backups:RemoteAdapter')
 
 export const compareTimestamp = (a, b) => a.timestamp - b.timestamp
 
@@ -54,34 +53,7 @@ const resolveRelativeFromFile = (file, path) => resolve('/', dirname(file), path
 const makeRelative = path => resolve('/', path).slice(1)
 const resolveSubpath = (root, path) => resolve(root, makeRelative(path))
 
-// Open the file only when yazl actually pumps this entry, so the source is read
-// strictly one file at a time. yazl's addFile() instead eagerly fs.stat()s every
-// added file at add-time; on a FUSE-backed restore mount that floods the libuv
-// threadpool and can deadlock the restore (the upper-layer reads starve the
-// lower-level vhd/CIFS reads that NTFS-3g depends on — a FUSE-on-FUSE deadlock).
-function createLazyReadStream(realPath) {
-  return Readable.from(
-    (async function* () {
-      const fh = await open(realPath, 'r')
-      try {
-        yield* fh.createReadStream()
-      } finally {
-        await fh.close()
-      }
-    })()
-  )
-}
-
 async function addZipEntries(zip, realBasePath, virtualBasePath, relativePaths) {
-  // Walk the source tree strictly sequentially to bound concurrency on the
-  // FUSE-backed mount: list this directory, add its files, then descend into
-  // each sub-directory one at a time. Files are added via lazy read streams
-  // (one open file at a time) rather than zip.addFile to avoid yazl's eager
-  // per-file fs.stat. Together this keeps the libuv threadpool from being
-  // saturated by the restore. See createLazyReadStream above.
-  const subDirs = []
-
-  // 1. listing: stat each entry once, classify into files / sub-directories
   for (const relativePath of relativePaths) {
     const realPath = join(realBasePath, relativePath)
     const virtualPath = join(virtualBasePath, relativePath)
@@ -91,16 +63,10 @@ async function addZipEntries(zip, realBasePath, virtualBasePath, relativePaths) 
     const opts = { mode, mtime }
     if (stats.isDirectory()) {
       zip.addEmptyDirectory(virtualPath, opts)
-      subDirs.push({ realPath, virtualPath })
+      await addZipEntries(zip, realPath, virtualPath, await readdir(realPath))
     } else if (stats.isFile()) {
-      // 2. files of this directory (read lazily, one at a time, when pumped)
-      zip.addReadStream(createLazyReadStream(realPath), virtualPath, opts)
+      zip.addFile(realPath, virtualPath, opts)
     }
-  }
-
-  // 3. sub-directories, one at a time
-  for (const { realPath, virtualPath } of subDirs) {
-    await addZipEntries(zip, realPath, virtualPath, await readdir(realPath))
   }
 }
 
@@ -303,6 +269,7 @@ export class RemoteAdapter {
     } catch (error) {
       await mount(options)
     }
+
     try {
       yield path
     } finally {
@@ -354,33 +321,55 @@ export class RemoteAdapter {
         const path = yield this.getPartition(diskId, partitionId)
         let outputStream
 
-        if (format === 'tgz') {
-          // jobs: 1 — process one entry at a time. node-tar defaults to 4
-          // concurrent jobs, which on a FUSE-backed restore mount means up to 4
-          // simultaneous reads; those saturate the libuv threadpool and starve
-          // the underlying vhd/CIFS reads NTFS-3g depends on (FUSE-on-FUSE
-          // threadpool deadlock). Serializing keeps a worker free for them.
-          outputStream = tar.c({ cwd: path, gzip: true, jobs: 1 }, paths.map(makeRelative))
-          resolve(outputStream)
-        } else if (format === 'zip') {
-          const zip = new ZipFile()
-          // Resolve with the stream before enumeration so the client can start
-          // receiving data immediately — addZipEntries over FUSE/S3 can take
-          // minutes for large trees (e.g. node_modules) and would otherwise
-          // appear as a freeze with no response sent.
-          resolve(zip.outputStream)
-          outputStream = zip.outputStream
-          await addZipEntries(zip, path, '', paths.map(makeRelative))
-          zip.end()
-        } else {
-          throw new Error('unsupported format ' + format)
-        }
+        // debug: bytes actually transmitted to the client (compressed wire bytes).
+        // Unlike fuse-vhd's fuseBytes (skewed by kernel_cache), this is comparable
+        // across configs. Logged every 5s so it can be read at any cut-off point.
+        const transmitted = { size: 0 }
+        const startedAt = Date.now()
+        const report = setInterval(() => {
+          const seconds = (Date.now() - startedAt) / 1000
+          info('partition files transmitted', {
+            format,
+            transmittedMiB: +(transmitted.size / 1048576).toFixed(1),
+            seconds: +seconds.toFixed(1),
+            mibPerSec: +(transmitted.size / 1048576 / seconds).toFixed(1),
+          })
+        }, 60e3)
+        report.unref()
 
-        // Wait for the stream to finish before releasing the mounted partition.
-        // finished() correctly handles 'end', 'close', and 'error' — unlike
-        // fromEvent('end') which hangs forever if the stream errors (client
-        // disconnect, FUSE read failure), leaking the mount and loop devices.
-        await finished(outputStream).catch(noop)
+        try {
+          if (format === 'tgz') {
+            // jobs: 1 — process one entry at a time. node-tar defaults to 4
+            // concurrent jobs, which on a FUSE-backed restore mount means up to 4
+            // simultaneous reads; those saturate the libuv threadpool and starve
+            // the underlying vhd/CIFS reads NTFS-3g depends on (FUSE-on-FUSE
+            // threadpool deadlock). Serializing keeps a worker free for them.
+            outputStream = tar.c({ cwd: path, gzip: true, jobs: 1 }, paths.map(makeRelative))
+            watchStreamSize(outputStream, transmitted)
+            resolve(outputStream)
+          } else if (format === 'zip') {
+            const zip = new ZipFile()
+            // Resolve with the stream before enumeration so the client can start
+            // receiving data immediately — addZipEntries over FUSE/S3 can take
+            // minutes for large trees (e.g. node_modules) and would otherwise
+            // appear as a freeze with no response sent.
+            outputStream = zip.outputStream
+            watchStreamSize(outputStream, transmitted)
+            resolve(zip.outputStream)
+            await addZipEntries(zip, path, '', paths.map(makeRelative))
+            zip.end()
+          } else {
+            throw new Error('unsupported format ' + format)
+          }
+
+          // Wait for the stream to finish before releasing the mounted partition.
+          // finished() correctly handles 'end', 'close', and 'error' — unlike
+          // fromEvent('end') which hangs forever if the stream errors (client
+          // disconnect, FUSE read failure), leaking the mount and loop devices.
+          await finished(outputStream).catch(noop)
+        } finally {
+          clearInterval(report)
+        }
       }.bind(this)
     ).catch(error => {
       warn(error)
