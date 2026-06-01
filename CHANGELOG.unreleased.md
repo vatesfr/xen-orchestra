@@ -17,6 +17,8 @@
 
 - [Backup] fix transfer size only counting the last disk transferred (PR [#9900](https://github.com/vatesfr/xen-orchestra/pull/9900))
 - [Backup] fix backup cleanup removing too many files when listing fails (PR [#9925](https://github.com/vatesfr/xen-orchestra/pull/9925))
+- **XO 5**:
+  - [Jobs] fix array values being incorrectly handled (used for instance on job.runSequence) (PR [#9928](https://github.com/vatesfr/xen-orchestra/pull/9928))
 
 ### Packages to release
 
@@ -39,5 +41,6 @@
 - @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/xva patch
 - xo-server patch
+- xo-web patch
 
 <!--packages-end-->
