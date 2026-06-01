@@ -826,7 +826,7 @@ export class PoolController extends XapiXoController<XoPool> {
     json(),
     acl([
       { resource: 'pool', action: 'add-host', objectId: 'params.id' },
-      { resource: 'host', action: 'join-pool', objectId: ({ req }) => req.body.host },
+      { resource: 'host', action: 'join-pool', objectId: 'body.host' },
     ]),
   ])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
