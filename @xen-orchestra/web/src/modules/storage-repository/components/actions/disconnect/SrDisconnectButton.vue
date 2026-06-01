@@ -10,6 +10,13 @@
     @click="openSrDisconnectModal()"
   >
     {{ t('action:disconnect') }}
+    <UiCounter
+      v-if="targetCount > (scope.type === 'pool' ? 0 : 1)"
+      :value="targetCount"
+      accent="brand"
+      variant="secondary"
+      size="small"
+    />
   </UiButton>
 </template>
 
@@ -17,8 +24,9 @@
 import { useSrDisconnectModal } from '@/modules/storage-repository/composables/use-sr-disconnect-modal.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { StorageScope } from '@/modules/storage-repository/types/storage-scope.type.ts'
-import UiButton from '@xen-orchestra/web-core/components/ui/button/UiButton.vue'
-import { vTooltip } from '@xen-orchestra/web-core/directives/tooltip.directive.ts'
+import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
 const { sr, scope } = defineProps<{
@@ -33,6 +41,7 @@ const {
   canRun: canDisconnectSr,
   isRunning: isDisconnectingSr,
   errorMessage: disconnectSrErrorMessage,
+  targetCount,
 } = useSrDisconnectModal(
   () => [sr],
   () => scope

@@ -126,9 +126,16 @@ const { HeadCells, BodyCells } = useSrColumns({
       canRun: canDisconnectSr,
       isRunning: isDisconnectingSr,
       errorMessage: disconnectSrErrorMessage,
+      targetCount: disconnectTargetCount,
     } = useSrDisconnectModal(
       () => [sr],
       () => scope
+    )
+
+    const disconnectLabel = computed(() =>
+      disconnectTargetCount.value > (scope.type === 'pool' ? 0 : 1)
+        ? t('action:disconnect-n', { n: disconnectTargetCount.value })
+        : t('action:disconnect')
     )
 
     return {
@@ -148,7 +155,7 @@ const { HeadCells, BodyCells } = useSrColumns({
           onClick: () => (selectedSrId.value = sr.id),
           actions: [
             {
-              label: t('action:disconnect'),
+              label: disconnectLabel.value,
               icon: 'action:disconnect',
               onClick: () => openSrDisconnectModal(),
               busy: isDisconnectingSr.value,

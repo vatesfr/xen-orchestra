@@ -14,6 +14,8 @@ export function useSrDisconnectModal(rawSrs: MaybeRefOrGetter<FrontXoSr[]>, rawS
 
   const unplugTargets = computed(() => srs.value.flatMap(sr => getAttachedPbdsInScope(sr, scope.value)))
 
+  const targetCount = computed(() => unplugTargets.value.length)
+
   const { run, canRun, isRunning, errorMessage } = useXoPbdUnplugJob(unplugTargets)
 
   const openModal = useModal(() => ({
@@ -28,5 +30,5 @@ export function useSrDisconnectModal(rawSrs: MaybeRefOrGetter<FrontXoSr[]>, rawS
     },
   }))
 
-  return { openModal, canRun, isRunning, errorMessage }
+  return { openModal, canRun, isRunning, errorMessage, targetCount }
 }

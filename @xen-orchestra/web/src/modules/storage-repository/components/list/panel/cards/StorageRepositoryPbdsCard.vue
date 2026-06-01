@@ -8,7 +8,7 @@
     </VtsStateHero>
     <template v-else>
       <div class="content">
-        <VtsStatus :status="pbdsConnectionStatus" />
+        <VtsStatus :status="srConnectionStatus" />
       </div>
       <div v-if="areSomePbdsDisconnected" class="content">
         <template v-for="(pbd, index) in disconnectedPbds" :key="pbd.id">
@@ -52,16 +52,16 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { sr, scope } = defineProps<{
   sr: FrontXoSr
   scope: StorageScope
 }>()
 
 const { t } = useI18n()
 
-const { pbdsInScope, pbdsConnectionStatus } = useXoSrUtils(
-  () => props.sr,
-  () => props.scope
+const { pbdsInScope, srConnectionStatus } = useXoSrUtils(
+  () => sr,
+  () => scope
 )
 
 const { areSomePbdsDisconnected, disconnectedPbds } = useXoPbdUtils(pbdsInScope)

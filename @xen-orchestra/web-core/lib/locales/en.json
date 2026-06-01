@@ -51,6 +51,7 @@
   "action:detach-n-vdis": "Detach 1 VDI | Detach {n} VDIs",
   "action:detach-vdi": "Detach VDI",
   "action:disconnect": "Disconnect",
+  "action:disconnect-n": "Disconnect {n}",
   "action:disconnect-n-srs": "Disconnect 1 SR | Disconnect {n} SRs",
   "action:disconnect-n-vbds": "Disconnect 1 VBD | Disconnect {n} VBDs",
   "action:disconnect-n-vdis": "Disconnect 1 VDI | Disconnect {n} VDIs",

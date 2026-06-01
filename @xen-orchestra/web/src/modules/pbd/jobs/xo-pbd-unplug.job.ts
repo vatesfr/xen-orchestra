@@ -21,11 +21,9 @@ export const useXoPbdUnplugJob = defineJob('pbd.unplug', [xoPbdsArg], () => {
 
       results.forEach((result, index) => {
         if (result.status === 'rejected') {
-          console.error(`Failed to unplug PBD ${pbds[index]?.id}:`, result.reason)
+          console.error(`Failed to unplug PBD ${pbds[index].id}:`, result.reason)
         }
       })
-
-      return results
     },
 
     validate: (isRunning, pbds: FrontXoPbd[] | undefined) => {

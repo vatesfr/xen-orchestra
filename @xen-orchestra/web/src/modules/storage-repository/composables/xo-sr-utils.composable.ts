@@ -76,7 +76,7 @@ export function useXoSrUtils(
 
   return {
     pbdsInScope,
-    pbdsConnectionStatus: allPbdsConnectionStatus,
+    srConnectionStatus: allPbdsConnectionStatus,
     srStatusIcon,
     getSrLocation,
   }

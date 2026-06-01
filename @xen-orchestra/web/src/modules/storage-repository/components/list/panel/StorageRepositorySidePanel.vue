@@ -8,7 +8,7 @@
         :busy="isDeletingSr"
         @click="openSrDeleteModal()"
       />
-      <SrDisconnectButton v-if="isSrConnectedInScope" :sr="props.sr" :scope="props.scope" />
+      <SrDisconnectButton class="sr-disconnect-button" :sr :scope />
       <div :class="{ 'action-buttons-container': uiStore.isSmall }">
         <UiButtonIcon
           v-tooltip="t('action:close')"
@@ -21,11 +21,11 @@
       </div>
     </template>
     <template #default>
-      <StorageRepositoryInfosCard :sr="props.sr" :scope="props.scope" />
-      <StorageRepositorySpaceCard :sr="props.sr" />
+      <StorageRepositoryInfosCard :sr :scope />
+      <StorageRepositorySpaceCard :sr />
       <StorageRepositoryVdisCard :vdis />
       <StorageRepositoryHostsCard :hosts />
-      <StorageRepositoryPbdsCard :sr="props.sr" :scope="props.scope" />
+      <StorageRepositoryPbdsCard :sr :scope />
       <StorageRepositoryCustomFieldsCard :custom-fields />
     </template>
   </UiPanel>
@@ -42,7 +42,7 @@ import StorageRepositoryPbdsCard from '@/modules/storage-repository/components/l
 import StorageRepositorySpaceCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositorySpaceCard.vue'
 import StorageRepositoryVdisCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositoryVdisCard.vue'
 import { useSrDeleteModal } from '@/modules/storage-repository/composables/use-sr-delete-modal.composable.ts'
-import { useGetPbdsInScope, useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
+import { useGetPbdsInScope } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { StorageScope } from '@/modules/storage-repository/types/storage-scope.type.ts'
 import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
@@ -57,7 +57,7 @@ import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { sr, scope } = defineProps<{
   sr: FrontXoSr
   scope: StorageScope
 }>()
@@ -75,18 +75,13 @@ const { pbdsBySr, arePbdsReady } = useXoPbdCollection()
 
 const isReady = logicAnd(areVdisReady, areHostsReady, arePbdsReady)
 
-const vdis = useGetVdisByIds(() => props.sr.VDIs as XoVdi['id'][])
+const vdis = useGetVdisByIds(() => sr.VDIs as XoVdi['id'][])
 
 const { getSrPbdsSignature } = useGetPbdsInScope()
-const { pbdsInScope } = useXoSrUtils(
-  () => props.sr,
-  () => props.scope
-)
-const isSrConnectedInScope = computed(() => pbdsInScope.value.length > 0 && pbdsInScope.value.some(pbd => pbd.attached))
 
-const panelSignature = computed(() => getSrPbdsSignature(props.sr, props.scope))
+const panelSignature = computed(() => getSrPbdsSignature(sr, scope))
 
-const pbds = computed(() => pbdsBySr.value.get(props.sr.id) ?? [])
+const pbds = computed(() => pbdsBySr.value.get(sr.id) ?? [])
 
 const hosts = computed(() =>
   pbds.value.reduce<FrontXoHost[]>((acc, pbd) => {
@@ -103,7 +98,7 @@ const hosts = computed(() =>
 const customFields = computed(() => {
   const prefix = 'XenCenter.CustomFields.'
 
-  return Object.entries(props.sr.other_config).reduce<Record<string, unknown>>((acc, [key, value]) => {
+  return Object.entries(sr.other_config).reduce<Record<string, unknown>>((acc, [key, value]) => {
     if (key.startsWith(prefix)) {
       acc[key.slice(prefix.length)] = value
     }
@@ -116,7 +111,7 @@ const { openModal: openSrDeleteModal, canRun: canDeleteSr, isRunning: isDeleting
 </script>
 
 <style scoped lang="postcss">
-.sr-delete-button {
+.sr-disconnect-button {
   margin-inline-end: auto;
 }
 

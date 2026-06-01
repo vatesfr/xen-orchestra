@@ -1,41 +1,41 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      <UiLink v-if="props.sr.name_label" size="small" :icon="srStatusIcon" :href>
-        {{ props.sr.name_label }}
+      <UiLink v-if="sr.name_label" size="small" :icon="srStatusIcon" :href>
+        {{ sr.name_label }}
       </UiLink>
     </UiCardTitle>
     <div class="content">
-      <VtsCodeSnippet :content="props.sr.id" copy />
+      <VtsCodeSnippet :content="sr.id" copy />
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
         <template #value>
-          <VtsStatus :status="pbdsConnectionStatus" />
+          <VtsStatus :status="srConnectionStatus" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('description') }}</template>
-        <template #value>{{ props.sr.name_description }}</template>
-        <template v-if="props.sr.name_description" #addons>
-          <VtsCopyButton :value="props.sr.name_description" />
+        <template #value>{{ sr.name_description }}</template>
+        <template v-if="sr.name_description" #addons>
+          <VtsCopyButton :value="sr.name_description" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue align-top>
         <template #key>{{ t('tags') }}</template>
         <template #value>
-          <UiTagsList v-if="props.sr.tags.length > 0">
-            <VtsTag v-for="tag in props.sr.tags" :key="tag" :value="tag" />
+          <UiTagsList v-if="sr.tags.length > 0">
+            <VtsTag v-for="tag in sr.tags" :key="tag" :value="tag" />
           </UiTagsList>
         </template>
-        <template v-if="props.sr.tags.length > 0" #addons>
-          <VtsCopyButton :value="props.sr.tags.join(', ')" />
+        <template v-if="sr.tags.length > 0" #addons>
+          <VtsCopyButton :value="sr.tags.join(', ')" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('storage-format') }}</template>
-        <template #value>{{ props.sr.SR_type }}</template>
+        <template #value>{{ sr.SR_type }}</template>
         <template #addons>
-          <VtsCopyButton :value="props.sr.SR_type" />
+          <VtsCopyButton :value="sr.SR_type" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -80,7 +80,7 @@ import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { sr, scope } = defineProps<{
   sr: FrontXoSr
   scope: StorageScope
 }>()
@@ -88,22 +88,22 @@ const props = defineProps<{
 const { t } = useI18n()
 
 const { buildXo5Route } = useXoRoutes()
-const href = computed(() => buildXo5Route(`/srs/${props.sr.id}/general`))
+const href = computed(() => buildXo5Route(`/srs/${sr.id}/general`))
 
 const { isHighAvailabilitySr } = useXoSrCollection()
 
-const { pbdsConnectionStatus, srStatusIcon } = useXoSrUtils(
-  () => props.sr,
-  () => props.scope
+const { srConnectionStatus, srStatusIcon } = useXoSrUtils(
+  () => sr,
+  () => scope
 )
 
-const isSrSharedI18nValue = computed(() => (props.sr.shared ? t('shared') : t('local')))
+const isSrSharedI18nValue = computed(() => (sr.shared ? t('shared') : t('local')))
 
 const provisioning = computed(() => {
-  return props.sr.allocationStrategy ?? t('unknown')
+  return sr.allocationStrategy ?? t('unknown')
 })
 
-const isHaSr = isHighAvailabilitySr(() => props.sr)
+const isHaSr = isHighAvailabilitySr(() => sr)
 </script>
 
 <style scoped lang="postcss">
