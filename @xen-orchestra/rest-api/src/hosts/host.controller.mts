@@ -21,17 +21,20 @@ import { type Defer, defer } from 'golike-defer'
 import { json } from 'express'
 import type { Request as ExRequest, Response as ExResponse } from 'express'
 import { inject } from 'inversify'
-import { invalidParameters } from 'xo-common/api-errors.js'
+import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
 import { pipeline } from 'node:stream/promises'
 import { provide } from 'inversify-binding-decorators'
 import type {
+  Branded,
   XapiHostStats,
   XapiStatsGranularity,
   XcpPatches,
+  XenApiHost,
   XoAlarm,
   XoHost,
   XoMessage,
   XoPif,
+  XoPool,
   XoTask,
   XoVm,
   XsPatches,
@@ -69,6 +72,10 @@ import { HostService } from './host.service.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { partialTasks, taskIds, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { SupportedActions } from '@xen-orchestra/acl'
+import createLogger from '@xen-orchestra/log'
+import semver from 'semver'
+
+const log = createLogger('xo:rest-api:host-controller')
 
 @Route('hosts')
 @Security('*')
@@ -597,32 +604,40 @@ export class HostController extends XapiXoController<XoHost> {
 
   /**
    * Required privilege:
-   * - resource: host, action: stop
+   * - resource: host, action: shutdown:clean
    *
    * Stop a host.
    *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
-   * @example body { "force": false, "bypassEvacuate": false }
+   * @example body { "bypassBackupCheck": false, "bypassEvacuate": false }
    */
   @Example(taskLocation)
-  @Post('{id}/actions/stop')
-  @Middlewares([json(), acl({ resource: 'host', action: 'stop', objectId: 'params.id' })])
+  @Post('{id}/actions/clean_shutdown')
+  @Middlewares([json(), acl({ resource: 'host', action: 'shutdown:clean', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  stop(
+  clean_shutdown(
     @Path() id: string,
     @Body()
     body?: {
-      force?: boolean
+      /** Skip the backup safety check before shutting down. Defaults to false. */
+      bypassBackupCheck?: boolean
+      /** Shut down without evacuating running VMs first. Defaults to false. */
       bypassEvacuate?: boolean
     },
     @Query() sync?: boolean
   ): CreateActionReturnType<void> {
     const hostId = id as XoHost['id']
     const action = async () => {
+      const host = this.getObject(hostId)
+      if (body?.bypassBackupCheck) {
+        log.warn('host clean_shutdown called with argument "bypassBackupCheck" set to true', { hostId })
+      } else {
+        await this.restApi.xoApp.backupGuard(host.$pool as XoPool['id'])
+      }
       await this.getXapiObject(hostId).$xapi.shutdownHost(hostId, body)
     }
 
@@ -643,7 +658,14 @@ export class HostController extends XapiXoController<XoHost> {
    * Restart a host.
    *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
-   * @example body { "force": false }
+   * @example body {
+   *  "bypassBackupCheck": false,
+   *  "force": false,
+   *  "bypassVersionCheck": false,
+   *  "suspendResidentVms": false,
+   *  "bypassBlockedSuspend": false,
+   *  "bypassCurrentVmCheck": false
+   * }
    */
   @Example(taskLocation)
   @Post('{id}/actions/restart')
@@ -657,13 +679,77 @@ export class HostController extends XapiXoController<XoHost> {
     @Path() id: string,
     @Body()
     body?: {
+      /** Skip the backup safety check before restarting. Defaults to false. */
+      bypassBackupCheck?: boolean
+      /** Force the restart, ignoring evacuation errors. Defaults to false. */
       force?: boolean
+      /** Skip the version/upgrade compatibility check before restarting. Defaults to false. */
+      bypassVersionCheck?: boolean
+      /** Suspend resident VMs instead of migrating them before restarting. Defaults to false. */
+      suspendResidentVms?: boolean
+      /** Allow suspending VMs even if suspend is blocked. Only relevant when suspendResidentVms is true. Defaults to force. */
+      bypassBlockedSuspend?: boolean
+      /** Skip the check for running VMs before suspending. Only relevant when suspendResidentVms is true. Defaults to force. */
+      bypassCurrentVmCheck?: boolean
     },
     @Query() sync?: boolean
   ): CreateActionReturnType<void> {
+    const force = body?.force ?? false
+    const bypassBlockedSuspend = body?.bypassBlockedSuspend ?? force
+    const bypassCurrentVmCheck = body?.bypassCurrentVmCheck ?? force
+
     const hostId = id as XoHost['id']
     const action = async () => {
-      await this.getXapiObject(hostId).$xapi.rebootHost(hostId, body?.force)
+      const host = this.getObject(id as XoHost['id'])
+
+      if (body?.bypassBackupCheck) {
+        log.warn('host restart called with "bypassBackupCheck" set to true', { hostId })
+      } else {
+        await this.restApi.xoApp.backupGuard(host.$pool as XoPool['id'])
+      }
+
+      if (body?.bypassVersionCheck) {
+        log.warn('host restart called with "bypassVersionCheck" set to true', { hostId })
+      } else {
+        const pool = this.restApi.getObject<XoPool>(host.$pool as XoPool['id'], 'pool')
+        const master = this.restApi.getObject<XoHost>(pool.master, 'host')
+        if (host.rebootRequired && host.id !== master.id) {
+          const throwError = () =>
+            incorrectState({
+              actual: host.rebootRequired,
+              expected: false,
+              object: master.id,
+              property: 'rebootRequired',
+            })
+          if (semver.lt(master.version, host.version)) {
+            log.error(`master version (${master.version}) is older than the host version (${host.version})`, {
+              masterId: master.id,
+              hostId,
+            })
+            throwError()
+          } else if (semver.eq(master.version, host.version)) {
+            const xapi = this.getXapiObject(host.id).$xapi
+            if ((await xapi.listMissingPatches(master.id)).length > 0) {
+              log.error('master has missing patches', { masterId: master.id })
+              throwError()
+            }
+            if (master.rebootRequired) {
+              log.error('master needs to reboot', { masterId: master.id })
+              throwError()
+            }
+          }
+        }
+      }
+
+      if (body?.suspendResidentVms) {
+        await this.getXapiObject(host.id).$xapi.host_smartReboot(
+          host._xapiRef as XenApiHost['$ref'],
+          bypassBlockedSuspend,
+          bypassCurrentVmCheck
+        )
+      } else {
+        await this.getXapiObject(host.id).$xapi.rebootHost(hostId, body?.force)
+      }
     }
 
     return this.createAction<void>(action, {
@@ -692,9 +778,25 @@ export class HostController extends XapiXoController<XoHost> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  restartToolstack(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+  restartToolstack(
+    @Path() id: string,
+    @Body()
+    body?: {
+      /** Skip the backup safety check before shutting down. Defaults to false. */
+      bypassBackupCheck?: boolean
+    },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
     const hostId = id as XoHost['id']
     const action = async () => {
+      const host = this.getObject(id as XoHost['id'])
+
+      if (body?.bypassBackupCheck) {
+        log.warn('host restart_toolstack called with "bypassBackupCheck" set to true', { hostId })
+      } else {
+        await this.restApi.xoApp.backupGuard(host.$pool as XoPool['id'])
+      }
+
       await this.getXapiObject(hostId).$restartAgent()
     }
 
@@ -710,15 +812,20 @@ export class HostController extends XapiXoController<XoHost> {
 
   /**
    * Required privilege:
-   * - resource: host, action: emergency-shutdown
+   * - resource: host, action: shutdown:emergency
    *
-   * Emergency shutdowns a host.
+   * Forcefully shut down a host without evacuating VMs or running safety checks.
+   *
+   * Does not attempt to migrate or suspend running VMs, or check for active backup jobs,
+   * and does not require the host to be in maintenance mode.
+   * Use only when the host is unresponsive or in a critical state where a clean shutdown
+   * is not possible.
    *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(taskLocation)
   @Post('{id}/actions/emergency_shutdown')
-  @Middlewares(acl({ resource: 'host', action: 'emergency-shutdown', objectId: 'params.id' }))
+  @Middlewares(acl({ resource: 'host', action: 'shutdown:emergency', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)

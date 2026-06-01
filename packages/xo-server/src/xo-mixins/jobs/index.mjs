@@ -13,6 +13,7 @@ import patch from '../../patch.mjs'
 import { serializeError } from '../../utils.mjs'
 
 import executeCall from './execute-call.mjs'
+import backupGuard from '../../api/_backupGuard.mjs'
 
 // ===================================================================
 
@@ -370,5 +371,9 @@ export default class Jobs {
 
       delete schedulesByJobId[job.id]
     }
+  }
+  
+  backupGuard(poolId) {
+    return backupGuard.call(this, poolId)
   }
 }
