@@ -219,7 +219,7 @@ export default class DensityPlan extends Plan {
           xapiDest: this.xo.getXapi(destination),
           srcHostId: srcHost.id,
           destHostId: destination._xapiId,
-          reason: 'for density constraints',
+          reason: `to try to shutdown host ${srcHost.id}`,
         })
       })
     )

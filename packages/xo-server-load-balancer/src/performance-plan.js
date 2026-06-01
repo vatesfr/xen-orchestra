@@ -16,7 +16,7 @@ const AGGRESSIVENESS_RATE = 1.5 // high-threshold ratio
 const AGGRESSIVENESS_RATE_LOW = 1.25 // low-threshold ratio
 const SIGNIFICANCE_THRESHOLD = 25 // don't optimize hosts under 25% CPU
 
-function truncateNumber(value) {
+function formatPercent(value) {
   return Number.parseFloat(value).toFixed(1)
 }
 
@@ -281,8 +281,8 @@ export default class PerformancePlan extends Plan {
       )
 
       const reason = poolAverage
-        ? `because CPU usage (${truncateNumber(exceededAverages.cpu)}%) is significantly higher than the pool average (${truncateNumber(poolAverage)}%)`
-        : `because CPU usage (${truncateNumber(exceededAverages.cpu)}%) has exceeded threshold (${truncateNumber(thresholds.cpu.high)}%) for too long`
+        ? `because CPU usage (${formatPercent(exceededAverages.cpu)}%) is significantly higher than the pool average (${formatPercent(poolAverage)}%)`
+        : `because CPU usage (${formatPercent(exceededAverages.cpu)}%) has exceeded threshold (${formatPercent(thresholds.cpu.high)}%) for too long`
       promises.push(
         this._migrateVm({
           vm,
