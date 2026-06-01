@@ -16,6 +16,7 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [Backup] fix transfer size only counting the last disk transferred (PR [#9900](https://github.com/vatesfr/xen-orchestra/pull/9900))
+- [Backup] fix backup cleanup removing too many files when listing fails (PR [#9925](https://github.com/vatesfr/xen-orchestra/pull/9925))
 
 ### Packages to release
 
