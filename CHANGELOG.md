@@ -2,6 +2,8 @@
 
 ## **6.5.1** (2026-06-01)
 
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
 ### Bug fixes
 
 - [Backup] fix transfer size only counting the last disk transferred (PR [#9900](https://github.com/vatesfr/xen-orchestra/pull/9900))
@@ -17,8 +19,6 @@
 - xo-server 5.202.2
 
 ## **6.5.0** (2026-05-28)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Security
 
