@@ -1,7 +1,7 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      <UiLink v-if="task.properties.name !== undefined" size="small" icon="fa:bars-progress">
+      <UiLink v-if="task.properties.name !== undefined" size="small" icon="fa:bars-progress" wrap>
         {{ task.properties.name }}
       </UiLink>
       <template v-else>{{ task.id }}</template>

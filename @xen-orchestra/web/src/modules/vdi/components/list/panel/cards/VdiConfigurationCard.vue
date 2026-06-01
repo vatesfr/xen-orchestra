@@ -11,7 +11,7 @@
         </template>
         <template #value>
           <div v-if="vdiSr" class="storage">
-            <UiLink size="small" :href="srHref" icon="object:sr">
+            <UiLink size="small" :href="srHref" icon="object:sr" wrap>
               {{ vdiSr.name_label }}
             </UiLink>
           </div>

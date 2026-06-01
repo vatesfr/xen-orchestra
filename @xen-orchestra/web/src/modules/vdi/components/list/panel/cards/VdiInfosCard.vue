@@ -1,6 +1,6 @@
 <template>
   <UiCard class="card-container">
-    <UiLink size="medium" :href="vdiHref" :icon="vdiIcon">
+    <UiLink size="medium" :href="vdiHref" :icon="vdiIcon" wrap>
       {{ vdi.name_label }}
     </UiLink>
     <div class="content">

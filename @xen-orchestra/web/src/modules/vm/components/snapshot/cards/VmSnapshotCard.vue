@@ -9,6 +9,7 @@
             icon="object:vm-snapshot"
             size="medium"
             :href="buildXo5VmSnapshotRoute(snapshot?.$snapshot_of, snapshot?.id)"
+            wrap
           >
             {{ snapshot.name_label }}
           </UiLink>

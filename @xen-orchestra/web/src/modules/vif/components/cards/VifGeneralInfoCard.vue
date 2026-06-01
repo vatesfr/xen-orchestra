@@ -12,7 +12,7 @@
       </VtsTabularKeyValueRow>
       <VtsTabularKeyValueRow :label="t('network')">
         <template v-if="network" #value>
-          <UiLink size="medium" :to="networkTo" icon="object:network">
+          <UiLink size="medium" :to="networkTo" icon="object:network" wrap>
             {{ network.name_label }}
           </UiLink>
         </template>

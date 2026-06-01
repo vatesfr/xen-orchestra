@@ -17,6 +17,7 @@
               size="small"
               icon="object:backup-schedule"
               :href="buildXo5Route(`/backup/${schedule.jobId}/edit`)"
+              wrap
             >
               {{ schedule.name }}
             </UiLink>

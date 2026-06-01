@@ -25,8 +25,8 @@
               {{ t('network') }}
             </template>
             <template #value>
-              <UiLink v-if="network" size="medium" :to="networkTo" icon="object:network">
-                <span v-tooltip class="text-ellipsis">{{ network.name_label }}</span>
+              <UiLink v-if="network" size="medium" :to="networkTo" icon="object:network" wrap>
+                {{ network.name_label }}
               </UiLink>
             </template>
             <template v-if="network" #addons>

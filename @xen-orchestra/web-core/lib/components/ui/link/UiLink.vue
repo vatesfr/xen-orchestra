@@ -1,10 +1,11 @@
 <!-- v6 -->
 <template>
   <component :is="component" :class="classes" class="ui-link" v-bind="attributes">
-    <VtsIcon :name="icon" size="medium" />
-    <slot />
-    <VtsIcon v-if="attributes.target === '_blank'" name="action:open-in-new-tab" size="medium" class="external-icon" />
-    <VtsIcon v-if="isPrimary" v-tooltip="primaryTooltip" name="status:primary-circle" size="medium" />
+    <VtsIcon :name="icon" size="medium" class="icon" />
+    <span v-tooltip :class="wrap == true ? 'link-wrap' : 'text-ellipsis'">
+      <slot />
+    </span>
+    <VtsIcon v-if="attributes.target === '_blank'" name="fa:up-right-from-square" size="medium" class="external-icon" />
   </component>
 </template>
 
@@ -21,6 +22,7 @@ const props = defineProps<
     icon?: IconName
     isPrimary?: boolean
     primaryTooltip?: string
+    wrap?: boolean
   }
 >()
 
@@ -37,9 +39,11 @@ const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.
 <style lang="postcss" scoped>
 .ui-link {
   display: inline-flex;
-  align-items: center;
+  align-items: baseline;
   gap: 0.8rem;
   color: var(--color-brand-txt-base);
+  min-width: 0;
+  max-width: 100%;
 
   &:hover {
     color: var(--color-brand-txt-hover);
@@ -66,12 +70,18 @@ const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.
     cursor: not-allowed;
   }
 
+  .link-wrap {
+    text-wrap: wrap;
+    overflow-wrap: anywhere;
+  }
+
   &:not([href]) {
     text-decoration: none;
     cursor: default;
   }
 
   .external-icon {
+    transform: translateY(0.15ex);
     font-size: 0.75em;
   }
 }

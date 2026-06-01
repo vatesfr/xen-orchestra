@@ -7,7 +7,7 @@
           {{ t('network') }}
         </template>
         <template #value>
-          <UiLink size="small" :to="networkTo" icon="object:network">
+          <UiLink size="small" :to="networkTo" icon="object:network" wrap>
             {{ network.name_label }}
           </UiLink>
         </template>

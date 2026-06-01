@@ -1,5 +1,7 @@
 <template>
-  <UiLink :icon="vbdsSnapshotStatus" size="medium" :href="xo5VmSnapshotVdiHref">{{ vdi.name_label }}</UiLink>
+  <UiLink :icon="vbdsSnapshotStatus" size="medium" :href="xo5VmSnapshotVdiHref" wrap>
+    {{ vdi.name_label }}
+  </UiLink>
 </template>
 
 <script setup lang="ts">

@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- [XoLite] Add ellipsis on link (PR [#9234](https://github.com/vatesfr/xen-orchestra/pull/9234))
+
 ## **0.22.0** (2026-05-28)
 
 - [System] Update system pages layout ([user feedback](https://feedback.vates.tech/posts/37/xo6-ui-very-messy-columns-width-in-vm-system-far-better-in-xo5)) (PR [#9746](https://github.com/vatesfr/xen-orchestra/pull/9746))
