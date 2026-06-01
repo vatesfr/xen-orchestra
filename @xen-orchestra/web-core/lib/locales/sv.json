@@ -620,7 +620,7 @@
   "no-schedule-available": "Inget schema tillgängligt",
   "no-selected-vm-can-be-exported": "Inga markerade VMar kan exporteras",
   "no-selected-vm-can-be-migrated": "Inga markerade VMar kan migreras",
-  "no-server-detected": "Ingen server hittades",
+  "no-server-detected": "Inga servrar upptäckta",
   "no-snapshot-detected": "Inga ögonblicksbilder upptäckta",
   "no-storage-repository-detected": "Inga lagringsplatser upptäckta",
   "no-task": "Inga uppgifter",
