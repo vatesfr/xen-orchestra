@@ -18,9 +18,9 @@ import {
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest, json } from 'express'
-import type { XoBackupRepository } from '@vates/types'
+import type { XoApp, XoBackupRepository } from '@vates/types'
 
-import { acl } from '../middlewares/acl.middleware.mjs'
+import { acl, actionsFromBody } from '../middlewares/acl.middleware.mjs'
 import {
   badRequestResp,
   createdResp,
@@ -107,11 +107,10 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(invalidParameters.status, invalidParameters.description)
-  @Response(resourceAlreadyExists.status, resourceAlreadyExists.description)
-  async createRepository(
-    @Body() body: { name: string; options?: string; proxy?: string; url: string }
+  async createBackupRepository(
+    @Body() body: Unbrand<Parameters<XoApp['createRemote']>[0]>
   ): Promise<{ id: Unbrand<XoBackupRepository>['id'] }> {
-    const backupRepository = await this.restApi.xoApp.createRemote(body)
+    const backupRepository = await this.restApi.xoApp.createRemote(body as Parameters<XoApp['createRemote']>[0])
 
     return { id: backupRepository.id }
   }
@@ -141,7 +140,12 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
 
   /**
    * Required privilege:
-   * - resource: backup-repository, action: update
+   * - resource: backup-repository, action: update (grants all fields)
+   * - resource: backup-repository, action: update:enable (if enable is passed)
+   * - resource: backup-repository, action: update:name (if name is passed)
+   * - resource: backup-repository, action: update:options (if options is passed)
+   * - resource: backup-repository, action: update:proxy (if proxy is passed)
+   * - resource: backup-repository, action: update:url (if url is passed)
    *
    * @example body { "enabled": true, "name": "NFS Remote", "options": "vers=4", "proxy": "722d17b9-699b-59d2-8193-be1ac573d3de", "url": "nfs://192.168.100.225:/media/nfs" }
    */
@@ -150,7 +154,7 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
     json(),
     acl({
       resource: 'backup-repository',
-      action: 'update',
+      actions: actionsFromBody(['update:enabled', 'update:name', 'update:options', 'update:proxy', 'update:url']),
       objectId: 'params.id',
       getObject: ({ restApi }) => restApi.xoApp.getRemote,
     }),
@@ -159,16 +163,9 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParameters.status, invalidParameters.description)
-  async updateRepository(
+  async updateBackupRepository(
     @Path() id: string,
-    @Body()
-    body: {
-      enabled?: boolean
-      name?: string
-      options?: string | null
-      proxy?: string | null
-      url?: string
-    }
+    @Body() body: Unbrand<Parameters<XoApp['updateRemote']>[1]>
   ): Promise<void> {
     await this.restApi.xoApp.updateRemote(id as XoBackupRepository['id'], body)
   }

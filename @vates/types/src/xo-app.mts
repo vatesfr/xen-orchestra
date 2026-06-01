@@ -208,7 +208,12 @@ export type XoApp = {
     expiresIn?: string | number
     userId: XoUser['id']
   }): Promise<XoAuthenticationToken>
-  createRemote(params: { name: string; options?: string; proxy?: string; url: string }): Promise<XoBackupRepository>
+  createRemote(params: {
+    name: string
+    options?: string
+    proxy?: XoProxy['id']
+    url: string
+  }): Promise<XoBackupRepository>
   createUser(params: { name?: string; password?: string; [key: string]: unknown }): Promise<XoUser>
   deleteAclV2GroupRole(groupId: XoGroup['id'], roleId: XoAclRole['id']): Promise<boolean>
   deleteAclV2Privilege(privilegeId: XoAclBasePrivilege['id'], options?: { force?: boolean }): Promise<boolean>
@@ -346,7 +351,7 @@ export type XoApp = {
       enabled?: boolean
       name?: string
       options?: string | null
-      proxy?: string | null
+      proxy?: XoProxy['id'] | null
       url?: string
     }
   ): Promise<XoBackupRepository>
