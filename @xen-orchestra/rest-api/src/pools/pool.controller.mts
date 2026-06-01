@@ -41,6 +41,7 @@ import {
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import type {
+  XapiConnection,
   XapiPoolStats,
   XapiStatsGranularity,
   XcpPatches,
@@ -805,6 +806,58 @@ export class PoolController extends XapiXoController<XoPool> {
         name: 'reconfigure pool management interface',
         objectId: poolId,
         args: body,
+      },
+    })
+  }
+
+  /**
+   * Required privileges:
+   * - resource: pool, action: add-host
+   * - resource: host, action: join-pool
+   *
+   * Add a host to the pool.
+   *
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
+   * @example body { "host": "c787b75c-3e0d-70fa-d0c3-cbfd382d7e33", "force": "false" }
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/add_host')
+  @Middlewares([
+    json(),
+    acl([
+      { resource: 'pool', action: 'add-host', objectId: 'params.id' },
+      { resource: 'host', action: 'join-pool', objectId: ({ req }) => req.body.host },
+    ]),
+  ])
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(badRequestResp.status, badRequestResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  addHost(
+    @Path() id: string,
+    @Body() body: { host: string; force?: boolean },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const poolId = id as XoPool['id']
+    const action = async () => {
+      const {
+        _auth: { user, password },
+        _url: { hostnameRaw },
+      } = this.restApi.xoApp.getXapi(poolId) as XapiConnection
+      const hostXapi = this.restApi.xoApp.getXapi(body.host as XoHost['id'])
+      await hostXapi.joinPool(hostnameRaw, user, password, body.force)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'add host',
+        objectId: poolId,
+        params: body,
       },
     })
   }

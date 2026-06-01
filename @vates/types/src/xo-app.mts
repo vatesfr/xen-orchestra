@@ -54,7 +54,8 @@ export type XapiConnection = Xapi & {
   status: string
   pool?: { uuid: string }
   sessionId: string
-  _url?: { protocol: string; hostname: string; port?: string }
+  _auth: { user: string; password: string }
+  _url: { protocol: string; hostname: string; hostnameRaw: string; port?: string }
 }
 
 type FeatureCode =
