@@ -15,7 +15,7 @@ import {
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
-import type { IdOr, XoBackupRepository } from '@vates/types'
+import type { XoBackupRepository } from '@vates/types'
 import { forbiddenOperation } from 'xo-common/api-errors.js'
 
 import { acl } from '../middlewares/acl.middleware.mjs'
@@ -35,7 +35,7 @@ import {
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { BackupRepositoriesService } from './backup-repositories.service.mjs'
+import { BackupRepositoriesService } from './backup-repository.service.mjs'
 
 @Route('backup-repositories')
 @Security('*')
@@ -131,29 +131,16 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  async deleteRepository(@Path() id: string): Promise<void> {
+  async deleteBackupRepository(@Path() id: string): Promise<void> {
     const repositoryId = id as XoBackupRepository['id']
 
-    const allJobs = await this.restApi.xoApp.getAllJobs()
-    const referencingJobs = allJobs.filter(job => {
-      if (job.type === 'backup' || job.type === 'metadataBackup') {
-        return this.#backupRepositoriesService.isRepositoryInRemotes(job.remotes, repositoryId)
-      } else if (job.type === 'mirrorBackup') {
-        return (
-          job.sourceRemote === repositoryId ||
-          this.#backupRepositoriesService.isRepositoryInRemotes(job.remotes, repositoryId)
-        )
-      }
-      return false
-    })
-
+    const referencingJobs = await this.#backupRepositoriesService.getReferencingJobs(repositoryId)
     if (referencingJobs.length > 0) {
       throw forbiddenOperation(
-        'forget backup repository',
-        `repository is referenced by ${referencingJobs.length} backup job(s)`
+        'delete backup repository',
+        `repository is referenced by ${referencingJobs.length} backup job(s) :\n ${referencingJobs.map(job => job.id).join(', ')}`
       )
     }
-
     await this.restApi.xoApp.removeRemote(repositoryId)
   }
 }
