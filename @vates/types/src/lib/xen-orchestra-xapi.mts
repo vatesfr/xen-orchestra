@@ -171,6 +171,11 @@ export interface Xapi {
   exportVmOva(vmRef: XenApiVm['$ref']): Promise<PassThrough>
   emergencyShutdownHost(hostId: XoHost['id']): Promise<void>
   ejectHostFromPool(hostId: XoHost['id']): Promise<void>
+  host_smartReboot(
+    hostRef: XenApiHost['$ref'],
+    bypassBlockedSuspend: boolean,
+    bypassCurrentVmCheck: boolean
+  ): Promise<void>
   migrateVm(
     vmId: XoVm['id'],
     hostXapi: Xapi,

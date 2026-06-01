@@ -2,7 +2,6 @@ export default {
   'allow-vm': true,
   detach: true,
   disable: true,
-  'emergency-shutdown': true,
   enable: true,
   evacuate: true,
   export: {
@@ -13,8 +12,11 @@ export default {
   read: true,
   restart: true,
   'restart-toolstack': true,
+  shutdown: {
+    clean: true,
+    emergency: true,
+  },
   start: true,
-  stop: true,
   update: {
     tags: true,
   },
