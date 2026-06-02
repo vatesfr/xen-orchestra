@@ -1,5 +1,5 @@
 import { noSuchObject } from 'xo-common/api-errors.js'
-import type { XoBackupRepository, XoVm, XoVmBackupArchive } from '@vates/types'
+import type { BackupDiskPartition, XoBackupRepository, XoVm, XoVmBackupArchive } from '@vates/types'
 
 import type { RestApi } from '../rest-api/rest-api.mjs'
 
@@ -27,5 +27,44 @@ export class BackupArchiveService {
     }
 
     return backupArchive
+  }
+
+  #getRemoteId(archiveId: XoVmBackupArchive['id']): XoBackupRepository['id'] {
+    const match = archiveId.match(BACKUP_ARCHIVE_ID_REGEX)
+    if (match === null) {
+      throw noSuchObject(archiveId, 'backup-archive')
+    }
+    return match[1] as XoBackupRepository['id']
+  }
+
+  listPartitions(archiveId: XoVmBackupArchive['id'], diskId: string): Promise<BackupDiskPartition[]> {
+    return this.#restApi.xoApp.listBackupNgDiskPartitions(this.#getRemoteId(archiveId), diskId)
+  }
+
+  listFiles(
+    archiveId: XoVmBackupArchive['id'],
+    diskId: string,
+    partitionId: string | undefined,
+    path: string
+  ): Promise<Record<string, { size?: number; mtime?: number }>> {
+    return this.#restApi.xoApp.listBackupNgPartitionFiles(this.#getRemoteId(archiveId), diskId, partitionId, path)
+  }
+
+  fetchFiles(
+    archiveId: XoVmBackupArchive['id'],
+    diskId: string,
+    partitionId: string | undefined,
+    paths: string[],
+    format: string,
+    options?: { range?: { start?: number; end?: number } }
+  ): Promise<NodeJS.ReadableStream & { size?: number; totalSize?: number; mimeType?: string }> {
+    return this.#restApi.xoApp.fetchBackupNgPartitionFiles(
+      this.#getRemoteId(archiveId),
+      diskId,
+      partitionId,
+      paths,
+      format,
+      options
+    )
   }
 }

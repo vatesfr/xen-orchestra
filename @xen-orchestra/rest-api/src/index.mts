@@ -12,6 +12,7 @@ import { logMiddleware } from './middlewares/log.middleware.mjs'
 import { mcpGateMiddleware } from './middlewares/mcp-gate.middleware.mjs'
 import { type OpenAPIV3 } from 'openapi-types'
 import { createExternalRouter, sendObjects } from './router/external-router.mjs'
+import { createBackupArchiveDavRouter } from './backup-archives/backup-archive-dav.router.mjs'
 
 export { sendObjects }
 
@@ -56,6 +57,10 @@ export default function setupRestApi(express: Express, xoApp: XoApp) {
   express.use(BASE_URL, setupApiContext(xoApp))
   express.use(BASE_URL, logMiddleware)
   express.use(BASE_URL, mcpGateMiddleware)
+
+  // WebDAV router must be mounted before TSOA routes so PROPFIND reaches it
+  // (TSOA only registers GET/POST/PUT/DELETE; Express falls through to this for PROPFIND)
+  express.use(`${BASE_URL}/backup-archives`, createBackupArchiveDavRouter())
 
   RegisterRoutes(express)
 

@@ -2074,6 +2074,9 @@ const messages = {
   restoreFilesSelectFolder: 'Select this folder',
   restoreFilesTgz: 'tar+gzip (.tgz)',
   restoreFilesUnselectAll: 'Unselect all files',
+  restoreFilesWebdavUrl: 'Mount this partition over WebDAV',
+  restoreFilesBrowse: 'Or browse the file you want to restore',
+
   restoreFilesZip: 'ZIP (slow)',
 
   // ----- Modals -----

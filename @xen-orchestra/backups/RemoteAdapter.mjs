@@ -8,6 +8,7 @@ import { deduped } from '@vates/disposable/deduped.js'
 import { createHash, randomBytes } from 'node:crypto'
 import { dirname, join, resolve } from 'node:path'
 import { execFile } from 'child_process'
+import { createReadStream } from 'node:fs'
 import { finished } from 'node:stream/promises'
 import { lstat, open, readdir, unlink } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -48,6 +49,17 @@ const { debug, info, warn } = createLogger('xo:backups:RemoteAdapter')
 export const compareTimestamp = (a, b) => a.timestamp - b.timestamp
 
 const noop = Function.prototype
+
+// Detect the MIME type of a file using the `file` utility (magic-byte based).
+// Falls back to 'application/octet-stream' if the utility is unavailable or fails.
+async function getMimeType(filePath) {
+  try {
+    const output = await fromCallback(execFile, 'file', ['--mime-type', '-b', filePath])
+    return output.trim()
+  } catch {
+    return 'application/octet-stream'
+  }
+}
 
 const resolveRelativeFromFile = (file, path) => resolve('/', dirname(file), path).slice(1)
 const makeRelative = path => resolve('/', path).slice(1)
@@ -314,7 +326,7 @@ export class RemoteAdapter {
     })
   }
 
-  fetchPartitionFiles(diskId, partitionId, paths, format) {
+  fetchPartitionFiles(diskId, partitionId, paths, format, { range } = {}) {
     const { promise, reject, resolve } = pDefer()
     Disposable.use(
       async function* () {
@@ -358,6 +370,22 @@ export class RemoteAdapter {
             resolve(zip.outputStream)
             await addZipEntries(zip, path, '', paths.map(makeRelative))
             zip.end()
+          } else if (format === 'raw') {
+            if (paths.length !== 1) {
+              throw new Error('raw format requires exactly one path, got ' + paths.length)
+            }
+            const filePath = resolveSubpath(path, paths[0])
+            const stat = await lstat(filePath)
+            const totalSize = stat.size
+            const mimeType = await getMimeType(filePath)
+            outputStream = createReadStream(filePath, range)
+            const start = range?.start ?? 0
+            const end = range?.end ?? totalSize - 1
+            outputStream.size = end - start + 1
+            outputStream.totalSize = totalSize
+            outputStream.mimeType = mimeType
+            watchStreamSize(outputStream, transmitted)
+            resolve(outputStream)
           } else {
             throw new Error('unsupported format ' + format)
           }
@@ -640,7 +668,9 @@ export class RemoteAdapter {
             if (stats.isDirectory()) {
               entriesMap[name + '/'] = {}
             } else if (stats.isFile()) {
-              entriesMap[name] = {}
+              // size/mtime let WebDAV/REST clients show real file sizes (a missing or
+              // zero size makes clients like rclone treat the file as empty and skip it).
+              entriesMap[name] = { size: stats.size, mtime: stats.mtimeMs }
             }
           } catch (error) {
             if (error == null || error.code !== 'ENOENT') {

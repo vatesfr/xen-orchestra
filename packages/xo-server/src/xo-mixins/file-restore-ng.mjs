@@ -52,7 +52,7 @@ export default class BackupNgFileRestore {
     )
   }
 
-  async fetchBackupNgPartitionFiles(remoteId, diskId, partitionId, paths, format) {
+  async fetchBackupNgPartitionFiles(remoteId, diskId, partitionId, paths, format, options = {}) {
     const app = this._app
     const remote = await app.getRemoteWithCredentials(remoteId)
     return remote.proxy !== undefined
@@ -79,7 +79,7 @@ export default class BackupNgFileRestore {
           }
         )
       : Disposable.use(app.getBackupsRemoteAdapter(remote), adapter =>
-          adapter.fetchPartitionFiles(diskId, partitionId, paths, format)
+          adapter.fetchPartitionFiles(diskId, partitionId, paths, format, options)
         )
   }
 

@@ -75,13 +75,25 @@ export function setupApiContext(xoApp: XoApp) {
         return next(new ApiError('Malformed Authorization header', 400))
       }
 
-      const [username, password] = Buffer.from(encoded, 'base64').toString().split(':')
-      Object.assign(credentials, { username, password, otp: query.otp })
-      res.locals.authType = 'basic'
+      const decoded = Buffer.from(encoded, 'base64').toString()
+      const colonIdx = decoded.indexOf(':')
+      const username = decoded.slice(0, colonIdx)
+      const password = decoded.slice(colonIdx + 1)
+
+      // Empty username means the token was embedded in the URL as ":token@host"
+      // (WebDAV clients like rclone send it as Basic auth with no username).
+      if (username === '') {
+        Object.assign(credentials, { token: password })
+        res.locals.authType = 'token'
+      } else {
+        Object.assign(credentials, { username, password, otp: query.otp })
+        res.locals.authType = 'basic'
+      }
     }
 
+    const isToken = (credentials as { token?: string }).token !== undefined
     try {
-      const { user } = await xoApp.authenticateUser(credentials, { ip }, { bypassTaskCreation: hasToken })
+      const { user } = await xoApp.authenticateUser(credentials, { ip }, { bypassTaskCreation: isToken })
       return xoApp.runWithApiContext(user, next)
     } catch (error) {
       return next(error)

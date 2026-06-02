@@ -10,6 +10,7 @@
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
+- [File Restore] Enable Webdav share for file level restore (PR [#9923](https://github.com/vatesfr/xen-orchestra/pull/9923))
 
 ### Bug fixes
 
@@ -30,5 +31,10 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+- @vates/types minor
+- @xen-orchestra/backups minor
+- @xen-orchestra/qa-test minor
+- @xen-orchestra/rest-api minor
+- xo-web minor
 
 <!--packages-end-->
