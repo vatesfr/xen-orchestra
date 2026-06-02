@@ -47,6 +47,8 @@ export function validateEnv(): EnvConfig {
 export async function main() {
   const env = validateEnv()
 
+  await XoClient.assertMcpEnabled(env.url)
+
   let xoClient: XoClient | null = null
   function getClient(): XoClient {
     if (!xoClient) xoClient = new XoClient(env)

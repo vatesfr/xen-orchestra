@@ -1,34 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it, afterEach } from 'node:test'
-import { getRiskLevel, createConfirmation, consumeConfirmation, getPendingCount, clearPending } from './risk-config.mjs'
-
-describe('getRiskLevel', () => {
-  it('classifies any DELETE as confirm', () => {
-    assert.strictEqual(getRiskLevel('DELETE', 'DeleteVm'), 'confirm')
-    assert.strictEqual(getRiskLevel('DELETE', 'DeletePool'), 'confirm')
-    assert.strictEqual(getRiskLevel('DELETE', 'DeleteWhatever'), 'confirm')
-  })
-
-  it('classifies specific dangerous operationIds as confirm', () => {
-    assert.strictEqual(getRiskLevel('POST', 'EmergencyShutdownPool'), 'confirm')
-    assert.strictEqual(getRiskLevel('POST', 'RollingReboot'), 'confirm')
-    assert.strictEqual(getRiskLevel('POST', 'RollingUpdate'), 'confirm')
-    assert.strictEqual(getRiskLevel('POST', 'HardShutdownVm'), 'confirm')
-    assert.strictEqual(getRiskLevel('POST', 'HardRebootVm'), 'confirm')
-  })
-
-  it('classifies safe operations as direct', () => {
-    assert.strictEqual(getRiskLevel('POST', 'StartVm'), 'direct')
-    assert.strictEqual(getRiskLevel('POST', 'CleanShutdownVm'), 'direct')
-    assert.strictEqual(getRiskLevel('POST', 'SnapshotVm'), 'direct')
-    assert.strictEqual(getRiskLevel('GET', 'GetVms'), 'direct')
-  })
-
-  it('is case-insensitive on method', () => {
-    assert.strictEqual(getRiskLevel('delete', 'DeleteVm'), 'confirm')
-    assert.strictEqual(getRiskLevel('Delete', 'DeleteVm'), 'confirm')
-  })
-})
+import { createConfirmation, consumeConfirmation, getPendingCount, clearPending } from './risk-config.mjs'
 
 describe('confirmation tokens', () => {
   afterEach(() => {

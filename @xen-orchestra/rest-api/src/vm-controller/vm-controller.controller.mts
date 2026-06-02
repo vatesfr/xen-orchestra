@@ -5,7 +5,9 @@ import type { XoAlarm, XoMessage, XoTask, XoVdi, XoVdiSnapshot, XoVmController }
 import {
   Delete,
   Example,
+  Extension,
   Get,
+  Middlewares,
   Path,
   Put,
   Query,
@@ -15,7 +17,6 @@ import {
   Security,
   SuccessResponse,
   Tags,
-  Middlewares
 } from 'tsoa'
 
 import { Request as ExRequest } from 'express'
@@ -74,6 +75,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
    */
   @Example(vmControllerIds)
   @Example(partialVmControllers)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   getVmControllers(
@@ -97,6 +99,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
    * @example id "9b4775bd-9493-490a-9afa-f786a44caa4f"
    */
   @Example(vmController)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(acl({ resource: 'vm-controller', action: 'read', objectId: 'params.id' }))
   @Response(notFoundResp.status, notFoundResp.description)
@@ -115,6 +118,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
    * @example limit 42
    */
   @Example(genericAlarmsExample)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/alarms')
   @Security('*', ['acl'])
   @Tags('alarms')
@@ -150,6 +154,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
    * @example limit 42
    */
   @Example(vmControllerVdis)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/vdis')
   @Security('*', ['acl'])
   @Tags('vdis')
@@ -182,6 +187,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
    */
   @Example(messageIds)
   @Example(partialMessages)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/messages')
   @Security('*', ['acl'])
   @Tags('messages')
@@ -215,6 +221,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
    */
   @Example(taskIds)
   @Example(partialTasks)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/tasks')
   @Security('*', ['acl'])
   @Tags('tasks')
@@ -244,6 +251,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
    * @example id "9b4775bd-9493-490a-9afa-f786a44caa4f"
    * @example tag "from-rest-api"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Put('{id}/tags/{tag}')
   @Middlewares(acl({ resource: 'vm-controller', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
@@ -261,6 +269,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
    * @example id "9b4775bd-9493-490a-9afa-f786a44caa4f"
    * @example tag "from-rest-api"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}/tags/{tag}')
   @Middlewares(acl({ resource: 'vm-controller', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)

@@ -558,7 +558,9 @@ const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000
     .sort()
   const getVms = createGetObjectsOfType('VM')
   const MAX_HEALTHY_SNAPSHOT_COUNT = 5
-  const getTooManySnapshotsVms = getVms.filter([vm => vm.snapshots.length > MAX_HEALTHY_SNAPSHOT_COUNT]).sort()
+  const getTooManySnapshotsVms = getVms
+    .filter([vm => vm.snapshots.length > MAX_HEALTHY_SNAPSHOT_COUNT && !vm.tags.includes('Continuous Replication')])
+    .sort()
   const getGuestToolsVms = getVms
     .filter([vm => vm.power_state === 'Running' && (!vm.managementAgentDetected || !vm.pvDriversUpToDate)])
     .sort()

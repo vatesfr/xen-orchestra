@@ -1,6 +1,7 @@
 import type { XoSchedule } from '@vates/types'
 import {
   Example,
+  Extension,
   Get,
   Middlewares,
   Path,
@@ -65,6 +66,7 @@ export class ScheduleController extends XoController<XoSchedule> {
    */
   @Example(scheduleIds)
   @Example(partialSchedules)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   async getSchedules(
@@ -89,6 +91,7 @@ export class ScheduleController extends XoController<XoSchedule> {
    * @example id "cf7249f8-d20b-494f-97f4-b1f32f94e780"
    */
   @Example(schedule)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(
     acl({
@@ -115,6 +118,7 @@ export class ScheduleController extends XoController<XoSchedule> {
    * @example id "cf7249f8-d20b-494f-97f4-b1f32f94e780"
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/run')
   @Middlewares(
     acl({

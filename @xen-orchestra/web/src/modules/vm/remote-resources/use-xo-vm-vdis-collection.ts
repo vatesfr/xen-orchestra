@@ -1,5 +1,5 @@
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
-import { vdiFields, type FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import { type FrontXoVdi, vdiFields } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
@@ -22,8 +22,9 @@ export const useXoVmVdisCollection = defineRemoteResource({
         const [id] = context.args
         const vmId = toValue(id)
 
-        const { getVbdsByIds } = useXoVbdCollection(context)
-        const vbds = getVbdsByIds(obj.$VBDs)
+        const { useGetVbdsByIds } = useXoVbdCollection(context)
+
+        const vbds = useGetVbdsByIds(obj.$VBDs).value
 
         return vbds.some(vbd => vbd.VM === vmId)
       },

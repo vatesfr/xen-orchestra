@@ -227,7 +227,6 @@ export default class Redis extends Collection {
           serialized = await this.#crypto.encrypt(serialized)
         }
 
-        await redis.del(key)
         await redis.set(key, serialized)
 
         // Update indexes.

@@ -44,6 +44,16 @@ describe('XoClient', () => {
       }
       await client.testConnection()
     })
+
+    it('sends X-XO-Client: mcp on every request', async () => {
+      const client = new XoClient({ url: 'http://xo.local:9000', token: 'my-token' })
+      globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+        const headers = init?.headers as Record<string, string>
+        assert.strictEqual(headers?.['X-XO-Client'], 'mcp')
+        return new Response('ok')
+      }
+      await client.testConnection()
+    })
   })
 
   describe('fetch', () => {

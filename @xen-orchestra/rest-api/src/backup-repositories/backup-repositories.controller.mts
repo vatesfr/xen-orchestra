@@ -1,6 +1,7 @@
 import {
   Delete,
   Example,
+  Extension,
   Get,
   Middlewares,
   Path,
@@ -71,6 +72,7 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
    */
   @Example(backupRepositoryIds)
   @Example(partialBackupRepositories)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   async getRepositories(
@@ -94,6 +96,7 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
   @Example(backupRepository)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(
     acl({
@@ -131,6 +134,7 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Extension('x-mcp-exposure', 'allow')
   async deleteBackupRepository(@Path() id: string): Promise<void> {
     const repositoryId = id as XoBackupRepository['id']
 

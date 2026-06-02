@@ -69,7 +69,14 @@ export class RemoteDiskLineage {
    * Also detects interrupted merge state files.
    */
   async init(): Promise<void> {
-    const files = await this.#handler.list(this.#vdiDir, { prependDir: true })
+    let files: string[]
+    try {
+      files = await this.#handler.list(this.#vdiDir, { prependDir: true })
+    } catch (error) {
+      if (error?.code === 'NOT_SUPPORTED') throw error
+      this.#opts.logWarn('failed to list VDI directory', { vdiDir: this.#vdiDir, error })
+      return
+    }
 
     for (const filePath of files) {
       if (isDisk(filePath)) {

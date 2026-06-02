@@ -74,7 +74,8 @@
                 "description": "Ok"
               }
             },
-            "tags": ["docs"]
+            "tags": ["docs"],
+            "x-mcp-exposure": "deny"
           }
         }
       }

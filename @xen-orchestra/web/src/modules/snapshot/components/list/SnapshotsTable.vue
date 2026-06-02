@@ -46,6 +46,7 @@ import {
   useXoVmSnapshotCollection,
 } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'
 import { useVmSnapshotDeleteModal } from '@/modules/snapshot/composables/use-vm-snapshot-delete-modal.composable.ts'
+import { useVmSnapshotRevertModal } from '@/modules/snapshot/composables/use-vm-snapshot-revert-modal.composable.ts'
 import { useSnapshotTrigger } from '@/modules/snapshot/composables/xo-snapshot-trigger.composable.ts'
 import { useXo5VmSnapshotRoute } from '@/modules/snapshot/composables/xo-vm-snapshot-route-xo5.composable.ts'
 import { useXoVmSnapshotJob } from '@/modules/vm/jobs/xo-vm-snapshot.job.ts'
@@ -120,6 +121,12 @@ const { HeadCells, BodyCells } = useSnapshotColumns({
       isRunning: isDeletingSnapshot,
     } = useVmSnapshotDeleteModal(() => [snapshot])
 
+    const {
+      openModal: openSnapshotRevertModal,
+      canRun: canRevertSnapshot,
+      isRunning: isRevertingSnapshot,
+    } = useVmSnapshotRevertModal(() => snapshot)
+
     return {
       name: r =>
         r({
@@ -135,10 +142,17 @@ const { HeadCells, BodyCells } = useSnapshotColumns({
           onClick: () => (selectedSnapshotId.value = snapshot.id),
           actions: [
             {
+              label: t('action:revert-vm-here'),
+              icon: 'action:undo',
+              onClick: () => openSnapshotRevertModal(),
+              disabled: !canRevertSnapshot.value || isDeletingSnapshot.value,
+              busy: isRevertingSnapshot.value,
+            },
+            {
               label: t('action:delete'),
               icon: 'action:delete',
               onClick: () => openSnapshotDeleteModal(),
-              disabled: !canDeleteSnapshot.value,
+              disabled: !canDeleteSnapshot.value || isRevertingSnapshot.value,
               busy: isDeletingSnapshot.value,
             },
           ],

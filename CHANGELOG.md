@@ -1,8 +1,108 @@
 # ChangeLog
 
-## **6.4.1** (2026-05-05)
+## **6.5.1** (2026-06-01)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Backup] fix transfer size only counting the last disk transferred (PR [#9900](https://github.com/vatesfr/xen-orchestra/pull/9900))
+- [Backup] fix backup cleanup removing too many files when listing fails (PR [#9925](https://github.com/vatesfr/xen-orchestra/pull/9925))
+
+### Released packages
+
+- @xen-orchestra/backup-archive 1.0.1
+- @xen-orchestra/backups 0.73.2
+- @xen-orchestra/proxy 0.30.3
+- @xen-orchestra/vmware-explorer 0.13.1
+- @xen-orchestra/xva 1.0.3
+- xo-server 5.202.2
+
+## **6.5.0** (2026-05-28)
+
+### Security
+
+- [XO 5] Update sanitize-html dependency (Dependabot alert [484](https://github.com/vatesfr/xen-orchestra/security/dependabot/484)) (PR [#9851](https://github.com/vatesfr/xen-orchestra/pull/9851))
+- [MCP] Global kill-switch: set `[mcp] enabled = false` in `xo-server` config to immediately reject every MCP client connection (PR [#9860](https://github.com/vatesfr/xen-orchestra/pull/9860))
+
+### Enhancements
+
+- [xo-server] support qcow2 format in `disk.importContent` and `disk.import` jsonRPC api (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
+- [web-core] Update `UiTag` and parse tag for detecting tags with `=` (PR [#9811](https://github.com/vatesfr/xen-orchestra/pull/9811))
+- [Encryption] Implement encryption and decryption feature for redis (PR [#9735](https://github.com/vatesfr/xen-orchestra/pull/9735))
+
+- [xo-server-ipmi-sensors] Migrated the old ipmi feature to a new plugin and added user defined sensors (PR [#9724](https://github.com/vatesfr/xen-orchestra/pull/9724))
+- [MCP] Read `HTTP_PROXY`/`HTTPS_PROXY`/`NO_PROXY` so an internal XOA stays reachable when the AI assistant goes through a corporate proxy (PR [#9820](https://github.com/vatesfr/xen-orchestra/pull/9820))
+- [MCP] Restrict which REST endpoints the AI assistant can reach: read-only endpoints are exposed by default, write actions require `XO_MCP_ENABLE_ACTIONS=1` with a confirmation step, and binary/stream endpoints stay hidden (PR [#9875](https://github.com/vatesfr/xen-orchestra/pull/9875))
+- [REST API] Expose `DELETE /rest/v0/srs/:id` (PR [#9464](https://github.com/vatesfr/xen-orchestra/pull/9464))
+- [REST API] Add `vms/:id/actions/revert_snapshot` REST route (PR [#9788](https://github.com/vatesfr/xen-orchestra/pull/9788))
+- [REST API] Add `PATCH /vms/{id}` to partially update a VM (PR [#9835](https://github.com/vatesfr/xen-orchestra/pull/9835))
+- [Swagger] Rename the `acls` tag to `rbacs` (PR [#9874](https://github.com/vatesfr/xen-orchestra/pull/9874))
+- [OpenMetrics] Add XOSTOR metrics (cluster status, replica health, SMART, alarms, pending updates) and an `sr_type` label on SR-tagged metrics so Grafana can filter by storage type (PR [#9849](https://github.com/vatesfr/xen-orchestra/pull/9849))
+- [VM/Snapshot] Add possibility to revert a snapshot on a VM (PR [#9862](https://github.com/vatesfr/xen-orchestra/pull/9862))
+- [VM] Add possibility to attach a VDI on tab VDI (PR [#9772](https://github.com/vatesfr/xen-orchestra/pull/9772))
+- [VM] Add possibility to create a VDI on tab VDI (PR [#9848](https://github.com/vatesfr/xen-orchestra/pull/9848))
+- [Pool/Security] Implement possibility to add new traffic rule from pool (PR [#9809](https://github.com/vatesfr/xen-orchestra/pull/9809))
+- [VIF] Implement possibility to add new traffic rule from VIF (PR [#9837](https://github.com/vatesfr/xen-orchestra/pull/9837))
+- [VIF] Add a new "General" tab to the VIF page (PR [#9831](https://github.com/vatesfr/xen-orchestra/pull/9831))
+- [i18n] Update Chinese (Simplified Han script), Czech, Dutch, German, Korean, Slovak, Spanish and Swedish translations (PR [#9780](https://github.com/vatesfr/xen-orchestra/pull/9780))
+
+- **Backups**:
+  - [Backups] Refactor clean phase for incremental and full backups ([#9765](https://github.com/vatesfr/xen-orchestra/pull/9765))
+  - [Backups] bidirectional replication, reuse snapshot when possible (PR [#9806](https://github.com/vatesfr/xen-orchestra/pull/9806))
+  - [Backups/fs] Add UserAgent in s3 client (PR [#9815](https://github.com/vatesfr/xen-orchestra/pull/9815))
+
+- **RBAC** check for REST API endpoints:
+  - `/hosts/:id/actions/disable` (PR [#9840](https://github.com/vatesfr/xen-orchestra/pull/9840))
+  - `/hosts/:id/actions/enable` (PR [#9840](https://github.com/vatesfr/xen-orchestra/pull/9840))
+  - `/hosts/:id/actions/management_reconfigure` (PR [#9840](https://github.com/vatesfr/xen-orchestra/pull/9840))
+  - Added VMS_ADMINISTRATOR role template (PR [#9845](https://github.com/vatesfr/xen-orchestra/pull/9845/))
+
+- **XO 5**:
+  - [Export config] Hide passphrase by default (PR [#9824](https://github.com/vatesfr/xen-orchestra/pull/9824))
+  - [xo-web] support qcow2 format in disk > import (PR [#9817](https://github.com/vatesfr/xen-orchestra/pull/9817))
+
+- [XO config] Rename exported XO config file from `config.json` to `XO-config_<date>.json` (PR [#9859](https://github.com/vatesfr/xen-orchestra/pull/9859))
+
+### Bug fixes
+
+- [REST API] Fixed ignored parameters in request body due to a tsoa bug (see https://github.com/lukeautry/tsoa/pull/1858) (PR [#9793](https://github.com/vatesfr/xen-orchestra/pull/9793))
+- [REST API] `POST /vdis` no longer necessarily requires `other_config` (PR [#9883](https://github.com/vatesfr/xen-orchestra/pull/9883))
+- [Tasks] Fixed issue with task without result and backup runs on task size (PR [#9841](https://github.com/vatesfr/xen-orchestra/pull/9841))
+- [Backup] Fix OUT_OF_RANGE error when resuming failed merge (PR [#9782](https://github.com/vatesfr/xen-orchestra/pull/9782))
+- [xo-server] Fix network being put first in boot order when HVM template has VDIs (PR [#9867](https://github.com/vatesfr/xen-orchestra/pull/9867))
+- [xo-server] Fix TLS memory leak (PR [#9842](https://github.com/vatesfr/xen-orchestra/pull/9842))
+- **XO 5**:
+  - [Job] Error while using vm.set with `cpuMask` in job view (PR [#9823](https://github.com/vatesfr/xen-orchestra/pull/9823))
+  - [Dashboard/Health] Ignore the replicated VM when checking the number of snapshots (PR [#9868](https://github.com/vatesfr/xen-orchestra/pull/9868))
+
+### Released packages
+
+- @xen-orchestra/fs 4.9.0
+- @xen-orchestra/disk-transform 1.3.0
+- @xen-orchestra/backup-archive 1.0.0
+- @xen-orchestra/xapi 8.8.0
+- @xen-orchestra/backups 0.73.1
+- @xen-orchestra/backups-cli 1.1.13
+- @xen-orchestra/disk-cli 2.1.1
+- @xen-orchestra/immutable-backups 3.0.3
+- @xen-orchestra/proxy 0.30.2
+- xo-server-ipmi-sensors 2.0.0
+- @xen-orchestra/mcp 1.4.0
+- @xen-orchestra/qa-test 1.0.1
+- xo-server-openmetrics 1.6.0
+- xo-web 5.197.1
+- @vates/http-server-plus 2.0.2
+- @vates/types 1.26.0
+- @xen-orchestra/acl 1.2.0
+- @xen-orchestra/web-core 0.54.0
+- @xen-orchestra/rest-api 0.33.0
+- @xen-orchestra/web 0.53.0
+- xo-server 5.202.1
+
+## **6.4.1** (2026-05-05)
+
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Enhancements
 
@@ -268,8 +368,6 @@
 - @xen-orchestra/web 0.46.1
 
 ## **6.2.3** (2026-04-20)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 

@@ -83,8 +83,10 @@ See the [full documentation](https://docs.xen-orchestra.com/mcp) for configurati
 ### Prerequisites
 
 - **Node.js** >= 20
-- **Xen Orchestra** instance with [REST API](https://docs.xen-orchestra.com/restapi) enabled
+- **Xen Orchestra** 6.5 or later, with the [REST API](https://docs.xen-orchestra.com/restapi) enabled
 - An **AI assistant** that supports MCP (Claude Desktop, Claude Code, etc.)
+
+> **Note:** this MCP server requires **Xen Orchestra 6.5 or later**. On an older XO it stops at startup with an error such as `Unable to verify MCP status (HTTP 404)` — upgrade your Xen Orchestra to use it.
 
 ### Configuration
 
@@ -163,7 +165,21 @@ Stats endpoints (`/…/stats`) and binary download endpoints (`.xva`, `.ova`, `.
 
 ### Write operations
 
-Action tools (create/update/delete) are gated behind `XO_MCP_ENABLE_ACTIONS=1` so the default surface stays read-only. When enabled, each domain gets a companion `{domain}_action` tool. Destructive operations (`DELETE *`, `pools/emergency_shutdown`, `vms/hard_shutdown`, …) return a preview and a one-shot `confirm_token` — the assistant must call back with that token within 5 minutes to execute.
+Action tools (create/update/delete) are gated behind `XO_MCP_ENABLE_ACTIONS=1` so the default surface stays read-only. When enabled, each domain gets a companion `{domain}_action` tool. Every action — from creating a snapshot to a `DELETE` or `pools/emergency_shutdown` — returns a preview and a one-shot `confirm_token` the assistant must send back within 5 minutes to execute.
+
+### Security model
+
+`x-mcp-exposure` controls **which REST endpoints this MCP server turns into LLM tools — it is not a REST API security boundary.**
+
+- The XO REST API never reads `x-mcp-exposure`; the annotation lives only in the OpenAPI spec and is consumed solely by this server's tool generation. Every endpoint keeps its own RBAC/ACL authorization, which remains the actual access-control gate.
+- Any REST client with valid credentials — including a non-official or compromised MCP — can call a `deny`-tagged endpoint directly. The annotation cannot stop it.
+- The benefit is a **narrower threat model**: limiting what an LLM can see and invoke (a guard against prompt injection and model mistakes), not authorization.
+
+In short, `x-mcp-exposure` (and the `mcp/require-mcp-expose` lint rule that enforces it on the REST side) is a _surface-control policy_ for the assistant's toolset. Rely on XO's RBAC/ACL for "who may do what".
+
+### Server-side kill-switch
+
+An xo-server admin can globally block MCP by setting `[mcp] enabled = false` in the server config. With that flag set, the binary exits at startup with `MCP disabled by admin` on stderr and any active client receives `503 { "error": "mcp_disabled" }` on its next request. It's not a bug — re-enable MCP in xo-server's config to recover.
 
 Full documentation with tool parameters, examples, and troubleshooting: [docs.xen-orchestra.com/mcp](https://docs.xen-orchestra.com/mcp)
 

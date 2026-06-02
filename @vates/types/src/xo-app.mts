@@ -119,7 +119,7 @@ export type XoApp = {
   }
   config: {
     get<T = string>(path: string): T
-    getOptional(path: string): Record<string, string> | undefined
+    getOptional<T = unknown>(path: string): T | undefined
     getOptionalDuration(path: string): number | undefined
     getGuiRoutes(): Promise<{
       default: {
@@ -299,6 +299,8 @@ export type XoApp = {
   ): Promise<XoServer>
   rollingPoolReboot(pool: XoPool, opts?: { parentTask?: VatesTask }): Promise<void>
   rollingPoolUpdate(pool: XoPool, opts?: { rebootVm?: boolean; parentTask?: VatesTask }): Promise<void>
+  setVmResourceSet(vmId: XoVm['id'], resourceSetId: string | null, force?: boolean): Promise<void>
+  shareVmResourceSet(vmId: XoVm['id']): Promise<void>
   removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>
   runJob(job: AnyXoJob, schedule: XoSchedule): void
   runWithApiContext: (user: XoUser | undefined, fn: () => void) => Promise<unknown>
