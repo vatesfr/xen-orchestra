@@ -25,12 +25,9 @@ interface Qcow2Header {
 
 export abstract class QcowDisk extends RandomAccessDisk {
   #qcowHeader: Qcow2Header | undefined
-  // in qcow land, the data are stored in clusters
-  #dataClustersIndex = new Map<number, number>()
-
-  get dataClustersIndex(): Map<number, number> {
-    return this.#dataClustersIndex
-  }
+  #nbClusterPerL2Table: number = 0
+  #l2Increment: number = 0
+  #l2Tables: Buffer[] = []
 
   get header(): Qcow2Header {
     if (this.#qcowHeader === undefined) {
@@ -55,10 +52,28 @@ export abstract class QcowDisk extends RandomAccessDisk {
   abstract readBuffer(offset: number, length: number): Promise<Buffer>
 
   async readBlock(index: number): Promise<DiskBlock> {
-    const offset = this.dataClustersIndex.get(index)
-    if (offset === undefined) {
+    const l1Index = Math.floor(index / this.#nbClusterPerL2Table)
+    const l2TableBuffer = this.#l2Tables[l1Index]
+
+    // no L2 table for this L1 slot, index region is unallocated
+    if (!l2TableBuffer) {
       throw new Error(`Can't read unallocated block, index:${index}`)
     }
+
+    const l2Index = index % this.#nbClusterPerL2Table
+
+    // block index beyond the virtual disk's extent for this L2 table
+    if (l2Index * this.#l2Increment >= l2TableBuffer.length) {
+      throw new Error(`Can't read unallocated block, index:${index}`)
+    }
+
+    const offset = Number(l2TableBuffer.readBigUInt64BE(l2Index * this.#l2Increment) & 0x00ffffffffffe0n)
+
+    // block not allocated
+    if (offset === 0) {
+      throw new Error(`Can't read unallocated block, index:${index}`)
+    }
+
     const data = await this.readBuffer(offset, this.getBlockSize())
     return {
       index,
@@ -93,39 +108,64 @@ export abstract class QcowDisk extends RandomAccessDisk {
     const extendedL2 = this.header.version === 3 && (this.header.incompatible_features & BigInt(0x10)) !== 0n
     const l1TableBuffer = await this.readBuffer(Number(this.header.l1_table_offset), this.header.l1_size * 8)
     const nbClustersInFile = Math.ceil(this.getVirtualSize() / this.getBlockSize())
-    let nbClusterPerL2Table = this.getBlockSize() / 8
+    this.#nbClusterPerL2Table = this.getBlockSize() / 8
     if (extendedL2) {
-      nbClusterPerL2Table = this.getBlockSize() / 16
+      this.#nbClusterPerL2Table = this.getBlockSize() / 16
     }
 
-    const clusters = this.#dataClustersIndex
-    clusters.clear()
-
-    let l2Increment = 8
+    this.#l2Increment = 8
     if (extendedL2) {
-      l2Increment = 16
+      this.#l2Increment = 16
     }
+
     for (let i = 0; i < l1TableBuffer.length; i += 8) {
       const l2TableIndex = i / 8
       const l2Offset = Number(l1TableBuffer.readBigUInt64BE(i) & 0x00ffffffffffe0n)
       if (l2Offset !== 0) {
         // the last table may be smaller
-        const nbClusterInTable = Math.min(nbClusterPerL2Table, nbClustersInFile - l2TableIndex * nbClusterPerL2Table)
-        const l2TableBuffer = await this.readBuffer(l2Offset, nbClusterInTable * l2Increment)
-        for (let j = 0; j < l2TableBuffer.length; j += l2Increment) {
-          const clusterOffset = Number(l2TableBuffer.readBigUInt64BE(j) & 0x00ffffffffffe0n)
-          if (clusterOffset !== 0) {
-            clusters.set(l2TableIndex * nbClusterPerL2Table + j / l2Increment, clusterOffset)
-          }
-        }
+        const nbClusterInTable = Math.min(
+          this.#nbClusterPerL2Table,
+          nbClustersInFile - l2TableIndex * this.#nbClusterPerL2Table
+        )
+        this.#l2Tables[l2TableIndex] = await this.readBuffer(l2Offset, nbClusterInTable * this.#l2Increment)
       }
     }
   }
 
   getBlockIndexes(): Array<number> {
-    return [...this.#dataClustersIndex.keys()]
+    const blockIndexes: number[] = []
+
+    this.#l2Tables.forEach((l2TableBuffer, l1Index) => {
+      if (l2TableBuffer) {
+        for (let i = 0; i < l2TableBuffer.length; i += this.#l2Increment) {
+          if (Number(l2TableBuffer.readBigUInt64BE(i) & 0x00ffffffffffe0n) != 0) {
+            blockIndexes.push(l1Index * this.#nbClusterPerL2Table + i / this.#l2Increment)
+          }
+        }
+      }
+    })
+
+    return blockIndexes
   }
+
   hasBlock(index: number): boolean {
-    return this.#dataClustersIndex.has(index)
+    const l1Index = Math.floor(index / this.#nbClusterPerL2Table)
+    const l2TableBuffer = this.#l2Tables[l1Index]
+
+    // no L2 table for this L1 slot, index region is unallocated
+    if (!l2TableBuffer) {
+      return false
+    }
+
+    const l2Index = index % this.#nbClusterPerL2Table
+
+    // block index beyond the virtual disk's extent for this L2 table
+    if (l2Index * this.#l2Increment >= l2TableBuffer.length) {
+      return false
+    }
+
+    const offset = Number(l2TableBuffer.readBigUInt64BE(l2Index * this.#l2Increment) & 0x00ffffffffffe0n)
+
+    return offset !== 0
   }
 }
