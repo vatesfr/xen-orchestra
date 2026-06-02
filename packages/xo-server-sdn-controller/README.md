@@ -23,6 +23,60 @@ Please see the plugin's [official documentation](https://docs.xen-orchestra.com/
   - `ovsdb-client.js`: manages private networks
 - `utils/tls-helper.js`: small class to create connections using TLS
 
+## Rest Routes
+
+Some rest api routes are undocumented in the swagger, here is how to use them :
+
+Creates a new rule
+POST /vifs/{id}/actions/add_traffic_rule :
+
+### Fields
+
+| Field       | Type                  | Required | Description                                                                                  |
+| ----------- | --------------------- | -------- | -------------------------------------------------------------------------------------------- |
+| `allow`     | string (boolean-like) | Yes      | Indicates whether the rule allows or denies traffic. Expected values: `"true"` or `"false"`. |
+| `direction` | string                | Yes      | Traffic direction the rule applies to. Values: `"from"`, `"to"`, `"both"`.                   |
+| `ipRange`   | string                | Yes      | IP address or range. Example: `"111.168.1.2"` or `"111.168.1.0/24"`.                         |
+| `port`      | string                | No       | Port or port range. Empty string means all ports. Example: `"80"` or `"1000-2000"`.          |
+| `protocol`  | string                | Yes      | Network protocol. Common values: `"TCP"`, `"UDP"`, `"IP"` (any protocol).                    |
+
+Deletes a new rule
+POST /vifs/{id}/actions/delete_traffic_rule :
+
+### Fields
+
+| Field       | Type   | Required | Description                                                                         |
+| ----------- | ------ | -------- | ----------------------------------------------------------------------------------- |
+| `direction` | string | Yes      | Traffic direction the rule applies to. Values: `"from"`, `"to"`, `"both"`.          |
+| `ipRange`   | string | Yes      | IP address or range. Example: `"111.168.1.2"` or `"111.168.1.0/24"`.                |
+| `port`      | string | No       | Port or port range. Empty string means all ports. Example: `"80"` or `"1000-2000"`. |
+| `protocol`  | string | Yes      | Network protocol. Common values: `"TCP"`, `"UDP"`, `"IP"` (any protocol).           |
+
+Creates a new rule at network level
+POST /networks/{id}/actions/add_traffic_rule :
+
+### Fields
+
+| Field       | Type                  | Required | Description                                                                                  |
+| ----------- | --------------------- | -------- | -------------------------------------------------------------------------------------------- |
+| `allow`     | string (boolean-like) | Yes      | Indicates whether the rule allows or denies traffic. Expected values: `"true"` or `"false"`. |
+| `direction` | string                | Yes      | Traffic direction the rule applies to. Values: `"from"`, `"to"`, `"both"`.                   |
+| `ipRange`   | string                | Yes      | IP address or range. Example: `"111.168.1.2"` or `"111.168.1.0/24"`.                         |
+| `port`      | string                | No       | Port or port range. Empty string means all ports. Example: `"80"` or `"1000-2000"`.          |
+| `protocol`  | string                | Yes      | Network protocol. Common values: `"TCP"`, `"UDP"`, `"IP"` (any protocol).                    |
+
+Deletes a new rule at network level
+POST /networks/{id}/actions/delete_traffic_rule :
+
+### Fields
+
+| Field       | Type   | Required | Description                                                                         |
+| ----------- | ------ | -------- | ----------------------------------------------------------------------------------- |
+| `direction` | string | Yes      | Traffic direction the rule applies to. Values: `"from"`, `"to"`, `"both"`.          |
+| `ipRange`   | string | Yes      | IP address or range. Example: `"111.168.1.2"` or `"111.168.1.0/24"`.                |
+| `port`      | string | No       | Port or port range. Empty string means all ports. Example: `"80"` or `"1000-2000"`. |
+| `protocol`  | string | Yes      | Network protocol. Common values: `"TCP"`, `"UDP"`, `"IP"` (any protocol).           |
+
 ## Contributions
 
 Contributions are _very_ welcomed, either on the documentation or on
