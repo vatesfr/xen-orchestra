@@ -11,7 +11,7 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [Netbox] Support Netbox v4.6.x [#9818](https://github.com/vatesfr/xen-orchestra/issues/9818)
+- [Netbox] Support Netbox v4.6.x [#9818](https://github.com/vatesfr/xen-orchestra/issues/9818) (PR [#9939](https://github.com/vatesfr/xen-orchestra/pull/9939))
 
 ### Bug fixes
 
