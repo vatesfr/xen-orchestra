@@ -39,6 +39,8 @@
 - [XO6/Backup] add progress for backups tasks(PR [#9901](https://github.com/vatesfr/xen-orchestra/pull/9901))
 - [REST API] add `hosts/:id/actions/join_pool` REST route (PR [#9876](https://github.com/vatesfr/xen-orchestra/pull/9876))
 
+- [Rest Api] Ask for user credentials for unauthenticated users (PR [#9938](https://github.com/vatesfr/xen-orchestra/pull/9938))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
