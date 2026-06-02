@@ -475,7 +475,16 @@ export default class Plan {
             sourceVms = Object.values(sourceHost.vms)
 
             // 4. Migrate.
-            promises.push(this._migrateVm(vm, this.xo.getXapi(source), this.xo.getXapi(destination), destination._xapiId))
+            promises.push(
+              this._migrateVm({
+                vm,
+                xapiSrc: this.xo.getXapi(source),
+                xapiDest: this.xo.getXapi(destination),
+                srcHostId: source.id,
+                destHostId: destination._xapiId,
+                reason: 'to balance vCPUs over CPUs',
+              })
+            )
             debugVcpuBalancing(`vCPU count per host: ${inspect(hostList, { depth: null })}`)
 
             // 5. Check if source host is still overloaded and if destination host is still underloaded
@@ -685,7 +694,16 @@ export default class Plan {
         delete sourceHost.vms[vm.id]
 
         // 4. Migrate.
-        promises.push(this._migrateVm(vm, this.xo.getXapi(source), this.xo.getXapi(destination), destination._xapiId))
+        promises.push(
+          this._migrateVm({
+            vm,
+            xapiSrc: this.xo.getXapi(source),
+            xapiDest: this.xo.getXapi(destination),
+            srcHostId: source.id,
+            destHostId: destination._xapiId,
+            reason: `to satisfy anti-affinity of tag ${tag}`,
+          })
+        )
         emptyLoop = false
 
         break // Continue with the same tag, the source can be different.
@@ -938,6 +956,7 @@ export default class Plan {
             idToHost,
             taggedHosts,
             memoryNeeded: vmsAverages[vm.id].memory,
+            tag,
           })
           promises.push(...otherMigrationPromises)
 
@@ -967,6 +986,7 @@ export default class Plan {
             vm,
             hostsAverages,
             vmAverages: vmsAverages[vm.id],
+            reason: `to satisfy affinity of tag ${tag}`,
           })
         )
       }
@@ -974,7 +994,7 @@ export default class Plan {
     return promises
   }
 
-  async _migrateOtherVms({ crowdedHost, hostsAverages, vmsAverages, idToHost, taggedHosts, memoryNeeded }) {
+  async _migrateOtherVms({ crowdedHost, hostsAverages, vmsAverages, idToHost, taggedHosts, memoryNeeded, tag }) {
     const promises = []
 
     const candidateVms = sortBy(
@@ -1026,6 +1046,7 @@ export default class Plan {
           hostsAverages,
           vmAverages,
           promises,
+          reason: `to free up resources on host to later migrate affinity-tagged VMs to it (${tag})`,
         })
       )
 
@@ -1038,7 +1059,16 @@ export default class Plan {
     return { promises, success: false }
   }
 
-  _migrateVmAndUpdateInfos({ destination, source, sourceHost, destinationHost, vm, hostsAverages, vmAverages }) {
+  _migrateVmAndUpdateInfos({
+    destination,
+    source,
+    sourceHost,
+    destinationHost,
+    vm,
+    hostsAverages,
+    vmAverages,
+    reason,
+  }) {
     // TODO: add more checks with XAPI method assert_can_migrate
 
     // Update tags and averages
@@ -1066,7 +1096,14 @@ export default class Plan {
     delete sourceHost.vms[vm.id]
 
     // Migrate.
-    return this._migrateVm(vm, this.xo.getXapi(source), this.xo.getXapi(destination), destination._xapiId)
+    return this._migrateVm({
+      vm,
+      xapiSrc: this.xo.getXapi(source),
+      xapiDest: this.xo.getXapi(destination),
+      srcHostId: sourceHost.id,
+      destHostId: destination._xapiId,
+      reason,
+    })
   }
 
   // Check if VM was recently migrated and is in cooldown period
@@ -1081,13 +1118,21 @@ export default class Plan {
     return false
   }
 
-  _migrateVm(vm, xapiSrc, xapiDest, destHostId) {
+  _migrateVm({ vm, xapiSrc, xapiDest, srcHostId, destHostId, reason }) {
     const { migrationHistory } = this._globalOptions
-    return this._concurrentMigrationLimiter
-      .call(xapiSrc, 'migrateVm', vm._xapiId, xapiDest, destHostId)
-      .then(() => {
-        migrationHistory.set(vm.id, Date.now())
+    return this._concurrentMigrationLimiter(() => {
+      const task = this.xo.tasks.create({
+        name: `Load balancer migrates VM ${vm.name_label} (${vm.id})`,
+        description: `Migrating VM ${vm.name_label} (${vm.id}) from host ${srcHostId} to host ${destHostId} ${reason}`,
+        objectId: vm.id,
+        type: 'xo:load-balancer:migration',
       })
+      return task.run(async () =>
+        xapiSrc.migrateVm(vm._xapiId, xapiDest, destHostId).then(() => {
+          migrationHistory.set(vm.id, Date.now())
+        })
+      )
+    })
   }
 
   _computeCoalitions(vms, affinityTags) {

@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [load-balancer] VM migrations triggered by the load balancer can now be monitored with tasks (PR [#9909](https://github.com/vatesfr/xen-orchestra/pull/9909))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -30,5 +32,8 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- xo-server-load-balancer minor
+- xo-web patch
 
 <!--packages-end-->
