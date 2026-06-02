@@ -197,7 +197,12 @@ export function acl(acls: AclEntry | AclEntry[]) {
 
   async function middleware(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     const restApi = iocContainer.get(RestApi)
-    const user = restApi.getCurrentUser()
+    let user: ReturnType<typeof restApi.getCurrentUser>
+    try {
+      user = restApi.getCurrentUser()
+    } catch (error) {
+      return next(error)
+    }
     const invalidFields: { [key: string]: { message: string; value: unknown } } = {}
     const missingPrivilegeParams: AnyPrivilegeOnParam[] = []
 
