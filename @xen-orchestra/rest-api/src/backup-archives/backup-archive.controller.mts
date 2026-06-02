@@ -291,7 +291,8 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
     @Request() req: ExRequest,
     @Path() id: string,
     @Path() diskId: string,
-    @Path() partitionId: string
+    @Path() partitionId: string,
+    @Query() addAuth: boolean = false
   ): { url: string } {
     // Encode segments with the exact scheme the DAV router decodes: base64url for the
     // slash-containing archive/disk ids, conditional base64url for the partition id.
@@ -301,12 +302,32 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
     const proto = (req.headers['x-forwarded-proto'] as string | undefined) ?? req.protocol ?? 'http'
     const host = (req.headers['x-forwarded-host'] as string | undefined) ?? (req.headers.host as string) ?? 'localhost'
 
-    // Mirror setupApiContext's token extraction: prefer authenticationToken, fall back to token.
-    // Embed it as HTTP Basic auth credentials so WebDAV clients (rclone, davfs2, Finder, Windows)
-    // can parse ":<token>@host" from the URL and send Authorization: Basic on every sub-request.
-    const { cookies } = req as ExRequest & { cookies: Record<string, string> }
-    const token = cookies.authenticationToken ?? cookies.token
-    const auth = token !== undefined ? `:${encodeURIComponent(token)}@` : ''
+    let auth = ''
+    if (addAuth) {
+      const { cookies } = req as ExRequest & { cookies: Record<string, string> }
+      const cookieToken = cookies.authenticationToken ?? cookies.token
+      if (cookieToken !== undefined) {
+        // Token auth: embed as ":token@host" — WebDAV clients send it as Basic with empty username
+        auth = `:${encodeURIComponent(cookieToken)}@`
+      } else {
+        const authorization = req.headers.authorization
+        if (authorization !== undefined) {
+          const encoded = authorization.split(' ')[1]
+          if (encoded !== undefined) {
+            const decoded = Buffer.from(encoded, 'base64').toString()
+            const colonIdx = decoded.indexOf(':')
+            const username = decoded.slice(0, colonIdx)
+            const password = decoded.slice(colonIdx + 1)
+            if (username === '') {
+              // Already a token embedded as ":token" — re-embed as-is
+              auth = `:${encodeURIComponent(password)}@`
+            } else {
+              auth = `${encodeURIComponent(username)}:${encodeURIComponent(password)}@`
+            }
+          }
+        }
+      }
+    }
 
     return { url: `${proto}://${auth}${host}${path}` }
   }
