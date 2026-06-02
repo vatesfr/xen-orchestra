@@ -119,6 +119,12 @@ export type XsPatches = {
 }
 
 export interface Xapi {
+  status: string
+  pool?: { uuid: string }
+  sessionId: string
+  _auth: { user: string; password: string }
+  _url: { protocol: string; hostname: string; hostnameRaw: string; port?: string }
+
   call: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
   callAsync: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
 

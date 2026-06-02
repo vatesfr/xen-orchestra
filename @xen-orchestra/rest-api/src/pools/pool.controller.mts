@@ -41,7 +41,6 @@ import {
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import type {
-  XapiConnection,
   XapiPoolStats,
   XapiStatsGranularity,
   XcpPatches,
@@ -846,7 +845,7 @@ export class PoolController extends XapiXoController<XoPool> {
       const {
         _auth: { user, password },
         _url: { hostnameRaw },
-      } = this.restApi.xoApp.getXapi(poolId) as XapiConnection
+      } = this.restApi.xoApp.getXapi(poolId)
       const hostXapi = this.restApi.xoApp.getXapi(body.host as XoHost['id'])
       await hostXapi.joinPool(hostnameRaw, user, password, body.force)
     }

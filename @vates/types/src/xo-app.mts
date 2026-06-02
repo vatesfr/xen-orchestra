@@ -50,14 +50,6 @@ import {
   XoUserRole,
 } from './index.mjs'
 
-export type XapiConnection = Xapi & {
-  status: string
-  pool?: { uuid: string }
-  sessionId: string
-  _auth: { user: string; password: string }
-  _url: { protocol: string; hostname: string; hostnameRaw: string; port?: string }
-}
-
 type FeatureCode =
   | 'BACKUP.DELTA'
   | 'BACKUP.DELTA_REPLICATION'
@@ -377,7 +369,7 @@ export type XoApp = {
       url?: string
     }
   ): Promise<XoBackupRepository>
-  getAllXapis(): Record<string, XapiConnection>
+  getAllXapis(): Record<string, Xapi>
   getObjects(opts?: { filter?: Record<string, unknown>; limit?: number }): Record<string, XapiXoRecord>
   getLicenses(params?: { productType?: LicenseProductType }): Promise<License[]>
   bindLicense(params: { licenseId: string; boundObjectId: string }): Promise<License>
