@@ -5,6 +5,7 @@ import {
   Extension,
   Get,
   Middlewares,
+  Patch,
   Path,
   Post,
   Query,
@@ -30,7 +31,9 @@ import type {
   XoVm,
 } from '@vates/types'
 
-import { acl } from '../middlewares/acl.middleware.mjs'
+import { SUPPORTED_ACTIONS_BY_RESOURCE, type SupportedActions } from '@xen-orchestra/acl'
+
+import { acl, actionsFromBody } from '../middlewares/acl.middleware.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { provide } from 'inversify-binding-decorators'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -65,6 +68,18 @@ type CreateVifBody = Omit<CreateVifParams[0], 'network' | 'VM' | 'other_config' 
     other_config?: { [key: string]: string } //  "ethtool-tx" : "false"
     qos_algorithm_params?: { [key: string]: string } // "kbps": "1000"
   }
+
+interface UpdateVifRequestBody {
+  allowedIpv4Addresses?: string[]
+  allowedIpv6Addresses?: string[]
+  lockingMode?: XoVif['lockingMode']
+  rateLimit?: number | null
+  txChecksumming?: boolean
+}
+
+const UPDATE_VIF_ACTIONS = Object.keys(SUPPORTED_ACTIONS_BY_RESOURCE.vif.update).map(
+  k => `update:${k}` as SupportedActions<'vif'>
+)
 
 @Route('vifs')
 @Security('*')
@@ -120,6 +135,63 @@ export class VifController extends XapiXoController<XoVif> {
   @Response(notFoundResp.status, notFoundResp.description)
   getVif(@Path() id: string): UnbrandedXoVif {
     return this.getObject(id as XoVif['id'])
+  }
+
+  /**
+   * Partial update of a VIF: only the fields present in the body are modified.
+   * Setting the allowed IPs to a non-empty list switches the locking mode to `locked`.
+   *
+   * Required privilege per field provided in the body:
+   * - resource: vif, action: update:&lt;field&gt;
+   *
+   * @example id "f028c5d4-578a-332c-394e-087aaca32dd3"
+   * @example body { "lockingMode": "locked", "allowedIpv4Addresses": ["192.168.0.42"], "rateLimit": 1000 }
+   */
+  @Extension('x-mcp-exposure', 'confirm')
+  @Patch('{id}')
+  @Middlewares([
+    json(),
+    acl({
+      resource: 'vif',
+      actions: actionsFromBody(UPDATE_VIF_ACTIONS),
+      objectId: 'params.id',
+    }),
+  ])
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async updateVif(@Path() id: string, @Body() body: UpdateVifRequestBody): Promise<void> {
+    const vifId = id as XoVif['id']
+    const { allowedIpv4Addresses, allowedIpv6Addresses, lockingMode, rateLimit, txChecksumming } = body
+
+    // resolve first so a missing VIF 404s before any side effect
+    const vif = this.getObject(vifId)
+    if (Object.keys(body).length === 0) {
+      return
+    }
+
+    // keep XO's IP-pool accounting in sync when the allowed IPs change
+    if (allowedIpv4Addresses !== undefined || allowedIpv6Addresses !== undefined) {
+      const oldIpAddresses = vif.allowedIpv4Addresses.concat(vif.allowedIpv6Addresses)
+      const newIpAddresses = (allowedIpv4Addresses ?? vif.allowedIpv4Addresses).concat(
+        allowedIpv6Addresses ?? vif.allowedIpv6Addresses
+      )
+      await this.restApi.xoApp.allocIpAddresses(
+        vifId,
+        newIpAddresses.filter(address => !oldIpAddresses.includes(address)),
+        oldIpAddresses.filter(address => !newIpAddresses.includes(address))
+      )
+    }
+
+    await this.getXapi(vifId).editVif(vifId, {
+      ipv4Allowed: allowedIpv4Addresses,
+      ipv6Allowed: allowedIpv6Addresses,
+      lockingMode,
+      rateLimit,
+      txChecksumming,
+    })
   }
 
   /**
