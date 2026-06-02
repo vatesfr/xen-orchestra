@@ -10,6 +10,12 @@
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
+- [REST API] Expose `GET /rest/v0/backup-archive/:id/disks` (PR [#9464](https://github.com/vatesfr/xen-orchestra/pull/9941))
+- [REST API] Expose `GET /rest/v0/backup-archive/:id/disks/:diskId/partitions` (PR [#9464](https://github.com/vatesfr/xen-orchestra/pull/9941))
+- [REST API] Expose `GET /rest/v0/backup-archive/:id/disks/:diskId/partitions/:partitionId/files` (PR [#9464](https://github.com/vatesfr/xen-orchestra/pull/9941))
+- [REST API] Expose `GET /rest/v0/backup-archive/:id/disks/:diskId/files` (PR [#9464](https://github.com/vatesfr/xen-orchestra/pull/9941))
+- [REST API] Expose `GET /rest/v0/backup-archive/:id/disks/:diskId/partitions/:partitionId/files.:format` (PR [#9464](https://github.com/vatesfr/xen-orchestra/pull/9941))
+- [REST API] Expose `GET /rest/v0/backup-archive/:id/disks/:diskId/d/files.:format` (PR [#9464](https://github.com/vatesfr/xen-orchestra/pull/9941))
 
 ### Bug fixes
 
@@ -30,5 +36,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
+- @vates/types minor
+- @xen-orchestra/acl minor
+- @xen-orchestra/rest-api minor
 <!--packages-end-->
