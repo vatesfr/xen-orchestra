@@ -2,7 +2,7 @@ import { Example, Extension, Get, Middlewares, Path, Query, Request, Response, R
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
-import type { XoBackupRepository, XoVm, XoVmBackupArchive } from '@vates/types'
+import type { BackupDiskPartition, XoBackupRepository, XoVm, XoVmBackupArchive } from '@vates/types'
 
 import {
   badRequestResp,
@@ -122,5 +122,51 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   async getBackupArchive(@Path() id: string): Promise<Unbrand<XoVmBackupArchive>> {
     const backupArchive = await this.getObject(id as XoVmBackupArchive['id'])
     return backupArchive
+  }
+
+  /**
+   * Returns the list of disks in a backup archive.
+   *
+   * Required privilege:
+   * - resource: backup-archive, action: read
+   */
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/disks')
+  @Middlewares(
+    acl({
+      resource: 'backup-archive',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getBackupArchiveDisks(@Path() id: string): Promise<XoVmBackupArchive['disks']> {
+    const archive = await this.getObject(id as XoVmBackupArchive['id'])
+    return archive.disks
+  }
+
+  /**
+   * Returns the list of partitions of a disk in a backup archive.
+   * Returns an empty array for disks without a partition table (use the files endpoints directly).
+   *
+   * Required privilege:
+   * - resource: backup-archive, action: mount
+   */
+  @Extension('x-mcp-exposure', 'deny')
+  @Get('{id}/disks/{diskId}/partitions')
+  @Middlewares(
+    acl({
+      resource: 'backup-archive',
+      action: 'mount',
+      objectId: 'params.id',
+      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getBackupArchiveDiskPartitions(@Path() id: string, @Path() diskId: string): Promise<BackupDiskPartition[]> {
+    return this.#backupArchiveService.listPartitions(id as XoVmBackupArchive['id'], diskId)
   }
 }
