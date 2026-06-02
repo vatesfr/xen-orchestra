@@ -54,4 +54,6 @@
 - xo-server-sdn-controller patch
 - xo-web patch
 
+- @xen-orchestra/qcow2 patch
+
 <!--packages-end-->
