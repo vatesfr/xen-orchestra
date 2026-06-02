@@ -2,6 +2,7 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import ButtonGroup from 'button-group'
 import Component from 'base-component'
+import Copiable from 'copiable'
 import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
 import React from 'react'
@@ -10,7 +11,7 @@ import Tooltip from 'tooltip'
 import { dirname } from 'path'
 import { Container, Col, Row } from 'grid'
 import { createSelector } from 'reselect'
-import { formatSize } from 'utils'
+import { formatSize, resolveId } from 'utils'
 import { filter, find, forEach, includes, isEmpty, map } from 'lodash'
 import { getRenderXoItemOfType } from 'render-xo-item'
 import { listPartitions, listFiles } from 'xo'
@@ -63,6 +64,24 @@ const fileOptionRenderer = ({ isFile, name }) => (
 )
 
 const ensureTrailingSlash = path => path + (path.endsWith('/') ? '' : '/')
+
+// -----------------------------------------------------------------------------
+// WebDAV mount URL, recomputed client-side (the legacy front makes no REST call).
+//
+// These encoders MUST stay in sync with the DAV router, which is the source of
+// truth: @xen-orchestra/rest-api/src/backup-archives/backup-archive-dav.router.mts
+const LVM_SEG_PREFIX = '_lvm_'
+const toBase64Url = str => {
+  const bytes = new TextEncoder().encode(str)
+  let binary = ''
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte)
+  }
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+const encodeDavSeg = toBase64Url
+// partition ids containing '/' (LVM) are base64url-encoded behind a marker, others url-encoded
+const encodePartitionSeg = id => (id.includes('/') ? LVM_SEG_PREFIX + toBase64Url(id) : encodeURIComponent(id))
 
 // -----------------------------------------------------------------------------
 
@@ -138,6 +157,36 @@ export default class RestoreFileModalBody extends Component {
     () => this.state.files,
     () => this.state.selectedFiles,
     (available, selected) => filter(available, file => !includes(selected, file))
+  )
+
+  // dav:// (or davs:// over https) URL pointing at the REST WebDAV endpoint for
+  // the selected partition (or whole disk when it has no partition table).
+  _getWebdavUrl = createSelector(
+    () => this.state.backup,
+    () => this.state.disk,
+    () => this.state.partition,
+    () => this.state.partitions,
+    (backup, disk, partition, partitions) => {
+      if (backup == null || disk == null) {
+        return undefined
+      }
+      // disk/partition are option objects here (the xo helpers resolveId them
+      // before the API call); resolve to ids ourselves to build the URL.
+      const hasPartitions = !isEmpty(partitions)
+      // a partition must be selected unless the disk has no partition table
+      if (hasPartitions && partition == null) {
+        return undefined
+      }
+
+      // backup.id is already the REST archive id (listVmBackupsNg prefixes the
+      // remote: `<remoteId>/xo-vm-backups/<vmId>/<timestamp>.json`)
+      const archiveId = backup.id
+      const partitionSeg = encodePartitionSeg(hasPartitions ? resolveId(partition) : '_bare_')
+      const path = `/rest/v0/backup-archives/${encodeDavSeg(archiveId)}/dav/${encodeDavSeg(resolveId(disk))}/${partitionSeg}/`
+
+      const scheme = window.location.protocol === 'https:' ? 'davs' : 'dav'
+      return `${scheme}://${window.location.host}${path}`
+    }
   )
 
   _onBackupChange = backup => {
@@ -302,6 +351,7 @@ export default class RestoreFileModalBody extends Component {
     } = this.state
     const noPartitions = isEmpty(partitions)
     const redundantFiles = this._getRedundantFiles()
+    const webdavUrl = this._getWebdavUrl()
 
     return (
       <div>
@@ -346,6 +396,20 @@ export default class RestoreFileModalBody extends Component {
             />,
           ]}
         {(partition || (disk && !scanDiskError && noPartitions)) && [
+          <br />,
+          <Container className='mt-1'>
+            <Row>
+              <Col><Copiable data={webdavUrl} tagName='p' >
+                     {_('restoreFilesWebdavUrl')}  {webdavUrl.slice(0,24)}...
+                </Copiable></Col>
+            </Row>
+          </Container>,
+          <br />,
+          <Container className='mt-1'>
+            <Row>
+              <Col>{_('restoreFilesBrowse')}</Col>
+            </Row> 
+          </Container>,
           <br />,
           <Container>
             <Row>
