@@ -33,7 +33,7 @@ import {
   useXoSrCollection,
   type FrontXoSr,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { StorageScope } from '@/modules/storage-repository/types/storage-scope.type.ts'
+import type { SrScope } from '@/modules/storage-repository/types/storage-repository.type'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -59,7 +59,7 @@ const {
   error,
 } = defineProps<{
   srs: FrontXoSr[]
-  scope: StorageScope
+  scope: SrScope
   busy?: boolean
   error?: boolean
 }>()
@@ -175,7 +175,7 @@ const { HeadCells, BodyCells } = useSrColumns({
           actions: [
             {
               label: connectLabel.value,
-              icon: icon('action:connect'),
+              icon: 'action:connect',
               onClick: () => openSrConnectModal(),
               busy: isConnectingSr.value,
               disabled: !canConnectSr.value,

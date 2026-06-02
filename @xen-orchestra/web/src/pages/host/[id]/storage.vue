@@ -21,7 +21,7 @@ import {
   useXoSrCollection,
   type FrontXoSr,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { StorageScope } from '@/modules/storage-repository/types/storage-scope.type.ts'
+import type { SrScope } from '@/modules/storage-repository/types/storage-repository.type'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
@@ -66,7 +66,7 @@ const selectedSr = useRouteQuery<FrontXoSr | undefined>('id', {
   toQuery: sr => sr?.id ?? '',
 })
 
-const scope: StorageScope = { type: 'host', hostId: host.id }
+const scope: SrScope = { type: 'host', hostId: host.id }
 </script>
 
 <style scoped lang="postcss">
