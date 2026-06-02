@@ -23,12 +23,55 @@ interface Qcow2Header {
   header_length: number
 }
 
+// V8's Map has a hard limit of ~16.7M entries (2^24 - 1), which is hit for ≥1TB QCOW2
+// disks with 64KB clusters. This class shards entries into chunks that stay under that limit.
+const CHUNK_SIZE = 8_000_000
+
+class ChunkedClusterIndex {
+  #chunks: Map<number, number>[] = []
+
+  set(blockIndex: number, clusterOffset: number): void {
+    const chunkIdx = Math.floor(blockIndex / CHUNK_SIZE)
+    let chunk = this.#chunks[chunkIdx]
+    if (chunk === undefined) {
+      chunk = new Map()
+      this.#chunks[chunkIdx] = chunk
+    }
+    chunk.set(blockIndex % CHUNK_SIZE, clusterOffset)
+  }
+
+  get(blockIndex: number): number | undefined {
+    return this.#chunks[Math.floor(blockIndex / CHUNK_SIZE)]?.get(blockIndex % CHUNK_SIZE)
+  }
+
+  has(blockIndex: number): boolean {
+    return this.#chunks[Math.floor(blockIndex / CHUNK_SIZE)]?.has(blockIndex % CHUNK_SIZE) ?? false
+  }
+
+  keys(): number[] {
+    const result: number[] = []
+    for (let i = 0; i < this.#chunks.length; i++) {
+      const chunk = this.#chunks[i]
+      if (chunk !== undefined) {
+        for (const localKey of chunk.keys()) {
+          result.push(i * CHUNK_SIZE + localKey)
+        }
+      }
+    }
+    return result
+  }
+
+  clear(): void {
+    this.#chunks = []
+  }
+}
+
 export abstract class QcowDisk extends RandomAccessDisk {
   #qcowHeader: Qcow2Header | undefined
   // in qcow land, the data are stored in clusters
-  #dataClustersIndex = new Map<number, number>()
+  #dataClustersIndex = new ChunkedClusterIndex()
 
-  get dataClustersIndex(): Map<number, number> {
+  get dataClustersIndex(): ChunkedClusterIndex {
     return this.#dataClustersIndex
   }
 
@@ -55,7 +98,7 @@ export abstract class QcowDisk extends RandomAccessDisk {
   abstract readBuffer(offset: number, length: number): Promise<Buffer>
 
   async readBlock(index: number): Promise<DiskBlock> {
-    const offset = this.dataClustersIndex.get(index)
+    const offset = this.#dataClustersIndex.get(index)
     if (offset === undefined) {
       throw new Error(`Can't read unallocated block, index:${index}`)
     }
@@ -123,7 +166,7 @@ export abstract class QcowDisk extends RandomAccessDisk {
   }
 
   getBlockIndexes(): Array<number> {
-    return [...this.#dataClustersIndex.keys()]
+    return this.#dataClustersIndex.keys()
   }
   hasBlock(index: number): boolean {
     return this.#dataClustersIndex.has(index)
