@@ -20,7 +20,7 @@ export function buildOpenApiSchema(def: Record<string, FieldDefinition>): OpenAP
       property.type = field.type
     }
 
-    if (field.example !== undefined) {
+    if ('example' in field && field.example !== undefined) {
       property.example = field.example
     }
 
