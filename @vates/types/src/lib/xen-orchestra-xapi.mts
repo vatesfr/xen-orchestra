@@ -183,8 +183,8 @@ export interface Xapi {
   ejectHostFromPool(hostId: XoHost['id']): Promise<void>
   host_smartReboot(
     hostRef: XenApiHost['$ref'],
-    bypassBlockedSuspend: boolean,
-    bypassCurrentVmCheck: boolean
+    bypassBlockedSuspend?: boolean,
+    bypassCurrentVmCheck?: boolean
   ): Promise<void>
   migrateVm(
     vmId: XoVm['id'],
