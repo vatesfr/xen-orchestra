@@ -20,7 +20,7 @@ import {
   useXoSrCollection,
   type FrontXoSr,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { StorageScope } from '@/modules/storage-repository/types/storage-scope.type.ts'
+import type { SrScope } from '@/modules/storage-repository/types/storage-repository.type'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
@@ -40,7 +40,7 @@ const uiStore = useUiStore()
 
 const srs = computed(() => srsByPool.value.get(pool.id) ?? [])
 
-const scope: StorageScope = { type: 'pool' }
+const scope: SrScope = { type: 'pool' }
 
 const selectedSr = useRouteQuery<FrontXoSr | undefined>('id', {
   toData: id => getSrById(id as FrontXoSr['id']),

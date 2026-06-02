@@ -2,14 +2,22 @@
   <VtsStateHero v-if="!isReady" format="panel" type="busy" size="medium" />
   <UiPanel v-else :key="panelSignature" :class="{ 'mobile-drawer': uiStore.isSmall }">
     <template #header>
-      <VtsDeleteButton
-        class="sr-delete-button"
-        :disabled="!canDeleteSr"
-        :busy="isDeletingSr"
-        @click="openSrDeleteModal()"
-      />
-      <SrConnectButton :sr :scope />
-      <SrDisconnectButton class="sr-disconnect-button" :sr :scope />
+      <div class="action-buttons">
+        <SrConnectButton :sr :scope />
+        <MenuList placement="bottom-end">
+          <template #trigger="{ open }">
+            <UiButtonIcon icon="action:more-actions" accent="brand" size="medium" @click="open($event)" />
+          </template>
+          <SrDisconnectButton :sr :scope />
+          <VtsDeleteButton
+            class="sr-delete-button"
+            :disabled="!canDeleteSr"
+            :busy="isDeletingSr"
+            @click="openSrDeleteModal()"
+          />
+        </MenuList>
+      </div>
+
       <div :class="{ 'action-buttons-container': uiStore.isSmall }">
         <UiButtonIcon
           v-tooltip="t('action:close')"
@@ -46,9 +54,10 @@ import StorageRepositoryVdisCard from '@/modules/storage-repository/components/l
 import { useSrDeleteModal } from '@/modules/storage-repository/composables/use-sr-delete-modal.composable.ts'
 import { useGetPbdsInScope } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { StorageScope } from '@/modules/storage-repository/types/storage-scope.type.ts'
+import type { SrScope } from '@/modules/storage-repository/types/storage-repository.type'
 import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
+import MenuList from '@core/components/menu/MenuList.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
@@ -61,7 +70,7 @@ import { useI18n } from 'vue-i18n'
 
 const { sr, scope } = defineProps<{
   sr: FrontXoSr
-  scope: StorageScope
+  scope: SrScope
 }>()
 
 const emit = defineEmits<{
@@ -113,10 +122,11 @@ const { openModal: openSrDeleteModal, canRun: canDeleteSr, isRunning: isDeleting
 </script>
 
 <style scoped lang="postcss">
-.sr-disconnect-button {
+.action-buttons {
+  display: flex;
+  align-items: center;
   margin-inline-end: auto;
 }
-
 .mobile-drawer {
   position: fixed;
   inset: 0;

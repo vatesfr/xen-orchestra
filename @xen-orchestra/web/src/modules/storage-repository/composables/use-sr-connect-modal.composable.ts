@@ -1,12 +1,13 @@
 import { useXoPbdPlugJob } from '@/modules/pbd/jobs/xo-pbd-plug.job.ts'
 import { useGetPbdsInScope } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { StorageScope } from '@/modules/storage-repository/types/storage-scope.type.ts'
+import type { SrScope } from '@/modules/storage-repository/types/storage-repository.type'
+import { getSrAccessMode } from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import { useModal } from '@core/packages/modal/use-modal.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
 
-export function useSrConnectModal(rawSrs: MaybeRefOrGetter<FrontXoSr[]>, rawScope: MaybeRefOrGetter<StorageScope>) {
+export function useSrConnectModal(rawSrs: MaybeRefOrGetter<FrontXoSr[]>, rawScope: MaybeRefOrGetter<SrScope>) {
   const srs = toComputed(rawSrs)
   const scope = toComputed(rawScope)
 
@@ -19,7 +20,12 @@ export function useSrConnectModal(rawSrs: MaybeRefOrGetter<FrontXoSr[]>, rawScop
 
   const openModal = useModal(() => ({
     component: import('@/modules/storage-repository/components/modal/SrConnectModal.vue'),
-    props: { count: srs.value.length },
+    props: {
+      count: srs.value.length,
+      scope: scope.value,
+      accessMode: getSrAccessMode(srs.value),
+      hostsCount: targetCount.value,
+    },
     onConfirm: async () => {
       try {
         await run()

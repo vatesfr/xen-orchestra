@@ -1,11 +1,11 @@
 <template>
   <VtsModal accent="info" icon="status:info-picto" dismissible>
     <template #title>
-      {{ t('sr-disconnect-title', { n: count }) }}
+      {{ title }}
     </template>
 
     <template #content>
-      {{ disconnectInfo }}
+      {{ info }}
     </template>
 
     <template #buttons>
@@ -18,21 +18,28 @@
 </template>
 
 <script lang="ts" setup>
-import type { StorageScope } from '@/modules/storage-repository/types/storage-scope.type.ts'
+import { useSrModalMessages } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
+import type { SrAccessMode, SrScope } from '@/modules/storage-repository/types/storage-repository.type'
 import VtsModal from '@core/components/modal/VtsModal.vue'
 import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
 import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
-import { computed } from 'vue'
+import { toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { count, scope } = defineProps<{
+const props = defineProps<{
   count: number
-  scope: StorageScope
+  scope: SrScope
+  accessMode: SrAccessMode
+  hostsCount: number
 }>()
 
 const { t } = useI18n()
 
-const disconnectInfo = computed(() =>
-  scope.type === 'host' ? t('sr-disconnect-info-host') : t('sr-disconnect-info-pool')
-)
+const { title, info } = useSrModalMessages({
+  action: 'disconnect',
+  count: toRef(props, 'count'),
+  scope: toRef(props, 'scope'),
+  accessMode: toRef(props, 'accessMode'),
+  hostsCount: toRef(props, 'hostsCount'),
+})
 </script>
