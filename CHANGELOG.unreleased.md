@@ -12,6 +12,8 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 - [REST API] Expose `GET /rest/v0/backup-archive/:id/disks` (PR [#9464](https://github.com/vatesfr/xen-orchestra/pull/9941))
 - [REST API] Expose `GET /rest/v0/backup-archive/:id/disks/:diskId/partitions` (PR [#9464](https://github.com/vatesfr/xen-orchestra/pull/9941))
+- [REST API] Expose `GET /rest/v0/backup-archive/:id/disks/:diskId/partitions/:partitionId/files` (PR [#9464](https://github.com/vatesfr/xen-orchestra/pull/9941))
+- [REST API] Expose `GET /rest/v0/backup-archive/:id/disks/:diskId/files` (PR [#9464](https://github.com/vatesfr/xen-orchestra/pull/9941))
 
 ### Bug fixes
 
