@@ -10,6 +10,7 @@
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
+> Updated connect/disconnect icons to use a plug icon, and renamed the references to attach/detach
 
 ### Bug fixes
 
