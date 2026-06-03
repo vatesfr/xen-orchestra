@@ -11,17 +11,15 @@ export const useTrafficRulesColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
-    order: useNumberColumn({ headerIcon: 'fa:hashtag' }),
+    order: useNumberColumn(),
     policy: useTagColumn({ headerLabel: () => t('policy') }),
     protocol: useTextColumn({
       headerLabel: () => t('protocol:port'),
-      headerIcon: 'fa:square-caret-down',
     }),
-    directionA: useTextColumn({ headerLabel: () => t('direction'), headerIcon: 'fa:square-caret-down' }),
-    target: useTruncatedTextColumn({ headerLabel: () => t('target'), headerIcon: 'fa:at' }),
+    directionA: useTextColumn({ headerLabel: () => t('direction') }),
+    target: useTruncatedTextColumn({ headerLabel: () => t('target') }),
     directionB: useTextColumn({
       headerLabel: () => t('direction'),
-      headerIcon: 'fa:square-caret-down',
     }),
     object: useDoubleLinkColumn({ headerLabel: () => t('object') }),
     selectItem: useSelectItemColumn(),
