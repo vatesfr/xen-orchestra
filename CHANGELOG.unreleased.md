@@ -24,6 +24,9 @@
   - `POST /vifs/:id/actions/connect` (PR [#9889](https://github.com/vatesfr/xen-orchestra/pull/9889))
   - `POST /vifs/:id/actions/disconnect` (PR [#9889](https://github.com/vatesfr/xen-orchestra/pull/9889))
 
+- [XO6] live update XO tasks (PR [#9901](https://github.com/vatesfr/xen-orchestra/pull/9901))
+- [XO6/Backup] add progress for backups tasks(PR [#9901](https://github.com/vatesfr/xen-orchestra/pull/9901))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -51,9 +54,12 @@
 <!--packages-start-->
 - @vates/types minor
 - @xen-orchestra/acl minor
+- @xen-orchestra/backups minor
+- @xen-orchestra/disk-transform minor
+- @xen-orchestra/mixins minor
 - @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
+- xo-server minor
 - xo-server-sdn-controller patch
 - xo-web patch
-
 <!--packages-end-->
