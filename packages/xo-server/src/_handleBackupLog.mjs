@@ -34,7 +34,7 @@ async function sendToNagios(app, jobName, vmBackupInfo) {
 
 export function forwardResult(log) {
   if (log.status === 'failure') {
-    throw log.result
+    throw log.result ?? new Error('backup task failed with undefined error')
   }
   return log.result
 }
