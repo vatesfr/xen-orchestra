@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="linear-chart" :color="hasError ? 'error' : undefined">
+  <UiCard :has-error>
     <UiCardTitle>{{ t('network-throughput') }}</UiCardTitle>
     <UiCardTitle :level="UiCardTitleLevel.Subtitle">
       {{ t('last-week') }}
@@ -16,7 +16,6 @@
 </template>
 
 <script lang="ts" setup>
-import UiCard from '@/components/ui/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import { formatSize } from '@/libs/utils'
 import { RRD_STEP_FROM_STRING } from '@/libs/xapi-stats'
@@ -25,6 +24,7 @@ import { UiCardTitleLevel } from '@/types/enums'
 import { IK_HOST_LAST_WEEK_STATS } from '@/types/injection-keys'
 import type { LinearChartData } from '@core/types/chart'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
 import type { XapiHostStatsRaw } from '@vates/types'
 import { computed, defineAsyncComponent, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
