@@ -48,6 +48,11 @@ export type FieldDefinition =
       example?: string
       optional?: boolean
     }
+  | {
+      type: 'object'
+      fields: Record<string, FieldDefinition>
+      optional?: boolean
+    }
 
 export type ParamFieldDefinition = Exclude<FieldDefinition, { type: 'boolean' }>
 
