@@ -2,7 +2,7 @@
 
 ## **next**
 
-- Update some title for match with xo-web (PR [#9869](https://github.com/vatesfr/xen-orchestra/pull/9869))
+- Update the UiTitle component to use the one from web-core (PR [#9869](https://github.com/vatesfr/xen-orchestra/pull/9869))
 
 ## **0.22.0** (2026-05-28)
 

@@ -1,6 +1,6 @@
 <template>
   <UiCard class="vms-page-content">
-    <UiTitle class="title">
+    <UiTitle>
       {{ t('vms') }}
       <template v-if="uiStore.isSmall" #right>
         <VmsActionsBar :selected-refs="selectedVmsRefs" />
@@ -177,14 +177,9 @@ const { HeadCells, BodyCells } = useVmColumns({
 .vms-page-content {
   overflow: auto;
   margin: 1rem;
-  gap: 0;
 
   .filter-and-sort {
     display: flex;
-  }
-
-  .title {
-    margin-bottom: 2.4rem;
   }
 }
 </style>
