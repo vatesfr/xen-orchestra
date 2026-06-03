@@ -93,6 +93,16 @@ function buildQcow2({
 }
 
 describe('QcowDisk', { concurrency: 1 }, () => {
+  test('readBlock throws if init has not been called', async () => {
+    const disk = new InMemoryQcowDisk(Buffer.alloc(0))
+    await assert.rejects(() => disk.readBlock(0), /init\(\) has not been called/)
+  })
+
+  test('hasBlock throws if init has not been called', async () => {
+    const disk = new InMemoryQcowDisk(Buffer.alloc(0))
+    assert.throws(() => disk.hasBlock(0), /init\(\) has not been called/)
+  })
+
   test('init parses header correctly', async () => {
     const clusterBits = 12
     const clusterSize = 1 << clusterBits

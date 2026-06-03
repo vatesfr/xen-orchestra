@@ -52,6 +52,10 @@ export abstract class QcowDisk extends RandomAccessDisk {
   abstract readBuffer(offset: number, length: number): Promise<Buffer>
 
   async readBlock(index: number): Promise<DiskBlock> {
+    if (this.#nbClusterPerL2Table == 0 || this.#l2Increment == 0) {
+      throw new Error(`QcowDisk.init() has not been called`)
+    }
+
     const l1Index = Math.floor(index / this.#nbClusterPerL2Table)
     const l2TableBuffer = this.#l2Tables[l1Index]
 
@@ -138,7 +142,7 @@ export abstract class QcowDisk extends RandomAccessDisk {
     this.#l2Tables.forEach((l2TableBuffer, l1Index) => {
       if (l2TableBuffer) {
         for (let i = 0; i < l2TableBuffer.length; i += this.#l2Increment) {
-          if (Number(l2TableBuffer.readBigUInt64BE(i) & 0x00ffffffffffe0n) != 0) {
+          if (Number(l2TableBuffer.readBigUInt64BE(i) & 0x00ffffffffffe0n) !== 0) {
             blockIndexes.push(l1Index * this.#nbClusterPerL2Table + i / this.#l2Increment)
           }
         }
@@ -149,6 +153,10 @@ export abstract class QcowDisk extends RandomAccessDisk {
   }
 
   hasBlock(index: number): boolean {
+    if (this.#nbClusterPerL2Table == 0 || this.#l2Increment == 0) {
+      throw new Error(`QcowDisk.init() has not been called`)
+    }
+
     const l1Index = Math.floor(index / this.#nbClusterPerL2Table)
     const l2TableBuffer = this.#l2Tables[l1Index]
 
