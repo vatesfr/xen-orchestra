@@ -15,6 +15,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [Backups] Fixed "Cannot read properties of undefined" issues (PR [#9944](https://github.com/vatesfr/xen-orchestra/pull/9944))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -30,5 +32,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- xo-server patch
 
 <!--packages-end-->
