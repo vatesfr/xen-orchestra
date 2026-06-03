@@ -16,8 +16,6 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-- [Backup] fix transfer size only counting the last disk transferred (PR [#9900](https://github.com/vatesfr/xen-orchestra/pull/9900))
-
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -33,11 +31,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- @xen-orchestra/backups patch
-- @xen-orchestra/vmware-explorer patch
-- @xen-orchestra/xva patch
-- xo-server patch
 - xo-server-ipmi-sensors patch
-
 <!--packages-end-->
