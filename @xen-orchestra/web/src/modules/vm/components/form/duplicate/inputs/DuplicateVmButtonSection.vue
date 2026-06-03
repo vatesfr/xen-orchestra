@@ -1,33 +1,34 @@
 <template>
-  <div class="footer">
-    <UiButton variant="secondary" accent="brand" size="medium" @click="router.back()">
+  <div class="duplicate-vm-button-section">
+    <UiLink :to="cancelTo" size="medium">
       {{ t('cancel') }}
-    </UiButton>
-    <UiButton variant="primary" accent="brand" size="medium" type="submit" :disabled="!canDuplicate" :busy="isRunning">
-      {{ t('action:duplicate') }}
+    </UiLink>
+    <UiButton variant="primary" accent="brand" size="medium" type="submit">
+      {{ submitLabel }}
     </UiButton>
   </div>
 </template>
 
 <script setup lang="ts">
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import type { RouteLocationRaw } from 'vue-router'
 
 defineProps<{
-  canDuplicate: boolean
-  isRunning: boolean
+  submitLabel: string
+  cancelTo: RouteLocationRaw
 }>()
 
 const { t } = useI18n()
-
-const router = useRouter()
 </script>
 
 <style scoped lang="postcss">
-.footer {
+.duplicate-vm-button-section {
   display: flex;
   justify-content: center;
-  gap: 1.6rem;
+  align-items: center;
+  gap: 2.4rem;
+  margin-block-start: 2.4rem;
 }
 </style>
