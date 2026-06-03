@@ -84,6 +84,7 @@ const server = useGetServerById(() => serverId)
 
     .action-buttons {
       display: flex;
+      justify-content: center;
       gap: 2.4rem;
 
       &.mobile {

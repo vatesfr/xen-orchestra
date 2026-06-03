@@ -50,6 +50,7 @@
 - [XO6/VDI] Update actions name to be more consistent (PR [#9968](https://github.com/vatesfr/xen-orchestra/pull/9968))
 - [SR] Storage repositories can now be deleted from the Pool/Host Storage tab (PR [#9853](https://github.com/vatesfr/xen-orchestra/pull/9853))
 - [SR] Storage repositories can now be disconnected from the Pool/Host Storage tab (PR [#9856](https://github.com/vatesfr/xen-orchestra/pull/9856))
+- [Dashboard] Fix StateHero component's behavior on mobile to force vertical variant on mobile (PR [#9363](https://github.com/vatesfr/xen-orchestra/pull/9363))
 
 ### Bug fixes
 

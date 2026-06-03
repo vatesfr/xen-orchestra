@@ -2,7 +2,7 @@
   <UiCard :has-error class="pool-dashboard-cpu-provisioning">
     <UiCardTitle>{{ t('cpu-provisioning') }}</UiCardTitle>
     <VtsStateHero v-if="!isCpuProvisioningReady" format="card" type="busy" size="medium" />
-    <VtsStateHero v-else-if="hasError" format="card" type="error" size="extra-small">
+    <VtsStateHero v-else-if="hasError" format="card" type="error" size="extra-small" class="state-hero">
       {{ t('error-no-data') }}
     </VtsStateHero>
     <template v-else>
@@ -48,6 +48,10 @@ const totalCpus = computed(() => poolDashboard?.cpuProvisioning?.total ?? 0)
 
 <style lang="postcss" scoped>
 .pool-dashboard-cpu-provisioning {
+  .state-hero {
+    padding: 0.8rem;
+  }
+
   .total {
     display: grid;
     grid-template-columns: 1fr 1fr;
