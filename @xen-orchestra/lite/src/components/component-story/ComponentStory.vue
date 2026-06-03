@@ -80,7 +80,6 @@ import StoryPropParams from '@/components/component-story/StoryPropParams.vue'
 import StorySettingParams from '@/components/component-story/StorySettingParams.vue'
 import StorySlotParams from '@/components/component-story/StorySlotParams.vue'
 import UiCard from '@/components/ui/UiCard.vue'
-import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import {
   isEventParam,
   isModelParam,
@@ -101,6 +100,7 @@ import 'highlight.js/styles/github-dark.css'
 import { uniqueId, upperFirst } from 'lodash-es'
 import { computed, onBeforeMount, reactive, ref, watch, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
+import UiCardTitle from '../ui/UiCardTitle.vue'
 
 const props = defineProps<{
   params: (Param | ModelParam)[]

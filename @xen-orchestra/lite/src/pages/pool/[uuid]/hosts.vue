@@ -1,8 +1,8 @@
 <template>
   <UiCard class="pool-hosts-view">
-    <UiTitle>
+    <UiCardSubtitle>
       {{ t('hosts') }}
-    </UiTitle>
+    </UiCardSubtitle>
     <VtsTable :state :pagination-bindings>
       <thead>
         <tr>
@@ -26,7 +26,7 @@ import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
-import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import UiCardSubtitle from '@core/components/ui/card-subtitle/UiCardSubtitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useTableState } from '@core/composables/table-state.composable'
 import { objectIcon } from '@core/icons'

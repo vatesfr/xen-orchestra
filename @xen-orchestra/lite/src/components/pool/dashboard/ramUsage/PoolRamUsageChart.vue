@@ -1,8 +1,10 @@
 <template>
   <UiCard :color="hasError ? 'error' : undefined" class="linear-chart">
-    <UiCardTitle>{{ t('pool-ram-usage') }}</UiCardTitle>
-    <UiCardTitle :level="UiCardTitleLevel.Subtitle">
-      {{ t('last-week') }}
+    <UiCardTitle>
+      {{ t('pool-ram-usage') }}
+      <template #description>
+        {{ t('last-week') }}
+      </template>
     </UiCardTitle>
     <VtsStateHero v-if="isLoading" format="card" type="busy" size="medium" />
     <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">
@@ -19,15 +21,14 @@
 <script lang="ts" setup>
 import SizeStatsSummary from '@/components/ui/SizeStatsSummary.vue'
 import UiCard from '@/components/ui/UiCard.vue'
-import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import { formatSize } from '@/libs/utils'
 import { RRD_STEP_FROM_STRING } from '@/libs/xapi-stats'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
 import { useHostStore } from '@/stores/xen-api/host.store'
-import { UiCardTitleLevel } from '@/types/enums'
 import { IK_HOST_LAST_WEEK_STATS } from '@/types/injection-keys'
 import type { LinearChartData } from '@core/types/chart'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { sumBy } from 'lodash-es'
 import { computed, defineAsyncComponent, inject } from 'vue'
 import { useI18n } from 'vue-i18n'

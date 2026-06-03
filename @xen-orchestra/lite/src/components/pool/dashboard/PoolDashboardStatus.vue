@@ -26,11 +26,11 @@
 <script lang="ts" setup>
 import PoolDashboardStatusItem from '@/components/pool/dashboard/PoolDashboardStatusItem.vue'
 import UiCard from '@/components/ui/UiCard.vue'
-import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import UiSeparator from '@/components/ui/UiSeparator.vue'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

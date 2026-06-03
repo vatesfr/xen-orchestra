@@ -9,7 +9,6 @@
 </template>
 
 <script lang="ts" setup>
-import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import { useStatStatus } from '@/composables/stat-status.composable'
 import { getAvgCpuUsage } from '@/libs/utils'
 import { N_ITEMS } from '@/pages/pool/[uuid]/dashboard.vue'
@@ -19,6 +18,7 @@ import { IK_HOST_STATS } from '@/types/injection-keys'
 import type { StatData } from '@/types/stat'
 import VtsProgressBarGroup from '@core/components/progress-bar-group/VtsProgressBarGroup.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 
