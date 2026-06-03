@@ -1,7 +1,6 @@
 import { describe, test } from 'node:test'
 import { strict as assert } from 'node:assert'
 import { QcowDisk } from './QcowDisk.mjs'
-import { DiskBlock } from '@xen-orchestra/disk-transform'
 
 // Minimal in-memory QcowDisk for testing
 class InMemoryQcowDisk extends QcowDisk {
@@ -242,11 +241,7 @@ describe('QcowDisk', { concurrency: 1 }, () => {
     assert.equal(disk.hasBlock(NB_CLUSTER_PER_L2 * 2), true) // first block in L1 slot 2
   })
 
-  // Regression test: large disks with blocks spanning multiple L2 tables previously
-  // caused "RangeError: Map maximum size exceeded" because all cluster indexes were
-  // inserted into a JS Map during init(). The fix stores L2 table buffers directly
-  // instead of flattening them into a Map.
-  test('handles blocks spanning multiple L2 tables (large disk regression)', async () => {
+  test('handles blocks spanning multiple L2 tables', async () => {
     const clusterBits = 12
     const nbClusterPerL2Table = (1 << clusterBits) / 8 // 512 with clusterBits=12
 
