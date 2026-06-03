@@ -1,5 +1,5 @@
 <template>
-  <UiCard :color="hasError ? 'error' : undefined">
+  <UiCard :has-error>
     <UiCardTitle>{{ t('cpu-provisioning') }}</UiCardTitle>
     <VtsStateHero v-if="!isReady" format="card" type="busy" size="medium" />
     <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">
@@ -22,7 +22,6 @@
 </template>
 
 <script lang="ts" setup>
-import UiCard from '@/components/ui/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import { ACTIVE_STATES } from '@/libs/utils'
 import { useHostStore } from '@/stores/xen-api/host.store'
@@ -30,6 +29,7 @@ import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import { cpuProgressThresholds } from '@core/utils/progress.util.ts'
 import { logicAnd } from '@vueuse/math'
@@ -67,7 +67,6 @@ const hasError = computed(() => hostStoreHasError.value || vmStoreHasError.value
 
 <style lang="postcss" scoped>
 .progress-item {
-  margin-top: 2.6rem;
   --progress-bar-height: 1.2rem;
   --progress-bar-color: var(--color-brand-item-base);
   --progress-bar-background-color: var(--color-neutral-background-disabled);
@@ -80,10 +79,6 @@ const hasError = computed(() => hostStoreHasError.value || vmStoreHasError.value
   & .footer-value {
     color: var(--footer-value-color);
   }
-}
-
-.ui-card-footer {
-  margin-top: 2rem;
 }
 
 .cpu-provisioning-numbers {
