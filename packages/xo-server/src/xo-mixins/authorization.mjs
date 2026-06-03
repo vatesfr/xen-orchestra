@@ -80,8 +80,22 @@ export default class Authorization {
   }
 
   #getMinPlan(featureCode) {
-    const minPlan = get(AUTHORIZATIONS, featureCode)
-    assert.notEqual(minPlan, undefined, `${featureCode} is not defined in the AUTHORIZATIONS object`)
+    let minPlan = get(AUTHORIZATIONS, featureCode)
+    // If `featureCode` does not exist in the legacy `AUTHORIZATIONS` object, try to find the "equivalent" in the `BUNDLE_AUTHORIZATIONS` object
+    if (minPlan === undefined) {
+      const bundles = get(BUNDLE_AUTHORIZATIONS, featureCode)
+      assert.notEqual(
+        bundles,
+        undefined,
+        `${featureCode} is not defined in either AUTHORIZATIONS or BUNDLE_AUTHORIZATIONS object`
+      )
+      minPlan = bundles
+        .map(bundle => BUNDLE_TO_PLAN[bundle])
+        .sort()
+        .shift()
+    }
+
+    assert.notEqual(minPlan, undefined, `${featureCode} is not defined in the BUNDLE_AUTHORIZATIONS object`)
     return minPlan
   }
 
