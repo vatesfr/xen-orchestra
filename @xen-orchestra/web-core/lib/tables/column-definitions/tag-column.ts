@@ -6,6 +6,6 @@ import type { MaybeArray } from '@core/types/utility.type'
 import { h } from 'vue'
 
 export const useTagColumn = defineColumn((config?: HeaderConfig) => ({
-  renderHead: () => renderHeadCell(config?.headerIcon ?? 'fa:square-caret-down', config?.headerLabel),
+  renderHead: () => renderHeadCell(config?.headerLabel),
   renderBody: (tag: MaybeArray<string>) => h(VtsTagCell, { tag }),
 }))

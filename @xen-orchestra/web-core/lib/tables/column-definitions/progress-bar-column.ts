@@ -5,6 +5,6 @@ import type { HeaderConfig } from '@core/tables/types.ts'
 import { h } from 'vue'
 
 export const useProgressBarColumn = defineColumn((config?: HeaderConfig) => ({
-  renderHead: () => renderHeadCell(config?.headerIcon ?? 'fa:hashtag', config?.headerLabel),
+  renderHead: () => renderHeadCell(config?.headerLabel),
   renderBody: (current: number, total: number) => h(VtsProgressBarCell, { current, total }),
 }))
