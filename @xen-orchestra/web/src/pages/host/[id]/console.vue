@@ -1,5 +1,5 @@
 <template>
-  <VtsStateHero v-if="!isHostConsoleRunning" format="page" type="offline" size="large">
+  <VtsStateHero v-if="!isHostConsoleRunning" format="page" type="offline" size="large" class="state-hero">
     <span>{{ t('console-offline') }}</span>
     <span class="title typo-h1">{{ t('host-not-running') }}</span>
     <div class="description typo-body-bold">
@@ -53,14 +53,18 @@ const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
 </script>
 
 <style scoped lang="postcss">
-.title {
-  color: var(--color-neutral-txt-primary);
-}
+.state-hero {
+  padding: 0.8rem;
 
-.description {
-  display: flex;
-  flex-direction: column;
-  gap: 1.4rem;
-  color: var(--color-neutral-txt-secondary);
+  .title {
+    color: var(--color-neutral-txt-primary);
+  }
+
+  .description {
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    color: var(--color-neutral-txt-secondary);
+  }
 }
 </style>
