@@ -8,11 +8,11 @@
 // Make sure to add this file to your tsconfig.json file as an "includes" or "files" entry.
 
 import type {
-  RouteRecordInfo,
   ParamValue,
   ParamValueOneOrMore,
   ParamValueZeroOrMore,
   ParamValueZeroOrOne,
+  RouteRecordInfo,
 } from 'vue-router'
 import type {
   _ExtractParamParserType,
@@ -465,6 +465,13 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/vm/duplicate': RouteRecordInfo<
+      '/vm/duplicate',
+      '/vm/duplicate',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/vm/new': RouteRecordInfo<
       '/vm/new',
       '/vm/new',
@@ -866,6 +873,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/vm/[id]/vdis.vue': {
       routes:
         | '/vm/[id]/vdis'
+      views:
+        | never
+    }
+    'src/pages/vm/duplicate.vue': {
+      routes:
+        | '/vm/duplicate'
       views:
         | never
     }
