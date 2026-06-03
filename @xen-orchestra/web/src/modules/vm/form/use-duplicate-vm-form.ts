@@ -1,20 +1,23 @@
+import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import { getPbdsConnectionStatus } from '@/modules/pbd/utils/xo-pbd.util.ts'
 import {
   type FrontXoSr,
   useXoSrCollection,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { type DuplicateVmPayload, useXoVmDuplicateJob } from '@/modules/vm/jobs/xo-vm-duplicate.job.ts'
+import type { DuplicateVmPayload } from '@/modules/vm/jobs/xo-vm-duplicate.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
-import { useFormBindings } from '@core/packages/form-bindings'
-import { useFormSelect } from '@core/packages/form-select'
+import { objectIcon } from '@core/icons'
+import { required, requiredIf, withMessage } from '@core/packages/form-validation'
+import { useValidatedForm } from '@core/packages/validated-form'
 import { VM_POWER_STATE } from '@vates/types'
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export type DuplicateVmFormData = {
   name: string
   copyMode: 'fastClone' | 'fullCopy'
   compressionMode: 'disabled' | 'gzip' | 'zstd'
+  sr: FrontXoSr | undefined
 }
 
 export function useDuplicateVmForm(vm: FrontXoVm) {
@@ -22,76 +25,80 @@ export function useDuplicateVmForm(vm: FrontXoVm) {
 
   const { srs } = useXoSrCollection()
 
+  const { pbdsBySr } = useXoPbdCollection()
+
   const formData = reactive<DuplicateVmFormData>({
     name: `${vm.name_label}_COPY`,
     copyMode: vm.power_state === VM_POWER_STATE.HALTED ? 'fastClone' : 'fullCopy',
     compressionMode: 'disabled',
+    sr: undefined,
   })
 
-  const { useField, useSelect } = useFormBindings(formData)
+  const isFullCopy = computed(() => formData.copyMode === 'fullCopy')
 
-  const copyModeBindings = useField('copyMode')
-  const compressionModeBindings = useField('compressionMode')
+  const { useField, useFormSelect, useSelect, validate } = useValidatedForm(formData, {
+    errors: {
+      onSubmit: () => ({
+        name: { required: withMessage(required, () => t('vm-name-required')) },
+        sr: { requiredIf: withMessage(requiredIf(isFullCopy), () => t('sr-required')) },
+      }),
+    },
+  })
+
+  const copyModeOptions = computed(() => [
+    { label: t('fast-clone'), value: 'fastClone' as const, disabled: vm.power_state !== VM_POWER_STATE.HALTED },
+    { label: t('full-copy'), value: 'fullCopy' as const },
+  ])
+
+  const compressionModeOptions = computed(() => [
+    { label: t('disabled'), value: 'disabled' as const },
+    { label: t('gzip'), value: 'gzip' as const },
+    { label: t('zstd'), value: 'zstd' as const },
+  ])
 
   const filteredSrs = computed(() => srs.value.filter(sr => sr.content_type !== 'iso' && sr.size > 0))
 
-  const selectedSr = ref<FrontXoSr | undefined>()
-
-  const { id: srSelectId } = useFormSelect(filteredSrs, {
-    required: true,
-    model: selectedSr,
+  const { id: srSelectId } = useFormSelect('sr', filteredSrs, {
+    required: () => isFullCopy.value,
+    searchable: true,
     option: {
       label: sr => {
         const gbLeft = Math.floor((sr.size - sr.physical_usage) / 1024 ** 3)
         return `${sr.name_label} - ${t('n-gb-left', { n: gbLeft })}`
       },
+      properties: sr => ({ icon: objectIcon('sr', getPbdsConnectionStatus(pbdsBySr.value.get(sr.id) ?? [])) }),
     },
   })
 
-  const isSrEmpty = computed(() => formData.copyMode === 'fullCopy' && selectedSr.value === undefined)
+  const isCrossPool = computed(() => formData.sr !== undefined && formData.sr.$pool !== vm.$pool)
 
-  const nameInputBindings = useField('name', (): { error?: InputWrapperMessage } => ({
-    error: formData.name === '' ? { content: t('vm-name-required'), accent: 'danger' } : undefined,
-  }))
+  async function validateAndBuildPayload(): Promise<DuplicateVmPayload | undefined> {
+    const isValid = await validate()
 
-  const srSelectBindings = useSelect(srSelectId, (): { error?: InputWrapperMessage } => ({
-    error: isSrEmpty.value ? { content: t('sr-required'), accent: 'danger' } : undefined,
-  }))
+    if (!isValid) {
+      return undefined
+    }
 
-  const isCrossPool = computed(() => selectedSr.value !== undefined && selectedSr.value.$pool !== vm.$pool)
-
-  const payload = computed<DuplicateVmPayload>(() => {
-    if (formData.copyMode === 'fastClone' || selectedSr.value === undefined) {
+    if (formData.copyMode === 'fastClone' || formData.sr === undefined) {
       return { name_label: formData.name, fast: true }
     }
+
     return {
       name_label: formData.name,
-      srId: selectedSr.value.id,
+      srId: formData.sr.id,
       ...(formData.compressionMode !== 'disabled' && { compress: formData.compressionMode }),
     }
-  })
-
-  const duplicateJob = useXoVmDuplicateJob(() => vm, payload)
-
-  const canDuplicate = computed(() => duplicateJob.canRun.value && formData.name !== '' && !isSrEmpty.value)
-
-  async function handleDuplicate() {
-    if (!canDuplicate.value) {
-      return
-    }
-
-    await duplicateJob.run()
   }
 
   return {
     formData,
-    nameInputBindings,
-    copyModeBindings,
-    compressionModeBindings,
-    srSelectBindings,
+    copyModeOptions,
+    compressionModeOptions,
+    nameInputBindings: useField('name', () => ({ label: t('vm-name'), required: true })),
+    copyModeBindings: useField('copyMode'),
+    compressionModeBindings: useField('compressionMode'),
+    srSelectBindings: useSelect(srSelectId, () => ({ label: t('storage-repository') })),
     isCrossPool,
-    duplicateJob,
-    canDuplicate,
-    handleDuplicate,
+    validateAndBuildPayload,
   }
 }

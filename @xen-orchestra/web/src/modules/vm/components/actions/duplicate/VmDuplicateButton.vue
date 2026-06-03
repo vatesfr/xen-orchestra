@@ -19,6 +19,6 @@ const { t } = useI18n()
 const router = useRouter()
 
 const handleDuplicate = () => {
-  router.push({ name: '/vm/[id]/duplicate', params: { id: vm.id } })
+  router.push({ name: '/vm/duplicate', query: { vmid: vm.id } })
 }
 </script>
