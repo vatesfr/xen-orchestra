@@ -1,14 +1,15 @@
-import { IdOr, XoBackupRepository } from '@vates/types'
+import { AnyXoBackupJob, IdOr, XoBackupRepository } from '@vates/types'
 import { RestApi } from '../rest-api/rest-api.mjs'
 
-export class BackupRepositoriesService {
+export class BackupRepositoryService {
   #restApi: RestApi
 
   constructor(restApi: RestApi) {
     this.#restApi = restApi
   }
   public isRepositoryReferenced(
-    remotes: IdOr<XoBackupRepository['id']> | undefined,
+    remotes: AnyXoBackupJob['remotes'],
+
     repositoryId: XoBackupRepository['id']
   ): boolean {
     if (remotes === undefined) {
@@ -18,16 +19,22 @@ export class BackupRepositoriesService {
     const ids = typeof id === 'string' ? [id] : id.__or
     return ids.includes(repositoryId)
   }
-  public async getReferencingJobs(repositoryId: XoBackupRepository['id']): Promise<IdOr<string>[]> {
+  public async getReferencingJobs(repositoryId: XoBackupRepository['id']): Promise<string[]> {
     const allJobs = await this.#restApi.xoApp.getAllJobs()
-    const referencingJobs = allJobs.filter(job => {
+    const referencingJobs: string[] = []
+
+    for (const job of allJobs) {
       if (job.type === 'backup' || job.type === 'metadataBackup') {
-        return this.isRepositoryReferenced(job.remotes, repositoryId)
+        if (this.isRepositoryReferenced(job.remotes, repositoryId)) {
+          referencingJobs.push(job.id)
+        }
       } else if (job.type === 'mirrorBackup') {
-        return job.sourceRemote === repositoryId || this.isRepositoryReferenced(job.remotes, repositoryId)
+        if (job.sourceRemote === repositoryId || this.isRepositoryReferenced(job.remotes, repositoryId)) {
+          referencingJobs.push(job.id)
+        }
       }
-      return false
-    })
-    return referencingJobs.map(job => ({ id: job.id }))
+    }
+
+    return referencingJobs
   }
 }

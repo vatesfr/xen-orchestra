@@ -36,7 +36,7 @@ import {
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { BackupRepositoriesService } from './backup-repository.service.mjs'
+import { BackupRepositoryService } from './backup-repository.service.mjs'
 
 @Route('backup-repositories')
 @Security('*')
@@ -45,10 +45,10 @@ import { BackupRepositoriesService } from './backup-repository.service.mjs'
 @Tags('backup-repositories')
 @provide(BackupRepositoryController)
 export class BackupRepositoryController extends XoController<XoBackupRepository> {
-  #backupRepositoriesService: BackupRepositoriesService
+  #backupRepositoriesService: BackupRepositoryService
   constructor(
     @inject(RestApi) restApi: RestApi,
-    @inject(BackupRepositoriesService) backupRepositoriesService: BackupRepositoriesService
+    @inject(BackupRepositoryService) backupRepositoriesService: BackupRepositoryService
   ) {
     super('backup-repository', restApi)
     this.#backupRepositoriesService = backupRepositoriesService
@@ -113,9 +113,9 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   }
 
   /**
-   * Deletes a backup repository configuration.
+   * Forgets a backup repository configuration.
    *
-   * A repository cannot be deleted if it is referenced by any backup job (enabled or disabled).
+   * A repository cannot be forgotten if it is referenced by any backup job (enabled or disabled).
    *
    * Required privilege:
    * - resource: backup-repository, action: delete
@@ -134,15 +134,15 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  @Extension('x-mcp-exposure', 'allow')
-  async deleteBackupRepository(@Path() id: string): Promise<void> {
+  @Extension('x-mcp-exposure', 'confirm')
+  async forgetBackupRepository(@Path() id: string): Promise<void> {
     const repositoryId = id as XoBackupRepository['id']
 
     const referencingJobs = await this.#backupRepositoriesService.getReferencingJobs(repositoryId)
     if (referencingJobs.length > 0) {
       throw forbiddenOperation(
         'delete backup repository',
-        `repository is referenced by ${referencingJobs.length} backup job(s) :\n ${referencingJobs.map(job => job.id).join(', ')}`
+        `repository is referenced by ${referencingJobs.length} backup job(s) :\n ${referencingJobs.join(', ')}`
       )
     }
     await this.restApi.xoApp.removeRemote(repositoryId)
