@@ -19,7 +19,7 @@ describe('Authorization', function () {
     describe('source user (no getXoaPlan)', function () {
       it('should allow any feature', async function () {
         const auth = new Authorization({})
-        await assert.doesNotReject(() => auth.checkFeatureAuthorization('ACL'))
+        await assert.doesNotReject(() => auth.checkFeatureAuthorization('RBAC'))
         await assert.doesNotReject(() => auth.checkFeatureAuthorization('WARM_MIGRATION'))
       })
     })
@@ -32,18 +32,18 @@ describe('Authorization', function () {
     })
 
     describe('bundle-based authorization', function () {
-      describe('feature defined in BUNDLE_AUTHORIZATIONS (ACL)', function () {
+      describe('feature defined in BUNDLE_AUTHORIZATIONS (RBAC)', function () {
         for (const allowedBundle of [BUNDLES.essentialPlus, BUNDLES.pro, BUNDLES.enterprise]) {
           it(`should allow ACL with: ${allowedBundle}`, async function () {
             const auth = new Authorization(makeApp({ licenses: [makeLicense(allowedBundle)] }))
-            await assert.doesNotReject(() => auth.checkFeatureAuthorization('ACL'))
+            await assert.doesNotReject(() => auth.checkFeatureAuthorization('RBAC'))
           })
         }
 
         for (const deniedBundle of [BUNDLES.essential, BUNDLES.x1]) {
-          it(`should deny ACL with ${deniedBundle}`, async function () {
+          it(`should deny RBAC with ${deniedBundle}`, async function () {
             const auth = new Authorization(makeApp({ licenses: [makeLicense(deniedBundle)] }))
-            await assert.rejects(() => auth.checkFeatureAuthorization('ACL'))
+            await assert.rejects(() => auth.checkFeatureAuthorization('RBAC'))
           })
         }
       })
@@ -74,7 +74,7 @@ describe('Authorization', function () {
             })
           )
           // ACL requires bundle-essential-plus → should pass because it picks the best bundle
-          await assert.doesNotReject(() => auth.checkFeatureAuthorization('ACL'))
+          await assert.doesNotReject(() => auth.checkFeatureAuthorization('RBAC'))
         })
       })
 
@@ -88,7 +88,7 @@ describe('Authorization', function () {
             })
           )
           // No active bundle → legacy plan check → free < enterprise → deny
-          await assert.rejects(() => auth.checkFeatureAuthorization('ACL'))
+          await assert.rejects(() => auth.checkFeatureAuthorization('RBAC'))
         })
 
         it('should use non-expired licenses', async function () {

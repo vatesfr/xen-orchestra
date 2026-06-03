@@ -70,7 +70,7 @@ const AUTHORIZATIONS = {
 
 // features: https://vates.tech/en/pricing-and-support/
 const BUNDLE_AUTHORIZATIONS = {
-  ACL: [BUNDLE_ESSENTIAL_PLUS, BUNDLE_PRO, BUNDLE_ENTERPRISE],
+  RBAC: [BUNDLE_ESSENTIAL_PLUS, BUNDLE_PRO, BUNDLE_ENTERPRISE],
 }
 
 export default class Authorization {
