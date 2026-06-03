@@ -1,7 +1,6 @@
 import { describe, test } from 'node:test'
 import { strict as assert } from 'node:assert'
 import { QcowDisk } from './QcowDisk.mjs'
-import { DiskBlock } from '@xen-orchestra/disk-transform'
 
 // Minimal in-memory QcowDisk for testing
 class InMemoryQcowDisk extends QcowDisk {
