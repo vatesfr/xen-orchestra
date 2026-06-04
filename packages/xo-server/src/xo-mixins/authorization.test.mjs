@@ -34,7 +34,7 @@ describe('Authorization', function () {
     describe('bundle-based authorization', function () {
       describe('feature defined in BUNDLE_AUTHORIZATIONS (RBAC)', function () {
         for (const allowedBundle of [BUNDLES.essentialPlus, BUNDLES.pro, BUNDLES.enterprise]) {
-          it(`should allow ACL with: ${allowedBundle}`, async function () {
+          it(`should allow RBAC with: ${allowedBundle}`, async function () {
             const auth = new Authorization(makeApp({ licenses: [makeLicense(allowedBundle)] }))
             await assert.doesNotReject(() => auth.checkFeatureAuthorization('RBAC'))
           })
@@ -73,7 +73,7 @@ describe('Authorization', function () {
               licenses: [makeLicense('bundle-essential'), makeLicense('bundle-essential-plus')],
             })
           )
-          // ACL requires bundle-essential-plus → should pass because it picks the best bundle
+          // RBAC requires bundle-essential-plus → should pass because it picks the best bundle
           await assert.doesNotReject(() => auth.checkFeatureAuthorization('RBAC'))
         })
       })
@@ -108,8 +108,8 @@ describe('Authorization', function () {
     describe('legacy plan-based authorization (no active bundle)', function () {
       for (const [plan, feature, shouldPass] of [
         ['starter', 'BACKUP.DELTA', true],
-        ['starter', 'ACL', false],
-        ['enterprise', 'ACL', true],
+        ['starter', 'RBAC', false],
+        ['enterprise', 'RBAC', true],
         ['enterprise', 'WARM_MIGRATION', false],
         ['premium', 'WARM_MIGRATION', true],
         ['free', 'BACKUP.DELTA', false],
@@ -134,7 +134,7 @@ describe('Authorization', function () {
 
     it('should return false when feature is not authorized', async function () {
       const auth = new Authorization(makeApp({ licenses: [makeLicense(BUNDLES.essential)] }))
-      assert.equal(await auth.hasFeatureAuthorization('ACL'), false)
+      assert.equal(await auth.hasFeatureAuthorization('RBAC'), false)
     })
   })
 })

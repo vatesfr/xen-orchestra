@@ -58,7 +58,7 @@ export type XapiConnection = Xapi & {
 }
 
 type FeatureCode =
-  | 'ACL'
+  | 'RBAC'
   | 'BACKUP.DELTA'
   | 'BACKUP.DELTA_REPLICATION'
   | 'BACKUP.FULL'
@@ -157,11 +157,11 @@ export type XoApp = {
         path: string
       }
       [key: string]:
-      | undefined
-      | {
-        url: string
-        path: string
-      }
+        | undefined
+        | {
+            url: string
+            path: string
+          }
     }>
   }
 
@@ -230,7 +230,7 @@ export type XoApp = {
     expiresIn?: string | number
     userId: XoUser['id']
   }): Promise<XoAuthenticationToken>
-  createUser(params: { name?: string; password?: string;[key: string]: unknown }): Promise<XoUser>
+  createUser(params: { name?: string; password?: string; [key: string]: unknown }): Promise<XoUser>
   deleteAclV2GroupRole(groupId: XoGroup['id'], roleId: XoAclRole['id']): Promise<boolean>
   deleteAclV2Privilege(privilegeId: XoAclBasePrivilege['id'], options?: { force?: boolean }): Promise<boolean>
   deleteAclV2Role(roleId: XoAclRole['id'], options?: { force?: boolean }): Promise<boolean>
