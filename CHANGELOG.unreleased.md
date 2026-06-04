@@ -26,6 +26,9 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- **XO 5**:
+  - [Jobs] fix array values being incorrectly handled (used for instance on job.runSequence) (PR [#9928](https://github.com/vatesfr/xen-orchestra/pull/9928))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -45,5 +48,6 @@
 - @vates/types minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/rest-api minor
+- xo-web patch
 
 <!--packages-end-->
