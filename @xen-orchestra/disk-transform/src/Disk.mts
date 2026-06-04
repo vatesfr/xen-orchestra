@@ -18,6 +18,9 @@ export abstract class Disk {
 
   abstract getVirtualSize(): number
   abstract getBlockSize(): number
+  getAllocatedBlockCount(): number {
+    return this.getBlockIndexes().length
+  }
   abstract init(): Promise<void>
   abstract close(): Promise<void>
 

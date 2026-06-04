@@ -72,6 +72,20 @@ export class DiskSmallerBlock extends DiskPassthrough {
   #isBlockBeforeEnd(blockIndex: number): boolean {
     return blockIndex < this.#maxBlockIndex
   }
+  getAllocatedBlockCount(): number {
+    const blockRatio = this.source.getBlockSize() / this.getBlockSize()
+    const sourceIndexes = this.source.getBlockIndexes()
+    let count = 0
+    for (const sourceIndex of sourceIndexes) {
+      for (let i = 0; i < blockRatio; i++) {
+        if (this.#isBlockBeforeEnd(sourceIndex * blockRatio + i)) {
+          count++
+        }
+      }
+    }
+    return count
+  }
+
   getBlockIndexes(): Array<number> {
     const blockRatio = this.source.getBlockSize() / this.getBlockSize()
     const sourceIndexes = this.source.getBlockIndexes()
