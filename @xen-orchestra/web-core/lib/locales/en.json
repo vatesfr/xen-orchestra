@@ -693,6 +693,7 @@
   "not-running": "Not running",
   "not-yet-available": "Information is not yet available",
   "object": "Object",
+  "object-cannot-be-found": "Object cannot be found",
   "object-not-found": "Object {id} can't be found…",
   "off": "Off",
   "offline": "Offline",

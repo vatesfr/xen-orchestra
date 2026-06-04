@@ -1,5 +1,5 @@
 import { defineColumns } from '@core/packages/table/define-columns.ts'
-import { useDoubleLinkColumn } from '@core/tables/column-definitions/double-link-column.ts'
+import { useDoubleLinkOrTextColumn } from '@core/tables/column-definitions/double-link-or-text-column.ts'
 import { useNumberColumn } from '@core/tables/column-definitions/number-column.ts'
 import { useSelectItemColumn } from '@core/tables/column-definitions/select-item-column.ts'
 import { useTagColumn } from '@core/tables/column-definitions/tag-column.ts'
@@ -23,7 +23,7 @@ export const useTrafficRulesColumns = defineColumns(() => {
       headerLabel: () => t('direction'),
       headerIcon: 'fa:square-caret-down',
     }),
-    object: useDoubleLinkColumn({ headerLabel: () => t('object') }),
+    object: useDoubleLinkOrTextColumn({ headerLabel: () => t('object') }),
     selectItem: useSelectItemColumn(),
   }
 })

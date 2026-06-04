@@ -11,8 +11,8 @@ import { useI18n } from 'vue-i18n'
 type TrafficRuleTargetEntry = {
   label: string
   icon: IconName
+  codeSnippet?: boolean
   to: LinkOptions['to']
-  disabled?: boolean
 }
 
 export type TrafficRuleTarget = TrafficRuleTargetEntry & {
@@ -39,11 +39,19 @@ export function useTrafficRuleTarget() {
     const vif = getVifById(rule.sourceId)
     const vm = vif ? getVmById(vif.$VM) : undefined
 
+    if (vif && !vm) {
+      return {
+        label: vif.$VM,
+        icon: 'status:danger-circle',
+        codeSnippet: true,
+        to: undefined,
+      }
+    }
+
     return {
       label: vif ? `${t('vif')}${vif.device}` : '',
       icon: 'object:vif',
       to: vif ? { name: '/vif/[id]/general', params: { id: vif.id } } : undefined,
-      disabled: !vm,
       suffix: vm
         ? {
             label: vm.name_label,

@@ -693,6 +693,7 @@
   "not-running": "Pas en cours d'exécution",
   "not-yet-available": "Information pas encore disponible",
   "object": "Objet",
+  "object-cannot-be-found": "L'objet est introuvable",
   "object-not-found": "L'objet {id} est introuvable…",
   "off": "Éteint",
   "offline": "Hors ligne",

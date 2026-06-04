@@ -32,10 +32,14 @@
         <template #key>
           {{ t('vm') }}
         </template>
-        <template v-if="vm" #value>
-          <UiLink size="small" :icon="vmStatus" :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
+        <template #value>
+          <UiLink v-if="vm" size="small" :icon="vmStatus" :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
             {{ vm.name_label }}
           </UiLink>
+          <span v-else class="object-not-found">
+            <VtsIcon name="status:danger-circle" size="medium" />
+            {{ t('object-cannot-be-found') }}
+          </span>
         </template>
         <template v-if="vm" #addons>
           <VtsCopyButton :value="vm.name_label" />
@@ -130,6 +134,7 @@ import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
@@ -186,5 +191,11 @@ const vifDevice = computed(() => `${t('vif')}${vif.device}`)
     flex-direction: column;
     gap: 0.4rem;
   }
+}
+
+.object-not-found {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
 }
 </style>
