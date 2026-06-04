@@ -1,6 +1,6 @@
 <template>
   <UiCard>
-    <UiTitle class="title-with-counter" type="h4">
+    <UiTitle>
       {{ t('tasks') }}
       <UiCounter :value="pendingTasks.length" accent="info" size="medium" variant="primary" />
     </UiTitle>
@@ -10,11 +10,11 @@
 
 <script lang="ts" setup>
 import TasksTable from '@/components/tasks/TasksTable.vue'
-import UiCard from '@/components/ui/UiCard.vue'
-import UiTitle from '@/components/ui/UiTitle.vue'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useTaskStore } from '@/stores/xen-api/task.store'
+import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
 
 const { pendingTasks, finishedTasks } = useTaskStore().subscribe()
@@ -27,13 +27,6 @@ titleStore.setCount(() => pendingTasks.value.length)
 </script>
 
 <style lang="postcss" scoped>
-.title-with-counter {
-  display: flex;
-  align-items: center;
-  margin-bottom: 1rem;
-  gap: 1rem;
-}
-
 .ui-card {
   margin: 1rem;
 }
