@@ -4,7 +4,7 @@
     :params="[
       prop('title').str().widget().preset('Drawer Title'),
       prop('isOpen').bool().widget(),
-      prop('onDismiss').type('() => void').help('Show dismiss button and enable backdrop click'),
+      prop('isDismissible').bool().help('Show dismiss button and enable backdrop click'),
       event('dismiss').help('Emitted when dismiss button or backdrop is clicked'),
       slot('content').help('Main content area'),
       slot('buttons').help('Footer buttons area'),
@@ -32,12 +32,7 @@
   >
     <UiButton variant="primary" accent="brand" size="medium" @click="isOpen = true">Open Drawer</UiButton>
 
-    <UiDrawer
-      :is-open
-      :title="properties.title"
-      :on-dismiss="settings.dismissible ? () => (isOpen = false) : undefined"
-      @dismiss="isOpen = false"
-    >
+    <UiDrawer :is-open :title="properties.title" :is-dismissible="settings.dismissible" @dismiss="isOpen = false">
       <template #content>
         <p>This is the drawer content.</p>
       </template>

@@ -1,7 +1,7 @@
 <template>
   <Transition name="drawer" @after-leave="emit('afterLeave')">
-    <div v-if="isOpen" class="ui-drawer" @click.self="onDismiss && emit('dismiss')">
-      <aside class="drawer" role="dialog" aria-modal="true">
+    <div v-if="isOpen" class="ui-drawer" aria-modal="true" role="dialog" @click.self="isDismissible && emit('dismiss')">
+      <aside class="drawer">
         <div class="header">
           <div v-if="slots.title || title !== undefined" class="typo-h4">
             <slot name="title">
@@ -9,7 +9,7 @@
             </slot>
           </div>
           <UiButtonIcon
-            v-if="onDismiss"
+            v-if="isDismissible"
             :target-scale="2"
             icon="action:close-cancel-clear"
             accent="brand"
@@ -34,7 +34,7 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 
 defineProps<{
   isOpen: boolean
-  onDismiss?: () => void
+  isDismissible?: boolean
   title?: string
 }>()
 

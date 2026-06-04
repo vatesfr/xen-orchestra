@@ -14,10 +14,6 @@ const { onClick } = defineProps<{
   onClick?: () => void
 }>()
 
-const emit = defineEmits<{
-  click: []
-}>()
-
 defineSlots<{
   default?(): any
 }>()
@@ -28,7 +24,7 @@ const drawer = inject(IK_DRAWER)
 
 function handleClick() {
   if (onClick) {
-    emit('click')
+    onClick()
     return
   }
 
