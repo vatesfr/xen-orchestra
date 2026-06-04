@@ -40,6 +40,7 @@
   "action:create-traffic-rule": "Créer une règle de trafic",
   "action:create-vdi": "Créer un VDI",
   "action:delete": "Supprimer",
+  "action:detach": "Détacher",
   "action:delete-filter": "Supprimer le filtre",
   "action:delete-group": "Supprimer le groupe",
   "action:delete-n-networks": "Supprimer 1 réseau | Supprimer {n} réseaux",

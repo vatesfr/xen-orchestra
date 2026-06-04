@@ -33,7 +33,7 @@
             @click="open($event)"
           />
         </template>
-        <VmMoreActions :vm />
+        <VdiMoreActions :vm :vdi :vbd />
       </MenuList>
     </template>
   </UiHeadBar>
@@ -41,9 +41,9 @@
 
 <script lang="ts" setup>
 import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import VdiMoreActions from '@/modules/vdi/components/VdiMoreActions.vue'
 import VdiPowerStateActions from '@/modules/vdi/components/VdiPowerStateActions.vue'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import VmMoreActions from '@/modules/vm/components/actions/VmMoreActions.vue'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import MenuList from '@core/components/menu/MenuList.vue'
