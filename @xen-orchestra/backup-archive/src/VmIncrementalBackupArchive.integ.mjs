@@ -686,3 +686,31 @@ test('check all types of aliases, corrupted, missing or not', async () => {
   assert.equal(data.length, 1)
   assert.equal(data[0], 'ok.vhd')
 })
+
+test('it preserves VDI directory when handler.list() throws during lineage init', async () => {
+  // Regression: when handler.list(vdiDir) threw (e.g. S3 404), the lineage
+  // was never added to #uniqueLineages, so cleanOrphanDiskDirs treated the directory
+  // as an orphan and deleted it with rmtree()
+  await generateVhd(`${basePath}/snapshot.vhd`)
+  await handler.writeFile(
+    `${rootPath}/metadata.json`,
+    JSON.stringify({ mode: 'delta', vhds: [`${relativePath}/snapshot.vhd`] })
+  )
+
+  const originalList = handler.list.bind(handler)
+  handler.list = async (path, opts) => {
+    if (typeof path === 'string' && path.includes(vdiId)) {
+      throw Object.assign(new Error('Simulated transient storage error'), { code: 'ENOENT' })
+    }
+    return originalList(path, opts)
+  }
+
+  try {
+    await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true, logWarn: () => {}, logInfo: () => {} })
+  } finally {
+    handler.list = originalList
+  }
+
+  const remaining = await handler.list(basePath)
+  assert.ok(remaining.includes('snapshot.vhd'), 'VHD must survive when handler.list() throws during lineage init')
+})

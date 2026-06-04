@@ -1,11 +1,11 @@
 <template>
   <UiCard class="vms-page-content">
-    <UiCardTitle subtitle>
+    <UiTitle>
       {{ t('vms') }}
       <template v-if="uiStore.isSmall" #right>
         <VmsActionsBar :selected-refs="selectedVmsRefs" />
       </template>
-    </UiCardTitle>
+    </UiTitle>
     <VmsActionsBar v-if="!uiStore.isSmall" :selected-refs="selectedVmsRefs" />
     <div>
       <div class="filter-and-sort">
@@ -65,9 +65,9 @@ import VtsHeaderCell from '@core/components/table/cells/VtsHeaderCell.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
+import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useTableState } from '@core/composables/table-state.composable'
 import { objectIcon } from '@core/icons'
@@ -177,7 +177,6 @@ const { HeadCells, BodyCells } = useVmColumns({
 .vms-page-content {
   overflow: auto;
   margin: 1rem;
-  gap: 0;
 
   .filter-and-sort {
     display: flex;
