@@ -635,6 +635,7 @@ export class HostController extends XapiXoController<XoHost> {
       taskProperties: {
         name: 'clean shutdown host',
         objectId: hostId,
+        params: body,
       },
     })
   }
@@ -683,12 +684,20 @@ export class HostController extends XapiXoController<XoHost> {
     @Query() sync?: boolean
   ): CreateActionReturnType<void> {
     const force = body?.force ?? false
+    const bypassBackupCheck = body?.bypassBackupCheck ?? force
+    const bypassVersionCheck = body?.bypassVersionCheck ?? force
     const bypassBlockedSuspend = body?.bypassBlockedSuspend ?? force
     const bypassCurrentVmCheck = body?.bypassCurrentVmCheck ?? force
 
     const hostId = id as XoHost['id']
     const action = async () => {
-      this.#hostService.restartHost(hostId, { ...body, bypassBlockedSuspend, bypassCurrentVmCheck })
+      this.#hostService.restartHost(hostId, {
+        ...body,
+        bypassBackupCheck,
+        bypassVersionCheck,
+        bypassBlockedSuspend,
+        bypassCurrentVmCheck,
+      })
     }
 
     return this.createAction<void>(action, {
@@ -697,6 +706,7 @@ export class HostController extends XapiXoController<XoHost> {
       taskProperties: {
         name: 'restart host',
         objectId: hostId,
+        params: body,
       },
     })
   }
@@ -711,7 +721,7 @@ export class HostController extends XapiXoController<XoHost> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/restart_toolstack')
-  @Middlewares(acl({ resource: 'host', action: 'restart-toolstack', objectId: 'params.id' }))
+  @Middlewares([json(), acl({ resource: 'host', action: 'restart-toolstack', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -737,6 +747,7 @@ export class HostController extends XapiXoController<XoHost> {
       taskProperties: {
         name: "restart host's toolstack",
         objectId: hostId,
+        params: body,
       },
     })
   }
