@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [REST API] `PATCH /rest/v0/vdis/{id}` to update a VDI's name and description (PR [#9945](https://github.com/vatesfr/xen-orchestra/pull/9945))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -30,5 +32,8 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/acl minor
+- @xen-orchestra/rest-api minor
 
 <!--packages-end-->
