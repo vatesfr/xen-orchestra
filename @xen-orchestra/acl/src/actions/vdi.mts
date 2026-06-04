@@ -7,6 +7,8 @@ export default {
   'migrate-send': true,
   read: true,
   update: {
+    nameDescription: true,
+    nameLabel: true,
     tags: true,
   },
 }

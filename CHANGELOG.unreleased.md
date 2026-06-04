@@ -65,6 +65,7 @@
     - @xen-orchestra/lite (only in dev dependencies for npm-run-all)
   - vue-router fixed to 5.0.6 (@babel/generator@^8.0.0-rc.4 in 5.0.7)
   - update packages to sync with yarn.lock (e.g. client-s3 package)
+- [REST API] `PATCH /rest/v0/vdis/{id}` to update a VDI's name and description (PR [#9945](https://github.com/vatesfr/xen-orchestra/pull/9945))
 
 ### Bug fixes
 
