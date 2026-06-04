@@ -114,7 +114,7 @@ export class HostService {
     if (opts?.bypassBackupCheck) {
       log.warn('host clean_shutdown called with argument "bypassBackupCheck" set to true', { hostId })
     } else {
-      await this.#restApi.xoApp.backupGuard(host.$pool as XoPool['id'])
+      await this.#restApi.xoApp.backupGuard(host.$pool)
     }
 
     await this.#restApi.getXapiObject(hostId, 'host').$xapi.shutdownHost(hostId, opts)
@@ -132,8 +132,9 @@ export class HostService {
     } = {}
   ): Promise<void> {
     const host = this.#restApi.getObject<XoHost>(hostId)
-    const poolId = host.$pool as XoPool['id']
-    const xapi = this.#restApi.getXapiObject(hostId, 'host').$xapi
+    const xapiHost = this.#restApi.getXapiObject<XoHost>(hostId, 'host')
+    const poolId = host.$pool
+    const xapi = xapiHost.$xapi
 
     if (opts?.bypassBackupCheck) {
       log.warn('host.reboot called with "bypassBackupCheck" set to true', { hostId })
@@ -174,11 +175,7 @@ export class HostService {
     }
 
     if (opts?.suspendResidentVms) {
-      await xapi.host_smartReboot(
-        host._xapiRef as XenApiHost['$ref'],
-        opts?.bypassBlockedSuspend,
-        opts?.bypassCurrentVmCheck
-      )
+      await xapi.host_smartReboot(xapiHost.$ref, opts?.bypassBlockedSuspend, opts?.bypassCurrentVmCheck)
     } else {
       await xapi.rebootHost(hostId, opts?.force)
     }
@@ -195,9 +192,9 @@ export class HostService {
     if (opts?.bypassBackupCheck) {
       log.warn('host clean_shutdown called with argument "bypassBackupCheck" set to true', { hostId })
     } else {
-      await this.#restApi.xoApp.backupGuard(host.$pool as XoPool['id'])
+      await this.#restApi.xoApp.backupGuard(host.$pool)
     }
 
-    await (this.#restApi.getXapiObject<XoHost>(hostId, 'host') as XenApiHostWrapped).$restartAgent()
+    await this.#restApi.getXapiObject<XoHost>(hostId, 'host').$restartAgent()
   }
 }
