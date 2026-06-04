@@ -46,6 +46,7 @@
 - [Netbox] Support Netbox v4.6.x [#9818](https://github.com/vatesfr/xen-orchestra/issues/9818) (PR [#9939](https://github.com/vatesfr/xen-orchestra/pull/9939))
 - [Icons] Updated connect/disconnect icons to use a plug icon (PR [#9942](https://github.com/vatesfr/xen-orchestra/pull/9942))
 - [Modal] Updated modal windows with a border and unified backgound color for better readability (PR [#9825](https://github.com/vatesfr/xen-orchestra/pull/9825))
+- [Pool/Security] Add error message when VM not found (PR [#9946](https://github.com/vatesfr/xen-orchestra/pull/9946))
 
 ### Bug fixes
 
