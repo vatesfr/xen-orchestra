@@ -28,7 +28,6 @@ import {
   invalidParameters,
   noContentResp,
   notFoundResp,
-  resourceAlreadyExists,
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
@@ -139,14 +138,15 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   }
 
   /**
-   * Required privilege:
+   * Required privileges:
    * - resource: backup-repository, action: update (grants all fields)
-   * - resource: backup-repository, action: update:enable (if enable is passed)
+   * - resource: backup-repository, action: update:enabled (if enabled is passed)
    * - resource: backup-repository, action: update:name (if name is passed)
    * - resource: backup-repository, action: update:options (if options is passed)
    * - resource: backup-repository, action: update:proxy (if proxy is passed)
    * - resource: backup-repository, action: update:url (if url is passed)
    *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    * @example body { "enabled": true, "name": "NFS Remote", "options": "vers=4", "proxy": "722d17b9-699b-59d2-8193-be1ac573d3de", "url": "nfs://192.168.100.225:/media/nfs" }
    */
   @Patch('{id}')
@@ -167,6 +167,6 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
     @Path() id: string,
     @Body() body: Unbrand<Parameters<XoApp['updateRemote']>[1]>
   ): Promise<void> {
-    await this.restApi.xoApp.updateRemote(id as XoBackupRepository['id'], body)
+    await this.restApi.xoApp.updateRemote(id as XoBackupRepository['id'], body as Parameters<XoApp['updateRemote']>[1])
   }
 }
