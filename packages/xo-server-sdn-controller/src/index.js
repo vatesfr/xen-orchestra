@@ -741,7 +741,7 @@ class SDNController extends EventEmitter {
                 description: 'Invalid parameters',
               },
             ],
-            middlewares: [{ name: 'json' }],
+            middlewares: [{ name: 'json' }, { name: 'acl', acls: { resource: 'vif', action: 'read', objects: [{}] } }],
             callback: ({ req, createAction }) => {
               const { oldRule, newRule: partialNewRule } = req.body ?? {}
               const vifId = req.params.id
