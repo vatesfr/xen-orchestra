@@ -41,6 +41,7 @@
   - `/vms/:id/actions/migrate` (PR [#9910](https://github.com/vatesfr/xen-orchestra/pull/9910))
 
 - [XO6] live update XO tasks (PR [#9901](https://github.com/vatesfr/xen-orchestra/pull/9901))
+- [XO6] add dedicated SR page with General (info, space, PBD details, custom fields), VDIs, and Hosts tabs (PR [#9921](https://github.com/vatesfr/xen-orchestra/pull/9921))
 - [XO6/Backup] add progress for backups tasks(PR [#9901](https://github.com/vatesfr/xen-orchestra/pull/9901))
 - [XO6/Traffic Rules] add colors for tags in policy column (PR [#9979](https://github.com/vatesfr/xen-orchestra/pull/9979))
 - [XO6/Traffic rules] add possibility to delete a traffic rule (PR [#9956](https://github.com/vatesfr/xen-orchestra/pull/9956))
