@@ -65,7 +65,6 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
         Task.info('vms', { vms: vmsUuids })
         const nbVms = vmsUuids.length
         let nbVmsDone = 0
-        Task.set('progress', 0)
 
         remoteAdapters = getAdaptersByRemote(remoteAdapters)
         const allSettings = this._job.settings
