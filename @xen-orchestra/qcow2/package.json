@@ -8,6 +8,7 @@
     "dev": "tsc --watch",
     "postversion": "npm publish --access public",
     "clean": "rimraf dist/",
+    "test": "tsc && node --test 'dist/**/*.test.mjs'",
     "test-integration": "tsc && node --test dist/consumer/ConsumerQcowStream.integ.mjs"
   },
   "author": {

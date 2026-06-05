@@ -26,6 +26,7 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [Qcow2] Fix initialization Map range error for big (>1 TB) Qcow2 disks (PR [#9940](https://github.com/vatesfr/xen-orchestra/pull/9940))
 - **XO 5**:
   - [Jobs] fix array values being incorrectly handled (used for instance on job.runSequence) (PR [#9928](https://github.com/vatesfr/xen-orchestra/pull/9928))
 
@@ -47,6 +48,7 @@
 
 - @vates/types minor
 - @xen-orchestra/acl minor
+- @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
 - xo-web patch
 
