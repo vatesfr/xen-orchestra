@@ -10,7 +10,11 @@ export type Unbrand<T> = {
       ? string[]
       : T[K] extends Branded<string> | undefined
         ? string | undefined
-        : T[K]
+        : T[K] extends Branded<string> | null
+          ? string | null
+          : T[K] extends Branded<string> | null | undefined
+            ? string | null | undefined
+            : T[K]
 }
 
 export const createdResp = {
