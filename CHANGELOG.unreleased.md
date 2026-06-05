@@ -127,9 +127,11 @@
 - @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/upload-ova patch
+- @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi minor
+- @xen-orchestra/xva patch
 - xo-common minor
 - xo-server minor
 - xo-server-ipmi-sensors patch
