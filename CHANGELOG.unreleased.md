@@ -48,14 +48,13 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
 - @vates/types minor
 - @xen-orchestra/acl minor
+- @xen-orchestra/disk-transform patch
 - @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
 - xo-server-sdn-controller patch
 - xo-web patch
-
-- @xen-orchestra/disk-transform patch
-- @xen-orchestra/qcow2 patch
 
 <!--packages-end-->
