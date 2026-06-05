@@ -52,14 +52,14 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
 - @vates/types minor
 - @xen-orchestra/acl minor
-- @xen-orchestra/backups minor
-- @xen-orchestra/disk-transform minor
-- @xen-orchestra/mixins minor
 - @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/xapi minor
 - xo-server minor
 - xo-server-sdn-controller patch
 - xo-web patch
+
 <!--packages-end-->
