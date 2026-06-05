@@ -140,6 +140,7 @@ export class VifController extends XapiXoController<XoVif> {
   /**
    * Partial update of a VIF: only the fields present in the body are modified.
    * Setting the allowed IPs to a non-empty list switches the locking mode to `locked`.
+   * `rateLimit` is expressed in kB/s (kilobytes per second).
    *
    * Required privilege per field provided in the body:
    * - resource: vif, action: update:&lt;field&gt;
