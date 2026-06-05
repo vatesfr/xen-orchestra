@@ -1,4 +1,5 @@
 import { ProgressHandler } from './ProgressHandler.mjs'
+import crypto from 'node:crypto'
 
 export type DiskBlockData = Buffer
 export type DiskBlock = {
@@ -9,6 +10,10 @@ export type DiskBlock = {
 export type BytesLength = number
 
 export abstract class Disk {
+  #uuid:string = crypto.randomUUID().toString()
+  get uuid(){
+    return this.#uuid
+  }
   #generatedDiskBlocks = 0
   #parent?: Disk
   progressHandler?: ProgressHandler
