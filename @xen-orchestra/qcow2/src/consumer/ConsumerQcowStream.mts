@@ -31,6 +31,7 @@ type WithLength<T> = T & { length?: number }
 export class QcowStreamGenerator {
   #disk: Disk
   #offset = 0
+  #nbAllocatedBlocks = 0
 
   /**
    * Creates a new QCOW2 stream generator
@@ -48,6 +49,7 @@ export class QcowStreamGenerator {
       this.#disk = disk
     }
     assert.strictEqual(this.#disk.getBlockSize(), CLUSTER_SIZE)
+    this.#nbAllocatedBlocks = this.#disk.getAllocatedBlockCount()
   }
 
   /**
@@ -104,7 +106,7 @@ export class QcowStreamGenerator {
    */
   #computeRefCountSize(addressTableSize: number): { refCountL1Size: number; refCountL2Size: number } {
     const disk = this.#disk
-    const nbBlocks = disk.getBlockIndexesCount()
+    const nbBlocks = this.#nbAllocatedBlocks
 
     // Total clusters needed (header + addressing tables + data clusters)
     let nbAllocatedClusters = 1 /* header */ + addressTableSize / CLUSTER_SIZE + nbBlocks
@@ -241,7 +243,7 @@ export class QcowStreamGenerator {
    */
   stream(signal?: AbortSignal): WithLength<Readable> {
     const disk = this.#disk
-    const nbAllocatedBlocks = disk.getBlockIndexesCount()
+    const nbAllocatedBlocks = this.#nbAllocatedBlocks
     const nbTotalBlock = Math.ceil(disk.getVirtualSize() / disk.getBlockSize())
     // Compute table sizes
     const { size: addressTableSize, nbL1Entries } = this.#computeAddressingSpace()
