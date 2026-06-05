@@ -152,6 +152,22 @@ export abstract class QcowDisk extends RandomAccessDisk {
     return blockIndexes
   }
 
+  getBlockIndexesCount(): number {
+    // an L2 table doesn't mean all its cluster slots are allocated
+    // so we must inspect each entry
+    let count = 0
+    this.#l2Tables.forEach(l2TableBuffer => {
+      if (l2TableBuffer) {
+        for (let i = 0; i < l2TableBuffer.length; i += this.#l2Increment) {
+          if (Number(l2TableBuffer.readBigUInt64BE(i) & 0x00ffffffffffe0n) !== 0) {
+            count++
+          }
+        }
+      }
+    })
+    return count
+  }
+
   hasBlock(index: number): boolean {
     if (this.#nbClusterPerL2Table == 0 || this.#l2Increment == 0) {
       throw new Error(`QcowDisk.init() has not been called`)
