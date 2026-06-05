@@ -31,6 +31,7 @@
 - [Qcow2] Fix initialization Map range error for big (>1 TB) Qcow2 disks (PR [#9940](https://github.com/vatesfr/xen-orchestra/pull/9940))
 - **XO 5**:
   - [Jobs] fix array values being incorrectly handled (used for instance on job.runSequence) (PR [#9928](https://github.com/vatesfr/xen-orchestra/pull/9928))
+- [V2V] Fix stream issue for large disks used with smaller blocks (PR [#9948](https://github.com/vatesfr/xen-orchestra/pull/9948))
 
 ### Packages to release
 
@@ -54,6 +55,7 @@
 - xo-server-sdn-controller patch
 - xo-web patch
 
+- @xen-orchestra/disk-transform patch
 - @xen-orchestra/qcow2 patch
 
 <!--packages-end-->

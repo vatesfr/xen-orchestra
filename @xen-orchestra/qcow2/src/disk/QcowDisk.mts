@@ -52,7 +52,7 @@ export abstract class QcowDisk extends RandomAccessDisk {
   abstract readBuffer(offset: number, length: number): Promise<Buffer>
 
   async readBlock(index: number): Promise<DiskBlock> {
-    if (this.#nbClusterPerL2Table == 0 || this.#l2Increment == 0) {
+    if (this.#nbClusterPerL2Table === 0 || this.#l2Increment === 0) {
       throw new Error(`QcowDisk.init() has not been called`)
     }
 
@@ -169,7 +169,7 @@ export abstract class QcowDisk extends RandomAccessDisk {
   }
 
   hasBlock(index: number): boolean {
-    if (this.#nbClusterPerL2Table == 0 || this.#l2Increment == 0) {
+    if (this.#nbClusterPerL2Table === 0 || this.#l2Increment === 0) {
       throw new Error(`QcowDisk.init() has not been called`)
     }
 
