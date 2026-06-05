@@ -1043,6 +1043,7 @@
   "used-for-backup": "Used for backup",
   "used-space": "Used space",
   "used-space-on-sr": "Used space on SR",
+  "free-space-on-sr": "Free space on SR",
   "user-config": "User config",
   "username": "Username",
   "uuid": "UUID",
