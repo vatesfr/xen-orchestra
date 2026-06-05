@@ -1,5 +1,5 @@
 <template>
-  <MenuItem v-if="vbd.attached" icon="action:connect" :busy="isRunning" :disabled="!canRun" @click="connectVdi()">
+  <MenuItem icon="action:connect" :busy="isRunning" :disabled="!canRun" @click="connectVdi()">
     {{ t('action:connect') }}
   </MenuItem>
 </template>

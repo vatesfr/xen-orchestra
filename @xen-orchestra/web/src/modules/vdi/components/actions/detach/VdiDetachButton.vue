@@ -31,9 +31,3 @@ const {
 
 const hint = computed(() => (!canDeleteVbd.value ? t('vm-running') : undefined))
 </script>
-
-<style lang="postcss" scoped>
-.delete {
-  color: var(--color-danger-item-base);
-}
-</style>
