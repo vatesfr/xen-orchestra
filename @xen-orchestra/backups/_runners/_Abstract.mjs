@@ -11,7 +11,22 @@ export const DEFAULT_SETTINGS = {
   reportWhen: 'failure',
 }
 
+export class AggregateError extends Error {
+  constructor(errors, message) {
+    super(message)
+    this.errors = errors
+  }
+}
+
 export const Abstract = class AbstractRunner {
+  _throwVmErrors(errors) {
+    if (errors.length === 1) {
+      throw errors[0]
+    } else if (errors.length > 1) {
+      throw new AggregateError(errors, `${errors.length} VMs failed`)
+    }
+  }
+
   constructor({ config, getAdapter, getConnectedRecord, job, schedule }) {
     this._config = config
     this._getRecord = getConnectedRecord
