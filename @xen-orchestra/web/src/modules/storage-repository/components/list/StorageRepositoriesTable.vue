@@ -111,7 +111,7 @@ const { HeadCells, BodyCells } = useSrColumns({
   body: (sr: FrontXoSr) => {
     const { buildXo5Route } = useXoRoutes()
 
-    const href = computed(() => buildXo5Route(`/srs/${sr.id}/general`))
+    const href = computed(() => buildXo5Route(`/sr/${sr.id}`))
     const rightIcon = computed(() => getPrimaryIcon(sr))
 
     const { allPbdsConnectionStatus } = useXoPbdUtils(() => getPbdsByIds(sr.$PBDs))
