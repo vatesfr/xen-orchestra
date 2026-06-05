@@ -92,8 +92,6 @@ const { HeadCells, BodyCells } = useVdiColumns({
 
     const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm.id))
 
-    // const href = computed(() => buildXo5Route(`/vms/${vm.id}/disks?s=1_6_asc-${vdi.id}`))
-
     const size = computed(() => formatSizeRaw(vdi.size, 2))
     const format = computed(() => getVdiFormat(vdi.image_format))
 
