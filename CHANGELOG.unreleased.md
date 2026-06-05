@@ -12,9 +12,26 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 - [IPMI-Plugin] Add default outlet regex to the dell preset (PR [#9884](https://github.com/vatesfr/xen-orchestra/pull/9884))
 
+- [REST API] Expose `POST /backup-repositories` and `PATCH /backup-repositories/:id` REST routes (PR [#9852](https://github.com/vatesfr/xen-orchestra/pull/9852))
+- [SDN Controller] Replace xapi.objects.all with specified object types to avoid filtering through all objects each time (PR [#9886](https://github.com/vatesfr/xen-orchestra/pull/9886))
+
+- **RBAC** check for REST API endpoints:
+  - `POST /vbds` (PR [#9904](https://github.com/vatesfr/xen-orchestra/pull/9904))
+  - `DELETE /vbds/:id` (PR [#9904](https://github.com/vatesfr/xen-orchestra/pull/9904))
+  - `POST vbds/:id/actions/connect` (PR [#9904](https://github.com/vatesfr/xen-orchestra/pull/9904))
+  - `POST vbds/:id/actions/disconnect` (PR [#9904](https://github.com/vatesfr/xen-orchestra/pull/9904))
+  - `POST /vifs` (PR [#9889](https://github.com/vatesfr/xen-orchestra/pull/9889))
+  - `DELETE /vifs/:id` (PR [#9889](https://github.com/vatesfr/xen-orchestra/pull/9889))
+  - `POST /vifs/:id/actions/connect` (PR [#9889](https://github.com/vatesfr/xen-orchestra/pull/9889))
+  - `POST /vifs/:id/actions/disconnect` (PR [#9889](https://github.com/vatesfr/xen-orchestra/pull/9889))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
+
+- [Qcow2] Fix initialization Map range error for big (>1 TB) Qcow2 disks (PR [#9940](https://github.com/vatesfr/xen-orchestra/pull/9940))
+- **XO 5**:
+  - [Jobs] fix array values being incorrectly handled (used for instance on job.runSequence) (PR [#9928](https://github.com/vatesfr/xen-orchestra/pull/9928))
 
 ### Packages to release
 
@@ -31,5 +48,12 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+- @vates/types minor
+- @xen-orchestra/acl minor
+- @xen-orchestra/qcow2 patch
+- @xen-orchestra/rest-api minor
 - xo-server-ipmi-sensors patch
+- xo-server-sdn-controller patch
+- xo-web patch
+
 <!--packages-end-->
