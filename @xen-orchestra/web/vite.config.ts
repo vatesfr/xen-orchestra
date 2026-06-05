@@ -1,8 +1,13 @@
+import { execFileSync } from 'child_process'
 import { fileURLToPath, URL } from 'node:url'
 import vueI18n from '@intlify/unplugin-vue-i18n/vite'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig, loadEnv, PluginOption } from 'vite'
 import vueRouter from 'vue-router/vite'
+
+// TODO: replace XOA_PLAN with a proper build value once implemented.
+const XOA_PLAN = process.env.XOA_PLAN ?? '5'
+const GIT_HEAD = execFileSync('git', ['rev-parse', 'HEAD']).toString().trim()
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -20,6 +25,10 @@ export default defineConfig(({ mode }) => {
         include: fileURLToPath(new URL('../web-core/lib/locales/**', import.meta.url)),
       }),
     ] as PluginOption[],
+    define: {
+      XO_XOA_PLAN: JSON.stringify(Number(XOA_PLAN)),
+      XO_GIT_HEAD: JSON.stringify(GIT_HEAD),
+    },
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),

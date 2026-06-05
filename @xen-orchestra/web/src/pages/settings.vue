@@ -8,7 +8,55 @@
         <VtsColumn :class="{ 'mobile-about': uiStore.isSmall }">
           <div class="typo-h6">{{ t('xen-orchestra') }}</div>
           <VtsTabularKeyValueList>
-            <VtsTabularKeyValueRow :label="t('version')" />
+            <VtsTabularKeyValueRow v-if="!isSourceBuild" :label="t('version')">
+              <template #value>
+                <!-- TODO: bind global XO version when available -->
+                {{ t('unknown') }}
+              </template>
+            </VtsTabularKeyValueRow>
+            <template v-else>
+              <VtsTabularKeyValueRow v-if="xoWebGitHead" :label="t('commit-current')">
+                <template #value>
+                  <UiLink size="medium" :href="commitUrl(xoWebGitHead)">
+                    {{ xoWebGitHead.slice(0, 7) }}
+                  </UiLink>
+                </template>
+              </VtsTabularKeyValueRow>
+              <VtsTabularKeyValueRow :label="t('commit-master')">
+                <template #value>
+                  <span class="flex-spaced typo-body-regular-small">
+                    <span v-if="sourceStatus.status === 'loading'">{{ t('loading') }}</span>
+                    <template v-else-if="sourceStatus.status === 'master-unavailable'">
+                      <VtsIcon v-if="sourceStatus.icon" :name="sourceStatus.icon" size="medium" />
+                      <span>
+                        {{ t('failed-to-fetch-master-commit') }}
+                      </span>
+                    </template>
+                    <template v-else-if="'masterSha' in sourceStatus">
+                      <UiLink size="medium" class="typo-body-regular" :href="sourceStatus.masterUrl">
+                        {{ sourceStatus.masterSha.slice(0, 7) }}
+                      </UiLink>
+                      <VtsIcon v-if="sourceStatus.icon" :name="sourceStatus.icon" size="medium" />
+                      <span v-if="sourceStatus.status === 'up-to-date'">
+                        {{ t('commits-up-to-date') }}
+                      </span>
+                      <template v-else-if="sourceStatus.status === 'drift'">
+                        <span v-if="sourceStatus.nBehind > 0">
+                          {{ t('commits-behind', { n: sourceStatus.nBehind }) }}
+                        </span>
+                        <span v-if="sourceStatus.nBehind > 0 && sourceStatus.nAhead > 0" class="lowercase">{{
+                          t('and')
+                        }}</span>
+                        <span v-if="sourceStatus.nAhead > 0">
+                          {{ t('commits-ahead', { n: sourceStatus.nAhead }) }}
+                        </span>
+                      </template>
+                      <span v-else-if="sourceStatus.status === 'drift-unknown'">{{ t('commits-drift-unknown') }}</span>
+                    </template>
+                  </span>
+                </template>
+              </VtsTabularKeyValueRow>
+            </template>
             <VtsTabularKeyValueRow :label="t('news')">
               <template #value>
                 <UiLink size="medium" :href="XO_LINKS.BLOG">
@@ -149,6 +197,7 @@
 
 <script setup lang="ts">
 import { useTheme } from '@/shared/composables/theme.composable.ts'
+import { useXoGithubSourceStatus } from '@/shared/composables/use-xo-github-source-status.composable.ts'
 import { XCP_LINKS, XO_LINKS } from '@/shared/constants.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
@@ -169,6 +218,16 @@ import type { BasicColorSchema } from '@vueuse/core'
 import { useCookies } from '@vueuse/integrations/useCookies'
 import { watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+
+// TODO: replace XOA_PLAN with a proper build value once implemented.
+const isSourceBuild = XO_XOA_PLAN === 5
+const xoWebGitHead = XO_GIT_HEAD
+
+const { status: sourceStatus } = useXoGithubSourceStatus(isSourceBuild ? xoWebGitHead : '')
+
+function commitUrl(sha: string) {
+  return `https://github.com/vatesfr/xen-orchestra/commit/${sha}`
+}
 
 const { t, locale, availableLocales } = useI18n()
 
@@ -290,6 +349,16 @@ const { id: localeSelectId } = useFormSelect(availableLocales, {
 
   .language {
     max-width: 40rem;
+  }
+
+  .flex-spaced {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+  }
+
+  .lowercase {
+    text-transform: lowercase;
   }
 }
 </style>
