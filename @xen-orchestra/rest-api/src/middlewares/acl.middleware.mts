@@ -6,6 +6,7 @@ import {
   type SupportedActions,
   type SupportedResource,
 } from '@xen-orchestra/acl'
+import { createLogger } from '@xen-orchestra/log'
 import type { Response, NextFunction } from 'express'
 import type { AuthenticatedRequest, MaybePromise } from '../helpers/helper.type.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -15,6 +16,8 @@ import { ServiceIdentifier, ValidateError } from 'tsoa'
 import { ApiError } from '../helpers/error.helper.mjs'
 
 export const ACL_MIDDLEWARE_NAME = '_aclMiddleware'
+
+const log = createLogger('xo:rest-api:middleware')
 
 export function actionsFromBody<Resource extends SupportedResource>(
   actions: SupportedActions<Resource>[]
@@ -201,6 +204,7 @@ export function acl(acls: AclEntry | AclEntry[]) {
     try {
       user = restApi.getCurrentUser()
     } catch (error) {
+      log.warn('An unauthenticated user made its way to acl middleware', error)
       return next(error)
     }
     const invalidFields: { [key: string]: { message: string; value: unknown } } = {}
