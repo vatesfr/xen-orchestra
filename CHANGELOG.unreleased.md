@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [XO6] Add dedicated SR page with General (info, space, PBD details, custom fields), VDIs, and Hosts tabs (PR [#9921](https://github.com/vatesfr/xen-orchestra/pull/9921))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -34,6 +36,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
+- @xen-orchestra/web minor
 - @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/xva patch
 - xo-server patch
