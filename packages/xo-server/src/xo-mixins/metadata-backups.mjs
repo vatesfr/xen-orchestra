@@ -23,7 +23,6 @@ export default class metadataBackup {
 
   constructor(app) {
     this._app = app
-    this._store = undefined
     this._runningMetadataRestores = new Set()
 
     const debounceDelay = app.config.getDuration('backups.listingDebounce')
@@ -31,10 +30,7 @@ export default class metadataBackup {
     this._listPoolMetadataBackups = debounceWithKey(this._listPoolMetadataBackups, debounceDelay, remoteId => remoteId)
 
     app.hooks.on('start', async () => {
-      this._store = await app.getStore('tasks')
-
       app.registerJobExecutor(METADATA_BACKUP_JOB_TYPE, this._executor.bind(this))
-      return () => this._store.close()
     })
   }
 

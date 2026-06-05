@@ -65,12 +65,9 @@ export default class BackupNg {
 
   constructor(app) {
     this._app = app
-    this._store = undefined
     this._runningRestores = new Set()
 
     app.hooks.on('start', async () => {
-      this._store = await app.getStore('tasks')
-
       const executor = async ({
         cancelToken,
         data,
@@ -364,7 +361,6 @@ export default class BackupNg {
       }
       app.registerJobExecutor('backup', executor)
       app.registerJobExecutor('mirrorBackup', executor)
-      return () => this._store.close()
     })
   }
 
