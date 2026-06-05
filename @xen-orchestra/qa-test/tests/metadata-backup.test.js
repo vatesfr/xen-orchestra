@@ -5,7 +5,7 @@ import { createLogger } from '@xen-orchestra/log'
 
 import { DispatchClient } from '../client/dispatchClient.js'
 import { createResourceTracker } from '../utils/resourceTracker.js'
-import { generateBackupJobName, getDefaultSchedule, getRequiredEnv, getScheduleKey } from '../utils/index.js'
+import { delay, generateBackupJobName, getDefaultSchedule, getRequiredEnv, getScheduleKey } from '../utils/index.js'
 import { assertBackupSuccess } from '../utils/backupUtils.js'
 
 const log = createLogger('qa:backup:metadata')
@@ -179,6 +179,12 @@ describe('Metadata backup tests', () => {
 
     it('each run should succeed with pool metadata and XO config tasks', async () => {
       for (let runIndex = 1; runIndex <= 3; runIndex++) {
+        // Backup dirs are named with second-precision timestamps; wait 2 s so each
+        // run gets a unique directory and retention logic sees 3 distinct entries.
+        if (runIndex > 1) {
+          await delay(2000)
+        }
+
         log.debug(`Running metadata backup job (${runIndex}/3)`, { jobId, scheduleKey })
 
         const result = await dispatchClient.backup.runMetadataJobAndGetLog(jobId, scheduleKey)
