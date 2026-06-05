@@ -16,10 +16,10 @@
       </VtsTabularKeyValueRow>
       <VtsTabularKeyValueRow :label="t('status')">
         <template #value>
-          <VtsStatus :status="vbd.attached ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED" />
+          <VtsStatus v-if="vbd" :status="vbd.attached ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED" />
         </template>
       </VtsTabularKeyValueRow>
-      <VtsTabularKeyValueRow :label="t('device')" :value="vbd.device ?? '-'" />
+      <VtsTabularKeyValueRow :label="t('device')" :value="vbd?.device ?? '-'" />
     </VtsTabularKeyValueList>
   </UiCard>
 </template>
@@ -39,7 +39,7 @@ import { useI18n } from 'vue-i18n'
 
 defineProps<{
   vdi: FrontXoVdi
-  vbd: FrontXoVbd
+  vbd?: FrontXoVbd
 }>()
 
 const { t } = useI18n()
