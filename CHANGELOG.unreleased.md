@@ -36,8 +36,8 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
-- @xen-orchestra/web minor
 - @xen-orchestra/vmware-explorer patch
+- @xen-orchestra/web minor
 - @xen-orchestra/xva patch
 - xo-server patch
 
