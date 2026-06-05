@@ -4,7 +4,7 @@
       :id="snapshot.id"
       :label="snapshot.name_label"
       :href="buildXo5VmSnapshotRoute(snapshot.$snapshot_of, snapshot.id)"
-      icon="object:vm"
+      icon="object:vm-snapshot"
     />
     <div class="content">
       <!-- DESCRIPTION -->
