@@ -642,20 +642,19 @@ class SDNController extends EventEmitter {
                 },
               },
             },
-            middlewares: [{ name: 'json' }],
+            responses: [
+              {
+                status: 204,
+                description: 'Rule updated successfully',
+              },
+              {
+                status: 422,
+                description: 'Invalid parameters',
+              },
+            ],
+            middlewares: [{ name: 'json' }, { name: 'acl', acls: { resource: 'vm', action: 'read', objects: [{}] } }],
             callback: ({ req, createAction }) => {
               const { oldRule, newRule: partialNewRule } = req.body ?? {}
-
-              if (!oldRule || typeof oldRule !== 'object') {
-                throw invalidParameters(['oldRule is required and must be an object'])
-              }
-
-              const validationErrors = []
-              validateRuleFields(oldRule, validationErrors, 'oldRule.')
-              if (validationErrors.length > 0) {
-                throw invalidParameters(validationErrors)
-              }
-
               const networkId = req.params.id
               const network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
               const networkRules = JSON.parse(network.other_config['xo:sdn-controller:of-rules'] || '[]').map(
@@ -672,7 +671,7 @@ class SDNController extends EventEmitter {
               ) {
                 throw invalidParameters(['oldRule does not exist on this network'])
               }
-
+              const validationErrors = []
               const newRule = { ...oldRule, ...(partialNewRule ?? {}) }
               validateRuleWithAllow(newRule, validationErrors, 'newRule.')
               if (validationErrors.length > 0) {
@@ -726,20 +725,20 @@ class SDNController extends EventEmitter {
                 },
               },
             },
+
+            responses: [
+              {
+                status: 204,
+                description: 'Rule updated successfully',
+              },
+              {
+                status: 422,
+                description: 'Invalid parameters',
+              },
+            ],
             middlewares: [{ name: 'json' }],
             callback: ({ req, createAction }) => {
               const { oldRule, newRule: partialNewRule } = req.body ?? {}
-
-              if (!oldRule || typeof oldRule !== 'object') {
-                throw invalidParameters(['oldRule is required and must be an object'])
-              }
-
-              const validationErrors = []
-              validateRuleFields(oldRule, validationErrors, 'oldRule.')
-              if (validationErrors.length > 0) {
-                throw invalidParameters(validationErrors)
-              }
-
               const vifId = req.params.id
               const vif = this._xo.getXapiObject(this._xo.getObject(vifId, 'VIF'))
               const rawVifRules = vif.other_config['xo:sdn-controller:of-rules']
@@ -757,6 +756,7 @@ class SDNController extends EventEmitter {
               }
 
               const newRule = { ...oldRule, ...(partialNewRule ?? {}) }
+              const validationErrors = []
               validateRuleWithAllow(newRule, validationErrors, 'newRule.')
               if (validationErrors.length > 0) {
                 throw invalidParameters(validationErrors)

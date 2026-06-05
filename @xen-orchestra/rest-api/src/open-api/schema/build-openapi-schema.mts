@@ -16,6 +16,11 @@ export function buildOpenApiSchema(def: Record<string, FieldDefinition>): OpenAP
     if (field.type === 'enum') {
       property.type = 'string'
       property.enum = field.enum
+    } else if (field.type === 'object') {
+      property.type = 'object'
+      const nested = buildOpenApiSchema(field.fields)
+      property.properties = nested.properties
+      if (nested.required?.length) property.required = nested.required
     } else {
       property.type = field.type
     }
