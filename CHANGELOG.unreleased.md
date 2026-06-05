@@ -46,10 +46,10 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-- xo-server-sdn-controller patch
 - @vates/types minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/rest-api minor
+- xo-server-sdn-controller patch
 - xo-web patch
 
 <!--packages-end-->
