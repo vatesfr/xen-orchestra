@@ -166,7 +166,7 @@ export default class BackupNg {
                 jobUpdateFct(log.id).catch(logger.warn) // is async, but makeOnProgress doesn't await onRootTaskXXX functions
               },
               onTaskUpdate: (log, event) => {
-                handleBackupLog(log, event, { app: this._app, jobName: job.name, store: this._store })
+                handleBackupLog(log, event, { app: this._app, jobName: job.name })
               },
             })
             return await Task.run(
@@ -316,7 +316,7 @@ export default class BackupNg {
                   result = forwardResult(log)
                 },
                 onTaskUpdate: (log, event) => {
-                  handleBackupLog(log, event, { app: this._app, jobName: job.name, store: this._store })
+                  handleBackupLog(log, event, { app: this._app, jobName: job.name })
                 },
               })
 
@@ -341,7 +341,7 @@ export default class BackupNg {
                 result = forwardResult(log)
               },
               onTaskUpdate: (log, event) => {
-                handleBackupLog(log, event, { app: this._app, jobName: job.name, store: this._store })
+                handleBackupLog(log, event, { app: this._app, jobName: job.name })
               },
             })
 
@@ -523,7 +523,7 @@ export default class BackupNg {
               result = forwardResult(log)
             },
             onTaskUpdate: (log, event) => {
-              handleBackupLog(log, event, { store: this._store })
+              handleBackupLog(log, event)
             },
           })
 
@@ -547,7 +547,7 @@ export default class BackupNg {
               rootTaskId = log.id
             },
             onTaskUpdate: (log, event) => {
-              handleBackupLog(log, event, { store: this._store })
+              handleBackupLog(log, event)
             },
           })
 

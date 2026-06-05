@@ -3,7 +3,6 @@ import cloneDeep from 'lodash/cloneDeep.js'
 import Disposable from 'promise-toolbox/Disposable'
 import { createLogger } from '@xen-orchestra/log'
 import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
-import { makeOnProgress } from '@vates/task/combineEvents'
 import { parseMetadataBackupId } from '@xen-orchestra/backups/parseMetadataBackupId.mjs'
 import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup.mjs'
 import { Task } from '@vates/task'
@@ -111,7 +110,7 @@ export default class metadataBackup {
         })
 
         let result
-        const onLogFct = makeOnProgress({
+        const onLogFct = app.tasks.createExternalProgressHandler({
           onRootTaskStart: log => {
             jobUpdateFct(log.id).catch(logger.warn) // is async, but makeOnProgress doesn't await onRootTaskXXX functions
           },
@@ -119,7 +118,7 @@ export default class metadataBackup {
             result = forwardResult(log)
           },
           onTaskUpdate: (log, event) => {
-            handleBackupLog(log, event, { store: this._store })
+            handleBackupLog(log, event)
           },
         })
 
@@ -130,12 +129,12 @@ export default class metadataBackup {
       } else {
         cancelToken.throwIfRequested()
 
-        const onLogFct = makeOnProgress({
+        const onLogFct = app.tasks.createExternalProgressHandler({
           onRootTaskStart: log => {
             jobUpdateFct(log.id).catch(logger.warn) // is async, but makeOnProgress doesn't await onRootTaskXXX functions
           },
           onTaskUpdate: (log, event) => {
-            handleBackupLog(log, event, { store: this._store })
+            handleBackupLog(log, event)
           },
         })
         return Task.run(
@@ -354,13 +353,13 @@ export default class metadataBackup {
 
     let rootTaskId
 
-    const onProgressFct = makeOnProgress({
+    const onProgressFct = app.tasks.createExternalProgressHandler({
       onRootTaskStart: log => {
         this._runningMetadataRestores.add(log.id)
         rootTaskId = log.id
       },
       onTaskUpdate: (log, event) => {
-        handleBackupLog(log, event, { store: this._store })
+        handleBackupLog(log, event)
       },
     })
     const onLogFct = async event => {
