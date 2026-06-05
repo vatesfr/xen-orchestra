@@ -12,6 +12,8 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [REST API] Expose `POST /backup-repositories` and `PATCH /backup-repositories/:id` REST routes (PR [#9852](https://github.com/vatesfr/xen-orchestra/pull/9852))
+- [SDN Controller] Replace xapi.objects.all with specified object types to avoid filtering through all objects each time (PR [#9886](https://github.com/vatesfr/xen-orchestra/pull/9886))
+
 - **RBAC** check for REST API endpoints:
   - `POST /vbds` (PR [#9904](https://github.com/vatesfr/xen-orchestra/pull/9904))
   - `DELETE /vbds/:id` (PR [#9904](https://github.com/vatesfr/xen-orchestra/pull/9904))
@@ -45,11 +47,11 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
 - @vates/types minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
+- xo-server-sdn-controller patch
 - xo-web patch
 
 <!--packages-end-->
