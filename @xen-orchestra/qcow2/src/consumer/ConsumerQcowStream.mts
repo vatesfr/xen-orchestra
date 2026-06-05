@@ -49,7 +49,7 @@ export class QcowStreamGenerator {
       this.#disk = disk
     }
     assert.strictEqual(this.#disk.getBlockSize(), CLUSTER_SIZE)
-    this.#nbAllocatedBlocks = this.#disk.getAllocatedBlockCount()
+    this.#nbAllocatedBlocks = this.#disk.getBlockIndexesCount()
   }
 
   /**
