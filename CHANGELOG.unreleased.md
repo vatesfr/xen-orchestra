@@ -11,6 +11,7 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [XO6/SR] Add dedicated Storage Repository page with general information, space usage, PBD details, custom fields, VDIs, and hosts tabs (PR [#9953](https://github.com/vatesfr/xen-orchestra/pull/9953))
 - [vm stats] Reduce the memory consumption of the rrd stats (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
 
 ### Bug fixes
@@ -38,7 +39,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backup-archive patch
-- @xen-orchestra/web patch
+- @xen-orchestra/web minor
 - xo-server patch
 
 <!--packages-end-->
