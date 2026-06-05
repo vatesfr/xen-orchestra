@@ -2,7 +2,18 @@
   <VtsStateHero v-if="!isReady" format="panel" type="busy" size="medium" />
   <UiPanel v-else :class="{ 'mobile-drawer': uiStore.isSmall }">
     <template #header>
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
+      <div class="header-actions" :class="{ 'action-buttons-container': uiStore.isSmall }">
+        <UiButton
+          accent="danger"
+          variant="tertiary"
+          size="small"
+          left-icon="action:delete"
+          :disabled="!canDeleteTrafficRule"
+          :busy="isDeletingTrafficRule"
+          @click="openTrafficRuleDeleteModal()"
+        >
+          {{ t('action:delete') }}
+        </UiButton>
         <UiButtonIcon
           v-tooltip="t('action:close')"
           size="small"
@@ -34,8 +45,10 @@ import TrafficRuleNetworkPifsCard from '@/modules/traffic-rules/components/list/
 import TrafficRuleSummaryCard from '@/modules/traffic-rules/components/list/panel/cards/TrafficRuleSummaryCard.vue'
 import TrafficRuleVifInfosCard from '@/modules/traffic-rules/components/list/panel/cards/TrafficRuleVifInfosCard.vue'
 import TrafficRuleVifNetworkInfoCard from '@/modules/traffic-rules/components/list/panel/cards/TrafficRuleVifNetworkInfoCard.vue'
+import { useTrafficRuleDeleteModal } from '@/modules/traffic-rules/composables/use-traffic-rule-delete-modal.composable.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
@@ -64,6 +77,12 @@ const vif = computed(() => (rule.type === 'VIF' ? getVifById(rule.sourceId) : un
 const network = computed(() => getNetworkById(rule.networkId))
 
 const isReady = logicAnd(areVifsReady, areNetworksReady)
+
+const {
+  openModal: openTrafficRuleDeleteModal,
+  canRun: canDeleteTrafficRule,
+  isRunning: isDeletingTrafficRule,
+} = useTrafficRuleDeleteModal(() => [rule])
 </script>
 
 <style scoped lang="postcss">
@@ -77,5 +96,12 @@ const isReady = logicAnd(areVifsReady, areNetworksReady)
     align-items: center;
     width: 100%;
   }
+}
+
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 </style>
