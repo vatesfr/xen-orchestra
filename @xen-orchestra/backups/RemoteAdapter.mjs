@@ -300,7 +300,20 @@ export class RemoteAdapter {
   async deleteFullVmBackups(backups) {
     const handler = this._handler
     await asyncMapSettled(backups, ({ _filename, xva }) =>
-      Promise.all([handler.unlink(_filename), handler.unlink(resolveRelativeFromFile(_filename, xva))])
+      Promise.all([
+        handler.unlink(_filename).catch(error => {
+          warn('error while removing full vm backup metadata', { error, filename: _filename })
+          if (error.code !== 'ENOENT') throw error
+        }),
+        handler.unlink(resolveRelativeFromFile(_filename, xva)).catch(error => {
+          warn('error while removing full vm backup file', { error, filename: _filename })
+          if (error.code !== 'ENOENT') throw error
+        }),
+        handler.unlink(resolveRelativeFromFile(_filename, `${xva}.checksum`)).catch(error => {
+          // checksum can be missing , it's not an issue
+          if (error.code !== 'ENOENT') throw error
+        }),
+      ])
     )
 
     await this.#removeVmBackupsFromCache(backups)
@@ -311,18 +324,46 @@ export class RemoteAdapter {
   }
 
   async deleteVmBackups(files) {
-    const metadata = await asyncMap(files, file => this.readVmBackupMetadata(file))
-    const { delta, full, ...others } = groupBy(metadata, 'mode')
+    const metadataOrNull = await asyncMap(files, async file => {
+      try {
+        return await this.readVmBackupMetadata(file)
+      } catch (error) {
+        if (error.code === 'ENOENT') {
+          // File was already removed (e.g. by coalescing); clean the stale cache entry
+          warn('backup metadata not found, removing stale cache entry', { file })
+          return null
+        }
+        throw error
+      }
+    })
+
+    const presentMetadata = []
+    const missingFiles = []
+    for (let i = 0; i < files.length; i++) {
+      if (metadataOrNull[i] === null) {
+        missingFiles.push({ _filename: files[i] })
+      } else {
+        presentMetadata.push(metadataOrNull[i])
+      }
+    }
+
+    const { delta, full, ...others } = groupBy(presentMetadata, 'mode')
 
     const unsupportedModes = Object.keys(others)
     if (unsupportedModes.length !== 0) {
       throw new Error('no deleter for backup modes: ' + unsupportedModes.join(', '))
     }
-
-    await Promise.all([
-      delta !== undefined && this.deleteDeltaVmBackups(delta),
-      full !== undefined && this.deleteFullVmBackups(full),
-    ])
+    const promises = []
+    if (delta !== undefined) {
+      promises.push(this.deleteDeltaVmBackups(delta))
+    }
+    if (full !== undefined) {
+      promises.push(this.deleteFullVmBackups(full))
+    }
+    if (missingFiles.length) {
+      promises.push(this.#removeVmBackupsFromCache(missingFiles))
+    }
+    await Promise.all(promises)
 
     await asyncMap(new Set(files.map(file => dirname(file))), dir =>
       // - don't merge in main process, unused VHDs will be merged in the next backup run

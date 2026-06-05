@@ -95,7 +95,7 @@ export class RestApiClient {
         },
       }
 
-      const url = `${this.baseUrl}/rest/v0/users/authentication_tokens`
+      const url = `${this.baseUrl}/rest/v0/users/me/authentication_tokens`
       const response = await fetch(url, options)
 
       if (!response.ok) {
@@ -118,6 +118,25 @@ export class RestApiClient {
   }
 
   /**
+   * Executes a fetch call, re-authenticates and retries once on 401.
+   * A 401 can happen transiently when a Redis-backed token lookup fails;
+   * re-connecting creates a fresh token that succeeds on the next attempt.
+   *
+   * @param {Function} fetchFn - () => Promise<Response>
+   * @returns {Promise<Response>}
+   * @private
+   */
+  async #executeWithRetry(fetchFn) {
+    const response = await fetchFn()
+    if (response.status !== 401) {
+      return response
+    }
+    log.debug('Received 401, re-authenticating and retrying once')
+    await this.connect()
+    return fetchFn()
+  }
+
+  /**
    * Basic GET request method.
    *
    * @param {string} endpoint - API endpoint path
@@ -127,10 +146,12 @@ export class RestApiClient {
   async get(endpoint) {
     try {
       const url = `${this.baseUrl}${endpoint}`
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: this.headers,
-      })
+      const response = await this.#executeWithRetry(() =>
+        fetch(url, {
+          method: 'GET',
+          headers: this.headers,
+        })
+      )
 
       if (response.ok) {
         const text = await response.text()
@@ -156,11 +177,14 @@ export class RestApiClient {
   async _requestWithBody(method, endpoint, data) {
     try {
       const url = `${this.baseUrl}${endpoint}`
-      const response = await fetch(url, {
-        method,
-        headers: this.headers,
-        body: JSON.stringify(data),
-      })
+      const body = JSON.stringify(data)
+      const response = await this.#executeWithRetry(() =>
+        fetch(url, {
+          method,
+          headers: this.headers,
+          body,
+        })
+      )
 
       if (response.ok) {
         const text = await response.text()
@@ -219,10 +243,12 @@ export class RestApiClient {
   async delete(endpoint) {
     try {
       const url = `${this.baseUrl}${endpoint}`
-      const response = await fetch(url, {
-        method: 'DELETE',
-        headers: this.headers,
-      })
+      const response = await this.#executeWithRetry(() =>
+        fetch(url, {
+          method: 'DELETE',
+          headers: this.headers,
+        })
+      )
 
       if (response.ok) {
         // Some DELETE endpoints return empty response

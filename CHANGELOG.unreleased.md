@@ -7,30 +7,29 @@
 
 > Security fixes and new features should go in this section
 
-- [MCP] Global kill-switch — set `[mcp] enabled = false` in `xo-server` config to immediately reject every MCP client connection
-
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [Swagger] Rename the `acls` tag to `rbacs` (PR [#9874](https://github.com/vatesfr/xen-orchestra/pull/9874))
-- [VM] Add possibility to attach a VDI on tab VDI (PR [#9772](https://github.com/vatesfr/xen-orchestra/pull/9772))
-- [Pool/Security] Implement possibility to add new traffic rule from pool (PR [#9809](https://github.com/vatesfr/xen-orchestra/pull/9809))
-- [VM/Snapshot] Add possibility to revert a snapshot on a VM (PR [#9862](https://github.com/vatesfr/xen-orchestra/pull/9862))
-- [MCP] Restrict which REST endpoints the AI assistant can reach: read-only endpoints are exposed by default, write actions require `XO_MCP_ENABLE_ACTIONS=1` with a confirmation step, and binary/stream endpoints stay hidden (PR [#9875](https://github.com/vatesfr/xen-orchestra/pull/9875))
-- [OpenMetrics] Add XOSTOR metrics (cluster status, replica health, SMART, alarms, pending updates) and an `sr_type` label on SR-tagged metrics so Grafana can filter by storage type (PR [#9849](https://github.com/vatesfr/xen-orchestra/pull/9849))
+- [REST API] Expose `POST /backup-repositories` and `PATCH /backup-repositories/:id` REST routes (PR [#9852](https://github.com/vatesfr/xen-orchestra/pull/9852))
 - [SDN Controller] Replace xapi.objects.all with specified object types to avoid filtering through all objects each time (PR [#9886](https://github.com/vatesfr/xen-orchestra/pull/9886))
+
+- **RBAC** check for REST API endpoints:
+  - `POST /vbds` (PR [#9904](https://github.com/vatesfr/xen-orchestra/pull/9904))
+  - `DELETE /vbds/:id` (PR [#9904](https://github.com/vatesfr/xen-orchestra/pull/9904))
+  - `POST vbds/:id/actions/connect` (PR [#9904](https://github.com/vatesfr/xen-orchestra/pull/9904))
+  - `POST vbds/:id/actions/disconnect` (PR [#9904](https://github.com/vatesfr/xen-orchestra/pull/9904))
+  - `POST /vifs` (PR [#9889](https://github.com/vatesfr/xen-orchestra/pull/9889))
+  - `DELETE /vifs/:id` (PR [#9889](https://github.com/vatesfr/xen-orchestra/pull/9889))
+  - `POST /vifs/:id/actions/connect` (PR [#9889](https://github.com/vatesfr/xen-orchestra/pull/9889))
+  - `POST /vifs/:id/actions/disconnect` (PR [#9889](https://github.com/vatesfr/xen-orchestra/pull/9889))
 
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-- [REST API] `POST /vdis` no longer necessarily requires `other_config` (PR [#9883](https://github.com/vatesfr/xen-orchestra/pull/9883))
-- [xo-server] Fix network being put first in boot order when HVM template has VDIs (PR [#9867](https://github.com/vatesfr/xen-orchestra/pull/9867))
-- [Backup] Fix OUT_OF_RANGE error when resuming failed merge (PR [#9782](https://github.com/vatesfr/xen-orchestra/pull/9782))
-- [xo-server] Fix TLS memory leak (PR [#9842](https://github.com/vatesfr/xen-orchestra/pull/9842))
 - **XO 5**:
-  - [Dashboard/Health] Ignore the replicated VM when checking the number of snapshots(PR [#9868](https://github.com/vatesfr/xen-orchestra/pull/9868))
+  - [Jobs] fix array values being incorrectly handled (used for instance on job.runSequence) (PR [#9928](https://github.com/vatesfr/xen-orchestra/pull/9928))
 
 ### Packages to release
 
@@ -47,13 +46,10 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- @vates/types patch
-- @xen-orchestra/mcp minor
+- xo-server-sdn-controller patch
+- @vates/types minor
+- @xen-orchestra/acl minor
 - @xen-orchestra/rest-api minor
-- @xen-orchestra/web minor
-- xo-server patch
-- xo-server-openmetrics minor
 - xo-web patch
 
 <!--packages-end-->

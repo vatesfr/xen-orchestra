@@ -16,7 +16,7 @@ export async function importStream({ esxi, dataMap, disk, vmId, format }, consum
   let stream
   try {
     // we read the data from the full chain to ensure we don't have partial blocks ( blocks with 0 when clusters are in parent only)
-    const { nbdInfos } = await esxi.spanwNbdKitProcess(vmId, `[${datastoreName}] ${diskPath}`)
+    const { nbdInfos } = await esxi.spawnNbdKitProcess(vmId, `[${datastoreName}] ${diskPath}`)
     signal?.throwIfAborted()
     vmdk = new NbdDisk(nbdInfos, READ_BLOCK_SIZE, { dataMap })
 

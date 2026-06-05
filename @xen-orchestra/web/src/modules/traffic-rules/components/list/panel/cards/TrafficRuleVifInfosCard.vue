@@ -10,7 +10,8 @@
           <UiLink
             size="small"
             icon="object:vif"
-            :to="vm ? { name: '/vm/[id]/networks', params: { id: vm?.id } } : undefined"
+            :to="vif ? { name: '/vif/[id]/general', params: { id: vif.id } } : undefined"
+            :disabled="!vm"
           >
             {{ vifDevice }}
           </UiLink>
@@ -100,7 +101,7 @@
           {{ t('locking-mode') }}
         </template>
         <template #value>
-          {{ vif.lockingMode }}
+          {{ lockingModeLabel }}
         </template>
         <template #addons>
           <VtsCopyButton :value="vif.lockingMode" />
@@ -122,6 +123,7 @@
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import { useXoVifUtils } from '@/modules/vif/composables/xo-vif-utils.composable.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
@@ -147,6 +149,8 @@ const { useGetNetworkById } = useXoNetworkCollection()
 const { useGetVmById } = useXoVmCollection()
 
 const { getPifsByNetworkId } = useXoPifCollection()
+
+const { lockingModeLabel } = useXoVifUtils(() => vif)
 
 const vifStatus = computed(() => (vif.attached ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED))
 

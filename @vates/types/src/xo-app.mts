@@ -208,6 +208,12 @@ export type XoApp = {
     expiresIn?: string | number
     userId: XoUser['id']
   }): Promise<XoAuthenticationToken>
+  createRemote(params: {
+    name: string
+    options?: string
+    proxy?: XoProxy['id']
+    url: string
+  }): Promise<XoBackupRepository>
   createUser(params: { name?: string; password?: string; [key: string]: unknown }): Promise<XoUser>
   deleteAclV2GroupRole(groupId: XoGroup['id'], roleId: XoAclRole['id']): Promise<boolean>
   deleteAclV2Privilege(privilegeId: XoAclBasePrivilege['id'], options?: { force?: boolean }): Promise<boolean>
@@ -298,6 +304,8 @@ export type XoApp = {
   ): Promise<XoServer>
   rollingPoolReboot(pool: XoPool, opts?: { parentTask?: VatesTask }): Promise<void>
   rollingPoolUpdate(pool: XoPool, opts?: { rebootVm?: boolean; parentTask?: VatesTask }): Promise<void>
+  setVmResourceSet(vmId: XoVm['id'], resourceSetId: string | null, force?: boolean): Promise<void>
+  shareVmResourceSet(vmId: XoVm['id']): Promise<void>
   removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>
   runJob(job: AnyXoJob, schedule: XoSchedule): void
   runWithApiContext: (user: XoUser | undefined, fn: () => void) => Promise<unknown>
@@ -337,6 +345,16 @@ export type XoApp = {
       name?: string
     }
   ): void
+  updateRemote(
+    id: XoBackupRepository['id'],
+    params: {
+      enabled?: boolean
+      name?: string
+      options?: string | null
+      proxy?: XoProxy['id'] | null
+      url?: string
+    }
+  ): Promise<XoBackupRepository>
   getAllXapis(): Record<string, XapiConnection>
   getObjects(opts?: { filter?: Record<string, unknown>; limit?: number }): Record<string, XapiXoRecord>
   getLicenses(params?: { productType?: LicenseProductType }): Promise<License[]>

@@ -181,6 +181,13 @@ describe('Mirror Backup - Full Remote', () => {
     }
     log.debug('Destination repository', { name: destRepository.name, id: destRepository.id })
 
+    assert.notStrictEqual(
+      sourceRepository.id,
+      destRepository.id,
+      `Source and destination repositories must be distinct (both resolve to id "${sourceRepository.id}"). ` +
+        `Check BACKUP_REPOSITORY_NAME and MIRROR_DESTINATION_REPOSITORY_NAME in .env.`
+    )
+
     // Safety check: repositories must be empty to avoid accidental data loss
     await assertRepositoryEmpty(dispatchClient, sourceRepository)
     await assertRepositoryEmpty(dispatchClient, destRepository)

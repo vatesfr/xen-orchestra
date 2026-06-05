@@ -121,11 +121,16 @@ export class VMRequest extends AbstractRequest {
 
     const { force = false } = options
 
+    const currentVm = await this.details(vmUuid)
+    if (currentVm?.power_state === 'Running') {
+      log.debug('VM already running, skipping start', { uuid: vmUuid })
+      return
+    }
+
     try {
       await this.dispatchClient.xoClient.call('vm.start', { id: vmUuid, force })
-      console.log(`VM started: ${vmUuid}`)
+      log.debug('VM started', { uuid: vmUuid })
     } catch (error) {
-      console.error(`❌ Failed to start VM ${vmUuid}:`, error.message)
       throw new Error(`Failed to start VM ${vmUuid}: ${error.message}`)
     }
   }
@@ -133,7 +138,6 @@ export class VMRequest extends AbstractRequest {
   /**
    * Stops a virtual machine.
    *
-   * Always uses JSON-RPC — the REST API does not expose the `force` parameter.
    *
    * @param {string} vmUuid - UUID of the VM to stop
    * @param {Object} [options={}]
@@ -150,36 +154,19 @@ export class VMRequest extends AbstractRequest {
 
     const { force = false } = options
 
+    const currentVm = await this.details(vmUuid)
+    if (currentVm?.power_state === 'Halted') {
+      log.debug('VM already halted, skipping stop', { uuid: vmUuid })
+      return
+    }
+
+    const action = force ? 'hard_shutdown' : 'clean_shutdown'
     try {
-      await this.dispatchClient.xoClient.call('vm.stop', { id: vmUuid, force })
-      console.log(`VM stopped: ${vmUuid}`)
+      await this.dispatchClient.restApiClient.post(`/rest/v0/vms/${vmUuid}/actions/${action}?sync=true`)
+      log.debug('VM stopped', { uuid: vmUuid, action })
     } catch (error) {
-      console.error(`❌ Failed to stop VM ${vmUuid}:`, error.message)
       throw new Error(`Failed to stop VM ${vmUuid}: ${error.message}`)
     }
-  }
-
-  /**
-   * Waits for a VM to reach a specific power state.
-   *
-   * Polls the VM details until the expected power_state is observed or the
-   * timeout is exceeded.
-   *
-   * @param {string} vmUuid - UUID of the VM to monitor
-   * @param {'Running'|'Halted'|'Paused'|'Suspended'} targetState - Expected power state
-   * @param {number} [timeout=60000] - Timeout in milliseconds
-   * @returns {Promise<void>}
-   * @throws {Error} If the VM does not reach the target state within the timeout
-   */
-  async waitForPowerState(vmUuid, targetState, timeout = 60_000) {
-    await waitUntil(
-      async () => {
-        const vmDetails = await this.details(vmUuid)
-        return vmDetails?.power_state === targetState
-      },
-      2_000,
-      timeout
-    )
   }
 
   /**
@@ -255,6 +242,30 @@ export class VMRequest extends AbstractRequest {
       logSuffix: `compression: ${compress}`,
       extraResult: { compressed: compress },
     })
+  }
+
+  /**
+   * Polls VM power state until it matches the target state or timeout is reached.
+   *
+   * @param {string} vmUuid - UUID of the VM to watch
+   * @param {'Running'|'Halted'|'Paused'|'Suspended'} targetState - Expected power state
+   * @param {number} timeout - Maximum wait time in milliseconds
+   * @returns {Promise<void>}
+   * @throws {Error} If the VM does not reach the target state within the timeout
+   */
+  async waitForPowerState(vmUuid, targetState, timeout) {
+    assertNonEmptyString(vmUuid, 'Valid VM UUID is required', 'INVALID_VM_UUID')
+    assertNonEmptyString(targetState, 'Valid target state is required', 'INVALID_TARGET_STATE')
+    this._ensureConnected()
+
+    return waitUntil(
+      async () => {
+        const vm = await this.details(vmUuid)
+        return vm?.power_state === targetState
+      },
+      3_000,
+      timeout
+    )
   }
 
   /**
