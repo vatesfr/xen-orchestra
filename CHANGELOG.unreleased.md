@@ -9,7 +9,7 @@
 
 ### Enhancements
 
-> Users must be able to say: "Nice enhancement, I'm eager to test it"
+- [VDI] Add a dedicated page to view a VDI's general information, configuration and space usage with detach/delete actions (PR [#9949](https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExbTNtNjUzYnpwZWZrcTRscGU2YWh1bGM2MmVxejF2cjd6YjY2ZGtzciZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/CWfpB2BQtfRS/giphy.gif))
 
 - [load-balancer] VM migrations triggered by the load balancer can now be monitored with tasks (PR [#9909](https://github.com/vatesfr/xen-orchestra/pull/9909))
 - [IPMI-Plugin] Add default outlet regex to the dell preset (PR [#9884](https://github.com/vatesfr/xen-orchestra/pull/9884))
@@ -77,17 +77,8 @@
 
 ### Packages to release
 
-> When modifying a package, add it here with its release type.
->
-> The format is the following: `- $packageName $releaseType`
->
-> Where `$releaseType` is
->
-> - patch: if the change is a bug fix or a simple code improvement
-> - minor: if the change is a new feature
-> - major: if the change breaks compatibility
->
-> Keep this list alphabetically ordered to avoid merge conflicts
+- @xen-orchestra/web
+- @xen-orchestra/web-core
 
 <!--packages-start-->
 

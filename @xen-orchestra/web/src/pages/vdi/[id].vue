@@ -38,8 +38,6 @@ const vdi = useGetVdiById(() => route.params.id as FrontXoVdi['id'])
 
 const { useGetVbdsByIds } = useXoVbdCollection()
 const vbds = useGetVbdsByIds(() => vdi.value?.$VBDs ?? [])
-
-// const attachedVdb = computed(() => vbds.value.find(vbd => vbd.attached))
 const vbd = computed(() => vbds.value[0])
 
 const { useGetVmById } = useXoVmCollection()
