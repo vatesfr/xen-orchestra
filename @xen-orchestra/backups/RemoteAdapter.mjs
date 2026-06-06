@@ -55,6 +55,13 @@ export const compareTimestamp = (a, b) => a.timestamp - b.timestamp
 
 const noop = Function.prototype
 
+// Restrict LVM scanning to a single device. Backup PVs are clones: the very same PVID
+// appears at once on the raw loop device, the dm-snapshot overlaid on it, and every
+// other restored copy of the same VM. An unscoped pvs/pvscan/vgimportclone/vgchange then
+// aborts with "duplicate PV ... for PVID ..." and the VG can neither be renamed nor
+// activated. Accepting only the device in hand removes every duplicate from LVM's view.
+const lvmOnlyDevice = devicePath => `devices { global_filter=[ "a|^${devicePath}$|", "r|.*|" ] }`
+
 const resolveRelativeFromFile = (file, path) => resolve('/', dirname(file), path).slice(1)
 const makeRelative = path => resolve('/', path).slice(1)
 const resolveSubpath = (root, path) => resolve(root, makeRelative(path))
@@ -116,24 +123,26 @@ export class RemoteAdapter {
   }
 
   async *_getLvmLogicalVolumes(devicePath, pvId, vgName) {
-    const { path: pvPath } = yield this._getLvmPhysicalVolume(
+    const { path: pvPath, lvmConfig } = yield this._getLvmPhysicalVolume(
       devicePath,
       pvId && (await this._findPartition(devicePath, pvId))
     )
 
     // vgimportclone may have renamed the VG (e.g. ubuntu-vg → xo<hash>); query the
     // actual name from the PV rather than trusting the partitionId-embedded name.
-    const [actualVgName] = (await pvs('vg_name', pvPath).catch(() => [])).filter(Boolean)
+    // lvmConfig scopes every command to this PV so a colliding/duplicate VG on the host
+    // or another restored copy can't shadow it.
+    const [actualVgName] = (await pvs('vg_name', '--config', lvmConfig, pvPath).catch(() => [])).filter(Boolean)
     const effectiveVgName = actualVgName ?? vgName
 
     debug('activate LVM volume group', { effectiveVgName, requestedVgName: vgName })
-    await fromCallback(execFile, 'vgchange', ['-ay', effectiveVgName])
+    await fromCallback(execFile, 'vgchange', ['--config', lvmConfig, '-ay', effectiveVgName])
     try {
       debug('get LVM logical volumes', { effectiveVgName })
-      yield lvs(['lv_name', 'lv_path'], effectiveVgName)
+      yield lvs(['lv_name', 'lv_path'], '--config', lvmConfig, effectiveVgName)
     } finally {
       debug('deactivate LVM volume group', { effectiveVgName })
-      await fromCallback(execFile, 'vgchange', ['-an', effectiveVgName])
+      await fromCallback(execFile, 'vgchange', ['--config', lvmConfig, '-an', effectiveVgName])
     }
   }
 
@@ -147,11 +156,15 @@ export class RemoteAdapter {
     debug('attach loop device', { devicePath, partition })
     const loopDevice = (await fromCallback(execFile, 'losetup', loopArgs)).trim()
 
-    let cowPath, cowLoop, mapperName, effectivePath, originalVgName
+    let cowPath, cowLoop, mapperName, effectivePath, originalVgName, lvmConfig
     try {
       try {
         // Create a sparse COW file (~4 MB is enough to hold LVM metadata rewrites)
         mapperName = `xo-pv-${randomBytes(4).toString('hex')}`
+        const mapperPath = `/dev/mapper/${mapperName}`
+        // Scope LVM to the snapshot only: the raw loop device carries the same PVID and
+        // would otherwise be flagged as a duplicate, breaking pvscan and vgimportclone.
+        const mapperConfig = lvmOnlyDevice(mapperPath)
         cowPath = join(tmpdir(), `${mapperName}.cow`)
         const fh = await open(cowPath, 'w')
         await fh.truncate(4 * 1024 * 1024)
@@ -167,13 +180,11 @@ export class RemoteAdapter {
           `0 ${sectors} snapshot ${loopDevice} ${cowLoop} P 8`,
         ])
 
-        // pvscan must run before vgimportclone so LVM registers the snapshot device
-        // and can locate the Physical Volume ID on it
-        await fromCallback(execFile, 'pvscan', ['--cache', `/dev/mapper/${mapperName}`])
-
-        // Capture the original VG name before vgimportclone renames it so callers
-        // can display a human-readable name even after the VG is renamed.
-        ;[originalVgName] = (await pvs('vg_name', `/dev/mapper/${mapperName}`).catch(() => [])).filter(Boolean)
+        // Capture the original VG name before vgimportclone renames it so callers can display a
+        // human-readable name. We deliberately do NOT `pvscan --cache` first: with a duplicate
+        // PVID present (concurrent restore of the same VM) it fails, and vgimportclone reads the
+        // device directly (scoped by mapperConfig) without needing the online cache anyway.
+        ;[originalVgName] = (await pvs('vg_name', '--config', mapperConfig, mapperPath).catch(() => [])).filter(Boolean)
 
         // Deterministic VG name: same hash for the same disk+partition across list and mount calls,
         // but unique across different disks — avoids duplicate VG name conflicts without state.
@@ -185,9 +196,9 @@ export class RemoteAdapter {
             .digest('hex')
             .slice(0, 10)
         debug('import LVM volume group with unique name via dm-snapshot', { vgBase, originalVgName })
-        await fromCallback(execFile, 'vgimportclone', ['--basevgname', vgBase, `/dev/mapper/${mapperName}`])
+        await fromCallback(execFile, 'vgimportclone', ['--config', mapperConfig, '--basevgname', vgBase, mapperPath])
 
-        effectivePath = `/dev/mapper/${mapperName}`
+        effectivePath = mapperPath
       } catch (error) {
         // dm-snapshot or vgimportclone unavailable — fall back to direct loop device.
         // Duplicate VG names across disks may still cause activation failures.
@@ -220,21 +231,30 @@ export class RemoteAdapter {
         effectivePath = loopDevice
       }
 
+      // Whether we ended up on the snapshot or fell back to the raw loop, scope every
+      // remaining command to that one device so duplicate PVIDs from other copies (or a
+      // same-named VG on the host) can't shadow it.
+      lvmConfig = lvmOnlyDevice(effectivePath)
+
+      // Best-effort: activation/listing below scans the device directly via lvmConfig, so a
+      // duplicate-PVID failure here (concurrent restore of the same VM) must not abort.
       debug('scan LVM physical volumes', { path: effectivePath })
-      await fromCallback(execFile, 'pvscan', ['--cache', effectivePath])
+      await fromCallback(execFile, 'pvscan', ['--config', lvmConfig, '--cache', effectivePath]).catch(error =>
+        debug('pvscan --cache failed (continuing)', { path: effectivePath, error })
+      )
 
       // In the fallback path the VG is unmodified, so query the original name now.
       if (originalVgName === undefined) {
-        ;[originalVgName] = (await pvs('vg_name', effectivePath).catch(() => [])).filter(Boolean)
+        ;[originalVgName] = (await pvs('vg_name', '--config', lvmConfig, effectivePath).catch(() => [])).filter(Boolean)
       }
 
-      yield { path: effectivePath, originalVgName }
+      yield { path: effectivePath, originalVgName, lvmConfig }
     } finally {
       try {
-        const vgNames = (await pvs('vg_name', effectivePath).catch(() => [])).filter(Boolean)
+        const vgNames = (await pvs('vg_name', '--config', lvmConfig, effectivePath).catch(() => [])).filter(Boolean)
         if (vgNames.length > 0) {
           debug('deactivate LVM volume groups', { vgNames })
-          await fromCallback(execFile, 'vgchange', ['-an', ...vgNames])
+          await fromCallback(execFile, 'vgchange', ['--config', lvmConfig, '-an', ...vgNames])
         }
       } finally {
         if (mapperName !== undefined) {
@@ -298,22 +318,25 @@ export class RemoteAdapter {
   }
 
   _listLvmLogicalVolumes(devicePath, partition, results = []) {
-    return Disposable.use(this._getLvmPhysicalVolume(devicePath, partition), async ({ path, originalVgName }) => {
-      const lvItems = await pvs(['lv_name', 'lv_path', 'lv_size', 'vg_name'], path)
-      const partitionId = partition !== undefined ? partition.id : ''
-      lvItems.forEach(lv => {
-        const lvName = lv.lv_name
-        if (lvName !== '') {
-          results.push({
-            id: `${partitionId}/${lv.vg_name}/${lvName}`,
-            // show "ubuntu-vg/ubuntu-lv" so users can identify the volume group
-            name: originalVgName !== undefined ? `${originalVgName}/${lvName}` : lvName,
-            size: lv.lv_size,
-          })
-        }
-      })
-      return results
-    })
+    return Disposable.use(
+      this._getLvmPhysicalVolume(devicePath, partition),
+      async ({ path, originalVgName, lvmConfig }) => {
+        const lvItems = await pvs(['lv_name', 'lv_path', 'lv_size', 'vg_name'], '--config', lvmConfig, path)
+        const partitionId = partition !== undefined ? partition.id : ''
+        lvItems.forEach(lv => {
+          const lvName = lv.lv_name
+          if (lvName !== '') {
+            results.push({
+              id: `${partitionId}/${lv.vg_name}/${lvName}`,
+              // show "ubuntu-vg/ubuntu-lv" so users can identify the volume group
+              name: originalVgName !== undefined ? `${originalVgName}/${lvName}` : lvName,
+              size: lv.lv_size,
+            })
+          }
+        })
+        return results
+      }
+    )
   }
 
   // check if we will be allowed to merge a vhd created in this adapter
