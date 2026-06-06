@@ -110,16 +110,24 @@ export class RemoteAdapter {
   }
 
   async *_getLvmLogicalVolumes(devicePath, pvId, vgName) {
-    yield this._getLvmPhysicalVolume(devicePath, pvId && (await this._findPartition(devicePath, pvId)))
+    const { path: pvPath } = yield this._getLvmPhysicalVolume(
+      devicePath,
+      pvId && (await this._findPartition(devicePath, pvId))
+    )
 
-    debug('activate LVM volume group', { vgName })
-    await fromCallback(execFile, 'vgchange', ['-ay', vgName])
+    // vgimportclone may have renamed the VG (e.g. ubuntu-vg → xo<hash>); query the
+    // actual name from the PV rather than trusting the partitionId-embedded name.
+    const [actualVgName] = (await pvs('vg_name', pvPath).catch(() => [])).filter(Boolean)
+    const effectiveVgName = actualVgName ?? vgName
+
+    debug('activate LVM volume group', { effectiveVgName, requestedVgName: vgName })
+    await fromCallback(execFile, 'vgchange', ['-ay', effectiveVgName])
     try {
-      debug('get LVM volume group name and path', { vgName })
-      yield lvs(['lv_name', 'lv_path'], vgName)
+      debug('get LVM logical volumes', { effectiveVgName })
+      yield lvs(['lv_name', 'lv_path'], effectiveVgName)
     } finally {
-      debug('deactivate LVM volume group', { vgName })
-      await fromCallback(execFile, 'vgchange', ['-an', vgName])
+      debug('deactivate LVM volume group', { effectiveVgName })
+      await fromCallback(execFile, 'vgchange', ['-an', effectiveVgName])
     }
   }
 
@@ -259,7 +267,12 @@ export class RemoteAdapter {
         `--options=${options.join(',')}`,
         `--source=${devicePath}`,
         `--target=${path}`,
-      ])
+      ]).catch(error => {
+        if (error.stderr) {
+          error.message = `${error.message}: ${error.stderr.trim()}`
+        }
+        throw error
+      })
     }
 
     // norecovery prevents mount from attempting journal replay on a read-only device (ext3/ext4/xfs).
@@ -696,8 +709,11 @@ export class RemoteAdapter {
         const lvResults = []
         try {
           await this._listLvmLogicalVolumes(devicePath, partition, lvResults)
-        } catch (_) {
-          // not an LVM PV — fall through to regular partition handling
+        } catch (error) {
+          debug('LVM probe failed for non-standard-type partition, treating as regular partition', {
+            partition,
+            error,
+          })
         }
         if (lvResults.length > 0) {
           results.push(...lvResults)
