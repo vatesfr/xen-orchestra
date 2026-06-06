@@ -29,7 +29,13 @@ import { formatFilenameDate } from './_filenameDate.mjs'
 import { getTmpDir } from './_getTmpDir.mjs'
 import { isMetadataFile } from './_backupType.mjs'
 import { isValidXva } from './_isValidXva.mjs'
-import { listPartitions, LVM_PARTITION_TYPE_MBR, LVM_PARTITION_TYPE_GPT } from './_listPartitions.mjs'
+import {
+  listPartitions,
+  LINUX_DATA_PARTITION_TYPE_GPT,
+  LINUX_DATA_PARTITION_TYPE_MBR,
+  LVM_PARTITION_TYPE_GPT,
+  LVM_PARTITION_TYPE_MBR,
+} from './_listPartitions.mjs'
 import { lvs, pvs } from './_lvm.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
 
@@ -703,14 +709,21 @@ export class RemoteAdapter {
         }
 
         // Some Linux installers (e.g. Ubuntu subiquity) mark LVM PV partitions with a
-        // generic Linux filesystem type instead of the standard LVM type. Probe the
-        // partition: if pvs finds logical volumes, expose them; otherwise treat it as a
-        // regular mountable partition.
+        // generic Linux-data type instead of the standard LVM type. Only those need the
+        // (expensive) loop + dm-snapshot + vgimportclone probe; other types — BIOS boot,
+        // EFI, swap, … — are never LVM PVs, so mount them directly as regular partitions.
+        const isProbeableForLvm =
+          partition.type === LINUX_DATA_PARTITION_TYPE_MBR || partition.type === LINUX_DATA_PARTITION_TYPE_GPT
+        if (!isProbeableForLvm) {
+          results.push(partition)
+          return
+        }
+
         const lvResults = []
         try {
           await this._listLvmLogicalVolumes(devicePath, partition, lvResults)
         } catch (error) {
-          debug('LVM probe failed for non-standard-type partition, treating as regular partition', {
+          debug('LVM probe failed for Linux-data partition, treating as regular partition', {
             partition,
             error,
           })
