@@ -40,6 +40,7 @@
     "qa:export:xva": "node --env-file-if-exists=.env --test tests/export.vhd.test.js --test-name-pattern='XVA'",
     "qa:export:restore": "node --env-file-if-exists=.env --test tests/export.vhd.test.js --test-name-pattern='Restoration'",
     "qa:backup:metadata": "node --env-file-if-exists=.env --test tests/metadata-backup.test.js",
+    "qa:sdn-controller": "node --env-file-if-exists=.env --test tests/sdn-controller.test.js",
     "demo": "node --env-file-if-exists=.env index.js"
   }
 }
