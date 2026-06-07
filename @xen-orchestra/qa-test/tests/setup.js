@@ -35,7 +35,7 @@ async function generateIncrementalVmName(dispatchClient, baseName) {
  * Test setup with automatic resource creation and tracking.
  * @returns {Promise<Object>} Setup result with dispatchClient and created resources
  */
-export const setup = async () => {
+export const setup = async ({ referenceVmId } = {}) => {
   log.debug('Setting up test environment')
 
   const tracker = createResourceTracker()
@@ -49,8 +49,14 @@ export const setup = async () => {
   }
 
   try {
-    // Find and clone reference VM (ID is required)
-    const referenceVm = await findReferenceVm(dispatchClient)
+    // Find and clone reference VM — use provided ID or fall back to REFERENCE_VM_ID env var
+    const referenceVm = referenceVmId
+      ? await dispatchClient.vm.details(referenceVmId)
+      : await findReferenceVm(dispatchClient)
+
+    if (!referenceVm) {
+      throw new Error(`Reference VM with ID "${referenceVmId}" not found`)
+    }
 
     const vmPrefix = getRequiredEnv('VM_PREFIX')
     const testVmName = await generateIncrementalVmName(dispatchClient, `${vmPrefix}-QA-Test`)
