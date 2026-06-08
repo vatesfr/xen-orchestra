@@ -156,21 +156,13 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
       ;[resource] = resourceXapiType as [keyof typeof XAPI_TYPE_BY_ACL_RESOURCE, XapiXoRecord['type']]
     }
 
-    const resolver = (id: string) => {
-      try {
-        return restApi.getObject(id as XapiXoRecord['id'])
-      } catch {
-        return undefined
-      }
-    }
-
     switch (event) {
       case 'add':
         if (object === undefined) {
           return
         }
 
-        if (!hasPrivilegeOn({ user, userPrivileges, action: 'read', objects: object, resource }, resolver)) {
+        if (!hasPrivilegeOn({ user, userPrivileges, action: 'read', objects: object, resource }, restApi.resolver)) {
           return
         }
         return 'add'
@@ -185,7 +177,7 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
               objects: object,
               resource,
             },
-            resolver
+            restApi.resolver
           )
 
         const canSeePreviousObject =
@@ -198,7 +190,7 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
               objects: previousObject,
               resource,
             },
-            resolver
+            restApi.resolver
           )
 
         if (canSeeObject && canSeePreviousObject) {
@@ -225,7 +217,7 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
               objects: object ?? previousObject!,
               resource,
             },
-            resolver
+            restApi.resolver
           )
         ) {
           return

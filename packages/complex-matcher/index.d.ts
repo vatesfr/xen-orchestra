@@ -75,8 +75,9 @@ export class TruthyProperty extends BaseNode {
 }
 
 export class Resolve extends BaseNode {
-  constructor(child: BaseNode)
+  constructor(child: BaseNode, mode: 'some' | 'every' = 'some')
   child: BaseNode
+  mode: 'some' | 'every'
 }
 
 export function parse(input: string): Node

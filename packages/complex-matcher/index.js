@@ -315,10 +315,11 @@ class TruthyProperty extends Node {
 exports.TruthyProperty = TruthyProperty
 
 class Resolve extends Node {
-  constructor(child) {
+  constructor(child, mode = 'some') {
     super()
 
     this.child = child
+    this.mode = mode
   }
 
   match(value, resolver) {
@@ -331,10 +332,19 @@ class Resolve extends Node {
     }
 
     if (Array.isArray(value)) {
-      return value.some(id => {
-        const obj = resolver(id)
-        return obj != null && this.child.match(obj, resolver)
-      })
+      if (this.mode === 'some') {
+        return value.some(id => {
+          const obj = resolver(id)
+          return obj != null && this.child.match(obj, resolver)
+        })
+      } else if (this.mode === 'every') {
+        return value.every(id => {
+          const obj = resolver(id)
+          return obj != null && this.child.match(obj, resolver)
+        })
+      }
+
+      throw new Error(`${this.mode} mode not supported by resolve`)
     }
 
     const obj = resolver(value)
@@ -342,7 +352,12 @@ class Resolve extends Node {
   }
 
   toString() {
-    return `[resolve]:${this.child.toString(true)}`
+    if (this.mode === 'some') {
+      return `[resolve]:${this.child.toString(true)}`
+    } else if (this.mode === 'every') {
+      return `[resolve:all]:${this.child.toString(true)}`
+    }
+    throw new Error(`${this.mode} mode not supported by resolve`)
   }
 }
 exports.Resolve = Resolve
@@ -566,7 +581,8 @@ const parser = P.grammar({
       P.seq(P.regex(/[<>]=?/), r.rawString).map(([op, val]) => {
         return new Comparison(op, +val)
       }),
-      P.seq(P.text('[resolve]'), P.text(':'), r.ws, r.term).map(_ => new Resolve(_[3])),
+      P.seq(P.text('[resolve]'), P.text(':'), r.ws, r.term).map(_ => new Resolve(_[3], 'some')),
+      P.seq(P.text('[resolve:all]'), P.text(':'), r.ws, r.term).map(_ => new Resolve(_[3], 'every')),
       P.seq(r.property, r.ws, P.text(':'), r.ws, r.term).map(_ => new Property(_[0], _[4])),
       P.seq(r.property, P.text('?')).map(_ => new TruthyProperty(_[0])),
       r.value

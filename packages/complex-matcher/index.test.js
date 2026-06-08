@@ -169,3 +169,25 @@ describe('resolve', () => {
     assert.equal(parse('objects:[resolve]:tags:tag').toString(), 'objects:[resolve]:tags:tag')
   })
 })
+
+describe('resolve:all', () => {
+  const allMatch = { objects: ['object-1', 'object-2'] }
+  const someMatch = { objects: ['object-1', 'object-3'] }
+  const store = {
+    'object-1': { tags: ['tag'] },
+    'object-2': { tags: ['tag'] },
+    'object-3': { tags: ['other'] },
+  }
+
+  it('matches when all resolved objects satisfy the predicate', () => {
+    assert(parse('objects:[resolve:all]:tags:tag').createPredicate(id => store[id])(allMatch))
+  })
+
+  it("doesn't match when only some resolved objects satisfy the predicate", () => {
+    assert(!parse('objects:[resolve:all]:tags:tag').createPredicate(id => store[id])(someMatch))
+  })
+
+  it('toString round-trips correctly', () => {
+    assert.equal(parse('objects:[resolve:all]:tags:tag').toString(), 'objects:[resolve:all]:tags:tag')
+  })
+})
