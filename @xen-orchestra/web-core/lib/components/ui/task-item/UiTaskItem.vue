@@ -65,7 +65,7 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTaskList from '@core/components/ui/task-list/UiTaskList.vue'
 import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import type { TaskNamePart, TaskStatus } from '@core/types/task.type.ts'
+import type { TaskObjectSegment, TaskStatus } from '@core/types/task.type.ts'
 import { logicOr } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -74,7 +74,7 @@ export type Task = {
   id: string
   infos?: { data: unknown; message: string }[]
   name?: string
-  nameParts?: TaskNamePart[]
+  nameParts?: TaskObjectSegment[]
   progress?: number
   tag?: string
   userName?: string
