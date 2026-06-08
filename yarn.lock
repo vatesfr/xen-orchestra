@@ -14909,7 +14909,7 @@ node-zone@^0.4.0:
   resolved "https://registry.yarnpkg.com/node-zone/-/node-zone-0.4.0.tgz#b058401a2e7c4bd34cb8cda8ee9d61360f620711"
   integrity sha512-JzQcDNvCdWF1wmHAvNN2U63+8K72u4hN40axkrpRWE6Yvhkuf2i72SMzWUHiP3rxdm2CbgaaOw8N5Gw2qN5pbA==
 
-nodemailer@^7.0.7:
+nodemailer@^7.0.13, nodemailer@^7.0.7:
   version "7.0.13"
   resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-7.0.13.tgz#74acaa55f0c6f9476384c29f27f53e467e8483cd"
   integrity sha512-PNDFSJdP+KFgdsG3ZzMXCgquO7I6McjY2vlqILjtJd0hy8wEvtugS9xKRF2NWlPNGxvLCXlTNIae4serI7dinw==
