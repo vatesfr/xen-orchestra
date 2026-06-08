@@ -119,12 +119,12 @@ type BaseXoVm = BaseXapiXo & {
    * @deprecated use pvDriversVersion instead
    */
   xentools?:
-    | false
-    | {
-        major: null | number
-        minor: null | number
-        version: null | string
-      }
+  | false
+  | {
+    major: null | number
+    minor: null | number
+    version: null | string
+  }
 }
 
 export type XoAlarm = Omit<XoMessage, '$object' | 'body'> & {
@@ -287,22 +287,22 @@ export type XoHost = BaseXapiXo & {
   residentVms: XoVm['id'][]
   startTime: null | number
   supplementalPacks:
-    | {
-        author: string
-        description: string
-        guidance: string
-        hosts: XoHost['id'][]
-        name: string
-        size: number
-        version: string
-        vdi: XoVdi['id']
-      }[]
-    | {
-        author: string
-        description: string
-        name: string
-        version: string
-      }[]
+  | {
+    author: string
+    description: string
+    guidance: string
+    hosts: XoHost['id'][]
+    name: string
+    size: number
+    version: string
+    vdi: XoVdi['id']
+  }[]
+  | {
+    author: string
+    description: string
+    name: string
+    version: string
+  }[]
   tags: string[]
   type: 'host'
   version: string
@@ -347,13 +347,13 @@ export type XoNetwork = BaseXapiXo & {
 export type XoPbd = BaseXapiXo & {
   attached: boolean
   device_config:
-    | { device: string }
-    | { location: string }
-    | { path: string; location: string; legacy_mode: string }
-    | { provisioning: string; redundancy: string; 'group-name': string }
-    | { server: string; serverpath: string }
-    | { type: string; location: string }
-    | Record<string, string>
+  | { device: string }
+  | { location: string }
+  | { path: string; location: string; legacy_mode: string }
+  | { provisioning: string; redundancy: string; 'group-name': string }
+  | { server: string; serverpath: string }
+  | { type: string; location: string }
+  | Record<string, string>
   host: XoHost['id']
   id: Branded<'PBD'>
   otherConfig: Record<string, string>
@@ -446,6 +446,7 @@ export type XoPool = BaseXapiXo & {
   type: 'pool'
   vtpmSupported: boolean
   zstdSupported: boolean
+  haRebootVmOnInternalShutdown: boolean
 }
 
 export type XoProxy = {
@@ -454,10 +455,10 @@ export type XoProxy = {
   version?: string
   name: string
 } & (
-  | { address?: undefined; vmUuid: XoVm['id'] }
-  | { address: string; vmUuid?: undefined }
-  | { address: string; vmUuid: XoVm['id'] }
-)
+    | { address?: undefined; vmUuid: XoVm['id'] }
+    | { address: string; vmUuid?: undefined }
+    | { address: string; vmUuid: XoVm['id'] }
+  )
 
 type BaseXoJob = {
   id: Branded<'job'>
@@ -644,22 +645,22 @@ export type XoTask = {
     name?: string
     objectId?: string
     objectType?:
-      | XapiXoRecord['type']
-      | 'backup'
-      | 'backup-archive'
-      | 'backup-job'
-      | 'backup-log'
-      | 'backup-repository'
-      | 'group'
-      | 'proxy'
-      | 'restore'
-      | 'restore-log'
-      | 'schedule'
-      | 'server'
-      | 'task'
-      | 'user'
-      | 'acl-privilege'
-      | 'acl-role'
+    | XapiXoRecord['type']
+    | 'backup'
+    | 'backup-archive'
+    | 'backup-job'
+    | 'backup-log'
+    | 'backup-repository'
+    | 'group'
+    | 'proxy'
+    | 'restore'
+    | 'restore-log'
+    | 'schedule'
+    | 'server'
+    | 'task'
+    | 'user'
+    | 'acl-privilege'
+    | 'acl-role'
     params?: Record<string, unknown>
     progress?: number
     type?: string

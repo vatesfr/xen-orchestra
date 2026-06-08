@@ -201,6 +201,7 @@ const TRANSFORMS = {
       zstdSupported: obj.restrictions.restrict_zstd_export === 'false',
       vtpmSupported: obj.restrictions.restrict_vtpm === 'false',
       platform_version: obj.$master.software_version.platform_version,
+      haRebootVmOnInternalShutdown: obj.ha_reboot_vm_on_internal_shutdown ?? true,
 
       // TODO
       // - ? networks = networksByPool.items[pool.id] (network.$pool.id)
@@ -870,11 +871,11 @@ const TRANSFORMS = {
       isBonded:
         obj.$PIFs !== undefined
           ? obj.$PIFs.some(pif => {
-              const isBondMaster = !isEmpty(pif.bond_master_of)
-              const isBondSlave = pif.bond_slave_of !== 'OpaqueRef:NULL'
+            const isBondMaster = !isEmpty(pif.bond_master_of)
+            const isBondSlave = pif.bond_slave_of !== 'OpaqueRef:NULL'
 
-              return isBondMaster || isBondSlave
-            })
+            return isBondMaster || isBondSlave
+          })
           : false,
     }
   },

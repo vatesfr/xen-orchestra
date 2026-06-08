@@ -192,6 +192,7 @@ export interface XenApiPool {
   ha_host_failures_to_tolerate: number
   ha_overcommitted: boolean
   ha_plan_exists_for: number
+  ha_reboot_vm_on_internal_shutdown?: boolean
   ha_statefiles: string[]
   health_check_config: Record<string, string>
   igmp_snooping_enabled?: boolean
@@ -492,7 +493,7 @@ export interface XenApiDrTask {
 }
 
 type XenApiHostCallMethods = TagCallMethods & {
-  <T>(method: 'call_plugin',plugin:string, fn: string, args: Record<string, string>): Promise<T>
+  <T>(method: 'call_plugin', plugin: string, fn: string, args: Record<string, string>): Promise<T>
 }
 export interface XenApiHost {
   $ref: Branded<'host'>
@@ -648,7 +649,7 @@ export interface XenApiNetwork {
   uuid: string
   VIFs: XenApiVif['$ref'][]
 }
-export interface XenApiNetworkWrapped extends WrapperXenApi<XenApiNetwork, 'network', XenApiNetworkCallMethods> {}
+export interface XenApiNetworkWrapped extends WrapperXenApi<XenApiNetwork, 'network', XenApiNetworkCallMethods> { }
 export interface XenApiVif {
   $ref: Branded<'VIF'>
   allowed_operations: VIF_OPERATIONS[]
