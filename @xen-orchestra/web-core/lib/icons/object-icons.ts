@@ -12,7 +12,6 @@ import {
   faClock,
   faDatabase,
   faDesktop,
-  faEthernet,
   faHdd,
   faNetworkWired,
   faPlay,
@@ -22,6 +21,7 @@ import {
   faSlash,
   faUserCircle,
   faUsers,
+  faMapPin,
   type IconDefinition,
 } from '@fortawesome/free-solid-svg-icons'
 
@@ -210,7 +210,7 @@ export const objectIcons = defineIconPack({
   'vdi:disabled': [constructIcon(faHdd), ...constructCircleStatus('disabled')],
   'vdi:warning': [constructIcon(faHdd), ...constructCircleStatus('warning-circle')],
   'vdi:detached': [constructIcon(faHdd), ...constructCircleStatus('danger-circle')],
-  vif: constructIcon(faEthernet),
+  vif: constructIcon(faMapPin),
   network: constructIcon(faNetworkWired),
   'network:unknown': [
     {

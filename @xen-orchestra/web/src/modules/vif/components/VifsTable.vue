@@ -33,6 +33,7 @@ import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { useVifConnectionToggleModal } from '@/modules/vif/composables/use-vif-connection-toggle-modal.composable.ts'
 import { useVifDeleteModal } from '@/modules/vif/composables/use-vif-delete-modal.composable.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { getVifTrafficRoute } from '@/modules/vif/utils/xo-vif.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { CONNECTION_ACTION, CONNECTION_STATUS } from '@/shared/constants.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -125,6 +126,12 @@ const { HeadCells, BodyCells } = useVifColumns({
     )
 
     return {
+      vif: r =>
+        r({
+          label: t('vif'),
+          to: getVifTrafficRoute(vif.id),
+          icon: icon('object:vif'),
+        }),
       network: r =>
         network.value
           ? r({
