@@ -7,7 +7,7 @@
 ## Usage
 
 Like all other xo-server plugins, it can be configured directly via
-the web interface, see [the plugin documentation](https://docs.xen-orchestra.com/manage_infrastructure#usage-reports).
+the web interface, see [the plugin documentation](https://docs.xen-orchestra.com/xo5/manage_infrastructure#usage-reports).
 
 ## Contributions
 

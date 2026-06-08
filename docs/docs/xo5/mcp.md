@@ -293,7 +293,7 @@ All query tools share the same argument shape:
 | ----------- | ------ | ----------- | ------------------------------------------------------------------------------------------------------------------------ |
 | `operation` | enum   | Yes         | The OpenAPI `operationId` to invoke. Valid values are listed in the tool description.                                    |
 | `id`        | string | If required | Resource ID (required for single-resource and sub-resource operations)                                                   |
-| `filter`    | string | No          | [Filter expression](https://docs.xen-orchestra.com/manage_infrastructure#live-filter-search) for list operations         |
+| `filter`    | string | No          | [Filter expression](https://docs.xen-orchestra.com/xo5/manage_infrastructure#live-filter-search) for list operations         |
 | `fields`    | string | No          | Comma-separated fields to return (e.g. `id,name_label`). Passed straight to the REST API; leave empty to get all fields. |
 | `limit`     | number | No          | Maximum number of results for list operations                                                                            |
 
