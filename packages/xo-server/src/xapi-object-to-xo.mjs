@@ -871,11 +871,11 @@ const TRANSFORMS = {
       isBonded:
         obj.$PIFs !== undefined
           ? obj.$PIFs.some(pif => {
-            const isBondMaster = !isEmpty(pif.bond_master_of)
-            const isBondSlave = pif.bond_slave_of !== 'OpaqueRef:NULL'
+              const isBondMaster = !isEmpty(pif.bond_master_of)
+              const isBondSlave = pif.bond_slave_of !== 'OpaqueRef:NULL'
 
-            return isBondMaster || isBondSlave
-          })
+              return isBondMaster || isBondSlave
+            })
           : false,
     }
   },
