@@ -31,7 +31,7 @@ import { AlarmService } from '../alarms/alarm.service.mjs'
 import { parseDateTime } from '@xen-orchestra/xapi'
 import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
 import groupBy from 'lodash/groupBy.js'
-import { VmDashboard } from './vm.type.mjs'
+import type { UpdateVmRequestBody, VmDashboard } from './vm.type.mjs'
 import { BackupLogService } from '../backup-logs/backup-log.service.mjs'
 
 const log = createLogger('xo:rest-api:vm-service')
@@ -215,6 +215,27 @@ export class VmService {
     })
 
     return alarms
+  }
+
+  async updateVm(id: XoVm['id'], body: UpdateVmRequestBody): Promise<void> {
+    const { resourceSet, share, ...editProps } = body
+
+    // Touch the object so 404 is raised before any side effect.
+    void this.#restApi.getObject<XoVm>(id, 'VM')
+    const xoApp = this.#restApi.xoApp
+
+    if (resourceSet !== undefined) {
+      await xoApp.setVmResourceSet(id, resourceSet, true)
+    } else if (share) {
+      // `share: false` is a no-op.
+      await xoApp.shareVmResourceSet(id)
+    }
+
+    if (Object.keys(editProps).length === 0) {
+      return
+    }
+
+    await xoApp.getXapi(id).editVm(id, editProps)
   }
 
   #getDashboardQuickInfo(id: XoVm['id']): VmDashboard['quickInfo'] {

@@ -95,12 +95,8 @@ export async function cleanOrphanDiskDirs(
       if (!coveredDirs.has(vdiDir)) {
         logWarn('orphan VDI directory, not referenced by any backup', { path: vdiDir })
         if (remove) {
-          logInfo('deleting orphan VDI directory', { path: vdiDir })
-          try {
-            await handler.rmtree(vdiDir)
-          } catch (error) {
-            logWarn('failed to delete orphan VDI directory', { path: vdiDir, error })
-          }
+          logInfo('you could delete orphan VDI directory', { path: vdiDir })
+          // TODO: Readd rmtree() when codebase is ready
         }
       }
     }

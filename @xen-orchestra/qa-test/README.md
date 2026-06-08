@@ -12,7 +12,7 @@ End-to-end QA test suite for Xen Orchestra. Tests core features (VM, backup, exp
 
 ## Prerequisites
 
-- Node.js >= 22 (required for `await using` and `--env-file-if-exists`)
+- Node.js >= 24 (required for `await using` and `--env-file-if-exists`)
 - A running Xen Orchestra instance (REST API + WebSocket)
 - A reference VM to clone for tests
 - An available Storage Repository

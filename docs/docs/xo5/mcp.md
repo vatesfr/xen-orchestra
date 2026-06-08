@@ -22,8 +22,12 @@ All operations are **read-only by default**, ensuring safe interaction with your
 ### Prerequisites
 
 - **Node.js** 20 or later
-- A **Xen Orchestra** instance with [REST API](restapi.md) enabled
+- A **Xen Orchestra** instance, version **6.5 or later**, with [REST API](restapi.md) enabled
 - An **AI assistant** that supports MCP (Claude Desktop, Claude Code, etc.)
+
+:::warning
+The MCP server requires **Xen Orchestra 6.5 or later**. On an older XO it stops at startup with an error such as `Unable to verify MCP status (HTTP 404)`. Upgrade your Xen Orchestra to use it.
+:::
 
 ### Install the MCP server
 
@@ -289,7 +293,7 @@ All query tools share the same argument shape:
 | ----------- | ------ | ----------- | ------------------------------------------------------------------------------------------------------------------------ |
 | `operation` | enum   | Yes         | The OpenAPI `operationId` to invoke. Valid values are listed in the tool description.                                    |
 | `id`        | string | If required | Resource ID (required for single-resource and sub-resource operations)                                                   |
-| `filter`    | string | No          | [Filter expression](https://docs.xen-orchestra.com/manage_infrastructure#live-filter-search) for list operations         |
+| `filter`    | string | No          | [Filter expression](https://docs.xen-orchestra.com/xo5/manage_infrastructure#live-filter-search) for list operations         |
 | `fields`    | string | No          | Comma-separated fields to return (e.g. `id,name_label`). Passed straight to the REST API; leave empty to get all fields. |
 | `limit`     | number | No          | Maximum number of results for list operations                                                                            |
 
@@ -396,4 +400,9 @@ If your AI assistant injects `HTTPS_PROXY` into the MCP process and your XOA liv
 
 :::note MCP disabled by admin
 The xo-server administrator has set `[mcp] enabled = false` in the server config. The binary won't start until that flag is removed or set back to `true`. See [Disabling MCP globally](#disabling-mcp-globally) for the server-side details.
+:::
+
+:::note
+**Unable to verify MCP status (HTTP 404)**
+Your Xen Orchestra is older than **6.5**. Upgrade XO to 6.5 or later to use the MCP server, see [Prerequisites](#prerequisites).
 :::

@@ -1,4 +1,4 @@
-import { ProgressHandler } from './ProgressHandler.mjs'
+import { ComposedProgressHandler, ProgressHandler } from './ProgressHandler.mjs'
 
 export type DiskBlockData = Buffer
 export type DiskBlock = {
@@ -11,7 +11,11 @@ export type BytesLength = number
 export abstract class Disk {
   #generatedDiskBlocks = 0
   #parent?: Disk
-  progressHandler?: ProgressHandler
+  #progressHandler = new ComposedProgressHandler()
+
+  get progressHandler(): ProgressHandler {
+    return this.#progressHandler
+  }
   get parent(): Disk | undefined {
     return this.#parent
   }
@@ -66,9 +70,9 @@ export abstract class Disk {
     return Promise.resolve(true)
   }
 
-  // @todo readRawData will be needed for file level restore
-  // @todo rename will be needed for merge
-  // @todo : should the alias part moved from remote/vhd ?
+  addProgressHandler(progressHandler: ProgressHandler) {
+    this.#progressHandler.add(progressHandler)
+  }
 }
 
 /**
