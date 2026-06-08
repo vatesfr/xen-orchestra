@@ -94,7 +94,7 @@ export class TaskController extends XoController<XoTask> {
       }
 
       const userFilter =
-        filter === undefined ? undefined : safeParseComplexMatcher(filter).createPredicate(this.objectResolver)
+        filter === undefined ? undefined : safeParseComplexMatcher(filter).createPredicate(this.restApi.resolver)
       const stream = new Transform({
         objectMode: true,
         transform([event, object], encoding, callback) {
@@ -113,14 +113,6 @@ export class TaskController extends XoController<XoTask> {
         req.destroy()
       })
 
-      const resolver = (id: string) => {
-        try {
-          return this.restApi.getObject(id as XapiXoRecord['id'])
-        } catch {
-          return undefined
-        }
-      }
-
       const userId = this.restApi.getCurrentUser().id
       const update = async (task: XoTask) => {
         const user = await this.restApi.xoApp.getUser(userId)
@@ -130,7 +122,10 @@ export class TaskController extends XoController<XoTask> {
             : ((await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[])
 
         if (
-          hasPrivilegeOn({ user, userPrivileges, action: 'read', resource: 'task', objects: task }, resolver) &&
+          hasPrivilegeOn(
+            { user, userPrivileges, action: 'read', resource: 'task', objects: task },
+            this.restApi.resolver
+          ) &&
           (userFilter === undefined || userFilter(task))
         ) {
           stream.write(['update', task])
@@ -144,7 +139,10 @@ export class TaskController extends XoController<XoTask> {
             : ((await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[])
 
         if (
-          hasPrivilegeOn({ user, userPrivileges, action: 'read', resource: 'task', objects: task }, resolver) &&
+          hasPrivilegeOn(
+            { user, userPrivileges, action: 'read', resource: 'task', objects: task },
+            this.restApi.resolver
+          ) &&
           (userFilter === undefined || userFilter(task))
         ) {
           stream.write(['remove', { id: task.id }])
@@ -212,17 +210,14 @@ export class TaskController extends XoController<XoTask> {
     const userPrivileges =
       user.permission === 'admin' ? [] : ((await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[])
 
-    const resolver = (id: string) => {
-      try {
-        return this.restApi.getObject(id as XapiXoRecord['id'])
-      } catch {
-        return undefined
-      }
-    }
-
     const deletePromises: Promise<void>[] = []
     for await (const task of this.restApi.tasks.list()) {
-      if (hasPrivilegeOn({ user, userPrivileges, resource: 'task', action: 'delete', objects: task }, resolver)) {
+      if (
+        hasPrivilegeOn(
+          { user, userPrivileges, resource: 'task', action: 'delete', objects: task },
+          this.restApi.resolver
+        )
+      ) {
         deletePromises.push(this.restApi.tasks.deleteLog(task.id))
       }
     }

@@ -290,7 +290,7 @@ export class AclRoleController extends XoController<XoAclRole> {
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<AnyPrivilege>>> {
     const privileges = (await this.restApi.xoApp.getAclV2RolePrivileges(id as XoAclRole['id'])) as AnyPrivilege[]
-    return this.sendObjects(limitAndFilterArray(privileges, { filter }, this.objectResolver), req, {
+    return this.sendObjects(limitAndFilterArray(privileges, { filter }, this.restApi.resolver), req, {
       path: 'acl-privileges',
       limit,
       privilege: { resource: 'acl-privilege', action: 'read' },

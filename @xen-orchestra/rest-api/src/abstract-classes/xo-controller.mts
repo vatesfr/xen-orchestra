@@ -21,7 +21,7 @@ export abstract class XoController<
   ): Promise<Record<T['id'], T>> {
     let objects = await this.getAllCollectionObjects(opts)
 
-    objects = limitAndFilterArray(objects, opts, this.objectResolver)
+    objects = limitAndFilterArray(objects, opts, this.restApi.resolver)
 
     const objectById = {} as Record<T['id'], T>
 

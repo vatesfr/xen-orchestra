@@ -10,25 +10,28 @@ export type TPrivilege<T extends SupportedResource> = XoAclPrivilege<SupportedAc
 
 export class Privilege<T extends SupportedResource> {
   #action: TPrivilege<T>['action']
-  #selector?: CM.Node
+  #selector?: (object: object) => boolean
   #resource: TPrivilege<T>['resource']
   #effect: TPrivilege<T>['effect']
 
-  constructor({
-    action,
-    selector,
-    resource,
-    effect,
-  }: {
-    action: TPrivilege<T>['action']
-    selector?: TPrivilege<T>['selector']
-    resource: TPrivilege<T>['resource']
-    effect: TPrivilege<T>['effect']
-  }) {
+  constructor(
+    {
+      action,
+      selector,
+      resource,
+      effect,
+    }: {
+      action: TPrivilege<T>['action']
+      selector?: TPrivilege<T>['selector']
+      resource: TPrivilege<T>['resource']
+      effect: TPrivilege<T>['effect']
+    },
+    resolver?: (id: string) => object | undefined
+  ) {
     Privilege.checkActionIsValid(resource, action)
 
     this.#action = action
-    this.#selector = selector !== undefined ? CM.parse(selector) : undefined
+    this.#selector = selector !== undefined ? CM.parse(selector).createPredicate(resolver) : undefined
     this.#resource = resource
     this.#effect = effect
   }
@@ -67,30 +70,27 @@ export class Privilege<T extends SupportedResource> {
     throw new Error(`Unable to verify if ${this.#action} match ${action} `)
   }
 
-  #matchSelector(object: object, resolver?: (id: string) => object | undefined) {
+  #matchSelector(object: object) {
     if (this.#selector === undefined) {
       return true
     }
 
-    return this.#selector.createPredicate(resolver)(object)
+    return this.#selector(object)
   }
 
   #matchResource(resource: string): resource is SupportedResource {
     return resource === this.#resource
   }
 
-  match<Resource extends SupportedResource = T>(
-    constraint: {
-      action: SupportedActions<Resource>
-      resource: Resource
-      object: object
-    },
-    resolver?: (id: string) => object | undefined
-  ): boolean {
+  match<Resource extends SupportedResource = T>(constraint: {
+    action: SupportedActions<Resource>
+    resource: Resource
+    object: object
+  }): boolean {
     return (
       this.#matchResource(constraint.resource) &&
       this.#matchAction(constraint.action) &&
-      this.#matchSelector(constraint.object, resolver)
+      this.#matchSelector(constraint.object)
     )
   }
 
