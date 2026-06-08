@@ -222,7 +222,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoVdiSnapshot>>> {
     const vdis = this.#vmService.getVmVdis(id as XoVmSnapshot['id'], 'VM-snapshot')
-    return this.sendObjects(limitAndFilterArray(vdis, { filter }, this.objectResolver), req, {
+    return this.sendObjects(limitAndFilterArray(vdis, { filter }, this.restApi.resolver), req, {
       path: obj => obj.type.toLowerCase() + 's',
       limit,
       privilege: { action: 'read', resource: 'vdi' },

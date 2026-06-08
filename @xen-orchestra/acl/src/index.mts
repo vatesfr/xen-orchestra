@@ -64,10 +64,10 @@ export function hasPrivilegeOn<T extends SupportedResource>(
   }
 
   for (const userPrivilege of userPrivileges) {
-    const privilege = new CPrivilege(userPrivilege as Privilege<typeof userPrivilege.resource>)
+    const privilege = new CPrivilege(userPrivilege as Privilege<typeof userPrivilege.resource>, resolver)
 
     for (const [object, effects] of effectsByObject.entries()) {
-      if (!privilege.match({ action, resource, object }, resolver)) {
+      if (!privilege.match({ action, resource, object })) {
         continue
       }
       effects.push(privilege.effect)

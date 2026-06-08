@@ -52,7 +52,7 @@ export class MessageController extends XapiXoController<XoMessage> {
   > {
     let userfilter: (obj: XoMessage) => boolean = () => true
     if (filter !== undefined) {
-      userfilter = safeParseComplexMatcher(filter).createPredicate(this.objectResolver)
+      userfilter = safeParseComplexMatcher(filter).createPredicate(this.restApi.resolver)
     }
     const messagePredicate = (obj: XoMessage) => !alarmPredicate(obj) && userfilter(obj)
 
