@@ -29,6 +29,11 @@
   - `POST /srs/:id/actions/forget` (PR [#9896](https://github.com/vatesfr/xen-orchestra/pull/9896))
   - `POST /pbds/:id/actions/plug` (PR [#9888](https://github.com/vatesfr/xen-orchestra/pull/9888))
   - `POST /pbds/:id/actions/unplug` (PR [#9888](https://github.com/vatesfr/xen-orchestra/pull/9888))
+  - `GET /vdi-snapshots/{id}.{format}` (PR [#9906](https://github.com/vatesfr/xen-orchestra/pull/9906))
+  - `GET /vdi-snapshots/{id}` (PR [#9906](https://github.com/vatesfr/xen-orchestra/pull/9906))
+  - `DELETE /vdi-snapshots/{id}` (PR [#9906](https://github.com/vatesfr/xen-orchestra/pull/9906))
+  - `PUT /vdi-snapshots/{id}/tags/{tag}` (PR [#9906](https://github.com/vatesfr/xen-orchestra/pull/9906))
+  - `DELETE /vdi-snapshots/{id}/tags/{tag}` (PR [#9906](https://github.com/vatesfr/xen-orchestra/pull/9906))/vdi-snapshots/{id}.{format}` (PR [#9906](https://github.com/vatesfr/xen-orchestra/pull/9906))
 
 - [XO6] live update XO tasks (PR [#9901](https://github.com/vatesfr/xen-orchestra/pull/9901))
 - [XO6/Backup] add progress for backups tasks(PR [#9901](https://github.com/vatesfr/xen-orchestra/pull/9901))
