@@ -658,7 +658,7 @@ describe('RestApi', () => {
         const response = await get(port, '/param-validation/baz')
         assert.equal(response.status, 422)
       })
-      it.only('rejects object in route param', async () => {
+      it('rejects object in route param', async () => {
         const response = await get(port, '/param-validation/{type}')
         assert.equal(response.status, 422)
       })
