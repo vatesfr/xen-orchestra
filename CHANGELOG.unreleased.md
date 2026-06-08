@@ -63,6 +63,7 @@
 - @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/xapi minor
+- xo-common minor
 - xo-server minor
 - xo-server-sdn-controller patch
 - xo-web patch
