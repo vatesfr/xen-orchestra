@@ -621,6 +621,9 @@ class SDNController extends EventEmitter {
             params: {
               id: { type: 'string', example: 'b97f4e69-d275-4b25-9dc9-c1ac4e9b3fa5' },
             },
+            query: {
+              sync: { type: 'boolean', optional: true },
+            },
             body: {
               oldRule: {
                 type: 'object',
@@ -701,6 +704,9 @@ class SDNController extends EventEmitter {
             tags: ['sdn-controller'],
             params: {
               id: { type: 'string', example: 'b97f4e69-d275-4b25-9dc9-c1ac4e9b3fa5' },
+            },
+            query: {
+              sync: { type: 'boolean', optional: true },
             },
             body: {
               oldRule: {
