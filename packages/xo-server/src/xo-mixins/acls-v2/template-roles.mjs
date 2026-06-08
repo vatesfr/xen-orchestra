@@ -88,7 +88,7 @@ export const VMS_READ_ONLY = {
 export const ADMINISTRATOR = {
   roleTemplateId: 5,
   name: 'Administrator',
-  description: 'Full access to the entire infra, all objects, and user management',
+  description: 'Full access to the entire infrastructure, all objects, and user management',
   privileges: [
     // XAPI objects privileges
     { action: '*', resource: 'sr', effect: 'allow' },
