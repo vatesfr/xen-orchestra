@@ -252,7 +252,7 @@ export interface Xapi {
   ): Promise<void>
   VM_export(
     vmRef: XenApiVm['$ref'],
-    opts?: { cancelToken?: unknown; compress?: boolean; useSnapshot?: boolean }
+    opts?: { cancelToken?: unknown; compress?: boolean | 'zstd' | 'gzip'; useSnapshot?: boolean }
   ): ReturnType<Xapi['getResource']>
   VM_import(
     stream: Readable,
