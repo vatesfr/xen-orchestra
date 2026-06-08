@@ -1,6 +1,21 @@
 <template>
   <UiCard class="card-container">
     <VtsCardObjectTitle :id="task.id" :label="task.properties.name" icon="fa:bars-progress" />
+    <UiCardTitle>
+      <div v-if="nameParts" class="title">
+        <VtsIcon name="fa:bars-progress" size="medium" />
+        <template v-for="(part, index) in nameParts" :key="index">
+          <UiLink size="small" :to="part.to">{{ part.text }}</UiLink>
+        </template>
+      </div>
+      <UiLink v-else-if="task.properties.name !== undefined" size="small" icon="fa:bars-progress">
+        {{ task.properties.name }}
+      </UiLink>
+      <template v-else>
+        <VtsIcon name="fa:bars-progress" size="medium" />
+        {{ task.id }}
+      </template>
+    </UiCardTitle>
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('task-type') }}</template>
@@ -54,12 +69,14 @@
 </template>
 
 <script lang="ts" setup>
+import { useXoTaskNameResolver } from '@/modules/task/composables/xo-task-name-resolver.composable.ts'
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { getTaskAccents } from '@/modules/task/utils/xo-task.util.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCircleProgressBar from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'
@@ -74,6 +91,9 @@ const { task } = defineProps<{
 }>()
 
 const { t, d } = useI18n()
+
+const { resolveTaskName } = useXoTaskNameResolver()
+const nameParts = computed(() => (task.properties.name ? resolveTaskName(task.properties.name) : undefined))
 
 const { user } = useXoUserResource({}, () => task.properties.userId)
 
@@ -114,6 +134,11 @@ const formattedEndDate = computed(() => {
 <style scoped lang="postcss">
 .card-container {
   gap: 1.6rem;
+  .title {
+    display: flex;
+    gap: 0.8rem;
+    align-items:center;
+  }
 
   .content {
     display: flex;

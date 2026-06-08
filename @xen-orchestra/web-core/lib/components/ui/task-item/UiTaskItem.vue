@@ -21,16 +21,14 @@
       </div>
 
       <div class="main-content">
-        <div v-if="task.nameSegments || task.name" class="content-left">
-          <UiLink size="medium">
-            <template v-if="task.nameSegments">
-              <template v-for="(segment, index) in task.nameSegments" :key="index">
-                <RouterLink v-if="segment.to" :to="segment.to">{{ segment.text }}</RouterLink>
-                <span v-else>{{ segment.text }}</span>
-              </template>
+        <div v-if="task.nameParts || task.name" class="content-left">
+          <template v-if="task.nameParts">
+            <template v-for="(part, index) in task.nameParts" :key="index">
+              <UiLink v-if="part.to" size="medium" :to="part.to">{{ part.text }}</UiLink>
+              <span v-else>{{ part.text }}</span>
             </template>
-            <template v-else>{{ task.name }}</template>
-          </UiLink>
+          </template>
+          <UiLink v-else size="medium">{{ task.name }}</UiLink>
           <div v-if="shouldShowInfos || hasSubTasks" class="infos">
             <UiCounter v-if="hasSubTasks" :value="subTasksCount" accent="brand" variant="secondary" size="small" />
             <UiInfo v-if="hasInfos" accent="info" />
@@ -67,20 +65,22 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTaskList from '@core/components/ui/task-list/UiTaskList.vue'
 import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import type { TaskNameSegment } from '@core/types/task.type.ts'
+import type { TaskNamePart, TaskStatus } from '@core/types/task.type.ts'
 import { logicOr } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink } from 'vue-router'
 
 export type Task = {
   id: string
   infos?: { data: unknown; message: string }[]
   name?: string
-  nameSegments?: TaskNameSegment[]
+  nameParts?: TaskNamePart[]
   progress?: number
+  tag?: string
+  userName?: string
+  start?: number
   end?: number
-  status: 'failure' | 'interrupted' | 'pending' | 'success'
+  status: TaskStatus
   subtasks?: Task[]
   warnings?: { data: unknown; message: string }[]
 }
