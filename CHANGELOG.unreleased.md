@@ -39,7 +39,7 @@
 - [Qcow2] Fix initialization Map range error for big (>1 TB) Qcow2 disks (PR [#9940](https://github.com/vatesfr/xen-orchestra/pull/9940))
 - **XO 5**:
   - [Jobs] fix array values being incorrectly handled (used for instance on job.runSequence) (PR [#9928](https://github.com/vatesfr/xen-orchestra/pull/9928))
-
+- [Backups] Remove now useless warnign if folders are orphaned from old jobs (PR [#9958](https://github.com/vatesfr/xen-orchestra/pull/9958))
 - xo-server-sdn-controller: apply/clean network rules on VIF update (PR [#9933](https://github.com/vatesfr/xen-orchestra/pull/9933))
 
 ### Packages to release
@@ -60,6 +60,7 @@
 
 - @vates/types minor
 - @xen-orchestra/acl minor
+- @xen-orchestra/backup-archive patch
 - @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/xapi minor
