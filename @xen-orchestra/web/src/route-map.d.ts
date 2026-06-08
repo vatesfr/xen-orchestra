@@ -310,6 +310,35 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/vdi/new': RouteRecordInfo<
+      '/vdi/new',
+      '/vdi/new',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/vif/[id]': RouteRecordInfo<
+      '/vif/[id]',
+      '/vif/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | '/vif/[id]/general'
+      | '/vif/[id]/traffic-rules'
+    >,
+    '/vif/[id]/general': RouteRecordInfo<
+      '/vif/[id]/general',
+      '/vif/:id/general',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/vif/[id]/traffic-rules': RouteRecordInfo<
+      '/vif/[id]/traffic-rules',
+      '/vif/:id/traffic-rules',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/vm/[id]': RouteRecordInfo<
       '/vm/[id]',
       '/vm/:id',
@@ -644,6 +673,32 @@ declare module 'vue-router/auto-routes' {
     'src/pages/vdi/attach.vue': {
       routes:
         | '/vdi/attach'
+      views:
+        | never
+    }
+    'src/pages/vdi/new.vue': {
+      routes:
+        | '/vdi/new'
+      views:
+        | never
+    }
+    'src/pages/vif/[id].vue': {
+      routes:
+        | '/vif/[id]'
+        | '/vif/[id]/general'
+        | '/vif/[id]/traffic-rules'
+      views:
+        | 'default'
+    }
+    'src/pages/vif/[id]/general.vue': {
+      routes:
+        | '/vif/[id]/general'
+      views:
+        | never
+    }
+    'src/pages/vif/[id]/traffic-rules.vue': {
+      routes:
+        | '/vif/[id]/traffic-rules'
       views:
         | never
     }
