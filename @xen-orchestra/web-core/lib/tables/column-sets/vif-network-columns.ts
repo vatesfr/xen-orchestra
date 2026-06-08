@@ -7,7 +7,7 @@ import { useStatusColumn } from '@core/tables/column-definitions/status-column.t
 import { useTextColumn } from '@core/tables/column-definitions/text-column.ts'
 import { useI18n } from 'vue-i18n'
 
-export const useVifColumns = defineColumns(() => {
+export const useVifNetworkColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {

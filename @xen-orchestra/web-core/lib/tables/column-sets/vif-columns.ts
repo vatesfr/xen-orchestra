@@ -11,7 +11,6 @@ export const useVifColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
-    vif: useLinkColumn({ headerLabel: () => t('vif') }),
     network: useLinkColumn({ headerLabel: () => t('network') }),
     device: useTextColumn({ headerLabel: () => t('device') }),
     status: useStatusColumn({ headerLabel: () => t('status') }),
