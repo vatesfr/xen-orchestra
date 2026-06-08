@@ -2,7 +2,7 @@ import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { TaskNamePart } from '@core/types/task.type.ts'
+import type { TaskObjectSegment } from '@core/types/task.type.ts'
 import type { XoHost, XoPool, XoSr, XoVm } from '@vates/types'
 
 const UUID_REGEX = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g
@@ -13,7 +13,7 @@ export function useXoTaskNameResolver() {
   const { getPoolById } = useXoPoolCollection()
   const { getSrById } = useXoSrCollection()
 
-  function resolveUuid(uuid: string): TaskNamePart | undefined {
+  function resolveUuid(uuid: string): TaskObjectSegment | undefined {
     const vm = getVmById(uuid as XoVm['id'])
     if (vm) {
       return { text: vm.name_label, to: { name: '/vm/[id]/dashboard', params: { id: uuid } } }
@@ -37,12 +37,12 @@ export function useXoTaskNameResolver() {
     return undefined
   }
 
-  function resolveTaskName(name: string): TaskNamePart[] | undefined {
+  function resolveTaskName(name: string): TaskObjectSegment[] | undefined {
     if (!name) {
       return undefined
     }
 
-    const parts: TaskNamePart[] = []
+    const parts: TaskObjectSegment[] = []
     let lastIndex = 0
 
     for (const match of name.matchAll(UUID_REGEX)) {
