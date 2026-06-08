@@ -1,4 +1,4 @@
-import { asyncMap } from '@xen-orchestra/async-map'
+import { asyncEach } from '@vates/async-each'
 import { Task } from '@vates/task'
 import Disposable from 'promise-toolbox/Disposable'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
@@ -82,10 +82,11 @@ export const Metadata = class MetadataBackupRunner extends Abstract {
         // remove pools that failed (already handled)
         pools = pools.filter(_ => _ !== undefined)
 
-        const promises = []
-        if (pools.length !== 0 && settings.retentionPoolMetadata !== 0) {
-          promises.push(
-            asyncMap(pools, async pool =>
+        const tasks = []
+
+        if (settings.retentionPoolMetadata !== 0) {
+          for (const pool of pools) {
+            tasks.push(async () =>
               Task.run(
                 {
                   properties: {
@@ -107,11 +108,11 @@ export const Metadata = class MetadataBackupRunner extends Abstract {
                   }).run()
               ).catch(noop)
             )
-          )
+          }
         }
 
         if (job.xoMetadata !== undefined && settings.retentionXoMetadata !== 0) {
-          promises.push(
+          tasks.push(() =>
             Task.run(
               {
                 properties: {
@@ -130,7 +131,16 @@ export const Metadata = class MetadataBackupRunner extends Abstract {
             ).catch(noop)
           )
         }
-        await Promise.all(promises)
+
+        const total = tasks.length
+        let transferred = 0
+
+        await asyncEach(tasks, async task => {
+          await task()
+          transferred++
+          Task.set('progress', Math.round(transferred / total))
+        })
+        Task.set('progress', 1)
       }
     )
   }

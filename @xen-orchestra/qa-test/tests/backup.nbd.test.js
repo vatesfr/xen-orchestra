@@ -53,7 +53,7 @@ describe('NBD Incremental Backup Tests', () => {
       // Create the backup repository for testing
       try {
         const backupRepositoryId = await dispatchClient.backupRepository.create(backupRepositoryName, {
-          path: getRequiredEnv('BACKUP_REPOSITORY_PATH'),
+          url: getRequiredEnv('BACKUP_REPOSITORY_URL'),
         })
 
         // Fetch the canonical repository object from the API

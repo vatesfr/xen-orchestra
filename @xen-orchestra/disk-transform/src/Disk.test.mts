@@ -42,12 +42,12 @@ test('Disk class', async t => {
 
   await t.test('diskBlocks calls progressHandler.done when consumer exits early', async () => {
     let doneCalled = false
-    disk.progressHandler = {
+    disk.addProgressHandler({
       setProgress: async () => {},
       done: async () => {
         doneCalled = true
       },
-    }
+    })
     disk.blocks[4] = true
     disk.blocks[5] = true
     disk.blocks[6] = true

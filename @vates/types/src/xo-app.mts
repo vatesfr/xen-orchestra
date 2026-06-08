@@ -50,12 +50,26 @@ import {
   XoUserRole,
 } from './index.mjs'
 
-export type XapiConnection = Xapi & {
-  status: string
-  pool?: { uuid: string }
-  sessionId: string
-  _url?: { protocol: string; hostname: string; port?: string }
-}
+type FeatureCode =
+  | 'BACKUP.DELTA'
+  | 'BACKUP.DELTA_REPLICATION'
+  | 'BACKUP.FULL'
+  | 'BACKUP.HEALTHCHECK'
+  | 'BACKUP.METADATA'
+  | 'BACKUP.MIRROR'
+  | 'BACKUP.WITH_RAM'
+  | 'BACKUP.SMART_BACKUP'
+  | 'BACKUP.S3'
+  | 'DOCKER'
+  | 'EXPORT.XVA'
+  | 'LIST_MISSING_PATCHES'
+  | 'POOL_EMERGENCY_SHUTDOWN'
+  | 'RBAC'
+  | 'ROLLING_POOL_UPDATE'
+  | 'ROLLING_POOL_REBOOT'
+  | 'WARM_MIGRATION'
+  | 'PLUGIN.OPENMETRICS'
+
 type XapiRecordByXapiXoRecord = {
   gpuGroup: XenApiGpuGroupWrapped
   host: XenApiHostWrapped
@@ -184,7 +198,7 @@ export type XoApp = {
     opts?: { bypassOtp?: boolean; bypassTaskCreation?: boolean }
   ) => Promise<{ bypassOtp: boolean; expiration: number; user: XoUser }>
   /* Throw if no authorization */
-  checkFeatureAuthorization(featureCode: string): Promise<void>
+  checkFeatureAuthorization(featureCode: FeatureCode): Promise<void>
   /* connect a server (XCP-ng/XenServer) */
   connectXenServer(id: XoServer['id']): Promise<void>
   // TODO: replace all XoAclBasePrivilege with a more strict type. (discriminate union)
@@ -355,7 +369,7 @@ export type XoApp = {
       url?: string
     }
   ): Promise<XoBackupRepository>
-  getAllXapis(): Record<string, XapiConnection>
+  getAllXapis(): Record<string, Xapi>
   getObjects(opts?: { filter?: Record<string, unknown>; limit?: number }): Record<string, XapiXoRecord>
   getLicenses(params?: { productType?: LicenseProductType }): Promise<License[]>
   bindLicense(params: { licenseId: string; boundObjectId: string }): Promise<License>

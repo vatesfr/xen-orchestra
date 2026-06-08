@@ -22,7 +22,7 @@ const SOURCE_REPOSITORY_NAME = getRequiredEnv('BACKUP_REPOSITORY_NAME')
 
 /** Destination backup repository — mirror target */
 const MIRROR_DESTINATION_REPOSITORY_NAME = getRequiredEnv('MIRROR_DESTINATION_REPOSITORY_NAME')
-const MIRROR_DESTINATION_REPOSITORY_PATH = getRequiredEnv('MIRROR_DESTINATION_REPOSITORY_PATH')
+const MIRROR_DESTINATION_REPOSITORY_URL = getRequiredEnv('MIRROR_DESTINATION_REPOSITORY_URL')
 
 describe('Mirror Backup - Full Remote', () => {
   /** @type {import('../client/dispatchClient.js').DispatchClient} */
@@ -155,7 +155,7 @@ describe('Mirror Backup - Full Remote', () => {
 
     if (!sourceRepository) {
       const id = await dispatchClient.backupRepository.create(SOURCE_REPOSITORY_NAME, {
-        path: getRequiredEnv('BACKUP_REPOSITORY_PATH'),
+        url: getRequiredEnv('BACKUP_REPOSITORY_URL'),
       })
       sourceRepository = await dispatchClient.backupRepository.get({ id })
       if (!sourceRepository) {
@@ -171,7 +171,7 @@ describe('Mirror Backup - Full Remote', () => {
 
     if (!destRepository) {
       const id = await dispatchClient.backupRepository.create(MIRROR_DESTINATION_REPOSITORY_NAME, {
-        path: MIRROR_DESTINATION_REPOSITORY_PATH,
+        url: MIRROR_DESTINATION_REPOSITORY_URL,
       })
       destRepository = await dispatchClient.backupRepository.get({ id })
       if (!destRepository) {

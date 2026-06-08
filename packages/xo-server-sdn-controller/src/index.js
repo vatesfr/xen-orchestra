@@ -1454,7 +1454,12 @@ class SDNController extends EventEmitter {
           await vif.$xapi.watchTask(key).catch(noop)
           vif = await vif.$xapi.barrier(vif.$ref)
           await this._applyVifOfRules(vif)
+          await this._applyNetworkOfRules(vif.$network)
         } else if (value === 'unplug' || value === 'unplug_force') {
+          // refresh NetworkOfRules by cleaning/applying
+          await this._cleanNetworkOfRules(vif.$network)
+          await this._applyNetworkOfRules(vif.$network)
+
           await this._cleanVifOfRules(vif)
           await vif.$xapi.watchTask(key).catch(noop)
         }

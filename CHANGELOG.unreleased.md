@@ -24,6 +24,15 @@
   - `DELETE /vifs/:id` (PR [#9889](https://github.com/vatesfr/xen-orchestra/pull/9889))
   - `POST /vifs/:id/actions/connect` (PR [#9889](https://github.com/vatesfr/xen-orchestra/pull/9889))
   - `POST /vifs/:id/actions/disconnect` (PR [#9889](https://github.com/vatesfr/xen-orchestra/pull/9889))
+  - `POST /srs/:id/actions/reclaim_space` (PR [#9896](https://github.com/vatesfr/xen-orchestra/pull/9896))
+  - `POST /srs/:id/actions/scan` (PR [#9896](https://github.com/vatesfr/xen-orchestra/pull/9896))
+  - `POST /srs/:id/actions/forget` (PR [#9896](https://github.com/vatesfr/xen-orchestra/pull/9896))
+  - `POST /pbds/:id/actions/plug` (PR [#9888](https://github.com/vatesfr/xen-orchestra/pull/9888))
+  - `POST /pbds/:id/actions/unplug` (PR [#9888](https://github.com/vatesfr/xen-orchestra/pull/9888))
+
+- [XO6] live update XO tasks (PR [#9901](https://github.com/vatesfr/xen-orchestra/pull/9901))
+- [XO6/Backup] add progress for backups tasks(PR [#9901](https://github.com/vatesfr/xen-orchestra/pull/9901))
+- [REST API] add `hosts/:id/actions/join_pool` REST route (PR [#9876](https://github.com/vatesfr/xen-orchestra/pull/9876))
 
 ### Bug fixes
 
@@ -32,6 +41,8 @@
 - [Qcow2] Fix initialization Map range error for big (>1 TB) Qcow2 disks (PR [#9940](https://github.com/vatesfr/xen-orchestra/pull/9940))
 - **XO 5**:
   - [Jobs] fix array values being incorrectly handled (used for instance on job.runSequence) (PR [#9928](https://github.com/vatesfr/xen-orchestra/pull/9928))
+
+- xo-server-sdn-controller: apply/clean network rules on VIF update (PR [#9933](https://github.com/vatesfr/xen-orchestra/pull/9933))
 
 ### Packages to release
 
@@ -48,10 +59,14 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
 - @vates/types minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/xapi minor
+- xo-common minor
+- xo-server minor
 - xo-server-ipmi-sensors patch
 - xo-server-sdn-controller patch
 - xo-web patch
