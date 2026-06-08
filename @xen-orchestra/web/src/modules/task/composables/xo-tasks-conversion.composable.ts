@@ -2,22 +2,24 @@ import { useXoTaskNameResolver } from '@/modules/task/composables/xo-task-name-r
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { convertXoTaskToCore } from '@/modules/task/utils/convert-xo-task-to-core.util.ts'
 import { useXoUserCollection } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
-import type { Task } from '@core/types/task.type.ts'
+import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
+import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { XoUser } from '@vates/types'
-import { computed, type MaybeRefOrGetter, toValue } from 'vue'
+import { computed, type MaybeRefOrGetter } from 'vue'
 
 export function useXoTasksConversion(rawTasks: MaybeRefOrGetter<FrontXoTask[]>) {
   const { getUserById } = useXoUserCollection()
   const { resolveTaskName } = useXoTaskNameResolver()
 
-  function convertTask(task: FrontXoTask, userName?: string): Task {
-    const coreTask = convertXoTaskToCore(task, userName)
+  const tasks = toComputed(rawTasks)
 
-    const name = task.properties.name
-    if (name) {
-      const nameSegments = resolveTaskName(name)
-      if (nameSegments !== undefined) {
-        coreTask.nameSegments = nameSegments
+  function convertTask(task: FrontXoTask, userName?: string): Task {
+    const coreTask = convertXoTaskToCore({ ...task, tasks: undefined }, userName)
+
+    if (task.properties.name) {
+      const nameParts = resolveTaskName(task.properties.name)
+      if (nameParts !== undefined) {
+        coreTask.nameParts = nameParts
       }
     }
 
@@ -27,9 +29,14 @@ export function useXoTasksConversion(rawTasks: MaybeRefOrGetter<FrontXoTask[]>) 
   }
 
   const convertedTasks = computed(() =>
-    toValue(rawTasks).map(task => {
+    tasks.value.map(task => {
       const userId = task.properties.userId
-      const user = userId ? getUserById(userId as XoUser['id']) : undefined
+
+      if (!userId) {
+        return convertTask(task)
+      }
+
+      const user = getUserById(userId as XoUser['id'])
       const userName = user?.name ?? user?.email
       return convertTask(task, userName)
     })
