@@ -71,6 +71,7 @@
 
 - [i18n] Update Czech, Danish, Norwegian, Slovak, Spanish and Swedish translations (PR [#9914](https://github.com/vatesfr/xen-orchestra/pull/9914))
 - [REST API] `PATCH /rest/v0/vifs/{id}` to update VIF properties (allowed IPs, locking mode, rate limit, TX checksumming) (PR [#9935](https://github.com/vatesfr/xen-orchestra/pull/9935))
+- [XOA] take a snapshot before installing upgrades (PR [#9920](https://github.com/vatesfr/xen-orchestra/pull/9920))
 
 ### Bug fixes
 
