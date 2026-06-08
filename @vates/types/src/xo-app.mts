@@ -58,7 +58,6 @@ export type XapiConnection = Xapi & {
 }
 
 type FeatureCode =
-  | 'RBAC'
   | 'BACKUP.DELTA'
   | 'BACKUP.DELTA_REPLICATION'
   | 'BACKUP.FULL'
