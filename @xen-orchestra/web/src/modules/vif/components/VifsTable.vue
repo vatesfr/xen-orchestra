@@ -44,7 +44,7 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
-import { useVifColumns } from '@core/tables/column-sets/vif-columns.ts'
+import { useVifNetworkColumns } from '@core/tables/column-sets/vif-network-columns.ts'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
 import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
 import { logicNot } from '@vueuse/math'
@@ -98,7 +98,7 @@ const getIpAddresses = (vif: FrontXoVif) => {
 
 const { pageRecords: paginatedVifs, paginationBindings } = usePagination('vifs', filteredVifs)
 
-const { HeadCells, BodyCells } = useVifColumns({
+const { HeadCells, BodyCells } = useVifNetworkColumns({
   body: (vif: FrontXoVif) => {
     const ipAddresses = computed(() => getIpAddresses(vif))
 
