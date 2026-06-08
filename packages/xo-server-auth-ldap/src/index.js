@@ -11,6 +11,9 @@ const logger = createLogger('xo:xo-server-auth-ldap')
 
 // ===================================================================
 
+const CONNECT_TIMEOUT_MS = 5000
+const FAILOVER_ERRORS = new Set(['ECONNREFUSED', 'ETIMEDOUT', 'EHOSTUNREACH', 'ECONNRESET', 'ENOTFOUND'])
+
 const { escape } = Filter.prototype
 
 function isDnField(field) {
@@ -37,6 +40,14 @@ export const configurationSchema = {
       title: 'URI',
       description: 'URI of the LDAP server.',
       type: 'string',
+    },
+    failoverUris: {
+      title: 'Failover URIs',
+      description: 'Backup URIs tried in order on TCP-level failure of the primary URI.',
+      type: 'array',
+      items: {
+        type: 'string',
+      },
     },
     certificateAuthorities: {
       title: 'Certificate Authorities',
@@ -221,6 +232,29 @@ class AuthLdap {
     this._startTls = startTls
     this._groupsConfig = groups
     this._userIdAttribute = userIdAttribute
+    this._failoverUris = conf.failoverUris ?? []
+  }
+
+  // Failover only triggers on TCP-level errors; for plain ldap:// without StartTLS the
+  // connection is lazy and errors surface at bind() time, not here.
+  async _connectWithFailover() {
+    const uris = [this._clientOpts.url, ...this._failoverUris]
+    let lastError
+    for (const uri of uris) {
+      const client = new Client({ ...this._clientOpts, url: uri, connectTimeout: CONNECT_TIMEOUT_MS })
+      try {
+        if (this._startTls) {
+          await client.startTLS(this._tlsOptions)
+        }
+        return client
+      } catch (err) {
+        await client.unbind().catch(() => {})
+        if (!FAILOVER_ERRORS.has(err.code)) throw err
+        lastError = err
+        logger.warn(`LDAP URI ${uri} unreachable (${err.code}), trying next…`)
+      }
+    }
+    throw lastError
   }
 
   load() {
@@ -255,13 +289,9 @@ class AuthLdap {
       return null
     }
 
-    const client = new Client(this._clientOpts)
+    const client = await this._connectWithFailover()
 
     try {
-      if (this._startTls) {
-        await client.startTLS(this._tlsOptions)
-      }
-
       // Bind if necessary.
       {
         const { _credentials: credentials } = this
@@ -328,13 +358,9 @@ class AuthLdap {
 
   // Synchronize user's groups OR all groups if no user is passed
   async _synchronizeGroups(user, memberId) {
-    const client = new Client(this._clientOpts)
+    const client = await this._connectWithFailover()
 
     try {
-      if (this._startTls) {
-        await client.startTLS(this._tlsOptions)
-      }
-
       // Bind if necessary.
       {
         const { _credentials: credentials } = this
