@@ -150,6 +150,14 @@ const { HeadCells, BodyCells } = useVdiColumns({
               busy: isTogglingVbdConnection.value,
             },
             {
+              label: t('action:migrate-vdi-on-sr'),
+              hint: migrateVdiErrorMessage.value,
+              icon: 'action:migrate',
+              onClick: () => openVdiMigrateModal(),
+              disabled: !canMigrateVdi.value,
+              busy: isMigratingVdi.value,
+            },
+            {
               label: t('action:detach-vdi'),
               hint: deleteVbdErrorMessage.value,
               icon: 'action:detach',
