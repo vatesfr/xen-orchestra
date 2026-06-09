@@ -17,11 +17,11 @@
             </option>
           </select>
           <p v-if="showError" class="message message--error">
-            <VtsIcon name="fa:exclamation" size="current" />
+            <VtsIcon name="fa:exclamation-circle" size="current" />
             {{ t('destination-sr-mandatory') }}
           </p>
           <p v-if="isOnDifferentHost" class="message message--warning">
-            <VtsIcon name="fa:exclamation" size="current" />
+            <VtsIcon name="fa:exclamation-circle" size="current" />
             {{ t('vdi-on-different-sr-warning') }}
           </p>
         </div>
@@ -75,14 +75,21 @@ const { t } = useI18n()
 
 const { srs, useGetSrById } = useXoSrCollection()
 
-const destinationSrId = ref<FrontXoSr['id'] | undefined>(undefined)
+// For HTML <select>, '' is more stable than undefined
+const destinationSrId = ref<FrontXoSr['id'] | ''>('')
+
 const showError = ref(false)
 
 // Exclude the VDI's current SR
 const availableSrs = computed(() => srs.value.filter((sr: FrontXoSr) => sr.id !== props.vdi.$SR))
 
 const currentSr = useGetSrById(() => props.vdi.$SR)
-const selectedSr = useGetSrById(() => destinationSrId.value)
+
+const selectedSrId = computed<FrontXoSr['id'] | undefined>(() => {
+  return destinationSrId.value === '' ? undefined : destinationSrId.value
+})
+
+const selectedSr = useGetSrById(selectedSrId)
 
 // SR is on a different host when $container differs from the current SR's $container
 const isOnDifferentHost = computed(() => {
@@ -91,12 +98,13 @@ const isOnDifferentHost = computed(() => {
 })
 
 function handleConfirm() {
-  if (!destinationSrId.value) {
+  const srId = selectedSrId.value
+  if (srId === undefined) {
     showError.value = true
     return
   }
   showError.value = false
-  emit('confirm', destinationSrId.value)
+  emit('confirm', srId)
 }
 </script>
 

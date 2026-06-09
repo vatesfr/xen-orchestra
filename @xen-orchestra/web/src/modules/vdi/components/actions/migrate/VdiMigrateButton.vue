@@ -1,5 +1,10 @@
 <template>
-  <MenuItem icon="action:migrate" :disabled="!canMigrateVdi" :busy="isMigratingVdi" @click="openVdiMigrateModal()">
+  <MenuItem
+    v-if="canMigrateVdi"
+    icon="action:migrate"
+    :busy="isMigratingVdi"
+    @click="openVdiMigrateModal()"
+  >
     {{ t('action:migrate-vdi-on-sr') }}
   </MenuItem>
 </template>
