@@ -167,7 +167,6 @@ const { HeadCells, BodyCells } = useVdiColumns({
             },
             {
               label: t('action:migrate-vdi-on-sr'),
-              hint: migrateVdiErrorMessage.value,
               icon: 'action:migrate',
               onClick: () => openVdiMigrateModal(),
               disabled: !canMigrateVdi.value,
