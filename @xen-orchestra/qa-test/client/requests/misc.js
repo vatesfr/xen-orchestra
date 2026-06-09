@@ -27,21 +27,21 @@ export class BackupRepositoryRequest extends AbstractRequest {
    *
    * @param {string} name - Name for the backup repository
    * @param {Object} options - Creation options
-   * @param {string} [options.path] - File path for the backup repository. If not provided, uses BACKUP_PATH environment variable (required when omitted).
+   * @param {string} [options.url] - @xen-orchestra/fs-compatible URL for the repository (e.g. file:///tmp/backups, s3://bucket/path). If not provided, uses BACKUP_REPOSITORY_URL environment variable.
    * @returns {Promise<string>} Created backup repository ID
    * @throws {Error} If creation fails
    */
   async create(name, options = {}) {
     this._ensureConnected()
 
-    const path = options.path || getRequiredEnv('BACKUP_PATH')
-    log.debug('Creating backup repository', { name, path })
+    const url = options.url ?? getRequiredEnv('BACKUP_REPOSITORY_URL')
+    log.debug('Creating backup repository', { name, url })
 
     // Backup repository creation may not be available via REST API, use WebSocket directly
     try {
       const backupRepositoryResult = await this.dispatchClient.xoClient.call('remote.create', {
         name,
-        url: `file://${path}`,
+        url,
       })
 
       const backupRepositoryId = backupRepositoryResult?.id || backupRepositoryResult

@@ -1,6 +1,6 @@
 import assert from 'assert'
 import { createLogger } from '@xen-orchestra/log'
-import { filter, forOwn } from 'lodash'
+import { forOwn } from 'lodash'
 import { randomBytes } from 'crypto'
 
 // =============================================================================
@@ -124,7 +124,7 @@ export class PrivateNetwork {
       return this.electNewCenter()
     }
 
-    const hosts = filter(network.$pool.$xapi.objects.all, { $type: 'host' })
+    const hosts = Object.values(network.$pool.$xapi.objects.indexes.type.host ?? {})
     return Promise.all(
       hosts.map(async host => {
         const hostClient = this.controller.ovsdbClients[host.$ref]
@@ -215,7 +215,7 @@ export class PrivateNetwork {
   _getHosts() {
     const hosts = []
     forOwn(this.networks, network => {
-      hosts.push(...filter(network.$pool.$xapi.objects.all, { $type: 'host' }))
+      hosts.push(...Object.values(network.$pool.$xapi.objects.indexes.type.host ?? {}))
     })
     return hosts
   }

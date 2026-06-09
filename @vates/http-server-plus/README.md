@@ -2,7 +2,17 @@
 
 # @vates/http-server-plus
 
+[![Package Version](https://badgen.net/npm/v/@vates/http-server-plus)](https://npmjs.org/package/@vates/http-server-plus) ![License](https://badgen.net/npm/license/@vates/http-server-plus) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@vates/http-server-plus)](https://bundlephobia.com/result?p=@vates/http-server-plus) [![Node compatibility](https://badgen.net/npm/node/@vates/http-server-plus)](https://npmjs.org/package/@vates/http-server-plus)
+
 > Augmented &#x60;http.Server&#x60;, HTTP/HTTPS/HTTP2 and multiple ports on the same instance
+
+## Install
+
+Installation of the [npm package](https://npmjs.org/package/@vates/http-server-plus):
+
+```sh
+npm install --save @vates/http-server-plus
+```
 
 ## Usage
 
@@ -48,10 +58,7 @@ await server.listen({ systemdSocket: 0 })
 Multiple endpoints can be started on the same instance:
 
 ```js
-const [httpAddr, httpsAddr] = await Promise.all([
-  server.listen({ port: 80 }),
-  server.listen({ port: 443, cert, key }),
-])
+const [httpAddr, httpsAddr] = await Promise.all([server.listen({ port: 80 }), server.listen({ port: 443, cert, key })])
 console.log('listening on', httpAddr, httpsAddr)
 ```
 
