@@ -1,4 +1,4 @@
 export default {
   read: true,
-  delete: true,
+  forget: true,
 }

@@ -1,10 +1,10 @@
 import {
-  Delete,
   Example,
   Extension,
   Get,
   Middlewares,
   Path,
+  Post,
   Query,
   Request,
   Response,
@@ -45,13 +45,13 @@ import { BackupRepositoryService } from './backup-repository.service.mjs'
 @Tags('backup-repositories')
 @provide(BackupRepositoryController)
 export class BackupRepositoryController extends XoController<XoBackupRepository> {
-  #backupRepositoriesService: BackupRepositoryService
+  #backupRepositoryService: BackupRepositoryService
   constructor(
     @inject(RestApi) restApi: RestApi,
     @inject(BackupRepositoryService) backupRepositoriesService: BackupRepositoryService
   ) {
     super('backup-repository', restApi)
-    this.#backupRepositoriesService = backupRepositoriesService
+    this.#backupRepositoryService = backupRepositoriesService
   }
 
   // --- abstract methods
@@ -118,15 +118,16 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
    * A repository cannot be forgotten if it is referenced by any backup job (enabled or disabled).
    *
    * Required privilege:
-   * - resource: backup-repository, action: delete
+   * - resource: backup-repository, action: forget
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
-  @Delete('{id}')
+  @Post('/action/forget/{id}')
+  @Extension('x-mcp-exposure', 'confirm')
   @Middlewares(
     acl({
       resource: 'backup-repository',
-      action: 'delete',
+      action: 'forget',
       objectId: 'params.id',
       getObject: ({ restApi }) => restApi.xoApp.getRemote,
     })
@@ -134,15 +135,14 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  @Extension('x-mcp-exposure', 'confirm')
   async forgetBackupRepository(@Path() id: string): Promise<void> {
     const repositoryId = id as XoBackupRepository['id']
 
-    const referencingJobs = await this.#backupRepositoriesService.getReferencingJobs(repositoryId)
+    const referencingJobs = await this.#backupRepositoryService.getReferencingJobs(repositoryId)
     if (referencingJobs.length > 0) {
       throw forbiddenOperation(
-        'delete backup repository',
-        `repository is referenced by ${referencingJobs.length} backup job(s) :\n ${referencingJobs.join(', ')}`
+        'forget backup repository',
+        `repository is referenced by ${referencingJobs.length} backup job(s): ${referencingJobs.join(', ')}`
       )
     }
     await this.restApi.xoApp.removeRemote(repositoryId)
