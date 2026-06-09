@@ -28,9 +28,3 @@ const {
   isRunning: isDeletingTrafficRule,
 } = useTrafficRuleDeleteModal(() => [rule])
 </script>
-
-<style lang="postcss" scoped>
-.delete {
-  color: var(--color-danger-item-base);
-}
-</style>
