@@ -10,6 +10,7 @@ import {
   VMS_POWER_STATE_MANAGER,
   VMS_READ_ONLY,
   VMS_ADMINISTRATOR,
+  STORAGE_ADMINISTRATOR,
 } from './template-roles.mjs'
 
 import { Roles } from '../../models/acls-v2/role.mjs'
@@ -57,6 +58,7 @@ const TEMPLATE_ROLES = [
   /** @type {RoleTemplate} */ (VMS_CREATOR),
   /** @type {RoleTemplate} */ (VMS_READ_ONLY),
   /** @type {RoleTemplate} */ (VMS_ADMINISTRATOR),
+  /** @type {RoleTemplate} */ (STORAGE_ADMINISTRATOR),
 ]
 
 export default class {
