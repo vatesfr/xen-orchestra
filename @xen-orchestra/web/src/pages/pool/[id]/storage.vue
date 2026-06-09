@@ -1,7 +1,18 @@
 <template>
   <div class="storage" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
-      <StorageRepositoriesTable :srs :busy="!areSrsReady" :error="hasSrFetchError" />
+      <StorageRepositoriesTable :srs :busy="!areSrsReady" :error="hasSrFetchError">
+        <template #title-actions>
+          <MenuList placement="bottom-end">
+            <template #trigger="{ open }">
+              <UiDropdownButton @click="open($event)">{{ t('new') }}</UiDropdownButton>
+            </template>
+            <MenuItem icon="fa:plus" @click="openCreateSrDrawer()">
+              {{ t('action:create-sr') }}
+            </MenuItem>
+          </MenuList>
+        </template>
+      </StorageRepositoriesTable>
     </UiCard>
     <StorageRepositorySidePanel v-if="selectedSr" :sr="selectedSr" @close="selectedSr = undefined" />
     <UiPanel v-else-if="!uiStore.isSmall">
@@ -16,12 +27,16 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import StorageRepositorySidePanel from '@/modules/storage-repository/components/list/panel/StorageRepositorySidePanel.vue'
 import StorageRepositoriesTable from '@/modules/storage-repository/components/list/StorageRepositoriesTable.vue'
+import { useCreateSrDrawer } from '@/modules/storage-repository/composables/use-create-sr-drawer.composable.ts'
 import {
   useXoSrCollection,
   type FrontXoSr,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import MenuItem from '@core/components/menu/MenuItem.vue'
+import MenuList from '@core/components/menu/MenuList.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store.ts'
@@ -43,6 +58,8 @@ const selectedSr = useRouteQuery<FrontXoSr | undefined>('id', {
   toData: id => getSrById(id as FrontXoSr['id']),
   toQuery: sr => sr?.id ?? '',
 })
+
+const { openCreateSrDrawer } = useCreateSrDrawer()
 </script>
 
 <style scoped lang="postcss">

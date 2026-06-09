@@ -34,6 +34,7 @@
   "action:create-bonded-network": "Créer un réseau lié",
   "action:create-internal-network": "Créer un réseau interne",
   "action:create-network": "Créer un réseau",
+  "action:create-sr": "Créer un nouveau SR",
   "action:create-traffic-rule": "Créer une règle de trafic",
   "action:create-vdi": "Créer un VDI",
   "action:delete": "Supprimer",
