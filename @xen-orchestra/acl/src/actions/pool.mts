@@ -5,7 +5,6 @@ export default {
     vm: true,
   },
   'emergency-shutdown': true,
-  'management-reconfigure': true,
   read: true,
   'rolling-reboot': true,
   'rolling-update': true,
