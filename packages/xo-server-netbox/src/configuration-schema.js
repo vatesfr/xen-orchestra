@@ -40,8 +40,9 @@ const configurationSchema = {
     },
     ignoreRfc1918: {
       type: 'boolean',
-      title: 'Ignore RFC 1918 VM IPs (e.g. 10.0.x.x, 192...)',
-      description: 'Enable this if you do not want these IPs to be imported into Netbox',
+      title: 'Ignore RFC 1918 VM IPs',
+      description:
+        'Enable this if you do not want private IPs (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16) to be imported into Netbox',
     },
   },
   required: ['endpoint', 'token', 'pools'],

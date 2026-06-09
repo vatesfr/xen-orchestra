@@ -28,18 +28,15 @@ const G = 1024 ** 3
 
 const { push } = Array.prototype
 
-const tenDot = ipaddr.parseCIDR('10.0.0.0/8')
-const oneSevenTwo = ipaddr.parseCIDR('172.16.0.0/12')
-const oneNineTwo = ipaddr.parseCIDR('192.168.0.0/16')
-const ipKind = tenDot[0].kind()
-const isRfc1918 = ip => {
-  return (
-    ip.kind() === ipKind &&
-    (ip.match(tenDot[0], tenDot[1]) ||
-      ip.match(oneSevenTwo[0], oneSevenTwo[1]) ||
-      ip.match(oneNineTwo[0], oneNineTwo[1]))
-  )
-}
+const RFC1918_10 = ipaddr.parseCIDR('10.0.0.0/8')
+const RFC1918_172 = ipaddr.parseCIDR('172.16.0.0/12')
+const RFC1918_192 = ipaddr.parseCIDR('192.168.0.0/16')
+const IPV4_KIND = 'ipv4'
+const isRfc1918 = ip =>
+  ip.kind() === IPV4_KIND &&
+  (ip.match(RFC1918_10[0], RFC1918_10[1]) ||
+    ip.match(RFC1918_172[0], RFC1918_172[1]) ||
+    ip.match(RFC1918_192[0], RFC1918_192[1]))
 
 // =============================================================================
 
