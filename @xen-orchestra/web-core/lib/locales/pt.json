@@ -623,7 +623,6 @@
   "pool:status:connected": "@:status:connected",
   "pool:status:disconnected": "@:status:disconnected",
   "pool:status:unreachable": "@:status:unreachable",
-  "pool:status:unreachable:tooltip": "Servidores configurados que não podem ser alcançados",
   "pools": "Pools",
   "pools-status": "Estado das Pools",
   "popup-first-connection-default-interface": "A partir de agora, esta nova versão será a sua interface predefinida. Se preferir manter o XO 5 como predefinido por enquanto, pode {documentationLink} para o fazer.",
