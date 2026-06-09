@@ -787,7 +787,7 @@ export class PoolController extends XapiXoController<XoPool> {
 
   /**
    * Required privilege:
-   * - resource: pool, action: management-reconfigure
+   * - resource: pif, action: update:management
    *
    * Reconfigure the management interface for all hosts in the pool to use the given network.
    *
@@ -800,7 +800,7 @@ export class PoolController extends XapiXoController<XoPool> {
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/management_reconfigure')
-  @Middlewares([json(), acl({ resource: 'pool', action: 'management-reconfigure', objectId: 'params.id' })])
+  @Middlewares([json(), acl({ resource: 'pif', action: 'update:management', objectId: 'body.network' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
