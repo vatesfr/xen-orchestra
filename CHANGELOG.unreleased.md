@@ -41,6 +41,8 @@
 
 - [Rest Api] Ask for user credentials for unauthenticated users (PR [#9938](https://github.com/vatesfr/xen-orchestra/pull/9938))
 
+- [Netbox] Support Netbox v4.6.x [#9818](https://github.com/vatesfr/xen-orchestra/issues/9818) (PR [#9939](https://github.com/vatesfr/xen-orchestra/pull/9939))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -78,6 +80,7 @@
 - xo-common minor
 - xo-server minor
 - xo-server-ipmi-sensors patch
+- xo-server-netbox minor
 - xo-server-sdn-controller patch
 - xo-web patch
 
