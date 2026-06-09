@@ -31,3 +31,5 @@ export const backupRepository = {
   id: '677e50c5-8d8a-4c89-b1ac-e2f4593d0ebb',
   url: 's3://FOIS5DY532RGXD62TJ52:obfuscated-q3oi6d9X8uenGvdLnHk2@s3.us-east-2.amazonaws.com/with-lock/backup?useVhdDirectory=true',
 }
+
+export const backupRepositoryId = { id: '677e50c5-8d8a-4c89-b1ac-e2f4593d0ebb' }

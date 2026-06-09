@@ -1,4 +1,5 @@
 export default {
+  'add-host': true,
   create: {
     network: true,
     vm: true,
