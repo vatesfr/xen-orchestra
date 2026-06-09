@@ -12,7 +12,6 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [sdn-controller] : added patch routes for both vif and network traffic rules ( [PR #9936](https://github.com/vatesfr/xen-orchestra/pull/9936) )
-- [rest-api] : added support for object types in body for swagger ( [PR #9936](https://github.com/vatesfr/xen-orchestra/pull/9936) )
 
 ### Bug fixes
 
