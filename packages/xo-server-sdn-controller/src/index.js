@@ -14,7 +14,7 @@ import { PrivateNetwork } from './private-network/private-network'
 import { TlsHelper } from './utils/tls-helper'
 import { instantiateController } from './openflow-controller'
 import { randomBytes } from 'crypto'
-import { invalidParameters } from 'xo-common/api-errors.js'
+import { invalidParameters, notFoundError } from 'xo-common/api-errors.js'
 
 // =============================================================================
 
@@ -616,7 +616,7 @@ class SDNController extends EventEmitter {
             endpoint: '/networks/{id}/actions/update_traffic_rule',
             description: 'Update a rule on a network, needs the exact old rule fields',
 
-            method: 'patch',
+            method: 'post',
             tags: ['sdn-controller'],
             params: {
               id: { type: 'string', example: 'b97f4e69-d275-4b25-9dc9-c1ac4e9b3fa5' },
@@ -637,7 +637,7 @@ class SDNController extends EventEmitter {
               newRule: {
                 type: 'object',
                 fields: {
-                  allow: { type: 'boolean', example: true },
+                  allow: { type: 'boolean', example: true, optional: true },
                   direction: { type: 'string', example: 'both', optional: true },
                   ipRange: { type: 'string', example: '10.0.0.0/8', optional: true },
                   protocol: { type: 'string', example: 'tcp', optional: true },
@@ -655,34 +655,32 @@ class SDNController extends EventEmitter {
                 description: 'Invalid parameters',
               },
             ],
-            middlewares: [{ name: 'json' }, { name: 'acl', acls: { resource: 'vm', action: 'read', objects: [{}] } }],
+            middlewares: [
+              { name: 'json' },
+              { name: 'acl', acls: { resource: 'network', action: 'update:otherConfig', objectId: 'params.id' } },
+            ],
             callback: ({ req, createAction }) => {
-              const { oldRule, newRule: partialNewRule } = req.body ?? {}
-              const networkId = req.params.id
-              const network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
-              const networkRules = JSON.parse(network.other_config['xo:sdn-controller:of-rules'] || '[]').map(
-                JSON.parse
-              )
-              if (
-                !networkRules.some(
-                  rule =>
-                    rule.direction === oldRule.direction &&
-                    rule.ipRange === oldRule.ipRange &&
-                    rule.port === oldRule.port &&
-                    rule.protocol === oldRule.protocol
-                )
-              ) {
-                throw invalidParameters(['oldRule does not exist on this network'])
-              }
-              const validationErrors = []
-              const newRule = { ...oldRule, ...(partialNewRule ?? {}) }
-              validateRuleWithAllow(newRule, validationErrors, 'newRule.')
-              if (validationErrors.length > 0) {
-                throw invalidParameters(validationErrors)
-              }
-
               return createAction(
                 async () => {
+                  const { oldRule, newRule: partialNewRule } = req.body ?? {}
+                  const networkId = req.params.id
+                  const network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
+                  const networkRules = JSON.parse(network.other_config['xo:sdn-controller:of-rules'] || '[]').map(
+                    JSON.parse
+                  )
+                  if (
+                    !networkRules.some(
+                      rule =>
+                        rule.direction === oldRule.direction &&
+                        rule.ipRange === oldRule.ipRange &&
+                        rule.port === oldRule.port &&
+                        rule.protocol === oldRule.protocol
+                    )
+                  ) {
+                    throw notFoundError(['oldRule does not exist on this network'])
+                  }
+                  const newRule = { ...oldRule, ...(partialNewRule ?? {}) }
+
                   await this._deleteNetworkOfRule({ ...oldRule, networkId })
                   await this._addNetworkRule({ ...newRule, networkId })
                 },
@@ -691,7 +689,8 @@ class SDNController extends EventEmitter {
                   statusCode: 204,
                   taskProperties: {
                     name: 'update network traffic rule',
-                    objectId: networkId,
+                    objectId: req.params.id,
+                    params: req.body,
                   },
                 }
               )
@@ -700,7 +699,7 @@ class SDNController extends EventEmitter {
           {
             endpoint: '/vifs/{id}/actions/update_traffic_rule',
             description: 'Update a rule on a VIF, needs the exact old rule fields',
-            method: 'patch',
+            method: 'post',
             tags: ['sdn-controller'],
             params: {
               id: { type: 'string', example: 'b97f4e69-d275-4b25-9dc9-c1ac4e9b3fa5' },
@@ -723,7 +722,7 @@ class SDNController extends EventEmitter {
                 type: 'object',
                 optional: false,
                 fields: {
-                  allow: { type: 'boolean', example: true },
+                  allow: { type: 'boolean', example: true, optional: true },
                   direction: { type: 'string', example: 'to', optional: true },
                   ipRange: { type: 'string', example: '10.0.0.0/8', optional: true },
                   protocol: { type: 'string', example: 'tcp', optional: true },
@@ -742,34 +741,31 @@ class SDNController extends EventEmitter {
                 description: 'Invalid parameters',
               },
             ],
-            middlewares: [{ name: 'json' }, { name: 'acl', acls: { resource: 'vif', action: 'read', objects: [{}] } }],
+            middlewares: [
+              { name: 'json' },
+              { name: 'acl', acls: { resource: 'vif', action: 'update:otherConfig', objectId: 'params.id' } },
+            ],
             callback: ({ req, createAction }) => {
-              const { oldRule, newRule: partialNewRule } = req.body ?? {}
-              const vifId = req.params.id
-              const vif = this._xo.getXapiObject(this._xo.getObject(vifId, 'VIF'))
-              const rawVifRules = vif.other_config['xo:sdn-controller:of-rules']
-              const vifRules = rawVifRules !== undefined ? JSON.parse(rawVifRules).map(JSON.parse) : []
-              if (
-                !vifRules.some(
-                  rule =>
-                    rule.direction === oldRule.direction &&
-                    rule.ipRange === oldRule.ipRange &&
-                    rule.port === oldRule.port &&
-                    rule.protocol === oldRule.protocol
-                )
-              ) {
-                throw invalidParameters(['oldRule does not exist on this vif'])
-              }
-
-              const newRule = { ...oldRule, ...(partialNewRule ?? {}) }
-              const validationErrors = []
-              validateRuleWithAllow(newRule, validationErrors, 'newRule.')
-              if (validationErrors.length > 0) {
-                throw invalidParameters(validationErrors)
-              }
-
               return createAction(
                 async () => {
+                  const { oldRule, newRule: partialNewRule } = req.body ?? {}
+                  const vifId = req.params.id
+                  const vif = this._xo.getXapiObject(this._xo.getObject(vifId, 'VIF'))
+                  const rawVifRules = vif.other_config['xo:sdn-controller:of-rules']
+                  const vifRules = rawVifRules !== undefined ? JSON.parse(rawVifRules).map(JSON.parse) : []
+                  if (
+                    !vifRules.some(
+                      rule =>
+                        rule.direction === oldRule.direction &&
+                        rule.ipRange === oldRule.ipRange &&
+                        rule.port === oldRule.port &&
+                        rule.protocol === oldRule.protocol
+                    )
+                  ) {
+                    throw notFoundError(['oldRule does not exist on this vif'])
+                  }
+
+                  const newRule = { ...oldRule, ...(partialNewRule ?? {}) }
                   await this._deleteRule({ ...oldRule, vifId })
                   await this._addRule({ ...newRule, vifId })
                 },
@@ -778,7 +774,8 @@ class SDNController extends EventEmitter {
                   statusCode: 204,
                   taskProperties: {
                     name: 'update vif traffic rule',
-                    objectId: vifId,
+                    objectId: req.params.id,
+                    params: req.body,
                   },
                 }
               )

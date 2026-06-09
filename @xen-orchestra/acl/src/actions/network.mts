@@ -4,5 +4,6 @@ export default {
   read: true,
   update: {
     tags: true,
+    otherConfig: true,
   },
 }

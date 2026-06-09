@@ -10,5 +10,6 @@ export default {
     lockingMode: true,
     rateLimit: true,
     txChecksumming: true,
+    otherConfig: true,
   },
 }
