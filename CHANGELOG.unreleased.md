@@ -34,5 +34,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/rest-api minor
+- xo-server minor
 - xo-server-sdn-controller minor
 <!--packages-end-->
