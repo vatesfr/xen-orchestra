@@ -1065,8 +1065,8 @@ export class VmController extends XapiXoController<XoVm> {
 
   /**
    * Required privileges:
-   * - resource: vm, action: migrate
-   * - resource: host, action: allow-vm (on the destination host)
+   * - resource: vm, action: migrate-send
+   * - resource: host, action: migrate-receive (on the destination host)
    *
    * VIF mapping is not allowed for intra-pool migration
    *
@@ -1080,9 +1080,11 @@ export class VmController extends XapiXoController<XoVm> {
   @Post('{id}/actions/migrate')
   @Middlewares([
     json(),
+    // Two separate checks allow independent control so a user can be allowed to migrate a VM away
+    // without being allowed to place VMs on any specific host, and vice versa.
     acl([
-      { resource: 'vm', action: 'migrate', objectId: 'params.id' },
-      { resource: 'host', action: 'allow-vm', objectId: 'body.hostId' },
+      { resource: 'vm', action: 'migrate-send', objectId: 'params.id' },
+      { resource: 'host', action: 'migrate-receive', objectId: 'body.hostId' },
     ]),
   ])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
@@ -1119,6 +1121,7 @@ export class VmController extends XapiXoController<XoVm> {
         migrationNetworkId: migrationNetworkId as XoNetwork['id'] | undefined,
         sr: 'srId' in body ? (body.srId as XoSr['id']) : undefined,
       })
+      return
     }
 
     return this.createAction(action, {

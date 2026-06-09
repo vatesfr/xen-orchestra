@@ -2,7 +2,7 @@ export default {
   clone: true,
   delete: true,
   export: true,
-  migrate: true,
+  'migrate-send': true,
   pause: true,
   read: true,
   reboot: {
