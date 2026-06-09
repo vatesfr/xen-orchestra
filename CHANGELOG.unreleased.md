@@ -11,7 +11,7 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [sdn-controller] : added patch routes for both vif and network traffic rules ( [PR #9936](https://github.com/vatesfr/xen-orchestra/pull/9936) )
+- [sdn-controller] Add patch routes for both vif and network traffic rules ( [PR #9936](https://github.com/vatesfr/xen-orchestra/pull/9936) )
 
 ### Bug fixes
 
