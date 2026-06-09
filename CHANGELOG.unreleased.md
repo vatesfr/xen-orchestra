@@ -10,6 +10,7 @@
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
+
 - [IPMI-Plugin] Add default outlet regex to the dell preset (PR [#9884](https://github.com/vatesfr/xen-orchestra/pull/9884))
 
 - [REST API] Expose `POST /backup-repositories` and `PATCH /backup-repositories/:id` REST routes (PR [#9852](https://github.com/vatesfr/xen-orchestra/pull/9852))
@@ -71,13 +72,13 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/web minor
-- @xen-orchestra/web-core minor
 - @vates/types minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/disk-transform patch
 - @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - @xen-orchestra/xapi minor
 - xo-common minor
 - xo-server minor
