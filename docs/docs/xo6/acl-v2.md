@@ -63,19 +63,20 @@ The reverse is not true: granting `shutdown:clean` does **not** grant `shutdown:
 
 ## Built-in template roles
 
-Xen Orchestra ships with seven ready-to-use role templates. They are **immutable** and automatically kept up to date on startup — they cannot be modified, deleted, or assigned directly.
+Xen Orchestra ships with eight ready-to-use role templates. They are **immutable** and automatically kept up to date on startup — they cannot be modified, deleted, or assigned directly.
 
 To use them, **copy** a template into a new role and assign that copy to your users or groups. This ensures the built-in templates always stay up to date without affecting your custom configuration.
 
-| Role                        | Description                                                                          |
-| --------------------------- | ------------------------------------------------------------------------------------ |
-| **Read only**               | Read access to the entire infrastructure and all XO objects. Cannot modify anything. |
-| **VMs power state manager** | Can start, stop, reboot, pause, suspend, resume, and unpause VMs.                    |
-| **VMs creator**             | Can instantiate VM templates and create VDIs and VIFs.                               |
-| **VMs read only**           | Can only list and view VMs.                                                          |
-| **VMs administrator**       | Full control over VM actions                                                         |
-| **Network administrator**   | Can manage networks and VIFs, read and update PIFs, and view hosts and VMs.          |
-| **Administrator**           | Full access to the entire infrastructure                                             |
+| Role                        | Description                                                                                                                   |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **Read only**               | Read access to the entire infrastructure and all XO objects. Cannot modify anything.                                          |
+| **VMs power state manager** | Can start, stop, reboot, pause, suspend, resume, and unpause VMs.                                                             |
+| **VMs creator**             | Can instantiate VM templates and create VDIs and VIFs.                                                                        |
+| **VMs read only**           | Can only list and view VMs.                                                                                                   |
+| **VMs administrator**       | Full control over VM actions                                                                                                  |
+| **Network administrator**   | Can manage networks and VIFs, read and update PIFs, and view hosts and VMs.                                                   |
+| **Administrator**           | Full access to the entire infrastructure                                                                                      |
+| **Storage administrator**   | Administer storage resources (SRs, VDIs, VDI snapshots, VBDs, PBDs), plus read access to unmanaged VDIs and storage managers. |
 
 ![acl-role copy documented in Swagger](../assets/swagger-role-copy.png)
 

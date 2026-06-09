@@ -117,3 +117,20 @@ export const ADMINISTRATOR = {
   description: 'Full access to the entire infrastructure.',
   privileges: REAL_ONLY_ALL.privileges.map(privilege => ({ ...privilege, action: '*' })),
 }
+
+// === Storage
+export const STORAGE_ADMINISTRATOR = {
+  roleTemplateId: 8,
+  name: 'Storage administrator',
+  description: 'Full control over storage: SRs, VDIs, VDI snapshots, VBDs and PBDs',
+  privileges: [
+    // Core storage resources: full control (wildcard is future-proof for new actions)
+    { action: '*', resource: 'sr', effect: 'allow' },
+    { action: '*', resource: 'vdi', effect: 'allow' },
+    { action: '*', resource: 'vdi-snapshot', effect: 'allow' },
+    { action: '*', resource: 'vbd', effect: 'allow' },
+    { action: '*', resource: 'pbd', effect: 'allow' },
+    { action: 'read', resource: 'vdi-unmanaged', effect: 'allow' },
+    { action: 'read', resource: 'sm', effect: 'allow' },
+  ],
+}
