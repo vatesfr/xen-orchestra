@@ -1,6 +1,24 @@
 # ChangeLog
 
-## **next**
+## **6.5.1** (2026-06-01)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Backup] fix transfer size only counting the last disk transferred (PR [#9900](https://github.com/vatesfr/xen-orchestra/pull/9900))
+- [Backup] fix backup cleanup removing too many files when listing fails (PR [#9925](https://github.com/vatesfr/xen-orchestra/pull/9925))
+
+### Released packages
+
+- @xen-orchestra/backup-archive 1.0.1
+- @xen-orchestra/backups 0.73.2
+- @xen-orchestra/proxy 0.30.3
+- @xen-orchestra/vmware-explorer 0.13.1
+- @xen-orchestra/xva 1.0.3
+- xo-server 5.202.2
+
+## **6.5.0** (2026-05-28)
 
 ### Security
 
@@ -84,7 +102,7 @@
 
 ## **6.4.1** (2026-05-05)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Enhancements
 
@@ -350,8 +368,6 @@
 - @xen-orchestra/web 0.46.1
 
 ## **6.2.3** (2026-04-20)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 

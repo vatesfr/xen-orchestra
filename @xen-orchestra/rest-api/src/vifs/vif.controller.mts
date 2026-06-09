@@ -227,12 +227,15 @@ export class VifController extends XapiXoController<XoVif> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vif, action: create
+   *
    * @example body {
    *  "networkId": "6b6ca0f5-6611-0636-4b0a-1fb1c1e96414",
    *  "vmId": "613f541c-4bed-fc77-7ca8-2db6b68f079c",
-   *   "other_config": {
-   *"ethtool-tx": "false"
-   *    },
+   *  "other_config": {
+   *    "ethtool-tx": "false"
+   *   },
    *  "qos_algorithm_params": {
    *    "kbps": "42"
    *  },
@@ -242,9 +245,10 @@ export class VifController extends XapiXoController<XoVif> {
   @Example(vifId)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('')
-  @Middlewares(json())
+  @Middlewares([json(), acl({ resource: 'vif', action: 'create', object: ({ req }) => req.body })])
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
   async createVif(
@@ -277,11 +281,16 @@ export class VifController extends XapiXoController<XoVif> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vif, action: delete
+   *
    * @example id "6b6ca0f5-6611-0636-4b0a-1fb1c1e96414"
    */
   @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}')
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Middlewares(acl({ resource: 'vif', action: 'delete', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async destroyVif(@Path() id: string): Promise<void> {
@@ -293,13 +302,18 @@ export class VifController extends XapiXoController<XoVif> {
    * Hotplug the VIF, dynamically attaching it to the running VM
    * Requires PV drivers to be installed on the VM
    *
+   * Required privilege:
+   * - resource: vif, action: connect
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
+  @Middlewares(acl({ resource: 'vif', action: 'connect', objectId: 'params.id' }))
   @Post('{id}/actions/connect')
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async connectVif(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
@@ -324,13 +338,18 @@ export class VifController extends XapiXoController<XoVif> {
    * Hot-unplug the VIF, dynamically detaching it from the running VM
    * Requires PV drivers to be installed on the VM
    *
+   * Required privilege:
+   * - resource: vif, action: disconnect
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/disconnect')
+  @Middlewares(acl({ resource: 'vif', action: 'disconnect', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async disconnectVif(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {

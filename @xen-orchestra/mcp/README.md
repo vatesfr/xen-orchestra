@@ -83,8 +83,10 @@ See the [full documentation](https://docs.xen-orchestra.com/mcp) for configurati
 ### Prerequisites
 
 - **Node.js** >= 20
-- **Xen Orchestra** instance with [REST API](https://docs.xen-orchestra.com/restapi) enabled
+- **Xen Orchestra** 6.5 or later, with the [REST API](https://docs.xen-orchestra.com/restapi) enabled
 - An **AI assistant** that supports MCP (Claude Desktop, Claude Code, etc.)
+
+> **Note:** this MCP server requires **Xen Orchestra 6.5 or later**. On an older XO it stops at startup with an error such as `Unable to verify MCP status (HTTP 404)` — upgrade your Xen Orchestra to use it.
 
 ### Configuration
 

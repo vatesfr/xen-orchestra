@@ -549,7 +549,7 @@ export default class Esxi extends EventEmitter {
     }
   }
 
-  async spanwNbdKitProcess(vmId, diskPath, { singleLink = false, threads = 1, compression = 'fastlz' } = {}) {
+  async spawnNbdKitProcess(vmId, diskPath, { singleLink = false, threads = 1, compression = 'fastlz' } = {}) {
     const key = `${vmId}/${diskPath}/${singleLink}`
     if (!this.#nbdServers.has(key)) {
       const thumbprint = await this.#getServerThumbprint()
@@ -623,7 +623,7 @@ export default class Esxi extends EventEmitter {
     try {
       const start = Date.now()
 
-      const nbdInfoSpawn = await this.spanwNbdKitProcess(vmId, `[${datastoreName}] ${diskPath}`, {
+      const nbdInfoSpawn = await this.spawnNbdKitProcess(vmId, `[${datastoreName}] ${diskPath}`, {
         singleLink: true,
       })
 
