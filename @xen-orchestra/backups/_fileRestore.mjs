@@ -33,9 +33,8 @@ import {
   LVM_PARTITION_TYPE_MBR,
 } from './_listPartitions.mjs'
 import { lvs, pvs } from './_lvm.mjs'
-import { watchStreamSize } from './_watchStreamSize.mjs'
 
-const { debug, info, warn } = createLogger('xo:backups:RemoteAdapter')
+const { debug, warn } = createLogger('xo:backups:RemoteAdapter')
 
 const noop = Function.prototype
 
@@ -287,62 +286,39 @@ export const fileRestoreMethods = {
 
   fetchPartitionFiles(diskId, partitionId, paths, format) {
     const { promise, reject, resolve } = pDefer()
-    Disposable.use(
-      async function* () {
-        const path = yield this.getPartition(diskId, partitionId)
-        let outputStream
+    const self = this
+    Disposable.use(async function* () {
+      const path = yield self.getPartition(diskId, partitionId)
+      let outputStream
 
-        // debug: bytes actually transmitted to the client (compressed wire bytes).
-        // Unlike fuse-vhd's fuseBytes (skewed by kernel_cache), this is comparable
-        // across configs. Logged every 5s so it can be read at any cut-off point.
-        const transmitted = { size: 0 }
-        const startedAt = Date.now()
-        const report = setInterval(() => {
-          const seconds = (Date.now() - startedAt) / 1000
-          info('partition files transmitted', {
-            format,
-            transmittedMiB: +(transmitted.size / 1048576).toFixed(1),
-            seconds: +seconds.toFixed(1),
-            mibPerSec: +(transmitted.size / 1048576 / seconds).toFixed(1),
-          })
-        }, 60e3)
-        report.unref()
+      if (format === 'tgz') {
+        // jobs: 1 — process one entry at a time. node-tar defaults to 4
+        // concurrent jobs, which on a FUSE-backed restore mount means up to 4
+        // simultaneous reads; those saturate the libuv threadpool and starve
+        // the underlying vhd/CIFS reads NTFS-3g depends on (FUSE-on-FUSE
+        // threadpool deadlock). Serializing keeps a worker free for them.
+        outputStream = tar.c({ cwd: path, gzip: true, jobs: 1 }, paths.map(makeRelative))
+        resolve(outputStream)
+      } else if (format === 'zip') {
+        const zip = new ZipFile()
+        // Resolve with the stream before enumeration so the client can start
+        // receiving data immediately — addZipEntries over FUSE/S3 can take
+        // minutes for large trees (e.g. node_modules) and would otherwise
+        // appear as a freeze with no response sent.
+        outputStream = zip.outputStream
+        resolve(zip.outputStream)
+        await addZipEntries(zip, path, '', paths.map(makeRelative))
+        zip.end()
+      } else {
+        throw new Error('unsupported format ' + format)
+      }
 
-        try {
-          if (format === 'tgz') {
-            // jobs: 1 — process one entry at a time. node-tar defaults to 4
-            // concurrent jobs, which on a FUSE-backed restore mount means up to 4
-            // simultaneous reads; those saturate the libuv threadpool and starve
-            // the underlying vhd/CIFS reads NTFS-3g depends on (FUSE-on-FUSE
-            // threadpool deadlock). Serializing keeps a worker free for them.
-            outputStream = tar.c({ cwd: path, gzip: true, jobs: 1 }, paths.map(makeRelative))
-            watchStreamSize(outputStream, transmitted)
-            resolve(outputStream)
-          } else if (format === 'zip') {
-            const zip = new ZipFile()
-            // Resolve with the stream before enumeration so the client can start
-            // receiving data immediately — addZipEntries over FUSE/S3 can take
-            // minutes for large trees (e.g. node_modules) and would otherwise
-            // appear as a freeze with no response sent.
-            outputStream = zip.outputStream
-            watchStreamSize(outputStream, transmitted)
-            resolve(zip.outputStream)
-            await addZipEntries(zip, path, '', paths.map(makeRelative))
-            zip.end()
-          } else {
-            throw new Error('unsupported format ' + format)
-          }
-
-          // Wait for the stream to finish before releasing the mounted partition.
-          // finished() correctly handles 'end', 'close', and 'error' — unlike
-          // fromEvent('end') which hangs forever if the stream errors (client
-          // disconnect, FUSE read failure), leaking the mount and loop devices.
-          await finished(outputStream).catch(noop)
-        } finally {
-          clearInterval(report)
-        }
-      }.bind(this)
-    ).catch(error => {
+      // Wait for the stream to finish before releasing the mounted partition.
+      // finished() correctly handles 'end', 'close', and 'error' — unlike
+      // fromEvent('end') which hangs forever if the stream errors (client
+      // disconnect, FUSE read failure), leaking the mount and loop devices.
+      await finished(outputStream).catch(noop)
+    }).catch(error => {
       warn(error)
       reject(error)
     })
