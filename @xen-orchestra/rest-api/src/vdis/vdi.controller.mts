@@ -343,8 +343,8 @@ export class VdiController extends XapiXoController<XoVdi> {
    * Migrate a VDI to another SR.
    *
    * Required privileges:
-   * - resource: vdi, action: migrate
-   * - resource: sr, action: import:vdi (on the target SR)
+   * - resource: vdi, action: migrate-send
+   * - resource: sr, action: migrate-receive (on the target SR)
    *
    * Note: After migration, the VDI will have a new ID. The new ID is returned in the response.
    *
@@ -357,9 +357,11 @@ export class VdiController extends XapiXoController<XoVdi> {
   @Post('{id}/actions/migrate')
   @Middlewares([
     json(),
+    // Two separate checks allow independent control: a user can be allowed to migrate a VDI away
+    // without being allowed to place VDIs on any specific SR, and vice versa.
     acl([
-      { resource: 'vdi', action: 'migrate', objectId: 'params.id' },
-      { resource: 'sr', action: 'import:vdi', objectId: 'body.srId' },
+      { resource: 'vdi', action: 'migrate-send', objectId: 'params.id' },
+      { resource: 'sr', action: 'migrate-receive', objectId: 'body.srId' },
     ]),
   ])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
