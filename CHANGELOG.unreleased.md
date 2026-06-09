@@ -58,7 +58,7 @@
 - [RBAC] Add Administrator template role (PR [#9885](https://github.com/vatesfr/xen-orchestra/pull/9885))
 - [Netbox] Add option to ignore [RFC 1918](https://datatracker.ietf.org/doc/html/rfc1918) private IPs during synchronization. Thanks [@sboyd-m](https://github.com/sboyd-m)! (PR [#6306](https://github.com/vatesfr/xen-orchestra/pull/6306))
 - [SR] Storage repositories can now be connected from the Pool/Host Storage tab (PR [#9877](https://github.com/vatesfr/xen-orchestra/pull/9877))
-- [REST API/RBAC] Add a built-in Storage administrator ACL role template to administer SRs, VDIs, VDI snapshots, VBDs and PBDs (PR [#9963](https://github.com/vatesfr/xen-orchestra/pull/9963))
+- [REST API/RBAC] Add a built-in Storage administrator ACL role template to administer SRs, VDIs, VBDs, PBDs and backup repositories (PR [#9963](https://github.com/vatesfr/xen-orchestra/pull/9963))
 
 ### Bug fixes
 
