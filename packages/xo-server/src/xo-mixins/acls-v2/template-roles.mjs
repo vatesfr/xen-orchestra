@@ -93,3 +93,10 @@ export const VMS_ADMINISTRATOR = {
     { action: 'read', resource: 'vm-snapshot', effect: 'allow' },
   ],
 }
+
+export const ADMINISTRATOR = {
+  roleTemplateId: 5,
+  name: 'Administrator',
+  description: 'Full access to the entire infrastructure, all objects, and user management',
+  privileges: REAL_ONLY_ALL.privileges.map(privilege => ({ ...privilege, action: '*' })),
+}
