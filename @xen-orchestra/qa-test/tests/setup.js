@@ -1,8 +1,10 @@
 import '../logSetup.js'
 import { createLogger } from '@xen-orchestra/log'
+import { getSyncedHandler } from '@xen-orchestra/fs'
 import { DispatchClient } from '../client/dispatchClient.js'
 import { createResourceTracker } from '../utils/resourceTracker.js'
 import { getRequiredEnv } from '../utils/index.js'
+import { assertRepositoryMatchesConfig } from '../utils/backupUtils.js'
 
 const log = createLogger('setup')
 
@@ -60,18 +62,33 @@ export const setup = async () => {
       fastClone: true,
     })
 
+    log.debug('Starting test VM', { id: testVmId })
+    await dispatchClient.vm.start(testVmId)
+    await dispatchClient.vm.waitForPowerState(testVmId, 'Running', 120_000)
+
     createdResources.vm = await dispatchClient.vm.details(testVmId)
     tracker.trackResource('vm', testVmId, { name: testVmName, source: referenceVm.name_label })
 
     // Create or get backup repository
     const backupRepositoryName = getRequiredEnv('BACKUP_REPOSITORY_NAME')
+    const repoUrl = getRequiredEnv('BACKUP_REPOSITORY_URL')
+
+    // For file:// remotes: ensure the local directory exists before XO tries to use it.
+    // Other backends (s3://, nfs://, …) are managed by XO — their connectivity is
+    // validated when the backup job actually runs.
+    if (repoUrl.startsWith('file://')) {
+      const { dispose } = await getSyncedHandler({ url: repoUrl })
+      await dispose()
+    }
+
     let backupRepository = await dispatchClient.backupRepository.get({ name: backupRepositoryName })
 
     if (backupRepository) {
       log.debug('Using existing backup repository', { name: backupRepositoryName })
+      assertRepositoryMatchesConfig(backupRepository, repoUrl)
     } else {
       const backupRepositoryId = await dispatchClient.backupRepository.create(backupRepositoryName, {
-        path: getRequiredEnv('BACKUP_REPOSITORY_PATH'),
+        url: repoUrl,
       })
 
       backupRepository = await dispatchClient.backupRepository.get({ id: backupRepositoryId })
@@ -110,12 +127,16 @@ export const setup = async () => {
 export const teardown = async (dispatchClient, tracker) => {
   log.debug('Starting test teardown')
 
-  try {
-    await performCleanup(dispatchClient, tracker)
-    log.debug('Teardown completed')
-  } catch (error) {
-    log.warn('Teardown failed', { error })
-  } finally {
+  if (tracker !== undefined) {
+    try {
+      await performCleanup(dispatchClient, tracker)
+      log.debug('Teardown completed')
+    } catch (error) {
+      log.warn('Teardown failed', { error })
+    }
+  }
+
+  if (dispatchClient !== undefined) {
     try {
       await dispatchClient.close()
     } catch (error) {

@@ -1,7 +1,7 @@
 <template>
   <UiTableCell>
     <div class="vts-double-link-cell">
-      <UiLink size="medium" :icon :to :href :target class="link">
+      <UiLink size="medium" :icon :to :href :target :disabled class="link">
         <slot />
       </UiLink>
       <UiLink

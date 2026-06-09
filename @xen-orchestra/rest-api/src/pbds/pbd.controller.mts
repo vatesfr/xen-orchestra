@@ -1,7 +1,21 @@
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
-import { Middlewares, Route, Security, Request, Response, Get, Query, Path, Tags, Example, Post, SuccessResponse } from 'tsoa'
+import {
+  Example,
+  Extension,
+  Get,
+  Middlewares,
+  Path,
+  Post,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+} from 'tsoa'
 import type { XoPbd } from '@vates/types'
 
 import { acl } from '../middlewares/acl.middleware.mjs'
@@ -44,6 +58,7 @@ export class PbdController extends XapiXoController<XoPbd> {
    */
   @Example(pbdIds)
   @Example(partialPbds)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   getPbds(
@@ -67,6 +82,7 @@ export class PbdController extends XapiXoController<XoPbd> {
    * @example id "16b2a60f-7c4d-f45f-7c7a-963b06fc587d"
    */
   @Example(pbd)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(acl({ resource: 'pbd', action: 'read', objectId: 'params.id' }))
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -76,12 +92,18 @@ export class PbdController extends XapiXoController<XoPbd> {
   }
 
   /**
+   * Required privilege:
+   * - resource: pbd, action: plug
+   *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/plug')
+  @Middlewares(acl({ resource: 'pbd', action: 'plug', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -103,12 +125,18 @@ export class PbdController extends XapiXoController<XoPbd> {
   }
 
   /**
+   * Required privilege:
+   * - resource: pbd, action: unplug
+   *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/unplug')
+  @Middlewares(acl({ resource: 'pbd', action: 'unplug', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)

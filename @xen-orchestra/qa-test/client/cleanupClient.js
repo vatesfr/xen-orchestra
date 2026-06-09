@@ -7,17 +7,29 @@ import { BACKUP_JOB_NAME_PREFIX, getRequiredEnv } from '../utils/index.js'
 const log = createLogger('cleanup')
 
 /**
- * Allowed paths for automatic backup cleanup.
+ * Allowed paths for automatic backup cleanup of file:// remotes.
  * SECURITY: Only test-scoped paths containing 'test', 'qa', or 'tmp/xo'.
+ * Non-file:// remotes return an empty list (cleanup is delegated to XO API).
  *
- * Computed lazily so that `process.env.BACKUP_REPOSITORY_PATH` is read at call
+ * Computed lazily so that `process.env.BACKUP_REPOSITORY_URL` is read at call
  * time rather than module-load time — otherwise ESM import hoisting would make
  * it evaluate before any in-code env loading runs.
  *
  * @returns {Array<string>}
  */
 const getAllowedCleanupPaths = () => {
-  const repoPath = getRequiredEnv('BACKUP_REPOSITORY_PATH')
+  const repoUrl = process.env.BACKUP_REPOSITORY_URL
+
+  // Non-local remotes have no local path to safety-check
+  if (!repoUrl?.startsWith('file://')) return []
+
+  let repoPath
+  try {
+    repoPath = new URL(repoUrl).pathname
+  } catch {
+    log.warn('Rejected cleanup URL: invalid URL', { repoUrl })
+    return []
+  }
 
   // SECURITY: Reject paths containing path traversal sequences
   if (repoPath.includes('..')) {
@@ -211,10 +223,19 @@ export class CleanupClient {
     }
 
     const deleteVM = async vm => {
+      if (vm.power_state === 'Running') {
+        try {
+          await this.dispatchClient.vm.stop(vm.uuid, { force: true })
+          await new Promise(resolve => setTimeout(resolve, 3_000))
+        } catch (error) {
+          log.warn('Could not stop VM before deletion', { uuid: vm.uuid, error })
+        }
+      }
+
       await this.dispatchClient.vm.delete(vm.uuid, {
         deleteDisks: true,
-        force: config.force,
-        forceBlockedOperation: config.force,
+        force: true,
+        forceBlockedOperation: true,
       })
     }
 
@@ -270,7 +291,7 @@ export class CleanupClient {
                 try {
                   await this.dispatchClient.backup.deleteVmBackups(backupIds.slice(i, i + 10))
                 } catch (batchError) {
-                  log.warn('Failed to delete backup batch', { error: batchError.message })
+                  log.warn('Delete VM backups failed', { error: batchError })
                 }
               }
             }
@@ -280,11 +301,30 @@ export class CleanupClient {
         }
       }
 
-      // Mirror backup jobs require mirrorBackup.deleteJob, standard jobs use backupNg.deleteJob
+      // Mirror backup jobs require mirrorBackup.deleteJob, standard jobs use backupNg.deleteJob.
+      // The REST API may not expose the type field for mirror jobs, so fall back when backupNg
+      // returns "no such job" (error.data.type === 'job').
       if (job.type === 'mirrorBackup') {
         await this.dispatchClient.backup.deleteMirrorBackupJob(job.id)
       } else {
-        await this.dispatchClient.backup.deleteBackupJob(job.id)
+        try {
+          await this.dispatchClient.backup.deleteBackupJob(job.id)
+        } catch (error) {
+          if (error?.data?.type !== 'job') {
+            throw error
+          }
+          // backupNg doesn't know this job — may be a mirror backup job; try the mirror method
+          try {
+            await this.dispatchClient.backup.deleteMirrorBackupJob(job.id)
+          } catch (mirrorError) {
+            if (mirrorError?.data?.type === 'job') {
+              // Job is unreachable through both RPCs (orphaned from a previous run) — skip silently
+              log.debug('Backup job not found via any delete method, skipping', { jobId: job.id })
+              return
+            }
+            throw mirrorError
+          }
+        }
       }
     }
 

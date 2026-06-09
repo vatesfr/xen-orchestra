@@ -20,8 +20,8 @@
   },
   "dependencies": {
     "@vates/async-each": "^1.0.3",
-    "@xen-orchestra/backups": "^0.73.1",
-    "@xen-orchestra/backup-archive": "^1.0.0",
+    "@xen-orchestra/backups": "^0.73.2",
+    "@xen-orchestra/backup-archive": "^1.0.1",
     "@xen-orchestra/disk-transform": "^1.3.0",
     "@xen-orchestra/fs": "^4.9.0",
     "@xen-orchestra/qcow2": "^1.3.0",

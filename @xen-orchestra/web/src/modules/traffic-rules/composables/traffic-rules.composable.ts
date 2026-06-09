@@ -1,8 +1,8 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import { SDN_CONTROLLER_OF_RULES_KEY, type TrafficRule } from '@/modules/traffic-rules/types.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
+import { SDN_CONTROLLER_OF_RULES_KEY, type TrafficRule } from '@vates/types'
 import { computed, type MaybeRefOrGetter } from 'vue'
 
 function parseRules(raw: string | undefined) {

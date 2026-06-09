@@ -1,6 +1,19 @@
 import { AnyXoLog, XoRestoreLog } from '@vates/types'
 import { createLogger } from '@xen-orchestra/log'
-import { Deprecated, Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import {
+  Deprecated,
+  Example,
+  Extension,
+  Get,
+  Middlewares,
+  Path,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  Tags,
+} from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
@@ -54,6 +67,7 @@ export class RestoreLogController extends XoController<XoRestoreLog> {
    */
   @Example(restoreLogIds)
   @Example(partialRestoreLogs)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   async getRestoreLogs(
@@ -78,6 +92,7 @@ export class RestoreLogController extends XoController<XoRestoreLog> {
    * @example id "1758180544428"
    */
   @Example(restoreLog)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(
     acl({
@@ -135,6 +150,7 @@ export class DeprecatedRestoreController extends XoController<XoRestoreLog> {
   @Example(restoreLogIds)
   @Example(partialRestoreLogs)
   @Deprecated()
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   async getDeprecatedRestoreLogs(
     @Request() req: ExRequest,
@@ -157,6 +173,7 @@ export class DeprecatedRestoreController extends XoController<XoRestoreLog> {
    */
   @Example(restoreLog)
   @Deprecated()
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   getDeprecatedRestoreLog(@Path() id: string): Promise<Unbrand<XoRestoreLog>> {
     return this.getObject(id as XoRestoreLog['id'])

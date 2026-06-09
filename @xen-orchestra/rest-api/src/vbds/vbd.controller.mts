@@ -2,6 +2,7 @@ import {
   Body,
   Delete,
   Example,
+  Extension,
   Get,
   Middlewares,
   Path,
@@ -69,6 +70,7 @@ export class VbdController extends XapiXoController<XoVbd> {
    */
   @Example(vbdIds)
   @Example(partialVbds)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   getVbds(
@@ -92,6 +94,7 @@ export class VbdController extends XapiXoController<XoVbd> {
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(vbd)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(acl({ resource: 'vbd', action: 'read', objectId: 'params.id' }))
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -101,14 +104,19 @@ export class VbdController extends XapiXoController<XoVbd> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vbd, action: create
+   *
    * Create a VBD to attach a VDI to a VM
    *
    * @example body { "VM": "4fe90510-8da4-1530-38e2-a7876ef374c7", "VDI": "656052a2-2e3e-467b-88ba-63a9ea5e4a54", "bootable": false, "mode": "RW" }
    */
   @Example(vbdId)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('')
-  @Middlewares(json())
+  @Middlewares([json(), acl({ resource: 'vbd', action: 'create', object: ({ req }) => req.body })])
   @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParameters.status, invalidParameters.description)
   async createVbd(
@@ -139,6 +147,9 @@ export class VbdController extends XapiXoController<XoVbd> {
     return { id: vbdUuid }
   }
   /**
+   * Required privilege:
+   * - resource: vbd, action: delete
+   *
    * Delete a VBD
    *
    * Removes the virtual block device, detaching the VDI from the VM.
@@ -146,8 +157,11 @@ export class VbdController extends XapiXoController<XoVbd> {
    *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}')
+  @Middlewares(acl({ resource: 'vbd', action: 'delete', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteVbd(@Path() id: string): Promise<void> {
     const xapiVbd = this.getXapiObject(id as XoVbd['id'])
@@ -164,6 +178,7 @@ export class VbdController extends XapiXoController<XoVbd> {
    * @example limit 42
    */
   @Example(genericAlarmsExample)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/alarms')
   @Security('*', ['acl'])
   @Tags('alarms')
@@ -200,6 +215,7 @@ export class VbdController extends XapiXoController<XoVbd> {
    */
   @Example(messageIds)
   @Example(partialMessages)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/messages')
   @Security('*', ['acl'])
   @Tags('messages')
@@ -233,6 +249,7 @@ export class VbdController extends XapiXoController<XoVbd> {
    */
   @Example(taskIds)
   @Example(partialTasks)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/tasks')
   @Security('*', ['acl'])
   @Tags('tasks')
@@ -255,13 +272,19 @@ export class VbdController extends XapiXoController<XoVbd> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vbd, action: connect
+   *
    * Hotplug the VBD, dynamically attaching it to the running VM
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/connect')
+  @Middlewares(acl({ resource: 'vbd', action: 'connect', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   connectVbd(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
@@ -282,13 +305,19 @@ export class VbdController extends XapiXoController<XoVbd> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vbd, action: disconnect
+   *
    * Hot-unplug the VBD, dynamically detaching it from the running VM
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/disconnect')
+  @Middlewares(acl({ resource: 'vbd', action: 'disconnect', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   disconnectVbd(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {

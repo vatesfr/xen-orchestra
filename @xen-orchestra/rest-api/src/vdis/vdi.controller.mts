@@ -2,6 +2,7 @@ import {
   Body,
   Delete,
   Example,
+  Extension,
   Get,
   Middlewares,
   Path,
@@ -49,7 +50,7 @@ import { taskIds, partialTasks, taskLocation } from '../open-api/oa-examples/tas
 type CreateVdiParams = Parameters<Xapi['VDI_create']>
 type CreateVdiBody = Omit<CreateVdiParams[0], 'SR' | 'other_config'> & {
   srId: string
-  other_config: { [key: string]: string }
+  other_config?: { [key: string]: string }
 } & CreateVdiParams[1]
 
 @Route('vdis')
@@ -81,6 +82,7 @@ export class VdiController extends XapiXoController<XoVdi> {
    */
   @Example(vdiIds)
   @Example(partialVdis)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   getVdis(
@@ -106,6 +108,7 @@ export class VdiController extends XapiXoController<XoVdi> {
    *
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
    */
+  @Extension('x-mcp-exposure', 'deny')
   @Get('{id}.{format}')
   @Middlewares(acl({ resource: 'vdi', action: 'export-content', objectId: 'params.id' }))
   @SuccessResponse(200, 'Download started', 'application/octet-stream')
@@ -133,6 +136,7 @@ export class VdiController extends XapiXoController<XoVdi> {
    *
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
    */
+  @Extension('x-mcp-exposure', 'deny')
   @Put('{id}.{format}')
   @Middlewares(acl({ resource: 'vdi', action: 'import-content', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
@@ -161,6 +165,7 @@ export class VdiController extends XapiXoController<XoVdi> {
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
    */
   @Example(vdi)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(acl({ resource: 'vdi', action: 'read', objectId: 'params.id' }))
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -179,6 +184,7 @@ export class VdiController extends XapiXoController<XoVdi> {
    * @example limit 42
    */
   @Example(genericAlarmsExample)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/alarms')
   @Security('*', ['acl'])
   @Tags('alarms')
@@ -210,6 +216,7 @@ export class VdiController extends XapiXoController<XoVdi> {
    * @example body { "srId": "c4284e12-37c9-7967-b9e8-83ef229c3e03", "virtual_size": 10737418240, "name_label": "test VDI" }
    */
   @Example(vdiId)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('')
   @Middlewares(json())
   @SuccessResponse(createdResp.status, createdResp.description)
@@ -243,6 +250,7 @@ export class VdiController extends XapiXoController<XoVdi> {
    *
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}')
   @Middlewares(acl({ resource: 'vdi', action: 'delete', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
@@ -264,6 +272,7 @@ export class VdiController extends XapiXoController<XoVdi> {
    */
   @Example(messageIds)
   @Example(partialMessages)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/messages')
   @Security('*', ['acl'])
   @Tags('messages')
@@ -297,6 +306,7 @@ export class VdiController extends XapiXoController<XoVdi> {
    */
   @Example(taskIds)
   @Example(partialTasks)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/tasks')
   @Security('*', ['acl'])
   @Tags('tasks')
@@ -328,6 +338,7 @@ export class VdiController extends XapiXoController<XoVdi> {
    */
   @Example(taskLocation)
   @Example(vdiId)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/migrate')
   @Middlewares(json())
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
@@ -363,6 +374,7 @@ export class VdiController extends XapiXoController<XoVdi> {
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
    * @example tag "from-rest-api"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Put('{id}/tags/{tag}')
   @Middlewares(acl({ resource: 'vdi', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
@@ -380,6 +392,7 @@ export class VdiController extends XapiXoController<XoVdi> {
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
    * @example tag "from-rest-api"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}/tags/{tag}')
   @Middlewares(acl({ resource: 'vdi', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)

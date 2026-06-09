@@ -22,6 +22,7 @@ import type {
   VBD_TYPE,
   VDI_TYPE,
   VIF_LOCKING_MODE,
+  VM_OPERATIONS,
 } from '../common.mjs'
 import type { PassThrough, Readable } from 'node:stream'
 import type {
@@ -39,6 +40,54 @@ import type {
   XoVif,
   XoVmSnapshot,
 } from '../xo.mjs'
+
+/**
+ * Properties accepted by {@link Xapi.editVm}.
+ *
+ * Field names match the canonical (camelCase) properties defined by the
+ * underlying `_editVm` (via `makeEditObject`). `_editVm` still resolves the
+ * snake_case and legacy aliases, but the canonical names are used here.
+ */
+export interface EditVmProps {
+  affinityHost?: string | null
+  autoPoweron?: boolean
+  blockedOperations?: Partial<Record<VM_OPERATIONS, boolean | string | null>>
+  coresPerSocket?: number | string | null
+  cpuCap?: number | null
+  cpuMask?: number[]
+  cpuWeight?: number | null
+  cpus?: number
+  cpusStaticMax?: number | string
+  /**
+   * Update VM creation metadata stored under `other_config.xo:*`. The object is
+   * merged with the existing data.
+   */
+  creation?: { user?: string }
+  expNestedHvm?: boolean
+  hasVendorDevice?: boolean
+  highAvailability?: 'best-effort' | 'restart' | ''
+  hvmBootFirmware?: string | null
+  memory?: number | string
+  memoryMax?: number | string
+  memoryMin?: number | string
+  memoryStaticMax?: number | string
+  nameDescription?: string
+  nameLabel?: string
+  nestedVirt?: boolean
+  nicType?: string | null
+  notes?: string | null
+  PV_args?: string
+  secureBoot?: boolean
+  startDelay?: number
+  suspendSr?: string | null
+  tags?: string[]
+  uefiMode?: 'setup' | 'user'
+  vga?: 'std' | 'cirrus'
+  videoram?: 1 | 2 | 4 | 8 | 16
+  viridian?: boolean
+  virtualizationMode?: 'pv' | 'hvm'
+  xenStoreData?: Record<string, string | null>
+}
 
 export type XcpPatches = {
   changelog?: {
@@ -70,6 +119,12 @@ export type XsPatches = {
 }
 
 export interface Xapi {
+  status: string
+  pool?: { uuid: string }
+  sessionId: string
+  _auth: { user: string; password: string }
+  _url: { protocol: string; hostname: string; hostnameRaw: string; port?: string }
+
   call: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
   callAsync: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
 
@@ -127,6 +182,7 @@ export interface Xapi {
       bypassAssert?: boolean
     }
   ): Promise<void>
+  joinPool(masterAddress: string, masterUsername: string, masterPassword: string, force?: boolean): Promise<void>
   listMissingPatches(host: XoHost['id']): Promise<XcpPatches[] | XsPatches[]>
   pool_emergencyShutdown(): Promise<void>
   resumeVm(id: XoVm['id']): Promise<void>
@@ -174,6 +230,11 @@ export interface Xapi {
     }
   ): Promise<XenApiVdi['$ref']>
   SR_reclaimSpace(ref: XenApiSr['$ref']): Promise<void>
+  editVm(
+    id: XoVm['id'],
+    props: EditVmProps,
+    checkLimits?: (limits: Record<string, number>, vm: XenApiVmWrapped) => Promise<void>
+  ): Promise<void>
   startVm(
     id: XoVm['id'],
     opts?: {

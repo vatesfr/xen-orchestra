@@ -2,7 +2,7 @@
   "name": "@xen-orchestra/qa-test",
   "private": true,
   "type": "module",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "XenOrchestra QA Test Suite",
   "author": {
     "name": "Vates SAS",
@@ -20,6 +20,7 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@xen-orchestra/fs": "*",
     "@xen-orchestra/log": "^0.7.2",
     "xo-lib": "^0.11.2"
   },
@@ -38,6 +39,7 @@
     "qa:export:vhd": "node --env-file-if-exists=.env --test tests/export.vhd.test.js --test-name-pattern='VDI VHD'",
     "qa:export:xva": "node --env-file-if-exists=.env --test tests/export.vhd.test.js --test-name-pattern='XVA'",
     "qa:export:restore": "node --env-file-if-exists=.env --test tests/export.vhd.test.js --test-name-pattern='Restoration'",
+    "qa:backup:metadata": "node --env-file-if-exists=.env --test tests/metadata-backup.test.js",
     "demo": "node --env-file-if-exists=.env index.js"
   }
 }

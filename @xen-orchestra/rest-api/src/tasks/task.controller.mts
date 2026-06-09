@@ -2,19 +2,20 @@ import type { Request as ExRequest } from 'express'
 import type { XoTask } from '@vates/types'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import {
+  Delete,
+  Example,
+  Extension,
   Get,
+  Middlewares,
   Path,
+  Post,
   Query,
   Request,
+  Response,
   Route,
   Security,
-  Tags,
-  Response,
-  Example,
-  Delete,
-  Post,
   SuccessResponse,
-  Middlewares,
+  Tags,
 } from 'tsoa'
 import { acl } from '../middlewares/acl.middleware.mjs'
 import { SendObjects } from '../helpers/helper.type.mjs'
@@ -74,6 +75,7 @@ export class TaskController extends XoController<XoTask> {
    */
   @Example(taskIds)
   @Example(partialTasks)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   @Response(badRequestResp.status, badRequestResp.description)
@@ -159,6 +161,7 @@ export class TaskController extends XoController<XoTask> {
    * @example id "0mdd1basu"
    */
   @Example(task)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(
     acl({
@@ -191,6 +194,7 @@ export class TaskController extends XoController<XoTask> {
    * Deletes all tasks the current user has the following privilege on:
    * - resource: task, action: delete
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('')
   @Security('*', ['acl'])
   @SuccessResponse(noContentResp.status, noContentResp.description)
@@ -215,6 +219,7 @@ export class TaskController extends XoController<XoTask> {
    *
    * @example id "0mdd1basu"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}')
   @Middlewares(
     acl({
@@ -239,6 +244,7 @@ export class TaskController extends XoController<XoTask> {
    * @example id "0mdd1basu"
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/abort')
   @Middlewares(
     acl({

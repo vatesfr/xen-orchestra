@@ -23,21 +23,6 @@ Please see the plugin's [official documentation](https://docs.xen-orchestra.com/
   - `ovsdb-client.js`: manages private networks
 - `utils/tls-helper.js`: small class to create connections using TLS
 
-## Contributions
-
-Contributions are _very_ welcomed, either on the documentation or on
-the code.
-
-You may:
-
-- report any [issue](https://github.com/vatesfr/xen-orchestra/issues)
-  you've encountered;
-- fork and create a pull request.
-
-## License
-
-[AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)
-
 ## Rest Routes
 
 Some rest api routes are undocumented in the swagger, here is how to use them :
@@ -91,3 +76,18 @@ POST /networks/{id}/actions/delete_traffic_rule :
 | `ipRange`   | string | Yes      | IP address or range. Example: `"111.168.1.2"` or `"111.168.1.0/24"`.                |
 | `port`      | string | No       | Port or port range. Empty string means all ports. Example: `"80"` or `"1000-2000"`. |
 | `protocol`  | string | Yes      | Network protocol. Common values: `"TCP"`, `"UDP"`, `"IP"` (any protocol).           |
+
+## Contributions
+
+Contributions are _very_ welcomed, either on the documentation or on
+the code.
+
+You may:
+
+- report any [issue](https://github.com/vatesfr/xen-orchestra/issues)
+  you've encountered;
+- fork and create a pull request.
+
+## License
+
+[AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)

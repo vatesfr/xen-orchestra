@@ -519,6 +519,33 @@ Infrastructure metrics are prefixed with `xcp_` and XO management plane metrics 
 
 VDI metrics include labels `vdi_uuid`, `vdi_name`, `sr_uuid`, `sr_name`, `pool_id`, `pool_name`, and optionally `vm_uuid`, `vm_name` when the VDI is attached to a VM.
 
+#### XOSTOR Metrics
+
+These metrics describe LINSTOR-backed XOSTOR clusters and only appear when the XO pool contains at least one SR with `SR_type === 'linstor'`.
+
+| Metric                                | Type  | Description                                                                                              |
+| ------------------------------------- | ----- | -------------------------------------------------------------------------------------------------------- |
+| `xcp_xostor_up`                       | gauge | Cluster reachability (1 = `linstor-manager.healthCheck` succeeded, 0 = collection failed)                |
+| `xcp_xostor_node_status`              | gauge | One series per LINSTOR node (always 1; `role` ∈ `{master, satellite}` and raw `state` are labels)        |
+| `xcp_xostor_resource_total`           | gauge | Total number of LINSTOR resources defined in the cluster                                                 |
+| `xcp_xostor_resource_state_count`     | gauge | Replica count per `disk-state` (UpToDate, Inconsistent, Outdated, Diskless, Unknown), summed per cluster |
+| `xcp_xostor_alarms_up`                | gauge | Alarm-collection status (1 = collected, 0 = collection failed)                                           |
+| `xcp_xostor_alarms_count`             | gauge | Active XAPI alarm count per `alarm_name` and `target_type` (only emitted when count > 0)                 |
+| `xcp_xostor_smart_up`                 | gauge | SMART-collection status per host (1 = `smartctl.py` replied, 0 = plugin missing or call failed)          |
+| `xcp_xostor_disk_smart_status`        | gauge | SMART overall-health per disk (always 1; `device` and `status` in labels)                                |
+| `xcp_xostor_updates_up`               | gauge | Update-check status per host (1 = `updater.py` replied, 0 = call failed or repo unreachable)             |
+| `xcp_xostor_package_update_available` | gauge | Pending XOSTOR-related package update on a host (always 1; emitted only when an update is pending)       |
+
+Packages watched by `xcp_xostor_package_update_available`: `xcp-ng-linstor`, `xcp-ng-release-linstor`, `linstor-satellite`, `linstor-controller`, `xcp-ng-xapi-plugins`.
+
+All XOSTOR metrics carry `sr_uuid`, `pool_id` and `pool_name`. Per-host metrics also expose `host_uuid` and `host_name`; per-node metrics add the LINSTOR `node_name` (the host's hostname) plus `role` and `state`.
+
+The four collectors don't share a cache. Cluster status and alarms refresh every 60 s, SMART every 5 minutes, updates every hour.
+
+#### Storage technology label (`sr_type`)
+
+Every SR-tagged metric (`xcp_host_disk_iops_*`, `xcp_host_disk_throughput_*`, `xcp_host_disk_*_latency_seconds`, `xcp_sr_*`, `xcp_vdi_*`, `xcp_vm_disk_*`) has an `sr_type` label taken straight from `XoSr.SR_type`. Common values are `linstor`, `lvm`, `nfs`, `ext`, `smb`. A `sr_type="linstor"` filter in PromQL gives you only the XOSTOR traffic.
+
 #### Connection Metrics
 
 | Metric               | Type  | Description                                                         |
@@ -578,6 +605,14 @@ All metrics include these labels for filtering:
 | `is_control_domain` | Whether the VM is a control domain / dom0 (`true`/`false`)                                                                            |
 | `power_state`       | Power state: `Running`, `Halted`, `Unknown` (for `xcp_host_status`); `Running`, `Paused`, `Halted`, `Suspended` (for `xcp_vm_status`) |
 | `enabled`           | Whether the host is enabled: `true`/`false` (for `xcp_host_status`)                                                                   |
+| `sr_type`           | XAPI SR type (e.g. `linstor`, `lvm`, `nfs`) — on every SR-tagged metric                                                               |
+| `node_name`         | LINSTOR node hostname (for XOSTOR node metrics)                                                                                       |
+| `role`              | LINSTOR node role: `master` or `satellite` (for `xcp_xostor_node_status`)                                                             |
+| `state`             | LINSTOR node state (verbatim from `healthCheck`, e.g. `ONLINE`) or replica `disk-state` (e.g. `UpToDate`)                             |
+| `alarm_name`        | XAPI alarm message name: `ALARM`, `BOND_STATUS_CHANGED`, `MULTIPATH_PERIODIC_ALERT`                                                   |
+| `target_type`       | Object targeted by an alarm: `sr` or `host`                                                                                           |
+| `package`           | XOSTOR-related RPM name for pending updates                                                                                           |
+| `status`            | SMART overall-health string: `PASSED`, `FAILED`, `UNKNOWN`                                                                            |
 
 ### PromQL Query Examples
 
@@ -666,6 +701,34 @@ xo_nodejs_event_loop_utilization{metric="p99"}
 
 # Detect potential memory leak (growing detached contexts)
 xo_nodejs_detached_contexts > 0
+
+# XOSTOR cluster health (1 = reachable, 0 = healthCheck failing)
+xcp_xostor_up
+
+# Offline LINSTOR nodes
+xcp_xostor_node_status{state!="ONLINE"}
+
+# Replica health percentage per cluster (1.0 = all UpToDate)
+sum by (sr_uuid) (xcp_xostor_resource_state_count{state="UpToDate"})
+  / sum by (sr_uuid) (xcp_xostor_resource_state_count)
+
+# Degraded replicas (Inconsistent or Outdated)
+sum by (sr_uuid, pool_name) (xcp_xostor_resource_state_count{state=~"Inconsistent|Outdated"}) > 0
+
+# IOPS on LINSTOR SRs only
+sum by (sr_name) (xcp_host_disk_iops_total{sr_type="linstor"})
+
+# Network throughput split by SR type
+sum by (sr_type) (rate(xcp_host_network_receive_bytes_total[5m]))
+
+# Disks failing SMART (PASSED and OK are the good values)
+xcp_xostor_disk_smart_status{status!~"PASSED|OK"}
+
+# Hosts with pending XOSTOR updates
+count by (host_name) (xcp_xostor_package_update_available)
+
+# Active XAPI alarms on XOSTOR pools
+xcp_xostor_alarms_count > 0
 ```
 
 ### Grafana Integration
@@ -700,6 +763,12 @@ label_values(xcp_vm_cpu_usage{pool_name="$pool"}, vm_name)
 label_values(xcp_sr_physical_size_bytes{pool_name="$pool"}, sr_name)
 ```
 
+**XOSTOR SR variable** (for dashboards scoped to LINSTOR clusters only):
+
+```promql
+label_values(xcp_xostor_up, sr_uuid)
+```
+
 #### Example Panels
 
 **Host CPU Overview:**
@@ -727,6 +796,19 @@ xcp_vm_memory_bytes{vm_name="$vm"} / 1024 / 1024 / 1024
 xcp_sr_physical_usage_bytes{pool_name="$pool"}
 # Free space
 xcp_sr_physical_size_bytes{pool_name="$pool"} - xcp_sr_physical_usage_bytes{pool_name="$pool"}
+```
+
+**XOSTOR Replica Health (donut):**
+
+```promql
+sum by (state) (xcp_xostor_resource_state_count{sr_uuid=~"$xostor_sr"})
+```
+
+**XOSTOR IOPS (read / write split):**
+
+```promql
+sum by (sr_name) (xcp_host_disk_iops_read{sr_type="linstor"})
+sum by (sr_name) (xcp_host_disk_iops_write{sr_type="linstor"})
 ```
 
 ### Alerting with Alertmanager
@@ -861,6 +943,42 @@ groups:
         annotations:
           summary: 'Possible memory leak in XO process'
           description: 'The XO main process has {{ $value }} detached V8 contexts, which may indicate a memory leak.'
+
+      - alert: XostorClusterUnreachable
+        expr: xcp_xostor_up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'XOSTOR cluster unreachable on {{ $labels.pool_name }}'
+          description: 'linstor-manager.healthCheck has been failing on SR {{ $labels.sr_uuid }} for more than 2 minutes.'
+
+      - alert: XostorNodeOffline
+        expr: xcp_xostor_node_status{state!="ONLINE"} == 1
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'LINSTOR {{ $labels.role }} {{ $labels.node_name }} is {{ $labels.state }}'
+          description: 'XOSTOR node {{ $labels.node_name }} on pool {{ $labels.pool_name }} reports state {{ $labels.state }}.'
+
+      - alert: XostorReplicasDegraded
+        expr: sum by (sr_uuid, pool_name) (xcp_xostor_resource_state_count{state=~"Inconsistent|Outdated"}) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Degraded LINSTOR replicas on {{ $labels.pool_name }}'
+          description: '{{ $value }} replicas are not UpToDate on XOSTOR SR {{ $labels.sr_uuid }}.'
+
+      - alert: XostorDiskSmartFailed
+        expr: xcp_xostor_disk_smart_status{status!~"PASSED|OK|UNKNOWN"} == 1
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'SMART failure on {{ $labels.device }} ({{ $labels.host_name }})'
+          description: 'Device {{ $labels.device }} on host {{ $labels.host_name }} reports SMART status {{ $labels.status }}.'
 ```
 
 ### Security Recommendations

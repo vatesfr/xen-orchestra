@@ -25,6 +25,7 @@ export const DEFAULT_IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME: S
       [IPMI_SENSOR_DATA_TYPE.cpuTemp]: /^temp$/i,
       [IPMI_SENSOR_DATA_TYPE.totalPower]: /^pwr consumption$/i,
       [IPMI_SENSOR_DATA_TYPE.inletTemp]: /^inlet temp$/i,
+      [IPMI_SENSOR_DATA_TYPE.outletTemp]: /^exhaust temp$/i,
       [IPMI_SENSOR_DATA_TYPE.ip]: /^ip address$/i,
     },
   },

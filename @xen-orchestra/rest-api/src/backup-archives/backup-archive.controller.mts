@@ -1,4 +1,4 @@
-import { Example, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Extension, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
@@ -80,6 +80,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
    */
   @Example(backupArchiveIds)
   @Example(partialBackupArchives)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   @Response(notFoundResp.status, notFoundResp.description)
@@ -106,6 +107,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
    * @example id "231264c3-af43-4ec0-a3be-394c5b1fdbfc/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json"
    */
   @Example(backupArchive)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
   @Middlewares(
     acl({

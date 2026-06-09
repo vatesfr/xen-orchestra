@@ -1,13 +1,30 @@
-import { Delete, Example, Get, Path, Put, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
+import {
+  Delete,
+  Example,
+  Extension,
+  Get,
+  Middlewares,
+  Path,
+  Put,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+} from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Readable } from 'node:stream'
 import type { Request as ExRequest, Response as ExResponse } from 'express'
 import type { SUPPORTED_VDI_FORMAT, XoAlarm, XoMessage, XoTask, XoVdiSnapshot } from '@vates/types'
 
+import { acl } from '../middlewares/acl.middleware.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import {
   badRequestResp,
+  forbiddenOperationResp,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
@@ -52,6 +69,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
    */
   @Example(vdiSnapshotIds)
   @Example(partialVdiSnapshots)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   getVdiSnapshots(
@@ -69,13 +87,18 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vdi-snapshot, action: export
    *
    * Export VDI-snapshot content
    *
    * @example id "d2727772-735b-478f-b6f9-11e7db56dfd0"
    */
+  @Extension('x-mcp-exposure', 'deny')
   @Get('{id}.{format}')
+  @Middlewares(acl({ resource: 'vdi-snapshot', action: 'export', objectId: 'params.id' }))
   @SuccessResponse(200, 'Download started', 'application/octet-stream')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(422, 'Invalid format')
   async exportVdiSnapshotContent(
@@ -94,10 +117,16 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vdi-snapshot, action: read
+   *
    * @example id "d2727772-735b-478f-b6f9-11e7db56dfd0"
    */
   @Example(vdiSnapshot)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
+  @Middlewares(acl({ resource: 'vdi-snapshot', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getVdiSnapshot(@Path() id: string): Unbrand<XoVdiSnapshot> {
     return this.getObject(id as XoVdiSnapshot['id'])
@@ -113,6 +142,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
    * @example limit 42
    */
   @Example(genericAlarmsExample)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/alarms')
   @Security('*', ['acl'])
   @Tags('alarms')
@@ -139,10 +169,16 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vdi-snapshot, action: delete
+   *
    * @example id "d2727772-735b-478f-b6f9-11e7db56dfd0"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}')
+  @Middlewares(acl({ resource: 'vdi-snapshot', action: 'delete', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteVdiSnapshot(@Path() id: string): Promise<void> {
     const xapiVdiSnapshot = this.getXapiObject(id as XoVdiSnapshot['id'])
@@ -160,6 +196,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
    */
   @Example(messageIds)
   @Example(partialMessages)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/messages')
   @Security('*', ['acl'])
   @Tags('messages')
@@ -193,6 +230,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
    */
   @Example(taskIds)
   @Example(partialTasks)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/tasks')
   @Security('*', ['acl'])
   @Tags('tasks')
@@ -215,11 +253,17 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vdi-snapshot, action: update:tags
+   *
    * @example id "d2727772-735b-478f-b6f9-11e7db56dfd0"
    * @example tag "from-rest-api"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Put('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'vdi-snapshot', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async putVdiSnapshotTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vdiSnapshot = this.getXapiObject(id as XoVdiSnapshot['id'])
@@ -227,11 +271,17 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vdi-snapshot, action: update:tags
+   *
    * @example id "d2727772-735b-478f-b6f9-11e7db56dfd0"
    * @example tag "from-rest-api"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'vdi-snapshot', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteVdiSnapshotTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vdiSnapshot = this.getXapiObject(id as XoVdiSnapshot['id'])

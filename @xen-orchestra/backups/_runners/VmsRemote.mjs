@@ -63,6 +63,8 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
         const vmsUuids = await sourceRemoteAdapter.listAllVms()
 
         Task.info('vms', { vms: vmsUuids })
+        const nbVms = vmsUuids.length
+        let nbVmsDone = 0
 
         remoteAdapters = getAdaptersByRemote(remoteAdapters)
         const allSettings = this._job.settings
@@ -123,11 +125,14 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
                   )
                   .then(result => {
                     if (taskError === undefined) {
+                      nbVmsDone++
                       return task.success(result)
                     }
                     if (isLastRun) {
+                      nbVmsDone++
                       return task.failure(taskError)
                     }
+                    Task.set('progress', Math.round((nbVmsDone * 100) / nbVms))
                     // don't end the task
                     task.warning(`Retry the VM mirror backup due to an error`, {
                       attempt: nTriesByVmId[vmUuid],
@@ -148,6 +153,7 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
 
           await asyncMapSettled(vmIds, _handleVm)
         }
+        Task.set('progress', 100)
       }
     )
   }
