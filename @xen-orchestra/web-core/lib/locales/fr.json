@@ -1063,6 +1063,7 @@
   "vdi-name": "Nom du VDI",
   "vdi-throughput": "Débit du VDI",
   "vdis": "VDIs",
+  "vdi-not-attached-to-VM": "Aucune VM attachée",
   "version": "Version",
   "vga": "VGA",
   "video-ram": "Mémoire vidéo",

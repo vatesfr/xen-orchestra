@@ -1,28 +1,16 @@
 <template>
-  <div class="breadcrumb-container">
-    <UiBreadcrumb :size>
-      <UiLink v-if="vm" :size :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
-        <VtsObjectIcon type="vm" :state="vmPowerState" size="current" />
-        {{ vm.name_label }}
-      </UiLink>
-      <UiLink v-if="vm" :size :to="{ name: '/vm/[id]/vdis', params: { id: vm.id } }">
-        {{ t('vdis') }}
-      </UiLink>
-      <span v-if="vdi">
-        {{ vdi.name_label }}
-      </span>
-    </UiBreadcrumb>
-  </div>
+  <VdiHeaderBreadcrumbLink :vm :sr :vdi :from-context />
   <UiHeadBar>
     {{ vdi.name_label }}
     <template #icon>
       <VtsObjectIcon
+        v-if="vm"
         v-tooltip="{
           placement: 'top',
           content: currentOperation ? currentOperation : '',
         }"
         size="medium"
-        :state="toLower(vm.power_state)"
+        :state="toLower(vm?.power_state)"
         type="vm"
         :busy="isChangingState"
       />
@@ -54,15 +42,15 @@
 </template>
 
 <script lang="ts" setup>
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.js'
+import VdiHeaderBreadcrumbLink from '@/modules/vdi/components/header/VdiHeaderBreadcrumbLink.vue'
 import VdiMoreActions from '@/modules/vdi/components/VdiMoreActions.vue'
 import VdiPowerStateActions from '@/modules/vdi/components/VdiPowerStateActions.vue'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.js'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.js'
-import UiBreadcrumb from '@core/components/ui/breadcrumb/UiBreadcrumb.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
-import { useUiStore } from '@core/stores/ui.store.ts'
+import type { VdiPageContext } from '@/shared/constants.ts'
 import MenuList from '@xen-orchestra/web-core/components/menu/MenuList.vue'
 import VtsObjectIcon from '@xen-orchestra/web-core/components/object-icon/VtsObjectIcon.vue'
 import UiButtonIcon from '@xen-orchestra/web-core/components/ui/button-icon/UiButtonIcon.vue'
@@ -70,19 +58,19 @@ import UiDropdownButton from '@xen-orchestra/web-core/components/ui/dropdown-but
 import UiHeadBar from '@xen-orchestra/web-core/components/ui/head-bar/UiHeadBar.vue'
 import { vTooltip } from '@xen-orchestra/web-core/directives/tooltip.directive.ts'
 import { toLower } from 'lodash-es'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vdi, vm, vbd } = defineProps<{ vdi: FrontXoVdi; vm: FrontXoVm; vbd: FrontXoVbd }>()
-
-const uiStore = useUiStore()
+const { vdi, vm, vbd, sr } = defineProps<{
+  vdi: FrontXoVdi
+  vm?: FrontXoVm
+  vbd?: FrontXoVbd
+  sr?: FrontXoSr
+  fromContext?: VdiPageContext
+}>()
 
 const { t } = useI18n()
 
-const { isChangingState, currentOperation } = useXoVmUtils(() => vm)
-
-const size = computed(() => (uiStore.isSmall ? 'small' : 'medium'))
-const vmPowerState = computed(() => toLower(vm.power_state))
+const { isChangingState, currentOperation } = useXoVmUtils(() => vm as FrontXoVm)
 </script>
 
 <style lang="postcss" scoped>

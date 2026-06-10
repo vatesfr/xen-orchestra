@@ -1,0 +1,9 @@
+Poool storage oeil et là vdi
+Mettre à jour le chemin en haut de la page
+
+
+voir si les vdi dans storage sont des vdis rattachées à des vm ou non
+
+Idem snapshot oeil et tout
+
+Si pas de VM, laisse connect et disconnect et on met un hint qui dit qu'on a pas de VM rattachée

@@ -10,7 +10,7 @@ import VdiDisconnectButton from '@/modules/vdi/components/actions/disconnect/Vdi
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 
 defineProps<{
-  vm: FrontXoVm
-  vbd: FrontXoVbd
+  vm?: FrontXoVm
+  vbd?: FrontXoVbd
 }>()
 </script>

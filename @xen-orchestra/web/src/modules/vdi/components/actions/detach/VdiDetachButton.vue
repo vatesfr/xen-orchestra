@@ -1,5 +1,11 @@
 <template>
-  <MenuItem icon="action:disconnect" :disabled="!canDeleteVbd" :busy="isDeletingVbd" @click="openVbdDeleteModal()">
+  <MenuItem
+    v-if="vbd"
+    icon="action:disconnect"
+    :disabled="!canDeleteVbd"
+    :busy="isDeletingVbd"
+    @click="openVbdDeleteModal()"
+  >
     {{ t('action:detach') }}
     <i v-if="hint">{{ hint }}</i>
   </MenuItem>
@@ -14,8 +20,8 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vm, vbd } = defineProps<{
-  vm: FrontXoVm
-  vbd: FrontXoVbd
+  vm?: FrontXoVm
+  vbd?: FrontXoVbd
 }>()
 
 const { t } = useI18n()

@@ -16,7 +16,7 @@
       </VtsTabularKeyValueRow>
       <VtsTabularKeyValueRow :label="t('status')">
         <template #value>
-          <VtsStatus v-if="vbd" :status="vbd.attached ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED" />
+          <VtsStatus :status="vbd?.attached ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED" />
         </template>
       </VtsTabularKeyValueRow>
       <VtsTabularKeyValueRow :label="t('device')" :value="vbd?.device ?? '-'" />
