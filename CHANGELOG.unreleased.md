@@ -77,6 +77,18 @@
 
 ### Packages to release
 
+> When modifying a package, add it here with its release type.
+>
+> The format is the following: `- $packageName $releaseType`
+>
+> Where `$releaseType` is
+>
+> - patch: if the change is a bug fix or a simple code improvement
+> - minor: if the change is a new feature
+> - major: if the change breaks compatibility
+>
+> Keep this list alphabetically ordered to avoid merge conflicts
+
 - @xen-orchestra/web
 - @xen-orchestra/web-core
 
