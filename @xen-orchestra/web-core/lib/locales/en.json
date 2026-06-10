@@ -313,7 +313,7 @@
   "descending": "descending",
   "description": "Description",
   "destination-sr": "Destination SR",
-  "destination-sr-mandatory": "Destination SR is mandatory",
+  "destination-sr-mandatory": "Destination SR is mandatory.",
   "device": "Device",
   "device-config": "Device config",
   "dhcp": "DHCP",
