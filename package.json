@@ -74,5 +74,23 @@
     "@*/*",
     "packages/*"
   ],
-  "packageManager": "yarn@1.22.22"
+  "packageManager": "yarn@1.22.22",
+  "allowScripts": {
+    "core-js@3.49.0": true,
+    "core-js@1.2.7": true,
+    "core-js@2.6.12": true,
+    "vue-demi@0.14.10": true,
+    "vue-demi@0.13.11": true,
+    "argon2@0.41.1": true,
+    "cpu-features@0.0.10": true,
+    "es5-ext@0.10.64": true,
+    "fuse-native@2.2.6": true,
+    "leveldown@6.1.1": true,
+    "ssh2@1.17.0": true,
+    "styled-components@3.4.10": true,
+    "unrs-resolver@1.12.2": true,
+    "vue-echarts@6.7.3": true,
+    "@parcel/watcher@2.5.6": true,
+    "@scarf/scarf@1.4.0": true
+  }
 }
