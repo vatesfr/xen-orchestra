@@ -86,4 +86,6 @@ export function getPropertyClausesStrings(node: Node): {
   [key: string]: string[]
 }
 
+export function getResolveFields(node: Node): { name: string; resolveNode: Resolve }[]
+
 export function setPropertyClause(node: Node | undefined, name: string, child: Node | string): Node
