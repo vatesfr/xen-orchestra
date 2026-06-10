@@ -10,6 +10,7 @@
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
+
 - [IPMI-Plugin] Add default outlet regex to the dell preset (PR [#9884](https://github.com/vatesfr/xen-orchestra/pull/9884))
 
 - [REST API] Expose `POST /backup-repositories` and `PATCH /backup-repositories/:id` REST routes (PR [#9852](https://github.com/vatesfr/xen-orchestra/pull/9852))
@@ -43,7 +44,7 @@
 
 - [Netbox] Support Netbox v4.6.x [#9818](https://github.com/vatesfr/xen-orchestra/issues/9818) (PR [#9939](https://github.com/vatesfr/xen-orchestra/pull/9939))
 
-- [XO6/VDI] Add a dedicated page to view a VDI's general information, configuration and space usage with detach/delete actions (PR [#9949](https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExbTNtNjUzYnpwZWZrcTRscGU2YWh1bGM2MmVxejF2cjd6YjY2ZGtzciZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/CWfpB2BQtfRS/giphy.gif))
+- [XO6/VDI] Add a dedicated page to view a VDI's general information, configuration and space usage with detach/delete actions (PR [#9949](https://github.com/vatesfr/xen-orchestra/pull/9949))
 
 ### Bug fixes
 
