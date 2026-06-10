@@ -123,6 +123,7 @@ export interface XenApiPool extends XenApiRecord<'pool'> {
   suspend_image_SR: XenApiSr['$ref'] | OPAQUE_REF_NULL
   crash_dump_SR: XenApiSr['$ref'] | OPAQUE_REF_NULL
   ha_statefiles: Array<XenApiVdi['$ref']>
+  ha_reboot_vm_on_internal_shutdown?: boolean
 }
 
 export interface XenApiHost extends XenApiRecord<'host'> {

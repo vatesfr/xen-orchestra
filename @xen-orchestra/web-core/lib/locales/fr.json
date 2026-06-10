@@ -823,6 +823,7 @@
   "read": "Lecture",
   "read-only": "Lecture seule",
   "reboot-blocked": "Redémarrage bloqué",
+  "reboot-vm-internal-shutdown": "Redémarrer la VM lors d'un arrêt interne",
   "receive": "Recevoir",
   "relative-time:day": "1 jour | {n} jours",
   "relative-time:future": "Dans {str}",
