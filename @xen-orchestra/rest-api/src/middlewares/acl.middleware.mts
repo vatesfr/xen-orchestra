@@ -14,6 +14,7 @@ import { iocContainer } from '../ioc/ioc.mjs'
 import type { Branded, NonXapiXoRecord, XoApp, XapiXoRecord, XoRecord, XoAclBasePrivilege } from '@vates/types'
 import { ServiceIdentifier, ValidateError } from 'tsoa'
 import { ApiError } from '../helpers/error.helper.mjs'
+import * as CM from 'complex-matcher'
 
 export const ACL_MIDDLEWARE_NAME = '_aclMiddleware'
 
@@ -296,7 +297,28 @@ export function acl(acls: AclEntry | AclEntry[]) {
       return next(error)
     }
 
-    const missingPrivileges = getMissingPrivileges(missingPrivilegeParams, userPrivileges, restApi.resolver)
+    const objects: object[] = []
+    missingPrivilegeParams.forEach(missingPrivilegeParam => {
+      Array.isArray(missingPrivilegeParam.objects)
+        ? objects.push(...missingPrivilegeParam.objects)
+        : objects.push(missingPrivilegeParam.objects)
+    })
+
+    const nodes: CM.Node[] = []
+    userPrivileges.forEach(userPrivilege => {
+      if (userPrivilege.selector) {
+        nodes.push(CM.parse(userPrivilege.selector))
+      }
+    })
+
+    let resolver: (id: string) => object | undefined
+    if (nodes.length > 0) {
+      resolver = await restApi.buildResolver(objects, new CM.And(nodes))
+    } else {
+      resolver = restApi.resolver
+    }
+
+    const missingPrivileges = getMissingPrivileges(missingPrivilegeParams, userPrivileges, resolver)
     if (missingPrivileges.length > 0) {
       return next(
         new ApiError('not enough privileges', 403, {
