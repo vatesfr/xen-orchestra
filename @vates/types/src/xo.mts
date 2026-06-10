@@ -863,8 +863,6 @@ export type NonXapiXoRecord<
   | AnyXoLog
   | XoGroup
   | XoProxy
-  | XoGroup
-  | XoProxy
   | XoJob
   | XoBackupRepository
   | XoSchedule
