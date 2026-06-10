@@ -36,7 +36,6 @@ import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-colle
 import { getVdiFormat, getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { CONNECTION_ACTION } from '@/shared/constants.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -63,8 +62,6 @@ defineSlots<{
 const { t } = useI18n()
 
 const selectedVdiId = useRouteQuery('id')
-
-const { buildXo5Route } = useXoRoutes()
 
 const { getVbdsByIds, useGetVbdsByIds } = useXoVbdCollection()
 
@@ -94,8 +91,6 @@ const { HeadCells, BodyCells } = useVdiColumns({
     const vbds = useGetVbdsByIds(vdi.$VBDs)
 
     const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm.id))
-
-    const href = computed(() => buildXo5Route(`/vms/${vm.id}/disks?s=1_6_asc-${vdi.id}`))
 
     const size = computed(() => formatSizeRaw(vdi.size, 2))
     const format = computed(() => getVdiFormat(vdi.image_format))
@@ -132,7 +127,12 @@ const { HeadCells, BodyCells } = useVdiColumns({
     )
 
     return {
-      vdi: r => r({ label: vdi.name_label, href: href.value, icon: getVdiIcon(getVbdsByIds(vdi.$VBDs)) }),
+      vdi: r =>
+        r({
+          label: vdi.name_label,
+          to: { name: '/vdi/[id]', params: { id: vdi.id }, query: { from: 'vm' } },
+          icon: getVdiIcon(getVbdsByIds(vdi.$VBDs)),
+        }),
       description: r => r(vdi.name_description),
       usedSpace: r => r(vdi.usage, vdi.size),
       size: r => r(size.value.value, size.value.prefix),

@@ -6,7 +6,11 @@
     </UiCardTitle>
     <UiCollapsibleList v-if="vdis.length > 0" tag="ul" :total-items="vdis.length">
       <li v-for="vdi in vdis" :key="vdi.id" v-tooltip class="text-ellipsis">
-        <UiLink size="small" icon="object:vdi" :href="buildXo5Route(`/srs/${vdi.$SR}/disks?s=1_0_asc-${vdi.id}`)">
+        <UiLink
+          :to="{ name: '/vdi/[id]', params: { id: vdi.id }, query: { from: 'sr' } }"
+          size="small"
+          icon="object:vdi"
+        >
           {{ vdi.name_label }}
         </UiLink>
       </li>
@@ -19,7 +23,6 @@
 
 <script lang="ts" setup>
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
@@ -34,8 +37,6 @@ defineProps<{
 }>()
 
 const { t } = useI18n()
-
-const { buildXo5Route } = useXoRoutes()
 </script>
 
 <style scoped lang="postcss">

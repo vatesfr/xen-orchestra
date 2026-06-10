@@ -1,13 +1,8 @@
 <template>
-  <MenuItem
-    icon="action:delete"
-    :disabled="!canDeleteVdi"
-    :busy="isDeletingVdi"
-    class="delete"
-    @click="openVdiDeleteModal()"
-  >
+  <MenuItem icon="action:delete" :disabled="!canDeleteVdi" :busy="isDeletingVdi" @click="openVdiDeleteModal()">
     {{ t('action:delete') }}
     <i v-if="hint">{{ hint }}</i>
+    <i v-if="hintNoVM">{{ hintNoVM }}</i>
   </MenuItem>
 </template>
 
@@ -21,7 +16,7 @@ import { useI18n } from 'vue-i18n'
 
 const { vdi, vm } = defineProps<{
   vdi: FrontXoVdi
-  vm: FrontXoVm
+  vm?: FrontXoVm
 }>()
 
 const { t } = useI18n()
@@ -32,14 +27,9 @@ const {
   isRunning: isDeletingVdi,
 } = useVdiDeleteModal(
   () => [vdi],
-  () => vm
+  () => vm as FrontXoVm
 )
 
-const hint = computed(() => (!canDeleteVdi.value ? t('vm-running') : undefined))
+const hint = computed(() => (vm && !canDeleteVdi.value ? t('vm-running') : undefined))
+const hintNoVM = computed(() => (!vm ? t('vdi-not-attached-to-VM') : undefined))
 </script>
-
-<style lang="postcss" scoped>
-.delete {
-  color: var(--color-danger-item-base);
-}
-</style>
