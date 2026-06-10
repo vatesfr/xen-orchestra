@@ -183,6 +183,7 @@ const TRANSFORMS = {
       current_operations: obj.current_operations,
       default_SR: link(obj, 'default_SR'),
       HA_enabled: Boolean(obj.ha_enabled),
+      haRebootVmOnInternalShutdown: obj.ha_reboot_vm_on_internal_shutdown ?? true,
 
       // ignore undefined VDIs, which occurs if the objects were not fetched/cached yet.
       haSrs: obj.$ha_statefiles.filter(vdi => vdi !== undefined).map(vdi => link(vdi, 'SR')),
@@ -201,7 +202,6 @@ const TRANSFORMS = {
       zstdSupported: obj.restrictions.restrict_zstd_export === 'false',
       vtpmSupported: obj.restrictions.restrict_vtpm === 'false',
       platform_version: obj.$master.software_version.platform_version,
-      haRebootVmOnInternalShutdown: obj.ha_reboot_vm_on_internal_shutdown ?? true,
 
       // TODO
       // - ? networks = networksByPool.items[pool.id] (network.$pool.id)
