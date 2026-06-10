@@ -4,8 +4,8 @@
     {{ t('object-not-found', { id: route.params.id }) }}
   </VtsStateHero>
   <div v-else>
-    <VdiHeader v-if="vdi && vm && uiStore.hasUi" :vdi :vm :vbd />
-    <div v-if="vdi" class="card-grid" :class="{ mobile: uiStore.isSmall }">
+    <VdiHeader v-if="uiStore.hasUi" :vdi :vm :vbd :sr :from-context="fromContext" />
+    <div class="card-grid" :class="{ mobile: uiStore.isSmall }">
       <VdiDetailGeneralInfo :vdi :vbd />
       <VdiDetailConfiguration :vdi />
       <VdiDetailSpace :vdi />
@@ -14,6 +14,7 @@
 </template>
 
 <script setup lang="ts">
+import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import VdiDetailConfiguration from '@/modules/vdi/components/detail/VdiDetailConfiguration.vue'
 import VdiDetailGeneralInfo from '@/modules/vdi/components/detail/VdiDetailGeneralInfo.vue'
@@ -22,6 +23,7 @@ import VdiHeader from '@/modules/vdi/components/VdiHeader.vue'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { type VdiPageContext } from '@/shared/constants.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import type { XoVm } from '@vates/types'
@@ -34,14 +36,20 @@ const uiStore = useUiStore()
 const { t } = useI18n()
 
 const { useGetVdiById, areVdisReady } = useXoVdiCollection()
+const { useGetVbdsByIds } = useXoVbdCollection()
+
+const fromContext = computed(() => route.query.from as VdiPageContext | undefined)
+
 const vdi = useGetVdiById(() => route.params.id as FrontXoVdi['id'])
 
-const { useGetVbdsByIds } = useXoVbdCollection()
 const vbds = useGetVbdsByIds(() => vdi.value?.$VBDs ?? [])
-const vbd = computed(() => vbds.value[0])
+const vbd = computed(() => vbds.value.find(vbd => vbd.attached) ?? vbds.value[0])
 
 const { useGetVmById } = useXoVmCollection()
 const vm = useGetVmById(() => vbd.value?.VM as XoVm['id'])
+
+const { useGetSrById } = useXoSrCollection()
+const sr = useGetSrById(() => vdi.value?.$SR)
 </script>
 
 <style scoped lang="postcss">

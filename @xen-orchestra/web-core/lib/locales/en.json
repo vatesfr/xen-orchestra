@@ -1035,6 +1035,7 @@
   "vdi-name": "VDI name",
   "vdi-throughput": "VDI throughput",
   "vdis": "VDIs",
+  "vdi-not-attached-to-VM": "No VM attached",
   "version": "Version",
   "vga": "VGA",
   "video-ram": "Video RAM",

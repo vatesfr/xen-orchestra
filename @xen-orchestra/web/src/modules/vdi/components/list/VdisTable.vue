@@ -130,7 +130,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
       vdi: r =>
         r({
           label: vdi.name_label,
-          to: { name: '/vdi/[id]', params: { id: vdi.id } },
+          to: { name: '/vdi/[id]', params: { id: vdi.id }, query: { from: 'vm' } },
           icon: getVdiIcon(getVbdsByIds(vdi.$VBDs)),
         }),
       description: r => r(vdi.name_description),

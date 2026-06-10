@@ -40,3 +40,11 @@ export const VDI_SOURCE = {
   FILE: 'file',
   URL: 'url',
 } as const
+
+export const VDI_PAGE_CONTEXT = {
+  VM: 'vm',
+  SR: 'sr',
+  SNAPSHOT: 'snapshot',
+} as const
+
+export type VdiPageContext = (typeof VDI_PAGE_CONTEXT)[keyof typeof VDI_PAGE_CONTEXT]
