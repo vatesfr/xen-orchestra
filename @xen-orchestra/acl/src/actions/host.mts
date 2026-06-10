@@ -6,6 +6,7 @@ export default {
   export: {
     logs: true,
   },
+  'join-pool': true,
   read: true,
   update: {
     tags: true,

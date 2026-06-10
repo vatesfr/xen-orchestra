@@ -35,7 +35,6 @@ import type {
   XoMessage,
   XoNetwork,
   XoVif,
-  XoPif,
   XoSr,
 } from '@vates/types'
 import { PassThrough, Readable } from 'node:stream'
@@ -72,6 +71,7 @@ import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-
 import type { UnbrandedVmDashboard, UpdateVmRequestBody } from './vm.type.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { Task } from '@vates/task'
+import { vmExportCompressDeprecated } from '../middlewares/deprecated.middleware.mjs'
 
 const IGNORED_VDIS_TAG = '[NOSNAP]'
 
@@ -141,7 +141,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Extension('x-mcp-exposure', 'deny')
   @Get('{id}.{format}')
-  @Middlewares(acl({ resource: 'vm', action: 'export', objectId: 'params.id' }))
+  @Middlewares([acl({ resource: 'vm', action: 'export', objectId: 'params.id' }), vmExportCompressDeprecated])
   @SuccessResponse(200, 'Download started', 'application/octet-stream')
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -149,8 +149,8 @@ export class VmController extends XapiXoController<XoVm> {
   async exportVm(
     @Request() req: ExRequest,
     @Path() id: string,
-    @Path() format: 'xva' | 'ova',
-    @Query() compress?: boolean
+    @Path() format: Parameters<VmService['export']>[2]['format'],
+    @Query() compress?: Parameters<VmService['export']>[2]['compress']
   ): Promise<Readable> {
     const stream = await this.#vmService.export(id as XoVm['id'], 'VM', { compress, format, response: req.res })
     process.on('SIGTERM', () => req.destroy())
