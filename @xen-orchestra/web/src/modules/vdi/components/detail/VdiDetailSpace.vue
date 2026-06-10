@@ -17,11 +17,11 @@ import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsT
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import humanFormat from 'human-format'
+import { formatSize } from '@core/utils/size.util.ts'
 import { useI18n } from 'vue-i18n'
 
 const { vdi } = defineProps<{ vdi: FrontXoVdi }>()
 
-const formatSizeSpace = (bytes: number) => humanFormat.bytes(bytes, { decimals: 2 })
+const formatSizeSpace = (bytes: number) => formatSize(bytes, 2)
 const { t } = useI18n()
 </script>
