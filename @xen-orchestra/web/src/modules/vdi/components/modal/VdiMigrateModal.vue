@@ -1,5 +1,5 @@
 <template>
-  <UiModal :accent="isOnDifferentHost ? 'warning' : 'info'" :on-dismiss="() => emit('dismiss')">
+  <VtsModal :accent="isOnDifferentHost ? 'warning' : 'info'" dismissible>
     <template #title>
       {{ t('action:migrate-vdi-on-sr') }}
     </template>
@@ -29,24 +29,12 @@
     </template>
 
     <template #buttons>
-      <UiButton accent="brand" size="medium" variant="secondary" @click="emit('dismiss')">
-        {{ t('cancel') }}
-      </UiButton>
-      <UiButton
-        v-if="isOnDifferentHost"
-        accent="warning"
-        size="medium"
-        variant="primary"
-        :busy="isRunning"
-        @click="handleConfirm"
-      >
-        {{ t('action:force-migrate-on-sr') }}
-      </UiButton>
-      <UiButton v-else accent="brand" size="medium" variant="primary" :busy="isRunning" @click="handleConfirm">
-        {{ t('action:migrate-vdi-on-sr') }}
-      </UiButton>
+      <VtsModalCancelButton />
+      <VtsModalConfirmButton :on-click="handleConfirm">
+        {{ isOnDifferentHost ? t('action:force-migrate-on-sr') : t('action:migrate-vdi-on-sr') }}
+      </VtsModalConfirmButton>
     </template>
-  </UiModal>
+  </VtsModal>
 </template>
 
 <script lang="ts" setup>
@@ -56,8 +44,9 @@ import {
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiModal from '@core/components/ui/modal/UiModal.vue'
+import VtsModal from '@core/components/modal/VtsModal.vue'
+import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
+import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
