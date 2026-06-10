@@ -122,7 +122,7 @@ describe('Backup + Replication Combined Tests', () => {
       log.warn('Backup repository not found, creating it for tests')
 
       const backupRepositoryId = await dispatchClient.backupRepository.create(BACKUP_REPOSITORY_NAME, {
-        path: getRequiredEnv('BACKUP_REPOSITORY_PATH'),
+        url: getRequiredEnv('BACKUP_REPOSITORY_URL'),
       })
 
       // eslint-disable-next-line require-atomic-updates -- sequential code in before() hook, no race condition

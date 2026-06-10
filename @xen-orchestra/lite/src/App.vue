@@ -12,6 +12,7 @@
     </div>
   </div>
   <VtsModalList />
+  <VtsDrawerList />
   <VtsTooltipList />
 </template>
 
@@ -22,6 +23,7 @@ import AppNavigation from '@/components/AppNavigation.vue'
 import { useUnreachableHosts } from '@/composables/unreachable-hosts.composable'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
+import VtsDrawerList from '@core/components/drawer/VtsDrawerList.vue'
 import VtsModalList from '@core/components/modal/VtsModalList.vue'
 import VtsTooltipList from '@core/components/tooltip-list/VtsTooltipList.vue'
 import { useChartTheme } from '@core/composables/chart-theme.composable'
