@@ -31,8 +31,8 @@ const {
   canRun: canDeleteVbd,
   isRunning: isDeletingVbd,
 } = useVbdDeleteModal(
-  () => [vbd],
-  () => vm
+  () => (vbd ? [vbd] : []),
+  () => vm as FrontXoVm
 )
 
 const hint = computed(() => (!canDeleteVbd.value ? t('vm-running') : undefined))
