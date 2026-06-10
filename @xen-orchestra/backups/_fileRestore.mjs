@@ -292,9 +292,9 @@ export const fileRestoreMethods = {
       let outputStream
 
       if (format === 'tgz') {
-        // jobs: 1 — process one entry at a time. node-tar defaults to 4
+        // process one entry at a time with { job: 1}. node-tar defaults to 4
         // concurrent jobs, which on a FUSE-backed restore mount means up to 4
-        // simultaneous reads; those saturate the libuv threadpool and starve
+        // simultaneous reads. Those saturate the libuv threadpool and starve
         // the underlying vhd/CIFS reads NTFS-3g depends on (FUSE-on-FUSE
         // threadpool deadlock). Serializing keeps a worker free for them.
         outputStream = tar.c({ cwd: path, gzip: true, jobs: 1 }, paths.map(makeRelative))
@@ -313,10 +313,6 @@ export const fileRestoreMethods = {
         throw new Error('unsupported format ' + format)
       }
 
-      // Wait for the stream to finish before releasing the mounted partition.
-      // finished() correctly handles 'end', 'close', and 'error' — unlike
-      // fromEvent('end') which hangs forever if the stream errors (client
-      // disconnect, FUSE read failure), leaking the mount and loop devices.
       await finished(outputStream).catch(noop)
     }).catch(error => {
       warn(error)
