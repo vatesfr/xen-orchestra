@@ -672,6 +672,24 @@ exports.getPropertyClausesStrings = function getPropertyClausesStrings(node) {
 
 // -------------------------------------------------------------------
 
+exports.getResolveFields = function getResolveFields(node) {
+  const result = []
+
+  if (node instanceof Property) {
+    if (node.child instanceof Resolve) {
+      result.push({ name: node.name, resolveNode: node.child })
+    }
+  } else if (node instanceof And || node instanceof Or) {
+    node.children.forEach(childNode => {
+      result.push(...getResolveFields(childNode))
+    })
+  } else if (node instanceof Not) {
+    result.push(...getResolveFields(node.child))
+  }
+
+  return result
+}
+
 exports.setPropertyClause = function setPropertyClause(node, name, child) {
   const property = child && new Property(name, typeof child === 'string' ? new StringNode(child) : child)
 

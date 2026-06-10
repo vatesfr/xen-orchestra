@@ -5,6 +5,7 @@ import { BaseController, type BaseControllerType } from './base-controller.mjs'
 
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
+import * as CM from 'complex-matcher'
 
 export abstract class XoController<
   T extends NonXapiXoRecord<SupportedActionsByResource, SupportedResource> | AnyPrivilege,
@@ -21,7 +22,14 @@ export abstract class XoController<
   ): Promise<Record<T['id'], T>> {
     let objects = await this.getAllCollectionObjects(opts)
 
-    objects = limitAndFilterArray(objects, opts, this.restApi.resolver)
+    let resolver: (id: string) => object | undefined
+    if (opts.filter) {
+      resolver = await this.restApi.buildResolver(objects, CM.parse(opts.filter))
+    } else {
+      resolver = this.restApi.resolver
+    }
+
+    objects = limitAndFilterArray(objects, opts, resolver)
 
     const objectById = {} as Record<T['id'], T>
 
