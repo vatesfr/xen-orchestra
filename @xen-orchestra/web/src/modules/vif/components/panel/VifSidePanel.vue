@@ -25,10 +25,8 @@
     <template #default>
       <!-- VIF -->
       <UiCard class="card">
-        <UiCardTitle>{{ t('vif') }}</UiCardTitle>
+        <VtsCardObjectTitle :id="vif.id" :label="t('vif')" />
         <div class="content">
-          <!-- UUID -->
-          <VtsCodeSnippet :content="vif.id" copy />
           <!-- NETWORK -->
           <VtsCardRowKeyValue>
             <template #key>
@@ -156,7 +154,7 @@ import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-colle
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
+import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'

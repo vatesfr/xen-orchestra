@@ -1,12 +1,7 @@
 <template>
   <UiCard class="card-container">
-    <UiCardTitle>
-      <UiLink v-if="sr.name_label" size="small" :icon="`object:sr:${allPbdsConnectionStatus}`" :href>
-        {{ sr.name_label }}
-      </UiLink>
-    </UiCardTitle>
+    <VtsCardObjectTitle :id="sr.id" :label="sr.name_label" :href :icon="`object:sr:${allPbdsConnectionStatus}`" />
     <div class="content">
-      <VtsCodeSnippet :content="sr.id" copy />
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
         <template #value>
@@ -69,13 +64,11 @@ import {
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
+import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
