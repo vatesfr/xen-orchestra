@@ -100,16 +100,11 @@ export const NETWORK_ADMINISTRATOR = {
   name: 'Network administrator',
   description: 'Manage networks across pools, hosts and VMs',
   privileges: [
-    // Networks: full control (wildcard is future-proof for new network actions)
     { action: '*', resource: 'network', effect: 'allow' },
-    // Network creation happens on the pool
     { action: 'create:network', resource: 'pool', effect: 'allow' },
     { action: 'read', resource: 'pool', effect: 'allow' },
-    // Physical interfaces (host side): read-only context, no management reconfiguration
     { action: 'read', resource: 'pif', effect: 'allow' },
-    // Virtual interfaces (VM side): full lifecycle (wildcard is future-proof for new vif actions)
     { action: '*', resource: 'vif', effect: 'allow' },
-    // Hosts: context only (see the hosts carrying the PIFs)
     { action: 'read', resource: 'host', effect: 'allow' },
   ],
 }
