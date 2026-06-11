@@ -8,6 +8,7 @@ export default {
   update: {
     nameDescription: true,
     nameLabel: true,
+    size: true,
     tags: true,
   },
 }

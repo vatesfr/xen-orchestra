@@ -23,9 +23,10 @@ import type { Readable } from 'node:stream'
 import { json, type Request as ExRequest, type Response as ExResponse } from 'express'
 import type { SUPPORTED_VDI_FORMAT, Xapi, XoAlarm, XoMessage, XoSr, XoTask, XoVdi } from '@vates/types'
 
-import { SUPPORTED_ACTIONS_BY_RESOURCE, type SupportedActions } from '@xen-orchestra/acl'
+import { type SupportedActions } from '@xen-orchestra/acl'
+import { invalidParameters } from 'xo-common/api-errors.js'
 
-import { acl, actionsFromBody } from '../middlewares/acl.middleware.mjs'
+import { acl } from '../middlewares/acl.middleware.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
@@ -58,13 +59,16 @@ type CreateVdiBody = Omit<CreateVdiParams[0], 'SR' | 'other_config'> & {
 } & CreateVdiParams[1]
 
 interface UpdateVdiRequestBody {
-  nameLabel?: string
-  nameDescription?: string
+  name_label?: string
+  name_description?: string
+  size?: number
 }
 
-const UPDATE_VDI_ACTIONS = Object.keys(SUPPORTED_ACTIONS_BY_RESOURCE.vdi.update).map(
-  k => `update:${k}` as SupportedActions<'vdi'>
-)
+const UPDATE_VDI_ACTION_BY_FIELD: { [Field in keyof Required<UpdateVdiRequestBody>]: SupportedActions<'vdi'> } = {
+  name_label: 'update:nameLabel',
+  name_description: 'update:nameDescription',
+  size: 'update:size',
+}
 
 @Route('vdis')
 @Security('*')
@@ -194,11 +198,13 @@ export class VdiController extends XapiXoController<XoVdi> {
    * Operations are applied sequentially: if one fails, previously applied
    * changes are not rolled back.
    *
+   * `size` is expressed in bytes and can only be increased: a VDI cannot be shrunk.
+   *
    * Required privilege per field provided in the body:
    * - resource: vdi, action: update:&lt;field&gt;
    *
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
-   * @example body { "nameLabel": "my disk", "nameDescription": "system disk" }
+   * @example body { "name_label": "my disk", "name_description": "system disk", "size": 10737418240 }
    */
   @Extension('x-mcp-exposure', 'confirm')
   @Patch('{id}')
@@ -206,7 +212,10 @@ export class VdiController extends XapiXoController<XoVdi> {
     json(),
     acl({
       resource: 'vdi',
-      actions: actionsFromBody(UPDATE_VDI_ACTIONS),
+      actions: ({ req }) =>
+        Object.entries(UPDATE_VDI_ACTION_BY_FIELD)
+          .filter(([field]) => field in req.body)
+          .map(([, action]) => action),
       objectId: 'params.id',
     }),
   ])
@@ -217,13 +226,20 @@ export class VdiController extends XapiXoController<XoVdi> {
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async updateVdi(@Path() id: string, @Body() body: UpdateVdiRequestBody): Promise<void> {
     const { $ref, $xapi } = this.getXapiObject(id as XoVdi['id'])
-    const { nameLabel, nameDescription } = body
+    const { name_label, name_description, size } = body
 
-    if (nameLabel !== undefined) {
-      await $xapi.call('VDI.set_name_label', $ref, nameLabel)
+    if (name_label !== undefined) {
+      await $xapi.call('VDI.set_name_label', $ref, name_label)
     }
-    if (nameDescription !== undefined) {
-      await $xapi.call('VDI.set_name_description', $ref, nameDescription)
+    if (name_description !== undefined) {
+      await $xapi.call('VDI.set_name_description', $ref, name_description)
+    }
+    if (size !== undefined) {
+      const currentSize = this.getObject(id as XoVdi['id']).size
+      if (size < currentSize) {
+        throw invalidParameters(`cannot set new size (${size}) below the current size (${currentSize})`)
+      }
+      await $xapi.callAsync('VDI.resize', $ref, size)
     }
   }
 
