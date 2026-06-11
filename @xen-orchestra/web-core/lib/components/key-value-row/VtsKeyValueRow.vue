@@ -1,6 +1,6 @@
 <template>
   <div class="vts-key-value-row" :class="{ mobile: uiStore.isSmallOrMedium }">
-    <VtsKeyValuePair :label :value>
+    <VtsKeyValuePair :label :value :copy :copy-value>
       <template v-if="slots.label" #label>
         <slot name="label" />
       </template>
@@ -18,6 +18,8 @@ import { useUiStore } from '@core/stores/ui.store.ts'
 defineProps<{
   label?: string
   value?: string
+  copy?: boolean
+  copyValue?: string
 }>()
 
 const slots = defineSlots<{
