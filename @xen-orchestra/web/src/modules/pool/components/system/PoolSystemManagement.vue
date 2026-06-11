@@ -30,6 +30,11 @@
           <VtsStatus :status="pool.HA_enabled" />
         </template>
       </VtsTabularKeyValueRow>
+      <VtsTabularKeyValueRow :label="t('reboot-vm-internal-shutdown')">
+        <template #value>
+          <VtsStatus :status="pool.haRebootVmOnInternalShutdown" />
+        </template>
+      </VtsTabularKeyValueRow>
       <VtsTabularKeyValueRow :label="t('migration-compression')">
         <template #value>
           <VtsStatus :status="pool.migrationCompression ?? false" />

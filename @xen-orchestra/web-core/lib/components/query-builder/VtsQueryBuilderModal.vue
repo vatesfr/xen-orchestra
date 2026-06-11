@@ -44,7 +44,6 @@ const uiStore = useUiStore()
   }
 
   &:deep(.modal) {
-    background-color: var(--color-neutral-background-primary) !important;
     padding: 0;
     gap: 0;
 

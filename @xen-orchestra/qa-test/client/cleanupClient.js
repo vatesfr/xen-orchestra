@@ -32,16 +32,16 @@ const getAllowedCleanupPaths = () => {
   }
 
   // SECURITY: Reject paths containing path traversal sequences
-  if (repoPath.includes('..')) {
+  if (repoPath?.includes('..')) {
     log.warn('Rejected cleanup path: contains path traversal', { repoPath })
     return []
   }
 
-  const normalized = path.resolve(repoPath).toLowerCase()
+  const normalized = repoPath ? path.resolve(repoPath).toLowerCase() : ''
   const isTestPath = ['test', 'qa', 'tmp/xo'].some(marker => normalized.includes(marker))
 
   if (!isTestPath) {
-    log.warn('Rejected cleanup path: not a test path', { repoPath })
+    if (repoPath) log.warn('Rejected cleanup path: not a test path', { repoPath })
     return []
   }
 

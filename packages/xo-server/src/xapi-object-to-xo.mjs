@@ -183,6 +183,7 @@ const TRANSFORMS = {
       current_operations: obj.current_operations,
       default_SR: link(obj, 'default_SR'),
       HA_enabled: Boolean(obj.ha_enabled),
+      haRebootVmOnInternalShutdown: obj.ha_reboot_vm_on_internal_shutdown ?? true,
 
       // ignore undefined VDIs, which occurs if the objects were not fetched/cached yet.
       haSrs: obj.$ha_statefiles.filter(vdi => vdi !== undefined).map(vdi => link(vdi, 'SR')),

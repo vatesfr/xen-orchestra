@@ -5,6 +5,7 @@ export default {
     vdi: true,
     vm: true,
   },
+  'migrate-receive': true,
   read: true,
   'reclaim-space': true,
   scan: true,
