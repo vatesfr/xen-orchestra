@@ -210,7 +210,24 @@ export const objectIcons = defineIconPack({
   'vdi:disabled': [constructIcon(faHdd), ...constructCircleStatus('disabled')],
   'vdi:warning': [constructIcon(faHdd), ...constructCircleStatus('warning-circle')],
   'vdi:detached': [constructIcon(faHdd), ...constructCircleStatus('danger-circle')],
-  vif: constructIcon(faMapPin),
+  vif: [
+    {
+      icon: faMapPin,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: faCircle,
+      color: 'var(--color-neutral-txt-primary)',
+      translate: [0, -4],
+      size: 12,
+    },
+    {
+      icon: faCircle,
+      color: 'var(--color-neutral-background-primary)',
+      translate: [0, -4],
+      size: 8,
+    },
+  ],
   network: constructIcon(faNetworkWired),
   'network:unknown': [
     {
