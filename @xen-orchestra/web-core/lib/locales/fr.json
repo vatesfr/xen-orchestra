@@ -453,6 +453,7 @@
   "job:create:in-progress": "Création en cours…",
   "job:delete:in-progress": "Suppression en cours…",
   "job:disconnect:in-progress": "Déconnexion en cours…",
+  "job:migrate:in-progress": "Migration en cours…",
   "job:network-delete:has-n-physical-pif-connected": "Le réseau a un PIF physique connecté | Le réseau a {n} PIFs physiques connectés",
   "job:network-delete:has-n-vif-attached": "Le réseau a un VIF attaché | Le réseau a {n} VIFs attachés",
   "job:pbd-unplug:missing-pbd": "Aucun PBD à déconnecter",

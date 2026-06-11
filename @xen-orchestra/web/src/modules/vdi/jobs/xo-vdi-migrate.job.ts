@@ -14,7 +14,7 @@ export const useXoVdiMigrateJob = defineJob('vdi.migrate', [xoVdisArg, xoSrIdArg
 
   return {
     async run(vdis: FrontXoVdi[], srId: string) {
-      await Promise.all(vdis.map(vdi => fetchPost(`vdis/${vdi.id}/migrate`, { sr_id: srId })))
+      await Promise.all(vdis.map(vdi => fetchPost(`vdis/${vdi.id}/actions/migrate`, { srId })))
     },
 
     validate: (isRunning, vdis: FrontXoVdi[] | undefined, srId: string | undefined) => {
@@ -25,7 +25,7 @@ export const useXoVdiMigrateJob = defineJob('vdi.migrate', [xoVdisArg, xoSrIdArg
         throw new JobError(t('destination-sr-mandatory'))
       }
       if (isRunning) {
-        throw new JobRunningError(t('job:delete:in-progress'))
+        throw new JobRunningError(t('job:migrate:in-progress'))
       }
     },
   }

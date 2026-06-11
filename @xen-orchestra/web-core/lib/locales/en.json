@@ -454,6 +454,7 @@
   "job:create:in-progress": "Create in progress…",
   "job:delete:in-progress": "Delete in progress…",
   "job:disconnect:in-progress": "Disconnect in progress…",
+  "job:migrate:in-progress": "Migrate in progess…",
   "job:network-delete:has-n-physical-pif-connected": "The network has one physical PIF connected | The network has {n} physical PIFs connected",
   "job:network-delete:has-n-vif-attached": "The network has one VIF attached | The network has {n} VIFs attached",
   "job:pbd-unplug:missing-pbd": "No PBDs to unplug",
