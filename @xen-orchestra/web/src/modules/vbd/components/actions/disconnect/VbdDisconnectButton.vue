@@ -5,7 +5,7 @@
     variant="tertiary"
     accent="brand"
     :disabled="!canDisconnectVbd"
-    left-icon="action:detach"
+    left-icon="action:disconnect"
     :busy="isDisconnectingVbd"
     @click="openVbdDisconnectModal()"
   >

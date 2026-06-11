@@ -1,3 +1,4 @@
+import { slash } from '@core/icons/custom-icons.ts'
 import { defineIconPack, type IconSingleConfig } from '@core/packages/icon'
 import { faCopy, faSquare as checkboxEmpty, type IconDefinition } from '@fortawesome/free-regular-svg-icons'
 import {
@@ -21,13 +22,14 @@ import {
   faFillDrip,
   faHeart,
   faLightbulb,
+  faLink,
+  faLinkSlash,
   faMinus,
   faPlug,
   faPowerOff,
   faRefresh,
   faRoute,
   faSearch,
-  faSlash,
   faSquare,
   faThumbTack,
   faThumbTackSlash,
@@ -132,14 +134,10 @@ export const actionIcons = defineIconPack({
   fill: constructIcon(faFillDrip),
   duplicate: constructIcon(faClone),
   copy: constructIcon(faCopy),
-  attach: constructIcon(faPlug),
-  detach: [
-    constructIcon(faPlug),
-    {
-      icon: faSlash,
-      size: 18,
-    },
-  ],
+  attach: constructIcon(faLink),
+  detach: constructIcon(faLinkSlash),
+  connect: constructIcon(faPlug),
+  disconnect: [constructIcon(faPlug), { icon: slash }],
   forget: constructIcon(faEraser),
   delete: { icon: faTrash, color: 'var(--color-danger-txt-primary)' },
   'more-actions': constructIcon(faEllipsis),

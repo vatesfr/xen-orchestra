@@ -43,6 +43,7 @@ export default function genericErrorHandler(error: unknown, req: Request, res: R
     statusCode = 403
   } else if (invalidCredentials.is(error)) {
     statusCode = 401
+    res.setHeader('WWW-Authenticate', 'Basic realm="xo"')
   } else if (objectAlreadyExists.is(error)) {
     statusCode = 409
   } else if (invalidParameters.is(error)) {

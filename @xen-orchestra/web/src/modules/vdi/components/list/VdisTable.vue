@@ -144,7 +144,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
             {
               label: vbd.value?.attached ? t('action:disconnect') : t('action:connect'),
               hint: !canToggleVbdConnection.value ? toggleVbdConnectionErrorMessage.value : undefined,
-              icon: vbd.value?.attached ? 'status:disabled' : 'status:success-circle',
+              icon: vbd.value?.attached ? 'action:disconnect' : 'action:connect',
               onClick: () => openVbdConnectionToggleModal(),
               disabled: !canToggleVbdConnection.value,
               busy: isTogglingVbdConnection.value,

@@ -26,7 +26,6 @@ const modalAccent = inject(IK_MODAL_ACCENT)
 const buttonAccent = useMapper(
   () => modalAccent?.value,
   {
-    success: 'brand',
     info: 'brand',
     warning: 'warning',
     danger: 'danger',

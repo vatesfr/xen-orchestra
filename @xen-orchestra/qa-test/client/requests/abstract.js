@@ -429,11 +429,13 @@ export class AbstractRequest {
         duration,
       }
     } catch (error) {
-      // Clean up partial file on error
+      // Clean up partial file on error (ignore ENOENT — file was never created if the HTTP request failed)
       try {
         await fs.unlink(outputPath)
       } catch (cleanupError) {
-        log.warn('Cleanup failed for partial download', { outputPath, error: cleanupError.message })
+        if (cleanupError.code !== 'ENOENT') {
+          log.warn('Cleanup failed for partial download', { outputPath, error: cleanupError.message })
+        }
       }
 
       if (error.code) {

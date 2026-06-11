@@ -5,7 +5,7 @@
     variant="tertiary"
     accent="brand"
     :disabled="!canConnectVbd"
-    left-icon="action:attach"
+    left-icon="action:connect"
     :busy="isConnectingVbd"
     @click="openVbdConnectModal()"
   >

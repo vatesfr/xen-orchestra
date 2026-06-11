@@ -6,7 +6,7 @@ const configurationSchema = {
     endpoint: {
       type: 'string',
       title: 'Endpoint',
-      description: 'Netbox URI',
+      description: 'Netbox URI (e.g. https://netbox.company.net/)',
     },
     allowUnauthorized: {
       type: 'boolean',
@@ -16,7 +16,8 @@ const configurationSchema = {
     token: {
       type: 'string',
       title: 'Token',
-      description: 'Generate a token with write permissions from your Netbox interface',
+      description:
+        'Generate a token with write permissions from your Netbox interface (e.g. nbt_xxx.yyy for v2 tokens)',
     },
     pools: {
       type: 'array',

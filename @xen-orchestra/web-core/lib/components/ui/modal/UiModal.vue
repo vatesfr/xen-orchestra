@@ -1,4 +1,4 @@
-<!-- v2 -->
+<!-- v4 -->
 <template>
   <form :class="className" class="ui-modal" @click.self="emit('dismiss')">
     <div class="modal">
@@ -7,8 +7,8 @@
         :accent="closeIconAccent"
         :target-scale="2"
         class="dismiss-button"
-        icon="fa:xmark"
-        size="small"
+        icon="action:close-cancel-clear"
+        size="medium"
         @click="emit('dismiss')"
       />
       <main class="main">
@@ -36,7 +36,7 @@ import { useMapper } from '@core/packages/mapper'
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 
-export type ModalAccent = 'info' | 'success' | 'warning' | 'danger'
+export type ModalAccent = 'info' | 'warning' | 'danger'
 
 const { accent } = defineProps<{
   accent: ModalAccent
@@ -58,7 +58,6 @@ const closeIconAccent = useMapper(
   () => accent,
   {
     info: 'brand',
-    success: 'brand',
     warning: 'warning',
     danger: 'danger',
   },
@@ -84,7 +83,10 @@ const className = computed(() => toVariants({ accent }))
     max-height: min(90vh, 80rem);
     padding: 3.2rem 2.4rem 2.4rem;
     gap: 2.4rem;
+    background-color: var(--color-neutral-background-secondary);
     border-radius: 1rem;
+    border-width: 0.1rem;
+    border-style: solid;
 
     &:not(:has(.buttons)) {
       padding-bottom: 3.2rem;
@@ -122,7 +124,7 @@ const className = computed(() => toVariants({ accent }))
 
   &.accent--info {
     .modal {
-      background-color: var(--color-info-background-selected);
+      border-color: var(--color-info-item-base);
     }
 
     .main .icon {
@@ -130,19 +132,9 @@ const className = computed(() => toVariants({ accent }))
     }
   }
 
-  &.accent--success {
-    .modal {
-      background-color: var(--color-success-background-selected);
-    }
-
-    .main .icon {
-      color: var(--color-success-txt-base);
-    }
-  }
-
   &.accent--warning {
     .modal {
-      background-color: var(--color-warning-background-selected);
+      border-color: var(--color-warning-item-base);
     }
 
     .main .icon {
@@ -152,7 +144,7 @@ const className = computed(() => toVariants({ accent }))
 
   &.accent--danger {
     .modal {
-      background-color: var(--color-danger-background-selected);
+      border-color: var(--color-danger-item-base);
     }
 
     .main .icon {

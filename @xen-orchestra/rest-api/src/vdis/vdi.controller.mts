@@ -213,13 +213,24 @@ export class VdiController extends XapiXoController<XoVdi> {
   /**
    * Create an empty VDI.
    *
+   * Required privileges:
+   * - resource: sr, action: import:vdi (on the target SR)
+   * - resource: vdi, action: create
+   *
    * @example body { "srId": "c4284e12-37c9-7967-b9e8-83ef229c3e03", "virtual_size": 10737418240, "name_label": "test VDI" }
    */
   @Example(vdiId)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('')
-  @Middlewares(json())
+  @Middlewares([
+    json(),
+    acl([
+      { resource: 'sr', action: 'import:vdi', objectId: 'body.srId' },
+      { resource: 'vdi', action: 'create', object: ({ req }) => req.body },
+    ]),
+  ])
   @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async createVdi(@Body() body: CreateVdiBody): Promise<{ id: string }> {
@@ -331,6 +342,10 @@ export class VdiController extends XapiXoController<XoVdi> {
   /**
    * Migrate a VDI to another SR.
    *
+   * Required privileges:
+   * - resource: vdi, action: migrate-send
+   * - resource: sr, action: migrate-receive (on the target SR)
+   *
    * Note: After migration, the VDI will have a new ID. The new ID is returned in the response.
    *
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
@@ -340,8 +355,17 @@ export class VdiController extends XapiXoController<XoVdi> {
   @Example(vdiId)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/migrate')
-  @Middlewares(json())
+  @Middlewares([
+    json(),
+    // Two separate checks allow independent control: a user can be allowed to migrate a VDI away
+    // without being allowed to place VDIs on any specific SR, and vice versa.
+    acl([
+      { resource: 'vdi', action: 'migrate-send', objectId: 'params.id' },
+      { resource: 'sr', action: 'migrate-receive', objectId: 'body.srId' },
+    ]),
+  ])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(200, 'Ok')
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
