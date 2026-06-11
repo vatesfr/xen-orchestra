@@ -4,8 +4,8 @@
       {{ t('general-information') }}
     </UiTitle>
     <VtsTabularKeyValueList>
-      <VtsTabularKeyValueRow :label="t('name')" :value="pool.name_label" />
-      <VtsTabularKeyValueRow :label="t('uuid')" :value="pool.id" />
+      <VtsTabularKeyValueRow :label="t('name')" :value="pool.name_label" copy />
+      <VtsTabularKeyValueRow :label="t('uuid')" :value="pool.id" copy />
       <VtsTabularKeyValueRow :label="t('description')" :value="pool.name_description" />
       <VtsTabularKeyValueRow :label="t('tags')">
         <template v-if="pool.tags.length > 0" #value>

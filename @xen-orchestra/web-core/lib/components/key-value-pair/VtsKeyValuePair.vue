@@ -10,21 +10,28 @@
         {{ value }}
       </slot>
     </span>
+    <VtsCopyButton v-if="valueToCopy" :value="valueToCopy" class="copy-button" />
   </dd>
 </template>
 
 <script lang="ts" setup>
+import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import { computed } from 'vue'
 
-defineProps<{
+const { label, value, copy, copyValue } = defineProps<{
   label?: string
   value?: string
+  copy?: boolean
+  copyValue?: string
 }>()
 
 defineSlots<{
   label?(): any
   value?(): any
 }>()
+
+const valueToCopy = computed(() => (copy || copyValue !== undefined ? (copyValue ?? value) : undefined))
 </script>
 
 <style lang="postcss" scoped>

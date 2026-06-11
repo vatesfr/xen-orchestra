@@ -1,8 +1,8 @@
 <template>
   <UiCard class="vm-snapshot-card">
     <UiCardTitle>{{ title }}</UiCardTitle>
-    <VtsKeyValueList class="snapshot-row-container">
-      <VtsKeyValueRow :label="t('snapshot')" class="snapshot-row">
+    <VtsKeyValueList>
+      <VtsKeyValueRow :label="t('snapshot')" :copy-value="snapshot?.name_label">
         <template #value>
           <UiLink
             v-if="snapshot?.name_label"
@@ -14,7 +14,6 @@
           </UiLink>
         </template>
       </VtsKeyValueRow>
-      <VtsCopyButton v-if="snapshot?.name_label" :value="snapshot.name_label" class="copy-button" />
       <VtsKeyValueRow :label="t('snapshot-created-on')">
         <template #value>
           <span v-if="formattedDate">{{ formattedDate }}</span>
@@ -27,7 +26,6 @@
 <script setup lang="ts">
 import type { FrontXoVmSnapshot } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'
 import { useXo5VmSnapshotRoute } from '@/modules/snapshot/composables/xo-vm-snapshot-route-xo5.composable.ts'
-import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsKeyValueList from '@core/components/key-value-list/VtsKeyValueList.vue'
 import VtsKeyValueRow from '@core/components/key-value-row/VtsKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -49,21 +47,3 @@ const formattedDate = computed(() =>
 
 const { buildXo5VmSnapshotRoute } = useXo5VmSnapshotRoute()
 </script>
-
-<style lang="postcss" scoped>
-.vm-snapshot-card {
-  .snapshot-row-container {
-    position: relative;
-
-    .snapshot-row {
-      padding-inline-end: 2.5rem;
-    }
-
-    .copy-button {
-      position: absolute;
-      inset-block-start: -0.2rem;
-      inset-inline-end: 0;
-    }
-  }
-}
-</style>

@@ -9,7 +9,7 @@
           </span>
         </template>
       </VtsKeyValueRow>
-      <VtsKeyValueRow :label="t('ip-address')" :value="host.address" />
+      <VtsKeyValueRow :label="t('ip-address')" :value="host.address" copy />
       <VtsKeyValueRow
         :label="t('started')"
         :value="host.power_state === HOST_POWER_STATE.RUNNING ? relativeStartTime : undefined"
@@ -32,7 +32,7 @@
       </VtsKeyValueRow>
     </VtsKeyValueList>
     <VtsKeyValueList>
-      <VtsKeyValueRow :label="t('uuid')" :value="host.id" />
+      <VtsKeyValueRow :label="t('uuid')" :value="host.id" copy />
       <VtsKeyValueRow :label="t('description')" :value="host.name_description" />
       <VtsKeyValueRow :label="t('version')" :value="host.version" />
       <VtsKeyValueRow
