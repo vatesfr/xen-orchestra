@@ -14,7 +14,7 @@ import { PrivateNetwork } from './private-network/private-network'
 import { TlsHelper } from './utils/tls-helper'
 import { instantiateController } from './openflow-controller'
 import { randomBytes } from 'crypto'
-import { invalidParameters, notFoundError } from 'xo-common/api-errors.js'
+import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
 
 // =============================================================================
 
@@ -619,7 +619,8 @@ class SDNController extends EventEmitter {
         [
           {
             endpoint: '/networks/{id}/actions/update_traffic_rule',
-            description: 'Update a rule on a network, needs the exact old rule fields',
+            description:
+              'Update a rule on a network, needs the exact old rule fields.\n\nRequired privilege:\n - resource: network, action: update:otherConfig',
 
             method: 'post',
             tags: ['sdn-controller'],
@@ -656,8 +657,8 @@ class SDNController extends EventEmitter {
                 description: 'Rule updated successfully',
               },
               {
-                status: 422,
-                description: 'Invalid parameters',
+                status: 404,
+                description: 'Old rule does not exist on this network',
               },
             ],
             middlewares: [
@@ -682,7 +683,7 @@ class SDNController extends EventEmitter {
                         rule.protocol === oldRule.protocol
                     )
                   ) {
-                    throw notFoundError(['oldRule does not exist on this network'])
+                    throw noSuchObject(JSON.stringify(oldRule), 'rule')
                   }
                   const newRule = { ...oldRule, ...(partialNewRule ?? {}) }
 
@@ -703,7 +704,8 @@ class SDNController extends EventEmitter {
           },
           {
             endpoint: '/vifs/{id}/actions/update_traffic_rule',
-            description: 'Update a rule on a VIF, needs the exact old rule fields',
+            description:
+              'Update a rule on a VIF, needs the exact old rule fields.\n\nRequired privilege:\n - resource: vif, action: update:otherConfig',
             method: 'post',
             tags: ['sdn-controller'],
             params: {
@@ -742,8 +744,8 @@ class SDNController extends EventEmitter {
                 description: 'Rule updated successfully',
               },
               {
-                status: 422,
-                description: 'Invalid parameters',
+                status: 404,
+                description: 'Old rule does not exist on this VIF',
               },
             ],
             middlewares: [
@@ -767,7 +769,7 @@ class SDNController extends EventEmitter {
                         rule.protocol === oldRule.protocol
                     )
                   ) {
-                    throw notFoundError(['oldRule does not exist on this vif'])
+                    throw noSuchObject(JSON.stringify(oldRule), 'rule')
                   }
 
                   const newRule = { ...oldRule, ...(partialNewRule ?? {}) }
