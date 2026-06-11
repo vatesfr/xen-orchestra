@@ -747,6 +747,8 @@ export class VmController extends XapiXoController<XoVm> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vm, action: clone
    *
    * - For fast clone on the same SR, omit `srId` and set `fast` to `true`.
    * - For full copy on the same SR, omit `srId` and set `fast` to `false`.
@@ -758,8 +760,9 @@ export class VmController extends XapiXoController<XoVm> {
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/clone')
-  @Middlewares(json())
+  @Middlewares([json(), acl({ resource: 'vm', action: 'clone', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(createdResp.status, createdResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -1061,6 +1064,10 @@ export class VmController extends XapiXoController<XoVm> {
   }
 
   /**
+   * Required privileges:
+   * - resource: vm, action: migrate-send
+   * - resource: host, action: migrate-receive (on the destination host)
+   *
    * VIF mapping is not allowed for intra-pool migration
    *
    * Networks and SRs must belong to the same pool as the destination host
@@ -1071,8 +1078,17 @@ export class VmController extends XapiXoController<XoVm> {
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/migrate')
-  @Middlewares(json())
+  @Middlewares([
+    json(),
+    // Two separate checks allow independent control so a user can be allowed to migrate a VM away
+    // without being allowed to place VMs on any specific host, and vice versa.
+    acl([
+      { resource: 'vm', action: 'migrate-send', objectId: 'params.id' },
+      { resource: 'host', action: 'migrate-receive', objectId: 'body.hostId' },
+    ]),
+  ])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
@@ -1105,6 +1121,7 @@ export class VmController extends XapiXoController<XoVm> {
         migrationNetworkId: migrationNetworkId as XoNetwork['id'] | undefined,
         sr: 'srId' in body ? (body.srId as XoSr['id']) : undefined,
       })
+      return
     }
 
     return this.createAction(action, {
