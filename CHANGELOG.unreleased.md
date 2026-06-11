@@ -81,6 +81,7 @@
 - @xen-orchestra/acl minor
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/disk-transform patch
+- @xen-orchestra/qa-test minor
 - @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
