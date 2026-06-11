@@ -16,6 +16,7 @@ import type {
   XoServer,
   XoTask,
   XoUser,
+  XoVif,
   XoVm,
   XoVmBackupArchive,
 } from './xo.mjs'
@@ -180,6 +181,7 @@ export type XoApp = {
   }
 
   // methods ------------
+  allocIpAddresses(vifId: XoVif['id'], addAddresses?: string[], removeAddresses?: string[]): Promise<void>
   addAclV2GroupRole(groupId: XoGroup['id'], roleId: XoAclRole['id']): Promise<XoGroupRole>
   addAclV2UserRole(userId: XoUser['id'], roleId: XoAclRole['id']): Promise<XoUserRole>
   addUserToGroup: (userId: XoUser['id'], groupId: XoGroup['id']) => Promise<void>

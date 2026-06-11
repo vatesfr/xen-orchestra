@@ -89,6 +89,16 @@ export interface EditVmProps {
   xenStoreData?: Record<string, string | null>
 }
 
+/** Properties accepted by {@link Xapi.editVif}. */
+export interface EditVifProps {
+  ipv4Allowed?: string[]
+  ipv6Allowed?: string[]
+  lockingMode?: VIF_LOCKING_MODE
+  // in kB/s, `null` removes the limit
+  rateLimit?: number | null
+  txChecksumming?: boolean
+}
+
 export type XcpPatches = {
   changelog?: {
     author: string
@@ -235,6 +245,7 @@ export interface Xapi {
     props: EditVmProps,
     checkLimits?: (limits: Record<string, number>, vm: XenApiVmWrapped) => Promise<void>
   ): Promise<void>
+  editVif(id: XoVif['id'], props: EditVifProps): Promise<void>
   startVm(
     id: XoVm['id'],
     opts?: {
