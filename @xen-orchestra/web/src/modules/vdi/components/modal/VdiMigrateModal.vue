@@ -67,6 +67,7 @@ import { useI18n } from 'vue-i18n'
 const props = defineProps<{
   vdi: FrontXoVdi
   isRunning?: boolean
+  errorMessage?: string
 }>()
 
 const emit = defineEmits<{
