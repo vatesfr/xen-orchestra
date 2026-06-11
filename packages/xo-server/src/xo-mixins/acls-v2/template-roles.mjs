@@ -93,3 +93,20 @@ export const VMS_ADMINISTRATOR = {
     { action: 'read', resource: 'vm-snapshot', effect: 'allow' },
   ],
 }
+
+// === Storage
+export const STORAGE_ADMINISTRATOR = {
+  roleTemplateId: 7,
+  name: 'Storage administrator',
+  description: 'Full control over storage: SRs, VDIs, VBDs, PBDs and backup repositories',
+  privileges: [
+    // Core storage resources: full control (wildcard is future-proof for new actions)
+    { action: '*', resource: 'sr', effect: 'allow' },
+    { action: '*', resource: 'vdi', effect: 'allow' },
+    { action: '*', resource: 'vbd', effect: 'allow' },
+    { action: '*', resource: 'pbd', effect: 'allow' },
+    { action: '*', resource: 'backup-repository', effect: 'allow' },
+    { action: 'read', resource: 'vdi-unmanaged', effect: 'allow' },
+    { action: 'read', resource: 'sm', effect: 'allow' },
+  ],
+}
