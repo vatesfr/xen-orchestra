@@ -6,6 +6,7 @@ import { computed, ref, type MaybeRefOrGetter } from 'vue'
 
 export function useVdiMigrateModal(rawVdi: MaybeRefOrGetter<FrontXoVdi>) {
   const vdi = toComputed(rawVdi)
+
   const targetSrId = ref<string | undefined>(undefined)
 
   const { run, isRunning, errorMessage } = useXoVdiMigrateJob(() => [vdi.value], targetSrId)
@@ -16,13 +17,13 @@ export function useVdiMigrateModal(rawVdi: MaybeRefOrGetter<FrontXoVdi>) {
 
   const openModal = useModal(() => ({
     component: import('@/modules/vdi/components/modal/VdiMigrateModal.vue'),
-    props: { vdi: vdi.value, isRunning: isRunning.value },
+    props: { vdi: vdi.value, isRunning: isRunning.value, errorMessage: errorMessage.value },
     onConfirm: async (srId: string) => {
       try {
         targetSrId.value = srId
         await run()
       } catch (error) {
-        console.error('Error when migrating VDI:', error)
+        console.error(`Failed to migrate VDI ${vdi.value.id} to SR ${srId}:`, error)
       }
     },
   }))
