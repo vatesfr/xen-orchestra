@@ -19,6 +19,7 @@ import {
 import { inject } from 'inversify'
 import { json, type Request as ExRequest } from 'express'
 import type {
+  EditVifProps,
   Xapi,
   XenApiNetwork,
   XenApiVif,
@@ -69,12 +70,9 @@ type CreateVifBody = Omit<CreateVifParams[0], 'network' | 'VM' | 'other_config' 
     qos_algorithm_params?: { [key: string]: string } // "kbps": "1000"
   }
 
-interface UpdateVifRequestBody {
-  allowedIpv4Addresses?: string[]
-  allowedIpv6Addresses?: string[]
-  lockingMode?: XoVif['lockingMode']
-  rateLimit?: number | null
-  txChecksumming?: boolean
+type UpdateVifRequestBody = Omit<EditVifProps, 'ipv4Allowed' | 'ipv6Allowed'> & {
+  allowedIpv4Addresses?: EditVifProps['ipv4Allowed']
+  allowedIpv6Addresses?: EditVifProps['ipv6Allowed']
 }
 
 const UPDATE_VIF_ACTIONS = Object.keys(SUPPORTED_ACTIONS_BY_RESOURCE.vif.update).map(
