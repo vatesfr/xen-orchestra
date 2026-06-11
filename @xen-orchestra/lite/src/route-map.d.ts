@@ -323,6 +323,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/drawer/vts-drawer': RouteRecordInfo<
+      '/story/web-core/drawer/vts-drawer',
+      '/story/web-core/drawer/vts-drawer',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/dropdown-title/vts-dropdown-title': RouteRecordInfo<
       '/story/web-core/dropdown-title/vts-dropdown-title',
       '/story/web-core/dropdown-title/vts-dropdown-title',
@@ -361,6 +368,13 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/legend-group/vts-legend-group': RouteRecordInfo<
       '/story/web-core/legend-group/vts-legend-group',
       '/story/web-core/legend-group/vts-legend-group',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/modal/vts-modal': RouteRecordInfo<
+      '/story/web-core/modal/vts-modal',
+      '/story/web-core/modal/vts-modal',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -624,6 +638,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/ui/drawer/ui-drawer': RouteRecordInfo<
+      '/story/web-core/ui/drawer/ui-drawer',
+      '/story/web-core/ui/drawer/ui-drawer',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/ui/dropdown/ui-dropdown': RouteRecordInfo<
       '/story/web-core/ui/dropdown/ui-dropdown',
       '/story/web-core/ui/dropdown/ui-dropdown',
@@ -711,6 +732,13 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/ui/logo-text/ui-logo-text': RouteRecordInfo<
       '/story/web-core/ui/logo-text/ui-logo-text',
       '/story/web-core/ui/logo-text/ui-logo-text',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/ui/modal/ui-modal': RouteRecordInfo<
+      '/story/web-core/ui/modal/ui-modal',
+      '/story/web-core/ui/modal/ui-modal',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -1235,6 +1263,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/drawer/vts-drawer.story.vue': {
+      routes:
+        | '/story/web-core/drawer/vts-drawer'
+      views:
+        | never
+    }
     'src/stories/web-core/dropdown-title/vts-dropdown-title.story.vue': {
       routes:
         | '/story/web-core/dropdown-title/vts-dropdown-title'
@@ -1268,6 +1302,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/legend-group/vts-legend-group.story.vue': {
       routes:
         | '/story/web-core/legend-group/vts-legend-group'
+      views:
+        | never
+    }
+    'src/stories/web-core/modal/vts-modal.story.vue': {
+      routes:
+        | '/story/web-core/modal/vts-modal'
       views:
         | never
     }
@@ -1493,6 +1533,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/ui/drawer/ui-drawer.story.vue': {
+      routes:
+        | '/story/web-core/ui/drawer/ui-drawer'
+      views:
+        | never
+    }
     'src/stories/web-core/ui/dropdown/ui-dropdown.story.vue': {
       routes:
         | '/story/web-core/ui/dropdown/ui-dropdown'
@@ -1568,6 +1614,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/ui/logo-text/ui-logo-text.story.vue': {
       routes:
         | '/story/web-core/ui/logo-text/ui-logo-text'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/modal/ui-modal.story.vue': {
+      routes:
+        | '/story/web-core/ui/modal/ui-modal'
       views:
         | never
     }
