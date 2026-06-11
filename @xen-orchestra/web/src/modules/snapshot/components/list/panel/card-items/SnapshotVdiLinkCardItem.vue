@@ -1,6 +1,6 @@
 <template>
   <UiLink
-    :to="{ name: '/vdi/[id]', params: { id: vdi.$snapshot_of }, query: { from: 'snapshot' } }"
+    :to="{ name: '/vdi/[id]', params: { id: vdi.$snapshot_of }, query: { from: VDI_PAGE_CONTEXT.SNAPSHOT } }"
     :icon="vbdsSnapshotStatus"
     size="medium"
   >
@@ -11,6 +11,7 @@
 <script setup lang="ts">
 import type { FrontXoVmSnapshotVdi } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-vdi-collection.ts'
 import { useVbdsStatus, type VbdAttachmentStatus } from '@/modules/vbd/composables/use-vbds-status.composable.ts'
+import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
 import type { IconName } from '@core/icons'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useMapper } from '@core/packages/mapper'

@@ -72,9 +72,6 @@
 >
 > Keep this list alphabetically ordered to avoid merge conflicts
 
-- @xen-orchestra/web
-- @xen-orchestra/web-core
-
 <!--packages-start-->
 
 - @vates/types minor
@@ -82,6 +79,8 @@
 - @xen-orchestra/disk-transform patch
 - @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - @xen-orchestra/xapi minor
 - xo-common minor
 - xo-server minor

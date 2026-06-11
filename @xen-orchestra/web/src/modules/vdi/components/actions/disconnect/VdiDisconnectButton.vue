@@ -31,7 +31,7 @@ function disconnectVdi() {
 }
 
 const hint = computed(() => {
-  if (!vm || !vbd) return t('vdi-not-attached-to-VM')
+  if (!vm || !vbd) return t('vdi-not-attached-to-vm')
   return undefined
 })
 </script>

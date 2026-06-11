@@ -7,7 +7,7 @@
     <UiCollapsibleList v-if="vdis.length > 0" tag="ul" :total-items="vdis.length">
       <li v-for="vdi in vdis" :key="vdi.id" v-tooltip class="text-ellipsis">
         <UiLink
-          :to="{ name: '/vdi/[id]', params: { id: vdi.id }, query: { from: 'sr' } }"
+          :to="{ name: '/vdi/[id]', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.SR } }"
           size="small"
           icon="object:vdi"
         >
@@ -23,6 +23,7 @@
 
 <script lang="ts" setup>
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
