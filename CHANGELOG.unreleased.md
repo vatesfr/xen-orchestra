@@ -70,6 +70,7 @@
   - update packages to sync with yarn.lock (e.g. client-s3 package)
 
 - [i18n] Update Czech, Danish, Norwegian, Slovak, Spanish and Swedish translations (PR [#9914](https://github.com/vatesfr/xen-orchestra/pull/9914))
+- [OpenMetrics] Include XO tags as a `tags` label on host, VM and SR metrics [#9628](https://github.com/vatesfr/xen-orchestra/issues/9628) (PR [#XXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
 
 ### Bug fixes
 
@@ -127,6 +128,7 @@
 - xo-server-ipmi-sensors patch
 - xo-server-load-balancer minor
 - xo-server-netbox minor
+- xo-server-openmetrics minor
 - xo-server-sdn-controller patch
 - xo-web patch
 

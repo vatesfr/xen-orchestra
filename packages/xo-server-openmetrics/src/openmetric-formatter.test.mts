@@ -22,6 +22,7 @@ import {
   formatXostorClusterMetrics,
   formatXostorSmartMetrics,
   formatXostorUpdatesMetrics,
+  serializeTags,
   type FormattedMetric,
   type LabelContext,
 } from './openmetric-formatter.mjs'
@@ -3163,5 +3164,369 @@ describe('indexSrUuidTruncations', () => {
 
     // 8/12/16/20 are all longer than the 7-char input
     assert.equal(Object.keys(index).length, 0)
+  })
+})
+
+// ============================================================================
+// Tags Label Tests
+// ============================================================================
+
+describe('serializeTags', () => {
+  it('should return empty string for undefined or empty input', () => {
+    assert.equal(serializeTags(undefined), '')
+    assert.equal(serializeTags([]), '')
+  })
+
+  it('should join tags with commas', () => {
+    assert.equal(serializeTags(['production', 'web']), 'production,web')
+  })
+
+  it('should sort tags for stable series identity', () => {
+    assert.equal(serializeTags(['web', 'production', 'customer-a']), 'customer-a,production,web')
+  })
+
+  it('should deduplicate tags', () => {
+    assert.equal(serializeTags(['prod', 'prod', 'web']), 'prod,web')
+  })
+
+  it('should filter out empty tags', () => {
+    assert.equal(serializeTags(['', 'prod', '']), 'prod')
+  })
+
+  it('should filter out whitespace-only tags', () => {
+    assert.equal(serializeTags(['   ', 'prod', '\t']), 'prod')
+    assert.equal(serializeTags([' ']), '')
+  })
+
+  it('should collapse a list of identical tags to a single entry', () => {
+    assert.equal(serializeTags(['prod', 'prod', 'prod']), 'prod')
+  })
+})
+
+describe('tags label on RRD metrics (transformMetric)', () => {
+  const createTaggedLabelContext = (hostTags?: string[], vmTags?: string[]): LabelContext => ({
+    hosts: [
+      {
+        hostId: 'host-uuid-123',
+        hostAddress: '192.168.1.1',
+        hostLabel: 'Host 1',
+        poolId: 'pool-456',
+        poolLabel: 'Production Pool',
+        sessionId: 'session-123',
+        protocol: 'https:',
+      },
+    ],
+    labels: {
+      vms: {
+        'vm-uuid-789': {
+          name_label: 'Web Server',
+          is_control_domain: false,
+          vbdDeviceToVdiName: {},
+          vbdDeviceToVdiUuid: {},
+          vifIndexToNetworkName: {},
+          startTime: null,
+          power_state: 'Running',
+          pool_id: 'pool-456',
+          pool_name: 'Production Pool',
+          tags: vmTags,
+        },
+      },
+      hosts: {
+        'host-uuid-123': {
+          name_label: 'Host 1',
+          pifDeviceToNetworkName: {},
+          startTime: null,
+          tags: hostTags,
+        },
+      },
+      srs: {},
+      srTruncatedToUuid: {},
+      vdiUuidToSrUuid: {},
+    },
+  })
+
+  const hostMetric: ParsedMetric = {
+    legend: {
+      cf: 'AVERAGE',
+      objectType: 'host',
+      uuid: 'host-uuid-123',
+      metricName: 'cpu_avg',
+      rawLegend: 'AVERAGE:host:host-uuid-123:cpu_avg',
+    },
+    value: 0.75,
+    timestamp: 1700000000,
+  }
+
+  const vmMetric: ParsedMetric = {
+    legend: {
+      cf: 'AVERAGE',
+      objectType: 'vm',
+      uuid: 'vm-uuid-789',
+      metricName: 'cpu_usage',
+      rawLegend: 'AVERAGE:vm:vm-uuid-789:cpu_usage',
+    },
+    value: 0.5,
+    timestamp: 1700000000,
+  }
+
+  it('should add tags label to host metrics', () => {
+    const result = transformMetric(hostMetric, 'pool-456', createTaggedLabelContext(['prod', 'dc1']))
+
+    assert.ok(result)
+    assert.equal(result.labels.tags, 'dc1,prod')
+  })
+
+  it('should add tags label to VM metrics', () => {
+    const result = transformMetric(vmMetric, 'pool-456', createTaggedLabelContext(undefined, ['customer-a', 'web']))
+
+    assert.ok(result)
+    assert.equal(result.labels.tags, 'customer-a,web')
+  })
+
+  it('should omit tags label when host has no tags', () => {
+    const result = transformMetric(hostMetric, 'pool-456', createTaggedLabelContext([]))
+
+    assert.ok(result)
+    assert.equal(result.labels.tags, undefined)
+  })
+
+  it('should omit tags label when VM tags are undefined', () => {
+    const result = transformMetric(vmMetric, 'pool-456', createTaggedLabelContext())
+
+    assert.ok(result)
+    assert.equal(result.labels.tags, undefined)
+  })
+})
+
+describe('tags label on status, uptime and SR metrics', () => {
+  it('should add tags label to host status metrics', () => {
+    const hosts: HostStatusItem[] = [
+      {
+        uuid: 'host-1',
+        name_label: 'Host 1',
+        power_state: 'Running',
+        enabled: true,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+        tags: ['prod', 'dc1'],
+      },
+    ]
+
+    const result = formatHostStatusMetrics(hosts)
+
+    assert.equal(result[0]!.labels.tags, 'dc1,prod')
+  })
+
+  it('should omit tags label on host status metrics without tags', () => {
+    const hosts: HostStatusItem[] = [
+      {
+        uuid: 'host-1',
+        name_label: 'Host 1',
+        power_state: 'Running',
+        enabled: true,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+    ]
+
+    const result = formatHostStatusMetrics(hosts)
+
+    assert.equal(result[0]!.labels.tags, undefined)
+  })
+
+  it('should add tags label to VM status metrics', () => {
+    const vms: VmStatusItem[] = [
+      {
+        uuid: 'vm-1',
+        name_label: 'VM 1',
+        power_state: 'Running',
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+        tags: ['web', 'customer-a'],
+      },
+    ]
+
+    const result = formatVmStatusMetrics(vms)
+
+    assert.equal(result[0]!.labels.tags, 'customer-a,web')
+  })
+
+  it('should add tags label to all SR capacity metrics', () => {
+    const srs: SrDataItem[] = [
+      {
+        uuid: 'sr-1',
+        name_label: 'Local Storage',
+        size: 1000,
+        physical_usage: 500,
+        usage: 250,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+        sr_type: 'lvm',
+        tags: ['fast', 'ssd'],
+      },
+    ]
+
+    const metrics = formatSrMetrics(srs)
+
+    assert.equal(metrics.length, 3)
+    for (const m of metrics) {
+      assert.equal(m.labels.tags, 'fast,ssd')
+    }
+  })
+
+  it('should add tags label to host uptime metrics', () => {
+    const labelContext: LabelContext = {
+      hosts: [
+        {
+          hostId: 'host-1',
+          hostAddress: '192.168.1.1',
+          hostLabel: 'Host 1',
+          poolId: 'pool-456',
+          poolLabel: 'Production Pool',
+          sessionId: 'session-123',
+          protocol: 'https:',
+        },
+      ],
+      labels: {
+        vms: {},
+        hosts: {
+          'host-1': {
+            name_label: 'Host 1',
+            pifDeviceToNetworkName: {},
+            startTime: Math.floor(Date.now() / 1000) - 7200,
+            tags: ['prod'],
+          },
+        },
+        srs: {},
+        srTruncatedToUuid: {},
+        vdiUuidToSrUuid: {},
+      },
+    }
+
+    const metrics = formatHostUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 1)
+    assert.equal(metrics[0]!.labels.tags, 'prod')
+  })
+
+  it('should add tags label to VM uptime metrics', () => {
+    const labelContext: LabelContext = {
+      hosts: [],
+      labels: {
+        vms: {
+          'vm-1': {
+            name_label: 'VM 1',
+            is_control_domain: false,
+            vbdDeviceToVdiName: {},
+            vbdDeviceToVdiUuid: {},
+            vifIndexToNetworkName: {},
+            startTime: Math.floor(Date.now() / 1000) - 3600,
+            power_state: 'Running',
+            pool_id: 'pool-456',
+            pool_name: 'Production Pool',
+            tags: ['web', 'customer-a'],
+          },
+        },
+        hosts: {},
+        srs: {},
+        srTruncatedToUuid: {},
+        vdiUuidToSrUuid: {},
+      },
+    }
+
+    const metrics = formatVmUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 1)
+    assert.equal(metrics[0]!.labels.tags, 'customer-a,web')
+  })
+
+  it('should escape special characters in tag values through formatToOpenMetrics', () => {
+    const vms: VmStatusItem[] = [
+      {
+        uuid: 'vm-1',
+        name_label: 'VM 1',
+        power_state: 'Running',
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+        tags: ['with"quote', 'with\\backslash'],
+      },
+    ]
+
+    const output = formatToOpenMetrics(formatVmStatusMetrics(vms))
+
+    assert.match(output, /tags="with\\"quote,with\\\\backslash"/)
+  })
+
+  it('should escape newlines in tag values through formatToOpenMetrics', () => {
+    const vms: VmStatusItem[] = [
+      {
+        uuid: 'vm-1',
+        name_label: 'VM 1',
+        power_state: 'Running',
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+        tags: ['line1\nline2'],
+      },
+    ]
+
+    const output = formatToOpenMetrics(formatVmStatusMetrics(vms))
+
+    // The newline must be escaped as the two characters `\` + `n`
+    assert.match(output, /tags="line1\\nline2"/)
+    assert.ok(!output.includes('tags="line1\nline2"'))
+  })
+
+  it('should keep tags label on VBD metrics where extracted labels are added afterwards', () => {
+    const labelContext: LabelContext = {
+      hosts: [
+        {
+          hostId: 'host-uuid-123',
+          hostAddress: '192.168.1.1',
+          hostLabel: 'Host 1',
+          poolId: 'pool-456',
+          poolLabel: 'Production Pool',
+          sessionId: 'session-123',
+          protocol: 'https:',
+        },
+      ],
+      labels: {
+        vms: {
+          'vm-uuid-789': {
+            name_label: 'Web Server',
+            is_control_domain: false,
+            vbdDeviceToVdiName: { xvda: 'System Disk' },
+            vbdDeviceToVdiUuid: { xvda: 'vdi-uuid-system' },
+            vifIndexToNetworkName: {},
+            startTime: null,
+            power_state: 'Running',
+            pool_id: 'pool-456',
+            pool_name: 'Production Pool',
+            tags: ['prod'],
+          },
+        },
+        hosts: {},
+        srs: {},
+        srTruncatedToUuid: {},
+        vdiUuidToSrUuid: {},
+      },
+    }
+
+    const metric: ParsedMetric = {
+      legend: {
+        cf: 'AVERAGE',
+        objectType: 'vm',
+        uuid: 'vm-uuid-789',
+        metricName: 'vbd_xvda_read',
+        rawLegend: 'AVERAGE:vm:vm-uuid-789:vbd_xvda_read',
+      },
+      value: 1000000,
+      timestamp: 1700000000,
+    }
+
+    const result = transformMetric(metric, 'pool-456', labelContext)
+
+    assert.ok(result)
+    assert.equal(result.labels.device, 'xvda')
+    assert.equal(result.labels.tags, 'prod')
   })
 })
