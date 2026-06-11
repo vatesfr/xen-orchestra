@@ -90,9 +90,6 @@
 >
 > Keep this list alphabetically ordered to avoid merge conflicts
 
-- @xen-orchestra/web
-- @xen-orchestra/web-core
-
 <!--packages-start-->
 
 - @vates/fuse-vhd patch

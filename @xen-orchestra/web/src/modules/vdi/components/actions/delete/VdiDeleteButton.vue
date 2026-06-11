@@ -31,5 +31,5 @@ const {
 )
 
 const hint = computed(() => (vm && !canDeleteVdi.value ? t('vm-running') : undefined))
-const hintNoVM = computed(() => (!vm ? t('vdi-not-attached-to-VM') : undefined))
+const hintNoVM = computed(() => (!vm ? t('vdi-not-attached-to-vm') : undefined))
 </script>

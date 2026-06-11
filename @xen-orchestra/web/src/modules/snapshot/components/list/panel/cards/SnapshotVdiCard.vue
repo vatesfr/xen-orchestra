@@ -6,7 +6,7 @@
     </UiCardTitle>
     <div class="content">
       <div v-for="(vmSnapshotVdi, index) in vmSnapshotVdis" :key="vmSnapshotVdi.id" class="content">
-        <SnapshotVdiLinkCardItem :vdi="vmSnapshotVdi" :snapshot />
+        <SnapshotVdiLinkCardItem :vdi="vmSnapshotVdi" />
         <!-- DESCRIPTION -->
         <VtsCardRowKeyValue truncate>
           <template #key>
