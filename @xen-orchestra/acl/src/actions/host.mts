@@ -11,7 +11,10 @@ export default {
   'join-pool': true,
   'migrate-receive': true,
   read: true,
-  restart: true,
+  reboot: {
+    clean: true,
+    smart: true,
+  },
   'restart-toolstack': true,
   shutdown: {
     clean: true,
