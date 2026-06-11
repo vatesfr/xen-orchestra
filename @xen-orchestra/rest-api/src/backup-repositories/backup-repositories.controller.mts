@@ -122,7 +122,7 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
-  @Post('/action/forget/{id}')
+  @Post('{id}/actions/forget')
   @Extension('x-mcp-exposure', 'confirm')
   @Middlewares(
     acl({

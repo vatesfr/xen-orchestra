@@ -1,4 +1,4 @@
-import { AnyXoBackupJob, IdOr, XoBackupRepository } from '@vates/types'
+import { AnyXoBackupJob, XoBackupRepository } from '@vates/types'
 import { RestApi } from '../rest-api/rest-api.mjs'
 
 export class BackupRepositoryService {
