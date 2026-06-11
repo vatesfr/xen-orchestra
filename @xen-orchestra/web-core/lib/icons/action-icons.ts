@@ -7,6 +7,7 @@ import {
   faArrowRight,
   faArrowRotateLeft,
   faArrowRotateRight,
+  faArrowUpLong,
   faArrowUpRightFromSquare,
   faBan,
   faBars,
@@ -144,8 +145,8 @@ export const actionIcons = defineIconPack({
   'more-actions-vertical': {
     icon: faEllipsis,
     color: 'var(--color-neutral-txt-primary)',
-    rotate: 90,
   },
+  importExport: constructIcon(faArrowUpLong),
   reboot: constructIcon(faArrowRotateRight),
   'force-reboot': [
     constructIcon(faArrowRotateRight),

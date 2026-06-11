@@ -76,6 +76,7 @@
   "action:go-back": "Go back",
   "action:group": "Group",
   "action:hide": "Hide",
+  "action:import": "Import",
   "action:install-app": "Install {name}",
   "action:install-guest-tools": "Install guest tools",
   "action:load-now": "Load now",
