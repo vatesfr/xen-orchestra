@@ -3,7 +3,7 @@ import type { RouteLocationAsRelative } from 'vue-router'
 
 export function getVifTrafficRoute(vifId: FrontXoVif['id']): RouteLocationAsRelative {
   return {
-    name: '/vif/[id]/traffic-rules',
+    name: '/vif/[id]/general',
     params: { id: vifId },
   }
 }
