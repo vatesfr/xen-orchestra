@@ -1,83 +1,83 @@
 <template>
-  <div class="vdi-migrate-modal">
-    <VtsModal :accent="isOnDifferentHost ? 'warning' : 'info'" dismissible>
-      <template #title>
-        {{ t('action:migrate-vdi-on-sr') }}
-      </template>
+  <VtsDrawer dismissible is-open @dismiss="emit('cancel')">
+    <template #title>
+      {{ t('action:migrate-vdi-on-sr') }}
+    </template>
 
-      <template #content>
-        <div class="form">
-          <p class="section-title">{{ t('general-information') }}</p>
+    <template #content>
+      <div class="form">
+        <p class="section-title">{{ t('general-information') }}</p>
 
-          <div class="field">
-            <label
-              class="field-label field-label--required"
-              :class="{ 'field-label--error': showError, 'field-label--warning': isOnDifferentHost }"
-            >
-              {{ t('destination-sr') }}
-            </label>
-            <select
-              v-model="destinationSrId"
-              class="select"
-              :class="{ 'select--error': showError, 'select--warning': isOnDifferentHost }"
-              @change="showError = false"
-            >
-              <option disabled value="">{{ t('action:select-storage') }}</option>
-              <option v-for="sr in availableSrs" :key="sr.id" :value="sr.id">
-                {{ sr.name_label }}
-              </option>
-            </select>
-            <p v-if="showError" class="message message--error">
-              <VtsIcon name="status:danger-circle" size="current" />
-              {{ t('destination-sr-mandatory') }}
-            </p>
-            <p v-if="isOnDifferentHost" class="message message--warning">
-              <VtsIcon name="status:warning-circle" size="current" />
-              {{ t('vdi-on-different-sr-warning') }}
-            </p>
-          </div>
+        <div class="field">
+          <label
+            class="field-label field-label--required"
+            :class="{ 'field-label--error': showError, 'field-label--warning': isOnDifferentHost }"
+          >
+            {{ t('destination-sr') }}
+          </label>
+          <select
+            v-model="destinationSrId"
+            class="select"
+            :class="{ 'select--error': showError, 'select--warning': isOnDifferentHost }"
+            @change="showError = false"
+          >
+            <option disabled value="">{{ t('action:select-storage') }}</option>
+            <option v-for="sr in availableSrs" :key="sr.id" :value="sr.id">
+              {{ getSrOptionLabel(sr) }}
+            </option>
+          </select>
+          <p v-if="showError" class="message message--error">
+            <VtsIcon name="status:danger-circle" size="current" />
+            {{ t('destination-sr-mandatory') }}
+          </p>
+          <p v-if="isOnDifferentHost" class="message message--warning">
+            <VtsIcon name="status:warning-circle" size="current" />
+            {{ t('vdi-on-different-sr-warning') }}
+          </p>
         </div>
-      </template>
+      </div>
+    </template>
 
-      <template #buttons>
-        <template v-if="!showError">
-          <VtsModalCancelButton />
-          <VtsModalConfirmButton @click="handleConfirm">
-            {{ isOnDifferentHost ? t('action:force-migrate-on-sr') : t('action:migrate-vdi-on-sr') }}
-          </VtsModalConfirmButton>
-        </template>
+    <template #buttons>
+      <template v-if="!showError">
+        <VtsDrawerCancelButton />
+        <VtsDrawerConfirmButton @click="handleConfirm">
+          {{ isOnDifferentHost ? t('action:force-migrate-on-sr') : t('action:migrate-vdi-on-sr') }}
+        </VtsDrawerConfirmButton>
       </template>
-    </VtsModal>
-  </div>
+    </template>
+  </VtsDrawer>
 </template>
 
 <script lang="ts" setup>
+import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import {
   useXoSrCollection,
   type FrontXoSr,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.js'
+import { formatSize } from '@core/utils/size.util.ts'
+import VtsDrawer from '@xen-orchestra/web-core/components/drawer/VtsDrawer.vue'
+import VtsDrawerCancelButton from '@xen-orchestra/web-core/components/drawer/VtsDrawerCancelButton.vue'
+import VtsDrawerConfirmButton from '@xen-orchestra/web-core/components/drawer/VtsDrawerConfirmButton.vue'
+import VtsIcon from '@xen-orchestra/web-core/components/icon/VtsIcon.vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   vdi: FrontXoVdi
-  isRunning?: boolean
-  errorMessage?: string
 }>()
 
 const emit = defineEmits<{
-  dismiss: []
   confirm: [srId: string]
+  cancel: []
 }>()
 
 const { t } = useI18n()
 
 const { srs, useGetSrById } = useXoSrCollection()
+
+const { getSrLocation } = useXoSrUtils()
 
 // For HTML <select>, '' is more stable than undefined
 const destinationSrId = ref<FrontXoSr['id'] | ''>('')
@@ -110,35 +110,26 @@ function handleConfirm() {
   showError.value = false
   emit('confirm', srId)
 }
+
+function getSrFreeSize(sr: FrontXoSr) {
+  return Math.max(sr.size - sr.physical_usage, 0)
+}
+
+function getSrOptionLabel(sr: FrontXoSr) {
+  const location = getSrLocation(sr)
+  const freeSize = formatSize(getSrFreeSize(sr), 0)
+
+  return `${sr.name_label} (${location}) - ${freeSize} left`
+}
 </script>
 
 <style lang="postcss" scoped>
-/* Override UiModal (to match Figma design) via deep selector, scoped to this component only */
-.vdi-migrate-modal :deep(.ui-modal .modal) {
-  background-color: var(--color-neutral-background-primary) !important;
-  min-width: min(60rem, calc(100% - 2rem));
-}
-
-.vdi-migrate-modal :deep(.ui-modal .main) {
-  align-items: flex-start !important;
-  text-align: left !important;
-}
-
-.vdi-migrate-modal :deep(.content) {
-  border-top: 0.1rem solid var(--color-neutral-border);
-  border-bottom: 0.1rem solid var(--color-neutral-border);
-  margin: 0 -2.4rem;
-  padding: 0 2.4rem;
-  width: calc(100% + 4.8rem);
-}
-
 .form {
   display: flex;
   flex-direction: column;
   gap: 1.6rem;
   width: 100%;
   text-align: left;
-  padding: 3rem 0;
 }
 
 .section-title {
@@ -153,7 +144,6 @@ function handleConfirm() {
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
-  margin-bottom: 1.6rem;
 }
 
 .field-label {
@@ -201,7 +191,6 @@ function handleConfirm() {
 }
 
 .message {
-  text-decoration: none;
   display: flex;
   align-items: center;
   gap: 0.4rem;

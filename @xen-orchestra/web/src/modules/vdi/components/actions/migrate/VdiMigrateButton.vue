@@ -1,16 +1,11 @@
 <template>
-  <MenuItem
-    v-if="canMigrateVdi"
-    icon="action:migrate"
-    :busy="isMigratingVdi"
-    @click="openVdiMigrateModal()"
-  >
+  <MenuItem v-if="canMigrateVdi" icon="action:migrate" :busy="isMigratingVdi" @click="handleClick()">
     {{ t('action:migrate-vdi-on-sr') }}
   </MenuItem>
 </template>
 
 <script lang="ts" setup>
-import { useVdiMigrateModal } from '@/modules/vdi/composables/use-vdi-migrate-modal.composable.ts'
+import { useVdiMigrateDrawer } from '@/modules/vdi/composables/use-vdi-migrate-drawer.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import MenuItem from '@xen-orchestra/web-core/components/menu/MenuItem.vue'
 import { useI18n } from 'vue-i18n'
@@ -22,8 +17,12 @@ const { vdi } = defineProps<{
 const { t } = useI18n()
 
 const {
-  openModal: openVdiMigrateModal,
+  openDrawer: openVdiMigrateDrawer,
   canRun: canMigrateVdi,
   isRunning: isMigratingVdi,
-} = useVdiMigrateModal(() => vdi)
+} = useVdiMigrateDrawer(() => vdi)
+
+function handleClick() {
+  openVdiMigrateDrawer()
+}
 </script>

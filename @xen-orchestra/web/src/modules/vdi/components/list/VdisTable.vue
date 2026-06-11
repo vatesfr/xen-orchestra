@@ -49,6 +49,7 @@ import { CONNECTION_ACTION } from '@core/types/connection.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useVdiMigrateDrawer } from '../../composables/use-vdi-migrate-drawer.composable.ts'
 
 const { vdis, vm, busy, error } = defineProps<{
   vdis: FrontXoVdi[]
@@ -130,6 +131,12 @@ const { HeadCells, BodyCells } = useVdiColumns({
 
     const { openDrawer: openVdiExportDrawer, isRunning: isExportingVdi } = useVdiExportDrawer(() => vdi)
 
+    const {
+      openDrawer: openVdiMigrateDrawer,
+      canRun: canMigrateVdi,
+      isRunning: isMigratingVdi,
+    } = useVdiMigrateDrawer(() => vdi)
+
     return {
       vdi: r =>
         r({
@@ -168,7 +175,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
             {
               label: t('action:migrate-vdi-on-sr'),
               icon: 'action:migrate',
-              onClick: () => openVdiMigrateModal(),
+              onClick: () => openVdiMigrateDrawer(),
               disabled: !canMigrateVdi.value,
               busy: isMigratingVdi.value,
             },
