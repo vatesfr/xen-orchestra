@@ -46,6 +46,7 @@
 - [Netbox] Support Netbox v4.6.x [#9818](https://github.com/vatesfr/xen-orchestra/issues/9818) (PR [#9939](https://github.com/vatesfr/xen-orchestra/pull/9939))
 
 - [Icons] Updated connect/disconnect icons to use a plug icon (PR [#9942](https://github.com/vatesfr/xen-orchestra/pull/9942))
+- [OpenMetrics] Include XO tags as a `tags` label on host, VM and SR metrics [#9628](https://github.com/vatesfr/xen-orchestra/issues/9628) (PR [#XXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
 
 ### Bug fixes
 
@@ -90,6 +91,7 @@
 - xo-server minor
 - xo-server-ipmi-sensors patch
 - xo-server-netbox minor
+- xo-server-openmetrics minor
 - xo-server-sdn-controller patch
 - xo-web patch
 
