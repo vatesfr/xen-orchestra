@@ -45,6 +45,8 @@
 
 - [Netbox] Support Netbox v4.6.x [#9818](https://github.com/vatesfr/xen-orchestra/issues/9818) (PR [#9939](https://github.com/vatesfr/xen-orchestra/pull/9939))
 
+- [Icons] Updated connect/disconnect icons to use a plug icon (PR [#9942](https://github.com/vatesfr/xen-orchestra/pull/9942))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"

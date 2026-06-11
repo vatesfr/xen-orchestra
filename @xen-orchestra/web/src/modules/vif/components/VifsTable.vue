@@ -146,7 +146,7 @@ const { HeadCells, BodyCells } = useVifColumns({
             {
               label: vif.attached ? t('action:disconnect') : t('action:connect'),
               hint: !canToggleVifConnection.value ? toggleConnectionErrorMessage.value : undefined,
-              icon: vif.attached ? 'status:disabled' : 'status:success-circle',
+              icon: vif.attached ? 'action:disconnect' : 'action:connect',
               onClick: () => openVifConnectionToggleModal(),
               disabled: !canToggleVifConnection.value,
               busy: isTogglingVifConnection.value,
