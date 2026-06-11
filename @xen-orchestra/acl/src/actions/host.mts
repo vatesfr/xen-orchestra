@@ -10,7 +10,10 @@ export default {
   forget: true,
   'join-pool': true,
   read: true,
-  restart: true,
+  reboot: {
+    clean: true,
+    smart: true,
+  },
   'restart-toolstack': true,
   shutdown: {
     clean: true,

@@ -626,7 +626,7 @@ export class HostController extends XapiXoController<XoHost> {
   ): CreateActionReturnType<void> {
     const hostId = id as XoHost['id']
     const action = async () => {
-      this.#hostService.cleanShutdownHost(hostId, body)
+      await this.#hostService.cleanShutdownHost(hostId, body)
     }
 
     return this.createAction<void>(action, {
@@ -642,62 +642,103 @@ export class HostController extends XapiXoController<XoHost> {
 
   /**
    * Required privilege:
-   * - resource: host, action: restart
+   * - resource: host, action: reboot:clean
    *
-   * Restart a host.
+   * Reboot a host by evacuating its VMs to other hosts first.
+   *
+   * Checks for active backup jobs and version compatibility before rebooting.
    *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    * @example body {
-   *  "bypassBackupCheck": false,
    *  "force": false,
-   *  "bypassVersionCheck": false,
-   *  "suspendResidentVms": false,
-   *  "bypassBlockedSuspend": false,
-   *  "bypassCurrentVmCheck": false
+   *  "bypassBackupCheck": false,
+   *  "bypassVersionCheck": false
    * }
    */
   @Example(taskLocation)
-  @Post('{id}/actions/restart')
-  @Middlewares([json(), acl({ resource: 'host', action: 'restart', objectId: 'params.id' })])
+  @Post('{id}/actions/clean_reboot')
+  @Middlewares([json(), acl({ resource: 'host', action: 'reboot:clean', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  restart(
+  clean_reboot(
     @Path() id: string,
     @Body()
     body?: {
-      /** Skip the backup safety check before restarting. Defaults to false. */
-      bypassBackupCheck?: boolean
       /** Force the restart, ignoring evacuation errors. Defaults to false. */
       force?: boolean
+      /** Skip the backup safety check before restarting. Defaults to false. */
+      bypassBackupCheck?: boolean
       /** Skip the version/upgrade compatibility check before restarting. Defaults to false. */
       bypassVersionCheck?: boolean
-      /** Suspend resident VMs instead of migrating them before restarting. Defaults to false. */
-      suspendResidentVms?: boolean
-      /** Allow suspending VMs even if suspend is blocked. Only relevant when suspendResidentVms is true. Defaults to force. */
-      bypassBlockedSuspend?: boolean
-      /** Skip the check for running VMs before suspending. Only relevant when suspendResidentVms is true. Defaults to force. */
-      bypassCurrentVmCheck?: boolean
     },
     @Query() sync?: boolean
   ): CreateActionReturnType<void> {
     const force = body?.force ?? false
-    const bypassBackupCheck = body?.bypassBackupCheck ?? force
-    const bypassVersionCheck = body?.bypassVersionCheck ?? force
-    const bypassBlockedSuspend = body?.bypassBlockedSuspend ?? force
-    const bypassCurrentVmCheck = body?.bypassCurrentVmCheck ?? force
+    const opts = {
+      force,
+      bypassBackupCheck: body?.bypassBackupCheck ?? force,
+      bypassVersionCheck: body?.bypassVersionCheck ?? force,
+    }
 
     const hostId = id as XoHost['id']
     const action = async () => {
-      this.#hostService.restartHost(hostId, {
-        ...body,
-        bypassBackupCheck,
-        bypassVersionCheck,
-        bypassBlockedSuspend,
-        bypassCurrentVmCheck,
-      })
+      await this.#hostService.restartHost(hostId, opts)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'restart host',
+        objectId: hostId,
+        params: body,
+      },
+    })
+  }
+
+  /**
+   * Required privilege:
+   * - resource: host, action: reboot:smart
+   *
+   * Reboot a host by suspending its VMs in place.
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   * @example body {
+   *  "bypassBlockedSuspend": false,
+   *  "bypassCurrentVmCheck": false
+   * }
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/smart_reboot')
+  @Middlewares([json(), acl({ resource: 'host', action: 'reboot:smart', objectId: 'params.id' })])
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(featureUnauthorized.status, featureUnauthorized.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  smart_reboot(
+    @Path() id: string,
+    @Body()
+    body?: {
+      /** Allow suspending VMs even if suspend is blocked. Defaults to false. */
+      bypassBlockedSuspend?: boolean
+      /** Skip the check for running VMs before suspending. Defaults to false. */
+      bypassCurrentVmCheck?: boolean
+    },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const bypassBlockedSuspend = body?.bypassBlockedSuspend ?? false
+    const bypassCurrentVmCheck = body?.bypassCurrentVmCheck ?? false
+
+    const hostId = id as XoHost['id']
+    const action = async () => {
+      await this.restApi.xoApp.checkFeatureAuthorization('SMART_REBOOT')
+      const xapiHost = this.restApi.getXapiObject<XoHost>(hostId, 'host')
+      await xapiHost.$xapi.host_smartReboot(xapiHost.$ref, bypassBlockedSuspend, bypassCurrentVmCheck)
     }
 
     return this.createAction<void>(action, {
@@ -731,14 +772,14 @@ export class HostController extends XapiXoController<XoHost> {
     @Path() id: string,
     @Body()
     body?: {
-      /** Skip the backup safety check before shutting down. Defaults to false. */
+      /** Skip the backup safety check before restarting the toolstack. Defaults to false. */
       bypassBackupCheck?: boolean
     },
     @Query() sync?: boolean
   ): CreateActionReturnType<void> {
     const hostId = id as XoHost['id']
     const action = async () => {
-      this.#hostService.restartToolstack(hostId, body)
+      await this.#hostService.restartToolstack(hostId, body)
     }
 
     return this.createAction<void>(action, {
