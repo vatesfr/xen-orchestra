@@ -101,11 +101,10 @@ export async function snapshotBeforeUpgrade() {
   const vmUuid = await getCurrentVmUuid()
   let vm, xapi
   try {
-    const xoVm = this.getObject(vmUuid)
-    xapi = this.getXapi(xoVm)
-    vm = xapi.getObject(vmUuid) // ← XAPI object: has $ref, $snapshots with $destroy()
+    vm = this.getXapiObject(vmUuid, 'VM')
+    xapi = vm.$xapi
   } catch (err) {
-    throw new Error(`This Vm is not handled by this XOA, maybe it's not connected to the pool running it `, {
+    throw new Error(`This VM is not handled by this XOA, maybe it's not connected to the pool running it `, {
       cause: err,
     })
   }
