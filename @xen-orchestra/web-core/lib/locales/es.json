@@ -516,7 +516,6 @@
   "mtu": "MTU",
   "multi-creation": "Creación múltiple",
   "multi-pathing": "Múltiples rutas",
-  "n-cpus": "1 CPU | {n} CPUs",
   "n-gb": "{n} GB",
   "n-gb-left": "{n} GB libres",
   "n-gb-required": "{n} GB requeridos",

@@ -551,7 +551,6 @@
   "multi-creation": "Vícenásobné vytvoření",
   "multi-pathing": "Propojování vícero cestami",
   "n-bonded-networks": "1 síť se spřaženými rozhraními | {n} sítě se spřaženými rozhraními | {n} sítí se spřaženými rozhraními",
-  "n-cpus": "1 procesor | {n} procesory | {n} procesorů",
   "n-gb": "{n} GB",
   "n-gb-left": "{n} GB zbývá",
   "n-gb-required": "{n} GB vyžadováno",

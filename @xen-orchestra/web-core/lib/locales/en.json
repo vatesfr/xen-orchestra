@@ -587,7 +587,6 @@
   "multi-creation": "Multi creation",
   "multi-pathing": "Multi-pathing",
   "n-bonded-networks": "1 bonded network | {n} bonded networks",
-  "n-cpus": "1 CPU | {n} CPUs",
   "n-gb": "{n} GB",
   "n-gb-left": "{n} GB left",
   "n-gb-required": "{n} GB required",

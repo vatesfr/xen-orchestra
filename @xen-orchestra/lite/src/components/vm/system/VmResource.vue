@@ -55,7 +55,7 @@ const maxCpu = computed(() =>
 const minimumCpuLimitText = computed(() => {
   const minimumCpuLimit = hasXenTools.value && vmMetrics.value ? vmMetrics.value.VCPUs_number : vm.VCPUs_at_startup
 
-  return t('n-cpus', minimumCpuLimit)
+  return t('n-vcpus', minimumCpuLimit)
 })
 const resources = computed(() => {
   return [

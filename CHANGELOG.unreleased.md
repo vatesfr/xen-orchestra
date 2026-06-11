@@ -11,6 +11,7 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 > Updated connect/disconnect icons to use a plug icon, and renamed the references to attach/detach
+> Updated VM Resource management card to display vCPU at startup and Maximum vCPUs instead of minimum/maximum CPU limit
 
 ### Bug fixes
 

@@ -481,7 +481,6 @@
   "mtu": "MTU",
   "multi-creation": "Criação múltipla",
   "multi-pathing": "Multicaminhamento",
-  "n-cpus": "1 CPU | {n} CPUs",
   "n-gb": "{n} GB",
   "n-gb-left": "faltam {n} GB",
   "n-gb-required": "{n} GB necessário",

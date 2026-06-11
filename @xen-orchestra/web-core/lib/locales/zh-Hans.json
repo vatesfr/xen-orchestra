@@ -538,7 +538,6 @@
   "multi-creation": "批量创建",
   "multi-pathing": "多路径存储",
   "n-bonded-networks": "1个聚合网络 | {n}个聚合网络",
-  "n-cpus": "1颗处理器 | {n}颗处理器",
   "n-gb": "{n}GB",
   "n-gb-left": "剩余{n}GB空间",
   "n-gb-required": "需要{n}GB存储空间",
