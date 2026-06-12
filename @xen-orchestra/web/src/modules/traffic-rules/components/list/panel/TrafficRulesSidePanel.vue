@@ -2,18 +2,13 @@
   <VtsStateHero v-if="!isReady" format="panel" type="busy" size="medium" />
   <UiPanel v-else :class="{ 'mobile-drawer': uiStore.isSmall }">
     <template #header>
-      <div class="header-actions" :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButton
-          accent="danger"
-          variant="tertiary"
-          size="small"
-          left-icon="action:delete"
-          :disabled="!canDeleteTrafficRule"
-          :busy="isDeletingTrafficRule"
-          @click="openTrafficRuleDeleteModal()"
-        >
-          {{ t('action:delete') }}
-        </UiButton>
+      <VtsDeleteButton
+        :disabled="!canDeleteTrafficRule"
+        :busy="isDeletingTrafficRule"
+        class="delete-button"
+        @click="openTrafficRuleDeleteModal()"
+      />
+      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
         <UiButtonIcon
           v-tooltip="t('action:close')"
           size="small"
@@ -47,8 +42,8 @@ import TrafficRuleVifInfosCard from '@/modules/traffic-rules/components/list/pan
 import TrafficRuleVifNetworkInfoCard from '@/modules/traffic-rules/components/list/panel/cards/TrafficRuleVifNetworkInfoCard.vue'
 import { useTrafficRuleDeleteModal } from '@/modules/traffic-rules/composables/use-traffic-rule-delete-modal.composable.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
@@ -98,10 +93,7 @@ const {
   }
 }
 
-.header-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
+.delete-button {
+  margin-inline-end: auto;
 }
 </style>

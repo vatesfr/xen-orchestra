@@ -134,7 +134,7 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
       target: r => r(rule.ipRange),
       directionB: r => r(rule.directionB),
       object: r => r(getTarget(rule)),
-      selectItem: r =>
+      actions: r =>
         r({
           onClick: () => (selectedRuleId.value = rule.id),
           actions: [

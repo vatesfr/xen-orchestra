@@ -28,7 +28,14 @@ export const useXoTrafficRuleDeleteJob = defineJob('traffic-rule.delete', [xoTra
             body.port = rule.port
           }
 
+          if (rule.type === 'VIF') {
+            body.vifId = rule.sourceId
+          } else {
+            body.networkId = rule.networkId
+          }
+
           const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(endpoint, body)
+
           await monitorTask(taskId)
         })
       )
