@@ -1,6 +1,6 @@
 <template>
   <MenuItem icon="action:detach" :disabled="!canDeleteVbd" :busy="isDeletingVbd" @click="openVbdDeleteModal()">
-    {{ t('action:detach-vdi') }}
+    {{ menuLabel }}
     <i v-if="hint">{{ hint }}</i>
   </MenuItem>
 </template>
@@ -13,9 +13,14 @@ import MenuItem from '@xen-orchestra/web-core/components/menu/MenuItem.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vbd, vm } = defineProps<{
+const {
+  vbd,
+  vm,
+  isVdiPage = false,
+} = defineProps<{
   vbd: FrontXoVbd
   vm: FrontXoVm
+  isVdiPage: boolean
 }>()
 
 const { t } = useI18n()
@@ -28,6 +33,10 @@ const {
   () => [vbd],
   () => vm
 )
+
+const menuLabel = computed(() => {
+  return isVdiPage ? t('action:detach-vdi') : t('action:delete-vbd')
+})
 
 const hint = computed(() => (!canDeleteVbd.value ? t('vm-running') : undefined))
 </script>

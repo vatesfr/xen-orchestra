@@ -7,7 +7,7 @@
       <VtsTabularKeyValueRow :label="t('format')" :value="vdi.image_format" />
       <VtsTabularKeyValueRow :label="t('storage')">
         <template v-if="sr" #value>
-          <UiLink size="small" :href="srHref" icon="object:sr">
+          <UiLink size="small" :href="srHref" :icon="srStatusIcon">
             {{ sr.name_label }}
           </UiLink>
         </template>
@@ -27,6 +27,7 @@
 </template>
 
 <script setup lang="ts">
+import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
@@ -44,10 +45,13 @@ const { vdi } = defineProps<{ vdi: FrontXoVdi }>()
 const { t } = useI18n()
 
 const { useGetSrById } = useXoSrCollection()
+
 const sr = useGetSrById(() => vdi.$SR)
 
+const { srStatusIcon } = useXoSrUtils(sr)
+
 const { buildXo5Route } = useXoRoutes()
-const srHref = computed(() => (sr.value ? buildXo5Route(`/vms/${sr.value.id}/network`) : undefined))
+const srHref = computed(() => (sr.value ? buildXo5Route(`/srs/${sr.value.id}/general`) : undefined))
 
 const isSnapshottingEnabled = computed(() => !vdi.tags.includes('NOSNAP'))
 </script>

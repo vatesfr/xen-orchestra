@@ -18,10 +18,10 @@
 <script lang="ts" setup>
 import VbdConnectButton from '@/modules/vbd/components/actions/connect/VbdConnectButton.vue'
 import VbdDisconnectButton from '@/modules/vbd/components/actions/disconnect/VbdDisconnectButton.vue'
-import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
-import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import UiButton from '@core/components/ui/button/UiButton.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.js'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.js'
+import UiButton from '@xen-orchestra/web-core/components/ui/button/UiButton.vue'
+import { vTooltip } from '@xen-orchestra/web-core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

@@ -7,7 +7,7 @@
     <UiCollapsibleList v-if="vdis.length > 0" tag="ul" :total-items="vdis.length">
       <li v-for="vdi in vdis" :key="vdi.id" v-tooltip class="text-ellipsis">
         <UiLink
-          :to="{ name: '/vdi/[id]', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.SR } }"
+          :to="{ name: '/vdi/[id]/general', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.SR } }"
           size="small"
           icon="object:vdi"
         >
