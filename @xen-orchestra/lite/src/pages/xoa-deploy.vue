@@ -254,20 +254,21 @@ const error = ref<string | undefined>()
 const url = ref<string | undefined>()
 const vmRef = ref<string | undefined>()
 
+const beforeWindowUnload = (event: BeforeUnloadEvent) => {
+  event.preventDefault()
+}
+
 onBeforeRouteLeave(async () => {
   if (deploying.value) {
     if (!window.confirm(t('do-you-really-want-to-leave-this-page?'))) {
       return false
     }
 
-    await cancel()
+    window.removeEventListener('beforeunload', beforeWindowUnload)
+    cancel()
     return true
   }
 })
-
-const beforeWindowUnload = (event: BeforeUnloadEvent) => {
-  event.preventDefault()
-}
 
 watch(
   deploying,
@@ -283,6 +284,9 @@ watch(
 
 onUnmounted(() => {
   window.removeEventListener('beforeunload', beforeWindowUnload)
+  if (deploying.value) {
+    cancel()
+  }
 })
 
 const resetValues = () => {
@@ -502,11 +506,11 @@ async function deploy() {
 
     // TODO: handle IPv6
     url.value = `https://${networks['0/ip']}`
-
-    deploying.value = false
   } catch (err: any) {
     console.error(err)
     error.value = err?.message ?? err?.code ?? 'Unknown error'
+  } finally {
+    deploying.value = false
   }
 }
 
