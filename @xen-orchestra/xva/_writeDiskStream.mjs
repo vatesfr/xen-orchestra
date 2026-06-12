@@ -1,23 +1,7 @@
 import { formatBlockPath } from './_formatBlockPath.mjs'
-import { fromCallback } from 'promise-toolbox'
 import { readChunkStrict } from '@vates/read-chunk'
-import { xxhash64 } from 'hash-wasm'
-
-export const XVA_DISK_CHUNK_LENGTH = 1024 * 1024
-
-async function addEntry(pack, name, buffer) {
-  await fromCallback.call(pack, pack.entry, { name }, buffer)
-}
-
-async function writeBlock(pack, data, name) {
-  if (data.length < XVA_DISK_CHUNK_LENGTH) {
-    data = Buffer.concat([data, Buffer.alloc(XVA_DISK_CHUNK_LENGTH - data.length, 0)])
-  }
-  await addEntry(pack, name, data)
-  // weirdly, ocaml and xxhash return the bytes in reverse order to each other
-  const hash = (await xxhash64(data)).toString('hex').toUpperCase()
-  await addEntry(pack, `${name}.xxhash`, Buffer.from(hash, 'utf8'))
-}
+import { writeChunk } from './_writeChunkInXva.mjs'
+import { XVA_DISK_CHUNK_LENGTH } from './_constants.mjs'
 
 export default async function addDisk(pack, vhd, basePath) {
   let counter = 0
@@ -43,7 +27,7 @@ export default async function addDisk(pack, vhd, basePath) {
       Date.now() - lastBlockWrittenAt > MAX_INTERVAL_BETWEEN_BLOCKS
     ) {
       written = true
-      await writeBlock(pack, data, formatBlockPath(basePath, counter))
+      await writeChunk(pack, data, formatBlockPath(basePath, counter))
       lastBlockWrittenAt = Date.now()
     } else {
       written = false
@@ -52,6 +36,6 @@ export default async function addDisk(pack, vhd, basePath) {
   }
   if (!written) {
     // last block must be present
-    await writeBlock(pack, empty, formatBlockPath(basePath, counter - 1))
+    await writeChunk(pack, empty, formatBlockPath(basePath, counter - 1))
   }
 }

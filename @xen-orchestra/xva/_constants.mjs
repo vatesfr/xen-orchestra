@@ -1,0 +1,1 @@
+export const XVA_DISK_CHUNK_LENGTH = 1024 * 1024
