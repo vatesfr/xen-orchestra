@@ -1,30 +1,25 @@
 <template>
-  <MenuItem
-    icon="action:delete"
+  <VtsDeleteButton
     :disabled="!canDeleteTrafficRule"
     :busy="isDeletingTrafficRule"
-    class="delete"
+    :tooltip="deleteTrafficRuleErrorMessage"
     @click="openTrafficRuleDeleteModal()"
-  >
-    {{ t('action:delete') }}
-  </MenuItem>
+  />
 </template>
 
 <script lang="ts" setup>
 import { useTrafficRuleDeleteModal } from '@/modules/traffic-rules/composables/use-traffic-rule-delete-modal.composable.ts'
+import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import type { TrafficRule } from '@vates/types'
-import MenuItem from '@xen-orchestra/web-core/components/menu/MenuItem.vue'
-import { useI18n } from 'vue-i18n'
 
 const { rule } = defineProps<{
   rule: TrafficRule
 }>()
 
-const { t } = useI18n()
-
 const {
   openModal: openTrafficRuleDeleteModal,
   canRun: canDeleteTrafficRule,
   isRunning: isDeletingTrafficRule,
+  errorMessage: deleteTrafficRuleErrorMessage,
 } = useTrafficRuleDeleteModal(() => [rule])
 </script>
