@@ -6,14 +6,17 @@
       prop('disabled').bool().widget(),
       slot(),
       slot('info'),
+      slot('infoMessage'),
       setting('defaultSlot').widget(text()).preset('Label'),
       setting('info').widget(text()).preset('Lorem ipsum dolor sit amet, consectetur adipiscing elit.'),
+      setting('infoMessage').widget(text()).preset('Lorem ipsum dolor sit amet, consectetur adipiscing elit.'),
       model().type('boolean').preset(undefined),
     ]"
   >
     <UiCheckbox v-bind="properties">
       {{ settings.defaultSlot }}
       <template v-if="settings.info" #info>{{ settings.info }}</template>
+      <template v-if="settings.infoMessage" #infoMessage>{{ settings.infoMessage }}</template>
     </UiCheckbox>
   </ComponentStory>
 </template>
