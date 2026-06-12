@@ -115,7 +115,7 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   /**
    * Forgets a backup repository configuration.
    *
-   * A repository cannot be forgotten if it is referenced by any backup job (enabled or disabled).
+   * A backup repository cannot be forgotten if it is referenced by any backup job (enabled or disabled).
    *
    * Required privilege:
    * - resource: backup-repository, action: forget
