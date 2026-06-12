@@ -31,7 +31,6 @@
 
 <script lang="ts" setup>
 import ObjectLink from '@/components/ObjectLink.vue'
-import UiCard from '@/components/ui/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import type { RawObjectType } from '@/libs/xen-api/xen-api.types'
 import { rawTypeToType } from '@/libs/xen-api/xen-api.utils'
@@ -40,6 +39,7 @@ import type { XenApiAlarm } from '@/types/xen-api'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import { useTableState } from '@core/composables/table-state.composable'
 import { defineColumn, defineColumns } from '@core/packages/table'
