@@ -65,8 +65,8 @@ interface UpdateVdiRequestBody {
 }
 
 const UPDATE_VDI_ACTION_BY_FIELD: { [Field in keyof Required<UpdateVdiRequestBody>]: SupportedActions<'vdi'> } = {
-  name_label: 'update:nameLabel',
-  name_description: 'update:nameDescription',
+  name_label: 'update:name_label',
+  name_description: 'update:name_description',
   size: 'update:size',
 }
 

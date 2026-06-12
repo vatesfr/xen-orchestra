@@ -6,8 +6,8 @@ export default {
   'import-content': true,
   read: true,
   update: {
-    nameDescription: true,
-    nameLabel: true,
+    name_description: true,
+    name_label: true,
     size: true,
     tags: true,
   },
