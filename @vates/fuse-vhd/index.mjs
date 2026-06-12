@@ -4,7 +4,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { VhdSynthetic } from 'vhd-lib'
 import { Disposable, fromCallback } from 'promise-toolbox'
 
-const { warn, debug } = createLogger('vates:fuse-vhd')
+const { warn } = createLogger('vates:fuse-vhd')
 
 // build a stat object from https://github.com/fuse-friends/fuse-native/blob/master/test/fixtures/stat.js
 const stat = st => ({
@@ -49,42 +49,15 @@ export const mount = Disposable.factory(async function* mount(handler, diskPath,
   const readQueue = [] // { blockId, resolve, reject }[]
   let queueRunning = false
 
-  let statFuseReads = 0 // total FUSE read() calls
-  let statBlockReads = 0 // actual vhd.readBlock() calls issued
-  let statCoalesced = 0 // FUSE reads that hit an in-flight block (coalescing)
-  let statCacheHits = 0 // FUSE reads served from the in-memory cache
-  let statFuseBytes = 0 // bytes actually requested by FUSE
-  let statDiskBytes = 0 // bytes actually read from backing store (blockReads × blockSize)
-  const start = Date.now()
-  const toMiBs = n => (n / (1024 * 1024)).toFixed(1) + ' MiB/s'
-
   // log stats every 10 s while there is activity
-  const statsInterval = setInterval(() => {
-    if (statFuseReads === 0) return
-    const duration = Math.round((Date.now() - start) / 1000)
-    debug('read stats', {
-      duration,
-      fuseReadsPerSec: Math.round(statFuseReads / duration),
-      blockReadsPerSec: Math.round(statBlockReads / duration),
-      cacheHitsPerSec: Math.round(statCacheHits / duration),
-      coalescedPerSec: Math.round(statCoalesced / duration),
-      fuseBytesPerSec: toMiBs(Math.round(statFuseBytes / duration)),
-      diskBytesPerSec: toMiBs(Math.round(statDiskBytes / duration)),
-      // how many times more data we read from disk than FUSE actually needed
-      amplification: statFuseBytes > 0 ? (statDiskBytes / statFuseBytes).toFixed(1) + 'x' : 'n/a',
-    })
-  }, 60e3)
-  statsInterval.unref()
 
   function enqueueBlock(blockId) {
     // 1. serve from cache if available
     if (blockCache.has(blockId)) {
-      statCacheHits++
       return Promise.resolve(blockCache.get(blockId))
     }
     // 2. coalesce: join an existing in-flight read for this block
     if (pendingBlocks.has(blockId)) {
-      statCoalesced++
       return pendingBlocks.get(blockId)
     }
     const p = new Promise((resolve, reject) => {
@@ -111,8 +84,6 @@ export const mount = Disposable.factory(async function* mount(handler, diskPath,
       while (readQueue.length > 0) {
         const { blockId, resolve, reject } = readQueue.shift()
         try {
-          statBlockReads++
-          statDiskBytes += blockSize
           resolve((await vhd.readBlock(blockId)).data)
         } catch (err) {
           reject(err)
@@ -151,8 +122,6 @@ export const mount = Disposable.factory(async function* mount(handler, diskPath,
     },
     read(path, fd, buf, len, pos, cb) {
       if (path === '/vhd0') {
-        statFuseReads++
-        statFuseBytes += len
         return readData(buf, len, pos).then(cb, error => {
           warn('read error', { path, len, pos, error })
           cb(Fuse.EIO)
@@ -163,7 +132,6 @@ export const mount = Disposable.factory(async function* mount(handler, diskPath,
   })
   return new Disposable(
     () => {
-      clearInterval(statsInterval)
       return fromCallback(cb => fuse.unmount(cb))
     },
     fromCallback(cb => fuse.mount(cb))
