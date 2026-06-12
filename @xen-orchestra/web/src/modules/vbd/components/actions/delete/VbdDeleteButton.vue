@@ -20,7 +20,7 @@ const {
 } = defineProps<{
   vbd: FrontXoVbd
   vm: FrontXoVm
-  isVdiPage: boolean
+  isVdiPage?: boolean
 }>()
 
 const { t } = useI18n()
