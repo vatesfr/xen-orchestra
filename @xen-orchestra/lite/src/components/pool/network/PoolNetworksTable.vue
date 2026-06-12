@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('networks') }}
       <template #action>
-        <UiDropdownButton v-tooltip="t('coming-soon!')" disabled>
+        <UiDropdownButton v-tooltip="t('coming-soon!')" size="medium" disabled>
           {{ t('new') }}
         </UiDropdownButton>
       </template>
