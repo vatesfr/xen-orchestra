@@ -25,6 +25,7 @@
 </template>
 
 <script setup lang="ts">
+import { useSrConnectModal } from '@/modules/storage-repository/composables/use-sr-connect-modal.composable.ts'
 import { useSrDeleteModal } from '@/modules/storage-repository/composables/use-sr-delete-modal.composable.ts'
 import { useSrDisconnectModal } from '@/modules/storage-repository/composables/use-sr-disconnect-modal.composable.ts'
 import { useGetPbdsInScope, useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
@@ -32,7 +33,7 @@ import {
   useXoSrCollection,
   type FrontXoSr,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { StorageScope } from '@/modules/storage-repository/types/storage-scope.type.ts'
+import { SR_SCOPE_TYPE, type SrScope } from '@/modules/storage-repository/types/storage-repository.type'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -58,7 +59,7 @@ const {
   error,
 } = defineProps<{
   srs: FrontXoSr[]
-  scope: StorageScope
+  scope: SrScope
   busy?: boolean
   error?: boolean
 }>()
@@ -121,6 +122,18 @@ const { HeadCells, BodyCells } = useSrColumns({
     const { srStatusIcon } = useXoSrUtils(sr, () => scope)
 
     const { openModal: openSrDeleteModal, canRun: canDeleteSr, isRunning: isDeletingSr } = useSrDeleteModal(() => [sr])
+
+    const {
+      openModal: openSrConnectModal,
+      canRun: canConnectSr,
+      isRunning: isConnectingSr,
+      errorMessage: connectSrErrorMessage,
+      targetCount: connectTargetCount,
+    } = useSrConnectModal(
+      () => [sr],
+      () => scope
+    )
+
     const {
       openModal: openSrDisconnectModal,
       canRun: canDisconnectSr,
@@ -132,8 +145,14 @@ const { HeadCells, BodyCells } = useSrColumns({
       () => scope
     )
 
+    const connectLabel = computed(() =>
+      connectTargetCount.value > (scope.type === SR_SCOPE_TYPE.POOL ? 0 : 1)
+        ? t('action:connect-n', { n: connectTargetCount.value })
+        : t('action:connect')
+    )
+
     const disconnectLabel = computed(() =>
-      disconnectTargetCount.value > (scope.type === 'pool' ? 0 : 1)
+      disconnectTargetCount.value > (scope.type === SR_SCOPE_TYPE.POOL ? 0 : 1)
         ? t('action:disconnect-n', { n: disconnectTargetCount.value })
         : t('action:disconnect')
     )
@@ -154,6 +173,14 @@ const { HeadCells, BodyCells } = useSrColumns({
         r({
           onClick: () => (selectedSrId.value = sr.id),
           actions: [
+            {
+              label: connectLabel.value,
+              icon: 'action:connect',
+              onClick: () => openSrConnectModal(),
+              busy: isConnectingSr.value,
+              disabled: !canConnectSr.value,
+              hint: connectSrErrorMessage.value,
+            },
             {
               label: disconnectLabel.value,
               icon: 'action:disconnect',

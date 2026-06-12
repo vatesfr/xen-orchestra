@@ -11,7 +11,7 @@
     <template #buttons>
       <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
       <VtsModalConfirmButton>
-        {{ t('action:disconnect-n-srs', { n: count }) }}
+        {{ t('action:connect-n-srs', { n: count }) }}
       </VtsModalConfirmButton>
     </template>
   </VtsModal>
@@ -35,7 +35,7 @@ const { count, scope, accessMode, hostsCount } = defineProps<{
 const { t } = useI18n()
 
 const { title, info } = useSrModalMessages({
-  action: 'disconnect',
+  action: 'connect',
   count: () => count,
   scope: () => scope,
   accessMode: () => accessMode,
