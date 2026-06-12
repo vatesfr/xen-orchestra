@@ -45,7 +45,6 @@
   "action:delete-n-networks": "Delete 1 network | Delete {n} networks",
   "action:delete-n-snapshots": "Delete 1 snapshot | Delete {n} snapshots",
   "action:delete-n-traffic-rules": "Delete 1 traffic rule | Delete {n} traffic rules",
-  "action:delete-n-vbds": "Delete 1 VBD | Delete {n} VBDs",
   "action:delete-n-srs": "Delete 1 SR | Delete {n} SRs",
   "action:delete-n-vdis": "Delete 1 VDI | Delete {n} VDIs",
   "action:delete-n-vifs": "Delete 1 VIF | Delete {n} VIFs",
