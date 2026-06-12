@@ -44,3 +44,12 @@ export type ReturnedSensorData = {
 }
 
 export type FinalSensorData = Partial<Record<IPMI_SENSOR_DATA_TYPE_STRINGS, ReturnedSensorData | ReturnedSensorData[]>>
+
+export type AvailableIpmiSensor = ReturnedSensorData & { dataType: IPMI_SENSOR_DATA_TYPE_STRINGS }
+
+export type AvailableIpmiSensors = {
+  productName: string
+  systemManufacturer: string
+  ipmiDeviceAvailable: boolean
+  sensors: AvailableIpmiSensor[]
+}
