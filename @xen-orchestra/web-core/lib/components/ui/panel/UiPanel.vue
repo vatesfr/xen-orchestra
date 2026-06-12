@@ -1,6 +1,6 @@
-<!-- v2 -->
+<!-- v5 -->
 <template>
-  <div class="ui-panel" :class="{ error, 'mobile-drawer': uiStore.isSmall }">
+  <div class="ui-panel" :class="{ error }">
     <div v-if="slots.header" class="header">
       <slot name="header" />
     </div>
@@ -11,8 +11,6 @@
 </template>
 
 <script setup lang="ts">
-import { useUiStore } from '@core/stores/ui.store'
-
 defineProps<{
   error?: boolean
 }>()
@@ -21,31 +19,22 @@ const slots = defineSlots<{
   default(): any
   header?(): any
 }>()
-
-const uiStore = useUiStore()
 </script>
 
 <style scoped lang="postcss">
 .ui-panel {
-  position: sticky;
-  top: 0;
   display: flex;
   flex-direction: column;
   border-inline-start: 0.1rem solid var(--color-neutral-border);
   background-color: var(--color-neutral-background-secondary);
 
-  &:not(.mobile-drawer) {
-    min-height: calc(100dvh - 16rem);
-  }
-
   .header {
+    padding: 0.4rem 1.6rem;
     border-bottom: 0.1rem solid var(--color-neutral-border);
     background-color: var(--color-neutral-background-primary);
     display: flex;
-    justify-content: flex-end;
     align-items: center;
     gap: 1.6rem;
-    padding: 0.4rem 1.6rem;
   }
 
   .content {
@@ -55,18 +44,8 @@ const uiStore = useUiStore()
     gap: 0.8rem;
   }
 
-  &.mobile-drawer {
-    .content {
-      overflow: auto;
-    }
-  }
-
   &.error {
     background-color: var(--color-danger-background-selected);
-
-    .content {
-      padding-top: 15rem;
-    }
   }
 }
 </style>

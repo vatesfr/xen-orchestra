@@ -27,7 +27,11 @@ export function useGetPbdsInScope() {
     return getPbdsInScope(sr, scope).filter(pbd => pbd.attached)
   }
 
-  function getSrPbdsSignature(sr: FrontXoSr, scope: StorageScope) {
+  function getSrPbdsSignature(sr: FrontXoSr | undefined, scope: StorageScope) {
+    if (sr === undefined) {
+      return scope.type === 'host' ? `host:${scope.hostId}` : 'pool'
+    }
+
     const scopedPbds = getPbdsInScope(sr, scope)
 
     return scopedPbds.map(pbd => `${pbd.id}:${pbd.attached}`).join('|') || sr.id

@@ -1,119 +1,108 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
-    <template #header>
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButtonIcon
-          v-if="uiStore.isSmall"
-          v-tooltip="t('action:close')"
-          size="small"
-          variant="tertiary"
-          accent="brand"
-          icon="fa:angle-left"
-          @click="emit('close')"
-        />
-        <div class="action-buttons">
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            size="medium"
-            variant="tertiary"
-            accent="brand"
-            left-icon="fa:edit"
-          >
-            {{ t('action:edit') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            size="medium"
-            variant="tertiary"
-            accent="danger"
-            left-icon="fa:trash"
-          >
-            {{ t('action:delete') }}
-          </UiButton>
-          <UiButtonIcon v-tooltip="t('coming-soon!')" disabled accent="brand" size="small" icon="fa:ellipsis" />
-        </div>
-      </div>
+  <VtsSidePanel :selected="!!network" :closable="!!network" @close="emit('close')">
+    <template v-if="network" #actions>
+      <UiButton
+        v-tooltip="t('coming-soon!')"
+        disabled
+        size="medium"
+        variant="tertiary"
+        accent="brand"
+        left-icon="action:edit"
+      >
+        {{ t('action:edit') }}
+      </UiButton>
+      <UiButton
+        v-tooltip="t('coming-soon!')"
+        disabled
+        size="medium"
+        variant="tertiary"
+        accent="danger"
+        left-icon="action:delete"
+      >
+        {{ t('action:delete') }}
+      </UiButton>
     </template>
     <template #default>
-      <UiCard class="card-container">
-        <UiCardTitle v-tooltip="{ placement: 'bottom-end' }" class="typo-body-bold">
-          {{ network.name_label }}
-        </UiCardTitle>
-        <div class="content">
-          <!-- UUID -->
-          <VtsCodeSnippet :content="network.uuid" copy />
-          <!-- DESCRIPTION -->
-          <VtsCardRowKeyValue truncate align-top>
-            <template #key>{{ t('description') }}</template>
-            <template #value>
-              <span class="value">{{ network.name_description }}</span>
-            </template>
-            <template v-if="network.name_description" #addons>
-              <VtsCopyButton :value="network.name_description" />
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- VLAN -->
-          <VtsCardRowKeyValue v-if="networkVlan">
-            <template #key>{{ t('vlan') }}</template>
-            <template #value>{{ networkVlan }}</template>
-            <template #addons>
-              <VtsCopyButton :value="String(networkVlan)" />
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- MTU -->
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('mtu') }}</template>
-            <template #value>
-              <span>{{ network.MTU }}</span>
-            </template>
-            <template #addons>
-              <VtsCopyButton :value="String(network.MTU)" />
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- NBD -->
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('network-block-device') }}</template>
-            <template #value>{{ networkNbd }}</template>
-            <template #addons>
-              <VtsCopyButton :value="networkNbd" />
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- DEFAULT LOCKING MODE -->
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('locking-mode-default') }}</template>
-            <template #value>{{ networkDefaultLockingMode }}</template>
-          </VtsCardRowKeyValue>
-        </div>
-      </UiCard>
-      <UiCard v-if="pifsCount && pifsCount > 0" class="card-container">
-        <div class="typo-body-bold">
-          {{ t('pifs') }}
-          <UiCounter :value="pifsCount" variant="primary" size="small" accent="neutral" />
-        </div>
-        <table class="simple-table">
-          <thead>
-            <tr>
-              <th class="text-left typo-body-regular-small">
-                {{ t('host') }}
-              </th>
-              <th class="text-left typo-body-regular-small">
-                {{ t('device') }}
-              </th>
-              <th class="text-left typo-body-regular-small">
-                {{ t('pifs-status') }}
-              </th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            <PifRow v-for="pif in pifs" :key="pif.uuid" :pif />
-          </tbody>
-        </table>
-      </UiCard>
+      <VtsStateHero v-if="!network" format="panel" type="no-selection" size="medium" />
+      <template v-else>
+        <UiCard class="card-container">
+          <UiCardTitle v-tooltip="{ placement: 'bottom-end' }" class="typo-body-bold">
+            {{ network.name_label }}
+          </UiCardTitle>
+          <div class="content">
+            <!-- UUID -->
+            <VtsCodeSnippet :content="network.uuid" copy />
+            <!-- DESCRIPTION -->
+            <VtsCardRowKeyValue truncate align-top>
+              <template #key>{{ t('description') }}</template>
+              <template #value>
+                <span class="value">{{ network.name_description }}</span>
+              </template>
+              <template v-if="network.name_description" #addons>
+                <VtsCopyButton :value="network.name_description" />
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- VLAN -->
+            <VtsCardRowKeyValue v-if="networkVlan">
+              <template #key>{{ t('vlan') }}</template>
+              <template #value>{{ networkVlan }}</template>
+              <template #addons>
+                <VtsCopyButton :value="String(networkVlan)" />
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- MTU -->
+            <VtsCardRowKeyValue>
+              <template #key>{{ t('mtu') }}</template>
+              <template #value>
+                <span>{{ network.MTU }}</span>
+              </template>
+              <template #addons>
+                <VtsCopyButton :value="String(network.MTU)" />
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- NBD -->
+            <VtsCardRowKeyValue>
+              <template #key>{{ t('network-block-device') }}</template>
+              <template #value>{{ networkNbd }}</template>
+              <template #addons>
+                <VtsCopyButton :value="networkNbd" />
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- DEFAULT LOCKING MODE -->
+            <VtsCardRowKeyValue>
+              <template #key>{{ t('locking-mode-default') }}</template>
+              <template #value>{{ networkDefaultLockingMode }}</template>
+            </VtsCardRowKeyValue>
+          </div>
+        </UiCard>
+        <UiCard v-if="pifsCount && pifsCount > 0" class="card-container">
+          <div class="typo-body-bold">
+            {{ t('pifs') }}
+            <UiCounter :value="pifsCount" variant="primary" size="small" accent="neutral" />
+          </div>
+          <table class="simple-table">
+            <thead>
+              <tr>
+                <th class="text-left typo-body-regular-small">
+                  {{ t('host') }}
+                </th>
+                <th class="text-left typo-body-regular-small">
+                  {{ t('device') }}
+                </th>
+                <th class="text-left typo-body-regular-small">
+                  {{ t('pifs-status') }}
+                </th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              <PifRow v-for="pif in pifs" :key="pif.uuid" :pif />
+            </tbody>
+          </table>
+        </UiCard>
+      </template>
     </template>
-  </UiPanel>
+  </VtsSidePanel>
 </template>
 
 <script setup lang="ts">
@@ -123,19 +112,18 @@ import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { network } = defineProps<{
-  network: XenApiNetwork
+  network?: XenApiNetwork
 }>()
 
 const emit = defineEmits<{
@@ -143,11 +131,10 @@ const emit = defineEmits<{
 }>()
 
 const { getPifsByNetworkRef } = usePifStore().subscribe()
-const uiStore = useUiStore()
 
 const { t } = useI18n()
 
-const pifs = computed(() => getPifsByNetworkRef(network.$ref))
+const pifs = computed(() => (network !== undefined ? getPifsByNetworkRef(network.$ref) : []))
 
 const networkVlan = computed(() => {
   if (pifs.value.length === 0) {
@@ -157,10 +144,10 @@ const networkVlan = computed(() => {
   return pifs.value[0].VLAN !== -1 ? pifs.value[0].VLAN.toString() : t('none')
 })
 
-const networkNbd = computed(() => (network.purpose[0] ? t('on') : t('off')))
+const networkNbd = computed(() => (network?.purpose[0] ? t('on') : t('off')))
 
 const networkDefaultLockingMode = computed(() =>
-  network.default_locking_mode === 'disabled' ? t('disabled') : t('unlocked')
+  network?.default_locking_mode === 'disabled' ? t('disabled') : t('unlocked')
 )
 
 const pifsCount = computed(() => pifs.value.length)
@@ -194,22 +181,5 @@ const pifsCount = computed(() => pifs.value.length)
   .value:empty::before {
     content: '-';
   }
-}
-
-.mobile-drawer {
-  position: fixed;
-  inset: 0;
-
-  .action-buttons-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-  }
-}
-
-.action-buttons {
-  display: flex;
-  align-items: center;
 }
 </style>

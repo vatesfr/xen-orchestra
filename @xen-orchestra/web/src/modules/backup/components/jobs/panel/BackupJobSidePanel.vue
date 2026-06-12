@@ -1,28 +1,19 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
-    <template #header>
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButtonIcon
-          v-tooltip="t('action:close')"
-          size="small"
-          variant="tertiary"
-          accent="brand"
-          :icon="uiStore.isSmall ? 'fa:angle-left' : 'fa:close'"
-          @click="emit('close')"
-        />
-      </div>
-    </template>
+  <VtsSidePanel :selected="!!backupJob" :closable="!!backupJob" @close="emit('close')">
     <template #default>
-      <BackupJobInfosCard :backup-job />
-      <BackupJobSchedulesCard :backup-job-schedules />
-      <BackupJobLogsCard v-if="lastThreeLogs.length > 0" :backup-logs="lastThreeLogs" />
-      <BackupJobBackedUpVmsCard v-if="backupJob.type === 'backup' && backupJob.vms" :backed-up-vms="backupJob.vms" />
-      <BackupJobBackedUpPoolsCard v-if="backedUpPools.length > 0" :backed-up-pools />
-      <BackupJobSourceRepositoryCard v-if="backupJob.type === 'mirrorBackup'" :mirror-backup-job="backupJob" />
-      <BackupJobTargetsCard :storage-repository-targets :backup-repository-targets />
-      <BackupJobSettingsCard v-if="hasSettings" :backup-job />
+      <VtsStateHero v-if="!backupJob" format="panel" type="no-selection" size="medium" />
+      <template v-else>
+        <BackupJobInfosCard :backup-job />
+        <BackupJobSchedulesCard :backup-job-schedules />
+        <BackupJobLogsCard v-if="lastThreeLogs.length > 0" :backup-logs="lastThreeLogs" />
+        <BackupJobBackedUpVmsCard v-if="backupJob.type === 'backup' && backupJob.vms" :backed-up-vms="backupJob.vms" />
+        <BackupJobBackedUpPoolsCard v-if="backedUpPools.length > 0" :backed-up-pools />
+        <BackupJobSourceRepositoryCard v-if="backupJob.type === 'mirrorBackup'" :mirror-backup-job="backupJob" />
+        <BackupJobTargetsCard :storage-repository-targets :backup-repository-targets />
+        <BackupJobSettingsCard v-if="hasSettings" :backup-job />
+      </template>
     </template>
-  </UiPanel>
+  </VtsSidePanel>
 </template>
 
 <script setup lang="ts">
@@ -34,7 +25,9 @@ import BackupJobLogsCard from '@/modules/backup/components/panel/cards/BackupJob
 import BackupJobSchedulesCard from '@/modules/backup/components/panel/cards/BackupJobSchedulesCard.vue'
 import BackupJobSourceRepositoryCard from '@/modules/backup/components/panel/cards/BackupJobSourceRepositoryCard.vue'
 import BackupJobTargetsCard from '@/modules/backup/components/panel/cards/BackupJobTargetsCard.vue'
-import { useXoBackupJobSettingsUtils } from '@/modules/backup/composables/backup-job-settings/xo-backup-job-settings.composable.ts'
+import { getMetadataBackupJobSettings } from '@/modules/backup/composables/backup-job-settings/get-metadata-backup-job-settings'
+import { getMirrorBackupJobSettings } from '@/modules/backup/composables/backup-job-settings/get-mirror-backup-job-settings'
+import { getVmBackupJobSettings } from '@/modules/backup/composables/backup-job-settings/get-vm-backup-job-settings'
 import type { FrontAnyXoBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import { useXoBackupLogCollection } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import { useXoBackupRepositoryCollection } from '@/modules/backup/remote-resources/use-xo-br-collection.ts'
@@ -42,24 +35,18 @@ import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool
 import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { extractIdsFromSimplePattern } from '@/shared/utils/pattern.util.ts'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { useUiStore } from '@core/stores/ui.store.ts'
+import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import type { XoSr, XoPool, XoBackupRepository } from '@vates/types'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 const { backupJob } = defineProps<{
-  backupJob: FrontAnyXoBackupJob
+  backupJob?: FrontAnyXoBackupJob
 }>()
 
 const emit = defineEmits<{
   close: []
 }>()
-
-const { t } = useI18n()
-const uiStore = useUiStore()
 
 const { getSrsByIds } = useXoSrCollection()
 const { getBackupRepositoriesByIds } = useXoBackupRepositoryCollection()
@@ -67,12 +54,14 @@ const { getLastNBackupLogsByJobId } = useXoBackupLogCollection()
 const { schedulesByJobId } = useXoScheduleCollection()
 const { getPoolsByIds } = useXoPoolCollection()
 
-const backupJobSchedules = computed(() => schedulesByJobId.value.get(backupJob.id) ?? [])
+const backupJobSchedules = computed(() =>
+  backupJob !== undefined ? (schedulesByJobId.value.get(backupJob.id) ?? []) : []
+)
 
-const lastThreeLogs = computed(() => getLastNBackupLogsByJobId(backupJob.id))
+const lastThreeLogs = computed(() => (backupJob !== undefined ? getLastNBackupLogsByJobId(backupJob.id) : []))
 
 const backedUpPools = computed(() => {
-  if (backupJob.type !== 'metadataBackup' || backupJob.pools === undefined) {
+  if (backupJob?.type !== 'metadataBackup' || backupJob.pools === undefined) {
     return []
   }
 
@@ -80,32 +69,31 @@ const backedUpPools = computed(() => {
 })
 
 const backupRepositoryTargets = computed(() =>
-  getBackupRepositoriesByIds(extractIdsFromSimplePattern(backupJob.remotes) as XoBackupRepository['id'][])
+  backupJob !== undefined
+    ? getBackupRepositoriesByIds(extractIdsFromSimplePattern(backupJob.remotes) as XoBackupRepository['id'][])
+    : []
 )
 
 const storageRepositoryTargets = computed(() => {
-  if (!(backupJob.type === 'backup' && backupJob.srs)) {
+  if (!(backupJob?.type === 'backup' && backupJob.srs)) {
     return []
   }
 
   return getSrsByIds(extractIdsFromSimplePattern(backupJob.srs) as XoSr['id'][])
 })
 
-const { settings: backupJobSettings } = useXoBackupJobSettingsUtils(() => backupJob)
-
-const hasSettings = computed(() => Object.values(backupJobSettings).some(value => value !== undefined))
-</script>
-
-<style scoped lang="postcss">
-.mobile-drawer {
-  position: fixed;
-  inset: 0;
-
-  .action-buttons-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
+const hasSettings = computed(() => {
+  if (backupJob === undefined) {
+    return false
   }
-}
-</style>
+
+  const settings =
+    backupJob.type === 'backup'
+      ? getVmBackupJobSettings(backupJob)
+      : backupJob.type === 'metadataBackup'
+        ? getMetadataBackupJobSettings(backupJob)
+        : getMirrorBackupJobSettings(backupJob)
+
+  return Object.values(settings).some(value => value !== undefined)
+})
+</script>

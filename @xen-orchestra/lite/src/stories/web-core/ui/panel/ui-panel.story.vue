@@ -2,54 +2,26 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      prop('error').bool().widget(),
-      setting('action1').widget(text()).preset('Edit'),
-      setting('action2').widget(text()).preset('Delete'),
+      prop('error').bool().widget().preset(false),
       slot(),
-      slot('header').help('Meant to receive UiButton or other information'),
+      slot('header').help('Optional panel header'),
+      setting('showHeader').widget(boolean()).preset(true),
+      setting('headerContent').widget(text()).preset('Panel header'),
     ]"
-    :presets="{
-      Normal: {
-        props: {
-          error: false,
-        },
-      },
-      Error: {
-        props: {
-          error: true,
-        },
-      },
-    }"
   >
-    <UiSidePanel v-bind="properties" :error="properties.error">
-      <template #header>
-        <UiButton variant="tertiary" size="medium" accent="brand" @click="toggle()">Toggle</UiButton>
-        <UiButton variant="tertiary" size="medium" accent="brand" left-icon="fa:edit"> {{ settings.action1 }}</UiButton>
-        <UiButton variant="tertiary" size="medium" accent="danger" left-icon="fa:trash">
-          {{ settings.action2 }}
-        </UiButton>
-      </template>
-      <VtsStateHero v-if="!isReady" format="card" type="busy" size="medium" />
-      <UiCard v-else-if="!properties.error">
-        <div>Content 1</div>
-        <div>Content 1</div>
-        <div>Content 1</div>
+    <UiPanel v-bind="properties">
+      <template v-if="settings.showHeader" #header>{{ settings.headerContent }}</template>
+      <UiCard>
+        <div>Card content</div>
       </UiCard>
-    </UiSidePanel>
+    </UiPanel>
   </ComponentStory>
 </template>
 
 <script setup lang="ts">
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop, setting, slot } from '@/libs/story/story-param'
-import { text } from '@/libs/story/story-widget'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
+import { boolean, text } from '@/libs/story/story-widget'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiSidePanel from '@core/components/ui/panel/UiPanel.vue'
-import { useToggle } from '@vueuse/core'
-import { computed } from 'vue'
-
-const [isToggled, toggle] = useToggle()
-const isReady = computed(() => isToggled.value)
+import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 </script>

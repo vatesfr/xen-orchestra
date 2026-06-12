@@ -1,6 +1,6 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
-    <template #header>
+  <VtsSidePanel :selected="!!snapshot" :closable="!!snapshot" @close="emit('close')">
+    <template v-if="snapshot" #actions>
       <UiButton
         :disabled="!canRevertSnapshot || isDeletingSnapshot"
         :busy="isRevertingSnapshot"
@@ -15,25 +15,17 @@
       <VtsDeleteButton
         :disabled="!canDeleteSnapshot || isRevertingSnapshot"
         :busy="isDeletingSnapshot"
-        class="delete-button"
         @click="openSnapshotDeleteModal()"
       />
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButtonIcon
-          v-tooltip="t('action:close')"
-          size="small"
-          variant="tertiary"
-          accent="brand"
-          :icon="uiStore.isSmall ? 'fa:angle-left' : 'fa:close'"
-          @click="emit('close')"
-        />
-      </div>
     </template>
     <template #default>
-      <SnapshotInfoCard :snapshot />
-      <SnapshotVdiCard :snapshot />
+      <VtsStateHero v-if="!snapshot" format="panel" type="no-selection" size="medium" />
+      <template v-else>
+        <SnapshotInfoCard :snapshot />
+        <SnapshotVdiCard :snapshot />
+      </template>
     </template>
-  </UiPanel>
+  </VtsSidePanel>
 </template>
 
 <script setup lang="ts">
@@ -43,22 +35,16 @@ import type { FrontXoVmSnapshot } from '@/modules/snapshot/components/remote-res
 import { useVmSnapshotDeleteModal } from '@/modules/snapshot/composables/use-vm-snapshot-delete-modal.composable.ts'
 import { useVmSnapshotRevertModal } from '@/modules/snapshot/composables/use-vm-snapshot-revert-modal.composable.ts'
 import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
+import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { useUiStore } from '@core/stores/ui.store.ts'
 import { useI18n } from 'vue-i18n'
 
-const { snapshot } = defineProps<{
-  snapshot: FrontXoVmSnapshot
-}>()
+const { snapshot } = defineProps<{ snapshot?: FrontXoVmSnapshot }>()
 
 const emit = defineEmits<{
   close: []
 }>()
-
-const uiStore = useUiStore()
 
 const { t } = useI18n()
 
@@ -66,7 +52,7 @@ const {
   openModal: openSnapshotDeleteModal,
   canRun: canDeleteSnapshot,
   isRunning: isDeletingSnapshot,
-} = useVmSnapshotDeleteModal(() => [snapshot])
+} = useVmSnapshotDeleteModal(() => (snapshot !== undefined ? [snapshot] : []))
 
 const {
   openModal: openSnapshotRevertModal,
@@ -74,21 +60,3 @@ const {
   isRunning: isRevertingSnapshot,
 } = useVmSnapshotRevertModal(() => snapshot)
 </script>
-
-<style scoped lang="postcss">
-.delete-button {
-  margin-inline-end: auto;
-}
-
-.mobile-drawer {
-  position: fixed;
-  inset: 0;
-
-  .action-buttons-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-  }
-}
-</style>

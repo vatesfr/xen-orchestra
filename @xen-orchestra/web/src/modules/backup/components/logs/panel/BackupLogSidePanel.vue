@@ -1,29 +1,20 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
-    <template #header>
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButtonIcon
-          v-tooltip="t('action:close')"
-          size="small"
-          variant="tertiary"
-          accent="brand"
-          :icon="uiStore.isSmall ? 'fa:angle-left' : 'fa:close'"
-          @click="emit('close')"
-        />
-      </div>
-    </template>
+  <VtsSidePanel :selected="!!backupLog" :closable="!!backupLog" @close="emit('close')">
     <template #default>
-      <BackupLogInfosCard :backup-log />
-      <BackupJobSchedulesCard :backup-job-schedules />
-      <template v-if="backupLogResults !== undefined">
-        <template v-for="[type, data] of Object.entries(backupLogResults)" :key="type">
-          <BackupLogResultsCard v-if="data.length > 0" :results="data" :type="type as BackupLogResultType" />
+      <VtsStateHero v-if="!backupLog" format="panel" type="no-selection" size="medium" />
+      <template v-else>
+        <BackupLogInfosCard :backup-log />
+        <BackupJobSchedulesCard :backup-job-schedules />
+        <template v-if="backupLogResults !== undefined">
+          <template v-for="[type, data] of Object.entries(backupLogResults)" :key="type">
+            <BackupLogResultsCard v-if="data.length > 0" :results="data" :type="type as BackupLogResultType" />
+          </template>
         </template>
+        <BackupJobBackedUpVmsCard v-if="backupJob?.type === 'backup' && backupJob.vms" :backed-up-vms="backupJob.vms" />
+        <BackupJobBackedUpPoolsCard v-if="backedUpPools.length > 0" :backed-up-pools />
       </template>
-      <BackupJobBackedUpVmsCard v-if="backupJob?.type === 'backup' && backupJob.vms" :backed-up-vms="backupJob.vms" />
-      <BackupJobBackedUpPoolsCard v-if="backedUpPools.length > 0" :backed-up-pools />
     </template>
-  </UiPanel>
+  </VtsSidePanel>
 </template>
 
 <script setup lang="ts">
@@ -40,37 +31,31 @@ import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool
 import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { getTasksResultsRecursively } from '@/modules/task/utils/xo-task.util.ts'
 import { extractIdsFromSimplePattern } from '@/shared/utils/pattern.util.ts'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { useUiStore } from '@core/stores/ui.store.ts'
+import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import type { XoPool } from '@vates/types'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 const { backupLog } = defineProps<{
-  backupLog: FrontXoBackupLog
+  backupLog?: FrontXoBackupLog
 }>()
 
 const emit = defineEmits<{
   close: []
 }>()
 
-const { t } = useI18n()
-const uiStore = useUiStore()
-
 const { useGetBackupJobById } = useXoBackupJobCollection()
 const { schedulesByJobId } = useXoScheduleCollection()
 const { getPoolsByIds } = useXoPoolCollection()
 
-const backupJob = useGetBackupJobById(() => backupLog.jobId)
+const backupJob = useGetBackupJobById(() => backupLog?.jobId)
 
 const backupJobSchedules = computed(() =>
   backupJob.value ? (schedulesByJobId.value.get(backupJob.value.id) ?? []) : []
 )
 
 const backedUpPools = computed(() => {
-  if (backupJob.value?.type !== 'metadataBackup' || backupJob.value?.pools === undefined) {
+  if (backupJob.value?.type !== 'metadataBackup' || backupJob.value.pools === undefined) {
     return []
   }
 
@@ -78,7 +63,7 @@ const backedUpPools = computed(() => {
 })
 
 const backupLogResults = computed(() => {
-  if (backupLog.tasks === undefined) {
+  if (backupLog?.tasks === undefined) {
     return undefined
   }
 
@@ -89,17 +74,3 @@ const backupLogResults = computed(() => {
   }
 })
 </script>
-
-<style scoped lang="postcss">
-.mobile-drawer {
-  position: fixed;
-  inset: 0;
-
-  .action-buttons-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-  }
-}
-</style>

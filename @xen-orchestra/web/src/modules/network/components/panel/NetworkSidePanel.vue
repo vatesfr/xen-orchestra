@@ -1,74 +1,67 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
-    <template #header>
-      <VtsDeleteButton :busy="isDeletingNetwork" class="delete-button" @click="openDeleteModal()" />
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButtonIcon
-          v-tooltip="t('action:close')"
-          size="small"
-          variant="tertiary"
-          accent="brand"
-          :icon="uiStore.isSmall ? 'fa:angle-left' : 'fa:close'"
-          @click="emit('close')"
-        />
-      </div>
+  <VtsSidePanel :selected="!!network" :closable="!!network" @close="emit('close')">
+    <template v-if="network" #actions>
+      <VtsDeleteButton :busy="isDeletingNetwork" @click="openDeleteModal()" />
     </template>
     <template #default>
-      <UiCard class="card-container">
-        <UiCardTitle v-tooltip="{ placement: 'bottom-end' }" class="typo-body-bold">
-          {{ network.name_label }}
-        </UiCardTitle>
-        <div class="content">
-          <!-- ID -->
-          <VtsCodeSnippet :content="network.id" copy />
-          <!-- DESCRIPTION -->
-          <VtsCardRowKeyValue truncate align-top>
-            <template #key>{{ t('description') }}</template>
-            <template #value>
-              {{ network.name_description }}
-            </template>
-            <template v-if="network.name_description" #addons>
-              <VtsCopyButton :value="network.name_description" />
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- VLAN -->
-          <VtsCardRowKeyValue v-if="networkVlan">
-            <template #key>{{ t('vlan') }}</template>
-            <template #value>{{ networkVlan }}</template>
-            <template #addons>
-              <VtsCopyButton :value="String(networkVlan)" />
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- MTU -->
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('mtu') }}</template>
-            <template #value>
-              <span>
-                {{ network.MTU }}
-              </span>
-            </template>
-            <template #addons>
-              <VtsCopyButton :value="String(network.MTU)" />
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- NBD -->
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('network-block-device') }}</template>
-            <template #value>{{ networkNbd }}</template>
-            <template #addons>
-              <VtsCopyButton :value="networkNbd" />
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- DEFAULT LOCKING MODE -->
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('locking-mode-default') }}</template>
-            <template #value>{{ networkDefaultLockingMode }}</template>
-          </VtsCardRowKeyValue>
-        </div>
-      </UiCard>
-      <NetworkPifsInfoCard :network />
+      <VtsStateHero v-if="!network" format="panel" type="no-selection" size="medium" />
+      <template v-else>
+        <UiCard class="card-container">
+          <UiCardTitle v-tooltip="{ placement: 'bottom-end' }" class="typo-body-bold">
+            {{ network.name_label }}
+          </UiCardTitle>
+          <div class="content">
+            <!-- ID -->
+            <VtsCodeSnippet :content="network.id" copy />
+            <!-- DESCRIPTION -->
+            <VtsCardRowKeyValue truncate align-top>
+              <template #key>{{ t('description') }}</template>
+              <template #value>
+                {{ network.name_description }}
+              </template>
+              <template v-if="network.name_description" #addons>
+                <VtsCopyButton :value="network.name_description" />
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- VLAN -->
+            <VtsCardRowKeyValue v-if="networkVlan">
+              <template #key>{{ t('vlan') }}</template>
+              <template #value>{{ networkVlan }}</template>
+              <template #addons>
+                <VtsCopyButton :value="String(networkVlan)" />
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- MTU -->
+            <VtsCardRowKeyValue>
+              <template #key>{{ t('mtu') }}</template>
+              <template #value>
+                <span>
+                  {{ network.MTU }}
+                </span>
+              </template>
+              <template #addons>
+                <VtsCopyButton :value="String(network.MTU)" />
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- NBD -->
+            <VtsCardRowKeyValue>
+              <template #key>{{ t('network-block-device') }}</template>
+              <template #value>{{ networkNbd }}</template>
+              <template #addons>
+                <VtsCopyButton :value="networkNbd" />
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- DEFAULT LOCKING MODE -->
+            <VtsCardRowKeyValue>
+              <template #key>{{ t('locking-mode-default') }}</template>
+              <template #value>{{ networkDefaultLockingMode }}</template>
+            </VtsCardRowKeyValue>
+          </div>
+        </UiCard>
+        <NetworkPifsInfoCard :network />
+      </template>
     </template>
-  </UiPanel>
+  </VtsSidePanel>
 </template>
 
 <script setup lang="ts">
@@ -80,31 +73,31 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { network } = defineProps<{
-  network: FrontXoNetwork
+  network?: FrontXoNetwork
 }>()
 
 const emit = defineEmits<{
   close: []
 }>()
 
-const { openModal: openDeleteModal, isRunning: isDeletingNetwork } = useNetworkDeleteModal(() => [network])
+const { openModal: openDeleteModal, isRunning: isDeletingNetwork } = useNetworkDeleteModal(() =>
+  network !== undefined ? [network] : []
+)
 
 const { getPifsByNetworkId } = useXoPifCollection()
-const uiStore = useUiStore()
 
 const { t } = useI18n()
 
-const pifs = computed(() => getPifsByNetworkId(network.id))
+const pifs = computed(() => (network !== undefined ? getPifsByNetworkId(network.id) : []))
 
 const networkVlan = computed(() => {
   if (pifs.value.length === 0) {
@@ -114,16 +107,12 @@ const networkVlan = computed(() => {
   return pifs.value[0].vlan !== -1 ? pifs.value[0].vlan.toString() : t('none')
 })
 
-const networkNbd = computed(() => (network.nbd ? t('on') : t('off')))
+const networkNbd = computed(() => (network?.nbd ? t('on') : t('off')))
 
-const networkDefaultLockingMode = computed(() => (network.defaultIsLocked ? t('disabled') : t('unlocked')))
+const networkDefaultLockingMode = computed(() => (network?.defaultIsLocked ? t('disabled') : t('unlocked')))
 </script>
 
 <style scoped lang="postcss">
-.delete-button {
-  margin-inline-end: auto;
-}
-
 .card-container {
   display: flex;
   flex-direction: column;
@@ -137,18 +126,6 @@ const networkDefaultLockingMode = computed(() => (network.defaultIsLocked ? t('d
     .value:empty::before {
       content: '-';
     }
-  }
-}
-
-.mobile-drawer {
-  position: fixed;
-  inset: 0;
-
-  .action-buttons-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
   }
 }
 </style>

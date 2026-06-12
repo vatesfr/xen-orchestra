@@ -1,253 +1,244 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
-    <template #header>
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButtonIcon
-          v-tooltip="t('action:close')"
-          size="small"
-          variant="tertiary"
-          accent="brand"
-          :icon="uiStore.isSmall ? 'fa:angle-left' : 'fa:close'"
-          @click="emit('close')"
-        />
-      </div>
-    </template>
+  <VtsSidePanel :selected="!!pif" :closable="!!pif" @close="emit('close')">
     <template #default>
-      <!-- PIF -->
-      <UiCard class="card">
-        <UiCardTitle>{{ pif.isBondMaster ? t('bond') : t('pif') }}</UiCardTitle>
-        <div class="content">
-          <!-- UUID -->
-          <VtsCodeSnippet :content="pif.id" copy />
-          <!-- NETWORK -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('network') }}
-            </template>
-            <template #value>
-              <UiLink v-if="network" size="medium" :to="networkTo" icon="object:network">
-                <span v-tooltip class="text-ellipsis">{{ network.name_label }}</span>
-              </UiLink>
-            </template>
-            <template v-if="network" #addons>
-              <VtsCopyButton :value="network.name_label" />
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- DEVICE -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('device') }}
-            </template>
-            <template #value>
-              {{ pif.device }}
-              <VtsIcon v-if="pif.management" v-tooltip="t('management')" name="status:primary-circle" size="medium" />
-            </template>
-            <template #addons>
-              <VtsCopyButton :value="pif.device" />
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- PIF STATUS -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ pif.isBondMaster ? t('bond-status') : t('pif-status') }}
-            </template>
-            <template #value>
-              <VtsStatus :status />
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- PHYSICAL INTERFACE STATUS -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('physical-interface-status') }}
-            </template>
-            <template #value>
-              <VtsStatus :status="physicalInterfaceStatus" />
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- VLAN -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('vlan') }}
-            </template>
-            <template #value>
-              {{ pif.vlan === -1 ? t('none') : pif.vlan }}
-            </template>
-            <template v-if="pif.vlan !== -1" #addons>
-              <VtsCopyButton :value="String(pif.vlan)" />
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- TAGS -->
-          <VtsCardRowKeyValue align-top>
-            <template #key>{{ t('tags') }}</template>
-            <template #value>
-              <UiTagsList v-if="network && network.tags.length > 0">
-                <VtsTag v-for="tag in network.tags" :key="tag" :value="tag" />
-              </UiTagsList>
-            </template>
-            <template v-if="network && network.tags.length > 0" #addons>
-              <VtsCopyButton :value="network.tags.join(', ')" />
-            </template>
-          </VtsCardRowKeyValue>
-        </div>
-      </UiCard>
-      <!-- NETWORK INFORMATION -->
-      <UiCard class="card">
-        <UiCardTitle>{{ t('network-information') }}</UiCardTitle>
-        <div class="content">
-          <!-- IP ADDRESSES -->
-          <template v-if="ipAddresses.length">
-            <VtsCardRowKeyValue v-for="(ip, index) in ipAddresses" :key="ip">
+      <VtsStateHero v-if="!pif" format="panel" type="no-selection" size="medium" />
+      <template v-else>
+        <!-- PIF -->
+        <UiCard class="card">
+          <UiCardTitle>{{ pif.isBondMaster ? t('bond') : t('pif') }}</UiCardTitle>
+          <div class="content">
+            <!-- UUID -->
+            <VtsCodeSnippet :content="pif.id" copy />
+            <!-- NETWORK -->
+            <VtsCardRowKeyValue>
               <template #key>
-                <div v-if="index === 0">{{ t('ip-addresses') }}</div>
+                {{ t('network') }}
               </template>
               <template #value>
-                <span class="text-ellipsis">{{ ip }}</span>
+                <UiLink v-if="network" size="medium" :to="networkTo" icon="object:network">
+                  <span v-tooltip class="text-ellipsis">{{ network.name_label }}</span>
+                </UiLink>
               </template>
-              <template #addons>
-                <VtsCopyButton :value="ip" />
-                <UiButtonIcon
-                  v-if="index === 0 && ipAddresses.length > 1"
-                  v-tooltip="t('coming-soon!')"
-                  disabled
-                  icon="fa:ellipsis"
-                  size="small"
-                  accent="brand"
-                />
+              <template v-if="network" #addons>
+                <VtsCopyButton :value="network.name_label" />
               </template>
             </VtsCardRowKeyValue>
-          </template>
-          <VtsCardRowKeyValue v-else>
-            <template #key>
-              {{ t('ip-addresses') }}
-            </template>
-            <template #value>
-              <span class="value" />
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- MAC ADDRESSES -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('mac-address') }}
-            </template>
-            <template #value>
-              {{ pif.mac }}
-            </template>
-            <template #addons>
-              <VtsCopyButton :value="pif.mac" />
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- NETMASK -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('netmask') }}
-            </template>
-            <template #value>
-              <span class="value">{{ pif.netmask }}</span>
-            </template>
-            <template v-if="pif.netmask" #addons>
-              <VtsCopyButton :value="pif.netmask" />
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- DNS -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('dns') }}
-            </template>
-            <template #value>
-              <span class="value">
-                {{ pif.dns }}
-              </span>
-            </template>
-            <template v-if="pif.dns" #addons>
-              <VtsCopyButton :value="pif.dns" />
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- GATEWAY -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('gateway') }}
-            </template>
-            <template #value>
-              <span class="value">
-                {{ pif.gateway }}
-              </span>
-            </template>
-            <template v-if="pif.gateway" #addons>
-              <VtsCopyButton :value="pif.gateway" />
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- IP CONFIGURATION MODE -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('ip-mode') }}
-            </template>
-            <template #value>
-              {{ ipConfigurationMode }}
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- BOND DEVICES -->
-          <div>
-            <VtsCardRowKeyValue v-for="(device, index) in bondDevices" :key="device">
+            <!-- DEVICE -->
+            <VtsCardRowKeyValue>
               <template #key>
-                <div v-if="index === 0">{{ t('bond-devices') }}</div>
+                {{ t('device') }}
               </template>
-              <template #value>{{ device }}</template>
+              <template #value>
+                {{ pif.device }}
+                <VtsIcon v-if="pif.management" v-tooltip="t('management')" name="status:primary-circle" size="medium" />
+              </template>
               <template #addons>
-                <VtsCopyButton :value="device" />
-                <UiButtonIcon
-                  v-if="index === 0 && bondDevices.length > 1"
-                  v-tooltip="t('coming-soon!')"
-                  disabled
-                  icon="fa:ellipsis"
-                  size="small"
-                  accent="brand"
-                />
+                <VtsCopyButton :value="pif.device" />
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- PIF STATUS -->
+            <VtsCardRowKeyValue>
+              <template #key>
+                {{ pif.isBondMaster ? t('bond-status') : t('pif-status') }}
+              </template>
+              <template #value>
+                <VtsStatus :status />
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- PHYSICAL INTERFACE STATUS -->
+            <VtsCardRowKeyValue>
+              <template #key>
+                {{ t('physical-interface-status') }}
+              </template>
+              <template #value>
+                <VtsStatus :status="physicalInterfaceStatus" />
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- VLAN -->
+            <VtsCardRowKeyValue>
+              <template #key>
+                {{ t('vlan') }}
+              </template>
+              <template #value>
+                {{ pif.vlan === -1 ? t('none') : pif.vlan }}
+              </template>
+              <template v-if="pif.vlan !== -1" #addons>
+                <VtsCopyButton :value="String(pif.vlan)" />
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- TAGS -->
+            <VtsCardRowKeyValue align-top>
+              <template #key>{{ t('tags') }}</template>
+              <template #value>
+                <UiTagsList v-if="network && network.tags.length > 0">
+                  <VtsTag v-for="tag in network.tags" :key="tag" :value="tag" />
+                </UiTagsList>
+              </template>
+              <template v-if="network && network.tags.length > 0" #addons>
+                <VtsCopyButton :value="network.tags.join(', ')" />
               </template>
             </VtsCardRowKeyValue>
           </div>
-        </div>
-      </UiCard>
-      <!-- PROPERTIES -->
-      <UiCard class="card">
-        <UiCardTitle>{{ t('properties') }}</UiCardTitle>
-        <div class="content">
-          <!-- MTU -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('mtu') }}
+        </UiCard>
+        <!-- NETWORK INFORMATION -->
+        <UiCard class="card">
+          <UiCardTitle>{{ t('network-information') }}</UiCardTitle>
+          <div class="content">
+            <!-- IP ADDRESSES -->
+            <template v-if="ipAddresses.length">
+              <VtsCardRowKeyValue v-for="(ip, index) in ipAddresses" :key="ip">
+                <template #key>
+                  <div v-if="index === 0">{{ t('ip-addresses') }}</div>
+                </template>
+                <template #value>
+                  <span class="text-ellipsis">{{ ip }}</span>
+                </template>
+                <template #addons>
+                  <VtsCopyButton :value="ip" />
+                  <UiButtonIcon
+                    v-if="index === 0 && ipAddresses.length > 1"
+                    v-tooltip="t('coming-soon!')"
+                    disabled
+                    icon="fa:ellipsis"
+                    size="small"
+                    accent="brand"
+                  />
+                </template>
+              </VtsCardRowKeyValue>
             </template>
-            <template #value>
-              {{ pif.mtu === -1 ? t('none') : pif.mtu }}
-            </template>
-            <template v-if="pif.mtu !== -1" #addons>
-              <VtsCopyButton :value="String(pif.mtu)" />
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- SPEED -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('speed') }}
-            </template>
-            <template #value>
-              {{ speed }}
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- NETWORK BLOCK DEVICE -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('network-block-device') }}
-            </template>
-            <template #value>
-              {{ networkNbd }}
-            </template>
-            <template #addons>
-              <VtsCopyButton :value="networkNbd" />
-            </template>
-          </VtsCardRowKeyValue>
-        </div>
-      </UiCard>
+            <VtsCardRowKeyValue v-else>
+              <template #key>
+                {{ t('ip-addresses') }}
+              </template>
+              <template #value>
+                <span class="value" />
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- MAC ADDRESSES -->
+            <VtsCardRowKeyValue>
+              <template #key>
+                {{ t('mac-address') }}
+              </template>
+              <template #value>
+                {{ pif.mac }}
+              </template>
+              <template #addons>
+                <VtsCopyButton :value="pif.mac" />
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- NETMASK -->
+            <VtsCardRowKeyValue>
+              <template #key>
+                {{ t('netmask') }}
+              </template>
+              <template #value>
+                <span class="value">{{ pif.netmask }}</span>
+              </template>
+              <template v-if="pif.netmask" #addons>
+                <VtsCopyButton :value="pif.netmask" />
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- DNS -->
+            <VtsCardRowKeyValue>
+              <template #key>
+                {{ t('dns') }}
+              </template>
+              <template #value>
+                <span class="value">
+                  {{ pif.dns }}
+                </span>
+              </template>
+              <template v-if="pif.dns" #addons>
+                <VtsCopyButton :value="pif.dns" />
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- GATEWAY -->
+            <VtsCardRowKeyValue>
+              <template #key>
+                {{ t('gateway') }}
+              </template>
+              <template #value>
+                <span class="value">
+                  {{ pif.gateway }}
+                </span>
+              </template>
+              <template v-if="pif.gateway" #addons>
+                <VtsCopyButton :value="pif.gateway" />
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- IP CONFIGURATION MODE -->
+            <VtsCardRowKeyValue>
+              <template #key>
+                {{ t('ip-mode') }}
+              </template>
+              <template #value>
+                {{ ipConfigurationMode }}
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- BOND DEVICES -->
+            <div>
+              <VtsCardRowKeyValue v-for="(device, index) in bondDevices" :key="device">
+                <template #key>
+                  <div v-if="index === 0">{{ t('bond-devices') }}</div>
+                </template>
+                <template #value>{{ device }}</template>
+                <template #addons>
+                  <VtsCopyButton :value="device" />
+                  <UiButtonIcon
+                    v-if="index === 0 && bondDevices.length > 1"
+                    v-tooltip="t('coming-soon!')"
+                    disabled
+                    icon="fa:ellipsis"
+                    size="small"
+                    accent="brand"
+                  />
+                </template>
+              </VtsCardRowKeyValue>
+            </div>
+          </div>
+        </UiCard>
+        <!-- PROPERTIES -->
+        <UiCard class="card">
+          <UiCardTitle>{{ t('properties') }}</UiCardTitle>
+          <div class="content">
+            <!-- MTU -->
+            <VtsCardRowKeyValue>
+              <template #key>
+                {{ t('mtu') }}
+              </template>
+              <template #value>
+                {{ pif.mtu === -1 ? t('none') : pif.mtu }}
+              </template>
+              <template v-if="pif.mtu !== -1" #addons>
+                <VtsCopyButton :value="String(pif.mtu)" />
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- SPEED -->
+            <VtsCardRowKeyValue>
+              <template #key>
+                {{ t('speed') }}
+              </template>
+              <template #value>
+                {{ speed }}
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- NETWORK BLOCK DEVICE -->
+            <VtsCardRowKeyValue>
+              <template #key>
+                {{ t('network-block-device') }}
+              </template>
+              <template #value>
+                {{ networkNbd }}
+              </template>
+              <template #addons>
+                <VtsCopyButton :value="networkNbd" />
+              </template>
+            </VtsCardRowKeyValue>
+          </div>
+        </UiCard>
+      </template>
     </template>
-  </UiPanel>
+  </VtsSidePanel>
 </template>
 
 <script setup lang="ts">
@@ -259,22 +250,22 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { useUiStore } from '@core/stores/ui.store.ts'
 import humanFormat from 'human-format'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { pif } = defineProps<{
-  pif: FrontXoPif
+  pif?: FrontXoPif
 }>()
 
 const emit = defineEmits<{
@@ -283,13 +274,18 @@ const emit = defineEmits<{
 
 const { useGetNetworkById } = useXoNetworkCollection()
 const { getBondsDevices } = useXoPifCollection()
-const uiStore = useUiStore()
 
 const { t } = useI18n()
 
-const ipAddresses = computed(() => [pif.ip, ...pif.ipv6].filter(ip => ip))
+const ipAddresses = computed(() => {
+  if (pif === undefined) {
+    return []
+  }
 
-const network = useGetNetworkById(() => pif.$network)
+  return [pif.ip, ...pif.ipv6].filter(ip => ip)
+})
+
+const network = useGetNetworkById(() => pif?.$network)
 
 const networkTo = computed(() =>
   network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
@@ -297,13 +293,17 @@ const networkTo = computed(() =>
 
 const networkNbd = computed(() => (network.value?.nbd ? t('on') : t('off')))
 
-const status = computed(() => (pif.attached ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED))
+const status = computed(() => (pif?.attached ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED))
 
 const physicalInterfaceStatus = computed(() =>
-  pif.carrier ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.PHYSICALLY_DISCONNECTED
+  pif?.carrier ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.PHYSICALLY_DISCONNECTED
 )
 
 const ipConfigurationMode = computed(() => {
+  if (pif === undefined) {
+    return t('none')
+  }
+
   switch (pif.mode) {
     case 'Static':
       return t('static')
@@ -314,9 +314,13 @@ const ipConfigurationMode = computed(() => {
   }
 })
 
-const bondDevices = computed(() => getBondsDevices(pif))
+const bondDevices = computed(() => (pif !== undefined ? getBondsDevices(pif) : []))
 
 const speed = computed(() => {
+  if (pif === undefined) {
+    return ''
+  }
+
   const speed = pif.speed || 0
   const speedInBytes = speed * 1000000
 
@@ -340,18 +344,6 @@ const speed = computed(() => {
 
   .value:empty::before {
     content: '-';
-  }
-}
-
-.mobile-drawer {
-  position: fixed;
-  inset: 0;
-
-  .action-buttons-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
   }
 }
 </style>
