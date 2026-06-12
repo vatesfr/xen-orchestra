@@ -86,8 +86,8 @@
 - @vates/fuse-vhd patch
 - @vates/types minor
 - @xen-orchestra/acl minor
-- @xen-orchestra/backups patch
 - @xen-orchestra/backup-archive patch
+- @xen-orchestra/backups patch
 - @xen-orchestra/disk-transform patch
 - @xen-orchestra/qa-test minor
 - @xen-orchestra/qcow2 patch
