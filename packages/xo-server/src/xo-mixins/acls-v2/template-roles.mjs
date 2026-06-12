@@ -93,3 +93,20 @@ export const VMS_ADMINISTRATOR = {
     { action: 'read', resource: 'vm-snapshot', effect: 'allow' },
   ],
 }
+
+// === Network
+export const NETWORK_ADMINISTRATOR = {
+  roleTemplateId: 6,
+  name: 'Network administrator',
+  description: 'Manage networks across pools, hosts and VMs',
+  privileges: [
+    { action: '*', resource: 'network', effect: 'allow' },
+    { action: 'create:network', resource: 'pool', effect: 'allow' },
+    { action: 'read', resource: 'pool', effect: 'allow' },
+    { action: 'read', resource: 'pif', effect: 'allow' },
+    { action: 'update', resource: 'pif', effect: 'allow' },
+    { action: '*', resource: 'vif', effect: 'allow' },
+    { action: 'read', resource: 'host', effect: 'allow' },
+    { action: 'read', resource: 'vm', effect: 'allow' },
+  ],
+}
