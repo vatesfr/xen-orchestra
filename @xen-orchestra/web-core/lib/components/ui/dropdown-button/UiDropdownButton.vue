@@ -63,7 +63,7 @@ const className = computed(() => toVariants({ size }))
   }
 
   &.selected:not(:disabled) {
-    border: 2px solid var(--color-brand-item-base);
+    border: 0.2rem solid var(--color-brand-item-base);
     color: var(--color-brand-txt-base);
   }
 
