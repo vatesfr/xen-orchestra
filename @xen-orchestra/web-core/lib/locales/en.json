@@ -324,6 +324,7 @@
   "disk-space": "Disk space",
   "dns": "DNS",
   "do-you-have-needs": "You have needs and/or expectations? Let us know",
+  "do-you-really-want-to-leave-this-page?": "Some changes are still being deployed. Do you really want to leave this page?",
   "documentation": "Documentation",
   "documentation-name": "{name} documentation",
   "done": "Done",
