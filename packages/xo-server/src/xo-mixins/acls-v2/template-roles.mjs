@@ -104,6 +104,7 @@ export const NETWORK_ADMINISTRATOR = {
     { action: 'create:network', resource: 'pool', effect: 'allow' },
     { action: 'read', resource: 'pool', effect: 'allow' },
     { action: 'read', resource: 'pif', effect: 'allow' },
+    { action: 'update', resource: 'pif', effect: 'allow' },
     { action: '*', resource: 'vif', effect: 'allow' },
     { action: 'read', resource: 'host', effect: 'allow' },
     { action: 'read', resource: 'vm', effect: 'allow' },

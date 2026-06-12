@@ -50,7 +50,7 @@
 - [XO6/VDI] Update actions name to be more consistent (PR [#9968](https://github.com/vatesfr/xen-orchestra/pull/9968))
 - [SR] Storage repositories can now be deleted from the Pool/Host Storage tab (PR [#9853](https://github.com/vatesfr/xen-orchestra/pull/9853))
 - [SR] Storage repositories can now be disconnected from the Pool/Host Storage tab (PR [#9856](https://github.com/vatesfr/xen-orchestra/pull/9856))
-- [REST API/RBAC] Add a built-in **Network administrator** role template: manage networks, manage VIFs and read PIFs and hosts (PR [#9952](https://github.com/vatesfr/xen-orchestra/pull/9952))
+- [REST API/RBAC] Add a built-in **Network administrator** role template: manage networks and VIFs, read and update PIFs (PR [#9952](https://github.com/vatesfr/xen-orchestra/pull/9952))
 
 ### Bug fixes
 
