@@ -98,6 +98,52 @@ export default class Xo extends EventEmitter {
     return obj
   }
 
+  async getAnyObject(id) {
+    let result
+
+    try {
+      result = this.getObject(id)
+    } catch {}
+    if (result !== undefined) return result
+
+    try {
+      result = await this.getUser(id)
+    } catch {}
+    if (result !== undefined) return result
+
+    try {
+      result = await this.getGroup(id)
+    } catch {}
+    if (result !== undefined) return result
+
+    try {
+      result = await this.getProxy(id)
+    } catch {}
+    if (result !== undefined) return result
+
+    try {
+      result = await this.getSchedule(id)
+    } catch {}
+    if (result !== undefined) return result
+
+    try {
+      result = await this.getJob(id)
+    } catch {}
+    if (result !== undefined) return result
+
+    try {
+      result = await this.getAclV2Role(id)
+    } catch {}
+    if (result !== undefined) return result
+
+    try {
+      result = await this.getAclV2Privilege(id)
+    } catch {}
+    if (result !== undefined) return result
+
+    return result
+  }
+
   hasObject(key, type) {
     try {
       return this.getObject(key, type) !== undefined

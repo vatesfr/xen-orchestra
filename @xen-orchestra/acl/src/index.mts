@@ -27,19 +27,22 @@ export type AnyPrivilegeOnParam = {
   }
 }[SupportedResource]
 
-export function hasPrivilegeOn<T extends SupportedResource>({
-  user,
-  action,
-  resource,
-  objects,
-  userPrivileges,
-}: {
-  user: XoUser
-  resource: T
-  action: SupportedActions<T>
-  objects: object | object[]
-  userPrivileges: AnyPrivilege[]
-}) {
+export function hasPrivilegeOn<T extends SupportedResource>(
+  {
+    user,
+    action,
+    resource,
+    objects,
+    userPrivileges,
+  }: {
+    user: XoUser
+    resource: T
+    action: SupportedActions<T>
+    objects: object | object[]
+    userPrivileges: AnyPrivilege[]
+  },
+  resolver?: (id: string) => object | undefined
+) {
   // Function that will be called outside of the module
   // We cannot be sure types are respected
   assert.strictEqual(typeof user?.permission, 'string')
@@ -61,7 +64,7 @@ export function hasPrivilegeOn<T extends SupportedResource>({
   }
 
   for (const userPrivilege of userPrivileges) {
-    const privilege = new CPrivilege(userPrivilege as Privilege<typeof userPrivilege.resource>)
+    const privilege = new CPrivilege(userPrivilege as Privilege<typeof userPrivilege.resource>, resolver)
 
     for (const [object, effects] of effectsByObject.entries()) {
       if (!privilege.match({ action, resource, object })) {
@@ -81,17 +84,24 @@ export function hasPrivilegeOn<T extends SupportedResource>({
   return true
 }
 
-export function getMissingPrivileges(params: AnyPrivilegeOnParam[], userPrivileges: AnyPrivilege[]) {
+export function getMissingPrivileges(
+  params: AnyPrivilegeOnParam[],
+  userPrivileges: AnyPrivilege[],
+  resolver?: (id: string) => object | undefined
+) {
   return params
     .filter(
       param =>
-        !hasPrivilegeOn({
-          user: param.user,
-          resource: param.resource,
-          action: param.action as SupportedActions<typeof param.resource>,
-          objects: param.objects,
-          userPrivileges,
-        })
+        !hasPrivilegeOn(
+          {
+            user: param.user,
+            resource: param.resource,
+            action: param.action as SupportedActions<typeof param.resource>,
+            objects: param.objects,
+            userPrivileges,
+          },
+          resolver
+        )
     )
     .map(({ action, objects, resource }) => {
       let objectIds: unknown[] | undefined
@@ -122,18 +132,25 @@ export function getMissingPrivileges(params: AnyPrivilegeOnParam[], userPrivileg
     })
 }
 
-export function hasPrivileges(params: AnyPrivilegeOnParam[], userPrivileges: AnyPrivilege[]) {
-  return getMissingPrivileges(params, userPrivileges).length === 0
+export function hasPrivileges(
+  params: AnyPrivilegeOnParam[],
+  userPrivileges: AnyPrivilege[],
+  resolver?: (id: string) => object | undefined
+) {
+  return getMissingPrivileges(params, userPrivileges, resolver).length === 0
 }
 
-export function filterObjectsWithPrivilege<Resource extends SupportedResource, Object extends object>(param: {
-  user: XoUser
-  resource: Resource
-  action: SupportedActions<Resource>
-  objects: Object[]
-  userPrivileges: AnyPrivilege[]
-}) {
-  return param.objects.filter(obj => hasPrivilegeOn({ ...param, objects: obj }))
+export function filterObjectsWithPrivilege<Resource extends SupportedResource, Object extends object>(
+  param: {
+    user: XoUser
+    resource: Resource
+    action: SupportedActions<Resource>
+    objects: Object[]
+    userPrivileges: AnyPrivilege[]
+  },
+  resolver?: (id: string) => object | undefined
+) {
+  return param.objects.filter(obj => hasPrivilegeOn({ ...param, objects: obj }, resolver))
 }
 
 // Utils

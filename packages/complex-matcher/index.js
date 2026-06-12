@@ -27,8 +27,8 @@ const isRawString = string => {
 // -------------------------------------------------------------------
 
 class Node {
-  createPredicate() {
-    return value => this.match(value)
+  createPredicate(resolver) {
+    return value => this.match(value, resolver)
   }
 }
 
@@ -55,8 +55,8 @@ class And extends Node {
     this.children = children
   }
 
-  match(value) {
-    return this.children.every(child => child.match(value))
+  match(value, resolver) {
+    return this.children.every(child => child.match(value, resolver))
   }
 
   toString(isNested) {
@@ -105,8 +105,8 @@ class Or extends Node {
     this.children = children
   }
 
-  match(value) {
-    return this.children.some(child => child.match(value))
+  match(value, resolver) {
+    return this.children.some(child => child.match(value, resolver))
   }
 
   toString() {
@@ -122,8 +122,8 @@ class Not extends Node {
     this.child = child
   }
 
-  match(value) {
-    return !this.child.match(value)
+  match(value, resolver) {
+    return !this.child.match(value, resolver)
   }
 
   toString() {
@@ -188,8 +188,8 @@ class Property extends Node {
     this.child = child
   }
 
-  match(value) {
-    return value != null && this.child.match(value[this.name])
+  match(value, resolver) {
+    return value != null && this.child.match(value[this.name], resolver)
   }
 
   toString() {
@@ -313,6 +313,54 @@ class TruthyProperty extends Node {
   }
 }
 exports.TruthyProperty = TruthyProperty
+
+class Resolve extends Node {
+  constructor(child, mode = 'some') {
+    super()
+
+    this.child = child
+    this.mode = mode
+  }
+
+  match(value, resolver) {
+    if (resolver === undefined) {
+      throw new Error('[resolve] requires a resolver')
+    }
+
+    if (value == null) {
+      return false
+    }
+
+    if (Array.isArray(value)) {
+      if (this.mode === 'some') {
+        return value.some(id => {
+          const obj = resolver(id)
+          return obj != null && this.child.match(obj, resolver)
+        })
+      } else if (this.mode === 'every') {
+        return value.every(id => {
+          const obj = resolver(id)
+          return obj != null && this.child.match(obj, resolver)
+        })
+      }
+
+      throw new Error(`${this.mode} mode not supported by resolve`)
+    }
+
+    const obj = resolver(value)
+    return obj != null && this.child.match(obj, resolver)
+  }
+
+  toString() {
+    if (this.mode === 'some') {
+      return `[resolve]:${this.child.toString(true)}`
+    } else if (this.mode === 'every') {
+      return `[resolve:all]:${this.child.toString(true)}`
+    }
+    throw new Error(`${this.mode} mode not supported by resolve`)
+  }
+}
+exports.Resolve = Resolve
 
 // -------------------------------------------------------------------
 
@@ -533,6 +581,8 @@ const parser = P.grammar({
       P.seq(P.regex(/[<>]=?/), r.rawString).map(([op, val]) => {
         return new Comparison(op, +val)
       }),
+      P.seq(P.text('[resolve]'), P.text(':'), r.ws, r.term).map(_ => new Resolve(_[3], 'some')),
+      P.seq(P.text('[resolve:all]'), P.text(':'), r.ws, r.term).map(_ => new Resolve(_[3], 'every')),
       P.seq(r.property, r.ws, P.text(':'), r.ws, r.term).map(_ => new Property(_[0], _[4])),
       P.seq(r.property, P.text('?')).map(_ => new TruthyProperty(_[0])),
       r.value
@@ -621,6 +671,24 @@ exports.getPropertyClausesStrings = function getPropertyClausesStrings(node) {
 }
 
 // -------------------------------------------------------------------
+
+exports.getResolveFields = function getResolveFields(node) {
+  const result = []
+
+  if (node instanceof Property) {
+    if (node.child instanceof Resolve) {
+      result.push({ name: node.name, resolveNode: node.child })
+    }
+  } else if (node instanceof And || node instanceof Or) {
+    node.children.forEach(childNode => {
+      result.push(...getResolveFields(childNode))
+    })
+  } else if (node instanceof Not) {
+    result.push(...getResolveFields(node.child))
+  }
+
+  return result
+}
 
 exports.setPropertyClause = function setPropertyClause(node, name, child) {
   const property = child && new Property(name, typeof child === 'string' ? new StringNode(child) : child)

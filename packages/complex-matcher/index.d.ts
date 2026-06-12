@@ -1,8 +1,8 @@
 export type ComparisonOperator = '>' | '>=' | '<' | '<='
 
 declare class BaseNode {
-  createPredicate(): (value: any) => boolean
-  match(value: any): boolean
+  createPredicate(resolver?: (id: string) => object | undefined): (value: any) => boolean
+  match(value: any, resolver?: (id: string) => object | undefined): boolean
   toString(isNested?: boolean): string
 }
 
@@ -74,10 +74,18 @@ export class TruthyProperty extends BaseNode {
   name: string
 }
 
+export class Resolve extends BaseNode {
+  constructor(child: BaseNode, mode: 'some' | 'every' = 'some')
+  child: BaseNode
+  mode: 'some' | 'every'
+}
+
 export function parse(input: string): Node
 
 export function getPropertyClausesStrings(node: Node): {
   [key: string]: string[]
 }
+
+export function getResolveFields(node: Node): { name: string; resolveNode: Resolve }[]
 
 export function setPropertyClause(node: Node | undefined, name: string, child: Node | string): Node

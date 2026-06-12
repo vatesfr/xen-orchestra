@@ -371,6 +371,7 @@ export type XoApp = {
   ): Promise<XoBackupRepository>
   getAllXapis(): Record<string, Xapi>
   getObjects(opts?: { filter?: Record<string, unknown>; limit?: number }): Record<string, XapiXoRecord>
+  getAnyObject(id: string): Promise<object | undefined>
   getLicenses(params?: { productType?: LicenseProductType }): Promise<License[]>
   bindLicense(params: { licenseId: string; boundObjectId: string }): Promise<License>
   unbindLicense(params: {
