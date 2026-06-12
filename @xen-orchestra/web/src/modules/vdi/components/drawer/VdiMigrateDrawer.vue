@@ -9,31 +9,21 @@
         <p class="section-title">{{ t('general-information') }}</p>
 
         <div class="field">
-          <label
-            class="field-label field-label--required"
-            :class="{ 'field-label--error': showError, 'field-label--warning': isOnDifferentHost }"
-          >
-            {{ t('destination-sr') }}
-          </label>
-          <select
-            v-model="destinationSrId"
-            class="select"
-            :class="{ 'select--error': showError, 'select--warning': isOnDifferentHost }"
-            @change="showError = false"
-          >
-            <option disabled value="">{{ t('action:select-storage') }}</option>
-            <option v-for="sr in availableSrs" :key="sr.id" :value="sr.id">
-              {{ getSrOptionLabel(sr) }}
-            </option>
-          </select>
-          <p v-if="showError" class="message message--error">
-            <VtsIcon name="status:danger-circle" size="current" />
-            {{ t('destination-sr-mandatory') }}
-          </p>
-          <p v-if="isOnDifferentHost" class="message message--warning">
-            <VtsIcon name="status:warning-circle" size="current" />
-            {{ t('vdi-on-different-sr-warning') }}
-          </p>
+          <VtsInputWrapper :label="t('destination-sr')" :message="srMessages" wrap-message>
+            <VtsSelect :id="srSelect.id" :accent="srSelectAccent">
+              <template #default="{ option }">
+                <VtsOption :option="option">
+                  <div class="sr-option">
+                    <VtsIcon :name="option.properties.icon" size="medium" />
+
+                    <span class="sr-option__label">
+                      <span>{{ option.properties.label }}</span>
+                    </span>
+                  </div>
+                </VtsOption>
+              </template>
+            </VtsSelect>
+          </VtsInputWrapper>
         </div>
       </div>
     </template>
@@ -41,7 +31,12 @@
     <template #buttons>
       <template v-if="!showError">
         <VtsDrawerCancelButton />
-        <VtsDrawerConfirmButton @click="handleConfirm">
+
+        <UiButton v-if="isOnDifferentHost" accent="warning" variant="primary" size="medium" @click="handleConfirm">
+          {{ t('action:force-migrate-on-sr') }}
+        </UiButton>
+
+        <VtsDrawerConfirmButton v-else @click="handleConfirm">
           {{ isOnDifferentHost ? t('action:force-migrate-on-sr') : t('action:migrate-vdi-on-sr') }}
         </VtsDrawerConfirmButton>
       </template>
@@ -50,18 +45,26 @@
 </template>
 
 <script lang="ts" setup>
+import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import {
   useXoSrCollection,
   type FrontXoSr,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.js'
+import type { DropdownAccent } from '@core/components/ui/dropdown/UiDropdown.vue'
+import VtsInputWrapper, { type InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import VtsOption from '@core/components/select/VtsOption.vue'
+import VtsSelect from '@core/components/select/VtsSelect.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
+import { type IconName } from '@core/icons'
+import { useFormSelect } from '@core/packages/form-select'
 import { formatSize } from '@core/utils/size.util.ts'
 import VtsDrawer from '@xen-orchestra/web-core/components/drawer/VtsDrawer.vue'
 import VtsDrawerCancelButton from '@xen-orchestra/web-core/components/drawer/VtsDrawerCancelButton.vue'
 import VtsDrawerConfirmButton from '@xen-orchestra/web-core/components/drawer/VtsDrawerConfirmButton.vue'
 import VtsIcon from '@xen-orchestra/web-core/components/icon/VtsIcon.vue'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
@@ -73,25 +76,85 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
+type SrOptionProperties = {
+  sr: FrontXoSr
+  label: string
+  location: string
+  freeSizeLabel: string
+  icon: IconName
+  accent?: DropdownAccent
+}
+
 const { t } = useI18n()
 
 const { srs, useGetSrById } = useXoSrCollection()
-
 const { getSrLocation } = useXoSrUtils()
+const { getPbdsByIds } = useXoPbdCollection()
 
-// For HTML <select>, '' is more stable than undefined
-const destinationSrId = ref<FrontXoSr['id'] | ''>('')
-
+const destinationSrId = ref<FrontXoSr['id']>()
 const showError = ref(false)
 
 // Exclude the VDI's current SR
 const availableSrs = computed(() => srs.value.filter((sr: FrontXoSr) => sr.id !== props.vdi.$SR))
 
+function getSrFreeSize(sr: FrontXoSr) {
+  return Math.max(sr.size - sr.physical_usage, 0)
+}
+
+function getSrStatusIcon(sr: FrontXoSr): IconName {
+  const pbds = getPbdsByIds(sr.$PBDs)
+
+  if (pbds.length === 0) {
+    return 'object:sr:unknown'
+  }
+
+  if (pbds.every(pbd => !pbd.attached)) {
+    return 'object:sr:disconnected'
+  }
+
+  if (pbds.some(pbd => !pbd.attached)) {
+    return 'object:sr:partially-connected'
+  }
+
+  return 'object:sr:connected'
+}
+
+function getCleanSrNameLabel(sr: FrontXoSr) {
+  return sr.name_label.replace(/[🌎❗!]/gu, '').trim()
+}
+
+function getSrOptionLabel(sr: FrontXoSr) {
+  const name = getCleanSrNameLabel(sr)
+  const location = getSrLocation(sr)
+  const freeSize = formatSize(getSrFreeSize(sr), 0)
+
+  return `${name} (${location}) - ${freeSize} left`
+}
+
+const srSelect = useFormSelect<FrontXoSr, SrOptionProperties, 'id'>(availableSrs, {
+  model: destinationSrId,
+  required: true,
+  searchable: true,
+  placeholder: () => t('action:select-storage'),
+  option: {
+    value: 'id',
+    label: sr => getSrOptionLabel(sr),
+    selectedLabel: sr => getSrOptionLabel(sr),
+    searchableTerm: sr => [getCleanSrNameLabel(sr), getSrLocation(sr), formatSize(getSrFreeSize(sr), 0)],
+    properties: sr => ({
+      sr,
+      label: getSrOptionLabel(sr),
+      location: getSrLocation(sr),
+      freeSizeLabel: formatSize(getSrFreeSize(sr), 0),
+      icon: getSrStatusIcon(sr),
+      accent: 'normal',
+    }),
+  },
+})
+
 const currentSr = useGetSrById(() => props.vdi.$SR)
 
-const selectedSrId = computed<FrontXoSr['id'] | undefined>(() => {
-  return destinationSrId.value === '' ? undefined : destinationSrId.value
-})
+const selectedSrId = computed(() => destinationSrId.value)
 
 const selectedSr = useGetSrById(selectedSrId)
 
@@ -99,6 +162,40 @@ const selectedSr = useGetSrById(selectedSrId)
 const isOnDifferentHost = computed(() => {
   if (!selectedSr.value || !currentSr.value) return false
   return selectedSr.value.$container !== currentSr.value.$container
+})
+
+const srSelectAccent = computed(() => {
+  if (showError.value) {
+    return 'danger'
+  }
+
+  if (isOnDifferentHost.value) {
+    return 'warning'
+  }
+
+  return 'brand'
+})
+
+const srMessages = computed<InputWrapperMessage | undefined>(() => {
+  if (showError.value) {
+    return {
+      content: t('destination-sr-mandatory'),
+      accent: 'danger',
+    }
+  }
+
+  if (isOnDifferentHost.value) {
+    return {
+      content: t('vdi-on-different-sr-warning'),
+      accent: 'warning',
+    }
+  }
+
+  return undefined
+})
+
+watch(destinationSrId, () => {
+  showError.value = false
 })
 
 function handleConfirm() {
@@ -109,17 +206,6 @@ function handleConfirm() {
   }
   showError.value = false
   emit('confirm', srId)
-}
-
-function getSrFreeSize(sr: FrontXoSr) {
-  return Math.max(sr.size - sr.physical_usage, 0)
-}
-
-function getSrOptionLabel(sr: FrontXoSr) {
-  const location = getSrLocation(sr)
-  const freeSize = formatSize(getSrFreeSize(sr), 0)
-
-  return `${sr.name_label} (${location}) - ${freeSize} left`
 }
 </script>
 
@@ -146,62 +232,18 @@ function getSrOptionLabel(sr: FrontXoSr) {
   gap: 0.8rem;
 }
 
-.field-label {
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: var(--color-neutral-txt-secondary);
-
-  &--required::after {
-    content: ' *';
-    color: var(--color-info-txt-base);
-  }
-
-  &--error {
-    color: var(--color-danger-txt-base);
-  }
-
-  &--warning {
-    color: var(--color-warning-txt-base);
-  }
-}
-
-.select {
-  width: 100%;
-  padding: 0.8rem 1.2rem;
-  border-radius: 0.4rem;
-  border: 0.1rem solid var(--color-neutral-border);
-  background-color: var(--color-neutral-background-primary);
-  color: var(--color-neutral-txt-primary);
-  font-size: 1.4rem;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b63bf' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 1.2rem center;
-  padding-right: 3.2rem;
-
-  &--error {
-    border-color: var(--color-danger-txt-base);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23a11d1d' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  }
-
-  &--warning {
-    border-color: var(--color-warning-txt-base);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23aa5b11' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  }
-}
-
-.message {
+.sr-option {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 1.2rem;
+  gap: 0.8rem;
+  min-width: 0;
+}
 
-  &--error {
-    color: var(--color-danger-txt-base);
-  }
-
-  &--warning {
-    color: var(--color-warning-txt-base);
-  }
+.sr-option__label {
+  overflow: hidden;
+  min-width: 0;
+  color: var(--color-neutral-txt-primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>
