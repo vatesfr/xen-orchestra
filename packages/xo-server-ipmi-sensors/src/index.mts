@@ -17,8 +17,10 @@ import {
   ReturnedSensorData,
   FinalSensorData,
   PluginConfiguration,
+  AvailableIpmiSensors,
 } from './types.mjs'
 import TTLCache from '@isaacs/ttlcache'
+import { createIpmiRestRoutes } from './rest-api.mjs'
 
 // ============================================================================
 // Constants
@@ -73,9 +75,9 @@ export const configurationPresets = {
 // ============================================================================
 // Plugin Class
 // ============================================================================
-class IpmiSensorsPlugin {
+export class IpmiSensorsPlugin {
   #configuredRulesByProduct: SensorRegexByProduct[]
-  readonly #xo: XoApp
+  readonly xo: XoApp
   // cache is type any because it handles itself
   #cache: TTLCache<any, any> = new TTLCache({
     ttl: IPMI_CACHE_TTL,
@@ -84,7 +86,7 @@ class IpmiSensorsPlugin {
 
   #unloadApiMethods: (() => void)[] = []
   constructor(xo: XoApp) {
-    this.#xo = xo
+    this.xo = xo
     this.#configuredRulesByProduct = []
     logger.info('Plugin initialized')
   }
@@ -102,7 +104,7 @@ class IpmiSensorsPlugin {
    */
   async load(): Promise<void> {
     this.#unloadApiMethods.push(
-      this.#xo.addApiMethod<[{ host: XoHost }], FinalSensorData>(
+      this.xo.addApiMethod<[{ host: XoHost }], FinalSensorData>(
         'ipmi-sensors.get_ipmi_sensors',
         this.getIpmiSensors.bind(this),
         {
@@ -111,19 +113,31 @@ class IpmiSensorsPlugin {
         }
       ),
       // replacement for the method in packages/xo-server/src/api/host.mjs
-      this.#xo.addApiMethod<[{ host: XoHost }], FinalSensorData>(
-        'host.getIpmiSensors',
-        this.getIpmiSensors.bind(this),
-        {
-          resolve: { host: ['id', 'host', 'administrate'] },
-          params: { id: { type: 'string' } },
-        }
-      )
+      this.xo.addApiMethod<[{ host: XoHost }], FinalSensorData>('host.getIpmiSensors', this.getIpmiSensors.bind(this), {
+        resolve: { host: ['id', 'host', 'administrate'] },
+        params: { id: { type: 'string' } },
+      }),
+      this.xo.registerRestRoutes(createIpmiRestRoutes(this))
     )
   }
 
-  async getIpmiSensors({ host }: { host: XoHost }): Promise<FinalSensorData> {
-    const xApiHost = this.#xo.getXapiObject<XoHost>(host, 'host')
+  async #fetchRawSensors(callIpmiPlugin: <T>(fn: string) => Promise<T>): Promise<ReturnedSensorData[]> {
+    const [stringifiedIpmiSensors, stringifiedIpmiLan] = await Promise.all([
+      callIpmiPlugin<string>('get_all_sensors'),
+      callIpmiPlugin<string>('get_ipmi_lan'),
+    ])
+    return [
+      ...(JSON.parse(stringifiedIpmiSensors) as ReturnedSensorData[]),
+      ...(JSON.parse(stringifiedIpmiLan) as ReturnedSensorData[]),
+    ]
+  }
+
+  #getIpmiContext(host: XoHost): {
+    productName: string
+    systemManufacturer: string
+    callIpmiPlugin: <T>(fn: string) => Promise<T>
+  } {
+    const xApiHost = this.xo.getXapiObject<XoHost>(host, 'host')
     const biosStrings = xApiHost.bios_strings
     let productName = biosStrings['system-product-name']?.toLowerCase() || ''
     const systemManufacturer = biosStrings['system-manufacturer']?.toLowerCase() || ''
@@ -131,10 +145,17 @@ class IpmiSensorsPlugin {
     if (systemManufacturer.includes('dell')) productName = 'dell'
     if (systemManufacturer.includes('lenovo')) productName = 'lenovo'
 
-    const data = this.#configuredRulesByProduct
     const callIpmiPlugin = async <T,>(fn: string): Promise<T> => {
       return await xApiHost.$xapi.call<T>(this.#cache, 'host.call_plugin', xApiHost.$ref, 'ipmitool.py', fn, {})
     }
+
+    return { productName, systemManufacturer, callIpmiPlugin }
+  }
+
+  async getIpmiSensors({ host }: { host: XoHost }): Promise<FinalSensorData> {
+    const { productName, callIpmiPlugin } = this.#getIpmiContext(host)
+
+    const data = this.#configuredRulesByProduct
 
     const ipmiDeviceAvailable = await callIpmiPlugin<string>('is_ipmi_device_available')
 
@@ -146,14 +167,9 @@ class IpmiSensorsPlugin {
       return {}
     }
 
-    const [stringifiedIpmiSensors, stringifiedIpmiLan] = await Promise.all([
-      callIpmiPlugin<string>('get_all_sensors'),
-      callIpmiPlugin<string>('get_ipmi_lan'),
-    ])
-    const ipmiSensors = JSON.parse(stringifiedIpmiSensors) as ReturnedSensorData[]
-    const ipmiLan = JSON.parse(stringifiedIpmiLan) as ReturnedSensorData[]
+    const sensors = await this.#fetchRawSensors(callIpmiPlugin)
     const ipmiSensorsByDataType: FinalSensorData = {}
-    for (const ipmiSensor of [...ipmiSensors, ...ipmiLan]) {
+    for (const ipmiSensor of sensors) {
       if (!isRelevantIpmiSensor(ipmiSensor, productName, this.#configuredRulesByProduct)) {
         continue
       }
@@ -179,6 +195,29 @@ class IpmiSensorsPlugin {
 
     return ipmiSensorsByDataType
   }
+
+  async getAvailableIpmiSensors({ host }: { host: XoHost }): Promise<AvailableIpmiSensors> {
+    const { productName, systemManufacturer, callIpmiPlugin } = this.#getIpmiContext(host)
+
+    const ipmiDeviceAvailable = (await callIpmiPlugin<string>('is_ipmi_device_available')) !== 'false'
+    if (!ipmiDeviceAvailable) {
+      return { productName, systemManufacturer, ipmiDeviceAvailable: false, sensors: [] }
+    }
+
+    const sensors = await this.#fetchRawSensors(callIpmiPlugin)
+    for (const sensor of sensors) {
+      // tags `sensor.dataType` with the matching data type, or 'unknown'
+      addIpmiSensorDataType(sensor, productName, this.#configuredRulesByProduct)
+    }
+
+    return {
+      productName,
+      systemManufacturer,
+      ipmiDeviceAvailable: true,
+      sensors: sensors as AvailableIpmiSensors['sensors'],
+    }
+  }
+
   /**
    * Unload and stop the plugin.
    */

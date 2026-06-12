@@ -14,6 +14,7 @@ import { type OpenAPIV3 } from 'openapi-types'
 import { createExternalRouter, sendObjects } from './router/external-router.mjs'
 
 export { sendObjects }
+export type { RouteDefinition } from './router/types.mjs'
 
 // Avoid using "import from" to import a json file as this requires assert/with and will break compatibility with recent node versions
 // https://github.com/nodejs/node/issues/51622

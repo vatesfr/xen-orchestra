@@ -191,10 +191,12 @@ export type XoApp = {
     method: (...args: A) => Promise<R>,
     //we use any since it is a legacy call, might be better typed in another pr
     info: {
-      resolve?: any
-      params?: any
+      resolve?: any // eslint-disable-line @typescript-eslint/no-explicit-any
+      params?: any // eslint-disable-line @typescript-eslint/no-explicit-any
     }
-  ) => () => void // eslint-disable-line @typescript-eslint/no-explicit-any
+  ) => () => void
+  // needs an any to avoid circular type reference, maybe redefine the types here ?
+  registerRestRoutes: (routes: any[], base?: string) => () => void // eslint-disable-line @typescript-eslint/no-explicit-any
   authenticateUser: (
     credentials: { token?: string; username?: string; password?: string },
     userData?: { ip?: string },
