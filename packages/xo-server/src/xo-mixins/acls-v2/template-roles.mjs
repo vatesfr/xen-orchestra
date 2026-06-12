@@ -106,5 +106,6 @@ export const NETWORK_ADMINISTRATOR = {
     { action: 'read', resource: 'pif', effect: 'allow' },
     { action: '*', resource: 'vif', effect: 'allow' },
     { action: 'read', resource: 'host', effect: 'allow' },
+    { action: 'read', resource: 'vm', effect: 'allow' },
   ],
 }
