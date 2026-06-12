@@ -32,7 +32,6 @@
 <script setup lang="ts">
 import { useDirectionLabels } from '@/modules/traffic-rules/composables/direction-labels.composable.ts'
 import { useTrafficRuleTarget } from '@/modules/traffic-rules/composables/traffic-rule-target.composable.ts'
-import { useTrafficRuleDeleteModal } from '@/modules/traffic-rules/composables/use-traffic-rule-delete-modal.composable.ts'
 import type { EnrichedTrafficRule } from '@/modules/traffic-rules/types.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -84,7 +83,7 @@ const enrichedRules = computed(() =>
       order: index + 1,
       directionA,
       directionB,
-      directionLabel: `${directionA} ${directionB}`,
+      direction: `${directionA} ${directionB}`,
       objectLabel: target.suffix ? `${target.label} ${target.suffix.label}` : target.label,
     }
   })
@@ -101,7 +100,7 @@ const schema = useQueryBuilderSchema<EnrichedTrafficRule>({
   }),
   protocol: useStringSchema(t('protocol')),
   port: useNumberSchema(t('port')),
-  directionLabel: useStringSchema(t('direction')),
+  direction: useStringSchema(t('direction')),
   ipRange: useStringSchema(t('target')),
   objectLabel: useStringSchema(t('object')),
 })
@@ -119,13 +118,6 @@ const state = useTableState({
 
 const { HeadCells, BodyCells } = useTrafficRulesColumns({
   body: (rule: EnrichedTrafficRule & { order: number }) => {
-    const {
-      openModal: openTrafficRuleDeleteModal,
-      canRun: canDeleteTrafficRule,
-      isRunning: isDeletingTrafficRule,
-      errorMessage: deleteTrafficRuleErrorMessage,
-    } = useTrafficRuleDeleteModal(() => [rule])
-
     return {
       order: r => r(rule.order),
       policy: r => r(rule.allow ? t('allow') : t('drop')),
@@ -134,20 +126,7 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
       target: r => r(rule.ipRange),
       directionB: r => r(rule.directionB),
       object: r => r(getTarget(rule)),
-      selectItem: r =>
-        r({
-          onClick: () => (selectedRuleId.value = rule.id),
-          actions: [
-            {
-              label: t('action:delete'),
-              icon: 'action:delete',
-              onClick: () => openTrafficRuleDeleteModal(),
-              disabled: !canDeleteTrafficRule.value,
-              busy: isDeletingTrafficRule.value,
-              hint: deleteTrafficRuleErrorMessage.value,
-            },
-          ],
-        }),
+      selectItem: r => r(() => (selectedRuleId.value = rule.id)),
     }
   },
 })
