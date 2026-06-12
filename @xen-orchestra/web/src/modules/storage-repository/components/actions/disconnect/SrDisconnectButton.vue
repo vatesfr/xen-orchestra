@@ -1,32 +1,29 @@
 <template>
-  <UiButton
-    v-tooltip="!canDisconnectSr && disconnectSrErrorMessage"
-    size="medium"
-    variant="tertiary"
-    accent="brand"
+  <MenuItem
+    icon="action:disconnect"
     :disabled="!canDisconnectSr"
-    left-icon="action:disconnect"
     :busy="isDisconnectingSr"
     @click="openSrDisconnectModal()"
   >
     {{ t('action:disconnect') }}
     <UiCounter
-      v-if="targetCount > (scope.type === 'pool' ? 0 : 1)"
+      v-if="targetCount > (scope.type === SR_SCOPE_TYPE.POOL ? 0 : 1)"
       :value="targetCount"
       accent="brand"
       variant="secondary"
       size="small"
     />
-  </UiButton>
+    <i v-if="hint">{{ hint }}</i>
+  </MenuItem>
 </template>
 
 <script lang="ts" setup>
 import { useSrDisconnectModal } from '@/modules/storage-repository/composables/use-sr-disconnect-modal.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { SrScope } from '@/modules/storage-repository/types/storage-repository.type'
-import UiButton from '@core/components/ui/button/UiButton.vue'
+import { SR_SCOPE_TYPE, type SrScope } from '@/modules/storage-repository/types/storage-repository.type'
+import MenuItem from '@core/components/menu/MenuItem.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { sr, scope } = defineProps<{
@@ -46,4 +43,6 @@ const {
   () => [sr],
   () => scope
 )
+
+const hint = computed(() => (!canDisconnectSr.value ? disconnectSrErrorMessage.value : undefined))
 </script>

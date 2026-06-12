@@ -18,15 +18,14 @@
 </template>
 
 <script lang="ts" setup>
-import { useSrModalMessages } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
+import { useSrModalMessages } from '@/modules/storage-repository/composables/use-sr-modal-messages.composable.ts'
 import type { SrAccessMode, SrScope } from '@/modules/storage-repository/types/storage-repository.type'
 import VtsModal from '@core/components/modal/VtsModal.vue'
 import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
 import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
-import { toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { count, scope, accessMode, hostsCount } = defineProps<{
   count: number
   scope: SrScope
   accessMode: SrAccessMode
@@ -37,9 +36,9 @@ const { t } = useI18n()
 
 const { title, info } = useSrModalMessages({
   action: 'disconnect',
-  count: toRef(props, 'count'),
-  scope: toRef(props, 'scope'),
-  accessMode: toRef(props, 'accessMode'),
-  hostsCount: toRef(props, 'hostsCount'),
+  count: () => count,
+  scope: () => scope,
+  accessMode: () => accessMode,
+  hostsCount: () => hostsCount,
 })
 </script>

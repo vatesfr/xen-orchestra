@@ -33,7 +33,7 @@ import {
   useXoSrCollection,
   type FrontXoSr,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { SrScope } from '@/modules/storage-repository/types/storage-repository.type'
+import { SR_SCOPE_TYPE, type SrScope } from '@/modules/storage-repository/types/storage-repository.type'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -146,13 +146,13 @@ const { HeadCells, BodyCells } = useSrColumns({
     )
 
     const connectLabel = computed(() =>
-      connectTargetCount.value > (scope.type === 'pool' ? 0 : 1)
+      connectTargetCount.value > (scope.type === SR_SCOPE_TYPE.POOL ? 0 : 1)
         ? t('action:connect-n', { n: connectTargetCount.value })
         : t('action:connect')
     )
 
     const disconnectLabel = computed(() =>
-      disconnectTargetCount.value > (scope.type === 'pool' ? 0 : 1)
+      disconnectTargetCount.value > (scope.type === SR_SCOPE_TYPE.POOL ? 0 : 1)
         ? t('action:disconnect-n', { n: disconnectTargetCount.value })
         : t('action:disconnect')
     )

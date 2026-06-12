@@ -2,8 +2,7 @@ import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host
 import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
 import { useXoPbdCollection, type FrontXoPbd } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { SrAccessMode, SrScope } from '@/modules/storage-repository/types/storage-repository.type'
-import { getSrModalMessageKeys } from '@/modules/storage-repository/utils/xo-sr.util.ts'
+import { SR_SCOPE_TYPE, type SrScope } from '@/modules/storage-repository/types/storage-repository.type'
 import { type IconName, objectIcon } from '@core/icons'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
@@ -15,7 +14,7 @@ export function useGetPbdsInScope() {
   function getPbdsInScope(sr: FrontXoSr, scope: SrScope): FrontXoPbd[] {
     const pbds = getPbdsByIds(sr.$PBDs)
 
-    if (scope.type === 'pool') {
+    if (scope.type === SR_SCOPE_TYPE.POOL) {
       return pbds
     }
 
@@ -53,37 +52,9 @@ export function useGetPbdsInScope() {
   }
 }
 
-export function useSrModalMessages(options: {
-  action: 'connect' | 'disconnect'
-  count: MaybeRefOrGetter<number>
-  scope: MaybeRefOrGetter<SrScope>
-  accessMode: MaybeRefOrGetter<SrAccessMode>
-  hostsCount: MaybeRefOrGetter<number>
-}) {
-  const { t } = useI18n()
-
-  const count = toComputed(options.count)
-  const scope = toComputed(options.scope)
-  const accessMode = toComputed(options.accessMode)
-  const hostsCount = toComputed(options.hostsCount)
-
-  const keys = computed(() =>
-    getSrModalMessageKeys({
-      action: options.action,
-      scope: scope.value,
-      accessMode: accessMode.value,
-    })
-  )
-
-  return {
-    title: computed(() => t(keys.value.titleKey, { n: count.value, hostsCount: hostsCount.value })),
-    info: computed(() => t(keys.value.infoKey, { n: count.value, hostsCount: hostsCount.value })),
-  }
-}
-
 export function useXoSrUtils(
   rawSr?: MaybeRefOrGetter<FrontXoSr | undefined>,
-  rawScope: MaybeRefOrGetter<SrScope> = { type: 'pool' }
+  rawScope: MaybeRefOrGetter<SrScope> = { type: SR_SCOPE_TYPE.POOL }
 ) {
   const { t } = useI18n()
 
