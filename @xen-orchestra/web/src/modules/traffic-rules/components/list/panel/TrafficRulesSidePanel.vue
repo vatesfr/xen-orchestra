@@ -2,6 +2,12 @@
   <VtsStateHero v-if="!isReady" format="panel" type="busy" size="medium" />
   <UiPanel v-else :class="{ 'mobile-drawer': uiStore.isSmall }">
     <template #header>
+      <VtsDeleteButton
+        :disabled="!canDeleteTrafficRule"
+        :busy="isDeletingTrafficRule"
+        class="delete-button"
+        @click="openTrafficRuleDeleteModal()"
+      />
       <div :class="{ 'action-buttons-container': uiStore.isSmall }">
         <UiButtonIcon
           v-tooltip="t('action:close')"
@@ -34,7 +40,9 @@ import TrafficRuleNetworkPifsCard from '@/modules/traffic-rules/components/list/
 import TrafficRuleSummaryCard from '@/modules/traffic-rules/components/list/panel/cards/TrafficRuleSummaryCard.vue'
 import TrafficRuleVifInfosCard from '@/modules/traffic-rules/components/list/panel/cards/TrafficRuleVifInfosCard.vue'
 import TrafficRuleVifNetworkInfoCard from '@/modules/traffic-rules/components/list/panel/cards/TrafficRuleVifNetworkInfoCard.vue'
+import { useTrafficRuleDeleteModal } from '@/modules/traffic-rules/composables/use-traffic-rule-delete-modal.composable.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
@@ -64,6 +72,12 @@ const vif = computed(() => (rule.type === 'VIF' ? getVifById(rule.sourceId) : un
 const network = computed(() => getNetworkById(rule.networkId))
 
 const isReady = logicAnd(areVifsReady, areNetworksReady)
+
+const {
+  openModal: openTrafficRuleDeleteModal,
+  canRun: canDeleteTrafficRule,
+  isRunning: isDeletingTrafficRule,
+} = useTrafficRuleDeleteModal(() => [rule])
 </script>
 
 <style scoped lang="postcss">
@@ -77,5 +91,9 @@ const isReady = logicAnd(areVifsReady, areNetworksReady)
     align-items: center;
     width: 100%;
   }
+}
+
+.delete-button {
+  margin-inline-end: auto;
 }
 </style>
