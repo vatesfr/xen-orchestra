@@ -67,6 +67,8 @@
 - [Backup/Restore] Fix file-level restore of VMs whose disks use LVM (e.g. the default Ubuntu install layout): logical volumes are now listed and can be restored, including when restoring several copies of the same VM at once — previously failed with `unknown filesystem type 'LVM2_member'` (PR [#9776](https://github.com/vatesfr/xen-orchestra/pull/9776))
 - [Backup/Restore] Fix file-level restore hanging when downloading large folders, and high memory use when downloading a folder as a zip (PR [#9776](https://github.com/vatesfr/xen-orchestra/pull/9776))
 
+- [VM/Advanced] Fix vGPU support where multiple GPU groups have the same vGPU type [#5750](https://github.com/vatesfr/xen-orchestra/issues/5750)
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
