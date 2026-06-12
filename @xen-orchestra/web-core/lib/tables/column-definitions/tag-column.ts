@@ -6,7 +6,7 @@ import type { HeaderConfig } from '@core/tables/types.ts'
 import type { MaybeArray } from '@core/types/utility.type'
 import { h } from 'vue'
 
-export const useTagColumn = defineColumn((config?: HeaderConfig & { getAccent: (value: string) => TagAccent }) => ({
+export const useTagColumn = defineColumn((config?: HeaderConfig & { getAccent?: (value: string) => TagAccent }) => ({
   renderHead: () => renderHeadCell(config?.headerIcon ?? 'fa:square-caret-down', config?.headerLabel),
   renderBody: (tag: MaybeArray<string>) =>
     h(VtsTagCell, {

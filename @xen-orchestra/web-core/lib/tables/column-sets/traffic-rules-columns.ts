@@ -1,3 +1,5 @@
+import type { TagAccent } from '@core/components/ui/tag/UiTag.vue'
+import { createMapper } from '@core/packages/mapper'
 import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useDoubleLinkColumn } from '@core/tables/column-definitions/double-link-column.ts'
 import { useNumberColumn } from '@core/tables/column-definitions/number-column.ts'
@@ -9,12 +11,13 @@ import { useI18n } from 'vue-i18n'
 
 export const useTrafficRulesColumns = defineColumns(() => {
   const { t } = useI18n()
+  const policyAccent = createMapper({ Allow: 'success', Drop: 'danger' } as Record<string, TagAccent>, 'info')
 
   return {
     order: useNumberColumn({ headerIcon: 'fa:hashtag' }),
     policy: useTagColumn({
       headerLabel: () => t('policy'),
-      getAccent: value => (value === t('allow') ? 'success' : 'danger'),
+      getAccent: value => policyAccent(value),
     }),
     protocol: useTextColumn({
       headerLabel: () => t('protocol:port'),
