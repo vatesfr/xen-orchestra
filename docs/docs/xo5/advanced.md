@@ -633,7 +633,7 @@ This is useful for MSP/multi-tenant scoping (one tag per customer), or to restri
 Two limitations to keep in mind:
 
 - **Tags containing commas**: tags are joined with commas, so a single tag named `a,b` is indistinguishable from the two tags `a` and `b` in the label value. Avoid commas in tags used for monitoring.
-- **Series continuity**: adding or removing a tag changes the `tags` label value, which starts a new Prometheus series for all the object's metrics (the previous series goes stale). Alerting rules with a `for:` clause will reset for that object when its tags change.
+- **Series continuity**: adding or removing a tag changes the `tags` label value, which starts a new Prometheus series for all the object's metrics (the previous series goes stale). Alerting rules with a `for:` clause will reset for that object when its tags change. This also applies once when upgrading to the first plugin version exposing this label: objects that already carry tags start new series at that point, while untagged objects are unaffected since the label is omitted for them.
   :::
 
 ### PromQL Query Examples
