@@ -9,7 +9,7 @@ import { DEFAULT_VDI } from './templates/vdi.mjs'
 import { DEFAULT_VIF } from './templates/vif.mjs'
 import { DEFAULT_VM } from './templates/vm.mjs'
 import toOvaXml from './_toOvaXml.mjs'
-import { XVA_DISK_CHUNK_LENGTH } from './_writeDisk.mjs'
+import { XVA_DISK_CHUNK_LENGTH } from './_constants.mjs'
 
 export default async function writeOvaXml(
   pack,
