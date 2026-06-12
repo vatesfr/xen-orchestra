@@ -98,14 +98,16 @@ export function useNewTrafficRuleForm(
   )
 
   const vmOptions = computed(() =>
-    poolVms.value.map(vm => {
-      return {
-        id: vm.id,
-        label: vm.name_label,
-        value: vm.id,
-        icon: objectIcon('vm', toLower(vm.power_state)),
-      }
-    })
+    poolVms.value
+      .filter(vm => vm.VIFs.length > 0)
+      .map(vm => {
+        return {
+          id: vm.id,
+          label: vm.name_label,
+          value: vm.id,
+          icon: objectIcon('vm', toLower(vm.power_state)),
+        }
+      })
   )
 
   const targetTypeOptions = [
