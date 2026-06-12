@@ -22,6 +22,6 @@ export const useTrafficRulesColumns = defineColumns(() => {
       headerLabel: () => t('direction'),
     }),
     object: useDoubleLinkColumn({ headerLabel: () => t('object') }),
-    selectItem: useActionColumn({}),
+    actions: useActionColumn({}),
   }
 })
