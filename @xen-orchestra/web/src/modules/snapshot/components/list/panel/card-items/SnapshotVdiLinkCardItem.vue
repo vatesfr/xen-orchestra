@@ -1,6 +1,6 @@
 <template>
   <UiLink
-    :to="{ name: '/vdi/[id]', params: { id: vdi.$snapshot_of }, query: { from: VDI_PAGE_CONTEXT.SNAPSHOT } }"
+    :to="{ name: '/vdi/[id]/general', params: { id: vdi.$snapshot_of }, query: { from: VDI_PAGE_CONTEXT.SNAPSHOT } }"
     :icon="vbdsSnapshotStatus"
     size="medium"
   >

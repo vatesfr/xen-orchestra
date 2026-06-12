@@ -35,7 +35,7 @@ import { useVdiDeleteModal } from '@/modules/vdi/composables/use-vdi-delete-moda
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { getVdiFormat, getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { CONNECTION_ACTION } from '@/shared/constants.ts'
+import { CONNECTION_ACTION, VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -130,7 +130,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
       vdi: r =>
         r({
           label: vdi.name_label,
-          to: { name: '/vdi/[id]', params: { id: vdi.id }, query: { from: 'vm' } },
+          to: { name: '/vdi/[id]/general', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.VM } },
           icon: getVdiIcon(getVbdsByIds(vdi.$VBDs)),
         }),
       description: r => r(vdi.name_description),

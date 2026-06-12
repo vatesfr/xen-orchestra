@@ -44,9 +44,9 @@
 <script lang="ts" setup>
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import VdiMoreActions from '@/modules/vdi/components/actions/VdiMoreActions.vue'
+import VdiPowerStateActions from '@/modules/vdi/components/actions/VdiPowerStateActions.vue'
 import VdiHeaderBreadcrumbLink from '@/modules/vdi/components/header/VdiHeaderBreadcrumbLink.vue'
-import VdiMoreActions from '@/modules/vdi/components/VdiMoreActions.vue'
-import VdiPowerStateActions from '@/modules/vdi/components/VdiPowerStateActions.vue'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -72,17 +72,3 @@ const { t } = useI18n()
 
 const { isChangingState, currentOperation } = useXoVmUtils(() => vm as FrontXoVm)
 </script>
-
-<style lang="postcss" scoped>
-.breadcrumb-container {
-  min-height: 5.6rem;
-  padding: 1.2rem 1.6rem;
-  display: flex;
-  gap: 1.6rem;
-  align-items: center;
-  border-bottom: 0.1rem solid var(--color-neutral-border);
-  background-color: var(--color-neutral-background-primary);
-  justify-content: space-between;
-  overflow-y: auto;
-}
-</style>
