@@ -307,20 +307,14 @@ class AuditXoPlugin {
     )
 
     cleaners.push(
-      this._xo.registerRestApi(
-        {
-          records: {
-            ':id': {
-              _get: async (req, _, next) => {
-                const record = await this._auditCore.get(req.params.id)
-                if (record !== undefined) {
-                  return record
-                }
-                next()
-              },
-            },
-
-            _get: async function* ({ query }) {
+      this._xo.registerRestRoutes(
+        [
+          {
+            endpoint: '/records',
+            method: 'get',
+            tags: ['audit'],
+            callback: async function* ({ req }) {
+              const { query } = req
               const limit = query.limit === undefined ? Infinity : +query.limit
               const filter = query.filter === undefined ? () => true : CM.parse(query.filter).createPredicate()
 
@@ -336,8 +330,20 @@ class AuditXoPlugin {
               }
             }.bind(this),
           },
-        },
-        '/plugins/audit'
+          {
+            endpoint: '/records/{id}',
+            method: 'get',
+            tags: ['audit'],
+            callback: async ({ req, next }) => {
+              const record = await this._auditCore.get(req.params.id)
+              if (record !== undefined) {
+                return record
+              }
+              next()
+            },
+          },
+        ],
+        '/audit'
       )
     )
   }
