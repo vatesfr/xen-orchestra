@@ -1,5 +1,10 @@
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { SrAccessMode, SrScope } from '@/modules/storage-repository/types/storage-repository.type'
+import {
+  SR_ACCESS_MODE,
+  SR_SCOPE_TYPE,
+  type SrAccessMode,
+  type SrScope,
+} from '@/modules/storage-repository/types/storage-repository.type'
 
 export function isSrWritable(sr: FrontXoSr) {
   return sr.content_type !== 'iso' && sr.size > 0
@@ -10,47 +15,30 @@ export function getSrAccessMode(srs: FrontXoSr[]): SrAccessMode {
   const hasLocal = srs.some(sr => !sr.shared)
 
   if (hasShared && hasLocal) {
-    return 'mixed'
+    return SR_ACCESS_MODE.MIXED
   }
 
   if (hasShared) {
-    return 'shared'
+    return SR_ACCESS_MODE.SHARED
   }
 
-  return 'local'
+  return SR_ACCESS_MODE.LOCAL
 }
 
-export function getSrModalMessageKeys(params: {
-  action: 'connect' | 'disconnect'
-  scope: SrScope
-  accessMode: SrAccessMode
-}): { titleKey: string; infoKey: string } {
-  const prefix = params.action === 'connect' ? 'sr-connect' : 'sr-disconnect'
-  const titleKey = `${prefix}-title`
+export type SrModalInfoVariant = 'host' | 'pool-local' | 'pool-mixed' | 'pool-shared'
 
-  if (params.scope.type === 'host') {
-    return {
-      titleKey,
-      infoKey: `${prefix}-info-host`,
-    }
+export function getSrModalInfoVariant(scope: SrScope, accessMode: SrAccessMode): SrModalInfoVariant {
+  if (scope.type === SR_SCOPE_TYPE.HOST) {
+    return 'host'
   }
 
-  if (params.accessMode === 'local') {
-    return {
-      titleKey,
-      infoKey: `${prefix}-info-pool-local`,
-    }
+  if (accessMode === SR_ACCESS_MODE.LOCAL) {
+    return 'pool-local'
   }
 
-  if (params.accessMode === 'mixed') {
-    return {
-      titleKey,
-      infoKey: `${prefix}-info-pool-mixed`,
-    }
+  if (accessMode === SR_ACCESS_MODE.MIXED) {
+    return 'pool-mixed'
   }
 
-  return {
-    titleKey,
-    infoKey: `${prefix}-info-pool-shared`,
-  }
+  return 'pool-shared'
 }

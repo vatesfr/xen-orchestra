@@ -9,12 +9,7 @@
             <UiButtonIcon icon="action:more-actions" accent="brand" size="medium" @click="open($event)" />
           </template>
           <SrDisconnectButton :sr :scope />
-          <VtsDeleteButton
-            class="sr-delete-button"
-            :disabled="!canDeleteSr"
-            :busy="isDeletingSr"
-            @click="openSrDeleteModal()"
-          />
+          <SrDeleteButton :sr />
         </MenuList>
       </div>
 
@@ -44,6 +39,7 @@
 import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import SrConnectButton from '@/modules/storage-repository/components/actions/connect/SrConnectButton.vue'
+import SrDeleteButton from '@/modules/storage-repository/components/actions/delete/SrDeleteButton.vue'
 import SrDisconnectButton from '@/modules/storage-repository/components/actions/disconnect/SrDisconnectButton.vue'
 import StorageRepositoryCustomFieldsCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositoryCustomFieldsCard.vue'
 import StorageRepositoryHostsCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositoryHostsCard.vue'
@@ -51,12 +47,10 @@ import StorageRepositoryInfosCard from '@/modules/storage-repository/components/
 import StorageRepositoryPbdsCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositoryPbdsCard.vue'
 import StorageRepositorySpaceCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositorySpaceCard.vue'
 import StorageRepositoryVdisCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositoryVdisCard.vue'
-import { useSrDeleteModal } from '@/modules/storage-repository/composables/use-sr-delete-modal.composable.ts'
 import { useGetPbdsInScope } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { SrScope } from '@/modules/storage-repository/types/storage-repository.type'
 import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
@@ -117,8 +111,6 @@ const customFields = computed(() => {
     return acc
   }, {})
 })
-
-const { openModal: openSrDeleteModal, canRun: canDeleteSr, isRunning: isDeletingSr } = useSrDeleteModal(() => [sr])
 </script>
 
 <style scoped lang="postcss">
