@@ -46,12 +46,13 @@ import { BackupRepositoryService } from './backup-repository.service.mjs'
 @provide(BackupRepositoryController)
 export class BackupRepositoryController extends XoController<XoBackupRepository> {
   #backupRepositoryService: BackupRepositoryService
+
   constructor(
     @inject(RestApi) restApi: RestApi,
-    @inject(BackupRepositoryService) backupRepositoriesService: BackupRepositoryService
+    @inject(BackupRepositoryService) backupRepositoryService: BackupRepositoryService
   ) {
     super('backup-repository', restApi)
-    this.#backupRepositoryService = backupRepositoriesService
+    this.#backupRepositoryService = backupRepositoryService
   }
 
   // --- abstract methods
@@ -122,8 +123,8 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
-  @Post('{id}/actions/forget')
   @Extension('x-mcp-exposure', 'confirm')
+  @Post('{id}/actions/forget')
   @Middlewares(
     acl({
       resource: 'backup-repository',

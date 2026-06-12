@@ -1,10 +1,12 @@
-import { AnyXoBackupJob, XoBackupRepository } from '@vates/types'
+import type { AnyXoBackupJob, XoBackupRepository } from '@vates/types'
 import { RestApi } from '../rest-api/rest-api.mjs'
+import { provide } from 'inversify-binding-decorators'
+import { inject } from 'inversify'
 
 export class BackupRepositoryService {
   #restApi: RestApi
 
-  constructor(restApi: RestApi) {
+  constructor(@inject(RestApi) restApi: RestApi) {
     this.#restApi = restApi
   }
   isBackupRepositoryReferenced(
