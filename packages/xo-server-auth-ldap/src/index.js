@@ -11,6 +11,9 @@ const logger = createLogger('xo:xo-server-auth-ldap')
 
 // ===================================================================
 
+const CONNECT_TIMEOUT_MS = 5000
+const FAILOVER_ERRORS = new Set(['ECONNREFUSED', 'ETIMEDOUT', 'EHOSTUNREACH', 'ECONNRESET', 'ENOTFOUND'])
+
 const { escape } = Filter.prototype
 
 function isDnField(field) {
@@ -30,67 +33,7 @@ const evalFilter = (filter, vars) =>
     return escape(value)
   })
 
-export const configurationSchema = {
-  type: 'object',
-  properties: {
-    uri: {
-      title: 'URI',
-      description: 'URI of the LDAP server.',
-      type: 'string',
-    },
-    certificateAuthorities: {
-      title: 'Certificate Authorities',
-      description: `
-Paths to CA certificates to use when connecting to SSL-secured LDAP servers.
-
-If not specified, it will use a default set of well-known CAs.
-`.trim(),
-      type: 'array',
-      items: {
-        type: 'string',
-      },
-    },
-    checkCertificate: {
-      title: 'Check certificate',
-      description:
-        "Enforce the validity of the server's certificates. You can disable it when connecting to servers that use a self-signed certificate.",
-      type: 'boolean',
-      default: true,
-    },
-    startTls: {
-      title: 'Use StartTLS',
-      type: 'boolean',
-    },
-    base: {
-      title: 'Base',
-      description: 'The base is the part of the description tree where the users and groups are looked for.',
-      type: 'string',
-    },
-    bind: {
-      title: 'Credentials',
-      description: 'Credentials to use before looking for the user record.',
-      type: 'object',
-      properties: {
-        dn: {
-          description: `
-Full distinguished name of the user permitted to search the LDAP directory for the user to authenticate.
-
-Example: uid=xoa-auth,ou=people,dc=company,dc=net
-
-For Microsoft Active Directory, it can also be \`<user>@<domain>\`.
-`.trim(),
-          type: 'string',
-        },
-        password: {
-          description: 'Password of the user permitted of search the LDAP directory.',
-          type: 'string',
-        },
-      },
-      required: ['dn', 'password'],
-    },
-    filter: {
-      title: 'User filter',
-      description: `
+const FILTER_DESCRIPTION = `
 Filter used to find the user.
 
 For LDAP if you want to filter for a special group you can try
@@ -108,63 +51,139 @@ For Microsoft Active Directory, you can try one of the following filters:
 Or something like this if you also want to filter by group:
 
 - \`(&(sAMAccountName={{name}})(memberOf=<group DN>))\`
-`.trim(),
+`.trim()
+
+const DOMAIN_PROPERTIES = {
+  uri: {
+    title: 'URI',
+    description: 'URI of the LDAP server.',
+    type: 'string',
+  },
+  failoverUris: {
+    title: 'Failover URIs',
+    description: 'Backup URIs tried in order on TCP-level failure of the primary URI.',
+    type: 'array',
+    items: {
       type: 'string',
-      default: '(uid={{name}})',
-    },
-    userIdAttribute: {
-      title: 'ID attribute',
-      description: 'Attribute used to map LDAP user to XO user. Must be unique. e.g.: `dn`',
-      type: 'string',
-    },
-    groups: {
-      title: 'Synchronize groups',
-      description: 'Import groups from LDAP directory',
-      type: 'object',
-      properties: {
-        base: {
-          title: 'Base',
-          description: 'Where to look for the groups.',
-          type: 'string',
-        },
-        filter: {
-          title: 'Filter',
-          description: 'Filter used to find the groups. e.g.: `(objectClass=groupOfNames)`',
-          type: 'string',
-        },
-        idAttribute: {
-          title: 'ID attribute',
-          description: 'Attribute used to map LDAP group to XO group. Must be unique. e.g.: `gid`',
-          type: 'string',
-        },
-        displayNameAttribute: {
-          title: 'Display name attribute',
-          description: "Attribute used to determine the group's name in XO. e.g.: `cn`",
-          type: 'string',
-        },
-        membersMapping: {
-          title: 'Members mapping',
-          type: 'object',
-          properties: {
-            groupAttribute: {
-              title: 'Group attribute',
-              description:
-                'Attribute used to find the members of a group. e.g.: `memberUid`. The values must reference the user IDs (cf. user ID attribute)',
-              type: 'string',
-            },
-            userAttribute: {
-              title: 'User attribute',
-              description: 'User attribute used to match group members to the users. e.g.: `uidNumber`',
-              type: 'string',
-            },
-          },
-          required: ['groupAttribute', 'userAttribute'],
-        },
-      },
-      required: ['base', 'filter', 'idAttribute', 'displayNameAttribute', 'membersMapping'],
     },
   },
-  required: ['uri', 'base', 'userIdAttribute'],
+  certificateAuthorities: {
+    title: 'Certificate Authorities',
+    description: `
+Paths to CA certificates to use when connecting to SSL-secured LDAP servers.
+
+If not specified, it will use a default set of well-known CAs.
+`.trim(),
+    type: 'array',
+    items: {
+      type: 'string',
+    },
+  },
+  checkCertificate: {
+    title: 'Check certificate',
+    description:
+      "Enforce the validity of the server's certificates. You can disable it when connecting to servers that use a self-signed certificate.",
+    type: 'boolean',
+    default: true,
+  },
+  startTls: {
+    title: 'Use StartTLS',
+    type: 'boolean',
+  },
+  base: {
+    title: 'Base',
+    description: 'The base is the part of the description tree where the users and groups are looked for.',
+    type: 'string',
+  },
+  bind: {
+    title: 'Credentials',
+    description: 'Credentials to use before looking for the user record.',
+    type: 'object',
+    properties: {
+      dn: {
+        description: `
+Full distinguished name of the user permitted to search the LDAP directory for the user to authenticate.
+
+Example: uid=xoa-auth,ou=people,dc=company,dc=net
+
+For Microsoft Active Directory, it can also be \`<user>@<domain>\`.
+`.trim(),
+        type: 'string',
+      },
+      password: {
+        description: 'Password of the user permitted of search the LDAP directory.',
+        type: 'string',
+      },
+    },
+    required: ['dn', 'password'],
+  },
+  filter: {
+    title: 'User filter',
+    description: FILTER_DESCRIPTION,
+    type: 'string',
+    default: '(uid={{name}})',
+  },
+  userIdAttribute: {
+    title: 'ID attribute',
+    description: 'Attribute used to map LDAP user to XO user. Must be unique. e.g.: `dn`',
+    type: 'string',
+  },
+  groups: {
+    title: 'Synchronize groups',
+    description: 'Import groups from LDAP directory',
+    type: 'object',
+    properties: {
+      base: {
+        title: 'Base',
+        description: 'Where to look for the groups.',
+        type: 'string',
+      },
+      filter: {
+        title: 'Filter',
+        description: 'Filter used to find the groups. e.g.: `(objectClass=groupOfNames)`',
+        type: 'string',
+      },
+      idAttribute: {
+        title: 'ID attribute',
+        description: 'Attribute used to map LDAP group to XO group. Must be unique. e.g.: `gid`',
+        type: 'string',
+      },
+      displayNameAttribute: {
+        title: 'Display name attribute',
+        description: "Attribute used to determine the group's name in XO. e.g.: `cn`",
+        type: 'string',
+      },
+      membersMapping: {
+        title: 'Members mapping',
+        type: 'object',
+        properties: {
+          groupAttribute: {
+            title: 'Group attribute',
+            description:
+              'Attribute used to find the members of a group. e.g.: `memberUid`. The values must reference the user IDs (cf. user ID attribute)',
+            type: 'string',
+          },
+          userAttribute: {
+            title: 'User attribute',
+            description: 'User attribute used to match group members to the users. e.g.: `uidNumber`',
+            type: 'string',
+          },
+        },
+        required: ['groupAttribute', 'userAttribute'],
+      },
+    },
+    required: ['base', 'filter', 'idAttribute', 'displayNameAttribute', 'membersMapping'],
+  },
+}
+
+const DOMAIN_REQUIRED = ['uri', 'base', 'userIdAttribute']
+
+export const configurationSchema = {
+  type: 'object',
+  properties: {
+    ...DOMAIN_PROPERTIES,
+  },
+  required: DOMAIN_REQUIRED,
 }
 
 export const testSchema = {
@@ -221,6 +240,29 @@ class AuthLdap {
     this._startTls = startTls
     this._groupsConfig = groups
     this._userIdAttribute = userIdAttribute
+    this._failoverUris = conf.failoverUris ?? []
+  }
+
+  // Failover only triggers on TCP-level errors; for plain ldap:// without StartTLS the
+  // connection is lazy and errors surface at bind() time, not here.
+  async _connectWithFailover() {
+    const uris = [this._clientOpts.url, ...this._failoverUris]
+    let lastError
+    for (const uri of uris) {
+      const client = new Client({ ...this._clientOpts, url: uri, connectTimeout: CONNECT_TIMEOUT_MS })
+      try {
+        if (this._startTls) {
+          await client.startTLS(this._tlsOptions)
+        }
+        return client
+      } catch (err) {
+        await client.unbind().catch(() => {})
+        if (!FAILOVER_ERRORS.has(err.code)) throw err
+        lastError = err
+        logger.warn(`LDAP URI ${uri} unreachable (${err.code}), trying next…`)
+      }
+    }
+    throw lastError
   }
 
   load() {
@@ -255,13 +297,9 @@ class AuthLdap {
       return null
     }
 
-    const client = new Client(this._clientOpts)
+    const client = await this._connectWithFailover()
 
     try {
-      if (this._startTls) {
-        await client.startTLS(this._tlsOptions)
-      }
-
       // Bind if necessary.
       {
         const { _credentials: credentials } = this
@@ -328,13 +366,9 @@ class AuthLdap {
 
   // Synchronize user's groups OR all groups if no user is passed
   async _synchronizeGroups(user, memberId) {
-    const client = new Client(this._clientOpts)
+    const client = await this._connectWithFailover()
 
     try {
-      if (this._startTls) {
-        await client.startTLS(this._tlsOptions)
-      }
-
       // Bind if necessary.
       {
         const { _credentials: credentials } = this
