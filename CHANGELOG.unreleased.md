@@ -50,7 +50,7 @@
 - [XO6/VDI] Update actions name to be more consistent (PR [#9968](https://github.com/vatesfr/xen-orchestra/pull/9968))
 - [SR] Storage repositories can now be deleted from the Pool/Host Storage tab (PR [#9853](https://github.com/vatesfr/xen-orchestra/pull/9853))
 - [SR] Storage repositories can now be disconnected from the Pool/Host Storage tab (PR [#9856](https://github.com/vatesfr/xen-orchestra/pull/9856))
-- [web] update size of `third party apps` button (PR [#9850](https://github.com/vatesfr/xen-orchestra/pull/9850))
+- [Dropdown Button] `UiDropdownButton` now support multiple sizes (PR [#9850](https://github.com/vatesfr/xen-orchestra/pull/9850))
 
 ### Bug fixes
 
