@@ -15,7 +15,7 @@ export const useActionColumn = defineColumn((config: HeaderConfig & Partial<Butt
       buttonIcon: toValue(config.buttonIcon ?? 'fa:eye'),
       buttonAccent: toValue(config.buttonAccent),
       buttonSize: toValue(config.buttonSize),
-      actions: params.actions,
+      actions: params.actions ?? [],
       onClick: params.onClick,
     }),
 }))
