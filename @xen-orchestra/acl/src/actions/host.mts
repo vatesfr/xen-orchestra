@@ -9,6 +9,10 @@ export default {
   },
   'join-pool': true,
   read: true,
+  ipmi: {
+    sensorsList: true,
+  },
+  remove: true,
   update: {
     tags: true,
   },

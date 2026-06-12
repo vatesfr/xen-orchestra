@@ -12,6 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [load-balancer] VM migrations triggered by the load balancer can now be monitored with tasks (PR [#9909](https://github.com/vatesfr/xen-orchestra/pull/9909))
+- [IPMI-Plugin] Add `GET hosts/{id}/ipmi-sensors` REST route exposing the raw IPMI sensor inventory of a host, so sensor regex rules can be authored without using a CLI (PR [#XXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
 - [IPMI-Plugin] Add default outlet regex to the dell preset (PR [#9884](https://github.com/vatesfr/xen-orchestra/pull/9884))
 - [REST API] Expose `POST /backup-repositories` and `PATCH /backup-repositories/:id` REST routes (PR [#9852](https://github.com/vatesfr/xen-orchestra/pull/9852))
 - [REST API] Expose `POST /backup-repositories/:id/actions/forget` REST route (PR [#9846] (https://github.com/vatesfr/xen-orchestra/pull/9846))
@@ -55,7 +56,6 @@
 - [REST API/RBAC] Add a built-in **Network administrator** role template: manage networks and VIFs, read and update PIFs (PR [#9952](https://github.com/vatesfr/xen-orchestra/pull/9952))
 - [Dashboard] Fix StateHero component's behavior on mobile to force vertical variant on mobile (PR [#9363](https://github.com/vatesfr/xen-orchestra/pull/9363))
 - [RBAC] Add Administrator template role (PR [#9885](https://github.com/vatesfr/xen-orchestra/pull/9885))
-
 
 ### Bug fixes
 

@@ -4,6 +4,7 @@
     "url": "https://vates.fr"
   },
   "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
   "name": "@xen-orchestra/rest-api",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/rest-api",
   "version": "0.33.0",
