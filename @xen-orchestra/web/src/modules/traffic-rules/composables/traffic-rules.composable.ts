@@ -27,17 +27,19 @@ export function useTrafficRules(
       (networkA.name_label ?? '').localeCompare(networkB.name_label ?? '')
     )
 
-    const sortedVifs = [...vifs.value].sort((vifA, vifB) => {
-      const vmNameLabelA = getVmById(vifA.$VM)?.name_label ?? ''
-      const vmNameLabelB = getVmById(vifB.$VM)?.name_label ?? ''
-      const vmComparison = vmNameLabelA.localeCompare(vmNameLabelB)
+    const sortedVifs = [...vifs.value]
+      .filter(vif => getVmById(vif.$VM))
+      .sort((vifA, vifB) => {
+        const vmNameLabelA = getVmById(vifA.$VM)?.name_label ?? ''
+        const vmNameLabelB = getVmById(vifB.$VM)?.name_label ?? ''
+        const vmComparison = vmNameLabelA.localeCompare(vmNameLabelB)
 
-      if (vmComparison !== 0) {
-        return vmComparison
-      }
+        if (vmComparison !== 0) {
+          return vmComparison
+        }
 
-      return Number(vifA.device) - Number(vifB.device)
-    })
+        return Number(vifA.device) - Number(vifB.device)
+      })
 
     return [
       ...sortedNetworks.flatMap(network =>
