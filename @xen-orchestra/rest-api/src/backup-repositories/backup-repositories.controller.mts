@@ -4,6 +4,7 @@ import {
   Extension,
   Get,
   Middlewares,
+  Patch,
   Path,
   Post,
   Query,
@@ -16,8 +17,8 @@ import {
 } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
-import { Request as ExRequest } from 'express'
-import type { XoBackupRepository } from '@vates/types'
+import { Request as ExRequest, json } from 'express'
+import type { XoApp, XoBackupRepository } from '@vates/types'
 import { forbiddenOperation } from 'xo-common/api-errors.js'
 
 import { acl, actionsFromBody } from '../middlewares/acl.middleware.mjs'
@@ -41,6 +42,8 @@ import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { BackupRepositoryService } from './backup-repository.service.mjs'
+import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
+import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 
 @Route('backup-repositories')
 @Security('*')
@@ -154,6 +157,7 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
+  @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/forget')
   @Middlewares(
@@ -167,17 +171,27 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  async forgetBackupRepository(@Path() id: string): Promise<void> {
+  async forgetBackupRepository(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const repositoryId = id as XoBackupRepository['id']
 
-    const referencingJobs = await this.#backupRepositoryService.getReferencingJobs(repositoryId)
-    if (referencingJobs.length > 0) {
-      throw forbiddenOperation(
-        'forget backup repository',
-        `repository is referenced by ${referencingJobs.length} backup job(s): ${referencingJobs.join(', ')}`
-      )
+    const action = async () => {
+      const referencingJobs = await this.#backupRepositoryService.getReferencingJobs(repositoryId)
+      if (referencingJobs.length > 0) {
+        throw forbiddenOperation(
+          'forget backup repository',
+          `repository is referenced by ${referencingJobs.length} backup job(s): ${referencingJobs.join(', ')}`
+        )
+      }
+      await this.restApi.xoApp.removeRemote(repositoryId)
     }
-    await this.restApi.xoApp.removeRemote(repositoryId)
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'forget backup repository',
+        objectId: repositoryId,
+      },
+    })
   }
   /** Required privileges:
    * - resource: backup-repository, action: update (grants all fields)
