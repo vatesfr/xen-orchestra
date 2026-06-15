@@ -13,6 +13,7 @@
 
 - [IPMI-Plugin] Add default outlet regex to the dell preset (PR [#9884](https://github.com/vatesfr/xen-orchestra/pull/9884))
 - [REST API] Expose `POST /backup-repositories` and `PATCH /backup-repositories/:id` REST routes (PR [#9852](https://github.com/vatesfr/xen-orchestra/pull/9852))
+- [REST API] Expose `POST /backup-repositories/:id/actions/forget` REST route (PR [#9846] (https://github.com/vatesfr/xen-orchestra/pull/9846))
 - [SDN Controller] Replace xapi.objects.all with specified object types to avoid filtering through all objects each time (PR [#9886](https://github.com/vatesfr/xen-orchestra/pull/9886))
 - **RBAC** check for REST API endpoints:
   - `POST /vbds` (PR [#9904](https://github.com/vatesfr/xen-orchestra/pull/9904))
