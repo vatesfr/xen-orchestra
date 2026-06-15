@@ -1,7 +1,7 @@
 import { useUiStore } from '@core/stores/ui.store'
 import { useLocalStorage } from '@vueuse/core'
 import { defineStore } from 'pinia'
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 
 export const usePanelStore = defineStore('panel', () => {
   const uiStore = useUiStore()
@@ -9,7 +9,8 @@ export const usePanelStore = defineStore('panel', () => {
   const isLocked = useLocalStorage('panel.locked', true)
 
   const cssHorizontalOffset = computed(() => (isExpanded.value ? 0 : '100%'))
-  const actsAsFloating = computed(() => uiStore.isSmall || !isLocked.value)
+  /* Panel closes automatically when it has no content (true on small UI or when not locked) */
+  const syncsOpenStateWithSelection = computed(() => uiStore.isSmall || !isLocked.value)
 
   function expand() {
     isExpanded.value = true
@@ -20,7 +21,7 @@ export const usePanelStore = defineStore('panel', () => {
   }
 
   function syncWithSelection(hasSelection: boolean) {
-    if (!actsAsFloating.value) {
+    if (!syncsOpenStateWithSelection.value) {
       return
     }
     if (!hasSelection && isExpanded.value) {
@@ -38,10 +39,21 @@ export const usePanelStore = defineStore('panel', () => {
     }
   }
 
+  watch(
+    () => uiStore.isSmall,
+    isSmall => {
+      /* Expand when coming back from small to large UI, if locked and not expanded */
+      if (!isSmall && isLocked.value && !isExpanded.value) {
+        expand()
+      }
+    },
+    { immediate: true }
+  )
+
   return {
     isExpanded,
     isLocked,
-    actsAsFloating,
+    syncsOpenStateWithSelection,
     expand,
     collapse,
     toggleLock,

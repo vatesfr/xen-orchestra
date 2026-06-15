@@ -71,7 +71,7 @@ const isReady = logicAnd(areVdisReady, areHostsReady, arePbdsReady, areVdiSnapsh
 
 const vdis = useGetVdisByIds(() => (sr?.VDIs ?? []) as XoVdi['id'][])
 
-const vdiSnapshots = useGetVdiSnapshotsByIds(() => sr.VDIs as FrontXoVdiSnapshot['id'][])
+const vdiSnapshots = useGetVdiSnapshotsByIds(() => (sr?.VDIs ?? []) as FrontXoVdiSnapshot['id'][])
 
 const { getSrPbdsSignature } = useGetPbdsInScope()
 

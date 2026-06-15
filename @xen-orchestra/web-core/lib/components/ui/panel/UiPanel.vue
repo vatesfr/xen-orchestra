@@ -26,9 +26,12 @@ const slots = defineSlots<{
   display: flex;
   flex-direction: column;
   border-inline-start: 0.1rem solid var(--color-neutral-border);
+  border-block-end: 0.1rem solid var(--color-neutral-border);
+  border-end-start-radius: 0.8rem;
   background-color: var(--color-neutral-background-secondary);
 
   .header {
+    flex-shrink: 0;
     padding: 0.4rem 1.6rem;
     border-bottom: 0.1rem solid var(--color-neutral-border);
     background-color: var(--color-neutral-background-primary);
@@ -42,6 +45,7 @@ const slots = defineSlots<{
     flex-direction: column;
     padding: 0.8rem;
     gap: 0.8rem;
+    scrollbar-width: thin;
   }
 
   &.error {

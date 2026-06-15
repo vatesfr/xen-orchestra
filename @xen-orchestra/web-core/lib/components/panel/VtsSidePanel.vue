@@ -1,41 +1,43 @@
 <!-- v5 -->
 <template>
-  <VtsPanel
-    :error
-    :closable
-    :close-icon="uiStore.isSmall ? 'fa:angle-left' : 'action:close-cancel-clear'"
-    class="vts-side-panel"
-    :class="{
-      locked: panelStore.isLocked && !uiStore.isSmall,
-      mobile: uiStore.isSmall,
-    }"
-    @close="handleClose"
-  >
-    <template v-if="slots.actions" #actions>
-      <slot name="actions" />
-    </template>
+  <div class="vts-side-panel-sticky" :class="{ mobile: uiStore.isSmall }">
+    <VtsPanel
+      :error
+      :closable
+      :close-icon="uiStore.isSmall ? 'fa:angle-left' : 'action:close-cancel-clear'"
+      class="vts-side-panel"
+      :class="{
+        locked: panelStore.isLocked && !uiStore.isSmall,
+        mobile: uiStore.isSmall,
+      }"
+      @close="handleClose"
+    >
+      <template v-if="slots.actions" #actions>
+        <slot name="actions" />
+      </template>
 
-    <template v-if="slots['more-actions']" #more-actions>
-      <slot name="more-actions" />
-    </template>
+      <template v-if="slots['more-actions']" #more-actions>
+        <slot name="more-actions" />
+      </template>
 
-    <template v-if="slots['corner-actions'] || !uiStore.isSmall" #corner-actions>
-      <slot v-if="slots['corner-actions']" name="corner-actions" />
-      <UiButtonIcon
-        v-if="!uiStore.isSmall"
-        v-tooltip="{
-          content: panelStore.isLocked ? t('action:sidebar-unlock') : t('action:sidebar-lock'),
-          placement: 'left',
-        }"
-        accent="brand"
-        size="small"
-        :icon="panelStore.isLocked ? 'action:pin-panel-hide' : 'action:pin-panel'"
-        @click="panelStore.toggleLock()"
-      />
-    </template>
+      <template v-if="slots['corner-actions'] || !uiStore.isSmall" #corner-actions>
+        <slot v-if="slots['corner-actions']" name="corner-actions" />
+        <UiButtonIcon
+          v-if="!uiStore.isSmall"
+          v-tooltip="{
+            content: panelStore.isLocked ? t('action:sidebar-unlock') : t('action:sidebar-lock'),
+            placement: 'left',
+          }"
+          accent="brand"
+          size="small"
+          :icon="panelStore.isLocked ? 'action:pin-panel-hide' : 'action:pin-panel'"
+          @click="panelStore.toggleLock()"
+        />
+      </template>
 
-    <slot />
-  </VtsPanel>
+      <slot />
+    </VtsPanel>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -71,17 +73,25 @@ const { t } = useI18n()
 
 watch(
   [() => props.selected, () => panelStore.isLocked, () => uiStore.isSmall],
-  ([selected]) => {
+  ([selected, isLocked, isSmall], previousState) => {
+    const [, previousIsLocked] = previousState ?? []
+
+    /* Collapse when coming back from locked to unlocked, if empty */
+    if (!isSmall && previousIsLocked && !isLocked && !selected) {
+      panelStore.collapse()
+    }
+
     if (selected === undefined) {
       return
     }
+
     panelStore.syncWithSelection(selected)
   },
   { immediate: true }
 )
 
 function handleClose() {
-  if (panelStore.actsAsFloating) {
+  if (panelStore.syncsOpenStateWithSelection) {
     panelStore.collapse()
   }
 
@@ -90,43 +100,34 @@ function handleClose() {
 </script>
 
 <style scoped lang="postcss">
+.vts-side-panel-sticky:not(.mobile) {
+  position: sticky;
+  top: 0;
+  align-self: start;
+}
+
 .vts-side-panel {
-  --panel-vertical-offset: 16.5rem;
-  width: 40rem;
-  z-index: 1010;
-  transition:
-    transform 0.25s,
-    margin-right 0.25s;
+  width: var(--side-panel-width, 40rem);
+  transition: transform 0.25s;
 
   &:not(.mobile) {
-    position: relative;
-    top: 0;
-    min-height: calc(100dvh - var(--panel-vertical-offset));
+    --panel-viewport-height: calc(100dvh - 5.6rem);
+    --panel-min-height: calc(100dvh - 16.6rem);
 
-    &.locked {
-      margin-right: calc(-1 * v-bind('panelStore.cssHorizontalOffset'));
-    }
+    min-height: var(--panel-min-height);
+    max-height: var(--panel-viewport-height);
+    overflow: hidden;
+    transform: translateX(v-bind('panelStore.cssHorizontalOffset'));
 
-    &:not(.locked) {
-      position: fixed;
-      top: var(--panel-vertical-offset);
-      right: 0;
-      bottom: 0;
-      transform: translateX(v-bind('panelStore.cssHorizontalOffset'));
-      border-block-start: 0.1rem solid var(--color-neutral-border);
-      border-start-start-radius: 0.8rem;
-
-      :deep(.header) {
-        border-start-start-radius: 0.8rem;
-      }
-
-      :deep(> .content) {
-        overflow: auto;
-      }
+    :deep(> .content) {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
     }
   }
 
   &.mobile {
+    z-index: 1010;
     position: fixed;
     width: 100dvw;
     height: 100dvh;
