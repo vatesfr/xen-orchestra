@@ -40,7 +40,7 @@
       <UiCard>
         <UiCardTitle>
           Logs
-          <template #right>
+          <template #info>
             <UiButton
               v-if="eventsLog.length > 0"
               size="medium"
@@ -79,7 +79,6 @@ import StoryEventParams from '@/components/component-story/StoryEventParams.vue'
 import StoryPropParams from '@/components/component-story/StoryPropParams.vue'
 import StorySettingParams from '@/components/component-story/StorySettingParams.vue'
 import StorySlotParams from '@/components/component-story/StorySlotParams.vue'
-import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import {
   isEventParam,
   isModelParam,
@@ -96,6 +95,7 @@ import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import 'highlight.js/styles/github-dark.css'
 import { uniqueId, upperFirst } from 'lodash-es'
