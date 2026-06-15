@@ -27,7 +27,8 @@ const poolFields = [
 ] as const satisfies readonly (keyof XoPool)[]
 
 export const useXoPoolCollection = defineRemoteResource({
-  url: `${BASE_URL}/pools?fields=${poolFields.join(',')}`,
+  url: `${BASE_URL}/pools?fields=${poolFields.join(',')}&ndjson=true`,
+  stream: true,
   initWatchCollection: () => useWatchCollection({ resource: 'pool', fields: poolFields }),
   initialData: () => [] as FrontXoPool[],
   state: (rawPools, context) => {

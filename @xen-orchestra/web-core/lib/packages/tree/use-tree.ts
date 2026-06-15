@@ -1,14 +1,14 @@
 import { buildNodes } from '@core/packages/tree/build-nodes'
 import type {
   DefinitionToTreeNode,
+  FlatTreeNode,
   TreeContext,
   TreeNode,
   TreeNodeDefinition,
   TreeNodeId,
   UseTreeOptions,
 } from '@core/packages/tree/types'
-import { useTimeoutFn } from '@vueuse/core'
-import { computed, type MaybeRefOrGetter, nextTick, reactive, ref, toValue } from 'vue'
+import { computed, type MaybeRefOrGetter, reactive, ref, toValue } from 'vue'
 
 export function useTree<
   TDefinition extends TreeNodeDefinition,
@@ -53,6 +53,34 @@ export function useTree<
 
   const visibleNodes = computed(() => nodes.value.filter(node => !node.isExcluded))
 
+  const flatNodes = computed<FlatTreeNode[]>(() => {
+    const result: FlatTreeNode[] = []
+
+    const flatten = (list: TreeNode[]) => {
+      for (const node of list) {
+        result.push({ id: node.id, node, depth: node.depth })
+        if (node.isBranch && !node.isCollapsed) {
+          flatten(node.children)
+        }
+      }
+    }
+
+    flatten(visibleNodes.value)
+
+    return result
+  })
+
+  // Index of each flat node by its id, to look up a row position in O(1)
+  // (e.g. to scroll a virtual list to a given node) instead of scanning.
+  const flatNodeIndexById = computed(() => {
+    const index = new Map<TreeNodeId, number>()
+    const list = flatNodes.value
+    for (let i = 0; i < list.length; i++) {
+      index.set(list[i].id, i)
+    }
+    return index
+  })
+
   const getNode = (id: TreeNodeId | undefined) => (id !== undefined ? nodesMap.value.get(id) : undefined)
   const getNodes = (ids: TreeNodeId[]) => ids.map(getNode).filter(node => node !== undefined) as TreeNode[]
 
@@ -80,46 +108,19 @@ export function useTree<
     return undefined
   }
 
-  const scrollToNodeElement = async (id: string | number, options?: ScrollIntoViewOptions) => {
-    const node = findNodeByObjectId(nodes.value, id)
+  const expandToNode = (objectId: string | number): TreeNode | undefined => {
+    const node = findNodeByObjectId(nodes.value, objectId)
     if (!node) {
-      if (id) {
-        useTimeoutFn(async () => {
-          await nextTick()
-          await scrollToNodeElement(id, options)
-        }, 200)
-      }
-      return
+      return undefined
     }
 
-    getHierarchy(node).forEach(node => {
-      if (node.isBranch) {
-        node.toggleCollapse(false)
+    getHierarchy(node).forEach(ancestor => {
+      if (ancestor.isBranch) {
+        ancestor.toggleCollapse(false)
       }
     })
 
-    const nodeElement = document.querySelector<HTMLElement>(`[data-node-id="${id}"]`)
-
-    if (!nodeElement) {
-      useTimeoutFn(async () => {
-        await nextTick()
-        await scrollToNodeElement(id, options)
-      }, 200)
-      return
-    }
-
-    const hasChildren = node.isBranch && node.hasChildren
-    const cfg: ScrollIntoViewOptions = options ?? { block: hasChildren ? 'start' : 'center', behavior: 'smooth' }
-
-    if (hasChildren) {
-      nodeElement.style.scrollMarginTop = '0.8rem'
-
-      useTimeoutFn(async () => {
-        nodeElement.style.scrollMarginTop = ''
-      }, 1000)
-    }
-
-    nodeElement.scrollIntoView(cfg)
+    return node
   }
 
   const selectedNodes = computed(() => getNodes(Array.from(selectedIds.value.values())))
@@ -140,6 +141,8 @@ export function useTree<
 
   return {
     nodes: visibleNodes,
+    flatNodes,
+    flatNodeIndexById,
     activeId,
     activeNode,
     selectedIds,
@@ -148,6 +151,6 @@ export function useTree<
     collapsedIds,
     expandedIds,
     options,
-    scrollToNodeElement,
+    expandToNode,
   }
 }

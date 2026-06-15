@@ -14,19 +14,19 @@ import {
   computed,
   type ComputedRef,
   type EffectScope,
+  effectScope,
   getCurrentScope,
+  type MaybeRef,
   type MaybeRefOrGetter,
   onScopeDispose,
   reactive,
   type Ref,
   ref,
   shallowRef,
-  triggerRef,
   toRef,
   toValue,
+  triggerRef,
   watch,
-  effectScope,
-  type MaybeRef,
 } from 'vue'
 
 const DEFAULT_CACHE_EXPIRATION_MS = 10_000
@@ -292,13 +292,22 @@ export function defineRemoteResource<
         }
 
         if (config.stream) {
-          for await (const event of readNDJSONStream(response.body)) {
-            onDataReceived(data, event)
-            flushData()
+          if (watchCollection !== undefined) {
+            const streamedData: TData[] = []
+            for await (const event of readNDJSONStream(response.body)) {
+              streamedData.push(event)
+            }
+            onDataReceived(data, streamedData)
+            await flushData()
+          } else {
+            for await (const event of readNDJSONStream(response.body)) {
+              onDataReceived(data, event)
+              await flushData()
+            }
           }
         } else {
           onDataReceived(data, await response.json())
-          flushData()
+          await flushData()
         }
 
         isReady.value = true
