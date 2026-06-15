@@ -1,4 +1,5 @@
 import {
+  Body,
   Example,
   Extension,
   Get,
@@ -19,10 +20,12 @@ import { Request as ExRequest } from 'express'
 import type { XoBackupRepository } from '@vates/types'
 import { forbiddenOperation } from 'xo-common/api-errors.js'
 
-import { acl } from '../middlewares/acl.middleware.mjs'
+import { acl, actionsFromBody } from '../middlewares/acl.middleware.mjs'
 import {
   badRequestResp,
+  createdResp,
   forbiddenOperationResp,
+  invalidParameters,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
@@ -32,6 +35,7 @@ import {
   backupRepositoryIds,
   partialBackupRepositories,
   backupRepository,
+  backupRepositoryId,
 } from '../open-api/oa-examples/backup-repository.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
@@ -92,6 +96,33 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
 
   /**
    * Required privilege:
+   * - resource: backup-repository, action: create
+   *
+   * @example body { "name": "NFS Remote", "options": "vers=4", "proxy": "722d17b9-699b-59d2-8193-be1ac573d3de", "url": "nfs://192.168.100.225:/media/nfs" }
+   */
+  @Example(backupRepositoryId)
+  @Post('')
+  @Middlewares([
+    json(),
+    acl({
+      resource: 'backup-repository',
+      action: 'create',
+      object: ({ req }) => req.body,
+    }),
+  ])
+  @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(invalidParameters.status, invalidParameters.description)
+  async createBackupRepository(
+    @Body() body: Unbrand<Parameters<XoApp['createRemote']>[0]>
+  ): Promise<{ id: Unbrand<XoBackupRepository>['id'] }> {
+    const backupRepository = await this.restApi.xoApp.createRemote(body as Parameters<XoApp['createRemote']>[0])
+
+    return { id: backupRepository.id }
+  }
+
+  /**
+   * Required privilege:
    * - resource: backup-repository, action: read
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
@@ -147,5 +178,36 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
       )
     }
     await this.restApi.xoApp.removeRemote(repositoryId)
+  }
+  /** Required privileges:
+   * - resource: backup-repository, action: update (grants all fields)
+   * - resource: backup-repository, action: update:enabled (if enabled is passed)
+   * - resource: backup-repository, action: update:name (if name is passed)
+   * - resource: backup-repository, action: update:options (if options is passed)
+   * - resource: backup-repository, action: update:proxy (if proxy is passed)
+   * - resource: backup-repository, action: update:url (if url is passed)
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   * @example body { "enabled": true, "name": "NFS Remote", "options": "vers=4", "proxy": "722d17b9-699b-59d2-8193-be1ac573d3de", "url": "nfs://192.168.100.225:/media/nfs" }
+   */
+  @Patch('{id}')
+  @Middlewares([
+    json(),
+    acl({
+      resource: 'backup-repository',
+      actions: actionsFromBody(['update:enabled', 'update:name', 'update:options', 'update:proxy', 'update:url']),
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getRemote,
+    }),
+  ])
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParameters.status, invalidParameters.description)
+  async updateBackupRepository(
+    @Path() id: string,
+    @Body() body: Unbrand<Parameters<XoApp['updateRemote']>[1]>
+  ): Promise<void> {
+    await this.restApi.xoApp.updateRemote(id as XoBackupRepository['id'], body as Parameters<XoApp['updateRemote']>[1])
   }
 }

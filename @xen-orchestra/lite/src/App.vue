@@ -12,6 +12,7 @@
     </div>
   </div>
   <VtsModalList />
+  <VtsDrawerList />
   <VtsTooltipList />
 </template>
 
@@ -22,13 +23,13 @@ import AppNavigation from '@/components/AppNavigation.vue'
 import { useUnreachableHosts } from '@/composables/unreachable-hosts.composable'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
+import VtsDrawerList from '@core/components/drawer/VtsDrawerList.vue'
 import VtsModalList from '@core/components/modal/VtsModalList.vue'
 import VtsTooltipList from '@core/components/tooltip-list/VtsTooltipList.vue'
 import { useChartTheme } from '@core/composables/chart-theme.composable'
 import { useUiStore } from '@core/stores/ui.store'
 import { useActiveElement, useMagicKeys, whenever } from '@vueuse/core'
 import { logicAnd } from '@vueuse/math'
-import { getActivePinia } from 'pinia'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
@@ -39,13 +40,8 @@ const xenApiStore = useXenApiStore()
 
 const { pool } = usePoolStore().subscribe()
 
-// workaround
-// since this commit https://github.com/vatesfr/xen-orchestra/commit/ac2f4e9f32beee27ce4d14ad0d4ce7d9c51a1d82
-// useUiStore is unable to find the pinia instance itself.
-const pinia = getActivePinia()
-const uiStore = useUiStore(pinia)
-useChartTheme(pinia)
-// end workaround
+const uiStore = useUiStore()
+useChartTheme()
 
 if (import.meta.env.DEV) {
   const { locale } = useI18n()

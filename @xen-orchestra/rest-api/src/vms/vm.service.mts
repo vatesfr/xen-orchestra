@@ -180,7 +180,11 @@ export class VmService {
   async export<Vm extends XoVm | XoVmSnapshot | XoVmTemplate>(
     id: Vm['id'],
     vmType: Vm['type'],
-    { compress, format, response }: { compress?: boolean; format: 'ova' | 'xva'; response?: ExResponse }
+    {
+      compress,
+      format,
+      response,
+    }: { compress?: boolean | 'zstd' | 'gzip'; format: 'ova' | 'xva'; response?: ExResponse }
   ): Promise<Readable> {
     const xapiVm = this.#restApi.getXapiObject(id, vmType)
 

@@ -5,7 +5,7 @@
     </template>
 
     <template v-if="action === CONNECTION_ACTION.DISCONNECT" #content>
-      {{ t('vbd-disconnect-info') }}
+      {{ t('vdi-disconnect-info') }}
     </template>
 
     <template #buttons>
@@ -36,8 +36,8 @@ const { t } = useI18n()
 const connection = useMapper(
   () => action,
   () => ({
-    connect: { title: t('vbd-connect-title', { n: count }), action: t('action:connect-n-vbds', { n: count }) },
-    disconnect: { title: t('vbd-disconnect-title', { n: count }), action: t('action:disconnect-n-vbds', { n: count }) },
+    connect: { title: t('vdi-connect-title', { n: count }), action: t('action:connect-n-vdis', { n: count }) },
+    disconnect: { title: t('vdi-disconnect-title', { n: count }), action: t('action:disconnect-n-vdis', { n: count }) },
   }),
   'connect'
 )

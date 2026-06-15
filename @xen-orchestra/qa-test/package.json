@@ -20,7 +20,9 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@xen-orchestra/fs": "*",
     "@xen-orchestra/log": "^0.7.2",
+    "nodemailer": "^7.0.13",
     "xo-lib": "^0.11.2"
   },
   "scripts": {
@@ -38,6 +40,10 @@
     "qa:export:vhd": "node --env-file-if-exists=.env --test tests/export.vhd.test.js --test-name-pattern='VDI VHD'",
     "qa:export:xva": "node --env-file-if-exists=.env --test tests/export.vhd.test.js --test-name-pattern='XVA'",
     "qa:export:restore": "node --env-file-if-exists=.env --test tests/export.vhd.test.js --test-name-pattern='Restoration'",
-    "demo": "node --env-file-if-exists=.env index.js"
+    "qa:backup:metadata": "node --env-file-if-exists=.env --test tests/metadata-backup.test.js",
+    "demo": "node --env-file-if-exists=.env index.js",
+    "report": "node --env-file-if-exists=.env scripts/run-and-report.mjs",
+    "report:smtp-test": "node --env-file-if-exists=.env scripts/run-and-report.mjs --smtp-test",
+    "qa:backup:file-restore": "node --env-file-if-exists=.env --test tests/backup.file-restore.test.js"
   }
 }
