@@ -266,7 +266,7 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
   @Example(taskLocation)
-  @Example({ success: true })
+  @Example({ success: true, readRate: 7999965, writeRate: 7767798 })
   @Post('{id}/actions/benchmark')
   @Middlewares(
     acl({
