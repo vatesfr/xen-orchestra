@@ -74,8 +74,8 @@ To use them, **copy** a template into a new role and assign that copy to your us
 | **VMs creator**             | Can instantiate VM templates and create VDIs and VIFs.                               |
 | **VMs read only**           | Can only list and view VMs.                                                          |
 | **VMs administrator**       | Full control over VM actions                                                         |
-| **Administrator**           | Full access to the entire infrastructure                                             |
 | **Network administrator**   | Can manage networks and VIFs, read and update PIFs, and view hosts and VMs.          |
+| **Administrator**           | Full access to the entire infrastructure                                             |
 
 ![acl-role copy documented in Swagger](../assets/swagger-role-copy.png)
 
