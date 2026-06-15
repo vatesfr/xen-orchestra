@@ -7,8 +7,6 @@
 
 > Security fixes and new features should go in this section
 
-- [NPM] Update packages and sync package.json with yarn.lock (PR [#9969](https://github.com/vatesfr/xen-orchestra/pull/9969))
-
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
@@ -60,6 +58,13 @@
 - [RBAC] Add Administrator template role (PR [#9885](https://github.com/vatesfr/xen-orchestra/pull/9885))
 - [Netbox] Add option to ignore [RFC 1918](https://datatracker.ietf.org/doc/html/rfc1918) private IPs during synchronization. Thanks [@sboyd-m](https://github.com/sboyd-m)! (PR [#6306](https://github.com/vatesfr/xen-orchestra/pull/6306))
 - [SR] Storage repositories can now be connected from the Pool/Host Storage tab (PR [#9877](https://github.com/vatesfr/xen-orchestra/pull/9877))
+
+- [Dependabot] Update packages and sync package.json with yarn.lock (PR [#9969](https://github.com/vatesfr/xen-orchestra/pull/9969))
+  - update shell-quote to 1.8.4:
+    - xo-web aka XO 5 (only in dev dependencies for watchify)
+    - @xen-orchestra/lite (only in dev dependencies for npm-run-all)
+  - vue-router fixed to 5.0.6 (@babel/generator@^8.0.0-rc.4 in 5.0.7)
+  - update packages to sync with yarn.lock (e.g. client-s3 package)
 
 ### Bug fixes
 
