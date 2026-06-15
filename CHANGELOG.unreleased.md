@@ -57,7 +57,6 @@
 - [RBAC] Add Administrator template role (PR [#9885](https://github.com/vatesfr/xen-orchestra/pull/9885))
 - [Netbox] Add option to ignore [RFC 1918](https://datatracker.ietf.org/doc/html/rfc1918) private IPs during synchronization. Thanks [@sboyd-m](https://github.com/sboyd-m)! (PR [#6306](https://github.com/vatesfr/xen-orchestra/pull/6306))
 
-
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -73,6 +72,7 @@
 - [REST API] `GET /vms/:id.:format`, `GET /vm-templates/:id.:format`, `GET /vm-snapshots/:id.:format` now correctly support explicit compress query param (`zstd` | `gzip`). Still support `true` | `false` as deprecated value (PR [#9960](https://github.com/vatesfr/xen-orchestra/pull/9960))
 - [Backup/Restore] Fix file-level restore of VMs whose disks use LVM (e.g. the default Ubuntu install layout): logical volumes are now listed and can be restored, including when restoring several copies of the same VM at once — previously failed with `unknown filesystem type 'LVM2_member'` (PR [#9776](https://github.com/vatesfr/xen-orchestra/pull/9776))
 - [Backup/Restore] Fix file-level restore hanging when downloading large folders, and high memory use when downloading a folder as a zip (PR [#9776](https://github.com/vatesfr/xen-orchestra/pull/9776))
+- [XO6/Tree/Web-core] Infrastructure tree is now streamed and rendered as a single virtualized list, fix some performance issues on medium and big infrastructures (PR [#9986](https://github.com/vatesfr/xen-orchestra/pull/9986))
 
 ### Packages to release
 
