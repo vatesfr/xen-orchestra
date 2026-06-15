@@ -110,3 +110,10 @@ export const NETWORK_ADMINISTRATOR = {
     { action: 'read', resource: 'vm', effect: 'allow' },
   ],
 }
+
+export const ADMINISTRATOR = {
+  roleTemplateId: 7,
+  name: 'Administrator',
+  description: 'Full access to the entire infrastructure.',
+  privileges: REAL_ONLY_ALL.privileges.map(privilege => ({ ...privilege, action: '*' })),
+}

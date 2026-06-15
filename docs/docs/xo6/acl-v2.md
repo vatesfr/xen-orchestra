@@ -63,7 +63,7 @@ The reverse is not true: granting `shutdown:clean` does **not** grant `shutdown:
 
 ## Built-in template roles
 
-Xen Orchestra ships with six ready-to-use role templates. They are **immutable** and automatically kept up to date on startup — they cannot be modified, deleted, or assigned directly.
+Xen Orchestra ships with seven ready-to-use role templates. They are **immutable** and automatically kept up to date on startup — they cannot be modified, deleted, or assigned directly.
 
 To use them, **copy** a template into a new role and assign that copy to your users or groups. This ensures the built-in templates always stay up to date without affecting your custom configuration.
 
@@ -75,6 +75,7 @@ To use them, **copy** a template into a new role and assign that copy to your us
 | **VMs read only**           | Can only list and view VMs.                                                          |
 | **VMs administrator**       | Full control over VM actions                                                         |
 | **Network administrator**   | Can manage networks and VIFs, read and update PIFs, and view hosts and VMs.          |
+| **Administrator**           | Full access to the entire infrastructure                                             |
 
 ![acl-role copy documented in Swagger](../assets/swagger-role-copy.png)
 
