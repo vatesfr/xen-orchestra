@@ -21,7 +21,7 @@
               <UiLink
                 class="add-vdi-link"
                 :to="{ name: '/vdi/attach', query: { vmid: vm.id } }"
-                icon="action:connect"
+                icon="action:attach"
                 size="medium"
               >
                 {{ t('action:attach-vdi') }}

@@ -1,8 +1,11 @@
 <template>
-  <div :class="[className, { horizontal, error, success, 'no-background': noBackground }]" class="vts-state-hero">
+  <div
+    :class="[className, { horizontal: isHorizontal, error, success, 'no-background': noBackground }]"
+    class="vts-state-hero"
+  >
     <UiLoader v-if="type === 'busy'" class="loader" />
     <img v-else-if="imageSrc" :src="imageSrc" :alt="type" class="image" />
-    <div v-if="slots.default || success" :class="typoClass" class="content">
+    <div v-if="slots.default || success" :class="[typoClass, { mobile: isMobile }]" class="content">
       <div v-if="success">{{ t('all-good!') }}</div>
       <slot />
     </div>
@@ -11,6 +14,7 @@
 
 <script lang="ts" setup>
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
+import { useUiStore } from '@core/stores/ui.store'
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -32,7 +36,7 @@ export type StateHeroType =
   | 'all-done'
   | 'creating'
 
-const { format, type, size } = defineProps<{
+const { format, type, size, horizontal } = defineProps<{
   format: StateHeroFormat
   type: StateHeroType
   size: StateHeroSize
@@ -44,7 +48,13 @@ const slots = defineSlots<{
   default?(): any
 }>()
 
+const uiStore = useUiStore()
+
 const { t } = useI18n()
+
+const isHorizontal = computed(() => horizontal && !uiStore.isSmall)
+
+const isMobile = computed(() => uiStore.isSmall)
 
 const typoClass = computed(() => (format === 'page' ? 'typo-h2' : 'typo-h4'))
 
@@ -73,10 +83,6 @@ const imageSrc = computed(() => {
 
   &:not(.horizontal) {
     flex-direction: column;
-
-    .content {
-      align-items: center;
-    }
   }
 
   .image {
@@ -87,6 +93,10 @@ const imageSrc = computed(() => {
     display: flex;
     flex-direction: column;
     gap: 1.6rem;
+
+    &:not(.mobile) {
+      text-align: center;
+    }
 
     &:empty {
       display: none;

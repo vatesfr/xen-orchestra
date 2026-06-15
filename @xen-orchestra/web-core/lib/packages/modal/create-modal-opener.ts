@@ -22,16 +22,18 @@ export function createModalOpener() {
     ids.delete(id)
   }
 
-  watch(
-    () => route.path,
-    () => {
-      ids.forEach(id => {
-        if (!modalStore.getModal(id)?.keepOpenOnRouteChange) {
-          closeById(id)
-        }
-      })
-    }
-  )
+  if (route !== undefined) {
+    watch(
+      () => route.path,
+      () => {
+        ids.forEach(id => {
+          if (!modalStore.getModal(id)?.keepOpenOnRouteChange) {
+            closeById(id)
+          }
+        })
+      }
+    )
+  }
 
   return function openModal<
     TProps,

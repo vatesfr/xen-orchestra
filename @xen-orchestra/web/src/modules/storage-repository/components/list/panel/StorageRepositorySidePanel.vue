@@ -1,7 +1,14 @@
 <template>
   <VtsStateHero v-if="!isReady" format="panel" type="busy" size="medium" />
-  <UiPanel v-else :class="{ 'mobile-drawer': uiStore.isSmall }">
+  <UiPanel v-else :key="panelSignature" :class="{ 'mobile-drawer': uiStore.isSmall }">
     <template #header>
+      <VtsDeleteButton
+        class="sr-delete-button"
+        :disabled="!canDeleteSr"
+        :busy="isDeletingSr"
+        @click="openSrDeleteModal()"
+      />
+      <SrDisconnectButton class="sr-disconnect-button" :sr :scope />
       <div :class="{ 'action-buttons-container': uiStore.isSmall }">
         <UiButtonIcon
           v-tooltip="t('action:close')"
@@ -14,11 +21,11 @@
       </div>
     </template>
     <template #default>
-      <StorageRepositoryInfosCard :sr />
+      <StorageRepositoryInfosCard :sr :scope />
       <StorageRepositorySpaceCard :sr />
       <StorageRepositoryVdisCard :vdis />
       <StorageRepositoryHostsCard :hosts />
-      <StorageRepositoryPbdsCard :pbds />
+      <StorageRepositoryPbdsCard :sr :scope />
       <StorageRepositoryCustomFieldsCard :custom-fields />
     </template>
   </UiPanel>
@@ -27,14 +34,19 @@
 <script setup lang="ts">
 import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import SrDisconnectButton from '@/modules/storage-repository/components/actions/disconnect/SrDisconnectButton.vue'
 import StorageRepositoryCustomFieldsCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositoryCustomFieldsCard.vue'
 import StorageRepositoryHostsCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositoryHostsCard.vue'
 import StorageRepositoryInfosCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositoryInfosCard.vue'
 import StorageRepositoryPbdsCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositoryPbdsCard.vue'
 import StorageRepositorySpaceCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositorySpaceCard.vue'
 import StorageRepositoryVdisCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositoryVdisCard.vue'
+import { useSrDeleteModal } from '@/modules/storage-repository/composables/use-sr-delete-modal.composable.ts'
+import { useGetPbdsInScope } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { StorageScope } from '@/modules/storage-repository/types/storage-scope.type.ts'
 import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
@@ -45,8 +57,9 @@ import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { sr } = defineProps<{
+const { sr, scope } = defineProps<{
   sr: FrontXoSr
+  scope: StorageScope
 }>()
 
 const emit = defineEmits<{
@@ -63,6 +76,10 @@ const { pbdsBySr, arePbdsReady } = useXoPbdCollection()
 const isReady = logicAnd(areVdisReady, areHostsReady, arePbdsReady)
 
 const vdis = useGetVdisByIds(() => sr.VDIs as XoVdi['id'][])
+
+const { getSrPbdsSignature } = useGetPbdsInScope()
+
+const panelSignature = computed(() => getSrPbdsSignature(sr, scope))
 
 const pbds = computed(() => pbdsBySr.value.get(sr.id) ?? [])
 
@@ -89,9 +106,15 @@ const customFields = computed(() => {
     return acc
   }, {})
 })
+
+const { openModal: openSrDeleteModal, canRun: canDeleteSr, isRunning: isDeletingSr } = useSrDeleteModal(() => [sr])
 </script>
 
 <style scoped lang="postcss">
+.sr-disconnect-button {
+  margin-inline-end: auto;
+}
+
 .mobile-drawer {
   position: fixed;
   inset: 0;
