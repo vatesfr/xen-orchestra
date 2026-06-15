@@ -1,5 +1,5 @@
 <template>
-  <div class="vts-button-group">
+  <div class="vts-button-group" :class="{ 'no-stack': noStack }">
     <div class="line">
       <slot />
     </div>
@@ -10,6 +10,10 @@
 </template>
 
 <script lang="ts" setup>
+defineProps<{
+  noStack?: boolean
+}>()
+
 const slots = defineSlots<{
   default(): any
   tertiary?(): any
@@ -32,6 +36,12 @@ const slots = defineSlots<{
 
     @media (--small) {
       flex-direction: column-reverse;
+    }
+  }
+
+  &.no-stack .line {
+    @media (--small) {
+      flex-direction: row;
     }
   }
 }

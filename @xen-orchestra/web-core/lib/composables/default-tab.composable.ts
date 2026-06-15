@@ -14,6 +14,10 @@ export function useDefaultTab(dispatcherRouteName: RouteRecordName & string, def
   watch(
     () => route.name as string,
     name => {
+      if (name == null) {
+        return
+      }
+
       if (name === dispatcherRouteName) {
         const isSameDispatcher = localStorage.getItem(TAB_MEMORY_DISPATCHER) === dispatcherRouteName
         const tabName = (isSameDispatcher ? localStorage.getItem(TAB_MEMORY_LAST) : null) ?? defaultTab

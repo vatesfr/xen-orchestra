@@ -2,7 +2,7 @@
   <div :class="{ 'no-ui': !uiStore.hasUi }" class="vm-console-view">
     <div v-if="hasError">{{ t('error-occurred') }}</div>
     <UiSpinner v-else-if="!isReady" class="spinner" />
-    <VtsStateHero v-else-if="!isVmRunning" format="page" type="offline" size="large">
+    <VtsStateHero v-else-if="!isVmRunning" format="page" type="offline" size="large" class="state-hero">
       <span>{{ t('console-offline') }}</span>
       <span class="title typo-h1">{{ t('vm-not-running') }}</span>
       <div class="description typo-body-bold">
@@ -116,16 +116,19 @@ const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
     height: 100%;
   }
 
-  .title {
-    color: var(--color-neutral-txt-primary);
-  }
+  .state-hero {
+    padding: 0.8rem;
 
-  .description {
-    display: flex;
-    flex-direction: column;
-    gap: 1.4rem;
-    align-items: center;
-    color: var(--color-neutral-txt-secondary);
+    .title {
+      color: var(--color-neutral-txt-primary);
+    }
+
+    .description {
+      display: flex;
+      flex-direction: column;
+      gap: 1.4rem;
+      color: var(--color-neutral-txt-secondary);
+    }
   }
 }
 

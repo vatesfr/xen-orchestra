@@ -5,7 +5,7 @@
     variant="tertiary"
     accent="brand"
     :disabled="!canConnectVif"
-    left-icon="status:success-circle"
+    left-icon="action:connect"
     :busy="isConnectingVif"
     @click="openVifConnectModal()"
   >

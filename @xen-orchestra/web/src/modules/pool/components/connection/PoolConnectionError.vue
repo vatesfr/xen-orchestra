@@ -15,7 +15,7 @@
           size="small"
           :content="error.cause"
         />
-        <RouterLink :to="{ name: '/pool/connect' }">
+        <RouterLink :to="{ name: '/pool/connect' }" class="button">
           <UiButton variant="secondary" accent="brand" size="medium" @click="emit('goBack')">
             {{ t('action:go-back') }}
           </UiButton>
@@ -104,7 +104,6 @@ const errorDetails = useMapper(() => errorStatus.value, mapping, HttpCodes.Inter
   }
 
   .title {
-    text-align: center;
     color: var(--color-neutral-txt-primary);
   }
 
@@ -112,10 +111,14 @@ const errorDetails = useMapper(() => errorStatus.value, mapping, HttpCodes.Inter
     color: var(--color-neutral-txt-primary);
     display: flex;
     flex-direction: column;
-    align-items: center;
     gap: 4rem;
     margin: 0 auto;
     width: 65%;
+
+    .button {
+      display: flex;
+      justify-content: center;
+    }
 
     &.desktop {
       width: 80%;

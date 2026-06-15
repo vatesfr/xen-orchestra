@@ -65,7 +65,7 @@ export default class SearchBar extends Component {
         <Tooltip content={_('filterSyntaxLinkTooltip')}>
           <a
             className='input-group-addon'
-            href='https://docs.xen-orchestra.com/manage_infrastructure#live-filter-searchh'
+            href='https://docs.xen-orchestra.com/xo5/manage_infrastructure#live-filter-search'
             rel='noopener noreferrer'
             target='_blank'
           >

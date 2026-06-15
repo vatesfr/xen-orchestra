@@ -92,13 +92,18 @@ export class PbdController extends XapiXoController<XoPbd> {
   }
 
   /**
+   * Required privilege:
+   * - resource: pbd, action: plug
+   *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/plug')
+  @Middlewares(acl({ resource: 'pbd', action: 'plug', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -120,13 +125,18 @@ export class PbdController extends XapiXoController<XoPbd> {
   }
 
   /**
+   * Required privilege:
+   * - resource: pbd, action: unplug
+   *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/unplug')
+  @Middlewares(acl({ resource: 'pbd', action: 'unplug', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)

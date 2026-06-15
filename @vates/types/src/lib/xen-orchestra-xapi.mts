@@ -119,6 +119,12 @@ export type XsPatches = {
 }
 
 export interface Xapi {
+  status: string
+  pool?: { uuid: string }
+  sessionId: string
+  _auth: { user: string; password: string }
+  _url: { protocol: string; hostname: string; hostnameRaw: string; port?: string }
+
   call: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
   callAsync: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
 
@@ -176,6 +182,7 @@ export interface Xapi {
       bypassAssert?: boolean
     }
   ): Promise<void>
+  joinPool(masterAddress: string, masterUsername: string, masterPassword: string, force?: boolean): Promise<void>
   listMissingPatches(host: XoHost['id']): Promise<XcpPatches[] | XsPatches[]>
   pool_emergencyShutdown(): Promise<void>
   resumeVm(id: XoVm['id']): Promise<void>
@@ -245,7 +252,7 @@ export interface Xapi {
   ): Promise<void>
   VM_export(
     vmRef: XenApiVm['$ref'],
-    opts?: { cancelToken?: unknown; compress?: boolean; useSnapshot?: boolean }
+    opts?: { cancelToken?: unknown; compress?: boolean | 'zstd' | 'gzip'; useSnapshot?: boolean }
   ): ReturnType<Xapi['getResource']>
   VM_import(
     stream: Readable,

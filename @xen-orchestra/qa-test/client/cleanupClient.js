@@ -7,17 +7,29 @@ import { BACKUP_JOB_NAME_PREFIX, getRequiredEnv } from '../utils/index.js'
 const log = createLogger('cleanup')
 
 /**
- * Allowed paths for automatic backup cleanup.
+ * Allowed paths for automatic backup cleanup of file:// remotes.
  * SECURITY: Only test-scoped paths containing 'test', 'qa', or 'tmp/xo'.
+ * Non-file:// remotes return an empty list (cleanup is delegated to XO API).
  *
- * Computed lazily so that `process.env.BACKUP_REPOSITORY_PATH` is read at call
+ * Computed lazily so that `process.env.BACKUP_REPOSITORY_URL` is read at call
  * time rather than module-load time — otherwise ESM import hoisting would make
  * it evaluate before any in-code env loading runs.
  *
  * @returns {Array<string>}
  */
 const getAllowedCleanupPaths = () => {
-  const repoPath = process.env.BACKUP_REPOSITORY_PATH
+  const repoUrl = process.env.BACKUP_REPOSITORY_URL
+
+  // Non-local remotes have no local path to safety-check
+  if (!repoUrl?.startsWith('file://')) return []
+
+  let repoPath
+  try {
+    repoPath = new URL(repoUrl).pathname
+  } catch {
+    log.warn('Rejected cleanup URL: invalid URL', { repoUrl })
+    return []
+  }
 
   // SECURITY: Reject paths containing path traversal sequences
   if (repoPath?.includes('..')) {

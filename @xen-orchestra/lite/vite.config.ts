@@ -50,6 +50,7 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       '@core': fileURLToPath(new URL('../web-core/lib', import.meta.url)),
     },
+    dedupe: ['vue', 'pinia', 'vue-router'],
   },
 
   // https://vitejs.dev/guide/dep-pre-bundling.html#monorepos-and-linked-dependencies
