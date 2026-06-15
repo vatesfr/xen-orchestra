@@ -1,8 +1,9 @@
 export default {
+  benchmark: true,
   create: true,
+  health: true,
   read: true,
   forget: true,
-  test: true,
   update: {
     enabled: true,
     name: true,
