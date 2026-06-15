@@ -93,6 +93,7 @@ const { task } = defineProps<{
 const { t, d } = useI18n()
 
 const { resolveTaskName } = useXoTaskNameResolver()
+
 const nameParts = computed(() => (task.properties.name ? resolveTaskName(task.properties.name) : undefined))
 
 const { user } = useXoUserResource({}, () => task.properties.userId)

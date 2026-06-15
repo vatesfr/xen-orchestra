@@ -24,11 +24,10 @@
         <div v-if="task.nameParts || task.name" class="content-left">
           <template v-if="task.nameParts">
             <template v-for="(part, index) in task.nameParts" :key="index">
-              <UiLink v-if="part.to" size="medium" :to="part.to">{{ part.text }}</UiLink>
-              <span v-else>{{ part.text }}</span>
+              <UiLink size="medium" :to="part.to">{{ part.text }}</UiLink>
             </template>
           </template>
-          <UiLink v-else size="medium">{{ task.name }}</UiLink>
+          <UiLink v-else size="small">{{ task.name }}</UiLink>
           <div v-if="shouldShowInfos || hasSubTasks" class="infos">
             <UiCounter v-if="hasSubTasks" :value="subTasksCount" accent="brand" variant="secondary" size="small" />
             <UiInfo v-if="hasInfos" accent="info" />
