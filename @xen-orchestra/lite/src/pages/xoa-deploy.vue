@@ -10,8 +10,11 @@
         <VtsIcon name="status:danger-circle" size="medium" />
       </div>
       <div class="error">
-        <strong>{{ t('check-errors:') }}</strong>
-        <UiRaw>{{ error }}</UiRaw>
+        <UiTextarea v-model="error" accent="brand" disabled>
+          <span class="typo-form-label">
+            {{ t('check-errors:') }}
+          </span>
+        </UiTextarea>
       </div>
       <UiButton size="medium" accent="brand" variant="primary" left-icon="fa:download" @click="resetValues()">
         {{ t('xoa-deploy-retry') }}
@@ -191,7 +194,6 @@
 import FormInput from '@/components/form/FormInput.vue'
 import FormSection from '@/components/form/FormSection.vue'
 import TitleBar from '@/components/TitleBar.vue'
-import UiRaw from '@/components/ui/UiRaw.vue'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { useSrStore } from '@/stores/xen-api/sr.store'
@@ -204,6 +206,7 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioButtonGroup.vue'
+import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 import { useFormSelect } from '@core/packages/form-select'
 import { useModal } from '@core/packages/modal/use-modal.ts'
@@ -595,10 +598,7 @@ async function cancel() {
 }
 
 .error {
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-  gap: 0.5em;
+  min-width: 48rem;
 }
 
 .warning {
