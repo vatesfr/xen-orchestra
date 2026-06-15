@@ -122,6 +122,7 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi minor
+- @xen-orchestra/xva minor
 - xo-common minor
 - xo-server minor
 - xo-server-ipmi-sensors patch
