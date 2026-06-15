@@ -79,6 +79,7 @@
   "action:group": "Group",
   "action:hide": "Hide",
   "action:import": "Import",
+  "action:import-export": "Import/Export",
   "action:install-app": "Install {name}",
   "action:install-guest-tools": "Install guest tools",
   "action:load-now": "Load now",

@@ -10,10 +10,7 @@ export function useVdiExportDrawer(rawVdi: MaybeRefOrGetter<FrontXoVdi>) {
 
   const openDrawer = useDrawer(() => ({
     component: import('@/modules/vdi/components/drawer/VdiExportDrawer.vue'),
-    props: {
-      vdi: vdi.value,
-    },
-    onConfirm: async (exportFormat: VdiExportFormat) => {
+    onConfirm: (exportFormat: VdiExportFormat) => {
       downloadVdiContent(vdi.value.id, exportFormat)
     },
   }))
