@@ -615,7 +615,7 @@ class SDNController extends EventEmitter {
           {
             endpoint: '/networks/{id}/actions/update_traffic_rule',
             description:
-              'Update a rule on a network, needs the exact old rule fields.\n\nRequired privilege:\n - resource: network, action: update:otherConfig',
+              'Update a rule on a network, needs the exact old rule fields.\n\nRequired privilege:\n - resource: network, action: update:other_config',
 
             method: 'post',
             tags: ['sdn-controller'],
@@ -658,7 +658,7 @@ class SDNController extends EventEmitter {
             ],
             middlewares: [
               { name: 'json' },
-              { name: 'acl', acls: { resource: 'network', action: 'update:otherConfig', objectId: 'params.id' } },
+              { name: 'acl', acls: { resource: 'network', action: 'update:other_config', objectId: 'params.id' } },
             ],
             callback: ({ req, createAction }) => {
               return createAction(
@@ -700,7 +700,7 @@ class SDNController extends EventEmitter {
           {
             endpoint: '/vifs/{id}/actions/update_traffic_rule',
             description:
-              'Update a rule on a VIF, needs the exact old rule fields.\n\nRequired privilege:\n - resource: vif, action: update:otherConfig',
+              'Update a rule on a VIF, needs the exact old rule fields.\n\nRequired privilege:\n - resource: vif, action: update:other_config',
             method: 'post',
             tags: ['sdn-controller'],
             params: {
@@ -745,7 +745,7 @@ class SDNController extends EventEmitter {
             ],
             middlewares: [
               { name: 'json' },
-              { name: 'acl', acls: { resource: 'vif', action: 'update:otherConfig', objectId: 'params.id' } },
+              { name: 'acl', acls: { resource: 'vif', action: 'update:other_config', objectId: 'params.id' } },
             ],
             callback: ({ req, createAction }) => {
               return createAction(
