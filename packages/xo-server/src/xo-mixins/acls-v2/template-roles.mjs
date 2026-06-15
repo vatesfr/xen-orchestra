@@ -95,8 +95,8 @@ export const VMS_ADMINISTRATOR = {
 }
 
 export const ADMINISTRATOR = {
-  roleTemplateId: 5,
+  roleTemplateId: 6,
   name: 'Administrator',
-  description: 'Full access to the entire infrastructure, all objects, and user management',
+  description: 'Full access to the entire infrastructure.',
   privileges: REAL_ONLY_ALL.privileges.map(privilege => ({ ...privilege, action: '*' })),
 }
