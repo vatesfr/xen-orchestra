@@ -28,6 +28,13 @@ export const VDI_SOURCE = {
   URL: 'url',
 } as const
 
+export const VDI_EXPORT_FORMAT = {
+  VHD: 'vhd',
+  RAW: 'raw',
+} as const
+
+export type VdiExportFormat = (typeof VDI_EXPORT_FORMAT)[keyof typeof VDI_EXPORT_FORMAT]
+
 export const VDI_PAGE_CONTEXT = {
   VM: 'vm',
   SR: 'sr',

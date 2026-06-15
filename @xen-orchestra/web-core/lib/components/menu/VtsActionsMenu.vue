@@ -22,6 +22,18 @@
     >
       {{ action.label }}
       <i v-if="action.hint">{{ action.hint }}</i>
+      <template v-if="action.children?.length" #submenu>
+        <MenuItem
+          v-for="(child, childIndex) of action.children"
+          :key="childIndex"
+          :icon="child.icon"
+          :disabled="child.disabled"
+          :busy="child.busy"
+          :on-click="child.onClick"
+        >
+          {{ child.label }}
+        </MenuItem>
+      </template>
     </MenuItem>
   </MenuList>
 </template>
@@ -46,8 +58,9 @@ export type ActionItem = {
   label: string
   hint?: string
   icon?: IconName
-  onClick: () => any
+  onClick?: () => any
   disabled?: boolean
   busy?: boolean
+  children?: ActionItem[]
 }
 </script>
