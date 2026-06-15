@@ -7,6 +7,8 @@
 
 > Security fixes and new features should go in this section
 
+- [NPM] Update packages and sync package.json with yarn.lock (PR [#9969](https://github.com/vatesfr/xen-orchestra/pull/9969))
+
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
@@ -97,11 +99,16 @@
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups patch
 - @xen-orchestra/disk-transform patch
+- @xen-orchestra/fs patch
 - @xen-orchestra/qa-test minor
+- @xen-orchestra/mcp patch
+- @xen-orchestra/openflow patch
 - @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/upload-ova patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- @vates/generator-toolbox patch
 - @xen-orchestra/xapi minor
 - xo-common minor
 - xo-server minor
