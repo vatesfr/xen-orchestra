@@ -2,7 +2,7 @@
   <UiCard :has-error>
     <UiCardTitle>
       {{ t('cpu-usage') }}
-      <template v-if="vmStatsCanBeExpired || hostStatsCanBeExpired" #right>
+      <template v-if="vmStatsCanBeExpired || hostStatsCanBeExpired" #info>
         <UiSpinner v-tooltip="t('fetching-fresh-data')" />
       </template>
     </UiCardTitle>
