@@ -147,7 +147,7 @@ export const actionIcons = defineIconPack({
     icon: faEllipsis,
     color: 'var(--color-neutral-txt-primary)',
   },
-  importExport: [
+  'import-export': [
     {
       icon: faArrowUpLong,
       color: 'var(--color-neutral-txt-primary)',

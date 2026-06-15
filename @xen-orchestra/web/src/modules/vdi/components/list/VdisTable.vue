@@ -147,14 +147,14 @@ const { HeadCells, BodyCells } = useVdiColumns({
           actions: [
             {
               label: t('action:import') + '/' + t('action:export'),
-              icon: 'action:importExport',
+              icon: 'action:import-export',
               disabled: !canToggleVbdConnection.value,
               busy: isTogglingVbdConnection.value,
               children: [
                 {
                   label: t('action:export-content'),
                   icon: 'action:download',
-                  onClick: () => openVdiExportDrawer(vdi),
+                  onClick: () => openVdiExportDrawer(),
                   disabled: !canToggleVbdConnection.value,
                   busy: isTogglingVbdConnection.value,
                 },
