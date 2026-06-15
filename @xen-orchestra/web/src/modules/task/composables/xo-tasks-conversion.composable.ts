@@ -14,6 +14,8 @@ export function useXoTasksConversion(rawTasks: MaybeRefOrGetter<FrontXoTask[]>) 
   const tasks = toComputed(rawTasks)
 
   function convertTask(task: FrontXoTask, userName?: string): Task {
+    // tasks: undefined prevents convertXoTaskToCore from recursing into subtasks,
+    // since we handle subtask conversion ourselves below (to apply name resolution)
     const coreTask = convertXoTaskToCore({ ...task, tasks: undefined }, userName)
 
     if (task.properties.name) {
