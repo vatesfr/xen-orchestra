@@ -230,6 +230,9 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   }
 
   /**
+   * Tests the backup-repository status.
+   * Test failure still returns a 200.
+   *
    * Required privilege:
    * - resource: backup-repository, action: test
    *
