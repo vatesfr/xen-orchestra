@@ -41,15 +41,20 @@
   - `/vms/:id/actions/migrate` (PR [#9910](https://github.com/vatesfr/xen-orchestra/pull/9910))
 
 - [XO6] live update XO tasks (PR [#9901](https://github.com/vatesfr/xen-orchestra/pull/9901))
-- [XO6/Backup] add progress for backups tasks(PR [#9901](https://github.com/vatesfr/xen-orchestra/pull/9901))
+- [XO6/Backup] add progress for backups tasks (PR [#9901](https://github.com/vatesfr/xen-orchestra/pull/9901))
 - [REST API] add `hosts/:id/actions/join_pool` REST route (PR [#9876](https://github.com/vatesfr/xen-orchestra/pull/9876))
+- [VM/Network] Add VIF column to table (PR [#9959](https://github.com/vatesfr/xen-orchestra/pull/9959))
 - [Rest Api] Ask for user credentials for unauthenticated users (PR [#9938](https://github.com/vatesfr/xen-orchestra/pull/9938))
 - [Pool/System] Add `Reboot VM on internal shutdown` in pool's system tab (PR [#9962](https://github.com/vatesfr/xen-orchestra/pull/9962))
 - [Netbox] Support Netbox v4.6.x [#9818](https://github.com/vatesfr/xen-orchestra/issues/9818) (PR [#9939](https://github.com/vatesfr/xen-orchestra/pull/9939))
 - [Icons] Updated connect/disconnect icons to use a plug icon (PR [#9942](https://github.com/vatesfr/xen-orchestra/pull/9942))
 - [Modal] Updated modal windows with a border and unified backgound color for better readability (PR [#9825](https://github.com/vatesfr/xen-orchestra/pull/9825))
+- [XO6/VDI] Update actions name to be more consistent (PR [#9968](https://github.com/vatesfr/xen-orchestra/pull/9968))
 - [SR] Storage repositories can now be deleted from the Pool/Host Storage tab (PR [#9853](https://github.com/vatesfr/xen-orchestra/pull/9853))
-- [VM/System] Updated VM Resource management card to display `vCPU at startup` and `Maximum vCPUs` instead of `minimum/maximum CPU limit` (PR [[#9950](#9950)](https://github.com/vatesfr/xen-orchestra/pull/9950))
+- [SR] Storage repositories can now be disconnected from the Pool/Host Storage tab (PR [#9856](https://github.com/vatesfr/xen-orchestra/pull/9856))
+- [REST API/RBAC] Add a built-in **Network administrator** role template: manage networks and VIFs, read and update PIFs (PR [#9952](https://github.com/vatesfr/xen-orchestra/pull/9952))
+- [VM/System] Updated VM Resource management card to display `vCPU at startup` and `Maximum vCPUs` instead of `minimum/maximum CPU limit` (PR [#9950](https://github.com/vatesfr/xen-orchestra/pull/9950))
+
 
 ### Bug fixes
 
@@ -64,6 +69,8 @@
 - [Rest Api] Fix `possibly unhandled rejection invalid crendentials` (PR [#9938](https://github.com/vatesfr/xen-orchestra/pull/9938))
 - [Backups] Fixed "Cannot read properties of undefined" issues (PR [#9944](https://github.com/vatesfr/xen-orchestra/pull/9944))
 - [REST API] `GET /vms/:id.:format`, `GET /vm-templates/:id.:format`, `GET /vm-snapshots/:id.:format` now correctly support explicit compress query param (`zstd` | `gzip`). Still support `true` | `false` as deprecated value (PR [#9960](https://github.com/vatesfr/xen-orchestra/pull/9960))
+- [Backup/Restore] Fix file-level restore of VMs whose disks use LVM (e.g. the default Ubuntu install layout): logical volumes are now listed and can be restored, including when restoring several copies of the same VM at once — previously failed with `unknown filesystem type 'LVM2_member'` (PR [#9776](https://github.com/vatesfr/xen-orchestra/pull/9776))
+- [Backup/Restore] Fix file-level restore hanging when downloading large folders, and high memory use when downloading a folder as a zip (PR [#9776](https://github.com/vatesfr/xen-orchestra/pull/9776))
 
 ### Packages to release
 
@@ -81,11 +88,13 @@
 
 <!--packages-start-->
 
+- @vates/fuse-vhd patch
 - @vates/types minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/backup-archive patch
+- @xen-orchestra/backups patch
 - @xen-orchestra/disk-transform patch
-- @xen-orchestra/qa-test patch
+- @xen-orchestra/qa-test minor
 - @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor

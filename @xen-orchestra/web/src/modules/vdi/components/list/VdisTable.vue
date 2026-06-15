@@ -150,7 +150,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
               busy: isTogglingVbdConnection.value,
             },
             {
-              label: t('action:delete-vbd'),
+              label: t('action:detach-vdi'),
               hint: deleteVbdErrorMessage.value,
               icon: 'action:detach',
               onClick: () => openVbdDeleteModal(),
