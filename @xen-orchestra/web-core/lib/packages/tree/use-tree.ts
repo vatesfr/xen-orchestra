@@ -70,8 +70,6 @@ export function useTree<
     return result
   })
 
-  // Index of each flat node by its id, to look up a row position in O(1)
-  // (e.g. to scroll a virtual list to a given node) instead of scanning.
   const flatNodeIndexById = computed(() => {
     const index = new Map<TreeNodeId, number>()
     const list = flatNodes.value
