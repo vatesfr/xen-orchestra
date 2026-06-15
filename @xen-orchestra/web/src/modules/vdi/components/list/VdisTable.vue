@@ -33,6 +33,7 @@ import { useVbdDeleteModal } from '@/modules/vbd/composables/use-vbd-delete-moda
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { useVdiDeleteModal } from '@/modules/vdi/composables/use-vdi-delete-modal.composable.ts'
 import { useVdiExportDrawer } from '@/modules/vdi/composables/use-vdi-export-drawer.composable.ts'
+import { useVdiMigrateDrawer } from '@/modules/vdi/composables/use-vdi-migrate-drawer.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { getVdiFormat, getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -135,6 +136,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
       openDrawer: openVdiMigrateDrawer,
       canRun: canMigrateVdi,
       isRunning: isMigratingVdi,
+      errorMessage: migrateVdiErrorMessage,
     } = useVdiMigrateDrawer(() => vdi)
 
     return {
@@ -175,6 +177,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
             {
               label: t('action:migrate-vdi-on-sr'),
               icon: 'action:migrate',
+              hint: !canMigrateVdi.value ? migrateVdiErrorMessage.value : undefined,
               onClick: () => openVdiMigrateDrawer(),
               disabled: !canMigrateVdi.value,
               busy: isMigratingVdi.value,

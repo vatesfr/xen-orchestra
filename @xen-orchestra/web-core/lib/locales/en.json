@@ -488,6 +488,7 @@
   "job:vdi-export:missing-vdi": "No vdi to export",
   "job:vdi-migrate:in-progress": "Migrate in progress…",
   "job:vdi-migrate:missing-sr": "Destination SR is required",
+  "job:vdi-migrate:missing-vdi": "No VDI selected",
   "job:vif-connect:missing-vif": "No VIFs to connect",
   "job:vif-connect:vif-already-connected": "VIF is already connected",
   "job:vif-delete:blocked-operation": "VIF deletion is blocked",

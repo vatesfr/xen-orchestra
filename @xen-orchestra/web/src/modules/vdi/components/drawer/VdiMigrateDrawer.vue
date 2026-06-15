@@ -29,9 +29,9 @@
     </template>
 
     <template #buttons>
-      <template v-if="!showError">
-        <VtsDrawerCancelButton />
+      <VtsDrawerCancelButton />
 
+      <template v-if="!showError">
         <UiButton v-if="isOnDifferentHost" accent="warning" variant="primary" size="medium" @click="handleConfirm">
           {{ t('action:force-migrate-on-sr') }}
         </UiButton>
