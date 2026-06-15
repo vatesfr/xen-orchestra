@@ -375,6 +375,18 @@ The following query parameters are supported to customize the created VDI:
 - `name_description`
 - `raw`: this parameter must be used if importing a raw export instead of a VHD
 
+## Attaching an existing VDI to a VM
+
+You attach an existing VDI to a VM by creating a VBD through the `POST /vbds`
+endpoint. The VBD's `mode` (`RW` or `RO`) and `bootable` flag are set at creation.
+
+> Note: mounting or ejecting an ISO (CD-ROM) is not currently available through the
+> REST API. Use the JSON-RPC API instead, for example via `xo-cli`:
+>
+> ```sh
+> xo-cli vm.insertCd id=<vm-id> cd_id=<vdi-id> [force=<boolean>]
+> ```
+
 ## Actions
 
 The field `params` contains the [JSON schema](https://json-schema.org/) for the parameters.
