@@ -16,7 +16,8 @@ const vmControllerFields = [
 ] as const satisfies readonly (keyof XoVmController)[]
 
 export const useXoVmControllerCollection = defineRemoteResource({
-  url: `${BASE_URL}/vm-controllers?fields=${vmControllerFields.join(',')}`,
+  url: `${BASE_URL}/vm-controllers?fields=${vmControllerFields.join(',')}&ndjson=true`,
+  stream: true,
   initWatchCollection: () => useWatchCollection({ resource: 'VM-controller', fields: vmControllerFields }),
   initialData: () => [] as Pick<XoVmController, (typeof vmControllerFields)[number]>[],
   state: (vmControllers, context) =>

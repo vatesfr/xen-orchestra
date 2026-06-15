@@ -23,7 +23,8 @@ const vifFields = [
 ] as const satisfies readonly (keyof XoVif)[]
 
 export const useXoVifCollection = defineRemoteResource({
-  url: `${BASE_URL}/vifs?fields=${vifFields.join(',')}`,
+  url: `${BASE_URL}/vifs?fields=${vifFields.join(',')}&ndjson=true`,
+  stream: true,
   initWatchCollection: () => useWatchCollection({ resource: 'VIF', fields: vifFields }),
   initialData: () => [] as FrontXoVif[],
   state: (vifs, context) =>

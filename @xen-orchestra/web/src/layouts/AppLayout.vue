@@ -20,10 +20,10 @@
         <VtsTreeLoadingItem v-for="i in 5" :key="i" icon="object:pool" />
       </VtsTreeList>
       <VtsStateHero v-else-if="isSearching" format="card" type="busy" size="medium" class="loader" />
-      <VtsStateHero v-else-if="sites.length === 0" format="card" size="medium" type="no-result">
+      <VtsStateHero v-else-if="treeItems.length === 0" format="card" size="medium" type="no-result">
         {{ t('no-result') }}
       </VtsStateHero>
-      <SiteTreeList v-else :branches="sites" />
+      <SiteTreeList v-else ref="siteTreeList" :items="treeItems" />
     </template>
     <template #content>
       <VtsStateHero v-if="!isConnected && !isDevPage" format="page" type="busy" size="large">
@@ -59,7 +59,7 @@ import CoreLayout from '@core/layouts/CoreLayout.vue'
 import { useSseStore } from '@core/packages/remote-resource/sse.store.ts'
 import { useUiStore } from '@core/stores/ui.store'
 import { storeToRefs } from 'pinia'
-import { computed, onMounted, watch } from 'vue'
+import { computed, nextTick, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
@@ -74,28 +74,55 @@ const sseStore = useSseStore()
 
 const { isConnected } = storeToRefs(sseStore)
 
-const { sites, isReady, filter, isSearching, scrollToNodeElement } = useXoSiteTree()
+const { treeItems, treeItemIndexById, isReady, filter, isSearching, expandToNode } = useXoSiteTree()
 const route = useRoute<'/pool/[id]' | '/host/[id]' | '/vm/[id]'>()
+
+const siteTreeList = useTemplateRef('siteTreeList')
 
 const { buildXo5Route } = useXoRoutes()
 const xo5Route = computed(() => buildXo5Route('/'))
 
 const isDevPage = computed(() => route.path.startsWith('/dev'))
 
-async function scrollToRouteParamId() {
+let scrolledToId: string | undefined
+
+async function scrollToActiveNode() {
   const paramId = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id
-  await scrollToNodeElement(paramId)
+
+  if (!paramId) {
+    scrolledToId = undefined
+    return
+  }
+
+  if (paramId === scrolledToId) {
+    return
+  }
+
+  const node = expandToNode(paramId)
+  if (!node) {
+    return
+  }
+
+  const index = treeItemIndexById.value.get(node.id)
+  if (index === undefined) {
+    return
+  }
+
+  scrolledToId = paramId
+
+  await nextTick()
+
+  siteTreeList.value?.scrollToItem(index)
 }
 
-onMounted(() => {
-  scrollToRouteParamId()
-})
-
 watch(
-  () => route.params.id,
-  async () => {
-    await scrollToRouteParamId()
-  }
+  [() => route.params.id, isReady, treeItems],
+  () => {
+    if (isReady.value) {
+      scrollToActiveNode()
+    }
+  },
+  { immediate: true }
 )
 </script>
 

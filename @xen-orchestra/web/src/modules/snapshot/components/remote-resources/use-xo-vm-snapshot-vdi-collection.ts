@@ -16,7 +16,9 @@ const vmSnapshotVdiFields = [
 ] as const satisfies readonly (keyof XoVdi)[]
 
 export const useXoVmSnapshotVdiCollection = defineRemoteResource({
-  url: (snapshotId: string) => `${BASE_URL}/vm-snapshots/${snapshotId}/vdis?fields=${vmSnapshotVdiFields.join(',')}`,
+  url: (snapshotId: string) =>
+    `${BASE_URL}/vm-snapshots/${snapshotId}/vdis?fields=${vmSnapshotVdiFields.join(',')}&ndjson=true`,
+  stream: true,
   initWatchCollection: () =>
     useWatchCollection({
       collectionId: 'vmSnapshotVdi',

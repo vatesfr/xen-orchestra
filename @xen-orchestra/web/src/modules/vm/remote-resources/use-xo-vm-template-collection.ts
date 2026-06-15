@@ -31,7 +31,8 @@ const vmTemplateFields = [
 ] as const satisfies readonly (keyof XoVmTemplate)[]
 
 export const useXoVmTemplateCollection = defineRemoteResource({
-  url: `${BASE_URL}/vm-templates?fields=${vmTemplateFields.join(',')}`,
+  url: `${BASE_URL}/vm-templates?fields=${vmTemplateFields.join(',')}&ndjson=true`,
+  stream: true,
   initWatchCollection: () => useWatchCollection({ resource: 'VM-template', fields: vmTemplateFields }),
   initialData: () => [] as FrontXoVmTemplate[],
   state: (rawTemplates, context) => {

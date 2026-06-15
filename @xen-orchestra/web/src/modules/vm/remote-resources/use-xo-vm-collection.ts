@@ -1,4 +1,4 @@
-import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection'
 import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
@@ -62,7 +62,8 @@ const vmFields = [
 ] as const satisfies readonly (keyof XoVm)[]
 
 export const useXoVmCollection = defineRemoteResource({
-  url: `${BASE_URL}/vms?fields=${vmFields.join(',')}`,
+  url: `${BASE_URL}/vms?fields=${vmFields.join(',')}&ndjson=true`,
+  stream: true,
   initWatchCollection: () => useWatchCollection({ resource: 'VM', fields: vmFields }),
   initialData: () => [] as FrontXoVm[],
   state: (rawVms, context) => {
@@ -74,16 +75,23 @@ export const useXoVmCollection = defineRemoteResource({
     const vmsByHost = ref(new Map<FrontXoHost['id'], FrontXoVm[]>())
     const vmsByPool = ref(new Map<FrontXoPool['id'], FrontXoVm[]>())
     const hostLessVmsByPool = ref(new Map<FrontXoPool['id'], FrontXoVm[]>())
+    const runningVmsCountByPool = ref(new Map<FrontXoPool['id'], number>())
+    const runningVmsCountByContainer = ref(new Map<FrontXoHost['id'], number>())
 
     watch(sortedVms, vms => {
       const tmpRunningVms: FrontXoVm[] = []
       const tmpVmsByHost = new Map<FrontXoHost['id'], FrontXoVm[]>()
       const tmpVmsByPool = new Map<FrontXoPool['id'], FrontXoVm[]>()
       const tmpHostLessVmsByPool = new Map<FrontXoPool['id'], FrontXoVm[]>()
+      const tmpRunningVmsCountByPool = new Map<FrontXoPool['id'], number>()
+      const tmpRunningVmsCountByContainer = new Map<FrontXoHost['id'], number>()
 
       vms.forEach(vm => {
         if (vm.power_state === VM_POWER_STATE.RUNNING) {
           tmpRunningVms.push(vm)
+          tmpRunningVmsCountByPool.set(vm.$pool, (tmpRunningVmsCountByPool.get(vm.$pool) ?? 0) + 1)
+          const containerId = vm.$container as FrontXoHost['id']
+          tmpRunningVmsCountByContainer.set(containerId, (tmpRunningVmsCountByContainer.get(containerId) ?? 0) + 1)
         }
 
         if (vm.$container !== vm.$pool) {
@@ -100,6 +108,8 @@ export const useXoVmCollection = defineRemoteResource({
       vmsByHost.value = tmpVmsByHost
       hostLessVmsByPool.value = tmpHostLessVmsByPool
       vmsByPool.value = tmpVmsByPool
+      runningVmsCountByPool.value = tmpRunningVmsCountByPool
+      runningVmsCountByContainer.value = tmpRunningVmsCountByContainer
     })
 
     function getVmHost(vm: FrontXoVm): FrontXoHost | undefined {
@@ -118,6 +128,8 @@ export const useXoVmCollection = defineRemoteResource({
         baseName: 'vm',
       }),
       runningVms,
+      runningVmsCountByPool,
+      runningVmsCountByContainer,
       vmsByHost,
       vmsByPool,
       getVmHost,

@@ -48,10 +48,16 @@ declare module 'vue-virtual-scroller' {
     after(): unknown
   }
 
+  interface ScrollToOptions {
+    smooth?: boolean
+    align?: 'start' | 'center' | 'end' | 'nearest'
+    offset?: number
+  }
+
   export interface RecycleScrollerInstance {
     getScroll(): { start: number; end: number }
-    scrollToItem(index: number): void
-    scrollToPosition(position: number): void
+    scrollToItem(index: number, options?: ScrollToOptions): void
+    scrollToPosition(position: number, options?: ScrollToOptions): void
   }
 
   export const RecycleScroller: <T>(

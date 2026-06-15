@@ -37,7 +37,8 @@ const pifFields = [
 ] as const satisfies readonly (keyof XoPif)[]
 
 export const useXoPifCollection = defineRemoteResource({
-  url: `${BASE_URL}/pifs?fields=${pifFields.join(',')}`,
+  url: `${BASE_URL}/pifs?fields=${pifFields.join(',')}&ndjson=true`,
+  stream: true,
   initialData: () => [] as FrontXoPif[],
   initWatchCollection: () => useWatchCollection({ resource: 'PIF', fields: pifFields }),
   state: (pifs, context) => {
