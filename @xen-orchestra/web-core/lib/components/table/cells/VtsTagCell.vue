@@ -17,7 +17,7 @@ import { computed } from 'vue'
 
 const { tag, accent } = defineProps<{
   tag: MaybeArray<string>
-  accent?: TagAccent
+  accent: TagAccent
 }>()
 
 const tags = computed(() => toArray(tag).filter(tagItem => tagItem.trim() !== ''))

@@ -17,7 +17,7 @@ export const useTrafficRulesColumns = defineColumns(() => {
     order: useNumberColumn({ headerIcon: 'fa:hashtag' }),
     policy: useTagColumn({
       headerLabel: () => t('policy'),
-      getAccent: value => policyAccent(value),
+      getAccent: policyAccent,
     }),
     protocol: useTextColumn({
       headerLabel: () => t('protocol:port'),
