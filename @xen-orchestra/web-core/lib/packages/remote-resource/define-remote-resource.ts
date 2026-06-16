@@ -8,7 +8,6 @@ import {
 import type { ResourceContext, UseRemoteResource } from '@core/packages/remote-resource/types.ts'
 import type { VoidFunction } from '@core/types/utility.type.ts'
 import { ifElse } from '@core/utils/if-else.utils.ts'
-import { perfEnd, perfStart } from '@core/utils/perf.util.ts'
 import { noop, useDebounceFn, useTimeoutPoll } from '@vueuse/core'
 import { merge, remove } from 'lodash-es'
 import {
@@ -292,8 +291,6 @@ export function defineRemoteResource<
 
       isFetching.value = true
 
-      perfStart(`worker-ingest:${url}`)
-
       try {
         if (config.stream) {
           const streamedData: TData[] = []
@@ -354,7 +351,6 @@ export function defineRemoteResource<
         lastError.value = error instanceof Error ? error : new Error(String(error))
       } finally {
         if (!abortController.signal.aborted) {
-          perfEnd(`worker-ingest:${url}`)
           isFetching.value = false
         }
       }

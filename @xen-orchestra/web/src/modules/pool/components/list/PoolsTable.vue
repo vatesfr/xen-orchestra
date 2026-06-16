@@ -87,9 +87,10 @@ const state = useTableState({
         : false,
 })
 
-const displayServers = computed(() => filteredServers.value.map(server => getDisplayData(server)))
+const { pageRecords: pageFilterableServers, paginationBindings } = usePagination('servers', filteredServers)
 
-const { pageRecords: paginatedServers, paginationBindings } = usePagination('servers', displayServers)
+// Format only the visible page rather than every filtered server.
+const paginatedServers = computed(() => pageFilterableServers.value.map(server => getDisplayData(server)))
 
 const { HeadCells, BodyCells } = useServerColumns({
   body: (server: PoolDisplayData) => {

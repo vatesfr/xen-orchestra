@@ -12,7 +12,7 @@
 
     <div :class="$style.actions">
       <button type="button" @click="reloadAll">Reload collections</button>
-      <button type="button" @click="clear">Clear measures</button>
+      <!-- <button type="button" @click="clear">Clear measures</button> -->
       <button type="button" @click="computeEnhanced = !computeEnhanced">
         {{ computeEnhanced ? 'Stop' : 'Compute' }} enhanced VM data
       </button>
@@ -60,7 +60,8 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="row in measures" :key="row.name">
+        <!--
+ <tr v-for="row in measures" :key="row.name">
           <td>{{ row.name }}</td>
           <td>{{ row.count }}</td>
           <td>{{ formatMs(row.lastMs) }}</td>
@@ -70,15 +71,18 @@
         <tr v-if="measures.length === 0">
           <td colspan="5">No measure recorded yet — start with VITE_XO_PERF=1.</td>
         </tr>
+-->
       </tbody>
     </table>
 
     <h2>Main thread</h2>
     <ul>
-      <li>Long tasks (&gt; 50 ms): {{ longTaskCount }}</li>
+      <!--
+ <li>Long tasks (&gt; 50 ms): {{ longTaskCount }}</li>
       <li>Longest long task: {{ longestLongTask }} ms</li>
       <li>Total blocking time: {{ totalBlocking }} ms</li>
       <li>JS heap used: {{ heapUsedMb ?? 'n/a' }} MB</li>
+-->
     </ul>
   </div>
 </template>
@@ -90,7 +94,7 @@ import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-co
 import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useVmEnhancedData } from '@/modules/vm/composables/use-vm-enhanced-data.composable.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { useXoPerfReport } from '@/pages/dev/use-xo-perf-report.ts'
+// import { useXoPerfReport } from '@/pages/dev/use-xo-perf-report.ts'
 import { computed, ref } from 'vue'
 
 const { pools, arePoolsReady, $context: poolContext } = useXoPoolCollection()
@@ -101,7 +105,7 @@ const { vdis, areVdisReady, $context: vdiContext } = useXoVdiCollection()
 
 const { filterableVms } = useVmEnhancedData(() => vms.value)
 
-const { measures, longTaskCount, longestLongTaskMs, totalBlockingMs, heapUsedMb, clear } = useXoPerfReport()
+// const { measures, longTaskCount, longestLongTaskMs, totalBlockingMs, heapUsedMb, clear } = useXoPerfReport()
 
 const computeEnhanced = ref(false)
 
@@ -121,9 +125,9 @@ const collections = computed(() => {
   return rows
 })
 
-const longestLongTask = computed(() => Math.round(longestLongTaskMs.value))
+// const longestLongTask = computed(() => Math.round(longestLongTaskMs.value))
 
-const totalBlocking = computed(() => Math.round(totalBlockingMs.value))
+// const totalBlocking = computed(() => Math.round(totalBlockingMs.value))
 
 function reloadAll() {
   poolContext.forceReload()
@@ -133,9 +137,9 @@ function reloadAll() {
   vdiContext.forceReload()
 }
 
-function formatMs(ms: number) {
-  return ms.toFixed(1)
-}
+// function formatMs(ms: number) {
+//   return ms.toFixed(1)
+// }
 </script>
 
 <style module lang="postcss">

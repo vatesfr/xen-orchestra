@@ -9,7 +9,7 @@ import { perfEnd, perfStart } from '@core/utils/perf.util.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { VM_POWER_STATE, type XoVm } from '@vates/types'
 import { useSorted } from '@vueuse/core'
-import { shallowRef, shallowRef, watch } from 'vue'
+import { ref, shallowRef, watch } from 'vue'
 
 export type FrontXoVm = Pick<XoVm, (typeof vmFields)[number]>
 
