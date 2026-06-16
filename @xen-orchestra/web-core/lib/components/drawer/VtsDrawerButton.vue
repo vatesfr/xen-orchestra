@@ -1,5 +1,5 @@
 <template>
-  <UiButton accent="brand" :busy="drawer?.isBusy.value" :variant size="medium">
+  <UiButton accent="brand" :busy="drawer?.isBusy.value" :variant :disabled size="medium">
     <slot />
   </UiButton>
 </template>
@@ -11,6 +11,7 @@ import { inject } from 'vue'
 
 defineProps<{
   variant: ButtonVariant
+  disabled?: boolean
 }>()
 
 defineSlots<{

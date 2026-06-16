@@ -1,5 +1,5 @@
 <template>
-  <VtsDrawerButton variant="primary" @click="handleClick()">
+  <VtsDrawerButton variant="primary" :disabled @click="handleClick()">
     <slot />
   </VtsDrawerButton>
 </template>
@@ -11,6 +11,7 @@ import { inject } from 'vue'
 
 const { onClick } = defineProps<{
   onClick?: () => void
+  disabled?: boolean
 }>()
 
 defineSlots<{

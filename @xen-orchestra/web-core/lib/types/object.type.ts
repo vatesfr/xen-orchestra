@@ -8,3 +8,4 @@ export type VmBlockedOperations =
   | 'hard_reboot'
   | 'suspend'
   | 'destroy'
+  | 'pool_migrate'
