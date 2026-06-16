@@ -1,5 +1,8 @@
 export default {
   'allow-vm': true,
+  create: {
+    sr: true,
+  },
   disable: true,
   'migrate-receive': true,
   enable: true,
