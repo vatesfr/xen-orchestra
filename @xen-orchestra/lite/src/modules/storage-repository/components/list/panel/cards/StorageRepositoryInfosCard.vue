@@ -2,7 +2,7 @@
   <UiCard class="card-container">
     <UiCardTitle>
       <div v-if="sr.name_label" class="title">
-        <VtsIcon :name="`object:sr:${allPbdsConnectionStatus}`" size="medium" />
+        <VtsIcon :name="srStatusIcon" size="medium" />
         {{ sr.name_label }}
       </div>
     </UiCardTitle>
@@ -11,7 +11,7 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
         <template #value>
-          <VtsStatus :status="allPbdsConnectionStatus" />
+          <VtsStatus :status="srConnectionStatus" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue truncate align-top>
@@ -63,8 +63,8 @@
 
 <script lang="ts" setup>
 import type { XenApiPool, XenApiSr } from '@/libs/xen-api/xen-api.types'
-import { usePbdUtils } from '@/modules/storage-repository/composables/pbd-utils.composable'
-import { usePbdStore } from '@/stores/xen-api/pbd.store'
+import { useSrUtils } from '@/modules/storage-repository/composables/sr-utils.composable'
+import type { SrScope } from '@/modules/storage-repository/types/storage-repository.type'
 import { useSrStore } from '@/stores/xen-api/sr.store'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
@@ -78,17 +78,20 @@ import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { sr, pool } = defineProps<{
+const { sr, pool, scope } = defineProps<{
   sr: XenApiSr
   pool: XenApiPool
+  scope: SrScope
 }>()
 
 const { t } = useI18n()
 
-const { getPbdsForSr } = usePbdStore().subscribe()
 const { isHaSr: isHaSrForPool } = useSrStore().subscribe()
 
-const { allPbdsConnectionStatus } = usePbdUtils(() => getPbdsForSr(sr.$ref))
+const { srConnectionStatus, srStatusIcon } = useSrUtils(
+  () => sr,
+  () => scope
+)
 
 const isSrSharedI18nValue = computed(() => (sr.shared ? t('shared') : t('local')))
 

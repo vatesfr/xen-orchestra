@@ -1,9 +1,15 @@
 <template>
   <div class="pool-storage-view" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
-      <StorageRepositoriesTable v-if="pool" :srs="sortedSrs" :pool :busy="!isReady" :error="hasError" />
+      <StorageRepositoriesTable v-if="pool" :srs="sortedSrs" :pool :scope :busy="!isReady" :error="hasError" />
     </UiCard>
-    <StorageRepositorySidePanel v-if="selectedSr && pool" :sr="selectedSr" :pool @close="selectedSr = undefined" />
+    <StorageRepositorySidePanel
+      v-if="selectedSr && pool"
+      :sr="selectedSr"
+      :pool
+      :scope
+      @close="selectedSr = undefined"
+    />
     <UiPanel v-else-if="!uiStore.isSmall">
       <VtsStateHero format="panel" type="no-selection" size="medium">
         {{ t('select-to-see-details') }}
@@ -16,6 +22,7 @@
 import type { XenApiSr } from '@/libs/xen-api/xen-api.types'
 import StorageRepositorySidePanel from '@/modules/storage-repository/components/list/panel/StorageRepositorySidePanel.vue'
 import StorageRepositoriesTable from '@/modules/storage-repository/components/list/StorageRepositoriesTable.vue'
+import { SR_SCOPE_TYPE, type SrScope } from '@/modules/storage-repository/types/storage-repository.type'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { usePbdStore } from '@/stores/xen-api/pbd.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
@@ -40,6 +47,8 @@ const { isReady: arePbdsReady } = usePbdStore().subscribe()
 const uiStore = useUiStore()
 
 const isReady = logicAnd(areSrsReady, arePbdsReady)
+
+const scope: SrScope = { type: SR_SCOPE_TYPE.POOL }
 
 const sortedSrs = computed(() => [...srs.value].sort(sortByNameLabel))
 

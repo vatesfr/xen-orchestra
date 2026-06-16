@@ -1,4 +1,6 @@
 import { ipToHostname } from '@/libs/utils'
+import { createPbdOperations } from '@/libs/xen-api/operations/pbd-operations'
+import { createSrOperations } from '@/libs/xen-api/operations/sr-operations'
 import { createVbdOperations } from '@/libs/xen-api/operations/vbd-operations'
 import { createVdiOperations } from '@/libs/xen-api/operations/vdi-operations'
 import { createVifOperations } from '@/libs/xen-api/operations/vif-operations'
@@ -271,6 +273,14 @@ export default class XenApi {
 
   get vbd() {
     return createVbdOperations(this)
+  }
+
+  get pbd() {
+    return createPbdOperations(this)
+  }
+
+  get sr() {
+    return createSrOperations(this)
   }
 
   get vtpm() {

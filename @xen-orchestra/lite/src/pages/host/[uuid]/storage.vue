@@ -1,9 +1,15 @@
 <template>
   <div class="host-storage-view" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
-      <StorageRepositoriesTable v-if="pool" :srs :pool :busy="!isReady" :error="hasError" />
+      <StorageRepositoriesTable v-if="pool && host" :srs :pool :scope :busy="!isReady" :error="hasError" />
     </UiCard>
-    <StorageRepositorySidePanel v-if="selectedSr && pool" :sr="selectedSr" :pool @close="selectedSr = undefined" />
+    <StorageRepositorySidePanel
+      v-if="selectedSr && pool && host"
+      :sr="selectedSr"
+      :pool
+      :scope
+      @close="selectedSr = undefined"
+    />
     <UiPanel v-else-if="!uiStore.isSmall">
       <VtsStateHero format="panel" type="no-selection" size="medium">
         {{ t('select-to-see-details') }}
@@ -16,6 +22,7 @@
 import type { XenApiHost, XenApiSr } from '@/libs/xen-api/xen-api.types'
 import StorageRepositorySidePanel from '@/modules/storage-repository/components/list/panel/StorageRepositorySidePanel.vue'
 import StorageRepositoriesTable from '@/modules/storage-repository/components/list/StorageRepositoriesTable.vue'
+import { SR_SCOPE_TYPE, type SrScope } from '@/modules/storage-repository/types/storage-repository.type'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePbdStore } from '@/stores/xen-api/pbd.store'
@@ -47,6 +54,13 @@ const uiStore = useUiStore()
 const isReady = logicAnd(areSrsReady, arePbdsReady)
 
 const host = computed(() => getHostByUuid(route.params.uuid as XenApiHost['uuid']))
+
+const scope = computed(
+  (): SrScope => ({
+    type: SR_SCOPE_TYPE.HOST,
+    hostRef: host.value!.$ref,
+  })
+)
 
 const srs = computed(() => {
   if (host.value === undefined) {

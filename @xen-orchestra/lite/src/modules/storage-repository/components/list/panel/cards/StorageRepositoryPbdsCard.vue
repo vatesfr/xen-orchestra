@@ -3,12 +3,12 @@
     <UiCardTitle>
       {{ t('pbd-details') }}
     </UiCardTitle>
-    <VtsStateHero v-if="pbds.length === 0" type="no-data" format="card" horizontal size="extra-small">
+    <VtsStateHero v-if="pbdsInScope.length === 0" type="no-data" format="card" horizontal size="extra-small">
       {{ t('no-pbd-attached') }}
     </VtsStateHero>
     <template v-else>
       <div class="content">
-        <VtsStatus :status="allPbdsConnectionStatus" />
+        <VtsStatus :status="srConnectionStatus" />
       </div>
       <div v-if="areSomePbdsDisconnected" class="content">
         <template v-for="(pbd, index) in disconnectedPbds" :key="pbd.uuid">
@@ -39,9 +39,11 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiPbd } from '@/libs/xen-api/xen-api.types'
+import type { XenApiSr } from '@/libs/xen-api/xen-api.types'
 import StorageRepositoryPbdHost from '@/modules/storage-repository/components/list/panel/card-items/StorageRepositoryPbdHost.vue'
 import { CONNECTION_STATUS, usePbdUtils } from '@/modules/storage-repository/composables/pbd-utils.composable'
+import { useSrUtils } from '@/modules/storage-repository/composables/sr-utils.composable'
+import type { SrScope } from '@/modules/storage-repository/types/storage-repository.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -51,13 +53,19 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import { useI18n } from 'vue-i18n'
 
-const { pbds } = defineProps<{
-  pbds: XenApiPbd[]
+const { sr, scope } = defineProps<{
+  sr: XenApiSr
+  scope: SrScope
 }>()
 
 const { t } = useI18n()
 
-const { areSomePbdsDisconnected, allPbdsConnectionStatus, disconnectedPbds } = usePbdUtils(() => pbds)
+const { pbdsInScope, srConnectionStatus } = useSrUtils(
+  () => sr,
+  () => scope
+)
+
+const { areSomePbdsDisconnected, disconnectedPbds } = usePbdUtils(pbdsInScope)
 </script>
 
 <style scoped lang="postcss">
