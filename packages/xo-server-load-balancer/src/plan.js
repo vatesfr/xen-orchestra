@@ -323,6 +323,39 @@ export default class Plan {
   }
 
   // ===================================================================
+  // Migration helpers
+  // ===================================================================
+
+  // Check if VM was recently migrated and is in cooldown period
+  _isVmInCooldown(vm) {
+    const { migrationCooldown, migrationHistory } = this._globalOptions
+    if (migrationCooldown > 0) {
+      const lastMigration = migrationHistory.get(vm.id)
+      if (lastMigration !== undefined && Date.now() - lastMigration < migrationCooldown) {
+        return true
+      }
+    }
+    return false
+  }
+
+  _migrateVm({ vm, xapiSrc, xapiDest, srcHostId, destHostId, reason }) {
+    const { migrationHistory } = this._globalOptions
+    return this._concurrentMigrationLimiter(() => {
+      const task = this.xo.tasks.create({
+        name: `Load balancer migrates VM ${vm.name_label} (${vm.id})`,
+        description: `Migrating VM ${vm.name_label} (${vm.id}) from host ${srcHostId} to host ${destHostId} ${reason}`,
+        objectId: vm.id,
+        type: 'xo:load-balancer:migration',
+      })
+      return task.run(async () =>
+        xapiSrc.migrateVm(vm._xapiId, xapiDest, destHostId).then(() => {
+          migrationHistory.set(vm.id, Date.now())
+        })
+      )
+    })
+  }
+
+  // ===================================================================
   // vCPU pre-positioning helpers
   // ===================================================================
 
@@ -1104,35 +1137,6 @@ export default class Plan {
       srcHostId: sourceHost.id,
       destHostId: destination._xapiId,
       reason,
-    })
-  }
-
-  // Check if VM was recently migrated and is in cooldown period
-  _isVmInCooldown(vm) {
-    const { migrationCooldown, migrationHistory } = this._globalOptions
-    if (migrationCooldown > 0) {
-      const lastMigration = migrationHistory.get(vm.id)
-      if (lastMigration !== undefined && Date.now() - lastMigration < migrationCooldown) {
-        return true
-      }
-    }
-    return false
-  }
-
-  _migrateVm({ vm, xapiSrc, xapiDest, srcHostId, destHostId, reason }) {
-    const { migrationHistory } = this._globalOptions
-    return this._concurrentMigrationLimiter(() => {
-      const task = this.xo.tasks.create({
-        name: `Load balancer migrates VM ${vm.name_label} (${vm.id})`,
-        description: `Migrating VM ${vm.name_label} (${vm.id}) from host ${srcHostId} to host ${destHostId} ${reason}`,
-        objectId: vm.id,
-        type: 'xo:load-balancer:migration',
-      })
-      return task.run(async () =>
-        xapiSrc.migrateVm(vm._xapiId, xapiDest, destHostId).then(() => {
-          migrationHistory.set(vm.id, Date.now())
-        })
-      )
     })
   }
 
