@@ -187,3 +187,29 @@ When a collection is being watched:
 - Any subsequent changes (additions, updates, deletions) are automatically reflected in the resource’s data.
 - You can customize how incoming or removed data is handled using the onDataReceived and onDataRemoved callbacks.
 - The subscription to collection changes automatically stops when there are no more active component subscribers.
+
+## Off-main-thread ingestion
+
+All fetching and parsing happens in a shared Web Worker (`collection-ingest.worker.ts`), so a large
+collection never blocks the UI with a single main-thread `JSON.parse`. The worker is the only
+ingestion path; there is no main-thread fetch fallback.
+
+The format is driven by the `stream` option:
+
+- `stream: true` — the worker requests the resource as NDJSON (the URL must include `&ndjson=true`)
+  and streams it back in batches. For watched collections the batches are accumulated and applied
+  once the stream completes; otherwise each record is applied as it arrives.
+- `stream` unset — the worker parses the response with `response.json()` and returns the parsed
+  value (array or object) in a single message.
+
+```typescript
+const useMyResource = defineRemoteResource({
+  url: '/api/path/to/resource?fields=id,name,status&ndjson=true',
+  stream: true,
+  initialData: () => [] as MyResource[],
+})
+```
+
+The `onDataReceived` integration, real-time updates (`initWatchCollection`) and the `state` builder
+are unchanged — only the source of the parsed data moved off the main thread. An in-flight load is
+aborted when the resource is reloaded or released.

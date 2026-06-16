@@ -1,3 +1,4 @@
+import { loadCollectionViaWorker } from '@core/packages/remote-resource/ingest-worker-client.ts'
 import {
   type THandleDelete,
   type THandlePost,
@@ -7,9 +8,9 @@ import {
 import type { ResourceContext, UseRemoteResource } from '@core/packages/remote-resource/types.ts'
 import type { VoidFunction } from '@core/types/utility.type.ts'
 import { ifElse } from '@core/utils/if-else.utils.ts'
+import { perfEnd, perfStart } from '@core/utils/perf.util.ts'
 import { noop, useDebounceFn, useTimeoutPoll } from '@vueuse/core'
 import { merge, remove } from 'lodash-es'
-import readNDJSONStream from 'ndjson-readablestream'
 import {
   computed,
   type ComputedRef,
@@ -276,45 +277,86 @@ export function defineRemoteResource<
       { maxWait: 500 }
     )
 
+    // All fetching and parsing happens off the main thread in the ingestion worker. NDJSON
+    // collections (`config.stream`) are streamed back in batches; everything else is parsed with
+    // `response.json()` in the worker and returned in one message. The `onDataReceived`
+    // integration is unchanged, so the worker is a drop-in replacement for the previous
+    // main-thread fetch.
+    let currentIngestAbort: AbortController | undefined
+
     async function execute() {
+      currentIngestAbort?.abort()
+
+      const abortController = new AbortController()
+      currentIngestAbort = abortController
+
+      isFetching.value = true
+
+      perfStart(`worker-ingest:${url}`)
+
       try {
-        isFetching.value = true
-
-        const response = await fetch(url)
-
-        if (!response.ok) {
-          lastError.value = Error(`Failed to fetch: ${response.statusText}`)
-          return
-        }
-
-        if (!response.body) {
-          return
-        }
-
         if (config.stream) {
+          const streamedData: TData[] = []
+
+          await loadCollectionViaWorker(url, {
+            format: 'ndjson',
+            signal: abortController.signal,
+            onBatch: records => {
+              if (abortController.signal.aborted) {
+                return
+              }
+
+              if (watchCollection !== undefined) {
+                for (const record of records) {
+                  streamedData.push(record as TData)
+                }
+
+                return
+              }
+
+              for (const record of records) {
+                onDataReceived(data, record)
+              }
+
+              flushData()
+            },
+          })
+
+          if (abortController.signal.aborted) {
+            return
+          }
+
           if (watchCollection !== undefined) {
-            const streamedData: TData[] = []
-            for await (const event of readNDJSONStream(response.body)) {
-              streamedData.push(event)
-            }
             onDataReceived(data, streamedData)
-            await flushData()
-          } else {
-            for await (const event of readNDJSONStream(response.body)) {
-              onDataReceived(data, event)
-              await flushData()
-            }
+            flushData()
           }
         } else {
-          onDataReceived(data, await response.json())
-          await flushData()
+          await loadCollectionViaWorker(url, {
+            format: 'json',
+            signal: abortController.signal,
+            onJson: value => {
+              if (abortController.signal.aborted) {
+                return
+              }
+
+              onDataReceived(data, value)
+              flushData()
+            },
+          })
+
+          if (abortController.signal.aborted) {
+            return
+          }
         }
 
         isReady.value = true
       } catch (error) {
         lastError.value = error instanceof Error ? error : new Error(String(error))
       } finally {
-        isFetching.value = false
+        if (!abortController.signal.aborted) {
+          perfEnd(`worker-ingest:${url}`)
+          isFetching.value = false
+        }
       }
     }
 
@@ -325,7 +367,10 @@ export function defineRemoteResource<
       const { collectionId, resource, handleDelete, handlePost, handleWatching } = watchCollection
       const { watch, unwatch } = useSseStore()
 
-      pause = () => unwatch({ collectionId, resource, handleDelete })
+      pause = () => {
+        currentIngestAbort?.abort()
+        unwatch({ collectionId, resource, handleDelete })
+      }
       resume = async function () {
         await watch({
           collectionId,
@@ -349,7 +394,10 @@ export function defineRemoteResource<
         immediate: false,
       })
 
-      pause = timeoutPoll.pause
+      pause = () => {
+        currentIngestAbort?.abort()
+        timeoutPoll.pause()
+      }
       resume = timeoutPoll.resume
     }
 

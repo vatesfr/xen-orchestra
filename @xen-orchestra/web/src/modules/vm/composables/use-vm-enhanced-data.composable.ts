@@ -3,6 +3,7 @@ import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-co
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { getVmIpAddresses } from '@/modules/vm/utils/xo-vm.util.ts'
 import { objectIcon } from '@core/icons'
+import { perfEnd, perfStart } from '@core/utils/perf.util.ts'
 import { formatSizeRaw, type SizeInfo } from '@core/utils/size.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { XoVdi } from '@vates/types'
@@ -41,8 +42,10 @@ export function useVmEnhancedData(rawVms: MaybeRefOrGetter<FrontXoVm[]>) {
   /**
    * Filterable data: raw values for Query Builder schema
    */
-  const filterableVms = computed(() =>
-    vms.value.map(
+  const filterableVms = computed(() => {
+    perfStart('vm-enhanced:map')
+
+    const enhanced = vms.value.map(
       vm =>
         ({
           ...vm,
@@ -51,7 +54,11 @@ export function useVmEnhancedData(rawVms: MaybeRefOrGetter<FrontXoVm[]>) {
           ipAddresses: getVmIpAddresses(vm),
         }) as VmFilterableData
     )
-  )
+
+    perfEnd('vm-enhanced:map')
+
+    return enhanced
+  })
 
   /**
    * Display data: enhanced VM with formatted values for table rendering
