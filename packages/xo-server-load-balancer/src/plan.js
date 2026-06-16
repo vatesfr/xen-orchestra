@@ -15,6 +15,8 @@ import { inspect } from 'util'
 
 import { EXECUTION_DELAY, debug, warn } from './utils'
 
+// value is shared with DEFAULT_LOAD_BALANCER_RE_ENABLE_DELAY in packages/xo-server/src/xo-mixins/xen-servers.mjs
+// and loadBalancerReEnableDelay in config.toml
 const MINUTES_OF_HISTORICAL_DATA = 30
 
 // CPU threshold in percent.
@@ -320,6 +322,39 @@ export default class Plan {
     }
 
     return vmsAverages
+  }
+
+  // ===================================================================
+  // Migration helpers
+  // ===================================================================
+
+  // Check if VM was recently migrated and is in cooldown period
+  _isVmInCooldown(vm) {
+    const { migrationCooldown, migrationHistory } = this._globalOptions
+    if (migrationCooldown > 0) {
+      const lastMigration = migrationHistory.get(vm.id)
+      if (lastMigration !== undefined && Date.now() - lastMigration < migrationCooldown) {
+        return true
+      }
+    }
+    return false
+  }
+
+  _migrateVm({ vm, xapiSrc, xapiDest, srcHostId, destHostId, reason }) {
+    const { migrationHistory } = this._globalOptions
+    return this._concurrentMigrationLimiter(() => {
+      const task = this.xo.tasks.create({
+        name: `Load balancer migrates VM ${vm.name_label} (${vm.id})`,
+        description: `Migrating VM ${vm.name_label} (${vm.id}) from host ${srcHostId} to host ${destHostId} ${reason}`,
+        objectId: vm.id,
+        type: 'xo:load-balancer:migration',
+      })
+      return task.run(async () =>
+        xapiSrc.migrateVm(vm._xapiId, xapiDest, destHostId).then(() => {
+          migrationHistory.set(vm.id, Date.now())
+        })
+      )
+    })
   }
 
   // ===================================================================
@@ -673,35 +708,18 @@ export default class Plan {
 
         const source = idToHost[sourceHost.id]
         const destination = idToHost[destinationHost.id]
-        debugAntiAffinity(
-          `Migrate VM (${vm.id} "${vm.name_label}") to Host (${destinationHost.id} "${destination.name_label}") from Host (${sourceHost.id} "${source.name_label}").`
-        )
 
-        // 3. Update tags and averages.
+        // 3. Update tags and averages, and migrate.
         // This update can change the source host for the next migration.
-        for (const tag of vm.tags) {
-          if (this._antiAffinityTags.includes(tag)) {
-            sourceHost.tags[tag]--
-            destinationHost.tags[tag]++
-          }
-        }
-
-        const destinationAverages = hostsAverages[destinationHost.id]
-        const vmAverages = vmsAverages[vm.id]
-
-        destinationAverages.cpu += vmAverages.cpu
-        destinationAverages.memoryFree -= vmAverages.memory
-
-        delete sourceHost.vms[vm.id]
-
-        // 4. Migrate.
         promises.push(
-          this._migrateVm({
+          this._migrateVmAndUpdateInfos({
+            destination,
+            source,
+            sourceHost,
+            destinationHost,
             vm,
-            xapiSrc: this.xo.getXapi(source),
-            xapiDest: this.xo.getXapi(destination),
-            srcHostId: source.id,
-            destHostId: destination._xapiId,
+            hostsAverages,
+            vmAverages: vmsAverages[vm.id],
             reason: `to satisfy anti-affinity of tag ${tag}`,
           })
         )
@@ -1046,17 +1064,21 @@ export default class Plan {
           vm,
           hostsAverages,
           vmAverages,
-          promises,
           reason: `to free up resources on host to later migrate affinity-tagged VMs to it (${tag})`,
         })
       )
 
       if (hostsAverages[crowdedHost.id].memoryFree - memoryNeeded > this._thresholds.memoryFree.critical) {
+        // wait for the freeing migrations to actually complete before reporting success: up to
+        // `maxConcurrentMigrations` migrations can run concurrently, so callers relying on `success`
+        // to migrate onto `crowdedHost` right away must not race the still-in-flight migrations
+        await Promise.allSettled(promises)
         return { promises, success: true }
       }
     }
 
     // not enough VMs were migrated
+    await Promise.allSettled(promises)
     return { promises, success: false }
   }
 
@@ -1073,12 +1095,12 @@ export default class Plan {
     // TODO: add more checks with XAPI method assert_can_migrate
 
     // Update tags and averages
-    debugAffinity(
+    debug(
       `Migrate VM (${vm.id} "${vm.name_label}") to Host (${destination.id} "${destination.name_label}") from Host (${source.id} "${source.name_label}").`
     )
 
     for (const tag of vm.tags) {
-      if (this._affinityTags.includes(tag)) {
+      if (tag in sourceHost.tags) {
         sourceHost.tags[tag]--
         destinationHost.tags[tag]++
       }
@@ -1104,35 +1126,6 @@ export default class Plan {
       srcHostId: sourceHost.id,
       destHostId: destination._xapiId,
       reason,
-    })
-  }
-
-  // Check if VM was recently migrated and is in cooldown period
-  _isVmInCooldown(vm) {
-    const { migrationCooldown, migrationHistory } = this._globalOptions
-    if (migrationCooldown > 0) {
-      const lastMigration = migrationHistory.get(vm.id)
-      if (lastMigration !== undefined && Date.now() - lastMigration < migrationCooldown) {
-        return true
-      }
-    }
-    return false
-  }
-
-  _migrateVm({ vm, xapiSrc, xapiDest, srcHostId, destHostId, reason }) {
-    const { migrationHistory } = this._globalOptions
-    return this._concurrentMigrationLimiter(() => {
-      const task = this.xo.tasks.create({
-        name: `Load balancer migrates VM ${vm.name_label} (${vm.id})`,
-        description: `Migrating VM ${vm.name_label} (${vm.id}) from host ${srcHostId} to host ${destHostId} ${reason}`,
-        objectId: vm.id,
-        type: 'xo:load-balancer:migration',
-      })
-      return task.run(async () =>
-        xapiSrc.migrateVm(vm._xapiId, xapiDest, destHostId).then(() => {
-          migrationHistory.set(vm.id, Date.now())
-        })
-      )
     })
   }
 
