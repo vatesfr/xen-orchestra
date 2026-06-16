@@ -10,7 +10,6 @@
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
-- [VM/System] Updated VM Resource management card to display `vCPU at startup` and `Maximum vCPUs` instead of `minimum/maximum CPU limit` (PR [#9950](https://github.com/vatesfr/xen-orchestra/pull/9950))
 
 - [load-balancer] VM migrations triggered by the load balancer can now be monitored with tasks (PR [#9909](https://github.com/vatesfr/xen-orchestra/pull/9909))
 - [IPMI-Plugin] Add default outlet regex to the dell preset (PR [#9884](https://github.com/vatesfr/xen-orchestra/pull/9884))
@@ -57,7 +56,6 @@
 - [VM/System] Updated VM Resource management card to display `vCPU at startup` and `Maximum vCPUs` instead of `minimum/maximum CPU limit` (PR [#9950](https://github.com/vatesfr/xen-orchestra/pull/9950))
 - [Dashboard] Fix StateHero component's behavior on mobile to force vertical variant on mobile (PR [#9363](https://github.com/vatesfr/xen-orchestra/pull/9363))
 - [RBAC] Add Administrator template role (PR [#9885](https://github.com/vatesfr/xen-orchestra/pull/9885))
-
 
 ### Bug fixes
 
