@@ -55,6 +55,7 @@
 - [REST API/RBAC] Add a built-in **Network administrator** role template: manage networks and VIFs, read and update PIFs (PR [#9952](https://github.com/vatesfr/xen-orchestra/pull/9952))
 - [Dashboard] Fix StateHero component's behavior on mobile to force vertical variant on mobile (PR [#9363](https://github.com/vatesfr/xen-orchestra/pull/9363))
 - [RBAC] Add Administrator template role (PR [#9885](https://github.com/vatesfr/xen-orchestra/pull/9885))
+- [Netbox] Add option to ignore [RFC 1918](https://datatracker.ietf.org/doc/html/rfc1918) private IPs during synchronization. Thanks [@sboyd-m](https://github.com/sboyd-m)! (PR [#6306](https://github.com/vatesfr/xen-orchestra/pull/6306))
 
 
 ### Bug fixes
