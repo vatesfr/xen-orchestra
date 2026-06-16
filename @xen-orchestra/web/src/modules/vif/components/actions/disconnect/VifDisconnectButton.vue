@@ -5,7 +5,7 @@
     variant="tertiary"
     accent="brand"
     :disabled="!canDisconnectVif"
-    left-icon="status:disabled"
+    left-icon="action:disconnect"
     :busy="isDisconnectingVif"
     @click="openVifDisconnectModal()"
   >

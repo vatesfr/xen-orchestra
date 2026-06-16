@@ -16,7 +16,7 @@ import slugify from './slugify'
 
 const log = createLogger('xo:netbox')
 
-const SUPPORTED_VERSION = '>=2.10 <4.6'
+const SUPPORTED_VERSION = '>=2.10 <4.7'
 const CLUSTER_TYPE = 'XCP-ng Pool'
 const TYPES_WITH_UUID = ['virtualization.cluster', 'virtualization.virtualmachine', 'virtualization.vminterface']
 const CHUNK_SIZE = 100
@@ -77,7 +77,8 @@ class Netbox {
     }
     this.#allowUnauthorized = configuration.allowUnauthorized ?? false
     this.#syncUsers = configuration.syncUsers ?? false
-    this.#token = configuration.token
+    // NetBox UI may include "Bearer " or "Token " when copying tokens: strip it if present
+    this.#token = configuration.token.replace(/^(?:Bearer|Token)\s+/i, '')
     this.#xoPools = configuration.pools
     this.#syncInterval = configuration.syncInterval && configuration.syncInterval * 60 * 60 * 1e3
     this.#ignoreRfc1918 = configuration.ignoreRfc1918 ?? false
@@ -153,7 +154,10 @@ class Netbox {
 
     let url = this.#endpoint + '/api' + path
     const options = {
-      headers: { 'Content-Type': 'application/json', Authorization: `Token ${this.#token}` },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: this.#token.startsWith('nbt_') ? `Bearer ${this.#token}` : `Token ${this.#token}`,
+      },
       method,
       rejectUnauthorized: !this.#allowUnauthorized,
       timeout: REQUEST_TIMEOUT,
@@ -248,6 +252,16 @@ class Netbox {
 
   async #checkNetboxVersion() {
     await this.#fetchNetboxVersion()
+
+    if (
+      this.#netboxVersion !== undefined &&
+      semver.satisfies(this.#netboxVersion, '>=4.5') &&
+      !this.#token.startsWith('nbt_')
+    ) {
+      log.warn(
+        'You are using a v1 API token, which is deprecated since NetBox 4.5 and will be removed in v5.0. Please migrate to a v2 token (tokens starting with "nbt_") from your NetBox interface.'
+      )
+    }
 
     if (!this.#xo.config.getOptional('netbox.checkNetboxVersion')) {
       return
@@ -611,7 +625,7 @@ class Netbox {
     // necessary
     const allNbVmsList = await this.#request('/virtualization/virtual-machines/?' + allClusterFilter)
     // Then get only the ones from the pools we're synchronizing
-    const nbVmsList = allNbVmsList.filter(nbVm => some(nbClusters, { id: nbVm.cluster.id }))
+    const nbVmsList = allNbVmsList.filter(nbVm => some(nbClusters, { id: nbVm.cluster?.id }))
     // Then make them objects to map the Netbox VMs to their XO VMs
     // { VM UUID → Netbox VM }
     const allNbVms = keyBy(allNbVmsList, 'custom_fields.uuid')
@@ -634,7 +648,7 @@ class Netbox {
       const nbCluster = nbClusters[xoPoolId]
 
       // Get Netbox VMs that are supposed to be in this pool
-      const xoPoolNbVms = pickBy(nbVms, nbVm => nbVm.cluster.id === nbCluster.id)
+      const xoPoolNbVms = pickBy(nbVms, nbVm => nbVm.cluster?.id === nbCluster.id)
 
       // For each XO VM of this pool (I)
       for (const xoVm of Object.values(xoPoolVms)) {

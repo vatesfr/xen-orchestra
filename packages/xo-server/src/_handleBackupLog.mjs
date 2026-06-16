@@ -34,7 +34,7 @@ async function sendToNagios(app, jobName, vmBackupInfo) {
 
 export function forwardResult(log) {
   if (log.status === 'failure') {
-    throw log.result
+    throw log.result ?? new Error('backup task failed with undefined error')
   }
   return log.result
 }
@@ -49,7 +49,7 @@ export const handleBackupLog = (taskLog, event, { app, jobName } = {}) => {
   if (app !== undefined && jobName !== undefined) {
     if (event.type === 'end' && taskLog.properties?.type === 'VM') {
       // we arbitrary pick one transfer to get the size
-      const exportTask = taskLog.tasks?.find(task => task.properties?.name === 'export')
+      const exportTask = taskLog.tasks?.find(task => task.properties?.name === 'export' && task.tasks !== undefined)
       const transferTask =
         exportTask === undefined ? undefined : exportTask.tasks.find(task => task.properties?.name === 'transfer')
       const vmBackupInfo = {
