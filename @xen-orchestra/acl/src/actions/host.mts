@@ -1,5 +1,8 @@
 export default {
   'allow-vm': true,
+  create: {
+    sr: true,
+  },
   detach: true,
   disable: true,
   enable: true,
