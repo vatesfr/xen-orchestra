@@ -7,7 +7,7 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import type { XoHost } from '@vates/types'
 import { useSorted } from '@vueuse/core'
-import { ref, watch } from 'vue'
+import { shallowRef, watch } from 'vue'
 
 export type FrontXoHost = Pick<XoHost, (typeof hostFields)[number]>
 
@@ -55,7 +55,7 @@ export const useXoHostCollection = defineRemoteResource({
 
     const { pools, getPoolById } = useXoPoolCollection(context)
 
-    const hostsByPool = ref(new Map<FrontXoPool['id'], FrontXoHost[]>())
+    const hostsByPool = shallowRef(new Map<FrontXoPool['id'], FrontXoHost[]>())
 
     watch(sortedHosts, hosts => {
       const tmpHostsByPool = new Map<FrontXoPool['id'], FrontXoHost[]>()

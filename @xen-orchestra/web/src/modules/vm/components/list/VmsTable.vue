@@ -107,9 +107,11 @@ const state = useTableState({
     rawVms.length === 0 ? t('no-vm-detected') : filteredVms.value.length === 0 ? { type: 'no-result' } : false,
 })
 
-const displayVms = computed(() => filteredVms.value.map(vm => getDisplayData(vm)))
+const { pageRecords: pageFilterableVms, paginationBindings } = usePagination('vms', filteredVms)
 
-const { pageRecords: paginatedVms, paginationBindings } = usePagination('vms', displayVms)
+// Format only the visible page rather than every filtered VM, so we don't allocate a display
+// clone for the whole collection.
+const paginatedVms = computed(() => pageFilterableVms.value.map(vm => getDisplayData(vm)))
 
 const { HeadCells, BodyCells } = useVmColumns({
   body: (vm: VmDisplayData) => {

@@ -9,7 +9,7 @@ import { perfEnd, perfStart } from '@core/utils/perf.util.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { VM_POWER_STATE, type XoVm } from '@vates/types'
 import { useSorted } from '@vueuse/core'
-import { ref, shallowRef, watch } from 'vue'
+import { shallowRef, shallowRef, watch } from 'vue'
 
 export type FrontXoVm = Pick<XoVm, (typeof vmFields)[number]>
 
@@ -72,10 +72,10 @@ export const useXoVmCollection = defineRemoteResource({
 
     const sortedVms = useSorted(rawVms, sortByNameLabel)
 
-    const runningVms = ref<FrontXoVm[]>([])
-    const vmsByHost = ref(new Map<FrontXoHost['id'], FrontXoVm[]>())
-    const vmsByPool = ref(new Map<FrontXoPool['id'], FrontXoVm[]>())
-    const hostLessVmsByPool = ref(new Map<FrontXoPool['id'], FrontXoVm[]>())
+    const runningVms = shallowRef<FrontXoVm[]>([])
+    const vmsByHost = shallowRef(new Map<FrontXoHost['id'], FrontXoVm[]>())
+    const vmsByPool = shallowRef(new Map<FrontXoPool['id'], FrontXoVm[]>())
+    const hostLessVmsByPool = shallowRef(new Map<FrontXoPool['id'], FrontXoVm[]>())
     const runningVmsCountByPool = ref(new Map<FrontXoPool['id'], number>())
     const runningVmsCountByContainer = ref(new Map<FrontXoHost['id'], number>())
 
