@@ -3,7 +3,7 @@ import type { BaseName, CollectionState, NameConfig } from '@/shared/composables
 import type { ResourceContext } from '@core/packages/remote-resource/types.ts'
 import type { XoRecord } from '@vates/types'
 import { reactify } from '@vueuse/shared'
-import { type Ref } from 'vue'
+import { computed, type Ref } from 'vue'
 
 export function useXoCollectionState<TRecord extends Partial<XoRecord>, const TBaseName extends string>(
   collection: Ref<TRecord[]>,
@@ -66,17 +66,39 @@ export function useXoCollectionState<TRecord extends XoRecord, TNameConfig exten
     baseName: TNameConfig
   }
 ) {
+  // Index the collection by id so lookups are O(1). Without it, `getById`/`getByIds` are linear
+  // scans, which become O(n²) when called per record (e.g. resolving each VM's VBDs/VDIs).
+  // The index is lazy and only rebuilt when the collection changes.
+  const recordsById = computed(() => {
+    const map = new Map<TRecord['id'], TRecord>()
+
+    for (const record of collection.value) {
+      map.set(record.id, record)
+    }
+
+    return map
+  })
+
   function getById(id: TRecord['id'] | undefined) {
     if (id === undefined) {
       return undefined
     }
 
-    return collection.value.find(record => record.id === id)
+    return recordsById.value.get(id)
   }
 
   function getByIds(ids: TRecord['id'][]) {
-    const idSet = new Set(ids)
-    return collection.value.filter(record => idSet.has(record.id))
+    const records: TRecord[] = []
+
+    for (const id of ids) {
+      const record = recordsById.value.get(id)
+
+      if (record !== undefined) {
+        records.push(record)
+      }
+    }
+
+    return records
   }
 
   function hasById(id: TRecord['id'] | undefined) {
@@ -84,7 +106,7 @@ export function useXoCollectionState<TRecord extends XoRecord, TNameConfig exten
       return false
     }
 
-    return collection.value.some(record => record.id === id)
+    return recordsById.value.has(id)
   }
 
   const names = toNameConfig(config.baseName)

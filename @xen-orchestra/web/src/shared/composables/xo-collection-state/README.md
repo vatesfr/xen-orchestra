@@ -4,6 +4,11 @@ This composable is used to manage the state of a collection of resources in Xen 
 
 It is meant to be used in conjunction with the `defineRemoteResource` utility from the Web Core library.
 
+The lookups (`get<Name>ById`, `get<Name>sByIds`, `has<Name>ById`) are backed by a lazily-built
+`Map` index, so they are O(1) instead of scanning the collection. This matters when a lookup runs
+per record (e.g. resolving each VM's VBDs/VDIs), which would otherwise be O(n²). `get<Name>sByIds`
+returns records in the order of the requested ids (not collection order).
+
 ```typescript
 const useVmCollection = defineRemoteResource({
   url: /path/to/vms',
