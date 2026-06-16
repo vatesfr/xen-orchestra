@@ -11,7 +11,6 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [IPMI-Plugin] Add default outlet regex to the dell preset (PR [#9884](https://github.com/vatesfr/xen-orchestra/pull/9884))
 - [load-balancer] VM migrations triggered by the load balancer can now be monitored with tasks (PR [#9909](https://github.com/vatesfr/xen-orchestra/pull/9909))
 - [IPMI-Plugin] Add default outlet regex to the dell preset (PR [#9884](https://github.com/vatesfr/xen-orchestra/pull/9884))
 - [REST API] Expose `POST /backup-repositories` and `PATCH /backup-repositories/:id` REST routes (PR [#9852](https://github.com/vatesfr/xen-orchestra/pull/9852))
