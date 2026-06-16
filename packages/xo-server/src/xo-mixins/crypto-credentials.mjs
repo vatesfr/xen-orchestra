@@ -21,23 +21,6 @@ export const ENCRYPTION_PREFIX = 'enc:'
 
 const log = createLogger('xo:crypto-credentials')
 
-async function getBackupFilePath() {
-  try {
-    await fs.access(BACKUP_FILE_PATH)
-  } catch {
-    return BACKUP_FILE_PATH
-  }
-
-  for (let i = 1; ; i++) {
-    const path = BACKUP_FILE_PATH.replace('.json', `_${i}.json`)
-    try {
-      await fs.access(path)
-    } catch {
-      return path
-    }
-  }
-}
-
 export default class CryptoCredentials {
   /**
    * @type {webcrypto.CryptoKey | undefined}
@@ -65,16 +48,32 @@ export default class CryptoCredentials {
   #degraded = false
 
   /**
-   * @param {XoApp} app
+   * @type {typeof XenStore}
    */
-  constructor(app) {
+  #xenStore
+
+  /**
+   * @type {typeof fs}
+   */
+  #fs
+
+  /**
+   * XenStore and fs are injected here to allow unit tests to provide mocks
+   *
+   * @param {XoApp} app
+   * @param {{ xenStore?: typeof XenStore, fsPromises?: typeof fs }} [deps]
+   */
+  constructor(app, { xenStore = XenStore, fsPromises = fs } = {}) {
     this._app = app
+
+    this.#xenStore = xenStore
+    this.#fs = fsPromises
 
     this._app.hooks.on('start core', async () => {
       await this.#initialize()
 
       if (this.#migrationRequired === 'encryption') {
-        const backupFilePath = await getBackupFilePath()
+        const backupFilePath = await this.#getBackupFilePath()
         try {
           await this.#migrateToEncrypted(backupFilePath)
 
@@ -87,7 +86,7 @@ export default class CryptoCredentials {
           })
         }
       } else if (this.#migrationRequired === 'decryption') {
-        const backupFilePath = await getBackupFilePath()
+        const backupFilePath = await this.#getBackupFilePath()
         try {
           await this.#migrateToDecrypted(backupFilePath)
 
@@ -103,6 +102,23 @@ export default class CryptoCredentials {
     })
   }
 
+  async #getBackupFilePath() {
+    try {
+      await this.#fs.access(BACKUP_FILE_PATH)
+    } catch {
+      return BACKUP_FILE_PATH
+    }
+
+    for (let i = 1; ; i++) {
+      const path = BACKUP_FILE_PATH.replace('.json', `_${i}.json`)
+      try {
+        await this.#fs.access(path)
+      } catch {
+        return path
+      }
+    }
+  }
+
   /**
    * Check if encryption is active, if a migration is needed and load keys.
    */
@@ -113,13 +129,7 @@ export default class CryptoCredentials {
     let xenStoreKey, fileKey
 
     try {
-      xenStoreKey = Buffer.from((await XenStore.read(XENSTORE_KEY_PATH)).trim(), 'hex')
-    } catch (/** @type {any} */ error) {
-      if (!error.message?.includes(`couldn't read path`)) throw error
-    }
-
-    try {
-      fileKey = await fs.readFile(KEY_FILE_PATH)
+      fileKey = await this.#fs.readFile(KEY_FILE_PATH)
     } catch (/** @type {any} */ error) {
       if (error.code !== 'ENOENT') throw error
     }
@@ -127,19 +137,39 @@ export default class CryptoCredentials {
     // Encryption is active, check if both key halves are present.
     // If so, load them to derive the encryption and hmac keys.
     // If not, generate both halves, save them, load them and
-    // sets #migrationRequired to require encryption migration.
+    // set #migrationRequired to require encryption migration.
     if (this._app.config.getOptional('redis.encryptCredentialDatabase') ?? false) {
-      this.#degraded = true
+      // XenStore is only read when encryption is active to avoid unnecessary xen-tools calls.
+      try {
+        xenStoreKey = Buffer.from((await this.#xenStore.read(XENSTORE_KEY_PATH)).trim(), 'hex')
+      } catch (/** @type {any} */ error) {
+        if (error.code === 'ENOENT') {
+          if (fileKey !== undefined) {
+            this.#degraded = true
+            log.error(
+              'Xenstore tools not available, credential database decryption failed - running in degraded mode',
+              { cause: error }
+            )
+          } else {
+            log.error('Xenstore tools not available, credential database encryption failed', { cause: error })
+          }
+          return
+        } else if (!error.message?.includes(`couldn't read path`)) {
+          throw error
+        }
+      }
 
-      if (xenStoreKey && fileKey) {
+      if (xenStoreKey !== undefined && fileKey !== undefined) {
+        this.#degraded = true
         await this._loadKey(xenStoreKey, fileKey)
       } else {
         xenStoreKey = randomBytes(32)
         fileKey = randomBytes(32)
 
+        this.#degraded = true
         try {
-          await XenStore.write(XENSTORE_KEY_PATH, xenStoreKey.toString('hex'))
-          await fs.writeFile(KEY_FILE_PATH, fileKey, { mode: 0o400 })
+          await this.#xenStore.write(XENSTORE_KEY_PATH, xenStoreKey.toString('hex'))
+          await this.#fs.writeFile(KEY_FILE_PATH, fileKey, { mode: 0o400 })
 
           await this._loadKey(xenStoreKey, fileKey)
 
@@ -147,29 +177,43 @@ export default class CryptoCredentials {
             this.#migrationRequired = 'encryption'
           }
         } catch (error) {
-          XenStore.rm(XENSTORE_KEY_PATH).catch(() => {})
-          fs.unlink(KEY_FILE_PATH).catch(() => {})
+          this.#xenStore.rm(XENSTORE_KEY_PATH).catch(() => {})
+          this.#fs.unlink(KEY_FILE_PATH).catch(() => {})
 
           log.error('Credential database encryption failed - running in degraded mode', { cause: error })
         }
       }
       // Encryption is inactive, we need to check if any key halves are present.
-      // If so, sets #migrationRequired to require decryption migration.
-    } else if (fileKey && xenStoreKey) {
-      // Load existing keys to enable decryption.
+      // If so, set #migrationRequired to require decryption migration.
+    } else if (fileKey !== undefined) {
+      try {
+        xenStoreKey = Buffer.from((await this.#xenStore.read(XENSTORE_KEY_PATH)).trim(), 'hex')
+      } catch (/** @type {any} */ error) {
+        if (error.code === 'ENOENT') {
+          this.#degraded = true
+          log.error('Xenstore tools not available, credential database decryption failed - running in degraded mode', {
+            cause: error,
+          })
+          return
+        } else if (!error.message?.includes(`couldn't read path`)) {
+          throw error
+        }
+      }
+
+      if (xenStoreKey === undefined) {
+        this.#degraded = true
+        log.error('Only one encryption key half found - running in degraded mode')
+        return
+      }
+
+      this.#degraded = true
       await this._loadKey(xenStoreKey, fileKey)
 
       if (this.#encryptionKey) {
         this.#migrationRequired = 'decryption'
       } else {
-        this.#degraded = true
-
         log.error('Existing key loading failed, decryption migration impossible - running in degraded mode')
       }
-    } else if (fileKey || xenStoreKey) {
-      this.#degraded = true
-
-      log.error('Only one encryption key half found - running in degraded mode')
     }
   }
 
@@ -263,7 +307,7 @@ export default class CryptoCredentials {
       const redisContent = await this.#getRedisContent()
 
       // Write all redis entries in a backup file in case migration fails.
-      await fs.writeFile(backupFilePath, JSON.stringify(redisContent), { mode: 0o400 })
+      await this.#fs.writeFile(backupFilePath, JSON.stringify(redisContent), { mode: 0o400 })
 
       // Encrypt all plaintext redis entries.
       /**
@@ -310,7 +354,7 @@ export default class CryptoCredentials {
       }
 
       // Delete backup file if the the encryption and verification worked.
-      await fs.rm(backupFilePath)
+      await this.#fs.rm(backupFilePath)
     } finally {
       resolveLock()
       this.#migrationLock = undefined
@@ -331,7 +375,7 @@ export default class CryptoCredentials {
     const redisContent = await this.#getRedisContent()
 
     // Write all redis entries in a backup file in case migration fails.
-    await fs.writeFile(backupFilePath, JSON.stringify(redisContent), { mode: 0o400 })
+    await this.#fs.writeFile(backupFilePath, JSON.stringify(redisContent), { mode: 0o400 })
 
     // Decrypt all encrypted redis entries.
     /**
@@ -376,13 +420,13 @@ export default class CryptoCredentials {
     }
 
     // Delete backup file if the the decryption and verification worked.
-    await fs.rm(backupFilePath)
+    await this.#fs.rm(backupFilePath)
 
     // Delete both key halves after successful decryption migration.
-    await XenStore.rm(XENSTORE_KEY_PATH).catch((/** @type {any} */ error) =>
-      log.warn('Failed to remove XenStore key', { cause: error })
-    )
-    await fs
+    await this.#xenStore
+      .rm(XENSTORE_KEY_PATH)
+      .catch((/** @type {any} */ error) => log.warn('Failed to remove XenStore key', { cause: error }))
+    await this.#fs
       .unlink(KEY_FILE_PATH)
       .catch((/** @type {any} */ error) => log.warn('Failed to remove key file', { cause: error }))
   }
