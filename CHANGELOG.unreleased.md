@@ -104,6 +104,7 @@
 - @xen-orchestra/acl minor
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups patch
+- @xen-orchestra/disk-cli patch
 - @xen-orchestra/disk-transform patch
 - @xen-orchestra/fs patch
 - @xen-orchestra/mcp patch
