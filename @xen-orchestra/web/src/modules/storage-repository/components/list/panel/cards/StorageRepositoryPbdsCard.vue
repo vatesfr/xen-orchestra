@@ -41,7 +41,7 @@ import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable
 import StorageRepositoryPbdHost from '@/modules/storage-repository/components/list/panel/card-items/StorageRepositoryPbdHost.vue'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { StorageScope } from '@/modules/storage-repository/types/storage-scope.type.ts'
+import type { SrScope } from '@/modules/storage-repository/types/storage-repository.type'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
@@ -54,7 +54,7 @@ import { useI18n } from 'vue-i18n'
 
 const { sr, scope } = defineProps<{
   sr: FrontXoSr
-  scope: StorageScope
+  scope: SrScope
 }>()
 
 const { t } = useI18n()

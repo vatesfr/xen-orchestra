@@ -26,9 +26,9 @@
     "make-error": "^1.0.2"
   },
   "devDependencies": {
-    "@babel/cli": "^7.0.0",
-    "@babel/core": "^7.0.0",
-    "@babel/preset-env": "^7.0.0",
+    "@babel/cli": "^7.29.0",
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.0",
     "cross-env": "^7.0.2",
     "promise-toolbox": "^0.21.0",
     "rimraf": "^6.0.1"
