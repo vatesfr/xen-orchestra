@@ -59,6 +59,13 @@
 - [Netbox] Add option to ignore [RFC 1918](https://datatracker.ietf.org/doc/html/rfc1918) private IPs during synchronization. Thanks [@sboyd-m](https://github.com/sboyd-m)! (PR [#6306](https://github.com/vatesfr/xen-orchestra/pull/6306))
 - [SR] Storage repositories can now be connected from the Pool/Host Storage tab (PR [#9877](https://github.com/vatesfr/xen-orchestra/pull/9877))
 
+- [Dependabot] Update packages and sync package.json with yarn.lock (PR [#9969](https://github.com/vatesfr/xen-orchestra/pull/9969))
+  - update shell-quote to 1.8.4:
+    - xo-web aka XO 5 (only in dev dependencies for watchify)
+    - @xen-orchestra/lite (only in dev dependencies for npm-run-all)
+  - vue-router fixed to 5.0.6 (@babel/generator@^8.0.0-rc.4 in 5.0.7)
+  - update packages to sync with yarn.lock (e.g. client-s3 package)
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -97,11 +104,16 @@
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups patch
 - @xen-orchestra/disk-transform patch
+- @xen-orchestra/fs patch
 - @xen-orchestra/qa-test minor
+- @xen-orchestra/mcp patch
+- @xen-orchestra/openflow patch
 - @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/upload-ova patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- @vates/generator-toolbox patch
 - @xen-orchestra/xapi minor
 - xo-common minor
 - xo-server minor
