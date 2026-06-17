@@ -5,7 +5,7 @@
     variant="tertiary"
     accent="brand"
     :disabled="!canDisconnectVbd"
-    :left-icon="leftIconButton"
+    left-icon="action:disconnect"
     :busy="isDisconnectingVbd"
     @click="openVbdDisconnectModal()"
   >
@@ -20,17 +20,11 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { CONNECTION_ACTION } from '@/shared/constants.ts'
 import UiButton from '@xen-orchestra/web-core/components/ui/button/UiButton.vue'
 import { vTooltip } from '@xen-orchestra/web-core/directives/tooltip.directive.ts'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const {
-  vbd,
-  vm,
-  isVdiPage = false,
-} = defineProps<{
+const { vbd, vm } = defineProps<{
   vbd: FrontXoVbd
   vm: FrontXoVm
-  isVdiPage?: boolean
 }>()
 
 const { t } = useI18n()
@@ -45,12 +39,4 @@ const {
   () => [vbd],
   () => vm
 )
-
-const leftIconButton = computed(() => {
-  if (!isVdiPage || canDisconnectVbd.value) {
-    return 'status:disabled'
-  } else {
-    return 'action:disconnect'
-  }
-})
 </script>

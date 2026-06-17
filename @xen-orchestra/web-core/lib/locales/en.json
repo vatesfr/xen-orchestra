@@ -899,6 +899,7 @@
   "snapshot-mode": "Snapshot mode",
   "snapshot-revert-snapshot-before": "Take a snapshot of the VM before reverting",
   "snapshot-revert-warning": "This will restore the VM to the selected snapshot state. Any changes made since then (data, configuration, and disk state) will be lost. This action cannot be undone.",
+  "snapshot-vdis": "Snapshot VDIs",
   "snapshots": "Snapshots",
   "sockets-with-cores-per-socket": "{nSockets} sockets × {nCores} cores/socket",
   "software": "Software",

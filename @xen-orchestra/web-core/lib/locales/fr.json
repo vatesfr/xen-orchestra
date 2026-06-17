@@ -899,6 +899,7 @@
   "snapshot-mode": "Mode de sauvegarde",
   "snapshot-revert-snapshot-before": "Créer un instantané de la VM avant la restauration",
   "snapshot-revert-warning": "La VM sera restaurée à l'état de l'instantané sélectionné. Tous les changements effectués depuis (données, configuration et état des disques) seront perdus. Cette action est irréversible.",
+  "snapshot-vdis": "VDIs snapshot",
   "snapshots": "Instantanés",
   "sockets-with-cores-per-socket": "{nSockets} sockets × {nCores} cœurs/socket",
   "software": "Logiciel",
