@@ -39,6 +39,8 @@ import {
   partialBackupRepositories,
   backupRepository,
   backupRepositoryId,
+  backupRepositoryBenchmark,
+  backupRepositoryHeath,
 } from '../open-api/oa-examples/backup-repository.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
@@ -48,7 +50,7 @@ import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { ApiError } from '../helpers/error.helper.mjs'
 
-type TestRepositoryResult = Awaited<ReturnType<XoApp['testRemote']>>
+type BenchmarkRepositoryResult = Awaited<ReturnType<XoApp['testRemote']>>
 
 @Route('backup-repositories')
 @Security('*')
@@ -239,20 +241,21 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
   @Get('{id}/health')
+  @Example(backupRepositoryHeath)
   @Middlewares(
     acl({
       resource: 'backup-repository',
-      action: 'health',
+      action: 'read',
       objectId: 'params.id',
       getObject: ({ restApi }) => restApi.xoApp.getRemote,
     })
   )
   @SuccessResponse(noContentResp.status, noContentResp.description)
-  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(200, 'OK')
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  async repositoryHealth(@Path() id: string): Promise<void> {
-    await this.restApi.xoApp.pingRemote(id as XoBackupRepository['id'])
+  async getBackupRepositoryHealth(@Path() id: string): Promise<{ success: true }> {
+    return this.restApi.xoApp.pingRemote(id as XoBackupRepository['id'])
   }
 
   /**
@@ -266,7 +269,7 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
   @Example(taskLocation)
-  @Example({ success: true, readRate: 7999965, writeRate: 7767798 })
+  @Example(backupRepositoryBenchmark)
   @Post('{id}/actions/benchmark')
   @Middlewares(
     acl({
@@ -283,10 +286,10 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   @Response(502, 'Backup repository unreachable')
-  benchmarkRepository(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<TestRepositoryResult> {
+  benchmarkRepository(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<BenchmarkRepositoryResult> {
     const backupRepositoryId = id as XoBackupRepository['id']
     const action = async () => {
-      let result: TestRepositoryResult
+      let result: BenchmarkRepositoryResult
       try {
         result = await this.restApi.xoApp.testRemote(backupRepositoryId)
       } catch (error) {
@@ -298,7 +301,7 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
       return result
     }
 
-    return this.createAction<TestRepositoryResult>(action, {
+    return this.createAction<BenchmarkRepositoryResult>(action, {
       sync,
       statusCode: 200,
       taskProperties: {

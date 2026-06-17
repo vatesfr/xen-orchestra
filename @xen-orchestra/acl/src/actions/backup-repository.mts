@@ -1,7 +1,6 @@
 export default {
   benchmark: true,
   create: true,
-  health: true,
   read: true,
   forget: true,
   update: {
