@@ -4,8 +4,11 @@ import { strict as assert } from 'assert'
 import 'dotenv/config'
 import { forOwn, random } from 'lodash'
 import { tmpdir } from 'os'
+import { pFromCallback } from 'promise-toolbox'
+import tmp from 'tmp'
 
 import { getHandler } from '.'
+import { rimraf } from 'rimraf'
 
 // https://gist.github.com/julien-f/3228c3f34fdac01ade09
 const unsecureRandomBytes = n => {
@@ -37,12 +40,15 @@ const skipFsNotInAzure = () => {
   return !!process.env.xo_fs_azure
 }
 // TODO : add tests on encrypted remote
-const handlers = [`file://${tmpdir()}`]
+const handlers = [`file://${tmp.dirSync().name}`]
 if (process.env.xo_fs_nfs) handlers.push(process.env.xo_fs_nfs)
 if (process.env.xo_fs_smb) handlers.push(process.env.xo_fs_smb)
 if (process.env.xo_fs_azure) handlers.push(process.env.xo_fs_azure)
 
 handlers.forEach(url => {
+  after(url, async () => {
+    await rimraf(url)
+  })
   describe(url, () => {
     let handler
 
@@ -122,6 +128,7 @@ handlers.forEach(url => {
       })
 
       it('throws ENOENT if no such directory', async () => {
+        console.log("TEEEEST", await handler.list('dir'))
         assert.equal((await rejectionOf(handler.list('dir'))).code, 'ENOENT')
       })
 
