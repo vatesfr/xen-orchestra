@@ -415,11 +415,7 @@ test('it merges a chain of multiple consecutive orphan ancestors in one pass', a
 test('it does not warn "missing target of alias" for aliases deleted by merge', async () => {
   // Regression: RemoteDiskLineage.#cleanOrphanDataFiles iterated #diskPaths entries just
   // deleted during the same clean() call's merge phase, producing false "missing target of
-  // alias" warnings (ENOENT when reading the already-deleted alias file).
-  //
-  // Chain: orphan (full, alias) ← child (differencing, alias, active in metadata)
-  // orphan is orphaned → merged into child → orphan.alias deleted by merge
-  // Fix: deleted paths removed from #diskPaths before #cleanOrphanDataFiles runs.
+  // alias" warnings
   const orphan = await generateVhd(`${basePath}/orphan.vhd`, {
     useAlias: true,
     blocks: [0],
