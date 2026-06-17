@@ -391,7 +391,7 @@ export class BackupRequest extends AbstractRequest {
 
     log.debug('Running metadata backup job', { jobId, scheduleId })
 
-    const runStartTime = Date.now() - 5000
+    const runStartTime = Date.now()
 
     try {
       await this.dispatchClient.xoClient.call('metadataBackup.runJob', {
