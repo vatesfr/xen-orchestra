@@ -1,11 +1,13 @@
 import { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
+import { RemoteRawDisk } from './RemoteRawDisk.mjs'
 
 export { RemoteDisk } from './RemoteDisk.mjs'
 export { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
+export { RemoteRawDisk } from './RemoteRawDisk.mjs'
 export { openDiskChain } from './openDiskChain.mjs'
 export { MergeRemoteDisk } from './MergeRemoteDisk.mjs'
 
-const DISK_EXTENSIONS = ['.vhd']
+const DISK_EXTENSIONS = ['.vhd', '.raw']
 
 /**
  * @typedef {import('@xen-orchestra/fs').RemoteHandlerAbstract} RemoteHandlerAbstract
@@ -27,7 +29,7 @@ export function isDisk(path) {
  * @returns {Promise<Disposable<RemoteDisk>>}
  */
 export async function openDisposableDisk({ handler, path, force = false, ignoreBlockIndexes = false }) {
-  const disk = new RemoteVhdDisk({ handler, path })
+  const disk = path.endsWith('.raw') ? new RemoteRawDisk({ handler, path }) : new RemoteVhdDisk({ handler, path })
   if (ignoreBlockIndexes) {
     // Best-effort init: return the disk even if init fails so that callers
     // can still use operations that work without a fully-opened VHD (e.g. unlink, checkAlias).
@@ -50,7 +52,7 @@ export async function openDisposableDisk({ handler, path, force = false, ignoreB
  * @returns {Promise<RemoteDisk>}
  */
 export async function openDisk({ handler, path, force = false, ignoreBlockIndexes = false }) {
-  const disk = new RemoteVhdDisk({ handler, path })
+  const disk = path.endsWith('.raw') ? new RemoteRawDisk({ handler, path }) : new RemoteVhdDisk({ handler, path })
   if (ignoreBlockIndexes) {
     // Best-effort init: return the disk even if init fails so that callers
     // can still use operations that work without a fully-opened VHD (e.g. unlink, checkAlias).

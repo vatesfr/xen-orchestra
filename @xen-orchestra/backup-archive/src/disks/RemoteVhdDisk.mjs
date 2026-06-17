@@ -471,12 +471,10 @@ export class RemoteVhdDisk extends RemoteDisk {
         let resolved = this.#path
         try {
           resolved = await resolveVhdAlias(this.#handler, this.#path)
-        } catch (err) {
-          // broken vhd directory must be unlinkable
-          if (err.code !== 'EISDIR') {
-            throw err
-          }
-          // warn('Deleting directly a VhdDirectory', { this.#path, err })
+        } catch (_err) {
+          // Alias resolution failed (broken, too big, missing target, directory, …).
+          // With force=true we still want to be able to delete the file, so fall
+          // back to the alias path itself; the unlink below will clean it up.
         }
         try {
           await this.#handler.unlink(resolved)
@@ -598,7 +596,12 @@ export class RemoteVhdDisk extends RemoteDisk {
         }
         return undefined
       }
-      logWarn('unhandled error while checking alias', { alias: this.#path, err })
+      // Alias file is corrupt or malformed (e.g. raw data written at this path).
+      logWarn('corrupt alias file', { alias: this.#path, err })
+      if (remove) {
+        logInfo('removing corrupt alias file', { alias: this.#path })
+        await this.#handler.unlink(this.#path)
+      }
       return undefined
     }
 

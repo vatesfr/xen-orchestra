@@ -296,6 +296,8 @@ export class RemoteDiskLineage {
           try {
             const disk = await openDisk({ handler: this.#handler, path, ignoreBlockIndexes: true })
             await disk.unlink({ force: true })
+            // Remove from tracking so #cleanOrphanDataFiles skips this now-deleted path.
+            this.#unregisterDisk(path)
           } catch (error) {
             this.#opts.logWarn('failed to delete unused disk', { path, error })
           }

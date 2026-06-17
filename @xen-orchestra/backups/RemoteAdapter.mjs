@@ -20,9 +20,10 @@ import { isMetadataFile } from './_backupType.mjs'
 import { isValidXva } from './_isValidXva.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
 
-import { RemoteVhdDisk, openDiskChain } from '@xen-orchestra/backup-archive/disks'
-import { toVhdStream, writeToVhdDirectory } from 'vhd-lib/disk-consumer/index.mjs'
+import { RemoteVhdDisk, RemoteRawDisk, openDiskChain } from '@xen-orchestra/backup-archive/disks'
+import { DiskConsumerRawStream } from 'vhd-lib/disk-consumer/index.mjs'
 import { ReadAhead } from '@xen-orchestra/disk-transform'
+import { randomUUID } from 'node:crypto'
 
 export const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 
@@ -223,6 +224,10 @@ export class RemoteAdapter {
       return `${baseName}.alias.vhd`
     }
     return `${baseName}.vhd`
+  }
+
+  getDiskFileName(baseName) {
+    return `${baseName}.raw`
   }
 
   async listAllVms() {
@@ -449,26 +454,19 @@ export class RemoteAdapter {
     return path
   }
 
-  async writeVhd(path, disk, { validator = noop, writeBlockConcurrency } = {}) {
-    const handler = this._handler
+  async writeVhd(path, disk, { validator = noop, writeBlockConcurrency = 4 } = {}) {
+    const BLOCK_SIZE = 2 * 1024 * 1024
+    const virtualSize = disk.getVirtualSize()
 
-    if (this.useVhdDirectory()) {
-      return await writeToVhdDirectory({
-        disk,
-        target: {
-          handler,
-          path,
-          concurrency: writeBlockConcurrency,
-          validator,
-          compression: 'brotli',
-        },
-      })
-    } else {
-      const stream = await toVhdStream(disk)
-      const size = await this.outputStream(path, stream, { validator, checksum: false })
-      await validator(path)
-      return size
-    }
+    // Write JSON metadata to <path> (the .raw file recognised by RemoteRawDisk)
+    const metadata = JSON.stringify({ uuid: randomUUID(), virtualSize, blockSize: BLOCK_SIZE })
+    await this._handler.outputFile(path, metadata, { flags: 'wx' })
+
+    // Write binary data to <path>.data using sparse pwrite with ReadAhead pipelining
+    const consumer = new DiskConsumerRawStream(disk)
+    const stream = await consumer.toStream()
+    const size = await this.outputStream(path + '.data', stream, { checksum: false })
+    return size
   }
 
   async outputStream(
@@ -493,7 +491,11 @@ export class RemoteAdapter {
   // open the  hierarchy of ancestors until we find a full one
   async _createVhdDisk(handler, path, { useChain }) {
     let disk
-    if (useChain) {
+    if (path.endsWith('.raw')) {
+      // Raw disks are always full — no chain to open
+      disk = new RemoteRawDisk({ handler, path })
+      await disk.init()
+    } else if (useChain) {
       disk = await openDiskChain({ handler, path })
     } else {
       disk = new RemoteVhdDisk({ handler, path })

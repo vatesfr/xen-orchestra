@@ -157,6 +157,12 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
         await chainVhd(handler, parentPath, handler, path)
       }
 
+      // UUID chaining is only needed for differencing VHDs.
+      //  Raw disk already have their UUID set at creation time.
+      if (path.endsWith('raw')) {
+        return
+      }
+
       // set the correct UUID in the VHD if needed
       await Disposable.use(openVhd(handler, path), async vhd => {
         if (!vhd.footer.uuid.equals(packUuid(vdi.uuid))) {
@@ -198,7 +204,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
               // don't do delta for it
               vdi.uuid
             : vdi.$snapshot_of$uuid
-        }/${adapter.getVhdFileName(basename)}`
+        }/${adapter.getDiskFileName(basename)}`
     ))
 
     let metadataContent = await this._isAlreadyTransferred(timestamp)
