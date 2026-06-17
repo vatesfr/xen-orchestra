@@ -337,4 +337,35 @@ export default class Jobs {
       await this.runJob(job, schedule, data)
     }
   }
+
+  isJobSequence(job) {
+    if (job.type !== 'call') {
+      return false
+    }
+
+    return job.method === 'schedule.runSequence'
+  }
+
+  async getScheduleSequencesFromSchedule(scheduleId) {
+    const jobs = await this.getAllJobs('call')
+    const allSchedules = await this._app.getAllSchedules()
+
+    let scheduleSequences = []
+    for (const job of jobs) {
+      if (!this.isJobSequence(job)) {
+        continue
+      }
+
+      const includesSchedule = (job.paramsVector?.items ?? []).some(item =>
+        (item.values ?? []).some(value => value.schedules?.includes(scheduleId))
+      )
+
+      if (includesSchedule) {
+        const relatedSchedules = allSchedules.filter(schedule => schedule.jobId === job.id)
+        scheduleSequences = scheduleSequences.concat(relatedSchedules)
+      }
+    }
+
+    return scheduleSequences
+  }
 }

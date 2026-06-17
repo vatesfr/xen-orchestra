@@ -565,6 +565,18 @@ export type XoMirrorBackupJob = BaseXoJob & {
 
 export type XoJob = BaseXoJob & {
   type: 'call'
+  method: string
+  paramsVector?: {
+    type: string
+    items: {
+      type?: string
+      values?: {
+        schedules?: XoSchedule['id'][]
+        [key: string]: unknown
+      }[]
+      [key: string]: unknown
+    }[]
+  }
 }
 
 export type XoSchedule = {

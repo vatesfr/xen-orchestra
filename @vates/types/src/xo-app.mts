@@ -246,7 +246,7 @@ export type XoApp = {
   getAclV2UserPrivileges(userId: XoUser['id']): Promise<XoAclBasePrivilege[]>
   getAllGroups(): Promise<XoGroup[]>
   getAllProxies(): Promise<XoProxy[]>
-  getAllJobs<T extends AnyXoBackupJob['type']>(type: T): Promise<Extract<AnyXoBackupJob, { type: T }>[]>
+  getAllJobs<T extends AnyXoJob['type']>(type: T): Promise<Extract<AnyXoJob, { type: T }>[]>
   getAllJobs(type?: string): Promise<AnyXoJob[]>
   getProxy(id: XoProxy['id']): Promise<XoProxy>
   getRemote(id: XoBackupRepository['id']): Promise<XoBackupRepository>
@@ -289,6 +289,7 @@ export type XoApp = {
   ) => Record<T['id'], T> | undefined
   getTotalBackupSizeOnRemote(id: XoBackupRepository['id']): Promise<{ onDisk: number }>
   getSchedule(id: XoSchedule['id']): Promise<XoSchedule>
+  getScheduleSequencesFromSchedule(id: XoSchedule['id']): Promise<XoSchedule[]>
   getUser: (id: XoUser['id']) => Promise<XoUser>
   getXapi(maybeId: XapiXoRecord['id'] | XapiXoRecord): Xapi
   getXapiHostStats: (hostId: XoHost['id'], granularity?: XapiStatsGranularity) => Promise<XapiHostStats>
