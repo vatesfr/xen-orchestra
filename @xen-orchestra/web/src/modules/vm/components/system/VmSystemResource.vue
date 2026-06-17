@@ -42,12 +42,12 @@ const resources = computed(() => {
       value: vm.cpuWeight ? String(vm.cpuWeight) : '',
     },
     {
-      label: t('minimum-cpu-limit'),
-      value: t('n-cpus', vm.CPUs.number),
+      label: t('vcpu-at-startup'),
+      value: t('n-vcpus', vm.CPUs.number),
     },
     {
-      label: t('maximum-cpu-limit'),
-      value: t('n-cpus', vm.CPUs.max),
+      label: t('maximum-vcpu'),
+      value: t('n-vcpus', vm.CPUs.max),
     },
     {
       label: t('vm-limit-topology'),

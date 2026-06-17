@@ -433,6 +433,7 @@ export type XoPool = BaseXapiXo & {
   current_operations: Record<string, POOL_ALLOWED_OPERATIONS>
   default_SR?: XoSr['id']
   HA_enabled: boolean
+  haRebootVmOnInternalShutdown: boolean
   haSrs: XoSr['id'][]
   id: Branded<'pool'>
   master: XoHost['id']

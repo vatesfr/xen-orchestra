@@ -1,8 +1,8 @@
 import { defineColumns } from '@core/packages/table/define-columns.ts'
+import { useActionColumn } from '@core/tables/column-definitions/action-column'
 import { useLinkColumn } from '@core/tables/column-definitions/link-column'
 import { useLiteralColumn } from '@core/tables/column-definitions/literal-column.ts'
 import { useProgressBarColumn } from '@core/tables/column-definitions/progress-bar-column.ts'
-import { useSelectItemColumn } from '@core/tables/column-definitions/select-item-column'
 import { useTruncatedTextColumn } from '@core/tables/column-definitions/truncated-text-column'
 import { useI18n } from 'vue-i18n'
 
@@ -15,6 +15,6 @@ export const useSrColumns = defineColumns(() => {
     storageFormat: useLiteralColumn({ headerLabel: () => t('storage-format') }),
     accessMode: useLiteralColumn({ headerLabel: () => t('access-mode') }),
     usedSpace: useProgressBarColumn({ headerLabel: () => t('used-space') }),
-    selectItem: useSelectItemColumn(),
+    actions: useActionColumn({}),
   }
 })

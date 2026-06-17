@@ -17,7 +17,7 @@ type ButtonConfig = {
 }
 
 export const useButtonColumn = defineColumn((config?: HeaderConfig & ButtonConfig) => ({
-  renderHead: () => renderHeadCell(config?.headerIcon, config?.headerLabel),
+  renderHead: () => renderHeadCell(config?.headerLabel),
   renderBody: (label: string, onClick: () => void, props?: Partial<ButtonProps>) =>
     renderBodyCell(() =>
       h(

@@ -33,6 +33,7 @@ import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { useVifConnectionToggleModal } from '@/modules/vif/composables/use-vif-connection-toggle-modal.composable.ts'
 import { useVifDeleteModal } from '@/modules/vif/composables/use-vif-delete-modal.composable.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { getVifTrafficRoute } from '@/modules/vif/utils/xo-vif.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { CONNECTION_ACTION, CONNECTION_STATUS } from '@/shared/constants.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -43,7 +44,7 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
-import { useVifColumns } from '@core/tables/column-sets/vif-columns.ts'
+import { useVifNetworkColumns } from '@core/tables/column-sets/vif-network-columns.ts'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
 import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
 import { logicNot } from '@vueuse/math'
@@ -97,7 +98,7 @@ const getIpAddresses = (vif: FrontXoVif) => {
 
 const { pageRecords: paginatedVifs, paginationBindings } = usePagination('vifs', filteredVifs)
 
-const { HeadCells, BodyCells } = useVifColumns({
+const { HeadCells, BodyCells } = useVifNetworkColumns({
   body: (vif: FrontXoVif) => {
     const ipAddresses = computed(() => getIpAddresses(vif))
 
@@ -125,6 +126,12 @@ const { HeadCells, BodyCells } = useVifColumns({
     )
 
     return {
+      vif: r =>
+        r({
+          label: t('vif'),
+          to: getVifTrafficRoute(vif.id),
+          icon: icon('object:vif'),
+        }),
       network: r =>
         network.value
           ? r({
@@ -146,7 +153,7 @@ const { HeadCells, BodyCells } = useVifColumns({
             {
               label: vif.attached ? t('action:disconnect') : t('action:connect'),
               hint: !canToggleVifConnection.value ? toggleConnectionErrorMessage.value : undefined,
-              icon: vif.attached ? 'status:disabled' : 'status:success-circle',
+              icon: vif.attached ? 'action:disconnect' : 'action:connect',
               onClick: () => openVifConnectionToggleModal(),
               disabled: !canToggleVifConnection.value,
               busy: isTogglingVifConnection.value,
