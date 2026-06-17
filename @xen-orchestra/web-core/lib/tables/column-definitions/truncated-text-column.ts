@@ -5,6 +5,6 @@ import type { HeaderConfig } from '@core/tables/types.ts'
 import { h } from 'vue'
 
 export const useTruncatedTextColumn = defineColumn((config?: HeaderConfig & { limit?: number }) => ({
-  renderHead: () => renderHeadCell(config?.headerIcon ?? 'fa:align-left', config?.headerLabel),
+  renderHead: () => renderHeadCell(config?.headerLabel),
   renderBody: (content: string) => h(VtsTruncatedTextCell, { content, limit: config?.limit }),
 }))

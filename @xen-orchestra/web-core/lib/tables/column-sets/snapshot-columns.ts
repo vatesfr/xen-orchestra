@@ -13,7 +13,7 @@ export const useSnapshotColumns = defineColumns(() => {
     name: useLinkColumn({ headerLabel: () => t('name') }),
     description: useTruncatedTextColumn({ headerLabel: () => t('description') }),
     creationDate: useDateColumn({ headerLabel: () => t('creation-date'), dateStyle: 'short', timeStyle: 'medium' }),
-    trigger: useLinkOrTextColumn({ headerLabel: () => t('trigger'), headerIcon: 'fa:square-caret-down' }),
+    trigger: useLinkOrTextColumn({ headerLabel: () => t('trigger') }),
     actions: useActionColumn({}),
   }
 })

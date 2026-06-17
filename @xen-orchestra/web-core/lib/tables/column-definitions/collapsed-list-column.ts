@@ -7,6 +7,6 @@ import { toArray } from '@core/utils/to-array.utils.ts'
 import { h } from 'vue'
 
 export const useCollapsedListColumn = defineColumn((config?: HeaderConfig) => ({
-  renderHead: () => renderHeadCell(config?.headerIcon ?? 'fa:square-caret-down', config?.headerLabel),
+  renderHead: () => renderHeadCell(config?.headerLabel),
   renderBody: (items: MaybeArray<string>) => h(VtsCollapsedListCell, { items: toArray(items) }),
 }))

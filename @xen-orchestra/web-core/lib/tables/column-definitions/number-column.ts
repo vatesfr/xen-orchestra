@@ -5,6 +5,6 @@ import type { HeaderConfig } from '@core/tables/types.ts'
 import { h } from 'vue'
 
 export const useNumberColumn = defineColumn((headerConfig?: HeaderConfig) => ({
-  renderHead: () => renderHeadCell(headerConfig?.headerIcon ?? 'fa:hashtag', headerConfig?.headerLabel),
+  renderHead: () => renderHeadCell(headerConfig?.headerLabel),
   renderBody: (number?: number | string, unit?: string) => h(VtsNumberCell, { unit }, () => number),
 }))
