@@ -580,7 +580,7 @@ export class HostController extends XapiXoController<XoHost> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  start(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+  startHost(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const hostId = id as XoHost['id']
     const action = async () => {
       await this.getXapiObject(hostId).$xapi.powerOnHost(hostId)
@@ -613,7 +613,7 @@ export class HostController extends XapiXoController<XoHost> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  clean_shutdown(
+  cleanShutdownHost(
     @Path() id: string,
     @Body()
     body?: {
@@ -663,15 +663,15 @@ export class HostController extends XapiXoController<XoHost> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  clean_reboot(
+  cleanRebootHost(
     @Path() id: string,
     @Body()
     body?: {
-      /** Force the restart, ignoring evacuation errors. Defaults to false. */
+      /** Force the reboot, ignoring evacuation errors. Defaults to false. */
       force?: boolean
-      /** Skip the backup safety check before restarting. Defaults to false. */
+      /** Skip the backup safety check before rebooting. Defaults to false. */
       bypassBackupCheck?: boolean
-      /** Skip the version/upgrade compatibility check before restarting. Defaults to false. */
+      /** Skip the version/upgrade compatibility check before rebooting. Defaults to false. */
       bypassVersionCheck?: boolean
     },
     @Query() sync?: boolean
@@ -685,14 +685,14 @@ export class HostController extends XapiXoController<XoHost> {
 
     const hostId = id as XoHost['id']
     const action = async () => {
-      await this.#hostService.restartHost(hostId, opts)
+      await this.#hostService.rebootHost(hostId, opts)
     }
 
     return this.createAction<void>(action, {
       sync,
       statusCode: noContentResp.status,
       taskProperties: {
-        name: 'restart host',
+        name: 'clean reboot host',
         objectId: hostId,
         params: body,
       },
@@ -720,7 +720,7 @@ export class HostController extends XapiXoController<XoHost> {
   @Response(featureUnauthorized.status, featureUnauthorized.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  smart_reboot(
+  smartRebootHost(
     @Path() id: string,
     @Body()
     body?: {
@@ -745,7 +745,7 @@ export class HostController extends XapiXoController<XoHost> {
       sync,
       statusCode: noContentResp.status,
       taskProperties: {
-        name: 'restart host',
+        name: 'smart reboot host',
         objectId: hostId,
         params: body,
       },
@@ -768,7 +768,7 @@ export class HostController extends XapiXoController<XoHost> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  restartToolstack(
+  restartHostToolstack(
     @Path() id: string,
     @Body()
     body?: {
@@ -813,7 +813,7 @@ export class HostController extends XapiXoController<XoHost> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  emergencyShutdown(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+  emergencyShutdownHost(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const hostId = id as XoHost['id']
     const action = async () => {
       await this.getXapiObject(hostId).$xapi.emergencyShutdownHost(hostId)
@@ -845,7 +845,7 @@ export class HostController extends XapiXoController<XoHost> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  detach(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+  detachHost(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const hostId = id as XoHost['id']
     const action = async () => {
       await this.restApi.xoApp.detachHostFromPool(hostId)
@@ -877,7 +877,7 @@ export class HostController extends XapiXoController<XoHost> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  forget(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+  forgetHost(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const hostId = id as XoHost['id']
     const action = async () => {
       await this.getXapiObject(hostId).$xapi.forgetHost(hostId)

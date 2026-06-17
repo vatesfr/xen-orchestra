@@ -1,14 +1,6 @@
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
-import {
-  HOST_POWER_STATE,
-  XcpPatches,
-  XenApiHost,
-  XenApiHostWrapped,
-  XoPool,
-  XsPatches,
-  type XoHost,
-} from '@vates/types'
+import { HOST_POWER_STATE, XcpPatches, XoPool, XsPatches, type XoHost } from '@vates/types'
 import { incorrectState } from 'xo-common/api-errors.js'
 
 import type { RestApi } from '../rest-api/rest-api.mjs'
@@ -120,7 +112,7 @@ export class HostService {
     await this.#restApi.getXapiObject(hostId, 'host').$xapi.shutdownHost(hostId, opts)
   }
 
-  async restartHost(
+  async rebootHost(
     hostId: XoHost['id'],
     opts: {
       force?: boolean
