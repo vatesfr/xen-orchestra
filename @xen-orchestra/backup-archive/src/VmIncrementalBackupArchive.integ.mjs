@@ -412,6 +412,55 @@ test('it merges a chain of multiple consecutive orphan ancestors in one pass', a
   assert.equal(remainingVhds.includes('child.vhd'), false)
 })
 
+test('it does not warn "missing target of alias" for aliases deleted by merge', async () => {
+  // Regression: RemoteDiskLineage.#cleanOrphanDataFiles iterated #diskPaths entries just
+  // deleted during the same clean() call's merge phase, producing false "missing target of
+  // alias" warnings (ENOENT when reading the already-deleted alias file).
+  //
+  // Chain: orphan (full, alias) ← child (differencing, alias, active in metadata)
+  // orphan is orphaned → merged into child → orphan.alias deleted by merge
+  // Fix: deleted paths removed from #diskPaths before #cleanOrphanDataFiles runs.
+  const orphan = await generateVhd(`${basePath}/orphan.vhd`, {
+    useAlias: true,
+    blocks: [0],
+  })
+  await generateVhd(`${basePath}/child.vhd`, {
+    useAlias: true,
+    header: {
+      parentUnicodeName: 'orphan.vhd.alias.vhd',
+      parentUuid: orphan.footer.uuid,
+    },
+    blocks: [1],
+  })
+
+  await handler.writeFile(
+    `${rootPath}/metadata.json`,
+    JSON.stringify({
+      mode: 'delta',
+      vhds: [`${relativePath}/child.vhd.alias.vhd`],
+    })
+  )
+
+  const warnings = []
+  await VmBackupDirectory.cleanVm(handler, rootPath, {
+    remove: true,
+    merge: true,
+    logWarn: (message, data) => warnings.push({ message, data }),
+    logInfo: () => {},
+  })
+
+  const missingTargetWarnings = warnings.filter(w => w.message === 'missing target of alias')
+  assert.equal(
+    missingTargetWarnings.length,
+    0,
+    `"missing target of alias" must not fire after merge; got: ${JSON.stringify(missingTargetWarnings)}`
+  )
+
+  const remaining = await handler.list(basePath)
+  assert.ok(!remaining.includes('orphan.vhd.alias.vhd'), 'orphan alias must be deleted after merge')
+  assert.ok(remaining.includes('child.vhd.alias.vhd'), 'child alias must survive as merge target')
+})
+
 test('it resumes an interrupted merge with chain field', async () => {
   await handler.writeFile(
     `${rootPath}/metadata.json`,

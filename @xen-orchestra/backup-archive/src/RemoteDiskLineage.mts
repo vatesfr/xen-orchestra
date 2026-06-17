@@ -318,6 +318,12 @@ export class RemoteDiskLineage {
           async ({ chain, isResuming }) => {
             const { finalDiskSize, mergeTargetPath } = await limitedMergeChain(chain, isResuming)
             mergedSizes.set(mergeTargetPath, (mergedSizes.get(mergeTargetPath) ?? 0) + finalDiskSize)
+            // intermediates are deleted by childDisk.unlink() when removeUnused=true.
+            // Remove them from #diskPaths so #cleanOrphanDataFiles does not try to read
+            // already-deleted aliases and produce false "missing target of alias" warnings.
+            for (const deletedPath of chain) {
+              this.#diskPaths.delete(deletedPath)
+            }
           },
           { concurrency: this.#opts.mergeConcurrency ?? DEFAULT_MERGE_CONCURRENCY }
         )
