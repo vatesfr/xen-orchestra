@@ -99,21 +99,21 @@
 <!--packages-start-->
 
 - @vates/fuse-vhd patch
+- @vates/generator-toolbox patch
 - @vates/types minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups patch
 - @xen-orchestra/disk-transform patch
 - @xen-orchestra/fs patch
-- @xen-orchestra/qa-test minor
 - @xen-orchestra/mcp patch
 - @xen-orchestra/openflow patch
+- @xen-orchestra/qa-test minor
 - @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/upload-ova patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
-- @vates/generator-toolbox patch
 - @xen-orchestra/xapi minor
 - xo-common minor
 - xo-server minor
