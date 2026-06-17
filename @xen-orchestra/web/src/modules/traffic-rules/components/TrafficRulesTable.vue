@@ -120,7 +120,7 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
   body: (rule: EnrichedTrafficRule & { order: number }) => {
     return {
       order: r => r(rule.order),
-      policy: r => r(rule.allow ? t('allow') : t('drop')),
+      policy: r => r(t(rule.allow ? 'allow' : 'drop'), rule.allow ? 'success' : 'danger'),
       protocol: r => r(rule.port ? `${rule.protocol}:${rule.port}` : rule.protocol),
       directionA: r => r(rule.directionA),
       target: r => r(rule.ipRange),
