@@ -600,7 +600,7 @@ export class HostController extends XapiXoController<XoHost> {
    * Required privilege:
    * - resource: host, action: shutdown:clean
    *
-   * Stop a host.
+   * Shutdown a host.
    *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    * @example body { "bypassBackupCheck": false, "bypassEvacuate": false }
