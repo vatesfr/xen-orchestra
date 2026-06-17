@@ -23,10 +23,10 @@ import type { Readable } from 'node:stream'
 import { json, type Request as ExRequest, type Response as ExResponse } from 'express'
 import type { SUPPORTED_VDI_FORMAT, Xapi, XoAlarm, XoMessage, XoSr, XoTask, XoVdi } from '@vates/types'
 
-import { type SupportedActions } from '@xen-orchestra/acl'
+import { SUPPORTED_ACTIONS_BY_RESOURCE, type SupportedActions } from '@xen-orchestra/acl'
 import { invalidParameters } from 'xo-common/api-errors.js'
 
-import { acl } from '../middlewares/acl.middleware.mjs'
+import { acl, actionsFromBody } from '../middlewares/acl.middleware.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
@@ -64,11 +64,9 @@ interface UpdateVdiRequestBody {
   size?: number
 }
 
-const UPDATE_VDI_ACTION_BY_FIELD: { [Field in keyof Required<UpdateVdiRequestBody>]: SupportedActions<'vdi'> } = {
-  name_label: 'update:name_label',
-  name_description: 'update:name_description',
-  size: 'update:size',
-}
+const UPDATE_VDI_ACTIONS = Object.keys(SUPPORTED_ACTIONS_BY_RESOURCE.vdi.update)
+  .filter(action => action !== 'tags')
+  .map(k => `update:${k}` as SupportedActions<'vdi'>)
 
 @Route('vdis')
 @Security('*')
@@ -212,10 +210,7 @@ export class VdiController extends XapiXoController<XoVdi> {
     json(),
     acl({
       resource: 'vdi',
-      actions: ({ req }) =>
-        Object.entries(UPDATE_VDI_ACTION_BY_FIELD)
-          .filter(([field]) => field in req.body)
-          .map(([, action]) => action),
+      actions: actionsFromBody(UPDATE_VDI_ACTIONS),
       objectId: 'params.id',
     }),
   ])
