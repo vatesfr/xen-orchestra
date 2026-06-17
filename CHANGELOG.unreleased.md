@@ -81,6 +81,7 @@
 - [REST API] `GET /vms/:id.:format`, `GET /vm-templates/:id.:format`, `GET /vm-snapshots/:id.:format` now correctly support explicit compress query param (`zstd` | `gzip`). Still support `true` | `false` as deprecated value (PR [#9960](https://github.com/vatesfr/xen-orchestra/pull/9960))
 - [Backup/Restore] Fix file-level restore of VMs whose disks use LVM (e.g. the default Ubuntu install layout): logical volumes are now listed and can be restored, including when restoring several copies of the same VM at once — previously failed with `unknown filesystem type 'LVM2_member'` (PR [#9776](https://github.com/vatesfr/xen-orchestra/pull/9776))
 - [Backup/Restore] Fix file-level restore hanging when downloading large folders, and high memory use when downloading a folder as a zip (PR [#9776](https://github.com/vatesfr/xen-orchestra/pull/9776))
+- [REST API/dashboard] Job sequences are now correctly taken into account when calculating VM protection (PR [#9997](https://github.com/vatesfr/xen-orchestra/pull/9997))
 
 ### Packages to release
 
