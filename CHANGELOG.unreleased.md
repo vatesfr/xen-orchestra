@@ -68,6 +68,8 @@
   - vue-router fixed to 5.0.6 (@babel/generator@^8.0.0-rc.4 in 5.0.7)
   - update packages to sync with yarn.lock (e.g. client-s3 package)
 
+- [i18n] Update Czech, Danish, Norwegian, Slovak, Spanish and Swedish translations (PR [#9914](https://github.com/vatesfr/xen-orchestra/pull/9914))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
