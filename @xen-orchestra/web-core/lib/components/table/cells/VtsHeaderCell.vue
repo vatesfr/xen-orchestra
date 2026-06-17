@@ -1,8 +1,6 @@
 <template>
   <UiColumnHeader class="vts-header-cell">
-    <div class="cell-content">
-      <slot />
-    </div>
+    <slot />
   </UiColumnHeader>
 </template>
 
@@ -13,12 +11,5 @@ import UiColumnHeader from '@core/components/ui/column-header/UiColumnHeader.vue
 <style lang="postcss" scoped>
 .vts-header-cell {
   max-width: 30rem;
-
-  .cell-content {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    white-space: nowrap;
-  }
 }
 </style>
