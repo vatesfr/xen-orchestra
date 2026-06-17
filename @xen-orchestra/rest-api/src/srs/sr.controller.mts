@@ -1,4 +1,5 @@
 import {
+  Body,
   Delete,
   Example,
   Extension,
@@ -17,7 +18,7 @@ import {
 } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
-import { Request as ExRequest } from 'express'
+import { json, Request as ExRequest } from 'express'
 import type { XenApiVdi, XoMessage, XoTask, XoVdi, XoAlarm, XoSr } from '@vates/types'
 import { SUPPORTED_VDI_FORMAT } from '@vates/types'
 
@@ -38,7 +39,7 @@ import {
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
-import { partialSrs, sr, srIds } from '../open-api/oa-examples/sr.oa-example.mjs'
+import { partialSrs, sr, srId, srIds } from '../open-api/oa-examples/sr.oa-example.mjs'
 import { vdiId } from '../open-api/oa-examples/vdi.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
@@ -46,7 +47,7 @@ import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { taskIds, partialTasks, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
-import { SrService } from './sr.service.mjs'
+import { SrService, type CreateSrBody } from './sr.service.mjs'
 
 @Route('srs')
 @Security('*')
@@ -108,6 +109,32 @@ export class SrController extends XapiXoController<XoSr> {
   @Response(notFoundResp.status, notFoundResp.description)
   getSr(@Path() id: string): Unbrand<XoSr> {
     return this.getObject(id as XoSr['id'])
+  }
+
+  /**
+   * Create a storage repository (SR) on the given host.
+   *
+   * `device_config` is passed as-is to XAPI and its keys depend on `type`
+   * (e.g. nfs: `{ server, serverpath }`, smb: `{ server, username, password }`,
+   * lvmoiscsi: `{ target, targetIQN, SCSIid }`).
+   *
+   * Required privilege:
+   * - resource: host, action: create:sr (on the target host)
+   *
+   * @example body { "host": "f8b8d2a5-7d40-a104-efc6-fb797b58f258", "name_label": "NFS store", "type": "nfs", "shared": true, "device_config": { "server": "10.0.0.1", "serverpath": "/data" } }
+   */
+  @Example(srId)
+  @Extension('x-mcp-exposure', 'confirm')
+  @Post('')
+  @Middlewares([json(), acl({ resource: 'host', action: 'create:sr', objectId: 'body.host' })])
+  @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async createSr(@Body() body: CreateSrBody): Promise<{ id: string }> {
+    const id = await this.#srService.create(body)
+    this.setHeader('Location', `${BASE_URL}/srs/${id}`)
+    return { id }
   }
 
   /**
