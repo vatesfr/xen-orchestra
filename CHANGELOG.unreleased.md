@@ -48,6 +48,7 @@
 - [Icons] Updated connect/disconnect icons to use a plug icon (PR [#9942](https://github.com/vatesfr/xen-orchestra/pull/9942))
 - [Modal] Updated modal windows with a border and unified backgound color for better readability (PR [#9825](https://github.com/vatesfr/xen-orchestra/pull/9825))
 - [XO6/VDI] Update actions name to be more consistent (PR [#9968](https://github.com/vatesfr/xen-orchestra/pull/9968))
+- [XO6] After deleting a VM or VIF, users are now redirected to the parent list instead of seeing a 404 page (PR [#9984](https://github.com/vatesfr/xen-orchestra/pull/9984))
 - [SR] Storage repositories can now be deleted from the Pool/Host Storage tab (PR [#9853](https://github.com/vatesfr/xen-orchestra/pull/9853))
 - [SR] Storage repositories can now be disconnected from the Pool/Host Storage tab (PR [#9856](https://github.com/vatesfr/xen-orchestra/pull/9856))
 - [REST API/RBAC] Add a built-in **Network administrator** role template: manage networks and VIFs, read and update PIFs (PR [#9952](https://github.com/vatesfr/xen-orchestra/pull/9952))
