@@ -49,7 +49,7 @@ export const useXoTrafficRuleDeleteJob = defineJob('traffic-rule.delete', [xoTra
     },
 
     validate: (isRunning, rules: TrafficRule[]) => {
-      if (!rules || rules.length === 0) {
+      if (rules.length === 0) {
         throw new JobError(t('job:traffic-rule-delete:missing-rule'))
       }
       if (isRunning) {
