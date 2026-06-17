@@ -1,5 +1,5 @@
 <template>
-  <VbdDeleteButton v-if="vbd && vm" :vbd :vm is-vdi-page />
+  <VbdDeleteButton v-if="vbd && vm" :vbd :vm />
   <VdiDeleteButton :vdi :vm />
 </template>
 

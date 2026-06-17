@@ -50,7 +50,6 @@
   "action:delete-n-vms": "Delete 1 VM | Delete {n} VMs",
   "action:deploy": "Deploy",
   "action:deploy-xoa": "Deploy XOA",
-  "action:detach": "Detach",
   "action:detach-n-vdis": "Detach 1 VDI | Detach {n} VDIs",
   "action:detach-vdi": "Detach VDI",
   "action:disconnect": "Disconnect",

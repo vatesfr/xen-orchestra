@@ -52,7 +52,6 @@
   "action:deploy-xoa": "Déployer XOA",
   "action:detach-n-vdis": "Détacher 1 VDI | Détacher {n} VDIs",
   "action:detach-vdi": "Détacher le VDI",
-  "action:detach": "Détacher",
   "action:disconnect": "Déconnecter",
   "action:disconnect-n": "Déconnecter {n}",
   "action:disconnect-n-srs": "Déconnecter 1 SR | Déconnecter {n} SRs",

@@ -13,7 +13,7 @@
       </span>
     </UiBreadcrumb>
 
-    <UiBreadcrumb v-if="fromContext === VDI_PAGE_CONTEXT.SR && pool && sr" :size>
+    <UiBreadcrumb v-else-if="fromContext === VDI_PAGE_CONTEXT.SR && pool && sr" :size>
       <UiLink :size :to="{ name: '/pool/[id]/dashboard', params: { id: sr.$pool } }">
         <VtsIcon name="object:pool" size="medium" />
         {{ pool.name_label }}
@@ -26,7 +26,7 @@
       </span>
     </UiBreadcrumb>
 
-    <UiBreadcrumb v-if="fromContext === VDI_PAGE_CONTEXT.SNAPSHOT && vm" :size>
+    <UiBreadcrumb v-else-if="fromContext === VDI_PAGE_CONTEXT.SNAPSHOT && vm" :size>
       <UiLink :size :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
         <VtsObjectIcon type="vm" :state="toLower(vm.power_state)" size="current" />
         {{ vm.name_label }}
