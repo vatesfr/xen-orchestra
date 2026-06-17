@@ -598,7 +598,7 @@ async function cancel() {
 }
 
 .error {
-  min-width: 48rem;
+  width: 48rem;
 }
 
 .warning {
