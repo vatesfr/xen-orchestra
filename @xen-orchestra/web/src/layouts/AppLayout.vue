@@ -14,28 +14,28 @@
     <template #sidebar-header>
       <TabList class="sidebar-tabs">
         <TabItem
-          :active="activeSidebarPanel === 'treeview'"
+          :active="activeSidebarPanel === SIDEBAR_PANEL.TREEVIEW"
           tag="button"
           type="button"
           class="sidebar-tab"
-          @click="activeSidebarPanel = 'treeview'"
+          @click="activeSidebarPanel = SIDEBAR_PANEL.TREEVIEW"
         >
           {{ t('treeview') }}
         </TabItem>
         <TabItem
-          :active="activeSidebarPanel === 'administration'"
+          :active="activeSidebarPanel === SIDEBAR_PANEL.ADMINISTRATION"
           tag="button"
           type="button"
           class="sidebar-tab"
-          @click="activeSidebarPanel = 'administration'"
+          @click="activeSidebarPanel = SIDEBAR_PANEL.ADMINISTRATION"
         >
           {{ t('administration') }}
         </TabItem>
       </TabList>
-      <SidebarSearch v-if="activeSidebarPanel === 'treeview'" v-model="filter" />
+      <SidebarSearch v-if="activeSidebarPanel === SIDEBAR_PANEL.TREEVIEW" v-model="filter" />
     </template>
     <template #sidebar-content>
-      <template v-if="activeSidebarPanel === 'treeview'">
+      <template v-if="activeSidebarPanel === SIDEBAR_PANEL.TREEVIEW">
         <VtsStateHero v-if="!isConnected && !isDevPage" format="card" type="busy" size="medium" class="loader" />
         <VtsTreeList v-else-if="!isReady">
           <VtsTreeLoadingItem v-for="i in 5" :key="i" icon="object:pool" />
@@ -100,7 +100,14 @@ const sseStore = useSseStore()
 
 const { isConnected } = storeToRefs(sseStore)
 
-const activeSidebarPanel = ref<'treeview' | 'administration'>('treeview')
+const SIDEBAR_PANEL = {
+  TREEVIEW: 'treeview',
+  ADMINISTRATION: 'administration',
+} as const
+
+type SidebarPanel = (typeof SIDEBAR_PANEL)[keyof typeof SIDEBAR_PANEL]
+
+const activeSidebarPanel = ref<SidebarPanel>(SIDEBAR_PANEL.TREEVIEW)
 
 const { sites, isReady, filter, isSearching, scrollToNodeElement } = useXoSiteTree()
 const route = useRoute<'/pool/[id]' | '/host/[id]' | '/vm/[id]'>()
@@ -147,14 +154,11 @@ watch(
   padding-inline-end: 4.8rem;
 }
 
-.sidebar-tabs > button {
-  padding: 0.4rem 0.8rem;
-}
-
 .sidebar-tab {
   appearance: none;
   border-block-start: 0;
   border-inline: 0;
+  padding: 0.4rem 0.8rem;
 }
 
 .mobile {
