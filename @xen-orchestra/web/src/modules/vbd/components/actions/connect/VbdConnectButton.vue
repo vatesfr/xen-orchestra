@@ -47,7 +47,7 @@ const {
 )
 
 const leftIconButton = computed(() => {
-  if (!isVdiPage || (isVdiPage && canConnectVbd.value)) {
+  if (!isVdiPage || canConnectVbd.value) {
     return 'status:success-circle'
   } else {
     return 'action:connect'

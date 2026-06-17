@@ -47,7 +47,7 @@ const {
 )
 
 const leftIconButton = computed(() => {
-  if (!isVdiPage || (isVdiPage && canDisconnectVbd.value)) {
+  if (!isVdiPage || canDisconnectVbd.value) {
     return 'status:disabled'
   } else {
     return 'action:disconnect'

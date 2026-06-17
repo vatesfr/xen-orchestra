@@ -16,12 +16,7 @@
       />
     </template>
     <template #actions>
-      <MenuList placement="bottom-end">
-        <template #trigger="{ open }">
-          <UiDropdownButton @click="open($event)">{{ t('action:change-state') }}</UiDropdownButton>
-        </template>
-        <VdiPowerStateActions :vm :vbd />
-      </MenuList>
+      <VdiPowerStateActions :vm :vbd />
       <MenuList placement="bottom-end">
         <template #trigger="{ open }">
           <UiButtonIcon
@@ -54,7 +49,6 @@ import type { VdiPageContext } from '@/shared/constants.ts'
 import MenuList from '@xen-orchestra/web-core/components/menu/MenuList.vue'
 import VtsObjectIcon from '@xen-orchestra/web-core/components/object-icon/VtsObjectIcon.vue'
 import UiButtonIcon from '@xen-orchestra/web-core/components/ui/button-icon/UiButtonIcon.vue'
-import UiDropdownButton from '@xen-orchestra/web-core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiHeadBar from '@xen-orchestra/web-core/components/ui/head-bar/UiHeadBar.vue'
 import { vTooltip } from '@xen-orchestra/web-core/directives/tooltip.directive.ts'
 import { toLower } from 'lodash-es'
