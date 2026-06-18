@@ -685,7 +685,7 @@ export class HostController extends XapiXoController<XoHost> {
 
     const hostId = id as XoHost['id']
     const action = async () => {
-      await this.#hostService.rebootHost(hostId, opts)
+      await this.#hostService.cleanRebootHost(hostId, opts)
     }
 
     return this.createAction<void>(action, {
@@ -707,6 +707,8 @@ export class HostController extends XapiXoController<XoHost> {
    *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    * @example body {
+   *  "bypassBackupCheck": false,
+   *  "bypassVersionCheck": false,
    *  "bypassBlockedSuspend": false,
    *  "bypassCurrentVmCheck": false
    * }
@@ -724,6 +726,10 @@ export class HostController extends XapiXoController<XoHost> {
     @Path() id: string,
     @Body()
     body?: {
+      /** Skip the backup safety check before rebooting. Defaults to false. */
+      bypassBackupCheck?: boolean
+      /** Skip the version/upgrade compatibility check before rebooting. Defaults to false. */
+      bypassVersionCheck?: boolean
       /** Allow suspending VMs even if suspend is blocked. Defaults to false. */
       bypassBlockedSuspend?: boolean
       /** Skip the check for running VMs before suspending. Defaults to false. */
@@ -731,14 +737,16 @@ export class HostController extends XapiXoController<XoHost> {
     },
     @Query() sync?: boolean
   ): CreateActionReturnType<void> {
-    const bypassBlockedSuspend = body?.bypassBlockedSuspend ?? false
-    const bypassCurrentVmCheck = body?.bypassCurrentVmCheck ?? false
+    const opts = {
+      bypassBackupCheck: body?.bypassBackupCheck ?? false,
+      bypassVersionCheck: body?.bypassVersionCheck ?? false,
+      bypassBlockedSuspend: body?.bypassBlockedSuspend ?? false,
+      bypassCurrentVmCheck: body?.bypassCurrentVmCheck ?? false,
+    }
 
     const hostId = id as XoHost['id']
     const action = async () => {
-      await this.restApi.xoApp.checkFeatureAuthorization('SMART_REBOOT')
-      const xapiHost = this.restApi.getXapiObject<XoHost>(hostId, 'host')
-      await xapiHost.$xapi.host_smartReboot(xapiHost.$ref, bypassBlockedSuspend, bypassCurrentVmCheck)
+      await this.#hostService.smartRebootHost(hostId, opts)
     }
 
     return this.createAction<void>(action, {

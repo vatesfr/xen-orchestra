@@ -1,6 +1,6 @@
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
-import { HOST_POWER_STATE, XcpPatches, XoPool, XsPatches, type XoHost } from '@vates/types'
+import { HOST_POWER_STATE, Xapi, XcpPatches, XenApiHostWrapped, XoPool, XsPatches, type XoHost } from '@vates/types'
 import { incorrectState } from 'xo-common/api-errors.js'
 
 import type { RestApi } from '../rest-api/rest-api.mjs'
@@ -112,26 +112,71 @@ export class HostService {
     await this.#restApi.getXapiObject(hostId, 'host').$xapi.shutdownHost(hostId, opts)
   }
 
-  async rebootHost(
+  async cleanRebootHost(
     hostId: XoHost['id'],
     opts: {
-      force?: boolean
+      force: boolean
+      bypassBackupCheck: boolean
+      bypassVersionCheck: boolean
+    }
+  ): Promise<void> {
+    const { xapi } = await this.#rebootChecks(hostId, opts)
+
+    await xapi.rebootHost(hostId, opts.force)
+  }
+
+  async smartRebootHost(
+    hostId: XoHost['id'],
+    opts: {
+      bypassBackupCheck: boolean
+      bypassVersionCheck: boolean
+      bypassBlockedSuspend: boolean
+      bypassCurrentVmCheck: boolean
+    }
+  ): Promise<void> {
+    await this.#restApi.xoApp.checkFeatureAuthorization('SMART_REBOOT')
+
+    const { xapi, xapiHost } = await this.#rebootChecks(hostId, opts)
+
+    await xapi.host_smartReboot(xapiHost.$ref, opts.bypassBlockedSuspend, opts.bypassCurrentVmCheck)
+  }
+
+  async restartToolstack(
+    hostId: XoHost['id'],
+    opts: {
       bypassBackupCheck?: boolean
-      bypassVersionCheck?: boolean
     } = {}
   ): Promise<void> {
+    const host = this.#restApi.getObject<XoHost>(hostId)
+
+    if (opts?.bypassBackupCheck) {
+      log.warn('host.restartAgent called with argument "bypassBackupCheck" set to true', { hostId })
+    } else {
+      await this.#restApi.xoApp.backupGuard(host.$pool)
+    }
+
+    await this.#restApi.getXapiObject<XoHost>(hostId, 'host').$restartAgent()
+  }
+
+  async #rebootChecks(
+    hostId: XoHost['id'],
+    opts: {
+      bypassBackupCheck: boolean
+      bypassVersionCheck: boolean
+    }
+  ): Promise<{ xapi: Xapi; xapiHost: XenApiHostWrapped }> {
     const host = this.#restApi.getObject<XoHost>(hostId)
     const xapiHost = this.#restApi.getXapiObject<XoHost>(hostId, 'host')
     const poolId = host.$pool
     const xapi = xapiHost.$xapi
 
-    if (opts?.bypassBackupCheck) {
+    if (opts.bypassBackupCheck) {
       log.warn('host.reboot called with "bypassBackupCheck" set to true', { hostId })
     } else {
       await this.#restApi.xoApp.backupGuard(poolId)
     }
 
-    if (opts?.bypassVersionCheck) {
+    if (opts.bypassVersionCheck) {
       log.warn('host.reboot called with "bypassVersionCheck" set to true', { hostId })
     } else {
       const pool = this.#restApi.getObject<XoPool>(poolId, 'pool')
@@ -163,23 +208,6 @@ export class HostService {
       }
     }
 
-    await xapi.rebootHost(hostId, opts?.force)
-  }
-
-  async restartToolstack(
-    hostId: XoHost['id'],
-    opts: {
-      bypassBackupCheck?: boolean
-    } = {}
-  ): Promise<void> {
-    const host = this.#restApi.getObject<XoHost>(hostId)
-
-    if (opts?.bypassBackupCheck) {
-      log.warn('host.restartAgent called with argument "bypassBackupCheck" set to true', { hostId })
-    } else {
-      await this.#restApi.xoApp.backupGuard(host.$pool)
-    }
-
-    await this.#restApi.getXapiObject<XoHost>(hostId, 'host').$restartAgent()
+    return { xapi, xapiHost }
   }
 }
