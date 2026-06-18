@@ -1,5 +1,5 @@
 <template>
-  <VtsDrawer dismissible is-open @dismiss="emit('cancel')">
+  <VtsDrawer dismissible @dismiss="emit('cancel')">
     <template #title>{{ t('action:export-content') }}</template>
 
     <template #content>

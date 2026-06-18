@@ -22,7 +22,7 @@
     >
       {{ action.label }}
       <i v-if="action.hint">{{ action.hint }}</i>
-      <template v-if="action.children?.length" #submenu>
+      <template v-if="isGroupAction(action)" #submenu>
         <MenuItem
           v-for="(child, childIndex) of action.children"
           :key="childIndex"
@@ -32,6 +32,7 @@
           :on-click="child.onClick"
         >
           {{ child.label }}
+          <i v-if="child.hint">{{ child.hint }}</i>
         </MenuItem>
       </template>
     </MenuItem>
@@ -54,13 +55,27 @@ const { size = 'small', actions = [] } = defineProps<{
 
 const { t } = useI18n()
 
-export type ActionItem = {
+type BaseActionItem = {
   label: string
   hint?: string
   icon?: IconName
-  onClick?: () => any
   disabled?: boolean
   busy?: boolean
-  children?: ActionItem[]
+}
+
+export type LeafActionItem = BaseActionItem & {
+  onClick: () => unknown
+  children?: never
+}
+
+export type GroupActionItem = BaseActionItem & {
+  onClick?: never
+  children: LeafActionItem[]
+}
+
+export type ActionItem = LeafActionItem | GroupActionItem
+
+function isGroupAction(action: ActionItem): action is GroupActionItem {
+  return 'children' in action
 }
 </script>
