@@ -151,6 +151,10 @@ For this kind of setting, we recommend using something like `/etc/xo-server/conf
 useDirectChannel = false
 ```
 
+Changing the mode is only supported forward : from direct OpenFlow Protocol channel to XAPI Plugin communication.
+A migration script is provided to automatically convert the traffic rules.
+See [XO 5 > Management > SDN Controller > OpenFlow rules](sdn_controller#migration-path) for details.
+
 ## Custom certificate authority
 
 If you use certificates signed by an in-house CA for your XCP-ng or XenServer hosts, and want to have Xen Orchestra connect to them without rejection, you can use the [`NODE_EXTRA_CA_CERTS`](https://nodejs.org/api/cli.html#cli_node_extra_ca_certs_file) environment variable.
