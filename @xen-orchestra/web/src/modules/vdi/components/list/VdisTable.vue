@@ -128,7 +128,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
       () => vm
     )
 
-    const { openDrawer: openVdiExportDrawer } = useVdiExportDrawer(() => vdi)
+    const { openDrawer: openVdiExportDrawer, isRunning: isExportingVdi } = useVdiExportDrawer(() => vdi)
 
     return {
       vdi: r =>
@@ -153,6 +153,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
                   label: t('action:export-content'),
                   icon: 'action:download',
                   onClick: () => openVdiExportDrawer(),
+                  busy: isExportingVdi.value,
                 },
               ],
             },

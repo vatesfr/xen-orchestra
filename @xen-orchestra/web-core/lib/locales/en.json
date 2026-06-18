@@ -525,6 +525,8 @@
   "job:vm-shutdown:missing-vm": "No VMs to shutdown",
   "job:vm-snapshot-revert:in-progress": "Revert in progress…",
   "job:vm-snapshot-revert:missing-snapshot": "No snapshot to revert to",
+  "job:vdi-export:missing-vdi": "No vdi to export",
+  "job:vdi-export:format-required": "VDI format export is required",
   "job:vm-snapshot:in-progress": "Snapshot in progress…",
   "job:vm-snapshot:missing-vm": "No VMs to snapshot",
   "job:vm-start-on:bad-power-state": "VM must be halted",

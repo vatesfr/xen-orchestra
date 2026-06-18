@@ -10,7 +10,7 @@
 
     <template #buttons>
       <VtsDrawerCancelButton />
-      <VtsDrawerConfirmButton @click="handleConfirm()">
+      <VtsDrawerConfirmButton :on-click="handleConfirm">
         {{ t('action:export-vdi') }}
       </VtsDrawerConfirmButton>
     </template>
@@ -18,36 +18,38 @@
 </template>
 
 <script setup lang="ts">
-import { VDI_EXPORT_FORMAT, type VdiExportFormat } from '@/shared/constants.ts'
+import type { vdiExportFormat } from '@/shared/constants.ts'
 import VtsDrawer from '@core/components/drawer/VtsDrawer.vue'
 import VtsDrawerCancelButton from '@core/components/drawer/VtsDrawerCancelButton.vue'
 import VtsDrawerConfirmButton from '@core/components/drawer/VtsDrawerConfirmButton.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import { useFormSelect } from '@core/packages/form-select'
+import { SUPPORTED_VDI_FORMAT } from '@vates/types'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const emit = defineEmits<{
   cancel: []
-  confirm: [exportFormat: VdiExportFormat]
+  confirm: [exportFormat: vdiExportFormat]
 }>()
 
 const { t } = useI18n()
 
-const exportFormat = ref<VdiExportFormat>(VDI_EXPORT_FORMAT.VHD)
+const exportFormat = ref<vdiExportFormat>(SUPPORTED_VDI_FORMAT.vhd)
 
-const options = Object.entries(VDI_EXPORT_FORMAT).map(([key, value]) => ({
-  value,
-  label: key,
-}))
+const options = Object.entries(SUPPORTED_VDI_FORMAT)
+  .filter(([, value]) => value !== SUPPORTED_VDI_FORMAT.qcow2)
+  .map(([key, value]) => ({
+    value,
+    label: key,
+  }))
 
 const { id: exportFormatSelectedId } = useFormSelect(options, {
   model: exportFormat,
   option: {
     id: 'value',
     value: 'value',
-    label: 'label',
   },
 })
 

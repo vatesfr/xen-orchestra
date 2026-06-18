@@ -146,6 +146,7 @@ export const actionIcons = defineIconPack({
   'more-actions-vertical': {
     icon: faEllipsis,
     color: 'var(--color-neutral-txt-primary)',
+    rotate: 90,
   },
   'import-export': [
     {

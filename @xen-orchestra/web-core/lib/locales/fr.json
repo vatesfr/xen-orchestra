@@ -33,6 +33,8 @@
   "action:copy-host": "Copier l'hôte",
   "action:copy-id": "Copier l'ID",
   "action:copy-info-json": "Copier les informations en JSON",
+  "job:vdi-export:missing-vdi": "Aucun VDI à exporter",
+  "job:vdi-export:format-required": "Le format d'export d'un VDI est requis",
   "action:create": "Créer",
   "action:create-bonded-network": "Créer un réseau lié",
   "action:create-internal-network": "Créer un réseau interne",
