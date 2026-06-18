@@ -118,7 +118,7 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells } = useTrafficRulesColumns({
-  body: (rule: EnrichedTrafficRule & { order: number }) => {
+  body: (rule: EnrichedTrafficRule) => {
     const {
       openModal: openTrafficRuleDeleteModal,
       canRun: canDeleteTrafficRule,
