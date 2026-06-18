@@ -1,12 +1,7 @@
-import type { XenApiPbd } from '@/libs/xen-api/xen-api.types'
+import type { XenApiPbd } from '@/libs/xen-api/xen-api.types.ts'
+import { CONNECTION_STATUS } from '@core/types/connection.type.ts'
 import { useArrayEvery, useArrayFilter, useArraySome } from '@vueuse/shared'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
-
-export const CONNECTION_STATUS = {
-  CONNECTED: 'connected',
-  PARTIALLY_CONNECTED: 'partially-connected',
-  DISCONNECTED: 'disconnected',
-} as const
 
 export function usePbdUtils(rawPbds: MaybeRefOrGetter<XenApiPbd[]>) {
   const pbds = computed(() => toValue(rawPbds))

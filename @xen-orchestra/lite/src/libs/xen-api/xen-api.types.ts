@@ -42,8 +42,8 @@ import type {
   VMSS_TYPE,
   VTPM_OPERATION,
   VUSB_OPERATION,
-} from '@/libs/xen-api/xen-api.enums'
-import type { XEN_API_OBJECT_TYPES } from '@/libs/xen-api/xen-api.utils'
+} from '@/libs/xen-api/xen-api.enums.ts'
+import type { XEN_API_OBJECT_TYPES } from '@/libs/xen-api/xen-api.utils.ts'
 import type { OPAQUE_REF_NULL } from '@vates/types'
 
 type TypeMapping = typeof XEN_API_OBJECT_TYPES

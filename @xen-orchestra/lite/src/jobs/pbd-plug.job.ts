@@ -1,5 +1,5 @@
-import { pbdsArg } from '@/jobs/args'
-import { useXenApiStore } from '@/stores/xen-api.store'
+import { pbdsArg } from '@/jobs/args.ts'
+import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'
 

@@ -1,4 +1,4 @@
-import type { XenApiHost, XenApiPbd, XenApiSr, XenApiVm } from '@/libs/xen-api/xen-api.types'
+import type { XenApiHost, XenApiPbd, XenApiSr, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import { defineJobArg } from '@core/packages/job'
 
 export const vmsArg = defineJobArg({

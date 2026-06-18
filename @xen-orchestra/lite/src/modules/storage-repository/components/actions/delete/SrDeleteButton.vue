@@ -11,8 +11,8 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiSr } from '@/libs/xen-api/xen-api.types'
-import { useSrDeleteModal } from '@/modules/storage-repository/composables/use-sr-delete-modal.composable'
+import type { XenApiSr } from '@/libs/xen-api/xen-api.types.ts'
+import { useSrDeleteModal } from '@/modules/storage-repository/composables/use-sr-delete-modal.composable.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useI18n } from 'vue-i18n'
 

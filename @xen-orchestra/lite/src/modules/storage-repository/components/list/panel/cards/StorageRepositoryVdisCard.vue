@@ -16,13 +16,13 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiVdi } from '@/libs/xen-api/xen-api.types'
+import type { XenApiVdi } from '@/libs/xen-api/xen-api.types.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{

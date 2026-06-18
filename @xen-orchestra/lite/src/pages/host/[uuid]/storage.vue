@@ -19,21 +19,21 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiHost, XenApiSr } from '@/libs/xen-api/xen-api.types'
+import type { XenApiHost, XenApiSr } from '@/libs/xen-api/xen-api.types.ts'
 import StorageRepositorySidePanel from '@/modules/storage-repository/components/list/panel/StorageRepositorySidePanel.vue'
 import StorageRepositoriesTable from '@/modules/storage-repository/components/list/StorageRepositoriesTable.vue'
-import { SR_SCOPE_TYPE, type SrScope } from '@/modules/storage-repository/types/storage-repository.type'
-import { usePageTitleStore } from '@/stores/page-title.store'
-import { useHostStore } from '@/stores/xen-api/host.store'
-import { usePbdStore } from '@/stores/xen-api/pbd.store'
-import { usePoolStore } from '@/stores/xen-api/pool.store'
-import { useSrStore } from '@/stores/xen-api/sr.store'
+import { usePageTitleStore } from '@/stores/page-title.store.ts'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
+import { usePbdStore } from '@/stores/xen-api/pbd.store.ts'
+import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
+import { useSrStore } from '@/stores/xen-api/sr.store.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { useRouteQuery } from '@core/composables/route-query.composable'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { sortByNameLabel } from '@core/utils/sort-by-name-label.util'
+import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
+import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -58,7 +58,7 @@ const host = computed(() => getHostByUuid(route.params.uuid as XenApiHost['uuid'
 const scope = computed(
   (): SrScope => ({
     type: SR_SCOPE_TYPE.HOST,
-    hostRef: host.value!.$ref,
+    host: host.value!.$ref,
   })
 )
 

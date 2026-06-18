@@ -17,8 +17,8 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiPbd } from '@/libs/xen-api/xen-api.types'
-import { useHostStore } from '@/stores/xen-api/host.store'
+import type { XenApiPbd } from '@/libs/xen-api/xen-api.types.ts'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { computed } from 'vue'

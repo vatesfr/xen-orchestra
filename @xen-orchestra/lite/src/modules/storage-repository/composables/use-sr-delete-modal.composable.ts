@@ -1,8 +1,8 @@
-import { useSrDeleteJob } from '@/jobs/sr-delete.job'
-import type { XenApiSr } from '@/libs/xen-api/xen-api.types'
-import { useRouteQuery } from '@core/composables/route-query.composable'
-import { useModal } from '@core/packages/modal/use-modal'
-import { toComputed } from '@core/utils/to-computed.util'
+import { useSrDeleteJob } from '@/jobs/sr-delete.job.ts'
+import type { XenApiSr } from '@/libs/xen-api/xen-api.types.ts'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useModal } from '@core/packages/modal/use-modal.ts'
+import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
 
 export function useSrDeleteModal(rawSrs: MaybeRefOrGetter<XenApiSr[]>) {

@@ -15,22 +15,9 @@ export const XCP_LINKS = {
   GUEST_TOOLS: 'https://docs.xcp-ng.org/vms/#guest-tools',
 }
 
-export const CONNECTION_STATUS = {
-  CONNECTED: 'connected',
-  PARTIALLY_CONNECTED: 'partially-connected',
-  DISCONNECTED: 'disconnected',
-  PHYSICALLY_DISCONNECTED: 'physically-disconnected',
-  DISCONNECTED_FROM_PHYSICAL_DEVICE: 'disconnected-from-physical-device',
-} as const
-
 export const RULE_STATUS = {
   ALLOW: 'allow',
   DROP: 'drop',
-} as const
-
-export const CONNECTION_ACTION = {
-  CONNECT: 'connect',
-  DISCONNECT: 'disconnect',
 } as const
 
 export const ONE_GB = 1024 ** 3

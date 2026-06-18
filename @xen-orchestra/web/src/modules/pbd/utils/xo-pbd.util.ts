@@ -1,5 +1,5 @@
 import type { FrontXoPbd } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
-import { CONNECTION_STATUS } from '@/shared/constants.ts'
+import { CONNECTION_STATUS } from '@core/types/connection.type.ts'
 
 export function getPbdsConnectionStatus(pbds: FrontXoPbd[]) {
   if (pbds.length === 0 || pbds.every(pbd => !pbd.attached)) {

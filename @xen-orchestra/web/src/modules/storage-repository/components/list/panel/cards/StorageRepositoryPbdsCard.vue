@@ -41,8 +41,7 @@ import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable
 import StorageRepositoryPbdHost from '@/modules/storage-repository/components/list/panel/card-items/StorageRepositoryPbdHost.vue'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { SrScope } from '@/modules/storage-repository/types/storage-repository.type'
-import { CONNECTION_STATUS } from '@/shared/constants.ts'
+import type { SrScope } from '@core/types/storage-repository.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -50,6 +49,7 @@ import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
+import { CONNECTION_STATUS } from '@core/types/connection.type.ts'
 import { useI18n } from 'vue-i18n'
 
 const { sr, scope } = defineProps<{

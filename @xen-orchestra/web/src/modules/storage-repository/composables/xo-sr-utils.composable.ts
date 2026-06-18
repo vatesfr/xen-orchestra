@@ -2,8 +2,8 @@ import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host
 import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
 import { useXoPbdCollection, type FrontXoPbd } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { SR_SCOPE_TYPE, type SrScope } from '@/modules/storage-repository/types/storage-repository.type'
-import { type IconName, objectIcon } from '@core/icons'
+import { type IconName, objectIcon } from '@core/icons/index.ts'
+import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -18,9 +18,9 @@ export function useGetPbdsInScope() {
       return pbds
     }
 
-    const { hostId } = scope
+    const { host } = scope
 
-    return pbds.filter(pbd => pbd.host === hostId)
+    return pbds.filter(pbd => pbd.host === host)
   }
 
   function getAttachedPbdsInScope(sr: FrontXoSr, scope: SrScope): FrontXoPbd[] {

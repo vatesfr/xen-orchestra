@@ -1,10 +1,10 @@
-import { usePbdPlugJob } from '@/jobs/pbd-plug.job'
-import type { XenApiSr } from '@/libs/xen-api/xen-api.types'
-import { useGetPbdsInScope } from '@/modules/storage-repository/composables/sr-utils.composable'
-import type { SrScope } from '@/modules/storage-repository/types/storage-repository.type'
-import { getSrAccessMode } from '@/modules/storage-repository/utils/sr.util'
-import { useModal } from '@core/packages/modal/use-modal'
-import { toComputed } from '@core/utils/to-computed.util'
+import { usePbdPlugJob } from '@/jobs/pbd-plug.job.ts'
+import type { XenApiSr } from '@/libs/xen-api/xen-api.types.ts'
+import { useGetPbdsInScope } from '@/modules/storage-repository/composables/sr-utils.composable.ts'
+import type { SrScope } from '@core/types/storage-repository.type.ts'
+import { useModal } from '@core/packages/modal/use-modal.ts'
+import { getSrAccessMode } from '@core/utils/sr.utils.ts'
+import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
 
 export function useSrConnectModal(rawSrs: MaybeRefOrGetter<XenApiSr[]>, rawScope: MaybeRefOrGetter<SrScope>) {

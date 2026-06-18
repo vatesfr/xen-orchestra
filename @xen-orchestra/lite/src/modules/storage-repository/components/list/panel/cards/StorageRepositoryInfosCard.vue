@@ -62,10 +62,10 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiPool, XenApiSr } from '@/libs/xen-api/xen-api.types'
-import { useSrUtils } from '@/modules/storage-repository/composables/sr-utils.composable'
-import type { SrScope } from '@/modules/storage-repository/types/storage-repository.type'
-import { useSrStore } from '@/stores/xen-api/sr.store'
+import type { XenApiPool, XenApiSr } from '@/libs/xen-api/xen-api.types.ts'
+import { useSrUtils } from '@/modules/storage-repository/composables/sr-utils.composable.ts'
+import { useSrStore } from '@/stores/xen-api/sr.store.ts'
+import type { SrScope } from '@core/types/storage-repository.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'

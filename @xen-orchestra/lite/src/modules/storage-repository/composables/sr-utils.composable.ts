@@ -1,9 +1,9 @@
-import type { XenApiPbd, XenApiSr } from '@/libs/xen-api/xen-api.types'
-import { usePbdUtils } from '@/modules/storage-repository/composables/pbd-utils.composable'
-import { SR_SCOPE_TYPE, type SrScope } from '@/modules/storage-repository/types/storage-repository.type'
-import { usePbdStore } from '@/stores/xen-api/pbd.store'
-import { type IconName, objectIcon } from '@core/icons'
-import { toComputed } from '@core/utils/to-computed.util'
+import type { XenApiPbd, XenApiSr } from '@/libs/xen-api/xen-api.types.ts'
+import { usePbdUtils } from '@/modules/storage-repository/composables/pbd-utils.composable.ts'
+import { usePbdStore } from '@/stores/xen-api/pbd.store.ts'
+import { type IconName, objectIcon } from '@core/icons/index.ts'
+import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
+import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
 
 export function useGetPbdsInScope() {
@@ -16,9 +16,9 @@ export function useGetPbdsInScope() {
       return pbds
     }
 
-    const { hostRef } = scope
+    const { host } = scope
 
-    return pbds.filter(pbd => pbd.host === hostRef)
+    return pbds.filter(pbd => pbd.host === host)
   }
 
   function getAttachedPbdsInScope(sr: XenApiSr, scope: SrScope): XenApiPbd[] {

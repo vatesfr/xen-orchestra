@@ -8,7 +8,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiSr } from '@/libs/xen-api/xen-api.types'
+import type { XenApiSr } from '@/libs/xen-api/xen-api.types.ts'
 import VtsSpaceCard from '@core/components/space-card/VtsSpaceCard.vue'
 import { useI18n } from 'vue-i18n'
 

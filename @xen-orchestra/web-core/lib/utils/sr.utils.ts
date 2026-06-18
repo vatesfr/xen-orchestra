@@ -1,12 +1,6 @@
-import type { XenApiSr } from '@/libs/xen-api/xen-api.types'
-import {
-  SR_ACCESS_MODE,
-  SR_SCOPE_TYPE,
-  type SrAccessMode,
-  type SrScope,
-} from '@/modules/storage-repository/types/storage-repository.type'
+import { SR_ACCESS_MODE, SR_SCOPE_TYPE, type SrAccessMode, type SrScope } from '@core/types/storage-repository.type.ts'
 
-export function getSrAccessMode(srs: XenApiSr[]): SrAccessMode {
+export function getSrAccessMode(srs: { shared: boolean }[]): SrAccessMode {
   const hasShared = srs.some(sr => sr.shared)
   const hasLocal = srs.some(sr => !sr.shared)
 

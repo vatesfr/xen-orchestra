@@ -18,12 +18,12 @@
 </template>
 
 <script lang="ts" setup>
-import { useSrModalMessages } from '@/modules/storage-repository/composables/use-sr-modal-messages.composable'
-import type { SrAccessMode, SrScope } from '@/modules/storage-repository/types/storage-repository.type'
-import { CONNECTION_ACTION } from '@/modules/storage-repository/types/storage-repository.type'
+import { useSrModalMessages } from '@/modules/storage-repository/composables/use-sr-modal-messages.composable.ts'
+import type { SrAccessMode, SrScope } from '@core/types/storage-repository.type.ts'
 import VtsModal from '@core/components/modal/VtsModal.vue'
 import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
 import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import { CONNECTION_ACTION } from '@core/types/connection.type.ts'
 import { useI18n } from 'vue-i18n'
 
 const { count, scope, accessMode, hostsCount } = defineProps<{

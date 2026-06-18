@@ -1,13 +1,9 @@
-import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-
 export const SR_SCOPE_TYPE = {
   POOL: 'pool',
   HOST: 'host',
 } as const
 
-export type SrScope =
-  | { type: typeof SR_SCOPE_TYPE.POOL }
-  | { type: typeof SR_SCOPE_TYPE.HOST; hostId: FrontXoHost['id'] }
+export type SrScope = { type: typeof SR_SCOPE_TYPE.POOL } | { type: typeof SR_SCOPE_TYPE.HOST; host: string }
 
 export const SR_ACCESS_MODE = {
   LOCAL: 'local',

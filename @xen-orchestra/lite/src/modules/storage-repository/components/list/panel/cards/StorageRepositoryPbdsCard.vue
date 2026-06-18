@@ -39,11 +39,11 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiSr } from '@/libs/xen-api/xen-api.types'
+import type { XenApiSr } from '@/libs/xen-api/xen-api.types.ts'
 import StorageRepositoryPbdHost from '@/modules/storage-repository/components/list/panel/card-items/StorageRepositoryPbdHost.vue'
-import { CONNECTION_STATUS, usePbdUtils } from '@/modules/storage-repository/composables/pbd-utils.composable'
-import { useSrUtils } from '@/modules/storage-repository/composables/sr-utils.composable'
-import type { SrScope } from '@/modules/storage-repository/types/storage-repository.type'
+import { usePbdUtils } from '@/modules/storage-repository/composables/pbd-utils.composable.ts'
+import { useSrUtils } from '@/modules/storage-repository/composables/sr-utils.composable.ts'
+import type { SrScope } from '@core/types/storage-repository.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -51,6 +51,7 @@ import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
+import { CONNECTION_STATUS } from '@core/types/connection.type.ts'
 import { useI18n } from 'vue-i18n'
 
 const { sr, scope } = defineProps<{

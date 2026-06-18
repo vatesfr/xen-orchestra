@@ -1,6 +1,6 @@
 import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import type { Status } from '@core/components/status/VtsStatus.vue'
+import { CONNECTION_STATUS } from '@core/types/connection.type.ts'
 
 export function getPifStatus(pif: FrontXoPif): Status {
   if (!pif.attached) {

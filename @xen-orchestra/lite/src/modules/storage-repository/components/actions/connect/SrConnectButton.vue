@@ -21,13 +21,13 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiSr } from '@/libs/xen-api/xen-api.types'
-import { useSrUtils } from '@/modules/storage-repository/composables/sr-utils.composable'
-import { useSrConnectModal } from '@/modules/storage-repository/composables/use-sr-connect-modal.composable'
-import type { SrScope } from '@/modules/storage-repository/types/storage-repository.type'
+import type { XenApiSr } from '@/libs/xen-api/xen-api.types.ts'
+import { useSrUtils } from '@/modules/storage-repository/composables/sr-utils.composable.ts'
+import { useSrConnectModal } from '@/modules/storage-repository/composables/use-sr-connect-modal.composable.ts'
+import type { SrScope } from '@core/types/storage-repository.type.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
 const { sr, scope } = defineProps<{
