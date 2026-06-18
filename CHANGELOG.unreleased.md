@@ -43,6 +43,7 @@
 - [XO6] live update XO tasks (PR [#9901](https://github.com/vatesfr/xen-orchestra/pull/9901))
 - [XO6/Backup] add progress for backups tasks(PR [#9901](https://github.com/vatesfr/xen-orchestra/pull/9901))
 - [XO6/Traffic Rules] add colors for tags in policy column (PR [#9979](https://github.com/vatesfr/xen-orchestra/pull/9979))
+- [XO6/Traffic rules] add possibility to delete a traffic rule (PR [#9956](https://github.com/vatesfr/xen-orchestra/pull/9956))
 - [REST API] add `hosts/:id/actions/join_pool` REST route (PR [#9876](https://github.com/vatesfr/xen-orchestra/pull/9876))
 - [VM/Network] Add VIF column to table (PR [#9959](https://github.com/vatesfr/xen-orchestra/pull/9959))
 - [Rest Api] Ask for user credentials for unauthenticated users (PR [#9938](https://github.com/vatesfr/xen-orchestra/pull/9938))
