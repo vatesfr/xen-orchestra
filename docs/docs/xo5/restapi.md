@@ -377,10 +377,12 @@ The following query parameters are supported to customize the created VDI:
 
 ## Attaching an existing VDI to a VM
 
-You attach an existing VDI to a VM by creating a VBD through the `POST /vbds`
+To attach an existing VDI to a VM, create a VBD through the `POST /vbds`
 endpoint. The VBD's `mode` (`RW` or `RO`) and `bootable` flag are set at creation.
 
-> Note: mounting or ejecting an ISO (CD-ROM) is not currently available through the
+:::note
+Mounting or ejecting an ISO (CD-ROM) is not currently available through the, etc.
+:::
 > REST API. Use the JSON-RPC API instead, for example via `xo-cli`:
 >
 > ```sh
