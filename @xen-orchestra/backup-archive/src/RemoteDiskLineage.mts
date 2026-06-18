@@ -318,13 +318,13 @@ export class RemoteDiskLineage {
         await asyncEach(
           toMerge,
           async ({ chain, isResuming }) => {
-            const { finalDiskSize, mergeTargetPath } = await limitedMergeChain(chain, isResuming)
+            const { finalDiskSize, mergeTargetPath } = await limitedMergeChain([...chain], isResuming)
             mergedSizes.set(mergeTargetPath, (mergedSizes.get(mergeTargetPath) ?? 0) + finalDiskSize)
             // parentPath alias deleted by parentDisk.rename(mergeTargetPath)
             // intermediates deleted by childDisk.unlink() when removeUnused=true
             // Unregister so #cleanOrphanDataFiles does not read already-deleted aliases
             // and produce false "missing target of alias" warnings.
-            for (const deletedPath of chain) {
+            for (const deletedPath of chain.slice(0, -1)) {
               this.#unregisterDisk(deletedPath)
             }
           },
