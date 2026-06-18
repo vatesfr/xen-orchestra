@@ -3,7 +3,7 @@ import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-colle
 import { useModal } from '@core/packages/modal/use-modal.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 export function useVifDeleteModal(rawVifs: MaybeRefOrGetter<FrontXoVif[]>) {
   const vifs = toComputed(rawVifs)
@@ -11,6 +11,7 @@ export function useVifDeleteModal(rawVifs: MaybeRefOrGetter<FrontXoVif[]>) {
   const { run, canRun, isRunning } = useXoVifDeleteJob(vifs)
 
   const router = useRouter()
+  const route = useRoute()
 
   const openModal = useModal(() => ({
     component: import('@/modules/vif/components/modal/VifDeleteModal.vue'),
@@ -23,7 +24,7 @@ export function useVifDeleteModal(rawVifs: MaybeRefOrGetter<FrontXoVif[]>) {
       } catch (error) {
         console.error('Error when deleting VIF:', error)
       }
-      if (result && result[0].status === 'fulfilled' && router.currentRoute.value.path.includes(`/vif/${vif.id}`)) {
+      if (result && result[0].status === 'fulfilled' && route.path.includes(`/vif/${vif.id}`)) {
         await router.push({ name: '/vm/[id]/networks', params: { id: vif.$VM } })
       }
     },

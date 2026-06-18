@@ -38,7 +38,7 @@ const openDeleteModal = useModal({
     }
 
     if (result && result[0].status === 'fulfilled' && router.currentRoute.value.path.includes(`/vm/${vm.id}`)) {
-      await router.push({ name: '/pool/[id]/vms', params: { id: vm.$container } })
+      await router.push({ name: '/pool/[id]/vms', params: { id: vm.$pool } })
     }
   },
 })
