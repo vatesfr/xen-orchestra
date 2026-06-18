@@ -52,8 +52,14 @@ export default class TabConsole extends Component {
   state = { clipboard: '', scale: 1 }
 
   componentWillReceiveProps(props) {
-    if (isVmRunning(this.props.vm) && !isVmRunning(props.vm) && this.state.minimalLayout) {
-      this._toggleMinimalLayout()
+    if (isVmRunning(this.props.vm) && !isVmRunning(props.vm) && props.collapsedHeader) {
+      props.setCollapsedHeader(false)
+    }
+  }
+
+  componentWillUnmount() {
+    if (this.props.collapsedHeader) {
+      this.props.setCollapsedHeader(false)
     }
   }
 
@@ -88,8 +94,7 @@ export default class TabConsole extends Component {
     )
 
   _toggleMinimalLayout = () => {
-    this.props.toggleHeader()
-    this.setState({ minimalLayout: !this.state.minimalLayout })
+    this.props.setCollapsedHeader(!this.props.collapsedHeader)
   }
 
   _openSsh = (username = 'root') => {
@@ -123,8 +128,8 @@ export default class TabConsole extends Component {
   }
 
   render() {
-    const { statsOverview, vm } = this.props
-    const { minimalLayout, scale } = this.state
+    const { collapsedHeader, statsOverview, vm } = this.props
+    const { scale } = this.state
     const canSshOrRdp = vm.mainIpAddress !== undefined
 
     if (!isVmRunning(vm)) {
@@ -137,7 +142,7 @@ export default class TabConsole extends Component {
 
     return (
       <Container>
-        {!minimalLayout && statsOverview && (
+        {!collapsedHeader && statsOverview && (
           <Row className='text-xs-center'>
             <Col mediumSize={3}>
               <p>
@@ -253,9 +258,9 @@ export default class TabConsole extends Component {
             </Row>
           </Col>
           <Col mediumSize={1}>
-            <Tooltip content={minimalLayout ? _('showHeaderTooltip') : _('hideHeaderTooltip')}>
+            <Tooltip content={collapsedHeader ? _('showHeaderTooltip') : _('hideHeaderTooltip')}>
               <Button onClick={this._toggleMinimalLayout}>
-                <Icon icon={minimalLayout ? 'caret' : 'caret-up'} />
+                <Icon icon={collapsedHeader ? 'caret' : 'caret-up'} />
               </Button>
             </Tooltip>
           </Col>
