@@ -120,7 +120,9 @@ export default class CryptoCredentials {
   }
 
   /**
-   * Check if encryption is active, if a migration is needed and load keys.
+   * Check if encryption is active, if an encryption or decryption migration is needed and load keys.
+   * Read from xenStore only when encryption is active, or when a fileKey exists
+   * and a decryption migration is needed.
    */
   async #initialize() {
     /**
@@ -139,7 +141,6 @@ export default class CryptoCredentials {
     // If not, generate both halves, save them, load them and
     // set #migrationRequired to require encryption migration.
     if (this._app.config.getOptional('redis.encryptCredentialDatabase') ?? false) {
-      // XenStore is only read when encryption is active to avoid unnecessary xen-tools calls.
       try {
         xenStoreKey = Buffer.from((await this.#xenStore.read(XENSTORE_KEY_PATH)).trim(), 'hex')
       } catch (/** @type {any} */ error) {
@@ -151,6 +152,7 @@ export default class CryptoCredentials {
               { cause: error }
             )
           } else {
+            this.#degraded = true
             log.error('Xenstore tools not available, credential database encryption failed', { cause: error })
           }
           return

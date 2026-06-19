@@ -224,13 +224,13 @@ describe('CryptoCredentials', function () {
     })
 
     describe('Encryption ENABLED', function () {
-      it('no xen-tools, no fileKey - not degraded', async function () {
+      it('no xen-tools, no fileKey - degraded', async function () {
         const deps = makeDeps()
         deps.xenStore.read = async () => {
           throw xenToolsNotFound()
         }
         const instance = await runHook(true, deps)
-        assert.equal(instance.isDegraded(), false)
+        assert.equal(instance.isDegraded(), true)
       })
 
       it('no xen-tools, fileKey exists - degraded', async function () {
