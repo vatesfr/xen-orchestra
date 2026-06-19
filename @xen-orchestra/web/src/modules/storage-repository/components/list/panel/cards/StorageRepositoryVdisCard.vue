@@ -34,7 +34,7 @@
             :to="{
               name: '/vdi/[id]/general',
               params: { id: snapshot.id },
-              query: { from: VDI_PAGE_CONTEXT.SNAPSHOT },
+              query: { from: VDI_PAGE_CONTEXT.VDI_SNAPSHOT },
             }"
             size="small"
             icon="object:vdi"

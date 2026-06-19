@@ -20,6 +20,8 @@ export const vdiSnapshotFields = [
   'uuid',
   'snapshot_time',
   '$snapshot_of',
+  'image_format',
+  'cbt_enabled',
 ] as const satisfies readonly (keyof XoVdiSnapshot)[]
 
 export const useXoVdiSnapshotCollection = defineRemoteResource({

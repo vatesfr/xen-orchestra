@@ -1,68 +1,27 @@
 <template>
-  <VdiHeaderBreadcrumbLink :vm :sr :vdi :from-context />
-  <UiHeadBar>
-    {{ vdi.name_label }}
-    <template #icon>
-      <VtsObjectIcon
-        v-if="vm"
-        v-tooltip="{
-          placement: 'top',
-          content: currentOperation ? currentOperation : '',
-        }"
-        size="medium"
-        :state="toLower(vm?.power_state)"
-        type="vm"
-        :busy="isChangingState"
-      />
-    </template>
-    <template #actions>
-      <VdiPowerStateActions :vm :vbd />
-      <MenuList placement="bottom-end">
-        <template #trigger="{ open }">
-          <UiButtonIcon
-            v-tooltip="{
-              placement: 'left',
-              content: t('more-actions'),
-            }"
-            icon="action:more-actions"
-            accent="brand"
-            size="medium"
-            @click="open($event)"
-          />
-        </template>
-        <VdiMoreActions :vm :vdi :vbd />
-      </MenuList>
-    </template>
-  </UiHeadBar>
+  <VdiHeaderBreadcrumbLink :vm :sr :vdi :snapshot :from-context />
+  <VdiHeadBar v-if="vdi" :vdi :vbds :vbd :vm />
+  <VdiSnapshotHeadBar v-if="snapshot" :snapshot />
 </template>
 
 <script lang="ts" setup>
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
-import VdiMoreActions from '@/modules/vdi/components/actions/VdiMoreActions.vue'
-import VdiPowerStateActions from '@/modules/vdi/components/actions/VdiPowerStateActions.vue'
+import VdiHeadBar from '@/modules/vdi/components/header/VdiHeadBar.vue'
 import VdiHeaderBreadcrumbLink from '@/modules/vdi/components/header/VdiHeaderBreadcrumbLink.vue'
+import VdiSnapshotHeadBar from '@/modules/vdi/components/header/VdiSnapshotHeadBar.vue'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
+import type { FrontXoVdiSnapshot } from '@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { VdiPageContext } from '@/shared/constants.ts'
-import MenuList from '@xen-orchestra/web-core/components/menu/MenuList.vue'
-import VtsObjectIcon from '@xen-orchestra/web-core/components/object-icon/VtsObjectIcon.vue'
-import UiButtonIcon from '@xen-orchestra/web-core/components/ui/button-icon/UiButtonIcon.vue'
-import UiHeadBar from '@xen-orchestra/web-core/components/ui/head-bar/UiHeadBar.vue'
-import { vTooltip } from '@xen-orchestra/web-core/directives/tooltip.directive.ts'
-import { toLower } from 'lodash-es'
-import { useI18n } from 'vue-i18n'
 
-const { vdi, vm, vbd, sr } = defineProps<{
-  vdi: FrontXoVdi
+const { vdi, vm, vbds, vbd } = defineProps<{
+  vdi?: FrontXoVdi
   vm?: FrontXoVm
+  vbds?: FrontXoVbd[]
   vbd?: FrontXoVbd
   sr?: FrontXoSr
   fromContext?: VdiPageContext
+  snapshot?: FrontXoVdiSnapshot
 }>()
-
-const { t } = useI18n()
-
-const { isChangingState, currentOperation } = useXoVmUtils(() => vm as FrontXoVm)
 </script>

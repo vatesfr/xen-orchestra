@@ -1,6 +1,6 @@
 <template>
   <div class="breadcrumb-container">
-    <UiBreadcrumb v-if="fromContext === VDI_PAGE_CONTEXT.VM && vm" :size>
+    <UiBreadcrumb v-if="fromContext === VDI_PAGE_CONTEXT.VM && vm && vdi" :size>
       <UiLink :size :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
         <VtsObjectIcon type="vm" :state="toLower(vm.power_state)" size="current" />
         {{ vm.name_label }}
@@ -13,7 +13,7 @@
       </span>
     </UiBreadcrumb>
 
-    <UiBreadcrumb v-else-if="fromContext === VDI_PAGE_CONTEXT.SR && pool && sr" :size>
+    <UiBreadcrumb v-else-if="fromContext === VDI_PAGE_CONTEXT.SR && pool && sr && vdi" :size>
       <UiLink :size :to="{ name: '/pool/[id]/dashboard', params: { id: sr.$pool } }">
         <VtsIcon name="object:pool" size="medium" />
         {{ pool.name_label }}
@@ -26,7 +26,7 @@
       </span>
     </UiBreadcrumb>
 
-    <UiBreadcrumb v-else-if="fromContext === VDI_PAGE_CONTEXT.SNAPSHOT && vm" :size>
+    <UiBreadcrumb v-else-if="fromContext === VDI_PAGE_CONTEXT.SNAPSHOT && vm && vdi" :size>
       <UiLink :size :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
         <VtsObjectIcon type="vm" :state="toLower(vm.power_state)" size="current" />
         {{ vm.name_label }}
@@ -39,10 +39,23 @@
       </span>
     </UiBreadcrumb>
 
+    <UiBreadcrumb v-else-if="fromContext === VDI_PAGE_CONTEXT.VDI_SNAPSHOT && snapshot" :size>
+      <UiLink :size :to="{ name: '/pool/[id]/dashboard', params: { id: snapshot.$pool } }">
+        <VtsIcon name="object:pool" size="medium" />
+        {{ snapshot.name_label }}
+      </UiLink>
+      <UiLink :size :to="{ name: '/pool/[id]/storage', params: { id: snapshot.$pool } }">
+        {{ t('storage') }}
+      </UiLink>
+      <span>
+        {{ snapshot.name_label }}
+      </span>
+    </UiBreadcrumb>
+
     <UiBreadcrumb v-else :size>
       <span>
         <VtsIcon name="object:vdi" size="current" />
-        {{ vdi.name_label }}
+        {{ vdi?.name_label }}
       </span>
     </UiBreadcrumb>
   </div>
@@ -52,6 +65,7 @@
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import type { FrontXoVdiSnapshot } from '@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.js'
 import { VDI_PAGE_CONTEXT, type VdiPageContext } from '@/shared/constants.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -63,10 +77,11 @@ import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vm, sr, vdi, fromContext } = defineProps<{
+const { vm, sr, vdi, snapshot, fromContext } = defineProps<{
   vm?: FrontXoVm
   sr?: FrontXoSr
-  vdi: FrontXoVdi
+  vdi?: FrontXoVdi
+  snapshot?: FrontXoVdiSnapshot
   fromContext?: VdiPageContext
 }>()
 

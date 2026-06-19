@@ -1,11 +1,11 @@
 <template>
-  <VtsStateHero v-if="!areVdisReady" format="page" type="busy" size="large" />
-  <VtsStateHero v-else-if="!vdi" format="page" type="not-found" size="large">
+  <VtsStateHero v-if="!areVdisReady && !areVdiSnapshotsReady" format="page" type="busy" size="large" />
+  <VtsStateHero v-else-if="!vdi && !areVdiSnapshotsReady" format="page" type="not-found" size="large">
     {{ t('object-not-found', { id: route.params.id }) }}
   </VtsStateHero>
   <RouterView v-else v-slot="{ Component }">
-    <VdiHeader v-if="uiStore.hasUi" :vdi :vm :vbd :sr :from-context="fromContext" />
-    <component :is="Component" :vdi :vbd :vm :sr />
+    <VdiHeader v-if="uiStore.hasUi" :vdi :vm :vbds :vbd :sr :snapshot :from-context="fromContext" />
+    <component :is="Component" :vdi :vbd :vm :sr :snapshot />
   </RouterView>
 </template>
 
@@ -14,8 +14,12 @@ import { useXoSrCollection } from '@/modules/storage-repository/remote-resources
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import VdiHeader from '@/modules/vdi/components/VdiHeader.vue'
 import { type FrontXoVdi, useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import {
+  type FrontXoVdiSnapshot,
+  useXoVdiSnapshotCollection,
+} from '@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { VdiPageContext } from '@/shared/constants.ts'
+import { VDI_PAGE_CONTEXT, type VdiPageContext } from '@/shared/constants.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import type { XoVm } from '@vates/types'
@@ -31,10 +35,11 @@ const { useGetVdiById, areVdisReady } = useXoVdiCollection()
 const { useGetVbdsByIds } = useXoVbdCollection()
 const { useGetVmById } = useXoVmCollection()
 const { useGetSrById } = useXoSrCollection()
-
-const fromContext = computed(() => route.query.from as VdiPageContext | undefined)
+const { useGetVdiSnapshotById, areVdiSnapshotsReady } = useXoVdiSnapshotCollection()
 
 const vdi = useGetVdiById(() => route.params.id as FrontXoVdi['id'])
+
+const snapshot = useGetVdiSnapshotById(() => route.params.id as FrontXoVdiSnapshot['id'])
 
 const vbds = useGetVbdsByIds(() => vdi.value?.$VBDs ?? [])
 
@@ -43,4 +48,16 @@ const vbd = computed(() => vbds.value.find(vbd => vbd.attached) ?? vbds.value[0]
 const vm = useGetVmById(() => vbd.value?.VM as XoVm['id'])
 
 const sr = useGetSrById(() => vdi.value?.$SR)
+
+const fromContext = computed(() => {
+  if (route.query.from) {
+    return route.query.from as VdiPageContext
+  } else if (snapshot.value) {
+    return VDI_PAGE_CONTEXT.VDI_SNAPSHOT
+  } else if (vbd.value?.attached && vm.value) {
+    return VDI_PAGE_CONTEXT.VM
+  } else {
+    return VDI_PAGE_CONTEXT.SR
+  }
+})
 </script>

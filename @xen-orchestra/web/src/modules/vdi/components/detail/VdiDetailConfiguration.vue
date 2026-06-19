@@ -4,7 +4,7 @@
       {{ t('configuration') }}
     </UiTitle>
     <VtsTabularKeyValueList>
-      <VtsTabularKeyValueRow :label="t('format')" :value="vdi.image_format" />
+      <VtsTabularKeyValueRow :label="t('format')" :value="vdi ? vdi.image_format : snapshot?.image_format" />
       <VtsTabularKeyValueRow :label="t('storage')">
         <template v-if="sr" #value>
           <UiLink size="small" :href="srHref" :icon="srStatusIcon">
@@ -14,7 +14,8 @@
       </VtsTabularKeyValueRow>
       <VtsTabularKeyValueRow :label="t('change-block-tracking')">
         <template #value>
-          <VtsStatus :status="vdi.cbt_enabled ? 'enabled' : 'disabled'" />
+          <VtsStatus v-if="vdi" :status="vdi.cbt_enabled ? 'enabled' : 'disabled'" />
+          <VtsStatus v-if="snapshot" :status="snapshot.cbt_enabled ? 'enabled' : 'disabled'" />
         </template>
       </VtsTabularKeyValueRow>
       <VtsTabularKeyValueRow :label="t('operation:snapshot')">
@@ -30,6 +31,7 @@
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import type { FrontXoVdiSnapshot } from '@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
@@ -40,18 +42,32 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vdi } = defineProps<{ vdi: FrontXoVdi }>()
+const { vdi, snapshot } = defineProps<{ vdi?: FrontXoVdi; snapshot?: FrontXoVdiSnapshot }>()
 
 const { t } = useI18n()
 
 const { useGetSrById } = useXoSrCollection()
 
-const sr = useGetSrById(() => vdi.$SR)
+const sr = useGetSrById(() => {
+  if (vdi) {
+    return vdi.$SR
+  } else if (snapshot) {
+    return snapshot.$SR
+  }
+})
 
 const { srStatusIcon } = useXoSrUtils(sr)
 
 const { buildXo5Route } = useXoRoutes()
 const srHref = computed(() => (sr.value ? buildXo5Route(`/srs/${sr.value.id}/general`) : undefined))
 
-const isSnapshottingEnabled = computed(() => !vdi.tags.includes('NOSNAP'))
+const isSnapshottingEnabled = computed(() => {
+  if (vdi) {
+    return !vdi.tags.includes('NOSNAP')
+  } else if (snapshot) {
+    return !snapshot.tags.includes('NOSNAP')
+  } else {
+    return false
+  }
+})
 </script>

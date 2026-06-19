@@ -45,6 +45,7 @@ export const VDI_PAGE_CONTEXT = {
   VM: 'vm',
   SR: 'sr',
   SNAPSHOT: 'snapshot',
+  VDI_SNAPSHOT: 'vdi_snapshot',
 } as const
 
 export type VdiPageContext = (typeof VDI_PAGE_CONTEXT)[keyof typeof VDI_PAGE_CONTEXT]
