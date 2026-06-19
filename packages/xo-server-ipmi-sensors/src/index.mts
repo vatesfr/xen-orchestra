@@ -9,7 +9,13 @@
 import type { XoApp, XoHost } from '@vates/types'
 import { createLogger } from '@xen-orchestra/log'
 import { DEFAULT_IPMI_SENSOR_REGEX_CONFIG_STRINGIFIED } from './default-rules.mjs'
-import { addIpmiSensorDataType, containsDigit, isRelevantIpmiSensor, parseRegexConfig } from './ipmi-rules.mjs'
+import {
+  addIpmiSensorDataType,
+  addIpmiSensorsDataType,
+  containsDigit,
+  isRelevantIpmiSensor,
+  parseRegexConfig,
+} from './ipmi-rules.mjs'
 import { addCustomIpmiSensors } from './legacy-computed-rules.mjs'
 import {
   IPMI_SENSOR_DATA_TYPE,
@@ -205,16 +211,15 @@ export class IpmiSensorsPlugin {
     }
 
     const sensors = await this.#fetchRawSensors(callIpmiPlugin)
-    for (const sensor of sensors) {
-      // tags `sensor.dataType` with the matching data type, or 'unknown'
-      addIpmiSensorDataType(sensor, productName, this.#configuredRulesByProduct)
-    }
+    // tags each `sensor.dataType` with the matching data type, or 'unknown',
+    // and narrows `sensors` to `AvailableIpmiSensor[]`
+    addIpmiSensorsDataType(sensors, productName, this.#configuredRulesByProduct)
 
     return {
       productName,
       systemManufacturer,
       ipmiDeviceAvailable: true,
-      sensors: sensors as AvailableIpmiSensors['sensors'],
+      sensors,
     }
   }
 

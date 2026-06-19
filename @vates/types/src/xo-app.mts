@@ -191,8 +191,8 @@ export type XoApp = {
     method: (...args: A) => Promise<R>,
     //we use any since it is a legacy call, might be better typed in another pr
     info: {
-      resolve?: any // eslint-disable-line @typescript-eslint/no-explicit-any
-      params?: any // eslint-disable-line @typescript-eslint/no-explicit-any
+      resolve?: any
+      params?: any
     }
   ) => () => void // eslint-disable-line @typescript-eslint/no-explicit-any
   registerRestRoutes: (routes: PluginRestRouteDefinition[], base?: string) => () => void

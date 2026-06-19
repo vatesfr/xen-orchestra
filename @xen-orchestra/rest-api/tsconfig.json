@@ -2,7 +2,6 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
-    "declaration": true,
 
     "strict": true,
     "module": "ESNext",
