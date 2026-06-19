@@ -33,6 +33,8 @@ async function generateIncrementalVmName(dispatchClient, baseName) {
 
 /**
  * Test setup with automatic resource creation and tracking.
+ * @param {Object} options - Setup options
+ * @param {string} [options.referenceVmId] - Optional reference VM ID to clone for testing
  * @returns {Promise<Object>} Setup result with dispatchClient and created resources
  */
 export const setup = async ({ referenceVmId } = {}) => {

@@ -53,7 +53,15 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
     const rejectsWithHttpError = async (url, body) =>
       assert.rejects(
         () => dispatchClient.restApiClient.post(url, body),
-        err => /HTTP [45]\d\d/.test(err.message)
+        err => {
+          assert.match(
+            err.message,
+            /HTTP [45]\d\d/,
+            `expected a 4xx/5xx HTTP error for POST ${url} with body ${JSON.stringify(body)}, got instead: ${err.message}`
+          )
+          return true
+        },
+        `expected POST ${url} with body ${JSON.stringify(body)} to be rejected with an HTTP error, but it resolved`
       )
 
     it('should reject add when allow is missing', () =>
@@ -173,7 +181,15 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
     const rejectsWithHttpError = async (url, body) =>
       assert.rejects(
         () => dispatchClient.restApiClient.post(url, body),
-        err => /HTTP [45]\d\d/.test(err.message)
+        err => {
+          assert.match(
+            err.message,
+            /HTTP [45]\d\d/,
+            `expected a 4xx/5xx HTTP error for POST ${url} with body ${JSON.stringify(body)}, got instead: ${err.message}`
+          )
+          return true
+        },
+        `expected POST ${url} with body ${JSON.stringify(body)} to be rejected with an HTTP error, but it resolved`
       )
 
     it('should reject add when allow is missing', () =>
