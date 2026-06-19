@@ -27,7 +27,6 @@ export default async function addDisk(pack, disk, basePath) {
     // occurring while passing empty blocks
     if (Date.now() - lastBlockWrittenAt > MAX_INTERVAL_BETWEEN_BLOCKS) {
       mustWriteBlock = true
-      lastBlockWrittenAt = Date.now()
     }
     if (mustWriteBlock || diskXvaChunk.hasBlock(counter)) {
       block = await diskXvaChunk.readBlock(counter)
@@ -36,6 +35,7 @@ export default async function addDisk(pack, disk, basePath) {
     }
     if (mustWriteBlock) {
       await writeChunk(pack, block.data, formatBlockPath(basePath, counter))
+      lastBlockWrittenAt = Date.now()
     }
   }
 }
