@@ -78,7 +78,7 @@
 - [Qcow2] Fix initialization Map range error for big (>1 TB) Qcow2 disks (PR [#9940](https://github.com/vatesfr/xen-orchestra/pull/9940))
 - **XO 5**:
   - [Jobs] fix array values being incorrectly handled (used for instance on job.runSequence) (PR [#9928](https://github.com/vatesfr/xen-orchestra/pull/9928))
-  - [VM/Console] Fix the page header and tab navigation disappearing permanently in the console tab
+  - [VM/Console] Fix the page header and tab navigation disappearing permanently in the console tab (PR [#10007](https://github.com/vatesfr/xen-orchestra/pull/10007))
 - [Backups] Remove now useless warnign if folders are orphaned from old jobs (PR [#9958](https://github.com/vatesfr/xen-orchestra/pull/9958))
 - [V2V] Fix stream issue for large disks used with smaller blocks (PR [#9948](https://github.com/vatesfr/xen-orchestra/pull/9948))
 - xo-server-sdn-controller: apply/clean network rules on VIF update (PR [#9933](https://github.com/vatesfr/xen-orchestra/pull/9933))
