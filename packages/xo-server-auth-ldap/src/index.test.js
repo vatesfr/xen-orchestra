@@ -30,6 +30,11 @@ function tcpError(code) {
   return err
 }
 
+function aggregateError(codes) {
+  const err = new AggregateError(codes.map(tcpError), 'all addresses failed')
+  return err
+}
+
 function makePlugin({
   xo = undefined,
   url = 'ldap://primary',
@@ -49,6 +54,8 @@ function makePlugin({
   return plugin
 }
 
+// StartTLS-level failover (ldaps:// / StartTLS)
+
 test('retries through the full failoverUris list when each URI throws a FAILOVER_ERRORS code', async () => {
   const plugin = makePlugin({ failoverUris: ['ldap://backup1', 'ldap://backup2'] })
   startTLSBehaviors = [
@@ -57,7 +64,7 @@ test('retries through the full failoverUris list when each URI throws a FAILOVER
     { startTLSError: tcpError('EHOSTUNREACH') },
   ]
 
-  await assert.rejects(() => plugin._connectWithFailover())
+  await assert.rejects(() => plugin._connectAndBind())
   assert.equal(startTLSInstances.length, 3)
   assert.equal(startTLSInstances[0].clientOptions.url, 'ldap://primary')
   assert.equal(startTLSInstances[1].clientOptions.url, 'ldap://backup1')
@@ -68,7 +75,7 @@ test('returns the first client that succeeds without trying remaining URIs', asy
   const plugin = makePlugin({ failoverUris: ['ldap://backup1', 'ldap://backup2'] })
   startTLSBehaviors = [{ startTLSError: tcpError('ECONNREFUSED') }]
 
-  const client = await plugin._connectWithFailover()
+  const client = await plugin._connectAndBind()
   assert.equal(startTLSInstances.length, 2)
   assert.equal(client.clientOptions.url, 'ldap://backup1')
 })
@@ -77,7 +84,7 @@ test('does not retry when error code is not in FAILOVER_ERRORS', async () => {
   const plugin = makePlugin({ failoverUris: ['ldap://backup1'] })
   startTLSBehaviors = [{ startTLSError: tcpError('INVALID_CREDENTIALS') }]
 
-  await assert.rejects(() => plugin._connectWithFailover(), { code: 'INVALID_CREDENTIALS' })
+  await assert.rejects(() => plugin._connectAndBind(), { code: 'INVALID_CREDENTIALS' })
   assert.equal(startTLSInstances.length, 1)
 })
 
@@ -87,7 +94,7 @@ test('throws the last error when all URIs are exhausted', async () => {
   startTLSBehaviors = [{ startTLSError: tcpError('ECONNREFUSED') }, { startTLSError: lastError }]
 
   await assert.rejects(
-    () => plugin._connectWithFailover(),
+    () => plugin._connectAndBind(),
     err => err === lastError
   )
 })
@@ -96,7 +103,7 @@ test('passes connectTimeout: CONNECT_TIMEOUT_MS to every Client constructor call
   const plugin = makePlugin({ failoverUris: ['ldap://backup1'] })
   startTLSBehaviors = [{ startTLSError: tcpError('ECONNREFUSED') }]
 
-  await plugin._connectWithFailover()
+  await plugin._connectAndBind()
   for (const instance of startTLSInstances) {
     assert.equal(instance.clientOptions.connectTimeout, CONNECT_TIMEOUT_MS)
   }
@@ -106,10 +113,65 @@ test('calls unbind() on a client whose startTLS throws a TCP error', async () =>
   const plugin = makePlugin({ failoverUris: ['ldap://backup1'] })
   startTLSBehaviors = [{ startTLSError: tcpError('ECONNREFUSED') }]
 
-  const client = await plugin._connectWithFailover()
+  const client = await plugin._connectAndBind()
   assert.equal(unbindInstances.length, 1)
   assert.equal(unbindInstances[0], startTLSInstances[0])
   assert.notEqual(client, startTLSInstances[0])
+})
+
+// Bind-level failover (plain ldap://, lazy connection)
+
+describe('bind-level failover', () => {
+  let bindInstances = []
+  let bindBehaviors = []
+
+  beforeEach(() => {
+    bindInstances = []
+    bindBehaviors = []
+    mock.method(Client.prototype, 'bind', async function () {
+      bindInstances.push(this)
+      const behavior = bindBehaviors.shift() ?? {}
+      if (behavior.bindError !== undefined) throw behavior.bindError
+    })
+  })
+
+  test('retries next URI when plain ldap:// bind throws ECONNREFUSED', async () => {
+    const plugin = makePlugin({
+      startTls: false,
+      failoverUris: ['ldap://backup1'],
+      credentials: { dn: 'cn=admin,dc=example,dc=com', password: 'secret' },
+    })
+    bindBehaviors = [{ bindError: tcpError('ECONNREFUSED') }]
+
+    const client = await plugin._connectAndBind()
+    assert.equal(bindInstances.length, 2)
+    assert.equal(client.clientOptions.url, 'ldap://backup1')
+  })
+
+  test('retries next URI when plain ldap:// bind throws AggregateError', async () => {
+    const plugin = makePlugin({
+      startTls: false,
+      failoverUris: ['ldap://backup1'],
+      credentials: { dn: 'cn=admin,dc=example,dc=com', password: 'secret' },
+    })
+    bindBehaviors = [{ bindError: aggregateError(['ECONNREFUSED', 'ECONNREFUSED']) }]
+
+    const client = await plugin._connectAndBind()
+    assert.equal(bindInstances.length, 2)
+    assert.equal(client.clientOptions.url, 'ldap://backup1')
+  })
+
+  test('does not retry on bind error unrelated to TCP', async () => {
+    const plugin = makePlugin({
+      startTls: false,
+      failoverUris: ['ldap://backup1'],
+      credentials: { dn: 'cn=admin,dc=example,dc=com', password: 'secret' },
+    })
+    bindBehaviors = [{ bindError: tcpError('INVALID_CREDENTIALS') }]
+
+    await assert.rejects(() => plugin._connectAndBind(), { code: 'INVALID_CREDENTIALS' })
+    assert.equal(bindInstances.length, 1)
+  })
 })
 
 // ===================================================================

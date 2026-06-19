@@ -14,6 +14,9 @@ const logger = createLogger('xo:xo-server-auth-ldap')
 const CONNECT_TIMEOUT_MS = 5000
 const FAILOVER_ERRORS = new Set(['ECONNREFUSED', 'ETIMEDOUT', 'EHOSTUNREACH', 'ECONNRESET', 'ENOTFOUND'])
 
+const isFailoverError = err =>
+  FAILOVER_ERRORS.has(err.code) || (Array.isArray(err.errors) && err.errors.some(e => FAILOVER_ERRORS.has(e.code)))
+
 const { escape } = Filter.prototype
 
 function isDnField(field) {
@@ -243,9 +246,7 @@ class AuthLdap {
     this._failoverUris = conf.failoverUris ?? []
   }
 
-  // Failover only triggers on TCP-level errors; for plain ldap:// without StartTLS the
-  // connection is lazy and errors surface at bind() time, not here.
-  async _connectWithFailover() {
+  async _connectAndBind() {
     const uris = [this._clientOpts.url, ...this._failoverUris]
     let lastError
     for (const uri of uris) {
@@ -254,12 +255,18 @@ class AuthLdap {
         if (this._startTls) {
           await client.startTLS(this._tlsOptions)
         }
+        const { _credentials: credentials } = this
+        if (credentials) {
+          logger.debug(`attempting to bind with as ${credentials.dn}...`)
+          await client.bind(credentials.dn, credentials.password)
+          logger.debug(`successfully bound as ${credentials.dn}`)
+        }
         return client
       } catch (err) {
         await client.unbind().catch(() => {})
-        if (!FAILOVER_ERRORS.has(err.code)) throw err
+        if (!isFailoverError(err)) throw err
         lastError = err
-        logger.warn(`LDAP URI ${uri} unreachable (${err.code}), trying next…`)
+        logger.warn(`LDAP URI ${uri} unreachable (${err.code ?? err.errors?.[0]?.code}), trying next…`)
       }
     }
     throw lastError
@@ -297,19 +304,9 @@ class AuthLdap {
       return null
     }
 
-    const client = await this._connectWithFailover()
+    const client = await this._connectAndBind()
 
     try {
-      // Bind if necessary.
-      {
-        const { _credentials: credentials } = this
-        if (credentials) {
-          logger.debug(`attempting to bind with as ${credentials.dn}...`)
-          await client.bind(credentials.dn, credentials.password)
-          logger.debug(`successfully bound as ${credentials.dn}`)
-        }
-      }
-
       // Search for the user.
       logger.debug('searching for entries...')
       const { searchEntries: entries } = await client.search(this._searchBase, {
@@ -366,18 +363,9 @@ class AuthLdap {
 
   // Synchronize user's groups OR all groups if no user is passed
   async _synchronizeGroups(user, memberId) {
-    const client = await this._connectWithFailover()
+    const client = await this._connectAndBind()
 
     try {
-      // Bind if necessary.
-      {
-        const { _credentials: credentials } = this
-        if (credentials) {
-          logger.debug(`attempting to bind with as ${credentials.dn}...`)
-          await client.bind(credentials.dn, credentials.password)
-          logger.debug(`successfully bound as ${credentials.dn}`)
-        }
-      }
       logger.info('syncing groups...')
       const { base, displayNameAttribute, filter, idAttribute, membersMapping } = this._groupsConfig
       const { searchEntries: ldapGroups } = await client.search(base, {
