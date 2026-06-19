@@ -15,12 +15,8 @@
         </div>
 
         <UiCollapsibleList tag="ul" :total-items="vdis.length">
-          <li v-for="vdi in vdis" :key="vdi.id" v-tooltip class="text-ellipsis">
-            <UiLink
-              :to="{ name: '/vdi/[id]/general', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.SR } }"
-              size="small"
-              :icon="getVdiIcon(getVbdsByIds(vdi.$VBDs))"
-            >
+          <li v-for="vdi in vdis" :key="vdi.uuid" v-tooltip class="text-ellipsis">
+            <UiLink size="small" :icon="getVdiIcon(getVbdsForVdi(vdi, getVbdByOpaqueRef))">
               {{ vdi.name_label || t('unknown') }}
             </UiLink>
           </li>
@@ -36,16 +32,8 @@
         </div>
 
         <UiCollapsibleList tag="ul" :total-items="vdiSnapshots.length">
-          <li v-for="vdiSnapshot in vdiSnapshots" :key="vdiSnapshot.id" v-tooltip class="text-ellipsis">
-            <UiLink
-              :to="{
-                name: '/vdi/[id]/general',
-                params: { id: vdiSnapshot.id },
-                query: { from: VDI_PAGE_CONTEXT.VDI_SNAPSHOT },
-              }"
-              size="small"
-              icon="object:vdi-snapshot"
-            >
+          <li v-for="vdiSnapshot in vdiSnapshots" :key="vdiSnapshot.uuid" v-tooltip class="text-ellipsis">
+            <UiLink size="small" icon="object:vdi-snapshot">
               {{ vdiSnapshot.name_label || t('unknown') }}
             </UiLink>
           </li>
@@ -60,11 +48,9 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
-import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import type { FrontXoVdiSnapshot } from '@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'
-import { getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
-import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
+import type { XenApiVdi } from '@/libs/xen-api/xen-api.types.ts'
+import { getVdiIcon, getVbdsForVdi } from '@/modules/vdi/utils/vdi.util.ts'
+import { useVbdStore } from '@/stores/xen-api/vbd.store.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -76,13 +62,13 @@ import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
-  vdis: FrontXoVdi[]
-  vdiSnapshots: FrontXoVdiSnapshot[]
+  vdis: XenApiVdi[]
+  vdiSnapshots: XenApiVdi[]
 }>()
 
 const { t } = useI18n()
 
-const { getVbdsByIds } = useXoVbdCollection()
+const { getByOpaqueRef: getVbdByOpaqueRef } = useVbdStore().subscribe()
 </script>
 
 <style scoped lang="postcss">
