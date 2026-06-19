@@ -12,17 +12,20 @@
         @click="open($event)"
       />
     </template>
-    <MenuItem
-      v-for="(action, index) of actions"
-      :key="index"
-      :icon="action.icon"
-      :disabled="action.disabled"
-      :busy="action.busy"
-      :on-click="action.onClick"
-    >
-      {{ action.label }}
-      <i v-if="action.hint">{{ action.hint }}</i>
-    </MenuItem>
+    <template v-for="(action, index) of actions" :key="index">
+      <li v-if="action.separator" class="menu-separator" />
+      <MenuItem
+        v-else
+        :icon="action.icon"
+        :disabled="action.disabled"
+        :busy="action.busy"
+        :on-click="action.onClick"
+        :class="action.class"
+      >
+        {{ action.label }}
+        <i v-if="action.hint">{{ action.hint }}</i>
+      </MenuItem>
+    </template>
   </MenuList>
 </template>
 
@@ -43,11 +46,22 @@ const { size = 'small', actions = [] } = defineProps<{
 const { t } = useI18n()
 
 export type ActionItem = {
-  label: string
+  label?: string
   hint?: string
   icon?: IconName
-  onClick: () => any
+  onClick?: () => any
   disabled?: boolean
   busy?: boolean
+  class?: string
+  separator?: boolean
 }
 </script>
+
+<style scoped lang="postcss">
+.menu-separator {
+  height: 1px;
+  margin: 0.8rem 0;
+  background-color: var(--color-neutral-border);
+  list-style: none;
+}
+</style>

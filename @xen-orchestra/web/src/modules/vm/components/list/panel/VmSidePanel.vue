@@ -1,7 +1,8 @@
 <template>
   <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
     <template #header>
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
+      <div class="panel-header" :class="{ 'action-buttons-container': uiStore.isSmall }">
+        <VtsActionsMenu :actions="actions" size="small" />
         <UiButtonIcon
           v-tooltip="t('action:close')"
           size="small"
@@ -24,14 +25,16 @@
 import VmInfoCard from '@/modules/vm/components/list/panel/cards/VmInfoCard.vue'
 import VmNetworkCard from '@/modules/vm/components/list/panel/cards/VmNetworkCard.vue'
 import VmResourcesCard from '@/modules/vm/components/list/panel/cards/VmResourcesCard.vue'
+import { useVmRowActions } from '@/modules/vm/composables/use-vm-row-actions.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import VtsActionsMenu from '@core/components/menu/VtsActionsMenu.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{
+const { vm } = defineProps<{
   vm: FrontXoVm
 }>()
 
@@ -40,20 +43,20 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-
 const uiStore = useUiStore()
+const { actions } = useVmRowActions(vm)
 </script>
 
 <style scoped lang="postcss">
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
 .mobile-drawer {
   position: fixed;
   inset: 0;
-
-  .action-buttons-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-  }
 }
 </style>

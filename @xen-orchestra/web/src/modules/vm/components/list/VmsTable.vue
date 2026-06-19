@@ -2,12 +2,21 @@
   <div class="vms-table">
     <UiTitle>
       {{ t('vms') }}
+      <template #action>
+        <slot name="title-actions" />
+      </template>
     </UiTitle>
     <VtsQueryBuilder v-model="filter" :schema />
     <div class="container">
+      <div class="table-actions">
+        <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
+      </div>
+
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
-          <HeadCells />
+          <tr>
+            <HeadCells />
+          </tr>
         </thead>
         <tbody>
           <VtsRow v-for="vm of paginatedVms" :key="vm.id" :selected="selectedVmId === vm.id">
@@ -25,11 +34,13 @@ import {
   type VmDisplayData,
   type VmFilterableData,
 } from '@/modules/vm/composables/use-vm-enhanced-data.composable.ts'
+import { useVmRowActions } from '@/modules/vm/composables/use-vm-row-actions.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { ONE_GB } from '@/shared/constants.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
+import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
@@ -40,7 +51,7 @@ import { useVmColumns } from '@core/tables/column-sets/vm-columns.ts'
 import { useNumberSchema } from '@core/utils/query-builder/use-number-schema'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema'
 import { VM_POWER_STATE } from '@vates/types'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const {
@@ -53,9 +64,15 @@ const {
   error?: boolean
 }>()
 
+defineSlots<{
+  'title-actions'(): any
+}>()
+
 const { t } = useI18n()
 
 const selectedVmId = useRouteQuery('id')
+
+const searchQuery = ref('')
 
 const { filterableVms, getDisplayData } = useVmEnhancedData(() => rawVms)
 
@@ -113,6 +130,9 @@ const { pageRecords: paginatedVms, paginationBindings } = usePagination('vms', d
 
 const { HeadCells, BodyCells } = useVmColumns({
   body: (vm: VmDisplayData) => {
+    const rawVm = rawVms.find(raw => raw.id === vm.id)!
+    const { actions } = useVmRowActions(rawVm)
+
     return {
       vm: r => r({ label: vm.name_label, to: `/vm/${vm.id}/dashboard`, icon: vm.vmIcon }),
       ipAddresses: r => r(vm.ipAddresses),
@@ -120,7 +140,7 @@ const { HeadCells, BodyCells } = useVmColumns({
       ram: r => r(vm.formattedRam.value, vm.formattedRam.prefix),
       diskSpace: r => r(vm.formattedDiskSpace.value, vm.formattedDiskSpace.unit),
       tags: r => r(vm.tags),
-      selectItem: r => r(() => (selectedVmId.value = vm.id)),
+      actions: r => r({ onClick: () => (selectedVmId.value = vm.id), actions: actions.value }),
     }
   },
 })
@@ -132,6 +152,13 @@ const { HeadCells, BodyCells } = useVmColumns({
   display: flex;
   flex-direction: column;
   gap: 2.4rem;
+
+  .table-actions,
+  .container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
 }
 
 .container {
