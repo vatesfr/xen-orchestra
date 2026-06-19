@@ -236,11 +236,12 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
    * Pings the backup-repository to check its health
    *
    * Required privilege:
-   * - resource: backup-repository, action: health
+   * - resource: backup-repository, action: read
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
   @Get('{id}/health')
+  @Extension('x-mcp-exposure', 'allow')
   @Example(backupRepositoryHeath)
   @Middlewares(
     acl({
@@ -250,11 +251,10 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
       getObject: ({ restApi }) => restApi.xoApp.getRemote,
     })
   )
-  @SuccessResponse(noContentResp.status, noContentResp.description)
-  @Response(200, 'OK')
+  @SuccessResponse(200, 'OK')
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  async getBackupRepositoryHealth(@Path() id: string): Promise<{ success: true }> {
+  async getBackupRepositoryHealth(@Path() id: string): ReturnType<XoApp['pingRemote']> {
     return this.restApi.xoApp.pingRemote(id as XoBackupRepository['id'])
   }
 
@@ -270,6 +270,7 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
    */
   @Example(taskLocation)
   @Example(backupRepositoryBenchmark)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/benchmark')
   @Middlewares(
     acl({
@@ -286,7 +287,10 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   @Response(502, 'Backup repository unreachable')
-  benchmarkRepository(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<BenchmarkRepositoryResult> {
+  benchmarkBackupRepository(
+    @Path() id: string,
+    @Query() sync?: boolean
+  ): CreateActionReturnType<BenchmarkRepositoryResult> {
     const backupRepositoryId = id as XoBackupRepository['id']
     const action = async () => {
       let result: BenchmarkRepositoryResult
