@@ -1,6 +1,8 @@
 import { asyncMap } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
 import { Task } from '@vates/task'
+import { compileExpression, isExpression } from '../../_expressionPredicate.mjs'
+import { buildRunContext, buildVmContext } from '../../_buildContext.mjs'
 
 const { debug, warn } = createLogger('xo:backups:AbstractVmRunner')
 
@@ -73,24 +75,58 @@ export const Abstract = class AbstractVmBackupRunner {
     }
 
     // check if current VM has tags
-    const tags = this._tags
+    const tags = this._vm.tags
 
     // accept both 'xo:no-health-check' and 'xo:no-health-check=reason'
-    const vmAlwaysIgnored = tags.some(t => t.startsWith('xo:no-health-check'))
-    const intersect = !vmAlwaysIgnored && settings.healthCheckVmsWithTags.some(t => tags.includes(t))
-
-    if (vmAlwaysIgnored || (settings.healthCheckVmsWithTags.length !== 0 && !intersect)) {
-      // create a task to have an info in the logs and reports
+    if (tags.some(t => t.startsWith('xo:no-health-check'))) {
       return Task.run(
         {
-          properties: { name: 'health check' },
+          properties: {
+            name: 'health check',
+          },
         },
         () => {
-          Task.info(`This VM doesn't match the health check's tags for this schedule`)
+          Task.info(`This VM is excluded from health checks via tag`)
         }
       )
     }
 
+    if (isExpression(settings.healthCheckVmsWithTags)) {
+      const context = buildVmContext(this._vm, buildRunContext(new Date()))
+      if (!this._healthCheckPredicate(context)) {
+        return Task.run(
+          {
+            properties: { name: 'health check' },
+          },
+          () => {
+            Task.info(`VM did not match healthCheckVmsWithTags expression`)
+          }
+        )
+      }
+    } else {
+      const intersect = settings.healthCheckVmsWithTags.some(t => tags.includes(t))
+      if (settings.healthCheckVmsWithTags.length !== 0 && !intersect) {
+        // create a task to have an info in the logs and reports
+        return Task.run(
+          {
+            properties: { name: 'health check' },
+          },
+          () => {
+            Task.info(`This VM doesn't match the health check's tags for this schedule`)
+          }
+        )
+      }
+    }
+
     await this._callWriters(writer => writer.healthCheck(), 'writer.healthCheck()')
+  }
+
+  _compileHealthCheckPredicate() {
+    const { healthCheckVmsWithTags } = this._settings
+    if (isExpression(healthCheckVmsWithTags)) {
+      this._healthCheckPredicate = compileExpression(healthCheckVmsWithTags)
+    } else {
+      this._healthCheckPredicate = undefined
+    }
   }
 }
