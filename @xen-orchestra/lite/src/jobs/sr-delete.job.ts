@@ -8,7 +8,17 @@ export const useSrDeleteJob = defineJob('sr.delete', [srsArg], () => {
   const { t } = useI18n()
 
   return {
-    run: srs => xapi.sr.destroy(srs.map(sr => sr.$ref)),
+    async run(srs) {
+      const results = await Promise.allSettled(srs.map(sr => xapi.sr.destroy(sr.$ref)))
+
+      results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          console.error(`Failed to delete SR ${srs[index]?.uuid}:`, result.reason)
+        }
+      })
+
+      return results
+    },
     validate: (isRunning, srs) => {
       if (srs.length === 0) {
         throw new JobError(t('job:sr-delete:missing-sr'))
