@@ -120,13 +120,38 @@ export default class CryptoCredentials {
   }
 
   /**
+   * Reads the XenStore key, handling both "key missing" and "xenTools unavailable" cases.
+   * Returns the key Buffer, undefined if the key path doesn't exist in xenstore,
+   * or null if xen-tools are unavailable (already logged and #degraded set).
+   *
+   * @param {string} context - short description used in the error log if xen-tools are unavailable
+   * @returns {Promise<Buffer | null | undefined>}
+   */
+  async #readXenStoreKey(context) {
+    try {
+      return Buffer.from((await this.#xenStore.read(XENSTORE_KEY_PATH)).trim(), 'hex')
+    } catch (/** @type {any} */ error) {
+      if (error.code === 'ENOENT') {
+        this.#degraded = true
+        log.error(`Xenstore tools not available, ${context} - running in degraded mode`, { cause: error })
+
+        return null
+      } else if (!error.message?.includes(`couldn't read path`)) {
+        throw error
+      }
+
+      return undefined
+    }
+  }
+
+  /**
    * Check if encryption is active, if an encryption or decryption migration is needed and load keys.
    * Read from xenStore only when encryption is active, or when a fileKey exists
    * and a decryption migration is needed.
    */
   async #initialize() {
     /**
-     * @type {Buffer | undefined}
+     * @type {Buffer | null | undefined}
      */
     let xenStoreKey, fileKey
 
@@ -136,39 +161,31 @@ export default class CryptoCredentials {
       if (error.code !== 'ENOENT') throw error
     }
 
+    const encryptionEnabled = this._app.config.getOptional('redis.encryptCredentialDatabase') ?? false
+
+    // Nothing to do: no encrypted data and no migration needed
+    if (!encryptionEnabled && fileKey === undefined) return
+
+    // Pessimistic guard; _loadKey resets #degraded to false on success
+    this.#degraded = true
+
     // Encryption is active, check if both key halves are present.
     // If so, load them to derive the encryption and hmac keys.
     // If not, generate both halves, save them, load them and
     // set #migrationRequired to require encryption migration.
-    if (this._app.config.getOptional('redis.encryptCredentialDatabase') ?? false) {
-      try {
-        xenStoreKey = Buffer.from((await this.#xenStore.read(XENSTORE_KEY_PATH)).trim(), 'hex')
-      } catch (/** @type {any} */ error) {
-        if (error.code === 'ENOENT') {
-          if (fileKey !== undefined) {
-            this.#degraded = true
-            log.error(
-              'Xenstore tools not available, credential database decryption failed - running in degraded mode',
-              { cause: error }
-            )
-          } else {
-            this.#degraded = true
-            log.error('Xenstore tools not available, credential database encryption failed', { cause: error })
-          }
-          return
-        } else if (!error.message?.includes(`couldn't read path`)) {
-          throw error
-        }
-      }
+    if (encryptionEnabled) {
+      xenStoreKey = await this.#readXenStoreKey(
+        fileKey !== undefined ? 'credential database decryption failed' : 'credential database encryption failed'
+      )
+      // encryption enabled and migration has been done but no xenTools unavailable, #degraded set to true .
+      if (xenStoreKey === null) return
 
       if (xenStoreKey !== undefined && fileKey !== undefined) {
-        this.#degraded = true
         await this._loadKey(xenStoreKey, fileKey)
       } else {
         xenStoreKey = randomBytes(32)
         fileKey = randomBytes(32)
 
-        this.#degraded = true
         try {
           await this.#xenStore.write(XENSTORE_KEY_PATH, xenStoreKey.toString('hex'))
           await this.#fs.writeFile(KEY_FILE_PATH, fileKey, { mode: 0o400 })
@@ -188,27 +205,14 @@ export default class CryptoCredentials {
       // Encryption is inactive, we need to check if any key halves are present.
       // If so, set #migrationRequired to require decryption migration.
     } else if (fileKey !== undefined) {
-      try {
-        xenStoreKey = Buffer.from((await this.#xenStore.read(XENSTORE_KEY_PATH)).trim(), 'hex')
-      } catch (/** @type {any} */ error) {
-        if (error.code === 'ENOENT') {
-          this.#degraded = true
-          log.error('Xenstore tools not available, credential database decryption failed - running in degraded mode', {
-            cause: error,
-          })
-          return
-        } else if (!error.message?.includes(`couldn't read path`)) {
-          throw error
-        }
-      }
+      xenStoreKey = await this.#readXenStoreKey('credential database decryption failed')
+      if (xenStoreKey === null) return
 
       if (xenStoreKey === undefined) {
-        this.#degraded = true
         log.error('Only one encryption key half found - running in degraded mode')
         return
       }
 
-      this.#degraded = true
       await this._loadKey(xenStoreKey, fileKey)
 
       if (this.#encryptionKey) {
