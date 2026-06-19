@@ -40,5 +40,11 @@ export default defineConfig(({ mode }) => {
     optimizeDeps: {
       include: ['value-matcher', 'complex-matcher'],
     },
+    test: {
+      globals: true,
+      environment: 'happy-dom',
+      setupFiles: ['./src/test/setup.ts'],
+      // reporters: ['html'],
+    },
   }
 })
