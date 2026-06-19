@@ -70,5 +70,6 @@ const { HeadCells, BodyCells } = useHostColumns({
   display: flex;
   flex-direction: column;
   gap: 2.4rem;
+  margin: 0.8rem;
 }
 </style>
