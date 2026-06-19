@@ -5,16 +5,12 @@
 
     <!-- Error -->
     <template v-if="error !== undefined">
-      <div>
+      <div class="error">
         <h2>{{ t('xoa-deploy-failed!') }}</h2>
         <VtsIcon name="status:danger-circle" size="medium" />
       </div>
-      <div class="error">
-        <UiTextarea v-model="error" accent="brand" disabled>
-          <span class="typo-form-label">
-            {{ t('check-errors:') }}
-          </span>
-        </UiTextarea>
+      <div class="error-log">
+        <UiLogEntryViewer :label="t('check-errors:')" :content="error" accent="danger" size="medium" />
       </div>
       <UiButton size="medium" accent="brand" variant="primary" left-icon="fa:download" @click="resetValues()">
         {{ t('xoa-deploy-retry') }}
@@ -204,9 +200,9 @@ import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioButtonGroup.vue'
-import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 import { useFormSelect } from '@core/packages/form-select'
 import { useModal } from '@core/packages/modal/use-modal.ts'
@@ -561,12 +557,15 @@ async function cancel() {
   align-items: center;
   min-height: 76.5vh;
   color: var(--color-brand-txt-base);
-  text-align: center;
   padding: 5rem;
   margin: auto;
 
   h2 {
     margin-bottom: 1rem;
+  }
+
+  .error {
+    text-align: center;
   }
 
   * {
@@ -597,8 +596,8 @@ async function cancel() {
   }
 }
 
-.error {
-  width: 48rem;
+.error-log {
+  width: 60rem;
 }
 
 .warning {
