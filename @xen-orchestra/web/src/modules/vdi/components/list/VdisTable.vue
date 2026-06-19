@@ -45,12 +45,12 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
+import { useMapper } from '@core/packages/mapper/use-mapper.ts'
 import { useVdiColumns } from '@core/tables/column-sets/vdi-columns.ts'
 import { CONNECTION_ACTION } from '@core/types/connection.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useVdiMigrateDrawer } from '../../composables/use-vdi-migrate-drawer.composable.ts'
 
 const { vdis, vm, busy, error } = defineProps<{
   vdis: FrontXoVdi[]
@@ -139,12 +139,44 @@ const { HeadCells, BodyCells } = useVdiColumns({
       errorMessage: migrateVdiErrorMessage,
     } = useVdiMigrateDrawer(() => vdi)
 
+    const runningAction = computed(() => {
+      if (isMigratingVdi.value) {
+        return 'migrate'
+      }
+      if (isDeletingVdi.value) {
+        return 'delete'
+      }
+      if (isDeletingVbd.value) {
+        return 'detach'
+      }
+      if (isTogglingVbdConnection.value) {
+        return vbd.value?.attached ? 'disconnect' : 'connect'
+      }
+      return 'none'
+    })
+
+    const busyMessage = useMapper(
+      runningAction,
+      () => ({
+        migrate: t('job:vdi-migrate:in-progress'),
+        delete: t('job:delete:in-progress'),
+        detach: t('job:vdi-detach:in-progress'),
+        disconnect: t('job:disconnect:in-progress'),
+        connect: t('job:connect:in-progress'),
+        none: undefined,
+      }),
+      'none'
+    )
+
     return {
       vdi: r =>
         r({
           label: vdi.name_label,
+          href: href.value,
           to: { name: '/vdi/[id]/general', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.VM } },
           icon: getVdiIcon(getVbdsByIds(vdi.$VBDs)),
+          busy: runningAction.value !== 'none',
+          busyTooltip: busyMessage.value,
         }),
       description: r => r(vdi.name_description),
       usedSpace: r => r(vdi.usage, vdi.size),
