@@ -172,6 +172,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
       vdi: r =>
         r({
           label: vdi.name_label,
+          href: href.value,
           to: { name: '/vdi/[id]/general', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.VM } },
           icon: getVdiIcon(getVbdsByIds(vdi.$VBDs)),
           busy: runningAction.value !== 'none',

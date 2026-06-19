@@ -487,6 +487,7 @@
   "job:vdi-detach:in-progress": "Détachement en cours…",
   "job:vdi-export:format-required": "Le format d'export d'un VDI est requis",
   "job:vdi-export:missing-vdi": "Aucun VDI à exporter",
+  "job:vdi-detach:in-progress": "Détachement en cours…",
   "job:vdi-migrate:in-progress": "Migration en cours…",
   "job:vdi-migrate:missing-sr": "Le SR de destination est requis",
   "job:vdi-migrate:missing-vdi": "Aucun VDI sélectionné",
