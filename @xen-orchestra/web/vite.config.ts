@@ -1,6 +1,7 @@
 import { fileURLToPath, URL } from 'node:url'
 import vueI18n from '@intlify/unplugin-vue-i18n/vite'
 import vue from '@vitejs/plugin-vue'
+import { playwright } from '@vitest/browser-playwright'
 import { defineConfig, loadEnv, PluginOption } from 'vite'
 import vueRouter from 'vue-router/vite'
 
@@ -42,9 +43,31 @@ export default defineConfig(({ mode }) => {
     },
     test: {
       globals: true,
-      environment: 'happy-dom',
       setupFiles: ['./src/test/setup.ts'],
       // reporters: ['html'],
+      projects: [
+        {
+          extends: true,
+          test: {
+            include: ['**/*.unit.{test,spec}.ts'],
+            name: 'unit',
+            environment: 'happy-dom',
+          },
+        },
+        {
+          extends: true,
+          test: {
+            include: ['**/*.browser.{test,spec}.ts'],
+            name: 'browser',
+            setupFiles: ['./src/test/setup.ts', './src/test/setup-browser.ts'],
+            browser: {
+              enabled: true,
+              provider: playwright(),
+              instances: [{ browser: 'chromium' }],
+            },
+          },
+        },
+      ],
     },
   }
 })

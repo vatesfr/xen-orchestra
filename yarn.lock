@@ -1448,6 +1448,11 @@
   resolved "https://registry.npmjs.org/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
+"@blazediff/core@1.9.1":
+  version "1.9.1"
+  resolved "https://registry.npmjs.org/@blazediff/core/-/core-1.9.1.tgz"
+  integrity sha512-ehg3jIkYKulZh+8om/O25vkvSsXXwC+skXmyA87FFx6A/45eqOkZsBltMw/TVteb0mloiGT8oGRTcjRAz66zaA==
+
 "@commitlint/cli@^19.4.1":
   version "19.8.1"
   resolved "https://registry.npmjs.org/@commitlint/cli/-/cli-19.8.1.tgz"
@@ -4430,6 +4435,29 @@
   dependencies:
     "@rolldown/pluginutils" "^1.0.1"
 
+"@vitest/browser-playwright@^4.1.9":
+  version "4.1.9"
+  resolved "https://registry.npmjs.org/@vitest/browser-playwright/-/browser-playwright-4.1.9.tgz"
+  integrity sha512-Bq1rOGf9waevzG3EOkO/dene6bvKTUsZMVg8S1i+WH3JcMjuXEjiahP9rAqZRELUqjBySOJsvvSWqK/B3wjKQw==
+  dependencies:
+    "@vitest/browser" "4.1.9"
+    "@vitest/mocker" "4.1.9"
+    tinyrainbow "^3.1.0"
+
+"@vitest/browser@4.1.9":
+  version "4.1.9"
+  resolved "https://registry.npmjs.org/@vitest/browser/-/browser-4.1.9.tgz"
+  integrity sha512-j1BKtWmPcqpMhmx/L9EPLgAJpCb0zKfwoWLmqBbxaogCXHjOwHFSEoHCBfnGtx93xKQwilZ26m+UOsHqHMkRNg==
+  dependencies:
+    "@blazediff/core" "1.9.1"
+    "@vitest/mocker" "4.1.9"
+    "@vitest/utils" "4.1.9"
+    magic-string "^0.30.21"
+    pngjs "^7.0.0"
+    sirv "^3.0.2"
+    tinyrainbow "^3.1.0"
+    ws "^8.19.0"
+
 "@vitest/expect@4.1.9":
   version "4.1.9"
   resolved "https://registry.npmjs.org/@vitest/expect/-/expect-4.1.9.tgz"
@@ -4754,7 +4782,7 @@
   resolved "https://registry.npmjs.org/@vue/shared/-/shared-3.5.35.tgz"
   integrity sha512-zSbjL7gRXwks2ZQLRGCajBtBXEOXW9Ddhn/HvSdrGkE2dqGnumzW8XtusRrxrE9LvqtiqDXQ+A60Hp6mvdYxfA==
 
-"@vue/test-utils@^2.4.11":
+"@vue/test-utils@^2.4.11", "@vue/test-utils@^2.4.6":
   version "2.4.11"
   resolved "https://registry.npmjs.org/@vue/test-utils/-/test-utils-2.4.11.tgz"
   integrity sha512-GDqaqZsA6m2E5vNzej0aYiIb6BX8xV9pNSbbbXKOfEYwg7ZNblVX8suyqmUBThq8VIrgAJNxn+z72hVtUeiWHA==
@@ -10250,6 +10278,11 @@ fs.realpath@^1.0.0:
   resolved "https://registry.npmjs.org/fs.realpath/-/fs.realpath-1.0.0.tgz"
   integrity sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==
 
+fsevents@2.3.2:
+  version "2.3.2"
+  resolved "https://registry.yarnpkg.com/fsevents/-/fsevents-2.3.2.tgz#8a526f78b8fdf4623b709e0b975c52c24c02fd1a"
+  integrity sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==
+
 fsevents@^1.2.7:
   version "1.2.13"
   resolved "https://registry.yarnpkg.com/fsevents/-/fsevents-1.2.13.tgz#f325cb0455592428bcf11b383370ef70e3bfcc38"
@@ -15720,6 +15753,20 @@ platform@^1.3.0, platform@^1.3.3:
   resolved "https://registry.npmjs.org/platform/-/platform-1.3.6.tgz"
   integrity sha512-fnWVljUchTro6RiCFvCXBbNhJc2NijN7oIQxbwsyL0buWJPG85v81ehlHI9fXrJsMNgTofEoWIQeClKpgxFLrg==
 
+playwright-core@1.61.0:
+  version "1.61.0"
+  resolved "https://registry.npmjs.org/playwright-core/-/playwright-core-1.61.0.tgz"
+  integrity sha512-caX7TrY3Ml6egyDX0WUcTHDxodl/b51y5wJOdCEA36QviK/s2g081hvmGs8eaE3DWb6NYZQ6BjO/QkNRPenoPA==
+
+playwright@^1.61.0:
+  version "1.61.0"
+  resolved "https://registry.npmjs.org/playwright/-/playwright-1.61.0.tgz"
+  integrity sha512-Z+7BeeqQPRRzklHsVFP4KTGIyMxKUmfeRA4WisM6G3/XW6nwGeX6fX9qYaDa+CiUqpOkb2f6X3nar05R3kSuJQ==
+  dependencies:
+    playwright-core "1.61.0"
+  optionalDependencies:
+    fsevents "2.3.2"
+
 plugin-error@1.0.1, plugin-error@^1.0.1:
   version "1.0.1"
   resolved "https://registry.npmjs.org/plugin-error/-/plugin-error-1.0.1.tgz"
@@ -15745,6 +15792,11 @@ pngjs@^5.0.0:
   version "5.0.0"
   resolved "https://registry.npmjs.org/pngjs/-/pngjs-5.0.0.tgz"
   integrity sha512-40QW5YalBNfQo5yRYmiw7Yz6TKKVr3h6970B2YE+3fQpsWcrbj1PzJgxeJ19DRQjhMbKPIuMY8rFaXc8moolVw==
+
+pngjs@^7.0.0:
+  version "7.0.0"
+  resolved "https://registry.npmjs.org/pngjs/-/pngjs-7.0.0.tgz"
+  integrity sha512-LKWqWJRhstyYo9pGvgor/ivk2w94eSjE3RGVuzLGlr3NmD8bf7RcYGze1mNdEHRP6TRP6rMuDHk5t44hnTRyow==
 
 polite-json@^4.0.1:
   version "4.0.1"
@@ -19902,6 +19954,13 @@ vinyl@^2.0.0, vinyl@^2.1.0:
   optionalDependencies:
     fsevents "~2.3.3"
 
+vitest-browser-vue@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.npmjs.org/vitest-browser-vue/-/vitest-browser-vue-2.1.0.tgz"
+  integrity sha512-K3H/oxIOY4EjXx2bxwrLsPg4jTMvzpRW6Jb6T8XZRoxUvmDVwGkd8mua130F8GZezE7H5QYoXd/S8hYijw7j5g==
+  dependencies:
+    "@vue/test-utils" "^2.4.6"
+
 vitest@^4.1.9:
   version "4.1.9"
   resolved "https://registry.npmjs.org/vitest/-/vitest-4.1.9.tgz"
@@ -20384,7 +20443,7 @@ wrappy@1:
   resolved "https://registry.npmjs.org/wrappy/-/wrappy-1.0.2.tgz"
   integrity sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==
 
-ws@^8.12.0, ws@^8.18.0, ws@^8.2.3, ws@^8.21.0, ws@^8.3.0, ws@^8.5.0:
+ws@^8.12.0, ws@^8.18.0, ws@^8.19.0, ws@^8.2.3, ws@^8.21.0, ws@^8.3.0, ws@^8.5.0:
   version "8.21.0"
   resolved "https://registry.npmjs.org/ws/-/ws-8.21.0.tgz"
   integrity sha512-Vsp28b7DRcimFQvrqu2Wek3z1iYxDCWqHYB8Qsnk/S4RfaCQzPGPyBNuVjJV3cd6UiKtUtp6sNM77gWvzcCH+g==
