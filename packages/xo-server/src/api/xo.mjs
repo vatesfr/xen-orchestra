@@ -1,6 +1,8 @@
 import * as CM from 'complex-matcher'
+import { asyncEach } from '@vates/async-each'
 import { fromCallback } from 'promise-toolbox'
 import { getStreamAsBuffer } from 'get-stream'
+import { parseDateTime } from '@xen-orchestra/xapi'
 import { pipeline } from 'readable-stream'
 import { safeDateFormat } from '../utils.mjs'
 import createNdJsonStream from '../_createNdJsonStream.mjs'
@@ -98,6 +100,13 @@ importConfig.params = {
 
 export async function snapshotBeforeUpgrade() {
   const SNAPSHOT_LABEL = 'Snapshot before update, delete after successful upgrade.'
+
+  // Maximum number of upgrade snapshots to keep, including the one about to be
+  // created. Older snapshots beyond this limit are rotated out.
+  //
+  // Defaults to 1 (keep only the latest) when the config entry is missing.
+  const maxSnapshots = Math.max(1, this.config.getOptional('xoa.numberOfUpgradeSnapshots') ?? 1)
+
   const vmUuid = await getCurrentVmUuid()
   let vm, xapi
   try {
@@ -108,7 +117,15 @@ export async function snapshotBeforeUpgrade() {
       cause: err,
     })
   }
-  await Promise.all(vm.$snapshots.filter(({ name_label }) => name_label === SNAPSHOT_LABEL).map(s => s.$destroy()))
+
+  // delete the oldest upgrade snapshots so that at most `maxSnapshots` remain
+  // once the new one is created
+  const upgradeSnapshots = vm.$snapshots
+    .filter(({ name_label }) => name_label === SNAPSHOT_LABEL)
+    .sort((a, b) => parseDateTime(a.snapshot_time) - parseDateTime(b.snapshot_time))
+  const snapshotsToDelete = upgradeSnapshots.slice(0, Math.max(0, upgradeSnapshots.length - (maxSnapshots - 1)))
+  await asyncEach(snapshotsToDelete, snapshot => snapshot.$destroy(), { concurrency: 2 })
+
   await xapi.VM_snapshot(vm.$ref, { name_label: SNAPSHOT_LABEL })
 }
 
