@@ -87,6 +87,7 @@
 - [Backup/Restore] Fix file-level restore of VMs whose disks use LVM (e.g. the default Ubuntu install layout): logical volumes are now listed and can be restored, including when restoring several copies of the same VM at once — previously failed with `unknown filesystem type 'LVM2_member'` (PR [#9776](https://github.com/vatesfr/xen-orchestra/pull/9776))
 - [Backup/Restore] Fix file-level restore hanging when downloading large folders, and high memory use when downloading a folder as a zip (PR [#9776](https://github.com/vatesfr/xen-orchestra/pull/9776))
 - [REST API/VM/dashboard] Fix detection of the last VM replication (PR [#9991](https://github.com/vatesfr/xen-orchestra/pull/9991))
+- [Backup/Remotes] Listing backup repositories is no longer slowed down by an unreachable one: a broken repository is now served from cache and retried in the background instead of timing out on every refresh (PR [#XXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
 
 ### Packages to release
 
