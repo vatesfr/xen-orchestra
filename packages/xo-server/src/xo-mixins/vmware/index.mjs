@@ -11,6 +11,7 @@ import OTHER_CONFIG_TEMPLATE from '../../xapi/other-config-template.mjs'
 import { importDisksFromDatastore, importStream } from './importDisksfromDatastore.mjs'
 import { buildDiskChainByNode } from './buildChainByNode.mjs'
 import { finished, PassThrough } from 'node:stream'
+import { Ref } from 'xen-api'
 
 const { warn } = createLogger('xo:mixins:vmware')
 
@@ -66,7 +67,7 @@ export default class MigrateVm {
   }
 
   async #createVmAndNetworks($defer, { metadata, networkId, template, xapi }) {
-    const { guestId, firmware, memory, name_label, networks, nCpus } = metadata
+    const { cdrom, guestId, firmware, memory, name_label, networks, nCpus } = metadata
 
     const existingVm = await this.#findBaseVM(xapi, metadata)
     if (existingVm !== undefined) {
@@ -117,6 +118,12 @@ export default class MigrateVm {
           $defer.onFailure(() => xapi.call('VIF.destroy', ref))
         })
       )
+
+      if (cdrom) {
+        const ref = await xapi.VBD_create({ type: 'CD', VM: vm.$ref, VDI: Ref.EMPTY })
+        $defer.onFailure(() => xapi.call('VBD.destroy', ref))
+      }
+
       return vm
     })
   }
