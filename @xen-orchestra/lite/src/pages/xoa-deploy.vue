@@ -209,9 +209,9 @@ import { useFormSelect } from '@core/packages/form-select'
 import { useModal } from '@core/packages/modal/use-modal.ts'
 import { useUiStore } from '@core/stores/ui.store'
 import { logicNot } from '@vueuse/math'
-import { computed, ref } from 'vue'
+import { computed, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { onBeforeRouteLeave, useRouter } from 'vue-router'
 
 const REQUIRED_GB = 20
 
@@ -253,6 +253,41 @@ const status = ref<string | undefined>()
 const error = ref<string | undefined>()
 const url = ref<string | undefined>()
 const vmRef = ref<string | undefined>()
+
+const beforeWindowUnload = (event: BeforeUnloadEvent) => {
+  event.preventDefault()
+}
+
+onBeforeRouteLeave(async () => {
+  if (deploying.value) {
+    if (!window.confirm(t('do-you-really-want-to-leave-this-page?'))) {
+      return false
+    }
+
+    window.removeEventListener('beforeunload', beforeWindowUnload)
+    cancel()
+    return true
+  }
+})
+
+watch(
+  deploying,
+  deploying => {
+    if (deploying) {
+      window.addEventListener('beforeunload', beforeWindowUnload)
+    } else {
+      window.removeEventListener('beforeunload', beforeWindowUnload)
+    }
+  },
+  { flush: 'sync' }
+)
+
+onUnmounted(() => {
+  window.removeEventListener('beforeunload', beforeWindowUnload)
+  if (deploying.value) {
+    cancel()
+  }
+})
 
 const resetValues = () => {
   deploying.value = false
@@ -474,6 +509,8 @@ async function deploy() {
   } catch (err: any) {
     console.error(err)
     error.value = err?.message ?? err?.code ?? 'Unknown error'
+  } finally {
+    deploying.value = false
   }
 }
 

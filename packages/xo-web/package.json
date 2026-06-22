@@ -30,13 +30,13 @@
     "node": ">=7"
   },
   "devDependencies": {
-    "@babel/core": "^7.13.8",
-    "@babel/plugin-proposal-decorators": "^7.13.0",
+    "@babel/core": "^7.29.0",
+    "@babel/plugin-proposal-decorators": "^7.29.0",
     "@babel/plugin-proposal-export-default-from": "^7.12.13",
-    "@babel/plugin-proposal-function-bind": "^7.12.13",
-    "@babel/preset-env": "^7.13.8",
+    "@babel/plugin-proposal-function-bind": "^7.29.0",
+    "@babel/preset-env": "^7.29.0",
     "@babel/preset-react": "^7.12.13",
-    "@babel/register": "^7.13.8",
+    "@babel/register": "^7.29.0",
     "@nraynaud/novnc": "0.6.1",
     "@xen-orchestra/cron": "^1.0.7",
     "@xen-orchestra/defined": "^0.0.2",

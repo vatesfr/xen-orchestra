@@ -7,10 +7,10 @@ import { useI18n } from 'vue-i18n'
 
 export const useStatusColumn = defineColumn((config?: HeaderConfig & Omit<StatusCellProps, 'status'>) => {
   const { t } = useI18n()
-  const { headerIcon, headerLabel, ...statusCellProps } = config ?? {}
+  const { headerLabel, ...statusCellProps } = config ?? {}
 
   return {
-    renderHead: () => renderHeadCell(headerIcon ?? 'fa:square-caret-down', headerLabel ?? t('status')),
+    renderHead: () => renderHeadCell(headerLabel ?? t('status')),
     renderBody: (status: StatusCellProps['status']) => h(VtsStatusCell, { status, ...statusCellProps }),
   }
 })

@@ -9,17 +9,17 @@
 
 ## Core infrastructure
 
-| Acronym  | Meaning                   | Definition                                                                                                                                          |
-| -------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **VM**   | Virtual Machine           | A guest machine (OS + virtual hardware) managed by the pool.                                                                                        |
-| **SR**   | Storage Repository        | A storage container (local LVM, NFS, iSCSI, etc.) where **VDIs** live.                                                                              |
-| **VDI**  | Virtual Disk Image        | A virtual disk object on an **SR** (root disk, data disk, ISO, snapshot disk, etc.).<br>Not to be confused with **Virtual Desktop Infrastructure**. |
-| **VBD**  | Virtual Block Device      | The attachment that connects a **VDI** to a **VM** (device number, bootable flag, mode).                                                            |
-| **VIF**  | Virtual Network Interface | A virtual NIC on a **VM**, connected to a **network**.                                                                                              |
-| **PIF**  | Physical Interface        | A physical NIC on a **host**, used for management, storage, or guest networks.                                                                      |
-| **PBD**  | Physical Block Device     | Binds an **SR** to a **host** (how the host reaches that storage).                                                                                  |
-| **Host** | —                         | A hypervisor server (XCP-ng / XenServer node) in the pool.                                                                                          |
-| **Pool** | —                         | A set of **hosts** sharing storage and network configuration.                                                                                       |
+| Acronym  | Meaning                   | Definition                                                                                                                                           |
+| -------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **VM**   | Virtual Machine           | A guest machine (OS + virtual hardware) managed by the pool.                                                                                         |
+| **SR**   | Storage Repository        | A storage container (local LVM, NFS, iSCSI, etc.) where **VDIs** live.                                                                               |
+| **VDI**  | Virtual Disk Image        | A virtual disk object on an **SR** (root disk, data disk, ISO, snapshot disk, etc.).<br/>Not to be confused with **Virtual Desktop Infrastructure**. |
+| **VBD**  | Virtual Block Device      | The attachment that connects a **VDI** to a **VM** (device number, bootable flag, mode).                                                             |
+| **VIF**  | Virtual Network Interface | A virtual NIC on a **VM**, connected to a **network**.                                                                                               |
+| **PIF**  | Physical Interface        | A physical NIC on a **host**, used for management, storage, or guest networks.                                                                       |
+| **PBD**  | Physical Block Device     | Binds an **SR** to a **host** (how the host reaches that storage).                                                                                   |
+| **Host** | —                         | A hypervisor server (XCP-ng / XenServer node) in the pool.                                                                                           |
+| **Pool** | —                         | A set of **hosts** sharing storage and network configuration.                                                                                        |
 
 ## Virtualization modes & hardware
 

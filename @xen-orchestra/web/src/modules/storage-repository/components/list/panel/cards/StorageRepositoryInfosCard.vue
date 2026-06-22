@@ -1,7 +1,7 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      <UiLink v-if="sr.name_label" size="small" :icon="`object:sr:${allPbdsConnectionStatus}`" :href>
+      <UiLink v-if="sr.name_label" size="small" :icon="srStatusIcon" :href>
         {{ sr.name_label }}
       </UiLink>
     </UiCardTitle>
@@ -10,7 +10,7 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
         <template #value>
-          <VtsStatus :status="allPbdsConnectionStatus" />
+          <VtsStatus :status="srConnectionStatus" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue truncate align-top>
@@ -61,12 +61,12 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
-import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import {
   type FrontXoSr,
   useXoSrCollection,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { SrScope } from '@/modules/storage-repository/types/storage-repository.type'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
@@ -80,8 +80,9 @@ import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { sr } = defineProps<{
+const { sr, scope } = defineProps<{
   sr: FrontXoSr
+  scope: SrScope
 }>()
 
 const { t } = useI18n()
@@ -89,10 +90,12 @@ const { t } = useI18n()
 const { buildXo5Route } = useXoRoutes()
 const href = computed(() => buildXo5Route(`/srs/${sr.id}/general`))
 
-const { getPbdsByIds } = useXoPbdCollection()
 const { isHighAvailabilitySr } = useXoSrCollection()
 
-const { allPbdsConnectionStatus } = useXoPbdUtils(() => getPbdsByIds(sr.$PBDs))
+const { srConnectionStatus, srStatusIcon } = useXoSrUtils(
+  () => sr,
+  () => scope
+)
 
 const isSrSharedI18nValue = computed(() => (sr.shared ? t('shared') : t('local')))
 

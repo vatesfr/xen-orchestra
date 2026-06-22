@@ -5,11 +5,13 @@ import isEqual from 'lodash/isEqual.js'
 import { forbiddenOperation, noSuchObject, objectAlreadyExists } from 'xo-common/api-errors.js'
 
 import {
+  ADMINISTRATOR,
   REAL_ONLY_ALL,
   VMS_CREATOR,
   VMS_POWER_STATE_MANAGER,
   VMS_READ_ONLY,
   VMS_ADMINISTRATOR,
+  NETWORK_ADMINISTRATOR,
 } from './template-roles.mjs'
 
 import { Roles } from '../../models/acls-v2/role.mjs'
@@ -57,6 +59,8 @@ const TEMPLATE_ROLES = [
   /** @type {RoleTemplate} */ (VMS_CREATOR),
   /** @type {RoleTemplate} */ (VMS_READ_ONLY),
   /** @type {RoleTemplate} */ (VMS_ADMINISTRATOR),
+  /** @type {RoleTemplate} */ (ADMINISTRATOR),
+  /** @type {RoleTemplate} */ (NETWORK_ADMINISTRATOR),
 ]
 
 export default class {

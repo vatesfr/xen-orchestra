@@ -43,6 +43,7 @@
     "qa:backup:metadata": "node --env-file-if-exists=.env --test tests/metadata-backup.test.js",
     "demo": "node --env-file-if-exists=.env index.js",
     "report": "node --env-file-if-exists=.env scripts/run-and-report.mjs",
-    "report:smtp-test": "node --env-file-if-exists=.env scripts/run-and-report.mjs --smtp-test"
+    "report:smtp-test": "node --env-file-if-exists=.env scripts/run-and-report.mjs --smtp-test",
+    "qa:backup:file-restore": "node --env-file-if-exists=.env --test tests/backup.file-restore.test.js"
   }
 }

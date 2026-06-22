@@ -63,7 +63,7 @@ The reverse is not true: granting `shutdown:clean` does **not** grant `shutdown:
 
 ## Built-in template roles
 
-Xen Orchestra ships with four ready-to-use role templates. They are **immutable** and automatically kept up to date on startup — they cannot be modified, deleted, or assigned directly.
+Xen Orchestra ships with seven ready-to-use role templates. They are **immutable** and automatically kept up to date on startup — they cannot be modified, deleted, or assigned directly.
 
 To use them, **copy** a template into a new role and assign that copy to your users or groups. This ensures the built-in templates always stay up to date without affecting your custom configuration.
 
@@ -74,6 +74,8 @@ To use them, **copy** a template into a new role and assign that copy to your us
 | **VMs creator**             | Can instantiate VM templates and create VDIs and VIFs.                               |
 | **VMs read only**           | Can only list and view VMs.                                                          |
 | **VMs administrator**       | Full control over VM actions                                                         |
+| **Network administrator**   | Can manage networks and VIFs, read and update PIFs, and view hosts and VMs.          |
+| **Administrator**           | Full access to the entire infrastructure                                             |
 
 ![acl-role copy documented in Swagger](../assets/swagger-role-copy.png)
 
@@ -131,19 +133,19 @@ Actions are written using the exact string you pass in a privilege. A parent act
 
 ### XO management resources
 
-| Resource            | Available actions                                                                                 |
-| ------------------- | ------------------------------------------------------------------------------------------------- |
-| `backup-job`        | `read`                                                                                            |
-| `backup-archive`    | `read`                                                                                            |
-| `backup-log`        | `read`                                                                                            |
-| `backup-repository` | `create`, `read`, `update:enabled`, `update:name`, `update:options`, `update:proxy`, `update:url` |
-| `schedule`          | `read`, `run`                                                                                     |
-| `restore-log`       | `read`                                                                                            |
-| `proxy`             | `read`                                                                                            |
-| `server`            | `read`, `create`, `delete`, `connect`, `disconnect`                                               |
-| `task`              | `read`, `abort`, `delete`                                                                         |
-| `alarm`             | `read`                                                                                            |
-| `message`           | `read`                                                                                            |
+| Resource            | Available actions                                                                                          |
+| ------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `backup-job`        | `read`                                                                                                     |
+| `backup-archive`    | `read`                                                                                                     |
+| `backup-log`        | `read`                                                                                                     |
+| `backup-repository` | `create`, `read`,`forget`, `update:enabled`, `update:name`, `update:options`, `update:proxy`, `update:url` |
+| `schedule`          | `read`, `run`                                                                                              |
+| `restore-log`       | `read`                                                                                                     |
+| `proxy`             | `read`                                                                                                     |
+| `server`            | `read`, `create`, `delete`, `connect`, `disconnect`                                                        |
+| `task`              | `read`, `abort`, `delete`                                                                                  |
+| `alarm`             | `read`                                                                                                     |
+| `message`           | `read`                                                                                                     |
 
 ### User management resources
 

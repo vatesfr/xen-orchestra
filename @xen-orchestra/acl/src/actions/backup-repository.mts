@@ -1,6 +1,7 @@
 export default {
   create: true,
   read: true,
+  forget: true,
   update: {
     enabled: true,
     name: true,

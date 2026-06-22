@@ -16,7 +16,7 @@
         </thead>
         <tbody>
           <VtsRow v-for="sr of paginatedSrs" :key="sr.id" :selected="selectedSrId === sr.id">
-            <BodyCells :item="sr" />
+            <BodyCells :key="getSrPbdsSignature(sr, scope)" :item="sr" />
           </VtsRow>
         </tbody>
       </VtsTable>
@@ -25,13 +25,15 @@
 </template>
 
 <script setup lang="ts">
-import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
-import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import { useSrConnectModal } from '@/modules/storage-repository/composables/use-sr-connect-modal.composable.ts'
 import { useSrDeleteModal } from '@/modules/storage-repository/composables/use-sr-delete-modal.composable.ts'
+import { useSrDisconnectModal } from '@/modules/storage-repository/composables/use-sr-disconnect-modal.composable.ts'
+import { useGetPbdsInScope, useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import {
   useXoSrCollection,
   type FrontXoSr,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { SR_SCOPE_TYPE, type SrScope } from '@/modules/storage-repository/types/storage-repository.type'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -41,7 +43,7 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
-import { icon, objectIcon } from '@core/icons'
+import { icon } from '@core/icons'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useSrColumns } from '@core/tables/column-sets/sr-columns.ts'
@@ -52,10 +54,12 @@ import { useI18n } from 'vue-i18n'
 
 const {
   srs: rawSrs,
+  scope,
   busy,
   error,
 } = defineProps<{
   srs: FrontXoSr[]
+  scope: SrScope
   busy?: boolean
   error?: boolean
 }>()
@@ -95,6 +99,8 @@ const state = useTableState({
 
 const { pageRecords: paginatedSrs, paginationBindings } = usePagination('srs', filteredSrs)
 
+const { getSrPbdsSignature } = useGetPbdsInScope()
+
 function getPrimaryIcon(sr: FrontXoSr) {
   if (!isDefaultSr(sr)) {
     return undefined
@@ -106,8 +112,6 @@ function getPrimaryIcon(sr: FrontXoSr) {
   }
 }
 
-const { getPbdsByIds } = useXoPbdCollection()
-
 const { HeadCells, BodyCells } = useSrColumns({
   body: (sr: FrontXoSr) => {
     const { buildXo5Route } = useXoRoutes()
@@ -115,16 +119,50 @@ const { HeadCells, BodyCells } = useSrColumns({
     const href = computed(() => buildXo5Route(`/srs/${sr.id}/general`))
     const rightIcon = computed(() => getPrimaryIcon(sr))
 
-    const { allPbdsConnectionStatus } = useXoPbdUtils(() => getPbdsByIds(sr.$PBDs))
+    const { srStatusIcon } = useXoSrUtils(sr, () => scope)
 
     const { openModal: openSrDeleteModal, canRun: canDeleteSr, isRunning: isDeletingSr } = useSrDeleteModal(() => [sr])
+
+    const {
+      openModal: openSrConnectModal,
+      canRun: canConnectSr,
+      isRunning: isConnectingSr,
+      errorMessage: connectSrErrorMessage,
+      targetCount: connectTargetCount,
+    } = useSrConnectModal(
+      () => [sr],
+      () => scope
+    )
+
+    const {
+      openModal: openSrDisconnectModal,
+      canRun: canDisconnectSr,
+      isRunning: isDisconnectingSr,
+      errorMessage: disconnectSrErrorMessage,
+      targetCount: disconnectTargetCount,
+    } = useSrDisconnectModal(
+      () => [sr],
+      () => scope
+    )
+
+    const connectLabel = computed(() =>
+      connectTargetCount.value > (scope.type === SR_SCOPE_TYPE.POOL ? 0 : 1)
+        ? t('action:connect-n', { n: connectTargetCount.value })
+        : t('action:connect')
+    )
+
+    const disconnectLabel = computed(() =>
+      disconnectTargetCount.value > (scope.type === SR_SCOPE_TYPE.POOL ? 0 : 1)
+        ? t('action:disconnect-n', { n: disconnectTargetCount.value })
+        : t('action:disconnect')
+    )
 
     return {
       storageRepository: r =>
         r({
           label: sr.name_label,
           href: href.value,
-          icon: objectIcon('sr', allPbdsConnectionStatus.value),
+          icon: srStatusIcon.value,
           rightIcon: rightIcon.value,
         }),
       description: r => r(sr.name_description),
@@ -135,6 +173,22 @@ const { HeadCells, BodyCells } = useSrColumns({
         r({
           onClick: () => (selectedSrId.value = sr.id),
           actions: [
+            {
+              label: connectLabel.value,
+              icon: 'action:connect',
+              onClick: () => openSrConnectModal(),
+              busy: isConnectingSr.value,
+              disabled: !canConnectSr.value,
+              hint: connectSrErrorMessage.value,
+            },
+            {
+              label: disconnectLabel.value,
+              icon: 'action:disconnect',
+              onClick: () => openSrDisconnectModal(),
+              busy: isDisconnectingSr.value,
+              disabled: !canDisconnectSr.value,
+              hint: disconnectSrErrorMessage.value,
+            },
             {
               label: t('action:delete'),
               icon: 'action:delete',
