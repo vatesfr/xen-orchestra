@@ -183,7 +183,6 @@
   "backups:vms-protection:active-protected": "I minst 1 aktivt jobb och skyddad",
   "backups:vms-protection:active-unprotected": "I minst 1 aktivt jobb och oskyddad",
   "backups:vms-protection:no-active-job": "Inte i aktivt jobb",
-  "backups:vms-protection:no-job": "Ej i något jobb",
   "backups:vms-protection:protected": "I minst ett jobb och skyddad",
   "backups:vms-protection:tooltip": "En VM är skyddad om den är med i ett säkerhetskopieringsjobb, med ett aktivt schema och den senaste körningen lyckades",
   "backups:vms-protection:unprotected": "Med i minst 1 jobb men oskyddad",

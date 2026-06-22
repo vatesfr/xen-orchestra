@@ -188,7 +188,6 @@
   "backups:vms-protection:active-protected": "In ten minste 1 actieve opdracht & beschermd",
   "backups:vms-protection:active-unprotected": "In ten minste 1 actieve opdracht, maar onbeschermd",
   "backups:vms-protection:no-active-job": "in geen actieve opdracht",
-  "backups:vms-protection:no-job": "in geen opdracht",
   "backups:vms-protection:protected": "In ten minste 1 opdracht & beschermd",
   "backups:vms-protection:tooltip": "Een VM is beschermd als deze zich in een back-uptaak bevindt, met een ingeschakeld schema en als de laatste uitvoering is geslaagd",
   "backups:vms-protection:unprotected": "In ten minste 1 opdracht maar onbeschermd",

@@ -77,7 +77,7 @@ const vmsProtectionSegments = computed<DonutChartWithLegendProps['segments']>(()
     accent: 'warning',
   },
   {
-    label: t('backups:vms-protection:no-job'),
+    label: t('backups:vms-protection:no-active-job'),
     value: vmsProtection.value?.notInJob ?? vms.value.length,
     accent: 'muted',
   },

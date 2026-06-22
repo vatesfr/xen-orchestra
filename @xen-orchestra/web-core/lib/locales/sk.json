@@ -193,7 +193,6 @@
   "backups:vms-protection:active-protected": "V aspoň 1 aktívnej úlohe a chránené",
   "backups:vms-protection:active-unprotected": "V aspoň jednej aktívnej úlohe ale zatiaľ nechránené",
   "backups:vms-protection:no-active-job": "V žiadnej aktívnej úlohe",
-  "backups:vms-protection:no-job": "V žiadnej úlohe",
   "backups:vms-protection:protected": "V aspoň 1 úlohe a chránené",
   "backups:vms-protection:tooltip": "Virt. stroj je chránený, ak sa nachádza v zálohovacej úlohe, ktorá má zapnuté pravidelné spúšťanie a jej posledné vykonanie bolo úspešné",
   "backups:vms-protection:unprotected": "V aspoň 1 úlohe, ale zatiaľ nechránené",

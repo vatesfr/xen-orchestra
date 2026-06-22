@@ -100,7 +100,6 @@
   "backups:jobs:disabled": "غیرفعال شده",
   "backups:jobs:running-good": "به خوبی کار می‌کند",
   "backups:vms-protection": "محافظت از ماشین‌های مجازی",
-  "backups:vms-protection:no-job": "در هیچ کاری",
   "backups:vms-protection:protected": "در حداقل ۱ کار و حفاظت‌ شده",
   "backups:vms-protection:tooltip": "یک ماشین مجازی در صورت وجود در یک کار پشتیبان‌گیری، با زمان‌بندی فعال و اجرای موفق آخرین عملیات، محافظت‌ شده محسوب می‌شود",
   "backups:vms-protection:unprotected": "در حداقل ۱ کار و حفاظت‌ نشده",
