@@ -15,9 +15,9 @@
           <UiLink
             :to="{ name: '/vdi/[id]/general', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.SR } }"
             size="small"
-            icon="object:vdi"
+            :icon="getVdiIcon(getVbdsByIds(vdi.$VBDs))"
           >
-            {{ vdi.name_label }}
+            {{ vdi.name_label || t('unknown') }}
           </UiLink>
         </li>
       </UiCollapsibleList>
@@ -37,9 +37,9 @@
               query: { from: VDI_PAGE_CONTEXT.VDI_SNAPSHOT },
             }"
             size="small"
-            icon="object:vdi"
+            icon="object:vdi-snapshot"
           >
-            {{ snapshot.name_label }}
+            {{ snapshot.name_label || t('unknown') }}
           </UiLink>
         </li>
       </UiCollapsibleList>
@@ -52,8 +52,10 @@
 </template>
 
 <script lang="ts" setup>
+import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVdiSnapshot } from '@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'
+import { getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -71,6 +73,8 @@ defineProps<{
 }>()
 
 const { t } = useI18n()
+
+const { getVbdsByIds } = useXoVbdCollection()
 </script>
 
 <style scoped lang="postcss">
