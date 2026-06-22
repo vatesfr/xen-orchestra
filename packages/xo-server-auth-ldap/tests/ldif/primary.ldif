@@ -1,0 +1,42 @@
+dn: dc=example,dc=com
+objectClass: dcObject
+objectClass: organization
+dc: example
+o: Example
+
+dn: ou=users,dc=example,dc=com
+objectClass: organizationalUnit
+ou: users
+
+dn: ou=groups,dc=example,dc=com
+objectClass: organizationalUnit
+ou: groups
+
+dn: uid=alice,ou=users,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: alice
+cn: Alice
+sn: Smith
+uidNumber: 1000
+gidNumber: 1000
+homeDirectory: /home/alice
+userPassword: alice123
+
+dn: uid=bob,ou=users,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: bob
+cn: Bob
+sn: Jones
+uidNumber: 1001
+gidNumber: 1001
+homeDirectory: /home/bob
+userPassword: bob123
+
+dn: cn=developers,ou=groups,dc=example,dc=com
+objectClass: posixGroup
+cn: developers
+gidNumber: 2000
+memberUid: alice
+memberUid: bob

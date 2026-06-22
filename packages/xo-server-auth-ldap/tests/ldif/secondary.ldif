@@ -1,0 +1,30 @@
+dn: dc=customers,dc=com
+objectClass: dcObject
+objectClass: organization
+dc: customers
+o: Customers
+
+dn: ou=users,dc=customers,dc=com
+objectClass: organizationalUnit
+ou: users
+
+dn: ou=groups,dc=customers,dc=com
+objectClass: organizationalUnit
+ou: groups
+
+dn: uid=charlie,ou=users,dc=customers,dc=com
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: charlie
+cn: Charlie
+sn: Brown
+uidNumber: 2000
+gidNumber: 2000
+homeDirectory: /home/charlie
+userPassword: charlie123
+
+dn: cn=clients,ou=groups,dc=customers,dc=com
+objectClass: posixGroup
+cn: clients
+gidNumber: 3000
+memberUid: charlie
