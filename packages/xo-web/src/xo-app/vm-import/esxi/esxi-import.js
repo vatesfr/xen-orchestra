@@ -18,7 +18,7 @@ import {
   installNbdKit,
   isSrWritable,
 } from 'xo'
-import { find, isEmpty, keyBy, map, pick } from 'lodash'
+import { find, forEach, isEmpty, keyBy, map, pick } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { Input } from 'debounce-input-decorator'
 import { InputCol, LabelCol, Row } from 'form-grid'
@@ -53,6 +53,11 @@ function EsxiCheckResults({ esxiCheck }) {
 @connectStore({
   hostsById: createGetObjectsOfType('host'),
   pifsById: createGetObjectsOfType('PIF'),
+  xoVmsById: createGetObjectsOfType('VM'),
+  vbdsById: createGetObjectsOfType('VBD'),
+  vdisById: createGetObjectsOfType('VDI'),
+  srsById: createGetObjectsOfType('SR'),
+  poolsById: createGetObjectsOfType('pool'),
 })
 class EsxiImport extends Component {
   state = {
@@ -130,6 +135,65 @@ class EsxiImport extends Component {
     () => this.state.pool?.id,
     poolId => (poolId === undefined ? undefined : sr => isSrWritable(sr) && sr.$poolId === poolId)
   )
+
+  // A VM previously imported from the same source ESXi VM that can be used as
+  // the base of a delta transfer. It still has its `sourceVmId` set and its
+  // `start` operation blocked: the lock is only removed once the VM has been
+  // fully imported (see xo-server vmware mixin).
+  _getReferenceVmBySourceId = createSelector(
+    () => this.props.xoVmsById,
+    xoVmsById => {
+      const referenceVmBySourceId = {}
+      forEach(xoVmsById, vm => {
+        const sourceVmId = vm.other?.sourceVmId
+        const blockedStart = vm.blockedOperations?.start
+        if (sourceVmId !== undefined && blockedStart !== undefined && blockedStart !== '') {
+          referenceVmBySourceId[sourceVmId] = vm
+        }
+      })
+      return referenceVmBySourceId
+    }
+  )
+
+  // Returns the import status of a source ESXi VM, or `undefined` while no
+  // target SR is selected:
+  // { status: 'none' }                : no previous import found, the whole VM will be transferred
+  // { status: 'sameSr' }              : reference VM found, its disks are on the target SR -> delta transfer
+  // { status: 'otherSr', srLabel }    : reference VM found, but (at least) one disk is on another SR -> full transfer
+  _getReferenceVmStatus(esxiVmId) {
+    const targetSrId = resolveId(this.state.sr)
+    if (!targetSrId) {
+      return
+    }
+    const referenceVm = this._getReferenceVmBySourceId()[esxiVmId]
+    if (referenceVm === undefined) {
+      return { status: 'none' }
+    }
+
+    const { poolsById, srsById, vbdsById, vdisById } = this.props
+    // first disk (CDROM excluded) that is not on the target SR will cause a full  transfer
+    // can only reuse the reference VM if all its disks are already on the target SR
+    let offTargetSr
+    for (const vbdId of referenceVm.$VBDs ?? []) {
+      const vbd = vbdsById[vbdId]
+      if (vbd === undefined || vbd.is_cd_drive || vbd.VDI === undefined) {
+        continue
+      }
+      const vdi = vdisById[vbd.VDI]
+      if (vdi !== undefined && vdi.$SR !== targetSrId) {
+        offTargetSr = srsById[vdi.$SR]
+        break
+      }
+    }
+
+    if (offTargetSr === undefined) {
+      return { status: 'sameSr' }
+    }
+
+    const pool = poolsById[offTargetSr.$poolId]
+    const srLabel = pool === undefined ? offTargetSr.name_label : `${pool.name_label} - ${offTargetSr.name_label}`
+    return { status: 'otherSr', srLabel }
+  }
 
   _importVms = () => {
     const { concurrency, hostIp, network, password, skipSslVerify, sr, stopSource, stopOnError, user, template, vms } =
@@ -447,7 +511,7 @@ class EsxiImport extends Component {
             {vms.map(vm => (
               <Collapse className='mt-1 mb-1' buttonText={vm.label} key={vm.value} size='small'>
                 <div className='mt-1'>
-                  <VmData data={vmsById[vm.value]} />
+                  <VmData data={vmsById[vm.value]} referenceVmStatus={this._getReferenceVmStatus(vm.value)} />
                 </div>
               </Collapse>
             ))}

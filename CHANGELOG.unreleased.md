@@ -15,6 +15,8 @@
 - [Web stack] Updated side panels (PR [#9836](https://github.com/vatesfr/xen-orchestra/pull/9836))
 - [Plugin/LDAP] Add failover URIs (PR [#9961](https://github.com/vatesfr/xen-orchestra/pull/9961))
 - [V2V] Add `esxi.importDisk` API endpoint to import a single ESXi disk into an SR as a standalone VDI ( [PR#10024] (https://github.com/vatesfr/xen-orchestra/pull/10024))
+- [XO5/V2V] Show if the transfer will be a full or a delta one when doing 2 steps V2V transfer (PR [#10014](https://github.com/vatesfr/xen-orchestra/pull/10014))
+- [V2V] Create a CDROM on destination if source has one (PR [#10014](https://github.com/vatesfr/xen-orchestra/pull/10014))
 
 ### Bug fixes
 
@@ -41,7 +43,9 @@
 
 - @xen-orchestra/backups patch
 - @xen-orchestra/web minor
+- @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web-core minor
 - xo-server minor
+- xo-web minor
 
 <!--packages-end-->
