@@ -5,6 +5,7 @@
  * @typedef {import('./RemoteDisk.mjs').RemoteDisk} RemoteDisk
  */
 import { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
+import { RemoteRawDisk } from './RemoteRawDisk.mjs'
 import { defer } from 'golike-defer'
 import { RemoteVhdDiskChain } from './RemoteVhdDiskChain.mjs'
 
@@ -18,6 +19,13 @@ import { RemoteVhdDiskChain } from './RemoteVhdDiskChain.mjs'
  * @returns {Promise<RemoteDisk>}
  */
 async function _openDiskChain($defer, { handler, path, until, force = false }) {
+  if (path.endsWith('.raw')) {
+    // Raw disks are always full — no chain to traverse.
+    const disk = new RemoteRawDisk({ handler, path })
+    await disk.init({ force })
+    return disk
+  }
+
   /**
    * @type {RemoteVhdDisk}
    */
