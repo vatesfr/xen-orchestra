@@ -24,7 +24,7 @@ export const useXoVmExportJob = defineJob('vm.export', [xoVmArg, xoVmExportTypeA
     async run(vm: FrontXoVm, type: VmExportType, compression: VmExportCompression) {
       const params = new URLSearchParams()
 
-      if (compression !== 'none') {
+      if (type === 'xva' && compression !== 'none') {
         params.set('compress', compression)
       }
 
@@ -34,11 +34,14 @@ export const useXoVmExportJob = defineJob('vm.export', [xoVmArg, xoVmExportTypeA
       const anchor = document.createElement('a')
       anchor.href = url
       anchor.download = ''
-      document.body.appendChild(anchor)
-      anchor.click()
-      document.body.removeChild(anchor)
-    },
 
+      try {
+        document.body.appendChild(anchor)
+        anchor.click()
+      } finally {
+        document.body.removeChild(anchor)
+      }
+    },
     validate(_isRunning: boolean, vm?: FrontXoVm) {
       if (!vm) {
         throw new JobError(t('job:vm-export:missing-vm'))

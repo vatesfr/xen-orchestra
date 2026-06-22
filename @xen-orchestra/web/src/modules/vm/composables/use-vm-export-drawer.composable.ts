@@ -18,11 +18,8 @@ export function useVmExportDrawer(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     onConfirm: async (values: VmExportFormValues) => {
       exportType.value = values.type
       exportCompression.value = values.compression
-      try {
-        await run()
-      } catch (error) {
-        console.error('Error when exporting VM:', error)
-      }
+
+      await run()
     },
   }))
 

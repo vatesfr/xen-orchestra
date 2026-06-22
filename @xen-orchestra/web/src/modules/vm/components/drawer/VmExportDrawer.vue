@@ -46,6 +46,7 @@
 </template>
 
 <script lang="ts" setup>
+import type { VmExportCompression, VmExportType } from '@/modules/vm/jobs/xo-vm-export.job'
 import VtsDrawer from '@core/components/drawer/VtsDrawer.vue'
 import VtsDrawerCancelButton from '@core/components/drawer/VtsDrawerCancelButton.vue'
 import VtsDrawerConfirmButton from '@core/components/drawer/VtsDrawerConfirmButton.vue'
@@ -55,8 +56,8 @@ import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export type VmExportFormValues = {
-  type: 'xva' | 'ova'
-  compression: 'none' | 'gzip' | 'zstd'
+  type: VmExportType
+  compression: VmExportCompression
 }
 
 const emit = defineEmits<{
@@ -66,8 +67,8 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const type = ref<string>('xva')
-const compression = ref<string>('none')
+const type = ref<VmExportType>('xva')
+const compression = ref<VmExportCompression>('none')
 
 watch(type, newType => {
   if (newType === 'ova') {
@@ -77,8 +78,8 @@ watch(type, newType => {
 
 function handleConfirm() {
   emit('confirm', {
-    type: type.value as VmExportFormValues['type'],
-    compression: compression.value as VmExportFormValues['compression'],
+    type: type.value,
+    compression: compression.value,
   })
 }
 </script>
