@@ -237,6 +237,7 @@ export type XoApp = {
   createGroup(params: { name: string; provider?: string; providerGroup?: string }): Promise<XoGroup>
   /* disconnect a server (XCP-ng/XenServer) */
   disconnectXenServer(id: XoServer['id']): Promise<void>
+  findEnabledScheduleSequenceFromSchedule(id: XoSchedule['id']): Promise<XoSchedule | undefined>
   getAclV2Privilege(id: XoAclBasePrivilege['id']): Promise<XoAclBasePrivilege>
   getAclV2Privileges(): Promise<XoAclBasePrivilege[]>
   getAclV2RolePrivileges(roleId: XoAclRole['id']): Promise<XoAclBasePrivilege[]>
@@ -289,7 +290,6 @@ export type XoApp = {
   ) => Record<T['id'], T> | undefined
   getTotalBackupSizeOnRemote(id: XoBackupRepository['id']): Promise<{ onDisk: number }>
   getSchedule(id: XoSchedule['id']): Promise<XoSchedule>
-  getScheduleSequencesFromSchedule(id: XoSchedule['id']): Promise<XoSchedule[]>
   getUser: (id: XoUser['id']) => Promise<XoUser>
   getXapi(maybeId: XapiXoRecord['id'] | XapiXoRecord): Xapi
   getXapiHostStats: (hostId: XoHost['id'], granularity?: XapiStatsGranularity) => Promise<XapiHostStats>
