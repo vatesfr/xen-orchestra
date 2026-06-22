@@ -144,15 +144,15 @@ const { HeadCells, BodyCells } = useVdiColumns({
             {
               label: vbd.value?.attached ? t('action:disconnect') : t('action:connect'),
               hint: !canToggleVbdConnection.value ? toggleVbdConnectionErrorMessage.value : undefined,
-              icon: vbd.value?.attached ? 'status:disabled' : 'status:success-circle',
+              icon: vbd.value?.attached ? 'action:disconnect' : 'action:connect',
               onClick: () => openVbdConnectionToggleModal(),
               disabled: !canToggleVbdConnection.value,
               busy: isTogglingVbdConnection.value,
             },
             {
-              label: t('action:delete-vbd'),
+              label: t('action:detach-vdi'),
               hint: deleteVbdErrorMessage.value,
-              icon: 'action:disconnect',
+              icon: 'action:detach',
               onClick: () => openVbdDeleteModal(),
               disabled: !canDeleteVbd.value,
               busy: isDeletingVbd.value,

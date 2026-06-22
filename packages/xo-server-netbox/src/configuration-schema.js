@@ -39,6 +39,12 @@ const configurationSchema = {
       title: 'Interval',
       description: 'Synchronization interval in hours - leave empty to disable auto-sync',
     },
+    ignoreRfc1918: {
+      type: 'boolean',
+      title: 'Ignore RFC 1918 VM IPs',
+      description:
+        'Enable this if you do not want private IPs (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16) to be imported into Netbox',
+    },
   },
   required: ['endpoint', 'token', 'pools'],
 }

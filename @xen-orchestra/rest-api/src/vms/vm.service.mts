@@ -180,7 +180,11 @@ export class VmService {
   async export<Vm extends XoVm | XoVmSnapshot | XoVmTemplate>(
     id: Vm['id'],
     vmType: Vm['type'],
-    { compress, format, response }: { compress?: boolean; format: 'ova' | 'xva'; response?: ExResponse }
+    {
+      compress,
+      format,
+      response,
+    }: { compress?: boolean | 'zstd' | 'gzip'; format: 'ova' | 'xva'; response?: ExResponse }
   ): Promise<Readable> {
     const xapiVm = this.#restApi.getXapiObject(id, vmType)
 
@@ -290,27 +294,28 @@ export class VmService {
 
   #getLastReplication(id: XoVm['id']): VmDashboard['backupsInfo']['replication'] {
     const vm = this.#restApi.getObject<XoVm>(id, 'VM')
-    const replicatedVms = this.#restApi.getObjectsByType<XoVm>('VM', {
-      filter: obj => obj.other['xo:backup:vm'] === vm.id,
+    const snapshotReplicas = this.#restApi.getObjectsByType<XoVmSnapshot>('VM-snapshot', {
+      filter: obj => obj.other['xo:backup:vm'] === vm.id && obj.$snapshot_of !== vm.id,
     })
 
     let lastTimestamp: number | undefined
-    let lastReplica: XoVm | undefined
-    for (const id in replicatedVms) {
-      const replica = replicatedVms[id as XoVm['id']]
-      const timestamp = parseDateTime(replica.other['xo:backup:datetime'])
+    let lastReplicaId: XoVm['id'] | undefined
+    for (const id in snapshotReplicas) {
+      const snapshot = snapshotReplicas[id as XoVmSnapshot['id']]
+      const timestamp = parseDateTime(snapshot.other['xo:backup:datetime'])
 
       if (lastTimestamp === undefined || lastTimestamp < timestamp) {
         lastTimestamp = timestamp
-        lastReplica = replica
+        lastReplicaId = snapshot.$snapshot_of
       }
     }
 
-    if (lastReplica === undefined) {
+    if (lastReplicaId === undefined) {
       return {}
     }
 
-    const vdis = this.getVmVdis(id, 'VM')
+    const replica = this.#restApi.getObject<XoVm>(lastReplicaId, 'VM')
+    const vdis = this.getVmVdis(replica.id, 'VM')
     let sr: XoSr['id'] | undefined = undefined
     for (const vdi of vdis) {
       if (sr === undefined) {
@@ -326,7 +331,7 @@ export class VmService {
     }
 
     return {
-      id: lastReplica.id,
+      id: replica.id,
       timestamp: lastTimestamp! * 1000,
       sr,
     }
