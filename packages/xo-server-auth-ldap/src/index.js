@@ -45,6 +45,20 @@ const evalFilter = (filter, vars) =>
     return escape(value)
   })
 
+const CERT_DESCRIPTION = `
+Paths to CA certificates to use when connecting to SSL-secured LDAP servers.
+
+If not specified, it will use a default set of well-known CAs.
+`.trim()
+
+const DN_DESCRIPTION = `
+Full distinguished name of the user permitted to search the LDAP directory for the user to authenticate.
+
+Example: uid=xoa-auth,ou=people,dc=company,dc=net
+
+For Microsoft Active Directory, it can also be \`<user>@<domain>\`.
+`.trim()
+
 const FILTER_DESCRIPTION = `
 Filter used to find the user.
 
@@ -81,11 +95,7 @@ const DOMAIN_PROPERTIES = {
   },
   certificateAuthorities: {
     title: 'Certificate Authorities',
-    description: `
-Paths to CA certificates to use when connecting to SSL-secured LDAP servers.
-
-If not specified, it will use a default set of well-known CAs.
-`.trim(),
+    description: CERT_DESCRIPTION,
     type: 'array',
     items: {
       type: 'string',
@@ -113,13 +123,7 @@ If not specified, it will use a default set of well-known CAs.
     type: 'object',
     properties: {
       dn: {
-        description: `
-Full distinguished name of the user permitted to search the LDAP directory for the user to authenticate.
-
-Example: uid=xoa-auth,ou=people,dc=company,dc=net
-
-For Microsoft Active Directory, it can also be \`<user>@<domain>\`.
-`.trim(),
+        description: DN_DESCRIPTION,
         type: 'string',
       },
       password: {
