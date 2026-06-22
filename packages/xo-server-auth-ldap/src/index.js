@@ -226,49 +226,48 @@ class AuthLdap {
     this._authenticate = this._authenticate.bind(this)
   }
 
-  async configure(conf) {
-    const clientOpts = (this._clientOpts = {
-      url: conf.uri,
-      maxConnections: 5,
-    })
-
-    {
-      const { checkCertificate, certificateAuthorities } = conf
-
-      const tlsOptions = (this._tlsOptions = {})
-
-      tlsOptions.rejectUnauthorized = checkCertificate
-      if (certificateAuthorities) {
-        tlsOptions.ca = await Promise.all(certificateAuthorities.map(path => fromCallback(readFile, path)))
-      }
-
-      if (clientOpts.url.startsWith('ldaps:')) {
-        clientOpts.tlsOptions = tlsOptions
-      }
+  async _buildDomainConfig(raw, isPrimary) {
+    const tlsOptions = { rejectUnauthorized: raw.checkCertificate }
+    if (raw.certificateAuthorities) {
+      tlsOptions.ca = await Promise.all(raw.certificateAuthorities.map(path => fromCallback(readFile, path)))
     }
 
-    const { bind: credentials, base: searchBase, filter: searchFilter, startTls, groups, uri, userIdAttribute } = conf
-
-    this._credentials = credentials
-    this._serverUri = uri
-    this._searchBase = searchBase
-    this._searchFilter = searchFilter
-    this._startTls = startTls
-    this._groupsConfig = groups
-    this._userIdAttribute = userIdAttribute
-    this._failoverUris = conf.failoverUris ?? []
+    return {
+      isPrimary,
+      uris: [raw.uri, ...(raw.failoverUris ?? [])],
+      tlsOptions,
+      startTls: raw.startTls ?? false,
+      credentials: raw.bind,
+      base: raw.base,
+      filter: raw.filter ?? '(uid={{name}})',
+      userIdAttribute: raw.userIdAttribute,
+      groupsConfig: raw.groups,
+      provider: isPrimary ? 'ldap' : `ldap:${raw.base}`,
+    }
   }
 
-  async _connectAndBind() {
-    const uris = [this._clientOpts.url, ...this._failoverUris]
+  async configure(conf) {
+    this._primaryDomain = await this._buildDomainConfig(conf, true)
+
+    this._searchBase = conf.base
+    this._searchFilter = conf.filter
+    this._groupsConfig = conf.groups
+    this._userIdAttribute = conf.userIdAttribute
+  }
+
+  async _connectAndBind(domain = this._primaryDomain) {
     let lastError
-    for (const uri of uris) {
-      const client = new Client({ ...this._clientOpts, url: uri, connectTimeout: LDAPTS_TIMEOUT_MS })
+    for (const uri of domain.uris) {
+      const clientOpts = { url: uri, maxConnections: 5, connectTimeout: CONNECT_TIMEOUT_MS }
+      if (uri.startsWith('ldaps:')) {
+        clientOpts.tlsOptions = domain.tlsOptions
+      }
+      const client = new Client(clientOpts)
       try {
-        if (this._startTls) {
-          await pTimeout.call(client.startTLS(this._tlsOptions), CONNECT_TIMEOUT_MS, throwConnectTimeout)
+        if (domain.startTls) {
+          await client.startTLS(domain.tlsOptions)
         }
-        const { _credentials: credentials } = this
+        const { credentials } = domain
         if (credentials) {
           logger.debug(`attempting to bind as ${credentials.dn}...`)
           await (this._startTls

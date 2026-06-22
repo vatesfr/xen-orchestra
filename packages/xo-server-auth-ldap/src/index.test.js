@@ -46,11 +46,15 @@ function makePlugin({
   groupsConfig = undefined,
 } = {}) {
   const plugin = createPlugin({ xo })
-  plugin._clientOpts = { url }
-  plugin._failoverUris = failoverUris
-  plugin._startTls = startTls
-  plugin._tlsOptions = tlsOptions
-  plugin._credentials = credentials
+  plugin._primaryDomain = {
+    isPrimary: true,
+    uris: [url, ...failoverUris],
+    tlsOptions,
+    startTls,
+    credentials,
+    groupsConfig,
+    provider: 'ldap',
+  }
   plugin._groupsConfig = groupsConfig
   return plugin
 }
