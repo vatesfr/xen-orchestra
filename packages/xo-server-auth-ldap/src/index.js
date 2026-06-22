@@ -194,10 +194,22 @@ const DOMAIN_PROPERTIES = {
 
 const DOMAIN_REQUIRED = ['uri', 'base', 'userIdAttribute']
 
+const DOMAIN_SCHEMA = {
+  type: 'object',
+  properties: DOMAIN_PROPERTIES,
+  required: DOMAIN_REQUIRED,
+}
+
 export const configurationSchema = {
   type: 'object',
   properties: {
     ...DOMAIN_PROPERTIES,
+    additionalDomains: {
+      title: 'Additional domains',
+      description: 'Extra LDAP domains tried in order when the primary domain returns no match.',
+      type: 'array',
+      items: DOMAIN_SCHEMA,
+    },
   },
   required: DOMAIN_REQUIRED,
 }
@@ -238,21 +250,31 @@ class AuthLdap {
       tlsOptions,
       startTls: raw.startTls ?? false,
       credentials: raw.bind,
-      base: raw.base,
-      filter: raw.filter ?? '(uid={{name}})',
+      searchBase: raw.base,
+      searchFilter: raw.filter ?? '(uid={{name}})',
       userIdAttribute: raw.userIdAttribute,
       groupsConfig: raw.groups,
-      provider: isPrimary ? 'ldap' : `ldap:${raw.base}`,
+      provider: isPrimary ? 'ldap' : raw.uri,
     }
   }
 
   async configure(conf) {
-    this._primaryDomain = await this._buildDomainConfig(conf, true)
+    const primaryDomain = await this._buildDomainConfig(conf, true)
+    const additionalDomains = await Promise.all(
+      (conf.additionalDomains ?? []).map(raw => this._buildDomainConfig(raw, false))
+    )
 
-    this._searchBase = conf.base
-    this._searchFilter = conf.filter
-    this._groupsConfig = conf.groups
-    this._userIdAttribute = conf.userIdAttribute
+    const uris = new Set()
+    for (const { uris: domainUris } of [primaryDomain, ...additionalDomains]) {
+      const primaryUri = domainUris[0]
+      if (uris.has(primaryUri)) {
+        throw new Error(`Duplicate LDAP URI: "${primaryUri}". Each domain must have a unique URI.`)
+      }
+      uris.add(primaryUri)
+    }
+
+    this._primaryDomain = primaryDomain
+    this._domains = [primaryDomain, ...additionalDomains]
   }
 
   async _connectAndBind(domain = this._primaryDomain) {
@@ -290,7 +312,12 @@ class AuthLdap {
     this._xo.registerAuthenticationProvider(this._authenticate)
     this._removeApiMethods = this._xo.addApiMethods({
       ldap: {
-        synchronizeGroups: () => this._synchronizeGroups(),
+        synchronizeGroups: async ({ domainIndex } = {}) => {
+          const domains = domainIndex !== undefined ? [this._domains[domainIndex]] : this._domains
+          for (const domain of domains) {
+            await this._synchronizeGroups({ domain })
+          }
+        },
       },
     })
   }
@@ -318,45 +345,61 @@ class AuthLdap {
       return null
     }
 
-    const client = await this._connectAndBind()
+    for (const domain of this._domains) {
+      try {
+        const result = await this._authenticateInDomain(username, password, domain)
+        if (result !== null) {
+          return result
+        }
+      } catch (err) {
+        logger.warn(`domain ${domain.provider} unreachable, trying next: ${err.message}`)
+      }
+    }
+    return null
+  }
+
+  async _authenticateInDomain(username, password, domain) {
+    const client = await this._connectAndBind(domain)
 
     try {
       // Search for the user.
       logger.debug('searching for entries...')
-      const { searchEntries: entries } = await client.search(this._searchBase, {
+      const { searchEntries: entries } = await client.search(domain.searchBase, {
         scope: 'sub',
-        filter: evalFilter(this._searchFilter, {
-          name: username,
-        }),
+        filter: evalFilter(domain.searchFilter, { name: username }),
       })
       logger.debug(`${entries.length} entries found`)
 
-      // Try to find an entry which can be bind with the given password.
+      // Try to find an entry which can be bound with the given password.
       for (const entry of entries) {
         try {
           logger.debug(`attempting to bind as ${entry.dn}`)
           await client.bind(entry.dn, password)
-          logger.info(`successfully bound as ${entry.dn} => ${username} authenticated`)
+          logger.info(`successfully bound as ${entry.dn} => ${username} authenticated via ${domain.provider}`)
           logger.debug(JSON.stringify(entry, null, 2))
 
           // CLI test: don't register user/sync groups
           if (this._xo === undefined) {
-            return
+            return {}
           }
 
-          const ldapId = entry[this._userIdAttribute]
+          const ldapId = entry[domain.userIdAttribute]
           if (ldapId === undefined) {
-            throw new Error(`could not find field ${this._userIdAttribute} on user ${username}`)
+            throw new Error(`could not find field ${domain.userIdAttribute} on user ${username}`)
           }
 
-          const user = await this._xo.registerUser2('ldap', {
-            user: { id: ldapId, name: username },
+          const userId = domain.isPrimary ? ldapId : `${domain.uris[0]}:${ldapId}`
+          const user = await this._xo.registerUser2(domain.provider, {
+            user: { id: userId, name: username },
           })
 
-          const groupsConfig = this._groupsConfig
-          if (groupsConfig !== undefined) {
+          if (domain.groupsConfig !== undefined) {
             try {
-              await this._synchronizeGroups(user, entry[groupsConfig.membersMapping.userAttribute])
+              await this._synchronizeGroups({
+                domain,
+                user,
+                memberId: entry[domain.groupsConfig.membersMapping.userAttribute],
+              })
             } catch (error) {
               logger.error(`failed to synchronize groups: ${error.message}`)
             }
@@ -368,28 +411,31 @@ class AuthLdap {
         }
       }
 
-      logger.debug(`could not authenticate ${username}`)
+      logger.debug(`could not authenticate ${username} against ${domain.provider}`)
       return null
     } finally {
       await client.unbind()
     }
   }
 
-  // Synchronize user's groups OR all groups if no user is passed
-  async _synchronizeGroups(user, memberId) {
-    const client = await this._connectAndBind()
+  // Synchronize user's groups OR all groups for a domain if no user is passed
+  async _synchronizeGroups({ domain = this._primaryDomain, user, memberId } = {}) {
+    const client = await this._connectAndBind(domain)
 
     try {
       logger.info('syncing groups...')
-      const { base, displayNameAttribute, filter, idAttribute, membersMapping } = this._groupsConfig
-      const { searchEntries: ldapGroups } = await client.search(base, {
+      const { provider, userIdAttribute } = domain
+      const { base: groupsBase, displayNameAttribute, filter, idAttribute, membersMapping } = domain.groupsConfig
+      const { searchEntries: ldapGroups } = await client.search(groupsBase, {
         scope: 'sub',
         filter: filter || '', // may be undefined
       })
 
       const xoUsers =
         user === undefined &&
-        (await this._xo.getAllUsers()).filter(user => user.authProviders !== undefined && 'ldap' in user.authProviders)
+        (await this._xo.getAllUsers()).filter(
+          user => user.authProviders !== undefined && Object.keys(user.authProviders).some(k => k.startsWith('ldap'))
+        )
       const xoGroups = await this._xo.getAllGroups()
 
       // For each LDAP group:
@@ -413,9 +459,13 @@ class AuthLdap {
           continue
         }
 
+        // Primary domain keeps the bare group ID for backward compatibility.
+        // Additional domains prefix with their URI to guarantee uniqueness across domains
+        const scopedGroupId = domain.isPrimary ? groupLdapId : `${domain.uris[0]}:${groupLdapId}`
+
         let xoGroup
         const xoGroupIndex = xoGroups.findIndex(
-          group => group.provider === 'ldap' && group.providerGroupId === groupLdapId
+          group => group.provider === 'ldap' && group.providerGroupId === scopedGroupId
         )
 
         if (xoGroupIndex === -1) {
@@ -427,7 +477,7 @@ class AuthLdap {
           xoGroup = await this._xo.createGroup({
             name: groupLdapName,
             provider: 'ldap',
-            providerGroupId: groupLdapId,
+            providerGroupId: scopedGroupId,
           })
         } else {
           // Remove it from xoGroups as we will then delete all the remaining
@@ -450,7 +500,7 @@ class AuthLdap {
         const search = isDnField(userAttribute)
           ? memberId => client.search(memberId, { scope: 'base' })
           : memberId =>
-              client.search(this._searchBase, {
+              client.search(domain.searchBase, {
                 scope: 'sub',
                 filter: `(${escape(userAttribute)}=${escape(memberId)})`,
                 sizeLimit: 1,
@@ -462,15 +512,18 @@ class AuthLdap {
 
           if (ldapUser === undefined) {
             logger.error(
-              `LDAP user ${memberId} belongs to group ${groupLdapName} but could not be found by searching ${userAttribute}=${memberId} in ${this._searchBase}`
+              `LDAP user ${memberId} belongs to group ${groupLdapName} but could not be found by searching ${userAttribute}=${memberId} in ${domain.searchBase}`
             )
             continue
           }
 
-          const xoUser = xoUsers.find(user => user.authProviders.ldap.id === ldapUser[this._userIdAttribute])
+          const scopedUserId = domain.isPrimary
+            ? ldapUser[userIdAttribute]
+            : `${domain.uris[0]}:${ldapUser[userIdAttribute]}`
+          const xoUser = xoUsers.find(user => user.authProviders[provider]?.id === scopedUserId)
           if (xoUser === undefined) {
             logger.debug(
-              `LDAP user ${ldapUser[this._userIdAttribute]} belongs to group ${groupLdapName} but the corresponding XO user could not be found`
+              `LDAP user ${ldapUser[userIdAttribute]} belongs to group ${groupLdapName} but the corresponding XO user could not be found`
             )
             continue
           }
@@ -479,7 +532,7 @@ class AuthLdap {
           const userIdIndex = xoGroupMembers.findIndex(id => id === xoUser.id)
           if (userIdIndex !== -1) {
             logger.debug(
-              `LDAP user ${ldapUser[this._userIdAttribute]} belongs to group ${groupLdapName} and is already a member of the corresponding XO group ${xoGroup.name}`
+              `LDAP user ${ldapUser[userIdAttribute]} belongs to group ${groupLdapName} and is already a member of the corresponding XO group ${xoGroup.name}`
             )
             xoGroupMembers.splice(userIdIndex, 1)
             continue
@@ -498,8 +551,13 @@ class AuthLdap {
       if (user === undefined) {
         // All the remaining groups provided by LDAP can be removed from XO since
         // they don't exist in the LDAP directory any more
+        const isThisDomainGroup = domain.isPrimary
+          ? group => !group.providerGroupId.includes('://')
+          : group => group.providerGroupId.startsWith(domain.uris[0] + ':')
         await Promise.all(
-          xoGroups.filter(group => group.provider === 'ldap').map(group => this._xo.deleteGroup(group.id))
+          xoGroups
+            .filter(group => group.provider === 'ldap' && isThisDomainGroup(group))
+            .map(group => this._xo.deleteGroup(group.id))
         )
       }
 
