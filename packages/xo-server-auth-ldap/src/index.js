@@ -318,8 +318,40 @@ class AuthLdap {
             await this._synchronizeGroups({ domain })
           }
         },
+        testConnections: () => this.testConnections(),
       },
     })
+  }
+
+  async testConnection(uri, domain) {
+    const entry = { uri, domain: domain.provider, ok: true }
+    try {
+      const client = await this._connectAndBind({ ...domain, uris: [uri] })
+      try {
+        if (domain.groupsConfig !== undefined) {
+          await client.search(domain.groupsConfig.base, { scope: 'base', sizeLimit: 1 })
+        }
+      } catch (err) {
+        entry.ok = false
+        entry.error = `groups base "${domain.groupsConfig.base}" unreachable: ${err.message}`
+      } finally {
+        await client.unbind()
+      }
+    } catch (err) {
+      entry.ok = false
+      entry.error = err.message
+    }
+    return entry
+  }
+
+  async testConnections() {
+    const results = []
+    for (const domain of this._domains) {
+      for (const uri of domain.uris) {
+        results.push(await this.testConnection(uri, domain))
+      }
+    }
+    return results
   }
 
   unload() {
