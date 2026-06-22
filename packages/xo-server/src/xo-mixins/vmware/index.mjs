@@ -83,7 +83,8 @@ export default class MigrateVm {
           memory_dynamic_min: memory,
           memory_static_max: memory,
           // allow the user to reduce the memory of this VM to the limit set by the template
-          memory_static_min: template.memory_static_min,
+          // but it shouldn't be less than the actual memory
+          memory_static_min: Math.min(template.memory_static_min, memory),
           name_description: `from esxi -- source guest id :${guestId} -- template used:${template.name_label}`,
           name_label,
           platform: { ...template.platform },

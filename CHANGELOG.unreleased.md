@@ -24,6 +24,7 @@
 
 - [Site/Dashboard] Rename `no job` to `no active job` in the `VMs protection` card (PR [#10013](https://github.com/vatesfr/xen-orchestra/pull/10013))
 - [Backups] Fix failed VM not appearing in the logs (PR [#10021](https://github.com/vatesfr/xen-orchestra/pull/10021))
+- [V2V] Fix migration when template memory_static_min is it's less than actual vm memory (PR [#10014](https://github.com/vatesfr/xen-orchestra/pull/10014))
 
 ### Packages to release
 
@@ -42,8 +43,8 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
-- @xen-orchestra/web minor
 - @xen-orchestra/vmware-explorer minor
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server minor
 - xo-web minor
