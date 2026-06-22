@@ -16,7 +16,7 @@ export type ButtonIconConfig = {
 }
 
 export const useButtonIconColumn = defineColumn((config: HeaderConfig & ButtonIconConfig) => ({
-  renderHead: () => renderHeadCell(config.headerIcon, config.headerLabel),
+  renderHead: () => renderHeadCell(config.headerLabel),
   renderBody: (onClick: () => void) =>
     h(UiTableCell, { align: 'center', style: 'width: 6rem' }, () =>
       h(UiButtonIcon, {

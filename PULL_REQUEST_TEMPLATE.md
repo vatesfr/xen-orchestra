@@ -44,3 +44,4 @@ Notes:
 3. The _author_ should not make any changes:
    - When a reviewer is assigned.
    - Between the _junior_ and _senior_ reviews.
+4. If the PR relates to a change in the openAPI specification, a member of the DevOps team must also participate in the review.
