@@ -1,4 +1,4 @@
-<!-- v5 -->
+<!-- v9 -->
 <template>
   <div :class="toVariants({ accent, disabled, selected: isSelected })" class="ui-input" @click.self="focus()">
     <slot v-if="slots['prefix'] || prefix" name="prefix">
