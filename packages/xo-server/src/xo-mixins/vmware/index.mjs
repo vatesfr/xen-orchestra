@@ -178,7 +178,7 @@ export default class MigrateVm {
           vm,
           vmId,
         })
-        await sr.$xapi.setFieldEntries('VM', vm.$ref, 'other_config', { sourceVmId: vmId, sourceSnapshotId: undefined })
+        await sr.$xapi.setFieldEntries('VM', vm.$ref, 'other_config', { sourceVmId: vmId, sourceSnapshotId: null })
         await vm.$snapshot({ name_label: 'complete import from V2V' })
       }
     }
