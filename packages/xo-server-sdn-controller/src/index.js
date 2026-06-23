@@ -869,6 +869,7 @@ class SDNController extends EventEmitter {
       if (!newVifRules.includes(stringRule)) {
         newVifRules.push(stringRule)
         await vif.update_other_config('xo:sdn-controller:of-rules', JSON.stringify(newVifRules))
+        await vif.$xapi.barrier(vif.$ref)
       }
     } catch (error) {
       log.error('Error while adding OF rule', {
@@ -946,7 +947,7 @@ class SDNController extends EventEmitter {
           // continue on error: it could be normal to fail
           // (if no port where to apply the rule for example)
           // but log the error
-          log.warn('addNetworkRule: rule not added', error)
+          log.error('addNetworkRule: rule not added', error)
         }
       }
 
@@ -955,6 +956,7 @@ class SDNController extends EventEmitter {
         'xo:sdn-controller:of-rules',
         JSON.stringify(newNetworkRules.map(JSON.stringify))
       )
+      await network.$xapi.barrier(network.$ref)
     } catch (error) {
       log.error('Error while adding Network OF rule', {
         error,
@@ -1065,7 +1067,11 @@ class SDNController extends EventEmitter {
         if (error.code === 'HOST_OFFLINE') {
           log.info('deleteNetworkOfRule: Ignoring HOST_OFFLINE', { network: networkId })
         } else {
-          throw error
+          log.error('deleteNetworkOfRule: error while deleting OpenFlow rule', error)
+          if (this.#staticConfig.useDirectChannel === false) {
+            // means that the xapi python plugin failed
+            throw error
+          }
         }
       }
 
