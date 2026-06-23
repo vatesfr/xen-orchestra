@@ -1022,6 +1022,8 @@
   "traffic-rule": "Règle de trafic",
   "traffic-rule-delete-warning": "Cette action est irréversible. La règle de trafic sélectionnée sera définitivement supprimée.",
   "traffic-rules": "Règles de trafic",
+  "traffic-rules:format-warning": "Erreur de configuration : les règles de trafic ne sont pas au format attendu. Veuillez {check-doc} la plus récente pour savoir comment les migrer.",
+  "traffic-rules:format-warning:check-doc": "consulter la documentation",
   "traffic-rules:info-message": "Les règles de trafic sont en cours d'application. Certains comportements peuvent être hasardeux.",
   "traffic-rules:no-traffic-rules-detected": "Aucune règle de trafic détectée",
   "transfer-size": "Taille transférée",
