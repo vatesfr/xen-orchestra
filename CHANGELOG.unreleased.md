@@ -49,6 +49,7 @@
 - [Rest Api] Ask for user credentials for unauthenticated users (PR [#9938](https://github.com/vatesfr/xen-orchestra/pull/9938))
 - [Pool/System] Add `Reboot VM on internal shutdown` in pool's system tab (PR [#9962](https://github.com/vatesfr/xen-orchestra/pull/9962))
 - [Netbox] Support Netbox v4.6.x [#9818](https://github.com/vatesfr/xen-orchestra/issues/9818) (PR [#9939](https://github.com/vatesfr/xen-orchestra/pull/9939))
+- [XO6/VDI] Add a dedicated page to view a VDI's general information, configuration and space usage with detach/delete actions (PR [#9949](https://github.com/vatesfr/xen-orchestra/pull/9949))
 - [Icons] Updated connect/disconnect icons to use a plug icon (PR [#9942](https://github.com/vatesfr/xen-orchestra/pull/9942))
 - [Modal] Updated modal windows with a border and unified backgound color for better readability (PR [#9825](https://github.com/vatesfr/xen-orchestra/pull/9825))
 - [XO6/VDI] Update actions name to be more consistent (PR [#9968](https://github.com/vatesfr/xen-orchestra/pull/9968))
