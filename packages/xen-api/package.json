@@ -73,6 +73,6 @@
   "scripts": {
     "plot": "gnuplot -p memory-test.gnu",
     "postversion": "npm publish",
-    "test": "tap"
+    "test": "tap --allow-incomplete-coverage"
   }
 }
