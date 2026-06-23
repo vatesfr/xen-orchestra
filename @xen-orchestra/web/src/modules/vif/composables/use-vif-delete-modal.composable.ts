@@ -1,23 +1,39 @@
 import { useXoVifDeleteJob } from '@/modules/vif/jobs/xo-vif-delete.job.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { useRedirectAfterDelete } from '@/shared/composables/redirect-after-delete.composable.ts'
 import { useModal } from '@core/packages/modal/use-modal.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
+import { useRoute } from 'vue-router'
 
 export function useVifDeleteModal(rawVifs: MaybeRefOrGetter<FrontXoVif[]>) {
   const vifs = toComputed(rawVifs)
 
   const { run, canRun, isRunning } = useXoVifDeleteJob(vifs)
 
+  const route = useRoute()
+
+  const { redirectIfOnObjectPage } = useRedirectAfterDelete({
+    isOnObjectPage: () => route.name?.includes('/vm/') ?? false,
+    redirectTo: () => {
+      if (vifs.value[0]?.$VM !== undefined) {
+        return { name: '/vm/[id]/networks', params: { id: vifs.value[0]?.$VM } }
+      }
+      return undefined
+    },
+  })
+
   const openModal = useModal(() => ({
     component: import('@/modules/vif/components/modal/VifDeleteModal.vue'),
     props: { count: vifs.value.length },
     onConfirm: async () => {
+      let result
       try {
-        await run()
+        result = await run()
       } catch (error) {
         console.error('Error when deleting VIF:', error)
       }
+      await redirectIfOnObjectPage(result)
     },
   }))
 
