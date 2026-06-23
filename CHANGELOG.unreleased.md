@@ -91,6 +91,8 @@
 - [Backup/Restore] Fix file-level restore hanging when downloading large folders, and high memory use when downloading a folder as a zip (PR [#9776](https://github.com/vatesfr/xen-orchestra/pull/9776))
 - [Backup] Avoid warning during clean phase with already deleted aliases (PR [#9996](https://github.com/vatesfr/xen-orchestra/pull/9996))
 - [REST API/VM/dashboard] Fix detection of the last VM replication (PR [#9991](https://github.com/vatesfr/xen-orchestra/pull/9991))
+- [REST API/dashboard] Job sequences are now correctly taken into account when calculating VM protection (PR [#9997](https://github.com/vatesfr/xen-orchestra/pull/9997))
+
 
 ### Packages to release
 
