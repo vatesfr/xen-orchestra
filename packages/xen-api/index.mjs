@@ -25,6 +25,7 @@ import makeCallSetting from './_makeCallSetting.mjs'
 import parseUrl from './_parseUrl.mjs'
 import Ref from './_Ref.mjs'
 import transports from './transports/index.mjs'
+import XapiError from './_XapiError.mjs'
 import { noSuchObject } from 'xo-common/api-errors.js'
 
 const { debug } = createLogger('xen-api')
@@ -175,6 +176,19 @@ export class Xapi extends EventEmitter {
     }
     this._setUrl(url)
 
+    // Addresses of known pool members, used to fail over to a surviving host
+    // when the master becomes unreachable (e.g. HA promoted a new master after
+    // the old one died). Seeded with the configured target and any addresses
+    // passed by the caller (xo-server can persist these across restarts), then
+    // refreshed from `host.get_all_records` on every successful session open.
+    this._candidateHostnames = new Set([this._url.hostname])
+    if (Array.isArray(opts.candidateHostnames)) {
+      this._registerCandidateHostnames(opts.candidateHostnames)
+    }
+    // A dead host must fail the probe quickly rather than hang for the full
+    // call timeout (which defaults to an hour).
+    this._probeTimeout = opts.probeTimeout ?? 20e3
+
     this._connected = new Promise(resolve => {
       this._resolveConnected = resolve
     })
@@ -257,7 +271,7 @@ export class Xapi extends EventEmitter {
     })
 
     try {
-      await this._sessionOpen()
+      await this._sessionOpenWithFailover()
 
       debug(this._humanId + ': connected')
       this._status = CONNECTED
@@ -948,6 +962,15 @@ export class Xapi extends EventEmitter {
     const poolRef = Object.keys(pools)[0]
     this._pool = this._wrapRecord('pool', poolRef, pools[poolRef])
 
+    // Refresh the set of pool-member addresses so a later master failure can
+    // fail over to a survivor. Best-effort: a failure here must not break the
+    // (otherwise successful) session open.
+    await ignoreErrors.call(
+      this._call('host.get_all_records', [this._sessionId]).then(hosts =>
+        this._registerCandidateHostnames(map(hosts, host => host.address))
+      )
+    )
+
     this.emit('sessionId', this._sessionId)
 
     // if the pool ref has changed, it means that the XAPI has been restarted or
@@ -966,6 +989,96 @@ export class Xapi extends EventEmitter {
         }
       })
     }
+  }
+
+  _registerCandidateHostnames(hostnames) {
+    for (const hostname of hostnames) {
+      if (typeof hostname === 'string' && hostname !== '') {
+        this._candidateHostnames.add(hostname)
+      }
+    }
+  }
+
+  // Probe a single candidate address. Resolves with the hostname to connect to
+  // (the candidate itself when it answers, or the master it points to when it
+  // is a slave); rejects when the host cannot be reached or refuses the login.
+  async _probeHost(hostname) {
+    const url = { ...this._url, hostname }
+    const transport = this._createTransport({ dispatcher: this._undiciDispatcher, url })
+    const { user, password } = this._auth
+    try {
+      const sessionId = await pTimeout.call(
+        transport('session.login_with_password', [user, password]),
+        this._probeTimeout
+      )
+      // Reachable and willing to log us in: this host is (or has become) the
+      // master, or a standalone host.
+      ignoreErrors.call(transport('session.logout', [sessionId]))
+      return hostname
+    } catch (error) {
+      // A slave answers too: the pool is alive and it tells us where the
+      // current master is. That is a successful probe.
+      if (error?.code === 'HOST_IS_SLAVE') {
+        return error.params[0]
+      }
+      throw error
+    }
+  }
+
+  // Open a session, failing over to a surviving pool member when the current
+  // target is unreachable at the transport level (typically: the master died
+  // and HA promoted a new one, so the stored URL no longer answers).
+  async _sessionOpenWithFailover() {
+    try {
+      return await this._sessionOpen()
+    } catch (error) {
+      // Only fail over on transport/connection failures. A XapiError means a
+      // XAPI did answer: HOST_IS_SLAVE is already followed inside _sessionOpen,
+      // and an auth failure (SESSION_AUTHENTICATION_FAILED) must fail fast
+      // rather than be retried against every member.
+      if (error instanceof XapiError) {
+        throw error
+      }
+
+      // The current target just failed, so only probe the other members; if
+      // there are none there is nothing to fail over to.
+      const candidates = [...this._candidateHostnames].filter(hostname => hostname !== this._url.hostname)
+      if (candidates.length === 0) {
+        throw error
+      }
+
+      console.warn(`${this._humanId}: target unreachable, trying ${candidates.length} other pool member(s)`, {
+        candidates,
+        error,
+      })
+
+      // On total failure, surface the original connection error rather than the
+      // aggregate of probe failures.
+      return this._failoverToSurvivor(candidates, error)
+    }
+  }
+
+  // Probe pool members in parallel and reopen the session against whichever
+  // answers first; a slave redirects us to the current master via the
+  // HOST_IS_SLAVE handling in `_probeHost`. Each probe is bounded by
+  // `_probeTimeout`, so dead members fail fast while a live survivor wins the
+  // race immediately. By default every known member is probed (including the
+  // current target, in case the failure was a transient toolstack restart
+  // rather than a dead host), which is what the event loop uses to recover
+  // mid-session. Throws `fallbackError` when provided, otherwise the aggregate
+  // probe failure, when no member answers.
+  async _failoverToSurvivor(candidates = [...this._candidateHostnames], fallbackError) {
+    let target
+    try {
+      target = await Promise.any(candidates.map(hostname => this._probeHost(hostname)))
+    } catch (error) {
+      throw fallbackError ?? error
+    }
+    if (target !== this._url.hostname) {
+      console.warn(`${this._humanId}: failing over to ${target}`)
+      this._setUrl({ ...this._url, hostname: target })
+    }
+    return this._sessionOpen()
   }
 
   async _getHostBackupAddress(host) {
@@ -1267,6 +1380,30 @@ export class Xapi extends EventEmitter {
           this.emit('eventFetchingError', error)
           this._watchEventsError = error
           console.warn('_watchEvents', error)
+
+          // A connection-level failure (no XAPI answered, e.g. ECONNRESET)
+          // means the current target became unreachable mid-session, typically
+          // the master died and HA promoted a survivor. A XapiError, by
+          // contrast, means a XAPI did answer, so it is not a reachability
+          // problem and must not trigger a failover. Probe the known pool
+          // members, reconnect to whichever answers, then restart the event
+          // loop from the top (re-injecting and refetching against the new
+          // master). Retry indefinitely until a survivor appears.
+          if (!(error instanceof XapiError)) {
+            while (true) {
+              await this._connected
+              try {
+                await this._failoverToSurvivor()
+                // eslint-disable-next-line no-labels
+                continue mainLoop
+              } catch (failoverError) {
+                this._watchEventsError = failoverError
+                console.warn('_watchEvents: no surviving pool member reachable yet, retrying', failoverError)
+                await pDelay(this._eventPollDelay)
+              }
+            }
+          }
+
           await pDelay(this._eventPollDelay)
           continue
         }
