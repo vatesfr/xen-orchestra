@@ -35,7 +35,7 @@
             }"
             :icon="getVdiIcon(getVbdsByIds(vdiSourceVdiSnapshot?.$VBDs ?? []))"
           >
-            {{ vdiSnapshot.$snapshot_of }}
+            {{ vdiSourceVdiSnapshot ? vdiSourceVdiSnapshot.name_label : vdiSnapshot.$snapshot_of }}
           </UiLink>
         </template>
       </VtsTabularKeyValueRow>
