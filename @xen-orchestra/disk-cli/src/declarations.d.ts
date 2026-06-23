@@ -62,7 +62,7 @@ declare module '@xen-orchestra/backup-archive/disks' {
     dispose: () => Promise<void>
   }
 
-  export function isDisk(handler: RemoteHandler, path: string): boolean
+  export function isDisk(path: string): boolean
 
   export function openDisposableDisk(params: { handler: RemoteHandler; path: string }): Promise<DiskDisposable>
 

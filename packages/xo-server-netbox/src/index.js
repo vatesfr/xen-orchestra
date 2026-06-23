@@ -28,6 +28,16 @@ const G = 1024 ** 3
 
 const { push } = Array.prototype
 
+const RFC1918_10 = ipaddr.parseCIDR('10.0.0.0/8')
+const RFC1918_172 = ipaddr.parseCIDR('172.16.0.0/12')
+const RFC1918_192 = ipaddr.parseCIDR('192.168.0.0/16')
+const IPV4_KIND = 'ipv4'
+const isRfc1918 = ip =>
+  ip.kind() === IPV4_KIND &&
+  (ip.match(RFC1918_10[0], RFC1918_10[1]) ||
+    ip.match(RFC1918_172[0], RFC1918_172[1]) ||
+    ip.match(RFC1918_192[0], RFC1918_192[1]))
+
 // =============================================================================
 
 export configurationSchema from './configuration-schema'
@@ -46,6 +56,7 @@ class Netbox {
   #syncUsers
   #token
   #xo
+  #ignoreRfc1918
 
   constructor({ xo }) {
     this.#xo = xo
@@ -70,6 +81,7 @@ class Netbox {
     this.#token = configuration.token.replace(/^(?:Bearer|Token)\s+/i, '')
     this.#xoPools = configuration.pools
     this.#syncInterval = configuration.syncInterval && configuration.syncInterval * 60 * 60 * 1e3
+    this.#ignoreRfc1918 = configuration.ignoreRfc1918 ?? false
 
     // We don't want to start the auto-sync if the plugin isn't loaded
     if (state.loaded) {
@@ -840,6 +852,10 @@ class Netbox {
             continue
           }
           const ipKind = parsedIp.kind()
+
+          if (this.#ignoreRfc1918 && isRfc1918(parsedIp)) {
+            continue
+          }
 
           // Find the smallest prefix within Netbox's existing prefixes
           // Users must create prefixes themselves

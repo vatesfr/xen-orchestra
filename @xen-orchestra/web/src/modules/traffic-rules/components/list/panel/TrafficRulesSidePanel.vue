@@ -1,7 +1,10 @@
 <template>
   <VtsStateHero v-if="!isReady" format="panel" type="busy" size="medium" />
+
   <UiPanel v-else :class="{ 'mobile-drawer': uiStore.isSmall }">
     <template #header>
+      <TrafficRuleActions :rule class="delete-button" />
+
       <div :class="{ 'action-buttons-container': uiStore.isSmall }">
         <UiButtonIcon
           v-tooltip="t('action:close')"
@@ -13,12 +16,15 @@
         />
       </div>
     </template>
+
     <template #default>
       <TrafficRuleSummaryCard :rule />
+
       <template v-if="vif">
         <TrafficRuleVifInfosCard :rule :vif />
         <TrafficRuleVifNetworkInfoCard :rule :vif />
       </template>
+
       <template v-else-if="network">
         <TrafficRuleNetworkInfosCard :rule :network />
         <TrafficRuleNetworkPifsCard :rule :network />
@@ -29,6 +35,7 @@
 
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import TrafficRuleActions from '@/modules/traffic-rules/components/actions/TrafficRuleActions.vue'
 import TrafficRuleNetworkInfosCard from '@/modules/traffic-rules/components/list/panel/cards/TrafficRuleNetworkInfosCard.vue'
 import TrafficRuleNetworkPifsCard from '@/modules/traffic-rules/components/list/panel/cards/TrafficRuleNetworkPifsCard.vue'
 import TrafficRuleSummaryCard from '@/modules/traffic-rules/components/list/panel/cards/TrafficRuleSummaryCard.vue'
@@ -45,22 +52,21 @@ import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { rule } = defineProps<{ rule: TrafficRule }>()
+const { rule } = defineProps<{
+  rule: TrafficRule
+}>()
 
 const emit = defineEmits<{
   close: []
 }>()
 
 const uiStore = useUiStore()
-
 const { t } = useI18n()
 
 const { getVifById, areVifsReady } = useXoVifCollection()
-
 const { getNetworkById, areNetworksReady } = useXoNetworkCollection()
 
 const vif = computed(() => (rule.type === 'VIF' ? getVifById(rule.sourceId) : undefined))
-
 const network = computed(() => getNetworkById(rule.networkId))
 
 const isReady = logicAnd(areVifsReady, areNetworksReady)
@@ -77,5 +83,9 @@ const isReady = logicAnd(areVifsReady, areNetworksReady)
     align-items: center;
     width: 100%;
   }
+}
+
+.delete-button {
+  margin-inline-end: auto;
 }
 </style>

@@ -1,12 +1,18 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      {{ t('hosts') }}
-      <UiCounter :value="hosts.length" accent="neutral" size="small" variant="primary" />
+      <div class="title">
+        {{ t('hosts') }}
+        <UiCounter :value="hosts.length" accent="neutral" size="small" variant="primary" />
+      </div>
     </UiCardTitle>
     <UiCollapsibleList v-if="hosts.length > 0" tag="ul" :total-items="hosts.length">
       <li v-for="host in hosts" :key="host.id" v-tooltip class="text-ellipsis">
-        <UiLink size="small" :icon="`object:host:${toLower(host.power_state)}`" :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }">
+        <UiLink
+          size="small"
+          :icon="`object:host:${toLower(host.power_state)}`"
+          :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
+        >
           {{ host.name_label }}
         </UiLink>
       </li>
@@ -39,5 +45,11 @@ const { t } = useI18n()
 <style scoped lang="postcss">
 .card-container {
   gap: 1.6rem;
+
+  .title {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
 }
 </style>

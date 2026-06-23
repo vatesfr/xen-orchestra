@@ -13,7 +13,7 @@ export const useDateColumn = defineColumn((config?: HeaderConfig & DateConfig) =
   const { d } = useI18n()
 
   return {
-    renderHead: () => renderHeadCell(config?.headerIcon ?? 'fa:calendar', config?.headerLabel),
+    renderHead: () => renderHeadCell(config?.headerLabel),
     renderBody: (date?: DateLike, options?: { relative?: boolean }) => {
       return renderBodyCell(() => {
         if (date === undefined) {

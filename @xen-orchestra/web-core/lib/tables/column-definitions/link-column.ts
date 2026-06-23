@@ -5,7 +5,7 @@ import type { HeaderConfig } from '@core/tables/types.ts'
 import { h } from 'vue'
 
 export const useLinkColumn = defineColumn((config?: HeaderConfig) => ({
-  renderHead: () => renderHeadCell(config?.headerIcon ?? 'fa:a', config?.headerLabel),
+  renderHead: () => renderHeadCell(config?.headerLabel),
   renderBody: (link: { label: string } & VtsLinkCellProps) => {
     const { label, ...linkCellProps } = link
 
