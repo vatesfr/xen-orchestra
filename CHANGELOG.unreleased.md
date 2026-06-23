@@ -41,7 +41,9 @@
   - `/vms/:id/actions/migrate` (PR [#9910](https://github.com/vatesfr/xen-orchestra/pull/9910))
 
 - [XO6] live update XO tasks (PR [#9901](https://github.com/vatesfr/xen-orchestra/pull/9901))
-- [XO6/Backup] add progress for backups tasks (PR [#9901](https://github.com/vatesfr/xen-orchestra/pull/9901))
+- [XO6/Backup] add progress for backups tasks(PR [#9901](https://github.com/vatesfr/xen-orchestra/pull/9901))
+- [XO6/Traffic Rules] add colors for tags in policy column (PR [#9979](https://github.com/vatesfr/xen-orchestra/pull/9979))
+- [XO6/Traffic rules] add possibility to delete a traffic rule (PR [#9956](https://github.com/vatesfr/xen-orchestra/pull/9956))
 - [REST API] add `hosts/:id/actions/join_pool` REST route (PR [#9876](https://github.com/vatesfr/xen-orchestra/pull/9876))
 - [VM/Network] Add VIF column to table (PR [#9959](https://github.com/vatesfr/xen-orchestra/pull/9959))
 - [Rest Api] Ask for user credentials for unauthenticated users (PR [#9938](https://github.com/vatesfr/xen-orchestra/pull/9938))
@@ -67,6 +69,10 @@
   - vue-router fixed to 5.0.6 (@babel/generator@^8.0.0-rc.4 in 5.0.7)
   - update packages to sync with yarn.lock (e.g. client-s3 package)
 
+- [i18n] Update Czech, Danish, Norwegian, Slovak, Spanish and Swedish translations (PR [#9914](https://github.com/vatesfr/xen-orchestra/pull/9914))
+- [REST API] `PATCH /rest/v0/vifs/{id}` to update VIF properties (allowed IPs, locking mode, rate limit, TX checksumming) (PR [#9935](https://github.com/vatesfr/xen-orchestra/pull/9935))
+- [XO 6] Add an Administration tab in the sidebar with a user management menu (PR [#9947](https://github.com/vatesfr/xen-orchestra/pull/9947))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -83,6 +89,7 @@
 - [Backup/Restore] Fix file-level restore of VMs whose disks use LVM (e.g. the default Ubuntu install layout): logical volumes are now listed and can be restored, including when restoring several copies of the same VM at once — previously failed with `unknown filesystem type 'LVM2_member'` (PR [#9776](https://github.com/vatesfr/xen-orchestra/pull/9776))
 - [Backup/Restore] Fix file-level restore hanging when downloading large folders, and high memory use when downloading a folder as a zip (PR [#9776](https://github.com/vatesfr/xen-orchestra/pull/9776))
 - [Backup] Avoid warning during clean phase with already deleted aliases (PR [#9996](https://github.com/vatesfr/xen-orchestra/pull/9996))
+- [REST API/VM/dashboard] Fix detection of the last VM replication (PR [#9991](https://github.com/vatesfr/xen-orchestra/pull/9991))
 
 ### Packages to release
 

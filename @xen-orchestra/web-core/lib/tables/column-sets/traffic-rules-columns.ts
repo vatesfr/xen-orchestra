@@ -1,7 +1,7 @@
 import { defineColumns } from '@core/packages/table/define-columns.ts'
+import { useActionColumn } from '@core/tables/column-definitions/action-column.ts'
 import { useDoubleLinkColumn } from '@core/tables/column-definitions/double-link-column.ts'
 import { useNumberColumn } from '@core/tables/column-definitions/number-column.ts'
-import { useSelectItemColumn } from '@core/tables/column-definitions/select-item-column.ts'
 import { useTagColumn } from '@core/tables/column-definitions/tag-column.ts'
 import { useTextColumn } from '@core/tables/column-definitions/text-column.ts'
 import { useTruncatedTextColumn } from '@core/tables/column-definitions/truncated-text-column.ts'
@@ -22,6 +22,6 @@ export const useTrafficRulesColumns = defineColumns(() => {
       headerLabel: () => t('direction'),
     }),
     object: useDoubleLinkColumn({ headerLabel: () => t('object') }),
-    selectItem: useSelectItemColumn(),
+    actions: useActionColumn({}),
   }
 })
