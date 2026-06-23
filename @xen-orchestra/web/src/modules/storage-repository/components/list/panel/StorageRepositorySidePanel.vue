@@ -49,12 +49,12 @@ import StorageRepositorySpaceCard from '@/modules/storage-repository/components/
 import StorageRepositoryVdisCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositoryVdisCard.vue'
 import { useGetPbdsInScope } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { SrScope } from '@/modules/storage-repository/types/storage-repository.type'
 import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import {
   type FrontXoVdiSnapshot,
   useXoVdiSnapshotCollection,
 } from '@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'
+import type { SrScope } from '@core/types/storage-repository.type.ts'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
