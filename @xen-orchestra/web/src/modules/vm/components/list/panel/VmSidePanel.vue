@@ -2,7 +2,10 @@
   <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
     <template #header>
       <div class="panel-header" :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <VtsActionsMenu :actions="actions" size="small" />
+        <div class="panel-actions">
+          <VmChangeStateMenu :vm />
+          <VmActionsMenu :vm="vm" :include="['snapshot', 'delete']" size="small" />
+        </div>
         <UiButtonIcon
           v-tooltip="t('action:close')"
           size="small"
@@ -13,6 +16,7 @@
         />
       </div>
     </template>
+
     <template #default>
       <VmInfoCard :vm />
       <VmNetworkCard :vm />
@@ -22,12 +26,12 @@
 </template>
 
 <script setup lang="ts">
+import VmActionsMenu from '@/modules/vm/components/actions/VmActionsMenu.vue'
 import VmInfoCard from '@/modules/vm/components/list/panel/cards/VmInfoCard.vue'
 import VmNetworkCard from '@/modules/vm/components/list/panel/cards/VmNetworkCard.vue'
 import VmResourcesCard from '@/modules/vm/components/list/panel/cards/VmResourcesCard.vue'
-import { useVmRowActions } from '@/modules/vm/composables/use-vm-row-actions.composable.ts'
+import VmChangeStateMenu from '@/modules/vm/components/VmChangeStateMenu.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import VtsActionsMenu from '@core/components/menu/VtsActionsMenu.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
@@ -44,7 +48,6 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const uiStore = useUiStore()
-const { actions } = useVmRowActions(vm)
 </script>
 
 <style scoped lang="postcss">
@@ -53,6 +56,12 @@ const { actions } = useVmRowActions(vm)
   justify-content: space-between;
   align-items: center;
   width: 100%;
+}
+
+.panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
 }
 
 .mobile-drawer {

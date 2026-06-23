@@ -17,27 +17,8 @@
       <UiLink :href="xo5VmGeneralHref" size="medium">
         {{ t('manage-vm-lifecycle-in-xo-5') }}
       </UiLink>
-      <MenuList placement="bottom-end">
-        <template #trigger="{ open }">
-          <UiDropdownButton @click="open($event)">{{ t('action:change-state') }}</UiDropdownButton>
-        </template>
-        <VmPowerStateActions :vm />
-      </MenuList>
-      <MenuList placement="bottom-end">
-        <template #trigger="{ open }">
-          <UiButtonIcon
-            v-tooltip="{
-              placement: 'left',
-              content: t('more-actions'),
-            }"
-            icon="action:more-actions"
-            accent="brand"
-            size="medium"
-            @click="open($event)"
-          />
-        </template>
-        <VmMoreActions :vm />
-      </MenuList>
+      <VmChangeStateMenu :vm />
+      <VmActionsMenu :vm :include="['snapshot', 'delete']" />
     </template>
   </UiHeadBar>
   <TabList>
@@ -90,17 +71,14 @@
 </template>
 
 <script lang="ts" setup>
-import VmMoreActions from '@/modules/vm/components/actions/VmMoreActions.vue'
-import VmPowerStateActions from '@/modules/vm/components/actions/VmPowerStateActions.vue'
+import VmActionsMenu from '@/modules/vm/components/actions/VmActionsMenu.vue'
+import VmChangeStateMenu from '@/modules/vm/components/VmChangeStateMenu.vue'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
-import MenuList from '@core/components/menu/MenuList.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
