@@ -2,7 +2,13 @@
   <UiCard>
     <UiCardTitle>
       {{ t('tasks') }}
-      <UiCounter accent="info" size="small" variant="primary" :value="pendingTasks.length" />
+      <UiCounter
+        v-if="pendingTasks.length > 0"
+        accent="info"
+        size="small"
+        variant="primary"
+        :value="pendingTasks.length"
+      />
     </UiCardTitle>
     <TasksTable :pending-tasks="pendingTasks" />
   </UiCard>
