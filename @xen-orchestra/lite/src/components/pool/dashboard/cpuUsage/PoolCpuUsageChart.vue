@@ -1,5 +1,5 @@
 <template>
-  <UiCard :color="hasError ? 'error' : undefined" class="linear-chart">
+  <UiCard :has-error>
     <UiCardTitle>{{ t('pool-cpu-usage') }}</UiCardTitle>
     <UiCardTitle :level="UiCardTitleLevel.Subtitle">
       {{ t('last-week') }}
@@ -16,7 +16,6 @@
 </template>
 
 <script lang="ts" setup>
-import UiCard from '@/components/ui/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import { RRD_STEP_FROM_STRING } from '@/libs/xapi-stats'
 import { useHostStore } from '@/stores/xen-api/host.store'
@@ -24,6 +23,7 @@ import { UiCardTitleLevel } from '@/types/enums'
 import { IK_HOST_LAST_WEEK_STATS } from '@/types/injection-keys'
 import type { LinearChartData, ValueFormatter } from '@core/types/chart'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
 import type { XapiHostStatsRaw } from '@vates/types/common'
 import { sumBy } from 'lodash-es'
 import { computed, defineAsyncComponent, inject } from 'vue'

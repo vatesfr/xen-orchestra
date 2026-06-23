@@ -14,10 +14,10 @@
 
 <script lang="ts" setup>
 import HostPatchesTable from '@/components/HostPatchesTable.vue'
-import UiCard from '@/components/ui/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import { useHostPatches } from '@/composables/host-patches.composable'
 import { useHostStore } from '@/stores/xen-api/host.store'
+import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
