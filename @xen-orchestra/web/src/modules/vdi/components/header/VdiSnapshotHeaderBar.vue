@@ -1,6 +1,6 @@
 <template>
   <UiHeadBar>
-    {{ snapshot.name_label }}
+    {{ vdiSnapshot.name_label }}
     <template #icon>
       <VtsIcon size="medium" name="object:vdi-snapshot" />
     </template>
@@ -12,7 +12,7 @@ import type { FrontXoVdiSnapshot } from '@/modules/vdi/remote-resources/use-xo-v
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 
-const { snapshot } = defineProps<{
-  snapshot: FrontXoVdiSnapshot
+defineProps<{
+  vdiSnapshot: FrontXoVdiSnapshot
 }>()
 </script>
