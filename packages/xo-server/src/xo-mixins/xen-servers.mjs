@@ -187,6 +187,16 @@ export default class XenServers {
       hasChanged = true
     }
 
+    // special handling for poolMembersAddresses (an array, compared by content)
+    const { poolMembersAddresses } = properties
+    if (
+      poolMembersAddresses !== undefined &&
+      JSON.stringify(poolMembersAddresses) !== JSON.stringify(server.poolMembersAddresses)
+    ) {
+      server.poolMembersAddresses = poolMembersAddresses.length > 0 ? poolMembersAddresses : undefined
+      hasChanged = true
+    }
+
     if (hasChanged) {
       await this._servers.update(server)
     }
@@ -232,12 +242,14 @@ export default class XenServers {
         serverIdsByPool[xapiObject.$id] = conId
       }
 
-      // save pool name and description in server properties
+      // save pool name and description, and the pool-member addresses (so
+      // master failover survives an XO restart), in the server properties
       if (xapiObject.$type === 'pool') {
         self
           .updateXenServer(serverIdsByPool[xapiId], {
             poolNameDescription: xapiObject.name_description,
             poolNameLabel: xapiObject.name_label,
+            poolMembersAddresses: self._xapis[conId]?.candidateHostnames,
           })
           ::ignoreErrors()
       }
@@ -354,6 +366,11 @@ export default class XenServers {
         user: server.username,
         password: server.password,
       },
+      // Persisted pool-member addresses so that, after an XO restart, the
+      // connection can still fail over to a surviving master even when the
+      // configured `host` is the dead one (e.g. XO is HA-restarted on the very
+      // pool whose master just died).
+      candidateHostnames: server.poolMembersAddresses,
       url: server.host,
       watchEvents: false,
     }))

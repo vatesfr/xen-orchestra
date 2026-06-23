@@ -245,6 +245,14 @@ export class Xapi extends EventEmitter {
     return this._pool
   }
 
+  // Addresses of the known pool members (current target + every host seen on
+  // the pool). Callers can persist this and feed it back as
+  // `opts.candidateHostnames` so master failover still works after a restart,
+  // when the only otherwise-known address may be a dead master.
+  get candidateHostnames() {
+    return [...this._candidateHostnames]
+  }
+
   get sessionId() {
     assert.strictEqual(this._status, CONNECTED)
     return this._sessionId
