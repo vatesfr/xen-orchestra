@@ -66,10 +66,6 @@ const { HeadCells, BodyCells } = useHostColumns({
 
 <style lang="postcss" scoped>
 .pool-hosts-view {
-  margin: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 2.4rem;
   margin: 0.8rem;
 }
 </style>
