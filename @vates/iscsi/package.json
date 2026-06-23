@@ -1,0 +1,57 @@
+{
+  "name": "@vates/iscsi",
+  "version": "0.1.0",
+  "main": "dist/index.mjs",
+  "types": "dist/index.d.mts",
+  "bin": {
+    "vates-iscsi": "dist/cli.mjs"
+  },
+  "license": "ISC",
+  "private": false,
+  "type": "module",
+  "description": "Minimal iSCSI target exposing a single read/write LUN",
+  "keywords": [
+    "iscsi",
+    "target",
+    "scsi",
+    "lun",
+    "block",
+    "storage"
+  ],
+  "dependencies": {
+    "@vates/read-chunk": "^1.2.1",
+    "@xen-orchestra/log": "^0.7.2",
+    "promise-toolbox": "^0.21.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.19.0",
+    "@types/node": "^22.0",
+    "rimraf": "^6.0.1",
+    "typescript": "~5.6",
+    "typescript-eslint": "^8.61.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist/",
+    "dev": "tsc --watch",
+    "postversion": "npm publish --access public",
+    "prebuild": "rimraf dist/",
+    "predev": "yarn run prebuild",
+    "test": "tsc && node --test \"dist/**/*.test.mjs\"",
+    "test-integration": "tsc && node --test \"dist/**/*.integ.mjs\""
+  },
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/iscsi",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@vates/iscsi",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
