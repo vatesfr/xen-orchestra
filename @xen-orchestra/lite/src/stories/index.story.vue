@@ -28,11 +28,11 @@
 <script lang="ts" setup>
 import CodeHighlight from '@/components/CodeHighlight.vue'
 import FormInput from '@/components/form/FormInput.vue'
-import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { useFormSelect } from '@core/packages/form-select'
 import { castArray } from 'lodash-es'
 import { type ComponentOptions, computed, ref, watch } from 'vue'
