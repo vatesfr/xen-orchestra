@@ -1,7 +1,7 @@
 <!-- v9 -->
 <template>
   <div :class="toVariants({ accent, disabled, selected: isSelected })" class="ui-input" @click.self="focus()">
-    <slot v-if="slots['prefix'] || prefix" name="prefix">
+    <slot v-if="slots.prefix || prefix" name="prefix">
       <span class="prefix">
         {{ prefix }}
       </span>
@@ -24,7 +24,7 @@
       @focus="isFocused = true"
       @blur="isFocused = false"
     />
-    <slot v-if="slots['suffix'] || suffix" name="suffix">
+    <slot v-if="slots.suffix || suffix" name="suffix">
       <span class="suffix">
         {{ suffix }}
       </span>
@@ -161,7 +161,7 @@ defineExpose({ focus })
     align-self: stretch;
     background-color: var(--color-neutral-background-secondary);
     padding: 0 0.5rem;
-    margin-left: -1.6rem;
+    margin-inline-left: -1.6rem;
   }
 
   .suffix {
@@ -171,7 +171,7 @@ defineExpose({ focus })
     align-self: stretch;
     background-color: var(--color-neutral-background-secondary);
     padding: 0 0.5rem;
-    margin-right: -1.6rem;
+    margin-inline-end: -1.6rem;
   }
 
   &.disabled .right-icon {
