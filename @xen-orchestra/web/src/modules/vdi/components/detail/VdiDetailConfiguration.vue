@@ -7,7 +7,13 @@
       <VtsTabularKeyValueRow :label="t('format')" :value="displayedVdi?.image_format" />
       <VtsTabularKeyValueRow :label="t('storage')">
         <template v-if="sr" #value>
-          <UiLink size="small" :href="srHref" :icon="srStatusIcon">
+          <UiLink
+            size="small"
+            :href="srHref"
+            :icon="srStatusIcon"
+            :is-primary="isDefaultSr(sr)"
+            :primary-tooltip="t('default-storage-repository')"
+          >
             {{ sr.name_label }}
           </UiLink>
         </template>
@@ -45,7 +51,7 @@ const { vdi, vdiSnapshot } = defineProps<{ vdi?: FrontXoVdi; vdiSnapshot?: Front
 
 const { t } = useI18n()
 
-const { useGetSrById } = useXoSrCollection()
+const { useGetSrById, isDefaultSr } = useXoSrCollection()
 const { buildXo5Route } = useXoRoutes()
 
 const displayedVdi = computed(() => vdi ?? vdiSnapshot)
