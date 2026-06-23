@@ -117,7 +117,7 @@ A few caveats:
   :::
 
 :::tip
-Since Xen Orchestra 6.5 UI, you can manage network-wide or VIF traffic rules. The rules can also be created through `xo-cli`.
+Since Xen Orchestra 6.5 UI, you can manage network-wide or VIF traffic rules. The rules can also be created through the [REST API](./restapi.md).
 :::
 
 - Works on any network:
