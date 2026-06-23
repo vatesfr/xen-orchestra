@@ -24,8 +24,8 @@
 
       <VtsTabularKeyValueRow v-if="vdi" :label="t('device')" :value="vbd?.device ?? '-'" />
 
-      <VtsTabularKeyValueRow v-if="vdiSnapshot" :label="t('vdi-snapshot-parent')">
-        <template #value>
+      <VtsTabularKeyValueRow v-if="vdiSnapshot" :label="t('vdi-snapshot-source')">
+        <template v-if="vdiSnapshot.$snapshot_of" #value>
           <UiLink
             size="small"
             :to="{

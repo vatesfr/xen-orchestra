@@ -48,7 +48,7 @@
         {{ t('storage') }}
       </UiLink>
       <span>
-        {{ vdiSnapshot.name_label }}
+        {{ labelVdiSnapshot }}
       </span>
     </UiBreadcrumb>
 
@@ -94,6 +94,13 @@ const { useGetPoolById } = useXoPoolCollection()
 const pool = useGetPoolById(() => sr?.$pool ?? vdiSnapshot?.$pool)
 
 const size = computed(() => (uiStore.isSmall ? 'small' : 'medium'))
+
+const labelVdiSnapshot = computed(() => {
+  if (vdiSnapshot && vdiSnapshot.name_label.length > 0) {
+    return vdiSnapshot.name_label
+  }
+  return t('unknown')
+})
 </script>
 
 <style lang="postcss" scoped>
