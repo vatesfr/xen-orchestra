@@ -59,6 +59,7 @@ const ui = useUiStore()
 
 <style lang="postcss" scoped>
 .vts-layout-sidebar {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -83,8 +84,10 @@ const ui = useUiStore()
   }
 
   .lock {
-    text-align: right;
-    padding: 0.8rem 0.8rem 0;
+    position: absolute;
+    inset-block-start: 0.8rem;
+    inset-inline-end: 1.2rem;
+    z-index: 1;
   }
 
   .content {

@@ -1,5 +1,5 @@
 <template>
-  <UiCard :color="hasError ? 'error' : undefined">
+  <UiCard :has-error>
     <UiCardTitle :left="t('storage-usage')" :right="t('top-#', { n: N_ITEMS })" />
     <VtsStateHero v-if="!isReady" format="card" type="busy" size="medium" />
     <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">
@@ -20,7 +20,6 @@
 </template>
 
 <script lang="ts" setup>
-import UiCard from '@/components/ui/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import { N_ITEMS } from '@/pages/pool/[uuid]/dashboard.vue'
 import { useSrStore } from '@/stores/xen-api/sr.store'
@@ -28,6 +27,7 @@ import VtsProgressBarGroup, {
   type ProgressBarGroupItem,
 } from '@core/components/progress-bar-group/VtsProgressBarGroup.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { computed } from 'vue'

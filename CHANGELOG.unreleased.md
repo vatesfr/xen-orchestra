@@ -49,6 +49,7 @@
 - [Rest Api] Ask for user credentials for unauthenticated users (PR [#9938](https://github.com/vatesfr/xen-orchestra/pull/9938))
 - [Pool/System] Add `Reboot VM on internal shutdown` in pool's system tab (PR [#9962](https://github.com/vatesfr/xen-orchestra/pull/9962))
 - [Netbox] Support Netbox v4.6.x [#9818](https://github.com/vatesfr/xen-orchestra/issues/9818) (PR [#9939](https://github.com/vatesfr/xen-orchestra/pull/9939))
+- [XO6/VDI] Add a dedicated page to view a VDI's general information, configuration and space usage with detach/delete actions (PR [#9949](https://github.com/vatesfr/xen-orchestra/pull/9949))
 - [Icons] Updated connect/disconnect icons to use a plug icon (PR [#9942](https://github.com/vatesfr/xen-orchestra/pull/9942))
 - [Modal] Updated modal windows with a border and unified backgound color for better readability (PR [#9825](https://github.com/vatesfr/xen-orchestra/pull/9825))
 - [XO6/VDI] Update actions name to be more consistent (PR [#9968](https://github.com/vatesfr/xen-orchestra/pull/9968))
@@ -71,6 +72,8 @@
 
 - [i18n] Update Czech, Danish, Norwegian, Slovak, Spanish and Swedish translations (PR [#9914](https://github.com/vatesfr/xen-orchestra/pull/9914))
 - [REST API] `PATCH /rest/v0/vifs/{id}` to update VIF properties (allowed IPs, locking mode, rate limit, TX checksumming) (PR [#9935](https://github.com/vatesfr/xen-orchestra/pull/9935))
+- [XO 6] Add an Administration tab in the sidebar with a user management menu (PR [#9947](https://github.com/vatesfr/xen-orchestra/pull/9947))
+- [OpenMetrics] Include XO tags as a `tags` label on host, VM and SR metrics [#9628](https://github.com/vatesfr/xen-orchestra/issues/9628) (PR [#9971](https://github.com/vatesfr/xen-orchestra/pull/9971))
 - **XO 5**:
   - [XOA] Ability to take snapshot before installing upgrades (PR [#9920](https://github.com/vatesfr/xen-orchestra/pull/9920))
 
@@ -89,7 +92,10 @@
 - [REST API] `GET /vms/:id.:format`, `GET /vm-templates/:id.:format`, `GET /vm-snapshots/:id.:format` now correctly support explicit compress query param (`zstd` | `gzip`). Still support `true` | `false` as deprecated value (PR [#9960](https://github.com/vatesfr/xen-orchestra/pull/9960))
 - [Backup/Restore] Fix file-level restore of VMs whose disks use LVM (e.g. the default Ubuntu install layout): logical volumes are now listed and can be restored, including when restoring several copies of the same VM at once — previously failed with `unknown filesystem type 'LVM2_member'` (PR [#9776](https://github.com/vatesfr/xen-orchestra/pull/9776))
 - [Backup/Restore] Fix file-level restore hanging when downloading large folders, and high memory use when downloading a folder as a zip (PR [#9776](https://github.com/vatesfr/xen-orchestra/pull/9776))
+- [Backup] Avoid warning during clean phase with already deleted aliases (PR [#9996](https://github.com/vatesfr/xen-orchestra/pull/9996))
 - [REST API/VM/dashboard] Fix detection of the last VM replication (PR [#9991](https://github.com/vatesfr/xen-orchestra/pull/9991))
+- [REST API/dashboard] Job sequences are now correctly taken into account when calculating VM protection (PR [#9997](https://github.com/vatesfr/xen-orchestra/pull/9997))
+
 
 ### Packages to release
 
@@ -130,6 +136,7 @@
 - xo-server-ipmi-sensors patch
 - xo-server-load-balancer minor
 - xo-server-netbox minor
+- xo-server-openmetrics minor
 - xo-server-sdn-controller patch
 - xo-web minor
 

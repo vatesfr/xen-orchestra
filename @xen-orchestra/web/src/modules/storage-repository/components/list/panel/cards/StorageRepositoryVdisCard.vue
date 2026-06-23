@@ -1,16 +1,52 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      {{ t('vdis') }}
-      <UiCounter :value="vdis.length" accent="neutral" size="small" variant="primary" />
+      <div class="title">
+        {{ t('vdis') }}
+        <UiCounter :value="vdis.length + vdiSnapshots.length" accent="neutral" size="small" variant="primary" />
+      </div>
     </UiCardTitle>
-    <UiCollapsibleList v-if="vdis.length > 0" tag="ul" :total-items="vdis.length">
-      <li v-for="vdi in vdis" :key="vdi.id" v-tooltip class="text-ellipsis">
-        <UiLink size="small" icon="object:vdi" :href="buildXo5Route(`/srs/${vdi.$SR}/disks?s=1_0_asc-${vdi.id}`)">
-          {{ vdi.name_label }}
-        </UiLink>
-      </li>
-    </UiCollapsibleList>
+
+    <div v-if="vdis.length > 0 || vdiSnapshots.length > 0" class="content">
+      <div v-if="vdis.length > 0" class="subsection">
+        <span class="subtitle typo-body-bold-small">{{ t('vdis') }}</span>
+        <UiCounter :value="vdis.length" accent="neutral" size="small" variant="primary" />
+      </div>
+      <UiCollapsibleList tag="ul" :total-items="vdis.length">
+        <li v-for="vdi in vdis" :key="vdi.id" v-tooltip class="text-ellipsis">
+          <UiLink
+            :to="{ name: '/vdi/[id]/general', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.SR } }"
+            size="small"
+            :icon="getVdiIcon(getVbdsByIds(vdi.$VBDs))"
+          >
+            {{ vdi.name_label || t('unknown') }}
+          </UiLink>
+        </li>
+      </UiCollapsibleList>
+
+      <VtsDivider v-if="vdis.length > 0 && vdiSnapshots.length > 0" type="stretch" />
+
+      <div v-if="vdiSnapshots.length > 0" class="subsection">
+        <span class="subtitle typo-body-bold-small">{{ t('snapshot-vdis') }}</span>
+        <UiCounter :value="vdiSnapshots.length" accent="neutral" size="small" variant="primary" />
+      </div>
+      <UiCollapsibleList tag="ul" :total-items="vdiSnapshots.length">
+        <li v-for="vdiSnapshot in vdiSnapshots" :key="vdiSnapshot.id" v-tooltip class="text-ellipsis">
+          <UiLink
+            :to="{
+              name: '/vdi/[id]/general',
+              params: { id: vdiSnapshot.id },
+              query: { from: VDI_PAGE_CONTEXT.VDI_SNAPSHOT },
+            }"
+            size="small"
+            icon="object:vdi-snapshot"
+          >
+            {{ vdiSnapshot.name_label || t('unknown') }}
+          </UiLink>
+        </li>
+      </UiCollapsibleList>
+    </div>
+
     <VtsStateHero v-else type="no-data" format="card" horizontal size="extra-small">
       {{ t('no-vdi-attached') }}
     </VtsStateHero>
@@ -18,8 +54,12 @@
 </template>
 
 <script lang="ts" setup>
+import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import type { FrontXoVdiSnapshot } from '@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'
+import { getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
+import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
+import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
@@ -31,15 +71,40 @@ import { useI18n } from 'vue-i18n'
 
 defineProps<{
   vdis: FrontXoVdi[]
+  vdiSnapshots: FrontXoVdiSnapshot[]
 }>()
 
 const { t } = useI18n()
 
-const { buildXo5Route } = useXoRoutes()
+const { getVbdsByIds } = useXoVbdCollection()
 </script>
 
 <style scoped lang="postcss">
 .card-container {
   gap: 1.6rem;
+
+  .title {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+
+    .subsection {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+
+      .subtitle {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+      }
+    }
+  }
 }
 </style>
