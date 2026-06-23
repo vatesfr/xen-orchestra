@@ -74,6 +74,8 @@
 - [REST API] `PATCH /rest/v0/vifs/{id}` to update VIF properties (allowed IPs, locking mode, rate limit, TX checksumming) (PR [#9935](https://github.com/vatesfr/xen-orchestra/pull/9935))
 - [XO 6] Add an Administration tab in the sidebar with a user management menu (PR [#9947](https://github.com/vatesfr/xen-orchestra/pull/9947))
 - [OpenMetrics] Include XO tags as a `tags` label on host, VM and SR metrics [#9628](https://github.com/vatesfr/xen-orchestra/issues/9628) (PR [#9971](https://github.com/vatesfr/xen-orchestra/pull/9971))
+- **XO 5**:
+  - [XOA] Ability to take snapshot before installing upgrades (PR [#9920](https://github.com/vatesfr/xen-orchestra/pull/9920))
 
 ### Bug fixes
 
@@ -136,6 +138,6 @@
 - xo-server-netbox minor
 - xo-server-openmetrics minor
 - xo-server-sdn-controller patch
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
