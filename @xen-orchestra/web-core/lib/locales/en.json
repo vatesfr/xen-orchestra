@@ -1062,7 +1062,7 @@
   "vdi-in-use": "VDI in use",
   "vdi-name": "VDI name",
   "vdi-not-attached-to-vm": "No VM attached",
-  "vdi-snapshot-parent": "VDI source",
+  "vdi-snapshot-source": "VDI source",
   "vdi-snpashot-time": "Snapshot date",
   "vdi-throughput": "VDI throughput",
   "vdis": "VDIs",
