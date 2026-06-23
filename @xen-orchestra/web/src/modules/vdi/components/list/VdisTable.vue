@@ -54,7 +54,7 @@ import { useI18n } from 'vue-i18n'
 
 const { vdis, vm, busy, error } = defineProps<{
   vdis: FrontXoVdi[]
-  vm: FrontXoVm
+  vm?: FrontXoVm
   error?: boolean
   busy?: boolean
 }>()
@@ -94,7 +94,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
   body: (vdi: FrontXoVdi) => {
     const vbds = useGetVbdsByIds(vdi.$VBDs)
 
-    const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm.id))
+    const vbd = computed(() => (vm !== undefined ? vbds.value.find(vbd => vbd.VM === vm.id) : undefined))
 
     const size = computed(() => formatSizeRaw(vdi.size, 2))
     const format = computed(() => getVdiFormat(vdi.image_format))
