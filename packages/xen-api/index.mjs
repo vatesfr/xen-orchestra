@@ -975,7 +975,7 @@ export class Xapi extends EventEmitter {
     // (otherwise successful) session open.
     await ignoreErrors.call(
       this._call('host.get_all_records', [this._sessionId]).then(hosts =>
-        this._registerCandidateHostnames(map(hosts, host => host.address))
+        this._refreshCandidateHostnames(map(hosts, host => host.address))
       )
     )
 
@@ -1005,6 +1005,19 @@ export class Xapi extends EventEmitter {
         this._candidateHostnames.add(hostname)
       }
     }
+  }
+
+  // Replace the candidate set with the authoritative current pool membership
+  // (from `host.get_all_records`) rather than union into it. Replacing prunes
+  // ejected hosts, which matters because an ejected host is typically still
+  // alive as its own standalone master and would answer a failover probe with
+  // the same credentials, silently connecting us to the wrong pool. The
+  // currently-connected target is preserved because `host.address` (the
+  // pool-network address XAPI reports) is not guaranteed to be the address XO
+  // actually used to reach the host (FQDN, management IP, NAT…).
+  _refreshCandidateHostnames(hostnames) {
+    this._candidateHostnames = new Set([this._url.hostname])
+    this._registerCandidateHostnames(hostnames)
   }
 
   // Probe a single candidate address. Resolves with the hostname to connect to

@@ -36,6 +36,34 @@ t.test('candidateHostnames', t => {
     t.end()
   })
 
+  t.test('_refreshCandidateHostnames prunes an ejected-but-alive host', t => {
+    // Seeded with a member that is then ejected from the pool. An ejected host
+    // typically stays powered on as its own standalone master with the same
+    // credentials, so it would answer a failover probe and silently connect us
+    // to the wrong pool — it must not linger in the candidate set once the live
+    // membership no longer lists it.
+    const ejected = '192.168.1.2'
+    const xapi = makeXapi({ candidateHostnames: [ejected] })
+    t.ok(xapi.candidateHostnames.includes(ejected), 'ejected host starts in the set')
+
+    // current membership reported by host.get_all_records after the eject
+    xapi._refreshCandidateHostnames([MASTER, '192.168.1.3'])
+
+    t.same(new Set(xapi.candidateHostnames), new Set([MASTER, '192.168.1.3']))
+    t.notOk(xapi.candidateHostnames.includes(ejected), 'ejected host was pruned')
+    t.end()
+  })
+
+  t.test('_refreshCandidateHostnames preserves the current target even when not reported', t => {
+    // `host.address` can differ from the address XO used to reach the host
+    // (FQDN, management IP, NAT…), so the connected target must survive a
+    // refresh that does not list it.
+    const xapi = makeXapi()
+    xapi._refreshCandidateHostnames(['192.168.1.3'])
+    t.same(new Set(xapi.candidateHostnames), new Set([MASTER, '192.168.1.3']))
+    t.end()
+  })
+
   t.end()
 })
 
