@@ -113,9 +113,12 @@ A few caveats:
 
 - This is still in BETA and should not be used in production yet.
 - This will only work on XCP-ng, not on XenServer hosts.
-- At this time, there is no UI in Xen Orchestra for network-wide rules. The rules can be created through `xo-cli`.
 - This is not enabled by default, and requires a configuration change for `xo-server`. See [the configuration page](configuration#sdn-controller-mode) to know more.
   :::
+
+:::tip
+Since Xen Orchestra 6.5 UI, you can manage network-wide or VIF traffic rules. The rules can also be created through `xo-cli`.
+:::
 
 - Works on any network:
   - Networks bound to physical interface as well as bonds
