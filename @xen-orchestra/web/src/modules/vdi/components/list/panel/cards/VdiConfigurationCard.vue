@@ -20,7 +20,7 @@
           <VtsCopyButton :value="vdiSr.name_label" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
+      <VtsCardRowKeyValue v-if="vm">
         <template #key>
           {{ t('read-only') }}
         </template>
@@ -36,7 +36,7 @@
           <VtsStatus :status="vdi.cbt_enabled ?? false" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
+      <VtsCardRowKeyValue v-if="vm">
         <template #key>
           {{ t('bootable') }}
         </template>
@@ -66,7 +66,7 @@ import { useI18n } from 'vue-i18n'
 
 const { vdi, vm } = defineProps<{
   vdi: FrontXoVdi
-  vm: FrontXoVm
+  vm?: FrontXoVm
 }>()
 
 const { t } = useI18n()
@@ -82,7 +82,7 @@ const srHref = computed(() => (vdiSr.value ? buildXo5Route(`/srs/${vdiSr.value.i
 
 const vbds = useGetVbdsByIds(() => vdi.$VBDs)
 
-const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm.id))
+const vbd = computed(() => (vm !== undefined ? vbds.value.find(vbd => vbd.VM === vm.id) : undefined))
 
 const isReadOnly = computed(() => vbd.value?.read_only ?? false)
 

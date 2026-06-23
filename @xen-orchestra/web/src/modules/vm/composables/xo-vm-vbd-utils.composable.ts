@@ -3,12 +3,14 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
 
-export function useXoVmVbdsUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
+export function useXoVmVbdsUtils(rawVm: MaybeRefOrGetter<FrontXoVm | undefined>) {
   const vm = toComputed(rawVm)
 
   const { getVbdsByIds } = useXoVbdCollection()
 
-  const notCdDriveVbds = computed(() => getVbdsByIds(vm.value.$VBDs).filter(vbd => !vbd.is_cd_drive))
+  const notCdDriveVbds = computed(() =>
+    vm.value !== undefined ? getVbdsByIds(vm.value.$VBDs).filter(vbd => !vbd.is_cd_drive) : []
+  )
 
   return {
     notCdDriveVbds,

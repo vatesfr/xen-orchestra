@@ -1,11 +1,9 @@
 <template>
   <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
     <template #header>
-      <div class="action-buttons">
-        <template v-if="vbd">
-          <VbdConnectButton v-if="!vbd.attached" :vbd :vm />
-          <VbdDisconnectButton v-else :vbd :vm />
-        </template>
+      <div v-if="vbd && vm" class="action-buttons">
+        <VbdConnectButton v-if="!vbd.attached" :vbd :vm />
+        <VbdDisconnectButton v-else :vbd :vm />
         <MenuList placement="bottom-end">
           <template #trigger="{ open }">
             <UiButtonIcon icon="action:more-actions" accent="brand" size="medium" @click="open($event)" />
@@ -52,7 +50,7 @@ import { useI18n } from 'vue-i18n'
 
 const { vdi, vm } = defineProps<{
   vdi: FrontXoVdi
-  vm: FrontXoVm
+  vm?: FrontXoVm
 }>()
 
 const emit = defineEmits<{
@@ -67,7 +65,7 @@ const { useGetVbdsByIds } = useXoVbdCollection()
 
 const vbds = useGetVbdsByIds(vdi.$VBDs)
 
-const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm.id))
+const vbd = computed(() => (vm !== undefined ? vbds.value.find(vbd => vbd.VM === vm.id) : undefined))
 </script>
 
 <style scoped lang="postcss">
