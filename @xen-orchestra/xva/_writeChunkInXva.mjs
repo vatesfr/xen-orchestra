@@ -11,7 +11,6 @@ export async function writeChunk(pack, data, name) {
     data = Buffer.concat([data, Buffer.alloc(XVA_DISK_CHUNK_LENGTH - data.length, 0)])
   }
   await addEntry(pack, name, data)
-  // weirdly, ocaml and xxhash return the bytes in reverse order to each other
   const hash = (await xxhash64(data)).toString('hex').toUpperCase()
   await addEntry(pack, `${name}.xxhash`, Buffer.from(hash, 'utf8'))
 }

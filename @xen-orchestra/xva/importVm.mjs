@@ -19,10 +19,10 @@ export async function importVm(vm, xapi, sr, network) {
     .catch(err => console.error(err))
 
   await writeOvaXml(pack, vm, { sr, network })
-  for (const vhd of vm.vhds) {
+  for (const vhd of vm.vhds ?? []) {
     await writeDiskStream(pack, vhd, vhd.ref)
   }
-  for (const disk of vm.disks) {
+  for (const disk of vm.disks ?? []) {
     await writeDisk(pack, disk, disk.ref)
   }
   pack.finalize()

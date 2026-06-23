@@ -15,18 +15,21 @@ export async function importVdi(vdi, disk, xapi, sr) {
     xapi,
     sr
   )
-  // wait for the VM to be loaded if necessary
-  xapi.getObject(vmRef, undefined) ?? (await xapi.waitObject(vmRef))
+  try {
+    // wait for the VM to be loaded if necessary
+    xapi.getObject(vmRef, undefined) ?? (await xapi.waitObject(vmRef))
 
-  const vbdRefs = await xapi.getField('VM', vmRef, 'VBDs')
-  // get the disk
-  const disks = { __proto__: null }
-  ;(await xapi.getRecords('VBD', vbdRefs)).forEach(vbd => {
-    if (vbd.type === 'Disk' && isNotEmptyRef(vbd.VDI)) {
-      disks[vbd.VDI] = true
-    }
-  })
-  // destroy the VM and VBD
-  await xapi.call('VM.destroy', vmRef)
-  return await xapi.getRecord('VDI', Object.keys(disks)[0])
+    const vbdRefs = await xapi.getField('VM', vmRef, 'VBDs')
+    // get the disk
+    const disks = { __proto__: null }
+    ;(await xapi.getRecords('VBD', vbdRefs)).forEach(vbd => {
+      if (vbd.type === 'Disk' && isNotEmptyRef(vbd.VDI)) {
+        disks[vbd.VDI] = true
+      }
+    })
+    return await xapi.getRecord('VDI', Object.keys(disks)[0])
+  } finally {
+    // destroy what is remaining of the VM
+    await xapi.call('VM.destroy', vmRef)
+  }
 }
