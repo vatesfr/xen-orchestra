@@ -39,16 +39,16 @@
       </span>
     </UiBreadcrumb>
 
-    <UiBreadcrumb v-else-if="fromContext === VDI_PAGE_CONTEXT.VDI_SNAPSHOT && snapshot" :size>
-      <UiLink :size :to="{ name: '/pool/[id]/dashboard', params: { id: snapshot.$pool } }">
+    <UiBreadcrumb v-else-if="fromContext === VDI_PAGE_CONTEXT.VDI_SNAPSHOT && pool && vdiSnapshot" :size>
+      <UiLink :size :to="{ name: '/pool/[id]/dashboard', params: { id: vdiSnapshot.$pool } }">
         <VtsIcon name="object:pool" size="medium" />
-        {{ snapshot.name_label }}
+        {{ pool.name_label }}
       </UiLink>
-      <UiLink :size :to="{ name: '/pool/[id]/storage', params: { id: snapshot.$pool } }">
+      <UiLink :size :to="{ name: '/pool/[id]/storage', params: { id: vdiSnapshot.$pool } }">
         {{ t('storage') }}
       </UiLink>
       <span>
-        {{ snapshot.name_label }}
+        {{ vdiSnapshot.name_label }}
       </span>
     </UiBreadcrumb>
 
@@ -77,11 +77,11 @@ import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vm, sr, vdi, snapshot, fromContext } = defineProps<{
+const { vm, sr, vdi, vdiSnapshot, fromContext } = defineProps<{
   vm?: FrontXoVm
   sr?: FrontXoSr
   vdi?: FrontXoVdi
-  snapshot?: FrontXoVdiSnapshot
+  vdiSnapshot?: FrontXoVdiSnapshot
   fromContext?: VdiPageContext
 }>()
 
@@ -91,7 +91,7 @@ const { t } = useI18n()
 
 const { useGetPoolById } = useXoPoolCollection()
 
-const pool = useGetPoolById(sr?.$pool)
+const pool = useGetPoolById(() => sr?.$pool ?? vdiSnapshot?.$pool)
 
 const size = computed(() => (uiStore.isSmall ? 'small' : 'medium'))
 </script>

@@ -1,11 +1,11 @@
 <template>
   <VtsColumns extra-space-around>
     <VtsColumn>
-      <VdiDetailGeneralInfo :vdi :vbd :snapshot />
-      <VdiDetailSpace :vdi :snapshot />
+      <VdiDetailGeneralInfo :vdi :vbd :vdi-snapshot />
+      <VdiDetailSpace :vdi :vdi-snapshot />
     </VtsColumn>
     <VtsColumn>
-      <VdiDetailConfiguration :vdi :snapshot />
+      <VdiDetailConfiguration :vdi :vdi-snapshot />
     </VtsColumn>
   </VtsColumns>
 </template>
@@ -23,6 +23,6 @@ import VtsColumns from '@core/components/columns/VtsColumns.vue'
 defineProps<{
   vdi?: FrontXoVdi
   vbd?: FrontXoVbd
-  snapshot?: FrontXoVdiSnapshot
+  vdiSnapshot?: FrontXoVdiSnapshot
 }>()
 </script>

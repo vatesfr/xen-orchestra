@@ -32,7 +32,5 @@ const { vbd, vm } = defineProps<{
 
 const { t } = useI18n()
 
-const attachedVbd = computed(() => {
-  return vbd && vbd.attached
-})
+const attachedVbd = computed(() => vbd?.attached ?? false)
 </script>

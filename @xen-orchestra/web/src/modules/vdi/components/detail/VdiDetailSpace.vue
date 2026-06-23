@@ -3,15 +3,13 @@
     <UiTitle>
       {{ t('space') }}
     </UiTitle>
-    <VtsTabularKeyValueList v-if="vdi">
-      <VtsTabularKeyValueRow :label="t('used-space-on-sr')" :value="formatSizeSpace(vdi.usage)" />
-      <VtsTabularKeyValueRow :label="t('free-space-on-sr')" :value="formatSizeSpace(vdi.size - vdi.usage)" />
-      <VtsTabularKeyValueRow :label="t('allocated-space')" :value="formatSizeSpace(vdi.size)" />
-    </VtsTabularKeyValueList>
-    <VtsTabularKeyValueList v-if="snapshot">
-      <VtsTabularKeyValueRow :label="t('used-space-on-sr')" :value="formatSizeSpace(snapshot.usage)" />
-      <VtsTabularKeyValueRow :label="t('free-space-on-sr')" :value="formatSizeSpace(snapshot.size - snapshot.usage)" />
-      <VtsTabularKeyValueRow :label="t('allocated-space')" :value="formatSizeSpace(snapshot.size)" />
+    <VtsTabularKeyValueList v-if="displayedVdi">
+      <VtsTabularKeyValueRow :label="t('used-space-on-sr')" :value="formatSizeSpace(displayedVdi.usage)" />
+      <VtsTabularKeyValueRow
+        :label="t('free-space-on-sr')"
+        :value="formatSizeSpace(displayedVdi.size - displayedVdi.usage)"
+      />
+      <VtsTabularKeyValueRow :label="t('allocated-space')" :value="formatSizeSpace(displayedVdi.size)" />
     </VtsTabularKeyValueList>
   </UiCard>
 </template>
@@ -24,10 +22,14 @@ import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTab
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { formatSize } from '@core/utils/size.util.ts'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{ vdi?: FrontXoVdi; snapshot?: FrontXoVdiSnapshot }>()
+const { vdi, vdiSnapshot } = defineProps<{ vdi?: FrontXoVdi; vdiSnapshot?: FrontXoVdiSnapshot }>()
+
+const { t } = useI18n()
+
+const displayedVdi = computed(() => vdi ?? vdiSnapshot)
 
 const formatSizeSpace = (bytes: number) => formatSize(bytes, 2)
-const { t } = useI18n()
 </script>

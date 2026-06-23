@@ -1,11 +1,13 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      {{ t('vdis') }}
-      <UiCounter :value="vdis.length + snapshots.length" accent="neutral" size="small" variant="primary" />
+      <div class="title">
+        {{ t('vdis') }}
+        <UiCounter :value="vdis.length + vdiSnapshots.length" accent="neutral" size="small" variant="primary" />
+      </div>
     </UiCardTitle>
 
-    <div v-if="vdis.length > 0 || snapshots.length > 0" class="content">
+    <div v-if="vdis.length > 0 || vdiSnapshots.length > 0" class="content">
       <div v-if="vdis.length > 0" class="subsection">
         <span class="subtitle typo-body-bold-small">{{ t('vdis') }}</span>
         <UiCounter :value="vdis.length" accent="neutral" size="small" variant="primary" />
@@ -22,24 +24,24 @@
         </li>
       </UiCollapsibleList>
 
-      <VtsDivider v-if="vdis.length > 0 && snapshots.length > 0" type="stretch" />
+      <VtsDivider v-if="vdis.length > 0 && vdiSnapshots.length > 0" type="stretch" />
 
-      <div v-if="snapshots.length > 0" class="subsection">
+      <div v-if="vdiSnapshots.length > 0" class="subsection">
         <span class="subtitle typo-body-bold-small">{{ t('snapshot-vdis') }}</span>
-        <UiCounter :value="snapshots.length" accent="neutral" size="small" variant="primary" />
+        <UiCounter :value="vdiSnapshots.length" accent="neutral" size="small" variant="primary" />
       </div>
-      <UiCollapsibleList tag="ul" :total-items="snapshots.length">
-        <li v-for="snapshot in snapshots" :key="snapshot.id" v-tooltip class="text-ellipsis">
+      <UiCollapsibleList tag="ul" :total-items="vdiSnapshots.length">
+        <li v-for="vdiSnapshot in vdiSnapshots" :key="vdiSnapshot.id" v-tooltip class="text-ellipsis">
           <UiLink
             :to="{
               name: '/vdi/[id]/general',
-              params: { id: snapshot.id },
+              params: { id: vdiSnapshot.id },
               query: { from: VDI_PAGE_CONTEXT.VDI_SNAPSHOT },
             }"
             size="small"
             icon="object:vdi-snapshot"
           >
-            {{ snapshot.name_label || t('unknown') }}
+            {{ vdiSnapshot.name_label || t('unknown') }}
           </UiLink>
         </li>
       </UiCollapsibleList>
@@ -69,7 +71,7 @@ import { useI18n } from 'vue-i18n'
 
 defineProps<{
   vdis: FrontXoVdi[]
-  snapshots: FrontXoVdiSnapshot[]
+  vdiSnapshots: FrontXoVdiSnapshot[]
 }>()
 
 const { t } = useI18n()
@@ -80,6 +82,12 @@ const { getVbdsByIds } = useXoVbdCollection()
 <style scoped lang="postcss">
 .card-container {
   gap: 1.6rem;
+
+  .title {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
 
   .content {
     display: flex;

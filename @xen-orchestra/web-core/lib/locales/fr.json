@@ -1062,6 +1062,8 @@
   "vdi-in-use": "Ce VDI est utilisé",
   "vdi-name": "Nom du VDI",
   "vdi-not-attached-to-vm": "Aucune VM attachée",
+  "vdi-snapshot-parent": "VDI source",
+  "vdi-snpashot-time": "Date du snapshot",
   "vdi-throughput": "Débit du VDI",
   "vdis": "VDIs",
   "version": "Version",

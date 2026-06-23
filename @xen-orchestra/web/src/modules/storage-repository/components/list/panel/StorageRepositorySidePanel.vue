@@ -27,7 +27,7 @@
     <template #default>
       <StorageRepositoryInfosCard :scope :sr />
       <StorageRepositorySpaceCard :sr />
-      <StorageRepositoryVdisCard :snapshots="vdiSnapshots" :vdis />
+      <StorageRepositoryVdisCard :vdi-snapshots :vdis />
       <StorageRepositoryHostsCard :hosts />
       <StorageRepositoryPbdsCard :scope :sr />
       <StorageRepositoryCustomFieldsCard :custom-fields />
@@ -51,7 +51,10 @@ import { useGetPbdsInScope } from '@/modules/storage-repository/composables/xo-s
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { SrScope } from '@/modules/storage-repository/types/storage-repository.type'
 import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import { useXoVdiSnapshotCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'
+import {
+  type FrontXoVdiSnapshot,
+  useXoVdiSnapshotCollection,
+} from '@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
@@ -60,7 +63,6 @@ import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import type { XoVdi } from '@vates/types'
 import { logicAnd } from '@vueuse/math'
-import { useArrayFilter } from '@vueuse/shared'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -79,13 +81,13 @@ const uiStore = useUiStore()
 const { useGetVdisByIds, areVdisReady } = useXoVdiCollection()
 const { getHostById, areHostsReady } = useXoHostCollection()
 const { pbdsBySr, arePbdsReady } = useXoPbdCollection()
-const { vdiSnapshots: vdiSnapshotsCollection } = useXoVdiSnapshotCollection()
+const { useGetVdiSnapshotsByIds, areVdiSnapshotsReady } = useXoVdiSnapshotCollection()
 
-const isReady = logicAnd(areVdisReady, areHostsReady, arePbdsReady)
+const isReady = logicAnd(areVdisReady, areHostsReady, arePbdsReady, areVdiSnapshotsReady)
 
 const vdis = useGetVdisByIds(() => sr.VDIs as XoVdi['id'][])
 
-const vdiSnapshots = useArrayFilter(vdiSnapshotsCollection, snapshot => snapshot.$SR === sr.id)
+const vdiSnapshots = useGetVdiSnapshotsByIds(() => sr.VDIs as FrontXoVdiSnapshot['id'][])
 
 const { getSrPbdsSignature } = useGetPbdsInScope()
 

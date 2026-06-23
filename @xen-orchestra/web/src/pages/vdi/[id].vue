@@ -1,11 +1,11 @@
 <template>
-  <VtsStateHero v-if="!areVdisReady && !areVdiSnapshotsReady" format="page" type="busy" size="large" />
-  <VtsStateHero v-else-if="!vdi && !areVdiSnapshotsReady" format="page" type="not-found" size="large">
+  <VtsStateHero v-if="!areVdisReady || !areVdiSnapshotsReady" format="page" type="busy" size="large" />
+  <VtsStateHero v-else-if="!vdi && !vdiSnapshot" format="page" type="not-found" size="large">
     {{ t('object-not-found', { id: route.params.id }) }}
   </VtsStateHero>
   <RouterView v-else v-slot="{ Component }">
-    <VdiHeader v-if="uiStore.hasUi" :vdi :vm :vbds :vbd :sr :snapshot :from-context="fromContext" />
-    <component :is="Component" :vdi :vbd :vm :sr :snapshot />
+    <VdiHeader v-if="uiStore.hasUi" :vdi :vm :vbds :vbd :sr :vdi-snapshot :from-context="fromContext" />
+    <component :is="Component" :vdi :vbd :vm :sr :vdi-snapshot />
   </RouterView>
 </template>
 
@@ -39,7 +39,7 @@ const { useGetVdiSnapshotById, areVdiSnapshotsReady } = useXoVdiSnapshotCollecti
 
 const vdi = useGetVdiById(() => route.params.id as FrontXoVdi['id'])
 
-const snapshot = useGetVdiSnapshotById(() => route.params.id as FrontXoVdiSnapshot['id'])
+const vdiSnapshot = useGetVdiSnapshotById(() => route.params.id as FrontXoVdiSnapshot['id'])
 
 const vbds = useGetVbdsByIds(() => vdi.value?.$VBDs ?? [])
 
@@ -52,7 +52,7 @@ const sr = useGetSrById(() => vdi.value?.$SR)
 const fromContext = computed(() => {
   if (route.query.from) {
     return route.query.from as VdiPageContext
-  } else if (snapshot.value) {
+  } else if (vdiSnapshot.value) {
     return VDI_PAGE_CONTEXT.VDI_SNAPSHOT
   } else if (vbd.value?.attached && vm.value) {
     return VDI_PAGE_CONTEXT.VM
