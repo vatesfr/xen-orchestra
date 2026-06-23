@@ -12,7 +12,7 @@ export type VbdConnectionAction = (typeof CONNECTION_ACTION)[keyof typeof CONNEC
 export function useVbdConnectionToggleModal(
   rawAction: MaybeRefOrGetter<VbdConnectionAction>,
   rawVbds: MaybeRefOrGetter<FrontXoVbd[]>,
-  rawVm: MaybeRefOrGetter<FrontXoVm>
+  rawVm: MaybeRefOrGetter<FrontXoVm | undefined>
 ) {
   const action = toComputed(rawAction)
   const vbds = toComputed(rawVbds)

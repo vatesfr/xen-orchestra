@@ -1,12 +1,14 @@
 <template>
   <UiCard class="card-container">
     <UiLink
+      v-if="vm"
       size="medium"
       :to="{ name: '/vdi/[id]/general', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.VM } }"
       :icon="vdiIcon"
     >
       {{ vdi.name_label }}
     </UiLink>
+    <span v-else>{{ vdi.name_label }}</span>
     <div class="content">
       <VtsCodeSnippet :content="vdi.id" copy />
       <VtsCardRowKeyValue truncate align-top>
@@ -36,7 +38,7 @@
           <VtsCopyButton :value="vbdsStatus" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
+      <VtsCardRowKeyValue v-if="vm">
         <template #key>{{ t('device') }}</template>
         <template #value>{{ vdiDevice }}</template>
         <template v-if="vdiDevice" #addons>
@@ -68,7 +70,7 @@ import { useI18n } from 'vue-i18n'
 
 const { vdi, vm } = defineProps<{
   vdi: FrontXoVdi
-  vm: FrontXoVm
+  vm?: FrontXoVm
 }>()
 
 const { t } = useI18n()
