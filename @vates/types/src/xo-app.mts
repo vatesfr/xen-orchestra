@@ -3,6 +3,7 @@ import type {
   AnyXoBackupJob,
   AnyXoJob,
   AnyXoLog,
+  BackupDiskPartition,
   XapiXoRecord,
   XoAuthenticationToken,
   XoBackupRepository,
@@ -304,6 +305,22 @@ export type XoApp = {
   getXenServer(id: XoServer['id']): Promise<XoServer>
   hasFeatureAuthorization(featureCode: string): Promise<boolean>
   hasObject<T extends XapiXoRecord>(id: T['id'], type: T['type']): boolean
+  listBackupNgDiskPartitions(remoteId: XoBackupRepository['id'], diskId: string): Promise<BackupDiskPartition[]>
+  listBackupNgPartitionFiles(
+    remoteId: XoBackupRepository['id'],
+    diskId: string,
+    partitionId: string | undefined,
+    path: string
+    // keys ending in "/" are directories; files carry size (bytes) and mtime (epoch ms).
+    // Values may be empty ({}) for directories or when served by an older proxy.
+  ): Promise<Record<string, { size?: number; mtime?: number }>>
+  fetchBackupNgPartitionFiles(
+    remoteId: XoBackupRepository['id'],
+    diskId: string,
+    partitionId: string | undefined,
+    paths: string[],
+    format: string
+  ): Promise<NodeJS.ReadableStream>
   listMetadataBackups(backupRepositoryIds: XoBackupRepository['id'][]): Promise<{
     xo: Record<XoBackupRepository['id'], XoConfigBackupArchive[]>
     pool: Record<XoBackupRepository['id'], Record<XoPool['id'], XoPoolBackupArchive[]>>
