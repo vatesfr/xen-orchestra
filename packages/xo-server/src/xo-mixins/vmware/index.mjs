@@ -6,6 +6,7 @@ import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { createLogger } from '@xen-orchestra/log'
 import Esxi from '@xen-orchestra/vmware-explorer/esxi.mjs'
 import { checkVddkDependencies } from '@xen-orchestra/vmware-explorer/checks.mjs'
+import { VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 import OTHER_CONFIG_TEMPLATE from '../../xapi/other-config-template.mjs'
 import { importDisksFromDatastore, importStream } from './importDisksfromDatastore.mjs'
 import { buildDiskChainByNode } from './buildChainByNode.mjs'
@@ -266,6 +267,7 @@ export default class MigrateVm {
     const disk = chain.pop()
     const stream = new PassThrough()
     importStream({ esxi, disk, vmId, format }, source => {
+      stream.length = source.length
       source.pipe(stream)
       return new Promise((resolve, reject) => {
         finished(source, { writable: false }, error => {
@@ -280,5 +282,23 @@ export default class MigrateVm {
       throw error
     })
     return stream
+  }
+
+  async importEsxiDiskToSr({
+    disk,
+    format = VDI_FORMAT_VHD,
+    host,
+    user,
+    password,
+    sslVerify = true,
+    sr: srId,
+    vm: vmId,
+  }) {
+    const sr = this._app.getXapiObject(srId)
+    const stream = await this.exportEsxiDisk({ disk, format, host, user, password, vm: vmId })
+    // sr.$importVdi: VHD infers virtual_size via peekFooterFromStream;
+    // QCOW2 uses stream.length (forwarded above)
+    const vdiRef = await sr.$importVdi(stream, { format, name_label: `[ESXI] ${vmId} / ${disk}` })
+    return sr.$xapi.getObject(vdiRef).uuid
   }
 }

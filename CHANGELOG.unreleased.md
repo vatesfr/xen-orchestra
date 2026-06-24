@@ -14,6 +14,7 @@
 - [XO6] After deleting a VM or VIF, users are now redirected to the parent list instead of seeing a 404 page (PR [#9984](https://github.com/vatesfr/xen-orchestra/pull/9984))
 - [Web stack] Updated side panels (PR [#9836](https://github.com/vatesfr/xen-orchestra/pull/9836))
 - [Plugin/LDAP] Add failover URIs (PR [#9961](https://github.com/vatesfr/xen-orchestra/pull/9961))
+- [V2V] Add `esxi.importDisk` API endpoint to import a single ESXi disk into an SR as a standalone VDI ( [PR#XXXX] (XXXX))
 
 ### Bug fixes
 
@@ -41,5 +42,6 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- xo-server minor
 
 <!--packages-end-->
