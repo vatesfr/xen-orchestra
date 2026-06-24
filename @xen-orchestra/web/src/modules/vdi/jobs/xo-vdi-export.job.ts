@@ -27,7 +27,7 @@ export const useXoVdiExportJob = defineJob('vdi.export', [xoVdiArg, xoVdiExportF
       }
 
       if (isRunning) {
-        throw new JobRunningError(t('job:delete:in-progress'))
+        throw new JobRunningError(t('job:export:in-progress'))
       }
     },
   }
