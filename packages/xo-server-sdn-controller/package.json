@@ -30,6 +30,7 @@
   "dependencies": {
     "@vates/async-each": "^1.0.3",
     "@vates/coalesce-calls": "^0.1.0",
+    "@vates/types": "^1.26.0",
     "@xen-orchestra/log": "^0.7.2",
     "@xen-orchestra/openflow": "^0.1.4",
     "ipaddr.js": "^2.0.1",

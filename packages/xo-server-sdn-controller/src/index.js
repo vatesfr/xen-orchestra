@@ -15,7 +15,7 @@ import { TlsHelper } from './utils/tls-helper'
 import { instantiateController } from './openflow-controller'
 import { randomBytes } from 'crypto'
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
-
+import { SDN_CONTROLLER_OF_RULES_KEY } from '@vates/types'
 // =============================================================================
 
 const log = createLogger('xo:xo-server-sdn-controller')
@@ -641,7 +641,7 @@ class SDNController extends EventEmitter {
                 optional: false,
                 fields: {
                   allow: { type: 'boolean', example: true, optional: true },
-                  direction: { type: 'string', example: 'both', optional: true },
+                  direction: { type: 'string', example: 'to', optional: true },
                   ipRange: { type: 'string', example: '10.0.0.0/8', optional: true },
                   protocol: { type: 'string', example: 'tcp', optional: true },
                   port: { type: 'number', example: 80, optional: true },
@@ -667,8 +667,8 @@ class SDNController extends EventEmitter {
                 async () => {
                   const { oldRule, newRule: partialNewRule } = req.body
                   const networkId = req.params.id
-                  const network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
-                  const networkRules = JSON.parse(network.other_config['xo:sdn-controller:of-rules'] || '[]').map(
+                  const network = this._xo.getObject(networkId, 'network')
+                  const networkRules = JSON.parse(network.other_config[SDN_CONTROLLER_OF_RULES_KEY] || '[]').map(
                     JSON.parse
                   )
                   if (
@@ -694,6 +694,7 @@ class SDNController extends EventEmitter {
                     name: 'update network traffic rule',
                     objectId: req.params.id,
                     params: req.body,
+                    objectType: 'network',
                   },
                 }
               )
@@ -754,8 +755,8 @@ class SDNController extends EventEmitter {
                 async () => {
                   const { oldRule, newRule: partialNewRule } = req.body
                   const vifId = req.params.id
-                  const vif = this._xo.getXapiObject(this._xo.getObject(vifId, 'VIF'))
-                  const rawVifRules = vif.other_config['xo:sdn-controller:of-rules']
+                  const vif = this._xo.getObject(vifId, 'VIF')
+                  const rawVifRules = vif.other_config[SDN_CONTROLLER_OF_RULES_KEY]
                   const vifRules = rawVifRules !== undefined ? JSON.parse(rawVifRules).map(JSON.parse) : []
                   if (
                     !vifRules.some(
@@ -780,6 +781,7 @@ class SDNController extends EventEmitter {
                     name: 'update vif traffic rule',
                     objectId: req.params.id,
                     params: req.body,
+                    objectType: 'VIF',
                   },
                 }
               )
