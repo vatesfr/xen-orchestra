@@ -628,6 +628,7 @@ class SDNController extends EventEmitter {
             body: {
               oldRule: {
                 type: 'object',
+                optional: false,
                 fields: {
                   direction: { type: 'string', example: 'to' },
                   ipRange: { type: 'string', example: '192.168.0.0/24' },
@@ -637,6 +638,7 @@ class SDNController extends EventEmitter {
               },
               newRule: {
                 type: 'object',
+                optional: false,
                 fields: {
                   allow: { type: 'boolean', example: true, optional: true },
                   direction: { type: 'string', example: 'both', optional: true },
@@ -680,7 +682,7 @@ class SDNController extends EventEmitter {
                   ) {
                     throw noSuchObject(JSON.stringify(oldRule), 'traffic-rule')
                   }
-                  const newRule = { ...oldRule, ...(partialNewRule ?? {}) }
+                  const newRule = { ...oldRule, ...partialNewRule }
 
                   await this._deleteNetworkOfRule({ ...oldRule, networkId })
                   await this._addNetworkRule({ ...newRule, networkId })
@@ -750,7 +752,7 @@ class SDNController extends EventEmitter {
             callback: ({ req, createAction }) => {
               return createAction(
                 async () => {
-                  const { oldRule, newRule: partialNewRule } = req.body ?? {}
+                  const { oldRule, newRule: partialNewRule } = req.body
                   const vifId = req.params.id
                   const vif = this._xo.getXapiObject(this._xo.getObject(vifId, 'VIF'))
                   const rawVifRules = vif.other_config['xo:sdn-controller:of-rules']
@@ -767,7 +769,7 @@ class SDNController extends EventEmitter {
                     throw noSuchObject(JSON.stringify(oldRule), 'traffic-rule')
                   }
 
-                  const newRule = { ...oldRule, ...(partialNewRule ?? {}) }
+                  const newRule = { ...oldRule, ...partialNewRule }
                   await this._deleteRule({ ...oldRule, vifId })
                   await this._addRule({ ...newRule, vifId })
                 },
