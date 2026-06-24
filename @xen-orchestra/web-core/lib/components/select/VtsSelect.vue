@@ -4,7 +4,6 @@
       ref="triggerRef"
       :accent
       :disabled="isDisabled"
-      :icon
       :model-value="selectedLabel"
       :placeholder
       :required="isRequired"
@@ -46,7 +45,6 @@ import VtsOption from '@core/components/select/VtsOption.vue'
 import UiDropdown from '@core/components/ui/dropdown/UiDropdown.vue'
 import UiDropdownList from '@core/components/ui/dropdown/UiDropdownList.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
-import type { IconName } from '@core/icons'
 import {
   type FormSelect,
   type FormSelectId,
@@ -61,7 +59,6 @@ import { useI18n } from 'vue-i18n'
 const { accent, id } = defineProps<{
   accent: 'brand' | 'warning' | 'danger'
   id: TSelectId
-  icon?: IconName
 }>()
 
 defineSlots<{
