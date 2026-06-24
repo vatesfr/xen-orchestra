@@ -296,8 +296,6 @@ export default class MigrateVm {
   }) {
     const sr = this._app.getXapiObject(srId)
     const stream = await this.exportEsxiDisk({ disk, format, host, user, password, vm: vmId })
-    // sr.$importVdi: VHD infers virtual_size via peekFooterFromStream;
-    // QCOW2 uses stream.length (forwarded above)
     const vdiRef = await sr.$importVdi(stream, { format, name_label: `[ESXI] ${vmId} / ${disk}` })
     return sr.$xapi.getObject(vdiRef).uuid
   }
