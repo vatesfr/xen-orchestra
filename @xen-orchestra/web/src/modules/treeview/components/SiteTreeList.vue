@@ -1,27 +1,26 @@
 <template>
-  <DynamicScroller
+  <RecycleScroller
     v-if="items.length > 0"
     ref="scroller"
     :items
-    :min-item-size="37"
+    :item-size="37"
+    :buffer="600"
     key-field="id"
     list-tag="ul"
     item-tag="li"
     class="site-tree-list"
   >
-    <template #default="{ item, active }">
-      <DynamicScrollerItem :item :active :size-dependencies="[]">
-        <TreeNodeRow :node="item.node" :depth="item.depth" />
-      </DynamicScrollerItem>
+    <template #default="{ item }">
+      <TreeNodeRow :node="item.node" :depth="item.depth" />
     </template>
-  </DynamicScroller>
+  </RecycleScroller>
 </template>
 
 <script lang="ts" setup>
 import TreeNodeRow from '@/modules/treeview/components/TreeNodeRow.vue'
 import type { FlatTreeNode } from '@core/packages/tree/types.ts'
 import { useTemplateRef } from 'vue'
-import { DynamicScroller, DynamicScrollerItem, type RecycleScrollerInstance } from 'vue-virtual-scroller'
+import { RecycleScroller, type RecycleScrollerInstance } from 'vue-virtual-scroller'
 
 defineProps<{
   items: FlatTreeNode[]

@@ -41,7 +41,12 @@ export function defineRemoteResource<
   url: string | ((...args: TArgs) => string)
   initialData: () => TData
   state?: (data: Ref<NoInfer<TData>>, context: ResourceContext<TArgs>) => TState
-  onDataReceived?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
+  onDataReceived?: (
+    data: Ref<NoInfer<TData>>,
+    receivedData: any,
+    calledFrom?: 'execute' | 'update',
+    context?: ResourceContext<TArgs>
+  ) => void
   cacheExpirationMs?: number | false
   pollingIntervalMs?: number | false
   stream?: boolean
@@ -50,7 +55,12 @@ export function defineRemoteResource<
 export function defineRemoteResource<TData, TState extends object, TArgs extends any[] = []>(config: {
   url: string | ((...args: TArgs) => string)
   state?: (data: Ref<TData | undefined>, context: ResourceContext<TArgs>) => TState
-  onDataReceived?: (data: Ref<TData | undefined>, receivedData: any) => void
+  onDataReceived?: (
+    data: Ref<TData | undefined>,
+    receivedData: any,
+    calledFrom?: 'execute' | 'update',
+    context?: ResourceContext<TArgs>
+  ) => void
   cacheExpirationMs?: number | false
   pollingIntervalMs?: number | false
   stream?: boolean
@@ -64,7 +74,12 @@ export function defineRemoteResource<
   url: string | ((...args: TArgs) => string)
   initialData: () => TData
   state?: (data: Ref<NoInfer<TData>>, context: ResourceContext<TArgs>) => TState
-  onDataReceived?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
+  onDataReceived?: (
+    data: Ref<NoInfer<TData>>,
+    receivedData: any,
+    calledFrom?: 'execute' | 'update',
+    context?: ResourceContext<TArgs>
+  ) => void
   onDataRemoved?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
   stream?: boolean
   initWatchCollection: () => {
@@ -86,7 +101,12 @@ export function defineRemoteResource<
   url: string | ((...args: TArgs) => string)
   initialData?: () => TData
   state?: (data: Ref<TData>, context: ResourceContext<TArgs>) => TState
-  onDataReceived?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
+  onDataReceived?: (
+    data: Ref<NoInfer<TData>>,
+    receivedData: any,
+    calledFrom?: 'execute' | 'update',
+    context?: ResourceContext<TArgs>
+  ) => void
   onDataRemoved?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
   cacheExpirationMs?: number | false
   pollingIntervalMs?: number | false
@@ -161,33 +181,41 @@ export function defineRemoteResource<
 
   const onDataReceived =
     config.onDataReceived ??
-    ((data: Ref<TData>, receivedData: any, context?: ResourceContext<TArgs>) => {
+    ((data: Ref<TData>, receivedData: any, calledFrom?: 'execute' | 'update', context?: ResourceContext<TArgs>) => {
       // allow to ignore some update (like for sub collection. E.g. vms/:id/vdis)
       if (watchCollection?.predicate?.(receivedData, context) === false) {
         return
       }
 
-      if (data.value === undefined || (Array.isArray(data.value) && Array.isArray(receivedData))) {
-        data.value = receivedData
+      if (!Array.isArray(data.value)) {
+        if (data.value === undefined) {
+          data.value = receivedData
+        } else {
+          merge(data.value, receivedData)
+        }
+        return
+      }
 
-        if (watchCollection !== undefined && Array.isArray(data.value)) {
+      const store = data.value as TData[]
+
+      if (Array.isArray(receivedData)) {
+        data.value = receivedData as TData
+
+        if (watchCollection !== undefined) {
           handleBuffer(data as Ref<TData[]>)
           isBufferEventsProcessed = true
         }
         return
       }
 
-      if (Array.isArray(data.value)) {
-        if (!isBufferEventsProcessed) {
-          bufferedEvents.push(['update', receivedData])
-        } else {
-          removeData(data.value, receivedData)
-          data.value.push(receivedData)
-        }
-        return
+      if (calledFrom === 'execute') {
+        store.push(receivedData)
+      } else if (!isBufferEventsProcessed) {
+        bufferedEvents.push(['update', receivedData])
+      } else {
+        removeData(store, receivedData)
+        store.push(receivedData)
       }
-
-      merge(data.value, receivedData)
     })
 
   const onDataRemoved =
@@ -292,22 +320,23 @@ export function defineRemoteResource<
         }
 
         if (config.stream) {
-          if (watchCollection !== undefined) {
-            const streamedData: TData[] = []
-            for await (const event of readNDJSONStream(response.body)) {
-              streamedData.push(event)
-            }
-            onDataReceived(data, streamedData)
-            await flushData()
-          } else {
-            for await (const event of readNDJSONStream(response.body)) {
-              onDataReceived(data, event)
-              await flushData()
-            }
+          if (Array.isArray(data.value)) {
+            data.value = [] as TData
+          }
+
+          for await (const event of readNDJSONStream(response.body)) {
+            onDataReceived(data, event, 'execute', context)
+            void flushData()
+          }
+
+          if (watchCollection !== undefined && Array.isArray(data.value)) {
+            handleBuffer(data as Ref<TData[]>)
+            isBufferEventsProcessed = true
+            void flushData()
           }
         } else {
-          onDataReceived(data, await response.json())
-          await flushData()
+          onDataReceived(data, await response.json(), 'execute', context)
+          void flushData()
         }
 
         isReady.value = true
@@ -333,12 +362,12 @@ export function defineRemoteResource<
           handlePost,
           resource,
           onDataReceived: receivedData => {
-            onDataReceived(data, receivedData, context)
-            flushData()
+            onDataReceived(data, receivedData, 'update', context)
+            void flushData()
           },
           onDataRemoved: receivedData => {
             onDataRemoved(data, receivedData, context)
-            flushData()
+            void flushData()
           },
         })
         await execute()
