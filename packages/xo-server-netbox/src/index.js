@@ -161,30 +161,39 @@ class Netbox {
       method,
       rejectUnauthorized: !this.#allowUnauthorized,
       timeout: REQUEST_TIMEOUT,
+      bypassStatusCheck: true, // we want to get the error body
     }
 
     const httpRequest = async () => {
+      let response
+      let resBody = 'Netbox error could not be retrieved'
       try {
-        const response = await this.#xo.httpRequest(url, options)
-        const resBody = await response.text()
-        if (resBody.length > 0) {
-          return JSON.parse(resBody)
+        response = await this.#xo.httpRequest(url, options)
+        if (((response.statusCode / 100) | 0) === 2) {
+          resBody = await response.text()
+          if (resBody.length > 0) {
+            return JSON.parse(resBody)
+          }
+          return
         }
-      } catch (error) {
-        error.method = method
-        error.requestBody = dataDebug
-
-        let resBody = 'Netbox error could not be retrieved'
+        const error = new Error(`${response.statusCode} ${response.statusMessage}`)
         try {
-          resBody = await error.response.text()
+          resBody = await response.text()
           error.netboxError = JSON.parse(resBody)
         } catch (err) {
           log.error(err)
           // If the error couldn't be parsed, expose the response's raw body
           error.netboxError = resBody
         }
-
         throw error
+      } catch (error) {
+        // root error won't have a body , most likely an error code line ECONRESET
+        error.method = method
+        error.requestBody = dataDebug
+        error.response = response
+        throw error
+      } finally {
+        response?.destroy()
       }
     }
 

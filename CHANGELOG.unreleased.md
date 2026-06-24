@@ -16,6 +16,7 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [Site/Dashboard] Rename `no job` to `no active job` in the `VMs protection` card (PR [#10013](https://github.com/vatesfr/xen-orchestra/pull/10013))
+- [xo-server] Fix memory leak on failed http query (XS update for example) (PR [#10026](https://github.com/vatesfr/xen-orchestra/pull/10026))
 
 ### Packages to release
 
@@ -35,5 +36,6 @@
 
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core patch
+- xo-server patch
 
 <!--packages-end-->
