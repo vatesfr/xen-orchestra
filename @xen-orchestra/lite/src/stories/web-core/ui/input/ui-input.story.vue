@@ -16,7 +16,7 @@
       prop('prefix').str().widget(),
       prop('suffix').str().widget(),
       prop('disabled').bool().widget(),
-      slot('rightIcon').help('Can be used in place of rightIcon prop'),
+      slot('right-icon').help('Can be used in place of rightIcon prop'),
       slot('prefix').help('Can be used in place of prefix prop'),
       slot('suffix').help('Can be used in place of suffix prop'),
     ]"
