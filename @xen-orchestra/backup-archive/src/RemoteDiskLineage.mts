@@ -296,6 +296,8 @@ export class RemoteDiskLineage {
           try {
             const disk = await openDisk({ handler: this.#handler, path, ignoreBlockIndexes: true })
             await disk.unlink({ force: true })
+            // Remove from tracking so #cleanOrphanDataFiles skips this now-deleted path
+            this.#unregisterDisk(path)
           } catch (error) {
             this.#opts.logWarn('failed to delete unused disk', { path, error })
           }
@@ -316,8 +318,15 @@ export class RemoteDiskLineage {
         await asyncEach(
           toMerge,
           async ({ chain, isResuming }) => {
-            const { finalDiskSize, mergeTargetPath } = await limitedMergeChain(chain, isResuming)
+            const { finalDiskSize, mergeTargetPath } = await limitedMergeChain([...chain], isResuming)
             mergedSizes.set(mergeTargetPath, (mergedSizes.get(mergeTargetPath) ?? 0) + finalDiskSize)
+            // parentPath alias deleted by parentDisk.rename(mergeTargetPath)
+            // intermediates deleted by childDisk.unlink() when removeUnused=true
+            // Unregister so #cleanOrphanDataFiles does not read already-deleted aliases
+            // and produce false "missing target of alias" warnings.
+            for (const deletedPath of chain.slice(0, -1)) {
+              this.#unregisterDisk(deletedPath)
+            }
           },
           { concurrency: this.#opts.mergeConcurrency ?? DEFAULT_MERGE_CONCURRENCY }
         )

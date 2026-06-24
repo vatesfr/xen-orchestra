@@ -5,7 +5,10 @@ import { useModal } from '@core/packages/modal/use-modal.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
 
-export function useVdiDeleteModal(rawVdis: MaybeRefOrGetter<FrontXoVdi[]>, rawVm: MaybeRefOrGetter<FrontXoVm>) {
+export function useVdiDeleteModal(
+  rawVdis: MaybeRefOrGetter<FrontXoVdi[]>,
+  rawVm: MaybeRefOrGetter<FrontXoVm | undefined>
+) {
   const vdis = toComputed(rawVdis)
   const vm = toComputed(rawVm)
 

@@ -35,8 +35,7 @@ import { useVdiDeleteModal } from '@/modules/vdi/composables/use-vdi-delete-moda
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { getVdiFormat, getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { CONNECTION_ACTION } from '@/shared/constants.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -45,6 +44,7 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useVdiColumns } from '@core/tables/column-sets/vdi-columns.ts'
+import { CONNECTION_ACTION } from '@core/types/connection.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -63,8 +63,6 @@ defineSlots<{
 const { t } = useI18n()
 
 const selectedVdiId = useRouteQuery('id')
-
-const { buildXo5Route } = useXoRoutes()
 
 const { getVbdsByIds, useGetVbdsByIds } = useXoVbdCollection()
 
@@ -94,8 +92,6 @@ const { HeadCells, BodyCells } = useVdiColumns({
     const vbds = useGetVbdsByIds(vdi.$VBDs)
 
     const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm.id))
-
-    const href = computed(() => buildXo5Route(`/vms/${vm.id}/disks?s=1_6_asc-${vdi.id}`))
 
     const size = computed(() => formatSizeRaw(vdi.size, 2))
     const format = computed(() => getVdiFormat(vdi.image_format))
@@ -132,7 +128,12 @@ const { HeadCells, BodyCells } = useVdiColumns({
     )
 
     return {
-      vdi: r => r({ label: vdi.name_label, href: href.value, icon: getVdiIcon(getVbdsByIds(vdi.$VBDs)) }),
+      vdi: r =>
+        r({
+          label: vdi.name_label,
+          to: { name: '/vdi/[id]/general', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.VM } },
+          icon: getVdiIcon(getVbdsByIds(vdi.$VBDs)),
+        }),
       description: r => r(vdi.name_description),
       usedSpace: r => r(vdi.usage, vdi.size),
       size: r => r(size.value.value, size.value.prefix),

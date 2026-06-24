@@ -113,9 +113,12 @@ A few caveats:
 
 - This is still in BETA and should not be used in production yet.
 - This will only work on XCP-ng, not on XenServer hosts.
-- At this time, there is no UI in Xen Orchestra for network-wide rules. The rules can be created through `xo-cli`.
 - This is not enabled by default, and requires a configuration change for `xo-server`. See [the configuration page](configuration#sdn-controller-mode) to know more.
   :::
+
+:::tip
+Since Xen Orchestra 6.5 UI, you can manage network-wide or VIF traffic rules. The rules can also be created through the [REST API](./restapi.md).
+:::
 
 - Works on any network:
   - Networks bound to physical interface as well as bonds
@@ -157,6 +160,40 @@ xo-cli sdnController.addNetworkRule networkId=9334aa83-6960-62e5-a463-5acc05295a
 xo-cli sdnController.deleteNetworkRule networkId=9334aa83-6960-62e5-a463-5acc05295af4 direction=to ipRange=1.1.1.2 protocol=icmp
 xo-cli sdnController.addNetworkRule networkId=9334aa83-6960-62e5-a463-5acc05295af4 direction=from ipRange=1.1.1.2 protocol=tcp allow=false port=json:4242
 xo-cli sdnController.deleteNetworkRule networkId=9334aa83-6960-62e5-a463-5acc05295af4 direction=from ipRange=1.1.1.2 protocol=tcp port=json:4242
+```
+
+### Migration path
+
+OpenFlow Protocol and XAPI Plugin modes implement traffic rules in slightly different ways.
+
+Because of this mismatch, the two modes are not directly interchangeable and you must either
+
+1. Re‑create the rules from scratch, or
+2. Use the provided migration script to translate an existing set of rules.
+
+  :::note
+    The migration is forward only.
+    You can go from OpenFlow Protocol to XAPI Plugin in a semi‑automatic manner, but to revert existing rules will be deleted first.
+  :::
+
+#### What the migration script does
+
+- Back up the current rules in the OpenFlow Protocol format in `rules-channel.json` file.
+- Translate those rules into the XAPI Plugin format.
+
+If you ever need to go back to the original configuration, the same script can restore the rules from the backup.
+Existing rules will first be removed before restoring the saved ones.
+
+#### How to use the script
+
+The migration script is available as [sdn-migration.py (download script)](../../static/sh/sdn-migration.py).
+
+```sh
+# Export current rules to rules-channel.json and convert to XAPI format
+python3 sdn-migration.py migrate
+
+# (Optional) Restore original rules (from rules-channel.json file)
+python3 sdn-migration.py restore
 ```
 
 ## OpenSSL 3 + SDN upgrade path

@@ -43,11 +43,11 @@ If changing a user-specific configuration, make sure the file belongs to the use
 
 Place your `config.toml` (or any `config.*.toml` override) in one of the following:
 
-- **System-wide configuration**:  
-  `/etc/xo-server/config.toml`  
+- **System-wide configuration**:
+  `/etc/xo-server/config.toml`
   (or any file matching `config.<name>.toml`)
 
-- **User-specific configuration**:  
+- **User-specific configuration**:
   `~/.config/xo-server/config.toml`
 
 The order of the loading and overriding values in multiple config files is the following:
@@ -150,6 +150,10 @@ For this kind of setting, we recommend using something like `/etc/xo-server/conf
 [plugins.sdn-controller]
 useDirectChannel = false
 ```
+
+Changing the mode is only supported forward : from direct OpenFlow Protocol channel to XAPI Plugin communication.
+A migration script is provided to automatically convert the traffic rules.
+See [XO 5 > Management > SDN Controller > OpenFlow rules](sdn_controller#migration-path) for details.
 
 ## Custom certificate authority
 

@@ -1,6 +1,10 @@
 <template>
   <UiCard class="card-container">
-    <UiLink size="medium" :href="vdiHref" :icon="vdiIcon">
+    <UiLink
+      size="medium"
+      :to="{ name: '/vdi/[id]/general', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.VM } }"
+      :icon="vdiIcon"
+    >
       {{ vdi.name_label }}
     </UiLink>
     <div class="content">
@@ -48,8 +52,7 @@ import { useVbdsStatus, type VbdAttachmentStatus } from '@/modules/vbd/composabl
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { CONNECTION_STATUS } from '@/shared/constants.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
 import type { IconName } from '@core/icons'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
@@ -60,6 +63,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { useMapper } from '@core/packages/mapper'
+import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -69,10 +73,6 @@ const { vdi, vm } = defineProps<{
 }>()
 
 const { t } = useI18n()
-
-const { buildXo5Route } = useXoRoutes()
-
-const vdiHref = computed(() => buildXo5Route(`/vms/${vm.id}/disks/s=1_6_asc-${vdi.id}`))
 
 const vbdsAttachmentStatus = useVbdsStatus(() => vdi.$VBDs)
 

@@ -129,6 +129,41 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/dev/': RouteRecordInfo<
+      '/dev/',
+      '/dev',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/dev/colors': RouteRecordInfo<
+      '/dev/colors',
+      '/dev/colors',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/dev/icons/': RouteRecordInfo<
+      '/dev/icons/',
+      '/dev/icons',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/dev/icons/[name]': RouteRecordInfo<
+      '/dev/icons/[name]',
+      '/dev/icons/:name',
+      { name: ParamValue<true> },
+      { name: ParamValue<false> },
+      | never
+    >,
+    '/dev/token': RouteRecordInfo<
+      '/dev/token',
+      '/dev/token',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/host/[id]': RouteRecordInfo<
       '/host/[id]',
       '/host/:id',
@@ -301,6 +336,20 @@ declare module 'vue-router/auto-routes' {
       '/traffic-rule/new',
       Record<never, never>,
       Record<never, never>,
+      | never
+    >,
+    '/vdi/[id]': RouteRecordInfo<
+      '/vdi/[id]',
+      '/vdi/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | '/vdi/[id]/general'
+    >,
+    '/vdi/[id]/general': RouteRecordInfo<
+      '/vdi/[id]/general',
+      '/vdi/:id/general',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
       | never
     >,
     '/vdi/attach': RouteRecordInfo<
@@ -517,6 +566,36 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/pages/dev/index.vue': {
+      routes:
+        | '/dev/'
+      views:
+        | never
+    }
+    'src/pages/dev/colors.vue': {
+      routes:
+        | '/dev/colors'
+      views:
+        | never
+    }
+    'src/pages/dev/icons/index.vue': {
+      routes:
+        | '/dev/icons/'
+      views:
+        | never
+    }
+    'src/pages/dev/icons/[name].vue': {
+      routes:
+        | '/dev/icons/[name]'
+      views:
+        | never
+    }
+    'src/pages/dev/token.vue': {
+      routes:
+        | '/dev/token'
+      views:
+        | never
+    }
     'src/pages/host/[id].vue': {
       routes:
         | '/host/[id]'
@@ -667,6 +746,19 @@ declare module 'vue-router/auto-routes' {
     'src/pages/traffic-rule/new.vue': {
       routes:
         | '/traffic-rule/new'
+      views:
+        | never
+    }
+    'src/pages/vdi/[id].vue': {
+      routes:
+        | '/vdi/[id]'
+        | '/vdi/[id]/general'
+      views:
+        | 'default'
+    }
+    'src/pages/vdi/[id]/general.vue': {
+      routes:
+        | '/vdi/[id]/general'
       views:
         | never
     }
