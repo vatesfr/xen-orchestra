@@ -2,6 +2,7 @@
 
 import ensureArray from 'ensure-array'
 import fromCallback from 'promise-toolbox/fromCallback'
+import pTimeout from 'promise-toolbox/timeout'
 import { Client } from 'ldapts'
 import { createLogger } from '@xen-orchestra/log'
 import { Filter } from 'ldapts/filters/Filter'
@@ -12,7 +13,15 @@ const logger = createLogger('xo:xo-server-auth-ldap')
 // ===================================================================
 
 const CONNECT_TIMEOUT_MS = 5000
+// ldapts timeout: only fires if connectTimeout does not fire
+const LDAPTS_TIMEOUT_MS = CONNECT_TIMEOUT_MS * 4
 const FAILOVER_ERRORS = new Set(['ECONNREFUSED', 'ETIMEDOUT', 'EHOSTUNREACH', 'ECONNRESET', 'ENOTFOUND'])
+
+function throwConnectTimeout() {
+  const err = new Error('LDAP connect timeout')
+  err.code = 'ETIMEDOUT'
+  throw err
+}
 
 const isFailoverError = err =>
   FAILOVER_ERRORS.has(err.code) || (Array.isArray(err.errors) && err.errors.some(e => FAILOVER_ERRORS.has(e.code)))
@@ -250,15 +259,17 @@ class AuthLdap {
     const uris = [this._clientOpts.url, ...this._failoverUris]
     let lastError
     for (const uri of uris) {
-      const client = new Client({ ...this._clientOpts, url: uri, connectTimeout: CONNECT_TIMEOUT_MS })
+      const client = new Client({ ...this._clientOpts, url: uri, connectTimeout: LDAPTS_TIMEOUT_MS })
       try {
         if (this._startTls) {
-          await client.startTLS(this._tlsOptions)
+          await pTimeout.call(client.startTLS(this._tlsOptions), CONNECT_TIMEOUT_MS, throwConnectTimeout)
         }
         const { _credentials: credentials } = this
         if (credentials) {
-          logger.debug(`attempting to bind with as ${credentials.dn}...`)
-          await client.bind(credentials.dn, credentials.password)
+          logger.debug(`attempting to bind as ${credentials.dn}...`)
+          await (this._startTls
+            ? client.bind(credentials.dn, credentials.password)
+            : pTimeout.call(client.bind(credentials.dn, credentials.password), CONNECT_TIMEOUT_MS, throwConnectTimeout))
           logger.debug(`successfully bound as ${credentials.dn}`)
         }
         return client

@@ -18,6 +18,7 @@ beforeEach(() => {
     startTLSInstances.push(this)
     const behavior = startTLSBehaviors.shift() ?? {}
     if (behavior.startTLSError !== undefined) throw behavior.startTLSError
+    if (behavior.startTLSHang) return new Promise(() => {})
   })
   mock.method(Client.prototype, 'unbind', async function () {
     unbindInstances.push(this)
@@ -99,14 +100,16 @@ test('throws the last error when all URIs are exhausted', async () => {
   )
 })
 
-test('passes connectTimeout: CONNECT_TIMEOUT_MS to every Client constructor call', async () => {
+test('treats a hanging connect as a failover error (our timeout fires, not ldapts codeless)', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] })
   const plugin = makePlugin({ failoverUris: ['ldap://backup1'] })
-  startTLSBehaviors = [{ startTLSError: tcpError('ECONNREFUSED') }]
+  startTLSBehaviors = [{ startTLSHang: true }]
 
-  await plugin._connectAndBind()
-  for (const instance of startTLSInstances) {
-    assert.equal(instance.clientOptions.connectTimeout, CONNECT_TIMEOUT_MS)
-  }
+  const promise = plugin._connectAndBind()
+  t.mock.timers.tick(CONNECT_TIMEOUT_MS + 1)
+  const client = await promise
+  assert.equal(startTLSInstances.length, 2)
+  assert.equal(client.clientOptions.url, 'ldap://backup1')
 })
 
 test('calls unbind() on a client whose startTLS throws a TCP error', async () => {
