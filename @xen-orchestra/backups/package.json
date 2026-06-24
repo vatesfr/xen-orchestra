@@ -67,7 +67,7 @@
     "typescript": "^5.9.3"
   },
   "peerDependencies": {
-    "@xen-orchestra/xapi": "^8.8.0"
+    "@xen-orchestra/xapi": "^8.9.0"
   },
   "license": "AGPL-3.0-or-later",
   "author": {

@@ -40,7 +40,7 @@
     "@xen-orchestra/acl": "^1.3.0",
     "@xen-orchestra/backups": "^0.73.2",
     "@xen-orchestra/log": "^0.7.2",
-    "@xen-orchestra/xapi": "^8.8.0",
+    "@xen-orchestra/xapi": "^8.9.0",
     "complex-matcher": "^1.1.1",
     "golike-defer": "^0.5.1",
     "inversify": "^6.2.2",
