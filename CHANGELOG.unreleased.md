@@ -25,6 +25,8 @@
 - [REST API] Expose `GET /rest/v0/backup-archives/:id/disks/:diskId/partitions` (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
 - [REST API] Expose `GET /rest/v0/backup-archives/:id/disks/:diskId/partitions/:partitionId/files` (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
 - [REST API] Expose `GET /rest/v0/backup-archives/:id/disks/:diskId/files` (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
+- [REST API] Expose `GET /rest/v0/backup-archives/:id/disks/:diskId/partitions/:partitionId/files.:format` to get file(s) from a partition (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
+- [REST API] Expose `GET /rest/v0/backup-archives/:id/disks/:diskId/files.:format` to get file(s) from a bare disk (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
 
 ### Bug fixes
 
