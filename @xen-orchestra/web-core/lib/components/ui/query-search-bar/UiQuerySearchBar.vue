@@ -10,7 +10,6 @@
       type="text"
       accent="brand"
       :aria-label="uiStore.isSmall ? t('query-search-bar:label') : undefined"
-      :icon="!uiStore.isSmall ? 'fa:magnifying-glass' : undefined"
       :placeholder="t('query-search-bar:placeholder')"
     />
     <template v-if="!uiStore.isSmall">
