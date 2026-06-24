@@ -264,7 +264,7 @@ export default class Vm extends BaseComponent {
     )
   }
 
-  _toggleHeader = () => this.setState({ collapsedHeader: !this.state.collapsedHeader })
+  _setCollapsedHeader = collapsedHeader => this.setState({ collapsedHeader })
 
   render() {
     const { container, vm } = this.props
@@ -284,7 +284,8 @@ export default class Vm extends BaseComponent {
       >
         {cloneElement(this.props.children, {
           ...childProps,
-          toggleHeader: this._toggleHeader,
+          collapsedHeader: this.state.collapsedHeader,
+          setCollapsedHeader: this._setCollapsedHeader,
         })}
       </Page>
     )
