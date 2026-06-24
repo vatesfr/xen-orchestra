@@ -663,7 +663,7 @@ class SDNController extends EventEmitter {
             callback: ({ req, createAction }) => {
               return createAction(
                 async () => {
-                  const { oldRule, newRule: partialNewRule } = req.body ?? {}
+                  const { oldRule, newRule: partialNewRule } = req.body
                   const networkId = req.params.id
                   const network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
                   const networkRules = JSON.parse(network.other_config['xo:sdn-controller:of-rules'] || '[]').map(
