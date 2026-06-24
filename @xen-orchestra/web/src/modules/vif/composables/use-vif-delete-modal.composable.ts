@@ -16,6 +16,7 @@ export function useVifDeleteModal(rawVifs: MaybeRefOrGetter<FrontXoVif[]>) {
   const { redirectIfOnObjectPage } = useRedirectAfterDelete({
     isOnObjectPage: () => route.name?.includes('/vm/') ?? false,
     redirectTo: () => {
+      // TODO: handle check when deleting from VIF page
       if (vifs.value[0]?.$VM !== undefined) {
         return { name: '/vm/[id]/networks', params: { id: vifs.value[0]?.$VM } }
       }
