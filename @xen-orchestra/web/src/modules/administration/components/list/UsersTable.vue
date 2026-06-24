@@ -34,6 +34,7 @@ import VtsTable from '@core/components/table/VtsTable.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useUserColumns } from '@core/tables/column-sets/user-columns.ts'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { users } = defineProps<{
@@ -46,7 +47,19 @@ defineSlots<{
 
 const { t } = useI18n()
 
-const { pageRecords: paginatedUsers, paginationBindings } = usePagination('users', users)
+const searchQuery = ref('')
+
+const filteredUsers = computed(() => {
+  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
+
+  if (!searchTerm) {
+    return users
+  }
+
+  return users.filter(user => Object.values(user).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
+})
+
+const { pageRecords: paginatedUsers, paginationBindings } = usePagination('users', filteredUsers)
 
 const { HeadCells, BodyCells } = useUserColumns({
   body: (user: FrontXoUser) => {
@@ -89,14 +102,7 @@ const { HeadCells, BodyCells } = useUserColumns({
     // )
 
     return {
-      username: r =>
-        r({
-          label: user.email,
-          to: { name: '/', params: {}, query: {} },
-          icon: 'object:organization',
-        }),
-      firstname: r => r(user.name ?? ''),
-      lastname: r => r(user.name ?? ''),
+      name: r => r(user.name ?? ''),
       email: r => r(user.email),
       provider: r => r(user.email),
       // actions: r =>
