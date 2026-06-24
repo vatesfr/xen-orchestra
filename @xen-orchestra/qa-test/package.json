@@ -20,7 +20,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@xen-orchestra/fs": "*",
+    "@xen-orchestra/fs": "^4.9.1",
     "@xen-orchestra/log": "^0.7.2",
     "nodemailer": "^7.0.13",
     "xo-lib": "^0.11.2"
