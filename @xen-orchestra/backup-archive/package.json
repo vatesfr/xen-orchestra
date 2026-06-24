@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/backup-archive",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Helper to handle generic backup archives",
   "license": "ISC",
   "author": "",
