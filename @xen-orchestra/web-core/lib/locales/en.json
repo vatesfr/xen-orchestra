@@ -206,7 +206,6 @@
   "backups:vms-protection:active-protected": "In at least 1 active job & protected",
   "backups:vms-protection:active-unprotected": "In at least 1 active job but unprotected",
   "backups:vms-protection:no-active-job": "In no active job",
-  "backups:vms-protection:no-job": "In no job",
   "backups:vms-protection:protected": "In at least 1 job & protected",
   "backups:vms-protection:tooltip": "A VM is protected if it's in a backup job, with an enabled schedule, and the last run succeeded",
   "backups:vms-protection:unprotected": "In at least 1 job but unprotected",

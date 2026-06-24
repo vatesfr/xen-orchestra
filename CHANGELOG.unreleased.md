@@ -15,6 +15,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [Site/Dashboard] Rename `no job` to `no active job` in the `VMs protection` card (PR [#10013](https://github.com/vatesfr/xen-orchestra/pull/10013))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -30,5 +32,8 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/web patch
+- @xen-orchestra/web-core patch
 
 <!--packages-end-->
