@@ -288,7 +288,7 @@ export class GroupController extends XoController<XoGroup> {
   ): SendObjects<Partial<Unbrand<XoUser>>> {
     const group = await this.getObject(id as XoGroup['id'])
     const users = await Promise.all(group.users.map(id => this.#userService.getUser(id)))
-    return this.sendObjects(limitAndFilterArray(users, { filter }), req, {
+    return this.sendObjects(limitAndFilterArray(users, { filter }, this.restApi.resolver), req, {
       path: 'users',
       limit,
       privilege: { action: 'read', resource: 'user' },

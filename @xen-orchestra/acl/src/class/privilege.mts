@@ -14,21 +14,24 @@ export class Privilege<T extends SupportedResource> {
   #resource: TPrivilege<T>['resource']
   #effect: TPrivilege<T>['effect']
 
-  constructor({
-    action,
-    selector,
-    resource,
-    effect,
-  }: {
-    action: TPrivilege<T>['action']
-    selector?: TPrivilege<T>['selector']
-    resource: TPrivilege<T>['resource']
-    effect: TPrivilege<T>['effect']
-  }) {
+  constructor(
+    {
+      action,
+      selector,
+      resource,
+      effect,
+    }: {
+      action: TPrivilege<T>['action']
+      selector?: TPrivilege<T>['selector']
+      resource: TPrivilege<T>['resource']
+      effect: TPrivilege<T>['effect']
+    },
+    resolver?: (id: string) => object | undefined
+  ) {
     Privilege.checkActionIsValid(resource, action)
 
     this.#action = action
-    this.#selector = selector !== undefined ? CM.parse(selector).createPredicate() : undefined
+    this.#selector = selector !== undefined ? CM.parse(selector).createPredicate(resolver) : undefined
     this.#resource = resource
     this.#effect = effect
   }
