@@ -2,15 +2,13 @@ import { useXoVbdConnectJob } from '@/modules/vbd/jobs/xo-vbd-connect.job.ts'
 import { useXoVbdDisconnectJob } from '@/modules/vbd/jobs/xo-vbd-disconnect.job.ts'
 import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { CONNECTION_ACTION } from '@/shared/constants.ts'
 import { useModal } from '@core/packages/modal/use-modal.ts'
+import { CONNECTION_ACTION, type ConnectionAction } from '@core/types/connection.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
 
-export type VbdConnectionAction = (typeof CONNECTION_ACTION)[keyof typeof CONNECTION_ACTION]
-
 export function useVbdConnectionToggleModal(
-  rawAction: MaybeRefOrGetter<VbdConnectionAction>,
+  rawAction: MaybeRefOrGetter<ConnectionAction>,
   rawVbds: MaybeRefOrGetter<FrontXoVbd[]>,
   rawVm: MaybeRefOrGetter<FrontXoVm>
 ) {

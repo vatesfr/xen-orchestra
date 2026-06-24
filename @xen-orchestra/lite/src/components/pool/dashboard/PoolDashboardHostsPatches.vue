@@ -1,9 +1,11 @@
 <template>
   <UiCard class="pool-dashboard-hosts-patches">
-    <UiCardTitle class="patches-title">
+    <UiCardTitle>
       {{ t('patches') }}
-      <template v-if="areAllLoaded && count > 0" #right>
-        {{ t('n-missing', { n: count }) }}
+      <template v-if="areAllLoaded && count > 0" #info>
+        <span class="patches-title">
+          {{ t('n-missing', { n: count }) }}
+        </span>
       </template>
     </UiCardTitle>
     <div class="table-container">
@@ -14,10 +16,10 @@
 
 <script lang="ts" setup>
 import HostPatchesTable from '@/components/HostPatchesTable.vue'
-import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import { useHostPatches } from '@/composables/host-patches.composable'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -33,7 +35,7 @@ const { count, patches, areAllLoaded, areSomeLoaded } = useHostPatches(hosts)
 }
 
 .patches-title {
-  --section-title-right-color: var(--color-danger-txt-base);
+  color: var(--color-danger-txt-base);
 }
 
 .table-container {

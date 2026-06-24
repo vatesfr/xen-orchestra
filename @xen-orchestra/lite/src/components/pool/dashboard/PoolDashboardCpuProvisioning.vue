@@ -22,7 +22,6 @@
 </template>
 
 <script lang="ts" setup>
-import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import { ACTIVE_STATES } from '@/libs/utils'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store'
@@ -31,6 +30,7 @@ import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { cpuProgressThresholds } from '@core/utils/progress.util.ts'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'

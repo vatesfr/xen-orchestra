@@ -1,13 +1,13 @@
-import type { SrAccessMode, SrScope } from '@/modules/storage-repository/types/storage-repository.type'
-import { getSrModalInfoVariant } from '@/modules/storage-repository/utils/xo-sr.util.ts'
-import { CONNECTION_ACTION } from '@/shared/constants.ts'
+import type { SrAccessMode, SrScope } from '@core/types/storage-repository.type.ts'
 import { useMapper } from '@core/packages/mapper'
+import { CONNECTION_ACTION, type ConnectionAction } from '@core/types/connection.ts'
+import { getSrModalInfoVariant } from '@core/utils/sr.utils.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export function useSrModalMessages(options: {
-  action: (typeof CONNECTION_ACTION)[keyof typeof CONNECTION_ACTION]
+  action: ConnectionAction
   count: MaybeRefOrGetter<number>
   scope: MaybeRefOrGetter<SrScope>
   accessMode: MaybeRefOrGetter<SrAccessMode>

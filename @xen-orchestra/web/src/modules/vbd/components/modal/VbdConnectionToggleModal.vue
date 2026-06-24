@@ -18,16 +18,15 @@
 </template>
 
 <script lang="ts" setup>
-import type { VbdConnectionAction } from '@/modules/vbd/composables/use-vbd-connection-toggle-modal.composable.ts'
-import { CONNECTION_ACTION } from '@/shared/constants.ts'
 import VtsModal from '@core/components/modal/VtsModal.vue'
 import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
 import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
 import { useMapper } from '@core/packages/mapper'
+import { CONNECTION_ACTION, type ConnectionAction } from '@core/types/connection.ts'
 import { useI18n } from 'vue-i18n'
 
 const { action, count } = defineProps<{
-  action: VbdConnectionAction
+  action: ConnectionAction
   count: number
 }>()
 

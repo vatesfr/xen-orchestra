@@ -20,9 +20,9 @@
 <script lang="ts" setup>
 import { useSrDisconnectModal } from '@/modules/storage-repository/composables/use-sr-disconnect-modal.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { SR_SCOPE_TYPE, type SrScope } from '@/modules/storage-repository/types/storage-repository.type'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

@@ -1,5 +1,8 @@
 <template>
-  <UiCardTitle :left="t('vms')" :level="UiCardTitleLevel.SubtitleWithUnderline" :right="t('top-#', { n: N_ITEMS })" />
+  <UiCardSubtitle>
+    {{ t('vms') }}
+    <template #info>{{ t('top-#', { n: N_ITEMS }) }}</template>
+  </UiCardSubtitle>
   <VtsStateHero v-if="hasError" format="card" type="error" size="medium">{{ t('error-no-data') }}</VtsStateHero>
   <VtsStateHero v-else-if="isLoading" format="card" type="busy" size="medium" />
   <VtsStateHero v-else-if="isStatEmpty" format="card" type="no-data" size="medium">
@@ -9,16 +12,15 @@
 </template>
 
 <script lang="ts" setup>
-import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import { useStatStatus } from '@/composables/stat-status.composable'
 import { parseRamUsage } from '@/libs/utils'
 import { N_ITEMS } from '@/pages/pool/[uuid]/dashboard.vue'
 import { useVmStore } from '@/stores/xen-api/vm.store'
-import { UiCardTitleLevel } from '@/types/enums'
 import { IK_VM_STATS } from '@/types/injection-keys'
 import type { StatData } from '@/types/stat'
 import VtsProgressBarGroup from '@core/components/progress-bar-group/VtsProgressBarGroup.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiCardSubtitle from '@core/components/ui/card-subtitle/UiCardSubtitle.vue'
 import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 
