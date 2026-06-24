@@ -20,7 +20,7 @@
     "node": ">=6"
   },
   "dependencies": {
-    "xo-common": "^0.9.1"
+    "xo-common": "^0.10.0"
   },
   "scripts": {
     "postversion": "npm publish"

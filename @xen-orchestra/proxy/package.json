@@ -62,7 +62,7 @@
     "stoppable": "^1.0.6",
     "xdg-basedir": "^5.1.0",
     "xen-api": "^4.7.7",
-    "xo-common": "^0.9.1"
+    "xo-common": "^0.10.0"
   },
   "devDependencies": {
     "@vates/toggle-scripts": "^1.0.0",
