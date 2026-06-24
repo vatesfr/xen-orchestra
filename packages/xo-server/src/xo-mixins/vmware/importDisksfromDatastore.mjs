@@ -5,15 +5,24 @@ import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
 import { NbdDisk } from '@vates/nbd-client/NbdDisk.mjs'
 import { createLogger } from '@xen-orchestra/log'
 import { toQcow2Stream } from '@xen-orchestra/qcow2'
+import { importDisk } from '@xen-orchestra/xva/importDisk.mjs'
 
 const { warn } = createLogger('xo:importdiskfromdatastore')
 
-export async function importStream({ esxi, dataMap, disk, vmId, format }, consumerCallback) {
-  const signal = Task.abortSignal
-  const { datastore: datastoreName, diskPath } = disk
 
+ 
+async function instantiateSource({esxi, dataMap,disk, vmId}){
+  const signal = Task.abortSignal
   let vmdk
   let stream
+  const { datastore: datastoreName, diskPath } = disk
+
+  async function close(){
+    await vmdk?.close().catch(err => warn('error while closing source vmdk', err))
+    await esxi
+      .killNbdServer(vmId, `[${datastoreName}] ${diskPath}`)
+      .catch(err => warn('error while stopping nbdkit server', err))
+  }
   try {
     // we read the data from the full chain to ensure we don't have partial blocks ( blocks with 0 when clusters are in parent only)
     const { nbdInfos } = await esxi.spawnNbdKitProcess(vmId, `[${datastoreName}] ${diskPath}`)
@@ -23,6 +32,29 @@ export async function importStream({ esxi, dataMap, disk, vmId, format }, consum
     await vmdk.init()
     signal?.throwIfAborted()
     vmdk = new ReadAhead(vmdk)
+    return {vmdk, close}
+  }catch(error){
+    await close()
+    throw error
+  }
+}
+
+async function importXvaDisk({esxi, dataMap, disk, vmId, vdiMetadata, sr }){
+  const {vmdk, close} = await instantiateSource({esxi, dataMap,disk, vmId})
+
+  try{
+    return await  importDisk({vdi: vdiMetadata}, vmdk, sr )
+  }finally{
+    await close()
+  }
+
+}
+
+export async function importStream({ esxi, dataMap, disk, vmId, format }, consumerCallback) {
+  const signal = Task.abortSignal
+  const {vmdk, close} = await(instantiateSource({esxi,dataMap,disk, vmId}))
+  let stream
+  try {
 
     if (format === VDI_FORMAT_QCOW2) {
       stream = await toQcow2Stream(vmdk, { signal })
@@ -37,10 +69,7 @@ export async function importStream({ esxi, dataMap, disk, vmId, format }, consum
     Task.warning(err)
     throw err
   } finally {
-    await vmdk?.close().catch(err => warn('error while closing source vmdk', err))
-    await esxi
-      .killNbdServer(vmId, `[${datastoreName}] ${diskPath}`)
-      .catch(err => warn('error while stopping nbdkit server', err))
+    await close()
   }
 }
 
@@ -97,30 +126,18 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
     Task.info(`no reference disk found, fall back a full import`)
   }
   try {
-    if (!existingVdi) {
+    let transfered
+    if (!existingVdi) { 
       Task.info(`create a new VDI for ${diskPath}`)
-      const alignedSize = Math.ceil(capacity / blockSize) * blockSize
-      const delta = alignedSize - capacity
-      if (delta > 0) {
-        Task.info(`aligning disk size from ${capacity} to ${alignedSize} (adding ${delta} bytes at the end)`)
-      }
 
       const vdiMetadata = {
         name_description: descriptionLabel,
         name_label: '[ESXI]' + nameLabel,
         SR: sr.$ref,
-        virtual_size: alignedSize,
+        virtual_size: capacity,
       }
-      const vdiRef = await sr.$xapi.VDI_create(vdiMetadata)
-      existingVdi = sr.$xapi.getObject(vdiRef, undefined) ?? (await sr.$xapi.waitObject(vdiRef))
-
-      Task.info(
-        `vdi created  `,
-        diskPath,
-        'will create vbd',
-        userdevice,
-        `xvd${String.fromCharCode('a'.charCodeAt(0) + userdevice)}`
-      )
+      transferred = await importXvaDisk({esxi, dataMap, disk: activeDisk, vmId, vdiMetadata, sr})
+      Task.info(`import of ${diskPath} base content done`, { datastoreName, diskPath, sourceVmId: vmId })
       await sr.$xapi.VBD_create({
         VDI: vdiRef,
         VM: vm.$ref,
@@ -128,11 +145,11 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
         userdevice: String(userdevice < 3 ? userdevice : userdevice + 1),
       })
       Task.info(`vbd created `, diskPath)
+    } else {
+      transfered = await importStream({ esxi, dataMap, disk: activeDisk, vmId, format }, async stream => {
+        await existingVdi.$importContent(stream, { format })
+      })
     }
-
-    const transfered = await importStream({ esxi, dataMap, disk: activeDisk, vmId, format }, async stream => {
-      await existingVdi.$importContent(stream, { format })
-    })
 
     Task.info(`import of ${diskPath} content done`, { datastoreName, diskPath, sourceVmId: vmId })
     const duration = Math.round((Date.now() - start) / 1000)

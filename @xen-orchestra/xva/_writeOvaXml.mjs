@@ -9,11 +9,12 @@ import { DEFAULT_VDI } from './templates/vdi.mjs'
 import { DEFAULT_VIF } from './templates/vif.mjs'
 import { DEFAULT_VM } from './templates/vm.mjs'
 import toOvaXml from './_toOvaXml.mjs'
-import { XVA_DISK_CHUNK_LENGTH } from './_writeDisk.mjs'
+import { XVA_DISK_CHUNK_LENGTH } from './_constants.mjs'
+import fs from 'node:fs/promises'
 
 export default async function writeOvaXml(
   pack,
-  { memory, networks, nCpus, firmware, vdis, vhds, ...vmSnapshot },
+  { memory, networks, nCpus, firmware, vdis, vhds, disks, ...vmSnapshot },
   { sr, network }
 ) {
   let refId = 0
@@ -76,10 +77,15 @@ export default async function writeOvaXml(
   )
 
   data.objects.push(srObj)
-  assert.strictEqual(vhds.length, vdis.length)
-  for (let index = 0; index < vhds.length; index++) {
+  // `disks` (RandomAccessDisk) and `vhds` (legacy stream) are both written to the
+  // XVA the same way here: one VDI + one VBD per backing disk. They only differ in
+  // how their blocks are streamed later (see importVm.mjs). `vdis` holds the VDI
+  // metadata and must be ordered to match `[...vhds, ...disks]`.
+  const backingDisks = [...(vhds ?? []), ...(disks ?? [])]
+  assert.strictEqual(backingDisks.length, vdis.length)
+  for (let index = 0; index < backingDisks.length; index++) {
     const userdevice = index + 1
-    const vhd = vhds[index]
+    const disk = backingDisks[index]
     const alignedSize = Math.ceil(vdis[index].virtual_size / XVA_DISK_CHUNK_LENGTH) * XVA_DISK_CHUNK_LENGTH
     const vdi = defaultsDeep(
       {
@@ -97,7 +103,7 @@ export default async function writeOvaXml(
 
     data.objects.push(vdi)
     srObj.snapshot.VDIs.push(vdi.id)
-    vhd.ref = vdi.id
+    disk.ref = vdi.id
 
     const vbd = defaultsDeep(
       {
@@ -151,6 +157,8 @@ export default async function writeOvaXml(
       networkObj.snapshot.vifs.push(vif.id)
     }
   }
+
   const xml = toOvaXml(data)
+  await fs.writeFile('/tmp/xml', xml)
   await fromCallback.call(pack, pack.entry, { name: `ova.xml` }, xml)
 }

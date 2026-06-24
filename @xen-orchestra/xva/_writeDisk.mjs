@@ -1,57 +1,41 @@
+import { DiskLargerBlock, DiskSmallerBlock } from '@xen-orchestra/disk-transform'
 import { formatBlockPath } from './_formatBlockPath.mjs'
-import { fromCallback } from 'promise-toolbox'
-import { readChunkStrict } from '@vates/read-chunk'
-import { xxhash64 } from 'hash-wasm'
+import { writeChunk } from './_writeChunkInXva.mjs'
+import { XVA_DISK_CHUNK_LENGTH } from './_constants.mjs'
 
-export const XVA_DISK_CHUNK_LENGTH = 1024 * 1024
-
-async function addEntry(pack, name, buffer) {
-  await fromCallback.call(pack, pack.entry, { name }, buffer)
-}
-
-async function writeBlock(pack, data, name) {
-  if (data.length < XVA_DISK_CHUNK_LENGTH) {
-    data = Buffer.concat([data, Buffer.alloc(XVA_DISK_CHUNK_LENGTH - data.length, 0)])
-  }
-  await addEntry(pack, name, data)
-  // weirdly, ocaml and xxhash return the bytes in reverse order to each other
-  const hash = (await xxhash64(data)).toString('hex').toUpperCase()
-  await addEntry(pack, `${name}.xxhash`, Buffer.from(hash, 'utf8'))
-}
-
-export default async function addDisk(pack, vhd, basePath) {
-  let counter = 0
-  let written
+export default async function addDisk(pack, disk, basePath) {
+  let diskXvaChunk
   let lastBlockWrittenAt = Date.now()
   const MAX_INTERVAL_BETWEEN_BLOCKS = 60 * 1000
-  const empty = Buffer.alloc(XVA_DISK_CHUNK_LENGTH, 0)
-  const stream = await vhd.rawContent()
-  let lastBlockLength
-  const diskSize = vhd.footer.currentSize
-  let remaining = diskSize
-  while (remaining > 0) {
-    lastBlockLength = Math.min(XVA_DISK_CHUNK_LENGTH, remaining)
-    const data = await readChunkStrict(stream, lastBlockLength)
-    remaining -= lastBlockLength
-    if (
-      // write first block
-      counter === 0 ||
-      // write all non empty blocks
-      !data.equals(empty) ||
-      // write one block from time to time to ensure there is no timeout
-      // occurring while passing empty blocks
-      Date.now() - lastBlockWrittenAt > MAX_INTERVAL_BETWEEN_BLOCKS
-    ) {
-      written = true
-      await writeBlock(pack, data, formatBlockPath(basePath, counter))
-      lastBlockWrittenAt = Date.now()
-    } else {
-      written = false
-    }
-    counter++
+  if (disk.getBlockSize() < XVA_DISK_CHUNK_LENGTH) {
+    diskXvaChunk = new DiskLargerBlock(disk, XVA_DISK_CHUNK_LENGTH)
+  } else if (disk.getBlockSize() > XVA_DISK_CHUNK_LENGTH) {
+    diskXvaChunk = new DiskSmallerBlock(disk, XVA_DISK_CHUNK_LENGTH)
+  } else {
+    diskXvaChunk = disk
   }
-  if (!written) {
-    // last block must be present
-    await writeBlock(pack, empty, formatBlockPath(basePath, counter - 1))
+  const empty = Buffer.alloc(XVA_DISK_CHUNK_LENGTH, 0)
+  const nbBlocks = Math.ceil(diskXvaChunk.getVirtualSize() / diskXvaChunk.getBlockSize())
+
+  for (let counter = 0; counter < nbBlocks; counter++) {
+    let mustWriteBlock = false
+    let block
+    if (counter === 0 || counter === nbBlocks - 1) {
+      mustWriteBlock = true // first and last block must be present in xva disks
+    }
+    // write one block from time to time to ensure there is no timeout
+    // occurring while passing empty blocks
+    if (Date.now() - lastBlockWrittenAt > MAX_INTERVAL_BETWEEN_BLOCKS) {
+      mustWriteBlock = true
+    }
+    if (mustWriteBlock || diskXvaChunk.hasBlock(counter)) {
+      block = await diskXvaChunk.readBlock(counter)
+      // ignore empty chunks that are not first or last
+      mustWriteBlock = mustWriteBlock || !block.data.equals(empty)
+    }
+    if (mustWriteBlock) {
+      await writeChunk(pack, block.data, formatBlockPath(basePath, counter))
+      lastBlockWrittenAt = Date.now()
+    }
   }
 }
