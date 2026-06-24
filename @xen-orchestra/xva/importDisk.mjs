@@ -1,8 +1,9 @@
 import { isNotEmptyRef } from './_isNotEmptyRef.mjs'
 import { importVm } from './importVm.mjs'
 
-export async function importVdi(vdi, disk, xapi, sr) {
+export async function importDisk(vdi, disk, sr) {
   // create a fake VM
+  const xapi = sr.$xapi
   const vmRef = await importVm(
     {
       name_label: `[xva-disk-import]${vdi.name_label}`,
@@ -12,7 +13,6 @@ export async function importVdi(vdi, disk, xapi, sr) {
       vdis: [vdi],
       disks: [disk],
     },
-    xapi,
     sr
   )
   try {

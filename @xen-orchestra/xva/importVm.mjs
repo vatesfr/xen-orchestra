@@ -4,8 +4,9 @@ import writeOvaXml from './_writeOvaXml.mjs'
 import writeDiskStream from './_writeDiskStream.mjs'
 import writeDisk from './_writeDisk.mjs'
 
-export async function importVm(vm, xapi, sr, network) {
+export async function importVm(vm, sr, network) {
   const pack = tar.pack()
+  const xapi = sr.$xapi
   const taskRef = await xapi.task_create('VM import')
   const query = {
     sr_id: sr.$ref,

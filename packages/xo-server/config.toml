@@ -32,7 +32,7 @@ guessVhdSizeOnImport = true
 # This is disabled by default for performance (lots of data) and
 # security concerns (avoiding sensitive data in the logs) but can
 # be turned for investigation by the administrator.
-verboseApiLogsOnErrors = false
+verboseApiLogsOnErrors = true
 
 # if no events could be fetched during this delay, the server will be marked as disconnected
 xapiMarkDisconnectedDelay = '5 minutes'

@@ -12,7 +12,6 @@ export async function importVdi(vdi, vhd, xapi, sr) {
       vdis: [vdi],
       vhds: [vhd],
     },
-    xapi,
     sr
   )
   // wait for the VM to be loaded if necessary
