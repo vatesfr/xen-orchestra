@@ -62,7 +62,7 @@ const uiStore = useUiStore()
 // watch(
 //   () => users,
 //   value => {
-//     console.log(value)
+//     console.log('users.vue', value)
 //   }
 // )
 </script>
