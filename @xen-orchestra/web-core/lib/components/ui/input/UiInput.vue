@@ -1,11 +1,11 @@
 <!-- v9 -->
 <template>
   <div :class="toVariants({ accent, disabled, selected: isSelected })" class="ui-input" @click.self="focus()">
-    <slot v-if="slots.prefix || prefix" name="prefix">
-      <span class="prefix">
+    <span v-if="slots.prefix || prefix" class="prefix">
+      <slot name="prefix">
         {{ prefix }}
-      </span>
-    </slot>
+      </slot>
+    </span>
     <span v-if="readonly" class="typo-body-regular input text-ellipsis">
       <input ref="inputRef" class="readonly-input" readonly type="text" />
       {{ modelValue }}
@@ -24,11 +24,11 @@
       @focus="isFocused = true"
       @blur="isFocused = false"
     />
-    <slot v-if="slots.suffix || suffix" name="suffix">
-      <span class="suffix">
+    <span v-if="slots.suffix || suffix" class="suffix">
+      <slot name="suffix">
         {{ suffix }}
-      </span>
-    </slot>
+      </slot>
+    </span>
     <UiButtonIcon
       v-if="!disabled && modelValue && clearable"
       icon="fa:xmark"
@@ -154,24 +154,28 @@ defineExpose({ focus })
     color: var(--color-brand-txt-base);
   }
 
-  .prefix {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    align-self: stretch;
-    background-color: var(--color-neutral-background-secondary);
-    padding: 0 0.5rem;
-    margin-inline-left: -1.6rem;
-  }
-
+  .prefix,
   .suffix {
     display: flex;
     align-items: center;
     justify-content: center;
     align-self: stretch;
     background-color: var(--color-neutral-background-secondary);
-    padding: 0 0.5rem;
+    padding: 0.8rem 1.6rem;
+    border: 0.1rem solid var(--color-neutral-border);
+    color: var(--color-neutral-txt-secondary);
+  }
+
+  .prefix {
+    margin-inline-start: -1.6rem;
+    border-start-start-radius: 0.4rem;
+    border-end-start-radius: 0.4rem;
+  }
+
+  .suffix {
     margin-inline-end: -1.6rem;
+    border-start-end-radius: 0.4rem;
+    border-end-end-radius: 0.4rem;
   }
 
   &.disabled .right-icon {
@@ -206,6 +210,7 @@ defineExpose({ focus })
 
     &.selected {
       border-color: var(--color-brand-item-base);
+      border-width: 0.2rem;
     }
 
     &:hover {
