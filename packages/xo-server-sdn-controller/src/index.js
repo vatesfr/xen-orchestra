@@ -764,7 +764,7 @@ class SDNController extends EventEmitter {
                         rule.protocol === oldRule.protocol
                     )
                   ) {
-                    throw noSuchObject(JSON.stringify(oldRule), 'rule')
+                    throw noSuchObject(JSON.stringify(oldRule), 'traffic-rule')
                   }
 
                   const newRule = { ...oldRule, ...(partialNewRule ?? {}) }
