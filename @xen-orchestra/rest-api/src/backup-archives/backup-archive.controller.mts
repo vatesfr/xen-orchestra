@@ -22,7 +22,7 @@ import { json, type Request as ExRequest, type Response as ExResponse } from 'ex
 import { noSuchObject } from 'xo-common/api-errors.js'
 import type {
   BackupArchiveDiskMount,
-  BackupDiskPartition,
+  XoBackupDiskPartition,
   XoBackupRepository,
   XoHost,
   XoVmBackupArchive,
@@ -285,7 +285,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   )
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  async getBackupArchiveDiskPartitions(@Path() id: string, @Path() diskId: string): Promise<BackupDiskPartition[]> {
+  async getBackupArchiveDiskPartitions(@Path() id: string, @Path() diskId: string): Promise<XoBackupDiskPartition[]> {
     return this.#backupArchiveService.listPartitions(id as XoVmBackupArchive['id'], diskId)
   }
 

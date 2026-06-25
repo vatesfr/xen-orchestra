@@ -3,7 +3,7 @@ import type {
   AnyXoJob,
   AnyXoLog,
   NonXapiXoRecord,
-  BackupDiskPartition,
+  XoBackupDiskPartition,
   XapiXoRecord,
   XoAuthenticationToken,
   XoBackupRepository,
@@ -420,7 +420,7 @@ export type XoApp = {
   getXoEventEmitterByType(type: string): EventEmitter
   hasFeatureAuthorization(featureCode: string): Promise<boolean>
   hasObject<T extends XapiXoRecord>(id: T['id'], type: T['type']): boolean
-  listBackupNgDiskPartitions(remoteId: XoBackupRepository['id'], diskId: string): Promise<BackupDiskPartition[]>
+  listBackupNgDiskPartitions(remoteId: XoBackupRepository['id'], diskId: string): Promise<XoBackupDiskPartition[]>
   listBackupNgPartitionFiles(
     remoteId: XoBackupRepository['id'],
     diskId: string,

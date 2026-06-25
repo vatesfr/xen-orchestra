@@ -1,5 +1,5 @@
 import { noSuchObject } from 'xo-common/api-errors.js'
-import type { BackupDiskPartition, XoBackupRepository, XoVm, XoVmBackupArchive } from '@vates/types'
+import type { XoBackupDiskPartition, XoBackupRepository, XoVm, XoVmBackupArchive } from '@vates/types'
 
 import type { RestApi } from '../rest-api/rest-api.mjs'
 
@@ -37,7 +37,7 @@ export class BackupArchiveService {
     return match[1] as XoBackupRepository['id']
   }
 
-  listPartitions(archiveId: XoVmBackupArchive['id'], diskId: string): Promise<BackupDiskPartition[]> {
+  listPartitions(archiveId: XoVmBackupArchive['id'], diskId: string): Promise<XoBackupDiskPartition[]> {
     return this.#restApi.xoApp.listBackupNgDiskPartitions(this.#getRemoteId(archiveId), diskId)
   }
 
