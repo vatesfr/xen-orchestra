@@ -208,6 +208,7 @@ defineExpose({ focus })
   &.accent--brand {
     border-color: var(--color-neutral-border);
 
+    &:focus-within,
     &.selected {
       border-color: var(--color-brand-item-base);
       border-width: 0.2rem;
@@ -230,6 +231,7 @@ defineExpose({ focus })
   &.accent--warning {
     border-color: var(--color-warning-item-base);
 
+    &:focus-within,
     &.selected {
       border-color: var(--color-warning-item-base);
     }
@@ -251,6 +253,7 @@ defineExpose({ focus })
   &.accent--danger {
     border-color: var(--color-danger-item-base);
 
+    &:focus-within,
     &.selected {
       border-color: var(--color-danger-item-base);
     }
