@@ -18,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import type { vdiExportFormat } from '@/shared/constants.ts'
+import type { VdiExportFormat } from '@/shared/constants.ts'
 import VtsDrawer from '@core/components/drawer/VtsDrawer.vue'
 import VtsDrawerCancelButton from '@core/components/drawer/VtsDrawerCancelButton.vue'
 import VtsDrawerConfirmButton from '@core/components/drawer/VtsDrawerConfirmButton.vue'
@@ -31,12 +31,12 @@ import { useI18n } from 'vue-i18n'
 
 const emit = defineEmits<{
   cancel: []
-  confirm: [exportFormat: vdiExportFormat]
+  confirm: [exportFormat: VdiExportFormat]
 }>()
 
 const { t } = useI18n()
 
-const exportFormat = ref<vdiExportFormat>(SUPPORTED_VDI_FORMAT.vhd)
+const exportFormat = ref<VdiExportFormat>(SUPPORTED_VDI_FORMAT.vhd)
 
 const options = Object.entries(SUPPORTED_VDI_FORMAT)
   .filter(([, value]) => value !== SUPPORTED_VDI_FORMAT.qcow2)

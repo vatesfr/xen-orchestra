@@ -30,7 +30,7 @@ export const VDI_SOURCE = {
   URL: 'url',
 } as const
 
-export type vdiExportFormat = Exclude<SUPPORTED_VDI_FORMAT, 'qcow2'>
+export type VdiExportFormat = Exclude<SUPPORTED_VDI_FORMAT, 'qcow2'>
 
 export const VDI_PAGE_CONTEXT = {
   VM: 'vm',
