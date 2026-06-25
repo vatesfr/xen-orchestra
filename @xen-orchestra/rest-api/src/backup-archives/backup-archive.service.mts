@@ -55,13 +55,19 @@ export class BackupArchiveService {
     )
   }
 
-  fetchFiles(
-    archiveId: XoVmBackupArchive['id'],
-    diskId: string,
-    partitionId: string | undefined,
-    paths: string[],
-    format: string
-  ): Promise<NodeJS.ReadableStream> {
+  fetchFiles({
+    archiveId,
+    diskId,
+    partitionId,
+    paths,
+    format,
+  }: {
+    readonly archiveId: XoVmBackupArchive['id']
+    readonly diskId: string
+    readonly partitionId?: string
+    readonly paths: string[]
+    readonly format: 'tgz' | 'zip'
+  }): Promise<NodeJS.ReadableStream> {
     return this.#restApi.xoApp.fetchBackupNgPartitionFiles(
       this.#getBackupRepositoryId(archiveId),
       diskId,

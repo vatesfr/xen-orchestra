@@ -199,13 +199,13 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
     const res = req.res as ExResponse
     res.setHeader('content-type', 'application/octet-stream')
     res.setHeader('content-disposition', 'attachment')
-    const stream = await this.#backupArchiveService.fetchFiles(
-      id as XoVmBackupArchive['id'],
+    const stream = await this.#backupArchiveService.fetchFiles({
+      archiveId: id as XoVmBackupArchive['id'],
       diskId,
       partitionId,
       paths,
-      format
-    )
+      format,
+    })
     req.on('close', () => (stream as NodeJS.ReadableStream & { destroy?: () => void }).destroy?.())
     await pipeline(stream as unknown as Readable, res)
   }
@@ -280,13 +280,12 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
     const res = req.res as ExResponse
     res.setHeader('content-type', 'application/octet-stream')
     res.setHeader('content-disposition', 'attachment')
-    const stream = await this.#backupArchiveService.fetchFiles(
-      id as XoVmBackupArchive['id'],
+    const stream = await this.#backupArchiveService.fetchFiles({
+      archiveId: id as XoVmBackupArchive['id'],
       diskId,
-      undefined,
       paths,
-      format
-    )
+      format,
+    })
     req.on('close', () => (stream as NodeJS.ReadableStream & { destroy?: () => void }).destroy?.())
     await pipeline(stream as unknown as Readable, res)
   }
