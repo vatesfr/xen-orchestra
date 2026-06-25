@@ -6,15 +6,28 @@
     <div class="content">
       <VtsCodeSnippet :content="user.id" copy />
       <VtsCardRowKeyValue truncate align-top>
+        <template #key>{{ t('xoa-manager') }}</template>
+        <template #value>{{ user.permission }}</template>
+        <template #addons>
+          <VtsCopyButton :value="user.permission" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('last-login') }}</template>
         <template #value>{{ lastLoginTimestamp }}</template>
+        <template v-if="lastLoginTimestamp" #addons>
+          <VtsCopyButton :value="lastLoginTimestamp" />
+        </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('email') }}</template>
         <template #value>{{ user.email }}</template>
+        <template #addons>
+          <VtsCopyButton :value="user.email" />
+        </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue truncate align-top>
-        <template #key>{{ t('provider') }}</template>
+        <template #key>{{ t('providers') }}</template>
         <template #value>{{ providers }}</template>
       </VtsCardRowKeyValue>
     </div>
@@ -26,6 +39,7 @@ import { useXoUserAuthenticationTokensCollection } from '@/modules/user/remote-r
 import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
+import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { computed } from 'vue'
@@ -35,23 +49,26 @@ const { user } = defineProps<{
   user: FrontXoUser
 }>()
 
-const { t } = useI18n()
+const { t, d } = useI18n()
 
 const { userAuthenticationTokens } = useXoUserAuthenticationTokensCollection({}, () => user.id)
 
 const lastLoginTimestamp = computed(() => {
-  let latest: number | undefined
+  let mostRecentTimestamp: number | undefined
+
   for (const token of userAuthenticationTokens.value ?? []) {
-    if (token.created_at !== undefined && (latest === undefined || token.created_at > latest)) {
-      latest = token.created_at
-    }
-    for (const use of Object.values<{ timestamp: number }>(token.last_uses ?? {})) {
-      if (latest === undefined || use.timestamp > latest) {
-        latest = use.timestamp
+    const usagesByIp = token.last_uses ?? {}
+
+    for (const ipAddress in usagesByIp) {
+      const timestamp = usagesByIp[ipAddress].timestamp
+
+      if (mostRecentTimestamp === undefined || timestamp > mostRecentTimestamp) {
+        mostRecentTimestamp = timestamp
       }
     }
   }
-  return latest
+
+  return mostRecentTimestamp ? d(mostRecentTimestamp * 1000, { dateStyle: 'short', timeStyle: 'medium' }) : undefined
 })
 
 const providers = computed(() => {
