@@ -21,20 +21,20 @@ const obfuscateRemote = ({ url, ...remote }) => {
   return remote
 }
 
-// background retry timing for broken remotes' info (getAllRemotesInfo)
-const REMOTE_INFO_RETRY_DELAY = 5e3 // base delay, matches the getInfo timeout below
+const REMOTE_INFO_RETRY_DELAY = 5e3
 const REMOTE_INFO_RETRY_MAX_DELAY = 60 * 60 * 1e3 // cap at 1h
 
-// Fibonacci-spaced delay (in ms) for the nth retry: 5s,5s,10s,15s,25s,40s,65s,… capped at 1h
 export function remoteInfoRetryDelay(attempt) {
-  let a = 1
-  let b = 1
-  for (let i = 0; i < attempt; ++i) {
-    const next = a + b
-    a = b
-    b = next
+  let prev = 1
+  let curr = 1
+
+  for (let i = 0; i < attempt; i++) {
+    const next = prev + curr
+    prev = curr
+    curr = next
   }
-  return Math.min(a * REMOTE_INFO_RETRY_DELAY, REMOTE_INFO_RETRY_MAX_DELAY)
+
+  return Math.min(prev * REMOTE_INFO_RETRY_DELAY, REMOTE_INFO_RETRY_MAX_DELAY)
 }
 
 // these properties should be defined on the remote object itself and not as
