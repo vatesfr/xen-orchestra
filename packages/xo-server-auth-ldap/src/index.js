@@ -313,6 +313,9 @@ class AuthLdap {
     this._removeApiMethods = this._xo.addApiMethods({
       ldap: {
         synchronizeGroups: async ({ domainIndex } = {}) => {
+          if (domainIndex !== undefined && (domainIndex < 0 || domainIndex >= this._domains.length)) {
+            throw new Error(`domainIndex ${domainIndex} out of range (0–${this._domains.length - 1})`)
+          }
           const domains = domainIndex !== undefined ? [this._domains[domainIndex]] : this._domains
           for (const domain of domains) {
             await this._synchronizeGroups({ domain })
