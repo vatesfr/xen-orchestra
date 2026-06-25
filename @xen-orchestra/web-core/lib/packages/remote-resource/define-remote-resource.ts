@@ -44,7 +44,7 @@ export function defineRemoteResource<
   onDataReceived?: (
     data: Ref<NoInfer<TData>>,
     receivedData: any,
-    calledFrom?: 'execute' | 'update',
+    calledFrom: 'execute' | 'update',
     context?: ResourceContext<TArgs>
   ) => void
   cacheExpirationMs?: number | false
@@ -58,7 +58,7 @@ export function defineRemoteResource<TData, TState extends object, TArgs extends
   onDataReceived?: (
     data: Ref<TData | undefined>,
     receivedData: any,
-    calledFrom?: 'execute' | 'update',
+    calledFrom: 'execute' | 'update',
     context?: ResourceContext<TArgs>
   ) => void
   cacheExpirationMs?: number | false
@@ -77,7 +77,7 @@ export function defineRemoteResource<
   onDataReceived?: (
     data: Ref<NoInfer<TData>>,
     receivedData: any,
-    calledFrom?: 'execute' | 'update',
+    calledFrom: 'execute' | 'update',
     context?: ResourceContext<TArgs>
   ) => void
   onDataRemoved?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
@@ -104,7 +104,7 @@ export function defineRemoteResource<
   onDataReceived?: (
     data: Ref<NoInfer<TData>>,
     receivedData: any,
-    calledFrom?: 'execute' | 'update',
+    calledFrom: 'execute' | 'update',
     context?: ResourceContext<TArgs>
   ) => void
   onDataRemoved?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
@@ -181,7 +181,7 @@ export function defineRemoteResource<
 
   const onDataReceived =
     config.onDataReceived ??
-    ((data: Ref<TData>, receivedData: any, calledFrom?: 'execute' | 'update', context?: ResourceContext<TArgs>) => {
+    ((data: Ref<TData>, receivedData: any, calledFrom: 'execute' | 'update', context?: ResourceContext<TArgs>) => {
       // allow to ignore some update (like for sub collection. E.g. vms/:id/vdis)
       if (watchCollection?.predicate?.(receivedData, context) === false) {
         return
@@ -193,6 +193,7 @@ export function defineRemoteResource<
         } else {
           merge(data.value, receivedData)
         }
+
         return
       }
 
@@ -201,10 +202,6 @@ export function defineRemoteResource<
       if (Array.isArray(receivedData)) {
         data.value = receivedData as TData
 
-        if (watchCollection !== undefined) {
-          handleBuffer(data as Ref<TData[]>)
-          isBufferEventsProcessed = true
-        }
         return
       }
 
