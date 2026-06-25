@@ -37,5 +37,6 @@
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core patch
 - xo-server patch
+- xo-server-netbox patch
 
 <!--packages-end-->
