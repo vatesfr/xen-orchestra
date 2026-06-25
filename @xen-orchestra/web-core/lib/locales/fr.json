@@ -1156,6 +1156,7 @@
   "vm": "VM",
   "firstname": "Prénom",
   "lastname": "Nom de famille",
+  "last-login": "Dernière connexion",
   "email": "Email",
   "provider": "Fournisseur",
   "vm-backup-failure-number-of-retries": "Nombre de tentatives en cas d'échec de la sauvegarde de la VM",

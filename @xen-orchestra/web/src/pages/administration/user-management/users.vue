@@ -1,70 +1,32 @@
 <template>
   <div class="vdis" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
-      <UsersTable :users>
-        <template #title-actions>
-          <MenuList placement="bottom-end">
-            <UiButton variant="primary" accent="brand" size="medium" left-icon="fa:plus">
-              {{ t('new') }}
-            </UiButton>
-            <!--                  <MenuItem> -->
-            <!--                    <UiLink -->
-            <!--                      class="add-vdi-link" -->
-            <!--                      :to="{ name: '/vdi/new', query: { vmid: vm.id } }" -->
-            <!--                      icon="fa:plus" -->
-            <!--                      size="medium" -->
-            <!--                    > -->
-            <!--                      {{ t('action:create-vdi') }} -->
-            <!--                    </UiLink> -->
-            <!--                  </MenuItem> -->
-            <!--                  <MenuItem> -->
-            <!--                    <UiLink -->
-            <!--                      class="add-vdi-link" -->
-            <!--                      :to="{ name: '/vdi/attach', query: { vmid: vm.id } }" -->
-            <!--                      icon="action:attach" -->
-            <!--                      size="medium" -->
-            <!--                    > -->
-            <!--                      {{ t('action:attach-vdi') }} -->
-            <!--                    </UiLink> -->
-            <!--                  </MenuItem> -->
-          </MenuList>
-        </template>
-      </UsersTable>
+      <UsersTable :users />
     </UiCard>
+    <UserSidePanel v-if="selectedUser" :user="selectedUser" @close="selectedUser = undefined" />
   </div>
 </template>
-<!--    &lt;!&ndash;    <VdiSidePanel v-if="selectedVdi" :vdi="selectedVdi" :vm @close="selectedVdi = undefined" /> &ndash;&gt; -->
-<!--    &lt;!&ndash;    <UiPanel v-else-if="!uiStore.isSmall"> &ndash;&gt; -->
-<!--    &lt;!&ndash;      <VtsStateHero format="panel" type="no-selection" size="medium"> &ndash;&gt; -->
-<!--    &lt;!&ndash;        {{ t('select-to-see-details') }} &ndash;&gt; -->
-<!--    &lt;!&ndash;      </VtsStateHero> &ndash;&gt; -->
-<!--    &lt;!&ndash;    </UiPanel> &ndash;&gt; -->
-<!--  </div> -->
-<!-- </template> -->
 
 <script setup lang="ts">
-import UsersTable from '@/modules/administration/components/list/UsersTable.vue'
-import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
-import MenuList from '@core/components/menu/MenuList.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
+import UserSidePanel from '@/modules/user/components/list/panel/UserSidePanel.vue'
+import UsersTable from '@/modules/user/components/list/UsersTable.vue'
+import { type FrontXoUser, useXoUserCollection } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { useI18n } from 'vue-i18n'
 
 const { users } = defineProps<{
   users: FrontXoUser[]
 }>()
 
-const { t } = useI18n()
+const { getUserById } = useXoUserCollection()
 
 const uiStore = useUiStore()
 
-// watch(
-//   () => users,
-//   value => {
-//     console.log('users.vue', value)
-//   }
-// )
+const selectedUser = useRouteQuery<FrontXoUser | undefined>('id', {
+  toData: id => getUserById(id as FrontXoUser['id']),
+  toQuery: user => user?.id ?? '',
+})
 </script>
 
 <style scoped lang="postcss">
