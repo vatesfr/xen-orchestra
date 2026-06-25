@@ -140,29 +140,6 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   }
 
   /**
-   * Returns the list of disks in a backup archive.
-   *
-   * Required privilege:
-   * - resource: backup-archive, action: read
-   */
-  @Extension('x-mcp-exposure', 'allow')
-  @Get('{id}/disks')
-  @Middlewares(
-    acl({
-      resource: 'backup-archive',
-      action: 'read',
-      objectId: 'params.id',
-      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
-    })
-  )
-  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
-  @Response(notFoundResp.status, notFoundResp.description)
-  async getBackupArchiveDisks(@Path() id: string): Promise<XoVmBackupArchive['disks']> {
-    const archive = await this.getObject(id as XoVmBackupArchive['id'])
-    return archive.disks
-  }
-
-  /**
    * Returns the list of partitions of a disk in a backup archive.
    * Returns an empty array for disks without a partition table (use the files endpoints directly).
    *
