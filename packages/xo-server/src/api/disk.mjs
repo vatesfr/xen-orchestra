@@ -1,12 +1,11 @@
 import * as multiparty from 'multiparty'
 import assert from 'assert'
-import hrp from 'http-request-plus'
 import { createLogger } from '@xen-orchestra/log'
 import { defer } from 'golike-defer'
 import { format, JsonRpcError } from 'json-rpc-peer'
 import { getStreamAsBuffer } from 'get-stream'
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
-import { pipeline } from 'stream'
+import { pipeline, Readable } from 'stream'
 import { peekFooterFromVhdStream } from 'vhd-lib'
 import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 
@@ -305,9 +304,13 @@ async function importDisk({ sr, type, name, description, url, vmdkData }) {
       throw invalidParameters('URL import is only compatible with VHD and raw formats')
     }
 
-    const stream = await hrp(url)
-    const length = stream.headers['content-length']
-    if (length !== undefined) {
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`${response.status} ${response.statusText}`)
+    }
+    const stream = Readable.fromWeb(response.body)
+    const length = response.headers.get('content-length')
+    if (length !== null) {
       stream.length = length
     }
 
