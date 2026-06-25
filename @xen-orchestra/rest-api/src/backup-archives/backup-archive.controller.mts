@@ -17,7 +17,7 @@ import { provide } from 'inversify-binding-decorators'
 import { pipeline } from 'node:stream/promises'
 import type { Readable } from 'node:stream'
 import { type Request as ExRequest, type Response as ExResponse } from 'express'
-import type { BackupDiskPartition, XoBackupRepository, XoVmBackupArchive } from '@vates/types'
+import type { XoBackupDiskPartition, XoBackupRepository, XoVmBackupArchive } from '@vates/types'
 
 import {
   badRequestResp,
@@ -181,7 +181,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   )
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  async getBackupArchiveDiskPartitions(@Path() id: string, @Path() diskId: string): Promise<BackupDiskPartition[]> {
+  async getBackupArchiveDiskPartitions(@Path() id: string, @Path() diskId: string): Promise<XoBackupDiskPartition[]> {
     return this.#backupArchiveService.listPartitions(id as XoVmBackupArchive['id'], diskId)
   }
 
