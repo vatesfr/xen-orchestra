@@ -1,5 +1,6 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import emitAsync from '@xen-orchestra/emit-async'
+import groupBy from 'lodash/groupBy.js'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 
@@ -335,6 +336,39 @@ export default class Jobs {
 
     for (const job of jobs) {
       await this.runJob(job, schedule, data)
+    }
+  }
+
+  isJobSequence(job) {
+    if (job.type !== 'call') {
+      return false
+    }
+
+    return job.method === 'schedule.runSequence'
+  }
+
+  async findEnabledScheduleSequenceFromSchedule(scheduleId) {
+    const jobs = await this.getAllJobs('call')
+    const schedulesByJobId = groupBy(await this._app.getAllSchedules(), 'jobId')
+
+    for (const job of jobs) {
+      if (!this.isJobSequence(job)) {
+        continue
+      }
+
+      const includesSchedule = (job.paramsVector?.items ?? []).some(item =>
+        (item.values ?? []).some(value => value.schedules?.includes(scheduleId))
+      )
+
+      if (includesSchedule) {
+        const schedules = schedulesByJobId[job.id]
+        const schedule = schedules.find(schedule => schedule.enabled)
+        if (schedule !== undefined) {
+          return schedule
+        }
+      }
+
+      delete schedulesByJobId[job.id]
     }
   }
 }

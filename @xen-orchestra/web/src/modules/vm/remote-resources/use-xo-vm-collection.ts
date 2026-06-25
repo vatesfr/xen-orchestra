@@ -1,5 +1,6 @@
 import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection'
+import { extractVmHostId } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
@@ -125,7 +126,3 @@ export const useXoVmCollection = defineRemoteResource({
     }
   },
 })
-
-function extractVmHostId(vm: FrontXoVm) {
-  return vm.$container === vm.$pool ? undefined : (vm.$container as FrontXoHost['id'])
-}

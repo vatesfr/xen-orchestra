@@ -1,42 +1,31 @@
 <template>
-  <VtsStateHero v-if="!isReady" format="panel" type="busy" size="medium" />
-  <UiPanel v-else :key="panelSignature" :class="{ 'mobile-drawer': uiStore.isSmall }">
-    <template #header>
-      <div class="action-buttons">
-        <SrConnectButton :sr :scope />
-        <MenuList placement="bottom-end">
-          <template #trigger="{ open }">
-            <UiButtonIcon icon="action:more-actions" accent="brand" size="medium" @click="open($event)" />
-          </template>
-          <SrDisconnectButton :sr :scope />
-          <SrDeleteButton :sr />
-        </MenuList>
-      </div>
-
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButtonIcon
-          v-tooltip="t('action:close')"
-          size="small"
-          variant="tertiary"
-          accent="brand"
-          :icon="uiStore.isSmall ? 'fa:angle-left' : 'fa:close'"
-          @click="emit('close')"
-        />
-      </div>
+  <VtsSidePanel :key="panelSignature" :has-selection="!!sr" @close="emit('close')">
+    <template v-if="sr" #actions>
+      <SrConnectButton :scope :sr />
+      <MenuList placement="bottom-end">
+        <template #trigger="{ open }">
+          <UiButtonIcon accent="brand" icon="action:more-actions" size="medium" @click="open($event)" />
+        </template>
+        <SrDisconnectButton :scope :sr />
+        <SrDeleteButton :sr />
+      </MenuList>
     </template>
-    <template #default>
-      <StorageRepositoryInfosCard :sr :scope />
-      <StorageRepositorySpaceCard :sr />
-      <StorageRepositoryVdisCard :vdis />
-      <StorageRepositoryHostsCard :hosts />
-      <StorageRepositoryPbdsCard :sr :scope />
-      <StorageRepositoryCustomFieldsCard :custom-fields />
+    <template v-if="sr" #default>
+      <VtsStateHero v-if="!isReady" format="panel" type="busy" size="medium" />
+      <template v-else>
+        <StorageRepositoryInfosCard :scope :sr />
+        <StorageRepositorySpaceCard :sr />
+        <StorageRepositoryVdisCard :vdi-snapshots :vdis />
+        <StorageRepositoryHostsCard :hosts />
+        <StorageRepositoryPbdsCard :scope :sr />
+        <StorageRepositoryCustomFieldsCard :custom-fields />
+      </template>
     </template>
-  </UiPanel>
+  </VtsSidePanel>
 </template>
 
-<script setup lang="ts">
-import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+<script lang="ts" setup>
+import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import SrConnectButton from '@/modules/storage-repository/components/actions/connect/SrConnectButton.vue'
 import SrDeleteButton from '@/modules/storage-repository/components/actions/delete/SrDeleteButton.vue'
@@ -49,21 +38,22 @@ import StorageRepositorySpaceCard from '@/modules/storage-repository/components/
 import StorageRepositoryVdisCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositoryVdisCard.vue'
 import { useGetPbdsInScope } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { SrScope } from '@/modules/storage-repository/types/storage-repository.type'
 import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import {
+  type FrontXoVdiSnapshot,
+  useXoVdiSnapshotCollection,
+} from '@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'
+import type { SrScope } from '@core/types/storage-repository.type.ts'
 import MenuList from '@core/components/menu/MenuList.vue'
+import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { useUiStore } from '@core/stores/ui.store.ts'
 import type { XoVdi } from '@vates/types'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 const { sr, scope } = defineProps<{
-  sr: FrontXoSr
+  sr?: FrontXoSr
   scope: SrScope
 }>()
 
@@ -71,22 +61,22 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const { t } = useI18n()
-const uiStore = useUiStore()
-
 const { useGetVdisByIds, areVdisReady } = useXoVdiCollection()
 const { getHostById, areHostsReady } = useXoHostCollection()
 const { pbdsBySr, arePbdsReady } = useXoPbdCollection()
+const { useGetVdiSnapshotsByIds, areVdiSnapshotsReady } = useXoVdiSnapshotCollection()
 
-const isReady = logicAnd(areVdisReady, areHostsReady, arePbdsReady)
+const isReady = logicAnd(areVdisReady, areHostsReady, arePbdsReady, areVdiSnapshotsReady)
 
-const vdis = useGetVdisByIds(() => sr.VDIs as XoVdi['id'][])
+const vdis = useGetVdisByIds(() => (sr?.VDIs ?? []) as XoVdi['id'][])
+
+const vdiSnapshots = useGetVdiSnapshotsByIds(() => (sr?.VDIs ?? []) as FrontXoVdiSnapshot['id'][])
 
 const { getSrPbdsSignature } = useGetPbdsInScope()
 
 const panelSignature = computed(() => getSrPbdsSignature(sr, scope))
 
-const pbds = computed(() => pbdsBySr.value.get(sr.id) ?? [])
+const pbds = computed(() => (sr !== undefined ? pbdsBySr.value.get(sr.id) : undefined) ?? [])
 
 const hosts = computed(() =>
   pbds.value.reduce<FrontXoHost[]>((acc, pbd) => {
@@ -101,6 +91,10 @@ const hosts = computed(() =>
 )
 
 const customFields = computed(() => {
+  if (sr === undefined) {
+    return {}
+  }
+
   const prefix = 'XenCenter.CustomFields.'
 
   return Object.entries(sr.other_config).reduce<Record<string, unknown>>((acc, [key, value]) => {
@@ -112,22 +106,3 @@ const customFields = computed(() => {
   }, {})
 })
 </script>
-
-<style scoped lang="postcss">
-.action-buttons {
-  display: flex;
-  align-items: center;
-  margin-inline-end: auto;
-}
-.mobile-drawer {
-  position: fixed;
-  inset: 0;
-
-  .action-buttons-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-  }
-}
-</style>

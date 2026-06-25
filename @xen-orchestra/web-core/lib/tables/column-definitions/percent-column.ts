@@ -9,7 +9,7 @@ export const usePercentColumn = defineColumn((headerConfig?: HeaderConfig) => {
   const { n } = useI18n()
 
   return {
-    renderHead: () => renderHeadCell(headerConfig?.headerIcon ?? 'fa:hashtag', headerConfig?.headerLabel),
+    renderHead: () => renderHeadCell(headerConfig?.headerLabel),
     renderBody: (number: number) => h(VtsNumberCell, () => n(number, 'percent')),
   }
 })

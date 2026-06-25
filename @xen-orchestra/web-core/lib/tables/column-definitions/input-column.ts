@@ -11,11 +11,7 @@ type InputConfig = {
 }
 
 export const useInputColumn = defineColumn((config?: HeaderConfig & InputConfig) => ({
-  renderHead: () =>
-    renderHeadCell(
-      config?.headerIcon ?? (config?.type === 'number' ? 'fa:hashtag' : 'fa:align-left'),
-      config?.headerLabel
-    ),
+  renderHead: () => renderHeadCell(config?.headerLabel),
   renderBody: (model: Ref<string | number | undefined>, inputProps?: { disabled?: boolean }) =>
     renderBodyCell(() =>
       h(UiInput, {

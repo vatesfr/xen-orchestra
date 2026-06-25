@@ -98,7 +98,6 @@
   "backups:jobs:disabled": "Вимкнено",
   "backups:jobs:running-good": "Працює добре",
   "backups:vms-protection": "Захист ВМ",
-  "backups:vms-protection:no-job": "На жодній роботі",
   "backups:vms-protection:protected": "Принаймні на 1 роботі і захищений",
   "backups:vms-protection:tooltip": "ВМ захищена, якщо резервне копіювання за розкладом, і попередній запуск пройшов успішно",
   "backups:vms-protection:unprotected": "Принаймні на 1 роботі, але без захисту",

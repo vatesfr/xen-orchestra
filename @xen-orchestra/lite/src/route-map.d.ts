@@ -386,6 +386,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/panel/vts-panel': RouteRecordInfo<
+      '/story/web-core/panel/vts-panel',
+      '/story/web-core/panel/vts-panel',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/resources/vts-resource': RouteRecordInfo<
       '/story/web-core/resources/vts-resource',
       '/story/web-core/resources/vts-resource',
@@ -1314,6 +1321,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/object-icon/vts-object-icon.story.vue': {
       routes:
         | '/story/web-core/object-icon/vts-object-icon'
+      views:
+        | never
+    }
+    'src/stories/web-core/panel/vts-panel.story.vue': {
+      routes:
+        | '/story/web-core/panel/vts-panel'
       views:
         | never
     }

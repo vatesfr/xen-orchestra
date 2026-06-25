@@ -183,7 +183,6 @@
   "backups:vms-protection:active-protected": "Mindestens 1 aktiven & geschützten Vorgang",
   "backups:vms-protection:active-unprotected": "Mindestens 1 aktiven aber ungeschützten Vorgang",
   "backups:vms-protection:no-active-job": "In keinem aktiven Vorgang enthalten",
-  "backups:vms-protection:no-job": "In keinem Vorgang",
   "backups:vms-protection:protected": "In mindestens 1 Vorgang & geschützt",
   "backups:vms-protection:tooltip": "Eine VM ist geschützt, wenn sie sich in einem Job mit aktivierter Planung befindet und die letzte Ausführung erfolgreich war",
   "backups:vms-protection:unprotected": "In mindestens 1 Job aber ohne Schutz",

@@ -1,41 +1,28 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
-    <template #header>
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButtonIcon
-          v-if="uiStore.isSmall"
-          v-tooltip="t('action:close')"
-          size="small"
-          variant="tertiary"
-          accent="brand"
-          icon="fa:angle-left"
-          @click="emit('close')"
-        />
-        <div class="action-buttons">
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            size="medium"
-            variant="tertiary"
-            accent="brand"
-            left-icon="fa:edit"
-          >
-            {{ t('action:edit') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            size="medium"
-            variant="tertiary"
-            accent="danger"
-            left-icon="fa:trash"
-          >
-            {{ t('action:delete') }}
-          </UiButton>
-        </div>
-      </div>
+  <VtsSidePanel :has-selection="!!pif" @close="emit('close')">
+    <template v-if="pif" #actions>
+      <UiButton
+        v-tooltip="t('coming-soon!')"
+        disabled
+        size="medium"
+        variant="tertiary"
+        accent="brand"
+        left-icon="action:edit"
+      >
+        {{ t('action:edit') }}
+      </UiButton>
+      <UiButton
+        v-tooltip="t('coming-soon!')"
+        disabled
+        size="medium"
+        variant="tertiary"
+        accent="danger"
+        left-icon="action:delete"
+      >
+        {{ t('action:delete') }}
+      </UiButton>
     </template>
-    <template #default>
+    <template v-if="pif" #default>
       <!-- PIF -->
       <UiCard class="card">
         <UiCardTitle>{{ isBond ? t('bond') : t('pif') }}</UiCardTitle>
@@ -282,7 +269,7 @@
         </div>
       </UiCard>
     </template>
-  </UiPanel>
+  </VtsSidePanel>
 </template>
 
 <script setup lang="ts">
@@ -293,22 +280,21 @@ import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { useUiStore } from '@core/stores/ui.store.ts'
 import humanFormat from 'human-format'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { pif } = defineProps<{
-  pif: XenApiPif
+  pif?: XenApiPif
 }>()
 
 const emit = defineEmits<{
@@ -318,21 +304,32 @@ const emit = defineEmits<{
 const { getByOpaqueRef: getPifMetricsByOpaqueRef, getPifCarrier } = usePifMetricsStore().subscribe()
 const { getByOpaqueRef: getNetworkByOpaqueRef } = useNetworkStore().subscribe()
 const { getBondsDevices, isBondMaster } = usePifStore().subscribe()
-const uiStore = useUiStore()
 
 const { t } = useI18n()
 
-const ipAddresses = computed(() => [pif.IP, ...pif.IPv6].filter(ip => ip))
+const ipAddresses = computed(() => {
+  if (pif === undefined) {
+    return []
+  }
 
-const network = computed(() => getNetworkByOpaqueRef(pif.network))
+  return [pif.IP, ...pif.IPv6].filter(ip => ip)
+})
+
+const network = computed(() => (pif !== undefined ? getNetworkByOpaqueRef(pif.network) : undefined))
 
 const networkPurpose = computed(() => (network.value?.purpose?.[0] ? t('on') : t('off')))
 
-const status = computed(() => (pif.currently_attached ? 'connected' : 'disconnected'))
+const status = computed(() => (pif?.currently_attached ? 'connected' : 'disconnected'))
 
-const physicalInterfaceStatus = computed(() => (getPifCarrier(pif) ? 'connected' : 'physically-disconnected'))
+const physicalInterfaceStatus = computed(() =>
+  pif !== undefined && getPifCarrier(pif) ? 'connected' : 'physically-disconnected'
+)
 
 const ipConfigurationMode = computed(() => {
+  if (pif === undefined) {
+    return t('none')
+  }
+
   switch (pif.ip_configuration_mode) {
     case 'Static':
       return t('static')
@@ -343,11 +340,15 @@ const ipConfigurationMode = computed(() => {
   }
 })
 
-const bondDevices = computed(() => getBondsDevices(pif))
+const bondDevices = computed(() => (pif !== undefined ? getBondsDevices(pif) : []))
 
-const isBond = computed(() => isBondMaster(pif))
+const isBond = computed(() => (pif !== undefined ? isBondMaster(pif) : false))
 
 const speed = computed(() => {
+  if (pif === undefined) {
+    return ''
+  }
+
   const speed = getPifMetricsByOpaqueRef(pif.metrics)?.speed || 0
   const speedInBytes = speed * 1000000
 
@@ -383,22 +384,5 @@ const speed = computed(() => {
   .value:empty::before {
     content: '-';
   }
-}
-
-.mobile-drawer {
-  position: fixed;
-  inset: 0;
-
-  .action-buttons-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-  }
-}
-
-.action-buttons {
-  display: flex;
-  align-items: center;
 }
 </style>

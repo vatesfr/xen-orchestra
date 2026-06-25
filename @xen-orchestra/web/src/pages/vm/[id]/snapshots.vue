@@ -1,5 +1,5 @@
 <template>
-  <div class="snapshots" :class="{ mobile: uiStore.isSmall }">
+  <VtsContentSidePanel class="snapshots">
     <div>
       <VtsColumns extra-space-around>
         <VtsColumn>
@@ -13,13 +13,8 @@
         <SnapshotsTable :snapshots :vm />
       </UiCard>
     </div>
-    <SnapshotSidePanel v-if="selectedSnapshot" :snapshot="selectedSnapshot" @close="selectedSnapshot = undefined" />
-    <UiPanel v-else-if="!uiStore.isSmall">
-      <VtsStateHero format="panel" type="no-selection" size="medium">
-        {{ t('select-to-see-details') }}
-      </VtsStateHero>
-    </UiPanel>
-  </div>
+    <SnapshotSidePanel :snapshot="selectedSnapshot" @close="selectedSnapshot = undefined" />
+  </VtsContentSidePanel>
 </template>
 
 <script setup lang="ts">
@@ -33,11 +28,9 @@ import VmSnapshotCard from '@/modules/vm/components/snapshot/cards/VmSnapshotCar
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import { useUiStore } from '@core/stores/ui.store.ts'
 import { useArrayFilter } from '@vueuse/shared'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -47,8 +40,6 @@ const { vm } = defineProps<{
 }>()
 
 const { snapshots: snapshotsCollection, getSnapshotById } = useXoVmSnapshotCollection()
-
-const uiStore = useUiStore()
 
 const { t } = useI18n()
 
@@ -80,9 +71,6 @@ const lastRevertSnapshot = computed(() => {
 
 <style scoped lang="postcss">
 .snapshots {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 40rem;
-
   .container {
     height: fit-content;
     margin: 0.8rem;

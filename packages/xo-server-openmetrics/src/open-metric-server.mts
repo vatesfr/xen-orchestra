@@ -85,12 +85,14 @@ interface VmLabelInfo {
   power_state: string
   pool_id: string
   pool_name: string
+  tags?: string[]
 }
 
 interface HostLabelInfo {
   name_label: string
   pifDeviceToNetworkName: Record<string, string>
   startTime: number | null
+  tags?: string[]
 }
 
 interface SrLabelInfo {

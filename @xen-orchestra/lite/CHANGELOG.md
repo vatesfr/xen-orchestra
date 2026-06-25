@@ -4,6 +4,10 @@
 
 - Update the UiTitle component to use the one from web-core (PR [#9869](https://github.com/vatesfr/xen-orchestra/pull/9869))
 - [Pool/System] Add `Reboot VM on internal shutdown` in pool's system tab (PR [#9962](https://github.com/vatesfr/xen-orchestra/pull/9962))
+- Update the UiCard component to use the one from web-core (PR [#9980](https://github.com/vatesfr/xen-orchestra/pull/9980))
+- Update the UiCardTitle component to use the one from web-core (PR [#9982](https://github.com/vatesfr/xen-orchestra/pull/9982))
+- Replacement of the UiSeparator component with VtsDivider from web-core (PR [#10017](https://github.com/vatesfr/xen-orchestra/pull/10017))
+- Update side panels (PR [#9836](https://github.com/vatesfr/xen-orchestra/pull/9836))
 
 ## **0.22.0** (2026-05-28)
 

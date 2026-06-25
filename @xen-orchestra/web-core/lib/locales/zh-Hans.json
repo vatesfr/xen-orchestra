@@ -183,7 +183,6 @@
   "backups:vms-protection:active-protected": "已加入有效任务并受保护",
   "backups:vms-protection:active-unprotected": "已加入有效任务但未受保护",
   "backups:vms-protection:no-active-job": "未加入任何有效任务",
-  "backups:vms-protection:no-job": "未加入任何备份任务",
   "backups:vms-protection:protected": "已加入任务并受保护",
   "backups:vms-protection:tooltip": "虚拟机加入启用定时的备份任务且最近执行成功即为受保护",
   "backups:vms-protection:unprotected": "已加入任务但未受保护",

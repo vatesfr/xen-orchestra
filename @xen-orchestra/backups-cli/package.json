@@ -8,8 +8,8 @@
   "dependencies": {
     "@vates/async-each": "^1.0.3",
     "@xen-orchestra/async-map": "^0.1.3",
-    "@xen-orchestra/backups": "^0.73.2",
-    "@xen-orchestra/fs": "^4.9.0",
+    "@xen-orchestra/backups": "^0.73.3",
+    "@xen-orchestra/fs": "^4.9.1",
     "filenamify": "^6.0.0",
     "getopts": "^2.2.5",
     "lodash": "^4.18.0",
