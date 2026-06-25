@@ -3,7 +3,7 @@ import { basename } from 'path'
 import { createLogger } from '@xen-orchestra/log'
 import { format, parse } from 'xo-remote-parser'
 import { DEFAULT_ENCRYPTION_ALGORITHM, getHandler, isLegacyEncryptionAlgorithm } from '@xen-orchestra/fs'
-import { ignoreErrors, timeout } from 'promise-toolbox'
+import { ignoreErrors, timeout, TimeoutError } from 'promise-toolbox'
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
 import { synchronized } from 'decorator-synchronized'
 
@@ -13,7 +13,7 @@ import Disposable from 'promise-toolbox/Disposable'
 
 // ===================================================================
 
-const { warn } = createLogger('xo:mixins:remotes')
+const { warn, logError } = createLogger('xo:mixins:remotes')
 
 const obfuscateRemote = ({ url, ...remote }) => {
   const parsedUrl = parse(url)
@@ -21,20 +21,23 @@ const obfuscateRemote = ({ url, ...remote }) => {
   return remote
 }
 
-// background retry timing for broken remotes' info (getAllRemotesInfo)
-const REMOTE_INFO_RETRY_DELAY = 5e3 // base delay, matches the getInfo timeout below
+const REMOTE_INFO_RETRY_DELAY = 5e3
 const REMOTE_INFO_RETRY_MAX_DELAY = 60 * 60 * 1e3 // cap at 1h
-
-// Fibonacci-spaced delay (in ms) for the nth retry: 5s,5s,10s,15s,25s,40s,65s,… capped at 1h
+const RETRY_CODES = new Set(['ECONNREFUSED', 'ETIMEDOUT', 'EHOSTUNREACH', 'ENETUNREACH', 'ENOTCONN', 'ESTALE'])
+function _isRetryableRemoteError(error) {
+  return error instanceof TimeoutError || RETRY_CODES.has(error.code)
+}
 export function remoteInfoRetryDelay(attempt) {
-  let a = 1
-  let b = 1
-  for (let i = 0; i < attempt; ++i) {
-    const next = a + b
-    a = b
-    b = next
+  let prev = 1
+  let curr = 1
+
+  for (let i = 0; i < attempt; i++) {
+    const next = prev + curr
+    prev = curr
+    curr = next
   }
-  return Math.min(a * REMOTE_INFO_RETRY_DELAY, REMOTE_INFO_RETRY_MAX_DELAY)
+
+  return Math.min(prev * REMOTE_INFO_RETRY_DELAY, REMOTE_INFO_RETRY_MAX_DELAY)
 }
 
 // these properties should be defined on the remote object itself and not as
@@ -208,11 +211,17 @@ export default class {
       await this._fetchRemoteInfo(remote)
       this._cancelRemoteInfoRetry(remote.id)
     } catch (error) {
-      this._scheduleRemoteInfoRetry(remote, error)
+      if (_isRetryableRemoteError(error)) {
+        this._scheduleRemoteInfoRetry(remote, error)
+      } else {
+        logError('failed to get remote info, will NOT retry', { id: remote.id, error, code: error.code })
+        this._cancelRemoteInfoRetry(remote.id)
+      }
     }
   }
 
   _scheduleRemoteInfoRetry({ id }, error) {
+    warn('failed to get remote info, will retry', { id, error })
     let state = this._remotesInfoRetry[id]
     if (!state) {
       state = this._remotesInfoRetry[id] = { attempt: 0 }
