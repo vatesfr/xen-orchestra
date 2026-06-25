@@ -4,7 +4,7 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import type { XoAuthenticationToken } from '@vates/types'
 
 export const useXoUserAuthenticationTokensCollection = defineRemoteResource({
-  url: (userId: FrontXoUser['id']) => `${BASE_URL}/hosts/${userId}/authentication_tokens`,
+  url: (userId: FrontXoUser['id']) => `${BASE_URL}/users/${userId}/authentication_tokens`,
   initialData: () => [] as XoAuthenticationToken[],
   state: (userAuthenticationTokens, context) => ({
     userAuthenticationTokens,

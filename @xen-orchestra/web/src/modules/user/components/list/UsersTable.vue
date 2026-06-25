@@ -7,11 +7,11 @@
       </template>
     </UiTitle>
     <div class="container">
-      <!--          <div class="table-actions"> -->
-      <!--            <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" /> -->
-      <!--          </div> -->
+      <div class="table-actions">
+        <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
+      </div>
 
-      <VtsTable :pagination-bindings sticky="right">
+      <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
             <HeadCells />
@@ -29,7 +29,9 @@
 
 <script setup lang="ts">
 import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.js'
+import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useTableState } from '@core/composables/table-state.composable.ts'
 import VtsRow from '@xen-orchestra/web-core/components/table/VtsRow.vue'
 import VtsTable from '@xen-orchestra/web-core/components/table/VtsTable.vue'
 import UiTitle from '@xen-orchestra/web-core/components/ui/title/UiTitle.vue'
@@ -64,19 +66,21 @@ const selectedUserId = useRouteQuery('id')
 
 const { pageRecords: paginatedUsers, paginationBindings } = usePagination('users', filteredUsers)
 
+const state = useTableState({
+  empty: () =>
+    users.length === 0 ? t('no-network-detected') : filteredUsers.value.length === 0 ? { type: 'no-result' } : false,
+})
+
 const { HeadCells, BodyCells } = useUserColumns({
   body: (user: FrontXoUser) => {
     return {
-      name: r => r(user.name ?? ''),
+      username: r => r(user.name ?? ''),
       email: r => r(user.email),
       provider: r => {
         const providers = Object.values(user.authProviders ?? {})
         return r(providers.length === 0 ? t('local') : providers.join(''))
       },
-      actions: r =>
-        r({
-          onClick: () => (selectedUserId.value = user.id),
-        }),
+      selectItem: r => r(() => (selectedUserId.value = user.id)),
     }
   },
 })
