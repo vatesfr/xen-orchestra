@@ -494,9 +494,11 @@ class AuthLdap {
           continue
         }
 
-        // Primary domain keeps the bare group ID for backward compatibility.
-        // Additional domains prefix with their URI to guarantee uniqueness across domains
+        // Primary domain keeps bare IDs/names for backward compatibility.
+        // Additional domains (separate AD forests) suffix with their URI so same-named
+        // groups across forests are distinct and both sync correctly.
         const scopedGroupId = domain.isPrimary ? groupLdapId : `${domain.uris[0]}:${groupLdapId}`
+        const xoGroupName = domain.isPrimary ? groupLdapName : `${groupLdapName} (${domain.uris[0]})`
 
         let xoGroup
         const xoGroupIndex = xoGroups.findIndex(
@@ -504,13 +506,12 @@ class AuthLdap {
         )
 
         if (xoGroupIndex === -1) {
-          if (xoGroups.find(group => group.name === groupLdapName) !== undefined) {
-            // TODO: check against LDAP groups that are being created as well
-            logger.error(`A group called ${groupLdapName} already exists`)
+          if (xoGroups.find(group => group.name === xoGroupName) !== undefined) {
+            logger.error(`A group called ${xoGroupName} already exists`)
             continue
           }
           xoGroup = await this._xo.createGroup({
-            name: groupLdapName,
+            name: xoGroupName,
             provider: 'ldap',
             providerGroupId: scopedGroupId,
           })
@@ -518,7 +519,7 @@ class AuthLdap {
           // Remove it from xoGroups as we will then delete all the remaining
           // LDAP-provided groups
           ;[xoGroup] = xoGroups.splice(xoGroupIndex, 1)
-          await this._xo.updateGroup(xoGroup.id, { name: groupLdapName })
+          await this._xo.updateGroup(xoGroup.id, { name: xoGroupName })
           xoGroup = await this._xo.getGroup(xoGroup.id)
         }
 

@@ -500,4 +500,27 @@ describe('AuthLdap._synchronizeGroups', () => {
     assert.equal(mockXo.addUserToGroup.mock.callCount(), 0)
     assert.deepEqual(mockData.xoGroups, [{ id: 1, users: [], name: 'Group One', provider: 'oidc' }])
   })
+
+  test('additional domain group name gets URI suffix, providerGroupId is scoped', async () => {
+    mockLdapGroups = [{ gid: 'gid1', cn: 'Group One', memberUid: ['uid1'] }]
+    const secondaryDomain = {
+      ...syncPlugin._primaryDomain,
+      isPrimary: false,
+      uris: ['ldap://secondary'],
+      provider: 'ldap://secondary',
+    }
+
+    await syncPlugin._synchronizeGroups({ domain: secondaryDomain, user: { id: 'user1' }, memberId: 'uid1' })
+
+    assert.equal(mockXo.createGroup.mock.callCount(), 1)
+    assert.deepEqual(mockData.xoGroups, [
+      {
+        id: 1,
+        users: ['user1'],
+        name: 'Group One (ldap://secondary)',
+        provider: 'ldap',
+        providerGroupId: 'ldap://secondary:gid1',
+      },
+    ])
+  })
 })
