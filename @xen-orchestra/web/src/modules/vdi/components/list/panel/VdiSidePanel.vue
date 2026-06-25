@@ -1,5 +1,5 @@
 <template>
-  <VtsSidePanel :selected="!!vdi" :closable="!!vdi" @close="emit('close')">
+  <VtsSidePanel :has-selection="!!vdi" @close="emit('close')">
     <template v-if="vbd" #actions>
       <VbdConnectButton v-if="!vbd.attached" :vbd :vm />
       <VbdDisconnectButton v-else :vbd :vm />
@@ -7,13 +7,10 @@
     <template v-if="vdi" #more-actions>
       <VdiActions :vdi :vbd :vm />
     </template>
-    <template #default>
-      <VtsStateHero v-if="!vdi" format="panel" type="no-selection" size="medium" />
-      <template v-else>
-        <VdiInfosCard :vdi :vm />
-        <VdiSpaceCard :vdi />
-        <VdiConfigurationCard :vdi :vm />
-      </template>
+    <template v-if="vdi" #default>
+      <VdiInfosCard :vdi :vm />
+      <VdiSpaceCard :vdi />
+      <VdiConfigurationCard :vdi :vm />
     </template>
   </VtsSidePanel>
 </template>
@@ -29,7 +26,6 @@ import VdiSpaceCard from '@/modules/vdi/components/list/panel/cards/VdiSpaceCard
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { computed } from 'vue'
 
 const { vdi, vm } = defineProps<{

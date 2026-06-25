@@ -1,17 +1,14 @@
 <template>
-  <VtsSidePanel :selected="!!backupJob" :closable="!!backupJob" @close="emit('close')">
-    <template #default>
-      <VtsStateHero v-if="!backupJob" format="panel" type="no-selection" size="medium" />
-      <template v-else>
-        <BackupJobInfosCard :backup-job />
-        <BackupJobSchedulesCard :backup-job-schedules />
-        <BackupJobLogsCard v-if="lastThreeLogs.length > 0" :backup-logs="lastThreeLogs" />
-        <BackupJobBackedUpVmsCard v-if="backupJob.type === 'backup' && backupJob.vms" :backed-up-vms="backupJob.vms" />
-        <BackupJobBackedUpPoolsCard v-if="backedUpPools.length > 0" :backed-up-pools />
-        <BackupJobSourceRepositoryCard v-if="backupJob.type === 'mirrorBackup'" :mirror-backup-job="backupJob" />
-        <BackupJobTargetsCard :storage-repository-targets :backup-repository-targets />
-        <BackupJobSettingsCard v-if="hasSettings" :backup-job />
-      </template>
+  <VtsSidePanel :has-selection="!!backupJob" @close="emit('close')">
+    <template v-if="backupJob">
+      <BackupJobInfosCard :backup-job />
+      <BackupJobSchedulesCard :backup-job-schedules />
+      <BackupJobLogsCard v-if="lastThreeLogs.length > 0" :backup-logs="lastThreeLogs" />
+      <BackupJobBackedUpVmsCard v-if="backupJob.type === 'backup' && backupJob.vms" :backed-up-vms="backupJob.vms" />
+      <BackupJobBackedUpPoolsCard v-if="backedUpPools.length > 0" :backed-up-pools />
+      <BackupJobSourceRepositoryCard v-if="backupJob.type === 'mirrorBackup'" :mirror-backup-job="backupJob" />
+      <BackupJobTargetsCard :storage-repository-targets :backup-repository-targets />
+      <BackupJobSettingsCard v-if="hasSettings" :backup-job />
     </template>
   </VtsSidePanel>
 </template>
@@ -36,7 +33,6 @@ import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { extractIdsFromSimplePattern } from '@/shared/utils/pattern.util.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import type { XoSr, XoPool, XoBackupRepository } from '@vates/types'
 import { computed } from 'vue'
 

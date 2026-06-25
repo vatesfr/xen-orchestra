@@ -1,8 +1,7 @@
 <template>
-  <VtsSidePanel :selected="!!server" :closable="!!server" @close="emit('close')">
-    <template #default>
-      <VtsStateHero v-if="!server" format="panel" type="no-selection" size="medium" />
-      <VtsStateHero v-else-if="!arePoolsReady" format="panel" type="busy" size="medium" />
+  <VtsSidePanel :has-selection="!!server" @close="emit('close')">
+    <template v-if="server">
+      <VtsStateHero v-if="!arePoolsReady" format="panel" type="busy" size="medium" />
       <template v-else>
         <UiCard v-if="server.error === undefined" class="card-container">
           <UiCardTitle>

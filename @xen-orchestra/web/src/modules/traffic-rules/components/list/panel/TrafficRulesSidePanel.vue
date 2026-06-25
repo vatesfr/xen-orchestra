@@ -1,12 +1,11 @@
 <template>
-  <VtsSidePanel :selected="!!rule" :closable="!!rule" @close="emit('close')">
+  <VtsSidePanel :has-selection="!!rule" @close="emit('close')">
     <template v-if="rule" #actions>
       <TrafficRuleActions :rule class="delete-button" />
     </template>
 
-    <template #default>
-      <VtsStateHero v-if="!rule" format="panel" type="no-selection" size="medium" />
-      <VtsStateHero v-else-if="!isReady" format="panel" type="busy" size="medium" />
+    <template v-if="rule" #default>
+      <VtsStateHero v-if="!isReady" format="panel" type="busy" size="medium" />
       <template v-else>
         <TrafficRuleSummaryCard :rule />
 

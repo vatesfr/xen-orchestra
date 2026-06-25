@@ -1,12 +1,9 @@
 <template>
-  <VtsSidePanel :selected="!!vm" :closable="!!vm" @close="emit('close')">
-    <template #default>
-      <VtsStateHero v-if="!vm" format="panel" type="no-selection" size="medium" />
-      <template v-else>
-        <VmInfoCard :vm />
-        <VmNetworkCard :vm />
-        <VmResourcesCard :vm />
-      </template>
+  <VtsSidePanel :has-selection="!!vm" @close="emit('close')">
+    <template v-if="vm">
+      <VmInfoCard :vm />
+      <VmNetworkCard :vm />
+      <VmResourcesCard :vm />
     </template>
   </VtsSidePanel>
 </template>
@@ -17,7 +14,6 @@ import VmNetworkCard from '@/modules/vm/components/list/panel/cards/VmNetworkCar
 import VmResourcesCard from '@/modules/vm/components/list/panel/cards/VmResourcesCard.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 
 defineProps<{
   vm?: FrontXoVm

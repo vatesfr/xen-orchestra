@@ -2,8 +2,7 @@
 <template>
   <div class="vts-side-panel-sticky" :class="{ mobile: uiStore.isSmall }">
     <VtsPanel
-      :error
-      :closable
+      :closable="hasSelection"
       :close-icon="uiStore.isSmall ? 'fa:angle-left' : 'action:close-cancel-clear'"
       class="vts-side-panel"
       :class="{
@@ -35,13 +34,15 @@
         />
       </template>
 
-      <slot />
+      <VtsStateHero v-if="!hasSelection" format="panel" type="no-selection" size="medium" />
+      <slot v-else />
     </VtsPanel>
   </div>
 </template>
 
 <script setup lang="ts">
 import VtsPanel from '@core/components/panel/VtsPanel.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { usePanelStore } from '@core/stores/panel.store'
@@ -49,10 +50,8 @@ import { useUiStore } from '@core/stores/ui.store'
 import { watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
-  closable?: boolean
-  error?: boolean
-  selected?: boolean
+const { hasSelection } = defineProps<{
+  hasSelection?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -72,20 +71,13 @@ const uiStore = useUiStore()
 const { t } = useI18n()
 
 watch(
-  [() => props.selected, () => panelStore.isLocked, () => uiStore.isSmall],
-  ([selected, isLocked, isSmall], previousState) => {
-    const [, previousIsLocked] = previousState ?? []
-
-    /* Collapse when coming back from locked to unlocked, if empty */
-    if (!isSmall && previousIsLocked && !isLocked && !selected) {
-      panelStore.collapse()
-    }
-
-    if (selected === undefined) {
+  [() => hasSelection, () => panelStore.isLocked, () => uiStore.isSmall],
+  ([hasSelection]) => {
+    if (hasSelection === undefined) {
       return
     }
 
-    panelStore.syncWithSelection(selected)
+    panelStore.syncWithSelection(hasSelection)
   },
   { immediate: true }
 )

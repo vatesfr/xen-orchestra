@@ -1,15 +1,12 @@
 <template>
-  <VtsSidePanel :selected="!!task" :closable="!!task" @close="emit('close')">
-    <template #default>
-      <VtsStateHero v-if="!task" format="panel" type="no-selection" size="medium" />
-      <template v-else>
-        <TaskQuickInfosCard :task />
-        <TaskInfosCard v-if="task.infos" :task />
-        <TaskWarningsCard v-if="task.warnings" :task />
-        <TaskErrorsCard v-if="isError" :task />
-        <TaskObjectsCard v-if="task.properties.objectId" :task />
-        <TaskPropertiesCard v-if="properties.other && Object.keys(properties.other).length > 0" :task />
-      </template>
+  <VtsSidePanel :has-selection="!!task" @close="emit('close')">
+    <template v-if="task">
+      <TaskQuickInfosCard :task />
+      <TaskInfosCard v-if="task.infos" :task />
+      <TaskWarningsCard v-if="task.warnings" :task />
+      <TaskErrorsCard v-if="isError" :task />
+      <TaskObjectsCard v-if="task.properties.objectId" :task />
+      <TaskPropertiesCard v-if="properties.other && Object.keys(properties.other).length > 0" :task />
     </template>
   </VtsSidePanel>
 </template>
@@ -24,7 +21,6 @@ import TaskWarningsCard from '@/modules/task/components/list/panel/cards/TaskWar
 import { useXoTaskPropertiesUtils } from '@/modules/task/composables/xo-task-properties-utils.composable.ts'
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { computed } from 'vue'
 
 const { task } = defineProps<{

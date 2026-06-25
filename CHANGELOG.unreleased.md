@@ -75,6 +75,7 @@
 - [REST API] `PATCH /rest/v0/vifs/{id}` to update VIF properties (allowed IPs, locking mode, rate limit, TX checksumming) (PR [#9935](https://github.com/vatesfr/xen-orchestra/pull/9935))
 - [XO 6] Add an Administration tab in the sidebar with a user management menu (PR [#9947](https://github.com/vatesfr/xen-orchestra/pull/9947))
 - [OpenMetrics] Include XO tags as a `tags` label on host, VM and SR metrics [#9628](https://github.com/vatesfr/xen-orchestra/issues/9628) (PR [#9971](https://github.com/vatesfr/xen-orchestra/pull/9971))
+- [Web stack] Updated side panels (PR [#9836](https://github.com/vatesfr/xen-orchestra/pull/9836))
 
 ### Bug fixes
 
@@ -100,7 +101,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
-- @xen-orchestra/web patch
-- @xen-orchestra/web-core patch
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 
 <!--packages-end-->

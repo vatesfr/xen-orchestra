@@ -1,5 +1,5 @@
 <template>
-  <VtsSidePanel :selected="!!vif" :closable="!!vif" @close="emit('close')">
+  <VtsSidePanel :has-selection="!!vif" @close="emit('close')">
     <template v-if="vif" #actions>
       <UiButton
         v-tooltip="t('coming-soon!')"
@@ -22,117 +22,114 @@
         {{ t('action:delete') }}
       </UiButton>
     </template>
-    <template #default>
-      <VtsStateHero v-if="!vif" format="panel" type="no-selection" size="medium" />
-      <template v-else>
-        <!-- VIF -->
-        <UiCard class="card">
-          <UiCardTitle>{{ t('vif') }}</UiCardTitle>
-          <div class="content">
-            <!-- UUID -->
-            <VtsCodeSnippet :content="vif.uuid" copy />
-            <!-- NETWORK -->
-            <VtsCardRowKeyValue>
+    <template v-if="vif" #default>
+      <!-- VIF -->
+      <UiCard class="card">
+        <UiCardTitle>{{ t('vif') }}</UiCardTitle>
+        <div class="content">
+          <!-- UUID -->
+          <VtsCodeSnippet :content="vif.uuid" copy />
+          <!-- NETWORK -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ t('network') }}
+            </template>
+            <template #value>{{ network?.name_label }}</template>
+            <template v-if="network?.name_label" #addons>
+              <VtsCopyButton :value="network.name_label" />
+            </template>
+          </VtsCardRowKeyValue>
+          <!-- DEVICE -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ t('device') }}
+            </template>
+            <template #value>
+              {{ t('vif-device', { device: vif.device }) }}
+            </template>
+            <template #addons>
+              <VtsCopyButton :value="vif.device" />
+            </template>
+          </VtsCardRowKeyValue>
+          <!-- VIF STATUS -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ t('vif-status') }}
+            </template>
+            <template #value>
+              <VtsStatus :status />
+            </template>
+          </VtsCardRowKeyValue>
+          <!-- MTU -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ t('mtu') }}
+            </template>
+            <template #value>
+              {{ vif.MTU }}
+            </template>
+            <template #addons>
+              <VtsCopyButton :value="String(vif.MTU)" />
+            </template>
+          </VtsCardRowKeyValue>
+          <!-- LOCKING MODE -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ t('locking-mode') }}
+            </template>
+            <template #value>
+              {{ vif.locking_mode }}
+            </template>
+          </VtsCardRowKeyValue>
+          <!-- TODO Need to add TX Checksumming -->
+        </div>
+      </UiCard>
+      <!-- VIF NETWORK INFORMATION -->
+      <UiCard class="card">
+        <UiCardTitle>{{ t('network-information') }}</UiCardTitle>
+        <div class="content">
+          <!-- IP ADDRESSES -->
+          <div v-if="ipAddresses.length">
+            <VtsCardRowKeyValue v-for="(ip, index) in ipAddresses" :key="ip">
               <template #key>
-                {{ t('network') }}
+                <div v-if="index === 0">{{ t('ip-addresses') }}</div>
               </template>
-              <template #value>{{ network?.name_label }}</template>
-              <template v-if="network?.name_label" #addons>
-                <VtsCopyButton :value="network.name_label" />
-              </template>
-            </VtsCardRowKeyValue>
-            <!-- DEVICE -->
-            <VtsCardRowKeyValue>
-              <template #key>
-                {{ t('device') }}
-              </template>
-              <template #value>
-                {{ t('vif-device', { device: vif.device }) }}
-              </template>
+              <template #value>{{ ip }}</template>
               <template #addons>
-                <VtsCopyButton :value="vif.device" />
-              </template>
-            </VtsCardRowKeyValue>
-            <!-- VIF STATUS -->
-            <VtsCardRowKeyValue>
-              <template #key>
-                {{ t('vif-status') }}
-              </template>
-              <template #value>
-                <VtsStatus :status />
-              </template>
-            </VtsCardRowKeyValue>
-            <!-- MTU -->
-            <VtsCardRowKeyValue>
-              <template #key>
-                {{ t('mtu') }}
-              </template>
-              <template #value>
-                {{ vif.MTU }}
-              </template>
-              <template #addons>
-                <VtsCopyButton :value="String(vif.MTU)" />
-              </template>
-            </VtsCardRowKeyValue>
-            <!-- LOCKING MODE -->
-            <VtsCardRowKeyValue>
-              <template #key>
-                {{ t('locking-mode') }}
-              </template>
-              <template #value>
-                {{ vif.locking_mode }}
-              </template>
-            </VtsCardRowKeyValue>
-            <!-- TODO Need to add TX Checksumming -->
-          </div>
-        </UiCard>
-        <!-- VIF NETWORK INFORMATION -->
-        <UiCard class="card">
-          <UiCardTitle>{{ t('network-information') }}</UiCardTitle>
-          <div class="content">
-            <!-- IP ADDRESSES -->
-            <div v-if="ipAddresses.length">
-              <VtsCardRowKeyValue v-for="(ip, index) in ipAddresses" :key="ip">
-                <template #key>
-                  <div v-if="index === 0">{{ t('ip-addresses') }}</div>
-                </template>
-                <template #value>{{ ip }}</template>
-                <template #addons>
-                  <VtsCopyButton :value="ip" />
-                  <UiButtonIcon
-                    v-if="index === 0 && ipAddresses.length > 1"
-                    v-tooltip="t('coming-soon!')"
-                    disabled
-                    icon="fa:ellipsis"
-                    size="small"
-                    accent="brand"
-                  />
-                </template>
-              </VtsCardRowKeyValue>
-            </div>
-            <VtsCardRowKeyValue v-else>
-              <template #key>
-                {{ t('ip-addresses') }}
-              </template>
-              <template #value>
-                <span class="value" />
-              </template>
-            </VtsCardRowKeyValue>
-            <!-- MAC ADDRESSES -->
-            <VtsCardRowKeyValue>
-              <template #key>
-                {{ t('mac-address') }}
-              </template>
-              <template #value>
-                {{ vif.MAC }}
-              </template>
-              <template #addons>
-                <VtsCopyButton :value="vif.MAC" />
+                <VtsCopyButton :value="ip" />
+                <UiButtonIcon
+                  v-if="index === 0 && ipAddresses.length > 1"
+                  v-tooltip="t('coming-soon!')"
+                  disabled
+                  icon="fa:ellipsis"
+                  size="small"
+                  accent="brand"
+                />
               </template>
             </VtsCardRowKeyValue>
           </div>
-        </UiCard>
-      </template>
+          <VtsCardRowKeyValue v-else>
+            <template #key>
+              {{ t('ip-addresses') }}
+            </template>
+            <template #value>
+              <span class="value" />
+            </template>
+          </VtsCardRowKeyValue>
+          <!-- MAC ADDRESSES -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ t('mac-address') }}
+            </template>
+            <template #value>
+              {{ vif.MAC }}
+            </template>
+            <template #addons>
+              <VtsCopyButton :value="vif.MAC" />
+            </template>
+          </VtsCardRowKeyValue>
+        </div>
+      </UiCard>
     </template>
   </VtsSidePanel>
 </template>
@@ -146,7 +143,6 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'

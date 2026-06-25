@@ -1,5 +1,5 @@
 <template>
-  <VtsSidePanel :selected="!!snapshot" :closable="!!snapshot" @close="emit('close')">
+  <VtsSidePanel :has-selection="!!snapshot" @close="emit('close')">
     <template v-if="snapshot" #actions>
       <UiButton
         :disabled="!canRevertSnapshot || isDeletingSnapshot"
@@ -18,12 +18,9 @@
         @click="openSnapshotDeleteModal()"
       />
     </template>
-    <template #default>
-      <VtsStateHero v-if="!snapshot" format="panel" type="no-selection" size="medium" />
-      <template v-else>
-        <SnapshotInfoCard :snapshot />
-        <SnapshotVdiCard :snapshot />
-      </template>
+    <template v-if="snapshot" #default>
+      <SnapshotInfoCard :snapshot />
+      <SnapshotVdiCard :snapshot />
     </template>
   </VtsSidePanel>
 </template>
@@ -36,7 +33,6 @@ import { useVmSnapshotDeleteModal } from '@/modules/snapshot/composables/use-vm-
 import { useVmSnapshotRevertModal } from '@/modules/snapshot/composables/use-vm-snapshot-revert-modal.composable.ts'
 import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { useI18n } from 'vue-i18n'
 

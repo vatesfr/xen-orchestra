@@ -1,5 +1,5 @@
 <template>
-  <VtsSidePanel :key="panelSignature" :selected="!!sr" :closable="!!sr" @close="emit('close')">
+  <VtsSidePanel :key="panelSignature" :has-selection="!!sr" @close="emit('close')">
     <template v-if="sr" #actions>
       <SrConnectButton :scope :sr />
       <MenuList placement="bottom-end">
@@ -10,9 +10,8 @@
         <SrDeleteButton :sr />
       </MenuList>
     </template>
-    <template #default>
-      <VtsStateHero v-if="!sr" format="panel" type="no-selection" size="medium" />
-      <VtsStateHero v-else-if="!isReady" format="panel" type="busy" size="medium" />
+    <template v-if="sr" #default>
+      <VtsStateHero v-if="!isReady" format="panel" type="busy" size="medium" />
       <template v-else>
         <StorageRepositoryInfosCard :scope :sr />
         <StorageRepositorySpaceCard :sr />

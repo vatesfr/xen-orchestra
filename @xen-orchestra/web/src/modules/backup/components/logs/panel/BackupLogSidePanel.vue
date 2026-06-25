@@ -1,18 +1,15 @@
 <template>
-  <VtsSidePanel :selected="!!backupLog" :closable="!!backupLog" @close="emit('close')">
-    <template #default>
-      <VtsStateHero v-if="!backupLog" format="panel" type="no-selection" size="medium" />
-      <template v-else>
-        <BackupLogInfosCard :backup-log />
-        <BackupJobSchedulesCard :backup-job-schedules />
-        <template v-if="backupLogResults !== undefined">
-          <template v-for="[type, data] of Object.entries(backupLogResults)" :key="type">
-            <BackupLogResultsCard v-if="data.length > 0" :results="data" :type="type as BackupLogResultType" />
-          </template>
+  <VtsSidePanel :has-selection="!!backupLog" @close="emit('close')">
+    <template v-if="backupLog">
+      <BackupLogInfosCard :backup-log />
+      <BackupJobSchedulesCard :backup-job-schedules />
+      <template v-if="backupLogResults !== undefined">
+        <template v-for="[type, data] of Object.entries(backupLogResults)" :key="type">
+          <BackupLogResultsCard v-if="data.length > 0" :results="data" :type="type as BackupLogResultType" />
         </template>
-        <BackupJobBackedUpVmsCard v-if="backupJob?.type === 'backup' && backupJob.vms" :backed-up-vms="backupJob.vms" />
-        <BackupJobBackedUpPoolsCard v-if="backedUpPools.length > 0" :backed-up-pools />
       </template>
+      <BackupJobBackedUpVmsCard v-if="backupJob?.type === 'backup' && backupJob.vms" :backed-up-vms="backupJob.vms" />
+      <BackupJobBackedUpPoolsCard v-if="backedUpPools.length > 0" :backed-up-pools />
     </template>
   </VtsSidePanel>
 </template>
@@ -32,7 +29,6 @@ import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use
 import { getTasksResultsRecursively } from '@/modules/task/utils/xo-task.util.ts'
 import { extractIdsFromSimplePattern } from '@/shared/utils/pattern.util.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import type { XoPool } from '@vates/types'
 import { computed } from 'vue'
 
