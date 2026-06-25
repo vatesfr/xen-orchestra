@@ -1,6 +1,11 @@
-<!-- v5 -->
+<!-- v9 -->
 <template>
-  <div :class="toVariants({ accent, disabled })" class="ui-input" @click.self="focus()">
+  <div :class="toVariants({ accent, disabled, selected: isSelected })" class="ui-input" @click.self="focus()">
+    <span v-if="slots.prefix || prefix" class="prefix">
+      <slot name="prefix">
+        {{ prefix }}
+      </slot>
+    </span>
     <span v-if="readonly" class="typo-body-regular input text-ellipsis">
       <input ref="inputRef" class="readonly-input" readonly type="text" />
       {{ modelValue }}
@@ -16,7 +21,14 @@
       class="typo-body-regular input text-ellipsis"
       v-bind="attrs"
       @input="event => handleInput(event)"
+      @focus="isFocused = true"
+      @blur="isFocused = false"
     />
+    <span v-if="slots.suffix || suffix" class="suffix">
+      <slot name="suffix">
+        {{ suffix }}
+      </slot>
+    </span>
     <UiButtonIcon
       v-if="!disabled && modelValue && clearable"
       icon="fa:xmark"
@@ -38,7 +50,7 @@ import type { IconName } from '@core/icons'
 import { useMapper } from '@core/packages/mapper/use-mapper.ts'
 import { IK_INPUT_WRAPPER_CONTROLLER } from '@core/utils/injection-keys.util'
 import { toVariants } from '@core/utils/to-variants.util'
-import { inject, ref, useAttrs, watchEffect } from 'vue'
+import { computed, inject, ref, useAttrs, watchEffect } from 'vue'
 
 export type InputAccent = 'brand' | 'warning' | 'danger'
 
@@ -51,17 +63,20 @@ const {
   accent: _accent,
   required,
   disabled,
+  selected,
   id,
 } = defineProps<{
   accent: InputAccent
   id?: string
   required?: boolean
   disabled?: boolean
+  selected?: boolean
   readonly?: boolean
   type?: InputType
-  icon?: IconName
   rightIcon?: IconName
   clearable?: boolean
+  prefix?: string
+  suffix?: string
 }>()
 
 const emit = defineEmits<{
@@ -72,6 +87,8 @@ const modelValue = defineModel<string | number | undefined>({ required: true })
 
 const slots = defineSlots<{
   'right-icon'?(): any
+  'prefix'?(): any
+  'suffix'?(): any
 }>()
 
 function handleInput(event: Event) {
@@ -93,6 +110,10 @@ const accent = useMapper<LabelAccent, InputAccent>(
   }),
   'neutral'
 )
+
+const isFocused = ref(false)
+
+const isSelected = computed(() => selected ?? isFocused.value)
 
 if (wrapperController) {
   watchEffect(() => {
@@ -133,6 +154,30 @@ defineExpose({ focus })
     color: var(--color-brand-txt-base);
   }
 
+  .prefix,
+  .suffix {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: stretch;
+    background-color: var(--color-neutral-background-secondary);
+    padding: 0.8rem 1.6rem;
+    border: 0.1rem solid var(--color-neutral-border);
+    color: var(--color-neutral-txt-secondary);
+  }
+
+  .prefix {
+    margin-inline-start: -1.6rem;
+    border-start-start-radius: 0.4rem;
+    border-end-start-radius: 0.4rem;
+  }
+
+  .suffix {
+    margin-inline-end: -1.6rem;
+    border-start-end-radius: 0.4rem;
+    border-end-end-radius: 0.4rem;
+  }
+
   &.disabled .right-icon {
     color: var(--color-neutral-txt-secondary);
   }
@@ -163,8 +208,10 @@ defineExpose({ focus })
   &.accent--brand {
     border-color: var(--color-neutral-border);
 
-    &:focus-within {
+    &:focus-within,
+    &.selected {
       border-color: var(--color-brand-item-base);
+      border-width: 0.2rem;
     }
 
     &:hover {
@@ -184,6 +231,11 @@ defineExpose({ focus })
   &.accent--warning {
     border-color: var(--color-warning-item-base);
 
+    &:focus-within,
+    &.selected {
+      border-color: var(--color-warning-item-base);
+    }
+
     &:hover {
       border-color: var(--color-warning-item-hover);
     }
@@ -200,6 +252,11 @@ defineExpose({ focus })
 
   &.accent--danger {
     border-color: var(--color-danger-item-base);
+
+    &:focus-within,
+    &.selected {
+      border-color: var(--color-danger-item-base);
+    }
 
     &:hover {
       border-color: var(--color-danger-item-hover);
