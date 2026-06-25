@@ -196,8 +196,8 @@ export default class CryptoCredentials {
             this.#migrationRequired = 'encryption'
           }
         } catch (error) {
-          this.#xenStore.rm(XENSTORE_KEY_PATH).catch(() => {})
-          this.#fs.unlink(KEY_FILE_PATH).catch(() => {})
+          await this.#xenStore.rm(XENSTORE_KEY_PATH).catch(() => {})
+          await this.#fs.unlink(KEY_FILE_PATH).catch(() => {})
 
           log.error('Credential database encryption failed - running in degraded mode', { cause: error })
         }
