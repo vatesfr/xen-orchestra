@@ -39,6 +39,29 @@ If the primary URI is unreachable (firewall drop, host down, TCP reset), XO will
 
 > **Note:** all failover servers must share the same credentials and directory structure as the primary. Failover only covers TCP-level failures, authentication errors and search errors are not retried.
 
+## Additional domains (multi-forest)
+
+The `additionalDomains` field lets you connect XO to multiple independent LDAP/AD forests. Each domain has its own URI, base, credentials, and group configuration.
+
+**Authentication flow:** XO tries the primary domain first. If the user is not found there, it falls through to each additional domain in order. If the same username exists in both the primary and an additional domain, the primary always wins and the additional domain's entry is never reached.
+
+**Group sync:** Groups are scoped per domain. Primary-domain groups keep their bare LDAP names for backward compatibility. Additional-domain groups are suffixed with the domain URI to avoid collisions, since the same group name (e.g. `Developers`) can exist in multiple forests.
+
+### Example of group sync in XO between two forests:
+**Primary domain   (ldap://corp.net)**
+- LDAP group: Developers ->  XO group: Developers
+- LDAP group: Admins ->  XO group: Admins
+
+**Additional domain (ldap://acme.net)**:  
+- LDAP group: Developers  ->  XO group: Developers (ldap://acme.net)
+- LDAP group: Finance     ->  XO group: Finance (ldap://acme.net)
+  
+
+> **Note:**
+> - A primary-domain group named `Developers` and an additional-domain group named `Developers` are two distinct XO groups with different members. They do not merge.
+> - Failover URIs within a domain are for high-availability only, not for cross-forest access. All failover URIs for a domain must replicate the same directory.
+> - Removing a domain from the configuration does not delete the XO groups it created. Clean them up manually if needed.
+
 ## Algorithm
 
 1. If `bind` is defined, attempt to bind using this user.
