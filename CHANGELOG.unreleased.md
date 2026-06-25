@@ -70,6 +70,7 @@
     - @xen-orchestra/lite (only in dev dependencies for npm-run-all)
   - vue-router fixed to 5.0.6 (@babel/generator@^8.0.0-rc.4 in 5.0.7)
   - update packages to sync with yarn.lock (e.g. client-s3 package)
+- [REST API] `PATCH /rest/v0/vdis/{id}` to update a VDI's name, description and size (PR [#9945](https://github.com/vatesfr/xen-orchestra/pull/9945))
 
 - [i18n] Update Czech, Danish, Norwegian, Slovak, Spanish and Swedish translations (PR [#9914](https://github.com/vatesfr/xen-orchestra/pull/9914))
 - [REST API] `PATCH /rest/v0/vifs/{id}` to update VIF properties (allowed IPs, locking mode, rate limit, TX checksumming) (PR [#9935](https://github.com/vatesfr/xen-orchestra/pull/9935))
