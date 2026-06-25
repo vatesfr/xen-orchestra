@@ -162,82 +162,10 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
     return this.#backupArchiveService.listPartitions(id as XoVmBackupArchive['id'], diskId)
   }
 
-  /**
-   * Returns the list of files at the given path inside a partition of a backup archive disk.
-   *
-   * Required privilege:
-   * - resource: backup-archive, action: mount
-   *
-   * @example path "/etc"
-   */
-  @Extension('x-mcp-exposure', 'deny')
-  @Get('{id}/disks/{diskId}/partitions/{partitionId}/files')
-  @Middlewares(
-    acl({
-      resource: 'backup-archive',
-      action: 'mount',
-      objectId: 'params.id',
-      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
-    })
-  )
-  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
-  @Response(notFoundResp.status, notFoundResp.description)
-  async getBackupArchivePartitionFiles(
-    @Path() id: string,
-    @Path() diskId: string,
-    @Path() partitionId: string,
-    @Query() path?: string
-  ): Promise<{ name: string; isFile: boolean; size?: number }[]> {
-    const rawFiles = await this.#backupArchiveService.listFiles(
-      id as XoVmBackupArchive['id'],
-      diskId,
-      partitionId,
-      path ?? '/'
-    )
-    return Object.entries(rawFiles).map(([name, info]) => ({
-      name,
-      isFile: !name.endsWith('/'),
-      size: info?.size,
-    }))
-  }
-
-  /**
-   * Returns the list of files at the given path on a bare disk (no partition table) of a backup archive.
-   *
-   * Required privilege:
-   * - resource: backup-archive, action: mount
-   *
-   * @example path "/etc"
-   */
-  @Extension('x-mcp-exposure', 'deny')
-  @Get('{id}/disks/{diskId}/files')
-  @Middlewares(
-    acl({
-      resource: 'backup-archive',
-      action: 'mount',
-      objectId: 'params.id',
-      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
-    })
-  )
-  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
-  @Response(notFoundResp.status, notFoundResp.description)
-  async getBackupArchiveDiskFiles(
-    @Path() id: string,
-    @Path() diskId: string,
-    @Query() path?: string
-  ): Promise<{ name: string; isFile: boolean; size?: number }[]> {
-    const rawFiles = await this.#backupArchiveService.listFiles(
-      id as XoVmBackupArchive['id'],
-      diskId,
-      undefined,
-      path ?? '/'
-    )
-    return Object.entries(rawFiles).map(([name, info]) => ({
-      name,
-      isFile: !name.endsWith('/'),
-      size: info?.size,
-    }))
-  }
+  // tsoa route-collision check (checkForPathParamSignatureDuplicates) is declaration-order
+  // sensitive: a `…/files.{format}` route declared AFTER the plain `…/files` route is wrongly
+  // flagged as overlapping (it does a startsWith, not an equality, on the last segment). So each
+  // `.{format}` download route MUST stay declared before its plain listing sibling. Do not reorder.
 
   /**
    * Downloads the selected files from a partition of a backup archive disk as a tgz or zip archive.
@@ -283,6 +211,45 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   }
 
   /**
+   * Returns the list of files at the given path inside a partition of a backup archive disk.
+   *
+   * Required privilege:
+   * - resource: backup-archive, action: mount
+   *
+   * @example path "/etc"
+   */
+  @Extension('x-mcp-exposure', 'deny')
+  @Get('{id}/disks/{diskId}/partitions/{partitionId}/files')
+  @Middlewares(
+    acl({
+      resource: 'backup-archive',
+      action: 'mount',
+      objectId: 'params.id',
+      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getBackupArchivePartitionFiles(
+    @Path() id: string,
+    @Path() diskId: string,
+    @Path() partitionId: string,
+    @Query() path?: string
+  ): Promise<{ name: string; isFile: boolean; size?: number }[]> {
+    const rawFiles = await this.#backupArchiveService.listFiles(
+      id as XoVmBackupArchive['id'],
+      diskId,
+      partitionId,
+      path ?? '/'
+    )
+    return Object.entries(rawFiles).map(([name, info]) => ({
+      name,
+      isFile: !name.endsWith('/'),
+      size: info?.size,
+    }))
+  }
+
+  /**
    * Downloads the selected files from a bare disk (no partition table) of a backup archive as a tgz or zip archive.
    *
    * Required privilege:
@@ -322,5 +289,43 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
     )
     req.on('close', () => (stream as NodeJS.ReadableStream & { destroy?: () => void }).destroy?.())
     await pipeline(stream as unknown as Readable, res)
+  }
+
+  /**
+   * Returns the list of files at the given path on a bare disk (no partition table) of a backup archive.
+   *
+   * Required privilege:
+   * - resource: backup-archive, action: mount
+   *
+   * @example path "/etc"
+   */
+  @Extension('x-mcp-exposure', 'deny')
+  @Get('{id}/disks/{diskId}/files')
+  @Middlewares(
+    acl({
+      resource: 'backup-archive',
+      action: 'mount',
+      objectId: 'params.id',
+      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getBackupArchiveDiskFiles(
+    @Path() id: string,
+    @Path() diskId: string,
+    @Query() path?: string
+  ): Promise<{ name: string; isFile: boolean; size?: number }[]> {
+    const rawFiles = await this.#backupArchiveService.listFiles(
+      id as XoVmBackupArchive['id'],
+      diskId,
+      undefined,
+      path ?? '/'
+    )
+    return Object.entries(rawFiles).map(([name, info]) => ({
+      name,
+      isFile: !name.endsWith('/'),
+      size: info?.size,
+    }))
   }
 }
