@@ -1,7 +1,7 @@
 <template>
   <div class="traffic-rules" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
-      <TrafficRulesTable :rules="trafficRules">
+      <TrafficRulesTable :rules="trafficRules" :pool>
         <template #title-action>
           <UiLink :to="{ name: '/traffic-rule/new', query: { vifid: vif.id } }" icon="fa:plus" size="medium">
             {{ t('new') }}
@@ -19,6 +19,7 @@
 </template>
 
 <script setup lang="ts">
+import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import TrafficRulesSidePanel from '@/modules/traffic-rules/components/list/panel/TrafficRulesSidePanel.vue'
 import TrafficRulesTable from '@/modules/traffic-rules/components/TrafficRulesTable.vue'
 import { useTrafficRules } from '@/modules/traffic-rules/composables/traffic-rules.composable.ts'
@@ -36,6 +37,9 @@ const { vif } = defineProps<{ vif: FrontXoVif }>()
 const uiStore = useUiStore()
 
 const { t } = useI18n()
+
+const { useGetPoolById } = useXoPoolCollection()
+const pool = useGetPoolById(() => vif.$pool)
 
 const { trafficRules } = useTrafficRules(() => [vif], [])
 

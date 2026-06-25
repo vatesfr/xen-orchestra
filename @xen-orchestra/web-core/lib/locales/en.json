@@ -1022,6 +1022,8 @@
   "traffic-rule": "Traffic rule",
   "traffic-rule-delete-warning": "This action is irreversible. The selected traffic rule will be permanently deleted.",
   "traffic-rules": "Traffic rules",
+  "traffic-rules:format-warning": "Configuration error: Traffic rules are not in the expected format. Please {check-doc} on how to migrate them.",
+  "traffic-rules:format-warning:check-doc": "check the latest documentation",
   "traffic-rules:info-message": "Traffic rules order is being implemented. Behaviour may be hazardous.",
   "traffic-rules:no-traffic-rules-detected": "No traffic rules detected",
   "transfer-size": "Transfer size",

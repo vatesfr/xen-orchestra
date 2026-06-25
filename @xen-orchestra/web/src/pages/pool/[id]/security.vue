@@ -2,7 +2,7 @@
   <div class="security" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
       <VtsStateHero v-if="!isReady" format="page" type="busy" size="medium" />
-      <TrafficRulesTable v-else :rules="trafficRules">
+      <TrafficRulesTable v-else :rules="trafficRules" :pool>
         <template #title-action>
           <UiLink :to="{ name: '/traffic-rule/new', query: { poolid: pool.id } }" icon="fa:plus" size="medium">
             {{ t('new') }}
