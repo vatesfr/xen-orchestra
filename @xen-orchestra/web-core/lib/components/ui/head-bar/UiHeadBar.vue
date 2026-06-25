@@ -37,7 +37,7 @@ const slots = defineSlots<{
 
 <style lang="postcss" scoped>
 .ui-head-bar {
-  min-height: 5.6rem;
+  min-height: 6rem;
   padding: 0.8rem 1.6rem;
   display: flex;
   gap: 1.6rem;

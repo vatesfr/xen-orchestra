@@ -125,7 +125,7 @@ const { HeadCells, BodyCells } = useNetworkColumns({
     description: r => r(network.name_description),
     mtu: r => r(network.MTU),
     defaultLockingMode: r => r(getLockingMode(network.default_locking_mode)),
-    selectItem: r => r(() => selectedNetworkId.value === network.uuid),
+    selectItem: r => r(() => (selectedNetworkId.value = network.uuid)),
   }),
 })
 </script>
