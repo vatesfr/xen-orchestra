@@ -169,7 +169,7 @@ class Netbox {
       let resBody = 'Netbox error could not be retrieved'
       try {
         response = await this.#xo.httpRequest(url, options)
-        if (((response.statusCode / 100) | 0) === 2) {
+        if (Math.floor(response.statusCode / 100) === 2) {
           resBody = await response.text()
           if (resBody.length > 0) {
             return JSON.parse(resBody)
