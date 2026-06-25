@@ -497,12 +497,11 @@ class AuthLdap {
         // Primary domain keeps bare IDs/names for backward compatibility.
         // Additional domains (separate AD forests) suffix with their URI so same-named
         // groups across forests are distinct and both sync correctly.
-        const scopedGroupId = domain.isPrimary ? groupLdapId : `${domain.uris[0]}:${groupLdapId}`
         const xoGroupName = domain.isPrimary ? groupLdapName : `${groupLdapName} (${domain.uris[0]})`
 
         let xoGroup
         const xoGroupIndex = xoGroups.findIndex(
-          group => group.provider === 'ldap' && group.providerGroupId === scopedGroupId
+          group => group.provider === domain.provider && group.providerGroupId === groupLdapId
         )
 
         if (xoGroupIndex === -1) {
@@ -512,8 +511,8 @@ class AuthLdap {
           }
           xoGroup = await this._xo.createGroup({
             name: xoGroupName,
-            provider: 'ldap',
-            providerGroupId: scopedGroupId,
+            provider: domain.provider,
+            providerGroupId: groupLdapId,
           })
         } else {
           // Remove it from xoGroups as we will then delete all the remaining
@@ -587,12 +586,9 @@ class AuthLdap {
       if (user === undefined) {
         // All the remaining groups provided by LDAP can be removed from XO since
         // they don't exist in the LDAP directory any more
-        const isThisDomainGroup = domain.isPrimary
-          ? group => !group.providerGroupId.includes('://')
-          : group => group.providerGroupId.startsWith(domain.uris[0] + ':')
         await Promise.all(
           xoGroups
-            .filter(group => group.provider === 'ldap' && isThisDomainGroup(group))
+            .filter(group => domain.provider !== undefined && group.provider === domain.provider)
             .map(group => this._xo.deleteGroup(group.id))
         )
       }

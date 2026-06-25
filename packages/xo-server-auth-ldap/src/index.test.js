@@ -518,8 +518,8 @@ describe('AuthLdap._synchronizeGroups', () => {
         id: 1,
         users: ['user1'],
         name: 'Group One (ldap://secondary)',
-        provider: 'ldap',
-        providerGroupId: 'ldap://secondary:gid1',
+        provider: 'ldap://secondary',
+        providerGroupId: 'gid1',
       },
     ])
   })
