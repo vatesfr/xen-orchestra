@@ -280,19 +280,19 @@ class AuthLdap {
   async _connectAndBind(domain = this._primaryDomain) {
     let lastError
     for (const uri of domain.uris) {
-      const clientOpts = { url: uri, maxConnections: 5, connectTimeout: CONNECT_TIMEOUT_MS }
+      const clientOpts = { url: uri, maxConnections: 5, connectTimeout: LDAPTS_TIMEOUT_MS }
       if (uri.startsWith('ldaps:')) {
         clientOpts.tlsOptions = domain.tlsOptions
       }
       const client = new Client(clientOpts)
       try {
         if (domain.startTls) {
-          await client.startTLS(domain.tlsOptions)
+          await pTimeout.call(client.startTLS(domain.tlsOptions), CONNECT_TIMEOUT_MS, throwConnectTimeout)
         }
         const { credentials } = domain
         if (credentials) {
           logger.debug(`attempting to bind as ${credentials.dn}...`)
-          await (this._startTls
+          await (domain.startTls
             ? client.bind(credentials.dn, credentials.password)
             : pTimeout.call(client.bind(credentials.dn, credentials.password), CONNECT_TIMEOUT_MS, throwConnectTimeout))
           logger.debug(`successfully bound as ${credentials.dn}`)
