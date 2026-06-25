@@ -1,14 +1,13 @@
 import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useAddressColumn } from '@core/tables/column-definitions/address-column.ts'
+import { useComponentColumn } from '@core/tables/column-definitions/component-column.ts'
 import { useLinkColumn } from '@core/tables/column-definitions/link-column'
 import { useNumberColumn } from '@core/tables/column-definitions/number-column.ts'
-import { useSelectItemColumn } from '@core/tables/column-definitions/select-item-column'
 import { useTagColumn } from '@core/tables/column-definitions/tag-column.ts'
 import { useI18n } from 'vue-i18n'
 
 export const useVmColumns = defineColumns(() => {
   const { t } = useI18n()
-
   return {
     vm: useLinkColumn({ headerLabel: () => t('vm') }),
     ipAddresses: useAddressColumn({ headerLabel: () => t('ip-addresses') }),
@@ -16,6 +15,6 @@ export const useVmColumns = defineColumns(() => {
     ram: useNumberColumn({ headerLabel: () => t('ram') }),
     diskSpace: useNumberColumn({ headerLabel: () => t('disk-space') }),
     tags: useTagColumn({ headerLabel: () => t('tags') }),
-    selectItem: useSelectItemColumn(),
+    selectItem: useComponentColumn(),
   }
 })

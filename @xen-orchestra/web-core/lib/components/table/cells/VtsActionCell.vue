@@ -8,7 +8,7 @@
         :target-scale="1.5"
         @click="emit('click')"
       />
-      <VtsActionsMenu v-if="actions.length" :actions />
+      <slot><VtsActionsMenu v-if="actions.length" :actions /></slot>
     </div>
   </UiTableCell>
 </template>
