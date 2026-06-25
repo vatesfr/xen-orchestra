@@ -18,21 +18,7 @@
             content: currentOperation,
           }"
         />
-        <MenuList placement="bottom-start">
-          <template #trigger="{ open }">
-            <UiButtonIcon
-              v-tooltip="{
-                placement: 'top',
-                content: t('quick-actions'),
-              }"
-              icon="action:more-actions"
-              accent="brand"
-              size="small"
-              @click="open($event)"
-            />
-          </template>
-          <VmActions :vm="leaf.data" />
-        </MenuList>
+        <VmQuickActionsMenu :vm="leaf.data" placement="bottom-start" />
       </template>
     </UiTreeItemLabel>
   </VtsTreeItem>
@@ -40,23 +26,18 @@
 
 <script lang="ts" setup>
 import type { VmLeaf } from '@/modules/treeview/types/tree.type.ts'
-import VmActions from '@/modules/vm/components/actions/VmActions.vue'
+import VmQuickActionsMenu from '@/modules/vm/components/actions/VmQuickActionsMenu.vue'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import type { POWER_STATE } from '@core/types/power-state.type.ts'
-import MenuList from '@core/components/menu/MenuList.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { useI18n } from 'vue-i18n'
 
 const { leaf } = defineProps<{
   leaf: VmLeaf
 }>()
-
-const { t } = useI18n()
 
 const { isChangingState, currentOperation } = useXoVmUtils(() => leaf.data)
 </script>

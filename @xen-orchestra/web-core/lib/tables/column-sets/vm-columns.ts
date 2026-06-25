@@ -1,6 +1,7 @@
 import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useActionColumn } from '@core/tables/column-definitions/action-column.ts'
 import { useAddressColumn } from '@core/tables/column-definitions/address-column.ts'
+import { useComponentColumn } from '@core/tables/column-definitions/component-column.ts'
 import { useLinkColumn } from '@core/tables/column-definitions/link-column'
 import { useNumberColumn } from '@core/tables/column-definitions/number-column.ts'
 import { useTagColumn } from '@core/tables/column-definitions/tag-column.ts'
@@ -16,5 +17,6 @@ export const useVmColumns = defineColumns(() => {
     diskSpace: useNumberColumn({ headerLabel: () => t('disk-space') }),
     tags: useTagColumn({ headerLabel: () => t('tags') }),
     actions: useActionColumn({}),
+    selectItem: useComponentColumn(),
   }
 })
