@@ -28,7 +28,7 @@
     "xo-server-auth-ldap": "dist/test-cli.js"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=18"
   },
   "dependencies": {
     "@xen-orchestra/log": "^0.7.2",
