@@ -64,13 +64,4 @@ const selectedUser = useRouteQuery<FrontXoUser | undefined>('id', {
     gap: 4rem;
   }
 }
-
-/* This selector can't be nested,
-* as the links in MenuItem are teleported and are not children of .vdis element.
-* This selector extends the clickable area of the links for better accessibility
-*/
-.add-vdi-link {
-  height: 100%;
-  width: 100%;
-}
 </style>

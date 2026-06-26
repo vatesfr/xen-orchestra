@@ -87,11 +87,13 @@ import { useUiStore } from '@core/stores/ui.store'
 import { storeToRefs } from 'pinia'
 import { computed, nextTick, useTemplateRef, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 defineSlots<{
   default(): any
 }>()
+
+const router = useRouter()
 const { t } = useI18n()
 
 const uiStore = useUiStore()
@@ -112,6 +114,12 @@ const activeSidebarPanel = ref<SidebarPanel>(SIDEBAR_PANEL.TREEVIEW)
 const { treeItems, treeItemIndexById, isReady, filter, isSearching, expandToNode } = useXoSiteTree()
 
 const route = useRoute<'/pool/[id]' | '/host/[id]' | '/vm/[id]'>()
+
+router.isReady().then(() => {
+  activeSidebarPanel.value = route.path.startsWith('/administration')
+    ? SIDEBAR_PANEL.ADMINISTRATION
+    : SIDEBAR_PANEL.TREEVIEW
+})
 
 const siteTreeList = useTemplateRef('siteTreeList')
 

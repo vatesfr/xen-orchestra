@@ -45,12 +45,6 @@ const uiStore = useUiStore()
 </script>
 
 <style scoped lang="postcss">
-.action-buttons {
-  display: flex;
-  align-items: center;
-  margin-inline-end: auto;
-}
-
 .mobile-drawer {
   position: fixed;
   inset: 0;

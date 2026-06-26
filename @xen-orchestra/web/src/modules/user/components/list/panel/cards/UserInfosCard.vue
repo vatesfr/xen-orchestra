@@ -57,23 +57,23 @@ const lastLoginTimestamp = computed(() => {
   let mostRecentTimestamp: number | undefined
 
   for (const token of userAuthenticationTokens.value ?? []) {
-    const usagesByIp = token.last_uses ?? {}
-
-    for (const ipAddress in usagesByIp) {
-      const timestamp = usagesByIp[ipAddress].timestamp
-
-      if (mostRecentTimestamp === undefined || timestamp > mostRecentTimestamp) {
-        mostRecentTimestamp = timestamp
+    for (const usage of Object.values(token.last_uses ?? {})) {
+      if (mostRecentTimestamp === undefined || usage.timestamp > mostRecentTimestamp) {
+        mostRecentTimestamp = usage.timestamp
       }
     }
   }
 
-  return mostRecentTimestamp ? d(mostRecentTimestamp * 1000, { dateStyle: 'short', timeStyle: 'medium' }) : undefined
+  if (mostRecentTimestamp === undefined) {
+    return undefined
+  }
+
+  return d(mostRecentTimestamp * 1000, { dateStyle: 'short', timeStyle: 'medium' })
 })
 
 const providers = computed(() => {
   const providerList = Object.values(user.authProviders ?? {})
-  return providerList.length === 0 ? t('local') : providerList.join('')
+  return providerList.length === 0 ? t('local') : providerList.join(', ')
 })
 </script>
 
