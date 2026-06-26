@@ -21,7 +21,7 @@
 - [SidePanels] Add and use new `VtsCardObjectTitle` component to display object title and ID in side panels (PR [#9755](https://github.com/vatesfr/xen-orchestra/pull/9755))
 - [i18n] Update Chinese (Simplified Han script), Czech, Dutch, German, Korean, Slovak, Spanish and Swedish translations (PR [#9998](https://github.com/vatesfr/xen-orchestra/pull/9998))
 
-- [REST API] Expose `GET /rest/v0/backup-archives/:id/disks` (PR [#9464](https://github.com/vatesfr/xen-orchestra/pull/9941))
+- [REST API] Expose `GET /rest/v0/backup-archives/:id/disks` (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
 - [REST API] Expose `GET /rest/v0/backup-archives/:id/disks/:diskId/partitions` (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
 - [REST API] Expose `GET /rest/v0/backup-archives/:id/disks/:diskId/partitions/:partitionId/files` (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
 - [REST API] Expose `GET /rest/v0/backup-archives/:id/disks/:diskId/files` (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
