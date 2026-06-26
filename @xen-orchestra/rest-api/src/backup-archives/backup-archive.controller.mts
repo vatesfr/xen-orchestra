@@ -17,7 +17,6 @@ import {
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { pipeline } from 'node:stream/promises'
-import type { Readable } from 'node:stream'
 import { json, type Request as ExRequest, type Response as ExResponse } from 'express'
 import { noSuchObject } from 'xo-common/api-errors.js'
 import type {
@@ -318,8 +317,8 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
       paths,
       format,
     })
-    req.on('close', () => (stream as NodeJS.ReadableStream & { destroy?: () => void }).destroy?.())
-    await pipeline(stream as unknown as Readable, res)
+    req.on('close', () => stream.destroy())
+    await pipeline(stream, res)
   }
 
   /**
@@ -420,8 +419,8 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
       paths,
       format,
     })
-    req.on('close', () => (stream as NodeJS.ReadableStream & { destroy?: () => void }).destroy?.())
-    await pipeline(stream as unknown as Readable, res)
+    req.on('close', () => stream.destroy())
+    await pipeline(stream, res)
   }
 
   /**

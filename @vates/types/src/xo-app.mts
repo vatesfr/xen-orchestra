@@ -1,4 +1,4 @@
-import { EventEmitter } from 'node:stream'
+import { EventEmitter, Readable } from 'node:stream'
 import type {
   AnyXoJob,
   AnyXoLog,
@@ -435,7 +435,7 @@ export type XoApp = {
     partitionId: string | undefined,
     paths: string[],
     format: string
-  ): Promise<NodeJS.ReadableStream>
+  ): Promise<Readable>
   listMetadataBackups(backupRepositoryIds: XoBackupRepository['id'][]): Promise<{
     xo: Record<XoBackupRepository['id'], XoConfigBackupArchive[]>
     pool: Record<XoBackupRepository['id'], Record<XoPool['id'], XoPoolBackupArchive[]>>
