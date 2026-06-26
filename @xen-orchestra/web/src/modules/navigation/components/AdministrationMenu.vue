@@ -37,7 +37,7 @@ const sections = computed<AdminMenuSection[]>(() => [
   {
     titleKey: 'user-management',
     items: [
-      { labelKey: 'users', href: undefined, to: `/administration/user-management` },
+      { labelKey: 'users', href: undefined, to: { name: '/administration/user-management' } },
       { labelKey: 'groups', href: buildXo5Route('/settings/groups'), to: undefined },
       { labelKey: 'roles', href: buildXo5Route('/settings/acls'), to: undefined },
       {

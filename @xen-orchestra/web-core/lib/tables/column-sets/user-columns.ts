@@ -9,7 +9,7 @@ export const useUserColumns = defineColumns(() => {
   return {
     username: useTruncatedTextColumn({ headerLabel: () => t('username') }),
     email: useTruncatedTextColumn({ headerLabel: () => t('email') }),
-    provider: useTruncatedTextColumn({ headerLabel: () => t('providers') }),
+    providers: useTruncatedTextColumn({ headerLabel: () => t('providers') }),
     selectItem: useSelectItemColumn(),
   }
 })

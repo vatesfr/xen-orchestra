@@ -45,7 +45,7 @@ const { users } = defineProps<{
 }>()
 
 defineSlots<{
-  'title-actions'(): any
+  'title-actions'?(): any
 }>()
 
 const { t } = useI18n()
@@ -68,7 +68,7 @@ const { pageRecords: paginatedUsers, paginationBindings } = usePagination('users
 
 const state = useTableState({
   empty: () =>
-    users.length === 0 ? t('no-network-detected') : filteredUsers.value.length === 0 ? { type: 'no-result' } : false,
+    users.length === 0 ? t('no-user-detected') : filteredUsers.value.length === 0 ? { type: 'no-result' } : false,
 })
 
 const { HeadCells, BodyCells } = useUserColumns({
@@ -76,9 +76,9 @@ const { HeadCells, BodyCells } = useUserColumns({
     return {
       username: r => r(user.name ?? ''),
       email: r => r(user.email),
-      provider: r => {
+      providers: r => {
         const providers = Object.values(user.authProviders ?? {})
-        return r(providers.length === 0 ? t('local') : providers.join(''))
+        return r(providers.length === 0 ? t('local') : providers.join(', '))
       },
       selectItem: r => r(() => (selectedUserId.value = user.id)),
     }
