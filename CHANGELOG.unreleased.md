@@ -22,6 +22,7 @@
 - [i18n] Update Chinese (Simplified Han script), Czech, Dutch, German, Korean, Slovak, Spanish and Swedish translations (PR [#9998](https://github.com/vatesfr/xen-orchestra/pull/9998))
 - [REST API/RBAC] Add a built-in Storage administrator ACL role template to administer SRs, VDIs, VBDs, PBDs and backup repositories (PR [#9963](https://github.com/vatesfr/xen-orchestra/pull/9963))
 - [XO6/VM] add available actions on VMs tab (PR [#10030](https://github.com/vatesfr/xen-orchestra/pull/10030))
+- [XO6/VDI] add possibility to migrate VDI on SR (PR [#9973](https://github.com/vatesfr/xen-orchestra/pull/9973))
 
 ### Bug fixes
 
