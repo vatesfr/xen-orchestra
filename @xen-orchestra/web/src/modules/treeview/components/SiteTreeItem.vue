@@ -1,5 +1,5 @@
 <template>
-  <VtsTreeItem :expanded="!branch.isCollapsed" :node-id="branch.data.id">
+  <VtsTreeItem :expanded="!branch.isCollapsed" :node-id="branch.data.id" :has-children="branch.hasChildren">
     <UiTreeItemLabel icon="fa:satellite" route="/" @toggle="branch.toggleCollapse()">
       {{ branch.data.name_label }}
       <template #addons>
@@ -12,14 +12,10 @@
         />
       </template>
     </UiTreeItemLabel>
-    <template v-if="branch.hasChildren" #sublist>
-      <PoolTreeList :branches="branch.children" />
-    </template>
   </VtsTreeItem>
 </template>
 
 <script lang="ts" setup>
-import PoolTreeList from '@/modules/treeview/components/PoolTreeList.vue'
 import type { SiteBranch } from '@/modules/treeview/types/tree.type.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'

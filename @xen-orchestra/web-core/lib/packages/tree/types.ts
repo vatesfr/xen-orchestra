@@ -24,6 +24,12 @@ export type TreeNode<
   TDiscriminator = any,
 > = Leaf<TData, TDiscriminator> | Branch<TData, TChildNode, TDiscriminator>
 
+export type FlatTreeNode<TNode extends TreeNode = TreeNode> = {
+  id: TreeNodeId
+  node: TNode
+  depth: number
+}
+
 export type BaseTreeNodeOptions<TData extends object, TDiscriminator> = {
   discriminator?: TDiscriminator
   predicate?: (node: TreeNodeBase<TData, TDiscriminator>) => boolean | undefined
