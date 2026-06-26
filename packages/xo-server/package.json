@@ -140,6 +140,7 @@
     "syslog-client": "^1.1.1",
     "tar-stream": "^3.1.6",
     "tmp": "^0.2.1",
+    "undici": "^6.26.0",
     "unzipper": "^0.10.5",
     "uuid": "^9.0.0",
     "value-matcher": "^0.2.0",

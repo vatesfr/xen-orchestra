@@ -6,7 +6,6 @@ import { asyncEach } from '@vates/async-each'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import concat from 'lodash/concat.js'
-import hrp from 'http-request-plus'
 import mapKeys from 'lodash/mapKeys.js'
 import { createLogger } from '@xen-orchestra/log'
 import { defer } from 'golike-defer'
@@ -15,6 +14,8 @@ import { FAIL_ON_QUEUE } from 'limit-concurrency-decorator'
 import { getStreamAsBuffer } from 'get-stream'
 import { ignoreErrors, timeout } from 'promise-toolbox'
 import { invalidParameters, noSuchObject, unauthorized } from 'xo-common/api-errors.js'
+import { Agent } from 'undici'
+import { Readable } from 'node:stream'
 import { Ref } from 'xen-api'
 
 import { forEach, map, mapFilter, noop, parseSize, safeDateFormat } from '../utils.mjs'
@@ -1367,7 +1368,13 @@ async function import_({ data, sr, type = 'xva', url }) {
     }
 
     const timeout = this.config.getOptionalDuration('jsonrpc-api.xvaImportFromUrlTimeout') ?? 6e3
-    const ref = await xapi.VM_import(await hrp(url, { timeout }), sr._xapiRef)
+    // `timeout` is an inactivity timeout: undici's headers/body timeouts match this semantic
+    const dispatcher = new Agent({ headersTimeout: timeout, bodyTimeout: timeout })
+    const response = await fetch(url, { dispatcher })
+    if (!response.ok) {
+      throw new Error(`${response.status} ${response.statusText}`)
+    }
+    const ref = await xapi.VM_import(Readable.fromWeb(response.body), sr._xapiRef)
     return xapi.call('VM.get_uuid', ref)
   }
 
