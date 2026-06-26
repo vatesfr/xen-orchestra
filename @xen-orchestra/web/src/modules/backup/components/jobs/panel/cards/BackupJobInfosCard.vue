@@ -1,6 +1,11 @@
 <template>
   <UiCard class="card-container">
-    <VtsCardObjectTitle :id="backupJob.id" :label="backupJob.name" icon="object:backup-job" />
+    <VtsCardObjectTitle
+      :id="backupJob.id"
+      :to="{ name: `/backup/[id]/runs`, params: { id: backupJob.id } }"
+      :label="backupJob.name"
+      icon="object:backup-job"
+    />
     <div class="content">
       <VtsCardRowKeyValue v-for="(mode, index) in backupJobModes" :key="mode">
         <template #key>

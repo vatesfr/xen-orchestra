@@ -1,6 +1,8 @@
 <template>
   <UiCard class="card-container">
-    <VtsCardObjectTitle :id="vdi.id" :label="vdi.name_label"
+    <VtsCardObjectTitle
+      :id="vdi.id"
+      :label="vdi.name_label"
       :to="{ name: '/vdi/[id]/general', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.VM } }"
       :icon="vdiIcon"
     />

@@ -5,7 +5,7 @@
     </template>
     <template v-if="network" #default>
       <UiCard class="card-container">
-        <VtsCardObjectTitle :id="network.id" :label="network.name_label" icon="object:network" />
+        <VtsCardObjectTitle :id="network.id" :label="network.name_label" icon="object:network" :href="networkHref" />
         <div class="content">
           <!-- DESCRIPTION -->
           <VtsCardRowKeyValue truncate align-top>
@@ -62,14 +62,13 @@ import NetworkPifsInfoCard from '@/modules/network/components/panel/cards/Networ
 import { useNetworkDeleteModal } from '@/modules/network/composables/use-network-delete-modal.composable.ts'
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -83,6 +82,12 @@ const emit = defineEmits<{
 
 const { openModal: openDeleteModal, isRunning: isDeletingNetwork } = useNetworkDeleteModal(() =>
   network !== undefined ? [network] : []
+)
+
+const { buildXo5Route } = useXoRoutes()
+
+const networkHref = computed(() =>
+  network !== undefined ? buildXo5Route(`/pools/${network.$pool}/network?s=1_0_asc-${network.id}`) : undefined
 )
 
 const { getPifsByNetworkId } = useXoPifCollection()
