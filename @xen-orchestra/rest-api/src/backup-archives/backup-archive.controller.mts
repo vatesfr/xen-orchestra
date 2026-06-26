@@ -282,12 +282,20 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   @Extension('x-mcp-exposure', 'deny')
   @Get('{id}/disks/{diskId}/partitions/{partitionId}/files.{format}')
   @Middlewares(
-    acl({
-      resource: 'backup-archive',
-      action: 'mount',
-      objectId: 'params.id',
-      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
-    })
+    acl([
+      {
+        resource: 'backup-archive',
+        action: 'mount',
+        objectId: 'params.id',
+        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+      },
+      {
+        resource: 'backup-archive',
+        action: 'read',
+        objectId: 'params.id',
+        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+      },
+    ])
   )
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -325,12 +333,20 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   @Extension('x-mcp-exposure', 'deny')
   @Get('{id}/disks/{diskId}/partitions/{partitionId}/files')
   @Middlewares(
-    acl({
-      resource: 'backup-archive',
-      action: 'mount',
-      objectId: 'params.id',
-      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
-    })
+    acl([
+      {
+        resource: 'backup-archive',
+        action: 'mount',
+        objectId: 'params.id',
+        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+      },
+      {
+        resource: 'backup-archive',
+        action: 'read',
+        objectId: 'params.id',
+        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+      },
+    ])
   )
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -364,12 +380,26 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   @Extension('x-mcp-exposure', 'deny')
   @Get('{id}/disks/{diskId}/files.{format}')
   @Middlewares(
-    acl({
-      resource: 'backup-archive',
-      action: 'mount',
-      objectId: 'params.id',
-      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
-    })
+    acl([
+      {
+        resource: 'backup-archive',
+        action: 'export',
+        objectId: 'params.id',
+        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+      },
+      {
+        resource: 'backup-archive',
+        action: 'mount',
+        objectId: 'params.id',
+        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+      },
+      {
+        resource: 'backup-archive',
+        action: 'read',
+        objectId: 'params.id',
+        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+      },
+    ])
   )
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
