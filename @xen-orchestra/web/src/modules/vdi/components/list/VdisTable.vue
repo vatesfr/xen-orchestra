@@ -32,6 +32,7 @@ import { useVbdConnectionToggleModal } from '@/modules/vbd/composables/use-vbd-c
 import { useVbdDeleteModal } from '@/modules/vbd/composables/use-vbd-delete-modal.composable.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { useVdiDeleteModal } from '@/modules/vdi/composables/use-vdi-delete-modal.composable.ts'
+import { useVdiExportDrawer } from '@/modules/vdi/composables/use-vdi-export-drawer.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { getVdiFormat, getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -127,6 +128,8 @@ const { HeadCells, BodyCells } = useVdiColumns({
       () => vm
     )
 
+    const { openDrawer: openVdiExportDrawer, isRunning: isExportingVdi } = useVdiExportDrawer(() => vdi)
+
     return {
       vdi: r =>
         r({
@@ -142,6 +145,18 @@ const { HeadCells, BodyCells } = useVdiColumns({
         r({
           onClick: () => (selectedVdiId.value = vdi.id),
           actions: [
+            {
+              label: t('action:import-export'),
+              icon: 'action:import-export',
+              children: [
+                {
+                  label: t('action:export-content'),
+                  icon: 'action:download',
+                  onClick: () => openVdiExportDrawer(),
+                  busy: isExportingVdi.value,
+                },
+              ],
+            },
             {
               label: vbd.value?.attached ? t('action:disconnect') : t('action:connect'),
               hint: !canToggleVbdConnection.value ? toggleVbdConnectionErrorMessage.value : undefined,
