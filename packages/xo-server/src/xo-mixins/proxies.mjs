@@ -1,13 +1,13 @@
 import assert from 'assert'
 import contentType from 'content-type'
 import cookie from 'cookie'
-import hrp from 'http-request-plus'
 import isEmpty from 'lodash/isEmpty.js'
 import omit from 'lodash/omit.js'
 import parseSetCookie from 'set-cookie-parser'
 import pumpify from 'pumpify'
 import some from 'lodash/some.js'
 import split2 from 'split2'
+import { Agent } from 'undici'
 import { compileTemplate } from '@xen-orchestra/template'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
@@ -16,6 +16,7 @@ import { format, parse } from 'json-rpc-peer'
 import { incorrectState, invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
 import { readChunk, readChunkStrict } from '@vates/read-chunk'
+import { Readable } from 'node:stream'
 import { Ref } from 'xen-api'
 import { synchronized } from 'decorator-synchronized'
 import { timeout } from 'promise-toolbox'
@@ -466,8 +467,13 @@ export default class Proxy {
         Cookie: cookie.serialize('authenticationToken', proxy.authenticationToken),
       },
       method: 'POST',
-      rejectUnauthorized: false,
-      timeout,
+      // the proxy uses a self-signed certificate; `timeout` is an inactivity
+      // timeout, which maps to undici's headers/body timeouts
+      dispatcher: new Agent({
+        connect: { rejectUnauthorized: false },
+        headersTimeout: timeout,
+        bodyTimeout: timeout,
+      }),
     }
 
     if (proxy.address !== undefined) {
@@ -485,27 +491,32 @@ export default class Proxy {
       url.hostname = address.includes(':') ? `[${address}]` : address
     }
 
-    const response = await hrp(url, request)
+    const response = await fetch(url, request)
+    if (!response.ok) {
+      throw new Error(`${response.status} ${response.statusText}`)
+    }
 
-    const authenticationToken = parseSetCookie(response, {
+    const authenticationToken = parseSetCookie(response.headers.getSetCookie(), {
       map: true,
     }).authenticationToken?.value
     if (authenticationToken !== undefined) {
       await this.updateProxy(id, { authenticationToken })
     }
 
-    const responseType = contentType.parse(response).type
+    const stream = Readable.fromWeb(response.body)
+
+    const responseType = contentType.parse(response.headers.get('content-type')).type
     if (responseType === 'application/octet-stream') {
       if (assertType !== 'stream') {
-        response.destroy()
+        stream.destroy()
         throw new Error(`expect the result to be ${assertType}`)
       }
-      return response
+      return stream
     }
 
     assert.strictEqual(responseType, 'application/json')
 
-    const lines = pumpify.obj(response, split2(JSON.parse))
+    const lines = pumpify.obj(stream, split2(JSON.parse))
     const firstLine = await readChunk(lines)
 
     const result = parse.result(firstLine)

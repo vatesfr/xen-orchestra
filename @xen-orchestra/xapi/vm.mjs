@@ -1,6 +1,5 @@
 import CancelToken from 'promise-toolbox/CancelToken'
 import groupBy from 'lodash/groupBy.js'
-import hrp from 'http-request-plus'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import pRetry from 'promise-toolbox/retry'
 import pickBy from 'lodash/pickBy.js'
@@ -14,12 +13,15 @@ import { extract } from '@xen-orchestra/xapi/xoData.mjs'
 import { finished } from 'node:stream'
 import { incorrectState, forbiddenOperation } from 'xo-common/api-errors.js'
 import { JsonRpcError } from 'json-rpc-protocol'
+import { Agent } from 'undici'
 import { Ref } from 'xen-api'
 
 import isDefaultTemplate from './isDefaultTemplate.mjs'
 import isVmRunning from './_isVmRunning.mjs'
 
 const { warn, error } = createLogger('xo:xapi:vm')
+
+const insecureAgent = new Agent({ connect: { rejectUnauthorized: false } })
 
 const BIOS_STRINGS_KEYS = new Set([
   'baseboard-asset-tag',
@@ -192,11 +194,14 @@ class Vm {
     }
 
     try {
-      await hrp(url, {
+      const response = await fetch(url, {
         headers,
-        rejectUnauthorized: false,
-        timeout: this._syncHookTimeout ?? 60e3,
+        dispatcher: insecureAgent,
+        signal: AbortSignal.timeout(this._syncHookTimeout ?? 60e3),
       })
+      if (!response.ok) {
+        throw new Error(`${response.status} ${response.statusText}`)
+      }
     } catch (error) {
       warn('HTTP hook failed', { error, url, vm: uuid })
     }

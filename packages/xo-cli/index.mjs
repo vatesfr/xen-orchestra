@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
+import { Agent } from 'undici'
 import { createReadStream, createWriteStream, readFileSync } from 'fs'
-import { PassThrough, pipeline } from 'stream'
+import { PassThrough, pipeline, Readable } from 'stream'
 import { stat } from 'fs/promises'
 import chalk from 'chalk'
 import forEach from 'lodash/forEach.js'
 import fromCallback from 'promise-toolbox/fromCallback'
 import getKeys from 'lodash/keys.js'
 import getopts from 'getopts'
-import hrp from 'http-request-plus'
 import identity from 'lodash/identity.js'
 import isObject from 'lodash/isObject.js'
 import micromatch from 'micromatch'
@@ -624,10 +624,12 @@ async function call(args) {
   try {
     // FIXME: do not use private properties.
     const baseUrl = xo._url.replace(/^ws/, 'http')
-    const httpOptions = {
-      rejectUnauthorized: !(await getServerConfig()).allowUnauthorized,
-      timeout: 0,
-    }
+    const rejectUnauthorized = !(await getServerConfig()).allowUnauthorized
+    const dispatcher = new Agent({
+      connect: { rejectUnauthorized },
+      headersTimeout: 0,
+      bodyTimeout: 0,
+    })
 
     const result = await xo.call(method, params)
     let keys, key, url
@@ -638,9 +640,17 @@ async function call(args) {
         ensurePathParam(method, file)
         url = new URL(result[key], baseUrl)
         const output = createOutputStream(file)
-        const response = await hrp(url, httpOptions)
+        const response = await fetch(url, { dispatcher })
+        if (!response.ok) {
+          throw new Error(`${response.status} ${response.statusText}`)
+        }
 
-        return fromCallback(pipeline, response, streamStatsPrinter(response.headers['content-length']), output)
+        return fromCallback(
+          pipeline,
+          Readable.fromWeb(response.body),
+          streamStatsPrinter(response.headers.get('content-length')),
+          output
+        )
       }
 
       if (key === '$sendTo') {
@@ -650,14 +660,16 @@ async function call(args) {
         const length = file === '-' ? undefined : (await stat(file)).size
         const input = pipeline(file === '-' ? process.stdin : createReadStream(file), streamStatsPrinter(length), noop)
 
-        const response = await hrp(url, {
-          ...httpOptions,
+        const response = await fetch(url, {
+          dispatcher,
           body: input,
-          headers: length && {
-            'content-length': length,
-          },
+          duplex: 'half',
+          headers: length && { 'content-length': length },
           method: 'POST',
         })
+        if (!response.ok) {
+          throw new Error(`${response.status} ${response.statusText}`)
+        }
         return response.text()
       }
     }
