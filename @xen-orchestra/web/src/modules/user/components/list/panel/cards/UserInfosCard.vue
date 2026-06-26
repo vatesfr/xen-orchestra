@@ -7,7 +7,7 @@
       <VtsCodeSnippet :content="user.id" copy />
       <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('xoa-manager') }}</template>
-        <template #value>{{ user.permission }}</template>
+        <template #value>{{ userPermission }}</template>
         <template #addons>
           <VtsCopyButton :value="user.permission" />
         </template>
@@ -68,12 +68,19 @@ const lastLoginTimestamp = computed(() => {
     return undefined
   }
 
-  return d(mostRecentTimestamp * 1000, { dateStyle: 'short', timeStyle: 'medium' })
+  return d(mostRecentTimestamp, { dateStyle: 'short', timeStyle: 'medium' })
 })
 
 const providers = computed(() => {
   const providerList = Object.values(user.authProviders ?? {})
   return providerList.length === 0 ? t('local') : providerList.join(', ')
+})
+
+const userPermission = computed(() => {
+  if (user.permission === 'none') {
+    return 'user'
+  }
+  return user.permission
 })
 </script>
 

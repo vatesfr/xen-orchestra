@@ -46,6 +46,7 @@ async function init() {
   app.use(createPinia())
   app.use(router)
   app.use(RegleVuePlugin, formValidationConfig)
+  await router.isReady()
 
   app.mount('#app')
 }
