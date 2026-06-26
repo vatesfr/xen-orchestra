@@ -24,6 +24,7 @@
 - [VM]: Add possibility to duplicate a VM (PR [#9580](https://github.com/vatesfr/xen-orchestra/pull/9580))
 - [RPU] Trace rolling pool updates/reboots to disk to allow diagnosis even after xo-server restarts (PR [#10078](https://github.com/vatesfr/xen-orchestra/pull/10078))
 - [XO6/VM] Group VM power actions in a new "Change state" submenu and isolate the Delete action (PR [#10036](https://github.com/vatesfr/xen-orchestra/pull/10036))
+- [OpenMetrics] Add an estimated per-VM power consumption metric (`xcp_vm_power_consumption_watts`), splitting each host's IPMI power across its running VMs proportionally to CPU load (PR [#10031](https://github.com/vatesfr/xen-orchestra/pull/10031))
 
 ### Bug fixes
 
@@ -59,6 +60,7 @@
 - xapi-explore-sr patch
 - xen-api minor
 - xo-server minor
+- xo-server-openmetrics minor
 
 
 <!--packages-end-->
