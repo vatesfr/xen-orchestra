@@ -254,6 +254,9 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
    *
    * Required privilege:
    * - resource: backup-archive, action: mount
+   *
+   * @example id "231264c3-af43-4ec0-a3be-394c5b1fdbfc/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json"
+   * @example diskId "/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/vdis/8b650248-ddd6-4188-ad8b-c0502865ac6c/f1f3c902-dcaa-4ec6-943e-6162c9d85fb2/20250801T080832Z.vhd"
    */
   @Extension('x-mcp-exposure', 'deny')
   @Get('{id}/disks/{diskId}/partitions')
@@ -282,6 +285,10 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
    * Required privilege:
    * - resource: backup-archive, action: mount
    *
+   * @example id "231264c3-af43-4ec0-a3be-394c5b1fdbfc/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json"
+   * @example diskId "/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/vdis/8b650248-ddd6-4188-ad8b-c0502865ac6c/f1f3c902-dcaa-4ec6-943e-6162c9d85fb2/20250801T080832Z.vhd"
+   * @example partitionId "6c2d1b4a-0f3e-4c8d-9a1b-2e5f7c9d0a3b"
+   * @example format "tgz"
    * @example paths ["/etc/passwd", "/etc/hosts"]
    */
   @Extension('x-mcp-exposure', 'deny')
@@ -333,6 +340,9 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
    * Required privilege:
    * - resource: backup-archive, action: mount
    *
+   * @example id "231264c3-af43-4ec0-a3be-394c5b1fdbfc/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json"
+   * @example diskId "/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/vdis/8b650248-ddd6-4188-ad8b-c0502865ac6c/f1f3c902-dcaa-4ec6-943e-6162c9d85fb2/20250801T080832Z.vhd"
+   * @example partitionId "6c2d1b4a-0f3e-4c8d-9a1b-2e5f7c9d0a3b"
    * @example path "/etc"
    */
   @Extension('x-mcp-exposure', 'deny')
@@ -380,6 +390,9 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
    * Required privilege:
    * - resource: backup-archive, action: mount
    *
+   * @example id "231264c3-af43-4ec0-a3be-394c5b1fdbfc/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json"
+   * @example diskId "/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/vdis/8b650248-ddd6-4188-ad8b-c0502865ac6c/f1f3c902-dcaa-4ec6-943e-6162c9d85fb2/20250801T080832Z.vhd"
+   * @example format "tgz"
    * @example paths ["/etc/passwd"]
    */
   @Extension('x-mcp-exposure', 'deny')
@@ -435,6 +448,8 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
    * Required privilege:
    * - resource: backup-archive, action: mount
    *
+   * @example id "231264c3-af43-4ec0-a3be-394c5b1fdbfc/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json"
+   * @example diskId "/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/vdis/8b650248-ddd6-4188-ad8b-c0502865ac6c/f1f3c902-dcaa-4ec6-943e-6162c9d85fb2/20250801T080832Z.vhd"
    * @example path "/etc"
    */
   @Extension('x-mcp-exposure', 'deny')
