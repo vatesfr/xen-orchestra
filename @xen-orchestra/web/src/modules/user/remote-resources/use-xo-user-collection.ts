@@ -5,7 +5,14 @@ import type { XoUser } from '@vates/types'
 
 export type FrontXoUser = Pick<XoUser, (typeof userFields)[number]>
 
-const userFields = ['id', 'name', 'permission', 'email', 'groups'] as const satisfies readonly (keyof XoUser)[]
+const userFields = [
+  'id',
+  'name',
+  'permission',
+  'email',
+  'groups',
+  'authProviders',
+] as const satisfies readonly (keyof XoUser)[]
 
 export const useXoUserCollection = defineRemoteResource({
   url: `${BASE_URL}/users?fields=${userFields.join(',')}`,
