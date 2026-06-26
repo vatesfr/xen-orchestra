@@ -1,5 +1,5 @@
 <template>
-  <UiLoader v-if="!isReady" class="loader" />
+  <UiLoader v-if="!isReady" />
   <template v-else-if="record !== undefined">
     <RouterLink v-if="objectRoute" :to="objectRoute">
       {{ record.name_label }}
@@ -76,10 +76,6 @@ const objectRoute = computed(() => {
 </script>
 
 <style lang="postcss" scoped>
-.loader {
-  color: var(--color-brand-txt-base);
-}
-
 .unknown {
   color: var(--color-neutral-txt-secondary);
   font-style: italic;
