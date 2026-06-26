@@ -19,6 +19,7 @@
 - [V2V] Create a CDROM on destination if source has one (PR [#10014](https://github.com/vatesfr/xen-orchestra/pull/10014))
 - [XO6/VDI] Add the possibility to export VDI from detail screen of a VM (PR [#9983](https://github.com/vatesfr/xen-orchestra/pull/9983))
 - [SidePanels] Add and use new `VtsCardObjectTitle` component to display object title and ID in side panels (PR [#9755](https://github.com/vatesfr/xen-orchestra/pull/9755))
+- [i18n] Update Chinese (Simplified Han script), Czech, Dutch, German, Korean, Slovak, Spanish and Swedish translations (PR [#9998](https://github.com/vatesfr/xen-orchestra/pull/9998))
 
 ### Bug fixes
 
