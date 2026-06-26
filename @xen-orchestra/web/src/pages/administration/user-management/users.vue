@@ -1,7 +1,7 @@
 <template>
   <div class="users" :class="{ mobile: uiStore.isSmall }">
     <div class="center">
-      <UiAlert accent="info" close>
+      <UiAlert v-if="!alertDismissed" class="alert" accent="info" close @close="alertDismissed = true">
         {{ t('alert-user-roles') }}
       </UiAlert>
       <UiCard class="container">
@@ -28,6 +28,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { users } = defineProps<{
@@ -39,6 +40,8 @@ const { t } = useI18n()
 const { getUserById } = useXoUserCollection()
 
 const uiStore = useUiStore()
+
+const alertDismissed = ref(false)
 
 const selectedUser = useRouteQuery<FrontXoUser | undefined>('id', {
   toData: id => getUserById(id as FrontXoUser['id']),
@@ -56,12 +59,16 @@ const selectedUser = useRouteQuery<FrontXoUser | undefined>('id', {
   .center {
     display: flex;
     flex-direction: column;
-  }
 
-  .container {
-    height: fit-content;
-    margin: 0.8rem;
-    gap: 4rem;
+    .alert {
+      margin: 0.8rem 0.8rem 0 0.8rem;
+    }
+
+    .container {
+      height: fit-content;
+      margin: 0.8rem;
+      gap: 4rem;
+    }
   }
 }
 </style>
