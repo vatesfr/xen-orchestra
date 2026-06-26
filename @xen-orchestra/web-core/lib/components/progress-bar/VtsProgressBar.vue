@@ -1,11 +1,7 @@
 <template>
   <div class="vts-progress-bar">
     <UiDataRuler v-if="!noruler" :max="percentageCap" :warning="threshold.payload" />
-    <UiProgressBar
-      :accent="threshold.payload.accent ?? 'info'"
-      :fill-width="noruler ? `${Math.min(percentage, 100).toFixed(2)}%` : fillWidth"
-      :legend
-    />
+    <UiProgressBar :accent="threshold.payload.accent ?? 'info'" :fill-width :legend />
   </div>
 </template>
 
