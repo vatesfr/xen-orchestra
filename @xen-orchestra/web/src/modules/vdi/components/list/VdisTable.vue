@@ -186,18 +186,6 @@ const { HeadCells, BodyCells } = useVdiColumns({
           onClick: () => (selectedVdiId.value = vdi.id),
           actions: [
             {
-              label: t('action:import-export'),
-              icon: 'action:import-export',
-              children: [
-                {
-                  label: t('action:export-content'),
-                  icon: 'action:download',
-                  onClick: () => openVdiExportDrawer(),
-                  busy: isExportingVdi.value,
-                },
-              ],
-            },
-            {
               label: vbd.value?.attached ? t('action:disconnect') : t('action:connect'),
               hint: !canToggleVbdConnection.value ? toggleVbdConnectionErrorMessage.value : undefined,
               icon: vbd.value?.attached ? 'action:disconnect' : 'action:connect',
@@ -212,6 +200,18 @@ const { HeadCells, BodyCells } = useVdiColumns({
               onClick: () => openVdiMigrateDrawer(),
               disabled: !canMigrateVdi.value,
               busy: isMigratingVdi.value,
+            },
+            {
+              label: t('action:import-export'),
+              icon: 'action:import-export',
+              children: [
+                {
+                  label: t('action:export-content'),
+                  icon: 'action:download',
+                  onClick: () => openVdiExportDrawer(),
+                  busy: isExportingVdi.value,
+                },
+              ],
             },
             {
               label: t('action:detach-vdi'),
