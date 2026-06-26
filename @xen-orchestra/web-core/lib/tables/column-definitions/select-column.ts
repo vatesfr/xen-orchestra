@@ -7,6 +7,6 @@ import type { HeaderConfig } from '@core/tables/types.ts'
 import { h } from 'vue'
 
 export const useSelectColumn = defineColumn((config?: HeaderConfig) => ({
-  renderHead: () => renderHeadCell(config?.headerIcon, config?.headerLabel),
+  renderHead: () => renderHeadCell(config?.headerLabel),
   renderBody: (id: FormSelectId) => renderBodyCell(() => h(VtsSelect, { accent: 'brand', id })),
 }))

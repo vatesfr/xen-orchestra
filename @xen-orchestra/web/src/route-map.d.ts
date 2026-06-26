@@ -303,6 +303,20 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/vdi/[id]': RouteRecordInfo<
+      '/vdi/[id]',
+      '/vdi/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | '/vdi/[id]/general'
+    >,
+    '/vdi/[id]/general': RouteRecordInfo<
+      '/vdi/[id]/general',
+      '/vdi/:id/general',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/vdi/attach': RouteRecordInfo<
       '/vdi/attach',
       '/vdi/attach',
@@ -667,6 +681,19 @@ declare module 'vue-router/auto-routes' {
     'src/pages/traffic-rule/new.vue': {
       routes:
         | '/traffic-rule/new'
+      views:
+        | never
+    }
+    'src/pages/vdi/[id].vue': {
+      routes:
+        | '/vdi/[id]'
+        | '/vdi/[id]/general'
+      views:
+        | 'default'
+    }
+    'src/pages/vdi/[id]/general.vue': {
+      routes:
+        | '/vdi/[id]/general'
       views:
         | never
     }

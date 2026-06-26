@@ -9,32 +9,24 @@
       <div v-if="success">{{ t('all-good!') }}</div>
       <slot />
     </div>
+    <div v-else-if="type === 'no-selection'" :class="typoClass" class="content">
+      <I18nT keypath="select-to-see-details" scope="global" tag="p">
+        <template #icon>
+          <VtsIcon name="fa:eye" size="current" />
+        </template>
+      </I18nT>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import { useUiStore } from '@core/stores/ui.store'
+import type { StateHeroFormat, StateHeroSize, StateHeroType } from '@core/types/state-hero.type.ts'
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-
-export type StateHeroFormat = 'page' | 'card' | 'panel' | 'table'
-
-export type StateHeroSize = 'extra-small' | 'small' | 'medium' | 'large'
-
-export type StateHeroType =
-  | 'busy'
-  | 'no-result'
-  | 'under-construction'
-  | 'no-data'
-  | 'no-selection'
-  | 'error'
-  | 'not-found'
-  | 'offline'
-  | 'all-good'
-  | 'all-done'
-  | 'creating'
+import VtsIcon from '../icon/VtsIcon.vue'
 
 const { format, type, size, horizontal } = defineProps<{
   format: StateHeroFormat

@@ -100,7 +100,6 @@
   "backups:jobs:last-seven-days": "Negli ultimi 7 giorni",
   "backups:jobs:running-good": "Procede correttamente",
   "backups:vms-protection": "Protezione delle VM",
-  "backups:vms-protection:no-job": "In nessun lavoro",
   "backups:vms-protection:protected": "In almeno 1 lavoro & protetto",
   "backups:vms-protection:tooltip": "Una VM è protetta se è in un lavoro di backup, con salvataggi pianificati, e l'ultima esecuzione è stata completata correttamente",
   "backups:vms-protection:unprotected": "In almeno 1 lavoro, ma non protetto",

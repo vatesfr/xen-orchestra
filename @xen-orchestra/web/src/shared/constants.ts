@@ -1,3 +1,5 @@
+import { SUPPORTED_VDI_FORMAT } from '@vates/types'
+
 export const XOA_NAME = 'Xen Orchestra Appliance'
 
 export const XO_LINKS = {
@@ -15,22 +17,9 @@ export const XCP_LINKS = {
   GUEST_TOOLS: 'https://docs.xcp-ng.org/vms/#guest-tools',
 }
 
-export const CONNECTION_STATUS = {
-  CONNECTED: 'connected',
-  PARTIALLY_CONNECTED: 'partially-connected',
-  DISCONNECTED: 'disconnected',
-  PHYSICALLY_DISCONNECTED: 'physically-disconnected',
-  DISCONNECTED_FROM_PHYSICAL_DEVICE: 'disconnected-from-physical-device',
-} as const
-
 export const RULE_STATUS = {
   ALLOW: 'allow',
   DROP: 'drop',
-} as const
-
-export const CONNECTION_ACTION = {
-  CONNECT: 'connect',
-  DISCONNECT: 'disconnect',
 } as const
 
 export const ONE_GB = 1024 ** 3
@@ -40,3 +29,14 @@ export const VDI_SOURCE = {
   FILE: 'file',
   URL: 'url',
 } as const
+
+export type VdiExportFormat = Exclude<SUPPORTED_VDI_FORMAT, 'qcow2'>
+
+export const VDI_PAGE_CONTEXT = {
+  VM: 'vm',
+  SR: 'sr',
+  SNAPSHOT: 'snapshot',
+  VDI_SNAPSHOT: 'vdi_snapshot',
+} as const
+
+export type VdiPageContext = (typeof VDI_PAGE_CONTEXT)[keyof typeof VDI_PAGE_CONTEXT]

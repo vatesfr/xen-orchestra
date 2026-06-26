@@ -41,7 +41,8 @@ const hostFields = [
 ] as const satisfies readonly (keyof XoHost)[]
 
 export const useXoHostCollection = defineRemoteResource({
-  url: `${BASE_URL}/hosts?fields=${hostFields.join(',')}`,
+  url: `${BASE_URL}/hosts?fields=${hostFields.join(',')}&ndjson=true`,
+  stream: true,
   initialData: () => [] as FrontXoHost[],
   initWatchCollection: () => useWatchCollection({ resource: 'host', fields: hostFields }),
   state: (rawHosts, context) => {

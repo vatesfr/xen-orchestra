@@ -4,7 +4,7 @@ import { useModal } from '@core/packages/modal/use-modal.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { type MaybeRefOrGetter, ref } from 'vue'
 
-export function useVmSnapshotRevertModal(rawSnapshot: MaybeRefOrGetter<FrontXoVmSnapshot>) {
+export function useVmSnapshotRevertModal(rawSnapshot: MaybeRefOrGetter<FrontXoVmSnapshot | undefined>) {
   const snapshot = toComputed(rawSnapshot)
   const snapshotBefore = ref(true)
 

@@ -9,7 +9,7 @@ import { h, toValue } from 'vue'
 export type { ActionItem }
 
 export const useActionColumn = defineColumn((config: HeaderConfig & Partial<ButtonIconConfig>) => ({
-  renderHead: () => renderHeadCell(config.headerIcon, config.headerLabel),
+  renderHead: () => renderHeadCell(config.headerLabel),
   renderBody: (params: { onClick: () => void; actions?: ActionItem[] }) =>
     h(VtsActionCell, {
       buttonIcon: toValue(config.buttonIcon ?? 'fa:eye'),

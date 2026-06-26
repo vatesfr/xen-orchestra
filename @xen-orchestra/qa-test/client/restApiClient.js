@@ -159,7 +159,7 @@ export class RestApiClient {
       }
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     } catch (error) {
-      log.warn('GET request failed', { error })
+      log.warn('GET request failed on ' + endpoint, { error })
       throw error
     }
   }

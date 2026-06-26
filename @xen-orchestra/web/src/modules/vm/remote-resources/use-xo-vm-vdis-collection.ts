@@ -7,7 +7,8 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import { toValue } from 'vue'
 
 export const useXoVmVdisCollection = defineRemoteResource({
-  url: (vmId: string) => `${BASE_URL}/vms/${vmId}/vdis?fields=${vdiFields.join(',')}`,
+  url: (vmId: string) => `${BASE_URL}/vms/${vmId}/vdis?fields=${vdiFields.join(',')}&ndjson=true`,
+  stream: true,
   initialData: () => [] as FrontXoVdi[],
   initWatchCollection: () =>
     useWatchCollection<FrontXoVdi>({

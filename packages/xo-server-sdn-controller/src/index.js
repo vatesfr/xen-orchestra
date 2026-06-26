@@ -800,6 +800,37 @@ class SDNController extends EventEmitter {
       const pools = Object.values(xapi.objects.indexes.type.pool ?? {})
       for (const pool of pools) {
         pool.update_other_config('xo:sdn-controller:of-method', of_method)
+
+        // Migration path from 'channel' to 'xapi-plugin'
+        // set of-format if not present
+        const of_format = pool.other_config['xo:sdn-controller:of-format']
+        if (of_format === undefined) {
+          // default to the current configuration
+          pool.update_other_config('xo:sdn-controller:of-format', of_method)
+        } else if (of_format !== of_method) {
+          // check if we have any of-rules used
+          let used = false
+          for (const vif of vifs) {
+            if (vif.other_config['xo:sdn-controller:of-rules'] !== undefined) {
+              // found one rule
+              used = true
+            }
+          }
+          if (!used) {
+            // no of-rules used, so the database is fine as it
+            pool.update_other_config('xo:sdn-controller:of-format', of_method)
+          } else {
+            // some of-rules are used, and the format doesn't match !
+            log.error(
+              `Configuration error: traffic-rules are not in the expected format (config=${of_method}, xapi=${of_format})`,
+              {
+                pool: pool.name_label || pool.$master.name_label,
+                uuid: pool.uuid,
+              }
+            )
+            // XXX report the error to user
+          }
+        }
       }
     } catch (error) {
       log.error('Error while handling xapi connection', {
@@ -869,6 +900,7 @@ class SDNController extends EventEmitter {
       if (!newVifRules.includes(stringRule)) {
         newVifRules.push(stringRule)
         await vif.update_other_config('xo:sdn-controller:of-rules', JSON.stringify(newVifRules))
+        await vif.$xapi.barrier(vif.$ref)
       }
     } catch (error) {
       log.error('Error while adding OF rule', {
@@ -946,7 +978,7 @@ class SDNController extends EventEmitter {
           // continue on error: it could be normal to fail
           // (if no port where to apply the rule for example)
           // but log the error
-          log.warn('addNetworkRule: rule not added', error)
+          log.error('addNetworkRule: rule not added', error)
         }
       }
 
@@ -955,6 +987,7 @@ class SDNController extends EventEmitter {
         'xo:sdn-controller:of-rules',
         JSON.stringify(newNetworkRules.map(JSON.stringify))
       )
+      await network.$xapi.barrier(network.$ref)
     } catch (error) {
       log.error('Error while adding Network OF rule', {
         error,
@@ -1065,7 +1098,11 @@ class SDNController extends EventEmitter {
         if (error.code === 'HOST_OFFLINE') {
           log.info('deleteNetworkOfRule: Ignoring HOST_OFFLINE', { network: networkId })
         } else {
-          throw error
+          log.error('deleteNetworkOfRule: error while deleting OpenFlow rule', error)
+          if (this.#staticConfig.useDirectChannel === false) {
+            // means that the xapi python plugin failed
+            throw error
+          }
         }
       }
 

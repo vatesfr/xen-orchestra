@@ -2,9 +2,13 @@
   <UiCard class="pool-dashboard-alarms">
     <UiCardTitle>
       {{ t('alarms') }}
-      <template v-if="isReady && alarms.length > 0" #right>
-        <UiCounter :value="alarms.length" accent="danger" variant="primary" size="small" />
-      </template>
+      <UiCounter
+        v-if="isReady && alarms.length > 0"
+        :value="alarms.length"
+        accent="danger"
+        variant="primary"
+        size="small"
+      />
     </UiCardTitle>
     <div v-if="!isStarted" class="pre-start">
       <div>
@@ -31,8 +35,6 @@
 
 <script lang="ts" setup>
 import ObjectLink from '@/components/ObjectLink.vue'
-import UiCard from '@/components/ui/UiCard.vue'
-import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import type { RawObjectType } from '@/libs/xen-api/xen-api.types'
 import { rawTypeToType } from '@/libs/xen-api/xen-api.utils'
 import { useAlarmStore } from '@/stores/xen-api/alarm.store'
@@ -40,6 +42,8 @@ import type { XenApiAlarm } from '@/types/xen-api'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import { useTableState } from '@core/composables/table-state.composable'
 import { defineColumn, defineColumns } from '@core/packages/table'

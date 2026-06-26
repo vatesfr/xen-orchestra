@@ -46,12 +46,74 @@ export default {
       items:[
         {
           type: 'category',
+          label: 'What\'s new in XO6',
+          collapsible: true,
+          collapsed: true,
+          items:[
+            'xo6/whatsnew',
+            'xo6/xo6vsxo5',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Getting started',
+          collapsible: true,
+          collapsed: true,
+          items:[
+            'xo6/gettingstarted',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Core concepts',
+          collapsible: true,
+          collapsed: true,
+          items:[
+            'xo6/coreconcepts',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Management',
+          collapsible: true,
+          collapsed: true,
+          items:[
+            'xo6/management',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Backups',
+          collapsible: true,
+          collapsed: true,
+          items:[
+            'xo6/backups',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Security',
+          collapsible: true,
+          collapsed: true,
+          items:[
+            {
+          type: 'category',
+          label: 'User management',
+          collapsible: true,
+          collapsed: true,
+          items:[
+            'xo6/acl-v2',
+          ],
+        },
+          ],
+        },
+        {
+          type: 'category',
           label: 'Support',
           collapsible: true,
           collapsed: true,
           items: [
             'xo6/intro_support',
-            'xo6/acl-v2',
             'xo6/purchase',
             'xo6/community'
       ],

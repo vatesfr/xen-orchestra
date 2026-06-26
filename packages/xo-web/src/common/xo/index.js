@@ -4031,6 +4031,8 @@ export const subscribeTunnelState = createSubscription(() => _call('xoa.supportT
 
 export const getApplianceInfo = () => _call('xoa.getApplianceInfo')
 
+export const snapshotXoa = () => _call('xo.snapshotBeforeUpgrade')
+
 export const getApiApplianceInfo = () => fetch('./rest/v0/appliance').then(resp => resp.json())
 
 export const restartXoServer = async () => {

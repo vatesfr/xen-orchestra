@@ -1,8 +1,8 @@
 <template>
-  <div class="security" :class="{ mobile: uiStore.isSmall }">
+  <VtsContentSidePanel class="security">
     <UiCard class="container">
       <VtsStateHero v-if="!isReady" format="page" type="busy" size="medium" />
-      <TrafficRulesTable v-else :rules="trafficRules">
+      <TrafficRulesTable v-else :rules="trafficRules" :pool>
         <template #title-action>
           <UiLink :to="{ name: '/traffic-rule/new', query: { poolid: pool.id } }" icon="fa:plus" size="medium">
             {{ t('new') }}
@@ -10,13 +10,8 @@
         </template>
       </TrafficRulesTable>
     </UiCard>
-    <TrafficRulesSidePanel v-if="selectedRule" :rule="selectedRule" @close="selectedRule = undefined" />
-    <UiPanel v-else-if="!uiStore.isSmall">
-      <VtsStateHero format="panel" type="no-selection" size="medium">
-        {{ t('select-to-see-details') }}
-      </VtsStateHero>
-    </UiPanel>
-  </div>
+    <TrafficRulesSidePanel :rule="selectedRule" @close="selectedRule = undefined" />
+  </VtsContentSidePanel>
 </template>
 
 <script setup lang="ts">
@@ -26,12 +21,11 @@ import TrafficRulesSidePanel from '@/modules/traffic-rules/components/list/panel
 import TrafficRulesTable from '@/modules/traffic-rules/components/TrafficRulesTable.vue'
 import { useTrafficRules } from '@/modules/traffic-rules/composables/traffic-rules.composable'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import { useUiStore } from '@core/stores/ui.store.ts'
 import type { TrafficRule } from '@vates/types'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
@@ -40,8 +34,6 @@ import { useI18n } from 'vue-i18n'
 const { pool } = defineProps<{
   pool: FrontXoPool
 }>()
-
-const uiStore = useUiStore()
 
 const { t } = useI18n()
 
@@ -65,11 +57,6 @@ const selectedRule = useRouteQuery<TrafficRule | undefined>('id', {
 
 <style scoped lang="postcss">
 .security {
-  &:not(.mobile) {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 40rem;
-  }
-
   .container {
     height: fit-content;
     gap: 4rem;
