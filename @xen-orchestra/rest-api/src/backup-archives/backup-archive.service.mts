@@ -40,7 +40,8 @@ export class BackupArchiveService {
 
   async listPartitions(archiveId: XoVmBackupArchive['id'], diskId: string): Promise<XoBackupDiskPartition[]> {
     const archive = await this.getBackupArchive(archiveId)
-    if (archive.disks[diskId] === undefined) {
+    // archive.disks is an array of { id, name, uuid } (see formatVmBackups), so look up by id
+    if (archive.disks.find(disk => disk.id === diskId) === undefined) {
       throw noSuchObject(diskId, 'backup-archive-disk')
     }
     return this.#restApi.xoApp.listBackupNgDiskPartitions(this.#getBackupRepositoryId(archiveId), diskId)
@@ -53,7 +54,8 @@ export class BackupArchiveService {
     path: string
   ): ReturnType<XoApp['listBackupNgPartitionFiles']> {
     const partitions = await this.listPartitions(archiveId, diskId)
-    if (!partitions.find(partition => partition.id === partitionId)) {
+    // partitionId is undefined for bare disks (no partition table); only validate when requested
+    if (partitionId !== undefined && !partitions.find(partition => partition.id === partitionId)) {
       throw noSuchObject(partitionId, 'backup-archive-disk-partition')
     }
     return this.#restApi.xoApp.listBackupNgPartitionFiles(
