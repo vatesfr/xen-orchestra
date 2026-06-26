@@ -1,7 +1,7 @@
 <template>
   <VtsSidePanel :has-selection="!!vm" @close="emit('close')">
     <template v-if="vm" #actions>
-      <MenuList placement="bottom-end">
+      <MenuList placement="bottom-start">
         <template #trigger="{ open }">
           <UiDropdownButton @click="open($event)">{{ t('action:change-state') }}</UiDropdownButton>
         </template>
@@ -9,7 +9,16 @@
       </MenuList>
       <MenuList placement="bottom-end">
         <template #trigger="{ open }">
-          <UiButtonIcon icon="action:more-actions" accent="brand" size="medium" @click="open($event)" />
+          <UiButtonIcon
+            v-tooltip="{
+              placement: 'left',
+              content: t('more-actions'),
+            }"
+            icon="action:more-actions"
+            accent="brand"
+            size="medium"
+            @click="open($event)"
+          />
         </template>
         <VmMoreActions :vm />
       </MenuList>
@@ -33,6 +42,7 @@ import MenuList from '@core/components/menu/MenuList.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{

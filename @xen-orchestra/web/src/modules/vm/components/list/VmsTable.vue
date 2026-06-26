@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import VmQuickActionsMenu from '@/modules/vm/components/actions/VmQuickActionsMenu.vue'
+import VmActions from '@/modules/vm/components/actions/VmActions.vue'
 import {
   useVmEnhancedData,
   type VmDisplayData,
@@ -121,7 +121,12 @@ const { HeadCells, BodyCells } = useVmColumns({
       ram: r => r(vm.formattedRam.value, vm.formattedRam.prefix),
       diskSpace: r => r(vm.formattedDiskSpace.value, vm.formattedDiskSpace.unit),
       tags: r => r(vm.tags),
-      selectItem: r => r(() => (selectedVmId.value = vm.id), VmQuickActionsMenu, { vm, placement: 'bottom-end' }),
+      actions: r =>
+        r({
+          onClick: () => (selectedVmId.value = vm.id),
+          component: VmActions,
+          props: { vm },
+        }),
     }
   },
 })

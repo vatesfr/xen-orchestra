@@ -1,5 +1,5 @@
 <template>
-  <MenuList placement="bottom-end">
+  <MenuList placement="bottom-start">
     <template #trigger="{ open }">
       <UiButtonIcon
         v-tooltip="{
@@ -12,6 +12,7 @@
         @click="open($event)"
       />
     </template>
+    <slot>
     <MenuItem
       v-for="(action, index) of actions"
       :key="index"
@@ -36,6 +37,7 @@
         </MenuItem>
       </template>
     </MenuItem>
+    </slot>
   </MenuList>
 </template>
 
@@ -51,6 +53,10 @@ import { useI18n } from 'vue-i18n'
 const { size = 'small', actions = [] } = defineProps<{
   size?: ButtonIconSize
   actions?: ActionItem[]
+}>()
+
+defineSlots<{
+  default(): any
 }>()
 
 const { t } = useI18n()
