@@ -28,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.js'
+import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
@@ -45,7 +45,7 @@ const { users } = defineProps<{
 }>()
 
 defineSlots<{
-  'title-actions'?(): any
+  'title-actions'(): any
 }>()
 
 const { t } = useI18n()
