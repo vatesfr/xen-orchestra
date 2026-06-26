@@ -37,16 +37,24 @@ export class BackupArchiveService {
     return match[1] as XoBackupRepository['id']
   }
 
-  listPartitions(archiveId: XoVmBackupArchive['id'], diskId: string): Promise<XoBackupDiskPartition[]> {
+  async listPartitions(archiveId: XoVmBackupArchive['id'], diskId: string): Promise<XoBackupDiskPartition[]> {
+    const archive = await this.getBackupArchive(archiveId)
+    if (archive.disks[diskId] === undefined) {
+      throw noSuchObject(diskId, 'backup-archive-disk')
+    }
     return this.#restApi.xoApp.listBackupNgDiskPartitions(this.#getBackupRepositoryId(archiveId), diskId)
   }
 
-  listFiles(
+  async listFiles(
     archiveId: XoVmBackupArchive['id'],
     diskId: string,
     partitionId: string | undefined,
     path: string
   ): ReturnType<XoApp['listBackupNgPartitionFiles']> {
+    const partitions = await this.listPartitions(archiveId, diskId)
+    if (!partitions.find(partition => partition.id === partitionId)) {
+      throw noSuchObject(partitionId, 'backup-archive-disk-partition')
+    }
     return this.#restApi.xoApp.listBackupNgPartitionFiles(
       this.#getBackupRepositoryId(archiveId),
       diskId,
@@ -55,7 +63,7 @@ export class BackupArchiveService {
     )
   }
 
-  fetchFiles({
+  async fetchFiles({
     archiveId,
     diskId,
     partitionId,
@@ -68,6 +76,10 @@ export class BackupArchiveService {
     readonly paths: string[]
     readonly format: 'tgz' | 'zip'
   }): Promise<NodeJS.ReadableStream> {
+    const partitions = await this.listPartitions(archiveId, diskId)
+    if (!partitions.find(partition => partition.id === partitionId)) {
+      throw noSuchObject(partitionId, 'backup-archive-disk-partition')
+    }
     return this.#restApi.xoApp.fetchBackupNgPartitionFiles(
       this.#getBackupRepositoryId(archiveId),
       diskId,
