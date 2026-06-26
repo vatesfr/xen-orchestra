@@ -77,16 +77,16 @@ describe('Incremental backup file restore', () => {
     const encodedId = encodeURIComponent(incrementalBackup.id)
     const archiveBase = `/rest/v0/backup-archives/${encodedId}`
 
-    // List disks
-    const disks = await restApiClient.get(`${archiveBase}/disks`)
-    assert(Array.isArray(disks) && disks.length > 0, 'GET /disks should return at least one disk')
+    const archive = await restApiClient.get(`${archiveBase}`)
+    const disks = archive.disks
+    assert(Array.isArray(disks) && disks.length > 0, 'archive should expose at least one disk')
     assert.deepStrictEqual(
       disks.map(d => d.id).sort(),
       incrementalBackup.disks.map(d => d.id).sort(),
-      'Disk IDs from REST API should match archive metadata'
+      'Disk IDs from the archive should match the metadata discovered in setup'
     )
 
-    log.debug('Disks listed via REST API', { count: disks.length })
+    log.debug('Disks read from archive via REST API', { count: disks.length })
 
     for (const disk of incrementalBackup.disks) {
       const encodedDiskId = encodeURIComponent(disk.id)
