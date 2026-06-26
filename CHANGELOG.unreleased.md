@@ -20,6 +20,7 @@
 - [XO6/VDI] Add the possibility to export VDI from detail screen of a VM (PR [#9983](https://github.com/vatesfr/xen-orchestra/pull/9983))
 - [SidePanels] Add and use new `VtsCardObjectTitle` component to display object title and ID in side panels (PR [#9755](https://github.com/vatesfr/xen-orchestra/pull/9755))
 - [i18n] Update Chinese (Simplified Han script), Czech, Dutch, German, Korean, Slovak, Spanish and Swedish translations (PR [#9998](https://github.com/vatesfr/xen-orchestra/pull/9998))
+- [REST API/RBAC] Add a built-in Storage administrator ACL role template to administer SRs, VDIs, VBDs, PBDs and backup repositories (PR [#9963](https://github.com/vatesfr/xen-orchestra/pull/9963))
 
 ### Bug fixes
 
