@@ -10,10 +10,8 @@
     <template v-if="vif" #default>
       <!-- VIF -->
       <UiCard class="card">
-        <UiCardTitle>{{ t('vif') }}</UiCardTitle>
+        <VtsCardObjectTitle :id="vif.id" :to="vifTo" :label="t('vif')" icon="object:vif" />
         <div class="content">
-          <!-- UUID -->
-          <VtsCodeSnippet :content="vif.id" copy />
           <!-- NETWORK -->
           <VtsCardRowKeyValue>
             <template #key>
@@ -138,9 +136,10 @@ import VifConnectButton from '@/modules/vif/components/actions/connect/VifConnec
 import VifDisconnectButton from '@/modules/vif/components/actions/disconnect/VifDisconnectButton.vue'
 import VifActions from '@/modules/vif/components/actions/VifActions.vue'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { getVifTrafficRoute } from '@/modules/vif/utils/xo-vif.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
+import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -167,6 +166,8 @@ const { t } = useI18n()
 
 const { useGetNetworkById } = useXoNetworkCollection()
 const { getVmById } = useXoVmCollection()
+
+const vifTo = computed(() => (vif !== undefined ? getVifTrafficRoute(vif.id) : undefined))
 
 const ipAddresses = computed(() => {
   if (vif === undefined) {

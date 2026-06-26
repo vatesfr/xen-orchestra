@@ -25,10 +25,8 @@
     <template v-if="vif" #default>
       <!-- VIF -->
       <UiCard class="card">
-        <UiCardTitle>{{ t('vif') }}</UiCardTitle>
+        <VtsCardObjectTitle :id="vif.uuid" :label="t('vif')" />
         <div class="content">
-          <!-- UUID -->
-          <VtsCodeSnippet :content="vif.uuid" copy />
           <!-- NETWORK -->
           <VtsCardRowKeyValue>
             <template #key>
@@ -140,7 +138,7 @@ import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
+import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'

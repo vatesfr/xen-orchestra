@@ -3,10 +3,8 @@
     <template v-if="pif">
       <!-- PIF -->
       <UiCard class="card">
-        <UiCardTitle>{{ pif.isBondMaster ? t('bond') : t('pif') }}</UiCardTitle>
+        <VtsCardObjectTitle :id="pif.id" :label="pif.isBondMaster ? t('bond') : t('pif')" />
         <div class="content">
-          <!-- UUID -->
-          <VtsCodeSnippet :content="pif.id" copy />
           <!-- NETWORK -->
           <VtsCardRowKeyValue>
             <template #key>
@@ -243,7 +241,7 @@ import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-x
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { type FrontXoPif, useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
+import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
