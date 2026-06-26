@@ -72,7 +72,7 @@ const lastLoginTimestamp = computed(() => {
 })
 
 const providers = computed(() => {
-  const providerList = Object.values(user.authProviders ?? {})
+  const providerList = Object.keys(user.authProviders ?? {})
   return providerList.length === 0 ? t('local') : providerList.join(', ')
 })
 

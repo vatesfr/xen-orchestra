@@ -77,7 +77,7 @@ const { HeadCells, BodyCells } = useUserColumns({
       username: r => r(user.name ?? ''),
       email: r => r(user.email),
       providers: r => {
-        const providers = Object.values(user.authProviders ?? {})
+        const providers = Object.keys(user.authProviders ?? {})
         return r(providers.length === 0 ? t('local') : providers.join(', '))
       },
       selectItem: r => r(() => (selectedUserId.value = user.id)),
