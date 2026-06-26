@@ -26,11 +26,13 @@ export default class Http {
     })
   }
 
-  httpRequest(url, opts) {
-    return hrp(url, {
-      ...opts,
-      agent: this._agent,
-    })
+  async httpRequest(url, opts) {
+    try {
+      return await hrp(url, { ...opts, agent: this._agent })
+    } catch (error) {
+      error.response?.destroy()
+      throw error
+    }
   }
 
   // Inject the proxy into the environment, it will be automatically used by `_agent` and by most libs (e.g `axios`)

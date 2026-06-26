@@ -28,6 +28,7 @@
 - [Backups] Fix failed VM not appearing in the logs (PR [#10021](https://github.com/vatesfr/xen-orchestra/pull/10021))
 - [V2V] Fix migration when template memory_static_min is it's less than actual vm memory (PR [#10014](https://github.com/vatesfr/xen-orchestra/pull/10014))
 - [XO6/Tree/Web-core] Infrastructure tree is now streamed and rendered as a single virtualized list, fix some performance issues on medium and big infrastructures (PR [#9986](https://github.com/vatesfr/xen-orchestra/pull/9986))
+- [xo-server] Fix memory leak on failed http query (XS update for example) (PR [#10026](https://github.com/vatesfr/xen-orchestra/pull/10026))
 
 ### Packages to release
 
@@ -50,6 +51,7 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server minor
+- xo-server-netbox patch
 - xo-web minor
 
 <!--packages-end-->
