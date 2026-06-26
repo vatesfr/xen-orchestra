@@ -1,4 +1,5 @@
 import { noSuchObject } from 'xo-common/api-errors.js'
+import type { Readable } from 'node:stream'
 import type { XoApp, XoBackupDiskPartition, XoBackupRepository, XoVm, XoVmBackupArchive } from '@vates/types'
 
 import type { RestApi } from '../rest-api/rest-api.mjs'
@@ -75,7 +76,7 @@ export class BackupArchiveService {
     readonly partitionId?: string
     readonly paths: string[]
     readonly format: 'tgz' | 'zip'
-  }): Promise<NodeJS.ReadableStream> {
+  }): Promise<Readable> {
     const partitions = await this.listPartitions(archiveId, diskId)
     if (!partitions.find(partition => partition.id === partitionId)) {
       throw noSuchObject(partitionId, 'backup-archive-disk-partition')
