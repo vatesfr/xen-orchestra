@@ -84,7 +84,7 @@ import UiLogoText from '@core/components/ui/logo-text/UiLogoText.vue'
 import CoreLayout from '@core/layouts/CoreLayout.vue'
 import { useSseStore } from '@core/packages/remote-resource/sse.store.ts'
 import { useUiStore } from '@core/stores/ui.store'
-import { watchImmediate } from '@vueuse/shared'
+import { watchImmediate } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -112,9 +112,7 @@ type SidebarPanel = (typeof SIDEBAR_PANEL)[keyof typeof SIDEBAR_PANEL]
 const { sites, isReady, filter, isSearching, scrollToNodeElement } = useXoSiteTree()
 const route = useRoute<'/pool/[id]' | '/host/[id]' | '/vm/[id]'>()
 
-const activeSidebarPanel = ref<SidebarPanel>(
-  route.path.startsWith('/administration') ? SIDEBAR_PANEL.ADMINISTRATION : SIDEBAR_PANEL.TREEVIEW
-)
+const activeSidebarPanel = ref<SidebarPanel>(SIDEBAR_PANEL.TREEVIEW)
 
 watchImmediate(
   () => route.path,

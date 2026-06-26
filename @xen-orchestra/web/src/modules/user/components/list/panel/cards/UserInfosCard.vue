@@ -9,7 +9,7 @@
         <template #key>{{ t('xoa-manager') }}</template>
         <template #value>{{ userPermission }}</template>
         <template #addons>
-          <VtsCopyButton :value="user.permission" />
+          <VtsCopyButton :value="userPermission" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue truncate align-top>
@@ -78,7 +78,7 @@ const providers = computed(() => {
 
 const userPermission = computed(() => {
   if (user.permission === 'none') {
-    return 'user'
+    return t('user')
   }
   return user.permission
 })
