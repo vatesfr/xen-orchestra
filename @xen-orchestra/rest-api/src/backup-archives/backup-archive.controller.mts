@@ -36,6 +36,12 @@ import { SendObjects } from '../helpers/helper.type.mjs'
 import { BackupArchiveService } from './backup-archive.service.mjs'
 import { acl, autoBindService } from '../middlewares/acl.middleware.mjs'
 
+// MIME type of the archive streamed by the file-download routes, by requested format.
+const DOWNLOAD_CONTENT_TYPES = {
+  tgz: 'application/gzip',
+  zip: 'application/zip',
+} as const
+
 @Route('backup-archives')
 @Security('*')
 @Response(badRequestResp.status, badRequestResp.description)
@@ -204,15 +210,15 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
     @Query() paths: string[]
   ): Promise<void> {
     const res = req.res as ExResponse
-    res.setHeader('content-type', 'application/octet-stream')
-    res.setHeader('content-disposition', 'attachment')
-    const stream = await this.#backupArchiveService.fetchFiles({
+    const { stream, filename } = await this.#backupArchiveService.fetchFiles({
       archiveId: id as XoVmBackupArchive['id'],
       diskId,
       partitionId,
       paths,
       format,
     })
+    res.setHeader('content-type', DOWNLOAD_CONTENT_TYPES[format])
+    res.setHeader('content-disposition', `attachment; filename="${filename}"`)
     req.on('close', () => stream.destroy())
     await pipeline(stream, res)
   }
@@ -307,14 +313,14 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
     @Query() paths: string[]
   ): Promise<void> {
     const res = req.res as ExResponse
-    res.setHeader('content-type', 'application/octet-stream')
-    res.setHeader('content-disposition', 'attachment')
-    const stream = await this.#backupArchiveService.fetchFiles({
+    const { stream, filename } = await this.#backupArchiveService.fetchFiles({
       archiveId: id as XoVmBackupArchive['id'],
       diskId,
       paths,
       format,
     })
+    res.setHeader('content-type', DOWNLOAD_CONTENT_TYPES[format])
+    res.setHeader('content-disposition', `attachment; filename="${filename}"`)
     req.on('close', () => stream.destroy())
     await pipeline(stream, res)
   }
