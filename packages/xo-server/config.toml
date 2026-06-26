@@ -263,4 +263,3 @@ xvaImportFromUrlTimeout = '6s'
 # When a snapshot is taken before an upgrade, the oldest ones are rotated out so
 # that at most this many remain. Must be >= 1.
 numberOfUpgradeSnapshots = 4
-
