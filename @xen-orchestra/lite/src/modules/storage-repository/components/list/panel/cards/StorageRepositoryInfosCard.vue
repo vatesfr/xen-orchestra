@@ -48,9 +48,9 @@
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('provisioning') }}</template>
-        <template #value>{{ provisioning }}</template>
+        <template #value>{{ allocationStrategy }}</template>
         <template #addons>
-          <VtsCopyButton :value="provisioning" />
+          <VtsCopyButton :value="allocationStrategy" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -86,13 +86,13 @@ const { sr, pool } = defineProps<{
 const { t } = useI18n()
 
 const { getPbdsForSr } = usePbdStore().subscribe()
-const { isHaSr: isHaSrForPool } = useSrStore().subscribe()
+const { isHaSr: isHaSrForPool, getAllocationStrategy } = useSrStore().subscribe()
 
 const { allPbdsConnectionStatus } = usePbdUtils(() => getPbdsForSr(sr.$ref))
 
 const isSrSharedI18nValue = computed(() => (sr.shared ? t('shared') : t('local')))
 
-const provisioning = computed(() => sr.sm_config.type ?? t('unknown'))
+const allocationStrategy = computed(() => getAllocationStrategy(sr) ?? t('unknown'))
 
 const isHaSr = computed(() => isHaSrForPool(sr, pool))
 </script>

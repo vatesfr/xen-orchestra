@@ -48,8 +48,8 @@
 </template>
 
 <script lang="ts" setup>
+import { getVdiIcon, getVbdsForVdi } from '@/libs/vdi.ts'
 import type { XenApiVdi } from '@/libs/xen-api/xen-api.types.ts'
-import { getVdiIcon, getVbdsForVdi } from '@/modules/vdi/utils/vdi.util.ts'
 import { useVbdStore } from '@/stores/xen-api/vbd.store.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
