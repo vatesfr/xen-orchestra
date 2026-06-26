@@ -1,34 +1,17 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
-    <template #header>
-      <div class="action-buttons">
-        <VifConnectButton v-if="!vif.attached" :vif :vm />
-        <VifDisconnectButton v-else :vif :vm />
-        <MenuList placement="bottom-end">
-          <template #trigger="{ open }">
-            <UiButtonIcon icon="action:more-actions" accent="brand" size="medium" @click="open($event)" />
-          </template>
-          <VifActions :vif />
-        </MenuList>
-      </div>
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButtonIcon
-          v-tooltip="t('action:close')"
-          size="small"
-          variant="tertiary"
-          accent="brand"
-          :icon="uiStore.isSmall ? 'fa:angle-left' : 'fa:close'"
-          @click="emit('close')"
-        />
-      </div>
+  <VtsSidePanel :has-selection="!!vif" @close="emit('close')">
+    <template v-if="vif" #actions>
+      <VifConnectButton v-if="!vif.attached" :vif :vm />
+      <VifDisconnectButton v-else :vif :vm />
     </template>
-    <template #default>
+    <template v-if="vif" #more-actions>
+      <VifActions :vif />
+    </template>
+    <template v-if="vif" #default>
       <!-- VIF -->
       <UiCard class="card">
-        <UiCardTitle>{{ t('vif') }}</UiCardTitle>
+        <VtsCardObjectTitle :id="vif.id" :to="vifTo" :label="t('vif')" icon="object:vif" />
         <div class="content">
-          <!-- UUID -->
-          <VtsCodeSnippet :content="vif.id" copy />
           <!-- NETWORK -->
           <VtsCardRowKeyValue>
             <template #key>
@@ -143,7 +126,7 @@
         </div>
       </UiCard>
     </template>
-  </UiPanel>
+  </VtsSidePanel>
 </template>
 
 <script setup lang="ts">
@@ -153,26 +136,25 @@ import VifConnectButton from '@/modules/vif/components/actions/connect/VifConnec
 import VifDisconnectButton from '@/modules/vif/components/actions/disconnect/VifDisconnectButton.vue'
 import VifActions from '@/modules/vif/components/actions/VifActions.vue'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { getVifTrafficRoute } from '@/modules/vif/utils/xo-vif.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
+import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import MenuList from '@core/components/menu/MenuList.vue'
+import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { useUiStore } from '@core/stores/ui.store.ts'
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vif, vm } = defineProps<{
-  vif: FrontXoVif
+  vif?: FrontXoVif
   vm: FrontXoVm
 }>()
 
@@ -184,30 +166,29 @@ const { t } = useI18n()
 
 const { useGetNetworkById } = useXoNetworkCollection()
 const { getVmById } = useXoVmCollection()
-const uiStore = useUiStore()
+
+const vifTo = computed(() => (vif !== undefined ? getVifTrafficRoute(vif.id) : undefined))
 
 const ipAddresses = computed(() => {
+  if (vif === undefined) {
+    return []
+  }
+
   const addresses = getVmById(vif.$VM)?.addresses
 
   return getUniqueIpAddressesForDevice(addresses, vif.device)
 })
 
-const network = useGetNetworkById(() => vif.$network)
+const network = useGetNetworkById(() => vif?.$network)
 
 const networkTo = computed(() =>
   network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
 )
 
-const status = computed(() => (vif.attached ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED))
+const status = computed(() => (vif?.attached ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED))
 </script>
 
 <style scoped lang="postcss">
-.action-buttons {
-  display: flex;
-  align-items: center;
-  margin-inline-end: auto;
-}
-
 .card {
   gap: 1.6rem;
 
@@ -219,18 +200,6 @@ const status = computed(() => (vif.attached ? CONNECTION_STATUS.CONNECTED : CONN
 
   .value:empty::before {
     content: '-';
-  }
-}
-
-.mobile-drawer {
-  position: fixed;
-  inset: 0;
-
-  .action-buttons-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
   }
 }
 </style>

@@ -12,9 +12,10 @@
 </template>
 
 <script lang="ts" setup>
-import VtsStateHero, { type StateHeroType } from '@core/components/state-hero/VtsStateHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import type { StateHeroType } from '@core/types/state-hero.type.ts'
 
 defineProps<{
   title: string
