@@ -1,7 +1,6 @@
 <template>
   <VdiMigrateButton :vdi />
   <VdiImportExportMenu :vdi />
-  <VdiMigrateButton :vdi />
   <VbdDeleteButton v-if="vbd" :vbd :vm />
   <VdiDeleteButton :vdi :vm />
 </template>
