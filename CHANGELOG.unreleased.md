@@ -62,6 +62,7 @@
 - [Netbox] Add option to ignore [RFC 1918](https://datatracker.ietf.org/doc/html/rfc1918) private IPs during synchronization. Thanks [@sboyd-m](https://github.com/sboyd-m)! (PR [#6306](https://github.com/vatesfr/xen-orchestra/pull/6306))
 - [SR] Storage repositories can now be connected from the Pool/Host Storage tab (PR [#9877](https://github.com/vatesfr/xen-orchestra/pull/9877))
 - [Core] Remove all icons from table headers (PR [#9943](https://github.com/vatesfr/xen-orchestra/pull/9943)
+- [XO6/Users] Add Users Table (PR [#10029](https://github.com/vatesfr/xen-orchestra/pull/10029))
 
 - [Dependabot] Update packages and sync package.json with yarn.lock (PR [#9969](https://github.com/vatesfr/xen-orchestra/pull/9969))
   - update shell-quote to 1.8.4:
