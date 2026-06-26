@@ -74,6 +74,8 @@ export interface VmLabelInfo {
   vifIndexToNetworkName: Record<string, string> // { "0": "Pool-wide network" }
   startTime: number | null // Unix timestamp of VM boot (from vm.startTime)
   power_state: string // VM power state (Running, Paused, Halted, Suspended)
+  vcpus?: number // vCPU count (vm.CPUs.max || number || 1), used to weight power share
+  host_id?: string // residence host/pool id (vm.$container); informative label only
   pool_id: string
   pool_name: string
   tags?: string[]
@@ -196,6 +198,8 @@ export type VmStatusItem = Pick<XoVm, 'uuid' | 'name_label' | 'power_state'> & {
 interface VmStatusPayload {
   vms: VmStatusItem[]
 }
+
+type HostPowerPayload = Record<string, number>
 
 /**
  * XOSTOR cluster node entry.
@@ -458,6 +462,12 @@ const XOSTOR_UPDATES_CACHE_TTL_MS = 3_600_000
 /** Timeout for a single `updater.py check_update` plugin call (ms). */
 const XOSTOR_UPDATES_TIMEOUT_MS = 30_000
 
+const IPMI_POWER_CACHE_TTL_MS = 60_000
+
+const IPMI_POWER_TIMEOUT_MS = 10_000
+
+export const POWER_SENSOR_REGEX = /^(pwr consumption|sys power|system power|power consumption|total_power)$/i
+
 // ============================================================================
 // Configuration Schema (exported for xo-server)
 // ============================================================================
@@ -712,6 +722,7 @@ class OpenMetricsPlugin {
   #xostorHealthCheckCache = new TtlCache<XostorPayload>(XOSTOR_CACHE_TTL_MS)
   #xostorSmartCache = new TtlCache<XostorSmartPayload>(XOSTOR_SMART_CACHE_TTL_MS)
   #xostorUpdatesCache = new TtlCache<XostorUpdatesPayload>(XOSTOR_UPDATES_CACHE_TTL_MS)
+  #hostPowerCache = new TtlCache<HostPowerPayload>(IPMI_POWER_CACHE_TTL_MS)
 
   constructor(xo: XoApp) {
     this.#xo = xo
@@ -936,6 +947,26 @@ class OpenMetricsPlugin {
           requestId: message.requestId,
           payload: vmStatus,
         })
+        break
+      }
+
+      case 'GET_HOST_POWER': {
+        this.#getHostPowerData()
+          .then((hostPower: HostPowerPayload) => {
+            this.#sendToChildNoWait({
+              type: 'HOST_POWER',
+              requestId: message.requestId,
+              payload: hostPower,
+            })
+          })
+          .catch((err: unknown) => {
+            logger.error('Failed to collect host power data', { error: err })
+            this.#sendToChildNoWait({
+              type: 'HOST_POWER',
+              requestId: message.requestId,
+              payload: {},
+            })
+          })
         break
       }
 
@@ -1549,6 +1580,58 @@ class OpenMetricsPlugin {
     }
   }
 
+  #getHostPowerData(): Promise<HostPowerPayload> {
+    return this.#hostPowerCache.get(() => this.#collectHostPowerData())
+  }
+
+  async #collectHostPowerData(): Promise<HostPowerPayload> {
+    const allHosts = this.#xo.getObjects({ filter: { type: 'host' } }) as Record<string, XoHost>
+    const readings = await Promise.all(Object.values(allHosts).map(host => this.#fetchHostPower(host)))
+
+    const watts: HostPowerPayload = {}
+    for (const reading of readings) {
+      if (reading !== undefined) {
+        watts[reading.hostId] = reading.watts
+      }
+    }
+    logger.debug('Returning host power data', { hostCount: Object.keys(watts).length })
+    return watts
+  }
+
+  async #fetchHostPower(host: XoHost): Promise<{ hostId: string; watts: number } | undefined> {
+    try {
+      const xapi = this.#xo.getXapi(host)
+      const available = await withTimeout(
+        xapi.callAsync<string>('host.call_plugin', host._xapiRef, 'ipmitool.py', 'is_ipmi_device_available', {}),
+        IPMI_POWER_TIMEOUT_MS,
+        'ipmitool.py is_ipmi_device_available timed out'
+      )
+      if (available === 'false') {
+        return undefined
+      }
+
+      const raw = await withTimeout(
+        xapi.callAsync<string>('host.call_plugin', host._xapiRef, 'ipmitool.py', 'get_all_sensors', {}),
+        IPMI_POWER_TIMEOUT_MS,
+        'ipmitool.py get_all_sensors timed out'
+      )
+      const sensors = JSON.parse(raw) as Array<{ name?: string; value?: string }>
+      const sensor = Array.isArray(sensors)
+        ? sensors.find(s => typeof s?.name === 'string' && POWER_SENSOR_REGEX.test(s.name))
+        : undefined
+      // ipmitool reports power as a numeric string, sometimes unit-suffixed
+      // (e.g. "210 Watts"); parseFloat strips the suffix, Number() would not.
+      const watts = sensor !== undefined ? Number.parseFloat(String(sensor.value)) : NaN
+      if (!Number.isFinite(watts)) {
+        return undefined
+      }
+      return { hostId: host.uuid, watts }
+    } catch (error) {
+      logger.warn('ipmitool.py power read failed', { hostUuid: host.uuid, error })
+      return undefined
+    }
+  }
+
   /**
    * Collect pending XOSTOR-related package updates for every host backing a
    * XOSTOR PBD.
@@ -1912,6 +1995,8 @@ class OpenMetricsPlugin {
         vifIndexToNetworkName,
         startTime: vm.startTime ?? null,
         power_state: vm.power_state,
+        vcpus: vm.CPUs.max || vm.CPUs.number || 1,
+        host_id: vm.$container,
         pool_id: vm.$poolId,
         pool_name: poolLabelMap.get(vm.$poolId) ?? '',
         tags: vm.tags,
