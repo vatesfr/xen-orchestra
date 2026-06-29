@@ -14,6 +14,12 @@ same identifier.
 Like all other xo-server plugins, it can be configured directly via
 the web interface, see [the plugin documentation](https://docs.xen-orchestra.com/architecture#plugins).
 
+## User email uniqueness
+
+XO usernames (emails) must be unique. If an LDAP user tries to sign in with a username that is already taken by an existing XO account — whether local or from another provider — the login will fail with an error.
+
+To automatically link the LDAP account to the existing XO account instead, enable `authentication.mergeProvidersUsers` in the XO server configuration.
+
 If you have issues, you can use the provided CLI to gather more
 information:
 
@@ -48,16 +54,19 @@ The `additionalDomains` field lets you connect XO to multiple independent LDAP/A
 **Group sync:** Groups are scoped per domain. Primary-domain groups keep their bare LDAP names for backward compatibility. Additional-domain groups are suffixed with the domain URI to avoid collisions, since the same group name (e.g. `Developers`) can exist in multiple forests.
 
 ### Example of group sync in XO between two forests:
-**Primary domain   (ldap://corp.net)**
-- LDAP group: Developers ->  XO group: Developers
-- LDAP group: Admins ->  XO group: Admins
 
-**Additional domain (ldap://acme.net)**:  
-- LDAP group: Developers  ->  XO group: Developers (ldap://acme.net)
-- LDAP group: Finance     ->  XO group: Finance (ldap://acme.net)
-  
+**Primary domain (ldap://corp.net)**
+
+- LDAP group: Developers -> XO group: Developers
+- LDAP group: Admins -> XO group: Admins
+
+**Additional domain (ldap://acme.net)**:
+
+- LDAP group: Developers -> XO group: Developers (ldap://acme.net)
+- LDAP group: Finance -> XO group: Finance (ldap://acme.net)
 
 > **Note:**
+>
 > - A primary-domain group named `Developers` and an additional-domain group named `Developers` are two distinct XO groups with different members. They do not merge.
 > - Failover URIs within a domain are for high-availability only, not for cross-forest access. All failover URIs for a domain must replicate the same directory.
 > - Removing a domain from the configuration does not delete the XO groups it created. Clean them up manually if needed.
