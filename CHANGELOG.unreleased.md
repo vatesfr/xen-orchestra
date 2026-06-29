@@ -38,6 +38,7 @@
 - [XO-Server] Log a xo-server waiting for a soft stop in background (PR [#9994](https://github.com/vatesfr/xen-orchestra/pull/9994))
 - [Backup-repository] Properly unmount and cut connection on stop/disconnect/forget (PR [#9994](https://github.com/vatesfr/xen-orchestra/pull/9994))
 - [xo-proxy] Fix invalid parameters error message in listVmBackups (XS update for example) (PR [#10035](https://github.com/vatesfr/xen-orchestra/pull/10035))
+- [Web-core] Fix the required asterisk disappeared as soon as the dropdown was opened (PR [#10032](https://github.com/vatesfr/xen-orchestra/pull/10032))
 
 ### Packages to release
 
