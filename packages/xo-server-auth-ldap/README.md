@@ -16,9 +16,12 @@ the web interface, see [the plugin documentation](https://docs.xen-orchestra.com
 
 ## User email uniqueness
 
-XO usernames (emails) must be unique. If an LDAP user tries to sign in with a username that is already taken by an existing XO account — whether local or from another provider — the login will fail with an error.
+XO usernames (emails) must be unique. If an LDAP user signs in with a username that already exists in XO — whether a local account or from another provider — the LDAP identity is automatically linked to that existing account. The user keeps their existing permissions and settings.
 
-To automatically link the LDAP account to the existing XO account instead, enable `authentication.mergeProvidersUsers` in the XO server configuration.
+> Note: if several users have the same email address in different LDAP forest, it can lead to undefined behaviours.
+- If `authentication.mergeProvidersUsers` is enabled, it will silently merge the associated users.
+- If `authentication.mergeProvidersUsers` is disabled, it will throw an error.
+
 
 If you have issues, you can use the provided CLI to gather more
 information:
