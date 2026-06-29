@@ -79,15 +79,7 @@ const panelSignature = computed(() => getSrPbdsSignature(sr, scope))
 const pbds = computed(() => (sr !== undefined ? pbdsBySr.value.get(sr.id) : undefined) ?? [])
 
 const hosts = computed(() =>
-  pbds.value.reduce<FrontXoHost[]>((acc, pbd) => {
-    const host = getHostById(pbd.host)
-
-    if (host !== undefined) {
-      acc.push(host)
-    }
-
-    return acc
-  }, [])
+  pbds.value.map(pbd => getHostById(pbd.host)).filter((host): host is FrontXoHost => host !== undefined)
 )
 
 const customFields = computed(() => {

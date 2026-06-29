@@ -315,6 +315,7 @@ export default class Backups {
                 type: 'object',
                 additionalProperties: { type: 'object' },
               },
+              vmId: { type: 'string', optional: true },
             },
           },
         ],

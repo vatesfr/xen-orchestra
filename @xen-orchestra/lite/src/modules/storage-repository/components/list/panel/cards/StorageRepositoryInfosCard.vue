@@ -1,11 +1,17 @@
 <template>
   <UiCard class="card-container">
-    <VtsCardObjectTitle :id="sr.id" :label="sr.name_label" :href :icon="srStatusIcon" />
+    <UiCardTitle>
+      <div v-if="sr.name_label" class="title">
+        <VtsIcon :name="`object:sr:${allPbdsConnectionStatus}`" size="medium" />
+        {{ sr.name_label }}
+      </div>
+    </UiCardTitle>
     <div class="content">
+      <VtsCodeSnippet :content="sr.uuid" copy />
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
         <template #value>
-          <VtsStatus :status="srConnectionStatus" />
+          <VtsStatus :status="allPbdsConnectionStatus" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue truncate align-top>
@@ -28,9 +34,9 @@
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('storage-format') }}</template>
-        <template #value>{{ sr.SR_type }}</template>
+        <template #value>{{ sr.type }}</template>
         <template #addons>
-          <VtsCopyButton :value="sr.SR_type" />
+          <VtsCopyButton :value="sr.type" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -56,52 +62,50 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
-import {
-  type FrontXoSr,
-  useXoSrCollection,
-} from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
-import type { SrScope } from '@core/types/storage-repository.type.ts'
+import type { XenApiPool, XenApiSr } from '@/libs/xen-api/xen-api.types.ts'
+import { usePbdUtils } from '@/modules/storage-repository/composables/pbd-utils.composable.ts'
+import { usePbdStore } from '@/stores/xen-api/pbd.store.ts'
+import { useSrStore } from '@/stores/xen-api/sr.store.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
+import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { sr, scope } = defineProps<{
-  sr: FrontXoSr
-  scope: SrScope
+const { sr, pool } = defineProps<{
+  sr: XenApiSr
+  pool: XenApiPool
 }>()
 
 const { t } = useI18n()
 
-const { buildXo5Route } = useXoRoutes()
-const href = computed(() => buildXo5Route(`/srs/${sr.id}/general`))
+const { getPbdsForSr } = usePbdStore().subscribe()
+const { isHaSr: isHaSrForPool, getAllocationStrategy } = useSrStore().subscribe()
 
-const { isHighAvailabilitySr } = useXoSrCollection()
-
-const { srConnectionStatus, srStatusIcon } = useXoSrUtils(
-  () => sr,
-  () => scope
-)
+const { allPbdsConnectionStatus } = usePbdUtils(() => getPbdsForSr(sr.$ref))
 
 const isSrSharedI18nValue = computed(() => (sr.shared ? t('shared') : t('local')))
 
-const allocationStrategy = computed(() => {
-  return sr.allocationStrategy ?? t('unknown')
-})
+const allocationStrategy = computed(() => getAllocationStrategy(sr) ?? t('unknown'))
 
-const isHaSr = isHighAvailabilitySr(() => sr)
+const isHaSr = computed(() => isHaSrForPool(sr, pool))
 </script>
 
 <style scoped lang="postcss">
 .card-container {
   gap: 1.6rem;
+
+  .title {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
 
   .content {
     display: flex;

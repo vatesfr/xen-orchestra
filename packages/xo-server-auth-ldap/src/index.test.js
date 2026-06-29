@@ -36,6 +36,32 @@ function aggregateError(codes) {
   return err
 }
 
+const PRIMARY_DOMAIN = {
+  isPrimary: true,
+  uris: ['ldap://primary'],
+  tlsOptions: {},
+  startTls: false,
+  credentials: undefined,
+  searchBase: 'dc=primary,dc=com',
+  searchFilter: '(uid={{name}})',
+  userIdAttribute: 'uid',
+  groupsConfig: undefined,
+  provider: 'ldap',
+}
+
+const SECONDARY_DOMAIN = {
+  isPrimary: false,
+  uris: ['ldap://secondary'],
+  tlsOptions: {},
+  startTls: false,
+  credentials: undefined,
+  searchBase: 'dc=secondary,dc=com',
+  searchFilter: '(uid={{name}})',
+  userIdAttribute: 'uid',
+  groupsConfig: undefined,
+  provider: 'ldap://secondary',
+}
+
 function makePlugin({
   xo = undefined,
   url = 'ldap://primary',
@@ -46,12 +72,16 @@ function makePlugin({
   groupsConfig = undefined,
 } = {}) {
   const plugin = createPlugin({ xo })
-  plugin._clientOpts = { url }
-  plugin._failoverUris = failoverUris
-  plugin._startTls = startTls
-  plugin._tlsOptions = tlsOptions
-  plugin._credentials = credentials
-  plugin._groupsConfig = groupsConfig
+  plugin._primaryDomain = {
+    isPrimary: true,
+    uris: [url, ...failoverUris],
+    tlsOptions,
+    startTls,
+    credentials,
+    groupsConfig,
+    provider: 'ldap',
+  }
+  plugin._domains = [plugin._primaryDomain]
   return plugin
 }
 
@@ -179,6 +209,189 @@ describe('bind-level failover', () => {
 
 // ===================================================================
 
+describe('configure()', () => {
+  test('throws on duplicate primary URI across domains', async () => {
+    const plugin = createPlugin({})
+    await assert.rejects(
+      () =>
+        plugin.configure({
+          uri: 'ldap://same',
+          base: 'dc=primary,dc=com',
+          userIdAttribute: 'uid',
+          additionalDomains: [{ uri: 'ldap://same', base: 'dc=other,dc=com', userIdAttribute: 'uid' }],
+        }),
+      /Duplicate LDAP URI/
+    )
+  })
+
+  test('primary domain has provider ldap', async () => {
+    const plugin = createPlugin({})
+    await plugin.configure({ uri: 'ldap://host', base: 'dc=x,dc=com', userIdAttribute: 'uid' })
+    assert.equal(plugin._primaryDomain.provider, 'ldap')
+  })
+
+  test('additional domain has provider ldap:uri', async () => {
+    const plugin = createPlugin({})
+    await plugin.configure({
+      uri: 'ldap://primary',
+      base: 'dc=primary,dc=com',
+      userIdAttribute: 'uid',
+      additionalDomains: [{ uri: 'ldap://secondary', base: 'dc=secondary,dc=com', userIdAttribute: 'uid' }],
+    })
+    assert.equal(plugin._domains[1].provider, 'ldap://secondary')
+  })
+})
+
+// ===================================================================
+
+describe('multi-domain authentication', () => {
+  let mockXo
+  let searchBehaviors
+  let startTLSBehaviors
+
+  beforeEach(() => {
+    mock.restoreAll()
+    searchBehaviors = new Map()
+    startTLSBehaviors = []
+
+    mock.method(Client.prototype, 'startTLS', async function () {
+      const behavior = startTLSBehaviors.shift() ?? {}
+      if (behavior.startTLSError !== undefined) throw behavior.startTLSError
+    })
+    mock.method(Client.prototype, 'bind', async function () {})
+    mock.method(Client.prototype, 'search', async function (base) {
+      return { searchEntries: searchBehaviors.get(base) ?? [] }
+    })
+    mock.method(Client.prototype, 'unbind', async function () {})
+
+    mockXo = {
+      registerUser2: mock.fn(async (provider, { user: { id, name } }) => ({
+        id: `xo-${id}`,
+        name,
+        authProviders: { [provider]: { id } },
+      })),
+      getAllGroups: mock.fn(async () => []),
+    }
+  })
+
+  function makeTwoDomainPlugin() {
+    const plugin = createPlugin({ xo: mockXo })
+    plugin._primaryDomain = PRIMARY_DOMAIN
+    plugin._domains = [PRIMARY_DOMAIN, SECONDARY_DOMAIN]
+    return { plugin }
+  }
+
+  test('stops at first domain that returns a matching user', async () => {
+    const { plugin } = makeTwoDomainPlugin()
+    searchBehaviors.set('dc=primary,dc=com', [{ dn: 'uid=alice,dc=primary,dc=com', uid: 'alice' }])
+
+    const result = await plugin._authenticate({ username: 'alice', password: 'pass' })
+
+    assert.ok(result?.userId)
+    assert.equal(mockXo.registerUser2.mock.calls[0].arguments[0], 'ldap')
+  })
+
+  test('falls through to secondary when primary returns no entries', async () => {
+    const { plugin } = makeTwoDomainPlugin()
+    searchBehaviors.set('dc=secondary,dc=com', [{ dn: 'uid=charlie,dc=secondary,dc=com', uid: 'charlie' }])
+
+    const result = await plugin._authenticate({ username: 'charlie', password: 'pass' })
+
+    assert.ok(result?.userId)
+    assert.equal(mockXo.registerUser2.mock.calls[0].arguments[0], 'ldap://secondary')
+  })
+
+  test('returns null when no domain finds the user', async () => {
+    const { plugin } = makeTwoDomainPlugin()
+    const result = await plugin._authenticate({ username: 'nobody', password: 'pass' })
+    assert.equal(result, null)
+  })
+
+  test('primary domain user ID is bare', async () => {
+    const { plugin } = makeTwoDomainPlugin()
+    searchBehaviors.set('dc=primary,dc=com', [{ dn: 'uid=alice,dc=primary,dc=com', uid: 'alice' }])
+
+    await plugin._authenticate({ username: 'alice', password: 'pass' })
+
+    const [
+      ,
+      {
+        user: { id },
+      },
+    ] = mockXo.registerUser2.mock.calls[0].arguments
+    assert.equal(id, 'alice')
+  })
+
+  test('additional domain user ID is namespaced with URI', async () => {
+    const { plugin } = makeTwoDomainPlugin()
+    searchBehaviors.set('dc=secondary,dc=com', [{ dn: 'uid=charlie,dc=secondary,dc=com', uid: 'charlie' }])
+
+    await plugin._authenticate({ username: 'charlie', password: 'pass' })
+
+    const [
+      ,
+      {
+        user: { id },
+      },
+    ] = mockXo.registerUser2.mock.calls[0].arguments
+    assert.equal(id, 'ldap://secondary:charlie')
+  })
+
+  test('exhausts all primary failover URIs then falls through to secondary', async () => {
+    const plugin = createPlugin({ xo: mockXo })
+    const primaryWithFailover = { ...PRIMARY_DOMAIN, startTls: true, uris: ['ldap://primary', 'ldap://primary-backup'] }
+    const secondaryWithStartTls = { ...SECONDARY_DOMAIN, startTls: true }
+    plugin._primaryDomain = primaryWithFailover
+    plugin._domains = [primaryWithFailover, secondaryWithStartTls]
+
+    startTLSBehaviors = [{ startTLSError: tcpError('ECONNREFUSED') }, { startTLSError: tcpError('ECONNREFUSED') }]
+    searchBehaviors.set('dc=secondary,dc=com', [{ dn: 'uid=charlie,dc=secondary,dc=com', uid: 'charlie' }])
+
+    const result = await plugin._authenticate({ username: 'charlie', password: 'pass' })
+
+    assert.ok(result?.userId)
+    assert.equal(mockXo.registerUser2.mock.calls[0].arguments[0], 'ldap://secondary')
+  })
+})
+
+// ===================================================================
+
+describe('ldap.synchronizeGroups API', () => {
+  function makeApiPlugin(domains) {
+    let capturedMethods
+    const xo = {
+      registerAuthenticationProvider() {},
+      addApiMethods(methods) {
+        capturedMethods = methods
+        return () => {}
+      },
+    }
+    const plugin = createPlugin({ xo })
+    plugin._domains = domains
+    const synced = []
+    plugin._synchronizeGroups = async ({ domain }) => synced.push(domain)
+    plugin.load()
+    return { api: capturedMethods.ldap, synced }
+  }
+
+  const domainA = PRIMARY_DOMAIN
+  const domainB = SECONDARY_DOMAIN
+
+  test('with domainIndex syncs only that domain', async () => {
+    const { api, synced } = makeApiPlugin([domainA, domainB])
+    await api.synchronizeGroups({ domainIndex: 1 })
+    assert.deepEqual(synced, [domainB])
+  })
+
+  test('without domainIndex syncs all domains in order', async () => {
+    const { api, synced } = makeApiPlugin([domainA, domainB])
+    await api.synchronizeGroups()
+    assert.deepEqual(synced, [domainA, domainB])
+  })
+})
+
+// ===================================================================
+
 describe('AuthLdap._synchronizeGroups', () => {
   let mockLdapGroups
   let mockXo
@@ -240,7 +453,7 @@ describe('AuthLdap._synchronizeGroups', () => {
   test('creates XO group and adds user when LDAP group has no XO counterpart', async () => {
     mockLdapGroups = [{ gid: 'gid1', cn: 'Group One', memberUid: ['uid1'] }]
 
-    await syncPlugin._synchronizeGroups({ id: 'user1' }, 'uid1')
+    await syncPlugin._synchronizeGroups({ user: { id: 'user1' }, memberId: 'uid1' })
 
     assert.equal(mockXo.createGroup.mock.callCount(), 1)
     assert.equal(mockXo.addUserToGroup.mock.callCount(), 1)
@@ -253,7 +466,7 @@ describe('AuthLdap._synchronizeGroups', () => {
     mockData.xoGroups = [{ id: 1, users: [], name: 'Group One', provider: 'ldap', providerGroupId: 'gid1' }]
     mockLdapGroups = [{ gid: 'gid1', cn: 'Group One', memberUid: ['uid1'] }]
 
-    await syncPlugin._synchronizeGroups({ id: 'user1' }, 'uid1')
+    await syncPlugin._synchronizeGroups({ user: { id: 'user1' }, memberId: 'uid1' })
 
     assert.equal(mockXo.createGroup.mock.callCount(), 0)
     assert.equal(mockXo.addUserToGroup.mock.callCount(), 1)
@@ -268,7 +481,7 @@ describe('AuthLdap._synchronizeGroups', () => {
       { gid: 'gid2', cn: 'Group Two', memberUid: ['uid1'] },
     ]
 
-    await syncPlugin._synchronizeGroups({ id: 'user1' }, 'uid1')
+    await syncPlugin._synchronizeGroups({ user: { id: 'user1' }, memberId: 'uid1' })
 
     assert.equal(mockXo.createGroup.mock.callCount(), 1)
     assert.equal(mockXo.addUserToGroup.mock.callCount(), 1)
@@ -281,10 +494,33 @@ describe('AuthLdap._synchronizeGroups', () => {
     mockData.xoGroups = [{ id: 1, users: [], name: 'Group One', provider: 'oidc' }]
     mockLdapGroups = [{ gid: 'gid1', cn: 'Group One', memberUid: ['uid1'] }]
 
-    await syncPlugin._synchronizeGroups({ id: 'user1' }, 'uid1')
+    await syncPlugin._synchronizeGroups({ user: { id: 'user1' }, memberId: 'uid1' })
 
     assert.equal(mockXo.createGroup.mock.callCount(), 0)
     assert.equal(mockXo.addUserToGroup.mock.callCount(), 0)
     assert.deepEqual(mockData.xoGroups, [{ id: 1, users: [], name: 'Group One', provider: 'oidc' }])
+  })
+
+  test('additional domain group name gets URI suffix, providerGroupId is scoped', async () => {
+    mockLdapGroups = [{ gid: 'gid1', cn: 'Group One', memberUid: ['uid1'] }]
+    const secondaryDomain = {
+      ...syncPlugin._primaryDomain,
+      isPrimary: false,
+      uris: ['ldap://secondary'],
+      provider: 'ldap://secondary',
+    }
+
+    await syncPlugin._synchronizeGroups({ domain: secondaryDomain, user: { id: 'user1' }, memberId: 'uid1' })
+
+    assert.equal(mockXo.createGroup.mock.callCount(), 1)
+    assert.deepEqual(mockData.xoGroups, [
+      {
+        id: 1,
+        users: ['user1'],
+        name: 'Group One (ldap://secondary)',
+        provider: 'ldap://secondary',
+        providerGroupId: 'gid1',
+      },
+    ])
   })
 })

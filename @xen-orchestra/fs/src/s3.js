@@ -40,6 +40,8 @@ export default class S3Handler extends RemoteHandlerAbstract {
   #bucket
   #dir
   #s3
+  #httpAgent
+  #httpsAgent
   #immutable = false
   #maxPartSize
   #maxPartNumber
@@ -77,13 +79,13 @@ export default class S3Handler extends RemoteHandlerAbstract {
       region,
       requestHandler: new NodeHttpHandler({
         socketTimeout: 600000,
-        httpAgent: new HttpAgent({
+        httpAgent: (this.#httpAgent = new HttpAgent({
           keepAlive: true,
-        }),
-        httpsAgent: new HttpsAgent({
+        })),
+        httpsAgent: (this.#httpsAgent = new HttpsAgent({
           rejectUnauthorized: !allowUnauthorized,
           keepAlive: true,
-        }),
+        })),
       }),
       // from https://github.com/aws/aws-sdk-js-v3/issues/6810
       // some non AWS services like backblaze or cloudflare don't expect the new headers
@@ -98,6 +100,12 @@ export default class S3Handler extends RemoteHandlerAbstract {
 
   get type() {
     return 's3'
+  }
+
+  async _forget() {
+    this.#s3.destroy()
+    this.#httpAgent.destroy()
+    this.#httpsAgent.destroy()
   }
 
   #makeCopySource(path) {
