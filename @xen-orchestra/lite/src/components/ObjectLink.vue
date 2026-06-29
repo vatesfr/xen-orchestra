@@ -1,5 +1,5 @@
 <template>
-  <UiSpinner v-if="!isReady" />
+  <UiLoader v-if="!isReady" />
   <template v-else-if="record !== undefined">
     <RouterLink v-if="objectRoute" :to="objectRoute">
       {{ record.name_label }}
@@ -10,13 +10,13 @@
 </template>
 
 <script generic="T extends ObjectType" lang="ts" setup>
-import UiSpinner from '@/components/ui/UiSpinner.vue'
 import type { ObjectType, ObjectTypeToRecord } from '@/libs/xen-api/xen-api.types'
 import type { XapiContext } from '@/stores/xen-api/create-xapi-store-config'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { useSrStore } from '@/stores/xen-api/sr.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
+import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import { computed, watch } from 'vue'
 import { type RouteLocationTyped, type RouteRecordName } from 'vue-router'
 

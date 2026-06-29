@@ -10,6 +10,7 @@
 - Update side panels (PR [#9836](https://github.com/vatesfr/xen-orchestra/pull/9836))
 - [XOA deploy] Update log visualization component (PR [#9995](https://github.com/vatesfr/xen-orchestra/pull/9995))
 - [SidePanels] Add and use new `VtsCardObjectTitle` component to display object title and ID in side panels (PR [#9755](https://github.com/vatesfr/xen-orchestra/pull/9755))
+- Replacement of the UiSpinner component with UiLoader from web-core (PR [#10023](https://github.com/vatesfr/xen-orchestra/pull/10023))
 
 ## **0.22.0** (2026-05-28)
 
