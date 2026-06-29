@@ -628,8 +628,8 @@ class SDNController extends EventEmitter {
             body: {
               oldRule: {
                 type: 'object',
-                optional: false,
                 fields: {
+                  allow: { type: 'boolean', example: true },
                   direction: { type: 'string', example: 'to' },
                   ipRange: { type: 'string', example: '192.168.0.0/24' },
                   protocol: { type: 'string', example: 'tcp' },
@@ -638,7 +638,6 @@ class SDNController extends EventEmitter {
               },
               newRule: {
                 type: 'object',
-                optional: false,
                 fields: {
                   allow: { type: 'boolean', example: true, optional: true },
                   direction: { type: 'string', example: 'to', optional: true },
@@ -674,10 +673,11 @@ class SDNController extends EventEmitter {
                   if (
                     !networkRules.some(
                       rule =>
+                        rule.allow === oldRule.allow &&
                         rule.direction === oldRule.direction &&
                         rule.ipRange === oldRule.ipRange &&
                         rule.port === oldRule.port &&
-                        rule.protocol === oldRule.protocol
+                        rule.protocol.toLowerCase() === oldRule.protocol.toLowerCase()
                     )
                   ) {
                     throw noSuchObject(JSON.stringify(oldRule), 'traffic-rule')
@@ -715,8 +715,8 @@ class SDNController extends EventEmitter {
             body: {
               oldRule: {
                 type: 'object',
-                optional: false,
                 fields: {
+                  allow: { type: 'boolean', example: true },
                   direction: { type: 'string', example: 'from' },
                   ipRange: { type: 'string', example: '192.168.0.0/24' },
                   protocol: { type: 'string', example: 'tcp' },
@@ -725,7 +725,6 @@ class SDNController extends EventEmitter {
               },
               newRule: {
                 type: 'object',
-                optional: false,
                 fields: {
                   allow: { type: 'boolean', example: true, optional: true },
                   direction: { type: 'string', example: 'to', optional: true },
@@ -761,10 +760,11 @@ class SDNController extends EventEmitter {
                   if (
                     !vifRules.some(
                       rule =>
+                        rule.allow === oldRule.allow &&
                         rule.direction === oldRule.direction &&
                         rule.ipRange === oldRule.ipRange &&
                         rule.port === oldRule.port &&
-                        rule.protocol === oldRule.protocol
+                        rule.protocol.toLowerCase() === oldRule.protocol.toLowerCase()
                     )
                   ) {
                     throw noSuchObject(JSON.stringify(oldRule), 'traffic-rule')

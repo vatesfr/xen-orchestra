@@ -55,13 +55,15 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/acl patch
 - @xen-orchestra/backups patch
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server minor
 - xo-server-netbox patch
-- xo-web minor
 - xo-server-sdn-controller minor
+- xo-web minor
 
 <!--packages-end-->
