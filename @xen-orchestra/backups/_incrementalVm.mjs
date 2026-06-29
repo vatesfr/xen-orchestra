@@ -20,7 +20,7 @@ const orderedMemoryLimits = ['memory_static_min', 'memory_dynamic_min', 'memory_
 
 // The dynamic memory range MUST respect this inequality at any moment: static_min <= dynamic_min <= dynamic_max <= static_max.
 // We must update these properties in the right order to avoid XAPI error.
-// The order depens on the values. It can be an increase, a decrease or a mix of both, so any order could be required.
+// The order depends on the values. It can be an increase, a decrease or a mix of both, so any order could be required.
 export async function updateMemoryFields(xapi, targetVm, vmRecord) {
   const memoryValues = {}
   for (const key of orderedMemoryLimits) {
@@ -37,9 +37,9 @@ export async function updateMemoryFields(xapi, targetVm, vmRecord) {
 
 // Update one more memory field if needed, then return a boolean describing if a field was updated or if all fields are up to date
 async function updateNextMemoryField(xapi, memoryValues, vmRef) {
-  for (let i = 0; i < 4 /* orderedMemoryLimits.length */; i++) {
+  for (let i = 0; i < orderedMemoryLimits.length; i++) {
     const currentField = memoryValues[orderedMemoryLimits[i]]
-    const nextField = i === 3 ? undefined : memoryValues[orderedMemoryLimits[i + 1]]
+    const nextField = i === orderedMemoryLimits.length - 1 ? undefined : memoryValues[orderedMemoryLimits[i + 1]]
     if (
       currentField.newValue !== currentField.currentValue &&
       (nextField === undefined || currentField.newValue <= nextField.currentValue)
