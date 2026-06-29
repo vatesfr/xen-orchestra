@@ -61,6 +61,20 @@ function parseNumber(value) {
   return isNaN(value) ? null : value
 }
 
+// Like parseNumber but keeps NaN as-is instead of returning null, so missing values
+// can be stored in a typed array (where null would be coerced to 0). They are turned
+// back into null when read, see computeValues.
+function parseRrdValue(value) {
+  if (typeof value === 'string') {
+    const asNumber = +value
+    if (isNaN(asNumber) && value !== 'NaN') {
+      throw new Error('cannot parse number: ' + value)
+    }
+    return asNumber
+  }
+  return value
+}
+
 async function getServerTimestamp(xapi, hostRef) {
   return parseDateTime(await xapi.call('host.get_servertime', hostRef))
 }
@@ -70,16 +84,17 @@ async function getServerTimestamp(xapi, hostRef) {
 // -------------------------------------------------------------------
 
 /**
- * @param {{t: string, values: string[]}[]} dataRow
+ * @param {{t: string, values: Float32Array}[]} dataRow
  * @param {number} legendIndex
  * @param {(value: number) => number} [transformValue]
  * @returns {(number | null)[]}
  */
 const computeValues = (dataRow, legendIndex, transformValue = identity) =>
   dataRow.map(({ values }) => {
-    const value = parseNumber(values[legendIndex])
+    const value = values[legendIndex]
 
-    if (value === null) {
+    // missing/NaN values are stored as NaN (see parseRrdValue) and exposed as null
+    if (Number.isNaN(value)) {
       return null
     }
 
@@ -404,12 +419,28 @@ export default class XapiStats {
       })
       .then(response => response.body.text())
       .then(data => {
+        let json
         try {
           // starting from XAPI 23.31, the response is valid JSON
-          return JSON.parse(data)
+          json = JSON.parse(data)
         } catch (_) {
-          return JSON5.parse(data)
+          json = JSON5.parse(data)
         }
+
+        const rows = json.data
+        if (Array.isArray(rows)) {
+          for (let i = 0; i < rows.length; i++) {
+            const row = rows[i]
+            const { values } = row
+            const floats = new Float32Array(values.length)
+            for (let j = 0; j < values.length; j++) {
+              floats[j] = parseRrdValue(values[j])
+            }
+            row.values = floats
+          }
+        }
+
+        return json
       })
       .catch(err => {
         delete this.#hostCache[hostUuid][step]
