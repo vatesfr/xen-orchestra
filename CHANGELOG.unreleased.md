@@ -23,7 +23,7 @@
 - [REST API/RBAC] Add a built-in Storage administrator ACL role template to administer SRs, VDIs, VBDs, PBDs and backup repositories (PR [#9963](https://github.com/vatesfr/xen-orchestra/pull/9963))
 - [XO6/VM] add available actions on VMs tab (PR [#10030](https://github.com/vatesfr/xen-orchestra/pull/10030))
 - [XO6/VDI] add possibility to migrate VDI on SR (PR [#9973](https://github.com/vatesfr/xen-orchestra/pull/9973))
-- [sdn-controller] Add `POST /rest/v0/plugins/sdn-controller/networks/:id/actions/update_traffic_rule` and `POST /rest/v0/plugins/sdn-controller/vifs/:id/actions/update_traffic_rule` ([PR [#9936](https://github.com/vatesfr/xen-orchestra/pull/9936) )
+- [sdn-controller] Add `POST /rest/v0/plugins/sdn-controller/networks/:id/actions/update_traffic_rule` and `POST /rest/v0/plugins/sdn-controller/vifs/:id/actions/update_traffic_rule` (PR [#9936](https://github.com/vatesfr/xen-orchestra/pull/9936))
 
 ### Bug fixes
 
