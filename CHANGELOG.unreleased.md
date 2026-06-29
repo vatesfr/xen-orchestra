@@ -34,6 +34,9 @@
 - [XO6/Tree/Web-core] Infrastructure tree is now streamed and rendered as a single virtualized list, fix some performance issues on medium and big infrastructures (PR [#9986](https://github.com/vatesfr/xen-orchestra/pull/9986))
 - [xo-server] Fix memory leak on failed http query (XS update for example) (PR [#10026](https://github.com/vatesfr/xen-orchestra/pull/10026))
 - [Encryption] Improve missing xen-tools handling and logs (PR [#9987](https://github.com/vatesfr/xen-orchestra/pull/9987))
+- [XO-Server] Force stop when in dev mode (PR [#9994](https://github.com/vatesfr/xen-orchestra/pull/9994))
+- [XO-Server] Log a xo-server waiting for a soft stop in background (PR [#9994](https://github.com/vatesfr/xen-orchestra/pull/9994))
+- [Backup-repository] Properly unmount and cut connection on stop/disconnect/forget (PR [#9994](https://github.com/vatesfr/xen-orchestra/pull/9994))
 
 ### Packages to release
 

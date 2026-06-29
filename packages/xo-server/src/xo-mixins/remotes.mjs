@@ -82,9 +82,12 @@ export default class {
       const handlers = this._handlers
       for (const id in handlers) {
         try {
+          const handler = handlers[id]
           delete handlers[id]
-          await handlers[id].forget()
-        } catch (_) {}
+          await handler.forget()
+        } catch (error) {
+          warn('failed to forget handler', { id, error })
+        }
       }
     })
   }
