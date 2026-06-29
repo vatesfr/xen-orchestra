@@ -573,6 +573,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/start')
   @Middlewares(acl({ resource: 'host', action: 'start', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
@@ -606,6 +607,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example body { "bypassBackupCheck": false, "bypassEvacuate": false }
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/clean_shutdown')
   @Middlewares([json(), acl({ resource: 'host', action: 'shutdown:clean', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
@@ -656,6 +658,7 @@ export class HostController extends XapiXoController<XoHost> {
    * }
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/clean_reboot')
   @Middlewares([json(), acl({ resource: 'host', action: 'reboot:clean', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
@@ -714,6 +717,7 @@ export class HostController extends XapiXoController<XoHost> {
    * }
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/smart_reboot')
   @Middlewares([json(), acl({ resource: 'host', action: 'reboot:smart', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
@@ -732,7 +736,7 @@ export class HostController extends XapiXoController<XoHost> {
       bypassVersionCheck?: boolean
       /** Allow suspending VMs even if suspend is blocked. Defaults to false. */
       bypassBlockedSuspend?: boolean
-      /** Skip the check for running VMs before suspending. Defaults to false. */
+      /** Skip the check that blocks smart reboot when XOA is running on this host. Defaults to false. */
       bypassCurrentVmCheck?: boolean
     },
     @Query() sync?: boolean
@@ -769,6 +773,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/restart_toolstack')
   @Middlewares([json(), acl({ resource: 'host', action: 'restart-toolstack', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
@@ -814,6 +819,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/emergency_shutdown')
   @Middlewares(acl({ resource: 'host', action: 'shutdown:emergency', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
@@ -841,11 +847,12 @@ export class HostController extends XapiXoController<XoHost> {
    * Required privilege:
    * - resource: host, action: detach
    *
-   * Detaches a host.
+   * Detaches a host from its pool.
    *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/detach')
   @Middlewares(acl({ resource: 'host', action: 'detach', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
@@ -878,6 +885,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/forget')
   @Middlewares(acl({ resource: 'host', action: 'forget', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
