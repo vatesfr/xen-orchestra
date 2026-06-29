@@ -17,6 +17,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [Backups/replication] Fix error MEMORY_CONSTRAINT_VIOLATION_ORDER during replication (PR [#10034](https://github.com/vatesfr/xen-orchestra/pull/10034))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -35,6 +37,7 @@
 
 - @vates/types minor
 - @xen-orchestra/acl minor
+- @xen-orchestra/backups patch
 - @xen-orchestra/proxy minor
 - @xen-orchestra/rest-api minor
 - xo-server minor
