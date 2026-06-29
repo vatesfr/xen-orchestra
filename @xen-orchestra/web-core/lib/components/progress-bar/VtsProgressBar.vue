@@ -25,6 +25,7 @@ const {
   label,
   thresholds = defaultProgressThresholds(),
   legendType,
+  noruler,
 } = defineProps<{
   current: number
   total: number
@@ -36,7 +37,8 @@ const {
 
 const progress = useProgress(
   () => current,
-  () => total
+  () => total,
+  () => noruler
 )
 
 const { percentageCap, percentage, fillWidth } = progress
