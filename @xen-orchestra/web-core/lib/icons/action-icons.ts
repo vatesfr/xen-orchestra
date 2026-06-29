@@ -4,9 +4,11 @@ import { faCopy, faSquare as checkboxEmpty, type IconDefinition } from '@fortawe
 import {
   faAdd,
   faArrowCircleRight,
+  faArrowDownLong,
   faArrowRight,
   faArrowRotateLeft,
   faArrowRotateRight,
+  faArrowUpLong,
   faArrowUpRightFromSquare,
   faBan,
   faBars,
@@ -146,6 +148,18 @@ export const actionIcons = defineIconPack({
     color: 'var(--color-neutral-txt-primary)',
     rotate: 90,
   },
+  'import-export': [
+    {
+      icon: faArrowUpLong,
+      color: 'var(--color-neutral-txt-primary)',
+      translate: [-5, 0],
+    },
+    {
+      icon: faArrowDownLong,
+      color: 'var(--color-neutral-txt-primary)',
+      translate: [5, 0],
+    },
+  ],
   reboot: constructIcon(faArrowRotateRight),
   'force-reboot': [
     constructIcon(faArrowRotateRight),

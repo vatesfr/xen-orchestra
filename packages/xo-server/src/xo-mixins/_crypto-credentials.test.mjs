@@ -1,10 +1,84 @@
 import assert from 'assert/strict'
 import { randomBytes } from 'node:crypto'
 import test from 'node:test'
+import { configure } from '@xen-orchestra/log/configure'
 
 import CryptoCredentials, { ENCRYPTION_PREFIX } from './crypto-credentials.mjs'
 
+configure({ level: 'FATAL', transport: () => {} })
+
 const { describe, it, before } = test
+
+function xenToolsNotFound() {
+  return Object.assign(new Error('spawn xenstore-read ENOENT'), {
+    code: 'ENOENT',
+    syscall: 'spawn xenstore-read',
+    path: 'xenstore-read',
+  })
+}
+
+function xenStoreKeyMissing() {
+  return new Error("couldn't read path")
+}
+
+function fileNotFound() {
+  return Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' })
+}
+
+function makeDeps({ fileKey, xenStoreKey, xenStoreWriteFails = false } = {}) {
+  return {
+    xenStore: {
+      read: async () => {
+        if (xenStoreKey !== undefined) return xenStoreKey.toString('hex')
+        throw xenStoreKeyMissing()
+      },
+      write: async () => {
+        if (xenStoreWriteFails) throw new Error('xenstore write failed')
+      },
+      rm: async () => {},
+    },
+    fsPromises: {
+      readFile: async () => {
+        if (fileKey !== undefined) return fileKey
+        throw fileNotFound()
+      },
+      writeFile: async () => {},
+      rm: async () => {},
+      unlink: async () => {},
+      access: async () => {
+        throw fileNotFound()
+      },
+    },
+  }
+}
+
+function makeApp(encryptionEnabled) {
+  let startCoreCb
+  return {
+    app: {
+      hooks: {
+        on: (event, cb) => {
+          if (event === 'start core') startCoreCb = cb
+        },
+      },
+      config: { getOptional: key => (key === 'redis.encryptCredentialDatabase' ? encryptionEnabled : undefined) },
+      _redis: {
+        sMembers: async () => [],
+        sIsMember: async () => false,
+        get: async () => null,
+        mSet: async () => {},
+      },
+    },
+    run: () => startCoreCb(),
+  }
+}
+
+async function runHook(encryptionEnabled, deps) {
+  const { app, run } = makeApp(encryptionEnabled)
+  const instance = new CryptoCredentials(app, deps)
+  await run()
+  return instance
+}
 
 describe('CryptoCredentials', function () {
   let cryptoCredentials, mockApp
@@ -117,6 +191,81 @@ describe('CryptoCredentials', function () {
 
       // Different hmac keys should produce different indexes.
       assert.notEqual(hmacIndex, await instance.hmacIndex(payload1))
+    })
+  })
+
+  describe('#initialize', function () {
+    describe('Encryption DISABLED', function () {
+      it('no keys - not degraded', async function () {
+        const instance = await runHook(false, makeDeps())
+        assert.equal(instance.isDegraded(), false)
+      })
+
+      it('fileKey only, xen-tools unavailable - degraded', async function () {
+        const deps = makeDeps({ fileKey: randomBytes(32) })
+        deps.xenStore.read = async () => {
+          throw xenToolsNotFound()
+        }
+        const instance = await runHook(false, deps)
+        assert.equal(instance.isDegraded(), true)
+      })
+
+      it('fileKey only, xenStoreKey path missing - degraded', async function () {
+        const instance = await runHook(false, makeDeps({ fileKey: randomBytes(32) }))
+        assert.equal(instance.isDegraded(), true)
+      })
+
+      it('both keys present - keys loaded, migration to decryption', async function () {
+        const instance = await runHook(false, makeDeps({ fileKey: randomBytes(32), xenStoreKey: randomBytes(32) }))
+        assert.equal(instance.isDegraded(), false)
+        const encrypted = await instance.encrypt(payload1)
+        assert.ok(encrypted.startsWith(ENCRYPTION_PREFIX))
+      })
+    })
+
+    describe('Encryption ENABLED', function () {
+      it('no xen-tools, no fileKey - degraded', async function () {
+        const deps = makeDeps()
+        deps.xenStore.read = async () => {
+          throw xenToolsNotFound()
+        }
+        const instance = await runHook(true, deps)
+        assert.equal(instance.isDegraded(), true)
+      })
+
+      it('no xen-tools, fileKey exists - degraded', async function () {
+        const deps = makeDeps({ fileKey: randomBytes(32) })
+        deps.xenStore.read = async () => {
+          throw xenToolsNotFound()
+        }
+        const instance = await runHook(true, deps)
+        assert.equal(instance.isDegraded(), true)
+      })
+
+      it('neither key in store - generates new keys, migration to encryption', async function () {
+        let xenStoreWriteCalled = false
+        const deps = makeDeps()
+        deps.xenStore.write = async () => {
+          xenStoreWriteCalled = true
+        }
+        const instance = await runHook(true, deps)
+        assert.equal(instance.isDegraded(), false)
+        assert.equal(xenStoreWriteCalled, true)
+        const encrypted = await instance.encrypt(payload1)
+        assert.ok(encrypted.startsWith(ENCRYPTION_PREFIX))
+      })
+
+      it('both keys present - keys loaded, not degraded', async function () {
+        const instance = await runHook(true, makeDeps({ fileKey: randomBytes(32), xenStoreKey: randomBytes(32) }))
+        assert.equal(instance.isDegraded(), false)
+        const encrypted = await instance.encrypt(payload1)
+        assert.ok(encrypted.startsWith(ENCRYPTION_PREFIX))
+      })
+
+      it('key write fails - degraded', async function () {
+        const instance = await runHook(true, makeDeps({ xenStoreWriteFails: true }))
+        assert.equal(instance.isDegraded(), true)
+      })
     })
   })
 })

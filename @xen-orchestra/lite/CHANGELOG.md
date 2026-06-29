@@ -8,6 +8,10 @@
 - Update the UiCardTitle component to use the one from web-core (PR [#9982](https://github.com/vatesfr/xen-orchestra/pull/9982))
 - Replacement of the UiSeparator component with VtsDivider from web-core (PR [#10017](https://github.com/vatesfr/xen-orchestra/pull/10017))
 - Update side panels (PR [#9836](https://github.com/vatesfr/xen-orchestra/pull/9836))
+- [XOA deploy] Update log visualization component (PR [#9995](https://github.com/vatesfr/xen-orchestra/pull/9995))
+- [SidePanels] Add and use new `VtsCardObjectTitle` component to display object title and ID in side panels (PR [#9755](https://github.com/vatesfr/xen-orchestra/pull/9755))
+- Replacement of the UiSpinner component with UiLoader from web-core (PR [#10023](https://github.com/vatesfr/xen-orchestra/pull/10023))
+- [Pool,Host/Storage] Add Storage tabs (PR [#10005](https://github.com/vatesfr/xen-orchestra/pull/10005))
 
 ## **0.22.0** (2026-05-28)
 

@@ -3,7 +3,7 @@
     <div class="label-placeholder">
       <div class="link-placeholder">
         <template v-if="depth > 1">
-          <VtsTreeLine v-for="i in depth - 1" :key="i" :right="i === depth - 1" full-height />
+          <VtsTreeLine v-for="i in depth - 1" :key="i" :right="i === depth - 1" />
         </template>
         <VtsIcon :name="icon" size="medium" />
         <div class="loader">&nbsp;</div>
@@ -17,13 +17,13 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTreeLine from '@core/components/tree/VtsTreeLine.vue'
 import type { IconName } from '@core/icons'
 import { IK_TREE_LIST_DEPTH } from '@core/utils/injection-keys.util'
-import { inject } from 'vue'
+import { inject, ref } from 'vue'
 
 defineProps<{
   icon: IconName
 }>()
 
-const depth = inject(IK_TREE_LIST_DEPTH, 0)
+const depth = inject(IK_TREE_LIST_DEPTH, ref(0))
 </script>
 
 <style lang="postcss" scoped>

@@ -1,5 +1,5 @@
 <template>
-  <MenuList placement="bottom-end">
+  <MenuList placement="bottom-start">
     <template #trigger="{ open }">
       <UiButtonIcon
         v-tooltip="{
@@ -12,6 +12,7 @@
         @click="open($event)"
       />
     </template>
+    <slot>
     <MenuItem
       v-for="(action, index) of actions"
       :key="index"
@@ -22,7 +23,21 @@
     >
       {{ action.label }}
       <i v-if="action.hint">{{ action.hint }}</i>
+      <template v-if="isGroupAction(action)" #submenu>
+        <MenuItem
+          v-for="(child, childIndex) of action.children"
+          :key="childIndex"
+          :icon="child.icon"
+          :disabled="child.disabled"
+          :busy="child.busy"
+          :on-click="child.onClick"
+        >
+          {{ child.label }}
+          <i v-if="child.hint">{{ child.hint }}</i>
+        </MenuItem>
+      </template>
     </MenuItem>
+    </slot>
   </MenuList>
 </template>
 
@@ -40,14 +55,33 @@ const { size = 'small', actions = [] } = defineProps<{
   actions?: ActionItem[]
 }>()
 
+defineSlots<{
+  default(): any
+}>()
+
 const { t } = useI18n()
 
-export type ActionItem = {
+type BaseActionItem = {
   label: string
   hint?: string
   icon?: IconName
-  onClick: () => any
   disabled?: boolean
   busy?: boolean
+}
+
+export type LeafActionItem = BaseActionItem & {
+  onClick: () => unknown
+  children?: never
+}
+
+export type GroupActionItem = BaseActionItem & {
+  onClick?: never
+  children: LeafActionItem[]
+}
+
+export type ActionItem = LeafActionItem | GroupActionItem
+
+function isGroupAction(action: ActionItem): action is GroupActionItem {
+  return 'children' in action
 }
 </script>
