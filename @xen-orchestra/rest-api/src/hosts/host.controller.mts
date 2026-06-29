@@ -455,7 +455,7 @@ export class HostController extends XapiXoController<XoHost> {
    *
    * Disable a host.
    *
-   * Set `transiant` to `false` to disable indefinitely, across toolstack restarts and host reboots, until re-enabled explicitly
+   * Set `autoEnable` to `true` to re-enable after a toolstack restart automatically
    *
    * Set `evacuate` to `true` to also evacuate all running VMs to other hosts in the pool.
    *
@@ -493,20 +493,20 @@ export class HostController extends XapiXoController<XoHost> {
     @Path() id: string,
     // mark `evacuate` as optional to workaround a TSOA issue. See https://github.com/lukeautry/tsoa/pull/1840
     @Body()
-    body?: { transient?: boolean } & (
+    body?: { autoEnable?: boolean } & (
       | { evacuate?: false }
       | { evacuate: true; force?: boolean; vmIdsToForceMigrate?: string[] }
     ),
     @Query() sync?: boolean
   ): CreateActionReturnType<void> {
     const hostId = id as XoHost['id']
-
+    const isTransient = body?.autoEnable ?? false
     const action = defer(async ($defer: Defer) => {
       const xapiHost = this.getXapiObject(hostId)
       const xapi = xapiHost.$xapi
 
       if (body?.evacuate !== true) {
-        await xapi.disableHost(hostId, { transient: body?.transient })
+        await xapi.disableHost(hostId, { transient: isTransient })
         return
       }
 
@@ -523,7 +523,7 @@ export class HostController extends XapiXoController<XoHost> {
         })
       }
 
-      await xapi.clearHost(xapiHost, body.force, { transient: body.transient })
+      await xapi.clearHost(xapiHost, body.force, { transient: isTransient })
     })
 
     return this.createAction<void>(action, {
