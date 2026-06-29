@@ -22,7 +22,8 @@ const { n } = useI18n()
 
 const { percentage } = useProgress(
   () => current,
-  () => total
+  () => total,
+  true
 )
 </script>
 

@@ -5,7 +5,7 @@ import { computed, type MaybeRefOrGetter } from 'vue'
 export function useProgress(
   rawCurrent: MaybeRefOrGetter<number>,
   rawTotal: MaybeRefOrGetter<number>,
-  rawNoRuler: MaybeRefOrGetter<boolean>
+  rawNoRuler: MaybeRefOrGetter<boolean> = false
 ): Progress {
   const current = toComputed(rawCurrent)
 
