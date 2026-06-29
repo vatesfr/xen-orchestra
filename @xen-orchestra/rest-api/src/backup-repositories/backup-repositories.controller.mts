@@ -240,9 +240,9 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
-  @Get('{id}/health')
-  @Extension('x-mcp-exposure', 'allow')
   @Example(backupRepositoryHeath)
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/health')
   @Middlewares(
     acl({
       resource: 'backup-repository',
