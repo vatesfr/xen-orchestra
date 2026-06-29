@@ -1,7 +1,7 @@
 <template>
   <UiTableCell>
     <div class="vts-link-cell">
-      <UiLink size="medium" :icon :to :href :target class="link">
+      <UiLink size="medium" :icon :busy :busy-tooltip :to :href :target class="link">
         <slot />
         <VtsIcon v-if="rightIcon" v-tooltip="rightIcon.tooltip ?? false" :name="rightIcon.icon" size="medium" />
       </UiLink>
@@ -21,6 +21,8 @@ import type { IconName } from '@core/icons'
 
 export type VtsLinkCellProps = LinkOptions & {
   icon?: IconName
+  busy?: boolean
+  busyTooltip?: string
   rightIcon?: {
     icon: IconName
     tooltip?: string

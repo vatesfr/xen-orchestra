@@ -33,6 +33,7 @@ import { useVbdDeleteModal } from '@/modules/vbd/composables/use-vbd-delete-moda
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { useVdiDeleteModal } from '@/modules/vdi/composables/use-vdi-delete-modal.composable.ts'
 import { useVdiExportDrawer } from '@/modules/vdi/composables/use-vdi-export-drawer.composable.ts'
+import { useVdiMigrateDrawer } from '@/modules/vdi/composables/use-vdi-migrate-drawer.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { getVdiFormat, getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -44,6 +45,7 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
+import { useMapper } from '@core/packages/mapper/use-mapper.ts'
 import { useVdiColumns } from '@core/tables/column-sets/vdi-columns.ts'
 import { CONNECTION_ACTION } from '@core/types/connection.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
@@ -130,12 +132,50 @@ const { HeadCells, BodyCells } = useVdiColumns({
 
     const { openDrawer: openVdiExportDrawer, isRunning: isExportingVdi } = useVdiExportDrawer(() => vdi)
 
+    const {
+      openDrawer: openVdiMigrateDrawer,
+      canRun: canMigrateVdi,
+      isRunning: isMigratingVdi,
+      errorMessage: migrateVdiErrorMessage,
+    } = useVdiMigrateDrawer(() => vdi)
+
+    const runningAction = computed(() => {
+      if (isMigratingVdi.value) {
+        return 'migrate'
+      }
+      if (isDeletingVdi.value) {
+        return 'delete'
+      }
+      if (isDeletingVbd.value) {
+        return 'detach'
+      }
+      if (isTogglingVbdConnection.value) {
+        return vbd.value?.attached ? 'disconnect' : 'connect'
+      }
+      return 'none'
+    })
+
+    const busyMessage = useMapper(
+      runningAction,
+      () => ({
+        migrate: t('job:vdi-migrate:in-progress'),
+        delete: t('job:delete:in-progress'),
+        detach: t('job:vdi-detach:in-progress'),
+        disconnect: t('job:disconnect:in-progress'),
+        connect: t('job:connect:in-progress'),
+        none: undefined,
+      }),
+      'none'
+    )
+
     return {
       vdi: r =>
         r({
           label: vdi.name_label,
           to: { name: '/vdi/[id]/general', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.VM } },
           icon: getVdiIcon(getVbdsByIds(vdi.$VBDs)),
+          busy: runningAction.value !== 'none',
+          busyTooltip: busyMessage.value,
         }),
       description: r => r(vdi.name_description),
       usedSpace: r => r(vdi.usage, vdi.size),
@@ -145,6 +185,22 @@ const { HeadCells, BodyCells } = useVdiColumns({
         r({
           onClick: () => (selectedVdiId.value = vdi.id),
           actions: [
+            {
+              label: vbd.value?.attached ? t('action:disconnect') : t('action:connect'),
+              hint: !canToggleVbdConnection.value ? toggleVbdConnectionErrorMessage.value : undefined,
+              icon: vbd.value?.attached ? 'action:disconnect' : 'action:connect',
+              onClick: () => openVbdConnectionToggleModal(),
+              disabled: !canToggleVbdConnection.value,
+              busy: isTogglingVbdConnection.value,
+            },
+            {
+              label: t('action:migrate-vdi-on-sr'),
+              icon: 'action:migrate',
+              hint: !canMigrateVdi.value ? migrateVdiErrorMessage.value : undefined,
+              onClick: () => openVdiMigrateDrawer(),
+              disabled: !canMigrateVdi.value,
+              busy: isMigratingVdi.value,
+            },
             {
               label: t('action:import-export'),
               icon: 'action:import-export',
@@ -156,14 +212,6 @@ const { HeadCells, BodyCells } = useVdiColumns({
                   busy: isExportingVdi.value,
                 },
               ],
-            },
-            {
-              label: vbd.value?.attached ? t('action:disconnect') : t('action:connect'),
-              hint: !canToggleVbdConnection.value ? toggleVbdConnectionErrorMessage.value : undefined,
-              icon: vbd.value?.attached ? 'action:disconnect' : 'action:connect',
-              onClick: () => openVbdConnectionToggleModal(),
-              disabled: !canToggleVbdConnection.value,
-              busy: isTogglingVbdConnection.value,
             },
             {
               label: t('action:detach-vdi'),

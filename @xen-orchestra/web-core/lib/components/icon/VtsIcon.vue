@@ -1,10 +1,11 @@
 <template>
-  <UiLoader v-if="busy" />
+  <UiLoader v-if="busy" v-tooltip="busyTooltip ?? false" />
   <DisplayIcon v-else-if="icon" class="vts-icon" :class="className" :icon />
 </template>
 
 <script lang="ts" setup>
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { type IconName, icons } from '@core/icons'
 import { DisplayIcon } from '@core/packages/icon'
 import { toVariants } from '@core/utils/to-variants.util.ts'
@@ -16,6 +17,7 @@ const { size, name } = defineProps<{
   size: IconSize
   name: IconName | undefined
   busy?: boolean
+  busyTooltip?: string
 }>()
 
 const className = computed(() =>
