@@ -42,9 +42,9 @@
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('provisioning') }}</template>
-        <template #value>{{ provisioning }}</template>
+        <template #value>{{ allocationStrategy }}</template>
         <template #addons>
-          <VtsCopyButton :value="provisioning" />
+          <VtsCopyButton :value="allocationStrategy" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -92,7 +92,7 @@ const { srConnectionStatus, srStatusIcon } = useXoSrUtils(
 
 const isSrSharedI18nValue = computed(() => (sr.shared ? t('shared') : t('local')))
 
-const provisioning = computed(() => {
+const allocationStrategy = computed(() => {
   return sr.allocationStrategy ?? t('unknown')
 })
 

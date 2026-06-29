@@ -9,11 +9,11 @@
 </template>
 
 <script lang="ts" setup>
-import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import type { IconName } from '@core/icons'
 import type { FormOption, FormSelectId } from '@core/packages/form-select'
-import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
-import VtsSelect from '@core/components/select/VtsSelect.vue'
+import type { InputWrapperMessage } from '@xen-orchestra/web-core/components/input-wrapper/VtsInputWrapper.vue'
+import VtsInputWrapper from '@xen-orchestra/web-core/components/input-wrapper/VtsInputWrapper.vue'
+import VtsSelect from '@xen-orchestra/web-core/components/select/VtsSelect.vue'
 import { computed } from 'vue'
 
 export type VdiFormSelectOption = FormOption<{ icon?: IconName }>

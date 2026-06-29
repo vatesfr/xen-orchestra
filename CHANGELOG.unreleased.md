@@ -20,6 +20,9 @@
 - [XO6/VDI] Add the possibility to export VDI from detail screen of a VM (PR [#9983](https://github.com/vatesfr/xen-orchestra/pull/9983))
 - [SidePanels] Add and use new `VtsCardObjectTitle` component to display object title and ID in side panels (PR [#9755](https://github.com/vatesfr/xen-orchestra/pull/9755))
 - [i18n] Update Chinese (Simplified Han script), Czech, Dutch, German, Korean, Slovak, Spanish and Swedish translations (PR [#9998](https://github.com/vatesfr/xen-orchestra/pull/9998))
+- [REST API/RBAC] Add a built-in Storage administrator ACL role template to administer SRs, VDIs, VBDs, PBDs and backup repositories (PR [#9963](https://github.com/vatesfr/xen-orchestra/pull/9963))
+- [XO6/VM] add available actions on VMs tab (PR [#10030](https://github.com/vatesfr/xen-orchestra/pull/10030))
+- [XO6/VDI] add possibility to migrate VDI on SR (PR [#9973](https://github.com/vatesfr/xen-orchestra/pull/9973))
 
 ### Bug fixes
 
@@ -30,6 +33,11 @@
 - [V2V] Fix migration when template memory_static_min is it's less than actual vm memory (PR [#10014](https://github.com/vatesfr/xen-orchestra/pull/10014))
 - [XO6/Tree/Web-core] Infrastructure tree is now streamed and rendered as a single virtualized list, fix some performance issues on medium and big infrastructures (PR [#9986](https://github.com/vatesfr/xen-orchestra/pull/9986))
 - [xo-server] Fix memory leak on failed http query (XS update for example) (PR [#10026](https://github.com/vatesfr/xen-orchestra/pull/10026))
+- [Encryption] Improve missing xen-tools handling and logs (PR [#9987](https://github.com/vatesfr/xen-orchestra/pull/9987))
+- [XO-Server] Force stop when in dev mode (PR [#9994](https://github.com/vatesfr/xen-orchestra/pull/9994))
+- [XO-Server] Log a xo-server waiting for a soft stop in background (PR [#9994](https://github.com/vatesfr/xen-orchestra/pull/9994))
+- [Backup-repository] Properly unmount and cut connection on stop/disconnect/forget (PR [#9994](https://github.com/vatesfr/xen-orchestra/pull/9994))
+- [xo-proxy] Fix invalid parameters error message in listVmBackups (XS update for example) (PR [#10035](https://github.com/vatesfr/xen-orchestra/pull/10035))
 - [Web-core] Fix the required asterisk disappeared as soon as the dropdown was opened (PR [#10032](https://github.com/vatesfr/xen-orchestra/pull/10032))
 
 ### Packages to release
@@ -49,6 +57,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
+- @xen-orchestra/proxy patch
 - @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor

@@ -3,7 +3,7 @@
     <UiCardTitle>
       {{ t('cpu-usage') }}
       <template v-if="vmStatsCanBeExpired || hostStatsCanBeExpired" #info>
-        <UiSpinner v-tooltip="t('fetching-fresh-data')" />
+        <UiLoader v-tooltip="t('fetching-fresh-data')" />
       </template>
     </UiCardTitle>
     <HostsCpuUsage />
@@ -14,12 +14,12 @@
 <script lang="ts" setup>
 import HostsCpuUsage from '@/components/pool/dashboard/cpuUsage/HostsCpuUsage.vue'
 import VmsCpuUsage from '@/components/pool/dashboard/cpuUsage/VmsCpuUsage.vue'
-import UiSpinner from '@/components/ui/UiSpinner.vue'
 import type { Stat } from '@/composables/fetch-stats.composable'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import type { XapiHostStatsRaw, XapiVmStatsRaw } from '@vates/types/common'
 import { computed, type ComputedRef, inject } from 'vue'
