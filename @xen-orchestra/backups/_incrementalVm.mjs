@@ -46,6 +46,7 @@ async function updateNextMemoryField(xapi, memoryValues, vmRef) {
     ) {
       // no need to check that previousField.currentValue <= currentField.newValue, as we can deduce it
       await xapi.setField('VM', vmRef, orderedMemoryLimits[i], currentField.newValue)
+      await xapi.barrier()
       currentField.currentValue = currentField.newValue
       return true
     }

@@ -9,6 +9,7 @@ function mockXapiVm(initialMemoryValues) {
   const res = {
     ...initialMemoryValues,
     updates: [],
+    barrier: () => {},
     setField: (type, ref, field, value) => {
       assert(type === 'VM')
       assert(ref === MOCK_REF)
