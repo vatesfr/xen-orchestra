@@ -37,6 +37,7 @@
 - [XO-Server] Force stop when in dev mode (PR [#9994](https://github.com/vatesfr/xen-orchestra/pull/9994))
 - [XO-Server] Log a xo-server waiting for a soft stop in background (PR [#9994](https://github.com/vatesfr/xen-orchestra/pull/9994))
 - [Backup-repository] Properly unmount and cut connection on stop/disconnect/forget (PR [#9994](https://github.com/vatesfr/xen-orchestra/pull/9994))
+- [xo-proxy] Fix invalid parameters error message in listVmBackups (XS update for example) (PR [#10035](https://github.com/vatesfr/xen-orchestra/pull/10035))
 
 ### Packages to release
 
@@ -55,6 +56,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
+- @xen-orchestra/proxy patch
 - @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
