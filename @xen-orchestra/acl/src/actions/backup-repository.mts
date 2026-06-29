@@ -1,4 +1,5 @@
 export default {
+  benchmark: true,
   create: true,
   read: true,
   forget: true,

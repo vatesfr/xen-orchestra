@@ -312,6 +312,7 @@ export type XoApp = {
     backupRepositoryIds: XoBackupRepository['id'][],
     opts?: { _forceRefresh?: boolean; vmId: XoVm['id'] }
   ): Promise<Record<XoBackupRepository['id'], Record<XoVm['id'], XoVmBackupArchive[]>>>
+  pingRemote(id: XoBackupRepository['id']): Promise<{ success: true }>
   /** Allow to add a new server in the DB (XCP-ng/XenServer) */
   registerXenServer(
     body: Pick<XoServer, 'host' | 'httpProxy' | 'label' | 'username'> & {
@@ -327,6 +328,12 @@ export type XoApp = {
   removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>
   runJob(job: AnyXoJob, schedule: XoSchedule): void
   runWithApiContext: (user: XoUser | undefined, fn: () => void) => Promise<unknown>
+  testRemote(
+    id: XoBackupRepository['id']
+  ): Promise<
+    | { success: true; readRate: number; writeRate: number }
+    | { success: false; step: string; file: string; error: unknown }
+  >
   /** Remove a server from the DB (XCP-ng/XenServer) */
   unregisterXenServer(id: XoServer['id']): Promise<void>
   updateUser(

@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [REST API] Expose `GET /backup-repositories/:id/health` and `POST /backup-repositories/:id/actions/benchmark` routes (PR [#9847](https://github.com/vatesfr/xen-orchestra/pull/9847))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -30,5 +32,11 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @vates/types minor
+- @xen-orchestra/acl minor
+- @xen-orchestra/proxy minor
+- @xen-orchestra/rest-api minor
+- xo-server minor
 
 <!--packages-end-->

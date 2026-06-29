@@ -134,19 +134,19 @@ Actions are written using the exact string you pass in a privilege. A parent act
 
 ### XO management resources
 
-| Resource            | Available actions                                                                                          |
-| ------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `backup-job`        | `read`                                                                                                     |
-| `backup-archive`    | `read`                                                                                                     |
-| `backup-log`        | `read`                                                                                                     |
-| `backup-repository` | `create`, `read`,`forget`, `update:enabled`, `update:name`, `update:options`, `update:proxy`, `update:url` |
-| `schedule`          | `read`, `run`                                                                                              |
-| `restore-log`       | `read`                                                                                                     |
-| `proxy`             | `read`                                                                                                     |
-| `server`            | `read`, `create`, `delete`, `connect`, `disconnect`                                                        |
-| `task`              | `read`, `abort`, `delete`                                                                                  |
-| `alarm`             | `read`                                                                                                     |
-| `message`           | `read`                                                                                                     |
+| Resource            | Available actions                                                                                                        |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `backup-job`        | `read`                                                                                                                   |
+| `backup-archive`    | `read`                                                                                                                   |
+| `backup-log`        | `read`                                                                                                                   |
+| `backup-repository` | `benchmark`, `create`, `read`, `forget`, `update:enabled`, `update:name`, `update:options`, `update:proxy`, `update:url` |
+| `schedule`          | `read`, `run`                                                                                                            |
+| `restore-log`       | `read`                                                                                                                   |
+| `proxy`             | `read`                                                                                                                   |
+| `server`            | `read`, `create`, `delete`, `connect`, `disconnect`                                                                      |
+| `task`              | `read`, `abort`, `delete`                                                                                                |
+| `alarm`             | `read`                                                                                                                   |
+| `message`           | `read`                                                                                                                   |
 
 ### User management resources
 
