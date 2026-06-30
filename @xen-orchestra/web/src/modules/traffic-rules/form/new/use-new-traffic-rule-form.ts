@@ -3,6 +3,12 @@ import {
   useXoNetworkCollection,
 } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import type { TargetOption } from '@/modules/traffic-rules/form/target-option.type.ts'
+import {
+  networkToTargetOption,
+  vifToTargetOption,
+  vmToTargetOption,
+} from '@/modules/traffic-rules/form/target-option.util.ts'
 import {
   type BaseTrafficRuleFormData,
   useTrafficRuleFormBase,
@@ -10,11 +16,9 @@ import {
 import type { NewTrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { objectIcon } from '@core/icons'
 import { type FormValidationConfig, required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { TrafficRuleTargetType } from '@vates/types'
-import { toLower } from 'lodash-es'
 import { computed, type MaybeRefOrGetter, reactive, watch, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -22,13 +26,6 @@ export type NewTrafficRuleFormData = BaseTrafficRuleFormData & {
   targetType: TrafficRuleTargetType
   vmId: FrontXoVm['id'] | undefined
   targetId: FrontXoNetwork['id'] | FrontXoVif['id'] | undefined
-}
-
-type TargetOption = {
-  id: FrontXoVif['id'] | FrontXoNetwork['id']
-  label: string
-  value: FrontXoVif['id'] | FrontXoNetwork['id']
-  icon: 'object:network' | 'object:vif'
 }
 
 export function useNewTrafficRuleForm(
@@ -83,33 +80,15 @@ export function useNewTrafficRuleForm(
 
   const targetOptions = computed<TargetOption[]>(() =>
     isVifTarget.value
-      ? vmVifs.value.map(vif => ({
-          id: vif.id,
-          label: `${t('vif')}${vif.device}`,
-          value: vif.id,
-          icon: 'object:vif',
-        }))
-      : poolNetworks.value.map(network => ({
-          id: network.id,
-          label: network.name_label,
-          value: network.id,
-          icon: 'object:network',
-        }))
+      ? vmVifs.value.map(vif => vifToTargetOption(vif, `${t('vif')}${vif.device}`))
+      : poolNetworks.value.map(network => networkToTargetOption(network))
   )
 
-  const vmOptions = computed(() =>
-    poolVms.value.map(vm => {
-      const hasVifs = vm.VIFs.length > 0
+  const vmOptions = computed(() => poolVms.value.map(vm => {
+    const hasVifs = vm.VIFs.length > 0
 
-      return {
-        id: vm.id,
-        label: vm.name_label,
-        value: vm.id,
-        icon: objectIcon('vm', toLower(vm.power_state)),
-        disabled: !hasVifs,
-      }
-    })
-  )
+    return vmToTargetOption(vm, hasVifs)
+  }))
 
   const targetTypeOptions = [
     { id: 'network', label: t('network'), value: 'network' },
