@@ -759,3 +759,59 @@ test('it preserves VDI directory when handler.list() throws during lineage init'
   const remaining = await handler.list(basePath)
   assert.ok(remaining.includes('snapshot.vhd'), 'VHD must survive when handler.list() throws during lineage init')
 })
+
+test('it resumes an interrupted merge when the parent VHD has a missing footer', async () => {
+  // regression: truncated footer on merge parent caused propagateBroken to flag the active
+  // child as broken => backup incorrectly seen as incomplete => metadata deleted on next clean
+
+  await handler.writeFile(
+    `${rootPath}/metadata.json`,
+    JSON.stringify({ mode: 'delta', vhds: [`${relativePath}/child.vhd`] })
+  )
+
+  const parent = await generateVhd(`${basePath}/parent.vhd`, { blocks: [0, 1] })
+  await generateVhd(`${basePath}/child.vhd`, {
+    header: { parentUnicodeName: 'parent.vhd', parentUuid: parent.footer.uuid },
+    blocks: [2, 3],
+  })
+
+  // Simulate interrupted merge: truncate the footer (last 512 bytes) of parent.vhd
+  const parentFsPath = `${tempDir}/${basePath}/parent.vhd`
+  const { size } = await fs.stat(parentFsPath)
+  await fs.truncate(parentFsPath, size - 512)
+
+  await handler.writeFile(
+    `${basePath}/.parent.vhd.merge.json`,
+    JSON.stringify({
+      parent: { uuid: '0' },
+      child: { uuid: '0' },
+      chain: ['parent.vhd', 'child.vhd'],
+      currentBlock: 0,
+      mergedDataSize: 0,
+      step: 'mergeBlocks',
+      diskSize: 0,
+    })
+  )
+
+  const warnings = []
+  await VmBackupDirectory.cleanVm(handler, rootPath, {
+    remove: true,
+    merge: true,
+    logWarn: (msg, data) => warnings.push({ msg, data }),
+    logInfo: () => {},
+  })
+
+  assert.ok(!warnings.some(w => w.msg === 'failed to open disk'))
+  assert.ok(!warnings.some(w => w.msg === 'disk broken: parent missing or broken'))
+
+  // metadata must survive, backup is valid, not incorrectly flagged as incomplete
+  assert.ok(
+    (await handler.list(rootPath)).includes('metadata.json'),
+    'metadata.json must not be deleted for a valid backup'
+  )
+
+  const files = await handler.list(basePath)
+  assert.ok(files.includes('child.vhd'), 'child.vhd must survive as merge target')
+  assert.ok(!files.includes('parent.vhd'), 'parent.vhd must be removed after merge')
+  assert.ok(!files.some(f => f.endsWith('.merge.json')), 'merge state file must be removed after successful resume')
+})
