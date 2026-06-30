@@ -607,7 +607,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example body { "bypassBackupCheck": false, "bypassEvacuate": false }
    */
   @Example(taskLocation)
-  @Extension('x-mcp-exposure', 'confirm')
+  @Extension('x-mcp-exposure', 'deny')
   @Post('{id}/actions/clean_shutdown')
   @Middlewares([json(), acl({ resource: 'host', action: 'shutdown:clean', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
@@ -658,7 +658,7 @@ export class HostController extends XapiXoController<XoHost> {
    * }
    */
   @Example(taskLocation)
-  @Extension('x-mcp-exposure', 'confirm')
+  @Extension('x-mcp-exposure', 'deny')
   @Post('{id}/actions/clean_reboot')
   @Middlewares([json(), acl({ resource: 'host', action: 'reboot:clean', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
@@ -717,7 +717,7 @@ export class HostController extends XapiXoController<XoHost> {
    * }
    */
   @Example(taskLocation)
-  @Extension('x-mcp-exposure', 'confirm')
+  @Extension('x-mcp-exposure', 'deny')
   @Post('{id}/actions/smart_reboot')
   @Middlewares([json(), acl({ resource: 'host', action: 'reboot:smart', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
@@ -819,7 +819,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(taskLocation)
-  @Extension('x-mcp-exposure', 'confirm')
+  @Extension('x-mcp-exposure', 'deny')
   @Post('{id}/actions/emergency_shutdown')
   @Middlewares(acl({ resource: 'host', action: 'shutdown:emergency', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
@@ -852,7 +852,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(taskLocation)
-  @Extension('x-mcp-exposure', 'confirm')
+  @Extension('x-mcp-exposure', 'deny')
   @Post('{id}/actions/detach')
   @Middlewares(acl({ resource: 'host', action: 'detach', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
@@ -885,7 +885,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
   @Example(taskLocation)
-  @Extension('x-mcp-exposure', 'confirm')
+  @Extension('x-mcp-exposure', 'deny')
   @Post('{id}/actions/forget')
   @Middlewares(acl({ resource: 'host', action: 'forget', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
