@@ -12,6 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [REST API] Expose `GET /backup-repositories/:id/health` and `POST /backup-repositories/:id/actions/benchmark` routes (PR [#9847](https://github.com/vatesfr/xen-orchestra/pull/9847))
+- [sdn-controller] Add `POST /rest/v0/plugins/sdn-controller/networks/:id/actions/update_traffic_rule` and `POST /rest/v0/plugins/sdn-controller/vifs/:id/actions/update_traffic_rule` (PR [#9936](https://github.com/vatesfr/xen-orchestra/pull/9936))
 - [REST API] Added start, clean_shutdown, clean_reboot, smart_reboot, restart_toolstack, emergency_shutdown, detach and forget REST action route for hosts (PR [#9887](https://github.com/vatesfr/xen-orchestra/pull/9887))
 
 ### Bug fixes
@@ -35,12 +36,13 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
 - @vates/types minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/proxy minor
 - @xen-orchestra/rest-api minor
 - xo-server minor
+- xo-server-sdn-controller minor
+
 
 <!--packages-end-->
