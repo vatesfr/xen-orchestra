@@ -128,7 +128,7 @@ export class XoaService {
             }
             if (used !== undefined) {
               otherBrSize.size.used = (otherBrSize.size.used ?? 0) + used
-              otherBrSize.size.other = (otherBrSize.size.other ?? 0) + (used - totalBackupSize.onDisk)
+              otherBrSize.size.other = (otherBrSize.size.other ?? 0) + Math.max(0, used - totalBackupSize.onDisk)
             }
             if (size !== undefined) {
               otherBrSize.size.total = (otherBrSize.size.total ?? 0) + size
