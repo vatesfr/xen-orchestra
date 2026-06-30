@@ -236,17 +236,17 @@ To access advanced options:
 
 ##### Enabling Passkeys in XOA with Keycloak
 
-###### Certficate generation
+###### Generating certificates
 
 To support passkeys in XOA, the Keycloak server must expose its OIDC endpoints over HTTPS.  
 The TLS certificates used by Keycloak must satisfy the following conditions:
 
-- **Common Name (CN)** : The CN of the certificate has to match the DNS name that clients will use to reach Keycloak
-- **SubjectAltName (SAN)** : The certificate must contain a SAN entry with the same DNS name
-- **Certificate chain** : The certificate must be issued by a trusted CA. The `auth‑oidc` plugin does not accept self‑signed certificates that lack a proper chain of trust.
+- **Common Name (CN)**: The CN of the certificate has to match the DNS name that clients will use to reach Keycloak.
+- **SubjectAltName (SAN)**: The certificate must contain a SAN entry with the same DNS name.
+- **Certificate chain**: The certificate must be issued by a trusted CA. The `auth‑oidc` plugin does not accept self‑signed certificates that lack a proper chain of trust.
 
 :::info
-The TLS certificate must match the domain that will be used as the _Relying Party ID_ (RP ID). The RP ID cannot be an IP address; it must be a DNS‑name that appears in the certificate’s CN or SAN.
+The TLS certificate must match the domain that will be used as the _Relying Party ID_ (RP ID). The RP ID cannot be an IP address; it must be the DNS‑name that appears in the certificate’s CN or SAN.
 :::
 
 Here is a certificate that meets these requirements:
@@ -292,13 +292,13 @@ WantedBy=multi-user.target
 
 ###### Configuring Keycloak
 
-1. Select your realm
+1. Select your realm.
   - Open **Admin console → Manage realms** and choose the realm you use with XOA.
-2. Enable required actions
-  - Go to Authentication **→** Required Actions.
+2. Enable required actions.
+  - Go to **Authentication → Required Actions**.
   - Check **Webauthn Register** and **Webauthn Register Passwordless**.
-3. Choose the WebAuthn authenticator
-  - In Authentication **→** Flows, edit the login flow you use (e.g., browser).
+3. Choose the WebAuthn authenticator.
+  - In **Authentication → Flows**, edit the login flow you use (e.g., browser).
   - Add **WebAuthn Authenticator** as an **Alternative** (or replace the current authenticator with it).
 
 ![Keycloak Browser Flow Details](../assets/keycloak-browser-flow.png)
@@ -309,7 +309,7 @@ WantedBy=multi-user.target
 
 These settings allow users to register and log in with FIDO2 (passkeys) while keeping a password + Yubikey MFA option.
 
-###### Enjoy
+###### Sample
 
 1. Initiate the OIDC authentication request from the XOA client to Keycloak.
 
