@@ -1,21 +1,17 @@
 <template>
   <UiCard class="card-container">
-    <VtsCardObjectTitle :id="task.id" :label="task.properties.name" icon="fa:bars-progress" />
-    <UiCardTitle>
+    <UiCardTitle v-if="nameParts !== undefined || task.properties.name !== undefined" class="text-ellipsis">
       <div v-if="nameParts" class="title">
         <VtsIcon name="fa:bars-progress" size="medium" />
         <template v-for="(part, index) in nameParts" :key="index">
           <UiLink size="small" :to="part.to">{{ part.text }}</UiLink>
         </template>
       </div>
-      <UiLink v-else-if="task.properties.name !== undefined" size="small" icon="fa:bars-progress">
+      <UiLink v-else size="small" icon="fa:bars-progress">
         {{ task.properties.name }}
       </UiLink>
-      <template v-else>
-        <VtsIcon name="fa:bars-progress" size="medium" />
-        {{ task.id }}
-      </template>
     </UiCardTitle>
+    <VtsCardObjectTitle :id="task.id" />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('task-type') }}</template>
@@ -139,6 +135,7 @@ const formattedEndDate = computed(() => {
   gap: 1.6rem;
   .title {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.8rem;
     align-items: center;
   }
