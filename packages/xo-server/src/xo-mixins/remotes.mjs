@@ -126,21 +126,33 @@ export default class {
     return handler
   }
 
+  async pingRemote(remoteId) {
+    const remote = await this.getRemoteWithCredentials(remoteId)
+
+    remote.proxy !== undefined
+      ? await this._app.callProxyMethod(remote.proxy, 'remote.ping', {
+          remote,
+        })
+      : await this.getRemoteHandler(remoteId)
+
+    return { success: true }
+  }
+
   async testRemote(remoteId) {
     const remote = await this.getRemoteWithCredentials(remoteId)
 
-    const { readRate, writeRate, ...answer } =
+    const result =
       remote.proxy !== undefined
         ? await this._app.callProxyMethod(remote.proxy, 'remote.test', {
             remote,
           })
         : await this.getRemoteHandler(remoteId).then(handler => handler.test())
 
-    if (answer.success) {
+    if (result.success) {
       const benchmark = {
-        readRate,
+        readRate: result.readRate,
         timestamp: Date.now(),
-        writeRate,
+        writeRate: result.writeRate,
       }
       await this._updateRemote(remoteId, {
         error: null,
@@ -151,11 +163,11 @@ export default class {
       })
     } else {
       await this._updateRemote(remoteId, {
-        error: answer.error,
+        error: result.error,
       })
     }
 
-    return answer
+    return result
   }
 
   async getAllRemotesInfo() {

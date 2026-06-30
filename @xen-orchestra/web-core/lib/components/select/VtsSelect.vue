@@ -24,6 +24,7 @@
               :placeholder="searchPlaceholder"
               right-icon="fa:magnifying-glass"
               accent="brand"
+              detached
             />
           </div>
         </template>

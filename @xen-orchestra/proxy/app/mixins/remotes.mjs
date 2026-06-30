@@ -20,6 +20,15 @@ export default class Remotes {
           },
         ],
 
+        ping: [
+          ({ remote }) => Disposable.use(this.getHandler(remote), () => ({ success: true })),
+          {
+            params: {
+              remote: { type: 'object' },
+            },
+          },
+        ],
+
         test: [
           ({ remote }) =>
             Disposable.use(this.getHandler(remote), handler => handler.test()).catch(error => ({
