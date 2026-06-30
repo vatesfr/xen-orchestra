@@ -18,11 +18,9 @@ export function useProgress(
   const percentageCap = computed(() => Math.max(100, Math.ceil(percentage.value / 100) * 100))
 
   const fillWidth = computed(() => {
-    if (noRuler.value) {
-      return `${Math.min(percentage.value, 100)}%`
-    }
+    const max = noRuler.value ? 100 : percentageCap.value
 
-    return `${(percentage.value / percentageCap.value) * 100}%`
+    return `${(Math.min(percentage.value, max) / max) * 100}%`
   })
 
   return {

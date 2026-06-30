@@ -1,7 +1,7 @@
 <template>
   <UiTableCell>
     <div class="container">
-      <VtsProgressBar :current :total noruler class="progress" />
+      <VtsProgressBar :current :total no-ruler class="progress" />
       <span>{{ n(percentage / 100, { maximumFractionDigits: 0, style: 'percent' }) }}</span>
     </div>
   </UiTableCell>
@@ -22,8 +22,7 @@ const { n } = useI18n()
 
 const { percentage } = useProgress(
   () => current,
-  () => total,
-  true
+  () => total
 )
 </script>
 
