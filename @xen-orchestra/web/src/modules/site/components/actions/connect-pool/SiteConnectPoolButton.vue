@@ -1,0 +1,16 @@
+<template>
+  <MenuItem icon="fa:plus" @click="goToConnectPool()">
+    {{ t('action:connect-pool') }}
+  </MenuItem>
+</template>
+
+<script lang="ts" setup>
+import MenuItem from '@core/components/menu/MenuItem.vue'
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+
+const { t } = useI18n()
+const router = useRouter()
+
+const goToConnectPool = () => router.push({ name: '/pool/connect' })
+</script>
