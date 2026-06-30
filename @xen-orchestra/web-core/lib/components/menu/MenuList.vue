@@ -16,10 +16,15 @@
 
 <script lang="ts" setup>
 import { useDisabled } from '@core/composables/disabled.composable'
-import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL, IK_MENU_TELEPORTED } from '@core/utils/injection-keys.util'
+import {
+  IK_CLOSE_MENU,
+  IK_MENU_HORIZONTAL,
+  IK_MENU_IGNORED_ELEMENTS,
+  IK_MENU_TELEPORTED,
+} from '@core/utils/injection-keys.util'
 import { onClickOutside, unrefElement, whenever } from '@vueuse/core'
 import placementJs, { type Options } from 'placement.js'
-import { computed, inject, nextTick, provide, ref, useSlots } from 'vue'
+import { computed, inject, nextTick, provide, ref, useSlots, watch } from 'vue'
 
 defineOptions({
   inheritAttrs: false,
@@ -34,7 +39,8 @@ const props = defineProps<{
 
 const slots = useSlots()
 const isOpen = ref(false)
-const menu = ref()
+const menu = ref<HTMLElement>()
+const ignoredElements = ref<HTMLElement[]>([])
 const isParentHorizontal = inject(
   IK_MENU_HORIZONTAL,
   computed(() => false)
@@ -52,6 +58,25 @@ const hasTrigger = useSlots().trigger !== undefined
 
 if (hasTrigger) {
   provide(IK_MENU_TELEPORTED, true)
+  provide(IK_MENU_IGNORED_ELEMENTS, ignoredElements)
+
+  const parentIgnoredElements = inject(IK_MENU_IGNORED_ELEMENTS, undefined)
+
+  if (parentIgnoredElements !== undefined) {
+    watch([isOpen, menu], ([isMenuOpen, menuElement]) => {
+      if (!menuElement) {
+        return
+      }
+
+      if (isMenuOpen) {
+        parentIgnoredElements.value.push(menuElement)
+      } else {
+        parentIgnoredElements.value = parentIgnoredElements.value.filter(
+          existingElement => existingElement !== menuElement
+        )
+      }
+    })
+  }
 }
 
 whenever(
@@ -68,14 +93,15 @@ const open = (event: MouseEvent) => {
   }
 
   isOpen.value = true
+  const trigger = event.currentTarget as HTMLElement
 
   nextTick(() => {
     clearClickOutsideEvent = onClickOutside(menu, () => (isOpen.value = false), {
-      ignore: [event.currentTarget as HTMLElement],
+      ignore: () => [trigger, ...ignoredElements.value],
       controls: false,
     })
 
-    placementJs(event.currentTarget as HTMLElement, unrefElement(menu), {
+    placementJs(event.currentTarget as HTMLElement, unrefElement(menu)!, {
       placement: props.placement ?? (isParentHorizontal.value ? 'bottom-start' : 'right-start'),
     })
   })
