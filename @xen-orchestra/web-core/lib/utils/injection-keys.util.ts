@@ -19,6 +19,8 @@ export const IK_CLOSE_MENU = Symbol('IK_CLOSE_MENU') as InjectionKey<() => void>
 
 export const IK_MENU_TELEPORTED = Symbol('IK_MENU_TELEPORTED') as InjectionKey<boolean>
 
+export const IK_MENU_IGNORED_ELEMENTS = Symbol('IK_MENU_IGNORED_ELEMENTS') as InjectionKey<Ref<HTMLElement[]>>
+
 export const IK_DISABLED = Symbol('IK_DISABLED') as InjectionKey<ComputedRef<boolean>>
 
 export const IK_INPUT_WRAPPER_CONTROLLER = Symbol('IK_INPUT_WRAPPER_CONTROLLER') as InjectionKey<InputWrapperController>
