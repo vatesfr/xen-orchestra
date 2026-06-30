@@ -19,6 +19,8 @@
 - [REST API] `PATCH /rest/v0/vdis/{id}` to update a VDI's name, description and size (PR [#9945](https://github.com/vatesfr/xen-orchestra/pull/9945))
 - [Pool] XO now reconnects to a surviving pool member when the master becomes unreachable (e.g. HA promoted a new master after the old one died), instead of staying stuck on the dead master, including after an XO restart (PR [#10016](https://github.com/vatesfr/xen-orchestra/pull/10016))
 - [XO6/VIF] Add possibility to create VIF from network tab in VM page (PR [#9677](https://github.com/vatesfr/xen-orchestra/pull/9677))
+- [vm stats] Reduce the memory consumption of the rrd stats (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+- [XO6/Site] Add "Create new VM" and "Connect pool" actions to the site infrastructure tree (PR [#10047](https://github.com/vatesfr/xen-orchestra/pull/10047))
 
 ### Bug fixes
 
@@ -45,6 +47,7 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/backup-archive patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
