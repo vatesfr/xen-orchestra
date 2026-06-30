@@ -33,12 +33,11 @@ async function _openDiskChain($defer, { handler, path, until, force = false }) {
   disks.push(disk)
   let foundRootDisk = until === undefined
   while (disk.isDifferencing()) {
-    disk = await disk.openParent()
-    if (disk.getPath() === until) {
+    if (disk.getParentPath() === until) {
       foundRootDisk = true
-      await disk.close()
       break
     }
+    disk = await disk.openParent()
     disks.unshift(disk)
   }
   if (!foundRootDisk) {
