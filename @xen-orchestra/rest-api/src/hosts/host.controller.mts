@@ -16,12 +16,13 @@ import {
   SuccessResponse,
   Tags,
 } from 'tsoa'
+import { HOST_POWER_STATE } from '@vates/types'
 import { asyncEach } from '@vates/async-each'
 import { type Defer, defer } from 'golike-defer'
 import { json } from 'express'
 import type { Request as ExRequest, Response as ExResponse } from 'express'
 import { inject } from 'inversify'
-import { invalidParameters } from 'xo-common/api-errors.js'
+import { forbiddenOperation, invalidParameters } from 'xo-common/api-errors.js'
 import { pipeline } from 'node:stream/promises'
 import { provide } from 'inversify-binding-decorators'
 import type {
@@ -880,7 +881,7 @@ export class HostController extends XapiXoController<XoHost> {
    * Required privilege:
    * - resource: host, action: forget
    *
-   * Forgets a host.
+   * Forgets a host, host must not be running.
    *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
@@ -896,6 +897,10 @@ export class HostController extends XapiXoController<XoHost> {
   forgetHost(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const hostId = id as XoHost['id']
     const action = async () => {
+      const host = this.getObject(hostId)
+      if (host.power_state === HOST_POWER_STATE.RUNNING) {
+        throw forbiddenOperation('forget host', 'Host must not be running')
+      }
       await this.getXapiObject(hostId).$xapi.forgetHost(hostId)
     }
 
