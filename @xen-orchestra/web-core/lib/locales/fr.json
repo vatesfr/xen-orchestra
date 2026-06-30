@@ -38,6 +38,7 @@
   "action:create-internal-network": "Créer un réseau interne",
   "action:create-network": "Créer un réseau",
   "action:create-traffic-rule": "Créer une règle de trafic",
+  "action:create-new-vm": "Créer une VM",
   "action:create-vdi": "Créer un VDI",
   "action:delete": "Supprimer",
   "action:delete-filter": "Supprimer le filtre",
