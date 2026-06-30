@@ -2,9 +2,14 @@
   <UiHeadBar icon="fa:satellite">
     {{ XOA_NAME }}
     <template #actions>
-      <UiLink :to="{ name: '/pool/connect' }" size="medium" icon="fa:plus">
-        {{ t('action:connect-pool') }}
+      <UiLink :to="{ name: '/vm/new' }" size="medium" icon="fa:plus">
+        {{ t('new-vm') }}
       </UiLink>
+      <VtsActionsMenu>
+        <MenuItem icon="action:attach" :on-click="() => router.push({ name: '/pool/connect' })">
+          {{ t('action:connect-pool') }}
+        </MenuItem>
+      </VtsActionsMenu>
     </template>
   </UiHeadBar>
   <TabList>
@@ -37,11 +42,15 @@
 
 <script lang="ts" setup>
 import { XOA_NAME } from '@/shared/constants.ts'
+import MenuItem from '@core/components/menu/MenuItem.vue'
+import VtsActionsMenu from '@core/components/menu/VtsActionsMenu.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 
 const { t } = useI18n()
+const router = useRouter()
 </script>
