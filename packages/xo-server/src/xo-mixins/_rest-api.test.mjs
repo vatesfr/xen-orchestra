@@ -658,7 +658,10 @@ describe('RestApi', () => {
         const response = await get(port, '/param-validation/baz')
         assert.equal(response.status, 422)
       })
-
+      it('rejects object in route param', async () => {
+        const response = await get(port, '/param-validation/{type}')
+        assert.equal(response.status, 422)
+      })
       it('accepts valid required query param', async () => {
         const response = await get(port, '/query-required-validation?name=hello')
         assert.equal(response.status, 200)
@@ -690,6 +693,124 @@ describe('RestApi', () => {
       it('rejects missing required body field', async () => {
         const response = await post(port, '/body-validation', { body: {} })
         assert.equal(response.status, 422)
+      })
+
+      describe('object type', () => {
+        before(() => {
+          restApi.registerRestRoutes(
+            [
+              {
+                endpoint: '/body-object-validation',
+                method: 'post',
+                middlewares: [{ name: 'json' }],
+                body: {
+                  meta: {
+                    type: 'object',
+                    fields: {
+                      key: { type: 'string' },
+                      count: { type: 'number' },
+                    },
+                  },
+                },
+                callback: ({ req }) => ({ meta: req.body.meta }),
+              },
+            ],
+            ''
+          )
+        })
+
+        it('accepts valid nested object in body', async () => {
+          const response = await post(port, '/body-object-validation', { body: { meta: { key: 'hello', count: 42 } } })
+          assert.equal(response.status, 200)
+          assert.deepEqual(await response.json(), { meta: { key: 'hello', count: 42 } })
+        })
+
+        it('rejects invalid type for nested field in body', async () => {
+          const response = await post(port, '/body-object-validation', { body: { meta: { key: 123, count: 42 } } })
+          assert.equal(response.status, 422)
+        })
+
+        it('rejects missing required nested field in body', async () => {
+          const response = await post(port, '/body-object-validation', { body: { meta: { key: 'hello' } } })
+          assert.equal(response.status, 422)
+        })
+
+        it('rejects missing required object field in body', async () => {
+          const response = await post(port, '/body-object-validation', { body: {} })
+          assert.equal(response.status, 422)
+        })
+
+        it('accepts optional object field absent from body', async () => {
+          const unregister = restApi.registerRestRoutes(
+            [
+              {
+                endpoint: '/body-optional-object-test',
+                method: 'post',
+                middlewares: [{ name: 'json' }],
+                body: {
+                  meta: {
+                    type: 'object',
+                    fields: { key: { type: 'string' } },
+                    optional: true,
+                  },
+                },
+                callback: ({ req }) => ({ hasBody: req.body.meta !== undefined }),
+              },
+            ],
+            '/'
+          )
+          try {
+            const response = await post(port, '/body-optional-object-test', { body: {} })
+            assert.equal(response.status, 200)
+            assert.deepEqual(await response.json(), { hasBody: false })
+          } finally {
+            unregister()
+          }
+        })
+
+        it('rejects object type in route params at runtime', async () => {
+          const unregister = restApi.registerRestRoutes(
+            [
+              {
+                endpoint: '/runtime-param-object-test/{data}',
+                method: 'get',
+                params: {
+                  data: { type: 'object', fields: { key: { type: 'string' } } },
+                },
+                callback: ({ req }) => ({ data: req.params.data }),
+              },
+            ],
+            '/'
+          )
+          try {
+            const response = await get(port, '/runtime-param-object-test/hello')
+            assert.equal(response.status, 422)
+          } finally {
+            unregister()
+          }
+        })
+
+        it('rejects object type in query params at runtime', async () => {
+          const unregister = restApi.registerRestRoutes(
+            [
+              {
+                endpoint: '/runtime-query-object-test',
+                method: 'get',
+                query: {
+                  data: { type: 'object', fields: { key: { type: 'string' } } },
+                },
+                callback: ({ req }) => ({ data: req.query.data }),
+              },
+            ],
+            '/'
+          )
+          try {
+            const response = await get(port, '/runtime-query-object-test?data=hello')
+            assert.equal(response.status, 422)
+          } finally {
+            unregister()
+          }
+        })
       })
     })
 
@@ -1225,6 +1346,41 @@ describe('RestApi', () => {
         const pathEntry = spec.paths['/swagger-custom-responses']
         assert.ok(pathEntry !== undefined)
         assert.equal(pathEntry.get.responses['200'].description, 'A custom OK')
+      })
+
+      it('object field in response schema appears in swagger spec with nested properties', async () => {
+        restApi.registerRestRoutes(
+          [
+            {
+              endpoint: '/swagger-response-object',
+              method: 'get',
+              responses: [
+                {
+                  status: 200,
+                  description: 'A response with a nested object',
+                  schema: {
+                    data: {
+                      type: 'object',
+                      fields: {
+                        id: { type: 'string' },
+                        count: { type: 'number' },
+                      },
+                    },
+                  },
+                },
+              ],
+              callback: () => ({}),
+            },
+          ],
+          '/'
+        )
+        const spec = await (await fetchSwagger(port)).json()
+        const pathEntry = spec.paths['/swagger-response-object']
+        assert.ok(pathEntry !== undefined)
+        const responseSchema = pathEntry.get.responses['200'].content?.['application/json']?.schema
+        assert.equal(responseSchema?.properties?.data?.type, 'object')
+        assert.ok(responseSchema?.properties?.data?.properties?.id !== undefined)
+        assert.ok(responseSchema?.properties?.data?.properties?.count !== undefined)
       })
     })
   })
