@@ -22,7 +22,7 @@ import { type Defer, defer } from 'golike-defer'
 import { json } from 'express'
 import type { Request as ExRequest, Response as ExResponse } from 'express'
 import { inject } from 'inversify'
-import { forbiddenOperation, invalidParameters } from 'xo-common/api-errors.js'
+import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
 import { pipeline } from 'node:stream/promises'
 import { provide } from 'inversify-binding-decorators'
 import type {
@@ -61,6 +61,7 @@ import {
   forbiddenOperationResp,
   internalServerErrorResp,
   invalidParameters as invalidParametersResp,
+  incorrectStateResp,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
@@ -893,13 +894,19 @@ export class HostController extends XapiXoController<XoHost> {
   @Response(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   forgetHost(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const hostId = id as XoHost['id']
     const action = async () => {
       const host = this.getObject(hostId)
       if (host.power_state === HOST_POWER_STATE.RUNNING) {
-        throw forbiddenOperation('forget host', 'Host must not be running')
+        throw incorrectState({
+            actual: host.power_state,
+            expected: HOST_POWER_STATE.HALTED,
+            object: host.id,
+            property: 'power_state',
+          })
       }
       await this.getXapiObject(hostId).$xapi.forgetHost(hostId)
     }
