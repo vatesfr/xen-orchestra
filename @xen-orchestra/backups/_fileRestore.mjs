@@ -322,17 +322,23 @@ export const fileRestoreMethods = {
   },
 
   async *getDisk(diskId) {
-    if (this._useGetDiskLegacy) {
-      yield* getDiskLegacy(this._handler, diskId)
-      return
+    try {
+      if (this._useGetDiskLegacy) {
+        yield* getDiskLegacy(this._handler, diskId)
+        return
+      }
+      const handler = this._handler
+      // this is a disposable
+      const mountDir = yield getTmpDir()
+      // this is also a disposable
+      yield mount(handler, diskId, mountDir)
+      // this will yield disk path to caller
+      yield `${mountDir}/vhd0`
+    } finally {
+      // Disposable.factory disposes by calling gen.return(), which runs this finally before
+      // the mount/tmpdir disposers — i.e. exactly as the disk is unmounted.
+      this._partitionsCache.delete(diskId)
     }
-    const handler = this._handler
-    // this is a disposable
-    const mountDir = yield getTmpDir()
-    // this is also a disposable
-    yield mount(handler, diskId, mountDir)
-    // this will yield disk path to caller
-    yield `${mountDir}/vhd0`
   },
 
   // partitionId values:
@@ -388,7 +394,13 @@ export const fileRestoreMethods = {
   },
 
   listPartitions(diskId) {
-    return Disposable.use(this.getDisk(diskId), async devicePath => {
+    const cache = this._partitionsCache
+    const cached = cache.get(diskId)
+    if (cached !== undefined) {
+      return cached
+    }
+
+    const pPartitions = Disposable.use(this.getDisk(diskId), async devicePath => {
       // partx may return empty on FUSE-backed files (vhd0); a loop device
       // presents proper block-device semantics that partx reads reliably.
       // losetup may itself fail if the FUSE mount isn't fully ready yet —
@@ -446,6 +458,16 @@ export const fileRestoreMethods = {
       })
       return results
     })
+
+    // The entry is evicted on disk unmount (see getDisk)
+    // a failed probe is not cached so the next call retries.
+    cache.set(diskId, pPartitions)
+    pPartitions.catch(() => {
+      if (cache.get(diskId) === pPartitions) {
+        cache.delete(diskId)
+      }
+    })
+    return pPartitions
   },
 }
 
