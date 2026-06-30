@@ -6,22 +6,32 @@
       <UiTitle>
         {{ t('general-information') }}
       </UiTitle>
+
+      <EditTrafficRuleForm :rule />
     </template>
 
     <template #buttons>
-      <!--      <VtsDrawerCancelButton /> -->
-      <!--      <VtsDrawerConfirmButton :on-click="handleConfirm"> -->
-      <!--        {{ t('action:export-vdi') }} -->
-      <!--      </VtsDrawerConfirmButton> -->
+      <VtsDrawerCancelButton />
+      <VtsDrawerConfirmButton>
+        {{ t('action:update-traffic-rule') }}
+      </VtsDrawerConfirmButton>
     </template>
   </VtsDrawer>
 </template>
 
 <script setup lang="ts">
+import EditTrafficRuleForm from '@/modules/traffic-rules/components/form/edit/EditTrafficRuleForm.vue'
 import type { VdiExportFormat } from '@/shared/constants.ts'
 import VtsDrawer from '@core/components/drawer/VtsDrawer.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import type { TrafficRule } from '@vates/types'
+import VtsDrawerCancelButton from '@xen-orchestra/web-core/components/drawer/VtsDrawerCancelButton.vue'
+import VtsDrawerConfirmButton from '@xen-orchestra/web-core/components/drawer/VtsDrawerConfirmButton.vue'
 import { useI18n } from 'vue-i18n'
+
+defineProps<{
+  rule: TrafficRule
+}>()
 
 const emit = defineEmits<{
   cancel: []

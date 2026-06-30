@@ -1,15 +1,15 @@
 import type { NewTrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
-import { payloadsArg } from '@/modules/traffic-rules/jobs/xo-traffic-rule-update-args.ts'
+import { payloadsArg } from '@/modules/traffic-rules/jobs/xo-traffic-rule-edit-args.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
-import { type TrafficRule } from '@vates/types'
+import type { TrafficRule } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-export type UpdateTrafficRulePayload = {
+export type EditTrafficRulePayload = {
   oldRule: TrafficRule
   newRule: NewTrafficRulePayload
 }
 
-export const useXoTrafficRuleUpdateJob = defineJob('traffic-rule.edit', [payloadsArg], () => {
+export const useXoTrafficRuleEditJob = defineJob('traffic-rule.edit', [payloadsArg], () => {
   // const { monitorTask } = useXoTaskUtils()
   const { t } = useI18n()
 

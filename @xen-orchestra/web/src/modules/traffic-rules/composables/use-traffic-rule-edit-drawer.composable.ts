@@ -3,15 +3,17 @@ import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { TrafficRule } from '@vates/types'
 import { type MaybeRefOrGetter } from 'vue'
 
-export function useTrafficRulesUpdateDrawer(rawTrafficRule: MaybeRefOrGetter<TrafficRule>) {
+export function useTrafficRulesEditDrawer(rawTrafficRule: MaybeRefOrGetter<TrafficRule>) {
   const trafficRule = toComputed(rawTrafficRule)
 
-  // const { run, isRunning } = useXoTrafficRuleUpdateJob(trafficRule)
+  // const { run, isRunning } = useTrafficRuleEditJob(trafficRule)
 
   const openDrawer = useDrawer(() => ({
-    component: import('@/modules/traffic-rules/components/drawer/TrafficRulesUpdateDrawer.vue'),
+    component: import('@/modules/traffic-rules/components/drawer/TrafficRulesEditDrawer.vue'),
+    props: {
+      rule: trafficRule.value,
+    },
     onConfirm: async () => {
-      console.log(trafficRule)
       // try {
       //   await run()
       // } catch (error) {
