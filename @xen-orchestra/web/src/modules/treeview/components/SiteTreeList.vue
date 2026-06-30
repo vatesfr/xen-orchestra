@@ -29,7 +29,7 @@ defineProps<{
 const scroller = useTemplateRef<RecycleScrollerInstance>('scroller')
 
 defineExpose({
-  scrollToItem: (index: number) => scroller.value?.scrollToItem(index, { smooth: true }),
+  scrollToItem: (index: number) => scroller.value?.scrollToItem(index, { smooth: true, align: 'center' }),
 })
 </script>
 
