@@ -31,12 +31,4 @@
 
 <!--packages-start-->
 
-- @vates/types minor
-- @xen-orchestra/acl minor
-- @xen-orchestra/backups patch
-- @xen-orchestra/proxy minor
-- @xen-orchestra/rest-api minor
-- xo-server minor
-- xo-server-sdn-controller minor
-
 <!--packages-end-->
