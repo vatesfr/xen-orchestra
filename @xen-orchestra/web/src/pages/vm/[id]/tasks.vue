@@ -17,18 +17,6 @@ import { useXoVmTasksCollection } from '@/modules/vm/remote-resources/use-xo-vm-
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-<<<<<<< HEAD
-import type { XoUser } from '@vates/types'
-import { computed } from 'vue'
-||||||| parent of 3656ecac8 (feat(xo6): resolve objects in tasks names)
-import { useUiStore } from '@core/stores/ui.store'
-import type { XoUser } from '@vates/types'
-import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-=======
-import { useUiStore } from '@core/stores/ui.store'
-import { useI18n } from 'vue-i18n'
->>>>>>> 3656ecac8 (feat(xo6): resolve objects in tasks names)
 
 const { vm } = defineProps<{
   vm: FrontXoVm
