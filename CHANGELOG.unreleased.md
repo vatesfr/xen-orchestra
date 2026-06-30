@@ -18,6 +18,7 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [Backups/replication] Fix error MEMORY_CONSTRAINT_VIOLATION_ORDER during replication (PR [#10034](https://github.com/vatesfr/xen-orchestra/pull/10034))
+- [XO6] Fix negative "other" value in backup repository dashboard (PR [#10044](https://github.com/vatesfr/xen-orchestra/pull/10044))
 
 ### Packages to release
 
