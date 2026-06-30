@@ -15,9 +15,6 @@ import { useXoTaskCollection, type FrontXoTask } from '@/modules/task/remote-res
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import { useUiStore } from '@core/stores/ui.store'
-
-const uiStore = useUiStore()
 
 const { getTaskById, sortedTasks, hasTaskFetchError, areTasksReady } = useXoTaskCollection()
 
