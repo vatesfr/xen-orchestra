@@ -103,6 +103,7 @@ async function onSubmit() {
 }
 
 .edit-traffic-rule-form {
+  margin-block-start: 2.4rem;
   .row {
     display: flex;
     flex-direction: column;

@@ -377,6 +377,7 @@
   "fast-clone": "Fast clone",
   "fast-clone-available": "Fast clone is available only for halted VMs.",
   "fetching-fresh-data": "Fetching fresh data",
+  "field-required": "Field is required.",
   "field:exceeds-max-characters": "Field value must be {max} characters or less.",
   "file": "File",
   "filter-actions": "Filter actions",

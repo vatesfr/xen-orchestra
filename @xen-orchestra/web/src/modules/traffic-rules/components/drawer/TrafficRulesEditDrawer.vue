@@ -1,11 +1,13 @@
 <template>
-  <VtsDrawer dismissible @dismiss="emit('cancel')">
+  <VtsDrawer class="container" dismissible @dismiss="emit('cancel')">
     <template #title>{{ t('action:update-traffic-rule') }}</template>
 
     <template #content>
-      <UiTitle>
+      <UiTitle class="section-title">
         {{ t('general-information') }}
       </UiTitle>
+
+      <span class="typo-form-info required-hint">{{ t('field-required') }}</span>
 
       <EditTrafficRuleForm :rule />
     </template>
@@ -13,7 +15,7 @@
     <template #buttons>
       <VtsDrawerCancelButton />
       <VtsDrawerConfirmButton>
-        {{ t('action:update-traffic-rule') }}
+        {{ t('action:save') }}
       </VtsDrawerConfirmButton>
     </template>
   </VtsDrawer>
@@ -61,3 +63,16 @@ const { t } = useI18n()
 //   emit('confirm', exportFormat.value)
 // }
 </script>
+
+<style lang="postcss" scoped>
+.container {
+  .section-title {
+    margin-block-end: 2.4rem;
+  }
+
+  .required-hint::before {
+    content: '* ';
+    color: var(--color-brand-txt-base);
+  }
+}
+</style>
