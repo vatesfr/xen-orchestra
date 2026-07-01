@@ -9,9 +9,9 @@
 
       <VtsTabularKeyValueList>
         <VtsTabularKeyValueRow :label="t('vdis-allocated-space')" :value="vdisAllocatedSpace" />
-        <VtsTabularKeyValueRow :label="t('used-space')" :value="usedSpace" />
-        <VtsTabularKeyValueRow :label="t('free-space')" :value="freeSpace" />
-        <VtsTabularKeyValueRow :label="t('total-space')" :value="totalSpace" />
+        <VtsTabularKeyValueRow :label="t('used-space-on-sr')" :value="usedSpace" />
+        <VtsTabularKeyValueRow :label="t('free-space-on-sr')" :value="freeSpace" />
+        <VtsTabularKeyValueRow :label="t('total-space-on-sr')" :value="totalSpace" />
       </VtsTabularKeyValueList>
     </div>
   </UiCard>
