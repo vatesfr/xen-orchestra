@@ -50,6 +50,7 @@ import StorageRepositoryVdisCard from '@/modules/storage-repository/components/l
 import { useGetPbdsInScope } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { SrScope } from '@/modules/storage-repository/types/storage-repository.type'
+import { getSrCustomFields } from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import {
   type FrontXoVdiSnapshot,
@@ -107,17 +108,7 @@ const hosts = computed(() =>
   }, [])
 )
 
-const customFields = computed(() => {
-  const prefix = 'XenCenter.CustomFields.'
-
-  return Object.entries(sr.other_config).reduce<Record<string, unknown>>((acc, [key, value]) => {
-    if (key.startsWith(prefix)) {
-      acc[key.slice(prefix.length)] = value
-    }
-
-    return acc
-  }, {})
-})
+const customFields = computed(() => getSrCustomFields(sr))
 </script>
 
 <style lang="postcss" scoped>

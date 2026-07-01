@@ -42,3 +42,15 @@ export function getSrModalInfoVariant(scope: SrScope, accessMode: SrAccessMode):
 
   return 'pool-shared'
 }
+
+export function getSrCustomFields(sr: FrontXoSr): Record<string, string> {
+  const prefix = 'XenCenter.CustomFields.'
+
+  return Object.entries(sr.other_config).reduce<Record<string, string>>((acc, [key, value]) => {
+    if (key.startsWith(prefix)) {
+      acc[key.slice(prefix.length)] = value
+    }
+
+    return acc
+  }, {})
+}
