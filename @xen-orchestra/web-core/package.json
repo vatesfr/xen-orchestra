@@ -3,6 +3,12 @@
   "type": "module",
   "version": "0.56.0",
   "private": false,
+  "files": [
+    "lib",
+    "!lib/test",
+    "!lib/**/*.test.ts",
+    "!lib/**/*.spec.ts"
+  ],
   "exports": {
     "./*": {
       "types": "./lib/*",
@@ -44,10 +50,19 @@
     "vue-router": "^5.0.0"
   },
   "devDependencies": {
+    "@intlify/unplugin-vue-i18n": "^6.0.3",
     "@types/lodash-es": "^4.17.12",
     "@types/novnc__novnc": "~1.5.0",
+    "@vitejs/plugin-vue": "^6.0.0",
+    "@vitest/browser-playwright": "^4.1.9",
+    "@vue/test-utils": "^2.4.11",
     "@vue/tsconfig": "^0.9.0",
+    "happy-dom": "^20.0.0",
     "pinia": "^3.0.1",
+    "playwright": "^1.61.0",
+    "vite": "^8.0.0",
+    "vitest": "^4.1.9",
+    "vitest-browser-vue": "^2.1.0",
     "vue": "~3.5.13",
     "vue-i18n": "^11.1.2",
     "vue-router": "5.0.6"
@@ -68,6 +83,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "postversion": "npm publish --access public"
+    "postversion": "npm publish --access public",
+    "test": "vitest"
   }
 }
