@@ -39,6 +39,7 @@
 
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/web patch
+- @xen-orchestra/web-core patch
 - xo-server patch
 
 <!--packages-end-->
