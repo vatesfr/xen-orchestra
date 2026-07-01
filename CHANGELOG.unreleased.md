@@ -12,7 +12,8 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [REST API] Expose `GET /backup-repositories/:id/health` and `POST /backup-repositories/:id/actions/benchmark` routes (PR [#9847](https://github.com/vatesfr/xen-orchestra/pull/9847))
-- [Tasks] Resolve objects in tasks names (PR [#9830](https://github.com/vatesfr/xen-orchestra/pull/9830))
+- [Tasks] Resolve objects in tasks names [Forum#100894]([https://xcp-ng.org/forum/post/100894](https://xcp-ng.org/forum/post/100894)
+) (PR [#9830](https://github.com/vatesfr/xen-orchestra/pull/9830))
 
 ### Bug fixes
 
