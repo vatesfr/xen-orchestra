@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@isaacs/ttlcache": "^1.4.1",
-    "@vates/types": "^1.27.0",
+    "@vates/types": "^1.28.0",
     "@xen-orchestra/log": "^0.7.1"
   },
   "devDependencies": {
