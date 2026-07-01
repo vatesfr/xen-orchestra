@@ -1,5 +1,5 @@
 <template>
-  <VtsForm class="new-traffic-rule-form" @submit="onSubmit()">
+  <VtsForm class="edit-traffic-rule-form" @submit="onSubmit()">
     <div class="row">
       <TrafficRuleFormSelect v-bind="allowSelectBindings">
         <template #option="{ option }">
@@ -20,22 +20,46 @@
       <TrafficRuleFormTextInput v-bind="ipRangeInputBindings" />
     </div>
 
-    <div class="row target-row" />
+    <div class="row target-row">
+      <span class="prefix-wrapper">
+        <span class="prefix">{{ t('on') }}</span>
+      </span>
+      <TrafficRuleFormSelect v-bind="targetTypeSelectBindings" />
+      <TrafficRuleFormSelect v-if="isVifTarget" v-bind="vmSelectBindings">
+        <template #option="{ option }">
+          <VtsOption :option>
+            <span class="option-content">
+              <VtsIcon v-if="option.properties.icon" :name="option.properties.icon" size="medium" />
+              {{ option.properties.label }}
+            </span>
+          </VtsOption>
+        </template>
+      </TrafficRuleFormSelect>
+      <TrafficRuleFormSelect v-bind="targetSelectBindings">
+        <template #option="{ option }">
+          <VtsOption :option>
+            <span class="option-content">
+              <VtsIcon v-if="option.properties.icon" :name="option.properties.icon" size="medium" />
+              {{ option.properties.label }}
+            </span>
+          </VtsOption>
+        </template>
+      </TrafficRuleFormSelect>
+    </div>
   </VtsForm>
 </template>
 
 <script setup lang="ts">
-import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import TrafficRuleFormNumberInput from '@/modules/traffic-rules/components/form/new/inputs/TrafficRuleFormNumberInput.vue'
 import TrafficRuleFormSelect from '@/modules/traffic-rules/components/form/new/inputs/TrafficRuleFormSelect.vue'
 import TrafficRuleFormTextInput from '@/modules/traffic-rules/components/form/new/inputs/TrafficRuleFormTextInput.vue'
 import { useEditTrafficRuleForm } from '@/modules/traffic-rules/form/edit/use-edit-traffic-rule-form.ts'
 import type { EditTrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-edit.job.ts'
 import VtsForm from '@core/components/form/VtsForm.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import type { TrafficRule } from '@vates/types'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { rule } = defineProps<{
@@ -43,35 +67,22 @@ const { rule } = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  create: [data: EditTrafficRulePayload]
+  edit: [data: EditTrafficRulePayload]
 }>()
 
 const { t } = useI18n()
 
-const { getNetworkById } = useXoNetworkCollection()
-
-const targetType = computed(() => {
-  if (rule.type === 'network') {
-    return t('network')
-  }
-  return t('vif')
-})
-
-const targetLabel = computed(() => {
-  if (rule.type === 'network') {
-    return getNetworkById(rule.networkId)?.name_label ?? t('unknown')
-  }
-  console.log('pas network')
-  return undefined
-})
-
 const {
   hasPort,
+  isVifTarget,
   allowSelectBindings,
   protocolSelectBindings,
   portInputBindings,
   directionSelectBindings,
   ipRangeInputBindings,
+  targetTypeSelectBindings,
+  vmSelectBindings,
+  targetSelectBindings,
   validateAndBuildPayload,
 } = useEditTrafficRuleForm(() => rule)
 
@@ -79,7 +90,7 @@ async function onSubmit() {
   const payload = await validateAndBuildPayload()
 
   if (payload !== undefined) {
-    emit('create', payload)
+    emit('edit', payload)
   }
 }
 </script>
@@ -91,7 +102,7 @@ async function onSubmit() {
   gap: 0.8rem;
 }
 
-.new-traffic-rule-form {
+.edit-traffic-rule-form {
   .row {
     display: flex;
     flex-direction: column;
