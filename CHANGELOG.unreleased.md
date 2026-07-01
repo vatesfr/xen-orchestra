@@ -15,6 +15,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+[Treeview] fixed an issue where the selected item in the treeview would scroll to the top [Forum#12329](https://xcp-ng.org/forum/topic/12329) (PR [#10052](https://github.com/vatesfr/xen-orchestra/pull/10052))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -30,5 +32,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/web patch
 
 <!--packages-end-->
