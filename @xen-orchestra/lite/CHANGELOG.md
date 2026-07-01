@@ -1,5 +1,9 @@
 # ChangeLog
 
+### **next**
+
+- [Vms/export] Fix translation for compression levels on export vm modal (PR [#10060](https://github.com/vatesfr/xen-orchestra/pull/10060))
+
 ## **0.23.0** (2026-06-30)
 
 - Update the UiTitle component to use the one from web-core (PR [#9869](https://github.com/vatesfr/xen-orchestra/pull/9869))
