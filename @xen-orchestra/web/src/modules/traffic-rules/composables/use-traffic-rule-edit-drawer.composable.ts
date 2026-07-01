@@ -1,12 +1,19 @@
+import {
+  type EditTrafficRulePayload,
+  useXoTrafficRuleEditJob,
+} from '@/modules/traffic-rules/jobs/xo-traffic-rule-edit.job.ts'
 import { useDrawer } from '@core/packages/drawer/use-drawer.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { TrafficRule } from '@vates/types'
-import { type MaybeRefOrGetter } from 'vue'
+import { type MaybeRefOrGetter, ref } from 'vue'
 
 export function useTrafficRulesEditDrawer(rawTrafficRule: MaybeRefOrGetter<TrafficRule>) {
   const trafficRule = toComputed(rawTrafficRule)
+  console.log(trafficRule.value)
 
-  // const { run, isRunning } = useTrafficRuleEditJob(trafficRule)
+  const editPayload = ref<EditTrafficRulePayload | undefined>(undefined)
+
+  const { run, isRunning, canRun } = useXoTrafficRuleEditJob(() => (editPayload.value ? [editPayload.value] : []))
 
   const openDrawer = useDrawer(() => ({
     component: import('@/modules/traffic-rules/components/drawer/TrafficRulesEditDrawer.vue'),
@@ -14,13 +21,13 @@ export function useTrafficRulesEditDrawer(rawTrafficRule: MaybeRefOrGetter<Traff
       rule: trafficRule.value,
     },
     onConfirm: async () => {
-      // try {
-      //   await run()
-      // } catch (error) {
-      //   console.error('Error when updating traffic rule:', error)
-      // }
+      try {
+        await run()
+      } catch (error) {
+        console.error('Error when updating traffic rule:', error)
+      }
     },
   }))
 
-  return { openDrawer }
+  return { openDrawer, canRun, isRunning }
 }

@@ -67,7 +67,7 @@ const { rule } = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  edit: [data: EditTrafficRulePayload]
+  confirm: [data: EditTrafficRulePayload]
 }>()
 
 const { t } = useI18n()
@@ -90,9 +90,13 @@ async function onSubmit() {
   const payload = await validateAndBuildPayload()
 
   if (payload !== undefined) {
-    emit('edit', payload)
+    emit('confirm', payload)
   }
 }
+
+defineExpose({
+  submit: onSubmit,
+})
 </script>
 
 <style lang="postcss" scoped>
