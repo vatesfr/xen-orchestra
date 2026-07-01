@@ -43,11 +43,13 @@ class PerfAlertXoPlugin {
       return
     }
     const byRules = {}
+    const { default: defaultRoute } = await this._xo.config.getGuiRoutes()
+    const isV6 = defaultRoute?.path.includes('@xen-orchestra/web/dist')
     newAlarms.forEach(alarm => {
       byRules[alarm.rule.id] = byRules[alarm.rule.id] ?? { alarms: [] }
       byRules[alarm.rule.id].alarms.push({
         ...alarm,
-        url: this._generateUrl(alarm.rule.objectType, alarm.target),
+        url: this._generateUrl(alarm.rule.objectType, alarm.target, isV6),
         notificationType: 'new',
       })
     })
@@ -56,7 +58,7 @@ class PerfAlertXoPlugin {
       byRules[alarm.rule.id] = byRules[alarm.rule.id] ?? { alarms: [] }
       byRules[alarm.rule.id].alarms.push({
         ...alarm,
-        url: this._generateUrl(alarm.rule.objectType, alarm.target),
+        url: this._generateUrl(alarm.rule.objectType, alarm.target, isV6),
         notificationType: 'active',
       })
     })
@@ -66,7 +68,7 @@ class PerfAlertXoPlugin {
       byRules[alarm.rule.id].alarms.push({
         ...alarm,
         value: '', // we don't want to show the old value for closed Alarms
-        url: this._generateUrl(alarm.rule.objectType, alarm.target),
+        url: this._generateUrl(alarm.rule.objectType, alarm.target, isV6),
         notificationType: 'closed',
       })
     })
@@ -122,16 +124,17 @@ class PerfAlertXoPlugin {
    * @param {XoHost|XoSr|XoVm} object
    * @returns
    */
-  _generateUrl(type, object) {
+  _generateUrl(type, object, isV6) {
     const { baseUrl } = this.#configuration
     const { uuid } = object
     switch (type) {
       case 'VM':
-        return `${baseUrl}#/vms/${uuid}/stats`
+        return isV6 ? `${baseUrl}#/vm/${uuid}/dashboard` : `${baseUrl}v5/#/vms/${uuid}/stats`
       case 'host':
-        return `${baseUrl}#/hosts/${uuid}/stats`
+        return isV6 ? `${baseUrl}#/host/${uuid}/dashboard` : `${baseUrl}v5/#/hosts/${uuid}/stats`
       case 'sr':
-        return `${baseUrl}#/srs/${uuid}/general`
+        // SRs are not supported in v6 yet, correct this when they are
+        return `${baseUrl}v5/#/srs/${uuid}/general`
       default:
         return `unknown type ${type}`
     }
