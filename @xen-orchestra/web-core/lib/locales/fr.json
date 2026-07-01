@@ -1034,6 +1034,7 @@
   "total-memory": "Mémoire totale",
   "total-schedules": "Nombre total de planifications",
   "total-space": "Espace total",
+  "total-space-on-sr": "Espace total sur le SR",
   "total-storage-repository": "Total dépôt de stockage",
   "total-used": "Total utilisé",
   "total-used:": "Total utilisé :",
