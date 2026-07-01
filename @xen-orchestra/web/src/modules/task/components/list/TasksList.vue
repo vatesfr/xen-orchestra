@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Task } from '@core/types/task.type.ts'
+import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
