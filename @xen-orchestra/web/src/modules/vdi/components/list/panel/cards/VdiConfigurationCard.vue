@@ -20,7 +20,7 @@
           <VtsCopyButton :value="vdiSr.name_label" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="vm">
+      <VtsCardRowKeyValue>
         <template #key>
           {{ t('read-only') }}
         </template>
@@ -36,7 +36,7 @@
           <VtsStatus :status="vdi.cbt_enabled ?? false" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="vm">
+      <VtsCardRowKeyValue>
         <template #key>
           {{ t('bootable') }}
         </template>

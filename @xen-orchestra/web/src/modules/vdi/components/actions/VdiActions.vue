@@ -15,8 +15,8 @@ import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-colle
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 
 defineProps<{
-  vm?: FrontXoVm
   vdi: FrontXoVdi
+  vm?: FrontXoVm
   vbd?: FrontXoVbd
 }>()
 </script>

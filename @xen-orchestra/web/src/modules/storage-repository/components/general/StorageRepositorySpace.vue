@@ -4,15 +4,8 @@
       {{ t('space') }}
     </UiTitle>
 
-    <div class="content">
-      <VtsProgressBar
-        noruler
-        :current="sr.physical_usage"
-        :total="sr.size"
-        :label="sr.name_label"
-        legend-type="percent"
-        class="progress"
-      />
+    <div>
+      <VtsProgressBar :current="sr.physical_usage" :total="sr.size" :label="sr.name_label" legend-type="percent" />
 
       <VtsTabularKeyValueList>
         <VtsTabularKeyValueRow :label="t('used-space')" :value="usedSpace" />
