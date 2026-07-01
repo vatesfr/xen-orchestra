@@ -1,14 +1,12 @@
 <template>
   <UiCard class="card-container">
     <UiLink
-      v-if="vm"
       size="medium"
-      :to="{ name: '/vdi/[id]/general', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.VM } }"
+      :to="{ name: '/vdi/[id]/general', params: { id: vdi.id }, query: vm ? { from: VDI_PAGE_CONTEXT.VM } : undefined }"
       :icon="vdiIcon"
     >
       {{ vdi.name_label }}
     </UiLink>
-    <span v-else>{{ vdi.name_label }}</span>
     <div class="content">
       <VtsCodeSnippet :content="vdi.id" copy />
       <VtsCardRowKeyValue truncate align-top>
