@@ -1097,6 +1097,7 @@
   "vdi-snpashot-time": "Snapshot date",
   "vdi-throughput": "VDI throughput",
   "vdis": "VDIs",
+  "vdis-allocated-space": "VDIs allocated space",
   "version": "Version",
   "vga": "VGA",
   "video-ram": "Video RAM",
