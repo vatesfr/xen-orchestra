@@ -53,10 +53,18 @@ export type FieldDefinition =
       fields: Record<string, FieldDefinition>
       optional?: boolean
     }
+  | {
+      type: 'array'
+      items: FieldDefinition
+      optional?: boolean
+    }
 
-export type ParamFieldDefinition = Exclude<FieldDefinition, { type: 'boolean' } | { type: 'object' }>
+export type ParamFieldDefinition = Exclude<
+  FieldDefinition,
+  { type: 'boolean' } | { type: 'object' } | { type: 'array' }
+>
 
-export type QueryFieldDefinition = Exclude<FieldDefinition, { type: 'object' }>
+export type QueryFieldDefinition = Exclude<FieldDefinition, { type: 'object' } | { type: 'array' }>
 
 export interface RouteDefinition {
   method: 'get' | 'post' | 'put' | 'delete' | 'patch'
