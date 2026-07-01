@@ -15,7 +15,7 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-[Treeview] fixed an issue where the selected item in the treeview would scroll to the top [Forum#12329](https://xcp-ng.org/forum/topic/12329) (PR [#10052](https://github.com/vatesfr/xen-orchestra/pull/10052))
+- [VDI] Fix progress bar appearing half-filled when used space is at 100% [Forum#100200](https://xcp-ng.org/forum/post/100200) (PR [#10027](https://github.com/vatesfr/xen-orchestra/pull/10027))
 
 ### Packages to release
 
