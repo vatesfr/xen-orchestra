@@ -33,6 +33,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
-
+- xo-server patch
 <!--packages-end-->
