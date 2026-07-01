@@ -1077,6 +1077,7 @@
   "vdi-snpashot-time": "Date du snapshot",
   "vdi-throughput": "Débit du VDI",
   "vdis": "VDIs",
+  "vdis-allocated-space": "Espace alloué aux VDIs",
   "version": "Version",
   "vga": "VGA",
   "video-ram": "Mémoire vidéo",

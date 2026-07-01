@@ -8,6 +8,7 @@
       <VtsProgressBar :current="sr.physical_usage" :total="sr.size" :label="sr.name_label" legend-type="percent" />
 
       <VtsTabularKeyValueList>
+        <VtsTabularKeyValueRow :label="t('vdis-allocated-space')" :value="vdisAllocatedSpace" />
         <VtsTabularKeyValueRow :label="t('used-space')" :value="usedSpace" />
         <VtsTabularKeyValueRow :label="t('free-space')" :value="freeSpace" />
         <VtsTabularKeyValueRow :label="t('total-space')" :value="totalSpace" />
@@ -33,6 +34,7 @@ const { sr } = defineProps<{
 
 const { t } = useI18n()
 
+const vdisAllocatedSpace = computed(() => formatSize(sr.usage, 2))
 const usedSpace = computed(() => formatSize(sr.physical_usage, 2))
 const totalSpace = computed(() => formatSize(sr.size, 2))
 const freeSpace = computed(() => formatSize(sr.size - sr.physical_usage, 2))
