@@ -11,6 +11,11 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- **RBAC** check for REST API endpoints:
+  - `/pools/:id/actions/create_bonded_network` (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
+  - `/pools/:id/actions/create_internal_network` (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
+  - `/pools/:id/actions/management-reconfigure` (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -30,5 +35,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/rest-api minor
 
 <!--packages-end-->
