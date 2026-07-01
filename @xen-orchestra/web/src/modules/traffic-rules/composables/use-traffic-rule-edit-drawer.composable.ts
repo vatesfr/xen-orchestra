@@ -9,7 +9,6 @@ import { type MaybeRefOrGetter, ref } from 'vue'
 
 export function useTrafficRulesEditDrawer(rawTrafficRule: MaybeRefOrGetter<TrafficRule>) {
   const trafficRule = toComputed(rawTrafficRule)
-  console.log(trafficRule.value)
 
   const editPayload = ref<EditTrafficRulePayload | undefined>(undefined)
 
@@ -20,7 +19,8 @@ export function useTrafficRulesEditDrawer(rawTrafficRule: MaybeRefOrGetter<Traff
     props: {
       rule: trafficRule.value,
     },
-    onConfirm: async () => {
+    onConfirm: async (payload: EditTrafficRulePayload) => {
+      editPayload.value = payload
       try {
         await run()
       } catch (error) {
