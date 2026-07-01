@@ -16,7 +16,6 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 [Treeview] fixed an issue where the selected item in the treeview would scroll to the top [Forum#12329](https://xcp-ng.org/forum/topic/12329) (PR [#10052](https://github.com/vatesfr/xen-orchestra/pull/10052))
-
 - [Plugins/Perf-alert] Update URL generation to support V6 routing (PR [#10054](https://github.com/vatesfr/xen-orchestra/pull/10054))
 
 ### Packages to release
