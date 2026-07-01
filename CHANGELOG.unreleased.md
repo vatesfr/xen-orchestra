@@ -17,6 +17,8 @@
 
 [Treeview] fixed an issue where the selected item in the treeview would scroll to the top [Forum#12329](https://xcp-ng.org/forum/topic/12329) (PR [#10052](https://github.com/vatesfr/xen-orchestra/pull/10052))
 
+- [Backups] Improve resume of backup merge failure for VHD files (PR [#10053](https://github.com/vatesfr/xen-orchestra/pull/10053))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -33,6 +35,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backup-archive patch
 - @xen-orchestra/web patch
 
 <!--packages-end-->
