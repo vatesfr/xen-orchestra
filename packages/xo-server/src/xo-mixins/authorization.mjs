@@ -70,6 +70,7 @@ const AUTHORIZATIONS = {
 // features: https://vates.tech/en/pricing-and-support/
 const BUNDLE_AUTHORIZATIONS = {
   RBAC: [BUNDLE_ESSENTIAL_PLUS, BUNDLE_PRO, BUNDLE_ENTERPRISE],
+  SMART_REBOOT: [BUNDLE_ESSENTIAL_PLUS, BUNDLE_ENTERPRISE],
 }
 
 export default class Authorization {
