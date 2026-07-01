@@ -68,6 +68,7 @@ type FeatureCode =
   | 'RBAC'
   | 'ROLLING_POOL_UPDATE'
   | 'ROLLING_POOL_REBOOT'
+  | 'SMART_REBOOT'
   | 'WARM_MIGRATION'
   | 'PLUGIN.OPENMETRICS'
 
@@ -199,6 +200,7 @@ export type XoApp = {
     userData?: { ip?: string },
     opts?: { bypassOtp?: boolean; bypassTaskCreation?: boolean }
   ) => Promise<{ bypassOtp: boolean; expiration: number; user: XoUser }>
+  backupGuard(poolId: XoPool['id']): Promise<void>
   /* Throw if no authorization */
   checkFeatureAuthorization(featureCode: FeatureCode): Promise<void>
   /* connect a server (XCP-ng/XenServer) */
@@ -236,6 +238,7 @@ export type XoApp = {
   deleteAclV2Role(roleId: XoAclRole['id'], options?: { force?: boolean }): Promise<boolean>
   deleteGroup(id: XoGroup['id']): Promise<void>
   deleteUser(id: XoUser['id']): Promise<void>
+  detachHostFromPool(hostId: XoHost['id']): Promise<void>
   createGroup(params: { name: string; provider?: string; providerGroup?: string }): Promise<XoGroup>
   /* disconnect a server (XCP-ng/XenServer) */
   disconnectXenServer(id: XoServer['id']): Promise<void>
