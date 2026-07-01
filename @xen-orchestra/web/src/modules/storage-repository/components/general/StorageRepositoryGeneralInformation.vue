@@ -20,6 +20,7 @@
         </template>
       </VtsTabularKeyValueRow>
       <VtsTabularKeyValueRow :label="t('storage-format')" :value="sr.SR_type" />
+      <VtsTabularKeyValueRow :label="t('supported-image-formats')" :value="supportedImageFormats" />
       <VtsTabularKeyValueRow :label="t('access-mode')" :value="isSrSharedI18nValue" />
       <VtsTabularKeyValueRow :label="t('provisioning')" :value="provisioning" />
     </VtsTabularKeyValueList>
@@ -29,6 +30,7 @@
 <script setup lang="ts">
 import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import { useXoSmCollection } from '@/modules/sm/remote-resources/use-xo-sm-collection.ts'
 import { type FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
@@ -46,6 +48,8 @@ const { sr } = defineProps<{
 
 const { t } = useI18n()
 
+const { sms } = useXoSmCollection()
+
 const { getPbdsByIds } = useXoPbdCollection()
 
 const { allPbdsConnectionStatus } = useXoPbdUtils(() => getPbdsByIds(sr.$PBDs))
@@ -53,4 +57,10 @@ const { allPbdsConnectionStatus } = useXoPbdUtils(() => getPbdsByIds(sr.$PBDs))
 const isSrSharedI18nValue = computed(() => (sr.shared ? t('shared') : t('local')))
 
 const provisioning = computed(() => sr.allocationStrategy ?? t('unknown'))
+
+const supportedImageFormats = computed(() => {
+  const sm = sms.value.find(sm => sm.SM_type === sr.SR_type && sm.$pool === sr.$pool)
+  const formats = sm?.supported_image_formats
+  return formats !== undefined && formats.length > 0 ? formats.join(', ').toUpperCase() : 'VHD'
+})
 </script>

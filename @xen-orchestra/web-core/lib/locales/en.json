@@ -983,6 +983,7 @@
   "success": "Success",
   "summary": "Summary",
   "support": "Support",
+  "supported-image-formats": "Supported image formats",
   "suspend-blocked": "Suspend Blocked",
   "suspend-storage-repository": "Suspend storage repository",
   "switch-theme": "Switch theme",
