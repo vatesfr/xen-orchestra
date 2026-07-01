@@ -486,6 +486,7 @@
   "job:delete:in-progress": "Suppression en cours…",
   "job:disable:in-progress": "Désactivation en cours…",
   "job:disconnect:in-progress": "Déconnexion en cours…",
+  "job:edit:in-progress": "Édition en cours…",
   "job:enable:in-progress": "Activation en cours…",
   "job:export:in-progress": "Export en cours…",
   "job:host-disable:bad-power-state": "L'hôte n'est pas lancé",

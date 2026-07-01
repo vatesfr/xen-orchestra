@@ -486,6 +486,7 @@
   "job:delete:in-progress": "Delete in progress…",
   "job:disable:in-progress": "Disable in progress…",
   "job:disconnect:in-progress": "Disconnect in progress…",
+  "job:edit:in-progress": "Edit in progress…",
   "job:enable:in-progress": "Enable in progress…",
   "job:export:in-progress": "Export in progress…",
   "job:host-disable:bad-power-state": "Host is not running",

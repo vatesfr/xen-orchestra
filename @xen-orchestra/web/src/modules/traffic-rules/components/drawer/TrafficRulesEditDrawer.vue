@@ -9,12 +9,12 @@
 
       <span class="typo-form-info required-hint">{{ t('field-required') }}</span>
 
-      <EditTrafficRuleForm :rule />
+      <EditTrafficRuleForm ref="form" :rule @confirm="emit('confirm', $event)" />
     </template>
 
     <template #buttons>
       <VtsDrawerCancelButton />
-      <VtsDrawerConfirmButton>
+      <VtsDrawerConfirmButton :on-click="() => form?.submit()">
         {{ t('action:save') }}
       </VtsDrawerConfirmButton>
     </template>
@@ -23,12 +23,13 @@
 
 <script setup lang="ts">
 import EditTrafficRuleForm from '@/modules/traffic-rules/components/form/edit/EditTrafficRuleForm.vue'
-import type { VdiExportFormat } from '@/shared/constants.ts'
+import type { EditTrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-edit.job.ts'
 import VtsDrawer from '@core/components/drawer/VtsDrawer.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import type { TrafficRule } from '@vates/types'
 import VtsDrawerCancelButton from '@xen-orchestra/web-core/components/drawer/VtsDrawerCancelButton.vue'
 import VtsDrawerConfirmButton from '@xen-orchestra/web-core/components/drawer/VtsDrawerConfirmButton.vue'
+import { useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
@@ -37,31 +38,12 @@ defineProps<{
 
 const emit = defineEmits<{
   cancel: []
-  confirm: [exportFormat: VdiExportFormat]
+  confirm: [payload: EditTrafficRulePayload]
 }>()
 
 const { t } = useI18n()
 
-// const exportFormat = ref<VdiExportFormat>(SUPPORTED_VDI_FORMAT.vhd)
-//
-// const options = Object.entries(SUPPORTED_VDI_FORMAT)
-//   .filter(([, value]) => value !== SUPPORTED_VDI_FORMAT.qcow2)
-//   .map(([key, value]) => ({
-//     value,
-//     label: key,
-//   }))
-
-// const { id: exportFormatSelectedId } = useFormSelect(options, {
-//   model: exportFormat,
-//   option: {
-//     id: 'value',
-//     value: 'value',
-//   },
-// })
-//
-// function handleConfirm() {
-//   emit('confirm', exportFormat.value)
-// }
+const form = useTemplateRef('form')
 </script>
 
 <style lang="postcss" scoped>

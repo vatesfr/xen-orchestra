@@ -30,24 +30,6 @@ export const useXoTrafficRuleEditJob = defineJob('traffic-rule.edit', [payloadsA
       if (payloads.length === 0) {
         throw new JobError(t('job:arg:missing-payload'))
       }
-      //
-      // payloads.forEach(payload => {
-      //   if (!payload.targetId) {
-      //     throw new JobError(t('job:arg:target-id-required'))
-      //   }
-      //   if (!payload.direction) {
-      //     throw new JobError(t('job:arg:direction-required'))
-      //   }
-      //   if (!payload.protocol) {
-      //     throw new JobError(t('job:arg:protocol-required'))
-      //   }
-      //   if (!payload.ipRange) {
-      //     throw new JobError(t('job:arg:ip-range-required'))
-      //   }
-      //   if (TRAFFIC_RULE_PROTOCOLS_WITH_PORT.includes(payload.protocol) && payload.port === undefined) {
-      //     throw new JobError(t('job:arg:port-required-for-tcp-udp'))
-      //   }
-      // })
     },
   }
 })
