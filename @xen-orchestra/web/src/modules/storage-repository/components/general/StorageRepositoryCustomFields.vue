@@ -14,15 +14,18 @@
       >
         {{ t('no-custom-field-detected') }}
       </VtsStateHero>
-      <VtsLabelValueList v-else :fields="customFields" />
+      <VtsTabularKeyValueList v-else>
+        <VtsTabularKeyValueRow v-for="(value, label) in customFields" :key="label" :label :value />
+      </VtsTabularKeyValueList>
     </div>
   </UiCard>
 </template>
 
 <script setup lang="ts">
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import VtsLabelValueList from '@core/components/label-value-list/VtsLabelValueList.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
+import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { computed } from 'vue'
@@ -37,7 +40,7 @@ const { t } = useI18n()
 const customFields = computed(() => {
   const prefix = 'XenCenter.CustomFields.'
 
-  return Object.entries(sr.other_config).reduce<Record<string, unknown>>((acc, [key, value]) => {
+  return Object.entries(sr.other_config).reduce<Record<string, string>>((acc, [key, value]) => {
     if (key.startsWith(prefix)) {
       acc[key.slice(prefix.length)] = value
     }
