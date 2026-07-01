@@ -30,6 +30,8 @@ const { sr } = defineProps<{
   sr: FrontXoSr
 }>()
 
+const { t } = useI18n()
+
 const uiStore = useUiStore()
 
 const { pbdsBySr } = useXoPbdCollection()
@@ -38,7 +40,6 @@ const { getHostById, hasHostFetchError, areHostsReady } = useXoHostCollection()
 const pbds = computed(() => pbdsBySr.value.get(sr.id))
 
 const hosts = computed(() => (pbds.value ?? []).map(pbd => getHostById(pbd.host)).filter(host => host !== undefined))
-const { t } = useI18n()
 
 const selectedHost = useRouteQuery<FrontXoHost | undefined>('id', {
   toData: id => getHostById(id as FrontXoHost['id']),

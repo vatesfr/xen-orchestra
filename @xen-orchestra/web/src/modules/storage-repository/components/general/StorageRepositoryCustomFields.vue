@@ -4,7 +4,7 @@
       {{ t('custom-fields') }}
     </UiTitle>
 
-    <div class="content">
+    <div>
       <VtsStateHero
         v-if="Object.keys(customFields).length === 0"
         type="no-data"

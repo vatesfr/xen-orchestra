@@ -3,11 +3,11 @@
     <UiTitle>
       {{ t('pbd-details') }}
     </UiTitle>
-    <VtsStateHero v-if="!arePbdsReady" format="panel" type="busy" size="medium" />
+    <VtsStateHero v-if="!arePbdsReady" format="card" type="busy" size="medium" />
     <VtsStateHero v-else-if="!pbds" type="no-data" format="card" horizontal size="extra-small">
       {{ t('no-pbd-attached') }}
     </VtsStateHero>
-    <div v-else class="content">
+    <div v-else>
       <UiLogEntryViewer
         v-for="pbd in pbds"
         :key="pbd.id"

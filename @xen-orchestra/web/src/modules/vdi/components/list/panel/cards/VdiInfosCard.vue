@@ -38,7 +38,7 @@
           <VtsCopyButton :value="vbdsStatus" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="vm">
+      <VtsCardRowKeyValue>
         <template #key>{{ t('device') }}</template>
         <template #value>{{ vdiDevice }}</template>
         <template v-if="vdiDevice" #addons>

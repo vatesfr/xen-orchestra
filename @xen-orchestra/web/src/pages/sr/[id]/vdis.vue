@@ -1,9 +1,7 @@
 <template>
   <div class="vdis" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
-      <div class="content">
-        <VdisTable :vdis="vdis" />
-      </div>
+      <VdisTable :vdis />
     </UiCard>
 
     <VdiSidePanel v-if="selectedVdi" :vdi="selectedVdi" @close="selectedVdi = undefined" />
