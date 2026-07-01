@@ -1,0 +1,24 @@
+{
+  "name": "nbd-server",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "NBD (Network Block Device) server implementation in TypeScript",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run build && node --test dist/test/integration.test.js",
+    "bench": "npm run build && node dist/test/bench.js",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@vates/read-chunk": "^1.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
