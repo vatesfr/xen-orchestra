@@ -362,6 +362,7 @@
   "failure": "Échec",
   "fast-clone": "Clonage rapide",
   "fetching-fresh-data": "Récupération de données à jour",
+  "field-required": "Champ obligatoire.",
   "field:exceeds-max-characters": "Le champ doit contenir {max} caractères ou moins.",
   "file": "Fichier",
   "filter-actions": "Actions du filtre",
