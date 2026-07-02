@@ -98,16 +98,17 @@ export function useNewTrafficRuleForm(
   )
 
   const vmOptions = computed(() =>
-    poolVms.value
-      .filter(vm => vm.VIFs.length > 0)
-      .map(vm => {
-        return {
-          id: vm.id,
-          label: vm.name_label,
-          value: vm.id,
-          icon: objectIcon('vm', toLower(vm.power_state)),
-        }
-      })
+    poolVms.value.map(vm => {
+      const hasVifs = vm.VIFs.length > 0
+
+      return {
+        id: vm.id,
+        label: vm.name_label,
+        value: vm.id,
+        icon: objectIcon('vm', toLower(vm.power_state)),
+        disabled: !hasVifs,
+      }
+    })
   )
 
   const targetTypeOptions = [
@@ -151,7 +152,12 @@ export function useNewTrafficRuleForm(
     required: () => isVifTarget.value,
     searchable: true,
     disabled: () => sourceVif.value !== undefined,
-    option: { label: 'label', value: 'value', properties: source => ({ icon: source.icon }) },
+    option: {
+      label: 'label',
+      value: 'value',
+      disabled: source => source.disabled,
+      properties: source => ({ icon: source.icon }),
+    },
   })
 
   const { id: targetSelectId } = useFormSelect('targetId', targetOptions, {
