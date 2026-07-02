@@ -9,7 +9,7 @@
 
 ### Enhancements
 
-> Users must be able to say: "Nice enhancement, I'm eager to test it"
+- [XO6/Traffic rules] Edit traffic rules (PR [#10056](https://github.com/vatesfr/xen-orchestra/pull/10056))
 
 ### Bug fixes
 
