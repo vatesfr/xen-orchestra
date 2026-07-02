@@ -365,7 +365,7 @@ const STATS = {
     vbdIowait: {
       test: /^vbd_xvd(.)_iowait$/,
       getPath: matches => ['vbdIowait', matches[1]],
-      transofrmValue: value => value * 1e2,
+      transformValue: value => value * 1e2,
     },
     vbdInflight: {
       test: /^vbd_xvd(.)_inflight$/,
