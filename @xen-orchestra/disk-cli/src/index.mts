@@ -14,7 +14,7 @@ const COMMANDS: Record<string, CommandFn> = {
 
 function showHelp(exitCode: number): never {
   const commandDescriptions: Record<string, string> = {
-    info: 'Show disk info (virtual size, uid, parent uid, block size)',
+    info: 'Show disk info (virtual size, uid, parent uid, block size); pass --chain to show the full parent chain',
     list: 'List all disks at a path and display their properties in a table',
     transform: 'Convert a disk to another format and write to stdout (raw | vhd | qcow2)',
   }
@@ -30,6 +30,7 @@ ${commandList}
 
 Examples:
   xo-disk-cli info      file:///mnt/backups /xo-vm-backups/uuid/disk.alias.vhd
+  xo-disk-cli info      file:///mnt/backups /xo-vm-backups/uuid/disk.alias.vhd --chain
   xo-disk-cli list      file:///mnt/backups /xo-vm-backups/uuid/
   xo-disk-cli transform file:///mnt/backups /xo-vm-backups/uuid/disk.vhd raw > disk.img
   xo-disk-cli transform file:///mnt/backups /xo-vm-backups/uuid/disk.vhd qcow2 > disk.qcow2
