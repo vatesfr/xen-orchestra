@@ -19,10 +19,19 @@ import { ThrottledDisk, SynchronizedDisk } from '@xen-orchestra/disk-transform'
 import { AggregatedIncrementalRemoteWriter } from '../_writers/AggregatedIncrementalRemoteWriter.mjs'
 import { AggregatedIncrementalXapiWriter } from '../_writers/AggregatedIncrementalXapiWriter.mjs'
 import { TaskProgressHandler } from './_TaskProgressHandler.mjs'
+import { compileExpression, isExpression } from '../../_expressionPredicate.mjs'
+import { buildRunContext, buildVmContext } from '../../_buildContext.mjs'
 
 const { debug } = createLogger('xo:backups:IncrementalXapiVmBackup')
 
 export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends AbstractXapi {
+  constructor(props) {
+    super(props)
+
+    const fullInterval = this._settings.fullInterval
+    this._fullIntervalPredicate = isExpression(fullInterval) ? compileExpression(fullInterval) : null
+  }
+
   _getWriters() {
     return [
       IncrementalRemoteWriter,
@@ -241,15 +250,16 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     }
 
     // we do tafter checkbasevdis because we want the writer to know the target VM
-    // especially on replication when we alwayr update the same VM
+    // especially on replication when we always update the same VM
     const fullInterval = this._settings.fullInterval
-    if (fullInterval !== 0 && fullInterval <= deltaChainLength + 1) {
-      debug('not using base VM because fullInterval reached', {
-        fullInterval,
-        deltaChainLength,
-        eq: fullInterval < deltaChainLength + 1,
-        dc1: deltaChainLength + 1,
-      })
+    if (isExpression(fullInterval)) {
+      const context = buildVmContext(this._vm, buildRunContext(new Date()), deltaChainLength)
+      if (this._fullIntervalPredicate(context)) {
+        debug('forcing full backup: fullInterval expression matched', { fullInterval })
+        return
+      }
+    } else if (fullInterval !== 0 && fullInterval <= deltaChainLength + 1) {
+      debug('not using base VM because fullInterval reached', { fullInterval, deltaChainLength })
       return
     }
 

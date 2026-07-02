@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [Backups] ealth check eligibility, full/incremental scheduling, and mirror job VM selection can now be driven by complex-matcher expressions (PR [#10064](https://github.com/vatesfr/xen-orchestra/pull/10064))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -36,6 +38,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backup-archive patch
+- @xen-orchestra/backups minor
 - @xen-orchestra/web patch
 
 <!--packages-end-->

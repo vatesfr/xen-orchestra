@@ -119,7 +119,7 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
 
       await this._callWriters(writer => writer.cleanup(), 'writer.cleanup()')
       // for healthcheck
-      this._tags = metadata.vm.tags
+      this._vm = metadata.vm
       nbTransferredVms++
       Task.set('progress', Math.round((nbTransferredVms * 100) / nbTransferrableVms))
     }

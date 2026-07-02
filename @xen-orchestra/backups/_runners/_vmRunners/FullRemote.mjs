@@ -38,7 +38,7 @@ export const FullRemote = class FullRemoteVmBackupRunner extends AbstractRemote 
         'writer.run()'
       )
       // for healthcheck
-      this._tags = metadata.vm.tags
+      this._vm = metadata.vm
       nbTransferredVms++
       Task.set('progress', Math.round((nbTransferredVms * 100) / nbTransferrableVms))
     }

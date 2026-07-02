@@ -40,6 +40,7 @@
     "@xen-orchestra/backup-archive": "^1.0.2",
     "app-conf": "^3.0.0",
     "compare-versions": "^6.0.0",
+    "complex-matcher": "^1.1.1",
     "d3-time-format": "^4.1.0",
     "decorator-synchronized": "^0.6.0",
     "golike-defer": "^0.5.1",
