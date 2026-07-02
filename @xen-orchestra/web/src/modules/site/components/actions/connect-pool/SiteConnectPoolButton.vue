@@ -1,5 +1,5 @@
 <template>
-  <MenuItem icon="fa:plug" @click="goToConnectPool()">
+  <MenuItem icon="action:attach" @click="goToConnectPool()">
     {{ t('action:connect-pool') }}
   </MenuItem>
 </template>

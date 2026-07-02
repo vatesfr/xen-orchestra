@@ -11,7 +11,7 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [XO6/Site] Add "Create new VM" and "Connect pool" actions to the site infrastructure tree (PR [#10047](https://github.com/vatesfr/xen-orchestra/pull/10047))
+- [XO6/Site] Add "New VM" and "Connect pool" actions to the site infrastructure tree (PR [#10047](https://github.com/vatesfr/xen-orchestra/pull/10047))
 
 ### Bug fixes
 
@@ -34,6 +34,5 @@
 <!--packages-start-->
 
 - @xen-orchestra/web minor
-- @xen-orchestra/web-core patch
 
 <!--packages-end-->
