@@ -94,7 +94,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
   body: (vdi: FrontXoVdi) => {
     const vbds = useGetVbdsByIds(vdi.$VBDs)
 
-    const vbd = computed(() => (vm !== undefined ? vbds.value.find(vbd => vbd.VM === vm.id) : undefined))
+    const vbd = computed(() => vbds.value.find(v => v.VM === vm?.id))
 
     const size = computed(() => formatSizeRaw(vdi.size, 2))
     const format = computed(() => getVdiFormat(vdi.image_format))
