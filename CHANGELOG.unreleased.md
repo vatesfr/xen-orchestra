@@ -11,7 +11,7 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [vm stats] Reduce the memory consumptionof the rrd stats (PR [#9909](https://github.com/vatesfr/xen-orchestra/pull/9909))
+- [vm stats] Reduce the memory consumption of the rrd stats (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
 
 ### Bug fixes
 
