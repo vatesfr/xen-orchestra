@@ -13,7 +13,7 @@
 
 ### Enhancements
 
-> Users must be able to say: "Nice enhancement, I'm eager to test it"
+- [XO6/Traffic rules] Edit traffic rules (PR [#10056](https://github.com/vatesfr/xen-orchestra/pull/10056))
 
 - **RBAC** check for REST API endpoints:
   - `/pools/:id/actions/create_bonded_network` (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
