@@ -4,7 +4,7 @@
 
     <template #info>
       <!--      TODO change to have both when component will be updated -->
-      <template v-if="errorMessage === undefined">{{ t('allowed-ips-exemple') }}</template>
+      <template v-if="errorMessage === undefined">{{ t('allowed-ips-example') }}</template>
       <template v-else>{{ errorMessage }}</template>
     </template>
   </UiTextarea>

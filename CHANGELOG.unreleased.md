@@ -16,8 +16,8 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [VDI] Fix progress bar appearing half-filled when used space is at 100% [Forum#100200](https://xcp-ng.org/forum/post/100200) (PR [#10027](https://github.com/vatesfr/xen-orchestra/pull/10027))
-
 - [Backups] Improve resume of backup merge failure for VHD files (PR [#10053](https://github.com/vatesfr/xen-orchestra/pull/10053))
+- [XO6/VIF] Add possibility to create VIF from network tab in VM page (PR [#9677](https://github.com/vatesfr/xen-orchestra/pull/9677))
 
 ### Packages to release
 
@@ -36,6 +36,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backup-archive patch
-- @xen-orchestra/web patch
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 
 <!--packages-end-->

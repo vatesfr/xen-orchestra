@@ -65,7 +65,7 @@
               {{ t('rate-limit') }}
             </template>
             <template #value>
-              {{ vif.rateLimit !== undefined ? `${vif.rateLimit} ${t('kbps')}` : '' }}
+              {{ vif.rateLimit !== undefined ? `${vif.rateLimit} ${t('bytes:kbs')}` : '' }}
             </template>
           </VtsCardRowKeyValue>
           <!-- LOCKING MODE -->

@@ -2,7 +2,7 @@
   <VtsForm class="new-vif-form" @submit="onSubmit()">
     <div class="row">
       <VifNetworkSelect v-bind="networkSelectBindings" />
-      <NewVifMacInput v-bind="macInputBindings" />
+      <VifMacInput v-bind="macInputBindings" />
     </div>
     <div class="row">
       <VifRateLimitInput v-bind="rateLimitInputBindings" />
@@ -17,9 +17,10 @@
 
 <script setup lang="ts">
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import NewVifMacInput from '@/modules/vif/components/form/new/inputs/NewVifMacInput.vue'
+import VifMacInput from '@/modules/vif/components/form/new/inputs/VifMacInput.vue'
 import NewVifButtonsSection from '@/modules/vif/components/form/new/NewVifButtonsSection.vue'
-import { type NewVifPayload, useNewVifForm } from '@/modules/vif/form/new/use-new-vif-form.ts'
+import { useNewVifForm } from '@/modules/vif/form/new/use-new-vif-form.ts'
+import type { NewVifPayload } from '@/modules/vif/jobs/xo-vif-create.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsForm from '@core/components/form/VtsForm.vue'
 
