@@ -42,6 +42,7 @@ declare module '@xen-orchestra/backup-archive/disks/openDiskChain.mjs' {
     handler: RemoteHandler
     path: string
     until?: string
+    ignoreBlockIndexes?: boolean
   }): Promise<RandomAccessDisk>
 }
 
@@ -55,6 +56,7 @@ declare module '@xen-orchestra/backup-archive/disks' {
     getPaths(): string[]
     getUuid(): string
     getParentUuid(): string
+    getParentPath(): string
     getMaxBlockCount(): number
   }
 
@@ -65,8 +67,18 @@ declare module '@xen-orchestra/backup-archive/disks' {
 
   export function isDisk(path: string): boolean
 
-  export function openDisposableDisk(params: { handler: RemoteHandler; path: string }): Promise<DiskDisposable>
+  export function openDisposableDisk(params: {
+    handler: RemoteHandler
+    path: string
+    force?: boolean
+    ignoreBlockIndexes?: boolean
+  }): Promise<DiskDisposable>
 
   // Returns a RemoteVhdDiskChain, which is a RemoteDisk exposing getPaths() over the whole lineage.
-  export function openDiskChain(params: { handler: RemoteHandler; path: string; until?: string }): Promise<RemoteDisk>
+  export function openDiskChain(params: {
+    handler: RemoteHandler
+    path: string
+    until?: string
+    ignoreBlockIndexes?: boolean
+  }): Promise<RemoteDisk>
 }
