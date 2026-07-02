@@ -9,7 +9,7 @@ import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts
 import { useXoVmDeleteJob } from '@/modules/vm/jobs/xo-vm-delete.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -25,7 +25,7 @@ const { xo5VmAdvancedHref } = useXoVmUtils(() => vm)
 
 const router = useRouter()
 
-const openDeleteModal = useModal({
+const openDeleteModal = useOverlay({
   component: import('@/modules/vm/components/modal/VmDeleteModal.vue'),
   props: { count: 1 },
   onConfirm: async () => {
@@ -43,7 +43,7 @@ const openDeleteModal = useModal({
   },
 })
 
-const openBlockedModal = useModal({
+const openBlockedModal = useOverlay({
   component: import('@core/components/modal/VtsBlockedModal.vue'),
   props: { blockedOperation: 'destroy', href: xo5VmAdvancedHref },
 })

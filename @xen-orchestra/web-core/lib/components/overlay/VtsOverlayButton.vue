@@ -1,5 +1,5 @@
 <template>
-  <UiButton :accent="buttonAccent" :busy="modal?.isBusy.value" :variant size="medium">
+  <UiButton :accent="buttonAccent" :busy="overlay?.isBusy.value" :variant size="medium">
     <slot />
   </UiButton>
 </template>
@@ -7,8 +7,8 @@
 <script lang="ts" setup>
 import UiButton, { type ButtonVariant } from '@core/components/ui/button/UiButton.vue'
 import { useMapper } from '@core/packages/mapper'
-import { IK_MODAL } from '@core/packages/modal/types.ts'
-import { IK_MODAL_ACCENT } from '@core/utils/injection-keys.util.ts'
+import { IK_OVERLAY } from '@core/packages/overlay/types.ts'
+import { IK_OVERLAY_ACCENT } from '@core/utils/injection-keys.util.ts'
 import { inject } from 'vue'
 
 defineProps<{
@@ -19,12 +19,12 @@ defineSlots<{
   default(): any
 }>()
 
-const modal = inject(IK_MODAL)
+const overlay = inject(IK_OVERLAY)
 
-const modalAccent = inject(IK_MODAL_ACCENT)
+const overlayAccent = inject(IK_OVERLAY_ACCENT)
 
 const buttonAccent = useMapper(
-  () => modalAccent?.value,
+  () => overlayAccent?.value,
   {
     info: 'brand',
     warning: 'warning',

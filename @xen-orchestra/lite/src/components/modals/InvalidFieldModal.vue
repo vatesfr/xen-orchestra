@@ -1,18 +1,18 @@
 <template>
-  <VtsModal accent="danger" dismissible icon="fa:exclamation-circle">
+  <VtsOverlay type="modal" accent="danger" dismissible icon="fa:exclamation-circle">
     <template #title>{{ t('invalid-field') }}</template>
     <template #content>{{ message }}</template>
     <template #buttons>
-      <VtsModalConfirmButton>
+      <VtsOverlayConfirmButton>
         {{ t('ok') }}
-      </VtsModalConfirmButton>
+      </VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </VtsOverlay>
 </template>
 
 <script lang="ts" setup>
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlay from '@core/components/overlay/VtsOverlay.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{

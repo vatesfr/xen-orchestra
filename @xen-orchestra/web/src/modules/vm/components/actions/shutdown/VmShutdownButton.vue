@@ -10,7 +10,7 @@ import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts
 import { useXoVmShutdownJob } from '@/modules/vm/jobs/xo-vm-shutdown.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -31,13 +31,13 @@ const canDisplay = computed(() => {
   return canRun.value || vm.power_state === VM_POWER_STATE.RUNNING
 })
 
-const openShutdownModal = useModal({
+const openShutdownModal = useOverlay({
   component: import('@core/components/modal/VtsActionModal.vue'),
   props: { accent: 'info', action: 'shutdown', object: 'vm' },
   onConfirm: () => shutdown(),
 })
 
-const openBlockedModal = useModal({
+const openBlockedModal = useOverlay({
   component: import('@core/components/modal/VtsBlockedModal.vue'),
   props: { blockedOperation: 'clean_shutdown', href: xo5VmAdvancedHref },
 })

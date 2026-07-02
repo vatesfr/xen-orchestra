@@ -1,6 +1,6 @@
 import { ipToHostname } from '@/libs/utils'
 import { useHostStore } from '@/stores/xen-api/host.store'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { whenever } from '@vueuse/core'
 import { difference } from 'lodash-es'
 import { computed, ref, watch } from 'vue'
@@ -18,7 +18,7 @@ export const useUnreachableHosts = () => {
     })
   })
 
-  const openModal = useModal({
+  const openModal = useOverlay({
     keepOpenOnRouteChange: true,
     component: import('@/components/modals/UnreachableHostsModal.vue'),
     props: { urls: computed(() => Array.from(unreachableHostsUrls.value.values())) },

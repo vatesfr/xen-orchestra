@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="info" icon="status:info-picto">
+  <VtsOverlay type="modal" accent="info" icon="status:info-picto">
     <template #title>
       {{ connection.title }}
     </template>
@@ -9,20 +9,20 @@
     </template>
 
     <template #buttons>
-      <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
-      <VtsModalConfirmButton>
+      <VtsOverlayCancelButton>{{ t('action:go-back') }}</VtsOverlayCancelButton>
+      <VtsOverlayConfirmButton>
         {{ connection.action }}
-      </VtsModalConfirmButton>
+      </VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </VtsOverlay>
 </template>
 
 <script lang="ts" setup>
 import type { VbdConnectionAction } from '@/modules/vbd/composables/use-vbd-connection-toggle-modal.composable.ts'
 import { CONNECTION_ACTION } from '@/shared/constants.ts'
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlay from '@core/components/overlay/VtsOverlay.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import { useMapper } from '@core/packages/mapper'
 import { useI18n } from 'vue-i18n'
 

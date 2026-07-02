@@ -1,20 +1,20 @@
 <template>
-  <VtsModal class="vts-query-builder-modal" accent="info" dismissible>
+  <VtsOverlay type="modal" class="vts-query-builder-modal" accent="info" dismissible>
     <template v-if="uiStore.isSmall" #title>{{ t('query-builder') }}</template>
     <template #content>
       <VtsQueryBuilderGroup v-model="rootGroup" root />
     </template>
     <template #buttons>
-      <VtsModalCancelButton />
-      <VtsModalConfirmButton>{{ t('action:save') }}</VtsModalConfirmButton>
+      <VtsOverlayCancelButton />
+      <VtsOverlayConfirmButton>{{ t('action:save') }}</VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </VtsOverlay>
 </template>
 
 <script setup lang="ts">
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlay from '@core/components/overlay/VtsOverlay.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import VtsQueryBuilderGroup from '@core/components/query-builder/VtsQueryBuilderGroup.vue'
 import { type QueryBuilderGroup } from '@core/packages/query-builder/types'
 import { useUiStore } from '@core/stores/ui.store.ts'

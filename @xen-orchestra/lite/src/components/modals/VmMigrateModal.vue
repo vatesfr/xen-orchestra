@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="info" @confirm="emit('confirm', selectedHost)">
+  <VtsOverlay type="modal" accent="info" @confirm="emit('confirm', selectedHost)">
     <template #title>
       {{ t('action:migrate-n-vms', { n: count }) }}
     </template>
@@ -13,20 +13,20 @@
     </template>
 
     <template #buttons>
-      <VtsModalCancelButton />
-      <VtsModalConfirmButton :disabled="!selectedHost">
+      <VtsOverlayCancelButton />
+      <VtsOverlayConfirmButton :disabled="!selectedHost">
         {{ t('action:migrate-n-vms', { n: count }) }}
-      </VtsModalConfirmButton>
+      </VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </VtsOverlay>
 </template>
 
 <script lang="ts" setup>
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlay from '@core/components/overlay/VtsOverlay.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import { useFormSelect } from '@core/packages/form-select'
 import { ref } from 'vue'

@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="info" dismissible @confirm="emit('confirm', generatedFilter)">
+  <VtsOverlay type="modal" accent="info" dismissible @confirm="emit('confirm', generatedFilter)">
     <template #content>
       <div class="rows">
         <CollectionFilterRow
@@ -10,9 +10,9 @@
           @remove="removeNewFilter($event)"
         />
         <div>
-          <VtsModalButton variant="tertiary" @click="addNewFilter()">
+          <VtsOverlayButton variant="tertiary" @click="addNewFilter()">
             {{ t('add-or') }}
-          </VtsModalButton>
+          </VtsOverlayButton>
         </div>
       </div>
       <div v-if="newFilters.some(filter => filter.isAdvanced)" class="available-properties">
@@ -25,12 +25,12 @@
       </div>
     </template>
     <template #buttons>
-      <VtsModalCancelButton />
-      <VtsModalConfirmButton :disabled="!isFilterValid">
+      <VtsOverlayCancelButton />
+      <VtsOverlayConfirmButton :disabled="!isFilterValid">
         {{ editedFilter ? t('action:update') : t('action:add') }}
-      </VtsModalConfirmButton>
+      </VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </VtsOverlay>
 </template>
 
 <script lang="ts" setup>
@@ -38,10 +38,10 @@ import CollectionFilterRow from '@/components/CollectionFilterRow.vue'
 import UiBadge from '@/components/ui/UiBadge.vue'
 import { getFilterIcon } from '@/libs/utils'
 import type { Filters, NewFilter } from '@/types/filter'
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalButton from '@core/components/modal/VtsModalButton.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlay from '@core/components/overlay/VtsOverlay.vue'
+import VtsOverlayButton from '@core/components/overlay/VtsOverlayButton.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import { Or, parse } from 'complex-matcher'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

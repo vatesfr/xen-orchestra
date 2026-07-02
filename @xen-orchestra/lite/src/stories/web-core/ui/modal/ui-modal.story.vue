@@ -4,7 +4,6 @@
     :params="[
       prop('accent').required().enum('info', 'warning', 'danger').preset('info').widget(),
       iconProp(),
-      prop('dismissible').bool().widget(),
       prop('onDismiss').type('function').widget(),
       event('dismiss'),
       slot('title'),

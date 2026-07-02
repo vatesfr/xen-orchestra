@@ -20,7 +20,7 @@ import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useDisabled } from '@core/composables/disabled.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -41,9 +41,9 @@ const isDisabled = useDisabled(() => !isSomeExportable.value)
 
 const xenApi = useXenApiStore().getXapi()
 
-const openModal = useModal()
+const openModal = useOverlay()
 
-const openExportModal = useModal({
+const openExportModal = useOverlay({
   component: import('@/components/modals/VmExportModal.vue'),
   props: { count: computed(() => vmRefs.length) },
   onConfirm: compressionType => xenApi.vm.export(vmRefs, compressionType, openModal),

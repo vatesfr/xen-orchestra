@@ -1,11 +1,11 @@
 <template>
-  <VtsModalButton variant="primary" :type="onClick ? 'button' : 'submit'" @click="emit('click')">
+  <VtsOverlayButton variant="primary" :type="onClick ? 'button' : 'submit'" @click="emit('click')">
     <slot />
-  </VtsModalButton>
+  </VtsOverlayButton>
 </template>
 
 <script lang="ts" setup>
-import VtsModalButton from '@core/components/modal/VtsModalButton.vue'
+import VtsOverlayButton from '@core/components/overlay/VtsOverlayButton.vue'
 
 const { onClick } = defineProps<{
   onClick?: () => void

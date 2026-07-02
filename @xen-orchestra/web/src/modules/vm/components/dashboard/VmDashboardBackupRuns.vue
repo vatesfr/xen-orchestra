@@ -69,7 +69,7 @@ import UiInfo, { type InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useTableState } from '@core/composables/table-state.composable'
 import { useMapper } from '@core/packages/mapper'
-import { useModal } from '@core/packages/modal/use-modal'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { useBackupRunColumns } from '@core/tables/column-sets/vm-backup-run-colums'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -84,7 +84,7 @@ const { t } = useI18n()
 
 const { getBackupJobById, areBackupJobsReady, hasBackupJobFetchError } = useXoBackupJobCollection()
 
-const openProtectionHelpModal = useModal(() => ({
+const openProtectionHelpModal = useOverlay(() => ({
   component: import('@xen-orchestra/web/src/shared/components/modals/VmProtectedHelper.vue'),
 }))
 

@@ -1,6 +1,6 @@
 import { useXoVifDeleteJob } from '@/modules/vif/jobs/xo-vif-delete.job.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
 
@@ -9,7 +9,7 @@ export function useVifDeleteModal(rawVifs: MaybeRefOrGetter<FrontXoVif[]>) {
 
   const { run, canRun, isRunning } = useXoVifDeleteJob(vifs)
 
-  const openModal = useModal(() => ({
+  const openModal = useOverlay(() => ({
     component: import('@/modules/vif/components/modal/VifDeleteModal.vue'),
     props: { count: vifs.value.length },
     onConfirm: async () => {

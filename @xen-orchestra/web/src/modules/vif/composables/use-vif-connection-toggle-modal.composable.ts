@@ -3,7 +3,7 @@ import { useXoVifDisconnectJob } from '@/modules/vif/jobs/xo-vif-disconnect.job.
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { CONNECTION_ACTION } from '@/shared/constants.ts'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
 
@@ -27,7 +27,7 @@ export function useVifConnectionToggleModal(
   const isRunning = computed(() => job.value.isRunning.value)
   const errorMessage = computed(() => job.value.errorMessage.value)
 
-  const openModal = useModal(() => ({
+  const openModal = useOverlay(() => ({
     component: import('@/modules/vif/components/modal/VifConnectionToggleModal.vue'),
     props: { action: action.value, count: vifs.value.length },
     onConfirm: async () => {

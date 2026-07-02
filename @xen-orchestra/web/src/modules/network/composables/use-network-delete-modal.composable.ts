@@ -2,7 +2,7 @@ import { type NetworkDeleteModalProps } from '@/modules/network/components/modal
 import { NETWORK_DELETE_ERROR, useXoNetworkDeleteJob } from '@/modules/network/jobs/xo-network-delete.job.ts'
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getNetworkType } from '@/modules/network/utils/xo-network.util.ts'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
 
@@ -13,7 +13,7 @@ export function useNetworkDeleteModal(rawNetworks: MaybeRefOrGetter<FrontXoNetwo
 
   const networkType = computed<NetworkDeleteModalProps['type']>(() => getNetworkType(networks.value[0]))
 
-  const openNetworkDeleteModal = useModal({
+  const openNetworkDeleteModal = useOverlay({
     component: import('@/modules/network/components/modal/NetworkDeleteModal.vue'),
     props: { count: computed(() => networks.value.length), type: networkType },
     onConfirm: async () => {
@@ -25,7 +25,7 @@ export function useNetworkDeleteModal(rawNetworks: MaybeRefOrGetter<FrontXoNetwo
     },
   })
 
-  const openNetworkDeleteErrorModal = useModal({
+  const openNetworkDeleteErrorModal = useOverlay({
     component: import('@/modules/network/components/modal/NetworkDeleteErrorModal.vue'),
     props: {
       error: errorMessage,

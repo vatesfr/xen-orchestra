@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="info" dismissible @confirm="handleSubmit()">
+  <VtsOverlay type="modal" accent="info" dismissible @confirm="handleSubmit()">
     <template #content>
       <div class="form-selects">
         <VtsSelect :id="sortPropertySelectId" accent="brand" />
@@ -8,17 +8,17 @@
     </template>
 
     <template #buttons>
-      <VtsModalCancelButton />
-      <VtsModalConfirmButton :disabled="!newSortProperty">{{ t('action:add') }}</VtsModalConfirmButton>
+      <VtsOverlayCancelButton />
+      <VtsOverlayConfirmButton :disabled="!newSortProperty">{{ t('action:add') }}</VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </VtsOverlay>
 </template>
 
 <script lang="ts" setup>
 import type { NewSort, Sorts } from '@/types/sort'
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlay from '@core/components/overlay/VtsOverlay.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import { useFormSelect } from '@core/packages/form-select'
 import { ref } from 'vue'

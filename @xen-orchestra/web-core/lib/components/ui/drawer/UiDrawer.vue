@@ -1,31 +1,28 @@
 <template>
-  <Transition name="drawer" @after-leave="emit('afterLeave')">
-    <div v-if="isOpen" class="ui-drawer" aria-modal="true" role="dialog" @click.self="isDismissible && emit('dismiss')">
-      <aside class="drawer">
-        <div class="header">
-          <div v-if="slots.title || title !== undefined" class="typo-h4">
-            <slot name="title">
-              {{ title }}
-            </slot>
-          </div>
-          <UiButtonIcon
-            v-if="isDismissible"
-            :target-scale="2"
-            icon="action:close-cancel-clear"
-            accent="brand"
-            size="small"
-            @click="emit('dismiss')"
-          />
+  <form class="ui-drawer" aria-modal="true" role="dialog" @click.self="emit('dismiss')">
+    <aside class="drawer">
+      <div class="header">
+        <div v-if="slots.title || title !== undefined" class="typo-h4">
+          <slot name="title">
+            {{ title }}
+          </slot>
         </div>
-        <div class="content">
-          <slot name="content" />
-        </div>
-        <VtsButtonGroup v-if="slots.buttons" no-stack class="buttons">
-          <slot name="buttons" />
-        </VtsButtonGroup>
-      </aside>
-    </div>
-  </Transition>
+        <UiButtonIcon
+          :target-scale="2"
+          icon="action:close-cancel-clear"
+          accent="brand"
+          size="small"
+          @click="emit('dismiss')"
+        />
+      </div>
+      <div class="content">
+        <slot name="content" />
+      </div>
+      <VtsButtonGroup v-if="slots.buttons" no-stack class="buttons">
+        <slot name="buttons" />
+      </VtsButtonGroup>
+    </aside>
+  </form>
 </template>
 
 <script lang="ts" setup>
@@ -33,14 +30,11 @@ import VtsButtonGroup from '@core/components/button-group/VtsButtonGroup.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 
 defineProps<{
-  isOpen: boolean
-  isDismissible?: boolean
   title?: string
 }>()
 
 const emit = defineEmits<{
   dismiss: []
-  afterLeave: []
 }>()
 
 const slots = defineSlots<{
@@ -51,31 +45,6 @@ const slots = defineSlots<{
 </script>
 
 <style lang="postcss" scoped>
-/* Slide-in from right */
-.drawer-enter-active.ui-drawer,
-.drawer-leave-active.ui-drawer {
-  transition: opacity 0.3s ease;
-}
-
-.drawer-enter-active .drawer,
-.drawer-leave-active .drawer {
-  transition: transform 0.3s ease;
-}
-
-.drawer-enter-from.ui-drawer,
-.drawer-leave-to.ui-drawer {
-  opacity: 0;
-}
-
-.drawer-enter-from .drawer,
-.drawer-leave-to .drawer {
-  transform: translateX(100%);
-
-  &:dir(rtl) {
-    transform: translateX(-100%);
-  }
-}
-
 .ui-drawer {
   position: fixed;
   display: flex;
