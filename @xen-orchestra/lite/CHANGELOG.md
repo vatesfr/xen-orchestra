@@ -12,6 +12,7 @@
 - [SidePanels] Add and use new `VtsCardObjectTitle` component to display object title and ID in side panels (PR [#9755](https://github.com/vatesfr/xen-orchestra/pull/9755))
 - Replacement of the UiSpinner component with UiLoader from web-core (PR [#10023](https://github.com/vatesfr/xen-orchestra/pull/10023))
 - [Pool,Host/Storage] Add Storage tabs (PR [#10005](https://github.com/vatesfr/xen-orchestra/pull/10005))
+- [Pool,Host/Storage] Storage repositories can now be connected, disconnected and deleted from the Storage tabs (PR [#10006](https://github.com/vatesfr/xen-orchestra/pull/10006))
 
 ## **0.22.0** (2026-05-28)
 
