@@ -12,6 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [vm stats] Reduce the memory consumption of the rrd stats (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+- [XO6/Traffic rules] Show only traffic rules of VMs. Don't include vm-snapshots or vm-templates (PR [#9977](https://github.com/vatesfr/xen-orchestra/pull/9977))
 
 ### Bug fixes
 
@@ -38,7 +39,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backup-archive patch
-- @xen-orchestra/web patch
+- @xen-orchestra/web minor
 - xo-server patch
 
 <!--packages-end-->
