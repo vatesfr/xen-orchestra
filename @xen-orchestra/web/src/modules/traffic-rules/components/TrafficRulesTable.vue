@@ -43,6 +43,7 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import { useDirectionLabels } from '@/modules/traffic-rules/composables/direction-labels.composable.ts'
 import { useTrafficRuleTarget } from '@/modules/traffic-rules/composables/traffic-rule-target.composable.ts'
 import { useTrafficRuleDeleteModal } from '@/modules/traffic-rules/composables/use-traffic-rule-delete-modal.composable.ts'
+import { useTrafficRulesEditDrawer } from '@/modules/traffic-rules/composables/use-traffic-rule-edit-drawer.composable.ts'
 import type { EnrichedTrafficRule } from '@/modules/traffic-rules/types.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -59,7 +60,7 @@ import { useTrafficRulesColumns } from '@core/tables/column-sets/traffic-rules-c
 import { useBooleanSchema } from '@core/utils/query-builder/use-boolean-schema.ts'
 import { useNumberSchema } from '@core/utils/query-builder/use-number-schema.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
-import { type TrafficRule, SDN_CONTROLLER_OF_METHOD_KEY, SDN_CONTROLLER_OF_FORMAT_KEY } from '@vates/types'
+import { SDN_CONTROLLER_OF_FORMAT_KEY, SDN_CONTROLLER_OF_METHOD_KEY, type TrafficRule } from '@vates/types'
 
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -146,6 +147,10 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
       errorMessage: deleteTrafficRuleErrorMessage,
     } = useTrafficRuleDeleteModal(() => [rule])
 
+    const { openDrawer: openUpdateTrafficRuleDrawer, isRunning: isEditingTrafficRule } = useTrafficRulesEditDrawer(
+      () => rule
+    )
+
     return {
       order: r => r(rule.order),
       policy: r => r(t(rule.allow ? 'allow' : 'drop'), rule.allow ? 'success' : 'danger'),
@@ -165,6 +170,12 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
               disabled: !canDeleteTrafficRule.value,
               busy: isDeletingTrafficRule.value,
               hint: deleteTrafficRuleErrorMessage.value,
+            },
+            {
+              label: t('action:edit'),
+              icon: 'action:edit',
+              onClick: () => openUpdateTrafficRuleDrawer(),
+              busy: isEditingTrafficRule.value,
             },
           ],
         }),

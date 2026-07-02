@@ -12,7 +12,7 @@ export function useTrafficRulesEditDrawer(rawTrafficRule: MaybeRefOrGetter<Traff
 
   const editPayload = ref<EditTrafficRulePayload | undefined>(undefined)
 
-  const { run, isRunning, canRun } = useXoTrafficRuleEditJob(() => (editPayload.value ? [editPayload.value] : []))
+  const { run, isRunning } = useXoTrafficRuleEditJob(() => (editPayload.value ? [editPayload.value] : []))
 
   const openDrawer = useDrawer(() => ({
     component: import('@/modules/traffic-rules/components/drawer/TrafficRulesEditDrawer.vue'),
@@ -29,5 +29,5 @@ export function useTrafficRulesEditDrawer(rawTrafficRule: MaybeRefOrGetter<Traff
     },
   }))
 
-  return { openDrawer, canRun, isRunning }
+  return { openDrawer, isRunning }
 }
