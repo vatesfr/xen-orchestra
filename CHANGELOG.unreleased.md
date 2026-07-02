@@ -37,5 +37,7 @@
 
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/web patch
+- xo-server-audit patch
+- xo-server-sdn-controller patch
 
 <!--packages-end-->
