@@ -59,6 +59,15 @@
               <VtsCopyButton :value="String(vif.MTU)" />
             </template>
           </VtsCardRowKeyValue>
+          <!-- RATE LIMIT -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ t('rate-limit') }}
+            </template>
+            <template #value>
+              {{ vif.rateLimit !== undefined ? `${vif.rateLimit} ${t('kbps')}` : '' }}
+            </template>
+          </VtsCardRowKeyValue>
           <!-- LOCKING MODE -->
           <VtsCardRowKeyValue>
             <template #key>
