@@ -1,4 +1,3 @@
-import type { NewTrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
 import { defineJobArg } from '@core/packages/job'
 import type { TrafficRule } from '@vates/types'
 
@@ -8,6 +7,6 @@ export const xoTrafficRulesArg = defineJobArg({
 })
 
 export const newTrafficRulePayloadArg = defineJobArg({
-  identify: (rule: NewTrafficRulePayload) => rule.targetId,
+  identify: false,
   toArray: false,
 })
