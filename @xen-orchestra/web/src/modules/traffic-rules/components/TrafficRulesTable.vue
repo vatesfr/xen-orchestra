@@ -147,9 +147,11 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
       errorMessage: deleteTrafficRuleErrorMessage,
     } = useTrafficRuleDeleteModal(() => [rule])
 
-    const { openDrawer: openUpdateTrafficRuleDrawer, isRunning: isEditingTrafficRule } = useTrafficRuleEditDrawer(
-      () => rule
-    )
+    const {
+      openDrawer: openUpdateTrafficRuleDrawer,
+      isRunning: isEditingTrafficRule,
+      canRun: canEditTrafficRule,
+    } = useTrafficRuleEditDrawer(() => rule)
 
     return {
       order: r => r(rule.order),
@@ -176,6 +178,7 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
               icon: 'action:edit',
               onClick: () => openUpdateTrafficRuleDrawer(),
               busy: isEditingTrafficRule.value,
+              disabled: !canEditTrafficRule.value,
             },
           ],
         }),
