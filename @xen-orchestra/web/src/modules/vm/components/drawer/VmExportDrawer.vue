@@ -1,5 +1,5 @@
 <template>
-  <VtsDrawer dismissible is-open @dismiss="emit('cancel')">
+  <VtsDrawer dismissible @dismiss="emit('cancel')">
     <template #title>
       {{ t('action:export-n-vms', 1) }}
     </template>
@@ -12,10 +12,8 @@
         <div class="field">
           <UiLabel accent="neutral" required>{{ t('type') }}</UiLabel>
           <div class="radio-group">
-            <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-            <UiRadioButton v-model="type" accent="brand" value="xva">XVA</UiRadioButton>
-            <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-            <UiRadioButton v-model="type" accent="brand" value="ova">OVA</UiRadioButton>
+            <UiRadioButton v-model="type" accent="brand" value="xva"> {{ t('xva') }} </UiRadioButton>
+            <UiRadioButton v-model="type" accent="brand" value="ova"> {{ t('ova') }} </UiRadioButton>
           </div>
         </div>
 
@@ -28,10 +26,8 @@
               <UiRadioButton v-model="compression" accent="brand" value="none">
                 {{ t('disabled') }}
               </UiRadioButton>
-              <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-              <UiRadioButton v-model="compression" accent="brand" value="gzip">GZIP</UiRadioButton>
-              <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-              <UiRadioButton v-model="compression" accent="brand" value="zstd">ZSTD</UiRadioButton>
+              <UiRadioButton v-model="compression" accent="brand" value="gzip"> {{ t('gzip') }}</UiRadioButton>
+              <UiRadioButton v-model="compression" accent="brand" value="zstd"> {{ t('zstd') }}</UiRadioButton>
             </div>
           </div>
         </template>

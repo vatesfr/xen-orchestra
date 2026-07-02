@@ -776,6 +776,7 @@
   "other": "Autre",
   "other-properties": "Autres propriétés",
   "other-settings": "Autres paramètres",
+  "ova": "OVA",
   "page-not-found": "Cette page est introuvable…",
   "page-please-wait": "Accrochez-vous, astronaute ! La page est sur le point de décoller.{newline}Nous alignons les propulseurs et calibrons les systèmes. Plus que quelques instants, restez à l'écoute !",
   "pagination:all": "Tous",
@@ -1201,6 +1202,7 @@
   "xoa-password-confirm-different": "La confirmation du mot de passe XOA est différente",
   "xoa-ssh-account": "Compte SSH de la XOA",
   "xoa-ssh-password-confirm-different": "La confirmation du mot de passe SSH est différente",
+  "xva": "XVA",
   "you-are-currently-on": "Vous êtes actuellement sur : {0}",
   "zstd": "ZSTD"
 }
