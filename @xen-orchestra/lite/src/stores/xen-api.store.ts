@@ -28,10 +28,14 @@ export const useXenApiStore = defineStore('xen-api', () => {
     }
   )
 
-  const hostUrl = new URL(HOST_URL)
-  if (masterSessionStorage.value !== null) {
-    hostUrl.hostname = masterSessionStorage.value
-  }
+  const hostUrl =
+    masterSessionStorage.value !== null
+      ? new URL(
+          masterSessionStorage.value.includes('://')
+            ? masterSessionStorage.value
+            : `https://${masterSessionStorage.value}`
+        )
+      : new URL(HOST_URL)
 
   const isPoolOverridden = hostUrl.origin !== new URL(HOST_URL).origin
   const xenApi = new XenApi(hostUrl.origin)
