@@ -12,7 +12,7 @@ import {
   type BaseTrafficRuleFormData,
   useTrafficRuleFormBase,
 } from '@/modules/traffic-rules/form/use-traffic-rule-form-base.ts'
-import type { EditTrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-edit.job.ts'
+import type { NewTrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { objectIcon } from '@core/icons'
@@ -122,7 +122,7 @@ export function useEditTrafficRuleForm(rawRule: MaybeRefOrGetter<TrafficRule>) {
     },
   })
 
-  async function validateAndBuildPayload(): Promise<EditTrafficRulePayload | undefined> {
+  async function validateAndBuildPayload(): Promise<NewTrafficRulePayload | undefined> {
     const valid = await validate()
 
     if (!valid) {
@@ -130,12 +130,9 @@ export function useEditTrafficRuleForm(rawRule: MaybeRefOrGetter<TrafficRule>) {
     }
 
     return {
-      oldRule: rule.value,
-      newRule: {
-        ...buildBaseRulePayload(),
-        targetType: rule.value.type,
-        targetId: rule.value.sourceId,
-      },
+      ...buildBaseRulePayload(),
+      targetType: rule.value.type,
+      targetId: rule.value.sourceId,
     }
   }
 
