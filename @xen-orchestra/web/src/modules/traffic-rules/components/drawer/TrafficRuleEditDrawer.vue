@@ -23,7 +23,7 @@
 
 <script setup lang="ts">
 import EditTrafficRuleForm from '@/modules/traffic-rules/components/form/edit/EditTrafficRuleForm.vue'
-import type { EditTrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-edit.job.ts'
+import type { NewTrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
 import VtsDrawer from '@core/components/drawer/VtsDrawer.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import type { TrafficRule } from '@vates/types'
@@ -38,7 +38,7 @@ defineProps<{
 
 const emit = defineEmits<{
   cancel: []
-  confirm: [payload: EditTrafficRulePayload]
+  confirm: [payload: NewTrafficRulePayload]
 }>()
 
 const { t } = useI18n()

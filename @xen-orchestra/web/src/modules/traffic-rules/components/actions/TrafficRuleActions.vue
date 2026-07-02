@@ -9,6 +9,7 @@
     variant="tertiary"
     accent="brand"
     left-icon="action:edit"
+    :disabled="!canEditTrafficRule"
     :busy="isEditingTrafficRule"
     @click="openUpdateTrafficRuleDrawer()"
   >
@@ -36,7 +37,9 @@ const {
   isRunning: isDeletingTrafficRule,
 } = useTrafficRuleDeleteModal(() => [rule])
 
-const { openDrawer: openUpdateTrafficRuleDrawer, isRunning: isEditingTrafficRule } = useTrafficRuleEditDrawer(
-  () => rule
-)
+const {
+  openDrawer: openUpdateTrafficRuleDrawer,
+  isRunning: isEditingTrafficRule,
+  canRun: canEditTrafficRule,
+} = useTrafficRuleEditDrawer(() => rule)
 </script>
