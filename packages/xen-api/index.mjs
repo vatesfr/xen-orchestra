@@ -1,7 +1,8 @@
 import assert from 'assert'
 import dns from 'dns'
+import http from 'node:http'
+import https from 'node:https'
 import ms from 'ms'
-import httpRequest from 'http-request-plus'
 import map from 'lodash/map.js'
 import noop from 'lodash/noop.js'
 import Obfuscate from '@vates/obfuscate'
@@ -16,6 +17,7 @@ import { jsonHash } from '@vates/json-hash'
 import { cancelable, defer, fromCallback, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 import { decorateClass } from '@vates/decorate-with'
+import { pipeline } from 'node:stream'
 import { ProxyAgent as HttpProxyAgent } from 'proxy-agent'
 
 import getTaskResult from './_getTaskResult.mjs'
@@ -27,9 +29,92 @@ import Ref from './_Ref.mjs'
 import transports from './transports/index.mjs'
 import { noSuchObject } from 'xo-common/api-errors.js'
 
-const { debug } = createLogger('xen-api')
+const { debug, warn } = createLogger('xen-api')
 
 // ===================================================================
+// Minimal `node:http(s)` request helper used by `putResource`.
+// `fetch`/`undici` cannot be used here because `putResource` relies on a hack
+// (see below) where a huge `content-length` is announced and the connection is
+// cut once the real data has been sent
+// Mimics the subset of `http-request-plus` that `putResource` depends on:
+// resolves with the Node response on a 2xx status, otherwise rejects with an
+// error carrying the response as `error.response`. A stream body is never
+// replayed, so redirects are not followed for it (`putResource` probes for
+// redirections with an empty body beforehand).
+function nodeRequest(url, { body, headers, maxRedirects = 5, signal, timeout, ...opts }) {
+  url = url instanceof URL ? url : new URL(url)
+  warn('nodeRequest', url.href, { body, headers, maxRedirects, signal, timeout, ...opts })
+  const bodyIsStream = body != null && typeof body.pipe === 'function'
+
+  headers = { ...headers }
+  if (body !== undefined && headers['content-length'] === undefined) {
+    const length = bodyIsStream ? (body.headers?.['content-length'] ?? body.length) : Buffer.byteLength(body)
+    if (length !== undefined) {
+      headers['content-length'] = length
+    }
+  }
+
+  let redirectsLeft = bodyIsStream ? 0 : maxRedirects
+
+  const send = currentUrl =>
+    new Promise((resolve, reject) => {
+      const req = (currentUrl.protocol === 'https:' ? https : http).request(currentUrl, { ...opts, headers, signal })
+
+      // before the response is received, errors reject the promise; afterwards,
+      // they are forwarded to the response so an abnormally closed connection
+      // (the 1PiB hack in `putResource` cuts the socket once the data has been
+      // sent) does not reject a settled promise, and `putResource`'s
+      // post-processing can handle the `ERR_STREAM_PREMATURE_CLOSE` itself
+      let sendError = reject
+      const onError = error => sendError(error)
+      req.on('error', onError)
+
+      if (timeout !== undefined) {
+        req.setTimeout(timeout, () => {
+          const error = new Error('HTTP connection has timed out')
+          error.url = currentUrl.href
+          req.destroy(error)
+        })
+      }
+
+      req.on('response', response => {
+        const { statusCode } = response
+        const { location } = response.headers
+        const isRedirect = statusCode >= 300 && statusCode < 400
+
+        if (redirectsLeft > 0 && isRedirect && location !== undefined) {
+          --redirectsLeft
+          response.destroy()
+          resolve(send(new URL(location, currentUrl)))
+          return
+        }
+
+        sendError = error => response.destroy(error)
+        const isOk = statusCode >= 200 && statusCode < 300
+        if (isOk) {
+          resolve(response)
+        } else {
+          const error = new Error(`${statusCode} ${response.statusMessage}`)
+          Object.defineProperty(error, 'response', { value: response })
+          reject(error)
+        }
+      })
+
+      if (bodyIsStream) {
+        // let `pipeline` own the request errors while streaming
+        req.off('error', onError)
+        pipeline(body, req, error => {
+          if (error != null) {
+            sendError(error)
+          }
+        })
+      } else {
+        req.end(body)
+      }
+    })
+
+  return send(url)
+}
 
 // in seconds!
 const EVENT_TIMEOUT = 60
@@ -533,7 +618,7 @@ export class Xapi extends EventEmitter {
     await this._setHostAddressInUrl(url, host)
 
     const doRequest = (url, opts) =>
-      httpRequest(url, {
+      nodeRequest(url, {
         agent: this._httpAgent,
         body,
         headers,
