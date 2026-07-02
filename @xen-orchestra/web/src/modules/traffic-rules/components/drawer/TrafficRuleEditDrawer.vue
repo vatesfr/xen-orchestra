@@ -1,6 +1,6 @@
 <template>
   <VtsDrawer class="container" dismissible @dismiss="emit('cancel')">
-    <template #title>{{ t('action:update-traffic-rule') }}</template>
+    <template #title>{{ t('action:edit-traffic-rule') }}</template>
 
     <template #content>
       <UiTitle class="section-title">

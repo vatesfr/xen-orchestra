@@ -67,7 +67,7 @@ const { rule } = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  confirm: [data: EditTrafficRulePayload]
+  confirm: [payload: EditTrafficRulePayload]
 }>()
 
 const { t } = useI18n()
