@@ -66,6 +66,7 @@
 - [REST API] Add `/rest/v0/plugins` endpoints to list, configure, load, unload and test the plugins (PR [#10588](https://github.com/vatesfr/xen-orchestra/pull/10588))
 - [REST API] `POST /rest/v0/vms/{id}/actions/migrate` Add `bypassCpuCheck` parameter (PR [#10614](https://github.com/vatesfr/xen-orchestra/pull/10614))
 
+- [Backups] ealth check eligibility, full/incremental scheduling, and mirror job VM selection can now be driven by complex-matcher expressions (PR [#10064](https://github.com/vatesfr/xen-orchestra/pull/10064))
 
 ### Bug fixes
 
