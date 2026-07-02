@@ -11,22 +11,23 @@ export function useVmExportDrawer(rawVm: MaybeRefOrGetter<FrontXoVm>) {
   const exportType = ref<VmExportType>('xva')
   const exportCompression = ref<VmExportCompression>('none')
 
-  const { run, isRunning, errorMessage, canRun } = useXoVmExportJob(() => vm.value, exportType, exportCompression)
+  const { run } = useXoVmExportJob(() => vm.value, exportType, exportCompression)
 
   const openDrawer = useDrawer(() => ({
     component: import('@/modules/vm/components/drawer/VmExportDrawer.vue'),
     onConfirm: async (values: VmExportFormValues) => {
-      exportType.value = values.type
-      exportCompression.value = values.compression
+      try {
+        exportType.value = values.type
+        exportCompression.value = values.compression
 
-      await run()
+        await run()
+      } catch (error) {
+        console.error('Error when exporting VM:', error)
+      }
     },
   }))
 
   return {
     openDrawer,
-    canRun,
-    isRunning,
-    errorMessage,
   }
 }
