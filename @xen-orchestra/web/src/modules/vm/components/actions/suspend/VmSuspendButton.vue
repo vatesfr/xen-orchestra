@@ -10,7 +10,7 @@ import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts
 import { useXoVmSuspendJob } from '@/modules/vm/jobs/xo-vm-suspend.jobs.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { IK_CLOSE_MENU } from '@core/utils/injection-keys.util.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { computed, inject } from 'vue'
@@ -38,7 +38,7 @@ function suspendJob() {
   closeMenu?.()
 }
 
-const openBlockedModal = useModal({
+const openBlockedModal = useOverlay({
   component: import('@core/components/modal/VtsBlockedModal.vue'),
   props: { blockedOperation: 'suspend', href: xo5VmAdvancedHref },
 })

@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="info" icon="fa:satellite">
+  <VtsOverlay type="modal" accent="info" icon="fa:satellite">
     <template #title>
       {{ t('welcome-to-xo6!') }}
     </template>
@@ -36,14 +36,14 @@
       </div>
     </template>
     <template #buttons>
-      <VtsModalConfirmButton>{{ t('lets-go!') }}</VtsModalConfirmButton>
+      <VtsOverlayConfirmButton>{{ t('lets-go!') }}</VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </VtsOverlay>
 </template>
 
 <script lang="ts" setup>
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlay from '@core/components/overlay/VtsOverlay.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 
 import { useI18n } from 'vue-i18n'

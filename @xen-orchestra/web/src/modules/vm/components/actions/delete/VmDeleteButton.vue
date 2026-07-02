@@ -11,7 +11,7 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { extractVmHostId } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useRedirectAfterDelete } from '@/shared/composables/redirect-after-delete.composable.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
@@ -40,7 +40,7 @@ const { redirectIfOnObjectPage } = useRedirectAfterDelete({
   },
 })
 
-const openDeleteModal = useModal({
+const openDeleteModal = useOverlay({
   component: import('@/modules/vm/components/modal/VmDeleteModal.vue'),
   props: { count: 1 },
   onConfirm: async () => {
@@ -56,7 +56,7 @@ const openDeleteModal = useModal({
   },
 })
 
-const openBlockedModal = useModal({
+const openBlockedModal = useOverlay({
   component: import('@core/components/modal/VtsBlockedModal.vue'),
   props: { blockedOperation: 'destroy', href: xo5VmAdvancedHref },
 })

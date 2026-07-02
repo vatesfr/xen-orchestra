@@ -1,7 +1,7 @@
 import { useXoSrDeleteJob } from '@/modules/storage-repository/jobs/xo-sr-delete.job.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
 
@@ -12,7 +12,7 @@ export function useSrDeleteModal(rawSrs: MaybeRefOrGetter<FrontXoSr[]>) {
 
   const { run, canRun, isRunning } = useXoSrDeleteJob(srs)
 
-  const openModal = useModal(() => ({
+  const openModal = useOverlay(() => ({
     component: import('@/modules/storage-repository/components/modal/SrDeleteModal.vue'),
     props: { count: srs.value.length },
     onConfirm: async () => {

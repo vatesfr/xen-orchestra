@@ -1,5 +1,5 @@
 import { useXoTrafficRuleDeleteJob } from '@/modules/traffic-rules/jobs/xo-traffic-rule-delete.job.ts'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { TrafficRule } from '@vates/types'
 import type { MaybeRefOrGetter } from 'vue'
@@ -9,7 +9,7 @@ export function useTrafficRuleDeleteModal(rawRules: MaybeRefOrGetter<TrafficRule
 
   const { run, canRun, isRunning, errorMessage } = useXoTrafficRuleDeleteJob(rules)
 
-  const openModal = useModal(() => ({
+  const openModal = useOverlay(() => ({
     component: import('@/modules/traffic-rules/components/modal/TrafficRuleDeleteModal.vue'),
     props: { count: rules.value.length },
     onConfirm: async () => {

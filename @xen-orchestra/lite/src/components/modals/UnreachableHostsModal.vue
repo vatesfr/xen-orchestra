@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="danger" icon="object:host">
+  <VtsOverlay type="modal" accent="danger" icon="object:host">
     <template #title>{{ t('unreachable-hosts') }}</template>
     <template #content>
       <div class="description">
@@ -13,18 +13,18 @@
       </div>
     </template>
     <template #buttons>
-      <VtsModalCancelButton />
-      <VtsModalConfirmButton>
+      <VtsOverlayCancelButton />
+      <VtsOverlayConfirmButton>
         {{ t('unreachable-hosts-reload-page') }}
-      </VtsModalConfirmButton>
+      </VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </VtsOverlay>
 </template>
 
 <script lang="ts" setup>
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlay from '@core/components/overlay/VtsOverlay.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useI18n } from 'vue-i18n'
 

@@ -20,7 +20,7 @@ import UiActionButton from '@/components/ui/UiActionButton.vue'
 import UiFilter from '@/components/ui/UiFilter.vue'
 import UiFilterGroup from '@/components/ui/UiFilterGroup.vue'
 import type { Filters } from '@/types/filter'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -36,7 +36,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const openFilterModal = useModal((editedFilter?: string) => ({
+const openFilterModal = useOverlay((editedFilter?: string) => ({
   component: import('@/components/modals/CollectionFilterModal.vue'),
   props: {
     editedFilter,

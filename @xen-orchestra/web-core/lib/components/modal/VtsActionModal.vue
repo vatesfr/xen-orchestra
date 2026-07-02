@@ -1,5 +1,5 @@
 <template>
-  <VtsModal :accent icon="status:info-picto">
+  <VtsOverlay type="modal" :accent icon="status:info-picto">
     <template #title>
       <span>{{ modalTexts.title }}</span>
     </template>
@@ -7,18 +7,18 @@
       <span>{{ modalTexts.message }}</span>
     </template>
     <template #buttons>
-      <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
-      <VtsModalConfirmButton>
+      <VtsOverlayCancelButton>{{ t('action:go-back') }}</VtsOverlayCancelButton>
+      <VtsOverlayConfirmButton>
         {{ modalTexts.action }}
-      </VtsModalConfirmButton>
+      </VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </VtsOverlay>
 </template>
 
 <script lang="ts" setup>
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlay from '@core/components/overlay/VtsOverlay.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
 import { useMapper } from '@core/packages/mapper/use-mapper.ts'
 import type { ObjectType, VmActions } from '@core/types/object.type.ts'

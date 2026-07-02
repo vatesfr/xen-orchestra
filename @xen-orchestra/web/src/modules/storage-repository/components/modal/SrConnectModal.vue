@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="info" icon="status:info-picto" dismissible>
+  <VtsOverlay type="modal" accent="info" icon="status:info-picto" dismissible>
     <template #title>
       {{ title }}
     </template>
@@ -9,20 +9,20 @@
     </template>
 
     <template #buttons>
-      <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
-      <VtsModalConfirmButton>
+      <VtsOverlayCancelButton>{{ t('action:go-back') }}</VtsOverlayCancelButton>
+      <VtsOverlayConfirmButton>
         {{ t('action:connect-n-srs', { n: count }) }}
-      </VtsModalConfirmButton>
+      </VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </VtsOverlay>
 </template>
 
 <script lang="ts" setup>
 import { useSrModalMessages } from '@/modules/storage-repository/composables/use-sr-modal-messages.composable.ts'
 import type { SrAccessMode, SrScope } from '@core/types/storage-repository.type.ts'
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlay from '@core/components/overlay/VtsOverlay.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import { CONNECTION_ACTION } from '@core/types/connection.ts'
 import { useI18n } from 'vue-i18n'
 

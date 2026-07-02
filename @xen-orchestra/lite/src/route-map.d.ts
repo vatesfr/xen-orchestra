@@ -331,13 +331,6 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/story/web-core/drawer/vts-drawer': RouteRecordInfo<
-      '/story/web-core/drawer/vts-drawer',
-      '/story/web-core/drawer/vts-drawer',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
     '/story/web-core/dropdown-title/vts-dropdown-title': RouteRecordInfo<
       '/story/web-core/dropdown-title/vts-dropdown-title',
       '/story/web-core/dropdown-title/vts-dropdown-title',
@@ -380,16 +373,16 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/story/web-core/modal/vts-modal': RouteRecordInfo<
-      '/story/web-core/modal/vts-modal',
-      '/story/web-core/modal/vts-modal',
+    '/story/web-core/object-icon/vts-object-icon': RouteRecordInfo<
+      '/story/web-core/object-icon/vts-object-icon',
+      '/story/web-core/object-icon/vts-object-icon',
       Record<never, never>,
       Record<never, never>,
       | never
     >,
-    '/story/web-core/object-icon/vts-object-icon': RouteRecordInfo<
-      '/story/web-core/object-icon/vts-object-icon',
-      '/story/web-core/object-icon/vts-object-icon',
+    '/story/web-core/overlay/vts-overlay': RouteRecordInfo<
+      '/story/web-core/overlay/vts-overlay',
+      '/story/web-core/overlay/vts-overlay',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -1277,12 +1270,6 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/stories/web-core/drawer/vts-drawer.story.vue': {
-      routes:
-        | '/story/web-core/drawer/vts-drawer'
-      views:
-        | never
-    }
     'src/stories/web-core/dropdown-title/vts-dropdown-title.story.vue': {
       routes:
         | '/story/web-core/dropdown-title/vts-dropdown-title'
@@ -1319,15 +1306,15 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/stories/web-core/modal/vts-modal.story.vue': {
-      routes:
-        | '/story/web-core/modal/vts-modal'
-      views:
-        | never
-    }
     'src/stories/web-core/object-icon/vts-object-icon.story.vue': {
       routes:
         | '/story/web-core/object-icon/vts-object-icon'
+      views:
+        | never
+    }
+    'src/stories/web-core/overlay/vts-overlay.story.vue': {
+      routes:
+        | '/story/web-core/overlay/vts-overlay'
       views:
         | never
     }

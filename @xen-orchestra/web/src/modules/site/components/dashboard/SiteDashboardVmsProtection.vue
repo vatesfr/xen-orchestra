@@ -35,7 +35,7 @@ import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -45,7 +45,7 @@ const { vms } = useXoVmCollection()
 
 const { t } = useI18n()
 
-const openVmProtectedModal = useModal(() => ({
+const openVmProtectedModal = useOverlay(() => ({
   component: import('@/shared/components/modals/VmProtected.vue'),
 }))
 

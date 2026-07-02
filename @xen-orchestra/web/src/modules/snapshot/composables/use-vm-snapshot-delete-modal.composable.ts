@@ -1,6 +1,6 @@
 import type { FrontXoVmSnapshot } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'
 import { useXoVmSnapshotDeleteJob } from '@/modules/snapshot/jobs/xo-vm-snapshot-delete.job.ts'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
 
@@ -9,7 +9,7 @@ export function useVmSnapshotDeleteModal(rawSnapshots: MaybeRefOrGetter<FrontXoV
 
   const { run, canRun, isRunning } = useXoVmSnapshotDeleteJob(snapshots)
 
-  const openModal = useModal(() => ({
+  const openModal = useOverlay(() => ({
     component: import('@/modules/snapshot/components/modal/VmSnapshotDeleteModal.vue'),
     props: { count: snapshots.value.length },
     onConfirm: async () => {

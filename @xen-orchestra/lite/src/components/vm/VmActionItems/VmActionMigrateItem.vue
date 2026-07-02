@@ -23,8 +23,8 @@ import { useVmStore } from '@/stores/xen-api/vm.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useDisabled } from '@core/composables/disabled.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { ABORT_MODAL } from '@core/packages/modal/types.ts'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/types.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -53,7 +53,7 @@ const isDisabled = useDisabled(() => !isMigratable.value)
 
 const { selectedHost, availableHosts, isValid, migrate } = useVmMigration(() => selectedRefs)
 
-const openMigrateModal = useModal({
+const openMigrateModal = useOverlay({
   component: import('@/components/modals/VmMigrateModal.vue'),
   props: {
     count: computed(() => selectedRefs.length),
@@ -63,7 +63,7 @@ const openMigrateModal = useModal({
     selectedHost.value = host
 
     if (!isValid.value) {
-      return ABORT_MODAL
+      return KEEP_OVERLAY_OPEN
     }
 
     await migrate()

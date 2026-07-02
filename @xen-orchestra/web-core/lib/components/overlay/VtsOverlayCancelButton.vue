@@ -1,12 +1,12 @@
 <template>
-  <VtsModalButton variant="secondary" @click="handleClick">
+  <VtsOverlayButton variant="secondary" @click="handleClick">
     <slot>{{ t('cancel') }}</slot>
-  </VtsModalButton>
+  </VtsOverlayButton>
 </template>
 
 <script lang="ts" setup>
-import VtsModalButton from '@core/components/modal/VtsModalButton.vue'
-import { IK_MODAL } from '@core/packages/modal/types.ts'
+import VtsOverlayButton from '@core/components/overlay/VtsOverlayButton.vue'
+import { IK_OVERLAY } from '@core/packages/overlay/types.ts'
 import { inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -24,7 +24,7 @@ defineSlots<{
 
 const { t } = useI18n()
 
-const modal = inject(IK_MODAL)
+const overlay = inject(IK_OVERLAY)
 
 function handleClick() {
   if (onClick) {
@@ -32,6 +32,6 @@ function handleClick() {
     return
   }
 
-  modal?.value.onCancel()
+  overlay?.value.onCancel()
 }
 </script>

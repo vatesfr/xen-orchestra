@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="danger" icon="status:danger-picto">
+  <VtsOverlay type="modal" accent="danger" icon="status:danger-picto">
     <template #title>
       <span>{{ modalTexts.title }}</span>
     </template>
@@ -12,17 +12,17 @@
     </template>
 
     <template #buttons>
-      <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
+      <VtsOverlayCancelButton>{{ t('action:go-back') }}</VtsOverlayCancelButton>
       <UiLink :href icon="action:edit" size="medium" @click="emit('confirm')">
         {{ t('action:edit-config') }}
       </UiLink>
     </template>
-  </VtsModal>
+  </VtsOverlay>
 </template>
 
 <script lang="ts" setup>
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
+import VtsOverlay from '@core/components/overlay/VtsOverlay.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useMapper } from '@core/packages/mapper/use-mapper.ts'
 import type { VmBlockedOperations } from '@core/types/object.type.ts'

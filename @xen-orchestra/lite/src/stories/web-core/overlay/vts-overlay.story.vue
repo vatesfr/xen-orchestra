@@ -2,9 +2,10 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      prop('accent').required().enum('info', 'warning', 'danger').preset('info').widget(),
-      iconProp(),
-      prop('dismissible').bool().widget(),
+      prop('type').enum('modal', 'drawer').preset('modal').widget(),
+      prop('accent').enum('info', 'warning', 'danger').preset('info').widget().help('Modal only'),
+      iconProp().help('Modal only'),
+      prop('dismissible').bool().widget().help('Modal only — drawers are always dismissible'),
       prop('onDismiss').type('function').widget(),
       prop('onConfirm').type('function').widget(),
       prop('current').bool().widget(),
@@ -24,14 +25,14 @@
       setting('showDemoButtons').widget(boolean()),
     ]"
   >
-    <VtsModal class="story" v-bind="properties">
+    <VtsOverlay class="story" v-bind="properties">
       <template #title>{{ settings.titleSlotContent }}</template>
       <template #content>{{ settings.contentSlotContent }}</template>
       <template v-if="settings.showDemoButtons" #buttons>
-        <VtsModalCancelButton>Cancel</VtsModalCancelButton>
-        <VtsModalConfirmButton> Confirm </VtsModalConfirmButton>
+        <VtsOverlayCancelButton>Cancel</VtsOverlayCancelButton>
+        <VtsOverlayConfirmButton> Confirm </VtsOverlayConfirmButton>
       </template>
-    </VtsModal>
+    </VtsOverlay>
   </ComponentStory>
 </template>
 
@@ -39,9 +40,9 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { iconProp, prop, event, slot, setting } from '@/libs/story/story-param'
 import { text, boolean } from '@/libs/story/story-widget'
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlay from '@core/components/overlay/VtsOverlay.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 </script>
 
 <style lang="postcss" scoped>

@@ -17,7 +17,7 @@
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { useModal } from '@core/packages/modal/use-modal'
+import { useOverlay } from '@core/packages/overlay/use-overlay'
 import type { QueryBuilderGroup } from '@core/packages/query-builder/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -38,7 +38,7 @@ const tooltip = computed(() => (disabled ? 'Current filter is invalid or too com
 
 const { t } = useI18n()
 
-const openModal = useModal(() => ({
+const openModal = useOverlay(() => ({
   component: import('@core/components/query-builder/VtsQueryBuilderModal.vue'),
   props: {
     modelValue: rootGroup,

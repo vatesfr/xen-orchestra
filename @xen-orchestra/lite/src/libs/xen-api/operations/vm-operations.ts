@@ -1,7 +1,7 @@
 import type XenApi from '@/libs/xen-api/xen-api'
 import type { VM_COMPRESSION_TYPE } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiHost, XenApiSr, XenApiVm } from '@/libs/xen-api/xen-api.types'
-import type { OpenModal } from '@core/packages/modal/types.ts'
+import type { OpenOverlay } from '@core/packages/overlay/types.ts'
 import type { MaybeArray } from '@core/types/utility.type.ts'
 import { toArray } from '@core/utils/to-array.utils'
 import type { OPAQUE_REF_NULL } from '@vates/types/common'
@@ -42,7 +42,7 @@ export function createVmOperations(xenApi: XenApi) {
 
     delete: (vmRefs: VmRefs) => Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.destroy', [vmRef]))),
 
-    export: async (vmRefs: VmRefs, compression: VM_COMPRESSION_TYPE, openModal: OpenModal) => {
+    export: async (vmRefs: VmRefs, compression: VM_COMPRESSION_TYPE, openModal: OpenOverlay) => {
       const blockedUrls: URL[] = []
 
       toArray(vmRefs).forEach(vmRef => {

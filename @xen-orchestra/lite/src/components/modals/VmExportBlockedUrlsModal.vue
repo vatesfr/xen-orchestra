@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="info" icon="object:vm">
+  <VtsOverlay type="modal" accent="info" icon="object:vm">
     <template #title>
       {{ t('action:export-n-vms-manually', { n: labelWithUrl.length }) }}
     </template>
@@ -18,16 +18,16 @@
     </template>
 
     <template #buttons>
-      <VtsModalConfirmButton>{{ t('action:close') }}</VtsModalConfirmButton>
+      <VtsOverlayConfirmButton>{{ t('action:close') }}</VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </VtsOverlay>
 </template>
 
 <script lang="ts" setup>
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlay from '@core/components/overlay/VtsOverlay.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

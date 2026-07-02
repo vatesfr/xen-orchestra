@@ -1,14 +1,14 @@
 <template>
-  <VtsModal accent="info" dismissible>
+  <VtsOverlay type="modal" accent="info" dismissible>
     <template #content>
       <CodeHighlight :code />
     </template>
-  </VtsModal>
+  </VtsOverlay>
 </template>
 
 <script lang="ts" setup>
 import CodeHighlight from '@/components/CodeHighlight.vue'
-import VtsModal from '@core/components/modal/VtsModal.vue'
+import VtsOverlay from '@core/components/overlay/VtsOverlay.vue'
 
 defineProps<{
   code: any

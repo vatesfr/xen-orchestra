@@ -24,7 +24,7 @@ import UiFilter from '@/components/ui/UiFilter.vue'
 import UiFilterGroup from '@/components/ui/UiFilterGroup.vue'
 import type { ActiveSorts, Sorts } from '@/types/sort'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -41,7 +41,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const openFormModal = useModal({
+const openFormModal = useOverlay({
   component: import('@/components/modals/CollectionSorterModal.vue'),
   props: { availableSorts: computed(() => availableSorts) },
   onConfirm: ({ property, isAscending }) => emit('addSort', property as TProperty, isAscending),

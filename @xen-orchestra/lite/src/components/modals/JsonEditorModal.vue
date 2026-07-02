@@ -1,5 +1,6 @@
 <template>
-  <VtsModal
+  <VtsOverlay
+    type="modal"
     :accent="isJsonValid ? 'info' : 'danger'"
     class="json-editor-modal"
     icon="fa:code"
@@ -7,25 +8,25 @@
   >
     <template #content>
       <UiTextarea v-model="editedJson" accent="brand" class="modal-textarea" />
-      <VtsModalButton variant="tertiary" @click="formatJson()">
+      <VtsOverlayButton variant="tertiary" @click="formatJson()">
         {{ t('action:reformat') }}
-      </VtsModalButton>
+      </VtsOverlayButton>
     </template>
 
     <template #buttons>
-      <VtsModalCancelButton />
-      <VtsModalConfirmButton :disabled="!isJsonValid">
+      <VtsOverlayCancelButton />
+      <VtsOverlayConfirmButton :disabled="!isJsonValid">
         {{ t('action:save') }}
-      </VtsModalConfirmButton>
+      </VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </VtsOverlay>
 </template>
 
 <script lang="ts" setup>
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalButton from '@core/components/modal/VtsModalButton.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlay from '@core/components/overlay/VtsOverlay.vue'
+import VtsOverlayButton from '@core/components/overlay/VtsOverlayButton.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
