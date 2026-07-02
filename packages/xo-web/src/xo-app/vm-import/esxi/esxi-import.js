@@ -133,7 +133,7 @@ class EsxiImport extends Component {
 
   _getSrPredicate = createSelector(
     () => this.state.pool?.id,
-    poolId => (poolId === undefined ? undefined : sr => isSrWritable(sr) && sr.$poolId === poolId)
+    poolId => (poolId === undefined ? isSrWritable : sr => isSrWritable(sr) && sr.$poolId === poolId)
   )
 
   // A VM previously imported from the same source ESXi VM that can be used as
