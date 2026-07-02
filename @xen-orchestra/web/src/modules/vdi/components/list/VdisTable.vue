@@ -36,7 +36,6 @@ import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-colle
 import { getVdiFormat, getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { CONNECTION_ACTION, VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
-import type { ActionItem } from '@core/tables/column-definitions/action-column.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -91,7 +90,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
   body: (vdi: FrontXoVdi) => {
     const vbds = useGetVbdsByIds(vdi.$VBDs)
 
-    const vbd = computed(() => (vm !== undefined ? vbds.value.find(vbd => vbd.VM === vm.id) : undefined))
+    const vbd = computed(() => vbds.value.find(v => v.VM === vm?.id))
 
     const size = computed(() => formatSizeRaw(vdi.size, 2))
     const format = computed(() => getVdiFormat(vdi.image_format))
@@ -142,26 +141,22 @@ const { HeadCells, BodyCells } = useVdiColumns({
         r({
           onClick: () => (selectedVdiId.value = vdi.id),
           actions: [
-            ...(vm !== undefined
-              ? ([
-                  {
-                    label: vbd.value?.attached ? t('action:disconnect') : t('action:connect'),
-                    hint: !canToggleVbdConnection.value ? toggleVbdConnectionErrorMessage.value : undefined,
-                    icon: vbd.value?.attached ? 'action:disconnect' : 'action:connect',
-                    onClick: () => openVbdConnectionToggleModal(),
-                    disabled: !canToggleVbdConnection.value,
-                    busy: isTogglingVbdConnection.value,
-                  },
-                  {
-                    label: t('action:detach-vdi'),
-                    hint: deleteVbdErrorMessage.value,
-                    icon: 'action:detach',
-                    onClick: () => openVbdDeleteModal(),
-                    disabled: !canDeleteVbd.value,
-                    busy: isDeletingVbd.value,
-                  },
-                ] as ActionItem[])
-              : []),
+            {
+              label: vbd.value?.attached ? t('action:disconnect') : t('action:connect'),
+              hint: !canToggleVbdConnection.value ? toggleVbdConnectionErrorMessage.value : undefined,
+              icon: vbd.value?.attached ? 'action:disconnect' : 'action:connect',
+              onClick: () => openVbdConnectionToggleModal(),
+              disabled: !canToggleVbdConnection.value,
+              busy: isTogglingVbdConnection.value,
+            },
+            {
+              label: t('action:detach-vdi'),
+              hint: deleteVbdErrorMessage.value,
+              icon: 'action:detach',
+              onClick: () => openVbdDeleteModal(),
+              disabled: !canDeleteVbd.value,
+              busy: isDeletingVbd.value,
+            },
             {
               label: t('action:delete'),
               hint: deleteVdiErrorMessage.value,
