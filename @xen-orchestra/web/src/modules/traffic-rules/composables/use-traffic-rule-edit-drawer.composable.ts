@@ -7,7 +7,7 @@ import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { TrafficRule } from '@vates/types'
 import { type MaybeRefOrGetter, ref } from 'vue'
 
-export function useTrafficRulesEditDrawer(rawTrafficRule: MaybeRefOrGetter<TrafficRule>) {
+export function useTrafficRuleEditDrawer(rawTrafficRule: MaybeRefOrGetter<TrafficRule>) {
   const trafficRule = toComputed(rawTrafficRule)
 
   const editPayload = ref<EditTrafficRulePayload | undefined>(undefined)
@@ -15,7 +15,7 @@ export function useTrafficRulesEditDrawer(rawTrafficRule: MaybeRefOrGetter<Traff
   const { run, isRunning } = useXoTrafficRuleEditJob(() => (editPayload.value ? [editPayload.value] : []))
 
   const openDrawer = useDrawer(() => ({
-    component: import('@/modules/traffic-rules/components/drawer/TrafficRulesEditDrawer.vue'),
+    component: import('@/modules/traffic-rules/components/drawer/TrafficRuleEditDrawer.vue'),
     props: {
       rule: trafficRule.value,
     },

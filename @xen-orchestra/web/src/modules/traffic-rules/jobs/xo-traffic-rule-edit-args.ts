@@ -2,6 +2,6 @@ import type { EditTrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-tra
 import { defineJobArg } from '@core/packages/job'
 
 export const payloadsArg = defineJobArg<EditTrafficRulePayload>({
-  identify: payload => payload.oldRule.id,
+  identify: payload => `${payload.oldRule.type}:${payload.oldRule.id}`,
   toArray: true,
 })

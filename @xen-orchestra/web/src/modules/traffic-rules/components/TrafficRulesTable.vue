@@ -43,7 +43,7 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import { useDirectionLabels } from '@/modules/traffic-rules/composables/direction-labels.composable.ts'
 import { useTrafficRuleTarget } from '@/modules/traffic-rules/composables/traffic-rule-target.composable.ts'
 import { useTrafficRuleDeleteModal } from '@/modules/traffic-rules/composables/use-traffic-rule-delete-modal.composable.ts'
-import { useTrafficRulesEditDrawer } from '@/modules/traffic-rules/composables/use-traffic-rule-edit-drawer.composable.ts'
+import { useTrafficRuleEditDrawer } from '@/modules/traffic-rules/composables/use-traffic-rule-edit-drawer.composable.ts'
 import type { EnrichedTrafficRule } from '@/modules/traffic-rules/types.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -147,7 +147,7 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
       errorMessage: deleteTrafficRuleErrorMessage,
     } = useTrafficRuleDeleteModal(() => [rule])
 
-    const { openDrawer: openUpdateTrafficRuleDrawer, isRunning: isEditingTrafficRule } = useTrafficRulesEditDrawer(
+    const { openDrawer: openUpdateTrafficRuleDrawer, isRunning: isEditingTrafficRule } = useTrafficRuleEditDrawer(
       () => rule
     )
 
