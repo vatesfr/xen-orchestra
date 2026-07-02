@@ -4,7 +4,20 @@
   </UiHeadBar>
 
   <div class="card-container">
-    <UiCard>
+    <VtsOperationPendingCard v-if="isRunning" :title="t('creating-new-vif')" />
+    <VtsOperationErrorCard
+      v-else-if="hasVifCreationError && error"
+      :title="t('unable-to-create-new-vif')"
+      :error
+      :error-message="t('new-vif:error-message')"
+    >
+      <template #actions>
+        <UiButton variant="secondary" accent="brand" size="medium" @click="handleGoBack()">
+          {{ t('action:go-back') }}
+        </UiButton>
+      </template>
+    </VtsOperationErrorCard>
+    <UiCard v-show="canDisplayForm">
       <UiTitle>{{ t('configuration') }}</UiTitle>
       <NewVifForm v-if="vm" :vm-id="vm.id" :pool-id="vm.$pool" :cancel-to="cancelRoute" @create="createVif" />
     </UiCard>
@@ -13,10 +26,13 @@
 
 <script setup lang="ts">
 import NewVifForm from '@/modules/vif/components/form/new/NewVifForm.vue'
-import type { NewVifPayload } from '@/modules/vif/form/new/use-new-vif-form.ts'
-import { useXoVifCreateJob } from '@/modules/vif/jobs/xo-vif-create.job.ts'
+import { type NewVifPayload, useXoVifCreateJob } from '@/modules/vif/jobs/xo-vif-create.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { ApiError } from '@/shared/error/api.error.ts'
+import VtsOperationErrorCard from '@core/components/operation-error-card/VtsOperationErrorCard.vue'
+import VtsOperationPendingCard from '@core/components/operation-pending-card/VtsOperationPendingCard.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
@@ -41,7 +57,16 @@ const cancelRoute = computed<RouteLocationRaw>(() =>
 
 const formPayload = ref<NewVifPayload>()
 
-const { canRun, run: create } = useXoVifCreateJob(formPayload)
+const error = ref<ApiError | Error | undefined>()
+const hasVifCreationError = computed(() => error.value !== undefined)
+
+const { canRun, run: create, isRunning } = useXoVifCreateJob(formPayload)
+
+const canDisplayForm = computed(() => !isRunning.value && !hasVifCreationError.value)
+
+function handleGoBack() {
+  error.value = undefined
+}
 
 async function createVif(payload: NewVifPayload) {
   formPayload.value = payload
@@ -50,10 +75,18 @@ async function createVif(payload: NewVifPayload) {
     return
   }
 
-  await create()
+  try {
+    const [promiseCreateResult] = await create()
 
-  if (vm.value) {
-    await router.push({ name: '/vm/[id]/networks', params: { id: vm.value.id } })
+    if (promiseCreateResult.status === 'rejected') {
+      throw promiseCreateResult.reason
+    }
+
+    if (vm.value) {
+      await router.push({ name: '/vm/[id]/networks', params: { id: vm.value.id } })
+    }
+  } catch (_error) {
+    error.value = _error as ApiError | Error
   }
 }
 </script>

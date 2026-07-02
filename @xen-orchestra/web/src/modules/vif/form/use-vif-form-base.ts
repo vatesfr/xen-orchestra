@@ -1,52 +1,20 @@
-import { type FormValidationConfig, isFilled, withMessage } from '@core/packages/form-validation'
-import { createRule, type Maybe } from '@regle/core'
+import type { BaseVifPayload } from '@/modules/vif/jobs/xo-vif-create.job.ts'
+import { type IpAddress, isIpv6, parseIpList } from '@/shared/utils/ip.utils.ts'
+import {
+  type FormValidationConfig,
+  ipAddresses,
+  macAddress,
+  minValue,
+  or,
+  withMessage,
+} from '@core/packages/form-validation'
 import { useI18n } from 'vue-i18n'
-
-const MAC_ADDRESS_REGEX = /^([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}$/
-
-const IPV4_REGEX = /^(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)){3}$/
-
-function parseAllowedIps(value: string): string[] {
-  return value
-    .split(';')
-    .map(ip => ip.trim())
-    .filter(ip => ip !== '')
-}
-
-const macAddressFormat = createRule({
-  validator(value: Maybe<string>) {
-    if (!isFilled(value)) {
-      return true
-    }
-    return MAC_ADDRESS_REGEX.test(value)
-  },
-  message: 'Invalid MAC address',
-})
-
-const allowedIpsFormat = createRule({
-  validator(value: Maybe<string>) {
-    if (!isFilled(value)) {
-      return true
-    }
-    return parseAllowedIps(value).every(ip => IPV4_REGEX.test(ip))
-  },
-  message: 'Invalid IP address',
-})
 
 export type BaseVifFormData = {
   mac: string
   rateLimit: number | undefined
   allowedIps: string
   txChecksumming: boolean
-}
-
-export type BaseVifPayload = {
-  MAC?: string
-  ipv4_allowed?: string[]
-  ipv6_allowed?: string[]
-  qos_algorithm_type?: string
-  qos_algorithm_params?: Record<string, string>
-  other_config: Record<string, string>
 }
 
 export function useVifFormBaseValidation(): FormValidationConfig<BaseVifFormData> {
@@ -56,10 +24,13 @@ export function useVifFormBaseValidation(): FormValidationConfig<BaseVifFormData
     errors: {
       onBlur: () => ({
         mac: {
-          macAddress: withMessage(macAddressFormat, t('invalid-mac-address')),
+          macAddress: withMessage(or(macAddress(':'), macAddress('-')), t('invalid-mac-address')),
+        },
+        rateLimit: {
+          minValue: withMessage(minValue(0), t('invalid-rate-limit')),
         },
         allowedIps: {
-          ipAddress: withMessage(allowedIpsFormat, t('invalid-ip-addresses')),
+          ipAddresses: withMessage(ipAddresses(';'), t('invalid-ip-addresses')),
         },
       }),
     },
@@ -67,9 +38,9 @@ export function useVifFormBaseValidation(): FormValidationConfig<BaseVifFormData
 }
 
 export function buildBaseVifPayload(formData: BaseVifFormData): BaseVifPayload {
-  const allowedIps = parseAllowedIps(formData.allowedIps)
-  const ipv4 = allowedIps.filter(ip => !ip.includes(':'))
-  const ipv6 = allowedIps.filter(ip => ip.includes(':'))
+  const allowedIps = parseIpList(formData.allowedIps) as IpAddress[]
+  const ipv4 = allowedIps.filter(ip => !isIpv6(ip))
+  const ipv6 = allowedIps.filter(ip => isIpv6(ip))
 
   return {
     ...(formData.mac !== '' && { MAC: formData.mac }),

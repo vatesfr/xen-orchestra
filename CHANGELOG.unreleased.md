@@ -18,6 +18,7 @@
 - [REST API] Possibility of sending `autoEnable` in the body of the `/hosts/:id/actions/disable` endpoint (PR [#10040](https://github.com/vatesfr/xen-orchestra/pull/10040))
 - [REST API] `PATCH /rest/v0/vdis/{id}` to update a VDI's name, description and size (PR [#9945](https://github.com/vatesfr/xen-orchestra/pull/9945))
 - [Pool] XO now reconnects to a surviving pool member when the master becomes unreachable (e.g. HA promoted a new master after the old one died), instead of staying stuck on the dead master, including after an XO restart (PR [#10016](https://github.com/vatesfr/xen-orchestra/pull/10016))
+- [XO6/VIF] Add possibility to create VIF from network tab in VM page (PR [#9677](https://github.com/vatesfr/xen-orchestra/pull/9677))
 
 ### Bug fixes
 
@@ -25,6 +26,7 @@
 
 - [XO6] Fix negative "other" value in backup repository dashboard (PR [#10044](https://github.com/vatesfr/xen-orchestra/pull/10044))
 - [Backups] Fix missing transfer size (PR [#10106](https://github.com/vatesfr/xen-orchestra/pull/10106))
+
 
 ### Packages to release
 
@@ -44,9 +46,11 @@
 
 - @vates/types minor
 - @xen-orchestra/rest-api minor
-- @xen-orchestra/web patch
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - vhd-lib patch
 - xen-api minor
 - xo-server minor
+
 
 <!--packages-end-->

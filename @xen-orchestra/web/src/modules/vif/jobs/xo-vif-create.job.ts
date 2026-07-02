@@ -1,22 +1,33 @@
-import type { NewVifPayload } from '@/modules/vif/form/new/use-new-vif-form.ts'
+import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import { payloadArg } from '@/modules/vif/jobs/xo-vif-create-args.ts'
+import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
-import { defineJob, defineJobArg, JobError, JobRunningError } from '@core/packages/job'
-import type { XoVif } from '@vates/types'
+import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'
 
-const payloadArg = defineJobArg<NewVifPayload>({
-  identify: payload => payload.vmId,
-  toArray: true,
-})
+export type BaseVifPayload = {
+  MAC?: string
+  ipv4_allowed?: string[]
+  ipv6_allowed?: string[]
+  qos_algorithm_type?: string
+  qos_algorithm_params?: Record<string, string>
+  other_config: Record<string, string>
+}
+
+export type NewVifPayload = BaseVifPayload & {
+  vmId: FrontXoVm['id']
+  networkId: FrontXoNetwork['id']
+}
 
 export const useXoVifCreateJob = defineJob('vif.create', [payloadArg], () => {
   const { t } = useI18n()
 
   return {
-    run(payloads): Promise<PromiseSettledResult<XoVif['id']>[]> {
+    run(payloads): Promise<PromiseSettledResult<FrontXoVif['id']>[]> {
       return Promise.allSettled(
         payloads.map(async payload => {
-          const { id } = await fetchPost<{ id: XoVif['id'] }>('vifs', payload)
+          const { id } = await fetchPost<{ id: FrontXoVif['id'] }>('vifs', payload)
           return id
         })
       )
@@ -30,12 +41,6 @@ export const useXoVifCreateJob = defineJob('vif.create', [payloadArg], () => {
       if (payloads.length === 0) {
         throw new JobError(t('job:arg:missing-payload'))
       }
-
-      payloads.forEach(payload => {
-        if (payload.networkId === undefined) {
-          throw new JobError(t('job:vif-create:missing-network'))
-        }
-      })
     },
   }
 })

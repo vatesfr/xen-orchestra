@@ -5,29 +5,31 @@ import {
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import {
   type BaseVifFormData,
-  type BaseVifPayload,
   buildBaseVifPayload,
   useVifFormBaseValidation,
 } from '@/modules/vif/form/use-vif-form-base.ts'
+import type { NewVifPayload } from '@/modules/vif/jobs/xo-vif-create.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { mergeValidationConfigs, required } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
+import { toComputed } from '@core/utils/to-computed.util.ts'
 import { useArrayFilter } from '@vueuse/shared'
-import { type MaybeRefOrGetter, reactive, toValue, watch } from 'vue'
+import { type MaybeRefOrGetter, reactive, watch } from 'vue'
 
 export type NewVifFormData = BaseVifFormData & {
   network: FrontXoNetwork['id'] | undefined
 }
 
-export type NewVifPayload = BaseVifPayload & {
-  vmId: FrontXoVm['id']
-  networkId: FrontXoNetwork['id']
-}
+export function useNewVifForm(
+  rawVmId: MaybeRefOrGetter<FrontXoVm['id']>,
+  rawPoolId: MaybeRefOrGetter<FrontXoPool['id']>
+) {
+  const vmId = toComputed(rawVmId)
+  const poolId = toComputed(rawPoolId)
 
-export function useNewVifForm(_vmId: MaybeRefOrGetter<FrontXoVm['id']>, _poolId: MaybeRefOrGetter<FrontXoPool['id']>) {
   const { networks } = useXoNetworkCollection()
 
-  const poolNetworks = useArrayFilter(networks, network => network.$pool === toValue(_poolId))
+  const poolNetworks = useArrayFilter(networks, network => network.$pool === poolId.value)
 
   const formData = reactive<NewVifFormData>({
     network: undefined,
@@ -57,23 +59,20 @@ export function useNewVifForm(_vmId: MaybeRefOrGetter<FrontXoVm['id']>, _poolId:
     },
   })
 
-  watch(
-    () => toValue(_poolId),
-    () => {
-      formData.network = undefined
-    }
-  )
+  watch(poolId, () => {
+    formData.network = undefined
+  })
 
   async function validateAndBuildPayload(): Promise<NewVifPayload | undefined> {
     const isValid = await validate()
 
-    if (!isValid) {
+    if (!isValid || formData.network === undefined) {
       return undefined
     }
 
     return {
-      vmId: toValue(_vmId),
-      networkId: formData.network!,
+      vmId: vmId.value,
+      networkId: formData.network,
       ...buildBaseVifPayload(formData),
     }
   }
