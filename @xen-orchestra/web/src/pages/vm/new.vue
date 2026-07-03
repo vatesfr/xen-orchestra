@@ -907,19 +907,25 @@ const { id: affinityHostSelectId } = useFormSelect(hosts, {
 
 // HIGH AVAILABILITY SELECTOR
 
-const haOptions = ['', 'restart', 'best-effort']
+const HA_OPTIONS = [
+  { value: '', labelKey: 'new-vm:ha-disabled', descriptionKey: 'new-vm:ha-disabled-description' },
+  { value: 'restart', labelKey: 'new-vm:ha-restart', descriptionKey: 'new-vm:ha-restart-description' },
+  { value: 'best-effort', labelKey: 'new-vm:ha-best-effort', descriptionKey: 'new-vm:ha-best-effort-description' },
+]
 
-const { id: haSelectId } = useFormSelect(haOptions, {
+const { id: haSelectId } = useFormSelect(HA_OPTIONS, {
   model: toRef(vmState, 'highAvailability'),
   option: {
-    label: value => t(`new-vm:ha-${value === '' ? 'disabled' : value}`),
+    id: option => option.value,
+    value: option => option.value,
+    label: option => t(option.labelKey),
   },
 })
 
 const haMessages = computed<InputWrapperMessage>(() => {
-  const key = vmState.highAvailability === '' ? 'disabled' : vmState.highAvailability
+  const option = HA_OPTIONS.find(({ value }) => value === vmState.highAvailability) ?? HA_OPTIONS[0]
   return [
-    t(`new-vm:ha-${key}-description`),
+    t(option.descriptionKey),
     ...(vmState.pool?.HA_enabled === false
       ? [{ content: t('new-vm:ha-pool-disabled'), accent: 'warning' as const }]
       : []),
