@@ -14,7 +14,7 @@
     </template>
     <template #default>
       <UserInfosCard :user />
-      <UserGroupsCard />
+      <UserGroupsCard :user />
       <UserRolesCard />
     </template>
   </UiPanel>
