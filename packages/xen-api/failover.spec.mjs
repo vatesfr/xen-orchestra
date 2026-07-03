@@ -64,6 +64,70 @@ t.test('candidateHostnames', t => {
     t.end()
   })
 
+  t.test('brackets bare IPv6 addresses so they are usable as URL hostnames', t => {
+    // `host.address` is a bare IPv6 (no brackets), but URL hostnames require
+    // brackets.
+    const xapi = makeXapi()
+    xapi._registerCandidateHostnames(['fe80::1', '192.168.1.3'])
+    t.ok(xapi.candidateHostnames.includes('[fe80::1]'), 'bare IPv6 is bracketed')
+    t.ok(xapi.candidateHostnames.includes('192.168.1.3'), 'IPv4 is left untouched')
+    t.end()
+  })
+
+  t.end()
+})
+
+t.test('_probeHost', t => {
+  // A resolved/rejected transport stub: `login` drives the login result,
+  // `onLogout` observes the fire-and-forget logout.
+  const stubTransport = (xapi, { login, onLogout = () => {} } = {}) => {
+    xapi._createTransport = ({ url }) => {
+      xapi._probedUrlHostname = url.hostname
+      return (method, args) => {
+        if (method === 'session.login_with_password') {
+          return login ?? Promise.resolve('probe-session')
+        }
+        if (method === 'session.logout') {
+          onLogout(args[0])
+          return Promise.resolve()
+        }
+      }
+    }
+  }
+
+  t.test('rejects when the connection is sessionId-based (no credentials to reuse)', async t => {
+    const xapi = makeXapi()
+    xapi._auth = { sessionId: 'opaque' } // no user/password
+    xapi._createTransport = () => t.fail('should not open a transport without credentials')
+    await t.rejects(xapi._probeHost('192.168.1.2'), /credentials/)
+  })
+
+  t.test('brackets a bare IPv6 candidate for the probe URL and return value', async t => {
+    const xapi = makeXapi()
+    stubTransport(xapi)
+    const target = await xapi._probeHost('fe80::1')
+    t.equal(xapi._probedUrlHostname, '[fe80::1]', 'IPv6 hostname is bracketed in the URL')
+    t.equal(target, '[fe80::1]', 'returns the bracketed hostname')
+  })
+
+  t.test('follows HOST_IS_SLAVE to the (bracketed) master', async t => {
+    const xapi = makeXapi()
+    stubTransport(xapi, {
+      login: Promise.reject(Object.assign(new Error('HOST_IS_SLAVE'), { code: 'HOST_IS_SLAVE', params: ['fe80::2'] })),
+    })
+    const target = await xapi._probeHost('192.168.1.2')
+    t.equal(target, '[fe80::2]', 'redirected to the bracketed master address')
+  })
+
+  t.test('logs the probe session out once the host answers', async t => {
+    const xapi = makeXapi()
+    let loggedOut
+    stubTransport(xapi, { onLogout: sessionId => (loggedOut = sessionId) })
+    await xapi._probeHost('192.168.1.2')
+    await new Promise(resolve => setImmediate(resolve)) // let the fire-and-forget logout run
+    t.equal(loggedOut, 'probe-session', 'logged the probe session out')
+  })
+
   t.end()
 })
 

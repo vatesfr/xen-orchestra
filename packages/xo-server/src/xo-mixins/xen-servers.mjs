@@ -152,6 +152,12 @@ export default class XenServers {
 
     let hasChanged = false
 
+    // Changing any of these invalidates the persisted pool-member addresses:
+    // they may point at a different pool now, so a stale slave list must not
+    // survive the change (a live connection repopulates it within seconds).
+    const CONNECTION_IDENTITY_KEYS = new Set(['allowUnauthorized', 'host', 'httpProxy', 'password', 'username'])
+    let connectionIdentityChanged = false
+
     for (const key of [
       'allowUnauthorized',
       'enabled',
@@ -173,8 +179,22 @@ export default class XenServers {
         if (value !== server[key]) {
           server[key] = value
           hasChanged = true
+          if (CONNECTION_IDENTITY_KEYS.has(key)) {
+            connectionIdentityChanged = true
+          }
         }
       }
+    }
+
+    // Drop the stale pool-member addresses on a connection-identity change,
+    // unless this very update is the internal refresh that carries a fresh list.
+    if (
+      connectionIdentityChanged &&
+      properties.poolMembersAddresses === undefined &&
+      server.poolMembersAddresses !== undefined
+    ) {
+      server.poolMembersAddresses = undefined
+      hasChanged = true
     }
 
     // special handling for readOnly

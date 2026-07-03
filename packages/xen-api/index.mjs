@@ -57,6 +57,13 @@ function getPool() {
   return this.$xapi.pool
 }
 
+// Wrap a bare IPv6 address in brackets so it is usable as a URL hostname.
+// Addresses coming from XAPI (`host.address`, `HOST_IS_SLAVE`) are bare, while
+// `URL`/`_parseUrl` expect IPv6 to be bracketed.
+function formatHostname(hostname) {
+  return typeof hostname === 'string' && hostname.includes(':') && hostname[0] !== '[' ? `[${hostname}]` : hostname
+}
+
 // -------------------------------------------------------------------
 
 const CONNECTED = 'connected'
@@ -941,7 +948,7 @@ export class Xapi extends EventEmitter {
     tries: 2,
     when: { code: 'HOST_IS_SLAVE' },
     onRetry: error => {
-      this._setUrl({ ...this._url, hostname: error.params[0] })
+      this._setUrl({ ...this._url, hostname: formatHostname(error.params[0]) })
     },
   }
   _sessionOpen = coalesceCalls(this._sessionOpen)
@@ -1002,7 +1009,7 @@ export class Xapi extends EventEmitter {
   _registerCandidateHostnames(hostnames) {
     for (const hostname of hostnames) {
       if (typeof hostname === 'string' && hostname !== '') {
-        this._candidateHostnames.add(hostname)
+        this._candidateHostnames.add(formatHostname(hostname))
       }
     }
   }
@@ -1024,23 +1031,33 @@ export class Xapi extends EventEmitter {
   // (the candidate itself when it answers, or the master it points to when it
   // is a slave); rejects when the host cannot be reached or refuses the login.
   async _probeHost(hostname) {
-    const url = { ...this._url, hostname }
-    const transport = this._createTransport({ dispatcher: this._undiciDispatcher, url })
     const { user, password } = this._auth
+    // A probe must open a brand new session on another host, which requires
+    // credentials. A sessionId-based connection has no reusable credentials (a
+    // sessionId is bound to the host that issued it), so there is nothing to
+    // fail over with.
+    if (user === undefined || password === undefined) {
+      throw new Error('cannot fail over to another pool member without user/password credentials')
+    }
+
+    const url = { ...this._url, hostname: formatHostname(hostname) }
+    const transport = this._createTransport({ dispatcher: this._undiciDispatcher, url })
     try {
-      const sessionId = await pTimeout.call(
-        transport('session.login_with_password', [user, password]),
-        this._probeTimeout
-      )
+      const login = transport('session.login_with_password', [user, password])
+      // Always log out once the host answers, even if that happens after the
+      // probe already timed out: otherwise a slow-but-alive host leaks a
+      // session. Chained to `login` (not to the timed-out result) so a late
+      // success is still cleaned up.
+      login.then(sessionId => ignoreErrors.call(transport('session.logout', [sessionId])), noop)
+      await pTimeout.call(login, this._probeTimeout)
       // Reachable and willing to log us in: this host is (or has become) the
       // master, or a standalone host.
-      ignoreErrors.call(transport('session.logout', [sessionId]))
-      return hostname
+      return url.hostname
     } catch (error) {
       // A slave answers too: the pool is alive and it tells us where the
       // current master is. That is a successful probe.
       if (error?.code === 'HOST_IS_SLAVE') {
-        return error.params[0]
+        return formatHostname(error.params[0])
       }
       throw error
     }
@@ -1412,7 +1429,17 @@ export class Xapi extends EventEmitter {
           // master). Retry indefinitely until a survivor appears.
           if (!(error instanceof XapiError)) {
             while (true) {
+              // If the connection was torn down (the user disconnected the
+              // server) or already replaced (reconnected through another path)
+              // while we waited, stop failing over and let the main loop
+              // re-evaluate the current state instead of forcing a reconnection
+              // the user may no longer want.
+              const sessionIdAtFailure = this._sessionId
               await this._connected
+              if (this._sessionId !== sessionIdAtFailure) {
+                // eslint-disable-next-line no-labels
+                continue mainLoop
+              }
               try {
                 await this._failoverToSurvivor()
                 // eslint-disable-next-line no-labels

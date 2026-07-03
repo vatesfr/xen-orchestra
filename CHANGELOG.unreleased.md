@@ -46,7 +46,7 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
 - vhd-lib patch
-- xo-server minor
 - xen-api minor
+- xo-server minor
 
 <!--packages-end-->
