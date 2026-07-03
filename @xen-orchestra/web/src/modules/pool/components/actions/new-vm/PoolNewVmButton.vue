@@ -1,6 +1,6 @@
 <template>
-  <MenuItem icon="fa:plus" @click="goToNewVm()">
-    {{ t('action:create-new-vm') }}
+  <MenuItem icon="action:add" @click="goToNewVm()">
+    {{ t('new-vm') }}
   </MenuItem>
 </template>
 

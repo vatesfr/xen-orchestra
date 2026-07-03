@@ -1,6 +1,6 @@
 <template>
-  <MenuItem icon="action:disconnect" :busy="isRunning" :disabled="!isConnected" class="disconnect" @click="openModal()">
-    {{ t('action:disconnect') }}
+  <MenuItem icon="action:detach" :busy="isRunning" :disabled="!isConnected" class="disconnect" @click="openModal()">
+    {{ t('action:disconnect-pool') }}
   </MenuItem>
 </template>
 

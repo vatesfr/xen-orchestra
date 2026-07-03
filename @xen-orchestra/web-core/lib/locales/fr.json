@@ -61,6 +61,7 @@
   "action:disconnect-n-vbds": "Déconnecter 1 VBD | Déconnecter {n} VBDs",
   "action:disconnect-n-vdis": "Déconnecter 1 VDI | Déconnecter {n} VDIs",
   "action:disconnect-n-vifs": "Déconnecter 1 VIF | Déconnecter {n} VIFs",
+  "action:disconnect-pool": "Déconnecter le pool",
   "action:download-bugtools-archive": "Télécharger l’archive bugtools",
   "action:duplicate": "Dupliquer",
   "action:duplicate-n-vms": "Dupliquer 1 VM | Dupliquer {n} VMs",
