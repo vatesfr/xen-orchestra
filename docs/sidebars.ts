@@ -44,17 +44,13 @@ export default {
       collapsible: true,
       collapsed: false,
       items:[
-        /* These categories are hidden until they no longer only contain blank pages
         {
           type: 'category',
           label: 'What\'s new in XO6',
-          collapsible: true,
-          collapsed: true,
-          items:[
-            'xo6/whatsnew',
-            'xo6/xo6vsxo5',
-          ],
+          type: 'link',
+          href: 'https://xen-orchestra.com/blog/',
         },
+        /* These categories are hidden until they no longer only contain blank pages
         {
           type: 'category',
           label: 'Getting started',
