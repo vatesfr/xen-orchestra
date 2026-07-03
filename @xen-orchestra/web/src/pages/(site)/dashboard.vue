@@ -3,6 +3,7 @@
     <SiteDashboardPoolsStatus class="pools-status" />
     <SiteDashboardHostsStatus class="hosts-status" />
     <SiteDashboardVmsStatus class="vms-status" />
+    <SiteDashboardVmsGuestTools class="vms-guest-tools" />
     <SiteDashboardResourcesOverview class="resources-overview" />
     <DashboardAlarms class="alarms" :alarms :is-ready :has-error="hasAlarmFetchError" />
     <SiteDashboardPatches class="patches" />
@@ -28,6 +29,7 @@ import SiteDashboardPoolsStatus from '@/modules/site/components/dashboard/SiteDa
 import SiteDashboardResourcesOverview from '@/modules/site/components/dashboard/SiteDashboardResourcesOverview.vue'
 import SiteDashboardS3BackupRepository from '@/modules/site/components/dashboard/SiteDashboardS3BackupRepository.vue'
 import SiteDashboardStorageRepository from '@/modules/site/components/dashboard/SiteDashboardStorageRepository.vue'
+import SiteDashboardVmsGuestTools from '@/modules/site/components/dashboard/SiteDashboardVmsGuestTools.vue'
 import SiteDashboardVmsProtection from '@/modules/site/components/dashboard/SiteDashboardVmsProtection.vue'
 import SiteDashboardVmsStatus from '@/modules/site/components/dashboard/SiteDashboardVmsStatus.vue'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
@@ -55,7 +57,7 @@ const isReady = logicAnd(areAlarmsReady, areHostsReady, areVmsReady, areVmContro
   grid-template-columns: repeat(12, 1fr);
   grid-template-areas:
     'pools-status pools-status pools-status hosts-status hosts-status hosts-status vms-status vms-status vms-status resources-overview resources-overview resources-overview'
-    'alarms alarms alarms alarms alarms alarms alarms alarms patches patches patches patches'
+    'alarms alarms alarms alarms alarms alarms patches patches patches vms-guest-tools vms-guest-tools vms-guest-tools'
     'backup-jobs-status backup-jobs-status backup-jobs-status backup-jobs-status backup-issues backup-issues backup-issues backup-issues vms-protection vms-protection vms-protection vms-protection'
     'backup-repository backup-repository backup-repository backup-repository storage-repository storage-repository storage-repository storage-repository s3-backup-repository s3-backup-repository s3-backup-repository s3-backup-repository';
 
@@ -78,6 +80,10 @@ const isReady = logicAnd(areAlarmsReady, areHostsReady, areVmsReady, areVmContro
 
   .patches {
     grid-area: patches;
+  }
+
+  .vms-guest-tools {
+    grid-area: vms-guest-tools;
   }
 
   .resources-overview {

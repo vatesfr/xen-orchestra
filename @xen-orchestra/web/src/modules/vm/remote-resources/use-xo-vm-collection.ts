@@ -9,7 +9,7 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { VM_POWER_STATE, type XoVm } from '@vates/types'
 import { useSorted } from '@vueuse/core'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 export type FrontXoVm = Pick<XoVm, (typeof vmFields)[number]>
 
@@ -54,6 +54,7 @@ const vmFields = [
   'startTime',
   'installTime',
   'pvDriversDetected',
+  'pvDriversUpToDate',
   'managementAgentDetected',
   'type',
   '$VBDs',
@@ -61,6 +62,20 @@ const vmFields = [
   'boot',
   'parent',
 ] as const satisfies readonly (keyof XoVm)[]
+
+function compareDriverVersions(a: string, b: string): number {
+  const parse = (v: string) => {
+    const [parts, build = '0'] = v.split('-')
+    return [...parts.split('.').map(Number), Number(build)]
+  }
+  const aParsed = parse(a)
+  const bParsed = parse(b)
+  for (let i = 0; i < Math.max(aParsed.length, bParsed.length); i++) {
+    const diff = (aParsed[i] ?? 0) - (bParsed[i] ?? 0)
+    if (diff !== 0) return diff
+  }
+  return 0
+}
 
 export const useXoVmCollection = defineRemoteResource({
   url: `${BASE_URL}/vms?fields=${vmFields.join(',')}&ndjson=true`,
@@ -113,6 +128,33 @@ export const useXoVmCollection = defineRemoteResource({
       runningVmsCountByContainer.value = tmpRunningVmsCountByContainer
     })
 
+    const vmGuestToolsStatus = computed(() => {
+      let missing = 0
+      let outOfDate = 0
+      let upToDate = 0
+      const outOfDateVersions = new Map<string, number>()
+      let bestVersion: string | undefined
+
+      for (const vm of runningVms.value) {
+        if (!vm.managementAgentDetected) {
+          missing++
+        } else if (vm.pvDriversDetected && vm.pvDriversUpToDate === false) {
+          outOfDate++
+          const version = vm.pvDriversVersion ?? 'unknown'
+          outOfDateVersions.set(version, (outOfDateVersions.get(version) ?? 0) + 1)
+        } else {
+          upToDate++
+          if (vm.pvDriversDetected && vm.pvDriversVersion !== undefined) {
+            if (bestVersion === undefined || compareDriverVersions(vm.pvDriversVersion, bestVersion) > 0) {
+              bestVersion = vm.pvDriversVersion
+            }
+          }
+        }
+      }
+
+      return { missing, outOfDate, upToDate, total: runningVms.value.length, outOfDateVersions, bestVersion }
+    })
+
     function getVmHost(vm: FrontXoVm): FrontXoHost | undefined {
       const vmHostId = extractVmHostId(vm)
 
@@ -129,6 +171,7 @@ export const useXoVmCollection = defineRemoteResource({
         baseName: 'vm',
       }),
       runningVms,
+      vmGuestToolsStatus,
       runningVmsCountByPool,
       runningVmsCountByContainer,
       vmsByHost,
