@@ -36,6 +36,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backup-archive patch
+- @xen-orchestra/disk-transform patch
 - @xen-orchestra/web patch
 
 <!--packages-end-->
