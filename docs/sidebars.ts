@@ -44,6 +44,7 @@ export default {
       collapsible: true,
       collapsed: false,
       items:[
+        /* These categories are hidden until they no longer only contain blank pages
         {
           type: 'category',
           label: 'What\'s new in XO6',
@@ -90,6 +91,7 @@ export default {
             'xo6/backups',
           ],
         },
+        */
         {
           type: 'category',
           label: 'Security',
