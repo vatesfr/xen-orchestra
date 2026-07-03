@@ -158,6 +158,9 @@
                 <VtsInputWrapper :label="t('affinity-host')">
                   <VtsSelect :id="affinityHostSelectId" accent="brand" />
                 </VtsInputWrapper>
+                <VtsInputWrapper :label="t('high-availability')" :message="haMessages">
+                  <VtsSelect :id="haSelectId" accent="brand" />
+                </VtsInputWrapper>
               </div>
             </div>
             <!-- RESOURCE MANAGEMENT SECTION -->
@@ -258,7 +261,7 @@ import {
   useXoVmTemplateCollection,
 } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import type { Vdi, Vif, VifToSend, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
-import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import VtsInputWrapper, { type InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsResource from '@core/components/resources/VtsResource.vue'
 import VtsResources from '@core/components/resources/VtsResources.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
@@ -359,6 +362,7 @@ const vmState = reactive<VmState>({
   description: '',
   installMode: 'no-config',
   affinity_host: undefined,
+  highAvailability: '',
   bootFirmware: '',
   new_vm_template: undefined,
   boot_vm: true,
@@ -736,6 +740,7 @@ const vmData = computed(() => {
     vdisToSend.length > 0 && { vdis: vdisToSend },
     vifsToSend.value.length > 0 && { vifs: vifsToSend.value },
     vmState.affinity_host && { affinity: vmState.affinity_host },
+    vmState.highAvailability !== '' && { highAvailability: vmState.highAvailability },
     vmState.installMode !== 'no-config' &&
       vmState.installMode !== 'cloud-init-config' &&
       vmState.installMode !== 'ssh-key' && {
@@ -898,6 +903,27 @@ const { id: affinityHostSelectId } = useFormSelect(hosts, {
     label: 'name_label',
     value: 'id',
   },
+})
+
+// HIGH AVAILABILITY SELECTOR
+
+const haOptions = ['', 'restart', 'best-effort']
+
+const { id: haSelectId } = useFormSelect(haOptions, {
+  model: toRef(vmState, 'highAvailability'),
+  option: {
+    label: value => t(`new-vm:ha-${value === '' ? 'disabled' : value}`),
+  },
+})
+
+const haMessages = computed<InputWrapperMessage>(() => {
+  const key = vmState.highAvailability === '' ? 'disabled' : vmState.highAvailability
+  return [
+    t(`new-vm:ha-${key}-description`),
+    ...(vmState.pool?.HA_enabled === false
+      ? [{ content: t('new-vm:ha-pool-disabled'), accent: 'warning' as const }]
+      : []),
+  ]
 })
 
 watch(
