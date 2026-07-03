@@ -9,7 +9,7 @@
       <NewSrAccessModeSelector v-bind="accessModeInputBindings" />
       <div class="pool-host-dropdowns">
         <NewSrFormSelect v-bind="poolSelectBindings" />
-        <NewSrFormSelect v-if="isLocalAccessMode" v-bind="hostSelectBindings">
+        <NewSrFormSelect v-bind="hostSelectBindings">
           <template #option="{ option }">
             <VtsOption :option>
               <span class="option-content">
@@ -49,7 +49,6 @@ const {
   poolSelectBindings,
   hostSelectBindings,
   accessModeInputBindings,
-  isLocalAccessMode,
   nameInputBindings,
   descriptionInputBindings,
   validate,

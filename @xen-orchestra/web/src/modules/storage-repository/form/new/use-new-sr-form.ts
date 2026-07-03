@@ -1,13 +1,24 @@
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import type { NewSrFormData } from '@/modules/storage-repository/form/new/sr-form.types.ts'
+import { buildNewSrInput, type NewSrFormData } from '@/modules/storage-repository/form/new/sr-form.types.ts'
+import {
+  buildNewSrPayload as buildNewSrRestPayload,
+  type NewSrRestPayload,
+} from '@/modules/storage-repository/jobs/xo-sr-create.job.ts'
 import { objectIcon } from '@core/icons'
 import { required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { SR_ACCESS_MODE } from '@core/types/storage-repository.type.ts'
+import {
+  buildNewSrPayload,
+  getAvailableSrTypes,
+  groupSrTypesByContent,
+  SR_CREATE_TYPE_LABEL_KEYS,
+  SR_TYPE_META,
+} from '@core/utils/sr.utils.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { toLower } from 'lodash-es'
-import { computed, type MaybeRefOrGetter, reactive, toValue, watch } from 'vue'
+import { computed, type MaybeRefOrGetter, reactive, toRef, toValue, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export function useNewSrForm(
@@ -26,29 +37,131 @@ export function useNewSrForm(
     poolId: undefined,
     hostId: undefined,
     accessMode: defaultAccessMode,
+    type: undefined,
     name: '',
     description: '',
+    device: '',
+    server: '',
+    path: '',
+    username: '',
+    password: '',
+    useAuth: false,
   })
 
   const { pools } = useXoPoolCollection()
+
   const { hostsByPool } = useXoHostCollection()
 
   const poolHosts = computed(() => (formData.poolId ? (hostsByPool.value.get(formData.poolId) ?? []) : []))
 
   const isLocalAccessMode = computed(() => formData.accessMode === SR_ACCESS_MODE.LOCAL)
 
+  const isHostSelectDisabled = computed(() => !isLocalAccessMode.value)
+
+  const availableSrTypes = computed(() => getAvailableSrTypes(formData.accessMode))
+
+  const typeGroups = computed(() => groupSrTypesByContent(availableSrTypes.value))
+
+  const typeOptions = computed(() =>
+    availableSrTypes.value.map(srType => ({
+      id: srType,
+      label: t(SR_CREATE_TYPE_LABEL_KEYS[srType]),
+      value: srType,
+    }))
+  )
+
+  const hostOptions = computed(() =>
+    poolHosts.value.map(host => ({
+      id: host.id,
+      label: host.name_label,
+      value: host.id,
+      icon: objectIcon('host', toLower(host.power_state)),
+    }))
+  )
+
+  const requiresEraseConfirm = computed(() => {
+    const srType = formData.type
+
+    return srType !== undefined && SR_TYPE_META[srType].requiresEraseConfirm
+  })
+
   const { useField, useFormSelect, useSelect, validate } = useValidatedForm(formData, {
     errors: {
       onSubmit: () => ({
         poolId: { required: withMessage(required, () => t('pool-required')) },
-        hostId: {
-          requiredIf: withMessage(requiredIf(isLocalAccessMode), () => t('host-required')),
-        },
+        hostId: { required: withMessage(required, () => t('host-required')) },
+        type: { required: withMessage(required, () => t('form:error:required')) },
         name: { required },
+        device: {
+          requiredIf: withMessage(
+            requiredIf(() => formData.type === 'lvm' || formData.type === 'ext'),
+            () => t('form:error:required')
+          ),
+        },
+        server: {
+          requiredIf: withMessage(
+            requiredIf(() => formData.type === 'smb' || formData.type === 'smbiso'),
+            () => t('form:error:required')
+          ),
+        },
+        path: {
+          requiredIf: withMessage(
+            requiredIf(() => formData.type === 'local'),
+            () => t('form:error:required')
+          ),
+        },
       }),
     },
   })
 
+  const { id: poolSelectId } = useFormSelect('poolId', pools, {
+    searchable: true,
+    required: true,
+    option: { label: 'name_label', value: 'id' },
+  })
+
+  const { id: hostSelectId } = useFormSelect('hostId', hostOptions, {
+    searchable: true,
+    required: true,
+    disabled: isHostSelectDisabled,
+    option: { label: 'label', value: 'value', properties: source => ({ icon: source.icon }) },
+  })
+
+  const { id: typeSelectId } = useFormSelect('type', typeOptions, {
+    required: true,
+    option: { label: 'label', value: 'value' },
+  })
+
+  const nameInputBindings = useField('name', () => ({ label: t('name'), required: true }))
+  const descriptionInputBindings = useField('description', () => ({
+    label: t('description'),
+  }))
+  const accessModeInputBindings = useField('accessMode', () => ({
+    label: t('access-mode'),
+  }))
+  const poolSelectBindings = useSelect(poolSelectId, () => ({ label: t('pool') }))
+  const hostSelectBindings = useSelect(hostSelectId, () => ({ label: t('host') }))
+  const typeSelectBindings = useSelect(typeSelectId, () => ({ label: t('type'), required: true }))
+  const deviceBindings = useField('device', () => ({ label: t('device'), required: true }))
+  const serverBindings = useField('server', () => ({ required: true }))
+  const pathBindings = useField('path', () => ({ required: true }))
+  const usernameBindings = useField('username', () => ({ label: t('username') }))
+  const passwordBindings = useField('password', () => ({ label: t('password') }))
+
+  /** Set formData.hostId to the selected pool's master host */
+  function selectPoolMaster() {
+    if (formData.poolId === undefined) {
+      return
+    }
+
+    const masterHostId = pools.value.find(pool => pool.id === formData.poolId)?.master
+
+    if (masterHostId !== undefined) {
+      formData.hostId = masterHostId
+    }
+  }
+
+  /** Select pool from page context on form init */
   watch(
     [pools, contextPoolId],
     () => {
@@ -61,18 +174,24 @@ export function useNewSrForm(
     { immediate: true }
   )
 
+  /** Select pool master host on init, pool change, switch to shared access mode, or when pools are loaded */
+  watch(
+    [() => formData.poolId, isLocalAccessMode, pools],
+    () => {
+      if (isLocalAccessMode.value) {
+        return
+      }
+
+      selectPoolMaster()
+    },
+    { immediate: true }
+  )
+
+  /** Select host from page context on form init if access mode is local */
   watch(
     [poolHosts, contextHostId, isLocalAccessMode],
     () => {
-      if (formData.hostId !== undefined) {
-        return
-      }
-
-      if (contextHostId.value === undefined) {
-        return
-      }
-
-      if (!isLocalAccessMode.value) {
+      if (!isLocalAccessMode.value || formData.hostId !== undefined || contextHostId.value === undefined) {
         return
       }
 
@@ -85,63 +204,74 @@ export function useNewSrForm(
     { immediate: true }
   )
 
-  const { id: poolSelectId } = useFormSelect('poolId', pools, {
-    searchable: true,
-    required: true,
-    option: { label: 'name_label', value: 'id' },
-  })
-
-  const hostOptions = computed(() =>
-    poolHosts.value.map(host => ({
-      id: host.id,
-      label: host.name_label,
-      value: host.id,
-      icon: objectIcon('host', toLower(host.power_state)),
-    }))
-  )
-
-  const { id: hostSelectId } = useFormSelect('hostId', hostOptions, {
-    searchable: true,
-    required: () => isLocalAccessMode.value,
-    option: { label: 'label', value: 'value', properties: source => ({ icon: source.icon }) },
-  })
-
+  /**
+   * Select pool master host when the pool changes
+   * Skip if there was no previous pool selection (on form init)
+   * Skip if shared access mode: selectPoolMaster already called by the shared access mode watcher
+   */
   watch(
     () => formData.poolId,
     (_newPoolId, oldPoolId) => {
-      if (oldPoolId === undefined) {
+      if (oldPoolId === undefined || !isLocalAccessMode.value) {
         return
       }
 
-      formData.hostId = undefined
+      selectPoolMaster()
     }
   )
 
+  /** Reset type and type-specific fields when the access mode changes */
   watch(
     () => formData.accessMode,
-    mode => {
-      if (mode === SR_ACCESS_MODE.SHARED) {
-        formData.hostId = undefined
-      }
+    () => {
+      formData.type = undefined
+      formData.device = ''
+      formData.server = ''
+      formData.path = ''
+      formData.username = ''
+      formData.password = ''
+      formData.useAuth = false
     }
   )
 
-  const accessModeInputBindings = useField('accessMode', () => ({
-    label: t('access-mode'),
-  }))
+  async function validateAndBuildPayload(): Promise<NewSrRestPayload | undefined> {
+    const isValid = await validate()
 
-  const nameInputBindings = useField('name', () => ({ label: t('name'), required: true }))
-  const descriptionInputBindings = useField('description', () => ({
-    label: t('description'),
-  }))
+    if (!isValid) {
+      return undefined
+    }
+
+    const hostId = formData.hostId
+    const { type } = formData
+
+    if (hostId === undefined || type === undefined) {
+      return undefined
+    }
+
+    const input = buildNewSrInput({ ...formData, type }, hostId)
+    const payload = buildNewSrPayload(input)
+
+    return buildNewSrRestPayload(payload)
+  }
 
   return {
-    poolSelectBindings: useSelect(poolSelectId, () => ({ label: t('pool') })),
-    hostSelectBindings: useSelect(hostSelectId, () => ({ label: t('host') })),
-    accessModeInputBindings,
-    isLocalAccessMode,
     nameInputBindings,
     descriptionInputBindings,
+    accessModeInputBindings,
+    poolSelectBindings,
+    hostSelectBindings,
+    isLocalAccessMode,
+    typeSelectBindings,
+    type: toRef(formData, 'type'),
+    typeGroups,
+    deviceBindings,
+    serverBindings,
+    pathBindings,
+    usernameBindings,
+    passwordBindings,
+    useAuth: toRef(formData, 'useAuth'),
+    requiresEraseConfirm,
     validate,
+    validateAndBuildPayload,
   }
 }
