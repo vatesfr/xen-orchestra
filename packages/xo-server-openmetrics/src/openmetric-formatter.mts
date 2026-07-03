@@ -737,13 +737,9 @@ function computeVmCpuUsageFallback(metrics: FormattedMetric[]): FormattedMetric[
 
 function emitHostPowerMetrics(
   metrics: FormattedMetric[],
-  hostPowerWatts: Record<string, number> | undefined,
+  hostPowerWatts: Record<string, number>,
   labelContext?: LabelContext
 ): void {
-  if (hostPowerWatts === undefined) {
-    return
-  }
-
   for (const [hostId, watts] of Object.entries(hostPowerWatts)) {
     // Drop any existing host power series for this host (dedup, IPMI preferred).
     for (let i = metrics.length - 1; i >= 0; i--) {
@@ -1179,7 +1175,9 @@ export function formatAllPoolsToOpenMetrics(
     logger.debug('Unmatched RRD metrics', { metrics: Array.from(unmatchedMetrics).sort() })
   }
 
-  emitHostPowerMetrics(allMetrics, hostPowerWatts, labelContext)
+  if (hostPowerWatts !== undefined) {
+    emitHostPowerMetrics(allMetrics, hostPowerWatts, labelContext)
+  }
 
   // Compute fallback vm_cpu_usage for VMs that don't have the native metric
   // This handles XCP-ng 8.2 and other versions that only report per-core metrics
