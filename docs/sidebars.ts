@@ -48,12 +48,8 @@ export default {
         {
           type: 'category',
           label: 'What\'s new in XO6',
-          collapsible: true,
-          collapsed: true,
-          items:[
-            'xo6/whatsnew',
-            'xo6/xo6vsxo5',
-          ],
+          type: 'link',
+          to: 'https://xen-orchestra.com/blog/',
         },
         {
           type: 'category',
