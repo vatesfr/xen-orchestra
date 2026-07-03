@@ -111,6 +111,20 @@ export default {
         },
         {
           type: 'category',
+          label: 'DevOps tools',
+          collapsible: true,
+          collapsed: true,
+          items:[
+            'xo6/ansible',
+            'xo6/kubernetes',
+            'xo6/packer-provider',
+            'xo6/powershell-module',
+            'xo6/pulumi-provider',
+            'xo6/terraform-provider',
+          ],
+        },
+        {
+          type: 'category',
           label: 'Support',
           collapsible: true,
           collapsed: true,
