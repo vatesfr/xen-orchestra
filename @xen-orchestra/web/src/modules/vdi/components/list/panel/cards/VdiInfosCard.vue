@@ -1,11 +1,13 @@
 <template>
   <UiCard class="card-container">
     <VtsCardObjectTitle
+      v-if="vm"
       :id="vdi.id"
       :label="vdi.name_label"
       :to="{ name: '/vdi/[id]/general', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.VM } }"
       :icon="vdiIcon"
     />
+    <span v-else>{{ vdi.name_label }}</span>
     <div class="content">
       <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('description') }}</template>
@@ -66,7 +68,7 @@ import { useI18n } from 'vue-i18n'
 
 const { vdi, vm } = defineProps<{
   vdi: FrontXoVdi
-  vm: FrontXoVm
+  vm?: FrontXoVm
 }>()
 
 const { t } = useI18n()

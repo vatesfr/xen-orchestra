@@ -1,8 +1,28 @@
 <template>
   <VtsSidePanel :has-selection="!!vdi" @close="emit('close')">
-    <template v-if="vbd" #actions>
-      <VbdConnectButton v-if="!vbd.attached" :vbd :vm />
-      <VbdDisconnectButton v-else :vbd :vm />
+    <template #header>
+      <div class="action-buttons">
+        <template v-if="vbd && vm">
+          <VbdConnectButton v-if="!vbd.attached" :vbd :vm />
+          <VbdDisconnectButton v-else :vbd :vm />
+        </template>
+        <MenuList placement="bottom-end">
+          <template #trigger="{ open }">
+            <UiButtonIcon icon="action:more-actions" accent="brand" size="medium" @click="open($event)" />
+          </template>
+          <VdiActions :vdi :vbd :vm />
+        </MenuList>
+      </div>
+      <div :class="{ 'close-button': uiStore.isSmall }">
+        <UiButtonIcon
+          v-tooltip="t('action:close')"
+          size="small"
+          variant="tertiary"
+          accent="brand"
+          :icon="uiStore.isSmall ? 'fa:angle-left' : 'fa:close'"
+          @click="emit('close')"
+        />
+      </div>
     </template>
     <template v-if="vdi" #more-actions>
       <VdiActions :vdi :vbd :vm />
@@ -26,11 +46,16 @@ import VdiSpaceCard from '@/modules/vdi/components/list/panel/cards/VdiSpaceCard
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
+import { useUiStore } from '@core/stores/ui.store'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const uiStore = useUiStore()
+const {t} = useI18n()
 
 const { vdi, vm } = defineProps<{
-  vdi?: FrontXoVdi
-  vm: FrontXoVm
+  vdi: FrontXoVdi
+  vm?: FrontXoVm
 }>()
 
 const emit = defineEmits<{
@@ -41,5 +66,5 @@ const { useGetVbdsByIds } = useXoVbdCollection()
 
 const vbds = useGetVbdsByIds(() => vdi?.$VBDs ?? [])
 
-const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm.id))
+const vbd = computed(() => (vm !== undefined ? vbds.value.find(vbd => vbd.VM === vm.id) : undefined))
 </script>

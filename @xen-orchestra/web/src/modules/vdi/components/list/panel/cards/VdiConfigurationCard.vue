@@ -11,7 +11,7 @@
         </template>
         <template #value>
           <div v-if="vdiSr" class="storage">
-            <UiLink size="small" :href="srHref" icon="object:sr">
+            <UiLink size="small" :to="srRoute" icon="object:sr">
               {{ vdiSr.name_label }}
             </UiLink>
           </div>
@@ -54,7 +54,6 @@ import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-co
 import VdiFormatCardItem from '@/modules/vdi/components/list/panel/card-items/VdiFormatCardItem.vue'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -66,23 +65,21 @@ import { useI18n } from 'vue-i18n'
 
 const { vdi, vm } = defineProps<{
   vdi: FrontXoVdi
-  vm: FrontXoVm
+  vm?: FrontXoVm
 }>()
 
 const { t } = useI18n()
-
-const { buildXo5Route } = useXoRoutes()
 
 const { useGetSrById } = useXoSrCollection()
 const { useGetVbdsByIds } = useXoVbdCollection()
 
 const vdiSr = useGetSrById(() => vdi.$SR)
 
-const srHref = computed(() => (vdiSr.value ? buildXo5Route(`/srs/${vdiSr.value.id}/general`) : undefined))
+const srRoute = computed(() => (vdiSr.value ? `/sr/${vdiSr.value.id}` : undefined))
 
 const vbds = useGetVbdsByIds(() => vdi.$VBDs)
 
-const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm.id))
+const vbd = computed(() => (vm !== undefined ? vbds.value.find(vbd => vbd.VM === vm.id) : undefined))
 
 const isReadOnly = computed(() => vbd.value?.read_only ?? false)
 
