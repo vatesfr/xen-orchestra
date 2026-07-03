@@ -14,9 +14,7 @@
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
-- [VDI] Fix progress bar appearing half-filled when used space is at 100% [Forum#100200](https://xcp-ng.org/forum/post/100200) (PR [#10027](https://github.com/vatesfr/xen-orchestra/pull/10027))
 
-- [Backups] Improve resume of backup merge failure for VHD files (PR [#10053](https://github.com/vatesfr/xen-orchestra/pull/10053))
 - [Backups] fix alignment issue in full mirror with disk > 50GB from non encrypted to encrypted remote (PR [#10061](https://github.com/vatesfr/xen-orchestra/pull/10061))
 
 ### Packages to release
@@ -34,8 +32,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-- @xen-orchestra/backup-archive patch
+
 - @xen-orchestra/fs patch
-- @xen-orchestra/web patch
 
 <!--packages-end-->
