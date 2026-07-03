@@ -253,6 +253,10 @@ export default {
           title: 'Learn',
           items: [
             {
+              label: 'About Xen Orchestra',
+              href: 'https://xen-orchestra.com/#!/xo-home',
+            },
+            {
               label: 'Introduction',
               href: '/',
             },
