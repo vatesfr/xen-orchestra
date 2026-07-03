@@ -1,5 +1,6 @@
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import { getPbdsConnectionStatus } from '@/modules/pbd/utils/xo-pbd.util.ts'
+import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import {
   type FrontXoSr,
   useXoSrCollection,
@@ -9,8 +10,9 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { objectIcon } from '@core/icons'
 import { required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
+import { toComputed } from '@core/utils/to-computed.util.ts'
 import { VM_POWER_STATE } from '@vates/types'
-import { computed, reactive } from 'vue'
+import { computed, type MaybeRefOrGetter, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export type DuplicateVmFormData = {
@@ -20,18 +22,30 @@ export type DuplicateVmFormData = {
   sr: FrontXoSr | undefined
 }
 
-export function useDuplicateVmForm(vm: FrontXoVm) {
+export function useDuplicateVmForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
   const { t } = useI18n()
 
   const { srs } = useXoSrCollection()
 
   const { pbdsBySr } = useXoPbdCollection()
 
+  const vm = toComputed(rawVm)
+
+  const { getSrLocation } = useXoSrUtils()
+
   const formData = reactive<DuplicateVmFormData>({
-    name: `${vm.name_label}_COPY`,
-    copyMode: vm.power_state === VM_POWER_STATE.HALTED ? 'fastClone' : 'fullCopy',
+    name: `${vm.value.name_label}_COPY`,
+    copyMode: vm.value.power_state === VM_POWER_STATE.HALTED ? 'fastClone' : 'fullCopy',
     compressionMode: 'disabled',
     sr: undefined,
+  })
+
+  const isHalted = computed(() => vm.value.power_state === VM_POWER_STATE.HALTED)
+
+  watch(isHalted, halted => {
+    if (!halted && formData.copyMode === 'fastClone') {
+      formData.copyMode = 'fullCopy'
+    }
   })
 
   const isFullCopy = computed(() => formData.copyMode === 'fullCopy')
@@ -46,7 +60,7 @@ export function useDuplicateVmForm(vm: FrontXoVm) {
   })
 
   const copyModeOptions = computed(() => [
-    { label: t('fast-clone'), value: 'fastClone' as const, disabled: vm.power_state !== VM_POWER_STATE.HALTED },
+    { label: t('fast-clone'), value: 'fastClone' as const, disabled: vm.value.power_state !== VM_POWER_STATE.HALTED },
     { label: t('full-copy'), value: 'fullCopy' as const },
   ])
 
@@ -64,13 +78,13 @@ export function useDuplicateVmForm(vm: FrontXoVm) {
     option: {
       label: sr => {
         const gbLeft = Math.floor((sr.size - sr.physical_usage) / 1024 ** 3)
-        return `${sr.name_label} - ${t('n-gb-left', { n: gbLeft })}`
+        return `${sr.name_label} (${getSrLocation(sr)}) - ${t('n-gb-left', { n: gbLeft })}`
       },
       properties: sr => ({ icon: objectIcon('sr', getPbdsConnectionStatus(pbdsBySr.value.get(sr.id) ?? [])) }),
     },
   })
 
-  const isCrossPool = computed(() => formData.sr !== undefined && formData.sr.$pool !== vm.$pool)
+  const isCrossPool = computed(() => formData.sr !== undefined && formData.sr.$pool !== vm.value.$pool)
 
   async function validateAndBuildPayload(): Promise<DuplicateVmPayload | undefined> {
     const isValid = await validate()
@@ -79,8 +93,12 @@ export function useDuplicateVmForm(vm: FrontXoVm) {
       return undefined
     }
 
-    if (formData.copyMode === 'fastClone' || formData.sr === undefined) {
+    if (formData.copyMode === 'fastClone') {
       return { name_label: formData.name, fast: true }
+    }
+
+    if (formData.sr === undefined) {
+      return undefined
     }
 
     return {

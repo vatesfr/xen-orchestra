@@ -9,7 +9,7 @@
     <div class="row">
       <DuplicateVmFormRadio v-bind="copyModeBindings" :label="t('duplication-method')" :options="copyModeOptions">
         <template #info>
-          <UiInfo accent="info">{{ t('fast-clone-available') }}</UiInfo>
+          <UiInfo wrap accent="info">{{ t('fast-clone-available') }}</UiInfo>
         </template>
       </DuplicateVmFormRadio>
 
@@ -28,7 +28,7 @@
         <div class="compression">
           <UiLabel accent="neutral">{{ t('compression') }}</UiLabel>
           <DuplicateVmFormRadio v-if="isCrossPool" v-bind="compressionModeBindings" :options="compressionModeOptions" />
-          <UiInfo v-else accent="info">{{ t('compression-not-available') }}</UiInfo>
+          <UiInfo v-else wrap accent="info">{{ t('compression-not-available') }}</UiInfo>
         </div>
       </div>
     </div>
@@ -71,7 +71,7 @@ const {
   srSelectBindings,
   isCrossPool,
   validateAndBuildPayload,
-} = useDuplicateVmForm(vm)
+} = useDuplicateVmForm(() => vm)
 
 async function onSubmit() {
   const payload = await validateAndBuildPayload()
