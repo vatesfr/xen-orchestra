@@ -1,6 +1,6 @@
 <template>
-  <HostDisableButton :host />
-  <HostEnableButton :host />
+  <HostDisableButton v-if="host.enabled" :host />
+  <HostEnableButton v-if="!host.enabled" :host />
 </template>
 
 <script lang="ts" setup>
