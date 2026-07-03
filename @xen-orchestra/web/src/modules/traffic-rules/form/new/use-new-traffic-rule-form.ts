@@ -99,7 +99,7 @@ export function useNewTrafficRuleForm(
 
   const vmOptions = computed(() =>
     poolVms.value.map(vm => {
-      const hasVifs = vm.VIFs.length > 0
+      const hasVifs = vifs.value.some(vif => vif.$VM === vm.id)
 
       return {
         id: vm.id,
