@@ -13,6 +13,10 @@
         <MenuList placement="bottom-start">
           <template #trigger="{ open, isOpen }">
             <UiButtonIcon
+              v-tooltip="{
+                placement: 'top',
+                content: t('quick-actions'),
+              }"
               accent="brand"
               icon="action:more-actions"
               size="small"
