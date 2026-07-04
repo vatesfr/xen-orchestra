@@ -169,7 +169,6 @@
   "backups:vms-protection:active-protected": "Pelo menos 1 trabalho ativo & protegido",
   "backups:vms-protection:active-unprotected": "Pelo menos 1 trabalho ativo mas desprotegido",
   "backups:vms-protection:no-active-job": "Sem nenhum trabalho em curso",
-  "backups:vms-protection:no-job": "Sem tarefa",
   "backups:vms-protection:protected": "Em pelo menos 1 tarefa e protegido",
   "backups:vms-protection:tooltip": "Uma VM está protegida se estiver incluída numa tarefa de cópia de segurança, com uma programação ativada e se a última execução tiver sido bem-sucedida",
   "backups:vms-protection:unprotected": "Pelo menos 1 trabalho mas desprotegido",

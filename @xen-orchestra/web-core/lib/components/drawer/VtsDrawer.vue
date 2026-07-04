@@ -24,7 +24,11 @@ import { IK_DRAWER } from '@core/packages/drawer/types.ts'
 import { useMagicKeys, whenever } from '@vueuse/core'
 import { computed, inject, onMounted, ref } from 'vue'
 
-const { dismissible, isOpen, current } = defineProps<{
+const {
+  dismissible,
+  isOpen = undefined,
+  current,
+} = defineProps<{
   dismissible?: boolean
   isOpen?: boolean
   current?: boolean

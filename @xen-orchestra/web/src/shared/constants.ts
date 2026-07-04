@@ -1,3 +1,5 @@
+import { SUPPORTED_VDI_FORMAT } from '@vates/types'
+
 export const XOA_NAME = 'Xen Orchestra Appliance'
 
 export const XO_LINKS = {
@@ -27,6 +29,8 @@ export const VDI_SOURCE = {
   FILE: 'file',
   URL: 'url',
 } as const
+
+export type VdiExportFormat = Exclude<SUPPORTED_VDI_FORMAT, 'qcow2'>
 
 export const VDI_PAGE_CONTEXT = {
   VM: 'vm',

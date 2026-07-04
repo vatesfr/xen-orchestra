@@ -1,15 +1,15 @@
 <template>
   <div v-if="!isReady" class="wrapper-spinner">
-    <UiSpinner class="spinner" />
+    <UiLoader class="loader" />
   </div>
   <ObjectNotFoundView v-else-if="isRecordNotFound" :id />
   <slot v-else />
 </template>
 
 <script generic="T extends XenApiRecord<ObjectType>, I extends T['uuid']" lang="ts" setup>
-import UiSpinner from '@/components/ui/UiSpinner.vue'
 import type { ObjectType, XenApiRecord } from '@/libs/xen-api/xen-api.types'
 import ObjectNotFoundView from '@/pages/object-not-found.vue'
+import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -32,7 +32,7 @@ const isRecordNotFound = computed(() => props.isReady && !props.uuidChecker(id.v
   height: 100%;
 }
 
-.spinner {
+.loader {
   color: var(--color-brand-txt-base);
   display: flex;
   margin: auto;

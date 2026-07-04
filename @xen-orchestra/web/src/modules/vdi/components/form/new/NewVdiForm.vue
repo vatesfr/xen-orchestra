@@ -50,10 +50,10 @@
 </template>
 
 <script lang="ts" setup>
-import VdiFormSelect from '@/modules/vdi/components/form/new/inputs/VdiFormSelect.vue'
 import VdiFormTextInput from '@/modules/vdi/components/form/new/inputs/VdiFormTextInput.vue'
 import NewVdiAllocatedSpaceInput from '@/modules/vdi/components/form/new/NewVdiAllocatedSpaceInput.vue'
 import NewVdiSourceSelector from '@/modules/vdi/components/form/new/NewVdiSourceSelector.vue'
+import VdiFormSelect from '@/modules/vdi/components/form/shared/VdiFormSelect.vue'
 import { useNewVdiForm } from '@/modules/vdi/form/new/use-new-vdi-form.ts'
 import type { NewVdiPayload } from '@/modules/vdi/jobs/xo-vdi-create.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'

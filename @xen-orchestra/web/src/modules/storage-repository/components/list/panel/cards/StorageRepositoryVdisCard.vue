@@ -8,43 +8,49 @@
     </UiCardTitle>
 
     <div v-if="vdis.length > 0 || vdiSnapshots.length > 0" class="content">
-      <div v-if="vdis.length > 0" class="subsection">
-        <span class="subtitle typo-body-bold-small">{{ t('vdis') }}</span>
-        <UiCounter :value="vdis.length" accent="neutral" size="small" variant="primary" />
-      </div>
-      <UiCollapsibleList tag="ul" :total-items="vdis.length">
-        <li v-for="vdi in vdis" :key="vdi.id" v-tooltip class="text-ellipsis">
-          <UiLink
-            :to="{ name: '/vdi/[id]/general', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.SR } }"
-            size="small"
-            :icon="getVdiIcon(getVbdsByIds(vdi.$VBDs))"
-          >
-            {{ vdi.name_label || t('unknown') }}
-          </UiLink>
-        </li>
-      </UiCollapsibleList>
+      <template v-if="vdis.length > 0">
+        <div class="subsection">
+          <span class="subtitle typo-body-bold-small">{{ t('vdis') }}</span>
+          <UiCounter :value="vdis.length" accent="neutral" size="small" variant="primary" />
+        </div>
+
+        <UiCollapsibleList tag="ul" :total-items="vdis.length">
+          <li v-for="vdi in vdis" :key="vdi.id" v-tooltip class="text-ellipsis">
+            <UiLink
+              :to="{ name: '/vdi/[id]/general', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.SR } }"
+              size="small"
+              :icon="getVdiIcon(getVbdsByIds(vdi.$VBDs))"
+            >
+              {{ vdi.name_label || t('unknown') }}
+            </UiLink>
+          </li>
+        </UiCollapsibleList>
+      </template>
 
       <VtsDivider v-if="vdis.length > 0 && vdiSnapshots.length > 0" type="stretch" />
 
-      <div v-if="vdiSnapshots.length > 0" class="subsection">
-        <span class="subtitle typo-body-bold-small">{{ t('snapshot-vdis') }}</span>
-        <UiCounter :value="vdiSnapshots.length" accent="neutral" size="small" variant="primary" />
-      </div>
-      <UiCollapsibleList tag="ul" :total-items="vdiSnapshots.length">
-        <li v-for="vdiSnapshot in vdiSnapshots" :key="vdiSnapshot.id" v-tooltip class="text-ellipsis">
-          <UiLink
-            :to="{
-              name: '/vdi/[id]/general',
-              params: { id: vdiSnapshot.id },
-              query: { from: VDI_PAGE_CONTEXT.VDI_SNAPSHOT },
-            }"
-            size="small"
-            icon="object:vdi-snapshot"
-          >
-            {{ vdiSnapshot.name_label || t('unknown') }}
-          </UiLink>
-        </li>
-      </UiCollapsibleList>
+      <template v-if="vdiSnapshots.length > 0">
+        <div class="subsection">
+          <span class="subtitle typo-body-bold-small">{{ t('snapshot-vdis') }}</span>
+          <UiCounter :value="vdiSnapshots.length" accent="neutral" size="small" variant="primary" />
+        </div>
+
+        <UiCollapsibleList tag="ul" :total-items="vdiSnapshots.length">
+          <li v-for="vdiSnapshot in vdiSnapshots" :key="vdiSnapshot.id" v-tooltip class="text-ellipsis">
+            <UiLink
+              :to="{
+                name: '/vdi/[id]/general',
+                params: { id: vdiSnapshot.id },
+                query: { from: VDI_PAGE_CONTEXT.VDI_SNAPSHOT },
+              }"
+              size="small"
+              icon="object:vdi-snapshot"
+            >
+              {{ vdiSnapshot.name_label || t('unknown') }}
+            </UiLink>
+          </li>
+        </UiCollapsibleList>
+      </template>
     </div>
 
     <VtsStateHero v-else type="no-data" format="card" horizontal size="extra-small">

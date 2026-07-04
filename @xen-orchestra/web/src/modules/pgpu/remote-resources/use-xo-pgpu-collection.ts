@@ -7,7 +7,8 @@ import type { XoPgpu } from '@vates/types'
 const pgpuFields = ['id', 'pci', 'type'] as const satisfies readonly (keyof XoPgpu)[]
 
 export const useXoPgpuCollection = defineRemoteResource({
-  url: `${BASE_URL}/pgpus?fields=${pgpuFields.join(',')}`,
+  url: `${BASE_URL}/pgpus?fields=${pgpuFields.join(',')}&ndjson=true`,
+  stream: true,
   initWatchCollection: () => useWatchCollection({ resource: 'PGPU', fields: pgpuFields }),
   initialData: () => [] as Pick<XoPgpu, (typeof pgpuFields)[number]>[],
   state: (pgpus, context) =>

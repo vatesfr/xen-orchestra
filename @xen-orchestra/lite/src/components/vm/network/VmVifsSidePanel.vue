@@ -1,47 +1,32 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
-    <template #header>
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButtonIcon
-          v-if="uiStore.isSmall"
-          v-tooltip="t('action:close')"
-          size="small"
-          variant="tertiary"
-          accent="brand"
-          icon="fa:angle-left"
-          @click="emit('close')"
-        />
-        <div class="action-buttons">
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            size="medium"
-            variant="tertiary"
-            accent="brand"
-            left-icon="fa:edit"
-          >
-            {{ t('action:edit') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            size="medium"
-            variant="tertiary"
-            accent="danger"
-            left-icon="fa:trash"
-          >
-            {{ t('action:delete') }}
-          </UiButton>
-        </div>
-      </div>
+  <VtsSidePanel :has-selection="!!vif" @close="emit('close')">
+    <template v-if="vif" #actions>
+      <UiButton
+        v-tooltip="t('coming-soon!')"
+        disabled
+        size="medium"
+        variant="tertiary"
+        accent="brand"
+        left-icon="fa:edit"
+      >
+        {{ t('action:edit') }}
+      </UiButton>
+      <UiButton
+        v-tooltip="t('coming-soon!')"
+        disabled
+        size="medium"
+        variant="tertiary"
+        accent="danger"
+        left-icon="fa:trash"
+      >
+        {{ t('action:delete') }}
+      </UiButton>
     </template>
-    <template #default>
+    <template v-if="vif" #default>
       <!-- VIF -->
       <UiCard class="card">
-        <UiCardTitle>{{ t('vif') }}</UiCardTitle>
+        <VtsCardObjectTitle :id="vif.uuid" :label="t('vif')" />
         <div class="content">
-          <!-- UUID -->
-          <VtsCodeSnippet :content="vif.uuid" copy />
           <!-- NETWORK -->
           <VtsCardRowKeyValue>
             <template #key>
@@ -144,7 +129,7 @@
         </div>
       </UiCard>
     </template>
-  </UiPanel>
+  </VtsSidePanel>
 </template>
 
 <script setup lang="ts">
@@ -153,22 +138,21 @@ import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
+import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { useUiStore } from '@core/stores/ui.store.ts'
 import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vif } = defineProps<{
-  vif: XenApiVif
+  vif?: XenApiVif
 }>()
 
 const emit = defineEmits<{
@@ -180,9 +164,12 @@ const { t } = useI18n()
 const { getByOpaqueRef: getNetworkByOpaqueRef } = useNetworkStore().subscribe()
 const { getByOpaqueRef: getGuestMetricsByOpaqueRef } = useVmGuestMetricsStore().subscribe()
 const { getByOpaqueRef: getVmByOpaqueRef } = useVmStore().subscribe()
-const uiStore = useUiStore()
 
 const ipAddresses = computed(() => {
+  if (vif === undefined) {
+    return []
+  }
+
   const vm = getVmByOpaqueRef(vif.VM)
 
   if (!vm) {
@@ -194,9 +181,9 @@ const ipAddresses = computed(() => {
   return getUniqueIpAddressesForDevice(networks, vif.device)
 })
 
-const network = computed(() => getNetworkByOpaqueRef(vif.network))
+const network = computed(() => (vif !== undefined ? getNetworkByOpaqueRef(vif.network) : undefined))
 
-const status = computed(() => (vif.currently_attached ? 'connected' : 'disconnected'))
+const status = computed(() => (vif?.currently_attached ? 'connected' : 'disconnected'))
 </script>
 
 <style scoped lang="postcss">
@@ -212,22 +199,5 @@ const status = computed(() => (vif.currently_attached ? 'connected' : 'disconnec
   .value:empty::before {
     content: '-';
   }
-}
-
-.mobile-drawer {
-  position: fixed;
-  inset: 0;
-
-  .action-buttons-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-  }
-}
-
-.action-buttons {
-  display: flex;
-  align-items: center;
 }
 </style>

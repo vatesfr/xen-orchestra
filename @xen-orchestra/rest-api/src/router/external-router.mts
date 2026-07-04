@@ -278,11 +278,14 @@ function buildZodSchema(def: Record<string, FieldDefinition>): z.ZodObject<Recor
       case 'enum':
         schema = z.enum(field.enum as [string, ...string[]])
         break
+      case 'object':
+        schema = buildZodSchema(field.fields)
+        break
       default:
         throw new Error(`Unsupported type: ${(field as { type: unknown }).type}`)
     }
 
-    if (field.example) schema = schema.meta({ example: field.example })
+    if ('example' in field && field.example !== undefined) schema = schema.meta({ example: field.example })
 
     if (field.optional) schema = schema.optional()
 

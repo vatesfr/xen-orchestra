@@ -23,11 +23,13 @@ import { forbiddenOperation } from 'xo-common/api-errors.js'
 
 import { acl, actionsFromBody } from '../middlewares/acl.middleware.mjs'
 import {
+  asynchronousActionResp,
   badRequestResp,
   createdResp,
   forbiddenOperationResp,
   invalidParameters,
   noContentResp,
+  internalServerErrorResp,
   notFoundResp,
   unauthorizedResp,
   type Unbrand,
@@ -37,6 +39,8 @@ import {
   partialBackupRepositories,
   backupRepository,
   backupRepositoryId,
+  backupRepositoryBenchmark,
+  backupRepositoryHeath,
 } from '../open-api/oa-examples/backup-repository.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
@@ -44,6 +48,9 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import { BackupRepositoryService } from './backup-repository.service.mjs'
 import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
+import { ApiError } from '../helpers/error.helper.mjs'
+
+type BenchmarkRepositoryResult = Awaited<ReturnType<XoApp['testRemote']>>
 
 @Route('backup-repositories')
 @Security('*')
@@ -223,5 +230,88 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
     @Body() body: Unbrand<Parameters<XoApp['updateRemote']>[1]>
   ): Promise<void> {
     await this.restApi.xoApp.updateRemote(id as XoBackupRepository['id'], body as Parameters<XoApp['updateRemote']>[1])
+  }
+
+  /**
+   * Pings the backup-repository to check its health
+   *
+   * Required privilege:
+   * - resource: backup-repository, action: read
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   */
+  @Example(backupRepositoryHeath)
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/health')
+  @Middlewares(
+    acl({
+      resource: 'backup-repository',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getRemote,
+    })
+  )
+  @SuccessResponse(200, 'OK')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async getBackupRepositoryHealth(@Path() id: string): ReturnType<XoApp['pingRemote']> {
+    return this.restApi.xoApp.pingRemote(id as XoBackupRepository['id'])
+  }
+
+  /**
+   * Runs a benchmark for write and read speed on the Backup-repository.
+   * Saves the benchmark result on the BR and returns the results, speeds are in bytes/sec.
+   * 502 if the BR cannot be reached, 400 if there was a problem during the benchmark with the error.
+   *
+   * Required privilege:
+   * - resource: backup-repository, action: benchmark
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   */
+  @Example(taskLocation)
+  @Example(backupRepositoryBenchmark)
+  @Extension('x-mcp-exposure', 'confirm')
+  @Post('{id}/actions/benchmark')
+  @Middlewares(
+    acl({
+      resource: 'backup-repository',
+      action: 'benchmark',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getRemote,
+    })
+  )
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(200, 'Ok')
+  @Response(400, 'Benchmark failed')
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  @Response(502, 'Backup repository unreachable')
+  benchmarkBackupRepository(
+    @Path() id: string,
+    @Query() sync?: boolean
+  ): CreateActionReturnType<BenchmarkRepositoryResult> {
+    const backupRepositoryId = id as XoBackupRepository['id']
+    const action = async () => {
+      let result: BenchmarkRepositoryResult
+      try {
+        result = await this.restApi.xoApp.testRemote(backupRepositoryId)
+      } catch (error) {
+        throw new ApiError('Backup repository unreachable', 502)
+      }
+      if (!result.success) {
+        throw new ApiError('Benchmark failed', 400, { data: result })
+      }
+      return result
+    }
+
+    return this.createAction<BenchmarkRepositoryResult>(action, {
+      sync,
+      statusCode: 200,
+      taskProperties: {
+        name: 'benchmark backup repository',
+        objectId: backupRepositoryId,
+      },
+    })
   }
 }

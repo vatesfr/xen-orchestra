@@ -15,6 +15,7 @@ import { onBeforeMount, onBeforeUpdate, provide, ref, toRef, useSlots } from 'vu
 const props = defineProps<{
   nodeId?: TreeNodeId
   expanded?: boolean
+  hasChildren?: boolean
 }>()
 
 defineSlots<{
@@ -24,11 +25,16 @@ defineSlots<{
 
 const sidebar = useSidebarStore()
 const uiStore = useUiStore()
-const hasChildren = ref(false)
+const hasChildrenState = ref(false)
 
 const updateHasChildren = () => {
+  if (props.hasChildren !== undefined) {
+    hasChildrenState.value = props.hasChildren
+    return
+  }
+
   const { sublist } = useSlots()
-  hasChildren.value = sublist !== undefined
+  hasChildrenState.value = sublist !== undefined
 }
 
 const handleClick = () => {
@@ -40,6 +46,6 @@ const handleClick = () => {
 onBeforeMount(() => updateHasChildren())
 onBeforeUpdate(() => updateHasChildren())
 
-provide(IK_TREE_ITEM_HAS_CHILDREN, hasChildren)
+provide(IK_TREE_ITEM_HAS_CHILDREN, hasChildrenState)
 provide(IK_TREE_ITEM_EXPANDED, toRef(props, 'expanded'))
 </script>

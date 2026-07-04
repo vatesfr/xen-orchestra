@@ -143,7 +143,7 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells } = useVmColumns({
-  exclude: ['selectItem'],
+  exclude: ['actions'],
   body: (vm: XenApiVm) => {
     const guestMetrics = computed(() => getGuestMetrics(vm.guest_metrics))
     const vmMetrics = computed(() => getVmMetrics(vm.metrics))
