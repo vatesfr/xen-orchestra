@@ -1,7 +1,7 @@
 import { closeSync, mkdirSync, openSync, renameSync, unlinkSync, writeFileSync, writeSync } from 'node:fs'
 import { createLogger } from '@xen-orchestra/log'
 import { join } from 'node:path'
-import { readdir, stat, unlink } from 'node:fs/promises'
+import { readdir, readFile, stat, unlink, writeFile } from 'node:fs/promises'
 import { serializeError } from '@vates/task'
 
 const log = createLogger('xo:rpu-observability')
@@ -166,6 +166,58 @@ export function openRpuTrace({ dir, kind, poolId }) {
         }
       }
     },
+  }
+}
+
+/**
+ * Reconciles the heartbeats of interrupted runs at boot: a heartbeat left
+ * `pending` on disk cannot belong to a running operation anymore since
+ * xo-server just started.
+ *
+ * Never throws: errors are logged and the remaining files are still processed.
+ *
+ * @param {string} dir - Traces directory
+ * @returns {Promise<void>}
+ */
+export async function reconcileRpuTraces(dir) {
+  let names
+  try {
+    names = await readdir(dir)
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      try {
+        log.warn('could not list RPU traces for reconciliation', { error, dir })
+      } catch {}
+    }
+    return
+  }
+
+  for (const name of names) {
+    const isHeartbeat = /^rp[ru]-.*\.heartbeat\.json$/.test(name)
+    const isActive = [...activeTraces].some(base => name.startsWith(base))
+    if (isHeartbeat && !isActive) {
+      const path = join(dir, name)
+      try {
+        const heartbeat = JSON.parse(await readFile(path, 'utf8'))
+        if (heartbeat.status === 'pending') {
+          await writeFile(
+            path,
+            JSON.stringify({
+              lastUpdated: new Date().toISOString(),
+              status: 'interrupted',
+              lastAlive: heartbeat.lastUpdated,
+            }) + '\n',
+            { mode: 0o600 }
+          )
+          const traceFile = join(dir, name.replace(/\.heartbeat\.json$/, '.ndjson'))
+          log.info(`interrupted RPU/RPR detected (last alive ${heartbeat.lastUpdated}): trace in ${traceFile}`)
+        }
+      } catch (error) {
+        try {
+          log.warn('could not reconcile RPU heartbeat', { error, path })
+        } catch {}
+      }
+    }
   }
 }
 

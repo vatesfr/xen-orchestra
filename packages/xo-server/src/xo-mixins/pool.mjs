@@ -12,7 +12,7 @@ import { decorateMethodsWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 
 import { acquireRpuGuard } from '../_rpuGuard.mjs'
-import { gcRpuTraces, getRpuTracesConfig, openRpuTrace } from '../_rpuObservability.mjs'
+import { gcRpuTraces, getRpuTracesConfig, openRpuTrace, reconcileRpuTraces } from '../_rpuObservability.mjs'
 
 const log = createLogger('xo:xo-mixins:pool')
 
@@ -68,6 +68,10 @@ export default class Pools {
     // the clean hook only runs at startup and on manual xo.clean: also enforce
     // the retention periodically (same pattern as xo-mixins/logs)
     setInterval(gc, 6 * 60 * 60 * 1000).unref()
+
+    // a heartbeat left pending on disk after a restart belongs to an
+    // interrupted run: stamp it so the disk alone is unambiguous
+    app.hooks.on('start', () => reconcileRpuTraces(getRpuTracesConfig(app).dir))
   }
 
   async mergeInto($defer, { sources: sourceIds, target, force }) {

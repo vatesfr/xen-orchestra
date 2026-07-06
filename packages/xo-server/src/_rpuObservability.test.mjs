@@ -5,7 +5,7 @@ import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 
-import { gcRpuTraces, makeReplacer, openRpuTrace } from './_rpuObservability.mjs'
+import { gcRpuTraces, makeReplacer, openRpuTrace, reconcileRpuTraces } from './_rpuObservability.mjs'
 
 const { describe, it, beforeEach } = test
 
@@ -216,5 +216,47 @@ describe('gcRpuTraces', function () {
 
   it('does not throw on a missing directory', async function () {
     await gcRpuTraces(join(dir, 'does-not-exist'), 0)
+  })
+})
+
+describe('reconcileRpuTraces', function () {
+  it('stamps pending heartbeats as interrupted, preserving the time of death', async function () {
+    const path = join(dir, 'rpu-pool-1-20260101T000000000Z.heartbeat.json')
+    await writeFile(path, JSON.stringify({ lastUpdated: '2026-01-01T00:00:00.000Z', status: 'pending' }))
+
+    await reconcileRpuTraces(dir)
+
+    const heartbeat = JSON.parse(await readFile(path, 'utf8'))
+    assert.equal(heartbeat.status, 'interrupted')
+    assert.equal(heartbeat.lastAlive, '2026-01-01T00:00:00.000Z')
+    assert.ok(!Number.isNaN(Date.parse(heartbeat.lastUpdated)))
+  })
+
+  it('leaves finished heartbeats untouched', async function () {
+    const path = join(dir, 'rpu-pool-1-20260101T000000000Z.heartbeat.json')
+    const content = JSON.stringify({ lastUpdated: '2026-01-01T00:00:00.000Z', status: 'failure' })
+    await writeFile(path, content)
+
+    await reconcileRpuTraces(dir)
+
+    assert.equal(await readFile(path, 'utf8'), content)
+  })
+
+  it('skips the heartbeat of a run in progress', async function () {
+    const task = makeFakeTask()
+    const trace = openRpuTrace({ dir, kind: 'rpu', poolId: 'pool-1' })
+    trace.attach(task)
+
+    await reconcileRpuTraces(dir)
+
+    const heartbeat = JSON.parse(await readFile(trace.heartbeatFile, 'utf8'))
+    assert.equal(heartbeat.status, 'pending')
+    trace.stop()
+  })
+
+  it('does not throw on a corrupt heartbeat or a missing directory', async function () {
+    await writeFile(join(dir, 'rpu-pool-1-20260101T000000000Z.heartbeat.json'), '{truncated')
+    await reconcileRpuTraces(dir)
+    await reconcileRpuTraces(join(dir, 'does-not-exist'))
   })
 })
