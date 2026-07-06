@@ -31,7 +31,7 @@
         </template>
       </VdisTable>
     </UiCard>
-    <VdiSidePanel :vdi="selectedVdi" :vm @close="selectedVdi = undefined" />
+    <VdiSidePanel v-if="selectedVdi" :vdi="selectedVdi" :vm @close="selectedVdi = undefined" />
   </VtsContentSidePanel>
 </template>
 

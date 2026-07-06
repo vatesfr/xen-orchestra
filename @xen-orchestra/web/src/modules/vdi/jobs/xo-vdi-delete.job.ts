@@ -37,10 +37,14 @@ export const useXoVdiDeleteJob = defineJob('vdi.delete', [xoVdisArg, xoVmArg], (
         throw new JobRunningError(t('job:delete:in-progress'))
       }
 
+      if (vm === undefined) {
+        return
+      }
+
       const attachedVbds = vdis.flatMap(vdi => useGetVbdsByIds(vdi.$VBDs).value).filter(vbd => vbd.attached)
 
       if (attachedVbds.length > 0) {
-        throw new JobError(attachedVbds.some(vbd => vbd.VM === vm?.id) ? t('vm-running') : t('vdi-in-use'))
+        throw new JobError(attachedVbds.some(vbd => vbd.VM === vm.id) ? t('vm-running') : t('vdi-in-use'))
       }
     },
   }
