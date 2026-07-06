@@ -12,7 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [vm stats] Reduce the memory consumption of the rrd stats (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
-- [REST API] Possibility to set the HA restart priority (`highAvailability`) when creating a VM (PR [#10070](https://github.com/vatesfr/xen-orchestra/pull/10070))
+- [REST API] Possibility to set the HA restart priority (`high_availability`) when creating a VM (PR [#10070](https://github.com/vatesfr/xen-orchestra/pull/10070))
 
 ### Bug fixes
 
