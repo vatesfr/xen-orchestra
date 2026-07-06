@@ -7,7 +7,7 @@
     :disabled="!canDisableHost"
     left-icon="action:disable"
     :busy="isDisablingHost"
-    @click="disableHost()"
+    @click="openEnabledStateModal()"
   >
     {{ t('action:host-disable') }}
   </UiButton>
@@ -28,7 +28,7 @@ const { host } = defineProps<{
 const { t } = useI18n()
 
 const {
-  openModal: disableHost,
+  openModal: openEnabledStateModal,
   canRun: canDisableHost,
   isRunning: isDisablingHost,
   errorMessage: disableHostErrorMessage,

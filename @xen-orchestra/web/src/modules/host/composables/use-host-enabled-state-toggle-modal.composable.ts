@@ -29,7 +29,7 @@ export function useHostEnabledStateToggleModal(
       try {
         await job.value.run()
       } catch (error) {
-        console.error(`Error when ${action.value}ing Host:`, error)
+        console.error(`Error when ${action.value} Host:`, error)
       }
     },
   }))
