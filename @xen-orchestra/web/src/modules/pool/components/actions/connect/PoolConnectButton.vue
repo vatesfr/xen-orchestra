@@ -1,20 +1,20 @@
 <template>
   <UiButton
-    v-if="server && server.status === 'connected'"
-    left-icon="action:disconnect"
+    v-if="server && server.status !== 'connected'"
+    left-icon="action:connect"
     variant="secondary"
     accent="brand"
     size="medium"
     :busy="isRunning"
-    @click="disconnect()"
+    @click="connect()"
   >
-    {{ t('action:disconnect') }}
+    {{ t('action:connect') }}
   </UiButton>
 </template>
 
 <script lang="ts" setup>
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { useXoServerDisconnectJob } from '@/modules/server/jobs/xo-server-disconnect.job.ts'
+import { useXoServerConnectJob } from '@/modules/server/jobs/xo-server-connect.job.ts'
 import { useXoServerCollection } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import type { FrontXoServer } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -31,11 +31,5 @@ const server = computed(() => serverByPool.value.get(poolId)?.[0])
 
 const serverId = computed(() => server.value?.id ?? ('' as FrontXoServer['id']))
 
-const { isRunning, run: disconnect } = useXoServerDisconnectJob([serverId])
+const { isRunning, run: connect } = useXoServerConnectJob([serverId])
 </script>
-
-<style lang="postcss" scoped>
-.disconnect {
-  color: var(--color-danger-item-base);
-}
-</style>

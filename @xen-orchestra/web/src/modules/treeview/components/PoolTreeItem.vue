@@ -20,7 +20,7 @@
               @click="open($event)"
             />
           </template>
-          <PoolTreeActions :pool="branch.data" />
+          <PoolTreeActions :pool-id="branch.data.id" />
         </MenuList>
       </template>
     </UiTreeItemLabel>
