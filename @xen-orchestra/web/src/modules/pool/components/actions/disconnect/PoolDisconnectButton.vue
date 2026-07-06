@@ -1,5 +1,5 @@
 <template>
-  <MenuItem icon="action:detach" :busy="isRunning" :disabled="!isConnected" class="disconnect" @click="openModal()">
+  <MenuItem icon="action:disconnect" :busy="isRunning" :disabled="!canRun" class="disconnect" @click="openModal()">
     {{ t('action:disconnect-pool') }}
   </MenuItem>
 </template>
@@ -22,14 +22,19 @@ const { serverByPool } = useXoServerCollection()
 
 const server = computed(() => serverByPool.value.get(poolId)?.[0])
 const serverId = computed(() => server.value?.id ?? ('' as XoServer['id']))
-const isConnected = computed(() => server.value?.status === 'connected')
 
-const { isRunning, run } = useXoServerDisconnectJob([serverId])
+const { canRun, isRunning, run } = useXoServerDisconnectJob([serverId])
 
 const openModal = useModal(() => ({
   component: import('@/modules/pool/components/modal/PoolDisconnectModal.vue'),
   props: { poolName },
-  onConfirm: () => run(),
+  onConfirm: async () => {
+    try {
+      await run()
+    } catch (error) {
+      console.error('Error when disconnecting server:', error)
+    }
+  },
 }))
 </script>
 
