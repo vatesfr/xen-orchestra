@@ -1,6 +1,6 @@
 <template>
   <UiButton
-    v-tooltip="!canDisableHost"
+    v-tooltip="!canDisableHost && disableHostErrorMessage"
     size="medium"
     variant="tertiary"
     accent="brand"
@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoHostDisableJob } from '@/modules/host/jobs/xo-host-disable-host.jobs.ts'
+import { useXoHostDisableJob } from '@/modules/host/jobs/xo-host-disable-host.job.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
@@ -26,5 +26,10 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { run: disableHost, canRun: canDisableHost, isRunning: isDisablingHost } = useXoHostDisableJob(() => host)
+const {
+  run: disableHost,
+  canRun: canDisableHost,
+  isRunning: isDisablingHost,
+  errorMessage: disableHostErrorMessage,
+} = useXoHostDisableJob(() => host)
 </script>

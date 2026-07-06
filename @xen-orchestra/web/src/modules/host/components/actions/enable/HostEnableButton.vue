@@ -1,12 +1,12 @@
 <template>
   <UiButton
-    v-tooltip="!canEnableHost"
+    v-tooltip="!canEnableHost && enableHostErrorMessage"
     size="medium"
     variant="tertiary"
     accent="brand"
     :disabled="!canEnableHost"
     left-icon="status:success-circle"
-    :busy="isEnabingHost"
+    :busy="isEnablingHost"
     @click="enableHost()"
   >
     {{ t('action:enable-host') }}
@@ -26,5 +26,10 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { run: enableHost, canRun: canEnableHost, isRunning: isEnabingHost } = useXoHostEnableJob(() => host)
+const {
+  run: enableHost,
+  canRun: canEnableHost,
+  isRunning: isEnablingHost,
+  errorMessage: enableHostErrorMessage,
+} = useXoHostEnableJob(() => host)
 </script>
