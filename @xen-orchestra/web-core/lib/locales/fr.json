@@ -138,6 +138,7 @@
   "action:update": "Mettre à jour",
   "action:use-query-builder": "Constructeur de requête",
   "action:visit-pool-dashboard": "Visiter le tableau de bord du pool",
+  "actions": "Actions",
   "add-or": "+OU",
   "admin-login": "Nom d'utilisateur administrateur",
   "admin-password": "Mot de passe administrateur",

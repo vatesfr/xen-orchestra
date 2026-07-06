@@ -10,23 +10,17 @@ export const useXoServerDisconnectJob = defineJob('server.disconnect', [xoServer
   const { getServersByIds } = useXoServerCollection()
 
   return {
-    async run(serverIds) {
-      const results = await Promise.allSettled(
+    run(serverIds) {
+      return Promise.allSettled(
         serverIds.map(async serverId => {
           const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`servers/${serverId.value}/actions/disconnect`)
           await monitorTask(taskId)
         })
       )
-      results.forEach((result, index) => {
-        if (result.status === 'rejected') {
-          console.error(`Failed to disconnect server ${serverIds[index].value}:`, result.reason)
-        }
-      })
-      return results
     },
     validate(isRunning, serverIds) {
       if (isRunning) {
-        throw new JobRunningError('server disconnection already in progress')
+        throw new JobRunningError('disconnect server already running')
       }
       if (serverIds.length === 0 || serverIds.some(id => id.value === '')) {
         throw new JobError('server ids are required')
