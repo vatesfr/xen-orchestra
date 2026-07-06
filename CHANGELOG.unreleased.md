@@ -38,6 +38,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backup-archive patch
+- @xen-orchestra/backups patch
 - @xen-orchestra/web patch
 - xo-server patch
 
