@@ -943,6 +943,8 @@
   "sr-connect-info-pool-mixed": "Les SRs locaux seront connectés à leurs hôtes respectifs. Les SRs partagés seront connectés à tous les hôtes de ce pool.",
   "sr-connect-info-pool-shared": "Le SR sera connecté à {hostsCount} hôtes de ce pool. | Chaque SR partagé sera connecté à tous les hôtes de ce pool.",
   "sr-connect-title": "Vous êtes sur le point de connecter 1 SR | Vous êtes sur le point de connecter {n} SRs",
+  "sr-create-erase-confirm": "Cette opération effacera l'intégralité du disque ou de la partition ({device}) pour créer un nouveau SR. Voulez-vous vraiment continuer ?",
+  "sr-create-erase-confirm-title": "Créer un nouvel SR",
   "sr-delete-info": "Cette action supprimera définitivement le dépôt de stockage et toutes les données qu'il contient. Cette action est irréversible. | Tous les dépôts de stockage sélectionnés et les données qu'ils contiennent seront supprimés définitivement. Cette action est irréversible — procédez avec prudence.",
   "sr-disconnect-info-host": "Le SR sera déconnecté de cet hôte. | Les SRs sélectionnés seront déconnectés de cet hôte.",
   "sr-disconnect-info-pool-local": "Le SR sera déconnecté de son hôte. | Chaque SR sera déconnecté de son propre hôte.",

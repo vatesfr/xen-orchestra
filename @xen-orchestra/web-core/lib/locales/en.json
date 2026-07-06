@@ -943,6 +943,8 @@
   "sr-connect-info-pool-mixed": "Local SRs will be connected to their respective hosts. Shared SRs will be connected to all hosts in this pool.",
   "sr-connect-info-pool-shared": "The SR will be connected to {hostsCount} hosts in this pool. | Each shared SR will be connected to all hosts in this pool.",
   "sr-connect-title": "You are about to connect 1 SR | You are about to connect {n} SRs",
+  "sr-create-erase-confirm": "This will erase the entire disk or partition ({device}) to create a new SR. Are you sure you want to continue?",
+  "sr-create-erase-confirm-title": "Create a new SR",
   "sr-delete-info": "This action will permanently delete the storage repository and all data stored on it. This cannot be undone. | All selected storage repositories and the data they contain will be permanently deleted. This action is irreversible—proceed with caution.",
   "sr-disconnect-info-host": "The SR will be disconnected from this host. | The selected SRs will be disconnected from this host.",
   "sr-disconnect-info-pool-local": "The SR will be disconnected from its host. | Each SR will be disconnected from its own host.",

@@ -101,6 +101,7 @@ const {
   usernameInputBindings,
   passwordInputBindings,
   useAuth,
+  requiresEraseConfirm,
   validate,
   validateAndBuildPayload,
 } = useNewSrForm(
@@ -108,7 +109,7 @@ const {
   () => hostId
 )
 
-defineExpose({ validate, validateAndBuildPayload })
+defineExpose({ requiresEraseConfirm, validate, validateAndBuildPayload })
 </script>
 
 <style lang="postcss" scoped>

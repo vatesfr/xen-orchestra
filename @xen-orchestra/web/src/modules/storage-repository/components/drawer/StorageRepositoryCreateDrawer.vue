@@ -19,6 +19,7 @@ import VtsDrawer from '@core/components/drawer/VtsDrawer.vue'
 import VtsDrawerCancelButton from '@core/components/drawer/VtsDrawerCancelButton.vue'
 import VtsDrawerConfirmButton from '@core/components/drawer/VtsDrawerConfirmButton.vue'
 import { IK_DRAWER } from '@core/packages/drawer/types.ts'
+import { useModal } from '@core/packages/modal/use-modal.ts'
 import { inject, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -32,11 +33,26 @@ const { t } = useI18n()
 const drawer = inject(IK_DRAWER)
 const formRef = useTemplateRef('formRef')
 
-async function handleConfirm() {
-  const isValid = await formRef.value?.validate()
-  if (!isValid) return // stay open, show inline errors
+const openEraseConfirmModal = useModal((device: string) => ({
+  component: import('@/modules/storage-repository/components/modal/SrCreateEraseConfirmModal.vue'),
+  props: { device },
+}))
 
-  // Once routes exist: const payload = buildPayload(formData)
-  drawer?.value.onConfirm(/* payload */)
+async function handleConfirm() {
+  const restPayload = await formRef.value?.validateAndBuildPayload()
+
+  if (!restPayload) {
+    return
+  }
+
+  if (formRef.value?.requiresEraseConfirm) {
+    const response = await openEraseConfirmModal(restPayload.device_config.device ?? '')
+
+    if (!response.confirmed) {
+      return
+    }
+  }
+
+  await drawer?.value.onConfirm(restPayload)
 }
 </script>
