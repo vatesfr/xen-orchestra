@@ -9,13 +9,14 @@
     :busy="isDisablingHost"
     @click="disableHost()"
   >
-    {{ t('action:disable-host') }}
+    {{ t('action:host-disable') }}
   </UiButton>
 </template>
 
 <script lang="ts" setup>
-import { useXoHostDisableJob } from '@/modules/host/jobs/xo-host-disable-host.job.ts'
+import { useHostEnabledStateToggleModal } from '@/modules/host/composables/use-host-enabled-state-toggle-modal.composable.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { ENABLED_STATE_ACTION } from '@/modules/host/types/enabled-state.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
@@ -27,9 +28,9 @@ const { host } = defineProps<{
 const { t } = useI18n()
 
 const {
-  run: disableHost,
+  openModal: disableHost,
   canRun: canDisableHost,
   isRunning: isDisablingHost,
   errorMessage: disableHostErrorMessage,
-} = useXoHostDisableJob(() => host)
+} = useHostEnabledStateToggleModal(ENABLED_STATE_ACTION.DISABLE, () => host)
 </script>
