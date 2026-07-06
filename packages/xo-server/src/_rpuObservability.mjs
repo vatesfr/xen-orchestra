@@ -1,0 +1,212 @@
+import { closeSync, mkdirSync, openSync, renameSync, unlinkSync, writeFileSync, writeSync } from 'node:fs'
+import { createLogger } from '@xen-orchestra/log'
+import { join } from 'node:path'
+import { readdir, stat, unlink } from 'node:fs/promises'
+import { serializeError } from '@vates/task'
+
+const log = createLogger('xo:rpu-observability')
+
+const DEFAULT_TRACES_RETENTION = 31 * 24 * 60 * 60 * 1000
+const HEARTBEAT_INTERVAL = 5e3
+const SENSITIVE_KEY_RE = /password|token|secret|credential|authorization|session|api[-_]?key/i
+
+const activeTraces = new Set()
+
+/**
+ * Resolves the traces directory and retention from the server configuration.
+ *
+ * @param {object} app - The xo-server instance (uses `app.config`)
+ * @returns {{ dir: string, retention: number }} Traces directory and retention in milliseconds
+ */
+export function getRpuTracesConfig(app) {
+  return {
+    dir: app.config.getOptional('rpu.tracesDir') ?? join(app.config.get('datadir'), 'rpu-traces'),
+    retention: app.config.getOptionalDuration('rpu.tracesRetention') ?? DEFAULT_TRACES_RETENTION,
+  }
+}
+
+/**
+ * Creates a `JSON.stringify` replacer: serializes errors, converts BigInt,
+ * breaks cycles and scrubs secret-looking keys since the trace contains
+ * debug-level data.
+ *
+ * Stateful (cycle detection): create a fresh replacer per `JSON.stringify` call.
+ *
+ * @returns {(key: string, value: any) => any}
+ */
+export function makeReplacer() {
+  const seen = new WeakSet()
+  return function replacer(key, value) {
+    if (key !== '' && SENSITIVE_KEY_RE.test(key)) {
+      return '[REDACTED]'
+    }
+    if (typeof value === 'bigint') {
+      return value.toString()
+    }
+    if (value instanceof Error) {
+      return serializeError(value)
+    }
+    if (typeof value === 'object' && value !== null) {
+      if (seen.has(value)) {
+        return '[Circular]'
+      }
+      seen.add(value)
+    }
+    return value
+  }
+}
+
+/**
+ * Creates the trace and heartbeat files for one RPU/RPR run.
+ *
+ * @param {object} params
+ * @param {string} params.dir - Directory where the files are created
+ * @param {'rpu'|'rpr'} params.kind - Kind of operation, used as file name prefix
+ * @param {string} params.poolId - Identifier of the target pool
+ * @returns {{ traceFile: string, heartbeatFile: string, attach: (task: object) => void, stop: () => void } | undefined}
+ *   `undefined` if the files cannot be created (observability is optional)
+ */
+export function openRpuTrace({ dir, kind, poolId }) {
+  let base, fd, heartbeatFile, traceFile
+  try {
+    const timestamp = new Date().toISOString().replace(/[-:.]/g, '')
+    base = `${kind}-${String(poolId).replace(/[^a-zA-Z0-9-]/g, '')}-${timestamp}`
+    mkdirSync(dir, { recursive: true, mode: 0o700 })
+    traceFile = join(dir, base + '.ndjson')
+    heartbeatFile = join(dir, base + '.heartbeat.json')
+    fd = openSync(traceFile, 'ax', 0o600)
+  } catch (error) {
+    try {
+      log.warn('could not create RPU trace files, continuing without observability', { error, dir })
+    } catch {}
+    return
+  }
+
+  activeTraces.add(base)
+
+  let beat
+  let interval
+  let stopped = false
+  let writeErrorLogged = false
+  const onWriteError = error => {
+    if (!writeErrorLogged) {
+      writeErrorLogged = true
+      try {
+        log.warn('failed to write RPU trace, observability is degraded', { error, traceFile })
+      } catch {}
+    }
+  }
+
+  return {
+    heartbeatFile,
+    traceFile,
+
+    attach(task) {
+      const inner = task._onProgress
+      task._onProgress = event => {
+        if (!stopped) {
+          try {
+            let sanitized = event
+            if (event.type === 'property' && SENSITIVE_KEY_RE.test(event.name)) {
+              sanitized = { ...event, value: '[REDACTED]' }
+            }
+            writeSync(fd, JSON.stringify(sanitized, makeReplacer()) + '\n')
+          } catch (error) {
+            onWriteError(error)
+          }
+        }
+        inner(event)
+      }
+
+      beat = () => {
+        try {
+          const tmp = heartbeatFile + '.tmp'
+          try {
+            unlinkSync(tmp)
+          } catch (error) {
+            if (error.code !== 'ENOENT') {
+              throw error
+            }
+          }
+          writeFileSync(
+            tmp,
+            JSON.stringify({
+              lastUpdated: new Date().toISOString(),
+              status: task.status,
+              ...(writeErrorLogged && { degraded: true }),
+            }) + '\n',
+            { flag: 'wx', mode: 0o600 }
+          )
+          renameSync(tmp, heartbeatFile)
+        } catch (error) {
+          onWriteError(error)
+        }
+      }
+      beat()
+      interval = setInterval(beat, HEARTBEAT_INTERVAL)
+      interval.unref()
+
+      try {
+        task.set('traceFile', traceFile)
+      } catch {}
+    },
+
+    stop() {
+      if (!stopped) {
+        stopped = true
+        activeTraces.delete(base)
+        clearInterval(interval)
+        if (beat !== undefined) {
+          beat()
+        }
+        try {
+          closeSync(fd)
+        } catch (error) {
+          onWriteError(error)
+        }
+      }
+    },
+  }
+}
+
+/**
+ * Deletes the trace/heartbeat files older than the retention, skipping the
+ * traces still being written.
+ *
+ * Never throws: errors are logged and the remaining files are still processed.
+ *
+ * @param {string} dir - Traces directory
+ * @param {number} retention - Max age in milliseconds
+ * @returns {Promise<void>}
+ */
+export async function gcRpuTraces(dir, retention) {
+  let names
+  try {
+    names = await readdir(dir)
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      try {
+        log.warn('could not list RPU traces for GC', { error, dir })
+      } catch {}
+    }
+    return
+  }
+
+  const limit = Date.now() - retention
+  for (const name of names) {
+    const isTraceFile = /^rp[ru]-.*\.(ndjson|heartbeat\.json(\.tmp)?)$/.test(name)
+    const isActive = [...activeTraces].some(base => name.startsWith(base))
+    if (isTraceFile && !isActive) {
+      const path = join(dir, name)
+      try {
+        if ((await stat(path)).mtimeMs < limit) {
+          await unlink(path)
+        }
+      } catch (error) {
+        try {
+          log.warn('could not GC RPU trace file', { error, path })
+        } catch {}
+      }
+    }
+  }
+}

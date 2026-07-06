@@ -424,7 +424,9 @@ const methods = {
         throw new Error(result.stderr)
       }
 
-      log.debug(result.stdout)
+      // `stdout` may be undefined depending on the XCP-ng version, always log
+      // a meaningful end-of-install line (this step can last >15 minutes)
+      log.debug(`patches installed on host ${host.uuid}`, { stdout: result.stdout })
       await host.update_other_config('rpm_patch_installation_time', String(Date.now() / 1000))
     }
   },

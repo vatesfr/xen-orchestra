@@ -7,8 +7,14 @@ import some from 'lodash/some.js'
 import stubTrue from 'lodash/stubTrue.js'
 import uniq from 'lodash/uniq.js'
 import { asyncEach } from '@vates/async-each'
+import { createLogger } from '@xen-orchestra/log'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
+
+import { acquireRpuGuard } from '../_rpuGuard.mjs'
+import { gcRpuTraces, getRpuTracesConfig, openRpuTrace } from '../_rpuObservability.mjs'
+
+const log = createLogger('xo:xo-mixins:pool')
 
 async function enforceHostsHaveLicense($defer, app, productType, hostIds) {
   const now = Date.now()
@@ -53,6 +59,15 @@ async function enforceHostsHaveLicense($defer, app, productType, hostIds) {
 export default class Pools {
   constructor(app) {
     this._app = app
+
+    const gc = () => {
+      const { dir, retention } = getRpuTracesConfig(app)
+      return gcRpuTraces(dir, retention)
+    }
+    app.hooks.on('clean', gc)
+    // the clean hook only runs at startup and on manual xo.clean: also enforce
+    // the retention periodically (same pattern as xo-mixins/logs)
+    setInterval(gc, 6 * 60 * 60 * 1000).unref()
   }
 
   async mergeInto($defer, { sources: sourceIds, target, force }) {
@@ -188,20 +203,36 @@ export default class Pools {
   async rollingPoolReboot(pool, { parentTask } = {}) {
     const { _app } = this
     await _app.checkFeatureAuthorization('ROLLING_POOL_REBOOT')
-    const hasParentTask = parentTask !== undefined
-    let task = parentTask
-    const fn = async () => _app.getXapi(pool).rollingPoolReboot(task)
+    const releaseGuard = acquireRpuGuard(pool.id, 'rollingPoolReboot')
+    const trace = openRpuTrace({ dir: getRpuTracesConfig(_app).dir, kind: 'rpr', poolId: pool.id })
+    try {
+      if (trace !== undefined) {
+        log.info(`rolling pool reboot of pool ${pool.id}: trace in ${trace.traceFile}`)
+      }
 
-    if (!hasParentTask) {
-      task = _app.tasks.create({
-        name: `Rolling pool reboot`,
-        poolId: pool.id,
-        poolName: pool.name_label,
-        progress: 0,
-      })
-      await task.run(fn)
-    } else {
-      await fn()
+      let task = parentTask
+      const fn = async () => _app.getXapi(pool).rollingPoolReboot(task)
+
+      if (task === undefined) {
+        task = _app.tasks.create({
+          name: `Rolling pool reboot`,
+          objectId: pool.id,
+          poolId: pool.id,
+          poolName: pool.name_label,
+          progress: 0,
+          type: 'pool.rolling_reboot',
+          ...(trace !== undefined && { traceFile: trace.traceFile }),
+        })
+        trace?.attach(task)
+        await task.run(fn)
+      } else {
+        // task created by the caller (e.g. REST API): trace it as well
+        trace?.attach(task)
+        await fn()
+      }
+    } finally {
+      trace?.stop()
+      releaseGuard()
     }
   }
 }
