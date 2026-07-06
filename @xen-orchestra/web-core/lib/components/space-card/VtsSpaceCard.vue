@@ -5,7 +5,7 @@
     </UiCardTitle>
 
     <div class="content">
-      <VtsProgressBar noruler :current="used" :total :label legend-type="percent" class="progress" />
+      <VtsProgressBar no-ruler :current="used" :total :label legend-type="percent" class="progress" />
 
       <VtsCardRowKeyValue>
         <template #key>{{ t('used-space') }}</template>

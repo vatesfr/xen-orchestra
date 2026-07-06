@@ -21,6 +21,7 @@ import { limitConcurrency } from 'limit-concurrency-decorator'
 import assert from 'node:assert/strict'
 
 const defaultMergeLimiter = limitConcurrency(1)
+const MERGE_STATE_FILE_RE = /^\.(.+)\.merge\.json$/
 /**
  * Tracks the disk chain for a single VDI across all backup snapshots.
  * Owns merge and deletion decisions for its chain given which disks are still
@@ -84,11 +85,23 @@ export class RemoteDiskLineage {
       }
     }
 
+    const mergeParentPaths = new Set<string>()
+    for (const filePath of files) {
+      const match = MERGE_STATE_FILE_RE.exec(basename(filePath))
+      if (match !== null) {
+        mergeParentPaths.add(normalize(this.#vdiDir + '/' + match[1]))
+      }
+    }
+
     const uuidToPath = new Map<string, string>()
     for (const diskPath of this.#diskPaths) {
       let disk: RemoteDisk | undefined
       try {
-        disk = await openDisk({ handler: this.#handler, path: diskPath })
+        if (mergeParentPaths.has(diskPath)) {
+          disk = await openDisk({ handler: this.#handler, path: diskPath, force: true })
+        } else {
+          disk = await openDisk({ handler: this.#handler, path: diskPath })
+        }
       } catch (error) {
         if (error?.code === 'NOT_SUPPORTED' && this.#opts.merge) {
           throw error
