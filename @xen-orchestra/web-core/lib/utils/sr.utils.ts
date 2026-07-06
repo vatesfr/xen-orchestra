@@ -90,11 +90,11 @@ export const SR_TYPE_META: Record<
 }
 
 export const SR_CREATE_TYPE_LABEL_KEYS: Record<SrType, string> = {
-  lvm: 'sr-create-type-lvm',
-  ext: 'sr-create-type-ext',
-  smb: 'sr-create-type-smb',
-  local: 'sr-create-type-local',
-  smbiso: 'sr-create-type-smbiso',
+  lvm: 'sr-type-lvm',
+  ext: 'sr-type-ext',
+  smb: 'sr-type-smb',
+  local: 'sr-type-local',
+  smbiso: 'sr-type-smbiso',
 }
 
 export function getAvailableSrTypes(accessMode: SrAccessMode): SrType[] {

@@ -18,6 +18,8 @@ import { computed } from 'vue'
 
 export type NewSrFormSelectOption = FormOption<{
   icon?: IconName
+  group?: 'vdi' | 'iso'
+  isFirstInGroup?: boolean
 }>
 
 const { info, warning, error } = defineProps<{

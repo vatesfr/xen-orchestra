@@ -5,10 +5,10 @@ import {
   buildNewSrPayload as buildNewSrRestPayload,
   type NewSrRestPayload,
 } from '@/modules/storage-repository/jobs/xo-sr-create.job.ts'
-import { objectIcon } from '@core/icons'
+import { objectIcon, type IconName } from '@core/icons'
 import { required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
-import { SR_ACCESS_MODE } from '@core/types/storage-repository.type.ts'
+import { SR_ACCESS_MODE, type SrType } from '@core/types/storage-repository.type.ts'
 import {
   buildNewSrPayload,
   getAvailableSrTypes,
@@ -62,11 +62,39 @@ export function useNewSrForm(
 
   const typeGroups = computed(() => groupSrTypesByContent(availableSrTypes.value))
 
-  const typeOptions = computed(() =>
-    availableSrTypes.value.map(srType => ({
-      id: srType,
-      label: t(SR_CREATE_TYPE_LABEL_KEYS[srType]),
-      value: srType,
+  const typeOptions = computed(() => {
+    const groups = typeGroups.value
+    const result: Array<{
+      id: SrType
+      label: string
+      value: SrType
+      icon: IconName
+      group: 'vdi' | 'iso'
+      isFirstInGroup: boolean
+    }> = []
+
+    for (const group of ['vdi', 'iso'] as const) {
+      groups[group].forEach((srType, index) => {
+        result.push({
+          id: srType,
+          label: t(SR_CREATE_TYPE_LABEL_KEYS[srType]),
+          value: srType,
+          icon: 'object:sr',
+          group,
+          isFirstInGroup: index === 0,
+        })
+      })
+    }
+
+    return result
+  })
+
+  const poolOptions = computed(() =>
+    pools.value.map(pool => ({
+      id: pool.id,
+      label: pool.name_label,
+      value: pool.id,
+      icon: 'object:pool',
     }))
   )
 
@@ -114,10 +142,10 @@ export function useNewSrForm(
     },
   })
 
-  const { id: poolSelectId } = useFormSelect('poolId', pools, {
+  const { id: poolSelectId } = useFormSelect('poolId', poolOptions, {
     searchable: true,
     required: true,
-    option: { label: 'name_label', value: 'id' },
+    option: { label: 'label', value: 'value', properties: source => ({ icon: source.icon }) },
   })
 
   const { id: hostSelectId } = useFormSelect('hostId', hostOptions, {
@@ -129,7 +157,15 @@ export function useNewSrForm(
 
   const { id: typeSelectId } = useFormSelect('type', typeOptions, {
     required: true,
-    option: { label: 'label', value: 'value' },
+    option: {
+      label: 'label',
+      value: 'value',
+      properties: source => ({
+        icon: source.icon,
+        group: source.group,
+        isFirstInGroup: source.isFirstInGroup,
+      }),
+    },
   })
 
   const nameInputBindings = useField('name', () => ({ label: t('name'), required: true }))
@@ -142,11 +178,11 @@ export function useNewSrForm(
   const poolSelectBindings = useSelect(poolSelectId, () => ({ label: t('pool') }))
   const hostSelectBindings = useSelect(hostSelectId, () => ({ label: t('host') }))
   const typeSelectBindings = useSelect(typeSelectId, () => ({ label: t('type'), required: true }))
-  const deviceBindings = useField('device', () => ({ label: t('device'), required: true }))
-  const serverBindings = useField('server', () => ({ required: true }))
-  const pathBindings = useField('path', () => ({ required: true }))
-  const usernameBindings = useField('username', () => ({ label: t('username') }))
-  const passwordBindings = useField('password', () => ({ label: t('password') }))
+  const deviceInputBindings = useField('device', () => ({ label: t('device'), required: true }))
+  const serverInputBindings = useField('server', () => ({ label: t('server'), required: true }))
+  const pathInputBindings = useField('path', () => ({ label: t('path'), required: true }))
+  const usernameInputBindings = useField('username', () => ({ label: t('username') }))
+  const passwordInputBindings = useField('password', () => ({ label: t('password') }))
 
   /** Set formData.hostId to the selected pool's master host */
   function selectPoolMaster() {
@@ -264,11 +300,11 @@ export function useNewSrForm(
     typeSelectBindings,
     type: toRef(formData, 'type'),
     typeGroups,
-    deviceBindings,
-    serverBindings,
-    pathBindings,
-    usernameBindings,
-    passwordBindings,
+    deviceInputBindings,
+    serverInputBindings,
+    pathInputBindings,
+    usernameInputBindings,
+    passwordInputBindings,
     useAuth: toRef(formData, 'useAuth'),
     requiresEraseConfirm,
     validate,

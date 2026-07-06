@@ -6,9 +6,23 @@
       <NewSrFormTextarea v-bind="descriptionInputBindings" />
     </div>
     <div class="row">
+      <!-- ACCESS MODE -->
       <NewSrAccessModeSelector v-bind="accessModeInputBindings" />
+
       <div class="pool-host-dropdowns">
-        <NewSrFormSelect v-bind="poolSelectBindings" />
+        <!-- POOL -->
+        <NewSrFormSelect v-bind="poolSelectBindings">
+          <template #option="{ option }">
+            <VtsOption :option>
+              <span class="option-content">
+                <VtsIcon v-if="option.properties.icon" :name="option.properties.icon" size="medium" />
+                {{ option.properties.label }}
+              </span>
+            </VtsOption>
+          </template>
+        </NewSrFormSelect>
+
+        <!-- HOST -->
         <NewSrFormSelect v-bind="hostSelectBindings">
           <template #option="{ option }">
             <VtsOption :option>
@@ -21,6 +35,32 @@
         </NewSrFormSelect>
       </div>
     </div>
+    <div class="row">
+      <!-- TYPE -->
+      <NewSrTypeSelector v-bind="typeSelectBindings" />
+
+      <!-- LVM or EXT -->
+      <NewSrFormTextInput v-if="type === 'lvm' || type === 'ext'" v-bind="deviceInputBindings" />
+
+      <!-- SMB or SMBISO -->
+      <template v-else-if="type === 'smb' || type === 'smbiso'">
+        <div>
+          <NewSrFormTextInput v-bind="serverInputBindings" />
+          <UiCheckbox v-model="useAuth" accent="brand">{{ t('with-auth') }}</UiCheckbox>
+        </div>
+      </template>
+
+      <!-- LOCAL -->
+      <NewSrFormTextInput v-else-if="type === 'local'" v-bind="pathInputBindings" />
+
+      <div v-else />
+    </div>
+
+    <!-- SMB or SMBISO with auth -->
+    <div v-if="(type === 'smb' || type === 'smbiso') && useAuth" class="row">
+      <NewSrFormTextInput v-bind="usernameInputBindings" />
+      <NewSrFormTextInput v-bind="passwordInputBindings" />
+    </div>
   </VtsForm>
 </template>
 
@@ -31,10 +71,12 @@ import NewSrFormSelect from '@/modules/storage-repository/components/form/new/in
 import NewSrFormTextarea from '@/modules/storage-repository/components/form/new/inputs/NewSrFormTextarea.vue'
 import NewSrFormTextInput from '@/modules/storage-repository/components/form/new/inputs/NewSrFormTextInput.vue'
 import NewSrAccessModeSelector from '@/modules/storage-repository/components/form/new/NewSrAccessModeSelector.vue'
+import NewSrTypeSelector from '@/modules/storage-repository/components/form/new/NewSrTypeSelector.vue'
 import { useNewSrForm } from '@/modules/storage-repository/form/new/use-new-sr-form.ts'
 import VtsForm from '@core/components/form/VtsForm.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
+import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
 
@@ -51,13 +93,22 @@ const {
   accessModeInputBindings,
   nameInputBindings,
   descriptionInputBindings,
+  typeSelectBindings,
+  type,
+  deviceInputBindings,
+  serverInputBindings,
+  pathInputBindings,
+  usernameInputBindings,
+  passwordInputBindings,
+  useAuth,
   validate,
+  validateAndBuildPayload,
 } = useNewSrForm(
   () => poolId,
   () => hostId
 )
 
-defineExpose({ validate })
+defineExpose({ validate, validateAndBuildPayload })
 </script>
 
 <style lang="postcss" scoped>
