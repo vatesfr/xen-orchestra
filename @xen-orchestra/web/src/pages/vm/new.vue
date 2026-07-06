@@ -158,7 +158,7 @@
                 <VtsInputWrapper :label="t('affinity-host')">
                   <VtsSelect :id="affinityHostSelectId" accent="brand" />
                 </VtsInputWrapper>
-                <VtsInputWrapper :label="t('high-availability')" :message="haMessages">
+                <VtsInputWrapper :label="t('high-availability')" :message="haMessages" wrap-message>
                   <VtsSelect :id="haSelectId" accent="brand" />
                 </VtsInputWrapper>
               </div>
@@ -740,7 +740,6 @@ const vmData = computed(() => {
     vdisToSend.length > 0 && { vdis: vdisToSend },
     vifsToSend.value.length > 0 && { vifs: vifsToSend.value },
     vmState.affinity_host && { affinity: vmState.affinity_host },
-    vmState.highAvailability !== '' && { highAvailability: vmState.highAvailability },
     vmState.installMode !== 'no-config' &&
       vmState.installMode !== 'cloud-init-config' &&
       vmState.installMode !== 'ssh-key' && {
@@ -776,6 +775,7 @@ const vmData = computed(() => {
     copyHostBiosStrings: vmState.copyHostBiosStrings,
     createVtpm: vmState.createVtpm,
     secureBoot: vmState.secureBoot,
+    highAvailability: vmState.highAvailability,
     ...optionalFields,
   }
 })
@@ -837,7 +837,8 @@ watch(
       return
     }
 
-    const { name_label, isDefaultTemplate, name_description, tags, CPUs, memory, secureBoot } = template
+    const { name_label, isDefaultTemplate, name_description, tags, CPUs, memory, secureBoot, high_availability } =
+      template
 
     Object.assign(vmState, {
       isDiskTemplateSelected: isDiskTemplate.value ?? false,
@@ -855,6 +856,7 @@ watch(
       networkConfig: '',
       cloudConfig: '',
       bootFirmware: template.boot.firmware ?? 'bios',
+      highAvailability: high_availability as VmState['highAvailability'],
     } satisfies Partial<VmState>)
   }
 )
@@ -907,30 +909,37 @@ const { id: affinityHostSelectId } = useFormSelect(hosts, {
 
 // HIGH AVAILABILITY SELECTOR
 
-const HA_OPTIONS = [
-  { value: '', labelKey: 'new-vm:ha-disabled', descriptionKey: 'new-vm:ha-disabled-description' },
-  { value: 'restart', labelKey: 'new-vm:ha-restart', descriptionKey: 'new-vm:ha-restart-description' },
-  { value: 'best-effort', labelKey: 'new-vm:ha-best-effort', descriptionKey: 'new-vm:ha-best-effort-description' },
-]
+const HA_OPTIONS: VmState['highAvailability'][] = ['', 'restart', 'best-effort']
+
+const haLabels: Record<VmState['highAvailability'], string> = {
+  '': t('new-vm:ha-disabled'),
+  restart: t('new-vm:ha-restart'),
+  'best-effort': t('new-vm:ha-best-effort'),
+}
 
 const { id: haSelectId } = useFormSelect(HA_OPTIONS, {
   model: toRef(vmState, 'highAvailability'),
   option: {
-    id: option => option.value,
-    value: option => option.value,
-    label: option => t(option.labelKey),
+    label: value => haLabels[value],
   },
 })
 
-const haMessages = computed<InputWrapperMessage>(() => {
-  const option = HA_OPTIONS.find(({ value }) => value === vmState.highAvailability) ?? HA_OPTIONS[0]
-  return [
-    t(option.descriptionKey),
-    ...(vmState.pool?.HA_enabled === false
-      ? [{ content: t('new-vm:ha-pool-disabled'), accent: 'warning' as const }]
-      : []),
-  ]
-})
+const haDescription = useMapper<VmState['highAvailability'], string>(
+  () => vmState.highAvailability,
+  {
+    '': t('new-vm:ha-disabled-description'),
+    restart: t('new-vm:ha-restart-description'),
+    'best-effort': t('new-vm:ha-best-effort-description'),
+  },
+  ''
+)
+
+const haMessages = computed<InputWrapperMessage>(() => [
+  haDescription.value,
+  ...(vmState.pool?.HA_enabled === false
+    ? [{ content: t('new-vm:ha-pool-disabled'), accent: 'warning' as const }]
+    : []),
+])
 
 watch(
   () => vmState.pool?.id,
