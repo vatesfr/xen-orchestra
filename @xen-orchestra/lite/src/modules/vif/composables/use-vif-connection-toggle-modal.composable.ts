@@ -1,7 +1,6 @@
-import { useXoVifConnectJob } from '@/modules/vif/jobs/xo-vif-connect.job.ts'
-import { useXoVifDisconnectJob } from '@/modules/vif/jobs/xo-vif-disconnect.job.ts'
-import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
-import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import { useVifConnectJob } from '@/modules/vif/jobs/vif-connect.job.ts'
+import { useVifDisconnectJob } from '@/modules/vif/jobs/vif-disconnect.job.ts'
 import { useModal } from '@core/packages/modal/use-modal.ts'
 import { CONNECTION_ACTION, type ConnectionAction } from '@core/types/connection.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -9,15 +8,15 @@ import { computed, type MaybeRefOrGetter } from 'vue'
 
 export function useVifConnectionToggleModal(
   rawAction: MaybeRefOrGetter<ConnectionAction>,
-  rawVifs: MaybeRefOrGetter<FrontXoVif[]>,
-  rawVm: MaybeRefOrGetter<FrontXoVm>
+  rawVifs: MaybeRefOrGetter<XenApiVif[]>,
+  rawVm: MaybeRefOrGetter<XenApiVm>
 ) {
   const action = toComputed(rawAction)
   const vifs = toComputed(rawVifs)
   const vm = toComputed(rawVm)
 
-  const connectJob = useXoVifConnectJob(vifs, vm)
-  const disconnectJob = useXoVifDisconnectJob(vifs, vm)
+  const connectJob = useVifConnectJob(vifs, vm)
+  const disconnectJob = useVifDisconnectJob(vifs, vm)
 
   const job = computed(() => (action.value === CONNECTION_ACTION.CONNECT ? connectJob : disconnectJob))
 
