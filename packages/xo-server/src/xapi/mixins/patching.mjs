@@ -6,6 +6,7 @@ import semver from 'semver'
 import some from 'lodash/some.js'
 import unzip from 'unzipper'
 import { asyncEach } from '@vates/async-each'
+import { Readable } from 'node:stream'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
@@ -75,7 +76,7 @@ const methods = {
   async _getXenUpdates() {
     const response = await this.xo.httpRequest('https://updates.ops.xenserver.com/xenserver/updates.xml')
 
-    const data = parseXml(await response.buffer()).patchdata
+    const data = parseXml(Buffer.from(await response.arrayBuffer())).patchdata
 
     const patches = { __proto__: null }
     forEach(data.patches.patch, patch => {
@@ -444,7 +445,8 @@ const methods = {
     }
 
     const { username, apikey } = xsCredentials
-    let stream = await this.xo.httpRequest(patchInfo.url, { auth: `${username}:${apikey}` })
+    const response = await this.xo.httpRequest(patchInfo.url, { auth: `${username}:${apikey}` })
+    let stream = Readable.fromWeb(response.body)
     stream = await new Promise((resolve, reject) => {
       const PATCH_RE = /\.xsupdate$/
       stream
@@ -478,7 +480,8 @@ const methods = {
     }
 
     const { username, apikey } = xsCredentials
-    let stream = await this.xo.httpRequest(patchInfo.url, { auth: `${username}:${apikey}` })
+    const response = await this.xo.httpRequest(patchInfo.url, { auth: `${username}:${apikey}` })
+    let stream = Readable.fromWeb(response.body)
     stream = await new Promise((resolve, reject) => {
       stream
         .pipe(unzip.Parse())
