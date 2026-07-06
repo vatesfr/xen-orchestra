@@ -775,7 +775,7 @@ const vmData = computed(() => {
     copyHostBiosStrings: vmState.copyHostBiosStrings,
     createVtpm: vmState.createVtpm,
     secureBoot: vmState.secureBoot,
-    highAvailability: vmState.highAvailability,
+    high_availability: vmState.highAvailability,
     ...optionalFields,
   }
 })

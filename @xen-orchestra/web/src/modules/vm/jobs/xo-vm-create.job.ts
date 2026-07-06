@@ -15,7 +15,7 @@ type TCreateVmPayload = {
   poolId: XoPool['id']
   template: XoVmTemplate['uuid']
   affinity?: XoHost['id']
-  highAvailability?: '' | 'restart' | 'best-effort'
+  high_availability?: '' | 'restart' | 'best-effort'
   vdis?: (
     | {
         name_label: string
