@@ -101,7 +101,7 @@
               <template #value>{{ ip }}</template>
               <template #addons>
                 <VtsCopyButton :value="ip" />
-                <VtsCopyAllMenuItem v-if="index === 0 && ipAddresses.length > 0" :values="ipAddresses" />
+                <VtsCopyAllMenuItem v-if="index === 0 && ipAddresses.length > 1" :values="ipAddresses" />
               </template>
             </VtsCardRowKeyValue>
           </template>
