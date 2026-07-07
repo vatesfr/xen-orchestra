@@ -1,5 +1,5 @@
 <template>
-  <VtsInputWrapper :label :message="messages">
+  <VtsInputWrapper :label :message="messages" :wrap-message="wrapMessage">
     <VtsSelect :id accent="brand">
       <template v-if="slots.option" #default="slotProps">
         <slot name="option" v-bind="slotProps" />
@@ -22,12 +22,18 @@ export type NewSrFormSelectOption = FormOption<{
   isFirstInGroup?: boolean
 }>
 
-const { info, warning, error } = defineProps<{
+const {
+  info,
+  warning,
+  error,
+  wrapMessage = false,
+} = defineProps<{
   id: FormSelectId
   label: string
   info?: string
   warning?: InputWrapperMessage
   error?: InputWrapperMessage
+  wrapMessage?: boolean
 }>()
 
 const slots = defineSlots<{

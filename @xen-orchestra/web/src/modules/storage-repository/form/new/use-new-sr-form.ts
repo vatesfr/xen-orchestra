@@ -8,7 +8,7 @@ import {
 import { objectIcon, type IconName } from '@core/icons'
 import { required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
-import { SR_ACCESS_MODE, type SrType } from '@core/types/storage-repository.type.ts'
+import { SR_ACCESS_MODE, SR_PREFERRED_IMAGE_FORMATS, type SrType } from '@core/types/storage-repository.type.ts'
 import {
   buildNewSrPayload,
   getAvailableSrTypes,
@@ -46,6 +46,7 @@ export function useNewSrForm(
     username: '',
     password: '',
     useAuth: false,
+    preferredImageFormats: '',
   })
 
   const { pools } = useXoPoolCollection()
@@ -113,6 +114,20 @@ export function useNewSrForm(
     return srType !== undefined && SR_TYPE_META[srType].requiresEraseConfirm
   })
 
+  const supportsPreferredImageFormats = computed(() => {
+    const srType = formData.type
+
+    return srType !== undefined && SR_TYPE_META[srType].supportsPreferredImageFormats
+  })
+
+  const preferredImageFormatsOptions = computed(() =>
+    SR_PREFERRED_IMAGE_FORMATS.map(format => ({
+      id: format,
+      label: format,
+      value: format,
+    }))
+  )
+
   const { useField, useFormSelect, useSelect, validate } = useValidatedForm(formData, {
     errors: {
       onSubmit: () => ({
@@ -168,6 +183,14 @@ export function useNewSrForm(
     },
   })
 
+  const { id: preferredImageFormatsSelectId } = useFormSelect('preferredImageFormats', preferredImageFormatsOptions, {
+    emptyOption: {
+      label: '',
+      value: '',
+    },
+    option: { label: 'label', value: 'value' },
+  })
+
   const nameInputBindings = useField('name', () => ({ label: t('name'), required: true }))
   const descriptionInputBindings = useField('description', () => ({
     label: t('description'),
@@ -178,6 +201,14 @@ export function useNewSrForm(
   const poolSelectBindings = useSelect(poolSelectId, () => ({ label: t('pool') }))
   const hostSelectBindings = useSelect(hostSelectId, () => ({ label: t('host') }))
   const typeSelectBindings = useSelect(typeSelectId, () => ({ label: t('type'), required: true }))
+  const preferredImageFormatsSelectBindings = useSelect(preferredImageFormatsSelectId, () => ({
+    label: t('sr-preferred-image-formats'),
+    info: t('sr-preferred-image-formats-info'),
+    wrapMessage: true,
+    ...(formData.preferredImageFormats.includes('qcow2') && {
+      warning: { content: t('sr-preferred-image-formats-qcow2-warning'), accent: 'warning' },
+    }),
+  }))
   const deviceInputBindings = useField('device', () => ({ label: t('device'), required: true }))
   const serverInputBindings = useField('server', () => ({ label: t('server'), required: true }))
   const pathInputBindings = useField('path', () => ({ label: t('path'), required: true }))
@@ -267,6 +298,17 @@ export function useNewSrForm(
       formData.username = ''
       formData.password = ''
       formData.useAuth = false
+      formData.preferredImageFormats = ''
+    }
+  )
+
+  /** Reset preferred image formats when needed */
+  watch(
+    () => formData.type,
+    type => {
+      if (type === undefined || !SR_TYPE_META[type].supportsPreferredImageFormats) {
+        formData.preferredImageFormats = ''
+      }
     }
   )
 
@@ -306,6 +348,8 @@ export function useNewSrForm(
     usernameInputBindings,
     passwordInputBindings,
     useAuth: toRef(formData, 'useAuth'),
+    supportsPreferredImageFormats,
+    preferredImageFormatsSelectBindings,
     requiresEraseConfirm,
     validate,
     validateAndBuildPayload,

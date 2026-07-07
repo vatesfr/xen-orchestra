@@ -37,7 +37,7 @@
     </div>
     <div class="row">
       <!-- TYPE -->
-      <NewSrTypeSelector v-bind="typeSelectBindings" />
+      <NewSrTypeSelect v-bind="typeSelectBindings" />
 
       <!-- LVM or EXT -->
       <NewSrFormTextInput v-if="type === 'lvm' || type === 'ext'" v-bind="deviceInputBindings" />
@@ -61,6 +61,12 @@
       <NewSrFormTextInput v-bind="usernameInputBindings" />
       <NewSrFormTextInput v-bind="passwordInputBindings" />
     </div>
+
+    <!-- PREFERRED IMAGE FORMATS -->
+    <div v-if="supportsPreferredImageFormats" class="row">
+      <NewSrFormSelect v-bind="preferredImageFormatsSelectBindings" />
+      <div />
+    </div>
   </VtsForm>
 </template>
 
@@ -71,7 +77,7 @@ import NewSrFormSelect from '@/modules/storage-repository/components/form/new/in
 import NewSrFormTextarea from '@/modules/storage-repository/components/form/new/inputs/NewSrFormTextarea.vue'
 import NewSrFormTextInput from '@/modules/storage-repository/components/form/new/inputs/NewSrFormTextInput.vue'
 import NewSrAccessModeSelector from '@/modules/storage-repository/components/form/new/NewSrAccessModeSelector.vue'
-import NewSrTypeSelector from '@/modules/storage-repository/components/form/new/NewSrTypeSelector.vue'
+import NewSrTypeSelect from '@/modules/storage-repository/components/form/new/NewSrTypeSelect.vue'
 import { useNewSrForm } from '@/modules/storage-repository/form/new/use-new-sr-form.ts'
 import VtsForm from '@core/components/form/VtsForm.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -101,6 +107,8 @@ const {
   usernameInputBindings,
   passwordInputBindings,
   useAuth,
+  supportsPreferredImageFormats,
+  preferredImageFormatsSelectBindings,
   requiresEraseConfirm,
   validate,
   validateAndBuildPayload,

@@ -50,6 +50,7 @@ export const SR_TYPE_META: Record<
     xapiType: string
     contentType: SrContentType
     requiresEraseConfirm: boolean
+    supportsPreferredImageFormats: boolean
   }
 > = {
   lvm: {
@@ -58,6 +59,7 @@ export const SR_TYPE_META: Record<
     xapiType: 'lvm',
     contentType: SR_CONTENT_TYPE.USER,
     requiresEraseConfirm: true,
+    supportsPreferredImageFormats: true,
   },
   ext: {
     group: SR_CONTENT_GROUP.VDI,
@@ -65,6 +67,7 @@ export const SR_TYPE_META: Record<
     xapiType: 'ext',
     contentType: SR_CONTENT_TYPE.USER,
     requiresEraseConfirm: true,
+    supportsPreferredImageFormats: true,
   },
   smb: {
     group: SR_CONTENT_GROUP.VDI,
@@ -72,6 +75,7 @@ export const SR_TYPE_META: Record<
     xapiType: 'smb',
     contentType: SR_CONTENT_TYPE.USER,
     requiresEraseConfirm: false,
+    supportsPreferredImageFormats: true,
   },
   local: {
     group: SR_CONTENT_GROUP.ISO,
@@ -79,6 +83,7 @@ export const SR_TYPE_META: Record<
     xapiType: 'iso',
     contentType: SR_CONTENT_TYPE.ISO,
     requiresEraseConfirm: false,
+    supportsPreferredImageFormats: false,
   },
   smbiso: {
     group: SR_CONTENT_GROUP.ISO,
@@ -86,6 +91,7 @@ export const SR_TYPE_META: Record<
     xapiType: 'iso',
     contentType: SR_CONTENT_TYPE.ISO,
     requiresEraseConfirm: false,
+    supportsPreferredImageFormats: false,
   },
 }
 
@@ -118,6 +124,7 @@ export function buildNewSrPayload(input: NewSrInput): NewSrPayload {
     case 'ext':
       deviceConfig.device = input.device
       break
+
     case 'smb':
       deviceConfig.server = input.server
       if (input.username !== undefined) {
@@ -127,10 +134,12 @@ export function buildNewSrPayload(input: NewSrInput): NewSrPayload {
         deviceConfig.password = input.password
       }
       break
+
     case 'local':
       deviceConfig.location = input.path
       deviceConfig.legacy_mode = 'true'
       break
+
     case 'smbiso':
       deviceConfig.location = input.server.replace(/\\/g, '/')
       deviceConfig.type = 'cifs'
@@ -141,6 +150,10 @@ export function buildNewSrPayload(input: NewSrInput): NewSrPayload {
         deviceConfig.cifspassword = input.password
       }
       break
+  }
+
+  if ('preferredImageFormats' in input && input.preferredImageFormats !== undefined) {
+    deviceConfig['preferred-image-formats'] = input.preferredImageFormats
   }
 
   const payload: NewSrPayload = {
