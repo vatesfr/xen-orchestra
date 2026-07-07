@@ -32,7 +32,7 @@
   "action:copy-all": "Copy all",
   "action:copy-host": "Copy host",
   "action:copy-id": "Copy ID",
-  "action:copy-info-json": "Copy information into JSON",
+  "action:copy-info-json": "Copy info into JSON",
   "action:create": "Create",
   "action:create-bonded-network": "Create bonded network",
   "action:create-internal-network": "Create internal network",
