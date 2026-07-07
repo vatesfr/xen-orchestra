@@ -4,7 +4,7 @@
       <UiButtonIcon
         v-tooltip="{
           placement: 'left',
-          content: t('more-actions'),
+          content: t('action:copy-all'),
         }"
         icon="action:more-actions"
         accent="brand"
