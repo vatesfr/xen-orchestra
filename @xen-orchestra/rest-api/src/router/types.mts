@@ -56,6 +56,7 @@ export type FieldDefinition =
   | {
       type: 'array'
       items: FieldDefinition
+      example?: unknown[]
       optional?: boolean
     }
 

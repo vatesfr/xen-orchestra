@@ -1528,6 +1528,7 @@ describe('RestApi', () => {
                   schema: {
                     sensors: {
                       type: 'array',
+                      example: [{ name: 'CPU1 Temp', dataType: 'cpuTemp' }],
                       items: {
                         type: 'object',
                         fields: {
@@ -1552,6 +1553,7 @@ describe('RestApi', () => {
         assert.equal(responseSchema?.properties?.sensors?.items?.type, 'object')
         assert.ok(responseSchema?.properties?.sensors?.items?.properties?.name !== undefined)
         assert.deepEqual(responseSchema?.properties?.sensors?.items?.properties?.dataType?.enum, ['cpuTemp', 'unknown'])
+        assert.deepEqual(responseSchema?.properties?.sensors?.example, [{ name: 'CPU1 Temp', dataType: 'cpuTemp' }])
       })
     })
   })

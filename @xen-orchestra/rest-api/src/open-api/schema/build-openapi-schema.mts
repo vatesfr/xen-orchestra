@@ -2,22 +2,19 @@ import type { OpenAPIV3 } from 'openapi-types'
 import type { FieldDefinition } from '../../router/types.mjs'
 
 function buildOpenApiField(field: FieldDefinition): OpenAPIV3.SchemaObject {
+  let property: OpenAPIV3.SchemaObject
+
   if (field.type === 'array') {
-    return { type: 'array', items: buildOpenApiField(field.items) }
-  }
-
-  const property: OpenAPIV3.NonArraySchemaObject = {}
-
-  if (field.type === 'enum') {
-    property.type = 'string'
-    property.enum = field.enum
+    property = { type: 'array', items: buildOpenApiField(field.items) }
+  } else if (field.type === 'enum') {
+    property = { type: 'string', enum: field.enum }
   } else if (field.type === 'object') {
-    property.type = 'object'
+    property = { type: 'object' }
     const nested = buildOpenApiSchema(field.fields)
     property.properties = nested.properties
     if (nested.required?.length) property.required = nested.required
   } else {
-    property.type = field.type
+    property = { type: field.type }
   }
 
   if ('example' in field && field.example !== undefined) {
