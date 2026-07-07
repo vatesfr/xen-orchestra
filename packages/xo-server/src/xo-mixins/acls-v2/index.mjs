@@ -610,7 +610,7 @@ export default class {
 
   /**
    * @param {XoGroup['id']} groupId
-   * @returns {Promise<XoAclRole[]>}
+   * @returns {Promise<Exclude<XoAclRole, {isTemplate: true}>[]>}
    */
   async getAclV2GroupRoles(groupId) {
     await this._app.checkFeatureAuthorization('RBAC')

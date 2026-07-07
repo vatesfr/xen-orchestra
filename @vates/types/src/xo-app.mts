@@ -248,6 +248,7 @@ export type XoApp = {
   getAclV2RolePrivileges(roleId: XoAclRole['id']): Promise<XoAclBasePrivilege[]>
   getAclV2Role(id: XoAclRole['id']): Promise<XoAclRole>
   deleteAclV2UserRole(userId: XoUser['id'], roleId: XoAclRole['id']): Promise<boolean>
+  getAclV2GroupRoles(groupId: XoGroup['id']): Promise<Exclude<XoAclRole, { isTemplate: true }>[]>
   getAclV2Roles(): Promise<XoAclRole[]>
   getAclV2UserPrivileges(userId: XoUser['id']): Promise<XoAclBasePrivilege[]>
   getAllGroups(): Promise<XoGroup[]>
