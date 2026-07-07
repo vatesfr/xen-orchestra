@@ -91,7 +91,7 @@
               </template>
               <template #addons>
                 <VtsCopyButton :value="ip" />
-                <VtsCopyAllMenuItem v-if="index === 0 && ipAddresses.length > 0" :values="ipAddresses" />
+                <VtsCopyAllMenuItem v-if="index === 0 && ipAddresses.length > 1" :values="ipAddresses" />
               </template>
             </VtsCardRowKeyValue>
           </div>
@@ -175,7 +175,7 @@
               </template>
               <template v-if="device" #addons>
                 <VtsCopyButton :value="device" />
-                <VtsCopyAllMenuItem v-if="index === 0 && bondDevices.length > 0" :values="bondDevicesFiltered" />
+                <VtsCopyAllMenuItem v-if="index === 0 && bondDevices.length > 1" :values="bondDevicesFiltered" />
               </template>
             </VtsCardRowKeyValue>
           </div>

@@ -19,7 +19,7 @@
   </MenuList>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
