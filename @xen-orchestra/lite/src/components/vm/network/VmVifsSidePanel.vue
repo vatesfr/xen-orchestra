@@ -73,6 +73,7 @@
               <template #value>{{ ip }}</template>
               <template #addons>
                 <VtsCopyButton :value="ip" />
+                <VtsCopyAllMenuItem v-if="index === 0 && ipAddresses.length > 0" :values="ipAddresses" />
               </template>
             </VtsCardRowKeyValue>
           </div>
@@ -109,6 +110,7 @@ import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
+import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'

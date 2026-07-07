@@ -91,6 +91,7 @@
               </template>
               <template #addons>
                 <VtsCopyButton :value="ip" />
+                <VtsCopyAllMenuItem v-if="index === 0 && ipAddresses.length > 0" :values="ipAddresses" />
               </template>
             </VtsCardRowKeyValue>
           </div>
@@ -174,6 +175,7 @@
               </template>
               <template v-if="device" #addons>
                 <VtsCopyButton :value="device" />
+                <VtsCopyAllMenuItem v-if="index === 0 && bondDevices.length > 0" :values="bondDevicesFiltered" />
               </template>
             </VtsCardRowKeyValue>
           </div>
@@ -229,6 +231,7 @@ import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
+import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
@@ -290,6 +293,10 @@ const ipConfigurationMode = computed(() => {
 })
 
 const bondDevices = computed(() => (pif !== undefined ? getBondsDevices(pif) : []))
+
+const bondDevicesFiltered = computed(() => {
+  return bondDevices.value.filter((bondDevice): bondDevice is string => bondDevice !== undefined)
+})
 
 const isBond = computed(() => (pif !== undefined ? isBondMaster(pif) : false))
 
