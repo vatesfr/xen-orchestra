@@ -14,7 +14,17 @@ export const useVifConnectJob = defineJob('vif.connect', [vifsArg, vmArg], () =>
   const xapi = useXenApiStore().getXapi()
 
   return {
-    run: vifs => xapi.vif.plug(vifs.map(vif => vif.$ref)),
+    async run(vifs) {
+      const results = await Promise.allSettled(vifs.map(vif => xapi.vif.plug(vif.$ref)))
+
+      results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          console.error(`Failed to connect VIF ${vifs[index].uuid}:`, result.reason)
+        }
+      })
+
+      return results
+    },
 
     validate: (isRunning, vifs, vm) => {
       if (vifs.length === 0) {

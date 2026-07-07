@@ -23,7 +23,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
 const { records } = useVifStore().subscribe()
-const { getByUuid, getByOpaqueRef } = useVmStore().subscribe()
+const { getByUuid } = useVmStore().subscribe()
 
 const route = useRoute<'/vm/[uuid]/network'>()
 
@@ -32,11 +32,7 @@ usePageTitleStore().setTitle(t('network'))
 
 const vm = computed(() => getByUuid(route.params.uuid as XenApiVm['uuid']))
 
-const vifs = useArrayFilter(records, vif => {
-  const vifVm = getByOpaqueRef(vif.VM)
-
-  return vifVm?.uuid === route.params.uuid
-})
+const vifs = useArrayFilter(records, vif => vif.VM === vm.value?.$ref)
 
 const selectedVif = useRouteQuery<XenApiVif | undefined>('id', {
   toData: id => vifs.value.find(vif => vif.uuid === id),
