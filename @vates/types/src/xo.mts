@@ -222,6 +222,7 @@ export type XoGroup = {
   provider?: string
   providerGroupId?: string
   users: XoUser['id'][]
+  aclRoleIds: XoAclRole['id'][]
 }
 
 export type XoHost = BaseXapiXo & {

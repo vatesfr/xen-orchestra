@@ -10,6 +10,10 @@ import { Groups } from '../models/group.mjs'
 import { Users } from '../models/user.mjs'
 import { forEach, isEmpty, lightSet } from '../utils.mjs'
 
+/**
+ * @typedef {import('@vates/types').XoApp} XoApp
+ */
+
 // ===================================================================
 
 const log = createLogger('xo:xo-mixins:subjects')
@@ -21,6 +25,7 @@ const removeFromArraySet = (set, value) => set && filter(set, current => current
 
 export default class {
   constructor(app) {
+    /** @type {XoApp} */
     this._app = app
 
     app.hooks.on('clean', () => Promise.all([this._groups.rebuildIndexes(), this._users.rebuildIndexes()]))
@@ -421,17 +426,28 @@ export default class {
     }
   }
 
+  async #normalizeGroup(group) {
+    const roleIds = (await this._app.hasFeatureAuthorization('RBAC'))
+      ? await this._app.getAclV2GroupRoles(group.id)
+      : []
+    group.aclRoleIds = roleIds.map(role => role.id)
+
+    return group
+  }
+
   async getGroup(id) {
     const group = await this._groups.first(id)
     if (group === undefined) {
       throw noSuchObject(id, 'group')
     }
 
-    return group
+    return this.#normalizeGroup(group)
   }
 
   async getAllGroups() {
-    return this._groups.get()
+    const groups = await this._groups.get()
+
+    return Promise.all(groups.map(group => this.#normalizeGroup(group)))
   }
 
   async addUserToGroup(userId, groupId) {

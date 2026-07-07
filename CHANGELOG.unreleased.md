@@ -13,6 +13,7 @@
 
 - [vm stats] Reduce the memory consumption of the rrd stats (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
 - [REST API] Expose `/rest/v0/groups/:id/acl-roles` (PR [#10085](https://github.com/vatesfr/xen-orchestra/pull/10085))
+- [XO server] Add `aclRoleIds` property to the `group` objects (PR [#10085](https://github.com/vatesfr/xen-orchestra/pull/10085))
 
 ### Bug fixes
 
