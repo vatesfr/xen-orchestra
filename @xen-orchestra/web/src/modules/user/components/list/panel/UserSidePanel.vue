@@ -1,5 +1,5 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
+  <VtsSidePanel :has-selection="!!user" @close="emit('close')">
     <template #header>
       <div :class="{ 'close-button': uiStore.isSmall }">
         <UiButtonIcon
@@ -17,7 +17,7 @@
       <UserGroupsCard :user />
       <UserRolesCard />
     </template>
-  </UiPanel>
+  </VtsSidePanel>
 </template>
 
 <script setup lang="ts">
@@ -25,8 +25,8 @@ import UserGroupsCard from '@/modules/user/components/list/panel/cards/UserGroup
 import UserInfosCard from '@/modules/user/components/list/panel/cards/UserInfosCard.vue'
 import UserRolesCard from '@/modules/user/components/list/panel/cards/UserRolesCard.vue'
 import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
+import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { useI18n } from 'vue-i18n'

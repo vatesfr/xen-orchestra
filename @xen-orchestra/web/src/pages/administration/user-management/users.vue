@@ -31,7 +31,7 @@ import { useUiStore } from '@core/stores/ui.store.ts'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { users } = defineProps<{
+defineProps<{
   users: FrontXoUser[]
 }>()
 

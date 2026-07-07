@@ -1,7 +1,12 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      {{ user.name }}
+      <div class="title">
+        <UiUserLogo size="small" />
+        <UiLink :href="xo5UsersHref" size="medium">
+          {{ user.name }}
+        </UiLink>
+      </div>
     </UiCardTitle>
     <div class="content">
       <VtsCodeSnippet :content="user.id" copy />
@@ -37,11 +42,14 @@
 <script lang="ts" setup>
 import { useXoUserAuthenticationTokensCollection } from '@/modules/user/remote-resources/use-xo-user-authentication-tokens-collection.ts'
 import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
+import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -50,6 +58,10 @@ const { user } = defineProps<{
 }>()
 
 const { t, d } = useI18n()
+
+const { buildXo5Route } = useXoRoutes()
+
+const xo5UsersHref = computed(() => buildXo5Route('/settings/users'))
 
 const { userAuthenticationTokens } = useXoUserAuthenticationTokensCollection({}, () => user.id)
 
@@ -87,6 +99,12 @@ const userPermission = computed(() => {
 <style scoped lang="postcss">
 .card-container {
   gap: 1.6rem;
+
+  .title {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
 
   .content {
     display: flex;

@@ -11,7 +11,9 @@
       <template v-for="group in userGroups" :key="group.id">
         <div class="group-list">
           <VtsIcon size="medium" name="table:group" />
-          <VtsCodeSnippet :content="group.name" />
+          <UiLink :href="xo5GroupsHref" size="small">
+            {{ group.name }}
+          </UiLink>
         </div>
       </template>
     </div>
@@ -25,12 +27,14 @@
 <script lang="ts" setup>
 import { useXoGroupCollection } from '@/modules/group/remote-ressources/use-xo-group-collection.ts'
 import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
-import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
+import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { user } = defineProps<{
@@ -38,6 +42,10 @@ const { user } = defineProps<{
 }>()
 
 const { useGetGroupsByIds } = useXoGroupCollection()
+
+const { buildXo5Route } = useXoRoutes()
+
+const xo5GroupsHref = computed(() => buildXo5Route('/settings/groups'))
 
 const userGroups = useGetGroupsByIds(() => user.groups)
 

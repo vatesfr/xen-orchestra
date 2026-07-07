@@ -46,7 +46,12 @@ async function init() {
   app.use(createPinia())
   app.use(router)
   app.use(RegleVuePlugin, formValidationConfig)
-  await router.isReady()
+
+  try {
+    await router.isReady()
+  } catch (error) {
+    console.error('Initial navigation failed', error)
+  }
 
   app.mount('#app')
 }
