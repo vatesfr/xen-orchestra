@@ -10,6 +10,13 @@
     <template #actions>
       <MenuList placement="bottom-end">
         <template #trigger="{ open }">
+          <UiDropdownButton @click="open($event)">{{ t('action:change-state') }}</UiDropdownButton>
+        </template>
+        <HostPowerStateAction :host />
+      </MenuList>
+
+      <MenuList placement="bottom-end">
+        <template #trigger="{ open }">
           <UiButtonIcon
             v-tooltip="{
               placement: 'left',
@@ -70,6 +77,7 @@
 </template>
 
 <script lang="ts" setup>
+import HostPowerStateAction from '@/modules/host/components/actions/HostPowerStateAction.vue'
 import HostMoreActions from '@/modules/host/components/HostMoreActions.vue'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
@@ -79,6 +87,7 @@ import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
