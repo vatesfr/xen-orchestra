@@ -1,5 +1,6 @@
 import {
   Delete,
+  Body,
   Example,
   Extension,
   Get,
@@ -18,7 +19,7 @@ import {
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
-import type { XenApiVdi, XoMessage, XoTask, XoVdi, XoAlarm, XoSr } from '@vates/types'
+import type { XenApiVdi, XoMessage, XoTask, XoVdi, XoAlarm, XoSr, XoHost } from '@vates/types'
 import { SUPPORTED_VDI_FORMAT } from '@vates/types'
 
 import { acl } from '../middlewares/acl.middleware.mjs'
@@ -407,5 +408,152 @@ export class SrController extends XapiXoController<XoSr> {
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteSr(@Path() id: string): Promise<void> {
     await this.#srService.delete(id as XoSr['id'])
+  }
+
+  /**
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   * @example server "192.168.1.1"
+   * @example nfsVersion "4"
+   */
+  @Get('{id}/probe/nfs')
+  @Extension('x-mcp-exposure', 'confirm')
+  @SuccessResponse(200, 'OK')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async probeNfs(@Path() id: string, @Query() server: string, @Query() nfsVersion?: string) {
+    return this.#srService.probeNfs(id as XoHost['id'], server, nfsVersion)
+  }
+
+  /**
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   */
+  @Get('{id}/probe/zfs')
+  @Extension('x-mcp-exposure', 'confirm')
+  @SuccessResponse(200, 'OK')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async probeZfs(@Path() id: string) {
+    return this.#srService.probeZfs(id as XoHost['id'])
+  }
+
+  /**
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   */
+  @Get('{id}/probe/hba')
+  @Extension('x-mcp-exposure', 'confirm')
+  @SuccessResponse(200, 'OK')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async probeHba(@Path() id: string) {
+    return this.#srService.probeHba(id as XoHost['id'])
+  }
+
+  /**
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   * @example targetIp ""
+   */
+  @Get('{id}/probe/iscsiiqns')
+  @Extension('x-mcp-exposure', 'confirm')
+  @SuccessResponse(200, 'OK')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async probeIscsiIqns(
+    @Path() id: string,
+    @Query() targetIp: string,
+    @Query() port?: number,
+    @Query() chapUser?: string,
+    @Query() chapPassword?: string
+  ) {
+    return this.#srService.probeIscsiIqns(id as XoHost['id'], targetIp, port, chapUser, chapPassword)
+  }
+
+  /**
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   * @example targetIp ""
+   * @example targetIqn ""
+   */
+  @Get('{id}/probe/iscsiluns')
+  @Extension('x-mcp-exposure', 'confirm')
+  @SuccessResponse(200, 'OK')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async probeIscsiLuns(
+    @Path() id: string,
+    @Query() targetIp: string,
+    @Query() targetIqn: string,
+    @Query() port?: number,
+    @Query() chapUser?: string,
+    @Query() chapPassword?: string
+  ) {
+    return this.#srService.probeIscsiLuns(id as XoHost['id'], targetIp, targetIqn, port, chapUser, chapPassword)
+  }
+
+  /**
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   * @example targetIp ""
+   * @example targetIqn ""
+   */
+  @Get('{id}/probe/iscsi/exists')
+  @Extension('x-mcp-exposure', 'confirm')
+  @SuccessResponse(200, 'OK')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async probeIscsiExists(
+    @Path() id: string,
+    @Query() targetIp: string,
+    @Query() targetIqn: string,
+    @Query() scsiId: string,
+    @Query() port?: number,
+    @Query() chapUser?: string,
+    @Query() chapPassword?: string
+  ) {
+    return this.#srService.probeIscsiExists(
+      id as XoHost['id'],
+      targetIp,
+      targetIqn,
+      scsiId,
+      port,
+      chapUser,
+      chapPassword
+    )
+  }
+
+  /**
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   * @example scsiId ""
+   */
+  @Get('{id}/probe/hba/exists')
+  @Extension('x-mcp-exposure', 'confirm')
+  @SuccessResponse(200, 'OK')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async probeHbaExists(@Path() id: string, @Query() scsiId: string) {
+    return this.#srService.probeHbaExists(id as XoHost['id'], scsiId)
+  }
+
+  /**
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   * @example scsiId ""
+   */
+  @Get('{id}/probe/nfs/exists')
+  @Extension('x-mcp-exposure', 'confirm')
+  @SuccessResponse(200, 'OK')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async probeNfsExists(
+    @Path() id: string,
+    @Query() server: string,
+    @Query() serverPath: string,
+    @Query() nfsVersion?: string
+  ) {
+    return this.#srService.probeNfsExists(id as XoHost['id'], server, serverPath, nfsVersion)
   }
 }
