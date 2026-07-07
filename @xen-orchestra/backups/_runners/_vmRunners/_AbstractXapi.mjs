@@ -7,6 +7,7 @@ import { asyncEach } from '@vates/async-each'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 import { Task } from '@vates/task'
+import { pRetry } from 'promise-toolbox'
 
 import { getOldEntries } from '../../_getOldEntries.mjs'
 import { Abstract } from './_Abstract.mjs'
@@ -469,7 +470,11 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         } else {
           return asyncMap(
             vdis.map(async ({ $ref }) => {
-              await xapi.VDI_destroy($ref)
+              await pRetry(() => xapi.VDI_destroy($ref), {
+                when: err => err.code === 'VDI_IN_USE',
+                retries: 5,
+                delay: 2000,
+              })
             })
           )
         }
