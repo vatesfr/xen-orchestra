@@ -10,7 +10,7 @@
   >
     {{ t('action:connect') }}
   </UiButton>
-    <UiButton
+  <UiButton
     v-else-if="server && server.status === 'connected'"
     left-icon="action:disconnect"
     variant="secondary"
@@ -26,8 +26,8 @@
 <script lang="ts" setup>
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoServerConnectJob } from '@/modules/server/jobs/xo-server-connect.job.ts'
-import { useXoServerCollection } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import { useXoServerDisconnectJob } from '@/modules/server/jobs/xo-server-disconnect.job.ts'
+import { useXoServerCollection } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import type { FrontXoServer } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { computed } from 'vue'
@@ -43,10 +43,9 @@ const server = computed(() => serverByPool.value.get(poolId)?.[0])
 
 const serverId = computed(() => server.value?.id ?? ('' as FrontXoServer['id']))
 
-const { isConnecting, run: connect } = useXoServerConnectJob([serverId])
+const { isRunning: isConnecting, run: connect } = useXoServerConnectJob([serverId])
 
-const { isDisconnecting, run: disconnect } = useXoServerDisconnectJob([serverId])
-
+const { isRunning: isDisconnecting, run: disconnect } = useXoServerDisconnectJob([serverId])
 </script>
 
 <style lang="postcss" scoped>
