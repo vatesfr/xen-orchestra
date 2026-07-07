@@ -23,7 +23,6 @@ import { useNewVifForm } from '@/modules/vif/form/new/use-new-vif-form.ts'
 import type { NewVifPayload } from '@/modules/vif/jobs/xo-vif-create.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsForm from '@core/components/form/VtsForm.vue'
-
 import type { RouteLocationRaw } from 'vue-router'
 import VifAllowedIpsTextarea from './inputs/VifAllowedIpsTextarea.vue'
 import VifNetworkSelect from './inputs/VifNetworkSelect.vue'
