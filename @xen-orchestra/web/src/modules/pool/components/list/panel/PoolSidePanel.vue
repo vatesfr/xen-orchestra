@@ -122,6 +122,10 @@
               <VtsStatus :status="server.allowUnauthorized" />
             </template>
           </VtsCardRowKeyValue>
+          <!-- actions -->
+          <div v-if="server.poolId !== undefined" class="actions">
+            <PoolConnectToggleButton :pool-id="server.poolId" />
+          </div>
         </UiCard>
         <UiCard v-if="hosts !== undefined">
           <UiCardTitle>
@@ -182,6 +186,8 @@ import { useMapper } from '@core/packages/mapper'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import PoolToggleConnectionButton from '@/modules/pool/components/actions/connection/PoolConnectionToggleButton.vue'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 
 const { server } = defineProps<{
   server?: FrontXoServer
