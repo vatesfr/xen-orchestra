@@ -5,9 +5,6 @@
       <VmPowerStateActions :vm />
     </template>
   </MenuItem>
-  <MenuItem disabled icon="action:migrate" class="coming-soon">
-    {{ t('action:migrate') }}
-  </MenuItem>
   <VmSnapshotButton :vm />
   <VmDuplicateButton :vm />
   <MenuItem disabled icon="action:duplicate" class="coming-soon">
@@ -42,9 +39,5 @@ const { t } = useI18n()
 .change-state {
   color: var(--color-brand-txt-base);
   font-weight: 500;
-}
-
-.coming-soon {
-  font-style: italic;
 }
 </style>
