@@ -12,6 +12,7 @@ import { required, requiredIf, withMessage } from '@core/packages/form-validatio
 import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { VM_POWER_STATE } from '@vates/types'
+import { watchImmediate } from '@vueuse/shared'
 import { computed, type MaybeRefOrGetter, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -60,7 +61,7 @@ export function useDuplicateVmForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
   })
 
   const copyModeOptions = computed(() => [
-    { label: t('fast-clone'), value: 'fastClone' as const, disabled: vm.value.power_state !== VM_POWER_STATE.HALTED },
+    { label: t('fast-clone'), value: 'fastClone' as const, disabled: !isHalted.value },
     { label: t('full-copy'), value: 'fullCopy' as const },
   ])
 
@@ -71,6 +72,8 @@ export function useDuplicateVmForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
   ])
 
   const filteredSrs = computed(() => srs.value.filter(sr => sr.content_type !== 'iso' && sr.size > 0))
+
+  watchImmediate(filteredSrs, srs => srs.forEach(sr => getSrLocation(sr)))
 
   const { id: srSelectId } = useFormSelect('sr', filteredSrs, {
     required: () => isFullCopy.value,

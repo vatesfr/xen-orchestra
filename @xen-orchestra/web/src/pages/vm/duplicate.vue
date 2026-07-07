@@ -14,7 +14,7 @@
       <VtsOperationPendingCard v-if="isRunning" :title="t('duplicating-vm')" />
 
       <VtsOperationErrorCard
-        v-else-if="hasCreationError && error"
+        v-else-if="error"
         :title="t('unable-to-duplicate-vm')"
         :error
         :error-message="t('duplicate-vm:error-message')"
@@ -63,9 +63,7 @@ const error = ref<ApiError | Error | undefined>()
 
 const { canRun, run: create, isRunning } = useXoVmDuplicateJob(vm, formPayload)
 
-const hasCreationError = computed(() => error.value !== undefined)
-
-const canDisplayForm = computed(() => !isRunning.value && !hasCreationError.value)
+const canDisplayForm = computed(() => !isRunning.value && error.value === undefined)
 
 const cancelRoute = computed<RouteLocationRaw>(() => {
   if (!vmId.value) {

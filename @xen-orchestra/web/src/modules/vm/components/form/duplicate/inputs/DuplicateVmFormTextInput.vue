@@ -9,7 +9,7 @@ import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInpu
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 
-const { error } = defineProps<{
+defineProps<{
   label: string
   error?: InputWrapperMessage
   required?: boolean
