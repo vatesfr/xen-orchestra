@@ -1,19 +1,24 @@
 import { Branded } from '../common.mjs'
 import type { XoGroup, XoUser } from '../xo.mjs'
 
-export type XoAclRole =
-  | {
-      id: Branded<'acl-v2-role'>
-      name: string
-      description?: string
-    }
-  | {
-      id: Branded<'acl-v2-role'>
-      name: string
-      description?: string
-      isTemplate: true
-      roleTemplateId: number
-    }
+type XoAclBaseRole = {
+  id: Branded<'acl-v2-role'>
+  name: string
+  description?: string
+  privilegeIds: XoAclBasePrivilege['id'][]
+}
+
+type XoAclRegularRole = XoAclBaseRole & {
+  groupIds: XoGroup['id'][]
+  userIds: XoUser['id'][]
+}
+
+type XoAclTemplateRole = XoAclBaseRole & {
+  isTemplate: true
+  roleTemplateId: number
+}
+
+export type XoAclRole = XoAclRegularRole | XoAclTemplateRole
 
 export type XoAclSupportedActionsByResource = {
   [resource: string]: Record<string, unknown>
