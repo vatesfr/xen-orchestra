@@ -88,3 +88,91 @@ export const nfsExport = [
     acl: '(everyone)',
   },
 ]
+
+export const srUuids = [
+  {
+    uuid: 'd4e4d9b8-2c7e-46fd-9b53-6b8e5d6b2f4a',
+  },
+  {
+    uuid: '8f4c6a91-3b7d-4d7a-a9e3-2c9b6d5e7f81',
+  },
+  {
+    uuid: '1b7f3d54-9d2e-4c1a-8f67-5a9e2c3d4b10',
+  },
+  {
+    uuid: 'f2c8a6e3-7d19-4b2e-9a65-1d8f3c7b5e92',
+  },
+]
+
+export const hbaExport = [
+  {
+    vendor: 'Generic Storage',
+    size: 1099511627776,
+    serial: 'SN123456789',
+    scsiId: '3600508b400105e210000900000490000',
+    path: '/dev/sdb',
+    lun: 0,
+    id: 'hba-device-1',
+    hba: 'host0',
+  },
+  {
+    vendor: 'Storage Vendor',
+    size: 2199023255552,
+    serial: 'SN987654321',
+    scsiId: '3600a0980383134564d2b4a6b6c4d6578',
+    path: '/dev/sdc',
+    lun: 1,
+    id: 'hba-device-2',
+    hba: 'host0',
+  },
+]
+
+export const iscsiIqnExport = [
+  {
+    ip: '192.168.1.10',
+    iqn: 'iqn.2026-07.local.storage:target1',
+  },
+  {
+    ip: '192.168.1.11',
+    iqn: 'iqn.2026-07.local.storage:target2',
+  },
+  {
+    ip: '10.0.0.20',
+    iqn: 'iqn.2026-07.example:iscsi.disk01',
+  },
+  {
+    ip: '10.0.0.21',
+    iqn: 'iqn.2026-07.example:iscsi.disk02',
+  },
+]
+
+export const iscsiLunExport = [
+  {
+    scsiId: '3600508b400105e210000900000490000',
+    size: '1 TiB',
+    serial: 'SN123456789',
+    vendor: 'Generic Storage',
+    id: 'lun-1',
+  },
+  {
+    scsiId: '3600a0980383134564d2b4a6b6c4d6578',
+    size: '2 TiB',
+    serial: 'SN987654321',
+    vendor: 'Storage Vendor',
+    id: 'lun-2',
+  },
+  {
+    scsiId: '3624a9370c8b1f23456789abcdef12345',
+    size: '500 GiB',
+    serial: 'SN456789123',
+    vendor: 'Example Storage',
+    id: 'lun-3',
+  },
+  {
+    scsiId: '3600c0ff00029a1b2c3d4e5f678901234',
+    size: '4 TiB',
+    serial: 'SN321654987',
+    vendor: 'Virtual SAN',
+    id: 'lun-4',
+  },
+]

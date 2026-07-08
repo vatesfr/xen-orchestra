@@ -39,7 +39,16 @@ import {
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
-import { partialSrs, sr, srIds, nfsExport } from '../open-api/oa-examples/sr.oa-example.mjs'
+import {
+  partialSrs,
+  sr,
+  srIds,
+  nfsExport,
+  srUuids,
+  hbaExport,
+  iscsiIqnExport,
+  iscsiLunExport,
+} from '../open-api/oa-examples/sr.oa-example.mjs'
 import { vdiId } from '../open-api/oa-examples/vdi.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
@@ -457,6 +466,7 @@ export class SrController extends XapiXoController<XoSr> {
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
+  @Example(hbaExport)
   @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/probe/hba')
   @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
@@ -477,6 +487,7 @@ export class SrController extends XapiXoController<XoSr> {
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    * @example targetIp ""
    */
+  @Example(iscsiIqnExport)
   @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/probe/iscsiiqns')
   @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
@@ -503,6 +514,7 @@ export class SrController extends XapiXoController<XoSr> {
    * @example targetIp ""
    * @example targetIqn ""
    */
+  @Example(iscsiLunExport)
   @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/probe/iscsiluns')
   @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
@@ -531,6 +543,7 @@ export class SrController extends XapiXoController<XoSr> {
    * @example targetIp ""
    * @example targetIqn ""
    */
+  @Example(srUuids)
   @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/probe/iscsi/exists')
   @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
@@ -567,6 +580,7 @@ export class SrController extends XapiXoController<XoSr> {
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    * @example scsiId ""
    */
+  @Example(srUuids)
   @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/probe/hba/exists')
   @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
@@ -587,6 +601,7 @@ export class SrController extends XapiXoController<XoSr> {
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    * @example scsiId ""
    */
+  @Example(srUuids)
   @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/probe/nfs/exists')
   @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
