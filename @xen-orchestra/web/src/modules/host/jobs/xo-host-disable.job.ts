@@ -29,7 +29,7 @@ export const useXoHostDisableJob = defineJob('host.disable', [xoHostArg], () => 
       }
 
       if (host.power_state !== HOST_POWER_STATE.RUNNING) {
-        throw new JobRunningError(t('job:host-disable:bad-power-state'))
+        throw new JobError(t('job:host-disable:bad-power-state'))
       }
     },
   }
