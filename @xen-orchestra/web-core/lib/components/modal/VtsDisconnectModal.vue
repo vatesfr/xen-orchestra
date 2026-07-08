@@ -15,7 +15,7 @@
     <template #buttons>
       <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
       <VtsModalConfirmButton>
-        <slot name="confirm" />
+        {{ t('action:disconnect') }}
       </VtsModalConfirmButton>
     </template>
   </VtsModal>
