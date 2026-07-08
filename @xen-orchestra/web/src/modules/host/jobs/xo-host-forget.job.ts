@@ -28,7 +28,7 @@ export const useXoHostForgetJob = defineJob('host.forget', [xoHostArg], () => {
       }
 
       if (host.power_state !== HOST_POWER_STATE.HALTED) {
-        throw new JobRunningError(t('job:host-forget:bad-power-state'))
+        throw new JobError(t('job:host-forget:bad-power-state'))
       }
     },
   }
