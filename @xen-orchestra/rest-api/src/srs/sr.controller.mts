@@ -411,6 +411,8 @@ export class SrController extends XapiXoController<XoSr> {
   }
 
   /**
+   * Detects all NFS shares (exports) on a NFS server and returns a table of exports with their paths and ACLs
+   *
    * Required privilege:
    * - resource: host, action: read
    *
@@ -429,6 +431,8 @@ export class SrController extends XapiXoController<XoSr> {
   }
 
   /**
+   * Detects all ZFS pools and returns a dict of pools with their parameters { <poolname>: {<paramdict>}}
+   *
    * Required privilege:
    * - resource: host, action: read
    *
@@ -445,6 +449,8 @@ export class SrController extends XapiXoController<XoSr> {
   }
 
   /**
+   * Detects all HBA devices on the host
+   *
    * Required privilege:
    * - resource: host, action: read
    *
@@ -461,6 +467,9 @@ export class SrController extends XapiXoController<XoSr> {
   }
 
   /**
+   * Detects all iSCSI IQN on a Target (iSCSI "server")
+   * returns a table of IQN or empty table if no iSCSI connection to the target
+   *
    * Required privilege:
    * - resource: host, action: read
    *
@@ -484,6 +493,8 @@ export class SrController extends XapiXoController<XoSr> {
   }
 
   /**
+   * Detects all iSCSI ID and LUNs on a Target and return a LUN table
+   *
    * Required privilege:
    * - resource: host, action: read
    *
@@ -509,6 +520,9 @@ export class SrController extends XapiXoController<XoSr> {
   }
 
   /**
+   * Detects if this target already exists in XAPI
+   * returns a table of SR UUID, empty if no existing connections
+   *
    * Required privilege:
    * - resource: host, action: read
    *
@@ -543,6 +557,9 @@ export class SrController extends XapiXoController<XoSr> {
   }
 
   /**
+   * Detect if this HBA already exists in XAPI
+   * returns a table of SR UUID, empty if no existing connections
+   *
    * Required privilege:
    * - resource: host, action: read
    *
@@ -560,6 +577,9 @@ export class SrController extends XapiXoController<XoSr> {
   }
 
   /**
+   * Detects if this NFS SR already exists in XAPI
+   * returns a table of SR UUID, empty if no existing connections
+   *
    * Required privilege:
    * - resource: host, action: read
    *
