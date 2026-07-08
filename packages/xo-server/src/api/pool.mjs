@@ -2,7 +2,7 @@ import TTLCache from '@isaacs/ttlcache'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
 import { format } from 'json-rpc-peer'
-import { pipeline } from 'node:stream'
+import { pipeline, Readable } from 'node:stream'
 import tarStream from 'tar-stream'
 import { Ref } from 'xen-api'
 import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
@@ -99,7 +99,7 @@ set.resolve = {
 // -------------------------------------------------------------------
 
 export async function setDefaultSr({ sr }) {
-  await this.hasPermissions(this.apiContext.user.id, [[sr.$pool, 'administrate']])
+  await this.checkPermissions(this.apiContext.user.id, [[sr.$pool, 'administrate']])
 
   await this.getXapi(sr).setDefaultSr(sr._xapiId)
 }
@@ -117,7 +117,7 @@ setDefaultSr.resolve = {
 // -------------------------------------------------------------------
 
 export async function setPoolMaster({ host }) {
-  await this.hasPermissions(this.apiContext.user.id, [[host.$pool, 'administrate']])
+  await this.checkPermissions(this.apiContext.user.id, [[host.$pool, 'administrate']])
 
   await this.getXapi(host).setPoolMaster(host._xapiId)
 }
@@ -507,9 +507,8 @@ async function handleGetSystemStatuses(_req, res, { xapi, pool }) {
       const filename = `${host.name_label}-system-status.tar.bz2`
 
       // Get the size from Content-Length header if available
-      const size = response.headers['content-length']
-        ? Number.parseInt(response.headers['content-length'], 10)
-        : undefined
+      const contentLength = response.headers.get('content-length')
+      const size = contentLength ? Number.parseInt(contentLength, 10) : undefined
 
       if (size === undefined) {
         throw new Error(`Missing Content-Length header for host ${host.name_label} system status download`)
@@ -527,7 +526,7 @@ async function handleGetSystemStatuses(_req, res, { xapi, pool }) {
         }
       })
 
-      await fromCallback(pipeline, response, entry)
+      await fromCallback(pipeline, Readable.fromWeb(response.body), entry)
     }
 
     // Finalize archive after all downloads complete
