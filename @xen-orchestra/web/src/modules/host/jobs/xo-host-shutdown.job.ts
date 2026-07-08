@@ -28,7 +28,7 @@ export const useXoHostShutdownJob = defineJob('host.shutdown', [xoHostArg], () =
       }
 
       if (host.power_state !== HOST_POWER_STATE.RUNNING) {
-        throw new JobRunningError(t('job:host-shutdown:bad-power-state'))
+        throw new JobError(t('job:host-shutdown:bad-power-state'))
       }
     },
   }
