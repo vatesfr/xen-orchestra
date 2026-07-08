@@ -1627,7 +1627,7 @@ class OpenMetricsPlugin {
       }
       return { hostId: host.uuid, watts }
     } catch (error) {
-      logger.warn('ipmitool.py power read failed', { hostUuid: host.uuid, error })
+      logger.info('ipmitool.py power read failed', { hostUuid: host.uuid, error })
       return undefined
     }
   }
