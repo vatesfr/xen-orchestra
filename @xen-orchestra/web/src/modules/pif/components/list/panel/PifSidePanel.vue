@@ -1,24 +1,10 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
-    <template #header>
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButtonIcon
-          v-tooltip="t('action:close')"
-          size="small"
-          variant="tertiary"
-          accent="brand"
-          :icon="uiStore.isSmall ? 'fa:angle-left' : 'fa:close'"
-          @click="emit('close')"
-        />
-      </div>
-    </template>
-    <template #default>
+  <VtsSidePanel :has-selection="!!pif" @close="emit('close')">
+    <template v-if="pif">
       <!-- PIF -->
       <UiCard class="card">
-        <UiCardTitle>{{ pif.isBondMaster ? t('bond') : t('pif') }}</UiCardTitle>
+        <VtsCardObjectTitle :id="pif.id" :label="pif.isBondMaster ? t('bond') : t('pif')" />
         <div class="content">
-          <!-- UUID -->
-          <VtsCodeSnippet :content="pif.id" copy />
           <!-- NETWORK -->
           <VtsCardRowKeyValue>
             <template #key>
@@ -247,34 +233,33 @@
         </div>
       </UiCard>
     </template>
-  </UiPanel>
+  </VtsSidePanel>
 </template>
 
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { type FrontXoPif, useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
+import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { useUiStore } from '@core/stores/ui.store.ts'
+import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import humanFormat from 'human-format'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { pif } = defineProps<{
-  pif: FrontXoPif
+  pif?: FrontXoPif
 }>()
 
 const emit = defineEmits<{
@@ -283,13 +268,18 @@ const emit = defineEmits<{
 
 const { useGetNetworkById } = useXoNetworkCollection()
 const { getBondsDevices } = useXoPifCollection()
-const uiStore = useUiStore()
 
 const { t } = useI18n()
 
-const ipAddresses = computed(() => [pif.ip, ...pif.ipv6].filter(ip => ip))
+const ipAddresses = computed(() => {
+  if (pif === undefined) {
+    return []
+  }
 
-const network = useGetNetworkById(() => pif.$network)
+  return [pif.ip, ...pif.ipv6].filter(ip => ip)
+})
+
+const network = useGetNetworkById(() => pif?.$network)
 
 const networkTo = computed(() =>
   network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
@@ -297,13 +287,17 @@ const networkTo = computed(() =>
 
 const networkNbd = computed(() => (network.value?.nbd ? t('on') : t('off')))
 
-const status = computed(() => (pif.attached ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED))
+const status = computed(() => (pif?.attached ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED))
 
 const physicalInterfaceStatus = computed(() =>
-  pif.carrier ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.PHYSICALLY_DISCONNECTED
+  pif?.carrier ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.PHYSICALLY_DISCONNECTED
 )
 
 const ipConfigurationMode = computed(() => {
+  if (pif === undefined) {
+    return t('none')
+  }
+
   switch (pif.mode) {
     case 'Static':
       return t('static')
@@ -314,9 +308,13 @@ const ipConfigurationMode = computed(() => {
   }
 })
 
-const bondDevices = computed(() => getBondsDevices(pif))
+const bondDevices = computed(() => (pif !== undefined ? getBondsDevices(pif) : []))
 
 const speed = computed(() => {
+  if (pif === undefined) {
+    return ''
+  }
+
   const speed = pif.speed || 0
   const speedInBytes = speed * 1000000
 
@@ -340,18 +338,6 @@ const speed = computed(() => {
 
   .value:empty::before {
     content: '-';
-  }
-}
-
-.mobile-drawer {
-  position: fixed;
-  inset: 0;
-
-  .action-buttons-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
   }
 }
 </style>

@@ -746,6 +746,29 @@ const METRIC_PREFIX = 'xcp'
 const XO_METRIC_PREFIX = 'xo'
 
 /**
+ * Serialize XO object tags into the `tags` label value
+ *
+ * @param tags - Raw tag list from the XO object
+ * @returns Comma-separated, sorted tag list (e.g. `"prod,web"`)
+ */
+export function serializeTags(tags: readonly string[] | undefined): string {
+  if (tags === undefined || tags.length === 0) {
+    return ''
+  }
+  return [...new Set(tags)]
+    .filter(tag => tag.trim() !== '')
+    .sort()
+    .join(',')
+}
+
+function addTagsLabel(labels: Record<string, string>, tags: readonly string[] | undefined): void {
+  const serialized = serializeTags(tags)
+  if (serialized !== '') {
+    labels.tags = serialized
+  }
+}
+
+/**
  * Escape special characters in label values.
  *
  * OpenMetrics requires escaping of backslash, double quote, and newline.
@@ -816,6 +839,8 @@ export function transformMetric(
     type: legend.objectType,
   }
 
+  let objectTags: readonly string[] | undefined
+
   // Add pool_name from host credentials
   if (labelContext !== undefined) {
     const hostCred = labelContext.hosts.find(h => h.poolId === poolId)
@@ -830,6 +855,7 @@ export function transformMetric(
         if (hostInfo.name_label !== '') {
           labels.host_name = hostInfo.name_label
         }
+        objectTags = hostInfo.tags
 
         // For PIF metrics, add network_name
         if (extractedLabels.interface !== undefined) {
@@ -866,6 +892,7 @@ export function transformMetric(
           labels.vm_name = vmInfo.name_label
         }
         labels.is_control_domain = vmInfo.is_control_domain ? 'true' : 'false'
+        objectTags = vmInfo.tags
 
         // For VBD metrics, add vdi_name and sr_name
         if (extractedLabels.device !== undefined) {
@@ -905,6 +932,7 @@ export function transformMetric(
 
   // Add extracted labels (device, interface, vif, sr, core)
   Object.assign(labels, extractedLabels)
+  addTagsLabel(labels, objectTags)
 
   return {
     name: `${METRIC_PREFIX}_${definition.openMetricName}`,
@@ -1058,6 +1086,8 @@ export function formatSrMetrics(srDataList: SrDataItem[]): FormattedMetric[] {
       baseLabels.host_name = sr.host_name
     }
 
+    addTagsLabel(baseLabels, sr.tags)
+
     // Virtual size (virtual_allocation)
     metrics.push({
       name: `${METRIC_PREFIX}_sr_virtual_size_bytes`,
@@ -1181,6 +1211,8 @@ export function formatHostStatusMetrics(hostStatusList: HostStatusItem[]): Forma
       labels.pool_name = host.pool_name
     }
 
+    addTagsLabel(labels, host.tags)
+
     metrics.push({
       name: `${METRIC_PREFIX}_host_status`,
       help: 'Host status (1 = current state)',
@@ -1220,6 +1252,8 @@ export function formatVmStatusMetrics(vmStatusList: VmStatusItem[]): FormattedMe
     if (vm.name_label !== '') {
       labels.vm_name = vm.name_label
     }
+
+    addTagsLabel(labels, vm.tags)
 
     metrics.push({
       name: `${METRIC_PREFIX}_vm_status`,
@@ -1699,6 +1733,8 @@ export function formatHostUptimeMetrics(labelContext: LabelContext): FormattedMe
       labels.host_name = hostInfo.name_label
     }
 
+    addTagsLabel(labels, hostInfo.tags)
+
     metrics.push({
       name: `${METRIC_PREFIX}_host_uptime_seconds`,
       help: 'Host uptime in seconds since boot',
@@ -1754,6 +1790,8 @@ export function formatVmUptimeMetrics(labelContext: LabelContext): FormattedMetr
     if (vmInfo.name_label !== '') {
       labels.vm_name = vmInfo.name_label
     }
+
+    addTagsLabel(labels, vmInfo.tags)
 
     metrics.push({
       name: `${METRIC_PREFIX}_vm_uptime_seconds`,

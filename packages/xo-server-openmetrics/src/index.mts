@@ -76,12 +76,14 @@ export interface VmLabelInfo {
   power_state: string // VM power state (Running, Paused, Halted, Suspended)
   pool_id: string
   pool_name: string
+  tags?: string[]
 }
 
 export interface HostLabelInfo {
   name_label: string
   pifDeviceToNetworkName: Record<string, string> // { "eth0": "Management" }
   startTime: number | null // Unix timestamp of host boot (from host.startTime)
+  tags?: string[]
 }
 
 export interface SrLabelInfo {
@@ -117,6 +119,7 @@ export type SrDataItem = Pick<XoSr, 'uuid' | 'name_label' | 'size' | 'physical_u
   sr_type: string
   host_id?: string
   host_name?: string
+  tags?: string[]
 }
 
 export interface XoMetricsData {
@@ -177,6 +180,7 @@ interface VdiDataPayload {
 export type HostStatusItem = Pick<XoHost, 'uuid' | 'name_label' | 'power_state' | 'enabled'> & {
   pool_id: string
   pool_name: string
+  tags?: string[]
 }
 
 interface HostStatusPayload {
@@ -186,6 +190,7 @@ interface HostStatusPayload {
 export type VmStatusItem = Pick<XoVm, 'uuid' | 'name_label' | 'power_state'> & {
   pool_id: string
   pool_name: string
+  tags?: string[]
 }
 
 interface VmStatusPayload {
@@ -1171,6 +1176,7 @@ class OpenMetricsPlugin {
         size: sr.size,
         physical_usage: sr.physical_usage,
         usage: sr.usage,
+        tags: sr.tags,
       }
 
       // For local (non-shared) SRs, add host information
@@ -1279,6 +1285,7 @@ class OpenMetricsPlugin {
         enabled: host.enabled,
         pool_id: host.$poolId,
         pool_name: poolLabelMap.get(host.$poolId) ?? '',
+        tags: host.tags,
       })
     }
 
@@ -1308,6 +1315,7 @@ class OpenMetricsPlugin {
         power_state: vm.power_state,
         pool_id: vm.$poolId,
         pool_name: poolLabelMap.get(vm.$poolId) ?? '',
+        tags: vm.tags,
       })
     }
 
@@ -1906,6 +1914,7 @@ class OpenMetricsPlugin {
         power_state: vm.power_state,
         pool_id: vm.$poolId,
         pool_name: poolLabelMap.get(vm.$poolId) ?? '',
+        tags: vm.tags,
       }
     }
 
@@ -1923,6 +1932,7 @@ class OpenMetricsPlugin {
         name_label: host.name_label,
         pifDeviceToNetworkName,
         startTime: host.startTime,
+        tags: host.tags,
       }
     }
 

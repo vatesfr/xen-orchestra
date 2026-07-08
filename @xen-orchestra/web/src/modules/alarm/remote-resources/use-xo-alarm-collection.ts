@@ -10,7 +10,8 @@ export type FrontXoAlarm = Pick<XoAlarm, (typeof alarmFields)[number]>
 export const alarmFields = ['id', 'time', 'body', 'object', 'type'] as const satisfies readonly (keyof XoAlarm)[]
 
 export const useXoAlarmCollection = defineRemoteResource({
-  url: `${BASE_URL}/alarms?fields=${alarmFields.join(',')}`,
+  url: `${BASE_URL}/alarms?fields=${alarmFields.join(',')}&ndjson=true`,
+  stream: true,
   initWatchCollection: () => useWatchCollection({ resource: 'alarm', fields: alarmFields }),
   initialData: () => [] as FrontXoAlarm[],
   state: (rawAlarms, context) => {

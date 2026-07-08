@@ -5,3 +5,8 @@ export const xoSrArg = defineJobArg({
   identify: (sr: FrontXoSr) => sr.id,
   toArray: true,
 })
+
+export const xoSrIdArg = defineJobArg<string>({
+  identify: false,
+  toArray: false,
+})

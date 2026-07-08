@@ -33,3 +33,11 @@ export const backupRepository = {
 }
 
 export const backupRepositoryId = { id: '677e50c5-8d8a-4c89-b1ac-e2f4593d0ebb' }
+
+export const backupRepositoryHeath = { success: true }
+
+export const backupRepositoryBenchmark = {
+  success: true,
+  readRate: 7999965,
+  writeRate: 7767798,
+}

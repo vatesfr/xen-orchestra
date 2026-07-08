@@ -25,6 +25,7 @@ import {
   getAllProxies,
   getApplianceInfo,
   getProxyApplianceUpdaterState,
+  snapshotXoa,
   subscribeBackupNgJobs,
   subscribeJobs,
 } from 'xo'
@@ -88,6 +89,28 @@ const helper = (obj1, obj2, prop) =>
     () => obj2[prop],
     ''
   )
+
+class SnapshotBeforeUpgradeModalBody extends React.Component {
+  state = { snapshotBefore: true }
+
+  get value() {
+    return this.state.snapshotBefore
+  }
+
+  _toggle = () => this.setState(s => ({ snapshotBefore: !s.snapshotBefore }))
+
+  render() {
+    return (
+      <div>
+        <p>{_('upgradeSnapshotBeforeMessage')}</p>
+        <label>
+          <input type='checkbox' onChange={this._toggle} checked={this.state.snapshotBefore} />{' '}
+          {_('upgradeSnapshotBeforeLabel')}
+        </label>
+      </div>
+    )
+  }
+}
 
 const Updates = decorate([
   adminOnly,
@@ -175,13 +198,38 @@ const Updates = decorate([
       },
       toggleState,
       update: () => xoaUpdater.update(),
-      upgrade() {
-        return this.state.areJobsRunning
-          ? confirm({
+      async upgrade() {
+        let snapshotBefore = false
+
+        if (this.state.areJobsRunning) {
+          try {
+            await confirm({
               title: _('upgradeWarningTitle'),
               body: <p>{_('upgradeWarningMessage')}</p>,
-            }).then(() => xoaUpdater.upgrade().then(() => this.effects.forceRefreshXoaStatus()))
-          : xoaUpdater.upgrade()
+            })
+          } catch (err) {
+            if (err === null) {
+              return
+            }
+            throw err
+          }
+        }
+        try {
+          snapshotBefore = await confirm({
+            title: _('upgradeSnapshotModalTitle'),
+            body: <SnapshotBeforeUpgradeModalBody />,
+          })
+        } catch (err) {
+          if (err === null) {
+            return
+          }
+          throw err
+        }
+        if (snapshotBefore) {
+          await snapshotXoa()
+        }
+
+        await xoaUpdater.upgrade()
       },
     },
     computed: {

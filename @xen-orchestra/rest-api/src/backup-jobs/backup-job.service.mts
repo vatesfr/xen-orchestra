@@ -58,6 +58,11 @@ export class BackupJobService {
         if (schedule.enabled) {
           return true
         }
+
+        const scheduleSequence = await this.#restApi.xoApp.findEnabledScheduleSequenceFromSchedule(schedule.id)
+        if (scheduleSequence !== undefined) {
+          return true
+        }
       } catch (error) {
         if (!noSuchObject.is(error, { id: maybeScheduleId, type: 'schedule' })) {
           console.error(error)

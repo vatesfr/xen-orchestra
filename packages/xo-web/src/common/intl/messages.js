@@ -51,6 +51,9 @@ const messages = {
   esxiImportStopSourceDescription:
     'Source VM stopped before the last delta transfer (after final snapshot). Needed to fully transfer a running VM',
   esxiImportStopOnErrorDescription: 'Stop on the first error when importing VMs',
+  esxiImportNoReferenceVm: 'No reference VM found: a full transfer will be performed',
+  esxiImportReferenceVmSameSr: 'Reference VM found on the same SR: a delta transfer will be performed',
+  esxiImportReferenceVmOtherSr: 'Reference VM found on another SR ({sr}): a FULL transfer will be performed',
   inUse: 'In use',
   nImportVmsInParallel: 'Number of VMs to import in parallel',
   node: 'Node',
@@ -2407,6 +2410,9 @@ const messages = {
   promptUpgradeReloadTitle: 'Upgrade successful',
   promptUpgradeReloadMessage:
     'Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?',
+  upgradeSnapshotModalTitle: 'Upgrade XOA',
+  upgradeSnapshotBeforeLabel: 'Take a snapshot of XOA before upgrading',
+  upgradeSnapshotBeforeMessage: 'A snapshot lets you roll back to the current state if the upgrade fails.',
   upgradeWarningTitle: 'Upgrade warning',
   upgradeWarningMessage:
     'You have some backup jobs in progress. If you upgrade now, these jobs will be interrupted! Are you sure you want to continue?',

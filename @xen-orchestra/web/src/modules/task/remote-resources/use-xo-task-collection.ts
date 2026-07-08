@@ -64,7 +64,8 @@ export function createTaskCollectionState<TArgs extends any[] = []>(
 }
 
 export const useXoTaskCollection = defineRemoteResource({
-  url: `${BASE_URL}/tasks?fields=${taskFields.join(',')}`,
+  url: `${BASE_URL}/tasks?fields=${taskFields.join(',')}&ndjson=true`,
+  stream: true,
   initWatchCollection: () => useWatchCollection({ resource: 'task', fields: taskFields }),
   initialData: () => [] as FrontXoTask[],
   state: createTaskCollectionState,

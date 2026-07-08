@@ -6,10 +6,12 @@ import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { createLogger } from '@xen-orchestra/log'
 import Esxi from '@xen-orchestra/vmware-explorer/esxi.mjs'
 import { checkVddkDependencies } from '@xen-orchestra/vmware-explorer/checks.mjs'
+import { VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 import OTHER_CONFIG_TEMPLATE from '../../xapi/other-config-template.mjs'
 import { importDisksFromDatastore, importStream } from './importDisksfromDatastore.mjs'
 import { buildDiskChainByNode } from './buildChainByNode.mjs'
 import { finished, PassThrough } from 'node:stream'
+import { Ref } from 'xen-api'
 
 const { warn } = createLogger('xo:mixins:vmware')
 
@@ -65,7 +67,7 @@ export default class MigrateVm {
   }
 
   async #createVmAndNetworks($defer, { metadata, networkId, template, xapi }) {
-    const { guestId, firmware, memory, name_label, networks, nCpus } = metadata
+    const { cdrom, guestId, firmware, memory, name_label, networks, nCpus } = metadata
 
     const existingVm = await this.#findBaseVM(xapi, metadata)
     if (existingVm !== undefined) {
@@ -81,7 +83,8 @@ export default class MigrateVm {
           memory_dynamic_min: memory,
           memory_static_max: memory,
           // allow the user to reduce the memory of this VM to the limit set by the template
-          memory_static_min: template.memory_static_min,
+          // but it shouldn't be less than the actual memory
+          memory_static_min: Math.min(template.memory_static_min, memory),
           name_description: `from esxi -- source guest id :${guestId} -- template used:${template.name_label}`,
           name_label,
           platform: { ...template.platform },
@@ -116,6 +119,12 @@ export default class MigrateVm {
           $defer.onFailure(() => xapi.call('VIF.destroy', ref))
         })
       )
+
+      if (cdrom) {
+        const ref = await xapi.VBD_create({ type: 'CD', VM: vm.$ref, VDI: Ref.EMPTY })
+        $defer.onFailure(() => xapi.call('VBD.destroy', ref))
+      }
+
       return vm
     })
   }
@@ -177,7 +186,7 @@ export default class MigrateVm {
           vm,
           vmId,
         })
-        await sr.$xapi.setFieldEntries('VM', vm.$ref, 'other_config', { sourceVmId: vmId, sourceSnapshotId: undefined })
+        await sr.$xapi.setFieldEntries('VM', vm.$ref, 'other_config', { sourceVmId: vmId, sourceSnapshotId: null })
         await vm.$snapshot({ name_label: 'complete import from V2V' })
       }
     }
@@ -266,6 +275,7 @@ export default class MigrateVm {
     const disk = chain.pop()
     const stream = new PassThrough()
     importStream({ esxi, disk, vmId, format }, source => {
+      stream.length = source.length
       source.pipe(stream)
       return new Promise((resolve, reject) => {
         finished(source, { writable: false }, error => {
@@ -280,5 +290,21 @@ export default class MigrateVm {
       throw error
     })
     return stream
+  }
+
+  async importEsxiDiskToSr({
+    disk,
+    format = VDI_FORMAT_VHD,
+    host,
+    user,
+    password,
+    sslVerify = true,
+    sr: srId,
+    vm: vmId,
+  }) {
+    const sr = this._app.getXapiObject(srId)
+    const stream = await this.exportEsxiDisk({ disk, format, host, user, password, vm: vmId })
+    const vdiRef = await sr.$importVdi(stream, { format, name_label: `[ESXI] ${vmId} / ${disk}` })
+    return sr.$xapi.getObject(vdiRef).uuid
   }
 }

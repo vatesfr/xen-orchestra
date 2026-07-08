@@ -34,7 +34,8 @@ const srFields = [
 ] as const satisfies readonly (keyof XoSr)[]
 
 export const useXoSrCollection = defineRemoteResource({
-  url: `${BASE_URL}/srs?fields=${srFields.join(',')}`,
+  url: `${BASE_URL}/srs?fields=${srFields.join(',')}&ndjson=true`,
+  stream: true,
   initWatchCollection: () => useWatchCollection({ resource: 'SR', fields: srFields }),
   initialData: () => [] as FrontXoSr[],
   state: (rawSrs, context) => {
