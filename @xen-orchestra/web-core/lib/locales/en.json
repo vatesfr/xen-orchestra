@@ -468,6 +468,7 @@
   "job:disconnect:in-progress": "Disconnect in progress…",
   "job:enable:in-progress": "Enable in progress…",
   "job:export:in-progress": "Export in progress…",
+  "job:host-disable:bad-power-state": "Host is not running",
   "job:host-disable:missing-host": "Host is missing",
   "job:host-enable:missing-host": "Host is missing",
   "job:host-shutdown:bad-power-state": "Host already halted",
