@@ -1,5 +1,8 @@
 <template>
   <VtsSidePanel :has-selection="!!server" @close="emit('close')">
+    <template v-if="server" #actions>
+      <PoolConnectionToggleButton :server-id="server.id" />
+    </template>
     <template v-if="server">
       <VtsStateHero v-if="!arePoolsReady" format="panel" type="busy" size="medium" />
       <template v-else>
@@ -122,10 +125,6 @@
               <VtsStatus :status="server.allowUnauthorized" />
             </template>
           </VtsCardRowKeyValue>
-          <!-- actions -->
-          <div v-if="server.poolId !== undefined" class="actions">
-            <PoolConnectionToggleButton :pool-id="server.poolId" />
-          </div>
         </UiCard>
         <UiCard v-if="hosts !== undefined">
           <UiCardTitle>
