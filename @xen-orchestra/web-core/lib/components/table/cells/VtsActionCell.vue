@@ -1,17 +1,19 @@
 <template>
   <UiTableCell align="center">
     <div class="vts-action-cell">
-      <UiButtonIcon
-        :icon="buttonIcon"
-        :accent="buttonAccent"
-        :size="buttonSize"
-        :target-scale="1.5"
-        @click="emit('click')"
-      />
-      <VtsActionsMenu v-if="actions.length" :actions />
-      <VtsActionsMenu v-else>
+      <template v-if="$slots.default">
         <slot />
-      </VtsActionsMenu>
+      </template>
+      <template v-else>
+        <UiButtonIcon
+          :icon="buttonIcon"
+          :accent="buttonAccent"
+          :size="buttonSize"
+          :target-scale="1.5"
+          @click="emit('click')"
+        />
+        <VtsActionsMenu v-if="actions.length" :actions />
+      </template>
     </div>
   </UiTableCell>
 </template>
