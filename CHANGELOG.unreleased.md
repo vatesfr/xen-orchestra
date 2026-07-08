@@ -7,6 +7,8 @@
 
 > Security fixes and new features should go in this section
 
+- xo-server : Permissions were ignored for some pool functions ([#10093] (https://github.com/vatesfr/xen-orchestra/pull/10093/changes))
+
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
@@ -30,5 +32,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+-xo-server patch
 
 <!--packages-end-->
