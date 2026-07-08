@@ -6,7 +6,7 @@
   <div class="card-container">
     <VtsOperationPendingCard v-if="isRunning" :title="t('creating-new-vif')" />
     <VtsOperationErrorCard
-      v-else-if="hasVifCreationError && error"
+      v-else-if="error"
       :title="t('unable-to-create-new-vif')"
       :error
       :error-message="t('new-vif:error-message')"
@@ -58,11 +58,10 @@ const cancelRoute = computed<RouteLocationRaw>(() =>
 const formPayload = ref<NewVifPayload>()
 
 const error = ref<ApiError | Error | undefined>()
-const hasVifCreationError = computed(() => error.value !== undefined)
 
 const { canRun, run: create, isRunning } = useXoVifCreateJob(formPayload)
 
-const canDisplayForm = computed(() => !isRunning.value && !hasVifCreationError.value)
+const canDisplayForm = computed(() => !isRunning.value && error.value === undefined)
 
 function handleGoBack() {
   error.value = undefined

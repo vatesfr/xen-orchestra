@@ -1,11 +1,11 @@
 <template>
-  <UiInfo v-tooltip="iconOnly ? currentStatus.text : false" :accent="currentStatus.accent" :size>
+  <UiInfo v-tooltip="iconOnly ? currentStatus.text : false" :accent="currentStatus.accent">
     <template v-if="!iconOnly">{{ currentStatus.text }}</template>
   </UiInfo>
 </template>
 
 <script setup lang="ts">
-import UiInfo, { type InfoAccent, type Size } from '@core/components/ui/info/UiInfo.vue'
+import UiInfo, { type InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useMapper } from '@core/packages/mapper'
 import { useI18n } from 'vue-i18n'
@@ -32,7 +32,6 @@ export type Status =
 
 const { status } = defineProps<{
   status: Status
-  size?: Size
   iconOnly?: boolean
 }>()
 

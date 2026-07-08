@@ -1,5 +1,5 @@
 import type { BaseVifPayload } from '@/modules/vif/jobs/xo-vif-create.job.ts'
-import { type IpAddress, isIpv6, parseIpList } from '@/shared/utils/ip.utils.ts'
+import { type IpAddress, isIpv6 } from '@/shared/utils/ip.utils.ts'
 import {
   type FormValidationConfig,
   ipAddresses,
@@ -8,6 +8,7 @@ import {
   or,
   withMessage,
 } from '@core/packages/form-validation'
+import { parseIpList } from '@core/utils/ip-address.utils.ts'
 import { useI18n } from 'vue-i18n'
 
 export type BaseVifFormData = {
