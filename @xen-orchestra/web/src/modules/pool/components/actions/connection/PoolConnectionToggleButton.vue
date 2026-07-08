@@ -14,7 +14,7 @@
     v-else-if="server && server.status === 'connected'"
     left-icon="action:disconnect"
     variant="secondary"
-    accent="danger"
+    accent="brand"
     size="medium"
     :busy="isDisconnecting"
     @click="disconnect()"
