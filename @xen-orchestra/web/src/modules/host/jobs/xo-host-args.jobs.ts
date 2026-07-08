@@ -5,3 +5,8 @@ export const xoHostArg = defineJobArg({
   identify: (host: FrontXoHost | undefined) => host?.id,
   toArray: false,
 })
+
+export const xoEvacuateHostArg = defineJobArg<boolean>({
+  identify: false,
+  toArray: false,
+})
