@@ -511,7 +511,6 @@ export class AclRoleController extends XoController<XoAclRole> {
           role.groupIds.map(groupId =>
             this.restApi.xoApp.getGroup(groupId).catch(err => {
               log.warn(`cannot resolve group: ${groupId}`, err)
-              // TODO: fix the deleteGroup RBAC authorization check
               // if the group is not resolvable (E.g. not properly removed) do not hide it (as even if it doesn't exist, it is attached, so need to be cleaned)
               return { id: groupId } as XoGroup
             })
