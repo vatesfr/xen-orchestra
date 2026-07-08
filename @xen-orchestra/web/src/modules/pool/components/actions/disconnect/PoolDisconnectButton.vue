@@ -15,7 +15,7 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import { useXoServerDisconnectJob } from '@/modules/server/jobs/xo-server-disconnect.job.ts'
 import { useXoServerCollection } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import type { XoServer } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -31,17 +31,28 @@ const serverId = computed(() => server.value?.id ?? ('' as XoServer['id']))
 
 const { canRun, isRunning, run } = useXoServerDisconnectJob([serverId])
 
-const openModal = useModal(() => ({
-  component: import('@core/components/modal/VtsDisconnectModal.vue'),
-  props: { title: poolName },
-  onConfirm: async () => {
-    try {
-      await run()
-    } catch (error) {
-      console.error('Error when disconnecting server:', error)
-    }
+const { open: openDisconnectModal } = useOverlay({
+  component: () => import('@core/components/modal/VtsDisconnectModal.vue'),
+  events: {
+    onConfirm: true,
+    onCancel: true,
   },
-}))
+})
+
+function openModal() {
+  return openDisconnectModal({
+    props: { title: poolName },
+    events: {
+      onConfirm: async () => {
+        try {
+          await run()
+        } catch (error) {
+          console.error('Error when disconnecting server:', error)
+        }
+      },
+    },
+  })
+}
 </script>
 
 <style lang="postcss" scoped>

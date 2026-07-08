@@ -1,6 +1,13 @@
 <!-- v4 -->
 <template>
-  <form :class="className" class="ui-modal" @click.self="emit('dismiss')">
+  <form
+    :class="className"
+    class="ui-modal"
+    aria-modal="true"
+    role="dialog"
+    @click.self="emit('dismiss')"
+    @submit.prevent="emit('confirm')"
+  >
     <div class="modal">
       <UiButtonIcon
         v-if="onDismiss"
@@ -33,18 +40,21 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import type { IconName } from '@core/icons'
 import { useMapper } from '@core/packages/mapper'
+import { useOverlayEscape } from '@core/packages/overlay/use-overlay-escape.ts'
+import { IK_OVERLAY_ACCENT } from '@core/utils/injection-keys.util.ts'
 import { toVariants } from '@core/utils/to-variants.util.ts'
-import { computed } from 'vue'
+import { computed, provide } from 'vue'
 
 export type ModalAccent = 'info' | 'warning' | 'danger'
 
 const { accent } = defineProps<{
   accent: ModalAccent
   icon?: IconName
-  onDismiss?: () => void
+  onDismiss?: () => any
 }>()
 
 const emit = defineEmits<{
+  confirm: []
   dismiss: []
 }>()
 
@@ -53,6 +63,8 @@ const slots = defineSlots<{
   buttons?(): any
   title?(): any
 }>()
+
+useOverlayEscape(() => emit('dismiss'))
 
 const closeIconAccent = useMapper(
   () => accent,
@@ -65,6 +77,11 @@ const closeIconAccent = useMapper(
 )
 
 const className = computed(() => toVariants({ accent }))
+
+provide(
+  IK_OVERLAY_ACCENT,
+  computed(() => accent)
+)
 </script>
 
 <style lang="postcss" scoped>

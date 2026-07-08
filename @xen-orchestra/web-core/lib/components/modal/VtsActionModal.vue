@@ -1,5 +1,5 @@
 <template>
-  <VtsModal :accent :icon dismissible>
+  <UiModal :accent :icon @confirm="emit('confirm')" @dismiss="emit('cancel')">
     <template #title>
       <span>{{ modalTexts.title }}</span>
     </template>
@@ -7,19 +7,19 @@
       <span>{{ modalTexts.message }}</span>
     </template>
     <template #buttons>
-      <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
-      <VtsModalConfirmButton>
+      <VtsOverlayCancelButton @click="emit('cancel')">{{ t('action:go-back') }}</VtsOverlayCancelButton>
+      <VtsOverlayConfirmButton>
         {{ modalTexts.action }}
-      </VtsModalConfirmButton>
+      </VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </UiModal>
 </template>
 
 <script lang="ts" setup>
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
+import UiModal from '@core/components/ui/modal/UiModal.vue'
 import type { IconName } from '@core/icons'
 import { useMapper } from '@core/packages/mapper/use-mapper.ts'
 import type { ActionsByObject, HostActions, ObjectType, VmActions } from '@core/types/object.type.ts'
@@ -53,6 +53,11 @@ const { action, object, hostName } = defineProps<
     icon: IconName
   }
 >()
+
+const emit = defineEmits<{
+  confirm: []
+  cancel: []
+}>()
 
 const defaultActionByObject: { [O in ObjectType]: ActionsByObject[O] } = {
   vm: 'shutdown',

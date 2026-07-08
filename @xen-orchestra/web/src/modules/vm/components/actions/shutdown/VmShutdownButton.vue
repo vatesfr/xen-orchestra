@@ -10,7 +10,8 @@ import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts
 import { useXoVmShutdownJob } from '@/modules/vm/jobs/xo-vm-shutdown.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useActionModal } from '@core/composables/modals/use-action-modal.ts'
+import { useBlockedModal } from '@core/composables/modals/use-blocked-modal.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -31,16 +32,18 @@ const canDisplay = computed(() => {
   return canRun.value || vm.power_state === VM_POWER_STATE.RUNNING
 })
 
-const openShutdownModal = useModal({
-  component: import('@core/components/modal/VtsActionModal.vue'),
-  props: { accent: 'info', action: 'shutdown', object: 'vm', icon: 'status:info-picto' },
-  onConfirm: () => shutdown(),
-})
+const { open: openBlockedModal } = useBlockedModal()
 
-const openBlockedModal = useModal({
-  component: import('@core/components/modal/VtsBlockedModal.vue'),
-  props: { blockedOperation: 'clean_shutdown', href: xo5VmAdvancedHref },
-})
+const { open: openShutdownModal } = useActionModal()
 
-const openModal = () => (canRun.value ? openShutdownModal() : openBlockedModal())
+const openModal = () => {
+  if (!canRun.value) {
+    return openBlockedModal({ props: { blockedOperation: 'clean_shutdown', href: xo5VmAdvancedHref.value } })
+  }
+
+  openShutdownModal({
+    events: { onConfirm: () => shutdown() },
+    props: { accent: 'info', action: 'shutdown', object: 'vm', icon: 'status:info-picto' },
+  })
+}
 </script>

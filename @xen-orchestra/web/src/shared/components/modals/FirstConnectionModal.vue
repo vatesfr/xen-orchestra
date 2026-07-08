@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="info" icon="fa:satellite">
+  <UiModal accent="info" icon="fa:satellite" @confirm="emit('close')">
     <template #title>
       {{ t('welcome-to-xo6!') }}
     </template>
@@ -36,26 +36,32 @@
       </div>
     </template>
     <template #buttons>
-      <VtsModalConfirmButton>{{ t('lets-go!') }}</VtsModalConfirmButton>
+      <VtsOverlayConfirmButton>{{ t('lets-go!') }}</VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </UiModal>
 </template>
 
 <script lang="ts" setup>
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-
+import UiModal from '@core/components/ui/modal/UiModal.vue'
 import { useI18n } from 'vue-i18n'
+
+const emit = defineEmits<{
+  close: []
+}>()
+
 const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>
 .popup-content {
   text-align: justify;
+
   div {
     margin-bottom: 1.5rem;
   }
+
   .xo-team {
     font-style: italic;
     font-weight: bold;

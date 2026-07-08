@@ -2,20 +2,18 @@
   <AppLayout>
     <RouterView />
   </AppLayout>
-  <VtsModalList />
-  <VtsDrawerList />
+  <VtsOverlayList />
   <VtsTooltipList />
 </template>
 
 <script lang="ts" setup>
 import AppLayout from '@/layouts/AppLayout.vue'
 import { useTheme } from '@/shared/composables/theme.composable.ts'
-import VtsDrawerList from '@core/components/drawer/VtsDrawerList.vue'
-import VtsModalList from '@core/components/modal/VtsModalList.vue'
+import VtsOverlayList from '@core/components/overlay/VtsOverlayList.vue'
 import VtsTooltipList from '@core/components/tooltip-list/VtsTooltipList.vue'
 import { useChartTheme } from '@core/composables/chart-theme.composable.ts'
 import { locales } from '@core/i18n'
-import { useModal } from '@core/packages/modal/use-modal'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { useUiStore } from '@core/stores/ui.store'
 import { useActiveElement, useLocalStorage, useMagicKeys, whenever } from '@vueuse/core'
 import { useCookies } from '@vueuse/integrations/useCookies'
@@ -32,14 +30,15 @@ useTheme()
 
 // TODO: Remove when we consider XO6 in more advanced state
 const isFirstConnection = useLocalStorage('first-connection', true)
-const openModal = useModal({
-  component: import('@/shared/components/modals/FirstConnection.vue'),
-  onConfirm: () => {
-    isFirstConnection.value = false
+
+const { open: openFirstConnectionModal } = useOverlay({
+  component: () => import('@/shared/components/modals/FirstConnectionModal.vue'),
+  events: {
+    onClose: () => (isFirstConnection.value = false),
   },
 })
 
-whenever(() => isFirstConnection.value, openModal, { immediate: true })
+whenever(isFirstConnection, () => openFirstConnectionModal(), { immediate: true })
 
 const cookieLang = get('lang')
 locale.value = cookieLang && locales[cookieLang] ? cookieLang : 'en'

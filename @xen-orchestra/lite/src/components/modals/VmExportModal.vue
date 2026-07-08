@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="info" icon="object:vm" dismissible @confirm="emit('confirm', compressionType)">
+  <UiModal accent="info" icon="object:vm" @confirm="emit('confirm', compressionType)" @dismiss="emit('cancel')">
     <template #title>
       {{ t('action:export-n-vms', { n: count }) }}
     </template>
@@ -12,21 +12,21 @@
       </VtsInputWrapper>
     </template>
     <template #buttons>
-      <VtsModalCancelButton />
-      <VtsModalConfirmButton>
+      <VtsOverlayCancelButton @click="emit('cancel')" />
+      <VtsOverlayConfirmButton>
         {{ t('action:export-n-vms', { n: count }) }}
-      </VtsModalConfirmButton>
+      </VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </UiModal>
 </template>
 
 <script lang="ts" setup>
 import { VM_COMPRESSION_TYPE } from '@/libs/xen-api/xen-api.enums'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
+import UiModal from '@core/components/ui/modal/UiModal.vue'
 import { useFormSelect } from '@core/packages/form-select'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -37,6 +37,7 @@ defineProps<{
 
 const emit = defineEmits<{
   confirm: [compressionType: VM_COMPRESSION_TYPE]
+  cancel: []
 }>()
 
 const { t } = useI18n()
