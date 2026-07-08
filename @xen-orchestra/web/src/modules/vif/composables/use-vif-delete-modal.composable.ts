@@ -1,13 +1,16 @@
 import { useXoVifDeleteJob } from '@/modules/vif/jobs/xo-vif-delete.job.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useRedirectAfterDelete } from '@/shared/composables/redirect-after-delete.composable.ts'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
 export function useVifDeleteModal(rawVifs: MaybeRefOrGetter<FrontXoVif[]>) {
   const vifs = toComputed(rawVifs)
+
+  const { t } = useI18n()
 
   const { run, canRun, isRunning } = useXoVifDeleteJob(vifs)
 
@@ -24,19 +27,29 @@ export function useVifDeleteModal(rawVifs: MaybeRefOrGetter<FrontXoVif[]>) {
     },
   })
 
-  const openModal = useModal(() => ({
-    component: import('@/modules/vif/components/modal/VifDeleteModal.vue'),
-    props: { count: vifs.value.length },
-    onConfirm: async () => {
-      let result
-      try {
-        result = await run()
-      } catch (error) {
-        console.error('Error when deleting VIF:', error)
-      }
-      await redirectIfOnObjectPage(result)
-    },
-  }))
+  const { open } = useDeleteModal()
+
+  function openModal() {
+    const count = vifs.value.length
+
+    return open({
+      events: {
+        onConfirm: async () => {
+          let result
+          try {
+            result = await run()
+          } catch (error) {
+            console.error('Error when deleting VIF:', error)
+          }
+          await redirectIfOnObjectPage(result)
+        },
+      },
+      props: {
+        subject: t('n-vifs', { n: count }),
+        confirmLabel: t('action:delete-n-vifs', { n: count }),
+      },
+    })
+  }
 
   return { openModal, canRun, isRunning }
 }

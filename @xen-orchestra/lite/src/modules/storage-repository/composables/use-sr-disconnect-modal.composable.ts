@@ -2,7 +2,7 @@ import { usePbdUnplugJob } from '@/jobs/pbd-unplug.job.ts'
 import type { XenApiSr } from '@/libs/xen-api/xen-api.types.ts'
 import { useGetPbdsInScope } from '@/modules/storage-repository/composables/sr-utils.composable.ts'
 import type { SrScope } from '@core/types/storage-repository.type.ts'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { CONNECTION_ACTION } from '@core/types/connection.ts'
 import { getSrAccessMode } from '@core/utils/sr.utils.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -20,23 +20,31 @@ export function useSrDisconnectModal(rawSrs: MaybeRefOrGetter<XenApiSr[]>, rawSc
 
   const { run, canRun, isRunning, errorMessage } = usePbdUnplugJob(unplugTargets)
 
-  const openModal = useModal(() => ({
-    component: import('@/modules/storage-repository/components/modal/SrConnectionToggleModal.vue'),
-    props: {
-      action: CONNECTION_ACTION.DISCONNECT,
-      count: srs.value.length,
-      scope: scope.value,
-      accessMode: getSrAccessMode(srs.value),
-      hostsCount: targetCount.value,
+  const { open } = useOverlay({
+    component: () => import('@/modules/storage-repository/components/modal/SrConnectionToggleModal.vue'),
+    events: {
+      onConfirm: async () => {
+        try {
+          await run()
+        } catch (error) {
+          console.error(`Error when disconnecting SR:`, error)
+        }
+      },
+      onCancel: true,
     },
-    onConfirm: async () => {
-      try {
-        await run()
-      } catch (error) {
-        console.error(`Error when disconnecting SR:`, error)
-      }
-    },
-  }))
+  })
+
+  function openModal() {
+    return open({
+      props: {
+        action: CONNECTION_ACTION.DISCONNECT,
+        count: srs.value.length,
+        scope: scope.value,
+        accessMode: getSrAccessMode(srs.value),
+        hostsCount: targetCount.value,
+      },
+    })
+  }
 
   return { openModal, canRun, isRunning, errorMessage, targetCount }
 }

@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="info" icon="status:info-picto" dismissible>
+  <UiModal accent="info" icon="status:info-picto" @confirm="emit('confirm')" @dismiss="emit('cancel')">
     <template #title>
       {{ title }}
     </template>
@@ -9,20 +9,20 @@
     </template>
 
     <template #buttons>
-      <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
-      <VtsModalConfirmButton>
+      <VtsOverlayCancelButton @click="emit('cancel')">{{ t('action:go-back') }}</VtsOverlayCancelButton>
+      <VtsOverlayConfirmButton>
         {{ confirmLabel }}
-      </VtsModalConfirmButton>
+      </VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </UiModal>
 </template>
 
 <script lang="ts" setup>
 import { useSrModalMessages } from '@/modules/storage-repository/composables/use-sr-modal-messages.composable.ts'
 import type { SrAccessMode, SrScope } from '@core/types/storage-repository.type.ts'
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
+import UiModal from '@core/components/ui/modal/UiModal.vue'
 import { useMapper } from '@core/packages/mapper'
 import { CONNECTION_ACTION, type ConnectionAction } from '@core/types/connection.ts'
 import { useI18n } from 'vue-i18n'
@@ -33,6 +33,11 @@ const { action, count, scope, accessMode, hostsCount } = defineProps<{
   scope: SrScope
   accessMode: SrAccessMode
   hostsCount: number
+}>()
+
+const emit = defineEmits<{
+  confirm: []
+  cancel: []
 }>()
 
 const { t } = useI18n()

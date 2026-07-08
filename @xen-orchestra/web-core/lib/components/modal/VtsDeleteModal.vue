@@ -1,36 +1,41 @@
 <template>
-  <VtsModal accent="warning" icon="status:warning-picto" dismissible>
+  <UiModal accent="warning" icon="status:warning-picto" @confirm="emit('confirm')" @dismiss="emit('cancel')">
     <template #title>
       <I18nT keypath="confirm-delete" scope="global" tag="div">
         <span class="n-delete">
-          <slot name="title" />
+          {{ subject }}
         </span>
       </I18nT>
     </template>
 
     <template #content>
-      <slot name="content">{{ t('please-confirm-to-continue') }}</slot>
+      {{ description ?? t('please-confirm-to-continue') }}
     </template>
 
     <template #buttons>
-      <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
-      <VtsModalConfirmButton>
-        <slot name="confirm" />
-      </VtsModalConfirmButton>
+      <VtsOverlayCancelButton @click="emit('cancel')">{{ t('action:go-back') }}</VtsOverlayCancelButton>
+      <VtsOverlayConfirmButton>
+        {{ confirmLabel }}
+      </VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </UiModal>
 </template>
 
 <script lang="ts" setup>
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
+import UiModal from '@core/components/ui/modal/UiModal.vue'
 import { useI18n } from 'vue-i18n'
 
-defineSlots<{
-  title(): any
-  content?(): any
-  confirm(): any
+const { subject, description, confirmLabel } = defineProps<{
+  subject: string
+  confirmLabel: string
+  description?: string
+}>()
+
+const emit = defineEmits<{
+  confirm: []
+  cancel: []
 }>()
 
 const { t } = useI18n()

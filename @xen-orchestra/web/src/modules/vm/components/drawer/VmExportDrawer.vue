@@ -1,5 +1,5 @@
 <template>
-  <VtsDrawer dismissible @dismiss="emit('cancel')">
+  <UiDrawer @dismiss="emit('cancel')" @confirm="handleConfirm">
     <template #title>
       {{ t('action:export-n-vms', 1) }}
     </template>
@@ -35,17 +35,17 @@
     </template>
 
     <template #buttons>
-      <VtsDrawerCancelButton />
-      <VtsDrawerConfirmButton :on-click="handleConfirm">{{ t('action:export') }}</VtsDrawerConfirmButton>
+      <VtsOverlayCancelButton @click="emit('cancel')" />
+      <VtsOverlayConfirmButton>{{ t('action:export') }}</VtsOverlayConfirmButton>
     </template>
-  </VtsDrawer>
+  </UiDrawer>
 </template>
 
 <script lang="ts" setup>
 import type { VmExportCompression, VmExportType } from '@/modules/vm/jobs/xo-vm-export.job'
-import VtsDrawer from '@core/components/drawer/VtsDrawer.vue'
-import VtsDrawerCancelButton from '@core/components/drawer/VtsDrawerCancelButton.vue'
-import VtsDrawerConfirmButton from '@core/components/drawer/VtsDrawerConfirmButton.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
+import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import { ref, watch } from 'vue'

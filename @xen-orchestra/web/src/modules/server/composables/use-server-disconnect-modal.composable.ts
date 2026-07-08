@@ -3,7 +3,7 @@ import {
   useXoServerCollection,
   type FrontXoServer,
 } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
 
@@ -18,17 +18,25 @@ export function useServerDisconnectModal(rawServerId: MaybeRefOrGetter<FrontXoSe
 
   const { run, canRun, isRunning, errorMessage } = useXoServerDisconnectJob([serverId])
 
-  const openModal = useModal(() => ({
-    component: import('@/modules/server/components/modal/ServerDisconnectModal.vue'),
-    props: { title: serverLabel.value },
-    onConfirm: async () => {
-      try {
-        await run()
-      } catch (error) {
-        console.error('Error when disconnecting server:', error)
-      }
+  const { open } = useOverlay({
+    component: () => import('@/modules/server/components/modal/ServerDisconnectModal.vue'),
+    events: {
+      onConfirm: async () => {
+        try {
+          await run()
+        } catch (error) {
+          console.error('Error when disconnecting server:', error)
+        }
+      },
+      onCancel: true,
     },
-  }))
+  })
+
+  function openModal() {
+    return open({
+      props: { title: serverLabel.value },
+    })
+  }
 
   return { openModal, canRun, isRunning, errorMessage }
 }

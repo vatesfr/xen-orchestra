@@ -1,46 +1,78 @@
 <template>
-  <VtsDrawer dismissible is-open :current @dismiss="emit('cancel')">
+  <UiDrawer @confirm="emit('confirm')" @dismiss="emit('cancel')">
     <template #title>
       {{ t('action:migrate-vdi-on-sr') }}
     </template>
 
     <template #content>
-      <VdiMigrateForm ref="form" :vdi @confirm="emit('confirm', $event)" />
+      <div class="vdi-migrate-drawer-content">
+        <UiTitle>{{ t('general-information') }}</UiTitle>
+        <VdiFormSelect v-bind="srSelectBindings">
+          <template #option="{ option }">
+            <VtsOption :option>
+              <span class="select-option">
+                <VtsIcon v-if="option.properties.icon" :name="option.properties.icon" size="medium" />
+                {{ option.properties.label }}
+              </span>
+            </VtsOption>
+          </template>
+        </VdiFormSelect>
+      </div>
     </template>
 
     <template #buttons>
-      <VtsDrawerCancelButton />
+      <VtsOverlayCancelButton @click="emit('cancel')" />
 
-      <VtsDrawerConfirmButton
-        :accent="form?.requiresForceMigrate ? 'warning' : 'brand'"
-        :on-click="() => form?.submit()"
-      >
-        {{ form?.requiresForceMigrate ? t('action:force-migrate-on-sr') : t('action:migrate-vdi-on-sr') }}
-      </VtsDrawerConfirmButton>
+      <VtsOverlayConfirmButton>
+        {{ requiresForceMigrate ? t('action:force-migrate-on-sr') : t('action:migrate-vdi-on-sr') }}
+      </VtsOverlayConfirmButton>
     </template>
-  </VtsDrawer>
+  </UiDrawer>
 </template>
 
 <script lang="ts" setup>
-import VdiMigrateForm from '@/modules/vdi/components/form/migrate/VdiMigrateForm.vue'
-import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.js'
-import VtsDrawer from '@xen-orchestra/web-core/components/drawer/VtsDrawer.vue'
-import VtsDrawerCancelButton from '@xen-orchestra/web-core/components/drawer/VtsDrawerCancelButton.vue'
-import VtsDrawerConfirmButton from '@xen-orchestra/web-core/components/drawer/VtsDrawerConfirmButton.vue'
-import { useTemplateRef } from 'vue'
+import VdiFormSelect from '@/modules/vdi/components/form/shared/VdiFormSelect.vue'
+import type { FormSelectId } from '@core/packages/form-select'
+import type { FieldMetadata } from '@core/packages/validated-form'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
+import VtsOption from '@core/components/select/VtsOption.vue'
+import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
+import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { IK_OVERLAY_ACCENT } from '@core/utils/injection-keys.util.ts'
+import { computed, provide } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{
-  vdi: FrontXoVdi
-  current?: boolean
+const { requiresForceMigrate } = defineProps<{
+  srSelectBindings: { id: FormSelectId; label: string } & FieldMetadata
+  requiresForceMigrate: boolean
 }>()
 
 const emit = defineEmits<{
-  confirm: [srId: string]
+  confirm: []
   cancel: []
 }>()
 
 const { t } = useI18n()
 
-const form = useTemplateRef('form')
+provide(
+  IK_OVERLAY_ACCENT,
+  computed(() => (requiresForceMigrate ? 'warning' : 'info'))
+)
 </script>
+
+<style lang="postcss" scoped>
+.vdi-migrate-drawer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2.4rem;
+  text-align: left;
+}
+
+.select-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+</style>
