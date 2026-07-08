@@ -4,6 +4,7 @@
   <HostForgetButton v-if="hostIsHalted" :host />
   <VtsDivider type="stretch" />
   <HostDownloadButton :host-id="host.id" />
+  <HostForgetButton v-if="!hostIsHalted" :host />
 </template>
 
 <script lang="ts" setup>
