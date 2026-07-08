@@ -233,7 +233,11 @@ export type XoApp = {
     url: string
   }): Promise<XoBackupRepository>
   createUser(params: { name?: string; password?: string; [key: string]: unknown }): Promise<XoUser>
-  deleteAclV2GroupRole(groupId: XoGroup['id'], roleId: XoAclRole['id']): Promise<boolean>
+  deleteAclV2GroupRole(
+    groupId: XoGroup['id'],
+    roleId: XoAclRole['id'],
+    opts?: { bypassAuthorization?: boolean }
+  ): Promise<boolean>
   deleteAclV2Privilege(privilegeId: XoAclBasePrivilege['id'], options?: { force?: boolean }): Promise<boolean>
   deleteAclV2Role(roleId: XoAclRole['id'], options?: { force?: boolean }): Promise<boolean>
   deleteGroup(id: XoGroup['id']): Promise<void>
@@ -246,13 +250,16 @@ export type XoApp = {
   getAclV2Privilege(id: XoAclBasePrivilege['id']): Promise<XoAclBasePrivilege>
   getAclV2Privileges(): Promise<XoAclBasePrivilege[]>
   getAclV2RolePrivileges(roleId: XoAclRole['id']): Promise<XoAclBasePrivilege[]>
-  getAclV2Role(id: XoAclRole['id']): Promise<XoAclRole>
+  getAclV2Role(id: XoAclRole['id'], opts?: { bypassAuthorization?: boolean }): Promise<XoAclRole>
   deleteAclV2UserRole(
     userId: XoUser['id'],
     roleId: XoAclRole['id'],
     opts?: { bypassAuthorization?: boolean }
   ): Promise<boolean>
-  getAclV2GroupRoles(groupId: XoGroup['id']): Promise<Exclude<XoAclRole, { isTemplate: true }>[]>
+  getAclV2GroupRoles(
+    groupId: XoGroup['id'],
+    opts?: { bypassAuthorization?: boolean }
+  ): Promise<Exclude<XoAclRole, { isTemplate: true }>[]>
   getAclV2Roles(): Promise<XoAclRole[]>
   getAclV2UserPrivileges(userId: XoUser['id']): Promise<XoAclBasePrivilege[]>
   getAclV2UserRoles(

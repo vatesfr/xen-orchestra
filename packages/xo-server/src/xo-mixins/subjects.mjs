@@ -118,7 +118,9 @@ export default class {
       })
     })
     // Detache ACL V2 roles for this user.
-    await Promise.all(aclV2Roles.map(({ roleId }) => this._app.deleteAclV2UserRole(id, roleId)))
+    await Promise.all(
+      aclV2Roles.map(({ id: roleId }) => this._app.deleteAclV2UserRole(id, roleId, { bypassAuthorization: true }))
+    )
 
     // Remove the user from all its groups.
     forEach(user.groups, groupId => {
@@ -385,7 +387,7 @@ export default class {
   async deleteGroup(id) {
     const group = await this.getGroup(id)
 
-    const aclV2Roles = await this._app.getAclV2GroupRoles(id)
+    const aclV2Roles = await this._app.getAclV2GroupRoles(id, { bypassAuthorization: true })
     await this._groups.remove(id)
 
     // Remove ACLs for this group.
@@ -395,7 +397,9 @@ export default class {
       })
     })
     // Detache ACL V2 roles for this group.
-    await Promise.all(aclV2Roles.map(({ roleId }) => this._app.deleteAclV2GroupRole(id, roleId)))
+    await Promise.all(
+      aclV2Roles.map(({ id: roleId }) => this._app.deleteAclV2GroupRole(id, roleId, { bypassAuthorization: true }))
+    )
 
     // Remove the group from all its users.
     forEach(group.users, userId => {
