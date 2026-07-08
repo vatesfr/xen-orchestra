@@ -5,11 +5,11 @@
     variant="tertiary"
     accent="danger"
     :disabled="!canForgetHost"
-    left-icon="action:disable"
+    left-icon="action:forget"
     :busy="isForgettingHost"
     @click="openForgetModal()"
   >
-    {{ t('action:host-disable') }}
+    {{ t('action:forget-host') }}
   </UiButton>
 </template>
 
