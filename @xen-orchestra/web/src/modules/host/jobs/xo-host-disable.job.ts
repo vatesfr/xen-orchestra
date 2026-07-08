@@ -3,7 +3,7 @@ import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-co
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
-import { type XoTask } from '@vates/types'
+import { HOST_POWER_STATE, type XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export const useXoHostDisableJob = defineJob('host.disable', [xoHostArg], () => {
@@ -26,6 +26,10 @@ export const useXoHostDisableJob = defineJob('host.disable', [xoHostArg], () => 
 
       if (isRunning) {
         throw new JobRunningError(t('job:disable:in-progress'))
+      }
+
+      if (host.power_state !== HOST_POWER_STATE.RUNNING) {
+        throw new JobRunningError(t('job:host-disable:bad-power-state'))
       }
     },
   }
