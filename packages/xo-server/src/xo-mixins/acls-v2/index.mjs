@@ -523,11 +523,15 @@ export default class {
    *
    * @param {XoUser['id']} userId
    * @param {XoAclRole['id']} roleId
+   * @param {object} [opts]
+   * @param {boolean} [opts.bypassAuthorization]
    *
    * @returns {Promise<boolean>}
    */
-  async deleteAclV2UserRole(userId, roleId) {
-    await this._app.checkFeatureAuthorization('RBAC')
+  async deleteAclV2UserRole(userId, roleId, { bypassAuthorization = false } = {}) {
+    if (!bypassAuthorization) {
+      await this._app.checkFeatureAuthorization('RBAC')
+    }
 
     /**
      * @type {UserRole[]}
@@ -617,19 +621,31 @@ export default class {
 
   /**
    * @param {XoUser['id']} userId
+   * @param {object} [opts]
+   * @param {boolean} [opts.bypassAuthorization]
+   * @param {boolean} [opts.fromGroup]
+   * @param {boolean} [opts.fromUser]
    * @returns {Promise<XoAclRole[]>}
    */
-  async getAclV2UserRoles(userId) {
-    await this._app.checkFeatureAuthorization('RBAC')
+  async getAclV2UserRoles(userId, { bypassAuthorization = false, fromGroup = true, fromUser = true } = {}) {
+    if (!bypassAuthorization) {
+      await this._app.checkFeatureAuthorization('RBAC')
+    }
 
     /** @type {XoUser} */
     const user = await this._app.getUser(userId)
 
-    const groupRoles = (await Promise.all(user.groups.map(groupId => this.getAclV2GroupRoles(groupId)))).flat()
+    const groupRoles = fromGroup
+      ? (
+          await Promise.all(user.groups.map(groupId => this.getAclV2GroupRoles(groupId, { bypassAuthorization })))
+        ).flat()
+      : []
 
     /** @type {UserRole[]} */
-    const dbUserRoles = await this.#userRoleDb._get({ userId: user.id })
-    const userRoles = await Promise.all(dbUserRoles.map(dbUserRole => this.getAclV2Role(dbUserRole.roleId)))
+    const dbUserRoles = fromUser ? await this.#userRoleDb._get({ userId: user.id }) : []
+    const userRoles = await Promise.all(
+      dbUserRoles.map(dbUserRole => this.getAclV2Role(dbUserRole.roleId, { bypassAuthorization }))
+    )
 
     return [...groupRoles, ...userRoles]
   }
@@ -655,7 +671,9 @@ export default class {
     /** @type {GroupRole[]} */
     const dbGroupRoles = await this.#groupRoleDb._get({ groupId })
 
-    return Promise.all(dbGroupRoles.map(dbGroupRole => this.getAclV2Role(dbGroupRole.roleId)))
+    return /** @type {Promise<Exclude<XoAclRole, { isTemplate: true }>[]>} */ (
+      Promise.all(dbGroupRoles.map(dbGroupRole => this.getAclV2Role(dbGroupRole.roleId)))
+    )
   }
 
   /**

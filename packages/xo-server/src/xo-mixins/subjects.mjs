@@ -97,9 +97,7 @@ export default class {
   async deleteUser(id) {
     const user = await this.getUser(id)
 
-    // getAclV2UserRoles returns both user roles and group roles
-    // we filter to keep only user roles
-    const aclV2Roles = (await this._app.getAclV2UserRoles(id)).filter(role => role.userId !== undefined)
+    const aclV2Roles = await this._app.getAclV2UserRoles(id, { bypassAuthorization: true, fromGroup: false })
 
     await this._users.remove(id)
 
