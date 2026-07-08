@@ -52,6 +52,7 @@
 - [XO6] Input fields now support prefix/suffix sections, and display validation messages ordered by severity (PR [#10009](https://github.com/vatesfr/xen-orchestra/pull/10009))
 - [XO6/New VM] Add the possibility to set the HA restart priority when creating a VM (PR [#10072](https://github.com/vatesfr/xen-orchestra/pull/10072))
 - [REST API] Add `POST /srs` REST route to create a storage repository (PR [#9990](https://github.com/vatesfr/xen-orchestra/pull/9990))
+- [XO6/Pool] Add connect/disconnect action on page Site (PR [#10075])(https://github.com/vatesfr/xen-orchestra/pull/10075)
 
 ### Bug fixes
 
