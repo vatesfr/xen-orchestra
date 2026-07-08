@@ -348,10 +348,14 @@ export default class {
 
   /**
    * @param {XoAclRole['id']} id
+   * @param {object} [opts]
+   * @param {boolean} [opts.bypassAuthorization]
    * @returns {Promise<XoAclRole>}
    */
-  async getAclV2Role(id) {
-    await this._app.checkFeatureAuthorization('RBAC')
+  async getAclV2Role(id, { bypassAuthorization = false } = {}) {
+    if (!bypassAuthorization) {
+      await this._app.checkFeatureAuthorization('RBAC')
+    }
 
     const role = await this.#roleDb.first(id)
     if (role === undefined) {
@@ -587,11 +591,15 @@ export default class {
    *
    * @param {XoGroup['id']} groupId
    * @param {XoAclRole['id']} roleId
+   * @param {object} [opts]
+   * @param {boolean} [opts.bypassAuthorization]
    *
    * @returns {Promise<boolean>}
    */
-  async deleteAclV2GroupRole(groupId, roleId) {
-    await this._app.checkFeatureAuthorization('RBAC')
+  async deleteAclV2GroupRole(groupId, roleId, { bypassAuthorization = false } = {}) {
+    if (!bypassAuthorization) {
+      await this._app.checkFeatureAuthorization('RBAC')
+    }
     /**
      * @type {GroupRole[]}
      */
@@ -663,16 +671,20 @@ export default class {
 
   /**
    * @param {XoGroup['id']} groupId
+   * @param {object} [opts]
+   * @param {boolean} [opts.bypassAuthorization]
    * @returns {Promise<Exclude<XoAclRole, {isTemplate: true}>[]>}
    */
-  async getAclV2GroupRoles(groupId) {
-    await this._app.checkFeatureAuthorization('RBAC')
+  async getAclV2GroupRoles(groupId, { bypassAuthorization = false } = {}) {
+    if (!bypassAuthorization) {
+      await this._app.checkFeatureAuthorization('RBAC')
+    }
 
     /** @type {GroupRole[]} */
     const dbGroupRoles = await this.#groupRoleDb._get({ groupId })
 
     return /** @type {Promise<Exclude<XoAclRole, { isTemplate: true }>[]>} */ (
-      Promise.all(dbGroupRoles.map(dbGroupRole => this.getAclV2Role(dbGroupRole.roleId)))
+      Promise.all(dbGroupRoles.map(dbGroupRole => this.getAclV2Role(dbGroupRole.roleId, { bypassAuthorization })))
     )
   }
 
