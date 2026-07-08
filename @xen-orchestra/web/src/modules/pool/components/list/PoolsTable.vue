@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import PoolConnectionActions from '@/modules/pool/components/actions/PoolTreeActions.vue'
+import PoolTreeActions from '@/modules/pool/components/actions/PoolTreeActions.vue'
 import {
   usePoolEnhancedData,
   type PoolDisplayData,
@@ -111,9 +111,8 @@ const { HeadCells, BodyCells } = useServerColumns({
       status: r => r(server.poolStatus),
       actions: r =>
         r({
-          component: PoolConnectionActions,
+          component: PoolTreeActions,
           props: { poolId: server.poolId },
-          onClick: () => {},
         }),
       primaryHost: r =>
         r({

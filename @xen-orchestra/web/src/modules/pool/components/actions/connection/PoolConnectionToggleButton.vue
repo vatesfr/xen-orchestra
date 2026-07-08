@@ -8,18 +8,18 @@
     :busy="isConnecting"
     @click="connect()"
   >
-    {{ t('action:connect') }}
+    {{ t('action:connect-pool') }}
   </UiButton>
   <UiButton
     v-else-if="server && server.status === 'connected'"
     left-icon="action:disconnect"
     variant="secondary"
-    accent="brand"
+    accent="danger"
     size="medium"
     :busy="isDisconnecting"
     @click="disconnect()"
   >
-    {{ t('action:disconnect') }}
+    {{ t('action:disconnect-pool') }}
   </UiButton>
 </template>
 

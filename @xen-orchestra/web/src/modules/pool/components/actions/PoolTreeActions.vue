@@ -1,7 +1,7 @@
 <template>
   <template v-if="poolId">
-    <PoolDownloadButton :pool-id="poolId" />
     <PoolToggleConnectionButton :pool-id="poolId" />
+    <PoolDownloadButton :pool-id="poolId" />
   </template>
 </template>
 
