@@ -1,19 +1,16 @@
 import assert from 'node:assert/strict'
 import filter from 'lodash/filter.js'
-import { createLogger } from '@xen-orchestra/log'
 import { ignoreErrors } from 'promise-toolbox'
 import { hash, needsRehash, verify } from 'hashy'
 import { invalidCredentials, noSuchObject, objectAlreadyExists } from 'xo-common/api-errors.js'
-
+import { createLogger } from '@xen-orchestra/log'
 import * as XenStore from '../_XenStore.mjs'
 import { Groups } from '../models/group.mjs'
 import { Users } from '../models/user.mjs'
 import { forEach, isEmpty, lightSet } from '../utils.mjs'
 
 // ===================================================================
-
 const log = createLogger('xo:xo-mixins:subjects')
-
 const addToArraySet = (set, value) => (set !== undefined ? (set.includes(value) ? set : set.concat(value)) : [value])
 const removeFromArraySet = (set, value) => set && filter(set, current => current !== value)
 
@@ -69,7 +66,8 @@ export default class {
           .catch(() => ({}))
 
         await this.createUser({ email, password, permission: 'admin' })
-        log.info(`Default user created: ${email} with password ${password}`)
+        log.info(`Default user created: ${email}`)
+
         ignoreErrors.call(XenStore.rm(key))
       }
     })

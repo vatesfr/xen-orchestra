@@ -7,6 +7,8 @@
 
 > Security fixes and new features should go in this section
 
+- xo-server : Removed default user's password from the logs during account creation ([#10094] (https://github.com/vatesfr/xen-orchestra/pull/10094/changes))
+
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
@@ -31,4 +33,5 @@
 
 <!--packages-start-->
 
+- xo-server patch
 <!--packages-end-->
