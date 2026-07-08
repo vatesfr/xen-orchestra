@@ -45,13 +45,12 @@ import VdiInfosCard from '@/modules/vdi/components/list/panel/cards/VdiInfosCard
 import VdiSpaceCard from '@/modules/vdi/components/list/panel/cards/VdiSpaceCard.vue'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import MenuList from '@core/components/menu/MenuList.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-
-const uiStore = useUiStore()
-const {t} = useI18n()
 
 const { vdi, vm } = defineProps<{
   vdi: FrontXoVdi
@@ -61,6 +60,9 @@ const { vdi, vm } = defineProps<{
 const emit = defineEmits<{
   close: []
 }>()
+
+const uiStore = useUiStore()
+const { t } = useI18n()
 
 const { useGetVbdsByIds } = useXoVbdCollection()
 
