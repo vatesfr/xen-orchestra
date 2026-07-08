@@ -26,7 +26,7 @@ export const useXoServerDisconnectJob = defineJob('server.disconnect', [xoServer
     },
     validate(isRunning, serverIds) {
       if (isRunning) {
-        throw new JobRunningError('disconnect server already running')
+        throw new JobRunningError('server disconnection already in progress')
       }
       if (serverIds.length === 0 || serverIds.some(id => id.value === '')) {
         throw new JobError('server ids are required')
