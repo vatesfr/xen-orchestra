@@ -464,7 +464,6 @@ export class AclRoleController extends XoController<XoAclRole> {
           role.userIds.map(userId =>
             this.#userService.getUser(userId).catch(err => {
               log.warn(`cannot resolve user: ${userId}`, err)
-              // TODO: Fix removing a user do not correctly detach it from the acl role
               // if the user is not resolvable (E.g. not properly removed) do not hide it (as even if it doesn't exist, it is attached, so need to be cleaned)
               return { id: userId } as XoUser
             })
