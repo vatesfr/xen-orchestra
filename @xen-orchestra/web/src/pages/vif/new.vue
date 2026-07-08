@@ -4,23 +4,31 @@
   </UiHeadBar>
 
   <div class="card-container">
-    <VtsOperationPendingCard v-if="isRunning" :title="t('creating-new-vif')" />
-    <VtsOperationErrorCard
-      v-else-if="error"
-      :title="t('unable-to-create-new-vif')"
-      :error
-      :error-message="t('new-vif:error-message')"
-    >
-      <template #actions>
-        <UiButton variant="secondary" accent="brand" size="medium" @click="handleGoBack()">
-          {{ t('action:go-back') }}
-        </UiButton>
-      </template>
-    </VtsOperationErrorCard>
-    <UiCard v-show="canDisplayForm">
-      <UiTitle>{{ t('configuration') }}</UiTitle>
-      <NewVifForm v-if="vm" :vm-id="vm.id" :pool-id="vm.$pool" :cancel-to="cancelRoute" @create="createVif" />
-    </UiCard>
+    <VtsStateHero v-if="!areVmsReady" format="page" type="busy" size="large" />
+
+    <VtsStateHero v-else-if="!vm" format="page" type="not-found" size="large">
+      {{ t('object-not-found', { id: vmId }) }}
+    </VtsStateHero>
+
+    <template v-else>
+      <VtsOperationPendingCard v-if="isRunning" :title="t('creating-new-vif')" />
+      <VtsOperationErrorCard
+        v-else-if="error"
+        :title="t('unable-to-create-new-vif')"
+        :error
+        :error-message="t('new-vif:error-message')"
+      >
+        <template #actions>
+          <UiButton variant="secondary" accent="brand" size="medium" @click="handleGoBack()">
+            {{ t('action:go-back') }}
+          </UiButton>
+        </template>
+      </VtsOperationErrorCard>
+      <UiCard v-show="canDisplayForm">
+        <UiTitle>{{ t('configuration') }}</UiTitle>
+        <NewVifForm v-if="vm" :vm-id="vm.id" :pool-id="vm.$pool" :cancel-to="cancelRoute" @create="createVif" />
+      </UiCard>
+    </template>
   </div>
 </template>
 
@@ -32,6 +40,7 @@ import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-colle
 import type { ApiError } from '@/shared/error/api.error.ts'
 import VtsOperationErrorCard from '@core/components/operation-error-card/VtsOperationErrorCard.vue'
 import VtsOperationPendingCard from '@core/components/operation-pending-card/VtsOperationPendingCard.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
@@ -47,13 +56,9 @@ const route = useRoute()
 
 const vmId = computed(() => route.query.vmId as FrontXoVm['id'] | undefined)
 
-const { getVmById } = useXoVmCollection()
+const { areVmsReady, useGetVmById } = useXoVmCollection()
 
-const vm = computed(() => (vmId.value ? getVmById(vmId.value) : undefined))
-
-const cancelRoute = computed<RouteLocationRaw>(() =>
-  vm.value ? { name: '/vm/[id]/networks', params: { id: vm.value.id } } : { name: '/(site)/dashboard' }
-)
+const vm = useGetVmById(vmId)
 
 const formPayload = ref<NewVifPayload>()
 
@@ -63,9 +68,13 @@ const { canRun, run: create, isRunning } = useXoVifCreateJob(formPayload)
 
 const canDisplayForm = computed(() => !isRunning.value && error.value === undefined)
 
-function handleGoBack() {
-  error.value = undefined
-}
+const cancelRoute = computed<RouteLocationRaw>(() => {
+  if (!vmId.value) {
+    return { name: '/(site)/dashboard' }
+  }
+
+  return { name: '/vm/[id]/networks', params: { id: vmId.value } }
+})
 
 async function createVif(payload: NewVifPayload) {
   formPayload.value = payload
@@ -75,18 +84,20 @@ async function createVif(payload: NewVifPayload) {
   }
 
   try {
-    const [promiseCreateResult] = await create()
+    const [promiseResult] = await create()
 
-    if (promiseCreateResult.status === 'rejected') {
-      throw promiseCreateResult.reason
+    if (promiseResult.status === 'rejected') {
+      throw promiseResult.reason
     }
 
-    if (vm.value) {
-      await router.push({ name: '/vm/[id]/networks', params: { id: vm.value.id } })
-    }
+    await router.push(cancelRoute.value)
   } catch (_error) {
     error.value = _error as ApiError | Error
   }
+}
+
+function handleGoBack() {
+  error.value = undefined
 }
 </script>
 
