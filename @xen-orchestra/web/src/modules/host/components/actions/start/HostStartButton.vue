@@ -12,14 +12,14 @@
   <!--    {{ t('action:start') }} -->
   <!--  </UiButton> -->
 
-  <UiButton size="medium" variant="tertiary" accent="brand" left-icon="fa:play">
+  <MenuItem size="medium" variant="tertiary" accent="brand" icon="fa:play">
     {{ t('action:start') }}
-  </UiButton>
+  </MenuItem>
 </template>
 
 <script lang="ts" setup>
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import UiButton from '@core/components/ui/button/UiButton.vue'
+import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
