@@ -457,8 +457,8 @@ export class SrController extends XapiXoController<XoSr> {
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/probe/hba')
-  @Extension('x-mcp-exposure', 'confirm')
   @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -477,8 +477,8 @@ export class SrController extends XapiXoController<XoSr> {
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    * @example targetIp ""
    */
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/probe/iscsiiqns')
-  @Extension('x-mcp-exposure', 'confirm')
   @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -503,8 +503,8 @@ export class SrController extends XapiXoController<XoSr> {
    * @example targetIp ""
    * @example targetIqn ""
    */
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/probe/iscsiluns')
-  @Extension('x-mcp-exposure', 'confirm')
   @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -531,8 +531,8 @@ export class SrController extends XapiXoController<XoSr> {
    * @example targetIp ""
    * @example targetIqn ""
    */
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/probe/iscsi/exists')
-  @Extension('x-mcp-exposure', 'confirm')
   @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -567,8 +567,8 @@ export class SrController extends XapiXoController<XoSr> {
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    * @example scsiId ""
    */
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/probe/hba/exists')
-  @Extension('x-mcp-exposure', 'confirm')
   @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -587,8 +587,8 @@ export class SrController extends XapiXoController<XoSr> {
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    * @example scsiId ""
    */
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/probe/nfs/exists')
-  @Extension('x-mcp-exposure', 'confirm')
   @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
