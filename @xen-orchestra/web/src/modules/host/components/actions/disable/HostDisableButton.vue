@@ -1,23 +1,23 @@
 <template>
-  <UiButton
+  <MenuItem
     v-tooltip="!canDisableHost && disableHostErrorMessage"
     size="medium"
     variant="tertiary"
     accent="brand"
     :disabled="!canDisableHost"
-    left-icon="action:disable"
+    icon="action:disable"
     :busy="isDisablingHost"
     @click="openEnabledStateModal()"
   >
-    {{ t('action:host-disable') }}
-  </UiButton>
+    {{ t('action:disable-host') }}
+  </MenuItem>
 </template>
 
 <script lang="ts" setup>
 import { useHostEnabledStateToggleModal } from '@/modules/host/composables/use-host-enabled-state-toggle-modal.composable.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { ENABLED_STATE_ACTION } from '@/modules/host/types/enabled-state.ts'
-import UiButton from '@core/components/ui/button/UiButton.vue'
+import MenuItem from '@core/components/menu/MenuItem.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
