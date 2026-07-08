@@ -1,5 +1,18 @@
 <template>
-  <UiButton size="medium" variant="tertiary" accent="brand" left-icon="status:success-circle">
+  <!--  <UiButton -->
+  <!--    v-tooltip="!canEnableHost && enableHostErrorMessage" -->
+  <!--    size="medium" -->
+  <!--    variant="tertiary" -->
+  <!--    accent="brand" -->
+  <!--    :disabled="!canEnableHost" -->
+  <!--    left-icon="status:success-circle" -->
+  <!--    :busy="isEnablingHost" -->
+  <!--    @click="openEnabledStateModal()" -->
+  <!--  > -->
+  <!--    {{ t('action:shutdown') }} -->
+  <!--  </UiButton> -->
+
+  <UiButton size="medium" variant="tertiary" accent="brand" left-icon="action:shutdown">
     {{ t('action:shutdown') }}
   </UiButton>
 </template>
@@ -9,7 +22,7 @@ import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-co
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { useI18n } from 'vue-i18n'
 
-const { host } = defineProps<{
+defineProps<{
   host: FrontXoHost
 }>()
 
