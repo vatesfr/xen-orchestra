@@ -2,7 +2,7 @@ import TTLCache from '@isaacs/ttlcache'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
 import { format } from 'json-rpc-peer'
-import { pipeline, Readable } from 'node:stream'
+import { pipeline } from 'node:stream'
 import tarStream from 'tar-stream'
 import { Ref } from 'xen-api'
 import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
@@ -526,7 +526,7 @@ async function handleGetSystemStatuses(_req, res, { xapi, pool }) {
         }
       })
 
-      await fromCallback(pipeline, Readable.fromWeb(response.body), entry)
+      await fromCallback(pipeline, response, entry)
     }
 
     // Finalize archive after all downloads complete
