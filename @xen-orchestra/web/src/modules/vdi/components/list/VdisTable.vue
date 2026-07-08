@@ -240,7 +240,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
             ...detachAction.value,
             {
               label: t('action:delete'),
-              hint: deleteVdiErrorMessage.value,
+              hint: vm === undefined ? t('vdi-not-attached-to-vm') : deleteVdiErrorMessage.value,
               icon: 'action:delete',
               onClick: () => openVdiDeleteModal(),
               disabled: !canDeleteVdi.value,
