@@ -507,8 +507,9 @@ async function handleGetSystemStatuses(_req, res, { xapi, pool }) {
       const filename = `${host.name_label}-system-status.tar.bz2`
 
       // Get the size from Content-Length header if available
-      const contentLength = response.headers.get('content-length')
-      const size = contentLength ? Number.parseInt(contentLength, 10) : undefined
+      const size = response.headers['content-length']
+        ? Number.parseInt(response.headers['content-length'], 10)
+        : undefined
 
       if (size === undefined) {
         throw new Error(`Missing Content-Length header for host ${host.name_label} system status download`)
