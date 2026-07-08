@@ -49,6 +49,7 @@ import { inject } from 'inversify'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { UserService } from '../users/user.service.mjs'
 import { partialUsers, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
+import { groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
 
 const log = createLogger('xo:rest-api:acl-role-controller')
 
@@ -474,6 +475,53 @@ export class AclRoleController extends XoController<XoAclRole> {
       path: 'users',
       limit,
       privilege: { resource: 'user', action: 'read' },
+    })
+  }
+
+  /**
+   * Returns all groups that match the following privilege:
+   * - resource: group, action: read
+   *
+   * @example id "426622cc-b2db-4545-a2f0-6ec47b3a6450"
+   * @example fields "name,id,users"
+   * @example filter "users:length:>0"
+   * @example limit 42
+   */
+  @Example(groupIds)
+  @Example(partialGroups)
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/groups')
+  @Security('*', ['acl'])
+  @Tags('groups')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getAclRoleGroups(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<XoGroup>>> {
+    const role = await this.getObject(id as XoAclRole['id'])
+    const groups =
+      'isTemplate' in role
+        ? []
+        : await Promise.all(
+          role.groupIds.map(groupId =>
+            this.restApi.xoApp.getGroup(groupId).catch(err => {
+              log.warn(`cannot resolve group: ${groupId}`, err)
+              // TODO: fix the deleteGroup RBAC authorization check
+              // if the group is not resolvable (E.g. not properly removed) do not hide it (as even if it doesn't exist, it is attached, so need to be cleaned)
+              return { id: groupId } as XoGroup
+            })
+          )
+        )
+
+    return this.sendObjects(limitAndFilterArray(groups, { filter }), req, {
+      path: 'groups',
+      limit,
+      privilege: { resource: 'group', action: 'read' },
     })
   }
 }
