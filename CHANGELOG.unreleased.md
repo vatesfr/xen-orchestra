@@ -13,6 +13,7 @@
 
 - [vm stats] Reduce the memory consumption of the rrd stats (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
 - [XO6/Host actions] Add Enable/Disable button (PR [#10074](https://github.com/vatesfr/xen-orchestra/pull/10074))
+- [XO6/Host actions] Add Start/Shutdown button (PR [#10088](https://github.com/vatesfr/xen-orchestra/pull/10088))
 
 ### Bug fixes
 
