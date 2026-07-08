@@ -109,11 +109,6 @@ const { HeadCells, BodyCells } = useServerColumns({
       pool: r => r(poolInfo.value),
       hostIp: r => r(server.masterHostIp),
       status: r => r(server.poolStatus),
-      actions: r =>
-        r({
-          component: PoolTreeActions,
-          props: { poolId: server.poolId },
-        }),
       primaryHost: r =>
         r({
           label: server.primaryHostName,
@@ -126,7 +121,12 @@ const { HeadCells, BodyCells } = useServerColumns({
               }
             : undefined,
         }),
-      selectItem: r => r(() => (selectedServerId.value = server.id)),
+      selectItem: r =>
+        r({
+          onClick: () => (selectedServerId.value = server.id),
+          component: PoolTreeActions,
+          props: { serverId: server.id },
+        }),
     }
   },
 })
