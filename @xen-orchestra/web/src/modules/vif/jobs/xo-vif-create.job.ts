@@ -4,12 +4,14 @@ import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-colle
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
+import type { VIF_LOCKING_MODE } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export type BaseVifPayload = {
   MAC?: string
   ipv4_allowed?: string[]
   ipv6_allowed?: string[]
+  locking_mode?: VIF_LOCKING_MODE
   qos_algorithm_type?: string
   qos_algorithm_params?: Record<string, string>
   other_config: Record<string, string>

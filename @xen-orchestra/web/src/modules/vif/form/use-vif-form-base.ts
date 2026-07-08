@@ -47,7 +47,9 @@ export function buildBaseVifPayload(formData: BaseVifFormData): BaseVifPayload {
     ...(formData.mac !== '' && { MAC: formData.mac }),
     ...(ipv4.length > 0 && { ipv4_allowed: ipv4 }),
     ...(ipv6.length > 0 && { ipv6_allowed: ipv6 }),
-    ...(formData.rateLimit !== undefined && {
+    // allowed IPs are only enforced when the locking mode is `locked`
+    ...(allowedIps.length > 0 && { locking_mode: 'locked' }),
+    ...(typeof formData.rateLimit === 'number' && {
       qos_algorithm_type: 'ratelimit',
       qos_algorithm_params: { kbps: String(formData.rateLimit) },
     }),
