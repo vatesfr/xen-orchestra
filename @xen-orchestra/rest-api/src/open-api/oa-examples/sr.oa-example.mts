@@ -81,3 +81,10 @@ export const sr = {
   $poolId: 'b7569d99-30f8-178a-7d94-801de3e29b5b',
   _xapiRef: 'OpaqueRef:a7bf6969-0e15-9fa5-f987-8515fee801c5',
 }
+
+export const nfsExport = [
+  {
+    path: '/srv/nfs',
+    acl: '(everyone)',
+  },
+]

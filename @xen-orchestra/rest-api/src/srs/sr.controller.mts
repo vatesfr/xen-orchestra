@@ -39,7 +39,7 @@ import {
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
-import { partialSrs, sr, srIds } from '../open-api/oa-examples/sr.oa-example.mjs'
+import { partialSrs, sr, srIds, nfsExport } from '../open-api/oa-examples/sr.oa-example.mjs'
 import { vdiId } from '../open-api/oa-examples/vdi.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
@@ -420,8 +420,9 @@ export class SrController extends XapiXoController<XoSr> {
    * @example server "192.168.1.1"
    * @example nfsVersion "4"
    */
+  @Example(nfsExport)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/probe/nfs')
-  @Extension('x-mcp-exposure', 'confirm')
   @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -438,8 +439,8 @@ export class SrController extends XapiXoController<XoSr> {
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    */
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/probe/zfs')
-  @Extension('x-mcp-exposure', 'confirm')
   @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
