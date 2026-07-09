@@ -14,7 +14,7 @@
       <VtsTabularKeyValueList>
         <VtsTabularKeyValueRow :label="t('vdis-allocated-space')" :value="vdisAllocatedSpace" />
       </VtsTabularKeyValueList>
-      <div v-if="vdiAllocatedSpaceExceedsSr" class="vdis-allocated-space-warning">
+      <div v-if="vdiAllocatedSpaceWarning" class="vdis-allocated-space-warning">
         <VtsIcon name="status:warning-circle" size="current" />
         <span class="label">{{ t('vdi-allocated-space-exceeds-sr') }}</span>
       </div>
@@ -52,7 +52,7 @@ const totalSpace = computed(() => formatSize(sr.size, 2))
 const freeSpace = computed(() => formatSize(sr.size - sr.physical_usage, 2))
 
 const srUsageWarning = computed(() => sr.size > 0 && sr.physical_usage / sr.size > 0.8)
-const vdiAllocatedSpaceExceedsSr = computed(() => sr.usage > sr.size - sr.physical_usage)
+const vdiAllocatedSpaceWarning = computed(() => sr.usage > sr.size - sr.physical_usage)
 </script>
 
 <style scoped lang="postcss">
