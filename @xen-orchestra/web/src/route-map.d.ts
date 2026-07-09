@@ -296,6 +296,20 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/sr/[id]': RouteRecordInfo<
+      '/sr/[id]',
+      '/sr/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | '/sr/[id]/general'
+    >,
+    '/sr/[id]/general': RouteRecordInfo<
+      '/sr/[id]/general',
+      '/sr/:id/general',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/traffic-rule/new': RouteRecordInfo<
       '/traffic-rule/new',
       '/traffic-rule/new',
@@ -531,6 +545,36 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/pages/dev/index.vue': {
+      routes:
+        | '/dev/'
+      views:
+        | never
+    }
+    'src/pages/dev/colors.vue': {
+      routes:
+        | '/dev/colors'
+      views:
+        | never
+    }
+    'src/pages/dev/icons/index.vue': {
+      routes:
+        | '/dev/icons/'
+      views:
+        | never
+    }
+    'src/pages/dev/icons/[name].vue': {
+      routes:
+        | '/dev/icons/[name]'
+      views:
+        | never
+    }
+    'src/pages/dev/token.vue': {
+      routes:
+        | '/dev/token'
+      views:
+        | never
+    }
     'src/pages/host/[id].vue': {
       routes:
         | '/host/[id]'
@@ -675,6 +719,19 @@ declare module 'vue-router/auto-routes' {
     'src/pages/settings.vue': {
       routes:
         | '/settings'
+      views:
+        | never
+    }
+    'src/pages/sr/[id].vue': {
+      routes:
+        | '/sr/[id]'
+        | '/sr/[id]/general'
+      views:
+        | 'default'
+    }
+    'src/pages/sr/[id]/general.vue': {
+      routes:
+        | '/sr/[id]/general'
       views:
         | never
     }
