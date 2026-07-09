@@ -32,7 +32,9 @@ async function checkFile(vhdName) {
     try {
       await fsPromise.unlink(target)
     } catch (err) {
-      console.warn(err)
+      if (err.code !== 'ENOENT') {
+        console.warn(err)
+      }
     }
   }
 }
