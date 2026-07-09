@@ -21,7 +21,7 @@
       </VtsTabularKeyValueRow>
       <VtsTabularKeyValueRow :label="t('storage-format')" :value="sr.SR_type" />
       <VtsTabularKeyValueRow :label="t('supported-image-formats')" :value="supportedImageFormats" />
-      <VtsTabularKeyValueRow :label="t('access-mode')" :value="isSrSharedI18nValue" />
+      <VtsTabularKeyValueRow :label="t('access-mode')" :value="accessMode" />
       <VtsTabularKeyValueRow :label="t('provisioning')" :value="provisioning" />
     </VtsTabularKeyValueList>
   </UiCard>
@@ -54,7 +54,7 @@ const { getPbdsByIds } = useXoPbdCollection()
 
 const { allPbdsConnectionStatus } = useXoPbdUtils(() => getPbdsByIds(sr.$PBDs))
 
-const isSrSharedI18nValue = computed(() => (sr.shared ? t('shared') : t('local')))
+const accessMode = computed(() => (sr.shared ? t('shared') : t('local')))
 
 const provisioning = computed(() => sr.allocationStrategy ?? t('unknown'))
 
