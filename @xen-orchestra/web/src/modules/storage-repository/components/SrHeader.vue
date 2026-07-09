@@ -16,7 +16,7 @@ import TabList from '@core/components/tab/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import { useI18n } from 'vue-i18n'
 
-const { sr } = defineProps<{ sr: FrontXoSr }>()
+defineProps<{ sr: FrontXoSr }>()
 
 const { t } = useI18n()
 </script>
