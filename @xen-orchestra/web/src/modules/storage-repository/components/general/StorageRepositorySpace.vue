@@ -7,7 +7,7 @@
     <div>
       <VtsProgressBar :current="sr.physical_usage" :total="sr.size" :label="sr.name_label" legend-type="percent" />
 
-      <UiAlert v-if="srUsageExceeds80Percent" class="sr-usage-exceeded-alert" accent="warning">
+      <UiAlert v-if="srUsageWarning" class="sr-usage-exceeded-alert" accent="warning">
         {{ t('sr-usage-exceeds-80-percent') }}
       </UiAlert>
 
@@ -51,7 +51,7 @@ const usedSpace = computed(() => formatSize(sr.physical_usage, 2))
 const totalSpace = computed(() => formatSize(sr.size, 2))
 const freeSpace = computed(() => formatSize(sr.size - sr.physical_usage, 2))
 
-const srUsageExceeds80Percent = computed(() => sr.size > 0 && sr.physical_usage / sr.size > 0.8)
+const srUsageWarning = computed(() => sr.size > 0 && sr.physical_usage / sr.size > 0.8)
 const vdiAllocatedSpaceExceedsSr = computed(() => sr.usage > sr.size - sr.physical_usage)
 </script>
 
