@@ -13,6 +13,24 @@
 
 - [vm stats] Reduce the memory consumption of the rrd stats (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
 
+- SR REST API Endpoints:
+
+  - `GET :id/probe/nfs` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
+  - `GET :id/probe/zfs` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
+  - `GET :id/probe/hba` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
+  - `GET :id/probe/iscsiiqns` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
+  - `GET :id/probe/iscsiluns` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
+  - `GET :id/probe/iscsi/exists` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
+  - `GET :id/probe/hba/exists` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
+  - `GET :id/probe/nfs/exists` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -39,6 +57,6 @@
 
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/web patch
-- xo-server patch
+- xo-server minor
 
 <!--packages-end-->
