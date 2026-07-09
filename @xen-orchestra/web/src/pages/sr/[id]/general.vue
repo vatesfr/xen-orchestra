@@ -20,7 +20,5 @@ import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/us
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
 
-const { sr } = defineProps<{
-  sr: FrontXoSr
-}>()
+defineProps<{ sr: FrontXoSr }>()
 </script>
