@@ -143,6 +143,41 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/dev/': RouteRecordInfo<
+      '/dev/',
+      '/dev',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/dev/colors': RouteRecordInfo<
+      '/dev/colors',
+      '/dev/colors',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/dev/icons/': RouteRecordInfo<
+      '/dev/icons/',
+      '/dev/icons',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/dev/icons/[name]': RouteRecordInfo<
+      '/dev/icons/[name]',
+      '/dev/icons/:name',
+      { name: ParamValue<true> },
+      { name: ParamValue<false> },
+      | never
+    >,
+    '/dev/token': RouteRecordInfo<
+      '/dev/token',
+      '/dev/token',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/host/[id]': RouteRecordInfo<
       '/host/[id]',
       '/host/:id',
@@ -310,6 +345,20 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/sr/[id]': RouteRecordInfo<
+      '/sr/[id]',
+      '/sr/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | '/sr/[id]/general'
+    >,
+    '/sr/[id]/general': RouteRecordInfo<
+      '/sr/[id]/general',
+      '/sr/:id/general',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/traffic-rule/new': RouteRecordInfo<
       '/traffic-rule/new',
       '/traffic-rule/new',
@@ -365,13 +414,6 @@ declare module 'vue-router/auto-routes' {
       '/vif/:id/traffic-rules',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      | never
-    >,
-    '/vif/new': RouteRecordInfo<
-      '/vif/new',
-      '/vif/new',
-      Record<never, never>,
-      Record<never, never>,
       | never
     >,
     '/vm/[id]': RouteRecordInfo<
@@ -442,13 +484,6 @@ declare module 'vue-router/auto-routes' {
       '/vm/:id/vdis',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      | never
-    >,
-    '/vm/duplicate': RouteRecordInfo<
-      '/vm/duplicate',
-      '/vm/duplicate',
-      Record<never, never>,
-      Record<never, never>,
       | never
     >,
     '/vm/new': RouteRecordInfo<
@@ -569,6 +604,36 @@ declare module 'vue-router/auto-routes' {
     'src/pages/backup/[id]/targets.vue': {
       routes:
         | '/backup/[id]/targets'
+      views:
+        | never
+    }
+    'src/pages/dev/index.vue': {
+      routes:
+        | '/dev/'
+      views:
+        | never
+    }
+    'src/pages/dev/colors.vue': {
+      routes:
+        | '/dev/colors'
+      views:
+        | never
+    }
+    'src/pages/dev/icons/index.vue': {
+      routes:
+        | '/dev/icons/'
+      views:
+        | never
+    }
+    'src/pages/dev/icons/[name].vue': {
+      routes:
+        | '/dev/icons/[name]'
+      views:
+        | never
+    }
+    'src/pages/dev/token.vue': {
+      routes:
+        | '/dev/token'
       views:
         | never
     }
@@ -719,6 +784,19 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/pages/sr/[id].vue': {
+      routes:
+        | '/sr/[id]'
+        | '/sr/[id]/general'
+      views:
+        | 'default'
+    }
+    'src/pages/sr/[id]/general.vue': {
+      routes:
+        | '/sr/[id]/general'
+      views:
+        | never
+    }
     'src/pages/traffic-rule/new.vue': {
       routes:
         | '/traffic-rule/new'
@@ -767,12 +845,6 @@ declare module 'vue-router/auto-routes' {
     'src/pages/vif/[id]/traffic-rules.vue': {
       routes:
         | '/vif/[id]/traffic-rules'
-      views:
-        | never
-    }
-    'src/pages/vif/new.vue': {
-      routes:
-        | '/vif/new'
       views:
         | never
     }
@@ -835,12 +907,6 @@ declare module 'vue-router/auto-routes' {
     'src/pages/vm/[id]/vdis.vue': {
       routes:
         | '/vm/[id]/vdis'
-      views:
-        | never
-    }
-    'src/pages/vm/duplicate.vue': {
-      routes:
-        | '/vm/duplicate'
       views:
         | never
     }
