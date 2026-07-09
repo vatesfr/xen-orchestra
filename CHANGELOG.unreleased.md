@@ -7,6 +7,8 @@
 
 > Security fixes and new features should go in this section
 
+- [Security] Serve a default `Content-Security-Policy` to mitigate cross-site scripting and related attacks. It can be extended or disabled through the `http.helmet` configuration (PR [#10101](https://github.com/vatesfr/xen-orchestra/pull/10101))
+
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
@@ -31,4 +33,5 @@
 
 <!--packages-start-->
 
+- xo-server minor
 <!--packages-end-->

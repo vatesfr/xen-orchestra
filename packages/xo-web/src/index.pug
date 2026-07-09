@@ -20,6 +20,7 @@ html.no-js(
 
     //- .visible-js to display content only when JavaScript is ENABLED.
     //- .hidden-js to display content only when JavaScript is DISABLED.
+    // Note: if this line changes, make sure to update the hash in  xo-server/src/index.mjs to match the new content.
     script !function(d){d.className=d.className.replace(/\bno-js\b/,'js')}(document.documentElement)
 
     style .no-js .visible-js,.js .hidden-js{display:none}
