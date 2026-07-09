@@ -17,6 +17,7 @@
 
 - [Backups] fix alignment issue in full mirror with disk > 50GB from non encrypted to encrypted remote (PR [#10061](https://github.com/vatesfr/xen-orchestra/pull/10061))
 - [Backups] Add length to throttled stream during transfer size (PR [#10079](https://github.com/vatesfr/xen-orchestra/pull/10079))
+- [Backups] Remove warning "Issue while checking XVA" when Backup Repository is encrypted (PR [#10079](https://github.com/vatesfr/xen-orchestra/pull/10079))
 
 ### Packages to release
 
@@ -34,6 +35,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups patch
 - @xen-orchestra/fs patch
 
