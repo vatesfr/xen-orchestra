@@ -35,8 +35,8 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/fs patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
-- @xen-orchestra/fs patch
 
 <!--packages-end-->
