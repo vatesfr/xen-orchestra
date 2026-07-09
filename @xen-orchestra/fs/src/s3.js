@@ -363,8 +363,18 @@ export default class S3Handler extends RemoteHandlerAbstract {
     if (typeof file !== 'string') {
       file = file.fd
     }
-    const result = await this.#s3.send(new HeadObjectCommand(this.#createParams(file)))
-    return +result.ContentLength
+    try {
+      const result = await this.#s3.send(new HeadObjectCommand(this.#createParams(file)))
+      return +result.ContentLength
+    } catch (e) {
+      if (e.name === 'NotFound') {
+        const error = new Error(`ENOENT: no such file '${file}'`)
+        error.code = 'ENOENT'
+        error.path = file
+        throw error
+      }
+      throw e
+    }
   }
 
   async _read(file, buffer, position = 0) {
