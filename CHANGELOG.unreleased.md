@@ -28,6 +28,24 @@
 - [New VM] Allow resizing existing (template) disks when a config drive is used (PR [#10359](https://github.com/vatesfr/xen-orchestra/pull/10359))
 - [Host] Add possibility to emergency shutdown a host (PR [#10412](https://github.com/vatesfr/xen-orchestra/pull/10412))
 
+- SR REST API Endpoints:
+
+  - `GET :id/probe/nfs` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
+  - `GET :id/probe/zfs` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
+  - `GET :id/probe/hba` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
+  - `GET :id/probe/iscsiiqns` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
+  - `GET :id/probe/iscsiluns` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
+  - `GET :id/probe/iscsi/exists` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
+  - `GET :id/probe/hba/exists` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
+  - `GET :id/probe/nfs/exists` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
