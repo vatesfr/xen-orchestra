@@ -1,0 +1,61 @@
+{
+  "name": "app-conf",
+  "version": "4.1.1",
+  "license": "ISC",
+  "author": "Julien Fontanet <julien.fontanet@isonoe.net> (http://julien.isonoe.net/)",
+  "description": "Load and merge configuration from vendor, system, user, and local sources with optional env var overrides",
+  "keywords": [
+    "config",
+    "configuration",
+    "settings",
+    "conf",
+    "env"
+  ],
+  "homepage": "https://github.com/JsCommunity/app-conf",
+  "bugs": "https://github.com/JsCommunity/app-conf/issues/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JsCommunity/app-conf"
+  },
+  "files": [
+    "_entries.js",
+    "_merge.js",
+    "_pMap.js",
+    "_readFile.js",
+    "_serializers.js",
+    "_unknown-format-error.js",
+    "cli.js",
+    "index.d.ts",
+    "index.js"
+  ],
+  "types": "./index.d.ts",
+  "bin": "./cli.js",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "dependencies": {
+    "chokidar": "^4.0.3",
+    "debug": "^4.4.3",
+    "fast-glob": "^3.3.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.6.0",
+    "globals": "^17.7.0",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.5.2",
+    "mock-fs": "^5.5.0",
+    "prettier": "^3.9.3"
+  },
+  "scripts": {
+    "test": "node --test",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*": "prettier --ignore-unknown --write",
+    "*.{{,c,m}j,t}s{,x}": [
+      "npm test",
+      "eslint --ignore-pattern '!*'"
+    ]
+  }
+}
