@@ -13,6 +13,7 @@ import { networkInterfaces } from 'os'
 import { noSuchObject, incorrectState } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
 import { pDelay, ignoreErrors } from 'promise-toolbox'
+import { Task } from '@vates/task'
 
 import * as XenStore from '../_XenStore.mjs'
 import Xapi from '../xapi/index.mjs'
@@ -809,30 +810,23 @@ export default class XenServers {
       log.info(`rolling pool update of pool ${poolId}: trace in ${trace.traceFile}`)
     }
 
-    let task = parentTask
-    const fn = async () =>
+    const properties = {
+      name: 'Rolling pool update',
+      objectId: poolId,
+      poolId,
+      poolName: pool.name_label,
+      progress: 0,
+      type: 'pool.rolling_update',
+      ...(trace !== undefined && { traceFile: trace.traceFile }),
+    }
+    const task = parentTask === undefined ? app.tasks.create(properties) : new Task({ properties })
+    trace?.attach(task)
+    await task.run(async () =>
       this.getXapi(pool).rollingPoolUpdate(task, {
         xsCredentials: app.apiContext.user.preferences.xsCredentials,
         rebootVm,
       })
-
-    if (task === undefined) {
-      task = app.tasks.create({
-        name: `Rolling pool update`,
-        objectId: poolId,
-        poolId,
-        poolName: pool.name_label,
-        progress: 0,
-        type: 'pool.rolling_update',
-        ...(trace !== undefined && { traceFile: trace.traceFile }),
-      })
-      trace?.attach(task)
-      await task.run(fn)
-    } else {
-      // task created by the caller (e.g. REST API): trace it as well
-      trace?.attach(task)
-      await fn()
-    }
+    )
   }
 }
 

@@ -10,6 +10,7 @@ import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
+import { Task } from '@vates/task'
 
 import { acquireRpuGuard } from '../_rpuGuard.mjs'
 import { gcRpuTraces, getRpuTracesConfig, openRpuTrace, reconcileRpuTraces } from '../_rpuObservability.mjs'
@@ -214,26 +215,18 @@ export default class Pools {
         log.info(`rolling pool reboot of pool ${pool.id}: trace in ${trace.traceFile}`)
       }
 
-      let task = parentTask
-      const fn = async () => _app.getXapi(pool).rollingPoolReboot(task)
-
-      if (task === undefined) {
-        task = _app.tasks.create({
-          name: `Rolling pool reboot`,
-          objectId: pool.id,
-          poolId: pool.id,
-          poolName: pool.name_label,
-          progress: 0,
-          type: 'pool.rolling_reboot',
-          ...(trace !== undefined && { traceFile: trace.traceFile }),
-        })
-        trace?.attach(task)
-        await task.run(fn)
-      } else {
-        // task created by the caller (e.g. REST API): trace it as well
-        trace?.attach(task)
-        await fn()
+      const properties = {
+        name: 'Rolling pool reboot',
+        objectId: pool.id,
+        poolId: pool.id,
+        poolName: pool.name_label,
+        progress: 0,
+        type: 'pool.rolling_reboot',
+        ...(trace !== undefined && { traceFile: trace.traceFile }),
       }
+      const task = parentTask === undefined ? _app.tasks.create(properties) : new Task({ properties })
+      trace?.attach(task)
+      await task.run(async () => _app.getXapi(pool).rollingPoolReboot(task))
     } finally {
       trace?.stop()
       releaseGuard()

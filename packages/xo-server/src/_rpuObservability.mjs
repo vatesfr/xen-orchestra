@@ -1,8 +1,9 @@
-import { closeSync, mkdirSync, openSync, renameSync, unlinkSync, writeFileSync, writeSync } from 'node:fs'
+import { closeSync, mkdirSync, openSync, renameSync, rmdirSync, unlinkSync, writeFileSync, writeSync } from 'node:fs'
 import { createLogger } from '@xen-orchestra/log'
 import { join } from 'node:path'
 import { readdir, readFile, stat, unlink, writeFile } from 'node:fs/promises'
 import { serializeError } from '@vates/task'
+import stringify from 'json-stringify-safe'
 
 const log = createLogger('xo:rpu-observability')
 
@@ -26,34 +27,27 @@ export function getRpuTracesConfig(app) {
 }
 
 /**
- * Creates a `JSON.stringify` replacer: serializes errors, converts BigInt,
- * breaks cycles and scrubs secret-looking keys since the trace contains
- * debug-level data.
+ * `JSON.stringify` replacer: serializes errors, converts BigInt and scrubs
+ * secret-looking keys since the trace contains debug-level data.
  *
- * Stateful (cycle detection): create a fresh replacer per `JSON.stringify` call.
+ * Use with `json-stringify-safe` which breaks real cycles only: an object
+ * referenced twice is serialized twice, not flagged as circular.
  *
- * @returns {(key: string, value: any) => any}
+ * @param {string} key
+ * @param {any} value
+ * @returns {any}
  */
-export function makeReplacer() {
-  const seen = new WeakSet()
-  return function replacer(key, value) {
-    if (key !== '' && SENSITIVE_KEY_RE.test(key)) {
-      return '[REDACTED]'
-    }
-    if (typeof value === 'bigint') {
-      return value.toString()
-    }
-    if (value instanceof Error) {
-      return serializeError(value)
-    }
-    if (typeof value === 'object' && value !== null) {
-      if (seen.has(value)) {
-        return '[Circular]'
-      }
-      seen.add(value)
-    }
-    return value
+export function replacer(key, value) {
+  if (key !== '' && SENSITIVE_KEY_RE.test(key)) {
+    return '[REDACTED]'
   }
+  if (typeof value === 'bigint') {
+    return value.toString()
+  }
+  if (value instanceof Error) {
+    return serializeError(value)
+  }
+  return value
 }
 
 /**
@@ -78,6 +72,18 @@ export function openRpuTrace({ dir, kind, poolId }) {
   } catch (error) {
     try {
       log.warn('could not create RPU trace files, continuing without observability', { error, dir })
+    } catch {}
+    // best effort cleanup of anything created before the failure
+    if (fd !== undefined) {
+      try {
+        closeSync(fd)
+      } catch {}
+      try {
+        unlinkSync(traceFile)
+      } catch {}
+    }
+    try {
+      rmdirSync(dir) // only succeeds if the dir is empty
     } catch {}
     return
   }
@@ -110,7 +116,7 @@ export function openRpuTrace({ dir, kind, poolId }) {
             if (event.type === 'property' && SENSITIVE_KEY_RE.test(event.name)) {
               sanitized = { ...event, value: '[REDACTED]' }
             }
-            writeSync(fd, JSON.stringify(sanitized, makeReplacer()) + '\n')
+            writeSync(fd, stringify(sanitized, replacer) + '\n')
           } catch (error) {
             onWriteError(error)
           }
@@ -121,13 +127,6 @@ export function openRpuTrace({ dir, kind, poolId }) {
       beat = () => {
         try {
           const tmp = heartbeatFile + '.tmp'
-          try {
-            unlinkSync(tmp)
-          } catch (error) {
-            if (error.code !== 'ENOENT') {
-              throw error
-            }
-          }
           writeFileSync(
             tmp,
             JSON.stringify({
@@ -135,7 +134,7 @@ export function openRpuTrace({ dir, kind, poolId }) {
               status: task.status,
               ...(writeErrorLogged && { degraded: true }),
             }) + '\n',
-            { flag: 'wx', mode: 0o600 }
+            { mode: 0o600 }
           )
           renameSync(tmp, heartbeatFile)
         } catch (error) {

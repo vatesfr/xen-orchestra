@@ -1,11 +1,12 @@
 import assert from 'assert/strict'
 import test from 'node:test'
+import stringify from 'json-stringify-safe'
 import { mkdtemp, readFile, stat, utimes, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 
-import { gcRpuTraces, makeReplacer, openRpuTrace, reconcileRpuTraces } from './_rpuObservability.mjs'
+import { gcRpuTraces, openRpuTrace, reconcileRpuTraces, replacer } from './_rpuObservability.mjs'
 
 const { describe, it, beforeEach } = test
 
@@ -19,8 +20,8 @@ beforeEach(async () => {
   dir = await mkdtemp(join(tmpdir(), 'rpu-observability-'))
 })
 
-describe('makeReplacer', function () {
-  const serialize = value => JSON.stringify(value, makeReplacer())
+describe('replacer', function () {
+  const serialize = value => stringify(value, replacer)
 
   it('serializes errors with message, name and stack', function () {
     const parsed = JSON.parse(serialize({ result: new Error('boom') }))
@@ -36,7 +37,15 @@ describe('makeReplacer', function () {
   it('breaks cycles', function () {
     const value = { name: 'a' }
     value.self = value
-    assert.equal(serialize(value), '{"name":"a","self":"[Circular]"}')
+    assert.equal(serialize(value), '{"name":"a","self":"[Circular ~]"}')
+  })
+
+  it('serializes an object referenced twice without flagging it as circular', function () {
+    const shared = { name: 'a' }
+    assert.equal(
+      serialize({ blockedBy: shared, relatedTo: shared }),
+      '{"blockedBy":{"name":"a"},"relatedTo":{"name":"a"}}'
+    )
   })
 
   it('scrubs sensitive keys', function () {
@@ -107,6 +116,18 @@ describe('openRpuTrace', function () {
     trace.stop()
     heartbeat = JSON.parse(await readFile(trace.heartbeatFile, 'utf8'))
     assert.equal(heartbeat.status, 'success')
+  })
+
+  it('updates the heartbeat even when a stale tmp file is left over', async function () {
+    const trace = openRpuTrace({ dir, kind: 'rpu', poolId: 'pool-1' })
+    await writeFile(trace.heartbeatFile + '.tmp', 'stale')
+
+    trace.attach(makeFakeTask())
+    trace.stop()
+
+    const heartbeat = JSON.parse(await readFile(trace.heartbeatFile, 'utf8'))
+    assert.equal(heartbeat.status, 'pending')
+    assert.equal(heartbeat.degraded, undefined)
   })
 
   it('flags the heartbeat as degraded when trace writes fail', async function () {
