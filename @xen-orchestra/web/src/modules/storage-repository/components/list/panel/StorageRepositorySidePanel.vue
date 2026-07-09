@@ -38,6 +38,7 @@ import StorageRepositorySpaceCard from '@/modules/storage-repository/components/
 import StorageRepositoryVdisCard from '@/modules/storage-repository/components/list/panel/cards/StorageRepositoryVdisCard.vue'
 import { useGetPbdsInScope } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { getSrCustomFields } from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import {
   type FrontXoVdiSnapshot,
@@ -82,19 +83,5 @@ const hosts = computed(() =>
   pbds.value.map(pbd => getHostById(pbd.host)).filter((host): host is FrontXoHost => host !== undefined)
 )
 
-const customFields = computed(() => {
-  if (sr === undefined) {
-    return {}
-  }
-
-  const prefix = 'XenCenter.CustomFields.'
-
-  return Object.entries(sr.other_config).reduce<Record<string, unknown>>((acc, [key, value]) => {
-    if (key.startsWith(prefix)) {
-      acc[key.slice(prefix.length)] = value
-    }
-
-    return acc
-  }, {})
-})
+const customFields = computed(() => (sr !== undefined ? getSrCustomFields(sr) : {}))
 </script>
