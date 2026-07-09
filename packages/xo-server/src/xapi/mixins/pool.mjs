@@ -1,4 +1,5 @@
 import { cancelable, timeout } from 'promise-toolbox'
+import { createLogger } from '@xen-orchestra/log'
 import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { incorrectState } from 'xo-common/api-errors.js'
@@ -8,6 +9,8 @@ import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import filter from 'lodash/filter.js'
 import groupBy from 'lodash/groupBy.js'
 import mapValues from 'lodash/mapValues.js'
+
+const log = createLogger('xo:xapi')
 
 const PATH_DB_DUMP = '/pool/xmldbdump'
 
@@ -38,6 +41,12 @@ const methods = {
       const haConfig = this.pool.ha_configuration
       await this.call('pool.disable_ha')
       $defer(() => this.call('pool.enable_ha', haSrs, haConfig))
+    }
+
+    if (this.pool.other_config.auto_poweron === 'true') {
+      log.info(`temporarily disabling auto power on during the rolling reboot of pool ${this.pool.uuid}`)
+      await this.pool.update_other_config('auto_poweron', 'false')
+      $defer(() => this.pool.update_other_config('auto_poweron', 'true'))
     }
 
     const hosts = filter(this.objects.all, { $type: 'host' })
@@ -272,5 +281,5 @@ const methods = {
 export default decorateObject(methods, {
   exportPoolMetadata: cancelable,
   importPoolMetadata: cancelable,
-  rollingPoolReboot: deferrable,
+  rollingPoolReboot: deferrable.onError(log.warn),
 })
