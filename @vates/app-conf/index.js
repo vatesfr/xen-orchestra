@@ -207,3 +207,26 @@ exports.watch = function watch(
       })
   })
 }
+
+// ===================================================================
+
+// Returns the list of files that would be loaded, grouped by layer name.
+// Does NOT read file contents — just runs the same globs as load().
+async function listSources(appName, { appDir, entries: whitelist } = {}) {
+  const useWhitelist = whitelist !== undefined
+  const entryWhitelist = useWhitelist ? new Set(whitelist) : undefined
+  const entryOpts = { appDir, appName }
+
+  const results = await pMap(entries, async entry => {
+    if (useWhitelist && !entryWhitelist.has(entry.name)) {
+      return { name: entry.name, files: [] }
+    }
+    const dirFn = entry.dir
+    const dir = typeof dirFn === 'function' ? dirFn(entryOpts) : dirFn
+    const files = (await entry.list(entryOpts, dir)) || []
+    return { name: entry.name, files }
+  })
+
+  return results
+}
+exports.listSources = listSources
