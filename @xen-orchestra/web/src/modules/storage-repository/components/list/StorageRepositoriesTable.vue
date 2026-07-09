@@ -115,8 +115,6 @@ function getPrimaryIcon(sr: FrontXoSr) {
 
 const { HeadCells, BodyCells } = useSrColumns({
   body: (sr: FrontXoSr) => {
-    const to = `/sr/${sr.id}`
-
     const rightIcon = computed(() => getPrimaryIcon(sr))
 
     const { srStatusIcon } = useXoSrUtils(sr, () => scope)
@@ -161,7 +159,7 @@ const { HeadCells, BodyCells } = useSrColumns({
       storageRepository: r =>
         r({
           label: sr.name_label,
-          to,
+          to: `/sr/${sr.id}`,
           icon: srStatusIcon.value,
           rightIcon: rightIcon.value,
         }),
