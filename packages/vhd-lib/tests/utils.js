@@ -73,7 +73,7 @@ exports.recoverRawContent = async function recoverRawContent(vhdName, rawName, o
 
 // @ todo how can I call vhd-cli copy from here
 async function convertToVhdDirectory(rawFileName, vhdFileName, path) {
-  fs.mkdirp(path)
+  await fs.mkdirp(path)
 
   const srcVhd = await fs.open(vhdFileName, 'r')
 
@@ -110,7 +110,7 @@ async function convertToVhdDirectory(rawFileName, vhdFileName, path) {
 exports.convertToVhdDirectory = convertToVhdDirectory
 
 exports.createRandomVhdDirectory = async function createRandomVhdDirectory(path, sizeMB) {
-  fs.mkdirp(path)
+  await fs.mkdirp(path)
   const rawFileName = `${path}/temp.raw`
   await createRandomFile(rawFileName, sizeMB)
   const vhdFileName = `${path}/temp.vhd`
