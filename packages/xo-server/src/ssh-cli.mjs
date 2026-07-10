@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { realpathSync } from 'node:fs'
 import { createClient as createRedisClient } from 'redis'
 import { Client } from 'ssh2'
-import appConf from 'app-conf'
+import appConf from '@vates/app-conf'
 
 import RedisCollection from './collection/redis.mjs'
 

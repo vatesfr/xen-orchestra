@@ -7,7 +7,7 @@ import { catchGlobalErrors } from '@xen-orchestra/log/configure'
 import { createLogger } from '@xen-orchestra/log'
 import { getSyncedHandler } from '@xen-orchestra/fs'
 import { join } from 'node:path'
-import { load as loadConfig } from 'app-conf'
+import { load as loadConfig } from '@vates/app-conf'
 import Disposable from 'promise-toolbox/Disposable'
 
 import { getVmBackupDir } from '../_getVmBackupDir.mjs'
