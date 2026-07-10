@@ -1,7 +1,20 @@
 <template>
   <VtsSidePanel :has-selection="!!network" class="network-side-panel" @close="emit('close')">
     <template v-if="network" #actions>
-      <VtsDeleteButton :busy="isDeletingNetworks" @click="deleteNetworks()" />
+      <UiButton
+        v-if="network.PIFs.length > 0"
+        v-tooltip="!canReconfigureManagement && reconfigureManagementErrorMessage"
+        size="medium"
+        variant="tertiary"
+        accent="brand"
+        :disabled="!canReconfigureManagement"
+        left-icon="action:connect"
+        :busy="isReconfiguringManagement"
+        @click="openManagementReconfigureModal()"
+      >
+        {{ t('action:set-as-management') }}
+      </UiButton>
+      <VtsDeleteButton :busy="isDeletingNetwork" @click="openDeleteModal()" />
     </template>
     <template v-if="network" #default>
       <UiPanelCard>
@@ -59,9 +72,12 @@
 
 <script setup lang="ts">
 import NetworkPifsInfoCard from '@/modules/network/components/panel/cards/NetworkPifsInfoCard.vue'
+import { useNetworkDeleteModal } from '@/modules/network/composables/use-network-delete-modal.composable.ts'
+import { useNetworkManagementReconfigureModal } from '@/modules/network/composables/use-network-management-reconfigure-modal.composable.ts'
 import { useNetworkDelete } from '@/modules/network/composables/use-network-delete.composable.ts'
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
@@ -69,6 +85,9 @@ import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -81,6 +100,20 @@ const emit = defineEmits<{
 }>()
 
 const { deleteNetworks, isDeletingNetworks } = useNetworkDelete(() => (network !== undefined ? [network] : []))
+
+const { useGetPoolById } = useXoPoolCollection()
+
+const pool = useGetPoolById(() => network?.$pool)
+
+const {
+  openModal: openManagementReconfigureModal,
+  canRun: canReconfigureManagement,
+  isRunning: isReconfiguringManagement,
+  errorMessage: reconfigureManagementErrorMessage,
+} = useNetworkManagementReconfigureModal(
+  () => network,
+  () => pool.value
+)
 
 const { buildXo5Route } = useXoRoutes()
 

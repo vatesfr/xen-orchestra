@@ -1,5 +1,19 @@
 <template>
   <VtsSidePanel :has-selection="!!pif" class="pif-side-panel" @close="emit('close')">
+    <template v-if="pif" #actions>
+      <UiButton
+        v-tooltip="!canReconfigureManagement && reconfigureManagementErrorMessage"
+        size="medium"
+        variant="tertiary"
+        accent="brand"
+        :disabled="!canReconfigureManagement"
+        left-icon="action:connect"
+        :busy="isReconfiguringManagement"
+        @click="openManagementReconfigureModal()"
+      >
+        {{ t('action:set-as-management') }}
+      </UiButton>
+    </template>
     <template v-if="pif">
       <!-- PIF -->
       <UiPanelCard>
@@ -223,8 +237,10 @@
 </template>
 
 <script setup lang="ts">
+import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
+import { usePifManagementReconfigureModal } from '@/modules/pif/composables/use-pif-management-reconfigure-modal.composable.ts'
 import { type FrontXoPif, useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
@@ -234,6 +250,7 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
@@ -254,8 +271,21 @@ const emit = defineEmits<{
 
 const { useGetNetworkById } = useXoNetworkCollection()
 const { getBondsDevices } = useXoPifCollection()
+const { useGetHostById } = useXoHostCollection()
 
 const { t } = useI18n()
+
+const host = useGetHostById(() => pif?.$host)
+
+const {
+  openModal: openManagementReconfigureModal,
+  canRun: canReconfigureManagement,
+  isRunning: isReconfiguringManagement,
+  errorMessage: reconfigureManagementErrorMessage,
+} = usePifManagementReconfigureModal(
+  () => pif,
+  () => host.value
+)
 
 const ipAddresses = computed(() => {
   if (pif === undefined) {
