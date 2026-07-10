@@ -1,4 +1,4 @@
-import appConf from 'app-conf'
+import appConf from '@vates/app-conf'
 import assert from 'assert'
 import blocked from 'blocked-at'
 import Bluebird from 'bluebird'

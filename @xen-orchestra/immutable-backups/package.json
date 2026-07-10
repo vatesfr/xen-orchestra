@@ -24,7 +24,7 @@
     "@vates/async-each": "^1.0.3",
     "@xen-orchestra/backups": "^0.73.7",
     "@xen-orchestra/log": "^0.7.2",
-    "app-conf": "^3.0.0",
+    "@vates/app-conf": "*",
     "execa": "^5.0.0",
     "ms": "^2.1.3"
   },
