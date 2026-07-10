@@ -99,7 +99,7 @@ set.resolve = {
 // -------------------------------------------------------------------
 
 export async function setDefaultSr({ sr }) {
-  await this.checkPermissions(this.apiContext.user.id, [[sr.$pool, 'administrate']])
+  await this.checkPermissions([[sr.$pool, 'administrate']])
 
   await this.getXapi(sr).setDefaultSr(sr._xapiId)
 }
