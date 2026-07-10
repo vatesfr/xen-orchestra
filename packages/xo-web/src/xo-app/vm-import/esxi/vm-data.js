@@ -1,9 +1,31 @@
 import _ from 'intl'
+import Icon from 'icon'
 import React from 'react'
 import { Col, Row } from 'grid'
 import { formatSize } from 'utils'
 
-const VmData = ({ data }) => (
+const ReferenceVmStatus = ({ status, srLabel }) => {
+  if (status === 'none') {
+    return <span>{_('esxiImportNoReferenceVm')}</span>
+  }
+  if (status === 'sameSr') {
+    return (
+      <span className='text-success'>
+        <Icon icon='success' /> {_('esxiImportReferenceVmSameSr')}
+      </span>
+    )
+  }
+  if (status === 'otherSr') {
+    return (
+      <strong className='text-danger'>
+        <Icon icon='alarm' /> {_('esxiImportReferenceVmOtherSr', { sr: srLabel })}
+      </strong>
+    )
+  }
+  return null
+}
+
+const VmData = ({ data, referenceVmStatus }) => (
   <div>
     <Row>
       <Col mediumSize={6}>
@@ -46,6 +68,13 @@ const VmData = ({ data }) => (
         </div>
       </Col>
     </Row>
+    {referenceVmStatus && (
+      <Row>
+        <Col mediumSize={12}>
+          <ReferenceVmStatus {...referenceVmStatus} />
+        </Col>
+      </Row>
+    )}
   </div>
 )
 

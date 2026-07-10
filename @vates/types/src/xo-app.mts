@@ -16,6 +16,7 @@ import type {
   XoServer,
   XoTask,
   XoUser,
+  XoVif,
   XoVm,
   XoVmBackupArchive,
 } from './xo.mjs'
@@ -67,6 +68,7 @@ type FeatureCode =
   | 'RBAC'
   | 'ROLLING_POOL_UPDATE'
   | 'ROLLING_POOL_REBOOT'
+  | 'SMART_REBOOT'
   | 'WARM_MIGRATION'
   | 'PLUGIN.OPENMETRICS'
 
@@ -180,6 +182,7 @@ export type XoApp = {
   }
 
   // methods ------------
+  allocIpAddresses(vifId: XoVif['id'], addAddresses?: string[], removeAddresses?: string[]): Promise<void>
   addAclV2GroupRole(groupId: XoGroup['id'], roleId: XoAclRole['id']): Promise<XoGroupRole>
   addAclV2UserRole(userId: XoUser['id'], roleId: XoAclRole['id']): Promise<XoUserRole>
   addUserToGroup: (userId: XoUser['id'], groupId: XoGroup['id']) => Promise<void>
@@ -197,6 +200,7 @@ export type XoApp = {
     userData?: { ip?: string },
     opts?: { bypassOtp?: boolean; bypassTaskCreation?: boolean }
   ) => Promise<{ bypassOtp: boolean; expiration: number; user: XoUser }>
+  backupGuard(poolId: XoPool['id']): Promise<void>
   /* Throw if no authorization */
   checkFeatureAuthorization(featureCode: FeatureCode): Promise<void>
   /* connect a server (XCP-ng/XenServer) */
@@ -234,9 +238,11 @@ export type XoApp = {
   deleteAclV2Role(roleId: XoAclRole['id'], options?: { force?: boolean }): Promise<boolean>
   deleteGroup(id: XoGroup['id']): Promise<void>
   deleteUser(id: XoUser['id']): Promise<void>
+  detachHostFromPool(hostId: XoHost['id']): Promise<void>
   createGroup(params: { name: string; provider?: string; providerGroup?: string }): Promise<XoGroup>
   /* disconnect a server (XCP-ng/XenServer) */
   disconnectXenServer(id: XoServer['id']): Promise<void>
+  findEnabledScheduleSequenceFromSchedule(id: XoSchedule['id']): Promise<XoSchedule | undefined>
   getAclV2Privilege(id: XoAclBasePrivilege['id']): Promise<XoAclBasePrivilege>
   getAclV2Privileges(): Promise<XoAclBasePrivilege[]>
   getAclV2RolePrivileges(roleId: XoAclRole['id']): Promise<XoAclBasePrivilege[]>
@@ -246,7 +252,7 @@ export type XoApp = {
   getAclV2UserPrivileges(userId: XoUser['id']): Promise<XoAclBasePrivilege[]>
   getAllGroups(): Promise<XoGroup[]>
   getAllProxies(): Promise<XoProxy[]>
-  getAllJobs<T extends AnyXoBackupJob['type']>(type: T): Promise<Extract<AnyXoBackupJob, { type: T }>[]>
+  getAllJobs<T extends AnyXoJob['type']>(type: T): Promise<Extract<AnyXoJob, { type: T }>[]>
   getAllJobs(type?: string): Promise<AnyXoJob[]>
   getProxy(id: XoProxy['id']): Promise<XoProxy>
   getRemote(id: XoBackupRepository['id']): Promise<XoBackupRepository>
@@ -309,6 +315,7 @@ export type XoApp = {
     backupRepositoryIds: XoBackupRepository['id'][],
     opts?: { _forceRefresh?: boolean; vmId: XoVm['id'] }
   ): Promise<Record<XoBackupRepository['id'], Record<XoVm['id'], XoVmBackupArchive[]>>>
+  pingRemote(id: XoBackupRepository['id']): Promise<{ success: true }>
   /** Allow to add a new server in the DB (XCP-ng/XenServer) */
   registerXenServer(
     body: Pick<XoServer, 'host' | 'httpProxy' | 'label' | 'username'> & {
@@ -324,6 +331,12 @@ export type XoApp = {
   removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>
   runJob(job: AnyXoJob, schedule: XoSchedule): void
   runWithApiContext: (user: XoUser | undefined, fn: () => void) => Promise<unknown>
+  testRemote(
+    id: XoBackupRepository['id']
+  ): Promise<
+    | { success: true; readRate: number; writeRate: number }
+    | { success: false; step: string; file: string; error: unknown }
+  >
   /** Remove a server from the DB (XCP-ng/XenServer) */
   unregisterXenServer(id: XoServer['id']): Promise<void>
   updateUser(

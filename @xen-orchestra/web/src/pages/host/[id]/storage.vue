@@ -1,15 +1,10 @@
 <template>
-  <div class="storage" :class="{ mobile: uiStore.isSmall }">
+  <VtsContentSidePanel class="storage">
     <UiCard class="container">
       <StorageRepositoriesTable :srs :busy="!isReady" :error="hasSrFetchError" :scope />
     </UiCard>
-    <StorageRepositorySidePanel v-if="selectedSr" :sr="selectedSr" :scope @close="selectedSr = undefined" />
-    <UiPanel v-else-if="!uiStore.isSmall">
-      <VtsStateHero format="panel" type="no-selection" size="medium">
-        {{ t('select-to-see-details') }}
-      </VtsStateHero>
-    </UiPanel>
-  </div>
+    <StorageRepositorySidePanel :sr="selectedSr" :scope @close="selectedSr = undefined" />
+  </VtsContentSidePanel>
 </template>
 
 <script setup lang="ts">
@@ -21,29 +16,22 @@ import {
   useXoSrCollection,
   type FrontXoSr,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { SR_SCOPE_TYPE, type SrScope } from '@/modules/storage-repository/types/storage-repository.type'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
-import { useUiStore } from '@core/stores/ui.store.ts'
-import { sortByNameLabel } from '@core/utils/sort-by-name-label.util'
+import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
+import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
   host: FrontXoHost
 }>()
 
-const { t } = useI18n()
-
 const { hasSrFetchError, getSrById, areSrsReady } = useXoSrCollection()
 const { pbdsByHost, arePbdsReady } = useXoPbdCollection()
 
 const isReady = logicAnd(areSrsReady, arePbdsReady)
-
-const uiStore = useUiStore()
 
 const srs = computed(() => {
   const hostPbds = pbdsByHost.value.get(host.id) ?? []
@@ -71,11 +59,6 @@ const scope: SrScope = { type: SR_SCOPE_TYPE.HOST, hostId: host.id }
 
 <style scoped lang="postcss">
 .storage {
-  &:not(.mobile) {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 40rem;
-  }
-
   .container {
     height: fit-content;
     margin: 0.8rem;

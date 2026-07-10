@@ -22,7 +22,8 @@ const pbdFields = [
 ] as const satisfies readonly (keyof XoPbd)[]
 
 export const useXoPbdCollection = defineRemoteResource({
-  url: `${BASE_URL}/pbds?fields=${pbdFields.join(',')}`,
+  url: `${BASE_URL}/pbds?fields=${pbdFields.join(',')}&ndjson=true`,
+  stream: true,
   initWatchCollection: () => useWatchCollection({ resource: 'PBD', fields: pbdFields }),
   initialData: () => [] as FrontXoPbd[],
   state: (pbds, context) => {

@@ -31,7 +31,7 @@
               @click="open($event)"
             />
           </template>
-          <VmTreeActions :vm="leaf.data" />
+          <VmActions :vm="leaf.data" />
         </MenuList>
       </template>
     </UiTreeItemLabel>
@@ -40,7 +40,7 @@
 
 <script lang="ts" setup>
 import type { VmLeaf } from '@/modules/treeview/types/tree.type.ts'
-import VmTreeActions from '@/modules/vm/components/actions/VmTreeActions.vue'
+import VmActions from '@/modules/vm/components/actions/VmActions.vue'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import type { POWER_STATE } from '@core/types/power-state.type.ts'
 import MenuList from '@core/components/menu/MenuList.vue'

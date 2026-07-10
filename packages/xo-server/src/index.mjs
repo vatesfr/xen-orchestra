@@ -552,27 +552,34 @@ async function makeWebServerListen(
 }
 
 async function createWebServer({ listen, listenOptions }) {
-  const webServer = stoppable(new WebServer())
+  const isDev = process.env.NODE_ENV !== 'production'
+  let webServer
+  if (isDev) {
+    webServer = new WebServer()
+  } else {
+    webServer = stoppable(new WebServer())
 
-  // stoppable uses `instanceof https.Server` to decide whether to track sockets via
-  // 'secureConnection'. http-server-plus extends EventEmitter (not https.Server), so
-  // stoppable falls back to 'connection' (raw TCP) only. req.socket is the TLSSocket,
-  // so every HTTPS request adds a TLSSocket to _pendingSockets without a close listener,
-  // causing TLSSockets to accumulate indefinitely. We add the missing handler here;
-  // http-server-plus forwards it to underlying https.Server instances on listen().
-  const pendingSockets = webServer._pendingSockets
-  if (!(pendingSockets instanceof Map)) {
-    throw new Error('stoppable internal API changed: _pendingSockets is missing')
+    // stoppable uses `instanceof https.Server` to decide whether to track sockets via
+    // 'secureConnection'. http-server-plus extends EventEmitter (not https.Server), so
+    // stoppable falls back to 'connection' (raw TCP) only. req.socket is the TLSSocket,
+    // so every HTTPS request adds a TLSSocket to _pendingSockets without a close listener,
+    // causing TLSSockets to accumulate indefinitely. We add the missing handler here;
+    // http-server-plus forwards it to underlying https.Server instances on listen().
+    const pendingSockets = webServer._pendingSockets
+    if (!(pendingSockets instanceof Map)) {
+      throw new Error('stoppable internal API changed: _pendingSockets is missing')
+    }
+    webServer.on('secureConnection', socket => {
+      pendingSockets.set(socket, 0)
+      socket.once('close', () => pendingSockets.delete(socket))
+    })
   }
-  webServer.on('secureConnection', socket => {
-    pendingSockets.set(socket, 0)
-    socket.once('close', () => pendingSockets.delete(socket))
-  })
 
   await asyncMap(Object.entries(listen), ([configKey, opts]) =>
     makeWebServerListen(webServer, { ...listenOptions, ...opts, configKey })
   )
 
+  webServer.isDev = isDev
   return webServer
 }
 
@@ -991,7 +998,7 @@ export default async function main(args) {
   })
 
   // Register web server close on XO stop.
-  xo.hooks.on('stop', () => fromCallback.call(webServer, 'stop'))
+  xo.hooks.on('stop', () => fromCallback.call(webServer, webServer.isDev ? 'close' : 'stop'))
 
   // Connects to all registered servers.
   await xo.hooks.start()
@@ -1056,6 +1063,12 @@ export default async function main(args) {
       alreadyCalled = true
 
       log.info(`${signal} caught, closing…`)
+
+      const heartbeat = setInterval(() => {
+        log.info(`xo-server still running in pid ${process.pid}`)
+      }, 5e3)
+      heartbeat.unref()
+
       xo.hooks.stop()
     })
   })

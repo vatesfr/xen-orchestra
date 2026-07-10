@@ -1,9 +1,9 @@
 <template>
-  <UiCard :color="hasError ? 'error' : undefined">
+  <UiCard :has-error>
     <UiCardTitle>
       {{ t('ram-usage') }}
-      <template v-if="vmStatsCanBeExpired || hostStatsCanBeExpired" #right>
-        <UiSpinner v-tooltip="t('fetching-fresh-data')" />
+      <template v-if="vmStatsCanBeExpired || hostStatsCanBeExpired" #info>
+        <UiLoader v-tooltip="t('fetching-fresh-data')" />
       </template>
     </UiCardTitle>
     <HostsRamUsage />
@@ -14,12 +14,12 @@
 <script lang="ts" setup>
 import HostsRamUsage from '@/components/pool/dashboard/ramUsage/HostsRamUsage.vue'
 import VmsRamUsage from '@/components/pool/dashboard/ramUsage/VmsRamUsage.vue'
-import UiCard from '@/components/ui/UiCard.vue'
-import UiCardTitle from '@/components/ui/UiCardTitle.vue'
-import UiSpinner from '@/components/ui/UiSpinner.vue'
 import type { Stat } from '@/composables/fetch-stats.composable'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
+import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import type { XapiHostStatsRaw, XapiVmStatsRaw } from '@vates/types/common'
 import type { ComputedRef } from 'vue'

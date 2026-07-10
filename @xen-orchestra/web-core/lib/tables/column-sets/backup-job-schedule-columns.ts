@@ -9,9 +9,9 @@ export const useBackupJobScheduleColumns = defineColumns(() => {
 
   return {
     schedule: useLinkColumn({ headerLabel: () => t('schedule') }),
-    id: useTextColumn({ headerLabel: () => t('id'), headerIcon: 'fa:hashtag' }),
+    id: useTextColumn({ headerLabel: () => t('id') }),
     status: useStatusColumn(),
-    cronPattern: useTextColumn({ headerLabel: () => t('cron-pattern'), headerIcon: 'fa:clock' }),
+    cronPattern: useTextColumn({ headerLabel: () => t('cron-pattern') }),
     lastThreeRuns: useStatusColumn({
       headerLabel: () => t('last-n-runs', { n: 3 }),
       iconOnly: true,

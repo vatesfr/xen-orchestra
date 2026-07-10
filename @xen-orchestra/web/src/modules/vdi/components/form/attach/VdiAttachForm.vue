@@ -52,7 +52,7 @@
 <script lang="ts" setup>
 import type { NewVbdPayload } from '@/modules/vbd/jobs/xo-vbd-create.job.ts'
 import VdiFormCheckbox from '@/modules/vdi/components/form/attach/inputs/VdiFormCheckbox.vue'
-import VdiFormSelect from '@/modules/vdi/components/form/attach/inputs/VdiFormSelect.vue'
+import VdiFormSelect from '@/modules/vdi/components/form/shared/VdiFormSelect.vue'
 import { useVdiAttachForm } from '@/modules/vdi/form/attach/use-vdi-attach-form.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsForm from '@core/components/form/VtsForm.vue'

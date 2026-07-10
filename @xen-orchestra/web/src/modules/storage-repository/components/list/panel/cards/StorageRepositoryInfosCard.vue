@@ -1,12 +1,7 @@
 <template>
   <UiCard class="card-container">
-    <UiCardTitle>
-      <UiLink v-if="sr.name_label" size="small" :icon="srStatusIcon" :href>
-        {{ sr.name_label }}
-      </UiLink>
-    </UiCardTitle>
+    <VtsCardObjectTitle :id="sr.id" :label="sr.name_label" :href :icon="srStatusIcon" />
     <div class="content">
-      <VtsCodeSnippet :content="sr.id" copy />
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
         <template #value>
@@ -47,9 +42,9 @@
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('provisioning') }}</template>
-        <template #value>{{ provisioning }}</template>
+        <template #value>{{ allocationStrategy }}</template>
         <template #addons>
-          <VtsCopyButton :value="provisioning" />
+          <VtsCopyButton :value="allocationStrategy" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -66,16 +61,14 @@ import {
   type FrontXoSr,
   useXoSrCollection,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { SrScope } from '@/modules/storage-repository/types/storage-repository.type'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import type { SrScope } from '@core/types/storage-repository.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
+import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -99,7 +92,7 @@ const { srConnectionStatus, srStatusIcon } = useXoSrUtils(
 
 const isSrSharedI18nValue = computed(() => (sr.shared ? t('shared') : t('local')))
 
-const provisioning = computed(() => {
+const allocationStrategy = computed(() => {
   return sr.allocationStrategy ?? t('unknown')
 })
 

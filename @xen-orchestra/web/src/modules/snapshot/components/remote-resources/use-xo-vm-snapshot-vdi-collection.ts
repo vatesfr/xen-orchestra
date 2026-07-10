@@ -2,9 +2,9 @@ import { useWatchCollection } from '@/shared/composables/watch-collection.compos
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
-import type { XoVdi } from '@vates/types'
+import type { XoVdiSnapshot } from '@vates/types'
 
-export type FrontXoVmSnapshotVdi = Pick<XoVdi, (typeof vmSnapshotVdiFields)[number]>
+export type FrontXoVmSnapshotVdi = Pick<XoVdiSnapshot, (typeof vmSnapshotVdiFields)[number]>
 
 const vmSnapshotVdiFields = [
   'id',
@@ -13,10 +13,13 @@ const vmSnapshotVdiFields = [
   'image_format',
   'name_description',
   'usage',
-] as const satisfies readonly (keyof XoVdi)[]
+  '$snapshot_of',
+] as const satisfies readonly (keyof XoVdiSnapshot)[]
 
 export const useXoVmSnapshotVdiCollection = defineRemoteResource({
-  url: (snapshotId: string) => `${BASE_URL}/vm-snapshots/${snapshotId}/vdis?fields=${vmSnapshotVdiFields.join(',')}`,
+  url: (snapshotId: string) =>
+    `${BASE_URL}/vm-snapshots/${snapshotId}/vdis?fields=${vmSnapshotVdiFields.join(',')}&ndjson=true`,
+  stream: true,
   initWatchCollection: () =>
     useWatchCollection({
       collectionId: 'vmSnapshotVdi',

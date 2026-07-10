@@ -493,7 +493,7 @@ export interface XenApiDrTask {
 }
 
 type XenApiHostCallMethods = TagCallMethods & {
-  <T>(method: 'call_plugin',plugin:string, fn: string, args: Record<string, string>): Promise<T>
+  <T>(method: 'call_plugin', plugin: string, fn: string, args: Record<string, string>): Promise<T>
 }
 export interface XenApiHost {
   $ref: Branded<'host'>
@@ -571,7 +571,9 @@ export interface XenApiHost {
   uuid: string
   virtual_hardware_platform_versions: number[]
 }
-export type XenApiHostWrapped = WrapperXenApi<XenApiHost, 'host', XenApiHostCallMethods>
+export interface XenApiHostWrapped extends WrapperXenApi<XenApiHost, 'host', XenApiHostCallMethods> {
+  $restartAgent(): Promise<void>
+}
 
 export interface XenApiHostCrashdump {
   $ref: Branded<'host_crashdump'>

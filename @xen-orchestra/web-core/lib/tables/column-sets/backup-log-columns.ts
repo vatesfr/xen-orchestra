@@ -11,7 +11,7 @@ export const useBackupLogsColumns = defineColumns(() => {
   return {
     startDate: useDateColumn({ headerLabel: () => t('start-date'), dateStyle: 'short', timeStyle: 'medium' }),
     endDate: useDateColumn({ headerLabel: () => t('end-date'), dateStyle: 'short', timeStyle: 'medium' }),
-    duration: useNumberColumn({ headerIcon: 'fa:time', headerLabel: () => t('duration') }),
+    duration: useNumberColumn({ headerLabel: () => t('duration') }),
     status: useStatusColumn(),
     transferSize: useNumberColumn({ headerLabel: () => t('transfer-size') }),
     selectItem: useSelectItemColumn(),

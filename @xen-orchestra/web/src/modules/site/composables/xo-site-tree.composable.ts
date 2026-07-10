@@ -33,6 +33,7 @@ export function useXoSiteTree() {
       sites.value,
       {
         getLabel: 'name_label',
+        discriminator: 'site',
       },
       () => [
         ...defineTree(
@@ -41,6 +42,7 @@ export function useXoSiteTree() {
           {
             getLabel: 'name_label',
             predicate,
+            discriminator: 'pool',
           },
           pool => [
             ...defineTree(
@@ -55,6 +57,7 @@ export function useXoSiteTree() {
                 defineTree('vms', vmsByHost.value.get(host.id) ?? [], {
                   getLabel: 'name_label',
                   predicate,
+                  discriminator: 'vm',
                 })
             ),
             ...defineTree('vms', hostLessVmsByPool.value.get(pool.id) ?? [], {
@@ -86,13 +89,14 @@ export function useXoSiteTree() {
     },
   })
 
-  const { nodes, scrollToNodeElement } = useTree(definitions, { collapsedIds })
+  const { flatNodes, flatNodeIndexById, expandToNode } = useTree(definitions, { collapsedIds })
 
   return {
     isReady,
-    sites: nodes,
+    treeItems: flatNodes,
+    treeItemIndexById: flatNodeIndexById,
     filter,
     isSearching,
-    scrollToNodeElement,
+    expandToNode,
   }
 }

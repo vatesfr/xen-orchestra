@@ -1,5 +1,5 @@
 <template>
-  <VtsTreeItem :expanded="!branch.isCollapsed" :node-id="branch.data.id">
+  <VtsTreeItem :expanded="!branch.isCollapsed" :node-id="branch.data.id" :has-children="branch.hasChildren">
     <UiTreeItemLabel icon="object:pool" :route="`/pool/${branch.data.id}`" @toggle="branch.toggleCollapse()">
       {{ branch.data.name_label }}
       <template #addons>
@@ -24,24 +24,15 @@
         </MenuList>
       </template>
     </UiTreeItemLabel>
-    <template v-if="branch.hasChildren" #sublist>
-      <VtsTreeList>
-        <HostTreeList :branches="treeBranches" />
-        <VmTreeList :leaves="vmLeaves" />
-      </VtsTreeList>
-    </template>
   </VtsTreeItem>
 </template>
 
 <script lang="ts" setup>
 import PoolTreeActions from '@/modules/pool/components/actions/PoolTreeActions.vue'
-import HostTreeList from '@/modules/treeview/components/HostTreeList.vue'
-import VmTreeList from '@/modules/treeview/components/VmTreeList.vue'
-import type { HostBranch, PoolBranch, VmLeaf } from '@/modules/treeview/types/tree.type.ts'
+import type { PoolBranch } from '@/modules/treeview/types/tree.type.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
-import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
@@ -55,13 +46,7 @@ const { branch } = defineProps<{
 
 const { t } = useI18n()
 
-const { runningVms } = useXoVmCollection()
+const { runningVmsCountByPool } = useXoVmCollection()
 
-const treeBranches = computed(() => branch.children.filter(child => child.discriminator === 'host') as HostBranch[])
-
-const vmLeaves = computed(() => branch.children.filter(child => child.discriminator === 'vm') as VmLeaf[])
-
-const runningVmsCount = computed(() =>
-  runningVms.value.reduce((vmCount, runningVm) => (runningVm.$pool === branch.data.id ? vmCount + 1 : vmCount), 0)
-)
+const runningVmsCount = computed(() => runningVmsCountByPool.value.get(branch.data.id) ?? 0)
 </script>

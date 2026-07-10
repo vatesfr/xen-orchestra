@@ -1,18 +1,6 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
-    <template #header>
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButtonIcon
-          v-tooltip="t('action:close')"
-          size="small"
-          variant="tertiary"
-          accent="brand"
-          :icon="uiStore.isSmall ? 'fa:angle-left' : 'fa:close'"
-          @click="emit('close')"
-        />
-      </div>
-    </template>
-    <template #default>
+  <VtsSidePanel :has-selection="!!host" @close="emit('close')">
+    <template v-if="host">
       <HostInfoCard :host />
       <HostNetworkCard :host />
       <!-- host licensing -->
@@ -20,7 +8,7 @@
       <HostHardwareSpecificationsCard :host />
       <!-- host hardware health -->
     </template>
-  </UiPanel>
+  </VtsSidePanel>
 </template>
 
 <script setup lang="ts">
@@ -29,35 +17,13 @@ import HostInfoCard from '@/modules/host/components/list/panel/card/HostInfoCard
 import HostNetworkCard from '@/modules/host/components/list/panel/card/HostNetworkCard.vue'
 import HostSoftwareCard from '@/modules/host/components/list/panel/card/HostSoftwareCard.vue'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { useUiStore } from '@core/stores/ui.store.ts'
-import { useI18n } from 'vue-i18n'
+import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 
 defineProps<{
-  host: FrontXoHost
+  host?: FrontXoHost
 }>()
 
 const emit = defineEmits<{
   close: []
 }>()
-
-const { t } = useI18n()
-
-const uiStore = useUiStore()
 </script>
-
-<style scoped lang="postcss">
-.mobile-drawer {
-  position: fixed;
-  inset: 0;
-
-  .action-buttons-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-  }
-}
-</style>

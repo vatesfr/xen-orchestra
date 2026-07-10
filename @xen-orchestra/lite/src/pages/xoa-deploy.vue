@@ -5,13 +5,12 @@
 
     <!-- Error -->
     <template v-if="error !== undefined">
-      <div>
+      <div class="error">
         <h2>{{ t('xoa-deploy-failed!') }}</h2>
         <VtsIcon name="status:danger-circle" size="medium" />
       </div>
-      <div class="error">
-        <strong>{{ t('check-errors:') }}</strong>
-        <UiRaw>{{ error }}</UiRaw>
+      <div class="error-log">
+        <UiLogEntryViewer :label="t('check-errors:')" :content="error" accent="danger" size="medium" />
       </div>
       <UiButton size="medium" accent="brand" variant="primary" left-icon="fa:download" @click="resetValues()">
         {{ t('xoa-deploy-retry') }}
@@ -191,8 +190,6 @@
 import FormInput from '@/components/form/FormInput.vue'
 import FormSection from '@/components/form/FormSection.vue'
 import TitleBar from '@/components/TitleBar.vue'
-import UiCard from '@/components/ui/UiCard.vue'
-import UiRaw from '@/components/ui/UiRaw.vue'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { useSrStore } from '@/stores/xen-api/sr.store'
@@ -202,6 +199,8 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioButtonGroup.vue'
 import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
@@ -558,12 +557,15 @@ async function cancel() {
   align-items: center;
   min-height: 76.5vh;
   color: var(--color-brand-txt-base);
-  text-align: center;
   padding: 5rem;
   margin: auto;
 
   h2 {
     margin-bottom: 1rem;
+  }
+
+  .error {
+    text-align: center;
   }
 
   * {
@@ -594,11 +596,8 @@ async function cancel() {
   }
 }
 
-.error {
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-  gap: 0.5em;
+.error-log {
+  width: 60rem;
 }
 
 .warning {

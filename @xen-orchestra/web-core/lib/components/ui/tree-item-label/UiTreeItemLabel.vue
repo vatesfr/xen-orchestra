@@ -72,7 +72,7 @@ const hasToggle = inject(IK_TREE_ITEM_HAS_CHILDREN, ref(false))
 
 const isExpanded = inject(IK_TREE_ITEM_EXPANDED, ref(true))
 
-const depth = inject(IK_TREE_LIST_DEPTH, 0)
+const depth = inject(IK_TREE_LIST_DEPTH, ref(0))
 </script>
 
 <style lang="postcss" scoped>

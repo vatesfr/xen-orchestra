@@ -52,12 +52,14 @@ const {
   required,
   disabled,
   id,
+  detached,
 } = defineProps<{
   accent: InputAccent
   id?: string
   required?: boolean
   disabled?: boolean
   readonly?: boolean
+  detached?: boolean
   type?: InputType
   icon?: IconName
   rightIcon?: IconName
@@ -82,7 +84,7 @@ const attrs = useAttrs()
 
 const inputRef = ref<HTMLInputElement>()
 
-const wrapperController = inject(IK_INPUT_WRAPPER_CONTROLLER, undefined)
+const wrapperController = detached ? undefined : inject(IK_INPUT_WRAPPER_CONTROLLER, undefined)
 
 const accent = useMapper<LabelAccent, InputAccent>(
   () => wrapperController?.labelAccent,

@@ -2,8 +2,8 @@ import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host
 import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
 import { useXoPbdCollection, type FrontXoPbd } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { SR_SCOPE_TYPE, type SrScope } from '@/modules/storage-repository/types/storage-repository.type'
 import { type IconName, objectIcon } from '@core/icons'
+import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -31,7 +31,11 @@ export function useGetPbdsInScope() {
     return getPbdsInScope(sr, scope).filter(pbd => !pbd.attached)
   }
 
-  function getSrPbdsSignature(sr: FrontXoSr, scope: SrScope) {
+  function getSrPbdsSignature(sr: FrontXoSr | undefined, scope: SrScope) {
+    if (sr === undefined) {
+      return scope.type === 'host' ? `host:${scope.hostId}` : 'pool'
+    }
+
     const scopedPbds = getPbdsInScope(sr, scope)
 
     return scopedPbds.map(pbd => `${pbd.id}:${pbd.attached}`).join('|') || sr.id

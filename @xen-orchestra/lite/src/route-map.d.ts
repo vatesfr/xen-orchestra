@@ -52,6 +52,7 @@ declare module 'vue-router/auto-routes' {
       | '/host/[uuid]/console'
       | '/host/[uuid]/dashboard'
       | '/host/[uuid]/network'
+      | '/host/[uuid]/storage'
       | '/host/[uuid]/system'
       | '/host/[uuid]/tasks'
       | '/host/[uuid]/vms'
@@ -73,6 +74,13 @@ declare module 'vue-router/auto-routes' {
     '/host/[uuid]/network': RouteRecordInfo<
       '/host/[uuid]/network',
       '/host/:uuid/network',
+      { uuid: ParamValue<true> },
+      { uuid: ParamValue<false> },
+      | never
+    >,
+    '/host/[uuid]/storage': RouteRecordInfo<
+      '/host/[uuid]/storage',
+      '/host/:uuid/storage',
       { uuid: ParamValue<true> },
       { uuid: ParamValue<false> },
       | never
@@ -382,6 +390,13 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/object-icon/vts-object-icon': RouteRecordInfo<
       '/story/web-core/object-icon/vts-object-icon',
       '/story/web-core/object-icon/vts-object-icon',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/panel/vts-panel': RouteRecordInfo<
+      '/story/web-core/panel/vts-panel',
+      '/story/web-core/panel/vts-panel',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -921,7 +936,6 @@ declare module 'vue-router/auto-routes' {
       | '/vm/[uuid]/dashboard'
       | '/vm/[uuid]/network'
       | '/vm/[uuid]/stats'
-      | '/vm/[uuid]/storage'
       | '/vm/[uuid]/system'
       | '/vm/[uuid]/tasks'
     >,
@@ -956,13 +970,6 @@ declare module 'vue-router/auto-routes' {
     '/vm/[uuid]/stats': RouteRecordInfo<
       '/vm/[uuid]/stats',
       '/vm/:uuid/stats',
-      { uuid: ParamValue<true> },
-      { uuid: ParamValue<false> },
-      | never
-    >,
-    '/vm/[uuid]/storage': RouteRecordInfo<
-      '/vm/[uuid]/storage',
-      '/vm/:uuid/storage',
       { uuid: ParamValue<true> },
       { uuid: ParamValue<false> },
       | never
@@ -1026,6 +1033,7 @@ declare module 'vue-router/auto-routes' {
         | '/host/[uuid]/console'
         | '/host/[uuid]/dashboard'
         | '/host/[uuid]/network'
+        | '/host/[uuid]/storage'
         | '/host/[uuid]/system'
         | '/host/[uuid]/tasks'
         | '/host/[uuid]/vms'
@@ -1047,6 +1055,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/host/[uuid]/network.vue': {
       routes:
         | '/host/[uuid]/network'
+      views:
+        | never
+    }
+    'src/pages/host/[uuid]/storage.vue': {
+      routes:
+        | '/host/[uuid]/storage'
       views:
         | never
     }
@@ -1314,6 +1328,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/object-icon/vts-object-icon.story.vue': {
       routes:
         | '/story/web-core/object-icon/vts-object-icon'
+      views:
+        | never
+    }
+    'src/stories/web-core/panel/vts-panel.story.vue': {
+      routes:
+        | '/story/web-core/panel/vts-panel'
       views:
         | never
     }
@@ -1775,7 +1795,6 @@ declare module 'vue-router/auto-routes' {
         | '/vm/[uuid]/dashboard'
         | '/vm/[uuid]/network'
         | '/vm/[uuid]/stats'
-        | '/vm/[uuid]/storage'
         | '/vm/[uuid]/system'
         | '/vm/[uuid]/tasks'
       views:
@@ -1808,12 +1827,6 @@ declare module 'vue-router/auto-routes' {
     'src/pages/vm/[uuid]/stats.vue': {
       routes:
         | '/vm/[uuid]/stats'
-      views:
-        | never
-    }
-    'src/pages/vm/[uuid]/storage.vue': {
-      routes:
-        | '/vm/[uuid]/storage'
       views:
         | never
     }

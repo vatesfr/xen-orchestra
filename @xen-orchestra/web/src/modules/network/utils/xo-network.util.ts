@@ -1,7 +1,7 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { CONNECTION_STATUS } from '@/shared/constants.ts'
+import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import type { RouteLocationAsRelative } from 'vue-router'
 
 export const NETWORK_TYPE = {

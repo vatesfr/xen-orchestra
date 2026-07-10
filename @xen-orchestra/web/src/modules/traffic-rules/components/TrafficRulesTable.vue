@@ -7,6 +7,15 @@
       </template>
     </UiTitle>
     <UiAlert accent="info">{{ t('traffic-rules:info-message') }}</UiAlert>
+    <UiAlert v-if="showRulesFormatWarning" accent="warning">
+      <I18nT keypath="traffic-rules:format-warning">
+        <template #check-doc>
+          <UiLink size="small" href="https://docs.xen-orchestra.com/xo5/sdn_controller#migration-path">
+            {{ t('traffic-rules:format-warning:check-doc') }}
+          </UiLink>
+        </template>
+      </I18nT>
+    </UiAlert>
     <VtsQueryBuilder v-model="filter" :schema />
     <div class="container">
       <VtsTable :state :pagination-bindings sticky="right">
@@ -30,13 +39,16 @@
 </template>
 
 <script setup lang="ts">
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useDirectionLabels } from '@/modules/traffic-rules/composables/direction-labels.composable.ts'
 import { useTrafficRuleTarget } from '@/modules/traffic-rules/composables/traffic-rule-target.composable.ts'
+import { useTrafficRuleDeleteModal } from '@/modules/traffic-rules/composables/use-traffic-rule-delete-modal.composable.ts'
 import type { EnrichedTrafficRule } from '@/modules/traffic-rules/types.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
@@ -47,16 +59,19 @@ import { useTrafficRulesColumns } from '@core/tables/column-sets/traffic-rules-c
 import { useBooleanSchema } from '@core/utils/query-builder/use-boolean-schema.ts'
 import { useNumberSchema } from '@core/utils/query-builder/use-number-schema.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
-import type { TrafficRule } from '@vates/types'
+import { type TrafficRule, SDN_CONTROLLER_OF_METHOD_KEY, SDN_CONTROLLER_OF_FORMAT_KEY } from '@vates/types'
+
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const {
   rules: rawRules,
+  pool,
   busy,
   error,
 } = defineProps<{
   rules: TrafficRule[]
+  pool?: FrontXoPool
   busy?: boolean
   error?: boolean
 }>()
@@ -73,6 +88,12 @@ const getTarget = useTrafficRuleTarget()
 
 const getDirectionLabels = useDirectionLabels()
 
+const showRulesFormatWarning = computed(() => {
+  const ofMethod = pool?.otherConfig[SDN_CONTROLLER_OF_METHOD_KEY]
+  const ofFormat = pool?.otherConfig[SDN_CONTROLLER_OF_FORMAT_KEY]
+  return ofMethod !== undefined && ofFormat !== undefined && ofMethod !== ofFormat
+})
+
 const enrichedRules = computed(() =>
   rawRules.map((rule, index) => {
     const target = getTarget(rule)
@@ -83,7 +104,7 @@ const enrichedRules = computed(() =>
       order: index + 1,
       directionA,
       directionB,
-      direction: `${directionA} ${directionB}`,
+      directionLabel: `${directionA} ${directionB}`,
       objectLabel: target.suffix ? `${target.label} ${target.suffix.label}` : target.label,
     }
   })
@@ -100,7 +121,7 @@ const schema = useQueryBuilderSchema<EnrichedTrafficRule>({
   }),
   protocol: useStringSchema(t('protocol')),
   port: useNumberSchema(t('port')),
-  direction: useStringSchema(t('direction')),
+  directionLabel: useStringSchema(t('direction')),
   ipRange: useStringSchema(t('target')),
   objectLabel: useStringSchema(t('object')),
 })
@@ -117,16 +138,36 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells } = useTrafficRulesColumns({
-  body: (rule: EnrichedTrafficRule & { order: number }) => {
+  body: (rule: EnrichedTrafficRule) => {
+    const {
+      openModal: openTrafficRuleDeleteModal,
+      canRun: canDeleteTrafficRule,
+      isRunning: isDeletingTrafficRule,
+      errorMessage: deleteTrafficRuleErrorMessage,
+    } = useTrafficRuleDeleteModal(() => [rule])
+
     return {
       order: r => r(rule.order),
-      policy: r => r(rule.allow ? t('allow') : t('drop')),
+      policy: r => r(t(rule.allow ? 'allow' : 'drop'), rule.allow ? 'success' : 'danger'),
       protocol: r => r(rule.port ? `${rule.protocol}:${rule.port}` : rule.protocol),
       directionA: r => r(rule.directionA),
       target: r => r(rule.ipRange),
       directionB: r => r(rule.directionB),
       object: r => r(getTarget(rule)),
-      selectItem: r => r(() => (selectedRuleId.value = rule.id)),
+      actions: r =>
+        r({
+          onClick: () => (selectedRuleId.value = rule.id),
+          actions: [
+            {
+              label: t('action:delete'),
+              icon: 'action:delete',
+              onClick: () => openTrafficRuleDeleteModal(),
+              disabled: !canDeleteTrafficRule.value,
+              busy: isDeletingTrafficRule.value,
+              hint: deleteTrafficRuleErrorMessage.value,
+            },
+          ],
+        }),
     }
   },
 })

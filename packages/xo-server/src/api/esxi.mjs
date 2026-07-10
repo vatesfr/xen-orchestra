@@ -190,3 +190,19 @@ exportDisk.params = {
   disk: { type: 'string', optional: true },
 }
 exportDisk.permission = 'admin'
+
+export async function importDisk({ disk, format, host, password, sslVerify, sr, user, vm }) {
+  return this.importEsxiDiskToSr({ disk, format, host, user, password, sslVerify, sr, vm })
+}
+
+importDisk.params = {
+  disk: { type: 'string' },
+  format: { type: 'string', optional: true },
+  host: { type: 'string' },
+  password: { type: 'string' },
+  sr: { type: 'string' },
+  sslVerify: { type: 'boolean', optional: true },
+  user: { type: 'string' },
+  vm: { type: 'string' },
+}
+importDisk.permission = 'admin'

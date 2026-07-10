@@ -16,12 +16,13 @@ import {
   SuccessResponse,
   Tags,
 } from 'tsoa'
+import { HOST_POWER_STATE } from '@vates/types'
 import { asyncEach } from '@vates/async-each'
 import { type Defer, defer } from 'golike-defer'
 import { json } from 'express'
 import type { Request as ExRequest, Response as ExResponse } from 'express'
 import { inject } from 'inversify'
-import { invalidParameters } from 'xo-common/api-errors.js'
+import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
 import { pipeline } from 'node:stream/promises'
 import { provide } from 'inversify-binding-decorators'
 import type {
@@ -32,6 +33,7 @@ import type {
   XoHost,
   XoMessage,
   XoPif,
+  XoPool,
   XoTask,
   XoVm,
   XsPatches,
@@ -59,6 +61,7 @@ import {
   forbiddenOperationResp,
   internalServerErrorResp,
   invalidParameters as invalidParametersResp,
+  incorrectStateResp,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
@@ -455,6 +458,8 @@ export class HostController extends XapiXoController<XoHost> {
    *
    * Disable a host.
    *
+   * Set `autoEnable` to `true` to re-enable after a toolstack restart automatically
+   *
    * Set `evacuate` to `true` to also evacuate all running VMs to other hosts in the pool.
    *
    * Use `vmIdsToForceMigrate` to unblock VMs whose migration is currently blocked (e.g. by `pool_migrate` or `migrate_send` blocked operations).
@@ -490,16 +495,21 @@ export class HostController extends XapiXoController<XoHost> {
   disable(
     @Path() id: string,
     // mark `evacuate` as optional to workaround a TSOA issue. See https://github.com/lukeautry/tsoa/pull/1840
-    @Body() body?: { evacuate?: false } | { evacuate: true; force?: boolean; vmIdsToForceMigrate?: string[] },
+    @Body()
+    body?: { autoEnable?: boolean } & (
+      | { evacuate?: false }
+      | { evacuate: true; force?: boolean; vmIdsToForceMigrate?: string[] }
+    ),
     @Query() sync?: boolean
   ): CreateActionReturnType<void> {
     const hostId = id as XoHost['id']
+    const isTransient = body?.autoEnable ?? false
     const action = defer(async ($defer: Defer) => {
       const xapiHost = this.getXapiObject(hostId)
       const xapi = xapiHost.$xapi
 
       if (body?.evacuate !== true) {
-        await xapi.call('host.disable', xapiHost.$ref)
+        await xapi.disableHost(hostId, { transient: isTransient })
         return
       }
 
@@ -516,7 +526,7 @@ export class HostController extends XapiXoController<XoHost> {
         })
       }
 
-      await xapi.clearHost(xapiHost, body.force)
+      await xapi.clearHost(xapiHost, body.force, { transient: isTransient })
     })
 
     return this.createAction<void>(action, {
@@ -558,6 +568,361 @@ export class HostController extends XapiXoController<XoHost> {
       statusCode: noContentResp.status,
       taskProperties: {
         name: 'enable host',
+        objectId: hostId,
+      },
+    })
+  }
+
+  /**
+   * Required privilege:
+   * - resource: host, action: start
+   *
+   * Start a host.
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
+  @Post('{id}/actions/start')
+  @Middlewares(acl({ resource: 'host', action: 'start', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  startHost(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const hostId = id as XoHost['id']
+    const action = async () => {
+      await this.getXapiObject(hostId).$xapi.powerOnHost(hostId)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'start host',
+        objectId: hostId,
+      },
+    })
+  }
+
+  /**
+   * Required privilege:
+   * - resource: host, action: shutdown:clean
+   *
+   * Shutdown a host.
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   * @example body { "bypassBackupCheck": false, "bypassEvacuate": false }
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'deny')
+  @Post('{id}/actions/clean_shutdown')
+  @Middlewares([json(), acl({ resource: 'host', action: 'shutdown:clean', objectId: 'params.id' })])
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  cleanShutdownHost(
+    @Path() id: string,
+    @Body()
+    body?: {
+      /** Skip the backup safety check before shutting down. Defaults to false. */
+      bypassBackupCheck?: boolean
+      /** Shut down without evacuating running VMs first. Defaults to false. */
+      bypassEvacuate?: boolean
+    },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const hostId = id as XoHost['id']
+    const action = async () => {
+      await this.#hostService.cleanShutdownHost(hostId, body)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'clean shutdown host',
+        objectId: hostId,
+        params: body,
+      },
+    })
+  }
+
+  /**
+   * Required privilege:
+   * - resource: host, action: reboot:clean
+   *
+   * Reboot a host by evacuating its VMs to other hosts first.
+   *
+   * Checks for active backup jobs and version compatibility before rebooting.
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   * @example body {
+   *  "force": false,
+   *  "bypassBackupCheck": false,
+   *  "bypassVersionCheck": false
+   * }
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'deny')
+  @Post('{id}/actions/clean_reboot')
+  @Middlewares([json(), acl({ resource: 'host', action: 'reboot:clean', objectId: 'params.id' })])
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  cleanRebootHost(
+    @Path() id: string,
+    @Body()
+    body?: {
+      /** Force the reboot, ignoring evacuation errors. Defaults to false. */
+      force?: boolean
+      /** Skip the backup safety check before rebooting. Defaults to false. */
+      bypassBackupCheck?: boolean
+      /** Skip the version/upgrade compatibility check before rebooting. Defaults to false. */
+      bypassVersionCheck?: boolean
+    },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const force = body?.force ?? false
+    const opts = {
+      force,
+      bypassBackupCheck: body?.bypassBackupCheck ?? force,
+      bypassVersionCheck: body?.bypassVersionCheck ?? force,
+    }
+
+    const hostId = id as XoHost['id']
+    const action = async () => {
+      await this.#hostService.cleanRebootHost(hostId, opts)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'clean reboot host',
+        objectId: hostId,
+        params: body,
+      },
+    })
+  }
+
+  /**
+   * Required privilege:
+   * - resource: host, action: reboot:smart
+   *
+   * Reboot a host by suspending its VMs in place.
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   * @example body {
+   *  "bypassBackupCheck": false,
+   *  "bypassVersionCheck": false,
+   *  "bypassBlockedSuspend": false,
+   *  "bypassCurrentVmCheck": false
+   * }
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'deny')
+  @Post('{id}/actions/smart_reboot')
+  @Middlewares([json(), acl({ resource: 'host', action: 'reboot:smart', objectId: 'params.id' })])
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(featureUnauthorized.status, featureUnauthorized.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  smartRebootHost(
+    @Path() id: string,
+    @Body()
+    body?: {
+      /** Skip the backup safety check before rebooting. Defaults to false. */
+      bypassBackupCheck?: boolean
+      /** Skip the version/upgrade compatibility check before rebooting. Defaults to false. */
+      bypassVersionCheck?: boolean
+      /** Allow suspending VMs even if suspend is blocked. Defaults to false. */
+      bypassBlockedSuspend?: boolean
+      /** Skip the check that blocks smart reboot when XOA is running on this host. Defaults to false. */
+      bypassCurrentVmCheck?: boolean
+    },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const opts = {
+      bypassBackupCheck: body?.bypassBackupCheck ?? false,
+      bypassVersionCheck: body?.bypassVersionCheck ?? false,
+      bypassBlockedSuspend: body?.bypassBlockedSuspend ?? false,
+      bypassCurrentVmCheck: body?.bypassCurrentVmCheck ?? false,
+    }
+
+    const hostId = id as XoHost['id']
+    const action = async () => {
+      await this.#hostService.smartRebootHost(hostId, opts)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'smart reboot host',
+        objectId: hostId,
+        params: body,
+      },
+    })
+  }
+
+  /**
+   * Required privilege:
+   * - resource: host, action: restart-toolstack
+   *
+   * Restart a host's toolstack.
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
+  @Post('{id}/actions/restart_toolstack')
+  @Middlewares([json(), acl({ resource: 'host', action: 'restart-toolstack', objectId: 'params.id' })])
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  restartHostToolstack(
+    @Path() id: string,
+    @Body()
+    body?: {
+      /** Skip the backup safety check before restarting the toolstack. Defaults to false. */
+      bypassBackupCheck?: boolean
+    },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const hostId = id as XoHost['id']
+    const action = async () => {
+      await this.#hostService.restartToolstack(hostId, body)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: "restart host's toolstack",
+        objectId: hostId,
+        params: body,
+      },
+    })
+  }
+
+  /**
+   * Required privilege:
+   * - resource: host, action: shutdown:emergency
+   *
+   * Shut down a host by disabling it, suspending its VMs in place, and powering off without migrating them.
+   *
+   * Unlike `clean_shutdown`, VMs are not evacuated to other hosts, they are suspended
+   * on the same host (errors are ignored) before the host shuts down.
+   * No backup check is performed.
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'deny')
+  @Post('{id}/actions/emergency_shutdown')
+  @Middlewares(acl({ resource: 'host', action: 'shutdown:emergency', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  emergencyShutdownHost(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const hostId = id as XoHost['id']
+    const action = async () => {
+      await this.getXapiObject(hostId).$xapi.emergencyShutdownHost(hostId)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'emergency shutdown host',
+        objectId: hostId,
+      },
+    })
+  }
+
+  /**
+   * Required privilege:
+   * - resource: host, action: detach
+   *
+   * Detaches a host from its pool.
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'deny')
+  @Post('{id}/actions/detach')
+  @Middlewares(acl({ resource: 'host', action: 'detach', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  detachHost(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const hostId = id as XoHost['id']
+    const action = async () => {
+      await this.restApi.xoApp.detachHostFromPool(hostId)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'detach host',
+        objectId: hostId,
+      },
+    })
+  }
+
+  /**
+   * Required privilege:
+   * - resource: host, action: forget
+   *
+   * Forgets a host, host must not be running.
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'deny')
+  @Post('{id}/actions/forget')
+  @Middlewares(acl({ resource: 'host', action: 'forget', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  forgetHost(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const hostId = id as XoHost['id']
+    const action = async () => {
+      const host = this.getObject(hostId)
+      if (host.power_state === HOST_POWER_STATE.RUNNING) {
+        throw incorrectState({
+            actual: host.power_state,
+            expected: HOST_POWER_STATE.HALTED,
+            object: host.id,
+            property: 'power_state',
+          })
+      }
+      await this.getXapiObject(hostId).$xapi.forgetHost(hostId)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'forget host',
         objectId: hostId,
       },
     })
