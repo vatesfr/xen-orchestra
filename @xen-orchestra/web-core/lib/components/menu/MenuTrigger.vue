@@ -22,9 +22,11 @@ defineProps<{
 .menu-trigger {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   padding-inline: 1.6rem;
-  gap: 0.8rem;
-  height: 4.5rem;
+  padding-block: 1.2rem;
+  gap: 0.4rem 0.8rem;
+  min-height: 4.5rem;
 
   &.disabled {
     color: var(--color-neutral-txt-secondary);
