@@ -1,6 +1,7 @@
 <template>
   <MenuItem
     icon="action:download"
+    class="typo-body-bold-small"
     :busy="isFetching"
     :disabled="(isReady && host === undefined) || hasError"
     @click="download()"

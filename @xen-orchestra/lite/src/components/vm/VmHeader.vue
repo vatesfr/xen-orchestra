@@ -1,25 +1,18 @@
 <template>
-  <TitleBar icon="object:vm">
-    {{ name }}
+  <UiHeadBar icon="object:vm">
+    {{ vm?.name_label }}
+    <template #icon>
+      <VtsObjectIcon size="medium" :state="toLower(vm?.power_state)" type="vm" />
+    </template>
     <template #actions>
       <MenuList v-if="vm !== undefined" placement="bottom-end">
-        <template #trigger="{ open, isOpen }">
-          <UiButton
-            size="medium"
-            accent="brand"
-            variant="primary"
-            :class="{ pressed: isOpen }"
-            left-icon="fa:power-off"
-            @click="open"
-          >
-            {{ t('action:change-state') }}
-            <VtsIcon name="fa:angle-down" size="medium" />
-          </UiButton>
+        <template #trigger="{ open }">
+          <UiDropdownButton @click="open($event)">{{ t('action:change-state') }}</UiDropdownButton>
         </template>
         <VmActionPowerStateItems :vm-refs="[vm.$ref]" />
       </MenuList>
       <MenuList v-if="vm !== undefined" placement="bottom-end">
-        <template #trigger="{ open, isOpen }">
+        <template #trigger="{ open }">
           <UiButtonIcon
             v-tooltip="{
               placement: 'left',
@@ -28,9 +21,8 @@
             :selected="isOpen"
             icon="action:more-actions-vertical"
             accent="brand"
-            class="more-actions-button"
             size="medium"
-            @click="open"
+            @click="open($event)"
           />
         </template>
         <VmActionCopyItem :selected-refs="[vm.$ref]" is-single-action />
@@ -39,11 +31,10 @@
         <VmActionMigrateItem :selected-refs="[vm.$ref]" is-single-action />
       </MenuList>
     </template>
-  </TitleBar>
+  </UiHeadBar>
 </template>
 
 <script lang="ts" setup>
-import TitleBar from '@/components/TitleBar.vue'
 import VmActionCopyItem from '@/components/vm/VmActionItems/VmActionCopyItem.vue'
 import VmActionExportItem from '@/components/vm/VmActionItems/VmActionExportItem.vue'
 import VmActionMigrateItem from '@/components/vm/VmActionItems/VmActionMigrateItem.vue'
@@ -51,11 +42,13 @@ import VmActionPowerStateItems from '@/components/vm/VmActionItems/VmActionPower
 import VmActionSnapshotItem from '@/components/vm/VmActionItems/VmActionSnapshotItem.vue'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
+import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
+import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
@@ -66,6 +59,4 @@ const { getByUuid: getVmByUuid } = useVmStore().subscribe()
 const route = useRoute<'/vm/[uuid]'>()
 
 const vm = computed(() => getVmByUuid(route.params.uuid as XenApiVm['uuid']))
-
-const name = computed(() => vm.value?.name_label)
 </script>

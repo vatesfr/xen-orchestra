@@ -8,6 +8,7 @@
     :busy="isMigrating"
     :disabled="isDisabled"
     icon="fa:route"
+    class="typo-body-bold-small"
     @click="openMigrateModal()"
   >
     {{ t('action:migrate') }}

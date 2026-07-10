@@ -1,5 +1,5 @@
 <template>
-  <MenuItem v-if="canDisplay" icon="fa:pause" :busy="isRunning" @click="openModal()">
+  <MenuItem v-if="canDisplay" icon="fa:pause" :busy="isRunning" class="typo-body-bold-small" @click="openModal()">
     {{ t('pause') }}
   </MenuItem>
 </template>

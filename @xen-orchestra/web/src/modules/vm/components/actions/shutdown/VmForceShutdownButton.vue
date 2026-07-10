@@ -1,5 +1,11 @@
 <template>
-  <MenuItem v-if="canDisplay" icon="action:force-shutdown" :busy="isRunning" @click="openModal()">
+  <MenuItem
+    v-if="canDisplay"
+    icon="action:force-shutdown"
+    :busy="isRunning"
+    class="typo-body-bold-small"
+    @click="openModal()"
+  >
     {{ t('action:force-shutdown') }}
   </MenuItem>
 </template>

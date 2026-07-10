@@ -1,5 +1,5 @@
 <template>
-  <MenuItem icon="action:delete" :busy="isRunning" class="delete" @click="openModal()">
+  <MenuItem icon="action:delete" :busy="isRunning" class="delete typo-body-bold-small" @click="openModal()">
     {{ t('action:delete') }}
   </MenuItem>
 </template>

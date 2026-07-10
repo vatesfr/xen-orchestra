@@ -44,7 +44,7 @@
             <UiCircleProgressBar :accent="progressAccent" size="small" :value="progress" />
           </div>
           <div class="actions">
-            <UiButtonIcon icon="fa:eye" size="medium" accent="brand" @click="emit('select', task.id)" />
+            <UiButtonIcon icon="fa:eye" size="small" accent="brand" @click="emit('select', task.id)" />
           </div>
         </div>
       </div>

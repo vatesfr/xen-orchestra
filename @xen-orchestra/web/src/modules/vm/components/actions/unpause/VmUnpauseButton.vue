@@ -1,5 +1,11 @@
 <template>
-  <MenuItem v-if="(isPaused && canRun) || isRunning" icon="fa:play" :busy="isRunning" @click="unpauseJob()">
+  <MenuItem
+    v-if="(isPaused && canRun) || isRunning"
+    icon="fa:play"
+    :busy="isRunning"
+    class="typo-body-bold-small"
+    @click="unpauseJob()"
+  >
     {{ t('action:resume') }}
   </MenuItem>
 </template>
