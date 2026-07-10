@@ -46,6 +46,7 @@
 - [REST API] Expose `/rest/v0/acl-roles/:id/groups` (PR [#10085](https://github.com/vatesfr/xen-orchestra/pull/10085))
 - [XO6] Fix some design inconsistency between pages (PR [#10109](https://github.com/vatesfr/xen-orchestra/pull/10109))
 - [XO6/Users] Add Users Table (PR [#10029](https://github.com/vatesfr/xen-orchestra/pull/10029))
+- [XO6] Input fields now support prefix/suffix sections, and display validation messages ordered by severity (PR [#10009](https://github.com/vatesfr/xen-orchestra/pull/10009))
 
 ### Bug fixes
 
