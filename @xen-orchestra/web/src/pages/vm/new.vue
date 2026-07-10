@@ -806,7 +806,6 @@ const createNewVM = async () => {
 const { id: poolSelectId } = useFormSelect(pools, {
   searchable: true,
   model: toRef(vmState, 'pool'),
-  placeholder: () => t('new-vm:select-pool'),
   option: {
     label: 'name_label',
   },

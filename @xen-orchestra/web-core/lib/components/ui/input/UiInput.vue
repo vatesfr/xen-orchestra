@@ -1,16 +1,15 @@
 <!-- v5 -->
 <template>
   <div :class="toVariants({ accent, disabled })" class="ui-input" @click.self="focus()">
-    <span v-if="readonly" class="typo-body-regular input text-ellipsis" :class="{ placeholder: !modelValue }">
+    <span v-if="readonly" class="typo-body-regular input text-ellipsis">
       <input ref="inputRef" class="readonly-input" readonly type="text" />
-      {{ modelValue || placeholder }}
+      {{ modelValue }}
     </span>
     <input
       v-else
       :id="wrapperController?.id ?? id"
       ref="inputRef"
       :value="modelValue"
-      :placeholder="placeholder"
       :disabled
       :required
       :type
@@ -60,7 +59,6 @@ const {
   required?: boolean
   disabled?: boolean
   readonly?: boolean
-  placeholder?: string
   detached?: boolean
   type?: InputType
   icon?: IconName
@@ -152,10 +150,6 @@ defineExpose({ focus })
     border: none;
     outline: none;
     flex: 1;
-
-    &.placeholder {
-      color: var(--color-neutral-txt-secondary);
-    }
 
     &::placeholder {
       color: var(--color-neutral-txt-secondary);

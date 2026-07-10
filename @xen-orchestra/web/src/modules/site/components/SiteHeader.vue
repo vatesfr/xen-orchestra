@@ -2,9 +2,6 @@
   <UiHeadBar icon="fa:satellite">
     {{ XOA_NAME }}
     <template #actions>
-      <UiLink :to="{ name: '/vm/new' }" size="medium" icon="fa:plus">
-        {{ t('new-vm') }}
-      </UiLink>
       <UiLink :to="{ name: '/pool/connect' }" size="medium" icon="fa:plus">
         {{ t('action:connect-pool') }}
       </UiLink>
