@@ -32,7 +32,6 @@
 - [Rolling Pool Update/Reboot] Re-check that each host can still be evacuated right before evacuating it, to fail early with an explicit error (PR [#10097](https://github.com/vatesfr/xen-orchestra/pull/10097))
 - [XO6/VM] Add "New VM" button on Host view (PR [#10048](https://github.com/vatesfr/xen-orchestra/pull/10048))
 - [xo-server] expose more metrics when doing a memory dump (PR [#10041](https://github.com/vatesfr/xen-orchestra/pull/10041))
-
 - [XO6] Allow changing which PIF/network a host or pool uses for its management interface, without deleting and recreating the network config (PR [#10110](https://github.com/vatesfr/xen-orchestra/pull/10110))
 
 ### Bug fixes
