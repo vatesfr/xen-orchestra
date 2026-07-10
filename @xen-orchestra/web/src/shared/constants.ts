@@ -40,3 +40,10 @@ export const VDI_PAGE_CONTEXT = {
 } as const
 
 export type VdiPageContext = (typeof VDI_PAGE_CONTEXT)[keyof typeof VDI_PAGE_CONTEXT]
+
+export const SR_PAGE_CONTEXT = {
+  HOST: 'host',
+  POOL: 'pool',
+} as const
+
+export type SrPageContext = (typeof SR_PAGE_CONTEXT)[keyof typeof SR_PAGE_CONTEXT]
