@@ -1,8 +1,43 @@
 # ChangeLog
 
-## **6.6.0** (2026-06-30)
+## **6.6.2** (2026-07-09)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Backups] Fix alignment issue in full mirror with disk > 50GB from non encrypted to encrypted remote (PR [#10061](https://github.com/vatesfr/xen-orchestra/pull/10061))
+- [Backups] Add length to throttled stream during transfer size (PR [#10079](https://github.com/vatesfr/xen-orchestra/pull/10079))
+- [Backups] Remove warning "Issue while checking XVA" when Backup Repository is encrypted (PR [#10079](https://github.com/vatesfr/xen-orchestra/pull/10079))
+
+### Released packages
+
+- @xen-orchestra/fs 4.9.2
+- @xen-orchestra/backup-archive 1.0.4
+- @xen-orchestra/backups 0.73.7
+- @xen-orchestra/proxy 0.31.2
+- xo-server 5.205.2
+
+## **6.6.1** (2026-07-08)
+
+### Enhancements
+
+- [vm stats] Reduce the memory consumption of the rrd stats (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
+### Bug fixes
+
+- [VDI] Fix progress bar appearing half-filled when used space is at 100% [Forum#100200](https://xcp-ng.org/forum/post/100200) (PR [#10027](https://github.com/vatesfr/xen-orchestra/pull/10027))
+- [Backups] Improve resume of backup merge failure for VHD files (PR [#10053](https://github.com/vatesfr/xen-orchestra/pull/10053))
+
+### Released packages
+
+- @xen-orchestra/backup-archive 1.0.3
+- @xen-orchestra/backups 0.73.6
+- @xen-orchestra/proxy 0.31.1
+- @xen-orchestra/web 0.55.2
+- xo-server 5.205.1
+
+## **6.6.0** (2026-06-30)
 
 ### Enhancements
 
