@@ -234,6 +234,95 @@ To access advanced options:
    - Activate the plugin immediately.
    - Ensure it loads automatically when the Xen Orchestra server restarts.
 
+##### Enabling Passkeys in XOA with Keycloak
+
+###### Generating certificates
+
+To support passkeys in XOA, the Keycloak server must expose its OIDC endpoints over HTTPS.  
+The TLS certificates used by Keycloak must satisfy the following conditions:
+
+- **Common Name (CN)**: The CN of the certificate has to match the DNS name that clients will use to reach Keycloak.
+- **SubjectAltName (SAN)**: The certificate must contain a SAN entry with the same DNS name.
+- **Certificate chain**: The certificate must be issued by a trusted CA. The `auth‑oidc` plugin does not accept self‑signed certificates that lack a proper chain of trust.
+
+:::info
+The TLS certificate must match the domain that will be used as the _Relying Party ID_ (RP ID). The RP ID cannot be an IP address; it must be the DNS‑name that appears in the certificate’s CN or SAN.
+:::
+
+Here is a certificate that meets these requirements:
+
+```
+Version:          3 (0x02)
+Serial number:    7096756171258138755 (0x627cbe2335671083)
+Algorithm ID:     SHA256withRSA
+Issuer
+  CN = poc
+Subject
+  CN = keycloak.poc.local
+Fingerprints
+...
+  extKeyUsage :
+    serverAuth
+  subjectAltName :
+    dns: keycloak.poc.local
+```
+
+With this configuration, Keycloak can participate in passkey authentication flows that XOA expects, and the `auth-oidc` plugin will correctly validate the TLS connection.
+
+###### Trust the Keycloak cert in XOA
+
+1. Place the CA certificate used to sign Keycloak’s cert on the xo-server host (e.g., `/etc/ssl/poc.crt`).
+2. Edit the xo-server systemd service at `/etc/systemd/system/xo-server.service` to add the environment variable `NODE_EXTRA_CA_CERTS`.
+
+```
+[07:21 10] xoa:~$ cat /etc/systemd/system/xo-server.service
+# systemd service for XO-Server.
+[Unit]
+Description= XO Server
+After=network-online.target
+[Service]
+ExecStart=/usr/local/bin/xo-server
+Restart=always
+SyslogIdentifier=xo-server
+TimeoutStopSec=4s
+Environment="NODE_EXTRA_CA_CERTS=/etc/ssl/poc.crt"
+[Install]
+WantedBy=multi-user.target
+```
+
+###### Configuring Keycloak
+
+1. Select your realm.
+  - Open **Admin console → Manage realms** and choose the realm you use with XOA.
+2. Enable required actions.
+  - Go to **Authentication → Required Actions**.
+  - Check **Webauthn Register** and **Webauthn Register Passwordless**.
+3. Choose the WebAuthn authenticator.
+  - In **Authentication → Flows**, edit the login flow you use (e.g., browser).
+  - Add **WebAuthn Authenticator** as an **Alternative** (or replace the current authenticator with it).
+
+![Keycloak Browser Flow Details](../assets/keycloak-browser-flow.png)
+
+4. Disable OTP if not needed
+
+- If you want only **Password + Yubikey** for MFA, delete or disable the **OTP Form** from the flow.
+
+These settings allow users to register and log in with FIDO2 (passkeys) while keeping a password + Yubikey MFA option.
+
+###### Sample
+
+1. Initiate the OIDC authentication request from the XOA client to Keycloak.
+
+![Passkeys Authentication 1](../assets/auth-flow-1.png)
+
+2. The user supplies their username and password at the Keycloak login screen.
+
+![Passkeys Authentication 2](../assets/auth-flow-2.png)
+
+3. After credential validation, Keycloak presents a second‑factor challenge (User Verification or User Presence) that requires the user to press their Yubikey to complete the authentication.
+
+![Passkeys Authentication 3](../assets/auth-flow-3.png)
+
 ### SAML
 
 This plugin allows SAML users to authenticate to Xen-Orchestra.

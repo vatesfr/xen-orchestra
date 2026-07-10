@@ -10,6 +10,9 @@ export default function createStreamThrottle(rate) {
   }
   const group = new ThrottleGroup({ rate })
   return function throttleStream(stream) {
-    return pipeline(stream, group.createThrottle(), noop)
+    const throttled = pipeline(stream, group.createThrottle(), noop)
+    throttled.length = stream.length
+    throttled.maxStreamLength = stream.maxStreamLength
+    return throttled
   }
 }
