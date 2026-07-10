@@ -13,30 +13,30 @@
       />
     </template>
     <slot>
-    <MenuItem
-      v-for="(action, index) of actions"
-      :key="index"
-      :icon="action.icon"
-      :disabled="action.disabled"
-      :busy="action.busy"
-      :on-click="action.onClick"
-    >
-      {{ action.label }}
-      <i v-if="action.hint">{{ action.hint }}</i>
-      <template v-if="isGroupAction(action)" #submenu>
-        <MenuItem
-          v-for="(child, childIndex) of action.children"
-          :key="childIndex"
-          :icon="child.icon"
-          :disabled="child.disabled"
-          :busy="child.busy"
-          :on-click="child.onClick"
-        >
-          {{ child.label }}
-          <i v-if="child.hint">{{ child.hint }}</i>
-        </MenuItem>
-      </template>
-    </MenuItem>
+      <MenuItem
+        v-for="(action, index) of actions"
+        :key="index"
+        :icon="action.icon"
+        :disabled="action.disabled"
+        :busy="action.busy"
+        :on-click="action.onClick"
+      >
+        {{ action.label }}
+        <i v-if="action.hint" class="hint">{{ action.hint }}</i>
+        <template v-if="isGroupAction(action)" #submenu>
+          <MenuItem
+            v-for="(child, childIndex) of action.children"
+            :key="childIndex"
+            :icon="child.icon"
+            :disabled="child.disabled"
+            :busy="child.busy"
+            :on-click="child.onClick"
+          >
+            {{ child.label }}
+            <i v-if="child.hint" class="hint">{{ child.hint }}</i>
+          </MenuItem>
+        </template>
+      </MenuItem>
     </slot>
   </MenuList>
 </template>
@@ -85,3 +85,12 @@ function isGroupAction(action: ActionItem): action is GroupActionItem {
   return 'children' in action
 }
 </script>
+
+<style scoped lang="postcss">
+.hint {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+</style>
