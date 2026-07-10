@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **6.6.1** (2026-07-08)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Enhancements
 
@@ -20,8 +22,6 @@
 - xo-server 5.205.1
 
 ## **6.6.0** (2026-06-30)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Enhancements
 
