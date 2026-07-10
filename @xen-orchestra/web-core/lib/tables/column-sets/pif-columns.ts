@@ -1,4 +1,5 @@
 import { defineColumns } from '@core/packages/table/define-columns.ts'
+import { useActionColumn } from '@core/tables/column-definitions/action-column.ts'
 import { useAddressColumn } from '@core/tables/column-definitions/address-column.ts'
 import { useLinkColumn } from '@core/tables/column-definitions/link-column'
 import { useNumberColumn } from '@core/tables/column-definitions/number-column.ts'
@@ -18,6 +19,7 @@ export const usePifColumns = defineColumns(() => {
     ip: useAddressColumn({ headerLabel: () => t('ip-address') }),
     mac: useAddressColumn({ headerLabel: () => t('mac-address') }),
     mode: useTextColumn({ headerLabel: () => t('mode') }),
+    actions: useActionColumn({}),
     selectItem: useSelectItemColumn(),
   }
 })

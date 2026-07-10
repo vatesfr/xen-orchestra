@@ -104,6 +104,7 @@ function getManagementIcon(pif: XenApiPif) {
 }
 
 const { HeadCells, BodyCells } = usePifColumns({
+  exclude: ['actions'],
   body: (pif: XenApiPif) => {
     const name = computed(() => getNetworkName(pif.network))
     const status = computed(() => getPifStatus(pif))
