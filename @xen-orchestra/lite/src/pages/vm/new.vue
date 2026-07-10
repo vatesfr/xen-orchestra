@@ -184,7 +184,7 @@ import NewVmNetworkTable from '@/components/new-vm/NewVmNetworkTable.vue'
 
 // XenAPI Store imports
 import NewVmSrTable from '@/components/new-vm/NewVmSrTable.vue'
-import type { XenApiSr, XenApiVbd, XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import type { RecordRef, XenApiSr, XenApiVbd, XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { usePifStore } from '@/stores/xen-api/pif.store.ts'
@@ -681,7 +681,7 @@ const _createVm = defer(async ($defer: Defer) => {
     }
 
     if (newVifs && newVifs.length > 0) {
-      const vifRefs = await xapi.vif.create(newVifs.map(vif => ({ ...vif, vmRef: vmRefs[0] })))
+      const vifRefs = (await xapi.vif.create(newVifs.map(vif => ({ ...vif, vmRef: vmRefs[0] })))) as RecordRef<'vif'>[]
 
       vifRefs.forEach(vifRef => {
         $defer.onFailure(() => xapi.vif.delete(vifRef))

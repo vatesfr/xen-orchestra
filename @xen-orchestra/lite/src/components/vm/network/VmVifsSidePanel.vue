@@ -1,5 +1,10 @@
 <template>
   <VtsSidePanel :has-selection="!!vif" @close="emit('close')">
+    <template v-if="vif" #actions>
+      <UiButton size="medium" variant="tertiary" accent="brand" left-icon="fa:edit" @click="openEditVif()">
+        {{ t('action:edit') }}
+      </UiButton>
+    </template>
     <template v-if="vif" #default>
       <!-- VIF -->
       <UiCard class="card">
@@ -112,11 +117,13 @@ import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObject
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 
 const { vif } = defineProps<{
   vif?: XenApiVif
@@ -127,6 +134,8 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+
+const router = useRouter()
 
 const { getByOpaqueRef: getNetworkByOpaqueRef } = useNetworkStore().subscribe()
 const { getByOpaqueRef: getGuestMetricsByOpaqueRef } = useVmGuestMetricsStore().subscribe()
@@ -151,6 +160,14 @@ const ipAddresses = computed(() => {
 const network = computed(() => (vif !== undefined ? getNetworkByOpaqueRef(vif.network) : undefined))
 
 const status = computed(() => (vif?.currently_attached ? 'connected' : 'disconnected'))
+
+const openEditVif = () => {
+  if (vif === undefined) {
+    return
+  }
+
+  return router.push({ name: '/vif/edit/[uuid]', params: { uuid: vif.uuid } })
+}
 </script>
 
 <style scoped lang="postcss">
