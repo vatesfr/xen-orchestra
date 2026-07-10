@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { start as startRepl } from 'repl'
-import appConf from 'app-conf'
+import appConf from '@vates/app-conf'
 import { startSpinner } from './_cli-utils.mjs'
 
 import RedisCollection from './collection/redis.mjs'

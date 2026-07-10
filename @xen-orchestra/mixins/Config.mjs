@@ -3,7 +3,7 @@ import identity from 'lodash/identity.js'
 import isEqual from 'lodash/isEqual.js'
 import { createLogger } from '@xen-orchestra/log'
 import { parseDuration } from '@vates/parse-duration'
-import { watch } from 'app-conf'
+import { watch } from '@vates/app-conf'
 import assert from 'node:assert'
 
 const { warn, info } = createLogger('xo:mixins:config')
