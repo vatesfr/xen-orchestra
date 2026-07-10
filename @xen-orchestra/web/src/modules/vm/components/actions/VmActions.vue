@@ -1,5 +1,5 @@
 <template>
-  <VmMoreActions :vm />
+  <VmMoreActions :vm show-change-state />
 </template>
 
 <script setup lang="ts">

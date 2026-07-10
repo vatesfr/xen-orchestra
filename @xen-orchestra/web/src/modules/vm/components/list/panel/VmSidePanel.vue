@@ -20,7 +20,7 @@
             @click="open($event)"
           />
         </template>
-        <VmMoreActions :vm hide-change-state />
+        <VmMoreActions :vm />
       </MenuList>
     </template>
     <template v-if="vm" #default>

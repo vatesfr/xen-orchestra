@@ -1,5 +1,5 @@
 <template>
-  <MenuItem v-if="!hideChangeState" icon="action:change-state" class="change-state">
+  <MenuItem v-if="showChangeState" icon="action:change-state" class="change-state typo-body-bold-small">
     {{ t('action:change-state') }}
     <template #submenu>
       <VmPowerStateActions :vm />
@@ -29,7 +29,7 @@ import { useI18n } from 'vue-i18n'
 
 defineProps<{
   vm: FrontXoVm
-  hideChangeState?: boolean
+  showChangeState?: boolean
 }>()
 
 const { t } = useI18n()
@@ -38,6 +38,5 @@ const { t } = useI18n()
 <style lang="postcss" scoped>
 .change-state {
   color: var(--color-brand-txt-base);
-  font-weight: 500;
 }
 </style>

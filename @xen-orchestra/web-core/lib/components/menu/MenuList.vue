@@ -68,6 +68,7 @@ const open = (event: MouseEvent) => {
   }
 
   isOpen.value = true
+
   const trigger = event.currentTarget as HTMLElement
 
   nextTick(() => {
@@ -76,7 +77,7 @@ const open = (event: MouseEvent) => {
       controls: false,
     })
 
-    placementJs(event.currentTarget as HTMLElement, unrefElement(menu)!, {
+    placementJs(trigger, unrefElement(menu), {
       placement: props.placement ?? (isParentHorizontal.value ? 'bottom-start' : 'right-start'),
     })
   })
