@@ -11,11 +11,17 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- **RBAC** check for REST API endpoints:
+  - `/pools/:id/actions/create_bonded_network` (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
+  - `/pools/:id/actions/create_internal_network` (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
+  - `/pools/:id/actions/management-reconfigure` (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
 - [REST API] Possibility of sending `autoEnable` in the body of the `/hosts/:id/actions/disable` endpoint (PR [#10040](https://github.com/vatesfr/xen-orchestra/pull/10040))
 
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
+
+- [XO6] Fix negative "other" value in backup repository dashboard (PR [#10044](https://github.com/vatesfr/xen-orchestra/pull/10044))
 
 ### Packages to release
 
@@ -35,6 +41,7 @@
 
 - @vates/types minor
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/web patch
 - xo-server minor
 
 <!--packages-end-->

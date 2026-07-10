@@ -157,7 +157,7 @@ export abstract class RemoteHandlerAbstract {
   abstract getInfo(): Promise<RemoteInfoResult>
 
   abstract getSize(file: FileDescriptor): Promise<number>
-  abstract getSizeOnDisk(file: FileArg): Promise<number>
+  abstract getSizeOnDisk(file: FileDescriptor): Promise<number>
   abstract lock(path: string): Promise<LockDisposer>
   abstract test(): Promise<TestResult>
   abstract isImmutable(): boolean

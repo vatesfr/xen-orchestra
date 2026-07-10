@@ -1,6 +1,43 @@
 # ChangeLog
 
-## **next**
+## **6.6.2** (2026-07-09)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Backups] Fix alignment issue in full mirror with disk > 50GB from non encrypted to encrypted remote (PR [#10061](https://github.com/vatesfr/xen-orchestra/pull/10061))
+- [Backups] Add length to throttled stream during transfer size (PR [#10079](https://github.com/vatesfr/xen-orchestra/pull/10079))
+- [Backups] Remove warning "Issue while checking XVA" when Backup Repository is encrypted (PR [#10079](https://github.com/vatesfr/xen-orchestra/pull/10079))
+
+### Released packages
+
+- @xen-orchestra/fs 4.9.2
+- @xen-orchestra/backup-archive 1.0.4
+- @xen-orchestra/backups 0.73.7
+- @xen-orchestra/proxy 0.31.2
+- xo-server 5.205.2
+
+## **6.6.1** (2026-07-08)
+
+### Enhancements
+
+- [vm stats] Reduce the memory consumption of the rrd stats (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
+### Bug fixes
+
+- [VDI] Fix progress bar appearing half-filled when used space is at 100% [Forum#100200](https://xcp-ng.org/forum/post/100200) (PR [#10027](https://github.com/vatesfr/xen-orchestra/pull/10027))
+- [Backups] Improve resume of backup merge failure for VHD files (PR [#10053](https://github.com/vatesfr/xen-orchestra/pull/10053))
+
+### Released packages
+
+- @xen-orchestra/backup-archive 1.0.3
+- @xen-orchestra/backups 0.73.6
+- @xen-orchestra/proxy 0.31.1
+- @xen-orchestra/web 0.55.2
+- xo-server 5.205.1
+
+## **6.6.0** (2026-06-30)
 
 ### Enhancements
 
@@ -11,6 +48,8 @@
 - [REST API] add `hosts/:id/actions/join_pool` REST route (PR [#9876](https://github.com/vatesfr/xen-orchestra/pull/9876))
 - [REST API] Ask for user credentials for unauthenticated users (PR [#9938](https://github.com/vatesfr/xen-orchestra/pull/9938))
 - [REST API] `PATCH /rest/v0/vifs/{id}` to update VIF properties (allowed IPs, locking mode, rate limit, TX checksumming) (PR [#9935](https://github.com/vatesfr/xen-orchestra/pull/9935))
+- [REST API] Expose `GET /backup-repositories/:id/health` and `POST /backup-repositories/:id/actions/benchmark` routes (PR [#9847](https://github.com/vatesfr/xen-orchestra/pull/9847))
+- [REST API] Added start, clean_shutdown, clean_reboot, smart_reboot, restart_toolstack, emergency_shutdown, detach and forget REST action route for hosts (PR [#9887](https://github.com/vatesfr/xen-orchestra/pull/9887))
 - [REST API/RBAC] Add a built-in **Network administrator** role template: manage networks and VIFs, read and update PIFs (PR [#9952](https://github.com/vatesfr/xen-orchestra/pull/9952))
 - [REST API/RBAC] Add a built-in Storage administrator ACL role template to administer SRs, VDIs, VBDs, PBDs and backup repositories (PR [#9963](https://github.com/vatesfr/xen-orchestra/pull/9963))
 - [SDN Controller] Replace xapi.objects.all with specified object types to avoid filtering through all objects each time (PR [#9886](https://github.com/vatesfr/xen-orchestra/pull/9886))
@@ -45,10 +84,9 @@
 - [V2V] Add `esxi.importDisk` API endpoint to import a single ESXi disk into an SR as a standalone VDI ( [PR#10024] (https://github.com/vatesfr/xen-orchestra/pull/10024))
 - [V2V] Create a CDROM on destination if source has one (PR [#10014](https://github.com/vatesfr/xen-orchestra/pull/10014))
 - [XO5/V2V] Show if the transfer will be a full or a delta one when doing 2 steps V2V transfer (PR [#10014](https://github.com/vatesfr/xen-orchestra/pull/10014))
+- [XO5/XOA] Ability to take snapshot before installing upgrades (PR [#9920](https://github.com/vatesfr/xen-orchestra/pull/9920))
 - [SidePanels] Add and use new `VtsCardObjectTitle` component to display object title and ID in side panels (PR [#9755](https://github.com/vatesfr/xen-orchestra/pull/9755))
-
-- **XO 5**:
-  - [XOA] Ability to take snapshot before installing upgrades (PR [#9920](https://github.com/vatesfr/xen-orchestra/pull/9920))
+- [sdn-controller] Add `POST /rest/v0/plugins/sdn-controller/networks/:id/actions/update_traffic_rule` and `POST /rest/v0/plugins/sdn-controller/vifs/:id/actions/update_traffic_rule` (PR [#9936](https://github.com/vatesfr/xen-orchestra/pull/9936))
 
 - [Dependabot] Update packages and sync package.json with yarn.lock (PR [#9969](https://github.com/vatesfr/xen-orchestra/pull/9969))
   - update shell-quote to 1.8.4:
@@ -90,6 +128,7 @@
 - [Backups] Fix failed VM not appearing in the logs (PR [#10021](https://github.com/vatesfr/xen-orchestra/pull/10021))
 - [Backup/Restore] Fix file-level restore of VMs whose disks use LVM (e.g. the default Ubuntu install layout): logical volumes are now listed and can be restored, including when restoring several copies of the same VM at once — previously failed with `unknown filesystem type 'LVM2_member'` (PR [#9776](https://github.com/vatesfr/xen-orchestra/pull/9776))
 - [Backup/Restore] Fix file-level restore hanging when downloading large folders, and high memory use when downloading a folder as a zip (PR [#9776](https://github.com/vatesfr/xen-orchestra/pull/9776))
+- [Backups/replication] Fix error MEMORY_CONSTRAINT_VIOLATION_ORDER during replication (PR [#10034](https://github.com/vatesfr/xen-orchestra/pull/10034))
 - [V2V] Fix stream issue for large disks used with smaller blocks (PR [#9948](https://github.com/vatesfr/xen-orchestra/pull/9948))
 - [V2V] Fix migration when template memory_static_min is it's less than actual vm memory (PR [#10014](https://github.com/vatesfr/xen-orchestra/pull/10014))
 - xo-server-sdn-controller: apply/clean network rules on VIF update (PR [#9933](https://github.com/vatesfr/xen-orchestra/pull/9933))
@@ -116,8 +155,6 @@
 - @vates/fuse-vhd 2.1.3
 - xo-common 0.10.0
 - xen-api 4.7.8
-- @vates/types 1.27.0
-- @xen-orchestra/acl 1.3.0
 - @xen-orchestra/backup-archive 1.0.2
 - @xen-orchestra/qcow2 1.3.1
 - @xen-orchestra/xapi 8.9.0
@@ -126,26 +163,28 @@
 - @xen-orchestra/mixins 0.20.1
 - @xen-orchestra/openflow 0.1.4
 - @xen-orchestra/qa-test 1.1.0
-- @xen-orchestra/rest-api 0.34.0
 - @xen-orchestra/upload-ova 0.1.8
 - xo-acl-resolver 0.5.3
 - xo-server-audit 0.15.1
 - xo-server-ipmi-sensors 2.0.1
 - xo-server-load-balancer 0.13.0
 - xo-server-openmetrics 1.7.0
-- xo-server-sdn-controller 1.3.3
-- @xen-orchestra/backups 0.73.4
 - @xen-orchestra/web-core 0.56.0
-- @xen-orchestra/proxy 0.30.5
 - @xen-orchestra/vmware-explorer 0.14.0
-- @xen-orchestra/web 0.55.0
-- xo-server 5.204.0
 - xo-server-netbox 1.13.1
 - xo-web 5.199.0
+- @vates/types 1.28.0
+- @xen-orchestra/acl 1.4.0
+- @xen-orchestra/backups 0.73.5
+- @xen-orchestra/proxy 0.31.0
+- @xen-orchestra/rest-api 0.35.0
+- @xen-orchestra/web 0.55.1
+- xo-server 5.205.0
+- xo-server-sdn-controller 1.4.0
 
 ## **6.5.1** (2026-06-01)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
@@ -244,8 +283,6 @@
 - xo-server 5.202.1
 
 ## **6.4.1** (2026-05-05)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Enhancements
 
