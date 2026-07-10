@@ -33,6 +33,7 @@ import {
   useXoSrCollection,
   type FrontXoSr,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { getSrScopeRouteQuery } from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -158,7 +159,11 @@ const { HeadCells, BodyCells } = useSrColumns({
       storageRepository: r =>
         r({
           label: sr.name_label,
-          to: `/sr/${sr.id}`,
+          to: {
+            name: '/sr/[id]',
+            params: { id: sr.id },
+            query: getSrScopeRouteQuery(scope),
+          },
           icon: srStatusIcon.value,
           rightIcon: rightIcon.value,
         }),
