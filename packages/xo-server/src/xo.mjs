@@ -21,7 +21,7 @@ import { noSuchObject } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
 import { pipeline } from 'node:stream'
 import { UniqueIndex as XoUniqueIndex } from 'xo-collection/unique-index.js'
-
+import { applySchema } from './config.schema.mjs'
 import mixins from './xo-mixins/index.mjs'
 import { generateToken, noop } from './utils.mjs'
 
@@ -34,7 +34,8 @@ export default class Xo extends EventEmitter {
   constructor(opts) {
     super()
 
-    mixin(this, { Config, Hooks, HttpProxy, SslCertificate, Tasks }, [opts])
+    mixin(this, { Config, Hooks, HttpProxy, SslCertificate, Tasks }, [{ ...opts, applySchema }])
+
     // a lot of mixins adds listener for start/stop/… events
     this.hooks.setMaxListeners(0)
 
