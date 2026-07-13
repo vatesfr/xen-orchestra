@@ -11,6 +11,13 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- **RBAC** check for REST API endpoints:
+  - `/pools/:id/actions/create_bonded_network` (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
+  - `/pools/:id/actions/create_internal_network` (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
+  - `/pools/:id/actions/management-reconfigure` (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
+- [REST API] Possibility of sending `autoEnable` in the body of the `/hosts/:id/actions/disable` endpoint (PR [#10040](https://github.com/vatesfr/xen-orchestra/pull/10040))
+- [REST API] `PATCH /rest/v0/vdis/{id}` to update a VDI's name, description and size (PR [#9945](https://github.com/vatesfr/xen-orchestra/pull/9945))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -34,7 +41,10 @@
 
 <!--packages-start-->
 
+- @vates/types minor
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
 - vhd-lib patch
+- xo-server minor
 
 <!--packages-end-->
