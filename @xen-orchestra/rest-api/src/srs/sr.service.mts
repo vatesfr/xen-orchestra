@@ -71,7 +71,6 @@ export class SrService {
   }
 
   async probeNfs(id: XoHost['id'], server: string, nfsVersion?: string): Promise<NfsExport[]> {
-    // const host = this.#restApi.getObject<XoHost>(id, 'host')
     const xapiHost = this.#restApi.getXapiObject<XoHost>(id, 'host')
     const xapi = xapiHost.$xapi
 
@@ -110,7 +109,6 @@ export class SrService {
     const xapi = xapiHost.$xapi
     try {
       const result = (await xapi.call('host.call_plugin', xapiHost.$ref, 'zfs.py', 'list_zfs_pools', {})) as string
-      console.log(result)
       return JSON.parse(result)
     } catch (error: any) {
       if (error.code === 'XENAPI_MISSING_PLUGIN' || error.code === 'UNKNOWN_XENAPI_PLUGIN_FUNCTION') {
@@ -120,7 +118,7 @@ export class SrService {
       }
     }
   }
-
+  //
   async probeHba(id: XoHost['id']): Promise<HbaExport[]> {
     const xapiHost = this.#restApi.getXapiObject<XoHost>(id, 'host')
     const xapi = xapiHost.$xapi
@@ -239,6 +237,7 @@ export class SrService {
     }
 
     const deviceConfig: DeviceConfig = {
+      //
       target: targetIp,
       targetIQN: targetIqn,
     }
