@@ -101,13 +101,7 @@ type XapiRecordByXapiXoRecord = {
 }
 
 type LicenseProductId =
-  | 'premium'
-  | 'xcpng-enterprise'
-  | 'xcpng-standard'
-  | 'xo-proxy'
-  | 'xosan.trial'
-  | 'xostor'
-  | 'xostor.trial'
+  'premium' | 'xcpng-enterprise' | 'xcpng-standard' | 'xo-proxy' | 'xosan.trial' | 'xostor' | 'xostor.trial'
 type LicenseProductType = 'xo' | 'xoproxy' | 'xcpng' | 'xosan' | 'xostor'
 
 type License = {
@@ -200,7 +194,12 @@ type XoStoreRangeOptions = {
   reverse?: boolean
 }
 
-export type XoApp = EventEmitter & {
+export type ConfigSource = {
+  name: 'vendor' | 'system' | 'global' | 'local'
+  files: string[]
+}
+
+export type XoApp = {
   hooks: EventEmitter
   _redis: {
     get(key: string): Promise<string | null>
@@ -232,6 +231,9 @@ export type XoApp = EventEmitter & {
             path: string
           }
     }>
+    getSources(): readonly ConfigSource[]
+    getFiltered(): Record<string, unknown>
+    parseSourceFiltered(path: string): Promise<Record<string, unknown>>
   }
 
   objects: EventEmitter & {
