@@ -1,5 +1,6 @@
 import {
   Delete,
+  Body,
   Example,
   Extension,
   Get,
@@ -18,7 +19,7 @@ import {
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
-import type { XenApiVdi, XoMessage, XoTask, XoVdi, XoAlarm, XoSr } from '@vates/types'
+import type { XenApiVdi, XoMessage, XoTask, XoVdi, XoAlarm, XoSr, XoHost } from '@vates/types'
 import { SUPPORTED_VDI_FORMAT } from '@vates/types'
 
 import { acl } from '../middlewares/acl.middleware.mjs'
@@ -38,7 +39,16 @@ import {
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
-import { partialSrs, sr, srIds } from '../open-api/oa-examples/sr.oa-example.mjs'
+import {
+  partialSrs,
+  sr,
+  srIds,
+  nfsExport,
+  srUuids,
+  hbaExport,
+  iscsiIqnExport,
+  iscsiLunExport,
+} from '../open-api/oa-examples/sr.oa-example.mjs'
 import { vdiId } from '../open-api/oa-examples/vdi.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
@@ -407,5 +417,203 @@ export class SrController extends XapiXoController<XoSr> {
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteSr(@Path() id: string): Promise<void> {
     await this.#srService.delete(id as XoSr['id'])
+  }
+
+  /**
+   * Detects all NFS shares (exports) on a NFS server and returns a table of exports with their paths and ACLs
+   *
+   * Required privilege:
+   * - resource: host, action: read
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   * @example server "192.168.1.1"
+   * @example nfsVersion "4"
+   */
+  @Example(nfsExport)
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/probe/nfs')
+  @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async probeNfs(@Path() id: string, @Query() server: string, @Query() nfsVersion?: string) {
+    return this.#srService.probeNfs(id as XoHost['id'], server, nfsVersion)
+  }
+
+  /**
+   * Detects all ZFS pools and returns a dict of pools with their parameters { <poolname>: {<paramdict>}}
+   *
+   * Required privilege:
+   * - resource: host, action: read
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   */
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/probe/zfs')
+  @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async probeZfs(@Path() id: string) {
+    return this.#srService.probeZfs(id as XoHost['id'])
+  }
+
+  /**
+   * Detects all HBA devices on the host
+   *
+   * Required privilege:
+   * - resource: host, action: read
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   */
+  @Example(hbaExport)
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/probe/hba')
+  @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async probeHba(@Path() id: string) {
+    return this.#srService.probeHba(id as XoHost['id'])
+  }
+
+  /**
+   * Detects all iSCSI IQN on a Target (iSCSI "server")
+   * returns a table of IQN or empty table if no iSCSI connection to the target
+   *
+   * Required privilege:
+   * - resource: host, action: read
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   * @example targetIp ""
+   */
+  @Example(iscsiIqnExport)
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/probe/iscsiiqns')
+  @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async probeIscsiIqns(
+    @Path() id: string,
+    @Query() targetIp: string,
+    @Query() port?: number,
+    @Query() chapUser?: string,
+    @Query() chapPassword?: string
+  ) {
+    return this.#srService.probeIscsiIqns(id as XoHost['id'], targetIp, port, chapUser, chapPassword)
+  }
+
+  /**
+   * Detects all iSCSI ID and LUNs on a Target and return a LUN table
+   *
+   * Required privilege:
+   * - resource: host, action: read
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   * @example targetIp ""
+   * @example targetIqn ""
+   */
+  @Example(iscsiLunExport)
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/probe/iscsiluns')
+  @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async probeIscsiLuns(
+    @Path() id: string,
+    @Query() targetIp: string,
+    @Query() targetIqn: string,
+    @Query() port?: number,
+    @Query() chapUser?: string,
+    @Query() chapPassword?: string
+  ) {
+    return this.#srService.probeIscsiLuns(id as XoHost['id'], targetIp, targetIqn, port, chapUser, chapPassword)
+  }
+
+  /**
+   * Detects if this target already exists in XAPI
+   * returns a table of SR UUID, empty if no existing connections
+   *
+   * Required privilege:
+   * - resource: host, action: read
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   * @example targetIp ""
+   * @example targetIqn ""
+   */
+  @Example(srUuids)
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/probe/iscsi/exists')
+  @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async probeIscsiExists(
+    @Path() id: string,
+    @Query() targetIp: string,
+    @Query() targetIqn: string,
+    @Query() scsiId: string,
+    @Query() port?: number,
+    @Query() chapUser?: string,
+    @Query() chapPassword?: string
+  ) {
+    return this.#srService.probeIscsiExists(
+      id as XoHost['id'],
+      targetIp,
+      targetIqn,
+      scsiId,
+      port,
+      chapUser,
+      chapPassword
+    )
+  }
+
+  /**
+   * Detect if this HBA already exists in XAPI
+   * returns a table of SR UUID, empty if no existing connections
+   *
+   * Required privilege:
+   * - resource: host, action: read
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   * @example scsiId ""
+   */
+  @Example(srUuids)
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/probe/hba/exists')
+  @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async probeHbaExists(@Path() id: string, @Query() scsiId: string) {
+    return this.#srService.probeHbaExists(id as XoHost['id'], scsiId)
+  }
+
+  /**
+   * Detects if this NFS SR already exists in XAPI
+   * returns a table of SR UUID, empty if no existing connections
+   *
+   * Required privilege:
+   * - resource: host, action: read
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   * @example scsiId ""
+   */
+  @Example(srUuids)
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/probe/nfs/exists')
+  @Middlewares(acl({ resource: 'host', action: 'read', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async probeNfsExists(
+    @Path() id: string,
+    @Query() server: string,
+    @Query() serverPath: string,
+    @Query() nfsVersion?: string
+  ) {
+    return this.#srService.probeNfsExists(id as XoHost['id'], server, serverPath, nfsVersion)
   }
 }

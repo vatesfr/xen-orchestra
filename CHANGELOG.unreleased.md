@@ -18,6 +18,24 @@
 - [REST API] Possibility of sending `autoEnable` in the body of the `/hosts/:id/actions/disable` endpoint (PR [#10040](https://github.com/vatesfr/xen-orchestra/pull/10040))
 - [REST API] `PATCH /rest/v0/vdis/{id}` to update a VDI's name, description and size (PR [#9945](https://github.com/vatesfr/xen-orchestra/pull/9945))
 
+- SR REST API Endpoints:
+
+  - `GET :id/probe/nfs` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
+  - `GET :id/probe/zfs` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
+  - `GET :id/probe/hba` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
+  - `GET :id/probe/iscsiiqns` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
+  - `GET :id/probe/iscsiluns` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
+  - `GET :id/probe/iscsi/exists` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
+  - `GET :id/probe/hba/exists` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
+  - `GET :id/probe/nfs/exists` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
