@@ -119,3 +119,10 @@ task.start({ name: 'Rolling pool update', poolId: string, poolName: string })
 │  └─ task.end
 └─ task.end
 ```
+
+If the load balancer was loaded before the rolling pool update, its cooldown and re-enablement are reported as a separate root task. This task starts during cleanup after either success or failure, so its delay does not extend the rolling pool update task. If rolling pool updates overlap or another starts during the cooldown, the load balancer stays disabled and a fresh cooldown starts after the last update ends.
+
+```
+task.start({ name: 'Waiting before re-enabling the load balancer', objectId: string, poolId: string, poolName: string })
+└─ task.end
+```
