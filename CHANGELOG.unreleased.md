@@ -23,6 +23,7 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [XO6] Fix negative "other" value in backup repository dashboard (PR [#10044](https://github.com/vatesfr/xen-orchestra/pull/10044))
+- [Backups] Fix missing transfer size (PR [#10106](https://github.com/vatesfr/xen-orchestra/pull/10106))
 
 ### Packages to release
 
@@ -43,6 +44,7 @@
 - @vates/types minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
+- vhd-lib patch
 - xo-server minor
 
 <!--packages-end-->
