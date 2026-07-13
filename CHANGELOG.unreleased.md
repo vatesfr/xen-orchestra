@@ -7,7 +7,7 @@
 
 > Security fixes and new features should go in this section
 
-- xo-server : Permissions were ignored for some pool functions ([#10093] (https://github.com/vatesfr/xen-orchestra/pull/10093/changes))
+- xo-server : Permissions were ignored for some pool functions ([#10093](https://github.com/vatesfr/xen-orchestra/pull/10093/changes))
 
 ### Enhancements
 
