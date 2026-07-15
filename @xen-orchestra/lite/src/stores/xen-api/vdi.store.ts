@@ -26,15 +26,8 @@ export const useVdiStore = defineStore('xen-api-vdi', () => {
     return chainTotalUsage
   }
 
-  const enrichVdiWithChainUsage = (vdi: XenApiVdi): XenApiVdi & { chainPhysicalUsage: number } => {
-    return {
-      ...vdi,
-      chainPhysicalUsage: calculateVdiChainPhysicalUsage(vdi),
-    }
-  }
-
   const config = createXapiStoreConfig('vdi', {
-    beforeAdd: (vdi: XenApiVdi) => enrichVdiWithChainUsage(vdi),
+    beforeAdd: vdi => ({ ...vdi, chainPhysicalUsage: calculateVdiChainPhysicalUsage(vdi) }),
   })
 
   const context = createSubscribableStoreContext(config, {})
