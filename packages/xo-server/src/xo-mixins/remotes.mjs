@@ -1,10 +1,9 @@
-import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import Obfuscate from '@vates/obfuscate'
 import { basename } from 'path'
 import { createLogger } from '@xen-orchestra/log'
 import { format, parse } from 'xo-remote-parser'
 import { DEFAULT_ENCRYPTION_ALGORITHM, getHandler, isLegacyEncryptionAlgorithm } from '@xen-orchestra/fs'
-import { ignoreErrors, timeout } from 'promise-toolbox'
+import { ignoreErrors, timeout, TimeoutError } from 'promise-toolbox'
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
 import { synchronized } from 'decorator-synchronized'
 
@@ -14,12 +13,31 @@ import Disposable from 'promise-toolbox/Disposable'
 
 // ===================================================================
 
-const { warn } = createLogger('xo:mixins:remotes')
+const { warn, logError } = createLogger('xo:mixins:remotes')
 
 const obfuscateRemote = ({ url, ...remote }) => {
   const parsedUrl = parse(url)
   remote.url = format(Obfuscate.obfuscate(parsedUrl))
   return remote
+}
+
+const REMOTE_INFO_RETRY_DELAY = 5e3
+const REMOTE_INFO_RETRY_MAX_DELAY = 60 * 60 * 1e3 // cap at 1h
+const RETRY_CODES = new Set(['ECONNREFUSED', 'ETIMEDOUT', 'EHOSTUNREACH', 'ENETUNREACH', 'ENOTCONN', 'ESTALE'])
+function _isRetryableRemoteError(error) {
+  return error instanceof TimeoutError || RETRY_CODES.has(error.code)
+}
+export function remoteInfoRetryDelay(attempt) {
+  let prev = 1
+  let curr = 1
+
+  for (let i = 0; i < attempt; i++) {
+    const next = prev + curr
+    prev = curr
+    curr = next
+  }
+
+  return Math.min(prev * REMOTE_INFO_RETRY_DELAY, REMOTE_INFO_RETRY_MAX_DELAY)
 }
 
 // these properties should be defined on the remote object itself and not as
@@ -55,6 +73,7 @@ export default class {
   constructor(app) {
     this._handlers = { __proto__: null }
     this._remotesInfo = {}
+    this._remotesInfoRetry = { __proto__: null }
     this._app = app
 
     app.hooks.on('clean', () => this._remotes.rebuildIndexes())
@@ -76,9 +95,13 @@ export default class {
       const remotes = await this._remotes.get()
       remotes.forEach(remote => {
         ignoreErrors.call(this.updateRemote(remote.id, {}))
+        if (remote.enabled) {
+          ignoreErrors.call(this._refreshRemoteInfo(remote))
+        }
       })
     })
     app.hooks.on('stop', async () => {
+      Object.keys(this._remotesInfoRetry).forEach(id => this._cancelRemoteInfoRetry(id))
       const handlers = this._handlers
       for (const id in handlers) {
         try {
@@ -171,43 +194,73 @@ export default class {
   }
 
   async getAllRemotesInfo() {
-    const remotesInfo = this._remotesInfo
-    await asyncMapSettled(this._remotes.get(), async remote => {
-      if (!remote.enabled) {
-        return
+    for (const remote of await this._remotes.get()) {
+      if (remote.enabled && this._remotesInfoRetry[remote.id] === undefined) {
+        ignoreErrors.call(this._refreshRemoteInfo(remote))
       }
+    }
+    return this._remotesInfo
+  }
 
-      let encryption
-
-      if (this._handlers[remote.id] !== undefined) {
-        const algorithm = this._handlers[remote.id].encryptionAlgorithm
-        encryption = {
-          algorithm,
-          isLegacy: isLegacyEncryptionAlgorithm(algorithm),
-          recommendedAlgorithm: DEFAULT_ENCRYPTION_ALGORITHM,
-        }
+  async _fetchRemoteInfo(remote) {
+    let encryption
+    if (this._handlers[remote.id] !== undefined) {
+      const algorithm = this._handlers[remote.id].encryptionAlgorithm
+      encryption = {
+        algorithm,
+        isLegacy: isLegacyEncryptionAlgorithm(algorithm),
+        recommendedAlgorithm: DEFAULT_ENCRYPTION_ALGORITHM,
       }
+    }
 
-      const promise =
-        remote.proxy !== undefined
-          ? this._app.callProxyMethod(remote.proxy, 'remote.getInfo', {
-              remote,
-            })
-          : this.getRemoteHandler(remote.id).then(handler => handler.getInfo())
+    const promise =
+      remote.proxy !== undefined
+        ? this._app.callProxyMethod(remote.proxy, 'remote.getInfo', { remote })
+        : this.getRemoteHandler(remote.id).then(handler => handler.getInfo())
 
-      try {
-        await timeout.call(
-          promise.then(info => {
-            remotesInfo[remote.id] = {
-              ...info,
-              encryption,
-            }
-          }),
-          5e3
-        )
-      } catch (_) {}
-    })
-    return remotesInfo
+    this._remotesInfo[remote.id] = { ...(await timeout.call(promise, 5e3)), encryption }
+  }
+
+  async _refreshRemoteInfo(remote) {
+    try {
+      await this._fetchRemoteInfo(remote)
+      this._cancelRemoteInfoRetry(remote.id)
+    } catch (error) {
+      if (_isRetryableRemoteError(error)) {
+        this._scheduleRemoteInfoRetry(remote, error)
+      } else {
+        logError('failed to get remote info, will NOT retry', { id: remote.id, error, code: error.code })
+        this._cancelRemoteInfoRetry(remote.id)
+      }
+    }
+  }
+
+  _scheduleRemoteInfoRetry({ id }, error) {
+    warn('failed to get remote info, will retry', { id, error })
+    let state = this._remotesInfoRetry[id]
+    if (!state) {
+      state = this._remotesInfoRetry[id] = { attempt: 0 }
+    }
+    const delay = remoteInfoRetryDelay(state.attempt++)
+    state.timer = setTimeout(() => ignoreErrors.call(this._retryRemoteInfo(id)), delay)
+    state.timer.unref?.()
+  }
+
+  async _retryRemoteInfo(id) {
+    const remote = await this._remotes.first(id).catch(() => undefined)
+    if (remote?.enabled) {
+      await this._refreshRemoteInfo(remote)
+    } else {
+      this._cancelRemoteInfoRetry(id)
+    }
+  }
+
+  _cancelRemoteInfoRetry(id) {
+    const state = this._remotesInfoRetry[id]
+    if (state !== undefined) {
+      clearTimeout(state.timer)
+      delete this._remotesInfoRetry[id]
+    }
   }
 
   async getAllRemotes() {
@@ -283,6 +336,11 @@ export default class {
       ignoreErrors.call(handler.forget())
     }
 
+    this._cancelRemoteInfoRetry(id)
+    if (enabled === false) {
+      delete this._remotesInfo[id]
+    }
+
     return this._updateRemote(id, {
       enabled,
       name,
@@ -311,6 +369,9 @@ export default class {
   }
 
   async removeRemote(id) {
+    this._cancelRemoteInfoRetry(id)
+    delete this._remotesInfo[id]
+
     const handlers = this._handlers
     const handler = handlers[id]
     if (handler !== undefined) {

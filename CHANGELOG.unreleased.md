@@ -25,12 +25,14 @@
 - [RPU] Trace rolling pool updates/reboots to disk to allow diagnosis even after xo-server restarts (PR [#10078](https://github.com/vatesfr/xen-orchestra/pull/10078))
 - [XO6/VM] Group VM power actions in a new "Change state" submenu and isolate the Delete action (PR [#10036](https://github.com/vatesfr/xen-orchestra/pull/10036))
 - [OpenMetrics] Add an estimated per-VM power consumption metric (`xcp_vm_power_consumption_watts`), splitting each host's IPMI power across its running VMs proportionally to CPU load (PR [#10031](https://github.com/vatesfr/xen-orchestra/pull/10031))
+- [XO6/VM] Add possibility to export a VM (PR [#9989](https://github.com/vatesfr/xen-orchestra/pull/9989))
 - [REST API] Add `POST /srs` REST route to create a storage repository (PR [#9990](https://github.com/vatesfr/xen-orchestra/pull/9990))
 
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [Backup/Remotes] Listing backup repositories is no longer slowed down by an unreachable one: a broken repository is now served from cache and retried in the background instead of timing out on every refresh (PR [#10025](https://github.com/vatesfr/xen-orchestra/pull/10025))
 - [XO6] Fix negative "other" value in backup repository dashboard (PR [#10044](https://github.com/vatesfr/xen-orchestra/pull/10044))
 - [Backups] Fix missing transfer size (PR [#10106](https://github.com/vatesfr/xen-orchestra/pull/10106))
 - [Host/dashboard] Switch CPU and RAM panels order to match Pool dashboard layout (PR [#10059](https://github.com/vatesfr/xen-orchestra/pull/10059))
