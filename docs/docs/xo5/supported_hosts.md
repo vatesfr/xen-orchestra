@@ -20,7 +20,7 @@ Xen Orchestra and XCP-ng are mainly edited by the same company ([Vates](https://
 :::
 
 - XCP-ng 8.3 LTS ✅ 🚀
-- XCP-ng 8.2 LTS ✅ 🚀
+- XCP-ng 8.2 ✅ ☠️
 - XCP-ng 8.1 ✅ ☠️
 - XCP-ng 8.0 ✅ ☠️
 - XCP-ng 7.6 ✅ ☠️
