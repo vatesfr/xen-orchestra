@@ -26,7 +26,7 @@
           <UiButtonIcon
             accent="brand"
             size="medium"
-            icon="action:more-actions"
+            :icon="copied ? 'status:success' : 'action:more-actions'"
             :selected="isOpen"
             @click="open($event)"
           />
@@ -163,7 +163,7 @@ const pifsCount = computed(() => pifs.value.length)
 
 const networkAsJson = computed(() => JSON.stringify(network))
 
-const { copy, isSupported: isClipboardSupported } = useClipboard({ source: networkAsJson, legacy: true })
+const { copy, copied, isSupported: isClipboardSupported } = useClipboard({ source: networkAsJson, legacy: true })
 </script>
 
 <style scoped lang="postcss">

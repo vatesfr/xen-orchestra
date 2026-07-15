@@ -24,7 +24,7 @@
             variant="tertiary"
             accent="brand"
             size="medium"
-            @click="copy()"
+            @click="selectedNetworkIds.length > 0 && copy()"
           >
             {{ t('action:copy-info-json') }}
           </UiButton>
