@@ -67,7 +67,6 @@
 </template>
 
 <script setup lang="ts">
-import useMultiSelect from '@/composables/multi-select.composable'
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
@@ -84,6 +83,7 @@ import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
+import useMultiSelect from '@core/composables/table/multi-select.composable'
 import { useTableState } from '@core/composables/table-state.composable'
 import { useNetworkColumns } from '@core/tables/column-sets/network-columns'
 import { useClipboard } from '@vueuse/core'
