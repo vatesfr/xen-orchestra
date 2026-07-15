@@ -13,9 +13,12 @@ import { networkInterfaces } from 'os'
 import { noSuchObject, incorrectState } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
 import { pDelay, ignoreErrors } from 'promise-toolbox'
+import { Task } from '@vates/task'
 
 import * as XenStore from '../_XenStore.mjs'
 import Xapi from '../xapi/index.mjs'
+import { acquireRpuGuard } from '../_rpuGuard.mjs'
+import { getRpuTracesConfig, openRpuTrace } from '../_rpuObservability.mjs'
 import xapiObjectToXo from '../xapi-object-to-xo.mjs'
 import XapiStats from '../xapi-stats.mjs'
 import { camelToSnakeCase, forEach, isEmpty, popProperty } from '../utils.mjs'
@@ -753,6 +756,8 @@ export default class XenServers {
 
     const poolId = pool.id
 
+    $defer(acquireRpuGuard(poolId, 'rollingPoolUpdate'))
+
     const jobsOfthePool = []
     jobs.forEach(({ id: jobId, vms }) => {
       if (vms.id !== undefined) {
@@ -799,25 +804,29 @@ export default class XenServers {
       $defer(() => xapi.call('pool.set_wlb_enabled', pool._xapiRef, true))
     }
 
-    const hasParentTask = parentTask !== undefined
-    let task = parentTask
-    const fn = async () =>
+    const trace = openRpuTrace({ dir: getRpuTracesConfig(app).dir, kind: 'rpu', poolId })
+    $defer(() => trace?.stop())
+    if (trace !== undefined) {
+      log.info(`rolling pool update of pool ${poolId}: trace in ${trace.traceFile}`)
+    }
+
+    const properties = {
+      name: 'Rolling pool update',
+      objectId: poolId,
+      poolId,
+      poolName: pool.name_label,
+      progress: 0,
+      type: 'pool.rolling_update',
+      ...(trace !== undefined && { traceFile: trace.traceFile }),
+    }
+    const task = parentTask === undefined ? app.tasks.create(properties) : new Task({ properties })
+    trace?.attach(task)
+    await task.run(async () =>
       this.getXapi(pool).rollingPoolUpdate(task, {
         xsCredentials: app.apiContext.user.preferences.xsCredentials,
         rebootVm,
       })
-
-    if (!hasParentTask) {
-      task = app.tasks.create({
-        name: `Rolling pool update`,
-        poolId,
-        poolName: pool.name_label,
-        progress: 0,
-      })
-      await task.run(fn)
-    } else {
-      await fn()
-    }
+    )
   }
 }
 
