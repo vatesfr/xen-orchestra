@@ -1,5 +1,5 @@
 <template>
-  <MenuItem icon="action:connect" @click="goToConnectPool()">
+  <MenuItem icon="action:connect" class="typo-body-bold-small" @click="goToConnectPool()">
     {{ t('action:connect-pool') }}
   </MenuItem>
 </template>
