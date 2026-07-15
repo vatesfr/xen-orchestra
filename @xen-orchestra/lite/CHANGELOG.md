@@ -2,11 +2,11 @@
 
 ## **next**
 
-- remove all coming soon (PR [#10068](https://github.com/vatesfr/xen-orchestra/pull/10068))
+- [Host/dashboard] Switch CPU and RAM panels order to match Pool dashboard layout (PR [#10059](https://github.com/vatesfr/xen-orchestra/pull/10059))
+- Remove all "coming soon" disabled button placeholders from network, VM, and pool components (PR [#10068](https://github.com/vatesfr/xen-orchestra/pull/10068))
 
 ## **0.23.0** (2026-06-30)
 
-- [Host/dashboard] Switch CPU and RAM panels order to match Pool dashboard layout (PR [#10059](https://github.com/vatesfr/xen-orchestra/pull/10059))
 - Update the UiTitle component to use the one from web-core (PR [#9869](https://github.com/vatesfr/xen-orchestra/pull/9869))
 - [Pool/System] Add `Reboot VM on internal shutdown` in pool's system tab (PR [#9962](https://github.com/vatesfr/xen-orchestra/pull/9962))
 - Update the UiCard component to use the one from web-core (PR [#9980](https://github.com/vatesfr/xen-orchestra/pull/9980))
