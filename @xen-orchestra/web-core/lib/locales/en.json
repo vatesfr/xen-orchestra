@@ -776,6 +776,7 @@
   "other": "Other",
   "other-properties": "Other properties",
   "other-settings": "Other settings",
+  "ova": "OVA",
   "page-not-found": "This page is not to be found…",
   "page-please-wait": "Hold tight, astronaut! The page is getting ready to take off.{newline}We're just aligning the thrusters and calibrating the systems. It won't be long now, stay tuned!",
   "pagination:all": "@:all",
@@ -1201,6 +1202,7 @@
   "xoa-password-confirm-different": "XOA password confirmation is different",
   "xoa-ssh-account": "XOA SSH account",
   "xoa-ssh-password-confirm-different": "SSH password confirmation is different",
+  "xva": "XVA",
   "you-are-currently-on": "You are currently on: {0}",
   "zstd": "ZSTD"
 }
