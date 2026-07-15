@@ -29,7 +29,7 @@ import Ref from './_Ref.mjs'
 import transports from './transports/index.mjs'
 import { noSuchObject } from 'xo-common/api-errors.js'
 
-const { debug, warn } = createLogger('xen-api')
+const { debug } = createLogger('xen-api')
 
 // ===================================================================
 // Minimal `node:http(s)` request helper used by `putResource`.
@@ -43,7 +43,7 @@ const { debug, warn } = createLogger('xen-api')
 // redirections with an empty body beforehand).
 function nodeRequest(url, { body, headers, maxRedirects = 5, signal, timeout, ...opts }) {
   url = url instanceof URL ? url : new URL(url)
-  warn('nodeRequest', url.href, { body, headers, maxRedirects, signal, timeout, ...opts })
+  debug('nodeRequest', url.href)
   const bodyIsStream = body != null && typeof body.pipe === 'function'
 
   headers = { ...headers }

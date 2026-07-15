@@ -48,9 +48,13 @@ export default class Http {
     return dispatcher
   }
 
-  // mimics the previous `http-request-plus` behavior: throws on non-2xx responses
-  // with the response attached as `error.response`
-  async httpRequest(url, { auth, body, headers, rejectUnauthorized = true, timeout = 0, ...opts } = {}) {
+  // by default the failed response body is drained (freeing the socket) and its
+  // content exposed as `error.data`; pass `bypassStatusCheck: true` to instead
+  // take ownership of `error.response` and consume its body yourself
+  async httpRequest(
+    url,
+    { auth, body, bypassStatusCheck = false, headers, rejectUnauthorized = true, timeout = 0, ...opts } = {}
+  ) {
     const finalHeaders = { ...headers }
     if (auth !== undefined) {
       finalHeaders.authorization = 'Basic ' + Buffer.from(auth).toString('base64')
@@ -62,13 +66,18 @@ export default class Http {
       headers: finalHeaders,
       dispatcher: this._getDispatcher(rejectUnauthorized, timeout),
 
-      // required by `fetch` when sending a stream body
       ...(body !== undefined && typeof body.pipe === 'function' ? { duplex: 'half' } : {}),
     })
 
     if (!response.ok) {
       const error = new Error(`${response.status} ${response.statusText}`)
       error.response = response
+
+      if (!bypassStatusCheck) {
+        // drain the response body to free the socket
+        error.cause = (await response.text().catch(() => '')).substring(0, 1024)
+      }
+
       throw error
     }
 
