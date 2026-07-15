@@ -21,6 +21,7 @@
 - [XO6/VIF] Add possibility to create VIF from network tab in VM page (PR [#9677](https://github.com/vatesfr/xen-orchestra/pull/9677))
 - [vm stats] Reduce the memory consumption of the rrd stats (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
 - [XO6/Site] Add "New VM" and "Connect pool" actions to the site infrastructure tree (PR [#10047](https://github.com/vatesfr/xen-orchestra/pull/10047))
+- [XO5/Hub] Recipes are now available to all plans, not just Premium (PR [#10117](https://github.com/vatesfr/xen-orchestra/pull/10117))
 
 ### Bug fixes
 
@@ -29,7 +30,6 @@
 - [XO6] Fix negative "other" value in backup repository dashboard (PR [#10044](https://github.com/vatesfr/xen-orchestra/pull/10044))
 - [Backups] Fix missing transfer size (PR [#10106](https://github.com/vatesfr/xen-orchestra/pull/10106))
 - [Host/dashboard] Switch CPU and RAM panels order to match Pool dashboard layout (PR [#10059](https://github.com/vatesfr/xen-orchestra/pull/10059))
-
 
 ### Packages to release
 
@@ -56,6 +56,6 @@
 - xapi-explore-sr patch
 - xen-api minor
 - xo-server minor
-
+- xo-web minor
 
 <!--packages-end-->
