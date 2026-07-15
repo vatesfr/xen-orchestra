@@ -122,6 +122,7 @@ class PerfAlertXoPlugin {
    *
    * @param {string} type
    * @param {XoHost|XoSr|XoVm} object
+   * @param {boolean} isV6
    * @returns
    */
   _generateUrl(type, object, isV6) {

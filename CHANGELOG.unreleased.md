@@ -35,6 +35,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/web patch
-- xo-server-perf-alert minor
+- xo-server-perf-alert patch
 
 <!--packages-end-->
