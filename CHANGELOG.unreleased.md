@@ -52,6 +52,7 @@
 
 - @vates/types minor
 - @xen-orchestra/backup-archive patch
+- @xen-orchestra/disk-transform patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
@@ -59,6 +60,5 @@
 - xapi-explore-sr patch
 - xen-api minor
 - xo-server minor
-
 
 <!--packages-end-->
