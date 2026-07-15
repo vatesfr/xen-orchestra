@@ -1,6 +1,6 @@
 <template>
   <UiHeadBar icon="fa:plus">
-    {{ t('create-new-vdi') }}
+    {{ t('new-vif:add') }}
   </UiHeadBar>
 
   <div class="card-container">
@@ -11,13 +11,12 @@
     </VtsStateHero>
 
     <template v-else>
-      <VtsOperationPendingCard v-if="isRunning" :title="t('creating-new-vdi')" />
-
+      <VtsOperationPendingCard v-if="isRunning" :title="t('creating-new-vif')" />
       <VtsOperationErrorCard
         v-else-if="error"
-        :title="t('unable-to-create-new-vdi')"
+        :title="t('unable-to-create-new-vif')"
         :error
-        :error-message="t('new-vdi:error-message')"
+        :error-message="t('new-vif:error-message')"
       >
         <template #actions>
           <UiButton variant="secondary" accent="brand" size="medium" @click="handleGoBack()">
@@ -25,18 +24,19 @@
           </UiButton>
         </template>
       </VtsOperationErrorCard>
-
       <UiCard v-show="canDisplayForm">
-        <NewVdiForm :vm :cancel-to="cancelRoute" @create="createVdi" />
+        <UiTitle>{{ t('configuration') }}</UiTitle>
+        <NewVifForm v-if="vm" :vm-id="vm.id" :pool-id="vm.$pool" :cancel-to="cancelRoute" @create="createVif" />
       </UiCard>
     </template>
   </div>
 </template>
 
-<script lang="ts" setup>
-import NewVdiForm from '@/modules/vdi/components/form/new/NewVdiForm.vue'
-import { type NewVdiPayload, useXoVdiCreateJob } from '@/modules/vdi/jobs/xo-vdi-create.job.ts'
-import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+<script setup lang="ts">
+import NewVifForm from '@/modules/vif/components/form/new/NewVifForm.vue'
+import { type NewVifPayload, useXoVifCreateJob } from '@/modules/vif/jobs/xo-vif-create.job.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { ApiError } from '@/shared/error/api.error.ts'
 import VtsOperationErrorCard from '@core/components/operation-error-card/VtsOperationErrorCard.vue'
 import VtsOperationPendingCard from '@core/components/operation-pending-card/VtsOperationPendingCard.vue'
@@ -44,6 +44,7 @@ import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
+import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { type RouteLocationRaw, useRoute, useRouter } from 'vue-router'
@@ -53,17 +54,17 @@ const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 
-const vmId = computed(() => route.query.vmid as FrontXoVm['id'] | undefined)
+const vmId = computed(() => route.query.vmId as FrontXoVm['id'] | undefined)
 
 const { areVmsReady, useGetVmById } = useXoVmCollection()
 
 const vm = useGetVmById(vmId)
 
-const formPayload = ref<NewVdiPayload>()
+const formPayload = ref<NewVifPayload>()
 
 const error = ref<ApiError | Error | undefined>()
 
-const { canRun, run: create, isRunning } = useXoVdiCreateJob(formPayload)
+const { canRun, run: create, isRunning } = useXoVifCreateJob(formPayload)
 
 const canDisplayForm = computed(() => !isRunning.value && error.value === undefined)
 
@@ -72,11 +73,11 @@ const cancelRoute = computed<RouteLocationRaw>(() => {
     return { name: '/(site)/dashboard' }
   }
 
-  return { name: '/vm/[id]/vdis', params: { id: vmId.value } }
+  return { name: '/vm/[id]/networks', params: { id: vmId.value } }
 })
 
-async function createVdi(newPayload: NewVdiPayload) {
-  formPayload.value = newPayload
+async function createVif(payload: NewVifPayload) {
+  formPayload.value = payload
 
   if (!canRun.value) {
     return
