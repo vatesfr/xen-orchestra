@@ -85,6 +85,10 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
       hard_shutdown: t('operation:force-shutdown'),
       destroy: t('operation:destroy'),
       snapshot: t('operation:snapshot'),
+      clone: t('operation:duplicate'),
+      copy: t('operation:duplicate'),
+      export: t('operation:duplicate'),
+      import: t('operation:duplicate'),
       unknown: '',
     },
     'unknown'
