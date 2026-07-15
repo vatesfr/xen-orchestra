@@ -30,6 +30,8 @@ import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 
+type EnrichedXenApiVdi = XenApiVdi & { chainPhysicalUsage: number }
+
 const { sr, pool } = defineProps<{
   sr?: XenApiSr
   pool: XenApiPool
@@ -50,7 +52,7 @@ const allVdis = computed(() => {
     return []
   }
 
-  return sr.VDIs.map(vdiRef => getVdiByOpaqueRef(vdiRef)).filter((vdi): vdi is XenApiVdi => vdi !== undefined)
+  return sr.VDIs.map(vdiRef => getVdiByOpaqueRef(vdiRef)).filter((vdi): vdi is EnrichedXenApiVdi => vdi !== undefined)
 })
 
 const vdis = computed(() => allVdis.value.filter(vdi => !vdi.is_a_snapshot))
