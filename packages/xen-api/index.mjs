@@ -38,7 +38,8 @@ const { debug } = createLogger('xen-api')
 // cut once the real data has been sent
 // Mimics the subset of `http-request-plus` that `putResource` depends on:
 // resolves with the Node response on a 2xx status, otherwise rejects with an
-// error carrying the response as `error.response`. A stream body is never
+// error carrying the response as `error.response` (whose body is drained, so a
+// non-2xx response never leaks its socket). A stream body is never
 // replayed, so redirects are not followed for it (`putResource` probes for
 // redirections with an empty body beforehand).
 function nodeRequest(url, { body, headers, maxRedirects = 5, signal, timeout, ...opts }) {
@@ -96,6 +97,8 @@ function nodeRequest(url, { body, headers, maxRedirects = 5, signal, timeout, ..
         } else {
           const error = new Error(`${statusCode} ${response.statusMessage}`)
           Object.defineProperty(error, 'response', { value: response })
+
+          response.destroy()
           reject(error)
         }
       })
