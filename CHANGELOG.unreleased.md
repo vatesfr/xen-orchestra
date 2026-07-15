@@ -56,6 +56,8 @@
 - xapi-explore-sr patch
 - xen-api minor
 - xo-server minor
+- xo-server-audit patch
+- xo-server-sdn-controller patch
 
 
 <!--packages-end-->
