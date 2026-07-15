@@ -152,6 +152,12 @@ export default class XenServers {
 
     let hasChanged = false
 
+    // Changing any of these invalidates the persisted pool-member addresses:
+    // they may point at a different pool now, so a stale slave list must not
+    // survive the change (a live connection repopulates it within seconds).
+    const CONNECTION_IDENTITY_KEYS = new Set(['allowUnauthorized', 'host', 'httpProxy', 'password', 'username'])
+    let connectionIdentityChanged = false
+
     for (const key of [
       'allowUnauthorized',
       'enabled',
@@ -173,8 +179,22 @@ export default class XenServers {
         if (value !== server[key]) {
           server[key] = value
           hasChanged = true
+          if (CONNECTION_IDENTITY_KEYS.has(key)) {
+            connectionIdentityChanged = true
+          }
         }
       }
+    }
+
+    // Drop the stale pool-member addresses on a connection-identity change,
+    // unless this very update is the internal refresh that carries a fresh list.
+    if (
+      connectionIdentityChanged &&
+      properties.poolMembersAddresses === undefined &&
+      server.poolMembersAddresses !== undefined
+    ) {
+      server.poolMembersAddresses = undefined
+      hasChanged = true
     }
 
     // special handling for readOnly
@@ -184,6 +204,16 @@ export default class XenServers {
       if (xapi !== undefined) {
         xapi.readOnly = readOnly
       }
+      hasChanged = true
+    }
+
+    // special handling for poolMembersAddresses (an array, compared by content)
+    const { poolMembersAddresses } = properties
+    if (
+      poolMembersAddresses !== undefined &&
+      JSON.stringify(poolMembersAddresses) !== JSON.stringify(server.poolMembersAddresses)
+    ) {
+      server.poolMembersAddresses = poolMembersAddresses.length > 0 ? poolMembersAddresses : undefined
       hasChanged = true
     }
 
@@ -232,12 +262,14 @@ export default class XenServers {
         serverIdsByPool[xapiObject.$id] = conId
       }
 
-      // save pool name and description in server properties
+      // save pool name and description, and the pool-member addresses (so
+      // master failover survives an XO restart), in the server properties
       if (xapiObject.$type === 'pool') {
         self
           .updateXenServer(serverIdsByPool[xapiId], {
             poolNameDescription: xapiObject.name_description,
             poolNameLabel: xapiObject.name_label,
+            poolMembersAddresses: self._xapis[conId]?.candidateHostnames,
           })
           ::ignoreErrors()
       }
@@ -354,6 +386,11 @@ export default class XenServers {
         user: server.username,
         password: server.password,
       },
+      // Persisted pool-member addresses so that, after an XO restart, the
+      // connection can still fail over to a surviving master even when the
+      // configured `host` is the dead one (e.g. XO is HA-restarted on the very
+      // pool whose master just died).
+      candidateHostnames: server.poolMembersAddresses,
       url: server.host,
       watchEvents: false,
     }))
