@@ -19,8 +19,8 @@
           </UiButton>
           <UiButton
             v-tooltip="copied && t('copied')"
-            :disabled="!isClipboardSupported || selectedNetworkIds.length === 0"
-            :left-icon="copied ? 'fa:check-circle' : 'action:copy'"
+            :disabled="!isClipboardSupported"
+            :left-icon="copied ? 'status:success' : 'action:copy'"
             variant="tertiary"
             accent="brand"
             size="medium"

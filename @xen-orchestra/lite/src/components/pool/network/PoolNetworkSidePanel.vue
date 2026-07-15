@@ -21,7 +21,7 @@
       >
         {{ t('action:delete') }}
       </UiButton>
-      <MenuList placement="bottom-start">
+      <MenuList placement="bottom-end">
         <template #trigger="{ open, isOpen }">
           <UiButtonIcon
             accent="brand"
