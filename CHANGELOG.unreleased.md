@@ -42,9 +42,14 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/proxy-cli minor
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/upload-ova minor
 - @xen-orchestra/web patch
+- @xen-orchestra/xapi minor
 - vhd-lib patch
+- xen-api minor
+- xo-cli minor
 - xo-server minor
 
 <!--packages-end-->
