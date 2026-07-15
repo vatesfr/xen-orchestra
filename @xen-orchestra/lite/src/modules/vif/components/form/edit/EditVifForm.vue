@@ -17,16 +17,16 @@
 
 <script setup lang="ts">
 import type { XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { useEditVifForm } from '@/modules/vif/form/edit/use-edit-vif-form.ts'
+import EditVifButtonsSection from '@/modules/vif/components/form/edit/EditVifButtonsSection.vue'
+import VifAllowedIpsTextarea from '@/modules/vif/components/form/edit/inputs/VifAllowedIpsTextarea.vue'
+import VifMacInput from '@/modules/vif/components/form/edit/inputs/VifMacInput.vue'
+import VifNetworkSelect from '@/modules/vif/components/form/edit/inputs/VifNetworkSelect.vue'
+import VifRateLimitInput from '@/modules/vif/components/form/edit/inputs/VifRateLimitInput.vue'
+import VifTxChecksummingCheckbox from '@/modules/vif/components/form/edit/inputs/VifTxChecksummingCheckbox.vue'
+import { useEditVifForm } from '@/modules/vif/form/edit/use-edit-vif-form'
 import type { EditVifPayload } from '@/modules/vif/jobs/xen-api-vif-edit.job.ts'
 import VtsForm from '@core/components/form/VtsForm.vue'
 import type { RouteLocationRaw } from 'vue-router'
-import EditVifButtonsSection from './EditVifButtonsSection.vue'
-import VifAllowedIpsTextarea from './inputs/VifAllowedIpsTextarea.vue'
-import VifMacInput from './inputs/VifMacInput.vue'
-import VifNetworkSelect from './inputs/VifNetworkSelect.vue'
-import VifRateLimitInput from './inputs/VifRateLimitInput.vue'
-import VifTxChecksummingCheckbox from './inputs/VifTxChecksummingCheckbox.vue'
 
 const { vmRef, vifRef } = defineProps<{
   vmRef: XenApiVm['$ref']

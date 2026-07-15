@@ -30,18 +30,22 @@ export function useVifFormBaseValidation(): FormValidationConfig<BaseVifFormData
     },
   }
 }
+
 export function buildBaseVifPayload(formData: BaseVifFormData): BaseVifPayload {
   const allowedIps = parseIpList(formData.allowedIps) as IpAddress[]
   const ipv4 = allowedIps.filter(ip => !isIpv6(ip))
   const ipv6 = allowedIps.filter(ip => isIpv6(ip))
-  const hasRateLimit = formData.rateLimit !== undefined
 
   return {
     ...(formData.mac !== '' && { MAC: formData.mac }),
     ...(ipv4.length > 0 && { ipv4_allowed: ipv4 }),
     ...(ipv6.length > 0 && { ipv6_allowed: ipv6 }),
-    qos_algorithm_type: hasRateLimit ? 'ratelimit' : '',
-    qos_algorithm_params: hasRateLimit ? { kbps: String(formData.rateLimit) } : {},
+    // allowed IPs are only enforced when the locking mode is `locked`
+    ...(allowedIps.length > 0 && { locking_mode: 'locked' }),
+    ...(typeof formData.rateLimit === 'number' && {
+      qos_algorithm_type: 'ratelimit',
+      qos_algorithm_params: { kbps: String(formData.rateLimit) },
+    }),
     other_config: { 'ethtool-tx': String(formData.txChecksumming) },
   }
 }
