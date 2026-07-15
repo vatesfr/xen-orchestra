@@ -31,7 +31,7 @@
             @click="open($event)"
           />
         </template>
-        <MenuItem icon="action:copy" :disabled="!isClipboardSupported" :on-click="copy">
+        <MenuItem icon="action:copy" :disabled="!isClipboardSupported" @click="copy()">
           {{ t('action:copy-info-json') }}
         </MenuItem>
       </MenuList>
