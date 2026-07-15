@@ -30,7 +30,7 @@ import transports from './transports/index.mjs'
 import XapiError from './_XapiError.mjs'
 import { noSuchObject } from 'xo-common/api-errors.js'
 
-const { debug, warn } = createLogger('xen-api')
+const { debug } = createLogger('xen-api')
 
 // ===================================================================
 // Minimal `node:http(s)` request helper used by `putResource`.
@@ -39,12 +39,13 @@ const { debug, warn } = createLogger('xen-api')
 // cut once the real data has been sent
 // Mimics the subset of `http-request-plus` that `putResource` depends on:
 // resolves with the Node response on a 2xx status, otherwise rejects with an
-// error carrying the response as `error.response`. A stream body is never
+// error carrying the response as `error.response` (whose body is drained, so a
+// non-2xx response never leaks its socket). A stream body is never
 // replayed, so redirects are not followed for it (`putResource` probes for
 // redirections with an empty body beforehand).
 function nodeRequest(url, { body, headers, maxRedirects = 5, signal, timeout, ...opts }) {
   url = url instanceof URL ? url : new URL(url)
-  warn('nodeRequest', url.href, { body, headers, maxRedirects, signal, timeout, ...opts })
+  debug('nodeRequest', url.href)
   const bodyIsStream = body != null && typeof body.pipe === 'function'
 
   headers = { ...headers }
@@ -97,6 +98,8 @@ function nodeRequest(url, { body, headers, maxRedirects = 5, signal, timeout, ..
         } else {
           const error = new Error(`${statusCode} ${response.statusMessage}`)
           Object.defineProperty(error, 'response', { value: response })
+
+          response.destroy()
           reject(error)
         }
       })
