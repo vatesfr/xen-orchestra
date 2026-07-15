@@ -2,10 +2,11 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
 import { SrService, type CreateSrBody } from './sr.service.mjs'
+import { ApiError } from '../helpers/error.helper.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 
 describe('SrService.create', () => {
-  it('resolves the host id to its XAPI ref, passes device_config through, and returns the SR uuid', async () => {
+  it('resolves the host id to its XAPI ref, maps XO names to XAPI names, and returns the SR uuid', async () => {
     let srCreateParams: Record<string, unknown> | undefined
     let getFieldArgs: unknown[] | undefined
     let getXapiObjectArgs: unknown[] | undefined
@@ -30,9 +31,10 @@ describe('SrService.create', () => {
 
     const service = new SrService(restApi)
     const body = {
-      host: 'host-uuid',
+      hostId: 'host-uuid',
       name_label: 'NFS store',
-      type: 'nfs',
+      SR_type: 'nfs',
+      size: 1234,
       shared: true,
       device_config: { server: '10.0.0.1', serverpath: '/data' },
     } as CreateSrBody
@@ -41,10 +43,12 @@ describe('SrService.create', () => {
 
     // host id is resolved against the 'host' collection
     assert.deepEqual(getXapiObjectArgs, ['host-uuid', 'host'])
-    // body.host (id) is replaced by the XAPI ref; device_config is forwarded untouched
+    // body.hostId (XO id) is replaced by the XAPI ref, SR_type/size are mapped to
+    // XAPI's type/physical_size, device_config is forwarded untouched
     assert.deepEqual(srCreateParams, {
       name_label: 'NFS store',
       type: 'nfs',
+      physical_size: 1234,
       shared: true,
       device_config: { server: '10.0.0.1', serverpath: '/data' },
       host: 'OpaqueRef:host-1',
@@ -52,5 +56,22 @@ describe('SrService.create', () => {
     // uuid is read back from the freshly created SR ref
     assert.deepEqual(getFieldArgs, ['SR', 'OpaqueRef:new-sr', 'uuid'])
     assert.equal(id, 'sr-uuid-123')
+  })
+
+  it('rejects linstor (XOSTOR) SR creation', async () => {
+    const service = new SrService({} as RestApi)
+    const body = {
+      hostId: 'host-uuid',
+      name_label: 'XOSTOR',
+      SR_type: 'linstor',
+      shared: true,
+      device_config: {},
+    } as CreateSrBody
+
+    await assert.rejects(service.create(body), (error: unknown) => {
+      assert.ok(error instanceof ApiError)
+      assert.equal(error.status, 403)
+      return true
+    })
   })
 })

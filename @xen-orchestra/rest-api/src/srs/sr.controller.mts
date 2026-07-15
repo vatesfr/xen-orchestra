@@ -114,19 +114,19 @@ export class SrController extends XapiXoController<XoSr> {
   /**
    * Create a storage repository (SR) on the given host.
    *
-   * `device_config` is passed as-is to XAPI and its keys depend on `type`
+   * `device_config` is passed as-is to XAPI and its keys depend on `SR_type`
    * (e.g. nfs: `{ server, serverpath }`, smb: `{ server, username, password }`,
    * lvmoiscsi: `{ target, targetIQN, SCSIid }`).
    *
    * Required privilege:
-   * - resource: host, action: create:sr (on the target host)
+   * - resource: sr, action: create
    *
-   * @example body { "host": "f8b8d2a5-7d40-a104-efc6-fb797b58f258", "name_label": "NFS store", "type": "nfs", "shared": true, "device_config": { "server": "10.0.0.1", "serverpath": "/data" } }
+   * @example body { "hostId": "f8b8d2a5-7d40-a104-efc6-fb797b58f258", "name_label": "NFS store", "SR_type": "nfs", "shared": true, "device_config": { "server": "10.0.0.1", "serverpath": "/data" } }
    */
   @Example(srId)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('')
-  @Middlewares([json(), acl({ resource: 'host', action: 'create:sr', objectId: 'body.host' })])
+  @Middlewares([json(), acl({ resource: 'sr', action: 'create', object: ({ req }) => req.body })])
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)

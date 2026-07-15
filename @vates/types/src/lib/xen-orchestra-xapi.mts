@@ -234,7 +234,7 @@ export interface Xapi {
   rebootHost(hostId: XoHost['id'], force?: boolean): Promise<void>
   shutdownHost(hostId: XoHost['id'], opts?: { force?: boolean; bypassEvacuate?: boolean }): Promise<void>
   SR_create(params: {
-    content_type?: string
+    content_type?: XoSr['content_type']
     device_config: Record<string, string>
     host: XenApiHost['$ref']
     name_description?: XoSr['name_description']
@@ -242,7 +242,7 @@ export interface Xapi {
     physical_size?: number
     shared: boolean
     sm_config?: Record<string, string>
-    type: string
+    type: XoSr['SR_type']
   }): Promise<XenApiSr['$ref']>
   SR_importVdi(
     ref: XenApiSr['$ref'],
