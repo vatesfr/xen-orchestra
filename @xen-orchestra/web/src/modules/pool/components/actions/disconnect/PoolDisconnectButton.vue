@@ -1,5 +1,11 @@
 <template>
-  <MenuItem icon="action:disconnect" :busy="isRunning" :disabled="!canRun" class="disconnect" @click="openModal()">
+  <MenuItem
+    icon="action:disconnect"
+    class="disconnect typo-body-bold-small"
+    :busy="isRunning"
+    :disabled="!canRun"
+    @click="openModal()"
+  >
     {{ t('action:disconnect-pool') }}
   </MenuItem>
 </template>

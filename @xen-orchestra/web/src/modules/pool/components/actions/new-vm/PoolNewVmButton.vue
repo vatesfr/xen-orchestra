@@ -1,5 +1,5 @@
 <template>
-  <MenuItem icon="action:add" @click="goToNewVm()">
+  <MenuItem icon="action:add" class="typo-body-bold-small" @click="goToNewVm()">
     {{ t('new-vm') }}
   </MenuItem>
 </template>
