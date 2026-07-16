@@ -47,7 +47,6 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
 import { computed } from 'vue'
-
 import { useI18n } from 'vue-i18n'
 
 const { vif } = defineProps<{ vif: FrontXoVif }>()

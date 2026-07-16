@@ -4,11 +4,11 @@
       <UiButtonIcon
         v-tooltip="{
           placement: 'left',
-          content: t('action:copy-all'),
+          content: tooltipContent,
         }"
-        icon="action:more-actions"
+        :icon
         accent="brand"
-        size="medium"
+        size="small"
         :disabled="!isSupported"
         @click="open($event)"
       />
@@ -23,8 +23,9 @@
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import { useCopyToClipboard } from '@core/composables/copy.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { useClipboard } from '@vueuse/core'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { values } = defineProps<{
@@ -33,5 +34,15 @@ const { values } = defineProps<{
 
 const { t } = useI18n()
 
-const { copy, isSupported } = useClipboard({ source: () => values.join('\n'), legacy: true })
+const { copy, copied, isSupported } = useCopyToClipboard(() => values.join(';\n'))
+
+const icon = computed(() => (copied.value ? 'fa:check-circle' : 'action:more-actions'))
+
+const tooltipContent = computed(() => {
+  if (!isSupported.value) {
+    return t('copy-unavailable-http')
+  }
+
+  return copied.value ? t('copied') : t('action:copy-all')
+})
 </script>
