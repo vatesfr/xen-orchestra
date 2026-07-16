@@ -64,7 +64,9 @@ const methods = {
       }
     }
 
-    await Promise.all(hosts.map(host => host.$call('assert_can_evacuate')))
+    await Promise.all(
+      hosts.filter(host => !ignoreHost || !ignoreHost(host)).map(host => host.$call('assert_can_evacuate'))
+    )
 
     // Steps in the RPR : Evacuate hosts, reboot hosts, migrate VMs back, and potentially updateHosts (beforeEvacuateVms and beforeRebootHost)
     const nSteps = 3 + Number(beforeEvacuateVms !== undefined) + Number(beforeRebootHost !== undefined)
@@ -127,6 +129,12 @@ const methods = {
             await this._waitObjectState(metricsRef, metrics => metrics.live)
 
             const getServerTime = async () => parseDateTime(await this.call('host.get_servertime', host.$ref)) * 1e3
+
+            // the pool state may have changed since the initial check, e.g. while evacuating the previous hosts
+            await Task.run({ properties: { name: `Check evacuation precondition`, hostId, hostName } }, async () => {
+              await host.$call('assert_can_evacuate')
+            })
+
             await Task.run({ properties: { name: `Evacuate`, hostId, hostName } }, async () => {
               await this.clearHost(host)
             })
