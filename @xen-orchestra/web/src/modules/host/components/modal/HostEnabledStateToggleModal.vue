@@ -37,8 +37,8 @@ const { t } = useI18n()
 const enabledState = useMapper(
   () => action,
   () => ({
-    enable: { title: t('host-enable-title', { host: host.name_label }), action: t('action:host-enable') },
-    disable: { title: t('host-disable-title', { host: host.name_label }), action: t('action:host-disable') },
+    enable: { title: t('host-enable-title', { host: host.name_label }), action: t('action:enable-host') },
+    disable: { title: t('host-disable-title', { host: host.name_label }), action: t('action:disable-host') },
   }),
   'disable'
 )
