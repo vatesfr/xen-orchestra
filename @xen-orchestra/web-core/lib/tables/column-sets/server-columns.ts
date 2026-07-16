@@ -4,7 +4,6 @@ import { useAddressColumn } from '@core/tables/column-definitions/address-column
 import { useLinkColumn } from '@core/tables/column-definitions/link-column'
 import { useStatusColumn } from '@core/tables/column-definitions/status-column.ts'
 import { useI18n } from 'vue-i18n'
-import { useSelectItemColumn } from '../column-definitions/select-item-column'
 
 export const useServerColumns = defineColumns(() => {
   const { t } = useI18n()
@@ -15,6 +14,5 @@ export const useServerColumns = defineColumns(() => {
     status: useStatusColumn({ headerLabel: () => t('status') }),
     primaryHost: useLinkColumn({ headerLabel: () => t('master') }),
     actions: useActionColumn({}),
-    selectItem: useSelectItemColumn(),
   }
 })
