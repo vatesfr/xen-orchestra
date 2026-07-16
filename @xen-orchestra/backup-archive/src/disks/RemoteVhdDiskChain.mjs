@@ -270,6 +270,21 @@ export class RemoteVhdDiskChain extends RemoteDisk {
   }
 
   /**
+   * Returns the compression codec id of the root disk, or 'MIXED' if not
+   * uniform across the chain. Only meaningful when every disk is a VHD directory.
+   * @returns {string | undefined}
+   */
+  getCompressionType() {
+    const compressionType = this.#disks[0].getCompressionType()
+    for (const disk of this.#disks) {
+      if (disk.getCompressionType() !== compressionType) {
+        return 'MIXED'
+      }
+    }
+    return compressionType
+  }
+
+  /**
    * Abstract
    * Rename alias/disk
    * @param {string} newPath

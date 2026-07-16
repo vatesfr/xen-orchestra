@@ -231,6 +231,16 @@ export class RemoteDisk extends RandomAccessDisk {
 
   /**
    * Abstract
+   * Returns the compression codec id, or 'MIXED' if not uniform across the chain.
+   * Only meaningful when the disk is a VHD directory.
+   * @returns {string | undefined}
+   */
+  getCompressionType() {
+    throw new Error(`getCompressionType must be implemented`)
+  }
+
+  /**
+   * Abstract
    * Rename alias/disk
    * @param {string} newPath
    */
