@@ -292,7 +292,14 @@ export default class RemoteHandlerAbstract {
   async outputStream(path, input, { checksum = true, dirMode, maxStreamLength, streamLength, validator } = {}) {
     path = normalizePath(path)
     let checksumStream
-
+    info('will output stream ', { path, streamLength, maxStreamLength, isEncrypted: this.isEncrypted })
+    if (this.isEncrypted) {
+      info('stream is encrypted', { path, streamLength, maxStreamLength })
+      const overhead = this.#encryptor.ivLength + this.#encryptor.authTagLength
+      if (streamLength !== undefined) streamLength += overhead
+      if (maxStreamLength !== undefined) maxStreamLength += overhead
+      info('stream is updated ', { path, streamLength, maxStreamLength, overhead })
+    }
     input = this.#encryptor.encryptStream(input)
     if (checksum) {
       checksumStream = createChecksumStream()

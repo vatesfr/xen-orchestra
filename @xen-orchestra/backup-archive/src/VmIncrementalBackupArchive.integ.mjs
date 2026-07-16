@@ -8,6 +8,8 @@ import { getHandler } from '@xen-orchestra/fs'
 import { pFromCallback } from 'promise-toolbox'
 // eslint-disable-next-line n/no-missing-import
 import { VmBackupDirectory } from '../dist/VmBackupDirectory.mjs'
+import { RemoteVhdDisk } from '../dist/disks/RemoteVhdDisk.mjs'
+import { MergeRemoteDisk } from '../dist/disks/MergeRemoteDisk.mjs'
 import { VHDFOOTER, VHDHEADER } from './tests.fixtures.mjs'
 import { VhdFile, Constants, VhdDirectory, VhdAbstract } from 'vhd-lib'
 import { dirname, basename } from 'node:path'
@@ -410,6 +412,73 @@ test('it merges a chain of multiple consecutive orphan ancestors in one pass', a
   assert.equal(remainingVhds.includes('grandchild.vhd'), true)
   assert.equal(remainingVhds.includes('ancestor.vhd'), false, 'ancestor should have been merged, not deleted directly')
   assert.equal(remainingVhds.includes('child.vhd'), false)
+})
+
+test('it resumes, through cleanVm, an interrupted merge whose ancestor lost its footer', async () => {
+  // Reproduces the production "footer1 !== footer2" failure end-to-end via the full cleanVm
+  // pipeline. ancestor (full) <- child (differencing, the active backup).
+  const ancestor = await generateVhd(`${basePath}/ancestor.vhd`, { blocks: [0, 1] })
+  await generateVhd(`${basePath}/child.vhd`, {
+    header: { parentUnicodeName: 'ancestor.vhd', parentUuid: ancestor.footer.uuid },
+    blocks: [2, 3, 4, 5],
+  })
+  await handler.writeFile(
+    `${rootPath}/metadata.json`,
+    JSON.stringify({ mode: 'delta', size: 12000, vhds: [`${relativePath}/child.vhd`] })
+  )
+
+  // Simulate a merge killed mid-transfer: write 2 of the 4 child blocks into the ancestor
+  // (which overwrites its end footer) then throw before mergeMetadata() rewrites the footer.
+  // This leaves the ancestor footerless AND a `.merge.json` state file — the exact post-crash
+  // state that makes cleanVm take the resume path.
+  const parent = new RemoteVhdDisk({ handler, path: `${basePath}/ancestor.vhd` })
+  const child = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd` })
+  await parent.init({ force: false })
+  await child.init({ force: false })
+  const merger = new MergeRemoteDisk(handler, { removeUnused: true, writeStateDelay: 0 })
+  let written = 0
+  const realWriteBlock = parent.writeBlock.bind(parent)
+  parent.writeBlock = async diskBlock => {
+    if (written === 2) {
+      throw new Error('simulated interruption')
+    }
+    written++
+    return realWriteBlock(diskBlock)
+  }
+  await assert.rejects(merger.merge(parent, child), /simulated interruption/)
+
+  assert.ok(
+    (await handler.list(basePath)).includes('.ancestor.vhd.merge.json'),
+    'an interrupted-merge state file should remain'
+  )
+
+  // Full pipeline: cleanVm must recognize the interrupted merge and resume it — opening the
+  // footerless ancestor through the chain without throwing "footer1 !== footer2".
+  await VmBackupDirectory.cleanVm(handler, rootPath, {
+    remove: true,
+    merge: true,
+    logInfo: () => {},
+    logWarn: () => {},
+  })
+
+  // The merge completed: the ancestor was consolidated into child.vhd and the state file is gone.
+  const remaining = await handler.list(basePath)
+  assert.equal(remaining.includes('.ancestor.vhd.merge.json'), false, 'state file removed after successful resume')
+  assert.equal(remaining.includes('ancestor.vhd'), false, 'ancestor consolidated into the merge target')
+  assert.equal(remaining.includes('child.vhd'), true, 'merge target remains')
+
+  // No blocks lost: the resumed merge wrote the blocks (4, 5) that were never written before
+  // the crash, so the consolidated disk holds the full set.
+  const merged = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd` })
+  await merged.init({ force: false })
+  try {
+    assert.deepEqual(merged.getBlockIndexes(), [0, 1, 2, 3, 4, 5], 'all blocks present after resumed merge')
+  } finally {
+    await merged.close()
+  }
+
+  // The backup is consistent, so its metadata is preserved.
+  assert.ok((await handler.list(rootPath)).includes('metadata.json'), 'metadata should be preserved')
 })
 
 test('it does not warn "missing target of alias" for aliases deleted by merge', async () => {

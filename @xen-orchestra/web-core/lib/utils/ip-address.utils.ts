@@ -16,3 +16,10 @@ export const getUniqueIpAddressesForDevice = (
 
   return [...new Set(getIpAddressesByDevice(addresses)[device])]
 }
+
+export function parseIpList(value: string, separator = ';'): string[] {
+  return value
+    .split(separator)
+    .map(ip => ip.trim())
+    .filter(ip => ip !== '')
+}

@@ -47,13 +47,10 @@ export default {
         {
           type: 'category',
           label: 'What\'s new in XO6',
-          collapsible: true,
-          collapsed: true,
-          items:[
-            'xo6/whatsnew',
-            'xo6/xo6vsxo5',
-          ],
+          type: 'link',
+          href: 'https://xen-orchestra.com/blog/',
         },
+        /* These categories are hidden until they no longer only contain blank pages
         {
           type: 'category',
           label: 'Getting started',
@@ -90,6 +87,7 @@ export default {
             'xo6/backups',
           ],
         },
+        */
         {
           type: 'category',
           label: 'Security',
@@ -105,6 +103,20 @@ export default {
             'xo6/acl-v2',
           ],
         },
+          ],
+        },
+        {
+          type: 'category',
+          label: 'DevOps tools',
+          collapsible: true,
+          collapsed: true,
+          items:[
+            'xo6/ansible',
+            'xo6/kubernetes',
+            'xo6/packer-provider',
+            'xo6/powershell-module',
+            'xo6/pulumi-provider',
+            'xo6/terraform-provider',
           ],
         },
         {

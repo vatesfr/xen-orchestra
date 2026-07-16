@@ -13,9 +13,12 @@ import { networkInterfaces } from 'os'
 import { noSuchObject, incorrectState } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
 import { pDelay, ignoreErrors } from 'promise-toolbox'
+import { Task } from '@vates/task'
 
 import * as XenStore from '../_XenStore.mjs'
 import Xapi from '../xapi/index.mjs'
+import { acquireRpuGuard } from '../_rpuGuard.mjs'
+import { getRpuTracesConfig, openRpuTrace } from '../_rpuObservability.mjs'
 import xapiObjectToXo from '../xapi-object-to-xo.mjs'
 import XapiStats from '../xapi-stats.mjs'
 import { camelToSnakeCase, forEach, isEmpty, popProperty } from '../utils.mjs'
@@ -152,6 +155,12 @@ export default class XenServers {
 
     let hasChanged = false
 
+    // Changing any of these invalidates the persisted pool-member addresses:
+    // they may point at a different pool now, so a stale slave list must not
+    // survive the change (a live connection repopulates it within seconds).
+    const CONNECTION_IDENTITY_KEYS = new Set(['allowUnauthorized', 'host', 'httpProxy', 'password', 'username'])
+    let connectionIdentityChanged = false
+
     for (const key of [
       'allowUnauthorized',
       'enabled',
@@ -173,8 +182,22 @@ export default class XenServers {
         if (value !== server[key]) {
           server[key] = value
           hasChanged = true
+          if (CONNECTION_IDENTITY_KEYS.has(key)) {
+            connectionIdentityChanged = true
+          }
         }
       }
+    }
+
+    // Drop the stale pool-member addresses on a connection-identity change,
+    // unless this very update is the internal refresh that carries a fresh list.
+    if (
+      connectionIdentityChanged &&
+      properties.poolMembersAddresses === undefined &&
+      server.poolMembersAddresses !== undefined
+    ) {
+      server.poolMembersAddresses = undefined
+      hasChanged = true
     }
 
     // special handling for readOnly
@@ -184,6 +207,16 @@ export default class XenServers {
       if (xapi !== undefined) {
         xapi.readOnly = readOnly
       }
+      hasChanged = true
+    }
+
+    // special handling for poolMembersAddresses (an array, compared by content)
+    const { poolMembersAddresses } = properties
+    if (
+      poolMembersAddresses !== undefined &&
+      JSON.stringify(poolMembersAddresses) !== JSON.stringify(server.poolMembersAddresses)
+    ) {
+      server.poolMembersAddresses = poolMembersAddresses.length > 0 ? poolMembersAddresses : undefined
       hasChanged = true
     }
 
@@ -232,12 +265,14 @@ export default class XenServers {
         serverIdsByPool[xapiObject.$id] = conId
       }
 
-      // save pool name and description in server properties
+      // save pool name and description, and the pool-member addresses (so
+      // master failover survives an XO restart), in the server properties
       if (xapiObject.$type === 'pool') {
         self
           .updateXenServer(serverIdsByPool[xapiId], {
             poolNameDescription: xapiObject.name_description,
             poolNameLabel: xapiObject.name_label,
+            poolMembersAddresses: self._xapis[conId]?.candidateHostnames,
           })
           ::ignoreErrors()
       }
@@ -354,6 +389,11 @@ export default class XenServers {
         user: server.username,
         password: server.password,
       },
+      // Persisted pool-member addresses so that, after an XO restart, the
+      // connection can still fail over to a surviving master even when the
+      // configured `host` is the dead one (e.g. XO is HA-restarted on the very
+      // pool whose master just died).
+      candidateHostnames: server.poolMembersAddresses,
       url: server.host,
       watchEvents: false,
     }))
@@ -716,6 +756,8 @@ export default class XenServers {
 
     const poolId = pool.id
 
+    $defer(acquireRpuGuard(poolId, 'rollingPoolUpdate'))
+
     const jobsOfthePool = []
     jobs.forEach(({ id: jobId, vms }) => {
       if (vms.id !== undefined) {
@@ -762,25 +804,29 @@ export default class XenServers {
       $defer(() => xapi.call('pool.set_wlb_enabled', pool._xapiRef, true))
     }
 
-    const hasParentTask = parentTask !== undefined
-    let task = parentTask
-    const fn = async () =>
+    const trace = openRpuTrace({ dir: getRpuTracesConfig(app).dir, kind: 'rpu', poolId })
+    $defer(() => trace?.stop())
+    if (trace !== undefined) {
+      log.info(`rolling pool update of pool ${poolId}: trace in ${trace.traceFile}`)
+    }
+
+    const properties = {
+      name: 'Rolling pool update',
+      objectId: poolId,
+      poolId,
+      poolName: pool.name_label,
+      progress: 0,
+      type: 'pool.rolling_update',
+      ...(trace !== undefined && { traceFile: trace.traceFile }),
+    }
+    const task = parentTask === undefined ? app.tasks.create(properties) : new Task({ properties })
+    trace?.attach(task)
+    await task.run(async () =>
       this.getXapi(pool).rollingPoolUpdate(task, {
         xsCredentials: app.apiContext.user.preferences.xsCredentials,
         rebootVm,
       })
-
-    if (!hasParentTask) {
-      task = app.tasks.create({
-        name: `Rolling pool update`,
-        poolId,
-        poolName: pool.name_label,
-        progress: 0,
-      })
-      await task.run(fn)
-    } else {
-      await fn()
-    }
+    )
   }
 }
 
