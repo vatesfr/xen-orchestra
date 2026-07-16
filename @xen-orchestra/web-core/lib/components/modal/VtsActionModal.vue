@@ -4,7 +4,7 @@
       <span>{{ modalTexts.title }}</span>
     </template>
     <template #content>
-      <span>{{ modalTexts.message }}</span>
+      <span v-if="modalTexts.message">{{ modalTexts.message }}</span>
     </template>
     <template #buttons>
       <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
@@ -54,11 +54,6 @@ const { action, object, hostName } = defineProps<
   }
 >()
 
-const defaultActionByObject: { [O in ObjectType]: ActionsByObject[O] } = {
-  vm: 'shutdown',
-  host: 'disable',
-}
-
 const { t } = useI18n()
 
 const textMappingsByObject: TextMappingByObject = {
@@ -95,12 +90,22 @@ const textMappingsByObject: TextMappingByObject = {
       message: t('modal:host-disable-message'),
       action: t('action:disable-host'),
     },
+    shutdown: {
+      title: t('modal:confirm-host-disable', { host: hostName }),
+      message: t('modal:host-disable-message'),
+      action: t('action:disable-host'),
+    },
+    start: {
+      title: t('modal:confirm-host-disable', { host: hostName }),
+      message: t('modal:host-disable-message'),
+      action: t('action:disable-host'),
+    },
   },
 }
 
 const modalTexts = useMapper(
   () => action,
   () => textMappingsByObject[object] as Record<ActionsByObject[ObjectType], ActionTexts>,
-  () => defaultActionByObject[object]
+  () => 'shutdown'
 )
 </script>
