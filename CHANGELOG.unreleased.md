@@ -12,6 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [XO6/Treeview] Fix hosts alignment in Treeview when hosts have different numbers of VMs (PR [#10153](https://github.com/vatesfr/xen-orchestra/pull/10153))
+- [REST API] Possibility of sending `shutdownPinnedVms` in the body of the `/pools/:id/actions/rolling_update` and `rolling_reboot` endpoints (PR [#10125](https://github.com/vatesfr/xen-orchestra/pull/10125))
 - [Rolling Pool Update/Reboot] New `shutdownPinnedVms` option: VMs that cannot be migrated because they use a host-bound device (PCI passthrough, vGPU, SR-IOV VIF) are cleanly shut down before their host reboots and started again on it afterwards, instead of aborting the whole run. When such VMs block the run, XO now lists them and asks for confirmation instead of failing with a raw `CANNOT_EVACUATE_HOST` error (PR [#10125](https://github.com/vatesfr/xen-orchestra/pull/10125))
 
 ### Bug fixes
@@ -42,9 +43,11 @@
 
 <!--packages-start-->
 
+- @vates/types minor
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups patch
 - @xen-orchestra/disk-transform patch
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server minor
