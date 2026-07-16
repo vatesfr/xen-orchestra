@@ -24,7 +24,6 @@
 - [Pool] XO now reconnects to a surviving pool member when the master becomes unreachable (e.g. HA promoted a new master after the old one died), instead of staying stuck on the dead master, including after an XO restart (PR [#10016](https://github.com/vatesfr/xen-orchestra/pull/10016))
 - [XO6/VIF] Add possibility to create VIF from network tab in VM page (PR [#9677](https://github.com/vatesfr/xen-orchestra/pull/9677))
 - [vm stats] Reduce the memory consumption of the rrd stats (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
-- [XO6/Pool] Add connect/disconnect action on page Site (PR [#10075])(https://github.com/vatesfr/xen-orchestra/pull/10075)
 - [XO6/Host] Add possibilty to enable or disable an host (PR [#10074](https://github.com/vatesfr/xen-orchestra/pull/10074))
 - [XO6/Site] Add "Connect pool" action to the site infrastructure tree (PR [#10047](https://github.com/vatesfr/xen-orchestra/pull/10047))
 - [VM]: Add possibility to duplicate a VM (PR [#9580](https://github.com/vatesfr/xen-orchestra/pull/9580))
@@ -46,6 +45,7 @@
 - [REST API] Expose `/rest/v0/acl-roles/:id/users` (PR [#10085](https://github.com/vatesfr/xen-orchestra/pull/10085))
 - [REST API] Expose `/rest/v0/acl-roles/:id/groups` (PR [#10085](https://github.com/vatesfr/xen-orchestra/pull/10085))
 - [XO6] Fix some design inconsistency between pages (PR [#10109](https://github.com/vatesfr/xen-orchestra/pull/10109))
+- [XO6/Pool] Add connect/disconnect action on page Site (PR [#10075](https://github.com/vatesfr/xen-orchestra/pull/10075))
 
 ### Bug fixes
 

@@ -22,12 +22,14 @@
 </template>
 
 <script setup lang="ts">
-import PoolTreeActions from '@/modules/pool/components/actions/PoolTreeActions.vue'
+import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import {
   usePoolEnhancedData,
   type PoolDisplayData,
   type PoolFilterableData,
 } from '@/modules/pool/composables/use-pool-enhanced-data.composable.ts'
+import { useXoServerConnectJob } from '@/modules/server/jobs/xo-server-connect.job.ts'
+import { useXoServerDisconnectJob } from '@/modules/server/jobs/xo-server-disconnect.job.ts'
 import {
   useXoServerCollection,
   type FrontXoServer,
@@ -42,6 +44,7 @@ import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useServerColumns } from '@core/tables/column-sets/server-columns.ts'
+import { downloadBugTools } from '@core/utils/download-bugtools.utils.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { logicNot } from '@vueuse/math'
 import { computed } from 'vue'
@@ -54,6 +57,8 @@ const { servers: rawServers } = defineProps<{
 const { t } = useI18n()
 
 const { areServersReady, hasServerFetchError } = useXoServerCollection()
+
+const { getMasterHostByPoolId, areHostsFetching, areHostsReady, hasHostFetchError } = useXoHostCollection()
 
 const selectedServerId = useRouteQuery('id')
 
@@ -105,6 +110,11 @@ const { HeadCells, BodyCells } = useServerColumns({
       icon: server.poolIcon,
     }))
 
+    const serverIdArg = computed(() => server.id)
+    const { isRunning: isConnecting, run: connect } = useXoServerConnectJob([serverIdArg])
+    const { isRunning: isDisconnecting, run: disconnect } = useXoServerDisconnectJob([serverIdArg])
+    const downloadHost = computed(() => (server.poolId ? getMasterHostByPoolId(server.poolId) : undefined))
+
     return {
       pool: r => r(poolInfo.value),
       hostIp: r => r(server.masterHostIp),
@@ -121,12 +131,38 @@ const { HeadCells, BodyCells } = useServerColumns({
               }
             : undefined,
         }),
-      selectItem: r =>
+      actions: r =>
         r({
           onClick: () => (selectedServerId.value = server.id),
-          component: PoolTreeActions,
-          props: { serverId: server.id },
+          actions: [
+            server.status === 'connected'
+              ? {
+                  label: t('action:disconnect-pool'),
+                  icon: 'action:disconnect',
+                  busy: isDisconnecting.value,
+                  onClick: () => disconnect(),
+                }
+              : {
+                  label: t('action:connect-pool'),
+                  icon: 'action:connect',
+                  busy: isConnecting.value,
+                  onClick: () => connect(),
+                },
+            {
+              label: t('action:download-bugtools-archive'),
+              icon: 'action:download',
+              busy: areHostsFetching.value,
+              disabled: (areHostsReady.value && downloadHost.value === undefined) || hasHostFetchError.value,
+              onClick: () => {
+                const address = downloadHost.value?.address
+                if (address !== undefined) {
+                  downloadBugTools(address)
+                }
+              },
+            },
+          ],
         }),
+      selectItem: r => r(() => (selectedServerId.value = server.id)),
     }
   },
 })
