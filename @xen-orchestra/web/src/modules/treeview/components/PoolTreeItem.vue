@@ -20,7 +20,7 @@
               @click="open($event)"
             />
           </template>
-          <PoolTreeActions v-if="serverId" :server-id="serverId" />
+          <PoolTreeActions :pool="branch.data" />
         </MenuList>
       </template>
     </UiTreeItemLabel>
@@ -29,7 +29,6 @@
 
 <script lang="ts" setup>
 import PoolTreeActions from '@/modules/pool/components/actions/PoolTreeActions.vue'
-import { useXoServerCollection } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import type { PoolBranch } from '@/modules/treeview/types/tree.type.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import MenuList from '@core/components/menu/MenuList.vue'
@@ -50,8 +49,4 @@ const { t } = useI18n()
 const { runningVmsCountByPool } = useXoVmCollection()
 
 const runningVmsCount = computed(() => runningVmsCountByPool.value.get(branch.data.id) ?? 0)
-
-const { serverByPool } = useXoServerCollection()
-
-const serverId = computed(() => serverByPool.value.get(branch.data.id)?.[0]?.id)
 </script>

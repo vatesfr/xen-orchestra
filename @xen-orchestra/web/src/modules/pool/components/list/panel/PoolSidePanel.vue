@@ -2,6 +2,18 @@
   <VtsSidePanel :has-selection="!!server" @close="emit('close')">
     <template v-if="server" #actions>
       <PoolConnectionToggleButton :server-id="server.id" />
+      <MenuList v-if="server.poolId !== undefined" placement="bottom-end">
+        <template #trigger="{ open }">
+          <UiButtonIcon
+            v-tooltip="{ placement: 'left', content: t('more-actions') }"
+            accent="brand"
+            icon="action:more-actions"
+            size="medium"
+            @click="open($event)"
+          />
+        </template>
+        <PoolDownloadButton :pool-id="server.poolId" />
+      </MenuList>
     </template>
     <template v-if="server">
       <VtsStateHero v-if="!arePoolsReady" format="panel" type="busy" size="medium" />
@@ -164,17 +176,20 @@
 <script setup lang="ts">
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import PoolConnectionToggleButton from '@/modules/pool/components/actions/connection/PoolConnectionToggleButton.vue'
+import PoolDownloadButton from '@/modules/pool/components/actions/download/PoolDownloadButton.vue'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { FrontXoServer } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import MenuList from '@core/components/menu/MenuList.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'

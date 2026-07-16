@@ -11,7 +11,7 @@ export type { ActionItem }
 export const useActionColumn = defineColumn((config: HeaderConfig & Partial<ButtonIconConfig>) => ({
   renderHead: () => renderHeadCell(config.headerLabel),
   renderBody: (params: {
-    onClick?: () => void
+    onClick: () => void
     actions?: ActionItem[]
     component?: Component
     props?: Record<string, unknown>
