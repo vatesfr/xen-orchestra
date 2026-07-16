@@ -38,24 +38,32 @@ cp .env.example .env
 
 All variables are required. The test suite fails immediately if any are missing.
 
-| Variable                  | Description                                                                                                    | Example                            |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
-| `HOSTNAME`                | XO instance URL                                                                                                | `http://10.1.4.216:9000`           |
-| `USERNAME`                | XO user                                                                                                        | `admin@admin.net`                  |
-| `PASSWORD`                | XO password                                                                                                    | `admin`                            |
-| `REFERENCE_VM_ID`         | UUID of the VM to clone for tests                                                                              | `61c24db9-262d-...`                |
-| `SR_ID`                   | UUID of the Storage Repository                                                                                 | `8aa2fb4a-143e-...`                |
-| `VM_PREFIX`               | Test VM name prefix                                                                                            | `TST`                              |
-| `BACKUP_REPOSITORY_NAME`  | Backup repository name in XO                                                                                   | `Test backup QA`                   |
-| `BACKUP_REPOSITORY_URL`   | `@xen-orchestra/fs` URL for the test backup remote. For `file://` remotes the path must contain `test`, `qa`, or `tmp/xo`. Any supported backend works (`s3://`, `nfs://`, `azure://`, …). | `file:///tmp/xo-test-backups` |
-| `VHD_EXPORT_PATH`         | VHD/XVA export directory (must contain `test`, `qa`, or `tmp/`)                                               | `/tmp/xo-test-exports`             |
+| Variable                 | Description                                                                                                                                                                                | Example                       |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------- |
+| `HOSTNAME`               | XO instance URL                                                                                                                                                                            | `http://10.1.4.216:9000`      |
+| `USERNAME`               | XO user                                                                                                                                                                                    | `admin@admin.net`             |
+| `PASSWORD`               | XO password                                                                                                                                                                                | `admin`                       |
+| `REFERENCE_VM_ID`        | UUID of the VM to clone for tests                                                                                                                                                          | `61c24db9-262d-...`           |
+| `SR_ID`                  | UUID of the Storage Repository                                                                                                                                                             | `8aa2fb4a-143e-...`           |
+| `VM_PREFIX`              | Test VM name prefix                                                                                                                                                                        | `TST`                         |
+| `BACKUP_REPOSITORY_NAME` | Backup repository name in XO                                                                                                                                                               | `Test backup QA`              |
+| `BACKUP_REPOSITORY_URL`  | `@xen-orchestra/fs` URL for the test backup remote. For `file://` remotes the path must contain `test`, `qa`, or `tmp/xo`. Any supported backend works (`s3://`, `nfs://`, `azure://`, …). | `file:///tmp/xo-test-backups` |
+| `VHD_EXPORT_PATH`        | VHD/XVA export directory (must contain `test`, `qa`, or `tmp/`)                                                                                                                            | `/tmp/xo-test-exports`        |
 
 The following are required only for mirror backup tests (`qa:mirror`):
 
-| Variable                              | Description                                                                                                   | Example                             |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
-| `MIRROR_DESTINATION_REPOSITORY_NAME`  | Mirror destination repository name                                                                            | `Test mirror QA`                    |
-| `MIRROR_DESTINATION_REPOSITORY_URL`   | `@xen-orchestra/fs` URL for the mirror destination. Same backend flexibility as `BACKUP_REPOSITORY_URL`.     | `file:///tmp/xo-test-mirror`        |
+| Variable                             | Description                                                                                              | Example                      |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| `MIRROR_DESTINATION_REPOSITORY_NAME` | Mirror destination repository name                                                                       | `Test mirror QA`             |
+| `MIRROR_DESTINATION_REPOSITORY_URL`  | `@xen-orchestra/fs` URL for the mirror destination. Same backend flexibility as `BACKUP_REPOSITORY_URL`. | `file:///tmp/xo-test-mirror` |
+
+The following are optional, for load tests (disk churn via SSH). Leave `TEST_VM_SSH_KEY` unset
+to let `ssh` fall back to its own default identity files / `ssh-agent`:
+
+| Variable           | Description                                                                                                  | Example         |
+| ------------------ | -------------------------------------------------------------------------------------------------------------- | --------------- |
+| `TEST_VM_SSH_USER` | SSH user on the load-test VMs (default `root`)                                                                  | `root`          |
+| `TEST_VM_SSH_KEY`  | Path to the private key matching a public key already authorized on `REFERENCE_VM_ID` (e.g. via cloud-init) | `~/.ssh/qa_key` |
 
 > **Safety**: for `file://` remotes the path component of the URL must contain `test`, `qa`, or `tmp/xo` to prevent accidental deletion of production data. Non-local remotes (`s3://`, `nfs://`, …) skip this local-path check — cleanup is delegated to the XO API.
 

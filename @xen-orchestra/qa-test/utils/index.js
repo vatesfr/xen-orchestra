@@ -594,6 +594,55 @@ export function getBackupTransferredBytes(logEntry) {
   return findTransferSize(logEntry.tasks || [])
 }
 
+// Unlike getBackupTransferredBytes (first match only), sums across every VM in the log.
+export function sumBackupTransferredBytes(logEntry) {
+  let total = 0
+
+  function walk(tasks) {
+    for (const task of tasks ?? []) {
+      if (task.message === 'transfer' && task.result?.size !== undefined) {
+        total += task.result.size
+      }
+      if (task.tasks?.length > 0) {
+        walk(task.tasks)
+      }
+    }
+  }
+
+  walk(logEntry?.tasks || [])
+  return total
+}
+
+// Sums, across every VM in the log, snapshot duration and both clean-vm calls: the one before
+// export (pre-run cleanup, normally a no-op) and the one inside export (post-transfer, where a
+// merge triggered by exportRetention actually happens) — kept separate since only the latter
+// tends to get expensive.
+export function sumBackupPhaseDurations(logEntry) {
+  let snapshotDurationMs = 0
+  let cleanVmBeforeDurationMs = 0
+  let cleanVmAfterDurationMs = 0
+
+  const duration = task => (task.end ?? task.start) - task.start
+
+  for (const vmTask of logEntry?.tasks ?? []) {
+    for (const task of vmTask.tasks ?? []) {
+      if (task.message === 'snapshot') {
+        snapshotDurationMs += duration(task)
+      } else if (task.message === 'clean-vm') {
+        cleanVmBeforeDurationMs += duration(task)
+      } else if (task.message === 'export') {
+        for (const exportTask of task.tasks ?? []) {
+          if (exportTask.message === 'clean-vm') {
+            cleanVmAfterDurationMs += duration(exportTask)
+          }
+        }
+      }
+    }
+  }
+
+  return { snapshotDurationMs, cleanVmBeforeDurationMs, cleanVmAfterDurationMs }
+}
+
 /**
  * Asserts that incremental backup transferred fewer bytes or equal bytes than the baseline.
  *

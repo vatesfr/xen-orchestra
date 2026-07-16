@@ -39,30 +39,27 @@ export class BackupRequest extends AbstractRequest {
       throw new Error('Valid backup configuration object is required')
     }
 
-    // Convert dynamic key format to XO expected format
+    // backupNg.createJob simple-pattern format: { id: x } for one id, { id: { __or: [...] } } for several.
+    const toSimplePattern = ids => (ids.length === 1 ? { id: ids[0] } : { id: { __or: ids } })
+
     const convertConfig = cfg => {
       const { vms, remotes, srs, ...rest } = cfg
 
-      // Extract first VM UUID
-      const vmUuid = vms && typeof vms === 'object' ? Object.keys(vms)[0] : undefined
+      const result = { ...rest }
 
-      const result = {
-        ...rest,
-        vms: {
-          id: vmUuid,
-        },
+      const vmIds = vms && typeof vms === 'object' ? Object.keys(vms) : []
+      if (vmIds.length > 0) {
+        result.vms = toSimplePattern(vmIds)
       }
 
-      // Extract first Backup Repository ID (for backup to remote)
-      const backupRepositoryId = remotes && typeof remotes === 'object' ? Object.keys(remotes)[0] : undefined
-      if (backupRepositoryId !== undefined) {
-        result.remotes = { id: backupRepositoryId }
+      const backupRepositoryIds = remotes && typeof remotes === 'object' ? Object.keys(remotes) : []
+      if (backupRepositoryIds.length > 0) {
+        result.remotes = toSimplePattern(backupRepositoryIds)
       }
 
-      // Extract first SR ID (for CR/DR mode — replication to SR)
-      const srId = srs && typeof srs === 'object' ? Object.keys(srs)[0] : undefined
-      if (srId !== undefined) {
-        result.srs = { id: srId }
+      const srIds = srs && typeof srs === 'object' ? Object.keys(srs) : []
+      if (srIds.length > 0) {
+        result.srs = toSimplePattern(srIds)
       }
 
       return result
@@ -161,6 +158,29 @@ export class BackupRequest extends AbstractRequest {
       })
     } catch (error) {
       log.warn('Delete VM backups failed', { error })
+      throw error
+    }
+  }
+
+  /**
+   * Restores a VM backup to a new VM on the given SR (backupNg.importVmBackup).
+   *
+   * @param {string} backupId - Backup ID as returned by `listVmBackups`
+   * @param {string} srId - Target Storage Repository UUID
+   * @param {Object} [settings={}]
+   * @returns {Promise<string>} UUID of the restored VM
+   */
+  async importVmBackup(backupId, srId, settings = {}) {
+    this._ensureConnected()
+
+    try {
+      return await this.dispatchClient.xoClient.call('backupNg.importVmBackup', {
+        id: backupId,
+        sr: srId,
+        settings,
+      })
+    } catch (error) {
+      log.warn('Import VM backup failed', { error })
       throw error
     }
   }
