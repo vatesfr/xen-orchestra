@@ -26,6 +26,8 @@
 - [XO6/VM] Group VM power actions in a new "Change state" submenu and isolate the Delete action (PR [#10036](https://github.com/vatesfr/xen-orchestra/pull/10036))
 - [OpenMetrics] Add an estimated per-VM power consumption metric (`xcp_vm_power_consumption_watts`), splitting each host's IPMI power across its running VMs proportionally to CPU load (PR [#10031](https://github.com/vatesfr/xen-orchestra/pull/10031))
 - [XO6/VM] Add possibility to export a VM (PR [#9989](https://github.com/vatesfr/xen-orchestra/pull/9989))
+- [Rolling Pool Update/Reboot] Re-check that each host can still be evacuated right before evacuating it, to fail early with an explicit error (PR [#10097](https://github.com/vatesfr/xen-orchestra/pull/10097))
+- [XO6/VM] Add "New VM" button on Host view (PR [#10048](https://github.com/vatesfr/xen-orchestra/pull/10048))
 
 ### Bug fixes
 
