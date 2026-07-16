@@ -12,10 +12,11 @@ export const useXoHostDisableJob = defineJob('host.disable', [xoHostArg], () => 
 
   return {
     async run(host: FrontXoHost | undefined) {
-      if (host) {
-        const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`hosts/${host.id}/actions/disable`)
-        await monitorTask(taskId)
+      if (!host) {
+        return
       }
+      const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`hosts/${host.id}/actions/disable`)
+      await monitorTask(taskId)
     },
 
     validate: (isRunning, host: FrontXoHost | undefined) => {
