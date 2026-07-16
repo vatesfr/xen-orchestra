@@ -4,7 +4,7 @@
       <span>{{ modalTexts.title }}</span>
     </template>
     <template #content>
-      <span v-if="modalTexts.message">{{ modalTexts.message }}</span>
+      <span>{{ modalTexts.message }}</span>
     </template>
     <template #buttons>
       <VtsOverlayCancelButton @click="emit('cancel')">{{ t('action:go-back') }}</VtsOverlayCancelButton>
