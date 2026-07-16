@@ -2689,6 +2689,8 @@ const messages = {
   replicationCountHigherThanHostsWithDisks: 'Replication count is higher than number of hosts with disks',
   resourceList: 'Resource list',
   rpuRequireVmsReboot: 'To fully apply the patches, some VMs will reboot. Are you sure you want to continue?',
+  rpuShutdownPinnedVms:
+    'The following VMs use a host-bound device (PCI passthrough, vGPU) and cannot be migrated. They will be shut down before their host reboots and started again on it afterwards. Are you sure you want to continue?',
   selectDisks: 'Select disk(s)…',
   selectedDiskTypeIncompatibleXostor: 'Only disks of type "Disk" and "Raid" are accepted. Selected disk type: {type}.',
   setAsPreferred: 'Set as preferred',

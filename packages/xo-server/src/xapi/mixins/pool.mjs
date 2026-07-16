@@ -74,31 +74,51 @@ const methods = {
       }
     }
 
+    // when shutdownPinnedVms is enabled, pinned VMs will be shut down before
+    // their host reboots and started again on it afterwards, otherwise their
+    // UUIDs are collected to raise a single actionable error covering the
+    // whole pool, any other evacuation blocker aborts the run
+    //
+    // this check requires HA to be already disabled: with HA enabled, XAPI
+    // reports every non-protected VM as an evacuation blocker
+    const unhandledPinnedVmUuids = []
     await Promise.all(
       hosts
         .filter(host => !ignoreHost || !ignoreHost(host))
         .map(async host => {
-          if (!shutdownPinnedVms) {
-            return host.$call('assert_can_evacuate')
+          const blockedVms = await host.$call('get_vms_which_prevent_evacuation')
+          const vmRefs = Object.keys(blockedVms)
+          if (vmRefs.length === 0) {
+            return
           }
 
-          // pinned VMs will be shut down before their host reboots and started
-          // again on it afterwards, any other evacuation blocker still aborts
-          // the run before touching anything
-          const blockedVms = await host.$call('get_vms_which_prevent_evacuation')
           const canHandleAllBlockers = Object.values(blockedVms).every(([errorCode]) =>
             PINNED_VM_ERROR_CODES.has(errorCode)
           )
           if (!canHandleAllBlockers) {
             // let XAPI raise its canonical CANNOT_EVACUATE_HOST error
-            await host.$call('assert_can_evacuate')
+            return host.$call('assert_can_evacuate')
+          }
+
+          if (!shutdownPinnedVms) {
+            unhandledPinnedVmUuids.push(...vmRefs.map(vmRef => this.getObject(vmRef).uuid))
           }
         })
     )
+    if (unhandledPinnedVmUuids.length > 0) {
+      // the run can proceed if the caller consents to shut these VMs down
+      // during their host's reboot, by enabling shutdownPinnedVms
+      throw incorrectState({
+        actual: unhandledPinnedVmUuids,
+        expected: [],
+        object: this.pool.uuid,
+        property: 'pinnedVms',
+      })
+    }
 
     // VMs shut down for their host's reboot and not started again yet: if the
     // run aborts, leave them running rather than halted
-    const haltedPinnedVms = new Map() // VM ref → host ref
+    const haltedPinnedVms = new Map() // VM ref -> host ref
     $defer(async () => {
       for (const [vmRef, hostRef] of haltedPinnedVms) {
         try {
