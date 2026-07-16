@@ -32,8 +32,8 @@ const serverId = computed(() => server.value?.id ?? ('' as XoServer['id']))
 const { canRun, isRunning, run } = useXoServerDisconnectJob([serverId])
 
 const openModal = useModal(() => ({
-  component: import('@/modules/pool/components/modal/PoolDisconnectModal.vue'),
-  props: { poolName },
+  component: import('@core/components/modal/VtsDisconnectModal.vue'),
+  props: { title: poolName },
   onConfirm: async () => {
     try {
       await run()

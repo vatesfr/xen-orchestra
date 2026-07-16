@@ -1,21 +1,19 @@
 <template>
-  <VtsModal accent="warning" icon="status:warning-picto">
+  <VtsModal accent="info" icon="status:info-picto">
     <template #title>
       <I18nT keypath="confirm-disconnect" scope="global" tag="div">
-        <span class="n-disconnect">
-          <slot name="title" />
-        </span>
+        <span class="n-disconnect">{{ title }}</span>
       </I18nT>
     </template>
 
     <template #content>
-      <slot name="content">{{ t('please-confirm-to-continue') }}</slot>
+      {{ t('pool-disconnect-info') }}
     </template>
 
     <template #buttons>
       <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
       <VtsModalConfirmButton>
-        {{ t('action:disconnect') }}
+        {{ t('action:disconnect-pool') }}
       </VtsModalConfirmButton>
     </template>
   </VtsModal>
@@ -27,10 +25,10 @@ import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vu
 import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
 import { useI18n } from 'vue-i18n'
 
-defineSlots<{
-  title(): any
-  content?(): any
-  confirm(): any
+defineProps<{
+  title: string
+  content?: string
+  confirm?: string
 }>()
 
 const { t } = useI18n()
@@ -38,6 +36,6 @@ const { t } = useI18n()
 
 <style lang="postcss" scoped>
 .n-disconnect {
-  color: var(--color-warning-item-base);
+  color: var(--color-info-item-base);
 }
 </style>
