@@ -1,5 +1,5 @@
 <template>
-  <VtsModal :accent icon="status:info-picto" dismissible>
+  <VtsModal :accent :icon dismissible>
     <template #title>
       <span>{{ modalTexts.title }}</span>
     </template>
@@ -20,8 +20,9 @@ import VtsModal from '@core/components/modal/VtsModal.vue'
 import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
 import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
 import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
+import type { IconName } from '@core/icons'
 import { useMapper } from '@core/packages/mapper/use-mapper.ts'
-import type { ObjectType, VmActions } from '@core/types/object.type.ts'
+import type { ActionsByObject, HostActions, ObjectType, VmActions } from '@core/types/object.type.ts'
 import { useI18n } from 'vue-i18n'
 
 type ActionTexts = {
@@ -30,15 +31,26 @@ type ActionTexts = {
   action: string
 }
 
-const { action, object } = defineProps<{
-  action: VmActions
+type TextMappingByObject = {
+  [O in ObjectType]: Record<ActionsByObject[O], ActionTexts>
+}
+
+const { action, object, hostName } = defineProps<{
+  action: VmActions | HostActions
   accent: ModalAccent
   object: ObjectType
+  hostName?: string
+  icon: IconName
 }>()
+
+const defaultActionByObject: { [O in ObjectType]: ActionsByObject[O] } = {
+  vm: 'shutdown',
+  host: 'disable',
+}
 
 const { t } = useI18n()
 
-const textMappingsByObject: Record<ObjectType, Record<VmActions, ActionTexts>> = {
+const textMappingsByObject: TextMappingByObject = {
   vm: {
     'force-reboot': {
       title: t('modal:confirm-vm-force-reboot'),
@@ -61,11 +73,23 @@ const textMappingsByObject: Record<ObjectType, Record<VmActions, ActionTexts>> =
       action: t('modal:action:vm-shutdown'),
     },
   },
+  host: {
+    enable: {
+      title: t('modal:confirm-host-enable', { host: hostName }),
+      message: t('modal:host-enable-message'),
+      action: t('action:enable-host'),
+    },
+    disable: {
+      title: t('modal:confirm-host-disable', { host: hostName }),
+      message: t('modal:host-disable-message'),
+      action: t('action:disable-host'),
+    },
+  },
 }
 
 const modalTexts = useMapper(
   () => action,
-  () => textMappingsByObject[object],
-  () => 'shutdown'
+  () => textMappingsByObject[object] as Record<ActionsByObject[ObjectType], ActionTexts>,
+  () => defaultActionByObject[object]
 )
 </script>

@@ -33,7 +33,7 @@ const canDisplay = logicOr(
 
 const openRebootModal = useModal({
   component: import('@core/components/modal/VtsActionModal.vue'),
-  props: { accent: 'info', action: 'force-shutdown', object: 'vm' },
+  props: { accent: 'info', action: 'force-shutdown', object: 'vm', icon: 'status:info-picto' },
   onConfirm: () => forceShutdown(),
 })
 

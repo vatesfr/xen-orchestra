@@ -7,18 +7,18 @@
     :disabled="!canEnableHost"
     icon="status:success-circle"
     :busy="isEnablingHost"
-    @click="openEnabledStateModal()"
+    @click="openEnableHostModal()"
   >
     {{ t('action:enable-host') }}
   </MenuItem>
 </template>
 
 <script lang="ts" setup>
-import { useHostEnabledStateToggleModal } from '@/modules/host/composables/use-host-enabled-state-toggle-modal.composable.ts'
+import { useXoHostEnableJob } from '@/modules/host/jobs/xo-host-enable.job.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import { ENABLED_STATE_ACTION } from '@/modules/host/types/enabled-state.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { useModal } from '@core/packages/modal/use-modal.ts'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
@@ -28,9 +28,21 @@ const { host } = defineProps<{
 const { t } = useI18n()
 
 const {
-  openModal: openEnabledStateModal,
+  run: enableHost,
   canRun: canEnableHost,
   isRunning: isEnablingHost,
   errorMessage: enableHostErrorMessage,
-} = useHostEnabledStateToggleModal(ENABLED_STATE_ACTION.ENABLE, () => host)
+} = useXoHostEnableJob(() => host)
+
+const openEnableHostModal = useModal({
+  component: import('@core/components/modal/VtsActionModal.vue'),
+  props: {
+    accent: 'warning',
+    action: 'enable',
+    object: 'host',
+    hostName: host.name_label,
+    icon: 'status:warning-picto',
+  },
+  onConfirm: () => enableHost(),
+})
 </script>
