@@ -4,6 +4,7 @@
 
 - [Host/dashboard] Switch CPU and RAM panels order to match Pool dashboard layout (PR [#10059](https://github.com/vatesfr/xen-orchestra/pull/10059))
 - Remove all "coming soon" disabled button placeholders from network, VM, and pool components (PR [#10068](https://github.com/vatesfr/xen-orchestra/pull/10068))
+- [copyAll button] Add copy all button for IP list and bond device (PR [#10081](https://github.com/vatesfr/xen-orchestra/pull/10081))
 
 ## **0.23.0** (2026-06-30)
 
