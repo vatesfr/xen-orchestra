@@ -33,7 +33,7 @@ const canDisplay = computed(() => {
 
 const openShutdownModal = useModal({
   component: import('@core/components/modal/VtsActionModal.vue'),
-  props: { accent: 'info', action: 'shutdown', object: 'vm' },
+  props: { accent: 'info', action: 'shutdown', object: 'vm', icon: 'status:info-picto' },
   onConfirm: () => shutdown(),
 })
 
