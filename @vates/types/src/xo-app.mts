@@ -21,6 +21,7 @@ import type {
   XoVmBackupArchive,
 } from './xo.mjs'
 import { VatesTask } from './lib/vates-task.mjs'
+import type { RestRouteDefinition } from './lib/rest-api.mjs'
 import {
   Xapi,
   XapiHostStats,
@@ -195,8 +196,7 @@ export type XoApp = {
       params?: any
     }
   ) => () => void // eslint-disable-line @typescript-eslint/no-explicit-any
-  // needs an any to avoid circular type reference, maybe redefine the types here ?
-  registerRestRoutes: (routes: any[], base?: string) => () => void // eslint-disable-line @typescript-eslint/no-explicit-any
+  registerRestRoutes: (routes: RestRouteDefinition[], base?: string) => () => void
   authenticateUser: (
     credentials: { token?: string; username?: string; password?: string },
     userData?: { ip?: string },

@@ -4,6 +4,9 @@ import type { NextFunction, Request, Response } from 'express'
 import type { MaybePromise } from '../helpers/helper.type.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 import type { VatesTask } from '@vates/types/lib/vates/task'
+import type { FieldDefinition, ParamFieldDefinition, QueryFieldDefinition } from '@vates/types'
+
+export type { FieldDefinition, ParamFieldDefinition, QueryFieldDefinition }
 
 export type CreateAction = <CbType>(
   cb: (task: VatesTask) => MaybePromise<CbType>,
@@ -25,47 +28,6 @@ export const CONTENT_TYPE_BY_MIDDLEWARE_NAME: Record<string, string> = {
 export type MiddlewareDescriptor =
   | { name: 'json' | 'urlencoded' | 'text' | 'raw'; options?: Record<string, unknown> }
   | { name: 'acl'; acls: AclEntry | AclEntry[] }
-
-export type FieldDefinition =
-  | {
-      type: 'string'
-      example?: string
-      optional?: boolean
-    }
-  | {
-      type: 'boolean'
-      example?: boolean
-      optional?: boolean
-    }
-  | {
-      type: 'number'
-      example?: number
-      optional?: boolean
-    }
-  | {
-      type: 'enum'
-      enum: string[]
-      example?: string
-      optional?: boolean
-    }
-  | {
-      type: 'object'
-      fields: Record<string, FieldDefinition>
-      optional?: boolean
-    }
-  | {
-      type: 'array'
-      items: FieldDefinition
-      example?: unknown[]
-      optional?: boolean
-    }
-
-export type ParamFieldDefinition = Exclude<
-  FieldDefinition,
-  { type: 'boolean' } | { type: 'object' } | { type: 'array' }
->
-
-export type QueryFieldDefinition = Exclude<FieldDefinition, { type: 'object' } | { type: 'array' }>
 
 export interface RouteDefinition {
   method: 'get' | 'post' | 'put' | 'delete' | 'patch'
