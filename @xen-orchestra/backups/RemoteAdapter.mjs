@@ -449,7 +449,7 @@ export class RemoteAdapter {
     return path
   }
 
-  async writeVhd(path, disk, { validator = noop, writeBlockConcurrency } = {}) {
+  async writeVhd(path, disk, { validator = noop, writeBlockConcurrency, uuid, parentUuid, parentPath } = {}) {
     const handler = this._handler
 
     if (this.useVhdDirectory()) {
@@ -461,10 +461,13 @@ export class RemoteAdapter {
           concurrency: writeBlockConcurrency,
           validator,
           compression: 'brotli',
+          uuid,
+          parentUuid,
+          parentPath,
         },
       })
     } else {
-      const stream = await toVhdStream(disk)
+      const stream = await toVhdStream(disk, { uuid, parentUuid, parentPath })
       const size = await this.outputStream(path, stream, { validator, checksum: false })
       await validator(path)
       return size
