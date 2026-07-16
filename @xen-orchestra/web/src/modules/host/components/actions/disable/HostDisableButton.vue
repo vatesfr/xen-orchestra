@@ -32,7 +32,7 @@ const {
   canRun: canDisableHost,
   isRunning: isDisablingHost,
   errorMessage: disableHostErrorMessage,
-} = useXoHostDisableJob(() => host, false)
+} = useXoHostDisableJob(() => host)
 
 const openDisableHostModal = useModal({
   component: import('@core/components/modal/VtsActionModal.vue'),
