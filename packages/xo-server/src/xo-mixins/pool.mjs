@@ -205,7 +205,7 @@ export default class Pools {
     )
   }
 
-  async rollingPoolReboot(pool, { parentTask } = {}) {
+  async rollingPoolReboot(pool, { parentTask, shutdownPinnedVms } = {}) {
     const { _app } = this
     await _app.checkFeatureAuthorization('ROLLING_POOL_REBOOT')
     const releaseGuard = acquireRpuGuard(pool.id, 'rollingPoolReboot')
@@ -226,7 +226,7 @@ export default class Pools {
       }
       const task = parentTask === undefined ? _app.tasks.create(properties) : new Task({ properties })
       trace?.attach(task)
-      await task.run(async () => _app.getXapi(pool).rollingPoolReboot(task))
+      await task.run(async () => _app.getXapi(pool).rollingPoolReboot(task, { shutdownPinnedVms }))
     } finally {
       trace?.stop()
       releaseGuard()

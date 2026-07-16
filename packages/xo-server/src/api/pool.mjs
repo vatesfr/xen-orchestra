@@ -242,7 +242,7 @@ installPatches.description = 'Install patches on hosts'
 
 // -------------------------------------------------------------------
 
-export const rollingUpdate = async function ({ bypassBackupCheck = false, pool, rebootVm }) {
+export const rollingUpdate = async function ({ bypassBackupCheck = false, pool, rebootVm, shutdownPinnedVms }) {
   const poolId = pool.id
   if (bypassBackupCheck) {
     log.warn('pool.rollingUpdate with argument "bypassBackupCheck" set to true', { poolId })
@@ -250,7 +250,7 @@ export const rollingUpdate = async function ({ bypassBackupCheck = false, pool, 
     await backupGuard.call(this, poolId)
   }
 
-  await this.rollingPoolUpdate(pool, { rebootVm })
+  await this.rollingPoolUpdate(pool, { rebootVm, shutdownPinnedVms })
 }
 
 rollingUpdate.params = {
@@ -263,6 +263,12 @@ rollingUpdate.params = {
     optional: true,
     type: 'boolean',
   },
+  // shut down VMs that cannot be migrated (PCI passthrough, vGPU, SR-IOV VIF)
+  // before their host reboots and start them again on it afterwards
+  shutdownPinnedVms: {
+    default: false,
+    type: 'boolean',
+  },
 }
 
 rollingUpdate.resolve = {
@@ -271,7 +277,7 @@ rollingUpdate.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function rollingReboot({ bypassBackupCheck, pool }) {
+export async function rollingReboot({ bypassBackupCheck, pool, shutdownPinnedVms }) {
   const poolId = pool.id
   if (bypassBackupCheck) {
     log.warn('pool.rollingReboot with argument "bypassBackupCheck" set to true', { poolId })
@@ -279,7 +285,7 @@ export async function rollingReboot({ bypassBackupCheck, pool }) {
     await backupGuard.call(this, poolId)
   }
 
-  await this.rollingPoolReboot(pool)
+  await this.rollingPoolReboot(pool, { shutdownPinnedVms })
 }
 
 rollingReboot.params = {
@@ -288,6 +294,12 @@ rollingReboot.params = {
     type: 'boolean',
   },
   pool: { type: 'string' },
+  // shut down VMs that cannot be migrated (PCI passthrough, vGPU, SR-IOV VIF)
+  // before their host reboots and start them again on it afterwards
+  shutdownPinnedVms: {
+    default: false,
+    type: 'boolean',
+  },
 }
 
 rollingReboot.resolve = {

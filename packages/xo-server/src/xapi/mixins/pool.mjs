@@ -14,6 +14,12 @@ const log = createLogger('xo:xapi')
 
 const PATH_DB_DUMP = '/pool/xmldbdump'
 
+// XAPI error codes identifying VMs that can never be evacuated because they use
+// a host-bound device (PCI passthrough, vGPU, SR-IOV VIF): these VMs can only
+// be handled by shutting them down before their host reboots and starting them
+// again on it afterwards
+const PINNED_VM_ERROR_CODES = new Set(['VM_HAS_PCI_ATTACHED', 'VM_HAS_VGPU', 'VM_HAS_SRIOV_VIF'])
+
 const setProgress = (task, progress) => task.set('progress', Math.round(progress))
 
 const methods = {
@@ -35,7 +41,11 @@ const methods = {
     })
   },
 
-  async rollingPoolReboot($defer, parentTask, { beforeEvacuateVms, beforeRebootHost, ignoreHost } = {}) {
+  async rollingPoolReboot(
+    $defer,
+    parentTask,
+    { beforeEvacuateVms, beforeRebootHost, ignoreHost, shutdownPinnedVms = false } = {}
+  ) {
     if (this.pool.ha_enabled) {
       const haSrs = this.pool.$ha_statefiles.map(vdi => vdi.SR)
       const haConfig = this.pool.ha_configuration
@@ -65,8 +75,39 @@ const methods = {
     }
 
     await Promise.all(
-      hosts.filter(host => !ignoreHost || !ignoreHost(host)).map(host => host.$call('assert_can_evacuate'))
+      hosts
+        .filter(host => !ignoreHost || !ignoreHost(host))
+        .map(async host => {
+          if (!shutdownPinnedVms) {
+            return host.$call('assert_can_evacuate')
+          }
+
+          // pinned VMs will be shut down before their host reboots and started
+          // again on it afterwards, any other evacuation blocker still aborts
+          // the run before touching anything
+          const blockedVms = await host.$call('get_vms_which_prevent_evacuation')
+          const canHandleAllBlockers = Object.values(blockedVms).every(([errorCode]) =>
+            PINNED_VM_ERROR_CODES.has(errorCode)
+          )
+          if (!canHandleAllBlockers) {
+            // let XAPI raise its canonical CANNOT_EVACUATE_HOST error
+            await host.$call('assert_can_evacuate')
+          }
+        })
     )
+
+    // VMs shut down for their host's reboot and not started again yet: if the
+    // run aborts, leave them running rather than halted
+    const haltedPinnedVms = new Map() // VM ref → host ref
+    $defer(async () => {
+      for (const [vmRef, hostRef] of haltedPinnedVms) {
+        try {
+          await this.callAsync('VM.start_on', vmRef, hostRef, false, false)
+        } catch (error) {
+          log.warn('failed to restart pinned VM after an aborted rolling pool reboot', { vmRef, error })
+        }
+      }
+    })
 
     // Steps in the RPR : Evacuate hosts, reboot hosts, migrate VMs back, and potentially updateHosts (beforeEvacuateVms and beforeRebootHost)
     const nSteps = 3 + Number(beforeEvacuateVms !== undefined) + Number(beforeRebootHost !== undefined)
@@ -129,6 +170,29 @@ const methods = {
             await this._waitObjectState(metricsRef, metrics => metrics.live)
 
             const getServerTime = async () => parseDateTime(await this.call('host.get_servertime', host.$ref)) * 1e3
+
+            let pinnedVmRefs = []
+            if (shutdownPinnedVms) {
+              // fresh query instead of reusing the initial check: the pool
+              // state may have changed while handling the previous hosts
+              const blockedVms = await host.$call('get_vms_which_prevent_evacuation')
+              pinnedVmRefs = Object.entries(blockedVms)
+                .filter(([, [errorCode]]) => PINNED_VM_ERROR_CODES.has(errorCode))
+                .map(([vmRef]) => vmRef)
+
+              if (pinnedVmRefs.length > 0) {
+                await Task.run({ properties: { name: `Shut down pinned VMs`, hostId, hostName } }, async () => {
+                  for (const vmRef of pinnedVmRefs) {
+                    const { uuid: vmId, name_label: vmName } = this.getObject(vmRef)
+                    await Task.run(
+                      { properties: { name: `Shutting down VM ${vmId}`, hostId, hostName, vmId, vmName } },
+                      () => this.callAsync('VM.clean_shutdown', vmRef)
+                    )
+                    haltedPinnedVms.set(vmRef, host.$ref)
+                  }
+                })
+              }
+            }
 
             // the pool state may have changed since the initial check, e.g. while evacuating the previous hosts
             await Task.run({ properties: { name: `Check evacuation precondition`, hostId, hostName } }, async () => {
@@ -194,6 +258,32 @@ const methods = {
                 new Error(`Host ${hostId} took too long to restart`)
               )
             })
+
+            if (pinnedVmRefs.length > 0) {
+              await Task.run({ properties: { name: `Restart pinned VMs`, hostId, hostName } }, async () => {
+                let error
+                for (const vmRef of pinnedVmRefs) {
+                  try {
+                    const { uuid: vmId, name_label: vmName } = this.getObject(vmRef)
+                    await Task.run(
+                      {
+                        properties: { name: `Restarting VM ${vmId} on host ${hostId}`, hostId, hostName, vmId, vmName },
+                      },
+                      () => this.callAsync('VM.start_on', vmRef, host.$ref, false, false)
+                    )
+                    haltedPinnedVms.delete(vmRef)
+                  } catch (err) {
+                    if (error === undefined) {
+                      error = err
+                    }
+                  }
+                }
+                // still try to start every pinned VM of this host before failing the run
+                if (error !== undefined) {
+                  throw error
+                }
+              })
+            }
             rprProgress += progressStepPerHost
             setProgress(parentTask, rprProgress)
             subtaskProgress += subtaskProgressStep

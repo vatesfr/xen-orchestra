@@ -900,7 +900,7 @@ export default class XenServers {
     })
   }
 
-  async rollingPoolUpdate($defer, pool, { rebootVm, parentTask } = {}) {
+  async rollingPoolUpdate($defer, pool, { rebootVm, parentTask, shutdownPinnedVms } = {}) {
     const app = this._app
     await app.checkFeatureAuthorization('ROLLING_POOL_UPDATE')
     const [schedules, jobs] = await Promise.all([app.getAllSchedules(), app.getAllJobs('backup')])
@@ -973,6 +973,7 @@ export default class XenServers {
       this.getXapi(pool).rollingPoolUpdate(task, {
         xsCredentials: app.apiContext.user.preferences.xsCredentials,
         rebootVm,
+        shutdownPinnedVms,
       })
     )
   }
