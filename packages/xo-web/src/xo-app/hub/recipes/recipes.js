@@ -1,3 +1,4 @@
+import { getXoaPlan } from 'utils'
 import RecipeEasyVirt from './recipe-ev'
 import RecipeKub from './recipe-kub'
 
@@ -10,7 +11,7 @@ const RECIPES = [
   {
     id: 'easyvirt',
     component: RecipeEasyVirt,
-    isAvailable: () => false,
+    isAvailable: () => getXoaPlan() !== 'Community',
   },
 ]
 
