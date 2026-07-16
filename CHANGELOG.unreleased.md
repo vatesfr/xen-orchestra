@@ -35,6 +35,7 @@
 - [XO6] Fix negative "other" value in backup repository dashboard (PR [#10044](https://github.com/vatesfr/xen-orchestra/pull/10044))
 - [Backups] Fix missing transfer size (PR [#10106](https://github.com/vatesfr/xen-orchestra/pull/10106))
 - [Host/dashboard] Switch CPU and RAM panels order to match Pool dashboard layout (PR [#10059](https://github.com/vatesfr/xen-orchestra/pull/10059))
+- [Plugins/Perf-alert] Update URL generation to support V6 routing (PR [#10054](https://github.com/vatesfr/xen-orchestra/pull/10054))
 
 
 ### Packages to release
@@ -57,12 +58,13 @@
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/disk-transform patch
 - @xen-orchestra/rest-api minor
-- @xen-orchestra/web minor
+- @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
 - vhd-lib patch
 - xapi-explore-sr patch
 - xen-api minor
 - xo-server minor
 - xo-server-openmetrics minor
+- xo-server-perf-alert patch
 
 <!--packages-end-->
