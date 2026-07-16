@@ -680,26 +680,27 @@ const methods = {
 
   async _updateLinstorPackages() {
     const hosts = Object.values(this.objects.indexes.type.host)
-    const nSteps = 4
-    const nOperations = nSteps * hosts.length
+    const steps = [
+      ['updater.py', 'update', { packages: 'xcp-ng-xapi-plugins' }],
+      ['updater.py', 'update', { packages: 'xcp-ng-linstor' }],
+      ['updater.py', 'update', { packages: 'linstor-satellite' }],
+      ['updater.py', 'update', { packages: 'linstor-controller' }],
+      ['service.py', 'stop_service', { service: 'linstor-controller' }],
+      ['service.py', 'restart_service', { service: 'linstor-satellite' }],
+    ]
+    const nOperations = steps.length * hosts.length
     let operationDone = 0
-
-    const callPluginOnAllHost = async (plugin, fn, args) => {
-      for (const host of hosts) {
-        await this.call('host.call_plugin', host.$ref, plugin, fn, args)
-        operationDone++
-        task.set('progress', (operationDone / nOperations) * 100)
-      }
-    }
 
     const task = new Task({ properties: { name: 'Updating LINSTOR packages', progress: 0 } })
     return task.run(async () => {
-      await callPluginOnAllHost('updater.py', 'update', { packages: 'xcp-ng-xapi-plugins' })
-      await callPluginOnAllHost('updater.py', 'update', { packages: 'xcp-ng-linstor' })
-      await callPluginOnAllHost('updater.py', 'update', { packages: 'linstor-satellite' })
-      await callPluginOnAllHost('updater.py', 'update', { packages: 'linstor-controller' })
-      await callPluginOnAllHost('service.py', 'stop_service', { service: 'linstor-controller' })
-      await callPluginOnAllHost('service.py', 'restart_service', { service: 'linstor-satellite' })
+      for (const [plugin, fn, args] of steps) {
+        for (const host of hosts) {
+          await this.call('host.call_plugin', host.$ref, plugin, fn, args)
+          operationDone++
+          task.set('progress', Math.round((operationDone / nOperations) * 100))
+        }
+      }
+      // not redundant: ends the task at 100 even when there is no host to iterate on
       task.set('progress', 100)
     })
   },

@@ -39,6 +39,7 @@
 - [Host/dashboard] Switch CPU and RAM panels order to match Pool dashboard layout (PR [#10059](https://github.com/vatesfr/xen-orchestra/pull/10059))
 - [Plugins/Perf-alert] Update URL generation to support V6 routing (PR [#10054](https://github.com/vatesfr/xen-orchestra/pull/10054))
 - [Rolling Pool Update/Reboot] Temporarily disable VMs auto power on during the run: unexpected VM starts on rebooted hosts could break the remaining host evacuations (`HOST_NOT_ENOUGH_FREE_MEMORY`) (PR [#10104](https://github.com/vatesfr/xen-orchestra/pull/10104))
+- [Rolling Pool Update] Fix "Updating LINSTOR packages" subtask progress going over 100% (PR [#XXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
 
 ### Packages to release
 
