@@ -2,7 +2,7 @@ import assert from 'node:assert'
 import mapValues from 'lodash/mapValues.js'
 import { asyncEach } from '@vates/async-each'
 import { asyncMap } from '@xen-orchestra/async-map'
-import { chainVhd, openVhd } from 'vhd-lib'
+import { openVhd } from 'vhd-lib'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateClass } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
@@ -17,6 +17,7 @@ import { AbstractIncrementalWriter } from './_AbstractIncrementalWriter.mjs'
 import { checkVhd } from './_checkVhd.mjs'
 import { packUuid } from './_packUuid.mjs'
 import { Disposable } from 'promise-toolbox'
+import { openDisposableDisk } from '@xen-orchestra/backup-archive/disks'
 
 const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
@@ -151,10 +152,14 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
         assert.notStrictEqual(parentPath, undefined, 'A differential VHD must have a parent')
         // forbid any kind of loop
         assert.ok(basename(parentPath) < basename(path), `vhd must be sorted to be chained`)
-        // re-chainVhd is mandatory
+        // re-chaining is mandatory
         // since the parent may be a alias or not
         // and the child may be the other
-        await chainVhd(handler, parentPath, handler, path)
+        await Disposable.use(openDisposableDisk({ handler, path: parentPath, ignoreBlockIndexes: true }), parentDisk =>
+          Disposable.use(openDisposableDisk({ handler, path, ignoreBlockIndexes: true }), childDisk =>
+            childDisk.setChainToParent(parentDisk)
+          )
+        )
       }
 
       // set the correct UUID in the VHD if needed
