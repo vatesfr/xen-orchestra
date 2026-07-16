@@ -613,7 +613,7 @@ export type XoSr = BaseXapiXo & {
   VDIs: AnyXoVdi['id'][]
 
   allocationStrategy?: 'thin' | 'thick' | 'unknown'
-  content_type: string
+  content_type: 'user' | 'iso' | 'disk'
   current_operations: Record<string, STORAGE_OPERATIONS>
   id: Branded<'SR'>
   inMaintenanceMode: boolean
@@ -624,7 +624,28 @@ export type XoSr = BaseXapiXo & {
   shared: boolean
   size: number
   sm_config: Record<string, string>
-  SR_type: string
+  // SM drivers shipped with XCP-ng/XenServer
+  SR_type:
+    | 'cephfs'
+    | 'dummy'
+    | 'ext'
+    | 'file'
+    | 'glusterfs'
+    | 'hba'
+    | 'iso'
+    | 'largeblock'
+    | 'linstor'
+    | 'lvm'
+    | 'lvmofcoe'
+    | 'lvmohba'
+    | 'lvmoiscsi'
+    | 'moosefs'
+    | 'nfs'
+    | 'shm'
+    | 'smb'
+    | 'udev'
+    | 'xfs'
+    | 'zfs'
   tags: string[]
   type: 'SR'
   usage: number
