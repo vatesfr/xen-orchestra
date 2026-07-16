@@ -35,13 +35,24 @@ type TextMappingByObject = {
   [O in ObjectType]: Record<ActionsByObject[O], ActionTexts>
 }
 
-const { action, object, hostName } = defineProps<{
-  action: VmActions | HostActions
-  accent: ModalAccent
-  object: ObjectType
-  hostName?: string
-  icon: IconName
-}>()
+type VtsActionModalVmProps = {
+  object: 'vm'
+  action: VmActions
+  hostName?: never
+}
+
+type VtsActionModalHostProps = {
+  object: 'host'
+  action: HostActions
+  hostName: string
+}
+
+const { action, object, hostName } = defineProps<
+  (VtsActionModalVmProps | VtsActionModalHostProps) & {
+    accent: ModalAccent
+    icon: IconName
+  }
+>()
 
 const defaultActionByObject: { [O in ObjectType]: ActionsByObject[O] } = {
   vm: 'shutdown',
