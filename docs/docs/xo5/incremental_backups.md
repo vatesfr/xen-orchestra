@@ -122,3 +122,10 @@ To prevent this:
 1. Migrate the disk to another storage. This will reset the disk state.
 2. Disable **purge snapshot data** on the backup.
 :::
+
+:::warning
+**Purge snapshot data** only takes effect when the backup is actually transferred over NBD.
+Enabling NBD on the backup job is a preference, not a guarantee: if NBD is not enabled on the network used to transfer the backups, the job uses the regular export path, the snapshot data is purged anyway, and every subsequent run is transferred as a full backup.
+
+If your backups keep falling back to full, check the backup log to see whether NBD was actually used for the run, and that NBD is enabled on the transfer network (see [NBD-enabled Backups](#nbd-enabled-backups)), before trying the two steps above.
+:::
