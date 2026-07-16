@@ -434,6 +434,18 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
+   * Returns the compression codec id. Only meaningful for VHD directories;
+   * undefined for plain VHDs.
+   * @returns {string | undefined}
+   */
+  getCompressionType() {
+    if (this.#vhd === undefined) {
+      throw new Error(`can't call getCompressionType of a RemoteVhdDisk before init`)
+    }
+    return this.#vhd instanceof VhdDirectory ? this.#vhd.compressionType : undefined
+  }
+
+  /**
    * Points this disk's header/footer at a new parent, marking it differencing if needed.
    * @param {RemoteDisk} parentDisk
    * @param {Object} [options]
