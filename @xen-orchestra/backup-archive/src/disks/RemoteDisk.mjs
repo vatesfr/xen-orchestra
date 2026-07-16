@@ -240,6 +240,18 @@ export class RemoteDisk extends RandomAccessDisk {
 
   /**
    * Abstract
+   * Points this disk's header/footer at a new parent, marking it differencing if needed.
+   * @param {RemoteDisk} parentDisk
+   * @param {Object} [options]
+   * @param {boolean} [options.force=false]
+   * @returns {Promise<void>}
+   */
+  async setChainToParent(parentDisk, { force = false } = {}) {
+    throw new Error(`setChainToParent must be implemented`)
+  }
+
+  /**
+   * Abstract
    * Deletes alias/disk/disks
    * @param {Object} options
    */
