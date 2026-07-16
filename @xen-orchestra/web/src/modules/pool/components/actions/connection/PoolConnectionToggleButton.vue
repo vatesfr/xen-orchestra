@@ -21,15 +21,15 @@
     size="medium"
     :disabled="!canDisconnect"
     :busy="isDisconnecting"
-    @click="handleDisconnect()"
+    @click="openDisconnectModal()"
   >
     {{ t('action:disconnect-pool') }}
   </UiButton>
 </template>
 
 <script lang="ts" setup>
+import { useServerDisconnectModal } from '@/modules/server/composables/use-xo-server-disconnect-modal.composable.ts'
 import { useXoServerConnectJob } from '@/modules/server/jobs/xo-server-connect.job.ts'
-import { useXoServerDisconnectJob } from '@/modules/server/jobs/xo-server-disconnect.job.ts'
 import { useXoServerCollection } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import type { FrontXoServer } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -54,25 +54,17 @@ const {
 } = useXoServerConnectJob([serverIdArg])
 
 const {
-  isRunning: isDisconnecting,
+  openModal: openDisconnectModal,
   canRun: canDisconnect,
+  isRunning: isDisconnecting,
   errorMessage: disconnectErrorMessage,
-  run: disconnect,
-} = useXoServerDisconnectJob([serverIdArg])
+} = useServerDisconnectModal(() => props.serverId)
 
 async function handleConnect() {
   try {
     await connect()
   } catch (error) {
     console.error('Error when connecting server:', error)
-  }
-}
-
-async function handleDisconnect() {
-  try {
-    await disconnect()
-  } catch (error) {
-    console.error('Error when disconnecting server:', error)
   }
 }
 </script>

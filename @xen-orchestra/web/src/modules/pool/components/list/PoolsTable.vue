@@ -28,8 +28,8 @@ import {
   type PoolDisplayData,
   type PoolFilterableData,
 } from '@/modules/pool/composables/use-pool-enhanced-data.composable.ts'
+import { useServerDisconnectModal } from '@/modules/server/composables/use-xo-server-disconnect-modal.composable.ts'
 import { useXoServerConnectJob } from '@/modules/server/jobs/xo-server-connect.job.ts'
-import { useXoServerDisconnectJob } from '@/modules/server/jobs/xo-server-disconnect.job.ts'
 import {
   useXoServerCollection,
   type FrontXoServer,
@@ -112,7 +112,7 @@ const { HeadCells, BodyCells } = useServerColumns({
 
     const serverIdArg = computed(() => server.id)
     const { isRunning: isConnecting, run: connect } = useXoServerConnectJob([serverIdArg])
-    const { isRunning: isDisconnecting, run: disconnect } = useXoServerDisconnectJob([serverIdArg])
+    const { openModal: openDisconnectModal, isRunning: isDisconnecting } = useServerDisconnectModal(() => server.id)
     const downloadHost = computed(() => (server.poolId ? getMasterHostByPoolId(server.poolId) : undefined))
 
     return {
@@ -140,7 +140,7 @@ const { HeadCells, BodyCells } = useServerColumns({
                   label: t('action:disconnect-pool'),
                   icon: 'action:disconnect',
                   busy: isDisconnecting.value,
-                  onClick: () => disconnect(),
+                  onClick: () => openDisconnectModal(),
                 }
               : {
                   label: t('action:connect-pool'),
@@ -162,7 +162,6 @@ const { HeadCells, BodyCells } = useServerColumns({
             },
           ],
         }),
-      selectItem: r => r(() => (selectedServerId.value = server.id)),
     }
   },
 })
