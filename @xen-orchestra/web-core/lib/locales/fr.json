@@ -39,7 +39,6 @@
   "action:create-network": "Créer un réseau",
   "action:create-traffic-rule": "Créer une règle de trafic",
   "action:create-vdi": "Créer un VDI",
-  "action:create-new-vm": "Créer une VM",
   "action:create-vif": "Créer un VIF",
   "action:delete": "Supprimer",
   "action:delete-filter": "Supprimer le filtre",
