@@ -1,11 +1,13 @@
 <template>
   <UiButton
+    v-tooltip="!canRun ? errorMessage : undefined"
     left-icon="action:delete"
-    variant="secondary"
+    variant="tertiary"
     accent="danger"
     size="medium"
+    :disabled="!canRun"
     :busy="isRunning"
-    @click="remove()"
+    @click="handleRemove()"
   >
     {{ t('action:delete') }}
   </UiButton>
@@ -24,5 +26,13 @@ const { t } = useI18n()
 
 const serverIdArg = computed(() => serverId)
 
-const { isRunning, run: remove } = useXoServerRemoveJob([serverIdArg])
+const { isRunning, canRun, errorMessage, run: remove } = useXoServerRemoveJob([serverIdArg])
+
+async function handleRemove() {
+  try {
+    await remove()
+  } catch (error) {
+    console.error('Error when removing server:', error)
+  }
+}
 </script>

@@ -786,6 +786,8 @@
   "pool-connection-ip-info": "Provide the primary host’s address of the pool you want to connect to.",
   "pool-connection-success": "You have successfully connected to the pool. You can now find it in your treeview and start managing your hosts and VMs.",
   "pool-cpu-usage": "Pool CPU Usage",
+  "pool-delete-confirm-title": "You are about to remove {name}",
+  "pool-delete-confirm-info": "You'll need to add the server again to reconnect.",
   "pool-management": "Pool management",
   "pool-ram-usage": "Pool RAM Usage",
   "pool:status:connected": "@:status:connected",
