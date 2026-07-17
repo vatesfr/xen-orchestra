@@ -157,7 +157,7 @@ const { HeadCells, BodyCells } = usePifColumns({
           onClick: () => (selectedPifId.value = pif.id),
           actions: [
             {
-              label: t('action:set-as-management'),
+              label: t('action:set-management'),
               hint: !canReconfigureManagement.value ? reconfigureManagementErrorMessage.value : undefined,
               icon: 'action:connect',
               onClick: () => openManagementReconfigureModal(),

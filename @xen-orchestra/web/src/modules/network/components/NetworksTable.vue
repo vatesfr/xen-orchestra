@@ -26,13 +26,10 @@
 
 <script setup lang="ts">
 import { useNetworkDeleteModal } from '@/modules/network/composables/use-network-delete-modal.composable.ts'
-import { useNetworkManagementReconfigureModal } from '@/modules/network/composables/use-network-management-reconfigure-modal.composable.ts'
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getNetworkStatus } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
-import { type ActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -69,7 +66,6 @@ defineSlots<{
 const { t } = useI18n()
 
 const { pifs, getPifsByIds } = useXoPifCollection()
-const { useGetPoolById } = useXoPoolCollection()
 
 const selectedNetworkId = useRouteQuery('id')
 
@@ -123,38 +119,6 @@ const { HeadCells, BodyCells } = useNetworkColumns({
 
     const { openModal: openDeleteModal, isRunning: isDeletingNetwork } = useNetworkDeleteModal(() => [network])
 
-    const pool = useGetPoolById(() => network.$pool)
-
-    const {
-      openModal: openManagementReconfigureModal,
-      canRun: canReconfigureManagement,
-      isRunning: isReconfiguringManagement,
-      errorMessage: reconfigureManagementErrorMessage,
-    } = useNetworkManagementReconfigureModal(
-      () => network,
-      () => pool.value
-    )
-
-    const rowActions: ActionItem[] = []
-
-    if (!internal) {
-      rowActions.push({
-        label: t('action:set-as-management'),
-        hint: !canReconfigureManagement.value ? reconfigureManagementErrorMessage.value : undefined,
-        icon: 'action:connect',
-        onClick: () => openManagementReconfigureModal(),
-        disabled: !canReconfigureManagement.value,
-        busy: isReconfiguringManagement.value,
-      })
-    }
-
-    rowActions.push({
-      label: t('action:delete'),
-      icon: 'action:delete',
-      onClick: () => openDeleteModal(),
-      busy: isDeletingNetwork.value,
-    })
-
     return {
       network: r =>
         r({
@@ -170,7 +134,14 @@ const { HeadCells, BodyCells } = useNetworkColumns({
       actions: r =>
         r({
           onClick: () => (selectedNetworkId.value = network.id),
-          actions: rowActions,
+          actions: [
+            {
+              label: t('action:delete'),
+              icon: 'action:delete',
+              onClick: () => openDeleteModal(),
+              busy: isDeletingNetwork.value,
+            },
+          ],
         }),
     }
   },
