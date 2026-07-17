@@ -7,6 +7,7 @@
 
 > Security fixes and new features should go in this section
 
+- xo-server : Permissions were ignored for some pool functions ([#10093](https://github.com/vatesfr/xen-orchestra/pull/10093))
 - [Users/Create] Removed default user's password from the logs during account creation (PR [#10094](https://github.com/vatesfr/xen-orchestra/pull/10094))
 
 ### Enhancements
