@@ -33,7 +33,7 @@
             :on-click="child.onClick"
           >
             {{ child.label }}
-            <i v-if="child.hint" class="hint">{{ child.hint }}</i>
+            <i v-if="child.hint">{{ child.hint }}</i>
           </MenuItem>
         </template>
       </MenuItem>
@@ -85,12 +85,3 @@ function isGroupAction(action: ActionItem): action is GroupActionItem {
   return 'children' in action
 }
 </script>
-
-<style scoped lang="postcss">
-.hint {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow-wrap: break-word;
-  white-space: normal;
-}
-</style>

@@ -20,6 +20,7 @@
   "action:boot-vm": "Boot VM",
   "action:change-state": "Change state",
   "action:close": "Close",
+  "action:confirm": "Confirm",
   "action:connect": "Connect",
   "action:connect-another-pool": "Connect another pool",
   "action:connect-n": "Connect {n}",
