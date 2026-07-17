@@ -82,12 +82,8 @@ const labelAccent = computed(() => {
     background-color: var(--color-neutral-background-primary);
     height: 8rem;
     outline: none;
-    padding: 0.9rem 1.6rem;
+    padding: 0.8rem 1.6rem;
     width: 100%;
-
-    &:focus:not(:active) {
-      box-shadow: inset 0 0 0 0.1rem var(--color-neutral-border);
-    }
   }
 
   &.accent--brand {
