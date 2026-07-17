@@ -1,17 +1,4 @@
 <template>
-  <!--  <UiButton -->
-  <!--    v-tooltip="!canEnableHost && enableHostErrorMessage" -->
-  <!--    size="medium" -->
-  <!--    variant="tertiary" -->
-  <!--    accent="brand" -->
-  <!--    :disabled="!canEnableHost" -->
-  <!--    left-icon="status:success-circle" -->
-  <!--    :busy="isEnablingHost" -->
-  <!--    @click="openEnabledStateModal()" -->
-  <!--  > -->
-  <!--    {{ t('action:start') }} -->
-  <!--  </UiButton> -->
-
   <MenuItem
     v-tooltip="!canStartHost && startHostErrorMessage"
     size="medium"

@@ -4,7 +4,7 @@
     size="medium"
     variant="tertiary"
     accent="brand"
-    :disabled="!canDisableHost || hostIsHalted"
+    :disabled="!canDisableHost"
     icon="action:disable"
     :busy="isDisablingHost"
     @click="openDisableHostModal()"
@@ -19,8 +19,6 @@ import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-co
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useModal } from '@core/packages/modal/use-modal.ts'
-import { HOST_POWER_STATE } from '@vates/types'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
@@ -28,8 +26,6 @@ const { host } = defineProps<{
 }>()
 
 const { t } = useI18n()
-
-const hostIsHalted = computed(() => host.power_state === HOST_POWER_STATE.HALTED)
 
 const {
   run: disableHost,
