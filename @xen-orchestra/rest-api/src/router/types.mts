@@ -78,7 +78,7 @@ export interface RouteDefinition {
   responses?: Array<{
     status: number
     description: string
-    schema?: Record<string, FieldDefinition>
+    schema?: Record<string, FieldDefinition> | FieldDefinition
   }>
   middlewares?: MiddlewareDescriptor[]
   scope?: 'acl'
