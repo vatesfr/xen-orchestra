@@ -21,10 +21,10 @@ const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
 export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWriter) {
   #parentVdiPaths
-  #parentUUids
+  #parentUuids
   async checkBaseVdis(baseUuidToSrcVdi) {
     this.#parentVdiPaths = {}
-    this.#parentUUids = {}
+    this.#parentUuids = {}
     const { handler } = this._adapter
     const adapter = this._adapter
 
@@ -62,7 +62,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
         baseUuidToSrcVdi.delete(baseUuid)
       } else {
         this.#parentVdiPaths[vhdDir] = parentDestPath
-        this.#parentUUids[vhdDir] = parentUuid
+        this.#parentUuids[vhdDir] = parentUuid
       }
     })
   }
@@ -193,7 +193,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
           let parentUuid, parentPath
           if (isVhdDifferencing[diskRef]) {
             const parentDestPath = this.#parentVdiPaths[dirname(path)]
-            parentUuid = this.#parentUUids[dirname(path)]
+            parentUuid = this.#parentUuids[dirname(path)]
             assert.notStrictEqual(parentDestPath, undefined, 'A differential VHD must have a parent')
             // forbid any kind of loop
             assert.ok(basename(parentDestPath) < basename(path), `vhd must be sorted to be chained`)
