@@ -1,4 +1,4 @@
-import { flatMap, mapValues, omit } from 'lodash'
+import { flatMap, mapValues } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors.js'
 import { SDN_CONTROLLER_OF_RULES_KEY } from '@vates/types'
 
@@ -16,7 +16,7 @@ const RULE_FIELDS = {
 
 const BODY_ADD_RULE = RULE_FIELDS
 
-const BODY_DELETE_RULE = omit(RULE_FIELDS, 'allow')
+const BODY_DELETE_RULE = RULE_FIELDS
 
 const BODY_UPDATE_RULE = {
   oldRule: { type: 'object', fields: RULE_FIELDS },
@@ -96,7 +96,11 @@ function addRuleRoute(controller, resource) {
       return createAction(() => resource.addRule(controller, rule), {
         sync: req.query.sync ?? false,
         statusCode: 204,
-        taskProperties: { name: `add ${resource.acl} traffic rule`, objectId: rule[resource.idKey] },
+        taskProperties: {
+          name: `add ${resource.acl} traffic rule`,
+          objectId: rule[resource.idKey],
+          objectType: resource.type,
+        },
       })
     },
   }
@@ -118,7 +122,11 @@ function deleteRuleRoute(controller, resource) {
       return createAction(() => resource.deleteRule(controller, rule), {
         sync: req.query.sync ?? false,
         statusCode: 204,
-        taskProperties: { name: `delete ${resource.acl} traffic rule`, objectId: rule[resource.idKey] },
+        taskProperties: {
+          name: `delete ${resource.acl} traffic rule`,
+          objectId: rule[resource.idKey],
+          objectType: resource.type,
+        },
       })
     },
   }
