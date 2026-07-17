@@ -159,7 +159,7 @@ const { HeadCells, BodyCells } = usePifColumns({
             {
               label: t('action:set-management'),
               hint: !canReconfigureManagement.value ? reconfigureManagementErrorMessage.value : undefined,
-              icon: 'action:connect',
+              icon: 'status:primary-circle',
               onClick: () => openManagementReconfigureModal(),
               disabled: !canReconfigureManagement.value,
               busy: isReconfiguringManagement.value,

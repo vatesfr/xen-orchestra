@@ -61,7 +61,6 @@ const classNames = computed(() => [
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  text-align: start;
   cursor: pointer;
   vertical-align: middle;
   gap: 0.75em;

@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="info" icon="status:info-picto">
+  <VtsModal accent="info" icon="status:info-picto" dismissible>
     <template #title>
       {{ t('pif-management-reconfigure-title') }}
     </template>
@@ -11,7 +11,7 @@
     <template #buttons>
       <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
       <VtsModalConfirmButton>
-        {{ t('modal:confirm') }}
+        {{ t('action:confirm') }}
       </VtsModalConfirmButton>
     </template>
   </VtsModal>
