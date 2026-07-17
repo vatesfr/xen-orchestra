@@ -132,6 +132,7 @@ useForwardedHeaders = false
 # defaults, other values override them.
 #[http.helmet.hsts]
 #includeSubDomains = false
+#
 # Each `http.listen.<name>` entry defines a specific listening configuration for
 # the HTTP server.
 #
@@ -213,9 +214,10 @@ timeout = 600e3
 ignoreVmSnapshotResources = false
 
 [xapiOptions]
+
+maxUncoalescedVdis = 1
 # The duration XO will wait for a host to be live before assuming it failed to
 # restart
-maxUncoalescedVdis = 1
 restartHostTimeout = '20 minutes'
 vdiDelayBeforeRemovingCloudConfigDrive = '5 min'
 vdiExportConcurrency = 12

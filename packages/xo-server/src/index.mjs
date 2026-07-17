@@ -128,6 +128,7 @@ const DEFAULT_HELMET_CONFIG = {
         "'sha256-Z5hWOtGcISU7nkyObsPm3ZZvPpAYxzoiQutkJucVkm8='", // xo-server/signin.pug
       ],
       'style-src': ["'self'", "'unsafe-inline'"],
+      'img-src': ["'self'", 'data:'],
     },
   },
 }
