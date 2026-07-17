@@ -830,9 +830,16 @@ export default class XenServers {
       () =>
         state.shouldReEnable &&
         synchronizedLoadBalancerOperation(async () => {
-          if (!(await app.getOptionalPlugin('load-balancer'))?.loaded) {
-            await app.loadPlugin('load-balancer')
+          const plugin = await app.getOptionalPlugin('load-balancer')
+          if (plugin?.loaded) {
+            return
           }
+          if (state.autoload && plugin?.autoload === false) {
+            throw new Error(
+              'not re-enabling the load balancer plugin because its autoload has been disabled during the suspension'
+            )
+          }
+          await app.loadPlugin('load-balancer')
         }),
       state
     )
@@ -868,13 +875,15 @@ export default class XenServers {
     $defer(() => this._releaseRollingPoolUpdateLoadBalancer(suspension, pool))
 
     await synchronizedLoadBalancerOperation(async () => {
-      if ((await app.getOptionalPlugin('load-balancer'))?.loaded) {
+      const plugin = await app.getOptionalPlugin('load-balancer')
+      if (plugin?.loaded) {
         const reEnableDelay = app.config.getDuration('loadBalancerReEnableDelay')
         if (!Number.isSafeInteger(reEnableDelay) || reEnableDelay < 0 || reEnableDelay > MAX_TIMER_DELAY) {
           throw new RangeError(
             `loadBalancerReEnableDelay must be an integer between 0 and ${MAX_TIMER_DELAY} milliseconds`
           )
         }
+        state.autoload = plugin.autoload
         state.reEnableDelay = reEnableDelay
         state.shouldReEnable = true
         await app.unloadPlugin('load-balancer')
