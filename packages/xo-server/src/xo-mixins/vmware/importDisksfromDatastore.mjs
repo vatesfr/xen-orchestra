@@ -5,6 +5,7 @@ import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
 import { NbdDisk } from '@vates/nbd-client/NbdDisk.mjs'
 import { createLogger } from '@xen-orchestra/log'
 import { toQcow2Stream } from '@xen-orchestra/qcow2'
+import { TaskProgressHandler } from '@xen-orchestra/backups/_runners/_vmRunners/_TaskProgressHandler.mjs'
 
 const { warn } = createLogger('xo:importdiskfromdatastore')
 
@@ -23,6 +24,8 @@ export async function importStream({ esxi, dataMap, disk, vmId, format }, consum
     await vmdk.init()
     signal?.throwIfAborted()
     vmdk = new ReadAhead(vmdk)
+
+    vmdk.addProgressHandler(new TaskProgressHandler())
 
     if (format === VDI_FORMAT_QCOW2) {
       stream = await toQcow2Stream(vmdk, { signal })
