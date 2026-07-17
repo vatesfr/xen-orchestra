@@ -12,8 +12,7 @@ const isSkippedError = error =>
     error.message === 'no VMs match this pattern' ||
     error.message === 'unhealthy VDI chain')
 
-export const getStatus = (error, status = error === undefined ? 'success' : 'failure') =>
-  status === 'failure' && isSkippedError(error) ? 'skipped' : status
+const getStatus = (error, status) => (status === 'failure' && isSkippedError(error) ? 'skipped' : status)
 
 // check if an error subtask was successful after retry
 const isSupersededByRetry = (subtask, siblings) =>
@@ -26,7 +25,9 @@ const isSupersededByRetry = (subtask, siblings) =>
       other.properties?.id === subtask.properties?.id
   )
 
-export const computeStatusAndSortSubtasks = (status, task) => {
+export const computeStatusAndSortSubtasks = task => {
+  let status = getStatus(task.result, task.status)
+
   if (status === 'failure' || task.tasks === undefined) {
     return status
   }
@@ -117,6 +118,8 @@ async function getRestoreLogs(store) {
   })
 }
 
+const statusFromError = error => (error === undefined ? 'success' : 'failure')
+
 // type Task = {
 //   data: any,
 //   end?: number,
@@ -168,7 +171,10 @@ export default {
           if (log !== undefined) {
             delete started[runJobId]
             log.end = time
-            log.status = computeStatusAndSortSubtasks(getStatus((log.result = data.error)), log)
+            log.result = data.error
+            log.status = statusFromError(data.error)
+            // computeStatusAndSortSubtasks reads log.status
+            log.status = computeStatusAndSortSubtasks(log)
           }
         } else if (event === 'job.backupTaskStart') {
           // happens once, only for backups using XO Tasks
@@ -207,7 +213,10 @@ export default {
             // TODO: merge/transfer work-around
             delete started[taskId]
             log.end = time
-            log.status = computeStatusAndSortSubtasks(getStatus((log.result = data.result), data.status), log)
+            log.result = data.result
+            log.status = data.status
+            // computeStatusAndSortSubtasks reads log.status
+            log.status = computeStatusAndSortSubtasks(log)
           }
         } else if (event === 'task.warning') {
           const parent = started[data.taskId]
@@ -244,7 +253,10 @@ export default {
           if (log !== undefined) {
             delete started[runCallId]
             log.end = time
-            log.status = computeStatusAndSortSubtasks(getStatus((log.result = data.error)), log)
+            log.result = data.error
+            log.status = statusFromError(data.error)
+            // computeStatusAndSortSubtasks reads log.status
+            log.status = computeStatusAndSortSubtasks(log)
           }
         }
       }
