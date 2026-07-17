@@ -2,7 +2,6 @@ import assert from 'node:assert'
 import mapValues from 'lodash/mapValues.js'
 import { asyncEach } from '@vates/async-each'
 import { asyncMap } from '@xen-orchestra/async-map'
-import { openVhd } from 'vhd-lib'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateClass } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
@@ -17,14 +16,15 @@ import { MixinRemoteWriter } from './_MixinRemoteWriter.mjs'
 import { AbstractIncrementalWriter } from './_AbstractIncrementalWriter.mjs'
 import { checkVhd } from './_checkVhd.mjs'
 import { packUuid } from './_packUuid.mjs'
-import { Disposable } from 'promise-toolbox'
 
 const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
 export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWriter) {
   #parentVdiPaths
+  #parentUUids
   async checkBaseVdis(baseUuidToSrcVdi) {
     this.#parentVdiPaths = {}
+    this.#parentUUids = {}
     const { handler } = this._adapter
     const adapter = this._adapter
 
@@ -32,6 +32,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
 
     await asyncMap(baseUuidToSrcVdi, async ([baseUuid, srcVdiUuid]) => {
       let parentDestPath
+      let parentUuid
       const vhdDir = `${vdisDir}/${srcVdiUuid}`
       try {
         const vhds = await handler.list(vhdDir, {
@@ -47,6 +48,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
           try {
             if (await adapter.isMergeableParent(packedBaseUuid, path)) {
               parentDestPath = path
+              parentUuid = packedBaseUuid
             }
           } catch (error) {
             warn('checkBaseVdis', { error })
@@ -60,6 +62,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
         baseUuidToSrcVdi.delete(baseUuid)
       } else {
         this.#parentVdiPaths[vhdDir] = parentDestPath
+        this.#parentUUids[vhdDir] = parentUuid
       }
     })
   }
@@ -190,11 +193,11 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
           let parentUuid, parentPath
           if (isVhdDifferencing[diskRef]) {
             const parentDestPath = this.#parentVdiPaths[dirname(path)]
+            parentUuid = this.#parentUUids[dirname(path)]
             assert.notStrictEqual(parentDestPath, undefined, 'A differential VHD must have a parent')
             // forbid any kind of loop
             assert.ok(basename(parentDestPath) < basename(path), `vhd must be sorted to be chained`)
             parentPath = relativeFromFile(path, parentDestPath)
-            parentUuid = await Disposable.use(openVhd(handler, parentDestPath), parentVhd => parentVhd.footer.uuid)
           }
 
           const transferred = await adapter.writeVhd(path, disk, {
