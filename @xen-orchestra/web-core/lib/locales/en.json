@@ -944,6 +944,7 @@
   "sr-disconnect-info-pool-mixed": "Local SRs will be disconnected from their respective hosts. Shared SRs will be disconnected from all hosts in this pool.",
   "sr-disconnect-info-pool-shared": "The SR will be disconnected from {hostsCount} hosts in this pool. | Each shared SR will be disconnected from all hosts in this pool.",
   "sr-disconnect-title": "You are about to disconnect 1 SR | You are about to disconnect {n} SRs",
+  "sr-is-unwritable": "This SR is unwritable.",
   "sr-usage-exceeds-80-percent": "Storage usage has exceeded 80% of total capacity. Performance may be impacted, consider freeing up space.",
   "ssh-account": "SSH account",
   "ssh-key": "SSH key",

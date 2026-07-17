@@ -944,6 +944,7 @@
   "sr-disconnect-info-pool-mixed": "Les SRs locaux seront déconnectés de leurs hôtes respectifs. Les SRs partagés seront déconnectés de tous les hôtes de ce pool.",
   "sr-disconnect-info-pool-shared": "Le SR sera déconnecté de {hostsCount} hôtes de ce pool. | Chaque SR partagé sera déconnecté de tous les hôtes de ce pool.",
   "sr-disconnect-title": "Vous êtes sur le point de déconnecter 1 SR | Vous êtes sur le point de déconnecter {n} SRs",
+  "sr-is-unwritable": "Ce SR n'est pas accessible en écriture.",
   "sr-usage-exceeds-80-percent": "L'utilisation du stockage dépasse 80 % de la capacité totale. Les performances peuvent être impactées, pensez à libérer de l'espace.",
   "ssh-account": "Compte SSH",
   "ssh-key": "Clé SSH",
