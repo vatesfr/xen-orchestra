@@ -75,7 +75,7 @@ export default class Http {
 
       if (!bypassStatusCheck) {
         // drain the response body to free the socket
-        error.cause = (await response.text().catch(() => '')).substring(0, 1024)
+        error.data = (await response.text().catch(() => '')).substring(0, 1024)
       }
 
       throw error

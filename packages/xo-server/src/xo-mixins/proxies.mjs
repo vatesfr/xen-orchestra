@@ -76,6 +76,8 @@ async function populateProxy(proxy) {
 export default class Proxy {
   constructor(app) {
     this._app = app
+
+    this._agents = new Map()
     const rules = {
       '{date}': (date = new Date()) => date.toISOString(),
     }
@@ -99,6 +101,19 @@ export default class Proxy {
         proxies => db.update(proxies)
       )
     })
+  }
+
+  _getAgent(timeout) {
+    let agent = this._agents.get(timeout)
+    if (agent === undefined) {
+      agent = new Agent({
+        connect: { rejectUnauthorized: false },
+        headersTimeout: timeout,
+        bodyTimeout: timeout,
+      })
+      this._agents.set(timeout, agent)
+    }
+    return agent
   }
 
   async _getChannel() {
@@ -467,13 +482,7 @@ export default class Proxy {
         Cookie: cookie.serialize('authenticationToken', proxy.authenticationToken),
       },
       method: 'POST',
-      // the proxy uses a self-signed certificate; `timeout` is an inactivity
-      // timeout, which maps to undici's headers/body timeouts
-      dispatcher: new Agent({
-        connect: { rejectUnauthorized: false },
-        headersTimeout: timeout,
-        bodyTimeout: timeout,
-      }),
+      dispatcher: this._getAgent(timeout),
     }
 
     if (proxy.address !== undefined) {
@@ -493,6 +502,7 @@ export default class Proxy {
 
     const response = await fetch(url, request)
     if (!response.ok) {
+      await response.body?.cancel() // free the socket
       throw new Error(`${response.status} ${response.statusText}`)
     }
 

@@ -112,6 +112,7 @@ ${pkg.name} v${pkg.version}`
       body: format.request(0, method, params),
     })
     if (!response.ok) {
+      await response.body?.cancel() // free the socket
       throw new Error(`${response.status} ${response.statusText}`)
     }
 
