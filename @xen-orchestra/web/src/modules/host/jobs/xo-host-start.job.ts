@@ -1,10 +1,9 @@
 import { xoHostArg } from '@/modules/host/jobs/xo-host-args.jobs.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import { isHostOperationPending } from '@/modules/host/utils/xo-host.util.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
-import { HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE, type XoTask } from '@vates/types'
+import { HOST_POWER_STATE, type XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export const useXoHostStartJob = defineJob('host.start', [xoHostArg], () => {
@@ -12,7 +11,10 @@ export const useXoHostStartJob = defineJob('host.start', [xoHostArg], () => {
   const { monitorTask } = useXoTaskUtils()
 
   return {
-    async run(host: FrontXoHost) {
+    async run(host: FrontXoHost | undefined) {
+      if (!host) {
+        return
+      }
       const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`hosts/${host.id}/actions/start`)
       await monitorTask(taskId)
     },
@@ -22,16 +24,12 @@ export const useXoHostStartJob = defineJob('host.start', [xoHostArg], () => {
         throw new JobError(t('job:host-start:missing-host'))
       }
 
-      if (isRunning || isHostOperationPending(host, HOST_ALLOWED_OPERATIONS.POWER_ON)) {
+      if (isRunning) {
         throw new JobRunningError(t('job:host-start:in-progress'))
       }
 
       if (host.power_state === HOST_POWER_STATE.RUNNING) {
         throw new JobError(t('job:host-start:bad-power-state'))
-      }
-
-      if (host.power_state !== HOST_POWER_STATE.HALTED) {
-        throw new JobError(t('job:host-start:bad-power-state-not-halted'))
       }
 
       if (host.powerOnMode === '') {

@@ -54,11 +54,6 @@ const { action, object, hostName } = defineProps<
   }
 >()
 
-const defaultActionByObject: ActionsByObject = {
-  vm: 'shutdown',
-  host: 'disable',
-}
-
 const { t } = useI18n()
 
 const textMappingsByObject: TextMappingByObject = {
@@ -104,17 +99,12 @@ const textMappingsByObject: TextMappingByObject = {
       title: t('modal:confirm-host-start', { host: hostName }),
       action: t('action:start-host'),
     },
-    forget: {
-      title: t('modal:confirm-host-forget', { host: hostName }),
-      message: t('modal:host-forget-message'),
-      action: t('action:forget-host'),
-    },
   },
 }
 
 const modalTexts = useMapper(
   () => action,
   () => textMappingsByObject[object] as Record<ActionsByObject[ObjectType], ActionTexts>,
-  () => defaultActionByObject[object]
+  () => 'shutdown'
 )
 </script>
