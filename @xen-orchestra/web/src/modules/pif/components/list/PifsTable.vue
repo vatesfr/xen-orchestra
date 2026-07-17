@@ -135,6 +135,20 @@ const { HeadCells, BodyCells } = usePifColumns({
       mac: r => r(pif.mac),
       mode: r => r(mode.value),
       selectItem: r => r(() => (selectedPifId.value = pif.id)),
+      actions: r =>
+        r({
+          onClick: () => (selectedPifId.value = pif.id),
+          actions: [
+            {
+              label: t('action:set-management'),
+              hint: !canReconfigureManagement.value ? reconfigureManagementErrorMessage.value : undefined,
+              icon: 'action:connect',
+              onClick: () => openManagementReconfigureModal(),
+              disabled: !canReconfigureManagement.value,
+              busy: isReconfiguringManagement.value,
+            },
+          ],
+        }),
     }
   },
 })

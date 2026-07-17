@@ -11,7 +11,7 @@
         :busy="isReconfiguringManagement"
         @click="openManagementReconfigureModal()"
       >
-        {{ t('action:set-as-management') }}
+        {{ t('action:set-management') }}
       </UiButton>
     </template>
     <template v-if="pif">

@@ -11,7 +11,7 @@
     <template #buttons>
       <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
       <VtsModalConfirmButton>
-        {{ t('action:set-as-management') }}
+        {{ t('modal:confirm') }}
       </VtsModalConfirmButton>
     </template>
   </VtsModal>
