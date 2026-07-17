@@ -12,10 +12,11 @@ export const useXoHostStartJob = defineJob('host.start', [xoHostArg], () => {
 
   return {
     async run(host: FrontXoHost | undefined) {
-      if (host) {
-        const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`hosts/${host.id}/actions/start`)
-        await monitorTask(taskId)
+      if (!host) {
+        return
       }
+      const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`hosts/${host.id}/actions/start`)
+      await monitorTask(taskId)
     },
 
     validate: (isRunning, host: FrontXoHost | undefined) => {
@@ -29,6 +30,10 @@ export const useXoHostStartJob = defineJob('host.start', [xoHostArg], () => {
 
       if (host.power_state === HOST_POWER_STATE.RUNNING) {
         throw new JobError(t('job:host-start:bad-power-state'))
+      }
+
+      if (host.powerOnMode === '') {
+        throw new JobError(t('job:host-start:power-on-disabled'))
       }
     },
   }

@@ -91,14 +91,13 @@ const textMappingsByObject: TextMappingByObject = {
       action: t('action:disable-host'),
     },
     shutdown: {
-      title: t('modal:confirm-host-disable', { host: hostName }),
-      message: t('modal:host-disable-message'),
-      action: t('action:disable-host'),
+      title: t('modal:confirm-host-shutdown', { host: hostName }),
+      message: t('modal:host-shutdown-message'),
+      action: t('action:shutdown-host'),
     },
     start: {
-      title: t('modal:confirm-host-disable', { host: hostName }),
-      message: t('modal:host-disable-message'),
-      action: t('action:disable-host'),
+      title: t('modal:confirm-host-start', { host: hostName }),
+      action: t('action:start-host'),
     },
   },
 }
