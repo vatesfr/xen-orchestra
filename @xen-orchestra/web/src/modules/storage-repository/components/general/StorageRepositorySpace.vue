@@ -8,7 +8,7 @@
       {{ t('sr-is-unwritable') }}
     </UiAlert>
 
-    <div v-else>
+    <div>
       <VtsProgressBar
         class="progress-bar"
         :current="sr.physical_usage"
@@ -17,7 +17,7 @@
         legend-type="percent"
       />
 
-      <UiAlert v-if="srUsageWarning" class="sr-usage-exceeded-alert" accent="warning">
+      <UiAlert v-if="srUsageWarning" class="sr-usage-exceeded-alert" :accent="srUsageAccent">
         {{ t('sr-usage-exceeds-80-percent') }}
       </UiAlert>
 
@@ -63,7 +63,9 @@ const freeSpace = computed(() => formatSize(sr.size - sr.physical_usage, 2))
 
 const isUnwritableSr = computed(() => !isSrWritable(sr))
 
-const srUsageWarning = computed(() => sr.size > 0 && sr.physical_usage / sr.size > 0.8)
+const srUsagePercentage = computed(() => (sr.size > 0 ? (sr.physical_usage / sr.size) * 100 : 0))
+const srUsageWarning = computed(() => srUsagePercentage.value > 80)
+const srUsageAccent = computed(() => (srUsagePercentage.value >= 90 ? 'danger' : 'warning'))
 const vdiAllocatedSpaceWarning = computed(() => sr.usage > sr.size - sr.physical_usage)
 </script>
 
