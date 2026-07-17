@@ -43,11 +43,18 @@ const isValidTar = async (handler: RemoteHandlerAbstract, size: number, fd: File
   return buf.every(byte => byte === 0)
 }
 
-export async function isValidXva(handler: RemoteHandlerAbstract, filePath: string): Promise<boolean> {
+export async function isValidXva(
+  handler: RemoteHandlerAbstract,
+  filePath: string,
+  metadataSize?: number
+): Promise<boolean> {
   // size is longer when encrypted + reading part of an encrypted file is not implemented
   if (handler.isEncrypted) {
-    return true
+    const size = await handler.getSizeOnDisk(filePath)
+    return size > 20
   }
+
+  let isValid = true
 
   const fd = await handler.openFile(filePath, 'r')
   try {
@@ -56,13 +63,19 @@ export async function isValidXva(handler: RemoteHandlerAbstract, filePath: strin
       // neither a valid gzip nor tar
       return false
     }
+    let validSize = true
+    if (metadataSize !== undefined) {
+      validSize = metadataSize === size
+    }
 
-    return (await isCompressedFile(handler, fd))
+    const validDisk = (await isCompressedFile(handler, fd))
       ? true // compressed files cannot be validated at this time
       : await isValidTar(handler, size, fd)
+    isValid = validSize && validDisk
   } finally {
     handler.closeFile(fd).catch(noop)
   }
+  return isValid
 }
 
 const noop = (): void => {}
@@ -101,28 +114,22 @@ export class VmFullBackupArchive implements VmBackupInterface {
    */
   async check(): Promise<CheckResult> {
     if (this.isValid === undefined) {
-      let fileSize = 0
-      let validDisk = false
-      let validSize = true
       try {
-        fileSize = await this.handler.getSize(this.xvaPath)
-        validDisk = await isValidXva(this.handler, this.xvaPath)
+        this.isValid = await isValidXva(this.handler, this.xvaPath, this.metadata.size)
       } catch (error) {
-        validDisk = false
+        this.isValid = false
         if (error?.code === 'ENOENT') {
           this.missingDisk = true
         }
         this.opts.logWarn('Issue while checking XVA', { error })
       }
-      try {
-        await this.handler.getSize(`${this.xvaPath}.checksum`)
-      } catch (error) {
-        this.opts.logWarn('Checksum file not valid, not blocking', { error })
+      if (!this.handler.isEncrypted) {
+        try {
+          await this.handler.getSize(`${this.xvaPath}.checksum`)
+        } catch (error) {
+          this.opts.logWarn('Checksum file not valid, not blocking', { error })
+        }
       }
-      if (this.metadata.size !== undefined) {
-        validSize = this.metadata.size === fileSize
-      }
-      this.isValid = fileSize > 0 && validSize && validDisk
     }
     if (!this.isValid) {
       if (this.missingDisk) {

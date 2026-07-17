@@ -258,38 +258,46 @@ function resolveMiddleware(descriptor: MiddlewareDescriptor): RequestHandler {
   }
 }
 
+// Build a zod schema for a single FieldDefinition
+function buildZodField(field: FieldDefinition): z.ZodTypeAny {
+  let schema: z.ZodTypeAny
+
+  switch (field.type) {
+    case 'string':
+      schema = z.string()
+      break
+    case 'boolean':
+      schema = z.boolean()
+      break
+    case 'number':
+      schema = z.number()
+      break
+    case 'enum':
+      schema = z.enum(field.enum as [string, ...string[]])
+      break
+    case 'object':
+      schema = buildZodSchema(field.fields)
+      break
+    case 'array':
+      schema = z.array(buildZodField(field.items))
+      break
+    default:
+      throw new Error(`Unsupported type: ${(field as { type: unknown }).type}`)
+  }
+
+  if ('example' in field && field.example !== undefined) schema = schema.meta({ example: field.example })
+
+  if (field.optional) schema = schema.optional()
+
+  return schema
+}
+
 // Build zod schema to allow easy input validation
 function buildZodSchema(def: Record<string, FieldDefinition>): z.ZodObject<Record<string, z.ZodTypeAny>> {
   const shape: Record<string, z.ZodTypeAny> = {}
 
   for (const [key, field] of Object.entries(def)) {
-    let schema: z.ZodTypeAny
-
-    switch (field.type) {
-      case 'string':
-        schema = z.string()
-        break
-      case 'boolean':
-        schema = z.boolean()
-        break
-      case 'number':
-        schema = z.number()
-        break
-      case 'enum':
-        schema = z.enum(field.enum as [string, ...string[]])
-        break
-      case 'object':
-        schema = buildZodSchema(field.fields)
-        break
-      default:
-        throw new Error(`Unsupported type: ${(field as { type: unknown }).type}`)
-    }
-
-    if ('example' in field && field.example !== undefined) schema = schema.meta({ example: field.example })
-
-    if (field.optional) schema = schema.optional()
-
-    shape[key] = schema
+    shape[key] = buildZodField(field)
   }
 
   return z.object(shape)
