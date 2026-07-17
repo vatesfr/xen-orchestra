@@ -1,6 +1,6 @@
 <!-- v5 -->
 <template>
-  <div class="ui-textarea" :class="toVariants({ accent: hasMaxCharactersError ? 'danger' : accent })">
+  <div class="ui-textarea" :class="toVariants({ accent: isExceedingMaxCharacters ? 'danger' : accent })">
     <UiLabel v-if="slots.default" :accent="labelAccent" :required :href :for="id">
       <slot />
     </UiLabel>
@@ -12,7 +12,7 @@
     <UiInfo v-if="isExceedingMaxCharacters" accent="danger">
       {{ t('field:exceeds-max-characters', { max: maxCharacters }) }}
     </UiInfo>
-    <UiInfo v-if="slots.message && labelAccent != 'neutral'" :accent="labelAccent">
+    <UiInfo v-if="slots.message && labelAccent !== 'neutral'" :accent="labelAccent">
       <slot name="message" />
     </UiInfo>
   </div>
@@ -65,8 +65,6 @@ const isExceedingMaxCharacters = computed(() =>
   maxCharacters !== undefined ? !focused.value && model.value.trim().length > maxCharacters : false
 )
 
-const hasMaxCharactersError = computed(() => !focused.value && isExceedingMaxCharacters.value)
-
 const labelAccent = computed(() => {
   return accent === 'brand' ? 'neutral' : accent
 })
@@ -84,12 +82,11 @@ const labelAccent = computed(() => {
     background-color: var(--color-neutral-background-primary);
     height: 8rem;
     outline: none;
-    padding: 0.9rem 1.7rem;
+    padding: 0.9rem 1.6rem;
     width: 100%;
 
     &:focus:not(:active) {
-      border-width: 0.2rem;
-      padding: 0.8rem 1.6rem;
+      box-shadow: inset 0 0 0 0.1rem var(--color-neutral-border);
     }
   }
 
@@ -107,6 +104,7 @@ const labelAccent = computed(() => {
 
       &:focus:not(:active) {
         border-color: var(--color-brand-item-base);
+        box-shadow: inset 0 0 0 0.1rem var(--color-brand-item-base);
       }
 
       &:disabled {
@@ -130,6 +128,7 @@ const labelAccent = computed(() => {
 
       &:focus:not(:active) {
         border-color: var(--color-warning-item-base);
+        box-shadow: inset 0 0 0 0.1rem var(--color-warning-item-base);
       }
 
       &:disabled {
@@ -153,6 +152,7 @@ const labelAccent = computed(() => {
 
       &:focus:not(:active) {
         border-color: var(--color-danger-item-base);
+        box-shadow: inset 0 0 0 0.1rem var(--color-danger-item-base);
       }
 
       &:disabled {
