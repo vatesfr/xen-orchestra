@@ -7,7 +7,7 @@
         variant="tertiary"
         accent="brand"
         :disabled="!canReconfigureManagement"
-        left-icon="action:connect"
+        left-icon="status:primary-circle"
         :busy="isReconfiguringManagement"
         @click="openManagementReconfigureModal()"
       >
