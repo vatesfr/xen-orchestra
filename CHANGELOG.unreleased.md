@@ -17,6 +17,7 @@
   - `/pools/:id/actions/management-reconfigure` (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
 - [REST API] Possibility of sending `autoEnable` in the body of the `/hosts/:id/actions/disable` endpoint (PR [#10040](https://github.com/vatesfr/xen-orchestra/pull/10040))
 - [REST API] `PATCH /rest/v0/vdis/{id}` to update a VDI's name, description and size (PR [#9945](https://github.com/vatesfr/xen-orchestra/pull/9945))
+- [REST API] Audit and SDN-controller plugin endpoints are now documented in the API spec (PR [#9895](https://github.com/vatesfr/xen-orchestra/pull/9895))
 
 ### Bug fixes
 
@@ -44,7 +45,7 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
 - xo-server minor
-- xo-server-audit patch
-- xo-server-sdn-controller patch
+- xo-server-audit minor
+- xo-server-sdn-controller minor
 
 <!--packages-end-->
