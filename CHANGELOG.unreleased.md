@@ -41,6 +41,7 @@
 - [Host/dashboard] Switch CPU and RAM panels order to match Pool dashboard layout (PR [#10059](https://github.com/vatesfr/xen-orchestra/pull/10059))
 - [Plugins/Perf-alert] Update URL generation to support V6 routing (PR [#10054](https://github.com/vatesfr/xen-orchestra/pull/10054))
 - [Rolling Pool Update/Reboot] Temporarily disable VMs auto power on during the run: unexpected VM starts on rebooted hosts could break the remaining host evacuations (`HOST_NOT_ENOUGH_FREE_MEMORY`) (PR [#10104](https://github.com/vatesfr/xen-orchestra/pull/10104))
+- [Backups] Fix failed status on successful retry [Forum#12366](https://xcp-ng.org/forum/topic/12366) (PR [#10129](https://github.com/vatesfr/xen-orchestra/pull/10129))
 
 ### Packages to release
 
@@ -60,6 +61,7 @@
 
 - @vates/types minor
 - @xen-orchestra/backup-archive patch
+- @xen-orchestra/backups patch
 - @xen-orchestra/disk-transform patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
