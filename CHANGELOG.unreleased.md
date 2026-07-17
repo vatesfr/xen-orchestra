@@ -31,7 +31,7 @@
 - [XO6/VM] Add possibility to export a VM (PR [#9989](https://github.com/vatesfr/xen-orchestra/pull/9989))
 - [Rolling Pool Update/Reboot] Re-check that each host can still be evacuated right before evacuating it, to fail early with an explicit error (PR [#10097](https://github.com/vatesfr/xen-orchestra/pull/10097))
 - [XO6/VM] Add "New VM" button on Host view (PR [#10048](https://github.com/vatesfr/xen-orchestra/pull/10048))
-- [XO6/Traffic rules] Show only traffic rules of VMs. Don't include vm-snapshots or vm-templates (PR [#9977](https://github.com/vatesfr/xen-orchestra/pull/9977))
+- [XO6/Traffic rules] Show only traffic rules of VMs. Don't include vm-snapshots or vm-templates. In the VM selector, disable VMs that don't have any VIF (PR [#9977](https://github.com/vatesfr/xen-orchestra/pull/9977))
 
 ### Bug fixes
 
