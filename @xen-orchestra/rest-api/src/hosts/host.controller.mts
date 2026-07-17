@@ -44,6 +44,13 @@ import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import {
+  nfsExport,
+  srUuids,
+  hbaExport,
+  iscsiIqnExport,
+  iscsiLunExport,
+} from '../open-api/oa-examples/sr.oa-example.mjs'
+import {
   host,
   hostIds,
   hostSmt,
@@ -72,6 +79,7 @@ import { HostService } from './host.service.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { partialTasks, taskIds, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { SupportedActions } from '@xen-orchestra/acl'
+import { XoSrHbaExport, XoSrIscsiIqnsExport, XoSrIscsiLunsExport, XoSrNfsExport, XoSrsExport } from './host.type.mjs'
 
 @Route('hosts')
 @Security('*')
@@ -902,11 +910,11 @@ export class HostController extends XapiXoController<XoHost> {
       const host = this.getObject(hostId)
       if (host.power_state === HOST_POWER_STATE.RUNNING) {
         throw incorrectState({
-            actual: host.power_state,
-            expected: HOST_POWER_STATE.HALTED,
-            object: host.id,
-            property: 'power_state',
-          })
+          actual: host.power_state,
+          expected: HOST_POWER_STATE.HALTED,
+          object: host.id,
+          property: 'power_state',
+        })
       }
       await this.getXapiObject(hostId).$xapi.forgetHost(hostId)
     }
@@ -917,6 +925,305 @@ export class HostController extends XapiXoController<XoHost> {
       taskProperties: {
         name: 'forget host',
         objectId: hostId,
+      },
+    })
+  }
+
+  /**
+   * Detects all NFS shares (exports) on a NFS server and returns a table of exports with their paths and ACLs
+   *
+   * Required privilege:
+   * - resource: host, action: probe:nfs
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   * @example server "192.168.1.1"
+   * @example nfsVersion "4"
+   */
+  @Example(nfsExport)
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/actions/probe_nfs')
+  @Middlewares(acl({ resource: 'host', action: 'probe:nfs', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async probeNfs(
+    @Path() id: string,
+    @Query() server: string,
+    @Query() nfsVersion?: string,
+    @Query() sync?: boolean
+  ): CreateActionReturnType<XoSrNfsExport[]> {
+    const action = async () => {
+      return this.#hostService.probeNfs(id as XoHost['id'], server, nfsVersion)
+    }
+
+    return this.createAction<XoSrNfsExport[]>(action, {
+      sync,
+      statusCode: asynchronousActionResp.status,
+      taskProperties: {
+        name: 'probe nfs',
+        objectId: id as XoHost['id'],
+      },
+    })
+  }
+
+  /**
+   * Detects all ZFS pools and returns a dict of pools with their parameters { <poolname>: {<paramdict>}}
+   *
+   * Required privilege:
+   * - resource: host, action: probe:zfs
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   */
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/actions/probe_zfs')
+  @Middlewares(acl({ resource: 'host', action: 'probe:zfs', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async probeZfs(@Path() id: string, @Query() sync?: boolean) {
+    const action = async () => {
+      return this.#hostService.probeZfs(id as XoHost['id'])
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: asynchronousActionResp.status,
+      taskProperties: {
+        name: 'probe zfs',
+        objectId: id as XoHost['id'],
+      },
+    })
+  }
+
+  /**
+   * Detects all HBA devices on the host
+   *
+   * Required privilege:
+   * - resource: host, action: probe:hba
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   */
+  @Example(hbaExport)
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/actions/probe_hba')
+  @Middlewares(acl({ resource: 'host', action: 'probe:hba', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async probeHba(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<XoSrHbaExport[]> {
+    const action = async () => {
+      return this.#hostService.probeHba(id as XoHost['id'])
+    }
+
+    return this.createAction<XoSrHbaExport[]>(action, {
+      sync,
+      statusCode: asynchronousActionResp.status,
+      taskProperties: {
+        name: 'probe hba',
+        objectId: id as XoHost['id'],
+      },
+    })
+  }
+
+  /**
+   * Detects all iSCSI IQN on a Target (iSCSI "server")
+   * returns a table of IQN or empty table if no iSCSI connection to the target
+   *
+   * Required privilege:
+   * - resource: host, action: probe:iscsiiqn
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   * @example targetIp ""
+   */
+  @Example(iscsiIqnExport)
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/actions/probe_iscsi_iqns')
+  @Middlewares(acl({ resource: 'host', action: 'probe:iscsiiqn', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async probeIscsiIqns(
+    @Path() id: string,
+    @Query() targetIp: string,
+    @Query() port?: number,
+    @Query() chapUser?: string,
+    @Query() chapPassword?: string,
+    @Query() sync?: boolean
+  ): CreateActionReturnType<XoSrIscsiIqnsExport[]> {
+    const action = async () => {
+      return this.#hostService.probeIscsiIqns(id as XoHost['id'], targetIp, port, chapUser, chapPassword)
+    }
+
+    return this.createAction<XoSrIscsiIqnsExport[]>(action, {
+      sync,
+      statusCode: asynchronousActionResp.status,
+      taskProperties: {
+        name: 'probe iscsiiqn',
+        objectId: id as XoHost['id'],
+      },
+    })
+  }
+
+  /**
+   * Detects all iSCSI ID and LUNs on a Target and return a LUN table
+   *
+   * Required privilege:
+   * - resource: host, action: probe:iscsilun
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   * @example targetIp ""
+   * @example targetIqn ""
+   */
+  @Example(iscsiLunExport)
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/actions/probe_iscsi_luns')
+  @Middlewares(acl({ resource: 'host', action: 'probe:iscsilun', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async probeIscsiLuns(
+    @Path() id: string,
+    @Query() targetIp: string,
+    @Query() targetIqn: string,
+    @Query() port?: number,
+    @Query() chapUser?: string,
+    @Query() chapPassword?: string,
+    @Query() sync?: boolean
+  ): CreateActionReturnType<XoSrIscsiLunsExport[]> {
+    const action = async () => {
+      return this.#hostService.probeIscsiLuns(id as XoHost['id'], targetIp, targetIqn, port, chapUser, chapPassword)
+    }
+
+    return this.createAction<XoSrIscsiLunsExport[]>(action, {
+      sync,
+      statusCode: asynchronousActionResp.status,
+      taskProperties: {
+        name: 'probe iscsilun',
+        objectId: id as XoHost['id'],
+      },
+    })
+  }
+
+  /**
+   * Detects if this target already exists in XAPI
+   * returns a table of SR UUID, empty if no existing connections
+   *
+   * Required privilege:
+   * - resource: host, action: probe:iscsi-exists
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   * @example targetIp ""
+   * @example targetIqn ""
+   */
+  @Example(srUuids)
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/actions/probe_iscsi_exists')
+  @Middlewares(acl({ resource: 'host', action: 'probe:iscsi-exists', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async probeIscsiExists(
+    @Path() id: string,
+    @Query() targetIp: string,
+    @Query() targetIqn: string,
+    @Query() scsiId: string,
+    @Query() port?: number,
+    @Query() chapUser?: string,
+    @Query() chapPassword?: string,
+    @Query() sync?: boolean
+  ): CreateActionReturnType<XoSrsExport[]> {
+    const action = async () => {
+      return this.#hostService.probeIscsiExists(
+        id as XoHost['id'],
+        targetIp,
+        targetIqn,
+        scsiId,
+        port,
+        chapUser,
+        chapPassword
+      )
+    }
+
+    return this.createAction<XoSrsExport[]>(action, {
+      sync,
+      statusCode: asynchronousActionResp.status,
+      taskProperties: {
+        name: 'probe iscsi-exists',
+        objectId: id as XoHost['id'],
+      },
+    })
+  }
+
+  /**
+   * Detect if this HBA already exists in XAPI
+   * returns a table of SR UUID, empty if no existing connections
+   *
+   * Required privilege:
+   * - resource: host, action: probe:hba-exists
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   * @example scsiId ""
+   */
+  @Example(srUuids)
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/actions/probe_hba_exists')
+  @Middlewares(acl({ resource: 'host', action: 'probe:hba-exists', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async probeHbaExists(
+    @Path() id: string,
+    @Query() scsiId: string,
+    @Query() sync?: boolean
+  ): CreateActionReturnType<XoSrsExport[]> {
+    const action = async () => {
+      return this.#hostService.probeHbaExists(id as XoHost['id'], scsiId)
+    }
+
+    return this.createAction<XoSrsExport[]>(action, {
+      sync,
+      statusCode: asynchronousActionResp.status,
+      taskProperties: {
+        name: 'probe hba-exists',
+        objectId: id as XoHost['id'],
+      },
+    })
+  }
+
+  /**
+   * Detects if this NFS SR already exists in XAPI
+   * returns a table of SR UUID, empty if no existing connections
+   *
+   * Required privilege:
+   * - resource: host, action: probe:nfs-exists
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   * @example scsiId ""
+   */
+  @Example(srUuids)
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/actions/probe_nfs_exists')
+  @Middlewares(acl({ resource: 'host', action: 'probe:nfs-exists', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async probeNfsExists(
+    @Path() id: string,
+    @Query() server: string,
+    @Query() serverPath: string,
+    @Query() nfsVersion?: string,
+    @Query() sync?: boolean
+  ): CreateActionReturnType<XoSrsExport[]> {
+    const action = async () => {
+      return this.#hostService.probeNfsExists(id as XoHost['id'], server, serverPath, nfsVersion)
+    }
+
+    return this.createAction<XoSrsExport[]>(action, {
+      sync,
+      statusCode: asynchronousActionResp.status,
+      taskProperties: {
+        name: 'probe nfs-exists',
+        objectId: id as XoHost['id'],
       },
     })
   }

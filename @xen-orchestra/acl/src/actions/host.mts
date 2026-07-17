@@ -24,4 +24,14 @@ export default {
   update: {
     tags: true,
   },
+  probe: {
+    nfs: true,
+    zfs: true,
+    hba: true,
+    iscsiiqn: true,
+    iscsilun: true,
+    'iscsi-exists': true,
+    'hba-exists': true,
+    'nfs-exists': true,
+  },
 }
