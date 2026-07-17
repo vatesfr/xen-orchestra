@@ -2,55 +2,9 @@
   <div class="vm-vifs-table">
     <UiTitle>
       {{ t('vifs') }}
-      <template #action>
-        <UiButton
-          v-tooltip="t('coming-soon!')"
-          disabled
-          left-icon="fa:plus"
-          variant="secondary"
-          accent="brand"
-          size="medium"
-        >
-          {{ t('new-vif') }}
-        </UiButton>
-      </template>
     </UiTitle>
     <div class="container">
-      <div class="table-actions">
-        <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
-        <UiTableActions :title="t('table-actions')">
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            left-icon="fa:power-off"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('action:change-state') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            left-icon="fa:edit"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('action:edit') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            left-icon="fa:trash"
-            variant="tertiary"
-            accent="danger"
-            size="medium"
-          >
-            {{ t('action:delete') }}
-          </UiButton>
-        </UiTableActions>
-      </div>
+      <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
@@ -75,14 +29,11 @@ import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
-import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTableState } from '@core/composables/table-state.composable'
-import { vTooltip } from '@core/directives/tooltip.directive'
 import { useVifColumns } from '@core/tables/column-sets/vif-columns'
 import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
 import { logicNot } from '@vueuse/math'
@@ -166,8 +117,7 @@ const { HeadCells, BodyCells } = useVifColumns({
   flex-direction: column;
   gap: 2.4rem;
 
-  .container,
-  .table-actions {
+  .container {
     display: flex;
     flex-direction: column;
     gap: 0.8rem;

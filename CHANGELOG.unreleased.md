@@ -7,6 +7,9 @@
 
 > Security fixes and new features should go in this section
 
+- xo-server : Permissions were ignored for some pool functions ([#10093](https://github.com/vatesfr/xen-orchestra/pull/10093))
+- [Users/Create] Removed default user's password from the logs during account creation (PR [#10094](https://github.com/vatesfr/xen-orchestra/pull/10094))
+
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
@@ -25,15 +28,21 @@
 - [RPU] Trace rolling pool updates/reboots to disk to allow diagnosis even after xo-server restarts (PR [#10078](https://github.com/vatesfr/xen-orchestra/pull/10078))
 - [XO6/VM] Group VM power actions in a new "Change state" submenu and isolate the Delete action (PR [#10036](https://github.com/vatesfr/xen-orchestra/pull/10036))
 - [OpenMetrics] Add an estimated per-VM power consumption metric (`xcp_vm_power_consumption_watts`), splitting each host's IPMI power across its running VMs proportionally to CPU load (PR [#10031](https://github.com/vatesfr/xen-orchestra/pull/10031))
+- [XO6/VM] Add possibility to export a VM (PR [#9989](https://github.com/vatesfr/xen-orchestra/pull/9989))
+- [Rolling Pool Update/Reboot] Re-check that each host can still be evacuated right before evacuating it, to fail early with an explicit error (PR [#10097](https://github.com/vatesfr/xen-orchestra/pull/10097))
+- [XO6/VM] Add "New VM" button on Host view (PR [#10048](https://github.com/vatesfr/xen-orchestra/pull/10048))
 
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [Backup/Remotes] Listing backup repositories is no longer slowed down by an unreachable one: a broken repository is now served from cache and retried in the background instead of timing out on every refresh (PR [#10025](https://github.com/vatesfr/xen-orchestra/pull/10025))
 - [XO6] Fix negative "other" value in backup repository dashboard (PR [#10044](https://github.com/vatesfr/xen-orchestra/pull/10044))
 - [Backups] Fix missing transfer size (PR [#10106](https://github.com/vatesfr/xen-orchestra/pull/10106))
 - [Host/dashboard] Switch CPU and RAM panels order to match Pool dashboard layout (PR [#10059](https://github.com/vatesfr/xen-orchestra/pull/10059))
 - [RPU] Fix `The updater plugin is busy` error making the update fail right after the "Updating LINSTOR packages" step (PR [#10115](https://github.com/vatesfr/xen-orchestra/pull/10115))
+- [Plugins/Perf-alert] Update URL generation to support V6 routing (PR [#10054](https://github.com/vatesfr/xen-orchestra/pull/10054))
+- [Rolling Pool Update/Reboot] Temporarily disable VMs auto power on during the run: unexpected VM starts on rebooted hosts could break the remaining host evacuations (`HOST_NOT_ENOUGH_FREE_MEMORY`) (PR [#10104](https://github.com/vatesfr/xen-orchestra/pull/10104))
 
 ### Packages to release
 
@@ -55,12 +64,13 @@
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/disk-transform patch
 - @xen-orchestra/rest-api minor
-- @xen-orchestra/web minor
+- @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
 - vhd-lib patch
 - xapi-explore-sr patch
 - xen-api minor
 - xo-server minor
 - xo-server-openmetrics minor
+- xo-server-perf-alert patch
 
 <!--packages-end-->
