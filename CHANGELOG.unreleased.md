@@ -15,21 +15,21 @@
 
 - SR REST API Endpoints:
 
-  - `GET :id/probe/nfs` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+  - `GET :id/actions/probe_nfs` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
 
-  - `GET :id/probe/zfs` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+  - `GET :id/actions/probe_zfs` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
 
-  - `GET :id/probe/hba` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+  - `GET :id/actions/probe_hba` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
 
-  - `GET :id/probe/iscsiiqns` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+  - `GET :id/actions/probe_iscsi_iqns` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
 
-  - `GET :id/probe/iscsiluns` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+  - `GET :id/actions/probe_iscsi_luns` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
 
-  - `GET :id/probe/iscsi/exists` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+  - `GET :id/actions/probe_iscsi_exists` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
 
-  - `GET :id/probe/hba/exists` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+  - `GET :id/actions/probe_hba_exists` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
 
-  - `GET :id/probe/nfs/exists` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+  - `GET :id/actions/probe_nfs_exists` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
 
 ### Bug fixes
 
