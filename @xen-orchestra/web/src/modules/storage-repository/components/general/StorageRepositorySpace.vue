@@ -4,7 +4,11 @@
       {{ t('space') }}
     </UiTitle>
 
-    <div>
+    <UiAlert v-if="isUnwritableSr" class="sr-unwritable-alert" accent="info">
+      {{ t('sr-is-unwritable') }}
+    </UiAlert>
+
+    <div v-else>
       <VtsProgressBar
         class="progress-bar"
         :current="sr.physical_usage"
@@ -34,6 +38,7 @@
 
 <script setup lang="ts">
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { isSrWritable } from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
@@ -56,6 +61,8 @@ const usedSpace = computed(() => formatSize(sr.physical_usage, 2))
 const totalSpace = computed(() => formatSize(sr.size, 2))
 const freeSpace = computed(() => formatSize(sr.size - sr.physical_usage, 2))
 
+const isUnwritableSr = computed(() => !isSrWritable(sr))
+
 const srUsageWarning = computed(() => sr.size > 0 && sr.physical_usage / sr.size > 0.8)
 const vdiAllocatedSpaceWarning = computed(() => sr.usage > sr.size - sr.physical_usage)
 </script>
@@ -65,6 +72,7 @@ const vdiAllocatedSpaceWarning = computed(() => sr.usage > sr.size - sr.physical
   margin: 0 0 2rem;
 }
 
+.sr-unwritable-alert,
 .sr-usage-exceeded-alert,
 .vdis-allocated-space-warning {
   margin: 2rem 0;
