@@ -19,11 +19,14 @@
     <template #header-end>
       <UiLink size="medium" :href="xo5Route">{{ t('xo-5') }}</UiLink>
       <ThirdParties />
-      <QuickTaskButton />
+      <MyTasksButton />
       <AccountMenu />
     </template>
     <template #left-sidebar>
       <AppNavigationSidebar />
+    </template>
+    <template #right-sidebar>
+      <MyTasksSidebar />
     </template>
     <template #content>
       <VtsStateHero v-if="!isConnected && !isDevPage" format="page" type="busy" size="large">
@@ -45,7 +48,8 @@
 <script lang="ts" setup>
 import AccountMenu from '@/modules/account/components/menu/AccountMenu.vue'
 import AppNavigationSidebar from '@/modules/navigation/components/AppNavigationSidebar.vue'
-import QuickTaskButton from '@/modules/task/components/QuickTaskButton.vue'
+import MyTasksButton from '@/modules/task/components/MyTasksButton.vue'
+import MyTasksSidebar from '@/modules/task/components/MyTasksSidebar.vue'
 import ThirdParties from '@/modules/third-parties/components/ThirdParties.vue'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
