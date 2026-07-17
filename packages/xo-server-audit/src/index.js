@@ -10,7 +10,7 @@ import { fromCallback } from 'promise-toolbox'
 import { AlteredRecordError, AuditCore, MissingRecordError, NULL_ID, Storage } from '@xen-orchestra/audit-core'
 import { PassThrough, pipeline, promises } from 'readable-stream'
 
-import { createRestApi } from './rest-api.js'
+import { createRestRoutes } from './rest-api.js'
 
 const log = createLogger('xo:xo-server-audit')
 
@@ -307,7 +307,7 @@ class AuditXoPlugin {
       })
     )
 
-    cleaners.push(this._xo.registerRestRoutes(...createRestApi(this._auditCore)))
+    cleaners.push(this._xo.registerRestRoutes(createRestRoutes(this), '/plugins/audit'))
   }
 
   unload() {
