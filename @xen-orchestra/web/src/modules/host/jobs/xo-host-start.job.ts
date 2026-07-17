@@ -15,6 +15,7 @@ export const useXoHostStartJob = defineJob('host.start', [xoHostArg], () => {
       if (!host) {
         return
       }
+
       const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`hosts/${host.id}/actions/start`)
       await monitorTask(taskId)
     },
