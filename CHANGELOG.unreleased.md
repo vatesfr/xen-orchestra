@@ -59,7 +59,6 @@
 
 <!--packages-start-->
 
-- xo-server patch
 - @vates/types minor
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/disk-transform patch
