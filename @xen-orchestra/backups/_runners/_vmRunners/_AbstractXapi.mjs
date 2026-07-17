@@ -63,6 +63,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
     // VM (snapshot) that is really exported
     this._exportedVm = undefined
+    this._snapshotConsumed = false
     this._vm = vm
 
     this._baseVdis = undefined
@@ -180,6 +181,11 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
   }
 
   async _snapshot() {
+    if (this._exportedVm !== undefined) {
+      // snapshot already taken by the synchronized batch phase, reuse it
+      return
+    }
+
     const vm = this._vm
     const xapi = this._xapi
 
@@ -465,6 +471,10 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           }
         }
         if (vm?.$ref !== undefined) {
+          if (!this._snapshotConsumed && vm.$ref === this._exportedVm?.$ref) {
+            // fresh synchronized snapshot, not yet transferred — don't reclaim it
+            return
+          }
           return xapi.VM_destroy(vm.$ref)
         } else {
           return asyncMap(
@@ -493,6 +503,11 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           if (this.job.mode === 'delta' && datetime === lastSnapshotDateTime) {
             return
           }
+
+          if (!this._snapshotConsumed && snapshotPerDatetime[datetime] === this._exportedVm?.$ref) {
+            return
+          }
+
           await xapi.VM_destroy(snapshotPerDatetime[datetime])
         })
       })
@@ -614,6 +629,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       if (this._writers.size !== 0) {
         await this._copy()
       }
+      this._snapshotConsumed = true
     } finally {
       if (startAfter) {
         ignoreErrors.call(vm.$callAsync('start', false, false))
