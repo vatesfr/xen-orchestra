@@ -34,171 +34,171 @@ export default {
       {
         redirects: [
           {
-            to: '/xo5/manage_infrastructure#vms',
+            to: '/xo5/management/manage_infrastructure#vms',
             from: '/administration',
           },
           {
-            to: '/xo5/advanced',
+            to: '/xo5/management/advanced',
             from: '/advanced',
           },
           {
-            to: '/xo5/advanced#alerts',
+            to: '/xo5/management/advanced#alerts',
             from: '/alerts',
           },
           {
-            to: '/xo5/users#acls',
+            to: '/xo5/management/users#acls',
             from: '/acls',
           },
           {
-            to: '/xo5/architecture',
+            to: '/xo5/xen-orchestra/architecture',
             from: '/architecture',
           },
           {
-            to: '/xo5/architecture#plugins',
+            to: '/xo5/xen-orchestra/architecture#plugins',
             from: '/plugins',
           },
           {
-            to: '/xo5/backup_howto',
+            to: '/xo5/backups/backup_howto',
             from: '/backup_howto',
           },
           {
-            to: '/xo5/backup_reports',
+            to: '/xo5/backups/backup_reports',
             from: '/backup_reports',
           },
           {
-            to: '/xo5/backup_troubleshooting',
+            to: '/xo5/backups/backup_troubleshooting',
             from: '/backup_troubleshooting',
           },
           {
-            to: '/xo5/backups',
+            to: '/xo5/backups/',
             from: '/backups',
           },
           {
-            to: '/xo6/community',
+            to: '/xo6/support/community',
             from: '/community',
           },
           {
-            to: '/xo5/configuration',
+            to: '/xo5/xen-orchestra/configuration',
             from: '/configuration',
           },
           {
-            to: '/xo5/credential-encryption',
+            to: '/xo5/xen-orchestra/credential-encryption',
             from: '/credential-encryption',
           },
           {
-            to: '/xo5/full_backups',
+            to: '/xo5/backups/full_backups',
             from: '/full_backups',
           },
           {
-            to: '/xo5/full_replication',
+            to: '/xo5/backups/full_replication',
             from: '/full_replication',
           },
           {
-            to: '/xo5/immutability',
+            to: '/xo5/backups/immutability',
             from: '/immutability',
           },
           {
-            to: '/xo5/incremental_backups',
+            to: '/xo5/backups/incremental_backups',
             from: '/incremental_backups',
           }, 
           {
-            to: '/xo5/incremental_replication',
+            to: '/xo5/backups/incremental_replication',
             from: '/incremental_replication',
           },  
           {
-            to: '/xo5/installation',
+            to: '/xo5/xen-orchestra/installation',
             from: '/installation',
           },  
           {
-            to: '/xo6/support',
+            to: '/xo6/support/support',
             from: '/support',
           },  
           {
-            to: '/xo5/backup',
+            to: '/xo5/backups/backup',
             from: '/backup',
           },  
           {
-            to: '/xo5/license_management',
+            to: '/xo5/support/license_management',
             from: '/license_management',
           }, 
           {
-            to: '/xo5/load_balancing',
+            to: '/xo5/management/load_balancing',
             from: '/load_balancing',
           }, 
           {
-            to: '/xo5/manage',
+            to: '/xo5/management/manage',
             from: '/manage',
           }, 
           {
-            to: '/xo5/manage_infrastructure',
+            to: '/xo5/management/manage_infrastructure',
             from: '/manage_infrastructure',
           }, 
           {
-            to: '/xo5/mcp',
+            to: '/xo5/management/mcp',
             from: '/mcp',
           }, 
           {
-            to: '/xo5/metadata_backup',
+            to: '/xo5/backups/metadata_backup',
             from: '/metadata_backup',
           }, 
           {
-            to: '/xo5/migrate_to_new_xoa',
+            to: '/xo5/xen-orchestra/migrate_to_new_xoa',
             from: '/migrate_to_new_xoa',
           }, 
           {
-            to: '/xo5/mirror_backup',
+            to: '/xo5/backups/mirror_backup',
             from: '/mirror_backup',
           }, 
           {
-            to: '/xo5/object-storage-support',
+            to: '/xo5/management/object-storage-support',
             from: '/object-storage-support',
           }, 
           {
-            to: '/xo5/proxy',
+            to: '/xo5/backups/proxy',
             from: '/proxy',
           }, 
           {
-            to: '/xo6/purchase',
+            to: '/xo6/support/purchase',
             from: '/purchase',
           }, 
           {
-            to: '/xo5/releases',
+            to: '/xo5/xen-orchestra/releases',
             from: '/releases',
           }, 
           {
-            to: '/xo5/restapi',
+            to: '/xo5/management/restapi',
             from: '/restapi',
           }, 
           {
-            to: '/xo5/rolling_snapshots',
+            to: '/xo5/backups/rolling_snapshots',
             from: '/rolling_snapshots',
           }, 
           {
-            to: '/xo5/sdn_controller',
+            to: '/xo5/management/sdn_controller',
             from: '/sdn_controller',
           }, 
           {
-            to: '/xo5/supported_hosts',
+            to: '/xo5/xen-orchestra/supported_hosts',
             from: '/supported_hosts',
           }, 
           {
-            to: '/xo5/troubleshooting',
+            to: '/xo5/xen-orchestra/troubleshooting',
             from: ['/general-troubleshooting', '/troubleshooting']
           },
           {
-            to: '/xo5/updater',
+            to: '/xo5/xen-orchestra/updater',
             from: '/updater',
           }, 
           {
-            to: '/xo5/users',
+            to: '/xo5/management/users',
             from: '/users',
           }, 
           {
-            to: '/xo5/v2v-migration-guide',
+            to: '/xo5/management/v2v-migration-guide',
             from: '/v2v-migration-guide',
           }, 
           {
-            to: '/xo5/vm-templates',
+            to: '/xo5/management/vm-templates',
             from: '/vm-templates',
           }, 
           {
@@ -262,7 +262,7 @@ export default {
             },
             {
               label: 'Installation',
-              href: '/xo5/installation',
+              href: '/xo5/xen-orchestra/installation',
             },
           ],
         },

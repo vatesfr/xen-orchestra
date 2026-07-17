@@ -1,3 +1,7 @@
+---
+unlisted: true
+---
+
 # Airgap support and deployment
 
 :::tip
@@ -15,9 +19,9 @@ In this scenario, you will need a QA/pre-production XCP-ng pool with Internet ac
 
 ### Deployment
 
-[Follow the standard procedure](./xo5/installation.md) to deploy the XOA on your pool with Internet access.
+[Follow the standard procedure](./xo5/xen-orchestra/installation) to deploy the XOA on your pool with Internet access.
 
-Make sure that your appliance is [properly registered](./xo5/installation#registration) and [up-to-date](./xo5/updater).
+Make sure that your appliance is [properly registered](./xo5/xen-orchestra/installation#registration) and [up-to-date](./xo5/xen-orchestra/updater).
 
 It's also good to take a quick look at [the XOA check](./xo5/xoa#xoa-check) to detect issues early.
 
@@ -50,7 +54,7 @@ To upgrade your XOA, you need to:
 1. shutdown the XOA on your airgapped pool
 2. export it to an XVA file
 3. move it to your connected pool and import it
-4. start it, run the [upgrade process](./xo5/updater)
+4. start it, run the [upgrade process](./xo5/xen-orchestra/updater)
 5. shutdown this XOA
 6. export it to an XVA file
 7. move it to your airgapped pool and import it
