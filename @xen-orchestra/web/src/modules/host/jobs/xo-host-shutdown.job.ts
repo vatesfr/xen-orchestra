@@ -15,7 +15,7 @@ export const useXoHostShutdownJob = defineJob('host.shutdown', [xoHostArg], () =
       if (!host) {
         return
       }
-      const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`hosts/${host.id}/actions/shutdown`)
+      const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`hosts/${host.id}/actions/clean_shutdown`)
       await monitorTask(taskId)
     },
 
