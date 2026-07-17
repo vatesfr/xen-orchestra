@@ -306,6 +306,7 @@ async function importDisk({ sr, type, name, description, url, vmdkData }) {
 
     const response = await fetch(url)
     if (!response.ok) {
+      await response.body?.cancel() // free the socket
       throw new Error(`${response.status} ${response.statusText}`)
     }
     const stream = Readable.fromWeb(response.body)

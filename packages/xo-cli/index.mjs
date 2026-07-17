@@ -642,6 +642,7 @@ async function call(args) {
         const output = createOutputStream(file)
         const response = await fetch(url, { dispatcher })
         if (!response.ok) {
+          await response.body?.cancel() // free the socket
           throw new Error(`${response.status} ${response.statusText}`)
         }
 
@@ -664,10 +665,11 @@ async function call(args) {
           dispatcher,
           body: input,
           duplex: 'half',
-          headers: length && { 'content-length': length },
+          headers: length !== null ? { 'content-length': length } : {},
           method: 'POST',
         })
         if (!response.ok) {
+          await response.body?.cancel() // free the socket
           throw new Error(`${response.status} ${response.statusText}`)
         }
         return response.text()

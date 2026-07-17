@@ -199,6 +199,8 @@ class Vm {
         dispatcher: insecureAgent,
         signal: AbortSignal.timeout(this._syncHookTimeout ?? 60e3),
       })
+      // the response body is not used, free the socket
+      await response.body?.cancel()
       if (!response.ok) {
         throw new Error(`${response.status} ${response.statusText}`)
       }

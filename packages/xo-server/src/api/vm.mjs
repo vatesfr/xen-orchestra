@@ -1372,6 +1372,7 @@ async function import_({ data, sr, type = 'xva', url }) {
     const dispatcher = new Agent({ headersTimeout: timeout, bodyTimeout: timeout })
     const response = await fetch(url, { dispatcher })
     if (!response.ok) {
+      await response.body?.cancel() // free the socket
       throw new Error(`${response.status} ${response.statusText}`)
     }
     const ref = await xapi.VM_import(Readable.fromWeb(response.body), sr._xapiRef)
