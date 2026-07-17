@@ -446,13 +446,11 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
-   * Points this disk's header/footer at a new parent, marking it differencing if needed.
+   * Points this disk's header/footer at a new parent. The disk must already be differencing.
    * @param {RemoteDisk} parentDisk
-   * @param {Object} [options]
-   * @param {boolean} [options.force=false]
    * @returns {Promise<void>}
    */
-  async setChainToParent(parentDisk, { force = false } = {}) {
+  async setChainToParent(parentDisk) {
     if (this.#vhd === undefined) {
       throw new Error(`can't call setChainToParent of a RemoteVhdDisk before init`)
     }
@@ -461,18 +459,13 @@ export class RemoteVhdDisk extends RemoteDisk {
     const { header, footer } = this.#vhd
 
     if (footer.diskType !== DISK_TYPES.DIFFERENCING) {
-      if (!force) {
-        throw new Error('cannot chain disk of type ' + footer.diskType)
-      }
-      footer.diskType = DISK_TYPES.DIFFERENCING
+      throw new Error('cannot chain disk of type ' + footer.diskType)
     }
 
     header.parentUuid = Buffer.from(parse(parentDisk.getUuid()))
     header.parentUnicodeName = relativeFromFile(this.#path, parentDisk.getPath())
     await this.#vhd.writeHeader()
     await this.#vhd.writeFooter()
-
-    this.#isDifferencing = true
   }
 
   /**
