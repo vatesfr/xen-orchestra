@@ -118,7 +118,7 @@
   "action:select-storage": "Sélectionner un SR",
   "action:send": "Envoyer",
   "action:send-ctrl-alt-del": "Envoyer Ctrl+Alt+Suppr",
-  "action:set-as-management": "Définir comme interface de gestion",
+  "action:set-management": "Définir comme interface de gestion",
   "action:show-less": "Voir moins",
   "action:show-more": "Voir plus",
   "action:shutdown": "Arrêter",
