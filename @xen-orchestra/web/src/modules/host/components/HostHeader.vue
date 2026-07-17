@@ -1,5 +1,10 @@
 <template>
   <UiHeadBar>
+    <template #actions>
+      <UiLink size="medium" :to="{ name: '/vm/new', query: { poolid: host.$pool } }" icon="fa:plus">
+        {{ t('new-vm') }}
+      </UiLink>
+    </template>
     <template #icon>
       <VtsObjectIcon size="medium" type="host" :state="toLower(host.power_state)" />
     </template>

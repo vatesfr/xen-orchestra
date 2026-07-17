@@ -14,7 +14,7 @@
       <VtsOperationPendingCard v-if="isRunning" :title="t('creating-new-vdi')" />
 
       <VtsOperationErrorCard
-        v-else-if="hasCreationError && error"
+        v-else-if="error"
         :title="t('unable-to-create-new-vdi')"
         :error
         :error-message="t('new-vdi:error-message')"
@@ -49,6 +49,7 @@ import { useI18n } from 'vue-i18n'
 import { type RouteLocationRaw, useRoute, useRouter } from 'vue-router'
 
 const { t } = useI18n()
+
 const router = useRouter()
 const route = useRoute()
 
@@ -59,13 +60,12 @@ const { areVmsReady, useGetVmById } = useXoVmCollection()
 const vm = useGetVmById(vmId)
 
 const formPayload = ref<NewVdiPayload>()
+
 const error = ref<ApiError | Error | undefined>()
 
 const { canRun, run: create, isRunning } = useXoVdiCreateJob(formPayload)
 
-const hasCreationError = computed(() => error.value !== undefined)
-
-const canDisplayForm = computed(() => !isRunning.value && !hasCreationError.value)
+const canDisplayForm = computed(() => !isRunning.value && error.value === undefined)
 
 const cancelRoute = computed<RouteLocationRaw>(() => {
   if (!vmId.value) {

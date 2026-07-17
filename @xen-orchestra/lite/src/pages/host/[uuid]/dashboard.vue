@@ -18,8 +18,8 @@
     </div>
     <template v-else>
       <HostDashboardVmsStatus class="vms-status" :host />
-      <HostDashboardCpuProvisioning class="cpu-provisioning" :host />
       <HostDashboardRamProvisioning class="ram-provisioning" :host />
+      <HostDashboardCpuProvisioning class="cpu-provisioning" :host />
       <HostDashboardCpuUsageChart class="cpu-usage-chart" :data :error="!!lastError" :loading="isFetching" />
       <HostDashboardRamUsageChart class="ram-usage-chart" :data :error="!!lastError" :loading="isFetching" />
       <HostDashboardNetworkUsageChart class="network-usage-chart" :data :error="!!lastError" :loading="isFetching" />
@@ -93,7 +93,7 @@ onUnmounted(() => setRegisteredHost(undefined))
   grid-template-columns: repeat(8, 1fr);
   grid-template-areas:
     'quick-info quick-info quick-info quick-info quick-info quick-info quick-info quick-info'
-    'vms-status vms-status cpu-provisioning cpu-provisioning cpu-provisioning ram-provisioning ram-provisioning ram-provisioning'
+    'vms-status vms-status ram-provisioning ram-provisioning ram-provisioning cpu-provisioning cpu-provisioning cpu-provisioning'
     'cpu-usage-chart cpu-usage-chart ram-usage-chart ram-usage-chart network-usage-chart network-usage-chart load-average-chart load-average-chart'
     'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
 
