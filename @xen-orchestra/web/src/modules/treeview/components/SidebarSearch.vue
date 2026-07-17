@@ -2,9 +2,9 @@
   <div class="sidebar-search">
     <UiInput
       v-model="search"
-      :aria-label="t('action:search-treeview')"
+      :aria-label="placeholder ?? t('action:search-treeview')"
       right-icon="fa:magnifying-glass"
-      :placeholder="t('action:search-treeview')"
+      :placeholder="placeholder ?? t('action:search-treeview')"
       accent="brand"
       clearable
     />
@@ -14,6 +14,10 @@
 <script lang="ts" setup>
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { useI18n } from 'vue-i18n'
+
+const { placeholder } = defineProps<{
+  placeholder?: string
+}>()
 
 const search = defineModel<string>({ default: '' })
 
