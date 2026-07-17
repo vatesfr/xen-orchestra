@@ -7,6 +7,8 @@
 
 > Security fixes and new features should go in this section
 
+- [Users/Create] Removed default user's password from the logs during account creation (PR [#10094](https://github.com/vatesfr/xen-orchestra/pull/10094))
+
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
