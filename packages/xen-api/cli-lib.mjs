@@ -94,7 +94,7 @@ export async function main(createClient) {
   }
 
   if (opts['pg-saver-url']) {
-    opts.transport = createPgTransport(opts['pg-saver-url'], transports['json-rpc'])
+    opts.transport = await createPgTransport(opts['pg-saver-url'], transports['json-rpc'])
   }
 
   const xapi = createClient({

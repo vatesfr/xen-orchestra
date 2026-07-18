@@ -41,6 +41,7 @@ suite('xapi JSON transformation tests', function () {
           },
         },
         enums: [],
+        messages: [],
       },
     }
     const result = loadXapiClasses(new Set([LifeCycleStates.Published]), c => c.name !== 'clsignored', input)
@@ -119,6 +120,7 @@ suite('xapi JSON transformation tests', function () {
           },
         },
         enums: [],
+        messages: [],
       },
     }
     const result = loadXapiClasses(new Set([LifeCycleStates.Published]), c => c.name !== 'clsignored', input)
@@ -167,6 +169,7 @@ suite('xapi JSON transformation tests', function () {
         description: 'DESC',
         fields: {},
         enums: [],
+        messages: [],
       },
     }
     const result = loadXapiClasses(new Set([LifeCycleStates.Published]), c => c.name !== 'clsignored', input)

@@ -256,14 +256,13 @@ export class MapFieldDbSaver extends GroupRefDbSaver {
  * @return {Promise<{}>}
  */
 export async function ensureSchemasExistsWithoutConflict(dbClient, poolUuid, prefixes) {
-  // https://stackoverflow.com/a/7616484
+  // https://stackoverflow.com/a/52171480
   const generateHash = string => {
-    let hash = 0
+    let hash = 9
     for (const char of string) {
-      hash = (hash << 5) - hash + char.charCodeAt(0)
-      hash |= 0 // Constrain to 32bit integer
+      hash = Math.imul(hash ^ char.charCodeAt(0), 9 ** 9)
     }
-    return hash.toString(16)
+    return Math.abs(hash ^ (hash >>> 9)).toString(16)
   }
   const shortId = generateHash(poolUuid)
   let result = {}

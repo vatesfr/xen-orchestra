@@ -65,6 +65,7 @@ export function loadXapiClasses(lifecycleStates, filter, jsonData, removedClassN
 
   const transformedClasses = publishedClasses.map(c => ({
     fields: createFieldDict(c.fields.filter(filterField)),
+    messages: c.messages,
     name: c.name,
     description: c.description,
     enums: c.enums,

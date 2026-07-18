@@ -85,10 +85,11 @@ export class EventStore {
       }
       const { events: filteredEvents, delEvents } = await this._prepareDelEvents(dbClient, events, refStore)
       // record event history now, before the ref2Uuid cache is cleared of deleted objects
-      await dbClient.query(`INSERT INTO ${this.eventTableName} (token, content) VALUES ($1, $2)`, [
-        currentToken,
-        JSON.stringify({ ...eventResult, events: [] }),
-      ])
+      await dbClient.query(
+        `INSERT INTO ${this.eventTableName} (token, content)
+                            VALUES ($1, $2) ON CONFLICT (token) DO NOTHING`,
+        [currentToken, JSON.stringify({ ...eventResult, events: [] })]
+      )
       for (const [className, evts] of groupByEntries(filteredEvents, e => e.class)) {
         await recordEventsForClass(dbClient, evts, className, this.historyTableName, currentToken)
       }
