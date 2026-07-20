@@ -126,6 +126,23 @@ export function generateBackupJobName() {
   return `${BACKUP_JOB_NAME_PREFIX}${Date.now()}`
 }
 
+/**
+ * Converts a non-empty list of resource IDs into a backupNg "simple pattern".
+ *
+ * Inverse of `extractIdsFromSimplePattern` (@xen-orchestra/backups):
+ *   - one id:      { id: 'a' }
+ *   - several ids: { id: { __or: ['a', 'b'] } }
+ *
+ * Callers must guard against empty input; an empty list yields the degenerate
+ * pattern `{ id: { __or: [] } }`, which matches nothing.
+ *
+ * @param {ReadonlyArray<string>} ids - Resource IDs (vms, remotes, srs, pools…)
+ * @returns {{ id: string | { __or: string[] } }} The simple pattern
+ */
+export function toSimplePattern(ids) {
+  return ids.length === 1 ? { id: ids[0] } : { id: { __or: ids } }
+}
+
 export async function waitUntil(conditionFn, interval = 1000, timeout = 15_000, options = {}) {
   const startTime = Date.now()
   let currentInterval = interval

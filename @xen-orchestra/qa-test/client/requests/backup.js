@@ -1,5 +1,5 @@
 import { createLogger } from '@xen-orchestra/log'
-import { waitUntil } from '../../utils/index.js'
+import { toSimplePattern, waitUntil } from '../../utils/index.js'
 import { AbstractRequest } from './abstract.js'
 
 const log = createLogger('xo:qa-test:backup')
@@ -38,9 +38,6 @@ export class BackupRequest extends AbstractRequest {
     if (!config || typeof config !== 'object') {
       throw new Error('Valid backup configuration object is required')
     }
-
-    // backupNg.createJob simple-pattern format: { id: x } for one id, { id: { __or: [...] } } for several.
-    const toSimplePattern = ids => (ids.length === 1 ? { id: ids[0] } : { id: { __or: ids } })
 
     const convertConfig = cfg => {
       const { vms, remotes, srs, ...rest } = cfg
@@ -214,16 +211,16 @@ export class BackupRequest extends AbstractRequest {
 
     const { remotes, ...rest } = config
 
-    // Convert remotes to { id: remoteId } format
-    const remoteId = remotes && typeof remotes === 'object' ? Object.keys(remotes)[0] : undefined
+    // Convert destination remotes to a simple pattern (supports one or several)
+    const remoteIds = remotes && typeof remotes === 'object' ? Object.keys(remotes) : []
 
     const xoConfig = {
       ...rest,
       mode: config.mode || 'full',
     }
 
-    if (remoteId !== undefined) {
-      xoConfig.remotes = { id: remoteId }
+    if (remoteIds.length > 0) {
+      xoConfig.remotes = toSimplePattern(remoteIds)
     }
 
     try {
@@ -336,12 +333,12 @@ export class BackupRequest extends AbstractRequest {
 
     const { pools, remotes, ...rest } = config
 
-    const poolId = pools && typeof pools === 'object' ? Object.keys(pools)[0] : undefined
-    const remoteId = remotes && typeof remotes === 'object' ? Object.keys(remotes)[0] : undefined
+    const poolIds = pools && typeof pools === 'object' ? Object.keys(pools) : []
+    const remoteIds = remotes && typeof remotes === 'object' ? Object.keys(remotes) : []
 
     const xoConfig = { ...rest }
-    if (poolId !== undefined) xoConfig.pools = { id: poolId }
-    if (remoteId !== undefined) xoConfig.remotes = { id: remoteId }
+    if (poolIds.length > 0) xoConfig.pools = toSimplePattern(poolIds)
+    if (remoteIds.length > 0) xoConfig.remotes = toSimplePattern(remoteIds)
 
     try {
       const result = await this.dispatchClient.xoClient.call('metadataBackup.createJob', xoConfig)
