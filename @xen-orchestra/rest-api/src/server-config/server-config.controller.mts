@@ -1,4 +1,4 @@
-import { Get, Query, Route, Security, Tags, Response, SuccessResponse, Example, Path } from 'tsoa'
+import { Get, Query, Route, Security, Tags, Response, SuccessResponse, Example, Path, Controller } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -18,10 +18,11 @@ import { mergedConfigExample, sourcesExample, sourceFileExample } from './server
 @Tags('server-config')
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @provide(ServerConfigController)
-export class ServerConfigController {
+export class ServerConfigController extends Controller {
   #service: ServerConfigService
 
   constructor(@inject(RestApi) _restApi: RestApi, @inject(ServerConfigService) service: ServerConfigService) {
+    super()
     this.#service = service
   }
 
@@ -59,6 +60,10 @@ export class ServerConfigController {
   @Response(notFoundResp.status, notFoundResp.description)
   async getSources(@Query() path?: string): Promise<ConfigContent | ConfigSource[]> {
     if (path !== undefined) {
+      if (path === '') {
+        this.setStatus(400)
+        return {} // or whatever empty response your API convention uses
+      }
       return this.#service.getSource(path)
     }
     return this.#service.listSources()
