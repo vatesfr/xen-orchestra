@@ -91,16 +91,16 @@ declare module 'vue-router/auto-routes' {
       { path: ParamValue<false> },
       | never
     >,
-    '/administration/user-management': RouteRecordInfo<
-      '/administration/user-management',
-      '/administration/user-management',
+    '/admin/user-management': RouteRecordInfo<
+      '/admin/user-management',
+      '/admin/user-management',
       Record<never, never>,
       Record<never, never>,
-      | '/administration/user-management/users'
+      | '/admin/user-management/users'
     >,
-    '/administration/user-management/users': RouteRecordInfo<
-      '/administration/user-management/users',
-      '/administration/user-management/users',
+    '/admin/user-management/users': RouteRecordInfo<
+      '/admin/user-management/users',
+      '/admin/user-management/users',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -141,6 +141,41 @@ declare module 'vue-router/auto-routes' {
       '/backup/:id/targets',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
+      | never
+    >,
+    '/dev/': RouteRecordInfo<
+      '/dev/',
+      '/dev',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/dev/colors': RouteRecordInfo<
+      '/dev/colors',
+      '/dev/colors',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/dev/icons/': RouteRecordInfo<
+      '/dev/icons/',
+      '/dev/icons',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/dev/icons/[name]': RouteRecordInfo<
+      '/dev/icons/[name]',
+      '/dev/icons/:name',
+      { name: ParamValue<true> },
+      { name: ParamValue<false> },
+      | never
+    >,
+    '/dev/token': RouteRecordInfo<
+      '/dev/token',
+      '/dev/token',
+      Record<never, never>,
+      Record<never, never>,
       | never
     >,
     '/host/[id]': RouteRecordInfo<
@@ -525,16 +560,16 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/pages/administration/user-management.vue': {
+    'src/pages/admin/user-management.vue': {
       routes:
-        | '/administration/user-management'
-        | '/administration/user-management/users'
+        | '/admin/user-management'
+        | '/admin/user-management/users'
       views:
         | 'default'
     }
-    'src/pages/administration/user-management/users.vue': {
+    'src/pages/admin/user-management/users.vue': {
       routes:
-        | '/administration/user-management/users'
+        | '/admin/user-management/users'
       views:
         | never
     }
@@ -569,6 +604,36 @@ declare module 'vue-router/auto-routes' {
     'src/pages/backup/[id]/targets.vue': {
       routes:
         | '/backup/[id]/targets'
+      views:
+        | never
+    }
+    'src/pages/dev/index.vue': {
+      routes:
+        | '/dev/'
+      views:
+        | never
+    }
+    'src/pages/dev/colors.vue': {
+      routes:
+        | '/dev/colors'
+      views:
+        | never
+    }
+    'src/pages/dev/icons/index.vue': {
+      routes:
+        | '/dev/icons/'
+      views:
+        | never
+    }
+    'src/pages/dev/icons/[name].vue': {
+      routes:
+        | '/dev/icons/[name]'
+      views:
+        | never
+    }
+    'src/pages/dev/token.vue': {
+      routes:
+        | '/dev/token'
       views:
         | never
     }
