@@ -213,6 +213,35 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           vmUuid: vm.uuid,
         })
         await setVmSnapshotContentKeys(xapi, snapshotRef)
+
+        // Verify that setVmOtherConfig actually tagged every disk we expected.
+        // If the snapshot exposes fewer 'Disk' VBDs than the live VM has, the
+        // tagging call silently skipped some VDIs and the resulting snapshot
+        // will be invisible to retention/cleanup on the next run.
+        const liveDisks = await xapi.VM_getDisks(vm.$ref)
+        const snapshotDisks = await xapi.VM_getDisks(snapshotRef)
+        if (liveDisks.length !== snapshotDisks.length) {
+          const snapshotVbdRefs = await xapi.getField('VM', snapshotRef, 'VBDs')
+          const snapshotVbds = await xapi.getRecords('VBD', snapshotVbdRefs)
+          warn('inconsistent snapshot tagging detected', {
+            vmUuid: vm.uuid,
+            vmName: vm.name_label,
+            snapshotRef,
+            jobId: this._jobId,
+            timestamp: this.timestamp,
+            expectedDiskCount: liveDisks.length,
+            actualDiskCount: snapshotDisks.length,
+            liveDisks,
+            snapshotDisks,
+            snapshotVbds: snapshotVbds.map(vbd => ({
+              uuid: vbd.uuid,
+              type: vbd.type,
+              VDI: vbd.VDI,
+              currently_attached: vbd.currently_attached,
+            })),
+          })
+        }
+
         const snapshot = await xapi.getRecord('VM', snapshotRef)
         await snapshot.set_name_label(this._getSnapshotNameLabel(vm))
         // reload data to ensure it is up to date with the new name label

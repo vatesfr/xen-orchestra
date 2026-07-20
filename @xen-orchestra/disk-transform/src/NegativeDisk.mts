@@ -49,6 +49,9 @@ export class NegativeDisk extends RandomAccessDisk {
   getBlockIndexes(): Array<number> {
     return this.#child.getBlockIndexes()
   }
+  getBlockIndexesCount(): number {
+    return this.#child.getBlockIndexesCount()
+  }
   hasBlock(index: number): boolean {
     return this.#child.hasBlock(index)
   }

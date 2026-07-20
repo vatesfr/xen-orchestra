@@ -27,7 +27,7 @@ import {
   type LabelContext,
 } from './openmetric-formatter.mjs'
 
-import { indexSrUuidTruncations } from './index.mjs'
+import { indexSrUuidTruncations, POWER_SENSOR_REGEX } from './index.mjs'
 
 import type {
   HostStatusItem,
@@ -1237,6 +1237,225 @@ describe('formatAllPoolsToOpenMetrics with labelContext', () => {
     const result = formatAllPoolsToOpenMetrics(rrdDataList, createLabelContext())
 
     assert.ok(result.includes('vm_name="Web Server"'))
+  })
+})
+
+// ============================================================================
+// VM power consumption (estimate) tests
+// ============================================================================
+
+describe('xcp_vm_power_consumption_watts', () => {
+  // Label context whose VMs carry vcpus / host_id, keyed by uuid.
+  const labelContext = (
+    vms: Record<string, { vcpus: number; is_control_domain?: boolean; host_id?: string }>
+  ): LabelContext => ({
+    hosts: [
+      {
+        hostId: 'host-1',
+        hostAddress: '10.0.0.1',
+        hostLabel: 'Host 1',
+        poolId: 'pool-1',
+        poolLabel: 'Prod',
+        sessionId: 's',
+        protocol: 'https:',
+      },
+      {
+        hostId: 'host-2',
+        hostAddress: '10.0.0.2',
+        hostLabel: 'Host 2',
+        poolId: 'pool-1',
+        poolLabel: 'Prod',
+        sessionId: 's',
+        protocol: 'https:',
+      },
+    ],
+    labels: {
+      vms: Object.fromEntries(
+        Object.entries(vms).map(([uuid, v]) => [
+          uuid,
+          {
+            name_label: uuid,
+            is_control_domain: v.is_control_domain ?? false,
+            vbdDeviceToVdiName: {},
+            vbdDeviceToVdiUuid: {},
+            vifIndexToNetworkName: {},
+            startTime: null,
+            power_state: 'Running',
+            vcpus: v.vcpus,
+            host_id: v.host_id ?? 'host-1',
+            pool_id: 'pool-1',
+            pool_name: 'Prod',
+          },
+        ])
+      ),
+      hosts: {
+        'host-1': { name_label: 'Host 1', pifDeviceToNetworkName: {}, startTime: null },
+        'host-2': { name_label: 'Host 2', pifDeviceToNetworkName: {}, startTime: null },
+      },
+      srs: {},
+      srTruncatedToUuid: {},
+      vdiUuidToSrUuid: {},
+    },
+  })
+
+  const cpuUsage = (uuid: string, value: number): ParsedMetric => ({
+    legend: {
+      cf: 'AVERAGE',
+      objectType: 'vm',
+      uuid,
+      metricName: 'cpu_usage',
+      rawLegend: `AVERAGE:vm:${uuid}:cpu_usage`,
+    },
+    value,
+    timestamp: 1700000000,
+  })
+  const memory = (uuid: string, value: number): ParsedMetric => ({
+    legend: {
+      cf: 'AVERAGE',
+      objectType: 'vm',
+      uuid,
+      metricName: 'memory_internal_free',
+      rawLegend: `AVERAGE:vm:${uuid}:memory_internal_free`,
+    },
+    value,
+    timestamp: 1700000000,
+  })
+  const hostFetch = (hostId: string, metrics: ParsedMetric[]): ParsedRrdData => ({
+    poolId: 'pool-1',
+    hostId,
+    timestamp: 1700000000,
+    metrics,
+  })
+
+  // Parse `name{labels} value timestamp` lines for a metric name.
+  const series = (output: string, name: string): Array<{ line: string; value: number }> =>
+    output
+      .split('\n')
+      .filter(l => l.startsWith(`${name}{`))
+      .map(l => ({
+        line: l,
+        value: Number(
+          l
+            .slice(l.lastIndexOf('}') + 1)
+            .trim()
+            .split(/\s+/)[0]
+        ),
+      }))
+  const uuidOf = (line: string): string => line.match(/uuid="([^"]+)"/)![1]!
+
+  it('splits host power across running guests proportional to cpu_usage × vCPUs (conservation)', () => {
+    // loads: vm-a = 0.25×4 = 1, vm-b = 0.75×4 = 3, total 4 → 50 / 150 W of 200 W
+    const out = formatAllPoolsToOpenMetrics(
+      [hostFetch('host-1', [cpuUsage('vm-a', 0.25), cpuUsage('vm-b', 0.75)])],
+      labelContext({ 'vm-a': { vcpus: 4 }, 'vm-b': { vcpus: 4 } }),
+      { 'host-1': 200 }
+    )
+    const lines = series(out, 'xcp_vm_power_consumption_watts')
+    assert.equal(lines.length, 2)
+    const byVm = Object.fromEntries(lines.map(l => [uuidOf(l.line), l.value]))
+    assert.equal(byVm['vm-a'], 50)
+    assert.equal(byVm['vm-b'], 150)
+    assert.equal(
+      lines.reduce((s, l) => s + l.value, 0),
+      200
+    ) // Σ == host power
+    assert.ok(lines.every(l => l.line.includes('estimate="true"')))
+    assert.ok(lines.every(l => l.line.includes('host_id="host-1"')))
+  })
+
+  it('emits no VM series for a host without a power reading', () => {
+    const out = formatAllPoolsToOpenMetrics(
+      [hostFetch('host-1', [cpuUsage('vm-a', 0.5)])],
+      labelContext({ 'vm-a': { vcpus: 2 } }),
+      {} // no power for host-1
+    )
+    assert.equal(series(out, 'xcp_vm_power_consumption_watts').length, 0)
+  })
+
+  it('excludes dom0 from numerator and denominator', () => {
+    const out = formatAllPoolsToOpenMetrics(
+      [hostFetch('host-1', [cpuUsage('vm-a', 0.5), cpuUsage('dom0', 5)])],
+      labelContext({ 'vm-a': { vcpus: 1 }, dom0: { vcpus: 1, is_control_domain: true } }),
+      { 'host-1': 100 }
+    )
+    const lines = series(out, 'xcp_vm_power_consumption_watts')
+    assert.equal(lines.length, 1)
+    assert.ok(lines[0]!.line.includes('uuid="vm-a"'))
+    assert.equal(lines[0]!.value, 100) // dom0 took no share
+  })
+
+  it('falls back to equal split when the host is quasi-idle (Σ load < 0.01)', () => {
+    const out = formatAllPoolsToOpenMetrics(
+      [hostFetch('host-1', [cpuUsage('vm-a', 0), cpuUsage('vm-b', 0)])],
+      labelContext({ 'vm-a': { vcpus: 2 }, 'vm-b': { vcpus: 2 } }),
+      { 'host-1': 100 }
+    )
+    const lines = series(out, 'xcp_vm_power_consumption_watts')
+    assert.equal(lines.length, 2)
+    assert.ok(lines.every(l => l.value === 50))
+    assert.equal(
+      lines.reduce((s, l) => s + l.value, 0),
+      100
+    )
+  })
+
+  it('flags a running VM with an RRD gap (no cpu_usage) as data_complete="false" with 0 W', () => {
+    // vm-a load 1 (takes all power); vm-b present only via a memory metric → load 0, incomplete
+    const out = formatAllPoolsToOpenMetrics(
+      [hostFetch('host-1', [cpuUsage('vm-a', 1), memory('vm-b', 1024)])],
+      labelContext({ 'vm-a': { vcpus: 1 }, 'vm-b': { vcpus: 1 } }),
+      { 'host-1': 100 }
+    )
+    const lines = series(out, 'xcp_vm_power_consumption_watts')
+    const byVm = Object.fromEntries(lines.map(l => [uuidOf(l.line), l]))
+    assert.equal(byVm['vm-a']!.value, 100)
+    assert.equal(byVm['vm-b']!.value, 0)
+    assert.ok(byVm['vm-b']!.line.includes('data_complete="false"'))
+    assert.ok(!byVm['vm-a']!.line.includes('data_complete'))
+    assert.equal(
+      lines.reduce((s, l) => s + l.value, 0),
+      100
+    ) // conservation preserved
+  })
+
+  it('does not mix VMs across hosts', () => {
+    const out = formatAllPoolsToOpenMetrics(
+      [hostFetch('host-1', [cpuUsage('vm-a', 0.5)]), hostFetch('host-2', [cpuUsage('vm-b', 0.5)])],
+      labelContext({ 'vm-a': { vcpus: 1, host_id: 'host-1' }, 'vm-b': { vcpus: 1, host_id: 'host-2' } }),
+      { 'host-1': 200, 'host-2': 100 }
+    )
+    const byVm = Object.fromEntries(series(out, 'xcp_vm_power_consumption_watts').map(l => [uuidOf(l.line), l.value]))
+    assert.equal(byVm['vm-a'], 200)
+    assert.equal(byVm['vm-b'], 100)
+  })
+
+  it('emits nothing for powered-off VMs and labels IPMI host power source="ipmi"', () => {
+    const out = formatAllPoolsToOpenMetrics(
+      [hostFetch('host-1', [cpuUsage('vm-a', 0.5)])],
+      labelContext({ 'vm-a': { vcpus: 1 }, 'vm-off': { vcpus: 1 } }), // vm-off absent from RRD
+      { 'host-1': 100 }
+    )
+    const lines = series(out, 'xcp_vm_power_consumption_watts')
+    assert.equal(lines.length, 1)
+    assert.ok(!lines.some(l => l.line.includes('vm-off')))
+    assert.ok(/xcp_host_power_consumption_watts\{[^}]*source="ipmi"/.test(out))
+  })
+})
+
+describe('POWER_SENSOR_REGEX', () => {
+  it('matches the supported vendor power-sensor names and nothing else', () => {
+    for (const name of ['pwr consumption', 'Sys Power', 'system power', 'power consumption', 'total_power']) {
+      assert.ok(POWER_SENSOR_REGEX.test(name), name)
+    }
+    for (const name of ['cpu temp', 'fan1', 'psu1 status', 'voltage 1']) {
+      assert.ok(!POWER_SENSOR_REGEX.test(name), name)
+    }
+  })
+
+  it('parseFloat strips a unit suffix from the reading', () => {
+    assert.equal(Number.parseFloat('210 Watts'), 210)
+    assert.equal(Number.parseFloat('195'), 195)
+    assert.ok(Number.isNaN(Number.parseFloat('N/A')))
   })
 })
 
