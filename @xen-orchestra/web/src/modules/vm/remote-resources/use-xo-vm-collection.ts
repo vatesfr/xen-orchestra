@@ -13,6 +13,8 @@ import { computed, ref, watch } from 'vue'
 
 export type FrontXoVm = Pick<XoVm, (typeof vmFields)[number]>
 
+export type VmGuestToolsEntry = { id: FrontXoVm['id']; name: string; version?: string }
+
 const vmFields = [
   'id',
   'name_label',
@@ -129,24 +131,24 @@ export const useXoVmCollection = defineRemoteResource({
     })
 
     const vmGuestToolsStatus = computed(() => {
-      let missing = 0
-      let outOfDate = 0
+      const missingVms: VmGuestToolsEntry[] = []
+      const outOfDateVms: VmGuestToolsEntry[] = []
+      const unknownVms: VmGuestToolsEntry[] = []
       let upToDate = 0
-      let unknown = 0
       const outOfDateVersions = new Map<string, number>()
       let bestVersion: string | undefined
 
       for (const vm of runningVms.value) {
         if (!vm.managementAgentDetected) {
-          missing++
+          missingVms.push({ id: vm.id, name: vm.name_label })
         } else if (!vm.pvDriversDetected) {
           upToDate++
         } else if (vm.pvDriversUpToDate === false) {
-          outOfDate++
+          outOfDateVms.push({ id: vm.id, name: vm.name_label, version: vm.pvDriversVersion })
           const version = vm.pvDriversVersion ?? 'unknown'
           outOfDateVersions.set(version, (outOfDateVersions.get(version) ?? 0) + 1)
         } else if (vm.pvDriversUpToDate === undefined) {
-          unknown++
+          unknownVms.push({ id: vm.id, name: vm.name_label })
         } else {
           upToDate++
           if (vm.pvDriversVersion !== undefined) {
@@ -157,7 +159,15 @@ export const useXoVmCollection = defineRemoteResource({
         }
       }
 
-      return { missing, outOfDate, upToDate, unknown, total: runningVms.value.length, outOfDateVersions, bestVersion }
+      return {
+        missingVms,
+        outOfDateVms,
+        unknownVms,
+        upToDate,
+        total: runningVms.value.length,
+        outOfDateVersions,
+        bestVersion,
+      }
     })
 
     function getVmHost(vm: FrontXoVm): FrontXoHost | undefined {
