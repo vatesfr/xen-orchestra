@@ -41,9 +41,15 @@
 
 <!--packages-start-->
 
+- @vates/types minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/async-map patch
+- @xen-orchestra/backup-archive minor
+- @xen-orchestra/backups minor
+- @xen-orchestra/disk-cli minor
+- @xen-orchestra/disk-transform patch
 - @xen-orchestra/proxy-cli patch
+- @xen-orchestra/qa-test minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/upload-ova patch
 - @xen-orchestra/web minor
