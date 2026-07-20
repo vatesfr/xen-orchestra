@@ -1,6 +1,5 @@
 import { EventEmitter } from 'node:stream'
 import type {
-  AnyXoBackupJob,
   AnyXoJob,
   AnyXoLog,
   XapiXoRecord,
@@ -21,7 +20,7 @@ import type {
   XoVmBackupArchive,
 } from './xo.mjs'
 import { VatesTask } from './lib/vates-task.mjs'
-import type { RestRouteDefinition } from './lib/rest-api.mjs'
+import type { PluginRestRouteDefinition } from './lib/rest-api.mjs'
 import {
   Xapi,
   XapiHostStats,
@@ -196,7 +195,7 @@ export type XoApp = {
       params?: any
     }
   ) => () => void // eslint-disable-line @typescript-eslint/no-explicit-any
-  registerRestRoutes: (routes: RestRouteDefinition[], base?: string) => () => void
+  registerRestRoutes: (routes: PluginRestRouteDefinition[], base?: string) => () => void
   authenticateUser: (
     credentials: { token?: string; username?: string; password?: string },
     userData?: { ip?: string },

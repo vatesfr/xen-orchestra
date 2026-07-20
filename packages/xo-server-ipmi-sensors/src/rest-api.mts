@@ -1,9 +1,8 @@
-import type { RouteDefinition } from '@xen-orchestra/rest-api'
-import type { XoHost } from '@vates/types'
+import type { XoHost, PluginRestRouteDefinition } from '@vates/types'
 import type { IpmiSensorsPlugin } from './index.mjs'
 import { IPMI_SENSOR_DATA_TYPE } from './types.mjs'
 
-export function createIpmiRestRoutes(plugin: IpmiSensorsPlugin): RouteDefinition[] {
+export function createIpmiRestRoutes(plugin: IpmiSensorsPlugin): PluginRestRouteDefinition[] {
   return [
     {
       method: 'get',

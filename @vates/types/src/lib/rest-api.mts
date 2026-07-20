@@ -1,11 +1,6 @@
-// Self-contained REST route types shared with `@xen-orchestra/rest-api`.
-//
-// These live here (rather than in `@xen-orchestra/rest-api`) so that `XoApp`
-// can type `registerRestRoutes` without importing from `@xen-orchestra/rest-api`,
-// which would create a dependency cycle (`rest-api` already depends on
-// `@vates/types`). Only the serializable, self-contained parts of a route are
-// described here; `@xen-orchestra/rest-api` extends this with a precise
-// `callback`/`middlewares` typing in its own `RouteDefinition`.
+import type { NextFunction, Request, Response } from 'express'
+
+export type SecurityName = '*' | 'token' | 'basic' | 'none'
 
 export type FieldDefinition =
   | {
@@ -47,13 +42,9 @@ export type ParamFieldDefinition = Exclude<
 >
 
 export type QueryFieldDefinition = Exclude<FieldDefinition, { type: 'object' } | { type: 'array' }>
+type RestApi = object
 
-// Boundary type used by `XoApp.registerRestRoutes`. `@xen-orchestra/rest-api`'s
-// full `RouteDefinition` is assignable to this: `middlewares` and `callback` are
-// intentionally loose here to avoid importing `AclEntry`/`RestApi`/express (all
-// of which depend back on `@vates/types`). Routes stay fully type-checked where
-// they are built, against the full `RouteDefinition`.
-export interface RestRouteDefinition {
+export interface BaseRouteDefinition<Middleware> {
   method: 'get' | 'post' | 'put' | 'delete' | 'patch'
   endpoint: string
   description?: string
@@ -66,8 +57,36 @@ export interface RestRouteDefinition {
     description: string
     schema?: Record<string, FieldDefinition>
   }>
-  middlewares?: unknown[]
+  middlewares?: Middleware[]
   scope?: 'acl'
-  callback: (params: any) => unknown // eslint-disable-line @typescript-eslint/no-explicit-any
-  security?: string
+  callback: (params: {
+    req: Request
+    res: Response
+    next: NextFunction
+    restApi: RestApi
+    createAction: Function
+  }) => MaybePromise<unknown>
+  security?: SecurityName
 }
+
+export type MiddlewareDescriptor =
+  | { name: 'json' | 'urlencoded' | 'text' | 'raw'; options?: Record<string, unknown> }
+  | { name: 'acl'; acls: LooseAclEntry | LooseAclEntry[] }
+
+type MaybePromise<T> = T | Promise<T>
+/**
+ * Loosely-typed mirror of {@link https://github.com/vatesfr/xen-orchestra/blob/master/@xen-orchestra/rest-api/src/middlewares/acl.middleware.mts | AclEntry}
+ * from `@xen-orchestra/rest-api/src/middlewares/acl.middleware.mts`.
+ */
+export type LooseAclEntry = {
+  resource: string
+  action?: string | ((opts: { req: object; restApi: RestApi }) => string | undefined)
+  actions?: string[] | ((opts: { req: object; restApi: RestApi }) => string[])
+  objectId?: string | ((opts: { req: object; restApi: RestApi }) => string)
+  objectIds?: string[] | ((opts: { req: object; restApi: RestApi }) => string[])
+  object?: object | ((opts: { req: object; restApi: RestApi }) => MaybePromise<object> | undefined)
+  objects?: object[] | ((opts: { req: object; restApi: RestApi }) => MaybePromise<object[]> | undefined)
+  getObject?: (opts: { restApi: RestApi }) => (id: string) => MaybePromise<object>
+}
+
+export type PluginRestRouteDefinition = BaseRouteDefinition<MiddlewareDescriptor>
