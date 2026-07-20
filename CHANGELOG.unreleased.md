@@ -62,7 +62,8 @@
 <!--packages-start-->
 
 - @vates/types minor
-- @xen-orchestra/backup-archive patch
+- @xen-orchestra/backup-archive minor
+- @xen-orchestra/disk-cli minor
 - @xen-orchestra/disk-transform patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
