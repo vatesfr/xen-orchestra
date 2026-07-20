@@ -31,7 +31,7 @@ export const useXoPifManagementReconfigureJob = defineJob('pif.management-reconf
       }
 
       if (pif.management) {
-        throw new JobError(t('job:pif-management-reconfigure:already-management'))
+        throw new JobError(t('job:pif-management-reconfigure:current-pif'))
       }
 
       if (!pif.ip && pif.ipv6.length === 0) {
