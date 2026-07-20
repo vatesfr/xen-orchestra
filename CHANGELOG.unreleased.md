@@ -44,6 +44,7 @@
 - [RPU] Fix `The updater plugin is busy` error making the update fail right after the "Updating LINSTOR packages" step (PR [#10115](https://github.com/vatesfr/xen-orchestra/pull/10115))
 - [Plugins/Perf-alert] Update URL generation to support V6 routing (PR [#10054](https://github.com/vatesfr/xen-orchestra/pull/10054))
 - [Rolling Pool Update/Reboot] Temporarily disable VMs auto power on during the run: unexpected VM starts on rebooted hosts could break the remaining host evacuations (`HOST_NOT_ENOUGH_FREE_MEMORY`) (PR [#10104](https://github.com/vatesfr/xen-orchestra/pull/10104))
+- [Backup] Fix `unexpected number of entries in backup cache` warning not resolving automatically (PR [#10132](https://github.com/vatesfr/xen-orchestra/pull/10132))
 
 ### Packages to release
 
@@ -63,6 +64,7 @@
 
 - @vates/types minor
 - @xen-orchestra/backup-archive patch
+- @xen-orchestra/backups patch
 - @xen-orchestra/disk-transform patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
