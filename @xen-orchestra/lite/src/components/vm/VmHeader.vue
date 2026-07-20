@@ -18,7 +18,6 @@
               placement: 'left',
               content: t('more-actions'),
             }"
-            :selected="isOpen"
             icon="action:more-actions-vertical"
             accent="brand"
             size="medium"
