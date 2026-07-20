@@ -1,5 +1,8 @@
 <template>
   <VtsSidePanel :has-selection="!!vif" @close="emit('close')">
+    <template v-if="vif" #actions>
+      <VifConnectionToggleButton v-if="vm" :vif :vm />
+    </template>
     <template v-if="vif" #default>
       <!-- VIF -->
       <UiCard class="card">
@@ -103,7 +106,8 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiVif } from '@/libs/xen-api/xen-api.types'
+import type { XenApiVif } from '@/libs/xen-api/xen-api.types.ts'
+import VifConnectionToggleButton from '@/modules/vif/components/actions/connection/VifConnectionToggleButton.vue'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
@@ -131,19 +135,18 @@ const { t } = useI18n()
 const { getByOpaqueRef: getNetworkByOpaqueRef } = useNetworkStore().subscribe()
 const { getByOpaqueRef: getGuestMetricsByOpaqueRef } = useVmGuestMetricsStore().subscribe()
 const { getByOpaqueRef: getVmByOpaqueRef } = useVmStore().subscribe()
+const vm = computed(() => (vif !== undefined ? getVmByOpaqueRef(vif.VM) : undefined))
 
 const ipAddresses = computed(() => {
   if (vif === undefined) {
     return []
   }
 
-  const vm = getVmByOpaqueRef(vif.VM)
-
-  if (!vm) {
+  if (!vm.value) {
     return []
   }
 
-  const networks = getGuestMetricsByOpaqueRef(vm.guest_metrics)?.networks
+  const networks = getGuestMetricsByOpaqueRef(vm.value.guest_metrics)?.networks
 
   return getUniqueIpAddressesForDevice(networks, vif.device)
 })
