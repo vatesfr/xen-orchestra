@@ -104,16 +104,19 @@ export function useEditTrafficRuleForm(rawRule: MaybeRefOrGetter<TrafficRule>) {
   } = useTrafficRuleFormBase(formData)
 
   const { id: targetTypeSelectId } = useFormSelect('targetType', targetTypeOptions, {
+    required: true,
     disabled: () => true,
     option: { label: 'label', value: 'value' },
   })
 
   const { id: vmSelectId } = useFormSelect('vmId', vmOptions, {
+    required: () => isVifTarget.value,
     disabled: () => true,
     option: { label: 'label', value: 'value', properties: source => ({ icon: source.icon }) },
   })
 
   const { id: targetSelectId } = useFormSelect('targetId', targetOptions, {
+    required: true,
     disabled: () => true,
     option: {
       label: 'label',
@@ -137,7 +140,6 @@ export function useEditTrafficRuleForm(rawRule: MaybeRefOrGetter<TrafficRule>) {
   }
 
   return {
-    rule,
     isVifTarget,
     hasPort,
     allowSelectBindings,

@@ -148,7 +148,7 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
     } = useTrafficRuleDeleteModal(() => [rule])
 
     const {
-      openDrawer: openUpdateTrafficRuleDrawer,
+      openDrawer: openTrafficRuleEditDrawer,
       isRunning: isEditingTrafficRule,
       canRun: canEditTrafficRule,
     } = useTrafficRuleEditDrawer(() => rule)
@@ -166,19 +166,19 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
           onClick: () => (selectedRuleId.value = rule.id),
           actions: [
             {
+              label: t('action:edit'),
+              icon: 'action:edit',
+              onClick: () => openTrafficRuleEditDrawer(),
+              busy: isEditingTrafficRule.value,
+              disabled: !canEditTrafficRule.value,
+            },
+            {
               label: t('action:delete'),
               icon: 'action:delete',
               onClick: () => openTrafficRuleDeleteModal(),
               disabled: !canDeleteTrafficRule.value,
               busy: isDeletingTrafficRule.value,
               hint: deleteTrafficRuleErrorMessage.value,
-            },
-            {
-              label: t('action:edit'),
-              icon: 'action:edit',
-              onClick: () => openUpdateTrafficRuleDrawer(),
-              busy: isEditingTrafficRule.value,
-              disabled: !canEditTrafficRule.value,
             },
           ],
         }),

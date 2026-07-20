@@ -1,9 +1,22 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import type { TargetOption, VmOption } from '@/modules/traffic-rules/form/target-option.type.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { objectIcon } from '@core/icons'
+import { type IconName, objectIcon } from '@core/icons'
 import { toLower } from 'lodash-es'
+
+export type TargetOption = {
+  id: FrontXoVif['id'] | FrontXoNetwork['id']
+  label: string
+  value: FrontXoVif['id'] | FrontXoNetwork['id']
+  icon: 'object:network' | 'object:vif'
+}
+
+export type VmOption = {
+  id: FrontXoVm['id']
+  label: string
+  value: FrontXoVm['id']
+  icon: IconName
+}
 
 export function vifToTargetOption(vif: FrontXoVif, vifLabel: string): TargetOption {
   return {

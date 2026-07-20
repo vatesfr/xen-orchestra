@@ -3,7 +3,7 @@ import {
   useXoNetworkCollection,
 } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import type { TargetOption } from '@/modules/traffic-rules/form/target-option.type.ts'
+import type { TargetOption } from '@/modules/traffic-rules/form/target-option.util.ts'
 import {
   networkToTargetOption,
   vifToTargetOption,

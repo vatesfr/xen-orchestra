@@ -7,7 +7,7 @@
         {{ t('general-information') }}
       </UiTitle>
 
-      <span class="typo-form-info required-hint">{{ t('field-required') }}</span>
+      <span class="typo-body-regular-small required-hint">{{ t('field:required') }}</span>
 
       <EditTrafficRuleForm ref="form" :rule @confirm="emit('confirm', $event)" />
     </template>
@@ -25,10 +25,10 @@
 import EditTrafficRuleForm from '@/modules/traffic-rules/components/form/edit/EditTrafficRuleForm.vue'
 import type { NewTrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
 import VtsDrawer from '@core/components/drawer/VtsDrawer.vue'
+import VtsDrawerCancelButton from '@core/components/drawer/VtsDrawerCancelButton.vue'
+import VtsDrawerConfirmButton from '@core/components/drawer/VtsDrawerConfirmButton.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import type { TrafficRule } from '@vates/types'
-import VtsDrawerCancelButton from '@xen-orchestra/web-core/components/drawer/VtsDrawerCancelButton.vue'
-import VtsDrawerConfirmButton from '@xen-orchestra/web-core/components/drawer/VtsDrawerConfirmButton.vue'
 import { useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 

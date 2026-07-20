@@ -1,16 +1,12 @@
+import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { newTrafficRulePayloadArg, xoTrafficRulesArg } from '@/modules/traffic-rules/jobs/xo-traffic-rule-args.ts'
 import type { NewTrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
-import type { TrafficRule, XoTask } from '@vates/types'
+import type { TrafficRule } from '@vates/types'
 import { omit } from 'lodash-es'
 import { useI18n } from 'vue-i18n'
-
-export type EditTrafficRulePayload = {
-  oldRule: TrafficRule
-  newRule: NewTrafficRulePayload
-}
 
 export const useXoTrafficRuleEditJob = defineJob(
   'traffic-rule.edit',
@@ -20,13 +16,13 @@ export const useXoTrafficRuleEditJob = defineJob(
     const { t } = useI18n()
 
     return {
-      run(oldRules: TrafficRule[], newRule: NewTrafficRulePayload): Promise<PromiseSettledResult<void>[]> {
-        return Promise.allSettled(
+      async run(oldRules: TrafficRule[], newRule: NewTrafficRulePayload): Promise<PromiseSettledResult<void>[]> {
+        const results = await Promise.allSettled(
           oldRules.map(async oldRule => {
             const scope = oldRule.type === 'network' ? 'networks' : 'vifs'
             const endpoint = `plugins/sdn-controller/${scope}/${oldRule.sourceId}/actions/update_traffic_rule`
 
-            const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(endpoint, {
+            const { taskId } = await fetchPost<{ taskId: FrontXoTask['id'] }>(endpoint, {
               oldRule: {
                 allow: oldRule.allow,
                 direction: oldRule.direction,
@@ -40,6 +36,13 @@ export const useXoTrafficRuleEditJob = defineJob(
             await monitorTask(taskId)
           })
         )
+
+        results.forEach((result, index) => {
+          if (result.status === 'rejected') {
+            console.error(`Failed to delete traffic rule ${oldRules[index].id}:`, result.reason)
+          }
+        })
+        return results
       },
 
       validate(isRunning, oldRules) {

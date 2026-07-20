@@ -1,9 +1,4 @@
 <template>
-  <VtsDeleteButton
-    :disabled="!canDeleteTrafficRule"
-    :busy="isDeletingTrafficRule"
-    @click="openTrafficRuleDeleteModal()"
-  />
   <UiButton
     size="medium"
     variant="tertiary"
@@ -15,6 +10,11 @@
   >
     {{ t('action:edit') }}
   </UiButton>
+  <VtsDeleteButton
+    :disabled="!canDeleteTrafficRule"
+    :busy="isDeletingTrafficRule"
+    @click="openTrafficRuleDeleteModal()"
+  />
 </template>
 
 <script lang="ts" setup>
