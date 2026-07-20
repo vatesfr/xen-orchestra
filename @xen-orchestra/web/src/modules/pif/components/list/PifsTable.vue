@@ -159,7 +159,7 @@ const { HeadCells, BodyCells } = usePifColumns({
             {
               label: t('action:set-management'),
               hint: !canReconfigureManagement.value ? reconfigureManagementErrorMessage.value : undefined,
-              icon: 'status:primary-circle',
+              icon: 'status:primary-circle', // no disabled version: should we add a CSS rule to .disabled in MenuTrigger.vue ?
               onClick: () => openManagementReconfigureModal(),
               disabled: !canReconfigureManagement.value,
               busy: isReconfiguringManagement.value,
