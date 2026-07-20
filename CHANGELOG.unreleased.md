@@ -37,7 +37,12 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/acl minor
+- @vates/types minor
+- @xen-orchestra/backup-archive minor
+- @xen-orchestra/backups minor
+- @xen-orchestra/disk-cli minor
+- @xen-orchestra/disk-transform patch
+- @xen-orchestra/qa-test minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
