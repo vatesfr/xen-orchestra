@@ -66,18 +66,40 @@ export class RemoteAdapter {
   // check if we will be allowed to merge a vhd created in this adapter
   // with the vhd at path `path`
   async isMergeableParent(packedParentUid, path) {
-    return await Disposable.use(VhdSynthetic.fromVhdChain(this.handler, path), vhd => {
-      // this baseUuid is not linked with this vhd
-      if (!vhd.footer.uuid.equals(packedParentUid)) {
-        return false
-      }
+    // [CHAIN-DEBUG] temporary logging to diagnose why chaining falls back to full transfers
+    try {
+      return await Disposable.use(VhdSynthetic.fromVhdChain(this.handler, path), vhd => {
+        // this baseUuid is not linked with this vhd
+        if (!vhd.footer.uuid.equals(packedParentUid)) {
+          warn('[CHAIN-DEBUG] isMergeableParent: footer uuid mismatch', {
+            path,
+            expectedParentUuid: packedParentUid.toString('hex'),
+            actualFooterUuid: vhd.footer.uuid.toString('hex'),
+          })
+          return false
+        }
 
-      // check if all the chain is composed of vhd directory
-      const isVhdDirectory = vhd.checkVhdsClass(VhdDirectory)
-      return isVhdDirectory
-        ? this.useVhdDirectory() && this.#getCompressionType() === vhd.compressionType
-        : !this.useVhdDirectory()
-    })
+        // check if all the chain is composed of vhd directory
+        const isVhdDirectory = vhd.checkVhdsClass(VhdDirectory)
+        const useVhdDirectory = this.useVhdDirectory()
+        const configuredCompression = this.#getCompressionType()
+        const mergeable = isVhdDirectory
+          ? useVhdDirectory && configuredCompression === vhd.compressionType
+          : !useVhdDirectory
+        warn('[CHAIN-DEBUG] isMergeableParent: uuid matched, checking storage class/compression', {
+          path,
+          isVhdDirectory,
+          useVhdDirectory,
+          configuredCompression,
+          vhdCompression: vhd.compressionType,
+          mergeable,
+        })
+        return mergeable
+      })
+    } catch (error) {
+      warn('[CHAIN-DEBUG] isMergeableParent: threw while reading the chain', { path, error })
+      throw error
+    }
   }
 
   async #removeVmBackupsFromCache(backups) {
