@@ -355,8 +355,8 @@ export function useFormSelect<
 
   if (model) {
     watch(
-      model,
-      modelValue => {
+      [model, allOptions],
+      ([modelValue]) => {
         if (isMultiple.value) {
           allOptions.value.forEach(option => {
             if ((modelValue as $TValue[]).includes(toRaw(option.properties.value) as $TValue)) {
