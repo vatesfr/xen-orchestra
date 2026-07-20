@@ -14,8 +14,8 @@ export const useXoPifManagementReconfigureJob = defineJob('pif.management-reconf
 
   return {
     async run(pif: FrontXoPif | undefined, host: FrontXoHost | undefined) {
-      const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`hosts/${host!.id}/actions/management_reconfigure`, {
-        pif: pif!.id,
+      const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`hosts/${host?.id}/actions/management_reconfigure`, {
+        pif: pif?.id,
       })
 
       return monitorTask(taskId)

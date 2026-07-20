@@ -45,7 +45,6 @@
 - [RPU] Fix `The updater plugin is busy` error making the update fail right after the "Updating LINSTOR packages" step (PR [#10115](https://github.com/vatesfr/xen-orchestra/pull/10115))
 - [Plugins/Perf-alert] Update URL generation to support V6 routing (PR [#10054](https://github.com/vatesfr/xen-orchestra/pull/10054))
 - [Rolling Pool Update/Reboot] Temporarily disable VMs auto power on during the run: unexpected VM starts on rebooted hosts could break the remaining host evacuations (`HOST_NOT_ENOUGH_FREE_MEMORY`) (PR [#10104](https://github.com/vatesfr/xen-orchestra/pull/10104))
-- [XO6] Allow changing which PIF/network a host or pool uses for its management interface, without deleting and recreating the network config (PR [#10110](https://github.com/vatesfr/xen-orchestra/pull/10110))
 
 ### Packages to release
 
