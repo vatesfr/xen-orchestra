@@ -36,7 +36,12 @@
   "dependencies": {
     "chokidar": "^4.0.3",
     "debug": "^4.4.3",
-    "fast-glob": "^3.3.3"
+    "fast-glob": "^3.3.3",
+    "ini": "^7.0.0",
+    "json5": "^2.2.3",
+    "js-yaml": "^5.2.1",
+    "smol-toml": "^1.7.0",
+    "strip-json-comments": "^5.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
