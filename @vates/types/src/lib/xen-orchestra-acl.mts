@@ -8,15 +8,17 @@ type XoAclBaseRole = {
   privilegeIds: XoAclBasePrivilege['id'][]
 }
 
-export type XoAclRole =
-  | (XoAclBaseRole & {
-      groupIds: XoGroup['id'][]
-      userIds: XoUser['id'][]
-    })
-  | (XoAclBaseRole & {
-      isTemplate: true
-      roleTemplateId: number
-    })
+type XoAclRegularRole = XoAclBaseRole & {
+  groupIds: XoGroup['id'][]
+  userIds: XoUser['id'][]
+}
+
+type XoAclTemplateRole = XoAclBaseRole & {
+  isTemplate: true
+  roleTemplateId: number
+}
+
+export type XoAclRole = XoAclRegularRole | XoAclTemplateRole
 
 export type XoAclSupportedActionsByResource = {
   [resource: string]: Record<string, unknown>
