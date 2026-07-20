@@ -63,7 +63,6 @@ const [APP_NAME, APP_VERSION] = (() => {
   const { name, version } = JSON.parse(fse.readFileSync(new URL('../package.json', import.meta.url)))
   return [name, version]
 })()
-
 // ===================================================================
 
 configure([
@@ -132,7 +131,6 @@ const DEFAULT_HELMET_CONFIG = {
     },
   },
 }
-
 async function createExpressApp(config) {
   const app = createExpress()
 
@@ -140,8 +138,8 @@ async function createExpressApp(config) {
   //
   // https://expressjs.com/en/api.html#app.set
   app.set('json spaces', 2)
-
-  const helmetConfig = mergeWith({}, DEFAULT_HELMET_CONFIG, config.http.helmet, (dst, src) =>
+  const isDev = (process.env.NODE_ENV ?? '').trim().toLowerCase() === 'development'
+  const helmetConfig = mergeWith({}, isDev ? {} : DEFAULT_HELMET_CONFIG, config.http.helmet, (dst, src) =>
     Array.isArray(dst) ? dst.concat(src) : undefined
   )
   app.use(helmet(helmetConfig))
