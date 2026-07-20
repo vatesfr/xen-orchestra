@@ -41,6 +41,7 @@ class PoolAlreadyConnected extends BaseError {
 
 const log = createLogger('xo:xo-mixins:xen-servers')
 const MAX_TIMER_DELAY = 2 ** 31 - 1
+const DEFAULT_LOAD_BALANCER_RE_ENABLE_DELAY = 30 * 60 * 1000 // 30 minutes, same as config.toml
 const synchronizedLoadBalancerOperation = synchronized()(operation => operation())
 
 // Server is disconnected:
@@ -823,7 +824,7 @@ export default class XenServers {
       ::ignoreErrors()
   }
 
-  _getRollingPoolUpdateLoadBalancerSuspension() {
+  _getRpuLoadBalancerSuspension() {
     const app = this._app
     const state = { shouldReEnable: false }
     return new Disposable(
@@ -845,7 +846,7 @@ export default class XenServers {
     )
   }
 
-  _releaseRollingPoolUpdateLoadBalancer(suspension, pool) {
+  _releaseRpuLoadBalancer(suspension, pool) {
     const { reEnableDelay, shouldReEnable } = suspension.value
     if (!shouldReEnable) {
       return suspension.dispose()
@@ -868,20 +869,28 @@ export default class XenServers {
       })
   }
 
-  async _suspendRollingPoolUpdateLoadBalancer($defer, pool) {
+  async _suspendRpuLoadBalancer($defer, pool) {
     const app = this._app
-    const suspension = this._getRollingPoolUpdateLoadBalancerSuspension()
+    const suspension = this._getRpuLoadBalancerSuspension()
     const state = suspension.value
-    $defer(() => this._releaseRollingPoolUpdateLoadBalancer(suspension, pool))
+    $defer(() => this._releaseRpuLoadBalancer(suspension, pool))
 
     await synchronizedLoadBalancerOperation(async () => {
       const plugin = await app.getOptionalPlugin('load-balancer')
       if (plugin?.loaded) {
-        const reEnableDelay = app.config.getDuration('loadBalancerReEnableDelay')
-        if (!Number.isSafeInteger(reEnableDelay) || reEnableDelay < 0 || reEnableDelay > MAX_TIMER_DELAY) {
-          throw new RangeError(
-            `loadBalancerReEnableDelay must be an integer between 0 and ${MAX_TIMER_DELAY} milliseconds`
-          )
+        let reEnableDelay
+        try {
+          reEnableDelay = app.config.getDuration('loadBalancerReEnableDelay')
+          if (!Number.isSafeInteger(reEnableDelay) || reEnableDelay < 0 || reEnableDelay > MAX_TIMER_DELAY) {
+            throw new RangeError(
+              `loadBalancerReEnableDelay must be an integer between 0 and ${MAX_TIMER_DELAY} milliseconds`
+            )
+          }
+        } catch (error) {
+          log.warn(`invalid loadBalancerReEnableDelay, using default (${DEFAULT_LOAD_BALANCER_RE_ENABLE_DELAY} ms)`, {
+            error,
+          })
+          reEnableDelay = DEFAULT_LOAD_BALANCER_RE_ENABLE_DELAY
         }
         state.autoload = plugin.autoload
         state.reEnableDelay = reEnableDelay
@@ -935,7 +944,7 @@ export default class XenServers {
     )
 
     // Disable load balancer
-    await this._suspendRollingPoolUpdateLoadBalancer($defer, pool)
+    await this._suspendRpuLoadBalancer($defer, pool)
 
     const xapi = this.getXapi(pool)
     if (await xapi.getField('pool', pool._xapiRef, 'wlb_enabled')) {
@@ -970,7 +979,7 @@ export default class XenServers {
 }
 
 decorateClass(XenServers, {
-  _getRollingPoolUpdateLoadBalancerSuspension: [
+  _getRpuLoadBalancerSuspension: [
     deduped,
     function () {
       return [this]
