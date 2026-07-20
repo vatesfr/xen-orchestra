@@ -1,3 +1,7 @@
+---
+unlisted: true
+---
+
 # Windows Templates with Cloudbase-init: Step-by-step Guide & Best Practices
 
 This section provides step-by-step instructions for creating Windows templates that support cloud-init, using [Cloudbase-init](https://cloudbase.it/cloudbase-init/).
