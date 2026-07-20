@@ -66,16 +66,26 @@ const vmFields = [
 ] as const satisfies readonly (keyof XoVm)[]
 
 function compareDriverVersions(a: string, b: string): number {
-  const parse = (v: string) => {
-    const [parts, build = '0'] = v.split('-')
-    return [...parts.split('.').map(Number), Number(build)]
+  const parseSegment = (segment: string): number => {
+    const value = Number(segment)
+    return Number.isNaN(value) ? 0 : value
   }
+
+  const parse = (version: string): number[] => {
+    const [numericPart, build = '0'] = version.split('-')
+    return [...numericPart.split('.').map(parseSegment), parseSegment(build)]
+  }
+
   const aParsed = parse(a)
   const bParsed = parse(b)
+
   for (let i = 0; i < Math.max(aParsed.length, bParsed.length); i++) {
     const diff = (aParsed[i] ?? 0) - (bParsed[i] ?? 0)
-    if (diff !== 0) return diff
+    if (diff !== 0) {
+      return diff
+    }
   }
+
   return 0
 }
 
@@ -135,7 +145,7 @@ export const useXoVmCollection = defineRemoteResource({
       const outOfDateVms: VmGuestToolsEntry[] = []
       const unknownVms: VmGuestToolsEntry[] = []
       let upToDate = 0
-      const outOfDateVersions = new Map<string, number>()
+      const outOfDateVersions = new Map<string | undefined, number>()
       let bestVersion: string | undefined
 
       for (const vm of runningVms.value) {
@@ -145,8 +155,7 @@ export const useXoVmCollection = defineRemoteResource({
           upToDate++
         } else if (vm.pvDriversUpToDate === false) {
           outOfDateVms.push({ id: vm.id, name: vm.name_label, version: vm.pvDriversVersion })
-          const version = vm.pvDriversVersion ?? 'unknown'
-          outOfDateVersions.set(version, (outOfDateVersions.get(version) ?? 0) + 1)
+          outOfDateVersions.set(vm.pvDriversVersion, (outOfDateVersions.get(vm.pvDriversVersion) ?? 0) + 1)
         } else if (vm.pvDriversUpToDate === undefined) {
           unknownVms.push({ id: vm.id, name: vm.name_label })
         } else {
