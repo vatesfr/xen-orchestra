@@ -430,7 +430,7 @@ export default class {
 
   async #normalizeGroup(group) {
     const roleIds = (await this._app.hasFeatureAuthorization('RBAC'))
-      ? await this._app.getAclV2GroupRoles(group.id)
+      ? await this._app.getAclV2GroupRoles(group.id, { bypassAuthorization: true })
       : []
     group.aclRoleIds = roleIds.map(role => role.id)
 
