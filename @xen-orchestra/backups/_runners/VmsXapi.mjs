@@ -101,56 +101,58 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
         const preTakenSnapshotRefByVmId = {}
         const failedSnapshotByVmId = {}
         if (settings.synchronizedSnapshot) {
-          await Disposable.use(
-            Disposable.all(vmIds.map(vmId => this._getRecord('VM', vmId).catch(noop))),
-            async vms => {
-              // remove vms that failed (already handled)
-              vms = vms.filter(_ => _ !== undefined)
+          await Task.run({ properties: { name: 'snapshot VMs' } }, async () => {
+            await Disposable.use(
+              Disposable.all(vmIds.map(vmId => this._getRecord('VM', vmId).catch(noop))),
+              async vms => {
+                // remove vms that failed (already handled)
+                vms = vms.filter(_ => _ !== undefined)
 
-              const batchIds = selectSynchronizedSnapshotVms(settings.synchronizedSnapshot, vms)
+                const batchIds = selectSynchronizedSnapshotVms(settings.synchronizedSnapshot, vms)
 
-              const snapshotOne = limitConcurrency(settings.snapshotConcurrency)(async vm => {
-                const vmSettings = { ...settings, ...allSettings[vm.uuid] }
-                const opts = {
-                  baseSettings,
-                  config,
-                  getSnapshotNameLabel,
-                  healthCheckSr,
-                  job,
-                  remoteAdapters,
-                  schedule,
-                  settings: vmSettings,
-                  srs,
-                  throttleGenerator,
-                  throttleStream,
-                  vm,
-                }
-
-                let vmBackup
-                if (job.mode === 'delta') {
-                  vmBackup = new IncrementalXapi(opts)
-                } else {
-                  if (job.mode === 'full') {
-                    vmBackup = new FullXapi(opts)
-                  } else {
-                    throw new Error(`Job mode ${job.mode} not implemented`)
+                const snapshotOne = limitConcurrency(settings.snapshotConcurrency)(async vm => {
+                  const vmSettings = { ...settings, ...allSettings[vm.uuid] }
+                  const opts = {
+                    baseSettings,
+                    config,
+                    getSnapshotNameLabel,
+                    healthCheckSr,
+                    job,
+                    remoteAdapters,
+                    schedule,
+                    settings: vmSettings,
+                    srs,
+                    throttleGenerator,
+                    throttleStream,
+                    vm,
                   }
-                }
 
-                try {
-                  await vmBackup._snapshot()
-                  preTakenSnapshotRefByVmId[vm.uuid] = vmBackup._exportedVm.$ref
-                } catch (error) {
-                  failedSnapshotByVmId[vm.uuid] = error
-                }
-              })
+                  let vmBackup
+                  if (job.mode === 'delta') {
+                    vmBackup = new IncrementalXapi(opts)
+                  } else {
+                    if (job.mode === 'full') {
+                      vmBackup = new FullXapi(opts)
+                    } else {
+                      throw new Error(`Job mode ${job.mode} not implemented`)
+                    }
+                  }
 
-              await asyncMapSettled(
-                [...vms].filter(vm => batchIds.has(vm.uuid)),
-                snapshotOne
-              )
-            }
-          )
+                  try {
+                    await vmBackup._snapshot()
+                    preTakenSnapshotRefByVmId[vm.uuid] = vmBackup._exportedVm.$ref
+                  } catch (error) {
+                    failedSnapshotByVmId[vm.uuid] = error
+                  }
+                })
+
+                await asyncMapSettled(
+                  [...vms].filter(vm => batchIds.has(vm.uuid)),
+                  snapshotOne
+                )
+              }
+            )
+          })
         }
 
         const snapshotedVmIds = new Set(vmIds.filter(id => !(id in failedSnapshotByVmId)))
