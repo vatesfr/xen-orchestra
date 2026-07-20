@@ -7,7 +7,7 @@
 <script lang="ts" setup>
 import UiButton, { type ButtonVariant } from '@core/components/ui/button/UiButton.vue'
 import { useMapper } from '@core/packages/mapper'
-import { useOverlayTrigger } from '@core/packages/overlay/use-overlay-trigger'
+import { useOverlayTrigger } from '@core/packages/overlay/use-overlay-trigger.ts'
 import { IK_OVERLAY_ACCENT } from '@core/utils/injection-keys.util.ts'
 import { inject } from 'vue'
 

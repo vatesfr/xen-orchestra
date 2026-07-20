@@ -1,5 +1,5 @@
-import { createEventHandler } from '@core/packages/overlay/create-event-handler'
-import { OVERLAY_ABORT_EVENT } from '@core/packages/overlay/symbols'
+import { createEventHandler } from '@core/packages/overlay/create-event-handler.ts'
+import { OVERLAY_ABORT_EVENT } from '@core/packages/overlay/symbols.ts'
 import type {
   ExtractOverlayResponse,
   ForbidExtraEvents,
@@ -10,8 +10,8 @@ import type {
   OverlayEventHandler,
   OverlayEvents,
   Prettify,
-} from '@core/packages/overlay/types'
-import { useOverlayStore } from '@core/packages/overlay/use-overlay-store'
+} from '@core/packages/overlay/types.ts'
+import { useOverlayStore } from '@core/packages/overlay/use-overlay-store.ts'
 import { reactiveComputed } from '@vueuse/core'
 import { defineAsyncComponent, markRaw, onScopeDispose, reactive, type AsyncComponentLoader, type Component } from 'vue'
 import type { ComponentProps } from 'vue-component-type-helpers'

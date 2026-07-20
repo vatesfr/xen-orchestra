@@ -1,4 +1,4 @@
-import type { Overlay } from '@core/packages/overlay/types'
+import type { Overlay } from '@core/packages/overlay/types.ts'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 

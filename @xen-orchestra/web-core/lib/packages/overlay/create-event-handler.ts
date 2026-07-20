@@ -1,6 +1,6 @@
-import { isThenable } from '@core/packages/overlay/is-thenable'
-import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols'
-import type { Overlay, OverlayEventHandler, OverlayResponse } from '@core/packages/overlay/types'
+import { isThenable } from '@core/packages/overlay/is-thenable.ts'
+import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
+import type { Overlay, OverlayEventHandler, OverlayResponse } from '@core/packages/overlay/types.ts'
 import { nextTick } from 'vue'
 
 export function createEventHandler({

@@ -3,16 +3,12 @@
 </template>
 
 <script lang="ts" setup>
-import { IK_OVERLAY_KEY } from '@core/packages/overlay/injection-keys'
-import type { Overlay } from '@core/packages/overlay/types'
+import { IK_OVERLAY_KEY } from '@core/packages/overlay/injection-keys.ts'
+import type { Overlay } from '@core/packages/overlay/types.ts'
 import { computed, provide } from 'vue'
 
 const { overlay } = defineProps<{
   overlay: Overlay
-}>()
-
-defineSlots<{
-  default(): true
 }>()
 
 provide(

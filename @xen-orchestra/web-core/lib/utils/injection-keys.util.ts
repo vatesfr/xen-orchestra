@@ -1,6 +1,6 @@
 import type { InputWrapperController } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
-import type { ValueFormatter } from '@core/types/chart'
+import type { ValueFormatter } from '@core/types/chart.ts'
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
 
 export const IK_CHART_VALUE_FORMATTER = Symbol('IK_CHART_VALUE_FORMATTER') as InjectionKey<ComputedRef<ValueFormatter>>

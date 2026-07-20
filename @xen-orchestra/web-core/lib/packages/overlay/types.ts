@@ -1,4 +1,4 @@
-import type { KEEP_OVERLAY_OPEN, OVERLAY_ABORT_EVENT } from '@core/packages/overlay/symbols'
+import type { KEEP_OVERLAY_OPEN, OVERLAY_ABORT_EVENT } from '@core/packages/overlay/symbols.ts'
 import type { Component } from 'vue'
 import type { ComponentProps } from 'vue-component-type-helpers'
 

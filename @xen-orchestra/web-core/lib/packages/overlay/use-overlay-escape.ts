@@ -1,5 +1,5 @@
-import { IK_OVERLAY_KEY } from '@core/packages/overlay/injection-keys'
-import { useOverlayStore } from '@core/packages/overlay/use-overlay-store'
+import { IK_OVERLAY_KEY } from '@core/packages/overlay/injection-keys.ts'
+import { useOverlayStore } from '@core/packages/overlay/use-overlay-store.ts'
 import { onKeyStroke } from '@vueuse/core'
 import { inject } from 'vue'
 
