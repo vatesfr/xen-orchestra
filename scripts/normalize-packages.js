@@ -36,7 +36,7 @@ const forceRelativeSymlink = async (target, path) => {
 
 require('exec-promise')(() =>
   getPackages(true).map(({ dir, name, package: pkg, relativeDir }) => {
-    if (!('private' in pkg)) {
+    if (!('private' in pkg) || typeof pkg.private !== 'boolean') {
       throw new Error(
         `Please specify "private" field in your package ${name}. true (if you don't want to publish it) or false (if it is a public package)`
       )
