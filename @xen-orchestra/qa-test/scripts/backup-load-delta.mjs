@@ -314,25 +314,40 @@ async function main() {
       )
       const cleanupStart = Date.now()
       const trackedResources = tracker.getTrackedResources()
-      await dispatchClient.cleanup.fullCleanup({
-        cleanupVMs: true,
-        cleanupBackupJobs: !keepBackups,
-        cleanupSchedules: !keepBackups,
-        // Only deletes the repository if resolveOrCreateBackupRepository tracked one it created —
-        // a reused pre-existing repository (the common case) is left untouched. Never deleted with
-        // --keep-backups, since that removes the physical backup files along with the config.
-        backupRepositoryId: keepBackups ? null : trackedResources.backupRepository?.id || null,
-        additionalVmIds: trackedResources.vms.map(vm => vm.id),
-        additionalJobIds: trackedResources.backupJobs.map(job => job.id),
-        additionalScheduleIds: trackedResources.schedules.map(schedule => schedule.id),
-      })
+      try {
+        await dispatchClient.cleanup.fullCleanup({
+          cleanupVMs: true,
+          cleanupBackupJobs: !keepBackups,
+          cleanupSchedules: !keepBackups,
+          // Only deletes the repository if resolveOrCreateBackupRepository tracked one it created —
+          // a reused pre-existing repository (the common case) is left untouched. Never deleted with
+          // --keep-backups, since that removes the physical backup files along with the config.
+          backupRepositoryId: keepBackups ? null : trackedResources.backupRepository?.id || null,
+          additionalVmIds: trackedResources.vms.map(vm => vm.id),
+          additionalJobIds: trackedResources.backupJobs.map(job => job.id),
+          additionalScheduleIds: trackedResources.schedules.map(schedule => schedule.id),
+        })
+      } catch (error) {
+        log.warn('Fleet/job cleanup failed', { error })
+      }
+
       // Not part of fullCleanup: the VM restored for chain validation.
-      await dispatchClient.cleanup.deleteRestoredVMs({ vmIds: trackedResources.restoredVms.map(vm => vm.id) })
+      try {
+        await dispatchClient.cleanup.deleteRestoredVMs({ vmIds: trackedResources.restoredVms.map(vm => vm.id) })
+      } catch (error) {
+        log.warn('Restored-VM cleanup failed', { error })
+      }
+
       log.info('Cleanup complete', { duration: formatDuration(Date.now() - cleanupStart) })
     } else {
       log.info('Skipping cleanup (--keep)')
     }
-    await dispatchClient.close()
+
+    try {
+      await dispatchClient.close()
+    } catch (error) {
+      log.warn('Failed to close connections', { error })
+    }
   }
 }
 
