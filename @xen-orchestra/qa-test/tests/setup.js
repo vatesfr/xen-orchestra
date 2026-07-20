@@ -35,9 +35,10 @@ async function generateIncrementalVmName(dispatchClient, baseName) {
  * Test setup with automatic resource creation and tracking.
  * @param {Object} options - Setup options
  * @param {string} [options.referenceVmId] - Optional reference VM ID to clone for testing
+ * @param {string} [options.requiredVmQty] - Optional number of clone to create, defaults to 1
  * @returns {Promise<Object>} Setup result with dispatchClient and created resources
  */
-export const setup = async ({ referenceVmId } = {}) => {
+export const setup = async ({ referenceVmId, requiredVmQty = 1 } = {}) => {
   log.debug('Setting up test environment')
 
   const tracker = createResourceTracker()
@@ -45,7 +46,7 @@ export const setup = async ({ referenceVmId } = {}) => {
   await dispatchClient.initialize()
 
   const createdResources = {
-    vm: null,
+    vms: [],
     backupRepository: null,
     sessionId: tracker.getSessionId(),
   }
@@ -61,21 +62,25 @@ export const setup = async ({ referenceVmId } = {}) => {
     }
 
     const vmPrefix = getRequiredEnv('VM_PREFIX')
-    const testVmName = await generateIncrementalVmName(dispatchClient, `${vmPrefix}-QA-Test`)
+    let testVmName = ''
+    let testVmId = ''
+    for (let i = 0; i < requiredVmQty; i++) {
+      testVmName = await generateIncrementalVmName(dispatchClient, `${vmPrefix}-QA-Test`)
 
-    log.debug('Creating test VM', { name: testVmName })
+      log.debug('Creating test VM', { name: testVmName })
 
-    const testVmId = await dispatchClient.vm.clone(referenceVm.uuid, testVmName, {
-      description: `Test VM for QA tests`,
-      fastClone: true,
-    })
+      testVmId = await dispatchClient.vm.clone(referenceVm.uuid, testVmName, {
+        description: `Test VM for QA tests`,
+        fastClone: true,
+      })
 
-    log.debug('Starting test VM', { id: testVmId })
-    await dispatchClient.vm.start(testVmId)
-    await dispatchClient.vm.waitForPowerState(testVmId, 'Running', 120_000)
+      log.debug('Starting test VM', { id: testVmId })
+      await dispatchClient.vm.start(testVmId)
+      await dispatchClient.vm.waitForPowerState(testVmId, 'Running', 120_000)
 
-    createdResources.vm = await dispatchClient.vm.details(testVmId)
-    tracker.trackResource('vm', testVmId, { name: testVmName, source: referenceVm.name_label })
+      createdResources.vms.push(await dispatchClient.vm.details(testVmId))
+      tracker.trackResource('vm', testVmId, { name: testVmName, source: referenceVm.name_label })
+    }
 
     // Create or get backup repository
     const backupRepositoryName = getRequiredEnv('BACKUP_REPOSITORY_NAME')
