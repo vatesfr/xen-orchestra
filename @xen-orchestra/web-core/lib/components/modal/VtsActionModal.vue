@@ -100,6 +100,11 @@ const textMappingsByObject: TextMappingByObject = {
       message: t('modal:host-disable-message'),
       action: t('action:disable-host'),
     },
+    forget: {
+      title: t('modal:confirm-host-forget', { host: hostName }),
+      message: t('modal:host-forget-message'),
+      action: t('action:forget-host'),
+    },
   },
 }
 
