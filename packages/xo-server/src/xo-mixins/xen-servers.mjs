@@ -21,6 +21,7 @@ import { acquireRpuGuard } from '../_rpuGuard.mjs'
 import { getRpuTracesConfig, openRpuTrace } from '../_rpuObservability.mjs'
 import xapiObjectToXo from '../xapi-object-to-xo.mjs'
 import XapiStats from '../xapi-stats.mjs'
+import { autoReconnect } from '../_xenServerAutoReconnect.mjs'
 import { camelToSnakeCase, forEach, isEmpty, popProperty } from '../utils.mjs'
 import { Servers } from '../models/server.mjs'
 
@@ -49,6 +50,8 @@ const log = createLogger('xo:xo-mixins:xen-servers')
 export default class XenServers {
   constructor(app, { safeMode }) {
     this._objectConflicts = { __proto__: null } // TODO: clean when a server is disconnected.
+    this._connectingXenServers = new Set()
+    this._reconnectingXenServers = new Set()
     this._serverIdsByPool = { __proto__: null }
     this._stats = new XapiStats()
     this._xapis = { __proto__: null }
@@ -223,6 +226,12 @@ export default class XenServers {
     if (hasChanged) {
       await this._servers.update(server)
     }
+
+    // an enabled server must not stay disconnected without retries, e.g. after
+    // the user fixed its credentials or address
+    if (server.enabled && !this._connectingXenServers.has(id) && this._getXenServerStatus(id) === 'disconnected') {
+      this._autoReconnectXenServer(id)
+    }
   }
 
   async getXenServerWithCredentials(id) {
@@ -358,18 +367,63 @@ export default class XenServers {
     })
   }
 
-  async connectXenServer(id) {
+  // starts a reconnection loop for a server left `enabled` but without a
+  // Xapi instance, a state nothing else retries (see _xenServerAutoReconnect.mjs)
+  _autoReconnectXenServer(id) {
+    const reconnecting = this._reconnectingXenServers
+    if (reconnecting.has(id)) {
+      return
+    }
+    reconnecting.add(id)
+
+    autoReconnect(id, {
+      // `enable: false`: the loop must never overwrite a concurrent disable
+      connect: id => this.connectXenServer(id, { enable: false }),
+      delay: pDelay,
+      getServer: id => this.getXenServer(id),
+      getStatus: id => this._getXenServerStatus(id),
+      isFatal: error => error instanceof PoolAlreadyConnected,
+      isGone: error => noSuchObject.is(error),
+      log,
+    })
+      .then(outcome => {
+        log.info('auto-reconnect stopped', { serverId: id, outcome })
+      })
+      .catch(error => {
+        log.error('auto-reconnect crashed', { serverId: id, error })
+      })
+      .finally(() => {
+        reconnecting.delete(id)
+      })
+  }
+
+  async connectXenServer(id, { enable = true } = {}) {
     const server = await this.getXenServerWithCredentials(id)
     const serverStatus = this._getXenServerStatus(id)
-    if (serverStatus !== 'disconnected') {
+    // `_connectingXenServers` also guards against a concurrent connection
+    // attempt for the same server, which would overwrite `_xapis[id]` and leak
+    // a live connection
+    const connecting = this._connectingXenServers.has(id)
+    if (serverStatus !== 'disconnected' || connecting) {
       throw incorrectState({
-        actual: serverStatus,
+        actual: connecting ? 'connecting' : serverStatus,
         expected: 'disconnected',
         object: server.id,
         property: 'status',
       })
     }
-    await this.updateXenServer(id, { enabled: true })
+    this._connectingXenServers.add(id)
+    try {
+      await this._connectXenServer(id, server, { enable })
+    } finally {
+      this._connectingXenServers.delete(id)
+    }
+  }
+
+  async _connectXenServer(id, server, { enable }) {
+    if (enable) {
+      await this.updateXenServer(id, { enabled: true })
+    }
 
     const { config } = this._app
 
@@ -572,12 +626,27 @@ export default class XenServers {
         delete this._xapis[server.id]
         delete this._serverIdsByPool[poolId]
         this._app.emit('server:disconnected', { server, xapi })
+
+        // deliberate disconnections set `enabled` to false beforehand, in
+        // which case the loop stops on its own
+        this._autoReconnectXenServer(server.id)
       })
       this._app.emit('server:connected', { server, xapi })
     } catch (error) {
       delete this._xapis[server.id]
       xapi.disconnect()::ignoreErrors()
-      this.updateXenServer(id, { error })::ignoreErrors()
+
+      // avoid a database write per auto-reconnect attempt when the error did not change
+      const previousError = server.error
+      if (previousError?.code !== error?.code || previousError?.message !== error?.message) {
+        this.updateXenServer(id, { error })::ignoreErrors()
+      }
+
+      // permanent errors: retrying is pointless, do not start the loop
+      if (!(error instanceof PoolAlreadyConnected) && error?.code !== 'SESSION_AUTHENTICATION_FAILED') {
+        this._autoReconnectXenServer(id)
+      }
+
       throw error
     }
   }
