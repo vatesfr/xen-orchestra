@@ -3,6 +3,7 @@
     icon="action:disconnect"
     :disabled="!canDisconnectSr"
     :busy="isDisconnectingSr"
+    class="typo-body-bold-small"
     @click="openSrDisconnectModal()"
   >
     {{ t('action:disconnect') }}

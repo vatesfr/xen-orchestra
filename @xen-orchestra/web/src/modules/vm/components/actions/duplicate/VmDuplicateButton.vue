@@ -1,5 +1,5 @@
 <template>
-  <MenuItem icon="action:duplicate" @click="handleDuplicate()">
+  <MenuItem icon="action:duplicate" class="typo-body-bold-small" @click="handleDuplicate()">
     {{ t('action:duplicate') }}
   </MenuItem>
 </template>

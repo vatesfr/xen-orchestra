@@ -1,7 +1,7 @@
 <template>
   <MenuItem
     icon="action:delete"
-    class="delete"
+    class="delete typo-body-bold-small"
     :disabled="!canDeleteVdi"
     :busy="isDeletingVdi"
     @click="openVdiDeleteModal()"

@@ -1,5 +1,5 @@
 <template>
-  <MenuItem icon="action:download" @click="openDrawer()">
+  <MenuItem icon="action:download" class="typo-body-bold-small" @click="openDrawer()">
     {{ t('action:export') }}
   </MenuItem>
 </template>

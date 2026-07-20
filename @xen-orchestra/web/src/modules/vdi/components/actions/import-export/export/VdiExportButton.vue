@@ -1,5 +1,5 @@
 <template>
-  <MenuItem icon="action:download" :busy="isExportingVdi" @click="openVdiExportDrawer()">
+  <MenuItem icon="action:download" class="typo-body-bold-small" :busy="isExportingVdi" @click="openVdiExportDrawer()">
     {{ t('action:export-content') }}
   </MenuItem>
 </template>

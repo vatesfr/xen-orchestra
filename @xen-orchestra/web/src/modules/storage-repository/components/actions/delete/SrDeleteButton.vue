@@ -3,7 +3,7 @@
     icon="action:delete"
     :disabled="!canDeleteSr"
     :busy="isDeletingSr"
-    class="delete"
+    class="delete typo-body-bold-small"
     @click="openSrDeleteModal()"
   >
     {{ t('action:delete') }}

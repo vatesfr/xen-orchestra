@@ -7,14 +7,8 @@
   </MenuItem>
   <VmSnapshotButton :vm />
   <VmDuplicateButton :vm />
-  <MenuItem disabled icon="action:duplicate" class="coming-soon">
-    {{ t('action:duplicate') }}
-  </MenuItem>
-  <MenuItem disabled icon="action:download" class="coming-soon">
-    {{ t('action:export') }}
-  </MenuItem>
-  <MenuSeparator />
   <VmExportButton :vm />
+  <MenuSeparator />
   <VmDeleteButton :vm />
 </template>
 
