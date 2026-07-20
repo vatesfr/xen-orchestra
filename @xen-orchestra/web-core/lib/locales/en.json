@@ -651,6 +651,8 @@
   "modal:confirm-host-shutdown": "Are you sure you want to shut down {host}?",
   "modal:confirm-host-start": "Are you sure you want to start {host}?",
   "modal:confirm-vm-force-reboot": "Confirm VM force reboot",
+  "modal:confirm-host-forget": "Are you sure you want to forget {host}?",
+  "modal:host-forget-message": "This will permanently remove the host from the pool database. Only do this if the host is physically gone or unrecoverable - if it can come back online, use Detach instead. This action cannot be undone.",
   "modal:confirm-vm-force-shutdown": "Confirm VM force shutdown",
   "modal:confirm-vm-reboot": "Confirm VM reboot",
   "modal:confirm-vm-shutdown": "Confirm VM shutdown",
