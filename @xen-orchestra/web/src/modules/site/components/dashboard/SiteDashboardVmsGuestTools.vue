@@ -14,7 +14,7 @@
       <VtsDonutChartWithLegend :segments class="chart" />
       <UiCardNumbers :label="t('total')" :value="vmGuestToolsStatus.total" size="small" />
       <UiButton
-        v-if="vmGuestToolsStatus.outOfDate > 0 || vmGuestToolsStatus.missing > 0"
+        v-if="vmGuestToolsStatus.outOfDate > 0 || vmGuestToolsStatus.missing > 0 || vmGuestToolsStatus.unknown > 0"
         accent="brand"
         left-icon="status:info-circle"
         size="small"
@@ -79,6 +79,11 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
     label: t('missing-guest-tools'),
     value: vmGuestToolsStatus.value.missing,
     accent: 'danger',
+  },
+  {
+    label: t('unknown'),
+    value: vmGuestToolsStatus.value.unknown,
+    accent: 'neutral',
   },
 ])
 </script>
