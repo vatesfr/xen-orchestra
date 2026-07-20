@@ -12,11 +12,20 @@
   <TabList>
     <RouterLink
       v-slot="{ isActive, href }"
-      :to="{ name: '/sr/[id]/general', params: { id: sr.id }, query: route.query }"
+      :to="{ name: '/sr/[id]/general', params: { id: sr.id }, query: contextQuery }"
       custom
     >
       <TabItem :active="isActive" :href tag="a">
         {{ t('general') }}
+      </TabItem>
+    </RouterLink>
+    <RouterLink
+      v-slot="{ isActive, href }"
+      :to="{ name: '/sr/[id]/hosts', params: { id: sr.id }, query: contextQuery }"
+      custom
+    >
+      <TabItem :active="isActive" :href tag="a">
+        {{ t('hosts') }}
       </TabItem>
     </RouterLink>
   </TabList>
@@ -49,10 +58,8 @@ const { arePbdsReady } = useXoPbdCollection()
 
 const { isDefaultSr } = useXoSrCollection()
 
-const { srConnectionStatus } = useXoSrUtils(
-  () => sr,
-  () => fromContext ?? { type: SR_SCOPE_TYPE.POOL }
-)
-
 const srIconState = computed(() => (arePbdsReady.value ? srConnectionStatus.value : undefined))
+const contextQuery = computed(() => ({ from: route.query.from, host: route.query.host }))
+
+const { srConnectionStatus } = useXoSrUtils(() => sr)
 </script>
