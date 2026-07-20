@@ -63,7 +63,7 @@ const outOfDateTooltip = computed(() => {
 
   return [...versions.entries()]
     .sort((a, b) => b[1] - a[1])
-    .map(([version, count]) => `${version} (${count})`)
+    .map(([version, count]) => `${version ?? t('unknown')} (${count})`)
     .join(', ')
 })
 
