@@ -1104,6 +1104,7 @@
   "unable-to-duplicate-vm": "Impossible de dupliquer la VM",
   "unable-to-migrate-vdi": "Impossible de migrer le VDI sur le SR",
   "unknown": "Inconnu",
+  "unknown-guest-tools-n": "Inconnu ({n})",
   "unlocked": "Déverrouillé",
   "unnamed": "Sans nom",
   "unreachable-hosts": "Hôtes inaccessibles",

@@ -132,19 +132,24 @@ export const useXoVmCollection = defineRemoteResource({
       let missing = 0
       let outOfDate = 0
       let upToDate = 0
+      let unknown = 0
       const outOfDateVersions = new Map<string, number>()
       let bestVersion: string | undefined
 
       for (const vm of runningVms.value) {
         if (!vm.managementAgentDetected) {
           missing++
-        } else if (vm.pvDriversDetected && vm.pvDriversUpToDate === false) {
+        } else if (!vm.pvDriversDetected) {
+          upToDate++
+        } else if (vm.pvDriversUpToDate === false) {
           outOfDate++
           const version = vm.pvDriversVersion ?? 'unknown'
           outOfDateVersions.set(version, (outOfDateVersions.get(version) ?? 0) + 1)
+        } else if (vm.pvDriversUpToDate === undefined) {
+          unknown++
         } else {
           upToDate++
-          if (vm.pvDriversDetected && vm.pvDriversVersion !== undefined) {
+          if (vm.pvDriversVersion !== undefined) {
             if (bestVersion === undefined || compareDriverVersions(vm.pvDriversVersion, bestVersion) > 0) {
               bestVersion = vm.pvDriversVersion
             }
@@ -152,7 +157,7 @@ export const useXoVmCollection = defineRemoteResource({
         }
       }
 
-      return { missing, outOfDate, upToDate, total: runningVms.value.length, outOfDateVersions, bestVersion }
+      return { missing, outOfDate, upToDate, unknown, total: runningVms.value.length, outOfDateVersions, bestVersion }
     })
 
     function getVmHost(vm: FrontXoVm): FrontXoHost | undefined {

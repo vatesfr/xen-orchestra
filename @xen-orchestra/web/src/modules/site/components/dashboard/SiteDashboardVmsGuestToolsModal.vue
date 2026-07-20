@@ -28,6 +28,13 @@
             <li v-for="vm in missingVms" :key="vm.id" class="typo-body-regular-small">{{ vm.name }}</li>
           </ul>
         </div>
+
+        <div v-if="unknownVms.length > 0" class="section">
+          <p class="section-title typo-body-bold">{{ t('unknown-guest-tools-n', { n: unknownVms.length }) }}</p>
+          <ul class="vm-list">
+            <li v-for="vm in unknownVms" :key="vm.id" class="typo-body-regular-small">{{ vm.name }}</li>
+          </ul>
+        </div>
       </div>
     </template>
 
@@ -64,6 +71,12 @@ const outOfDateVms = computed(() =>
 
 const missingVms = computed(() =>
   runningVms.value.filter(vm => !vm.managementAgentDetected).map(vm => ({ id: vm.id, name: vm.name_label }))
+)
+
+const unknownVms = computed(() =>
+  runningVms.value
+    .filter(vm => vm.managementAgentDetected && vm.pvDriversDetected && vm.pvDriversUpToDate === undefined)
+    .map(vm => ({ id: vm.id, name: vm.name_label }))
 )
 </script>
 
