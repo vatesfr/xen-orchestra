@@ -315,6 +315,11 @@ export class RemoteAdapter {
       fn(cache)
 
       await this._writeCache(path, cache)
+    } else {
+      const regenerated = await this.#getCacheableDataListVmBackups(dirname(path))
+      if (regenerated !== undefined) {
+        await this._writeCache(path, regenerated)
+      }
     }
   }
 
@@ -383,8 +388,7 @@ export class RemoteAdapter {
       return
     }
 
-    // detached async action, will not reject
-    this._writeCache(path, backups)
+    await this._writeCache(path, backups)
 
     return backups
   }

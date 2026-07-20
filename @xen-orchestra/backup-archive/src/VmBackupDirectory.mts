@@ -39,6 +39,10 @@ export class VmBackupDirectory implements VmBackupInterface {
   #checkResult: (CheckResult & { orphans: string[]; linked: string[] }) | undefined = undefined
   #uniqueLineages: Map<string, RemoteDiskLineage> | undefined = undefined
 
+  // Set by #checkCacheCount(): the on-disk cache did not match the archives found
+  // on disk, so clean() must regenerate it even when nothing was merged/removed.
+  #cacheOutOfSync = false
+
   constructor(
     handler: RemoteHandlerAbstract,
     vmBackupPath: string,
@@ -183,7 +187,7 @@ export class VmBackupDirectory implements VmBackupInterface {
       { concurrency: 2 }
     )
 
-    if (allMergedSizes.size > 0 || cacheNeedsRegen) {
+    if (allMergedSizes.size > 0 || cacheNeedsRegen || this.#cacheOutOfSync) {
       await this.#regenerateCache()
     }
 
@@ -214,7 +218,8 @@ export class VmBackupDirectory implements VmBackupInterface {
     const existingCache = await this.#readCache(cachePath)
     const actual = existingCache === undefined ? 0 : Object.keys(existingCache).length
     const expected = this.backupArchives.size
-    if (actual !== expected) {
+    this.#cacheOutOfSync = actual !== expected
+    if (this.#cacheOutOfSync) {
       this.opts.logWarn('unexpected number of entries in backup cache', { path: cachePath, actual, expected })
     }
   }

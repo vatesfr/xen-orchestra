@@ -13,9 +13,13 @@ import { MergeRemoteDisk } from '../dist/disks/MergeRemoteDisk.mjs'
 import { VHDFOOTER, VHDHEADER } from './tests.fixtures.mjs'
 import { VhdFile, Constants, VhdDirectory, VhdAbstract } from 'vhd-lib'
 import { dirname, basename } from 'node:path'
+import { promisify } from 'node:util'
+import zlib from 'node:zlib'
 import { rimraf } from 'rimraf'
 
 const { beforeEach, afterEach, describe } = test
+
+const gunzip = promisify(zlib.gunzip)
 
 let tempDir, handler, jobId, vdiId, basePath, relativePath, vdiId2, basePath2, relativePath2
 const rootPath = 'xo-vm-backups/VMUUID/'
@@ -827,4 +831,29 @@ test('it preserves VDI directory when handler.list() throws during lineage init'
 
   const remaining = await handler.list(basePath)
   assert.ok(remaining.includes('snapshot.vhd'), 'VHD must survive when handler.list() throws during lineage init')
+})
+
+test('it regenerates the cache when its entry count is out of sync, even with nothing to merge/remove', async () => {
+  // a referenced disk + its metadata, but no cache.json.gz on disk
+  await generateVhd(`${basePath}/diskA1.vhd`)
+  await handler.writeFile(
+    `${rootPath}/metadata.json`,
+    JSON.stringify({ mode: 'delta', vhds: [`${relativePath}/diskA1.vhd`] })
+  )
+  await assert.rejects(handler.readFile(`${rootPath}/cache.json.gz`), { code: 'ENOENT' })
+
+  const logged = []
+  // remove/merge both false: cacheNeedsRegen stays false and no merge happens,
+  // so only the cache-count mismatch can trigger the regeneration
+  await VmBackupDirectory.cleanVm(handler, rootPath, {
+    remove: false,
+    merge: false,
+    logInfo: () => {},
+    logWarn: message => logged.push(message),
+  })
+
+  assert.ok(logged.includes('unexpected number of entries in backup cache'), 'mismatch should be reported')
+
+  const cache = JSON.parse((await gunzip(await handler.readFile(`${rootPath}/cache.json.gz`))).toString())
+  assert.equal(Object.keys(cache).length, 1, 'cache should be regenerated to match the archives on disk')
 })
