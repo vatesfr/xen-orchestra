@@ -44,6 +44,7 @@
 - [RPU] Fix `The updater plugin is busy` error making the update fail right after the "Updating LINSTOR packages" step (PR [#10115](https://github.com/vatesfr/xen-orchestra/pull/10115))
 - [Plugins/Perf-alert] Update URL generation to support V6 routing (PR [#10054](https://github.com/vatesfr/xen-orchestra/pull/10054))
 - [Rolling Pool Update/Reboot] Temporarily disable VMs auto power on during the run: unexpected VM starts on rebooted hosts could break the remaining host evacuations (`HOST_NOT_ENOUGH_FREE_MEMORY`) (PR [#10104](https://github.com/vatesfr/xen-orchestra/pull/10104))
+- [Qcow2 import] show a valid progress bar for qcow2 disk import from form , command line or V2V (PR [#10133](https://github.com/vatesfr/xen-orchestra/pull/10133))
 
 ### Packages to release
 
@@ -67,6 +68,7 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi patch
 - vhd-lib patch
 - xapi-explore-sr patch
 - xen-api minor
