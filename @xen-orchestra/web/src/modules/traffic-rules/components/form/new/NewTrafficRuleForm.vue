@@ -55,9 +55,9 @@
 
 <script setup lang="ts">
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import TrafficRuleFormNumberInput from '@/modules/traffic-rules/components/form/new/inputs/TrafficRuleFormNumberInput.vue'
-import TrafficRuleFormSelect from '@/modules/traffic-rules/components/form/new/inputs/TrafficRuleFormSelect.vue'
-import TrafficRuleFormTextInput from '@/modules/traffic-rules/components/form/new/inputs/TrafficRuleFormTextInput.vue'
+import TrafficRuleFormNumberInput from '@/modules/traffic-rules/components/form/inputs/TrafficRuleFormNumberInput.vue'
+import TrafficRuleFormSelect from '@/modules/traffic-rules/components/form/inputs/TrafficRuleFormSelect.vue'
+import TrafficRuleFormTextInput from '@/modules/traffic-rules/components/form/inputs/TrafficRuleFormTextInput.vue'
 import NewTrafficRuleButtonsSection from '@/modules/traffic-rules/components/form/new/NewTrafficRuleButtonsSection.vue'
 import { useNewTrafficRuleForm } from '@/modules/traffic-rules/form/new/use-new-traffic-rule-form.ts'
 import type { NewTrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'

@@ -50,9 +50,9 @@
 </template>
 
 <script setup lang="ts">
-import TrafficRuleFormNumberInput from '@/modules/traffic-rules/components/form/new/inputs/TrafficRuleFormNumberInput.vue'
-import TrafficRuleFormSelect from '@/modules/traffic-rules/components/form/new/inputs/TrafficRuleFormSelect.vue'
-import TrafficRuleFormTextInput from '@/modules/traffic-rules/components/form/new/inputs/TrafficRuleFormTextInput.vue'
+import TrafficRuleFormNumberInput from '@/modules/traffic-rules/components/form/inputs/TrafficRuleFormNumberInput.vue'
+import TrafficRuleFormSelect from '@/modules/traffic-rules/components/form/inputs/TrafficRuleFormSelect.vue'
+import TrafficRuleFormTextInput from '@/modules/traffic-rules/components/form/inputs/TrafficRuleFormTextInput.vue'
 import { useEditTrafficRuleForm } from '@/modules/traffic-rules/form/edit/use-edit-traffic-rule-form.ts'
 import type { NewTrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
 import VtsForm from '@core/components/form/VtsForm.vue'
@@ -107,7 +107,6 @@ defineExpose({
 }
 
 .edit-traffic-rule-form {
-  margin-block-start: 2.4rem;
   .row {
     display: flex;
     flex-direction: column;

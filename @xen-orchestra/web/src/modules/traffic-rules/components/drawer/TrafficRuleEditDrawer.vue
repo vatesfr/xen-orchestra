@@ -9,7 +9,7 @@
 
       <span class="typo-body-regular-small required-hint">{{ t('field:required') }}</span>
 
-      <EditTrafficRuleForm ref="form" :rule @confirm="emit('confirm', $event)" />
+      <EditTrafficRuleForm ref="form" class="form" :rule @confirm="emit('confirm', $event)" />
     </template>
 
     <template #buttons>
@@ -50,6 +50,10 @@ const form = useTemplateRef('form')
 .container {
   .section-title {
     margin-block-end: 2.4rem;
+  }
+
+  .form {
+    margin-block-start: 2.4rem;
   }
 
   .required-hint::before {

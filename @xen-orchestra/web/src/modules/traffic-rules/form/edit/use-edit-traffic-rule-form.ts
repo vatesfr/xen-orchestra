@@ -2,7 +2,7 @@ import {
   type FrontXoNetwork,
   useXoNetworkCollection,
 } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import type { TargetOption } from '@/modules/traffic-rules/form/target-option.type.ts'
+import type { TargetOption } from '@/modules/traffic-rules/form/target-option.util.ts'
 import {
   networkToTargetOption,
   vifToTargetOption,
@@ -17,7 +17,7 @@ import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resour
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { objectIcon } from '@core/icons'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import type { TrafficRule, TrafficRuleDirection, TrafficRuleProtocol, TrafficRuleTargetType } from '@vates/types'
+import type { TrafficRule, TrafficRuleTargetType } from '@vates/types'
 import { computed, type MaybeRefOrGetter, reactive, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -44,8 +44,8 @@ export function useEditTrafficRuleForm(rawRule: MaybeRefOrGetter<TrafficRule>) {
 
   const formData = reactive<EditTrafficRuleFormData>({
     allow: rule.value.allow,
-    direction: rule.value.direction as TrafficRuleDirection,
-    protocol: rule.value.protocol as TrafficRuleProtocol,
+    direction: rule.value.direction,
+    protocol: rule.value.protocol,
     port: rule.value.port !== undefined ? Number(rule.value.port) : undefined,
     ipRange: rule.value.ipRange,
     targetType: rule.value.type,
@@ -150,7 +150,7 @@ export function useEditTrafficRuleForm(rawRule: MaybeRefOrGetter<TrafficRule>) {
     targetTypeSelectBindings: useSelect(targetTypeSelectId, () => ({ label: t('object') })),
     vmSelectBindings: useSelect(vmSelectId, () => ({ label: t('from-vm') })),
     targetSelectBindings: useSelect(targetSelectId, () => ({
-      label: formData.targetType === 'network' ? t('choose-network') : t('choose-vif'),
+      label: formData.targetType === 'network' ? t('network') : t('vif'),
     })),
     validateAndBuildPayload,
   }
