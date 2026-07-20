@@ -775,7 +775,6 @@
   "pool:status:connected": "@:status:connected",
   "pool:status:disconnected": "@:status:disconnected",
   "pool:status:unreachable": "@:status:unreachable",
-  "pool:status:unreachable:tooltip": "Nakonfigurované servery, ktoré nie sú dostupné",
   "pools": "Pools",
   "pools-status": "Stav fondu",
   "popup-first-connection-default-interface": "Odteraz bude táto nová verzia východiskovým rozhraním. Pokiaľ radšej chcete ponechať XO 5 zatiaľ ako predvolenú, je možné {documentationLink} a urobiť tak.",
