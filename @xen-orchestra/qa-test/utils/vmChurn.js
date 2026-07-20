@@ -2,7 +2,6 @@ import { createLogger } from '@xen-orchestra/log'
 import assert from 'node:assert'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
-import { pTimeout } from 'promise-toolbox'
 
 const log = createLogger('xo:qa-test:vm-churn')
 const execFileAsync = promisify(execFile)
@@ -41,7 +40,7 @@ export async function churnVm({
   ]
 
   try {
-    await pTimeout.call(execFileAsync('ssh', args), timeout)
+    await execFileAsync('ssh', args, { timeout })
     log.debug('Churned VM disk content', { ip, sizeMb })
   } catch (error) {
     throw new Error(`Failed to churn ${sizeMb}MB on ${ip}`, { cause: error })

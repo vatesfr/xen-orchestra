@@ -25,7 +25,6 @@
     "@xen-orchestra/fs": "^4.9.2",
     "@xen-orchestra/log": "^0.7.2",
     "nodemailer": "^7.0.13",
-    "promise-toolbox": "^0.21.0",
     "xo-lib": "^0.11.2"
   },
   "scripts": {
