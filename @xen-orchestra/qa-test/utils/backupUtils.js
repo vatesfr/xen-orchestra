@@ -1,4 +1,5 @@
 import { createLogger } from '@xen-orchestra/log'
+import { findTaskByMessage } from './index.js'
 import assert from 'node:assert'
 
 const log = createLogger('xo:qa-test:backup-utils')
@@ -131,4 +132,53 @@ export const assertBackupSuccess = (result, context = 'Backup') => {
     log.warn(`${context} failed`, { details, tasks: result.tasks })
     assert.strictEqual(result.status, 'success', `${context} should succeed, got '${result.status}': ${details}`)
   }
+}
+
+/**
+ * Asserts that a backup run performed a synchronized snapshot: all VMs were
+ * snapshotted in a single batch phase, before any transfer, and the per-VM
+ * backups reused those batched snapshots (no VM was snapshotted twice).
+ * @param {Object} result - Backup log result
+ * @param {number} vmCount - Number of VMs concerned by this backup job
+ */
+export const assertSynchronizedSnapshot = (result, vmCount) => {
+  const snapshotVmTask = findTaskByMessage(result, 'snapshot VMs')
+  assert(snapshotVmTask, `Synchronized backup should have batched snapshots`)
+  assert(
+    snapshotVmTask.tasks && snapshotVmTask.tasks.length === vmCount,
+    `Synchronized backup should have made a snapshot per vm`
+  )
+
+  // Collect every task with a given message across the whole task tree.
+  const collectByMessage = message => {
+    const found = []
+    const walk = tasks => {
+      for (const task of tasks ?? []) {
+        if (task.message === message) {
+          found.push(task)
+        }
+        if (task.tasks) {
+          walk(task.tasks)
+        }
+      }
+    }
+    walk(result.tasks)
+    return found
+  }
+
+  // Every snapshot must come from the batch phase: there should be exactly one
+  // 'snapshot' task per VM (the batched ones) and none taken again during the
+  // per-VM backup. A larger count means a VM was snapshotted a second time at
+  // transfer time, i.e. the backup did NOT reuse the synchronized snapshot.
+  const snapshots = collectByMessage('snapshot')
+  assert(
+    snapshots.length === vmCount,
+    `Synchronized backup should reuse the batched snapshots (expected ${vmCount} 'snapshot' tasks, found ${snapshots.length})`
+  )
+
+  const transfers = collectByMessage('transfer')
+  assert(transfers.length > 0, `Synchronized backup should have transfered snapshots.`)
+
+  const earliestStart = Math.min(...transfers.map(t => t.start))
+  assert(snapshotVmTask.end <= earliestStart, `Synchronized backup snapshots should be complete before transfer starts`)
 }

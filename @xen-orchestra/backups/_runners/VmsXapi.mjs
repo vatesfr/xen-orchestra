@@ -10,6 +10,7 @@ import { IncrementalXapi } from './_vmRunners/IncrementalXapi.mjs'
 import { FullXapi } from './_vmRunners/FullXapi.mjs'
 import { Throttle } from '@vates/generator-toolbox'
 import createStreamThrottle from './_createStreamThrottle.mjs'
+import { selectSynchronizedSnapshotVms } from './_selectSynchronizedSnapshotVms.mjs'
 
 const noop = Function.prototype
 
@@ -31,7 +32,9 @@ const DEFAULT_XAPI_VM_SETTINGS = {
   nRetriesVmBackupFailures: 0,
   offlineBackup: false,
   offlineSnapshot: false,
+  snapshotConcurrency: 2,
   snapshotRetention: 0,
+  synchronizedSnapshot: false,
   timeout: 0,
   useNbd: false,
   unconditionalSnapshot: false,
@@ -95,7 +98,74 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
         const allSettings = this._job.settings
         const baseSettings = this._baseSettings
 
-        const queue = new Set(vmIds)
+        const preTakenSnapshotRefByVmId = {}
+        const failedSnapshotByVmId = {}
+        if (settings.synchronizedSnapshot) {
+          await Task.run({ properties: { name: 'snapshot VMs' } }, async () => {
+            await Disposable.use(
+              Disposable.all(vmIds.map(vmId => this._getRecord('VM', vmId).catch(noop))),
+              async vms => {
+                // remove vms that failed (already handled)
+                vms = vms.filter(_ => _ !== undefined)
+
+                const batchIds = selectSynchronizedSnapshotVms(settings.synchronizedSnapshot, vms)
+
+                const snapshotOne = limitConcurrency(settings.snapshotConcurrency)(async vm => {
+                  const vmSettings = { ...settings, ...allSettings[vm.uuid] }
+                  const opts = {
+                    baseSettings,
+                    config,
+                    getSnapshotNameLabel,
+                    healthCheckSr,
+                    job,
+                    remoteAdapters,
+                    schedule,
+                    settings: vmSettings,
+                    srs,
+                    throttleGenerator,
+                    throttleStream,
+                    vm,
+                  }
+
+                  let vmBackup
+                  if (job.mode === 'delta') {
+                    vmBackup = new IncrementalXapi(opts)
+                  } else {
+                    if (job.mode === 'full') {
+                      vmBackup = new FullXapi(opts)
+                    } else {
+                      throw new Error(`Job mode ${job.mode} not implemented`)
+                    }
+                  }
+
+                  try {
+                    await vmBackup._snapshot()
+                    preTakenSnapshotRefByVmId[vm.uuid] = vmBackup._exportedVm.$ref
+                  } catch (error) {
+                    failedSnapshotByVmId[vm.uuid] = error
+                  }
+                })
+
+                await asyncMapSettled(
+                  [...vms].filter(vm => batchIds.has(vm.uuid)),
+                  snapshotOne
+                )
+              }
+            )
+          })
+        }
+
+        const snapshotedVmIds = new Set(vmIds.filter(id => !(id in failedSnapshotByVmId)))
+        Object.entries(failedSnapshotByVmId).forEach(([vmId, error]) => {
+          Task.run(
+            {
+              properties: { id: vmId, name: 'backup VM', type: 'VM' },
+            },
+            () => Promise.reject(error)
+          ).catch(noop)
+        })
+
+        const queue = new Set(snapshotedVmIds)
         const taskByVmId = {}
         const nTriesByVmId = {}
 
@@ -169,6 +239,11 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
                         throw new Error(`Job mode ${job.mode} not implemented`)
                       }
                     }
+
+                    if (preTakenSnapshotRefByVmId[vmUuid]) {
+                      vmBackup._exportedVm = await vm.$xapi.getRecord('VM', preTakenSnapshotRefByVmId[vmUuid])
+                    }
+
                     return vmBackup.run().catch(error => {
                       taskError = error
                     })

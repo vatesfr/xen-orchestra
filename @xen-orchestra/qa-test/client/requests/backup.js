@@ -43,13 +43,13 @@ export class BackupRequest extends AbstractRequest {
     const convertConfig = cfg => {
       const { vms, remotes, srs, ...rest } = cfg
 
-      // Extract first VM UUID
-      const vmUuid = vms && typeof vms === 'object' ? Object.keys(vms)[0] : undefined
+      // Extract VM UUIDs
+      const vmUuids = vms && typeof vms === 'object' ? Object.keys(vms) : undefined
 
       const result = {
         ...rest,
         vms: {
-          id: vmUuid,
+          id: vmUuids.length === 1 ? vmUuids[0] : { __or: vmUuids },
         },
       }
 
