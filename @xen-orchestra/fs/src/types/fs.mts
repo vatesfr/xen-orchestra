@@ -164,3 +164,13 @@ export abstract class RemoteHandlerAbstract {
   abstract useVhdDirectory(): boolean
   abstract addPrefix(prefix: string): RemoteHandlerAbstract
 }
+
+// ─── Handler factories ───────────────────────────────────────────────────────
+
+export interface SyncedHandler {
+  dispose: () => Promise<void>
+  value: RemoteHandlerAbstract
+}
+
+export declare function getHandler(remote: RemoteInfo, ...rest: unknown[]): RemoteHandlerAbstract
+export declare function getSyncedHandler(remote: RemoteInfo, ...rest: unknown[]): Promise<SyncedHandler>

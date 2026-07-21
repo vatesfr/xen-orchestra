@@ -1,11 +1,10 @@
-import { DiskBlock, FileAccessor } from "@xen-orchestra/disk-transform"
-import { QcowDisk } from "./QcowDisk.mjs"
+import { DiskBlock, FileAccessor, FileDescriptor } from '@xen-orchestra/disk-transform'
+import { QcowDisk } from './QcowDisk.mjs'
 
 export class QCowAccessor extends QcowDisk {
-
   #accessor: FileAccessor
   #path: string
-  #descriptor: number | undefined 
+  #descriptor: FileDescriptor | undefined
 
   constructor(accessor: FileAccessor, path: string) {
     super()
@@ -23,7 +22,7 @@ export class QCowAccessor extends QcowDisk {
       throw new Error("Can't get file decriptor before init")
     }
     const buffer = Buffer.alloc(length)
-    await this.#accessor.read(this.#descriptor , buffer, offset)
+    await this.#accessor.read(this.#descriptor, buffer, offset)
     return buffer
   }
 
