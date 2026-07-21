@@ -301,7 +301,7 @@ Naming is hard, Building a coherent api is hard, ask/propose naming before start
 - throw `noSuchObject(id, type)` (from `xo-common/api-errors`, code `NO_SUCH_OBJECT`) to get an automatic 404 when the routing doesn't already handle it. Resolve the object **first** so the 404 fires before any work starts
 #### Status codes & errors
 
-- **Never hand-roll a status code** (`res.status(404)`). `throw` the semantic error from `xo-common/api-errors` and let `generic-error-handler.middleware` map it centrally. Reuse the shared descriptors in `open-api/common/response.common.mts` (`notFoundResp`, `invalidParameters`, …) instead of magic numbers.
+- **Never hand-roll a status code** (`res.status(404)`). `throw` the semantic error from `xo-common/api-errors` and let `generic-error-handler.middleware` map it centrally. Reuse the shared descriptors in `open-api/common/response.common.mts` (`notFoundResp`, `invalidParameters`, …) instead of magic numbers. Throw an ApiError, setup with the right parameters if a new error /error code is needed. 
 
   | Throw (`xo-common/api-errors`)                                | HTTP status |
   | ------------------------------------------------------------ | ----------- |
