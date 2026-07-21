@@ -4,12 +4,12 @@ import assert from 'node:assert/strict'
 import { buildRunContext, buildVmContext, buildSrContext, buildRemoteContext } from './_buildContext.mjs'
 
 describe('buildContext', () => {
-  const date = new Date(2025, 0, 5, 3, 0, 0)
-  const runContext = buildRunContext(date)
+  const date = new Date('2025-01-05T03:00:00Z')
+  const runContext = buildRunContext(date, 'America/New_York')
   const expectedRunContext = {
-    dayOfWeek: 0,
-    dayOfMonth: 5,
-    hour: 3,
+    dayOfWeek: 6,
+    dayOfMonth: 4,
+    hour: 22,
     month: 1,
     year: 2025,
   }
