@@ -38,6 +38,7 @@ import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-colle
 import { getVdiFormat, getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
+import type { ActionItem } from '@core/tables/column-definitions/action-column.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -54,7 +55,7 @@ import { useI18n } from 'vue-i18n'
 
 const { vdis, vm, busy, error } = defineProps<{
   vdis: FrontXoVdi[]
-  vm: FrontXoVm
+  vm?: FrontXoVm
   error?: boolean
   busy?: boolean
 }>()
@@ -94,7 +95,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
   body: (vdi: FrontXoVdi) => {
     const vbds = useGetVbdsByIds(vdi.$VBDs)
 
-    const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm.id))
+    const vbd = computed(() => vbds.value.find(vbd => vbd.attached) ?? vbds.value[0])
 
     const size = computed(() => formatSizeRaw(vdi.size, 2))
     const format = computed(() => getVdiFormat(vdi.image_format))
@@ -172,7 +173,11 @@ const { HeadCells, BodyCells } = useVdiColumns({
       vdi: r =>
         r({
           label: vdi.name_label,
-          to: { name: '/vdi/[id]/general', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.VM } },
+          to: {
+            name: '/vdi/[id]/general',
+            params: { id: vdi.id },
+            query: { from: vm ? VDI_PAGE_CONTEXT.VM : VDI_PAGE_CONTEXT.SR },
+          },
           icon: getVdiIcon(getVbdsByIds(vdi.$VBDs)),
           busy: runningAction.value !== 'none',
           busyTooltip: busyMessage.value,
@@ -185,14 +190,18 @@ const { HeadCells, BodyCells } = useVdiColumns({
         r({
           onClick: () => (selectedVdiId.value = vdi.id),
           actions: [
-            {
-              label: vbd.value?.attached ? t('action:disconnect') : t('action:connect'),
-              hint: !canToggleVbdConnection.value ? toggleVbdConnectionErrorMessage.value : undefined,
-              icon: vbd.value?.attached ? 'action:disconnect' : 'action:connect',
-              onClick: () => openVbdConnectionToggleModal(),
-              disabled: !canToggleVbdConnection.value,
-              busy: isTogglingVbdConnection.value,
-            },
+            ...(vm
+              ? ([
+                  {
+                    label: vbd.value?.attached ? t('action:disconnect') : t('action:connect'),
+                    hint: !canToggleVbdConnection.value ? toggleVbdConnectionErrorMessage.value : undefined,
+                    icon: vbd.value?.attached ? 'action:disconnect' : 'action:connect',
+                    onClick: () => openVbdConnectionToggleModal(),
+                    disabled: !canToggleVbdConnection.value,
+                    busy: isTogglingVbdConnection.value,
+                  },
+                ] satisfies ActionItem[])
+              : []),
             {
               label: t('action:migrate-vdi-on-sr'),
               icon: 'action:migrate',
@@ -213,18 +222,23 @@ const { HeadCells, BodyCells } = useVdiColumns({
                 },
               ],
             },
-            {
-              label: t('action:detach-vdi'),
-              hint: deleteVbdErrorMessage.value,
-              icon: 'action:detach',
-              onClick: () => openVbdDeleteModal(),
-              disabled: !canDeleteVbd.value,
-              busy: isDeletingVbd.value,
-            },
+            ...(vm
+              ? ([
+                  {
+                    label: t('action:detach-vdi'),
+                    hint: deleteVbdErrorMessage.value,
+                    icon: 'action:detach',
+                    onClick: () => openVbdDeleteModal(),
+                    disabled: !canDeleteVbd.value,
+                    busy: isDeletingVbd.value,
+                  },
+                ] satisfies ActionItem[])
+              : []),
             {
               label: t('action:delete'),
               hint: deleteVdiErrorMessage.value,
               icon: 'action:delete',
+              accent: 'danger',
               onClick: () => openVdiDeleteModal(),
               disabled: !canDeleteVdi.value,
               busy: isDeletingVdi.value,

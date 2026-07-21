@@ -1,6 +1,6 @@
 <template>
   <VtsSidePanel :has-selection="!!vdi" @close="emit('close')">
-    <template v-if="vbd" #actions>
+    <template v-if="vbd && vm" #actions>
       <VbdConnectButton v-if="!vbd.attached" :vbd :vm />
       <VbdDisconnectButton v-else :vbd :vm />
     </template>
@@ -30,7 +30,7 @@ import { computed } from 'vue'
 
 const { vdi, vm } = defineProps<{
   vdi?: FrontXoVdi
-  vm: FrontXoVm
+  vm?: FrontXoVm
 }>()
 
 const emit = defineEmits<{
@@ -41,5 +41,5 @@ const { useGetVbdsByIds } = useXoVbdCollection()
 
 const vbds = useGetVbdsByIds(() => vdi?.$VBDs ?? [])
 
-const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm.id))
+const vbd = computed(() => vbds.value.find(vbd => vbd.attached) ?? vbds.value[0])
 </script>
