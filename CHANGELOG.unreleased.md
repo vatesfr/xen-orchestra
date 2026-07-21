@@ -33,7 +33,9 @@
 - [XO6/VM] Add "New VM" button on Host view (PR [#10048](https://github.com/vatesfr/xen-orchestra/pull/10048))
 - [xo-server] expose more metrics when doing a memory dump (PR [#10041](https://github.com/vatesfr/xen-orchestra/pull/10041))
 - [RPU] Re-enable the load balancer after a configurable safe delay (30 minutes by default) when a rolling pool update ends (PR [#10111](https://github.com/vatesfr/xen-orchestra/pull/10111))
-- [Tasks] Resolve objects in tasks names [Forum#100894]([https://xcp-ng.org/forum/post/100894](https://xcp-ng.org/forum/post/100894)) (PR [#9830](https://github.com/vatesfr/xen-orchestra/pull/9830))
+- [Tasks] Resolve objects in tasks names [Forum#100894](<[https://xcp-ng.org/forum/post/100894](https://xcp-ng.org/forum/post/100894)>) (PR [#9830](https://github.com/vatesfr/xen-orchestra/pull/9830))
+- [Backups] Add DiskAlias to handle generic aliases (PR [#10144](https://github.com/vatesfr/xen-orchestra/pull/10144))
+- [Backups] RemoteVhdDisk now inherits from RemotePathDisk which handles generic aliases (PR [#10144](https://github.com/vatesfr/xen-orchestra/pull/10144))
 
 ### Bug fixes
 
@@ -69,7 +71,9 @@
 - @xen-orchestra/backup-archive minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/disk-cli minor
-- @xen-orchestra/disk-transform patch
+- @xen-orchestra/disk-transform minor
+- @xen-orchestra/fs patch
+- @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
