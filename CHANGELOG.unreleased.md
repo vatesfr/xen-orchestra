@@ -28,7 +28,7 @@
 - [VIF] Add VIF name in header on VIF detail page (PR [#10252](https://github.com/vatesfr/xen-orchestra/pull/10252))
 - [IPMI-plugin] Add GET plugins/ipmi-sensors/hosts/{id}/ipmi to get IPMI sensors (PR [#10003](https://github.com/vatesfr/xen-orchestra/pull/10003))
 - [XO6/SR] Add dedicated Storage Repository page with general information, space usage, PBD details, custom fields (PR [#10100](https://github.com/vatesfr/xen-orchestra/pull/10100))
-- [XO6/SR] Add dedicated Storage Repository page hosts sidepanel
+- [XO6/SR] Add dedicated Storage Repository page hosts sidepanel (PR [#10140](https://github.com/vatesfr/xen-orchestra/pull/10140))
 - [XO5/Backups] Add `Synchronize snapshots` checkbox to backup jobs to get consistent restore points (PR [#10136](https://github.com/vatesfr/xen-orchestra/pull/10136))
 - [XO6/Host] Add possibility to smart reboot a host (PR [#10177](https://github.com/vatesfr/xen-orchestra/pull/10177))
 
