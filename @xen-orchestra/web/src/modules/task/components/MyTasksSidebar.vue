@@ -5,13 +5,16 @@
         <span class="typo-body-bold">{{ t('tasks:my-tasks') }}</span>
       </div>
     </template>
+
     <template #subheader>
       <SidebarSearch v-model="filter" :placeholder="t('tasks:search-in-my-tasks')" />
     </template>
-    <VtsQuickTaskList
+
+    <VtsTaskList
       v-if="areTasksReady && displayedTasks.length > 0"
-      :loading="!areTasksReady"
       :tasks="displayedTasks"
+      :selected-task-id="selectedTaskId"
+      @select="selectTask"
     />
     <VtsStateHero v-else-if="!areTasksReady" format="panel" type="busy" size="medium" />
     <VtsStateHero v-else-if="displayedTasks.length === 0" format="card" type="no-result" size="medium">
@@ -26,9 +29,11 @@ import SidebarSearch from '@/modules/treeview/components/SidebarSearch.vue'
 import type { SidebarSide } from '@core/packages/sidebar'
 import VtsLayoutSidebar from '@core/components/layout/VtsLayoutSidebar.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import VtsQuickTaskList from '@core/components/task/VtsQuickTaskList.vue'
+import VtsTaskList from '@core/components/task/VtsTaskList.vue'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 
 const { side = 'right' } = defineProps<{
   side?: SidebarSide
@@ -36,15 +41,24 @@ const { side = 'right' } = defineProps<{
 
 const { t } = useI18n()
 
+const router = useRouter()
+
 const filter = ref('')
+const selectedTaskId = useRouteQuery('id')
 
 const { lastDayTasks, areTasksReady } = useXoTaskCollection()
 
 const displayedTasks = computed(() => lastDayTasks.value)
+
+const selectTask = (id: string) => {
+  router.push({ name: '/(site)/tasks', query: { id } })
+}
 </script>
 
 <style lang="postcss" scoped>
 .my-tasks-sidebar {
+  background-color: var(--color-neutral-background-primary);
+
   .header {
     display: flex;
     align-items: center;
@@ -53,11 +67,6 @@ const displayedTasks = computed(() => lastDayTasks.value)
     padding: 0.8rem 1.6rem;
     height: 4rem;
     box-sizing: border-box;
-  }
-
-  :deep(.vts-quick-task-list) {
-    max-height: none;
-    padding: 0;
   }
 }
 </style>

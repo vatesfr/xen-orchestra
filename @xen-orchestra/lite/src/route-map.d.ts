@@ -485,6 +485,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/task/vts-task-list': RouteRecordInfo<
+      '/story/web-core/task/vts-task-list',
+      '/story/web-core/task/vts-task-list',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/tree/vts-tree-item': RouteRecordInfo<
       '/story/web-core/tree/vts-tree-item',
       '/story/web-core/tree/vts-tree-item',
@@ -873,13 +880,6 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/ui/task-item/ui-task-item': RouteRecordInfo<
       '/story/web-core/ui/task-item/ui-task-item',
       '/story/web-core/ui/task-item/ui-task-item',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/story/web-core/ui/task-list/ui-task-list': RouteRecordInfo<
-      '/story/web-core/ui/task-list/ui-task-list',
-      '/story/web-core/ui/task-list/ui-task-list',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -1416,6 +1416,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/task/vts-task-list.story.vue': {
+      routes:
+        | '/story/web-core/task/vts-task-list'
+      views:
+        | never
+    }
     'src/stories/web-core/tree/vts-tree-item.story.vue': {
       routes:
         | '/story/web-core/tree/vts-tree-item'
@@ -1749,12 +1755,6 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/ui/task-item/ui-task-item.story.vue': {
       routes:
         | '/story/web-core/ui/task-item/ui-task-item'
-      views:
-        | never
-    }
-    'src/stories/web-core/ui/task-list/ui-task-list.story.vue': {
-      routes:
-        | '/story/web-core/ui/task-list/ui-task-list'
       views:
         | never
     }
