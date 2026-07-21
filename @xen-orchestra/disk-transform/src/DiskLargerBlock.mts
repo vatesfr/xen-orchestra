@@ -79,6 +79,11 @@ export class DiskLargerBlock extends RandomAccessDisk {
     return indexes
   }
 
+  getBlockIndexesCount(): number {
+    let blockRatio = this.getBlockSize() / this.source.getBlockSize()
+    return this.#source.getBlockIndexesCount() / blockRatio
+  }
+
   hasBlock(index: number): boolean {
     const source = this.source
     let maxBlockSource = Math.ceil(source.getVirtualSize() / source.getBlockSize())

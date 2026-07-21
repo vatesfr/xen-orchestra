@@ -16,8 +16,8 @@
 
 <script lang="ts" setup>
 import UiTaskItem from '@core/components/ui/task-item/UiTaskItem.vue'
+import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
 import { useCollection } from '@core/packages/collection'
-import type { Task } from '@core/types/task.type.ts'
 
 const { tasks, depth = 0 } = defineProps<{
   tasks: Task[]

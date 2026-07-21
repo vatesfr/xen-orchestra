@@ -420,8 +420,12 @@ export interface Xapi {
     pathname: string,
     params?: { host?: XenApiHost; query?: Record<string, unknown>; task?: boolean | XenApiTask['$ref'] }
   ): Promise<{ body: Readable }>
-  clearHost(host: Pick<XenApiHostWrapped, '$ref' | '$pool'>, force?: boolean): Promise<void>
-  disableHost(hostId: XoHost['id']): Promise<void>
+  clearHost(
+    host: Pick<XenApiHostWrapped, '$ref' | '$pool'>,
+    force?: boolean,
+    opts?: { transient?: boolean }
+  ): Promise<void>
+  disableHost(hostId: XoHost['id'], opts?: { transient?: boolean }): Promise<void>
   enableHost(hostId: XoHost['id']): Promise<void>
   getRecordByUuid<
     Type extends WrappedXenApiRecord['$type'],

@@ -137,6 +137,7 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
                     task.warning(`Retry the VM mirror backup due to an error`, {
                       attempt: nTriesByVmId[vmUuid],
                       error: taskError.message,
+                      isRetry: true,
                     })
                     queue.add(vmUuid)
                   })
