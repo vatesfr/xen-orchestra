@@ -109,7 +109,10 @@ const { HeadCells, BodyCells } = useServerColumns({
       icon: server.poolIcon,
     }))
 
-    const { openModal: openRemoveModal, isRunning: isRemoving } = useServerRemoveModal(() => server.id)
+    const { openModal: openRemoveModal, isRunning: isRemoving } = useServerRemoveModal(
+      () => server.id,
+      () => server.label
+    )
     const downloadHost = computed(() => (server.poolId ? getMasterHostByPoolId(server.poolId) : undefined))
 
     return {

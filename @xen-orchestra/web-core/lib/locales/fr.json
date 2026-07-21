@@ -787,7 +787,7 @@
   "pool-connection-success": "Vous êtes connecté au pool. Vous pouvez désormais le retrouver dans votre arborescence et commencer à gérer vos hôtes et vos machines virtuelles.",
   "pool-cpu-usage": "Utilisation CPU du Pool",
   "pool-delete-confirm-title": "Vous êtes sur le point de supprimer {name}",
-  "pool-delete-confirm-info": "Vous devrez rajouter le serveur pour vous reconnecter.",
+  "pool-delete-confirm-info": "Cela supprimera définitivement ce serveur de XO. Pour vous reconnecter, vous devrez l'ajouter à nouveau.",
   "pool-management": "Gestion du Pool",
   "pool-ram-usage": "Utilisation RAM du Pool",
   "pool:status:connected": "@:status:connected",

@@ -7,32 +7,25 @@
     size="medium"
     :disabled="!canRun"
     :busy="isRunning"
-    @click="handleRemove()"
+    @click="openModal()"
   >
     {{ t('action:delete') }}
   </UiButton>
 </template>
 
 <script lang="ts" setup>
-import { useXoServerRemoveJob } from '@/modules/server/jobs/xo-server-remove.job.ts'
+import { useServerRemoveModal } from '@/modules/server/composables/use-xo-server-remove-modal.composable.ts'
+import { useXoServerCollection } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import type { FrontXoServer } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { serverId } = defineProps<{ serverId: FrontXoServer['id'] }>()
-
 const { t } = useI18n()
 
-const serverIdArg = computed(() => serverId)
+const { servers } = useXoServerCollection()
+const serverLabel = computed(() => servers.value.find(s => s.id === serverId)?.label ?? '')
 
-const { isRunning, canRun, errorMessage, run: remove } = useXoServerRemoveJob([serverIdArg])
-
-async function handleRemove() {
-  try {
-    await remove()
-  } catch (error) {
-    console.error('Error when removing server:', error)
-  }
-}
+const { openModal, canRun, isRunning, errorMessage } = useServerRemoveModal(() => serverId, serverLabel)
 </script>
