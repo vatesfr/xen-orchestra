@@ -12,7 +12,7 @@
       setting('showHeader').widget(boolean()).preset(false).help('Render the header slot'),
       setting('showSubheader').widget(boolean()).preset(false).help('Render the subheader slot'),
       setting('showFooter').widget(boolean()).preset(false).help('Render the footer slot'),
-      setting('longContent').widget(boolean()).preset(false).help('Add a lot of content to test contentscrolling'),
+      setting('longContent').widget(boolean()).preset(false).help('Add a lot of content to test content scrolling'),
     ]"
     :presets="{
       Left: { props: { side: 'left' } },
@@ -35,17 +35,15 @@
           <div class="slot-header">Sidebar header</div>
         </template>
         <template v-if="settings.showSubheader" #subheader>
-          <div class="slot-subheader">
-            <div class="sidebar-search">
-              <UiInput
-                v-model="search"
-                :aria-label="t('action:search-treeview')"
-                right-icon="fa:magnifying-glass"
-                :placeholder="t('action:search-treeview')"
-                accent="brand"
-                clearable
-              />
-            </div>
+          <div class="sidebar-search">
+            <UiInput
+              v-model="search"
+              :aria-label="t('action:search-treeview')"
+              right-icon="fa:magnifying-glass"
+              :placeholder="t('action:search-treeview')"
+              accent="brand"
+              clearable
+            />
           </div>
         </template>
         <div class="slot-content">
@@ -136,48 +134,48 @@ function toggleExpand(side: SidebarSide) {
   overflow: hidden;
   border: 0.1rem solid var(--color-neutral-border);
   border-radius: 0.4rem;
-}
 
-.layout.side--right {
-  flex-direction: row-reverse;
-}
-
-.sidebar {
-  flex-shrink: 0;
-  height: 50rem;
-}
-
-.sidebar-search {
-  padding: 0.4rem;
-}
-
-.card {
-  background-color: var(--color-info-background-selected);
-
-  ul {
-    list-style: disc;
-    padding-inline-start: 1.6rem;
-    margin-block-start: 0.8rem;
+  &.side--right {
+    flex-direction: row-reverse;
   }
-}
 
-.main {
-  flex: 1;
-  overflow: auto;
-  padding: 1.6rem;
-  background-color: var(--color-neutral-background-primary);
-}
+  .sidebar {
+    flex-shrink: 0;
+    height: 50rem;
 
-.slot-header,
-.slot-footer {
-  padding: 1.2rem 1.6rem;
-}
+    .slot-header,
+    .slot-footer {
+      padding: 1.2rem 1.6rem;
+    }
 
-.slot-content {
-  padding: 1.6rem;
+    .slot-content {
+      padding: 1.6rem;
 
-  p {
-    margin-block: 1.6rem;
+      p {
+        margin-block: 1.6rem;
+      }
+    }
+
+    .sidebar-search {
+      padding: 0.4rem;
+    }
+  }
+
+  .main {
+    flex: 1;
+    overflow: auto;
+    padding: 1.6rem;
+    background-color: var(--color-neutral-background-primary);
+
+    .card {
+      background-color: var(--color-info-background-selected);
+
+      ul {
+        list-style: disc;
+        padding-inline-start: 1.6rem;
+        margin-block-start: 0.8rem;
+      }
+    }
   }
 }
 </style>

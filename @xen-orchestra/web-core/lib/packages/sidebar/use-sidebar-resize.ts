@@ -34,7 +34,7 @@ export function useSidebarResize(side: SidebarSide, width: Ref<number>) {
   const resizeDelta = () => (side === 'left' ? initialWidth + clientX - initialX : initialWidth + initialX - clientX)
 
   const { pause, resume } = useRafFn(
-    () => (width.value = Math.min(Math.min(500, window.innerWidth * 0.3), Math.max(200, resizeDelta()))),
+    () => (width.value = Math.min(500, window.innerWidth * 0.3, Math.max(200, resizeDelta()))),
     { immediate: false }
   )
 

@@ -23,11 +23,11 @@ function createSidebar(side: SidebarSide) {
 
   const cssWidth = computed(() => (uiStore.isSmall ? '100%' : `${width.value}px`))
 
-  const cssLockedOffset = computed(() => (isExpanded.value ? 0 : `-${cssWidth.value}`))
+  const cssLockedOffset = computed(() => (isExpanded.value ? '0' : `-${cssWidth.value}`))
 
   const cssUnlockedOffset = computed(() => {
     if (isExpanded.value) {
-      return 0
+      return '0'
     }
 
     return side === 'left' ? `-${cssWidth.value}` : cssWidth.value

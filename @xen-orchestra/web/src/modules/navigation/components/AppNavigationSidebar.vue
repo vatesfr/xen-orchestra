@@ -130,7 +130,7 @@ watch(
 <style lang="postcss" scoped>
 .app-navigation-sidebar {
   .loader {
-    padding-top: 4rem;
+    padding-block-start: 4rem;
   }
 
   .sidebar-tabs {
