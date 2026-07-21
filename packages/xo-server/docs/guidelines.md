@@ -296,6 +296,17 @@ The types and name of properties must be coherent with the types in @vates/types
 * the controller is focused on serving the result
 * all the xoApp method must be typed on first use from typescript code // guideline general 
 
+### Actions
+
+REST api actions are reserved to users actions that won't fit rest api. The REST api actions must use the `this.createAction` method to handle correctly synchronous and asynchronous mode. 
+
+* PUT/PATCH is for updating an object without side effect. 
+* POST for creating an object
+* GET for getting information of an object of a collection
+
+on the caller side, action call are asynchronous by default, caller can add  `sync=true` on any action call to force the synchronous mode
+
+### Route definition
 - @Get(Route with named parameter) : must be defined before writing code
 - @Middlewares(acl( ...)). Acl are defined in `@xen-orchestra/acl/src/actions/`, should be discussed before coding
 - @Extension('x-mcp-exposure', value ), with value one of
