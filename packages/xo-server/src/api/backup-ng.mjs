@@ -85,7 +85,7 @@ createJob.params = {
     optional: true,
   },
   remotes: {
-    type: 'object',
+    type: ['object', 'string'],
     optional: true,
   },
   schedules: {
@@ -94,7 +94,7 @@ createJob.params = {
   },
   settings: SCHEMA_SETTINGS,
   srs: {
-    type: 'object',
+    type: ['object', 'string'],
     optional: true,
   },
   vms: {
@@ -142,12 +142,12 @@ editJob.params = {
     optional: true,
   },
   remotes: {
-    type: 'object',
+    type: ['object', 'string'],
     optional: true,
   },
   settings: SCHEMA_SETTINGS,
   srs: {
-    type: 'object',
+    type: ['object', 'string'],
     optional: true,
   },
   vms: {

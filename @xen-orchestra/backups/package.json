@@ -58,6 +58,7 @@
     "value-matcher": "^0.2.0",
     "vhd-lib": "^4.16.0",
     "xen-api": "^4.7.8",
+    "xo-remote-parser": "^0.10.1",
     "yazl": "^2.5.1"
   },
   "devDependencies": {

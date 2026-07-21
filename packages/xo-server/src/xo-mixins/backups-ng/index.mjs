@@ -18,6 +18,8 @@ import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs
 import { forwardResult, handleBackupLog } from '../../_handleBackupLog.mjs'
 import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
 import { waitAll } from '../../_waitAll.mjs'
+import { compileExpression, isExpression } from '@xen-orchestra/backups/_expressionPredicate.mjs'
+import { buildRunContext, buildSrContext, buildRemoteContext } from '@xen-orchestra/backups/_buildContext.mjs'
 
 const logger = createLogger('xo:xo-mixins:backups-ng')
 
@@ -150,6 +152,41 @@ export default class BackupNg {
 
             vms: { id: { __or: vmIds } },
             settings: merge(job.settings, data?.settings),
+          }
+
+          const runContext = buildRunContext(
+            new Date(),
+            job.settings[schedule.id]?.timezone ?? job.settings['']?.timezone
+          )
+
+          if (isExpression(job.srs)) {
+            const predicate = compileExpression(job.srs)
+
+            const srs = Object.values(app.getObjectsByType('SR'))
+
+            const srUuids = []
+            srs.forEach(sr => {
+              if (predicate(buildSrContext(sr, runContext))) {
+                srUuids.push(sr.uuid)
+              }
+            })
+
+            job.srs = { id: { __or: srUuids } }
+          }
+
+          if (isExpression(job.remotes)) {
+            const predicate = compileExpression(job.remotes)
+
+            const remotes = await app.getAllRemotes()
+
+            const remoteIds = []
+            remotes.forEach(remote => {
+              if (predicate(buildRemoteContext(remote, runContext))) {
+                remoteIds.push(remote.id)
+              }
+            })
+
+            job.remotes = { id: { __or: remoteIds } }
           }
         }
 
