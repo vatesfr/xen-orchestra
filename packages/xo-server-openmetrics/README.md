@@ -22,6 +22,8 @@ This plugin creates an HTTP server that exposes a `/metrics` endpoint compatible
 - VM status metric (`xcp_vm_status`) with `power_state` label, including non-running VMs
 - VM uptime metric (`xcp_vm_uptime_seconds`) for running VMs
 - VM metrics: CPU, memory, network, disk, runstate
+- Host power metric (`xcp_host_power_consumption_watts`) read from IPMI, carrying a `source="ipmi"` label
+- Estimated per-VM power metric (`xcp_vm_power_consumption_watts`, label `estimate="true"`): each running guest's share of its host's power, split proportionally to CPU load (`cpu_usage × vCPUs`); dom0 is excluded and the per-host total is preserved; flagged `data_complete="false"` when a VM's `cpu_usage` is missing
 - `is_control_domain` label on all VM metrics to distinguish dom0 from user VMs
 - `tags` label on host, VM and SR metrics carrying the XO tags of the object (comma-separated, sorted), enabling selective monitoring with regex matchers such as `{tags=~"(^|.*,)production(,.*|$)"}`
 - VDI disk size metrics: virtual size and physical usage per VDI (`xcp_vdi_virtual_size_bytes`, `xcp_vdi_physical_usage_bytes`)

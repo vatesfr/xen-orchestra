@@ -98,7 +98,7 @@
                 <div class="ssh-key-area">
                   <UiTextarea v-model="vmState.ssh_key" required :accent="isSshKeyError ? 'danger' : 'brand'">
                     {{ t('public-key') }}
-                    <template v-if="isSshKeyError" #info>
+                    <template v-if="isSshKeyError" #message>
                       {{ sshKeyErrorMessage }}
                     </template>
                   </UiTextarea>
