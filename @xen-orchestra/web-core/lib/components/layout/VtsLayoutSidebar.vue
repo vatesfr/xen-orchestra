@@ -69,8 +69,6 @@ const lockTooltipPosition = computed(() => (side === 'left' ? 'right' : 'left'))
 const className = computed(() => [
   {
     locked: sidebar.value.isLocked && !ui.isSmall,
-    expanded: sidebar.value.isExpanded,
-    mobile: ui.isSmall,
     bordered: !ui.isSmall,
   },
   ...toVariants({ side }),
@@ -88,8 +86,7 @@ const className = computed(() => [
   width: v-bind('sidebar.cssWidth');
   z-index: 1010;
   transition:
-    margin-inline-start 0.25s,
-    margin-inline-end 0.25s,
+    margin-inline 0.25s,
     transform 0.25s;
 
   &.bordered {

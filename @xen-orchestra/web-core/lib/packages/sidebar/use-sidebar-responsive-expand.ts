@@ -9,9 +9,9 @@ export function useSidebarResponsiveExpand(isExpanded: Ref<boolean>) {
   watch(
     () => uiStore.isSmall,
     (isSmall, wasSmall) => {
-      if (isSmall && wasSmall === false) {
+      if (isSmall && !wasSmall) {
         desktopExpanded = isExpanded.value
-      } else if (!isSmall && wasSmall === true) {
+      } else if (!isSmall && wasSmall) {
         isExpanded.value = desktopExpanded
       }
     }

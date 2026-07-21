@@ -58,11 +58,10 @@ const rightSidebar = useRightSidebarStore()
 const hasLeftSidebar = computed(() => !!slots['left-sidebar'])
 const hasRightSidebar = computed(() => !!slots['right-sidebar'])
 
-const showBackdrop = computed(
-  () =>
-    (hasLeftSidebar.value && leftSidebar.isExpanded && !leftSidebar.isLocked) ||
-    (hasRightSidebar.value && rightSidebar.isExpanded && !rightSidebar.isLocked)
-)
+const isLeftOverlaying = computed(() => hasLeftSidebar.value && leftSidebar.isExpanded && !leftSidebar.isLocked)
+const isRightOverlaying = computed(() => hasRightSidebar.value && rightSidebar.isExpanded && !rightSidebar.isLocked)
+
+const showBackdrop = computed(() => isLeftOverlaying.value || isRightOverlaying.value)
 
 const sseStore = useSseStore()
 
@@ -75,11 +74,11 @@ function handleRetry() {
 }
 
 function handleBackdropClick() {
-  if (hasLeftSidebar.value && leftSidebar.isExpanded && !leftSidebar.isLocked) {
+  if (isLeftOverlaying.value) {
     leftSidebar.toggleExpand(false)
   }
 
-  if (hasRightSidebar.value && rightSidebar.isExpanded && !rightSidebar.isLocked) {
+  if (isRightOverlaying.value) {
     rightSidebar.toggleExpand(false)
   }
 }
@@ -107,7 +106,8 @@ function handleBackdropClick() {
     border-block-end: 0.1rem solid var(--color-neutral-border);
     flex-shrink: 0;
     gap: 1.6rem;
-    padding: 0 1.6rem;
+    padding-block: 0;
+    padding-inline: 1.6rem;
   }
 
   .header-start,
