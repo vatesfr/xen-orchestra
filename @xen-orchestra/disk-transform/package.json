@@ -7,6 +7,7 @@
   "type": "module",
   "devDependencies": {
     "@eslint/js": "^9.19.0",
+    "@xen-orchestra/fs": "^4.9.2",
     "rimraf": "^6.0.1",
     "@types/node": "^22.3.0",
     "typescript": "~5.6",
@@ -17,6 +18,7 @@
     "dev": "tsc --watch",
     "postversion": "npm publish --access public",
     "test": "tsc && node --test **/*.test.mjs",
+    "test-integration": "node --test **/*.integ.mjs",
     "clean": "rimraf dist/"
   },
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/disk-transform",

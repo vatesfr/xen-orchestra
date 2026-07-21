@@ -1,6 +1,11 @@
 import type { Readable } from 'node:stream'
 
-export type FileDescriptor = number
+/** A file descriptor as returned by openFile() - implementation-defined (e.g. a number on local fs) */
+export interface FileArg {
+  fd: unknown
+  path: string
+}
+export type FileDescriptor = number | string | FileArg
 
 /**
  * a base interface is defined to be able to add other accessor ,
@@ -13,10 +18,10 @@ export type FileDescriptor = number
 export interface FileAccessor {
   isEncrypted: boolean
   list(path: string, opts?: unknown): Promise<string[]>
-  closeFile(filehandle: number): Promise<void>
-  openFile(path: string, opts?: unknown): Promise<number>
+  closeFile(filehandle: FileDescriptor): Promise<void>
+  openFile(path: string, opts?: unknown): Promise<FileDescriptor>
   read(
-    file: string | number,
+    file: FileDescriptor,
     buffer: Buffer | DataView,
     position: number
   ): Promise<{ bytesRead: number; buffer: Buffer | DataView }>
@@ -26,6 +31,6 @@ export interface FileAccessor {
   mktree(path: string): Promise<void>
   rmtree(path: string): Promise<void>
   unlink(path: string): Promise<void>
-  outputStream(stream: Readable): Promise<void>
+  outputStream(path: string, input: Readable, opts?: unknown): Promise<void>
   rename(path: string, newPath: string): Promise<void>
 }
