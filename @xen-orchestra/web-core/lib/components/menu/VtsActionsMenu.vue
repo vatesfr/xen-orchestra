@@ -20,6 +20,7 @@
         :disabled="action.disabled"
         :busy="action.busy"
         :on-click="action.onClick"
+        class="typo-body-bold-small"
       >
         {{ action.label }}
         <i v-if="action.hint">{{ action.hint }}</i>
@@ -31,6 +32,7 @@
             :disabled="child.disabled"
             :busy="child.busy"
             :on-click="child.onClick"
+            class="typo-body-bold-small"
           >
             {{ child.label }}
             <i v-if="child.hint">{{ child.hint }}</i>
