@@ -1,6 +1,6 @@
 import type { Readable } from 'node:stream'
 import type { Request, Response } from 'express'
-import type { SecurityName } from '../middlewares/authentication.middleware.mjs'
+import type { SecurityName } from '@vates/types'
 
 export type MaybePromise<T> = T | Promise<T>
 
