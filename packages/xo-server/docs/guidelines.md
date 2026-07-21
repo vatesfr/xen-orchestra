@@ -288,7 +288,7 @@ try {
 ### Rest api
 
 Naming is hard, Building a coherent api is hard, ask/propose naming before starting to push code
-
+The types and name of properties must be coherent with the types in @vates/types/xo.mts 
 - @Get(Route with named parameter) : must be defined before writing code
 - @Middlewares(acl( ...)). Acl are defined in `@xen-orchestra/acl/src/actions/`, should be discussed before coding
 - @Extension('x-mcp-exposure', value ), with value one of
