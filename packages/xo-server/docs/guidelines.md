@@ -315,7 +315,7 @@ Naming is hard, Building a coherent api is hard, ask/propose naming before start
 
 - Obtain and validate the resource **before** setting any response header, so a `noSuchObject` returns a clean JSON 404 instead of a body labelled as a download
 - Set `content-disposition: attachment; filename="…"` with a meaningful name built from domain labels (VM / disk / partition). Fold accents to ASCII and collapse anything outside `[\w.-]` so the header and the on-disk filename stay safe (also blocks header injection)
-
+- Tie the stream to the request lifetime (`req.on('close', () => stream.destroy())`) so a client disconnect doesn't leak the export
 #### Route declaration order (tsoa)
 
 - tsoa's route-collision check is declaration-order sensitive: a `…/files.{format}` route declared **after** the plain `…/files` route is wrongly flagged as overlapping (it does a `startsWith`, not an equality, on the last segment). Declare each `.{format}` variant **before** its plain sibling
