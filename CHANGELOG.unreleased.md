@@ -12,7 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [XO6/SR] Add dedicated Storage Repository page with general information, space usage, PBD details, custom fields (PR [#10100](https://github.com/vatesfr/xen-orchestra/pull/10100))
-- [XO6/SR] Add dedicated Storage Repository page hosts sidepanel
+- [XO6/SR] Add dedicated Storage Repository page hosts sidepanel (PR [#10140](https://github.com/vatesfr/xen-orchestra/pull/10140))
 
 ### Bug fixes
 
