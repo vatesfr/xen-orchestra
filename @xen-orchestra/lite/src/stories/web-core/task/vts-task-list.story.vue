@@ -3,15 +3,15 @@
     v-slot="{ properties }"
     :params="[prop('tasks').type('Task[]').required().preset(tasks), event('select')]"
   >
-    <UiTaskList v-bind="properties" />
+    <VtsTaskList v-bind="properties" />
   </ComponentStory>
 </template>
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { event, prop } from '@/libs/story/story-param.ts'
-import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
-import UiTaskList from '@core/components/ui/task-list/UiTaskList.vue'
+import type { Task } from '@core/types/task.type.ts'
+import VtsTaskList from '@core/components/task/VtsTaskList.vue'
 
 const tasks: Task[] = [
   {

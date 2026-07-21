@@ -17,7 +17,7 @@
       <VtsStateHero v-else-if="tasks.length === 0" format="table" type="no-data" size="small">
         {{ t('no-task-detected') }}
       </VtsStateHero>
-      <UiTaskList
+      <VtsTaskList
         v-else
         :tasks="tasksRecords"
         :selected-task-id="selectedTaskId"
@@ -36,9 +36,9 @@
 <script setup lang="ts">
 import type { Task } from '@core/types/task.type.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsTaskList from '@core/components/task/VtsTaskList.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
-import UiTaskList from '@core/components/ui/task-list/UiTaskList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'

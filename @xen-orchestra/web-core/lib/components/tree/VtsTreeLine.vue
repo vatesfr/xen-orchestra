@@ -39,7 +39,8 @@ defineProps<{
 }
 
 .vts-tree-item:last-child {
-  > .ui-tree-item-label {
+  > .ui-tree-item-label,
+  > .vts-task-item-label {
     .tree-line-half-height {
       align-self: start;
       height: calc(50% + 0.7rem);
