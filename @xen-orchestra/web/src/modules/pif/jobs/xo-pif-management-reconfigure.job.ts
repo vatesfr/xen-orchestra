@@ -5,7 +5,7 @@ import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-colle
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
-import type { XoTask } from '@vates/types'
+import { IP_CONFIGURATION_MODE, type XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export const useXoPifManagementReconfigureJob = defineJob('pif.management-reconfigure', [xoPifArg, xoHostArg], () => {
@@ -34,7 +34,7 @@ export const useXoPifManagementReconfigureJob = defineJob('pif.management-reconf
         throw new JobError(t('job:pif-management-reconfigure:current-pif'))
       }
 
-      if (!pif.ip && pif.ipv6.length === 0) {
+      if (pif.mode === IP_CONFIGURATION_MODE.NONE) {
         throw new JobError(t('job:pif-management-reconfigure:missing-ip'))
       }
     },
