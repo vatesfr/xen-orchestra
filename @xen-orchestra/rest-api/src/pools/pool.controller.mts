@@ -521,11 +521,12 @@ export class PoolController extends XapiXoController<XoPool> {
   ): CreateActionReturnType<{ id: Unbrand<XoVm>['id'] }> {
     const poolId = id as XoPool['id']
     const action = async () => {
-      const { affinity, template, install, vgpuType, gpuGroup, vdis, ...rest } = body
+      const { affinity, template, install, vgpuType, gpuGroup, vdis, high_availability, ...rest } = body
 
       // rebrand all branded type
       const vmId = await this.#vmService.create({
         affinityHost: affinity as XoHost['id'] | undefined,
+        highAvailability: high_availability,
         installRepository: install?.repository as XoVdi['id'] | '' | undefined,
         pool: poolId,
         template: template as XoVmTemplate['id'],
