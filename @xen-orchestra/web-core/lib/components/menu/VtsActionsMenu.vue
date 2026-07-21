@@ -85,3 +85,12 @@ function isGroupAction(action: ActionItem): action is GroupActionItem {
   return 'children' in action
 }
 </script>
+
+<style lang="postcss" scoped>
+i {
+  &::before {
+    content: '—';
+    margin-inline-end: 0.8rem;
+  }
+}
+</style>
