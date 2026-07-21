@@ -1,6 +1,7 @@
 // @ts-check
 
 import moment from 'moment-timezone'
+import { parse } from 'xo-remote-parser'
 
 /**
  * @typedef {object} RunContext
@@ -71,8 +72,8 @@ export function buildSrContext(sr, run) {
   return {
     sr: {
       name_label: sr.name_label,
-      type: sr.type,
-      description: sr.description,
+      type: sr.SR_type,
+      description: sr.name_description,
       tags: Array.isArray(sr.tags) ? sr.tags : [],
     },
     run,
@@ -88,7 +89,7 @@ export function buildRemoteContext(remote, run) {
   return {
     remote: {
       name: remote.name,
-      type: remote.type,
+      type: parse(remote.url).type,
       tags: Array.isArray(remote.tags) ? remote.tags : [],
     },
     run,
