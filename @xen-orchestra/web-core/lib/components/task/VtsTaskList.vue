@@ -1,36 +1,43 @@
 <template>
-  <ul class="ui-task-list">
-    <UiTaskItem
+  <VtsTreeList v-if="!sublist" class="vts-task-list">
+    <VtsTaskItem
       v-for="task of tasksItems"
       :key="task.id"
       :task="task.source"
-      show-eye-icon
+      :show-eye-icon
       :expanded="task.flags.expanded"
-      :depth="depth + 1"
       :selected="selectedTaskId === task.id"
       :selected-task-id="selectedTaskId"
-      :auto-collapse-completed
       @select="emit('select', $event)"
       @expand="task.toggleFlag('expanded')"
     />
-  </ul>
+  </VtsTreeList>
+  <template v-else>
+    <VtsTaskItem
+      v-for="task of tasksItems"
+      :key="task.id"
+      :task="task.source"
+      :show-eye-icon
+      :expanded="task.flags.expanded"
+      :selected="selectedTaskId === task.id"
+      :selected-task-id="selectedTaskId"
+      @select="emit('select', $event)"
+      @expand="task.toggleFlag('expanded')"
+    />
+  </template>
 </template>
 
 <script lang="ts" setup>
-import UiTaskItem from '@core/components/ui/task-item/UiTaskItem.vue'
+import VtsTaskItem from '@core/components/task/VtsTaskItem.vue'
+import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
 import { useCollection } from '@core/packages/collection'
-import { watch } from 'vue'
 
-const {
-  tasks,
-  depth = 0,
-  autoCollapseCompleted,
-} = defineProps<{
+const { tasks, showEyeIcon = true } = defineProps<{
   tasks: Task[]
-  depth?: number
   selectedTaskId?: string
-  autoCollapseCompleted?: boolean
+  sublist?: boolean
+  showEyeIcon?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -40,21 +47,12 @@ const emit = defineEmits<{
 const { items: tasksItems } = useCollection(() => tasks, {
   flags: { expanded: true },
 })
-
-watch(
-  () =>
-    autoCollapseCompleted ? tasksItems.value.filter(task => task.source.end !== undefined).map(task => task.id) : [],
-  (completedTaskIds, previousCompletedTaskIds = []) => {
-    tasksItems.value
-      .filter(task => completedTaskIds.includes(task.id) && !previousCompletedTaskIds.includes(task.id))
-      .forEach(task => task.toggleFlag('expanded', false))
-  }
-)
 </script>
 
 <style scoped lang="postcss">
-.ui-task-list {
+.vts-task-list {
   overflow-x: auto;
   overflow-y: hidden;
+  padding-inline: 0.4rem 0.8rem;
 }
 </style>
