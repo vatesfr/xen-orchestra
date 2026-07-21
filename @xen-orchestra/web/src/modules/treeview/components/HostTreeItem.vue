@@ -29,7 +29,7 @@
               @click="open($event)"
             />
           </template>
-          <HostTreeActions :host="branch.data" />
+          <HostMoreActions :host="branch.data" />
         </MenuList>
       </template>
     </UiTreeItemLabel>
@@ -37,7 +37,7 @@
 </template>
 
 <script lang="ts" setup>
-import HostTreeActions from '@/modules/host/components/actions/HostTreeActions.vue'
+import HostMoreActions from '@/modules/host/components/HostMoreActions.vue'
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { HostBranch } from '@/modules/treeview/types/tree.type.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
