@@ -59,19 +59,6 @@ class MockDisk extends RandomAccessDisk {
   async close() {}
 }
 
-function write(handler, path, disk, opts = {}) {
-  return writeToVhdDirectory({
-    disk,
-    target: {
-      handler,
-      path,
-      concurrency: 1,
-      validator: async () => {},
-      ...opts,
-    },
-  })
-}
-
 describe('DiskConsumerVhdDirectory', () => {
   it('writes a valid VHD directory that can be read back', async () => {
     const tempDir = await pFromCallback(cb => tmp.dir(cb))
@@ -81,7 +68,10 @@ describe('DiskConsumerVhdDirectory', () => {
         const aliasPath = 'disk.alias.vhd'
         const disk = new MockDisk(2, [0, 1], 0x42)
 
-        const size = await write(handler, aliasPath, disk)
+        const size = await writeToVhdDirectory({
+          disk,
+          target: { handler, path: aliasPath, concurrency: 1, validator: async () => {} },
+        })
         assert.ok(size > 0, 'reported size should be greater than 0')
 
         const vhd = yield openVhd(handler, aliasPath)
@@ -109,11 +99,17 @@ describe('DiskConsumerVhdDirectory', () => {
         const disk = new MockDisk(1, [0], 0x11)
 
         let validatedPath
-        await write(handler, aliasPath, disk, {
-          validator: async dataPath => {
-            validatedPath = dataPath
-            // alias must not exist yet: validator runs before it is created
-            assert.equal(await handler.list('.', { filter: f => f === aliasPath }).then(l => l.length), 0)
+        await writeToVhdDirectory({
+          disk,
+          target: {
+            handler,
+            path: aliasPath,
+            concurrency: 1,
+            validator: async dataPath => {
+              validatedPath = dataPath
+              // alias must not exist yet: validator runs before it is created
+              assert.equal(await handler.list('.', { filter: f => f === aliasPath }).then(l => l.length), 0)
+            },
           },
         })
 
@@ -133,9 +129,15 @@ describe('DiskConsumerVhdDirectory', () => {
         const disk = new MockDisk(1, [0], 0x11)
 
         await assert.rejects(
-          write(handler, aliasPath, disk, {
-            validator: async () => {
-              throw new Error('boom')
+          writeToVhdDirectory({
+            disk,
+            target: {
+              handler,
+              path: aliasPath,
+              concurrency: 1,
+              validator: async () => {
+                throw new Error('boom')
+              },
             },
           }),
           /boom/
@@ -169,12 +171,7 @@ describe('DiskConsumerVhdDirectory', () => {
         const firstDisk = new MockDisk(NB_BLOCKS, [0, 1], 0xaa)
         await writeToVhdDirectory({
           disk: firstDisk,
-          target: {
-            handler,
-            path: aliasPath,
-            concurrency: 1,
-            validator: async () => {},
-          },
+          target: { handler, path: aliasPath, concurrency: 1, validator: async () => {} },
         })
 
         // Second attempt reuses the exact same alias path. Before the fix, block writes
@@ -184,12 +181,7 @@ describe('DiskConsumerVhdDirectory', () => {
         await assert.doesNotReject(
           writeToVhdDirectory({
             disk: secondDisk,
-            target: {
-              handler,
-              path: aliasPath,
-              concurrency: 1,
-              validator: async () => {},
-            },
+            target: { handler, path: aliasPath, concurrency: 1, validator: async () => {} },
           })
         )
 
