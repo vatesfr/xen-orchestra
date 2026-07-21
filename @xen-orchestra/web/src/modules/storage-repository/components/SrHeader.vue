@@ -7,9 +7,22 @@
     {{ sr.name_label }}
   </UiHeadBar>
   <TabList>
-    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/sr/[id]/general', params: { id: sr.id } }" custom>
+    <RouterLink
+      v-slot="{ isActive, href }"
+      :to="{ name: '/sr/[id]/general', params: { id: sr.id }, query: contextQuery }"
+      custom
+    >
       <TabItem :active="isActive" :href tag="a">
         {{ t('general') }}
+      </TabItem>
+    </RouterLink>
+    <RouterLink
+      v-slot="{ isActive, href }"
+      :to="{ name: '/sr/[id]/hosts', params: { id: sr.id }, query: contextQuery }"
+      custom
+    >
+      <TabItem :active="isActive" :href tag="a">
+        {{ t('hosts') }}
       </TabItem>
     </RouterLink>
   </TabList>
@@ -25,11 +38,17 @@ import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 
 const { sr, host, fromContext } = defineProps<{ sr: FrontXoSr; host?: FrontXoHost; fromContext?: SrPageContext }>()
 
 const { t } = useI18n()
+
+const route = useRoute()
+
+const contextQuery = computed(() => ({ from: route.query.from, host: route.query.host }))
 
 const { srConnectionStatus } = useXoSrUtils(() => sr)
 </script>
