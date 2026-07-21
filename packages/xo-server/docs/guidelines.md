@@ -289,6 +289,13 @@ try {
 
 Naming is hard, Building a coherent api is hard, ask/propose naming before starting to push code
 The types and name of properties must be coherent with the types in @vates/types/xo.mts 
+### code organisation
+* the xo-mixins contains code shared by proxy and xo-server  // guideline general
+* the xo-server/mixins : contains code shared across multiple part of xo-server (JSONRPC and REST api for example)  // guideline general
+* the service must handle the domain/functional logic of one or multiple REST api route. 
+* the controller is focused on serving the result
+* all the xoApp method must be typed on first use from typescript code // guideline general 
+
 - @Get(Route with named parameter) : must be defined before writing code
 - @Middlewares(acl( ...)). Acl are defined in `@xen-orchestra/acl/src/actions/`, should be discussed before coding
 - @Extension('x-mcp-exposure', value ), with value one of
