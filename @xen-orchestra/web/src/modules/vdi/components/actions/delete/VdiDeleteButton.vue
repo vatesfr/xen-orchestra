@@ -30,20 +30,13 @@ const {
   openModal: openVdiDeleteModal,
   canRun: canDeleteVdi,
   isRunning: isDeletingVdi,
+  errorMessage: deleteVdiErrorMessage,
 } = useVdiDeleteModal(
   () => [vdi],
   () => vm
 )
 
-const hint = computed(() => {
-  if (!vm) {
-    return t('vdi-not-attached-to-vm')
-  }
-  if (!canDeleteVdi.value) {
-    return t('vm-running')
-  }
-  return undefined
-})
+const hint = computed(() => (!canDeleteVdi.value ? deleteVdiErrorMessage.value : undefined))
 </script>
 
 <style lang="postcss" scoped>

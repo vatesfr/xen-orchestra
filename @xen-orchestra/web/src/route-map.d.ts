@@ -352,6 +352,7 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | '/sr/[id]/general'
       | '/sr/[id]/hosts'
+      | '/sr/[id]/vdis'
     >,
     '/sr/[id]/general': RouteRecordInfo<
       '/sr/[id]/general',
@@ -363,6 +364,13 @@ declare module 'vue-router/auto-routes' {
     '/sr/[id]/hosts': RouteRecordInfo<
       '/sr/[id]/hosts',
       '/sr/:id/hosts',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/sr/[id]/vdis': RouteRecordInfo<
+      '/sr/[id]/vdis',
+      '/sr/:id/vdis',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
       | never
@@ -811,6 +819,7 @@ declare module 'vue-router/auto-routes' {
         | '/sr/[id]'
         | '/sr/[id]/general'
         | '/sr/[id]/hosts'
+        | '/sr/[id]/vdis'
       views:
         | 'default'
     }
@@ -823,6 +832,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/sr/[id]/hosts.vue': {
       routes:
         | '/sr/[id]/hosts'
+      views:
+        | never
+    }
+    'src/pages/sr/[id]/vdis.vue': {
+      routes:
+        | '/sr/[id]/vdis'
       views:
         | never
     }
