@@ -432,6 +432,7 @@
   "host-internal-networks": "Host internal networks",
   "host-not-running": "Host not running",
   "host-off": "Host is powered off",
+  "host-uptime": "Host uptime",
   "host:status:active": "@:status:active",
   "host:status:disabled": "@:status:disabled",
   "host:status:halted": "@:status:halted",
