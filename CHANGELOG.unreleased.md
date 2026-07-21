@@ -14,6 +14,7 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [IPMI-plugin] added a route to get IPMI infos to setup the plugin (PR [#10003](https://github.com/vatesfr/xen-orchestra/tree/feat/ipmi-sensors/available-route) )
 - **RBAC** check for REST API endpoints:
   - `/pools/:id/actions/create_bonded_network` (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
   - `/pools/:id/actions/create_internal_network` (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
@@ -33,7 +34,7 @@
 - [XO6/VM] Add "New VM" button on Host view (PR [#10048](https://github.com/vatesfr/xen-orchestra/pull/10048))
 - [xo-server] expose more metrics when doing a memory dump (PR [#10041](https://github.com/vatesfr/xen-orchestra/pull/10041))
 - [RPU] Re-enable the load balancer after a configurable safe delay (30 minutes by default) when a rolling pool update ends (PR [#10111](https://github.com/vatesfr/xen-orchestra/pull/10111))
-- [Tasks] Resolve objects in tasks names [Forum#100894]([https://xcp-ng.org/forum/post/100894](https://xcp-ng.org/forum/post/100894)) (PR [#9830](https://github.com/vatesfr/xen-orchestra/pull/9830))
+- [Tasks] Resolve objects in tasks names [Forum#100894](<[https://xcp-ng.org/forum/post/100894](https://xcp-ng.org/forum/post/100894)>) (PR [#9830](https://github.com/vatesfr/xen-orchestra/pull/9830))
 - [REST API] Possibility to set the HA restart priority (`high_availability`) when creating a VM (PR [#10070](https://github.com/vatesfr/xen-orchestra/pull/10070))
 
 ### Bug fixes
@@ -78,6 +79,8 @@
 - xapi-explore-sr patch
 - xen-api minor
 - xo-server minor
+- xo-server-ipmi-plugin minor
+- @xen-orchestra/acl patch
 - xo-server-openmetrics minor
 - xo-server-perf-alert patch
 
