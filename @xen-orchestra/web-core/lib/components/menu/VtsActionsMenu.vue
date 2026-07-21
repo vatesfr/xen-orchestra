@@ -16,24 +16,26 @@
       <MenuItem
         v-for="(action, index) of actions"
         :key="index"
+        :class="{ danger: action.accent === 'danger' }"
         :icon="action.icon"
         :disabled="action.disabled"
         :busy="action.busy"
         :on-click="action.onClick"
       >
         {{ action.label }}
-        <i v-if="action.hint" class="em-dash-prefix">{{ action.hint }}</i>
+        <i v-if="action.hint">{{ action.hint }}</i>
         <template v-if="isGroupAction(action)" #submenu>
           <MenuItem
             v-for="(child, childIndex) of action.children"
             :key="childIndex"
+            :class="{ danger: child.accent === 'danger' }"
             :icon="child.icon"
             :disabled="child.disabled"
             :busy="child.busy"
             :on-click="child.onClick"
           >
             {{ child.label }}
-            <i v-if="child.hint" class="em-dash-prefix">{{ child.hint }}</i>
+            <i v-if="child.hint">{{ child.hint }}</i>
           </MenuItem>
         </template>
       </MenuItem>
@@ -67,6 +69,7 @@ type BaseActionItem = {
   icon?: IconName
   disabled?: boolean
   busy?: boolean
+  accent?: 'danger'
 }
 
 export type LeafActionItem = BaseActionItem & {
@@ -85,3 +88,9 @@ function isGroupAction(action: ActionItem): action is GroupActionItem {
   return 'children' in action
 }
 </script>
+
+<style lang="postcss" scoped>
+.danger {
+  color: var(--color-danger-item-base);
+}
+</style>

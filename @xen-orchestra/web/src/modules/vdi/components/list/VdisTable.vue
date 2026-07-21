@@ -35,6 +35,7 @@ import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-colle
 import { getVdiFormat, getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
+import type { ActionItem } from '@core/tables/column-definitions/action-column.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -43,7 +44,6 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useMapper } from '@core/packages/mapper/use-mapper.ts'
-import { type ActionItem } from '@core/tables/column-definitions/action-column.ts'
 import { useVdiColumns } from '@core/tables/column-sets/vdi-columns.ts'
 import { CONNECTION_ACTION } from '@core/types/connection.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
@@ -52,7 +52,7 @@ import { useI18n } from 'vue-i18n'
 
 const { vdis, vm, busy, error } = defineProps<{
   vdis: FrontXoVdi[]
-  vm: FrontXoVm
+  vm?: FrontXoVm
   error?: boolean
   busy?: boolean
 }>()
@@ -93,7 +93,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
   body: (vdi: FrontXoVdi) => {
     const vbds = useGetVbdsByIds(vdi.$VBDs)
 
-    const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm.id))
+    const vbd = computed(() => vbds.value.find(vbd => vbd.attached) ?? vbds.value[0])
 
     const size = computed(() => formatSizeRaw(vdi.size, 2))
     const format = computed(() => getVdiFormat(vdi.image_format))
@@ -185,7 +185,11 @@ const { HeadCells, BodyCells } = useVdiColumns({
       vdi: r =>
         r({
           label: vdi.name_label,
-          to: { name: '/vdi/[id]/general', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.VM } },
+          to: {
+            name: '/vdi/[id]/general',
+            params: { id: vdi.id },
+            query: { from: vm ? VDI_PAGE_CONTEXT.VM : VDI_PAGE_CONTEXT.SR },
+          },
           icon: getVdiIcon(getVbdsByIds(vdi.$VBDs)),
           busy: runningAction.value !== 'none',
           busyTooltip: busyMessage.value,
@@ -198,7 +202,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
         r({
           onClick: () => (selectedVdiId.value = vdi.id),
           actions: [
-            connectionAction.value,
+            ...(vm ? [connectionAction.value] : []),
             {
               label: t('action:migrate-vdi-on-sr'),
               icon: 'action:migrate',
@@ -219,18 +223,23 @@ const { HeadCells, BodyCells } = useVdiColumns({
                 },
               ],
             },
-            {
-              label: t('action:detach-vdi'),
-              hint: deleteVbdsErrorMessage.value,
-              icon: 'action:detach',
-              onClick: () => deleteVbds(),
-              disabled: !canDeleteVbds.value,
-              busy: isDeletingVbds.value,
-            },
+            ...(vm
+              ? ([
+                  {
+                    label: t('action:detach-vdi'),
+                    hint: deleteVbdsErrorMessage.value,
+                    icon: 'action:detach',
+                    onClick: () => deleteVbds(),
+                    disabled: !canDeleteVbds.value,
+                    busy: isDeletingVbds.value,
+                  },
+                ] satisfies ActionItem[])
+              : []),
             {
               label: t('action:delete'),
               hint: deleteVdisErrorMessage.value,
               icon: 'action:delete',
+              accent: 'danger',
               onClick: () => deleteVdis(),
               disabled: !canDeleteVdis.value,
               busy: isDeletingVdis.value,

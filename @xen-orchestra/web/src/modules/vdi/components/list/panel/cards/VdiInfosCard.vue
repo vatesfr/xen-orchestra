@@ -47,8 +47,8 @@
 
 <script lang="ts" setup>
 import { useVbdsStatus, type VbdAttachmentStatus } from '@/modules/vbd/composables/use-vbds-status.composable.ts'
+import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
 import type { IconName } from '@core/icons'
@@ -66,7 +66,7 @@ import { useI18n } from 'vue-i18n'
 
 const { vdi, vm } = defineProps<{
   vdi: FrontXoVdi
-  vm: FrontXoVm
+  vm?: FrontXoVm
 }>()
 
 const { t } = useI18n()
@@ -93,9 +93,15 @@ const vbdsStatus = useMapper<VbdAttachmentStatus, (typeof CONNECTION_STATUS)[key
   'noneAttached'
 )
 
-const { notCdDriveVbds } = useXoVmVbdsUtils(() => vm)
+const { useGetVbdsByIds } = useXoVbdCollection()
 
-const vdiDevice = computed(() => notCdDriveVbds.value.find(vbd => vbd.VDI === vdi.id)?.device ?? '')
+const vbds = useGetVbdsByIds(() => vdi.$VBDs)
+
+const vdiDevice = computed(() => {
+  const notCdDriveVbds = vbds.value.filter(vbd => !vbd.is_cd_drive)
+
+  return (vm ? notCdDriveVbds.find(vbd => vbd.VM === vm.id) : notCdDriveVbds[0])?.device ?? ''
+})
 </script>
 
 <style scoped lang="postcss">

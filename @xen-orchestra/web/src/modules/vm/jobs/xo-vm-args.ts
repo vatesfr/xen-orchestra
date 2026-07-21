@@ -8,7 +8,7 @@ export const xoVmsArg = defineJobArg({
 })
 
 export const xoVmArg = defineJobArg({
-  identify: (vm: FrontXoVm) => vm.id,
+  identify: (vm?: FrontXoVm) => vm?.id,
   toArray: false,
 })
 
