@@ -2,6 +2,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 
 import { buildRunContext, buildVmContext, buildSrContext, buildRemoteContext } from './_buildContext.mjs'
+import { BACKUP_EXPRESSION_CONTEXT } from '@vates/types/backup-expression-context'
 
 describe('buildContext', () => {
   const date = new Date('2025-01-05T03:00:00Z')
@@ -53,6 +54,17 @@ describe('buildContext', () => {
     })
   })
 
+  it('buildVmContext exposes every field advertised by the schema', () => {
+    // vm is an open context (buildVmContext copies through all real VM fields),
+    // so we assert the schema's curated fields are a subset of the output, not equality.
+    const vm = { name_label: 'name', power_state: 'Running', tags: ['tag'], $ref: 'ref', func: () => {} }
+    const { vm: vmContext } = buildVmContext(vm, runContext)
+
+    for (const field of Object.keys(BACKUP_EXPRESSION_CONTEXT.vm)) {
+      assert.ok(field in vmContext, `vm context is missing schema field: ${field}`)
+    }
+  })
+
   it('buildSrContext', () => {
     const sr1 = {
       name_label: 'name_label',
@@ -70,6 +82,7 @@ describe('buildContext', () => {
       },
       run: expectedRunContext,
     })
+    assert.deepEqual(Object.keys(srContext1.sr).sort(), Object.keys(BACKUP_EXPRESSION_CONTEXT.sr).sort())
 
     const sr2 = {
       name_label: 'name_label',
@@ -88,6 +101,7 @@ describe('buildContext', () => {
       },
       run: expectedRunContext,
     })
+    assert.deepEqual(Object.keys(srContext2.sr).sort(), Object.keys(BACKUP_EXPRESSION_CONTEXT.sr).sort())
   })
 
   it('buildRemoteContext', () => {
@@ -105,6 +119,7 @@ describe('buildContext', () => {
       },
       run: expectedRunContext,
     })
+    assert.deepEqual(Object.keys(remoteContext1.remote).sort(), Object.keys(BACKUP_EXPRESSION_CONTEXT.remote).sort())
 
     const remote2 = {
       name: 'name',
@@ -121,5 +136,6 @@ describe('buildContext', () => {
       },
       run: expectedRunContext,
     })
+    assert.deepEqual(Object.keys(remoteContext2.remote).sort(), Object.keys(BACKUP_EXPRESSION_CONTEXT.remote).sort())
   })
 })
