@@ -15,7 +15,6 @@ import { XapiProgressHandler } from './XapiProgress.mjs'
 import { XapiQcow2StreamSource } from './XapiQcow2StreamSource.mjs'
 import { VDI_FORMAT_QCOW2, VDI_FORMAT_VHD, VHD_MAX_SIZE } from '../index.mjs'
 
-// @todo how to type this ?
 const { debug, info, warn } = createLogger('xo:xapi:xapi-disks')
 
 /**
