@@ -6,6 +6,7 @@
  * @typedef {import('vhd-lib/_createFooterHeader.js').VhdFooter} VhdFooter
  * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
  * @typedef {import('@xen-orchestra/disk-transform').FileAccessor} FileAccessor
+ * @typedef {import('./RemoteDisk.mjs').RemoteDisk} RemoteDisk
  *
 
  */
