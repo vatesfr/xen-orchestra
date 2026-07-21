@@ -240,7 +240,12 @@ export default class Xapi extends XapiBase {
         delay: 0,
         when: { code: 'MESSAGE_PARAMETER_COUNT_MISMATCH' },
         onRetry: error => {
-          log.warn(error)
+          if (params.length <= 1) {
+            log.warn(error)
+            throw error
+          }
+
+          log.debug(error)
           popParamsAndTrim(1)
         },
       })
