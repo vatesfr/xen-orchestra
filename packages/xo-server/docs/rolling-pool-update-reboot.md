@@ -54,7 +54,7 @@ Old traces are garbage-collected on mtime (`rpu.tracesRetention`, 31 days by def
 | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `The updater plugin is busy (current operation: update)` on `Listing missing patches` | Race between the LINSTOR update step and `check_update`: the updater lock on the host is not released yet. Not destructive, happens before anything is installed. Relaunch. |
 | `VM_LACKS_FEATURE` with OpaqueRefs, on `Updating and rebooting`                       | A running VM has no PV drivers. `assert_can_evacuate` runs on all hosts before anything starts, so the RPU refuses upfront. Shut the VM down or install guest tools.        |
-| `MESSAGE_PARAMETER_COUNT_MISMATCH(host.evacuate, 1, 3)` (WARN)                        | Signature fallback on XAPI 8.2. Harmless.                                                                                                                                   |
+| `MESSAGE_PARAMETER_COUNT_MISMATCH(host.evacuate, 1, 3)` (DEBUG)                       | Expected signature fallback on XAPI 8.2. WARN only if every supported signature fails.                                                                                      |
 | Timeout on `Waiting for host to be up`                                                | Host takes too long to boot. `xapiOptions.restartHostTimeout` (default 20 minutes).                                                                                         |
 | Pool stays `disconnected` after the master rebooted, `EHOSTUNREACH`                   | Stale connection error, the retry did not kick in yet. `POST /rest/v0/servers/<id>/actions/connect` reconnects immediately.                                                 |
 
@@ -117,5 +117,12 @@ task.start({ name: 'Rolling pool update', poolId: string, poolName: string })
 │  │  │  └─ task.end
 │  │  └─ task.end
 │  └─ task.end
+└─ task.end
+```
+
+If the load balancer was loaded before the rolling pool update, its cooldown and re-enablement are reported as a separate root task. This task starts during cleanup after either success or failure, so its delay does not extend the rolling pool update task. If rolling pool updates overlap or another starts during the cooldown, the load balancer stays disabled and a fresh cooldown starts after the last update ends.
+
+```
+task.start({ name: 'Waiting before re-enabling the load balancer', objectId: string, poolId: string, poolName: string })
 └─ task.end
 ```

@@ -2,6 +2,10 @@ import { describe, test } from 'node:test'
 import assert from 'node:assert/strict'
 import { sortDisks, toTableRow, type DiskInfo } from '../commands/list.mjs'
 
+// These tests assert on the full-width row (with the "Size on disk" column), so
+// they always exercise toTableRow with showSize = true.
+const toTableRowWithSize = (disk: DiskInfo, prevDisk: DiskInfo | undefined) => toTableRow(disk, prevDisk, true)
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -106,43 +110,43 @@ describe('sortDisks', () => {
 
 describe('toTableRow', () => {
   test('base disk shows "(none)" in parent uid column', () => {
-    const row = toTableRow(ok('a'), undefined)
+    const row = toTableRowWithSize(ok('a'), undefined)
     assert.strictEqual(row[5], '(none)')
   })
 
   test('differencing disk with no previous disk shows parentUid', () => {
-    const row = toTableRow(ok('b', 'a'), undefined)
+    const row = toTableRowWithSize(ok('b', 'a'), undefined)
     assert.strictEqual(row[5], 'a')
   })
 
   test('differencing disk whose parent is not the previous row shows parentUid', () => {
-    const row = toTableRow(ok('b', 'a'), ok('x'))
+    const row = toTableRowWithSize(ok('b', 'a'), ok('x'))
     assert.strictEqual(row[5], 'a')
   })
 
   test('differencing disk whose parent is immediately above shows ↑', () => {
-    const row = toTableRow(ok('b', 'a'), ok('a'))
+    const row = toTableRowWithSize(ok('b', 'a'), ok('a'))
     assert.strictEqual(row[5], '↑')
   })
 
   test('error disk shows error message in second column', () => {
-    const row = toTableRow(err('bad.vhd'), undefined)
+    const row = toTableRowWithSize(err('bad.vhd'), undefined)
     assert.ok(row[1].includes('error'))
     assert.ok(row[1].includes('disk header corrupted'))
   })
 
   test('differencing column shows "yes" for differencing disk', () => {
-    assert.strictEqual(toTableRow(ok('b', 'a'), undefined)[4], 'yes')
+    assert.strictEqual(toTableRowWithSize(ok('b', 'a'), undefined)[4], 'yes')
   })
 
   test('differencing column shows "no" for base disk', () => {
-    assert.strictEqual(toTableRow(ok('a'), undefined)[4], 'no')
+    assert.strictEqual(toTableRowWithSize(ok('a'), undefined)[4], 'no')
   })
 
   test('parent with multiple children: at least one child shows parent UID instead of ↑', () => {
     const sorted = sortDisks([ok('c2', 'a'), ok('a'), ok('c1', 'a')])
 
-    const rows = sorted.map((disk, i) => toTableRow(disk, sorted[i - 1]))
+    const rows = sorted.map((disk, i) => toTableRowWithSize(disk, sorted[i - 1]))
 
     // Find rows for the two children
     const childRows = rows.filter((_row, i) => {

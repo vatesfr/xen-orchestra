@@ -27,6 +27,9 @@ const baseDisk = {
   getParentUuid: () => null as unknown as string,
 }
 
+// Records the options each openDisposableDisk call received.
+const openDiskParams: Array<{ path: string; ignoreBlockIndexes?: boolean }> = []
+
 // Reassigned per-test to control what handler.list() returns (or throws).
 let currentListImpl: () => Promise<string[]> = async () => []
 
@@ -52,8 +55,9 @@ mock.module('@xen-orchestra/fs', {
 mock.module('@xen-orchestra/backup-archive/disks', {
   namedExports: {
     isDisk: (p: string) => p.endsWith('.vhd'),
-    openDisposableDisk: ({ path }: { path: string }) => {
-      if (brokenPaths.has(path)) throw new Error('disk header corrupted')
+    openDisposableDisk: (params: { path: string; ignoreBlockIndexes?: boolean }) => {
+      openDiskParams.push(params)
+      if (brokenPaths.has(params.path)) throw new Error('disk header corrupted')
       return Promise.resolve({ value: { ...baseDisk }, dispose: diskDispose })
     },
   },
@@ -86,6 +90,7 @@ describe('list command', () => {
     handlerDispose.mock.resetCalls()
     diskDispose.mock.resetCalls()
     brokenPaths.clear()
+    openDiskParams.length = 0
     currentListImpl = async () => ['/dir/disk.vhd']
   })
 
@@ -121,5 +126,23 @@ describe('list command', () => {
     currentListImpl = async () => []
     const output = await captureLog(() => listCommand('file:///test', '/dir', []))
     assert.ok(output.includes('No disks found'))
+  })
+
+  test('by default opens disks with ignoreBlockIndexes: true and hides the size column', async () => {
+    const output = await captureLog(() => listCommand('file:///test', '/dir', []))
+    assert.ok(
+      openDiskParams.every(p => p.ignoreBlockIndexes === true),
+      'disks must be opened with ignoreBlockIndexes: true by default'
+    )
+    assert.ok(!output.includes('Size on disk'), 'the size column must be hidden without --size')
+  })
+
+  test('--size opens disks with ignoreBlockIndexes: false and shows the size column', async () => {
+    const output = await captureLog(() => listCommand('file:///test', '/dir', ['--size']))
+    assert.ok(
+      openDiskParams.every(p => p.ignoreBlockIndexes === false),
+      'disks must be opened with ignoreBlockIndexes: false with --size'
+    )
+    assert.ok(output.includes('Size on disk'), 'the size column must appear with --size')
   })
 })
