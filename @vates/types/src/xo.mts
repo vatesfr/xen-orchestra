@@ -76,7 +76,7 @@ type BaseXoVm = BaseXapiXo & {
   expNestedHvm: boolean
   isNestedVirtEnabled: boolean
   hasVendorDevice: boolean
-  high_availability: string
+  high_availability: 'best-effort' | 'restart' | ''
   installTime?: number | null
   isFirmwareSupported: boolean
   memory: {
