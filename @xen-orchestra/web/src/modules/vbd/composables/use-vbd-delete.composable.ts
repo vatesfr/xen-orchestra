@@ -6,7 +6,10 @@ import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
 
-export function useVbdDelete(options: { vbds: MaybeRefOrGetter<FrontXoVbd[]>; vm: MaybeRefOrGetter<FrontXoVm> }) {
+export function useVbdDelete(options: {
+  vbds: MaybeRefOrGetter<FrontXoVbd[]>
+  vm: MaybeRefOrGetter<FrontXoVm | undefined>
+}) {
   const vbds = toComputed(options.vbds)
   const vm = toComputed(options.vm)
 
