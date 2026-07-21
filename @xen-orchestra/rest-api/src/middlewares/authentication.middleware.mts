@@ -9,10 +9,8 @@ import type { AuthenticatedRequest } from '../helpers/helper.type.mjs'
 import { iocContainer } from '../ioc/ioc.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { ACL_MIDDLEWARE_NAME } from './acl.middleware.mjs'
-
+import type { SecurityName } from '@vates/types'
 const log = createLogger('xo:rest-api:authentication')
-
-export type SecurityName = '*' | 'token' | 'basic' | 'none'
 
 // TSOA spec require this function to be async
 export async function expressAuthentication(req: AuthenticatedRequest, securityName: SecurityName, scopes: 'acl'[]) {
