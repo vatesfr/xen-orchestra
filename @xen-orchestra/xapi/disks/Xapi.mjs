@@ -7,6 +7,7 @@
 
 import { DiskLargerBlock, DiskPassthrough, ReadAhead, TimeoutDisk } from '@xen-orchestra/disk-transform'
 import { createLogger } from '@xen-orchestra/log'
+import { Task } from '@vates/task'
 import { XapiVhdCbtSource } from './XapiVhdCbt.mjs'
 import { XapiStreamNbdSource } from './XapiStreamNbd.mjs'
 import { XapiVhdStreamSource } from './XapiVhdStreamSource.mjs'
@@ -111,7 +112,10 @@ export class XapiDiskSource extends DiskPassthrough {
       }
     } catch (err) {
       if (err.code === 'NO_NBD_AVAILABLE') {
-        warn(`can't connect through NBD, fall back to stream export`)
+        const warningMessage = `can't connect through NBD, fall back to stream export`
+        // @ts-ignore Task.warning is a static alias set up dynamically, not visible to TS
+        Task.warning(warningMessage)
+        warn(warningMessage)
         if (streamSource === undefined) {
           throw new Error(`Can't open stream source`)
         }
@@ -189,7 +193,10 @@ export class XapiDiskSource extends DiskPassthrough {
       // init probaby failed, so nothing to close , but better safe than sorry
       await source?.close().catch(warn)
       if (baseRef !== undefined) {
-        warn(`can't compute delta ${vdiRef} from ${baseRef}, fallBack to a full`, { error })
+        const warningMessage = `can't compute delta ${vdiRef} from ${baseRef}, fall back to a full`
+        // @ts-ignore Task.warning is a static alias set up dynamically, not visible to TS
+        Task.warning(warningMessage, { error })
+        warn(warningMessage, { error })
         this.#baseRef = undefined
         return this.#openExportStream()
       } else {
