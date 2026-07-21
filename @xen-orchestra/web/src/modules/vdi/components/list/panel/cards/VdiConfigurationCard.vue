@@ -64,9 +64,9 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vdi, vm } = defineProps<{
+const { vdi } = defineProps<{
   vdi: FrontXoVdi
-  vm: FrontXoVm
+  vm?: FrontXoVm
 }>()
 
 const { t } = useI18n()
@@ -82,7 +82,7 @@ const srHref = computed(() => (vdiSr.value ? buildXo5Route(`/srs/${vdiSr.value.i
 
 const vbds = useGetVbdsByIds(() => vdi.$VBDs)
 
-const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm.id))
+const vbd = computed(() => vbds.value.find(vbd => vbd.attached) ?? vbds.value[0])
 
 const isReadOnly = computed(() => vbd.value?.read_only ?? false)
 
