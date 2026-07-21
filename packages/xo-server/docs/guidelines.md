@@ -295,7 +295,8 @@ Naming is hard, Building a coherent api is hard, ask/propose naming before start
   - allow : MCP can use this with the default permission of the user. Only for idempotent read, with a constrained output size
   - confirm : MCP will ask for the user permission before using it. For modification, and bigger exports
   - deny : MCP won't use this endpoint. For example : binary export of vm/disks/files
-
+@SuccessResponse(status, description) : Response in case of success, statuses and descriptions are defined in `@xen-orchestra/rest-api/src/open-api/common/response.common.mts` 
+  @Response(status, description) : Possible responses including errors, statuses and descriptions are defined in `@xen-orchestra/rest-api/src/open-api/common/response.common.mts`. Order by status code.
 - @Example for **every** parameter and the body. Path parameters are the easy ones to forget — they have no body schema to fall back on, so list them explicitly (`@example id "…"`, `@example diskId "…"`)
 - throw `noSuchObject(id, type)` (from `xo-common/api-errors`, code `NO_SUCH_OBJECT`) to get an automatic 404 when the routing doesn't already handle it. Resolve the object **first** so the 404 fires before any work starts
 
