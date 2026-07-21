@@ -1,5 +1,7 @@
 // @ts-check
 
+import moment from 'moment-timezone'
+
 /**
  * @typedef {object} RunContext
  * @property {number} dayOfWeek
@@ -24,15 +26,17 @@
 
 /**
  * @param {Date} date
+ * @param {string | undefined} timezone
  * @returns {RunContext}
  */
-export function buildRunContext(date) {
+export function buildRunContext(date, timezone) {
+  const momentDate = timezone ? moment.tz(date, timezone) : moment(date)
   return {
-    dayOfWeek: date.getDay(),
-    dayOfMonth: date.getDate(),
-    hour: date.getHours(),
-    month: date.getMonth() + 1,
-    year: date.getFullYear(),
+    dayOfWeek: momentDate.day(),
+    dayOfMonth: momentDate.date(),
+    hour: momentDate.hour(),
+    month: momentDate.month() + 1,
+    year: momentDate.year(),
   }
 }
 
