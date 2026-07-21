@@ -253,7 +253,7 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     // especially on replication when we always update the same VM
     const fullInterval = this._settings.fullInterval
     if (isExpression(fullInterval)) {
-      const context = buildVmContext(this._vm, buildRunContext(new Date()), deltaChainLength)
+      const context = buildVmContext(this._vm, buildRunContext(new Date(), this._settings.timezone), deltaChainLength)
       if (this._fullIntervalPredicate(context)) {
         debug('forcing full backup: fullInterval expression matched', { fullInterval })
         return

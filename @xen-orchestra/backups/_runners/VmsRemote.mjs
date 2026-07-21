@@ -62,7 +62,7 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
           return
         }
 
-        const runContext = buildRunContext(new Date())
+        const runContext = buildRunContext(new Date(), settings.timezone)
         const predicate = isExpression(settings.vmFilter) ? compileExpression(settings.vmFilter) : null
 
         const vmsUuids = await sourceRemoteAdapter.listAllVms()

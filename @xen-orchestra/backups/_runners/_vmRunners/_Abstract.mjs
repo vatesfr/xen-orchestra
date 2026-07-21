@@ -92,7 +92,7 @@ export const Abstract = class AbstractVmBackupRunner {
     }
 
     if (isExpression(settings.healthCheckVmsWithTags)) {
-      const context = buildVmContext(this._vm, buildRunContext(new Date()))
+      const context = buildVmContext(this._vm, buildRunContext(new Date(), settings.timezone))
       if (!this._healthCheckPredicate(context)) {
         return Task.run(
           {
