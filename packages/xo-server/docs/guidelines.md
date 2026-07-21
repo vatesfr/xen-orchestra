@@ -299,7 +299,18 @@ Naming is hard, Building a coherent api is hard, ask/propose naming before start
   @Response(status, description) : Possible responses including errors, statuses and descriptions are defined in `@xen-orchestra/rest-api/src/open-api/common/response.common.mts`. Order by status code.
 - @Example for **every** parameter and the body. Path parameters are the easy ones to forget — they have no body schema to fall back on, so list them explicitly (`@example id "…"`, `@example diskId "…"`)
 - throw `noSuchObject(id, type)` (from `xo-common/api-errors`, code `NO_SUCH_OBJECT`) to get an automatic 404 when the routing doesn't already handle it. Resolve the object **first** so the 404 fires before any work starts
+#### Status codes & errors
 
+- **Never hand-roll a status code** (`res.status(404)`). `throw` the semantic error from `xo-common/api-errors` and let `generic-error-handler.middleware` map it centrally. Reuse the shared descriptors in `open-api/common/response.common.mts` (`notFoundResp`, `invalidParameters`, …) instead of magic numbers.
+
+  | Throw (`xo-common/api-errors`)                                | HTTP status |
+  | ------------------------------------------------------------ | ----------- |
+  | `noSuchObject(id, type)` (`NO_SUCH_OBJECT`)                   | 404         |
+  | `unauthorized` / `forbiddenOperation` / `featureUnauthorized` | 403         |
+  | `invalidCredentials`                                         | 401         |
+  | `objectAlreadyExists` / `incorrectState`                     | 409         |
+  | `invalidParameters`                                          | 422         |
+  | `notImplemented`                                             | 501         |
 #### Streaming & file-download routes
 
 - Obtain and validate the resource **before** setting any response header, so a `noSuchObject` returns a clean JSON 404 instead of a body labelled as a download
