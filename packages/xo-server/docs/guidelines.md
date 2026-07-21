@@ -316,6 +316,7 @@ on the caller side, action call are asynchronous by default, caller can add  `sy
 @SuccessResponse(status, description) : Response in case of success, statuses and descriptions are defined in `@xen-orchestra/rest-api/src/open-api/common/response.common.mts` . Take care of explaining any non obvious result, like an uuid change during VDI migration. This documentation must be clear for users out of XO team, or even Vates.
   @Response(status, description) : Possible responses including errors, statuses and descriptions are defined in `@xen-orchestra/rest-api/src/open-api/common/response.common.mts`. Order by status code.
 - @Example for **every** parameter and the body. Path parameters are the easy ones to forget — they have no body schema to fall back on, so list them explicitly (`@example id "…"`, `@example diskId "…"`)
+- use @Deprecated() decorator if needed, never remove a route without changing the api version.
 - throw `noSuchObject(id, type)` (from `xo-common/api-errors`, code `NO_SUCH_OBJECT`) to get an automatic 404 when the routing doesn't already handle it. Resolve the object **first** so the 404 fires before any work starts
 #### Status codes & errors
 
