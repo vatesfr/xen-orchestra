@@ -1,5 +1,5 @@
 import assert from 'node:assert'
-import { escapeIdentifier, escapeLiteral } from 'pg'
+import { Client, escapeIdentifier, escapeLiteral, Pool } from 'pg'
 import { rows2Columns } from './db.mjs'
 import { UUID_TYPE } from './types.mjs'
 
@@ -312,11 +312,25 @@ export async function ensureSchemasExistsWithoutConflict(dbClient, poolUuid, pre
   }
 }
 
-export async function withClient(pool, task) {
-  const client = await pool.connect()
-  try {
-    return await task(client)
-  } finally {
-    client.release()
+/**
+ * checks out a client if first param is a pool, otherwise just run the task with the first param
+ * @param {Pool|Client} poolOrClient
+ * @param task
+ * @return {Promise<*>}
+ */
+export async function withClient(poolOrClient, task) {
+  if (poolOrClient instanceof Pool) {
+    const client = await poolOrClient.connect()
+    try {
+      return await task(client)
+    } finally {
+      client.release()
+    }
+  } else {
+    assert.ok(
+      poolOrClient instanceof Client,
+      `poolOrClient was expected to be an instance of pg.Client, was: ${poolOrClient ? Object.getPrototypeOf(poolOrClient) : poolOrClient}`
+    )
+    return await task(poolOrClient)
   }
 }

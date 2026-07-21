@@ -9,6 +9,8 @@ export const LifeCycleStates = {
   Deprecated: 'Deprecated_s',
   Removed: 'Removed_s',
 }
+
+export const ALL_LIFE_CYCLE_STATES = new Set(Object.values(LifeCycleStates))
 /**
  * @typedef {{name: string, description: string, type: string}} TransformedField A class field
  */

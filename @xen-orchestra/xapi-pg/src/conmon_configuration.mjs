@@ -14,7 +14,7 @@ const EVENT_SCHEMA_PREFIX = 'test_xapi_events'
 const SKIP_XAPI_CLASSES = new Set(['event', 'user'])
 // removing the classes not having an uuid field
 const XAPI_CLASS_FILTER = cls => !SKIP_XAPI_CLASSES.has(cls.name) && 'uuid' in cls.fields
-const lifecycleStates = new Set([LifeCycleStates.Published])
+const LIFECYCLE_STATES = new Set([LifeCycleStates.Published])
 
 export function getSchemaPrefixes() {
   return {
@@ -28,22 +28,22 @@ export function getSchemaPrefixes() {
  * load the xapi json file and return the filtered classes dict
  * @return {Promise<Record<string, {name: string, description: string, fields: Object<string, TransformedField>, enums: []}>>}
  */
-export async function loadXapiDefinition() {
+export async function loadXapiDefinition(lifeCycleStates = LIFECYCLE_STATES, xapiClassFilter = XAPI_CLASS_FILTER) {
   const data = JSON.parse(await readFile(join(import.meta.dirname, '../xenapi.json'), 'utf8'))
-  return loadXapiClasses(lifecycleStates, XAPI_CLASS_FILTER, data)
+  return loadXapiClasses(lifeCycleStates, xapiClassFilter, data)
 }
 
 /**
  * @import {XapiDBClass} from "./db.mjs"
  *  Reads the XAPI JSON file and create the set of representation objects.
  *  From the returned parameters, the caller can either run the DDL against the DB or read/write to an existing DB.
- * @returns {Promise<{CLASSES_DICT: Object<string, TransformedClass>, XAPIDBCLASSES: Object<string, XapiDBClass>}>}
+ * @returns {Promise<{CLASSES_DICT: Object<string, TransformedClass>, XAPIDBCLASSES: Object<string, XapiDBClass>, getAllTheDDL:Function}>}
  */
 export async function getDbObjectsForSchemas(schemas, classesDict = undefined) {
   const { tableSchema, eventSchema, viewSchema } = schemas
   let CLASSES_DICT = classesDict
   if (CLASSES_DICT === undefined) {
-    CLASSES_DICT = loadXapiDefinition()
+    CLASSES_DICT = await loadXapiDefinition()
   }
   const XAPIDBCLASSES = convertClassesToTables(CLASSES_DICT, tableSchema)
   const EVENT_MODELS = createEventModels(eventSchema)

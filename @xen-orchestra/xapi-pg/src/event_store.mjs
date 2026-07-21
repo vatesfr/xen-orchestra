@@ -204,13 +204,11 @@ export class EventStore {
 
   /**
    DB->XAPI
-   @return {Promise<{events:FromEvent[], token:string,valid_ref_counts:Object<string, int>}>}
+   @return {Promise<{events:FromEvent[], token:string, valid_ref_counts:Object<string, int>}>}
    */
   async eventsFrom(dbClient, token) {
     const valid_ref_counts = {}
-    const lastTokenRow = (await dbClient.query(`SELECT token FROM ${this.eventTableName} ORDER BY token DESC LIMIT 1`))
-      .rows[0]
-    const lastToken = lastTokenRow.token
+    const lastToken = await this.getLastToken(dbClient)
     const changesPerClass = []
     for (const clsName of Object.keys(this.classesDict)) {
       const cls = this.classesDict[clsName]
@@ -300,6 +298,15 @@ export class EventStore {
     const records = await this.getViewRecordsForClass(dbClient, cls.viewNameEsc, null)
     const { converter } = await this.convertBatchOfViewRecords(dbClient, { [className]: records })
     return Object.fromEntries(records.map(rec => [converter(rec.uuid), rec]))
+  }
+
+  /**
+   * @param dbClient
+   * @return {Promise<null|string>} null if db is empty
+   */
+  async getLastToken(dbClient) {
+    const lastTokenRows = await dbClient.query(`SELECT token FROM ${this.eventTableName} ORDER BY token DESC LIMIT 1`)
+    return lastTokenRows.rows.length === 0 ? null : lastTokenRows.rows[0].token
   }
 }
 
