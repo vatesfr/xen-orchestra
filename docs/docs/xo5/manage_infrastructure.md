@@ -349,19 +349,19 @@ Activating "Auto Power on" for a VM will also configure the pool accordingly. If
 
 #### What's a VIF?
 
-In the Vates stack, each VM connects to the network through a **Virtual Interface**, or **VIF**. 
+In the Vates stack, each VM connects to the network through a **Virtual Interface**, or **VIF**.
 
 Think of it as the VM’s virtual network card —it handles all incoming and outgoing traffic on a specific virtual network, which is linked to a physical NIC on the host via a bridge. Every VIF comes with a fixed MAC address and can be tied to a particular VLAN (or virtual network), depending on how your environment is set up.
 
 #### What does VIF locking mode do?
 
-**VIF locking mode** is a security feature that helps prevent unauthorized or spoofed traffic from getting in or out of a VM. 
+**VIF locking mode** is a security feature that helps prevent unauthorized or spoofed traffic from getting in or out of a VM.
 
 In practical terms, enabling locking mode means **the VM can’t send traffic using a fake MAC address** — and if an IP address is set, it won’t be able to use anything else either. This is **especially helpful in multi-tenant setups** or anytime you need tight control over which VM is allowed to do what on the network.
 
 #### Default behavior
 
-**By default, VIFs are not locked.** Users can assign any IP address to their VM, and they will work without restriction. 
+**By default, VIFs are not locked.** Users can assign any IP address to their VM, and they will work without restriction.
 However, if you add restricted IPs, the VIF becomes locked, meaning only the specified IP addresses are allowed to send traffic outside the VM.
 
 #### Adding restricted IP addresses
@@ -382,17 +382,18 @@ To add a restricted IP address:
    1. Click the pencil icon (with the **Edit locking mode** label). A dropdown menu appears.
    1. Choose your desired mode from that menu:
       ![](../assets/choose-vif-locking-mode.png)
-    
+
 If Xen Orchestra knows the VM’s IP address — either through the guest agent or DHCP — it will automatically apply IP-level locking when the mode is enabled.
 
 #### How do I automate VIF locking mode?
 
-If you’re automating things or working with scripts, you can also control VIF locking mode through the XO [command-line interface](architecture#xo-cli-cli). 
+If you’re automating things or working with scripts, you can also control VIF locking mode through the XO [command-line interface](architecture#xo-cli-cli).
 
 ### VM high availability (HA)
 
 If your pool supports HA (must have shared storage), you can activate "HA". Read the XCP-ng documentation for more details on [High Availability with XCP-ng](https://docs.xcp-ng.org/management/ha/).
 In the VM's Advanced tab, you can choose between three HA modes:
+
 - Restart: a protected VM cannot be immediately restarted after a server failure. HA will attempt to restart the VM when additional capacity becomes available in the pool.
 - Best-Effort: for VMs configured with best-effort, HA will try to restart them on another host if their original host goes offline. This attempt occurs only after all VMs set to the "restart" mode have been successfully restarted. HA will make only one attempt to restart a best-effort VM; if it fails, no further attempts will be made.
 - Disabled: if an unprotected VM or its host is stopped, HA does not attempt to restart the VM.
@@ -407,7 +408,7 @@ In Xen Orchestra, you can filter to see which VMs are in which mode:
 You can use containers (such as Docker) inside your VMs. To know more on installing Docker inside a VM, check out the official [Docker documentation](https://docs.docker.com/).
 
 :::tip
-You can also run containers using Kubernetes, using the dedicated [Kubernetes recipe](https://docs.vates.tech/devops-tools/kubernetes). 
+You can also run containers using Kubernetes, using the dedicated [Kubernetes recipe](https://docs.vates.tech/devops-tools/kubernetes).
 :::
 
 ### VM CPU priority
@@ -514,7 +515,6 @@ To prevent a virtual machine from migrating:
 2. Go to the **Advanced** tab.
 3. Activate the **Prevent migration** toggle switch.
 
-
 When this option is enabled, the VM won't be able to migrate to another host.
 
 ## Migrating from VMware with V2V
@@ -524,7 +524,6 @@ XCP-ng is a type 1 hypervisor, similar to VMware ESXi.
 You can migrate your VM from VMware vSphere to a Vates environment (Xen Orchestra and XCP-ng), directly from Xen Orchestra. For this, we use V2V ("VMware to Vates").
 
 To know more on using V2V in Xen Orchestra to migrate your environment from VMware, refer to the [XO V2V section in the XCP-ng documentation](https://docs.xcp-ng.org/installation/migrate-to-xcp-ng/#xo-v2v).
-
 
 ## Hosts management
 
@@ -585,7 +584,7 @@ On XCP-ng, there's multiple way to update your pools and hosts.
 
 #### ⚙️ How it works
 
-Xen Orchestra will request a plugin, bundled and hosted within your XCP-ng hosts. This plugin will query the status of updates. Then, when the update will be applied, it's also the plugin that will download and apply them. 
+Xen Orchestra will request a plugin, bundled and hosted within your XCP-ng hosts. This plugin will query the status of updates. Then, when the update will be applied, it's also the plugin that will download and apply them.
 So unlike with Citrix Hypervisor, Xen Orchestra will not fetch or download updates, but it will order the host to do it by itself. Be sure that your host(s) can access the update repositories.
 
 #### Rolling Pool Updates (RPU)
@@ -605,6 +604,7 @@ XO will restart the hosts one by one and wait for each host to be up and running
 [xapiOptions]
 restartHostTimeout = '40 minutes'
 ```
+
 :::
 
 ![](../assets/rpu1.png)
@@ -617,11 +617,38 @@ You can schedule rolling pool updates to automate the patching and rebooting of 
 Of course, schedule the updates outside production hours. Although RPUs are designed to be transparent, it is always wise to schedule some buffer time in case something goes wrong.
 :::
 
-1. **Create a job**: Navigate to the **Jobs** screen and create a new job, using the `pool.rollingUpdate` method. Determine which pools you want to include in the update: 
+1. **Create a job**: Navigate to the **Jobs** screen and create a new job, using the `pool.rollingUpdate` method. Determine which pools you want to include in the update:
    ![](../assets/create-rpu.png)
 1. **Set the schedule**: Assign a schedule to the job (e.g., every Sunday at 3 AM) and apply it to your new job:
    ![](../assets/schedule-rpu.png)
 1. **Monitor the process**: Once scheduled, the RPU will run automatically at the set time, applying updates and rebooting hosts as necessary.
+
+##### Troubleshooting a RPU
+
+XO keeps a full trace of each rolling pool update/reboot on disk. So even if `xo-server` crashed in the middle of a run, you can still find out what happened and where it stopped.
+
+Each run writes two files in `<datadir>/rpu-traces` (on XOA: `/var/lib/xo-server/data/rpu-traces`):
+
+- `rpu-<poolId>-<timestamp>.ndjson`: the trace. One JSON line per event: steps, progress, VM migrations, errors. Lines are written synchronously, so the file stays readable even after a crash.
+- `rpu-<poolId>-<timestamp>.heartbeat.json`: rewritten every 5 seconds with the current status, as long as the run is alive.
+
+The path of the trace file is logged in `journalctl -u xo-server` when the RPU starts. You'll also find it on the task itself, as the `traceFile` property in the tasks view.
+
+A heartbeat stuck on `"status": "pending"` with an old `lastUpdated` means the run died mid-flight. When `xo-server` comes back, it marks the task as `interrupted`, stamps the heartbeat with the last time the run was alive, and logs a line pointing at the trace.
+
+There's no resume yet: just launch the RPU again. Hosts that were already patched have nothing left to install, so the new run goes through them quickly.
+
+:::tip
+Only one RPU or rolling pool reboot can run at a time on a given pool. A second attempt is rejected with an explicit error, not queued.
+:::
+
+Traces are deleted after 31 days. Both the folder and the retention can be changed in your `xo-server` config:
+
+```toml
+[rpu]
+#tracesDir = '/var/lib/xo-server/data/rpu-traces'
+tracesRetention = '31 days'
+```
 
 #### Pool updates
 
@@ -646,7 +673,8 @@ We do NOT recommend to install updates to individual hosts. Obviously except if 
 ### XenServer/Citrix Hypervisor
 
 #### ⚙️ How it works
-Xen Orchestra will directly request a specific XML, hosted by Citrix. It will be analyzed and compared to the patch level on your hosts. 
+
+Xen Orchestra will directly request a specific XML, hosted by Citrix. It will be analyzed and compared to the patch level on your hosts.
 If there's available/missing updates, XO will download it directly, then send it to the pool, and finally ask the pool to apply it. In that scenario, you should check if Xen Orchestra can access outside to get those updates.
 
 #### Pool updates
@@ -677,9 +705,10 @@ As specified in the [documentation](https://xcp-ng.org/docs/requirements.html#po
 :::
 
 :::warning
+
 - Even with matching CPU vendors, in the case of different CPU models, XCP-ng/Citrix Hypervisor will "level" down to use the CPU having the least instructions.
 - All the hosts in a pool must run the same XCP-ng version.
-:::
+  :::
 
 ### Creating a pool
 
@@ -709,9 +738,10 @@ To remove one host from a pool, you can go to the "Advanced" tab of the host pag
 ![](../assets/detach-host.png)
 
 :::warning
+
 - Detaching a host will remove all the VM disks stored on the Local Storage of this host, and reboot the host.
 - The host you want to remove must be a slave, not the master!
-:::
+  :::
 
 ### Network bonding
 
@@ -725,19 +755,19 @@ The primary goals are to improve redundancy —so that a single cable or interfa
 
 Xen Orchestra supports the following bond types:
 
-- **Active / Active (Balance-SLB)**  
+- **Active / Active (Balance-SLB)**
   - Does **not** require switch awareness (no LACP needed)
   - Balances traffic across all bond members
   - Automatically shifts traffic to remaining members if one link fails
   - May have compatibility issues with some low-end switches
   - Unlike LACP, Active/Active bonds can span ports on different switches
 
-- **Active / Backup**  
+- **Active / Backup**
   - Does **not** require switch awareness
   - Uses one primary interface for traffic, switching to backup only upon link failure
   - Unlike LACP, Active/Backup bonds can span ports on different switches
 
-- **LACP**  
+- **LACP**
   - Requires the switch to support and be configured for LACP
   - Offers rapid failover and can detect mid-span link failures even if the physical link stays up
   - Balances traffic across all bond members during normal operations
@@ -745,33 +775,34 @@ Xen Orchestra supports the following bond types:
 
 #### Creating a LACP bond
 
-1. Navigate to **New → Network** to open the **Create Network** page.  
+1. Navigate to **New → Network** to open the **Create Network** page.
 2. Choose the pool where you want the bond to be created.
 3. Enable the **Bonded network** toggle:
-    ![Bond creation interface](../assets/bond0.png)
-4. In the **Interface** dropdown, select two or more physical interfaces (PIFs) to include in the bond.  
+   ![Bond creation interface](../assets/bond0.png)
+4. In the **Interface** dropdown, select two or more physical interfaces (PIFs) to include in the bond.
 5. Provide a **name** and a **description** for the bond.
 6. Set the **Bond mode** to **LACP**.
 7. Leave the **MTU** field blank. This will work as-is in most cases.
 8. Click **Create network**.
-    XO will then create the bond on the host(s):
-    ![Newly-created bond](../assets/bond1.png)
+   XO will then create the bond on the host(s):
+   ![Newly-created bond](../assets/bond1.png)
 
 :::tip
+
 - If applied to a pool, the bond is created across all pool members, so make sure all your pool members are cabled and configured on the switch side for LACP!
 - If the host’s management interface resides on one of the selected interfaces, XO will **automatically migrate the management interface** on top of the new bond (e.g., if management was on `eth0` and the bond consists of `eth0` + `eth1`).
-:::
+  :::
 
 #### Adding VLANs on top of bonds
 
 Once a bond (e.g., `bond0`) is created, you can build VLANs over it:
 
-1. Go again to **New → Network** screen.  
-2. Select the new bond interface (e.g., `bond0`) in the **Interface** dropdown.  
+1. Go again to **New → Network** screen.
+2. Select the new bond interface (e.g., `bond0`) in the **Interface** dropdown.
 3. Provide a **name**, **description**, and specify the **VLAN** ID (for instance, `20`):
-    ![Setting up a VLAN on top of a new network bond](../assets/bond2.png)
+   ![Setting up a VLAN on top of a new network bond](../assets/bond2.png)
 4. Validate the VLAN network creation.\
-    This creates a virtual network on top of the bond, using the name and ID you've specified, available for VM attachment.
+   This creates a virtual network on top of the bond, using the name and ID you've specified, available for VM attachment.
 
 :::tip
 This process is the same whether you're adding a VLAN on top of a LACP network bond, or a bond in another mode (such as Active/Active or Active/Backup).
@@ -895,21 +926,20 @@ To receive reports, you first need to enable the **usage-report** plugin:
 
 1. Go to **Settings → Plugin**. A list of plugins will appear.
 2. From the list, look for the **usage-report** plugin (you can scroll through the list or search for it by name).
-3. Enable the plugin by switching on the toggle next to the plugin name. 
+3. Enable the plugin by switching on the toggle next to the plugin name.
 4. Click the **+** icon to open the plugin settings:
-    ![](../assets/usage-report-plugin.png)
+   ![](../assets/usage-report-plugin.png)
 5. In the **emails** section, click **Add**. A new text field will appear.
-6. Enter the email address where you want to receive the reports. Repeat steps 5–6 to add more addresses.  
-7. Turn on the **all** toggle to include stats for all resources in your report, including: 
-    - VMs
-    - Hosts
-    - Storage repositories
+6. Enter the email address where you want to receive the reports. Repeat steps 5–6 to add more addresses.
+7. Turn on the **all** toggle to include stats for all resources in your report, including:
+   - VMs
+   - Hosts
+   - Storage repositories
 
 :::tip
 To include these stats in your reports, the plugin must have saved them at least once.  
-:::
-8. In the **periodicity** dropdown, choose whether you want to receive reports **daily**, **weekly**, or **monthly**.  
-9. Click **Save configuration**. Reports will be sent to the email addresses you entered at the frequency you selected. 
+::: 8. In the **periodicity** dropdown, choose whether you want to receive reports **daily**, **weekly**, or **monthly**.  
+9. Click **Save configuration**. Reports will be sent to the email addresses you entered at the frequency you selected.
 
 ## Software RAID
 

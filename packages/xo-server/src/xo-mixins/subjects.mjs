@@ -69,7 +69,8 @@ export default class {
           .catch(() => ({}))
 
         await this.createUser({ email, password, permission: 'admin' })
-        log.info(`Default user created: ${email} with password ${password}`)
+        log.info(`Default user created: ${email}`)
+
         ignoreErrors.call(XenStore.rm(key))
       }
     })

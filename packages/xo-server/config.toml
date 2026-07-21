@@ -37,6 +37,25 @@ verboseApiLogsOnErrors = false
 # if no events could be fetched during this delay, the server will be marked as disconnected
 xapiMarkDisconnectedDelay = '5 minutes'
 
+# Delay before re-enabling the load balancer after a rolling pool update
+loadBalancerReEnableDelay = '30 minutes'
+
+# Observability of rolling pool updates/reboots (RPU/RPR).
+#
+# Each run writes two files in the traces directory:
+# - a NDJSON trace of all the events of the task tree, crash-resistant
+# - a heartbeat file updated every few seconds while the operation is running
+#
+#[rpu]
+#
+# Directory where the traces are written
+#
+# Default: '<datadir>/rpu-traces'
+#tracesDir = '/var/lib/xo-server/data/rpu-traces'
+#
+# How long the traces are kept on disk
+#tracesRetention = '31 days'
+
 # https:#github.com/websockets/ws#websocket-compression
 [apiWebSocketOptions]
 perMessageDeflate = { threshold = 524288 } # 512kiB

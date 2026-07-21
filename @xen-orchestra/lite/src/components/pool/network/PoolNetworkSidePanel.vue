@@ -1,27 +1,5 @@
 <template>
   <VtsSidePanel :has-selection="!!network" @close="emit('close')">
-    <template v-if="network" #actions>
-      <UiButton
-        v-tooltip="t('coming-soon!')"
-        disabled
-        size="medium"
-        variant="tertiary"
-        accent="brand"
-        left-icon="action:edit"
-      >
-        {{ t('action:edit') }}
-      </UiButton>
-      <UiButton
-        v-tooltip="t('coming-soon!')"
-        disabled
-        size="medium"
-        variant="tertiary"
-        accent="danger"
-        left-icon="action:delete"
-      >
-        {{ t('action:delete') }}
-      </UiButton>
-    </template>
     <template v-if="network" #default>
       <UiCard class="card-container">
         <VtsCardObjectTitle :id="network.uuid" :label="network.name_label" />
@@ -106,10 +84,8 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
