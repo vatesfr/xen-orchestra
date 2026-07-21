@@ -32,7 +32,7 @@ const {
   canRun: canDisableHost,
   isRunning: isDisablingHost,
   errorMessage: disableHostErrorMessage,
-} = useXoHostDisableJob(() => host)
+} = useXoHostDisableJob(() => host, false)
 
 const { open: openActionModal } = useActionModal()
 
