@@ -56,8 +56,14 @@
     "tar": "^7.5.3",
     "uuid": "^9.0.0",
     "value-matcher": "^0.2.0",
+<<<<<<< HEAD
     "vhd-lib": "^4.16.1",
     "xen-api": "^4.8.0",
+=======
+    "vhd-lib": "^4.16.0",
+    "xen-api": "^4.7.8",
+    "xo-remote-parser": "^0.10.1",
+>>>>>>> f171eaeaa (added sr and remote selection by expression)
     "yazl": "^2.5.1"
   },
   "devDependencies": {

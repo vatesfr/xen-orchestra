@@ -56,8 +56,8 @@ describe('buildContext', () => {
   it('buildSrContext', () => {
     const sr1 = {
       name_label: 'name_label',
-      type: 'type',
-      description: 'description',
+      SR_type: 'type',
+      name_description: 'description',
       ignored: 'ignored',
     }
     const srContext1 = buildSrContext(sr1, runContext)
@@ -73,8 +73,8 @@ describe('buildContext', () => {
 
     const sr2 = {
       name_label: 'name_label',
-      type: 'type',
-      description: 'description',
+      SR_type: 'type',
+      name_description: 'description',
       tags: ['tag'],
       ignored: 'ignored',
     }
@@ -93,14 +93,14 @@ describe('buildContext', () => {
   it('buildRemoteContext', () => {
     const remote1 = {
       name: 'name',
-      type: 'type',
+      url: 'nfs://host/path',
       ignored: 'ignored',
     }
     const remoteContext1 = buildRemoteContext(remote1, runContext)
     assert.deepEqual(remoteContext1, {
       remote: {
         name: 'name',
-        type: 'type',
+        type: 'nfs',
         tags: [],
       },
       run: expectedRunContext,
@@ -108,7 +108,7 @@ describe('buildContext', () => {
 
     const remote2 = {
       name: 'name',
-      type: 'type',
+      url: 'nfs://host/path',
       tags: ['tag'],
       ignored: 'ignored',
     }
@@ -116,7 +116,7 @@ describe('buildContext', () => {
     assert.deepEqual(remoteContext2, {
       remote: {
         name: 'name',
-        type: 'type',
+        type: 'nfs',
         tags: ['tag'],
       },
       run: expectedRunContext,
