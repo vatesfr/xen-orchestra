@@ -36,7 +36,7 @@ export function createRestRoutes(plugin) {
       tags: ['audit'],
       query: {
         from: { type: 'string', optional: true, example: 'FYUYLGWX0uUv6uKyDpc6ftAJhrEB7iuf/BYefEbBLYc=' },
-        limit: { type: 'string', optional: true, example: '100' },
+        limit: { type: 'number', optional: true, example: 100 },
         filter: { type: 'string', optional: true, example: 'event:apiCall' },
       },
       responses: [{ status: 200, description: 'The list of audit records', schema: RECORD_FIELDS_ARRAY }],

@@ -89,7 +89,10 @@ function addRuleRoute(controller, resource) {
     params: PARAMS_ID,
     query: QUERY_SYNC,
     body: BODY_ADD_RULE,
-    responses: [{ status: 204, description: 'Rule added successfully' }],
+    responses: [
+      { status: 204, description: 'Rule added successfully' },
+      { status: 404, description: `No ${resource.type} found for this ID` },
+    ],
     middlewares: jsonAndAcl(resource.acl),
     callback: ({ req, createAction }) => {
       const rule = ruleFromBody(req, resource.idKey, true)
@@ -115,7 +118,10 @@ function deleteRuleRoute(controller, resource) {
     params: PARAMS_ID,
     query: QUERY_SYNC,
     body: BODY_DELETE_RULE,
-    responses: [{ status: 204, description: 'Rule deleted successfully' }],
+    responses: [
+      { status: 204, description: 'Rule deleted successfully' },
+      { status: 404, description: `No ${resource.type} found for this ID` },
+    ],
     middlewares: jsonAndAcl(resource.acl),
     callback: ({ req, createAction }) => {
       const rule = ruleFromBody(req, resource.idKey, false)
@@ -157,6 +163,10 @@ function updateRuleRoute(controller, resource) {
             throw noSuchObject(JSON.stringify(oldRule), 'traffic-rule')
           }
           const newRule = { ...oldRule, ...partialNewRule }
+          // remove the port field if it is undefined, to avoid keeping the old value in the new rule when updating a rule with no port needed
+          if (partialNewRule.port === undefined) {
+            delete newRule.port
+          }
           await resource.deleteRule(controller, { ...oldRule, [resource.idKey]: id })
           await resource.addRule(controller, { ...newRule, [resource.idKey]: id })
         },
