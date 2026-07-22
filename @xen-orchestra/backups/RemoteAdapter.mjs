@@ -490,7 +490,12 @@ export class RemoteAdapter {
       })
     } else {
       const stream = await toVhdStream(disk, { uuid, parentUuid, parentPath })
-      const size = await this.outputStream(path, stream, { validator, checksum: false })
+      const size = await this.outputStream(path, stream, {
+        validator,
+        // no checksum for VHDs, because they will be invalidated by
+        // merges and chains
+        checksum: false,
+      })
       await validator(path)
       return size
     }
