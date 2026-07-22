@@ -665,7 +665,7 @@ async function call(args) {
           dispatcher,
           body: input,
           duplex: 'half',
-          headers: length !== null ? { 'content-length': length } : {},
+          headers: length !== undefined ? { 'content-length': length } : {},
           method: 'POST',
         })
         if (!response.ok) {
