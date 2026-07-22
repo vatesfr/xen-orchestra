@@ -35,6 +35,7 @@
 - [RPU] Re-enable the load balancer after a configurable safe delay (30 minutes by default) when a rolling pool update ends (PR [#10111](https://github.com/vatesfr/xen-orchestra/pull/10111))
 - [Tasks] Resolve objects in tasks names [Forum#100894]([https://xcp-ng.org/forum/post/100894](https://xcp-ng.org/forum/post/100894)) (PR [#9830](https://github.com/vatesfr/xen-orchestra/pull/9830))
 - [REST API] Possibility to set the HA restart priority (`high_availability`) when creating a VM (PR [#10070](https://github.com/vatesfr/xen-orchestra/pull/10070))
+- [XO6/Traffic rules] Show only traffic rules of VMs. Don't include vm-snapshots or vm-templates. In the VM selector, disable VMs that don't have any VIF (PR [#9977](https://github.com/vatesfr/xen-orchestra/pull/9977))
 
 ### Bug fixes
 
