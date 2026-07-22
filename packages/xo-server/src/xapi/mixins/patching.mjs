@@ -691,14 +691,18 @@ const methods = {
     const nOperations = steps.length * hosts.length
     let operationDone = 0
 
+    const callPluginOnAllHost = async (plugin, fn, args) => {
+      for (const host of hosts) {
+        await this.call('host.call_plugin', host.$ref, plugin, fn, args)
+        operationDone++
+        task.set('progress', Math.round((operationDone / nOperations) * 100))
+      }
+    }
+
     const task = new Task({ properties: { name: 'Updating LINSTOR packages', progress: 0 } })
     return task.run(async () => {
       for (const [plugin, fn, args] of steps) {
-        for (const host of hosts) {
-          await this.call('host.call_plugin', host.$ref, plugin, fn, args)
-          operationDone++
-          task.set('progress', Math.round((operationDone / nOperations) * 100))
-        }
+        await callPluginOnAllHost(plugin, fn, args)
       }
       // not redundant: ends the task at 100 even when there is no host to iterate on
       task.set('progress', 100)
