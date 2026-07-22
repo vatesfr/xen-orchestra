@@ -20,7 +20,7 @@
           <UiButton
             v-tooltip="copied && t('copied')"
             :disabled="!isClipboardSupported"
-            :left-icon="copied ? 'status:success' : 'action:copy'"
+            :left-icon="copied ? 'fa:check-circle' : 'action:copy'"
             variant="tertiary"
             accent="brand"
             size="medium"
@@ -84,6 +84,7 @@ import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import useMultiSelect from '@core/composables/table/multi-select.composable'
 import { useTableState } from '@core/composables/table-state.composable'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { useNetworkColumns } from '@core/tables/column-sets/network-columns'
 import { useClipboard } from '@vueuse/core'
 import { logicNot } from '@vueuse/math'

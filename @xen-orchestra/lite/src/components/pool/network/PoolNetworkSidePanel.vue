@@ -24,9 +24,10 @@
       <MenuList placement="bottom-end">
         <template #trigger="{ open, isOpen }">
           <UiButtonIcon
+            v-tooltip="copied && t('copied')"
             accent="brand"
-            size="medium"
-            :icon="copied ? 'status:success' : 'action:more-actions'"
+            :size="copied ? 'small' : 'medium'"
+            :icon="copied ? 'fa:check-circle' : 'action:more-actions'"
             :selected="isOpen"
             @click="open($event)"
           />
