@@ -114,7 +114,7 @@ export class XapiDiskSource extends DiskPassthrough {
         const warningMessage = `can't connect through NBD, fall back to stream export`
         // @ts-ignore Task.warning is a static alias set up dynamically, not visible to TS
         Task.warning(warningMessage)
-        warn(warningMessage)
+        warn(warningMessage, err)
         if (streamSource === undefined) {
           throw new Error(`Can't open stream source`)
         }
