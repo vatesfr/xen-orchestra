@@ -32,7 +32,7 @@ const {
   canRun: canRebootHost,
   isRunning: isRebootingHost,
   errorMessage: rebootHostErrorMessage,
-} = useXoHostRebootJob(() => host)
+} = useXoHostRebootJob(() => host, false)
 
 const openShutdownHostModal = useModal({
   component: import('@core/components/modal/VtsActionModal.vue'),
