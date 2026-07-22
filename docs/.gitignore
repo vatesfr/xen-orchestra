@@ -3,6 +3,7 @@
 
 # Production
 /build
+/build-embed
 
 # Generated files
 .docusaurus
