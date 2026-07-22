@@ -515,7 +515,7 @@ export default class Proxy {
 
     const stream = Readable.fromWeb(response.body)
 
-    const responseType = contentType.parse(response.headers.get('content-type')).type
+    const responseType = contentType.parse(response.headers.get('content-type'))?.type
     if (responseType === 'application/octet-stream') {
       if (assertType !== 'stream') {
         stream.destroy()
