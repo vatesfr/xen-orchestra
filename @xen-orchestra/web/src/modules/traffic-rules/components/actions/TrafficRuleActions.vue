@@ -6,7 +6,7 @@
     left-icon="action:edit"
     :disabled="!canEditTrafficRule"
     :busy="isEditingTrafficRule"
-    @click="openUpdateTrafficRuleDrawer()"
+    @click="openTrafficRuleEditDrawer()"
   >
     {{ t('action:edit') }}
   </UiButton>
@@ -38,7 +38,7 @@ const {
 } = useTrafficRuleDeleteModal(() => [rule])
 
 const {
-  openDrawer: openUpdateTrafficRuleDrawer,
+  openDrawer: openTrafficRuleEditDrawer,
   isRunning: isEditingTrafficRule,
   canRun: canEditTrafficRule,
 } = useTrafficRuleEditDrawer(() => rule)
