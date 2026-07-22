@@ -998,23 +998,45 @@ export const rollingPoolReboot = async pool => {
     title: _('rollingPoolReboot'),
     icon: 'pool-rolling-reboot',
   })
-  try {
-    return await _call('pool.rollingReboot', { pool: poolId })
-  } catch (error) {
-    if (!forbiddenOperation.is(error)) {
+  const rpr = async ({ bypassBackupCheck = false, shutdownPinnedVms = false } = {}) => {
+    try {
+      return await _call('pool.rollingReboot', { pool: poolId, bypassBackupCheck, shutdownPinnedVms })
+    } catch (error) {
+      if (forbiddenOperation.is(error)) {
+        await confirm({
+          body: (
+            <p className='text-warning'>
+              <Icon icon='alarm' /> {_('bypassBackupPoolModalMessage')}
+            </p>
+          ),
+          title: _('rollingPoolReboot'),
+          icon: 'pool-rolling-reboot',
+        })
+        return rpr({ bypassBackupCheck: true, shutdownPinnedVms })
+      }
+      if (incorrectState.is(error, { property: 'pinnedVms' })) {
+        await confirm({
+          body: (
+            <div className='text-warning'>
+              <p>
+                <Icon icon='alarm' /> {_('rpuShutdownPinnedVms')}
+              </p>
+              <ul>
+                {error.data.actual.map(vmId => (
+                  <li key={vmId}>{renderXoItemFromId(vmId)}</li>
+                ))}
+              </ul>
+            </div>
+          ),
+          title: _('rollingPoolReboot'),
+          icon: 'pool-rolling-reboot',
+        })
+        return rpr({ bypassBackupCheck, shutdownPinnedVms: true })
+      }
       throw error
     }
-    await confirm({
-      body: (
-        <p className='text-warning'>
-          <Icon icon='alarm' /> {_('bypassBackupPoolModalMessage')}
-        </p>
-      ),
-      title: _('rollingPoolReboot'),
-      icon: 'pool-rolling-reboot',
-    })
-    return _call('pool.rollingReboot', { pool: poolId, bypassBackupCheck: true })
   }
+  return rpr()
 }
 
 export const getPoolGuestSecureBootReadiness = async poolId => {
@@ -1433,9 +1455,9 @@ export const rollingPoolUpdate = async poolId => {
     icon: 'pool-rolling-update',
   })
 
-  const rpu = async ({ bypassBackupCheck = false, rebootVm = false } = {}) => {
+  const rpu = async ({ bypassBackupCheck = false, rebootVm = false, shutdownPinnedVms = false } = {}) => {
     try {
-      await _call('pool.rollingUpdate', { pool: poolId, bypassBackupCheck, rebootVm })
+      await _call('pool.rollingUpdate', { pool: poolId, bypassBackupCheck, rebootVm, shutdownPinnedVms })
       subscribeHostMissingPatches.forceRefresh()
     } catch (err) {
       if (forbiddenOperation.is(err)) {
@@ -1448,7 +1470,7 @@ export const rollingPoolUpdate = async poolId => {
           title: _('rollingPoolUpdate'),
           icon: 'pool-rolling-update',
         })
-        await rpu({ bypassBackupCheck: true, rebootVm })
+        await rpu({ bypassBackupCheck: true, rebootVm, shutdownPinnedVms })
       }
       if (incorrectState.is(err, { property: 'guidance' })) {
         await confirm({
@@ -1460,7 +1482,26 @@ export const rollingPoolUpdate = async poolId => {
           title: _('rollingPoolUpdate'),
           icon: 'pool-rolling-update',
         })
-        await rpu({ bypassBackupCheck, rebootVm: true })
+        await rpu({ bypassBackupCheck, rebootVm: true, shutdownPinnedVms })
+      }
+      if (incorrectState.is(err, { property: 'pinnedVms' })) {
+        await confirm({
+          body: (
+            <div className='text-warning'>
+              <p>
+                <Icon icon='alarm' /> {_('rpuShutdownPinnedVms')}
+              </p>
+              <ul>
+                {err.data.actual.map(vmId => (
+                  <li key={vmId}>{renderXoItemFromId(vmId)}</li>
+                ))}
+              </ul>
+            </div>
+          ),
+          title: _('rollingPoolUpdate'),
+          icon: 'pool-rolling-update',
+        })
+        await rpu({ bypassBackupCheck, rebootVm, shutdownPinnedVms: true })
       }
     }
   }

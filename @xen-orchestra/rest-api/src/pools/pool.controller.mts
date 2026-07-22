@@ -31,6 +31,7 @@ import {
   createdResp,
   featureUnauthorized,
   forbiddenOperationResp,
+  incorrectStateResp,
   internalServerErrorResp,
   invalidParameters as invalidParametersResp,
   noContentResp,
@@ -359,22 +360,33 @@ export class PoolController extends XapiXoController<XoPool> {
    * Required privilege:
    * - resource: pool, action: rolling-reboot
    *
+   * Set `shutdownPinnedVms` to `true` to shut down VMs that cannot be migrated (PCI passthrough, vGPU, SR-IOV VIF)
+   * before their host reboots and start them again on it afterwards. Without it, such VMs make the action fail
+   * with an `incorrect state` error listing their UUIDs.
+   *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
+   * @example body { "shutdownPinnedVms": true }
    */
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/rolling_reboot')
-  @Middlewares(acl({ resource: 'pool', action: 'rolling-reboot', objectId: 'params.id' }))
+  @Middlewares([json(), acl({ resource: 'pool', action: 'rolling-reboot', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(featureUnauthorized.status, featureUnauthorized.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  rollingReboot(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
+  rollingReboot(
+    @Path() id: string,
+    @Body() body?: { shutdownPinnedVms?: boolean },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
     const poolId = id as XoPool['id']
+    const shutdownPinnedVms = body?.shutdownPinnedVms ?? false
     const action = async (task: VatesTask) => {
       const pool = this.getObject(poolId)
-      await this.restApi.xoApp.rollingPoolReboot(pool, { parentTask: task })
+      await this.restApi.xoApp.rollingPoolReboot(pool, { parentTask: task, shutdownPinnedVms })
     }
 
     return this.createAction<void>(action, {
@@ -392,22 +404,33 @@ export class PoolController extends XapiXoController<XoPool> {
    * Required privilege:
    * - resource: pool, action: rolling-update
    *
+   * Set `shutdownPinnedVms` to `true` to shut down VMs that cannot be migrated (PCI passthrough, vGPU, SR-IOV VIF)
+   * before their host reboots and start them again on it afterwards. Without it, such VMs make the action fail
+   * with an `incorrect state` error listing their UUIDs.
+   *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
+   * @example body { "shutdownPinnedVms": true }
    */
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/rolling_update')
-  @Middlewares(acl({ resource: 'pool', action: 'rolling-update', objectId: 'params.id' }))
+  @Middlewares([json(), acl({ resource: 'pool', action: 'rolling-update', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(featureUnauthorized.status, featureUnauthorized.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  rollingUpdate(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
+  rollingUpdate(
+    @Path() id: string,
+    @Body() body?: { shutdownPinnedVms?: boolean },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
     const poolId = id as XoPool['id']
+    const shutdownPinnedVms = body?.shutdownPinnedVms ?? false
     const action = async (task: VatesTask) => {
       const pool = this.getObject(poolId)
-      await this.restApi.xoApp.rollingPoolUpdate(pool, { parentTask: task })
+      await this.restApi.xoApp.rollingPoolUpdate(pool, { parentTask: task, shutdownPinnedVms })
     }
 
     return this.createAction<void>(action, {

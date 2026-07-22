@@ -721,7 +721,11 @@ const methods = {
     })
   },
 
-  async rollingPoolUpdate($defer, parentTask, { xsCredentials, force = false, rebootVm = force } = {}) {
+  async rollingPoolUpdate(
+    $defer,
+    parentTask,
+    { xsCredentials, force = false, rebootVm = force, shutdownPinnedVms = false } = {}
+  ) {
     if (some(this.objects.indexes.type.SR, { type: 'linstor' })) {
       await this._updateLinstorPackages()
     }
@@ -785,6 +789,7 @@ const methods = {
     await Task.run({ properties: { name: `Updating and rebooting` } }, async () => {
       await this.rollingPoolReboot(parentTask, {
         xsCredentials,
+        shutdownPinnedVms,
         beforeEvacuateVms: () => {
           // On XS < 8.4 and CH, start by installing patches on all hosts
           if (!isXcp && !isXsWithCdnUpdates) {
