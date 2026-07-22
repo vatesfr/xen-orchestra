@@ -1004,7 +1004,7 @@ describe('transformMetric with labelContext', () => {
     assert.equal(result.labels.sr_type, undefined)
   })
 
-  it('should resolve sr_name and sr_type from a UUID prefix (XCP-ng RRD encoding)', () => {
+  it('should resolve SR labels from a UUID prefix (XCP-ng RRD encoding)', () => {
     // XCP-ng encodes the SR in RRD legends as the first 8 chars of the UUID.
     // The label context must therefore index that prefix.
     const fullUuid = 'c787b75c-3e0d-70fa-d0c3-cbfd382d7e33'
@@ -1029,8 +1029,55 @@ describe('transformMetric with labelContext', () => {
 
     assert.ok(result)
     assert.equal(result.labels.sr, prefix)
+    assert.equal(result.labels.sr_uuid, fullUuid)
     assert.equal(result.labels.sr_name, 'XOSTOR NVME')
     assert.equal(result.labels.sr_type, 'linstor')
+  })
+
+  it('should omit SR enrichment when a UUID truncation is ambiguous', () => {
+    const prefix = 'c787b75c'
+    const ctx = createLabelContext()
+    ctx.labels.srTruncatedToUuid[prefix] = null
+    const metric: ParsedMetric = {
+      legend: {
+        cf: 'AVERAGE',
+        objectType: 'host',
+        uuid: 'host-uuid-123',
+        metricName: `iops_read_${prefix}`,
+        rawLegend: `AVERAGE:host:host-uuid-123:iops_read_${prefix}`,
+      },
+      value: 42,
+      timestamp: 1700000000,
+    }
+
+    const result = transformMetric(metric, 'pool-456', ctx)
+
+    assert.ok(result)
+    assert.equal(result.labels.sr, prefix)
+    assert.equal(result.labels.sr_uuid, undefined)
+    assert.equal(result.labels.sr_name, undefined)
+    assert.equal(result.labels.sr_type, undefined)
+  })
+
+  it('should ignore inherited SR truncation keys', () => {
+    const metric: ParsedMetric = {
+      legend: {
+        cf: 'AVERAGE',
+        objectType: 'host',
+        uuid: 'host-uuid-123',
+        metricName: 'iops_read_constructor',
+        rawLegend: 'AVERAGE:host:host-uuid-123:iops_read_constructor',
+      },
+      value: 42,
+      timestamp: 1700000000,
+    }
+
+    const result = transformMetric(metric, 'pool-456', createLabelContext())
+
+    assert.ok(result)
+    assert.equal(result.labels.sr, 'constructor')
+    assert.equal(result.labels.sr_uuid, undefined)
+    assert.doesNotThrow(() => formatToOpenMetrics([result]))
   })
 
   it('should handle missing label context gracefully', () => {
@@ -2121,6 +2168,7 @@ describe('formatSrMetrics', () => {
     usage: 500_000_000_000,
     pool_id: 'pool-789',
     pool_name: 'Production Pool',
+    content_type: 'user',
     sr_type: 'lvm',
     ...overrides,
   })
@@ -2140,6 +2188,25 @@ describe('formatSrMetrics', () => {
     assert.equal(metrics.length, 3)
     for (const m of metrics) {
       assert.equal(m.labels.sr_type, undefined)
+    }
+  })
+
+  it('should emit content_type label when present', () => {
+    const metrics = formatSrMetrics([createSrDataItem({ content_type: 'iso' })])
+
+    assert.equal(metrics.length, 3)
+    for (const m of metrics) {
+      assert.equal(m.labels.content_type, 'iso')
+    }
+    assert.match(formatToOpenMetrics(metrics), /content_type="iso"/)
+  })
+
+  it('should omit content_type label when empty', () => {
+    const metrics = formatSrMetrics([createSrDataItem({ content_type: '' })])
+
+    assert.equal(metrics.length, 3)
+    for (const m of metrics) {
+      assert.equal(m.labels.content_type, undefined)
     }
   })
 
@@ -3350,7 +3417,7 @@ describe('formatXostorUpdatesMetrics', () => {
 describe('indexSrUuidTruncations', () => {
   it('should index both UUID prefix and suffix at all configured lengths', () => {
     const uuid = 'c787b75c-3e0d-70fa-d0c3-cbfd382d7e33'
-    const index: Record<string, string> = {}
+    const index: Record<string, string | null> = {}
 
     indexSrUuidTruncations(uuid, index)
 
@@ -3365,19 +3432,23 @@ describe('indexSrUuidTruncations', () => {
     }
   })
 
-  it('should not overwrite existing entries (first match wins)', () => {
-    const uuid = 'c787b75c-3e0d-70fa-d0c3-cbfd382d7e33'
-    const prefix = uuid.slice(0, 8)
-    const index: Record<string, string> = { [prefix]: 'first-sr-uuid' }
+  it('should keep colliding truncations marked as ambiguous', () => {
+    const firstUuid = 'c787b75c-3e0d-70fa-d0c3-cbfd382d7e33'
+    const secondUuid = 'c787b75c-1111-2222-3333-444444444444'
+    const thirdUuid = 'c787b75c-aaaa-bbbb-cccc-dddddddddddd'
+    const prefix = firstUuid.slice(0, 8)
+    const index: Record<string, string | null> = {}
 
-    indexSrUuidTruncations(uuid, index)
+    indexSrUuidTruncations(firstUuid, index)
+    indexSrUuidTruncations(secondUuid, index)
+    indexSrUuidTruncations(thirdUuid, index)
 
-    assert.equal(index[prefix], 'first-sr-uuid')
+    assert.equal(index[prefix], null)
   })
 
   it('should skip truncations longer than the UUID itself', () => {
     const shortUuid = 'abc1234'
-    const index: Record<string, string> = {}
+    const index: Record<string, string | null> = {}
 
     indexSrUuidTruncations(shortUuid, index)
 
@@ -3580,6 +3651,7 @@ describe('tags label on status, uptime and SR metrics', () => {
         usage: 250,
         pool_id: 'pool-1',
         pool_name: 'Pool',
+        content_type: 'user',
         sr_type: 'lvm',
         tags: ['fast', 'ssd'],
       },

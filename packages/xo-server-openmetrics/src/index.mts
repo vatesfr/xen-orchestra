@@ -101,7 +101,8 @@ export interface LabelLookupData {
   vms: Record<XoVm['uuid'] | XoVmController['uuid'], VmLabelInfo>
   hosts: Record<XoHost['uuid'], HostLabelInfo>
   srs: Record<XoSr['uuid'], SrLabelInfo>
-  srTruncatedToUuid: Record<string, XoSr['uuid']> // maps any UUID truncation (prefix or suffix) to the full SR UUID
+  // Maps UUID truncations to full SR UUIDs; null marks a collision.
+  srTruncatedToUuid: Record<string, XoSr['uuid'] | null>
   vdiUuidToSrUuid: Record<XoVdi['uuid'], XoSr['uuid']> // maps VDI UUID to parent SR UUID
 }
 
@@ -113,6 +114,7 @@ interface XapiCredentialsPayload {
 export type SrDataItem = Pick<XoSr, 'uuid' | 'name_label' | 'size' | 'physical_usage' | 'usage'> & {
   pool_id: string
   pool_name: string
+  content_type: XoSr['content_type']
   /**
    * Verbatim `XoSr.SR_type` (e.g. `'linstor'`, `'lvm'`, `'nfs'`). Emitted as
    * the `sr_type` OpenMetrics label so Grafana queries can filter / split
@@ -513,20 +515,24 @@ export const SR_UUID_TRUNCATIONS: ReadonlyArray<number> = [8, 12, 16, 20]
  * each truncation to the full UUID. XCP-ng RRD legends encode the SR as the
  * first 8 chars of the UUID, but older / variant builds may use the suffix;
  * indexing both keeps the SR-name and `sr_type` resolution stable across
- * versions. First match wins, so existing entries are never overwritten.
+ * versions. Ambiguous truncations are marked with null to prevent incorrect
+ * cross-pool enrichment.
  *
  * Exported for testability.
  */
-export function indexSrUuidTruncations(uuid: string, index: Record<string, string>): void {
+export function indexSrUuidTruncations(uuid: string, index: Record<string, string | null>): void {
   for (const truncLen of SR_UUID_TRUNCATIONS) {
     if (uuid.length < truncLen) continue
     const prefix = uuid.slice(0, truncLen)
     const suffix = uuid.slice(-truncLen)
-    if (index[prefix] === undefined) {
-      index[prefix] = uuid
-    }
-    if (index[suffix] === undefined) {
-      index[suffix] = uuid
+
+    for (const truncation of [prefix, suffix]) {
+      const indexedUuid = index[truncation]
+      if (indexedUuid === undefined) {
+        index[truncation] = uuid
+      } else if (indexedUuid !== uuid) {
+        index[truncation] = null
+      }
     }
   }
 }
@@ -1203,6 +1209,7 @@ class OpenMetricsPlugin {
         name_label: sr.name_label,
         pool_id: sr.$poolId,
         pool_name: poolLabelMap.get(sr.$poolId) ?? '',
+        content_type: sr.content_type,
         sr_type: sr.SR_type ?? '',
         size: sr.size,
         physical_usage: sr.physical_usage,
