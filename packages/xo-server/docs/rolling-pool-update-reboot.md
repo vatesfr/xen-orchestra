@@ -58,7 +58,7 @@ Old traces are garbage-collected on mtime (`rpu.tracesRetention`, 31 days by def
 | Timeout on `Waiting for host to be up`                                                | Host takes too long to boot. `xapiOptions.restartHostTimeout` (default 20 minutes).                                                                                         |
 | Pool stays `disconnected` after the master rebooted, `EHOSTUNREACH`                   | Stale connection error, the retry did not kick in yet. `POST /rest/v0/servers/<id>/actions/connect` reconnects immediately.                                                 |
 
-Note on granularity: `Evacuate` is a single `host.evacuate` XAPI call, there is no per-VM detail in the tree for that phase. Per-VM subtasks only exist in `Migrate VMs back`.
+Note on granularity: `Evacuate` is a single `host.evacuate` XAPI call, there is no per-VM detail in the tree for that phase. When `shutdownPinnedVms` is enabled and pinned VMs are present, per-VM subtasks also appear under `Shut down pinned VMs` and `Restart pinned VMs`.
 
 ## Task logs
 
@@ -70,11 +70,19 @@ Rolling pool update and rolling pool reboot task logs have major parts in common
 task.start({ name: 'Rolling pool reboot', poolId: string, poolName: string })
 ├─ task.start({ name: 'Restarting hosts', total: number, progress: number, done: number })
 |  ├─ task.start({ name: `Restarting host ${hostId}`, hostId: string, hostName: string })
+|  |  ├─ task.start({ name: 'Shut down pinned VMs', hostId: string, hostName: string })
+|  |  |  ├─ task.start({ name: `Shutting down VM ${vmId}`, hostId: string, hostName: string, vmId: string, vmName: string })
+│  │  │  │  └─ task.end
+│  │  │  └─ task.end
 |  |  ├─ task.start({ name: 'Evacuate', hostId: string, hostName: string })
 │  │  │  └─ task.end
 |  |  ├─ task.start({ name: 'Restart', hostId: string, hostName: string })
 │  │  │  └─ task.end
 |  |  ├─ task.start({ name: 'Waiting for host to be up', hostId: string, hostName: string })
+│  │  │  └─ task.end
+|  |  ├─ task.start({ name: 'Restart pinned VMs', hostId: string, hostName: string })
+|  |  |  ├─ task.start({ name: `Restarting VM ${vmId} on host ${hostId}`, hostId: string, hostName: string, vmId: string, vmName: string })
+│  │  │  │  └─ task.end
 │  │  │  └─ task.end
 │  │  └─ task.end
 │  └─ task.end
@@ -100,6 +108,10 @@ task.start({ name: 'Rolling pool update', poolId: string, poolName: string })
 │  │  └─ task.end
 │  ├─ task.start({ name: 'Restarting hosts', total: number, progress: number, done: number })
 │  |  ├─ task.start({ name: `Restarting host ${hostId}`, hostId: string, hostName: string })
+│  |  |  ├─ task.start({ name: 'Shut down pinned VMs', hostId: string, hostName: string })
+│  |  |  |  ├─ task.start({ name: `Shutting down VM ${vmId}`, hostId: string, hostName: string, vmId: string, vmName: string })
+│  │  │  │  │  └─ task.end
+│  │  │  │  └─ task.end
 │  |  |  ├─ task.start({ name: 'Evacuate', hostId: string, hostName: string })
 │  │  │  │  └─ task.end
 │  |  |  ├─ task.start({ name: 'Installing patches', hostId: string, hostName: string })
@@ -107,6 +119,10 @@ task.start({ name: 'Rolling pool update', poolId: string, poolName: string })
 │  |  |  ├─ task.start({ name: 'Restart', hostId: string, hostName: string })
 │  │  │  │  └─ task.end
 │  |  |  ├─ task.start({ name: 'Waiting for host to be up', hostId: string, hostName: string })
+│  │  │  │  └─ task.end
+│  |  |  ├─ task.start({ name: 'Restart pinned VMs', hostId: string, hostName: string })
+│  |  |  |  ├─ task.start({ name: `Restarting VM ${vmId} on host ${hostId}`, hostId: string, hostName: string, vmId: string, vmName: string })
+│  │  │  │  │  └─ task.end
 │  │  │  │  └─ task.end
 │  │  │  └─ task.end
 │  │  └─ task.end
