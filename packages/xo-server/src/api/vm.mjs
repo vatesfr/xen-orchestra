@@ -1370,13 +1370,17 @@ async function import_({ data, sr, type = 'xva', url }) {
     const timeout = this.config.getOptionalDuration('jsonrpc-api.xvaImportFromUrlTimeout') ?? 6e3
     // `timeout` is an inactivity timeout: undici's headers/body timeouts match this semantic
     const dispatcher = new Agent({ headersTimeout: timeout, bodyTimeout: timeout })
-    const response = await fetch(url, { dispatcher })
-    if (!response.ok) {
-      await response.body?.cancel() // free the socket
-      throw new Error(`${response.status} ${response.statusText}`)
+    try {
+      const response = await fetch(url, { dispatcher })
+      if (!response.ok) {
+        await response.body?.cancel() // free the socket
+        throw new Error(`${response.status} ${response.statusText}`)
+      }
+      const ref = await xapi.VM_import(Readable.fromWeb(response.body), sr._xapiRef)
+      return await xapi.call('VM.get_uuid', ref)
+    } finally {
+      await dispatcher.close()
     }
-    const ref = await xapi.VM_import(Readable.fromWeb(response.body), sr._xapiRef)
-    return xapi.call('VM.get_uuid', ref)
   }
 
   return {

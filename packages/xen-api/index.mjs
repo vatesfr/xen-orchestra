@@ -92,6 +92,9 @@ function nodeRequest(url, { body, headers, maxRedirects = 5, signal, timeout, ..
         }
 
         sendError = error => response.destroy(error)
+        // a client `IncomingMessage` has no `.url`; expose the final URL so
+        // callers (e.g. `putResource`) can attach it as error context
+        response.url = currentUrl.href
         const isOk = statusCode >= 200 && statusCode < 300
         if (isOk) {
           resolve(response)
