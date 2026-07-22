@@ -31,6 +31,7 @@ import {
   createdResp,
   featureUnauthorized,
   forbiddenOperationResp,
+  incorrectStateResp,
   internalServerErrorResp,
   invalidParameters as invalidParametersResp,
   noContentResp,
@@ -375,6 +376,7 @@ export class PoolController extends XapiXoController<XoPool> {
   @Response(noContentResp.status, noContentResp.description)
   @Response(featureUnauthorized.status, featureUnauthorized.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
   rollingReboot(
     @Path() id: string,
     @Body() body?: { shutdownPinnedVms?: boolean },
@@ -418,6 +420,7 @@ export class PoolController extends XapiXoController<XoPool> {
   @Response(noContentResp.status, noContentResp.description)
   @Response(featureUnauthorized.status, featureUnauthorized.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
   rollingUpdate(
     @Path() id: string,
     @Body() body?: { shutdownPinnedVms?: boolean },
