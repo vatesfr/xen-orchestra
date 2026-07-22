@@ -52,6 +52,11 @@ export const internalServerErrorResp = {
   description: 'Internal server error, XenServer/XCP-ng error',
 } as const
 
+export const notImplementedResp = {
+  status: 501,
+  description: 'Not implemented',
+} as const
+
 export const resourceAlreadyExists = {
   status: 409,
   description: 'Resource already exists',

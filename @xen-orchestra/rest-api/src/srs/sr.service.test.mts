@@ -35,7 +35,6 @@ describe('SrService.create', () => {
       name_label: 'NFS store',
       SR_type: 'nfs',
       size: 1234,
-      shared: true,
       device_config: { server: '10.0.0.1', serverpath: '/data' },
     } as CreateSrBody
 
@@ -44,7 +43,8 @@ describe('SrService.create', () => {
     // host id is resolved against the 'host' collection
     assert.deepEqual(getXapiObjectArgs, ['host-uuid', 'host'])
     // body.hostId (XO id) is replaced by the XAPI ref, SR_type/size are mapped to
-    // XAPI's type/physical_size, device_config is forwarded untouched
+    // XAPI's type/physical_size, shared is computed from SR_type (nfs -> shared),
+    // device_config is forwarded untouched
     assert.deepEqual(srCreateParams, {
       name_label: 'NFS store',
       type: 'nfs',
@@ -58,19 +58,63 @@ describe('SrService.create', () => {
     assert.equal(id, 'sr-uuid-123')
   })
 
-  it('rejects linstor (XOSTOR) SR creation', async () => {
+  it('computes shared from SR_type and forces content_type for ISO SRs', async () => {
+    const srCreateCalls: Record<string, unknown>[] = []
+    const fakeXapi = {
+      SR_create: async (params: Record<string, unknown>) => {
+        srCreateCalls.push(params)
+        return 'OpaqueRef:new-sr'
+      },
+      getField: async () => 'sr-uuid-123',
+    }
+    const restApi = {
+      getXapiObject: () => ({ $ref: 'OpaqueRef:host-1', $xapi: fakeXapi }),
+    } as unknown as RestApi
+    const service = new SrService(restApi)
+
+    // local SR type -> not shared
+    await service.create({
+      hostId: 'host-uuid',
+      name_label: 'local',
+      SR_type: 'ext',
+      device_config: {},
+    } as CreateSrBody)
+    assert.equal(srCreateCalls[0].shared, false)
+    assert.equal('content_type' in srCreateCalls[0], false)
+
+    // remote ISO library -> shared, content_type forced to 'iso'
+    await service.create({
+      hostId: 'host-uuid',
+      name_label: 'isos',
+      SR_type: 'iso',
+      device_config: { location: '10.0.0.1:/isos' },
+    } as CreateSrBody)
+    assert.equal(srCreateCalls[1].shared, true)
+    assert.equal(srCreateCalls[1].content_type, 'iso')
+
+    // local ISO library (legacy_mode) -> not shared
+    await service.create({
+      hostId: 'host-uuid',
+      name_label: 'local isos',
+      SR_type: 'iso',
+      device_config: { legacy_mode: 'true', location: '/media/isos' },
+    } as CreateSrBody)
+    assert.equal(srCreateCalls[2].shared, false)
+    assert.equal(srCreateCalls[2].content_type, 'iso')
+  })
+
+  it('rejects linstor (XOSTOR) SR creation with 501', async () => {
     const service = new SrService({} as RestApi)
     const body = {
       hostId: 'host-uuid',
       name_label: 'XOSTOR',
       SR_type: 'linstor',
-      shared: true,
       device_config: {},
     } as CreateSrBody
 
     await assert.rejects(service.create(body), (error: unknown) => {
       assert.ok(error instanceof ApiError)
-      assert.equal(error.status, 403)
+      assert.equal(error.status, 501)
       return true
     })
   })

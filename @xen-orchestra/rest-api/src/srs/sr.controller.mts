@@ -36,6 +36,7 @@ import {
   invalidParameters as invalidParametersResp,
   noContentResp,
   notFoundResp,
+  notImplementedResp,
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
@@ -118,10 +119,14 @@ export class SrController extends XapiXoController<XoSr> {
    * (e.g. nfs: `{ server, serverpath }`, smb: `{ server, username, password }`,
    * lvmoiscsi: `{ target, targetIQN, SCSIid }`).
    *
+   * `shared` is computed from `SR_type`: network/SAN backed SRs are shared, local ones are not.
+   *
+   * XOSTOR (`SR_type: "linstor"`) creation is not supported yet: such requests fail with `501 Not Implemented`.
+   *
    * Required privilege:
    * - resource: sr, action: create
    *
-   * @example body { "hostId": "f8b8d2a5-7d40-a104-efc6-fb797b58f258", "name_label": "NFS store", "SR_type": "nfs", "shared": true, "device_config": { "server": "10.0.0.1", "serverpath": "/data" } }
+   * @example body { "hostId": "f8b8d2a5-7d40-a104-efc6-fb797b58f258", "name_label": "NFS store", "SR_type": "nfs", "device_config": { "server": "10.0.0.1", "serverpath": "/data" } }
    */
   @Example(srId)
   @Extension('x-mcp-exposure', 'confirm')
@@ -130,7 +135,9 @@ export class SrController extends XapiXoController<XoSr> {
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  @Response(notImplementedResp.status, notImplementedResp.description)
   async createSr(@Body() body: CreateSrBody): Promise<{ id: string }> {
     const id = await this.#srService.create(body)
     this.setHeader('Location', `${BASE_URL}/srs/${id}`)
