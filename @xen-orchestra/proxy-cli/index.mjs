@@ -119,7 +119,7 @@ ${pkg.name} v${pkg.version}`
     const { stdout } = process
     const stream = Readable.fromWeb(response.body)
 
-    const responseType = contentType.parse(response.headers.get('content-type')).type
+    const responseType = contentType.parse(response.headers.get('content-type'))?.type
     if (responseType === 'application/octet-stream') {
       if (stdout.isTTY) {
         throw new Error('binary data, pipe to a file!')
