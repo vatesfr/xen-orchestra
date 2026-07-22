@@ -119,6 +119,11 @@ const textMappingsByObject: TextMappingByObject = {
       message: t('modal:host-force-reboot-message'),
       action: t('action:force-reboot'),
     },
+    'smart-reboot': {
+      title: t('modal:confirm-host-smart-reboot', { host: hostName }),
+      message: t('modal:host-smart-reboot-message'),
+      action: t('action:smart-reboot'),
+    },
   },
 }
 
