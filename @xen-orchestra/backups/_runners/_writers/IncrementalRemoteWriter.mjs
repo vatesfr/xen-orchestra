@@ -40,14 +40,6 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
           ignoreMissing: true,
           prependDir: true,
         })
-        // [CHAIN-DEBUG] temporary logging to diagnose why chaining falls back to full transfers
-        warn('[CHAIN-DEBUG] checkBaseVdis: candidate vhds for base', {
-          baseUuid,
-          srcVdiUuid,
-          vhdDir,
-          candidateCount: vhds.length,
-          candidates: vhds.map(_ => basename(_)),
-        })
         const packedBaseUuid = packUuid(baseUuid)
         // the last one is probably the right one
 
@@ -67,20 +59,8 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
       }
       // no usable parent => the runner will have to decide to fall back to a full or stop backup
       if (parentDestPath === undefined) {
-        // [CHAIN-DEBUG] no mergeable parent found → this base is dropped and the disk will be a full transfer
-        warn('[CHAIN-DEBUG] checkBaseVdis: NO mergeable parent found, dropping base (=> full transfer)', {
-          baseUuid,
-          srcVdiUuid,
-          vhdDir,
-        })
         baseUuidToSrcVdi.delete(baseUuid)
       } else {
-        // [CHAIN-DEBUG] mergeable parent found → disk will be a differencing/incremental transfer
-        warn('[CHAIN-DEBUG] checkBaseVdis: mergeable parent found', {
-          baseUuid,
-          srcVdiUuid,
-          parentDestPath,
-        })
         this.#parentVdiPaths[vhdDir] = parentDestPath
         this.#parentUuids[vhdDir] = parentUuid
       }
@@ -219,16 +199,6 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
             assert.ok(basename(parentDestPath) < basename(path), `vhd must be sorted to be chained`)
             parentPath = relativeFromFile(path, parentDestPath)
           }
-
-          // [CHAIN-DEBUG] temporary logging to diagnose why chaining falls back to full transfers
-          warn('[CHAIN-DEBUG] _transfer: writing vhd', {
-            path: basename(path),
-            isDifferencing: !!isVhdDifferencing[diskRef],
-            // this uuid must match the base uuid looked up on the NEXT backup
-            footerUuid: packUuid(vdi.uuid).toString('hex'),
-            parentUuid: parentUuid?.toString('hex'),
-            parentPath,
-          })
 
           const transferred = await adapter.writeVhd(path, disk, {
             validator: tmpPath => checkVhd(handler, tmpPath),

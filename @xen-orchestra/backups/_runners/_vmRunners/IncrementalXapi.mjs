@@ -20,7 +20,7 @@ import { AggregatedIncrementalRemoteWriter } from '../_writers/AggregatedIncreme
 import { AggregatedIncrementalXapiWriter } from '../_writers/AggregatedIncrementalXapiWriter.mjs'
 import { TaskProgressHandler } from './_TaskProgressHandler.mjs'
 
-const { debug, warn } = createLogger('xo:backups:IncrementalXapiVmBackup')
+const { debug } = createLogger('xo:backups:IncrementalXapiVmBackup')
 
 export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends AbstractXapi {
   _getWriters() {
@@ -227,11 +227,7 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     }
 
     if (presentBaseVdis.size === 0) {
-      // [CHAIN-DEBUG] no base survived => whole VM backup will be full
-      warn('[CHAIN-DEBUG] _selectBaseVm: no base VM found (=> full backup)', {
-        exportedSnapshotGroups: grouped.length,
-        baseCandidatesCount: baseUuidToSrcVdiUuid.size,
-      })
+      debug('no base VM found')
       return
     }
 
@@ -239,8 +235,7 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     // especially on replication when we alwayr update the same VM
     const fullInterval = this._settings.fullInterval
     if (fullInterval !== 0 && fullInterval <= deltaChainLength + 1) {
-      // [CHAIN-DEBUG] scheduled full because the configured fullInterval was reached
-      warn('[CHAIN-DEBUG] _selectBaseVm: fullInterval reached, forcing full backup', {
+      debug('not using base VM because fullInterval reached', {
         fullInterval,
         deltaChainLength,
         eq: fullInterval < deltaChainLength + 1,
@@ -248,17 +243,6 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
       })
       return
     }
-
-    // [CHAIN-DEBUG] temporary logging to diagnose why chaining falls back to full transfers
-    warn('[CHAIN-DEBUG] _selectBaseVm: base selection summary', {
-      exportedSnapshotGroups: grouped.length,
-      lastExportedVdisCount: lastExportedVdis.length,
-      // survivors after every writer's checkBaseVdis() confirmed a mergeable parent
-      presentBaseVdisCount: presentBaseVdis.size,
-      baseCandidatesCount: baseUuidToSrcVdiUuid.size,
-      deltaChainLength,
-      fullInterval: this._settings.fullInterval,
-    })
 
     baseUuidToSrcVdiUuid.forEach((srcVdiUuid, baseUuid) => {
       if (presentBaseVdis.has(baseUuid)) {
@@ -268,8 +252,7 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
         })
         this._baseVdis[srcVdiUuid] = lastExportedVdis.find(vdi => vdi.uuid === baseUuid)
       } else {
-        // [CHAIN-DEBUG] this base VDI was dropped by a writer's checkBaseVdis => full for this vdi
-        warn('[CHAIN-DEBUG] _selectBaseVm: base VDI dropped by writer (=> full for this vdi)', {
+        debug('missing base VDI', {
           base: baseUuid,
           vdi: srcVdiUuid,
         })
