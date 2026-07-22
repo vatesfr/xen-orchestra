@@ -55,7 +55,7 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
       signal?.throwIfAborted()
       generator = this.source.diskBlocks(uid)
       await handler.mktree(dataPath)
-      const vhd = new VhdDirectory(handler, dataPath, { flags, compression })
+      const vhd = new VhdDirectory(handler, dataPath, { flags: flags ?? 'w', compression })
       vhd.footer = unpackFooter(this.computeVhdFooter())
       vhd.header = unpackHeader(this.computeVhdHeader())
       /**
