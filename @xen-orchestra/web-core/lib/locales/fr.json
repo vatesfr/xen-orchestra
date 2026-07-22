@@ -486,6 +486,7 @@
   "job:disconnect:in-progress": "Déconnexion en cours…",
   "job:enable:in-progress": "Activation en cours…",
   "job:export:in-progress": "Export en cours…",
+  "job:host-disable:bad-power-state": "L'hôte n'est pas lancé",
   "job:host-disable:missing-host": "L'hôte est manquant",
   "job:host-enable:missing-host": "L'hôte est manquant",
   "job:migrate:in-progress": "Migration en cours…",
