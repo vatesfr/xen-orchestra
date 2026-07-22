@@ -1,10 +1,5 @@
 <template>
   <UiHeadBar>
-    <template #actions>
-      <UiLink size="medium" :to="{ name: '/vm/new', query: { poolid: host.$pool } }" icon="fa:plus">
-        {{ t('new-vm') }}
-      </UiLink>
-    </template>
     <template #icon>
       <VtsObjectIcon size="medium" type="host" :state="toLower(host.power_state)" />
     </template>
@@ -13,6 +8,9 @@
       <VtsIcon v-tooltip="t('master')" name="status:primary-circle" size="medium" />
     </template>
     <template #actions>
+      <UiLink size="medium" :to="{ name: '/vm/new', query: { poolid: host.$pool } }" icon="fa:plus">
+        {{ t('new-vm') }}
+      </UiLink>
       <MenuList placement="bottom-end">
         <template #trigger="{ open }">
           <UiButtonIcon
