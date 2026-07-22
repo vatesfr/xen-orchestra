@@ -11,6 +11,7 @@ import httpProxy from 'http-proxy'
 import includes from 'lodash/includes.js'
 import memoryStoreFactory from 'memorystore'
 import merge from 'lodash/merge.js'
+import mergeWith from 'lodash/mergeWith.js'
 import ms from 'ms'
 import once from 'lodash/once.js'
 import proxyAddr from 'proxy-addr'
@@ -62,7 +63,6 @@ const [APP_NAME, APP_VERSION] = (() => {
   const { name, version } = JSON.parse(fse.readFileSync(new URL('../package.json', import.meta.url)))
   return [name, version]
 })()
-
 // ===================================================================
 
 configure([
@@ -146,6 +146,21 @@ async function updateLocalConfig(diff) {
 
 // ===================================================================
 
+const DEFAULT_HELMET_CONFIG = {
+  contentSecurityPolicy: {
+    directives: {
+      'default-src': ["'self'"],
+      // Hashes of XO's own inline scripts. If either changes, update its hash.
+      'script-src': [
+        "'self'",
+        "'sha256-sIj1FFjxCJxsQo5Hw5ZkhT+9Gc+Q6LmIkJzdjARCn0o='", // xo-web/src/index.pug
+        "'sha256-Z5hWOtGcISU7nkyObsPm3ZZvPpAYxzoiQutkJucVkm8='", // xo-server/signin.pug
+      ],
+      'style-src': ["'self'", "'unsafe-inline'"],
+      'img-src': ["'self'", 'data:'],
+    },
+  },
+}
 async function createExpressApp(config) {
   const app = createExpress()
 
@@ -153,8 +168,11 @@ async function createExpressApp(config) {
   //
   // https://expressjs.com/en/api.html#app.set
   app.set('json spaces', 2)
-
-  app.use(helmet(config.http.helmet))
+  const isDev = (process.env.NODE_ENV ?? '').trim().toLowerCase() === 'development'
+  const helmetConfig = mergeWith({}, isDev ? {} : DEFAULT_HELMET_CONFIG, config.http.helmet, (dst, src) =>
+    Array.isArray(dst) ? dst.concat(src) : undefined
+  )
+  app.use(helmet(helmetConfig))
 
   app.use(compression())
 
