@@ -3,12 +3,14 @@
   <HostDisableButton v-if="host.enabled" :host />
   <HostEnableButton v-else :host />
   <HostDisableAndEvacuateVmButton v-if="host.enabled" :host />
+  <HostDetachButton :host />
   <HostForgetButton v-if="hostIsHalted" :host />
   <VtsDivider type="stretch" />
   <HostDownloadButton :host-id="host.id" />
 </template>
 
 <script lang="ts" setup>
+import HostDetachButton from '@/modules/host/components/actions/detach/HostDetachButton.vue'
 import HostDisableButton from '@/modules/host/components/actions/disable/HostDisableButton.vue'
 import HostDisableAndEvacuateVmButton from '@/modules/host/components/actions/disable-and-evacuate-vms/HostDisableAndEvacuateVmButton.vue'
 import HostDownloadButton from '@/modules/host/components/actions/download/HostDownloadButton.vue'
