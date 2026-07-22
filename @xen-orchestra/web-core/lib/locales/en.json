@@ -644,7 +644,7 @@
   "modal:host-disable-message": "The host will be marked unavailable for starting or receiving new VMs. Already-running VMs are not affected.",
   "modal:host-enable-message": "The host becomes available again for starting or receiving VMs.",
   "modal:host-forget-message": "This will permanently remove the host from the pool database. Only do this if the host is physically gone or unrecoverable - if it can come back online, use Detach instead. This action cannot be undone.",
-  "modal:host-reboot-message": "The host is about to reboot. Its VMs will be migrated to other hosts and won't be moved back to it automatically afterward.",
+  "modal:host-reboot-message": "The host is about to reboot. Its VMs will be migrated to other hosts and won't be moved back to it automatically afterwards.",
   "modal:host-shutdown-message": "This will power off the host. Any VMs still running on it will be shut down immediately unless you've migrated them first.",
   "modal:vm-force-reboot-message": "This will immediately reboot the virtual machine without a clean shutdown. Data loss may occur and ongoing processes will be interrupted.",
   "modal:vm-force-shutdown-message": "This will immediately power off the virtual machine without a clean shutdown. Data loss may occur and ongoing processes will be interrupted.",
