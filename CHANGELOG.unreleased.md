@@ -78,6 +78,7 @@
 - xen-api minor
 - xo-cli minor
 - xo-server minor
+- xo-server-netbox patch
 - xo-server-openmetrics minor
 - xo-server-perf-alert patch
 
