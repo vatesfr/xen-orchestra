@@ -26,7 +26,7 @@ export function useVifConnectionToggleModal(
   const errorMessage = computed(() => job.value.errorMessage.value)
 
   const openModal = useModal(() => ({
-    component: import('@/modules/vif/components/modal/VifConnectionToggleModal.vue'),
+    component: import('@core/components/vif-connection-toggle-modal/VtsVifConnectionToggleModal.vue'),
     props: { action: action.value, count: vifs.value.length },
     onConfirm: async () => {
       try {

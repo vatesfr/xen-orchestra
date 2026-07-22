@@ -17,17 +17,6 @@
       <UiButton size="medium" accent="brand" variant="primary" type="submit" class="action-button">
         {{ t('action:search') }}
       </UiButton>
-      <VtsDivider type="stretch" />
-      <UiButton
-        v-tooltip="t('coming-soon!')"
-        size="medium"
-        accent="brand"
-        variant="secondary"
-        disabled
-        class="action-button"
-      >
-        {{ t('query-search-bar:use-query-builder') }}
-      </UiButton>
     </template>
 
     <!-- Mobile icons: search + filter -->
@@ -39,11 +28,9 @@
 </template>
 
 <script lang="ts" setup>
-import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store'
 import { uniqueId } from '@core/utils/unique-id.util'
 import { ref } from 'vue'

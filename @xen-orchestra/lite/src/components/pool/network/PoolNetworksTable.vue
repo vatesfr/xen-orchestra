@@ -2,48 +2,9 @@
   <div class="pool-networks-table">
     <UiTitle>
       {{ t('networks') }}
-      <template #action>
-        <UiDropdownButton v-tooltip="t('coming-soon!')" disabled>
-          {{ t('new') }}
-        </UiDropdownButton>
-      </template>
     </UiTitle>
     <div class="container">
-      <div class="table-actions">
-        <UiQuerySearchBar @search="value => (searchQuery = value)" />
-        <UiTableActions :title="t('table-actions')">
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            left-icon="fa:edit"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('action:edit') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            left-icon="fa:copy"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('action:copy-info-json') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            left-icon="fa:trash"
-            variant="tertiary"
-            accent="danger"
-            size="medium"
-          >
-            {{ t('action:delete') }}
-          </UiButton>
-        </UiTableActions>
-      </div>
+      <UiQuerySearchBar @search="value => (searchQuery = value)" />
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
@@ -71,15 +32,11 @@ import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
-import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTableState } from '@core/composables/table-state.composable'
-import { vTooltip } from '@core/directives/tooltip.directive'
 import { useNetworkColumns } from '@core/tables/column-sets/network-columns'
 import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
@@ -175,7 +132,6 @@ const { HeadCells, BodyCells } = useNetworkColumns({
 
 <style scoped lang="postcss">
 .pool-networks-table,
-.table-actions,
 .container {
   display: flex;
   flex-direction: column;
@@ -184,8 +140,7 @@ const { HeadCells, BodyCells } = useNetworkColumns({
 .pool-networks-table {
   gap: 2.4rem;
 
-  .container,
-  .table-actions {
+  .container {
     gap: 0.8rem;
   }
 }

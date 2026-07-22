@@ -37,9 +37,28 @@ verboseApiLogsOnErrors = false
 # if no events could be fetched during this delay, the server will be marked as disconnected
 xapiMarkDisconnectedDelay = '5 minutes'
 
+# Delay before re-enabling the load balancer after a rolling pool update
+loadBalancerReEnableDelay = '30 minutes'
+
+# Observability of rolling pool updates/reboots (RPU/RPR).
+#
+# Each run writes two files in the traces directory:
+# - a NDJSON trace of all the events of the task tree, crash-resistant
+# - a heartbeat file updated every few seconds while the operation is running
+#
+#[rpu]
+#
+# Directory where the traces are written
+#
+# Default: '<datadir>/rpu-traces'
+#tracesDir = '/var/lib/xo-server/data/rpu-traces'
+#
+# How long the traces are kept on disk
+#tracesRetention = '31 days'
+
 # https:#github.com/websockets/ws#websocket-compression
 [apiWebSocketOptions]
-perMessageDeflate = { threshold = 524288 } # 512kiB
+perMessageDeflate = {threshold = 524288}# 512kiB
 
 [authentication]
 defaultTokenValidity = '30 days'
@@ -126,9 +145,13 @@ useForwardedHeaders = false
 # Helmet handles HTTP security via headers
 #
 # https://helmetjs.github.io/docs/
+#
+# A Content-Security-Policy is applied by default (defined in xo-server). Values
+# set here are merged on top: array values (e.g. CSP directives) extend the
+# defaults, other values override them.
 #[http.helmet.hsts]
 #includeSubDomains = false
-
+#
 # Each `http.listen.<name>` entry defines a specific listening configuration for
 # the HTTP server.
 #
@@ -170,11 +193,11 @@ requestTimeout = 0
 
 [http.proxies]
 # [port] is used to reuse the same port declared in [http.listen.0]
+'/openmetrics' = 'http://localhost:9004'
 '/v5/api' = '[protocol]//localhost:[port]/api'
 '/v5/api/updater' = 'ws://localhost:9001'
-'/v5/rest' = '[protocol]//localhost:[port]/rest'
 '/v5/netdata' = '[protocol]//localhost:[port]/netdata'
-'/openmetrics' = 'http://localhost:9004'
+'/v5/rest' = '[protocol]//localhost:[port]/rest'
 
 [logs]
 # Display all logs matching this filter, regardless of their level
@@ -210,15 +233,16 @@ timeout = 600e3
 ignoreVmSnapshotResources = false
 
 [xapiOptions]
+
+maxUncoalescedVdis = 1
 # The duration XO will wait for a host to be live before assuming it failed to
 # restart
 restartHostTimeout = '20 minutes'
-maxUncoalescedVdis = 1
+vdiDelayBeforeRemovingCloudConfigDrive = '5 min'
 vdiExportConcurrency = 12
 vmEvacuationConcurrency = 3
 vmExportConcurrency = 2
 vmSnapshotConcurrency = 2
-vdiDelayBeforeRemovingCloudConfigDrive = '5 min'
 
 poolMarkingInterval = '6 hours'
 poolMarkingMaxAge = '48 hours'
@@ -246,12 +270,11 @@ vmTag = 'XOA Proxy'
 xoaUpgradeTimeout = '5 min'
 
 [rest-api]
-dashboardCacheTimeout = '1 min'
 dashboardCacheExpiresIn = '1 min'
+dashboardCacheTimeout = '1 min'
 # Allow to set a limit of memory per SSE client
 # before destroying the client. In MiB
 maxRamAllocatedPerSseClient = 20
-
 
 [jsonrpc-api]
 xvaImportFromUrlTimeout = '6s'

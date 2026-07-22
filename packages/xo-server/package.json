@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-server",
-  "version": "5.205.0",
+  "version": "5.205.2",
   "license": "AGPL-3.0-or-later",
   "description": "Server part of Xen-Orchestra",
   "keywords": [
@@ -50,12 +50,12 @@
     "@vates/xml": "^2.0.0",
     "@vates/xml-rpc": "^1.0.0",
     "@xen-orchestra/async-map": "^0.1.3",
-    "@xen-orchestra/backups": "^0.73.5",
+    "@xen-orchestra/backups": "^0.73.7",
     "@xen-orchestra/cron": "^1.0.7",
     "@xen-orchestra/defined": "^0.0.2",
     "@xen-orchestra/disk-transform": "^1.3.1",
     "@xen-orchestra/emit-async": "^1.0.0",
-    "@xen-orchestra/fs": "^4.9.1",
+    "@xen-orchestra/fs": "^4.9.2",
     "@xen-orchestra/log": "^0.7.2",
     "@xen-orchestra/mixin": "^0.2.1",
     "@xen-orchestra/mixins": "^0.20.1",
@@ -174,6 +174,7 @@
     "dev": "cross-env NODE_ENV=development yarn run _build --watch",
     "prepublishOnly": "yarn run build",
     "start": "node dist/cli.mjs",
+    "start:dev": "cross-env NODE_ENV=development node dist/cli.mjs",
     "test": "cd dist && node --test"
   },
   "author": {
