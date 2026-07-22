@@ -68,6 +68,7 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/acl patch
 - @xen-orchestra/backup-archive minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/disk-cli minor
@@ -80,7 +81,6 @@
 - xen-api minor
 - xo-server minor
 - xo-server-ipmi-plugin minor
-- @xen-orchestra/acl patch
 - xo-server-openmetrics minor
 - xo-server-perf-alert patch
 
