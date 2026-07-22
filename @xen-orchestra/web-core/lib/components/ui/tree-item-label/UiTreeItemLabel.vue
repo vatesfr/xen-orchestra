@@ -121,7 +121,6 @@ const depth = inject(IK_TREE_LIST_DEPTH, ref(0))
     font-size: 1.6rem;
     width: 1.6rem;
     flex-shrink: 0;
-    display: flex;
   }
 
   .addons-wrapper {
