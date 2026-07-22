@@ -1,4 +1,5 @@
 import { ipToHostname } from '@/libs/utils'
+import { createHostOperations } from '@/libs/xen-api/operations/host-operations'
 import { createVbdOperations } from '@/libs/xen-api/operations/vbd-operations'
 import { createVdiOperations } from '@/libs/xen-api/operations/vdi-operations'
 import { createVifOperations } from '@/libs/xen-api/operations/vif-operations'
@@ -255,6 +256,10 @@ export default class XenApi {
 
   get sessionId() {
     return this._sessionId
+  }
+
+  get host() {
+    return createHostOperations(this)
   }
 
   get vm() {
