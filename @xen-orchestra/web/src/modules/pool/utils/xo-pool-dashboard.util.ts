@@ -1,9 +1,7 @@
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
+import { buildTimestamps, type ChartPoint } from '@/shared/utils/chart-stats.util.ts'
 import type { ProgressBarGroupItem } from '@core/components/progress-bar-group/VtsProgressBarGroup.vue'
-import { formatSizeRaw } from '@core/utils/size.util.ts'
 import type { XapiHostStats, XapiPoolStats } from '@vates/types/common'
-
-type ChartTimeSeriesPoint = { timestamp: number; value: number }
 
 type StorageUsage = NonNullable<NonNullable<XoPoolDashboard['srs']>['topFiveUsage']>[number]
 
@@ -14,17 +12,11 @@ export function getHostsStats(
   return Object.values(data).filter((entry): entry is XapiHostStats => hasRequiredStats(entry as XapiHostStats))
 }
 
-export function buildTimestamps(host: XapiHostStats, dataLength: number): number[] {
-  const timestampStart = host.endTimestamp - host.interval * (dataLength - 1)
-
-  return Array.from({ length: dataLength }, (_, index) => (timestampStart + index * host.interval) * 1000)
-}
-
 export function buildStackedTimeSeries(
   hostsStats: XapiHostStats[],
   dataLength: number,
   getHostValueAtIndex: (host: XapiHostStats, index: number) => number
-): ChartTimeSeriesPoint[] {
+): ChartPoint[] {
   if (hostsStats.length === 0) {
     return []
   }
@@ -36,24 +28,6 @@ export function buildStackedTimeSeries(
 
     return { timestamp, value }
   })
-}
-
-export function roundUpChartMax(values: number[], step: number, fallback: number): number {
-  if (values.length === 0) {
-    return fallback
-  }
-
-  return Math.ceil((Math.max(...values) * 1.2) / step) * step
-}
-
-export function formatChartBytes(value: number | null): string {
-  if (value === null) {
-    return ''
-  }
-
-  const size = formatSizeRaw(value, 1)
-
-  return `${size.value} ${size.prefix}`
 }
 
 export function getStoragesUsageTotals(storagesUsage: StorageUsage[]): { totalUsage: number; totalSize: number } {

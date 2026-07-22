@@ -16,7 +16,8 @@
 </template>
 
 <script lang="ts" setup>
-import { buildStackedTimeSeries, formatChartBytes, getHostsStats } from '@/modules/pool/utils/xo-pool-dashboard.util.ts'
+import { buildStackedTimeSeries, getHostsStats } from '@/modules/pool/utils/xo-pool-dashboard.util.ts'
+import { formatChartBytes } from '@/shared/utils/chart-stats.util.ts'
 import type { LinearChartData } from '@core/types/chart.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'

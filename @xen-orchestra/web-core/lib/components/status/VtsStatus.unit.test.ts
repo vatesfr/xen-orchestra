@@ -1,8 +1,8 @@
 import VtsStatus from '@core/components/status/VtsStatus.vue'
+import type { Status } from '@core/components/status/VtsStatus.vue'
 import { createGlobalTestConfig } from '@core/test/global-test-config.ts'
 import { mount } from '@vue/test-utils'
 import { expect, test } from 'vitest'
-import type { Status } from '@core/components/status/VtsStatus.vue'
 
 function mountStatus(status: Status, iconOnly = false) {
   return mount(VtsStatus, {

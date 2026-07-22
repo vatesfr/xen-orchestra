@@ -16,12 +16,8 @@
 </template>
 
 <script lang="ts" setup>
-import {
-  buildStackedTimeSeries,
-  formatChartBytes,
-  getHostsStats,
-  roundUpChartMax,
-} from '@/modules/pool/utils/xo-pool-dashboard.util.ts'
+import { buildStackedTimeSeries, getHostsStats } from '@/modules/pool/utils/xo-pool-dashboard.util.ts'
+import { formatChartBytes, roundUpChartMax } from '@/shared/utils/chart-stats.util.ts'
 import type { LinearChartData } from '@core/types/chart.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -75,6 +71,6 @@ const networkUsage = computed<LinearChartData>(() => {
 const maxValue = computed(() => {
   const values = networkUsage.value.flatMap(series => series.data.map(item => item.value || 0))
 
-  return roundUpChartMax(values, 50, 100)
+  return roundUpChartMax(values, { step: 50, fallback: 100, headroom: 1.2 })
 })
 </script>
