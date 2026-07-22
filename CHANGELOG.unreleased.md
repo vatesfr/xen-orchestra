@@ -33,6 +33,8 @@
 - [XO6/VM] Add "New VM" button on Host view (PR [#10048](https://github.com/vatesfr/xen-orchestra/pull/10048))
 - [xo-server] expose more metrics when doing a memory dump (PR [#10041](https://github.com/vatesfr/xen-orchestra/pull/10041))
 - [RPU] Re-enable the load balancer after a configurable safe delay (30 minutes by default) when a rolling pool update ends (PR [#10111](https://github.com/vatesfr/xen-orchestra/pull/10111))
+- [Tasks] Resolve objects in tasks names [Forum#100894](<[https://xcp-ng.org/forum/post/100894](https://xcp-ng.org/forum/post/100894)>) (PR [#9830](https://github.com/vatesfr/xen-orchestra/pull/9830))
+- [REST API] Possibility to set the HA restart priority (`high_availability`) when creating a VM (PR [#10070](https://github.com/vatesfr/xen-orchestra/pull/10070))
 
 ### Bug fixes
 
@@ -45,6 +47,7 @@
 - [RPU] Fix `The updater plugin is busy` error making the update fail right after the "Updating LINSTOR packages" step (PR [#10115](https://github.com/vatesfr/xen-orchestra/pull/10115))
 - [Plugins/Perf-alert] Update URL generation to support V6 routing (PR [#10054](https://github.com/vatesfr/xen-orchestra/pull/10054))
 - [Rolling Pool Update/Reboot] Temporarily disable VMs auto power on during the run: unexpected VM starts on rebooted hosts could break the remaining host evacuations (`HOST_NOT_ENOUGH_FREE_MEMORY`) (PR [#10104](https://github.com/vatesfr/xen-orchestra/pull/10104))
+- [Backups] Fix failed status on successful retry [Forum#12366](https://xcp-ng.org/forum/topic/12366) (PR [#10129](https://github.com/vatesfr/xen-orchestra/pull/10129))
 - [Host] Successful evacuation signature fallbacks on older XAPI versions are no longer logged as warnings (PR [#10131](https://github.com/vatesfr/xen-orchestra/pull/10131))
 
 ### Packages to release
@@ -65,12 +68,13 @@
 
 - @vates/types minor
 - @xen-orchestra/backup-archive minor
+- @xen-orchestra/backups patch
 - @xen-orchestra/disk-cli minor
 - @xen-orchestra/disk-transform patch
 - @xen-orchestra/proxy-cli minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/upload-ova minor
-- @xen-orchestra/web patch
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi minor
 - vhd-lib patch
