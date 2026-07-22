@@ -33,7 +33,7 @@ export function useWatchCollection<T extends Partial<XoRecord>>({
   handleDelete?: THandleDelete
   handlePost?: THandlePost
   handleWatching?: THandleWatching
-  predicate?: (receivedObj: T | T[], context: ResourceContext<any[]> | undefined) => boolean
+  predicate?: (receivedObj: T | T[], context: ResourceContext<any[]> | undefined) => Promise<boolean> | boolean
 }) {
   const _getType: (obj: unknown) => string | undefined = getType ?? ((obj: any) => obj.$subscription)
   const _getIdentifier: (obj: unknown) => string | undefined = getIdentifier ?? ((obj: any) => obj.id)

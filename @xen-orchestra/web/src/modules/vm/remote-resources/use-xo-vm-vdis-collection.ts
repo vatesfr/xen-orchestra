@@ -4,6 +4,7 @@ import { useWatchCollection } from '@/shared/composables/watch-collection.compos
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
+import { whenever } from '@vueuse/shared'
 import { toValue } from 'vue'
 
 export const useXoVmVdisCollection = defineRemoteResource({
@@ -15,7 +16,7 @@ export const useXoVmVdisCollection = defineRemoteResource({
       collectionId: 'vmVdi',
       resource: 'VDI',
       fields: vdiFields,
-      predicate(obj, context) {
+      async predicate(obj, context) {
         if (context === undefined || context.args === undefined || Array.isArray(obj)) {
           return true
         }
@@ -23,10 +24,14 @@ export const useXoVmVdisCollection = defineRemoteResource({
         const [id] = context.args
         const vmId = toValue(id)
 
-        const { useGetVbdsByIds } = useXoVbdCollection(context)
+        const { useGetVbdsByIds, areVbdsReady } = useXoVbdCollection(context)
+        if (!areVbdsReady.value) {
+          await new Promise(resolve => {
+            whenever(() => areVbdsReady.value, resolve)
+          })
+        }
 
         const vbds = useGetVbdsByIds(obj.$VBDs).value
-
         return vbds.some(vbd => vbd.VM === vmId)
       },
     }),
