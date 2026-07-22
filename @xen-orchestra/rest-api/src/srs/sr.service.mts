@@ -1,8 +1,6 @@
-import type { XoHost, XoSr } from '@vates/types'
+import type { XoSr } from '@vates/types'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 import { LicenseService } from '../licenses/license.service.mjs'
-import { forEach, parseXml } from '../../../../packages/xo-server/src/utils.mjs'
-import ensureArray from '../../../../packages/xo-server/src/_ensureArray.mjs'
 
 export class SrService {
   #restApi: RestApi

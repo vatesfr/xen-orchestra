@@ -39,16 +39,7 @@ import {
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
-import {
-  partialSrs,
-  sr,
-  srIds,
-  nfsExport,
-  srUuids,
-  hbaExport,
-  iscsiIqnExport,
-  iscsiLunExport,
-} from '../open-api/oa-examples/sr.oa-example.mjs'
+import { partialSrs, sr, srIds } from '../open-api/oa-examples/sr.oa-example.mjs'
 import { vdiId } from '../open-api/oa-examples/vdi.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
