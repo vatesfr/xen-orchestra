@@ -2,6 +2,19 @@
   <div class="host-pif-table">
     <UiTitle>
       {{ t('pifs') }}
+      <template #action>
+        <UiButton
+          :busy="isScanningPifs"
+          :disabled="host === undefined"
+          left-icon="action:scan"
+          variant="primary"
+          accent="brand"
+          size="medium"
+          @click="scanPifs"
+        >
+          {{ t('scan-pifs') }}
+        </UiButton>
+      </template>
     </UiTitle>
     <div class="container">
       <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
@@ -22,11 +35,13 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
+import type { XenApiHost, XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
+import { useXenApiStore } from '@/stores/xen-api.store'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
@@ -38,8 +53,9 @@ import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { pifs } = defineProps<{
+const { pifs, host } = defineProps<{
   pifs: XenApiPif[]
+  host: XenApiHost | undefined
 }>()
 
 const { isReady, hasError } = usePifStore().subscribe()
@@ -48,7 +64,27 @@ const { getPifStatus } = usePifStore().subscribe()
 
 const { t } = useI18n()
 
+const xenApi = useXenApiStore().getXapi()
+
 const selectedPifId = useRouteQuery('id')
+
+const isScanningPifs = ref(false)
+
+const scanPifs = async () => {
+  if (host === undefined) {
+    return
+  }
+
+  isScanningPifs.value = true
+
+  try {
+    await xenApi.host.scanPifs(host.$ref)
+  } catch (error) {
+    console.error(error)
+  } finally {
+    isScanningPifs.value = false
+  }
+}
 
 const getNetworkName = (networkRef: XenApiNetwork['$ref']) => getByOpaqueRef(networkRef)?.name_label ?? ''
 
