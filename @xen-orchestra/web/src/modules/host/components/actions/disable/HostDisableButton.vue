@@ -4,6 +4,7 @@
     size="medium"
     variant="tertiary"
     accent="brand"
+    class="typo-body-bold-small"
     :disabled="!canDisableHost"
     icon="action:disable"
     :busy="isDisablingHost"

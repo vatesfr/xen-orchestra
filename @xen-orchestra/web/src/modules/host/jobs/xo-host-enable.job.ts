@@ -13,10 +13,7 @@ export const useXoHostEnableJob = defineJob('host.enable', [xoHostArg], () => {
 
   return {
     async run(host: FrontXoHost | undefined) {
-      if (!host) {
-        return
-      }
-      const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`hosts/${host.id}/actions/enable`)
+      const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`hosts/${host?.id}/actions/enable`)
       await monitorTask(taskId)
     },
 
