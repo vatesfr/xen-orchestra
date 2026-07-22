@@ -191,6 +191,12 @@ requestTimeout = 0
 '/v5' = '../xo-web/dist/'
 '/v6' = '../../@xen-orchestra/web/dist/'
 
+# Documentation site (Docusaurus), built for the /docs base URL, see
+# docs/docusaurus.embed.config.ts. Deep links like /docs/xo5/calculator resolve
+# only if serve-static is given `{ extensions: ['html'] }` (see setUpStaticFiles
+# in src/index.mjs); otherwise only /docs/ + in-app navigation work.
+'/docs' = '../../docs/build-embed/'
+
 [http.proxies]
 # [port] is used to reuse the same port declared in [http.listen.0]
 '/openmetrics' = 'http://localhost:9004'

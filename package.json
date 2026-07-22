@@ -62,7 +62,8 @@
   },
   "private": true,
   "scripts": {
-    "build": "TURBO_TELEMETRY_DISABLED=1 turbo run build --filter xo-server --filter xo-server-'*' --filter xo-web --filter @xen-orchestra/web --filter @xen-orchestra/backup-archive",
+    "build": "TURBO_TELEMETRY_DISABLED=1 turbo run build --filter xo-server --filter xo-server-'*' --filter xo-web --filter @xen-orchestra/web --filter @xen-orchestra/backup-archive && yarn build:doc",
+    "build:doc": "yarn --cwd docs install --frozen-lockfile && yarn --cwd docs build:xo-server",
     "build:xo-lite": "turbo run build --filter @xen-orchestra/lite",
     "clean": "scripts/run-script.js --parallel clean",
     "dev": "scripts/run-script.js --parallel --concurrency 0 --verbose dev",

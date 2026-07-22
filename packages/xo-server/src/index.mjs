@@ -767,7 +767,11 @@ const setUpStaticFiles = (express, opts) => {
     ensureArray(paths).forEach(path => {
       log.info(`Setting up ${url} → ${path}`)
 
-      express.use(url, serveStatic(path))
+      // `extensions: ['html']` lets extension-less deep links resolve to their
+      // `.html` file (e.g. `/docs/xo5/calculator` → `calculator.html`), which
+      // the Docusaurus docs mount needs since it is built with trailingSlash
+      // false. Harmless for the SPA mounts (no route-colliding .html files).
+      express.use(url, serveStatic(path, { extensions: ['html'] }))
     })
   })
 }

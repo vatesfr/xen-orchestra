@@ -194,6 +194,7 @@ export default {
         'xo5/immutability',
         'xo5/backup_reports',
         'xo5/backup_troubleshooting',
+        'xo5/calculator',
       ],
     },
      {
