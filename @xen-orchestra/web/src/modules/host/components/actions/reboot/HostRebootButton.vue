@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoHostShutdownJob } from '@/modules/host/jobs/xo-host-shutdown.job.ts'
+import { useXoHostRebootJob } from '@/modules/host/jobs/xo-host-reboot.job.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
@@ -32,7 +32,7 @@ const {
   canRun: canRebootHost,
   isRunning: isRebootingHost,
   errorMessage: rebootHostErrorMessage,
-} = useXoHostShutdownJob(() => host)
+} = useXoHostRebootJob(() => host)
 
 const openShutdownHostModal = useModal({
   component: import('@core/components/modal/VtsActionModal.vue'),

@@ -22,15 +22,15 @@ export const useXoHostRebootJob = defineJob('host.reboot', [xoHostArg], () => {
 
     validate: (isRunning, host: FrontXoHost | undefined) => {
       if (!host) {
-        throw new JobError(t('job:host-shutdown:missing-host'))
+        throw new JobError(t('job:host-reboot:missing-host'))
       }
 
       if (isRunning) {
-        throw new JobRunningError(t('job:host-shutdown:in-progress'))
+        throw new JobRunningError(t('job:host-reboot:in-progress'))
       }
 
       if (host.power_state !== HOST_POWER_STATE.RUNNING) {
-        throw new JobError(t('job:host-shutdown:bad-power-state'))
+        throw new JobError(t('job:host-reboot:bad-power-state'))
       }
     },
   }
