@@ -85,6 +85,6 @@
   },
   "scripts": {
     "postversion": "npm publish --access public",
-    "test": "vitest"
+    "test": "vitest unit"
   }
 }

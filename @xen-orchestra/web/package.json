@@ -10,7 +10,7 @@
     "build-only": "vite build",
     "type-check": "vue-tsc --build --force",
     "prepublishOnly": "yarn run build-only",
-    "test": "vitest"
+    "test": "vitest unit"
   },
   "devDependencies": {
     "@csstools/postcss-global-data": "^3.0.0",
