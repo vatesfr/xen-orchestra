@@ -64,5 +64,9 @@ export function createVifOperations(xenApi: XenApi) {
     },
 
     delete: (vifRefs: VifRefs) => Promise.all(toArray(vifRefs).map(vifRef => xenApi.call('VIF.destroy', [vifRef]))),
+
+    plug: (vifRefs: VifRefs) => Promise.all(toArray(vifRefs).map(vifRef => xenApi.call('VIF.plug', [vifRef]))),
+
+    unplug: (vifRefs: VifRefs) => Promise.all(toArray(vifRefs).map(vifRef => xenApi.call('VIF.unplug', [vifRef]))),
   }
 }

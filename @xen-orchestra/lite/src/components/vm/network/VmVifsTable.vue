@@ -2,54 +2,10 @@
   <div class="vm-vifs-table">
     <UiTitle>
       {{ t('vifs') }}
-      <template #action>
-        <UiButton
-          v-tooltip="t('coming-soon!')"
-          disabled
-          left-icon="fa:plus"
-          variant="secondary"
-          accent="brand"
-          size="medium"
-        >
-          {{ t('new-vif') }}
-        </UiButton>
-      </template>
     </UiTitle>
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
-        <UiTableActions :title="t('table-actions')">
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            left-icon="fa:power-off"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('action:change-state') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            left-icon="fa:edit"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('action:edit') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            left-icon="fa:trash"
-            variant="tertiary"
-            accent="danger"
-            size="medium"
-          >
-            {{ t('action:delete') }}
-          </UiButton>
-        </UiTableActions>
       </div>
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
@@ -68,35 +24,33 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiNetwork, XenApiVif } from '@/libs/xen-api/xen-api.types'
+import type { XenApiNetwork, XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import { useVifConnectionToggleModal } from '@/modules/vif/composables/use-vif-connection-toggle-modal.composable.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { useVifStore } from '@/stores/xen-api/vif.store'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
-import { useVmStore } from '@/stores/xen-api/vm.store'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
-import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTableState } from '@core/composables/table-state.composable'
-import { vTooltip } from '@core/directives/tooltip.directive'
 import { useVifColumns } from '@core/tables/column-sets/vif-columns'
+import { CONNECTION_ACTION } from '@core/types/connection.ts'
 import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
 import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vifs } = defineProps<{
+const { vifs, vm } = defineProps<{
   vifs: XenApiVif[]
+  vm: XenApiVm
 }>()
 
 const { isReady, hasError } = useVifStore().subscribe()
 const { getByOpaqueRef: getNetworkByOpaqueRef } = useNetworkStore().subscribe()
 const { getByOpaqueRef: getGuestMetricsByOpaqueRef } = useVmGuestMetricsStore().subscribe()
-const { getByOpaqueRef: getVmByOpaqueRef } = useVmStore().subscribe()
 
 const { t } = useI18n()
 
@@ -105,12 +59,6 @@ const selectedVifId = useRouteQuery('id')
 const getNetworkName = (networkRef: XenApiNetwork['$ref']) => getNetworkByOpaqueRef(networkRef)?.name_label ?? ''
 
 const getIpAddresses = (vif: XenApiVif) => {
-  const vm = getVmByOpaqueRef(vif.VM)
-
-  if (!vm) {
-    return []
-  }
-
   const networks = getGuestMetricsByOpaqueRef(vm.guest_metrics)?.networks
 
   return getUniqueIpAddressesForDevice(networks, vif.device)
@@ -146,6 +94,17 @@ const { HeadCells, BodyCells } = useVifColumns({
     const name = computed(() => getNetworkName(vif.network))
     const ipAddresses = computed(() => getIpAddresses(vif))
 
+    const {
+      openModal: openVifConnectionToggleModal,
+      canRun: canToggleVifConnection,
+      isRunning: isTogglingVifConnection,
+      errorMessage: toggleConnectionErrorMessage,
+    } = useVifConnectionToggleModal(
+      () => (vif.currently_attached ? CONNECTION_ACTION.DISCONNECT : CONNECTION_ACTION.CONNECT),
+      () => [vif],
+      () => vm
+    )
+
     return {
       network: r => r({ label: name.value }),
       device: r => r(t('vif-device', { device: vif.device })),
@@ -154,7 +113,20 @@ const { HeadCells, BodyCells } = useVifColumns({
       macAddresses: r => r(vif.MAC),
       mtu: r => r(vif.MTU),
       lockingMode: r => r(vif.locking_mode),
-      actions: r => r({ onClick: () => (selectedVifId.value = vif.uuid) }),
+      actions: r =>
+        r({
+          onClick: () => (selectedVifId.value = vif.uuid),
+          actions: [
+            {
+              label: vif.currently_attached ? t('action:disconnect') : t('action:connect'),
+              hint: !canToggleVifConnection.value ? toggleConnectionErrorMessage.value : undefined,
+              icon: vif.currently_attached ? 'action:disconnect' : 'action:connect',
+              onClick: () => openVifConnectionToggleModal(),
+              disabled: !canToggleVifConnection.value,
+              busy: isTogglingVifConnection.value,
+            },
+          ],
+        }),
     }
   },
 })

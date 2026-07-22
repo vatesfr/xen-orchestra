@@ -1,26 +1,7 @@
 <template>
   <VtsSidePanel :has-selection="!!vif" @close="emit('close')">
     <template v-if="vif" #actions>
-      <UiButton
-        v-tooltip="t('coming-soon!')"
-        disabled
-        size="medium"
-        variant="tertiary"
-        accent="brand"
-        left-icon="fa:edit"
-      >
-        {{ t('action:edit') }}
-      </UiButton>
-      <UiButton
-        v-tooltip="t('coming-soon!')"
-        disabled
-        size="medium"
-        variant="tertiary"
-        accent="danger"
-        left-icon="fa:trash"
-      >
-        {{ t('action:delete') }}
-      </UiButton>
+      <VifConnectionToggleButton v-if="vm" :vif :vm />
     </template>
     <template v-if="vif" #default>
       <!-- VIF -->
@@ -95,14 +76,6 @@
               <template #value>{{ ip }}</template>
               <template #addons>
                 <VtsCopyButton :value="ip" />
-                <UiButtonIcon
-                  v-if="index === 0 && ipAddresses.length > 1"
-                  v-tooltip="t('coming-soon!')"
-                  disabled
-                  icon="fa:ellipsis"
-                  size="small"
-                  accent="brand"
-                />
               </template>
             </VtsCardRowKeyValue>
           </div>
@@ -133,7 +106,8 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiVif } from '@/libs/xen-api/xen-api.types'
+import type { XenApiVif } from '@/libs/xen-api/xen-api.types.ts'
+import VifConnectionToggleButton from '@/modules/vif/components/actions/connection/VifConnectionToggleButton.vue'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
@@ -142,11 +116,8 @@ import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObject
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
 import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -164,19 +135,18 @@ const { t } = useI18n()
 const { getByOpaqueRef: getNetworkByOpaqueRef } = useNetworkStore().subscribe()
 const { getByOpaqueRef: getGuestMetricsByOpaqueRef } = useVmGuestMetricsStore().subscribe()
 const { getByOpaqueRef: getVmByOpaqueRef } = useVmStore().subscribe()
+const vm = computed(() => (vif !== undefined ? getVmByOpaqueRef(vif.VM) : undefined))
 
 const ipAddresses = computed(() => {
   if (vif === undefined) {
     return []
   }
 
-  const vm = getVmByOpaqueRef(vif.VM)
-
-  if (!vm) {
+  if (!vm.value) {
     return []
   }
 
-  const networks = getGuestMetricsByOpaqueRef(vm.guest_metrics)?.networks
+  const networks = getGuestMetricsByOpaqueRef(vm.value.guest_metrics)?.networks
 
   return getUniqueIpAddressesForDevice(networks, vif.device)
 })

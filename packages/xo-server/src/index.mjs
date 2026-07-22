@@ -54,7 +54,7 @@ import transportConsole from '@xen-orchestra/log/transports/console'
 import { configure } from '@xen-orchestra/log/configure'
 import { generateToken } from './utils.mjs'
 import { ProxyAgent } from 'proxy-agent'
-import { writeHeapSnapshot } from 'node:v8'
+import v8, { writeHeapSnapshot } from 'node:v8'
 
 // ===================================================================
 
@@ -79,6 +79,36 @@ const log = createLogger('xo:main')
 
 process.on('SIGUSR2', () => {
   const path = `/tmp/xo-server-${process.pid}-${Date.now()}.heapsnapshot`
+  const mu = process.memoryUsage() // rss, heapTotal, heapUsed, external, arrayBuffers
+  const hs = v8.getHeapStatistics() // external_memory, malloced_memory,
+  // number_of_native_contexts, number_of_detached_contexts
+
+  // OS-level RSS breakdown to see memory used outside the V8 heap (Linux only).
+  // VmRSS = RssAnon + RssFile + RssShmem ; a large `rss - (heapUsed + external)`
+  // points to native allocations or glibc malloc fragmentation rather than a JS leak.
+  let os
+  if (process.platform === 'linux') {
+    try {
+      os = {}
+      for (const line of fse.readFileSync('/proc/self/status', 'utf8').split('\n')) {
+        const matches = /^(VmRSS|RssAnon|RssFile|RssShmem|VmData|VmSwap):\s+(\d+)\s*kB$/.exec(line)
+        if (matches !== null) {
+          os[matches[1]] = +matches[2] * 1024 // kB to bytes, to match process.memoryUsage()
+        }
+      }
+    } catch (error) {
+      log.warn('cannot read /proc/self/status', { error })
+    }
+  }
+
+  log.info('memory', {
+    ...mu,
+    nativeContexts: hs.number_of_native_contexts,
+    detachedContexts: hs.number_of_detached_contexts, // >0 and rising = classic leak
+    mallocedMemory: hs.malloced_memory,
+    activeResources: process.getActiveResourcesInfo()?.length, // leaked timers/sockets
+    os,
+  })
   log.info('writing heap snapshot', { path })
   writeHeapSnapshot(path)
   log.info('heap snapshot written', { path })

@@ -188,6 +188,7 @@ function handleParentMessage(rawMessage: unknown): void {
     case 'VDI_DATA':
     case 'HOST_STATUS':
     case 'VM_STATUS':
+    case 'HOST_POWER':
     case 'XO_METRICS':
     case 'XOSTOR_DATA':
     case 'XOSTOR_ALARMS':
@@ -362,6 +363,25 @@ async function requestVmStatusData(): Promise<VmStatusPayload> {
   })
 }
 
+async function requestHostPowerData(): Promise<Record<string, number>> {
+  const requestId = `host-power-${++requestIdCounter}`
+
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pendingRequests.delete(requestId)
+      reject(new Error('Timeout waiting for host power data from parent'))
+    }, IPC_REQUEST_TIMEOUT_MS)
+
+    pendingRequests.set(requestId, {
+      resolve: value => resolve(value as Record<string, number>),
+      reject,
+      timer,
+    })
+
+    sendToParent({ type: 'GET_HOST_POWER', requestId })
+  })
+}
+
 async function requestXoMetrics(): Promise<XoMetricsData> {
   const requestId = `xo-metrics-${++requestIdCounter}`
 
@@ -472,7 +492,7 @@ async function requestXostorUpdates(): Promise<XostorUpdatesPayload> {
  * @returns ParsedRrdData or null on error
  */
 async function fetchRrdFromHost(host: HostCredentials): Promise<ParsedRrdData | null> {
-  const { hostAddress, hostLabel, sessionId, poolId, poolLabel, protocol } = host
+  const { hostId, hostAddress, hostLabel, sessionId, poolId, poolLabel, protocol } = host
 
   // Calculate start time: current time minus 2 intervals (to ensure we get recent data)
   const now = Math.floor(Date.now() / 1000)
@@ -510,7 +530,7 @@ async function fetchRrdFromHost(host: HostCredentials): Promise<ParsedRrdData | 
 
     try {
       // Parse RRD response using the dedicated parser (handles JSON5 fallback)
-      return parseRrdResponse(text, poolId)
+      return parseRrdResponse(text, poolId, hostId)
     } catch (parseError) {
       logger.warn('RRD parse failed', { hostLabel, poolLabel, error: parseError })
       return null
@@ -558,6 +578,7 @@ async function collectMetrics(): Promise<string> {
     xostorAlarms,
     xostorSmart,
     xostorUpdates,
+    hostPowerData,
   ] = await Promise.all([
     requestXapiCredentials(),
     requestSrData(),
@@ -569,6 +590,10 @@ async function collectMetrics(): Promise<string> {
     safeXostorRequest(requestXostorAlarms(), 'alarms', { clusters: [] } as XostorAlarmsPayload),
     safeXostorRequest(requestXostorSmart(), 'SMART', { hosts: [] } as XostorSmartPayload),
     safeXostorRequest(requestXostorUpdates(), 'updates', { hosts: [] } as XostorUpdatesPayload),
+    requestHostPowerData().catch((err: unknown) => {
+      logger.warn('Host power request failed; emitting no host power', { error: err })
+      return {} as Record<string, number>
+    }),
   ])
 
   logger.debug('Collecting metrics', {
@@ -627,7 +652,7 @@ async function collectMetrics(): Promise<string> {
     hostCount: rrdDataList.length,
     totalMetrics: rrdDataList.reduce((sum, d) => sum + d.metrics.length, 0),
   })
-  const rrdMetrics = formatAllPoolsToOpenMetrics(rrdDataList, credentials)
+  const rrdMetrics = formatAllPoolsToOpenMetrics(rrdDataList, credentials, hostPowerData)
   logger.debug('Formatted metrics', { outputLength: rrdMetrics.length })
 
   // Format SR capacity metrics
