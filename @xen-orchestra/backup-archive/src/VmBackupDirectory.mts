@@ -1,6 +1,8 @@
 import { RemoteHandlerAbstract } from '@xen-orchestra/fs'
-import { basename, normalize } from '@xen-orchestra/fs/path'
+import { basename, dirname, normalize } from '@xen-orchestra/fs/path'
 import { resolve } from 'node:path'
+import groupBy from 'lodash/groupBy.js'
+import { getVmBackupDir } from './paths.mjs'
 import { VmFullBackupArchive } from './VmFullBackupArchive.mjs'
 import { VmIncrementalBackupArchive } from './VmIncrementalBackupArchive.mjs'
 import { RemoteDiskLineage } from './RemoteDiskLineage.mjs'
@@ -62,9 +64,13 @@ export class VmBackupDirectory implements VmBackupInterface {
     }
   }
 
-  async #readCache(path: string): Promise<Record<string, unknown> | undefined> {
+  static getVmBackupsCachePath(vmUuid: string): string {
+    return `${getVmBackupDir(vmUuid)}/cache.json.gz`
+  }
+
+  static async readCache(handler: RemoteHandlerAbstract, path: string): Promise<Record<string, unknown> | undefined> {
     try {
-      return JSON.parse((await gunzip(await this.handler.readFile(path))).toString())
+      return JSON.parse((await gunzip(await handler.readFile(path))).toString())
     } catch (error) {
       if (error?.code !== 'ENOENT') {
         logWarn('failed to read cache', { error, path })
@@ -72,12 +78,57 @@ export class VmBackupDirectory implements VmBackupInterface {
     }
   }
 
-  async #writeCache(path: string, data: Record<string, unknown>): Promise<void> {
+  static async writeCache(handler: RemoteHandlerAbstract, path: string, data: Record<string, unknown>): Promise<void> {
     try {
-      await this.handler.writeFile(path, await gzip(JSON.stringify(data)), { flags: 'w' })
+      await handler.writeFile(path, await gzip(JSON.stringify(data)), { flags: 'w' })
     } catch (error) {
       logWarn('failed to write cache', { error, path })
     }
+  }
+
+  // Read-modify-write of a cache file. Lock-free: callers that need atomicity
+  // (e.g. RemoteAdapter) wrap this with their own per-key mutex.
+  static async updateCache(
+    handler: RemoteHandlerAbstract,
+    path: string,
+    fn: (cache: Record<string, unknown>) => void
+  ): Promise<void> {
+    const cache = await VmBackupDirectory.readCache(handler, path)
+    if (cache !== undefined) {
+      fn(cache)
+      await VmBackupDirectory.writeCache(handler, path, cache)
+    }
+  }
+
+  // Remove entries from the per-VM cache files for the given backups, grouping by
+  // directory so each cache file is updated once. `updateCache` is injected so the
+  // caller controls locking.
+  static async removeBackupsFromCache(
+    updateCache: (path: string, fn: (cache: Record<string, unknown>) => void) => Promise<void>,
+    backups: Array<{ _filename: string }>
+  ): Promise<void> {
+    await asyncEach(
+      Object.entries(
+        groupBy(
+          backups.map(backup => backup._filename),
+          dirname
+        )
+      ),
+      ([dir, filenames]) =>
+        updateCache(`${dir}/cache.json.gz`, cache => {
+          for (const filename of filenames) {
+            delete cache[filename]
+          }
+        })
+    )
+  }
+
+  async #readCache(path: string): Promise<Record<string, unknown> | undefined> {
+    return VmBackupDirectory.readCache(this.handler, path)
+  }
+
+  async #writeCache(path: string, data: Record<string, unknown>): Promise<void> {
+    return VmBackupDirectory.writeCache(this.handler, path, data)
   }
 
   async init() {

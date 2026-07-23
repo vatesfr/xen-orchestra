@@ -6,11 +6,9 @@ import { decorateMethodsWith } from '@vates/decorate-with'
 import { dirname, join, resolve } from 'node:path'
 import { synchronized } from 'decorator-synchronized'
 import Disposable from 'promise-toolbox/Disposable'
-import fromCallback from 'promise-toolbox/fromCallback'
 import groupBy from 'lodash/groupBy.js'
 import pickBy from 'lodash/pickBy.js'
 import reduce from 'lodash/reduce.js'
-import zlib from 'zlib'
 
 import { BACKUP_DIR } from './_getVmBackupDir.mjs'
 import { VmBackupDirectory } from '@xen-orchestra/backup-archive'
@@ -81,22 +79,8 @@ export class RemoteAdapter {
   }
 
   async #removeVmBackupsFromCache(backups) {
-    await asyncEach(
-      Object.entries(
-        groupBy(
-          backups.map(_ => _._filename),
-          dirname
-        )
-      ),
-      ([dir, filenames]) =>
-        // will not reject
-        this._updateCache(dir + '/cache.json.gz', backups => {
-          for (const filename of filenames) {
-            debug('removing cache entry', { entry: filename })
-            delete backups[filename]
-          }
-        })
-    )
+    // pass the locked _updateCache so cache updates stay serialized per file
+    await VmBackupDirectory.removeBackupsFromCache((path, fn) => this._updateCache(path, fn), backups)
   }
 
   async deleteDeltaVmBackups(backups) {
@@ -294,36 +278,21 @@ export class RemoteAdapter {
   }
 
   #getVmBackupsCache(vmUuid) {
-    return `${BACKUP_DIR}/${vmUuid}/cache.json.gz`
+    return VmBackupDirectory.getVmBackupsCachePath(vmUuid)
   }
 
   async _readCache(path) {
-    try {
-      return JSON.parse(await fromCallback(zlib.gunzip, await this.handler.readFile(path)))
-    } catch (error) {
-      if (error.code !== 'ENOENT') {
-        warn('#readCache', { error, path })
-      }
-    }
+    return VmBackupDirectory.readCache(this._handler, path)
   }
 
   _updateCache = synchronized.withKey()(this._updateCache)
   // eslint-disable-next-line no-dupe-class-members
   async _updateCache(path, fn) {
-    const cache = await this._readCache(path)
-    if (cache !== undefined) {
-      fn(cache)
-
-      await this._writeCache(path, cache)
-    }
+    return VmBackupDirectory.updateCache(this._handler, path, fn)
   }
 
   async _writeCache(path, data) {
-    try {
-      await this.handler.writeFile(path, await fromCallback(zlib.gzip, JSON.stringify(data)), { flags: 'w' })
-    } catch (error) {
-      warn('#writeCache', { error, path })
-    }
+    return VmBackupDirectory.writeCache(this._handler, path, data)
   }
 
   async #getCacheableDataListVmBackups(dir) {
