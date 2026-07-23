@@ -19,12 +19,9 @@ export class NbdDisk extends RandomAccessDisk {
   /** @type {number} */
   #blockSize
 
-  // Forward-only cursor for hasBlock(): the last extent index that matched and
-  // the block index it was queried with. Lets ascending-order callers resume
-  // scanning instead of restarting from 0. Relies on #dataMap being sorted and
-  // non-overlapping (guaranteed by #processDatamap).
   /** @type {number | undefined} */
   #hasBlockCursor
+
   /** @type {number | undefined} */
   #hasBlockPreviousIndex
 
