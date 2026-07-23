@@ -1,7 +1,7 @@
 export type ObjectType = 'vm' | 'host'
 
 export type VmActions = 'reboot' | 'shutdown' | 'force-reboot' | 'force-shutdown'
-export type HostActions = 'enable' | 'disable'
+export type HostActions = 'enable' | 'disable' | 'shutdown' | 'start'
 
 export type VmBlockedOperations =
   | 'clean_shutdown'
