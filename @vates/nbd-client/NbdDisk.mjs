@@ -194,6 +194,8 @@ export class NbdDisk extends RandomAccessDisk {
     let startExtentIndex = 0
     if (this.#hasBlockCursor !== undefined && index >= this.#hasBlockPreviousIndex) {
       startExtentIndex = this.#hasBlockCursor
+    } else {
+      this.#hasBlockCursor = undefined
     }
     this.#hasBlockPreviousIndex = index
 
