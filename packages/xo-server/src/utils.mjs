@@ -276,8 +276,7 @@ export const serializeError = error => ({
 // Only works with synchronous thunks.
 export const thunkToArray = thunk => {
   const values = []
-  thunk(values.push.bind(values))
-  // thunk(::values.push)
+  thunk(::values.push)
   return values
 }
 

@@ -2,8 +2,7 @@ import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { HOST_POWER_STATE, Xapi, XcpPatches, XenApiHostWrapped, XoPool, XsPatches, type XoHost } from '@vates/types'
 import { incorrectState } from 'xo-common/api-errors.js'
-import { forEach, parseXml } from '../../../../packages/xo-server/src/utils.mjs'
-import ensureArray from '../../../../packages/xo-server/src/_ensureArray.mjs'
+import { forEach, parseXml, ensureArray } from '../helpers/utils.helper.mjs'
 import type {
   MissingPatchesInfo,
   XoSrNfsExport,
