@@ -28,6 +28,12 @@ export type GuestToolsUpToDateDisplay = {
   tooltip: string
 }
 
+export type GuestToolsUnknownDisplay = {
+  type: 'unknown'
+  value: string
+  tooltip: string
+}
+
 export type GuestToolsNotApplicableDisplay = {
   type: 'not-applicable'
   value: '-'
@@ -37,6 +43,7 @@ export type GuestToolsDisplay =
   | GuestToolsMissingDisplay
   | GuestToolsOutOfDateDisplay
   | GuestToolsUpToDateDisplay
+  | GuestToolsUnknownDisplay
   | GuestToolsNotApplicableDisplay
 
 export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
@@ -98,6 +105,14 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
       }
     }
 
+    if (vm.value.pvDriversUpToDate === undefined) {
+      return {
+        type: 'unknown',
+        value: vm.value.pvDriversVersion || t('installed'),
+        tooltip: t('guest-tools-status-unknown'),
+      }
+    }
+
     return {
       type: 'up-to-date',
       value: vm.value.pvDriversVersion || t('installed'),
@@ -111,6 +126,7 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
       missing: 'status:halted-circle',
       outdated: 'status:warning-circle',
       'up-to-date': 'status:success-circle',
+      unknown: 'status:info-circle',
       'not-applicable': 'status:success-circle',
     },
     'up-to-date'

@@ -403,6 +403,7 @@
   "groups": "Groupes",
   "guest-tools": "Guest tools",
   "guest-tools-out-of-date": "Guest tools obsolètes",
+  "guest-tools-status-unknown": "Statut des guest tools inconnu",
   "gzip": "GZIP",
   "hardware": "Matériel",
   "hardware-specifications": "Spécifications matérielles",
