@@ -46,7 +46,7 @@
     "vue-router": "5.0.6"
   },
   "engines": {
-    "node": ">=14",
+    "node": ">=22",
     "yarn": "^1.7.0"
   },
   "lint-staged": {
