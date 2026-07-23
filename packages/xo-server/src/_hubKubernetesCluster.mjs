@@ -6,6 +6,10 @@ import { createHash } from 'node:crypto'
 import { Readable, Transform } from 'node:stream'
 import { CancelToken } from 'promise-toolbox'
 import YAML from 'yaml'
+import { asyncEach } from '@vates/async-each'
+import { createLogger } from '@xen-orchestra/log'
+
+const log = createLogger('xo:server:hubKubernetesCluster')
 
 const FETCH_TIMEOUT = 30 * 60 * 1000 // 30 minutes
 const XEN_GUEST_AGENT_READY_TIMEOUT = 10 * 60 * 1000 // 10 minutes
@@ -212,10 +216,9 @@ export async function createCluster({
 
   // Values for Xen Orchestra CCM (will be copied to the VM with cloud-init write_files)
   // Get new token from XOA to use in the CCM
-  const xoConnection = Array.from(this.apiConnections).find(
-    connection => connection.get('user_id') === this.apiContext.user.id
-  )
-  const userId = xoConnection.get('user_id', undefined)
+  const userId = this.apiContext.user.id
+  const xoConnection = this.createApiConnection()
+  xoConnection.set('user_id', userId)
   const xoToken = await this.createAuthenticationToken({
     expiresIn: '0.5 year',
     userId,
@@ -327,6 +330,7 @@ export async function createCluster({
   }
 
   const templateVm = await _createTemplate(this, xapi, sr, networkId, controlPlaneNetworkConfig)
+  log.info('Template VM created for Kubernetes cluster', { clusterName, vmId: templateVm.$id })
   let tagResult
   let finalError
   try {
@@ -358,9 +362,7 @@ export async function createCluster({
       'xo:resource:xva:id': null,
     })
 
-    await this.callApiMethod(xoConnection, 'vm.start', {
-      vm: controlPlaneVmId,
-    })
+    await xapi.startVm(controlPlaneVmId)
 
     // Await controlPlaneVm end booting to be ready to be joined by its nodes.
     xapiControlPlaneVm = await xapiControlPlaneVm.$xapi._waitObjectState(xapiControlPlaneVm.$id, obj =>
@@ -373,6 +375,8 @@ export async function createCluster({
           obj.xenstore_data['vm-data/kubernetes-token'] !== undefined &&
           obj.$guest_metrics.networks['0/ip'] !== undefined
     )
+
+    log.info('Control plane VM created for Kubernetes cluster', { clusterName, vmId: xapiControlPlaneVm.$id })
 
     // Data used by the node to join the control plane
     const token = xapiControlPlaneVm.xenstore_data['vm-data/kubernetes-token']
@@ -461,12 +465,13 @@ export async function createCluster({
       }
 
       // Start all control planes at once
-      await Promise.all(
-        cpVMs.map(({ vmId }) =>
+      await asyncEach(
+        cpVMs,
+        ({ vmId }) =>
           this.callApiMethod(xoConnection, 'vm.start', {
             vm: vmId,
-          })
-        )
+          }),
+        { concurrency: 10 }
       )
     }
 
@@ -549,12 +554,13 @@ export async function createCluster({
     }
 
     // Start all worker nodes at once
-    await Promise.all(
-      workerVMs.map(({ vmId }) =>
+    await asyncEach(
+      workerVMs,
+      ({ vmId }) =>
         this.callApiMethod(xoConnection, 'vm.start', {
           vm: vmId,
-        })
-      )
+        }),
+      { concurrency: 10 }
     )
 
     // Await for the boot and the joining of the other nodes.
@@ -564,6 +570,7 @@ export async function createCluster({
           vm.$id,
           obj => obj.xenstore_data !== undefined && obj.xenstore_data[`vm-data/kubernetes-${name}-joined`] === 'true'
         )
+        log.info('VM joined the Kubernetes cluster', { clusterName, vmId: vm.$id, name })
       })
     )
 
@@ -599,6 +606,7 @@ export async function createCluster({
 
     // Destroy the template VM used for the cluster creation
     try {
+      log.info('Destroying temporary template VM used for cluster creation', { clusterName, vmId: templateVm.$id })
       await templateVm.$destroy()
     } catch (error) {
       cleanupError = error
@@ -616,6 +624,7 @@ export async function createCluster({
         cause: cleanupError,
       })
     }
+    xoConnection.close()
   }
 
   if (finalError) {
@@ -635,7 +644,7 @@ export async function createCluster({
  * @returns template VM to use for the cluster creation
  */
 async function _createTemplate(ctx, xapi, sr, networkId, networkConfig) {
-  const templateId = '07d91aaa-43f7-430a-bf84-0edb6714df0f' // Debian 12 Bookworm
+  const templateId = '07d91aaa-43f7-430a-bf84-0edb6714df0f' // Debian 13 Trixie
   const createParamsVM = {
     name_label: 'kubernetes template for recipe',
     vifs: [{ network: networkId }],
