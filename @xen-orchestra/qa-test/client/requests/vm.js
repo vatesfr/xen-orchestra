@@ -268,6 +268,26 @@ export class VMRequest extends AbstractRequest {
     )
   }
 
+  // Guest metrics lag behind power_state === 'Running', so SSH-based callers must wait for this too.
+  async waitForGuestIp(vmUuid, timeout) {
+    assertNonEmptyString(vmUuid, 'Valid VM UUID is required', 'INVALID_VM_UUID')
+    this._ensureConnected()
+
+    return waitUntil(
+      async () => {
+        const vm = await this.details(vmUuid)
+        // XO normalizes guest-metrics keys to `${device}/${protocol}/${index}` (e.g. '0/ipv4/0'),
+        // not the raw XAPI 'x/ip' field — match any device/index. waitUntil only keeps polling
+        // while the condition returns exactly `false`.
+        const addresses = vm?.addresses ?? {}
+        const ipv4Key = Object.keys(addresses).find(key => key.includes('/ipv4/'))
+        return (ipv4Key && addresses[ipv4Key]) || false
+      },
+      3_000,
+      timeout
+    )
+  }
+
   /**
    * Imports an XVA file to create a new VM.
    *

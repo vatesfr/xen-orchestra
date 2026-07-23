@@ -235,9 +235,6 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     return { baseVdisBySourceUuid, targetVmRef }
   }
 
-  updateUuidAndChain() {
-    // nothing to do, the chaining is not modified in this case
-  }
   prepare({ isFull }) {
     // create the task related to this export and ensure all methods are called in this context
     const task = new Task({
