@@ -31,7 +31,7 @@
             <span class="option-content">
               <VtsIcon v-if="option.properties.icon" :name="option.properties.icon" size="medium" />
               {{ option.properties.label }}
-              <span v-if="option.properties.disabled" class="no-vif typo-body-regular-small">{{
+              <span v-if="option.properties.disabled" class="em-dash-prefix typo-body-regular-small">{{
                 t('no-vif-detected')
               }}</span>
             </span>
@@ -112,13 +112,6 @@ async function onSubmit() {
   display: inline-flex;
   align-items: center;
   gap: 0.8rem;
-
-  .no-vif {
-    &::before {
-      content: '\2014';
-      margin-inline-end: 0.8rem;
-    }
-  }
 }
 
 .new-traffic-rule-form {
