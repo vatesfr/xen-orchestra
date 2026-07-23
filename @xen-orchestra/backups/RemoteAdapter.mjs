@@ -1,6 +1,5 @@
 import { asyncMap } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
-import { VhdDirectory, VhdSynthetic } from 'vhd-lib'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { synchronized } from 'decorator-synchronized'
 import Disposable from 'promise-toolbox/Disposable'
@@ -10,11 +9,13 @@ import {
   deleteMetadataBackup as deleteMetadataBackupArchive,
   deleteOldMetadataBackups as deleteOldMetadataBackupsArchive,
 } from '@xen-orchestra/backup-archive/metadata'
+import {
+  isMergeableParent as isMergeableParentArchive,
+  writeVhd as writeVhdArchive,
+} from '@xen-orchestra/backup-archive/disks'
 import { fileRestoreDecorators, fileRestoreMethods } from './_fileRestore.mjs'
 import { isValidXva } from './_isValidXva.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
-
-import { toVhdStream, writeToVhdDirectory } from 'vhd-lib/disk-consumer/index.mjs'
 
 export const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 
@@ -54,17 +55,9 @@ export class RemoteAdapter {
   // check if we will be allowed to merge a vhd created in this adapter
   // with the vhd at path `path`
   async isMergeableParent(packedParentUid, path) {
-    return await Disposable.use(VhdSynthetic.fromVhdChain(this.handler, path), vhd => {
-      // this baseUuid is not linked with this vhd
-      if (!vhd.footer.uuid.equals(packedParentUid)) {
-        return false
-      }
-
-      // check if all the chain is composed of vhd directory
-      const isVhdDirectory = vhd.checkVhdsClass(VhdDirectory)
-      return isVhdDirectory
-        ? this.useVhdDirectory() && this.#getCompressionType() === vhd.compressionType
-        : !this.useVhdDirectory()
+    return isMergeableParentArchive(this._handler, packedParentUid, path, {
+      useVhdDirectory: this.useVhdDirectory(),
+      compressionType: this.#getCompressionType(),
     })
   }
 
@@ -226,25 +219,13 @@ export class RemoteAdapter {
   }
 
   async writeVhd(path, disk, { validator = noop, writeBlockConcurrency } = {}) {
-    const handler = this._handler
-
-    if (this.useVhdDirectory()) {
-      return await writeToVhdDirectory({
-        disk,
-        target: {
-          handler,
-          path,
-          concurrency: writeBlockConcurrency,
-          validator,
-          compression: 'brotli',
-        },
-      })
-    } else {
-      const stream = await toVhdStream(disk)
-      const size = await this.outputStream(path, stream, { validator, checksum: false })
-      await validator(path)
-      return size
-    }
+    // inject outputStream so the facade keeps ownership of stream-size accounting
+    return writeVhdArchive(this._handler, path, disk, {
+      useVhdDirectory: this.useVhdDirectory(),
+      validator,
+      writeBlockConcurrency,
+      outputStream: (p, input, opts) => this.outputStream(p, input, opts),
+    })
   }
 
   async outputStream(
