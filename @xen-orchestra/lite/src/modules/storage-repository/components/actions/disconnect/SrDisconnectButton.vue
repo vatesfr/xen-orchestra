@@ -1,5 +1,6 @@
 <template>
   <MenuItem
+    v-tooltip="!canDisconnectSr && disconnectSrErrorMessage"
     icon="action:disconnect"
     :disabled="!canDisconnectSr"
     :busy="isDisconnectingSr"
@@ -7,7 +8,7 @@
   >
     {{ t('action:disconnect') }}
     <UiCounter
-      v-if="targetCount > (scope.type === SR_SCOPE_TYPE.POOL ? 0 : 1)"
+      v-if="shouldShowTargetCount(scope, targetCount)"
       :value="targetCount"
       accent="brand"
       variant="secondary"
@@ -22,7 +23,8 @@ import type { XenApiSr } from '@/libs/xen-api/xen-api.types.ts'
 import { useSrDisconnectModal } from '@/modules/storage-repository/composables/use-sr-disconnect-modal.composable.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
-import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
+import { type SrScope } from '@core/types/storage-repository.type.ts'
+import { shouldShowTargetCount } from '@core/utils/sr.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

@@ -7,7 +7,7 @@ export function createSrOperations(xenApi: XenApi) {
   type SrRefs = MaybeArray<XenApiSr['$ref']>
 
   return {
-    destroy: async (srRefs: SrRefs) => {
+    delete: async (srRefs: SrRefs) => {
       await Promise.all(
         toArray(srRefs).map(async srRef => {
           const pbdRefs = await xenApi.getField<XenApiSr['PBDs']>('SR', srRef, 'PBDs')

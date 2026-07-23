@@ -1,9 +1,15 @@
 <template>
   <VtsContentSidePanel class="host-storage-view" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
-      <StorageRepositoriesTable v-if="pool && host" :srs :pool :scope :busy="!isReady" :error="hasError" />
+      <StorageRepositoriesTable v-if="pool && host && scope" :srs :pool :scope :busy="!isReady" :error="hasError" />
     </UiCard>
-    <StorageRepositorySidePanel v-if="pool && host" :sr="selectedSr" :pool :scope @close="selectedSr = undefined" />
+    <StorageRepositorySidePanel
+      v-if="pool && host && scope"
+      :sr="selectedSr"
+      :pool
+      :scope
+      @close="selectedSr = undefined"
+    />
   </VtsContentSidePanel>
 </template>
 
@@ -43,14 +49,18 @@ const isReady = logicAnd(areSrsReady, arePbdsReady)
 
 const host = computed(() => getHostByUuid(route.params.uuid as XenApiHost['uuid']))
 
-const scope = computed(
-  (): SrScope => ({
-    type: SR_SCOPE_TYPE.HOST,
-    hostId: host.value!.$ref,
-  })
-)
+const scope = computed((): SrScope | undefined => {
+  if (host.value === undefined) {
+    return undefined
+  }
 
-const srs = computed(() => {
+  return {
+    type: SR_SCOPE_TYPE.HOST,
+    hostId: host.value.$ref,
+  }
+})
+
+const srs = computed((): XenApiSr[] => {
   if (host.value === undefined) {
     return []
   }

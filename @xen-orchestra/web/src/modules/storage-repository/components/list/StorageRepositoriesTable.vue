@@ -46,9 +46,10 @@ import { icon } from '@core/icons'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useSrColumns } from '@core/tables/column-sets/sr-columns.ts'
-import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
+import { type SrScope } from '@core/types/storage-repository.type.ts'
 import { useBooleanSchema } from '@core/utils/query-builder/use-boolean-schema.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
+import { shouldShowTargetCount } from '@core/utils/sr.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -146,13 +147,13 @@ const { HeadCells, BodyCells } = useSrColumns({
     )
 
     const connectLabel = computed(() =>
-      connectTargetCount.value > (scope.type === SR_SCOPE_TYPE.POOL ? 0 : 1)
+      shouldShowTargetCount(scope, connectTargetCount.value)
         ? t('action:connect-n', { n: connectTargetCount.value })
         : t('action:connect')
     )
 
     const disconnectLabel = computed(() =>
-      disconnectTargetCount.value > (scope.type === SR_SCOPE_TYPE.POOL ? 0 : 1)
+      shouldShowTargetCount(scope, disconnectTargetCount.value)
         ? t('action:disconnect-n', { n: disconnectTargetCount.value })
         : t('action:disconnect')
     )

@@ -3,6 +3,7 @@ import type { XenApiSr } from '@/libs/xen-api/xen-api.types.ts'
 import { useGetPbdsInScope } from '@/modules/storage-repository/composables/sr-utils.composable.ts'
 import type { SrScope } from '@core/types/storage-repository.type.ts'
 import { useModal } from '@core/packages/modal/use-modal.ts'
+import { CONNECTION_ACTION } from '@core/types/connection.ts'
 import { getSrAccessMode } from '@core/utils/sr.utils.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
@@ -20,8 +21,9 @@ export function useSrDisconnectModal(rawSrs: MaybeRefOrGetter<XenApiSr[]>, rawSc
   const { run, canRun, isRunning, errorMessage } = usePbdUnplugJob(unplugTargets)
 
   const openModal = useModal(() => ({
-    component: import('@/modules/storage-repository/components/modal/SrDisconnectModal.vue'),
+    component: import('@/modules/storage-repository/components/modal/SrConnectionToggleModal.vue'),
     props: {
+      action: CONNECTION_ACTION.DISCONNECT,
       count: srs.value.length,
       scope: scope.value,
       accessMode: getSrAccessMode(srs.value),
