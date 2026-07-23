@@ -1,4 +1,6 @@
 import { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
+import { openDiskChain } from './openDiskChain.mjs'
+import { ReadAhead } from '@xen-orchestra/disk-transform'
 
 export { RemoteDisk } from './RemoteDisk.mjs'
 export { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
@@ -15,6 +17,27 @@ const DISK_EXTENSIONS = ['.vhd']
 
 export function isDisk(path) {
   return DISK_EXTENSIONS.some(ext => path.endsWith(ext))
+}
+
+/**
+ * Open a disk for reading, either as a single VHD or as a chain of ancestors up to
+ * the first full one, wrapped in a ReadAhead for sequential-read performance.
+ *
+ * @param {RemoteHandlerAbstract} handler
+ * @param {string} path
+ * @param {{ useChain?: boolean }} opts
+ * @returns {Promise<RemoteDisk>}
+ */
+export async function createVhdDisk(handler, path, { useChain }) {
+  let disk
+  if (useChain) {
+    disk = await openDiskChain({ handler, path })
+  } else {
+    disk = new RemoteVhdDisk({ handler, path })
+    await disk.init()
+  }
+  disk = new ReadAhead(disk)
+  return disk
 }
 
 /**

@@ -1,13 +1,11 @@
-import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
+import { asyncMap } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
 import { VhdDirectory, VhdSynthetic } from 'vhd-lib'
 import { decorateMethodsWith } from '@vates/decorate-with'
-import { dirname, join, resolve } from 'node:path'
 import { synchronized } from 'decorator-synchronized'
 import Disposable from 'promise-toolbox/Disposable'
-import pickBy from 'lodash/pickBy.js'
 
-import { VmBackupDirectory } from '@xen-orchestra/backup-archive'
+import { VmBackupDirectory, VmFullBackupArchive, VmIncrementalBackupArchive } from '@xen-orchestra/backup-archive'
 import {
   deleteMetadataBackup as deleteMetadataBackupArchive,
   deleteOldMetadataBackups as deleteOldMetadataBackupsArchive,
@@ -16,9 +14,7 @@ import { fileRestoreDecorators, fileRestoreMethods } from './_fileRestore.mjs'
 import { isValidXva } from './_isValidXva.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
 
-import { RemoteVhdDisk, openDiskChain } from '@xen-orchestra/backup-archive/disks'
 import { toVhdStream, writeToVhdDirectory } from 'vhd-lib/disk-consumer/index.mjs'
-import { ReadAhead } from '@xen-orchestra/disk-transform'
 
 export const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 
@@ -270,43 +266,12 @@ export class RemoteAdapter {
     return container.size
   }
 
-  // open the  hierarchy of ancestors until we find a full one
-  async _createVhdDisk(handler, path, { useChain }) {
-    let disk
-    if (useChain) {
-      disk = await openDiskChain({ handler, path })
-    } else {
-      disk = new RemoteVhdDisk({ handler, path })
-      await disk.init()
-    }
-    disk = new ReadAhead(disk)
-    return disk
-  }
-
-  async readIncrementalVmBackup(metadata, ignoredVdis, { useChain = true } = {}) {
-    const handler = this._handler
-    const { vbds, vhds, vifs, vm, vmSnapshot, vtpms } = metadata
-    const dir = dirname(metadata._filename)
-    const vdis = ignoredVdis === undefined ? metadata.vdis : pickBy(metadata.vdis, vdi => !ignoredVdis.has(vdi.uuid))
-    const disks = {}
-    await asyncMapSettled(Object.keys(vdis), async ref => {
-      delete vdis[ref].baseVdi
-      disks[ref] = await this._createVhdDisk(handler, join(dir, vhds[ref]), { useChain })
-    })
-
-    return {
-      disks,
-      vbds,
-      vdis,
-      version: '1.0.0',
-      vifs,
-      vm: { ...vm, suspend_VDI: vmSnapshot.suspend_VDI },
-      vtpms,
-    }
+  async readIncrementalVmBackup(metadata, ignoredVdis, opts) {
+    return VmIncrementalBackupArchive.readIncrementalVmBackup(this._handler, metadata, ignoredVdis, opts)
   }
 
   readFullVmBackup(metadata) {
-    return this._handler.createReadStream(resolve('/', dirname(metadata._filename), metadata.xva))
+    return VmFullBackupArchive.readFullVmBackup(this._handler, metadata)
   }
 
   async readVmBackupMetadata(path) {

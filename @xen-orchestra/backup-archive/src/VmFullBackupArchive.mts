@@ -1,4 +1,5 @@
-import { basename, normalize } from '@xen-orchestra/fs/path'
+import { basename, dirname, normalize } from '@xen-orchestra/fs/path'
+import { resolve } from 'node:path'
 import assert from 'node:assert'
 import { FileDescriptor } from '@xen-orchestra/fs'
 import {
@@ -104,6 +105,12 @@ export class VmFullBackupArchive implements VmBackupInterface {
     this.metadata = metadata
     this.xvaPath = normalize(xvaPath)
     this.opts = opts
+  }
+
+  // Read stream of the XVA of a full backup, resolving the xva path relative to the
+  // backup directory.
+  static readFullVmBackup(handler: RemoteHandlerAbstract, metadata: any) {
+    return handler.createReadStream(resolve('/', dirname(metadata._filename), metadata.xva) as any)
   }
 
   async init() {}
