@@ -15,6 +15,10 @@ export const useOverlayStore = defineStore('overlay', () => {
     }
   }
 
+  function abortAll() {
+    registry.value.forEach(overlay => overlay.abort())
+  }
+
   function isCurrent(key: symbol): boolean {
     return Array.from(registry.value.keys()).at(-1) === key
   }
@@ -27,6 +31,7 @@ export const useOverlayStore = defineStore('overlay', () => {
     overlays: computed(() => Array.from(registry.value.values())),
     register,
     unregister,
+    abortAll,
     isCurrent,
     get,
   }

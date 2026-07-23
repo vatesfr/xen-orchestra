@@ -1,7 +1,6 @@
 import { isThenable } from '@core/packages/overlay/is-thenable.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
-import type { Overlay, OverlayEventHandler, OverlayResponse } from '@core/packages/overlay/types.ts'
-import { nextTick } from 'vue'
+import type { Overlay, OverlayEventHandler, OverlayResponse, OverlayStatus } from '@core/packages/overlay/types.ts'
 
 export function createEventHandler({
   overlay,
@@ -12,7 +11,7 @@ export function createEventHandler({
   overlay: Overlay
   definitionEvents: Record<string, true | OverlayEventHandler>
   openEvents: Record<string, OverlayEventHandler>
-  settle: (response: OverlayResponse<PropertyKey, unknown>) => void
+  settle: (response: OverlayResponse<PropertyKey, unknown>) => Promise<void>
 }) {
   const shouldStop = (payload: unknown) => payload === KEEP_OVERLAY_OPEN || overlay.status === 'settled'
 
@@ -32,7 +31,7 @@ export function createEventHandler({
     }
 
     try {
-      overlay.status = 'locked'
+      overlay.status = 'locked' as OverlayStatus
 
       // The definition handler receives the raw emit arguments, then the open
       // handler receives the payload it produced. An event handled at open
@@ -62,13 +61,7 @@ export function createEventHandler({
         }
       }
 
-      overlay.status = 'settled'
-
-      // The leave transition freezes the DOM in its last painted state,
-      // so paint a non-busy frame before removing the overlay
-      await nextTick()
-
-      settle({ event: eventName, payload })
+      await settle({ event: eventName, payload })
     } finally {
       if (overlay.status !== 'settled') {
         overlay.status = 'idle'
