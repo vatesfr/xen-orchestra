@@ -46,6 +46,18 @@ describe('NbdDisk.hasBlock', () => {
     assert.strictEqual(disk.hasBlock(5), true)
   })
 
+  it('invalidates the cursor on a backward miss (no stale skip)', () => {
+    const dataMap = [
+      { type: 0, offset: 3 * SOURCE_BLOCK_SIZE, length: SOURCE_BLOCK_SIZE }, // block 3
+      { type: 0, offset: 10 * SOURCE_BLOCK_SIZE, length: SOURCE_BLOCK_SIZE }, // block 10
+    ]
+    const disk = new NbdDisk({}, SOURCE_BLOCK_SIZE, { dataMap })
+
+    assert.strictEqual(disk.hasBlock(10), true) // forward hit: cursor parks on the high extent
+    assert.strictEqual(disk.hasBlock(1), false) // backward miss: must invalidate the cursor
+    assert.strictEqual(disk.hasBlock(3), true) // lower extent must not be skipped
+  })
+
   it('throws on overlapping ranges (would break the resume cursor)', () => {
     const dataMap = [
       { type: 0, offset: 0, length: SOURCE_BLOCK_SIZE },
