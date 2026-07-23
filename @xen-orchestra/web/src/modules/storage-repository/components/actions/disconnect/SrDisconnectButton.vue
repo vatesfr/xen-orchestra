@@ -7,7 +7,7 @@
   >
     {{ t('action:disconnect') }}
     <UiCounter
-      v-if="targetCount > (scope.type === SR_SCOPE_TYPE.POOL ? 0 : 1)"
+      v-if="shouldShowTargetCount(scope, targetCount)"
       :value="targetCount"
       accent="brand"
       variant="secondary"
@@ -22,7 +22,8 @@ import { useSrDisconnectModal } from '@/modules/storage-repository/composables/u
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
-import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
+import { type SrScope } from '@core/types/storage-repository.type.ts'
+import { shouldShowTargetCount } from '@core/utils/sr.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

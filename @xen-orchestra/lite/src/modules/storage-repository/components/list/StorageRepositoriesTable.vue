@@ -37,7 +37,8 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { useSrColumns } from '@core/tables/column-sets/sr-columns.ts'
-import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
+import { type SrScope } from '@core/types/storage-repository.type.ts'
+import { shouldShowTargetCount } from '@core/utils/sr.utils.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -110,7 +111,12 @@ const { HeadCells, BodyCells } = useSrColumns({
 
     const { srStatusIcon } = useSrUtils(sr, () => scope)
 
-    const { openModal: openSrDeleteModal, canRun: canDeleteSr, isRunning: isDeletingSr } = useSrDeleteModal(() => [sr])
+    const {
+      openModal: openSrDeleteModal,
+      canRun: canDeleteSr,
+      isRunning: isDeletingSr,
+      errorMessage: deleteSrErrorMessage,
+    } = useSrDeleteModal(() => [sr])
 
     const {
       openModal: openSrConnectModal,
@@ -135,13 +141,13 @@ const { HeadCells, BodyCells } = useSrColumns({
     )
 
     const connectLabel = computed(() =>
-      connectTargetCount.value > (scope.type === SR_SCOPE_TYPE.POOL ? 0 : 1)
+      shouldShowTargetCount(scope, connectTargetCount.value)
         ? t('action:connect-n', { n: connectTargetCount.value })
         : t('action:connect')
     )
 
     const disconnectLabel = computed(() =>
-      disconnectTargetCount.value > (scope.type === SR_SCOPE_TYPE.POOL ? 0 : 1)
+      shouldShowTargetCount(scope, disconnectTargetCount.value)
         ? t('action:disconnect-n', { n: disconnectTargetCount.value })
         : t('action:disconnect')
     )
@@ -181,8 +187,9 @@ const { HeadCells, BodyCells } = useSrColumns({
               label: t('action:delete'),
               icon: 'action:delete',
               onClick: () => openSrDeleteModal(),
-              disabled: !canDeleteSr.value,
               busy: isDeletingSr.value,
+              disabled: !canDeleteSr.value,
+              hint: deleteSrErrorMessage.value,
             },
           ],
         }),

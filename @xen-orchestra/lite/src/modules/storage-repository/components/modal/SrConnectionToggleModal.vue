@@ -11,7 +11,7 @@
     <template #buttons>
       <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
       <VtsModalConfirmButton>
-        {{ t('action:connect-n-srs', { n: count }) }}
+        {{ confirmLabel }}
       </VtsModalConfirmButton>
     </template>
   </VtsModal>
@@ -23,10 +23,12 @@ import type { SrAccessMode, SrScope } from '@core/types/storage-repository.type.
 import VtsModal from '@core/components/modal/VtsModal.vue'
 import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
 import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
-import { CONNECTION_ACTION } from '@core/types/connection.ts'
+import { useMapper } from '@core/packages/mapper'
+import { CONNECTION_ACTION, type ConnectionAction } from '@core/types/connection.ts'
 import { useI18n } from 'vue-i18n'
 
-const { count, scope, accessMode, hostsCount } = defineProps<{
+const { action, count, scope, accessMode, hostsCount } = defineProps<{
+  action: ConnectionAction
   count: number
   scope: SrScope
   accessMode: SrAccessMode
@@ -36,10 +38,19 @@ const { count, scope, accessMode, hostsCount } = defineProps<{
 const { t } = useI18n()
 
 const { title, info } = useSrModalMessages({
-  action: CONNECTION_ACTION.CONNECT,
+  action,
   count: () => count,
   scope: () => scope,
   accessMode: () => accessMode,
   hostsCount: () => hostsCount,
 })
+
+const confirmLabel = useMapper(
+  () => action,
+  () => ({
+    [CONNECTION_ACTION.CONNECT]: t('action:connect-n-srs', { n: count }),
+    [CONNECTION_ACTION.DISCONNECT]: t('action:disconnect-n-srs', { n: count }),
+  }),
+  CONNECTION_ACTION.CONNECT
+)
 </script>

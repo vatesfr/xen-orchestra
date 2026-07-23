@@ -10,7 +10,7 @@ export function useSrDeleteModal(rawSrs: MaybeRefOrGetter<XenApiSr[]>) {
 
   const selectedSrId = useRouteQuery('id')
 
-  const { run, canRun, isRunning } = useSrDeleteJob(srs)
+  const { run, canRun, isRunning, errorMessage } = useSrDeleteJob(srs)
 
   const openModal = useModal(() => ({
     component: import('@/modules/storage-repository/components/modal/SrDeleteModal.vue'),
@@ -28,5 +28,5 @@ export function useSrDeleteModal(rawSrs: MaybeRefOrGetter<XenApiSr[]>) {
     },
   }))
 
-  return { openModal, canRun, isRunning }
+  return { openModal, canRun, isRunning, errorMessage }
 }
