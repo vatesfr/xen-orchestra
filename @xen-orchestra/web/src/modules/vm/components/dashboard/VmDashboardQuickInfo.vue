@@ -55,20 +55,7 @@
       <VtsKeyValueRow :label="t('virtualization-type')" :value="virtualizationType" />
       <VtsKeyValueRow :label="t('guest-tools')">
         <template #value>
-          <div class="value">
-            <VtsIcon
-              v-if="guestToolsDisplay.type !== 'not-applicable'"
-              v-tooltip="guestToolsDisplay.tooltip"
-              :name="guestToolsIcon"
-              size="medium"
-            />
-            <UiLink v-if="guestToolsDisplay.type === 'missing'" size="small" :href="XCP_LINKS.GUEST_TOOLS">
-              {{ guestToolsDisplay.value }}
-            </UiLink>
-            <template v-else>
-              <span v-tooltip class="text-ellipsis"> {{ guestToolsDisplay.value }}</span>
-            </template>
-          </div>
+          <VmGuestToolsValue :guest-tools-display="guestToolsDisplay" :guest-tools-icon="guestToolsIcon" />
         </template>
       </VtsKeyValueRow>
     </VtsKeyValueList>
@@ -90,9 +77,9 @@
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
+import VmGuestToolsValue from '@/modules/vm/components/VmGuestToolsValue.vue'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { XCP_LINKS } from '@/shared/constants.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsKeyValueList from '@core/components/key-value-list/VtsKeyValueList.vue'
 import VtsKeyValueRow from '@core/components/key-value-row/VtsKeyValueRow.vue'
@@ -100,7 +87,6 @@ import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { formatSize } from '@core/utils/size.util.ts'
 import { HOST_POWER_STATE } from '@vates/types'
 import { toLower } from 'lodash-es'
