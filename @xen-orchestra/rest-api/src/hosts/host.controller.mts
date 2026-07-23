@@ -44,19 +44,17 @@ import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import {
-  nfsExport,
-  srUuids,
-  hbaExport,
-  iscsiIqnExport,
-  iscsiLunExport,
-} from '../open-api/oa-examples/sr.oa-example.mjs'
-import {
   host,
   hostIds,
   hostSmt,
   hostMissingPatches,
   hostStats,
   partialHosts,
+  nfsExport,
+  srUuids,
+  hbaExport,
+  iscsiIqnExport,
+  iscsiLunExport,
 } from '../open-api/oa-examples/host.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
