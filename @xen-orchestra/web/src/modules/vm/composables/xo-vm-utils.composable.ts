@@ -105,16 +105,16 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     }
   })
 
-  const guestToolsIcon = computed<IconName>(() => {
-    switch (guestToolsDisplay.value.type) {
-      case 'missing':
-        return 'status:halted-circle'
-      case 'outdated':
-        return 'status:warning-circle'
-      default:
-        return 'status:success-circle'
-    }
-  })
+  const guestToolsIcon = useMapper<GuestToolsDisplay['type'], IconName>(
+    () => guestToolsDisplay.value.type,
+    {
+      missing: 'status:halted-circle',
+      outdated: 'status:warning-circle',
+      'up-to-date': 'status:success-circle',
+      'not-applicable': 'status:success-circle',
+    },
+    'up-to-date'
+  )
 
   const isChangingState = computed(() => isVmOperationPending(vm.value, CHANGING_STATE_OPERATIONS))
 
