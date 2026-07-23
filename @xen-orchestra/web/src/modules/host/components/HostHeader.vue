@@ -20,13 +20,6 @@
 
       <MenuList placement="bottom-end">
         <template #trigger="{ open }">
-          <UiDropdownButton @click="open($event)">{{ t('action:change-state') }}</UiDropdownButton>
-        </template>
-        <HostPowerStateAction :host />
-      </MenuList>
-
-      <MenuList placement="bottom-end">
-        <template #trigger="{ open }">
           <UiButtonIcon
             v-tooltip="{
               placement: 'left',
