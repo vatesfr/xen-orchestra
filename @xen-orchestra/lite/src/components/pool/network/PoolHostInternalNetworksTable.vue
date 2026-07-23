@@ -2,45 +2,9 @@
   <div class="pool-host-internal-networks-table">
     <UiTitle>
       {{ t('host-internal-networks') }}
-      <template #action>
-        <UiButton
-          v-tooltip="t('coming-soon!')"
-          disabled
-          left-icon="fa:plus"
-          variant="secondary"
-          accent="brand"
-          size="medium"
-        >
-          {{ t('new') }}
-        </UiButton>
-      </template>
     </UiTitle>
     <div class="container">
-      <div class="table-actions">
-        <UiQuerySearchBar @search="value => (searchQuery = value)" />
-        <UiTableActions :title="t('table-actions')">
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            left-icon="fa:edit"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('action:edit') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            left-icon="fa:trash"
-            variant="tertiary"
-            accent="danger"
-            size="medium"
-          >
-            {{ t('action:delete') }}
-          </UiButton>
-        </UiTableActions>
-      </div>
+      <UiQuerySearchBar @search="value => (searchQuery = value)" />
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
@@ -66,14 +30,11 @@ import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
-import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTableState } from '@core/composables/table-state.composable'
-import { vTooltip } from '@core/directives/tooltip.directive'
 import { useNetworkColumns } from '@core/tables/column-sets/network-columns.ts'
 import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
@@ -125,21 +86,19 @@ const { HeadCells, BodyCells } = useNetworkColumns({
     description: r => r(network.name_description),
     mtu: r => r(network.MTU),
     defaultLockingMode: r => r(getLockingMode(network.default_locking_mode)),
-    selectItem: r => r(() => selectedNetworkId.value === network.uuid),
+    selectItem: r => r(() => (selectedNetworkId.value = network.uuid)),
   }),
 })
 </script>
 
 <style scoped lang="postcss">
 .pool-host-internal-networks-table,
-.table-actions,
 .container {
   display: flex;
   flex-direction: column;
   gap: 2.4rem;
 
-  .container,
-  .table-actions {
+  .container {
     gap: 0.8rem;
   }
 }

@@ -1,8 +1,9 @@
 <template>
   <VtsModal
-    :accent="isJsonValid ? 'success' : 'danger'"
+    :accent="isJsonValid ? 'info' : 'danger'"
     class="json-editor-modal"
     icon="fa:code"
+    dismissible
     @confirm="handleSubmit()"
   >
     <template #content>

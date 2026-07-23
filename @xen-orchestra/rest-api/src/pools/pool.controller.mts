@@ -217,6 +217,10 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   /**
+   * Required privileges:
+   * - resource: pool, action: create:network
+   * - resource: network, action: create
+   *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
    * @example body {
    *    "name": "awes0me_bonded_network",
@@ -229,9 +233,16 @@ export class PoolController extends XapiXoController<XoPool> {
   @Example(createNetwork)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/create_bonded_network')
-  @Middlewares(json())
+  @Middlewares([
+    json(),
+    acl([
+      { resource: 'pool', action: 'create:network', objectId: 'params.id' },
+      { resource: 'network', action: 'create', object: ({ req }) => req.body },
+    ]),
+  ])
   @Tags('networks')
   @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
@@ -261,6 +272,10 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   /**
+   * Required privileges:
+   * - resource: pool, action: create:network
+   * - resource: network, action: create
+   *
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
    * @example body {
    *    "name": "awes0me_internal_network",
@@ -271,9 +286,16 @@ export class PoolController extends XapiXoController<XoPool> {
   @Example(createNetwork)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/create_internal_network')
-  @Middlewares(json())
+  @Middlewares([
+    json(),
+    acl([
+      { resource: 'pool', action: 'create:network', objectId: 'params.id' },
+      { resource: 'network', action: 'create', object: ({ req }) => req.body },
+    ]),
+  ])
   @Tags('networks')
   @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
@@ -521,11 +543,12 @@ export class PoolController extends XapiXoController<XoPool> {
   ): CreateActionReturnType<{ id: Unbrand<XoVm>['id'] }> {
     const poolId = id as XoPool['id']
     const action = async () => {
-      const { affinity, template, install, vgpuType, gpuGroup, vdis, ...rest } = body
+      const { affinity, template, install, vgpuType, gpuGroup, vdis, high_availability, ...rest } = body
 
       // rebrand all branded type
       const vmId = await this.#vmService.create({
         affinityHost: affinity as XoHost['id'] | undefined,
+        highAvailability: high_availability,
         installRepository: install?.repository as XoVdi['id'] | '' | undefined,
         pool: poolId,
         template: template as XoVmTemplate['id'],
@@ -764,6 +787,9 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   /**
+   * Required privilege:
+   * - resource: pif, action: update:management
+   *
    * Reconfigure the management interface for all hosts in the pool to use the given network.
    *
    * Each host in the pool will switch their management interface to a PIF on the specified network.
@@ -775,9 +801,20 @@ export class PoolController extends XapiXoController<XoPool> {
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/management_reconfigure')
-  @Middlewares(json())
+  @Middlewares([
+    json(),
+    acl({
+      resource: 'pif',
+      action: 'update:management',
+      objectIds: ({ req, restApi }) => {
+        const network = restApi.getObject<XoNetwork>(req.body.network as XoNetwork['id'], 'network')
+        return network.PIFs
+      },
+    }),
+  ])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(badRequestResp.status, badRequestResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
@@ -805,6 +842,58 @@ export class PoolController extends XapiXoController<XoPool> {
         name: 'reconfigure pool management interface',
         objectId: poolId,
         args: body,
+      },
+    })
+  }
+
+  /**
+   * Required privileges:
+   * - resource: pool, action: add-host
+   * - resource: host, action: join-pool
+   *
+   * Add a host to the pool.
+   *
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
+   * @example body { "host": "c787b75c-3e0d-70fa-d0c3-cbfd382d7e33", "force": "false" }
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/add_host')
+  @Middlewares([
+    json(),
+    acl([
+      { resource: 'pool', action: 'add-host', objectId: 'params.id' },
+      { resource: 'host', action: 'join-pool', objectId: 'body.host' },
+    ]),
+  ])
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(badRequestResp.status, badRequestResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  addHost(
+    @Path() id: string,
+    @Body() body: { host: string; force?: boolean },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const poolId = id as XoPool['id']
+    const action = async () => {
+      const {
+        _auth: { user, password },
+        _url: { hostnameRaw },
+      } = this.restApi.xoApp.getXapi(poolId)
+      const hostXapi = this.restApi.xoApp.getXapi(body.host as XoHost['id'])
+      await hostXapi.joinPool(hostnameRaw, user, password, body.force)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'add host',
+        objectId: poolId,
+        params: body,
       },
     })
   }

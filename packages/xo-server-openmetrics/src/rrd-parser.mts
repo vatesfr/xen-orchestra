@@ -62,6 +62,10 @@ export interface ParsedMetric {
 export interface ParsedRrdData {
   /** Pool UUID */
   poolId: string
+  /**
+   * UUID of the host this data was fetched from, when known.
+   */
+  hostId?: string
   /** Timestamp of the data in seconds */
   timestamp: number
   /** All parsed metrics */
@@ -177,7 +181,7 @@ export function parseRrdText(text: string): RrdResponse {
  * @param poolId - Pool UUID for labeling
  * @returns ParsedRrdData with all valid metrics
  */
-export function parseRrdData(rrd: RrdResponse, poolId: string): ParsedRrdData {
+export function parseRrdData(rrd: RrdResponse, poolId: string, hostId?: string): ParsedRrdData {
   const { meta, data } = rrd
 
   // Use the most recent data point (last in array after reversal)
@@ -185,6 +189,7 @@ export function parseRrdData(rrd: RrdResponse, poolId: string): ParsedRrdData {
   if (data.length === 0) {
     return {
       poolId,
+      hostId,
       timestamp: meta.end,
       metrics: [],
     }
@@ -195,6 +200,7 @@ export function parseRrdData(rrd: RrdResponse, poolId: string): ParsedRrdData {
   if (latestData === undefined) {
     return {
       poolId,
+      hostId,
       timestamp: meta.end,
       metrics: [],
     }
@@ -225,6 +231,7 @@ export function parseRrdData(rrd: RrdResponse, poolId: string): ParsedRrdData {
 
   return {
     poolId,
+    hostId,
     timestamp,
     metrics,
   }
@@ -239,7 +246,7 @@ export function parseRrdData(rrd: RrdResponse, poolId: string): ParsedRrdData {
  * @param poolId - Pool UUID for labeling
  * @returns ParsedRrdData with all valid metrics
  */
-export function parseRrdResponse(text: string, poolId: string): ParsedRrdData {
+export function parseRrdResponse(text: string, poolId: string, hostId?: string): ParsedRrdData {
   const rrd = parseRrdText(text)
-  return parseRrdData(rrd, poolId)
+  return parseRrdData(rrd, poolId, hostId)
 }

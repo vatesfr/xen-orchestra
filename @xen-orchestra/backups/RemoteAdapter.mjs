@@ -1,34 +1,23 @@
 import { asyncEach } from '@vates/async-each'
 import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
-import { compose } from '@vates/compose'
 import { createLogger } from '@xen-orchestra/log'
 import { VhdDirectory, VhdSynthetic } from 'vhd-lib'
 import { decorateMethodsWith } from '@vates/decorate-with'
-import { deduped } from '@vates/disposable/deduped.js'
 import { dirname, join, resolve } from 'node:path'
-import { execFile } from 'child_process'
-import { mount } from '@vates/fuse-vhd'
-import { readdir, lstat } from 'node:fs/promises'
 import { synchronized } from 'decorator-synchronized'
-import { ZipFile } from 'yazl'
 import Disposable from 'promise-toolbox/Disposable'
 import fromCallback from 'promise-toolbox/fromCallback'
-import fromEvent from 'promise-toolbox/fromEvent'
 import groupBy from 'lodash/groupBy.js'
-import pDefer from 'promise-toolbox/defer'
 import pickBy from 'lodash/pickBy.js'
 import reduce from 'lodash/reduce.js'
-import * as tar from 'tar'
 import zlib from 'zlib'
 
 import { BACKUP_DIR } from './_getVmBackupDir.mjs'
 import { VmBackupDirectory } from '@xen-orchestra/backup-archive'
+import { fileRestoreDecorators, fileRestoreMethods } from './_fileRestore.mjs'
 import { formatFilenameDate } from './_filenameDate.mjs'
-import { getTmpDir } from './_getTmpDir.mjs'
 import { isMetadataFile } from './_backupType.mjs'
 import { isValidXva } from './_isValidXva.mjs'
-import { listPartitions, LVM_PARTITION_TYPE_MBR, LVM_PARTITION_TYPE_GPT } from './_listPartitions.mjs'
-import { lvs, pvs } from './_lvm.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
 
 import { RemoteVhdDisk, openDiskChain } from '@xen-orchestra/backup-archive/disks'
@@ -48,25 +37,6 @@ export const compareTimestamp = (a, b) => a.timestamp - b.timestamp
 const noop = Function.prototype
 
 const resolveRelativeFromFile = (file, path) => resolve('/', dirname(file), path).slice(1)
-const makeRelative = path => resolve('/', path).slice(1)
-const resolveSubpath = (root, path) => resolve(root, makeRelative(path))
-
-async function addZipEntries(zip, realBasePath, virtualBasePath, relativePaths) {
-  for (const relativePath of relativePaths) {
-    const realPath = join(realBasePath, relativePath)
-    const virtualPath = join(virtualBasePath, relativePath)
-
-    const stats = await lstat(realPath)
-    const { mode, mtime } = stats
-    const opts = { mode, mtime }
-    if (stats.isDirectory()) {
-      zip.addEmptyDirectory(virtualPath, opts)
-      await addZipEntries(zip, realPath, virtualPath, await readdir(realPath))
-    } else if (stats.isFile()) {
-      zip.addFile(realPath, virtualPath, opts)
-    }
-  }
-}
 
 const createSafeReaddir = (handler, methodName) => (path, options) =>
   handler.list(path, options).catch(error => {
@@ -75,11 +45,6 @@ const createSafeReaddir = (handler, methodName) => (path, options) =>
     }
     return []
   })
-
-const debounceResourceFactory = factory =>
-  function () {
-    return this._debounceResource(factory.apply(this, arguments))
-  }
 
 export class RemoteAdapter {
   constructor(
@@ -98,112 +63,6 @@ export class RemoteAdapter {
     return this._handler
   }
 
-  async _findPartition(devicePath, partitionId) {
-    const partitions = await listPartitions(devicePath)
-    const partition = partitions.find(_ => _.id === partitionId)
-    if (partition === undefined) {
-      throw new Error(`partition ${partitionId} not found`)
-    }
-    return partition
-  }
-
-  async *_getLvmLogicalVolumes(devicePath, pvId, vgName) {
-    yield this._getLvmPhysicalVolume(devicePath, pvId && (await this._findPartition(devicePath, pvId)))
-
-    debug('activate LVM volume group', { vgName })
-    await fromCallback(execFile, 'vgchange', ['-ay', vgName])
-    try {
-      debug('get LVM volume group name and path', { vgName })
-      yield lvs(['lv_name', 'lv_path'], vgName)
-    } finally {
-      debug('deactivate LVM volume group', { vgName })
-      await fromCallback(execFile, 'vgchange', ['-an', vgName])
-    }
-  }
-
-  async *_getLvmPhysicalVolume(devicePath, partition) {
-    const args = []
-    if (partition !== undefined) {
-      args.push('-o', partition.start * 512, '--sizelimit', partition.size)
-    }
-    args.push('--show', '-f', devicePath)
-
-    debug('attach loop device', { devicePath, partition })
-    const path = (await fromCallback(execFile, 'losetup', args)).trim()
-    try {
-      debug('list LVM physical volume', { path })
-      await fromCallback(execFile, 'pvscan', ['--cache', path])
-
-      yield path
-    } finally {
-      try {
-        const vgNames = await pvs('vg_name', path)
-
-        debug('deactivate LVM volume groups', { vgNames })
-        await fromCallback(execFile, 'vgchange', ['-an', ...vgNames])
-      } finally {
-        debug('detach loop device', { path })
-        await fromCallback(execFile, 'losetup', ['-d', path])
-      }
-    }
-  }
-
-  async *_getPartition(devicePath, partition) {
-    // the norecovery option is necessary because if the partition is dirty,
-    // mount will try to fix it which is impossible if because the device is read-only
-    const options = ['loop', 'ro', 'norecovery']
-
-    if (partition !== undefined) {
-      const { size, start } = partition
-      options.push(`sizelimit=${size}`)
-      if (start !== undefined) {
-        options.push(`offset=${start * 512}`)
-      }
-    }
-
-    const path = yield getTmpDir()
-    const mount = options => {
-      debug('mount device', { devicePath, mountPath: path })
-      return fromCallback(execFile, 'mount', [
-        `--options=${options.join(',')}`,
-        `--source=${devicePath}`,
-        `--target=${path}`,
-      ])
-    }
-
-    // `norecovery` option is used for ext3/ext4/xfs, if it fails it might be
-    // another fs, try without
-    try {
-      await mount([...options, 'norecovery'])
-    } catch (error) {
-      await mount(options)
-    }
-    try {
-      yield path
-    } finally {
-      debug('umount device', { devicePath, mountPath: path })
-      await fromCallback(execFile, 'umount', ['--lazy', path])
-    }
-  }
-
-  _listLvmLogicalVolumes(devicePath, partition, results = []) {
-    return Disposable.use(this._getLvmPhysicalVolume(devicePath, partition), async path => {
-      const lvs = await pvs(['lv_name', 'lv_path', 'lv_size', 'vg_name'], path)
-      const partitionId = partition !== undefined ? partition.id : ''
-      lvs.forEach((lv, i) => {
-        const name = lv.lv_name
-        if (name !== '') {
-          results.push({
-            id: `${partitionId}/${lv.vg_name}/${name}`,
-            name,
-            size: lv.lv_size,
-          })
-        }
-      })
-      return results
-    })
-  }
-
   // check if we will be allowed to merge a vhd created in this adapter
   // with the vhd at path `path`
   async isMergeableParent(packedParentUid, path) {
@@ -219,34 +78,6 @@ export class RemoteAdapter {
         ? this.useVhdDirectory() && this.#getCompressionType() === vhd.compressionType
         : !this.useVhdDirectory()
     })
-  }
-
-  fetchPartitionFiles(diskId, partitionId, paths, format) {
-    const { promise, reject, resolve } = pDefer()
-    Disposable.use(
-      async function* () {
-        const path = yield this.getPartition(diskId, partitionId)
-        let outputStream
-
-        if (format === 'tgz') {
-          outputStream = tar.c({ cwd: path, gzip: true }, paths.map(makeRelative))
-        } else if (format === 'zip') {
-          const zip = new ZipFile()
-          await addZipEntries(zip, path, '', paths.map(makeRelative))
-          zip.end()
-          ;({ outputStream } = zip)
-        } else {
-          throw new Error('unsupported format ' + format)
-        }
-
-        resolve(outputStream)
-        await fromEvent(outputStream, 'end')
-      }.bind(this)
-    ).catch(error => {
-      warn(error)
-      reject(error)
-    })
-    return promise
   }
 
   async #removeVmBackupsFromCache(backups) {
@@ -386,76 +217,6 @@ export class RemoteAdapter {
     return this.useVhdDirectory()
   }
 
-  async *#getDiskLegacy(diskId) {
-    const RE_VHDI = /^vhdi(\d+)$/
-    const handler = this._handler
-
-    const diskPath = handler.getFilePath('/' + diskId)
-    const mountDir = yield getTmpDir()
-
-    debug('mount VHD (vhdimount)', { diskPath, mountPath: mountDir })
-    await fromCallback(execFile, 'vhdimount', [diskPath, mountDir])
-    try {
-      let max = 0
-      let maxEntry
-      const entries = await readdir(mountDir)
-      entries.forEach(entry => {
-        const matches = RE_VHDI.exec(entry)
-        if (matches !== null) {
-          const value = +matches[1]
-          if (value > max) {
-            max = value
-            maxEntry = entry
-          }
-        }
-      })
-      if (max === 0) {
-        throw new Error('no disks found')
-      }
-
-      yield `${mountDir}/${maxEntry}`
-    } finally {
-      debug('umount VHD (fusermount)', { diskPath, mountPath: mountDir })
-      await fromCallback(execFile, 'fusermount', ['-uz', mountDir])
-    }
-  }
-
-  async *getDisk(diskId) {
-    if (this._useGetDiskLegacy) {
-      yield* this.#getDiskLegacy(diskId)
-      return
-    }
-    const handler = this._handler
-    // this is a disposable
-    const mountDir = yield getTmpDir()
-    // this is also a disposable
-    yield mount(handler, diskId, mountDir)
-    // this will yield disk path to caller
-    yield `${mountDir}/vhd0`
-  }
-
-  // partitionId values:
-  //
-  // - undefined: raw disk
-  // - `<partitionId>`: partitioned disk
-  // - `<pvId>/<vgName>/<lvName>`: LVM on a partitioned disk
-  // - `/<vgName>/lvName>`: LVM on a raw disk
-  async *getPartition(diskId, partitionId) {
-    const devicePath = yield this.getDisk(diskId)
-    if (partitionId === undefined) {
-      return yield this._getPartition(devicePath)
-    }
-
-    const isLvmPartition = partitionId.includes('/')
-    if (isLvmPartition) {
-      const [pvId, vgName, lvName] = partitionId.split('/')
-      const lvs = yield this._getLvmLogicalVolumes(devicePath, pvId !== '' ? pvId : undefined, vgName)
-      return yield this._getPartition(lvs.find(_ => _.lv_name === lvName).lv_path)
-    }
-
-    return yield this._getPartition(devicePath, await this._findPartition(devicePath, partitionId))
-  }
-
   // if we use alias on this remote, we have to name the file alias.vhd
   getVhdFileName(baseName) {
     if (this.#useAlias()) {
@@ -494,56 +255,6 @@ export class RemoteAdapter {
       }
     })
     return backups
-  }
-
-  listPartitionFiles(diskId, partitionId, path) {
-    return Disposable.use(this.getPartition(diskId, partitionId), async rootPath => {
-      path = resolveSubpath(rootPath, path)
-      const entriesMap = {}
-      await asyncEach(
-        await readdir(path),
-        async name => {
-          try {
-            const stats = await lstat(`${path}/${name}`)
-            if (stats.isDirectory()) {
-              entriesMap[name + '/'] = {}
-            } else if (stats.isFile()) {
-              entriesMap[name] = {}
-            }
-          } catch (error) {
-            if (error == null || error.code !== 'ENOENT') {
-              throw error
-            }
-          }
-        },
-        { concurrency: 1 }
-      )
-
-      return entriesMap
-    })
-  }
-
-  listPartitions(diskId) {
-    return Disposable.use(this.getDisk(diskId), async devicePath => {
-      const partitions = await listPartitions(devicePath)
-
-      if (partitions.length === 0) {
-        try {
-          // handle potential raw LVM physical volume
-          return await this._listLvmLogicalVolumes(devicePath, undefined, partitions)
-        } catch (error) {
-          return []
-        }
-      }
-
-      const results = []
-      await asyncMapSettled(partitions, partition =>
-        partition.type === LVM_PARTITION_TYPE_MBR || partition.type === LVM_PARTITION_TYPE_GPT
-          ? this._listLvmLogicalVolumes(devicePath, partition, results)
-          : results.push(partition)
-      )
-      return results
-    })
   }
 
   async listPoolMetadataBackups() {
@@ -738,7 +449,7 @@ export class RemoteAdapter {
     return path
   }
 
-  async writeVhd(path, disk, { validator = noop, writeBlockConcurrency } = {}) {
+  async writeVhd(path, disk, { validator = noop, writeBlockConcurrency, uuid, parentUuid, parentPath } = {}) {
     const handler = this._handler
 
     if (this.useVhdDirectory()) {
@@ -750,11 +461,19 @@ export class RemoteAdapter {
           concurrency: writeBlockConcurrency,
           validator,
           compression: 'brotli',
+          uuid,
+          parentUuid,
+          parentPath,
         },
       })
     } else {
-      const stream = await toVhdStream(disk)
-      const size = await this.outputStream(path, stream, { validator, checksum: false })
+      const stream = await toVhdStream(disk, { uuid, parentUuid, parentPath })
+      const size = await this.outputStream(path, stream, {
+        validator,
+        // no checksum for VHDs, because they will be invalidated by
+        // merges and chains
+        checksum: false,
+      })
       await validator(path)
       return size
     }
@@ -932,26 +651,8 @@ Object.assign(RemoteAdapter.prototype, {
   isValidXva,
 })
 
-decorateMethodsWith(RemoteAdapter, {
-  _getLvmLogicalVolumes: compose([
-    Disposable.factory,
-    [deduped, (devicePath, pvId, vgName) => [devicePath, pvId, vgName]],
-    debounceResourceFactory,
-  ]),
+// File-level-restore methods live in ./_fileRestore.mjs; mix them onto the prototype
+// before decorating so decorateMethodsWith can wrap them.
+Object.assign(RemoteAdapter.prototype, fileRestoreMethods)
 
-  _getLvmPhysicalVolume: compose([
-    Disposable.factory,
-    [deduped, (devicePath, partition) => [devicePath, partition?.id]],
-    debounceResourceFactory,
-  ]),
-
-  _getPartition: compose([
-    Disposable.factory,
-    [deduped, (devicePath, partition) => [devicePath, partition?.id]],
-    debounceResourceFactory,
-  ]),
-
-  getDisk: compose([Disposable.factory, [deduped, diskId => [diskId]], debounceResourceFactory]),
-
-  getPartition: Disposable.factory,
-})
+decorateMethodsWith(RemoteAdapter, fileRestoreDecorators)

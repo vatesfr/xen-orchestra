@@ -2,7 +2,7 @@
   "name": "@xen-orchestra/qa-test",
   "private": true,
   "type": "module",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "XenOrchestra QA Test Suite",
   "author": {
     "name": "Vates SAS",
@@ -20,7 +20,11 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@vates/async-each": "^1.0.3",
+    "@xen-orchestra/backups": "^0.73.7",
+    "@xen-orchestra/fs": "^4.9.2",
     "@xen-orchestra/log": "^0.7.2",
+    "nodemailer": "^7.0.13",
     "xo-lib": "^0.11.2"
   },
   "scripts": {
@@ -38,6 +42,12 @@
     "qa:export:vhd": "node --env-file-if-exists=.env --test tests/export.vhd.test.js --test-name-pattern='VDI VHD'",
     "qa:export:xva": "node --env-file-if-exists=.env --test tests/export.vhd.test.js --test-name-pattern='XVA'",
     "qa:export:restore": "node --env-file-if-exists=.env --test tests/export.vhd.test.js --test-name-pattern='Restoration'",
-    "demo": "node --env-file-if-exists=.env index.js"
+    "qa:backup:metadata": "node --env-file-if-exists=.env --test tests/metadata-backup.test.js",
+    "qa:sdn-controller": "node --env-file-if-exists=.env --test tests/sdn-controller.test.js",
+    "demo": "node --env-file-if-exists=.env index.js",
+    "report": "node --env-file-if-exists=.env scripts/run-and-report.mjs",
+    "report:smtp-test": "node --env-file-if-exists=.env scripts/run-and-report.mjs --smtp-test",
+    "qa:backup:file-restore": "node --env-file-if-exists=.env --test tests/backup.file-restore.test.js",
+    "qa:load:backup:delta": "node --env-file-if-exists=.env scripts/backup-load-delta.mjs"
   }
 }

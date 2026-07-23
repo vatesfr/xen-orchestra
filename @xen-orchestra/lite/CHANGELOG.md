@@ -1,9 +1,30 @@
 # ChangeLog
 
+## **next**
+
+- [Host/dashboard] Switch CPU and RAM panels order to match Pool dashboard layout (PR [#10059](https://github.com/vatesfr/xen-orchestra/pull/10059))
+- Remove all "coming soon" disabled button placeholders from network, VM, and pool components (PR [#10068](https://github.com/vatesfr/xen-orchestra/pull/10068))
+- [VM/Network] add possibility to “connect/disconnect” a VIF on a VM (PR [#10080](https://github.com/vatesfr/xen-orchestra/pull/10080))
+- [Pool/networks] Add the possibility to copy information from one or more networks in JSON format (PR [#10083](https://github.com/vatesfr/xen-orchestra/pull/10083))
+
+## **0.23.0** (2026-06-30)
+
+- Update the UiTitle component to use the one from web-core (PR [#9869](https://github.com/vatesfr/xen-orchestra/pull/9869))
+- [Pool/System] Add `Reboot VM on internal shutdown` in pool's system tab (PR [#9962](https://github.com/vatesfr/xen-orchestra/pull/9962))
+- Update the UiCard component to use the one from web-core (PR [#9980](https://github.com/vatesfr/xen-orchestra/pull/9980))
+- Update the UiCardTitle component to use the one from web-core (PR [#9982](https://github.com/vatesfr/xen-orchestra/pull/9982))
+- Replacement of the UiSeparator component with VtsDivider from web-core (PR [#10017](https://github.com/vatesfr/xen-orchestra/pull/10017))
+- Update side panels (PR [#9836](https://github.com/vatesfr/xen-orchestra/pull/9836))
+- [XOA deploy] Update log visualization component (PR [#9995](https://github.com/vatesfr/xen-orchestra/pull/9995))
+- [SidePanels] Add and use new `VtsCardObjectTitle` component to display object title and ID in side panels (PR [#9755](https://github.com/vatesfr/xen-orchestra/pull/9755))
+- Replacement of the UiSpinner component with UiLoader from web-core (PR [#10023](https://github.com/vatesfr/xen-orchestra/pull/10023))
+- [Pool,Host/Storage] Add Storage tabs (PR [#10005](https://github.com/vatesfr/xen-orchestra/pull/10005))
+
 ## **0.22.0** (2026-05-28)
 
 - [System] Update system pages layout ([user feedback](https://feedback.vates.tech/posts/37/xo6-ui-very-messy-columns-width-in-vm-system-far-better-in-xo5)) (PR [#9746](https://github.com/vatesfr/xen-orchestra/pull/9746))
 - Introduce robots.txt for avoid browser indexing (PR [#9858](https://github.com/vatesfr/xen-orchestra/pull/9858))
+- [XOA deploy] Add confirmation before leaving the page during deployment (PR [#9893](https://github.com/vatesfr/xen-orchestra/pull/9893))
 
 ## **0.20.0** (2026-04-01)
 

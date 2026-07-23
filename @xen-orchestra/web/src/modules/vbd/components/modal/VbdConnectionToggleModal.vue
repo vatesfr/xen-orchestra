@@ -1,11 +1,11 @@
 <template>
-  <VtsModal accent="info" icon="status:info-picto">
+  <VtsModal accent="info" icon="status:info-picto" dismissible>
     <template #title>
       {{ connection.title }}
     </template>
 
     <template v-if="action === CONNECTION_ACTION.DISCONNECT" #content>
-      {{ t('vbd-disconnect-info') }}
+      {{ t('vdi-disconnect-info') }}
     </template>
 
     <template #buttons>
@@ -18,16 +18,15 @@
 </template>
 
 <script lang="ts" setup>
-import type { VbdConnectionAction } from '@/modules/vbd/composables/use-vbd-connection-toggle-modal.composable.ts'
-import { CONNECTION_ACTION } from '@/shared/constants.ts'
 import VtsModal from '@core/components/modal/VtsModal.vue'
 import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
 import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
 import { useMapper } from '@core/packages/mapper'
+import { CONNECTION_ACTION, type ConnectionAction } from '@core/types/connection.ts'
 import { useI18n } from 'vue-i18n'
 
 const { action, count } = defineProps<{
-  action: VbdConnectionAction
+  action: ConnectionAction
   count: number
 }>()
 
@@ -36,8 +35,8 @@ const { t } = useI18n()
 const connection = useMapper(
   () => action,
   () => ({
-    connect: { title: t('vbd-connect-title', { n: count }), action: t('action:connect-n-vbds', { n: count }) },
-    disconnect: { title: t('vbd-disconnect-title', { n: count }), action: t('action:disconnect-n-vbds', { n: count }) },
+    connect: { title: t('vdi-connect-title', { n: count }), action: t('action:connect-n-vdis', { n: count }) },
+    disconnect: { title: t('vdi-disconnect-title', { n: count }), action: t('action:disconnect-n-vdis', { n: count }) },
   }),
   'connect'
 )

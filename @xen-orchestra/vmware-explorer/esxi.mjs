@@ -343,14 +343,15 @@ export default class Esxi extends EventEmitter {
 
     const disks = []
     const networks = []
+    let cdrom = false
 
     for (const key of Object.keys(vmx)) {
-      const matches = key.match(/^(scsi|ide|ethernet)[0-9]+$/)
+      const matches = key.match(/^(scsi|ide|ethernet|sata)[0-9]+$/)
       if (matches === null) {
         continue
       }
       const channelType = matches[1]
-      if (channelType === 'ide' || channelType === 'scsi') {
+      if (channelType === 'ide' || channelType === 'scsi' || channelType === 'sata' /* cdrom */) {
         const diskChannel = vmx[key]
         for (const diskIndex in Object.values(diskChannel)) {
           const disk = diskChannel[diskIndex]
@@ -358,6 +359,7 @@ export default class Esxi extends EventEmitter {
             continue
           }
           if (disk.deviceType?.match(/cdrom/i)) {
+            cdrom = true
             continue
           }
           // can be something other than a disk, like a controller card
@@ -408,6 +410,7 @@ export default class Esxi extends EventEmitter {
       firmware: config.firmware[0] === 'efi' ? 'uefi' : config.firmware[0], // bios or uefi
       powerState: runtime.powerState[0],
       snapshots,
+      cdrom,
       disks,
       networks,
       vmId,
@@ -549,7 +552,7 @@ export default class Esxi extends EventEmitter {
     }
   }
 
-  async spanwNbdKitProcess(vmId, diskPath, { singleLink = false, threads = 1, compression = 'fastlz' } = {}) {
+  async spawnNbdKitProcess(vmId, diskPath, { singleLink = false, threads = 1, compression = 'fastlz' } = {}) {
     const key = `${vmId}/${diskPath}/${singleLink}`
     if (!this.#nbdServers.has(key)) {
       const thumbprint = await this.#getServerThumbprint()
@@ -623,7 +626,7 @@ export default class Esxi extends EventEmitter {
     try {
       const start = Date.now()
 
-      const nbdInfoSpawn = await this.spanwNbdKitProcess(vmId, `[${datastoreName}] ${diskPath}`, {
+      const nbdInfoSpawn = await this.spawnNbdKitProcess(vmId, `[${datastoreName}] ${diskPath}`, {
         singleLink: true,
       })
 

@@ -1,6 +1,6 @@
 {
   "name": "xo-server-ipmi-sensors",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "license": "AGPL-3.0-or-later",
   "description": "XO Server plugin exposing and configuring IPMI sensors",
   "type": "module",
@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@isaacs/ttlcache": "^1.4.1",
-    "@vates/types": "^1.26.0",
+    "@vates/types": "^1.28.0",
     "@xen-orchestra/log": "^0.7.1"
   },
   "devDependencies": {

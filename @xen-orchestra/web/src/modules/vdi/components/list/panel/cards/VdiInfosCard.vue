@@ -1,10 +1,12 @@
 <template>
   <UiCard class="card-container">
-    <UiLink size="medium" :href="vdiHref" :icon="vdiIcon">
-      {{ vdi.name_label }}
-    </UiLink>
+    <VtsCardObjectTitle
+      :id="vdi.id"
+      :label="vdi.name_label"
+      :to="{ name: '/vdi/[id]/general', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.VM } }"
+      :icon="vdiIcon"
+    />
     <div class="content">
-      <VtsCodeSnippet :content="vdi.id" copy />
       <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('description') }}</template>
         <template #value>{{ vdi.name_description }}</template>
@@ -48,18 +50,17 @@ import { useVbdsStatus, type VbdAttachmentStatus } from '@/modules/vbd/composabl
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { CONNECTION_STATUS } from '@/shared/constants.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
 import type { IconName } from '@core/icons'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
+import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { useMapper } from '@core/packages/mapper'
+import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -69,10 +70,6 @@ const { vdi, vm } = defineProps<{
 }>()
 
 const { t } = useI18n()
-
-const { buildXo5Route } = useXoRoutes()
-
-const vdiHref = computed(() => buildXo5Route(`/vms/${vm.id}/disks/s=1_6_asc-${vdi.id}`))
 
 const vbdsAttachmentStatus = useVbdsStatus(() => vdi.$VBDs)
 

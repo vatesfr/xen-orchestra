@@ -2,22 +2,35 @@ import { createLogger } from '@xen-orchestra/log'
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import { FilterBuilder } from './FilterBuilder.js'
+import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { BACKUP_JOB_NAME_PREFIX, getRequiredEnv } from '../utils/index.js'
 
 const log = createLogger('cleanup')
 
 /**
- * Allowed paths for automatic backup cleanup.
+ * Allowed paths for automatic backup cleanup of file:// remotes.
  * SECURITY: Only test-scoped paths containing 'test', 'qa', or 'tmp/xo'.
+ * Non-file:// remotes return an empty list (cleanup is delegated to XO API).
  *
- * Computed lazily so that `process.env.BACKUP_REPOSITORY_PATH` is read at call
+ * Computed lazily so that `process.env.BACKUP_REPOSITORY_URL` is read at call
  * time rather than module-load time — otherwise ESM import hoisting would make
  * it evaluate before any in-code env loading runs.
  *
  * @returns {Array<string>}
  */
 const getAllowedCleanupPaths = () => {
-  const repoPath = process.env.BACKUP_REPOSITORY_PATH
+  const repoUrl = process.env.BACKUP_REPOSITORY_URL
+
+  // Non-local remotes have no local path to safety-check
+  if (!repoUrl?.startsWith('file://')) return []
+
+  let repoPath
+  try {
+    repoPath = new URL(repoUrl).pathname
+  } catch {
+    log.warn('Rejected cleanup URL: invalid URL', { repoUrl })
+    return []
+  }
 
   // SECURITY: Reject paths containing path traversal sequences
   if (repoPath?.includes('..')) {
@@ -267,7 +280,7 @@ export class CleanupClient {
       if (config.deleteBackupFiles) {
         try {
           const jobDetails = await this.dispatchClient.backup.details(job.id)
-          const jobRemotes = jobDetails.remotes?.id ? [jobDetails.remotes.id] : Object.keys(jobDetails.remotes || {})
+          const jobRemotes = extractIdsFromSimplePattern(jobDetails.remotes)
 
           if (jobRemotes.length > 0) {
             const backupsByRemote = await this.dispatchClient.backup.listVmBackups(jobRemotes)

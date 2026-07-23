@@ -1,16 +1,11 @@
 <template>
-  <div class="pool-network-view" :class="{ mobile: uiStore.isSmall }">
+  <VtsContentSidePanel class="network">
     <UiCard class="container">
       <PoolNetworksTable :networks="networksWithPifs" />
       <PoolHostInternalNetworksTable :networks="networksWithoutPifs" />
     </UiCard>
-    <PoolNetworkSidePanel v-if="selectedNetwork" :network="selectedNetwork" @close="selectedNetwork = undefined" />
-    <UiPanel v-else-if="!uiStore.isSmall">
-      <VtsStateHero format="panel" type="no-selection" size="medium">
-        {{ t('select-to-see-details') }}
-      </VtsStateHero>
-    </UiPanel>
-  </div>
+    <PoolNetworkSidePanel :network="selectedNetwork" @close="selectedNetwork = undefined" />
+  </VtsContentSidePanel>
 </template>
 
 <script lang="ts" setup>
@@ -20,18 +15,15 @@ import PoolNetworksTable from '@/components/pool/network/PoolNetworksTable.vue'
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
-import { useUiStore } from '@core/stores/ui.store.ts'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 usePageTitleStore().setTitle(t('network'))
 
 const { getByUuid, networksWithPifs, networksWithoutPifs } = useNetworkStore().subscribe()
-const uiStore = useUiStore()
 
 const selectedNetwork = useRouteQuery<XenApiNetwork | undefined>('id', {
   toData: id => getByUuid(id as XenApiNetwork['uuid']),
@@ -40,12 +32,7 @@ const selectedNetwork = useRouteQuery<XenApiNetwork | undefined>('id', {
 </script>
 
 <style lang="postcss" scoped>
-.pool-network-view {
-  &:not(.mobile) {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 40rem;
-  }
-
+.network {
   .container {
     height: fit-content;
     margin: 0.8rem;

@@ -76,7 +76,7 @@ type BaseXoVm = BaseXapiXo & {
   expNestedHvm: boolean
   isNestedVirtEnabled: boolean
   hasVendorDevice: boolean
-  high_availability: string
+  high_availability: 'best-effort' | 'restart' | ''
   installTime?: number | null
   isFirmwareSupported: boolean
   memory: {
@@ -222,6 +222,7 @@ export type XoGroup = {
   provider?: string
   providerGroupId?: string
   users: XoUser['id'][]
+  aclRoleIds: XoAclRole['id'][]
 }
 
 export type XoHost = BaseXapiXo & {
@@ -433,6 +434,7 @@ export type XoPool = BaseXapiXo & {
   current_operations: Record<string, POOL_ALLOWED_OPERATIONS>
   default_SR?: XoSr['id']
   HA_enabled: boolean
+  haRebootVmOnInternalShutdown: boolean
   haSrs: XoSr['id'][]
   id: Branded<'pool'>
   master: XoHost['id']
@@ -564,6 +566,18 @@ export type XoMirrorBackupJob = BaseXoJob & {
 
 export type XoJob = BaseXoJob & {
   type: 'call'
+  method: string
+  paramsVector?: {
+    type: string
+    items: {
+      type?: string
+      values?: {
+        schedules?: XoSchedule['id'][]
+        [key: string]: unknown
+      }[]
+      [key: string]: unknown
+    }[]
+  }
 }
 
 export type XoSchedule = {
@@ -861,8 +875,6 @@ export type NonXapiXoRecord<
   | AnyXoBackupArchive
   | AnyXoJob
   | AnyXoLog
-  | XoGroup
-  | XoProxy
   | XoGroup
   | XoProxy
   | XoJob

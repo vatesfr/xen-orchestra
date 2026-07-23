@@ -8,6 +8,8 @@ import { getHandler } from '@xen-orchestra/fs'
 import { pFromCallback } from 'promise-toolbox'
 // eslint-disable-next-line n/no-missing-import
 import { VmBackupDirectory } from '../dist/VmBackupDirectory.mjs'
+import { RemoteVhdDisk } from '../dist/disks/RemoteVhdDisk.mjs'
+import { MergeRemoteDisk } from '../dist/disks/MergeRemoteDisk.mjs'
 import { VHDFOOTER, VHDHEADER } from './tests.fixtures.mjs'
 import { VhdFile, Constants, VhdDirectory, VhdAbstract } from 'vhd-lib'
 import { dirname, basename } from 'node:path'
@@ -412,6 +414,118 @@ test('it merges a chain of multiple consecutive orphan ancestors in one pass', a
   assert.equal(remainingVhds.includes('child.vhd'), false)
 })
 
+test('it resumes, through cleanVm, an interrupted merge whose ancestor lost its footer', async () => {
+  // Reproduces the production "footer1 !== footer2" failure end-to-end via the full cleanVm
+  // pipeline. ancestor (full) <- child (differencing, the active backup).
+  const ancestor = await generateVhd(`${basePath}/ancestor.vhd`, { blocks: [0, 1] })
+  await generateVhd(`${basePath}/child.vhd`, {
+    header: { parentUnicodeName: 'ancestor.vhd', parentUuid: ancestor.footer.uuid },
+    blocks: [2, 3, 4, 5],
+  })
+  await handler.writeFile(
+    `${rootPath}/metadata.json`,
+    JSON.stringify({ mode: 'delta', size: 12000, vhds: [`${relativePath}/child.vhd`] })
+  )
+
+  // Simulate a merge killed mid-transfer: write 2 of the 4 child blocks into the ancestor
+  // (which overwrites its end footer) then throw before mergeMetadata() rewrites the footer.
+  // This leaves the ancestor footerless AND a `.merge.json` state file — the exact post-crash
+  // state that makes cleanVm take the resume path.
+  const parent = new RemoteVhdDisk({ handler, path: `${basePath}/ancestor.vhd` })
+  const child = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd` })
+  await parent.init({ force: false })
+  await child.init({ force: false })
+  const merger = new MergeRemoteDisk(handler, { removeUnused: true, writeStateDelay: 0 })
+  let written = 0
+  const realWriteBlock = parent.writeBlock.bind(parent)
+  parent.writeBlock = async diskBlock => {
+    if (written === 2) {
+      throw new Error('simulated interruption')
+    }
+    written++
+    return realWriteBlock(diskBlock)
+  }
+  await assert.rejects(merger.merge(parent, child), /simulated interruption/)
+
+  assert.ok(
+    (await handler.list(basePath)).includes('.ancestor.vhd.merge.json'),
+    'an interrupted-merge state file should remain'
+  )
+
+  // Full pipeline: cleanVm must recognize the interrupted merge and resume it — opening the
+  // footerless ancestor through the chain without throwing "footer1 !== footer2".
+  await VmBackupDirectory.cleanVm(handler, rootPath, {
+    remove: true,
+    merge: true,
+    logInfo: () => {},
+    logWarn: () => {},
+  })
+
+  // The merge completed: the ancestor was consolidated into child.vhd and the state file is gone.
+  const remaining = await handler.list(basePath)
+  assert.equal(remaining.includes('.ancestor.vhd.merge.json'), false, 'state file removed after successful resume')
+  assert.equal(remaining.includes('ancestor.vhd'), false, 'ancestor consolidated into the merge target')
+  assert.equal(remaining.includes('child.vhd'), true, 'merge target remains')
+
+  // No blocks lost: the resumed merge wrote the blocks (4, 5) that were never written before
+  // the crash, so the consolidated disk holds the full set.
+  const merged = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd` })
+  await merged.init({ force: false })
+  try {
+    assert.deepEqual(merged.getBlockIndexes(), [0, 1, 2, 3, 4, 5], 'all blocks present after resumed merge')
+  } finally {
+    await merged.close()
+  }
+
+  // The backup is consistent, so its metadata is preserved.
+  assert.ok((await handler.list(rootPath)).includes('metadata.json'), 'metadata should be preserved')
+})
+
+test('it does not warn "missing target of alias" for aliases deleted by merge', async () => {
+  // Regression: RemoteDiskLineage.#cleanOrphanDataFiles iterated #diskPaths entries just
+  // deleted during the same clean() call's merge phase, producing false "missing target of
+  // alias" warnings
+  const orphan = await generateVhd(`${basePath}/orphan.vhd`, {
+    useAlias: true,
+    blocks: [0],
+  })
+  await generateVhd(`${basePath}/child.vhd`, {
+    useAlias: true,
+    header: {
+      parentUnicodeName: 'orphan.vhd.alias.vhd',
+      parentUuid: orphan.footer.uuid,
+    },
+    blocks: [1],
+  })
+
+  await handler.writeFile(
+    `${rootPath}/metadata.json`,
+    JSON.stringify({
+      mode: 'delta',
+      vhds: [`${relativePath}/child.vhd.alias.vhd`],
+    })
+  )
+
+  const warnings = []
+  await VmBackupDirectory.cleanVm(handler, rootPath, {
+    remove: true,
+    merge: true,
+    logWarn: (message, data) => warnings.push({ message, data }),
+    logInfo: () => {},
+  })
+
+  const missingTargetWarnings = warnings.filter(w => w.message === 'missing target of alias')
+  assert.equal(
+    missingTargetWarnings.length,
+    0,
+    `"missing target of alias" must not fire after merge; got: ${JSON.stringify(missingTargetWarnings)}`
+  )
+
+  const remaining = await handler.list(basePath)
+  assert.ok(!remaining.includes('orphan.vhd.alias.vhd'), 'orphan alias must be deleted after merge')
+  assert.ok(remaining.includes('child.vhd.alias.vhd'), 'child alias must survive as merge target')
+})
+
 test('it resumes an interrupted merge with chain field', async () => {
   await handler.writeFile(
     `${rootPath}/metadata.json`,
@@ -685,4 +799,32 @@ test('check all types of aliases, corrupted, missing or not', async () => {
   const data = await handler.list(`${basePath}/data`)
   assert.equal(data.length, 1)
   assert.equal(data[0], 'ok.vhd')
+})
+
+test('it preserves VDI directory when handler.list() throws during lineage init', async () => {
+  // Regression: when handler.list(vdiDir) threw (e.g. S3 404), the lineage
+  // was never added to #uniqueLineages, so cleanOrphanDiskDirs treated the directory
+  // as an orphan and deleted it with rmtree()
+  await generateVhd(`${basePath}/snapshot.vhd`)
+  await handler.writeFile(
+    `${rootPath}/metadata.json`,
+    JSON.stringify({ mode: 'delta', vhds: [`${relativePath}/snapshot.vhd`] })
+  )
+
+  const originalList = handler.list.bind(handler)
+  handler.list = async (path, opts) => {
+    if (typeof path === 'string' && path.includes(vdiId)) {
+      throw Object.assign(new Error('Simulated transient storage error'), { code: 'ENOENT' })
+    }
+    return originalList(path, opts)
+  }
+
+  try {
+    await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true, logWarn: () => {}, logInfo: () => {} })
+  } finally {
+    handler.list = originalList
+  }
+
+  const remaining = await handler.list(basePath)
+  assert.ok(remaining.includes('snapshot.vhd'), 'VHD must survive when handler.list() throws during lineage init')
 })

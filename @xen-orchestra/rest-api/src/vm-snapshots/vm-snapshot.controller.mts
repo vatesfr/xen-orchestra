@@ -45,6 +45,7 @@ import {
 } from '../open-api/oa-examples/vm-snapshot.oa-example.mjs'
 import { VmService } from '../vms/vm.service.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
+import { vmExportCompressDeprecated } from '../middlewares/deprecated.middleware.mjs'
 
 @Route('vm-snapshots')
 @Security('*')
@@ -104,7 +105,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
    */
   @Extension('x-mcp-exposure', 'deny')
   @Get('{id}.{format}')
-  @Middlewares(acl({ resource: 'vm-snapshot', action: 'export', objectId: 'params.id' }))
+  @Middlewares([acl({ resource: 'vm-snapshot', action: 'export', objectId: 'params.id' }), vmExportCompressDeprecated])
   @SuccessResponse(200, 'Download started', 'application/octet-stream')
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -113,7 +114,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
     @Request() req: ExRequest,
     @Path() id: string,
     @Path() format: 'xva' | 'ova',
-    @Query() compress?: boolean
+    @Query() compress?: Parameters<VmService['export']>[2]['compress']
   ): Promise<Readable> {
     const stream = await this.#vmService.export(id as XoVmSnapshot['id'], 'VM-snapshot', {
       compress,

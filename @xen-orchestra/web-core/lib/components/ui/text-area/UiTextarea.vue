@@ -1,16 +1,19 @@
-<!-- v2 -->
+<!-- v5 -->
 <template>
-  <div class="ui-textarea" :class="toVariants({ accent: hasMaxCharactersError ? 'danger' : accent })">
+  <div class="ui-textarea" :class="toVariants({ accent: isExceedingMaxCharacters ? 'danger' : accent })">
     <UiLabel v-if="slots.default" :accent="labelAccent" :required :href :for="id">
       <slot />
     </UiLabel>
     <textarea v-bind="attrs" :id ref="textarea" v-model="model" :disabled class="textarea" />
     <UiCharacterLimit v-if="maxCharacters" :count="model.trim().length" :max="maxCharacters" />
+    <UiInfo v-if="slots.info" accent="info">
+      <slot name="info" />
+    </UiInfo>
     <UiInfo v-if="isExceedingMaxCharacters" accent="danger">
       {{ t('field:exceeds-max-characters', { max: maxCharacters }) }}
     </UiInfo>
-    <UiInfo v-if="slots.info" :accent="accent === 'brand' ? 'info' : accent">
-      <slot name="info" />
+    <UiInfo v-if="slots.message && labelAccent !== 'neutral'" :accent="labelAccent">
+      <slot name="message" />
     </UiInfo>
   </div>
 </template>
@@ -46,6 +49,7 @@ const model = defineModel<string>({ required: true })
 const slots = defineSlots<{
   default?(): any
   info?(): any
+  message?(): any
 }>()
 
 const { t } = useI18n()
@@ -58,16 +62,10 @@ const { focused } = useFocus(textAreaElement)
 
 // WIP: To update when using VeeValidate and custom validation rules
 const isExceedingMaxCharacters = computed(() =>
-  maxCharacters !== undefined ? model.value.trim().length > maxCharacters : false
+  maxCharacters !== undefined ? !focused.value && model.value.trim().length > maxCharacters : false
 )
 
-const hasMaxCharactersError = computed(() => !focused.value && isExceedingMaxCharacters.value)
-
 const labelAccent = computed(() => {
-  if (hasMaxCharactersError.value) {
-    return 'danger'
-  }
-
   return accent === 'brand' ? 'neutral' : accent
 })
 </script>
@@ -101,8 +99,8 @@ const labelAccent = computed(() => {
       }
 
       &:focus:not(:active) {
-        border-width: 0.2rem;
         border-color: var(--color-brand-item-base);
+        box-shadow: inset 0 0 0 0.1rem var(--color-brand-item-base);
       }
 
       &:disabled {
@@ -125,8 +123,8 @@ const labelAccent = computed(() => {
       }
 
       &:focus:not(:active) {
-        border-width: 0.2rem;
         border-color: var(--color-warning-item-base);
+        box-shadow: inset 0 0 0 0.1rem var(--color-warning-item-base);
       }
 
       &:disabled {
@@ -149,8 +147,8 @@ const labelAccent = computed(() => {
       }
 
       &:focus:not(:active) {
-        border-width: 0.2rem;
         border-color: var(--color-danger-item-base);
+        box-shadow: inset 0 0 0 0.1rem var(--color-danger-item-base);
       }
 
       &:disabled {

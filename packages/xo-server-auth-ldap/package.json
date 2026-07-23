@@ -28,7 +28,7 @@
     "xo-server-auth-ldap": "dist/test-cli.js"
   },
   "engines": {
-    "node": ">=12"
+    "node": ">=18"
   },
   "dependencies": {
     "@xen-orchestra/log": "^0.7.2",
@@ -39,9 +39,9 @@
     "promise-toolbox": "^0.21.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.0.0",
-    "@babel/core": "^7.0.0",
-    "@babel/preset-env": "^7.0.0",
+    "@babel/cli": "^7.29.0",
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.0",
     "cross-env": "^7.0.2",
     "rimraf": "^6.0.1"
   },
@@ -50,7 +50,8 @@
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "prebuild": "rimraf dist/",
     "predev": "yarn run prebuild",
-    "prepublishOnly": "yarn run build"
+    "prepublishOnly": "yarn run build",
+    "test": "cd dist && node --test index.test.js"
   },
   "private": true
 }

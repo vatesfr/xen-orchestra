@@ -1,3 +1,4 @@
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { castArray } from 'lodash-es'
@@ -16,6 +17,10 @@ export const CHANGING_STATE_OPERATIONS: Partial<VM_OPERATIONS>[] = [
   VM_OPERATIONS.HARD_SHUTDOWN,
   VM_OPERATIONS.SNAPSHOT,
   VM_OPERATIONS.DESTROY,
+  VM_OPERATIONS.CLONE,
+  VM_OPERATIONS.COPY,
+  VM_OPERATIONS.EXPORT,
+  VM_OPERATIONS.IMPORT,
 ]
 
 export function isVmOperationPending(vm: FrontXoVm, operations: VM_OPERATIONS[] | VM_OPERATIONS) {
@@ -40,4 +45,8 @@ export function getVmIpAddresses(vm: FrontXoVm) {
   const addresses = vm.addresses
 
   return addresses ? [...Object.values(addresses).sort()] : []
+}
+
+export function extractVmHostId(vm: FrontXoVm) {
+  return vm.$container === vm.$pool ? undefined : (vm.$container as FrontXoHost['id'])
 }

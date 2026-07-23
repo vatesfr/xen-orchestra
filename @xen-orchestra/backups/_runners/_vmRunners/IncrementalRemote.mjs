@@ -12,6 +12,8 @@ import { openVhd } from 'vhd-lib'
 import { getVmBackupDir } from '../../_getVmBackupDir.mjs'
 import { SynchronizedDisk, ThrottledDisk } from '@xen-orchestra/disk-transform'
 import { AggregatedIncrementalRemoteWriter } from '../_writers/AggregatedIncrementalRemoteWriter.mjs'
+import { Task } from '@vates/task'
+import { TaskProgressHandler } from './_TaskProgressHandler.mjs'
 
 const { warn } = createLogger('xo:backups:Incrementalremote')
 class IncrementalRemoteVmBackupRunner extends AbstractRemote {
@@ -60,7 +62,8 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
   }
   async _run() {
     const transferList = await this._computeTransferList(({ mode }) => mode === 'delta')
-
+    const nbTransferrableVms = transferList.length
+    let nbTransferredVms = 0
     for (const metadata of transferList) {
       assert.strictEqual(metadata.mode, 'delta')
       const incrementalExport = await this._sourceRemoteAdapter.readIncrementalVmBackup(metadata, undefined, {
@@ -74,6 +77,7 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
       for (const key in incrementalExport.disks) {
         let disk = incrementalExport.disks[key]
         isVhdDifferencing[key] = disk.isDifferencing()
+        disk.addProgressHandler(new TaskProgressHandler())
         disk = new ThrottledDisk(disk, this._throttleGenerator)
         incrementalExport.disks[key] = new SynchronizedDisk(disk)
       }
@@ -102,21 +106,14 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
           }),
         'writer.transfer()'
       )
-      // this will update parent name with the needed alias
-      await this._callWriters(
-        writer =>
-          writer.updateUuidAndChain({
-            isVhdDifferencing,
-            timestamp: metadata.timestamp,
-            vdis: incrementalExport.vdis,
-          }),
-        'writer.updateUuidAndChain()'
-      )
 
       await this._callWriters(writer => writer.cleanup(), 'writer.cleanup()')
       // for healthcheck
       this._tags = metadata.vm.tags
+      nbTransferredVms++
+      Task.set('progress', Math.round((nbTransferredVms * 100) / nbTransferrableVms))
     }
+    Task.set('progress', 100)
     this._hasTransferredData = transferList.length > 0
   }
 }

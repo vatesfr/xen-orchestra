@@ -1,8 +1,8 @@
 <template>
   <div :class="{ 'no-ui': !uiStore.hasUi }" class="host-console-view">
     <div v-if="hasError">{{ t('error-occurred') }}</div>
-    <UiSpinner v-else-if="!isReady" class="spinner" />
-    <VtsStateHero v-else-if="!isHostRunning" format="page" type="offline" size="large">
+    <UiLoader v-else-if="!isReady" class="loader" />
+    <VtsStateHero v-else-if="!isHostRunning" format="page" type="offline" size="large" class="state-hero">
       <span>{{ t('console-offline') }}</span>
       <span class="title typo-h1">{{ t('host-not-running') }}</span>
       <div class="description typo-body-bold">
@@ -24,7 +24,6 @@
 </template>
 
 <script lang="ts" setup>
-import UiSpinner from '@/components/ui/UiSpinner.vue'
 import { isHostOperationPending } from '@/libs/host'
 import { HOST_OPERATION } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
@@ -39,6 +38,7 @@ import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
 import VtsRemoteConsole from '@core/components/console/VtsRemoteConsole.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -122,20 +122,23 @@ const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
     height: 100%;
   }
 
-  .title {
-    color: var(--color-neutral-txt-primary);
-  }
+  .state-hero {
+    padding: 0.8rem;
 
-  .description {
-    display: flex;
-    flex-direction: column;
-    gap: 1.4rem;
-    align-items: center;
-    color: var(--color-neutral-txt-secondary);
+    .title {
+      color: var(--color-neutral-txt-primary);
+    }
+
+    .description {
+      display: flex;
+      flex-direction: column;
+      gap: 1.4rem;
+      color: var(--color-neutral-txt-secondary);
+    }
   }
 }
 
-.spinner {
+.loader {
   color: var(--color-brand-txt-base);
   display: flex;
   margin: auto;

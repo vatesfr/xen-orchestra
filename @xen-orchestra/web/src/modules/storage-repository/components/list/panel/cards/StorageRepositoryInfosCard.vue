@@ -1,16 +1,11 @@
 <template>
   <UiCard class="card-container">
-    <UiCardTitle>
-      <UiLink v-if="sr.name_label" size="small" :icon="`object:sr:${allPbdsConnectionStatus}`" :href>
-        {{ sr.name_label }}
-      </UiLink>
-    </UiCardTitle>
+    <VtsCardObjectTitle :id="sr.id" :label="sr.name_label" :href :icon="srStatusIcon" />
     <div class="content">
-      <VtsCodeSnippet :content="sr.id" copy />
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
         <template #value>
-          <VtsStatus :status="allPbdsConnectionStatus" />
+          <VtsStatus :status="srConnectionStatus" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue truncate align-top>
@@ -47,9 +42,9 @@
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('provisioning') }}</template>
-        <template #value>{{ provisioning }}</template>
+        <template #value>{{ allocationStrategy }}</template>
         <template #addons>
-          <VtsCopyButton :value="provisioning" />
+          <VtsCopyButton :value="allocationStrategy" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -61,27 +56,26 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
-import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import {
   type FrontXoSr,
   useXoSrCollection,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import type { SrScope } from '@core/types/storage-repository.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
+import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { sr } = defineProps<{
+const { sr, scope } = defineProps<{
   sr: FrontXoSr
+  scope: SrScope
 }>()
 
 const { t } = useI18n()
@@ -89,14 +83,16 @@ const { t } = useI18n()
 const { buildXo5Route } = useXoRoutes()
 const href = computed(() => buildXo5Route(`/srs/${sr.id}/general`))
 
-const { getPbdsByIds } = useXoPbdCollection()
 const { isHighAvailabilitySr } = useXoSrCollection()
 
-const { allPbdsConnectionStatus } = useXoPbdUtils(() => getPbdsByIds(sr.$PBDs))
+const { srConnectionStatus, srStatusIcon } = useXoSrUtils(
+  () => sr,
+  () => scope
+)
 
 const isSrSharedI18nValue = computed(() => (sr.shared ? t('shared') : t('local')))
 
-const provisioning = computed(() => {
+const allocationStrategy = computed(() => {
   return sr.allocationStrategy ?? t('unknown')
 })
 

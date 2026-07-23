@@ -2,11 +2,11 @@ import assert from 'node:assert'
 import mapValues from 'lodash/mapValues.js'
 import { asyncEach } from '@vates/async-each'
 import { asyncMap } from '@xen-orchestra/async-map'
-import { chainVhd, openVhd } from 'vhd-lib'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateClass } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 import { dirname, basename } from 'node:path'
+import { relativeFromFile } from '@xen-orchestra/fs/path'
 import { Task } from '@vates/task'
 
 import { formatFilenameDate } from '../../_filenameDate.mjs'
@@ -16,15 +16,15 @@ import { MixinRemoteWriter } from './_MixinRemoteWriter.mjs'
 import { AbstractIncrementalWriter } from './_AbstractIncrementalWriter.mjs'
 import { checkVhd } from './_checkVhd.mjs'
 import { packUuid } from './_packUuid.mjs'
-import { Disposable } from 'promise-toolbox'
 
 const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
 export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWriter) {
   #parentVdiPaths
-  #vhds
+  #parentUuids
   async checkBaseVdis(baseUuidToSrcVdi) {
     this.#parentVdiPaths = {}
+    this.#parentUuids = {}
     const { handler } = this._adapter
     const adapter = this._adapter
 
@@ -32,6 +32,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
 
     await asyncMap(baseUuidToSrcVdi, async ([baseUuid, srcVdiUuid]) => {
       let parentDestPath
+      let parentUuid
       const vhdDir = `${vdisDir}/${srcVdiUuid}`
       try {
         const vhds = await handler.list(vhdDir, {
@@ -47,6 +48,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
           try {
             if (await adapter.isMergeableParent(packedBaseUuid, path)) {
               parentDestPath = path
+              parentUuid = packedBaseUuid
             }
           } catch (error) {
             warn('checkBaseVdis', { error })
@@ -60,6 +62,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
         baseUuidToSrcVdi.delete(baseUuid)
       } else {
         this.#parentVdiPaths[vhdDir] = parentDestPath
+        this.#parentUuids[vhdDir] = parentUuid
       }
     })
   }
@@ -126,48 +129,6 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     }
   }
 
-  async updateUuidAndChain({ isVhdDifferencing, vdis }) {
-    assert.notStrictEqual(
-      this.#vhds,
-      undefined,
-      '_transfer must be called before updateUuidAndChain for incremental backups'
-    )
-
-    const parentVdiPaths = this.#parentVdiPaths
-    const { handler } = this._adapter
-    const vhds = this.#vhds
-    await asyncEach(Object.entries(vdis), async ([id, vdi]) => {
-      const isDifferencing = isVhdDifferencing[id]
-      const path = `${this._vmBackupDir}/${vhds[id]}`
-      if (isDifferencing) {
-        assert.notStrictEqual(
-          parentVdiPaths,
-          undefined,
-          'checkbasevdi must be called before updateUuidAndChain for incremental backups'
-        )
-        const parentPath = parentVdiPaths[dirname(path)]
-        // we are in a incremental backup
-        // we already computed the chain in checkBaseVdis
-        assert.notStrictEqual(parentPath, undefined, 'A differential VHD must have a parent')
-        // forbid any kind of loop
-        assert.ok(basename(parentPath) < basename(path), `vhd must be sorted to be chained`)
-        // re-chainVhd is mandatory
-        // since the parent may be a alias or not
-        // and the child may be the other
-        await chainVhd(handler, parentPath, handler, path)
-      }
-
-      // set the correct UUID in the VHD if needed
-      await Disposable.use(openVhd(handler, path), async vhd => {
-        if (!vhd.footer.uuid.equals(packUuid(vdi.uuid))) {
-          vhd.footer.uuid = packUuid(vdi.uuid)
-          await vhd.readBlockAllocationTable() // required by writeFooter()
-          await vhd.writeFooter()
-        }
-      })
-    })
-  }
-
   async _deleteOldEntries() {
     const adapter = this._adapter
     const oldEntries = this._oldEntries
@@ -186,10 +147,8 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     const jobId = job.id
     const handler = adapter.handler
 
-    const basename = formatFilenameDate(timestamp)
-    // update this.#vhds before eventually skipping transfer, so that
-    // updateUuidAndChain has all the mandatory data
-    const vhds = (this.#vhds = mapValues(
+    const filenameDate = formatFilenameDate(timestamp)
+    const vhds = mapValues(
       deltaExport.vdis,
       vdi =>
         `vdis/${jobId}/${
@@ -198,8 +157,8 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
               // don't do delta for it
               vdi.uuid
             : vdi.$snapshot_of$uuid
-        }/${adapter.getVhdFileName(basename)}`
-    ))
+        }/${adapter.getVhdFileName(filenameDate)}`
+    )
 
     let metadataContent = await this._isAlreadyTransferred(timestamp)
     if (metadataContent !== undefined) {
@@ -229,13 +188,26 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
         Object.entries(deltaExport.disks),
         async ([diskRef, disk]) => {
           const path = `${this._vmBackupDir}/${vhds[diskRef]}`
-          size += await adapter.writeVhd(path, disk, {
-            // no checksum for VHDs, because they will be invalidated by
-            // merges and chains
-            checksum: false,
+          const vdi = deltaExport.vdis[diskRef]
+
+          let parentUuid, parentPath
+          if (isVhdDifferencing[diskRef]) {
+            const parentDestPath = this.#parentVdiPaths[dirname(path)]
+            parentUuid = this.#parentUuids[dirname(path)]
+            assert.notStrictEqual(parentDestPath, undefined, 'A differential VHD must have a parent')
+            // forbid any kind of loop
+            assert.ok(basename(parentDestPath) < basename(path), `vhd must be sorted to be chained`)
+            parentPath = relativeFromFile(path, parentDestPath)
+          }
+
+          const transferred = await adapter.writeVhd(path, disk, {
             validator: tmpPath => checkVhd(handler, tmpPath),
             writeBlockConcurrency: this._config.writeBlockConcurrency,
+            uuid: packUuid(vdi.uuid),
+            parentUuid,
+            parentPath,
           })
+          size += transferred
         },
         {
           concurrency: settings.diskPerVmConcurrency,

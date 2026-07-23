@@ -1,6 +1,6 @@
 <template>
-  <MenuItem icon="action:disconnect" :disabled="!canDeleteVbd" :busy="isDeletingVbd" @click="openVbdDeleteModal()">
-    {{ t('action:delete-vbd') }}
+  <MenuItem icon="action:detach" :disabled="!canDeleteVbd" :busy="isDeletingVbd" @click="openVbdDeleteModal()">
+    {{ t('action:detach-vdi') }}
     <i v-if="hint">{{ hint }}</i>
   </MenuItem>
 </template>

@@ -1,6 +1,6 @@
 {
   "name": "xo-server-netbox",
-  "version": "1.12.0",
+  "version": "1.13.1",
   "license": "AGPL-3.0-or-later",
   "description": "Synchronizes pools managed by Xen Orchestra with Netbox",
   "keywords": [
@@ -35,10 +35,10 @@
     "semver": "^7.3.5"
   },
   "devDependencies": {
-    "@babel/cli": "^7.13.16",
-    "@babel/core": "^7.14.0",
+    "@babel/cli": "^7.29.0",
+    "@babel/core": "^7.29.0",
     "@babel/plugin-proposal-export-default-from": "^7.18.10",
-    "@babel/preset-env": "^7.14.1",
+    "@babel/preset-env": "^7.29.0",
     "cross-env": "^7.0.3",
     "rimraf": "^6.0.1"
   },

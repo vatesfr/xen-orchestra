@@ -3,13 +3,18 @@ import { getSyncedHandler } from '@xen-orchestra/fs'
 import { isDisk, openDisposableDisk, RemoteDisk } from '@xen-orchestra/backup-archive/disks'
 import { formatBytes, renderTable } from '../utils.mjs'
 import { asyncEach } from '@vates/async-each'
-const HEADERS = ['File', 'UID', 'Size on disk', 'Virtual size', 'Differencing', 'Parent UID']
+
+// The "Size on disk" column is only shown with --size: computing it requires
+// reading the block allocation table of every disk, which is costly.
+function buildHeaders(showSize: boolean): string[] {
+  return ['File', 'UID', ...(showSize ? ['Size on disk'] : []), 'Virtual size', 'Differencing', 'Parent UID']
+}
 
 export type OkDiskInfo = {
   ok: true
   filename: string
   uid: string
-  sizeOnDisk: string
+  sizeOnDisk?: string
   virtualSize: string
   differencing: boolean
   parentUid: string | null
@@ -54,9 +59,10 @@ export function sortDisks(disks: DiskInfo[]): DiskInfo[] {
   return [...sorted, ...errDisks]
 }
 
-export function toTableRow(disk: DiskInfo, prevDisk: DiskInfo | undefined): string[] {
+export function toTableRow(disk: DiskInfo, prevDisk: DiskInfo | undefined, showSize: boolean): string[] {
   if (!disk.ok) {
-    return [disk.filename, `(error: ${disk.error})`, '-', '-', '-', '-']
+    // filename + error message, then a placeholder for every remaining column.
+    return [disk.filename, `(error: ${disk.error})`, ...Array(showSize ? 4 : 3).fill('-')]
   }
 
   const parentIsAbove = disk.differencing && prevDisk?.ok && prevDisk.uid === disk.parentUid
@@ -64,17 +70,19 @@ export function toTableRow(disk: DiskInfo, prevDisk: DiskInfo | undefined): stri
   return [
     disk.filename,
     disk.uid,
-    disk.sizeOnDisk,
+    ...(showSize ? [disk.sizeOnDisk ?? '-'] : []),
     disk.virtualSize,
     disk.differencing ? 'yes' : 'no',
     disk.differencing ? (parentIsAbove ? '↑' : (disk.parentUid ?? '')) : '(none)',
   ]
 }
 
-export async function listCommand(handlerUrl: string, dirPath: string, _extraArgs: string[]): Promise<void> {
+export async function listCommand(handlerUrl: string, dirPath: string, extraArgs: string[]): Promise<void> {
+  const showSize = extraArgs.includes('--size')
+
   await Disposable.use(getSyncedHandler({ url: handlerUrl }), async handler => {
     const entries = await handler.list(dirPath, { prependDir: true })
-    const diskPaths = entries.filter(entry => isDisk(handler, entry))
+    const diskPaths = entries.filter(entry => isDisk(entry))
 
     if (diskPaths.length === 0) {
       console.log(`No disks found at ${dirPath}`)
@@ -88,14 +96,14 @@ export async function listCommand(handlerUrl: string, dirPath: string, _extraArg
         const filename = diskPath.slice(diskPath.lastIndexOf('/') + 1)
         try {
           const disk = await Disposable.use(
-            openDisposableDisk({ handler, path: diskPath }),
+            openDisposableDisk({ handler, path: diskPath, ignoreBlockIndexes: !showSize }),
             async (disk: RemoteDisk) => {
               const differencing = disk.isDifferencing()
               return {
                 ok: true as const,
                 filename,
                 uid: disk.getUuid(),
-                sizeOnDisk: formatBytes(disk.getSizeOnDisk()),
+                sizeOnDisk: showSize ? formatBytes(disk.getSizeOnDisk()) : undefined,
                 virtualSize: formatBytes(disk.getVirtualSize()),
                 differencing,
                 parentUid: differencing ? disk.getParentUuid() : null,
@@ -111,7 +119,7 @@ export async function listCommand(handlerUrl: string, dirPath: string, _extraArg
     )
 
     const sorted = sortDisks(disks)
-    const rows = sorted.map((disk, i) => toTableRow(disk, sorted[i - 1]))
-    console.log(renderTable(HEADERS, rows))
+    const rows = sorted.map((disk, i) => toTableRow(disk, sorted[i - 1], showSize))
+    console.log(renderTable(buildHeaders(showSize), rows))
   })
 }

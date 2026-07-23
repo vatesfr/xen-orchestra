@@ -744,6 +744,8 @@ export type XapiPoolStats = Record<XoHost['id'], XapiHostStats | { error: Record
 export type TrafficRuleProtocol = (typeof TRAFFIC_RULE_PROTOCOLS)[number]
 
 export const SDN_CONTROLLER_OF_RULES_KEY = 'xo:sdn-controller:of-rules'
+export const SDN_CONTROLLER_OF_METHOD_KEY = 'xo:sdn-controller:of-method'
+export const SDN_CONTROLLER_OF_FORMAT_KEY = 'xo:sdn-controller:of-format'
 export const TRAFFIC_RULE_PROTOCOLS = ['ARP', 'ICMP', 'IP', 'TCP', 'UDP'] as const
 export const TRAFFIC_RULE_PROTOCOLS_WITH_PORT: readonly TrafficRuleProtocol[] = ['TCP', 'UDP']
 

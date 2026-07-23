@@ -276,7 +276,7 @@ Synchronize your pools, VMs, network interfaces and IP addresses with your [Netb
 
 - `>= 2.10`
 - `3.x`
-- `< 4.6`
+- `< 4.7`
 
 :::tip
 For safety, XO will not synchronize your pools if it detects a Netbox version that is not supported. If you wish to change that behavior, edit you `xo-server` configuration like so:
@@ -613,6 +613,28 @@ All metrics include these labels for filtering:
 | `target_type`       | Object targeted by an alarm: `sr` or `host`                                                                                           |
 | `package`           | XOSTOR-related RPM name for pending updates                                                                                           |
 | `status`            | SMART overall-health string: `PASSED`, `FAILED`, `UNKNOWN`                                                                            |
+| `tags`              | XO tags of the object, comma-separated and sorted (e.g. `prod,web`) — on host, VM and SR metrics; omitted when the object has no tags |
+
+##### Filtering by XO tags
+
+The `tags` label carries every XO tag of the object as a single sorted, comma-separated string. Use a regex matcher to select objects carrying a given tag:
+
+```
+# CPU usage of hosts tagged "production"
+xcp_host_cpu_average{tags=~"(^|.*,)production(,.*|$)"}
+
+# Exclude VMs tagged "lab" from an alert
+xcp_vm_cpu_usage{tags!~"(^|.*,)lab(,.*|$)"}
+```
+
+This is useful for MSP/multi-tenant scoping (one tag per customer), or to restrict dashboards and alerting rules to tagged subsets of the infrastructure.
+
+:::warning
+Two limitations to keep in mind:
+
+- **Tags containing commas**: tags are joined with commas, so a single tag named `a,b` is indistinguishable from the two tags `a` and `b` in the label value. Avoid commas in tags used for monitoring.
+- **Series continuity**: adding or removing a tag changes the `tags` label value, which starts a new Prometheus series for all the object's metrics (the previous series goes stale). Alerting rules with a `for:` clause will reset for that object when its tags change. This also applies once when upgrading to the first plugin version exposing this label: objects that already carry tags start new series at that point, while untagged objects are unaffected since the label is omitted for them.
+  :::
 
 ### PromQL Query Examples
 

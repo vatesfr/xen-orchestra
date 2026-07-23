@@ -16,6 +16,44 @@ import { toQcow2Stream } from '@xen-orchestra/qcow2'
 
 const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
 
+const orderedMemoryLimits = ['memory_static_min', 'memory_dynamic_min', 'memory_dynamic_max', 'memory_static_max']
+
+// The dynamic memory range MUST respect this inequality at any moment: static_min <= dynamic_min <= dynamic_max <= static_max.
+// We must update these properties in the right order to avoid XAPI error.
+// The order depends on the values. It can be an increase, a decrease or a mix of both, so any order could be required.
+export async function updateMemoryFields(xapi, targetVm, vmRecord) {
+  const memoryValues = {}
+  for (const key of orderedMemoryLimits) {
+    memoryValues[key] = {
+      currentValue: targetVm[key],
+      newValue: vmRecord[key] ?? targetVm[key],
+    }
+  }
+
+  while (await updateNextMemoryField(xapi, memoryValues, targetVm.$ref)) {
+    /* execute until all memory fields are updated */
+  }
+}
+
+// Update one more memory field if needed, then return a boolean describing if a field was updated or if all fields are up to date
+async function updateNextMemoryField(xapi, memoryValues, vmRef) {
+  for (let i = 0; i < orderedMemoryLimits.length; i++) {
+    const currentField = memoryValues[orderedMemoryLimits[i]]
+    const nextField = i === orderedMemoryLimits.length - 1 ? undefined : memoryValues[orderedMemoryLimits[i + 1]]
+    if (
+      currentField.newValue !== currentField.currentValue &&
+      (nextField === undefined || currentField.newValue <= nextField.currentValue)
+    ) {
+      // no need to check that previousField.currentValue <= currentField.newValue, as we can deduce it
+      await xapi.setField('VM', vmRef, orderedMemoryLimits[i], currentField.newValue)
+      await xapi.barrier()
+      currentField.currentValue = currentField.newValue
+      return true
+    }
+  }
+  return false
+}
+
 export async function exportIncrementalVm(
   vm,
   baseVdis = {},
@@ -160,6 +198,9 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   let vmRef
   if (isUpdate) {
     vmRef = targetRef
+
+    await updateMemoryFields(xapi, targetVm, vmRecord)
+
     await Promise.all([
       xapi.setFields('VM', vmRef, {
         actions_after_crash: vmRecord.actions_after_crash,
@@ -171,10 +212,6 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
         HVM_boot_params: vmRecord.HVM_boot_params,
         HVM_boot_policy: vmRecord.HVM_boot_policy,
         HVM_shadow_multiplier: vmRecord.HVM_shadow_multiplier,
-        memory_dynamic_max: vmRecord.memory_dynamic_max,
-        memory_dynamic_min: vmRecord.memory_dynamic_min,
-        memory_static_max: vmRecord.memory_static_max,
-        memory_static_min: vmRecord.memory_static_min,
         name_label: vmRecord.name_label,
         name_description: vmRecord.name_description,
         order: vmRecord.order,

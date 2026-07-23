@@ -1,47 +1,38 @@
 <template>
-  <div class="vm-network-view" :class="{ mobile: uiStore.isSmall }">
+  <VtsContentSidePanel class="network">
     <UiCard class="container">
-      <VmVifsTable :vifs />
+      <VmVifsTable v-if="vm" :vifs :vm />
     </UiCard>
-    <VmVifsSidePanel v-if="selectedVif" :vif="selectedVif" @close="selectedVif = undefined" />
-    <UiPanel v-else-if="!uiStore.isSmall">
-      <VtsStateHero format="panel" type="no-selection" size="medium">
-        {{ t('select-to-see-details') }}
-      </VtsStateHero>
-    </UiPanel>
-  </div>
+    <VmVifsSidePanel :vif="selectedVif" @close="selectedVif = undefined" />
+  </VtsContentSidePanel>
 </template>
 
 <script lang="ts" setup>
 import VmVifsSidePanel from '@/components/vm/network/VmVifsSidePanel.vue'
 import VmVifsTable from '@/components/vm/network/VmVifsTable.vue'
-import type { XenApiVif } from '@/libs/xen-api/xen-api.types'
+import type { XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useVifStore } from '@/stores/xen-api/vif.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
-import { useUiStore } from '@core/stores/ui.store.ts'
 import { useArrayFilter } from '@vueuse/shared'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
 const { records } = useVifStore().subscribe()
-const { getByOpaqueRef } = useVmStore().subscribe()
-const uiStore = useUiStore()
+const { getByUuid } = useVmStore().subscribe()
 
 const route = useRoute<'/vm/[uuid]/network'>()
 
 const { t } = useI18n()
 usePageTitleStore().setTitle(t('network'))
 
-const vifs = useArrayFilter(records, vif => {
-  const vm = getByOpaqueRef(vif.VM)
+const vm = computed(() => getByUuid(route.params.uuid as XenApiVm['uuid']))
 
-  return vm?.uuid === route.params.uuid
-})
+const vifs = useArrayFilter(records, vif => vif.VM === vm.value?.$ref)
 
 const selectedVif = useRouteQuery<XenApiVif | undefined>('id', {
   toData: id => vifs.value.find(vif => vif.uuid === id),
@@ -50,12 +41,7 @@ const selectedVif = useRouteQuery<XenApiVif | undefined>('id', {
 </script>
 
 <style lang="postcss" scoped>
-.vm-network-view {
-  &:not(.mobile) {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 40rem;
-  }
-
+.network {
   .container {
     height: fit-content;
     margin: 0.8rem;

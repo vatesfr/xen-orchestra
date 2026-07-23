@@ -1,6 +1,6 @@
 import type { InputWrapperController } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
-import type { ValueFormatter } from '@core/types/chart'
+import type { ValueFormatter } from '@core/types/chart.ts'
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
 
 export const IK_CHART_VALUE_FORMATTER = Symbol('IK_CHART_VALUE_FORMATTER') as InjectionKey<ComputedRef<ValueFormatter>>
@@ -11,7 +11,7 @@ export const IK_TREE_ITEM_TOGGLE = Symbol('IK_TREE_ITEM_TOGGLE') as InjectionKey
 
 export const IK_TREE_ITEM_EXPANDED = Symbol('IK_TREE_ITEM_EXPANDED') as InjectionKey<Ref<boolean>>
 
-export const IK_TREE_LIST_DEPTH = Symbol('IK_TREE_LIST_DEPTH') as InjectionKey<number>
+export const IK_TREE_LIST_DEPTH = Symbol('IK_TREE_LIST_DEPTH') as InjectionKey<Ref<number>>
 
 export const IK_MENU_HORIZONTAL = Symbol('IK_MENU_HORIZONTAL') as InjectionKey<ComputedRef<boolean>>
 
@@ -24,3 +24,5 @@ export const IK_DISABLED = Symbol('IK_DISABLED') as InjectionKey<ComputedRef<boo
 export const IK_INPUT_WRAPPER_CONTROLLER = Symbol('IK_INPUT_WRAPPER_CONTROLLER') as InjectionKey<InputWrapperController>
 
 export const IK_MODAL_ACCENT = Symbol('IK_MODAL_ACCENT') as InjectionKey<ComputedRef<ModalAccent>>
+
+export const IK_OVERLAY_ACCENT = Symbol('IK_OVERLAY_ACCENT') as InjectionKey<ComputedRef<ModalAccent>>

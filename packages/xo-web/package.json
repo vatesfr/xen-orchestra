@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-web",
-  "version": "5.197.1",
+  "version": "5.199.0",
   "license": "AGPL-3.0-or-later",
   "description": "Web interface client for Xen-Orchestra",
   "keywords": [
@@ -30,13 +30,13 @@
     "node": ">=7"
   },
   "devDependencies": {
-    "@babel/core": "^7.13.8",
-    "@babel/plugin-proposal-decorators": "^7.13.0",
+    "@babel/core": "^7.29.0",
+    "@babel/plugin-proposal-decorators": "^7.29.0",
     "@babel/plugin-proposal-export-default-from": "^7.12.13",
-    "@babel/plugin-proposal-function-bind": "^7.12.13",
-    "@babel/preset-env": "^7.13.8",
+    "@babel/plugin-proposal-function-bind": "^7.29.0",
+    "@babel/preset-env": "^7.29.0",
     "@babel/preset-react": "^7.12.13",
-    "@babel/register": "^7.13.8",
+    "@babel/register": "^7.29.0",
     "@nraynaud/novnc": "0.6.1",
     "@xen-orchestra/cron": "^1.0.7",
     "@xen-orchestra/defined": "^0.0.2",
@@ -133,8 +133,8 @@
     "watchify": "^3.7.0",
     "whatwg-fetch": "^3.0.0",
     "xml2js": "^0.6.2",
-    "xo-acl-resolver": "^0.5.2",
-    "xo-common": "^0.9.1",
+    "xo-acl-resolver": "^0.5.3",
+    "xo-common": "^0.10.0",
     "xo-lib": "^0.11.2",
     "xo-remote-parser": "^0.10.1",
     "xo-vmdk-to-vhd": "^2.5.10"

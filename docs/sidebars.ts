@@ -46,12 +46,86 @@ export default {
       items:[
         {
           type: 'category',
+          label: 'What\'s new in XO6',
+          type: 'link',
+          href: 'https://xen-orchestra.com/blog/',
+        },
+        /* These categories are hidden until they no longer only contain blank pages
+        {
+          type: 'category',
+          label: 'Getting started',
+          collapsible: true,
+          collapsed: true,
+          items:[
+            'xo6/gettingstarted',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Core concepts',
+          collapsible: true,
+          collapsed: true,
+          items:[
+            'xo6/coreconcepts',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Management',
+          collapsible: true,
+          collapsed: true,
+          items:[
+            'xo6/management',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Backups',
+          collapsible: true,
+          collapsed: true,
+          items:[
+            'xo6/backups',
+          ],
+        },
+        */
+        {
+          type: 'category',
+          label: 'Security',
+          collapsible: true,
+          collapsed: true,
+          items:[
+            {
+          type: 'category',
+          label: 'User management',
+          collapsible: true,
+          collapsed: true,
+          items:[
+            'xo6/acl-v2',
+          ],
+        },
+          ],
+        },
+        {
+          type: 'category',
+          label: 'DevOps tools',
+          collapsible: true,
+          collapsed: true,
+          items:[
+            'xo6/ansible',
+            'xo6/kubernetes',
+            'xo6/packer-provider',
+            'xo6/powershell-module',
+            'xo6/pulumi-provider',
+            'xo6/terraform-provider',
+          ],
+        },
+        {
+          type: 'category',
           label: 'Support',
           collapsible: true,
           collapsed: true,
           items: [
             'xo6/intro_support',
-            'xo6/acl-v2',
             'xo6/purchase',
             'xo6/community'
       ],

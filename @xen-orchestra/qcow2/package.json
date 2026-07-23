@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/qcow2",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "parse and produce qcow2 files",
   "main": "dist/index.mjs",
   "scripts": {
@@ -8,6 +8,7 @@
     "dev": "tsc --watch",
     "postversion": "npm publish --access public",
     "clean": "rimraf dist/",
+    "test": "tsc && node --test 'dist/**/*.test.mjs'",
     "test-integration": "tsc && node --test dist/consumer/ConsumerQcowStream.integ.mjs"
   },
   "author": {
@@ -32,9 +33,9 @@
     "rimraf": "^6.0.1",
     "@types/node": "^22.3.0",
     "typescript": "~5.6",
-    "typescript-eslint": "^8.23.0"
+    "typescript-eslint": "^8.61.0"
   },
   "dependencies": {
-    "@xen-orchestra/disk-transform": "^1.3.0"
+    "@xen-orchestra/disk-transform": "^1.3.1"
   }
 }

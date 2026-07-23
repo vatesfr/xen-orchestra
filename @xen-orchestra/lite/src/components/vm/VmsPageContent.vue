@@ -1,11 +1,11 @@
 <template>
   <UiCard class="vms-page-content">
-    <UiCardTitle subtitle>
+    <UiTitle>
       {{ t('vms') }}
       <template v-if="uiStore.isSmall" #right>
         <VmsActionsBar :selected-refs="selectedVmsRefs" />
       </template>
-    </UiCardTitle>
+    </UiTitle>
     <VmsActionsBar v-if="!uiStore.isSmall" :selected-refs="selectedVmsRefs" />
     <div>
       <div class="filter-and-sort">
@@ -51,31 +51,31 @@
 import CollectionFilter from '@/components/CollectionFilter.vue'
 import CollectionSorter from '@/components/CollectionSorter.vue'
 import VmsActionsBar from '@/components/vm/VmsActionsBar.vue'
-import useCollectionFilter from '@/composables/collection-filter.composable'
-import useCollectionSorter from '@/composables/collection-sorter.composable'
-import useMultiSelect from '@/composables/multi-select.composable'
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { usePageTitleStore } from '@/stores/page-title.store'
-import { useVbdStore } from '@/stores/xen-api/vbd.store'
-import { useVdiStore } from '@/stores/xen-api/vdi.store'
-import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
-import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store'
-import type { Filters } from '@/types/filter'
+import useCollectionFilter from '@/composables/collection-filter.composable.ts'
+import useCollectionSorter from '@/composables/collection-sorter.composable.ts'
+import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import { usePageTitleStore } from '@/stores/page-title.store.ts'
+import { useVbdStore } from '@/stores/xen-api/vbd.store.ts'
+import { useVdiStore } from '@/stores/xen-api/vdi.store.ts'
+import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
+import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store.ts'
+import type { Filters } from '@/types/filter.ts'
 import VtsHeaderCell from '@core/components/table/cells/VtsHeaderCell.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
-import { usePagination } from '@core/composables/pagination.composable'
-import { useTableState } from '@core/composables/table-state.composable'
+import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { usePagination } from '@core/composables/pagination.composable.ts'
+import useMultiSelect from '@core/composables/table/multi-select.composable.ts'
+import { useTableState } from '@core/composables/table-state.composable.ts'
 import { objectIcon } from '@core/icons'
-import { useUiStore } from '@core/stores/ui.store'
-import { useVmColumns } from '@core/tables/column-sets/vm-columns'
-import { renderBodyCell } from '@core/tables/helpers/render-body-cell'
-import { renderLoadingCell } from '@core/tables/helpers/render-loading-cell'
-import { formatSizeRaw } from '@core/utils/size.util'
+import { useUiStore } from '@core/stores/ui.store.ts'
+import { useVmColumns } from '@core/tables/column-sets/vm-columns.ts'
+import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
+import { renderLoadingCell } from '@core/tables/helpers/render-loading-cell.ts'
+import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 import { useArrayFilter } from '@vueuse/shared'
@@ -143,7 +143,7 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells } = useVmColumns({
-  exclude: ['selectItem'],
+  exclude: ['actions'],
   body: (vm: XenApiVm) => {
     const guestMetrics = computed(() => getGuestMetrics(vm.guest_metrics))
     const vmMetrics = computed(() => getVmMetrics(vm.metrics))
@@ -177,7 +177,6 @@ const { HeadCells, BodyCells } = useVmColumns({
 .vms-page-content {
   overflow: auto;
   margin: 1rem;
-  gap: 0;
 
   .filter-and-sort {
     display: flex;

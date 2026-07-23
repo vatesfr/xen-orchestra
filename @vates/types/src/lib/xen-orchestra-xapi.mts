@@ -89,6 +89,16 @@ export interface EditVmProps {
   xenStoreData?: Record<string, string | null>
 }
 
+/** Properties accepted by {@link Xapi.editVif}. */
+export interface EditVifProps {
+  ipv4Allowed?: string[]
+  ipv6Allowed?: string[]
+  lockingMode?: VIF_LOCKING_MODE
+  // in kB/s, `null` removes the limit
+  rateLimit?: number | null
+  txChecksumming?: boolean
+}
+
 export type XcpPatches = {
   changelog?: {
     author: string
@@ -119,6 +129,12 @@ export type XsPatches = {
 }
 
 export interface Xapi {
+  status: string
+  pool?: { uuid: string }
+  sessionId: string
+  _auth: { user: string; password: string }
+  _url: { protocol: string; hostname: string; hostnameRaw: string; port?: string }
+
   call: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
   callAsync: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
 
@@ -163,6 +179,13 @@ export interface Xapi {
   deleteVif(vifId: XoVif['id']): Promise<void>
   disconnectVif(vifId: XoVif['id']): Promise<void>
   exportVmOva(vmRef: XenApiVm['$ref']): Promise<PassThrough>
+  emergencyShutdownHost(hostId: XoHost['id']): Promise<void>
+  ejectHostFromPool(hostId: XoHost['id']): Promise<void>
+  host_smartReboot(
+    hostRef: XenApiHost['$ref'],
+    bypassBlockedSuspend?: boolean,
+    bypassCurrentVmCheck?: boolean
+  ): Promise<void>
   migrateVm(
     vmId: XoVm['id'],
     hostXapi: Xapi,
@@ -176,6 +199,7 @@ export interface Xapi {
       bypassAssert?: boolean
     }
   ): Promise<void>
+  joinPool(masterAddress: string, masterUsername: string, masterPassword: string, force?: boolean): Promise<void>
   listMissingPatches(host: XoHost['id']): Promise<XcpPatches[] | XsPatches[]>
   pool_emergencyShutdown(): Promise<void>
   resumeVm(id: XoVm['id']): Promise<void>
@@ -205,6 +229,10 @@ export interface Xapi {
     }
   ): Promise<{ vm: XenApiVmWrapped }>
   forgetSr(id: XoSr['id']): Promise<void>
+  forgetHost(hostId: XoHost['id']): Promise<void>
+  powerOnHost(hostId: XoHost['id']): Promise<void>
+  rebootHost(hostId: XoHost['id'], force?: boolean): Promise<void>
+  shutdownHost(hostId: XoHost['id'], opts?: { force?: boolean; bypassEvacuate?: boolean }): Promise<void>
   SR_importVdi(
     ref: XenApiSr['$ref'],
     stream: Readable,
@@ -228,6 +256,7 @@ export interface Xapi {
     props: EditVmProps,
     checkLimits?: (limits: Record<string, number>, vm: XenApiVmWrapped) => Promise<void>
   ): Promise<void>
+  editVif(id: XoVif['id'], props: EditVifProps): Promise<void>
   startVm(
     id: XoVm['id'],
     opts?: {
@@ -245,7 +274,7 @@ export interface Xapi {
   ): Promise<void>
   VM_export(
     vmRef: XenApiVm['$ref'],
-    opts?: { cancelToken?: unknown; compress?: boolean; useSnapshot?: boolean }
+    opts?: { cancelToken?: unknown; compress?: boolean | 'zstd' | 'gzip'; useSnapshot?: boolean }
   ): ReturnType<Xapi['getResource']>
   VM_import(
     stream: Readable,
@@ -299,6 +328,7 @@ export interface Xapi {
       vgpuType?: XoVgpuType['id']
       gpuGroup?: XoGpuGroup['id']
       copyHostBiosStrings?: boolean
+      highAvailability?: XoVm['high_availability']
       hvmBootFirmware?: 'uefi' | 'bios'
       secureBoot?: boolean
     },
@@ -390,8 +420,12 @@ export interface Xapi {
     pathname: string,
     params?: { host?: XenApiHost; query?: Record<string, unknown>; task?: boolean | XenApiTask['$ref'] }
   ): Promise<{ body: Readable }>
-  clearHost(host: Pick<XenApiHostWrapped, '$ref' | '$pool'>, force?: boolean): Promise<void>
-  disableHost(hostId: XoHost['id']): Promise<void>
+  clearHost(
+    host: Pick<XenApiHostWrapped, '$ref' | '$pool'>,
+    force?: boolean,
+    opts?: { transient?: boolean }
+  ): Promise<void>
+  disableHost(hostId: XoHost['id'], opts?: { transient?: boolean }): Promise<void>
   enableHost(hostId: XoHost['id']): Promise<void>
   getRecordByUuid<
     Type extends WrappedXenApiRecord['$type'],

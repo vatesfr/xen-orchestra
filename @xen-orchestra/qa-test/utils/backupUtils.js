@@ -1,5 +1,6 @@
 import { createLogger } from '@xen-orchestra/log'
 import assert from 'node:assert'
+import { getSyncedHandler } from '@xen-orchestra/fs'
 
 const log = createLogger('xo:qa-test:backup-utils')
 
@@ -29,28 +30,59 @@ export const assertRepositoryEmpty = async (dispatchClient, repository) => {
 }
 
 /**
- * Asserts that a backup repository's URL matches the path declared in the .env.
+ * Asserts that a backup repository's URL matches the URL declared in the .env.
  *
  * The QA suite identifies repositories by name (e.g. `BACKUP_REPOSITORY_NAME`)
- * but it is the file path that determines where data physically lands. If a
- * repository with the expected name already exists on the XO server but points
- * at a different location, tests would silently operate on the wrong directory.
- * This check fails fast so that the operator can either delete the misconfigured
- * remote in XO or update the .env to match it.
+ * but it is the URL that determines where data physically lands. If a repository
+ * with the expected name already exists on the XO server but points at a different
+ * location, tests would silently operate on the wrong remote. This check fails fast
+ * so that the operator can either delete the misconfigured remote in XO or update
+ * the .env to match it.
+ *
+ * Passwords are stripped before comparison: XO obfuscates stored remote passwords,
+ * so comparing credentials would always fail for existing remotes.
  *
  * @param {{id: string, name: string, url: string}} repository - Repository as returned by the REST API
- * @param {string} expectedPath - Filesystem path expected by the test (typically from `.env`)
- * @throws {Error} If `repository.url` is not exactly `file://${expectedPath}`
+ * @param {string} expectedUrl - Full @xen-orchestra/fs URL expected by the test (from `BACKUP_REPOSITORY_URL`)
+ * @throws {Error} If `repository.url` does not match `expectedUrl` (ignoring password)
  */
-export const assertRepositoryMatchesConfig = (repository, expectedPath) => {
-  const expectedUrl = `file://${expectedPath}`
-  if (repository.url !== expectedUrl) {
+export const assertRepositoryMatchesConfig = (repository, expectedUrl) => {
+  // Strip password from scheme://user:password@host URLs before comparing.
+  // XO returns stored URLs with an obfuscated password, so credential comparison
+  // would always fail for an already-existing remote.
+  const stripPassword = url => url.replace(/(:\/\/[^:@/]+):([^@]+)@/, '$1:***@')
+
+  if (stripPassword(repository.url) !== stripPassword(expectedUrl)) {
     throw new Error(
       `Backup repository "${repository.name}" (${repository.id}) has url "${repository.url}", ` +
         `but the .env requires "${expectedUrl}". ` +
         `Delete this remote in XO and re-run, or update the env to match the existing remote.`
     )
   }
+}
+
+// Same find-or-create logic as tests/setup.js, factored out for reuse by load tests.
+// Only tracks (for teardown) the repository if this call is the one that created it.
+export async function resolveOrCreateBackupRepository(dispatchClient, tracker, { name, url }) {
+  if (url.startsWith('file://')) {
+    const { dispose } = await getSyncedHandler({ url })
+    await dispose()
+  }
+
+  const existing = await dispatchClient.backupRepository.get({ name })
+  if (existing) {
+    assertRepositoryMatchesConfig(existing, url)
+    return existing
+  }
+
+  const id = await dispatchClient.backupRepository.create(name, { url })
+  const created = await dispatchClient.backupRepository.get({ id })
+  if (!created) {
+    throw new Error(`Failed to retrieve created backup repository ${id}`)
+  }
+  tracker?.trackResource('backupRepository', id, { name })
+  log.debug('Created backup repository', { name, id })
+  return created
 }
 
 /**

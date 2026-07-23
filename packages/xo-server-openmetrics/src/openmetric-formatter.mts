@@ -735,6 +735,139 @@ function computeVmCpuUsageFallback(metrics: FormattedMetric[]): FormattedMetric[
   return syntheticMetrics
 }
 
+function emitHostPowerMetrics(
+  metrics: FormattedMetric[],
+  hostPowerWatts: Record<string, number>,
+  labelContext?: LabelContext
+): void {
+  for (const [hostId, watts] of Object.entries(hostPowerWatts)) {
+    // Drop any existing host power series for this host (dedup, IPMI preferred).
+    for (let i = metrics.length - 1; i >= 0; i--) {
+      const m = metrics[i]
+      if (m !== undefined && m.name === 'xcp_host_power_consumption_watts' && m.labels.uuid === hostId) {
+        metrics.splice(i, 1)
+      }
+    }
+
+    const labels: Record<string, string> = { uuid: hostId, type: 'host', source: 'ipmi' }
+    const hostName = labelContext?.labels.hosts[hostId]?.name_label
+    if (hostName !== undefined && hostName !== '') {
+      labels.host_name = hostName
+    }
+
+    metrics.push({
+      name: 'xcp_host_power_consumption_watts',
+      help: 'Host power consumption in watts (IPMI)',
+      type: 'gauge',
+      labels,
+      value: watts,
+      timestamp: Math.floor(Date.now() / 1000),
+    })
+  }
+}
+
+function computeVmPowerConsumption(metrics: FormattedMetric[], labelContext?: LabelContext): FormattedMetric[] {
+  // Labels carried by per-resource VM metrics that must not leak onto the
+  // aggregate per-VM power series.
+  const PER_RESOURCE_LABELS = new Set([
+    'core',
+    'device',
+    'vdi_name',
+    'sr_name',
+    'sr_type',
+    'vif',
+    'network_name',
+    'interface',
+  ])
+
+  const hostPower = new Map<string, { watts: number; timestamp: number }>()
+  const guestsByHost = new Map<string, Map<string, FormattedMetric>>() // hostId -> vmUuid -> representative metric
+  const cpuByVm = new Map<string, { value: number; timestamp: number }>()
+
+  for (const metric of metrics) {
+    const { labels } = metric
+    if (labels.uuid === undefined) {
+      continue
+    }
+
+    if (labels.type === 'host' && metric.name === 'xcp_host_power_consumption_watts') {
+      hostPower.set(labels.uuid, { watts: metric.value, timestamp: metric.timestamp })
+      continue
+    }
+
+    if (labels.type !== 'vm') {
+      continue
+    }
+    const hostId = labels.host_id
+    // No residence host or dom0 → takes no share.
+    if (hostId === undefined || hostId === '' || labels.is_control_domain === 'true') {
+      continue
+    }
+
+    let guests = guestsByHost.get(hostId)
+    if (guests === undefined) {
+      guests = new Map()
+      guestsByHost.set(hostId, guests)
+    }
+    if (!guests.has(labels.uuid)) {
+      guests.set(labels.uuid, metric)
+    }
+
+    if (metric.name === 'xcp_vm_cpu_usage') {
+      cpuByVm.set(labels.uuid, { value: metric.value, timestamp: metric.timestamp })
+    }
+  }
+
+  const out: FormattedMetric[] = []
+
+  for (const [hostId, power] of hostPower) {
+    const guests = guestsByHost.get(hostId)
+    if (guests === undefined || guests.size === 0) {
+      continue
+    }
+
+    const loadByVm = new Map<string, { load: number; complete: boolean }>()
+    let totalLoad = 0
+    for (const vmUuid of guests.keys()) {
+      const cpu = cpuByVm.get(vmUuid)?.value
+      const vcpus = labelContext?.labels.vms[vmUuid]?.vcpus ?? 1
+      const load = (cpu ?? 0) * vcpus
+      loadByVm.set(vmUuid, { load, complete: cpu !== undefined })
+      totalLoad += load
+    }
+
+    const equalSplit = totalLoad < 0.01
+
+    for (const [vmUuid, representative] of guests) {
+      const entry = loadByVm.get(vmUuid)
+      const load = entry?.load ?? 0
+      const watts = equalSplit ? power.watts / guests.size : (power.watts * load) / totalLoad
+
+      const labels: Record<string, string> = {}
+      for (const [key, value] of Object.entries(representative.labels)) {
+        if (!PER_RESOURCE_LABELS.has(key)) {
+          labels[key] = value
+        }
+      }
+      labels.estimate = 'true'
+      if (entry?.complete === false) {
+        labels.data_complete = 'false'
+      }
+
+      out.push({
+        name: 'xcp_vm_power_consumption_watts',
+        help: 'Estimated VM power consumption in watts (estimate, host power split by CPU load)',
+        type: 'gauge',
+        labels,
+        value: watts,
+        timestamp: cpuByVm.get(vmUuid)?.timestamp ?? power.timestamp,
+      })
+    }
+  }
+
+  return out
+}
+
 // ============================================================================
 // Formatting Functions
 // ============================================================================
@@ -744,6 +877,29 @@ const METRIC_PREFIX = 'xcp'
 
 /** OpenMetrics prefix for XO management plane metrics */
 const XO_METRIC_PREFIX = 'xo'
+
+/**
+ * Serialize XO object tags into the `tags` label value
+ *
+ * @param tags - Raw tag list from the XO object
+ * @returns Comma-separated, sorted tag list (e.g. `"prod,web"`)
+ */
+export function serializeTags(tags: readonly string[] | undefined): string {
+  if (tags === undefined || tags.length === 0) {
+    return ''
+  }
+  return [...new Set(tags)]
+    .filter(tag => tag.trim() !== '')
+    .sort()
+    .join(',')
+}
+
+function addTagsLabel(labels: Record<string, string>, tags: readonly string[] | undefined): void {
+  const serialized = serializeTags(tags)
+  if (serialized !== '') {
+    labels.tags = serialized
+  }
+}
 
 /**
  * Escape special characters in label values.
@@ -782,7 +938,8 @@ function formatLabels(labels: Record<string, string>): string {
 export function transformMetric(
   metric: ParsedMetric,
   poolId: string,
-  labelContext?: LabelContext
+  labelContext?: LabelContext,
+  hostId?: string
 ): FormattedMetric | null {
   const { legend, value, timestamp } = metric
 
@@ -816,6 +973,12 @@ export function transformMetric(
     type: legend.objectType,
   }
 
+  if (legend.objectType === 'vm' && hostId !== undefined && hostId !== '') {
+    labels.host_id = hostId
+  }
+
+  let objectTags: readonly string[] | undefined
+
   // Add pool_name from host credentials
   if (labelContext !== undefined) {
     const hostCred = labelContext.hosts.find(h => h.poolId === poolId)
@@ -830,6 +993,7 @@ export function transformMetric(
         if (hostInfo.name_label !== '') {
           labels.host_name = hostInfo.name_label
         }
+        objectTags = hostInfo.tags
 
         // For PIF metrics, add network_name
         if (extractedLabels.interface !== undefined) {
@@ -860,12 +1024,19 @@ export function transformMetric(
     }
 
     if (legend.objectType === 'vm') {
+      if (hostId !== undefined && hostId !== '') {
+        const residentHost = labelContext.labels.hosts[hostId]
+        if (residentHost !== undefined && residentHost.name_label !== '') {
+          labels.host_name = residentHost.name_label
+        }
+      }
       const vmInfo = labelContext.labels.vms[legend.uuid]
       if (vmInfo !== undefined) {
         if (vmInfo.name_label !== '') {
           labels.vm_name = vmInfo.name_label
         }
         labels.is_control_domain = vmInfo.is_control_domain ? 'true' : 'false'
+        objectTags = vmInfo.tags
 
         // For VBD metrics, add vdi_name and sr_name
         if (extractedLabels.device !== undefined) {
@@ -905,6 +1076,7 @@ export function transformMetric(
 
   // Add extracted labels (device, interface, vif, sr, core)
   Object.assign(labels, extractedLabels)
+  addTagsLabel(labels, objectTags)
 
   return {
     name: `${METRIC_PREFIX}_${definition.openMetricName}`,
@@ -975,15 +1147,20 @@ export function formatToOpenMetrics(metrics: FormattedMetric[]): string {
  *
  * @param rrdDataList - Array of ParsedRrdData from all pools
  * @param labelContext - Optional label context for enriching metrics with human-readable names
+ * @param hostPowerWatts - Optional map of host UUID -> power draw in watts (IPMI)
  * @returns Complete OpenMetrics output string with EOF marker
  */
-export function formatAllPoolsToOpenMetrics(rrdDataList: ParsedRrdData[], labelContext?: LabelContext): string {
+export function formatAllPoolsToOpenMetrics(
+  rrdDataList: ParsedRrdData[],
+  labelContext?: LabelContext,
+  hostPowerWatts?: Record<string, number>
+): string {
   const allMetrics: FormattedMetric[] = []
   const unmatchedMetrics: Set<string> = new Set()
 
   for (const rrdData of rrdDataList) {
     for (const metric of rrdData.metrics) {
-      const formatted = transformMetric(metric, rrdData.poolId, labelContext)
+      const formatted = transformMetric(metric, rrdData.poolId, labelContext, rrdData.hostId)
       if (formatted !== null) {
         allMetrics.push(formatted)
       } else if (metric.value !== null) {
@@ -998,10 +1175,15 @@ export function formatAllPoolsToOpenMetrics(rrdDataList: ParsedRrdData[], labelC
     logger.debug('Unmatched RRD metrics', { metrics: Array.from(unmatchedMetrics).sort() })
   }
 
+  if (hostPowerWatts !== undefined) {
+    emitHostPowerMetrics(allMetrics, hostPowerWatts, labelContext)
+  }
+
   // Compute fallback vm_cpu_usage for VMs that don't have the native metric
   // This handles XCP-ng 8.2 and other versions that only report per-core metrics
   const syntheticCpuMetrics = computeVmCpuUsageFallback(allMetrics)
   allMetrics.push(...syntheticCpuMetrics)
+  allMetrics.push(...computeVmPowerConsumption(allMetrics, labelContext))
 
   // Sort metrics by name for consistent output
   allMetrics.sort((a, b) => {
@@ -1057,6 +1239,8 @@ export function formatSrMetrics(srDataList: SrDataItem[]): FormattedMetric[] {
     if (sr.host_name !== undefined) {
       baseLabels.host_name = sr.host_name
     }
+
+    addTagsLabel(baseLabels, sr.tags)
 
     // Virtual size (virtual_allocation)
     metrics.push({
@@ -1181,6 +1365,8 @@ export function formatHostStatusMetrics(hostStatusList: HostStatusItem[]): Forma
       labels.pool_name = host.pool_name
     }
 
+    addTagsLabel(labels, host.tags)
+
     metrics.push({
       name: `${METRIC_PREFIX}_host_status`,
       help: 'Host status (1 = current state)',
@@ -1220,6 +1406,8 @@ export function formatVmStatusMetrics(vmStatusList: VmStatusItem[]): FormattedMe
     if (vm.name_label !== '') {
       labels.vm_name = vm.name_label
     }
+
+    addTagsLabel(labels, vm.tags)
 
     metrics.push({
       name: `${METRIC_PREFIX}_vm_status`,
@@ -1699,6 +1887,8 @@ export function formatHostUptimeMetrics(labelContext: LabelContext): FormattedMe
       labels.host_name = hostInfo.name_label
     }
 
+    addTagsLabel(labels, hostInfo.tags)
+
     metrics.push({
       name: `${METRIC_PREFIX}_host_uptime_seconds`,
       help: 'Host uptime in seconds since boot',
@@ -1754,6 +1944,8 @@ export function formatVmUptimeMetrics(labelContext: LabelContext): FormattedMetr
     if (vmInfo.name_label !== '') {
       labels.vm_name = vmInfo.name_label
     }
+
+    addTagsLabel(labels, vmInfo.tags)
 
     metrics.push({
       name: `${METRIC_PREFIX}_vm_uptime_seconds`,

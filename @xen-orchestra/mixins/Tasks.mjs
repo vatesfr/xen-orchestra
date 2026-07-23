@@ -67,42 +67,46 @@ export default class Tasks extends EventEmitter {
     this.#handleOnProgressScheduled = false
   }
 
+  #bufferTaskUpdate = taskLog => {
+    const buf = this.#onProgressBuffer
+
+    if (!this.#handleOnProgressScheduled) {
+      this.#handleOnProgressScheduled = true
+
+      // task events are buffered, deduplicated and will be handled one after
+      // the others on the next tick to avoid race conditions
+      process.nextTick(this.#handleOnProgressBuffer)
+    }
+
+    // Error objects are not JSON-ifiable by default
+    const { result } = taskLog
+    if (result instanceof Error && result.toJSON === undefined) {
+      taskLog.result = serializeError(result)
+    }
+
+    const { $root } = taskLog
+    const { status, id } = $root
+    if (status !== 'pending') {
+      if (this.#logsToClearOnSuccess.has(id)) {
+        this.#logsToClearOnSuccess.delete(id)
+
+        if (status === 'success') {
+          return buf.set(id, null)
+        }
+      }
+    }
+
+    $root.updatedAt = Date.now()
+    buf.set(id, $root)
+  }
+
   #onProgress = makeOnProgress({
     onRootTaskEnd: taskLog => {
       const { id } = taskLog
       this.#tasks.delete(id)
     },
     onTaskUpdate: taskLog => {
-      const buf = this.#onProgressBuffer
-
-      if (!this.#handleOnProgressScheduled) {
-        this.#handleOnProgressScheduled = true
-
-        // task events are buffered, deduplicated and will be handled one after
-        // the others on the next tick to avoid race conditions
-        process.nextTick(this.#handleOnProgressBuffer)
-      }
-
-      // Error objects are not JSON-ifiable by default
-      const { result } = taskLog
-      if (result instanceof Error && result.toJSON === undefined) {
-        taskLog.result = serializeError(result)
-      }
-
-      const { $root } = taskLog
-      const { status, id } = $root
-      if (status !== 'pending') {
-        if (this.#logsToClearOnSuccess.has(id)) {
-          this.#logsToClearOnSuccess.delete(id)
-
-          if (status === 'success') {
-            return buf.set(id, null)
-          }
-        }
-      }
-
-      $root.updatedAt = Date.now()
-      buf.set(id, $root)
+      this.#bufferTaskUpdate(taskLog)
     },
   })
 
@@ -178,6 +182,28 @@ export default class Tasks extends EventEmitter {
       stream.on('data', onData)
 
       stream.on('end', cb).on('error', reject)
+    })
+  }
+
+  /**
+   * Creates an onProgress callback that feeds raw @vates/task events from an
+   * external source (worker process, XO Proxy) into Tasks.mjs's store and
+   * event emitter, making the task visible in the UI.
+   *
+   * Each call returns an independent makeOnProgress context (isolated taskLogs
+   * Map), so concurrent backup jobs don't interfere with each other.
+   *
+   * Abort support for external tasks is not implemented — the external process
+   * controls its own lifecycle.
+   */
+  createExternalProgressHandler({ onRootTaskEnd, onRootTaskStart, onTaskUpdate } = {}) {
+    return makeOnProgress({
+      onRootTaskEnd,
+      onRootTaskStart,
+      onTaskUpdate: (taskLog, event) => {
+        this.#bufferTaskUpdate(taskLog)
+        onTaskUpdate?.(taskLog, event)
+      },
     })
   }
 

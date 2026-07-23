@@ -18,6 +18,7 @@ import {
 import { ThrottledDisk, SynchronizedDisk } from '@xen-orchestra/disk-transform'
 import { AggregatedIncrementalRemoteWriter } from '../_writers/AggregatedIncrementalRemoteWriter.mjs'
 import { AggregatedIncrementalXapiWriter } from '../_writers/AggregatedIncrementalXapiWriter.mjs'
+import { TaskProgressHandler } from './_TaskProgressHandler.mjs'
 
 const { debug } = createLogger('xo:backups:IncrementalXapiVmBackup')
 
@@ -52,6 +53,7 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     let useNbd = false
     for (const key in deltaExport.disks) {
       let disk = deltaExport.disks[key]
+      disk.addProgressHandler(new TaskProgressHandler())
       isVhdDifferencing[key] = disk.isDifferencing()
       if (!isFull && !isVhdDifferencing[key] && key !== exportedVm.$suspend_VDI?.$ref) {
         Task.warning('Backup fell back to a full')
@@ -77,15 +79,6 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
           vmSnapshot: exportedVm,
         }),
       'writer.transfer()'
-    )
-    await this._callWriters(
-      writer =>
-        writer.updateUuidAndChain({
-          isVhdDifferencing,
-          timestamp,
-          vdis: deltaExport.vdis,
-        }),
-      'writer.updateUuidAndChain()'
     )
 
     if (isFull) {

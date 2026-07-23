@@ -21,6 +21,7 @@ import { limitConcurrency } from 'limit-concurrency-decorator'
 import assert from 'node:assert/strict'
 
 const defaultMergeLimiter = limitConcurrency(1)
+const MERGE_STATE_FILE_RE = /^\.(.+)\.merge\.json$/
 /**
  * Tracks the disk chain for a single VDI across all backup snapshots.
  * Owns merge and deletion decisions for its chain given which disks are still
@@ -69,7 +70,14 @@ export class RemoteDiskLineage {
    * Also detects interrupted merge state files.
    */
   async init(): Promise<void> {
-    const files = await this.#handler.list(this.#vdiDir, { prependDir: true })
+    let files: string[]
+    try {
+      files = await this.#handler.list(this.#vdiDir, { prependDir: true })
+    } catch (error) {
+      if (error?.code === 'NOT_SUPPORTED') throw error
+      this.#opts.logWarn('failed to list VDI directory', { vdiDir: this.#vdiDir, error })
+      return
+    }
 
     for (const filePath of files) {
       if (isDisk(filePath)) {
@@ -77,11 +85,23 @@ export class RemoteDiskLineage {
       }
     }
 
+    const mergeParentPaths = new Set<string>()
+    for (const filePath of files) {
+      const match = MERGE_STATE_FILE_RE.exec(basename(filePath))
+      if (match !== null) {
+        mergeParentPaths.add(normalize(this.#vdiDir + '/' + match[1]))
+      }
+    }
+
     const uuidToPath = new Map<string, string>()
     for (const diskPath of this.#diskPaths) {
       let disk: RemoteDisk | undefined
       try {
-        disk = await openDisk({ handler: this.#handler, path: diskPath })
+        if (mergeParentPaths.has(diskPath)) {
+          disk = await openDisk({ handler: this.#handler, path: diskPath, force: true })
+        } else {
+          disk = await openDisk({ handler: this.#handler, path: diskPath })
+        }
       } catch (error) {
         if (error?.code === 'NOT_SUPPORTED' && this.#opts.merge) {
           throw error
@@ -289,6 +309,8 @@ export class RemoteDiskLineage {
           try {
             const disk = await openDisk({ handler: this.#handler, path, ignoreBlockIndexes: true })
             await disk.unlink({ force: true })
+            // Remove from tracking so #cleanOrphanDataFiles skips this now-deleted path
+            this.#unregisterDisk(path)
           } catch (error) {
             this.#opts.logWarn('failed to delete unused disk', { path, error })
           }
@@ -309,8 +331,15 @@ export class RemoteDiskLineage {
         await asyncEach(
           toMerge,
           async ({ chain, isResuming }) => {
-            const { finalDiskSize, mergeTargetPath } = await limitedMergeChain(chain, isResuming)
+            const { finalDiskSize, mergeTargetPath } = await limitedMergeChain([...chain], isResuming)
             mergedSizes.set(mergeTargetPath, (mergedSizes.get(mergeTargetPath) ?? 0) + finalDiskSize)
+            // parentPath alias deleted by parentDisk.rename(mergeTargetPath)
+            // intermediates deleted by childDisk.unlink() when removeUnused=true
+            // Unregister so #cleanOrphanDataFiles does not read already-deleted aliases
+            // and produce false "missing target of alias" warnings.
+            for (const deletedPath of chain.slice(0, -1)) {
+              this.#unregisterDisk(deletedPath)
+            }
           },
           { concurrency: this.#opts.mergeConcurrency ?? DEFAULT_MERGE_CONCURRENCY }
         )

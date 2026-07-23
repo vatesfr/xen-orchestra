@@ -25,7 +25,8 @@ const networkFields = [
 ] as const satisfies readonly (keyof XoNetwork)[]
 
 export const useXoNetworkCollection = defineRemoteResource({
-  url: `${BASE_URL}/networks?fields=${networkFields.join(',')}`,
+  url: `${BASE_URL}/networks?fields=${networkFields.join(',')}&ndjson=true`,
+  stream: true,
   initWatchCollection: () => useWatchCollection({ resource: 'network', fields: networkFields }),
   initialData: () => [] as FrontXoNetwork[],
   state: (rawNetworks, context) => {

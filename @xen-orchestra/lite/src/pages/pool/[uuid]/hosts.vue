@@ -1,8 +1,8 @@
 <template>
   <UiCard class="pool-hosts-view">
-    <UiCardTitle subtitle>
+    <UiTitle>
       {{ t('hosts') }}
-    </UiCardTitle>
+    </UiTitle>
     <VtsTable :state :pagination-bindings>
       <thead>
         <tr>
@@ -19,14 +19,14 @@
 </template>
 
 <script lang="ts" setup>
-import UiCard from '@/components/ui/UiCard.vue'
-import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useTableState } from '@core/composables/table-state.composable'
 import { objectIcon } from '@core/icons'
@@ -66,6 +66,6 @@ const { HeadCells, BodyCells } = useHostColumns({
 
 <style lang="postcss" scoped>
 .pool-hosts-view {
-  margin: 1rem;
+  margin: 0.8rem;
 }
 </style>

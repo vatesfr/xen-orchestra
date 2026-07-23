@@ -1,17 +1,17 @@
 <template>
-  <VtsModal accent="info" icon="status:info-picto">
+  <VtsModal accent="info" icon="status:info-picto" dismissible>
     <template #title>
-      {{ t('vbd-delete-title', { n: count }) }}
+      {{ t('vdi-detach-title', { n: count }) }}
     </template>
 
     <template #content>
-      {{ t('vbd-delete-info') }}
+      {{ t('vdi-detach-info') }}
     </template>
 
     <template #buttons>
       <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
       <VtsModalConfirmButton>
-        {{ t(`action:delete-n-vbds`, { n: count }) }}
+        {{ t(`action:detach-n-vdis`, { n: count }) }}
       </VtsModalConfirmButton>
     </template>
   </VtsModal>

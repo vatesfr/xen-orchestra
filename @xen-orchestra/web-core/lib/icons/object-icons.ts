@@ -1,3 +1,4 @@
+import { slash } from '@core/icons/custom-icons.ts'
 import { statusIcons } from '@core/icons/status-icons.ts'
 import { defineIcon, type IconSingleConfig } from '@core/packages/icon'
 import { defineIconPack } from '@core/packages/icon/define-icon-pack.ts'
@@ -12,14 +13,13 @@ import {
   faClock,
   faDatabase,
   faDesktop,
-  faEthernet,
   faHdd,
+  faMapPin,
   faNetworkWired,
   faPlay,
   faPuzzlePiece,
   faSatellite,
   faServer,
-  faSlash,
   faUserCircle,
   faUsers,
   type IconDefinition,
@@ -47,21 +47,6 @@ function constructIcon(icon: IconDefinition): IconSingleConfig {
     color: 'var(--color-neutral-txt-primary)',
   }
 }
-
-const slash = defineIcon([
-  {
-    icon: faSlash,
-    color: 'var(--color-neutral-background-primary)',
-    translate: [-0.5, 0.5],
-    size: 20,
-  },
-  {
-    icon: faSlash,
-    color: 'var(--color-neutral-txt-secondary)',
-    translate: [0.5, -0.5],
-    size: 20,
-  },
-])
 
 const runningNeutral = defineIcon([
   {
@@ -145,6 +130,7 @@ export const objectIcons = defineIconPack({
     },
     {
       icon: slash,
+      color: 'var(--color-neutral-txt-secondary)',
     },
   ],
   host: constructIcon(faServer),
@@ -155,6 +141,7 @@ export const objectIcons = defineIconPack({
     },
     {
       icon: slash,
+      color: 'var(--color-neutral-txt-secondary)',
     },
   ],
   'host:running': [constructIcon(faServer), ...constructCircleStatus('running-circle')],
@@ -169,6 +156,7 @@ export const objectIcons = defineIconPack({
     },
     {
       icon: slash,
+      color: 'var(--color-neutral-txt-secondary)',
     },
   ],
   'vm:running': [constructIcon(faDesktop), ...constructCircleStatus('running-circle')],
@@ -190,6 +178,7 @@ export const objectIcons = defineIconPack({
     },
     {
       icon: slash,
+      color: 'var(--color-neutral-txt-secondary)',
     },
   ],
   'sr:connected': [constructIcon(faDatabase), ...constructCircleStatus('success-circle')],
@@ -204,13 +193,37 @@ export const objectIcons = defineIconPack({
     },
     {
       icon: slash,
+      color: 'var(--color-neutral-txt-secondary)',
     },
   ],
   'vdi:attached': [constructIcon(faHdd), ...constructCircleStatus('success-circle')],
   'vdi:disabled': [constructIcon(faHdd), ...constructCircleStatus('disabled')],
   'vdi:warning': [constructIcon(faHdd), ...constructCircleStatus('warning-circle')],
   'vdi:detached': [constructIcon(faHdd), ...constructCircleStatus('danger-circle')],
-  vif: constructIcon(faEthernet),
+  'vdi-snapshot': [
+    constructIcon(faHdd),
+    {
+      icon: camera,
+    },
+  ],
+  vif: [
+    {
+      icon: faMapPin,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: faCircle,
+      color: 'var(--color-neutral-txt-primary)',
+      translate: [0, -4],
+      size: 12,
+    },
+    {
+      icon: faCircle,
+      color: 'var(--color-neutral-background-primary)',
+      translate: [0, -4],
+      size: 8,
+    },
+  ],
   network: constructIcon(faNetworkWired),
   'network:unknown': [
     {
@@ -219,6 +232,7 @@ export const objectIcons = defineIconPack({
     },
     {
       icon: slash,
+      color: 'var(--color-neutral-txt-secondary)',
     },
   ],
   'network:connected': [constructIcon(faNetworkWired), ...constructCircleStatus('success-circle')],
@@ -232,6 +246,7 @@ export const objectIcons = defineIconPack({
     },
     {
       icon: slash,
+      color: 'var(--color-neutral-txt-secondary)',
     },
   ],
   'br:connected': [constructIcon(faBoxesStacked), ...constructCircleStatus('success-circle')],

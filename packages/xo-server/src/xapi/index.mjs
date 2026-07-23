@@ -201,8 +201,9 @@ export default class Xapi extends XapiBase {
   //
   // If `force` is false and the evacuation failed, the host is re-
   // enabled and the error is thrown.
-  async clearHost({ $ref: hostRef, $pool: pool }, force) {
-    await this.call('host.disable', hostRef)
+  // If `transient` is false, the host will be disabled indefinitely, across toolstack restarts and host reboots, until re-enabled explicitly with Host.enable.
+  async clearHost({ $ref: hostRef, $pool: pool }, force, { transient = true } = {}) {
+    await this.disableHost(hostRef, { transient })
 
     const migrationNetworkRef = (id => {
       if (id !== undefined) {
@@ -239,7 +240,12 @@ export default class Xapi extends XapiBase {
         delay: 0,
         when: { code: 'MESSAGE_PARAMETER_COUNT_MISMATCH' },
         onRetry: error => {
-          log.warn(error)
+          if (params.length <= 1) {
+            log.warn(error)
+            throw error
+          }
+
+          log.debug(error)
           popParamsAndTrim(1)
         },
       })

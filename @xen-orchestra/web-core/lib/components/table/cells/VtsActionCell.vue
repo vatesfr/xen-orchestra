@@ -9,6 +9,9 @@
         @click="emit('click')"
       />
       <VtsActionsMenu v-if="actions.length" :actions />
+      <VtsActionsMenu v-else>
+        <slot />
+      </VtsActionsMenu>
     </div>
   </UiTableCell>
 </template>
@@ -33,6 +36,10 @@ const {
 
 const emit = defineEmits<{
   click: []
+}>()
+
+defineSlots<{
+  default(): any
 }>()
 </script>
 

@@ -15,9 +15,10 @@ import { RemoteVhdDiskChain } from './RemoteVhdDiskChain.mjs'
  * @param {string} params.path
  * @param {string | undefined} params.until
  * @param {boolean} [params.force]
+ * @param {boolean} [params.ignoreBlockIndexes] - skip reading the block allocation table of each disk (cheaper, but blocks can't be read)
  * @returns {Promise<RemoteDisk>}
  */
-async function _openDiskChain($defer, { handler, path, until, force = false }) {
+async function _openDiskChain($defer, { handler, path, until, force = false, ignoreBlockIndexes = false }) {
   /**
    * @type {RemoteVhdDisk}
    */
@@ -29,16 +30,18 @@ async function _openDiskChain($defer, { handler, path, until, force = false }) {
   $defer.onFailure(() => Promise.all(disks.map(disk => disk.close())))
   disk = new RemoteVhdDisk({ handler, path })
 
-  await disk.init({ force })
+  await disk.init({ force, ignoreBlockIndexes })
   disks.push(disk)
   let foundRootDisk = until === undefined
   while (disk.isDifferencing()) {
-    disk = await disk.openParent()
-    if (disk.getPath() === until) {
+    if (disk.getParentPath() === until) {
       foundRootDisk = true
-      await disk.close()
       break
     }
+    // Instantiate + init the parent directly (instead of openParent()) so the
+    // block allocation table read can be skipped when ignoreBlockIndexes is set.
+    disk = /** @type {RemoteVhdDisk} */ (disk.instantiateParent())
+    await disk.init({ force, ignoreBlockIndexes })
     disks.unshift(disk)
   }
   if (!foundRootDisk) {
@@ -49,6 +52,6 @@ async function _openDiskChain($defer, { handler, path, until, force = false }) {
 }
 
 /**
- * @type {(params: { handler: RemoteHandlerAbstract, path: string, until?: string, force?: boolean }) => Promise<RemoteDisk>}
+ * @type {(params: { handler: RemoteHandlerAbstract, path: string, until?: string, force?: boolean, ignoreBlockIndexes?: boolean }) => Promise<RemoteDisk>}
  */
 export const openDiskChain = defer(_openDiskChain)

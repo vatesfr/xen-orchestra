@@ -240,7 +240,7 @@ exports.VhdAbstract = class VhdAbstract {
         `Alias relative path ${relativePathToTarget} is too long : ${relativePathToTarget.length} chars, max is ${ALIAS_MAX_PATH_LENGTH}`
       )
     }
-    await handler.writeFile(aliasPath, relativePathToTarget)
+    await handler.writeFile(aliasPath, relativePathToTarget, { flags: 'w' })
   }
 
   streamSize() {

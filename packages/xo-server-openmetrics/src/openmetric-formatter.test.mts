@@ -22,11 +22,12 @@ import {
   formatXostorClusterMetrics,
   formatXostorSmartMetrics,
   formatXostorUpdatesMetrics,
+  serializeTags,
   type FormattedMetric,
   type LabelContext,
 } from './openmetric-formatter.mjs'
 
-import { indexSrUuidTruncations } from './index.mjs'
+import { indexSrUuidTruncations, POWER_SENSOR_REGEX } from './index.mjs'
 
 import type {
   HostStatusItem,
@@ -1236,6 +1237,225 @@ describe('formatAllPoolsToOpenMetrics with labelContext', () => {
     const result = formatAllPoolsToOpenMetrics(rrdDataList, createLabelContext())
 
     assert.ok(result.includes('vm_name="Web Server"'))
+  })
+})
+
+// ============================================================================
+// VM power consumption (estimate) tests
+// ============================================================================
+
+describe('xcp_vm_power_consumption_watts', () => {
+  // Label context whose VMs carry vcpus / host_id, keyed by uuid.
+  const labelContext = (
+    vms: Record<string, { vcpus: number; is_control_domain?: boolean; host_id?: string }>
+  ): LabelContext => ({
+    hosts: [
+      {
+        hostId: 'host-1',
+        hostAddress: '10.0.0.1',
+        hostLabel: 'Host 1',
+        poolId: 'pool-1',
+        poolLabel: 'Prod',
+        sessionId: 's',
+        protocol: 'https:',
+      },
+      {
+        hostId: 'host-2',
+        hostAddress: '10.0.0.2',
+        hostLabel: 'Host 2',
+        poolId: 'pool-1',
+        poolLabel: 'Prod',
+        sessionId: 's',
+        protocol: 'https:',
+      },
+    ],
+    labels: {
+      vms: Object.fromEntries(
+        Object.entries(vms).map(([uuid, v]) => [
+          uuid,
+          {
+            name_label: uuid,
+            is_control_domain: v.is_control_domain ?? false,
+            vbdDeviceToVdiName: {},
+            vbdDeviceToVdiUuid: {},
+            vifIndexToNetworkName: {},
+            startTime: null,
+            power_state: 'Running',
+            vcpus: v.vcpus,
+            host_id: v.host_id ?? 'host-1',
+            pool_id: 'pool-1',
+            pool_name: 'Prod',
+          },
+        ])
+      ),
+      hosts: {
+        'host-1': { name_label: 'Host 1', pifDeviceToNetworkName: {}, startTime: null },
+        'host-2': { name_label: 'Host 2', pifDeviceToNetworkName: {}, startTime: null },
+      },
+      srs: {},
+      srTruncatedToUuid: {},
+      vdiUuidToSrUuid: {},
+    },
+  })
+
+  const cpuUsage = (uuid: string, value: number): ParsedMetric => ({
+    legend: {
+      cf: 'AVERAGE',
+      objectType: 'vm',
+      uuid,
+      metricName: 'cpu_usage',
+      rawLegend: `AVERAGE:vm:${uuid}:cpu_usage`,
+    },
+    value,
+    timestamp: 1700000000,
+  })
+  const memory = (uuid: string, value: number): ParsedMetric => ({
+    legend: {
+      cf: 'AVERAGE',
+      objectType: 'vm',
+      uuid,
+      metricName: 'memory_internal_free',
+      rawLegend: `AVERAGE:vm:${uuid}:memory_internal_free`,
+    },
+    value,
+    timestamp: 1700000000,
+  })
+  const hostFetch = (hostId: string, metrics: ParsedMetric[]): ParsedRrdData => ({
+    poolId: 'pool-1',
+    hostId,
+    timestamp: 1700000000,
+    metrics,
+  })
+
+  // Parse `name{labels} value timestamp` lines for a metric name.
+  const series = (output: string, name: string): Array<{ line: string; value: number }> =>
+    output
+      .split('\n')
+      .filter(l => l.startsWith(`${name}{`))
+      .map(l => ({
+        line: l,
+        value: Number(
+          l
+            .slice(l.lastIndexOf('}') + 1)
+            .trim()
+            .split(/\s+/)[0]
+        ),
+      }))
+  const uuidOf = (line: string): string => line.match(/uuid="([^"]+)"/)![1]!
+
+  it('splits host power across running guests proportional to cpu_usage × vCPUs (conservation)', () => {
+    // loads: vm-a = 0.25×4 = 1, vm-b = 0.75×4 = 3, total 4 → 50 / 150 W of 200 W
+    const out = formatAllPoolsToOpenMetrics(
+      [hostFetch('host-1', [cpuUsage('vm-a', 0.25), cpuUsage('vm-b', 0.75)])],
+      labelContext({ 'vm-a': { vcpus: 4 }, 'vm-b': { vcpus: 4 } }),
+      { 'host-1': 200 }
+    )
+    const lines = series(out, 'xcp_vm_power_consumption_watts')
+    assert.equal(lines.length, 2)
+    const byVm = Object.fromEntries(lines.map(l => [uuidOf(l.line), l.value]))
+    assert.equal(byVm['vm-a'], 50)
+    assert.equal(byVm['vm-b'], 150)
+    assert.equal(
+      lines.reduce((s, l) => s + l.value, 0),
+      200
+    ) // Σ == host power
+    assert.ok(lines.every(l => l.line.includes('estimate="true"')))
+    assert.ok(lines.every(l => l.line.includes('host_id="host-1"')))
+  })
+
+  it('emits no VM series for a host without a power reading', () => {
+    const out = formatAllPoolsToOpenMetrics(
+      [hostFetch('host-1', [cpuUsage('vm-a', 0.5)])],
+      labelContext({ 'vm-a': { vcpus: 2 } }),
+      {} // no power for host-1
+    )
+    assert.equal(series(out, 'xcp_vm_power_consumption_watts').length, 0)
+  })
+
+  it('excludes dom0 from numerator and denominator', () => {
+    const out = formatAllPoolsToOpenMetrics(
+      [hostFetch('host-1', [cpuUsage('vm-a', 0.5), cpuUsage('dom0', 5)])],
+      labelContext({ 'vm-a': { vcpus: 1 }, dom0: { vcpus: 1, is_control_domain: true } }),
+      { 'host-1': 100 }
+    )
+    const lines = series(out, 'xcp_vm_power_consumption_watts')
+    assert.equal(lines.length, 1)
+    assert.ok(lines[0]!.line.includes('uuid="vm-a"'))
+    assert.equal(lines[0]!.value, 100) // dom0 took no share
+  })
+
+  it('falls back to equal split when the host is quasi-idle (Σ load < 0.01)', () => {
+    const out = formatAllPoolsToOpenMetrics(
+      [hostFetch('host-1', [cpuUsage('vm-a', 0), cpuUsage('vm-b', 0)])],
+      labelContext({ 'vm-a': { vcpus: 2 }, 'vm-b': { vcpus: 2 } }),
+      { 'host-1': 100 }
+    )
+    const lines = series(out, 'xcp_vm_power_consumption_watts')
+    assert.equal(lines.length, 2)
+    assert.ok(lines.every(l => l.value === 50))
+    assert.equal(
+      lines.reduce((s, l) => s + l.value, 0),
+      100
+    )
+  })
+
+  it('flags a running VM with an RRD gap (no cpu_usage) as data_complete="false" with 0 W', () => {
+    // vm-a load 1 (takes all power); vm-b present only via a memory metric → load 0, incomplete
+    const out = formatAllPoolsToOpenMetrics(
+      [hostFetch('host-1', [cpuUsage('vm-a', 1), memory('vm-b', 1024)])],
+      labelContext({ 'vm-a': { vcpus: 1 }, 'vm-b': { vcpus: 1 } }),
+      { 'host-1': 100 }
+    )
+    const lines = series(out, 'xcp_vm_power_consumption_watts')
+    const byVm = Object.fromEntries(lines.map(l => [uuidOf(l.line), l]))
+    assert.equal(byVm['vm-a']!.value, 100)
+    assert.equal(byVm['vm-b']!.value, 0)
+    assert.ok(byVm['vm-b']!.line.includes('data_complete="false"'))
+    assert.ok(!byVm['vm-a']!.line.includes('data_complete'))
+    assert.equal(
+      lines.reduce((s, l) => s + l.value, 0),
+      100
+    ) // conservation preserved
+  })
+
+  it('does not mix VMs across hosts', () => {
+    const out = formatAllPoolsToOpenMetrics(
+      [hostFetch('host-1', [cpuUsage('vm-a', 0.5)]), hostFetch('host-2', [cpuUsage('vm-b', 0.5)])],
+      labelContext({ 'vm-a': { vcpus: 1, host_id: 'host-1' }, 'vm-b': { vcpus: 1, host_id: 'host-2' } }),
+      { 'host-1': 200, 'host-2': 100 }
+    )
+    const byVm = Object.fromEntries(series(out, 'xcp_vm_power_consumption_watts').map(l => [uuidOf(l.line), l.value]))
+    assert.equal(byVm['vm-a'], 200)
+    assert.equal(byVm['vm-b'], 100)
+  })
+
+  it('emits nothing for powered-off VMs and labels IPMI host power source="ipmi"', () => {
+    const out = formatAllPoolsToOpenMetrics(
+      [hostFetch('host-1', [cpuUsage('vm-a', 0.5)])],
+      labelContext({ 'vm-a': { vcpus: 1 }, 'vm-off': { vcpus: 1 } }), // vm-off absent from RRD
+      { 'host-1': 100 }
+    )
+    const lines = series(out, 'xcp_vm_power_consumption_watts')
+    assert.equal(lines.length, 1)
+    assert.ok(!lines.some(l => l.line.includes('vm-off')))
+    assert.ok(/xcp_host_power_consumption_watts\{[^}]*source="ipmi"/.test(out))
+  })
+})
+
+describe('POWER_SENSOR_REGEX', () => {
+  it('matches the supported vendor power-sensor names and nothing else', () => {
+    for (const name of ['pwr consumption', 'Sys Power', 'system power', 'power consumption', 'total_power']) {
+      assert.ok(POWER_SENSOR_REGEX.test(name), name)
+    }
+    for (const name of ['cpu temp', 'fan1', 'psu1 status', 'voltage 1']) {
+      assert.ok(!POWER_SENSOR_REGEX.test(name), name)
+    }
+  })
+
+  it('parseFloat strips a unit suffix from the reading', () => {
+    assert.equal(Number.parseFloat('210 Watts'), 210)
+    assert.equal(Number.parseFloat('195'), 195)
+    assert.ok(Number.isNaN(Number.parseFloat('N/A')))
   })
 })
 
@@ -3163,5 +3383,369 @@ describe('indexSrUuidTruncations', () => {
 
     // 8/12/16/20 are all longer than the 7-char input
     assert.equal(Object.keys(index).length, 0)
+  })
+})
+
+// ============================================================================
+// Tags Label Tests
+// ============================================================================
+
+describe('serializeTags', () => {
+  it('should return empty string for undefined or empty input', () => {
+    assert.equal(serializeTags(undefined), '')
+    assert.equal(serializeTags([]), '')
+  })
+
+  it('should join tags with commas', () => {
+    assert.equal(serializeTags(['production', 'web']), 'production,web')
+  })
+
+  it('should sort tags for stable series identity', () => {
+    assert.equal(serializeTags(['web', 'production', 'customer-a']), 'customer-a,production,web')
+  })
+
+  it('should deduplicate tags', () => {
+    assert.equal(serializeTags(['prod', 'prod', 'web']), 'prod,web')
+  })
+
+  it('should filter out empty tags', () => {
+    assert.equal(serializeTags(['', 'prod', '']), 'prod')
+  })
+
+  it('should filter out whitespace-only tags', () => {
+    assert.equal(serializeTags(['   ', 'prod', '\t']), 'prod')
+    assert.equal(serializeTags([' ']), '')
+  })
+
+  it('should collapse a list of identical tags to a single entry', () => {
+    assert.equal(serializeTags(['prod', 'prod', 'prod']), 'prod')
+  })
+})
+
+describe('tags label on RRD metrics (transformMetric)', () => {
+  const createTaggedLabelContext = (hostTags?: string[], vmTags?: string[]): LabelContext => ({
+    hosts: [
+      {
+        hostId: 'host-uuid-123',
+        hostAddress: '192.168.1.1',
+        hostLabel: 'Host 1',
+        poolId: 'pool-456',
+        poolLabel: 'Production Pool',
+        sessionId: 'session-123',
+        protocol: 'https:',
+      },
+    ],
+    labels: {
+      vms: {
+        'vm-uuid-789': {
+          name_label: 'Web Server',
+          is_control_domain: false,
+          vbdDeviceToVdiName: {},
+          vbdDeviceToVdiUuid: {},
+          vifIndexToNetworkName: {},
+          startTime: null,
+          power_state: 'Running',
+          pool_id: 'pool-456',
+          pool_name: 'Production Pool',
+          tags: vmTags,
+        },
+      },
+      hosts: {
+        'host-uuid-123': {
+          name_label: 'Host 1',
+          pifDeviceToNetworkName: {},
+          startTime: null,
+          tags: hostTags,
+        },
+      },
+      srs: {},
+      srTruncatedToUuid: {},
+      vdiUuidToSrUuid: {},
+    },
+  })
+
+  const hostMetric: ParsedMetric = {
+    legend: {
+      cf: 'AVERAGE',
+      objectType: 'host',
+      uuid: 'host-uuid-123',
+      metricName: 'cpu_avg',
+      rawLegend: 'AVERAGE:host:host-uuid-123:cpu_avg',
+    },
+    value: 0.75,
+    timestamp: 1700000000,
+  }
+
+  const vmMetric: ParsedMetric = {
+    legend: {
+      cf: 'AVERAGE',
+      objectType: 'vm',
+      uuid: 'vm-uuid-789',
+      metricName: 'cpu_usage',
+      rawLegend: 'AVERAGE:vm:vm-uuid-789:cpu_usage',
+    },
+    value: 0.5,
+    timestamp: 1700000000,
+  }
+
+  it('should add tags label to host metrics', () => {
+    const result = transformMetric(hostMetric, 'pool-456', createTaggedLabelContext(['prod', 'dc1']))
+
+    assert.ok(result)
+    assert.equal(result.labels.tags, 'dc1,prod')
+  })
+
+  it('should add tags label to VM metrics', () => {
+    const result = transformMetric(vmMetric, 'pool-456', createTaggedLabelContext(undefined, ['customer-a', 'web']))
+
+    assert.ok(result)
+    assert.equal(result.labels.tags, 'customer-a,web')
+  })
+
+  it('should omit tags label when host has no tags', () => {
+    const result = transformMetric(hostMetric, 'pool-456', createTaggedLabelContext([]))
+
+    assert.ok(result)
+    assert.equal(result.labels.tags, undefined)
+  })
+
+  it('should omit tags label when VM tags are undefined', () => {
+    const result = transformMetric(vmMetric, 'pool-456', createTaggedLabelContext())
+
+    assert.ok(result)
+    assert.equal(result.labels.tags, undefined)
+  })
+})
+
+describe('tags label on status, uptime and SR metrics', () => {
+  it('should add tags label to host status metrics', () => {
+    const hosts: HostStatusItem[] = [
+      {
+        uuid: 'host-1',
+        name_label: 'Host 1',
+        power_state: 'Running',
+        enabled: true,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+        tags: ['prod', 'dc1'],
+      },
+    ]
+
+    const result = formatHostStatusMetrics(hosts)
+
+    assert.equal(result[0]!.labels.tags, 'dc1,prod')
+  })
+
+  it('should omit tags label on host status metrics without tags', () => {
+    const hosts: HostStatusItem[] = [
+      {
+        uuid: 'host-1',
+        name_label: 'Host 1',
+        power_state: 'Running',
+        enabled: true,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+    ]
+
+    const result = formatHostStatusMetrics(hosts)
+
+    assert.equal(result[0]!.labels.tags, undefined)
+  })
+
+  it('should add tags label to VM status metrics', () => {
+    const vms: VmStatusItem[] = [
+      {
+        uuid: 'vm-1',
+        name_label: 'VM 1',
+        power_state: 'Running',
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+        tags: ['web', 'customer-a'],
+      },
+    ]
+
+    const result = formatVmStatusMetrics(vms)
+
+    assert.equal(result[0]!.labels.tags, 'customer-a,web')
+  })
+
+  it('should add tags label to all SR capacity metrics', () => {
+    const srs: SrDataItem[] = [
+      {
+        uuid: 'sr-1',
+        name_label: 'Local Storage',
+        size: 1000,
+        physical_usage: 500,
+        usage: 250,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+        sr_type: 'lvm',
+        tags: ['fast', 'ssd'],
+      },
+    ]
+
+    const metrics = formatSrMetrics(srs)
+
+    assert.equal(metrics.length, 3)
+    for (const m of metrics) {
+      assert.equal(m.labels.tags, 'fast,ssd')
+    }
+  })
+
+  it('should add tags label to host uptime metrics', () => {
+    const labelContext: LabelContext = {
+      hosts: [
+        {
+          hostId: 'host-1',
+          hostAddress: '192.168.1.1',
+          hostLabel: 'Host 1',
+          poolId: 'pool-456',
+          poolLabel: 'Production Pool',
+          sessionId: 'session-123',
+          protocol: 'https:',
+        },
+      ],
+      labels: {
+        vms: {},
+        hosts: {
+          'host-1': {
+            name_label: 'Host 1',
+            pifDeviceToNetworkName: {},
+            startTime: Math.floor(Date.now() / 1000) - 7200,
+            tags: ['prod'],
+          },
+        },
+        srs: {},
+        srTruncatedToUuid: {},
+        vdiUuidToSrUuid: {},
+      },
+    }
+
+    const metrics = formatHostUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 1)
+    assert.equal(metrics[0]!.labels.tags, 'prod')
+  })
+
+  it('should add tags label to VM uptime metrics', () => {
+    const labelContext: LabelContext = {
+      hosts: [],
+      labels: {
+        vms: {
+          'vm-1': {
+            name_label: 'VM 1',
+            is_control_domain: false,
+            vbdDeviceToVdiName: {},
+            vbdDeviceToVdiUuid: {},
+            vifIndexToNetworkName: {},
+            startTime: Math.floor(Date.now() / 1000) - 3600,
+            power_state: 'Running',
+            pool_id: 'pool-456',
+            pool_name: 'Production Pool',
+            tags: ['web', 'customer-a'],
+          },
+        },
+        hosts: {},
+        srs: {},
+        srTruncatedToUuid: {},
+        vdiUuidToSrUuid: {},
+      },
+    }
+
+    const metrics = formatVmUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 1)
+    assert.equal(metrics[0]!.labels.tags, 'customer-a,web')
+  })
+
+  it('should escape special characters in tag values through formatToOpenMetrics', () => {
+    const vms: VmStatusItem[] = [
+      {
+        uuid: 'vm-1',
+        name_label: 'VM 1',
+        power_state: 'Running',
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+        tags: ['with"quote', 'with\\backslash'],
+      },
+    ]
+
+    const output = formatToOpenMetrics(formatVmStatusMetrics(vms))
+
+    assert.match(output, /tags="with\\"quote,with\\\\backslash"/)
+  })
+
+  it('should escape newlines in tag values through formatToOpenMetrics', () => {
+    const vms: VmStatusItem[] = [
+      {
+        uuid: 'vm-1',
+        name_label: 'VM 1',
+        power_state: 'Running',
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+        tags: ['line1\nline2'],
+      },
+    ]
+
+    const output = formatToOpenMetrics(formatVmStatusMetrics(vms))
+
+    // The newline must be escaped as the two characters `\` + `n`
+    assert.match(output, /tags="line1\\nline2"/)
+    assert.ok(!output.includes('tags="line1\nline2"'))
+  })
+
+  it('should keep tags label on VBD metrics where extracted labels are added afterwards', () => {
+    const labelContext: LabelContext = {
+      hosts: [
+        {
+          hostId: 'host-uuid-123',
+          hostAddress: '192.168.1.1',
+          hostLabel: 'Host 1',
+          poolId: 'pool-456',
+          poolLabel: 'Production Pool',
+          sessionId: 'session-123',
+          protocol: 'https:',
+        },
+      ],
+      labels: {
+        vms: {
+          'vm-uuid-789': {
+            name_label: 'Web Server',
+            is_control_domain: false,
+            vbdDeviceToVdiName: { xvda: 'System Disk' },
+            vbdDeviceToVdiUuid: { xvda: 'vdi-uuid-system' },
+            vifIndexToNetworkName: {},
+            startTime: null,
+            power_state: 'Running',
+            pool_id: 'pool-456',
+            pool_name: 'Production Pool',
+            tags: ['prod'],
+          },
+        },
+        hosts: {},
+        srs: {},
+        srTruncatedToUuid: {},
+        vdiUuidToSrUuid: {},
+      },
+    }
+
+    const metric: ParsedMetric = {
+      legend: {
+        cf: 'AVERAGE',
+        objectType: 'vm',
+        uuid: 'vm-uuid-789',
+        metricName: 'vbd_xvda_read',
+        rawLegend: 'AVERAGE:vm:vm-uuid-789:vbd_xvda_read',
+      },
+      value: 1000000,
+      timestamp: 1700000000,
+    }
+
+    const result = transformMetric(metric, 'pool-456', labelContext)
+
+    assert.ok(result)
+    assert.equal(result.labels.device, 'xvda')
+    assert.equal(result.labels.tags, 'prod')
   })
 })

@@ -101,10 +101,14 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
 
         const handleVm = vmUuid => {
           const getVmTask = () => {
-            if (taskByVmId[vmUuid] === undefined) {
+            const started = taskByVmId[vmUuid] !== undefined
+            if (!started) {
               taskByVmId[vmUuid] = new Task(taskStart)
             }
-            return taskByVmId[vmUuid]
+            return {
+              task: taskByVmId[vmUuid],
+              started,
+            }
           }
           const vmBackupFailed = async (error, task) => {
             if (isLastRun) {
@@ -114,6 +118,7 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
               task.warning(`Retry the VM backup due to an error`, {
                 attempt: nTriesByVmId[vmUuid],
                 error: error.message,
+                isRetry: true,
               })
               queue.add(vmUuid)
             }
@@ -135,7 +140,7 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
                   taskStart.properties.name_label = vm.name_label
                 }
 
-                const task = getVmTask()
+                const { task } = getVmTask()
                 // error has to be caught in the task to prevent its failure, but handled outside the task to execute another task.run()
                 let taskError
                 return task
@@ -174,12 +179,19 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
                       task.success(result)
                     } else {
                       // ending the task with error or not ending the task
-                      vmBackupFailed(taskError, task)
+                      return vmBackupFailed(taskError, task)
                     }
                   })
                   .catch(noop) // errors are handled by logs
               }),
-            error => vmBackupFailed(error, getVmTask())
+            error => {
+              const { task: vmTask, started } = getVmTask()
+              if (!started) {
+                // the task is not started (except if it's a retry), and an unstarted task can't be failed
+                vmTask.start()
+              }
+              return vmBackupFailed(error, vmTask)
+            }
           )
         }
         const { concurrency } = settings

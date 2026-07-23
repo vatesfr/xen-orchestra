@@ -11,6 +11,7 @@ import httpProxy from 'http-proxy'
 import includes from 'lodash/includes.js'
 import memoryStoreFactory from 'memorystore'
 import merge from 'lodash/merge.js'
+import mergeWith from 'lodash/mergeWith.js'
 import ms from 'ms'
 import once from 'lodash/once.js'
 import proxyAddr from 'proxy-addr'
@@ -53,7 +54,7 @@ import transportConsole from '@xen-orchestra/log/transports/console'
 import { configure } from '@xen-orchestra/log/configure'
 import { generateToken } from './utils.mjs'
 import { ProxyAgent } from 'proxy-agent'
-import { writeHeapSnapshot } from 'node:v8'
+import v8, { writeHeapSnapshot } from 'node:v8'
 
 // ===================================================================
 
@@ -62,7 +63,6 @@ const [APP_NAME, APP_VERSION] = (() => {
   const { name, version } = JSON.parse(fse.readFileSync(new URL('../package.json', import.meta.url)))
   return [name, version]
 })()
-
 // ===================================================================
 
 configure([
@@ -79,6 +79,36 @@ const log = createLogger('xo:main')
 
 process.on('SIGUSR2', () => {
   const path = `/tmp/xo-server-${process.pid}-${Date.now()}.heapsnapshot`
+  const mu = process.memoryUsage() // rss, heapTotal, heapUsed, external, arrayBuffers
+  const hs = v8.getHeapStatistics() // external_memory, malloced_memory,
+  // number_of_native_contexts, number_of_detached_contexts
+
+  // OS-level RSS breakdown to see memory used outside the V8 heap (Linux only).
+  // VmRSS = RssAnon + RssFile + RssShmem ; a large `rss - (heapUsed + external)`
+  // points to native allocations or glibc malloc fragmentation rather than a JS leak.
+  let os
+  if (process.platform === 'linux') {
+    try {
+      os = {}
+      for (const line of fse.readFileSync('/proc/self/status', 'utf8').split('\n')) {
+        const matches = /^(VmRSS|RssAnon|RssFile|RssShmem|VmData|VmSwap):\s+(\d+)\s*kB$/.exec(line)
+        if (matches !== null) {
+          os[matches[1]] = +matches[2] * 1024 // kB to bytes, to match process.memoryUsage()
+        }
+      }
+    } catch (error) {
+      log.warn('cannot read /proc/self/status', { error })
+    }
+  }
+
+  log.info('memory', {
+    ...mu,
+    nativeContexts: hs.number_of_native_contexts,
+    detachedContexts: hs.number_of_detached_contexts, // >0 and rising = classic leak
+    mallocedMemory: hs.malloced_memory,
+    activeResources: process.getActiveResourcesInfo()?.length, // leaked timers/sockets
+    os,
+  })
   log.info('writing heap snapshot', { path })
   writeHeapSnapshot(path)
   log.info('heap snapshot written', { path })
@@ -116,6 +146,21 @@ async function updateLocalConfig(diff) {
 
 // ===================================================================
 
+const DEFAULT_HELMET_CONFIG = {
+  contentSecurityPolicy: {
+    directives: {
+      'default-src': ["'self'"],
+      // Hashes of XO's own inline scripts. If either changes, update its hash.
+      'script-src': [
+        "'self'",
+        "'sha256-sIj1FFjxCJxsQo5Hw5ZkhT+9Gc+Q6LmIkJzdjARCn0o='", // xo-web/src/index.pug
+        "'sha256-Z5hWOtGcISU7nkyObsPm3ZZvPpAYxzoiQutkJucVkm8='", // xo-server/signin.pug
+      ],
+      'style-src': ["'self'", "'unsafe-inline'"],
+      'img-src': ["'self'", 'data:'],
+    },
+  },
+}
 async function createExpressApp(config) {
   const app = createExpress()
 
@@ -123,8 +168,11 @@ async function createExpressApp(config) {
   //
   // https://expressjs.com/en/api.html#app.set
   app.set('json spaces', 2)
-
-  app.use(helmet(config.http.helmet))
+  const isDev = (process.env.NODE_ENV ?? '').trim().toLowerCase() === 'development'
+  const helmetConfig = mergeWith({}, isDev ? {} : DEFAULT_HELMET_CONFIG, config.http.helmet, (dst, src) =>
+    Array.isArray(dst) ? dst.concat(src) : undefined
+  )
+  app.use(helmet(helmetConfig))
 
   app.use(compression())
 
@@ -552,27 +600,34 @@ async function makeWebServerListen(
 }
 
 async function createWebServer({ listen, listenOptions }) {
-  const webServer = stoppable(new WebServer())
+  const isDev = process.env.NODE_ENV !== 'production'
+  let webServer
+  if (isDev) {
+    webServer = new WebServer()
+  } else {
+    webServer = stoppable(new WebServer())
 
-  // stoppable uses `instanceof https.Server` to decide whether to track sockets via
-  // 'secureConnection'. http-server-plus extends EventEmitter (not https.Server), so
-  // stoppable falls back to 'connection' (raw TCP) only. req.socket is the TLSSocket,
-  // so every HTTPS request adds a TLSSocket to _pendingSockets without a close listener,
-  // causing TLSSockets to accumulate indefinitely. We add the missing handler here;
-  // http-server-plus forwards it to underlying https.Server instances on listen().
-  const pendingSockets = webServer._pendingSockets
-  if (!(pendingSockets instanceof Map)) {
-    throw new Error('stoppable internal API changed: _pendingSockets is missing')
+    // stoppable uses `instanceof https.Server` to decide whether to track sockets via
+    // 'secureConnection'. http-server-plus extends EventEmitter (not https.Server), so
+    // stoppable falls back to 'connection' (raw TCP) only. req.socket is the TLSSocket,
+    // so every HTTPS request adds a TLSSocket to _pendingSockets without a close listener,
+    // causing TLSSockets to accumulate indefinitely. We add the missing handler here;
+    // http-server-plus forwards it to underlying https.Server instances on listen().
+    const pendingSockets = webServer._pendingSockets
+    if (!(pendingSockets instanceof Map)) {
+      throw new Error('stoppable internal API changed: _pendingSockets is missing')
+    }
+    webServer.on('secureConnection', socket => {
+      pendingSockets.set(socket, 0)
+      socket.once('close', () => pendingSockets.delete(socket))
+    })
   }
-  webServer.on('secureConnection', socket => {
-    pendingSockets.set(socket, 0)
-    socket.once('close', () => pendingSockets.delete(socket))
-  })
 
   await asyncMap(Object.entries(listen), ([configKey, opts]) =>
     makeWebServerListen(webServer, { ...listenOptions, ...opts, configKey })
   )
 
+  webServer.isDev = isDev
   return webServer
 }
 
@@ -991,7 +1046,7 @@ export default async function main(args) {
   })
 
   // Register web server close on XO stop.
-  xo.hooks.on('stop', () => fromCallback.call(webServer, 'stop'))
+  xo.hooks.on('stop', () => fromCallback.call(webServer, webServer.isDev ? 'close' : 'stop'))
 
   // Connects to all registered servers.
   await xo.hooks.start()
@@ -1056,6 +1111,12 @@ export default async function main(args) {
       alreadyCalled = true
 
       log.info(`${signal} caught, closing…`)
+
+      const heartbeat = setInterval(() => {
+        log.info(`xo-server still running in pid ${process.pid}`)
+      }, 5e3)
+      heartbeat.unref()
+
       xo.hooks.stop()
     })
   })

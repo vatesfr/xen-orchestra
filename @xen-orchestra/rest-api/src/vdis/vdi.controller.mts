@@ -5,6 +5,7 @@ import {
   Extension,
   Get,
   Middlewares,
+  Patch,
   Path,
   Post,
   Put,
@@ -22,7 +23,10 @@ import type { Readable } from 'node:stream'
 import { json, type Request as ExRequest, type Response as ExResponse } from 'express'
 import type { SUPPORTED_VDI_FORMAT, Xapi, XoAlarm, XoMessage, XoSr, XoTask, XoVdi } from '@vates/types'
 
-import { acl } from '../middlewares/acl.middleware.mjs'
+import { SUPPORTED_ACTIONS_BY_RESOURCE, type SupportedActions } from '@xen-orchestra/acl'
+import { invalidParameters } from 'xo-common/api-errors.js'
+
+import { acl, actionsFromBody } from '../middlewares/acl.middleware.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
@@ -32,6 +36,7 @@ import {
   createdResp,
   forbiddenOperationResp,
   internalServerErrorResp,
+  invalidParameters as invalidParametersResp,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
@@ -52,6 +57,16 @@ type CreateVdiBody = Omit<CreateVdiParams[0], 'SR' | 'other_config'> & {
   srId: string
   other_config?: { [key: string]: string }
 } & CreateVdiParams[1]
+
+interface UpdateVdiRequestBody {
+  name_label?: string
+  name_description?: string
+  size?: number
+}
+
+const UPDATE_VDI_ACTIONS = Object.keys(SUPPORTED_ACTIONS_BY_RESOURCE.vdi.update)
+  .filter(action => action !== 'tags')
+  .map(k => `update:${k}` as SupportedActions<'vdi'>)
 
 @Route('vdis')
 @Security('*')
@@ -175,6 +190,55 @@ export class VdiController extends XapiXoController<XoVdi> {
   }
 
   /**
+   * Partial update of a VDI. Only the fields present in the body are modified;
+   * everything else is left untouched.
+   *
+   * Operations are applied sequentially: if one fails, previously applied
+   * changes are not rolled back.
+   *
+   * `size` is expressed in bytes and can only be increased: a VDI cannot be shrunk.
+   *
+   * Required privilege per field provided in the body:
+   * - resource: vdi, action: update:&lt;field&gt;
+   *
+   * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
+   * @example body { "name_label": "my disk", "name_description": "system disk", "size": 10737418240 }
+   */
+  @Extension('x-mcp-exposure', 'confirm')
+  @Patch('{id}')
+  @Middlewares([
+    json(),
+    acl({
+      resource: 'vdi',
+      actions: actionsFromBody(UPDATE_VDI_ACTIONS),
+      objectId: 'params.id',
+    }),
+  ])
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async updateVdi(@Path() id: string, @Body() body: UpdateVdiRequestBody): Promise<void> {
+    const { $ref, $xapi } = this.getXapiObject(id as XoVdi['id'])
+    const { name_label, name_description, size } = body
+
+    if (name_label !== undefined) {
+      await $xapi.call('VDI.set_name_label', $ref, name_label)
+    }
+    if (name_description !== undefined) {
+      await $xapi.call('VDI.set_name_description', $ref, name_description)
+    }
+    if (size !== undefined) {
+      const currentSize = this.getObject(id as XoVdi['id']).size
+      if (size < currentSize) {
+        throw invalidParameters(`cannot set new size (${size}) below the current size (${currentSize})`)
+      }
+      await $xapi.callAsync('VDI.resize', $ref, size)
+    }
+  }
+
+  /**
    * Returns all alarms that match the following privilege:
    * - resource: alarm, action: read
    *
@@ -213,13 +277,24 @@ export class VdiController extends XapiXoController<XoVdi> {
   /**
    * Create an empty VDI.
    *
+   * Required privileges:
+   * - resource: sr, action: import:vdi (on the target SR)
+   * - resource: vdi, action: create
+   *
    * @example body { "srId": "c4284e12-37c9-7967-b9e8-83ef229c3e03", "virtual_size": 10737418240, "name_label": "test VDI" }
    */
   @Example(vdiId)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('')
-  @Middlewares(json())
+  @Middlewares([
+    json(),
+    acl([
+      { resource: 'sr', action: 'import:vdi', objectId: 'body.srId' },
+      { resource: 'vdi', action: 'create', object: ({ req }) => req.body },
+    ]),
+  ])
   @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async createVdi(@Body() body: CreateVdiBody): Promise<{ id: string }> {
@@ -331,6 +406,10 @@ export class VdiController extends XapiXoController<XoVdi> {
   /**
    * Migrate a VDI to another SR.
    *
+   * Required privileges:
+   * - resource: vdi, action: migrate-send
+   * - resource: sr, action: migrate-receive (on the target SR)
+   *
    * Note: After migration, the VDI will have a new ID. The new ID is returned in the response.
    *
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
@@ -340,8 +419,17 @@ export class VdiController extends XapiXoController<XoVdi> {
   @Example(vdiId)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/migrate')
-  @Middlewares(json())
+  @Middlewares([
+    json(),
+    // Two separate checks allow independent control: a user can be allowed to migrate a VDI away
+    // without being allowed to place VDIs on any specific SR, and vice versa.
+    acl([
+      { resource: 'vdi', action: 'migrate-send', objectId: 'params.id' },
+      { resource: 'sr', action: 'migrate-receive', objectId: 'body.srId' },
+    ]),
+  ])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(200, 'Ok')
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
