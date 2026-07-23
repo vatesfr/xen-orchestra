@@ -45,6 +45,7 @@
 - [REST API] Expose `/rest/v0/acl-roles/:id/users` (PR [#10085](https://github.com/vatesfr/xen-orchestra/pull/10085))
 - [REST API] Expose `/rest/v0/acl-roles/:id/groups` (PR [#10085](https://github.com/vatesfr/xen-orchestra/pull/10085))
 - [XO6] Fix some design inconsistency between pages (PR [#10109](https://github.com/vatesfr/xen-orchestra/pull/10109))
+- [XO6/Pool] Add connect/disconnect action on page Site (PR [#10075](https://github.com/vatesfr/xen-orchestra/pull/10075))
 
 ### Bug fixes
 
