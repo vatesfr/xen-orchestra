@@ -2,8 +2,9 @@ import { RemoteHandlerAbstract } from '@xen-orchestra/fs'
 import { basename, dirname, normalize } from '@xen-orchestra/fs/path'
 import { resolve } from 'node:path'
 import groupBy from 'lodash/groupBy.js'
+import reduce from 'lodash/reduce.js'
 import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
-import { getVmBackupDir } from './paths.mjs'
+import { BACKUP_DIR, getVmBackupDir } from './paths.mjs'
 import { formatFilenameDate } from './filenameDate.mjs'
 import { isMetadataFile } from './backupType.mjs'
 import { VmFullBackupArchive } from './VmFullBackupArchive.mjs'
@@ -439,6 +440,65 @@ export class VmBackupDirectory implements VmBackupInterface {
       //   - if lock is already being held, a backup is running and cleanVm will be ran at the end
       //   - otherwise, there is nothing more we can do, orphan file will be cleaned in the future
       cleanVm(dir, { remove: true, logWarn }).catch(noop)
+    )
+  }
+
+  // List the VM UUIDs that have a backup directory, ignoring hidden and lock files.
+  static async listAllVms(handler: RemoteHandlerAbstract): Promise<string[]> {
+    const vmsUuids: string[] = []
+    try {
+      await asyncEach(await handler.list(BACKUP_DIR), async (entry: string) => {
+        // ignore hidden and lock files
+        if (entry[0] !== '.' && !entry.endsWith('.lock')) {
+          vmsUuids.push(entry)
+        }
+      })
+    } catch (error) {
+      // remote without any VM backup are ok
+      if (error.code !== 'ENOENT') {
+        throw error
+      }
+    }
+
+    return vmsUuids
+  }
+
+  // Map of vmUuid -> its backups, for every VM on the remote. `listVmBackups` is
+  // injected so the caller supplies its locked, cache-backed variant.
+  static async listAllVmBackups(
+    handler: RemoteHandlerAbstract,
+    listVmBackups: (vmUuid: string) => Promise<any[]>
+  ): Promise<Record<string, any[]>> {
+    const vmsUuids = await VmBackupDirectory.listAllVms(handler)
+    const backups: Record<string, any[]> = Object.create(null)
+    await asyncEach(vmsUuids, async (vmUuid: string) => {
+      const vmBackups = await listVmBackups(vmUuid)
+      if (vmBackups.length !== 0) {
+        backups[vmUuid] = vmBackups
+      }
+    })
+    return backups
+  }
+
+  static computeTotalBackupSizeRecursively(backups: any): { onDisk: number } {
+    return reduce(
+      backups,
+      (prev: { onDisk: number }, backup: any) => {
+        const _backup = Array.isArray(backup) ? VmBackupDirectory.computeTotalBackupSizeRecursively(backup) : backup
+        return {
+          onDisk: prev.onDisk + (_backup.onDisk ?? _backup.size),
+        }
+      },
+      { onDisk: 0 }
+    )
+  }
+
+  static async getTotalVmBackupSize(
+    handler: RemoteHandlerAbstract,
+    listVmBackups: (vmUuid: string) => Promise<any[]>
+  ): Promise<{ onDisk: number }> {
+    return VmBackupDirectory.computeTotalBackupSizeRecursively(
+      await VmBackupDirectory.listAllVmBackups(handler, listVmBackups)
     )
   }
 

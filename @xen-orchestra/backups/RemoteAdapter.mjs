@@ -1,4 +1,3 @@
-import { asyncEach } from '@vates/async-each'
 import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
 import { VhdDirectory, VhdSynthetic } from 'vhd-lib'
@@ -7,9 +6,7 @@ import { dirname, join, resolve } from 'node:path'
 import { synchronized } from 'decorator-synchronized'
 import Disposable from 'promise-toolbox/Disposable'
 import pickBy from 'lodash/pickBy.js'
-import reduce from 'lodash/reduce.js'
 
-import { BACKUP_DIR } from './_getVmBackupDir.mjs'
 import { VmBackupDirectory } from '@xen-orchestra/backup-archive'
 import {
   deleteMetadataBackup as deleteMetadataBackupArchive,
@@ -127,35 +124,11 @@ export class RemoteAdapter {
   }
 
   async listAllVms() {
-    const handler = this._handler
-    const vmsUuids = []
-    try {
-      await asyncEach(await handler.list(BACKUP_DIR), async entry => {
-        // ignore hidden and lock files
-        if (entry[0] !== '.' && !entry.endsWith('.lock')) {
-          vmsUuids.push(entry)
-        }
-      })
-    } catch (error) {
-      // remote without any VM backup are ok
-      if (error.code !== 'ENOENT') {
-        throw error
-      }
-    }
-
-    return vmsUuids
+    return VmBackupDirectory.listAllVms(this._handler)
   }
 
   async listAllVmBackups() {
-    const vmsUuids = await this.listAllVms()
-    const backups = { __proto__: null }
-    await asyncEach(vmsUuids, async vmUuid => {
-      const vmBackups = await this.listVmBackups(vmUuid)
-      if (vmBackups.length !== 0) {
-        backups[vmUuid] = vmBackups
-      }
-    })
-    return backups
+    return VmBackupDirectory.listAllVmBackups(this._handler, vmUuid => this.listVmBackups(vmUuid))
   }
 
   async listPoolMetadataBackups() {
@@ -340,21 +313,8 @@ export class RemoteAdapter {
     return VmBackupDirectory.readVmBackupMetadata(this._handler, path)
   }
 
-  #computeTotalBackupSizeRecursively(backups) {
-    return reduce(
-      backups,
-      (prev, backup) => {
-        const _backup = Array.isArray(backup) ? this.#computeTotalBackupSizeRecursively(backup) : backup
-        return {
-          onDisk: prev.onDisk + (_backup.onDisk ?? _backup.size),
-        }
-      },
-      { onDisk: 0 }
-    )
-  }
-
   async getTotalVmBackupSize() {
-    return this.#computeTotalBackupSizeRecursively(await this.listAllVmBackups())
+    return VmBackupDirectory.getTotalVmBackupSize(this._handler, vmUuid => this.listVmBackups(vmUuid))
   }
 
   async getTotalBackupSize() {
