@@ -12,6 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 - [REST API] `POST /rest/v0/acl-roles` now supports a `privileges` property, allowing privileges to be directly associated with the newly created role (PR [#10470](https://github.com/vatesfr/xen-orchestra/pull/10470))
 - [Tasks] Add link and object resolution to Tasks Overview panel, better text flow for resolved task names (PR [#10265](https://github.com/vatesfr/xen-orchestra/pull/10265))
 - [XO5/Settings/IPs] Show an example of the expected IP format when adding IPs to an IP pool (PR [#10522](https://github.com/vatesfr/xen-orchestra/pull/10522))
@@ -31,24 +32,27 @@
 =======
 - [probe sr] probe srs on a host (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
 >>>>>>> 8dc8b9bf7 (updating acl host supported actions doc)
+=======
+- [vm stats] Reduce the memory consumption of the rrd stats (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+>>>>>>> 48861713b (updating changelog)
 
-- SR REST API Endpoints:
+- HOST Probe Sr REST API Endpoints:
 
-  - `GET :id/actions/probe_nfs` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+  - `POST :id/actions/probe_nfs` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
 
-  - `GET :id/actions/probe_zfs` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+  - `POST :id/actions/probe_zfs` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
 
-  - `GET :id/actions/probe_hba` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+  - `POST :id/actions/probe_hba` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
 
-  - `GET :id/actions/probe_iscsi_iqns` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+  - `POST :id/actions/probe_iscsi_iqns` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
 
-  - `GET :id/actions/probe_iscsi_luns` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+  - `POST :id/actions/probe_iscsi_luns` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
 
-  - `GET :id/actions/probe_iscsi_exists` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+  - `POST :id/actions/probe_iscsi_exists` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
 
-  - `GET :id/actions/probe_hba_exists` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+  - `POST :id/actions/probe_hba_exists` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
 
-  - `GET :id/actions/probe_nfs_exists` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+  - `POST :id/actions/probe_nfs_exists` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
 
 ### Bug fixes
 
@@ -95,7 +99,12 @@
 - xo-web minor
 =======
 - @xen-orchestra/acl minor
+- @xen-orchestra/backup-archive patch
 - @xen-orchestra/rest-api minor
+<<<<<<< HEAD
 >>>>>>> 8dc8b9bf7 (updating acl host supported actions doc)
+=======
+- @xen-orchestra/web patch
+>>>>>>> 48861713b (updating changelog)
 
 <!--packages-end-->
