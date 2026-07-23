@@ -1,9 +1,9 @@
 <template>
   <HostDisableButton v-if="host.enabled" :host />
   <HostEnableButton v-else :host />
+  <HostForgetButton v-if="hostIsHalted" :host />
   <VtsDivider type="stretch" />
   <HostDownloadButton :host-id="host.id" />
-  <HostForgetButton v-if="hostIsHalted" :host />
 </template>
 
 <script lang="ts" setup>
