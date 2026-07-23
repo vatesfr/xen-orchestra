@@ -11,11 +11,9 @@ export const useXoHostForgetJob = defineJob('host.forget', [xoHostArg], () => {
   const { monitorTask } = useXoTaskUtils()
 
   return {
-    async run(host: FrontXoHost | undefined) {
-      if (host) {
-        const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`hosts/${host.id}/actions/forget`)
-        await monitorTask(taskId)
-      }
+    async run(host: FrontXoHost) {
+      const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`hosts/${host.id}/actions/forget`)
+      await monitorTask(taskId)
     },
 
     validate: (isRunning, host: FrontXoHost | undefined) => {
