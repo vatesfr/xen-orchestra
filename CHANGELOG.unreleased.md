@@ -44,6 +44,7 @@
 - [XO server] Add `groupIds`, `userIds` and `privilegeIds` properties to the `acl-role` objects (PR [#10085](https://github.com/vatesfr/xen-orchestra/pull/10085))
 - [REST API] Expose `/rest/v0/acl-roles/:id/users` (PR [#10085](https://github.com/vatesfr/xen-orchestra/pull/10085))
 - [REST API] Expose `/rest/v0/acl-roles/:id/groups` (PR [#10085](https://github.com/vatesfr/xen-orchestra/pull/10085))
+- [XO6/VM] Add guest tools status on the VM Dashboard, VM System tab and VM Side panel (PR [#10077](https://github.com/vatesfr/xen-orchestra/pull/10077))
 
 ### Bug fixes
 

@@ -54,6 +54,7 @@ const vmFields = [
   'startTime',
   'installTime',
   'pvDriversDetected',
+  'pvDriversUpToDate',
   'managementAgentDetected',
   'type',
   '$VBDs',

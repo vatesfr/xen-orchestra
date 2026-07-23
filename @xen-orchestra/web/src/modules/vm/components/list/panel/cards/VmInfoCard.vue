@@ -76,20 +76,7 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('guest-tools') }}</template>
         <template #value>
-          <div class="value">
-            <VtsIcon
-              v-if="guestToolsDisplay.value !== '-'"
-              v-tooltip="guestToolsDisplay.tooltip"
-              :name="guestToolsDisplay.type === 'link' ? 'status:halted-circle' : 'status:success-circle'"
-              size="medium"
-            />
-            <UiLink v-if="guestToolsDisplay.type === 'link'" size="small" :href="XCP_LINKS.GUEST_TOOLS">
-              {{ guestToolsDisplay.value }}
-            </UiLink>
-            <template v-else>
-              <span v-tooltip class="text-ellipsis"> {{ guestToolsDisplay.value }}</span>
-            </template>
-          </div>
+          <VmGuestToolsStatus :guest-tools-display="guestToolsDisplay" :guest-tools-icon="guestToolsIcon" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -144,10 +131,10 @@
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
+import VmGuestToolsStatus from '@/modules/vm/components/VmGuestToolsStatus.vue'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoVmTemplateCollection } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
-import { XCP_LINKS } from '@/shared/constants.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
@@ -158,7 +145,6 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { HOST_POWER_STATE } from '@vates/types'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
@@ -202,7 +188,9 @@ const hostPowerState = computed(() =>
   host.value ? toLower(host.value.power_state) : toLower(HOST_POWER_STATE.UNKNOWN)
 )
 
-const { powerState, installDateFormatted, relativeStartTime, guestToolsDisplay } = useXoVmUtils(() => vm)
+const { powerState, installDateFormatted, relativeStartTime, guestToolsDisplay, guestToolsIcon } = useXoVmUtils(
+  () => vm
+)
 </script>
 
 <style scoped lang="postcss">
