@@ -1,18 +1,9 @@
 <template>
   <UiHeadBar>
-    {{ host.name_label }}
     <template #icon>
-      <VtsObjectIcon
-        v-tooltip="{
-          placement: 'top',
-          content: currentOperation ? currentOperation : '',
-        }"
-        size="medium"
-        type="host"
-        :state="toLower(host.power_state)"
-        :busy="isChangingState"
-      />
+      <VtsObjectIcon size="medium" type="host" :state="toLower(host.power_state)" />
     </template>
+    {{ host.name_label }}
     <template v-if="isMaster" #status>
       <VtsIcon v-tooltip="t('master')" name="status:primary-circle" size="medium" />
     </template>
@@ -20,11 +11,12 @@
       <UiLink size="medium" :to="{ name: '/vm/new', query: { poolid: host.$pool } }" icon="fa:plus">
         {{ t('new-vm') }}
       </UiLink>
-      <MenuList v-if="!uiStore.isSmall" placement="bottom-end">
+
+      <MenuList placement="bottom-end">
         <template #trigger="{ open }">
           <UiDropdownButton @click="open($event)">{{ t('action:change-state') }}</UiDropdownButton>
         </template>
-        <HostPowerStateActions :host />
+        <HostPowerStateAction :host />
       </MenuList>
 
       <MenuList placement="bottom-end">
@@ -89,9 +81,8 @@
 </template>
 
 <script lang="ts" setup>
-import HostPowerStateActions from '@/modules/host/components/actions/HostPowerStateActions.vue'
+import HostPowerStateAction from '@/modules/host/components/actions/HostPowerStateAction.vue'
 import HostMoreActions from '@/modules/host/components/HostMoreActions.vue'
-import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -104,7 +95,6 @@ import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButt
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { useUiStore } from '@core/stores/ui.store.ts'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -114,10 +104,6 @@ const { host } = defineProps<{
 }>()
 
 const { t } = useI18n()
-
-const uiStore = useUiStore()
-
-const { isChangingState, currentOperation } = useXoHostUtils(() => host)
 
 const { buildXo5Route } = useXoRoutes()
 const xo5HostStatsHref = computed(() => buildXo5Route(`/hosts/${host.id}/stats`))
