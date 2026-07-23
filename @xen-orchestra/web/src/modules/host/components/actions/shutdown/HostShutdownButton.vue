@@ -6,7 +6,7 @@
     accent="brand"
     :disabled="!canShutdownHost"
     icon="action:shutdown"
-    :busy="isShuttingdownHost"
+    :busy="isShuttingHost"
     @click="openShutdownHostModal()"
   >
     {{ t('action:shutdown') }}
@@ -30,7 +30,7 @@ const { t } = useI18n()
 const {
   run: shutdownHost,
   canRun: canShutdownHost,
-  isRunning: isShuttingdownHost,
+  isRunning: isShuttingHost,
   errorMessage: shutdownHostErrorMessage,
 } = useXoHostShutdownJob(() => host)
 
