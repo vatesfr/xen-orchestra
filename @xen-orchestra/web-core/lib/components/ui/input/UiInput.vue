@@ -164,6 +164,7 @@ defineExpose({ focus })
     border-end-start-radius: 0.4rem;
     border-start-start-radius: 0.4rem;
     border-inline-end: 0.1rem solid var(--color-neutral-border);
+    margin-inline-start: -1.6rem;
   }
 
   .suffix {
