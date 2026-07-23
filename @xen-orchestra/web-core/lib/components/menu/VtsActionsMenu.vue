@@ -22,7 +22,7 @@
         :on-click="action.onClick"
       >
         {{ action.label }}
-        <i v-if="action.hint">{{ action.hint }}</i>
+        <i v-if="action.hint" class="em-dash-prefix">{{ action.hint }}</i>
         <template v-if="isGroupAction(action)" #submenu>
           <MenuItem
             v-for="(child, childIndex) of action.children"
@@ -33,7 +33,7 @@
             :on-click="child.onClick"
           >
             {{ child.label }}
-            <i v-if="child.hint">{{ child.hint }}</i>
+            <i v-if="child.hint" class="em-dash-prefix">{{ child.hint }}</i>
           </MenuItem>
         </template>
       </MenuItem>

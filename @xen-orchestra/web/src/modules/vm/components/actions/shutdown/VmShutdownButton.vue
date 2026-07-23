@@ -1,7 +1,7 @@
 <template>
   <MenuItem v-if="canDisplay" :disabled="!canShutdown" icon="action:shutdown" :busy="isRunning" @click="openModal()">
     {{ t('action:shutdown') }}
-    <i v-if="!canShutdown" class="typo">{{ t('vm-tools-missing') }}</i>
+    <i v-if="!canShutdown" class="em-dash-prefix">{{ t('vm-tools-missing') }}</i>
   </MenuItem>
 </template>
 
