@@ -2,6 +2,6 @@ import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-co
 import { defineJobArg } from '@core/packages/job'
 
 export const xoHostArg = defineJobArg({
-  identify: (host: FrontXoHost | undefined) => host?.id,
+  identify: (host: FrontXoHost) => host.id,
   toArray: false,
 })
