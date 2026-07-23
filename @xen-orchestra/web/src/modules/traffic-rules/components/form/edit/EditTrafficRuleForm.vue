@@ -1,5 +1,5 @@
 <template>
-  <VtsForm class="new-traffic-rule-form" @submit="onSubmit()">
+  <VtsForm class="edit-traffic-rule-form" @submit="onSubmit()">
     <div class="row">
       <TrafficRuleFormSelect v-bind="allowSelectBindings">
         <template #option="{ option }">
@@ -31,9 +31,6 @@
             <span class="option-content">
               <VtsIcon v-if="option.properties.icon" :name="option.properties.icon" size="medium" />
               {{ option.properties.label }}
-              <span v-if="option.properties.disabled" class="em-dash-prefix typo-body-regular-small">{{
-                t('no-vif-detected')
-              }}</span>
             </span>
           </VtsOption>
         </template>
@@ -49,41 +46,35 @@
         </template>
       </TrafficRuleFormSelect>
     </div>
-    <NewTrafficRuleButtonsSection :cancel-to :submit-label="t('action:create-traffic-rule')" />
   </VtsForm>
 </template>
 
 <script setup lang="ts">
-import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import TrafficRuleFormNumberInput from '@/modules/traffic-rules/components/form/inputs/TrafficRuleFormNumberInput.vue'
 import TrafficRuleFormSelect from '@/modules/traffic-rules/components/form/inputs/TrafficRuleFormSelect.vue'
 import TrafficRuleFormTextInput from '@/modules/traffic-rules/components/form/inputs/TrafficRuleFormTextInput.vue'
-import NewTrafficRuleButtonsSection from '@/modules/traffic-rules/components/form/new/NewTrafficRuleButtonsSection.vue'
-import { useNewTrafficRuleForm } from '@/modules/traffic-rules/form/new/use-new-traffic-rule-form.ts'
+import { useEditTrafficRuleForm } from '@/modules/traffic-rules/form/edit/use-edit-traffic-rule-form.ts'
 import type { TrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
-import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import VtsForm from '@core/components/form/VtsForm.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
+import type { TrafficRule } from '@vates/types'
 import { useI18n } from 'vue-i18n'
-import type { RouteLocationRaw } from 'vue-router'
 
-const { poolId, vifId } = defineProps<{
-  poolId?: FrontXoPool['id']
-  vifId?: FrontXoVif['id']
-  cancelTo: RouteLocationRaw
+const { rule } = defineProps<{
+  rule: TrafficRule
 }>()
 
 const emit = defineEmits<{
-  create: [data: TrafficRulePayload]
+  confirm: [payload: TrafficRulePayload]
 }>()
 
 const { t } = useI18n()
 
 const {
-  isVifTarget,
   hasPort,
+  isVifTarget,
   allowSelectBindings,
   protocolSelectBindings,
   portInputBindings,
@@ -93,18 +84,19 @@ const {
   vmSelectBindings,
   targetSelectBindings,
   validateAndBuildPayload,
-} = useNewTrafficRuleForm(
-  () => poolId,
-  () => vifId
-)
+} = useEditTrafficRuleForm(() => rule)
 
 async function onSubmit() {
   const payload = await validateAndBuildPayload()
 
   if (payload !== undefined) {
-    emit('create', payload)
+    emit('confirm', payload)
   }
 }
+
+defineExpose({
+  submit: onSubmit,
+})
 </script>
 
 <style lang="postcss" scoped>
@@ -114,7 +106,7 @@ async function onSubmit() {
   gap: 0.8rem;
 }
 
-.new-traffic-rule-form {
+.edit-traffic-rule-form {
   .row {
     display: flex;
     flex-direction: column;
