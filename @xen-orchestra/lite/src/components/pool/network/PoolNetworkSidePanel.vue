@@ -6,7 +6,7 @@
           <UiButtonIcon
             v-tooltip="copied && t('copied')"
             accent="brand"
-            :size="copied ? 'small' : 'medium'"
+            size="small"
             :icon="copied ? 'fa:check-circle' : 'action:more-actions'"
             :selected="isOpen"
             @click="open($event)"
