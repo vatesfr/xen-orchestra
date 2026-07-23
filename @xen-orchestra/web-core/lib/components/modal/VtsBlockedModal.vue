@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="danger" icon="status:danger-picto">
+  <VtsModal accent="danger" icon="status:danger-picto" dismissible>
     <template #title>
       <span>{{ modalTexts.title }}</span>
     </template>

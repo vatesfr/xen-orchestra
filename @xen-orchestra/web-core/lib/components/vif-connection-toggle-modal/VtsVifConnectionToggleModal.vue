@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="info" icon="status:info-picto">
+  <VtsModal accent="info" icon="status:info-picto" dismissible>
     <template #title>
       {{ connection.title }}
     </template>
