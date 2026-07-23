@@ -819,7 +819,7 @@
   "pool-connection-ip-info": "Entrez l’adresse de l’hôte primaire du pool auquel vous souhaitez vous connecter.",
   "pool-connection-success": "Vous êtes connecté au pool. Vous pouvez désormais le retrouver dans votre arborescence et commencer à gérer vos hôtes et vos machines virtuelles.",
   "pool-cpu-usage": "Utilisation CPU du Pool",
-  "pool-disconnect-info": "Vous ne pourrez plus gérer ce pool depuis XO. Vous pourrez le reconnecter ultérieurement.",
+  "pool-disconnect-info": "Le pool ne pourra plus être géré depuis XO. Vous pourrez le reconnecter ultérieurement.",
   "pool-management": "Gestion du Pool",
   "pool-ram-usage": "Utilisation RAM du Pool",
   "pool:status:connected": "@:status:connected",

@@ -819,7 +819,7 @@
   "pool-connection-ip-info": "Provide the primary host’s address of the pool you want to connect to.",
   "pool-connection-success": "You have successfully connected to the pool. You can now find it in your treeview and start managing your hosts and VMs.",
   "pool-cpu-usage": "Pool CPU Usage",
-  "pool-disconnect-info": "You will no longer be able to manage this pool from XO. You can reconnect it later.",
+  "pool-disconnect-info": "The pool will no longer be manageable from XO. You can reconnect it later.",
   "pool-management": "Pool management",
   "pool-ram-usage": "Pool RAM Usage",
   "pool:status:connected": "@:status:connected",
