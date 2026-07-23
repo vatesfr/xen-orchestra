@@ -46,17 +46,8 @@ export class DiskAlias {
 
     let aliasContent: string
     try {
-      if (!handler.isEncrypted) {
-        const size = await handler.getSize(filename)
-        if (size > ALIAS_MAX_PATH_LENGTH) {
-          throw new AliasTooLongError(`The alias file ${filename} is too big (${size} bytes)`)
-        }
-      }
       aliasContent = (await handler.readFile(filename)).toString().trim()
     } catch (err: any) {
-      if (err instanceof DiskAliasError) {
-        throw err
-      }
       if (err.code === 'ENOENT') {
         throw new AliasMissingError(`The alias file ${filename} does not exist`)
       }
@@ -64,6 +55,10 @@ export class DiskAlias {
         throw new AliasIsDirectoryError(`The alias file ${filename} is a directory`)
       }
       throw err
+    }
+
+    if (!handler.isEncrypted && aliasContent.length > ALIAS_MAX_PATH_LENGTH) {
+      throw new AliasTooLongError(`The alias file ${filename} is too long (${aliasContent.length} chars)`)
     }
 
     // also handle circular references and unreasonably long chains
