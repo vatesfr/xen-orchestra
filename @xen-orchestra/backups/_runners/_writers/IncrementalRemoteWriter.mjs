@@ -200,7 +200,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
           }
 
           const transferred = await adapter.writeVhd(path, disk, {
-            validator: tmpPath => checkVhd(handler, tmpPath),
+            validator: tmpPath => checkDisk(handler, tmpPath),
             writeBlockConcurrency: this._config.writeBlockConcurrency,
             uuid: packUuid(vdi.uuid),
             parentUuid,
