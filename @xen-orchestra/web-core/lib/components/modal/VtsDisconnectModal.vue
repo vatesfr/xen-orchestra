@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="info" icon="status:info-picto">
+  <VtsModal accent="warning" icon="status:warning-picto">
     <template #title>
       <I18nT keypath="confirm-disconnect" scope="global" tag="div">
         <span class="n-disconnect">{{ title }}</span>
@@ -34,6 +34,6 @@ const { t } = useI18n()
 
 <style lang="postcss" scoped>
 .n-disconnect {
-  color: var(--color-info-item-base);
+  color: var(--color-warning-txt-base);
 }
 </style>
