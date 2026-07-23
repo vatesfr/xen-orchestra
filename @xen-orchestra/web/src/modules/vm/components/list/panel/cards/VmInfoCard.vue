@@ -78,12 +78,12 @@
         <template #value>
           <div class="value">
             <VtsIcon
-              v-if="guestToolsDisplay.value !== '-'"
+              v-if="guestToolsDisplay.type !== 'not-applicable'"
               v-tooltip="guestToolsDisplay.tooltip"
-              :name="guestToolsDisplay.type === 'link' ? 'status:halted-circle' : 'status:success-circle'"
+              :name="guestToolsIcon"
               size="medium"
             />
-            <UiLink v-if="guestToolsDisplay.type === 'link'" size="small" :href="XCP_LINKS.GUEST_TOOLS">
+            <UiLink v-if="guestToolsDisplay.type === 'missing'" size="small" :href="XCP_LINKS.GUEST_TOOLS">
               {{ guestToolsDisplay.value }}
             </UiLink>
             <template v-else>
@@ -202,7 +202,9 @@ const hostPowerState = computed(() =>
   host.value ? toLower(host.value.power_state) : toLower(HOST_POWER_STATE.UNKNOWN)
 )
 
-const { powerState, installDateFormatted, relativeStartTime, guestToolsDisplay } = useXoVmUtils(() => vm)
+const { powerState, installDateFormatted, relativeStartTime, guestToolsDisplay, guestToolsIcon } = useXoVmUtils(
+  () => vm
+)
 </script>
 
 <style scoped lang="postcss">

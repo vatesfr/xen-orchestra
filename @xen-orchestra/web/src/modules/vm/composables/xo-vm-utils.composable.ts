@@ -10,6 +10,35 @@ import { VM_POWER_STATE } from '@vates/types'
 import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+export type GuestToolsMissingDisplay = {
+  type: 'missing'
+  value: string
+  tooltip: string
+}
+
+export type GuestToolsOutOfDateDisplay = {
+  type: 'outdated'
+  value: string
+  tooltip: string
+}
+
+export type GuestToolsUpToDateDisplay = {
+  type: 'up-to-date'
+  value: string
+  tooltip: string
+}
+
+export type GuestToolsNotApplicableDisplay = {
+  type: 'not-applicable'
+  value: '-'
+}
+
+export type GuestToolsDisplay =
+  | GuestToolsMissingDisplay
+  | GuestToolsOutOfDateDisplay
+  | GuestToolsUpToDateDisplay
+  | GuestToolsNotApplicableDisplay
+
 export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
   const { t, locale } = useI18n()
 
@@ -48,23 +77,42 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     return vm.managementAgentDetected && vm.pvDriversDetected
   }
 
-  const guestToolsDisplay = computed(() => {
+  const guestToolsDisplay = computed<GuestToolsDisplay>(() => {
     if (vm.value.power_state !== VM_POWER_STATE.RUNNING) {
-      return { type: 'text', value: '-' }
+      return { type: 'not-applicable', value: '-' }
     }
 
     if (!hasGuestTools(vm.value)) {
       return {
-        type: 'link',
+        type: 'missing',
         value: t('action:install-guest-tools'),
         tooltip: !vm.value.managementAgentDetected ? t('management-agent-not-detected') : t('no-xen-tools-detected'),
       }
     }
 
+    if (vm.value.pvDriversUpToDate === false) {
+      return {
+        type: 'outdated',
+        value: vm.value.pvDriversVersion || t('installed'),
+        tooltip: t('guest-tools-out-of-date'),
+      }
+    }
+
     return {
-      type: 'text',
+      type: 'up-to-date',
       value: vm.value.pvDriversVersion || t('installed'),
       tooltip: t('installed'),
+    }
+  })
+
+  const guestToolsIcon = computed<IconName>(() => {
+    switch (guestToolsDisplay.value.type) {
+      case 'missing':
+        return 'status:halted-circle'
+      case 'outdated':
+        return 'status:warning-circle'
+      default:
+        return 'status:success-circle'
     }
   })
 
@@ -104,6 +152,7 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     relativeStartTime,
     hasGuestTools,
     guestToolsDisplay,
+    guestToolsIcon,
     isChangingState,
     currentOperation,
     xo5VmAdvancedHref,

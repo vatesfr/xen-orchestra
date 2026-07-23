@@ -35,7 +35,7 @@
 - [XO6/VM] Add "New VM" button on Host view (PR [#10048](https://github.com/vatesfr/xen-orchestra/pull/10048))
 - [xo-server] expose more metrics when doing a memory dump (PR [#10041](https://github.com/vatesfr/xen-orchestra/pull/10041))
 - [RPU] Re-enable the load balancer after a configurable safe delay (30 minutes by default) when a rolling pool update ends (PR [#10111](https://github.com/vatesfr/xen-orchestra/pull/10111))
-- [Tasks] Resolve objects in tasks names [Forum#100894](https://xcp-ng.org/forum/post/100894) (PR [#9830](https://github.com/vatesfr/xen-orchestra/pull/9830))
+- [Tasks] Resolve objects in tasks names [Forum#100894](<[https://xcp-ng.org/forum/post/100894](https://xcp-ng.org/forum/post/100894)>) (PR [#9830](https://github.com/vatesfr/xen-orchestra/pull/9830))
 - [REST API] Possibility to set the HA restart priority (`high_availability`) when creating a VM (PR [#10070](https://github.com/vatesfr/xen-orchestra/pull/10070))
 - [XO6/Traffic rules] Show only traffic rules of VMs. Don't include vm-snapshots or vm-templates. In the VM selector, disable VMs that don't have any VIF (PR [#9977](https://github.com/vatesfr/xen-orchestra/pull/9977))
 - [Pool] Add new VM and disconnect actions to the pool infrastructure tree (PR [#10046](https://github.com/vatesfr/xen-orchestra/pull/10046))
@@ -44,7 +44,6 @@
 - [XO server] Add `groupIds`, `userIds` and `privilegeIds` properties to the `acl-role` objects (PR [#10085](https://github.com/vatesfr/xen-orchestra/pull/10085))
 - [REST API] Expose `/rest/v0/acl-roles/:id/users` (PR [#10085](https://github.com/vatesfr/xen-orchestra/pull/10085))
 - [REST API] Expose `/rest/v0/acl-roles/:id/groups` (PR [#10085](https://github.com/vatesfr/xen-orchestra/pull/10085))
-- [XO6] Add a dashboard widget showing VM guest tools count and status (up to date, out of date, missing) (PR [#10077](https://github.com/vatesfr/xen-orchestra/pull/10077))
 
 ### Bug fixes
 
