@@ -11,25 +11,25 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [probe sr] probe srs on a host (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+- [vm stats] Reduce the memory consumption of the rrd stats (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
 
-- SR REST API Endpoints:
+- HOST Probe Sr REST API Endpoints:
 
-  - `GET :id/actions/probe_nfs` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+  - `POST :id/actions/probe_nfs` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
 
-  - `GET :id/actions/probe_zfs` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+  - `POST :id/actions/probe_zfs` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
 
-  - `GET :id/actions/probe_hba` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+  - `POST :id/actions/probe_hba` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
 
-  - `GET :id/actions/probe_iscsi_iqns` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+  - `POST :id/actions/probe_iscsi_iqns` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
 
-  - `GET :id/actions/probe_iscsi_luns` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+  - `POST :id/actions/probe_iscsi_luns` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
 
-  - `GET :id/actions/probe_iscsi_exists` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+  - `POST :id/actions/probe_iscsi_exists` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
 
-  - `GET :id/actions/probe_hba_exists` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+  - `POST :id/actions/probe_hba_exists` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
 
-  - `GET :id/actions/probe_nfs_exists` (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+  - `POST :id/actions/probe_nfs_exists` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
 
 ### Bug fixes
 
@@ -56,6 +56,8 @@
 <!--packages-start-->
 
 - @xen-orchestra/acl minor
+- @xen-orchestra/backup-archive patch
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/web patch
 
 <!--packages-end-->
