@@ -1,9 +1,9 @@
 <template>
-  <template v-if="canDisableHost">
+  <template v-if="host.enabled">
     <HostDisableButton :host />
     <HostDisableAndEvacuateVmButton :host />
   </template>
-  <HostEnableButton v-if="canEnableHost" :host />
+  <HostEnableButton v-else :host />
   <HostForgetButton v-if="hostIsHalted" :host />
   <VtsDivider type="stretch" />
   <HostDownloadButton :host-id="host.id" />
@@ -16,9 +16,8 @@ import HostDownloadButton from '@/modules/host/components/actions/download/HostD
 import HostEnableButton from '@/modules/host/components/actions/enable/HostEnableButton.vue'
 import HostForgetButton from '@/modules/host/components/actions/forget/HostForgetButton.vue'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import { isHostOperationPending } from '@/modules/host/utils/xo-host.util.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
-import { HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE } from '@vates/types'
+import { HOST_POWER_STATE } from '@vates/types'
 import { computed } from 'vue'
 
 const { host } = defineProps<{
@@ -26,9 +25,4 @@ const { host } = defineProps<{
 }>()
 
 const hostIsHalted = computed(() => host.power_state === HOST_POWER_STATE.HALTED)
-
-const isEvacuateVm = computed(() => isHostOperationPending(host, HOST_ALLOWED_OPERATIONS.EVACUATE))
-
-const canDisableHost = computed(() => host.enabled || hostIsHalted.value || isEvacuateVm.value)
-const canEnableHost = computed(() => !hostIsHalted.value || !isEvacuateVm.value)
 </script>
