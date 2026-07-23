@@ -1,5 +1,2 @@
-export const BACKUP_DIR = 'xo-vm-backups'
-
-export function getVmBackupDir(uuid) {
-  return `${BACKUP_DIR}/${uuid}`
-}
+// Moved to @xen-orchestra/backup-archive; re-exported here to keep existing import paths working.
+export { BACKUP_DIR, getVmBackupDir } from '@xen-orchestra/backup-archive/paths'

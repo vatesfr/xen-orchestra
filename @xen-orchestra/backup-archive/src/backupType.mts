@@ -1,0 +1,5 @@
+export const isMetadataFile = (filename: string): boolean => filename.endsWith('.json')
+export const isVhdFile = (filename: string): boolean => filename.endsWith('.vhd')
+export const isVhdSumFile = (filename: string): boolean => filename.endsWith('.vhd.checksum')
+export const isXvaFile = (filename: string): boolean => filename.endsWith('.xva')
+export const isXvaSumFile = (filename: string): boolean => filename.endsWith('.xva.checksum')
