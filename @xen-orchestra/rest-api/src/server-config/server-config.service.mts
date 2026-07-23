@@ -2,6 +2,7 @@ import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { ConfigContent, ConfigSource } from './server-config.type.mjs'
+import { ApiError } from '../helpers/error.helper.mjs'
 
 @provide(ServerConfigService)
 export class ServerConfigService {
@@ -22,7 +23,11 @@ export class ServerConfigService {
   }
 
   getSource(path: string): Promise<ConfigContent> {
-    return this.#restApi.xoApp.config.parseSourceFiltered(path)
+    try {
+      return this.#restApi.xoApp.config.parseSourceFiltered(path)
+    } catch (error: any) {
+      throw new ApiError(error.message, error.statusCode ?? 500)
+    }
     // parseSourceFiltered throws a 403 if path is not in the known sources list
   }
 }

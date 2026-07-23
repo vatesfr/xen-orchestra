@@ -12,17 +12,17 @@ import {
 } from '../open-api/common/response.common.mjs'
 import type { ConfigContent, ConfigSource } from './server-config.type.mjs'
 import { mergedConfigExample, sourcesExample, sourceFileExample } from './server-config.oa-example.mjs'
+import { ApiError } from '../helpers/error.helper.mjs'
 
 @Route('server-config')
 @Security('*') // admin-only: no acl() middleware → only permission==='admin' passes
 @Tags('server-config')
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @provide(ServerConfigController)
-export class ServerConfigController extends Controller {
+export class ServerConfigController {
   #service: ServerConfigService
 
   constructor(@inject(RestApi) _restApi: RestApi, @inject(ServerConfigService) service: ServerConfigService) {
-    super()
     this.#service = service
   }
 
@@ -33,7 +33,9 @@ export class ServerConfigController extends Controller {
    */
   @Example(mergedConfigExample)
   @Get('')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @SuccessResponse(200, 'OK')
+  @Response(badRequestResp.status, badRequestResp.description)
+  @Response(unauthorizedResp.status, unauthorizedResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getMergedConfig(): ConfigContent {
@@ -55,14 +57,15 @@ export class ServerConfigController extends Controller {
   @Example(sourcesExample)
   @Example(sourceFileExample)
   @Get('sources')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @SuccessResponse(200, 'OK')
+  @Response(badRequestResp.status, badRequestResp.description)
+  @Response(unauthorizedResp.status, unauthorizedResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async getSources(@Query() path?: string): Promise<ConfigContent | ConfigSource[]> {
     if (path !== undefined) {
       if (path === '') {
-        this.setStatus(400)
-        return {} // or whatever empty response your API convention uses
+        throw new ApiError(`path is empty`, 400)
       }
       return this.#service.getSource(path)
     }
