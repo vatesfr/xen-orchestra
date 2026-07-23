@@ -66,7 +66,8 @@ export function useEditTrafficRuleForm(rawRule: MaybeRefOrGetter<TrafficRule>) {
 
   const vmOptions = computed(() => {
     if (ruleVm.value) {
-      return [vmToTargetOption(ruleVm.value)]
+      const hasVifs = ruleVm.value.VIFs.length > 0
+      return [vmToTargetOption(ruleVm.value, hasVifs)]
     }
 
     const missingVmId = ruleVif.value?.$VM

@@ -16,6 +16,7 @@ export type VmOption = {
   label: string
   value: FrontXoVm['id']
   icon: IconName
+  disabled: boolean
 }
 
 export function vifToTargetOption(vif: FrontXoVif, vifLabel: string): TargetOption {
@@ -36,11 +37,12 @@ export function networkToTargetOption(network: FrontXoNetwork): TargetOption {
   }
 }
 
-export function vmToTargetOption(vm: FrontXoVm): VmOption {
+export function vmToTargetOption(vm: FrontXoVm, hasVifs: boolean): VmOption {
   return {
     id: vm.id,
     label: vm.name_label,
     value: vm.id,
     icon: objectIcon('vm', toLower(vm.power_state)),
+    disabled: !hasVifs,
   }
 }
