@@ -10,7 +10,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { downloadBugTools } from '@core/utils/download-bugtools.utils.ts'
 import { useI18n } from 'vue-i18n'

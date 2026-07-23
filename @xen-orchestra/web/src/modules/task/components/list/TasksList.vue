@@ -3,9 +3,9 @@
     <UiTitle>
       {{ t('tasks') }}
     </UiTitle>
+    <UiQuerySearchBar @search="value => (searchQuery = value)" />
     <div class="container">
       <div class="actions">
-        <UiQuerySearchBar @search="value => (searchQuery = value)" />
         <UiTopBottomTable :selected-items="0" :total-items="0">
           <UiTablePagination v-bind="paginationBindings" />
         </UiTopBottomTable>

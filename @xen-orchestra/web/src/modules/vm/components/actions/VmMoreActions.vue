@@ -1,5 +1,5 @@
 <template>
-  <MenuItem v-if="showChangeState" icon="action:change-state" class="change-state typo-body-bold-small">
+  <MenuItem v-if="showChangeState" icon="action:change-state" class="change-state">
     {{ t('action:change-state') }}
     <template #submenu>
       <VmPowerStateActions :vm />
@@ -7,14 +7,8 @@
   </MenuItem>
   <VmSnapshotButton :vm />
   <VmDuplicateButton :vm />
-  <MenuItem disabled icon="action:duplicate" class="coming-soon">
-    {{ t('action:duplicate') }}
-  </MenuItem>
-  <MenuItem disabled icon="action:download" class="coming-soon">
-    {{ t('action:export') }}
-  </MenuItem>
-  <MenuSeparator />
   <VmExportButton :vm />
+  <MenuSeparator />
   <VmDeleteButton :vm />
 </template>
 

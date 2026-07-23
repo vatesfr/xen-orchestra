@@ -7,13 +7,21 @@
       :busy="isBusy"
       :disabled="isDisabled"
       :icon
+      class="typo-body-bold-small"
       @click="handleClick"
     >
       <slot />
     </MenuTrigger>
     <MenuList v-else :disabled="isDisabled">
       <template #trigger="{ open, isOpen }">
-        <MenuTrigger :active="isOpen" :busy="isBusy" :disabled="isDisabled" :icon @click="open">
+        <MenuTrigger
+          :active="isOpen"
+          :busy="isBusy"
+          :disabled="isDisabled"
+          class="typo-body-bold-small"
+          :icon
+          @click="open"
+        >
           <slot />
           <VtsIcon :name="submenuIcon" size="medium" class="submenu-icon" />
         </MenuTrigger>

@@ -7,7 +7,7 @@
 </template>
 
 <script setup lang="ts">
-import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import { toLower } from 'lodash-es'
