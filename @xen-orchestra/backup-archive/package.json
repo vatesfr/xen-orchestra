@@ -9,6 +9,7 @@
   "exports": {
     ".": "./dist/index.mjs",
     "./disks": "./dist/disks/index.mjs",
+    "./metadata": "./dist/MetadataBackupDirectory.mjs",
     "./paths": "./dist/paths.mjs",
     "./filenameDate": "./dist/filenameDate.mjs",
     "./backupType": "./dist/backupType.mjs"
