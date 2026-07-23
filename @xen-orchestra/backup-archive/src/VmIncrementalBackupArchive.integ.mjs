@@ -828,3 +828,118 @@ test('it preserves VDI directory when handler.list() throws during lineage init'
   const remaining = await handler.list(basePath)
   assert.ok(remaining.includes('snapshot.vhd'), 'VHD must survive when handler.list() throws during lineage init')
 })
+
+test('regression: a locked (immutable) VDI chain blocks merging of an unrelated, fully mutable VDI chain', async () => {
+  // Two independent VDI directories for the same VM. basePath's chain is still
+  // immutability-locked (simulated: rename() EPERMs, as it would on a chattr +i remote).
+  // basePath2's chain is fully mutable and has nothing to do with basePath's lock.
+  //
+  // Current behavior: RemoteDiskLineage/MergeRemoteDisk never catch EPERM, and the
+  // asyncEach loops driving both the per-VDI merge (RemoteDiskLineage.mts) and the
+  // cross-VDI merge (VmBackupDirectory.mts, DEFAULT_MERGE_CONCURRENCY = 1, so VDIs are
+  // processed strictly in order) default to stopOnError. So one locked chain aborts
+  // merging of every VDI processed after it in the same cleanVm() call, even though
+  // they're fully independent and fully mergeable.
+  const orphan1 = await generateVhd(`${basePath}/orphan.vhd`, { blocks: [0, 1] })
+  await generateVhd(`${basePath}/child.vhd`, {
+    header: { parentUnicodeName: 'orphan.vhd', parentUuid: orphan1.footer.uuid },
+    blocks: [2, 3],
+  })
+
+  const orphan2 = await generateVhd(`${basePath2}/orphan.vhd`, { blocks: [0, 1] })
+  await generateVhd(`${basePath2}/child.vhd`, {
+    header: { parentUnicodeName: 'orphan.vhd', parentUuid: orphan2.footer.uuid },
+    blocks: [2, 3],
+  })
+
+  await handler.writeFile(
+    `${rootPath}/metadata.json`,
+    JSON.stringify({
+      mode: 'delta',
+      vhds: [`${relativePath}/child.vhd`, `${relativePath2}/child.vhd`],
+    })
+  )
+
+  const originalRename = handler.rename.bind(handler)
+  handler.rename = async (oldPath, newPath) => {
+    if (typeof newPath === 'string' && newPath.includes(vdiId) && newPath.endsWith('child.vhd')) {
+      throw Object.assign(new Error('simulated immutability lock'), { code: 'EPERM', errno: -1, syscall: 'rename' })
+    }
+    return originalRename(oldPath, newPath)
+  }
+
+  try {
+    await VmBackupDirectory.cleanVm(handler, rootPath, {
+      remove: true,
+      merge: true,
+      logWarn: () => {},
+      logInfo: () => {},
+    })
+  } finally {
+    handler.rename = originalRename
+  }
+
+  // basePath2's chain is fully mutable and independent of basePath's lock — it must merge
+  // regardless of basePath being stuck.
+  assert.deepEqual(
+    (await handler.list(basePath2)).filter(f => f.endsWith('.vhd')),
+    ['child.vhd']
+  )
+})
+
+test('it performs two independent merges within a single chain in one cleanVm() call', async () => {
+  // Chain of 5, oldest -> newest: v1 <- v2 <- v3 <- v4 <- v5
+  // v2, v4 and v5 are each an active/retained backup (their own metadata.json).
+  // v1 and v3 are superseded orphans. This should produce exactly two separate
+  // merges in one cleanVm(): (v1 -> v2) and (v3 -> v4) — v5 needs no merge.
+  //
+  // Merge target naming: the parent (older) is always renamed away, the target
+  // (newer/active side of the pair) keeps its name and survives with the merged
+  // data. So after merging (v1,v2) survivor is v2, after merging (v3,v4) survivor
+  // is v4. Expected files on disk at the end: v2.vhd, v4.vhd, v5.vhd.
+  const v1 = await generateVhd(`${basePath}/v1.vhd`)
+  const v2 = await generateVhd(`${basePath}/v2.vhd`, {
+    header: { parentUnicodeName: 'v1.vhd', parentUuid: v1.footer.uuid },
+  })
+  const v3 = await generateVhd(`${basePath}/v3.vhd`, {
+    header: { parentUnicodeName: 'v2.vhd', parentUuid: v2.footer.uuid },
+  })
+  const v4 = await generateVhd(`${basePath}/v4.vhd`, {
+    header: { parentUnicodeName: 'v3.vhd', parentUuid: v3.footer.uuid },
+  })
+  await generateVhd(`${basePath}/v5.vhd`, {
+    header: { parentUnicodeName: 'v4.vhd', parentUuid: v4.footer.uuid },
+  })
+
+  await handler.writeFile(
+    `${rootPath}/metadata2.json`,
+    JSON.stringify({ mode: 'delta', vhds: [`${relativePath}/v2.vhd`] })
+  )
+  await handler.writeFile(
+    `${rootPath}/metadata4.json`,
+    JSON.stringify({ mode: 'delta', vhds: [`${relativePath}/v4.vhd`] })
+  )
+  await handler.writeFile(
+    `${rootPath}/metadata5.json`,
+    JSON.stringify({ mode: 'delta', vhds: [`${relativePath}/v5.vhd`] })
+  )
+
+  const mergeChains = []
+  const logInfo = (message, opts) => {
+    if (message === 'merging disk chain') mergeChains.push(opts.chain.map(p => basename(p)))
+  }
+  await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true, merge: true, logInfo, logWarn: () => {} })
+
+  assert.equal(mergeChains.length, 2, 'exactly two independent merges should occur')
+  assert.deepEqual(
+    mergeChains.sort(),
+    [
+      ['v1.vhd', 'v2.vhd'],
+      ['v3.vhd', 'v4.vhd'],
+    ],
+    'merges must be (v1,v2) and (v3,v4), not one big v1..v5 span'
+  )
+
+  const remaining = (await handler.list(basePath)).filter(f => f.endsWith('.vhd')).sort()
+  assert.deepEqual(remaining, ['v2.vhd', 'v4.vhd', 'v5.vhd'])
+})
