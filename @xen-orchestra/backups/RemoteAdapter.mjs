@@ -68,16 +68,10 @@ export class RemoteAdapter {
   async isMergeableParent(packedParentUid, path) {
     const chain = await openDiskChain({ handler: this.handler, path })
     try {
-      // this baseUuid is not linked with this vhd
-      if (chain.getUuid() !== stringify(packedParentUid)) {
-        return false
-      }
-
-      // check if all the chain is composed of vhd directory
-      const isVhdDirectory = await chain.isDirectory()
-      return isVhdDirectory
-        ? this.useVhdDirectory() && this.#getCompressionType() === chain.getCompressionType()
-        : !this.useVhdDirectory()
+      return await chain.isMergeableParent(stringify(packedParentUid), {
+        useVhdDirectory: this.useVhdDirectory(),
+        compressionType: this.#getCompressionType(),
+      })
     } finally {
       await chain.close()
     }
