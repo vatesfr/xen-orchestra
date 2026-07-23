@@ -127,7 +127,7 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
       outdated: 'status:warning-circle',
       'up-to-date': 'status:success-circle',
       unknown: 'status:info-circle',
-      'not-applicable': 'status:success-circle',
+      'not-applicable': 'status:radio-button',
     },
     'up-to-date'
   )
