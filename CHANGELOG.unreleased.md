@@ -45,6 +45,7 @@
 - [REST API] Expose `/rest/v0/acl-roles/:id/users` (PR [#10085](https://github.com/vatesfr/xen-orchestra/pull/10085))
 - [REST API] Expose `/rest/v0/acl-roles/:id/groups` (PR [#10085](https://github.com/vatesfr/xen-orchestra/pull/10085))
 - [XO6/Host] Add possibility to shut down and start an host (PR [#10088](https://github.com/vatesfr/xen-orchestra/pull/10088))
+- [XO6/Host] Add possibility to forget an host (PR [#10089](https://github.com/vatesfr/xen-orchestra/pull/10089))
 
 ### Bug fixes
 
