@@ -63,6 +63,7 @@
 - [Host] Successful evacuation signature fallbacks on older XAPI versions are no longer logged as warnings (PR [#10131](https://github.com/vatesfr/xen-orchestra/pull/10131))
 - [Backups] write the complete disk metadata at once to improve compatibility with immutable backup repository (PR [#10104](https://github.com/vatesfr/xen-orchestra/pull/10104))
 - [XO6/Host] Wrap the Network name in the PIF side panel (PR [#10155](https://github.com/vatesfr/xen-orchestra/pull/10155))
+- [XO6/Pool] Use warning accent and icon in the disconnect pool confirmation modal (PR [#10160](https://github.com/vatesfr/xen-orchestra/pull/10160))
 
 ### Packages to release
 
