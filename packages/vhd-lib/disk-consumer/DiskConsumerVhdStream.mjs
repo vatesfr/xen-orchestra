@@ -1,22 +1,62 @@
 import { Readable } from 'stream'
 import { BaseVhd, FULL_BLOCK_BITMAP } from './BaseVhd.mjs'
 import { DEFAULT_BLOCK_SIZE } from '../_constants.js'
+import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'
+import { fuFooter, fuHeader, checksumStruct } from 'vhd-lib/_structs.js'
 
 /**
  * @typedef {Readable & { length: number }} VhdStream
  */
 
 /**
+ * @typedef {Object} VhdStreamTarget
+ * @property {Buffer?} uuid
+ * @property {Buffer?} parentUuid
+ * @property {string?} parentPath
+ */
+
+/**
  * @extends {BaseVhd}
  */
 export class DiskConsumerVhdStream extends BaseVhd {
+  /** @type {VhdStreamTarget} */
+  #target
+
+  /**
+   * @param {import('@xen-orchestra/disk-transform').Disk} source
+   * @param {VhdStreamTarget} [target]
+   */
+  constructor(source, target = {}) {
+    super(source)
+    this.#target = target
+  }
+
   /**
    * @param {AbortSignal} [signal]
    * @returns {VhdStream}
    */
   async toStream(signal) {
-    const footer = this.computeVhdFooter()
-    const header = this.computeVhdHeader()
+    const { uuid, parentUuid, parentPath } = this.#target
+
+    // footer/header are yielded as raw bytes below (no separate writeFooter()/writeHeader()
+    // step to repack them later), so any post-creation change must be repacked here
+    const footerObj = unpackFooter(this.computeVhdFooter())
+    if (uuid) {
+      footerObj.uuid = uuid
+    }
+    const footer = fuFooter.pack(footerObj)
+    checksumStruct(footer, fuFooter)
+
+    const headerObj = unpackHeader(this.computeVhdHeader())
+    if (parentUuid) {
+      headerObj.parentUuid = parentUuid
+    }
+    if (parentPath) {
+      headerObj.parentUnicodeName = parentPath
+    }
+    const header = fuHeader.pack(headerObj)
+    checksumStruct(header, fuHeader)
+
     const { bat, fileSize } = this.computeVhdBatAndFileSize() // the bat contains the calculated position of the futures blocks
     const uid = 'to stream ' + Math.random()
     const blockGenerator = this.source.diskBlocks(uid)
