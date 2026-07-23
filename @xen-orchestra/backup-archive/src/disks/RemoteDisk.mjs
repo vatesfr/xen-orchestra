@@ -241,6 +241,33 @@ export class RemoteDisk extends RandomAccessDisk {
 
   /**
    * Abstract
+   * @returns {Promise<boolean>}
+   */
+  async isDirectory() {
+    throw new Error(`isDirectory must be implemented`)
+  }
+
+  /**
+   * Checks whether this disk (or chain) can be used as a merge parent for a child
+   * whose expected parent uuid is `parentUuid`, given the remote's VHD-directory mode
+   * and target compression.
+   * @param {string} parentUuid
+   * @param {Object} options
+   * @param {boolean} options.useVhdDirectory
+   * @param {string} [options.compressionType]
+   * @returns {Promise<boolean>}
+   */
+  async isMergeableParent(parentUuid, { useVhdDirectory, compressionType }) {
+    if (this.getUuid() !== parentUuid) {
+      return false
+    }
+
+    const isDirectory = await this.isDirectory()
+    return isDirectory ? useVhdDirectory && this.getCompressionType() === compressionType : !useVhdDirectory
+  }
+
+  /**
+   * Abstract
    * Rename alias/disk
    * @param {string} newPath
    */
