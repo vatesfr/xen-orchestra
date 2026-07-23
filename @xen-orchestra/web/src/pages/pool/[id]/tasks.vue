@@ -24,7 +24,6 @@ const { pool } = defineProps<{
 
 const { getTaskById, sortedTasks, hasTaskFetchError, areTasksReady } = useXoPoolTasksCollection({}, () => pool.id)
 
-
 const selectedTask = useRouteQuery<FrontXoTask | undefined>('id', {
   toData: id => getTaskById(id as FrontXoTask['id']),
   toQuery: task => task?.id ?? '',

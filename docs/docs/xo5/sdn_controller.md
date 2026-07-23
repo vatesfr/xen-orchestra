@@ -171,10 +171,10 @@ Because of this mismatch, the two modes are not directly interchangeable and you
 1. Re‑create the rules from scratch, or
 2. Use the provided migration script to translate an existing set of rules.
 
-  :::note
-    The migration is forward only.
-    You can go from OpenFlow Protocol to XAPI Plugin in a semi‑automatic manner, but to revert existing rules will be deleted first.
-  :::
+:::note
+The migration is forward only.
+You can go from OpenFlow Protocol to XAPI Plugin in a semi‑automatic manner, but to revert existing rules will be deleted first.
+:::
 
 #### What the migration script does
 

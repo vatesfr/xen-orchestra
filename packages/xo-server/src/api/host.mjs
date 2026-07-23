@@ -3,7 +3,7 @@ import { createLogger } from '@xen-orchestra/log'
 import assert from 'assert'
 import { format } from 'json-rpc-peer'
 import { X509Certificate } from 'node:crypto'
-import { pipeline } from 'node:stream'
+import { pipeline, Readable } from 'node:stream'
 import semver from 'semver'
 import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
 
@@ -742,7 +742,7 @@ async function handleGetSystemStatus(req, res, { xapi, host }) {
 
   // Download and stream to client
   const response = await this.httpRequest(url, opts)
-  return fromCallback(pipeline, response, res)
+  return fromCallback(pipeline, Readable.fromWeb(response.body), res)
 }
 
 /**

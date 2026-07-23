@@ -165,35 +165,32 @@ class Netbox {
     }
 
     const httpRequest = async () => {
-      let response
-      let resBody = 'Netbox error could not be retrieved'
       try {
-        response = await this.#xo.httpRequest(url, options)
-        if (Math.floor(response.statusCode / 100) === 2) {
-          resBody = await response.text()
-          if (resBody.length > 0) {
-            return JSON.parse(resBody)
-          }
-          return
+        const response = await this.#xo.httpRequest(url, options)
+        const resBody = await response.text()
+        if (resBody.length > 0) {
+          return JSON.parse(resBody)
         }
-        const error = new Error(`${response.statusCode} ${response.statusMessage}`)
-        try {
-          resBody = await response.text()
-          error.netboxError = JSON.parse(resBody)
-        } catch (err) {
-          log.error(err)
-          // If the error couldn't be parsed, expose the response's raw body
-          error.netboxError = resBody
-        }
-        throw error
       } catch (error) {
-        // root error won't have a body , most likely an error code line ECONRESET
         error.method = method
         error.requestBody = dataDebug
-        error.response = response
+
+        // On a non-2xx response, `httpRequest` throws with the (undrained)
+        // response attached as `error.response` consume its body to expose the Netbox error. A root error (e.g.
+        // ECONNRESET) has no response and is rethrown as-is.
+        const { response } = error
+        if (response !== undefined) {
+          let resBody = 'Netbox error could not be retrieved'
+          try {
+            resBody = await response.text()
+            error.netboxError = JSON.parse(resBody)
+          } catch (err) {
+            log.error(err)
+            // If the error couldn't be parsed, expose the response's raw body
+            error.netboxError = resBody
+          }
+        }
         throw error
-      } finally {
-        response?.destroy()
       }
     }
 
@@ -249,7 +246,7 @@ class Netbox {
     try {
       this.#netboxVersion = semver.coerce((await this.#request('/status/'))['netbox-version']).version
     } catch (err) {
-      if (err?.response?.statusCode === 404) {
+      if (err?.response?.status === 404) {
         // Endpoint not supported on versions prior to v2.10
         // Best effort to support earlier versions without knowing the version explicitly
         return

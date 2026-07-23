@@ -24,7 +24,6 @@ const { host } = defineProps<{
 
 const { getTaskById, sortedTasks, hasTaskFetchError, areTasksReady } = useXoHostTasksCollection({}, () => host.id)
 
-
 const selectedTask = useRouteQuery<FrontXoTask | undefined>('id', {
   toData: id => getTaskById(id as FrontXoTask['id']),
   toQuery: task => task?.id ?? '',

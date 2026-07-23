@@ -384,6 +384,7 @@ endpoint. The VBD's `mode` (`RW` or `RO`) and `bootable` flag are set at creatio
 Mounting or ejecting an ISO (CD-ROM) is not currently available through the
 REST API. Use the JSON-RPC API instead, for example via `xo-cli`:
 :::
+
 > ```sh
 > xo-cli vm.insertCd id=<vm-id> cd_id=<vdi-id> [force=<boolean>]
 > ```
