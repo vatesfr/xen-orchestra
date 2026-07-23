@@ -13,8 +13,6 @@ import reduce from 'lodash/reduce.js'
 import { BACKUP_DIR } from './_getVmBackupDir.mjs'
 import { VmBackupDirectory } from '@xen-orchestra/backup-archive'
 import { fileRestoreDecorators, fileRestoreMethods } from './_fileRestore.mjs'
-import { formatFilenameDate } from './_filenameDate.mjs'
-import { isMetadataFile } from './_backupType.mjs'
 import { isValidXva } from './_isValidXva.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
 
@@ -26,9 +24,7 @@ export const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 
 export const DIR_XO_POOL_METADATA_BACKUPS = 'xo-pool-metadata-backups'
 
-const IMMUTABILITY_METADATA_FILENAME = '/immutability.json'
-
-const { debug, warn } = createLogger('xo:backups:RemoteAdapter')
+const { warn } = createLogger('xo:backups:RemoteAdapter')
 
 export const compareTimestamp = (a, b) => a.timestamp - b.timestamp
 
@@ -295,84 +291,19 @@ export class RemoteAdapter {
     return VmBackupDirectory.writeCache(this._handler, path, data)
   }
 
-  async #getCacheableDataListVmBackups(dir) {
-    debug('generating cache', { path: dir })
-
-    const handler = this._handler
-    const backups = {}
-
-    try {
-      const files = await handler.list(dir, {
-        filter: isMetadataFile,
-        prependDir: true,
-      })
-      await asyncMap(files, async file => {
-        try {
-          const metadata = await this.readVmBackupMetadata(file)
-          // inject an id usable by importVmBackupNg()
-          metadata.id = metadata._filename
-          backups[file] = metadata
-        } catch (error) {
-          warn(`can't read vm backup metadata`, { error, file, dir })
-        }
-      })
-      return backups
-    } catch (error) {
-      let code
-      if (error == null || ((code = error.code) !== 'ENOENT' && code !== 'ENOTDIR')) {
-        throw error
-      }
-    }
-  }
-
   // use _ to mark this method as private by convention
   // since we decorate it with synchronized.withKey in the constructor
   // and # function are not writeable.
   //
   // read the list of backup of a Vm from cache
   // if cache is missing  or broken  => regenerate it and return
-
   async _readCacheListVmBackups(vmUuid) {
-    // immutable remote can't use any caching
-    // since the cache file may be non modifiable
-    if (this._handler.isImmutable()) {
-      return this.#getCacheableDataListVmBackups(`${BACKUP_DIR}/${vmUuid}`)
-    }
-    const path = this.#getVmBackupsCache(vmUuid)
-
-    const cache = await this._readCache(path)
-    if (cache !== undefined) {
-      debug('found VM backups cache, using it', { path })
-      return cache
-    }
-
-    // nothing cached, or cache unreadable => regenerate it
-    const backups = await this.#getCacheableDataListVmBackups(`${BACKUP_DIR}/${vmUuid}`)
-    if (backups === undefined) {
-      return
-    }
-
-    // detached async action, will not reject
-    this._writeCache(path, backups)
-
-    return backups
+    return VmBackupDirectory.readCacheListVmBackups(this._handler, vmUuid)
   }
 
   async listVmBackups(vmUuid, predicate) {
-    const backups = []
-    const cached = await this._readCacheListVmBackups(vmUuid)
-
-    if (cached === undefined) {
-      return []
-    }
-
-    Object.values(cached).forEach(metadata => {
-      if (predicate === undefined || predicate(metadata)) {
-        backups.push(metadata)
-      }
-    })
-
-    return backups.sort(compareTimestamp)
+    // pass the locked _readCacheListVmBackups so cache regeneration stays serialized
+    return VmBackupDirectory.listVmBackups(uuid => this._readCacheListVmBackups(uuid), vmUuid, predicate)
   }
 
   async listXoMetadataBackups() {
@@ -397,25 +328,11 @@ export class RemoteAdapter {
   }
 
   async writeVmBackupMetadata(vmUuid, metadata) {
-    const path = `/${BACKUP_DIR}/${vmUuid}/${formatFilenameDate(metadata.timestamp)}.json`
-
-    await this.handler.outputFile(path, JSON.stringify(metadata), {
+    // pass the locked _updateCache so the cache entry is added atomically
+    return VmBackupDirectory.writeVmBackupMetadata(this._handler, vmUuid, metadata, {
       dirMode: this._dirMode,
+      updateCache: (path, fn) => this._updateCache(path, fn),
     })
-
-    // will not throw
-    await this._updateCache(this.#getVmBackupsCache(vmUuid), backups => {
-      debug('adding cache entry', { entry: path })
-      backups[path] = {
-        ...metadata,
-
-        // these values are required in the cache
-        _filename: path,
-        id: path,
-      }
-    })
-
-    return path
   }
 
   async writeVhd(path, disk, { validator = noop, writeBlockConcurrency } = {}) {
@@ -499,79 +416,7 @@ export class RemoteAdapter {
   }
 
   async readVmBackupMetadata(path) {
-    let json
-    let isImmutable = false
-    let remoteIsImmutable = false
-    // if the remote is immutable, check if this metadata is also immutable
-    try {
-      // this file is not encrypted
-      await this._handler._readFile(IMMUTABILITY_METADATA_FILENAME)
-      remoteIsImmutable = true
-    } catch (error) {
-      if (error.code !== 'ENOENT') {
-        throw error
-      }
-    }
-
-    try {
-      // this will trigger an EPERM error if the file is immutable
-      json = await this.handler.readFile(path, { flag: 'r+' })
-      // s3 handler don't respect flags
-    } catch (err) {
-      // retry without triggering immutability check ,only on immutable remote
-      if (err.code === 'EPERM' && remoteIsImmutable) {
-        isImmutable = true
-        json = await this._handler.readFile(path, { flag: 'r' })
-      } else {
-        throw err
-      }
-    }
-    // _filename is a private field used to compute the backup id
-    //
-    // it's enumerable to make it cacheable
-    const metadata = { ...JSON.parse(json), _filename: path, isImmutable }
-
-    // backups created on XenServer < 7.1 via JSON in XML-RPC transports have boolean values encoded as integers, which make them unusable with more recent XAPIs
-    if (typeof metadata.vm.is_a_template === 'number') {
-      const properties = {
-        vbds: ['bootable', 'unpluggable', 'storage_lock', 'empty', 'currently_attached'],
-        vdis: [
-          'sharable',
-          'read_only',
-          'storage_lock',
-          'managed',
-          'missing',
-          'is_a_snapshot',
-          'allow_caching',
-          'metadata_latest',
-        ],
-        vifs: ['currently_attached', 'MAC_autogenerated'],
-        vm: ['is_a_template', 'is_control_domain', 'ha_always_run', 'is_a_snapshot', 'is_snapshot_from_vmpp'],
-        vmSnapshot: ['is_a_template', 'is_control_domain', 'ha_always_run', 'is_snapshot_from_vmpp'],
-      }
-
-      function fixBooleans(obj, properties) {
-        properties.forEach(property => {
-          if (typeof obj[property] === 'number') {
-            obj[property] = obj[property] === 1
-          }
-        })
-      }
-
-      for (const [key, propertiesInKey] of Object.entries(properties)) {
-        const value = metadata[key]
-        if (value !== undefined) {
-          // some properties of the metadata are collections indexed by the opaqueRef
-          const isCollection = Object.keys(value).some(subKey => subKey.startsWith('OpaqueRef:'))
-          if (isCollection) {
-            Object.values(value).forEach(subValue => fixBooleans(subValue, propertiesInKey))
-          } else {
-            fixBooleans(value, propertiesInKey)
-          }
-        }
-      }
-    }
-    return metadata
+    return VmBackupDirectory.readVmBackupMetadata(this._handler, path)
   }
 
   #computeTotalBackupSizeRecursively(backups) {
