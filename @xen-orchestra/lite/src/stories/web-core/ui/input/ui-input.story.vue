@@ -21,7 +21,7 @@
       slot('suffix').help('Can be used in place of suffix prop'),
     ]"
   >
-    <UiInput v-bind="properties" />
+    <UiInput placeholder="Enter your search" v-bind="properties" />
   </ComponentStory>
 </template>
 
