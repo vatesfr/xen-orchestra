@@ -148,16 +148,28 @@ export default class {
       email,
 
       authProviders,
+      firstname,
+      lastname,
       name = email,
       password,
       permission,
       preferences,
+      username,
     }
   ) {
     const user = await this.getUser(id)
 
     if (name) {
       user.name = name
+    }
+    if (firstname !== undefined) {
+      user.firstname = firstname
+    }
+    if (lastname !== undefined) {
+      user.lastname = lastname
+    }
+    if (username !== undefined) {
+      user.username = username
     }
     if (permission) {
       user.permission = permission
