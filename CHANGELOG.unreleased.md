@@ -24,7 +24,6 @@
 
 - [XO6] Fix negative "other" value in backup repository dashboard (PR [#10044](https://github.com/vatesfr/xen-orchestra/pull/10044))
 - [Backups] Fix missing transfer size (PR [#10106](https://github.com/vatesfr/xen-orchestra/pull/10106))
-- [XO Lite] Fix VDI storage used space calculation to include entire parent chain when snapshots present (PR [#10116](https://github.com/vatesfr/xen-orchestra/pull/10116))
 
 ### Packages to release
 

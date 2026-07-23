@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- Fix VDI storage used space calculation to include entire parent chain when snapshots present (PR [#10116](https://github.com/vatesfr/xen-orchestra/pull/10116))
+
 ## **0.23.0** (2026-06-30)
 
 - Update the UiTitle component to use the one from web-core (PR [#9869](https://github.com/vatesfr/xen-orchestra/pull/9869))
