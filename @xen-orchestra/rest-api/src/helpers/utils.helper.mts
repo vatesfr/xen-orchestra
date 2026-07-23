@@ -6,6 +6,10 @@ import { isPromise } from 'node:util/types'
 import { MaybePromise, PromiseWriteInStreamError } from './helper.type.mjs'
 import { Writable } from 'node:stream'
 import { ApiError } from './error.helper.mjs'
+import { XMLParser } from 'fast-xml-parser'
+
+export { default as forEach } from 'lodash/forEach.js'
+
 export const NDJSON_CONTENT_TYPE = 'application/x-ndjson'
 
 const log = createLogger('xo:rest-api:utils-helper')
@@ -152,4 +156,27 @@ export function limitAndFilterArray<T>(
   }
 
   return array
+}
+
+export const parseXml = (function () {
+  const parser = new XMLParser({
+    attributeNamePrefix: '',
+    ignoreAttributes: false,
+    ignoreDeclaration: true,
+    parseTagValue: false,
+    parseAttributeValue: false,
+  })
+
+  return xml => {
+    try {
+      return parser.parse(Buffer.isBuffer(xml) ? xml.toString() : xml)
+    } catch (error) {
+      log.warn('parseXml', { error, xml })
+      return ''
+    }
+  }
+})()
+
+export function ensureArray<T>(value: T | T[] | undefined): T[] {
+  return value === undefined ? [] : Array.isArray(value) ? value : [value]
 }
