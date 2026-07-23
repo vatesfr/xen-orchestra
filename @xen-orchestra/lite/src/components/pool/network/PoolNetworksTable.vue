@@ -8,16 +8,6 @@
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
         <UiTableActions :title="t('table-actions')">
           <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            left-icon="fa:edit"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('action:edit') }}
-          </UiButton>
-          <UiButton
             v-tooltip="copied && t('copied')"
             :disabled="!isClipboardSupported"
             :left-icon="copied ? 'fa:check-circle' : 'action:copy'"
@@ -27,16 +17,6 @@
             @click="selectedNetworkIds.length > 0 && copy()"
           >
             {{ t('action:copy-info-json') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            left-icon="fa:trash"
-            variant="tertiary"
-            accent="danger"
-            size="medium"
-          >
-            {{ t('action:delete') }}
           </UiButton>
         </UiTableActions>
       </div>
