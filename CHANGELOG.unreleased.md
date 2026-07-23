@@ -12,6 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [XO6/Host] Add possibility to shut down and start an host (PR [#10088](https://github.com/vatesfr/xen-orchestra/pull/10088))
+- [XO6/Host] Add possibility to forget an host (PR [#10089](https://github.com/vatesfr/xen-orchestra/pull/10089))
 
 ### Bug fixes
 
