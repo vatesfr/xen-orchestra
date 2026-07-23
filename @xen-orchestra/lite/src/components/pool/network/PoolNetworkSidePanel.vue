@@ -1,26 +1,6 @@
 <template>
   <VtsSidePanel :has-selection="!!network" @close="emit('close')">
     <template v-if="network" #actions>
-      <UiButton
-        v-tooltip="t('coming-soon!')"
-        disabled
-        size="medium"
-        variant="tertiary"
-        accent="brand"
-        left-icon="action:edit"
-      >
-        {{ t('action:edit') }}
-      </UiButton>
-      <UiButton
-        v-tooltip="t('coming-soon!')"
-        disabled
-        size="medium"
-        variant="tertiary"
-        accent="danger"
-        left-icon="action:delete"
-      >
-        {{ t('action:delete') }}
-      </UiButton>
       <MenuList placement="bottom-end">
         <template #trigger="{ open, isOpen }">
           <UiButtonIcon
@@ -123,7 +103,6 @@ import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
