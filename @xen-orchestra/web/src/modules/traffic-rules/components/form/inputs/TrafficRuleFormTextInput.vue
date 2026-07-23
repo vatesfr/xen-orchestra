@@ -5,9 +5,9 @@
 </template>
 
 <script lang="ts" setup>
-import type { InputWrapperMessage } from '@xen-orchestra/web-core/components/input-wrapper/VtsInputWrapper.vue'
-import VtsInputWrapper from '@xen-orchestra/web-core/components/input-wrapper/VtsInputWrapper.vue'
-import UiInput from '@xen-orchestra/web-core/components/ui/input/UiInput.vue'
+import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import UiInput from '@core/components/ui/input/UiInput.vue'
 import { computed } from 'vue'
 
 const { info, warning, error } = defineProps<{

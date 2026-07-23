@@ -1,7 +1,7 @@
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
-import type { BaseNewTrafficRulePayload } from '@/modules/traffic-rules/form/use-traffic-rule-form-base.ts'
+import type { BaseTrafficRulePayload } from '@/modules/traffic-rules/form/use-traffic-rule-form-base.ts'
 import { xoTrafficRulesArg } from '@/modules/traffic-rules/jobs/xo-traffic-rule-args.ts'
-import { newTrafficRulePayloadArg } from '@/modules/traffic-rules/jobs/xo-traffic-rule-edit-args.ts'
+import { editTrafficRulePayloadArg } from '@/modules/traffic-rules/jobs/xo-traffic-rule-edit-args.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
@@ -10,13 +10,13 @@ import { useI18n } from 'vue-i18n'
 
 export const useXoTrafficRuleEditJob = defineJob(
   'traffic-rule.edit',
-  [xoTrafficRulesArg, newTrafficRulePayloadArg],
+  [xoTrafficRulesArg, editTrafficRulePayloadArg],
   () => {
     const { monitorTask } = useXoTaskUtils()
     const { t } = useI18n()
 
     return {
-      async run(oldRules: TrafficRule[], newRule: BaseNewTrafficRulePayload): Promise<PromiseSettledResult<void>[]> {
+      async run(oldRules: TrafficRule[], newRule: BaseTrafficRulePayload): Promise<PromiseSettledResult<void>[]> {
         const results = await Promise.allSettled(
           oldRules.map(async oldRule => {
             const scope = oldRule.type === 'network' ? 'networks' : 'vifs'
@@ -39,7 +39,7 @@ export const useXoTrafficRuleEditJob = defineJob(
 
         results.forEach((result, index) => {
           if (result.status === 'rejected') {
-            console.error(`Failed to delete traffic rule ${oldRules[index].id}:`, result.reason)
+            console.error(`Failed to edit traffic rule ${oldRules[index].id}:`, result.reason)
           }
         })
         return results

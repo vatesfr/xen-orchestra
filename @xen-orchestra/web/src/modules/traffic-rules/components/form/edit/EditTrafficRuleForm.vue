@@ -54,7 +54,7 @@ import TrafficRuleFormNumberInput from '@/modules/traffic-rules/components/form/
 import TrafficRuleFormSelect from '@/modules/traffic-rules/components/form/inputs/TrafficRuleFormSelect.vue'
 import TrafficRuleFormTextInput from '@/modules/traffic-rules/components/form/inputs/TrafficRuleFormTextInput.vue'
 import { useEditTrafficRuleForm } from '@/modules/traffic-rules/form/edit/use-edit-traffic-rule-form.ts'
-import type { NewTrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
+import type { TrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
 import VtsForm from '@core/components/form/VtsForm.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
@@ -67,7 +67,7 @@ const { rule } = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  confirm: [payload: NewTrafficRulePayload]
+  confirm: [payload: TrafficRulePayload]
 }>()
 
 const { t } = useI18n()

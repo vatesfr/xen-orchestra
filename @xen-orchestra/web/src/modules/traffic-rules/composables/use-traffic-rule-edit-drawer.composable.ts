@@ -1,4 +1,4 @@
-import type { NewTrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
+import type { TrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
 import { useXoTrafficRuleEditJob } from '@/modules/traffic-rules/jobs/xo-traffic-rule-edit.job.ts'
 import { useDrawer } from '@core/packages/drawer/use-drawer.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -8,7 +8,7 @@ import { type MaybeRefOrGetter, ref } from 'vue'
 export function useTrafficRuleEditDrawer(rawTrafficRule: MaybeRefOrGetter<TrafficRule>) {
   const trafficRule = toComputed(rawTrafficRule)
 
-  const newRulePayload = ref<NewTrafficRulePayload | undefined>(undefined)
+  const newRulePayload = ref<TrafficRulePayload | undefined>(undefined)
 
   const { run, isRunning, canRun } = useXoTrafficRuleEditJob(() => [trafficRule.value], newRulePayload)
 
@@ -17,7 +17,7 @@ export function useTrafficRuleEditDrawer(rawTrafficRule: MaybeRefOrGetter<Traffi
     props: {
       rule: trafficRule.value,
     },
-    onConfirm: async (payload: NewTrafficRulePayload) => {
+    onConfirm: async (payload: TrafficRulePayload) => {
       newRulePayload.value = payload
       try {
         await run()

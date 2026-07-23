@@ -67,7 +67,7 @@
   "action:duplicate-n-vms": "Duplicate 1 VM | Duplicate {n} VMs",
   "action:edit": "Edit",
   "action:edit-config": "Edit config",
-  "action:edit-traffic-rule": "@:action:edit traffic rule",
+  "action:edit-traffic-rule": "@:action:edit @.lower:traffic-rule",
   "action:enable-host": "Enable host",
   "action:enable-light-mode": "Enable light mode",
   "action:export": "Export",

@@ -60,7 +60,7 @@ import TrafficRuleFormSelect from '@/modules/traffic-rules/components/form/input
 import TrafficRuleFormTextInput from '@/modules/traffic-rules/components/form/inputs/TrafficRuleFormTextInput.vue'
 import NewTrafficRuleButtonsSection from '@/modules/traffic-rules/components/form/new/NewTrafficRuleButtonsSection.vue'
 import { useNewTrafficRuleForm } from '@/modules/traffic-rules/form/new/use-new-traffic-rule-form.ts'
-import type { NewTrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
+import type { TrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import VtsForm from '@core/components/form/VtsForm.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -76,7 +76,7 @@ const { poolId, vifId } = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  create: [data: NewTrafficRulePayload]
+  create: [data: TrafficRulePayload]
 }>()
 
 const { t } = useI18n()

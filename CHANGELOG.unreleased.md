@@ -13,7 +13,7 @@
 
 ### Enhancements
 
-- [XO6/Traffic rules] Edit traffic rules (PR [#10056](https://github.com/vatesfr/xen-orchestra/pull/10056))
+> Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - **RBAC** check for REST API endpoints:
   - `/pools/:id/actions/create_bonded_network` (PR [#9891](https://github.com/vatesfr/xen-orchestra/pull/9891))
@@ -45,6 +45,7 @@
 - [REST API] Expose `/rest/v0/acl-roles/:id/users` (PR [#10085](https://github.com/vatesfr/xen-orchestra/pull/10085))
 - [REST API] Expose `/rest/v0/acl-roles/:id/groups` (PR [#10085](https://github.com/vatesfr/xen-orchestra/pull/10085))
 - [XO6] Fix some design inconsistency between pages (PR [#10109](https://github.com/vatesfr/xen-orchestra/pull/10109))
+- [XO6/Traffic rules] Add possibility of editing a traffic rules (PR [#10056](https://github.com/vatesfr/xen-orchestra/pull/10056))
 
 ### Bug fixes
 

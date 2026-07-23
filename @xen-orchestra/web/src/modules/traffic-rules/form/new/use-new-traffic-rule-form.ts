@@ -13,7 +13,7 @@ import {
   type BaseTrafficRuleFormData,
   useTrafficRuleFormBase,
 } from '@/modules/traffic-rules/form/use-traffic-rule-form-base.ts'
-import type { NewTrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
+import type { TrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { type FormValidationConfig, required, requiredIf, withMessage } from '@core/packages/form-validation'
@@ -84,11 +84,13 @@ export function useNewTrafficRuleForm(
       : poolNetworks.value.map(network => networkToTargetOption(network))
   )
 
-  const vmOptions = computed(() => poolVms.value.map(vm => {
-    const hasVifs = vm.VIFs.length > 0
+  const vmOptions = computed(() =>
+    poolVms.value.map(vm => {
+      const hasVifs = vm.VIFs.length > 0
 
-    return vmToTargetOption(vm, hasVifs)
-  }))
+      return vmToTargetOption(vm, hasVifs)
+    })
+  )
 
   const targetTypeOptions = [
     { id: 'network', label: t('network'), value: 'network' },
@@ -185,7 +187,7 @@ export function useNewTrafficRuleForm(
     }
   })
 
-  async function validateAndBuildPayload(): Promise<NewTrafficRulePayload | undefined> {
+  async function validateAndBuildPayload(): Promise<TrafficRulePayload | undefined> {
     const valid = await validate()
 
     if (!valid || formData.targetId === undefined) {
