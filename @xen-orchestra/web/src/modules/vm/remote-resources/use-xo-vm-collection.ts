@@ -9,11 +9,9 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { VM_POWER_STATE, type XoVm } from '@vates/types'
 import { useSorted } from '@vueuse/core'
-import { computed, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 
 export type FrontXoVm = Pick<XoVm, (typeof vmFields)[number]>
-
-export type VmGuestToolsEntry = { id: FrontXoVm['id']; name: string; version?: string }
 
 const vmFields = [
   'id',
@@ -64,30 +62,6 @@ const vmFields = [
   'boot',
   'parent',
 ] as const satisfies readonly (keyof XoVm)[]
-
-function compareDriverVersions(a: string, b: string): number {
-  const parseSegment = (segment: string): number => {
-    const value = Number(segment)
-    return Number.isNaN(value) ? 0 : value
-  }
-
-  const parse = (version: string): number[] => {
-    const [numericPart, build = '0'] = version.split('-')
-    return [...numericPart.split('.').map(parseSegment), parseSegment(build)]
-  }
-
-  const aParsed = parse(a)
-  const bParsed = parse(b)
-
-  for (let i = 0; i < Math.max(aParsed.length, bParsed.length); i++) {
-    const diff = (aParsed[i] ?? 0) - (bParsed[i] ?? 0)
-    if (diff !== 0) {
-      return diff
-    }
-  }
-
-  return 0
-}
 
 export const useXoVmCollection = defineRemoteResource({
   url: `${BASE_URL}/vms?fields=${vmFields.join(',')}&ndjson=true`,
@@ -140,45 +114,6 @@ export const useXoVmCollection = defineRemoteResource({
       runningVmsCountByContainer.value = tmpRunningVmsCountByContainer
     })
 
-    const vmGuestToolsStatus = computed(() => {
-      const missingVms: VmGuestToolsEntry[] = []
-      const outOfDateVms: VmGuestToolsEntry[] = []
-      const unknownVms: VmGuestToolsEntry[] = []
-      let upToDate = 0
-      const outOfDateVersions = new Map<string | undefined, number>()
-      let bestVersion: string | undefined
-
-      for (const vm of runningVms.value) {
-        if (!vm.managementAgentDetected) {
-          missingVms.push({ id: vm.id, name: vm.name_label })
-        } else if (!vm.pvDriversDetected) {
-          upToDate++
-        } else if (vm.pvDriversUpToDate === false) {
-          outOfDateVms.push({ id: vm.id, name: vm.name_label, version: vm.pvDriversVersion })
-          outOfDateVersions.set(vm.pvDriversVersion, (outOfDateVersions.get(vm.pvDriversVersion) ?? 0) + 1)
-        } else if (vm.pvDriversUpToDate === undefined) {
-          unknownVms.push({ id: vm.id, name: vm.name_label })
-        } else {
-          upToDate++
-          if (vm.pvDriversVersion !== undefined) {
-            if (bestVersion === undefined || compareDriverVersions(vm.pvDriversVersion, bestVersion) > 0) {
-              bestVersion = vm.pvDriversVersion
-            }
-          }
-        }
-      }
-
-      return {
-        missingVms,
-        outOfDateVms,
-        unknownVms,
-        upToDate,
-        total: runningVms.value.length,
-        outOfDateVersions,
-        bestVersion,
-      }
-    })
-
     function getVmHost(vm: FrontXoVm): FrontXoHost | undefined {
       const vmHostId = extractVmHostId(vm)
 
@@ -195,7 +130,6 @@ export const useXoVmCollection = defineRemoteResource({
         baseName: 'vm',
       }),
       runningVms,
-      vmGuestToolsStatus,
       runningVmsCountByPool,
       runningVmsCountByContainer,
       vmsByHost,

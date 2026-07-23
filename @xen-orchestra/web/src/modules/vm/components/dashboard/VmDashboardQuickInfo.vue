@@ -57,12 +57,12 @@
         <template #value>
           <div class="value">
             <VtsIcon
-              v-if="guestToolsDisplay.value !== '-'"
+              v-if="guestToolsDisplay.type !== 'not-applicable'"
               v-tooltip="guestToolsDisplay.tooltip"
-              :name="guestToolsDisplay.type === 'link' ? 'status:halted-circle' : 'status:success-circle'"
+              :name="guestToolsIcon"
               size="medium"
             />
-            <UiLink v-if="guestToolsDisplay.type === 'link'" size="small" :href="XCP_LINKS.GUEST_TOOLS">
+            <UiLink v-if="guestToolsDisplay.type === 'missing'" size="small" :href="XCP_LINKS.GUEST_TOOLS">
               {{ guestToolsDisplay.value }}
             </UiLink>
             <template v-else>
@@ -118,7 +118,9 @@ const { useGetPoolById } = useXoPoolCollection()
 const { getVmHost } = useXoVmCollection()
 const { isMasterHost } = useXoHostCollection()
 
-const { powerState, installDateFormatted, relativeStartTime, guestToolsDisplay } = useXoVmUtils(() => vm)
+const { powerState, installDateFormatted, relativeStartTime, guestToolsDisplay, guestToolsIcon } = useXoVmUtils(
+  () => vm
+)
 
 const { user } = useXoUserResource({}, () => vm.creation?.user)
 
