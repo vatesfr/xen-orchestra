@@ -1,11 +1,5 @@
 <template>
-  <MenuItem
-    icon="action:migrate"
-    class="typo-body-bold-small"
-    :disabled="!canMigrateVdi"
-    :busy="isMigratingVdi"
-    @click="handleClick()"
-  >
+  <MenuItem icon="action:migrate" :disabled="!canMigrateVdi" :busy="isMigratingVdi" @click="handleClick()">
     {{ t('action:migrate-vdi-on-sr') }}
     <i v-if="hint">{{ hint }}</i>
   </MenuItem>

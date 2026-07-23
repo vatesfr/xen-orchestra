@@ -1,12 +1,5 @@
 <template>
-  <MenuItem
-    v-if="canDisplay"
-    :disabled="!canSuspend"
-    icon="fa:moon"
-    :busy="isRunning"
-    class="typo-body-bold-small"
-    @click="openModal()"
-  >
+  <MenuItem v-if="canDisplay" :disabled="!canSuspend" icon="fa:moon" :busy="isRunning" @click="openModal()">
     {{ t('action:suspend') }}
     <i v-if="!canSuspend">{{ t('vm-tools-missing') }}</i>
   </MenuItem>

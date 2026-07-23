@@ -1,11 +1,5 @@
 <template>
-  <MenuItem
-    icon="action:delete"
-    :disabled="!canDeleteSr"
-    :busy="isDeletingSr"
-    class="delete typo-body-bold-small"
-    @click="openSrDeleteModal()"
-  >
+  <MenuItem icon="action:delete" :disabled="!canDeleteSr" :busy="isDeletingSr" @click="openSrDeleteModal()">
     {{ t('action:delete') }}
   </MenuItem>
 </template>

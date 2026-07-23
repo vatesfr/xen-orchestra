@@ -5,7 +5,7 @@
       <VtsObjectIcon size="medium" :state="toLower(vm?.power_state)" type="vm" />
     </template>
     <template #actions>
-      <MenuList v-if="vm !== undefined" placement="bottom-end">
+      <MenuList v-if="vm !== undefined" placement="bottom-start">
         <template #trigger="{ open }">
           <UiDropdownButton @click="open($event)">{{ t('action:change-state') }}</UiDropdownButton>
         </template>

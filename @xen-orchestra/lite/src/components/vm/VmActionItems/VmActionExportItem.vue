@@ -5,7 +5,6 @@
     "
     :disabled="isDisabled"
     icon="action:download"
-    class="typo-body-bold-small"
     @click="openExportModal"
   >
     {{ t('action:export-vm', isSingleAction ? 1 : 2) }}

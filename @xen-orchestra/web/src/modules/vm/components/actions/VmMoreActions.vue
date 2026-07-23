@@ -1,5 +1,5 @@
 <template>
-  <MenuItem v-if="showChangeState" icon="action:change-state" class="change-state typo-body-bold-small">
+  <MenuItem v-if="showChangeState" icon="action:change-state" class="change-state">
     {{ t('action:change-state') }}
     <template #submenu>
       <VmPowerStateActions :vm />

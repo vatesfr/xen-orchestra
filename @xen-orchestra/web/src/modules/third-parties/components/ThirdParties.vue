@@ -8,7 +8,7 @@
     </VtsDropdownTitle>
 
     <MenuItem v-for="(easyVirtSolution, index) in easyVirtSolutions" :key="index">
-      <UiLink class="link" size="medium" :href="easyVirtSolution.href">
+      <UiLink class="link" size="small" :href="easyVirtSolution.href">
         {{ easyVirtSolution.label }}
       </UiLink>
     </MenuItem>
@@ -17,7 +17,7 @@
 
 <script lang="ts" setup>
 import EasyVirtLogo from '@/modules/third-parties/components/easyvirt/EasyVirtLogo.vue'
-import { useXoVmCollection, type FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { formatIpToHostName, type IpAddress } from '@/shared/utils/ip.utils.ts'
 import VtsDropdownTitle from '@core/components/dropdown/VtsDropdownTitle.vue'

@@ -3,7 +3,6 @@
     v-tooltip="areSomeVmsInExecution && t('selected-vms-in-execution')"
     :disabled="isDisabled"
     icon="fa:trash"
-    class="typo-body-bold-small"
     @click="openDeleteModal"
   >
     {{ t('action:delete') }}

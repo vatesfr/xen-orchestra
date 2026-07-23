@@ -9,7 +9,7 @@
     <template v-if="uiStore.isSmall" #trigger="{ isOpen, open }">
       <UiButtonIcon accent="brand" size="small" :selected="isOpen" icon="fa:ellipsis" @click="open" />
     </template>
-    <MenuItem icon="fa:power-off" class="typo-body-bold-small">
+    <MenuItem icon="fa:power-off">
       {{ t('action:change-state') }}
       <template #submenu>
         <VmActionPowerStateItems :vm-refs="selectedRefs" />

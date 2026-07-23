@@ -1,11 +1,5 @@
 <template>
-  <MenuItem
-    v-if="canDisplay"
-    icon="action:force-reboot"
-    :busy="isRunning"
-    class="typo-body-bold-small"
-    @click="openModal()"
-  >
+  <MenuItem v-if="canDisplay" icon="action:force-reboot" :busy="isRunning" @click="openModal()">
     {{ t('action:force-reboot') }}
   </MenuItem>
 </template>

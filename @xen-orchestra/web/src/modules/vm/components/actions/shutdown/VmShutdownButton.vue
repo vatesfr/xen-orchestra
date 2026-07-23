@@ -1,12 +1,5 @@
 <template>
-  <MenuItem
-    v-if="canDisplay"
-    :disabled="!canShutdown"
-    icon="action:shutdown"
-    :busy="isRunning"
-    class="typo-body-bold-small"
-    @click="openModal()"
-  >
+  <MenuItem v-if="canDisplay" :disabled="!canShutdown" icon="action:shutdown" :busy="isRunning" @click="openModal()">
     {{ t('action:shutdown') }}
     <i v-if="!canShutdown" class="typo">{{ t('vm-tools-missing') }}</i>
   </MenuItem>

@@ -12,7 +12,7 @@
                 class="new-network-link"
                 :to="{ name: '/network/new', query: { poolid: pool.id } }"
                 icon="fa:plus"
-                size="medium"
+                size="small"
               >
                 {{ t('action:create-network') }}
               </UiLink>
@@ -22,7 +22,7 @@
                 class="new-network-link"
                 :to="{ name: '/network/new-bonded', query: { poolid: pool.id } }"
                 icon="fa:plus"
-                size="medium"
+                size="small"
               >
                 {{ t('action:create-bonded-network') }}
               </UiLink>

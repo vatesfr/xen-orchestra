@@ -1,23 +1,11 @@
 <template>
-  <MenuItem
-    :busy="areVmsBusyToStart"
-    :disabled="!areVmsHalted"
-    icon="fa:play"
-    class="typo-body-bold-small"
-    @click="xenApi.vm.start(vmRefs)"
-  >
+  <MenuItem :busy="areVmsBusyToStart" :disabled="!areVmsHalted" icon="fa:play" @click="xenApi.vm.start(vmRefs)">
     {{ t('action:start') }}
   </MenuItem>
-  <MenuItem :busy="areVmsBusyToStartOnHost" :disabled="!areVmsHalted" icon="object:host" class="typo-body-bold-small">
+  <MenuItem :busy="areVmsBusyToStartOnHost" :disabled="!areVmsHalted" icon="object:host">
     {{ t('action:start-on-host') }}
     <template #submenu>
-      <MenuItem
-        v-for="host in hosts"
-        :key="host.$ref"
-        icon="object:host"
-        class="typo-body-bold-small"
-        @click="xenApi.vm.startOn(vmRefs, host.$ref)"
-      >
+      <MenuItem v-for="host in hosts" :key="host.$ref" icon="object:host" @click="xenApi.vm.startOn(vmRefs, host.$ref)">
         <div class="wrapper">
           {{ host.name_label }}
           <div>
@@ -28,29 +16,16 @@
       </MenuItem>
     </template>
   </MenuItem>
-  <MenuItem
-    :busy="areVmsBusyToPause"
-    :disabled="!areVmsRunning"
-    icon="fa:pause"
-    class="typo-body-bold-small"
-    @click="xenApi.vm.pause(vmRefs)"
-  >
+  <MenuItem :busy="areVmsBusyToPause" :disabled="!areVmsRunning" icon="fa:pause" @click="xenApi.vm.pause(vmRefs)">
     {{ t('pause') }}
   </MenuItem>
-  <MenuItem
-    :busy="areVmsBusyToSuspend"
-    :disabled="!areVmsRunning"
-    icon="fa:moon"
-    class="typo-body-bold-small"
-    @click="xenApi.vm.suspend(vmRefs)"
-  >
+  <MenuItem :busy="areVmsBusyToSuspend" :disabled="!areVmsRunning" icon="fa:moon" @click="xenApi.vm.suspend(vmRefs)">
     {{ t('action:suspend') }}
   </MenuItem>
   <MenuItem
     :busy="areVmsBusyToResume"
     :disabled="!areVmsSuspended && !areVmsPaused"
     icon="fa:play"
-    class="typo-body-bold-small"
     @click="xenApi.vm.resume(vmRefsWithPowerState)"
   >
     {{ t('action:resume') }}
@@ -59,7 +34,6 @@
     :busy="areVmsBusyToReboot"
     :disabled="!areVmsRunning"
     icon="action:reboot"
-    class="typo-body-bold-small"
     @click="xenApi.vm.reboot(vmRefs)"
   >
     {{ t('action:reboot') }}
@@ -68,7 +42,6 @@
     :busy="areVmsBusyToForceReboot"
     :disabled="!areVmsRunning && !areVmsPaused"
     icon="action:force-reboot"
-    class="typo-body-bold-small"
     @click="xenApi.vm.reboot(vmRefs, true)"
   >
     {{ t('action:force-reboot') }}
@@ -77,7 +50,6 @@
     :busy="areVmsBusyToShutdown"
     :disabled="!areVmsRunning"
     icon="action:shutdown"
-    class="typo-body-bold-small"
     @click="xenApi.vm.shutdown(vmRefs)"
   >
     {{ t('action:shutdown') }}
@@ -86,7 +58,6 @@
     :busy="areVmsBusyToForceShutdown"
     :disabled="!areVmsRunning && !areVmsSuspended && !areVmsPaused"
     icon="action:force-shutdown"
-    class="typo-body-bold-small"
     @click="xenApi.vm.shutdown(vmRefs, true)"
   >
     {{ t('action:force-shutdown') }}

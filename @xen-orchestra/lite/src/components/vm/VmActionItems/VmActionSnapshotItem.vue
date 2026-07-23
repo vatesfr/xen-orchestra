@@ -1,11 +1,5 @@
 <template>
-  <MenuItem
-    :busy="areSomeVmsSnapshotting"
-    :disabled="isDisabled"
-    icon="fa:camera"
-    class="typo-body-bold-small"
-    @click="handleSnapshot"
-  >
+  <MenuItem :busy="areSomeVmsSnapshotting" :disabled="isDisabled" icon="fa:camera" @click="handleSnapshot">
     {{ t('snapshot') }}
   </MenuItem>
 </template>

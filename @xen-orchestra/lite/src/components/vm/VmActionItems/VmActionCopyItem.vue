@@ -4,7 +4,6 @@
     :busy="areSomeSelectedVmsCloning"
     :disabled="isDisabled"
     icon="action:duplicate"
-    class="typo-body-bold-small"
     @click="handleCopy"
   >
     {{ t('action:copy') }}

@@ -1,11 +1,5 @@
 <template>
-  <MenuItem
-    icon="action:delete"
-    class="typo-body-bold-small"
-    :disabled="!canDeleteVif"
-    :busy="isDeletingVif"
-    @click="openVifDeleteModal()"
-  >
+  <MenuItem icon="action:delete" :disabled="!canDeleteVif" :busy="isDeletingVif" @click="openVifDeleteModal()">
     {{ t('action:delete') }}
     <i v-if="hint">{{ hint }}</i>
   </MenuItem>
