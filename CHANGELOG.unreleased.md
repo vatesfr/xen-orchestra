@@ -58,6 +58,7 @@
 - [Backups] Fix EEXIST issue when recreating backup in VhdDirectory after crash (PR [#10139](https://github.com/vatesfr/xen-orchestra/pull/10139))
 - [Backups] Fix failed status on successful retry [Forum#12366](https://xcp-ng.org/forum/topic/12366) (PR [#10129](https://github.com/vatesfr/xen-orchestra/pull/10129))
 - [Host] Successful evacuation signature fallbacks on older XAPI versions are no longer logged as warnings (PR [#10131](https://github.com/vatesfr/xen-orchestra/pull/10131))
+- [Backups] write the complete disk metadata at once to improve compatibility with immutable backup repository (PR [#10104](https://github.com/vatesfr/xen-orchestra/pull/10104))
 
 ### Packages to release
 

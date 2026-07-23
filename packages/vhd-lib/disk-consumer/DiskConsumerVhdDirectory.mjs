@@ -20,6 +20,9 @@ import assert from 'node:assert'
  * @property {string} compression
  * @property {number} concurrency
  * @property {string} flags
+ * @property {Buffer?} uuid
+ * @property {Buffer?} parentUuid
+ * @property {string?} parentPath
  * @property {(path: string) => Promise<void>} validator
  */
 
@@ -44,7 +47,7 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
    * @returns {Promise<number>}
    */
   async write(signal) {
-    const { handler, path, compression, flags, validator, concurrency } = this.#target
+    const { handler, path, compression, flags, validator, concurrency, uuid, parentUuid, parentPath } = this.#target
     const SUFFIX = '.alias.vhd'
     assert.ok(path.endsWith(SUFFIX), `filename must be an alias , got ${path}`)
     const base = basename(path).slice(0, -SUFFIX.length)
@@ -57,7 +60,16 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
       await handler.mktree(dataPath)
       const vhd = new VhdDirectory(handler, dataPath, { flags: flags ?? 'w', compression })
       vhd.footer = unpackFooter(this.computeVhdFooter())
+      if (uuid) {
+        vhd.footer.uuid = uuid
+      }
       vhd.header = unpackHeader(this.computeVhdHeader())
+      if (parentUuid) {
+        vhd.header.parentUuid = parentUuid
+      }
+      if (parentPath) {
+        vhd.header.parentUnicodeName = parentPath
+      }
       /**
        * @type {import('@xen-orchestra/disk-transform').DiskBlock | null}
        */

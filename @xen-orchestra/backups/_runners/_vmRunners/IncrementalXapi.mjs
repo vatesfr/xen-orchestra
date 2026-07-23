@@ -80,15 +80,6 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
         }),
       'writer.transfer()'
     )
-    await this._callWriters(
-      writer =>
-        writer.updateUuidAndChain({
-          isVhdDifferencing,
-          timestamp,
-          vdis: deltaExport.vdis,
-        }),
-      'writer.updateUuidAndChain()'
-    )
 
     if (isFull) {
       await setVmDeltaChainLength(this._xapi, exportedVm.$ref, 0)
