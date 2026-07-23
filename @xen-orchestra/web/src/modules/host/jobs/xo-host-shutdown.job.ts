@@ -1,9 +1,10 @@
 import { xoHostArg } from '@/modules/host/jobs/xo-host-args.jobs.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { isHostOperationPending } from '@/modules/host/utils/xo-host.util.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
-import { HOST_POWER_STATE, type XoTask } from '@vates/types'
+import { HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE, type XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export const useXoHostShutdownJob = defineJob('host.shutdown', [xoHostArg], () => {
@@ -21,7 +22,7 @@ export const useXoHostShutdownJob = defineJob('host.shutdown', [xoHostArg], () =
         throw new JobError(t('job:host-shutdown:missing-host'))
       }
 
-      if (isRunning) {
+      if (isRunning || isHostOperationPending(host, HOST_ALLOWED_OPERATIONS.SHUTDOWN)) {
         throw new JobRunningError(t('job:host-shutdown:in-progress'))
       }
 
