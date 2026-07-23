@@ -2,7 +2,7 @@ import { RemoteHandlerAbstract } from '@xen-orchestra/fs'
 import { basename, dirname, normalize } from '@xen-orchestra/fs/path'
 import { resolve } from 'node:path'
 import groupBy from 'lodash/groupBy.js'
-import { asyncMap } from '@xen-orchestra/async-map'
+import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
 import { getVmBackupDir } from './paths.mjs'
 import { formatFilenameDate } from './filenameDate.mjs'
 import { isMetadataFile } from './backupType.mjs'
@@ -34,7 +34,11 @@ const FILES_TO_KEEP = ['cache.json.gz', 'vdis']
 
 const IMMUTABILITY_METADATA_FILENAME = '/immutability.json'
 
+const noop = (): void => {}
+
 const compareTimestamp = (a: { timestamp: number }, b: { timestamp: number }): number => a.timestamp - b.timestamp
+
+const resolveRelativeFromFile = (file: string, path: string): string => resolve('/', dirname(file), path).slice(1)
 
 export class VmBackupDirectory implements VmBackupInterface {
   handler: RemoteHandlerAbstract
@@ -332,6 +336,110 @@ export class VmBackupDirectory implements VmBackupInterface {
     }
 
     return backups.sort(compareTimestamp)
+  }
+
+  // Delete incremental backups: remove the metadata files (unused VHDs are detected
+  // later by cleanVm) and drop their cache entries. `updateCache` is injected (locked).
+  static async deleteDeltaVmBackups(
+    handler: RemoteHandlerAbstract,
+    backups: Array<{ _filename: string }>,
+    { updateCache }: { updateCache: (path: string, fn: (cache: Record<string, unknown>) => void) => Promise<void> }
+  ): Promise<void> {
+    // this will delete the json, unused VHDs will be detected by `cleanVm`
+    await (asyncMapSettled as any)(backups, ({ _filename }: { _filename: string }) => handler.unlink(_filename))
+
+    await VmBackupDirectory.removeBackupsFromCache(updateCache, backups)
+  }
+
+  // Delete full backups: remove the metadata, the XVA and its checksum, then drop
+  // their cache entries. `updateCache` is injected (locked).
+  static async deleteFullVmBackups(
+    handler: RemoteHandlerAbstract,
+    backups: Array<{ _filename: string; xva: string }>,
+    { updateCache }: { updateCache: (path: string, fn: (cache: Record<string, unknown>) => void) => Promise<void> }
+  ): Promise<void> {
+    await (asyncMapSettled as any)(backups, ({ _filename, xva }: { _filename: string; xva: string }) =>
+      Promise.all([
+        handler.unlink(_filename).catch((error: any) => {
+          logWarn('error while removing full vm backup metadata', { error, filename: _filename })
+          if (error.code !== 'ENOENT') throw error
+        }),
+        handler.unlink(resolveRelativeFromFile(_filename, xva)).catch((error: any) => {
+          logWarn('error while removing full vm backup file', { error, filename: _filename })
+          if (error.code !== 'ENOENT') throw error
+        }),
+        handler.unlink(resolveRelativeFromFile(_filename, `${xva}.checksum`)).catch((error: any) => {
+          // checksum can be missing , it's not an issue
+          if (error.code !== 'ENOENT') throw error
+        }),
+      ])
+    )
+
+    await VmBackupDirectory.removeBackupsFromCache(updateCache, backups)
+  }
+
+  // Delete a set of VM backups by metadata path: dispatch to the delta/full deleters,
+  // clean stale cache entries for already-removed files, then run cleanVm per directory.
+  // `updateCache` and `cleanVm` are injected so the facade keeps ownership of locking.
+  static async deleteVmBackups(
+    handler: RemoteHandlerAbstract,
+    files: string[],
+    {
+      updateCache,
+      cleanVm,
+    }: {
+      updateCache: (path: string, fn: (cache: Record<string, unknown>) => void) => Promise<void>
+      cleanVm: (dir: string, opts: object) => Promise<unknown>
+    }
+  ): Promise<void> {
+    const metadataOrNull = await (asyncMap as any)(files, async (file: string) => {
+      try {
+        return await VmBackupDirectory.readVmBackupMetadata(handler, file)
+      } catch (error) {
+        if (error.code === 'ENOENT') {
+          // File was already removed (e.g. by coalescing); clean the stale cache entry
+          logWarn('backup metadata not found, removing stale cache entry', { file })
+          return null
+        }
+        throw error
+      }
+    })
+
+    const presentMetadata: any[] = []
+    const missingFiles: Array<{ _filename: string }> = []
+    for (let i = 0; i < files.length; i++) {
+      if (metadataOrNull[i] === null) {
+        missingFiles.push({ _filename: files[i] })
+      } else {
+        presentMetadata.push(metadataOrNull[i])
+      }
+    }
+
+    const { delta, full, ...others } = groupBy(presentMetadata, 'mode')
+
+    const unsupportedModes = Object.keys(others)
+    if (unsupportedModes.length !== 0) {
+      throw new Error('no deleter for backup modes: ' + unsupportedModes.join(', '))
+    }
+    const promises: Array<Promise<void>> = []
+    if (delta !== undefined) {
+      promises.push(VmBackupDirectory.deleteDeltaVmBackups(handler, delta, { updateCache }))
+    }
+    if (full !== undefined) {
+      promises.push(VmBackupDirectory.deleteFullVmBackups(handler, full as any, { updateCache }))
+    }
+    if (missingFiles.length) {
+      promises.push(VmBackupDirectory.removeBackupsFromCache(updateCache, missingFiles))
+    }
+    await Promise.all(promises)
+
+    await (asyncMap as any)(new Set(files.map((file: string) => dirname(file))), (dir: string) =>
+      // - don't merge in main process, unused VHDs will be merged in the next backup run
+      // - don't error in case this fails:
+      //   - if lock is already being held, a backup is running and cleanVm will be ran at the end
+      //   - otherwise, there is nothing more we can do, orphan file will be cleaned in the future
+      cleanVm(dir, { remove: true, logWarn }).catch(noop)
+    )
   }
 
   async #readCache(path: string): Promise<Record<string, unknown> | undefined> {

@@ -6,12 +6,15 @@ import { decorateMethodsWith } from '@vates/decorate-with'
 import { dirname, join, resolve } from 'node:path'
 import { synchronized } from 'decorator-synchronized'
 import Disposable from 'promise-toolbox/Disposable'
-import groupBy from 'lodash/groupBy.js'
 import pickBy from 'lodash/pickBy.js'
 import reduce from 'lodash/reduce.js'
 
 import { BACKUP_DIR } from './_getVmBackupDir.mjs'
 import { VmBackupDirectory } from '@xen-orchestra/backup-archive'
+import {
+  deleteMetadataBackup as deleteMetadataBackupArchive,
+  deleteOldMetadataBackups as deleteOldMetadataBackupsArchive,
+} from '@xen-orchestra/backup-archive/metadata'
 import { fileRestoreDecorators, fileRestoreMethods } from './_fileRestore.mjs'
 import { isValidXva } from './_isValidXva.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
@@ -29,8 +32,6 @@ const { warn } = createLogger('xo:backups:RemoteAdapter')
 export const compareTimestamp = (a, b) => a.timestamp - b.timestamp
 
 const noop = Function.prototype
-
-const resolveRelativeFromFile = (file, path) => resolve('/', dirname(file), path).slice(1)
 
 const createSafeReaddir = (handler, methodName) => (path, options) =>
   handler.list(path, options).catch(error => {
@@ -74,60 +75,23 @@ export class RemoteAdapter {
     })
   }
 
-  async #removeVmBackupsFromCache(backups) {
-    // pass the locked _updateCache so cache updates stay serialized per file
-    await VmBackupDirectory.removeBackupsFromCache((path, fn) => this._updateCache(path, fn), backups)
-  }
+  // inject the locked _updateCache so cache updates stay serialized per file
+  #updateCacheLocked = (path, fn) => this._updateCache(path, fn)
 
   async deleteDeltaVmBackups(backups) {
-    const handler = this._handler
-
-    // this will delete the json, unused VHDs will be detected by `cleanVm`
-    await asyncMapSettled(backups, ({ _filename }) => handler.unlink(_filename))
-
-    await this.#removeVmBackupsFromCache(backups)
+    return VmBackupDirectory.deleteDeltaVmBackups(this._handler, backups, { updateCache: this.#updateCacheLocked })
   }
 
   async deleteMetadataBackup(backupId) {
-    const uuidReg = '\\w{8}(-\\w{4}){3}-\\w{12}'
-    const metadataDirReg = 'xo-(config|pool-metadata)-backups'
-    const timestampReg = '\\d{8}T\\d{6}Z'
-    const regexp = new RegExp(`^${metadataDirReg}/${uuidReg}(/${uuidReg})?/${timestampReg}`)
-    if (!regexp.test(backupId)) {
-      throw new Error(`The id (${backupId}) not correspond to a metadata folder`)
-    }
-
-    await this._handler.rmtree(backupId)
+    return deleteMetadataBackupArchive(this._handler, backupId)
   }
 
   async deleteOldMetadataBackups(dir, retention) {
-    const handler = this.handler
-    let list = await handler.list(dir)
-    list.sort()
-    list = list.filter(timestamp => /^\d{8}T\d{6}Z$/.test(timestamp)).slice(0, -retention)
-    await asyncMapSettled(list, timestamp => handler.rmtree(`${dir}/${timestamp}`))
+    return deleteOldMetadataBackupsArchive(this._handler, dir, retention)
   }
 
   async deleteFullVmBackups(backups) {
-    const handler = this._handler
-    await asyncMapSettled(backups, ({ _filename, xva }) =>
-      Promise.all([
-        handler.unlink(_filename).catch(error => {
-          warn('error while removing full vm backup metadata', { error, filename: _filename })
-          if (error.code !== 'ENOENT') throw error
-        }),
-        handler.unlink(resolveRelativeFromFile(_filename, xva)).catch(error => {
-          warn('error while removing full vm backup file', { error, filename: _filename })
-          if (error.code !== 'ENOENT') throw error
-        }),
-        handler.unlink(resolveRelativeFromFile(_filename, `${xva}.checksum`)).catch(error => {
-          // checksum can be missing , it's not an issue
-          if (error.code !== 'ENOENT') throw error
-        }),
-      ])
-    )
-
-    await this.#removeVmBackupsFromCache(backups)
+    return VmBackupDirectory.deleteFullVmBackups(this._handler, backups, { updateCache: this.#updateCacheLocked })
   }
 
   deleteVmBackup(file) {
@@ -135,54 +99,11 @@ export class RemoteAdapter {
   }
 
   async deleteVmBackups(files) {
-    const metadataOrNull = await asyncMap(files, async file => {
-      try {
-        return await this.readVmBackupMetadata(file)
-      } catch (error) {
-        if (error.code === 'ENOENT') {
-          // File was already removed (e.g. by coalescing); clean the stale cache entry
-          warn('backup metadata not found, removing stale cache entry', { file })
-          return null
-        }
-        throw error
-      }
+    // inject the facade's lock-owning cleanVm (not the static one, which ignores locking)
+    return VmBackupDirectory.deleteVmBackups(this._handler, files, {
+      updateCache: this.#updateCacheLocked,
+      cleanVm: (dir, opts) => this.cleanVm(dir, opts),
     })
-
-    const presentMetadata = []
-    const missingFiles = []
-    for (let i = 0; i < files.length; i++) {
-      if (metadataOrNull[i] === null) {
-        missingFiles.push({ _filename: files[i] })
-      } else {
-        presentMetadata.push(metadataOrNull[i])
-      }
-    }
-
-    const { delta, full, ...others } = groupBy(presentMetadata, 'mode')
-
-    const unsupportedModes = Object.keys(others)
-    if (unsupportedModes.length !== 0) {
-      throw new Error('no deleter for backup modes: ' + unsupportedModes.join(', '))
-    }
-    const promises = []
-    if (delta !== undefined) {
-      promises.push(this.deleteDeltaVmBackups(delta))
-    }
-    if (full !== undefined) {
-      promises.push(this.deleteFullVmBackups(full))
-    }
-    if (missingFiles.length) {
-      promises.push(this.#removeVmBackupsFromCache(missingFiles))
-    }
-    await Promise.all(promises)
-
-    await asyncMap(new Set(files.map(file => dirname(file))), dir =>
-      // - don't merge in main process, unused VHDs will be merged in the next backup run
-      // - don't error in case this fails:
-      //   - if lock is already being held, a backup is running and cleanVm will be ran at the end
-      //   - otherwise, there is nothing more we can do, orphan file will be cleaned in the future
-      this.cleanVm(dir, { remove: true, logWarn: warn }).catch(noop)
-    )
   }
 
   #getCompressionType() {
