@@ -53,6 +53,9 @@
 - [Backups] Fix EEXIST issue when recreating backup in VhdDirectory after crash (PR [#10139](https://github.com/vatesfr/xen-orchestra/pull/10139))
 - [Backups] Fix failed status on successful retry [Forum#12366](https://xcp-ng.org/forum/topic/12366) (PR [#10129](https://github.com/vatesfr/xen-orchestra/pull/10129))
 - [Host] Successful evacuation signature fallbacks on older XAPI versions are no longer logged as warnings (PR [#10131](https://github.com/vatesfr/xen-orchestra/pull/10131))
+- [XO6] Fix the VM's VDI tab, which always displays an empty list on initial load (PR [#10156](https://github.com/vatesfr/xen-orchestra/pull/10156))
+- [XO6] Fix the VM's VDI tab, which sometimes displays an error (PR [#10156](https://github.com/vatesfr/xen-orchestra/pull/10156))
+- [XO6] Reduce the number of HTTP requests when navigating between pages (PR [#10156](https://github.com/vatesfr/xen-orchestra/pull/10156))
 
 ### Packages to release
 
