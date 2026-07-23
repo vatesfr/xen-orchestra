@@ -19,7 +19,7 @@
       <VtsTabularKeyValueRow :label="t('management-agent-version')" :value="vm.pvDriversVersion" />
       <VtsTabularKeyValueRow :label="t('guest-tools')">
         <template #value>
-          <VmGuestToolsValue :guest-tools-display="guestToolsDisplay" :guest-tools-icon="guestToolsIcon" />
+          <VmGuestToolsStatus :guest-tools-display="guestToolsDisplay" :guest-tools-icon="guestToolsIcon" />
         </template>
       </VtsTabularKeyValueRow>
     </VtsTabularKeyValueList>
@@ -27,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import VmGuestToolsValue from '@/modules/vm/components/VmGuestToolsValue.vue'
+import VmGuestToolsStatus from '@/modules/vm/components/VmGuestToolsStatus.vue'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'

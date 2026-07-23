@@ -76,7 +76,7 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('guest-tools') }}</template>
         <template #value>
-          <VmGuestToolsValue :guest-tools-display="guestToolsDisplay" :guest-tools-icon="guestToolsIcon" />
+          <VmGuestToolsStatus :guest-tools-display="guestToolsDisplay" :guest-tools-icon="guestToolsIcon" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -131,7 +131,7 @@
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
-import VmGuestToolsValue from '@/modules/vm/components/VmGuestToolsValue.vue'
+import VmGuestToolsStatus from '@/modules/vm/components/VmGuestToolsStatus.vue'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoVmTemplateCollection } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
