@@ -4,7 +4,7 @@
       <span>{{ modalTexts.title }}</span>
     </template>
     <template #content>
-      <span>{{ modalTexts.message }}</span>
+      <span v-if="modalTexts.message">{{ modalTexts.message }}</span>
     </template>
     <template #buttons>
       <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
@@ -27,7 +27,7 @@ import { useI18n } from 'vue-i18n'
 
 type ActionTexts = {
   title: string
-  message: string
+  message?: string
   action: string
 }
 
