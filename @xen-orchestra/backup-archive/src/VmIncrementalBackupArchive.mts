@@ -8,6 +8,10 @@ import {
 } from './VmBackup.types.mjs'
 import { RemoteHandlerAbstract } from '@xen-orchestra/fs'
 import { basename, dirname, normalize } from '@xen-orchestra/fs/path'
+import { join } from 'node:path'
+import pickBy from 'lodash/pickBy.js'
+import { asyncMapSettled } from '@xen-orchestra/async-map'
+import { createVhdDisk } from './disks/index.mjs'
 import { RemoteDiskLineage } from './RemoteDiskLineage.mjs'
 
 export class VmIncrementalBackupArchive implements VmBackupInterface {
@@ -47,6 +51,35 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
     this.opts = opts
     if (lineageRegistry !== undefined) {
       this.diskLineages = lineageRegistry
+    }
+  }
+
+  // Build the import payload for an incremental backup: open a disk (chain) per VDI and
+  // return them alongside the VM/VBD/VIF/vTPM metadata. Ignored VDIs are filtered out.
+  static async readIncrementalVmBackup(
+    handler: RemoteHandlerAbstract,
+    metadata: any,
+    ignoredVdis: Set<string> | undefined,
+    { useChain = true }: { useChain?: boolean } = {}
+  ): Promise<any> {
+    const { vbds, vhds, vifs, vm, vmSnapshot, vtpms } = metadata
+    const dir = dirname(metadata._filename)
+    const vdis =
+      ignoredVdis === undefined ? metadata.vdis : pickBy(metadata.vdis, (vdi: any) => !ignoredVdis.has(vdi.uuid))
+    const disks: Record<string, any> = {}
+    await (asyncMapSettled as any)(Object.keys(vdis), async (ref: string) => {
+      delete vdis[ref].baseVdi
+      disks[ref] = await createVhdDisk(handler, join(dir, vhds[ref]), { useChain })
+    })
+
+    return {
+      disks,
+      vbds,
+      vdis,
+      version: '1.0.0',
+      vifs,
+      vm: { ...vm, suspend_VDI: vmSnapshot.suspend_VDI },
+      vtpms,
     }
   }
 
