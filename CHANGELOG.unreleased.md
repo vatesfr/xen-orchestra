@@ -24,6 +24,9 @@
 - [Pool] XO now reconnects to a surviving pool member when the master becomes unreachable (e.g. HA promoted a new master after the old one died), instead of staying stuck on the dead master, including after an XO restart (PR [#10016](https://github.com/vatesfr/xen-orchestra/pull/10016))
 - [XO6/VIF] Add possibility to create VIF from network tab in VM page (PR [#9677](https://github.com/vatesfr/xen-orchestra/pull/9677))
 - [vm stats] Reduce the memory consumption of the rrd stats (PR [#10039](https://github.com/vatesfr/xen-orchestra/pull/10039))
+- [XO6/Site] Add "New VM" and "Connect pool" actions to the site infrastructure tree (PR [#10047](https://github.com/vatesfr/xen-orchestra/pull/10047))
+- [XO5/Hub] Recipes are now available to all plans, not just Premium (PR [#10117](https://github.com/vatesfr/xen-orchestra/pull/10117))
+- [Hub] Kubernetes cluster recipe no longer requires the XOA plugin to work (PR [#10127](https://github.com/vatesfr/xen-orchestra/pull/10127))
 - [XO6/Host] Add possibilty to enable or disable an host (PR [#10074](https://github.com/vatesfr/xen-orchestra/pull/10074))
 - [XO6/Site] Add "Connect pool" action to the site infrastructure tree (PR [#10047](https://github.com/vatesfr/xen-orchestra/pull/10047))
 - [VM]: Add possibility to duplicate a VM (PR [#9580](https://github.com/vatesfr/xen-orchestra/pull/9580))
@@ -97,5 +100,6 @@
 - xo-server minor
 - xo-server-openmetrics minor
 - xo-server-perf-alert patch
+- xo-web minor
 
 <!--packages-end-->
