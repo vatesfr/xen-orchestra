@@ -70,11 +70,16 @@ export default decorate([
       },
       onChangeFaultTolerance(__, faultTolerance) {
         const { onChange, value } = this.props
+        const willUseHa = faultTolerance.value > 0
         onChange({
           ...value,
           faultTolerance: faultTolerance.value,
           // n * 2 + 1 is the formula to meet the quorum of RAFT consensus algorithm
           controlPlanePoolSize: faultTolerance.value * 2 + 1,
+          // clear the fields of the mode we're leaving so both aren't sent to the API at submit time
+          controlPlaneIpAddress: willUseHa ? undefined : value.controlPlaneIpAddress,
+          controlPlaneIpAddresses: willUseHa ? value.controlPlaneIpAddresses : undefined,
+          vipAddress: willUseHa ? value.vipAddress : undefined,
         })
       },
       onChangeK8sVersion(__, k8sVersion) {
