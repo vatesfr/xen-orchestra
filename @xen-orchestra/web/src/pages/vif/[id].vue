@@ -1,5 +1,5 @@
 <template>
-  <VtsStateHero v-if="!areVifsReady" format="page" type="busy" size="large" />
+  <VtsStateHero v-if="!areVifsReady || !areVmsReady" format="page" type="busy" size="large" />
   <VtsStateHero v-else-if="!vif" format="page" type="not-found" size="large">
     {{ t('object-not-found', { id: route.params.id }) }}
   </VtsStateHero>
@@ -8,6 +8,7 @@
       :current-page="activeChild?.title ?? ''"
       :title="t('vif-device', { device: vif.device })"
       icon="object:vif"
+      @back="back()"
     >
       <template #header>
         <VifHeader :vif />
@@ -40,6 +41,7 @@
 <script lang="ts" setup>
 import VifHeader from '@/modules/vif/components/VifHeader.vue'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection'
 import type { IconName } from '@core/icons'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
@@ -61,9 +63,10 @@ const uiStore = useUiStore()
 const { t } = useI18n()
 
 const { areVifsReady, useGetVifById } = useXoVifCollection()
+const { areVmsReady, useGetVmById } = useXoVmCollection()
 
 const vif = useGetVifById(() => route.params.id as FrontXoVif['id'])
-
+const vm = useGetVmById(() => vif.value?.$VM)
 const showMenu = ref(true)
 
 const children = computed(() => [
@@ -89,6 +92,16 @@ const navigateToChild = (child: (typeof children.value)[0]) => {
   showMenu.value = false
 }
 
+function back() {
+  router.push(
+    vm.value
+      ? {
+          name: '/vm/[id]/networks',
+          params: { id: vm.value.id },
+        }
+      : '/'
+  )
+}
 watch(
   () => uiStore.isSmall,
   isSmall => {

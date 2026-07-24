@@ -2,7 +2,7 @@
   <div class="menu-panel" :class="{ mobile: uiStore.isSmall }">
     <template v-if="uiStore.isSmall">
       <div v-if="menuVisible" class="menu-overlay">
-        <VtsPanel class="mobile-menu" closable close-icon="fa:angle-left" @close="closeMenu()">
+        <VtsPanel class="mobile-menu" closable close-icon="fa:angle-left" @close="goPreviousPage()">
           <template #header>
             <VtsIcon v-if="icon" size="large" :name="icon" />
             {{ title }}
@@ -14,7 +14,7 @@
         </VtsPanel>
       </div>
       <template v-else>
-        <slot name="header" />
+        <!-- <slot name="header" /> -->
         <UiHeadBar>
           <template #icon>
             <UiButtonIcon icon="fa:angle-left" size="medium" accent="brand" @click="openMenu()" />
@@ -56,14 +56,15 @@ import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   title: string
-  icon?: IconName
   currentPage: string
+  icon?: IconName
   modelValue?: boolean
 }>()
 
 const emit = defineEmits<{
   close: []
   'update:modelValue': [value: boolean]
+  back: []
 }>()
 
 defineSlots<{
@@ -93,6 +94,12 @@ function openMenu() {
 function closeMenu() {
   menuVisible.value = false
   emit('update:modelValue', false)
+}
+
+function goPreviousPage() {
+  menuVisible.value = false
+  emit('update:modelValue', false)
+  emit('back')
 }
 </script>
 
