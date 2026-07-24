@@ -13,7 +13,7 @@ import pumpify from 'pumpify'
 import { extname } from 'path'
 import { format, parse } from 'json-rpc-protocol'
 import { inspect } from 'util'
-import { load as loadConfig } from 'app-conf'
+import { load as loadConfig } from '@vates/app-conf'
 import { pipeline } from 'stream'
 import { readChunk } from '@vates/read-chunk'
 

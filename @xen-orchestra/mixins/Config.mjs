@@ -3,7 +3,7 @@ import identity from 'lodash/identity.js'
 import isEqual from 'lodash/isEqual.js'
 import { createLogger } from '@xen-orchestra/log'
 import { parseDuration } from '@vates/parse-duration'
-import { watch } from 'app-conf'
+import { watch, listSources, parse } from '@vates/app-conf'
 import assert from 'node:assert'
 
 const { warn, info } = createLogger('xo:mixins:config')
@@ -12,13 +12,18 @@ const { warn, info } = createLogger('xo:mixins:config')
 const niceGet = (value, path) => (path === undefined || path.length === 0 ? value : get(value, path))
 
 export default class Config {
-  constructor(app, { appDir, appName, config }) {
+  constructor(app, { appDir, appName, config, applySchema = v => v }) {
     this._app = app
     this._appDir = appDir
     this._config = config
+    this._appDir = appDir
+    this._appName = appName
+    this._applySchema = applySchema
     const watchers = (this._watchers = new Set())
 
     app.hooks.on('start', async () => {
+      await this.#refreshSources()
+
       app.hooks.once(
         'stop',
         await watch({ appDir, appName, ignoreUnknownFormats: true }, (error, config) => {
@@ -139,5 +144,30 @@ export default class Config {
     }
 
     return guiRoutes
+  }
+
+  _sources = [] // SourceLayer[]  populated on start
+
+  async #refreshSources() {
+    this._sources = await listSources(this._appName, { appDir: this._appDir })
+  }
+
+  getSources() {
+    return this._sources // readonly in practice — callers must not mutate
+  }
+
+  getFiltered() {
+    return this._applySchema(this._config)
+  }
+
+  parseSourceFiltered(path) {
+    // Validate the path is actually in our known sources before reading
+    const allFiles = this._sources.flatMap(layer => layer.files)
+    if (!allFiles.includes(path)) {
+      const err = new Error(`path is not a loaded config source: ${path}`)
+      err.statusCode = 404
+      throw err
+    }
+    return parse(path).then(raw => this._applySchema(raw))
   }
 }

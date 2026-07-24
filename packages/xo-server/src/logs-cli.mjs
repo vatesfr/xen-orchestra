@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import appConf from 'app-conf'
+import appConf from '@vates/app-conf'
 import execPromise from 'exec-promise'
 import get from 'lodash/get.js'
 import highland from 'highland'

@@ -7,7 +7,7 @@ import { create as createServer } from 'http-server-plus'
 import { createCachedLookup } from '@vates/cached-dns.lookup'
 import { createLogger } from '@xen-orchestra/log'
 import { createSecureServer } from 'http2'
-import { load as loadConfig } from 'app-conf'
+import { load as loadConfig } from '@vates/app-conf'
 import { readCert } from '@xen-orchestra/self-signed/readCert'
 
 // -------------------------------------------------------------------
