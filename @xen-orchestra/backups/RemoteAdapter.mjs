@@ -1,7 +1,7 @@
 import { asyncEach } from '@vates/async-each'
 import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
-import { VhdDirectory, VhdSynthetic } from 'vhd-lib'
+import { stringify } from 'uuid'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { dirname, join, resolve } from 'node:path'
 import { synchronized } from 'decorator-synchronized'
@@ -66,18 +66,15 @@ export class RemoteAdapter {
   // check if we will be allowed to merge a vhd created in this adapter
   // with the vhd at path `path`
   async isMergeableParent(packedParentUid, path) {
-    return await Disposable.use(VhdSynthetic.fromVhdChain(this.handler, path), vhd => {
-      // this baseUuid is not linked with this vhd
-      if (!vhd.footer.uuid.equals(packedParentUid)) {
-        return false
-      }
-
-      // check if all the chain is composed of vhd directory
-      const isVhdDirectory = vhd.checkVhdsClass(VhdDirectory)
-      return isVhdDirectory
-        ? this.useVhdDirectory() && this.#getCompressionType() === vhd.compressionType
-        : !this.useVhdDirectory()
-    })
+    const chain = await openDiskChain({ handler: this.handler, path })
+    try {
+      return await chain.isMergeableParent(stringify(packedParentUid), {
+        useVhdDirectory: this.useVhdDirectory(),
+        compressionType: this.#getCompressionType(),
+      })
+    } finally {
+      await chain.close()
+    }
   }
 
   async #removeVmBackupsFromCache(backups) {

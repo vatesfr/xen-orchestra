@@ -231,11 +231,58 @@ export class RemoteDisk extends RandomAccessDisk {
 
   /**
    * Abstract
+   * Returns the compression codec id, or 'MIXED' if not uniform across the chain.
+   * Only meaningful when the disk is a VHD directory.
+   * @returns {string | undefined}
+   */
+  getCompressionType() {
+    throw new Error(`getCompressionType must be implemented`)
+  }
+
+  /**
+   * Abstract
+   * @returns {Promise<boolean>}
+   */
+  async isDirectory() {
+    throw new Error(`isDirectory must be implemented`)
+  }
+
+  /**
+   * Checks whether this disk (or chain) can be used as a merge parent for a child
+   * whose expected parent uuid is `parentUuid`, given the remote's VHD-directory mode
+   * and target compression.
+   * @param {string} parentUuid
+   * @param {Object} options
+   * @param {boolean} options.useVhdDirectory
+   * @param {string} [options.compressionType]
+   * @returns {Promise<boolean>}
+   */
+  async isMergeableParent(parentUuid, { useVhdDirectory, compressionType }) {
+    if (this.getUuid() !== parentUuid) {
+      return false
+    }
+
+    const isDirectory = await this.isDirectory()
+    return isDirectory ? useVhdDirectory && this.getCompressionType() === compressionType : !useVhdDirectory
+  }
+
+  /**
+   * Abstract
    * Rename alias/disk
    * @param {string} newPath
    */
   async rename(newPath) {
     throw new Error(`rename must be implemented`)
+  }
+
+  /**
+   * Abstract
+   * Points this disk's header/footer at a new parent. The disk must already be differencing.
+   * @param {RemoteDisk} parentDisk
+   * @returns {Promise<void>}
+   */
+  async setChainToParent(parentDisk) {
+    throw new Error(`setChainToParent must be implemented`)
   }
 
   /**

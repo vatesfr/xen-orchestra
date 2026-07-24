@@ -14,10 +14,10 @@ import { openVhd, VhdAbstract, VhdDirectory } from 'vhd-lib'
 import { RemoteDisk } from './RemoteDisk.mjs'
 import { DISK_TYPES } from 'vhd-lib/_constants.js'
 import { isVhdAlias, resolveVhdAlias } from 'vhd-lib/aliases.js'
-import { stringify } from 'uuid'
+import { parse, stringify } from 'uuid'
 import { dirname, join } from 'node:path'
 import { RemoteVhdDiskChain } from './RemoteVhdDiskChain.mjs'
-import { normalize } from '@xen-orchestra/fs/path'
+import { normalize, relativeFromFile } from '@xen-orchestra/fs/path'
 
 export class RemoteVhdDisk extends RemoteDisk {
   /**
@@ -431,6 +431,41 @@ export class RemoteVhdDisk extends RemoteDisk {
       throw new Error(`can't call isDifferencing of a RemoteVhdDisk before init`)
     }
     return this.#isDifferencing
+  }
+
+  /**
+   * Returns the compression codec id. Only meaningful for VHD directories;
+   * undefined for plain VHDs.
+   * @returns {string | undefined}
+   */
+  getCompressionType() {
+    if (this.#vhd === undefined) {
+      throw new Error(`can't call getCompressionType of a RemoteVhdDisk before init`)
+    }
+    return this.#vhd instanceof VhdDirectory ? this.#vhd.compressionType : undefined
+  }
+
+  /**
+   * Points this disk's header/footer at a new parent. The disk must already be differencing.
+   * @param {RemoteDisk} parentDisk
+   * @returns {Promise<void>}
+   */
+  async setChainToParent(parentDisk) {
+    if (this.#vhd === undefined) {
+      throw new Error(`can't call setChainToParent of a RemoteVhdDisk before init`)
+    }
+
+    await this.#vhd.readHeaderAndFooter()
+    const { header, footer } = this.#vhd
+
+    if (footer.diskType !== DISK_TYPES.DIFFERENCING) {
+      throw new Error('cannot chain disk of type ' + footer.diskType)
+    }
+
+    header.parentUuid = Buffer.from(parse(parentDisk.getUuid()))
+    header.parentUnicodeName = relativeFromFile(this.#path, parentDisk.getPath())
+    await this.#vhd.writeHeader()
+    await this.#vhd.writeFooter()
   }
 
   /**
