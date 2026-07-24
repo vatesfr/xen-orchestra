@@ -33,9 +33,10 @@ export class DiskLargerBlock extends RandomAccessDisk {
   async readBlock(index: number): Promise<DiskBlock> {
     // @todo handle partial block at the end
     const source = this.source
-    const destinationBlock = Buffer.alloc(this.getBlockSize(), 0)
+    const destinationBlockData = Buffer.alloc(this.getBlockSize(), 0)
     const blockRatio = this.#blockSize / source.getBlockSize()
-    for (let i = index * blockRatio; i < (index + 1) * blockRatio; i++) {
+    const firstSourceBlockIndex = index * blockRatio
+    for (let i = firstSourceBlockIndex; i < firstSourceBlockIndex + blockRatio; i++) {
       let data: Buffer | undefined
       if (source.hasBlock(i)) {
         data = (await source.readBlock(i)).data
@@ -51,12 +52,12 @@ export class DiskLargerBlock extends RandomAccessDisk {
         }
       }
       if (data !== undefined) {
-        data.copy(destinationBlock, i * source.getBlockSize())
+        data.copy(destinationBlockData, (i - firstSourceBlockIndex) * source.getBlockSize())
       }
     }
     return {
       index,
-      data: destinationBlock,
+      data: destinationBlockData,
     }
   }
 

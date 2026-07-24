@@ -14,6 +14,9 @@
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
+- [Backups] Fix qcow2 transfer without NBD (PR [#10164](https://github.com/vatesfr/xen-orchestra/pull/10164))
+
+
 
 ### Packages to release
 
@@ -30,5 +33,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
+- @xen-orchestra/disk-transform patch
 <!--packages-end-->
