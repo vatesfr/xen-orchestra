@@ -11,6 +11,14 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [REST API] expose server config with redacted sensitive data through REST API Endpoints:
+
+- `GET /server-config` (PR [#10134](https://github.com/vatesfr/xen-orchestra/pull/10134))
+
+- `GET /server-config/sources` (PR [#10134](https://github.com/vatesfr/xen-orchestra/pull/10134))
+
+- `GET /server-config/sources?path=` (PR [#10134](https://github.com/vatesfr/xen-orchestra/pull/10134))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -30,5 +38,15 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @vates/app-conf major
+- @vates/types minor
+- @xen-orchestra/backups minor
+- @xen-orchestra/immutable-backups minor
+- @xen-orchestra/mixins minor
+- @xen-orchestra/proxy minor
+- @xen-orchestra/proxy-cli minor
+- @xen-orchestra/rest-api minor
+- xo-server minor
 
 <!--packages-end-->
