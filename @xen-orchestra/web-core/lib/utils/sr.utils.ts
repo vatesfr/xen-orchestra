@@ -32,3 +32,7 @@ export function getSrModalInfoVariant(scope: SrScope, accessMode: SrAccessMode):
 
   return 'pool-shared'
 }
+
+export function shouldShowTargetCount(scope: SrScope, targetCount: number) {
+  return targetCount > (scope.type === SR_SCOPE_TYPE.POOL ? 0 : 1)
+}

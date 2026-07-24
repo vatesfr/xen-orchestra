@@ -1,5 +1,6 @@
 <template>
   <MenuItem
+    v-tooltip="!canDisconnectSr && disconnectSrErrorMessage"
     icon="action:disconnect"
     :disabled="!canDisconnectSr"
     :busy="isDisconnectingSr"
@@ -18,8 +19,8 @@
 </template>
 
 <script lang="ts" setup>
+import type { XenApiSr } from '@/libs/xen-api/xen-api.types.ts'
 import { useSrDisconnectModal } from '@/modules/storage-repository/composables/use-sr-disconnect-modal.composable.ts'
-import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import { type SrScope } from '@core/types/storage-repository.type.ts'
@@ -28,7 +29,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { sr, scope } = defineProps<{
-  sr: FrontXoSr
+  sr: XenApiSr
   scope: SrScope
 }>()
 

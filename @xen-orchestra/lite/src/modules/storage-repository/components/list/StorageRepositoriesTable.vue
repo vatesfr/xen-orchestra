@@ -13,7 +13,7 @@
         </thead>
         <tbody>
           <VtsRow v-for="sr of paginatedSrs" :key="sr.uuid" :selected="selectedSrId === sr.uuid">
-            <BodyCells :item="sr" />
+            <BodyCells :key="getSrPbdsSignature(sr, scope)" :item="sr" />
           </VtsRow>
         </tbody>
       </VtsTable>
@@ -23,8 +23,10 @@
 
 <script setup lang="ts">
 import type { XenApiPool, XenApiSr } from '@/libs/xen-api/xen-api.types.ts'
-import { usePbdUtils } from '@/modules/storage-repository/composables/pbd-utils.composable.ts'
-import { usePbdStore } from '@/stores/xen-api/pbd.store.ts'
+import { useGetPbdsInScope, useSrUtils } from '@/modules/storage-repository/composables/sr-utils.composable.ts'
+import { useSrConnectModal } from '@/modules/storage-repository/composables/use-sr-connect-modal.composable.ts'
+import { useSrDeleteModal } from '@/modules/storage-repository/composables/use-sr-delete-modal.composable.ts'
+import { useSrDisconnectModal } from '@/modules/storage-repository/composables/use-sr-disconnect-modal.composable.ts'
 import { useSrStore } from '@/stores/xen-api/sr.store.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -33,19 +35,23 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
-import { icon, objectIcon } from '@core/icons'
+import { icon } from '@core/icons'
 import { useSrColumns } from '@core/tables/column-sets/sr-columns.ts'
+import { type SrScope } from '@core/types/storage-repository.type.ts'
+import { shouldShowTargetCount } from '@core/utils/sr.utils.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const {
   srs: rawSrs,
   pool,
+  scope,
   busy,
   error,
 } = defineProps<{
   srs: XenApiSr[]
   pool: XenApiPool
+  scope: SrScope
   busy?: boolean
   error?: boolean
 }>()
@@ -53,7 +59,6 @@ const {
 const { t } = useI18n()
 
 const { isReady, hasError, isDefaultSr } = useSrStore().subscribe()
-const { getPbdsForSr } = usePbdStore().subscribe()
 
 const selectedSrId = useRouteQuery('id')
 
@@ -87,6 +92,8 @@ const state = useTableState({
 
 const { pageRecords: paginatedSrs, paginationBindings } = usePagination('srs', filteredSrs)
 
+const { getSrPbdsSignature } = useGetPbdsInScope()
+
 function getPrimaryIcon(sr: XenApiSr) {
   if (!isDefaultSr(sr, pool)) {
     return undefined
@@ -102,20 +109,90 @@ const { HeadCells, BodyCells } = useSrColumns({
   body: (sr: XenApiSr) => {
     const rightIcon = computed(() => getPrimaryIcon(sr))
 
-    const { allPbdsConnectionStatus } = usePbdUtils(() => getPbdsForSr(sr.$ref))
+    const { srStatusIcon } = useSrUtils(sr, () => scope)
+
+    const {
+      openModal: openSrDeleteModal,
+      canRun: canDeleteSr,
+      isRunning: isDeletingSr,
+      errorMessage: deleteSrErrorMessage,
+    } = useSrDeleteModal(() => [sr])
+
+    const {
+      openModal: openSrConnectModal,
+      canRun: canConnectSr,
+      isRunning: isConnectingSr,
+      errorMessage: connectSrErrorMessage,
+      targetCount: connectTargetCount,
+    } = useSrConnectModal(
+      () => [sr],
+      () => scope
+    )
+
+    const {
+      openModal: openSrDisconnectModal,
+      canRun: canDisconnectSr,
+      isRunning: isDisconnectingSr,
+      errorMessage: disconnectSrErrorMessage,
+      targetCount: disconnectTargetCount,
+    } = useSrDisconnectModal(
+      () => [sr],
+      () => scope
+    )
+
+    const connectLabel = computed(() =>
+      shouldShowTargetCount(scope, connectTargetCount.value)
+        ? t('action:connect-n', { n: connectTargetCount.value })
+        : t('action:connect')
+    )
+
+    const disconnectLabel = computed(() =>
+      shouldShowTargetCount(scope, disconnectTargetCount.value)
+        ? t('action:disconnect-n', { n: disconnectTargetCount.value })
+        : t('action:disconnect')
+    )
 
     return {
       storageRepository: r =>
         r({
           label: sr.name_label,
-          icon: objectIcon('sr', allPbdsConnectionStatus.value),
+          icon: srStatusIcon.value,
           rightIcon: rightIcon.value,
         }),
       description: r => r(sr.name_description),
       storageFormat: r => r(sr.type),
       accessMode: r => r(sr.shared ? t('shared') : t('local')),
       usedSpace: r => r(sr.physical_utilisation, sr.physical_size),
-      actions: r => r({ onClick: () => (selectedSrId.value = sr.uuid) }),
+      actions: r =>
+        r({
+          onClick: () => (selectedSrId.value = sr.uuid),
+          actions: [
+            {
+              label: connectLabel.value,
+              icon: 'action:connect',
+              onClick: () => openSrConnectModal(),
+              busy: isConnectingSr.value,
+              disabled: !canConnectSr.value,
+              hint: connectSrErrorMessage.value,
+            },
+            {
+              label: disconnectLabel.value,
+              icon: 'action:disconnect',
+              onClick: () => openSrDisconnectModal(),
+              busy: isDisconnectingSr.value,
+              disabled: !canDisconnectSr.value,
+              hint: disconnectSrErrorMessage.value,
+            },
+            {
+              label: t('action:delete'),
+              icon: 'action:delete',
+              onClick: () => openSrDeleteModal(),
+              busy: isDeletingSr.value,
+              disabled: !canDeleteSr.value,
+              hint: deleteSrErrorMessage.value,
+            },
+          ],
+        }),
     }
   },
 })

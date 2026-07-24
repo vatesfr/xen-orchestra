@@ -1,9 +1,15 @@
 <template>
   <VtsContentSidePanel class="host-storage-view" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
-      <StorageRepositoriesTable v-if="pool" :srs :pool :busy="!isReady" :error="hasError" />
+      <StorageRepositoriesTable v-if="pool && host && scope" :srs :pool :scope :busy="!isReady" :error="hasError" />
     </UiCard>
-    <StorageRepositorySidePanel v-if="pool" :sr="selectedSr" :pool @close="selectedSr = undefined" />
+    <StorageRepositorySidePanel
+      v-if="pool && host && scope"
+      :sr="selectedSr"
+      :pool
+      :scope
+      @close="selectedSr = undefined"
+    />
   </VtsContentSidePanel>
 </template>
 
@@ -20,6 +26,7 @@ import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
@@ -42,7 +49,18 @@ const isReady = logicAnd(areSrsReady, arePbdsReady)
 
 const host = computed(() => getHostByUuid(route.params.uuid as XenApiHost['uuid']))
 
-const srs = computed(() => {
+const scope = computed((): SrScope | undefined => {
+  if (host.value === undefined) {
+    return undefined
+  }
+
+  return {
+    type: SR_SCOPE_TYPE.HOST,
+    hostId: host.value.$ref,
+  }
+})
+
+const srs = computed((): XenApiSr[] => {
   if (host.value === undefined) {
     return []
   }
