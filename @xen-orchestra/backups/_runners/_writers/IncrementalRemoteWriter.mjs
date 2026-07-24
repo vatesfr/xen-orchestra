@@ -18,6 +18,7 @@ import { checkVhd } from './_checkVhd.mjs'
 import { packUuid } from './_packUuid.mjs'
 import { openDiskChain } from '@xen-orchestra/backup-archive/disks'
 import { VDI_FORMAT_QCOW2 } from '@xen-orchestra/xapi'
+import { diskHasData } from './_diskHasData.mjs'
 
 const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
@@ -127,26 +128,8 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
       if (root === undefined) {
         throw new Error(`can't resolve root of chain ${parentDestPath}`)
       }
-      const empty = Buffer.alloc(root.getBlockSize(), 0)
-      const MAX_EMPTY = 10
-      let nbEmpty = 0
-      for (let i = 1; i < root.getMaxBlockCount(); i++) {
-        if (!root.hasBlock(i)) {
-          continue
-        }
-        const { data } = await root.readBlock(i)
-        if (!data.equals(empty)) {
-          // real data → not the corruption signature
-          return true
-        }
-        if (++nbEmpty > MAX_EMPTY) {
-          // enough allocated-but-zero blocks → looks corrupt
-          return false
-        }
-      }
-      // too few allocated blocks past the first to conclude (also covers sparse/tiny disks)
-      // a full should not be too costly
-      return false
+
+      return await diskHasData(root)
     } finally {
       await chain.close()
     }
