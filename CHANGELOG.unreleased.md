@@ -84,6 +84,7 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/acl minor
 - @xen-orchestra/backup-archive minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/disk-cli minor
