@@ -47,6 +47,7 @@
 - [XO6] Fix some design inconsistency between pages (PR [#10109](https://github.com/vatesfr/xen-orchestra/pull/10109))
 - [XO6/Users] Add Users Table (PR [#10029](https://github.com/vatesfr/xen-orchestra/pull/10029))
 - [XO6] Input fields now support prefix/suffix sections, and display validation messages ordered by severity (PR [#10009](https://github.com/vatesfr/xen-orchestra/pull/10009))
+- [XO6/New VM] Add the possibility to set the HA restart priority when creating a VM (PR [#10072](https://github.com/vatesfr/xen-orchestra/pull/10072))
 
 ### Bug fixes
 
