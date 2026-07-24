@@ -3,9 +3,11 @@
     {{ t('user-management') }}
   </UiHeadBar>
   <TabList>
-    <TabItem active tag="a">
-      {{ t('users') }}
-    </TabItem>
+    <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/admin/user-management/users' }" custom>
+      <TabItem :active="isExactActive" :href tag="a">
+        {{ t('users') }}
+      </TabItem>
+    </RouterLink>
   </TabList>
 </template>
 

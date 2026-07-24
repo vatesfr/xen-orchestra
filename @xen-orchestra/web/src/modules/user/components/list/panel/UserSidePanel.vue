@@ -15,7 +15,7 @@ import UserRolesCard from '@/modules/user/components/list/panel/cards/UserRolesC
 import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 
-const { user } = defineProps<{
+defineProps<{
   user?: FrontXoUser
 }>()
 

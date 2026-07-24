@@ -1,5 +1,5 @@
 <template>
-  <VtsContentSidePanel class="users">
+  <VtsContentSidePanel>
     <div class="container">
       <UiAlert v-if="!alertDismissed" class="alert" accent="info" close @close="alertDismissed = true">
         {{ t('alert-user-roles') }}
@@ -41,13 +41,11 @@ const selectedUser = useRouteQuery<FrontXoUser | undefined>('id', {
 </script>
 
 <style scoped lang="postcss">
-.users {
-  .container {
-    height: fit-content;
-    gap: 0.8rem;
-    margin: 0.8rem;
-    display: flex;
-    flex-direction: column;
-  }
+.container {
+  height: fit-content;
+  gap: 0.8rem;
+  margin: 0.8rem;
+  display: flex;
+  flex-direction: column;
 }
 </style>

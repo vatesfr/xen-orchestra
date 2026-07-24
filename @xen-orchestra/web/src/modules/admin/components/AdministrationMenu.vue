@@ -15,8 +15,8 @@
 
 <script lang="ts" setup>
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
-import MenuItem from '@xen-orchestra/web-core/components/menu/MenuItem.vue'
-import UiLink from '@xen-orchestra/web-core/components/ui/link/UiLink.vue'
+import MenuItem from '@core/components/menu/MenuItem.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'

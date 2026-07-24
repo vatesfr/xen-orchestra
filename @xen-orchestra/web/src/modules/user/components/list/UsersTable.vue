@@ -1,30 +1,24 @@
 <template>
-  <div class="users-user-management-table">
-    <UiTitle>
-      {{ t('users') }}
-      <template #action>
-        <slot name="title-actions" />
-      </template>
-    </UiTitle>
-    <div class="container">
-      <div class="table-actions">
-        <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
-      </div>
+  <UiTitle>
+    {{ t('users') }}
+    <template #action>
+      <slot name="title-actions" />
+    </template>
+  </UiTitle>
+  <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
 
-      <VtsTable :state :pagination-bindings sticky="right">
-        <thead>
-          <tr>
-            <HeadCells />
-          </tr>
-        </thead>
-        <tbody>
-          <VtsRow v-for="user of paginatedUsers" :key="user.id" :selected="selectedUserId === user.id">
-            <BodyCells :item="user" />
-          </VtsRow>
-        </tbody>
-      </VtsTable>
-    </div>
-  </div>
+  <VtsTable :state :pagination-bindings sticky="right">
+    <thead>
+      <tr>
+        <HeadCells />
+      </tr>
+    </thead>
+    <tbody>
+      <VtsRow v-for="user of paginatedUsers" :key="user.id" :selected="selectedUserId === user.id">
+        <BodyCells :item="user" />
+      </VtsRow>
+    </tbody>
+  </VtsTable>
 </template>
 
 <script setup lang="ts">
@@ -90,21 +84,3 @@ const { HeadCells, BodyCells } = useUserColumns({
   },
 })
 </script>
-
-<style scoped lang="postcss">
-.users-user-management-table,
-.table-actions,
-.container {
-  display: flex;
-  flex-direction: column;
-}
-
-.users-user-management-table {
-  gap: 2.4rem;
-
-  .container,
-  .table-actions {
-    gap: 0.8rem;
-  }
-}
-</style>
