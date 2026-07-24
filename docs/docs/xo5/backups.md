@@ -343,6 +343,24 @@ Xen Orchestra supports Amazon S3 storage and other S3-compatible providers, so y
 
 ![](../assets/XO-Amazon-S3-remote.png)
 
+### Microsoft Azure
+
+Xen Orchestra supports Microsoft Azure Blob Storage as a remote, as well as [Azurite](https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite) (the Azure Storage emulator) for testing purposes.
+
+To configure an Azure remote, you'll need:
+
+- **Storage account name**, used as the username
+- **Access key**, used as the password
+- **Container**, the first segment of the path, used as the Blob container name
+
+:::tip
+
+- When using Azurite instead of real Azure, select the **Azurite** type and provide the emulator's host/port.
+- Container names must be **lowercase**.
+  :::
+
+![](../assets/XO-Azure-remote.png)
+
 ## Restore a backup
 
 All your scheduled backups are accessible in the "Restore" view in the backup section of Xen Orchestra.
