@@ -29,14 +29,14 @@
       accent="brand"
       @click="clear()"
     />
+    <slot v-if="slots['right-icon'] || rightIcon" name="right-icon">
+      <VtsIcon :name="rightIcon" size="medium" class="right-icon" />
+    </slot>
     <span v-if="slots.suffix || suffix" class="suffix">
       <slot name="suffix">
         {{ suffix }}
       </slot>
     </span>
-    <slot v-if="slots['right-icon'] || rightIcon" name="right-icon">
-      <VtsIcon :name="rightIcon" size="medium" class="right-icon" />
-    </slot>
   </div>
 </template>
 
