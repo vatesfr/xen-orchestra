@@ -1,13 +1,15 @@
 <template>
-  <VtsStateHero v-if="!areVifsReady" format="page" type="busy" size="large" />
+  <VtsStateHero v-if="!areVifsReady || !areVmsReady" format="page" type="busy" size="large" />
   <VtsStateHero v-else-if="!vif" format="page" type="not-found" size="large">
     {{ t('object-not-found', { id: route.params.id }) }}
   </VtsStateHero>
   <RouterView v-else v-slot="{ Component }">
     <MenuPanel
+      v-model="showMenu"
       :current-page="activeChild?.title ?? ''"
       :title="t('vif-device', { device: vif.device })"
       icon="object:vif"
+      @back="back()"
     >
       <template #header>
         <VifHeader :vif />
@@ -24,10 +26,11 @@
           </MenuTrigger>
         </MenuList>
         <ul v-else>
-          <!-- TODO: MenuItem must be small when component is updated remove forced style -->
+          <!-- TODO: MenuItem must be small. when component is updated remove forced style -->
           <li v-for="child in children" :key="child.name" class="list-menu-item">
-            <MenuItem @click="navigateToChild(child)">
+            <MenuItem class="menu-item" @click="navigateToChild(child)">
               {{ child.title }}
+              <VtsIcon name="fa:angle-right" size="medium" />
             </MenuItem>
           </li>
         </ul>
@@ -40,7 +43,9 @@
 <script lang="ts" setup>
 import VifHeader from '@/modules/vif/components/VifHeader.vue'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection'
 import type { IconName } from '@core/icons'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import MenuPanel from '@core/components/menu/menuPanel.vue'
@@ -50,7 +55,7 @@ import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
 import { useUiStore } from '@core/stores/ui.store'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
+import { onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router'
 
 useDefaultTab('/vif/[id]', 'general')
 
@@ -61,9 +66,10 @@ const uiStore = useUiStore()
 const { t } = useI18n()
 
 const { areVifsReady, useGetVifById } = useXoVifCollection()
+const { areVmsReady, useGetVmById } = useXoVmCollection()
 
 const vif = useGetVifById(() => route.params.id as FrontXoVif['id'])
-
+const vm = useGetVmById(() => vif.value?.$VM)
 const showMenu = ref(true)
 
 const children = computed(() => [
@@ -85,10 +91,20 @@ const activeChild = computed(() => {
 })
 
 const navigateToChild = (child: (typeof children.value)[0]) => {
-  router.push({ name: child.name as '/vif/[id]/general' | '/vif/[id]/traffic-rules', params: { id: vif.value!.id } })
+  router.push({ name: child.name as '/vif/[id]/general' | '/vif/[id]/traffic-rules', params: { id: route.params.id } })
   showMenu.value = false
 }
 
+function back() {
+  router.push(
+    vm.value
+      ? {
+          name: '/vm/[id]/networks',
+          params: { id: vm.value.id },
+        }
+      : '/'
+  )
+}
 watch(
   () => uiStore.isSmall,
   isSmall => {
@@ -97,6 +113,17 @@ watch(
     }
   }
 )
+
+onBeforeRouteUpdate(to => {
+  const isValidRoute = to.name === '/vif/[id]/general' || to.name === '/vif/[id]/traffic-rules'
+  if (!isValidRoute) {
+    if (uiStore.isSmall) {
+      showMenu.value = true
+    } else {
+      return { name: '/vif/[id]/general', params: { id: route.params.id } }
+    }
+  }
+})
 </script>
 
 <style lang="postcss" scoped>
@@ -110,9 +137,13 @@ watch(
 .list-menu-item {
   border-bottom: 0.1rem solid var(--color-neutral-border);
   background-color: var(--color-neutral-background-primary);
-}
 
-.list-menu-item:first-child {
-  border-top: 0.1rem solid var(--color-neutral-border);
+  &:first-child {
+    border-top: 0.1rem solid var(--color-neutral-border);
+  }
+
+  .menu-item {
+    color: var(--color-brand-txt-base);
+  }
 }
 </style>

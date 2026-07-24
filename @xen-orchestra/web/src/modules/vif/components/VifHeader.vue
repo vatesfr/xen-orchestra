@@ -14,18 +14,6 @@
       </span>
     </UiBreadcrumb>
   </div>
-  <TabList>
-    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vif/[id]/general', params: { id: vif.id } }" custom>
-      <TabItem :active="isActive" :href tag="a">
-        {{ t('general') }}
-      </TabItem>
-    </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vif/[id]/traffic-rules', params: { id: vif.id } }" custom>
-      <TabItem :active="isActive" :href tag="a">
-        {{ t('traffic-rules') }}
-      </TabItem>
-    </RouterLink>
-  </TabList>
 </template>
 
 <script setup lang="ts">
@@ -34,8 +22,6 @@ import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-colle
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
-import TabItem from '@core/components/tab/TabItem.vue'
-import TabList from '@core/components/tab/TabList.vue'
 import UiBreadcrumb from '@core/components/ui/breadcrumb/UiBreadcrumb.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
