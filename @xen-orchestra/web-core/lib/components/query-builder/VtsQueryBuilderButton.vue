@@ -17,7 +17,8 @@
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { useModal } from '@core/packages/modal/use-modal'
+import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import type { QueryBuilderGroup } from '@core/packages/query-builder/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -38,15 +39,20 @@ const tooltip = computed(() => (disabled ? 'Current filter is invalid or too com
 
 const { t } = useI18n()
 
-const openModal = useModal(() => ({
-  component: import('@core/components/query-builder/VtsQueryBuilderModal.vue'),
-  props: {
-    modelValue: rootGroup,
-    'onUpdate:modelValue': (newRootGroup: QueryBuilderGroup) => {
+const { open } = useOverlay({
+  component: () => import('@core/components/query-builder/VtsQueryBuilderModal.vue'),
+  events: {
+    'onUpdate:modelValue': newRootGroup => {
       rootGroup.value = newRootGroup
+
+      return KEEP_OVERLAY_OPEN
     },
+    onConfirm: () => emit('confirm'),
+    onCancel: () => emit('cancel'),
   },
-  onConfirm: () => emit('confirm'),
-  onCancel: () => emit('cancel'),
-}))
+})
+
+function openModal() {
+  return open({ props: { modelValue: rootGroup.value } })
+}
 </script>

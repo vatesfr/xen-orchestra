@@ -205,7 +205,7 @@ import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioButtonGroup.vue'
 import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 import { useFormSelect } from '@core/packages/form-select'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { useUiStore } from '@core/stores/ui.store'
 import { logicNot } from '@vueuse/math'
 import { computed, onUnmounted, ref, watch } from 'vue'
@@ -219,10 +219,16 @@ const router = useRouter()
 
 usePageTitleStore().setTitle(() => t('action:deploy-xoa'))
 
-const openInvalidFieldModal = useModal((message: string) => ({
-  component: import('@/components/modals/InvalidFieldModal.vue'),
-  props: { message },
-}))
+const { open: openModal } = useOverlay({
+  component: () => import('@/components/modals/InvalidFieldModal.vue'),
+  events: {
+    onClose: true,
+  },
+})
+
+function openInvalidFieldModal(message: string) {
+  return openModal({ props: { message } })
+}
 
 const uiStore = useUiStore()
 

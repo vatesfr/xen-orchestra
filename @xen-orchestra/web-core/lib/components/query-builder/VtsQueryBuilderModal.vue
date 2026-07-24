@@ -1,24 +1,29 @@
 <template>
-  <VtsModal class="vts-query-builder-modal" accent="info" dismissible>
+  <UiModal class="vts-query-builder-modal" accent="info" @dismiss="emit('cancel')" @confirm="emit('confirm')">
     <template v-if="uiStore.isSmall" #title>{{ t('query-builder') }}</template>
     <template #content>
       <VtsQueryBuilderGroup v-model="rootGroup" root />
     </template>
     <template #buttons>
-      <VtsModalCancelButton />
-      <VtsModalConfirmButton>{{ t('action:save') }}</VtsModalConfirmButton>
+      <VtsOverlayCancelButton @click="emit('cancel')" />
+      <VtsOverlayConfirmButton>{{ t('action:save') }}</VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </UiModal>
 </template>
 
 <script setup lang="ts">
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import VtsQueryBuilderGroup from '@core/components/query-builder/VtsQueryBuilderGroup.vue'
+import UiModal from '@core/components/ui/modal/UiModal.vue'
 import { type QueryBuilderGroup } from '@core/packages/query-builder/types'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { useI18n } from 'vue-i18n'
+
+const emit = defineEmits<{
+  confirm: []
+  cancel: []
+}>()
 
 const rootGroup = defineModel<QueryBuilderGroup>({ required: true })
 

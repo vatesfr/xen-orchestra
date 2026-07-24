@@ -233,6 +233,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/overlay': RouteRecordInfo<
+      '/story/overlay',
+      '/story/overlay',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/power-state-icon': RouteRecordInfo<
       '/story/power-state-icon',
       '/story/power-state-icon',
@@ -331,13 +338,6 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/story/web-core/drawer/vts-drawer': RouteRecordInfo<
-      '/story/web-core/drawer/vts-drawer',
-      '/story/web-core/drawer/vts-drawer',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
     '/story/web-core/dropdown-title/vts-dropdown-title': RouteRecordInfo<
       '/story/web-core/dropdown-title/vts-dropdown-title',
       '/story/web-core/dropdown-title/vts-dropdown-title',
@@ -380,16 +380,30 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/story/web-core/modal/vts-modal': RouteRecordInfo<
-      '/story/web-core/modal/vts-modal',
-      '/story/web-core/modal/vts-modal',
+    '/story/web-core/object-icon/vts-object-icon': RouteRecordInfo<
+      '/story/web-core/object-icon/vts-object-icon',
+      '/story/web-core/object-icon/vts-object-icon',
       Record<never, never>,
       Record<never, never>,
       | never
     >,
-    '/story/web-core/object-icon/vts-object-icon': RouteRecordInfo<
-      '/story/web-core/object-icon/vts-object-icon',
-      '/story/web-core/object-icon/vts-object-icon',
+    '/story/web-core/overlay/vts-overlay-button': RouteRecordInfo<
+      '/story/web-core/overlay/vts-overlay-button',
+      '/story/web-core/overlay/vts-overlay-button',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/overlay/vts-overlay-cancel-button': RouteRecordInfo<
+      '/story/web-core/overlay/vts-overlay-cancel-button',
+      '/story/web-core/overlay/vts-overlay-cancel-button',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/overlay/vts-overlay-confirm-button': RouteRecordInfo<
+      '/story/web-core/overlay/vts-overlay-confirm-button',
+      '/story/web-core/overlay/vts-overlay-confirm-button',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -1193,6 +1207,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/overlay.story.vue': {
+      routes:
+        | '/story/overlay'
+      views:
+        | never
+    }
     'src/stories/power-state-icon.story.vue': {
       routes:
         | '/story/power-state-icon'
@@ -1277,12 +1297,6 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/stories/web-core/drawer/vts-drawer.story.vue': {
-      routes:
-        | '/story/web-core/drawer/vts-drawer'
-      views:
-        | never
-    }
     'src/stories/web-core/dropdown-title/vts-dropdown-title.story.vue': {
       routes:
         | '/story/web-core/dropdown-title/vts-dropdown-title'
@@ -1319,15 +1333,27 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/stories/web-core/modal/vts-modal.story.vue': {
-      routes:
-        | '/story/web-core/modal/vts-modal'
-      views:
-        | never
-    }
     'src/stories/web-core/object-icon/vts-object-icon.story.vue': {
       routes:
         | '/story/web-core/object-icon/vts-object-icon'
+      views:
+        | never
+    }
+    'src/stories/web-core/overlay/vts-overlay-button.story.vue': {
+      routes:
+        | '/story/web-core/overlay/vts-overlay-button'
+      views:
+        | never
+    }
+    'src/stories/web-core/overlay/vts-overlay-cancel-button.story.vue': {
+      routes:
+        | '/story/web-core/overlay/vts-overlay-cancel-button'
+      views:
+        | never
+    }
+    'src/stories/web-core/overlay/vts-overlay-confirm-button.story.vue': {
+      routes:
+        | '/story/web-core/overlay/vts-overlay-confirm-button'
       views:
         | never
     }

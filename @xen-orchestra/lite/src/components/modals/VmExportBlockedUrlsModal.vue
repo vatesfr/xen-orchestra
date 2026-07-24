@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="info" icon="object:vm" dismissible>
+  <UiModal accent="info" icon="object:vm" @confirm="emit('close')" @dismiss="emit('close')">
     <template #title>
       {{ t('action:export-n-vms-manually', { n: labelWithUrl.length }) }}
     </template>
@@ -18,21 +18,25 @@
     </template>
 
     <template #buttons>
-      <VtsModalConfirmButton>{{ t('action:close') }}</VtsModalConfirmButton>
+      <VtsOverlayConfirmButton>{{ t('action:close') }}</VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </UiModal>
 </template>
 
 <script lang="ts" setup>
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
+import UiModal from '@core/components/ui/modal/UiModal.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { blockedUrls } = defineProps<{
   blockedUrls: URL[]
+}>()
+
+const emit = defineEmits<{
+  close: []
 }>()
 
 const { t } = useI18n()

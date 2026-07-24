@@ -1,26 +1,26 @@
 <template>
-  <VtsModal accent="info" icon="status:info-picto" dismissible>
+  <UiModal accent="info" icon="status:info-picto" @confirm="emit('confirm')" @dismiss="emit('cancel')">
     <template #title>
       {{ connection.title }}
     </template>
 
-    <template v-if="action === CONNECTION_ACTION.DISCONNECT" #content>
-      {{ t('vif-disconnect-info') }}
+    <template #content>
+      <template v-if="action === CONNECTION_ACTION.DISCONNECT">{{ t('vif-disconnect-info') }}</template>
     </template>
 
     <template #buttons>
-      <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
-      <VtsModalConfirmButton>
+      <VtsOverlayCancelButton @click="emit('cancel')">{{ t('action:go-back') }}</VtsOverlayCancelButton>
+      <VtsOverlayConfirmButton>
         {{ connection.action }}
-      </VtsModalConfirmButton>
+      </VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </UiModal>
 </template>
 
 <script lang="ts" setup>
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
+import UiModal from '@core/components/ui/modal/UiModal.vue'
 import { useMapper } from '@core/packages/mapper'
 import { CONNECTION_ACTION, type ConnectionAction } from '@core/types/connection.ts'
 import { useI18n } from 'vue-i18n'
@@ -28,6 +28,11 @@ import { useI18n } from 'vue-i18n'
 const { action, count } = defineProps<{
   action: ConnectionAction
   count: number
+}>()
+
+const emit = defineEmits<{
+  confirm: []
+  cancel: []
 }>()
 
 const { t } = useI18n()

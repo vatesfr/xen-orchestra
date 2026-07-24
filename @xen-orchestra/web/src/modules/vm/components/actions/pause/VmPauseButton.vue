@@ -1,5 +1,5 @@
 <template>
-  <MenuItem v-if="canDisplay" icon="fa:pause" :busy="isRunning" @click="openModal()">
+  <MenuItem v-if="canDisplay" icon="fa:pause" :busy="isRunning" @click="pauseJob()">
     {{ t('pause') }}
   </MenuItem>
 </template>
@@ -9,7 +9,7 @@ import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts
 import { useXoVmPauseJob } from '@/modules/vm/jobs/xo-vm-pause.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useBlockedModal } from '@core/composables/modals/use-blocked-modal.ts'
 import { IK_CLOSE_MENU } from '@core/utils/injection-keys.util.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { computed, inject } from 'vue'
@@ -30,15 +30,14 @@ const canDisplay = computed(() => {
 
 const closeMenu = inject(IK_CLOSE_MENU, undefined)
 
+const { open: openBlockedModal } = useBlockedModal()
+
 function pauseJob() {
+  if (!canRun.value) {
+    return openBlockedModal({ props: { blockedOperation: 'pause', href: xo5VmAdvancedHref.value } })
+  }
+
   pause()
   closeMenu?.()
 }
-
-const openBlockedModal = useModal({
-  component: import('@core/components/modal/VtsBlockedModal.vue'),
-  props: { blockedOperation: 'pause', href: xo5VmAdvancedHref },
-})
-
-const openModal = () => (canRun.value ? pauseJob() : openBlockedModal())
 </script>

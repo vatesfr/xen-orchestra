@@ -1,44 +1,65 @@
-import { type NetworkDeleteModalProps } from '@/modules/network/components/modal/NetworkDeleteModal.vue'
 import { NETWORK_DELETE_ERROR, useXoNetworkDeleteJob } from '@/modules/network/jobs/xo-network-delete.job.ts'
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import { getNetworkType } from '@/modules/network/utils/xo-network.util.ts'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { getNetworkType, type NetworkType } from '@/modules/network/utils/xo-network.util.ts'
+import { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 export function useNetworkDeleteModal(rawNetworks: MaybeRefOrGetter<FrontXoNetwork[]>) {
   const networks = toComputed(rawNetworks)
 
+  const { t } = useI18n()
+
   const { run, canRun, isRunning, errorMessage, error } = useXoNetworkDeleteJob(networks)
 
-  const networkType = computed<NetworkDeleteModalProps['type']>(() => getNetworkType(networks.value[0]))
+  const subject = computed(() => {
+    const count = networks.value.length
 
-  const openNetworkDeleteModal = useModal({
-    component: import('@/modules/network/components/modal/NetworkDeleteModal.vue'),
-    props: { count: computed(() => networks.value.length), type: networkType },
-    onConfirm: async () => {
-      try {
-        await run()
-      } catch (apiError) {
-        console.error('Error when deleting network:', apiError)
-      }
-    },
+    const subjectsByType: Record<NetworkType, string> = {
+      physical: t('n-networks', { n: count }),
+      bonded: t('n-bonded-networks', { n: count }),
+      internal: t('n-internal-networks', { n: count }),
+    }
+
+    return subjectsByType[getNetworkType(networks.value[0])]
   })
 
-  const openNetworkDeleteErrorModal = useModal({
-    component: import('@/modules/network/components/modal/NetworkDeleteErrorModal.vue'),
-    props: {
-      error: errorMessage,
-      showConnectedVifsMessage: computed(() => error.value?.jobName === NETWORK_DELETE_ERROR.VIFS_IN_USE),
+  const { open: openNetworkDeleteModal } = useDeleteModal()
+
+  const { open: openNetworkDeleteErrorModal } = useOverlay({
+    component: () => import('@/modules/network/components/modal/NetworkDeleteErrorModal.vue'),
+    events: {
+      onClose: true,
     },
   })
 
   function openModal() {
     if (!canRun.value) {
-      openNetworkDeleteErrorModal()
-    } else {
-      openNetworkDeleteModal()
+      return openNetworkDeleteErrorModal({
+        props: {
+          error: errorMessage.value,
+          showConnectedVifsMessage: error.value?.jobName === NETWORK_DELETE_ERROR.VIFS_IN_USE,
+        },
+      })
     }
+
+    return openNetworkDeleteModal({
+      events: {
+        onConfirm: async () => {
+          try {
+            await run()
+          } catch (apiError) {
+            console.error('Error when deleting network:', apiError)
+          }
+        },
+      },
+      props: {
+        subject: subject.value,
+        confirmLabel: t('action:delete-n-networks', { n: networks.value.length }),
+      },
+    })
   }
 
   return { openModal, canRun, isRunning }

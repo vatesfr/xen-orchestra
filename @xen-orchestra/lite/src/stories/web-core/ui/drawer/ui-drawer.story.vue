@@ -3,44 +3,22 @@
     v-slot="{ properties, settings }"
     :params="[
       prop('title').str().widget().preset('Drawer Title'),
-      prop('isOpen').bool().widget(),
-      prop('isDismissible').bool().help('Show dismiss button and enable backdrop click'),
-      event('dismiss').help('Emitted when dismiss button or backdrop is clicked'),
+      event('confirm').help('Emitted when the form is submitted (e.g. a submit button is clicked or Enter is pressed)'),
+      event('dismiss').help('Emitted when the dismiss button or backdrop is clicked, or Escape is pressed'),
+      slot('title').help('Overrides the title prop'),
       slot('content').help('Main content area'),
       slot('buttons').help('Footer buttons area'),
-      setting('dismissible').widget(boolean()).preset(true).help('Toggle dismiss behavior in this story'),
+      setting('contentSlotContent')
+        .preset('This is the drawer content.')
+        .widget(text())
+        .help('Content for content slot'),
       setting('showButtons').widget(boolean()).preset(true),
     ]"
-    :presets="{
-      Dismissible: {
-        props: { isOpen: true },
-        settings: { dismissible: true },
-      },
-      Persistent: {
-        props: { isOpen: true },
-        settings: { dismissible: false },
-      },
-      'No title': {
-        props: { isOpen: true, title: '' },
-        settings: { dismissible: true },
-      },
-      'No buttons': {
-        props: { isOpen: true },
-        settings: { dismissible: true, showButtons: false },
-      },
-    }"
   >
-    <UiButton variant="primary" accent="brand" size="medium" @click="isOpen = true">Open Drawer</UiButton>
-
-    <UiDrawer :is-open :title="properties.title" :is-dismissible="settings.dismissible" @dismiss="isOpen = false">
-      <template #content>
-        <p>This is the drawer content.</p>
-      </template>
+    <UiDrawer class="story" v-bind="properties">
+      <template #content>{{ settings.contentSlotContent }}</template>
       <template v-if="settings.showButtons" #buttons>
-        <UiButton v-if="settings.dismissible" variant="secondary" accent="brand" size="medium" @click="isOpen = false">
-          Cancel
-        </UiButton>
-        <UiButton variant="primary" accent="brand" size="medium" @click="isOpen = false">Confirm</UiButton>
+        <VtsOverlayConfirmButton>Confirm</VtsOverlayConfirmButton>
       </template>
     </UiDrawer>
   </ComponentStory>
@@ -49,10 +27,18 @@
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { event, prop, setting, slot } from '@/libs/story/story-param'
-import { boolean } from '@/libs/story/story-widget'
-import UiButton from '@core/components/ui/button/UiButton.vue'
+import { boolean, text } from '@/libs/story/story-widget'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
-import { ref } from 'vue'
-
-const isOpen = ref(false)
 </script>
+
+<style lang="postcss" scoped>
+.story {
+  position: relative;
+  height: 100%;
+
+  :deep(.drawer) {
+    min-height: 100%;
+  }
+}
+</style>

@@ -20,8 +20,7 @@ import UiActionButton from '@/components/ui/UiActionButton.vue'
 import UiFilter from '@/components/ui/UiFilter.vue'
 import UiFilterGroup from '@/components/ui/UiFilterGroup.vue'
 import type { Filters } from '@/types/filter'
-import { useModal } from '@core/packages/modal/use-modal.ts'
-import { computed } from 'vue'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { useI18n } from 'vue-i18n'
 
 const { availableFilters } = defineProps<{
@@ -36,18 +35,25 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const openFilterModal = useModal((editedFilter?: string) => ({
-  component: import('@/components/modals/CollectionFilterModal.vue'),
-  props: {
-    editedFilter,
-    availableFilters: computed(() => availableFilters),
+const { open } = useOverlay({
+  component: () => import('@/components/modals/CollectionFilterModal.vue'),
+  events: {
+    onCancel: true,
   },
-  onConfirm: async newFilter => {
-    if (editedFilter !== undefined) {
-      emit('removeFilter', editedFilter)
-    }
+})
 
-    emit('addFilter', newFilter)
-  },
-}))
+function openFilterModal(editedFilter?: string) {
+  return open({
+    props: { editedFilter, availableFilters },
+    events: {
+      onConfirm: newFilter => {
+        if (editedFilter !== undefined) {
+          emit('removeFilter', editedFilter)
+        }
+
+        emit('addFilter', newFilter)
+      },
+    },
+  })
+}
 </script>

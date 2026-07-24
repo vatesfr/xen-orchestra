@@ -24,8 +24,7 @@ import UiFilter from '@/components/ui/UiFilter.vue'
 import UiFilterGroup from '@/components/ui/UiFilterGroup.vue'
 import type { ActiveSorts, Sorts } from '@/types/sort'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import { useModal } from '@core/packages/modal/use-modal.ts'
-import { computed } from 'vue'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { useI18n } from 'vue-i18n'
 
 const { availableSorts } = defineProps<{
@@ -41,11 +40,17 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const openFormModal = useModal({
-  component: import('@/components/modals/CollectionSorterModal.vue'),
-  props: { availableSorts: computed(() => availableSorts) },
-  onConfirm: ({ property, isAscending }) => emit('addSort', property as TProperty, isAscending),
+const { open } = useOverlay({
+  component: () => import('@/components/modals/CollectionSorterModal.vue'),
+  events: {
+    onConfirm: ({ property, isAscending }) => emit('addSort', property as TProperty, isAscending),
+    onCancel: true,
+  },
 })
+
+function openFormModal() {
+  return open({ props: { availableSorts } })
+}
 </script>
 
 <style lang="postcss" scoped>

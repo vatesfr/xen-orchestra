@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="info" icon="status:info-picto">
+  <UiModal accent="info" icon="status:info-picto" @confirm="emit('confirm')" @dismiss="emit('cancel')">
     <template #title>
       <I18nT keypath="confirm-disconnect" scope="global" tag="div">
         <span class="n-disconnect">{{ title }}</span>
@@ -11,22 +11,27 @@
     </template>
 
     <template #buttons>
-      <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
-      <VtsModalConfirmButton>
+      <VtsOverlayCancelButton @click="emit('cancel')">{{ t('action:go-back') }}</VtsOverlayCancelButton>
+      <VtsOverlayConfirmButton>
         {{ t('action:disconnect-pool') }}
-      </VtsModalConfirmButton>
+      </VtsOverlayConfirmButton>
     </template>
-  </VtsModal>
+  </UiModal>
 </template>
 
 <script lang="ts" setup>
-import VtsModal from '@core/components/modal/VtsModal.vue'
-import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
-import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
+import UiModal from '@core/components/ui/modal/UiModal.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
   title: string
+}>()
+
+const emit = defineEmits<{
+  confirm: []
+  cancel: []
 }>()
 
 const { t } = useI18n()

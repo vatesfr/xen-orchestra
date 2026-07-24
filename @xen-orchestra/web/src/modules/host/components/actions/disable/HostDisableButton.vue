@@ -17,8 +17,8 @@
 import { useXoHostDisableJob } from '@/modules/host/jobs/xo-host-disable.job.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
+import { useActionModal } from '@core/composables/modals/use-action-modal.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { useModal } from '@core/packages/modal/use-modal.ts'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
@@ -34,15 +34,18 @@ const {
   errorMessage: disableHostErrorMessage,
 } = useXoHostDisableJob(() => host)
 
-const openDisableHostModal = useModal({
-  component: import('@core/components/modal/VtsActionModal.vue'),
-  props: {
-    accent: 'warning',
-    action: 'disable',
-    object: 'host',
-    hostName: host.name_label,
-    icon: 'status:warning-picto',
-  },
-  onConfirm: () => disableHost(),
-})
+const { open: openActionModal } = useActionModal()
+
+function openDisableHostModal() {
+  return openActionModal({
+    events: { onConfirm: () => disableHost() },
+    props: {
+      accent: 'warning',
+      action: 'disable',
+      object: 'host',
+      hostName: host.name_label,
+      icon: 'status:warning-picto',
+    },
+  })
+}
 </script>

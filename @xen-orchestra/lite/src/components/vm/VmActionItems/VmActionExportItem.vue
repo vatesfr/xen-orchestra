@@ -5,22 +5,22 @@
     "
     :disabled="isDisabled"
     icon="action:download"
-    @click="openExportModal"
+    @click="openExportModal()"
   >
     {{ t('action:export-vm', isSingleAction ? 1 : 2) }}
   </MenuItem>
 </template>
 
 <script lang="ts" setup>
+import { useVmExport } from '@/composables/vm-export.composable.ts'
 import { areSomeVmOperationAllowed } from '@/libs/vm'
 import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
-import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useDisabled } from '@core/composables/disabled.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -39,13 +39,17 @@ const isSomeExportable = computed(() =>
 
 const isDisabled = useDisabled(() => !isSomeExportable.value)
 
-const xenApi = useXenApiStore().getXapi()
+const { exportVms } = useVmExport()
 
-const openModal = useModal()
-
-const openExportModal = useModal({
-  component: import('@/components/modals/VmExportModal.vue'),
-  props: { count: computed(() => vmRefs.length) },
-  onConfirm: compressionType => xenApi.vm.export(vmRefs, compressionType, openModal),
+const { open: openModal } = useOverlay({
+  component: () => import('@/components/modals/VmExportModal.vue'),
+  events: {
+    onConfirm: compressionType => exportVms(vmRefs, compressionType),
+    onCancel: true,
+  },
 })
+
+function openExportModal() {
+  return openModal({ props: { count: vmRefs.length } })
+}
 </script>

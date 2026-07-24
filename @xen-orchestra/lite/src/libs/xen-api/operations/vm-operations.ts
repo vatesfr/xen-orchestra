@@ -1,7 +1,6 @@
 import type XenApi from '@/libs/xen-api/xen-api'
 import type { VM_COMPRESSION_TYPE } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiHost, XenApiSr, XenApiVm } from '@/libs/xen-api/xen-api.types'
-import type { OpenModal } from '@core/packages/modal/types.ts'
 import type { MaybeArray } from '@core/types/utility.type.ts'
 import { toArray } from '@core/utils/to-array.utils'
 import type { OPAQUE_REF_NULL } from '@vates/types/common'
@@ -42,7 +41,7 @@ export function createVmOperations(xenApi: XenApi) {
 
     delete: (vmRefs: VmRefs) => Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.destroy', [vmRef]))),
 
-    export: async (vmRefs: VmRefs, compression: VM_COMPRESSION_TYPE, openModal: OpenModal) => {
+    export: async (vmRefs: VmRefs, compression: VM_COMPRESSION_TYPE) => {
       const blockedUrls: URL[] = []
 
       toArray(vmRefs).forEach(vmRef => {
@@ -54,22 +53,14 @@ export function createVmOperations(xenApi: XenApi) {
           use_compression: compression,
         }).toString()
 
-        const _window = window.open(url.href, '_blank')
+        const openedWindow = window.open(url.href, '_blank')
 
-        if (_window === null) {
+        if (openedWindow === null) {
           blockedUrls.push(url)
-        } else {
-          URL.revokeObjectURL(url.toString())
         }
       })
 
-      if (blockedUrls.length > 0) {
-        await openModal('blocked-urls', {
-          component: import('@/components/modals/VmExportBlockedUrlsModal.vue'),
-          props: { blockedUrls },
-          onConfirm: () => blockedUrls.forEach(url => URL.revokeObjectURL(url.toString())),
-        })
-      }
+      return { blockedUrls }
     },
 
     getAllowedVbdDevices: (vmRefs: VmRefs): Promise<string[][]> =>
