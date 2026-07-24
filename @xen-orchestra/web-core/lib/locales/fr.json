@@ -624,6 +624,7 @@
   "maximum-vcpu": "Nombre maximal de vCPU",
   "memory": "Mémoire",
   "memory-usage": "Utilisation de la mémoire",
+  "menu": "menu",
   "merge-backups-synchronously": "Fusionner les sauvegardes de manière synchrone",
   "message": "Message",
   "migration-compression": "Compression des migrations",
