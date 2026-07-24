@@ -9,17 +9,19 @@
       <template v-if="depth > 1">
         <VtsTreeLine v-for="i in depth - 1" :key="i" />
       </template>
-      <UiButtonIcon
-        v-if="hasToggle"
-        v-tooltip="isExpanded ? t('action:close') : t('action:open')"
-        class="toggle"
-        accent="brand"
-        :icon="isExpanded ? 'fa:angle-down' : 'fa:angle-right'"
-        size="small"
-        :target-scale="{ x: 1.5, y: 2 }"
-        @click="emit('toggle')"
-      />
-      <div v-else class="h-line" />
+      <div class="toggle-wrapper">
+        <UiButtonIcon
+          v-if="hasToggle"
+          v-tooltip="isExpanded ? t('action:close') : t('action:open')"
+          class="toggle"
+          accent="brand"
+          :icon="isExpanded ? 'fa:angle-down' : 'fa:angle-right'"
+          size="small"
+          :target-scale="{ x: 1.5, y: 2 }"
+          @click="emit('toggle')"
+        />
+        <div v-else class="h-line" />
+      </div>
       <a :href class="link typo-body-bold-small" @click="navigate">
         <slot name="icon">
           <VtsIcon :name="icon" size="medium" class="icon" />
@@ -28,7 +30,9 @@
           <slot />
         </div>
       </a>
-      <slot name="addons" />
+      <div class="addons-wrapper">
+        <slot name="addons" />
+      </div>
     </div>
   </RouterLink>
 </template>
@@ -86,6 +90,13 @@ const depth = inject(IK_TREE_LIST_DEPTH, ref(0))
   padding: 0 0.8rem;
   margin-bottom: 0.2rem;
 
+  .toggle-wrapper {
+    width: 2.4rem;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+  }
+
   .link {
     display: flex;
     align-items: center;
@@ -108,10 +119,19 @@ const depth = inject(IK_TREE_LIST_DEPTH, ref(0))
   .icon {
     font-size: 1.6rem;
   }
+  .addons-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+  }
+
+  .toggle {
+    width: 100%;
+  }
 
   .h-line {
-    width: 2rem;
-    margin-left: -0.4rem;
+    width: 100%;
   }
 
   /* INTERACTION VARIANTS */
