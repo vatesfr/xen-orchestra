@@ -31,13 +31,11 @@ _Stability > Perfection | Clarity > Cleverness | Incremental Improvement > Rewri
 ## Core Principles
 
 1. Works First Priority
-
    - ✅ Passes basic smoke tests before optimization
    - ❌ Rewrote the entire module to shave 0.1ms off runtime
    - ⚠️ Works but skipped testing due to time constraints
 
 2. No Trivial Changes
-
    - ✅ Fixed typo in log message + verified no side effects
    - ❌ Changed 'status' to 'state' globally without grep-checking
    - ⚠️ "Refactored" variable names but introduced a shadowed variable
@@ -55,8 +53,7 @@ _Stability > Perfection | Clarity > Cleverness | Incremental Improvement > Rewri
 
 - any asynchonous code must be awaited
 - consider the use of a timeout handler
-- if the method returns a Promise , it does not need to be declared as async. Remember to use jsdoc to declare the return type as Promise <type> 
-
+- if the method returns a Promise , it does not need to be declared as async. Remember to use jsdoc to declare the return type as Promise <type>
 
 ```ts
 // ✅
@@ -202,9 +199,8 @@ assert(result) // No error message
 
 ### Typing
 
-- Zero `any`; JSDoc/TypeScript everywhere. https://jsdoc.app/about-getting-started  . JSDoc offers capabilties to define and import types, and `@implements` to handle interface  
+- Zero `any`; JSDoc/TypeScript everywhere. https://jsdoc.app/about-getting-started . JSDoc offers capabilties to define and import types, and `@implements` to handle interface
 - XO specific : any property change in `packages/xo-server/src/xapi-object-to-xo.mjs` must be reflected in `@vates/types`
-
 
 ```ts
 // ✅
@@ -286,3 +282,59 @@ try {
    /** @type {import('./types').VmConfig} */
    const config = loadConfig()
    ```
+
+## Specific Rules
+
+### Rest api
+
+Naming is hard, Building a coherent api is hard, ask/propose naming before starting to push code
+The types and name of properties must be coherent with the types in @vates/types/xo.mts 
+### code organisation
+* the xo-mixins contains code shared by proxy and xo-server  // guideline general
+* the xo-server/mixins : contains code shared across multiple part of xo-server (JSONRPC and REST api for example)  // guideline general
+* the service must handle the domain/functional logic of one or multiple REST api route. 
+* the controller is focused on serving the result
+* all the xoApp method must be typed on first use from typescript code // guideline general 
+
+### Actions
+
+REST api actions are reserved to users actions that won't fit rest api. The REST api actions must use the `this.createAction` method to handle correctly synchronous and asynchronous mode. 
+
+* PUT/PATCH is for updating an object without side effect. 
+* POST for creating an object
+* GET for getting information of an object of a collection
+
+on the caller side, action call are asynchronous by default, caller can add  `sync=true` on any action call to force the synchronous mode
+
+### Route definition
+- @Get(Route with named parameter) : must be defined before writing code
+- @Middlewares(acl( ...)). Acl are defined in `@xen-orchestra/acl/src/actions/`, should be discussed before coding
+- @Extension('x-mcp-exposure', value ), with value one of
+  - allow : MCP can use this with the default permission of the user. Only for idempotent read, with a constrained output size
+  - confirm : MCP will ask for the user permission before using it. For modification, and bigger exports
+  - deny : MCP won't use this endpoint. For example : binary export of vm/disks/files
+@SuccessResponse(status, description) : Response in case of success, statuses and descriptions are defined in `@xen-orchestra/rest-api/src/open-api/common/response.common.mts` . Take care of explaining any non obvious result, like an uuid change during VDI migration. This documentation must be clear for users out of XO team, or even Vates.
+  @Response(status, description) : Possible responses including errors, statuses and descriptions are defined in `@xen-orchestra/rest-api/src/open-api/common/response.common.mts`. Order by status code.
+- @Example for **every** parameter and the body. Path parameters are the easy ones to forget — they have no body schema to fall back on, so list them explicitly (`@example id "…"`, `@example diskId "…"`)
+- use @Deprecated() decorator if needed, never remove a route without changing the api version.
+- throw `noSuchObject(id, type)` (from `xo-common/api-errors`, code `NO_SUCH_OBJECT`) to get an automatic 404 when the routing doesn't already handle it. Resolve the object **first** so the 404 fires before any work starts
+#### Status codes & errors
+
+- **Never hand-roll a status code** (`res.status(404)`). `throw` the semantic error from `xo-common/api-errors` and let `generic-error-handler.middleware` map it centrally. Reuse the shared descriptors in `open-api/common/response.common.mts` (`notFoundResp`, `invalidParameters`, …) instead of magic numbers. Throw an ApiError, setup with the right parameters if a new error /error code is needed. 
+
+  | Throw (`xo-common/api-errors`)                                | HTTP status |
+  | ------------------------------------------------------------ | ----------- |
+  | `noSuchObject(id, type)` (`NO_SUCH_OBJECT`)                   | 404         |
+  | `unauthorized` / `forbiddenOperation` / `featureUnauthorized` | 403         |
+  | `invalidCredentials`                                         | 401         |
+  | `objectAlreadyExists` / `incorrectState`                     | 409         |
+  | `invalidParameters`                                          | 422         |
+  | `notImplemented`                                             | 501         |
+#### Streaming & file-download routes
+
+- Obtain and validate the resource **before** setting any response header, so a `noSuchObject` returns a clean JSON 404 instead of a body labelled as a download
+- Set `content-disposition: attachment; filename="…"` with a meaningful name built from domain labels (VM / disk / partition). Fold accents to ASCII and collapse anything outside `[\w.-]` so the header and the on-disk filename stay safe (also blocks header injection)
+- Tie the stream to the request lifetime (`req.on('close', () => stream.destroy())`) so a client disconnect doesn't leak the export
+#### Route declaration order (tsoa)
+
+- tsoa's route-collision check is declaration-order sensitive: a `…/files.{format}` route declared **after** the plain `…/files` route is wrongly flagged as overlapping (it does a `startsWith`, not an equality, on the last segment). Declare each `.{format}` variant **before** its plain sibling
