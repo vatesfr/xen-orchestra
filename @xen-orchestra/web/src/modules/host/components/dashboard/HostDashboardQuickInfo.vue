@@ -35,13 +35,10 @@
       <VtsKeyValueRow :label="t('uuid')" :value="host.id" />
       <VtsKeyValueRow :label="t('description')" :value="host.name_description" />
       <VtsKeyValueRow :label="t('version')" :value="host.version" />
-      <VtsKeyValueRow
-        :label="t('hardware')"
-        :value="`${host.bios_strings['system-manufacturer']} (${host.bios_strings['system-product-name']})`"
-      />
+      <VtsKeyValueRow :label="t('hardware')" :value="manufacturerInfo" />
     </VtsKeyValueList>
     <VtsKeyValueList>
-      <VtsKeyValueRow :label="t('cores-with-sockets')" :value="`${host.cpus.cores} (${host.cpus.sockets})`" />
+      <VtsKeyValueRow :label="t('cores-with-sockets')" :value="coreSocketInfo" />
       <VtsKeyValueRow :label="t('ram')" :value="`${ram.value} ${ram.prefix}`" />
       <VtsKeyValueRow :label="t('tags')">
         <template #value>
@@ -57,6 +54,7 @@
 <script lang="ts" setup>
 import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { getHostCoreSocketInfo, getHostManufacturerInfo } from '@/modules/host/utils/xo-host.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsKeyValueList from '@core/components/key-value-list/VtsKeyValueList.vue'
 import VtsKeyValueRow from '@core/components/key-value-row/VtsKeyValueRow.vue'
@@ -95,6 +93,10 @@ const isMaster = computed(() => isMasterHost(host.id))
 const masterHost = computed(() => getMasterHostByPoolId(host.$pool))
 
 const ram = computed(() => formatSizeRaw(host.memory.size, 1))
+
+const manufacturerInfo = computed(() => getHostManufacturerInfo(host))
+
+const coreSocketInfo = computed(() => getHostCoreSocketInfo(host))
 </script>
 
 <style lang="postcss" scoped>
