@@ -10,6 +10,10 @@ export interface PartialBackupMetadata {
   jobId: string
   scheduleId: string
   timestamp: number
+  // 'true' when written by code including the non-NBD qcow2 corruption fix and its force-full
+  // gate; its absence marks a potentially-corrupt older backup and makes the gate re-probe.
+  // Preserved (never stamped) across merges here.
+  includeNonNbdQcow2Fix?: boolean
 }
 export const DEFAULT_MERGE_CONCURRENCY = 1
 export const DEFAULT_REMOVE_CONCURRENCY = 4

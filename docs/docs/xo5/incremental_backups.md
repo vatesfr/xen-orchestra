@@ -88,6 +88,12 @@ After the job is completed, you can verify whether NBD was used for the transfer
 
 ![](../assets/nbd-backup-log.png)
 
+:::warning
+**Incremental backups of qcow2 disks require NBD.** qcow2 disks are used for VDIs larger than 2 TiB and on storage repositories that store their disks in the qcow2 format.
+
+Enabling **Use NBD to transfer disk** in the job's Advanced settings is not sufficient on its own. NBD must also be enabled on at least one network of **every** pool involved, and XOA (or the proxy running the backup) must be able to reach those networks. If a default backup network is set, NBD must be enabled on it. If these conditions are not met, the job **silently falls back** to a non-NBD transfer: no qcow2 delta can be produced, so each run transfers a full backup instead. Always confirm NBD was actually used in the backup log after the first run.
+:::
+
 To learn more about the evolution of this feature across various XO releases, check out our blog posts for versions [5.76](https://xen-orchestra.com/blog/xen-orchestra-5-76/), [5.81](https://xen-orchestra.com/blog/xen-orchestra-5-81/), [5.82](https://xen-orchestra.com/blog/xen-orchestra-5-82/), and [5.86](https://xen-orchestra.com/blog/xen-orchestra-5-86/).
 
 ## Understanding large deltas
@@ -108,9 +114,9 @@ Sometimes, you might notice that incremental backups are surprisingly large, alm
 - Look out for cron jobs, log rotations, or background tasks that might be active during backup times.
 - Ensure your VM has enough memory to prevent excessive paging.
 - Create a separated disk with `[NOBAK]` in its name to handle temporary files. This disk won't be transferred.
-    To know more on excluding disks from backup jobs, check out the [Exclude disks](https://docs.xen-orchestra.com/backups#exclude-disks) section.
+  To know more on excluding disks from backup jobs, check out the [Exclude disks](https://docs.xen-orchestra.com/backups#exclude-disks) section.
 - For disks larger than **2 TB**, store backups on a remote in **block mode**.
-- For **qcow2** disks, use **NBD** mode for backups.
+- For **qcow2** disks, [enable NBD](#nbd-enabled-backups) — without it, each incremental run falls back to a full backup.
 
 ### Known issues
 
@@ -121,4 +127,4 @@ To prevent this:
 
 1. Migrate the disk to another storage. This will reset the disk state.
 2. Disable **purge snapshot data** on the backup.
-:::
+   :::

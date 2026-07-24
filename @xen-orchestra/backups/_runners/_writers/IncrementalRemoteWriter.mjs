@@ -16,6 +16,8 @@ import { MixinRemoteWriter } from './_MixinRemoteWriter.mjs'
 import { AbstractIncrementalWriter } from './_AbstractIncrementalWriter.mjs'
 import { checkVhd } from './_checkVhd.mjs'
 import { packUuid } from './_packUuid.mjs'
+import { openDiskChain } from '@xen-orchestra/backup-archive/disks'
+import { VDI_FORMAT_QCOW2 } from '@xen-orchestra/xapi'
 
 const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
@@ -61,10 +63,93 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
       if (parentDestPath === undefined) {
         baseUuidToSrcVdi.delete(baseUuid)
       } else {
-        this.#parentVdiPaths[vhdDir] = parentDestPath
-        this.#parentUuids[vhdDir] = parentUuid
+        try {
+          // A delta is only chained onto a qcow2 base when NBD is enabled; without NBD a qcow2
+          // export falls back to a full, so there is no suspect base to worry about.
+          if (this._settings.preferNbd && !(await this.#isBaseChainable(parentDestPath))) {
+            Task.warning('forcing a full: qcow2 base predates the non-NBD qcow2 fix and looks corrupt', {
+              parentDestPath,
+            })
+            baseUuidToSrcVdi.delete(baseUuid)
+            return
+          }
+          this.#parentVdiPaths[vhdDir] = parentDestPath
+          this.#parentUuids[vhdDir] = parentUuid
+        } catch (error) {
+          warn('checkBaseVdis: unexpected error, forcing a full', { error, parentDestPath })
+          baseUuidToSrcVdi.delete(baseUuid)
+        }
       }
     })
+  }
+
+  // Decide whether it is safe to chain a delta onto `parentDestPath` (the chain tip).
+  // A qcow2 full exported before the DiskLargerBlock 20260724 fix can be silently corrupt (block 0
+  // valid, following allocated blocks all zero); chaining a delta onto it would extend a
+  // broken chain, so we detect that case and let the caller fall back to a full.
+  async #isBaseChainable(parentDestPath) {
+    // parentDestPath is the chain tip = most-recent backup; its filename is stable under
+    // merges (merges rename the OLDER disks), so unlike the root it maps reliably to its
+    // metadata json.
+    const parentDate = basename(parentDestPath).replace(/\.(alias\.)?vhd$/, '')
+    let metadata
+    try {
+      metadata = await this._adapter.readVmBackupMetadata(`${this._vmBackupDir}/${parentDate}.json`)
+    } catch (error) {
+      warn('checkBaseVdis: cannot read parent metadata, will probe', { error, parentDestPath })
+    }
+    if (metadata?.includeNonNbdQcow2Fix === true) {
+      // written by code that has the fix and this gate, so its chain was already
+      // verified/forced clean — no disk open needed
+      // we can't have includeNonNbdQcow2Fix = false since it  would have restarted a clean chain
+      return true
+    }
+    const isQcow2 =
+      metadata === undefined ||
+      Object.values(metadata.vdis ?? {}).some(vdi => vdi?.sm_config?.['image-format'] === VDI_FORMAT_QCOW2)
+    if (!isQcow2) {
+      // only qcow2 exports can carry this corruption
+      return true
+    }
+    return this.#baseHasData(parentDestPath)
+  }
+
+  // Probe the first data blocks of the chain root for the DiskLargerBlock corruption
+  // signature. Returns false only when enough allocated blocks past the first are all zero.
+  async #baseHasData(parentDestPath) {
+    const { handler } = this._adapter
+    // open the chain (with block allocation tables) and probe its root full. This only runs
+    // once per chain — afterwards the includeNonNbdQcow2Fix flag on the tip skips it — so
+    // reading the deltas' BATs here is negligible and lets us reuse the root disk directly.
+    const chain = await openDiskChain({ handler, path: parentDestPath })
+    try {
+      const root = chain.getRootDisk()
+      if (root === undefined) {
+        throw new Error(`can't resolve root of chain ${parentDestPath}`)
+      }
+      const empty = Buffer.alloc(root.getBlockSize(), 0)
+      const MAX_EMPTY = 10
+      let nbEmpty = 0
+      for (let i = 1; i < root.getMaxBlockCount(); i++) {
+        if (!root.hasBlock(i)) {
+          continue
+        }
+        const { data } = await root.readBlock(i)
+        if (!data.equals(empty)) {
+          // real data → not the corruption signature
+          return true
+        }
+        if (++nbEmpty > MAX_EMPTY) {
+          // enough allocated-but-zero blocks → looks corrupt
+          return false
+        }
+      }
+      // too few allocated blocks past the first to conclude (also covers sparse/tiny disks)
+      // a full should not be too costly
+      return false
+    } finally {
+      await chain.close()
+    }
   }
 
   async beforeBackup() {
@@ -139,7 +224,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     }
   }
 
-  async _transfer($defer, { isVhdDifferencing, timestamp, deltaExport, vm, vmSnapshot }) {
+  async _transfer($defer, { includeNonNbdQcow2Fix, isVhdDifferencing, timestamp, deltaExport, vm, vmSnapshot }) {
     const adapter = this._adapter
     const job = this._job
     const scheduleId = this._schedule.id
@@ -168,6 +253,11 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     }
 
     metadataContent = {
+      // marks whether the disk data is known-good w.r.t. the non-NBD qcow2 corruption bug.
+      // A fresh XAPI export by fixed code passes `true`; the mirror runner propagates the
+      // source backup's value (copying corrupt source data must NOT become "fixed"). Its
+      // absence flags a potentially-corrupt older disk (used by cleanVm and the force-full gate).
+      includeNonNbdQcow2Fix,
       isVhdDifferencing,
       jobId,
       mode: job.mode,

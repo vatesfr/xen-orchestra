@@ -118,6 +118,29 @@ test('readBlock with simple block mapping', async () => {
   assert(result.data.subarray(512).equals(block2))
 })
 
+test('readBlock at index > 0 places source data at block-relative offsets', async () => {
+  // Regression test: a large block after index 0 must be assembled from its own
+  // source blocks at offsets relative to the start of that large block.
+  // With distinct, non-zero patterns this catches the case where copy() targets an
+  // absolute (disk-wide) offset and silently produces a zeroed block.
+  const blockC = createPatternBuffer(512, 'C')
+  const blockD = createPatternBuffer(512, 'D')
+  const source = new MockDisk(512, 4096, [
+    [2, blockC],
+    [3, blockD],
+  ])
+  await source.init()
+
+  const disk = new DiskLargerBlock(source, 1024) // blockRatio = 2, so large block 1 = source blocks 2 & 3
+  await disk.init()
+
+  const result = await disk.readBlock(1)
+  assert.strictEqual(result.index, 1)
+  assert.strictEqual(result.data.length, 1024)
+  assert(result.data.subarray(0, 512).equals(blockC))
+  assert(result.data.subarray(512).equals(blockD))
+})
+
 test('hasBlock behavior', async () => {
   const source = new MockDisk(512, 2048, [
     [0, Buffer.alloc(512)],
