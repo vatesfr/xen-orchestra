@@ -4,7 +4,7 @@
       <div class="section-title typo-h6">{{ t(section.titleKey) }}</div>
       <ul class="links">
         <MenuItem v-for="item in section.items" :key="item.labelKey">
-          <UiLink size="small" class="link" :href="item.href">
+          <UiLink size="small" class="link" :href="item.href" :to="item.to">
             {{ t(item.labelKey) }}
           </UiLink>
         </MenuItem>
@@ -19,12 +19,14 @@ import MenuItem from '@core/components/menu/MenuItem.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import type { RouteLocationRaw } from 'vue-router'
 
 type AdminMenuSection = {
   titleKey: string
   items: {
     labelKey: string
     href: string | undefined
+    to: RouteLocationRaw | undefined
   }[]
 }
 
@@ -35,10 +37,14 @@ const sections = computed<AdminMenuSection[]>(() => [
   {
     titleKey: 'user-management',
     items: [
-      { labelKey: 'users', href: buildXo5Route('/settings/users') },
-      { labelKey: 'groups', href: buildXo5Route('/settings/groups') },
-      { labelKey: 'roles', href: buildXo5Route('/settings/acls') },
-      { labelKey: 'ldap-auth-providers', href: buildXo5Route('/settings/plugins?s=name%3A%2F%5Eauth-%2F') },
+      { labelKey: 'users', href: undefined, to: { name: '/admin/user-management' } },
+      { labelKey: 'groups', href: buildXo5Route('/settings/groups'), to: undefined },
+      { labelKey: 'roles', href: buildXo5Route('/settings/acls'), to: undefined },
+      {
+        labelKey: 'ldap-auth-providers',
+        href: buildXo5Route('/settings/plugins?s=name%3A%2F%5Eauth-%2F'),
+        to: undefined,
+      },
     ],
   },
 ])

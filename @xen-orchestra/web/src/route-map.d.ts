@@ -91,6 +91,20 @@ declare module 'vue-router/auto-routes' {
       { path: ParamValue<false> },
       | never
     >,
+    '/admin/user-management': RouteRecordInfo<
+      '/admin/user-management',
+      '/admin/user-management',
+      Record<never, never>,
+      Record<never, never>,
+      | '/admin/user-management/users'
+    >,
+    '/admin/user-management/users': RouteRecordInfo<
+      '/admin/user-management/users',
+      '/admin/user-management/users',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/backup/[id]': RouteRecordInfo<
       '/backup/[id]',
       '/backup/:id',
@@ -508,6 +522,19 @@ declare module 'vue-router/auto-routes' {
     'src/pages/[...path].vue': {
       routes:
         | '/[...path]'
+      views:
+        | never
+    }
+    'src/pages/admin/user-management.vue': {
+      routes:
+        | '/admin/user-management'
+        | '/admin/user-management/users'
+      views:
+        | 'default'
+    }
+    'src/pages/admin/user-management/users.vue': {
+      routes:
+        | '/admin/user-management/users'
       views:
         | never
     }

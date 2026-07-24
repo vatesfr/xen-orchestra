@@ -67,7 +67,7 @@
 
 <script lang="ts" setup>
 import AccountMenu from '@/modules/account/components/menu/AccountMenu.vue'
-import AdministrationMenu from '@/modules/navigation/components/AdministrationMenu.vue'
+import AdministrationMenu from '@/modules/admin/components/AdministrationMenu.vue'
 import { useXoSiteTree } from '@/modules/site/composables/xo-site-tree.composable.ts'
 import QuickTaskButton from '@/modules/task/components/QuickTaskButton.vue'
 import ThirdParties from '@/modules/third-parties/components/ThirdParties.vue'
@@ -84,14 +84,16 @@ import UiLogoText from '@core/components/ui/logo-text/UiLogoText.vue'
 import CoreLayout from '@core/layouts/CoreLayout.vue'
 import { useSseStore } from '@core/packages/remote-resource/sse.store.ts'
 import { useUiStore } from '@core/stores/ui.store'
+import { watchImmediate } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
-import { computed, nextTick, useTemplateRef, ref, watch } from 'vue'
+import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
 defineSlots<{
   default(): any
 }>()
+
 const { t } = useI18n()
 
 const uiStore = useUiStore()
@@ -102,16 +104,23 @@ const { isConnected } = storeToRefs(sseStore)
 
 const SIDEBAR_PANEL = {
   TREEVIEW: 'treeview',
-  ADMINISTRATION: 'administration',
+  ADMINISTRATION: 'admin',
 } as const
 
 type SidebarPanel = (typeof SIDEBAR_PANEL)[keyof typeof SIDEBAR_PANEL]
 
-const activeSidebarPanel = ref<SidebarPanel>(SIDEBAR_PANEL.TREEVIEW)
-
 const { treeItems, treeItemIndexById, isReady, filter, isSearching, expandToNode } = useXoSiteTree()
 
 const route = useRoute<'/pool/[id]' | '/host/[id]' | '/vm/[id]'>()
+
+const activeSidebarPanel = ref<SidebarPanel>(SIDEBAR_PANEL.TREEVIEW)
+
+watchImmediate(
+  () => route.path,
+  path => {
+    activeSidebarPanel.value = path.startsWith('/admin') ? SIDEBAR_PANEL.ADMINISTRATION : SIDEBAR_PANEL.TREEVIEW
+  }
+)
 
 const siteTreeList = useTemplateRef('siteTreeList')
 
