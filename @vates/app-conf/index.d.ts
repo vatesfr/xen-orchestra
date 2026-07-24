@@ -33,10 +33,10 @@ export type WatchCallback = (error: Error | undefined, config: Record<string, un
 /**
  * Load and merge configuration for `appName` from all configured sources.
  */
-export function load(opts: LoadOptions): Promise<Record<string, unknown>>
+// export function load(opts: LoadOptions): Promise<Record<string, unknown>>
 /** @deprecated Pass `appName` inside the options object instead. */
-export function load(appName: string, opts?: Options): Promise<Record<string, unknown>>
-// export function load(appNameOrOptions: string | LoadOptions, opts?: Options): Promise<Record<string, unknown>>
+// export function load(appName: string, opts?: Options): Promise<Record<string, unknown>>
+export function load(appNameOrOptions: string | LoadOptions, opts?: Options): Promise<Record<string, unknown>>
 
 /**
  * Watch config sources for changes and reload on each change.
