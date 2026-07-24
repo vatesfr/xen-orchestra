@@ -766,6 +766,67 @@ test('it cleans orphan merge states ', async () => {
   assert.deepEqual(await handler.list(basePath), [])
 })
 
+test('a broken merge in one VDI lineage must not block cleanup of a healthy sibling lineage', async () => {
+  // Regression guard: RemoteDiskLineage.clean()'s merge loop and VmBackupDirectory.clean()'s
+  // per-lineage loop used to let an error from #mergeChain (e.g. a real "footer1 !== footer2"
+  // corruption) escape uncaught, aborting the ENTIRE cleanVm call — skipping prune/cache-regen/
+  // orphan-removal for every other, healthy VDI directory of the same VM.
+
+  // --- lineage 1 (basePath): footer-corrupted orphan ancestor with an active child ---
+  const ancestor = await generateVhd(`${basePath}/ancestor.vhd`, { blocks: [0, 1] })
+  await generateVhd(`${basePath}/child.vhd`, {
+    header: { parentUnicodeName: 'ancestor.vhd', parentUuid: ancestor.footer.uuid },
+    blocks: [2, 3],
+  })
+  // Corrupt only the trailing (end-of-file) footer copy; leading footer/header stay intact.
+  // A stray, unparseable `.merge.json` makes RemoteDiskLineage.init() open this disk with
+  // force:true (checkSecondFooter skipped), so the corruption survives the initial scan and
+  // the ancestor is legitimately scheduled to merge into the active child — reproducing the
+  // production crash inside #mergeChain's later, non-resuming (force:false) reopen.
+  const size = await handler.getSize(`${basePath}/ancestor.vhd`)
+  await handler.write(`${basePath}/ancestor.vhd`, Buffer.alloc(512, 0xff), size - 512)
+  await handler.writeFile(`${basePath}/.ancestor.vhd.merge.json`, '')
+
+  await handler.writeFile(
+    `${rootPath}/metadata1.json`,
+    JSON.stringify({ mode: 'delta', vhds: [`${relativePath}/child.vhd`] })
+  )
+
+  // --- lineage 2 (basePath2): healthy orphan + active child, must still merge normally ---
+  const orphan2 = await generateVhd(`${basePath2}/orphan2.vhd`)
+  await generateVhd(`${basePath2}/child2.vhd`, {
+    header: { parentUnicodeName: 'orphan2.vhd', parentUuid: orphan2.footer.uuid },
+  })
+  await handler.writeFile(
+    `${rootPath}/metadata2.json`,
+    JSON.stringify({ mode: 'delta', vhds: [`${relativePath2}/child2.vhd`] })
+  )
+
+  const warned = []
+  const logWarn = message => warned.push(message)
+
+  // Must resolve, not reject: before the fix, the corrupted ancestor's merge attempt threw
+  // uncaught and this call rejected instead.
+  await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true, merge: true, logInfo: () => {}, logWarn })
+
+  assert.ok(warned.includes('failed to merge disk chain'), 'broken chain merge failure should be logged, not thrown')
+
+  // lineage 1: merge failed, nothing touched — both disks remain as-is
+  const remaining1 = await handler.list(basePath)
+  assert.ok(remaining1.includes('ancestor.vhd'), 'corrupted ancestor left untouched after failed merge')
+  assert.ok(remaining1.includes('child.vhd'), 'active child left untouched after failed merge')
+
+  // lineage 2: unaffected sibling still merges normally in the same cleanVm call
+  const remaining2 = await handler.list(basePath2)
+  assert.ok(!remaining2.includes('orphan2.vhd'), 'healthy sibling lineage must still merge its own orphan')
+  assert.ok(remaining2.includes('child2.vhd'), 'healthy sibling merge target survives')
+
+  // both metadata files preserved: this VM's cleanup pipeline (cache regen, etc.) completed
+  const rootFiles = await handler.list(rootPath)
+  assert.ok(rootFiles.includes('metadata1.json'))
+  assert.ok(rootFiles.includes('metadata2.json'))
+})
+
 test('check all types of aliases, corrupted, missing or not', async () => {
   // valid alias pointing to an existing data file
   await handler.mkdir(`${basePath}/data`)
