@@ -312,4 +312,12 @@ export class RemoteVhdDiskChain extends RemoteDisk {
   async clean(opts = {}) {
     throw new Error(`Can't clean a disk chain`)
   }
+
+  /**
+   *
+   * @returns {RemoteVhdDisk|undefined}
+   */
+  getRootDisk() {
+    return this.#disks[0]
+  }
 }
