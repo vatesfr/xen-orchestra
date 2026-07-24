@@ -150,6 +150,7 @@ const DEFAULT_HELMET_CONFIG = {
   contentSecurityPolicy: {
     directives: {
       'default-src': ["'self'"],
+      'connect-src': ["'self'", 'https://api.github.com'],
       // Hashes of XO's own inline scripts. If either changes, update its hash.
       'script-src': [
         "'self'",
