@@ -163,12 +163,13 @@ An event that is _not_ declared in `useOverlay` can also be handled at open time
 
 ## Aborted overlays
 
-An overlay can be torn down without a user decision:
+An overlay is not tied to the lifecycle of the component that opened it: it stays open until the user makes a decision, or until it is aborted. An overlay can be aborted in three ways:
 
-- the component that created it (where `useOverlay` was called) is unmounted (its scope is disposed),
-- or `open()` is called again on the same `useOverlay` instance while the overlay is still open (the previous one is replaced).
+- `open()` is called again on the same `useOverlay` instance while the overlay is still open (the previous one is replaced),
+- the `abort()` function returned by `useOverlay` is called,
+- or the store's `abortAll()` is called (see below).
 
-In both cases the promise resolves with `OVERLAY_ABORT_EVENT` (a symbol) as its `event`, and no handler runs:
+In all cases the promise resolves with `OVERLAY_ABORT_EVENT` (a symbol) as its `event`, and no handler runs:
 
 ```ts
 const response = await open()
@@ -179,6 +180,10 @@ if (response.event === OVERLAY_ABORT_EVENT) {
 ```
 
 The `OVERLAY_ABORT_EVENT` case is always part of the response union, so exhaustive `event` checks will remind you it exists.
+
+Aborting an overlay whose decision is already being resolved is a no-op: the promise resolves with the actual response.
+
+An overlay can also be aborted while one of its handlers is still awaiting (for example, navigating away while a save is in progress). In that case the overlay closes right away with `OVERLAY_ABORT_EVENT`. The handler's async work keeps running — it cannot be cancelled — but the value it eventually returns is ignored, and the caller sees an abort.
 
 ## Busy and disabled triggers
 
@@ -283,3 +288,13 @@ Opened overlays live in a Pinia store (`useOverlayStore`). The app must render t
 ```
 
 Styling and animations are up to you. The store also exposes `isCurrent(key)` to style stacked overlays (e.g. dim the ones below the topmost), and each `overlay` carries its current `status`.
+
+Since overlays are not tied to the component that opened them, dismissing them on navigation is the app's decision. If that's the behavior you want, wire it once on the router:
+
+```ts
+router.isReady().then(() => {
+  router.afterEach(() => useOverlayStore().abortAll())
+})
+```
+
+Register the guard only once the router is ready: the initial navigation also triggers `afterEach`, which would abort any overlay opened while the app was starting up.

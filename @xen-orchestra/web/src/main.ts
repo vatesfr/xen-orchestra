@@ -1,5 +1,6 @@
 import { formValidationConfig } from '@/plugins/form-validation.config.ts'
 import i18n from '@core/i18n'
+import { useOverlayStore } from '@core/packages/overlay/use-overlay-store.ts'
 import { RegleVuePlugin } from '@regle/core'
 import type { XoUser } from '@vates/types'
 import { useFetch } from '@vueuse/core'
@@ -36,6 +37,10 @@ async function init() {
   const router = createRouter({
     history: createWebHashHistory(),
     routes,
+  })
+
+  router.isReady().then(() => {
+    router.afterEach(() => useOverlayStore().abortAll())
   })
 
   if (import.meta.hot) {

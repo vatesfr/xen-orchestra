@@ -62,6 +62,7 @@ export interface Overlay {
   props: Record<string, unknown>
   status: OverlayStatus
   lastTrigger: symbol | undefined
+  abort: () => void
 }
 
 export type ExtractEventName<TName> = TName extends `onVnode${string}`

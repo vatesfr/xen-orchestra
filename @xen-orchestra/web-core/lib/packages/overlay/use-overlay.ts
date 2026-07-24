@@ -13,7 +13,7 @@ import type {
 } from '@core/packages/overlay/types.ts'
 import { useOverlayStore } from '@core/packages/overlay/use-overlay-store.ts'
 import { reactiveComputed } from '@vueuse/core'
-import { defineAsyncComponent, markRaw, onScopeDispose, reactive, type AsyncComponentLoader, type Component } from 'vue'
+import { defineAsyncComponent, markRaw, nextTick, reactive, type AsyncComponentLoader, type Component } from 'vue'
 import type { ComponentProps } from 'vue-component-type-helpers'
 
 export function useOverlay<TComponent extends Component, const TEvents extends OverlayEvents<TComponent>>({
@@ -29,9 +29,11 @@ export function useOverlay<TComponent extends Component, const TEvents extends O
 
   const component = defineAsyncComponent(componentLoader)
 
-  let abortCurrent: (() => void) | undefined
+  let currentOverlay: Overlay | undefined
 
-  onScopeDispose(() => abortCurrent?.(), true)
+  function abort() {
+    currentOverlay?.abort()
+  }
 
   function open<TOpenEvents extends OpenEvents<TComponent, TEvents>>(
     ...args: MaybeOptionalArgs<
@@ -45,8 +47,7 @@ export function useOverlay<TComponent extends Component, const TEvents extends O
   ) {
     const { events: openEvents, props } = args[0] ?? {}
 
-    // Reopening while the previous overlay is still open replaces it
-    abortCurrent?.()
+    abort()
 
     return new Promise<ExtractOverlayResponse<TComponent, TEvents, TOpenEvents>>(resolve => {
       const definitionEvents = events as Record<string, true | OverlayEventHandler>
@@ -60,16 +61,26 @@ export function useOverlay<TComponent extends Component, const TEvents extends O
         props: {},
         status: 'idle',
         lastTrigger: undefined,
+        abort: () => settle({ event: OVERLAY_ABORT_EVENT, payload: undefined }),
       })
 
-      function settle(response: ExtractOverlayResponse<TComponent, TEvents, TOpenEvents>) {
+      currentOverlay = overlay
+
+      async function settle(response: ExtractOverlayResponse<TComponent, TEvents, TOpenEvents>) {
+        if (overlay.status === 'settled') {
+          return
+        }
+
         overlay.status = 'settled'
-        abortCurrent = undefined
+
+        // The `leave` transition freezes the DOM in its last painted state,
+        // so paint a non-busy frame before removing the overlay
+        await nextTick()
+
         resolve(response)
+
         overlayStore.unregister(overlay)
       }
-
-      abortCurrent = () => settle({ event: OVERLAY_ABORT_EVENT, payload: undefined })
 
       const handleEvent = createEventHandler({
         overlay,
@@ -95,5 +106,5 @@ export function useOverlay<TComponent extends Component, const TEvents extends O
     })
   }
 
-  return { open }
+  return { open, abort }
 }
