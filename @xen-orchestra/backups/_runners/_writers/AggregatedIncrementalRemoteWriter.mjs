@@ -50,15 +50,8 @@ export class AggregatedIncrementalRemoteWriter extends AbstractAggregatedRemoteW
     await Promise.all(this.writers.map(writer => writer.prepare({ isFull })))
   }
   // write only on the main writer
-  transfer({ includeNonNbdQcow2Fix, isVhdDifferencing, timestamp, deltaExport, vm, vmSnapshot }) {
-    return this.mainWriter.transfer({
-      includeNonNbdQcow2Fix,
-      isVhdDifferencing,
-      timestamp,
-      deltaExport,
-      vm,
-      vmSnapshot,
-    })
+  transfer(args) {
+    return this.mainWriter.transfer(args)
   }
 
   // remove the backups and remove the entries
