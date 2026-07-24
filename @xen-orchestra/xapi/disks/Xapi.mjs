@@ -194,7 +194,7 @@ export class XapiDiskSource extends DiskPassthrough {
       if (baseRef !== undefined) {
         const warningMessage = `can't compute delta ${vdiRef} from ${baseRef}, fall back to a full`
         // @ts-ignore Task.warning is a static alias set up dynamically, not visible to TS
-        Task.warning(warningMessage, { error })
+        Task.warning(warningMessage)
         warn(warningMessage, { error })
         this.#baseRef = undefined
         return this.#openExportStream()
