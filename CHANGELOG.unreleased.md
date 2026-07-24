@@ -98,8 +98,8 @@
 - xapi-explore-sr patch
 - xen-api minor
 - xo-server minor
-- xo-web minor
 - xo-server-openmetrics minor
 - xo-server-perf-alert patch
+- xo-web minor
 
 <!--packages-end-->
