@@ -91,9 +91,8 @@ const depth = inject(IK_TREE_LIST_DEPTH, ref(0))
   margin-bottom: 0.2rem;
 
   .toggle-wrapper {
-    width: 2rem;
+    width: 2.4rem;
     flex-shrink: 0;
-    margin-left: -0.4rem;
     display: flex;
     align-items: center;
   }
@@ -119,16 +118,12 @@ const depth = inject(IK_TREE_LIST_DEPTH, ref(0))
 
   .icon {
     font-size: 1.6rem;
-    width: 1.6rem;
-    flex-shrink: 0;
   }
-
   .addons-wrapper {
     display: flex;
     align-items: center;
     gap: 0.4rem;
     flex-shrink: 0;
-    min-width: 7.5rem;
   }
 
   .toggle {
