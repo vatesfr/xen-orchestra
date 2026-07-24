@@ -2,8 +2,15 @@
   <div class="menu-panel" :class="{ mobile: uiStore.isSmall }">
     <template v-if="uiStore.isSmall">
       <div v-if="menuVisible" class="menu-overlay">
-        <VtsPanel class="mobile-menu" closable close-icon="fa:angle-left" @close="closeMenu()">
+        <VtsPanel class="mobile-menu">
           <template #header>
+            <UiButtonIcon
+              accent="brand"
+              variant="tertiary"
+              size="medium"
+              icon="fa:angle-left"
+              @click="goPreviousPage()"
+            />
             <VtsIcon v-if="icon" size="large" :name="icon" />
             {{ title }}
           </template>
@@ -19,7 +26,7 @@
           <template #icon>
             <UiButtonIcon icon="fa:angle-left" size="medium" accent="brand" @click="openMenu()" />
           </template>
-          {{ currentPage }}
+          {{ currentPageTitle }}
         </UiHeadBar>
         <div class="page">
           <slot name="default" />
@@ -56,30 +63,32 @@ import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   title: string
+  currentPageTitle: string
   icon?: IconName
-  currentPage: string
-  modelValue?: boolean
+  isOpen?: boolean
 }>()
 
 const emit = defineEmits<{
   close: []
-  'update:modelValue': [value: boolean]
+  back: []
+  'update:isOpen': [value: boolean]
 }>()
 
 defineSlots<{
   default(): any
-  menu(): any
   header(): any
+  menu(): any
   title?(): any
 }>()
 
-const uiStore = useUiStore()
 const { t } = useI18n()
 
-const menuVisible = ref(props.modelValue ?? false)
+const uiStore = useUiStore()
+
+const menuVisible = ref(props.isOpen ?? false)
 
 watch(
-  () => props.modelValue,
+  () => props.isOpen,
   value => {
     menuVisible.value = value ?? false
   }
@@ -87,12 +96,18 @@ watch(
 
 function openMenu() {
   menuVisible.value = true
-  emit('update:modelValue', true)
+  emit('update:isOpen', true)
 }
 
 function closeMenu() {
   menuVisible.value = false
-  emit('update:modelValue', false)
+  emit('update:isOpen', false)
+}
+
+function goPreviousPage() {
+  menuVisible.value = false
+  emit('update:isOpen', false)
+  emit('back')
 }
 </script>
 
@@ -118,12 +133,13 @@ function closeMenu() {
       z-index: 1010;
       position: fixed;
       inset: 0;
-      background-color: var(--color-backdrop);
 
       .mobile-menu {
         height: 100%;
-        display: flex;
-        flex-direction: column;
+
+        .header {
+          width: 100%;
+        }
 
         :deep(.content) {
           padding: 1.6rem 0;

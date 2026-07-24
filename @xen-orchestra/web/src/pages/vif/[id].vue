@@ -5,15 +5,17 @@
   </VtsStateHero>
   <RouterView v-else v-slot="{ Component }">
     <MenuPanel
-      :current-page="activeChild?.title ?? ''"
+      :is-open="showMenu"
+      :current-page-title="activeChild?.title ?? ''"
       :title="t('vif-device', { device: vif.device })"
       icon="object:vif"
+      @back="back()"
     >
       <template #header>
         <VifHeader :vif />
       </template>
       <template #menu>
-        <MenuList v-if="!uiStore.isSmall" class="menu vif-menu">
+        <MenuList v-if="uiStore.isMediumOrLarge" class="menu">
           <MenuTrigger
             v-for="child in children"
             :key="child.name"
@@ -24,10 +26,11 @@
           </MenuTrigger>
         </MenuList>
         <ul v-else>
-          <!-- TODO: MenuItem must be small when component is updated remove forced style -->
+          <!-- TODO: MenuItem must be small. when component is updated remove forced style -->
           <li v-for="child in children" :key="child.name" class="list-menu-item">
-            <MenuItem @click="navigateToChild(child)">
+            <MenuItem class="menu-item" @click="navigateToChild(child)">
               {{ child.title }}
+              <VtsIcon name="fa:angle-right" size="medium" />
             </MenuItem>
           </li>
         </ul>
@@ -40,7 +43,7 @@
 <script lang="ts" setup>
 import VifHeader from '@/modules/vif/components/VifHeader.vue'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
-import type { IconName } from '@core/icons'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import MenuPanel from '@core/components/menu/menuPanel.vue'
@@ -48,7 +51,7 @@ import MenuTrigger from '@core/components/menu/MenuTrigger.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
 import { useUiStore } from '@core/stores/ui.store'
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -57,7 +60,7 @@ useDefaultTab('/vif/[id]', 'general')
 const route = useRoute<'/vif/[id]'>()
 const router = useRouter()
 const uiStore = useUiStore()
-
+const parent = ref()
 const { t } = useI18n()
 
 const { areVifsReady, useGetVifById } = useXoVifCollection()
@@ -70,12 +73,12 @@ const children = computed(() => [
   {
     name: '/vif/[id]/general',
     title: t('general'),
-    icon: 'fa:info-circle' as IconName,
+    icon: 'fa:info-circle',
   },
   {
     name: '/vif/[id]/traffic-rules',
     title: t('traffic-rules'),
-    icon: 'fa:traffic-light' as IconName,
+    icon: 'fa:info-circle',
   },
 ])
 
@@ -84,9 +87,13 @@ const activeChild = computed(() => {
   return children.value.find(child => child.name === route.name) ?? null
 })
 
-const navigateToChild = (child: (typeof children.value)[0]) => {
-  router.push({ name: child.name as '/vif/[id]/general' | '/vif/[id]/traffic-rules', params: { id: vif.value!.id } })
+const navigateToChild = (child: (typeof children.value)[number]) => {
+  router.push({ name: child.name as '/vif/[id]/general' | '/vif/[id]/traffic-rules', params: { id: route.params.id } })
   showMenu.value = false
+}
+
+function back() {
+  router.push(parent.value ? parent.value : '/')
 }
 
 watch(
@@ -97,6 +104,10 @@ watch(
     }
   }
 )
+
+onMounted(() => {
+  parent.value = history.state.back
+})
 </script>
 
 <style lang="postcss" scoped>
@@ -110,9 +121,18 @@ watch(
 .list-menu-item {
   border-bottom: 0.1rem solid var(--color-neutral-border);
   background-color: var(--color-neutral-background-primary);
+
+  &:first-child {
+    border-top: 0.1rem solid var(--color-neutral-border);
+  }
+
+  .menu-item {
+    color: var(--color-brand-txt-base);
+  }
 }
 
-.list-menu-item:first-child {
-  border-top: 0.1rem solid var(--color-neutral-border);
+/* TODO: MenuList must be float variant. when component is updated remove forced style  */
+:deep(.menu-list) {
+  border-radius: 0.8rem;
 }
 </style>
