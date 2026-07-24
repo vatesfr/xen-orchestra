@@ -328,10 +328,10 @@ export class RemoteDiskLineage {
     if (merge) {
       const limitedMergeChain = defaultMergeLimiter(this.#mergeChain.bind(this))
       const doMerge = async () => {
-        try {
-          await asyncEach(
-            toMerge,
-            async ({ chain, isResuming }) => {
+        await asyncEach(
+          toMerge,
+          async ({ chain, isResuming }) => {
+            try {
               const { finalDiskSize, mergeTargetPath } = await limitedMergeChain([...chain], isResuming)
               mergedSizes.set(mergeTargetPath, (mergedSizes.get(mergeTargetPath) ?? 0) + finalDiskSize)
               // parentPath alias deleted by parentDisk.rename(mergeTargetPath)
@@ -341,16 +341,14 @@ export class RemoteDiskLineage {
               for (const deletedPath of chain.slice(0, -1)) {
                 this.#unregisterDisk(deletedPath)
               }
-            },
-            // one chain failing (e.g. still immutability-locked) must not prevent other
-            // independent chains of this lineage from merging in the same clean() call
-            { concurrency: this.#opts.mergeConcurrency ?? DEFAULT_MERGE_CONCURRENCY, stopOnError: false }
-          )
-        } catch (error) {
-          for (const chainError of error.errors ?? [error]) {
-            this.#opts.logWarn('failed to merge disk chain', { error: chainError })
-          }
-        }
+            } catch (error) {
+              // A broken chain (e.g. corrupted parent) must not abort merging of other,
+              // unrelated chains, nor skip #cleanOrphanDataFiles/remove below.
+              this.#opts.logWarn('failed to merge disk chain', { chain, error })
+            }
+          },
+          { concurrency: this.#opts.mergeConcurrency ?? DEFAULT_MERGE_CONCURRENCY }
+        )
       }
       if (toMerge.length !== 0) {
         await Task.run({ properties: { name: 'merge' } }, doMerge)
