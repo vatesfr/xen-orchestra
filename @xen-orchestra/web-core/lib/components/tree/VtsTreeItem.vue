@@ -6,10 +6,10 @@
 </template>
 
 <script lang="ts" setup>
+import { useLeftSidebarStore } from '@core/packages/sidebar'
 import type { TreeNodeId } from '@core/packages/tree/types.ts'
-import { useSidebarStore } from '@core/stores/sidebar.store'
-import { useUiStore } from '@core/stores/ui.store'
-import { IK_TREE_ITEM_EXPANDED, IK_TREE_ITEM_HAS_CHILDREN } from '@core/utils/injection-keys.util'
+import { useUiStore } from '@core/stores/ui.store.ts'
+import { IK_TREE_ITEM_EXPANDED, IK_TREE_ITEM_HAS_CHILDREN } from '@core/utils/injection-keys.util.ts'
 import { onBeforeMount, onBeforeUpdate, provide, ref, toRef, useSlots } from 'vue'
 
 const props = defineProps<{
@@ -23,7 +23,7 @@ defineSlots<{
   sublist?(): any
 }>()
 
-const sidebar = useSidebarStore()
+const sidebar = useLeftSidebarStore()
 const uiStore = useUiStore()
 const hasChildrenState = ref(false)
 
