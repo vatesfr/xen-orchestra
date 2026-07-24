@@ -165,12 +165,12 @@ Actions are written using the exact string you pass in a privilege. A parent act
 
 > Alice needs to start and stop VMs in her test environment, but must not touch anything in production.
 
-Create a `QA Operator` role with these privileges:
+Create a `QA Operator` role with these privileges: POST /acl-privileges
 
 ```json
-{ "resource": "vm", "action": "read",     "effect": "allow", "selector": "tags:qa" }
-{ "resource": "vm", "action": "start",    "effect": "allow", "selector": "tags:qa" }
-{ "resource": "vm", "action": "shutdown", "effect": "allow", "selector": "tags:qa" }
+{ "resource": "vm", "action": "read",     "effect": "allow", "selector": "tags:qa" "roleId": "169020fd-4d5e-45fc-a26c-23153df00dcf"}
+{ "resource": "vm", "action": "start",    "effect": "allow", "selector": "tags:qa" "roleId": "169020fd-4d5e-45fc-a26c-23153df00dcf"}
+{ "resource": "vm", "action": "shutdown", "effect": "allow", "selector": "tags:qa" "roleId": "169020fd-4d5e-45fc-a26c-23153df00dcf"}
 ```
 
 Attach the role to Alice. She can now manage QA VMs only. Any attempt on a VM without the `qa` tag is blocked with a 403.
