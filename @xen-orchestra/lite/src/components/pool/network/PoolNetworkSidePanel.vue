@@ -1,26 +1,21 @@
 <template>
   <VtsSidePanel :has-selection="!!network" @close="emit('close')">
     <template v-if="network" #actions>
-      <UiButton
-        v-tooltip="t('coming-soon!')"
-        disabled
-        size="medium"
-        variant="tertiary"
-        accent="brand"
-        left-icon="action:edit"
-      >
-        {{ t('action:edit') }}
-      </UiButton>
-      <UiButton
-        v-tooltip="t('coming-soon!')"
-        disabled
-        size="medium"
-        variant="tertiary"
-        accent="danger"
-        left-icon="action:delete"
-      >
-        {{ t('action:delete') }}
-      </UiButton>
+      <MenuList placement="bottom-end">
+        <template #trigger="{ open, isOpen }">
+          <UiButtonIcon
+            v-tooltip="copied && t('copied')"
+            accent="brand"
+            size="small"
+            :icon="copied ? 'fa:check-circle' : 'action:more-actions'"
+            :selected="isOpen"
+            @click="open($event)"
+          />
+        </template>
+        <MenuItem icon="action:copy" :disabled="!isClipboardSupported" @click="copy()">
+          {{ t('action:copy-info-json') }}
+        </MenuItem>
+      </MenuList>
     </template>
     <template v-if="network" #default>
       <UiCard class="card-container">
@@ -100,16 +95,19 @@
 
 <script setup lang="ts">
 import PifRow from '@/components/pif/PifRow.vue'
-import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
-import { usePifStore } from '@/stores/xen-api/pif.store'
+import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types.ts'
+import { usePifStore } from '@/stores/xen-api/pif.store.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import MenuItem from '@core/components/menu/MenuItem.vue'
+import MenuList from '@core/components/menu/MenuList.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { useClipboard } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -142,6 +140,10 @@ const networkDefaultLockingMode = computed(() =>
 )
 
 const pifsCount = computed(() => pifs.value.length)
+
+const networkAsJson = computed(() => JSON.stringify(network))
+
+const { copy, copied, isSupported: isClipboardSupported } = useClipboard({ source: networkAsJson, legacy: true })
 </script>
 
 <style scoped lang="postcss">

@@ -69,13 +69,15 @@ const open = (event: MouseEvent) => {
 
   isOpen.value = true
 
+  const trigger = event.currentTarget as HTMLElement
+
   nextTick(() => {
     clearClickOutsideEvent = onClickOutside(menu, () => (isOpen.value = false), {
-      ignore: [event.currentTarget as HTMLElement],
+      ignore: () => [trigger, '.menu-list'],
       controls: false,
     })
 
-    placementJs(event.currentTarget as HTMLElement, unrefElement(menu), {
+    placementJs(trigger, unrefElement(menu), {
       placement: props.placement ?? (isParentHorizontal.value ? 'bottom-start' : 'right-start'),
     })
   })

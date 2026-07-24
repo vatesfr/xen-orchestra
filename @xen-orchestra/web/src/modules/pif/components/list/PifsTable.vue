@@ -6,11 +6,8 @@
         <slot name="title-actions" />
       </template>
     </UiTitle>
+    <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
     <div class="container">
-      <div class="table-actions">
-        <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
-      </div>
-
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
@@ -30,7 +27,7 @@
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
-import { useXoPifCollection, type FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import { type FrontXoPif, useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { getPifStatus } from '@/modules/pif/utils/xo-pif.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'

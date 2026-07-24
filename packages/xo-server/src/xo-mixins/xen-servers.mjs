@@ -6,6 +6,8 @@ import { BaseError } from 'make-error'
 import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { decorateClass } from '@vates/decorate-with'
+import { deduped } from '@vates/disposable/deduped.js'
+import { synchronized } from 'decorator-synchronized'
 import { defer } from 'golike-defer'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { fibonacci } from 'iterable-backoff'
@@ -13,11 +15,16 @@ import { networkInterfaces } from 'os'
 import { noSuchObject, incorrectState } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
 import { pDelay, ignoreErrors } from 'promise-toolbox'
+import { Task } from '@vates/task'
+import Disposable from 'promise-toolbox/Disposable'
 
 import * as XenStore from '../_XenStore.mjs'
 import Xapi from '../xapi/index.mjs'
+import { acquireRpuGuard } from '../_rpuGuard.mjs'
+import { getRpuTracesConfig, openRpuTrace } from '../_rpuObservability.mjs'
 import xapiObjectToXo from '../xapi-object-to-xo.mjs'
 import XapiStats from '../xapi-stats.mjs'
+import { autoReconnect } from '../_xenServerAutoReconnect.mjs'
 import { camelToSnakeCase, forEach, isEmpty, popProperty } from '../utils.mjs'
 import { Servers } from '../models/server.mjs'
 
@@ -33,6 +40,9 @@ class PoolAlreadyConnected extends BaseError {
 }
 
 const log = createLogger('xo:xo-mixins:xen-servers')
+const MAX_TIMER_DELAY = 2 ** 31 - 1
+const DEFAULT_LOAD_BALANCER_RE_ENABLE_DELAY = 30 * 60 * 1000 // 30 minutes, same as config.toml
+const synchronizedLoadBalancerOperation = synchronized()(operation => operation())
 
 // Server is disconnected:
 // - _xapis[server.id] is undefined
@@ -46,6 +56,8 @@ const log = createLogger('xo:xo-mixins:xen-servers')
 export default class XenServers {
   constructor(app, { safeMode }) {
     this._objectConflicts = { __proto__: null } // TODO: clean when a server is disconnected.
+    this._connectingXenServers = new Set()
+    this._reconnectingXenServers = new Set()
     this._serverIdsByPool = { __proto__: null }
     this._stats = new XapiStats()
     this._xapis = { __proto__: null }
@@ -220,6 +232,12 @@ export default class XenServers {
     if (hasChanged) {
       await this._servers.update(server)
     }
+
+    // an enabled server must not stay disconnected without retries, e.g. after
+    // the user fixed its credentials or address
+    if (server.enabled && !this._connectingXenServers.has(id) && this._getXenServerStatus(id) === 'disconnected') {
+      this._autoReconnectXenServer(id)
+    }
   }
 
   async getXenServerWithCredentials(id) {
@@ -355,18 +373,63 @@ export default class XenServers {
     })
   }
 
-  async connectXenServer(id) {
+  // starts a reconnection loop for a server left `enabled` but without a
+  // Xapi instance, a state nothing else retries (see _xenServerAutoReconnect.mjs)
+  _autoReconnectXenServer(id) {
+    const reconnecting = this._reconnectingXenServers
+    if (reconnecting.has(id)) {
+      return
+    }
+    reconnecting.add(id)
+
+    autoReconnect(id, {
+      // `enable: false`: the loop must never overwrite a concurrent disable
+      connect: id => this.connectXenServer(id, { enable: false }),
+      delay: pDelay,
+      getServer: id => this.getXenServer(id),
+      getStatus: id => this._getXenServerStatus(id),
+      isFatal: error => error instanceof PoolAlreadyConnected,
+      isGone: error => noSuchObject.is(error),
+      log,
+    })
+      .then(outcome => {
+        log.info('auto-reconnect stopped', { serverId: id, outcome })
+      })
+      .catch(error => {
+        log.error('auto-reconnect crashed', { serverId: id, error })
+      })
+      .finally(() => {
+        reconnecting.delete(id)
+      })
+  }
+
+  async connectXenServer(id, { enable = true } = {}) {
     const server = await this.getXenServerWithCredentials(id)
     const serverStatus = this._getXenServerStatus(id)
-    if (serverStatus !== 'disconnected') {
+    // `_connectingXenServers` also guards against a concurrent connection
+    // attempt for the same server, which would overwrite `_xapis[id]` and leak
+    // a live connection
+    const connecting = this._connectingXenServers.has(id)
+    if (serverStatus !== 'disconnected' || connecting) {
       throw incorrectState({
-        actual: serverStatus,
+        actual: connecting ? 'connecting' : serverStatus,
         expected: 'disconnected',
         object: server.id,
         property: 'status',
       })
     }
-    await this.updateXenServer(id, { enabled: true })
+    this._connectingXenServers.add(id)
+    try {
+      await this._connectXenServer(id, server, { enable })
+    } finally {
+      this._connectingXenServers.delete(id)
+    }
+  }
+
+  async _connectXenServer(id, server, { enable }) {
+    if (enable) {
+      await this.updateXenServer(id, { enabled: true })
+    }
 
     const { config } = this._app
 
@@ -569,12 +632,27 @@ export default class XenServers {
         delete this._xapis[server.id]
         delete this._serverIdsByPool[poolId]
         this._app.emit('server:disconnected', { server, xapi })
+
+        // deliberate disconnections set `enabled` to false beforehand, in
+        // which case the loop stops on its own
+        this._autoReconnectXenServer(server.id)
       })
       this._app.emit('server:connected', { server, xapi })
     } catch (error) {
       delete this._xapis[server.id]
       xapi.disconnect()::ignoreErrors()
-      this.updateXenServer(id, { error })::ignoreErrors()
+
+      // avoid a database write per auto-reconnect attempt when the error did not change
+      const previousError = server.error
+      if (previousError?.code !== error?.code || previousError?.message !== error?.message) {
+        this.updateXenServer(id, { error })::ignoreErrors()
+      }
+
+      // permanent errors: retrying is pointless, do not start the loop
+      if (!(error instanceof PoolAlreadyConnected) && error?.code !== 'SESSION_AUTHENTICATION_FAILED') {
+        this._autoReconnectXenServer(id)
+      }
+
       throw error
     }
   }
@@ -746,12 +824,90 @@ export default class XenServers {
       ::ignoreErrors()
   }
 
+  _getRpuLoadBalancerSuspension() {
+    const app = this._app
+    const state = { shouldReEnable: false }
+    return new Disposable(
+      () =>
+        state.shouldReEnable &&
+        synchronizedLoadBalancerOperation(async () => {
+          const plugin = await app.getOptionalPlugin('load-balancer')
+          if (plugin?.loaded) {
+            return
+          }
+          if (state.autoload && plugin?.autoload === false) {
+            throw new Error(
+              'not re-enabling the load balancer plugin because its autoload has been disabled during the suspension'
+            )
+          }
+          await app.loadPlugin('load-balancer')
+        }),
+      state
+    )
+  }
+
+  _releaseRpuLoadBalancer(suspension, pool) {
+    const { reEnableDelay, shouldReEnable } = suspension.value
+    if (!shouldReEnable) {
+      return suspension.dispose()
+    }
+
+    const poolId = pool.id
+    const task = this._app.tasks.create({
+      name: 'Waiting before re-enabling the load balancer',
+      objectId: poolId,
+      poolId,
+      poolName: pool.name_label,
+    })
+    task
+      .run(async () => {
+        await pDelay(reEnableDelay).unref()
+        await suspension.dispose()
+      })
+      .catch(error => {
+        log.warn('failed to re-enable the load balancer after a rolling pool update', { error, poolId })
+      })
+  }
+
+  async _suspendRpuLoadBalancer($defer, pool) {
+    const app = this._app
+    const suspension = this._getRpuLoadBalancerSuspension()
+    const state = suspension.value
+    $defer(() => this._releaseRpuLoadBalancer(suspension, pool))
+
+    await synchronizedLoadBalancerOperation(async () => {
+      const plugin = await app.getOptionalPlugin('load-balancer')
+      if (plugin?.loaded) {
+        let reEnableDelay
+        try {
+          reEnableDelay = app.config.getDuration('loadBalancerReEnableDelay')
+          if (!Number.isSafeInteger(reEnableDelay) || reEnableDelay < 0 || reEnableDelay > MAX_TIMER_DELAY) {
+            throw new RangeError(
+              `loadBalancerReEnableDelay must be an integer between 0 and ${MAX_TIMER_DELAY} milliseconds`
+            )
+          }
+        } catch (error) {
+          log.warn(`invalid loadBalancerReEnableDelay, using default (${DEFAULT_LOAD_BALANCER_RE_ENABLE_DELAY} ms)`, {
+            error,
+          })
+          reEnableDelay = DEFAULT_LOAD_BALANCER_RE_ENABLE_DELAY
+        }
+        state.autoload = plugin.autoload
+        state.reEnableDelay = reEnableDelay
+        state.shouldReEnable = true
+        await app.unloadPlugin('load-balancer')
+      }
+    })
+  }
+
   async rollingPoolUpdate($defer, pool, { rebootVm, parentTask } = {}) {
     const app = this._app
     await app.checkFeatureAuthorization('ROLLING_POOL_UPDATE')
     const [schedules, jobs] = await Promise.all([app.getAllSchedules(), app.getAllJobs('backup')])
 
     const poolId = pool.id
+
+    $defer(acquireRpuGuard(poolId, 'rollingPoolUpdate'))
 
     const jobsOfthePool = []
     jobs.forEach(({ id: jobId, vms }) => {
@@ -788,10 +944,7 @@ export default class XenServers {
     )
 
     // Disable load balancer
-    if ((await app.getOptionalPlugin('load-balancer'))?.loaded) {
-      await app.unloadPlugin('load-balancer')
-      $defer(() => app.loadPlugin('load-balancer'))
-    }
+    await this._suspendRpuLoadBalancer($defer, pool)
 
     const xapi = this.getXapi(pool)
     if (await xapi.getField('pool', pool._xapiRef, 'wlb_enabled')) {
@@ -799,28 +952,38 @@ export default class XenServers {
       $defer(() => xapi.call('pool.set_wlb_enabled', pool._xapiRef, true))
     }
 
-    const hasParentTask = parentTask !== undefined
-    let task = parentTask
-    const fn = async () =>
+    const trace = openRpuTrace({ dir: getRpuTracesConfig(app).dir, kind: 'rpu', poolId })
+    $defer(() => trace?.stop())
+    if (trace !== undefined) {
+      log.info(`rolling pool update of pool ${poolId}: trace in ${trace.traceFile}`)
+    }
+
+    const properties = {
+      name: 'Rolling pool update',
+      objectId: poolId,
+      poolId,
+      poolName: pool.name_label,
+      progress: 0,
+      type: 'pool.rolling_update',
+      ...(trace !== undefined && { traceFile: trace.traceFile }),
+    }
+    const task = parentTask === undefined ? app.tasks.create(properties) : new Task({ properties })
+    trace?.attach(task)
+    await task.run(async () =>
       this.getXapi(pool).rollingPoolUpdate(task, {
         xsCredentials: app.apiContext.user.preferences.xsCredentials,
         rebootVm,
       })
-
-    if (!hasParentTask) {
-      task = app.tasks.create({
-        name: `Rolling pool update`,
-        poolId,
-        poolName: pool.name_label,
-        progress: 0,
-      })
-      await task.run(fn)
-    } else {
-      await fn()
-    }
+    )
   }
 }
 
 decorateClass(XenServers, {
+  _getRpuLoadBalancerSuspension: [
+    deduped,
+    function () {
+      return [this]
+    },
+  ],
   rollingPoolUpdate: defer,
 })

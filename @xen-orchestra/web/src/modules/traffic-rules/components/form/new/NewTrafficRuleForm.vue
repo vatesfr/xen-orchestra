@@ -31,6 +31,9 @@
             <span class="option-content">
               <VtsIcon v-if="option.properties.icon" :name="option.properties.icon" size="medium" />
               {{ option.properties.label }}
+              <span v-if="option.properties.disabled" class="em-dash-prefix typo-body-regular-small">{{
+                t('no-vif-detected')
+              }}</span>
             </span>
           </VtsOption>
         </template>

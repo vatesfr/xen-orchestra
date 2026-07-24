@@ -1,6 +1,11 @@
-<!-- v5 -->
+<!-- v9 -->
 <template>
-  <div :class="toVariants({ accent, disabled })" class="ui-input" @click.self="focus()">
+  <div :class="toVariants({ accent, disabled, selected })" class="ui-input" @click.self="focus()">
+    <span v-if="slots.prefix || prefix" class="prefix">
+      <slot name="prefix">
+        {{ prefix }}
+      </slot>
+    </span>
     <span v-if="readonly" class="typo-body-regular input text-ellipsis">
       <input ref="inputRef" class="readonly-input" readonly type="text" />
       {{ modelValue }}
@@ -19,14 +24,19 @@
     />
     <UiButtonIcon
       v-if="!disabled && modelValue && clearable"
-      icon="fa:xmark"
-      accent="brand"
       size="small"
+      icon="action:close-cancel-clear"
+      accent="brand"
       @click="clear()"
     />
     <slot v-if="slots['right-icon'] || rightIcon" name="right-icon">
       <VtsIcon :name="rightIcon" size="medium" class="right-icon" />
     </slot>
+    <span v-if="slots.suffix || suffix" class="suffix">
+      <slot name="suffix">
+        {{ suffix }}
+      </slot>
+    </span>
   </div>
 </template>
 
@@ -58,12 +68,14 @@ const {
   id?: string
   required?: boolean
   disabled?: boolean
+  selected?: boolean
   readonly?: boolean
   detached?: boolean
   type?: InputType
-  icon?: IconName
   rightIcon?: IconName
   clearable?: boolean
+  prefix?: string
+  suffix?: string
 }>()
 
 const emit = defineEmits<{
@@ -74,6 +86,8 @@ const modelValue = defineModel<string | number | undefined>({ required: true })
 
 const slots = defineSlots<{
   'right-icon'?(): any
+  prefix?(): any
+  suffix?(): any
 }>()
 
 function handleInput(event: Event) {
@@ -135,6 +149,31 @@ defineExpose({ focus })
     color: var(--color-brand-txt-base);
   }
 
+  .prefix,
+  .suffix {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: stretch;
+    background-color: var(--color-neutral-background-secondary);
+    padding: 0.8rem 1.6rem;
+    color: var(--color-neutral-txt-secondary);
+  }
+
+  .prefix {
+    border-end-start-radius: 0.4rem;
+    border-start-start-radius: 0.4rem;
+    border-inline-end: 0.1rem solid var(--color-neutral-border);
+    margin-inline-start: -1.6rem;
+  }
+
+  .suffix {
+    border-end-end-radius: 0.4rem;
+    border-start-end-radius: 0.4rem;
+    border-inline-start: 0.1rem solid var(--color-neutral-border);
+    margin-inline-end: -1.6rem;
+  }
+
   &.disabled .right-icon {
     color: var(--color-neutral-txt-secondary);
   }
@@ -163,11 +202,8 @@ defineExpose({ focus })
   /* VARIANT */
 
   &.accent--brand {
+    --selected-color: var(--color-brand-item-base);
     border-color: var(--color-neutral-border);
-
-    &:focus-within {
-      border-color: var(--color-brand-item-base);
-    }
 
     &:hover {
       border-color: var(--color-brand-item-hover);
@@ -184,6 +220,7 @@ defineExpose({ focus })
   }
 
   &.accent--warning {
+    --selected-color: var(--color-warning-item-base);
     border-color: var(--color-warning-item-base);
 
     &:hover {
@@ -201,6 +238,7 @@ defineExpose({ focus })
   }
 
   &.accent--danger {
+    --selected-color: var(--color-danger-item-base);
     border-color: var(--color-danger-item-base);
 
     &:hover {
@@ -215,6 +253,12 @@ defineExpose({ focus })
       border-color: var(--color-neutral-border);
       background-color: var(--color-neutral-background-disabled);
     }
+  }
+
+  &:focus-within,
+  &.selected {
+    border-color: var(--selected-color);
+    border-width: 0.2rem;
   }
 }
 </style>

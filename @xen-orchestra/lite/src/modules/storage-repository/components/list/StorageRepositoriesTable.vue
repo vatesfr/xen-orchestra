@@ -3,10 +3,8 @@
     <UiTitle>
       {{ t('storage-repositories') }}
     </UiTitle>
+    <UiQuerySearchBar @search="value => (searchQuery = value)" />
     <div class="container">
-      <div class="table-actions">
-        <UiQuerySearchBar @search="value => (searchQuery = value)" />
-      </div>
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>

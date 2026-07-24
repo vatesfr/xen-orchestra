@@ -5,10 +5,6 @@ export class AbstractIncrementalWriter extends AbstractWriter {
     throw new Error('Not implemented')
   }
 
-  updateUuidAndChain() {
-    throw new Error('Not implemented')
-  }
-
   cleanup() {
     throw new Error('Not implemented')
   }

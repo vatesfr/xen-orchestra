@@ -3,7 +3,7 @@
     v-tooltip="!areAllSelectedVmsHalted && t(isSingleAction ? 'vm-is-running' : 'selected-vms-in-execution')"
     :busy="areSomeSelectedVmsCloning"
     :disabled="isDisabled"
-    icon="fa:copy"
+    icon="action:duplicate"
     @click="handleCopy"
   >
     {{ t('action:copy') }}

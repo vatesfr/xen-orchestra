@@ -9,6 +9,7 @@ import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
+import { pRetry } from 'promise-toolbox'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 
 import ensureArray from '../../_ensureArray.mjs'
@@ -52,6 +53,9 @@ const log = createLogger('xo:xapi')
 const _isXcp = host => host.software_version.product_brand === 'XCP-ng'
 const _isXs = host => host.software_version.product_brand === 'XenServer'
 const _isXsWithCdnUpdates = host => _isXs(host) && semver.gt(host.software_version.product_version, '8.3.0')
+
+export const isUpdaterBusyError = error =>
+  error?.code === '-1' && typeof error.params?.[0] === 'string' && /plugin is busy/i.test(error.params[0])
 
 const LISTING_DEBOUNCE_TIME_MS = 60000
 
@@ -163,7 +167,20 @@ const methods = {
   // list all yum updates available for a XCP-ng host
   // (hostObject) → { uuid: patchObject }
   async _listXcpUpdates(host) {
-    const result = JSON.parse(await this.call('host.call_plugin', host.$ref, 'updater.py', 'check_update', {}))
+    const result = JSON.parse(
+      await pRetry(() => this.call('host.call_plugin', host.$ref, 'updater.py', 'check_update', {}), {
+        delay: 2000,
+        tries: 10,
+        when: isUpdaterBusyError,
+        onRetry() {
+          log.warn('updater plugin busy, retrying check_update', {
+            attempt: this.attemptNumber,
+            delay: this.delay,
+            host: host.uuid,
+          })
+        },
+      })
+    )
 
     if (result.error != null) {
       throw new Error(result.error)
@@ -424,7 +441,9 @@ const methods = {
         throw new Error(result.stderr)
       }
 
-      log.debug(result.stdout)
+      // `stdout` may be undefined depending on the XCP-ng version, always log
+      // a meaningful end-of-install line (this step can last >15 minutes)
+      log.debug(`patches installed on host ${host.uuid}`, { stdout: result.stdout })
       await host.update_other_config('rpm_patch_installation_time', String(Date.now() / 1000))
     }
   },
@@ -678,26 +697,31 @@ const methods = {
 
   async _updateLinstorPackages() {
     const hosts = Object.values(this.objects.indexes.type.host)
-    const nSteps = 4
-    const nOperations = nSteps * hosts.length
+    const steps = [
+      ['updater.py', 'update', { packages: 'xcp-ng-xapi-plugins' }],
+      ['updater.py', 'update', { packages: 'xcp-ng-linstor' }],
+      ['updater.py', 'update', { packages: 'linstor-satellite' }],
+      ['updater.py', 'update', { packages: 'linstor-controller' }],
+      ['service.py', 'stop_service', { service: 'linstor-controller' }],
+      ['service.py', 'restart_service', { service: 'linstor-satellite' }],
+    ]
+    const nOperations = steps.length * hosts.length
     let operationDone = 0
 
     const callPluginOnAllHost = async (plugin, fn, args) => {
       for (const host of hosts) {
         await this.call('host.call_plugin', host.$ref, plugin, fn, args)
         operationDone++
-        task.set('progress', (operationDone / nOperations) * 100)
+        task.set('progress', Math.round((operationDone / nOperations) * 100))
       }
     }
 
     const task = new Task({ properties: { name: 'Updating LINSTOR packages', progress: 0 } })
     return task.run(async () => {
-      await callPluginOnAllHost('updater.py', 'update', { packages: 'xcp-ng-xapi-plugins' })
-      await callPluginOnAllHost('updater.py', 'update', { packages: 'xcp-ng-linstor' })
-      await callPluginOnAllHost('updater.py', 'update', { packages: 'linstor-satellite' })
-      await callPluginOnAllHost('updater.py', 'update', { packages: 'linstor-controller' })
-      await callPluginOnAllHost('service.py', 'stop_service', { service: 'linstor-controller' })
-      await callPluginOnAllHost('service.py', 'restart_service', { service: 'linstor-satellite' })
+      for (const [plugin, fn, args] of steps) {
+        await callPluginOnAllHost(plugin, fn, args)
+      }
+      // not redundant: ends the task at 100 even when there is no host to iterate on
       task.set('progress', 100)
     })
   },

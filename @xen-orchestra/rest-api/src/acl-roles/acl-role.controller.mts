@@ -18,6 +18,7 @@ import {
   SuccessResponse,
   Tags,
 } from 'tsoa'
+import { createLogger } from '@xen-orchestra/log'
 import { provide } from 'inversify-binding-decorators'
 import { type Request as ExRequest, json } from 'express'
 import type { XoAclRole, XoGroup, XoUser } from '@vates/types'
@@ -46,6 +47,11 @@ import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { entityId } from '../open-api/oa-examples/common.oa-example.mjs'
 import { inject } from 'inversify'
 import { RestApi } from '../rest-api/rest-api.mjs'
+import { UserService } from '../users/user.service.mjs'
+import { partialUsers, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
+import { groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
+
+const log = createLogger('xo:rest-api:acl-role-controller')
 
 @Route('acl-roles')
 @Security('*')
@@ -54,8 +60,11 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 @Tags('rbacs')
 @provide(AclRoleController)
 export class AclRoleController extends XoController<XoAclRole> {
-  constructor(@inject(RestApi) restApi: RestApi) {
+  #userService: UserService
+
+  constructor(@inject(RestApi) restApi: RestApi, @inject(UserService) userService: UserService) {
     super('acl-role', restApi)
+    this.#userService = userService
   }
 
   getAllCollectionObjects(): Promise<XoAclRole[]> {
@@ -421,5 +430,97 @@ export class AclRoleController extends XoController<XoAclRole> {
     const user = await this.restApi.xoApp.getUser(userId as XoUser['id'])
 
     await this.restApi.xoApp.deleteAclV2UserRole(user.id, roleId)
+  }
+
+  /**
+   * Returns all users that match the following privilege:
+   * - resource: user, action: read
+   *
+   * @example id "426622cc-b2db-4545-a2f0-6ec47b3a6450"
+   * @example fields "permission,name,id"
+   * @example filter "permission:none"
+   * @example limit 42
+   */
+  @Example(userIds)
+  @Example(partialUsers)
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/users')
+  @Security('*', ['acl'])
+  @Tags('users')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getAclRoleUsers(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<XoUser>>> {
+    const role = await this.getObject(id as XoAclRole['id'])
+    const users =
+      'isTemplate' in role
+        ? []
+        : await Promise.all(
+          role.userIds.map(userId =>
+            this.#userService.getUser(userId).catch(err => {
+              log.warn(`cannot resolve user: ${userId}`, err)
+              // if the user is not resolvable (E.g. not properly removed) do not hide it (as even if it doesn't exist, it is attached, so need to be cleaned)
+              return { id: userId } as XoUser
+            })
+          )
+        )
+
+    return this.sendObjects(limitAndFilterArray(users, { filter }), req, {
+      path: 'users',
+      limit,
+      privilege: { resource: 'user', action: 'read' },
+    })
+  }
+
+  /**
+   * Returns all groups that match the following privilege:
+   * - resource: group, action: read
+   *
+   * @example id "426622cc-b2db-4545-a2f0-6ec47b3a6450"
+   * @example fields "name,id,users"
+   * @example filter "users:length:>0"
+   * @example limit 42
+   */
+  @Example(groupIds)
+  @Example(partialGroups)
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/groups')
+  @Security('*', ['acl'])
+  @Tags('groups')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getAclRoleGroups(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<XoGroup>>> {
+    const role = await this.getObject(id as XoAclRole['id'])
+    const groups =
+      'isTemplate' in role
+        ? []
+        : await Promise.all(
+          role.groupIds.map(groupId =>
+            this.restApi.xoApp.getGroup(groupId).catch(err => {
+              log.warn(`cannot resolve group: ${groupId}`, err)
+              // if the group is not resolvable (E.g. not properly removed) do not hide it (as even if it doesn't exist, it is attached, so need to be cleaned)
+              return { id: groupId } as XoGroup
+            })
+          )
+        )
+
+    return this.sendObjects(limitAndFilterArray(groups, { filter }), req, {
+      path: 'groups',
+      limit,
+      privilege: { resource: 'group', action: 'read' },
+    })
   }
 }

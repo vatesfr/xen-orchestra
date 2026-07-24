@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="info" @confirm="emit('confirm', selectedHost)">
+  <VtsModal accent="info" dismissible @confirm="emit('confirm', selectedHost)">
     <template #title>
       {{ t('action:migrate-n-vms', { n: count }) }}
     </template>

@@ -54,11 +54,6 @@ export class AggregatedIncrementalRemoteWriter extends AbstractAggregatedRemoteW
     return this.mainWriter.transfer({ isVhdDifferencing, timestamp, deltaExport, vm, vmSnapshot })
   }
 
-  // chain only on the main writer
-  updateUuidAndChain({ isVhdDifferencing, vdis }) {
-    return this.mainWriter.updateUuidAndChain({ isVhdDifferencing, vdis })
-  }
-
   // remove the backups and remove the entries
   async cleanup() {
     if (!this.props.settings.deleteFirst) {

@@ -10,6 +10,10 @@ import { Groups } from '../models/group.mjs'
 import { Users } from '../models/user.mjs'
 import { forEach, isEmpty, lightSet } from '../utils.mjs'
 
+/**
+ * @typedef {import('@vates/types').XoApp} XoApp
+ */
+
 // ===================================================================
 
 const log = createLogger('xo:xo-mixins:subjects')
@@ -21,6 +25,7 @@ const removeFromArraySet = (set, value) => set && filter(set, current => current
 
 export default class {
   constructor(app) {
+    /** @type {XoApp} */
     this._app = app
 
     app.hooks.on('clean', () => Promise.all([this._groups.rebuildIndexes(), this._users.rebuildIndexes()]))
@@ -69,7 +74,8 @@ export default class {
           .catch(() => ({}))
 
         await this.createUser({ email, password, permission: 'admin' })
-        log.info(`Default user created: ${email} with password ${password}`)
+        log.info(`Default user created: ${email}`)
+
         ignoreErrors.call(XenStore.rm(key))
       }
     })
@@ -92,9 +98,7 @@ export default class {
   async deleteUser(id) {
     const user = await this.getUser(id)
 
-    // getAclV2UserRoles returns both user roles and group roles
-    // we filter to keep only user roles
-    const aclV2Roles = (await this._app.getAclV2UserRoles(id)).filter(role => role.userId !== undefined)
+    const aclV2Roles = await this._app.getAclV2UserRoles(id, { bypassAuthorization: true, fromGroup: false })
 
     await this._users.remove(id)
 
@@ -115,7 +119,9 @@ export default class {
       })
     })
     // Detache ACL V2 roles for this user.
-    await Promise.all(aclV2Roles.map(({ roleId }) => this._app.deleteAclV2UserRole(id, roleId)))
+    await Promise.all(
+      aclV2Roles.map(({ id: roleId }) => this._app.deleteAclV2UserRole(id, roleId, { bypassAuthorization: true }))
+    )
 
     // Remove the user from all its groups.
     forEach(user.groups, groupId => {
@@ -382,7 +388,7 @@ export default class {
   async deleteGroup(id) {
     const group = await this.getGroup(id)
 
-    const aclV2Roles = await this._app.getAclV2GroupRoles(id)
+    const aclV2Roles = await this._app.getAclV2GroupRoles(id, { bypassAuthorization: true })
     await this._groups.remove(id)
 
     // Remove ACLs for this group.
@@ -392,7 +398,9 @@ export default class {
       })
     })
     // Detache ACL V2 roles for this group.
-    await Promise.all(aclV2Roles.map(({ roleId }) => this._app.deleteAclV2GroupRole(id, roleId)))
+    await Promise.all(
+      aclV2Roles.map(({ id: roleId }) => this._app.deleteAclV2GroupRole(id, roleId, { bypassAuthorization: true }))
+    )
 
     // Remove the group from all its users.
     forEach(group.users, userId => {
@@ -421,17 +429,28 @@ export default class {
     }
   }
 
+  async #normalizeGroup(group) {
+    const roleIds = (await this._app.hasFeatureAuthorization('RBAC'))
+      ? await this._app.getAclV2GroupRoles(group.id, { bypassAuthorization: true })
+      : []
+    group.aclRoleIds = roleIds.map(role => role.id)
+
+    return group
+  }
+
   async getGroup(id) {
     const group = await this._groups.first(id)
     if (group === undefined) {
       throw noSuchObject(id, 'group')
     }
 
-    return group
+    return this.#normalizeGroup(group)
   }
 
   async getAllGroups() {
-    return this._groups.get()
+    const groups = await this._groups.get()
+
+    return Promise.all(groups.map(group => this.#normalizeGroup(group)))
   }
 
   async addUserToGroup(userId, groupId) {

@@ -2,51 +2,30 @@
   <div class="pool-networks-table">
     <UiTitle>
       {{ t('networks') }}
-      <template #action>
-        <UiDropdownButton v-tooltip="t('coming-soon!')" disabled>
-          {{ t('new') }}
-        </UiDropdownButton>
-      </template>
     </UiTitle>
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
         <UiTableActions :title="t('table-actions')">
           <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            left-icon="fa:edit"
+            v-tooltip="copied && t('copied')"
+            :disabled="!isClipboardSupported"
+            :left-icon="copied ? 'fa:check-circle' : 'action:copy'"
             variant="tertiary"
             accent="brand"
             size="medium"
-          >
-            {{ t('action:edit') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            left-icon="fa:copy"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
+            @click="selectedNetworkIds.length > 0 && copy()"
           >
             {{ t('action:copy-info-json') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            left-icon="fa:trash"
-            variant="tertiary"
-            accent="danger"
-            size="medium"
-          >
-            {{ t('action:delete') }}
           </UiButton>
         </UiTableActions>
       </div>
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
+            <VtsHeaderCell>
+              <UiCheckbox v-model="areAllNetworksSelected" accent="brand" />
+            </VtsHeaderCell>
             <HeadCells />
           </tr>
         </thead>
@@ -56,6 +35,9 @@
             :key="network.uuid"
             :selected="selectedNetworkId === network.uuid"
           >
+            <UiTableCell>
+              <UiCheckbox v-model="selectedNetworkIds" :value="network.uuid" accent="brand" />
+            </UiTableCell>
             <BodyCells :item="network" />
           </VtsRow>
         </tbody>
@@ -65,22 +47,26 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
-import { useNetworkStore } from '@/stores/xen-api/network.store'
-import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
-import { usePifStore } from '@/stores/xen-api/pif.store'
+import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types.ts'
+import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
+import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store.ts'
+import { usePifStore } from '@/stores/xen-api/pif.store.ts'
+import VtsHeaderCell from '@core/components/table/cells/VtsHeaderCell.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
+import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
+import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { usePagination } from '@core/composables/pagination.composable'
-import { useRouteQuery } from '@core/composables/route-query.composable'
-import { useTableState } from '@core/composables/table-state.composable'
-import { vTooltip } from '@core/directives/tooltip.directive'
-import { useNetworkColumns } from '@core/tables/column-sets/network-columns'
+import { usePagination } from '@core/composables/pagination.composable.ts'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import useMultiSelect from '@core/composables/table/multi-select.composable.ts'
+import { useTableState } from '@core/composables/table-state.composable.ts'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { useNetworkColumns } from '@core/tables/column-sets/network-columns.ts'
+import { useClipboard } from '@vueuse/core'
 import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -142,6 +128,26 @@ const filteredNetworks = computed(() => {
 
 const { pageRecords: paginatedNetworks, paginationBindings } = usePagination('networks', filteredNetworks)
 
+const { selected: selectedNetworkIds, areAllSelected: areAllNetworksSelected } = useMultiSelect(
+  computed(() => networks.map(network => network.uuid)),
+  computed(() => paginatedNetworks.value.map(network => network.uuid))
+)
+
+const selectedNetworksAsJson = computed(() => {
+  const selectedNetworks = networks.filter(network => selectedNetworkIds.value.includes(network.uuid))
+
+  return JSON.stringify(selectedNetworks)
+})
+
+const {
+  copy,
+  copied,
+  isSupported: isClipboardSupported,
+} = useClipboard({
+  source: selectedNetworksAsJson,
+  legacy: true,
+})
+
 const state = useTableState({
   busy: logicNot(isReady),
   error: hasError,
@@ -175,7 +181,6 @@ const { HeadCells, BodyCells } = useNetworkColumns({
 
 <style scoped lang="postcss">
 .pool-networks-table,
-.table-actions,
 .container {
   display: flex;
   flex-direction: column;
@@ -184,8 +189,7 @@ const { HeadCells, BodyCells } = useNetworkColumns({
 .pool-networks-table {
   gap: 2.4rem;
 
-  .container,
-  .table-actions {
+  .container {
     gap: 0.8rem;
   }
 }

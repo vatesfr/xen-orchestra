@@ -76,7 +76,7 @@ type BaseXoVm = BaseXapiXo & {
   expNestedHvm: boolean
   isNestedVirtEnabled: boolean
   hasVendorDevice: boolean
-  high_availability: string
+  high_availability: 'best-effort' | 'restart' | ''
   installTime?: number | null
   isFirmwareSupported: boolean
   memory: {
@@ -222,6 +222,7 @@ export type XoGroup = {
   provider?: string
   providerGroupId?: string
   users: XoUser['id'][]
+  aclRoleIds: XoAclRole['id'][]
 }
 
 export type XoHost = BaseXapiXo & {
