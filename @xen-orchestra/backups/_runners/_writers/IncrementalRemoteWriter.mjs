@@ -139,7 +139,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     }
   }
 
-  async _transfer($defer, { isVhdDifferencing, timestamp, deltaExport, vm, vmSnapshot }) {
+  async _transfer($defer, { includeNonNbdQcow2Fix, isVhdDifferencing, timestamp, deltaExport, vm, vmSnapshot }) {
     const adapter = this._adapter
     const job = this._job
     const scheduleId = this._schedule.id
@@ -168,6 +168,11 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     }
 
     metadataContent = {
+      // marks whether the disk data is known-good w.r.t. the non-NBD qcow2 corruption bug.
+      // A fresh XAPI export by fixed code passes `true`; the mirror runner propagates the
+      // source backup's value (copying corrupt source data must NOT become "fixed"). Its
+      // absence flags a potentially-corrupt older disk (used by cleanVm and the force-full gate).
+      includeNonNbdQcow2Fix,
       isVhdDifferencing,
       jobId,
       mode: job.mode,

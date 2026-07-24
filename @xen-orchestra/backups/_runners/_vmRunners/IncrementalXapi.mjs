@@ -73,6 +73,8 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
       writer =>
         writer.transfer({
           deltaExport: forkDeltaExport(deltaExport, writer.constructor.name),
+          // freshly exported from XAPI by fixed code → disk data is known-good
+          includeNonNbdQcow2Fix: true,
           isVhdDifferencing,
           timestamp,
           vm,

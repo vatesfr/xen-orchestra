@@ -33,6 +33,13 @@ export const VM_UUID = 'xo:backup:vm'
 // allows direction-agnostic discovery of common base VDIs (e.g. for failback/reverse replication)
 export const CONTENT_KEY = 'xo:backup:contentKey'
 
+// in `other_config` of a replicated VM and its VDIs
+// set to the string 'true' on every write done by code that includes the non-NBD qcow2
+// corruption fix (fix(disk-transform): erroneous DiskLargerBlock copy offset). Its absence
+// on a qcow2 full means the replica may be silently corrupt and its chain must be re-based
+// with a clean full. Named after the specific fix so future fixes get their own flag.
+export const INCLUDE_NON_NBD_QCOW2_FIX = 'xo:backup:includeNonNbdQcow2Fix'
+
 async function listVdiRefs(xapi, vmRef) {
   return xapi.VM_getDisks(vmRef)
 }
@@ -90,6 +97,7 @@ export function resetVmOtherConfig(xapi, vmRef) {
       [DATETIME]: null,
       [DELTA_CHAIN_LENGTH]: null,
       [EXPORTED_SUCCESSFULLY]: null,
+      [INCLUDE_NON_NBD_QCOW2_FIX]: null,
       [JOB_ID]: null,
       [SCHEDULE_ID]: null,
       [VM_UUID]: null,
@@ -120,6 +128,10 @@ export async function setVmOtherConfig(xapi, vmRef, { timestamp, jobId, schedule
     xapi.setFieldEntries(type, ref, 'other_config', {
       [REPLICATED_TO_SR_UUID]: srUuid,
       [DATETIME]: formatDateTime(timestamp),
+      // stamped on every write: its presence marks the object as produced by code
+      // that includes the non-NBD qcow2 corruption fix, so a chain rooted in a pre-fix
+      // qcow2 full (missing this flag) can be detected and re-based with a clean full
+      [INCLUDE_NON_NBD_QCOW2_FIX]: 'true',
       [JOB_ID]: jobId,
       [SCHEDULE_ID]: scheduleId,
       [VM_UUID]: vmUuid,
