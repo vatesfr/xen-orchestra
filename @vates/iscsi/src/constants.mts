@@ -76,6 +76,22 @@ export const LoginStatusClass = {
   TARGET_ERROR: 0x03,
 } as const
 
+/**
+ * Login Response Status-Detail values (byte 37), qualifying the Status-Class.
+ * `AUTHENTICATION_FAILURE` pairs with `INITIATOR_ERROR` to reject a bad CHAP
+ * login (RFC 7143 §11.1.5).
+ */
+export const LoginStatusDetail = {
+  SUCCESS: 0x00,
+  AUTHENTICATION_FAILURE: 0x01,
+} as const
+
+/** `AuthMethod` login-key values we understand (RFC 7143 §12.1). */
+export const AuthMethod = {
+  NONE: 'None',
+  CHAP: 'CHAP',
+} as const
+
 // --- Text/Data flags --------------------------------------------------------
 
 export const TEXT_FLAG_FINAL = 0x80
@@ -87,6 +103,10 @@ export const DATA_IN_FLAG_ACK = 0x40
 export const DATA_IN_FLAG_OVERFLOW = 0x04
 export const DATA_IN_FLAG_UNDERFLOW = 0x02
 export const DATA_IN_FLAG_STATUS = 0x01
+
+/** SCSI Command (initiator) byte 1 flags. */
+export const SCSI_CMD_FLAG_READ = 0x40
+export const SCSI_CMD_FLAG_WRITE = 0x20
 
 /** SCSI Response byte 1 residual flags. */
 export const SCSI_RESP_FLAG_OVERFLOW = 0x04
@@ -161,3 +181,18 @@ export const RejectReason = {
   PROTOCOL_ERROR: 0x04,
   COMMAND_NOT_SUPPORTED: 0x05,
 } as const
+
+// --- debugging --------------------------------------------------------------
+
+// Initiator opcodes (0x00-0x10) and target opcodes (0x20-0x3f) never collide,
+// so one reverse map names both directions for logs.
+const OPCODE_NAMES: Record<number, string> = {
+  ...Object.fromEntries(Object.entries(InitiatorOpcode).map(([name, code]) => [code, name])),
+  ...Object.fromEntries(Object.entries(TargetOpcode).map(([name, code]) => [code, name])),
+}
+
+/** Human-readable name of a PDU opcode (for debug logs). */
+export function opcodeName(opcode: number): string {
+  const code = opcode & OPCODE_MASK
+  return OPCODE_NAMES[code] ?? `0x${code.toString(16).padStart(2, '0')}`
+}

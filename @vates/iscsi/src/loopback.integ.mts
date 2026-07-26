@@ -17,7 +17,7 @@ import {
   ScsiStatus,
   TargetOpcode,
 } from './constants.mjs'
-import { FileBlockDevice, IscsiTarget } from './index.mjs'
+import { FileBlockDevice, IscsiDisk, IscsiInitiator, IscsiTarget } from './index.mjs'
 import { allocBhs, assemblePdu, type IncomingPdu, readPdu } from './pdu.mjs'
 import { parseTextKeys, serializeTextKeys } from './login.mjs'
 
@@ -361,5 +361,121 @@ describe('iSCSI target loopback', () => {
     } finally {
       socket.destroy()
     }
+  })
+
+  // The real IscsiInitiator drives the same target, exercising the client login
+  // driver and the READ backlog/read-loop against the actual server.
+  it('reads the LUN through the IscsiInitiator client', async () => {
+    const initiator = new IscsiInitiator({ host: '127.0.0.1', port, targetIqn: IQN })
+    await initiator.connect()
+    try {
+      assert.equal(initiator.getSize(), LUN_SIZE)
+      assert.equal(initiator.getBlockSize(), BLOCK_SIZE)
+      // Block 3 was written by the earlier test; read it back over READ(16).
+      const data = await initiator.read(3 * BLOCK_SIZE, BLOCK_SIZE)
+      const expected = Buffer.alloc(BLOCK_SIZE)
+      for (let i = 0; i < BLOCK_SIZE; i++) {
+        expected[i] = (i * 7 + 1) & 0xff
+      }
+      assert.deepEqual(data, expected)
+    } finally {
+      await initiator.close()
+    }
+  })
+})
+
+// One loopback that exercises BOTH one-way CHAP roles at once: our target is the
+// authenticator (challenges + verifies) and our initiator is the responder
+// (answers the challenge). This is the same code path each production role uses
+// (target vs XCP-ng open-iscsi; initiator vs a Pure array).
+describe('iSCSI CHAP loopback (target authenticator + initiator responder)', () => {
+  const CHAP = { user: 'alice', secret: 's3cr3t' }
+  const pattern = (i: number) => (i * 13 + 7) & 0xff
+
+  let dir: string
+  let backingPath: string
+  let target: IscsiTarget
+  let port: number
+
+  before(async () => {
+    dir = await mkdtemp(join(tmpdir(), 'vates-iscsi-chap-'))
+    backingPath = join(dir, 'lun.img')
+    // Pre-fill the LUN with a recognizable pattern so a plain read can verify it.
+    const image = Buffer.alloc(LUN_SIZE)
+    for (let i = 0; i < image.length; i++) {
+      image[i] = pattern(i)
+    }
+    await writeFile(backingPath, image)
+
+    target = new IscsiTarget({
+      iqn: IQN,
+      host: '127.0.0.1',
+      port: 0,
+      lun: new FileBlockDevice({ path: backingPath, blockSize: BLOCK_SIZE }),
+      chap: CHAP,
+    })
+    await target.listen()
+    const address = target.address()
+    assert.ok(address !== undefined)
+    port = address.port
+  })
+
+  after(async () => {
+    await target?.close()
+    await rm(dir, { recursive: true, force: true })
+  })
+
+  it('authenticates a correct secret and reads the LUN', async () => {
+    const initiator = new IscsiInitiator({ host: '127.0.0.1', port, targetIqn: IQN, chap: CHAP })
+    await initiator.connect()
+    try {
+      assert.equal(initiator.getSize(), LUN_SIZE)
+      const offset = 5 * BLOCK_SIZE
+      const length = 3 * BLOCK_SIZE
+      const data = await initiator.read(offset, length)
+      const expected = Buffer.alloc(length)
+      for (let i = 0; i < length; i++) {
+        expected[i] = pattern(offset + i)
+      }
+      assert.deepEqual(data, expected)
+    } finally {
+      await initiator.close()
+    }
+  })
+
+  it('exposes the authenticated LUN as a RandomAccessDisk', async () => {
+    const blockSize = 64 * 1024
+    const disk = new IscsiDisk({ host: '127.0.0.1', port, targetIqn: IQN, chap: CHAP }, { blockSize })
+    await disk.init()
+    try {
+      assert.equal(disk.getVirtualSize(), LUN_SIZE)
+      assert.equal(disk.getBlockIndexes().length, LUN_SIZE / blockSize)
+      assert.equal(disk.hasBlock(0), true)
+      const { index, data } = await disk.readBlock(2)
+      assert.equal(index, 2)
+      assert.equal(data.length, blockSize)
+      const expected = Buffer.alloc(blockSize)
+      for (let i = 0; i < blockSize; i++) {
+        expected[i] = pattern(2 * blockSize + i)
+      }
+      assert.deepEqual(data, expected)
+    } finally {
+      await disk.close()
+    }
+  })
+
+  it('rejects a wrong secret', async () => {
+    const initiator = new IscsiInitiator({
+      host: '127.0.0.1',
+      port,
+      targetIqn: IQN,
+      chap: { user: 'alice', secret: 'wrong' },
+    })
+    await assert.rejects(initiator.connect(), /login rejected/)
+  })
+
+  it('rejects an initiator that offers no credentials', async () => {
+    const initiator = new IscsiInitiator({ host: '127.0.0.1', port, targetIqn: IQN })
+    await assert.rejects(initiator.connect(), /login rejected/)
   })
 })

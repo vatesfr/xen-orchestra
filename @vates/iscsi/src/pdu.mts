@@ -2,10 +2,16 @@ import type { Socket } from 'node:net'
 import type { Readable } from 'node:stream'
 import { readChunk, readChunkStrict } from '@vates/read-chunk'
 import { pTimeout } from 'promise-toolbox'
+import { createLogger, type Logger } from '@xen-orchestra/log'
 
-import { BHS_LENGTH, OPCODE_IMMEDIATE, OPCODE_MASK, FLAG_FINAL } from './constants.mjs'
+import { BHS_LENGTH, opcodeName, OPCODE_IMMEDIATE, OPCODE_MASK, FLAG_FINAL } from './constants.mjs'
 
 const EMPTY = Buffer.alloc(0)
+
+// Framing-level wire trace, shared by target and initiator. Enable with the
+// `vates:iscsi:pdu` debug namespace to see every PDU that crosses the socket —
+// the first thing to look at when a new initiator/target combination misbehaves.
+const log: Logger = createLogger('vates:iscsi:pdu')
 
 /** Round `n` up to the next multiple of 4 (iSCSI segments are 4-byte padded). */
 export function roundUp4(n: number): number {
@@ -107,7 +113,15 @@ export async function readPdu(stream: Readable): Promise<IncomingPdu | null> {
     data = rest.subarray(ahsBytes, ahsBytes + dataSegmentLength) // strip 4-byte padding
   }
 
-  return new IncomingPdu(bhs, ahs, data)
+  const pdu = new IncomingPdu(bhs, ahs, data)
+  log.debug('rx', {
+    opcode: opcodeName(bhs[0]),
+    itt: pdu.itt,
+    flags: `0x${bhs[1].toString(16).padStart(2, '0')}`,
+    ahs: ahsBytes,
+    data: dataSegmentLength,
+  })
+  return pdu
 }
 
 /** Allocate a zeroed 48-byte BHS with byte 0 set to `opcode`. */
@@ -142,6 +156,12 @@ export function assemblePdu(bhs: Buffer, data?: Buffer): Buffer {
  * drain within `timeoutMs` (0 disables the timeout).
  */
 export function writePdu(socket: Socket, buffer: Buffer, timeoutMs: number): Promise<void> {
+  log.debug('tx', {
+    opcode: opcodeName(buffer[0]),
+    itt: buffer.readUInt32BE(16),
+    flags: `0x${buffer[1].toString(16).padStart(2, '0')}`,
+    length: buffer.length,
+  })
   const promise = new Promise<void>((resolve, reject) => {
     socket.write(buffer, error => (error ? reject(error) : resolve()))
   })

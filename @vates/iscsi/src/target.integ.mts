@@ -142,3 +142,89 @@ describe('open-iscsi interop', { skip: skipReason() }, () => {
     }
   })
 })
+
+// The target as CHAP authenticator against the real open-iscsi initiator (the
+// XCP-ng interop role). Credentials go into the node record's node.session.auth
+// keys, exactly as XCP-ng's `device-config:chapuser`/`chappassword` do.
+describe('open-iscsi CHAP interop', { skip: skipReason() }, () => {
+  // open-iscsi requires the initiator (outgoing) secret to be 12-16 characters.
+  const CHAP = { user: 'alice', secret: 'supersecret1234' }
+  let dir: string
+  let backingPath: string
+  let target: IscsiTarget
+  let portal: string
+
+  async function configureAuth(user: string, secret: string): Promise<void> {
+    const set = (name: string, value: string) =>
+      iscsiadm(['-m', 'node', '-T', IQN, '-p', portal, '-o', 'update', '-n', name, '-v', value])
+    await set('node.session.auth.authmethod', 'CHAP')
+    await set('node.session.auth.username', user)
+    await set('node.session.auth.password', secret)
+  }
+
+  before(async () => {
+    dir = await mkdtemp(join(tmpdir(), 'vates-iscsi-chap-integ-'))
+    backingPath = join(dir, 'lun.img')
+    await writeFile(backingPath, Buffer.alloc(0))
+    await truncate(backingPath, LUN_SIZE)
+
+    target = new IscsiTarget({
+      iqn: IQN,
+      host: '127.0.0.1',
+      port: 0,
+      lun: new FileBlockDevice({ path: backingPath, blockSize: BLOCK_SIZE }),
+      chap: CHAP,
+    })
+    await target.listen()
+    const address = target.address()
+    assert.ok(address !== undefined)
+    portal = `127.0.0.1:${address.port}`
+    // Discovery creates the node record we then attach auth to.
+    await iscsiadm(['-m', 'discovery', '-t', 'sendtargets', '-p', portal])
+  })
+
+  after(async () => {
+    await iscsiadm(['-m', 'node', '-T', IQN, '-p', portal, '--logout']).catch(() => {})
+    await iscsiadm(['-m', 'node', '-o', 'delete', '-T', IQN, '-p', portal]).catch(() => {})
+    await target?.close()
+    await rm(dir, { recursive: true, force: true })
+  })
+
+  it('rejects login with a wrong secret', async () => {
+    await configureAuth(CHAP.user, 'wrongsecret12345')
+    await assert.rejects(
+      iscsiadm(['-m', 'node', '-T', IQN, '-p', portal, '--login']),
+      'open-iscsi login must fail when the CHAP secret is wrong'
+    )
+  })
+
+  it('authenticates with the right secret and does IO', async () => {
+    await configureAuth(CHAP.user, CHAP.secret)
+    await iscsiadm(['-m', 'node', '-T', IQN, '-p', portal, '--login'])
+    const device = await waitForDevice()
+
+    const lba = 7
+    const offset = lba * BLOCK_SIZE
+    const pattern = Buffer.alloc(BLOCK_SIZE)
+    for (let i = 0; i < pattern.length; i++) {
+      pattern[i] = (i * 5 + 9) & 0xff
+    }
+    const writeHandle = await openFile(device, 'r+')
+    try {
+      await writeHandle.write(pattern, 0, pattern.length, offset)
+      await writeHandle.sync()
+    } finally {
+      await writeHandle.close()
+    }
+
+    await execFileP('blockdev', ['--flushbufs', device]).catch(() => {})
+    const readHandle = await openFile(device, 'r')
+    try {
+      const buffer = Buffer.alloc(BLOCK_SIZE)
+      await readHandle.read(buffer, 0, BLOCK_SIZE, offset)
+      assert.deepEqual(buffer, pattern, 'data read back over an authenticated session matches')
+    } finally {
+      await readHandle.close()
+    }
+  })
+})

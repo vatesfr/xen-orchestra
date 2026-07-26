@@ -1,5 +1,11 @@
+import { createLogger, type Logger } from '@xen-orchestra/log'
+
 import { Asc, ScsiStatus, SenseKey } from './constants.mjs'
 import { decodeCdb, type CommandContext, type SenseInfo } from './types.mjs'
+
+// SCSI command trace. Enable `vates:iscsi:scsi` to see every decoded CDB the
+// target services — useful when an initiator issues a command we mishandle.
+const log: Logger = createLogger('vates:iscsi:scsi')
 
 /** SCSI INQUIRY identity strings advertised by the LUN. */
 export interface ScsiIdentity {
@@ -165,6 +171,7 @@ export async function handleScsiCommand(
   const blockSize = lun.getBlockSize()
   const blockCount = lun.getSize() / blockSize
   const request = decodeCdb(cdb)
+  log.debug('scsi command', { itt, ...request })
 
   switch (request.kind) {
     case 'inquiry': {

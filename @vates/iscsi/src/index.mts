@@ -4,10 +4,16 @@ import { createLogger, type Logger } from '@xen-orchestra/log'
 import type { BlockDevice } from './backend.mjs'
 import { Connection, type ConnectionDeps } from './connection.mjs'
 import type { ScsiIdentity } from './scsi.mjs'
+import type { ChapCredentials } from './types.mjs'
 
 export { FileBlockDevice } from './backend.mjs'
 export type { BlockDevice, FileBlockDeviceOptions } from './backend.mjs'
 export type { ScsiIdentity } from './scsi.mjs'
+export type { ChapCredentials } from './types.mjs'
+export { IscsiInitiator } from './initiator.mjs'
+export type { IscsiInitiatorOptions } from './initiator.mjs'
+export { IscsiDisk } from './IscsiDisk.mjs'
+export type { IscsiDiskOptions } from './IscsiDisk.mjs'
 
 const log: Logger = createLogger('vates:iscsi')
 
@@ -37,6 +43,12 @@ export interface IscsiTargetOptions {
   readonly writeTimeoutMs?: number
   /** CmdSN command-window depth advertised to the initiator. Defaults to 64. */
   readonly cmdWindow?: number
+  /**
+   * When set, require one-way CHAP: the target challenges each initiator and
+   * rejects the login unless it proves this credential (interop with the
+   * open-iscsi `node.session.auth` username/password). Omit for no authentication.
+   */
+  readonly chap?: ChapCredentials
 }
 
 /**
@@ -54,6 +66,7 @@ export class IscsiTarget {
   readonly #identity: ScsiIdentity
   readonly #writeTimeoutMs: number
   readonly #cmdWindow: number
+  readonly #chap?: ChapCredentials
 
   #server?: Server
   #connection?: Connection
@@ -66,6 +79,7 @@ export class IscsiTarget {
     this.#port = options.port ?? DEFAULT_PORT
     this.#writeTimeoutMs = options.writeTimeoutMs ?? DEFAULT_WRITE_TIMEOUT_MS
     this.#cmdWindow = options.cmdWindow ?? DEFAULT_CMD_WINDOW
+    this.#chap = options.chap
     this.#identity = {
       ...DEFAULT_IDENTITY,
       // Default the serial to the IQN so the LUN has a stable, unique identity.
@@ -87,6 +101,7 @@ export class IscsiTarget {
       writeTimeoutMs: this.#writeTimeoutMs,
       cmdWindow: this.#cmdWindow,
       allocateTsih: () => this.#allocateTsih(),
+      chap: this.#chap,
     }
   }
 

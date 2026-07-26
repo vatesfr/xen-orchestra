@@ -8,15 +8,12 @@ import {
   LOGIN_FLAG_TRANSIT,
   LOGIN_NSG_MASK,
   LoginStage,
+  LoginStatusClass,
+  LoginStatusDetail,
   OPCODE_IMMEDIATE,
 } from './constants.mjs'
-import {
-  buildSendTargetsResponse,
-  formatPortal,
-  LoginNegotiator,
-  parseTextKeys,
-  serializeTextKeys,
-} from './login.mjs'
+import { buildSendTargetsResponse, formatPortal, LoginNegotiator, parseTextKeys, serializeTextKeys } from './login.mjs'
+import { computeResponse, decodeChapValue, encodeChapValue } from './chap.mjs'
 import { IncomingPdu } from './pdu.mjs'
 
 function loginFlags(options: { transit?: boolean; cont?: boolean; csg: number; nsg: number }): number {
@@ -159,6 +156,132 @@ describe('LoginNegotiator', () => {
     )
     assert.equal(negotiator.complete, false)
     assert.equal(flagsByte & LOGIN_FLAG_TRANSIT, 0)
+  })
+})
+
+describe('LoginNegotiator CHAP authenticator', () => {
+  const CHAP = { user: 'alice', secret: 's3cr3t' }
+
+  const securityFlags = (transit = false) =>
+    loginFlags({ transit, csg: LoginStage.SECURITY_NEGOTIATION, nsg: LoginStage.OPERATIONAL_NEGOTIATION })
+
+  /** Round 1: offer AuthMethod. */
+  function offerAuth(negotiator: LoginNegotiator, methods = 'CHAP,None', transit = false) {
+    return negotiator.process(
+      makeLoginPdu(securityFlags(transit), { InitiatorName: 'iqn.x:i', SessionType: 'Normal', AuthMethod: methods })
+    )
+  }
+
+  /** Round 2: offer CHAP_A, return the target's parsed challenge keys. */
+  function offerAlgorithm(negotiator: LoginNegotiator, list = '5') {
+    const result = negotiator.process(makeLoginPdu(securityFlags(false), { CHAP_A: list }))
+    return { result, keys: parseTextKeys(result.data) }
+  }
+
+  /** Round 3: answer with CHAP_N/CHAP_R for the given challenge. */
+  function answerChallenge(
+    negotiator: LoginNegotiator,
+    challengeKeys: Map<string, string>,
+    { user = CHAP.user, secret = CHAP.secret } = {}
+  ) {
+    const id = Number.parseInt(challengeKeys.get('CHAP_I') ?? '', 10)
+    const challenge = decodeChapValue(challengeKeys.get('CHAP_C') ?? '')
+    const response = encodeChapValue(computeResponse(id, secret, challenge))
+    return negotiator.process(makeLoginPdu(securityFlags(true), { CHAP_N: user, CHAP_R: response }))
+  }
+
+  it('challenges then transits only after a correct response', () => {
+    const negotiator = new LoginNegotiator(CHAP)
+
+    // Round 1: we answer AuthMethod=CHAP and do NOT transit.
+    const r1 = offerAuth(negotiator)
+    assert.equal(parseTextKeys(r1.data).get('AuthMethod'), 'CHAP')
+    assert.equal(r1.flagsByte & LOGIN_FLAG_TRANSIT, 0)
+    assert.equal(r1.statusClass ?? LoginStatusClass.SUCCESS, LoginStatusClass.SUCCESS)
+
+    // Round 2: we issue CHAP_A=5, an identifier and a challenge, still no transit.
+    const { result: r2, keys: challenge } = offerAlgorithm(negotiator)
+    assert.equal(challenge.get('CHAP_A'), '5')
+    assert.ok(challenge.has('CHAP_I'))
+    assert.match(challenge.get('CHAP_C') ?? '', /^0x[0-9a-f]+$/)
+    assert.equal(r2.flagsByte & LOGIN_FLAG_TRANSIT, 0)
+
+    // Round 3: a correct response transits to the operational stage.
+    const r3 = answerChallenge(negotiator, challenge)
+    assert.equal(r3.statusClass ?? LoginStatusClass.SUCCESS, LoginStatusClass.SUCCESS)
+    assert.ok((r3.flagsByte & LOGIN_FLAG_TRANSIT) !== 0, 'transit granted after auth')
+    assert.equal(r3.flagsByte & LOGIN_NSG_MASK, LoginStage.OPERATIONAL_NEGOTIATION)
+    assert.equal(negotiator.failed, false)
+
+    // The operational stage then completes as usual.
+    const op = negotiator.process(
+      makeLoginPdu(
+        loginFlags({ transit: true, csg: LoginStage.OPERATIONAL_NEGOTIATION, nsg: LoginStage.FULL_FEATURE_PHASE }),
+        { HeaderDigest: 'None', DataDigest: 'None' }
+      )
+    )
+    assert.equal(negotiator.complete, true)
+    assert.equal(parseTextKeys(op.data).get('HeaderDigest'), 'None')
+  })
+
+  it('rejects a wrong secret with Initiator Error / authentication failure', () => {
+    const negotiator = new LoginNegotiator(CHAP)
+    offerAuth(negotiator)
+    const { keys: challenge } = offerAlgorithm(negotiator)
+    const r3 = answerChallenge(negotiator, challenge, { secret: 'wrong' })
+
+    assert.equal(r3.statusClass, LoginStatusClass.INITIATOR_ERROR)
+    assert.equal(r3.statusDetail, LoginStatusDetail.AUTHENTICATION_FAILURE)
+    assert.equal(r3.flagsByte & LOGIN_FLAG_TRANSIT, 0)
+    assert.equal(negotiator.complete, false)
+    assert.equal(negotiator.failed, true)
+  })
+
+  it('rejects a wrong username even with the right secret', () => {
+    const negotiator = new LoginNegotiator(CHAP)
+    offerAuth(negotiator)
+    const { keys: challenge } = offerAlgorithm(negotiator)
+    const r3 = answerChallenge(negotiator, challenge, { user: 'mallory' })
+    assert.equal(r3.statusClass, LoginStatusClass.INITIATOR_ERROR)
+    assert.equal(negotiator.failed, true)
+  })
+
+  it('fails when the initiator offers only AuthMethod=None', () => {
+    const negotiator = new LoginNegotiator(CHAP)
+    const r1 = offerAuth(negotiator, 'None')
+    assert.equal(r1.statusClass, LoginStatusClass.INITIATOR_ERROR)
+    assert.equal(r1.statusDetail, LoginStatusDetail.AUTHENTICATION_FAILURE)
+    assert.equal(negotiator.failed, true)
+  })
+
+  it('fails when CHAP_A does not offer MD5', () => {
+    const negotiator = new LoginNegotiator(CHAP)
+    offerAuth(negotiator)
+    const { result } = offerAlgorithm(negotiator, '6,7')
+    assert.equal(result.statusClass, LoginStatusClass.INITIATOR_ERROR)
+    assert.equal(negotiator.failed, true)
+  })
+
+  it('does not transit if the initiator sets the T bit before authenticating', () => {
+    const negotiator = new LoginNegotiator(CHAP)
+    // Round 1 with the Transit bit set: must be ignored until CHAP completes.
+    const r1 = offerAuth(negotiator, 'CHAP,None', true)
+    assert.equal(r1.flagsByte & LOGIN_FLAG_TRANSIT, 0)
+    assert.equal(negotiator.complete, false)
+  })
+
+  it('fails if the initiator skips security and jumps to operational negotiation', () => {
+    const negotiator = new LoginNegotiator(CHAP)
+    const result = negotiator.process(
+      makeLoginPdu(
+        loginFlags({ transit: true, csg: LoginStage.OPERATIONAL_NEGOTIATION, nsg: LoginStage.FULL_FEATURE_PHASE }),
+        { HeaderDigest: 'None' }
+      )
+    )
+    assert.equal(result.statusClass, LoginStatusClass.INITIATOR_ERROR)
+    assert.equal(result.flagsByte & LOGIN_FLAG_TRANSIT, 0)
+    assert.equal(negotiator.complete, false)
+    assert.equal(negotiator.failed, true)
   })
 })
 
