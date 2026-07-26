@@ -147,16 +147,22 @@ export class VmBackupDirectory implements VmBackupInterface {
     const allMergedSizes = new Map<string, number>()
     await asyncEach(
       Array.from(this.#uniqueLineages!.entries()),
-      async ([_vdiDir, lineage]) => {
-        const { mergedSizes, removedFiles, merge: hasPendingMerge } = await lineage.clean({ remove, merge })
-        if (removedFiles.length > 0) {
-          cacheNeedsRegen = true
-        }
-        if (hasPendingMerge) {
-          someLineageMergedOrShouldBe = true
-        }
-        for (const [diskPath, size] of mergedSizes || []) {
-          allMergedSizes.set(diskPath, (allMergedSizes.get(diskPath) ?? 0) + size)
+      async ([vdiDir, lineage]) => {
+        try {
+          const { mergedSizes, removedFiles, merge: hasPendingMerge } = await lineage.clean({ remove, merge })
+          if (removedFiles.length > 0) {
+            cacheNeedsRegen = true
+          }
+          if (hasPendingMerge) {
+            someLineageMergedOrShouldBe = true
+          }
+          for (const [diskPath, size] of mergedSizes || []) {
+            allMergedSizes.set(diskPath, (allMergedSizes.get(diskPath) ?? 0) + size)
+          }
+        } catch (error) {
+          // One broken/unmergeable VDI lineage must not abort cleanup (prune dirs, archive
+          // metadata clean, cache regen, root-orphan removal) for the rest of this VM.
+          this.opts.logWarn('failed to clean VDI lineage', { vdiDir, error })
         }
       },
       { concurrency: DEFAULT_MERGE_CONCURRENCY }
