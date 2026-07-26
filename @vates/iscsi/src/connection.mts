@@ -11,6 +11,7 @@ import {
   FLAG_FINAL,
   InitiatorOpcode,
   ISCSI_VERSION,
+  LoginStatusClass,
   LogoutResponse,
   RejectReason,
   RESERVED_TAG,
@@ -25,7 +26,7 @@ import {
 import { buildFixedSense, handleScsiCommand, type ScsiIdentity } from './scsi.mjs'
 import { buildSendTargetsResponse, LoginNegotiator, parseTextKeys } from './login.mjs'
 import { allocBhs, assemblePdu, type IncomingPdu, readPdu, writePdu } from './pdu.mjs'
-import type { CommandContext, NegotiatedParams, ScsiResponseOptions, SessionType } from './types.mjs'
+import type { ChapCredentials, CommandContext, NegotiatedParams, ScsiResponseOptions, SessionType } from './types.mjs'
 import { buildR2t, type PendingWrite } from './writePath.mjs'
 
 const log: Logger = createLogger('vates:iscsi')
@@ -54,6 +55,8 @@ export interface ConnectionDeps {
   readonly cmdWindow: number
   /** Allocate a fresh, non-zero Target Session Identifying Handle. */
   allocateTsih(): number
+  /** When set, require one-way CHAP: the target challenges and verifies the initiator. */
+  readonly chap?: ChapCredentials
 }
 
 type Phase = 'login' | 'fullFeature' | 'closed'
@@ -71,7 +74,7 @@ type Phase = 'login' | 'fullFeature' | 'closed'
 export class Connection implements CommandContext {
   readonly #socket: Socket
   readonly #deps: ConnectionDeps
-  readonly #login = new LoginNegotiator()
+  readonly #login: LoginNegotiator
 
   #phase: Phase = 'login'
   #sessionType: SessionType = 'Normal'
@@ -92,6 +95,7 @@ export class Connection implements CommandContext {
   constructor(socket: Socket, deps: ConnectionDeps) {
     this.#socket = socket
     this.#deps = deps
+    this.#login = new LoginNegotiator(deps.chap)
   }
 
   get lun(): BlockDevice {
@@ -172,10 +176,9 @@ export class Connection implements CommandContext {
 
     if (this.#phase === 'login') {
       if (pdu.opcode === InitiatorOpcode.LOGIN_REQUEST) {
-        await this.#handleLogin(pdu)
-      } else {
-        await this.#sendReject(pdu, RejectReason.PROTOCOL_ERROR)
+        return await this.#handleLogin(pdu)
       }
+      await this.#sendReject(pdu, RejectReason.PROTOCOL_ERROR)
       return false
     }
 
@@ -205,8 +208,9 @@ export class Connection implements CommandContext {
     }
   }
 
-  async #handleLogin(pdu: IncomingPdu): Promise<void> {
-    const { flagsByte, data } = this.#login.process(pdu)
+  /** Returns true when the login failed and the connection must be closed. */
+  async #handleLogin(pdu: IncomingPdu): Promise<boolean> {
+    const { flagsByte, data, statusClass = LoginStatusClass.SUCCESS, statusDetail = 0 } = this.#login.process(pdu)
     if (this.#login.complete && this.#tsih === 0) {
       this.#tsih = this.#deps.allocateTsih()
     }
@@ -221,8 +225,17 @@ export class Connection implements CommandContext {
     bhs.writeUInt32BE(this.#nextStatSN(), 24)
     bhs.writeUInt32BE(this.#expCmdSN, 28)
     bhs.writeUInt32BE(this.#maxCmdSN, 32)
-    // Status-Class / Status-Detail (bytes 36-37) stay 0 = success.
+    bhs[36] = statusClass
+    bhs[37] = statusDetail
     await this.#send(assemblePdu(bhs, data))
+
+    if (statusClass !== LoginStatusClass.SUCCESS) {
+      // RFC 7143 §6.3: the failure response goes out first (above), then the
+      // target closes the connection.
+      log.warn('login rejected', { statusClass, statusDetail, initiator: this.#login.initiatorName })
+      this.#phase = 'closed'
+      return true
+    }
 
     if (this.#login.complete) {
       this.#phase = 'fullFeature'
@@ -234,6 +247,7 @@ export class Connection implements CommandContext {
         target: this.#login.targetName,
       })
     }
+    return false
   }
 
   async #handleText(pdu: IncomingPdu): Promise<void> {
@@ -293,6 +307,7 @@ export class Connection implements CommandContext {
   }
 
   async #sendReject(pdu: IncomingPdu, reason: number): Promise<void> {
+    log.debug('rejecting PDU', { opcode: pdu.opcode, itt: pdu.itt, reason, phase: this.#phase })
     const bhs = allocBhs(TargetOpcode.REJECT)
     bhs[1] = FLAG_FINAL
     bhs[2] = reason
@@ -374,6 +389,7 @@ export class Connection implements CommandContext {
       r2tSN: 0,
     }
     this.#pendingWrites.set(itt, pending)
+    log.debug('write begin', { itt, lunOffset, totalLength })
     await this.#sendNextR2t(pending)
   }
 
@@ -401,6 +417,13 @@ export class Connection implements CommandContext {
     }
     pdu.data.copy(pending.buffer, pdu.readU32(40)) // BufferOffset is absolute
     pending.received += pdu.data.length
+    log.debug('write data-out', {
+      itt: pending.itt,
+      offset: pdu.readU32(40),
+      length: pdu.data.length,
+      received: pending.received,
+      total: pending.totalLength,
+    })
 
     if (pending.received >= pending.totalLength) {
       this.#pendingWrites.delete(pdu.itt)

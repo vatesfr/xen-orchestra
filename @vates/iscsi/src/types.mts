@@ -1,8 +1,5 @@
 import type { BlockDevice } from './backend.mjs'
-import {
-  ScsiOpcode,
-  SERVICE_ACTION_READ_CAPACITY_16,
-} from './constants.mjs'
+import { ScsiOpcode, SERVICE_ACTION_READ_CAPACITY_16 } from './constants.mjs'
 
 // --- Decoded SCSI requests --------------------------------------------------
 
@@ -90,6 +87,18 @@ export interface NegotiatedParams {
 }
 
 export type SessionType = 'Discovery' | 'Normal'
+
+/**
+ * A single one-way CHAP credential. On the target it is the incoming credential
+ * an initiator must present; on the initiator it is the credential presented to
+ * the target when challenged. Mutual (two-way) CHAP is not yet supported.
+ */
+export interface ChapCredentials {
+  /** CHAP username (`CHAP_N`). */
+  readonly user: string
+  /** CHAP shared secret. */
+  readonly secret: string
+}
 
 /** Sense data to attach to a CHECK CONDITION response. */
 export interface SenseInfo {
