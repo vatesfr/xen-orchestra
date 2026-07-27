@@ -31,6 +31,9 @@ export class DiskLargerBlock extends RandomAccessDisk {
     throw new Error('Method not implemented.')
   }
   async readBlock(index: number): Promise<DiskBlock> {
+    if (!this.hasBlock(index)) {
+      throw new Error(`Block ${index} not present in this disk`)
+    }
     // @todo handle partial block at the end
     const source = this.source
     const destinationBlockData = Buffer.alloc(this.getBlockSize(), 0)
