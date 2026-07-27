@@ -21,7 +21,7 @@ import {
   type MiddlewareDescriptor,
   type RouteDefinition,
 } from './types.mjs'
-import { CreateAction } from '@vates/types'
+import type { CreateAction } from '@vates/types'
 
 const log = createLogger('xo:rest-api:external-router')
 
