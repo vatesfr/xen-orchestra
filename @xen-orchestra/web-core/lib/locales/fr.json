@@ -639,6 +639,8 @@
   "maximum-static-memory": "Mémoire statique maximale",
   "maximum-vcpu": "Nombre maximal de vCPU",
   "memory": "Mémoire",
+  "modal:confirm-host-force-reboot": "Es-tu sûr de vouloir forcer le redémarrage de {host}?",
+  "modal:host-force-reboot-message": "L’hôte est sur le point de redémarrer. Ses VMs en cours d’exécution seront migrées vers d’autres hôtes lorsque cela sera possible, mais celles qui ne peuvent pas l’être seront arrêtées de force. Une perte de données peut survenir.",
   "memory-usage": "Utilisation de la mémoire",
   "merge-backups-synchronously": "Fusionner les sauvegardes de manière synchrone",
   "message": "Message",

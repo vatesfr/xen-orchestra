@@ -839,6 +839,8 @@
   "please-confirm-to-continue": "This action cannot be undone. Are you sure you want to continue?",
   "please-wait": "Please wait",
   "policy": "Policy",
+  "modal:confirm-host-force-reboot": "Are you sure you want to force reboot {host}?",
+  "modal:host-force-reboot-message": "The host is about to reboot. Its running VMs will be migrated to other hosts when possible, but those that can't be will be forcily shut down. Data loss may occur.",
   "pool": "Pool",
   "pool-connection-error-auth-failed": "An error occurred while connecting to the pool. The username or password appears to be incorrect.",
   "pool-connection-error-duplicate": "An error occurred while connecting to the pool. This pool seems to be already connected.",
