@@ -1,6 +1,5 @@
 import {
   Delete,
-  Body,
   Example,
   Extension,
   Get,
@@ -19,7 +18,7 @@ import {
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
-import type { XenApiVdi, XoMessage, XoTask, XoVdi, XoAlarm, XoSr, XoHost } from '@vates/types'
+import type { XenApiVdi, XoMessage, XoTask, XoVdi, XoAlarm, XoSr } from '@vates/types'
 import { SUPPORTED_VDI_FORMAT } from '@vates/types'
 
 import { acl } from '../middlewares/acl.middleware.mjs'
