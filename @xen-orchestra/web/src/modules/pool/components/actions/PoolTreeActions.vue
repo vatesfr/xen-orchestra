@@ -1,6 +1,6 @@
 <template>
   <PoolNewVmButton :pool-id="pool.id" />
-  <PoolDisconnectButton :pool-id="pool.id" :pool-name="pool.name_label" />
+  <PoolDisconnectButton :pool-id="pool.id" />
   <VtsDivider type="stretch" />
   <PoolDownloadButton :pool-id="pool.id" />
 </template>

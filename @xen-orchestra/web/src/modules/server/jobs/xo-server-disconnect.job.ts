@@ -4,8 +4,10 @@ import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import type { XoTask } from '@vates/types'
+import { useI18n } from 'vue-i18n'
 
 export const useXoServerDisconnectJob = defineJob('server.disconnect', [xoServerIdsArg], () => {
+  const { t } = useI18n()
   const { monitorTask } = useXoTaskUtils()
   const { getServersByIds } = useXoServerCollection()
 
@@ -17,23 +19,25 @@ export const useXoServerDisconnectJob = defineJob('server.disconnect', [xoServer
           await monitorTask(taskId)
         })
       )
+
       results.forEach((result, index) => {
         if (result.status === 'rejected') {
           console.error(`Failed to disconnect server ${serverIds[index].value}:`, result.reason)
         }
       })
+
       return results
     },
     validate(isRunning, serverIds) {
       if (isRunning) {
-        throw new JobRunningError('server disconnection already in progress')
+        throw new JobRunningError(t('job:disconnect:in-progress'))
       }
       if (serverIds.length === 0 || serverIds.some(id => id.value === '')) {
-        throw new JobError('server ids are required')
+        throw new JobError(t('job:server-disconnect:missing-server'))
       }
       const servers = getServersByIds(serverIds.map(id => id.value))
       if (servers.some(server => server.status !== 'connected')) {
-        throw new JobError('server must be connected')
+        throw new JobError(t('job:server-disconnect:server-disconnected'))
       }
     },
   }
