@@ -497,6 +497,7 @@
   "job:host-shutdown:in-progress": "Arrêt de l'hôte en cours…",
   "job:host-shutdown:missing-host": "Aucun hôte à arrêter",
   "job:host-start:bad-power-state": "Hôte déjà lancé",
+  "job:host-start:bad-power-state-not-halted": "Hôte non arrêté",
   "job:host-start:in-progress": "Démarrage de l'hôte en cours…",
   "job:host-start:missing-host": "Pas d'hôte à démarrer",
   "job:host-start:power-on-disabled": "Démarrage désactivé",

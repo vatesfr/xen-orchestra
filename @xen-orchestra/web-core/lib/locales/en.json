@@ -497,6 +497,7 @@
   "job:host-shutdown:in-progress": "Host shut down in progress…",
   "job:host-shutdown:missing-host": "No host to shut down",
   "job:host-start:bad-power-state": "Host already launched",
+  "job:host-start:bad-power-state-not-halted": "Host not halted",
   "job:host-start:in-progress": "Host start in progress…",
   "job:host-start:missing-host": "No host to start",
   "job:host-start:power-on-disabled": "Power on disabled",
