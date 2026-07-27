@@ -848,6 +848,8 @@
   "power-on-host-for-console": "Power on your host to access its console",
   "power-on-mode": "Power on mode",
   "power-on-vm-for-console": "Power on your VM to access its console",
+  "modal:confirm-host-force-reboot": "Are you sure you want to force reboot {host}?",
+  "modal:host-force-reboot-message": "The host is about to reboot. Its running VMs will be migrated to other hosts when possible, but those that can't be will be forcily shut down. Data loss may occur.",
   "power-state": "Power state",
   "pro-support": "{name} pro support",
   "professional-support": "Professional support",
