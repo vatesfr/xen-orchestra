@@ -70,7 +70,8 @@
 - [Backups] write the complete disk metadata at once to improve compatibility with immutable backup repository (PR [#10104](https://github.com/vatesfr/xen-orchestra/pull/10104))
 - [XO6/Host] Wrap the Network name in the PIF side panel (PR [#10155](https://github.com/vatesfr/xen-orchestra/pull/10155))
 - [About/Hub] Fix "Failed to fetch latest master commit" and the microk8s version list: the default `Content-Security-Policy` now allows the browser to reach the GitHub API (PR [#10162](https://github.com/vatesfr/xen-orchestra/pull/10162))
-- 
+- [Qcow2 import] show a valid progress bar for qcow2 disk import from form , command line or V2V (PR [#10133](https://github.com/vatesfr/xen-orchestra/pull/10133))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -95,6 +96,7 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi patch
 - vhd-lib patch
 - xapi-explore-sr patch
 - xen-api minor

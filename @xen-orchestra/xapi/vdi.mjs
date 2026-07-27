@@ -1,4 +1,5 @@
 import CancelToken from 'promise-toolbox/CancelToken'
+import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import pCatch from 'promise-toolbox/catch'
 import pRetry from 'promise-toolbox/retry'
 import { createLogger } from '@xen-orchestra/log'
@@ -9,6 +10,7 @@ import { strict as assert } from 'node:assert'
 
 import { SUPPORTED_VDI_FORMAT, VDI_FORMAT_RAW, VDI_FORMAT_QCOW2, VHD_MAX_SIZE } from './index.mjs'
 import { PREFERED_IMAGE_FORMAT_PROPERTY } from './pbd.mjs'
+import { watchUploadProgress } from './_watchUploadProgress.mjs'
 
 const { warn, info } = createLogger('xo:xapi:vdi')
 
@@ -288,11 +290,19 @@ class Vdi {
       const taskRef = await this.task_create(`Importing content into VDI ${vdi.name_label} on SR ${sr.name_label}`)
       const uuid = await this.getField('task', taskRef, 'uuid')
       await vdi.update_other_config({ 'xo:import:task': uuid, 'xo:import:length': stream.length.toString() })
+
+      // XCP-ng does not report progress on the import task for every format
+      watchUploadProgress(stream, stream.length, progress => {
+        ignoreErrors.call(this.call('task.set_progress', taskRef, progress))
+      })
+
       await this.putResource(cancelToken, stream, '/import_raw_vdi/', {
         query: {
           format,
           vdi: ref,
         },
+        // we keep the link to ensure the task is correctly marked as failed
+        // on any error
         task: taskRef,
       })
     } catch (error) {
