@@ -1,5 +1,5 @@
 <template>
-  <HostDisableButton v-if="host.enabled" :host />
+  <HostDisableButton v-if="host.enabled || hostIsHalted" :host />
   <HostEnableButton v-else :host />
   <VtsDivider type="stretch" />
   <HostDownloadButton :host-id="host.id" />
@@ -11,8 +11,12 @@ import HostDownloadButton from '@/modules/host/components/actions/download/HostD
 import HostEnableButton from '@/modules/host/components/actions/enable/HostEnableButton.vue'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
+import { HOST_POWER_STATE } from '@vates/types'
+import { computed } from 'vue'
 
-defineProps<{
+const { host } = defineProps<{
   host: FrontXoHost
 }>()
+
+const hostIsHalted = computed(() => host.power_state === HOST_POWER_STATE.HALTED)
 </script>
