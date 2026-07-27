@@ -4,8 +4,8 @@ import { getUserPublicProperties } from '../utils.mjs'
 
 // ===================================================================
 
-export async function create({ email, password, permission }) {
-  return (await this.createUser({ email, password, permission })).id
+export async function create({ email, firstname, lastname, password, permission, username }) {
+  return (await this.createUser({ email, firstname, lastname, password, permission, username })).id
 }
 
 create.description = 'creates a new user'
@@ -14,8 +14,11 @@ create.permission = 'admin'
 
 create.params = {
   email: { type: 'string' },
+  firstname: { type: 'string', optional: true },
+  lastname: { type: 'string', optional: true },
   password: { type: 'string' },
   permission: { type: 'string', optional: true },
+  username: { type: 'string', optional: true },
 }
 
 // -------------------------------------------------------------------
@@ -66,14 +69,14 @@ getAuthenticationTokens.description = 'returns authentication tokens of the curr
 
 // -------------------------------------------------------------------
 
-export async function set({ id, email, password, permission, preferences }) {
+export async function set({ id, email, firstname, lastname, password, permission, preferences, username }) {
   const isAdmin = this.apiContext.permission === 'admin'
   if (isAdmin) {
     if (permission && id === this.apiContext.user.id) {
       throw invalidParameters('a user cannot change its own permission')
     }
-  } else if (email || password || permission) {
-    throw invalidParameters('this properties can only changed by an administrator')
+  } else if (email || firstname || lastname || password || permission || username) {
+    throw invalidParameters('this property can only be changed by an administrator')
   }
 
   const user = await this.getUser(id)
@@ -81,7 +84,7 @@ export async function set({ id, email, password, permission, preferences }) {
     throw forbiddenOperation('set password', 'cannot change the email or password of synchronized user')
   }
 
-  await this.updateUser(id, { email, password, permission, preferences })
+  await this.updateUser(id, { email, firstname, lastname, password, permission, preferences, username })
 }
 
 set.description = 'changes the properties of an existing user'
@@ -89,9 +92,12 @@ set.description = 'changes the properties of an existing user'
 set.params = {
   id: { type: 'string' },
   email: { type: 'string', optional: true },
+  firstname: { type: 'string', optional: true },
+  lastname: { type: 'string', optional: true },
   password: { type: 'string', optional: true },
   permission: { type: 'string', optional: true },
   preferences: { type: 'object', optional: true },
+  username: { type: 'string', optional: true },
 }
 
 // -------------------------------------------------------------------

@@ -55,7 +55,7 @@ export function extractProperty(obj, prop) {
 // -------------------------------------------------------------------
 
 export const getUserPublicProperties = user =>
-  pick(user, 'authProviders', 'id', 'email', 'groups', 'permission', 'preferences')
+  pick(user, 'authProviders', 'id', 'email', 'firstname', 'groups', 'lastname', 'permission', 'preferences', 'username')
 
 // -------------------------------------------------------------------
 

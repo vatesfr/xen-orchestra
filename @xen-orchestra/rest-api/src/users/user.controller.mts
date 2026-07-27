@@ -139,10 +139,13 @@ export class UserController extends XoController<XoUser> {
    *
    * Required privileges:
    * - resource: user, action: update (grants all fields)
+   * - resource: user, action: update:firstname (if firstname is passed)
+   * - resource: user, action: update:lastname (if lastname is passed)
    * - resource: user, action: update:name (if name is passed)
    * - resource: user, action: update:password (if password is passed)
    * - resource: user, action: update:permission (if permission is passed)
    * - resource: user, action: update:preferences (if preferences is passed)
+   * - resource: user, action: update:username (if username is passed)
    *
    * @example id "722d17b9-699b-49d2-8193-be1ac573d3de"
    * @example body {
@@ -158,7 +161,15 @@ export class UserController extends XoController<XoUser> {
     json(),
     acl({
       resource: 'user',
-      actions: actionsFromBody(['update:name', 'update:password', 'update:permission', 'update:preferences']),
+      actions: actionsFromBody([
+        'update:firstname',
+        'update:lastname',
+        'update:name',
+        'update:password',
+        'update:permission',
+        'update:preferences',
+        'update:username',
+      ]),
       objectId: 'params.id',
       getObject: ({ restApi }) => restApi.xoApp.getUser,
     }),
@@ -191,7 +202,14 @@ export class UserController extends XoController<XoUser> {
    * Required privilege:
    * - resource: user, action: create
    *
-   * @example body { "name": "new user", "password": "password", "permission": "none" }
+   * @example body {
+   *   "firstname": "Ada",
+   *   "lastname": "Lovelace",
+   *   "name": "new user",
+   *   "password": "password",
+   *   "permission": "none",
+   *   "username": "ada.lovelace"
+   *  }
    */
   @Example(userId)
   @Extension('x-mcp-exposure', 'confirm')
@@ -202,7 +220,15 @@ export class UserController extends XoController<XoUser> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(invalidParameters.status, invalidParameters.description)
   async createUser(
-    @Body() body: { name: string; password: string; permission?: XoUser['permission'] }
+    @Body()
+    body: {
+      firstname?: string
+      lastname?: string
+      name: string
+      password: string
+      permission?: XoUser['permission']
+      username?: string
+    }
   ): Promise<{ id: Unbrand<XoUser>['id'] }> {
     const user = await this.restApi.xoApp.createUser(body)
 
