@@ -1,9 +1,9 @@
 <template>
-  <template v-if="host.enabled || isEvacuateVm">
+  <template v-if="canDisableHost">
     <HostDisableButton :host />
     <HostDisableAndEvacuateVmButton :host />
   </template>
-  <HostEnableButton v-if="!host.enabled && !isEvacuateVm" :host />
+  <HostEnableButton v-else :host />
   <HostForgetButton v-if="hostIsHalted" :host />
   <VtsDivider type="stretch" />
   <HostDownloadButton :host-id="host.id" />
@@ -28,4 +28,6 @@ const { host } = defineProps<{
 const hostIsHalted = computed(() => host.power_state === HOST_POWER_STATE.HALTED)
 
 const isEvacuateVm = computed(() => isHostOperationPending(host, HOST_ALLOWED_OPERATIONS.EVACUATE))
+
+const canDisableHost = computed(() => host.enabled || hostIsHalted.value || isEvacuateVm.value)
 </script>
