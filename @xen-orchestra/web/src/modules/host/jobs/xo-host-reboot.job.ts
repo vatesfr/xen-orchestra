@@ -22,7 +22,11 @@ export const useXoHostRebootJob = defineJob('host.reboot', [xoHostArg], () => {
         throw new JobError(t('job:host-reboot:missing-host'))
       }
 
-      if (isRunning || isHostOperationPending(host, HOST_ALLOWED_OPERATIONS.REBOOT)) {
+      if (
+        isRunning ||
+        isHostOperationPending(host, HOST_ALLOWED_OPERATIONS.EVACUATE) ||
+        isHostOperationPending(host, HOST_ALLOWED_OPERATIONS.REBOOT)
+      ) {
         throw new JobRunningError(t('job:host-reboot:in-progress'))
       }
 
