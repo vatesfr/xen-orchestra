@@ -1,4 +1,6 @@
 import type { NextFunction, Request, Response } from 'express'
+import type { VatesTask } from './vates-task.mjs'
+import type { XoApp } from '../xo-app.mjs'
 
 export type SecurityName = '*' | 'token' | 'basic' | 'none'
 
@@ -42,7 +44,15 @@ export type ParamFieldDefinition = Exclude<
 >
 
 export type QueryFieldDefinition = Exclude<FieldDefinition, { type: 'object' } | { type: 'array' }>
-type RestApi = object
+type RestApi = object & { xoApp: XoApp }
+export type CreateAction = <Result>(
+  callback: (task: VatesTask) => MaybePromise<Result>,
+  opts: {
+    sync?: boolean
+    statusCode?: number
+    taskProperties: { name: string; [key: string]: unknown }
+  }
+) => Promise<Result | undefined>
 
 export interface BaseRouteDefinition<Middleware> {
   method: 'get' | 'post' | 'put' | 'delete' | 'patch'
@@ -64,7 +74,7 @@ export interface BaseRouteDefinition<Middleware> {
     res: Response
     next: NextFunction
     restApi: RestApi
-    createAction: Function
+    createAction: CreateAction
   }) => MaybePromise<unknown>
   security?: SecurityName
 }

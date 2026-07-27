@@ -17,11 +17,11 @@ import { iocContainer } from '../ioc/ioc.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import {
   CONTENT_TYPE_BY_MIDDLEWARE_NAME,
-  type CreateAction,
   type FieldDefinition,
   type MiddlewareDescriptor,
   type RouteDefinition,
 } from './types.mjs'
+import { CreateAction } from '@vates/types'
 
 const log = createLogger('xo:rest-api:external-router')
 
