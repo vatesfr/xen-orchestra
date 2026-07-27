@@ -1,4 +1,4 @@
-import assert from 'node:assert'
+import assert, { strictEqual } from 'node:assert'
 import { test } from 'node:test'
 import { DiskLargerBlock } from './DiskLargerBlock.mjs'
 import { RandomAccessDisk, DiskBlock, Disk } from './Disk.mjs'
@@ -45,7 +45,7 @@ class MockDisk extends RandomAccessDisk {
     this.closed = true
   }
   isDifferencing(): boolean {
-    return this.isDiff
+    return this.parentDisk !== null || this.isDiff
   }
   instantiateParent(): RandomAccessDisk {
     if (!this.parentDisk) throw new Error('No parent disk available')
@@ -275,4 +275,30 @@ test('generator', async () => {
   for await (const block of disk.diskBlocks()) {
     assert.strictEqual(block.data.length, 1024)
   }
+})
+
+test('readblock missing block throws', async () => {
+  const parentBlock = createPatternBuffer(512, 'PARENT')
+  const childBlock = createPatternBuffer(512, 'CHILD')
+  const sourceParent = new MockDisk(512, 2048, [
+    [0, parentBlock],
+    [1, parentBlock],
+    [2, parentBlock],
+    [3, parentBlock],
+  ])
+  await sourceParent.init()
+  const source = new MockDisk(512, 2048, [[2, childBlock]])
+  source.parentDisk = sourceParent
+  await source.init()
+
+  const disk = new DiskLargerBlock(source, 1024)
+  await disk.init()
+  assert.strictEqual(disk.getBlockIndexesCount(), 1)
+  for await (const block of disk.diskBlocks()) {
+    assert.strictEqual(block.index, 1)
+    assert.ok(block.data.slice(0, 512).equals(childBlock), 'missing child data ')
+    assert.ok(block.data.slice(512, 1024).equals(parentBlock), 'missing parent data')
+  }
+
+  await assert.rejects(() => disk.readBlock(0))
 })
