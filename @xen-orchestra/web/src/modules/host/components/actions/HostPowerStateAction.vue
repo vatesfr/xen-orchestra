@@ -1,6 +1,8 @@
 <template>
-  <HostRebootButton v-if="hostIsRunning" :host />
-  <HostShutdownButton v-if="hostIsRunning" :host />
+  <div v-if="hostIsRunning">
+    <HostRebootButton :host />
+    <HostShutdownButton :host />
+  </div>
   <HostStartButton v-else :host />
 </template>
 
