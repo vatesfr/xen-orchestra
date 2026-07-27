@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="info" icon="status:info-picto">
+  <VtsModal accent="info" icon="status:info-picto" dismissible>
     <template #title>
       {{ t('vdi-detach-title', { n: count }) }}
     </template>

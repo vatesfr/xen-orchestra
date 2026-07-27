@@ -46,6 +46,7 @@ To enable syslog, add this to your configuration file (`/etc/xo-server/config.to
 [logs.transport.syslog]
 target = 'tcp://syslog.example.org:514'
 ```
+
 All logs viewable from `journalctl -u xo-server` will now be sent to your central syslog server.
 
 ##### Compatibility
@@ -71,9 +72,10 @@ The encryption algorithms are authenticated, meaning additional metadata is appe
 Encryption is opt-in and requires configuring an encryption key on the remote.
 
 :::warning
+
 - Encryption is only compatible with block-based remotes.
 - Encryption cannot be changed (such as enabling, disabling or changing the encryption key) if a remote contains any backup.
-:::
+  :::
 
 1. Go to the Settings → Remote menu.
 2. Go to the section called **New file system remote**, or edit an existing remote.
@@ -132,12 +134,12 @@ By scheduling regular backups, you protect your infrastructure from accidental d
 To see the schedules associated with a specific backup job:
 
 1. Navigate to the **Backup** menu.\
-A list of backup jobs will be displayed.
+   A list of backup jobs will be displayed.
 2. For the backup job you're interested in, click the **pencil** ✏️ icon in the **Notes** column.\
-This will open the backup job details screen.
+   This will open the backup job details screen.
 3. In the **Schedules** section of the details screen, you'll find the list of schedules for that backup job:
 
-    ![](../assets/backup-schedule-list.png)
+   ![](../assets/backup-schedule-list.png)
 
 ### Creating a schedule
 
@@ -145,28 +147,27 @@ To set up a schedule for a backup job:
 
 1. Navigate to the details page of your backup job (refer to the previous section, "Viewing Schedules for a Backup Job").
 2. In the **Schedules** section of your backup job, click the **Add a schedule** button, represented by a ➕ icon.\
-    A form for creating a schedule will appear:
-    ![](../assets/create-backup-schedule.png)
-
+   A form for creating a schedule will appear:
+   ![](../assets/create-backup-schedule.png)
 
 3. Use the form to configure your schedule.\
-    Here's a list of the parameters you can adjust:
+   Here's a list of the parameters you can adjust:
 
-| Parameter             | Description |
-|-----------------------|-------------|
-| **Name**              | A label to identify your schedule. Useful when managing multiple jobs. |
-| **Pool retention** | Number of snapshots to keep for pool metadata. Older snapshots beyond this count will be automatically removed. |
-| **XO retention** | Number of snapshots to keep for XO metadata. Older snapshots beyond this count will be automatically removed. | |
-| **Replication retention** | Number of replicated snapshots to keep. Older snapshots beyond this count will be automatically removed. |
-| **Health check**      | If enabled, a VM [health check](#backup-health-check) is performed after the backup to detect issues early (e.g., boot errors). |
-| **Force full backup** | Forces a full backup at every run, even if incremental backups are enabled. |
-| **Month(s)**          | Select specific months during which the schedule should run. |
-| **Day(s)**            | Select days of the month for the job to execute. You can choose specific dates or all days. |
-| **Hour**              | Choose the hour of the day the backup job should start. |
-| **Minute**            | Choose the exact minute the job should start. |
-| **Timezone**          | Determines the timezone in which the schedule should apply. You can also use your browser's local timezone. |
-| **Cron Pattern**      | Automatically generated from your selections to define when the job will run. |
-| **Preview**           | A list of upcoming executions based on your current configuration. Useful to verify the setup. |
+| Parameter                 | Description                                                                                                                     |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | --- |
+| **Name**                  | A label to identify your schedule. Useful when managing multiple jobs.                                                          |
+| **Pool retention**        | Number of snapshots to keep for pool metadata. Older snapshots beyond this count will be automatically removed.                 |
+| **XO retention**          | Number of snapshots to keep for XO metadata. Older snapshots beyond this count will be automatically removed.                   |     |
+| **Replication retention** | Number of replicated snapshots to keep. Older snapshots beyond this count will be automatically removed.                        |
+| **Health check**          | If enabled, a VM [health check](#backup-health-check) is performed after the backup to detect issues early (e.g., boot errors). |
+| **Force full backup**     | Forces a full backup at every run, even if incremental backups are enabled.                                                     |
+| **Month(s)**              | Select specific months during which the schedule should run.                                                                    |
+| **Day(s)**                | Select days of the month for the job to execute. You can choose specific dates or all days.                                     |
+| **Hour**                  | Choose the hour of the day the backup job should start.                                                                         |
+| **Minute**                | Choose the exact minute the job should start.                                                                                   |
+| **Timezone**              | Determines the timezone in which the schedule should apply. You can also use your browser's local timezone.                     |
+| **Cron Pattern**          | Automatically generated from your selections to define when the job will run.                                                   |
+| **Preview**               | A list of upcoming executions based on your current configuration. Useful to verify the setup.                                  |
 
 :::tip
 
@@ -175,7 +176,7 @@ Depending on your backup type, not all settings may be visible, particularly tho
 :::
 
 4. Click the **OK** button.\
-    Your schedule will be created and applied to the backup job.
+   Your schedule will be created and applied to the backup job.
 
 ## Smart Backup
 
@@ -285,10 +286,11 @@ Supported remote types:
 - SMB (CIFS)
 
 :::warning
+
 - The initial "/" or "\\" is automatically added.
 - For disks larger than **2 TB**, store backups on **block-based remotes**.
 - For **qcow2** disks, use **NBD** mode for backups.
-:::
+  :::
 
 ### NFS
 
@@ -334,11 +336,30 @@ Any Debian Linux mount point could be supported this way, until we add further o
 Xen Orchestra supports Amazon S3 storage and other S3-compatible providers, so you can back up your data to a variety of cloud storage services.
 
 :::warning
+
 - Not all S3-compatible providers adhere perfectly to Amazon S3 standards. Make sure to test your setup before trusting it with critical backups.
 - Losing your encryption key means your backups will be permanently inaccessible. If you enable encryption, make sure your key is stored securely, and outside of the backed up infrastructure, as there's no way to recover your data without it.
-:::
+  :::
 
 ![](../assets/XO-Amazon-S3-remote.png)
+
+### Microsoft Azure
+
+Xen Orchestra supports Microsoft Azure Blob Storage as a remote, as well as [Azurite](https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite) (the Azure Storage emulator) for testing purposes.
+
+To configure an Azure remote, you'll need:
+
+- **Storage account name**, used as the username
+- **Access key**, used as the password
+- **Container**, the first segment of the path, used as the Blob container name
+
+:::tip
+
+- When using Azurite instead of real Azure, select the **Azurite** type and provide the emulator's host/port.
+- Container names must be **lowercase**.
+  :::
+
+![](../assets/XO-Azure-remote.png)
 
 ## Restore a backup
 
@@ -379,14 +400,14 @@ Make sure the following conditions are met in order to do a differential restore
 To perform a differential restore:
 
 1. Go to the **Backup → Restore** menu.\
-A list of VMs appears.
+   A list of VMs appears.
 2. Choose the VM you want to restore from the list. In the last column, click the **Restore** icon.\
-A pop-up window with a drop-down list appears.
+   A pop-up window with a drop-down list appears.
 3. Choose the backup you want to restore from the drop-down list.\
-More parameters appear, including a drop-down list for your destination Storage Repository (SR).
+   More parameters appear, including a drop-down list for your destination Storage Repository (SR).
 4. From that drop-down list, choose your destination SR.
 5. Activate the switch called **Use differential restore**:
-![](../assets/use-differential-restore.png)
+   ![](../assets/use-differential-restore.png)
 6. Click **OK** to start the restore.
 
 ## File level restore
@@ -394,13 +415,14 @@ More parameters appear, including a drop-down list for your destination Storage 
 You can also restore specific files and directories inside a VM. It works with all your existing delta backups.
 
 :::warning
+
 - File level restore **is only possible on incremental backups**. Also, due of some technical limitations, you won't be able to do file level restore if you have a chain longer than 99 (ie retention longer than 99 records without any full between). Take a look at the [key backup interval section](./incremental_backups/#key-backup-interval) to set this correctly.
 - File level restore **is only possible on a single VDI**, it does not support LVM Volume Groups that span multiple VDIs.
 - The following Microsoft solutions are **not supported**:
-   - [Data Deduplication](https://learn.microsoft.com/en-us/windows-server/storage/data-deduplication/overview)
-   - [Logical Disk Manager](https://en.wikipedia.org/wiki/Logical_Disk_Manager) (LDM)
-   - [Resilient File System](https://learn.microsoft.com/en-us/windows-server/storage/refs/refs-overview) (ReFS)
-:::
+  - [Data Deduplication](https://learn.microsoft.com/en-us/windows-server/storage/data-deduplication/overview)
+  - [Logical Disk Manager](https://en.wikipedia.org/wiki/Logical_Disk_Manager) (LDM)
+  - [Resilient File System](https://learn.microsoft.com/en-us/windows-server/storage/refs/refs-overview) (ReFS)
+    :::
 
 ### Restore a file
 
@@ -584,12 +606,13 @@ Xen Orchestra supports the **Grandfather-Father-Son (GFS)** backup retention str
   The oldest backup within each retention period (daily, weekly, or monthly) is preserved. For example, the first backup of the week is saved as the weekly backup.
 
 :::warning
+
 - **Definition of a week:**\
-The start of the week is computed with the timezone set in the schedule.
+  The start of the week is computed with the timezone set in the schedule.
 - **What GFS isn't:**\
-GFS in Xen Orchestra stands for Grandfather-Father-Son. It's a backup strategy, and is not related to the file system called GFS2 (or Global File System 2), supported by XenServer.
+  GFS in Xen Orchestra stands for Grandfather-Father-Son. It's a backup strategy, and is not related to the file system called GFS2 (or Global File System 2), supported by XenServer.
 - GFS retention is defined per schedule. For example, if a backup has two schedules, two independent GFS backups will be created. This is why we recommend using a single schedule for any job utilizing GFS long-term retention.
-:::
+  :::
 
 #### Enabling GFS Retention
 
@@ -598,12 +621,14 @@ To enable GFS retention:
 1. Go to the **Backup** menu.
 2. Create a new backup job or open an existing one.
 3. Click the **Delta Backup** button.\
-The section called **Long-term retention of backups** appears.
+   The section called **Long-term retention of backups** appears.
 4. In that section, you can define the following:
+
 - **Daily backups**: The number of daily backups to keep.
 - **Weekly backups** (Son): The number of weekly backups to keep.
 - **Monthly backups** (Father): The number of monthly backups to keep.
 - **Yearly backups** (Grandfather): The number of yearly backups to keep.
+
 5. Click the **Save** button.
 
 During each backup run, Xen Orchestra evaluates existing backups and removes any excess backups based on the configured policy.

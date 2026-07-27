@@ -52,8 +52,9 @@ export type CreateVmAfterCreateParams = {
 }
 export type CreateVmBody = Omit<
   CreateVmParams,
-  'nameLabel' | 'existingVdis' | 'vdis' | 'affinityHost' | 'installRepository'
+  'nameLabel' | 'existingVdis' | 'vdis' | 'affinityHost' | 'installRepository' | 'highAvailability'
 > & {
+  high_availability: CreateVmParams['highAvailability']
   /** template UUID */
   template: XoVmTemplate['uuid']
   affinity?: XoHost['id']

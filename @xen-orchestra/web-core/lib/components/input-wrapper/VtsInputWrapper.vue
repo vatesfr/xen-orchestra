@@ -51,10 +51,10 @@ const unsortedMessages = useArrayMap(
   })
 )
 
-const messages = useRanked(unsortedMessages, ({ accent }) => accent, ['danger', 'warning', 'success', 'info'])
+const messages = useRanked(unsortedMessages, ({ accent }) => accent, ['muted', 'info', 'success', 'warning', 'danger'])
 
 const labelAccent = useMapper<InfoAccent, LabelAccent>(
-  () => messages.value[0]?.accent,
+  () => messages.value.at(-1)?.accent,
   {
     info: 'neutral',
     success: 'neutral',

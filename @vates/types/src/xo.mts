@@ -76,7 +76,7 @@ type BaseXoVm = BaseXapiXo & {
   expNestedHvm: boolean
   isNestedVirtEnabled: boolean
   hasVendorDevice: boolean
-  high_availability: string
+  high_availability: 'best-effort' | 'restart' | ''
   installTime?: number | null
   isFirmwareSupported: boolean
   memory: {
@@ -222,6 +222,7 @@ export type XoGroup = {
   provider?: string
   providerGroupId?: string
   users: XoUser['id'][]
+  aclRoleIds: XoAclRole['id'][]
 }
 
 export type XoHost = BaseXapiXo & {
@@ -613,7 +614,7 @@ export type XoSr = BaseXapiXo & {
   VDIs: AnyXoVdi['id'][]
 
   allocationStrategy?: 'thin' | 'thick' | 'unknown'
-  content_type: string
+  content_type: 'user' | 'iso' | 'disk'
   current_operations: Record<string, STORAGE_OPERATIONS>
   id: Branded<'SR'>
   inMaintenanceMode: boolean
@@ -624,7 +625,28 @@ export type XoSr = BaseXapiXo & {
   shared: boolean
   size: number
   sm_config: Record<string, string>
-  SR_type: string
+  // SM drivers shipped with XCP-ng/XenServer
+  SR_type:
+    | 'cephfs'
+    | 'dummy'
+    | 'ext'
+    | 'file'
+    | 'glusterfs'
+    | 'hba'
+    | 'iso'
+    | 'largeblock'
+    | 'linstor'
+    | 'lvm'
+    | 'lvmofcoe'
+    | 'lvmohba'
+    | 'lvmoiscsi'
+    | 'moosefs'
+    | 'nfs'
+    | 'shm'
+    | 'smb'
+    | 'udev'
+    | 'xfs'
+    | 'zfs'
   tags: string[]
   type: 'SR'
   usage: number

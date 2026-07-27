@@ -10,11 +10,10 @@
       type="text"
       accent="brand"
       :aria-label="uiStore.isSmall ? t('query-search-bar:label') : undefined"
-      :icon="!uiStore.isSmall ? 'fa:magnifying-glass' : undefined"
       :placeholder="t('query-search-bar:placeholder')"
     />
     <template v-if="!uiStore.isSmall">
-      <UiButton size="medium" accent="brand" variant="primary" type="submit" class="action-button">
+      <UiButton size="medium" accent="brand" variant="secondary" type="submit" class="action-button">
         {{ t('action:search') }}
       </UiButton>
     </template>

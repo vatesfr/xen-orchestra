@@ -25,7 +25,7 @@
   <MenuItem
     :busy="areVmsBusyToResume"
     :disabled="!areVmsSuspended && !areVmsPaused"
-    icon="fa:circle-play"
+    icon="fa:play"
     @click="xenApi.vm.resume(vmRefsWithPowerState)"
   >
     {{ t('action:resume') }}
@@ -33,7 +33,7 @@
   <MenuItem
     :busy="areVmsBusyToReboot"
     :disabled="!areVmsRunning"
-    icon="fa:rotate-left"
+    icon="action:reboot"
     @click="xenApi.vm.reboot(vmRefs)"
   >
     {{ t('action:reboot') }}
@@ -41,7 +41,7 @@
   <MenuItem
     :busy="areVmsBusyToForceReboot"
     :disabled="!areVmsRunning && !areVmsPaused"
-    icon="fa:repeat"
+    icon="action:force-reboot"
     @click="xenApi.vm.reboot(vmRefs, true)"
   >
     {{ t('action:force-reboot') }}
@@ -49,7 +49,7 @@
   <MenuItem
     :busy="areVmsBusyToShutdown"
     :disabled="!areVmsRunning"
-    icon="fa:power-off"
+    icon="action:shutdown"
     @click="xenApi.vm.shutdown(vmRefs)"
   >
     {{ t('action:shutdown') }}
@@ -57,7 +57,7 @@
   <MenuItem
     :busy="areVmsBusyToForceShutdown"
     :disabled="!areVmsRunning && !areVmsSuspended && !areVmsPaused"
-    icon="fa:plug"
+    icon="action:force-shutdown"
     @click="xenApi.vm.shutdown(vmRefs, true)"
   >
     {{ t('action:force-shutdown') }}

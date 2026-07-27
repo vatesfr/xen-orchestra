@@ -4,7 +4,7 @@
       vmRefs.length > 0 && !isSomeExportable && t(isSingleAction ? 'vm-is-running' : 'no-selected-vm-can-be-exported')
     "
     :disabled="isDisabled"
-    icon="object:vm"
+    icon="action:download"
     @click="openExportModal"
   >
     {{ t('action:export-vm', isSingleAction ? 1 : 2) }}

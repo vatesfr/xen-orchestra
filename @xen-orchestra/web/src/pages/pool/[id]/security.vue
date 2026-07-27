@@ -21,6 +21,7 @@ import TrafficRulesSidePanel from '@/modules/traffic-rules/components/list/panel
 import TrafficRulesTable from '@/modules/traffic-rules/components/TrafficRulesTable.vue'
 import { useTrafficRules } from '@/modules/traffic-rules/composables/traffic-rules.composable'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -41,7 +42,9 @@ const { vifs, areVifsReady } = useXoVifCollection()
 
 const { networks, areNetworksReady } = useXoNetworkCollection()
 
-const isReady = logicAnd(areVifsReady, areNetworksReady)
+const { areVmsReady } = useXoVmCollection()
+
+const isReady = logicAnd(areVifsReady, areNetworksReady, areVmsReady)
 
 const poolVifs = computed(() => vifs.value.filter(vif => vif.$pool === pool.id))
 
