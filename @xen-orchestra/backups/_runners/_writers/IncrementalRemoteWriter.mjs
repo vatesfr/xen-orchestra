@@ -14,9 +14,8 @@ import { getOldEntries } from '../../_getOldEntries.mjs'
 
 import { MixinRemoteWriter } from './_MixinRemoteWriter.mjs'
 import { AbstractIncrementalWriter } from './_AbstractIncrementalWriter.mjs'
-import { checkVhd } from './_checkVhd.mjs'
+import { checkDisk } from './_checkDisk.mjs'
 import { packUuid } from './_packUuid.mjs'
-
 const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
 export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWriter) {
@@ -201,7 +200,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
           }
 
           const transferred = await adapter.writeVhd(path, disk, {
-            validator: tmpPath => checkVhd(handler, tmpPath),
+            validator: tmpPath => checkDisk(handler, tmpPath),
             writeBlockConcurrency: this._config.writeBlockConcurrency,
             uuid: packUuid(vdi.uuid),
             parentUuid,

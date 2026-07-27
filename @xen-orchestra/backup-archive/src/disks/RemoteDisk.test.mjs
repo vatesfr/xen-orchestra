@@ -196,6 +196,49 @@ describe('tests RemoteVhdDisk', { concurrency: 1 }, () => {
 })
 
 /**
+ * RemoteVhdDisk#setChainToParent
+ */
+describe('tests RemoteVhdDisk.setChainToParent', { concurrency: 1 }, () => {
+  test('chains a differencing disk to a new parent', async () => {
+    await generateVhd(`${basePath}/parent.vhd`)
+    await generateVhd(`${basePath}/child.vhd`, {
+      header: {
+        parentUnicodeName: 'unrelated.vhd',
+        parentUuid: uniqueIdBuffer(),
+      },
+    })
+
+    const parentDisk = new RemoteVhdDisk({ handler, path: `${basePath}/parent.vhd` })
+    const childDisk = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd` })
+    await parentDisk.init({ force: false })
+    await childDisk.init({ force: false })
+
+    await childDisk.setChainToParent(parentDisk)
+
+    assert.equal(childDisk.getParentUuid(), parentDisk.getUuid())
+    assert.equal(childDisk.getParentPath(), `/${basePath}/parent.vhd`)
+
+    // reopen from disk to confirm the header/footer were actually persisted
+    const reopened = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd` })
+    await reopened.init({ force: false })
+    assert.equal(reopened.getParentUuid(), parentDisk.getUuid())
+    assert.equal(reopened.getParentPath(), `/${basePath}/parent.vhd`)
+  })
+
+  test('throws when chaining a non-differencing disk', async () => {
+    await generateVhd(`${basePath}/parent.vhd`)
+    await generateVhd(`${basePath}/child.vhd`)
+
+    const parentDisk = new RemoteVhdDisk({ handler, path: `${basePath}/parent.vhd` })
+    const childDisk = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd` })
+    await parentDisk.init({ force: false })
+    await childDisk.init({ force: false })
+
+    await assert.rejects(() => childDisk.setChainToParent(parentDisk), /cannot chain disk of type/)
+  })
+})
+
+/**
  * RemoteVhdDiskChain
  */
 describe('tests RemoteVhdDiskChain', { concurrency: 1 }, () => {
