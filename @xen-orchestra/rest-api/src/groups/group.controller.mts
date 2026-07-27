@@ -20,7 +20,7 @@ import {
 import { inject } from 'inversify'
 import { json, type Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
-import type { XoGroup, XoTask, XoUser } from '@vates/types'
+import type { XoAclRole, XoGroup, XoTask, XoUser } from '@vates/types'
 
 import { forbiddenOperation } from 'xo-common/api-errors.js'
 import {
@@ -44,6 +44,7 @@ import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import { partialUsers, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
 import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
 import { acl, actionFromBody } from '../middlewares/acl.middleware.mjs'
+import { aclRoleIds, partialAclRoles } from '../open-api/oa-examples/acl-role.oa-example.mjs'
 
 @Route('groups')
 @Security('*')
@@ -326,6 +327,41 @@ export class GroupController extends XoController<XoGroup> {
       path: 'tasks',
       limit,
       privilege: { action: 'read', resource: 'task' },
+    })
+  }
+
+  /**
+   * Returns all acl-roles that match the following privilege:
+   * - resource: acl-role, action: read
+   *
+   * @example id "6c81b5e1-afc1-43ea-8f8d-939ceb5f3f90"
+   * @example fields "id,name,isTemplate"
+   * @example filter "name:read only"
+   * @example limit 42
+   */
+  @Example(aclRoleIds)
+  @Example(partialAclRoles)
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/acl-roles')
+  @Security('*', ['acl'])
+  @Tags('rbacs')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getGroupAclRoles(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<Exclude<XoAclRole, { isTemplate: true }>>>> {
+    const group = await this.getObject(id as XoGroup['id'])
+    const roles = await Promise.all(group.aclRoleIds.map(roleId => this.restApi.xoApp.getAclV2Role(roleId)))
+
+    return this.sendObjects(limitAndFilterArray(roles, { filter }), req, {
+      path: 'acl-roles',
+      limit,
+      privilege: { action: 'read', resource: 'acl-role' },
     })
   }
 }

@@ -233,6 +233,36 @@ export interface Xapi {
   powerOnHost(hostId: XoHost['id']): Promise<void>
   rebootHost(hostId: XoHost['id'], force?: boolean): Promise<void>
   shutdownHost(hostId: XoHost['id'], opts?: { force?: boolean; bypassEvacuate?: boolean }): Promise<void>
+  SR_create(params: {
+    content_type?: XoSr['content_type']
+    // index signature, not `Record<string, string>`: tsoa emits an empty schema for `Record`
+    // (https://github.com/lukeautry/tsoa/pull/1858). device_config keys are driver-specific (SR_type).
+    device_config: {
+      chapuser?: string
+      chappassword?: string
+      device?: string
+      legacy_mode?: string
+      location?: string
+      nfsversion?: string
+      options?: string
+      password?: string
+      SCSIid?: string
+      server?: string
+      serverpath?: string
+      target?: string
+      targetIQN?: string
+      username?: string
+    } & {
+      [key: string]: string
+    }
+    host: XenApiHost['$ref']
+    name_description?: XoSr['name_description']
+    name_label: XoSr['name_label']
+    physical_size?: number
+    shared: boolean
+    sm_config?: { [key: string]: string }
+    type: XoSr['SR_type']
+  }): Promise<XenApiSr['$ref']>
   SR_importVdi(
     ref: XenApiSr['$ref'],
     stream: Readable,
@@ -328,6 +358,7 @@ export interface Xapi {
       vgpuType?: XoVgpuType['id']
       gpuGroup?: XoGpuGroup['id']
       copyHostBiosStrings?: boolean
+      highAvailability?: XoVm['high_availability']
       hvmBootFirmware?: 'uefi' | 'bios'
       secureBoot?: boolean
     },

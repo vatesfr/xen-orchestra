@@ -1,5 +1,5 @@
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
-import type { Task } from '@core/types/task.type.ts'
+import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
 
 export const convertXoTaskToCore = (task: FrontXoTask, userName?: string): Task => ({
   id: task.id,

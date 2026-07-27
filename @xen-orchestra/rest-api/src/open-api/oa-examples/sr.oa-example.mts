@@ -1,3 +1,7 @@
+export const srId = {
+  id: 'c4284e12-37c9-7967-b9e8-83ef229c3e03',
+}
+
 export const srIds = [
   '/rest/v0/srs/e46e7ea5-1bbe-e499-69a5-6bfb395eb146',
   '/rest/v0/srs/3d1227f3-7d40-a104-efc6-fb797b58f258',

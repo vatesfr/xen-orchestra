@@ -3,7 +3,7 @@
   <div class="ui-head-bar">
     <div class="label-wrapper">
       <slot name="icon">
-        <VtsIcon :name="icon" size="medium" />
+        <VtsIcon :name="icon" size="large" />
       </slot>
       <h4 v-tooltip class="typo-h4 label text-ellipsis">
         <slot />

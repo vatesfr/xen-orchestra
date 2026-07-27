@@ -10,7 +10,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VmStartOnHostState from '@/modules/vm/components/actions/start/VmStartOnHostState.vue'
 import { useXoVmStartOnJob } from '@/modules/vm/jobs/xo-vm-start-on.job.ts'

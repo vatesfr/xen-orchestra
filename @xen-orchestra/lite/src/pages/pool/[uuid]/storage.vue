@@ -1,9 +1,9 @@
 <template>
   <VtsContentSidePanel class="pool-storage-view" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
-      <StorageRepositoriesTable v-if="pool" :srs="sortedSrs" :pool :busy="!isReady" :error="hasError" />
+      <StorageRepositoriesTable v-if="pool" :srs="sortedSrs" :pool :scope :busy="!isReady" :error="hasError" />
     </UiCard>
-    <StorageRepositorySidePanel v-if="pool" :sr="selectedSr" :pool @close="selectedSr = undefined" />
+    <StorageRepositorySidePanel v-if="pool" :sr="selectedSr" :pool :scope @close="selectedSr = undefined" />
   </VtsContentSidePanel>
 </template>
 
@@ -19,6 +19,7 @@ import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
@@ -34,6 +35,8 @@ const { isReady: arePbdsReady } = usePbdStore().subscribe()
 const uiStore = useUiStore()
 
 const isReady = logicAnd(areSrsReady, arePbdsReady)
+
+const scope: SrScope = { type: SR_SCOPE_TYPE.POOL }
 
 const sortedSrs = computed(() => [...srs.value].sort(sortByNameLabel))
 

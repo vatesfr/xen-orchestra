@@ -1,5 +1,6 @@
 import { createLogger } from '@xen-orchestra/log'
 import assert from 'node:assert'
+import { getSyncedHandler } from '@xen-orchestra/fs'
 
 const log = createLogger('xo:qa-test:backup-utils')
 
@@ -58,6 +59,30 @@ export const assertRepositoryMatchesConfig = (repository, expectedUrl) => {
         `Delete this remote in XO and re-run, or update the env to match the existing remote.`
     )
   }
+}
+
+// Same find-or-create logic as tests/setup.js, factored out for reuse by load tests.
+// Only tracks (for teardown) the repository if this call is the one that created it.
+export async function resolveOrCreateBackupRepository(dispatchClient, tracker, { name, url }) {
+  if (url.startsWith('file://')) {
+    const { dispose } = await getSyncedHandler({ url })
+    await dispose()
+  }
+
+  const existing = await dispatchClient.backupRepository.get({ name })
+  if (existing) {
+    assertRepositoryMatchesConfig(existing, url)
+    return existing
+  }
+
+  const id = await dispatchClient.backupRepository.create(name, { url })
+  const created = await dispatchClient.backupRepository.get({ id })
+  if (!created) {
+    throw new Error(`Failed to retrieve created backup repository ${id}`)
+  }
+  tracker?.trackResource('backupRepository', id, { name })
+  log.debug('Created backup repository', { name, id })
+  return created
 }
 
 /**

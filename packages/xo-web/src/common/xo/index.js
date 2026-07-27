@@ -1847,7 +1847,7 @@ export const editVmNotes = async vm => {
   await _call('vm.set', { id: resolveId(vm), notes: notes || null })
 }
 
-export const createKubernetesCluster = params => _call('xoa.recipe.createKubernetesCluster', params)
+export const createKubernetesCluster = params => _call('hub.recipe.createKubernetesCluster', params)
 
 export const createEasyVirtVm = params => _call('xoa.recipe.createEasyVirtVm', params)
 

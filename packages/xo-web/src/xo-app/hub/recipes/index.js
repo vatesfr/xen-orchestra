@@ -3,8 +3,7 @@ import React from 'react'
 import { adminOnly } from 'utils'
 import { Container, Col, Row } from 'grid'
 
-import RecipeKub from './recipe-kub'
-import RecipeEasyVirt from './recipe-ev'
+import RECIPES from './recipes'
 
 // ==================================================================
 
@@ -13,12 +12,11 @@ export default decorate([
   () => (
     <Container>
       <Row>
-        <Col mediumSize={4}>
-          <RecipeKub />
-        </Col>
-        <Col mediumSize={4}>
-          <RecipeEasyVirt />
-        </Col>
+        {RECIPES.filter(({ isAvailable }) => isAvailable()).map(({ id, component: Recipe }) => (
+          <Col key={id} mediumSize={4}>
+            <Recipe />
+          </Col>
+        ))}
       </Row>
     </Container>
   ),
