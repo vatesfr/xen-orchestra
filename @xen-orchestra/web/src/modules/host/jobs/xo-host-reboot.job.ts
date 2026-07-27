@@ -11,11 +11,7 @@ export const useXoHostRebootJob = defineJob('host.reboot', [xoHostArg], () => {
   const { monitorTask } = useXoTaskUtils()
 
   return {
-    async run(host: FrontXoHost | undefined) {
-      if (!host) {
-        return
-      }
-
+    async run(host: FrontXoHost) {
       const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`hosts/${host.id}/actions/clean_reboot`)
       await monitorTask(taskId)
     },
