@@ -35,7 +35,7 @@
 - [Site] Add "New VM" and "Connect pool" actions to the site infrastructure tree (PR [#10047](https://github.com/vatesfr/xen-orchestra/pull/10047))
 - [Site] Add "Connect pool" action to the site infrastructure tree (PR [#10047](https://github.com/vatesfr/xen-orchestra/pull/10047))
 - [Pool] Add new VM and disconnect actions to the pool infrastructure tree (PR [#10046](https://github.com/vatesfr/xen-orchestra/pull/10046))
-- [Pool] Add connect/disconnect action on page Site (PR [#10075])(https://github.com/vatesfr/xen-orchestra/pull/10075)
+- [Pool] Add connect/disconnect action on page Site (PR [#10075](https://github.com/vatesfr/xen-orchestra/pull/10075))
 - [Host] Add possibilty to enable or disable an host (PR [#10074](https://github.com/vatesfr/xen-orchestra/pull/10074))
 - [VM] Add possibility to duplicate a VM (PR [#9580](https://github.com/vatesfr/xen-orchestra/pull/9580))
 - [VM] Group VM power actions in a new "Change state" submenu and isolate the Delete action (PR [#10036](https://github.com/vatesfr/xen-orchestra/pull/10036))
