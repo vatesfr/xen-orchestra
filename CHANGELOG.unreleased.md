@@ -74,6 +74,7 @@
 - [XO6/Host] Wrap the Network name in the PIF side panel (PR [#10155](https://github.com/vatesfr/xen-orchestra/pull/10155))
 - [About/Hub] Fix "Failed to fetch latest master commit" and the microk8s version list: the default `Content-Security-Policy` now allows the browser to reach the GitHub API (PR [#10162](https://github.com/vatesfr/xen-orchestra/pull/10162))
 - [Qcow2 import] show a valid progress bar for qcow2 disk import from form , command line or V2V (PR [#10133](https://github.com/vatesfr/xen-orchestra/pull/10133))
+- [Backup] Fix `unexpected number of entries in backup cache` warning not resolving automatically (PR [#10132](https://github.com/vatesfr/xen-orchestra/pull/10132))
 
 ### Packages to release
 
