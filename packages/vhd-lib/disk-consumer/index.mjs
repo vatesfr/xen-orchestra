@@ -10,6 +10,9 @@
  * @property {string} compression
  * @property {number} concurrency
  * @property {string} flags
+ * @property {Buffer?} uuid
+ * @property {Buffer?} parentUuid
+ * @property {string?} parentPath
  * @property {(path: string) => Promise<void>} validator
  *
  */
@@ -20,11 +23,11 @@ import { DiskConsumerVhdDirectory } from './DiskConsumerVhdDirectory.mjs'
 /**
  *
  * @param {Disk} disk
- * @param {{ signal?: AbortSignal }} [options]
+ * @param {{ signal?: AbortSignal, uuid?: Buffer, parentUuid?: Buffer, parentPath?: string }} [options]
  * @returns {Promise<Readable>}
  */
-export async function toVhdStream(disk, { signal } = {}) {
-  const consumer = new DiskConsumerVhdStream(disk)
+export async function toVhdStream(disk, { signal, uuid, parentUuid, parentPath } = {}) {
+  const consumer = new DiskConsumerVhdStream(disk, { uuid, parentUuid, parentPath })
   return consumer.toStream(signal)
 }
 

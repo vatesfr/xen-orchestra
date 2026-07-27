@@ -2,6 +2,7 @@ import { createLogger } from '@xen-orchestra/log'
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import { FilterBuilder } from './FilterBuilder.js'
+import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { BACKUP_JOB_NAME_PREFIX, getRequiredEnv } from '../utils/index.js'
 
 const log = createLogger('cleanup')
@@ -279,7 +280,7 @@ export class CleanupClient {
       if (config.deleteBackupFiles) {
         try {
           const jobDetails = await this.dispatchClient.backup.details(job.id)
-          const jobRemotes = jobDetails.remotes?.id ? [jobDetails.remotes.id] : Object.keys(jobDetails.remotes || {})
+          const jobRemotes = extractIdsFromSimplePattern(jobDetails.remotes)
 
           if (jobRemotes.length > 0) {
             const backupsByRemote = await this.dispatchClient.backup.listVmBackups(jobRemotes)

@@ -59,11 +59,6 @@ export class AggregatedIncrementalXapiWriter extends AbstractAggregatedXapiWrite
     return this.mainWriter.transfer(args)
   }
 
-  // chain only on the main writer
-  updateUuidAndChain(args) {
-    return this.mainWriter.updateUuidAndChain(args)
-  }
-
   // remove the backups and remove the entries
   async cleanup() {
     debug('cleanup')

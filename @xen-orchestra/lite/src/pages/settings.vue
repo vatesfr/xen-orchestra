@@ -98,7 +98,7 @@
     <VtsKeyValueList>
       <VtsKeyValueRow>
         <template #label>
-          <VtsSelect :id="localeSelectId" icon="fa:earth-americas" accent="brand" />
+          <VtsSelect :id="localeSelectId" accent="brand" />
         </template>
         <template #value>
           <UiLink size="medium" href="https://translate.vates.tech/engage/xen-orchestra/">
