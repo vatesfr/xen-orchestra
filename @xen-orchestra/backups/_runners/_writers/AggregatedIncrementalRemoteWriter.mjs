@@ -22,7 +22,7 @@ export class AggregatedIncrementalRemoteWriter extends AbstractAggregatedRemoteW
     }
     // update the parameter with our best candidate
     // that can be an empty map
-    baseUuidToSrcVdi.forEach(key => {
+    baseUuidToSrcVdi.forEach((_, key) => {
       if (!selectedCopy.has(key)) {
         baseUuidToSrcVdi.delete(key)
       }
