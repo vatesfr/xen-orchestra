@@ -1,3 +1,4 @@
+import { asyncEach } from '@vates/async-each'
 import { cancelable, timeout } from 'promise-toolbox'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateObject } from '@vates/decorate-with'
@@ -19,6 +20,12 @@ const PATH_DB_DUMP = '/pool/xmldbdump'
 // be handled by shutting them down before their host reboots and starting them
 // again on it afterwards
 const PINNED_VM_ERROR_CODES = new Set(['VM_HAS_PCI_ATTACHED', 'VM_HAS_VGPU', 'VM_HAS_SRIOV_VIF'])
+
+// pinned VMs are shut down in parallel to keep the host's downtime short, but
+// started back more conservatively to avoid a boot storm on a host which has
+// just rebooted
+const PINNED_VM_SHUTDOWN_CONCURRENCY = 8
+const PINNED_VM_START_CONCURRENCY = 2
 
 const setProgress = (task, progress) => task.set('progress', Math.round(progress))
 
@@ -202,14 +209,27 @@ const methods = {
 
               if (pinnedVmRefs.length > 0) {
                 await Task.run({ properties: { name: `Shut down pinned VMs`, hostId, hostName } }, async () => {
-                  for (const vmRef of pinnedVmRefs) {
-                    const { uuid: vmId, name_label: vmName } = this.getObject(vmRef)
-                    await Task.run(
-                      { properties: { name: `Shutting down VM ${vmId}`, hostId, hostName, vmId, vmName } },
-                      () => this.callAsync('VM.clean_shutdown', vmRef)
-                    )
-                    haltedPinnedVms.set(vmRef, host.$ref)
-                  }
+                  await asyncEach(
+                    pinnedVmRefs,
+                    async vmRef => {
+                      const { uuid: vmId, name_label: vmName } = this.getObject(vmRef)
+                      await Task.run(
+                        { properties: { name: `Shutting down VM ${vmId}`, hostId, hostName, vmId, vmName } },
+                        async () => {
+                          try {
+                            // a guest may ignore the shutdown request: cancel it and force the shutdown
+                            // instead of blocking the whole run, the user consented to these VMs going down
+                            await timeout.call(this.callAsync('VM.clean_shutdown', vmRef), this._vmShutdownTimeout)
+                          } catch (error) {
+                            log.warn('clean shutdown of a pinned VM failed, forcing it', { vmId, error })
+                            await this.callAsync('VM.hard_shutdown', vmRef)
+                          }
+                        }
+                      )
+                      haltedPinnedVms.set(vmRef, host.$ref)
+                    },
+                    { concurrency: PINNED_VM_SHUTDOWN_CONCURRENCY, stopOnError: true }
+                  )
                 })
               }
             }
@@ -281,9 +301,10 @@ const methods = {
 
             if (pinnedVmRefs.length > 0) {
               await Task.run({ properties: { name: `Restart pinned VMs`, hostId, hostName } }, async () => {
-                let error
-                for (const vmRef of pinnedVmRefs) {
-                  try {
+                // stopOnError: still try to start every pinned VM of this host before failing the run
+                await asyncEach(
+                  pinnedVmRefs,
+                  async vmRef => {
                     const { uuid: vmId, name_label: vmName } = this.getObject(vmRef)
                     await Task.run(
                       {
@@ -292,16 +313,9 @@ const methods = {
                       () => this.callAsync('VM.start_on', vmRef, host.$ref, false, false)
                     )
                     haltedPinnedVms.delete(vmRef)
-                  } catch (err) {
-                    if (error === undefined) {
-                      error = err
-                    }
-                  }
-                }
-                // still try to start every pinned VM of this host before failing the run
-                if (error !== undefined) {
-                  throw error
-                }
+                  },
+                  { concurrency: PINNED_VM_START_CONCURRENCY, stopOnError: false }
+                )
               })
             }
             rprProgress += progressStepPerHost

@@ -1470,7 +1470,7 @@ export const rollingPoolUpdate = async poolId => {
           title: _('rollingPoolUpdate'),
           icon: 'pool-rolling-update',
         })
-        await rpu({ bypassBackupCheck: true, rebootVm, shutdownPinnedVms })
+        return rpu({ bypassBackupCheck: true, rebootVm, shutdownPinnedVms })
       }
       if (incorrectState.is(err, { property: 'guidance' })) {
         await confirm({
@@ -1482,7 +1482,7 @@ export const rollingPoolUpdate = async poolId => {
           title: _('rollingPoolUpdate'),
           icon: 'pool-rolling-update',
         })
-        await rpu({ bypassBackupCheck, rebootVm: true, shutdownPinnedVms })
+        return rpu({ bypassBackupCheck, rebootVm: true, shutdownPinnedVms })
       }
       if (incorrectState.is(err, { property: 'pinnedVms' })) {
         await confirm({
@@ -1501,8 +1501,9 @@ export const rollingPoolUpdate = async poolId => {
           title: _('rollingPoolUpdate'),
           icon: 'pool-rolling-update',
         })
-        await rpu({ bypassBackupCheck, rebootVm, shutdownPinnedVms: true })
+        return rpu({ bypassBackupCheck, rebootVm, shutdownPinnedVms: true })
       }
+      throw err
     }
   }
 
