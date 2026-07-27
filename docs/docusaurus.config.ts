@@ -209,12 +209,24 @@ export default {
       },
     ],
   ],
-  scripts: [
-    {
-      src: '/js/matomo.js',
-      async: true,
+  customFields: {
+    // Formbricks feedback widget (see src/components/PageFeedback).
+    // These IDs are client-safe: the widget only talks to the public client API.
+    formbricks: {
+      apiHost: 'https://survey.vates.tech',
+      environmentId: 'cm1t5b3lt000811e86uf67vs8',
+      surveyId: 'cms3hr8ab005hrw01fvsrsy17',
     },
-  ],
+    // Cookieless Matomo tracking (see src/clientModules/matomo.ts).
+    // Site 23 is the dedicated XO docs site (5 is the XO website).
+    // The site ID is client-visible by nature; an empty one disables
+    // tracking entirely.
+    matomo: {
+      url: 'https://visit.vates.tech/',
+      siteId: '23',
+    },
+  },
+  clientModules: [require.resolve('./src/clientModules/matomo.ts')],
   presets: [
     [
       'classic',
