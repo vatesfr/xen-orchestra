@@ -2,7 +2,7 @@ import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { HOST_POWER_STATE, Xapi, XcpPatches, XenApiHostWrapped, XoPool, XsPatches, type XoHost } from '@vates/types'
 import { incorrectState } from 'xo-common/api-errors.js'
-import { forEach, parseXml, ensureArray } from '../helpers/utils.helper.mjs'
+import { parseXml, ensureArray } from '../helpers/utils.helper.mjs'
 import type {
   MissingPatchesInfo,
   XoSrNfsExport,
@@ -233,14 +233,11 @@ export class HostService {
       xml = parseXml(error.params[2])
     }
 
-    const nfsExports: XoSrNfsExport[] = []
-    forEach(ensureArray(xml['nfs-exports'].Export), nfsExport => {
-      nfsExports.push({
-        // NFSv4 doesn't return the full path, and we need to add a slash at the beginning of it, or SR creation with this path will fail
-        path: nfsExport.Path.trim().replace(/^\/?/, '/'),
-        acl: nfsExport.Accesslist.trim(),
-      })
-    })
+    // NFSv4 doesn't return the full path, and we need to add a slash at the beginning of it, or SR creation with this path will fail
+    const nfsExports: XoSrNfsExport[] = ensureArray(xml['nfs-exports'].Export).map(nfsExport => ({
+      path: nfsExport.Path.trim().replace(/^\/?/, '/'),
+      acl: nfsExport.Accesslist.trim(),
+    }))
 
     return nfsExports
   }
@@ -259,7 +256,7 @@ export class HostService {
       }
     }
   }
-  //
+
   async probeHba(id: XoHost['id']): Promise<XoSrHbaExport[]> {
     const xapiHost = this.#restApi.getXapiObject<XoHost>(id, 'host')
     const xapi = xapiHost.$xapi
@@ -278,19 +275,16 @@ export class HostService {
       xml = parseXml(error.params[2])
     }
 
-    const hbaDevices: XoSrHbaExport[] = []
-    forEach(ensureArray(xml.Devlist.BlockDevice), hbaDevice => {
-      hbaDevices.push({
-        hba: hbaDevice.hba.trim(),
-        id: hbaDevice.id.trim(),
-        lun: +hbaDevice.lun.trim(),
-        path: hbaDevice.path.trim(),
-        scsiId: hbaDevice.SCSIid.trim(),
-        serial: hbaDevice.serial.trim(),
-        size: +hbaDevice.size.trim(),
-        vendor: hbaDevice.vendor.trim(),
-      })
-    })
+    const hbaDevices: XoSrHbaExport[] = ensureArray(xml.Devlist.BlockDevice).map(hbaDevice => ({
+      hba: hbaDevice.hba.trim(),
+      id: hbaDevice.id.trim(),
+      lun: +hbaDevice.lun.trim(),
+      path: hbaDevice.path.trim(),
+      scsiId: hbaDevice.SCSIid.trim(),
+      serial: hbaDevice.serial.trim(),
+      size: +hbaDevice.size.trim(),
+      vendor: hbaDevice.vendor.trim(),
+    }))
 
     return hbaDevices
   }
@@ -344,16 +338,12 @@ export class HostService {
       xml = parseXml(error.params[2])
     }
 
-    const targets: XoSrIscsiIqnsExport[] = []
-    forEach(ensureArray(xml['iscsi-target-iqns'].TGT), target => {
-      // if the target is on another IP address, do not display it
-      if (target.IPAddress.trim() === targetIp) {
-        targets.push({
-          iqn: target.TargetIQN.trim(),
-          ip: target.IPAddress.trim(),
-        })
-      }
-    })
+    const targets: XoSrIscsiIqnsExport[] = ensureArray(xml['iscsi-target-iqns'].TGT)
+      .filter(target => target.IPAddress.trim() === targetIp) // if the target is on another IP address, do not display it
+      .map(target => ({
+        iqn: target.TargetIQN.trim(),
+        ip: target.IPAddress.trim(),
+      }))
 
     return targets
   }
@@ -408,16 +398,13 @@ export class HostService {
       xml = parseXml(error.params[2])
     }
 
-    const luns: XoSrIscsiLunsExport[] = []
-    forEach(ensureArray(xml['iscsi-target'].LUN), lun => {
-      luns.push({
-        id: lun.LUNid.trim(),
-        vendor: lun.vendor.trim(),
-        serial: lun.serial?.trim() || '',
-        size: lun.size?.trim(),
-        scsiId: lun.SCSIid.trim(),
-      })
-    })
+    const luns: XoSrIscsiLunsExport[] = ensureArray(xml['iscsi-target'].LUN).map(lun => ({
+      id: lun.LUNid.trim(),
+      vendor: lun.vendor.trim(),
+      serial: lun.serial?.trim() || '',
+      size: lun.size?.trim(),
+      scsiId: lun.SCSIid.trim(),
+    }))
 
     return luns
   }
@@ -462,11 +449,10 @@ export class HostService {
 
     const xml = parseXml(await xapi.call('SR.probe', xapiHost.$ref, deviceConfig, 'lvmoiscsi', {}))
 
-    const srs: XoSrsExport[] = []
-    forEach(ensureArray(xml.SRlist.SR), sr => {
-      // get the UUID of SR connected to this LUN
-      srs.push({ uuid: sr.UUID.trim() })
-    })
+    // UUIDs of the SRs connected to this LUN
+    const srs: XoSrsExport[] = ensureArray(xml.SRlist.SR).map(sr => ({
+      uuid: sr.UUID.trim(),
+    }))
 
     return srs
   }
@@ -481,11 +467,10 @@ export class HostService {
 
     const xml = parseXml(await xapi.call('SR.probe', xapiHost.$ref, deviceConfig, 'lvmohba', {}))
 
-    const srs: XoSrsExport[] = []
-    forEach(ensureArray(xml.SRlist.SR), sr => {
-      // get the UUID of SR connected to this LUN
-      srs.push({ uuid: sr.UUID.trim() })
-    })
+    // get the UUID of SR connected to this LUN
+    const srs: XoSrsExport[] = ensureArray(xml.SRlist.SR).map(sr => ({
+      uuid: sr.UUID.trim(),
+    }))
 
     return srs
   }
@@ -507,12 +492,9 @@ export class HostService {
 
     const xml = parseXml(await xapi.call('SR.probe', xapiHost.$ref, deviceConfig, 'nfs', {}))
 
-    const srs: XoSrsExport[] = []
-
-    forEach(ensureArray(xml.SRlist.SR), sr => {
-      // get the UUID of SR connected to this LUN
-      srs.push({ uuid: sr.UUID.trim() })
-    })
+    const srs: XoSrsExport[] = ensureArray(xml.SRlist.SR).map(sr => ({
+      uuid: sr.UUID.trim(),
+    }))
 
     return srs
   }
