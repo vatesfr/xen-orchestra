@@ -158,6 +158,9 @@
                 <VtsInputWrapper :label="t('affinity-host')">
                   <VtsSelect :id="affinityHostSelectId" accent="brand" />
                 </VtsInputWrapper>
+                <VtsInputWrapper :label="t('high-availability')" :message="haMessages" wrap-message>
+                  <VtsSelect :id="haSelectId" accent="brand" />
+                </VtsInputWrapper>
               </div>
             </div>
             <!-- RESOURCE MANAGEMENT SECTION -->
@@ -258,7 +261,7 @@ import {
   useXoVmTemplateCollection,
 } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import type { Vdi, Vif, VifToSend, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
-import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import VtsInputWrapper, { type InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsResource from '@core/components/resources/VtsResource.vue'
 import VtsResources from '@core/components/resources/VtsResources.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
@@ -359,6 +362,7 @@ const vmState = reactive<VmState>({
   description: '',
   installMode: 'no-config',
   affinity_host: undefined,
+  highAvailability: '',
   bootFirmware: '',
   new_vm_template: undefined,
   boot_vm: true,
@@ -771,6 +775,7 @@ const vmData = computed(() => {
     copyHostBiosStrings: vmState.copyHostBiosStrings,
     createVtpm: vmState.createVtpm,
     secureBoot: vmState.secureBoot,
+    high_availability: vmState.highAvailability,
     ...optionalFields,
   }
 })
@@ -832,7 +837,8 @@ watch(
       return
     }
 
-    const { name_label, isDefaultTemplate, name_description, tags, CPUs, memory, secureBoot } = template
+    const { name_label, isDefaultTemplate, name_description, tags, CPUs, memory, secureBoot, high_availability } =
+      template
 
     Object.assign(vmState, {
       isDiskTemplateSelected: isDiskTemplate.value ?? false,
@@ -850,6 +856,7 @@ watch(
       networkConfig: '',
       cloudConfig: '',
       bootFirmware: template.boot.firmware ?? 'bios',
+      highAvailability: high_availability as VmState['highAvailability'],
     } satisfies Partial<VmState>)
   }
 )
@@ -899,6 +906,40 @@ const { id: affinityHostSelectId } = useFormSelect(hosts, {
     value: 'id',
   },
 })
+
+// HIGH AVAILABILITY SELECTOR
+
+const HA_OPTIONS: VmState['highAvailability'][] = ['', 'restart', 'best-effort']
+
+const haLabels: Record<VmState['highAvailability'], string> = {
+  '': t('new-vm:ha-disabled'),
+  restart: t('new-vm:ha-restart'),
+  'best-effort': t('new-vm:ha-best-effort'),
+}
+
+const { id: haSelectId } = useFormSelect(HA_OPTIONS, {
+  model: toRef(vmState, 'highAvailability'),
+  option: {
+    label: value => haLabels[value],
+  },
+})
+
+const haDescription = useMapper<VmState['highAvailability'], string>(
+  () => vmState.highAvailability,
+  {
+    '': t('new-vm:ha-disabled-description'),
+    restart: t('new-vm:ha-restart-description'),
+    'best-effort': t('new-vm:ha-best-effort-description'),
+  },
+  ''
+)
+
+const haMessages = computed<InputWrapperMessage>(() => [
+  haDescription.value,
+  ...(vmState.pool?.HA_enabled === false
+    ? [{ content: t('new-vm:ha-pool-disabled'), accent: 'warning' as const }]
+    : []),
+])
 
 watch(
   () => vmState.pool?.id,

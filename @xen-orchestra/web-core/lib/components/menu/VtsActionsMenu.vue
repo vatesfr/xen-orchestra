@@ -13,30 +13,30 @@
       />
     </template>
     <slot>
-    <MenuItem
-      v-for="(action, index) of actions"
-      :key="index"
-      :icon="action.icon"
-      :disabled="action.disabled"
-      :busy="action.busy"
-      :on-click="action.onClick"
-    >
-      {{ action.label }}
-      <i v-if="action.hint">{{ action.hint }}</i>
-      <template v-if="isGroupAction(action)" #submenu>
-        <MenuItem
-          v-for="(child, childIndex) of action.children"
-          :key="childIndex"
-          :icon="child.icon"
-          :disabled="child.disabled"
-          :busy="child.busy"
-          :on-click="child.onClick"
-        >
-          {{ child.label }}
-          <i v-if="child.hint">{{ child.hint }}</i>
-        </MenuItem>
-      </template>
-    </MenuItem>
+      <MenuItem
+        v-for="(action, index) of actions"
+        :key="index"
+        :icon="action.icon"
+        :disabled="action.disabled"
+        :busy="action.busy"
+        :on-click="action.onClick"
+      >
+        {{ action.label }}
+        <i v-if="action.hint" class="em-dash-prefix">{{ action.hint }}</i>
+        <template v-if="isGroupAction(action)" #submenu>
+          <MenuItem
+            v-for="(child, childIndex) of action.children"
+            :key="childIndex"
+            :icon="child.icon"
+            :disabled="child.disabled"
+            :busy="child.busy"
+            :on-click="child.onClick"
+          >
+            {{ child.label }}
+            <i v-if="child.hint" class="em-dash-prefix">{{ child.hint }}</i>
+          </MenuItem>
+        </template>
+      </MenuItem>
     </slot>
   </MenuList>
 </template>

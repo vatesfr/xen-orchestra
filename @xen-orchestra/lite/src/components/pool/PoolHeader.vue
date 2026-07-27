@@ -2,17 +2,17 @@
   <UiHeadBar icon="object:pool">
     {{ name }}
     <template #actions>
-      <RouterLink :to="{ name: '/vm/new' }">
-        <UiButton left-icon="fa:plus" variant="secondary" accent="brand" size="medium">{{ t('new-vm') }}</UiButton>
-      </RouterLink>
+      <UiLink size="medium" :to="{ name: '/vm/new' }" icon="fa:plus">
+        {{ t('new-vm') }}
+      </UiLink>
     </template>
   </UiHeadBar>
 </template>
 
 <script lang="ts" setup>
 import { usePoolStore } from '@/stores/xen-api/pool.store'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

@@ -151,7 +151,8 @@
     "xo-collection": "^0.6.1",
     "xo-common": "^0.10.0",
     "xo-remote-parser": "^0.10.1",
-    "xo-vmdk-to-vhd": "^2.5.10"
+    "xo-vmdk-to-vhd": "^2.5.10",
+    "yaml": "^2.9.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.29.0",
@@ -174,6 +175,7 @@
     "dev": "cross-env NODE_ENV=development yarn run _build --watch",
     "prepublishOnly": "yarn run build",
     "start": "node dist/cli.mjs",
+    "start:dev": "cross-env NODE_ENV=development node dist/cli.mjs",
     "test": "cd dist && node --test"
   },
   "author": {

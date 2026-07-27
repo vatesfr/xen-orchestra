@@ -118,6 +118,7 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
               task.warning(`Retry the VM backup due to an error`, {
                 attempt: nTriesByVmId[vmUuid],
                 error: error.message,
+                isRetry: true,
               })
               queue.add(vmUuid)
             }

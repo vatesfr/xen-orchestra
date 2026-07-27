@@ -1,6 +1,5 @@
-import { xoHostArg } from '@/modules/host/jobs/xo-host-args.jobs.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import { xoVmsArg } from '@/modules/vm/jobs/xo-vm-args.ts'
+import { xoVmHostArg, xoVmsArg } from '@/modules/vm/jobs/xo-vm-args.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { areVmsOperationPending, notAllVmsHavingPowerState } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
@@ -9,7 +8,7 @@ import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { VM_OPERATIONS, VM_POWER_STATE, type XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-export const useXoVmStartOnJob = defineJob('vm.start-on', [xoVmsArg, xoHostArg], () => {
+export const useXoVmStartOnJob = defineJob('vm.start-on', [xoVmsArg, xoVmHostArg], () => {
   const { t } = useI18n()
   const { monitorTask } = useXoTaskUtils()
 
