@@ -7,7 +7,7 @@
     :disabled="!canRebootHost"
     icon="action:reboot"
     :busy="isRebootingHost"
-    @click="openShutdownHostModal()"
+    @click="openRebootHostModal()"
   >
     {{ t('action:reboot') }}
   </MenuItem>
@@ -34,7 +34,7 @@ const {
   errorMessage: rebootHostErrorMessage,
 } = useXoHostRebootJob(() => host)
 
-const openShutdownHostModal = useModal({
+const openRebootHostModal = useModal({
   component: import('@core/components/modal/VtsActionModal.vue'),
   props: {
     accent: 'warning',
