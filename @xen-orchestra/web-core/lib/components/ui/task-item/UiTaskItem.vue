@@ -21,10 +21,13 @@
       </div>
 
       <div class="main-content">
-        <div v-if="task.name" class="content-left">
-          <UiLink size="medium">
-            {{ task.name }}
-          </UiLink>
+        <div v-if="task.nameParts || task.name" class="content-left">
+          <template v-if="task.nameParts">
+            <template v-for="(part, index) in task.nameParts" :key="index">
+              <UiLink size="medium" :to="part.to">{{ part.text }}</UiLink>
+            </template>
+          </template>
+          <UiLink v-else size="small">{{ task.name }}</UiLink>
           <div v-if="shouldShowInfos || hasSubTasks" class="infos">
             <UiCounter v-if="hasSubTasks" :value="subTasksCount" accent="brand" variant="secondary" size="small" />
             <UiInfo v-if="hasInfos" accent="info" />
@@ -41,7 +44,7 @@
             <UiCircleProgressBar :accent="progressAccent" size="small" :value="progress" />
           </div>
           <div class="actions">
-            <UiButtonIcon icon="fa:eye" size="medium" accent="brand" @click="emit('select', task.id)" />
+            <UiButtonIcon icon="fa:eye" size="small" accent="brand" @click="emit('select', task.id)" />
           </div>
         </div>
       </div>
@@ -61,6 +64,7 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTaskList from '@core/components/ui/task-list/UiTaskList.vue'
 import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import type { TaskObjectSegment, TaskStatus } from '@core/types/task.type.ts'
 import { logicOr } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -69,9 +73,13 @@ export type Task = {
   id: string
   infos?: { data: unknown; message: string }[]
   name?: string
+  nameParts?: TaskObjectSegment[]
   progress?: number
+  tag?: string
+  userName?: string
+  start?: number
   end?: number
-  status: 'failure' | 'interrupted' | 'pending' | 'success'
+  status: TaskStatus
   subtasks?: Task[]
   warnings?: { data: unknown; message: string }[]
 }

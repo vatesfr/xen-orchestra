@@ -373,6 +373,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/layout-sidebar/vts-layout-sidebar': RouteRecordInfo<
+      '/story/web-core/layout-sidebar/vts-layout-sidebar',
+      '/story/web-core/layout-sidebar/vts-layout-sidebar',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/legend-group/vts-legend-group': RouteRecordInfo<
       '/story/web-core/legend-group/vts-legend-group',
       '/story/web-core/legend-group/vts-legend-group',
@@ -1310,6 +1317,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/key-value-row/vts-key-value-row.story.vue': {
       routes:
         | '/story/web-core/key-value-row/vts-key-value-row'
+      views:
+        | never
+    }
+    'src/stories/web-core/layout-sidebar/vts-layout-sidebar.story.vue': {
+      routes:
+        | '/story/web-core/layout-sidebar/vts-layout-sidebar'
       views:
         | never
     }

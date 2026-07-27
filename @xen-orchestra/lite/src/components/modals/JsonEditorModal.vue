@@ -3,6 +3,7 @@
     :accent="isJsonValid ? 'info' : 'danger'"
     class="json-editor-modal"
     icon="fa:code"
+    dismissible
     @confirm="handleSubmit()"
   >
     <template #content>

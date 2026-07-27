@@ -11,8 +11,10 @@
       prop('required').bool().widget(),
       slot(),
       slot('info'),
+      slot('message'),
       setting('defaultSlot').widget(text()).preset('Some label'),
       setting('info').widget(text()).preset('Lorem ipsum dolor sit amet, consectetur adipiscing elit.'),
+      setting('message').widget(text()).preset('Lorem ipsum dolor sit amet, consectetur adipiscing elit.'),
     ]"
   >
     <UiTextarea v-bind="properties">
@@ -21,6 +23,7 @@
         <UiCharacterLimit :count="properties.modelValue.length" :max="200" />
       </template>
       <template v-if="settings.info" #info>{{ settings.info }}</template>
+      <template v-if="settings.message" #message>{{ settings.message }}</template>
     </UiTextarea>
   </ComponentStory>
 </template>

@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="info" icon="object:vm">
+  <VtsModal accent="info" icon="object:vm" dismissible>
     <template #title>
       {{ t('action:export-n-vms-manually', { n: labelWithUrl.length }) }}
     </template>

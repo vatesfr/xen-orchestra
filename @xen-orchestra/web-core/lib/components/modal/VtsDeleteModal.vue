@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="warning" icon="status:warning-picto">
+  <VtsModal accent="warning" icon="status:warning-picto" dismissible>
     <template #title>
       <I18nT keypath="confirm-delete" scope="global" tag="div">
         <span class="n-delete">

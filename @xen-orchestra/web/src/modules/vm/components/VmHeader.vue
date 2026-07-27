@@ -17,7 +17,7 @@
       <UiLink :href="xo5VmGeneralHref" size="medium">
         {{ t('manage-vm-lifecycle-in-xo-5') }}
       </UiLink>
-      <MenuList placement="bottom-end">
+      <MenuList placement="bottom-start">
         <template #trigger="{ open }">
           <UiDropdownButton @click="open($event)">{{ t('action:change-state') }}</UiDropdownButton>
         </template>

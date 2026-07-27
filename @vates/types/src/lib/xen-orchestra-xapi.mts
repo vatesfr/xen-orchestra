@@ -358,6 +358,7 @@ export interface Xapi {
       vgpuType?: XoVgpuType['id']
       gpuGroup?: XoGpuGroup['id']
       copyHostBiosStrings?: boolean
+      highAvailability?: XoVm['high_availability']
       hvmBootFirmware?: 'uefi' | 'bios'
       secureBoot?: boolean
     },

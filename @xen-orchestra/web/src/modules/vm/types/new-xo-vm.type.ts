@@ -30,6 +30,7 @@ export type InstallMode = 'no-config' | 'ssh-key' | 'cloud-init-config' | 'cdrom
 export interface VmState {
   affinity_host?: XoHost['id']
   autoPoweron: boolean
+  highAvailability: '' | 'restart' | 'best-effort'
   installMode?: InstallMode
   bootFirmware: string
   boot_vm: boolean

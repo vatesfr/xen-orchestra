@@ -237,6 +237,21 @@ export default class {
   }
 
   /**
+   * @param {XoAclRole['id']} id
+   * @returns {Promise<Omit<XoAclRole, 'privilegeIds' | 'groupIds' | 'userIds'>>}
+   */
+  async #getRawAclV2Role(id) {
+    await this._app.checkFeatureAuthorization('RBAC')
+
+    const role = await this.#roleDb.first(id)
+    if (role === undefined) {
+      throw noSuchObject(id, 'role')
+    }
+
+    return role
+  }
+
+  /**
    * @param {object} role
    * @param {XoAclRole['name']} role.name
    * @param {XoAclRole['description']} [role.description]
@@ -257,7 +272,7 @@ export default class {
   async deleteAclV2Role(id, { force = false } = {}) {
     await this._app.checkFeatureAuthorization('RBAC')
 
-    const role = await this.getAclV2Role(id)
+    const role = await this.#getRawAclV2Role(id)
 
     if (!force && 'isTemplate' in role) {
       throw forbiddenOperation('delete ACL V2 role', 'role is a template')
@@ -290,7 +305,7 @@ export default class {
   async updateAclV2Role(id, { name, description }, { force = false } = {}) {
     await this._app.checkFeatureAuthorization('RBAC')
 
-    const role = await this.getAclV2Role(id)
+    const role = await this.#getRawAclV2Role(id)
     if (!force && 'isTemplate' in role) {
       throw forbiddenOperation('update ACL V2 role', 'role is a template')
     }
@@ -310,18 +325,44 @@ export default class {
   }
 
   /**
+   * @param {XoAclRole} role
+   */
+  async #normalizeAclV2Role(role) {
+    if (!('isTemplate' in role)) {
+      /** @type {[UserRole[], GroupRole[]]} */
+      const [userRoles, groupRoles] = await Promise.all([
+        this.#userRoleDb._get({ roleId: role.id }),
+        this.#groupRoleDb._get({ roleId: role.id }),
+      ])
+
+      role.userIds = userRoles.map(userRole => userRole.userId)
+      role.groupIds = groupRoles.map(groupRole => groupRole.groupId)
+    }
+
+    /** @type {Privilege[]} */
+    const privileges = await this.#privilegeDb._get({ roleId: role.id })
+    role.privilegeIds = privileges.map(privilege => privilege.id)
+
+    return role
+  }
+
+  /**
    * @param {XoAclRole['id']} id
+   * @param {object} [opts]
+   * @param {boolean} [opts.bypassAuthorization]
    * @returns {Promise<XoAclRole>}
    */
-  async getAclV2Role(id) {
-    await this._app.checkFeatureAuthorization('RBAC')
+  async getAclV2Role(id, { bypassAuthorization = false } = {}) {
+    if (!bypassAuthorization) {
+      await this._app.checkFeatureAuthorization('RBAC')
+    }
 
     const role = await this.#roleDb.first(id)
     if (role === undefined) {
       throw noSuchObject(id, 'role')
     }
 
-    return role
+    return this.#normalizeAclV2Role(role)
   }
 
   /**
@@ -329,9 +370,9 @@ export default class {
    */
   async getAclV2Roles() {
     await this._app.checkFeatureAuthorization('RBAC')
-
+    const roles = await this.#roleDb.get()
     // @ts-ignore typed as Promise<void>...
-    return this.#roleDb.get()
+    return Promise.all(roles.map(role => this.#normalizeAclV2Role(role)))
   }
   // === Role
   // === Privilege
@@ -350,7 +391,7 @@ export default class {
   async createAclV2Privilege({ action, selector, effect = 'allow', resource, roleId }, { force = false } = {}) {
     await this._app.checkFeatureAuthorization('RBAC')
 
-    const role = await this.getAclV2Role(roleId)
+    const role = await this.#getRawAclV2Role(roleId)
     if (!force && 'isTemplate' in role) {
       throw forbiddenOperation('create ACL V2 privilege', 'role is a template')
     }
@@ -369,7 +410,7 @@ export default class {
     await this._app.checkFeatureAuthorization('RBAC')
 
     const privilege = await this.getAclV2Privilege(id)
-    const role = await this.getAclV2Role(privilege.roleId)
+    const role = await this.#getRawAclV2Role(privilege.roleId)
 
     if (!force && 'isTemplate' in role) {
       throw forbiddenOperation('delete ACL V2 privilege', 'role is a template')
@@ -392,7 +433,7 @@ export default class {
     await this._app.checkFeatureAuthorization('RBAC')
 
     const privilege = await this.getAclV2Privilege(id)
-    const role = await this.getAclV2Role(privilege.roleId)
+    const role = await this.#getRawAclV2Role(privilege.roleId)
 
     if ('isTemplate' in role) {
       throw forbiddenOperation('update ACL V2 privilege', 'role is a template')
@@ -472,7 +513,7 @@ export default class {
       throw objectAlreadyExists({ objectId: userRole.id, objectType: 'userRole' })
     }
 
-    const role = await this.getAclV2Role(roleId)
+    const role = await this.#getRawAclV2Role(roleId)
     if ('isTemplate' in role) {
       throw forbiddenOperation('attach ACL V2 role to user', 'role is a template')
     }
@@ -486,11 +527,15 @@ export default class {
    *
    * @param {XoUser['id']} userId
    * @param {XoAclRole['id']} roleId
+   * @param {object} [opts]
+   * @param {boolean} [opts.bypassAuthorization]
    *
    * @returns {Promise<boolean>}
    */
-  async deleteAclV2UserRole(userId, roleId) {
-    await this._app.checkFeatureAuthorization('RBAC')
+  async deleteAclV2UserRole(userId, roleId, { bypassAuthorization = false } = {}) {
+    if (!bypassAuthorization) {
+      await this._app.checkFeatureAuthorization('RBAC')
+    }
 
     /**
      * @type {UserRole[]}
@@ -532,7 +577,7 @@ export default class {
       throw objectAlreadyExists({ objectId: groupRole.id, objectType: 'groupRole' })
     }
 
-    const role = await this.getAclV2Role(roleId)
+    const role = await this.#getRawAclV2Role(roleId)
     if ('isTemplate' in role) {
       throw forbiddenOperation('attach ACL V2 role to group', 'role is a template')
     }
@@ -546,11 +591,15 @@ export default class {
    *
    * @param {XoGroup['id']} groupId
    * @param {XoAclRole['id']} roleId
+   * @param {object} [opts]
+   * @param {boolean} [opts.bypassAuthorization]
    *
    * @returns {Promise<boolean>}
    */
-  async deleteAclV2GroupRole(groupId, roleId) {
-    await this._app.checkFeatureAuthorization('RBAC')
+  async deleteAclV2GroupRole(groupId, roleId, { bypassAuthorization = false } = {}) {
+    if (!bypassAuthorization) {
+      await this._app.checkFeatureAuthorization('RBAC')
+    }
     /**
      * @type {GroupRole[]}
      */
@@ -574,25 +623,37 @@ export default class {
   async getAclV2RolePrivileges(roleId) {
     await this._app.checkFeatureAuthorization('RBAC')
 
-    const role = await this.getAclV2Role(roleId)
+    const role = await this.#getRawAclV2Role(roleId)
     return this.#privilegeDb._get({ roleId: role.id })
   }
 
   /**
    * @param {XoUser['id']} userId
+   * @param {object} [opts]
+   * @param {boolean} [opts.bypassAuthorization]
+   * @param {boolean} [opts.fromGroup]
+   * @param {boolean} [opts.fromUser]
    * @returns {Promise<XoAclRole[]>}
    */
-  async getAclV2UserRoles(userId) {
-    await this._app.checkFeatureAuthorization('RBAC')
+  async getAclV2UserRoles(userId, { bypassAuthorization = false, fromGroup = true, fromUser = true } = {}) {
+    if (!bypassAuthorization) {
+      await this._app.checkFeatureAuthorization('RBAC')
+    }
 
     /** @type {XoUser} */
     const user = await this._app.getUser(userId)
 
-    const groupRoles = (await Promise.all(user.groups.map(groupId => this.getAclV2GroupRoles(groupId)))).flat()
+    const groupRoles = fromGroup
+      ? (
+          await Promise.all(user.groups.map(groupId => this.getAclV2GroupRoles(groupId, { bypassAuthorization })))
+        ).flat()
+      : []
 
     /** @type {UserRole[]} */
-    const dbUserRoles = await this.#userRoleDb._get({ userId: user.id })
-    const userRoles = await Promise.all(dbUserRoles.map(dbUserRole => this.getAclV2Role(dbUserRole.roleId)))
+    const dbUserRoles = fromUser ? await this.#userRoleDb._get({ userId: user.id }) : []
+    const userRoles = await Promise.all(
+      dbUserRoles.map(dbUserRole => this.getAclV2Role(dbUserRole.roleId, { bypassAuthorization }))
+    )
 
     return [...groupRoles, ...userRoles]
   }
@@ -610,15 +671,21 @@ export default class {
 
   /**
    * @param {XoGroup['id']} groupId
-   * @returns {Promise<XoAclRole[]>}
+   * @param {object} [opts]
+   * @param {boolean} [opts.bypassAuthorization]
+   * @returns {Promise<Exclude<XoAclRole, {isTemplate: true}>[]>}
    */
-  async getAclV2GroupRoles(groupId) {
-    await this._app.checkFeatureAuthorization('RBAC')
+  async getAclV2GroupRoles(groupId, { bypassAuthorization = false } = {}) {
+    if (!bypassAuthorization) {
+      await this._app.checkFeatureAuthorization('RBAC')
+    }
 
     /** @type {GroupRole[]} */
     const dbGroupRoles = await this.#groupRoleDb._get({ groupId })
 
-    return Promise.all(dbGroupRoles.map(dbGroupRole => this.getAclV2Role(dbGroupRole.roleId)))
+    return /** @type {Promise<Exclude<XoAclRole, { isTemplate: true }>[]>} */ (
+      Promise.all(dbGroupRoles.map(dbGroupRole => this.getAclV2Role(dbGroupRole.roleId, { bypassAuthorization })))
+    )
   }
 
   /**
@@ -631,7 +698,7 @@ export default class {
   async copyAclV2Role(roleId, params = {}) {
     await this._app.checkFeatureAuthorization('RBAC')
 
-    const role = await this.getAclV2Role(roleId)
+    const role = await this.#getRawAclV2Role(roleId)
     const privileges = await this.getAclV2RolePrivileges(roleId)
 
     const replicaRole = await this.createAclV2Role({
