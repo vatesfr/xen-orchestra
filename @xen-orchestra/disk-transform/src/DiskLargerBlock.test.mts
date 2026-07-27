@@ -237,6 +237,34 @@ test('close propagation', async () => {
   await disk.close()
   assert.strictEqual(source.closed, true)
 })
+test('getBlockIndexesCount', async () => {
+  const block = createPatternBuffer(512, 'BLOCK')
+  let source = new MockDisk(512, 4096, [
+    [2, block],
+    [3, block],
+  ])
+  await source.init()
+
+  let disk = new DiskLargerBlock(source, 1024)
+  await disk.init()
+  assert.strictEqual(disk.getBlockIndexesCount(), 1)
+  assert.strictEqual(disk.getBlockIndexesCount(), disk.getBlockIndexes().length)
+
+  await disk.close()
+
+  source = new MockDisk(512, 4096, [
+    [0, block],
+    [3, block],
+  ])
+  await source.init()
+
+  disk = new DiskLargerBlock(source, 1024)
+  await disk.init()
+  assert.strictEqual(disk.getBlockIndexesCount(), 2)
+  assert.strictEqual(disk.getBlockIndexesCount(), disk.getBlockIndexes().length)
+
+  await disk.close()
+})
 
 test('generator', async () => {
   const source = new MockDisk(512, 1024)
