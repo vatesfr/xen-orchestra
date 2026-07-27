@@ -51,6 +51,7 @@
 - [XO6/Users] Add Users Table (PR [#10029](https://github.com/vatesfr/xen-orchestra/pull/10029))
 - [XO6] Input fields now support prefix/suffix sections, and display validation messages ordered by severity (PR [#10009](https://github.com/vatesfr/xen-orchestra/pull/10009))
 - [XO6/New VM] Add the possibility to set the HA restart priority when creating a VM (PR [#10072](https://github.com/vatesfr/xen-orchestra/pull/10072))
+- [REST API] Add `POST /srs` REST route to create a storage repository (PR [#9990](https://github.com/vatesfr/xen-orchestra/pull/9990))
 
 ### Bug fixes
 
@@ -89,6 +90,7 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/acl minor
 - @xen-orchestra/backup-archive minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/disk-cli minor
