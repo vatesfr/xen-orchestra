@@ -32,7 +32,7 @@
     "uuid": "^9.0.0",
     "promise-toolbox": "^0.21.0",
     "@vates/async-each": "^1.0.1",
-    "vhd-lib": "^4.14.7"
+    "vhd-lib": "^4.16.1"
   },
   "scripts": {
     "build": "yarn run clean && tsc",
