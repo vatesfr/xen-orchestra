@@ -30,6 +30,10 @@ export const useXoHostStartJob = defineJob('host.start', [xoHostArg], () => {
         throw new JobError(t('job:host-start:bad-power-state'))
       }
 
+      if (host.power_state !== HOST_POWER_STATE.HALTED) {
+        throw new JobError(t('job:host-start:bad-power-state-not-halted'))
+      }
+
       if (host.powerOnMode === '') {
         throw new JobError(t('job:host-start:power-on-disabled'))
       }
