@@ -22,17 +22,17 @@
 </template>
 
 <script setup lang="ts">
-import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { usePoolBugToolsDownload } from '@/modules/pool/composables/use-pool-bugtools-download.composable.ts'
 import {
-  usePoolEnhancedData,
   type PoolDisplayData,
   type PoolFilterableData,
+  usePoolEnhancedData,
 } from '@/modules/pool/composables/use-pool-enhanced-data.composable.ts'
-import { useServerDisconnectModal } from '@/modules/server/composables/use-xo-server-disconnect-modal.composable.ts'
+import { useServerDisconnectModal } from '@/modules/server/composables/use-server-disconnect-modal.composable.ts'
 import { useXoServerConnectJob } from '@/modules/server/jobs/xo-server-connect.job.ts'
 import {
-  useXoServerCollection,
   type FrontXoServer,
+  useXoServerCollection,
 } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -44,7 +44,6 @@ import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useServerColumns } from '@core/tables/column-sets/server-columns.ts'
-import { downloadBugTools } from '@core/utils/download-bugtools.utils.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { logicNot } from '@vueuse/math'
 import { computed } from 'vue'
@@ -57,8 +56,6 @@ const { servers: rawServers } = defineProps<{
 const { t } = useI18n()
 
 const { areServersReady, hasServerFetchError } = useXoServerCollection()
-
-const { getMasterHostByPoolId, areHostsFetching, areHostsReady, hasHostFetchError } = useXoHostCollection()
 
 const selectedServerId = useRouteQuery('id')
 
@@ -111,9 +108,28 @@ const { HeadCells, BodyCells } = useServerColumns({
     }))
 
     const serverIdArg = computed(() => server.id)
-    const { isRunning: isConnecting, run: connect } = useXoServerConnectJob([serverIdArg])
-    const { openModal: openDisconnectModal, isRunning: isDisconnecting } = useServerDisconnectModal(() => server.id)
-    const downloadHost = computed(() => (server.poolId ? getMasterHostByPoolId(server.poolId) : undefined))
+
+    const { canRun: canConnect, isRunning: isConnecting, run: connect } = useXoServerConnectJob([serverIdArg])
+
+    const {
+      openModal: openDisconnectModal,
+      canRun: canDisconnect,
+      isRunning: isDisconnecting,
+    } = useServerDisconnectModal(() => server.id)
+
+    const {
+      download: downloadBugTools,
+      isBusy: isDownloadBusy,
+      isDisabled: isDownloadDisabled,
+    } = usePoolBugToolsDownload(() => server.poolId)
+
+    async function handleConnect() {
+      try {
+        await connect()
+      } catch (error) {
+        console.error('Error when connecting server:', error)
+      }
+    }
 
     return {
       pool: r => r(poolInfo.value),
@@ -140,25 +156,22 @@ const { HeadCells, BodyCells } = useServerColumns({
                   label: t('action:disconnect-pool'),
                   icon: 'action:disconnect',
                   busy: isDisconnecting.value,
+                  disabled: !canDisconnect.value,
                   onClick: () => openDisconnectModal(),
                 }
               : {
                   label: t('action:connect-pool'),
                   icon: 'action:connect',
                   busy: isConnecting.value,
-                  onClick: () => connect(),
+                  disabled: !canConnect.value,
+                  onClick: () => handleConnect(),
                 },
             {
               label: t('action:download-bugtools-archive'),
               icon: 'action:download',
-              busy: areHostsFetching.value,
-              disabled: (areHostsReady.value && downloadHost.value === undefined) || hasHostFetchError.value,
-              onClick: () => {
-                const address = downloadHost.value?.address
-                if (address !== undefined) {
-                  downloadBugTools(address)
-                }
-              },
+              busy: isDownloadBusy.value,
+              disabled: isDownloadDisabled.value,
+              onClick: () => downloadBugTools(),
             },
           ],
         }),
