@@ -105,6 +105,10 @@
 >>>>>>> 8dc8b9bf7 (updating acl host supported actions doc)
 =======
 - @xen-orchestra/web patch
+<<<<<<< HEAD
 >>>>>>> 48861713b (updating changelog)
+=======
+- xo-server patch
+>>>>>>> aa8f6ef9b (remove unused imports, update changelog, adding dependecy)
 
 <!--packages-end-->

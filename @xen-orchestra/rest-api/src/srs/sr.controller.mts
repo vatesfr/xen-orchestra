@@ -1,5 +1,8 @@
 import {
+<<<<<<< HEAD
   Body,
+=======
+>>>>>>> aa8f6ef9b (remove unused imports, update changelog, adding dependecy)
   Delete,
   Example,
   Extension,
@@ -18,8 +21,13 @@ import {
 } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
+<<<<<<< HEAD
 import { json, Request as ExRequest } from 'express'
 import type { XenApiVdi, XoMessage, XoTask, XoVdi, XoAlarm, XoSr, XoHost } from '@vates/types'
+=======
+import { Request as ExRequest } from 'express'
+import type { XenApiVdi, XoMessage, XoTask, XoVdi, XoAlarm, XoSr } from '@vates/types'
+>>>>>>> aa8f6ef9b (remove unused imports, update changelog, adding dependecy)
 import { SUPPORTED_VDI_FORMAT } from '@vates/types'
 
 import { acl } from '../middlewares/acl.middleware.mjs'
