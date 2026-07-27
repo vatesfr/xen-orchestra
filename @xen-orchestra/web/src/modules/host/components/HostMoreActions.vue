@@ -3,7 +3,7 @@
     <HostDisableButton :host />
     <HostDisableAndEvacuateVmButton :host />
   </template>
-  <HostEnableButton v-if="canEnableHost" :host />
+  <HostEnableButton v-else :host />
   <HostForgetButton v-if="hostIsHalted" :host />
   <VtsDivider type="stretch" />
   <HostDownloadButton :host-id="host.id" />
@@ -30,5 +30,4 @@ const hostIsHalted = computed(() => host.power_state === HOST_POWER_STATE.HALTED
 const isEvacuateVm = computed(() => isHostOperationPending(host, HOST_ALLOWED_OPERATIONS.EVACUATE))
 
 const canDisableHost = computed(() => host.enabled || hostIsHalted.value || isEvacuateVm.value)
-const canEnableHost = computed(() => !hostIsHalted.value || !isEvacuateVm.value)
 </script>
