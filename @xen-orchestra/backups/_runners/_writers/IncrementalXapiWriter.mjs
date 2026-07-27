@@ -1,3 +1,4 @@
+import assert from 'node:assert'
 import humanFormat from 'human-format'
 
 import { asyncMapSettled } from '@xen-orchestra/async-map'
@@ -417,6 +418,10 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       if (baseDeltaVdiUuid !== undefined) {
         // reuse the validated mapping built by checkBaseVdis
         vdi.baseVdi = this.#baseVdisBySourceUuid.get(baseDeltaVdiUuid)
+        // BASE_DELTA_VDI is set, so the export is differencing. Without a base to clone,
+        // importIncrementalVm would create a blank VDI and write only the changed blocks
+        // into it, silently producing a corrupt replica: fail the job instead.
+        assert.notStrictEqual(vdi.baseVdi, undefined, `no validated target base for ${baseDeltaVdiUuid}`)
       } else {
         // first replication of this disk (full, no base)
         vdi.baseVdi = undefined
