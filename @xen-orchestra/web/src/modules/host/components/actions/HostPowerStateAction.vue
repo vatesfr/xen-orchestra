@@ -1,6 +1,6 @@
 <template>
   <HostShutdownButton v-if="hostIsRunning" :host />
-  <HostStartButton v-if="hostIsHalted" :host />
+  <HostStartButton v-else :host />
 </template>
 
 <script lang="ts" setup>
@@ -13,8 +13,6 @@ import { computed } from 'vue'
 const { host } = defineProps<{
   host: FrontXoHost
 }>()
-
-const hostIsHalted = computed(() => host.power_state === HOST_POWER_STATE.HALTED)
 
 const hostIsRunning = computed(() => host.power_state === HOST_POWER_STATE.RUNNING)
 </script>
