@@ -1,4 +1,5 @@
 <template>
+  <HostRestartToolstackButton :host />
   <template v-if="canDisableHost">
     <HostDisableButton :host />
     <HostDisableAndEvacuateVmButton :host />
@@ -15,6 +16,7 @@ import HostDisableAndEvacuateVmButton from '@/modules/host/components/actions/di
 import HostDownloadButton from '@/modules/host/components/actions/download/HostDownloadButton.vue'
 import HostEnableButton from '@/modules/host/components/actions/enable/HostEnableButton.vue'
 import HostForgetButton from '@/modules/host/components/actions/forget/HostForgetButton.vue'
+import HostRestartToolstackButton from '@/modules/host/components/actions/restart-toolstack/HostRestartToolstackButton.vue'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { isHostOperationPending } from '@/modules/host/utils/xo-host.util.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
