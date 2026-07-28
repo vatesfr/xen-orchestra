@@ -125,7 +125,8 @@ export function defineRemoteResource<
     string,
     {
       count: number
-      evictionTimeout?: number
+      evictionTimeout?: NodeJS.Timeout // TODO : Fixme , the actual type in browser is number, but NodeJS.Timeout in nodejs.
+      // Due to transitive types of vates/types, the type is NodeJS.Timeout.
       pause: VoidFunction
       resume: VoidFunction
       isPaused: boolean
