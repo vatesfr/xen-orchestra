@@ -30,7 +30,7 @@
 - [XO6] Fix the VM's VDI tab, which sometimes displays an error (PR [#10156](https://github.com/vatesfr/xen-orchestra/pull/10156))
 - [XO6] Reduce the number of HTTP requests when navigating between pages (PR [#10156](https://github.com/vatesfr/xen-orchestra/pull/10156))
 - [Backups] Don't hide errors during transfers (PR [#10183](https://github.com/vatesfr/xen-orchestra/pull/10183))
-- [Smart reboot] Fix `suspendBlocked` error when no issue to suspend resident VMs (PR []())
+- [Smart reboot] Fix `suspendBlocked` error when no issue to suspend resident VMs (PR [#10180](https://github.com/vatesfr/xen-orchestra/pull/10180))
 
 ### Packages to release
 
