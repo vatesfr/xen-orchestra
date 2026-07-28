@@ -46,7 +46,7 @@ export function defineRemoteResource<
     receivedData: any,
     calledFrom: 'execute' | 'update',
     context?: ResourceContext<TArgs>
-  ) => void
+  ) => Promise<void>
   cacheExpirationMs?: number | false
   pollingIntervalMs?: number | false
   stream?: boolean
@@ -60,7 +60,7 @@ export function defineRemoteResource<TData, TState extends object, TArgs extends
     receivedData: any,
     calledFrom: 'execute' | 'update',
     context?: ResourceContext<TArgs>
-  ) => void
+  ) => Promise<void>
   cacheExpirationMs?: number | false
   pollingIntervalMs?: number | false
   stream?: boolean
@@ -79,8 +79,8 @@ export function defineRemoteResource<
     receivedData: any,
     calledFrom: 'execute' | 'update',
     context?: ResourceContext<TArgs>
-  ) => void
-  onDataRemoved?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
+  ) => Promise<void>
+  onDataRemoved?: (data: Ref<NoInfer<TData>>, receivedData: any) => Promise<void>
   stream?: boolean
   initWatchCollection: () => {
     collectionId: string
@@ -89,7 +89,7 @@ export function defineRemoteResource<
     handleDelete: THandleDelete
     handlePost: THandlePost
     handleWatching: THandleWatching
-    predicate?: (receivedData: TData, context: ResourceContext<TArgs> | undefined) => boolean
+    predicate?: (receivedData: TData, context: ResourceContext<TArgs> | undefined) => Promise<boolean> | boolean
   }
 }): UseRemoteResource<TState, TArgs>
 
@@ -106,8 +106,8 @@ export function defineRemoteResource<
     receivedData: any,
     calledFrom: 'execute' | 'update',
     context?: ResourceContext<TArgs>
-  ) => void
-  onDataRemoved?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
+  ) => Promise<void>
+  onDataRemoved?: (data: Ref<NoInfer<TData>>, receivedData: any) => Promise<void>
   cacheExpirationMs?: number | false
   pollingIntervalMs?: number | false
   stream?: boolean
@@ -118,15 +118,17 @@ export function defineRemoteResource<
     handleDelete: THandleDelete
     handlePost: THandlePost
     handleWatching: THandleWatching
-    predicate?: (receivedData: TData, context: ResourceContext<TArgs> | undefined) => boolean
+    predicate?: (receivedData: TData, context: ResourceContext<TArgs> | undefined) => Promise<boolean> | boolean
   }
 }) {
   const cache = new Map<
     string,
     {
       count: number
+      evictionTimeout?: number
       pause: VoidFunction
       resume: VoidFunction
+      isPaused: boolean
       state: object
       stateScope: EffectScope
       isReady: Ref<boolean>
@@ -181,9 +183,14 @@ export function defineRemoteResource<
 
   const onDataReceived =
     config.onDataReceived ??
-    ((data: Ref<TData>, receivedData: any, calledFrom: 'execute' | 'update', context?: ResourceContext<TArgs>) => {
+    (async (
+      data: Ref<TData>,
+      receivedData: any,
+      calledFrom: 'execute' | 'update',
+      context?: ResourceContext<TArgs>
+    ) => {
       // allow to ignore some update (like for sub collection. E.g. vms/:id/vdis)
-      if (watchCollection?.predicate?.(receivedData, context) === false) {
+      if ((await watchCollection?.predicate?.(receivedData, context)) === false) {
         return
       }
 
@@ -217,9 +224,9 @@ export function defineRemoteResource<
 
   const onDataRemoved =
     config.onDataRemoved ??
-    ((data: Ref<TData>, receivedData: any, context?: ResourceContext<TArgs>) => {
+    (async (data: Ref<TData>, receivedData: any, context?: ResourceContext<TArgs>) => {
       // allow to ignore some update (like for sub collection. E.g. vms/:id/vdis)
-      if (watchCollection?.predicate?.(receivedData, context) === false) {
+      if ((await watchCollection?.predicate?.(receivedData, context)) === false) {
         return
       }
 
@@ -246,7 +253,12 @@ export function defineRemoteResource<
     entry.count += 1
 
     if (entry.count === 1) {
-      entry.resume()
+      clearTimeout(entry.evictionTimeout)
+      entry.evictionTimeout = undefined
+      if (entry.isPaused) {
+        entry.resume()
+        entry.isPaused = false
+      }
     }
   }
 
@@ -263,13 +275,21 @@ export function defineRemoteResource<
       return
     }
 
-    entry.pause()
+    function cleanUp() {
+      if (entry === undefined) {
+        return
+      }
+
+      entry.pause()
+      entry.isPaused = true
+      entry.stateScope.stop()
+      cache.delete(url)
+    }
 
     if (cacheExpiration !== false) {
-      setTimeout(() => {
-        cache.get(url)?.stateScope.stop()
-        cache.delete(url)
-      }, cacheExpiration)
+      entry.evictionTimeout = setTimeout(cleanUp, cacheExpiration)
+    } else {
+      cleanUp()
     }
   }
 
@@ -285,6 +305,8 @@ export function defineRemoteResource<
     const lastError = ref<Error>()
 
     const hasError = computed(() => lastError.value !== undefined)
+    const stateScope = effectScope(true)
+    const sharedContext = { ...context, scope: stateScope }
 
     const data = shallowRef(buildData()) as Ref<TData>
     // trigger reactivity on data when no more updates since 100ms or after 500ms
@@ -322,7 +344,7 @@ export function defineRemoteResource<
           }
 
           for await (const event of readNDJSONStream(response.body)) {
-            onDataReceived(data, event, 'execute', context)
+            await onDataReceived(data, event, 'execute', sharedContext)
             void flushData()
           }
 
@@ -332,7 +354,7 @@ export function defineRemoteResource<
             void flushData()
           }
         } else {
-          onDataReceived(data, await response.json(), 'execute', context)
+          await onDataReceived(data, await response.json(), 'execute', sharedContext)
           void flushData()
         }
 
@@ -358,12 +380,12 @@ export function defineRemoteResource<
           handleWatching,
           handlePost,
           resource,
-          onDataReceived: receivedData => {
-            onDataReceived(data, receivedData, 'update', context)
+          onDataReceived: async receivedData => {
+            await onDataReceived(data, receivedData, 'update', sharedContext)
             void flushData()
           },
-          onDataRemoved: receivedData => {
-            onDataRemoved(data, receivedData, context)
+          onDataRemoved: async receivedData => {
+            await onDataRemoved(data, receivedData, sharedContext)
             void flushData()
           },
         })
@@ -379,13 +401,13 @@ export function defineRemoteResource<
       resume = timeoutPoll.resume
     }
 
-    const stateScope = effectScope(true)
-    const state = stateScope.run(() => buildState(data, context))!
+    const state = stateScope.run(() => buildState(data, sharedContext))!
 
     cache.set(url, {
       count: 0,
       pause,
       resume,
+      isPaused: true,
       state,
       stateScope,
       isReady,
@@ -421,6 +443,12 @@ export function defineRemoteResource<
 
     if (!scope) {
       throw new Error('No effect scope found. Please provide a scope or use this function within a Vue component.')
+    }
+
+    if (!scope.active) {
+      throw new Error(
+        'useRemoteResource() was called with an inactive effect scope. This usually means a stale scope/context, (e.g. captured from an unmounted component) is being reused'
+      )
     }
 
     const isEnabled = toRef(optionsOrParentContext?.isEnabled ?? true)

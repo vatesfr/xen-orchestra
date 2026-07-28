@@ -14,10 +14,14 @@
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
+
 - [Backups] Fix qcow2 transfer without NBD (PR [#10164](https://github.com/vatesfr/xen-orchestra/pull/10164))
 - [Backups] Force a full backup if any suspect is detected on qcow2 without nbd (PR [#10164](https://github.com/vatesfr/xen-orchestra/pull/10164))
 - [Backups] Force a full replication if any suspect is detected on qcow2 without nbd (PR [#10164](https://github.com/vatesfr/xen-orchestra/pull/10164))
 - [Backups] Fix aggregated backup failing instead of falling back to a full backup (PR [#10164](https://github.com/vatesfr/xen-orchestra/pull/10164))
+- [XO6] Fix the VM's VDI tab, which always displays an empty list on initial load (PR [#10156](https://github.com/vatesfr/xen-orchestra/pull/10156))
+- [XO6] Fix the VM's VDI tab, which sometimes displays an error (PR [#10156](https://github.com/vatesfr/xen-orchestra/pull/10156))
+- [XO6] Reduce the number of HTTP requests when navigating between pages (PR [#10156](https://github.com/vatesfr/xen-orchestra/pull/10156))
 
 ### Packages to release
 
@@ -34,7 +38,11 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups patch
 - @xen-orchestra/disk-transform patch
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
+
 <!--packages-end-->
