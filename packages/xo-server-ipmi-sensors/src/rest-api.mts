@@ -6,13 +6,14 @@ export function createIpmiRestRoutes(plugin: IpmiSensorsPlugin): PluginRestRoute
   return [
     {
       method: 'get',
-      endpoint: 'hosts/{id}/ipmi',
       description: [
         'Get the IPMI inventory of a host: product context and the raw sensor list.',
         '',
         'Required privilege:',
         '- resource: host, action: read',
       ].join('\n'),
+      endpoint: 'hosts/{id}/ipmi',
+
       tags: ['ipmi'],
       params: { id: { type: 'string', example: '5b2c9e6a-1d3f-4c7b-9f2e-8a1b0c4d5e6f' } },
       middlewares: [{ name: 'acl', acls: { resource: 'host', action: 'read', objectId: 'params.id' } }],

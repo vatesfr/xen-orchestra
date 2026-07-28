@@ -48,7 +48,7 @@ flags are not.
 ## 3. Pick the target data type
 
 A rule maps a sensor **name** to one of these data types
-([types.mts](../src/types.mts), `IPMI_SENSOR_DATA_TYPE`):
+([types.mts](https://github.com/vatesfr/xen-orchestra/blob/master/packages/xo-server-ipmi-sensors/src/types.mts), `IPMI_SENSOR_DATA_TYPE`):
 
 | Data type    | Meaning                         |
 | ------------ | ------------------------------- |
@@ -100,12 +100,12 @@ use the `i` flag so casing doesn't matter:
   without touching the code.
 - **As a new default preset:** add/extend the vendor entry in
   `DEFAULT_IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME` in
-  [default-rules.mts](../src/default-rules.mts). These ship as the built-in
+  [default-rules.mts](https://github.com/vatesfr/xen-orchestra/blob/master/packages/xo-server-ipmi-sensors/src/default-rules.mts). These ship as the built-in
   defaults for everyone.
 
 To support a brand-new vendor, add a new `{ vendor, sensorRegexps }` object. The
 `vendor` must equal the lowercased `system-product-name` of the host (or `dell`
-/ `lenovo`, which are normalized in [index.mts](../src/index.mts)).
+/ `lenovo`, which are normalized in [index.mts](https://github.com/vatesfr/xen-orchestra/blob/master/packages/xo-server-ipmi-sensors/src/index.mts)).
 
 ## 6. Verify
 
