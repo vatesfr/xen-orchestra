@@ -121,6 +121,7 @@ type License = {
   bundleInfo?: { name: string; id: string }
 }
 
+<<<<<<< HEAD
 export type PoolRollingUpdateRecoveryStep = {
   status: 'pending' | 'running' | 'observed-succeeded' | 'failed' | 'not-needed'
   startedAt?: string
@@ -193,9 +194,12 @@ type XoStoreRangeOptions = {
   limit?: number
   reverse?: boolean
 }
+=======
+export type ConfigSourceName = 'vendor' | 'system' | 'global' | 'local'
+>>>>>>> d83168277 (adding ConfigSourceName type)
 
 export type ConfigSource = {
-  name: 'vendor' | 'system' | 'global' | 'local'
+  name: ConfigSourceName
   files: string[]
 }
 
