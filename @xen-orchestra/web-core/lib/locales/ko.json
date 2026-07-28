@@ -1,4 +1,5 @@
 {
+  "about": "정보",
   "accept-self-signed-certificates": "자체 서명 인증서 허용",
   "account": "계정",
   "account-organization-more": "계정, 조직 그리고…",
@@ -278,6 +279,7 @@
   "job:vm-shutdown:missing-vm": "종료할 VM이 없습니다",
   "job:vm-snapshot:in-progress": "스냅샷 찍는 중…",
   "job:vm-snapshot:missing-vm": "스냅샷을 찍을 VM이 없습니다",
+  "language-preferences": "언어 설정",
   "mtu": "MTU",
   "n-percent": "{n}%",
   "pxe": "PXE",
