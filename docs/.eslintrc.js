@@ -22,6 +22,11 @@ module.exports = {
     sourceType: 'script',
   },
   extends: ['eslint:recommended', 'prettier'],
+  // `yarn test-lint` only passes the monorepo-root `.gitignore` to ESLint via
+  // `--ignore-path`, so the Docusaurus build outputs listed in `docs/.gitignore`
+  // are not excluded automatically: linting them would report thousands of
+  // errors on minified bundles (and CI does build them before linting).
+  ignorePatterns: ['/build/', '/build-embed/', '/.docusaurus/'],
   overrides: [
     {
       files: ['*.ts', '*.tsx', '*.mjs'],
