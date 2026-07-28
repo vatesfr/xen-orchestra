@@ -26,9 +26,9 @@
   },
   "dependencies": {
     "@iarna/toml": "^2.2.0",
+    "@vates/app-conf": "4.1.1",
     "@vates/read-chunk": "^1.2.1",
     "ansi-colors": "^4.1.1",
-    "@vates/app-conf": "*",
     "content-type": "^1.0.4",
     "cson-parser": "^4.0.7",
     "getopts": "^2.2.3",

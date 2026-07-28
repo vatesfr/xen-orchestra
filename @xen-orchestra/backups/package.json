@@ -20,6 +20,7 @@
   "dependencies": {
     "@iarna/toml": "^2.2.5",
     "@kldzj/stream-throttle": "^1.1.1",
+    "@vates/app-conf": "4.1.1",
     "@vates/async-each": "^1.0.3",
     "@vates/cached-dns.lookup": "^1.0.0",
     "@vates/compose": "^2.1.0",
@@ -38,7 +39,6 @@
     "@xen-orchestra/qcow2": "^1.3.1",
     "@xen-orchestra/template": "^0.1.1",
     "@xen-orchestra/backup-archive": "^1.0.4",
-    "@vates/app-conf": "*",
     "compare-versions": "^6.0.0",
     "d3-time-format": "^4.1.0",
     "decorator-synchronized": "^0.6.0",
