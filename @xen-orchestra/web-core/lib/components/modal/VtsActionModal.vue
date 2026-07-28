@@ -129,6 +129,11 @@ const textMappingsByObject: TextMappingByObject = {
       message: t('modal:host-restart-toolstack-message'),
       action: t('action:restart-toolstack'),
     },
+    detach: {
+      title: t('modal:confirm-host-detach', { host: hostName }),
+      message: t('modal:host-detach-message'),
+      action: t('action:detach'),
+    },
   },
 }
 
