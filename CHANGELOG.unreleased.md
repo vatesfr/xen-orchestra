@@ -15,6 +15,7 @@
 - [REST API] Possibility of sending `shutdownPinnedVms` in the body of the `/pools/:id/actions/rolling_update` and `rolling_reboot` endpoints (PR [#10125](https://github.com/vatesfr/xen-orchestra/pull/10125))
 - [Rolling Pool Update/Reboot] New `shutdownPinnedVms` option: VMs that cannot be migrated because they use a host-bound device (PCI passthrough, vGPU, SR-IOV VIF) are cleanly shut down before their host reboots and started again on it afterwards, instead of aborting the whole run. When such VMs block the run, XO now lists them and asks for confirmation instead of failing with a raw `CANNOT_EVACUATE_HOST` error (PR [#10125](https://github.com/vatesfr/xen-orchestra/pull/10125))
 - [i18n] Update Czech, Dutch, German, Korean, Portuguese and Slovak translations (PR [#10033](https://github.com/vatesfr/xen-orchestra/pull/10033))
+- [XO6/copyAll button] Add copy all button for IP list and bond device (PR [#10081](https://github.com/vatesfr/xen-orchestra/pull/10081))
 
 ### Bug fixes
 
