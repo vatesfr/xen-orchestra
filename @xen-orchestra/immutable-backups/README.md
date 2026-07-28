@@ -54,8 +54,7 @@ immutabilityDuration = "7d"
 
 ## CLI commands
 
-- **`xo-immutable-remote`**: Start the watching daemon. Must be kept running to protect new backups reliably.
-- **`xo-lift-remote-immutability`**: Manually trigger a lifting pass. If `liftEvery` is set in the config, the process continues running and repeats the check on that interval.
+- **`xo-immutable-remote`**: Start the watching daemon. Must be kept running to protect new backups reliably. It lifts expired immutability on startup, then every `liftEvery`.
 
 ## How protection works
 
@@ -100,6 +99,8 @@ On each `liftEvery` tick (and once immediately on startup), the service walks th
 
 The expiry reference is the **datetime in the filename**, not the file's `mtime`. XO periodically rewrites metadata `.json` files (cache refresh, reconciliation), which would otherwise reset `mtime` and defer expiry indefinitely.
 
+A lift pass runs immediately when the service starts, then on every `liftEvery` tick.
+
 On the **first lift run after startup**, all backup files are scanned unconditionally (full scan). This catches orphaned immutable files left by a previous partial or interrupted lock. Subsequent runs use a fast-path: only backups whose `.json` sentinel is currently immutable are processed.
 
 ## Troubleshooting
@@ -116,7 +117,7 @@ Restart `xo-immutable-remote`. The first lift run after startup always performs 
    chattr -i -R /path/to/remote/on/fileserver/
    ```
 
-### Make one VM mutable again temporarly
+### Make one VM temporarily mutable again
 
 If one or a few VM had an issue and need manual cleanup, you can manually lift the immutability for one VM.
 
@@ -125,14 +126,14 @@ If one or a few VM had an issue and need manual cleanup, you can manually lift t
    ```bash
    chattr -i -R /path/to/remote/on/fileserver/xo-vm-backups/<vm uuid>
    ```
-3. run the backup job, it will fix what is reparable and purge the non recoverable backups
+3. Run the backup job, it will fix what is repairable and purge the non recoverable backups
 4. As root on the file server, run:
    ```bash
    chattr +i /path/to/remote/on/fileserver/xo-vm-backups/<vm uuid>/*.json
    chattr +i -R /path/to/remote/on/fileserver/xo-vm-backups/<vm uuid>/vdis/
    ```
 
-Note that this VM will be mutable between step 2 and 4, it's up to you to document and test the backup after
+Note that this VM will be mutable between step 2 and 4, it's up to you to document and test the backup after.
 
 ### Increasing the immutability duration
 
@@ -140,7 +141,7 @@ Change the setting. The next lift cycle will use the new duration; files already
 
 ### Reducing the immutability duration
 
-Change the setting, then run `xo-lift-remote-immutability` to apply immediately, or wait for the next scheduled `liftEvery` cycle.
+Change the setting, then restart `xo-immutable-remote` to apply immediately, or wait for the next scheduled `liftEvery` cycle.
 
 ### Why are my incremental backups not marked as protected in XO?
 
