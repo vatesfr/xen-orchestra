@@ -99,9 +99,9 @@ On each `liftEvery` tick (and once immediately on startup), the service walks th
 
 The expiry reference is the **datetime in the filename**, not the file's `mtime`. XO periodically rewrites metadata `.json` files (cache refresh, reconciliation), which would otherwise reset `mtime` and defer expiry indefinitely.
 
-A lift pass runs immediately when the service starts, then on every `liftEvery` tick.
-
 On the **first lift run after startup**, all backup files are scanned unconditionally (full scan). This catches orphaned immutable files left by a previous partial or interrupted lock. Subsequent runs use a fast-path: only backups whose `.json` sentinel is currently immutable are processed.
+
+The first run also walks the disk directories (`xo-vm-backups/<vmUUID>/vdis/<jobId>/<vdiId>/`) directly and lifts any expired disk found there, still using the datetime in its own filename. Both the locking and the regular lifting name a backup's disks from its `<datetime>.json`, so a disk stops being reachable that way once XO's retention has deleted that json — or once a merge has renamed the disk, since the surviving `data/<datetime>.vhd` then carries the datetime of the older backup its blocks came from. Such a disk would otherwise stay immutable forever, and an immutable disk prevents XO from ever merging or deleting the backups of that VDI.
 
 ## Troubleshooting
 
@@ -130,8 +130,10 @@ If one or a few VM had an issue and need manual cleanup, you can manually lift t
 4. As root on the file server, run:
    ```bash
    chattr +i /path/to/remote/on/fileserver/xo-vm-backups/<vm uuid>/*.json
-   chattr +i -R /path/to/remote/on/fileserver/xo-vm-backups/<vm uuid>/vdis/
+   chattr +i -R /path/to/remote/on/fileserver/xo-vm-backups/<vm uuid>/vdis/*/*/*.vhd
+   chattr +i -R /path/to/remote/on/fileserver/xo-vm-backups/<vm uuid>/vdis/*/*/data/*.vhd
    ```
+   Lock the disks, **not** the directories that hold them: `chattr +i -R …/vdis/` also locks `vdis`, the job and VDI directories and `data`, and an immutable directory rejects the files of the next backup, so every later run of that VM would fail. Depending on whether the remote uses VHD directories, one of the two commands above may report that it matched nothing.
 
 Note that this VM will be mutable between step 2 and 4, it's up to you to document and test the backup after.
 
