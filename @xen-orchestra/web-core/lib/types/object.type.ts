@@ -12,6 +12,7 @@ export type HostActions =
   | 'force-reboot'
   | 'smart-reboot'
   | 'restart-toolstack'
+  | 'detach'
 
 export type VmBlockedOperations =
   | 'clean_shutdown'
