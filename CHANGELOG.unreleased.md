@@ -28,6 +28,7 @@
 - [XO6] Fix the VM's VDI tab, which always displays an empty list on initial load (PR [#10156](https://github.com/vatesfr/xen-orchestra/pull/10156))
 - [XO6] Fix the VM's VDI tab, which sometimes displays an error (PR [#10156](https://github.com/vatesfr/xen-orchestra/pull/10156))
 - [XO6] Reduce the number of HTTP requests when navigating between pages (PR [#10156](https://github.com/vatesfr/xen-orchestra/pull/10156))
+- [Backups] Don't hide errors during transfers (PR [#10183](https://github.com/vatesfr/xen-orchestra/pull/10183))
 
 ### Packages to release
 
