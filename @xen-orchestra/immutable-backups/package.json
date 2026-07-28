@@ -21,10 +21,10 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
+    "@vates/app-conf": "4.1.1",
     "@vates/async-each": "^1.0.3",
     "@xen-orchestra/backups": "^0.74.0",
     "@xen-orchestra/log": "^0.7.2",
-    "@vates/app-conf": "^4.1.1",
     "execa": "^5.0.0",
     "ms": "^2.1.3"
   },
