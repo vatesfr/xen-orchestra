@@ -50,6 +50,7 @@
 - [XO6/Host] Add possibility to reboot an host (PR [#10141](https://github.com/vatesfr/xen-orchestra/pull/10141))
 - [XO6/Host] Add possibility to force reboot an host (PR [#10175](https://github.com/vatesfr/xen-orchestra/pull/10175))
 - [XO6/Host] Add possibility to smart reboot an host (PR [#10178](https://github.com/vatesfr/xen-orchestra/pull/10178))
+- [XO6/Host] Add possibility to detach an host (PR [#10179](https://github.com/vatesfr/xen-orchestra/pull/10179))
 
 ### Bug fixes
 
