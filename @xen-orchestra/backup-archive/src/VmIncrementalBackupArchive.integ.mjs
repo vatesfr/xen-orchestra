@@ -7,9 +7,9 @@ import * as uuid from 'uuid'
 import { getHandler } from '@xen-orchestra/fs'
 import { pFromCallback } from 'promise-toolbox'
 // eslint-disable-next-line n/no-missing-import
-import { VmBackupDirectory } from '../dist/VmBackupDirectory.mjs'
-import { RemoteVhdDisk } from '../dist/disks/RemoteVhdDisk.mjs'
-import { MergeRemoteDisk } from '../dist/disks/MergeRemoteDisk.mjs'
+import { VmBackupDirectory } from './VmBackupDirectory.mjs'
+import { RemoteVhdDisk } from './disks/RemoteVhdDisk.mjs'
+import { MergeRemoteDisk } from './disks/MergeRemoteDisk.mjs'
 import { VHDFOOTER, VHDHEADER } from './tests.fixtures.mjs'
 import { VhdFile, Constants, VhdDirectory, VhdAbstract } from 'vhd-lib'
 import { dirname, basename } from 'node:path'
@@ -607,6 +607,92 @@ test('it resumes an interrupted merge without chain field', async () => {
   const remainingVhds = await handler.list(basePath)
   assert.equal(remainingVhds.length, 1)
   assert.equal(remainingVhds.includes('child.vhd'), true)
+})
+
+test('it still resumes an interrupted merge, whose parent already carries the uuid of its child', async () => {
+  // mergeMetadata() copies the child's uuid onto the parent before the cleanup step, so an
+  // interrupted merge legitimately leaves a parent whose uuid contradicts what its child claims.
+  // That must not be mistaken for a corrupted chain: resuming is the way out of it.
+  const ancestor = await generateVhd(`${basePath}/ancestor.vhd`, { blocks: [0, 1] })
+  await generateVhd(`${basePath}/child.vhd`, {
+    header: { parentUnicodeName: 'ancestor.vhd', parentUuid: ancestor.footer.uuid },
+    blocks: [2, 3],
+  })
+  await handler.writeFile(
+    `${rootPath}/metadata.json`,
+    JSON.stringify({ mode: 'delta', size: 12000, vhds: [`${relativePath}/child.vhd`] })
+  )
+
+  // Interrupt the merge in its cleanup step, after mergeMetadata() rewrote the ancestor's footer
+  // with the child's uuid and before the child is removed.
+  const parent = new RemoteVhdDisk({ handler, path: `${basePath}/ancestor.vhd` })
+  const child = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd` })
+  await parent.init({ force: false })
+  await child.init({ force: false })
+  child.unlink = async () => {
+    throw new Error('simulated interruption')
+  }
+  const merger = new MergeRemoteDisk(handler, { removeUnused: true, writeStateDelay: 0 })
+  await assert.rejects(merger.merge(parent, child), /simulated interruption/)
+
+  const afterCrash = await handler.list(basePath)
+  assert.ok(afterCrash.includes('.ancestor.vhd.merge.json'), 'an interrupted-merge state file should remain')
+  assert.ok(afterCrash.includes('child.vhd'), 'the child should still be there')
+
+  const logged = []
+  await VmBackupDirectory.cleanVm(handler, rootPath, {
+    remove: true,
+    merge: true,
+    logInfo: () => {},
+    logWarn: message => logged.push(message),
+  })
+
+  assert.equal(logged.includes('not merging an inconsistent disk chain'), false, 'the resume must not be declined')
+  const remaining = await handler.list(basePath)
+  assert.equal(remaining.includes('.ancestor.vhd.merge.json'), false, 'state file removed after successful resume')
+  assert.equal(remaining.includes('ancestor.vhd'), false, 'ancestor consolidated into the merge target')
+  assert.equal(remaining.includes('child.vhd'), true, 'merge target remains')
+})
+
+test('it does not merge a chain whose parent uuid is contradicted, and still cleans the rest', async () => {
+  // orphan <- child, but the child claims a parent uuid that is not the orphan's: the file at that
+  // path is not the disk it was built from, so the chain cannot be opened, let alone merged.
+  const orphan = await generateVhd(`${basePath}/orphan.vhd`, { blocks: [0, 1] })
+  await generateVhd(`${basePath}/child.vhd`, {
+    header: {
+      parentUnicodeName: 'orphan.vhd',
+      parentUuid: uniqueIdBuffer(), // NOT orphan.footer.uuid
+    },
+    blocks: [2],
+  })
+
+  // an unrelated VDI directory, with one active disk and one plain orphan to collect
+  await generateVhd(`${basePath2}/keep.vhd`)
+  await generateVhd(`${basePath2}/collectme.vhd`)
+
+  await handler.writeFile(
+    `${rootPath}/metadata.json`,
+    JSON.stringify({
+      mode: 'delta',
+      size: 12000,
+      vhds: [`${relativePath}/child.vhd`, `${relativePath2}/keep.vhd`],
+    })
+  )
+
+  const logged = []
+  const logWarn = message => logged.push(message)
+  await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true, merge: true, logInfo: () => {}, logWarn })
+
+  assert.equal(logged.includes('inconsistent chain, it will not be merged until repaired'), true)
+  assert.equal(logged.includes('not merging an inconsistent disk chain'), true)
+
+  // nothing of the inconsistent chain was merged nor deleted: repairing it is a human decision
+  const remainingVhds = await handler.list(basePath)
+  assert.deepEqual(remainingVhds.sort(), ['child.vhd', 'orphan.vhd'])
+  assert.notEqual(orphan.footer.uuid, undefined)
+
+  // the rest of the VM was still cleaned: the unreferenced disk of the other VDI is gone
+  assert.deepEqual(await handler.list(basePath2), ['keep.vhd'])
 })
 
 // each of the vhd can be a file, a directory, an alias to a file or an alias to a directory
