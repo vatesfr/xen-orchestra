@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [XO6/Treeview] Fix hosts alignment in Treeview when hosts have different numbers of VMs (PR [#10153](https://github.com/vatesfr/xen-orchestra/pull/10153))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
