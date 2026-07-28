@@ -47,6 +47,12 @@ async function init() {
   app.use(router)
   app.use(RegleVuePlugin, formValidationConfig)
 
+  try {
+    await router.isReady()
+  } catch (error) {
+    console.error('Initial navigation failed', error)
+  }
+
   app.mount('#app')
 }
 

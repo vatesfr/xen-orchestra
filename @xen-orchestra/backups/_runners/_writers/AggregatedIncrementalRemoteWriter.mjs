@@ -22,7 +22,7 @@ export class AggregatedIncrementalRemoteWriter extends AbstractAggregatedRemoteW
     }
     // update the parameter with our best candidate
     // that can be an empty map
-    baseUuidToSrcVdi.forEach(key => {
+    baseUuidToSrcVdi.forEach((_, key) => {
       if (!selectedCopy.has(key)) {
         baseUuidToSrcVdi.delete(key)
       }
@@ -50,13 +50,8 @@ export class AggregatedIncrementalRemoteWriter extends AbstractAggregatedRemoteW
     await Promise.all(this.writers.map(writer => writer.prepare({ isFull })))
   }
   // write only on the main writer
-  transfer({ isVhdDifferencing, timestamp, deltaExport, vm, vmSnapshot }) {
-    return this.mainWriter.transfer({ isVhdDifferencing, timestamp, deltaExport, vm, vmSnapshot })
-  }
-
-  // chain only on the main writer
-  updateUuidAndChain({ isVhdDifferencing, vdis }) {
-    return this.mainWriter.updateUuidAndChain({ isVhdDifferencing, vdis })
+  transfer(args) {
+    return this.mainWriter.transfer(args)
   }
 
   // remove the backups and remove the entries

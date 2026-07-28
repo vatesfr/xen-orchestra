@@ -1,0 +1,16 @@
+<template>
+  <RouterView v-slot="{ Component }">
+    <UserManagementHeader />
+    <component :is="Component" :users />
+  </RouterView>
+</template>
+
+<script lang="ts" setup>
+import UserManagementHeader from '@/modules/admin/components/UserManagementHeader.vue'
+import { useXoUserCollection } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
+import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
+
+useDefaultTab('/admin/user-management', 'users')
+
+const { users } = useXoUserCollection()
+</script>

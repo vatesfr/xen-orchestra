@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="warning" icon="status:warning-picto" @confirm="emit('confirm', snapshotBefore)">
+  <VtsModal accent="warning" icon="status:warning-picto" dismissible @confirm="emit('confirm', snapshotBefore)">
     <template #title>
       {{ t('confirm-vm-revert') }}
     </template>

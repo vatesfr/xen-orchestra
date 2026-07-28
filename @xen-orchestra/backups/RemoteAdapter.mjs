@@ -315,6 +315,11 @@ export class RemoteAdapter {
       fn(cache)
 
       await this._writeCache(path, cache)
+    } else {
+      const regenerated = await this.#getCacheableDataListVmBackups(dirname(path))
+      if (regenerated !== undefined) {
+        await this._writeCache(path, regenerated)
+      }
     }
   }
 
@@ -383,8 +388,7 @@ export class RemoteAdapter {
       return
     }
 
-    // detached async action, will not reject
-    this._writeCache(path, backups)
+    await this._writeCache(path, backups)
 
     return backups
   }
@@ -449,7 +453,7 @@ export class RemoteAdapter {
     return path
   }
 
-  async writeVhd(path, disk, { validator = noop, writeBlockConcurrency } = {}) {
+  async writeVhd(path, disk, { validator = noop, writeBlockConcurrency, uuid, parentUuid, parentPath } = {}) {
     const handler = this._handler
 
     if (this.useVhdDirectory()) {
@@ -461,11 +465,19 @@ export class RemoteAdapter {
           concurrency: writeBlockConcurrency,
           validator,
           compression: 'brotli',
+          uuid,
+          parentUuid,
+          parentPath,
         },
       })
     } else {
-      const stream = await toVhdStream(disk)
-      const size = await this.outputStream(path, stream, { validator, checksum: false })
+      const stream = await toVhdStream(disk, { uuid, parentUuid, parentPath })
+      const size = await this.outputStream(path, stream, {
+        validator,
+        // no checksum for VHDs, because they will be invalidated by
+        // merges and chains
+        checksum: false,
+      })
       await validator(path)
       return size
     }

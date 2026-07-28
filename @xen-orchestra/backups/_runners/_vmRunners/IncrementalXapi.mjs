@@ -73,21 +73,16 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
       writer =>
         writer.transfer({
           deltaExport: forkDeltaExport(deltaExport, writer.constructor.name),
+          // freshly exported from XAPI by code that has the fix and the force-full gate
+          // (writer.checkBaseVdis ran before this transfer), so the chain is verified/forced
+          // clean; the tip's flag lets the next run skip re-probing
+          includeNonNbdQcow2Fix: true,
           isVhdDifferencing,
           timestamp,
           vm,
           vmSnapshot: exportedVm,
         }),
       'writer.transfer()'
-    )
-    await this._callWriters(
-      writer =>
-        writer.updateUuidAndChain({
-          isVhdDifferencing,
-          timestamp,
-          vdis: deltaExport.vdis,
-        }),
-      'writer.updateUuidAndChain()'
     )
 
     if (isFull) {

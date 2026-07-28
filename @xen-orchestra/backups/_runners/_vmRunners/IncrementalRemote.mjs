@@ -99,22 +99,13 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
         writer =>
           writer.transfer({
             deltaExport: forkDeltaExport(incrementalExport, writer.constructor.name),
+            includeNonNbdQcow2Fix: metadata.includeNonNbdQcow2Fix,
             isVhdDifferencing,
             timestamp: metadata.timestamp,
             vm: metadata.vm,
             vmSnapshot: metadata.vmSnapshot,
           }),
         'writer.transfer()'
-      )
-      // this will update parent name with the needed alias
-      await this._callWriters(
-        writer =>
-          writer.updateUuidAndChain({
-            isVhdDifferencing,
-            timestamp: metadata.timestamp,
-            vdis: incrementalExport.vdis,
-          }),
-        'writer.updateUuidAndChain()'
       )
 
       await this._callWriters(writer => writer.cleanup(), 'writer.cleanup()')

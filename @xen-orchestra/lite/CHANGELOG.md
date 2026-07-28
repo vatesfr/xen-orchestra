@@ -5,6 +5,8 @@
 - [Host/dashboard] Switch CPU and RAM panels order to match Pool dashboard layout (PR [#10059](https://github.com/vatesfr/xen-orchestra/pull/10059))
 - Remove all "coming soon" disabled button placeholders from network, VM, and pool components (PR [#10068](https://github.com/vatesfr/xen-orchestra/pull/10068))
 - [VM/Network] add possibility to “connect/disconnect” a VIF on a VM (PR [#10080](https://github.com/vatesfr/xen-orchestra/pull/10080))
+- [Pool/networks] Add the possibility to copy information from one or more networks in JSON format (PR [#10083](https://github.com/vatesfr/xen-orchestra/pull/10083))
+- Fix some design inconsistency between pages (PR [#10109](https://github.com/vatesfr/xen-orchestra/pull/10109))
 
 ## **0.23.0** (2026-06-30)
 
@@ -18,6 +20,7 @@
 - [SidePanels] Add and use new `VtsCardObjectTitle` component to display object title and ID in side panels (PR [#9755](https://github.com/vatesfr/xen-orchestra/pull/9755))
 - Replacement of the UiSpinner component with UiLoader from web-core (PR [#10023](https://github.com/vatesfr/xen-orchestra/pull/10023))
 - [Pool,Host/Storage] Add Storage tabs (PR [#10005](https://github.com/vatesfr/xen-orchestra/pull/10005))
+- [Pool,Host/Storage] Storage repositories can now be connected, disconnected and deleted from the Storage tabs (PR [#10006](https://github.com/vatesfr/xen-orchestra/pull/10006))
 
 ## **0.22.0** (2026-05-28)
 

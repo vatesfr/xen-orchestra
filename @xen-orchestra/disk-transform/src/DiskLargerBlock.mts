@@ -31,11 +31,15 @@ export class DiskLargerBlock extends RandomAccessDisk {
     throw new Error('Method not implemented.')
   }
   async readBlock(index: number): Promise<DiskBlock> {
+    if (!this.hasBlock(index)) {
+      throw new Error(`Block ${index} not present in this disk`)
+    }
     // @todo handle partial block at the end
     const source = this.source
-    const destinationBlock = Buffer.alloc(this.getBlockSize(), 0)
+    const destinationBlockData = Buffer.alloc(this.getBlockSize(), 0)
     const blockRatio = this.#blockSize / source.getBlockSize()
-    for (let i = index * blockRatio; i < (index + 1) * blockRatio; i++) {
+    const firstSourceBlockIndex = index * blockRatio
+    for (let i = firstSourceBlockIndex; i < firstSourceBlockIndex + blockRatio; i++) {
       let data: Buffer | undefined
       if (source.hasBlock(i)) {
         data = (await source.readBlock(i)).data
@@ -51,12 +55,12 @@ export class DiskLargerBlock extends RandomAccessDisk {
         }
       }
       if (data !== undefined) {
-        data.copy(destinationBlock, i * source.getBlockSize())
+        data.copy(destinationBlockData, (i - firstSourceBlockIndex) * source.getBlockSize())
       }
     }
     return {
       index,
-      data: destinationBlock,
+      data: destinationBlockData,
     }
   }
 
@@ -66,22 +70,24 @@ export class DiskLargerBlock extends RandomAccessDisk {
 
   getBlockIndexes(): Array<number> {
     const maxBlock = Math.ceil(this.getVirtualSize() / this.getBlockSize())
-    const blockRatio = this.getBlockSize() / this.source.getBlockSize()
     const indexes = []
     for (let i = 0; i < maxBlock; i++) {
-      for (let j = 0; j < blockRatio; j++) {
-        if (this.source.hasBlock(i * blockRatio + j)) {
-          indexes.push(i)
-          break
-        }
+      if (this.hasBlock(i)) {
+        indexes.push(i)
       }
     }
     return indexes
   }
 
   getBlockIndexesCount(): number {
-    let blockRatio = this.getBlockSize() / this.source.getBlockSize()
-    return this.#source.getBlockIndexesCount() / blockRatio
+    let count = 0
+    const maxBlock = Math.ceil(this.getVirtualSize() / this.getBlockSize())
+    for (let i = 0; i < maxBlock; i++) {
+      if (this.hasBlock(i)) {
+        count++
+      }
+    }
+    return count
   }
 
   hasBlock(index: number): boolean {

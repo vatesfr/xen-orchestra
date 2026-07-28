@@ -15,11 +15,8 @@
         </UiButton>
       </template>
     </UiTitle>
+    <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
     <div class="container">
-      <div class="table-actions">
-        <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
-      </div>
-
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>

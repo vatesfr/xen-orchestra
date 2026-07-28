@@ -25,7 +25,7 @@ export class AggregatedIncrementalXapiWriter extends AbstractAggregatedXapiWrite
     }
     // update the parameter with our best candidate
     // that can be an empty map
-    baseUuidToSrcVdi.forEach(key => {
+    baseUuidToSrcVdi.forEach((_, key) => {
       if (!selectedCopy.has(key)) {
         baseUuidToSrcVdi.delete(key)
       }
@@ -57,11 +57,6 @@ export class AggregatedIncrementalXapiWriter extends AbstractAggregatedXapiWrite
   // write only on the main writer
   transfer(args) {
     return this.mainWriter.transfer(args)
-  }
-
-  // chain only on the main writer
-  updateUuidAndChain(args) {
-    return this.mainWriter.updateUuidAndChain(args)
   }
 
   // remove the backups and remove the entries

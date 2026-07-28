@@ -12,7 +12,7 @@
                 class="add-vdi-link"
                 :to="{ name: '/vdi/new', query: { vmid: vm.id } }"
                 icon="fa:plus"
-                size="medium"
+                size="small"
               >
                 {{ t('action:create-vdi') }}
               </UiLink>
@@ -22,7 +22,7 @@
                 class="add-vdi-link"
                 :to="{ name: '/vdi/attach', query: { vmid: vm.id } }"
                 icon="action:attach"
-                size="medium"
+                size="small"
               >
                 {{ t('action:attach-vdi') }}
               </UiLink>
