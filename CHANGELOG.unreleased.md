@@ -42,7 +42,7 @@
 - @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups patch
 - @xen-orchestra/disk-transform patch
-- @xen-orchestra/web-core minor
 - @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 
 <!--packages-end-->
