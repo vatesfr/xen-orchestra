@@ -29,6 +29,7 @@
 - [XO6] Fix the VM's VDI tab, which sometimes displays an error (PR [#10156](https://github.com/vatesfr/xen-orchestra/pull/10156))
 - [XO6] Reduce the number of HTTP requests when navigating between pages (PR [#10156](https://github.com/vatesfr/xen-orchestra/pull/10156))
 - [Backups] Don't hide errors during transfers (PR [#10183](https://github.com/vatesfr/xen-orchestra/pull/10183))
+- [Backups] Report a disk chain whose links don't match the disks they point to, and leave it untouched instead of retrying an impossible merge that stopped the whole cleanup of that VM at every run (PR [#TODO](https://github.com/vatesfr/xen-orchestra/pull/TODO))
 
 ### Packages to release
 

@@ -44,6 +44,9 @@ export class RemoteDiskLineage {
   #activeDiskPaths: Set<string> = new Set()
   // Interrupted merges: normalized parent path { stateFilePath, chain }
   #interruptedMerges: Map<string, { stateFilePath: string; chain?: string[] }> = new Map()
+  // Disks whose parent link is contradicted by the uuids: any merge chain containing one of them
+  // crosses that link and is left alone
+  #inconsistentParentLinks: Set<string> = new Set()
 
   constructor(handler: RemoteHandlerAbstract, vdiDir: string, opts: ResolvedBackupCleanOptions) {
     this.#handler = handler
@@ -94,6 +97,11 @@ export class RemoteDiskLineage {
     }
 
     const uuidToPath = new Map<string, string>()
+    // disk path: its own uuid / the uuid of the parent it claims, to check the chain links once
+    // every disk has been read — a disk is closed as soon as it is scanned, and a parent may be
+    // scanned after its child
+    const uuidOf = new Map<string, string>()
+    const claimedParentUuidOf = new Map<string, string>()
     for (const diskPath of this.#diskPaths) {
       let disk: RemoteDisk | undefined
       try {
@@ -139,9 +147,11 @@ export class RemoteDiskLineage {
           }
         }
         uuidToPath.set(uuid, diskPath)
+        uuidOf.set(diskPath, uuid)
 
         if (disk.isDifferencing()) {
           const parentPath = disk.getParentPath()
+          claimedParentUuidOf.set(diskPath, disk.getParentUuid())
           this.#parentOf.set(diskPath, parentPath)
           if (this.#childOf.has(parentPath)) {
             const error = new Error('this script does not support multiple children', {
@@ -184,6 +194,35 @@ export class RemoteDiskLineage {
       if (!this.#diskPaths.has(parent) || this.#brokenDiskPaths.has(parent)) {
         this.#opts.logWarn('disk broken: parent missing or broken', { child, parent })
         propagateBroken(child)
+        continue
+      }
+
+      // A disk records the uuid of the parent it was chained onto, so a link whose uuids disagree
+      // means the file at that path is not the parent this disk was built from — a rename or a
+      // restore mixed up the directory. Detect it here rather than when the chain is opened: the
+      // merge would fail with NOT_SUPPORTED, and that error aborts the whole clean of this VM
+      // (asyncEach stops on the first error), so every other lineage would stop being merged and
+      // cleaned as well, at every run.
+      //
+      // The link is only reported: the disks are readable and the backups referencing them are
+      // still restorable, and since the parent links do not describe the real topology, deleting
+      // anything here would be a guess. It needs a human to repair it, so the warning names both
+      // disks and both uuids.
+      //
+      // Skipped for a parent under an interrupted merge: its footer already carries the uuid of the
+      // child being merged into it, so the mismatch is expected and that merge must be resumed.
+      if (!mergeParentPaths.has(parent)) {
+        const claimedParentUuid = claimedParentUuidOf.get(child)
+        const parentUuid = uuidOf.get(parent)
+        if (claimedParentUuid !== undefined && parentUuid !== undefined && claimedParentUuid !== parentUuid) {
+          this.#opts.logWarn('inconsistent chain, it will not be merged until repaired', {
+            child,
+            parent,
+            parentUuidExpectedByChild: claimedParentUuid,
+            parentUuid,
+          })
+          this.#inconsistentParentLinks.add(child)
+        }
       }
     }
   }
@@ -331,7 +370,12 @@ export class RemoteDiskLineage {
         await asyncEach(
           toMerge,
           async ({ chain, isResuming }) => {
-            const { finalDiskSize, mergeTargetPath } = await limitedMergeChain([...chain], isResuming)
+            const merged = await limitedMergeChain([...chain], isResuming)
+            if (merged === undefined) {
+              // chain left untouched, its disks are still there
+              return
+            }
+            const { finalDiskSize, mergeTargetPath } = merged
             mergedSizes.set(mergeTargetPath, (mergedSizes.get(mergeTargetPath) ?? 0) + finalDiskSize)
             // parentPath alias deleted by parentDisk.rename(mergeTargetPath)
             // intermediates deleted by childDisk.unlink() when removeUnused=true
@@ -361,11 +405,27 @@ export class RemoteDiskLineage {
 
   /**
    * Merges ancestors into the active child at the end of the chain.
-   * Returns the final size of the merge target and its path.
+   * Returns the final size of the merge target and its path, or undefined when the chain was left
+   * untouched.
    */
-  async #mergeChain(chain: string[], isResuming: boolean): Promise<{ finalDiskSize: number; mergeTargetPath: string }> {
+  async #mergeChain(
+    chain: string[],
+    isResuming: boolean
+  ): Promise<{ finalDiskSize: number; mergeTargetPath: string } | undefined> {
     assert.ok(chain.length >= 2, `look to merge a chain shorter than 2 ${JSON.stringify(chain)}`)
     const parentPath = chain[0]
+
+    // A chain crossing a contradicted parent link cannot be merged: openDiskChain below refuses it,
+    // and that error would abort the clean of the whole VM. Leave this chain as it is until someone
+    // repairs it — every other chain of this directory is still merged and cleaned.
+    //
+    // An interrupted merge is exempt: the parent it was merging into already carries the uuid of its
+    // child, so a mismatch is expected there and resuming is the way out of it.
+    if (!isResuming && chain.some(path => this.#inconsistentParentLinks.has(path))) {
+      this.#opts.logWarn('not merging an inconsistent disk chain', { chain: [...chain] })
+      return undefined
+    }
+
     this.#opts.logInfo('merging disk chain', { chain: [...chain] }) // need a copy here to log full chain
     // The last disk in the chain is the active one that everything gets merged into
     const mergeTargetPath = chain.pop()!
