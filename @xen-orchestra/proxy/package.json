@@ -27,6 +27,7 @@
   "dependencies": {
     "@iarna/toml": "^2.2.0",
     "@koa/router": "^12.0.0",
+    "@vates/app-conf": "4.1.1",
     "@vates/async-each": "^1.0.3",
     "@vates/cached-dns.lookup": "^1.0.0",
     "@vates/compose": "^2.1.0",
@@ -42,7 +43,6 @@
     "@xen-orchestra/self-signed": "^0.2.1",
     "@xen-orchestra/xapi": "^9.0.1",
     "ajv": "^8.0.3",
-    "@vates/app-conf": "^4.1.1",
     "async-iterator-to-stream": "^1.1.0",
     "fs-extra": "^11.1.0",
     "get-stream": "^7.0.1",
