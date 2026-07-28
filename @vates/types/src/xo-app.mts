@@ -119,8 +119,10 @@ type License = {
   bundleInfo?: { name: string; id: string }
 }
 
+export type ConfigSourceName = 'vendor' | 'system' | 'global' | 'local'
+
 export type ConfigSource = {
-  name: 'vendor' | 'system' | 'global' | 'local'
+  name: ConfigSourceName
   files: string[]
 }
 
