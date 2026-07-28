@@ -16,6 +16,7 @@
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
+- [Immutable backups] Backups are protected again on file servers whose system language is not English: immutability was silently not applied at all on those (PR [#10182](https://github.com/vatesfr/xen-orchestra/pull/10182))
 
 ### Packages to release
 
@@ -33,6 +34,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/immutable-backups patch
 - @xen-orchestra/web minor
 
 <!--packages-end-->
