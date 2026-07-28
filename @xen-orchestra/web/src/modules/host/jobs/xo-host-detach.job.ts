@@ -5,7 +5,7 @@ import { isPoolOperationPending } from '@/modules/pool/utils/xo-pool.util.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
-import { HOST_POWER_STATE, POOL_ALLOWED_OPERATIONS, type XoTask } from '@vates/types'
+import { POOL_ALLOWED_OPERATIONS, type XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export const useXoHostDetachJob = defineJob('host.detach', [xoHostArg], () => {
@@ -30,10 +30,6 @@ export const useXoHostDetachJob = defineJob('host.detach', [xoHostArg], () => {
 
       if (isRunning || (pool && isPoolOperationPending(pool, POOL_ALLOWED_OPERATIONS.EJECT))) {
         throw new JobRunningError(t('job:host-detach:in-progress'))
-      }
-
-      if (host.power_state !== HOST_POWER_STATE.RUNNING) {
-        throw new JobError(t('job:host-detach:bad-power-state'))
       }
     },
   }
