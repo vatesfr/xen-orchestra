@@ -1,5 +1,5 @@
 import type { Request as ExRequest } from 'express'
-import type { XapiXoRecord, XoTask } from '@vates/types'
+import type { XoTask } from '@vates/types'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import {
   Delete,
