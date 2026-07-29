@@ -118,7 +118,7 @@ const { t } = useI18n()
 
 const uiStore = useUiStore()
 
-const { isChangingState, currentOperation } = useXoHostUtils(host)
+const { isChangingState, currentOperation } = useXoHostUtils(() => host)
 
 const { buildXo5Route } = useXoRoutes()
 const xo5HostStatsHref = computed(() => buildXo5Route(`/hosts/${host.id}/stats`))
