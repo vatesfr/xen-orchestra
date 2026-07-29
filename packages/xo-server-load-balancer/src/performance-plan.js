@@ -53,11 +53,14 @@ export default class PerformancePlan extends Plan {
       console.error(error)
     }
 
-    // Step 1 : affinity and anti-affinity
+    // Step 1 : VM to host affinity
+    await this._processVmToHostAffinity()
+
+    // Step 2 : affinity and anti-affinity
     await this._processAffinity()
     await this._processAntiAffinity()
 
-    // Step 2 : optimize host that exceed CPU threshold
+    // Step 3 : optimize host that exceed CPU threshold
     const hosts = this._getHosts()
     const results = await this._getHostStatsAverages({
       hosts,
@@ -82,7 +85,7 @@ export default class PerformancePlan extends Plan {
         })
       }
     } else {
-      // Step 3 : optimize hosts whose load differs too much from the rest of the pool (if option is enabled)
+      // Step 4 : optimize hosts whose load differs too much from the rest of the pool (if option is enabled)
       if (this._performanceSubmode === 'preventive') {
         for (const poolId of this._poolIds) {
           const poolHosts = filter(hosts, host => host.$poolId === poolId)
@@ -123,7 +126,7 @@ export default class PerformancePlan extends Plan {
           }
         }
       }
-      // Step 4 : vCPU prepositioning (if option is enable. Incompatible with step 3 option)
+      // Step 5 : vCPU prepositioning (if option is enable. Incompatible with step 3 option)
       if (this._performanceSubmode === 'vCpuPrepositioning') {
         for (const poolId of this._poolIds) {
           const poolHosts = filter(hosts, host => host.$poolId === poolId)
@@ -223,6 +226,13 @@ export default class PerformancePlan extends Plan {
       if (blockingAntiAffinityTags.length > 0) {
         debug(
           `VM (${vm.id}) of Host (${exceededHost.id}) cannot be migrated. It contains anti-affinity tag(s): ${blockingAntiAffinityTags}.`
+        )
+        continue
+      }
+      const blockingVmToHostAffinityTags = intersection(vm.tags, this._vmToHostAffinityTags)
+      if (blockingVmToHostAffinityTags.length > 0) {
+        debug(
+          `VM (${vm.id}) of Host (${exceededHost.id}) cannot be migrated. It contains vm-to-host affinity tag(s): ${blockingVmToHostAffinityTags}.`
         )
         continue
       }
