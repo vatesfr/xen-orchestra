@@ -16,7 +16,7 @@ export default function NotFoundContent({ className }: Props): JSX.Element {
           </Heading>
           <p>
             <Translate id='theme.NotFound.p1' description='The first paragraph of the 404 page'>
-              We're sorry, but we couldn’t find the page you were looking for.
+              We’re sorry, but we couldn’t find the page you were looking for.
             </Translate>
           </p>
           <p>
