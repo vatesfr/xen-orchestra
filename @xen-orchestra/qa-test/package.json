@@ -24,6 +24,7 @@
     "@xen-orchestra/backups": "^0.73.9",
     "@xen-orchestra/fs": "^4.9.3",
     "@xen-orchestra/log": "^0.7.2",
+    "@xen-orchestra/vmware-explorer": "^0.14.0",
     "nodemailer": "^7.0.13",
     "xo-lib": "^0.11.2"
   },
@@ -48,6 +49,7 @@
     "report": "node --env-file-if-exists=.env scripts/run-and-report.mjs",
     "report:smtp-test": "node --env-file-if-exists=.env scripts/run-and-report.mjs --smtp-test",
     "qa:backup:file-restore": "node --env-file-if-exists=.env --test tests/backup.file-restore.test.js",
+    "qa:import:esxi": "node --env-file-if-exists=.env --test --test-force-exit tests/import.esxi.test.js",
     "qa:load:backup:delta": "node --env-file-if-exists=.env scripts/backup-load-delta.mjs"
   }
 }

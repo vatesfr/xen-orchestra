@@ -48,7 +48,7 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/immutable-backups patch
 - @xen-orchestra/rest-api minor
-- @xen-orchestra/vmware-explorer patch
+- @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
 - xo-server-load-balancer patch
 
