@@ -1,7 +1,9 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { VtsLinkCellProps } from '@core/components/table/cells/VtsLinkCell.vue'
-import type { HOST_ALLOWED_OPERATIONS } from '@vates/types'
+import { type HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE } from '@vates/types'
 import { castArray } from 'lodash-es'
+
+export type XoHostState = 'running' | 'disabled' | 'halted' | 'unknown'
 
 export function isHostOperationPending(
   host: FrontXoHost,
@@ -14,4 +16,16 @@ export function isHostOperationPending(
 
 export function getHostInfo(host: FrontXoHost | undefined): VtsLinkCellProps & { label: string } {
   return host ? { label: host.name_label, to: `/host/${host.id}/dashboard` } : { label: '' }
+}
+
+export function getHostState(host: FrontXoHost | undefined): XoHostState {
+  if (!host || host.power_state === HOST_POWER_STATE.UNKNOWN) {
+    return 'unknown'
+  }
+
+  if (host.power_state === HOST_POWER_STATE.HALTED) {
+    return 'halted'
+  }
+
+  return host.enabled ? 'running' : 'disabled'
 }

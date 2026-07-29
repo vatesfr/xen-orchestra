@@ -1,7 +1,7 @@
 <template>
   <UiHeadBar>
     <template #icon>
-      <VtsObjectIcon size="medium" type="host" :state="toLower(host.power_state)" />
+      <VtsObjectIcon size="medium" type="host" :state="getHostState(host)" />
     </template>
     {{ host.name_label }}
     <template v-if="isMaster" #status>
@@ -75,6 +75,7 @@
 <script lang="ts" setup>
 import HostMoreActions from '@/modules/host/components/HostMoreActions.vue'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { getHostState } from '@/modules/host/utils/xo-host.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
@@ -85,7 +86,6 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
