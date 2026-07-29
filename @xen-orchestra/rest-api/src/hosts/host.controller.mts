@@ -932,7 +932,7 @@ export class HostController extends XapiXoController<XoHost> {
    * Required privilege:
    * - resource: host, action: scan-pifs
    *
-   * Scan for physical interfaces on a host and create PIF objects to represent them
+   * Scan for physical interfaces on a host and create PIF objects to represent them. Host must be running.
    *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    */
@@ -949,8 +949,18 @@ export class HostController extends XapiXoController<XoHost> {
     const hostId = id as XoHost['id']
 
     const action = async () => {
-      const xapiHost = this.getXapiObject(hostId)
-      await xapiHost.$xapi.callAsync('PIF.scan', host._xapiRef)
+      const host = this.getObject(hostId)
+
+      if (host.power_state !== HOST_POWER_STATE.RUNNING) {
+        throw incorrectState({
+          actual: host.power_state,
+          expected: HOST_POWER_STATE.RUNNING,
+          object: host.id,
+          property: 'power_state',
+        })
+      }
+
+      await this.getXapi(host).callAsync('PIF.scan', host._xapiRef)
     }
 
     return this.createAction<void>(action, {
