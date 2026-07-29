@@ -2,6 +2,9 @@
   <div class="vm-vifs-table">
     <UiTitle>
       {{ t('vifs') }}
+      <template #action>
+        <slot name="title-actions" />
+      </template>
     </UiTitle>
     <div class="container">
       <div class="table-actions">

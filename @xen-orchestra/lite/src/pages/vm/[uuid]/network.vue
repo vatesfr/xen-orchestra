@@ -1,7 +1,13 @@
 <template>
   <VtsContentSidePanel class="network">
     <UiCard class="container">
-      <VmVifsTable v-if="vm" :vifs :vm />
+      <VmVifsTable v-if="vm" :vifs :vm>
+        <template #title-actions>
+          <UiLink size="medium" :to="{ name: '/vif/new', query: { vmId: vm.uuid } }" icon="fa:plus">
+            {{ t('new-vif') }}
+          </UiLink>
+        </template>
+      </VmVifsTable>
     </UiCard>
     <VmVifsSidePanel :vif="selectedVif" @close="selectedVif = undefined" />
   </VtsContentSidePanel>
@@ -16,6 +22,7 @@ import { useVifStore } from '@/stores/xen-api/vif.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useArrayFilter } from '@vueuse/shared'
 import { computed } from 'vue'
