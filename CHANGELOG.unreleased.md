@@ -17,6 +17,7 @@
 - [Docs] Improve doc, rename titles, and refactor menu (PR [#10212](https://github.com/vatesfr/xen-orchestra/pull/10212))
 
 - [IPMI-plugin] Add GET plugins/ipmi-sensors/hosts/{id}/ipmi to get IPMI sensors (PR [#10003](https://github.com/vatesfr/xen-orchestra/pull/10003))
+- [Plugins/load balancer] Added VM-to-host affinity to force VMs to run on a given set of hosts if possible (PR [#10207](https://github.com/vatesfr/xen-orchestra/pull/10207))
 
 ### Bug fixes
 
@@ -52,6 +53,7 @@
 - xo-common minor
 - xo-server patch
 - xo-server-ipmi-sensors minor
+- xo-server-load-balancer minor
 - xo-server-netbox patch
 
 <!--packages-end-->
