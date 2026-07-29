@@ -3,7 +3,7 @@ import { Task } from '@vates/task'
 
 import { DIR_XO_POOL_METADATA_BACKUPS } from '../RemoteAdapter.mjs'
 import { forkStreamUnpipe } from './_forkStreamUnpipe.mjs'
-import { formatFilenameDate } from '../_filenameDate.mjs'
+import { formatFilenameDate } from '@xen-orchestra/backup-archive/filenameDate'
 
 export const PATH_DB_DUMP = '/pool/xmldbdump'
 

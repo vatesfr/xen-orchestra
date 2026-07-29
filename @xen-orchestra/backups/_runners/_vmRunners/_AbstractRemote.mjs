@@ -6,7 +6,7 @@ import { Disposable } from 'promise-toolbox'
 import { createPredicate } from 'value-matcher'
 import { Task } from '@vates/task'
 
-import { getVmBackupDir } from '../../_getVmBackupDir.mjs'
+import { getVmBackupDir } from '@xen-orchestra/backup-archive/paths'
 
 import { Abstract } from './_Abstract.mjs'
 import { extractIdsFromSimplePattern } from '../../extractIdsFromSimplePattern.mjs'

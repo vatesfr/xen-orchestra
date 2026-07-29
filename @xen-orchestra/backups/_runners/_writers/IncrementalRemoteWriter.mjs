@@ -9,7 +9,7 @@ import { dirname, basename } from 'node:path'
 import { relativeFromFile } from '@xen-orchestra/fs/path'
 import { Task } from '@vates/task'
 
-import { formatFilenameDate } from '../../_filenameDate.mjs'
+import { formatFilenameDate } from '@xen-orchestra/backup-archive/filenameDate'
 import { getOldEntries } from '../../_getOldEntries.mjs'
 
 import { MixinRemoteWriter } from './_MixinRemoteWriter.mjs'

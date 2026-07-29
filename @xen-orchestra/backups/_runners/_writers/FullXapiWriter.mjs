@@ -2,7 +2,7 @@ import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
 import { Task } from '@vates/task'
 
-import { formatFilenameDate } from '../../_filenameDate.mjs'
+import { formatFilenameDate } from '@xen-orchestra/backup-archive/filenameDate'
 import { getOldEntries } from '../../_getOldEntries.mjs'
 
 import { AbstractFullWriter } from './_AbstractFullWriter.mjs'

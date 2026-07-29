@@ -10,7 +10,7 @@ import { join } from 'node:path'
 import { load as loadConfig } from 'app-conf'
 import Disposable from 'promise-toolbox/Disposable'
 
-import { getVmBackupDir } from '../_getVmBackupDir.mjs'
+import { getVmBackupDir } from '@xen-orchestra/backup-archive/paths'
 import { RemoteAdapter } from '../RemoteAdapter.mjs'
 
 import { CLEAN_VM_QUEUE } from './index.mjs'

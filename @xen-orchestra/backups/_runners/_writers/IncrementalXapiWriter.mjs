@@ -24,7 +24,7 @@ import {
   INCLUDE_NON_NBD_QCOW2_FIX,
   resetVmOtherConfig,
 } from '../../_otherConfig.mjs'
-import { formatFilenameDate } from '../../_filenameDate.mjs'
+import { formatFilenameDate } from '@xen-orchestra/backup-archive/filenameDate'
 import { XapiDiskSource } from '@xen-orchestra/xapi'
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
