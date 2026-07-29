@@ -7,9 +7,9 @@ import { getHandler } from '@xen-orchestra/fs'
 import { pFromCallback } from 'promise-toolbox'
 import { generateVhd as generateVhdFixture, uniqueId } from './tests.fixtures.mjs'
 /* eslint-disable n/no-missing-import */
-import { RemoteVhdDisk } from '../../dist/disks/RemoteVhdDisk.mjs'
-import { RemoteVhdDiskChain } from '../../dist/disks/RemoteVhdDiskChain.mjs'
-import { MergeRemoteDisk } from '../../dist/disks/MergeRemoteDisk.mjs'
+import { RemoteVhdDisk } from '../disks/RemoteVhdDisk.mjs'
+import { RemoteVhdDiskChain } from '../disks/RemoteVhdDiskChain.mjs'
+import { MergeRemoteDisk } from '../disks/MergeRemoteDisk.mjs'
 /* eslint-enable n/no-missing-import */
 import { dirname, basename } from 'node:path'
 import { rimraf } from 'rimraf'

@@ -8,8 +8,8 @@ import { Disposable, pFromCallback } from 'promise-toolbox'
 import { rimraf } from 'rimraf'
 import { openVhd, VhdDirectory } from 'vhd-lib'
 /* eslint-disable n/no-missing-import */
-import { isMergeableParent, writeVhd } from '../../dist/disks/index.mjs'
-import { RemoteVhdDisk } from '../../dist/disks/RemoteVhdDisk.mjs'
+import { isMergeableParent, writeVhd } from '../disks/index.mjs'
+import { RemoteVhdDisk } from '../disks/RemoteVhdDisk.mjs'
 /* eslint-enable n/no-missing-import */
 import { generateVhd, uniqueIdBuffer } from './tests.fixtures.mjs'
 

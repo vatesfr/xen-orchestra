@@ -7,8 +7,8 @@ import { getHandler } from '@xen-orchestra/fs'
 import { pFromCallback } from 'promise-toolbox'
 import { rimraf } from 'rimraf'
 /* eslint-disable n/no-missing-import */
-import { VmBackupDirectory } from '../../dist/VmBackupDirectory.mjs'
-import { formatFilenameDate } from '../../dist/filenameDate.mjs'
+import { VmBackupDirectory } from '../VmBackupDirectory.mjs'
+import { formatFilenameDate } from '../filenameDate.mjs'
 /* eslint-enable n/no-missing-import */
 
 const { beforeEach, afterEach, describe } = test

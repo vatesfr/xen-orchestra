@@ -167,17 +167,8 @@ export class RemoteAdapter {
   _updateCache = synchronized.withKey()(this._updateCache)
   // eslint-disable-next-line no-dupe-class-members
   async _updateCache(path, fn) {
-    const cache = await this._readCache(path)
-    if (cache !== undefined) {
-      fn(cache)
-
-      await this._writeCache(path, cache)
-    } else {
-      const regenerated = await this.#getCacheableDataListVmBackups(dirname(path))
-      if (regenerated !== undefined) {
-        await this._writeCache(path, regenerated)
-      }
-    }
+    // regenerate a missing cache from the directory listing (cache-guard)
+    return VmBackupDirectory.updateCache(this._handler, path, fn, { regenerate: true })
   }
 
   async _writeCache(path, data) {
@@ -191,28 +182,7 @@ export class RemoteAdapter {
   // read the list of backup of a Vm from cache
   // if cache is missing  or broken  => regenerate it and return
   async _readCacheListVmBackups(vmUuid) {
-    // immutable remote can't use any caching
-    // since the cache file may be non modifiable
-    if (this._handler.isImmutable()) {
-      return this.#getCacheableDataListVmBackups(`${BACKUP_DIR}/${vmUuid}`)
-    }
-    const path = this.#getVmBackupsCache(vmUuid)
-
-    const cache = await this._readCache(path)
-    if (cache !== undefined) {
-      debug('found VM backups cache, using it', { path })
-      return cache
-    }
-
-    // nothing cached, or cache unreadable => regenerate it
-    const backups = await this.#getCacheableDataListVmBackups(`${BACKUP_DIR}/${vmUuid}`)
-    if (backups === undefined) {
-      return
-    }
-
-    await this._writeCache(path, backups)
-
-    return backups
+    return VmBackupDirectory.readCacheListVmBackups(this._handler, vmUuid)
   }
 
   async listVmBackups(vmUuid, predicate) {
@@ -250,33 +220,16 @@ export class RemoteAdapter {
   }
 
   async writeVhd(path, disk, { validator = noop, writeBlockConcurrency, uuid, parentUuid, parentPath } = {}) {
-    const handler = this._handler
-
-    if (this.useVhdDirectory()) {
-      return await writeToVhdDirectory({
-        disk,
-        target: {
-          handler,
-          path,
-          concurrency: writeBlockConcurrency,
-          validator,
-          compression: 'brotli',
-          uuid,
-          parentUuid,
-          parentPath,
-        },
-      })
-    } else {
-      const stream = await toVhdStream(disk, { uuid, parentUuid, parentPath })
-      const size = await this.outputStream(path, stream, {
-        validator,
-        // no checksum for VHDs, because they will be invalidated by
-        // merges and chains
-        checksum: false,
-      })
-      await validator(path)
-      return size
-    }
+    // inject outputStream so the facade keeps ownership of stream-size accounting
+    return writeVhdArchive(this._handler, path, disk, {
+      useVhdDirectory: this.useVhdDirectory(),
+      validator,
+      writeBlockConcurrency,
+      uuid,
+      parentUuid,
+      parentPath,
+      outputStream: (p, input, opts) => this.outputStream(p, input, opts),
+    })
   }
 
   async outputStream(

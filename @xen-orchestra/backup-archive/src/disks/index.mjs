@@ -57,6 +57,9 @@ export async function createVhdDisk(handler, path, { useChain }) {
  * @param {boolean} opts.useVhdDirectory
  * @param {Function} [opts.validator]
  * @param {number} [opts.writeBlockConcurrency]
+ * @param {Buffer} [opts.uuid]
+ * @param {Buffer} [opts.parentUuid]
+ * @param {string} [opts.parentPath]
  * @param {(path: string, input: any, opts: object) => Promise<number>} opts.outputStream
  * @returns {Promise<number>}
  */
@@ -64,7 +67,7 @@ export async function writeVhd(
   handler,
   path,
   disk,
-  { useVhdDirectory, validator = noop, writeBlockConcurrency, outputStream }
+  { useVhdDirectory, validator = noop, writeBlockConcurrency, uuid, parentUuid, parentPath, outputStream }
 ) {
   if (useVhdDirectory) {
     return await writeToVhdDirectory({
@@ -75,11 +78,19 @@ export async function writeVhd(
         concurrency: writeBlockConcurrency,
         validator,
         compression: 'brotli',
+        uuid,
+        parentUuid,
+        parentPath,
       },
     })
   } else {
-    const stream = await toVhdStream(disk)
-    const size = await outputStream(path, stream, { validator, checksum: false })
+    const stream = await toVhdStream(disk, { uuid, parentUuid, parentPath })
+    const size = await outputStream(path, stream, {
+      validator,
+      // no checksum for VHDs, because they will be invalidated by
+      // merges and chains
+      checksum: false,
+    })
     await validator(path)
     return size
   }

@@ -1,15 +1,17 @@
 import test from 'node:test'
 import { strict as assert } from 'node:assert'
+import { promisify } from 'node:util'
+import zlib from 'node:zlib'
 
 import tmp from 'tmp'
 import fs from 'fs-extra'
 import { getHandler } from '@xen-orchestra/fs'
 import { pFromCallback } from 'promise-toolbox'
 /* eslint-disable n/no-missing-import */
-import { VmBackupDirectory } from '../../dist/VmBackupDirectory.mjs'
-import { RemoteVhdDisk } from '../../dist/disks/RemoteVhdDisk.mjs'
-import { MergeRemoteDisk } from '../../dist/disks/MergeRemoteDisk.mjs'
-/* eslint-enable no-missing-import */
+import { VmBackupDirectory } from '../VmBackupDirectory.mjs'
+import { RemoteVhdDisk } from '../disks/RemoteVhdDisk.mjs'
+import { MergeRemoteDisk } from '../disks/MergeRemoteDisk.mjs'
+/* eslint-enable n/no-missing-import */
 import { generateVhd as generateVhdFixture, uniqueId, uniqueIdBuffer } from './tests.fixtures.mjs'
 import { VhdAbstract } from 'vhd-lib'
 import { rimraf } from 'rimraf'

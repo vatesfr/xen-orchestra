@@ -104,15 +104,25 @@ export class VmBackupDirectory implements VmBackupInterface {
 
   // Read-modify-write of a cache file. Lock-free: callers that need atomicity
   // (e.g. RemoteAdapter) wrap this with their own per-key mutex.
+  //
+  // With `regenerate`, a missing cache is not left missing: it is rebuilt from the
+  // directory listing (a missing cache is not an empty cache). The mutation `fn` is
+  // only applied to an existing cache.
   static async updateCache(
     handler: RemoteHandlerAbstract,
     path: string,
-    fn: (cache: Record<string, unknown>) => void
+    fn: (cache: Record<string, unknown>) => void,
+    { regenerate = false }: { regenerate?: boolean } = {}
   ): Promise<void> {
     const cache = await VmBackupDirectory.readCache(handler, path)
     if (cache !== undefined) {
       fn(cache)
       await VmBackupDirectory.writeCache(handler, path, cache)
+    } else if (regenerate) {
+      const regenerated = await VmBackupDirectory.getCacheableDataListVmBackups(handler, dirname(path))
+      if (regenerated !== undefined) {
+        await VmBackupDirectory.writeCache(handler, path, regenerated)
+      }
     }
   }
 
@@ -314,8 +324,7 @@ export class VmBackupDirectory implements VmBackupInterface {
       return
     }
 
-    // detached async action, will not reject
-    void VmBackupDirectory.writeCache(handler, path, backups)
+    await VmBackupDirectory.writeCache(handler, path, backups)
 
     return backups
   }

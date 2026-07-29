@@ -2,7 +2,7 @@ import test from 'node:test'
 import { strict as assert } from 'node:assert'
 
 // eslint-disable-next-line n/no-missing-import
-import { VmBackupDirectory } from '../../dist/VmBackupDirectory.mjs'
+import { VmBackupDirectory } from '../VmBackupDirectory.mjs'
 
 const { describe } = test
 

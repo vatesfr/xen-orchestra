@@ -2,9 +2,9 @@ import test from 'node:test'
 import { strict as assert } from 'node:assert'
 
 /* eslint-disable n/no-missing-import */
-import { BACKUP_DIR, getVmBackupDir } from '../../dist/paths.mjs'
-import { formatFilenameDate, parseFilenameDate } from '../../dist/filenameDate.mjs'
-import { isMetadataFile, isVhdFile, isVhdSumFile, isXvaFile, isXvaSumFile } from '../../dist/backupType.mjs'
+import { BACKUP_DIR, getVmBackupDir } from '../paths.mjs'
+import { formatFilenameDate, parseFilenameDate } from '../filenameDate.mjs'
+import { isMetadataFile, isVhdFile, isVhdSumFile, isXvaFile, isXvaSumFile } from '../backupType.mjs'
 /* eslint-enable n/no-missing-import */
 
 const { describe } = test

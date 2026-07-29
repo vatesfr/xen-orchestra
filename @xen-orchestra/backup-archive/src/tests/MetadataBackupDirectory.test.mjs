@@ -2,7 +2,7 @@ import test from 'node:test'
 import { strict as assert } from 'node:assert'
 
 // eslint-disable-next-line n/no-missing-import
-import { deleteMetadataBackup, deleteOldMetadataBackups } from '../../dist/MetadataBackupDirectory.mjs'
+import { deleteMetadataBackup, deleteOldMetadataBackups } from '../MetadataBackupDirectory.mjs'
 
 const { describe } = test
 

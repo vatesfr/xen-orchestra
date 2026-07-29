@@ -7,8 +7,8 @@ import { getHandler } from '@xen-orchestra/fs'
 import { pFromCallback } from 'promise-toolbox'
 import { rimraf } from 'rimraf'
 /* eslint-disable n/no-missing-import */
-import { VmFullBackupArchive } from '../../dist/VmFullBackupArchive.mjs'
-import { VmIncrementalBackupArchive } from '../../dist/VmIncrementalBackupArchive.mjs'
+import { VmFullBackupArchive } from '../VmFullBackupArchive.mjs'
+import { VmIncrementalBackupArchive } from '../VmIncrementalBackupArchive.mjs'
 /* eslint-enable n/no-missing-import */
 import { createMinimalXva, generateVhd } from './tests.fixtures.mjs'
 
