@@ -31,7 +31,7 @@
 - [XO6] Reduce the number of HTTP requests when navigating between pages (PR [#10156](https://github.com/vatesfr/xen-orchestra/pull/10156))
 - [Backups] Don't hide errors during transfers (PR [#10183](https://github.com/vatesfr/xen-orchestra/pull/10183))
 - [Smart reboot] Fix `suspendBlocked` error when no issue to suspend resident VMs (PR [#10180](https://github.com/vatesfr/xen-orchestra/pull/10180))
-- [Remotes/S3] Fix slow deletions on S3 providers rejecting our batch deletion request with a `MalformedXML` error (e.g. Ceph RadosGW)
+- [Remotes/S3] Fix slow deletions on S3 providers rejecting our batch deletion request with a `MalformedXML` error (e.g. Ceph RadosGW) (PR [#10189](https://github.com/vatesfr/xen-orchestra/pull/10189))
 
 ### Packages to release
 
