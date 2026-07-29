@@ -1,5 +1,5 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import { CHANGING_STATE_OPERATIONS, isHostOperationPending } from '@/modules/host/utils/xo-host.util.ts'
+import { getHostPendingStateOperation } from '@/modules/host/utils/xo-host.util.ts'
 import type { IconName } from '@core/icons'
 import useRelativeTime from '@core/composables/relative-time.composable'
 import { createMapper, useMapper } from '@core/packages/mapper'
@@ -29,10 +29,12 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
     return useRelativeTime(date)
   }
 
-  const isChangingState = computed(() => isHostOperationPending(host.value, CHANGING_STATE_OPERATIONS))
+  const pendingStateOperation = computed(() => getHostPendingStateOperation(host.value))
+
+  const isChangingState = computed(() => pendingStateOperation.value !== undefined)
 
   const currentOperation = useMapper<string, string>(
-    () => Object.values(host.value.current_operations)[0],
+    () => pendingStateOperation.value,
     {
       power_on: t('operation:start'),
       shutdown: t('operation:shutdown'),

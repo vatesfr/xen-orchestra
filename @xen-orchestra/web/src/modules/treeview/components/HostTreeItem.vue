@@ -36,7 +36,7 @@
               @click="open($event)"
             />
           </template>
-          <HostMoreActions :host="branch.data" />
+          <HostMoreActions :host="branch.data" show-change-state />
         </MenuList>
       </template>
     </UiTreeItemLabel>

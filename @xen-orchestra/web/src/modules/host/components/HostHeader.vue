@@ -40,8 +40,7 @@
             @click="open($event)"
           />
         </template>
-        <HostPowerStateAction v-if="uiStore.isSmall" :host />
-        <HostMoreActions :host />
+        <HostMoreActions :host :show-change-state="uiStore.isSmall" />
       </MenuList>
     </template>
   </UiHeadBar>
@@ -107,7 +106,7 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { toLower } from 'lodash-es'
-import { computed, watch } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
@@ -119,12 +118,6 @@ const { t } = useI18n()
 const uiStore = useUiStore()
 
 const { isChangingState, currentOperation } = useXoHostUtils(() => host)
-
-watch(
-  () => host.current_operations,
-  v => console.log('current_operations', v),
-  { deep: true }
-)
 
 const { buildXo5Route } = useXoRoutes()
 const xo5HostStatsHref = computed(() => buildXo5Route(`/hosts/${host.id}/stats`))
