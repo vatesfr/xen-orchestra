@@ -945,6 +945,7 @@ export class HostController extends XapiXoController<XoHost> {
   @Response(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
   hostScanPifs(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const hostId = id as XoHost['id']
 
