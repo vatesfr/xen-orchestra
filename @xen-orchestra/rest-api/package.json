@@ -38,7 +38,7 @@
     "@vates/task": "^0.7.0",
     "@vates/types": "^1.30.0",
     "@xen-orchestra/acl": "^1.5.0",
-    "@xen-orchestra/backups": "^0.73.8",
+    "@xen-orchestra/backups": "^0.73.9",
     "@xen-orchestra/log": "^0.7.2",
     "@xen-orchestra/xapi": "^8.10.1",
     "complex-matcher": "^1.1.1",
