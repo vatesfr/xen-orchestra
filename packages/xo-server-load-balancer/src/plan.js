@@ -1084,11 +1084,16 @@ export default class Plan {
       )
 
       if (hostsAverages[crowdedHost.id].memoryFree - memoryNeeded > this._thresholds.memoryFree.critical) {
+        // wait for the freeing migrations to actually complete before reporting success: up to
+        // `maxConcurrentMigrations` migrations can run concurrently, so callers relying on `success`
+        // to migrate onto `crowdedHost` right away must not race the still-in-flight migrations
+        await Promise.allSettled(promises)
         return { promises, success: true }
       }
     }
 
     // not enough VMs were migrated
+    await Promise.allSettled(promises)
     return { promises, success: false }
   }
 
