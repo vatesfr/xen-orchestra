@@ -23,6 +23,7 @@
 
 <script setup lang="ts">
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { getHostState } from '@/modules/host/utils/xo-host.util.ts'
 import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { getPifStatus } from '@/modules/pif/utils/xo-pif.util.ts'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
@@ -55,7 +56,7 @@ const pifHost = computed(() => {
 
   return {
     label: host.name_label,
-    powerState: toLower(host.power_state),
+    powerState: getHostState(host),
     redirect() {
       router.push({
         name: '/host/[id]/networks',

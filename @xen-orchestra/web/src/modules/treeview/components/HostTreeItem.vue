@@ -7,7 +7,7 @@
           v-tooltip="branch.data.power_state"
           type="host"
           size="medium"
-          :state="branch.data.power_state.toLocaleLowerCase() as HostState"
+          :state="getHostState(branch.data)"
         />
       </template>
       <template #addons>
@@ -47,9 +47,9 @@
 import HostMoreActions from '@/modules/host/components/HostMoreActions.vue'
 import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { getHostState } from '@/modules/host/utils/xo-host.util.ts'
 import type { HostBranch } from '@/modules/treeview/types/tree.type.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { HostState } from '@core/types/object-icon.type.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'

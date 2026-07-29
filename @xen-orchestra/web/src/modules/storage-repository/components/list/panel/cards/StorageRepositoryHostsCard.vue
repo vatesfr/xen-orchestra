@@ -10,7 +10,7 @@
       <li v-for="host in hosts" :key="host.id" v-tooltip class="text-ellipsis">
         <UiLink
           size="small"
-          :icon="`object:host:${toLower(host.power_state)}`"
+          :icon="`object:host:${getHostState(host)}`"
           :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
         >
           {{ host.name_label }}
@@ -25,6 +25,7 @@
 
 <script lang="ts" setup>
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { getHostState } from '@/modules/host/utils/xo-host.util.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
@@ -32,7 +33,6 @@ import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { toLower } from 'lodash-es'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{

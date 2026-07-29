@@ -36,7 +36,7 @@
             v-else-if="masterHost !== undefined"
             size="medium"
             :to="{ name: '/host/[id]/dashboard', params: { id: masterHost.id } }"
-            :icon="`object:host:${toLower(masterHost.power_state)}`"
+            :icon="`object:host:${getHostState(masterHost)}`"
           >
             {{ masterHost.name_label }}
           </UiLink>
@@ -58,6 +58,7 @@
 
 <script setup lang="ts">
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { getHostState } from '@/modules/host/utils/xo-host.util.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
@@ -71,7 +72,6 @@ import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { HOST_POWER_STATE } from '@vates/types'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
