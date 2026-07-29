@@ -893,7 +893,6 @@
   "runs": "Uitvoeringen",
   "s3-backup-repository": "S3-back-up opslag repository",
   "scan-pifs": "Scan PIF's",
-  "scan-pifs-in-xo-5": "@:scan-pifs in XO-5",
   "schedule": "Planning",
   "schedules": "Schema's",
   "secure-boot": "Beveiligd opstarten",

@@ -913,7 +913,6 @@
   "runs": "Behy",
   "s3-backup-repository": "S3 repozitár záloh",
   "scan-pifs": "Skenovať PIFs",
-  "scan-pifs-in-xo-5": "@:scan-pifs v XO-5",
   "schedule": "Plán",
   "schedules": "Plány",
   "secure-boot": "Secure boot",
