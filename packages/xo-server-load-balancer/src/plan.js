@@ -714,36 +714,18 @@ export default class Plan {
 
         const source = idToHost[sourceHost.id]
         const destination = idToHost[destinationHost.id]
-        debugAntiAffinity(
-          `Migrate VM (${vm.id} "${vm.name_label}") to Host (${destinationHost.id} "${destination.name_label}") from Host (${sourceHost.id} "${source.name_label}").`
-        )
 
-        // 3. Update tags and averages.
+        // 3. Update tags and averages, and migrate.
         // This update can change the source host for the next migration.
-        for (const tag of vm.tags) {
-          if (this._antiAffinityTags.includes(tag)) {
-            sourceHost.tags[tag]--
-            destinationHost.tags[tag]++
-          }
-        }
-
-        const destinationAverages = hostsAverages[destinationHost.id]
-        const vmAverages = vmsAverages[vm.id]
-
-        destinationAverages.cpu += vmAverages.cpu
-        destinationAverages.memoryFree -= vmAverages.memory
-
-        delete sourceHost.vms[vm.id]
-
-        // 4. Migrate.
         promises.push(
-          this._migrateVm({
+          this._migrateVmAndUpdateInfos({
+            destination,
+            source,
+            sourceHost,
+            destinationHost,
             vm,
-            xapiSrc: this.xo.getXapi(source),
-            xapiDest: this.xo.getXapi(destination),
-            srcHostId: source.id,
-            destHostId: destination._xapiId,
-            reason: `to satisfy anti-affinity of tag ${tag}`,
+            hostsAverages,
+            vmAverages: vmsAverages[vm.id],
           })
         )
         emptyLoop = false
@@ -1120,12 +1102,12 @@ export default class Plan {
     // TODO: add more checks with XAPI method assert_can_migrate
 
     // Update tags and averages
-    debugAffinity(
+    debug(
       `Migrate VM (${vm.id} "${vm.name_label}") to Host (${destination.id} "${destination.name_label}") from Host (${source.id} "${source.name_label}").`
     )
 
     for (const tag of vm.tags) {
-      if (this._affinityTags.includes(tag)) {
+      if (tag in sourceHost.tags) {
         sourceHost.tags[tag]--
         destinationHost.tags[tag]++
       }
@@ -1198,6 +1180,7 @@ export default class Plan {
   // ===================================================================
   // VM to host affinity
   // ===================================================================
+
   async _processVmToHostAffinity() {
     if (!this._vmToHostAffinityTags.length) {
       return
@@ -1275,18 +1258,13 @@ export default class Plan {
     const vmsAverages = await this._getVmsAverages(allVms, idToHost)
     const { averages: hostsAverages } = await this._getHostStatsAverages({ hosts: allHosts })
 
-    // lightweight per-host bookkeeping, in the shape expected by `_migrateOtherVms`/`_migrateVmAndUpdateInfos`
-    const taggedHosts = {
-      hosts: allHosts.map(host => ({
-        id: host.id,
-        poolId: host.$poolId,
-        tags: {},
-        vms: keyBy(
-          filter(allVms, vm => vm.$container === host.id),
-          'id'
-        ),
-      })),
-    }
+    // reuse the same per-host bookkeeping shape as affinity/anti-affinity
+    const taggedHosts = this._getTaggedHosts({
+      hosts: allHosts,
+      tagList: this._vmToHostAffinityTags,
+      vms: allVms,
+      includeUntaggedVms: true,
+    })
     const hostStructById = keyBy(taggedHosts.hosts, 'id')
 
     const promises = []
