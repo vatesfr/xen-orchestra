@@ -436,18 +436,19 @@ export default class S3Handler extends RemoteHandlerAbstract {
       )
       NextContinuationToken = result.IsTruncated ? result.NextContinuationToken : undefined
       if (supportsDeleteObjects) {
-        const command = new DeleteObjectsCommand({
-          Bucket: this.#bucket,
-          Delete: {
-            // only keep the key: `ETag` and `Size` are also part of `ObjectIdentifier`, where they
-            // mean "delete only if it still matches", and passing the whole listed object would
-            // serialize them in the request. Beyond making the deletion conditional, some
-            // providers reject these elements with a `MalformedXML` error.
-            Objects: (result.Contents ?? []).map(({ Key }) => ({ Key })),
-          },
-        })
         try {
-          await this.#s3.send(command)
+          await this.#s3.send(
+            new DeleteObjectsCommand({
+              Bucket: this.#bucket,
+              Delete: {
+                // only keep the key: `ETag` and `Size` are also part of `ObjectIdentifier`, where they
+                // mean "delete only if it still matches", and passing the whole listed object would
+                // serialize them in the request. Beyond making the deletion conditional, some
+                // providers reject these elements with a `MalformedXML` error.
+                Objects: (result.Contents ?? []).map(({ Key }) => ({ Key })),
+              },
+            })
+          )
           // we catch any error because some providers don't return "NotImplemented" errors when they don't
           // support DeleteObjectsCommand. As we catch any error, we don't store supportsDeleteObjects param
           // because it can be due to network issues
