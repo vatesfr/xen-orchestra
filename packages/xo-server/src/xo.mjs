@@ -110,9 +110,6 @@ export default class Xo extends EventEmitter {
       this.getAclV2Privilege(id),
     ]
 
-    // Promise.any requires Node >=15 but engines is >=14.18, so invert
-    // Promise.all: settle on the first fulfilled getter, and throw
-    // noSuchObject only when every getter rejects.
     return Promise.all(
       getters.map(promise =>
         promise.then(
