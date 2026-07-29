@@ -3,30 +3,17 @@ import { strict as assert } from 'node:assert'
 
 import tmp from 'tmp'
 import fs from 'fs-extra'
-import * as uuid from 'uuid'
 import { getHandler } from '@xen-orchestra/fs'
 import { pFromCallback } from 'promise-toolbox'
 import { rimraf } from 'rimraf'
 // eslint-disable-next-line n/no-missing-import
-import { VmBackupDirectory } from '../dist/VmBackupDirectory.mjs'
-import tar from 'tar-stream'
+import { VmBackupDirectory } from '../../dist/VmBackupDirectory.mjs'
+import { createMinimalXva, uniqueId } from './tests.fixtures.mjs'
 const { beforeEach, afterEach, describe } = test
 
 let tempDir, handler, vmBackupDir
 const vmUuid = 'test-vm-uuid'
 const rootPath = `xo-vm-backups/${vmUuid}`
-
-async function createMinimalXva() {
-  const pack = tar.pack()
-  pack.entry({ name: 'ova.xml' }, '<value><struct/></value>')
-  pack.finalize()
-
-  const chunks = []
-  for await (const chunk of pack) {
-    chunks.push(chunk)
-  }
-  return Buffer.concat(chunks)
-}
 
 beforeEach(async () => {
   tempDir = await pFromCallback(cb => tmp.dir(cb))
@@ -40,8 +27,6 @@ afterEach(async () => {
   await rimraf(tempDir)
   await handler.forget()
 })
-
-const uniqueId = () => uuid.v1()
 
 async function createFullBackupMetadata(name, xvaName) {
   await handler.writeFile(`${rootPath}/${xvaName}`, await createMinimalXva())
