@@ -14,6 +14,7 @@
 </template>
 
 <script lang="ts" setup>
+import { buildHostCpuUsageSeries, getHostCpuUsageMaxValue } from '@/modules/host/utils/xo-host-dashboard.util.ts'
 import type { LinearChartData, ValueFormatter } from '@core/types/chart.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -32,44 +33,22 @@ const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linea
 
 const { t, n } = useI18n()
 
+const cpuUsageSeries = computed(() => buildHostCpuUsageSeries(data))
+
 const cpuUsage = computed<LinearChartData>(() => {
-  if (!data?.stats.cpus) {
+  if (cpuUsageSeries.value.length === 0) {
     return []
-  }
-
-  const cpus = Object.values(data.stats.cpus)
-  const result = new Map<number, { timestamp: number; value: number }>()
-  const timestampStart = data.endTimestamp - data.interval * (cpus[0].length - 1)
-
-  for (let hourIndex = 0; hourIndex < cpus[0].length; hourIndex++) {
-    const timestamp = (timestampStart + hourIndex * data.interval) * 1000
-    const cpuUsageSum = cpus.reduce((total, cpu) => total + (cpu[hourIndex] ?? NaN), 0)
-
-    result.set(timestamp, {
-      timestamp,
-      value: Math.round(cpuUsageSum / cpus.length),
-    })
   }
 
   return [
     {
       label: t('stacked-cpu-usage'),
-      data: Array.from(result.values()),
+      data: cpuUsageSeries.value,
     },
   ]
 })
 
-const maxValue = computed(() => {
-  const values = cpuUsage.value[0]?.data.map(item => item.value || 0) ?? []
-
-  if (values.length === 0) {
-    return 100
-  }
-
-  const maxCpuUsage = Math.max(...values)
-
-  return Math.ceil(maxCpuUsage / 100) * 100
-})
+const maxValue = computed(() => getHostCpuUsageMaxValue(cpuUsageSeries.value))
 
 const valueFormatter: ValueFormatter = value => {
   if (value === null) {

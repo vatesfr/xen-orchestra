@@ -24,6 +24,7 @@
 
 <script lang="ts" setup>
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { getHostCoreSocketInfo, getHostManufacturerInfo } from '@/modules/host/utils/xo-host.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -37,18 +38,9 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const manufacturerInfo = computed(
-  () =>
-    (host.bios_strings['system-manufacturer'] ?? '') +
-    (host.bios_strings['system-product-name'] ? ` (${host.bios_strings['system-product-name']})` : '')
-)
+const manufacturerInfo = computed(() => getHostManufacturerInfo(host))
 
-const coreSocketInfo = computed(() => {
-  const cores = host.cpus.cores ?? 0
-  const sockets = host.cpus.sockets ?? 0
-
-  return `${cores} (${sockets})`
-})
+const coreSocketInfo = computed(() => getHostCoreSocketInfo(host))
 </script>
 
 <style scoped lang="postcss">
