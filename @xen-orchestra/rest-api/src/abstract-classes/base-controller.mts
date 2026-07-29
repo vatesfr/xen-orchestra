@@ -128,16 +128,20 @@ export abstract class BaseController<T extends RestXoRecord, IsSync extends bool
     const objectFilter = (task: XoTask) =>
       task.properties.objectId === object.id || task.properties.params?.id === object.id
 
+    const objectTasks: XoTask[] = []
+    for await (const task of this.restApi.tasks.list({ filter: objectFilter })) {
+      objectTasks.push(task)
+    }
+
     let userFilter: (task: XoTask) => boolean = () => true
     if (filter !== undefined) {
       const parsedFilter = safeParseComplexMatcher(filter)
-      userFilter = parsedFilter.createPredicate(await this.restApi.buildResolver(object, parsedFilter))
+      userFilter = parsedFilter.createPredicate(await this.restApi.buildResolver(objectTasks, parsedFilter))
     }
 
-    for await (const task of this.restApi.tasks.list({ filter: objectFilter })) {
-      if (limit === 0) {
-        break
-      }
+    for (const task of objectTasks) {
+      if (limit === 0) break
+
       if (userFilter(task)) {
         tasks[task.id] = task
         limit--
