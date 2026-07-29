@@ -17,6 +17,7 @@ export default class DensityPlan extends Plan {
   }
 
   async execute() {
+    await this._processVmToHostAffinity()
     await this._processAffinity()
     await this._processAntiAffinity()
 
@@ -124,6 +125,10 @@ export default class DensityPlan extends Plan {
         }
         if (this._antiAffinityTags.includes(tag)) {
           debug(`VM (${vm.id}) of Host (${hostId}) cannot be migrated. It contains anti-affinity tag '${tag}'.`)
+          return
+        }
+        if (this._vmToHostAffinityTags.includes(tag)) {
+          debug(`VM (${vm.id}) of Host (${hostId}) cannot be migrated. It contains vm-to-host affinity tag '${tag}'.`)
           return
         }
       }
