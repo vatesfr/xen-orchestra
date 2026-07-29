@@ -120,10 +120,9 @@ const uiStore = useUiStore()
 
 const { isChangingState, currentOperation } = useXoHostUtils(() => host)
 
-// dans HostHeader, temporairement
 watch(
   () => host.current_operations,
-  v => console.log('current_operations', JSON.stringify(v)),
+  v => console.log('current_operations', v),
   { deep: true }
 )
 
