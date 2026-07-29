@@ -48,14 +48,16 @@ class Host {
 
     // check the VMs with PCI passthrough
     const vms = await asyncMap(residentVmRefs, ref => this.getRecord('VM', ref))
-    const vmsNotSuspendable = vms.filter(async vm => {
+    const vmsNotSuspendable = []
+
+    await asyncEach(vms, async vm => {
       try {
         await this.call('VM.assert_operation_valid', vm.$ref, 'suspend')
-        return false
       } catch (err) {
-        return true
+        vmsNotSuspendable.push(vm)
       }
     })
+
     const vmsNotSuspendableRefs = new Set(vmsNotSuspendable.map(vm => vm.$ref))
 
     const vmsWithSuspendBlocked = await asyncMap(residentVmRefs, ref => this.getRecord('VM', ref)).filter(
