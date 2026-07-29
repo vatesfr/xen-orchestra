@@ -1,6 +1,6 @@
 <template>
-  <HostDisableButton v-if="host.enabled || hostIsHalted" :host />
-  <HostEnableButton v-else :host />
+  <HostEnableButton v-if="!host.enabled && !hostIsHalted" :host />
+  <HostDisableButton v-else :host />
   <VtsDivider type="stretch" />
   <HostDownloadButton :host-id="host.id" />
 </template>

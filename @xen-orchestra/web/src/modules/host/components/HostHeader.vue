@@ -107,7 +107,7 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { toLower } from 'lodash-es'
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
@@ -119,6 +119,13 @@ const { t } = useI18n()
 const uiStore = useUiStore()
 
 const { isChangingState, currentOperation } = useXoHostUtils(() => host)
+
+// dans HostHeader, temporairement
+watch(
+  () => host.current_operations,
+  v => console.log('current_operations', JSON.stringify(v)),
+  { deep: true }
+)
 
 const { buildXo5Route } = useXoRoutes()
 const xo5HostStatsHref = computed(() => buildXo5Route(`/hosts/${host.id}/stats`))
