@@ -1230,9 +1230,7 @@ export function formatSrMetrics(srDataList: SrDataItem[]): FormattedMetric[] {
     if (sr.pool_name !== '') {
       baseLabels.pool_name = sr.pool_name
     }
-    if (sr.content_type !== '') {
-      baseLabels.content_type = sr.content_type
-    }
+    baseLabels.content_type = sr.content_type
     if (sr.sr_type !== '') {
       baseLabels.sr_type = sr.sr_type
     }

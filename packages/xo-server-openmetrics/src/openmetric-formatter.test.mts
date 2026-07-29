@@ -2201,15 +2201,6 @@ describe('formatSrMetrics', () => {
     assert.match(formatToOpenMetrics(metrics), /content_type="iso"/)
   })
 
-  it('should omit content_type label when empty', () => {
-    const metrics = formatSrMetrics([createSrDataItem({ content_type: '' })])
-
-    assert.equal(metrics.length, 3)
-    for (const m of metrics) {
-      assert.equal(m.labels.content_type, undefined)
-    }
-  })
-
   it('should distinguish multiple SRs by sr_type label', () => {
     const metrics = formatSrMetrics([
       createSrDataItem({ uuid: 'sr-a', sr_type: 'linstor' }),
