@@ -510,6 +510,8 @@ Infrastructure metrics are prefixed with `xcp_` and XO management plane metrics 
 | `xcp_sr_physical_size_bytes`  | gauge | SR physical size in bytes          |
 | `xcp_sr_physical_usage_bytes` | gauge | SR physical space used in bytes    |
 
+SR capacity metrics include the XAPI `content_type` (for example `user`, `disk`, or `iso`) alongside `sr_uuid`, `sr_name`, and `sr_type` labels.
+
 #### VDI Disk Size Metrics
 
 | Metric                         | Type  | Description                                        |
@@ -589,9 +591,10 @@ All metrics include these labels for filtering:
 | `pool_name`         | Pool name                                                                                                                             |
 | `uuid`              | Object UUID (host or VM)                                                                                                              |
 | `type`              | Object type (`host` or `vm`)                                                                                                          |
+| `content_type`      | XAPI SR content type (e.g. `user`, `disk`, `iso`) — on SR capacity metrics and `xo_sr_total`                                          |
 | `host_name`         | Host name (for host metrics)                                                                                                          |
 | `vm_name`           | VM name (for VM metrics)                                                                                                              |
-| `sr_uuid`           | Storage Repository UUID (for SR metrics)                                                                                              |
+| `sr_uuid`           | Storage Repository UUID (for SR, VDI, XOSTOR, and resolved host disk metrics)                                                         |
 | `sr_name`           | Storage Repository name (for disk metrics)                                                                                            |
 | `vdi_uuid`          | Virtual Disk UUID (for VDI metrics)                                                                                                   |
 | `vdi_name`          | Virtual Disk name (for VM disk and VDI metrics)                                                                                       |

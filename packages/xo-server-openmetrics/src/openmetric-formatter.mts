@@ -1007,8 +1007,10 @@ export function transformMetric(
         if (extractedLabels.sr !== undefined) {
           const srSuffix = extractedLabels.sr
           // Try to find the full SR UUID from the suffix
-          const srUuid = labelContext.labels.srTruncatedToUuid[srSuffix]
-          if (srUuid !== undefined) {
+          const srUuidIndex = labelContext.labels.srTruncatedToUuid
+          const srUuid = Object.hasOwn(srUuidIndex, srSuffix) ? srUuidIndex[srSuffix] : undefined
+          if (srUuid != null) {
+            labels.sr_uuid = srUuid
             const srInfo = labelContext.labels.srs[srUuid]
             if (srInfo !== undefined) {
               if (srInfo.name_label !== '') {
@@ -1228,6 +1230,7 @@ export function formatSrMetrics(srDataList: SrDataItem[]): FormattedMetric[] {
     if (sr.pool_name !== '') {
       baseLabels.pool_name = sr.pool_name
     }
+    baseLabels.content_type = sr.content_type
     if (sr.sr_type !== '') {
       baseLabels.sr_type = sr.sr_type
     }
