@@ -16,7 +16,7 @@
       </VtsTabularKeyValueRow>
       <VtsTabularKeyValueRow :label="t('status')">
         <template #value>
-          <VtsStatus :status="allPbdsConnectionStatus" />
+          <VtsStatus v-if="arePbdsReady" :status="srConnectionStatus" />
         </template>
       </VtsTabularKeyValueRow>
       <VtsTabularKeyValueRow :label="t('storage-format')" :value="sr.SR_type" />
@@ -28,9 +28,9 @@
 </template>
 
 <script setup lang="ts">
-import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import { useXoSmCollection } from '@/modules/sm/remote-resources/use-xo-sm-collection.ts'
+import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import { type FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
@@ -48,17 +48,20 @@ const { sr } = defineProps<{
 
 const { t } = useI18n()
 
-const { sms } = useXoSmCollection()
+const { sms, areSmsReady } = useXoSmCollection()
 
-const { getPbdsByIds } = useXoPbdCollection()
+const { arePbdsReady } = useXoPbdCollection()
 
-const { allPbdsConnectionStatus } = useXoPbdUtils(() => getPbdsByIds(sr.$PBDs))
+const { srConnectionStatus, getSrAccessMode, getSrProvisioning } = useXoSrUtils(() => sr)
 
-const accessMode = computed(() => (sr.shared ? t('shared') : t('local')))
+const accessMode = computed(() => getSrAccessMode(sr))
 
-const provisioning = computed(() => sr.allocationStrategy ?? t('unknown'))
+const provisioning = computed(() => getSrProvisioning(sr))
 
 const supportedImageFormats = computed(() => {
+  if (!areSmsReady.value) {
+    return undefined
+  }
   const sm = sms.value.find(sm => sm.SM_type === sr.SR_type && sm.$pool === sr.$pool)
   const formats = sm?.supported_image_formats
   return formats !== undefined && formats.length > 0 ? formats.join(', ').toUpperCase() : 'VHD'

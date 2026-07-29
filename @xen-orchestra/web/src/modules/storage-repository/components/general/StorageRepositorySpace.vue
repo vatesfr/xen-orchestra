@@ -17,16 +17,23 @@
         legend-type="percent"
       />
 
-      <UiAlert v-if="srUsageWarning" class="sr-usage-exceeded-alert" :accent="srUsageAccent">
-        {{ t('sr-usage-exceeds-80-percent') }}
+      <UiAlert v-if="srUsageAlert" class="sr-usage-exceeded-alert" :accent="srUsageAlert.accent">
+        {{ srUsageAlert.message }}
       </UiAlert>
 
       <VtsTabularKeyValueList>
-        <VtsTabularKeyValueRow :label="t('vdis-allocated-space')" :value="vdisAllocatedSpace" />
+        <VtsTabularKeyValueRow :label="t('vdis-allocated-space')">
+          <template #value>
+            <div class="vdis-allocated-space">
+              {{ vdisAllocatedSpace }}
+              <UiInfo v-if="vdiAllocatedSpaceWarning" accent="warning" wrap>
+                {{ t('vdi-allocated-space-exceeds-sr') }}
+              </UiInfo>
+            </div>
+          </template>
+        </VtsTabularKeyValueRow>
       </VtsTabularKeyValueList>
-      <UiInfo v-if="vdiAllocatedSpaceWarning" class="vdis-allocated-space-warning" accent="warning" wrap>
-        {{ t('vdi-allocated-space-exceeds-sr') }}
-      </UiInfo>
+
       <VtsTabularKeyValueList>
         <VtsTabularKeyValueRow :label="t('used-space-on-sr')" :value="usedSpace" />
         <VtsTabularKeyValueRow :label="t('free-space-on-sr')" :value="freeSpace" />
@@ -61,12 +68,19 @@ const usedSpace = computed(() => formatSize(sr.physical_usage, 2))
 const totalSpace = computed(() => formatSize(sr.size, 2))
 const freeSpace = computed(() => formatSize(sr.size - sr.physical_usage, 2))
 
-const isUnwritableSr = computed(() => !isSrWritable(sr))
-
-const srUsagePercentage = computed(() => (sr.size > 0 ? (sr.physical_usage / sr.size) * 100 : 0))
-const srUsageWarning = computed(() => srUsagePercentage.value > 80)
-const srUsageAccent = computed(() => (srUsagePercentage.value >= 90 ? 'danger' : 'warning'))
-const vdiAllocatedSpaceWarning = computed(() => sr.usage > sr.size - sr.physical_usage)
+const isWritableSr = computed(() => isSrWritable(sr))
+const isUnwritableSr = computed(() => !isWritableSr.value)
+const srUsagePercentage = computed(() => (isWritableSr.value ? (sr.physical_usage / sr.size) * 100 : 0))
+const srUsageAlert = computed(() => {
+  if (srUsagePercentage.value >= 90) {
+    return { accent: 'danger', message: t('sr-usage-exceeds-90-percent') } as const
+  }
+  if (srUsagePercentage.value > 80) {
+    return { accent: 'warning', message: t('sr-usage-exceeds-80-percent') } as const
+  }
+  return undefined
+})
+const vdiAllocatedSpaceWarning = computed(() => isWritableSr.value && sr.usage > sr.size - sr.physical_usage)
 </script>
 
 <style scoped lang="postcss">
@@ -75,8 +89,12 @@ const vdiAllocatedSpaceWarning = computed(() => sr.usage > sr.size - sr.physical
 }
 
 .sr-unwritable-alert,
-.sr-usage-exceeded-alert,
-.vdis-allocated-space-warning {
+.sr-usage-exceeded-alert {
   margin: 2rem 0;
+}
+.vdis-allocated-space {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
 }
 </style>
