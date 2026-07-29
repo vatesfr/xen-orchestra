@@ -1,7 +1,13 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { VtsLinkCellProps } from '@core/components/table/cells/VtsLinkCell.vue'
-import type { HOST_ALLOWED_OPERATIONS } from '@vates/types'
+import { HOST_ALLOWED_OPERATIONS } from '@vates/types'
 import { castArray } from 'lodash-es'
+
+export const CHANGING_STATE_OPERATIONS: Partial<HOST_ALLOWED_OPERATIONS>[] = [
+  HOST_ALLOWED_OPERATIONS.SHUTDOWN,
+  HOST_ALLOWED_OPERATIONS.ENABLE,
+  HOST_ALLOWED_OPERATIONS.POWER_ON,
+]
 
 export function isHostOperationPending(
   host: FrontXoHost,

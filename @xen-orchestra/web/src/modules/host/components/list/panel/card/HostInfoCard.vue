@@ -125,7 +125,7 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { getPowerState, getRelativeStartTime } = useXoHostUtils()
+const { getPowerState, getRelativeStartTime } = useXoHostUtils(host)
 
 const { useGetPoolById } = useXoPoolCollection()
 

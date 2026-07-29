@@ -11,6 +11,13 @@
         />
       </template>
       <template #addons>
+        <UiLoader
+          v-if="isChangingState"
+          v-tooltip="{
+            placement: 'top',
+            content: currentOperation,
+          }"
+        />
         <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
         <UiCounter
           v-tooltip="t('running-vm', runningVmsCount)"
@@ -38,6 +45,7 @@
 
 <script lang="ts" setup>
 import HostMoreActions from '@/modules/host/components/HostMoreActions.vue'
+import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { HostBranch } from '@/modules/treeview/types/tree.type.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -48,6 +56,7 @@ import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
@@ -61,6 +70,8 @@ const { t } = useI18n()
 
 const { isMasterHost } = useXoHostCollection()
 const { runningVmsCountByContainer } = useXoVmCollection()
+
+const { isChangingState, currentOperation } = useXoHostUtils(() => branch.data)
 
 const isMaster = computed(() => isMasterHost(branch.data.id))
 
