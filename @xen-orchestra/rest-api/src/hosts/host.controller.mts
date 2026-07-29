@@ -940,6 +940,7 @@ export class HostController extends XapiXoController<XoHost> {
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/scan_pifs')
   @Middlewares(acl({ resource: 'host', action: 'scan-pifs', objectId: 'params.id' }))
+  @Tags('pifs')
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
