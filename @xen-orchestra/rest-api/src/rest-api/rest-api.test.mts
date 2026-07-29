@@ -11,10 +11,11 @@ describe('RestApi#buildResolver', () => {
     vm1: { $SR: 'sr1' },
     sr1: { tags: ['prod'] },
   }
+  const anyStore = { ...store, user1: { email: 'test@test.com' } }
   const makeApp = (over = {}) => ({
     getObject: id => store[id], // used by this.resolver fallback
     getAnyObject: async id => {
-      const o = store[id]
+      const o = anyStore[id]
       if (o === undefined) throw noSuchObject(id)
       return o
     },
@@ -44,5 +45,12 @@ describe('RestApi#buildResolver', () => {
     )
     const node = CM.parse('$SR:[resolve]:tags:prod')
     await assert.rejects(() => api.buildResolver({ $SR: 'sr1' }, node), /db down/)
+  })
+
+  it('resolves a nested referenced id via getAnyObject prefetch', async () => {
+    const api = makeRestApi(makeApp())
+    const node = CM.parse('properties:userId:[resolve]:email:"test@test.com"')
+    const resolver = await api.buildResolver({ properties: { userId: 'user1' } }, node)
+    assert.deepEqual(resolver('user1'), { email: 'test@test.com' })
   })
 })

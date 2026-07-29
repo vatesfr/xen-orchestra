@@ -1,6 +1,6 @@
 import { createLogger } from '@xen-orchestra/log'
 import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
-import type { XapiXoRecord, XoApp, XoUser } from '@vates/types'
+import type { XapiXoRecord, XoApp, XoRecord, XoUser } from '@vates/types'
 import * as CM from 'complex-matcher'
 
 import type { Container } from 'inversify'
@@ -72,9 +72,9 @@ export class RestApi {
       const fields = CM.getResolveFields(node)
 
       for (const field of fields) {
-        const objectIds: string[] = []
-        for (const object of objectsToProcess) {
-          const ids = object[field.name]
+        const objectIds: XoRecord['id'][] = []
+        for (const objectToProcess of objectsToProcess) {
+          const ids = field.path.reduce((object, path) => object?.[path], objectToProcess)
           if (ids !== undefined) {
             for (const id of Array.isArray(ids) ? ids : [ids]) {
               if (!anyObjects.has(id) && !objectIds.includes(id)) {

@@ -108,7 +108,7 @@ describe('NumberOrStringNode', () => {
 describe('getResolveFields', () => {
   it('returns field name and resolve node for a single property', () => {
     const resolveFields = getResolveFields(parse('object:[resolve]:tags:tag'))
-    assert.equal(resolveFields[0].name, 'object')
+    assert.deepEqual(resolveFields[0].path, ['object'])
     assert(resolveFields[0].resolveNode instanceof Resolve)
   })
 
@@ -119,33 +119,53 @@ describe('getResolveFields', () => {
 
   it('returns all field names and resolve nodes for an And node', () => {
     const resolveFields = getResolveFields(parse('object1:[resolve]:tags:tag object2:[resolve]:tags:tag'))
-    assert.equal(resolveFields[0].name, 'object1')
+    assert.deepEqual(resolveFields[0].path, ['object1'])
     assert(resolveFields[0].resolveNode instanceof Resolve)
-    assert.equal(resolveFields[1].name, 'object2')
+    assert.deepEqual(resolveFields[1].path, ['object2'])
     assert(resolveFields[1].resolveNode instanceof Resolve)
   })
 
   it('only returns properties with [resolve] in a mixed And node', () => {
     const resolveFields2 = getResolveFields(parse('object3:[resolve]:tags:tag tags:tag'))
     assert.equal(resolveFields2.length, 1)
-    assert.equal(resolveFields2[0].name, 'object3')
+    assert.deepEqual(resolveFields2[0].path, ['object3'])
     assert(resolveFields2[0].resolveNode instanceof Resolve)
   })
 
   it('returns all field names and resolve nodes for an Or node', () => {
     const resolveFields = getResolveFields(parse('|(object1:[resolve]:tags:tag object2:[resolve]:tags:tag)'))
     assert.equal(resolveFields.length, 2)
-    assert.equal(resolveFields[0].name, 'object1')
+    assert.deepEqual(resolveFields[0].path, ['object1'])
     assert(resolveFields[0].resolveNode instanceof Resolve)
-    assert.equal(resolveFields[1].name, 'object2')
+    assert.deepEqual(resolveFields[1].path, ['object2'])
     assert(resolveFields[1].resolveNode instanceof Resolve)
   })
 
   it('returns field names and resolve nodes inside a Not node', () => {
     const resolveFields = getResolveFields(parse('!(object:[resolve]:tags:tag)'))
     assert.equal(resolveFields.length, 1)
-    assert.equal(resolveFields[0].name, 'object')
+    assert.deepEqual(resolveFields[0].path, ['object'])
     assert(resolveFields[0].resolveNode instanceof Resolve)
+  })
+
+  it('returns the full path and resolve node for a nested property', () => {
+    const resolveFields = getResolveFields(parse('properties:userId:[resolve]:tags:tag'))
+    assert.equal(resolveFields.length, 1)
+    assert.deepEqual(resolveFields[0].path, ['properties', 'userId'])
+    assert(resolveFields[0].resolveNode instanceof Resolve)
+  })
+
+  it('prefixes paths for resolves inside a grouped property', () => {
+    const resolveFields = getResolveFields(parse('object1:(object2:[resolve]:tags:tag object3:[resolve]:tags:tag)'))
+    assert.equal(resolveFields.length, 2)
+    assert.deepEqual(resolveFields[0].path, ['object1', 'object2'])
+    assert.deepEqual(resolveFields[1].path, ['object1', 'object3'])
+  })
+
+  it('ignores non-resolve terms in a group', () => {
+    const resolveFields = getResolveFields(parse('object1:(object2:[resolve]:tags:tag property)'))
+    assert.equal(resolveFields.length, 1)
+    assert.deepEqual(resolveFields[0].path, ['object1', 'object2'])
   })
 })
 
