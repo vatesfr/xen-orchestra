@@ -102,11 +102,21 @@ export function useXoSrUtils(
     return hostName ?? t('unknown')
   }
 
+  function getSrAccessMode(sr: FrontXoSr): string {
+    return sr.shared ? t('shared') : t('local')
+  }
+
+  function getSrProvisioning(sr: FrontXoSr): string {
+    return sr.allocationStrategy ?? t('unknown')
+  }
+
   return {
     pbdsInScope,
     srConnectionStatus: allPbdsConnectionStatus,
     isPartiallyConnectedInScope,
     srStatusIcon,
     getSrLocation,
+    getSrAccessMode,
+    getSrProvisioning,
   }
 }

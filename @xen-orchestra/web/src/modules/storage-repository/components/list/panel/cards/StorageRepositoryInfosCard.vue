@@ -85,16 +85,14 @@ const href = computed(() => buildXo5Route(`/srs/${sr.id}/general`))
 
 const { isHighAvailabilitySr } = useXoSrCollection()
 
-const { srConnectionStatus, srStatusIcon } = useXoSrUtils(
+const { srConnectionStatus, srStatusIcon, getSrAccessMode, getSrProvisioning } = useXoSrUtils(
   () => sr,
   () => scope
 )
 
-const isSrSharedI18nValue = computed(() => (sr.shared ? t('shared') : t('local')))
+const isSrSharedI18nValue = computed(() => getSrAccessMode(sr))
 
-const allocationStrategy = computed(() => {
-  return sr.allocationStrategy ?? t('unknown')
-})
+const allocationStrategy = computed(() => getSrProvisioning(sr))
 
 const isHaSr = isHighAvailabilitySr(() => sr)
 </script>

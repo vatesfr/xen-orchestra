@@ -8,15 +8,16 @@
       {{ t('no-pbd-attached') }}
     </VtsStateHero>
     <div v-else>
-      <UiLogEntryViewer
-        v-for="pbd in pbds"
-        :key="pbd.id"
-        class="log-viewer"
-        :content="pbd"
-        :label="t('device-config')"
-        size="small"
-        accent="info"
-      />
+      <template v-for="pbd in pbds" :key="pbd.id">
+        <UiLogEntryViewer
+          v-if="pbd.device_config"
+          class="log-viewer"
+          :content="pbd.device_config"
+          :label="t('device-config')"
+          size="small"
+          accent="info"
+        />
+      </template>
     </div>
   </UiCard>
 </template>

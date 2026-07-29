@@ -1046,6 +1046,7 @@
   "sr-is-unwritable": "Ce SR n'est pas accessible en écriture.",
   "sr-required": "Le dépôt de stockage est requis.",
   "sr-usage-exceeds-80-percent": "L'utilisation du stockage dépasse 80 % de la capacité totale. Les performances peuvent être impactées, pensez à libérer de l'espace.",
+  "sr-usage-exceeds-90-percent": "L'utilisation du stockage dépasse 90 % de la capacité totale. Libérez de l'espace immédiatement pour éviter toute interruption de service.",
   "ssh-account": "Compte SSH",
   "ssh-key": "Clé SSH",
   "ssh-login": "Nom d'utilisateur SSH",
