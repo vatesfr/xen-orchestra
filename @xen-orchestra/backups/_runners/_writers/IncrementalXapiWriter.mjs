@@ -1,3 +1,4 @@
+import assert from 'node:assert'
 import humanFormat from 'human-format'
 
 import { asyncMapSettled } from '@xen-orchestra/async-map'
@@ -20,6 +21,7 @@ import {
   DATETIME,
   VM_UUID,
   CONTENT_KEY,
+  INCLUDE_NON_NBD_QCOW2_FIX,
   resetVmOtherConfig,
 } from '../../_otherConfig.mjs'
 import { formatFilenameDate } from '../../_filenameDate.mjs'
@@ -27,8 +29,9 @@ import { XapiDiskSource } from '@xen-orchestra/xapi'
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { VM_POWER_STATE } from '@vates/types'
+import { diskHasData } from './_diskHasData.mjs'
 
-const { debug } = createLogger('xo:backups:IncrementalXapiWriter')
+const { debug, warn } = createLogger('xo:backups:IncrementalXapiWriter')
 
 export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWriter) {
   // Map of source VDI UUID (COPY_OF) → validated active VDI on the target SR.
@@ -93,6 +96,45 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         )
       }
       if (target !== undefined) {
+        // A delta is only chained onto a qcow2 base when NBD is enabled; without NBD a qcow2
+        // export falls back to a full, so there is no suspect base.
+        if (this._settings.preferNbd) {
+          // Every copy written by fixed code carries the flag, so the marker on the most recent
+          // link is enough: if it is there, this chain was already verified (or re-based) by a
+          // run that had the fix, and older links need no re-check.
+          const suspect = target.other_config[INCLUDE_NON_NBD_QCOW2_FIX] !== 'true'
+          if (suspect) {
+            const chain = this.#diskReplicaSnapshots(target)
+            // probe the OLDEST link (least-masked view of the corruption — a later delta could
+            // have overwritten the corrupt blocks and hidden the damage on a more recent snapshot).
+            // Re-replicating a full is expensive, so only force one when it actually looks corrupt.
+            let base = target
+            assert.notStrictEqual(base.other_config[DATETIME], undefined)
+            for (const vdi of chain) {
+              const datetime = vdi.other_config[DATETIME]
+              assert.notStrictEqual(datetime, undefined)
+              if (datetime < base.other_config[DATETIME]) {
+                base = vdi
+              }
+            }
+            let chainable
+            try {
+              chainable = await this.#baseVdiHasData(base.$ref)
+            } catch (error) {
+              // can't read the base to decide → don't chain onto it
+              warn('checkBaseVdis: error probing replicated base, forcing a full', { error, baseVdi: base.uuid })
+              chainable = false
+            }
+            if (!chainable) {
+              Task.warning('forcing a full: replicated qcow2 chain predates the non-NBD qcow2 fix and looks corrupt', {
+                baseVdi: base.uuid,
+              })
+              // drop it so neither the snapshot nor the legacy fallback reuses it → full
+              baseUuidToSrcVdi.delete(baseUuid)
+              continue
+            }
+          }
+        }
         snapshotCandidates.set(baseUuid, target)
       }
     }
@@ -133,6 +175,42 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       }
     }
   }
+
+  // All replica snapshots of a given disk share the same active target VDI ($snapshot_of). Return
+  // them (same job+vm) so the caller can inspect the whole chain: any link missing the fix marker
+  // makes the chain suspect, and the oldest link (by DATETIME) is the least-masked base to probe.
+  // Scoped by $snapshot_of, so history before a CR VM recreation (which resets it) is not included.
+  #diskReplicaSnapshots(target) {
+    const activeUuid = target.$snapshot_of?.uuid
+    const snapshots = []
+    for (const vdi of this._sr.$VDIs) {
+      if (
+        vdi?.managed &&
+        vdi?.is_a_snapshot &&
+        vdi.$snapshot_of?.uuid === activeUuid &&
+        vdi.other_config[JOB_ID] === this._job.id &&
+        vdi.other_config[VM_UUID] === this._vmUuid
+      ) {
+        snapshots.push(vdi)
+      }
+    }
+    return snapshots
+  }
+
+  // Probe a replicated base VDI for the DiskLargerBlock corruption signature (block 0 valid,
+  // following allocated blocks all zero). Uses an export (not NBD): block flow is guaranteed
+  // to be in index order, so block 0 comes first and inspecting the first few blocks is enough.
+  // Returns false only when no allocated non-zero block is found among the first ones.
+  async #baseVdiHasData(vdiRef) {
+    const source = new XapiDiskSource({ xapi: this._sr.$xapi, vdiRef, preferNbd: false })
+    try {
+      await source.init()
+      return await diskHasData(source)
+    } finally {
+      await source.close()
+    }
+  }
+
   /**
    * 6.3+ snapshot-based validation: for each snapshot candidate, check whether
    * the active VDI has diverged from the snapshot. Returns a baseVdisBySourceUuid
@@ -340,6 +418,10 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       if (baseDeltaVdiUuid !== undefined) {
         // reuse the validated mapping built by checkBaseVdis
         vdi.baseVdi = this.#baseVdisBySourceUuid.get(baseDeltaVdiUuid)
+        // BASE_DELTA_VDI is set, so the export is differencing. Without a base to clone,
+        // importIncrementalVm would create a blank VDI and write only the changed blocks
+        // into it, silently producing a corrupt replica: fail the job instead.
+        assert.notStrictEqual(vdi.baseVdi, undefined, `no validated target base for ${baseDeltaVdiUuid}`)
       } else {
         // first replication of this disk (full, no base)
         vdi.baseVdi = undefined

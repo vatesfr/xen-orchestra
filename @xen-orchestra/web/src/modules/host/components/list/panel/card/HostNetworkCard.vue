@@ -19,14 +19,7 @@
           <template #value>{{ ip }}</template>
           <template #addons>
             <VtsCopyButton :value="ip" />
-            <UiButtonIcon
-              v-if="index === 0 && ipV4Addresses.length > 1"
-              v-tooltip="t('coming-soon!')"
-              disabled
-              icon="fa:ellipsis"
-              size="small"
-              accent="brand"
-            />
+            <VtsCopyAllMenuItem v-if="index === 0 && ipV4Addresses.length > 1" :values="ipV4Addresses" />
           </template>
         </VtsCardRowKeyValue>
       </template>
@@ -41,14 +34,7 @@
           <template #value>{{ ip }}</template>
           <template #addons>
             <VtsCopyButton :value="ip" />
-            <UiButtonIcon
-              v-if="index === 0 && ipV6Addresses.length > 1"
-              v-tooltip="t('coming-soon!')"
-              disabled
-              icon="fa:ellipsis"
-              size="small"
-              accent="brand"
-            />
+            <VtsCopyAllMenuItem v-if="index === 0 && ipV6Addresses.length > 1" :values="ipV6Addresses" />
           </template>
         </VtsCardRowKeyValue>
       </template>
@@ -63,11 +49,10 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

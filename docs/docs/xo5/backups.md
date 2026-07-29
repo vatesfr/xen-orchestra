@@ -289,8 +289,9 @@ Supported remote types:
 
 - The initial "/" or "\\" is automatically added.
 - For disks larger than **2 TB**, store backups on **block-based remotes**.
-- For **qcow2** disks, use **NBD** mode for backups.
-  :::
+- For **qcow2** disks, enable [NBD](https://docs.xen-orchestra.com/incremental_backups#nbd-enabled-backups) for incremental backups — without it, each run falls back to a full backup.
+
+:::
 
 ### NFS
 
@@ -339,7 +340,8 @@ Xen Orchestra supports Amazon S3 storage and other S3-compatible providers, so y
 
 - Not all S3-compatible providers adhere perfectly to Amazon S3 standards. Make sure to test your setup before trusting it with critical backups.
 - Losing your encryption key means your backups will be permanently inaccessible. If you enable encryption, make sure your key is stored securely, and outside of the backed up infrastructure, as there's no way to recover your data without it.
-  :::
+
+:::
 
 ![](../assets/XO-Amazon-S3-remote.png)
 
@@ -422,7 +424,8 @@ You can also restore specific files and directories inside a VM. It works with a
   - [Data Deduplication](https://learn.microsoft.com/en-us/windows-server/storage/data-deduplication/overview)
   - [Logical Disk Manager](https://en.wikipedia.org/wiki/Logical_Disk_Manager) (LDM)
   - [Resilient File System](https://learn.microsoft.com/en-us/windows-server/storage/refs/refs-overview) (ReFS)
-    :::
+
+:::
 
 ### Restore a file
 
@@ -510,7 +513,8 @@ Concurrency is a parameter that let you define how many VMs your backup job will
 :::tip
 
 - Default concurrency value is 2 if left empty.
-  :::
+
+:::
 
 Let's say you want to backup 50 VMs (each with 1x disk) at 3:00 AM. There are **2 different strategies**:
 
@@ -612,7 +616,8 @@ Xen Orchestra supports the **Grandfather-Father-Son (GFS)** backup retention str
 - **What GFS isn't:**\
   GFS in Xen Orchestra stands for Grandfather-Father-Son. It's a backup strategy, and is not related to the file system called GFS2 (or Global File System 2), supported by XenServer.
 - GFS retention is defined per schedule. For example, if a backup has two schedules, two independent GFS backups will be created. This is why we recommend using a single schedule for any job utilizing GFS long-term retention.
-  :::
+
+:::
 
 #### Enabling GFS Retention
 

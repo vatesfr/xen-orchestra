@@ -1,4 +1,4 @@
-import assert from 'node:assert'
+import assert, { strictEqual } from 'node:assert'
 import { test } from 'node:test'
 import { DiskLargerBlock } from './DiskLargerBlock.mjs'
 import { RandomAccessDisk, DiskBlock, Disk } from './Disk.mjs'
@@ -45,7 +45,7 @@ class MockDisk extends RandomAccessDisk {
     this.closed = true
   }
   isDifferencing(): boolean {
-    return this.isDiff
+    return this.parentDisk !== null || this.isDiff
   }
   instantiateParent(): RandomAccessDisk {
     if (!this.parentDisk) throw new Error('No parent disk available')
@@ -116,6 +116,29 @@ test('readBlock with simple block mapping', async () => {
   // Verify the data is correctly combined
   assert(result.data.subarray(0, 512).equals(block1))
   assert(result.data.subarray(512).equals(block2))
+})
+
+test('readBlock at index > 0 places source data at block-relative offsets', async () => {
+  // Regression test: a large block after index 0 must be assembled from its own
+  // source blocks at offsets relative to the start of that large block.
+  // With distinct, non-zero patterns this catches the case where copy() targets an
+  // absolute (disk-wide) offset and silently produces a zeroed block.
+  const blockC = createPatternBuffer(512, 'C')
+  const blockD = createPatternBuffer(512, 'D')
+  const source = new MockDisk(512, 4096, [
+    [2, blockC],
+    [3, blockD],
+  ])
+  await source.init()
+
+  const disk = new DiskLargerBlock(source, 1024) // blockRatio = 2, so large block 1 = source blocks 2 & 3
+  await disk.init()
+
+  const result = await disk.readBlock(1)
+  assert.strictEqual(result.index, 1)
+  assert.strictEqual(result.data.length, 1024)
+  assert(result.data.subarray(0, 512).equals(blockC))
+  assert(result.data.subarray(512).equals(blockD))
 })
 
 test('hasBlock behavior', async () => {
@@ -214,6 +237,34 @@ test('close propagation', async () => {
   await disk.close()
   assert.strictEqual(source.closed, true)
 })
+test('getBlockIndexesCount', async () => {
+  const block = createPatternBuffer(512, 'BLOCK')
+  let source = new MockDisk(512, 4096, [
+    [2, block],
+    [3, block],
+  ])
+  await source.init()
+
+  let disk = new DiskLargerBlock(source, 1024)
+  await disk.init()
+  assert.strictEqual(disk.getBlockIndexesCount(), 1)
+  assert.strictEqual(disk.getBlockIndexesCount(), disk.getBlockIndexes().length)
+
+  await disk.close()
+
+  source = new MockDisk(512, 4096, [
+    [0, block],
+    [3, block],
+  ])
+  await source.init()
+
+  disk = new DiskLargerBlock(source, 1024)
+  await disk.init()
+  assert.strictEqual(disk.getBlockIndexesCount(), 2)
+  assert.strictEqual(disk.getBlockIndexesCount(), disk.getBlockIndexes().length)
+
+  await disk.close()
+})
 
 test('generator', async () => {
   const source = new MockDisk(512, 1024)
@@ -224,4 +275,30 @@ test('generator', async () => {
   for await (const block of disk.diskBlocks()) {
     assert.strictEqual(block.data.length, 1024)
   }
+})
+
+test('readblock missing block throws', async () => {
+  const parentBlock = createPatternBuffer(512, 'PARENT')
+  const childBlock = createPatternBuffer(512, 'CHILD')
+  const sourceParent = new MockDisk(512, 2048, [
+    [0, parentBlock],
+    [1, parentBlock],
+    [2, parentBlock],
+    [3, parentBlock],
+  ])
+  await sourceParent.init()
+  const source = new MockDisk(512, 2048, [[2, childBlock]])
+  source.parentDisk = sourceParent
+  await source.init()
+
+  const disk = new DiskLargerBlock(source, 1024)
+  await disk.init()
+  assert.strictEqual(disk.getBlockIndexesCount(), 1)
+  for await (const block of disk.diskBlocks()) {
+    assert.strictEqual(block.index, 1)
+    assert.ok(block.data.slice(0, 512).equals(childBlock), 'missing child data ')
+    assert.ok(block.data.slice(512, 1024).equals(parentBlock), 'missing parent data')
+  }
+
+  await assert.rejects(() => disk.readBlock(0))
 })

@@ -91,14 +91,7 @@
               </template>
               <template #addons>
                 <VtsCopyButton :value="ip" />
-                <UiButtonIcon
-                  v-if="index === 0 && ipAddresses.length > 1"
-                  v-tooltip="t('coming-soon!')"
-                  disabled
-                  icon="fa:ellipsis"
-                  size="small"
-                  accent="brand"
-                />
+                <VtsCopyAllMenuItem v-if="index === 0 && ipAddresses.length > 1" :values="ipAddresses" />
               </template>
             </VtsCardRowKeyValue>
           </template>
@@ -180,14 +173,7 @@
               <template #value>{{ device }}</template>
               <template #addons>
                 <VtsCopyButton :value="device" />
-                <UiButtonIcon
-                  v-if="index === 0 && bondDevices.length > 1"
-                  v-tooltip="t('coming-soon!')"
-                  disabled
-                  icon="fa:ellipsis"
-                  size="small"
-                  accent="brand"
-                />
+                <VtsCopyAllMenuItem v-if="index === 0 && bondDevices.length > 1" :values="bondDevices" />
               </template>
             </VtsCardRowKeyValue>
           </div>
@@ -242,12 +228,12 @@ import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { type FrontXoPif, useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
+import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'

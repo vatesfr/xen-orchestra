@@ -441,7 +441,11 @@ export default class S3Handler extends RemoteHandlerAbstract {
             new DeleteObjectsCommand({
               Bucket: this.#bucket,
               Delete: {
-                Objects: result.Contents ?? [],
+                // only keep the key: `ETag` and `Size` are also part of `ObjectIdentifier`, where they
+                // mean "delete only if it still matches", and passing the whole listed object would
+                // serialize them in the request. Beyond making the deletion conditional, some
+                // providers reject these elements with a `MalformedXML` error.
+                Objects: (result.Contents ?? []).map(({ Key }) => ({ Key })),
               },
             })
           )

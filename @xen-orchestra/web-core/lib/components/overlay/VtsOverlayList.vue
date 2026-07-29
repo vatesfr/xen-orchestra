@@ -28,7 +28,7 @@ const overlayStore = useOverlayStore()
   .backdrop {
     position: fixed;
     inset: 0;
-    z-index: 1011;
+    z-index: 1015;
     background-color: var(--color-opacity-primary);
     pointer-events: none;
 
@@ -46,7 +46,7 @@ const overlayStore = useOverlayStore()
   .overlays {
     position: fixed;
     inset: 0;
-    z-index: 1012;
+    z-index: 1016;
 
     /* The container only positions the stacked modals; each modal catches its own
        clicks, so an empty container must let clicks through. */

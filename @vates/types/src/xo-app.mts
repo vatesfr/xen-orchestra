@@ -1,6 +1,5 @@
 import { EventEmitter } from 'node:stream'
 import type {
-  AnyXoBackupJob,
   AnyXoJob,
   AnyXoLog,
   XapiXoRecord,
@@ -21,6 +20,7 @@ import type {
   XoVmBackupArchive,
 } from './xo.mjs'
 import { VatesTask } from './lib/vates-task.mjs'
+import type { PluginRestRouteDefinition } from './lib/rest-api.mjs'
 import {
   Xapi,
   XapiHostStats,
@@ -195,6 +195,7 @@ export type XoApp = {
       params?: any
     }
   ) => () => void // eslint-disable-line @typescript-eslint/no-explicit-any
+  registerRestRoutes: (routes: PluginRestRouteDefinition[], base?: string) => () => void
   authenticateUser: (
     credentials: { token?: string; username?: string; password?: string },
     userData?: { ip?: string },
@@ -340,8 +341,11 @@ export type XoApp = {
       readOnly?: XoServer['readOnly']
     }
   ): Promise<XoServer>
-  rollingPoolReboot(pool: XoPool, opts?: { parentTask?: VatesTask }): Promise<void>
-  rollingPoolUpdate(pool: XoPool, opts?: { rebootVm?: boolean; parentTask?: VatesTask }): Promise<void>
+  rollingPoolReboot(pool: XoPool, opts?: { parentTask?: VatesTask; shutdownPinnedVms?: boolean }): Promise<void>
+  rollingPoolUpdate(
+    pool: XoPool,
+    opts?: { rebootVm?: boolean; parentTask?: VatesTask; shutdownPinnedVms?: boolean }
+  ): Promise<void>
   setVmResourceSet(vmId: XoVm['id'], resourceSetId: string | null, force?: boolean): Promise<void>
   shareVmResourceSet(vmId: XoVm['id']): Promise<void>
   removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>

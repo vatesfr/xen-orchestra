@@ -1,0 +1,118 @@
+.feedback {
+  margin: 2rem 0 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--ifm-global-radius);
+  font-size: 0.875rem;
+}
+
+.voteRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.question {
+  font-weight: 600;
+}
+
+.voteButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.9rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--ifm-global-radius);
+  background: none;
+  color: var(--ifm-font-color-base);
+  font: inherit;
+  cursor: pointer;
+}
+
+.voteButton:hover {
+  border-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+}
+
+.thumbDown {
+  transform: scaleY(-1);
+}
+
+.why {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.reasons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.reason {
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 1rem;
+  background: none;
+  color: var(--ifm-font-color-base);
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.reason:hover {
+  border-color: var(--ifm-color-primary);
+}
+
+.reason[aria-pressed='true'] {
+  border-color: var(--ifm-color-primary);
+  background: var(--ifm-color-primary);
+  color: var(--ifm-color-primary-contrast-foreground, #fff);
+}
+
+.details {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--ifm-global-radius);
+  background: var(--ifm-background-color);
+  color: var(--ifm-font-color-base);
+  font: inherit;
+  resize: vertical;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.submit {
+  padding: 0.3rem 1.1rem;
+  border: 1px solid var(--ifm-color-primary);
+  border-radius: var(--ifm-global-radius);
+  background: var(--ifm-color-primary);
+  color: var(--ifm-color-primary-contrast-foreground, #fff);
+  font: inherit;
+  cursor: pointer;
+}
+
+.submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.skip {
+  padding: 0.3rem 1.1rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--ifm-global-radius);
+  background: none;
+  color: var(--ifm-font-color-secondary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.thanks {
+  font-weight: 600;
+}

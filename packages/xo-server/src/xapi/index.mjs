@@ -78,6 +78,7 @@ export default class Xapi extends XapiBase {
     vmEvacuationConcurrency,
     vmExportConcurrency,
     vmMigrationConcurrency = 3,
+    vmShutdownTimeout,
     vmSnapshotConcurrency,
     ...opts
   }) {
@@ -87,6 +88,7 @@ export default class Xapi extends XapiBase {
     this._maxUncoalescedVdis = maxUncoalescedVdis
     this._restartHostTimeout = parseDuration(restartHostTimeout)
     this._vmEvacuationConcurrency = vmEvacuationConcurrency
+    this._vmShutdownTimeout = parseDuration(vmShutdownTimeout)
 
     //  close event is emitted when the export is canceled via browser. See https://github.com/vatesfr/xen-orchestra/issues/5535
     const waitStreamEnd = async stream => fromEvents(await stream, ['end', 'close'])

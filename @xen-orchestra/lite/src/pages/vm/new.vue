@@ -221,7 +221,7 @@ import { useUiStore } from '@core/stores/ui.store'
 // Vue imports
 import { type DOMAIN_TYPE, OPAQUE_REF, VBD_TYPE } from '@vates/types'
 import { logicNot } from '@vueuse/math'
-import defer, { type Defer } from 'golike-defer'
+import { defer, type Defer } from 'golike-defer'
 import { computed, reactive, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
