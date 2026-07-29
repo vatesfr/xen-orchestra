@@ -1,6 +1,5 @@
 <template>
   <UiHeadBar>
-    {{ host.name_label }}
     <template #icon>
       <VtsObjectIcon
         v-tooltip="{
@@ -10,9 +9,10 @@
         size="medium"
         type="host"
         :state="toLower(host.power_state)"
-        :busy="isChangingState"
+        :state="getHostState(host)"
       />
     </template>
+    {{ host.name_label }}
     <template v-if="isMaster" #status>
       <VtsIcon v-tooltip="t('master')" name="status:primary-circle" size="medium" />
     </template>
@@ -93,6 +93,7 @@ import HostPowerStateActions from '@/modules/host/components/actions/HostPowerSt
 import HostMoreActions from '@/modules/host/components/HostMoreActions.vue'
 import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { getHostState } from '@/modules/host/utils/xo-host.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'

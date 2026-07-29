@@ -4,7 +4,7 @@
       :id="host.id"
       :label="host.name_label"
       :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
-      :icon="`object:host:${toLower(host.power_state)}`"
+      :icon="`object:host:${getHostState(host)}`"
     />
     <div class="content">
       <VtsCardRowKeyValue>
@@ -64,7 +64,7 @@
             <UiLink
               :to="{ name: '/host/[id]/dashboard', params: { id: masterHost.id } }"
               size="small"
-              :icon="`object:host:${toLower(masterHost.power_state)}`"
+              :icon="`object:host:${getHostState(masterHost)}`"
               is-primary
               :primary-tooltip="t('master')"
             >
@@ -103,6 +103,7 @@
 import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoHostMissingPatchesCollection } from '@/modules/host/remote-resources/use-xo-host-missing-patches-collection.ts'
+import { getHostState } from '@/modules/host/utils/xo-host.util.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
@@ -115,7 +116,6 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -125,7 +125,7 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { getPowerState, getRelativeStartTime } = useXoHostUtils(() => host)
+const { getStatus, getRelativeStartTime } = useXoHostUtils(() => host)
 
 const { useGetPoolById } = useXoPoolCollection()
 
@@ -143,7 +143,7 @@ const nMissingPatches = computed(() => missingPatches.value.length)
 
 const noMissingPatches = computed(() => nMissingPatches.value === 0)
 
-const powerState = computed(() => getPowerState(host.power_state))
+const powerState = computed(() => getStatus(getHostState(host)))
 
 const relativeStartTime = computed(() => (host.startTime ? getRelativeStartTime(host.startTime) : undefined))
 </script>

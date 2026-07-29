@@ -1,10 +1,10 @@
-import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { getHostState } from '@/modules/host/utils/xo-host.util.ts'
 import { getPoolInfo } from '@/modules/pool/utils/xo-pool.util.ts'
 import type { FrontXoServer } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import type { Status } from '@core/components/status/VtsStatus.vue'
 import { icon, objectIcon } from '@core/icons'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import { toLower } from 'lodash-es'
 import { computed, type MaybeRefOrGetter } from 'vue'
 
 export interface PoolFilterableData extends FrontXoServer {
@@ -61,7 +61,7 @@ export function usePoolEnhancedData(rawServers: MaybeRefOrGetter<FrontXoServer[]
    */
   const getDisplayData = (pool: PoolFilterableData): PoolDisplayData => {
     const host = getHostById(pool.master)
-    const hostIcon = host ? objectIcon('host', toLower(host.power_state)) : undefined
+    const hostIcon = host ? objectIcon('host', getHostState(host)) : undefined
     const primaryHostRightIcon = host ? getMasterIcon(host) : undefined
 
     return {

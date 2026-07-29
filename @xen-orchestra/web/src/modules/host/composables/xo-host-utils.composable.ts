@@ -1,10 +1,11 @@
+import type { XoHostState } from '@/modules/host/utils/xo-host.util.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { getHostPendingStateOperation, getHostSmartRebootVmOperation } from '@/modules/host/utils/xo-host.util.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { IconName } from '@core/icons'
-import useRelativeTime from '@core/composables/relative-time.composable.ts'
-import { createMapper, useMapper } from '@core/packages/mapper'
-import { parseDateTime } from '@core/utils/time.util.ts'
+import useRelativeTime from '@core/composables/relative-time.composable'
+import { createMapper } from '@core/packages/mapper'
+import { parseDateTime } from '@core/utils/time.util'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { HOST_POWER_STATE } from '@vates/types'
 import { computed, type MaybeRefOrGetter } from 'vue'
@@ -17,13 +18,14 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
 
   const { vmsByHost } = useXoVmCollection()
 
-  const getPowerState = createMapper<HOST_POWER_STATE, { text: string; icon: IconName | undefined }>(
+  const getStatus = createMapper<XoHostState, { text: string; icon: IconName | undefined }>(
     {
-      [HOST_POWER_STATE.RUNNING]: { text: t('host:status:running'), icon: 'status:running-circle' },
-      [HOST_POWER_STATE.HALTED]: { text: t('host:status:halted'), icon: 'status:halted-circle' },
-      [HOST_POWER_STATE.UNKNOWN]: { text: t('host:status:unknown'), icon: undefined },
+      running: { text: t('host:status:running'), icon: 'status:running-circle' },
+      halted: { text: t('host:status:halted'), icon: 'status:halted-circle' },
+      disabled: { text: t('host:status:disabled'), icon: 'status:host-disabled-circle' },
+      unknown: { text: t('host:status:unknown'), icon: undefined },
     },
-    HOST_POWER_STATE.UNKNOWN
+    'unknown'
   )
 
   function getRelativeStartTime(startTime: number) {
@@ -57,7 +59,7 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
   )
 
   return {
-    getPowerState,
+    getStatus,
     getRelativeStartTime,
     isChangingState,
     currentOperation,
