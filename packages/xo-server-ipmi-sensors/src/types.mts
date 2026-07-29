@@ -50,6 +50,5 @@ export type AvailableIpmiSensor = ReturnedSensorData & { dataType: IPMI_SENSOR_D
 export type AvailableIpmiSensors = {
   productName: string
   systemManufacturer: string
-  ipmiDeviceAvailable: boolean
   sensors: AvailableIpmiSensor[]
 }

@@ -202,12 +202,12 @@ export class IpmiSensorsPlugin {
     return ipmiSensorsByDataType
   }
 
-  async getAvailableIpmiSensors({ host }: { host: XoHost }): Promise<AvailableIpmiSensors> {
+  async getAvailableIpmiSensors({ host }: { host: XoHost }): Promise<AvailableIpmiSensors | false> {
     const { productName, systemManufacturer, callIpmiPlugin } = this.#getIpmiContext(host)
 
     const ipmiDeviceAvailable = (await callIpmiPlugin<string>('is_ipmi_device_available')) !== 'false'
     if (!ipmiDeviceAvailable) {
-      return { productName, systemManufacturer, ipmiDeviceAvailable: false, sensors: [] }
+      return false
     }
 
     const sensors = await this.#fetchRawSensors(callIpmiPlugin)
@@ -218,7 +218,6 @@ export class IpmiSensorsPlugin {
     return {
       productName,
       systemManufacturer,
-      ipmiDeviceAvailable: true,
       sensors,
     }
   }

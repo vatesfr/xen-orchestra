@@ -1,7 +1,7 @@
 import type { PluginRestRouteDefinition, XoHost } from '@vates/types'
 import type { IpmiSensorsPlugin } from './index.mjs'
 import { IPMI_SENSOR_DATA_TYPE } from './types.mjs'
-
+import { serviceUnavailable } from 'xo-common/api-errors.js'
 export function createIpmiRestRoutes(plugin: IpmiSensorsPlugin): PluginRestRouteDefinition[] {
   return [
     {
@@ -24,7 +24,6 @@ export function createIpmiRestRoutes(plugin: IpmiSensorsPlugin): PluginRestRoute
           schema: {
             productName: { type: 'string', example: 'poweredge r640' },
             systemManufacturer: { type: 'string', example: 'dell inc.' },
-            ipmiDeviceAvailable: { type: 'boolean', example: true },
             sensors: {
               type: 'array',
               example: [
@@ -53,12 +52,19 @@ export function createIpmiRestRoutes(plugin: IpmiSensorsPlugin): PluginRestRoute
           description: 'The host has no available IPMI device',
         },
       ],
-      callback: async ({ req, res }) => {
+      callback: async ({ req }) => {
         const host = plugin.xo.getObject<XoHost>(req.params.id as XoHost['id'], 'host')
-        const result = await plugin.getAvailableIpmiSensors({ host })
-        if (!result.ipmiDeviceAvailable) {
-          res.status(503).json(result)
-          return
+        let result: Awaited<ReturnType<IpmiSensorsPlugin['getAvailableIpmiSensors']>>
+        try {
+          result = await plugin.getAvailableIpmiSensors({ host })
+        } catch (error) {
+          if (error instanceof Error && error.message === 'The host has no available IPMI device') {
+            throw serviceUnavailable({ serviceName: 'IPMI device' })
+          }
+          throw error
+        }
+        if (result === false) {
+          throw serviceUnavailable({ serviceName: 'IPMI device' })
         }
         return result
       },
