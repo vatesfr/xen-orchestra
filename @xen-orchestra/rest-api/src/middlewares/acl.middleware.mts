@@ -299,9 +299,11 @@ export function acl(acls: AclEntry | AclEntry[]) {
 
     const objects: object[] = []
     missingPrivilegeParams.forEach(missingPrivilegeParam => {
-      Array.isArray(missingPrivilegeParam.objects)
-        ? objects.push(...missingPrivilegeParam.objects)
-        : objects.push(missingPrivilegeParam.objects)
+      if (Array.isArray(missingPrivilegeParam.objects)) {
+        objects.push(...missingPrivilegeParam.objects)
+      } else {
+        objects.push(missingPrivilegeParam.objects)
+      }
     })
 
     const nodes: CM.Node[] = []

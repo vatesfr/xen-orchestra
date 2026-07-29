@@ -99,49 +99,33 @@ export default class Xo extends EventEmitter {
   }
 
   async getAnyObject(id) {
-    let result
+    const getters = [
+      Promise.resolve().then(() => this.getObject(id)),
+      this.getUser(id),
+      this.getGroup(id),
+      this.getProxy(id),
+      this.getSchedule(id),
+      this.getJob(id),
+      this.getAclV2Role(id),
+      this.getAclV2Privilege(id),
+    ]
 
-    try {
-      result = this.getObject(id)
-    } catch {}
-    if (result !== undefined) return result
-
-    try {
-      result = await this.getUser(id)
-    } catch {}
-    if (result !== undefined) return result
-
-    try {
-      result = await this.getGroup(id)
-    } catch {}
-    if (result !== undefined) return result
-
-    try {
-      result = await this.getProxy(id)
-    } catch {}
-    if (result !== undefined) return result
-
-    try {
-      result = await this.getSchedule(id)
-    } catch {}
-    if (result !== undefined) return result
-
-    try {
-      result = await this.getJob(id)
-    } catch {}
-    if (result !== undefined) return result
-
-    try {
-      result = await this.getAclV2Role(id)
-    } catch {}
-    if (result !== undefined) return result
-
-    try {
-      result = await this.getAclV2Privilege(id)
-    } catch {}
-    if (result !== undefined) return result
-
-    return result
+    // Promise.any requires Node >=15 but engines is >=14.18, so invert
+    // Promise.all: settle on the first fulfilled getter, and throw
+    // noSuchObject only when every getter rejects.
+    return Promise.all(
+      getters.map(promise =>
+        promise.then(
+          value => Promise.reject(value),
+          error => error
+        )
+      )
+    ).then(
+      () => {
+        throw noSuchObject(id)
+      },
+      value => value
+    )
   }
 
   hasObject(key, type) {

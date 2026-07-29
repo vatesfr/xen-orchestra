@@ -4,7 +4,7 @@ import type { AnyPrivilege, SupportedActionsByResource, SupportedResource } from
 import { BaseController, type BaseControllerType } from './base-controller.mjs'
 
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
+import { limitAndFilterArray, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 import * as CM from 'complex-matcher'
 
 export abstract class XoController<
@@ -24,7 +24,7 @@ export abstract class XoController<
 
     let resolver: (id: string) => object | undefined
     if (opts.filter) {
-      resolver = await this.restApi.buildResolver(objects, CM.parse(opts.filter))
+      resolver = await this.restApi.buildResolver(objects, safeParseComplexMatcher(opts.filter))
     } else {
       resolver = this.restApi.resolver
     }

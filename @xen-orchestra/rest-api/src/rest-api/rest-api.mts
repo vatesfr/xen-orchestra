@@ -1,5 +1,5 @@
 import { createLogger } from '@xen-orchestra/log'
-import { invalidCredentials } from 'xo-common/api-errors.js'
+import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 import type { XapiXoRecord, XoApp, XoUser } from '@vates/types'
 import * as CM from 'complex-matcher'
 
@@ -86,7 +86,15 @@ export class RestApi {
 
         const fetchedObjects: object[] = []
         for (const objectId of objectIds) {
-          const fetchedObject = await this.#xoApp.getAnyObject(objectId)
+          let fetchedObject
+          try {
+            fetchedObject = await this.#xoApp.getAnyObject(objectId)
+          } catch (error) {
+            if (!noSuchObject.is(error)) {
+              throw error
+            }
+          }
+
           if (fetchedObject !== undefined) {
             anyObjects.set(objectId, fetchedObject)
             fetchedObjects.push(fetchedObject)
