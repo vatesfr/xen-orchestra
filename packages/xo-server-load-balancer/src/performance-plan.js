@@ -1,4 +1,4 @@
-import { filter, intersection } from 'lodash'
+import { filter, intersection, keyBy } from 'lodash'
 
 import Plan from './plan'
 import { debug as debugP } from './utils'
@@ -175,6 +175,24 @@ export default class PerformancePlan extends Plan {
     const vms = filter(this._getAllRunningVms(), vm => vm.$container === exceededHost.id)
     const vmsAverages = await this._getVmsAverages(vms, { [exceededHost.id]: exceededHost })
 
+    // per-host counts of affinity/anti-affinity tagged VMs, to check whether a candidate destination
+    // would deteriorate a VM's constraints, instead of blocking its migration entirely.
+    // include exceededHost too, since counts get decremented on it as VMs are migrated away.
+    const allRunningVms = this._getAllRunningVms()
+    const allRelevantHosts = [exceededHost, ...hosts]
+    const affinityCountsByHostId = this._affinityTags.length
+      ? keyBy(
+          this._getTaggedHosts({ hosts: allRelevantHosts, tagList: this._affinityTags, vms: allRunningVms }).hosts,
+          'id'
+        )
+      : undefined
+    const antiAffinityCountsByHostId = this._antiAffinityTags.length
+      ? keyBy(
+          this._getTaggedHosts({ hosts: allRelevantHosts, tagList: this._antiAffinityTags, vms: allRunningVms }).hosts,
+          'id'
+        )
+      : undefined
+
     // Sort vms by cpu usage. (higher to lower) + use memory otherwise.
     vms.sort((a, b) => {
       const aAverages = vmsAverages[a.id]
@@ -210,34 +228,48 @@ export default class PerformancePlan extends Plan {
         continue
       }
 
-      // TODO: Improve this piece of code. We could compute variance to check if the VM
-      // is migratable. But the code must be rewritten:
-      // - All VMs, hosts and stats must be fetched at one place.
-      // - It's necessary to maintain a dictionary of tags for each host.
-      // - ...
-      const blockingAffinityTags = intersection(vm.tags, this._affinityTags)
-      if (blockingAffinityTags.length > 0) {
-        debug(
-          `VM (${vm.id}) of Host (${exceededHost.id}) cannot be migrated. It contains affinity tag(s): ${blockingAffinityTags}.`
+      // don't exclude VMs with meaningful tags entirely: only avoid destinations that would
+      // deteriorate the VM's affinity / anti-affinity / vm-to-host affinity constraints
+      let candidateHosts = hosts
+
+      const affinityTags = intersection(vm.tags, this._affinityTags)
+      if (affinityTags.length > 0) {
+        candidateHosts = filter(candidateHosts, host =>
+          affinityTags.some(tag => affinityCountsByHostId[host.id].tags[tag] > 0)
         )
-        continue
-      }
-      const blockingAntiAffinityTags = intersection(vm.tags, this._antiAffinityTags)
-      if (blockingAntiAffinityTags.length > 0) {
-        debug(
-          `VM (${vm.id}) of Host (${exceededHost.id}) cannot be migrated. It contains anti-affinity tag(s): ${blockingAntiAffinityTags}.`
-        )
-        continue
-      }
-      const blockingVmToHostAffinityTags = intersection(vm.tags, this._vmToHostAffinityTags)
-      if (blockingVmToHostAffinityTags.length > 0) {
-        debug(
-          `VM (${vm.id}) of Host (${exceededHost.id}) cannot be migrated. It contains vm-to-host affinity tag(s): ${blockingVmToHostAffinityTags}.`
-        )
-        continue
+        if (candidateHosts.length === 0) {
+          debug(
+            `VM (${vm.id}) of Host (${exceededHost.id}) cannot be migrated. No other host already has a VM sharing its affinity tag(s): ${affinityTags}.`
+          )
+          continue
+        }
       }
 
-      hosts.sort((a, b) => {
+      const antiAffinityTags = intersection(vm.tags, this._antiAffinityTags)
+      if (antiAffinityTags.length > 0) {
+        candidateHosts = filter(candidateHosts, host =>
+          antiAffinityTags.every(tag => antiAffinityCountsByHostId[host.id].tags[tag] === 0)
+        )
+        if (candidateHosts.length === 0) {
+          debug(
+            `VM (${vm.id}) of Host (${exceededHost.id}) cannot be migrated. Every host already has a VM sharing its anti-affinity tag(s): ${antiAffinityTags}.`
+          )
+          continue
+        }
+      }
+
+      const vmToHostAffinityTags = intersection(vm.tags, this._vmToHostAffinityTags)
+      if (vmToHostAffinityTags.length > 0) {
+        candidateHosts = filter(candidateHosts, host => vmToHostAffinityTags.some(tag => host.tags.includes(tag)))
+        if (candidateHosts.length === 0) {
+          debug(
+            `VM (${vm.id}) of Host (${exceededHost.id}) cannot be migrated. No other host shares its vm-to-host affinity tag(s): ${vmToHostAffinityTags}.`
+          )
+          continue
+        }
+      }
+
+      candidateHosts.sort((a, b) => {
         if (a.$poolId !== b.$poolId) {
           // Use host in the same pool first. In other pool if necessary.
           if (a.$poolId === vm.$poolId) {
@@ -251,7 +283,7 @@ export default class PerformancePlan extends Plan {
         return this._sortHosts(hostsAverages[a.id], hostsAverages[b.id])
       })
 
-      const destination = hosts[0]
+      const destination = candidateHosts[0]
 
       const destinationAverages = hostsAverages[destination.id]
       const vmAverages = vmsAverages[vm.id]
@@ -303,6 +335,9 @@ export default class PerformancePlan extends Plan {
           reason,
         })
       )
+      // keep our local counts in sync so later VMs in this loop aren't checked against stale data
+      this._adjustTagCounts(affinityCountsByHostId, affinityTags, exceededHost.id, destination.id)
+      this._adjustTagCounts(antiAffinityCountsByHostId, antiAffinityTags, exceededHost.id, destination.id)
       optimizationCount++
     }
 
