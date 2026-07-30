@@ -67,7 +67,7 @@ const isWritableSr = computed(() => isSrWritable(sr))
 const isUnwritableSr = computed(() => !isWritableSr.value)
 const srUsagePercentage = computed(() => (isWritableSr.value ? (sr.physical_usage / sr.size) * 100 : 0))
 const srUsageAlert = computed(() => {
-  if (srUsagePercentage.value >= 90) {
+  if (srUsagePercentage.value > 90) {
     return { accent: 'danger', message: t('sr-usage-exceeds-90-percent') } as const
   }
   if (srUsagePercentage.value > 80) {
