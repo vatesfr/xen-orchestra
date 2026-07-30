@@ -10,7 +10,7 @@
           variant="secondary"
           accent="brand"
           size="medium"
-          @click="scanPifs().catch(error => console.error(error))"
+          @click="scanPifs()"
         >
           {{ t('scan-pifs') }}
         </UiButton>
