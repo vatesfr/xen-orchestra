@@ -78,7 +78,7 @@ const scanPifs = async () => {
   isScanningPifs.value = true
 
   try {
-    await xenApi.host.scanPifs(host.$ref)
+    await xenApi.pif.scan(host.$ref)
   } catch (error) {
     console.error(error)
   } finally {
