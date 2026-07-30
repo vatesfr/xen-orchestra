@@ -34,7 +34,7 @@
 
 <script setup lang="ts">
 import NewVifForm from '@/modules/vif/components/form/new/NewVifForm.vue'
-import { type NewVifPayload, useXoVifCreateJob } from '@/modules/vif/jobs/xo-vif-create.job.ts'
+import { type NewVifPayload, useXoVifCreateJob } from '@/modules/vif/jobs/vif-create.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { ApiError } from '@/shared/error/api.error.ts'

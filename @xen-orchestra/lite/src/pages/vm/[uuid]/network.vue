@@ -1,22 +1,22 @@
 <template>
   <VtsContentSidePanel class="network">
     <UiCard class="container">
-      <VmVifsTable v-if="vm" :vifs :vm>
+      <VifsTable v-if="vm" :vifs :vm>
         <template #title-actions>
           <UiLink size="medium" :to="{ name: '/vif/new', query: { vmId: vm.uuid } }" icon="fa:plus">
             {{ t('new-vif') }}
           </UiLink>
         </template>
-      </VmVifsTable>
+      </VifsTable>
     </UiCard>
-    <VmVifsSidePanel :vif="selectedVif" @close="selectedVif = undefined" />
+    <VifsSidePanel :vif="selectedVif" @close="selectedVif = undefined" />
   </VtsContentSidePanel>
 </template>
 
 <script lang="ts" setup>
-import VmVifsSidePanel from '@/components/vm/network/VmVifsSidePanel.vue'
-import VmVifsTable from '@/components/vm/network/VmVifsTable.vue'
 import type { XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import VifsSidePanel from '@/modules/vif/components/panel/VifsSidePanel.vue'
+import VifsTable from '@/modules/vif/components/VifsTable.vue'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useVifStore } from '@/stores/xen-api/vif.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
