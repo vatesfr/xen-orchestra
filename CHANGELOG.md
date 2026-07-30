@@ -96,17 +96,17 @@
 - xo-server-perf-alert 1.1.1
 - @xen-orchestra/fs 4.9.3
 - @xen-orchestra/disk-transform 1.3.3
-- @vates/types 1.30.0
 - @xen-orchestra/backup-archive 1.1.1
-- @xen-orchestra/xapi 8.10.1
 - @xen-orchestra/backups 0.73.9
 - @xen-orchestra/web-core 0.58.0
-- @xen-orchestra/proxy 0.31.4
 - @xen-orchestra/rest-api 0.37.0
-- @xen-orchestra/web 0.57.0
-- xo-server 5.207.0
 - xo-server-openmetrics 1.9.0
 - xo-web 5.201.0
+- @vates/types 1.30.1
+- @xen-orchestra/xapi 8.10.2
+- @xen-orchestra/proxy 0.31.5
+- @xen-orchestra/web 0.57.1
+- xo-server 5.207.1
 
 ## **6.6.2** (2026-07-09)
 
