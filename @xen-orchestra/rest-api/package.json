@@ -36,7 +36,7 @@
   "dependencies": {
     "@vates/async-each": "^1.0.3",
     "@vates/task": "^0.7.0",
-    "@vates/types": "^1.30.0",
+    "@vates/types": "^1.30.1",
     "@xen-orchestra/acl": "^1.5.0",
     "@xen-orchestra/backups": "^0.73.9",
     "@xen-orchestra/log": "^0.7.2",
