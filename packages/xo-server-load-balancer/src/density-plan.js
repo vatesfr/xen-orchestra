@@ -1,4 +1,4 @@
-import { clone, filter } from 'lodash'
+import { clone, filter, intersection, keyBy } from 'lodash'
 
 import Plan from './plan'
 import { debug as debugP } from './utils'
@@ -112,26 +112,6 @@ export default class DensityPlan extends Plan {
         debug(`VM (${vm.id}) of Host (${hostId}) does not support pool migration.`)
         return
       }
-
-      for (const tag of vm.tags) {
-        // TODO: Improve this piece of code. We could compute variance to check if the VM
-        // is migratable. But the code must be rewritten:
-        // - All VMs, hosts and stats must be fetched at one place.
-        // - It's necessary to maintain a dictionary of tags for each host.
-        // - ...
-        if (this._affinityTags.includes(tag)) {
-          debug(`VM (${vm.id}) of Host (${hostId}) cannot be migrated. It contains affinity tag '${tag}'.`)
-          return
-        }
-        if (this._antiAffinityTags.includes(tag)) {
-          debug(`VM (${vm.id}) of Host (${hostId}) cannot be migrated. It contains anti-affinity tag '${tag}'.`)
-          return
-        }
-        if (this._vmToHostAffinityTags.includes(tag)) {
-          debug(`VM (${vm.id}) of Host (${hostId}) cannot be migrated. It contains vm-to-host affinity tag '${tag}'.`)
-          return
-        }
-      }
     }
 
     // Sort vms by amount of memory. (+ -> -)
@@ -142,15 +122,57 @@ export default class DensityPlan extends Plan {
       moves: [],
     }
 
+    // per-host counts of affinity/anti-affinity tagged VMs, to check whether a candidate destination
+    // would deteriorate a VM's constraints, instead of blocking its migration entirely.
+    // include the host being emptied too, since counts get decremented on it as VMs are migrated away.
+    const allRelevantHosts = [host, ...filter(destinations.flat(), h => h != null)]
+    const allRunningVms = this._getAllRunningVms()
+    const affinityCountsByHostId = this._affinityTags.length
+      ? keyBy(
+          this._getTaggedHosts({ hosts: allRelevantHosts, tagList: this._affinityTags, vms: allRunningVms }).hosts,
+          'id'
+        )
+      : undefined
+    const antiAffinityCountsByHostId = this._antiAffinityTags.length
+      ? keyBy(
+          this._getTaggedHosts({ hosts: allRelevantHosts, tagList: this._antiAffinityTags, vms: allRunningVms }).hosts,
+          'id'
+        )
+      : undefined
+
     // Try to find a destination for each VM.
     for (const vm of vms) {
       let move
 
+      // don't exclude VMs with meaningful tags entirely: only avoid destinations that would
+      // deteriorate the VM's affinity / anti-affinity / vm-to-host affinity constraints
+      const affinityTags = intersection(vm.tags, this._affinityTags)
+      const antiAffinityTags = intersection(vm.tags, this._antiAffinityTags)
+      const vmToHostAffinityTags = intersection(vm.tags, this._vmToHostAffinityTags)
+
       // Simulate the VM move on a destinations set.
       for (const subDestinations of destinations) {
+        let eligibleDestinations = filter(subDestinations, host => host != null)
+
+        if (affinityTags.length > 0) {
+          eligibleDestinations = filter(eligibleDestinations, host =>
+            affinityTags.some(tag => affinityCountsByHostId[host.id].tags[tag] > 0)
+          )
+        }
+        if (antiAffinityTags.length > 0) {
+          eligibleDestinations = filter(eligibleDestinations, host =>
+            antiAffinityTags.every(tag => antiAffinityCountsByHostId[host.id].tags[tag] === 0)
+          )
+        }
+        if (vmToHostAffinityTags.length > 0) {
+          eligibleDestinations = filter(eligibleDestinations, host =>
+            vmToHostAffinityTags.some(tag => host.tags.includes(tag))
+          )
+        }
+
         move = this._testMigration({
           vm,
-          destinations: subDestinations,
+          destinations: eligibleDestinations,
           hostsAverages,
           vmsAverages,
         })
@@ -158,6 +180,9 @@ export default class DensityPlan extends Plan {
         // Destination found.
         if (move) {
           simulResults.moves.push(move)
+          // keep our local counts in sync so later VMs in this loop aren't checked against stale data
+          this._adjustTagCounts(affinityCountsByHostId, affinityTags, hostId, move.destination.id)
+          this._adjustTagCounts(antiAffinityCountsByHostId, antiAffinityTags, hostId, move.destination.id)
           break
         }
       }
